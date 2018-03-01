@@ -7,9 +7,10 @@ const Timeline = require('./../../src/bll/Timeline')
 
 tape('Timeline#frameInfo', (t) => {
   // Start fresh.
-  Timeline.all().forEach((timeline) => {
-    Timeline.remove(timeline)
-  })
+  while (Timeline.count() > 0) {
+    const timeline = Timeline.find()
+    Timeline.remove(timeline, t)
+  }
   return setupTest('timeline-01', (ac, rows, done) => {
     t.deepEqual(Timeline.count(), 1)
     const timeline = ac.getCurrentTimeline()
