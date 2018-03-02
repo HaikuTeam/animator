@@ -1,16 +1,29 @@
 import * as React from 'react';
 import Palette from '../Palette';
+import * as assign from 'lodash.assign';
+
+/*
+  This component is very rudimentary atm and needs to be fleshed out for
+  dynamic arrow positioning.
+
+  GOTCHA-warning: note that with the current implementation whatever element
+  this is included within must have position relative.
+
+*/
 
 const STYLES = {
   tooltip: {
     position: 'absolute',
-    bottom: '-17px',
+    zIndex: 2000,
     left: '50%',
+    top: 34,
     transform: 'translateX(-50%)',
     borderRadius: '3px',
     width: '100%',
+    padding: '0 4px',
     textAlign: 'center',
     backgroundColor: Palette.DARKEST_COAL,
+    borderColor: Palette.DARKEST_COAL,
     boxShadow: '0 2px 7px 0 rgba(0,0,0,.3)',
   } as React.CSSProperties,
   tip: {
@@ -22,15 +35,33 @@ const STYLES = {
     height: 0,
     borderLeft: '5px solid transparent',
     borderRight: '5px solid transparent',
-    borderBottom: '5px solid' + Palette.DARKEST_COAL,
+    borderBottom: '5px solid ' + Palette.DARKEST_COAL,
+  } as React.CSSProperties,
+  light: {
+    backgroundColor: Palette.BLUE,
+  } as React.CSSProperties,
+  tipLight: {
+    borderBottom: '5px solid ' + Palette.BLUE,
   } as React.CSSProperties,
 };
 
 export class TooltipBasic extends React.PureComponent {
+  props;
+
+  static propTypes = {
+    light: React.PropTypes.bool,
+    top: React.PropTypes.number,
+  };
+
   render () {
     return (
-      <div style={STYLES.tooltip}>
-        <span style={STYLES.tip} />
+      <div style={
+        assign({}, {
+          ...STYLES.tooltip,
+          ...(this.props.light && STYLES.light),
+          ...{top: this.props.top},
+        })}>
+        <span style={assign({}, {...STYLES.tip, ...(this.props.light && STYLES.tipLight)})} />
         {this.props.children}
       </div>
     );

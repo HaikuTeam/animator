@@ -1,4 +1,6 @@
 import * as React from 'react';
+import * as assign from 'lodash.assign';
+import * as Color from 'color';
 import Palette from '../../Palette';
 import {LinkHolster} from './LinkHolster';
 
@@ -17,15 +19,73 @@ const STYLES = {
   } as React.CSSProperties,
   info: {
     color: Palette.PALE_GRAY,
+    cursor: 'default',
     fontSize: '10px',
     margin: '0',
     fontStyle: 'italic',
     lineHeight: '1.2em',
-    paddingRight: 33,
   } as React.CSSProperties,
+  infoHeading: {
+    float: 'left',
+    textAlign: 'left',
+    width: '100%',
+    fontSize: '12px',
+    marginBottom: 4,
+    display: 'block',
+  },
+  infoSpecial: {
+    width: '120%',
+    float: 'left',
+    textAlign: 'left',
+  },
+  infoSpecial2: {
+    float: 'left',
+    fontSize: 14,
+    textAlign: 'left',
+    marginTop: 10,
+    position: 'relative',
+    userSelect: 'none',
+  },
   label: {
     textTransform: 'uppercase',
     color: Palette.DARK_ROCK,
+  },
+  toggle: {
+    display: 'inline-block',
+    float: 'left',
+    cursor: 'pointer',
+    width: 34,
+    height: 16,
+    backgroundColor: Palette.GRAY,
+    borderRadius: 16,
+    position: 'relative',
+    marginTop: 10,
+    marginLeft: 10,
+  } as React.CSSProperties,
+  toggleLabel: {
+    width: 47,
+    display: 'inline-block',
+  } as React.CSSProperties,
+  toggleActive: {
+    backgroundColor: Color(Palette.LIGHTEST_PINK).fade(.5),
+  } as React.CSSProperties,
+  knob: {
+    display: 'inline-block',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: 16,
+    height: 16,
+    borderRadius: 16,
+    backgroundColor: Palette.DARKER_ROCK,
+    transition: 'transform 220ms cubic-bezier(0.25, 0.1, 0.29, 1.45)',
+  } as React.CSSProperties,
+  knobActive: {
+    backgroundColor: Palette.LIGHTEST_PINK,
+    transform: 'translateX(18px)',
+  },
+  disabledToggle: {
+    opacity: .5,
   },
 };
 
@@ -37,6 +97,8 @@ export class ProjectShareDetails extends React.PureComponent {
     projectName: React.PropTypes.string,
     linkAddress: React.PropTypes.string,
     isSnapshotSaveInProgress: React.PropTypes.bool,
+    isPublic: React.PropTypes.bool,
+    togglePublic: React.PropTypes.func,
   };
 
   render() {
@@ -46,6 +108,8 @@ export class ProjectShareDetails extends React.PureComponent {
       linkAddress,
       isSnapshotSaveInProgress,
       onHide,
+      isPublic,
+      togglePublic,
     } = this.props;
 
     return (
@@ -63,14 +127,43 @@ export class ProjectShareDetails extends React.PureComponent {
           ) : (
             <p style={{height: 16, ...STYLES.info}} />
           )}
+
+          <span
+            style={assign({}, {...STYLES.info, ...STYLES.infoSpecial2})} >
+            <span
+              id="public-private-label"
+              style={this.props.isDisabled ? STYLES.disabledToggle : STYLES.toggleLabel}>
+              {this.props.isPublic ? 'Public' : 'Private'}
+            </span>
+          </span>
+          <span
+            style={assign({}, {...STYLES.toggle, ...(isPublic && STYLES.toggleActive)})}
+            onClick={() => {!this.props.isDisabled && togglePublic();}}>
+              <span style={assign({}, {...STYLES.knob, ...(isPublic && STYLES.knobActive)})}/>
+          </span>
         </div>
 
         <div style={{width: '50%'}}>
+          <p style={assign({}, {...STYLES.info, ...STYLES.infoHeading})}>
+            <strong>Shareable link:</strong>
+          </p>
           <LinkHolster
             isSnapshotSaveInProgress={isSnapshotSaveInProgress}
             linkAddress={linkAddress}
           />
-          <p style={STYLES.info}>Anyone with the link can <strong>view and install</strong> your project.</p>
+          {
+            !this.props.isDisabled &&
+            <p style={assign({}, {...STYLES.info, ...STYLES.infoSpecial})}>
+              Anyone&nbsp;
+              {
+                !this.props.isPublic && <span>with the link&nbsp;</span>
+              }
+              <strong>can view and install</strong> your project&nbsp;
+              {
+                this.props.isPublic && <span><br />from your public profile</span> /*TODO: link to public profile */
+              }
+            </p>
+          }
         </div>
       </div>
     );
