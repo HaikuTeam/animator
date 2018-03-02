@@ -17,6 +17,7 @@ import ClusterRow from './ClusterRow'
 import PropertyRow from './PropertyRow'
 import ComponentHeadingRow from './ComponentHeadingRow'
 import FrameGrid from './FrameGrid'
+import IntercomWidget from './IntercomWidget'
 import Gauge from './Gauge'
 import GaugeTimeReadout from './GaugeTimeReadout'
 import TimelineRangeScrollbar from './TimelineRangeScrollbar'
@@ -58,7 +59,8 @@ const DEFAULTS = {
   isAltKeyDown: false,
   avoidTimelinePointerEvents: false,
   isPreviewModeActive: false,
-  isRepeat: true
+  isRepeat: true,
+  userDetails: null
 }
 
 const THROTTLE_TIME = 32 // ms
@@ -403,6 +405,11 @@ class Timeline extends React.Component {
               }
             }
           )
+          user.getUserDetails().then(
+            (userDetails) => {
+              this.setState({userDetails})
+            }
+          )
         }
       )
     }
@@ -679,7 +686,8 @@ class Timeline extends React.Component {
       <div
         style={{
           position: 'relative',
-          top: 17
+          top: 17,
+          width: '100%'
         }}>
         <ControlsArea
           timeline={this.getActiveComponent().getCurrentTimeline()}
@@ -721,6 +729,7 @@ class Timeline extends React.Component {
           }}
           isRepeat={this.state.isRepeat}
           />
+        <IntercomWidget user={this.state.userDetails} />
       </div>
     )
   }
