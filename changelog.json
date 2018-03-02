@@ -5308,5 +5308,12 @@
       "label": "fix",
       "message": "use correct import path for code samples in publish UI"
     }
+  },
+  "3.1.7": {
+    "5a27c5547aaafad6817142238d0a2d0156946666": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Add first changelog content"
+    }
   }
 }
