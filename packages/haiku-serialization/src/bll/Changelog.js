@@ -1,10 +1,12 @@
 const fs = require('fs')
 const path = require('path')
 
+const DEFAULT_CHANGELOG_PATH = path.join(__dirname, '..', '..', '..', '..', 'changelog/public')
+
 class Changelog {
   constructor(
     lastViewedChangelog = '0.0.0',
-    changelogPath = 'changelog/public'
+    changelogPath = DEFAULT_CHANGELOG_PATH
   ) {
     this.cachedChangelog = null
     this.lastViewedChangelog = lastViewedChangelog
