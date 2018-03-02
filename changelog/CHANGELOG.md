@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 3.1.10
+
+### Bug Fixes
+
+ * update the read paths for changelogs
+
 ## 3.1.9
 
 ### Bug Fixes
