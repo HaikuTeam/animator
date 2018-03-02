@@ -1,21 +1,15 @@
 {
   "version": "3.3.2",
   "date": "January 4, 2003",
-  "sections": [
-    {
-      "title": "Fixes",
-      "entries": [
-        "Fix: more _tacos for_ **all**",
-        "Fix: world [peace](http://google.com)",
-        "Fix: more yarn"
-      ]
-    },
-    {
-      "title": "What's new",
-      "entries": [
-        "Auto animation, one click you're done",
-        "Replace Haiku Core with Famous v4"
-      ]
-    }
-  ]
+  "sections": {
+    "Fixes": [
+      "Fix: more _tacos for_ **all**",
+      "Fix: world [peace](http://google.com)",
+      "Fix: more yarn"
+    ],
+    "What's new": [
+      "Auto animation, one click you're done",
+      "Replace Haiku Core with Famous v4"
+    ]
+  }
 }
