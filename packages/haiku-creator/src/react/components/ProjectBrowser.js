@@ -7,6 +7,7 @@ import Palette from 'haiku-ui-common/lib/Palette'
 import Toast from './notifications/Toast'
 import NotificationExplorer from './notifications/NotificationExplorer'
 import ProjectThumbnail from './ProjectThumbnail'
+import { TOUR_CHANNEL } from 'haiku-sdk-creator/lib/tour'
 import { UserIconSVG, LogOutSVG, LogoMicroSVG, PresentIconSVG } from 'haiku-ui-common/lib/react/OtherIcons'
 import { DASH_STYLES } from '../styles/dashShared'
 import { BTN_STYLES } from '../styles/btnShared'
@@ -51,7 +52,7 @@ class ProjectBrowser extends React.Component {
   componentDidMount () {
     this.loadProjects()
 
-    this.props.envoyClient.get('tour').then((tourChannel) => {
+    this.props.envoyClient.get(TOUR_CHANNEL).then((tourChannel) => {
       this.tourChannel = tourChannel
 
       // FIXME | HACK: since the project browser now supports scrolling, we

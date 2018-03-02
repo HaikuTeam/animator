@@ -7,7 +7,7 @@ import {ClientBoundingRect, MaybeAsync, Tour, TourState} from '.';
 import {EnvoyEvent} from '../envoy';
 import EnvoyServer from '../envoy/EnvoyServer';
 
-const TOUR_CHANNEL = 'tour';
+export const TOUR_CHANNEL = 'tour';
 
 export class TourHandler implements Tour {
 

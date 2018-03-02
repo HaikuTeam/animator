@@ -17,7 +17,7 @@ const DEFAULT_TIMELINE_DATA: TimelineData = {
   stopwatch: Date.now(),
 };
 
-const TIMELINE_CHANNEL = 'timeline';
+export const TIMELINE_CHANNEL = 'timeline';
 
 export class TimelineHandler implements Timeline {
 
