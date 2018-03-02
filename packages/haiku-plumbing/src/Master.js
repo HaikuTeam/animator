@@ -57,7 +57,8 @@ const UNWATCHABLE_RELPATHS = {
   'index.js': true,
   'haiku.js': true,
   'react-bare.js': true,
-  'react.js': true
+  'react.js': true,
+  'vue.js': true
 }
 
 const UNWATCHABLE_BASENAMES = {
