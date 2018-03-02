@@ -1,6 +1,16 @@
 # Changelog
 
 
+## 3.1.8
+
+### Bug Fixes
+
+ * Ensure changelog files are included in the build payload
+
+### Features
+
+ * Add first changelog content
+
 ## 3.1.7
 
 ### Features
