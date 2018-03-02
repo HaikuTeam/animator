@@ -29,6 +29,7 @@ import { EXPORTER_CHANNEL, ExporterFormat } from 'haiku-sdk-creator/lib/exporter
 // Note that `User` is imported below for type discovery
 // (which works even inside JS with supported editors, using jsdoc type annotations)
 import { USER_CHANNEL, User } from 'haiku-sdk-creator/lib/bll/User' // eslint-disable-line no-unused-vars
+import { PROJECT_CHANNEL } from 'haiku-sdk-creator/lib/bll/Project' // eslint-disable-line no-unused-vars
 import { GLASS_CHANNEL } from 'haiku-sdk-creator/lib/glass'
 import { InteractionMode, isPreviewMode } from '@haiku/core/lib/helpers/interactionModes'
 import Palette from 'haiku-ui-common/lib/Palette'
@@ -424,6 +425,13 @@ export default class Creator extends React.Component {
       (user) => {
         this.user = user
         this.handleEnvoyUserReady()
+      }
+    )
+
+    this.envoyClient.get(PROJECT_CHANNEL).then(
+      (project) => {
+        this.setState({envoyProject: project})
+        // this.handleEnvoyProjectReady()
       }
     )
 
@@ -1210,6 +1218,7 @@ export default class Creator extends React.Component {
                   <Stage
                     ref='stage'
                     folder={this.state.projectFolder}
+                    envoyProject={this.state.envoyProject}
                     projectModel={this.state.projectModel}
                     envoyClient={this.envoyClient}
                     haiku={this.props.haiku}
