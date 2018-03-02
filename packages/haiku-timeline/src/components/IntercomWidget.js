@@ -1,8 +1,7 @@
 import React from 'react'
 import Palette from 'haiku-ui-common/lib/Palette'
 import Radium from 'radium'
-import Intercom from 'react-intercom'
-import { IntercomAPI } from 'react-intercom'
+import Intercom, { IntercomAPI } from 'react-intercom'
 
 const STYLES = {
   btn: {
@@ -37,6 +36,9 @@ class IntercomWidget extends React.Component {
       return <span />
     }
 
+   /* NOTE: currently "Username" is an email address for all users
+    We'll need to update this code when we allow users to
+    choose usernames */
     const user = {
       email: JSON.parse(this.props.user)['Username']
     }
