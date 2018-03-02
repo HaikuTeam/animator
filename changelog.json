@@ -5315,5 +5315,17 @@
       "label": "feat",
       "message": "Add first changelog content"
     }
+  },
+  "3.1.8": {
+    "708cd10774d946533dcc55f3eacfc88e0a758617": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Ensure changelog files are included in the build payload"
+    },
+    "b38e459c4d1dfa0c9dc07e5c7e29f08e5c05dc8a": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Add first changelog content"
+    }
   }
 }
