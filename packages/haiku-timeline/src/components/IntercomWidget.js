@@ -1,7 +1,7 @@
 import React from 'react'
 import Palette from 'haiku-ui-common/lib/Palette'
 import Radium from 'radium'
-import Intercom, { IntercomAPI } from 'react-intercom'
+import Intercom from 'react-intercom'
 
 const STYLES = {
   btn: {

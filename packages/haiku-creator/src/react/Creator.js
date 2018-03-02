@@ -29,7 +29,7 @@ import EnvoyClient from 'haiku-sdk-creator/lib/envoy/EnvoyClient'
 import { EXPORTER_CHANNEL, ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
 // Note that `User` is imported below for type discovery
 // (which works even inside JS with supported editors, using jsdoc type annotations)
-import { USER_CHANNEL, User } from 'haiku-sdk-creator/lib/bll/User' // eslint-disable-line no-unused-vars
+import { USER_CHANNEL, User, UserSettings } from 'haiku-sdk-creator/lib/bll/User' // eslint-disable-line no-unused-vars
 import { PROJECT_CHANNEL } from 'haiku-sdk-creator/lib/bll/Project' // eslint-disable-line no-unused-vars
 import { GLASS_CHANNEL } from 'haiku-sdk-creator/lib/glass'
 import { TOUR_CHANNEL } from 'haiku-sdk-creator/lib/tour'
