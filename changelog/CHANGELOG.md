@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 3.1.9
+
+### Bug Fixes
+
+ * Missed a distro script hook required to get the changelog into the build
+
 ## 3.1.8
 
 ### Bug Fixes
