@@ -9,7 +9,8 @@ import {
 import {LogoMicroSVG} from 'haiku-ui-common/lib/react/OtherIcons'
 import {BTN_STYLES} from '../styles/btnShared'
 import Palette from 'haiku-ui-common/lib/Palette'
-import fs from 'fs'
+import {PrettyScroll} from 'haiku-ui-common/lib/react/PrettyScroll'
+import Changelog from 'haiku-serialization/src/bll/Changelog'
 
 const STYLES = {
   modalWrapper: {
@@ -48,12 +49,46 @@ const STYLES = {
 }
 
 class ChangelogModal extends React.PureComponent {
-  prepare () {
-     const dir = fs.readdirSync('../../../../../changelog/public', 'utf8')
-     console.log(dir)
+  constructor (props) {
+    super()
+    this.changelogManager = new Changelog(props.lastViewedChangelog)
+    this.state = {
+      changelog: null
+    }
   }
+
+  async componentDidMount () {
+    const changelog = await this.changelogManager.getChangelog()
+    this.setState({changelog})
+  }
+
+  renderSections (changelog) {
+    const result = []
+    for (let section in changelog.sections) {
+      result.push(
+        <div key={section}>
+          <h3 style={STYLES.sectionTitle}>{section}</h3>
+          <ul style={STYLES.list}>
+            {changelog.sections[section].map((entry, idx) => {
+              return (
+                <li
+                  key={idx}
+                  dangerouslySetInnerHTML={{__html: marked(entry)}}
+                />
+              )
+            })}
+          </ul>
+        </div>
+      )
+    }
+    return result
+  }
+
   render () {
-    prepare()
+    const changelog = this.state.changelog
+    if (!changelog) {
+      return null
+    }
     return (
       <ModalWrapper style={STYLES.modalWrapper}>
         <ModalHeader>
@@ -75,6 +110,11 @@ class ChangelogModal extends React.PureComponent {
             the changelog, which is dynamic */}
           <style>
             {`
+              .changelog {
+                max-height: 350px;
+                overflow: auto;
+              }
+
               .changelog a {
                 color: ${Palette.SUNSTONE};
               }
@@ -85,34 +125,25 @@ class ChangelogModal extends React.PureComponent {
             `}
           </style>
 
-          <div className='changelog' onClick={(e) => {
-            if (e.target.href) {
-              e.preventDefault()
-              shell.openExternal(e.target.href)
-            }
-          }}>
-            {changelog.sections.map((section) => {
-              return (
-                <div key={section.title}>
-                  <h3 style={STYLES.sectionTitle}>{section.title}</h3>
-                  <ul style={STYLES.list}>
-                    {section.entries.map((entry, idx) => {
-                      return (
-                        <li
-                          key={idx}
-                          dangerouslySetInnerHTML={{__html: marked(entry)}}
-                        />
-                      )
-                    })}
-                  </ul>
-                </div>
-              )
-            })}
-          </div>
+          <PrettyScroll>
+            <div
+              className='changelog'
+              onClick={(e) => {
+                if (e.target.href) {
+                  e.preventDefault()
+                  shell.openExternal(e.target.href)
+                }
+              }}
+            >
+              {this.renderSections(changelog)}
+            </div>
+          </PrettyScroll>
         </div>
 
         <ModalFooter>
-          <button style={STYLES.button} onClick={this.props.onClose}>Done</button>
+          <button style={STYLES.button} onClick={this.props.onClose}>
+            Done
+          </button>
         </ModalFooter>
       </ModalWrapper>
     )
@@ -120,7 +151,8 @@ class ChangelogModal extends React.PureComponent {
 }
 
 ChangelogModal.propTypes = {
-  onClose: React.PropTypes.func.isRequired
+  onClose: React.PropTypes.func.isRequired,
+  lastViewedChangelog: React.PropTypes.string
 }
 
 export default ChangelogModal

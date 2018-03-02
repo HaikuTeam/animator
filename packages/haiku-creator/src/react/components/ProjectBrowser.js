@@ -536,7 +536,7 @@ class ProjectBrowser extends React.Component {
           )}
 
           <div style={{marginRight: '15px'}}>
-            <NotificationExplorer user={this.props.user} onShowChangelogModal={this.props.onShowChangelogModal} />
+            <NotificationExplorer lastViewedChangelog={this.props.lastViewedChangelog} onShowChangelogModal={this.props.onShowChangelogModal} />
           </div>
 
           {!this.state.atProjectMax && (
@@ -584,7 +584,7 @@ ProjectBrowser.propTypes = {
   setProjectLaunchStatus: React.PropTypes.func.isRequired,
   newProjectLoading: React.PropTypes.bool.isRequired,
   launchingProject: React.PropTypes.bool.isRequired,
-  user: React.PropTypes.object.isRequired,
+  lastViewedChangelog: React.PropTypes.string,
   onShowChangelogModal: React.PropTypes.func.isRequired
 }
 

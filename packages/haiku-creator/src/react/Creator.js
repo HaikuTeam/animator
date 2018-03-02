@@ -362,6 +362,10 @@ export default class Creator extends React.Component {
         }
       }
     })
+
+    this.user.getConfig(UserSettings.lastViewedChangelog).then((lastViewedChangelog) => {
+      this.setState({lastViewedChangelog})
+    })
   }
 
   componentDidMount () {
@@ -1021,6 +1025,7 @@ export default class Creator extends React.Component {
         onClose={() => {
           this.setState({showChangelogModal: false})
         }}
+        lastViewedChangelog={this.state.lastViewedChangelog}
       />
     ) : null
   }
@@ -1081,7 +1086,7 @@ export default class Creator extends React.Component {
         <div>
           <ProjectBrowser
             ref='ProjectBrowser'
-            user={this.user}
+            lastViewedChangelog={this.state.lastViewedChangelog}
             onShowChangelogModal={() => { this.showChangelogModal() }}
             launchingProject={this.state.launchingProject}
             newProjectLoading={this.state.newProjectLoading}
@@ -1132,7 +1137,7 @@ export default class Creator extends React.Component {
           />
           <ProjectBrowser
             ref='ProjectBrowser'
-            user={this.user}
+            lastViewedChangelog={this.state.lastViewedChangelog}
             onShowChangelogModal={() => { this.showChangelogModal() }}
             loadProjects={this.loadProjects}
             launchProject={this.launchProject}
