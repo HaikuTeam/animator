@@ -11,8 +11,7 @@
     ],
     "What's new": [
       "Added a help chat widget so you can get faster support while editing inside Haiku (we'll try to respond within 1-2 business days)",
-      "Added a \"What's New\" window, accessible via the Help menu, so you know what has changed in the latest release",
-      "We now display a \"What's New\" window whenever the app automatically downloads and installs an update",
+      "Added a \"What's New\" section (click the present icon near the top) so you know what has changed in the latest release",
       "Added the ability to share your project on your Haiku community profile (coming soon)",
       "Added some additional Vue.js bundle files to projects for convenience when importing components into codebases",
       "Published JavaScript bundles of our framework adapters (react-dom, vue-dom) to our CDN to make it easier to embed in web pages",
