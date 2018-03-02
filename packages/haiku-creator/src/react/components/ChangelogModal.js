@@ -102,7 +102,7 @@ class ChangelogModal extends React.PureComponent {
           <div>
             <div style={STYLES.logoAndVersion}>
               <LogoMicroSVG style={STYLES.iconStyle} size={24} />
-              <span style={STYLES.version}>{changelog.version}</span>
+              <span style={STYLES.version}>{process.env.HAIKU_RELEASE_VERSION}</span>
             </div>
             <time style={STYLES.date}>{changelog.date}</time>
           </div>
