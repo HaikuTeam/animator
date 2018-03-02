@@ -33,7 +33,8 @@ function logExec (cwd, cmd) {
 
 // Clear previous contents.
 logExec(ROOT, `rm -rf ${DISTRO_DIR}`)
-logExec(ROOT, `mkdir -p ${DISTRO_DIR}`)
+// We need the base distro dir, and also this subdir; two birds/one stone
+logExec(ROOT, `mkdir -p ${DISTRO_DIR}/changelog/public`)
 // Place a shim package.json and the necessary bootstrapping files.
 fse.writeJsonSync(path.join(DISTRO_DIR, 'package.json'), {
   name: 'haiku',
@@ -43,6 +44,8 @@ fse.writeJsonSync(path.join(DISTRO_DIR, 'package.json'), {
   dependencies: require(path.join(global.process.cwd(), 'package.json')).dependencies
 }, {spaces: 2})
 logExec(ROOT, `cp index.js config.js ${DISTRO_DIR}`)
+// Must copy the changelog contents for "What's New" to work
+logExec(ROOT, `cp changelog/public/*.json ${DISTRO_DIR}/changelog/public/`)
 // Build everything, then load production dependencies.
 logExec(ROOT, `yarn install ${YARN_INSTALL_FLAGS} --production=false`)
 logExec(ROOT, `yarn compile-all --force`)
