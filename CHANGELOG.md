@@ -1,6 +1,25 @@
 # Changelog
 
 
+## 3.1.6
+
+### Features
+
+ * add logic to display an aggregated changelog history
+ * add logic to display an aggregated changelog history
+ * add logic to show changelogs after updates
+ * add logic to show changelogs after updates
+ * add logic to show changelogs after updates
+ * support public/private project settings through inkstone
+ * support public/private project settings through inkstone
+
+### Bug Fixes
+
+ * crash when pointing at prod inkstone
+ * TypeScript ¯\_(ツ)_/¯
+ * layout on pub ui for long proj names
+ * use correct import path for code samples in publish UI
+
 ## 3.1.5
 
 ### Features
