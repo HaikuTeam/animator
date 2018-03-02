@@ -27,7 +27,6 @@ import { USER_CHANNEL } from 'haiku-sdk-creator/lib/bll/User'
 
 const Globals = require('haiku-ui-common/lib/Globals').default // Sorry, hack
 
-
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'timeline'
 
