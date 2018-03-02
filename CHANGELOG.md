@@ -1,6 +1,33 @@
 # Changelog
 
 
+## 3.1.5
+
+### Features
+
+ * add logic to display an aggregated changelog history
+ * add Intercom support btn
+ * add logic to show changelogs after updates
+ * support public/private project settings through inkstone
+ * Add translation.z to listing
+ * add a SAVE button in multiline expressions editor
+
+### Bug Fixes
+
+ * write a vue.js file at the root dir on project setup
+ * crash when pointing at prod inkstone
+ * use global replace during project duplication with the correct asset names.
+ * TypeScript ¯\_(ツ)_/¯
+ * layout on pub ui for long proj names
+ * Fix bugs and tests after merge slice
+ * Don't 'bootstrap scene files' in the webviews
+ * Be correctly flexible when an expression input's type is 'string'
+ * Make it so logger logs in the webviews
+ * In EmitterManager, call method we checked for
+ * use correct import path for code samples in publish UI
+ * use correct import path for code samples in publish UI
+ * list vue-dom.js in various plumbing lists
+
 ## 3.1.4
 
 ### Bug Fixes

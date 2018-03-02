@@ -5154,5 +5154,102 @@
       "label": "fix",
       "message": "list vue-dom.js in various plumbing lists"
     }
+  },
+  "3.1.5": {
+    "2719f646afc49d1dc1207a95abddfcadc1fb19e3": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add logic to display an aggregated changelog history"
+    },
+    "474bf157a975ee3dea42f93d135df86eb7090367": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add Intercom support btn"
+    },
+    "ab8ad4c2ae6867d82abc2c6404ea2aa3577044b7": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "write a vue.js file at the root dir on project setup"
+    },
+    "f558468d2457df4a0de6494a3810447f6f8a339f": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "crash when pointing at prod inkstone"
+    },
+    "4af1bc32b228abc6f8bcdcf041a257648f3fd017": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add logic to show changelogs after updates"
+    },
+    "3a494537eab91a5f19ac4a1a28e94b5d9b9e261e": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "use global replace during project duplication with the correct asset names."
+    },
+    "6d1226ab582a8dc42522d04449aa5cd8f0b8da6d": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "support public/private project settings through inkstone"
+    },
+    "af2429f9147b484c7e37c90e9f2c8571e7acbd8f": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "TypeScript ¯\\_(ツ)_/¯"
+    },
+    "271d87765d6ea846973936d5195d646c00c506d0": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "layout on pub ui for long proj names"
+    },
+    "64a399d72dd8e0ffba4978e32bc6a68f67760f86": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Fix bugs and tests after merge slice"
+    },
+    "7e6e211dba92bf29e5f6af4bc0e7b76dbd9dfe44": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Don't 'bootstrap scene files' in the webviews"
+    },
+    "17ec1a1f4e6db7661d6924c344ff64570b8d2f63": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Add translation.z to listing"
+    },
+    "2ae11f652074bb366024378a6b0d8d8fef7647b3": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Be correctly flexible when an expression input's type is 'string'"
+    },
+    "9c932ae7a3d156b1597583077f1957ccea3091b2": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Make it so logger logs in the webviews"
+    },
+    "92a85db16ed14e0501c87f11013cd29a1e1718ed": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "In EmitterManager, call method we checked for"
+    },
+    "f6eee7d6620c70a890f7999ea177a5e3d8412053": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "use correct import path for code samples in publish UI"
+    },
+    "efebb60f56b66debbd812aa93ece43ba3bebd0f3": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "use correct import path for code samples in publish UI"
+    },
+    "587a7c67b8fd6209fcb11ab1d3d28f6c1338a41e": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "list vue-dom.js in various plumbing lists"
+    },
+    "7739ae52b422ebd9b78350c623d9c701f80ba629": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add a SAVE button in multiline expressions editor"
+    }
   }
 }
