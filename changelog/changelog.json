@@ -5334,5 +5334,12 @@
       "label": "fix",
       "message": "Missed a distro script hook required to get the changelog into the build"
     }
+  },
+  "3.1.10": {
+    "5f011c5ad2b6c11b47b7b1fa5073cc4d7ffdc50b": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "update the read paths for changelogs"
+    }
   }
 }
