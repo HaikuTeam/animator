@@ -5327,5 +5327,12 @@
       "label": "feat",
       "message": "Add first changelog content"
     }
+  },
+  "3.1.9": {
+    "6ccaf696dfb83981e092784de0c52f2858c52826": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Missed a distro script hook required to get the changelog into the build"
+    }
   }
 }
