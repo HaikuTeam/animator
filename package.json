@@ -112,6 +112,7 @@
     "files": [
       "package.json",
       "node_modules/**/*",
+      "changelog/public/*",
       "*.js",
       "!**/{README,readme,test,__tests__,tests,powered-test,example,examples,demo,demos}",
       "!node_modules/.bin",
