@@ -57,9 +57,10 @@ class ChangelogModal extends React.PureComponent {
     }
   }
 
-  async componentDidMount () {
-    const changelog = await this.changelogManager.getChangelog()
-    this.setState({changelog})
+  componentDidMount () {
+    this.changelogManager.getChangelog().then((changelog) => {
+      this.setState({changelog})
+    })
   }
 
   renderSections (changelog) {
