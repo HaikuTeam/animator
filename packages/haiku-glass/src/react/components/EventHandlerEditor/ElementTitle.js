@@ -1,6 +1,6 @@
 import React from 'react'
 import {get} from 'lodash'
-import {EventsBoltIcon} from 'haiku-ui-common/lib/react/OtherIcons'
+import {EventsBoltIcon, TrashIconSVG} from 'haiku-ui-common/lib/react/OtherIcons'
 import Palette from 'haiku-ui-common/lib/Palette'
 import truncate from 'haiku-ui-common/lib/helpers/truncate'
 
@@ -29,7 +29,13 @@ const STYLES = {
     fontFamily: 'Fira Sans',
     fontSize: '15px',
     fontStyle: 'italic'
-  }
+  },
+  trashIcon: {
+    backgroundColor: Palette.SPECIAL_COAL,
+    padding: '4px 10px',
+    borderRadius: '4px'
+  },
+  trashIconColor: Palette.ROCK
 }
 
 class ElementTitle extends React.PureComponent {
@@ -46,6 +52,11 @@ class ElementTitle extends React.PureComponent {
     return (
       <div style={STYLES.wrapper}>
         <h3 style={STYLES.title}>{`${this.getElementTitle()} Actions`}</h3>
+        {this.props.isSimplified &&
+          <button onClick={this.props.onFrameEditorRemoved} style={STYLES.trashIcon}>
+            <TrashIconSVG color={STYLES.trashIconColor} />
+          </button>
+        }
         {!this.props.hideActions &&
           <button style={STYLES.button} onClick={this.props.onNewAction}>
             <span>
@@ -61,7 +72,9 @@ class ElementTitle extends React.PureComponent {
 
 ElementTitle.propTypes = {
   element: React.PropTypes.object,
-  onNewAction: React.PropTypes.func.isRequired
+  onNewAction: React.PropTypes.func.isRequired,
+  isSimplified: React.PropTypes.bool,
+  onFrameEditorRemoved: React.PropTypes.func.isRequired
 }
 
 export default ElementTitle

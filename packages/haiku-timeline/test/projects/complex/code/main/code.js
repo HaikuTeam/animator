@@ -164,8 +164,20 @@ module.exports = {
         "fill-rule": { "0": { value: "evenodd" } }
       },
 
-      "haiku:8ead96e5f2d1": { fill: { "0": { value: "#22E1FF" } } },
+      "haiku:8ead96e5f2d1": { fill: { "0": { value: "#22E1FF", edited: true } } },
       "haiku:32fa8857ae54": {
+        stroke: {
+          "0": {
+            value: "red",
+            edited: true
+          }
+        },
+        strokeWidth: {
+          "0": {
+            value: "5",
+            edited: true
+          }
+        },
         points: {
           "0": {
             value: "86 137.5 33.6871125 165.002512 43.677985 106.751256 1.35597005 65.4974875 59.8435563 56.9987438 86 4 112.156444 56.9987438 170.64403 65.4974875 128.322015 106.751256 138.312887 165.002512"
@@ -214,14 +226,17 @@ module.exports = {
         "style.padding": { "0": { value: "0" } },
         "style.position": { "0": { value: "absolute" } },
         viewBox: { "0": { value: "0 0 172 172" } },
-        "rotation.z": { "0": { value: -0.28953336697793053, edited: true } }
+        "rotation.z": { "0": { value: -0.28953336697793053, edited: true } },
+        "style.backgroundColor": {"0": {value:"white",edited:true}}
       },
 
       "haiku:dbd305a592fe": {
         fill: { "0": { value: "none" } },
         stroke: { "0": { value: "none" } },
         "stroke-width": { "0": { value: "1" } },
-        "fill-rule": { "0": { value: "evenodd" } }
+        "fill-rule": { "0": { value: "evenodd" } },
+        "style.backgroundColor": { "0": { value: "red", edited: true } },
+        "style.border": { "0": { value: "1px solid blue", edited: true } }
       },
 
       "haiku:aa39ef0b00d9": {
@@ -584,7 +599,6 @@ module.exports = {
                 attributes: { id: "Oval", "haiku-id": "aa39ef0b00d9" },
                 children: []
               },
-
               {
                 elementName: "g",
                 attributes: { id: "Circle", "haiku-id": "9861b2ec5e0f" },

@@ -1141,11 +1141,7 @@ class Element extends BaseModel {
       for (const propertyName in unfilteredProperties) {
         const propertyObject = unfilteredProperties[propertyName]
 
-        if (
-          !Property.PREFIXES_TO_EXCLUDE_FROM_ADDRESSABLES[propertyObject.prefix] &&
-          !(this.isRootElement() && Property.EXCLUDE_FROM_ADDRESSABLES_IF_ROOT_ELEMENT[propertyName]) &&
-          !(this.isComponent() && Property.EXCLUDE_FROM_ADDRESSABLES_IF_COMPONENT[propertyName])
-        ) {
+        if (Property.shouldBasicallyIncludeProperty(propertyName, propertyObject, this)) {
           if (this._visibleProperties[propertyName]) {
             // Highest precedence is if the property is deemed explicitly visible
             filtered[propertyName] = propertyObject
@@ -1465,7 +1461,7 @@ Element.ALWAYS_ALLOWED_PROPS = {
   'sizeAbsolute.y': true,
   'translation.x': true,
   'translation.y': true,
-  // 'translation.z': true, // This doesn't work for some reason, so leaving it out
+  'translation.z': true, // This only works if `transform-style: preserve-3d` is set
   'rotation.z': true,
   'rotation.x': true,
   'rotation.y': true,

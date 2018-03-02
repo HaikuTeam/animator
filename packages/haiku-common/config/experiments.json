@@ -49,5 +49,17 @@
   "BasicOfflineMode": {
     "development": true,
     "production": false
+  },
+  "MultiComponentControlsLibrary": {
+    "development": false,
+    "production": false
+  },
+  "ShowSubElementsInJitMenu": {
+    "development": true,
+    "production": false
+  },
+  "ElementMultiSelectAndTransform": {
+    "development": true,
+    "production": false
   }
 }

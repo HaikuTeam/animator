@@ -21,7 +21,7 @@ module.exports = function _loggerConstructor (folder, filepath, options) {
     colorize: config.colorize,
     timestamp: config.timestamp,
     showLevel: config.showLevel,
-    level: process.env.HAIKU_ECHO_ON !== '1' ? 'silly' : 'info',
+    level: 'info',
     eol: config.eol
   }))
 
@@ -49,6 +49,15 @@ module.exports = function _loggerConstructor (folder, filepath, options) {
   var logger = new (winston.Logger)({
     transports: transports
   })
+
+  // Winston doesn't work in browser context due to an issue with streams
+  if (typeof window !== 'undefined') {
+    logger.log = console.log.bind(console)
+    logger.info = console.info.bind(console)
+    logger.warn = console.warn.bind(console)
+    logger.error = console.error.bind(console)
+    logger.trace = console.trace.bind(console)
+  }
 
   logger.capture = (cb) => {
     logger.stream({ start: -1 }).on('log', cb)

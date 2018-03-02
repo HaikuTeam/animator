@@ -97,9 +97,10 @@ class Library extends React.Component {
     this.broadcastListener = this.broadcastListener.bind(this)
   }
 
-  broadcastListener ({ name, assets }) {
-    if (name === 'assets-changed') {
-      this.handleAssetsChanged(assets, {isLoading: false})
+  broadcastListener ({ name, assets, data }) {
+    switch (name) {
+      case 'assets-changed':
+        return this.handleAssetsChanged(assets, {isLoading: false})
     }
   }
 

@@ -24,11 +24,13 @@ import AutoUpdater from './components/AutoUpdater'
 import ProjectLoader from './components/ProjectLoader'
 import OfflineModePage from './components/OfflineModePage'
 import ProxyHelpScreen from './components/ProxyHelpScreen'
+import ChangelogModal from './components/ChangelogModal'
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/EnvoyClient'
 import { EXPORTER_CHANNEL, ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
 // Note that `User` is imported below for type discovery
 // (which works even inside JS with supported editors, using jsdoc type annotations)
 import { USER_CHANNEL, User } from 'haiku-sdk-creator/lib/bll/User' // eslint-disable-line no-unused-vars
+import { PROJECT_CHANNEL } from 'haiku-sdk-creator/lib/bll/Project' // eslint-disable-line no-unused-vars
 import { GLASS_CHANNEL } from 'haiku-sdk-creator/lib/glass'
 import { TOUR_CHANNEL } from 'haiku-sdk-creator/lib/tour'
 import { InteractionMode, isPreviewMode } from '@haiku/core/lib/helpers/interactionModes'
@@ -109,7 +111,8 @@ export default class Creator extends React.Component {
       doShowProjectLoader: false,
       launchingProject: false,
       newProjectLoading: false,
-      interactionMode: InteractionMode.EDIT
+      interactionMode: InteractionMode.EDIT,
+      showChangelogModal: false
     }
 
     this.envoyOptions = {
@@ -210,6 +213,10 @@ export default class Creator extends React.Component {
           shouldSkipOptIn: true
         }
       })
+    })
+
+    ipcRenderer.on('global-menu:show-changelog', () => {
+      this.showChangelogModal()
     })
 
     window.addEventListener('dragover', Asset.preventDefaultDrag, false)
@@ -357,6 +364,10 @@ export default class Creator extends React.Component {
         }
       }
     })
+
+    this.user.getConfig(UserSettings.lastViewedChangelog).then((lastViewedChangelog) => {
+      this.setState({lastViewedChangelog})
+    })
   }
 
   componentDidMount () {
@@ -425,6 +436,14 @@ export default class Creator extends React.Component {
       (user) => {
         this.user = user
         this.handleEnvoyUserReady()
+      }
+    )
+
+    this.envoyClient.get(PROJECT_CHANNEL).then(
+
+      (project) => {
+        this.setState({envoyProject: project})
+        // this.handleEnvoyProjectReady()
       }
     )
 
@@ -756,7 +775,11 @@ export default class Creator extends React.Component {
 
             // Notify... ourselves that we've successfully set up the project model for this folder
             // Is it weird to put this here, or weirder to put a conditional hack over there?
-            this.handleConnectedProjectModelStateChange({ from: 'creator', folder: projectFolder, what: 'project:ready' })
+            this.handleConnectedProjectModelStateChange({
+              from: 'creator',
+              folder: projectFolder,
+              what: 'project:ready'
+            })
 
             // Assign, not merge, since we don't want to clobber any variables already set, like project name
             lodash.assign(projectObject, applicationImage.project)
@@ -1001,6 +1024,22 @@ export default class Creator extends React.Component {
     }
   }
 
+  showChangelogModal () {
+    this.setState({showChangelogModal: true})
+    this.user.setConfig(UserSettings.lastViewedChangelog, process.env.HAIKU_RELEASE_VERSION)
+  }
+
+  renderChangelogModal () {
+    return this.state.showChangelogModal ? (
+      <ChangelogModal
+        onClose={() => {
+          this.setState({showChangelogModal: false})
+        }}
+        lastViewedChangelog={this.state.lastViewedChangelog}
+      />
+    ) : null
+  }
+
   render () {
     if (experimentIsEnabled(Experiment.BasicOfflineMode)) {
       if (
@@ -1057,6 +1096,8 @@ export default class Creator extends React.Component {
         <div>
           <ProjectBrowser
             ref='ProjectBrowser'
+            lastViewedChangelog={this.state.lastViewedChangelog}
+            onShowChangelogModal={() => { this.showChangelogModal() }}
             launchingProject={this.state.launchingProject}
             newProjectLoading={this.state.newProjectLoading}
             setProjectLaunchStatus={this.setProjectLaunchStatus.bind(this)}
@@ -1073,6 +1114,7 @@ export default class Creator extends React.Component {
             envoyClient={this.envoyClient}
             doShowProjectLoader={this.state.doShowProjectLoader}
             {...this.props} />
+          {this.renderChangelogModal()}
           <Tour
             projectsList={this.state.projectsList}
             envoyClient={this.envoyClient}
@@ -1093,6 +1135,7 @@ export default class Creator extends React.Component {
     if (!this.state.projectFolder) {
       return (
         <div>
+          {this.renderChangelogModal()}
           <Tour
             projectsList={this.state.projectsList}
             envoyClient={this.envoyClient} />
@@ -1104,6 +1147,8 @@ export default class Creator extends React.Component {
           />
           <ProjectBrowser
             ref='ProjectBrowser'
+            lastViewedChangelog={this.state.lastViewedChangelog}
+            onShowChangelogModal={() => { this.showChangelogModal() }}
             loadProjects={this.loadProjects}
             launchProject={this.launchProject}
             createNotice={this.createNotice}
@@ -1140,6 +1185,7 @@ export default class Creator extends React.Component {
 
     return (
       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+        {this.renderChangelogModal()}
         <AutoUpdater
           onComplete={this.onAutoUpdateCheckComplete}
           check={this.state.updater.shouldCheck}
@@ -1207,6 +1253,7 @@ export default class Creator extends React.Component {
                   <Stage
                     ref='stage'
                     folder={this.state.projectFolder}
+                    envoyProject={this.state.envoyProject}
                     projectModel={this.state.projectModel}
                     envoyClient={this.envoyClient}
                     haiku={this.props.haiku}

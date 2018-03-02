@@ -2,6 +2,10 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
+import {
+  toIdentifier,
+} from './JavaScriptIdentifier';
+
 const data = {
   baddies: 0,
 };
@@ -33,7 +37,7 @@ function objectParamToString(param) {
 
 function stringifyParam(param, key) {
   if (param && typeof param === 'string') {
-    return param;
+    return toIdentifier(param);
   }
 
   if (param && Array.isArray(param)) {

@@ -802,8 +802,11 @@ class Project extends BaseModel {
 
     const uid = ActiveComponent.buildPrimaryKey(this.getFolder(), scenename)
 
-    // This writes to the file system so be careful about making this call
-    this.bootstrapSceneFilesSync(scenename)
+    // Timeline/Glass/Creator should not write to the file system
+    if (this.getAlias() === 'master' || this.getAlias() === 'test') {
+      // This writes to the file system so be careful about making this call
+      this.bootstrapSceneFilesSync(scenename)
+    }
 
     const ac = ActiveComponent.upsert({
       uid,

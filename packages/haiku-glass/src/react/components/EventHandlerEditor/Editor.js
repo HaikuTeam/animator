@@ -173,7 +173,7 @@ class Editor extends React.Component {
         id={this.props.id}
       >
         <div style={STYLES.options}>
-          {!this.props.hideEventSelector && (
+          {!this.props.isSimplified && (
             <EventSelector
               options={this.props.applicableHandlers}
               disabledOptions={this.props.appliedHandlers}
@@ -182,30 +182,30 @@ class Editor extends React.Component {
             />
           )}
 
-          {this.props.deleteable && (
-            <div
-              onMouseEnter={() => {
-                this.setState({isTrashHovered: true})
-              }}
-              onMouseLeave={() => {
-                this.setState({isTrashHovered: false})
-              }}
-              onClick={this.remove}
-              style={[
-                STYLES.options.svg,
-                this.state.isHovered && STYLES.options.svgVisible,
-                this.state.isTrashHovered && STYLES.options.svgActive
-              ]}
-            >
-              <TrashIconSVG
-                color={
-                  this.state.isTrashHovered
-                    ? STYLES.options.svgActive.fill
-                    : STYLES.options.svgVisible.fill
-                }
-              />
-            </div>
-          )}
+          <div
+            onMouseEnter={() => {
+              this.setState({isTrashHovered: true})
+            }}
+            onMouseLeave={() => {
+              this.setState({isTrashHovered: false})
+            }}
+            onClick={this.remove}
+            style={[
+              STYLES.options.svg,
+              this.state.isHovered && STYLES.options.svgVisible,
+              this.state.isTrashHovered && STYLES.options.svgActive
+            ]}
+          >
+            {!this.props.isSimplified &&
+            <TrashIconSVG
+              color={
+                this.state.isTrashHovered
+                  ? STYLES.options.svgActive.fill
+                  : STYLES.options.svgVisible.fill
+              }
+            />
+          }
+          </div>
         </div>
 
         <div style={{...STYLES.amble, ...STYLES.preamble}}>
@@ -244,8 +244,7 @@ Editor.propTypes = {
   applicableHandlers: React.PropTypes.array.isRequired,
   appliedHandlers: React.PropTypes.object.isRequired,
   selectedEventName: React.PropTypes.string.isRequired,
-  contents: React.PropTypes.string,
-  deleteable: React.PropTypes.bool
+  contents: React.PropTypes.string
 }
 
 export default Radium(Editor)

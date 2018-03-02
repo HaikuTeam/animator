@@ -5,9 +5,10 @@ import { CSSTransition, TransitionGroup } from 'react-transition-group'
 import { FadingCircle } from 'better-react-spinkit'
 import Palette from 'haiku-ui-common/lib/Palette'
 import Toast from './notifications/Toast'
+import NotificationExplorer from './notifications/NotificationExplorer'
 import ProjectThumbnail from './ProjectThumbnail'
-import { UserIconSVG, LogOutSVG, LogoMicroSVG } from 'haiku-ui-common/lib/react/OtherIcons'
 import { TOUR_CHANNEL } from 'haiku-sdk-creator/lib/tour'
+import { UserIconSVG, LogOutSVG, LogoMicroSVG, PresentIconSVG } from 'haiku-ui-common/lib/react/OtherIcons'
 import { DASH_STYLES } from '../styles/dashShared'
 import { BTN_STYLES } from '../styles/btnShared'
 import Popover from 'react-popover'
@@ -401,6 +402,14 @@ class ProjectBrowser extends React.Component {
           </span>
           <span style={[DASH_STYLES.popover.text, DASH_STYLES.upcase]}>Log Out</span>
         </div>
+        <div
+          style={[DASH_STYLES.popover.item, DASH_STYLES.popover.pointer]}
+          onClick={this.props.onShowChangelogModal}>
+          <span style={DASH_STYLES.popover.icon}>
+            <PresentIconSVG />
+          </span>
+          <span style={[DASH_STYLES.popover.text, DASH_STYLES.upcase]}>What's New</span>
+        </div>
         <div style={[DASH_STYLES.popover.item, DASH_STYLES.popover.mini, DASH_STYLES.noSelect]}>
           <span style={DASH_STYLES.popover.icon}>
             <LogoMicroSVG style={{transform: 'translateY(2px)'}} />
@@ -520,32 +529,45 @@ class ProjectBrowser extends React.Component {
         { this.state.showDuplicateProjectModal && this.renderNewProjectModal(true) }
 
         <div style={DASH_STYLES.frame} className='frame'>
-          {this.state.atProjectMax
-            ? (<span style={DASH_STYLES.bannerNotice}>
-                You've reached the project maximum. Contact support@haiku.ai to add more projects.
-              </span>)
-            : (<button
+          {this.state.atProjectMax && (
+            <span style={DASH_STYLES.bannerNotice}>
+              You've reached the project maximum. Contact support@haiku.ai to add more
+              projects.
+            </span>
+          )}
+
+          <div style={{marginRight: '15px'}}>
+            <NotificationExplorer lastViewedChangelog={this.props.lastViewedChangelog} onShowChangelogModal={this.props.onShowChangelogModal} />
+          </div>
+
+          {!this.state.atProjectMax && (
+            <button
               id='haiku-button-show-new-project-modal'
               key='new_proj'
               onClick={() => this.showNewProjectModal()}
-              style={[
-                BTN_STYLES.btnIcon,
-                BTN_STYLES.btnIconHovered
-              ]}><span style={{fontSize: 18}}> +</span>
-            </button>)
-          }
+              style={[BTN_STYLES.btnIcon, BTN_STYLES.btnIconHovered]}
+            >
+              <span style={{fontSize: 18}}> +</span>
+            </button>
+          )}
 
           <Popover
             onOuterAction={this.closePopover}
             isOpen={this.state.isPopoverOpen}
             place='below'
             className='three-dot-popover'
-            body={this.renderUserMenuItems()}>
+            body={this.renderUserMenuItems()}
+          >
             <button
               id='haiku-button-show-account-popover'
               key='user'
               onClick={this.openPopover}
-              style={[BTN_STYLES.btnIcon, BTN_STYLES.btnIconHovered, this.props.isAdmin && STYLES.adminButton]}>
+              style={[
+                BTN_STYLES.btnIcon,
+                BTN_STYLES.btnIconHovered,
+                this.props.isAdmin && STYLES.adminButton
+              ]}
+            >
               <UserIconSVG color={Palette.SUNSTONE} />
             </button>
           </Popover>
@@ -562,7 +584,9 @@ ProjectBrowser.propTypes = {
   doShowProjectLoader: React.PropTypes.bool.isRequired,
   setProjectLaunchStatus: React.PropTypes.func.isRequired,
   newProjectLoading: React.PropTypes.bool.isRequired,
-  launchingProject: React.PropTypes.bool.isRequired
+  launchingProject: React.PropTypes.bool.isRequired,
+  lastViewedChangelog: React.PropTypes.string,
+  onShowChangelogModal: React.PropTypes.func.isRequired
 }
 
 export default Radium(ProjectBrowser)

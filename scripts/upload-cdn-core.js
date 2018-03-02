@@ -25,8 +25,8 @@ const bundles = [
   ['dom', 'HaikuCore'],
   ['dom', 'HaikuPlayer'], // Legacy
   ['react-dom', 'HaikuReact'],
-  ['vue-dom', 'HaikuVue'],
-];
+  ['vue-dom', 'HaikuVue']
+]
 
 async.series([
   // Full bundles.

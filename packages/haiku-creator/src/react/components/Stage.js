@@ -160,6 +160,7 @@ export default class Stage extends React.Component {
           style={STAGE_BOX_STYLE}>
           <StageTitleBar
             folder={this.props.folder}
+            envoyProject={this.props.envoyProject}
             projectModel={this.props.projectModel}
             websocket={this.props.websocket}
             project={this.props.project}

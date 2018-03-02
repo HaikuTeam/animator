@@ -6798,6 +6798,10 @@ liftoff@^2.1.0:
     rechoir "^0.6.2"
     resolve "^1.1.7"
 
+lines-intersect@1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/lines-intersect/-/lines-intersect-1.0.0.tgz#a60c87a3d957a0871d114d054a685ab71f728042"
+
 load-json-file@^1.0.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/load-json-file/-/load-json-file-1.1.0.tgz#956905708d58b4bab4c2261b04f59f31c99374c0"
@@ -7250,6 +7254,10 @@ markdown-loader@^2.0.1:
   dependencies:
     loader-utils "^1.1.0"
     marked "^0.3.6"
+
+marked@^0.3.17:
+  version "0.3.17"
+  resolved "https://registry.yarnpkg.com/marked/-/marked-0.3.17.tgz#607f06668b3c6b1246b28f13da76116ac1aa2d2b"
 
 marked@^0.3.6:
   version "0.3.9"
@@ -8526,6 +8534,17 @@ podda@^1.2.2:
   dependencies:
     babel-runtime "^6.11.6"
     immutable "^3.8.1"
+
+point-inside-polygon@1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/point-inside-polygon/-/point-inside-polygon-1.0.1.tgz#f4f6de901bf8f9cd2f7d9b5fb4758f1afa9812ab"
+
+polygon-overlap@^1.0.5:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/polygon-overlap/-/polygon-overlap-1.0.5.tgz#0ce3526a8bd98674ab046fc92dd02664b6d8242d"
+  dependencies:
+    lines-intersect "1.0.0"
+    point-inside-polygon "1.0.1"
 
 posix-character-classes@^0.1.0:
   version "0.1.1"

@@ -1,11 +1,11 @@
 import React from 'react'
 import {get} from 'lodash'
 import ElementTitle from './ElementTitle'
-import CSSStyles from './CSSStyles'
 import Editor from './Editor'
 import EditorActions from './EditorActions'
 import HandlerManager from './HandlerManager'
 import {ModalWrapper, ModalHeader, ModalFooter} from 'haiku-ui-common/lib/react/Modal'
+import {PrettyScroll} from 'haiku-ui-common/lib/react/PrettyScroll'
 import {EDITOR_WIDTH, EDITOR_HEIGHT, EVALUATOR_STATES} from './constants'
 
 const STYLES = {
@@ -41,6 +41,7 @@ class EventHandlerEditor extends React.PureComponent {
     this.onEditorEventChange = this.onEditorEventChange.bind(this)
     this.onEditorRemoved = this.onEditorRemoved.bind(this)
     this.addAction = this.addAction.bind(this)
+    this.onFrameEditorRemoved = this.onFrameEditorRemoved.bind(this)
 
     this.state = {
       editorsWithErrors: []
@@ -120,6 +121,18 @@ class EventHandlerEditor extends React.PureComponent {
   onEditorRemoved ({editor, event, handler}) {
     this.handlerManager.delete(event)
     this.forceUpdate()
+
+    if (this.handlerManager.size() === 0) {
+      this.doSave()
+    }
+  }
+
+  onFrameEditorRemoved () {
+    if (isNumeric(this.props.options.frame)) {
+      const event = HandlerManager.frameToEvent(this.props.options.frame)
+      this.handlerManager.delete(event)
+      this.doSave()
+    }
   }
 
   scrollToEditor (editorId) {
@@ -128,7 +141,7 @@ class EventHandlerEditor extends React.PureComponent {
   }
 
   renderFrameEditor (totalNumberOfHandlers, applicableEventHandlers) {
-    const event = `timeline:Default:${this.props.options.frame}`
+    const event = HandlerManager.frameToEvent(this.props.options.frame)
     const {id, handler} = this.handlerManager.getOrGenerateEventHandler(event)
 
     return this.renderSingleEditor(
@@ -180,10 +193,7 @@ class EventHandlerEditor extends React.PureComponent {
         contents={handler.body}
         key={id}
         id={id}
-        deleteable={
-          totalNumberOfHandlers > 1 && !this.props.options.isSimplified
-        }
-        hideEventSelector={this.props.options.isSimplified}
+        isSimplified={this.props.options.isSimplified}
       />
     )
   }
@@ -210,32 +220,34 @@ class EventHandlerEditor extends React.PureComponent {
             mouseEvent.stopPropagation()
           }}
         >
-          <style>{CSSStyles}</style>
 
           <ModalHeader>
             <ElementTitle
               element={this.props.element}
               title={
-              isNumeric(this.props.options.frame)
-                ? `Frame ${this.props.options.frame}`
-                : null
-            }
+                isNumeric(this.props.options.frame)
+                  ? `Frame ${this.props.options.frame}`
+                  : null
+              }
               hideActions={
-              this.props.options.isSimplified ||
-              !this.handlerManager.getNextAvailableDOMEvent()
-            }
+                this.props.options.isSimplified ||
+                !this.handlerManager.getNextAvailableDOMEvent()
+              }
               onNewAction={this.addAction}
+              isSimplified={this.props.options.isSimplified}
+              onFrameEditorRemoved={this.onFrameEditorRemoved}
           />
           </ModalHeader>
 
           <div style={STYLES.outer}>
-            <div
-              style={STYLES.editorsWrapper}
-              className='haiku-scroll'
-              ref={(el) => { this.wrapper = el }}
-            >
-              {this.renderEditors()}
-            </div>
+            <PrettyScroll>
+              <div
+                style={STYLES.editorsWrapper}
+                ref={(el) => { this.wrapper = el }}
+              >
+                {this.renderEditors()}
+              </div>
+            </PrettyScroll>
           </div>
 
           <ModalFooter>

@@ -41,6 +41,7 @@
     "lodash": "^4.17.4",
     "lodash.assign": "^4.2.0",
     "lodash.debounce": "4.0.8",
+    "marked": "^0.3.17",
     "mixpanel": "0.6.0",
     "node-fetch": "^2.0.0-alpha.9",
     "qs": "6.4.0",

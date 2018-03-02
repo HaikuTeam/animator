@@ -9,6 +9,7 @@ const ENDPOINTS = {
   CHANGE_PASSWORD: 'v0/user/password',
   ORGANIZATION_LIST: 'v0/organization',
   PROJECT_LIST: 'v0/project',
+  PROJECT_UPDATE: 'v0/project',
   INVITE_PREFINERY_CHECK: 'v0/invite/check',
   INVITE_CHECK: 'v0/invite/:CODE',
   INVITE_CLAIM: 'v0/invite/claim',
@@ -16,6 +17,7 @@ const ENDPOINTS = {
   SNAPSHOT_SYNDICATED_BY_ID: 'v0/snapshot/:ID/syndicated',
   PROJECT_SNAPSHOT_BY_NAME_AND_SHA: 'v0/project/:NAME/snapshot/:SHA',
   PROJECT_GET_BY_NAME: 'v0/project/:NAME',
+  PROJECT_GET_BY_UNIQUE_ID: 'v0/project/:UNIQUE_ID',
   PROJECT_DELETE_BY_NAME: 'v0/project/:NAME',
   SUPPORT_UPLOAD_GET_PRESIGNED_URL: 'v0/support/upload/:UUID',
   UPDATES: 'v0/updates',
@@ -468,6 +470,7 @@ export namespace inkstone {
       GitRemoteUrl: string;
       GitRemoteName: string;
       GitRemoteArn: string;
+      IsPublic: boolean;
 
       // Current: GitLab-specific fields.
       RepositoryUrl: string;
@@ -488,6 +491,15 @@ export namespace inkstone {
       Name: string;
     }
 
+    export interface ProjectUpdateParams {
+      ID?: number;
+      UniqueId?: string;
+      // Name: string; // for renaming
+      // GitRemoteUrl: // for user-specified git remotes
+      MakePublic?: boolean;
+      MakePrivate?: boolean;
+    }
+
     export function create(authToken: string, params: ProjectCreateParams, cb: inkstone.Callback<Project>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_CREATE,
@@ -498,6 +510,26 @@ export namespace inkstone {
       };
 
       request.post(options, (err, httpResponse, body) => {
+        if (httpResponse && httpResponse.statusCode === 200) {
+          const project = body as Project;
+          cb(undefined, project, httpResponse);
+        } else {
+          cb(safeError(err), undefined, httpResponse);
+        }
+      });
+    }
+
+
+    export function update(authToken: string, params: ProjectUpdateParams, cb: inkstone.Callback<Project>) {
+      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_UPDATE,
+        headers: _.extend(baseHeaders, {
+          Authorization: `INKSTONE auth_token="${authToken}"`,
+        }),
+        json: params,
+      };
+
+      request.put(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           const project = body as Project;
           cb(undefined, project, httpResponse);
@@ -528,6 +560,25 @@ export namespace inkstone {
     export function getByName(authToken: string, name: string, cb: inkstone.Callback<ProjectAndCredentials>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_GET_BY_NAME.replace(':NAME', encodeURIComponent(name)),
+        headers: _.extend(baseHeaders, {
+          Authorization: `INKSTONE auth_token="${authToken}"`,
+        }),
+      };
+
+      request.get(options, (err, httpResponse, body) => {
+        if (httpResponse && httpResponse.statusCode === 200) {
+          const project = JSON.parse(body) as ProjectAndCredentials;
+          cb(undefined, project, httpResponse);
+        } else {
+          cb(safeError(err), undefined, httpResponse);
+        }
+      });
+    }
+
+    export function getByUniqueId(authToken: string, uniqueId: string, cb: inkstone.Callback<ProjectAndCredentials>) {
+      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        url: inkstoneConfig.baseUrl +
+          ENDPOINTS.PROJECT_GET_BY_UNIQUE_ID.replace(':UNIQUE_ID', encodeURIComponent(uniqueId)),
         headers: _.extend(baseHeaders, {
           Authorization: `INKSTONE auth_token="${authToken}"`,
         }),

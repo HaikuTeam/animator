@@ -1,5 +1,4 @@
 const cp = require('child_process')
-const argv = require('yargs').argv
 const log = require('../helpers/log')
 
 const organization = `Test${Date.now()}`

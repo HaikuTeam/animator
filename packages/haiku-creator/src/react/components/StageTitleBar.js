@@ -574,6 +574,7 @@ class StageTitleBar extends React.Component {
 
         {experimentIsEnabled(Experiment.NewPublishUI) && this.state.showSharePopover && !this.props.isPreviewMode &&
           <ShareModal
+            envoyProject={this.props.envoyProject}
             project={this.props.project}
             snapshotSaveConfirmed={this.state.snapshotSaveConfirmed}
             isSnapshotSaveInProgress={this.state.isSnapshotSaveInProgress}
