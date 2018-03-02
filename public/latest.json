@@ -1,15 +1,23 @@
 {
-  "version": "3.3.2",
-  "date": "January 4, 2003",
+  "version": "3.1.5",
+  "date": "March 2, 2018",
   "sections": {
     "Fixes": [
-      "Fix: more _tacos for_ **all**",
-      "Fix: world [peace](http://google.com)",
-      "Fix: more yarn"
+      "Fixed formatting of the code snippets that are displayed when publishing a project",
+      "Improved the behavior of the app when resizing the library and the timeline panels",
+      "Fixed a bug that prevented expressions from continuing to evaluate after the timeline's animation had been paused",
+      "Addex an explicit default font to text elements when placed on stage to make it clear that imported Sketch slices don't retain their assigned local system fonts",
+      "Fixed a bug with the Lottie export that can occur when translation/scale are specified but the orthogonal dimension is not"
     ],
     "What's new": [
-      "Auto animation, one click you're done",
-      "Replace Haiku Core with Famous v4"
+      "Added a help chat widget so you can get faster support while editing inside Haiku (we'll try to respond within 1-2 business days)",
+      "Added a \"What's New\" window, accessible via the Help menu, so you know what has changed in the latest release",
+      "We now display a \"What's New\" window whenever the app automatically downloads and installs an update",
+      "Added the ability to share your project on your Haiku community profile (coming soon)",
+      "Added some additional Vue.js bundle files to projects for convenience when importing components into codebases",
+      "Published JavaScript bundles of our framework adapters (react-dom, vue-dom) to our CDN to make it easier to embed in web pages",
+      "Added the ability to delete actions (look for the trash can icon in the action editor window)",
+      "Added a missing \"Save\" button to the multi-line expression editor"
     ]
   }
 }
