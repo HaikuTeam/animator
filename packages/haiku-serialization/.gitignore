@@ -3,4 +3,4 @@ node_modules
 *.log
 checkstyle-result.xml
 test-result.tap
-test/fixtures/
+test/fixtures/projects

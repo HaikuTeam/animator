@@ -1,11 +1,11 @@
 import React from 'react'
 import {get} from 'lodash'
 import ElementTitle from './ElementTitle'
-import CSSStyles from './CSSStyles'
 import Editor from './Editor'
 import EditorActions from './EditorActions'
 import HandlerManager from './HandlerManager'
 import {ModalWrapper, ModalHeader, ModalFooter} from 'haiku-ui-common/lib/react/Modal'
+import {PrettyScroll} from 'haiku-ui-common/lib/react/PrettyScroll'
 import {EDITOR_WIDTH, EDITOR_HEIGHT, EVALUATOR_STATES} from './constants'
 
 const STYLES = {
@@ -220,7 +220,6 @@ class EventHandlerEditor extends React.PureComponent {
             mouseEvent.stopPropagation()
           }}
         >
-          <style>{CSSStyles}</style>
 
           <ModalHeader>
             <ElementTitle
@@ -241,13 +240,14 @@ class EventHandlerEditor extends React.PureComponent {
           </ModalHeader>
 
           <div style={STYLES.outer}>
-            <div
-              style={STYLES.editorsWrapper}
-              className='haiku-scroll'
-              ref={(el) => { this.wrapper = el }}
-            >
-              {this.renderEditors()}
-            </div>
+            <PrettyScroll>
+              <div
+                style={STYLES.editorsWrapper}
+                ref={(el) => { this.wrapper = el }}
+              >
+                {this.renderEditors()}
+              </div>
+            </PrettyScroll>
           </div>
 
           <ModalFooter>

@@ -71,6 +71,11 @@ export const BTN_STYLES = {
   btnDisabled: {
     cursor: 'not-allowed'
   },
+  btnBlack: {
+    backgroundColor: Palette.BLACK,
+    color: Palette.PALE_GRAY,
+    padding: '5px 25px'
+  },
   /* Legacy: many UI dialogs are using this button
    * (autoupdater, tour, sketch downloader) so we keep it until we unify
    * the styles in the whole app

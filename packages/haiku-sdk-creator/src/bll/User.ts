@@ -14,6 +14,12 @@ export interface User {
 
 export const USER_CHANNEL = 'user';
 
+export enum UserSettings {
+  lastViewedChangelog = 'lastViewedChangelog',
+  defaultTimeDisplayMode = 'defaultTimeDisplayMode',
+  timeDisplayModes = 'timeDisplayModes',
+}
+
 export class UserHandler implements User {
 
   reportActivity() {
