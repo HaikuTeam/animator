@@ -5251,5 +5251,62 @@
       "label": "feat",
       "message": "add a SAVE button in multiline expressions editor"
     }
+  },
+  "3.1.6": {
+    "a66b5a94c988822d0fc03ede0e8c865d8b0ef0ea": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add logic to display an aggregated changelog history"
+    },
+    "a701a20689cd9992a289dbd9ad3d828dc1b220cc": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add logic to display an aggregated changelog history"
+    },
+    "a0c873eaabf3031255d8971cd251256cc9526ef6": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "crash when pointing at prod inkstone"
+    },
+    "cc77c058064ca71e26faebd2399d5c20c4b697ad": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add logic to show changelogs after updates"
+    },
+    "735fda9cdb2d9f4cdbb2006b47832b80f52d4a2d": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add logic to show changelogs after updates"
+    },
+    "6995bf47e97171495d0a8cdd9e2f2ea1621309d5": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add logic to show changelogs after updates"
+    },
+    "edf9ab03c25e452f05dc048c0115faf7f1c36324": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "support public/private project settings through inkstone"
+    },
+    "d6e827a02cd3019e93b083b0ce6c8cb7546a947f": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "support public/private project settings through inkstone"
+    },
+    "a6db5470d2412717d839171ee4d29db4a638fe93": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "TypeScript ¯\\_(ツ)_/¯"
+    },
+    "6716a11fabdd3f5b5f2051b0715000c52c3190de": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "layout on pub ui for long proj names"
+    },
+    "c59993eed08365e5cd06c98f10ccd9475f04a3c5": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "use correct import path for code samples in publish UI"
+    }
   }
 }
