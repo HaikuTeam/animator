@@ -26,6 +26,12 @@
   version "3.0.4"
   resolved "https://reservoir.haiku.ai:8910/@haiku%2fplayer/-/player-3.0.4.tgz#dd0bb8fbdea4751c8825adbd6b8ec528a781abaa"
 
+"@haiku/zack4-creatorintro@^0.0.3":
+  version "0.0.3"
+  resolved "https://reservoir.haiku.ai:8910/@haiku%2fzack4-creatorintro/-/zack4-creatorintro-0.0.3.tgz#7f2d969b9b9d938eb743207859f57c1fdffa171a"
+  dependencies:
+    "@haiku/core" "3.1.10"
+
 "@sindresorhus/is@^0.7.0":
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.7.0.tgz#9a06f4f137ee84d7df0460c1fdb1135ffa6c50fd"
