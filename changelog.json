@@ -5341,5 +5341,12 @@
       "label": "fix",
       "message": "update the read paths for changelogs"
     }
+  },
+  "3.1.11": {
+    "5f8062d071562ffa9447bfef84d285d5c5a8e8d8": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Add fuzzy @haiku/core versioning in project folders."
+    }
   }
 }
