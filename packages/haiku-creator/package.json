@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@haiku/core": "3.1.13",
+    "@haiku/zack4-creatorintro": "^0.0.6",
     "async": "^2.5.0",
     "better-react-spinkit": "2.0.0-4",
     "color": "^2.0.1",
@@ -59,8 +60,7 @@
     "react-motion": "0.4.7",
     "react-onclickoutside": "^6.4.0",
     "react-popover": "^0.4.18",
-    "react-transition-group": "^2.2.1",
-    "@haiku/zack4-creatorintro": "^0.0.6"
+    "react-transition-group": "^2.2.1"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
