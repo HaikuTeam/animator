@@ -4,7 +4,7 @@ const path = require('path')
 const DEFAULT_CHANGELOG_PATH = path.join(__dirname, '..', '..', '..', '..', 'changelog/public')
 
 class Changelog {
-  constructor(
+  constructor (
     lastViewedChangelog = '0.0.0',
     changelogPath = DEFAULT_CHANGELOG_PATH
   ) {
@@ -13,7 +13,7 @@ class Changelog {
     this.changelogPath = changelogPath
   }
 
-  readSingleChangelog(changelog) {
+  readSingleChangelog (changelog) {
     return new Promise((resolve, reject) => {
       fs.readFile(path.join(this.changelogPath, changelog), 'utf8', (err, content) => {
         err ? reject(err) : resolve(JSON.parse(content))
@@ -21,7 +21,7 @@ class Changelog {
     })
   }
 
-  readChangelogs() {
+  readChangelogs () {
     const dir = fs.readdirSync(this.changelogPath, 'utf8')
     const pos = dir.indexOf(`${this.lastViewedChangelog}.json`)
     const rawChangelogs = pos === -1 ? dir : dir.slice(pos + 1)
@@ -29,7 +29,7 @@ class Changelog {
     return Promise.all(rawChangelogs.map(this.readSingleChangelog.bind(this)))
   }
 
-  getChangelog() {
+  getChangelog () {
     return new Promise((resolve, reject) => {
       if (this.cachedChangelog) {
         resolve(this.cachedChangelog)

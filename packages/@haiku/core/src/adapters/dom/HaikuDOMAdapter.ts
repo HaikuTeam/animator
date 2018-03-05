@@ -60,14 +60,48 @@ export default function HaikuDOMAdapter(bytecode, config, safeWindow) {
 HaikuDOMAdapter['defineOnWindow'] = function () {
   // Allow multiple instances of different versions to exist on the same page
   if (typeof window !== 'undefined') {
-    if (!window['HaikuPlayer']) { // #LEGACY
-      window['HaikuPlayer'] = {};
-    }
-    if (!window['HaikuCore']) {
-      window['HaikuCore'] = {}; 
+    if (!window['HaikuResolve']) {
+      const haikuResolutions = {};
+      window['HaikuResolve'] = (playerVersion) => {
+        if (haikuResolutions[playerVersion]) {
+          return haikuResolutions[playerVersion];
+        }
+        const matches = playerVersion.match(/^(\d+)\.(\d+)\.(\d+)$/).map(Number);
+        if (!matches) {
+          return undefined;
+        }
+        const [_, major, minor, patch] = matches;
+        const compatibleVersions = Object.keys(window['HaikuCore'])
+          .map((semver) => semver.split('.').map(Number))
+          .filter((semverParts) => {
+            if (semverParts.length !== 3 || semverParts[0] !== major) {
+              return false;
+            }
+
+            return semverParts[1] >= minor && ((semverParts[1] > minor) ? true : semverParts[2] >= patch);
+          });
+        if (compatibleVersions.length === 0) {
+          return undefined;
+        }
+        compatibleVersions.sort(([_, aMinor, aPatch], [__, bMinor, bPatch]) => {
+          if (aMinor < bMinor) {
+            return -1;
+          }
+          if (aMinor > bMinor) {
+            return 1;
+          }
+          return aPatch < bPatch ? -1 : 1;
+        });
+
+        return haikuResolutions[playerVersion] =
+          window['HaikuCore'][compatibleVersions[compatibleVersions.length - 1].join('.')];
+      };
     }
 
-    window['HaikuPlayer'][VERSION] = HaikuDOMAdapter; // #LEGACY
+    if (!window['HaikuCore']) {
+      window['HaikuCore'] = {};
+    }
+
     window['HaikuCore'][VERSION] = HaikuDOMAdapter;
   }
 };
