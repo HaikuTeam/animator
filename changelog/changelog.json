@@ -5341,5 +5341,46 @@
       "label": "fix",
       "message": "update the read paths for changelogs"
     }
+  },
+  "3.1.11": {
+    "5f8062d071562ffa9447bfef84d285d5c5a8e8d8": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Add fuzzy @haiku/core versioning in project folders."
+    }
+  },
+  "3.1.12": {},
+  "3.1.13": {},
+  "3.1.14": {
+    "78054557c6bf9b2e29d2233c874f3eed895bf439": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "fix the gradients on the auth slack logo"
+    },
+    "b2587b9910248255944330299b7a292be8ce1dae": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add script to republish all projects from mono."
+    },
+    "1c164f54e0b8b543edf7f3f52fc492ed65e94d41": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add @haiku/sdk-inkstone stubs for community features."
+    },
+    "5d030a2dc0001edb4ac5cbd03ff56881395eed5c": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "use fuzzy core version for splash haiku"
+    },
+    "56cfc04feb8758a75731fd6869042f6cc379e74f": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Add fuzzy @haiku/core versioning in project folders."
+    },
+    "9d5ecb39ab864284adce60e0e2dc156dc9940894": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add animated splash screen"
+    }
   }
 }

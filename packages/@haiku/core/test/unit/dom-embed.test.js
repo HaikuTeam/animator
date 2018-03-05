@@ -4,19 +4,29 @@ var TestHelpers = require('./../TestHelpers')
 var HaikuDOMAdapter = require('./../../dom')
 
 test('dom-embed', function (t) {
-  t.plan(8)
+  t.plan(12)
 
   TestHelpers.createDOM((err, win, mount) => {
     if (err) throw err
 
     HaikuDOMAdapter.defineOnWindow()
 
-    t.ok(window.HaikuPlayer[pkg.version], 'player attached to window') // #LEGACY
     t.ok(window.HaikuCore[pkg.version], 'core attached to window')
 
     var adapter = window.HaikuCore[pkg.version]
 
-    t.equal(adapter, HaikuDOMAdapter, 'adapter is adapter')
+    t.is(adapter, HaikuDOMAdapter, 'adapter is adapter')
+    t.is(window.HaikuResolve(pkg.version), adapter, 'HaikuResolve can resolve the adapter at current version')
+    t.is(window.HaikuResolve('99.99.99'), undefined, 'HaikuResolve does not resolve a version that is too high')
+    t.is(window.HaikuResolve('0.0.1'), undefined, 'HaikuResolve does not resolve a version that is too low')
+    const originalVersionParts = pkg.version.split('.').map(Number)
+    const onePatchBehind = [...originalVersionParts]
+    onePatchBehind[2] -= 1
+    console.log(onePatchBehind.join('.'))
+    t.is(window.HaikuResolve(onePatchBehind.join('.')), adapter, 'HaikuResolve can resolve from an earlier patch')
+    const onePatchAhead = [...originalVersionParts]
+    onePatchAhead[2] += 1
+    t.is(window.HaikuResolve(onePatchAhead.join('.')), undefined, 'HaikuResolve cannot resolve from a later patch')
 
     var HaikuComponentFactory = adapter({
       timelines: { Default: { foo: {} } },
