@@ -1,6 +1,20 @@
 # Changelog
 
 
+## 3.1.14
+
+### Bug Fixes
+
+ * fix the gradients on the auth slack logo
+ * use fuzzy core version for splash haiku
+
+### Features
+
+ * add script to republish all projects from mono.
+ * add @haiku/sdk-inkstone stubs for community features.
+ * Add fuzzy @haiku/core versioning in project folders.
+ * add animated splash screen
+
 ## 3.1.13
 
 ## 3.1.12
