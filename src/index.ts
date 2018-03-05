@@ -8,6 +8,9 @@ const ENDPOINTS = {
   LOGIN: 'v0/user/auth',
   CHANGE_PASSWORD: 'v0/user/password',
   ORGANIZATION_LIST: 'v0/organization',
+  COMMUNITY_PROJECT_LIST: 'v0/community',
+  SET_COMMUNITY_HAIKUDOS: 'v0/community/:ORGANIZATION_NAME/:PROJECT_NAME/haikudos',
+  COMMUNITY_PROFILE: 'v0/community/:ORGANIZATION_NAME',
   PROJECT_LIST: 'v0/project',
   PROJECT_UPDATE: 'v0/project',
   INVITE_PREFINERY_CHECK: 'v0/invite/check',
@@ -50,8 +53,15 @@ function safeError(err: any): any {
   return new Error('Uncategorized error');
 }
 
+const maybeAuthorizationHeaders = (authToken?: string): {Authorization: string}|undefined => {
+  if (authToken) {
+    return {
+      Authorization: `INKSTONE auth_token="${authToken}"`,
+    };
+  }
 
-
+  return undefined;
+};
 
 export namespace inkstone {
 
@@ -460,6 +470,125 @@ export namespace inkstone {
 
     export function assembleSnapshotLinkFromSnapshot(snapshot: Snapshot) {
       return `${inkstoneConfig.baseShareUrl}${snapshot.UniqueId}/latest`;
+    }
+  }
+
+  export namespace community {
+    export interface HaiKudos {
+      TotalFromCurrentUser?: number;
+      Total: number;
+    }
+
+    export interface CommunityProject {
+      Project: project.Project;
+      Organization: organization.Organization;
+      EmbedUrl: string;
+      HaiKudos: HaiKudos;
+    }
+
+    export interface OrganizationAndCommunityProjects {
+      IsCurrentUser: boolean;
+      Organization: organization.Organization;
+      CommunityProjects: CommunityProject[];
+    }
+
+    /**
+     * Get the community project list.
+     *
+     * Pass undefined as the first parameter if making the request on behalf of an anonymous user. If making the
+     * request on behalf of a logged-in user, pass in their auth token to populate the `TotalFromCurrentUser`
+     * hai-kudos field.
+     * @param {string | undefined} authToken
+     * @param {inkstone.Callback<inkstone.community.CommunityProject[]>} cb
+     */
+    export function projectList(authToken: string|undefined, cb: inkstone.Callback<CommunityProject[]>) {
+      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        url: inkstoneConfig.baseUrl + ENDPOINTS.COMMUNITY_PROJECT_LIST,
+        headers: {
+          ...baseHeaders,
+          ...maybeAuthorizationHeaders(authToken),
+        },
+      };
+
+      request.get(options, (err, httpResponse, body) => {
+        if (httpResponse && httpResponse.statusCode === 200) {
+          cb(undefined, body as CommunityProject[], httpResponse);
+        } else {
+          cb(safeError(err), undefined, httpResponse);
+        }
+      });
+    }
+
+    export interface SetHaiKudosParams {
+      OrganizationName: string;
+      ProjectName: string;
+      Total: number;
+    }
+
+    /**
+     * Give hai-kudos as an authenticated user.
+     *
+     * Here, hai-kudos are treated as a single entity with the expectation that the caller will debounce multiple
+     * snaps into one request with a defined `Total`.
+     *
+     * Hai-kudos cannot be persisted as an unauthenticated user; it's expected that making users *feel like*
+     * they're giving hai-kudos as an unauthenticated user is handled on the client side.
+     * @param {string} authToken
+     * @param {inkstone.community.SetHaiKudosParams} params
+     * @param {inkstone.Callback<boolean>} cb
+     */
+    export function setHaiKudos(authToken: string, params: SetHaiKudosParams, cb: inkstone.Callback<boolean>) {
+      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        url: inkstoneConfig.baseUrl + ENDPOINTS.SET_COMMUNITY_HAIKUDOS
+          .replace(':ORGANIZATION_NAME', params.OrganizationName)
+          .replace(':PROJECT_NAME', params.ProjectName),
+        headers: {
+          ...baseHeaders,
+          ...maybeAuthorizationHeaders(authToken),
+        },
+        json: {
+          Total: params.Total,
+        },
+      };
+
+      request.put(options, (err, httpResponse) => {
+        if (httpResponse && httpResponse.statusCode === 200) {
+          cb(undefined, true, httpResponse);
+        } else {
+          cb(safeError(err), false, httpResponse);
+        }
+      });
+    }
+
+    /**
+     * Get the community profile of an organization by name.
+     *
+     * Pass undefined as the first parameter if making the request on behalf of an anonymous user. If making the
+     * request on behalf of a logged-in user, pass in their auth token to populate the `TotalFromCurrentUser`
+     * hai-kudos field. Additionally, if the requesting user is a member of the organization, the response payload
+     * will indicate `IsCurrentUser: true`.
+     * @param {string | undefined} authToken
+     * @param {string} organizationName
+     * @param {inkstone.Callback<inkstone.community.OrganizationAndCommunityProjects>} cb
+     */
+    export function getProfile(
+      authToken: string|undefined, organizationName: string, cb: inkstone.Callback<OrganizationAndCommunityProjects>) {
+      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        url: inkstoneConfig.baseUrl + ENDPOINTS.COMMUNITY_PROFILE
+          .replace(':ORGANIZATION_NAME', organizationName),
+        headers: {
+          ...baseHeaders,
+          ...maybeAuthorizationHeaders(authToken),
+        },
+      };
+
+      request.get(options, (err, httpResponse, body) => {
+        if (httpResponse && httpResponse.statusCode === 200) {
+          cb(undefined, body as OrganizationAndCommunityProjects, httpResponse);
+        } else {
+          cb(safeError(err), undefined, httpResponse);
+        }
+      });
     }
   }
 
