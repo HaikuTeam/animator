@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 3.1.11
+
+### Features
+
+ * Add fuzzy @haiku/core versioning in project folders.
+
 ## 3.1.10
 
 ### Bug Fixes
