@@ -21,6 +21,7 @@ Notes for reviewers:
 Completed checkin tasks:
 
 - [ ] Did manual testing of interrelated functionality
+- [ ] Added measurement instrumentation (Mixpanel, etc.)
 - [ ] Ran `$ yarn lint-all` and fixed all formatting issues
 - [ ] Ran `$ yarn test-all` and all tests passed
 - [ ] Did the [E2E checklist](https://haiku.quip.com/dGqeAEVSWdmg)
