@@ -1,6 +1,17 @@
 # Changelog
 
 
+## 3.1.15
+
+### Bug Fixes
+
+ * lint
+ * fix the gradients on the auth slack logo
+
+### Features
+
+ * add @haiku/sdk-inkstone stubs for community features.
+
 ## 3.1.14
 
 ### Bug Fixes

@@ -5382,5 +5382,22 @@
       "label": "feat",
       "message": "add animated splash screen"
     }
+  },
+  "3.1.15": {
+    "129a96bc8475cf4279c7dfd91b4ec6c843ac5cf4": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "lint"
+    },
+    "ab586ebff7ea1feeac98660c5b5e2f6041bf4d9c": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "fix the gradients on the auth slack logo"
+    },
+    "fdfb3627b8319653382f96a8eb052c09775a3b6f": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add @haiku/sdk-inkstone stubs for community features."
+    }
   }
 }
