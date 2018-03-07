@@ -75,7 +75,7 @@ class ProjectBrowser extends React.Component {
     evt.stopPropagation()
     this.setState({ isPopoverOpen: true })
 
-    mixpanel.haikuTrack('project-browser', {
+    mixpanel.haikuTrack('creator:project-browser', {
       event: `user-menu-opened`
     })
   }
@@ -83,7 +83,7 @@ class ProjectBrowser extends React.Component {
   closePopover () {
     this.setState({ isPopoverOpen: false })
 
-    mixpanel.haikuTrack('project-browser', {
+    mixpanel.haikuTrack('creator:project-browser', {
       event: `user-menu-closed`
     })
   }
@@ -408,7 +408,7 @@ class ProjectBrowser extends React.Component {
           onClick={() => {
             this.logOut()
 
-            mixpanel.haikuTrack('project-browser', {
+            mixpanel.haikuTrack('creator:project-browser', {
               event: `user-menu-option-selected`,
               option: 'logout'
             })
@@ -423,7 +423,7 @@ class ProjectBrowser extends React.Component {
           onClick={() => {
             this.props.onShowChangelogModal()
 
-            mixpanel.haikuTrack('project-browser', {
+            mixpanel.haikuTrack('creator:project-browser', {
               event: `user-menu-option-selected`,
               option: 'show-changelog'
             })
