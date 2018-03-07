@@ -34,6 +34,7 @@ export interface PropTypes {
   organizationName: string;
   projectUid: string;
   sha: string;
+  mixpanel: object;
 }
 
 export interface StateTypes {
@@ -89,8 +90,13 @@ export class ShareModal extends React.Component<PropTypes, StateTypes> {
     }
   }
 
-  showDetails (selectedEntry: string) {
+  showDetails (selectedEntry) {
     this.setState({selectedEntry, showDetail: true});
+    this.props.mixpanel.haikuTrack('install-options', {
+      from: 'app',
+      event: 'show-single-option',
+      option: selectedEntry.entry,
+    });
   }
 
   hideDetails () {
@@ -126,6 +132,7 @@ export class ShareModal extends React.Component<PropTypes, StateTypes> {
       organizationName,
       sha,
       projectUid,
+      mixpanel,
     } = this.props;
 
     return (
@@ -141,6 +148,7 @@ export class ShareModal extends React.Component<PropTypes, StateTypes> {
             isProjectInfoFetchInProgress={isProjectInfoFetchInProgress}
             isSnapshotSaveInProgress={isSnapshotSaveInProgress}
             isPublic={this.state.isPublic}
+            mixpanel={mixpanel}
             togglePublic={() => this.togglePublic()}
           />
         </ModalHeader>
@@ -152,6 +160,7 @@ export class ShareModal extends React.Component<PropTypes, StateTypes> {
               isSnapshotSaveInProgress={isSnapshotSaveInProgress}
               snapshotSyndicated={snapshotSyndicated}
               snapshotPublished={snapshotPublished}
+              mixpanel={mixpanel}
               onOptionClicked={(selectedEntry) => {
                 this.showDetails(selectedEntry);
               }}
@@ -165,6 +174,7 @@ export class ShareModal extends React.Component<PropTypes, StateTypes> {
               organizationName={organizationName}
               projectUid={projectUid}
               sha={sha}
+              mixpanel={mixpanel}
               onHide={() => {
                 this.hideDetails();
               }}

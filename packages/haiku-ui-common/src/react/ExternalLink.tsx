@@ -8,6 +8,7 @@ export class ExternalLink extends React.PureComponent {
     style: React.PropTypes.object,
     title: React.PropTypes.string,
     href: React.PropTypes.string.isRequired,
+    onClick: React.PropTypes.func,
   };
 
   render () {
@@ -20,6 +21,10 @@ export class ExternalLink extends React.PureComponent {
         onClick={(clickEvent) => {
           clickEvent.preventDefault();
           shell.openExternal(this.props.href);
+
+          if (this.props.onClick) {
+            this.props.onClick(clickEvent);
+          }
         }}
       >
         {this.props.children}
