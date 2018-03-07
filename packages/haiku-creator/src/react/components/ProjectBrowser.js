@@ -4,6 +4,7 @@ import Radium from 'radium'
 import { CSSTransition, TransitionGroup } from 'react-transition-group'
 import { FadingCircle } from 'better-react-spinkit'
 import Palette from 'haiku-ui-common/lib/Palette'
+import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 import Toast from './notifications/Toast'
 import NotificationExplorer from './notifications/NotificationExplorer'
 import ProjectThumbnail from './ProjectThumbnail'
@@ -73,10 +74,18 @@ class ProjectBrowser extends React.Component {
   openPopover (evt) {
     evt.stopPropagation()
     this.setState({ isPopoverOpen: true })
+
+    mixpanel.haikuTrack('project-browser', {
+      event: `user-menu-opened`
+    })
   }
 
   closePopover () {
     this.setState({ isPopoverOpen: false })
+
+    mixpanel.haikuTrack('project-browser', {
+      event: `user-menu-closed`
+    })
   }
 
   loadProjects () {
@@ -396,7 +405,14 @@ class ProjectBrowser extends React.Component {
         <div
           id='haiku-button-logout'
           style={[DASH_STYLES.popover.item, DASH_STYLES.popover.pointer]}
-          onClick={() => this.logOut()}>
+          onClick={() => {
+            this.logOut()
+
+            mixpanel.haikuTrack('project-browser', {
+              event: `user-menu-option-selected`,
+              option: 'logout'
+            })
+          }}>
           <span style={DASH_STYLES.popover.icon}>
             <LogOutSVG />
           </span>
@@ -404,7 +420,14 @@ class ProjectBrowser extends React.Component {
         </div>
         <div
           style={[DASH_STYLES.popover.item, DASH_STYLES.popover.pointer]}
-          onClick={this.props.onShowChangelogModal}>
+          onClick={() => {
+            this.props.onShowChangelogModal()
+
+            mixpanel.haikuTrack('project-browser', {
+              event: `user-menu-option-selected`,
+              option: 'show-changelog'
+            })
+          }}>
           <span style={DASH_STYLES.popover.icon}>
             <PresentIconSVG />
           </span>
