@@ -646,10 +646,19 @@ export default class Creator extends React.Component {
     )
   }
 
+  mixpanelReportPreviewMode (interactionMode) {
+    const report = interactionMode === InteractionMode.EDIT ? 'disabled' : 'enabled'
+
+    mixpanel.haikuTrack('preview-mode', {
+      event: `preview-mode-${report}`,
+    })
+  }
+
   setPreviewMode (interactionMode) {
     if (this.state.projectModel) {
       this.state.projectModel.setInteractionMode(interactionMode, () => { })
       this.setState({ interactionMode })
+      this.mixpanelReportPreviewMode(interactionMode)
     }
   }
 
