@@ -20,6 +20,7 @@ export class EmbedDetails extends React.PureComponent {
     onHide: React.PropTypes.func.isRequired,
     projectUid: React.PropTypes.string,
     sha: React.PropTypes.string,
+    mixpanel: React.PropTypes.object,
   };
 
   render () {
@@ -41,6 +42,7 @@ export class EmbedDetails extends React.PureComponent {
           organizationName={this.props.organizationName}
           projectUid={this.props.projectUid}
           sha={this.props.sha}
+          mixpanel={this.props.mixpanel}
         />
       </div>
     );

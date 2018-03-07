@@ -49,6 +49,8 @@ export class LinkHolster extends React.PureComponent {
     linkAddress: React.PropTypes.string,
     showLoadingBar: React.PropTypes.bool,
     dark: React.PropTypes.bool,
+    onCopy: React.PropTypes.func,
+    onLinkOpen: React.PropTypes.func,
   };
 
   static defaultProps = {
@@ -87,6 +89,7 @@ export class LinkHolster extends React.PureComponent {
     const {
       isSnapshotSaveInProgress,
       linkAddress,
+      onLinkOpen,
     } = this.props;
 
     if (this.props.isSnapshotSaveInProgress) {
@@ -101,7 +104,13 @@ export class LinkHolster extends React.PureComponent {
       return (
           <span
             style={STYLES.link}
-            onClick={() => shell.openExternal(linkAddress)}
+            onClick={() => {
+              shell.openExternal(linkAddress);
+
+              if (onLinkOpen) {
+                onLinkOpen();
+              }
+            }}
           >
             {linkAddress}
           </span>
@@ -115,6 +124,7 @@ export class LinkHolster extends React.PureComponent {
     const {
       showLoadingBar,
       dark,
+      onCopy,
     } = this.props;
 
     return (
@@ -125,7 +135,16 @@ export class LinkHolster extends React.PureComponent {
           done={this.state.done}
         />}
           {this.text}
-        <CopyToClipboard text={this.props.linkAddress} onCopy={() => {this.setCopyText();}}>
+        <CopyToClipboard
+          text={this.props.linkAddress}
+          onCopy={() => {
+            this.setCopyText();
+
+            if (onCopy) {
+              onCopy();
+            }
+          }}
+        >
           <span style={{...STYLES.linkCopyBtn, background: dark ? Palette.BLACK : Palette.COAL}}>
             <CliboardIconSVG />
           </span>

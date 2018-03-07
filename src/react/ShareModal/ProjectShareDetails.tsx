@@ -99,6 +99,7 @@ export class ProjectShareDetails extends React.PureComponent {
     isSnapshotSaveInProgress: React.PropTypes.bool,
     isPublic: React.PropTypes.bool,
     togglePublic: React.PropTypes.func,
+    mixpanel: React.PropTypes.object,
   };
 
   render() {
@@ -110,6 +111,7 @@ export class ProjectShareDetails extends React.PureComponent {
       onHide,
       isPublic,
       togglePublic,
+      mixpanel,
     } = this.props;
 
     return (
@@ -150,6 +152,18 @@ export class ProjectShareDetails extends React.PureComponent {
           <LinkHolster
             isSnapshotSaveInProgress={isSnapshotSaveInProgress}
             linkAddress={linkAddress}
+            onCopy={() => {
+              this.props.mixpanel.haikuTrack('install-options', {
+                from: 'app',
+                event: 'copy-share-link',
+              });
+            }}
+            onLinkOpen={() => {
+              this.props.mixpanel.haikuTrack('install-options', {
+                from: 'app',
+                event: 'open-share-link',
+              });
+            }}
           />
           {
             !this.props.isDisabled &&

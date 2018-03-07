@@ -25,6 +25,7 @@ export default class Lottie extends React.PureComponent {
     organizationName: React.PropTypes.string,
     projectUid: React.PropTypes.string,
     sha: React.PropTypes.string,
+    mixpanel: React.PropTypes.object,
   };
 
   get cdnBase() {
@@ -59,7 +60,12 @@ export default class Lottie extends React.PureComponent {
       <div style={PUBLISH_SHARED.instructionsRow}>
         <div style={PUBLISH_SHARED.instructionsCol1} />
         <div style={{...PUBLISH_SHARED.instructionsCol2}}>
-          <ExternalLink style={SHARED_STYLES.btn}  href={lottiePath}>
+          <ExternalLink style={SHARED_STYLES.btn}  href={lottiePath} onClick={() => {
+            this.props.mixpanel.haikuTrack('install-options', {
+              from: 'app',
+              event: 'lottie-download',
+            });
+          }}>
             Download JSON
           </ExternalLink>
         </div>
