@@ -1,4 +1,6 @@
 const { each } = require('async')
+const { argv } = require('yargs')
+
 const Plumbing = require('haiku-plumbing/lib/Plumbing').default
 const haikuInfo = require('haiku-plumbing/lib/haikuInfo').default
 const { ExporterFormat } = require('haiku-sdk-creator/lib/exporter')
@@ -71,10 +73,14 @@ plumbing.launch({ ...haikuInfo(), mode: 'headless' }, (err) => {
 
     log.hat(`currently signed in as ${organizationName}`)
 
-    plumbing.listProjects((err, projects) => {
+    plumbing.listProjects((err, allProjects) => {
       if (err) {
         throw err
       }
+
+      const projects = argv.onlyProjects
+        ? allProjects.filter(({ projectName }) => argv.onlyProjects.split(',').includes(projectName))
+        : allProjects
 
       each(
         projects,

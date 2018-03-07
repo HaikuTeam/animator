@@ -12,7 +12,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "add-experiment": "node ./scripts/add-experiment.js",
-    "republish-all-projects": "node ./scripts/republish-all-projects.js",
+    "republish-projects": "node ./scripts/republish-projects.js",
     "changelog": "node ./scripts/changelog.js",
     "doctor": "node ./scripts/doctor.js",
     "go": "yarn start default",
