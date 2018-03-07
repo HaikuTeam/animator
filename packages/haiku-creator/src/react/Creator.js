@@ -649,9 +649,7 @@ export default class Creator extends React.Component {
   mixpanelReportPreviewMode (interactionMode) {
     const report = interactionMode === InteractionMode.EDIT ? 'disabled' : 'enabled'
 
-    mixpanel.haikuTrack('creator:preview-mode', {
-      event: `preview-mode-${report}`
-    })
+    mixpanel.haikuTrack(`creator:preview-mode:${report}`)
   }
 
   setPreviewMode (interactionMode) {
@@ -686,8 +684,7 @@ export default class Creator extends React.Component {
   switchActiveNav (activeNav) {
     this.setState({ activeNav })
 
-    mixpanel.haikuTrack('creator:project', {
-      event: `left-nav-switch`,
+    mixpanel.haikuTrack('creator:project:left-nav-switch', {
       option: activeNav
     })
   }
@@ -1030,9 +1027,7 @@ export default class Creator extends React.Component {
     this.setState({showChangelogModal: true})
     this.user.setConfig(UserSettings.lastViewedChangelog, process.env.HAIKU_RELEASE_VERSION)
 
-    mixpanel.haikuTrack('creator:changelog', {
-      event: `shown`
-    })
+    mixpanel.haikuTrack('creator:changelog:shown')
   }
 
   renderChangelogModal () {
