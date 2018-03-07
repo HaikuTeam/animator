@@ -195,6 +195,9 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
       // TODO: Handle this step more gracefully when we are increasing by a major version.
       packageJson.dependencies['@haiku/core'] = `^${haikuCoreVersion}`
 
+      // #LEGACY: some old Haiku in the wild have an engines entry, which causes issues with yarn.
+      delete packageJson.engines
+
       // Write the file assuming we may have made a change in any of the conditions above
       fse.writeJsonSync(dir(projectPath, 'package.json'), packageJson, { spaces: 2 })
     }
