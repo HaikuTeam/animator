@@ -875,6 +875,9 @@ const CONTROL_FLOW_VANITIES = {
     //   - Key/value pairs
     if (context.config.children) {
       surrogates = context.config.children;
+      if (!Array.isArray(surrogates)) {
+        surrogates = [surrogates];
+      }
     } else if (context.config.placeholder) {
       surrogates = context.config.placeholder;
     }
