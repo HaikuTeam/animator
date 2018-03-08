@@ -1,6 +1,14 @@
 # Changelog
 
 
+## 3.1.17
+
+### Bug Fixes
+
+ * Don't crash if the function signature is something we cannot parse
+ * handle controlFlow.placeholder when children are not an array.
+ * When marshalling params, leave dollar signs alone
+
 ## 3.1.16
 
 ### Bug Fixes
