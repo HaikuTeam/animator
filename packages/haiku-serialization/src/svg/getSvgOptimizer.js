@@ -12,9 +12,9 @@ const plugins = [
   'removeNonInheritableGroupAttrs',
   'moveElemsAttrsToGroup',
   'collapseGroups',
-  'removeEmptyContainers',
-  'removeEmptyText',
-  'removeViewBox',
+  // 'removeEmptyContainers',
+  // 'removeEmptyText',
+  // 'removeViewBox',
   {
     haikuClean: {
       type: 'perItem',
