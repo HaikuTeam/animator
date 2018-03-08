@@ -5421,5 +5421,22 @@
       "label": "fix",
       "message": "clean up engines in existing package.json files during init"
     }
+  },
+  "3.1.17": {
+    "49bcb2df4cf19d1b894b1bf817f243adb9dcb169": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Don't crash if the function signature is something we cannot parse"
+    },
+    "3d28a472b07f0d58e431a95b553a743a7466983f": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "handle controlFlow.placeholder when children are not an array."
+    },
+    "b01e6c59b7071c6236b01b2d4eddcfc273eb125e": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "When marshalling params, leave dollar signs alone"
+    }
   }
 }
