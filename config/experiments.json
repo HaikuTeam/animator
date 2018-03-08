@@ -43,7 +43,7 @@
     "production": true
   },
   "NormalizeSvgContent": {
-    "development": true,
+    "development": false,
     "production": false
   },
   "BasicOfflineMode": {
