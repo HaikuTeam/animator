@@ -1,16 +1,22 @@
-import { BrowserWindow, app, ipcMain, systemPreferences, session } from 'electron'
 import EventEmitter from 'events'
 import path from 'path'
+import { parse } from 'url'
 import { inherits } from 'util'
-import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
-import TopMenu from './TopMenu'
+
+import { BrowserWindow, app, ipcMain, systemPreferences, session } from 'electron'
+import qs from 'qs'
+
 import { isProxied } from 'haiku-common/lib/proxies'
+import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
+
+import TopMenu from './TopMenu'
 
 if (!app) {
   throw new Error('You can only run electron.js from an electron process')
 }
 
 app.setName('Haiku')
+app.setAsDefaultProtocolClient('haiku')
 
 systemPreferences.setUserDefault('NSDisabledDictationMenuItem', 'boolean', true)
 systemPreferences.setUserDefault('NSDisabledCharacterPaletteMenuItem', 'boolean', true)
@@ -174,6 +180,13 @@ function createWindow () {
     browserWindow.show()
   })
 }
+
+// Transmit haiku://foo/bar?baz=bat as the "open-url:foo" event with arguments [_, "/bar", {"baz": "bat"}]
+app.on('open-url', (event, url) => {
+  event.preventDefault()
+  const parsedUrl = parse(url)
+  browserWindow.webContents.send(`open-url:${parsedUrl.host}`, parsedUrl.pathname, qs.parse(parsedUrl.query))
+})
 
 if (app.isReady()) {
   createWindow()
