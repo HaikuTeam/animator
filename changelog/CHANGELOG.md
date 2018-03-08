@@ -1,6 +1,18 @@
 # Changelog
 
 
+## 3.1.16
+
+### Bug Fixes
+
+ * handle controlFlow.placeholder when children are not an array.
+ * When marshalling params, leave dollar signs alone
+ * clean up engines in existing package.json files during init
+
+### Features
+
+ * register the haiku:// protocol in Haiku.app
+
 ## 3.1.15
 
 ### Bug Fixes
