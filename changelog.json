@@ -5399,5 +5399,27 @@
       "label": "feat",
       "message": "add @haiku/sdk-inkstone stubs for community features."
     }
+  },
+  "3.1.16": {
+    "554cf48061324cf924d6801ad66d670739230f8d": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "handle controlFlow.placeholder when children are not an array."
+    },
+    "08f0bb8e9daa577aef27c0863ccf7aa9a5bf1194": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "When marshalling params, leave dollar signs alone"
+    },
+    "e8f4ce26c325f8cdebd3f7c75e91238f63577f65": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "register the haiku:// protocol in Haiku.app"
+    },
+    "4d1d19159ac38ddce8f56c1498780e3ff7377d31": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "clean up engines in existing package.json files during init"
+    }
   }
 }
