@@ -7,7 +7,7 @@ import ReservedWords from './ReservedWords';
 const RESERVED_WORDS_ARRAY = Object.keys(ReservedWords.WORDS);
 const WRAP_PREFIX = '_$';
 const WRAP_SUFFIX = '$_';
-const VALIDITY_REGEX = /(^[^a-zA-Z_])|([^a-zA-Z_0-9])/g;
+const VALIDITY_REGEX = /(^[^a-zA-Z_\$])|([^a-zA-Z_\$0-9])/g;
 
 function charReplacer(c: string): string {
   return WRAP_PREFIX + c.charCodeAt(0) + WRAP_SUFFIX;

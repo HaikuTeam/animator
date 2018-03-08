@@ -1,4 +1,4 @@
-const { each } = require('async')
+const { eachSeries } = require('async')
 const { argv } = require('yargs')
 
 const Plumbing = require('haiku-plumbing/lib/Plumbing').default
@@ -24,7 +24,14 @@ const saveProject = (projectObject, cb) => {
         saveStrategy: { strategy: 'recursive', favor: 'ours' },
         exporterFormats: [ExporterFormat.Bodymovin]
       },
-      cb
+      (err) => {
+        if (err) {
+          cb(err)
+          return
+        }
+
+        plumbing.teardownMaster(projectObject.projectPath, cb)
+      }
     )
   }, 5000)
 }
@@ -82,7 +89,7 @@ plumbing.launch({ ...haikuInfo(), mode: 'headless' }, (err) => {
         ? allProjects.filter(({ projectName }) => argv.onlyProjects.split(',').includes(projectName))
         : allProjects
 
-      each(
+      eachSeries(
         projects,
         (project, next) => {
           republishProject(
