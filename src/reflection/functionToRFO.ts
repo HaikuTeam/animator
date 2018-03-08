@@ -133,7 +133,12 @@ function signatureToParams(signature) {
       clean.push(tokens[i]);
     }
   }
-  return tokensToParams(clean);
+  try {
+    return tokensToParams(clean);
+  } catch (exception) {
+    console.warn(`Unable to parse signature ${signature}`, exception);
+    return [];
+  }
 }
 
 export default function functionToRFO(fn) {
