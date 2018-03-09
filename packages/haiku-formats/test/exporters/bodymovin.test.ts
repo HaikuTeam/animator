@@ -860,7 +860,7 @@ tape('BodymovinExporter', (test: tape.Test) => {
       }],
     } = rawOutput(bytecode);
 
-    test.equal(k, 24, 'resolves state variables from bytecode and zeroes summonables');
+    test.equal(k, 25, 'resolves state variables from bytecode and casts summonables as 1');
     test.end();
   });
 

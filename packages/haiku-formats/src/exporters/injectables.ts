@@ -23,7 +23,7 @@ class DefaultStub {
    */
   get (_, property) {
     if (property === Symbol.toPrimitive) {
-      return () => 0;
+      return () => 1;
     }
 
     return new DefaultStub();
