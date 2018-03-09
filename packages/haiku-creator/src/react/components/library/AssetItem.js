@@ -121,6 +121,14 @@ const STYLES = {
       display: 'flex',
       transform: 'translateX(0)'
     }
+  },
+  threeDotMenu: {
+    position: 'absolute',
+    right: 10,
+    transform: 'rotate(90deg)',
+    ':hover': {
+      opacity: 1
+    }
   }
 }
 
@@ -236,8 +244,13 @@ class AssetItem extends React.Component {
     ) {
       return (
         <span
+          key='three-dot-menu-container'
           className='three-dot-menu-container'
-          style={{ position: 'absolute', right: 10 }}>
+          style={{
+            ...STYLES.threeDotMenu,
+            opacity: this.props.asset.isSketchFile() || Radium.getState(this.state, 'asset-item-row', ':hover') ? 1 : 0
+          }}
+        >
           <button
             onClick={this.launchPopoverMenu}
             style={{
@@ -404,6 +417,7 @@ class AssetItem extends React.Component {
         className='asset-item-container'
         style={[STYLES.container]}>
         <div
+          key='asset-item-row'
           className='asset-item-row'
           style={[STYLES.row]}>
           <div
