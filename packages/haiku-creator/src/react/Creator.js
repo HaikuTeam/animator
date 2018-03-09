@@ -411,6 +411,7 @@ export default class Creator extends React.Component {
         let extension
         switch (format) {
           case ExporterFormat.Bodymovin:
+          case ExporterFormat.HaikuStatic:
             extension = 'json'
             break
           default:
