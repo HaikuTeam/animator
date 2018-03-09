@@ -49,7 +49,7 @@ export class NpmInstallable extends React.PureComponent {
               <code style={PUBLISH_SHARED.code}>
                 {dedent`
                   haiku init
-                  npm i --save @haiku/${organizationName.toLowerCase()}-${projectName}
+                  npm i --save @haiku/${organizationName.toLowerCase()}-${projectName.toLowerCase()}
                 `}
               </code>
             </pre>
