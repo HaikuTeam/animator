@@ -1,0 +1,221 @@
+{
+  "name": "Hello",
+  "lastModified": "2018-03-09T14:53:31.630Z",
+  "document": {
+    "id": "0:0",
+    "name": "Document",
+    "type": "DOCUMENT",
+    "children": [
+      {
+        "id": "0:1",
+        "name": "Page 1",
+        "type": "CANVAS",
+        "children": [
+          {
+            "id": "4:2",
+            "name": "Rectangle",
+            "type": "RECTANGLE",
+            "blendMode": "PASS_THROUGH",
+            "absoluteBoundingBox": {
+              "x": -297,
+              "y": -226,
+              "width": 256,
+              "height": 161
+            },
+            "constraints": { "vertical": "TOP", "horizontal": "LEFT" },
+            "fills": [
+              {
+                "type": "SOLID",
+                "blendMode": "NORMAL",
+                "color": {
+                  "r": 0.7686274509803922,
+                  "g": 0.7686274509803922,
+                  "b": 0.7686274509803922,
+                  "a": 1
+                }
+              }
+            ],
+            "strokes": [],
+            "strokeWeight": 1,
+            "strokeAlign": "INSIDE",
+            "exportSettings": [],
+            "effects": []
+          },
+          {
+            "id": "8:0",
+            "name": "Group",
+            "type": "GROUP",
+            "blendMode": "PASS_THROUGH",
+            "children": [
+              {
+                "id": "4:3",
+                "name": "Rectangle 2",
+                "type": "RECTANGLE",
+                "blendMode": "PASS_THROUGH",
+                "absoluteBoundingBox": {
+                  "x": -297,
+                  "y": -42,
+                  "width": 291,
+                  "height": 160
+                },
+                "constraints": { "vertical": "TOP", "horizontal": "LEFT" },
+                "fills": [
+                  {
+                    "type": "SOLID",
+                    "blendMode": "NORMAL",
+                    "color": {
+                      "r": 0.7686274509803922,
+                      "g": 0.7686274509803922,
+                      "b": 0.7686274509803922,
+                      "a": 1
+                    }
+                  }
+                ],
+                "strokes": [],
+                "strokeWeight": 1,
+                "strokeAlign": "INSIDE",
+                "exportSettings": [],
+                "effects": []
+              }
+            ],
+            "absoluteBoundingBox": {
+              "x": -297,
+              "y": -42,
+              "width": 291,
+              "height": 160
+            },
+            "constraints": { "vertical": "TOP", "horizontal": "LEFT" },
+            "backgroundColor": { "r": 0, "g": 0, "b": 0, "a": 0 },
+            "clipsContent": false,
+            "exportSettings": [],
+            "effects": []
+          },
+          {
+            "id": "4:4",
+            "name": "Rectangle 3",
+            "type": "RECTANGLE",
+            "blendMode": "PASS_THROUGH",
+            "absoluteBoundingBox": {
+              "x": 36,
+              "y": -216,
+              "width": 217,
+              "height": 167
+            },
+            "constraints": { "vertical": "TOP", "horizontal": "LEFT" },
+            "fills": [
+              {
+                "type": "SOLID",
+                "blendMode": "NORMAL",
+                "color": {
+                  "r": 0.7686274509803922,
+                  "g": 0.7686274509803922,
+                  "b": 0.7686274509803922,
+                  "a": 1
+                }
+              }
+            ],
+            "strokes": [],
+            "strokeWeight": 1,
+            "strokeAlign": "INSIDE",
+            "exportSettings": [],
+            "effects": []
+          },
+          {
+            "id": "4:5",
+            "name": "Ellipse",
+            "type": "ELLIPSE",
+            "blendMode": "PASS_THROUGH",
+            "absoluteBoundingBox": {
+              "x": -574,
+              "y": -358,
+              "width": 226,
+              "height": 176
+            },
+            "constraints": { "vertical": "TOP", "horizontal": "LEFT" },
+            "fills": [
+              {
+                "type": "SOLID",
+                "blendMode": "NORMAL",
+                "color": {
+                  "r": 0.7686274509803922,
+                  "g": 0.7686274509803922,
+                  "b": 0.7686274509803922,
+                  "a": 1
+                }
+              }
+            ],
+            "strokes": [],
+            "strokeWeight": 1,
+            "strokeAlign": "INSIDE",
+            "exportSettings": [],
+            "effects": []
+          },
+          {
+            "id": "4:6",
+            "name": "Ellipse 2",
+            "type": "ELLIPSE",
+            "blendMode": "PASS_THROUGH",
+            "absoluteBoundingBox": {
+              "x": -574,
+              "y": -116,
+              "width": 173,
+              "height": 179
+            },
+            "constraints": { "vertical": "TOP", "horizontal": "LEFT" },
+            "fills": [
+              {
+                "type": "SOLID",
+                "blendMode": "NORMAL",
+                "color": {
+                  "r": 0.7686274509803922,
+                  "g": 0.7686274509803922,
+                  "b": 0.7686274509803922,
+                  "a": 1
+                }
+              }
+            ],
+            "strokes": [],
+            "strokeWeight": 1,
+            "strokeAlign": "INSIDE",
+            "exportSettings": [],
+            "effects": []
+          },
+          {
+            "id": "5:0",
+            "name": "Slice",
+            "type": "SLICE",
+            "absoluteBoundingBox": {
+              "x": -297,
+              "y": -226,
+              "width": 256,
+              "height": 161
+            },
+            "constraints": { "vertical": "TOP", "horizontal": "LEFT" },
+            "exportSettings": []
+          },
+          {
+            "id": "5:1",
+            "name": "Slice 2",
+            "type": "SLICE",
+            "absoluteBoundingBox": {
+              "x": -574,
+              "y": -116,
+              "width": 173,
+              "height": 179
+            },
+            "constraints": { "vertical": "TOP", "horizontal": "LEFT" },
+            "exportSettings": []
+          }
+        ],
+        "backgroundColor": {
+          "r": 0.8980392156862745,
+          "g": 0.8980392156862745,
+          "b": 0.8980392156862745,
+          "a": 1
+        }
+      }
+    ]
+  },
+  "components": {},
+  "schemaVersion": 0
+}
