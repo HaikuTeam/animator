@@ -2,14 +2,15 @@ import React from 'react'
 import Color from 'color'
 import lodash from 'lodash'
 import Radium from 'radium'
+import { shell } from 'electron'
 import Palette from 'haiku-ui-common/lib/Palette'
-import SketchDownloader from '../SketchDownloader'
 import { didAskedForSketch } from 'haiku-serialization/src/utils/HaikuHomeDir'
 import Asset from 'haiku-serialization/src/bll/Asset'
-import { shell } from 'electron'
 import sketchUtils from '../../../utils/sketchUtils'
+import SketchDownloader from '../SketchDownloader'
 import AssetList from './AssetList'
 import Loader from './Loader'
+import FileImporter from './FileImporter'
 
 const STYLES = {
   scrollwrap: {
@@ -35,26 +36,6 @@ const STYLES = {
   },
   fileDropWrapper: {
     pointerEvents: 'none'
-  },
-  button: {
-    position: 'relative',
-    zIndex: 2,
-    padding: '3px 9px',
-    backgroundColor: Palette.DARKER_GRAY,
-    color: Palette.ROCK,
-    fontSize: 13,
-    fontWeight: 'bold',
-    marginTop: -4,
-    borderRadius: 3,
-    cursor: 'pointer',
-    transform: 'scale(1)',
-    transition: 'transform 200ms ease',
-    ':hover': {
-      backgroundColor: Color(Palette.DARKER_GRAY).darken(0.2)
-    },
-    ':active': {
-      transform: 'scale(.8)'
-    }
   },
   startText: {
     color: Palette.COAL,
@@ -231,13 +212,7 @@ class Library extends React.Component {
           id='library-scroll-wrap'
           style={STYLES.sectionHeader}>
           Library
-          <button style={STYLES.button} onClick={this.launchFilepicker}>+</button>
-          <input
-            type='file'
-            ref='filepicker'
-            multiple
-            onChange={(e) => this.handleFileDrop(this.refs.filepicker.files, e)}
-            style={{opacity: 0, position: 'absolute', right: 0, width: 90, zIndex: 3}} />
+          <FileImporter onFileDrop={(files, fileDropEvent) => {this.handleFileDrop(files, fileDropEvent)}} />
         </div>
         <div
           id='library-scroll-wrap'
