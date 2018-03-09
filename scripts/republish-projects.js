@@ -22,7 +22,7 @@ const saveProject = (projectObject, cb) => {
       {
         commitMessage: 'Manual version bump (via mono script republish-all)',
         saveStrategy: { strategy: 'recursive', favor: 'ours' },
-        exporterFormats: [ExporterFormat.Bodymovin]
+        exporterFormats: [ExporterFormat.Bodymovin, ExporterFormat.HaikuStatic]
       },
       (err) => {
         if (err) {

@@ -1,6 +1,7 @@
 import async from 'async'
 import path from 'path'
 import { debounce } from 'lodash'
+import { ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
 import fse from 'haiku-fs-extra'
 import walkFiles from 'haiku-serialization/src/utils/walkFiles'
 import File from 'haiku-serialization/src/bll/File'
@@ -863,7 +864,15 @@ export default class Master extends EventEmitter {
 
           return async.series(exporterFormats.map((format) => (nextFormat) => {
             // For now, we only support one exported format: lottie.json
-            const filename = ac.getAbsoluteLottieFilePath()
+            let filename
+            switch (format) {
+              case ExporterFormat.Bodymovin:
+                filename = ac.getAbsoluteLottieFilePath()
+                break
+              case ExporterFormat.HaikuStatic:
+                filename = ac.getAbsoluteHaikuStaticFilePath()
+                break
+            }
 
             return saveExport({format, filename}, ac, (err) => {
               if (err) {
