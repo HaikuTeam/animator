@@ -19,26 +19,28 @@ class Figma {
     this.requestLib = requestLib
   }
 
-  importSVG(key) {
-    logger.info('[figma] about to import document with key ' + key)
+  importSVG(URL) {
+    const {id, name} = this.parseProjectURL(URL)
 
-    return this.fetchDocument(key)
+    logger.info('[figma] about to import document with id ' + id)
+
+    return this.fetchDocument(id)
       .then((document) => this.findInstantiableElements(document))
-      .then((elements) => this.getSVGLinks(key, elements))
+      .then((elements) => this.getSVGLinks(elements, id))
       .then((elements) => this.getSVGContents(elements))
-      .then((elements) => this.writeSVGInDisk(elements))
+      .then((elements) => this.writeSVGInDisk(elements, id, name))
   }
 
-  fetchDocument(key) {
-    const uri = API_BASE + 'files/' + key
+  fetchDocument(id) {
+    const uri = API_BASE + 'files/' + id
     return this.request({ uri })
   }
 
-  writeSVGInDisk(elements) {
+  writeSVGInDisk(elements, id, name) {
     logger.info('[figma] writing SVGs in disk')
 
     const abspath =
-      '/Users/roperzh/.haiku/projects/robertodip/japan/designs/teste'
+      '/Users/roperzh/.haiku/projects/robertodip/japan/designs/' + id + '.figma'
 
     const assetBaseFolder = abspath + '.contents/'
     fse.emptyDirSync(assetBaseFolder)
@@ -68,23 +70,22 @@ class Figma {
         this.request({ uri: element.svgURL, auth: false }).then((svg) => {
           resolve({ ...element, svg })
         })
+        .catch(reject)
       })
     })
 
     return Promise.all(requests)
   }
 
-  getSVGLinks(key, elements) {
+  getSVGLinks(elements, id) {
     return new Promise((resolve, reject) => {
       const ids = elements.map((element) => element.id)
       const params = new URLSearchParams([['format', 'svg'], ['ids', ids]])
-      const uri = API_BASE + 'images/' + key + '?' + params.toString()
-
+      const uri = API_BASE + 'images/' + id + '?' + params.toString()
       this.request({ uri })
         .then((SVGLinks) => {
           // TODO: links comes with an error param, we should check that
-          const links = JSON.parse(SVGLinks)
-          const images = links
+          const {images} = JSON.parse(SVGLinks)
           const elementsWithLinks = elements.map((element) => {
             return { ...element, svgURL: images[element.id] }
           })
@@ -128,17 +129,17 @@ class Figma {
    * https://www.figma.com/file/QJFJhrm0QKDgWQoZeiTv0Y/Sample-File
    * @argument {string} rawURL
    */
-  static parseProjectURL(rawURL) {
+  parseProjectURL(rawURL) {
     logger.info('[figma] parsing project URL: ' + rawURL)
 
     const url = new URL(rawURL)
-    const [_, __, key, name] = url.pathname.split('/')
+    const [_, __, id, name] = url.pathname.split('/')
 
-    if (!key || !name) {
+    if (!id || !name) {
       throw new Error('Invalid URL')
     }
 
-    return { key, name }
+    return { id, name }
   }
 }
 

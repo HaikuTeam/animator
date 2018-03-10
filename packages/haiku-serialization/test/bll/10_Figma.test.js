@@ -6,14 +6,15 @@ const SampleImageResponseFixture = require('../fixtures/figma/images.json')
 const token = 'Rs1Ajdgb4hgmWbKcsahi2U2xtRevBqG-kipftTeZ'
 const fileKey = 'DwxTPCNWQZJyU3X44CH3DQpT'
 
-tape('Figma.parseProjectURL parses an URL and returns an object with the key and the name of a Figma project', (t) => {
+tape('Figma.parseProjectURL parses an URL and returns an object with the id and the name of a Figma project', (t) => {
   t.plan(3)
 
-  const parsedURL = Figma.parseProjectURL(`https://www.figma.com/file/${fileKey}/Sample-File`)
+  const figma = new Figma({token})
+  const parsedURL = figma.parseProjectURL(`https://www.figma.com/file/${fileKey}/Sample-File`)
 
   t.equal(typeof parsedURL, 'object', 'the parsed URL is an object')
   t.equal(parsedURL.name, 'Sample-File', 'the parsed URL contains the file name under the "name" key')
-  t.equal(parsedURL.key, fileKey, 'the parsed URL contains the key of the file')
+  t.equal(parsedURL.id, fileKey, 'the parsed URL contains the id of the file')
 })
 
 tape('Figma.parseProjectURL throws an error if the URL can\'t be parsed properly', (t) => {
@@ -66,7 +67,7 @@ tape('Figma.getSVGLinks', async (t) => {
     }})
 
     const elements = figma.findInstantiableElements(JSON.stringify(SampleFileFixture))
-    const links = await figma.getSVGLinks(fileKey, elements)
+    const links = await figma.getSVGLinks(elements, fileKey)
 
     t.ok(Array.isArray(links), 'returns an array of elements')
     t.equal(links.length, elements.length, 'adds links to all elements')
