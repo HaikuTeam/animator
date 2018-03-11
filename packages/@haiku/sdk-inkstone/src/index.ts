@@ -480,18 +480,22 @@ export namespace inkstone {
       Total: number;
     }
 
+    export interface SimpleNamedEntity {
+      Name: string;
+    }
+
     export interface CommunityProject {
-      IsSyndicated: boolean;
-      IsPublic: boolean;
-      Project: project.Project;
-      Organization: organization.Organization;
-      BytecodeUrl: string;
-      StandaloneUrl: string;
-      EmbedUrl: string;
-      GifUrl: string;
-      StillUrl: string;
-      VideoUrl: string;
-      HaiKudos: HaiKudos;
+      Project: SimpleNamedEntity;
+      Organization: SimpleNamedEntity;
+      IsSyndicated?: boolean;
+      IsPublic?: boolean;
+      BytecodeUrl?: string;
+      StandaloneUrl?: string;
+      EmbedUrl?: string;
+      GifUrl?: string;
+      StillUrl?: string;
+      VideoUrl?: string;
+      HaiKudos?: HaiKudos;
     }
 
     export interface OrganizationAndCommunityProjects {
@@ -520,7 +524,7 @@ export namespace inkstone {
 
       request.get(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
-          cb(undefined, body as CommunityProject[], httpResponse);
+          cb(undefined, JSON.parse(body) as CommunityProject[], httpResponse);
         } else {
           cb(safeError(err), undefined, httpResponse);
         }
@@ -548,8 +552,8 @@ export namespace inkstone {
       };
 
       request.post(options, (err, httpResponse, body) => {
-        if (httpResponse && httpResponse.statusCode === 200) {
-          cb(undefined, body as project.Project, httpResponse);
+        if (httpResponse && httpResponse.statusCode === 201) {
+          cb(undefined, JSON.parse(body) as project.Project, httpResponse);
         } else {
           cb(safeError(err), undefined, httpResponse);
         }
@@ -637,6 +641,7 @@ export namespace inkstone {
       GitRemoteName: string;
       GitRemoteArn: string;
       IsPublic: boolean;
+      ForkComplete: boolean;
 
       // Current: GitLab-specific fields.
       RepositoryUrl: string;

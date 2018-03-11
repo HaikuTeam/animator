@@ -97,7 +97,8 @@ const METHODS_TO_AWAIT_FOREVER = {
   saveProject: true,
   teardownMaster: true,
   requestSyndicationInfo: true,
-  deleteProject: true
+  deleteProject: true,
+  forkProject: true
 }
 
 const Q_GLASS = { alias: 'glass' }
@@ -976,6 +977,38 @@ export default class Plumbing extends StateObject {
     })
   }
 
+  forkProject (organizationName, projectName, cb) {
+    const authToken = sdkClient.config.getAuthToken()
+    const communityProject = {
+      Organization: {
+        Name: organizationName
+      },
+      Project: {
+        Name: projectName
+      }
+    }
+
+    inkstone.community.forkCommunityProject(authToken, communityProject, (err, forkedProject) => {
+      if (err) {
+        this.sentryError('forkProject', err)
+        return cb(err)
+      }
+
+      cb(null, forkedProject.Name)
+    })
+  }
+
+  getProjectByName (projectName, cb) {
+    const authToken = sdkClient.config.getAuthToken()
+    inkstone.project.getByName(authToken, projectName, (err, projectAndCredentials) => {
+      if (err) {
+        return cb(err)
+      }
+
+      cb(null, remapProjectObjectToExpectedFormat(projectAndCredentials.Project, this.get('organizationName')))
+    })
+  }
+
   deleteProject (name, path, cb) {
     logger.info('[plumbing] deleting project', name)
     const authToken = sdkClient.config.getAuthToken()
@@ -1384,9 +1417,7 @@ function remapProjectObjectToExpectedFormat (projectObject, organizationName) {
     projectName: projectObject.Name,
     projectExistsLocally: fse.existsSync(projectPath),
     projectsHome: HOMEDIR_PATH,
-    repositoryUrl: projectObject.RepositoryUrl
-    // GitRemoteUrl
-    // GitRemoteName
-    // GitRemoteArn
+    repositoryUrl: projectObject.RepositoryUrl,
+    forkComplete: projectObject.ForkComplete
   }
 }
