@@ -11,6 +11,7 @@ const ENDPOINTS = {
   COMMUNITY_PROJECT_LIST: 'v0/community',
   SET_COMMUNITY_HAIKUDOS: 'v0/community/:ORGANIZATION_NAME/:PROJECT_NAME/hai-kudos',
   COMMUNITY_PROFILE: 'v0/community/:ORGANIZATION_NAME',
+  FORK_COMMUNITY_PROJECT: 'v0/community/:ORGANIZATION_NAME/:PROJECT_NAME/fork',
   PROJECT_LIST: 'v0/project',
   PROJECT_UPDATE: 'v0/project',
   INVITE_PREFINERY_CHECK: 'v0/invite/check',
@@ -520,6 +521,35 @@ export namespace inkstone {
       request.get(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, body as CommunityProject[], httpResponse);
+        } else {
+          cb(safeError(err), undefined, httpResponse);
+        }
+      });
+    }
+
+    /**
+     * Fork a community project.
+     *
+     * This endpoint requires auth.
+     * @param {string} authToken
+     * @param {inkstone.community.CommunityProject} project
+     * @param {inkstone.Callback<inkstone.project.Project>} cb
+     */
+    export function forkCommunityProject(
+      authToken: string, project: CommunityProject, cb: inkstone.Callback<project.Project>) {
+      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        url: inkstoneConfig.baseUrl + ENDPOINTS.FORK_COMMUNITY_PROJECT
+          .replace(':ORGANIZATION_NAME', project.Organization.Name)
+          .replace(':PROJECT_NAME', project.Project.Name),
+        headers: {
+          ...baseHeaders,
+          ...maybeAuthorizationHeaders(authToken),
+        },
+      };
+
+      request.post(options, (err, httpResponse, body) => {
+        if (httpResponse && httpResponse.statusCode === 200) {
+          cb(undefined, body as project.Project, httpResponse);
         } else {
           cb(safeError(err), undefined, httpResponse);
         }
