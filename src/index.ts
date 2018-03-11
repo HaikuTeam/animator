@@ -9,7 +9,7 @@ const ENDPOINTS = {
   CHANGE_PASSWORD: 'v0/user/password',
   ORGANIZATION_LIST: 'v0/organization',
   COMMUNITY_PROJECT_LIST: 'v0/community',
-  SET_COMMUNITY_HAIKUDOS: 'v0/community/:ORGANIZATION_NAME/:PROJECT_NAME/haikudos',
+  SET_COMMUNITY_HAIKUDOS: 'v0/community/:ORGANIZATION_NAME/:PROJECT_NAME/hai-kudos',
   COMMUNITY_PROFILE: 'v0/community/:ORGANIZATION_NAME',
   PROJECT_LIST: 'v0/project',
   PROJECT_UPDATE: 'v0/project',
@@ -480,9 +480,16 @@ export namespace inkstone {
     }
 
     export interface CommunityProject {
+      IsSyndicated: boolean;
+      IsPublic: boolean;
       Project: project.Project;
       Organization: organization.Organization;
+      BytecodeUrl: string;
+      StandaloneUrl: string;
       EmbedUrl: string;
+      GifUrl: string;
+      StillUrl: string;
+      VideoUrl: string;
       HaiKudos: HaiKudos;
     }
 
