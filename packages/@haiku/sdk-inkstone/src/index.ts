@@ -22,6 +22,8 @@ const ENDPOINTS = {
   PROJECT_SNAPSHOT_BY_NAME_AND_SHA: 'v0/project/:NAME/snapshot/:SHA',
   PROJECT_GET_BY_NAME: 'v0/project/:NAME',
   PROJECT_GET_BY_UNIQUE_ID: 'v0/project/:UNIQUE_ID',
+  PROJECT_MAKE_PUBLIC_BY_NAME_OR_UNIQUE_ID: 'v0/project/:NAME_OR_UNIQUE_ID/is_public',
+  PROJECT_MAKE_PRIVATE_BY_NAME_OR_UNIQUE_ID: 'v0/project/:NAME_OR_UNIQUE_ID/is_public',
   PROJECT_DELETE_BY_NAME: 'v0/project/:NAME',
   SUPPORT_UPLOAD_GET_PRESIGNED_URL: 'v0/support/upload/:UUID',
   UPDATES: 'v0/updates',
@@ -593,7 +595,7 @@ export namespace inkstone {
       };
 
       request.put(options, (err, httpResponse) => {
-        if (httpResponse && httpResponse.statusCode === 200) {
+        if (httpResponse && httpResponse.statusCode === 204) {
           cb(undefined, true, httpResponse);
         } else {
           cb(safeError(err), false, httpResponse);
@@ -625,7 +627,7 @@ export namespace inkstone {
 
       request.get(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
-          cb(undefined, body as OrganizationAndCommunityProjects, httpResponse);
+          cb(undefined, JSON.parse(body) as OrganizationAndCommunityProjects, httpResponse);
         } else {
           cb(safeError(err), undefined, httpResponse);
         }
@@ -706,6 +708,42 @@ export namespace inkstone {
           cb(undefined, project, httpResponse);
         } else {
           cb(safeError(err), undefined, httpResponse);
+        }
+      });
+    }
+
+    export function makePublic(authToken: string, nameOrUniqueId: string, cb: inkstone.Callback<boolean>) {
+      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_MAKE_PUBLIC_BY_NAME_OR_UNIQUE_ID.replace(
+          ':NAME_OR_UNIQUE_ID', nameOrUniqueId),
+        headers: _.extend(baseHeaders, {
+          Authorization: `INKSTONE auth_token="${authToken}"`,
+        }),
+      };
+
+      request.put(options, (err, httpResponse) => {
+        if (httpResponse && httpResponse.statusCode === 204) {
+          cb(undefined, true, httpResponse);
+        } else {
+          cb(safeError(err), false, httpResponse);
+        }
+      });
+    }
+
+    export function makePrivate(authToken: string, nameOrUniqueId: string, cb: inkstone.Callback<boolean>) {
+      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_MAKE_PRIVATE_BY_NAME_OR_UNIQUE_ID.replace(
+          ':NAME_OR_UNIQUE_ID', nameOrUniqueId),
+        headers: _.extend(baseHeaders, {
+          Authorization: `INKSTONE auth_token="${authToken}"`,
+        }),
+      };
+
+      request.delete(options, (err, httpResponse) => {
+        if (httpResponse && httpResponse.statusCode === 204) {
+          cb(undefined, true, httpResponse);
+        } else {
+          cb(safeError(err), false, httpResponse);
         }
       });
     }
