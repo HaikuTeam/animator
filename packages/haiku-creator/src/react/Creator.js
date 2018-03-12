@@ -987,7 +987,7 @@ export default class Creator extends React.Component {
     this.createNotice({
       type: 'error',
       title: 'Oh no!',
-      message: 'This project cannot be forked. 😢This may have been disabled by the project\'s owner.',
+      message: 'This project cannot be forked. 😢 This may have been disabled by the project\'s owner.',
       closeText: 'Okay',
       lightScheme: true
     })
