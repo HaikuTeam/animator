@@ -11,6 +11,7 @@ const ENDPOINTS = {
   COMMUNITY_PROJECT_LIST: 'v0/community',
   SET_COMMUNITY_HAIKUDOS: 'v0/community/:ORGANIZATION_NAME/:PROJECT_NAME/hai-kudos',
   COMMUNITY_PROFILE: 'v0/community/:ORGANIZATION_NAME',
+  GET_COMMUNITY_PROJECT: 'v0/community/:ORGANIZATION_NAME/:PROJECT_NAME',
   FORK_COMMUNITY_PROJECT: 'v0/community/:ORGANIZATION_NAME/:PROJECT_NAME/fork',
   PROJECT_LIST: 'v0/project',
   PROJECT_UPDATE: 'v0/project',
@@ -494,6 +495,7 @@ export namespace inkstone {
       BytecodeUrl?: string;
       StandaloneUrl?: string;
       EmbedUrl?: string;
+      LottieUrl?: string;
       GifUrl?: string;
       StillUrl?: string;
       VideoUrl?: string;
@@ -628,6 +630,36 @@ export namespace inkstone {
       request.get(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, JSON.parse(body) as OrganizationAndCommunityProjects, httpResponse);
+        } else {
+          cb(safeError(err), undefined, httpResponse);
+        }
+      });
+    }
+
+    /**
+     * Get a community project by organization and project name.
+     *
+     * @param {string | undefined} authToken
+     * @param {string} organizationName
+     * @param {string} projectName
+     * @param {inkstone.Callback<inkstone.community.CommunityProject>} cb
+     */
+    export function getProject(
+      authToken: string|undefined, organizationName: string, projectName: string,
+      cb: inkstone.Callback<CommunityProject>) {
+      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        url: inkstoneConfig.baseUrl + ENDPOINTS.GET_COMMUNITY_PROJECT
+          .replace(':ORGANIZATION_NAME', organizationName)
+          .replace(':PROJECT_NAME', projectName),
+        headers: {
+          ...baseHeaders,
+          ...maybeAuthorizationHeaders(authToken),
+        },
+      };
+
+      request.get(options, (err, httpResponse, body) => {
+        if (httpResponse && httpResponse.statusCode === 200) {
+          cb(undefined, JSON.parse(body) as CommunityProject, httpResponse);
         } else {
           cb(safeError(err), undefined, httpResponse);
         }
