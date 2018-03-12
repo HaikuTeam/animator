@@ -150,10 +150,8 @@ export default function createRightClickMenu(domElement, component) {
     );
     if (forkAvailable) {
       lines.push(
-        '<a onMouseOver="this.style.backgroundColor=\'rgba(140,140,140,.07)\'"' +
-        ' onMouseOut="this.style.backgroundColor=\'transparent\'"' +
-        ' style="display:block;color:black;text-decoration:none;padding: 5px 13px;line-height:12px;"' +
-        ` href="https://share.haiku.ai/u/${metadata.organization}/${metadata.project}/fork` +
+        '<a onMouseOver="this.style.backgroundColor=\'rgba(140,140,140,.07)\'" onMouseOut="this.style.backgroundColor=\'transparent\'" style="display:block;color:black;text-decoration:none;padding: 5px 13px;line-height:12px;" href="https://share.haiku.ai/u/' +
+        escapeHTML(`${metadata.organization}/${metadata.project}/fork`) +
         '" target="_blank">' +
         sharePageIcon +
         ' Fork this component</a>',

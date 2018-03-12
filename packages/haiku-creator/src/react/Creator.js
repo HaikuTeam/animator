@@ -1036,6 +1036,7 @@ export default class Creator extends React.Component {
       (err, forkedProject) => {
         if (err) {
           this.showForkingError()
+          return
         }
 
         if (!forkedProject.forkComplete) {
