@@ -12,7 +12,7 @@ export class HaikuStaticExporter extends BaseExporter implements ExporterInterfa
   /**
    * Parses class-local bytecode using internal methods.
    *
-   * Essentially replaces all
+   * Essentially replaces all non-scalar timeline values with the equivalent scalar value of edit mode.
    */
   private parseBytecode() {
     this.visitAllTimelineProperties((timeline, property) => {
