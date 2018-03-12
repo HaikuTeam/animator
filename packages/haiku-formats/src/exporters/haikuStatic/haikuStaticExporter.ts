@@ -53,7 +53,7 @@ export class HaikuStaticExporter extends BaseExporter implements ExporterInterfa
    * @returns {{}}
    */
   binaryOutput() {
-    return JSON.stringify(this.rawOutput());
+    return JSON.stringify(this.bytecode);
   }
 
   /**
