@@ -41,7 +41,7 @@ export const LAYOUT_3D_VANITIES = {
       element.layout.rotation.y,
       element.layout.rotation.z,
       element.layout.rotation.w,
-      element.layout.rotation,
+      element.layout.orientation,
     );
   },
   'rotation.y': (name, element, value) => {

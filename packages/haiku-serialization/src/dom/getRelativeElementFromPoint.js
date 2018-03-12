@@ -1,11 +1,11 @@
-function getRelativeElementFromPoint (x, y, doc, context) {
-  if (context) {
-    var w = context.offsetWidth
-    var h = context.offsetHeight
+function getRelativeElementFromPoint (x, y, doc, domElement) {
+  if (domElement) {
+    const w = domElement.offsetWidth
+    const h = domElement.offsetHeight
     if (x < w && x < h) {
-      var rect = context.getBoundingClientRect()
-      var top = rect.top
-      var left = rect.left
+      const rect = domElement.getBoundingClientRect()
+      const top = rect.top
+      const left = rect.left
       return doc.elementFromPoint(x + left, y + top)
     } else {
       return null

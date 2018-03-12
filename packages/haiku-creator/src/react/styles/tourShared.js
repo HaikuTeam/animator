@@ -29,7 +29,7 @@ export const TOUR_STYLES = {
   code: {
     padding: '17px',
     borderRadius: '3px',
-    background: Palette.LIGHTEST_GRAY
+    backgroundColor: Palette.LIGHTEST_GRAY
   },
   list: {
     paddingLeft: '15px'

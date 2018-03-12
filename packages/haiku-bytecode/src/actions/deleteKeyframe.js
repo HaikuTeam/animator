@@ -1,10 +1,10 @@
-var ensureTimelineProperty = require('./ensureTimelineProperty')
-var getSortedKeyframeKeys = require('./getSortedKeyframeKeys')
+const ensureTimelineProperty = require('./ensureTimelineProperty')
+const getSortedKeyframeKeys = require('./getSortedKeyframeKeys')
 
 module.exports = function deleteKeyframe (bytecode, componentId, timelineName, propertyName, keyframeMs) {
-  var property = ensureTimelineProperty(bytecode, timelineName, componentId, propertyName)
+  const property = ensureTimelineProperty(bytecode, timelineName, componentId, propertyName)
 
-  var mss = getSortedKeyframeKeys(property)
+  const mss = getSortedKeyframeKeys(property)
 
   let list = mss.map((ms, i) => {
     let prev = mss[i - 1]
@@ -21,7 +21,7 @@ module.exports = function deleteKeyframe (bytecode, componentId, timelineName, p
     }
   })
 
-  var curr = list.filter(function _filter (item) {
+  const curr = list.filter(function _filter (item) {
     return item.start === keyframeMs
   })[0]
 
@@ -29,8 +29,8 @@ module.exports = function deleteKeyframe (bytecode, componentId, timelineName, p
     return property
   }
 
-  var prev = list[curr.index - 1]
-  var next = list[curr.index + 1]
+  const prev = list[curr.index - 1]
+  const next = list[curr.index + 1]
 
   // First delete our keyframe
   delete property[keyframeMs]

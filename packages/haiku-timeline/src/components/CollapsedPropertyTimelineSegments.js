@@ -16,6 +16,7 @@ export default class CollapsedPropertyTimelineSegments extends React.Component {
           overflow: 'hidden'
         }}>
         <RowSegments
+          scope='CollapsedPropertyTimelineSegments'
           includeDraggables={false}
           preventDragging
           row={this.props.row}

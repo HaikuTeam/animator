@@ -1,7 +1,7 @@
-var ensureTimeline = require('./ensureTimeline')
+const ensureTimeline = require('./ensureTimeline')
 
 module.exports = function renameTimeline (bytecode, timelineNameOld, timelineNameNew) {
-  var old = ensureTimeline(bytecode, timelineNameOld)
+  const old = ensureTimeline(bytecode, timelineNameOld)
   if (timelineNameOld === timelineNameNew) return old
   if (bytecode.timelines[timelineNameNew]) return old
   bytecode.timelines[timelineNameNew] = old

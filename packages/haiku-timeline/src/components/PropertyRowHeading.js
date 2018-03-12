@@ -28,6 +28,24 @@ export default class PropertyRowHeading extends React.Component {
     }
   }
 
+  renderIcon () {
+    if (this.props.row.isState()) {
+      return (
+        <span
+          style={{
+            transform: 'scale(0.75)',
+            position: 'absolute',
+            top: -7,
+            left: 100
+          }}>
+          <StatesSVG color={Palette.BLUE} />
+        </span>
+      )
+    }
+
+    return ''
+  }
+
   render () {
     let fontSize = 10
     let marginTop = 0
@@ -50,17 +68,7 @@ export default class PropertyRowHeading extends React.Component {
           ? 'translateY(-2px)'
           : 'translateY(3px)'
       }}>
-        {(this.props.row.isState())
-          ? <span
-            style={{
-              transform: 'scale(0.75)',
-              position: 'absolute',
-              top: -7,
-              left: 141
-            }}>
-            <StatesSVG color={Palette.BLUE} />
-          </span>
-          : ''}
+        {this.renderIcon()}
         <span
           style={{
             display: 'inline-block',

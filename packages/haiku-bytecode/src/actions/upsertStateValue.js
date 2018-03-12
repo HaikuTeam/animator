@@ -1,4 +1,4 @@
-var unserValue = require('./unserValue')
+const unserValue = require('./unserValue')
 
 module.exports = function upsertStateValue (bytecode, stateName, stateDescriptor) {
   if (!bytecode.states) {

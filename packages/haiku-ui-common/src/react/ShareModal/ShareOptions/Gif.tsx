@@ -6,7 +6,7 @@ const STYLES = {
   imgWrapper: {
     width: '100%',
     minHeight: '200px',
-    background: Palette.GRAY,
+    backgroundColor: Palette.GRAY,
     overflow: 'hidden',
   } as React.CSSProperties,
   image: {

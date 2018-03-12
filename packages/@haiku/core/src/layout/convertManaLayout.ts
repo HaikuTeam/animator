@@ -31,7 +31,7 @@ const TRANSFORM_COMPONENT_WHITELIST = {
 };
 
 function determineSizingProp(sizeAxis, attributeValue) {
-  const parsedValues = cssValue(attributeValue);
+  const parsedValues = cssValue(attributeValue + ''); // Someone may have sent a number
   const parsedValue = parsedValues[0]; // Some CSS props have multi values, but our size ones shouldn't
   switch (parsedValue.unit) {
     case '%':

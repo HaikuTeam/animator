@@ -12,7 +12,7 @@ const STYLES = {
     padding: '5px 25px'
   },
   doneButton: {
-    background: Palette.BLACK
+    backgroundColor: Palette.BLACK
   }
 }
 

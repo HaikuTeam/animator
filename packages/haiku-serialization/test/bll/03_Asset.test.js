@@ -1,5 +1,6 @@
 const test = require('tape')
 const path = require('path')
+const {Experiment,experimentIsEnabled} = require('haiku-common/lib/experiments')
 const Asset = require('./../../src/bll/Asset')
 
 const PROJECT_MODEL_STUB = {
@@ -53,13 +54,18 @@ test('Asset.assetsToDirectoryStructure', (t) => {
     },
   })
   t.ok(assets[0],'asset exists')
-  t.equal(assets[0].kind, 'folder', 'base asset is folder')
-  t.equal(assets[0].type, 'container', 'base asset is container')
-  t.equal(assets[0].children.length, 1, 'base asset has one child')
-  t.equal(assets[0].children[0].kind, 'sketch', 'child asset is sketch')
-  t.equal(assets[0].children[0].type, 'container', 'child asset is container')
-  t.equal(assets[0].children[0].children[0].relpath, 'designs/designs/TEST.sketch/slices', 'grandchild is slices folder')
-  t.equal(assets[0].children[0].children[0].kind, 'folder', 'grandchild is folder')
-  t.equal(assets[0].children[0].children[0].type, 'container', 'grandchild is container')
-  t.equal(assets[0].dump(), "designs\n  designs/TEST.sketch\n    designs/designs/TEST.sketch/slices\n      designs/TEST.sketch.contents/slices/Dicey.svg\n      designs/TEST.sketch.contents/slices/Slicey.svg\n    designs/designs/TEST.sketch/artboards\n      designs/TEST.sketch.contents/artboards/Another Artboard.svg\n      designs/TEST.sketch.contents/artboards/Artboard.svg",'tree looks ok')
+
+  const idx = (experimentIsEnabled(Experiment.MultiComponentControlsLibrary))
+    ? 1
+    : 0
+
+  t.equal(assets[idx].kind, 'folder', 'base asset is folder')
+  t.equal(assets[idx].type, 'container', 'base asset is container')
+  t.equal(assets[idx].children.length, 1, 'base asset has one child')
+  t.equal(assets[idx].children[0].kind, 'sketch', 'child asset is sketch')
+  t.equal(assets[idx].children[0].type, 'container', 'child asset is container')
+  t.equal(assets[idx].children[0].children[0].relpath, 'designs/designs/TEST.sketch/slices', 'grandchild is slices folder')
+  t.equal(assets[idx].children[0].children[0].kind, 'folder', 'grandchild is folder')
+  t.equal(assets[idx].children[0].children[0].type, 'container', 'grandchild is container')
+  t.equal(assets[idx].dump(), "designs\n  designs/TEST.sketch\n    designs/designs/TEST.sketch/slices\n      designs/TEST.sketch.contents/slices/Dicey.svg\n      designs/TEST.sketch.contents/slices/Slicey.svg\n    designs/designs/TEST.sketch/artboards\n      designs/TEST.sketch.contents/artboards/Another Artboard.svg\n      designs/TEST.sketch.contents/artboards/Artboard.svg",'tree looks ok')
 })

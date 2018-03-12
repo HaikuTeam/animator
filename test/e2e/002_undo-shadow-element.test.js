@@ -38,7 +38,12 @@ TestHelpers.run(
 
   t.step((cb) => {
     const folder = Object.keys(t.plumbing.masters)[0]
-    return t.plumbing.gitUndo(folder, { type: 'global' }, TestHelpers.wait(5, cb))
+    return t.plumbing.invokeAction(
+      folder,
+      'undo',
+      ['code/main/code.js', {}],
+      TestHelpers.wait(5, cb)
+    )
   })
 
   t.step((cb) => {

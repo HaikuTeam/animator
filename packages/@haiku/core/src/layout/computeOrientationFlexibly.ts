@@ -27,16 +27,10 @@
  */
 
 export default function computeOrientationFlexibly(xIn, yIn, zIn, w, quat) {
-  // If w-component was given, we are dealing with someone who is quaternion-savvy,
-  // and who we assume wants to compute a rotation exactly, so we'll just return the vector
-  // if (w != null) {
-  //   return { x: x, y: y, z: z, w: w }
-  // }
-
-  // Otherwise, the expectation is that somebody is going to pass the previous
+  // The expectation is that somebody is going to pass the previous
   // quaternion so we can adjust it relative to where it had been before,
   // that is, by passing in Euler angles. Therefore, if the given quaternion
-  // isn't an array, we can't continue.
+  // isn't the complete object, we can't continue.
   if (
     !quat ||
     (quat.x == null || quat.y == null || quat.z == null || quat.w == null)

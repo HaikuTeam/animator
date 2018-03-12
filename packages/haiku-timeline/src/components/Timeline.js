@@ -2,6 +2,7 @@ import React from 'react'
 import Color from 'color'
 import lodash from 'lodash'
 import { DraggableCore } from 'react-draggable'
+import Combokeys from 'combokeys'
 import Project from 'haiku-serialization/src/bll/Project'
 import Row from 'haiku-serialization/src/bll/Row'
 import Keyframe from 'haiku-serialization/src/bll/Keyframe'
@@ -40,8 +41,7 @@ process.env.HAIKU_SUBPROCESS = 'timeline'
   bottom controls: 10000 <- ka-boom!
 */
 
-var electron = require('electron')
-var webFrame = electron.webFrame
+const { webFrame } = require('electron')
 if (webFrame) {
   if (webFrame.setZoomLevelLimits) webFrame.setZoomLevelLimits(1, 1)
   if (webFrame.setLayoutZoomLevelLimits) webFrame.setLayoutZoomLevelLimits(0, 0)
@@ -60,10 +60,13 @@ const DEFAULTS = {
   avoidTimelinePointerEvents: false,
   isPreviewModeActive: false,
   isRepeat: true,
+  flush: false,
   userDetails: null
 }
 
 const THROTTLE_TIME = 32 // ms
+
+const combokeys = new Combokeys(document.documentElement)
 
 class Timeline extends React.Component {
   constructor (props) {
@@ -96,10 +99,33 @@ class Timeline extends React.Component {
     this.mouseMoveListener = this.mouseMoveListener.bind(this)
     this.mouseUpListener = this.mouseUpListener.bind(this)
 
-    // Used to calculate scroll position
-    this._renderedRows = []
+    this.handleCutDebounced = lodash.debounce(this.handleCut.bind(this), 200, {leading: true, trailing: false})
+    this.handleCopyDebounced = lodash.debounce(this.handleCopy.bind(this), 200, {leading: true, trailing: false})
+    this.handlePasteDebounced = lodash.debounce(this.handlePaste.bind(this), 200, {leading: true, trailing: false})
+    this.handleSelectAllDebounced = lodash.debounce(this.handleSelectAll.bind(this), 200, {leading: true, trailing: false})
+    this.handleUndoDebounced = lodash.debounce(this.handleUndo.bind(this), 200, {leading: true, trailing: false})
+    this.handleRedoDebounced = lodash.debounce(this.handleRedo.bind(this), 200, {leading: true, trailing: false})
 
     window.timeline = this
+  }
+
+  isTextInputFocused () {
+    const tagName = (
+      document.activeElement &&
+      document.activeElement.tagName &&
+      document.activeElement.tagName.toLowerCase()
+    )
+
+    return (
+      tagName && (
+        tagName === 'input' ||
+        tagName === 'textarea'
+      )
+    )
+  }
+
+  isTextSelected () {
+    return window.getSelection().type === 'Range'
   }
 
   /*
@@ -111,6 +137,7 @@ class Timeline extends React.Component {
 
     // Clean up subscriptions to prevent memory leaks and react warnings
     this.removeEmitterListeners()
+    combokeys.detach()
 
     if (this.tourClient) {
       this.tourClient.off('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
@@ -121,6 +148,25 @@ class Timeline extends React.Component {
 
   componentDidMount () {
     this.mounted = true
+
+    // If the user e.g. Cmd+tabs away from the window
+    this.addEmitterListener(window, 'blur', () => {
+      Globals.allKeysUp()
+      this.setState({
+        isShiftKeyDown: false,
+        isCommandKeyDown: false,
+        isControlKeyDown: false,
+        isAltKeyDown: false,
+        avoidTimelinePointerEvents: false,
+        isRepeat: true
+      })
+      // If an expression input is focused when we leave this webview, close it
+      if (this.getActiveComponent()) {
+        this.getActiveComponent().getRows().forEach((row) => {
+          row.blur({ from: 'timeline' })
+        })
+      }
+    })
 
     this.addEmitterListener(this.props.websocket, 'method', (method, params, message, cb) => {
       // Harness to enable cross-subview integration testing
@@ -138,6 +184,30 @@ class Timeline extends React.Component {
           cb
         )
       }
+    })
+
+    combokeys.bind('command+z', () => {
+      this.handleUndoDebounced()
+    })
+
+    combokeys.bind('command+shift+z', () => {
+      this.handleRedoDebounced()
+    })
+
+    combokeys.bind('command+x', () => {
+      this.handleCutDebounced()
+    })
+
+    combokeys.bind('command+c', () => {
+      this.handleCopyDebounced()
+    })
+
+    combokeys.bind('command+v', () => {
+      this.handlePasteDebounced()
+    })
+
+    combokeys.bind('command+a', () => {
+      this.handleSelectAllDebounced()
     })
   }
 
@@ -178,7 +248,7 @@ class Timeline extends React.Component {
           this.handleHaikuComponentMounted()
           break
         case 'reloaded':
-          if (arg === 'hard') {
+          if (arg === 'hard' && this.mounted) {
             this.forceUpdate()
           }
           break
@@ -225,7 +295,7 @@ class Timeline extends React.Component {
     this.loadUserSettings()
     this.getActiveComponent().getCurrentTimeline().setTimelinePixelWidth(document.body.clientWidth - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() + 20)
 
-    window.addEventListener('resize', lodash.throttle(() => {
+    this.addEmitterListener(window, 'resize', lodash.throttle(() => {
       if (this.mounted) {
         const pxWidth = document.body.clientWidth - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()
         this.getActiveComponent().getCurrentTimeline().setTimelinePixelWidth(pxWidth + 20)
@@ -233,8 +303,93 @@ class Timeline extends React.Component {
       }
     }, THROTTLE_TIME))
 
-    window.addEventListener('mousemove', this.mouseMoveListener)
-    window.addEventListener('mouseup', this.mouseUpListener)
+    // The this-binding here is required; I am not sure why since we also do this in the constructor.
+    // If you remove the this-binding, you'll see exceptions when you move your mouse initially.
+    this.addEmitterListener(window, 'mousemove', this.mouseMoveListener.bind(this))
+    this.addEmitterListener(window, 'mouseup', this.mouseUpListener.bind(this))
+
+    this.addEmitterListener(this.props.websocket, 'relay', (message) => {
+      console.info('[timeline] relay received', message.name, 'from', message.from)
+
+      // The next relay destination in the sequence is always glass
+      const relayable = lodash.assign(message, {view: 'glass'})
+
+      switch (message.name) {
+        case 'global-menu:zoom-in':
+          // For now, zoom controls only affect the stage
+          this.props.websocket.send(relayable)
+          break
+
+        case 'global-menu:zoom-out':
+          // For now, zoom controls only affect the stage
+          this.props.websocket.send(relayable)
+          break
+
+        case 'global-menu:group':
+          // For now, grouping is only possible via the stage
+          this.props.websocket.send(relayable)
+          break
+
+        case 'global-menu:ungroup':
+          // For now, grouping is only possible via the stage
+          this.props.websocket.send(relayable)
+          break
+
+        case 'global-menu:cut':
+          // Delegate cut only if the user is not editing something here
+          if (document.hasFocus()) {
+            if (!this.isTextSelected()) {
+              this.props.websocket.send(relayable)
+            }
+          } else {
+            this.props.websocket.send(relayable)
+          }
+          break
+
+        case 'global-menu:copy':
+          // Delegate copy only if the user is not editing something here
+          if (document.hasFocus()) {
+            if (!this.isTextSelected()) {
+              this.props.websocket.send(relayable)
+            }
+          } else {
+            this.props.websocket.send(relayable)
+          }
+          break
+
+        case 'global-menu:paste':
+          // Delegate paste only if the user is not editing something here
+          if (document.hasFocus()) {
+            if (!this.isTextInputFocused()) {
+              this.props.websocket.send(relayable)
+            }
+          } else {
+            this.props.websocket.send(relayable)
+          }
+          break
+
+        case 'global-menu:selectall':
+          // Delegate selectall only if the user is not editing something here
+          if (!document.hasFocus()) {
+            if (!this.isTextInputFocused()) {
+              this.props.websocket.send(relayable)
+            }
+          } else {
+            this.props.websocket.send(relayable)
+          }
+          break
+
+        case 'global-menu:undo':
+          // For consistency, let glass initiate undo/redo
+          this.props.websocket.send(relayable)
+          break
+
+        case 'global-menu:redo':
+          // For consistency, let glass initiate undo/redo
+          this.props.websocket.send(relayable)
+          break
+      }
+    })
 
     this.addEmitterListener(this.props.websocket, 'broadcast', (message) => {
       if (message.folder !== this.props.folder) return void (0)
@@ -242,45 +397,24 @@ class Timeline extends React.Component {
         case 'component:reload':
           this.getActiveComponent().moduleReplace(() => {})
           break
-        case 'view:mousedown':
-          if (message.elid !== 'timeline-webview') {
-            Keyframe.deselectAndDeactivateAllKeyframes({ component: this.getActiveComponent() })
-          }
-          break
+
         case 'event-handlers-updated':
           this.getActiveComponent().getCurrentTimeline().notifyFrameActionChange()
           break
       }
     })
 
-    document.addEventListener('paste', (pasteEvent) => {
-      let tagname = pasteEvent.target.tagName.toLowerCase()
-      let editable = pasteEvent.target.getAttribute('contenteditable') // Our input fields are <span>s
-      if (tagname === 'input' || tagname === 'textarea' || editable) {
-        // This is probably a property input, so let the default action happen
-        // TODO: Make this check less brittle
-      } else {
-        // Notify creator that we have some content that the person wishes to paste on the stage;
-        // the top level needs to handle this because it does content type detection.
-        pasteEvent.preventDefault()
-        this.props.websocket.send({
-          type: 'broadcast',
-          name: 'current-pasteable:request-paste',
-          from: 'glass',
-          data: null // This can hold coordinates for the location of the paste
-        })
-      }
+    this.addEmitterListener(document.body, 'keydown', this.handleKeyDown.bind(this))
+
+    this.addEmitterListener(document.body, 'keyup', (keyupEvent) => {
+      this.handleKeyUp(keyupEvent)
     })
 
-    document.body.addEventListener('keydown', this.handleKeyDown.bind(this))
-
-    document.body.addEventListener('keyup', this.handleKeyUp.bind(this))
-
-    document.body.addEventListener('mousewheel', lodash.throttle((wheelEvent) => {
+    this.addEmitterListener(document.body, 'mousewheel', lodash.throttle((wheelEvent) => {
       this.handleScroll(wheelEvent)
-    }, 64), { passive: true })
+    }, 16), { passive: true })
 
-    document.addEventListener('mousemove', (mouseMoveEvent) => {
+    this.addEmitterListener(document, 'mousemove', (mouseMoveEvent) => {
       const timeline = this.getActiveComponent().getCurrentTimeline()
       // The timeline might not be initialized as of the first mouse move
       if (timeline) {
@@ -308,7 +442,9 @@ class Timeline extends React.Component {
       }
     })
 
-    this.forceUpdate()
+    if (this.mounted) {
+      this.forceUpdate()
+    }
 
     this.project.broadcastPayload({
       name: 'project-state-change',
@@ -545,9 +681,7 @@ class Timeline extends React.Component {
   }
 
   handleHorizontalScroll (origDelta) {
-    const absDelta = Math.abs(origDelta)
-    const deltaSign = origDelta ? origDelta < 0 ? -1 : 1 : 0
-    const motionDelta = Math.round(deltaSign * (Math.log(absDelta + 1) * 2))
+    const motionDelta = Math.round((origDelta ? origDelta < 0 ? -1 : 1 : 0) * (Math.log(Math.abs(origDelta) + 1) * 2))
     this.getActiveComponent().getCurrentTimeline().updateVisibleFrameRangeByDelta(motionDelta)
   }
 
@@ -650,6 +784,40 @@ class Timeline extends React.Component {
     }
   }
 
+  handleUndo () {
+    if (this.project) {
+      Keyframe.deselectAndDeactivateAllKeyframes({component: this.getActiveComponent()})
+      this.project.undo({}, {from: 'timeline'}, () => {})
+    }
+  }
+
+  handleRedo () {
+    if (this.project) {
+      Keyframe.deselectAndDeactivateAllKeyframes({component: this.getActiveComponent()})
+      this.project.redo({}, {from: 'timeline'}, () => {})
+    }
+  }
+
+  handleCut () {
+    // Not yet implemented
+  }
+
+  handleCopy () {
+    // Not yet implemented
+  }
+
+  handlePaste () {
+    // Not yet implemented
+  }
+
+  handleDelete () {
+    // Not yet implemented
+  }
+
+  handleSelectAll () {
+    // Not yet implemented
+  }
+
   saveTimeDisplayModeSetting () {
     const mode = this.getActiveComponent().getCurrentTimeline().getTimeDisplayMode()
 
@@ -707,7 +875,7 @@ class Timeline extends React.Component {
             this.getActiveComponent().deleteTimeline(timelineName, { from: 'timeline' }, () => {})
           }}
           selectTimeline={(currentTimelineName) => {
-            this.getActiveComponent().setTimelineName(currentTimelineName, { from: 'timeline' }, () => {})
+            // Not yet implemented
           }}
           playbackSkipBack={() => {
             this.playbackSkipBack()
@@ -938,47 +1106,42 @@ class Timeline extends React.Component {
   }
 
   // Creates a virtual list of all the component rows (includes headings and property rows)
-  renderComponentRows (rows) {
-    if (!this.mounted) {
-      return <span />
-    }
-
-    this._renderedRows = []
-
+  renderComponentRows () {
+    const rows = this.getActiveComponent().getDisplayableRows()
     return (
       <div
         className='property-row-list'
         style={{
           position: 'absolute'
         }}>
-        {rows.map((row) => {
+        {rows.map((row, index) => {
+          const prev = rows[index - 1]
           // Cluster rows only display if collapsed, otherwise we show their properties
           if (row.isClusterHeading() && !row.isExpanded()) {
-            this._renderedRows.push(row)
             return (
               <ClusterRow
                 key={row.getUniqueKey()}
                 rowHeight={this.state.rowHeight}
                 timeline={this.getActiveComponent().getCurrentTimeline()}
                 component={this.getActiveComponent()}
+                prev={prev}
                 row={row} />
             )
           }
 
           if (row.isProperty()) {
-            this._renderedRows.push(row)
             return (
               <PropertyRow
                 key={row.getUniqueKey()}
                 rowHeight={this.state.rowHeight}
                 timeline={this.getActiveComponent().getCurrentTimeline()}
                 component={this.getActiveComponent()}
+                prev={prev}
                 row={row} />
             )
           }
 
           if (row.isHeading()) {
-            this._renderedRows.push(row)
             return (
               <ComponentHeadingRow
                 key={row.getUniqueKey()}
@@ -986,7 +1149,13 @@ class Timeline extends React.Component {
                 timeline={this.getActiveComponent().getCurrentTimeline()}
                 component={this.getActiveComponent()}
                 row={row}
-                onEventHandlerTriggered={this.showEventHandlersEditor} />
+                prev={prev}
+                onEventHandlerTriggered={this.showEventHandlersEditor}
+                isExpanded={row.isExpanded()}
+                isHidden={row.isHidden()}
+                isSelected={row.isSelected()}
+                hasAttachedActions={row.element.getDOMEvents().length > 0}
+              />
             )
           }
 
@@ -1081,7 +1250,7 @@ class Timeline extends React.Component {
               Keyframe.deselectAndDeactivateAllKeyframes({ component: this.getActiveComponent() })
             }
           }}>
-          {this.renderComponentRows(this.getActiveComponent().getDisplayableRows())}
+          {this.renderComponentRows()}
         </div>
         {this.renderBottomControls()}
         <ExpressionInput

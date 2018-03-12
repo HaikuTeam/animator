@@ -11,6 +11,7 @@ test('TimelineProperty.getBaselineValue', function(t) {
   var hostInstance = {}
   hostInstance._builder = new ValueBuilder(hostInstance)
   hostInstance.findElementsByHaikuId = findElementsByHaikuId
+  hostInstance._shouldPerformFullFlush = () => {}
   var inputValues = {}
   var bv = TimelineProperty.getBaselineValue('abcde', 'svg', 'opacity', 'Default', 123, 0.666, {
     timelines: {
@@ -33,6 +34,7 @@ test('TimelineProperty.getBaselineValue', function(t) {
   var hostInstance = {}
   hostInstance._builder = new ValueBuilder(hostInstance)
   hostInstance.findElementsByHaikuId = findElementsByHaikuId
+  hostInstance._shouldPerformFullFlush = () => {}
   var inputValues = {}
   var bv = TimelineProperty.getBaselineValue('abcde', 'svg', 'opacity', 'Default', 0, 0.666, {
     timelines: {
@@ -56,6 +58,7 @@ test('TimelineProperty.getBaselineValue', function(t) {
   var hostInstance = {}
   hostInstance._builder = new ValueBuilder(hostInstance)
   hostInstance.findElementsByHaikuId = findElementsByHaikuId
+  hostInstance._shouldPerformFullFlush = () => {}
   var inputValues = {}
   var bv = TimelineProperty.getBaselineValue('abcde', 'svg', 'opacity', 'Default', 100, 0.666, {
     timelines: {
@@ -78,6 +81,7 @@ test('TimelineProperty.getBaselineValue', function(t) {
   var hostInstance = {}
   hostInstance._builder = new ValueBuilder(hostInstance)
   hostInstance.findElementsByHaikuId = findElementsByHaikuId
+  hostInstance._shouldPerformFullFlush = () => {}
   var inputValues = {}
   var bv = TimelineProperty.getBaselineValue('abcde', 'svg', 'opacity', 'Default', 1000000, 0.666, {
     timelines: {
@@ -94,13 +98,14 @@ test('TimelineProperty.getBaselineValue', function(t) {
         }
       }
     }
-  }, hostInstance, inputValues)
+  }, hostInstance)
   t.equal(bv, 4, 'fourth is correct')
 
   // Another important one: Ensure we use the dom.properties-defined fallback if there is no previous
   var hostInstance = {}
   hostInstance._builder = new ValueBuilder(hostInstance)
   hostInstance.findElementsByHaikuId = findElementsByHaikuId
+  hostInstance._shouldPerformFullFlush = () => {}
   var inputValues = {}
   var bv = TimelineProperty.getBaselineValue('abcde', 'svg', 'opacity', 'Default', 99, 0.666, {
     timelines: {
@@ -117,13 +122,14 @@ test('TimelineProperty.getBaselineValue', function(t) {
         }
       }
     }
-  }, hostInstance, inputValues)
+  }, hostInstance)
   t.equal(bv, 1, 'fifth correct - prop defined fallback ok')
 
   // Another important one: Ensure we use the dom.properties-defined fallback if there is no previous
   var hostInstance = {}
   hostInstance._builder = new ValueBuilder(hostInstance)
   hostInstance.findElementsByHaikuId = findElementsByHaikuId
+  hostInstance._shouldPerformFullFlush = () => {}
   var inputValues = {}
   var bv = TimelineProperty.getBaselineValue('abcde', 'svg', 'boovador', 'Default', 99, undefined, {
     timelines: {
@@ -140,6 +146,6 @@ test('TimelineProperty.getBaselineValue', function(t) {
         }
       }
     }
-  }, hostInstance, inputValues)
+  }, hostInstance)
   t.equal(bv, undefined, 'sixth ok - prop defined fallback ok')
 })

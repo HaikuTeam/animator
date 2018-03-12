@@ -269,7 +269,7 @@ HaikuTimeline.prototype.freeze = function freeze() {
   return this;
 };
 
-HaikuTimeline.prototype.unfreeze = function freeze() {
+HaikuTimeline.prototype.unfreeze = function unfreeze() {
   this.options.freeze = false;
   return this;
 };

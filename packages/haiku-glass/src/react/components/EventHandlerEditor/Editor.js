@@ -33,7 +33,7 @@ const STYLES = {
     height: '105px',
     width: '100%',
     padding: '6px 0 6px 22px',
-    background: Palette.DARKEST_COAL,
+    backgroundColor: Palette.DARKEST_COAL,
     overflow: 'hidden'
   },
   editorWrapper: {
@@ -82,7 +82,7 @@ class Editor extends React.Component {
       base: 'vs-dark',
       inherit: true,
       // `rules` requires colors without the leading '#' ¯\_(ツ)_/¯
-      rules: [{background: Palette.SPECIAL_COAL.replace('#', '')}],
+      rules: [{backgroundColor: Palette.SPECIAL_COAL.replace('#', '')}],
       colors: {
         'editor.foreground': Palette.PALE_GRAY,
         'editor.background': Palette.DARKEST_COAL,
