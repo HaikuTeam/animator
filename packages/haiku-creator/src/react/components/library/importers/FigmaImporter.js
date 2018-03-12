@@ -1,6 +1,7 @@
 import React from "react";
 import Color from "color";
 import Palette from "haiku-ui-common/lib/Palette";
+import Figma from "haiku-serialization/src/bll/Figma";
 
 const STYLES = {
   form: {
@@ -30,6 +31,8 @@ class FigmaImporter extends React.PureComponent {
 
   onFormSubmit(submitEvent) {
     submitEvent.preventDefault()
+    const url = submitEvent.currentTarget.querySelector('[type=url]').value
+    this.figma.importSVG(url)
   }
 
   render() {

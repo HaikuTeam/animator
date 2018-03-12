@@ -40,7 +40,7 @@ class Figma {
     logger.info('[figma] writing SVGs in disk')
 
     const abspath =
-      '/Users/roperzh/.haiku/projects/robertodip/japan/designs/' + id + '.figma'
+      `/Users/roperzh/.haiku/projects/robertodip/japan/designs/${id}-${name}.figma`
 
     const assetBaseFolder = abspath + '.contents/'
     fse.emptyDirSync(assetBaseFolder)
@@ -68,7 +68,7 @@ class Figma {
     const requests = elements.map((element) => {
       return new Promise((resolve, reject) => {
         this.request({ uri: element.svgURL, auth: false }).then((svg) => {
-          resolve({ ...element, svg })
+          resolve(Object.assign(element, {svg}))
         })
         .catch(reject)
       })
@@ -87,7 +87,7 @@ class Figma {
           // TODO: links comes with an error param, we should check that
           const {images} = JSON.parse(SVGLinks)
           const elementsWithLinks = elements.map((element) => {
-            return { ...element, svgURL: images[element.id] }
+            return Object.assign(element, {svgURL: images[element.id]})
           })
 
           resolve(elementsWithLinks)

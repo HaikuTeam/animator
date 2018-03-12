@@ -6,6 +6,7 @@ const { Experiment, experimentIsEnabled } = require('haiku-common/lib/experiment
 const PAGES_REGEX = /\/pages\//
 const SLICES_REGEX = /\/slices\//
 const ARTBOARDS_REGEX = /\/artboards\//
+const GROUPS_REGEX = /\/groups\//
 
 /**
  * @class Asset

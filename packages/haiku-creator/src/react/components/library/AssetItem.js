@@ -3,6 +3,7 @@ import Radium from 'radium'
 import Color from 'color'
 import lodash from 'lodash'
 import Asset from 'haiku-serialization/src/bll/Asset'
+import Figma from 'haiku-serialization/src/bll/Figma'
 import { Draggable } from 'react-drag-and-drop'
 import AssetList from './AssetList'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
@@ -12,6 +13,7 @@ import {
   CollapseChevronRightSVG,
   CollapseChevronDownSVG,
   SketchIconSVG,
+  FigmaIconSVG,
   FolderIconSVG,
   TrashIconSVG,
   ComponentIconSVG
@@ -213,14 +215,26 @@ class AssetItem extends React.Component {
       })
     }
 
+    if (this.props.asset.isFigmaFile()) {
+      items.push({
+        label: 'Open In Figma',
+        icon: FigmaIconSVG,
+        onClick: () => {
+          shell.openExternal(Figma.buildFigmaLink(this.props.asset.figmaID))
+        }
+      })
+    }
+
     // Things like built-in components can't be deleted or shown in finder
-    if (!this.props.asset.isRemoteAsset()) {
+    if (!this.props.asset.isRemoteAsset() && !this.props.asset.isFigmaFile()) {
       items.push({
         label: 'Show In Finder',
         icon: FolderIconSVG,
         onClick: this.handleShowAsset.bind(this)
       })
+    }
 
+    if (!this.props.asset.isRemoteAsset()) {
       items.push({
         label: 'Delete',
         icon: TrashIconSVG,
@@ -239,6 +253,7 @@ class AssetItem extends React.Component {
 
     if (
       this.props.asset.isSketchFile() ||
+      this.props.asset.isFigmaFile() ||
       this.props.asset.isOrphanSvg() ||
       this.props.asset.isComponentOtherThanMain()
     ) {
@@ -248,7 +263,7 @@ class AssetItem extends React.Component {
           className='three-dot-menu-container'
           style={{
             ...STYLES.threeDotMenu,
-            opacity: this.props.asset.isSketchFile() || Radium.getState(this.state, 'asset-item-row', ':hover') ? 1 : 0
+            opacity: this.props.asset.type === Asset.TYPES.CONTAINER || Radium.getState(this.state, 'asset-item-row', ':hover') ? 1 : 0
           }}
         >
           <button
@@ -293,6 +308,17 @@ class AssetItem extends React.Component {
           onDoubleClick={this.handleInstantiate}
           style={STYLES.cardIcon}>
           <SketchIconSVG />
+        </span>
+      )
+    }
+
+    if (this.props.asset.kind === Asset.KINDS.FIGMA) {
+      return (
+        <span
+          className='figma-icon-container'
+          onDoubleClick={this.handleInstantiate}
+          style={STYLES.cardIcon}>
+          <FigmaIconSVG />
         </span>
       )
     }

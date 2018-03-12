@@ -1,3 +1,4 @@
+const { URL } = require('url')
 const tape = require('tape')
 const Figma = require('./../../src/bll/Figma')
 const SampleFileFixture = require('../fixtures/figma/sample-file.json')
@@ -76,3 +77,28 @@ tape('Figma.getSVGLinks', async (t) => {
     t.error(e)
   }
 })
+
+tape('Figma.buildAuthenticationLink', (t) => {
+  t.plan(3)
+
+  const {url, state} = Figma.buildAuthenticationLink(fileKey)
+  const parsedURL = new URL(url)
+  const redirectURI = new URL(parsedURL.searchParams.get('redirect_uri'))
+
+  t.equal(parsedURL.pathname, `//oauth`, 'points to the /oauth path in Figma')
+  t.equal(redirectURI.protocol, 'haiku:', 'redirect_uri uses the haiku:// protocol')
+  t.ok(url.includes(state), 'url includes the returned state')
+})
+
+tape('Figma.buildFigmaLink', (t) => {
+  t.plan(1)
+
+  const url = Figma.buildFigmaLink(fileKey)
+
+  t.ok(url.includes(`/file/${fileKey}`), 'builds a link to the figma file')
+})
+
+// tape('e2e', (t) => {
+//   const figma = new Figma({token})
+//   figma.importSVG(`https://www.figma.com/file/${fileKey}/Sample-File`)
+// })
