@@ -687,7 +687,7 @@ export default class Creator extends React.Component {
       dashboardVisible,
       launchingProject,
       doShowProjectLoader: false,
-      newProjectLoading: false,
+      newProjectLoading: false
     })
   }
 
