@@ -1,9 +1,12 @@
 const { URL, URLSearchParams } = require('url')
 const request = require('request')
 const fse = require('haiku-fs-extra')
-const logger = require('./../utils/LoggerInstance')
+const logger = require('../utils/LoggerInstance')
+const randomAlphabetical = require('../utils/randomAlphabetical')
 
 const API_BASE = 'https://wild-api.figma.com/v1/'
+const FIGMA_URL = 'https://wild.figma.com/'
+const FIGMA_CLIENT_ID = 'VoKSpy2DqppAK4D3b2tO8J'
 const VALID_TYPES = {
   SLICE: 'SLICE',
   GROUP: 'GROUP',

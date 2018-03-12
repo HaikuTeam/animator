@@ -41,20 +41,26 @@ class Asset extends BaseModel {
     asset.parent = this
   }
 
-  getSketchOriginRelpath () {
+  getAssetInfo () {
     const parts = this.relpath.split(path.sep)
-    // It's definitely not a sketch piece if its length doesn't match the pattern
+    // It's definitely not a generated piece if its length doesn't match the pattern
     if (parts.length !== 4) {
-      return null
+      return {generator: null, relpath: null}
     }
+
     // Looking for a path like designs/Foo.sketch.contents/Slices
     const longSource = path.join(parts[0], parts[1], parts[2])
     const shortSource = path.join(parts[0], parts[1])
-    // We only want slices for now; may support Artboards and Pages later
-    if (longSource.match(/\.sketch\.contents\//)) {
-      return shortSource.replace(/\.contents$/, '')
+    const match = longSource.match(/\.(\w+)\.contents\//)
+
+    if (match) {
+      return {
+        generator: match[1],
+        generatorRelpath: shortSource.replace(/\.contents$/, '')
+      }
     }
-    return null
+
+    return {generator: null, relpath: null}
   }
 
   isDraggable () {
@@ -76,6 +82,10 @@ class Asset extends BaseModel {
     return this.kind === Asset.KINDS.SKETCH
   }
 
+  isFigmaFile () {
+    return this.kind === Asset.KINDS.FIGMA
+  }
+
   isRemoteAsset () {
     return this.proximity === Asset.PROXIMITIES.REMOTE
   }
@@ -90,6 +100,131 @@ class Asset extends BaseModel {
 
   isDesignsHostFolder () {
     return this.relpath === 'designs'
+  }
+
+  addSketchChild (svgAsset) {
+    if (svgAsset.isSlice()) {
+      this.slicesFolderAsset.addChild(svgAsset)
+      this.unshiftFolderAsset(this.slicesFolderAsset)
+    } else if (svgAsset.isArtboard()) {
+      this.artboardsFolderAsset.addChild(svgAsset)
+      this.unshiftFolderAsset(this.artboardsFolderAsset)
+    } else {
+      this.addChild(svgAsset)
+    }
+  }
+
+  addFigmaChild (svgAsset) {
+    if (svgAsset.isSlice()) {
+      this.slicesFolderAsset.addChild(svgAsset)
+      this.unshiftFolderAsset(this.slicesFolderAsset)
+    } else if (svgAsset.isGroup()) {
+      this.groupsFolderAsset.addChild(svgAsset)
+      this.unshiftFolderAsset(this.groupsFolderAsset)
+    }
+  }
+
+  addSketchAsset (relpath, dict) {
+    const {project} = this
+    const result = Asset.findById(path.join(project.getFolder(), relpath))
+
+    if (result) {
+      this.addChild(result)
+      return result
+    }
+
+    const artboardsFolderAsset = Asset.upsert({
+      uid: path.join(project.getFolder(), 'designs', relpath, 'artboards'),
+      type: Asset.TYPES.CONTAINER,
+      kind: Asset.KINDS.FOLDER,
+      proximity: Asset.PROXIMITIES.LOCAL,
+      project,
+      relpath: path.join('designs', relpath, 'artboards'),
+      displayName: 'Artboards',
+      children: [],
+      dtModified: Date.now()
+    })
+
+    const slicesFolderAsset = Asset.upsert({
+      uid: path.join(project.getFolder(), 'designs', relpath, 'slices'),
+      type: Asset.TYPES.CONTAINER,
+      kind: Asset.KINDS.FOLDER,
+      proximity: Asset.PROXIMITIES.LOCAL,
+      project,
+      relpath: path.join('designs', relpath, 'slices'),
+      displayName: 'Slices',
+      children: [],
+      dtModified: Date.now()
+    })
+
+    const sketchAsset = Asset.upsert({
+      uid: path.join(project.getFolder(), relpath),
+      type: Asset.TYPES.CONTAINER,
+      kind: Asset.KINDS.SKETCH,
+      proximity: Asset.PROXIMITIES.LOCAL,
+      project,
+      relpath,
+      displayName: path.basename(relpath),
+      children: [],
+      slicesFolderAsset, // Hacky, but avoids extra 'upsert' logic
+      artboardsFolderAsset,
+      dtModified: dict[relpath].dtModified
+    })
+
+    this.addChild(sketchAsset)
+    return sketchAsset
+  }
+
+  addFigmaAsset (relpath) {
+    const {project} = this
+    const result = Asset.findById(path.join(project.getFolder(), relpath))
+
+    if (result) {
+      this.addChild(result)
+      return result
+    }
+
+    const groupsFolderAsset = Asset.upsert({
+      uid: path.join(project.getFolder(), 'designs', relpath, 'groups'),
+      type: Asset.TYPES.CONTAINER,
+      kind: Asset.KINDS.FOLDER,
+      proximity: Asset.PROXIMITIES.LOCAL,
+      project,
+      relpath: path.join('designs', relpath, 'groups'),
+      displayName: 'Groups',
+      children: [],
+      dtModified: Date.now()
+    })
+
+    const slicesFolderAsset = Asset.upsert({
+      uid: path.join(project.getFolder(), 'designs', relpath, 'slices'),
+      type: Asset.TYPES.CONTAINER,
+      kind: Asset.KINDS.FOLDER,
+      proximity: Asset.PROXIMITIES.LOCAL,
+      project,
+      relpath: path.join('designs', relpath, 'slices'),
+      displayName: 'Slices',
+      children: [],
+      dtModified: Date.now()
+    })
+
+    const figmaAsset = Asset.upsert({
+      uid: path.join(project.getFolder(), relpath),
+      type: Asset.TYPES.CONTAINER,
+      kind: Asset.KINDS.FIGMA,
+      proximity: Asset.PROXIMITIES.LOCAL,
+      figmaID: path.basename(relpath).match(/(\w+)-/)[1],
+      project,
+      relpath,
+      displayName: path.basename(relpath).replace(/(\w+)-/, ''),
+      children: [],
+      slicesFolderAsset, // Hacky, but avoids extra 'upsert' logic
+      groupsFolderAsset,
+      dtModified: Date.now()
+    })
+
+    this.addChild(figmaAsset)
+    return figmaAsset
   }
 
   getChildAssets () {
@@ -147,6 +282,10 @@ class Asset extends BaseModel {
     return !!this.relpath.match(ARTBOARDS_REGEX)
   }
 
+  isGroup () {
+    return !!this.relpath.match(GROUPS_REGEX)
+  }
+
   unshiftFolderAsset (folderAsset) {
     const foundAmongChildren = this.children.indexOf(folderAsset) !== -1
     if (!foundAmongChildren) {
@@ -187,6 +326,7 @@ Asset.TYPES = {
 Asset.KINDS = {
   FOLDER: 'folder',
   SKETCH: 'sketch',
+  FIGMA: 'figma',
   BITMAP: 'bitmap',
   VECTOR: 'vector',
   COMPONENT: 'component',
@@ -257,63 +397,13 @@ Asset.ingestAssets = (project, dict) => {
     rootAssets.unshift(componentFolderAsset)
   }
 
-  // First extract the sketch assets, which act as containers for slices
   for (const relpath in dict) {
     const extname = path.extname(relpath)
 
-    if (extname !== '.sketch') continue
-
-    const artboardsFolderAsset = Asset.upsert({
-      uid: path.join(project.getFolder(), 'designs', relpath, 'artboards'),
-      type: Asset.TYPES.CONTAINER,
-      kind: Asset.KINDS.FOLDER,
-      proximity: Asset.PROXIMITIES.LOCAL,
-      project,
-      relpath: path.join('designs', relpath, 'artboards'),
-      displayName: 'Artboards',
-      children: [],
-      dtModified: Date.now()
-    })
-
-    const slicesFolderAsset = Asset.upsert({
-      uid: path.join(project.getFolder(), 'designs', relpath, 'slices'),
-      type: Asset.TYPES.CONTAINER,
-      kind: Asset.KINDS.FOLDER,
-      proximity: Asset.PROXIMITIES.LOCAL,
-      project,
-      relpath: path.join('designs', relpath, 'slices'),
-      displayName: 'Slices',
-      children: [],
-      dtModified: Date.now()
-    })
-
-    const sketchAsset = Asset.upsert({
-      uid: path.join(project.getFolder(), relpath),
-      type: Asset.TYPES.CONTAINER,
-      kind: Asset.KINDS.SKETCH,
-      proximity: Asset.PROXIMITIES.LOCAL,
-      project,
-      relpath,
-      displayName: path.basename(relpath),
-      children: [],
-      slicesFolderAsset, // Hacky, but avoids extra 'upsert' logic
-      artboardsFolderAsset,
-      dtModified: dict[relpath].dtModified
-    })
-
-    designFolderAsset.addChild(sketchAsset)
-  }
-
-  for (const relpath in dict) {
-    const extname = path.extname(relpath)
-    if (extname === '.sketch') {
-      continue
-    } else if (extname === '.svg') {
+    if (extname === '.svg') {
       // Skip any Pages that may have been previously exported by Sketchtool
       // Our workflow only deals with Artboards/Slices, so that's all we display to reduce conceptual overhead
-      if (
-        relpath.match(PAGES_REGEX)
-      ) {
+      if (relpath.match(PAGES_REGEX)) {
         continue
       }
 
@@ -329,23 +419,19 @@ Asset.ingestAssets = (project, dict) => {
         dtModified: dict[relpath].dtModified
       })
 
-      const sketchOriginRelpath = svgAsset.getSketchOriginRelpath()
+      const {generator, generatorRelpath} = svgAsset.getAssetInfo()
 
-      if (sketchOriginRelpath) {
-        const sketchAsset = Asset.findById(path.join(project.getFolder(), sketchOriginRelpath))
-        if (sketchAsset) {
-          if (svgAsset.isSlice()) {
-            sketchAsset.slicesFolderAsset.addChild(svgAsset)
-            sketchAsset.unshiftFolderAsset(sketchAsset.slicesFolderAsset)
-          } else if (svgAsset.isArtboard()) {
-            sketchAsset.artboardsFolderAsset.addChild(svgAsset)
-            sketchAsset.unshiftFolderAsset(sketchAsset.artboardsFolderAsset)
-          } else {
-            sketchAsset.addChild(svgAsset)
-          }
-        }
-      } else {
-        designFolderAsset.addChild(svgAsset)
+      switch (generator) {
+        case 'sketch':
+          const sketchAsset = designFolderAsset.addSketchAsset(generatorRelpath, dict)
+          sketchAsset.addSketchChild(svgAsset)
+          break
+        case 'figma':
+          const figmaAsset = designFolderAsset.addFigmaAsset(generatorRelpath)
+          figmaAsset.addFigmaChild(svgAsset)
+          break
+        default:
+          designFolderAsset.addChild(svgAsset)
       }
     } else if (path.basename(relpath) === 'code.js') { // Looks like a component
       const pathParts = relpath.split(path.sep)
