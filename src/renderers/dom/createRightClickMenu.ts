@@ -98,11 +98,13 @@ export default function createRightClickMenu(domElement, component) {
 
   if (metadata && metadata.project && metadata.organization && window && window.fetch) {
     try {
-      window.fetch(`https://inkstone.haiku.ai/v0/community/OrgGuy/CheckTutorial`).then(({ok}) => {
-        if (ok) {
-          forkAvailable = true;
-        }
-      });
+      window.fetch(`https://inkstone.haiku.ai/v0/community/${metadata.organization}/${metadata.project}`).then(
+        ({ok}) => {
+          if (ok) {
+            forkAvailable = true;
+          }
+        },
+      );
     } catch (e) {
       // ...noop. We were unable to determinine forkability.
     }
