@@ -5,9 +5,9 @@
 import Config from './Config';
 import HaikuGlobal from './HaikuGlobal';
 import HaikuTimeline from './HaikuTimeline';
-import addElementToHashTable from './helpers/addElementToHashTable';
 import applyPropertyToElement from './helpers/applyPropertyToElement';
 import clone from './helpers/clone';
+import getFlexId from './renderers/dom/getFlexId';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
 import cssQueryList from './helpers/cssQueryList';
 import {isPreviewMode} from './helpers/interactionModes';
@@ -163,11 +163,7 @@ export default function HaikuComponent(bytecode: any, context, config, metadata)
   // Dictionary of ids-to-elements, for quick lookups.
   // We hydrate this with elements as we render so we don't have to query the DOM
   // to quickly load elements for patch-style rendering
-  this._hashTableOfIdsToElements = {
-    // Elements are stored in _arrays_ as opposed to singletons, since there could be more than one
-    // in case of edge cases or possibly for future implementation details around $repeat
-    // "abcde": [el, el]
-  };
+  this._hashTableOfIdsToElements = {};
 
   // Dictionary mapping element ids to listeners registered at that element,
   // which are in turn keyed by the event name
@@ -237,10 +233,7 @@ HaikuComponent.prototype._isHorizonElement = function _isHorizonElement(virtualE
   return false;
 };
 
-HaikuComponent.prototype._getRealElementsAtId = function _getRealElementsAtId(flexId) {
-  if (!this._hashTableOfIdsToElements[flexId]) {
-    return [];
-  }
+HaikuComponent.prototype._getRealElementAtId = function _getRealElementAtId(flexId) {
   return this._hashTableOfIdsToElements[flexId];
 };
 
@@ -250,8 +243,15 @@ HaikuComponent.prototype._getRealElementsAtId = function _getRealElementsAtId(fl
  * e.g. during control flow
  */
 HaikuComponent.prototype._addElementToHashTable = function _addElementToHashTable(realElement, virtualElement) {
-  addElementToHashTable(this._hashTableOfIdsToElements, realElement, virtualElement);
-  return this;
+  if (virtualElement && virtualElement.attributes) {
+    const flexId = virtualElement.attributes['haiku-id'] || virtualElement.attributes.id;
+
+    // Don't add if there is no id, otherwise we'll end up tracking a bunch
+    // of elements all sharing a key such as `undefined` or `null` etc.
+    if (flexId) {
+      this._hashTableOfIdsToElements[flexId] = realElement;
+    }
+  }
 };
 
 /**
@@ -1090,6 +1090,47 @@ HaikuComponent.prototype._hydrateMutableTimelines = function _hydrateMutableTime
   }
 };
 
+/**
+ * An interface for a "hot component" to patch into the renderer.
+ *
+ * Hot components are intended to be applied during hot editing when an immutable-looking thing happens to mutate
+ * without marking the owner HaikuComponent instance for a full flush render.
+ */
+export interface HotComponent {
+  timelineName: string;
+  selector: string;
+  propertyNames: string[];
+}
+
+HaikuComponent.prototype.addHotComponent = function addHotComponent(hotComponent: HotComponent) {
+  if (
+    !this._bytecode.timelines ||
+    !this._bytecode.timelines[hotComponent.timelineName] ||
+    !this._bytecode.timelines[hotComponent.timelineName][hotComponent.selector]
+  ) {
+    return;
+  }
+
+  const propertyGroup = this._bytecode.timelines[hotComponent.timelineName][hotComponent.selector];
+
+  const timeline = this._mutableTimelines[hotComponent.timelineName] || {};
+  const mutablePropertyGroup = timeline[hotComponent.selector] || {};
+
+  this._mutableTimelines = {
+    ...this._mutableTimelines,
+    [hotComponent.timelineName]: {
+      ...timeline,
+      [hotComponent.selector]: {
+        ...mutablePropertyGroup,
+        ...hotComponent.propertyNames.reduce(
+          (hotProperties, propertyName) => (hotProperties[propertyName] = propertyGroup[propertyName], hotProperties),
+          {},
+        ),
+      },
+    },
+  };
+};
+
 function bindContextualEventHandlers(component) {
   // Associate any event handlers with the elements matched
   if (component._bytecode.eventHandlers) {
@@ -1175,7 +1216,7 @@ function applyBehaviors(timelinesRunning, deltas, component, context, isPatchOpe
     const timelineName = timelineInstance.getName();
     // In hot editing mode, any timeline is fair game for mutation, even if it's not actually animated (e.g.
     // dragging an SVG at keyframe 0).
-    const timelineDescriptor = isPatchOperation && !component.config.options.hotEditingMode
+    const timelineDescriptor = isPatchOperation
       ? component._mutableTimelines[timelineName]
       : component._bytecode.timelines[timelineName];
 

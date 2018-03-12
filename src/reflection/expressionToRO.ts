@@ -34,4 +34,6 @@ export default function expressionToRO(exp, options) {
   if (isSerializableScalar(exp)) {
     return exp;
   }
+
+  return exp;
 }

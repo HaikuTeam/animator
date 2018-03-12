@@ -46,22 +46,9 @@ function setAttribute(el, key, val, cache) {
       }
     }
   } else {
-    // Fast path several attributes for which it's expensive to compare/read from DOM
-    if (key === 'd') {
-      if (val !== cache.d) {
-        el.setAttribute(key, val);
-        cache.d = val;
-      }
-    } else if (key === 'points') {
-      if (val !== cache.points) {
-        el.setAttribute(key, val);
-        cache.points = val;
-      }
-    } else {
-      const p1 = el.getAttribute(key);
-      if (p1 !== val) {
-        el.setAttribute(key, val);
-      }
+    const p1 = el.getAttribute(key);
+    if (p1 !== val) {
+      el.setAttribute(key, val);
     }
   }
 }

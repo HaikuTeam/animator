@@ -80,7 +80,10 @@ export default function upgradeBytecodeInPlace(bytecode, options) {
         '0',
         bytecode.template,
         (elementName, attributes, children, node) => {
-          if (elementName === 'filter') {
+          if (
+            elementName === 'filter' ||
+            elementName === 'filterGradient'
+          ) {
             if (attributes.id && !alreadyUpdatedReferences[attributes.id]) {
               const prev = attributes.id;
               const next = prev + '-' + options.referenceUniqueness;
@@ -112,12 +115,22 @@ export default function upgradeBytecodeInPlace(bytecode, options) {
           continue;
         }
 
-        // If we're a filter attribute, update our references per those to whom uniqueness was added above/
+        // If we're a filter attribute, update our references per those to whom uniqueness was added above.
         // This appends a "*-abc123" string to the filter to avoid collisions when multiple same components
         // are mounted in a single web page
         if (bytecode.timelines[timelineName][selector]['filter']) {
           for (const keyframeMs in bytecode.timelines[timelineName][selector]['filter']) {
             const keyframeDesc = bytecode.timelines[timelineName][selector]['filter'][keyframeMs];
+            if (keyframeDesc && referencesToUpdate[keyframeDesc.value]) {
+              keyframeDesc.value = referencesToUpdate[keyframeDesc.value];
+            }
+          }
+        }
+
+        // The fill attribute may reference a <filterGradient> property; avoid collisions same as above.
+        if (bytecode.timelines[timelineName][selector]['fill']) {
+          for (const keyframeMs in bytecode.timelines[timelineName][selector]['fill']) {
+            const keyframeDesc = bytecode.timelines[timelineName][selector]['fill'][keyframeMs];
             if (keyframeDesc && referencesToUpdate[keyframeDesc.value]) {
               keyframeDesc.value = referencesToUpdate[keyframeDesc.value];
             }
