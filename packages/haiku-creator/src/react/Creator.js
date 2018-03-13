@@ -61,6 +61,9 @@ if (webFrame) {
   if (webFrame.setLayoutZoomLevelLimits) webFrame.setLayoutZoomLevelLimits(0, 0)
 }
 
+const FORK_OPERATION_TIMEOUT = 2000
+const MAX_FORK_ATTEMPTS = 15
+
 export default class Creator extends React.Component {
   constructor (props) {
     super(props)
@@ -133,6 +136,9 @@ export default class Creator extends React.Component {
         setInteractionMode: true
       }
     }
+
+    // Callback for post-authentication
+    this._postAuthCallback = undefined
 
     const win = remote.getCurrentWindow()
 
@@ -218,6 +224,14 @@ export default class Creator extends React.Component {
 
     ipcRenderer.on('global-menu:show-changelog', () => {
       this.showChangelogModal()
+    })
+
+    ipcRenderer.on('open-url:fork', (_, path) => {
+      // Incoming path should have format: /:organizationName/:projectName
+      const matches = path.match(/^\/(\w+)\/(\w+)$/)
+      if (matches) {
+        this.forkProject(matches[1], matches[2])
+      }
     })
 
     window.addEventListener('dragover', Asset.preventDefaultDrag, false)
@@ -411,6 +425,7 @@ export default class Creator extends React.Component {
         let extension
         switch (format) {
           case ExporterFormat.Bodymovin:
+          case ExporterFormat.HaikuStatic:
             extension = 'json'
             break
           default:
@@ -534,7 +549,9 @@ export default class Creator extends React.Component {
             isUserAuthenticated: authAnswer && authAnswer.isAuthed
           })
 
-          if (this.props.folder) {
+          if (authAnswer && authAnswer.isAuthed && typeof this._postAuthCallback === 'function') {
+            this._postAuthCallback()
+          } else if (this.props.folder) {
             // Launch folder directly - i.e. allow a 'subl' like experience without having to go
             // through the projects index
             return this.launchFolder(null, this.props.folder, (error) => {
@@ -672,12 +689,12 @@ export default class Creator extends React.Component {
     this.setPreviewMode(InteractionMode.EDIT)
   }
 
-  setDashboardVisibility (dashboardVisible) {
+  setDashboardVisibility (dashboardVisible, launchingProject = false) {
     this.setState({
       dashboardVisible,
+      launchingProject,
       doShowProjectLoader: false,
-      newProjectLoading: false,
-      launchingProject: false
+      newProjectLoading: false
     })
   }
 
@@ -710,6 +727,10 @@ export default class Creator extends React.Component {
   }
 
   authenticationComplete () {
+    if (typeof this._postAuthCallback === 'function') {
+      this._postAuthCallback()
+    }
+
     return this.setState({ isUserAuthenticated: true })
   }
 
@@ -964,7 +985,87 @@ export default class Creator extends React.Component {
     this.teardownMaster({ shouldFinishTour: true })
   }
 
-  teardownMaster ({shouldFinishTour}) {
+  awaitAuthAndFire (cb) {
+    if (!this.state.readyForAuth || !this.state.isUserAuthenticated) {
+      this._postAuthCallback = cb
+    } else {
+      cb()
+    }
+  }
+
+  showForkingError () {
+    this.setState({launchingProject: false})
+    this.createNotice({
+      type: 'error',
+      title: 'Oh no!',
+      message: 'This project cannot be forked. 😢 This may have been disabled by the project\'s owner.',
+      closeText: 'Okay',
+      lightScheme: true
+    })
+  }
+
+  forkProject (organizationName, projectName) {
+    mixpanel.haikuTrack('creator:fork-project', {organizationName, projectName})
+    const doFork = () => {
+      this.awaitAuthAndFire(() => {
+        this.props.websocket.request(
+          { method: 'forkProject', params: [organizationName, projectName] },
+          (err, forkedProjectName) => {
+            if (err) {
+              this.showForkingError()
+              return
+            }
+
+            this.openNewlyForkedProject(forkedProjectName, 0)
+          }
+        )
+      })
+    }
+
+    if (this.state.projectModel) {
+      this.teardownMaster({shouldFinishTour: true, launchingProject: true}, doFork)
+    } else {
+      this.setState({launchingProject: true})
+      doFork()
+    }
+  }
+
+  openNewlyForkedProject (forkedProjectName, numAttempts) {
+    const recheck = () => {
+      if (numAttempts > MAX_FORK_ATTEMPTS) {
+        this.showForkingError()
+        return
+      }
+
+      setTimeout(() => {
+        this.openNewlyForkedProject(forkedProjectName, numAttempts + 1)
+      }, FORK_OPERATION_TIMEOUT)
+    }
+
+    this.props.websocket.request(
+      { method: 'getProjectByName', params: [forkedProjectName] },
+      (err, forkedProject) => {
+        if (err) {
+          this.showForkingError()
+          return
+        }
+
+        if (!forkedProject.forkComplete) {
+          recheck()
+        } else {
+          setTimeout(() => {
+            this.launchProject(forkedProjectName, forkedProject, (err) => {
+              if (err) {
+                this.showForkingError()
+              }
+            })
+          }, FORK_OPERATION_TIMEOUT)
+        }
+      }
+    )
+  }
+
+  teardownMaster ({shouldFinishTour, launchingProject = false}, cb) {
     // We teardownMaster FIRST because we want to close the websocket connections before
     // destroying the webviews, which leads to EPIPE/"not opened" crashes.
     // Previously we were relying on dropped connections to deallocate websockets,
@@ -973,7 +1074,7 @@ export default class Creator extends React.Component {
       { method: 'teardownMaster', params: [this.state.projectModel.getFolder()] },
       () => {
         console.info('[creator] master torn down')
-        this.setDashboardVisibility(true)
+        this.setDashboardVisibility(true, launchingProject)
         this.onTimelineUnmounted()
         this.unsetAllProjectModelsState(this.state.projectModel.getFolder(), 'project:ready')
         this.unsetAllProjectModelsState(this.state.projectModel.getFolder(), 'component:mounted')
@@ -983,6 +1084,10 @@ export default class Creator extends React.Component {
           activeNav: 'library', // Prevents race+crash loading StateInspector when switching projects
           interactionMode: InteractionMode.EDIT // So that the asset library will not be obscured on reentry
         })
+
+        if (cb) {
+          cb()
+        }
       }
     )
   }

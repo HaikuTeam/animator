@@ -226,6 +226,10 @@ class ActiveComponent extends BaseModel {
     return path.join(this.getSceneCodeFolder(), 'lottie.json')
   }
 
+  getAbsoluteHaikuStaticFilePath () {
+    return path.join(this.getSceneCodeFolder(), 'static.json')
+  }
+
   fetchActiveBytecodeFile () {
     const folder = this.project.getFolder()
     const relpath = this.getSceneCodeRelpath()
