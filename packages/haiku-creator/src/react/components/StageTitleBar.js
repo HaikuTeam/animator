@@ -326,6 +326,11 @@ class StageTitleBar extends React.Component {
 
     this.setState({showSharePopover: true})
 
+    mixpanel.haikuTrack('install-options', {
+      from: 'app',
+      event: 'show-all-options'
+    })
+
     return this.performProjectSave()
   }
 
@@ -588,6 +593,7 @@ class StageTitleBar extends React.Component {
             ref={(el) => { this._shareModal = el }}
             projectUid={projectInfo.uuid}
             sha={projectInfo.sha}
+            mixpanel={mixpanel}
           />
         }
 
