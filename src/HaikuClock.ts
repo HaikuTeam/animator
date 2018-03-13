@@ -94,7 +94,7 @@ HaikuClock.prototype.assignOptions = function assignOptions(options) {
 HaikuClock.prototype.run = function run() {
   if (this.isRunning()) {
     // If time is "controlled" we are locked to an explicitly set local time, so no math is needed.
-    if (this._isTimeControlled()) {
+    if (this.isTimeControlled()) {
       this.tick();
     } else {
       // If we got here, we need to evaluate the time elapsed, and determine if we've waited long enough for a frame
@@ -149,7 +149,7 @@ HaikuClock.prototype.getFPS = function getFPS() {
  * clock is in control mode or not.
  */
 HaikuClock.prototype.getExplicitTime = function getExplicitTime() {
-  if (this._isTimeControlled()) {
+  if (this.isTimeControlled()) {
     return this.getControlledTime();
   }
   return this.getRunningTime();
@@ -163,7 +163,7 @@ HaikuClock.prototype.getControlledTime = function getControlledTime() {
   return this._localExplicitlySetTime;
 };
 
-HaikuClock.prototype._isTimeControlled = function _isTimeControlled() {
+HaikuClock.prototype.isTimeControlled = function isTimeControlled() {
   return typeof this._localExplicitlySetTime === NUMBER;
 };
 
