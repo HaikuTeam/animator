@@ -20,7 +20,8 @@ export type CubicCurve = {
 };
 
 export type PathPoint = {
-  moveTo: boolean;
+  moveTo?: boolean;
+  closed?: boolean;
   curve?: CubicCurve;
   x: number;
   y: number;
