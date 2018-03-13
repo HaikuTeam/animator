@@ -355,7 +355,7 @@ class Timeline extends BaseModel {
         }
 
         const timelineInstance = timelineInstances[timelineName]
-        timelineInstance._controlTime(timelineTime, explicitTime)
+        timelineInstance.controlTime(timelineTime, explicitTime)
       }
     })
 

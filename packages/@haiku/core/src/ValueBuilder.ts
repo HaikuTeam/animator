@@ -1250,7 +1250,7 @@ export default class ValueBuilder {
         haikuComponent,
         isPatchOperation,
         skipCache,
-        null
+        null,
       );
 
       // We use undefined as a signal that it's not worthwhile to put this value in the list of updates.

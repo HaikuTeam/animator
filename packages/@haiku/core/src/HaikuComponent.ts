@@ -967,7 +967,7 @@ HaikuComponent.prototype.patch = function patch(container, patchOptions, skipCac
   for (const timelineName in this._timelineInstances) {
     const timeline = this._timelineInstances[timelineName];
     if (timeline.isPlaying()) {
-      timeline._doUpdateWithGlobalClockTime(time);
+      timeline.doUpdateWithGlobalClockTime(time);
     }
 
     // The default timeline is always considered to be running
@@ -1040,7 +1040,7 @@ HaikuComponent.prototype.render = function render(container, renderOptions) {
   for (const timelineName in this._timelineInstances) {
     const timeline = this._timelineInstances[timelineName];
     if (timeline.isPlaying()) {
-      timeline._doUpdateWithGlobalClockTime(time);
+      timeline.doUpdateWithGlobalClockTime(time);
     }
   }
 

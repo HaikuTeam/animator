@@ -387,7 +387,7 @@ class ActiveComponent extends BaseModel {
       let timeline = instance._timelineInstances[timelineName]
       if (timeline) {
         let descriptor = instance._getTimelineDescriptor(timelineName)
-        timeline._resetMaxDefinedTimeFromDescriptor(descriptor)
+        timeline.resetMaxDefinedTimeFromDescriptor(descriptor)
       }
     })
     return this
@@ -1781,7 +1781,7 @@ class ActiveComponent extends BaseModel {
     // the same local time/time control data that had already been set by the user
     for (const timelineName in existingActiveInstance._timelineInstances) {
       existingActiveInstance._timelineInstances[timelineName] = existingActiveInstance._timelineInstances[timelineName]
-      existingActiveInstance._timelineInstances[timelineName]._setComponent(freshInstance)
+      existingActiveInstance._timelineInstances[timelineName].setComponent(freshInstance)
     }
 
     // Discard the old (deactivated) instance and subsume it with this one
