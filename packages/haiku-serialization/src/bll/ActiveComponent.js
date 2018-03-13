@@ -377,7 +377,7 @@ class ActiveComponent extends BaseModel {
 
   clearCachedClusters (timelineName, componentId) {
     this.getActiveInstancesOfHaikuCoreComponent().forEach((instance) => {
-      instance._builder._clearCachedClusters(timelineName, componentId)
+      instance._builder.clearCachedClusters(timelineName, componentId)
     })
     return this
   }
