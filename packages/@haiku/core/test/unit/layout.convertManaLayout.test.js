@@ -1,9 +1,10 @@
-var test = require('tape')
-var convertManaLayout = require('./../../lib/layout/convertManaLayout').default
-var xmlToMana = require('./../../lib/helpers/xmlToMana').default
+const test = require('tape')
+const convertManaLayout = require('./../../lib/layout/convertManaLayout').default
+const xmlToMana = require('./../../lib/helpers/xmlToMana').default
 
-test('layout.convertManaLayout', function (t) {
-  var data = [
+test('layout.convertManaLayout', (t) => {
+  const data = [
+    // Width and height, proportional and absolute
     [
       {
         elementName: 'div',
@@ -50,6 +51,8 @@ test('layout.convertManaLayout', function (t) {
         ]
       }
     ],
+
+    // One transform component
     [
       {
         elementName: 'div',
@@ -73,6 +76,8 @@ test('layout.convertManaLayout', function (t) {
         children: []
       }
     ],
+
+    // Multiple of the same transform component
     [
       {
         elementName: 'div',
@@ -94,6 +99,8 @@ test('layout.convertManaLayout', function (t) {
         children: []
       }
     ],
+
+    // Multiple transform components, including rotation in a certain order
     [
       {
         elementName: 'div',
@@ -118,6 +125,8 @@ test('layout.convertManaLayout', function (t) {
         children: []
       }
     ],
+
+    // SVG width/height attributes converted to absolute size
     [
       {
         elementName: 'svg',
@@ -414,9 +423,7 @@ test('layout.convertManaLayout', function (t) {
       }
     ],
 
-    // RED BALLOON TILTED COUNTERCLOCKWISE
-    // I want b-1 to have translation of 1,14.5
-    // but instead I am getting 20.03, -2.53
+    // RED BALLOON TILTED COUNTERCLOCKWISE: I want b-1 to have translation of 1,14.5
     [
       xmlToMana(
         `
@@ -559,6 +566,7 @@ test('layout.convertManaLayout', function (t) {
         ]
       }
     ],
+
     // Generic elements should see their x and y attributes stripped off.
     [
       {
@@ -574,6 +582,7 @@ test('layout.convertManaLayout', function (t) {
         children: []
       }
     ],
+
     // Image elements should preserve their x and y attributes.
     [
       {
@@ -590,12 +599,143 @@ test('layout.convertManaLayout', function (t) {
         },
         children: []
       }
+    ],
+
+    [
+      xmlToMana(`
+        <svg width="119" height="112" viewBox="0 0 119 112">
+            <g data-name="Canvas" fill="none">
+                <g data-name="Shape">
+                    <g transform="translate(9 3)">
+                        <use xlink:href="#path0" fill="#A3875E"/>
+                    </g>
+                </g>
+                <g data-name="Group">
+                    <g data-name="Shape">
+                        <g transform="translate(37.1712 68.4771)">
+                            <use xlink:href="#path1" fill="#DBB67E"/>
+                        </g>
+                    </g>
+                    <g data-name="Shape">
+                        <g transform="translate(47.1714 38.114)">
+                            <use xlink:href="#path2" fill="#DBB67E"/>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </svg>
+      `),
+      {
+        "elementName": "svg",
+        "attributes": {
+          "viewBox": "0 0 119 112",
+          "sizeAbsolute.x": 119,
+          "sizeMode.x": 1,
+          "sizeAbsolute.y": 112,
+          "sizeMode.y": 1
+        },
+        "children": [
+          {
+            "elementName": "g",
+            "attributes": {
+              "data-name": "Canvas",
+              "fill": "none"
+            },
+            "children": [
+              {
+                "elementName": "g",
+                "attributes": {
+                  "data-name": "Shape"
+                },
+                "children": [
+                  {
+                    "elementName": "g",
+                    "attributes": {
+                      "translation.x": 9,
+                      "translation.y": 3
+                    },
+                    "children": [
+                      {
+                        "elementName": "use",
+                        "attributes": {
+                          "xlink:href": "#path0",
+                          "fill": "#A3875E"
+                        },
+                        "children": []
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "elementName": "g",
+                "attributes": {
+                  "data-name": "Group"
+                },
+                "children": [
+                  {
+                    "elementName": "g",
+                    "attributes": {
+                      "data-name": "Shape"
+                    },
+                    "children": [
+                      {
+                        "elementName": "g",
+                        "attributes": {
+                          "translation.x": 37.17,
+                          "translation.y": 68.48
+                        },
+                        "children": [
+                          {
+                            "elementName": "use",
+                            "attributes": {
+                              "xlink:href": "#path1",
+                              "fill": "#DBB67E"
+                            },
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "elementName": "g",
+                    "attributes": {
+                      "data-name": "Shape"
+                    },
+                    "children": [
+                      {
+                        "elementName": "g",
+                        "attributes": {
+                          "translation.x": 47.17,
+                          "translation.y": 38.11
+                        },
+                        "children": [
+                          {
+                            "elementName": "use",
+                            "attributes": {
+                              "xlink:href": "#path2",
+                              "fill": "#DBB67E"
+                            },
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
     ]
   ]
 
   t.plan(data.length)
 
   data.forEach(([input, output]) => {
-    t.deepEqual(convertManaLayout(input), output)
+    const result = convertManaLayout(input)
+    t.deepEqual(result, output)
   })
 })
