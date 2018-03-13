@@ -7,6 +7,7 @@ export default class PropertyTimelineSegments extends React.Component {
       <div
         className='property-timeline-segments'>
         <RowSegments
+          scope='PropertyTimelineSegments'
           includeDraggables
           preventDragging={false}
           row={this.props.row}

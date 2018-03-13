@@ -43,7 +43,7 @@
     "production": true
   },
   "NormalizeSvgContent": {
-    "development": false,
+    "development": true,
     "production": false
   },
   "BasicOfflineMode": {
@@ -55,10 +55,30 @@
     "production": false
   },
   "ShowSubElementsInJitMenu": {
-    "development": true,
+    "development": false,
     "production": false
   },
   "ElementMultiSelectAndTransform": {
+    "development": false,
+    "production": false
+  },
+  "GroupUngroup": {
+    "development": false,
+    "production": false
+  },
+  "BaseModelQueryCache": {
+    "development": true,
+    "production": false
+  },
+  "ElementDepthFilter": {
+    "development": true,
+    "production": true
+  },
+  "StageSelectionMarquee": {
+    "development": false,
+    "production": false
+  },
+  "StageResizeAllSides": {
     "development": true,
     "production": false
   }

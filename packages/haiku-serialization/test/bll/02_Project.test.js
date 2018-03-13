@@ -4,7 +4,7 @@ const fse = require('haiku-fs-extra')
 const Project = require('./../../src/bll/Project')
 
 tape('Project', (t) => {
-  t.plan(24)
+  t.plan(16)
   const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'project-01')
   fse.removeSync(folder)
   const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
@@ -24,31 +24,7 @@ tape('Project', (t) => {
       t.true(project.buildFileUid('foo/bar/baz.js').endsWith('haiku-serialization/test/fixtures/projects/project-01/foo/bar/baz.js'))
       t.ok(project.getPlatform().haiku.registry[project.buildFileUid('code/main/code.js')])
       t.ok(project.getEnvoyClient())
-      project.once('remote-update', (a,b,c,d) => {
-        t.equal(a,'meowMeow')
-        t.equal(b,1)
-        t.equal(c,2)
-        t.equal(d,undefined)
-      })
-      project.once('update', (a,b,c,d) => {
-        t.equal(a,'ruffRuff')
-        t.equal(b,3)
-        t.equal(c,4)
-        t.equal(d,undefined)
-      })
-      project.emitHook('meowMeow',1,2,{from:'luna'})
-      project.emitHook('ruffRuff',3,4,{from:'test'})
       websocket.send = () => {}
-
-      websocket.action = (a,b,c,d) => {
-        t.equal(a,'unselectElement')
-        t.equal(data.params[1],'oh/la/la.rb')
-        t.equal(data.params[2],'abc123')
-        t.equal(typeof c, 'function')
-        t.equal(d,undefined)
-      }
-      project.methodHook('unselectElement', 'oh/la/la.rb', 'abc123', {from:'test'})
-      websocket.action = () => {}
 
       const ac1 = project.findActiveComponentBySceneName('main')
       t.ok(ac1)

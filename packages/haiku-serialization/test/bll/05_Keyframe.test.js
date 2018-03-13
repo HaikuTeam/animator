@@ -3,8 +3,6 @@ const path = require('path')
 const fse = require('haiku-fs-extra')
 const async = require('async')
 const Project = require('./../../src/bll/Project')
-const File = require('./../../src/bll/File')
-const Element = require('./../../src/bll/Element')
 const Keyframe = require('./../../src/bll/Keyframe')
 
 tape('Keyframe.01', (t) => {
@@ -124,7 +122,7 @@ tape('Keyframe.01', (t) => {
 })
 
 tape('Keyframe.02', (t) => {
-  t.plan(10)
+  t.plan(6)
   return setupTest('keyframe-02', (err, ac, rows, done) => {
     if (err) throw err
     const kfs = rows[0].getKeyframes()
@@ -132,9 +130,14 @@ tape('Keyframe.02', (t) => {
     t.equal(kfs[0].getMs(), 0, 'ms ok to begin')
     t.equal(rows[0].getKeyframes().length, 6, '6 kfs to start')
     kfs[0].moveTo(50, 16.666)
+    ac.commitAccumulatedKeyframeMovesDebounced()
+
+    let once = false
     ac.on('update', (what, row) => {
-      if (what !== 'keyframe-create') return
-      if (row.isHeading()) return
+      if (what !== 'reloaded') return
+      if (once) return
+      once = true
+
       const kfs2 = rows[0].getKeyframes()
       t.equal(kfs2.length, 7, 'more kfs')
       t.equal(kfs2[0].getMs(), 0, 'new kf at 0 ok')
@@ -143,7 +146,7 @@ tape('Keyframe.02', (t) => {
       // I can add a curve to a keyframe that was dragged from zeroth
       fireClick(kfs2[1], true)
       ac.joinSelectedKeyframes('linear', { from: 'timeline' })
-      t.equal(kfs2[1].getCurve(), 'linear')
+      t.equal(kfs2[1].getCurve(), 'linear', 'curve is ok')
 
       done()
     })

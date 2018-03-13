@@ -37,9 +37,6 @@ export default class MasterGitProject extends EventEmitter {
       throw new Error('[master-git] MasterGitProject cannot launch without a folder defined')
     }
 
-    // List of all actions that can be undone via git
-    this._gitUndoables = []
-    this._gitRedoables = []
     this._requestQueue = []
     this._requestWorkerStopped = false
     this._workerInterval = MIN_WORKER_INTERVAL
@@ -88,9 +85,11 @@ export default class MasterGitProject extends EventEmitter {
         setTimeout(this._requestsWorker)
         return cb(err, out)
       }
-      if (type === 'undo') this.undoActual(options, finish)
-      else if (type === 'redo') this.redoActual(options, finish)
-      else if (type === 'commit') this.commitActual(options, finish)
+
+      // Seems weird to have this logic just to handle one kind of action...
+      if (type === 'commit') {
+        this.commitActual(options, finish)
+      }
     } else {
       // If we have nothing to do, start backing off
       // this._upWorkerInterval()
@@ -112,9 +111,6 @@ export default class MasterGitProject extends EventEmitter {
 
     this._requestWorkerStopped = false
 
-    this._gitUndoables.splice(0)
-    this._gitRedoables.splice(0)
-
     if (projectInfo) {
       this._projectInfo.projectName = projectInfo.projectName
       this._projectInfo.haikuUsername = projectInfo.haikuUsername
@@ -122,28 +118,6 @@ export default class MasterGitProject extends EventEmitter {
       this._projectInfo.branchName = projectInfo.branchName
       this._projectInfo.repositoryUrl = projectInfo.repositoryUrl
     }
-  }
-
-  getGitUndoablesUptoBase () {
-    const undoablesToReturn = []
-    let didFindBaseUndoable = false
-    this._gitUndoables.forEach((undoable) => {
-      if (undoable.isBase) {
-        didFindBaseUndoable = true
-      }
-      if (didFindBaseUndoable) {
-        undoablesToReturn.push(undoable)
-      }
-    })
-    return undoablesToReturn
-  }
-
-  getGitRedoablesUptoBase () {
-    const redoablesToReturn = []
-    this._gitRedoables.forEach((redoable) => {
-      redoablesToReturn.push(redoable)
-    })
-    return redoablesToReturn
   }
 
   /**
@@ -219,8 +193,6 @@ export default class MasterGitProject extends EventEmitter {
         this._folderState.branchName = this._projectInfo.branchName
         this._folderState.haikuUsername = this._projectInfo.haikuUsername
         this._folderState.haikuPassword = this._projectInfo.haikuPassword
-        this._folderState.gitUndoables = this._gitUndoables
-        this._folderState.gitRedoables = this._gitRedoables
         fse.readdir(this.folder, (_, folderEntries) => {
           this._folderState.folderEntries = folderEntries
           cb()
@@ -928,98 +900,6 @@ export default class MasterGitProject extends EventEmitter {
     return Git.pushTagToRemote(this.folder, this._folderState.projectName, this._folderState.semverVersion, CodeCommitHttpsUsername, CodeCommitHttpsPassword, cb)
   }
 
-  undo (undoOptions, cb) {
-    this._requestQueue.push({
-      type: 'undo',
-      options: undoOptions,
-      cb
-    })
-  }
-
-  redo (redoOptions, cb) {
-    this._requestQueue.push({
-      type: 'redo',
-      options: redoOptions,
-      cb
-    })
-  }
-
-  undoActual (undoOptions, done) {
-    logger.info('[master-git] undo beginning')
-
-    // We can't undo if there isn't a target ref yet to go back to; skip if so
-    if (this._gitUndoables.length < 2) {
-      logger.info('[master-git] nothing to undo')
-      return done()
-    }
-
-    logger.info('[master-git] undo proceeding')
-
-    // The most recent item is the one we are going to undo...
-    const validUndoables = this.getGitUndoablesUptoBase()
-    const undone = validUndoables.pop()
-
-    logger.info(`[master-git] git undo commit ${undone.commitId.toString()}`)
-
-    // To undo, we go back to the commit _prior to_ the most recent one
-    const target = validUndoables[validUndoables.length - 1]
-
-    logger.info(`[master-git] git undo resetting to commit ${target.commitId.toString()}`)
-
-    return Git.hardResetFromSHA(this.folder, target.commitId.toString(), (err) => {
-      if (err) {
-        logger.info(`[master-git] git undo failed`, err)
-        return done(err)
-      }
-
-      logger.info('[master-git] undo done')
-
-      // The most recent undone thing becomes an action we can now undo.
-      // Only do the actual stack-pop here once we know we have succeeded.
-      this._gitRedoables.push(this._gitUndoables.pop())
-
-      return done()
-    })
-  }
-
-  redoActual (redoOptions, done) {
-    const redoable = this._gitRedoables.pop()
-
-    // If nothing to redo, consider this a noop
-    if (!redoable) return done()
-
-    logger.info(`[master-git] git redo commit ${redoable.commitId.toString()}`)
-
-    return Git.hardResetFromSHA(this.folder, redoable.commitId.toString(), (err) => {
-      if (err) {
-        logger.info(`[master-git] git redo failed`)
-        this._gitRedoables.push(redoable) // If error, put the 'undone' thing back on the stack since we didn't succeed
-        return done(err)
-      }
-
-      this._gitUndoables.push(redoable)
-
-      return done()
-    })
-  }
-
-  setUndoBaselineIfHeadCommitExists (cb) {
-    return this.fetchFolderState('undo-baseline', {}, () => {
-      // We need a base commit to act as the commit to return to if the user has done 'undo' to the limit of the stack
-      if (this._folderState.headCommitId) {
-        if (this._gitUndoables.length < 1) {
-          logger.info(`[master-git] base commit for session is ${this._folderState.headCommitId.toString()}`)
-          this._gitUndoables.push({
-            commitId: this._folderState.headCommitId,
-            message: 'Base commit for session',
-            isBase: true
-          })
-        }
-      }
-      return cb()
-    })
-  }
-
   safeGitStatus (options, cb) {
     return Git.status(this.folder, options || {}, (err, statuses) => {
       if (options && options.log) {
@@ -1133,28 +1013,7 @@ export default class MasterGitProject extends EventEmitter {
         if (err) {
           return cb(err)
         }
-
         this._folderState.commitId = commitId
-
-        // HACK: If for some reason we never got a 'base' undoable before this point, set this cmomit as
-        // the new base so that there are always commits from a base commit going forward
-        let isBase = false
-
-        const baseUndoable = this._gitUndoables.filter((undoable) => {
-          return undoable && undoable.isBase
-        })[0]
-
-        if (!baseUndoable) {
-          isBase = true
-        }
-
-        logger.info(`[master-git] commit ${commitId.toString()} (base: ${isBase})`)
-
-        // For now, pretty much any commit we capture in this session is considered an undoable. We may want to
-        // circle back and restrict it to only certain types of commits, but that does end up making the undo/redo
-        // stack logic a bit more complicated.
-        this._gitUndoables.push({ commitId, isBase, message })
-
         return cb(null, commitId)
       })
     })

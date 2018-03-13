@@ -16,7 +16,7 @@ test('createKeyframe (static 1)', function (t) {
     template: { elementName: 'svg', attributes: { 'haiku-id': 'abcdefghijk' } }
   }
   createKeyframe(bc1, 'abcdefghijk', 'Default', 'svg', 'opacity', 150, 0.5)
-  t.equal(JSON.stringify(bc1.timelines.Default), '{"haiku:abcdefghijk":{"opacity":{"0":{"value":1},"150":{"value":0.5,"edited":true}}}}')
+  t.equal(JSON.stringify(bc1.timelines.Default), '{"haiku:abcdefghijk":{"opacity":{"150":{"value":0.5,"edited":true}}}}')
 })
 
 var test = require('tape')

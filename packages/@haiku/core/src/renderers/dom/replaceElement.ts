@@ -27,5 +27,8 @@ export default function replaceElement(
   applyLayout(newElement, virtualElement, parentDomNode, parentVirtualElement, component, null);
 
   parentDomNode.replaceChild(newElement, domElement);
+
+  component._addElementToHashTable(newElement, virtualElement);
+
   return newElement;
 }

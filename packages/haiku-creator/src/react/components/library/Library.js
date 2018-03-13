@@ -135,11 +135,16 @@ class Library extends React.Component {
   }
 
   handleFileInstantiation (asset) {
-    return this.props.projectModel.transmitInstantiateComponent(asset.getRelpath(), {}, (err) => {
-      if (err) {
-        return this.props.createNotice({ type: 'danger', title: err.name, message: err.message })
+    return this.props.projectModel.getCurrentActiveComponent().instantiateComponent(
+      asset.getRelpath(),
+      {x: 0, y: 0}, // Double click places the element at top-right
+      {from: 'creator'},
+      (err) => {
+        if (err) {
+          return this.props.createNotice({ type: 'danger', title: err.name, message: err.message })
+        }
       }
-    })
+    )
   }
 
   openSketchFile (asset) {

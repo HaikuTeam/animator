@@ -10,15 +10,8 @@ app.setName('Haiku')
 export default class TopMenu extends EventEmitter {
   create (options) {
     const isProjectOpen = !!options.folder
-    var developerMenuItems = [
-      // {
-      //   label: 'Open in Text Editor',
-      //   accelerator: 'CmdOrCtrl+Option+E',
-      //   enabled: isProjectOpen,
-      //   click: () => {
-      //     this.emit('global-menu:open-text-editor')
-      //   }
-      // },
+
+    const developerMenuItems = [
       {
         label: 'Open in Terminal',
         accelerator: 'CmdOrCtrl+Option+T',
@@ -37,12 +30,14 @@ export default class TopMenu extends EventEmitter {
         shell.openExternal('https://www.haiku.ai/')
       }
     })
+
     mainMenuPieces.push({
       label: 'Check for Updates',
       click: () => {
         this.emit('global-menu:check-updates')
       }
     })
+
     mainMenuPieces.push({
       type: 'separator'
     })
@@ -60,14 +55,17 @@ export default class TopMenu extends EventEmitter {
       accelerator: 'CmdOrCtrl+M',
       role: 'minimize'
     })
+
     mainMenuPieces.push({
       label: 'Hide Haiku',
       accelerator: 'CmdOrCtrl+H',
       role: 'hide'
     })
+
     mainMenuPieces.push({
       type: 'separator'
     })
+
     mainMenuPieces.push({
       label: 'Quit Haiku',
       accelerator: 'CmdOrCtrl+Q',
@@ -106,6 +104,95 @@ export default class TopMenu extends EventEmitter {
       })
     }
 
+    const editSubmenu = []
+
+    editSubmenu.push({
+      label: 'Undo',
+      accelerator: 'CmdOrCtrl+Z',
+      click: () => {
+        Menu.sendActionToFirstResponder('undo:')
+        this.emit('global-menu:undo')
+      }
+    })
+
+    editSubmenu.push({
+      label: 'Redo',
+      accelerator: 'CmdOrCtrl+Shift+Z',
+      click: () => {
+        Menu.sendActionToFirstResponder('redo:')
+        this.emit('global-menu:redo')
+      }
+    })
+
+    editSubmenu.push({ type: 'separator' })
+
+    editSubmenu.push({
+      label: 'Cut',
+      accelerator: 'CmdOrCtrl+X',
+      click: () => {
+        Menu.sendActionToFirstResponder('cut:')
+        this.emit('global-menu:cut')
+      }
+    })
+
+    editSubmenu.push({
+      label: 'Copy',
+      accelerator: 'CmdOrCtrl+C',
+      click: () => {
+        Menu.sendActionToFirstResponder('copy:')
+        this.emit('global-menu:copy')
+      }
+    })
+
+    editSubmenu.push({
+      label: 'Paste',
+      accelerator: 'CmdOrCtrl+V',
+      click: () => {
+        Menu.sendActionToFirstResponder('paste:')
+        this.emit('global-menu:paste')
+      }
+    })
+
+    editSubmenu.push({ type: 'separator' })
+
+    if (experimentIsEnabled(Experiment.GroupUngroup)) {
+      editSubmenu.push({
+        label: 'Group',
+        accelerator: 'CmdOrCtrl+G',
+        click: () => {
+          this.emit('global-menu:group')
+        }
+      })
+
+      editSubmenu.push({
+        label: 'Ungroup',
+        accelerator: 'CmdOrCtrl+Shift+G',
+        click: () => {
+          this.emit('global-menu:ungroup')
+        }
+      })
+
+      editSubmenu.push({ type: 'separator' })
+    }
+
+    editSubmenu.push({
+      label: 'Delete',
+      accelerator: 'Delete',
+      click: () => {
+        Menu.sendActionToFirstResponder('delete:')
+        this.emit('global-menu:delete')
+      }
+    })
+
+    editSubmenu.push({
+      label: 'Select All',
+      accelerator: 'CmdOrCtrl+A',
+      click: () => {
+        Menu.sendActionToFirstResponder('selectall:')
+        this.emit('global-menu:selectall')
+      }
+    })
+
     Menu.setApplicationMenu(Menu.buildFromTemplate([
       {
         label: app.getName(),
@@ -117,89 +204,8 @@ export default class TopMenu extends EventEmitter {
       },
       {
         label: 'Edit',
-        submenu: [
-          {
-            label: 'Undo',
-            accelerator: 'CmdOrCtrl+Z',
-            enabled: !options.isSaving && options.undoables.length > 1, // Idiosyncracy: If there is one 'undoable', that is actually the bottommost commit which can't be undone... :P
-            click: () => {
-              this.emit('global-menu:undo', options.undoables)
-            }
-          },
-          {
-            label: 'Redo',
-            accelerator: 'CmdOrCtrl+Shift+Z',
-            enabled: !options.isSaving && options.redoables.length > 0,
-            click: () => {
-              this.emit('global-menu:redo', options.redoables)
-            }
-          },
-          { type: 'separator' },
-          {
-            label: 'Cut',
-            accelerator: 'CmdOrCtrl+X',
-            role: 'cut'
-          },
-          {
-            label: 'Copy',
-            accelerator: 'CmdOrCtrl+C',
-            role: 'copy'
-          },
-          {
-            label: 'Paste',
-            accelerator: 'CmdOrCtrl+V',
-            role: 'paste'
-          },
-          { type: 'separator' },
-          {
-            label: 'Delete',
-            accelerator: 'Delete',
-            role: 'delete'
-          },
-          {role: 'selectall'}
-        ]
+        submenu: editSubmenu
       },
-      // {
-      //   label: 'Insert',
-      //   submenu: [
-      //     {
-      //       label: 'Shape',
-      //       submenu: [
-      //         {
-      //           label: 'Rectangle',
-      //           accelerator: 'R',
-      //           enabled: isProjectOpen,
-      //           click: () => this.emit('global-menu:set-tool', ['shape', 'Rectangle'])
-      //         },
-      //         {
-      //           label: 'Oval',
-      //           accelerator: 'O',
-      //           enabled: isProjectOpen,
-      //           click: () => this.emit('global-menu:set-tool', ['shape', 'Oval'])
-      //         }
-      //       ]
-      //     },
-      //     {
-      //       label: 'Vector',
-      //       accelerator: 'V',
-      //       enabled: isProjectOpen,
-      //       click: () => this.emit('global-menu:set-tool', ['pen'])
-      //     },
-      //     {
-      //       label: 'Brush',
-      //       accelerator: 'B',
-      //       enabled: isProjectOpen,
-      //       click: () => this.emit('global-menu:set-tool', ['brush'])
-      //     },
-      //     { type: 'separator' },
-      //     {
-      //       label: 'Text',
-      //       accelerator: 'T',
-      //       enabled: isProjectOpen,
-      //       click: () => this.emit('global-menu:set-tool', ['text'])
-      //     }
-      //   ]
-      // },
       {
         label: 'View',
         submenu: [
@@ -274,6 +280,7 @@ export default class TopMenu extends EventEmitter {
         ]
       }
     ]))
+
     return this
   }
 }

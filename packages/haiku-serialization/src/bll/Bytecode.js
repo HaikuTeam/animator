@@ -1,5 +1,4 @@
 const lodash = require('lodash')
-const assign = require('lodash.assign')
 const path = require('path')
 const BaseModel = require('./BaseModel')
 const bytecodeObjectToAST = require('./../ast/bytecodeObjectToAST')
@@ -212,27 +211,24 @@ function transferReferences (obj, originalReference, updatedReference) {
  * incorporating default state changes etc.
  */
 Bytecode.mergeBytecode = (b1, b2) => {
-  if (b2.metadata && !b1.metadata) b1.metadata = {}
-  assign(b1.metadata, b2.metadata)
+  if (!b1.metadata) b1.metadata = {}
+  Object.assign(b1.metadata, b2.metadata || {})
 
-  if (b2.options && !b1.options) b1.options = {}
-  assign(b1.options, b2.options)
+  if (!b1.options) b1.options = {}
+  Object.assign(b1.options, b2.options || {})
 
   Bytecode.mergeBytecodeControlStructures(b1, b2)
 
-  // TODO: I have no idea of what the smartest way to do this is
-  if (b2.template && !b1.template) b1.template = {}
-  if (b2.template) {
-    for (const key in b2.template) {
-      b1.template[key] = b2.template[key]
-    }
-  }
+  b1.template = Template.clone({}, b2.template)
 
   return b1
 }
 
-Bytecode.mergeBytecodeControlStructures = (b1, b2) => {
-  if (b2.states && !b1.states) b1.states = {}
+Bytecode.mergeBytecodeStates = (b1, b2) => {
+  if (b2.states && !b1.states) {
+    b1.states = {}
+  }
+
   if (b2.states) {
     for (const stateKey in b2.states) {
       const previousState = b1.states[stateKey]
@@ -241,8 +237,13 @@ Bytecode.mergeBytecodeControlStructures = (b1, b2) => {
       }
     }
   }
+}
 
-  if (b2.eventHandlers && !b1.eventHandlers) b1.eventHandlers = {}
+Bytecode.mergeBytecodeEventHandlers = (b1, b2) => {
+  if (b2.eventHandlers && !b1.eventHandlers) {
+    b1.eventHandlers = {}
+  }
+
   if (b2.eventHandlers) {
     for (const eventSelector in b2.eventHandlers) {
       for (const eventName in b2.eventHandlers[eventSelector]) {
@@ -257,9 +258,6 @@ Bytecode.mergeBytecodeControlStructures = (b1, b2) => {
       }
     }
   }
-
-  if (b2.timelines && !b1.timelines) b1.timelines = {}
-  Bytecode.mergeTimelines(b1.timelines, b2.timelines)
 }
 
 Bytecode.mergeTimelines = (t1, t2, doMergeValueFn) => {
@@ -316,7 +314,14 @@ Bytecode.mergeTimelines = (t1, t2, doMergeValueFn) => {
   return changesMade
 }
 
-Bytecode.pasteBytecode = (destination, pasted, translation) => {
+Bytecode.mergeBytecodeControlStructures = (b1, b2) => {
+  Bytecode.mergeBytecodeStates(b1, b2)
+  Bytecode.mergeBytecodeEventHandlers(b1, b2)
+  if (b2.timelines && !b1.timelines) b1.timelines = {}
+  Bytecode.mergeTimelines(b1.timelines, b2.timelines)
+}
+
+Bytecode.pasteBytecode = (destination, pasted) => {
   if (pasted.states) {
     if (!destination.states) destination.states = {}
     for (const stateKey in pasted.states) {
@@ -354,7 +359,8 @@ Bytecode.pasteBytecode = (destination, pasted, translation) => {
   if (pasted.template) {
     if (!destination.template) destination.template = { elementName: 'div', attributes: {}, children: [] }
     if (!destination.template.children) destination.template.children = []
-    destination.template.children.push(pasted.template)
+    // Note that when we paste, we place it at the top of the stack, just like with instantiate
+    destination.template.children.unshift(pasted.template)
   }
 
   return destination
@@ -388,8 +394,7 @@ Bytecode.extractOverrides = (bytecode) => {
 }
 
 Bytecode.clone = (bytecode) => {
-  // Eventually we may lean on a more custom-tailored clone method instead of lodash
-  return lodash.cloneDeep(bytecode)
+  return Bytecode.mergeBytecode({}, bytecode)
 }
 
 Bytecode.decycle = (reified, { doCleanMana }) => {
@@ -539,7 +544,44 @@ Bytecode.reinitialize = (folder, relpath, bytecode = {}, config = {}) => {
   // Inject the hoisted attributes into the actual timelines object
   mergeTimelineStructure(bytecode, timeline, 'defaults')
 
+  // Make sure every element has an explicit translation; this is sort of a hack that makes sure
+  // that when we undo changes to the artboard, all elements on stage have a first value to go back to
+  // which we can capture by snapshotting keyframe values before running the operation
+  bytecode.template.children.forEach((child) => {
+    const childId = child.attributes && child.attributes[HAIKU_ID_ATTRIBUTE]
+    if (childId) {
+      const selector = Template.buildHaikuIdSelector(childId)
+      Bytecode.ensureDefinedKeyframeProperty(bytecode, DEFAULT_TIMELINE_NAME, selector, 'translation.x', DEFAULT_TIMELINE_TIME, 0)
+      Bytecode.ensureDefinedKeyframeProperty(bytecode, DEFAULT_TIMELINE_NAME, selector, 'translation.y', DEFAULT_TIMELINE_TIME, 0)
+    }
+  })
+
   return bytecode
+}
+
+Bytecode.ensureDefinedKeyframeProperty = (
+  bytecode,
+  timelineName,
+  selector,
+  propertyName,
+  keyframeMs,
+  propertyValue
+) => {
+  if (!bytecode.timelines[timelineName]) {
+    bytecode.timelines[timelineName] = {}
+  }
+  if (!bytecode.timelines[timelineName][selector]) {
+    bytecode.timelines[timelineName][selector] = {}
+  }
+  if (!bytecode.timelines[timelineName][selector][propertyName]) {
+    bytecode.timelines[timelineName][selector][propertyName] = {}
+  }
+  if (!bytecode.timelines[timelineName][selector][propertyName][keyframeMs]) {
+    bytecode.timelines[timelineName][selector][propertyName][keyframeMs] = {}
+  }
+  if (bytecode.timelines[timelineName][selector][propertyName][keyframeMs].value === undefined) {
+    bytecode.timelines[timelineName][selector][propertyName][keyframeMs].value = propertyValue
+  }
 }
 
 Bytecode.upsertDefaultProperties = (bytecode, componentId, propertiesToMerge, strategy) => {

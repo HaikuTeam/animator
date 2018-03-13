@@ -1,6 +1,5 @@
 const fse = require('haiku-fs-extra')
 const path = require('path')
-const lodash = require('lodash')
 const async = require('async')
 const WebSocket = require('ws')
 const dedent = require('dedent')
@@ -16,6 +15,7 @@ const reifyRFO = require('@haiku/core/lib/reflection/reifyRFO').default
 const toTitleCase = require('./helpers/toTitleCase')
 const normalizeBytecodeFile = require('./../ast/normalizeBytecodeFile')
 const Lock = require('./Lock')
+const ActionStack = require('./ActionStack')
 
 const WHITESPACE_REGEX = /\s+/
 const UNDERSCORE = '_'
@@ -38,9 +38,6 @@ const ALWAYS_IGNORED_METHODS = {
  *.  This handles transmitting updates to all the other views when updates happen.
  *.  It also handles routing remote method calls to the appropriate ActiveComponent.
  *.  TODO: A nice next step would be to Envoy-ize all of this.
- *
- *.  Some top-level methods that don't relate strictly to components also live
- *.  here, such as git-undo.
  */
 class Project extends BaseModel {
   constructor (props, opts) {
@@ -56,12 +53,18 @@ class Project extends BaseModel {
     this.ensurePlatformHaikuRegistry()
 
     // Batched collections of methods to send through the websocket
-    this._websocketActions = []
+    this.actionStack = new ActionStack({
+      uid: this.getPrimaryKey(),
+      project: this
+    })
 
-    // No-op callback for arbitrary websocket actions
-    this._receiveWebsocketResponse = () => {}
+    this.actionStack.on('next', (method, params, done) => {
+      logger.info(`[project (${this.getAlias()})] sending action: ${method}`)
 
-    this.processWebsocketActions()
+      this.websocket.action(method, params, (err, out) => {
+        done(err, out)
+      }, this.getFolder())
+    })
 
     // Setup the Plumbing websocket and Envoy connections if necessary
     this._didStartWebsocketListeners = false
@@ -76,49 +79,12 @@ class Project extends BaseModel {
 
     // List of components we are tracking as part of the component tabs
     this._multiComponentTabs = []
-
-    this._isTornDown = false
-  }
-
-  processWebsocketActions () {
-    const nextAction = this._websocketActions.shift()
-    if (!nextAction) {
-      return this._isTornDown ? null : setTimeout(() => this.processWebsocketActions(), 64)
-    }
-    return this.processWebsocketAction(nextAction)
-  }
-
-  processWebsocketAction (action) {
-    const {
-      timestamp,
-      method,
-      params,
-      callback
-    } = action
-
-    // Psuedo-"debounce" the fast action to avoid stuttering on stage
-    if (method === 'applyPropertyGroupValue') {
-      // If the last update to this group occurred less than .25 seconds ago, wait a bit
-      // longer for more updates to accumulate before actually sending them
-      if (timestamp && (Date.now() - timestamp) < 250) {
-        // Early return is important here so we don't transmit the action yet
-        return setTimeout(() => this.processWebsocketAction(action), 50)
-      }
-    }
-
-    logger.info(`[project (${this.getAlias()})] sending action: ${method}`)
-
-    // Only proceed with the next action once ours is finished
-    return this.websocket.action(method, params, (err, out) => {
-      callback(err, out)
-      return this.processWebsocketActions()
-    }, this.getFolder())
   }
 
   teardown () {
     this.getEnvoyClient().closeConnection()
     if (this.websocket) this.websocket.disconnect()
-    this._isTornDown = true
+    this.actionStack.stop()
   }
 
   connectClients () {
@@ -145,7 +111,7 @@ class Project extends BaseModel {
         WebSocket
       )
 
-      this._envoyClient = new EnvoyClient(lodash.assign({
+      this._envoyClient = new EnvoyClient(Object.assign({
         WebSocket: websocketClient,
         logger: new EnvoyLogger('warn', console)
       }, this.getEnvoyOptions()))
@@ -179,24 +145,9 @@ class Project extends BaseModel {
     return fileOptions && fileOptions.methodsToIgnore && fileOptions.methodsToIgnore[method]
   }
 
-  shouldShortCircuitRequestsForMethod (method) {
-    // HACK: This probably doesn't/shouldn't belong as a part of 'fileOptions'
-    // It's a hacky way for MasterProcess to handle certain methods it cares about
-    const fileOptions = this.getFileOptions()
-    return (
-      fileOptions &&
-      fileOptions.whitelistedMethods &&
-      (
-        !fileOptions.whitelistedMethods[method]
-      )
-    )
-  }
-
   receiveMethodCall (method, params, message, cb) {
     if (this.isIgnoringMethodRequestsForMethod(method)) {
       return null // Another handler will call the callback in this case
-    } else if (this.shouldShortCircuitRequestsForMethod(method)) {
-      return cb() // Skip the method and return; nobody will handle this otherwise
     } else {
       return this.handleMethodCall(method, params, message, cb)
     }
@@ -209,15 +160,18 @@ class Project extends BaseModel {
 
       if (ac && typeof ac[method] === 'function') {
         logger.info(`[project (${this.getAlias()})] component handling method ${method}`, params, typeof cb === 'function')
+
         return ac[method].apply(ac, params.slice(1).concat((err, out) => {
           release()
-          return cb(err, out)
+          if (err) return cb(err)
+          return cb() // Skip objects that don't play well with Websockets
         }))
       }
 
       // If we have a method here at the top, call it
       if (typeof this[method] === 'function') {
         logger.info(`[project (${this.getAlias()})] project handling method ${method}`, params, typeof cb === 'function')
+
         return this[method].apply(this, params.concat((err, result) => {
           release()
           if (err) return cb(err)
@@ -252,16 +206,20 @@ class Project extends BaseModel {
   }
 
   getCurrentActiveComponentSceneName () {
-    return this.getCurrentActiveComponent() && this.getCurrentActiveComponent().getSceneName()
+    const ac = this.getCurrentActiveComponent()
+    return ac && ac.getSceneName()
   }
 
   getCurrentActiveComponentRelpath () {
-    return this.getCurrentActiveComponent() && this.getCurrentActiveComponent().getSceneCodeRelpath()
+    const ac = this.getCurrentActiveComponent()
+    return ac && ac.getSceneCodeRelpath()
   }
 
   getCurrentActiveComponent () {
-    if (!this._activeComponentSceneName) return null
-    return this.findActiveComponentBySceneName(this._activeComponentSceneName)
+    return this.cacheFetch('currentActiveComponent', () => {
+      if (!this._activeComponentSceneName) return null
+      return this.findActiveComponentBySceneName(this._activeComponentSceneName)
+    })
   }
 
   getAllActiveComponents () {
@@ -332,69 +290,34 @@ class Project extends BaseModel {
     return this.platform
   }
 
-  batchedWebsocketAction (method, params, callback) {
-    // Special casing an action that happens very quickly. We don't want to fire
-    // a message for every single one, but we can't debounce either since we rely on
-    // the order in which these are requested (consider what happens if we send a property
-    // update call to an element that has been deleted). So we basically accumulate
-    // method calls that occur together and which have the same tuple
-    if (method === 'applyPropertyGroupValue') {
-      // If no last entry, it might mean the previous call was transmitted already,
-      // which is fine. The key is that we accumulate what we can while retaining sequence
-      const last = this._websocketActions[this._websocketActions.length - 1]
-      // If the previous payload matches ours, then we'll accumulate our group value
-      // into it, so we end up with just once command for a fast sequence of commands
-      if (last && last.method === 'applyPropertyGroupValue') {
-        if (
-          last.params[0] === params[0] && // folder
-          last.params[1] === params[1] && // relpath
-          last.params[2] === params[2] && // component id
-          last.params[3] === params[3] && // timeline name
-          last.params[4] === params[4] // timeline time
-        ) {
-          // Merge entries from the incoming groupValue parameter into the existing one
-          // In this way, the most recent values for all attributes are all used when
-          // this method is finally transmitted
-          lodash.assign(last.params[5], params[5])
-          // Use this to decide whether to transmit immediately or wait for more to accumulate
-          last.timestamp = Date.now()
-          // Important to early return since we don't want to enqueue a new action
-          return
-        }
-      }
-    }
+  undo (options, metadata, cb) {
+    this.actionStack.undo(options, metadata, cb)
+  }
 
-    // Otherwise, the default behavior is just to enqueue an action to run
-    this._websocketActions.push({ method, params, callback, timestamp: Date.now() })
+  redo (options, metadata, cb) {
+    this.actionStack.redo(options, metadata, cb)
   }
 
   updateHook (...args) {
-    this.methodHook.apply(this, args)
-    this.emitHook.apply(this, args)
-  }
-
-  emitHook (...args) {
     const method = args.shift()
-    const metadata = args.pop()
-    if (metadata && metadata.from === this.getAlias()) {
-      this.emit.apply(this, ['update', method].concat(args))
-    } else {
-      // Otherwise we received an update and may need to update ourselves
-      this.emit.apply(this, ['remote-update', method].concat(args))
-    }
-  }
-
-  methodHook (...args) {
-    const method = args.shift()
-    const metadata = args.pop()
-    // If we originated the action, notify all other views
-    if (metadata && metadata.from === this.getAlias()) {
-      this.batchedWebsocketAction(
-        method,
-        [this.getFolder()].concat(args),
-        this._receiveWebsocketResponse
-      )
-    }
+    const tx = args.pop()
+    const metadata = args[args.length - 1]
+    return this.actionStack.handleActionInitiation(method, args, metadata, (handleActionResolution) => {
+      // Should only called if there is *not* an error, but sticking with err-first convention anyay
+      return tx((err, out) => {
+        // If we originated the action, notify all other views
+        if (!this.isRemoteRequest(metadata)) {
+          this.emit.apply(this, ['update', method].concat(args))
+          this.actionStack.fireAction(method, [this.getFolder()].concat(args), null, () => {
+            handleActionResolution(err, out)
+          })
+        } else {
+          // Otherwise we received an update and may need to update ourselves
+          this.emit.apply(this, ['remote-update', method].concat(args))
+          handleActionResolution(err, out)
+        }
+      })
+    })
   }
 
   getWebsocketBroadcastDefaults () {
@@ -407,12 +330,12 @@ class Project extends BaseModel {
   }
 
   broadcastPayload (mainPayload) {
-    const fullPayloadWithMetadata = lodash.assign(this.getWebsocketBroadcastDefaults(), mainPayload)
+    const fullPayloadWithMetadata = Object.assign(this.getWebsocketBroadcastDefaults(), mainPayload)
     this.websocket.send(fullPayloadWithMetadata)
   }
 
   upsertFile ({ relpath, type }) {
-    const spec = lodash.assign({}, File.DEFAULT_ATTRIBUTES, {
+    const spec = Object.assign({}, File.DEFAULT_ATTRIBUTES, {
       uid: this.buildFileUid(relpath),
       folder: this.getFolder(),
       dtModified: Date.now(),
@@ -466,10 +389,6 @@ class Project extends BaseModel {
         saveOptions
       ]
     }, cb)
-  }
-
-  instantiateComponent (relpath, posdata, cb) {
-    return this.getCurrentActiveComponent().instantiateComponent(relpath, posdata, this.getMetadata(), cb)
   }
 
   setInteractionMode (interactionMode, cb) {
@@ -528,83 +447,11 @@ class Project extends BaseModel {
     )
   }
 
-  pasteThing (pastedElement, maybePasteRequest = {}, cb) {
-    return this.batchedWebsocketAction(
-      'pasteThing',
-      [
-        this.getFolder(),
-        this.getCurrentActiveComponentRelpath(),
-        pastedElement,
-        maybePasteRequest
-      ],
-      cb
-    )
-  }
-
-  transmitInstantiateComponent (relpath, posdata, cb) {
-    return this.batchedWebsocketAction(
-      'instantiateComponent',
-      [
-        this.getFolder(),
-        this.getCurrentActiveComponentRelpath(),
-        relpath,
-        posdata
-      ],
-      cb
-    )
-  }
-
-  upsertStateValue (stateName, stateValue, cb) {
-    return this.batchedWebsocketAction(
-      'upsertStateValue',
-      [
-        this.getFolder(),
-        this.getCurrentActiveComponentRelpath(),
-        stateName,
-        stateValue
-      ],
-      cb
-    )
-  }
-
-  deleteStateValue (stateName, cb) {
-    return this.batchedWebsocketAction(
-      'deleteStateValue',
-      [
-        this.getFolder(),
-        this.getCurrentActiveComponentRelpath(),
-        stateName
-      ],
-      cb
-    )
-  }
-
-  viewZoomIn () {
-    return this.websocket.send({ type: 'broadcast', name: 'view:zoom-in' })
-  }
-
-  viewZoomOut () {
-    return this.websocket.send({ type: 'broadcast', name: 'view:zoom-out' })
-  }
-
-  gitUndo () {
-    return this.websocket.send({
-      folder: this.getFolder(),
-      method: 'gitUndo',
-      params: [this.getFolder(), { type: 'global' }]
-    })
-  }
-
-  gitRedo () {
-    return this.websocket.send({
-      folder: this.getFolder(),
-      method: 'gitRedo',
-      params: [this.getFolder(), { type: 'global' }]
-    })
-  }
-
   addActiveComponentToRegistry (activeComponent) {
-    const activeComponentKey = path.join(this.getFolder(), activeComponent.getSceneCodeRelpath())
+    const activeComponentKey = path.join(
+      this.getFolder(),
+      activeComponent.getSceneCodeRelpath()
+    )
     this.ensurePlatformHaikuRegistry() // Make sure we have this.platform.haiku; race condition
     this.platform.haiku.registry[activeComponentKey] = activeComponent
     this.addActiveComponentToMultiComponentTabs(activeComponent.getSceneName(), null)
@@ -638,8 +485,9 @@ class Project extends BaseModel {
       })
 
       this._activeComponentSceneName = scenename
+      this.cacheUnset('currentActiveComponent')
 
-      this.updateHook('setCurrentActiveComponent', scenename, metadata || this.getMetadata())
+      this.updateHook('setCurrentActiveComponent', scenename, metadata || this.getMetadata(), (fire) => fire())
 
       const ac = this.findActiveComponentBySceneName(scenename)
 
@@ -664,9 +512,9 @@ class Project extends BaseModel {
       else tab.active = false
     }
     // TODO: Make smarter instead of just choosing the first one in the list
-    const nextSceneName = this._multiComponentTabs[0] && this._multiComponentTabs[0]
-    this._activeComponentSceneName = nextSceneName
-    this.updateHook('closeNamedActiveComponent', scenename, metadata || this.getMetadata())
+    this._activeComponentSceneName = this._multiComponentTabs[0]
+    this.cacheUnset('currentActiveComponent')
+    this.updateHook('closeNamedActiveComponent', scenename, metadata || this.getMetadata(), (fire) => fire())
     if (cb) return cb()
   }
 
@@ -742,7 +590,7 @@ class Project extends BaseModel {
       return ac.mountApplication(null, instanceConfig, (err) => {
         if (err) return cb(err)
 
-        return ac.fetchActiveBytecodeFile().performComponentWork((bytecode, mana, done) => {
+        return ac.performComponentWork((bytecode, mana, done) => {
           // No-op; we only call this to ensure the file is bootstrapped and written to fs
           done()
         }, (err) => {
@@ -780,7 +628,7 @@ class Project extends BaseModel {
         // Because we have just monkeypatched the module, we don't need to (and shouldn't) reload
         // from disk since at this point disk will contain stale content, which we need to update later
         // Note that this ends up passed (via scope) to the mountApplication call; see above
-        instanceConfig = lodash.assign({}, instanceConfig, {
+        instanceConfig = Object.assign({}, instanceConfig, {
           reloadMode: ModuleWrapper.RELOAD_MODES.CACHE
         })
 
@@ -823,8 +671,7 @@ class Project extends BaseModel {
   }
 
   findActiveComponentBySceneName (scenename) {
-    const uid = ActiveComponent.buildPrimaryKey(this.getFolder(), scenename)
-    return ActiveComponent.findById(uid)
+    return ActiveComponent.findById(ActiveComponent.buildPrimaryKey(this.getFolder(), scenename))
   }
 
   bootstrapSceneFilesSync (scenename) {

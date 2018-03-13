@@ -1,12 +1,15 @@
 const tape = require('tape')
 const path = require('path')
+const async = require('async')
 const fse = require('haiku-fs-extra')
 const Project = require('./../../src/bll/Project')
+const Row = require('./../../src/bll/Row')
 
-tape('Element.prototype.getAddressableProperties', (t) => {
+tape('Element', (t) => {
   t.plan(11)
   const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'element-getaddressables-01')
   fse.removeSync(folder)
+  const bytecode = require(path.join(__dirname, '..', '..', '..', 'haiku-timeline', 'test', 'projects', 'complex', 'code', 'main', 'code.js'))
   const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
   const platform = {}
   const userconfig = {}
@@ -15,24 +18,26 @@ tape('Element.prototype.getAddressableProperties', (t) => {
   return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
     return project.setCurrentActiveComponent('main', { from: 'test' }, (err) => {
       if (err) throw err
-      fse.outputFileSync(path.join(folder, 'designs/Path.svg'), PATH_SVG_1)
       const ac0 = project.getCurrentActiveComponent()
-      return ac0.instantiateComponent('designs/Path.svg', {}, { from: 'test' }, (err, info, mana) => {
-        if (err) throw err
-        const el0 = ac0.findElementByComponentId(mana.attributes['haiku-id'])
-        const a1 = el0.getAddressableProperties()
-        t.ok(a1, 'addressables are present')
-        t.ok(a1['translation.x'],'standard prop present')
-      	t.equal(a1['translation.x'].type, 'native')
-      	t.equal(a1['translation.x'].name, 'translation.x')
-      	t.equal(a1['translation.x'].prefix, 'translation')
-      	t.equal(a1['translation.x'].suffix, 'x')
-      	t.equal(a1['translation.x'].fallback, 0)
-      	t.equal(a1['translation.x'].typedef, 'number')
-      	t.equal(a1['translation.x'].mock, undefined)
-      	t.equal(a1['translation.x'].value, undefined)
-      	t.deepEqual(a1['translation.x'].cluster, { prefix: 'translation', name: 'Position' })
-        fse.removeSync(folder)
+      ac0.fetchActiveBytecodeFile().mod.update(bytecode)
+      return ac0.hardReload({}, {}, () => {
+        return async.series([], (err) => {
+          if (err) throw err
+           const el0 = ac0.findElementByComponentId(bytecode.template.attributes['haiku-id'])
+           const a1 = el0.getCompleteAddressableProperties()
+           t.ok(a1, 'addressables are present')
+           t.ok(a1['translation.x'],'standard prop present')
+           t.equal(a1['translation.x'].type, 'native')
+           t.equal(a1['translation.x'].name, 'translation.x')
+           t.equal(a1['translation.x'].prefix, 'translation')
+           t.equal(a1['translation.x'].suffix, 'x')
+           t.equal(a1['translation.x'].fallback, 0)
+           t.equal(a1['translation.x'].typedef, 'number')
+           t.equal(a1['translation.x'].mock, undefined)
+           t.equal(a1['translation.x'].value, undefined)
+           t.deepEqual(a1['translation.x'].cluster, { prefix: 'translation', name: 'Position' })
+           fse.removeSync(folder)
+        })
       })
     })
   })

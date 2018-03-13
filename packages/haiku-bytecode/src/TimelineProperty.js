@@ -1,6 +1,5 @@
 var DOMSchema = require('@haiku/core/lib/properties/dom/schema').default
 var DOMFallbacks = require('@haiku/core/lib/properties/dom/fallbacks').default
-var computeNumericDelta = require('./computeNumericDelta')
 
 // This module also "sort of" depends on @haiku/core/ValueBuilder even though the instance of that
 // module is dependency injected as part of the getPropertyValueAtTime operation
@@ -61,28 +60,14 @@ function getFallbackValue (componentId, elementName, outputName, valueAssignedIn
   return fallback[outputName]
 }
 
-function addPropertyDelta (timelinesObject, timelineName, componentId, elementName, outputName, startTime, deltaValue, hostInstance, states) {
-  var currentValue = getPropertyValueAtTime(timelinesObject, timelineName, componentId, elementName, outputName, startTime, hostInstance, states)
-  var updatedValue = computeNumericDelta(currentValue, deltaValue, function (prev, next) { return prev + next })
-  return addProperty(timelinesObject, timelineName, componentId, elementName, outputName, startTime, updatedValue, undefined, undefined, undefined)
-}
-
-function addPropertyGroupDelta (timelinesObject, timelineName, componentId, elementName, deltaGroup, startTime, hostInstance, states) {
-  for (var outputName in deltaGroup) {
-    var outputVal = deltaGroup[outputName]
-    addPropertyDelta(timelinesObject, timelineName, componentId, elementName, outputName, startTime, outputVal, hostInstance, states)
-  }
-  return timelinesObject
-}
-
 // The purpose of this is to get the value BEFORE the current keyframe.
 // I.e. a value to transition FROM THE PREVIOUS to the CURRENT time.
 // So let's say you ask for the baseline of 100. There is a keyframe at 100.
 // Does it return the value at 100? NO. It returns the one BEFORE that.
 // #FIXME -MT
-function getBaselineValue (componentId, elementName, propertyName, timelineName, timelineTime, fallbackValue, bytecode, hostInstance, states) {
+function getBaselineValue (componentId, elementName, propertyName, timelineName, timelineTime, fallbackValue, bytecode, hostInstance) {
   var ms = getBaselineKeyframeStart(componentId, elementName, timelineName, propertyName, timelineTime, bytecode)
-  return getComputedValue(componentId, elementName, propertyName, timelineName, ms, fallbackValue, bytecode, hostInstance, states)
+  return getComputedValue(componentId, elementName, propertyName, timelineName, ms, fallbackValue, bytecode, hostInstance)
 }
 
 function getBaselineCurve (componentId, elementName, propertyName, timelineName, timelineTime, fallbackValue, bytecode, hostInstance, states) {
@@ -104,16 +89,15 @@ function getPropertyCurveAtTime (timelinesObject, timelineName, componentId, ele
   return propertiesGroup[outputName][time].curve
 }
 
-function getComputedValue (componentId, elementName, propertyName, timelineName, timelineTime, fallbackValue, bytecode, hostInstance, states) {
+function getComputedValue (componentId, elementName, propertyName, timelineName, timelineTime, fallbackValue, bytecode, hostInstance) {
   if (!bytecode) return fallbackValue
   if (!bytecode.timelines) return fallbackValue
-  var value = getPropertyValueAtTime(bytecode.timelines, timelineName, componentId, elementName, propertyName, timelineTime, hostInstance, states)
+  var value = getPropertyValueAtTime(bytecode.timelines, timelineName, componentId, elementName, propertyName, timelineTime, hostInstance)
   return (value === undefined) ? fallbackValue : value
 }
 
-function getPropertyValueAtTime (timelinesObject, timelineName, componentId, elementName, outputName, time, hostInstance, states) {
+function getPropertyValueAtTime (timelinesObject, timelineName, componentId, elementName, outputName, time, hostInstance) {
   var propertiesGroup = getPropertiesBase(timelinesObject, timelineName, componentId)
-
   if (propertiesGroup) {
     try {
       // The hostInstance, which should be a HaikuCore, should have a 'ValueBuilder' attached to it under the property name 'builder'
@@ -127,9 +111,8 @@ function getPropertyValueAtTime (timelinesObject, timelineName, componentId, ele
           propertiesGroup,
           time,
           hostInstance, // haikuComponent
-          false, // isPatchOperation
-          true, // skipCache,
-          true // clearSortedKeyframesCache
+          !hostInstance._shouldPerformFullFlush(), // isPatchOperation
+          true // skipCache
         )
 
         if (computedValue !== undefined && computedValue !== null) {
@@ -265,13 +248,12 @@ module.exports = {
   getBaselineKeyframeStart: getBaselineKeyframeStart, // none needed
   getAssignedBaselineKeyframeStart: getAssignedBaselineKeyframeStart, // none needed
   getPropertySegmentsBase: getPropertySegmentsBase, // none needed
+  getPropertiesBase: getPropertiesBase, // none needed
   getValueGroup: getValueGroup, // none needed
-
-  addPropertyDelta: addPropertyDelta, // may require a hostInstance, states
-  addPropertyGroupDelta: addPropertyGroupDelta, // may require a hostInstance, states
 
   getBaselineValue: getBaselineValue, // may require a hostInstance, states
   getBaselineCurve: getBaselineCurve, // may require a hostInstance, states
   getComputedValue: getComputedValue, // may require a hostInstance, states
-  getPropertyValueAtTime: getPropertyValueAtTime // may require a hostInstance, states
+  getPropertyValueAtTime: getPropertyValueAtTime, // may require a hostInstance, states
+  getFallbackValue: getFallbackValue // may require a hostInstance, states
 }

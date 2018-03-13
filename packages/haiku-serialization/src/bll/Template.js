@@ -1,7 +1,6 @@
 const path = require('path')
 const find = require('lodash.find')
 const merge = require('lodash.merge')
-const assign = require('lodash.assign')
 const pascalcase = require('pascalcase')
 const SVGPoints = require('@haiku/core/lib/helpers/SVGPoints').default
 const convertManaLayout = require('@haiku/core/lib/layout/convertManaLayout').default
@@ -68,7 +67,8 @@ Template.prepareManaAndBuildTimelinesObject = (mana, hash, timelineName, timelin
 
     Template.ensureTitleAndUidifyTree(
       mana,
-      path.normalize(mana.attributes[SOURCE_ATTRIBUTE]),
+      // We shouldn't assume that any node has a source attribute
+      path.normalize(mana.attributes[SOURCE_ATTRIBUTE] || ''),
       hash
     )
   }
@@ -526,14 +526,17 @@ Template.visitManaTreeSpecial = function visitManaTreeSpecial (address, hash, ma
   }
 }
 
-Template.visit = (node, visitor) => {
+/**
+ * Visit all nodes in the given tree, beginning with the root node, in depth-first order
+ */
+Template.visit = (node, visitor, index = 0, depth = 0, address = '0') => {
   if (node) {
-    visitor(node, null)
+    visitor(node, null, index, depth, address)
     if (!node.children) return
     for (let i = 0; i < node.children.length; i++) {
       const child = node.children[i]
       if (typeof child === 'string') continue
-      Template.visit(child, visitor)
+      Template.visit(child, visitor, i, depth + 1, `${address}.${i}`)
     }
   }
 }
@@ -757,7 +760,7 @@ Template.substitueSvgUseReferences = (mana) => {
         // on top of whatever the substitution had
         use.parent.children[use.index] = {
           elementName: substitution.node.elementName,
-          attributes: assign({}, substitution.node.attributes, use.node.attributes),
+          attributes: Object.assign({}, substitution.node.attributes, use.node.attributes),
           children: substitution.node.children && substitution.node.children.map((child) => {
             return Template.clone({}, child)
           })

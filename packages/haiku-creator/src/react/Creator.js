@@ -9,6 +9,7 @@ import os from 'os'
 import path from 'path'
 import fs from 'fs'
 import Project from 'haiku-serialization/src/bll/Project'
+import ModuleWrapper from 'haiku-serialization/src/bll/ModuleWrapper'
 import Asset from 'haiku-serialization/src/bll/Asset'
 import AuthenticationUI from './components/AuthenticationUI'
 import ProjectBrowser from './components/ProjectBrowser'
@@ -30,8 +31,7 @@ import { EXPORTER_CHANNEL, ExporterFormat } from 'haiku-sdk-creator/lib/exporter
 // Note that `User` is imported below for type discovery
 // (which works even inside JS with supported editors, using jsdoc type annotations)
 import { USER_CHANNEL, User, UserSettings } from 'haiku-sdk-creator/lib/bll/User' // eslint-disable-line no-unused-vars
-import { PROJECT_CHANNEL } from 'haiku-sdk-creator/lib/bll/Project' // eslint-disable-line no-unused-vars
-import { GLASS_CHANNEL } from 'haiku-sdk-creator/lib/glass'
+import { PROJECT_CHANNEL } from 'haiku-sdk-creator/lib/bll/Project'
 import { TOUR_CHANNEL } from 'haiku-sdk-creator/lib/tour'
 import { InteractionMode, isPreviewMode } from '@haiku/core/lib/helpers/interactionModes'
 import Palette from 'haiku-ui-common/lib/Palette'
@@ -53,7 +53,6 @@ const electron = require('electron')
 const remote = electron.remote
 const { dialog } = remote
 const ipcRenderer = electron.ipcRenderer
-const clipboard = electron.clipboard
 
 var webFrame = electron.webFrame
 if (webFrame) {
@@ -113,6 +112,7 @@ export default class Creator extends React.Component {
       launchingProject: false,
       newProjectLoading: false,
       interactionMode: InteractionMode.EDIT,
+      artboardDimensions: null,
       showChangelogModal: false
     }
 
@@ -127,11 +127,7 @@ export default class Creator extends React.Component {
     // can be forwarded to file. They're also used to configure the Project model itself.
     this.fileOptions = {
       doWriteToDisk: false,
-      skipDiffLogging: true,
-      // List of methods that should return cb() without doing anything (we are in Creator).
-      whitelistedMethods: {
-        setInteractionMode: true
-      }
+      skipDiffLogging: true
     }
 
     const win = remote.getCurrentWindow()
@@ -151,15 +147,6 @@ export default class Creator extends React.Component {
         this._lastMouseY = nativeEvent.clientY
       }
     })
-    document.addEventListener('mousedown', (nativeEvent) => {
-      // Clicking in this view may need to deactivate selections in other views, e.g. keyframes
-      this.props.websocket.send({
-        type: 'broadcast',
-        name: 'view:mousedown',
-        elid: nativeEvent.target.id,
-        from: 'creator'
-      })
-    })
 
     const combokeys = new Combokeys(document.documentElement)
 
@@ -170,43 +157,20 @@ export default class Creator extends React.Component {
         } else {
           this.toggleDevTools()
         }
-      }, 500, { leading: true }))
+      }, 100, {leading: true, trailing: false}))
     }
 
     combokeys.bind('command+option+0', lodash.debounce(() => {
       this.dumpSystemInfo()
-    }, 500, { leading: true }))
-
-    // NOTE: The TopMenu automatically binds the below keyboard shortcuts/accelerators
-    ipcRenderer.on('global-menu:zoom-in', () => {
-      if (this.state.projectModel) {
-        this.state.projectModel.viewZoomIn()
-      }
-    })
-
-    ipcRenderer.on('global-menu:zoom-out', () => {
-      if (this.state.projectModel) {
-        this.state.projectModel.viewZoomOut()
-      }
-    })
+    }, 100, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:open-terminal', lodash.debounce(() => {
+      console.info(`[creator] global-menu:open-terminal`)
       this.openTerminal(this.state.projectFolder)
-    }, 500, { leading: true }))
+    }, 100, {leading: true, trailing: false}))
 
-    ipcRenderer.on('global-menu:undo', lodash.debounce(() => {
-      if (this.state.projectModel) {
-        this.state.projectModel.gitUndo({ type: 'global' })
-      }
-    }, 500, { leading: true }))
-
-    ipcRenderer.on('global-menu:redo', lodash.debounce(() => {
-      if (this.state.projectModel) {
-        this.state.projectModel.gitRedo({ type: 'global' })
-      }
-    }, 500, { leading: true }))
-
-    ipcRenderer.on('global-menu:check-updates', () => {
+    ipcRenderer.on('global-menu:check-updates', lodash.debounce(() => {
+      console.info(`[creator] global-menu:check-updates`)
       this.setState({
         updater: {
           shouldCheck: true,
@@ -214,11 +178,138 @@ export default class Creator extends React.Component {
           shouldSkipOptIn: true
         }
       })
-    })
+    }, 100, {leading: true, trailing: false}))
 
-    ipcRenderer.on('global-menu:show-changelog', () => {
+    ipcRenderer.on('global-menu:show-changelog', lodash.debounce(() => {
+      console.info(`[creator] global-menu:show-changelog`)
       this.showChangelogModal()
-    })
+    }, 100, {leading: true, trailing: false}))
+
+    ipcRenderer.on('global-menu:zoom-in', lodash.debounce(() => {
+      console.info(`[creator] global-menu:zoom-in`)
+      // Timeline will send to Glass if it doesn't want to zoom
+      this.props.websocket.send({
+        type: 'relay',
+        from: 'creator',
+        view: 'timeline',
+        name: 'global-menu:zoom-in'
+      })
+    }, 100, {leading: true, trailing: false}))
+
+    ipcRenderer.on('global-menu:zoom-out', lodash.debounce(() => {
+      // Timeline will send to Glass if it doesn't want to zoom
+      console.info(`[creator] global-menu:zoom-out`)
+      this.props.websocket.send({
+        type: 'relay',
+        from: 'creator',
+        view: 'timeline',
+        name: 'global-menu:zoom-out'
+      })
+    }, 100, {leading: true, trailing: false}))
+
+    ipcRenderer.on('global-menu:group', lodash.debounce(() => {
+      // Timeline will send to Glass if it doesn't want to group
+      console.info(`[creator] global-menu:group`)
+      this.props.websocket.send({
+        type: 'relay',
+        from: 'creator',
+        view: 'timeline',
+        name: 'global-menu:group'
+      })
+    }, 100, {leading: true, trailing: false}))
+
+    ipcRenderer.on('global-menu:ungroup', lodash.debounce(() => {
+      // Timeline will send to Glass if it doesn't want to ungroup
+      console.info(`[creator] global-menu:ungroup`)
+      this.props.websocket.send({
+        type: 'relay',
+        from: 'creator',
+        view: 'timeline',
+        name: 'global-menu:ungroup'
+      })
+    }, 100, {leading: true, trailing: false}))
+
+    ipcRenderer.on('global-menu:undo', lodash.debounce(() => {
+      // Timeline will send to Glass if it doesn't want to undo
+      console.info(`[creator] global-menu:undo`)
+      this.props.websocket.send({
+        type: 'relay',
+        from: 'creator',
+        view: 'timeline',
+        name: 'global-menu:undo'
+      })
+    }, 100, {leading: true, trailing: false}))
+
+    ipcRenderer.on('global-menu:redo', lodash.debounce(() => {
+      // Timeline will send to Glass if it doesn't want to undo
+      console.info(`[creator] global-menu:redo`)
+      this.props.websocket.send({
+        type: 'relay',
+        from: 'creator',
+        view: 'timeline',
+        name: 'global-menu:redo'
+      })
+    }, 100, {leading: true, trailing: false}))
+
+    ipcRenderer.on('global-menu:copy', lodash.debounce(() => {
+      // Only delegate copy if we don't have anything in selection
+      if (this.isCreatorExplicitlyFocused()) {
+        if (!this.isTextSelected()) {
+          console.info(`[creator] global-menu:copy`)
+          this.props.websocket.send({
+            type: 'relay',
+            from: 'creator',
+            view: 'timeline',
+            name: 'global-menu:copy'
+          })
+        }
+      }
+    }, 100, {leading: true, trailing: false}))
+
+    ipcRenderer.on('global-menu:cut', lodash.debounce(() => {
+      // Only delegate cut if we don't have anything in selection
+      if (this.isCreatorExplicitlyFocused()) {
+        if (!this.isTextSelected()) {
+          console.info(`[creator] global-menu:cut`)
+          this.props.websocket.send({
+            type: 'relay',
+            from: 'creator',
+            view: 'timeline',
+            name: 'global-menu:cut'
+          })
+        }
+      }
+    }, 100, {leading: true, trailing: false}))
+
+    ipcRenderer.on('global-menu:selectall', lodash.debounce(() => {
+      // Only select all if we haven't activated a text element
+      if (this.isCreatorExplicitlyFocused()) {
+        if (!this.isTextInputFocused()) {
+          console.info(`[creator] global-menu:selectall`)
+          this.props.websocket.send({
+            type: 'relay',
+            from: 'creator',
+            view: 'timeline',
+            name: 'global-menu:selectall'
+          })
+        }
+      }
+    }, 100, {leading: true, trailing: false}))
+
+    ipcRenderer.on('global-menu:paste', lodash.debounce(() => {
+      // Only paste if we haven't activated a text element
+      if (this.isCreatorExplicitlyFocused()) {
+        if (!this.isTextInputFocused()) {
+          console.info(`[creator] global-menu:paste`)
+          this.props.websocket.send({
+            type: 'relay',
+            from: 'creator',
+            view: 'timeline',
+            name: 'global-menu:paste'
+          })
+        }
+      }
+    }, 100, {leading: true, trailing: false}))
 
     window.addEventListener('dragover', Asset.preventDefaultDrag, false)
 
@@ -268,6 +359,71 @@ export default class Creator extends React.Component {
         console.warn(exception)
       }
     }
+
+    if (process.env.NODE_ENV !== 'production') {
+      window.creator = this
+    }
+  }
+
+  isTextInputFocused () {
+    const tagName = (
+      document.activeElement &&
+      document.activeElement.tagName &&
+      document.activeElement.tagName.toLowerCase()
+    )
+
+    return (
+      tagName && (
+        tagName === 'input' ||
+        tagName === 'textarea'
+      )
+    )
+  }
+
+  isTextSelected () {
+    return window.getSelection().type === 'Range'
+  }
+
+  isCreatorExplicitlyFocused () {
+    return document.hasFocus() && !this.isWebviewFocused()
+  }
+
+  isWebviewFocused () {
+    return this.isTimelineFocused() || this.isGlassFocused()
+  }
+
+  isTimelineFocused () {
+    const webview = this.getTimelineWebview()
+    return webview && webview === document.activeElement
+  }
+
+  isGlassFocused () {
+    const webview = this.getGlassWebview()
+    return webview && webview === document.activeElement
+  }
+
+  getTimelineWebview () {
+    return (
+      this.refs &&
+      this.refs.timeline &&
+      this.refs.timeline.mount &&
+      this.refs.timeline.mount.children &&
+      this.refs.timeline.mount.children[0]
+    )
+  }
+
+  getGlassWebview () {
+    return (
+      this.refs &&
+      this.refs.stage &&
+      this.refs.stage.mount &&
+      this.refs.stage.mount.children &&
+      this.refs.stage.mount.children[0]
+    )
+  }
+
+  getActiveComponent () {
+    return this.state.projectModel && this.state.projectModel.getCurrentActiveComponent()
   }
 
   openTerminal (folder) {
@@ -309,47 +465,6 @@ export default class Creator extends React.Component {
     if (this.refs.timeline) this.refs.timeline.toggleDevTools()
   }
 
-  handleContentPaste (maybePasteRequest) {
-    let pastedText = clipboard.readText()
-    if (!pastedText) return void (0)
-
-    // The data on the clipboard might be serialized data, so try to parse it if that's the case
-    // The main case we have now for serialized data is haiku elements copied from the stage
-    let pastedData
-    try {
-      pastedData = JSON.parse(pastedText)
-    } catch (exception) {
-      console.warn('[creator] unable to parse pasted data; it might be plain text')
-      pastedData = pastedText
-    }
-
-    if (Array.isArray(pastedData)) {
-      // This looks like a Haiku element that has been copied from the stage
-      if (pastedData[0] === 'application/haiku' && typeof pastedData[1] === 'object') {
-        let pastedElement = pastedData[1]
-
-        // Command the views and master process to handle the element paste action
-        // The 'pasteThing' action is intended to be able to handle multiple content types
-        if (this.state.projectModel) {
-          return this.state.projectModel.pasteThing(pastedElement, maybePasteRequest || {}, (error) => {
-            if (error) {
-              console.error(error)
-            }
-          })
-        }
-      } else {
-        // TODO: Handle other cases where the paste data was a serialized array
-        console.warn('[creator] cannot paste this content type yet (array)')
-      }
-    } else {
-      // An empty string is treated as the equivalent of nothing (don't display warning if nothing to instantiate)
-      if (typeof pastedData === 'string' && pastedData.length > 0) {
-        // TODO: Handle the case when plain text has been pasted - SVG, HTML, etc?
-        console.warn('[creator] cannot paste this content type yet (unknown string)')
-      }
-    }
-  }
-
   handleEnvoyUserReady () {
     // kick off initial report
     this.onActivityReport(true, true)
@@ -378,9 +493,8 @@ export default class Creator extends React.Component {
           return this.toggleDevTools()
         case 'project-state-change':
           return this.handleConnectedProjectModelStateChange(message)
-        case 'current-pasteable:request-paste':
-          console.info('[creator] current-pasteable:request-paste', message.data)
-          return this.handleContentPaste(message.data)
+        case 'dimensions-reset':
+          return this.setState({ artboardDimensions: message.data })
       }
     })
 
@@ -475,31 +589,6 @@ export default class Creator extends React.Component {
       }), 300)
     })
 
-    this.envoyClient.get(GLASS_CHANNEL).then((glassChannel) => {
-      document.addEventListener('cut', (clipboardEvent) => {
-        if (!this.isShareLinkCopyEvent(clipboardEvent)) {
-          glassChannel.cut(clipboardEvent)
-        }
-      })
-      document.addEventListener('copy', (clipboardEvent) => {
-        if (!this.isShareLinkCopyEvent(clipboardEvent)) {
-          glassChannel.copy(clipboardEvent)
-        }
-      })
-    })
-
-    document.addEventListener('paste', (pasteEvent) => {
-      console.info('[creator] paste heard')
-      let tagname = pasteEvent.target.tagName.toLowerCase()
-      if (tagname === 'input' || tagname === 'textarea') {
-        // Do nothing; let input fields and so-on be handled normally
-      } else {
-        // Otherwise, assume we might need to handle this paste event specially
-        pasteEvent.preventDefault()
-        this.handleContentPaste()
-      }
-    })
-
     this.props.websocket.on('open', () => {
       this.props.websocket.request({ method: 'isUserAuthenticated', params: [] }, (error, authAnswer) => {
         if (error) {
@@ -554,14 +643,6 @@ export default class Creator extends React.Component {
         }, 2500)
       })
     })
-  }
-
-  isShareLinkCopyEvent (clipboardEvent) {
-    return (
-      clipboardEvent &&
-      clipboardEvent.target &&
-      clipboardEvent.target.tagName === 'SPAN' // Match the element target used by react-copy-paste
-    )
   }
 
   componentWillUnmount () {
@@ -820,10 +901,10 @@ export default class Creator extends React.Component {
                 if (ac) {
                   // Even if we already have an active component set up and assigned in memory,
                   // we still need to notify Timeline/Stage since they have been completely recreated
-                  ac.setAsCurrentActiveComponent({ from: 'creator' }, () => { })
+                  ac.setAsCurrentActiveComponent({from: 'creator'}, () => { })
                 } else {
                   // And if we don't have anything assigned, assume we're editing the main component
-                  this.state.projectModel.setCurrentActiveComponent('main', { from: 'creator' }, () => { })
+                  this.state.projectModel.setCurrentActiveComponent('main', {from: 'creator'}, () => { })
                 }
               })
             })
@@ -831,16 +912,7 @@ export default class Creator extends React.Component {
             projectModel.on('update', (what) => {
               switch (what) {
                 case 'setCurrentActiveComponent':
-                  // Hide loading screens, re-enable navigating back to dashboard but only after a
-                  // delay since we've seen race-related crashes when people nav back too early.
-                  // For mc, this triggers re-render of the Component Tab UI, State Inspector UI, Library UI
-                  // in the context of whatever the current component is
-                  return setTimeout(() => {
-                    return this.setState({
-                      doShowProjectLoader: false,
-                      doShowBackToDashboardButton: true
-                    })
-                  }, 2000)
+                  this.handleActiveComponentReady()
               }
             })
 
@@ -858,6 +930,29 @@ export default class Creator extends React.Component {
           }
         )
       })
+    })
+  }
+
+  handleActiveComponentReady () {
+    this.mountHaikuComponent()
+
+    // Hide loading screens, re-enable navigating back to dashboard but only after a
+    // delay since we've seen race-related crashes when people nav back too early.
+    // For mc, this triggers re-render of the Component Tab UI, State Inspector UI, Library UI
+    // in the context of whatever the current component is
+    return setTimeout(() => {
+      return this.setState({
+        doShowProjectLoader: false,
+        doShowBackToDashboardButton: true
+      })
+    }, 2000)
+  }
+
+  mountHaikuComponent () {
+    // The Timeline UI doesn't display the component, so we don't bother giving it a ref
+    this.getActiveComponent().mountApplication(null, {
+      options: { freeze: true }, // No display means no need for overflow settings, etc
+      reloadMode: ModuleWrapper.RELOAD_MODES.MONKEYPATCHED_OR_ISOLATED
     })
   }
 
@@ -1270,6 +1365,7 @@ export default class Creator extends React.Component {
                     isTimelineReady={this.state.isTimelineReady}
                     isPreviewMode={isPreviewMode(this.state.interactionMode)}
                     onPreviewModeToggled={() => { this.togglePreviewMode() }}
+                    artboardDimensions={this.state.artboardDimensions}
                   />
                   {(this.state.assetDragging)
                     ? <div style={{ width: '100%', height: '100%', backgroundColor: 'white', opacity: 0.01, position: 'absolute', top: 0, left: 0 }} />

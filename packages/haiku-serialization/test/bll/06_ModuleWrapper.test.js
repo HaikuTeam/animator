@@ -25,7 +25,7 @@ tape('ModuleWrapper', (t) => {
       if (err) throw err
       fse.outputFileSync(path.join(folder, 'designs/Circle.svg'), CIRCLE_SVG_1)
       const ac0 = project.getCurrentActiveComponent()
-      return ac0.instantiateComponent('designs/Circle.svg', {}, { from: 'test' }, (err, info, mana) => {
+      return ac0.instantiateComponent('designs/Circle.svg', {}, { from: 'test' }, (err, mana) => {
         if (err) throw err
         return waitUntilFileProbablyWroteToDisk(() => {
           return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents) => {
@@ -40,12 +40,15 @@ tape('ModuleWrapper', (t) => {
             delete require.cache[path.join(folder, 'code', 'main', 'code.js')]
 
             // Call a method that calls ModuleWrapper#monkeypatch
+            const keyframeUpdates = {Default: {}}
+            const selector = `haiku:${mana.attributes['haiku-id']}`
+            keyframeUpdates.Default[selector] = {}
+            keyframeUpdates.Default[selector]['sizeAbsolute.x'] = {}
+            keyframeUpdates.Default[selector]['sizeAbsolute.x'][0] = {value: 100}
+
             try {
-              ac0.applyPropertyGroupValue(
-                mana.attributes['haiku-id'],
-                'Default',
-                0,
-                {'sizeAbsolute.x': 100},
+              ac0.updateKeyframes(
+                keyframeUpdates,
                 {from: 'test'},
                 () => {
                   fse.outputFileSync(corePath, coreCode)

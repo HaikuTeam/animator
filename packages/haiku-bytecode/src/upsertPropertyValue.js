@@ -1,13 +1,24 @@
-module.exports = function upsertPropertyValue (bytecode, componentId, timelineName, timelineTime, propertiesToMerge, strategy) {
-  if (!strategy) strategy = 'merge'
+module.exports = function upsertPropertyValue (
+  bytecode,
+  componentId,
+  timelineName,
+  timelineTime,
+  propertiesToMerge,
+  strategy
+) {
+  if (!strategy) {
+    strategy = 'merge'
+  }
 
-  var haikuSelector = 'haiku:' + componentId
+  const haikuSelector = 'haiku:' + componentId
 
-  if (!bytecode.timelines[timelineName][haikuSelector]) bytecode.timelines[timelineName][haikuSelector] = {}
+  if (!bytecode.timelines[timelineName][haikuSelector]) {
+    bytecode.timelines[timelineName][haikuSelector] = {}
+  }
 
-  var defaultTimeline = bytecode.timelines[timelineName][haikuSelector]
+  const defaultTimeline = bytecode.timelines[timelineName][haikuSelector]
 
-  for (var propName in propertiesToMerge) {
+  for (const propName in propertiesToMerge) {
     if (!defaultTimeline[propName]) defaultTimeline[propName] = {}
     if (!defaultTimeline[propName][timelineTime]) defaultTimeline[propName][timelineTime] = {}
 

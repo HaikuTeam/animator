@@ -1,4 +1,10 @@
-module.exports = function getPropertyValue (bytecode, componentId, timelineName, timelineTime, propertyName) {
+module.exports = function getPropertyValue (
+  bytecode,
+  componentId,
+  timelineName,
+  timelineTime,
+  propertyName
+) {
   if (!bytecode) return void (0)
   if (!bytecode.timelines) return void (0)
   if (!bytecode.timelines[timelineName]) return void (0)

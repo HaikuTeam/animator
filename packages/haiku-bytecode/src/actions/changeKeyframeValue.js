@@ -1,5 +1,5 @@
-var unserValue = require('./unserValue')
-var ensureTimelineProperty = require('./ensureTimelineProperty')
+const unserValue = require('./unserValue')
+const ensureTimelineProperty = require('./ensureTimelineProperty')
 
 module.exports = function changeKeyframeValue (bytecode, componentId, timelineName, propertyName, keyframeMs, newValue) {
   var property = ensureTimelineProperty(bytecode, timelineName, componentId, propertyName)

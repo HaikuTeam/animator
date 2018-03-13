@@ -1,9 +1,11 @@
-var clone = require('lodash.clone')
-var ensureTimeline = require('./ensureTimeline')
-var createTimeline = require('./createTimeline')
+const clone = require('lodash.clone')
+const ensureTimeline = require('./ensureTimeline')
+const createTimeline = require('./createTimeline')
 
 module.exports = function duplicateTimeline (bytecode, timelineName) {
-  var timeline = ensureTimeline(bytecode, timelineName)
-  var duplicate = clone(timeline)
-  return createTimeline(bytecode, timelineName + ' copy', duplicate) // This does 'unserValue' for us
+  const timeline = ensureTimeline(bytecode, timelineName)
+  const duplicate = clone(timeline)
+  const newName = timelineName + ' copy'
+  createTimeline(bytecode, newName, duplicate) // This does 'unserValue' for us
+  return newName
 }
