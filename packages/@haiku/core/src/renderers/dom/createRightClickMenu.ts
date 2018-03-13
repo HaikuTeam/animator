@@ -4,7 +4,6 @@
 
 const MENU_GLOBAL_ID = 'haiku-right-click-menu';
 const WIDTH = 167;
-const HEIGHT = 44;
 
 /* tslint:disable */
 const haikuIcon =
@@ -21,7 +20,7 @@ const haikuIcon =
 
 const sharePageIcon =
   '' +
-  '<svg style="transform:translate(-1px, 3px);margin-right:3px;" width="14px" height="14px" viewBox="0 0 11 10" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">' +
+  '<svg style="transform:translate(-1px, 3px);margin-right:1px;" width="14px" height="14px" viewBox="0 0 11 10" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">' +
   '  <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">' +
   '      <g id="menu" transform="translate(-8.000000, -32.000000)">' +
   '          <g id="0884-focus" transform="translate(8.500000, 32.000000)">' +
@@ -103,14 +102,14 @@ export default function createRightClickMenu(domElement, component) {
 
   const escaper = doc.createElement('textarea');
   const metadata = component._bytecode && component._bytecode.metadata;
-  let forkAvailable = false;
+  let isPublic = false;
 
   if (metadata && metadata.project && metadata.organization && window && window.fetch) {
     try {
-      window.fetch(`https://inkstone.haiku.ai/v0/community/${metadata.organization}/${metadata.project}`).then(
+      window.fetch(`http://localhost:8080/v0/community/${metadata.organization}/${metadata.project}`).then(
         ({ok}) => {
           if (ok) {
-            forkAvailable = true;
+            isPublic = true;
           }
         },
       );
@@ -127,7 +126,6 @@ export default function createRightClickMenu(domElement, component) {
   // revealMenu(100,100) // Uncomment me to render the menu while testing
 
   function revealMenu(mx, my) {
-    let height = HEIGHT;
     const lines = [];
     let titleLine = null;
 
@@ -145,21 +143,16 @@ export default function createRightClickMenu(domElement, component) {
         byline +
         '</p>';
     }
-    if (metadata && metadata.uuid && metadata.uuid !== SUBSTITUTION_STRING) {
+    if (isPublic && metadata && metadata.uuid && metadata.uuid !== SUBSTITUTION_STRING) {
       lines.push(
         '<a onMouseOver="this.style.backgroundColor=\'rgba(140,140,140,.07)\'" onMouseOut="this.style.backgroundColor=\'transparent\'" style="display:block;color:black;text-decoration:none;padding: 5px 13px;line-height:12px;" href="https://share.haiku.ai/' +
         escapeHTML(metadata.uuid) +
         '" target="_blank">' +
         sharePageIcon +
-        '  View component</a>',
+        ' View on Haiku Community</a>',
       );
     }
-    lines.push(
-      '<a onMouseOver="this.style.backgroundColor=\'rgba(140,140,140,.07)\'" onMouseOut="this.style.backgroundColor=\'transparent\'" style="display:block;color:black;text-decoration:none;padding: 5px 13px;line-height:12px;" href="https://www.haiku.ai" target="_blank">' +
-      haikuIcon +
-      '  Crafted in Haiku</a>',
-    );
-    if (forkAvailable) {
+    if (isPublic) {
       lines.push(
         '<a onMouseOver="this.style.backgroundColor=\'rgba(140,140,140,.07)\'" onMouseOut="this.style.backgroundColor=\'transparent\'" style="display:block;color:black;text-decoration:none;padding: 5px 13px;line-height:12px;" href="https://share.haiku.ai/u/' +
         escapeHTML(`${metadata.organization}/${metadata.project}/fork`) +
@@ -168,17 +161,20 @@ export default function createRightClickMenu(domElement, component) {
         ' Fork this component</a>',
       )
     }
+    lines.push(
+      '<a onMouseOver="this.style.backgroundColor=\'rgba(140,140,140,.07)\'" onMouseOut="this.style.backgroundColor=\'transparent\'" style="display:block;color:black;text-decoration:none;padding: 5px 13px;line-height:12px;" href="https://www.haiku.ai" target="_blank">' +
+      haikuIcon +
+      '  Crafted in Haiku</a>',
+    );
     /* tslint:enable */
 
     if (lines.length < 1) {
       return undefined;
     }
 
-    height = lines.length > 1 ? 88 : 61;
-    height = titleLine ? height : 22;
-
-    menu.style.width = px(WIDTH);
-    menu.style.height = px(height);
+    menu.style.width = 'auto';
+    menu.style.minWidth = WIDTH;
+    menu.style.height = 'auto';
     menu.style.top = px(my);
     menu.style.left = px(mx);
     menu.style.pointerEvents = 'auto';
@@ -186,8 +182,13 @@ export default function createRightClickMenu(domElement, component) {
     menu.innerHTML = titleLine ? titleLine + lines.join('\n') : lines.join('\n');
   }
 
-  function hideMenu() {
+  function hideMenu(nativeEvent) {
+    if (nativeEvent.button === 2 || nativeEvent.ctrlKey) {
+      // Firefox treats contextmenu mouseups as clicks for some reason. This short-circuits that behavior.
+      return;
+    }
     menu.style.width = px(0);
+    menu.style.minWidth = px(0);
     menu.style.height = px(0);
     menu.style.top = px(0);
     menu.style.left = px(0);
