@@ -288,12 +288,16 @@ export const pathToInterpolationTrace = (points: PathPoint[]) => {
  * @param {string} svgPoints
  * @returns {[key in PathKey]: BodymovinPathComponent}
  */
-export const pointsToInterpolationTrace = (svgPoints: string) => {
-  // Normalize "x1,y1 x2,y2" syntax to "x1 y1 x2 y2" syntax before splitting
-  const points: number[] = svgPoints.replace(/,/g, ' ').split(' ').map(Number);
-  const chunkedPoints = [];
-  for (let i = 0; i < points.length; i += 2) {
-    chunkedPoints.push(points.slice(i, i + 2));
+export const pointsToInterpolationTrace = (svgPoints: string|[number, number][]) => {
+  const chunkedPoints: [number, number][] = [];
+  if (Array.isArray(svgPoints)) {
+    chunkedPoints.push(...svgPoints);
+  } else {
+    // Normalize "x1,y1 x2,y2" syntax to "x1 y1 x2 y2" syntax before splitting
+    const points: number[] = svgPoints.replace(/,/g, ' ').split(' ').map(Number);
+    for (let i = 0; i < points.length; i += 2) {
+      chunkedPoints.push(points.slice(i, i + 2) as [number, number]);
+    }
   }
 
   // To support Bodymovin export format, we have to create a "dummy curve" with null interpolation points.
@@ -382,8 +386,19 @@ const polygonContainsPoint = (polygon: PathPoint[], p: PathPoint): boolean => {
  * @param {string} path
  * @returns {string[]}
  */
-export const decomposePath = (path: string): PathPoint[][] => {
-  const allClosedPaths = path.split(/z/ig).filter((segment) => !!segment).map(pathToPoints);
+export const decomposePath = (path: string|PathPoint[]): PathPoint[][] => {
+  const allClosedPaths = []
+  if (Array.isArray(path)) {
+    let lastIndex = 0;
+    for (let i = 0; i < path.length; ++i) {
+      if (path[i].closed || i === path.length - 1) {
+        allClosedPaths.push(path.slice(lastIndex, i + 1));
+        lastIndex = i + 1;
+      }
+    }
+  } else {
+    allClosedPaths.push(...path.split(/z/ig).filter((segment) => !!segment).map(pathToPoints));
+  }
   const closureEndpoints: [number, number][] = [];
   let cursorIndex = 0;
   let enclosureIndex = undefined;

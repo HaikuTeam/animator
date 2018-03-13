@@ -1,9 +1,11 @@
+import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
 import {HaikuBytecode} from 'haiku-common/lib/types';
 import * as tape from 'tape';
 
 import {BodymovinExporter} from '../../lib/exporters/bodymovin/bodymovinExporter';
 import baseBytecode from './baseBytecode';
 
+const {pathToPoints, polyPointsStringToPoints} = SVGPoints;
 const rawOutput = (bytecode: HaikuBytecode) => (new BodymovinExporter(bytecode).rawOutput());
 
 const overrideShapeAttributes = (bytecode, attributes) => {
@@ -705,6 +707,27 @@ tape('BodymovinExporter', (test: tape.Test) => {
     test.end();
   });
 
+  test.test('supports polygons, array-style', (test: tape.Test) => {
+    const bytecode = baseBytecodeCopy();
+    overrideShapeAttributes(bytecode, {
+      points: {0: {value: polyPointsStringToPoints('1,2 3,4')}},
+    });
+    overrideShapeElement(bytecode, 'polygon');
+
+    const {
+      layers: [{
+        shapes: [{it: [{ty, ks: {k: {c, v, i, o}}}]}],
+      }],
+    } = rawOutput(bytecode);
+
+    test.equal(ty, 'sh', 'translates polygons as shapes');
+    test.equal(c, true, 'creates a closed shape');
+    test.deepEqual(v, [[1, 2], [3, 4]], 'parses points into vertex chunks for closed shapes');
+    test.deepEqual(i, [[0, 0], [0, 0]], 'uses null interpolation in-points');
+    test.deepEqual(o, [[0, 0], [0, 0]], 'uses null interpolation in-points');
+    test.end();
+  });
+
   test.test('supports paths', (test: tape.Test) => {
     const bytecode = baseBytecodeCopy();
     overrideShapeElement(bytecode, 'path');
@@ -734,10 +757,38 @@ tape('BodymovinExporter', (test: tape.Test) => {
       test.deepEqual(o, [[0, 0], [0, 0]], 'translates lines out relative to vertices');
     }
 
+    // Scope for testing closed shape support, array-style.
+    {
+      overrideShapeAttributes(bytecode, {
+        d: {0: {value: pathToPoints('M0,0 L1,1 L0,0 Z')}},
+      });
+
+      const {
+        layers: [{
+          shapes: [{it: [{ks: {k: {c, v, i, o}}}]}],
+        }],
+      } = rawOutput(bytecode);
+      test.equal(c, true, 'creates a closed shape');
+      test.deepEqual(v, [[0, 0], [1, 1]], 'gets coordinates from movetos and line endpoints');
+      test.deepEqual(i, [[0, 0], [0, 0]], 'translates lines in relative to vertices');
+      test.deepEqual(o, [[0, 0], [0, 0]], 'translates lines out relative to vertices');
+    }
+
     // Scope for testing compound shape support.
     {
       overrideShapeAttributes(bytecode, {
         d: {0: {value: 'M0,0 L1,1 L0,0 Z M2,2 L3,3 L2,2 Z'}},
+      });
+
+      const {layers: [{shapes}]} = rawOutput(bytecode);
+      test.deepEqual(shapes[0].it[0].ks.k.v, [[0, 0], [1, 1]], 'creates a shape from the first closed segment');
+      test.deepEqual(shapes[1].it[0].ks.k.v, [[2, 2], [3, 3]], 'creates additional shapes from other closed segments');
+    }
+
+    // Scope for testing compound shape support, array-style.
+    {
+      overrideShapeAttributes(bytecode, {
+        d: {0: {value: pathToPoints('M0,0 L1,1 L0,0 Z M2,2 L3,3 L2,2 Z')}},
       });
 
       const {layers: [{shapes}]} = rawOutput(bytecode);
@@ -761,10 +812,42 @@ tape('BodymovinExporter', (test: tape.Test) => {
       );
     }
 
+    // Scope for testing compound shapes that are not actually compound, array-style.
+    {
+      overrideShapeAttributes(bytecode, {
+        d: {0: {value: pathToPoints('M0,0 L10,0 L10,10 L0,10 L0,0 Z M2,2 L8,2 L8,8 L2,8 L2,2 Z')}},
+        'fill-rule': {0: {value: 'evenodd'}},
+      });
+
+      const {layers: [{shapes}]} = rawOutput(bytecode);
+      test.equal(shapes.length, 1, 'does not create additional shapes out of contained paths');
+      test.deepEqual(
+        shapes[0].it[0].ks.k.v,
+        [[0, 0], [10, 0], [10, 10], [0, 10], [0, 0], [2, 2], [8, 2], [8, 8], [2, 8], [2, 2]],
+        'collates vertices from inner paths',
+      );
+    }
+
     // Scope for testing cubic bezier support.
     {
       overrideShapeAttributes(bytecode, {
         d: {0: {value: 'M0,0 C1,2 3,4 5,6 L0,0 Z'}},
+      });
+
+      const {
+        layers: [{
+          shapes: [{it: [{ks: {k: {v, i, o}}}]}],
+        }],
+      } = rawOutput(bytecode);
+      test.deepEqual(v, [[0, 0], [5, 6]], 'gets coordinates from bezier curve endpoints');
+      test.deepEqual(i, [[0, 0], [-2, -2]], 'translates lines in relative to vertices');
+      test.deepEqual(o, [[1, 2], [0, 0]], 'translates lines out relative to vertices');
+    }
+
+    // Scope for testing cubic bezier support, array style.
+    {
+      overrideShapeAttributes(bytecode, {
+        d: {0: {value: pathToPoints('M0,0 C1,2 3,4 5,6 L0,0 Z')}},
       });
 
       const {

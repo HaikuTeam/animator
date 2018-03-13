@@ -403,7 +403,10 @@ const getPointsFromPath = ({d}) => {
             break;
         }
       }
-    } else {
+    } else if (prevPoint !== null) {
+      if (upperCaseCommand === 'Z') {
+        prevPoint.closed = true;
+      }
       if (prevPoint.x !== moveTo.x || prevPoint.y !== moveTo.y) {
         points.push({
           x: moveTo.x,

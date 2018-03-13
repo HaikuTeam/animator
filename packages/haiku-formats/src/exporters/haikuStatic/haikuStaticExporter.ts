@@ -19,12 +19,7 @@ export class HaikuStaticExporter extends BaseExporter implements ExporterInterfa
       const timelineProperty = timeline[property];
       for (const keyframe in timelineProperty) {
         const {value} = timelineProperty[keyframe];
-        if (typeof value === 'string' || typeof value === 'number') {
-          continue;
-        }
-
         if (typeof value !== 'function') {
-          delete timelineProperty[keyframe];
           continue;
         }
 
