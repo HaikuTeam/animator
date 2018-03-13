@@ -556,7 +556,7 @@ HaikuComponent.prototype._getTimelineDescriptor = function _getTimelineDescripto
 HaikuComponent.prototype._getInjectables = function _getInjectables(element) {
   const injectables = {};
 
-  assign(injectables, this._builder._getSummonablesSchema(element));
+  assign(injectables, this._builder.getSummonablesSchema(element));
 
   // Local states get precedence over global summonables, so assign them last
   for (const key in this._states) {
