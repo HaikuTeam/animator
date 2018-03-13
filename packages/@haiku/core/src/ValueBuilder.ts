@@ -510,7 +510,7 @@ INJECTABLES['$user'] = {
   schema: assign({}, EVENT_SCHEMA),
   summon(injectees, summonSpec, hostInstance, matchingElement) {
     if (isPreviewMode(hostInstance.config.options.interactionMode)) {
-      injectees.$user = hostInstance._context._getGlobalUserState();
+      injectees.$user = hostInstance._context.getGlobalUserState();
     } else {
       injectees.$user = {
         mouse: {
