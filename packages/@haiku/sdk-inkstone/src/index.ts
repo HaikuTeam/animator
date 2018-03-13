@@ -30,6 +30,7 @@ const ENDPOINTS = {
   USER_REQUEST_CONFIRM: 'v0/user/resend-confirmation/:email',
   RESET_PASSWORD: 'v0/reset-password',
   RESET_PASSWORD_CLAIM: 'v0/reset-password/:UUID/claim',
+  FIGMA_ACCCESS_TOKEN_GET: 'v0/integrations/figma/token',
 };
 
 let request = requestLib.defaults({
@@ -470,6 +471,34 @@ export namespace inkstone {
 
     export function assembleSnapshotLinkFromSnapshot(snapshot: Snapshot) {
       return `${inkstoneConfig.baseShareUrl}${snapshot.UniqueId}/latest`;
+    }
+  }
+
+  export namespace integrations {
+    export interface AccessTokenResponse {
+      AccessToken: string;
+      RefreshToken: string;
+      ExpiresIn: number;
+    }
+
+    /**
+     * Get a Figma access token using a Figma authorization code.
+     * @param {string} code
+     * @param {inkstone.Callback<inkstone.integrations.AccessTokenResponse>} cb
+     */
+    export function getFigmaAccessToken(code: string, cb: inkstone.Callback<AccessTokenResponse>) {
+      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        url: inkstoneConfig.baseUrl + ENDPOINTS.FIGMA_ACCCESS_TOKEN_GET + '?Code=' + encodeURIComponent(code),
+        headers: baseHeaders,
+      };
+
+      request.get(options, (err, httpResponse, body) => {
+        if (httpResponse && httpResponse.statusCode === 200) {
+          cb(undefined, JSON.parse(body) as AccessTokenResponse, httpResponse);
+        } else {
+          cb(safeError(err), undefined, httpResponse);
+        }
+      });
     }
   }
 
