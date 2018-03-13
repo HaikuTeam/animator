@@ -145,14 +145,14 @@ class Figma {
     return { id, name }
   }
 
-  static buildFigmaLink(fileID) {
-    return `${FIGMA_URL}/file/${fileID}`
+  static buildFigmaLink(fileID, fileName) {
+    return `${FIGMA_URL}file/${fileID}/${fileName}`
   }
 
   static buildAuthenticationLink() {
     const state = randomAlphabetical(15)
     const redirectURI = `haiku://oauth/figma&scope=file_read&state=${state}&response_type=code`
-    const url = `${FIGMA_URL}/oauth?client_id=${FIGMA_CLIENT_ID}&redirect_uri=${redirectURI}`
+    const url = `${FIGMA_URL}oauth?client_id=${FIGMA_CLIENT_ID}&redirect_uri=${redirectURI}`
     return {url, state}
   }
 }

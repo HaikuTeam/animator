@@ -2,6 +2,7 @@ import React from "react";
 import Color from "color";
 import Palette from "haiku-ui-common/lib/Palette";
 import Figma from "haiku-serialization/src/bll/Figma";
+import {shell} from 'electron'
 
 const STYLES = {
   form: {
@@ -29,16 +30,30 @@ class FigmaImporter extends React.PureComponent {
     };
   }
 
+  renderForm () {
+    if (this.props.figma) {
+      this.setState({isFormVisible: true})
+    } else {
+      this.askForAuth()
+    }
+  }
+
+  askForAuth () {
+    const {secret, url} = Figma.buildAuthenticationLink()
+    this.secret = secret
+    shell.openExternal(url)
+  }
+
   onFormSubmit(submitEvent) {
     submitEvent.preventDefault()
     const url = submitEvent.currentTarget.querySelector('[type=url]').value
-    this.figma.importSVG(url)
+    this.props.onImportFigmaAsset(url)
   }
 
   render() {
     return (
       <div>
-        <button onClick={() => { this.setState({isFormVisible: true}) }}>Figma</button>
+        <button onClick={() => { this.renderForm() }}>Figma</button>
         {this.state.isFormVisible && (
           <form onSubmit={(submitEvent) => { this.onFormSubmit(submitEvent) }} style={STYLES.form}>
             <input autoFocus type="url" style={STYLES.urlInput} />

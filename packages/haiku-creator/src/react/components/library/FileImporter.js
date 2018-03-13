@@ -62,7 +62,11 @@ class FileImporter extends React.PureComponent {
     return (
       <div style={STYLES.popover}>
         <FileSystemImporter />
-        <FigmaImporter />
+        <FigmaImporter
+          user={this.props.user}
+          figma={this.props.figma}
+          onImportFigmaAsset={this.props.onImportFigmaAsset}
+        />
       </div>
     );
   }
@@ -91,7 +95,9 @@ class FileImporter extends React.PureComponent {
 }
 
 FileImporter.propTypes = {
-  onFileDrop: React.PropTypes.func.isRequired
+  onFileDrop: React.PropTypes.func.isRequired,
+  onImportFigmaAsset: React.PropTypes.func.isRequired,
+  figma: React.PropTypes.object,
 };
 
 export default FileImporter;

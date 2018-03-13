@@ -2,15 +2,18 @@ import React from 'react'
 import Color from 'color'
 import lodash from 'lodash'
 import Radium from 'radium'
-import { shell } from 'electron'
+import { shell, ipcRenderer } from 'electron'
+import { UserSettings } from 'haiku-sdk-creator/lib/bll/User'
 import Palette from 'haiku-ui-common/lib/Palette'
 import { didAskedForSketch } from 'haiku-serialization/src/utils/HaikuHomeDir'
 import Asset from 'haiku-serialization/src/bll/Asset'
+import Figma from "haiku-serialization/src/bll/Figma";
 import sketchUtils from '../../../utils/sketchUtils'
 import SketchDownloader from '../SketchDownloader'
 import AssetList from './AssetList'
 import Loader from './Loader'
 import FileImporter from './FileImporter'
+
 
 const STYLES = {
   scrollwrap: {
@@ -62,6 +65,7 @@ class Library extends React.Component {
       previewImageTime: null,
       overDropTarget: false,
       isLoading: false,
+      figma: null,
       sketchDownloader: {
         asset: null,
         isVisible: false,
@@ -71,11 +75,13 @@ class Library extends React.Component {
 
     this.handleAssetInstantiation = this.handleAssetInstantiation.bind(this)
     this.handleAssetDeletion = this.handleAssetDeletion.bind(this)
+    this.importFigmaAsset = this.importFigmaAsset.bind(this)
 
     // Debounced to avoid 'flicker' when multiple updates are received quickly
     this.handleAssetsChanged = lodash.debounce(this.handleAssetsChanged.bind(this), 250)
 
     this.broadcastListener = this.broadcastListener.bind(this)
+    this.onAuthCallback = this.onAuthCallback.bind(this)
   }
 
   broadcastListener ({ name, assets, data }) {
@@ -98,14 +104,25 @@ class Library extends React.Component {
     this.reloadAssetList()
 
     this.props.websocket.on('broadcast', this.broadcastListener)
+    ipcRenderer.on('open-url:oauth', this.onAuthCallback)
 
     sketchUtils.checkIfInstalled().then(isInstalled => {
       this.isSketchInstalled = isInstalled
+    })
+
+    this.props.user.getConfig(UserSettings.figmaToken).then((figmaToken) => {
+      const figma = new Figma({token: figmaToken})
+      this.setState({figma})
     })
   }
 
   componentWillUnmount () {
     this.props.websocket.removeListener('broadcast', this.broadcastListener)
+    ipcRenderer.removeListener('open-url:oauth', this.onAuthCallback)
+  }
+
+  onAuthCallback (_, path) {
+    console.log('asdfasdfasdfasd', path)
   }
 
   reloadAssetList () {
@@ -113,6 +130,10 @@ class Library extends React.Component {
       if (error) return this.setState({ error })
       this.handleAssetsChanged(assets, {isLoading: false})
     })
+  }
+
+  importFigmaAsset (url, callback) {
+    this.state.figma.importSVG(url).then(callback)
   }
 
   handleFileInstantiation (asset) {
@@ -212,7 +233,12 @@ class Library extends React.Component {
           id='library-scroll-wrap'
           style={STYLES.sectionHeader}>
           Library
-          <FileImporter onFileDrop={(files, fileDropEvent) => {this.handleFileDrop(files, fileDropEvent)}} />
+          <FileImporter
+            user={this.props.user}
+            onImportFigmaAsset={this.importFigmaAsset}
+            figma={this.state.figma}
+            onFileDrop={(files, fileDropEvent) => {this.handleFileDrop(files, fileDropEvent)}}
+          />
         </div>
         <div
           id='library-scroll-wrap'
@@ -225,6 +251,7 @@ class Library extends React.Component {
                 onDragStart={this.props.onDragStart}
                 onDragEnd={this.props.onDragEnd}
                 instantiateAsset={this.handleAssetInstantiation}
+                onRefreshFigmaAsset={this.importFigmaAsset}
                 deleteAsset={this.handleAssetDeletion}
                 indent={0}
                 assets={this.state.assets} />}

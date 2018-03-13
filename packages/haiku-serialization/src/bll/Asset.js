@@ -216,7 +216,7 @@ class Asset extends BaseModel {
       figmaID: path.basename(relpath).match(/(\w+)-/)[1],
       project,
       relpath,
-      displayName: path.basename(relpath).replace(/(\w+)-/, ''),
+      displayName: path.basename(relpath).match(/-(\w+)\./)[1],
       children: [],
       slicesFolderAsset, // Hacky, but avoids extra 'upsert' logic
       groupsFolderAsset,

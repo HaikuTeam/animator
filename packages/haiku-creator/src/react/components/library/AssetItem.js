@@ -16,7 +16,8 @@ import {
   FigmaIconSVG,
   FolderIconSVG,
   TrashIconSVG,
-  ComponentIconSVG
+  ComponentIconSVG,
+  SyncIconSVG
 } from 'haiku-ui-common/lib/react/OtherIcons'
 
 import ControlImage from 'haiku-ui-common/lib/react/icons/ControlImage'
@@ -164,6 +165,10 @@ class AssetItem extends React.Component {
     shell.openItem(this.props.asset.getAbspath())
   }
 
+  handleOpenOnlineAsset(link) {
+    shell.openExternal(link)
+  }
+
   handleShowAsset () {
     shell.showItemInFolder(this.props.asset.getAbspath())
   }
@@ -220,7 +225,7 @@ class AssetItem extends React.Component {
         label: 'Open In Figma',
         icon: FigmaIconSVG,
         onClick: () => {
-          shell.openExternal(Figma.buildFigmaLink(this.props.asset.figmaID))
+          this.handleOpenOnlineAsset(Figma.buildFigmaLink(this.props.asset.figmaID))
         }
       })
     }
@@ -243,6 +248,33 @@ class AssetItem extends React.Component {
     }
 
     return items
+  }
+
+  renderSyncMenu () {
+    if (this.props.asset.isFigmaFile()) {
+      return (
+        <span
+          style={{...STYLES.threeDotMenu, right: '30px', transform: 'none'}}
+        >
+          <button
+            onClick={(clickEvent) => {
+              const a = clickEvent.currentTarget.querySelector('svg')
+              clickEvent.currentTarget.querySelector('svg').classList.add('animation-rotating')
+              const url = Figma.buildFigmaLink(this.props.asset.figmaID, this.props.asset.displayName)
+              this.props.onRefreshFigmaAsset(url, () => {a.classList.remove('animation-rotating')})
+            }}
+            style={{
+              padding: '3px',
+              backgroundColor: Palette.DARK_GRAY,
+              color: Palette.ROCK
+            }}>
+            <SyncIconSVG />
+          </button>
+        </span>
+      )
+    }
+
+    return null
   }
 
   renderThreeDotMenu () {
@@ -389,6 +421,7 @@ class AssetItem extends React.Component {
           instantiateAsset={this.props.instantiateAsset}
           deleteAsset={this.props.deleteAsset}
           assets={this.props.asset.getChildAssets()}
+          onRefreshFigmaAsset={this.props.onRefreshFigmaAsset}
           indent={this.props.indent + 1} />
       </Collapse>
     )
@@ -451,6 +484,7 @@ class AssetItem extends React.Component {
             style={[STYLES.header, { paddingLeft: this.props.indent * 23 }]}>
             {this.renderChevy()}
             {draggablePart}
+            {this.renderSyncMenu()}
             {this.renderThreeDotMenu()}
           </div>
         </div>
@@ -483,7 +517,8 @@ AssetItem.propTypes = {
   onDragStart: React.PropTypes.func.isRequired,
   instantiateAsset: React.PropTypes.func.isRequired,
   deleteAsset: React.PropTypes.func.isRequired,
-  projectModel: React.PropTypes.object.isRequired
+  projectModel: React.PropTypes.object.isRequired,
+  onRefreshFigmaAsset: React.PropTypes.func.isRequired
 }
 
 export default Radium(AssetItem)
