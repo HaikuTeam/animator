@@ -37,8 +37,17 @@ const sharePageIcon =
   '      </g>' +
   '  </g>' +
   '</svg>';
-/* tslint:enable */
 
+const forkIcon =
+  '' +
+  '<svg style="margin-right:5px;transform:translate(1px,3px);" width="11px" height="13px" viewBox="0 0 11 14" xmlns="http://www.w3.org/2000/svg">' +
+  '    <g fill="#899497" fill-rule="evenodd">' +
+  '        <path d="M1.764 2.506c.544 0 .964-.394.964-.853 0-.46-.42-.853-.964-.853S.8 1.194.8 1.653c0 .459.42.853.964.853zm0 .8C.79 3.306 0 2.566 0 1.653S.79 0 1.764 0s1.764.74 1.764 1.653-.79 1.653-1.764 1.653zm7.472-.8c.544 0 .964-.394.964-.853 0-.46-.42-.853-.964-.853s-.964.394-.964.853c0 .459.42.853.964.853zm0 .8c-.974 0-1.764-.74-1.764-1.653S8.262 0 9.236 0 11 .74 11 1.653s-.79 1.653-1.764 1.653zM1.764 13.2c.544 0 .964-.394.964-.853 0-.459-.42-.853-.964-.853s-.964.394-.964.853c0 .46.42.853.964.853zm0 .8C.79 14 0 13.26 0 12.347s.79-1.653 1.764-1.653 1.764.74 1.764 1.653S2.738 14 1.764 14z"/>' +
+  '        <path d="M9.636 3.028h-.8v-.421h.8v1.497c0 2.241-1.525 2.711-5.326 2.711-1.307 0-2.01.707-2.193 2.252l-.795-.094c.229-1.928 1.253-2.958 2.988-2.958 3.34 0 4.526-.365 4.526-1.911V2.61c0-.003 0-.003.8-.004v.422z"/>' +
+  '        <path d="M1.33 3h.8v8h-.8z"/>' +
+  '    </g>' +
+  '</svg>';
+/* tslint:enable */
 // Haiku servers will substitute the _actual_ full string in any js file,
 // so it's split into pieces here to avoid that build step
 const SUBSTITUTION_STRING = 'HAIKU' + '_' + 'SHARE' + '_' + 'UUID';
@@ -155,7 +164,7 @@ export default function createRightClickMenu(domElement, component) {
         '<a onMouseOver="this.style.backgroundColor=\'rgba(140,140,140,.07)\'" onMouseOut="this.style.backgroundColor=\'transparent\'" style="display:block;color:black;text-decoration:none;padding: 5px 13px;line-height:12px;" href="https://share.haiku.ai/u/' +
         escapeHTML(`${metadata.organization}/${metadata.project}/fork`) +
         '" target="_blank">' +
-        sharePageIcon +
+        forkIcon +
         ' Fork this component</a>',
       )
     }
