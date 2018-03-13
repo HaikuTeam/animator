@@ -387,7 +387,7 @@ const polygonContainsPoint = (polygon: PathPoint[], p: PathPoint): boolean => {
  * @returns {string[]}
  */
 export const decomposePath = (path: string|PathPoint[]): PathPoint[][] => {
-  const allClosedPaths = []
+  const allClosedPaths = [];
   if (Array.isArray(path)) {
     let lastIndex = 0;
     for (let i = 0; i < path.length; ++i) {
