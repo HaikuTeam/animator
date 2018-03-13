@@ -3,21 +3,43 @@ import Color from "color";
 import Palette from "haiku-ui-common/lib/Palette";
 import Figma from "haiku-serialization/src/bll/Figma";
 import {shell} from 'electron'
+import { DASH_STYLES } from '../../../styles/dashShared'
+import { BTN_STYLES } from '../../../styles/btnShared'
 
 const STYLES = {
+  button: {
+    color: 'inherit',
+    fontSize: 'inherit',
+    width: '100%',
+    display: 'inline-block',
+    textAlign: 'left'
+  },
   form: {
     position: 'absolute',
     background: Palette.COAL,
     top: '0',
     left: '0',
-    height: '100%',
+    height: '110px',
     borderRadius: '4px',
-    padding: '8px 18px',
+    padding: '15px 18px',
     zIndex: 99
   },
+  inputTitle: {
+    ...DASH_STYLES.inputTitle,
+    fontSize: '12px'
+  },
   urlInput: {
-    background: Color(Palette.COAL).darken(0.3),
-    color: Palette.SUNSTONE
+    ...DASH_STYLES.newProjectInput,
+    width: '200px',
+    height: '30px',
+    padding: '8px',
+    fontSize: '12px',
+    marginBottom: '10px'
+  },
+  formButton: {
+    ...BTN_STYLES.btnText,
+    ...BTN_STYLES.rightBtns,
+    ...BTN_STYLES.btnPrimaryAlt
   }
 }
 
@@ -34,14 +56,8 @@ class FigmaImporter extends React.PureComponent {
     if (this.props.figma) {
       this.setState({isFormVisible: true})
     } else {
-      this.askForAuth()
+      this.props.onAskForFigmaAuth()
     }
-  }
-
-  askForAuth () {
-    const {secret, url} = Figma.buildAuthenticationLink()
-    this.secret = secret
-    shell.openExternal(url)
   }
 
   onFormSubmit(submitEvent) {
@@ -52,12 +68,13 @@ class FigmaImporter extends React.PureComponent {
 
   render() {
     return (
-      <div>
-        <button onClick={() => { this.renderForm() }}>Figma</button>
+      <div style={this.props.style}>
+        <button style={STYLES.button} onClick={() => { this.renderForm() }}>Figma</button>
         {this.state.isFormVisible && (
           <form onSubmit={(submitEvent) => { this.onFormSubmit(submitEvent) }} style={STYLES.form}>
-            <input autoFocus type="url" style={STYLES.urlInput} />
-            <input type="submit" value="Import" />
+            <label style={STYLES.inputTitle}>Project URL</label>
+            <input autoFocus type="url" style={STYLES.urlInput} placeholder="http://figma.com/id/name" />
+            <input style={STYLES.formButton} type="submit" value="Import" />
           </form>
         )}
       </div>

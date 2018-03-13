@@ -4,8 +4,8 @@ const STYLES = {
   filePicker: {
     opacity: 0,
     position: "absolute",
-    right: 0,
-    width: 90,
+    left: 0,
+    width: 150,
     zIndex: 3,
     cursor: "pointer"
   }
@@ -14,7 +14,7 @@ const STYLES = {
 class FileSystemImporter extends React.PureComponent {
   render () {
     return (
-      <div>
+      <div style={this.props.style}>
         From File
         <input
           type="file"

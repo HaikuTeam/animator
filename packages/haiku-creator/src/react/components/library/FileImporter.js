@@ -4,14 +4,24 @@ import Popover from "react-popover";
 import Palette from "haiku-ui-common/lib/Palette";
 import FigmaImporter from "./importers/FigmaImporter"
 import FileSystemImporter from "./importers/FileSystemImporter"
+import { DASH_STYLES } from '../../styles/dashShared'
 
 const STYLES = {
   popover: {
     background: Palette.COAL,
-    padding: '8px 18px',
     borderRadius: '4px',
     textAlign: 'left',
     position: 'relative',
+    item: {
+      ...DASH_STYLES.popover.item,
+      width: '100%'
+    },
+    text: {
+      ...DASH_STYLES.popover.text,
+      ...DASH_STYLES.upcase,
+      cursor: 'pointer',
+      width: '100%'
+    }
   },
   button: {
     position: "relative",
@@ -60,13 +70,19 @@ class FileImporter extends React.PureComponent {
 
   get popoverBody() {
     return (
-      <div style={STYLES.popover}>
-        <FileSystemImporter />
-        <FigmaImporter
-          user={this.props.user}
-          figma={this.props.figma}
-          onImportFigmaAsset={this.props.onImportFigmaAsset}
-        />
+      <div style={{...DASH_STYLES.popover.container, right: 0, top: 0, position: 'initial'}}>
+        <div style={STYLES.popover.item}>
+          <FileSystemImporter style={STYLES.popover.text} />
+        </div>
+        <div style={STYLES.popover.item}>
+          <FigmaImporter
+            user={this.props.user}
+            figma={this.props.figma}
+            onImportFigmaAsset={this.props.onImportFigmaAsset}
+            onAskForFigmaAuth={this.props.onAskForFigmaAuth}
+            style={STYLES.popover.text}
+          />
+        </div>
       </div>
     );
   }
@@ -79,6 +95,7 @@ class FileImporter extends React.PureComponent {
         }}
         isOpen={this.state.isPopoverOpen}
         place="below"
+        tipSize={.01}
         body={this.popoverBody}
       >
         <button
@@ -97,6 +114,7 @@ class FileImporter extends React.PureComponent {
 FileImporter.propTypes = {
   onFileDrop: React.PropTypes.func.isRequired,
   onImportFigmaAsset: React.PropTypes.func.isRequired,
+  onAskForFigmaAuth: React.PropTypes.func.isRequired,
   figma: React.PropTypes.object,
 };
 

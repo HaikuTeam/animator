@@ -123,7 +123,7 @@ class Figma {
 
     return new Promise((resolve, reject) => {
       this.requestLib({ uri, headers }, (error, response, body) => {
-        error ? reject(error) : resolve(body)
+        error || response.statusCode !== 200 ? reject(JSON.parse(body)) : resolve(body)
       })
     })
   }

@@ -125,6 +125,12 @@ class Library extends React.Component {
     console.log('asdfasdfasdfasd', path)
   }
 
+  askForFigmaAuth () {
+    const {secret, url} = Figma.buildAuthenticationLink()
+    this.secret = secret
+    shell.openExternal(url)
+  }
+
   reloadAssetList () {
     return this.props.projectModel.listAssets((error, assets) => {
       if (error) return this.setState({ error })
@@ -133,7 +139,19 @@ class Library extends React.Component {
   }
 
   importFigmaAsset (url, callback) {
-    this.state.figma.importSVG(url).then(callback)
+    this.state.figma.importSVG(url)
+      .then(callback)
+      .catch((error) => {
+        this.props.createNotice({
+          type: 'danger',
+          title: 'Error',
+          message: 'We had problems importing your file: ' + error.err
+        })
+
+        if (error.status === 403) {
+          this.askForFigmaAuth()
+        }
+      })
   }
 
   handleFileInstantiation (asset) {
@@ -236,6 +254,7 @@ class Library extends React.Component {
           <FileImporter
             user={this.props.user}
             onImportFigmaAsset={this.importFigmaAsset}
+            onAskForFigmaAuth={this.askForFigmaAuth}
             figma={this.state.figma}
             onFileDrop={(files, fileDropEvent) => {this.handleFileDrop(files, fileDropEvent)}}
           />
