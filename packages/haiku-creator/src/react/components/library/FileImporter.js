@@ -78,7 +78,6 @@ class FileImporter extends React.PureComponent {
         </div>
         <div style={STYLES.popover.item}>
           <FigmaImporter
-            user={this.props.user}
             figma={this.props.figma}
             onImportFigmaAsset={this.props.onImportFigmaAsset}
             onAskForFigmaAuth={this.props.onAskForFigmaAuth}

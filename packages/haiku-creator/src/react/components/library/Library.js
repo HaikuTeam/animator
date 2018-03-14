@@ -239,6 +239,12 @@ class Library extends React.Component {
     }
   }
 
+  handleFigmaInstantiation (asset) {
+    if (asset.relpath !== 'hacky-figma-file[1]') {
+      shell.openExternal(Figma.buildFigmaLinkFromPath(asset.relpath))
+    }
+  }
+
   onSketchDownloadComplete () {
     this.isSketchInstalled = true
     this.openSketchFile(this.state.sketchDownloader.asset)
@@ -262,6 +268,9 @@ class Library extends React.Component {
     switch (asset.kind) {
       case Asset.KINDS.SKETCH:
         this.handleSketchInstantiation(asset)
+        break
+      case Asset.KINDS.FIGMA:
+        this.handleFigmaInstantiation(asset)
         break
       case Asset.KINDS.VECTOR:
         this.handleFileInstantiation(asset)
@@ -317,7 +326,6 @@ class Library extends React.Component {
           style={STYLES.sectionHeader}>
           Library
           <FileImporter
-            user={this.props.user}
             onImportFigmaAsset={this.importFigmaAsset}
             onAskForFigmaAuth={() => { this.askForFigmaAuth() }}
             figma={this.state.figma}
@@ -335,7 +343,10 @@ class Library extends React.Component {
                 onDragStart={this.props.onDragStart}
                 onDragEnd={this.props.onDragEnd}
                 instantiateAsset={this.handleAssetInstantiation}
+                figma={this.state.figma}
+                onImportFigmaAsset={this.importFigmaAsset}
                 onRefreshFigmaAsset={this.importFigmaAsset}
+                onAskForFigmaAuth={() => { this.askForFigmaAuth() }}
                 deleteAsset={this.handleAssetDeletion}
                 indent={0}
                 assets={this.state.assets} />}

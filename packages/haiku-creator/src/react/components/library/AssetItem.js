@@ -24,6 +24,7 @@ import ControlImage from 'haiku-ui-common/lib/react/icons/ControlImage'
 import ControlText from 'haiku-ui-common/lib/react/icons/ControlText'
 import ControlHTML from 'haiku-ui-common/lib/react/icons/ControlHTML'
 // import ControlInput from 'haiku-ui-common/lib/react/icons/ControlInput'
+import FigmaPopover from './importers/FigmaPopover'
 
 const ASSET_ICONS = {
   ControlImage: () => { return <ControlImage /> },
@@ -220,7 +221,7 @@ class AssetItem extends React.Component {
       })
     }
 
-    if (this.props.asset.isFigmaFile()) {
+    if (this.isFigmaAndCanBeOpened()) {
       items.push({
         label: 'Open In Figma',
         icon: FigmaIconSVG,
@@ -250,8 +251,12 @@ class AssetItem extends React.Component {
     return items
   }
 
+  isFigmaAndCanBeOpened () {
+    return this.props.asset.isFigmaFile() && this.props.asset.relpath !== 'hacky-figma-file[1]'
+  }
+
   renderSyncMenu () {
-    if (this.props.asset.isFigmaFile()) {
+    if (this.isFigmaAndCanBeOpened()) {
       return (
         <span
           style={{...STYLES.threeDotMenu, right: '30px', transform: 'none'}}
@@ -292,7 +297,7 @@ class AssetItem extends React.Component {
 
     if (
       this.props.asset.isSketchFile() ||
-      this.props.asset.isFigmaFile() ||
+      this.isFigmaAndCanBeOpened() ||
       this.props.asset.isOrphanSvg() ||
       this.props.asset.isComponentOtherThanMain()
     ) {
@@ -406,7 +411,7 @@ class AssetItem extends React.Component {
   }
 
   renderDisplayName () {
-    return (
+    const displayName = (
       <span
         className='display-name-container'
         onDoubleClick={this.handleInstantiate}
@@ -415,6 +420,17 @@ class AssetItem extends React.Component {
         {this.props.asset.displayName}
       </span>
     )
+
+    if (this.props.asset.isFigmaFile() && !this.isFigmaAndCanBeOpened()) {
+      return <FigmaPopover
+        onImportFigmaAsset={this.props.onImportFigmaAsset}
+        onPopoverHide={this.props.onPopoverHide}
+        onAskForFigmaAuth={this.props.onAskForFigmaAuth}
+        figma={this.props.figma}
+      >{displayName}</FigmaPopover>
+    }
+
+    return displayName
   }
 
   renderSubLevel () {
@@ -429,6 +445,9 @@ class AssetItem extends React.Component {
           deleteAsset={this.props.deleteAsset}
           assets={this.props.asset.getChildAssets()}
           onRefreshFigmaAsset={this.props.onRefreshFigmaAsset}
+          onImportFigmaAsset={this.props.onImportFigmaAsset}
+          onAskForFigmaAuth={this.props.onAskForFigmaAuth}
+          figma={this.props.figma}
           indent={this.props.indent + 1} />
       </Collapse>
     )

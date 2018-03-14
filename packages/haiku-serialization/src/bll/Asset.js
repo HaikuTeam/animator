@@ -248,7 +248,7 @@ class Asset extends BaseModel {
         })]
       } if (this.children.length === 1) {
         if (this.children[0].isPrimaryAsset() && this.children[0].children.length < 1) {
-          return [
+          const result = [
             this.children[0],
             Asset.upsert({
               uid: 'hacky-message[1]',
@@ -263,6 +263,39 @@ class Asset extends BaseModel {
               message: PRIMARY_ASSET_MESSAGE
             })
           ]
+
+          if (experimentIsEnabled(Experiment.FigmaIntegration)) {
+            result.push(
+              Asset.upsert({
+                uid: '',
+                type: Asset.TYPES.CONTAINER,
+                kind: Asset.KINDS.FIGMA,
+                proximity: Asset.PROXIMITIES.LOCAL,
+                figmaID: '',
+                relpath: 'hacky-figma-file[1]',
+                displayName: this.project.getName() + '.figma',
+                children: [],
+                project: this.project,
+                dtModified: Date.now()
+              })
+            )
+            result.push(
+              Asset.upsert({
+                uid: 'hacky-message[3]',
+                type: Asset.TYPES.HACKY_MESSAGE,
+                kind: Asset.KINDS.HACKY_MESSAGE,
+                project: this.project,
+                relpath: 'hacky-message[3]',
+                displayName: 'hacky-message[3]',
+                children: [],
+                dtModified: Date.now(),
+                messageType: 'edit_primary_asset',
+                message: FIGMA_ASSET_MESSAGE
+              })
+            )
+          }
+
+          return result
         }
       }
     }
@@ -343,6 +376,11 @@ Asset.PROXIMITIES = {
 const PRIMARY_ASSET_MESSAGE = `
 ⇧ Double click to open this file in Sketch.
 Every slice and artboard will be synced here when you save.
+`
+
+const FIGMA_ASSET_MESSAGE = `
+⇧ Double click to import a file from Figma.
+Every slice and group will be synced here when you save.
 `
 
 Asset.ingestAssets = (project, dict) => {

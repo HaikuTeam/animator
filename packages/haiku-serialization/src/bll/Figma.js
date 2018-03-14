@@ -231,6 +231,7 @@ class Figma {
       if (state !== stateCheck) {
         reject(new Error('Invalid state code'))
       }
+      inkstone.setConfig({ baseUrl: 'https://localhost:8080/' })
 
       inkstone.integrations.getFigmaAccessToken(code, (error, response) => {
         error ? reject(error) : resolve(response)
@@ -265,6 +266,11 @@ class Figma {
     const basename = path.basename(relpath)
     const match = basename.match(/(\w+)-/)
     return match && match[1]
+  }
+
+  static buildFigmaLinkFromPath (relpath) {
+    const id = Figma.findIDFromPath(relpath)
+    return Figma.buildFigmaLink(id)
   }
 }
 

@@ -1766,13 +1766,12 @@ export class Glass extends React.Component {
 
     if (Figma.isFigmaFolder(sourcePath)) {
       const figmaAssetPath = sourcePath && sourcePath.split(/\.figma\.contents/)[0].concat('.figma')
-      const figmaID = Figma.findIDFromPath(figmaAssetPath)
 
       items.push({
         label: 'Edit in Figma',
         enabled: !!sourcePath,
         onClick: () => {
-          shell.openExternal(Figma.buildFigmaLink(figmaID))
+          shell.openExternal(Figma.buildFigmaLinkFromPath(figmaAssetPath))
         }
       })
     }
