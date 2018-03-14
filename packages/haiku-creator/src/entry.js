@@ -28,14 +28,12 @@ import {remote} from 'electron'
     if (process.env.NODE_ENV === 'production') {
       _traceKitFormatErrorStack(error)
       window.Raven.captureException(error)
-    }
 
-    // Give Raven some time to send a crash report before we close
-    setTimeout(() => {
-      if (process.env.NODE_ENV === 'production') {
+      // Give Raven some time to send a crash report before we close
+      setTimeout(() => {
         remote.getCurrentWindow().close()
-      }
-    }, 500)
+      }, 500)
+    }
   }
 
   function go () {
