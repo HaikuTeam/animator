@@ -21,16 +21,16 @@ const distribution = deploy.deployer[environment].distribution
 const s3 = initializeAWSService('S3', region, key, secret)
 const cloudFront = initializeAWSService('CloudFront', region, key, secret)
 
-const latestKey = `releases/${environment}-${branch}-${platform}-latest.zip`
+const latestDownloadKey = `releases/${environment}-${branch}-${platform}-latest.dmg`
 
-const syndicate = (patchKey) => {
+const syndicate = (patchKey, newLatestDownloadKey) => {
   // Make a backup of our latest in case we need to roll back.
-  //  e.g. /haiku-electron-releases-production/releases/production-master-mac-latest.zip - copy to ->
-  //       /haiku-electron-releases-production/releases/production-master-mac-previous.zip
+  //  e.g. /haiku-electron-releases-production/releases/production-master-mac-latest.dmg - copy to ->
+  //       /haiku-electron-releases-production/releases/production-master-mac-previous.dmg
   s3.copyObject({
     Bucket: bucket,
-    CopySource: `/${bucket}/${latestKey}`,
-    Key: latestKey.replace('-latest', '-previous'),
+    CopySource: `/${bucket}/${latestDownloadKey}`,
+    Key: latestDownloadKey.replace('-latest', '-previous'),
     ACL: 'public-read'
   })
     .promise()
@@ -47,12 +47,12 @@ const syndicate = (patchKey) => {
         .promise()
         .then(() => {
           // Deploy the Inkstone update to catch new users.
-          //  e.g. /haiku-electron-releases-production/releases/releases/production/master/mac/12345/1.2.3/Haiku-1.2.3-mac-pending.zip - copy to ->
-          //       /haiku-electron-releases-production/releases/production-master-mac-latest.zip
+          //  e.g. /haiku-electron-releases-production/releases/releases/production/master/mac/12345/1.2.3/Haiku-1.2.3.dmg - copy to ->
+          //       /haiku-electron-releases-production/releases/production-master-mac-latest.dmg
           s3.copyObject({
             Bucket: bucket,
-            CopySource: `/${bucket}/${patchKey}`,
-            Key: latestKey,
+            CopySource: `/${bucket}/${newLatestDownloadKey}`,
+            Key: latestDownloadKey,
             ACL: 'public-read'
           })
             .promise()
@@ -63,7 +63,7 @@ const syndicate = (patchKey) => {
                   CallerReference: Date.now().toString(),
                   Paths: {
                     Quantity: 1,
-                    Items: [`/${latestKey}`]
+                    Items: [`/${latestDownloadKey}`]
                   }
                 }
               })
@@ -77,7 +77,7 @@ const syndicate = (patchKey) => {
                 })
             })
             .catch(() => {
-              log.err(`Unable to syndicate latest key (${latestKey})`)
+              log.err(`Unable to syndicate latest key (${latestDownloadKey})`)
               global.process.exit(1)
             })
         })
@@ -113,10 +113,19 @@ const maybeSyndicate = (data) => {
 
   log.log(`Found patch key: ${patchKey}`)
 
-  log.warn(`WARNING: about to syndicate ${patchKey} and ${latestKey}!`)
+  const potentialLatests = data.Contents.filter((key) =>
+    path.basename(key.Key) === `Haiku-${version}.dmg`)
+
+  if (potentialLatests.length !== 1) {
+    log.err('Unable to find unique pending latest key!')
+    global.process.exit(1)
+  }
+
+  const newLatestDownloadKey = potentialLatests[0].Key
+  log.warn(`WARNING: about to syndicate ${patchKey} and ${newLatestDownloadKey}!`)
 
   if (argv['non-interactive']) {
-    syndicate(patchKey)
+    syndicate(patchKey, newLatestDownloadKey)
     return
   }
 

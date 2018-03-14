@@ -1,24 +1,24 @@
-var fs = require('fs')
-var path = require('path')
-var async = require('async')
-var initializeAWSService = require('./initializeAwsService')
-var uploadObjectToS3 = require('./uploadObjectToS3')
-var ROOT = global.process.cwd()
+const fs = require('fs')
+const path = require('path')
+const async = require('async')
+const initializeAWSService = require('./initializeAwsService')
+const uploadObjectToS3 = require('./uploadObjectToS3')
+const ROOT = global.process.cwd()
 
 function uploadRelease (region, key, secret, bucket, folder, platform, environment, branch, version, cb) {
-  var s3 = initializeAWSService('S3', region, key, secret)
+  const s3 = initializeAWSService('S3', region, key, secret)
 
-  var source = path.join(ROOT, 'dist')
+  const source = path.join(ROOT, 'dist')
 
-  var countdown = (Math.pow(10, 13) - Date.now()) + '' // Reverse timestamp for ordering
+  const countdown = (Math.pow(10, 13) - Date.now()) + '' // Reverse timestamp for ordering
 
-  var target = path.join(folder, environment, branch, platform, countdown, version)
+  const target = path.join(folder, environment, branch, platform, countdown, version)
 
   return fs.readdir(source, function (err, entries) {
     if (err) return cb(err)
 
     var matches = entries.filter(function _filter (entry) {
-      return entry.indexOf(version) !== -1 && path.extname(entry) === '.zip'
+      return entry.indexOf(version) !== -1 && ['.zip', '.dmg'].includes(path.extname(entry))
     })
 
     if (matches.length < 1) {
@@ -26,9 +26,9 @@ function uploadRelease (region, key, secret, bucket, folder, platform, environme
     }
 
     return async.each(matches, function (entry, next) {
-      var build = path.join(source, entry)
-      var stream = fs.createReadStream(build)
-      var key = path.join(target, entry)
+      const build = path.join(source, entry)
+      const stream = fs.createReadStream(build)
+      let key = path.join(target, entry)
 
       // Upload with a 'pending' label so squirrel server knows not to include this in
       // the list of candidates. This gives us an opportunity to test before syndication.
@@ -41,8 +41,9 @@ function uploadRelease (region, key, secret, bucket, folder, platform, environme
     }, (err) => {
       if (err) return cb(err)
 
-      var urls = {
-        download: `https://s3.amazonaws.com/${bucket}/${folder}/${environment}/${branch}/${platform}/${countdown}/${version}/Haiku-${version}-${platform}-pending.zip`
+      const urls = {
+        patch: `https://s3.amazonaws.com/${bucket}/${target}/Haiku-${version}-${platform}-pending.zip`,
+        download: `https://s3.amazonaws.com/${bucket}/${target}/Haiku-${version}.dmg`
       }
 
       return cb(null, {
