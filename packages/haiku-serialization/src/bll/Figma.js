@@ -7,9 +7,9 @@ const logger = require('../utils/LoggerInstance')
 const randomAlphabetical = require('../utils/randomAlphabetical')
 const mixpanel = require('haiku-serialization/src/utils/Mixpanel')
 
-const API_BASE = 'https://wild-api.figma.com/v1/'
-const FIGMA_URL = 'https://wild.figma.com/'
-const FIGMA_CLIENT_ID = 'VoKSpy2DqppAK4D3b2tO8J'
+const API_BASE = 'https://api.figma.com/v1/'
+const FIGMA_URL = 'https://figma.com/'
+const FIGMA_CLIENT_ID = 'tmhDo4V12I3fEiQ9OG8EHh'
 const IS_FIGMA_FILE_RE = /\.figma$/
 const IS_FIGMA_FOLDER_RE = /\.figma\.contents/
 const VALID_TYPES = {
@@ -235,7 +235,6 @@ class Figma {
       if (state !== stateCheck) {
         reject(new Error('Invalid state code'))
       }
-      inkstone.setConfig({ baseUrl: 'https://localhost:8080/' })
 
       inkstone.integrations.getFigmaAccessToken(code, (error, response) => {
         error ? reject(error) : resolve(response)
