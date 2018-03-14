@@ -260,12 +260,10 @@ class AssetItem extends React.Component {
             onClick={(clickEvent) => {
               const svgSpinner = clickEvent.currentTarget.querySelector('svg')
               const url = Figma.buildFigmaLink(this.props.asset.figmaID, this.props.asset.displayName)
-              const stopSpinner = () => { svgSpinner.classList.remove('animation-rotating') }
 
               clickEvent.currentTarget.querySelector('svg').classList.add('animation-rotating')
               this.props.onRefreshFigmaAsset(url)
-                .then(stopSpinner)
-                .catch(stopSpinner)
+                .finally(() => { svgSpinner.classList.remove('animation-rotating') })
             }}
             style={{
               padding: '3px',
