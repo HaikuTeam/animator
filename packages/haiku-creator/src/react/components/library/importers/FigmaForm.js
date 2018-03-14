@@ -53,6 +53,8 @@ class FigmaForm extends React.PureComponent {
     if (!this.props.figma.token) {
       this.props.onAskForFigmaAuth()
     }
+
+    mixpanel.haikuTrack('creator:file-importer:open-figma')
   }
 
   onFormSubmit (submitEvent) {

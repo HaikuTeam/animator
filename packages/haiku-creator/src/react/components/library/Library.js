@@ -156,6 +156,7 @@ class Library extends React.Component {
   askForFigmaAuth () {
     const {state, url} = Figma.buildAuthenticationLink()
     this.setState({figmaState: state})
+    mixpanel.haikuTrack('creator:figma:askAuthentication')
     shell.openExternal(url)
   }
 

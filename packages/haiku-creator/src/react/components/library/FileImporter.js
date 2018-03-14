@@ -3,6 +3,7 @@ import Color from 'color'
 import Popover from 'react-popover'
 import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
 import Palette from 'haiku-ui-common/lib/Palette'
+import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 import FigmaImporter from './importers/FigmaImporter'
 import FileSystemImporter from './importers/FileSystemImporter'
 import { DASH_STYLES } from '../../styles/dashShared'
@@ -57,6 +58,7 @@ class FileImporter extends React.PureComponent {
 
   showPopover () {
     this.setState({ isPopoverOpen: true })
+    mixpanel.haikuTrack('creator:file-importer:open-all')
   }
 
   hidePopover () {

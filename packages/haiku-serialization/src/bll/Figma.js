@@ -5,6 +5,7 @@ const path = require('path')
 const {inkstone} = require('@haiku/sdk-inkstone')
 const logger = require('../utils/LoggerInstance')
 const randomAlphabetical = require('../utils/randomAlphabetical')
+const mixpanel = require('haiku-serialization/src/utils/Mixpanel')
 
 const API_BASE = 'https://wild-api.figma.com/v1/'
 const FIGMA_URL = 'https://wild.figma.com/'
@@ -50,12 +51,15 @@ class Figma {
     const {id, name} = Figma.parseProjectURL(url)
 
     logger.info('[figma] about to import document with id ' + id)
+    mixpanel.haikuTrack('creator:figma:fileImport:start')
 
     return this.fetchDocument(id)
       .then((document) => this.findInstantiableElements(document))
       .then((elements) => this.getSVGLinks(elements, id))
       .then((elements) => this.getSVGContents(elements))
       .then((elements) => this.writeSVGInDisk(elements, id, name, path))
+      .then(() => { mixpanel.haikuTrack('creator:figma:fileImport:success') })
+      .catch(() => { mixpanel.haikuTrack('creator:figma:fileImport:fail') })
   }
 
   /**
