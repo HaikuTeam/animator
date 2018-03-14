@@ -380,7 +380,7 @@ Every slice and artboard will be synced here when you save.
 
 const FIGMA_ASSET_MESSAGE = `
 ⇧ Double click to import a file from Figma.
-Every slice and group will be synced here when you save.
+Every slice and group will be imported here.
 `
 
 Asset.ingestAssets = (project, dict) => {
