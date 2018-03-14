@@ -16,6 +16,7 @@ import manaFlattenTree from './helpers/manaFlattenTree';
 import scopifyElements from './helpers/scopifyElements';
 import SimpleEventEmitter from './helpers/SimpleEventEmitter';
 import upgradeBytecodeInPlace from './helpers/upgradeBytecodeInPlace';
+import preoptimizeBytecodeInPlace from './helpers/preoptimizeBytecodeInPlace';
 import initializeComponentTree from './helpers/initializeComponentTree';
 
 import Layout3D from './Layout3D';
@@ -90,6 +91,10 @@ export default function HaikuComponent(bytecode: any, context, config, metadata)
   this._context = context;
   this.cache = {};
   this._builder = new ValueBuilder(this);
+
+  if (!config.options.hotEditingMode) {
+    preoptimizeBytecodeInPlace(this._builder, this._bytecode, null);
+  }
 
   // STATES
   this._states = {}; // Storage for getter/setter actions in userland logic

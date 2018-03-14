@@ -88,7 +88,7 @@ function numberize(n) {
   return parseInt(n, 10);
 }
 
-function sortedKeyframes(keyframeGroup) {
+export function sortedKeyframes(keyframeGroup) {
   // Cache the output of this on the object since this is very hot
   if (keyframeGroup.__sorted) {
     return keyframeGroup.__sorted;
@@ -235,4 +235,5 @@ function getTransitionValue(currentKeyframe, currentTransition, nextKeyframe, ne
 export default {
   calculateValue,
   calculateValueAndReturnUndefinedIfNotWorthwhile,
+  sortedKeyframes
 };
