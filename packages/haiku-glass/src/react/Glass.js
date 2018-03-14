@@ -9,6 +9,8 @@ import Config from '@haiku/core/lib/Config'
 import Element from 'haiku-serialization/src/bll/Element'
 import Design from 'haiku-serialization/src/bll/Design'
 import Asset from 'haiku-serialization/src/bll/Asset'
+import Figma from 'haiku-serialization/src/bll/Figma'
+import Sketch from 'haiku-serialization/src/bll/Sketch'
 import ModuleWrapper from 'haiku-serialization/src/bll/ModuleWrapper'
 import EmitterManager from 'haiku-serialization/src/utils/EmitterManager'
 import react2haiku from 'haiku-serialization/src/utils/react2haiku'
@@ -1682,7 +1684,6 @@ export class Glass extends React.Component {
     const selectedElements = this.getActiveComponent().queryElements({ _isSelected: true })
     const selectedElement = selectedElements.length === 1 && selectedElements[0]
     const sourcePath = selectedElement && selectedElement.staticTemplateNode && selectedElement.staticTemplateNode.attributes && selectedElement.staticTemplateNode.attributes['source']
-    const sketchAssetPath = sourcePath && sourcePath.split(/\.sketch\.contents/)[0].concat('.sketch')
 
     if (experimentIsEnabled(Experiment.CommentsOnStage)) {
       items.push({
@@ -1751,14 +1752,30 @@ export class Glass extends React.Component {
     })
 
     items.push({ type: 'separator' })
+    if (Sketch.isSketchFolder(sourcePath)) {
+      const sketchAssetPath = sourcePath && sourcePath.split(/\.sketch\.contents/)[0].concat('.sketch')
 
-    items.push({
-      label: 'Edit in Sketch',
-      enabled: !!sourcePath,
-      onClick: () => {
-        shell.openItem(path.join(this.props.folder, sketchAssetPath))
-      }
-    })
+      items.push({
+        label: 'Edit in Sketch',
+        enabled: !!sourcePath,
+        onClick: () => {
+          shell.openItem(path.join(this.props.folder, sketchAssetPath))
+        }
+      })
+    }
+
+    if (Figma.isFigmaFolder(sourcePath)) {
+      const figmaAssetPath = sourcePath && sourcePath.split(/\.figma\.contents/)[0].concat('.figma')
+      const figmaID = Figma.findIDFromPath(figmaAssetPath)
+
+      items.push({
+        label: 'Edit in Figma',
+        enabled: !!sourcePath,
+        onClick: () => {
+          shell.openExternal(Figma.buildFigmaLink(figmaID))
+        }
+      })
+    }
 
     items.push({ type: 'separator' })
 

@@ -64,12 +64,11 @@ tape('Figma.getSVGLinks', async (t) => {
 
   try {
     const figma = new Figma({token, requestLib: ({uri}, callback) => {
-      callback(null, "", JSON.stringify(SampleImageResponseFixture))
+      callback(null, {statusCode: 200}, JSON.stringify(SampleImageResponseFixture))
     }})
 
     const elements = figma.findInstantiableElements(JSON.stringify(SampleFileFixture))
     const links = await figma.getSVGLinks(elements, fileKey)
-
     t.ok(Array.isArray(links), 'returns an array of elements')
     t.equal(links.length, elements.length, 'adds links to all elements')
     t.equal(links[0].svgURL, SampleImageResponseFixture.images[elements[0].id], 'adds the correct link to elements')
@@ -85,7 +84,7 @@ tape('Figma.buildAuthenticationLink', (t) => {
   const parsedURL = new URL(url)
   const redirectURI = new URL(parsedURL.searchParams.get('redirect_uri'))
 
-  t.equal(parsedURL.pathname, `//oauth`, 'points to the /oauth path in Figma')
+  t.equal(parsedURL.pathname, `/oauth`, 'points to the /oauth path in Figma')
   t.equal(redirectURI.protocol, 'haiku:', 'redirect_uri uses the haiku:// protocol')
   t.ok(url.includes(state), 'url includes the returned state')
 })
@@ -98,7 +97,32 @@ tape('Figma.buildFigmaLink', (t) => {
   t.ok(url.includes(`/file/${fileKey}`), 'builds a link to the figma file')
 })
 
-// tape('e2e', (t) => {
-//   const figma = new Figma({token})
-//   figma.importSVG(`https://www.figma.com/file/${fileKey}/Sample-File`)
-// })
+tape('Figma.isFigmaFile', (t) => {
+  t.plan(2)
+
+  const figmaPath = `/designs/${fileKey}-something.figma`
+  const otherPath = '/something/else.sketch'
+
+  t.ok(Figma.isFigmaFile(figmaPath), 'returns true if the path basename ends with .figma')
+  t.notOk(Figma.isFigmaFile(otherPath), 'returns false if the path basename does not ends with .figma')
+})
+
+tape('Figma.isFigmaFolder', (t) => {
+  t.plan(2)
+
+  const figmaPath = `/designs/${fileKey}-something.figma.contents/`
+  const otherPath = '/something/else.sketch.contents/'
+
+  t.ok(Figma.isFigmaFolder(figmaPath), 'returns true if the path is a figma folder')
+  t.notOk(Figma.isFigmaFolder(otherPath), 'returns false if the path is not a figma folder')
+})
+
+tape('Figma.findIDFromPath', (t) => {
+  t.plan(2)
+
+  const figmaPath = `/designs/${fileKey}-something.figma.contents/`
+  const otherPath = '/something/else.sketch.contents/'
+
+  t.equal(Figma.findIDFromPath(figmaPath), fileKey, 'returns the correct ID if an ID can be found')
+  t.notOk(Figma.findIDFromPath(otherPath), 'returns a falsey value if it cannot find an ID')
+})

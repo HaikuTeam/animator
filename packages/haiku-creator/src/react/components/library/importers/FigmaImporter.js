@@ -1,8 +1,5 @@
-import React from "react";
-import Color from "color";
-import Palette from "haiku-ui-common/lib/Palette";
-import Figma from "haiku-serialization/src/bll/Figma";
-import {shell} from 'electron'
+import React from 'react'
+import Palette from 'haiku-ui-common/lib/Palette'
 import { DASH_STYLES } from '../../../styles/dashShared'
 import { BTN_STYLES } from '../../../styles/btnShared'
 
@@ -44,41 +41,50 @@ const STYLES = {
 }
 
 class FigmaImporter extends React.PureComponent {
-  constructor(props) {
-    super(props);
+  constructor (props) {
+    super(props)
 
     this.state = {
       isFormVisible: false
-    };
-  }
-
-  renderForm () {
-    if (this.props.figma) {
-      this.setState({isFormVisible: true})
-    } else {
-      this.props.onAskForFigmaAuth()
     }
   }
 
-  onFormSubmit(submitEvent) {
+  renderForm () {
+    if (!this.props.figma.token) {
+      this.props.onAskForFigmaAuth()
+    }
+
+    this.setState({isFormVisible: true, isMessageVisible: false})
+  }
+
+  onFormSubmit (submitEvent) {
     submitEvent.preventDefault()
     const url = submitEvent.currentTarget.querySelector('[type=url]').value
     this.props.onImportFigmaAsset(url)
+    this.setState({isFormVisible: false, isMessageVisible: true})
   }
 
-  render() {
+  render () {
     return (
       <div style={this.props.style}>
         <button style={STYLES.button} onClick={() => { this.renderForm() }}>Figma</button>
+
         {this.state.isFormVisible && (
           <form onSubmit={(submitEvent) => { this.onFormSubmit(submitEvent) }} style={STYLES.form}>
             <label style={STYLES.inputTitle}>Project URL</label>
-            <input autoFocus type="url" style={STYLES.urlInput} placeholder="http://figma.com/id/name" />
-            <input style={STYLES.formButton} type="submit" value="Import" />
+            <input autoFocus type='url' style={STYLES.urlInput} placeholder='http://figma.com/id/name' />
+            <input style={STYLES.formButton} type='submit' value='Import' />
           </form>
         )}
+
+        {this.state.isMessageVisible && (
+          <div style={{...STYLES.form, textTransform: 'none', height: '130px'}}>
+            <p>Yor assets are being imported, please hold.</p>
+            <span style={STYLES.formButton} onClick={this.props.onPopoverHide}>OK</span>
+          </div>
+        )}
       </div>
-    );
+    )
   }
 }
 

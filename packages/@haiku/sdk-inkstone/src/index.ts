@@ -497,6 +497,7 @@ export namespace inkstone {
       };
 
       request.get(options, (err, httpResponse, body) => {
+
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, JSON.parse(body) as AccessTokenResponse, httpResponse);
         } else {

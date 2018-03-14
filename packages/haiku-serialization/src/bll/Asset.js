@@ -1,6 +1,7 @@
 const path = require('path')
 const toTitleCase = require('./helpers/toTitleCase')
 const BaseModel = require('./BaseModel')
+const Figma = require('./Figma')
 const { Experiment, experimentIsEnabled } = require('haiku-common/lib/experiments')
 
 const PAGES_REGEX = /\/pages\//
@@ -213,7 +214,7 @@ class Asset extends BaseModel {
       type: Asset.TYPES.CONTAINER,
       kind: Asset.KINDS.FIGMA,
       proximity: Asset.PROXIMITIES.LOCAL,
-      figmaID: path.basename(relpath).match(/(\w+)-/)[1],
+      figmaID: Figma.findIDFromPath(relpath),
       project,
       relpath,
       displayName: path.basename(relpath).match(/-(\w+)\./)[1],
@@ -400,7 +401,9 @@ Asset.ingestAssets = (project, dict) => {
   for (const relpath in dict) {
     const extname = path.extname(relpath)
 
-    if (extname === '.svg') {
+    if (extname === '.sketch') {
+      designFolderAsset.addSketchAsset(relpath, dict)
+    } else if (extname === '.svg') {
       // Skip any Pages that may have been previously exported by Sketchtool
       // Our workflow only deals with Artboards/Slices, so that's all we display to reduce conceptual overhead
       if (relpath.match(PAGES_REGEX)) {

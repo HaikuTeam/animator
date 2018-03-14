@@ -165,7 +165,7 @@ class AssetItem extends React.Component {
     shell.openItem(this.props.asset.getAbspath())
   }
 
-  handleOpenOnlineAsset(link) {
+  handleOpenOnlineAsset (link) {
     shell.openExternal(link)
   }
 

@@ -1,5 +1,4 @@
 import React from 'react'
-import Color from 'color'
 import lodash from 'lodash'
 import Radium from 'radium'
 import { shell, ipcRenderer } from 'electron'
@@ -7,13 +6,12 @@ import { UserSettings } from 'haiku-sdk-creator/lib/bll/User'
 import Palette from 'haiku-ui-common/lib/Palette'
 import { didAskedForSketch } from 'haiku-serialization/src/utils/HaikuHomeDir'
 import Asset from 'haiku-serialization/src/bll/Asset'
-import Figma from "haiku-serialization/src/bll/Figma";
+import Figma from 'haiku-serialization/src/bll/Figma'
 import sketchUtils from '../../../utils/sketchUtils'
 import SketchDownloader from '../SketchDownloader'
 import AssetList from './AssetList'
 import Loader from './Loader'
 import FileImporter from './FileImporter'
-
 
 const STYLES = {
   scrollwrap: {
@@ -52,6 +50,12 @@ const STYLES = {
     fontSize: 16,
     padding: 24,
     textAlign: 'center'
+  },
+  link: {
+    color: Palette.SUNSTONE,
+    textDecoration: 'underline',
+    cursor: 'pointer',
+    display: 'inline-block'
   }
 }
 

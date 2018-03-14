@@ -9,6 +9,7 @@ const LOOKS_LIKE_SLICE = /\.sketch\.contents\/slices\//
 const LOOKS_LIKE_ARTBOARD = /\.sketch\.contents\/artboards\//
 const LOOKS_LIKE_PAGE = /\.sketch\.contents\/pages\//
 const IS_SKETCH_FILE_RE = /\.sketch$/
+const IS_SKETCH_FOLDER_RE = /\.sketch\.contents/
 const PARSER_CLI_PATH = '/Applications/Sketch.app/Contents/Resources/sketchtool/bin/sketchtool'
 const BASE64_BITMAP_RE = /"data:image\/(png|jpe?g|gif);base64,(.*?)"/gi
 
@@ -39,6 +40,10 @@ Sketch.looksLikePage = (relpath) => {
 
 Sketch.isSketchFile = (abspath) => {
   return abspath.match(IS_SKETCH_FILE_RE)
+}
+
+Sketch.isSketchFolder = (abspath) => {
+  return abspath.match(IS_SKETCH_FOLDER_RE)
 }
 
 Sketch.exportFolderPath = (sketchRelpath) => {

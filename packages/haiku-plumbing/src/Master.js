@@ -8,6 +8,7 @@ import File from 'haiku-serialization/src/bll/File'
 import Project from 'haiku-serialization/src/bll/Project'
 import ModuleWrapper from 'haiku-serialization/src/bll/ModuleWrapper'
 import Sketch from 'haiku-serialization/src/bll/Sketch'
+import Figma from 'haiku-serialization/src/bll/Figma'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import MockWebsocket from 'haiku-serialization/src/ws/MockWebsocket'
 import { EventEmitter } from 'events'
@@ -539,7 +540,7 @@ export default class Master extends EventEmitter {
       [
         /* Remove associated Sketch contents from disk */
         (cb) => {
-          Sketch.isSketchFile(abspath)
+          Sketch.isSketchFile(abspath) || Figma.isFigmaFile(abspath)
             ? fse.remove(`${abspath}.contents`, cb)
             : cb()
         },

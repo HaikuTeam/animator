@@ -1,9 +1,9 @@
-import React from "react";
-import Color from "color";
-import Popover from "react-popover";
-import Palette from "haiku-ui-common/lib/Palette";
-import FigmaImporter from "./importers/FigmaImporter"
-import FileSystemImporter from "./importers/FileSystemImporter"
+import React from 'react'
+import Color from 'color'
+import Popover from 'react-popover'
+import Palette from 'haiku-ui-common/lib/Palette'
+import FigmaImporter from './importers/FigmaImporter'
+import FileSystemImporter from './importers/FileSystemImporter'
 import { DASH_STYLES } from '../../styles/dashShared'
 
 const STYLES = {
@@ -24,51 +24,45 @@ const STYLES = {
     }
   },
   button: {
-    position: "relative",
+    position: 'relative',
     zIndex: 2,
-    padding: "3px 9px",
+    padding: '3px 9px',
     backgroundColor: Palette.DARKER_GRAY,
     color: Palette.ROCK,
     fontSize: 13,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginTop: -4,
     borderRadius: 3,
-    cursor: "pointer",
-    transform: "scale(1)",
-    transition: "transform 200ms ease",
-    ":hover": {
+    cursor: 'pointer',
+    transform: 'scale(1)',
+    transition: 'transform 200ms ease',
+    ':hover': {
       backgroundColor: Color(Palette.DARKER_GRAY).darken(0.2)
     },
-    ":active": {
-      transform: "scale(.8)"
+    ':active': {
+      transform: 'scale(.8)'
     }
   }
-};
-
-const importers = {
-  MENU: 0,
-  FILE: 1,
-  FIGMA: 2
-};
+}
 
 class FileImporter extends React.PureComponent {
-  constructor(props) {
-    super(props);
+  constructor (props) {
+    super(props)
 
     this.state = {
       isPopoverOpen: false
-    };
+    }
   }
 
-  showPopover() {
-    this.setState({ isPopoverOpen: true });
+  showPopover () {
+    this.setState({ isPopoverOpen: true })
   }
 
-  hidePopover() {
-    this.setState({ isPopoverOpen: false });
+  hidePopover () {
+    this.setState({ isPopoverOpen: false })
   }
 
-  get popoverBody() {
+  get popoverBody () {
     return (
       <div style={{...DASH_STYLES.popover.container, right: 0, top: 0, position: 'initial'}}>
         <div style={STYLES.popover.item}>
@@ -81,33 +75,34 @@ class FileImporter extends React.PureComponent {
             onImportFigmaAsset={this.props.onImportFigmaAsset}
             onAskForFigmaAuth={this.props.onAskForFigmaAuth}
             style={STYLES.popover.text}
+            onPopoverHide={() => { this.hidePopover() }}
           />
         </div>
       </div>
-    );
+    )
   }
 
-  render() {
+  render () {
     return (
       <Popover
         onOuterAction={() => {
-          this.hidePopover();
+          this.hidePopover()
         }}
         isOpen={this.state.isPopoverOpen}
-        place="below"
-        tipSize={.01}
+        place='below'
+        tipSize={0.01}
         body={this.popoverBody}
       >
         <button
           style={STYLES.button}
           onClick={() => {
-            this.showPopover();
+            this.showPopover()
           }}
         >
           +
         </button>
       </Popover>
-    );
+    )
   }
 }
 
@@ -115,7 +110,7 @@ FileImporter.propTypes = {
   onFileDrop: React.PropTypes.func.isRequired,
   onImportFigmaAsset: React.PropTypes.func.isRequired,
   onAskForFigmaAuth: React.PropTypes.func.isRequired,
-  figma: React.PropTypes.object,
-};
+  figma: React.PropTypes.object
+}
 
-export default FileImporter;
+export default FileImporter

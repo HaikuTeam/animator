@@ -3,11 +3,11 @@ import React from 'react'
 const STYLES = {
   filePicker: {
     opacity: 0,
-    position: "absolute",
+    position: 'absolute',
     left: 0,
     width: 150,
     zIndex: 3,
-    cursor: "pointer"
+    cursor: 'pointer'
   }
 }
 
@@ -17,11 +17,11 @@ class FileSystemImporter extends React.PureComponent {
       <div style={this.props.style}>
         From File
         <input
-          type="file"
-          ref="filepicker"
+          type='file'
+          ref='filepicker'
           multiple
           onChange={fileDropEvent => {
-            this.props.onFileDrop(this.refs.filepicker.files, fileDropEvent);
+            this.props.onFileDrop(this.refs.filepicker.files, fileDropEvent)
           }}
           style={STYLES.filePicker}
         />
