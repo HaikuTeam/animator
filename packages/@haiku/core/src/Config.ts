@@ -110,6 +110,10 @@ const DEFAULTS = {
     // interactionMode: object
     // Control how this instance handles interaction, e.g. preview mode
     interactionMode: InteractionMode.LIVE,
+
+    // staticMode: boolean
+    // When enabled, parsed value clusters are never re-fetched.
+    staticMode: false,
   },
 
   // states: Object|null

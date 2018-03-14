@@ -1219,6 +1219,7 @@ function applyBehaviors(timelinesRunning, deltas, component, context, isPatchOpe
           isPatchOperation,
           component,
           skipCache,
+          component.config.options.staticMode,
         );
 
         // [#LEGACY?]

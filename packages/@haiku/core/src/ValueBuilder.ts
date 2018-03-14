@@ -1089,6 +1089,7 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
 
   const parsee = this._parsees[timelineName][flexId][outputName];
 
+  const isMaybeAnimated = Object.keys(cluster).length > 1;
   for (const ms in cluster) {
     const descriptor = cluster[ms];
 
@@ -1142,7 +1143,7 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
       }
 
       const parser2 = this.getParser(outputName, matchingElement);
-      if (parser2) {
+      if (parser2 && isMaybeAnimated) {
         parsee[ms].value = parser2(descriptor.value);
       } else {
         parsee[ms].value = descriptor.value;
@@ -1227,6 +1228,7 @@ ValueBuilder.prototype.build = function _build(
   isPatchOperation,
   haikuComponent,
   skipCache = false,
+  staticMode = false,
 ) {
   let isAnythingWorthUpdating = false;
 
@@ -1241,6 +1243,8 @@ ValueBuilder.prototype.build = function _build(
       haikuComponent,
       isPatchOperation,
       skipCache,
+      false,
+      staticMode,
     );
 
     // We use undefined as a signal that it's not worthwhile to put this value in the list of updates.
@@ -1292,6 +1296,7 @@ ValueBuilder.prototype.build = function _build(
  * @param isPatchOperation {Boolean} Is this a patch?
  * @param skipCache {Boolean} Skip caching?
  * @param clearSortedKeyframesCache
+ * @param staticMode
  */
 ValueBuilder.prototype.grabValue = function _grabValue(
   timelineName,
@@ -1304,17 +1309,20 @@ ValueBuilder.prototype.grabValue = function _grabValue(
   isPatchOperation,
   skipCache,
   clearSortedKeyframesCache,
+  staticMode,
 ) {
-  const parsedValueCluster = this.fetchParsedValueCluster(
-    timelineName,
-    flexId,
-    matchingElement,
-    propertyName,
-    propertiesGroup[propertyName],
-    haikuComponent,
-    isPatchOperation,
-    skipCache,
-  );
+  const parsedValueCluster = (staticMode && isPatchOperation)
+    ? this._parsees[timelineName][flexId][propertyName]
+    : this.fetchParsedValueCluster(
+      timelineName,
+      flexId,
+      matchingElement,
+      propertyName,
+      propertiesGroup[propertyName],
+      haikuComponent,
+      isPatchOperation,
+      skipCache,
+    );
 
   // If there is no property of that name, we would have gotten nothing back, so we can't forward this to Transitions
   // since it expects to receive a populated cluster object
