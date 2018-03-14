@@ -106,7 +106,7 @@ export default function createRightClickMenu(domElement, component) {
 
   if (metadata && metadata.project && metadata.organization && window && window.fetch) {
     try {
-      window.fetch(`http://localhost:8080/v0/community/${metadata.organization}/${metadata.project}`).then(
+      window.fetch(`https://inkstone.haiku.ai/v0/community/${metadata.organization}/${metadata.project}`).then(
         ({ok}) => {
           if (ok) {
             isPublic = true;
