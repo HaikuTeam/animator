@@ -18,10 +18,11 @@ tape('Figma.parseProjectURL parses an URL and returns an object with the id and 
   t.equal(parsedURL.id, fileKey, 'the parsed URL contains the id of the file')
 })
 
-tape('Figma.parseProjectURL throws an error if the URL can\'t be parsed properly', (t) => {
-  t.plan(1)
+tape('Figma.parseProjectURL returns null if the URL can\'t be parsed properly', (t) => {
+  t.plan(2)
 
-  t.throws(() => { Figma.parseProjectURL('https://www.figma.com/') })
+  t.notOk(Figma.parseProjectURL('https://www.figma.com/'))
+  t.notOk(Figma.parseProjectURL('asdfasd'))
 })
 
 tape('Figma.request makes a proper request', (t) => {

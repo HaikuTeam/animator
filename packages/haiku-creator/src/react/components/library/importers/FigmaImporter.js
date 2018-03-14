@@ -1,5 +1,6 @@
 import React from 'react'
 import Palette from 'haiku-ui-common/lib/Palette'
+import Figma from 'haiku-serialization/src/bll/Figma'
 import { DASH_STYLES } from '../../../styles/dashShared'
 import { BTN_STYLES } from '../../../styles/btnShared'
 
@@ -37,6 +38,12 @@ const STYLES = {
     ...BTN_STYLES.btnText,
     ...BTN_STYLES.rightBtns,
     ...BTN_STYLES.btnPrimaryAlt
+  },
+  error: {
+    color: Palette.RED,
+    float: 'left',
+    textTransform: 'initial',
+    marginTop: '5px'
   }
 }
 
@@ -59,9 +66,14 @@ class FigmaImporter extends React.PureComponent {
 
   onFormSubmit (submitEvent) {
     submitEvent.preventDefault()
-    const url = submitEvent.currentTarget.querySelector('[type=url]').value
-    this.props.onImportFigmaAsset(url)
-    this.setState({isFormVisible: false, isMessageVisible: true})
+    const url = this.inputRef.value
+
+    if (Figma.parseProjectURL(url)) {
+      this.props.onImportFigmaAsset(url)
+      this.setState({isFormVisible: false, isMessageVisible: true})
+    } else {
+      this.setState({error: 'Invalid URL'})
+    }
   }
 
   render () {
@@ -72,7 +84,14 @@ class FigmaImporter extends React.PureComponent {
         {this.state.isFormVisible && (
           <form onSubmit={(submitEvent) => { this.onFormSubmit(submitEvent) }} style={STYLES.form}>
             <label style={STYLES.inputTitle}>Project URL</label>
-            <input autoFocus type='url' style={STYLES.urlInput} placeholder='http://figma.com/id/name' />
+            <input
+              autoFocus
+              type='text'
+              style={STYLES.urlInput}
+              placeholder='http://figma.com/id/name'
+              ref={(inputRef) => { this.inputRef = inputRef }}
+            />
+            {this.state.error && <span style={STYLES.error}>{this.state.error}</span>}
             <input style={STYLES.formButton} type='submit' value='Import' />
           </form>
         )}

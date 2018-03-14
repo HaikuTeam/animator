@@ -47,7 +47,7 @@ class Figma {
    * @returns {Promise}
    */
   importSVG ({url, path}) {
-    const {id, name} = this.parseProjectURL(url)
+    const {id, name} = Figma.parseProjectURL(url)
 
     logger.info('[figma] about to import document with id ' + id)
 
@@ -180,18 +180,22 @@ class Figma {
    * @param {string} rawURL must be a string in the format 'protocol://host/id/name
    * @returns {Object} an object containing the id and the name in the URL
    */
-  parseProjectURL (rawURL) {
+  static parseProjectURL (rawURL) {
     logger.info('[figma] parsing project URL: ' + rawURL)
 
-    const url = new URL(rawURL)
-    // eslint-disable-next-line
-    const [_, __, id, name] = url.pathname.split('/')
+    try {
+      const url = new URL(rawURL)
+      // eslint-disable-next-line
+      const [_, __, id, name] = url.pathname.split('/')
 
-    if (!id || !name) {
-      throw new Error('Invalid URL')
+      if (!id || !name) {
+        return null
+      }
+
+      return { id, name }
+    } catch (e) {
+      return null
     }
-
-    return { id, name }
   }
 
   /**
