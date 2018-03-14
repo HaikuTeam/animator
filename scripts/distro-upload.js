@@ -25,6 +25,7 @@ uploadRelease(region, objkey, secret, bucket, RELEASES_FOLDER, platform, environ
 
   var slackMessage = `
 Distro ready (${version} ${environment})
+Patch link: ${urls.patch}
 Download link: ${urls.download}
 _Syndicate with :jenkins:._
   `.trim()
