@@ -2,7 +2,7 @@ const path = require('path')
 const Websocket = require('ws')
 const tmp = require('tmp')
 const fse = require('haiku-fs-extra')
-const randomAlphabetical = require('haiku-serialization/src/util/randomAlphabetical').default
+const randomAlphabetical = require('haiku-serialization/src/utils/randomAlphabetical')
 const Plumbing = require('./../lib/Plumbing').default
 const { HAIKU_WS_SECURITY_TOKEN } = require('./../lib/Plumbing')
 
