@@ -5,7 +5,7 @@
       "Figma integration! Log in with your Figma account and use Figma assets in your Haiku projects",
       "Haiku Community! Publish components to https://share.haiku.ai, give kudos and fork projects",
       "Improved security and analytics in https://share.haiku.ai",
-      "Launched a knowledge base at http://help.haiku.ai"
+      "Launched a knowledge base at https://help.haiku.ai"
     ],
     "Fixes": [
       "Fixed a bug that could cause 'Send backward' to behave unpredictably",
