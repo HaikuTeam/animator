@@ -8,7 +8,7 @@ const randomAlphabetical = require('../utils/randomAlphabetical')
 const mixpanel = require('haiku-serialization/src/utils/Mixpanel')
 
 const API_BASE = 'https://api.figma.com/v1/'
-const FIGMA_URL = 'https://figma.com/'
+const FIGMA_URL = 'https://www.figma.com/'
 const FIGMA_CLIENT_ID = 'tmhDo4V12I3fEiQ9OG8EHh'
 const IS_FIGMA_FILE_RE = /\.figma$/
 const IS_FIGMA_FOLDER_RE = /\.figma\.contents/
