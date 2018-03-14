@@ -121,13 +121,37 @@ class Library extends React.Component {
     ipcRenderer.removeListener('open-url:oauth', this.onAuthCallback)
   }
 
-  onAuthCallback (_, path) {
-    console.log('asdfasdfasdfasd', path)
+  figmaAuthCallback ({state, code}) {
+    Figma.getAccessToken({state, code, stateCheck: this.state.figmaState})
+      .then(({AccessToken}) => {
+        this.props.user.setConfig(UserSettings.figmaToken, AccessToken)
+        this.state.figma.token = AccessToken
+        this.props.createNotice({
+          type: 'success',
+          title: 'Yay!',
+          message: 'You are authenticated with Figma'
+        })
+      })
+      .catch((error) => {
+        console.log(error)
+        this.props.createNotice({
+          type: 'danger',
+          title: 'Error',
+          message: 'There was an error while authenticating with Figma'
+        })
+      })
+  }
+
+  onAuthCallback (_, path, params) {
+    switch (path) {
+      case '/figma':
+        this.figmaAuthCallback(params)
+    }
   }
 
   askForFigmaAuth () {
-    const {secret, url} = Figma.buildAuthenticationLink()
-    this.secret = secret
+    const {state, url} = Figma.buildAuthenticationLink()
+    this.setState({figmaState: state})
     shell.openExternal(url)
   }
 
@@ -138,19 +162,56 @@ class Library extends React.Component {
     })
   }
 
-  importFigmaAsset (url, callback) {
-    this.state.figma.importSVG(url)
-      .then(callback)
+  importFigmaAsset (url) {
+    const path = this.props.projectModel.folder
+
+    return this.state.figma.importSVG({url, path})
       .catch((error) => {
+        let message = 'We had a problem connecting with Figma, please try again'
+
+        if (error.status === 403) {
+          message = (
+            <p>
+              We had problems importing your file.{' '}
+              If this problem persists, please click{' '}
+              <a
+                href='#'
+                style={STYLES.link}
+                onClick={() => {
+                  this.askForFigmaAuth()
+                }}
+              >
+                here
+              </a>{' '}
+              to login with Figma again.
+            </p>
+          )
+        }
+
+        if (error.status === 404) {
+          message = (
+            <p>
+              We couldn't access your file, please make sure that the file exists
+              and you have access to it.<br />
+              If you need to login with another Figma account{' '}
+              <a
+                href='#'
+                style={STYLES.link}
+                onClick={() => {
+                  this.askForFigmaAuth()
+                }}
+              >
+                click here.
+              </a>{' '}
+            </p>
+          )
+        }
+
         this.props.createNotice({
           type: 'danger',
           title: 'Error',
-          message: 'We had problems importing your file: ' + error.err
+          message
         })
-
-        if (error.status === 403) {
-          this.askForFigmaAuth()
-        }
       })
   }
 
@@ -254,9 +315,9 @@ class Library extends React.Component {
           <FileImporter
             user={this.props.user}
             onImportFigmaAsset={this.importFigmaAsset}
-            onAskForFigmaAuth={this.askForFigmaAuth}
+            onAskForFigmaAuth={() => { this.askForFigmaAuth() }}
             figma={this.state.figma}
-            onFileDrop={(files, fileDropEvent) => {this.handleFileDrop(files, fileDropEvent)}}
+            onFileDrop={(files, fileDropEvent) => { this.handleFileDrop(files, fileDropEvent) }}
           />
         </div>
         <div
