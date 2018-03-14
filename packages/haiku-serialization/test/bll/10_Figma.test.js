@@ -10,8 +10,7 @@ const fileKey = 'DwxTPCNWQZJyU3X44CH3DQpT'
 tape('Figma.parseProjectURL parses an URL and returns an object with the id and the name of a Figma project', (t) => {
   t.plan(3)
 
-  const figma = new Figma({token})
-  const parsedURL = figma.parseProjectURL(`https://www.figma.com/file/${fileKey}/Sample-File`)
+  const parsedURL = Figma.parseProjectURL(`https://www.figma.com/file/${fileKey}/Sample-File`)
 
   t.equal(typeof parsedURL, 'object', 'the parsed URL is an object')
   t.equal(parsedURL.name, 'Sample-File', 'the parsed URL contains the file name under the "name" key')
