@@ -48,6 +48,10 @@ export class HaikuStaticExporter extends BaseExporter implements ExporterInterfa
    * @returns {{}}
    */
   binaryOutput() {
+    if (!this.bytecodeParsed) {
+      this.parseBytecode();
+    }
+
     return JSON.stringify(this.bytecode);
   }
 
@@ -57,9 +61,5 @@ export class HaikuStaticExporter extends BaseExporter implements ExporterInterfa
    */
   failsafeBinaryOutput() {
     return '{}';
-  }
-
-  constructor(protected bytecode) {
-    super(bytecode);
   }
 }
