@@ -83,8 +83,10 @@ export default class Timeline extends React.Component {
           if (event.message.slice(0, 8) === 'Uncaught') {
             // Give the webview's Raven instance time to transmit its crash report
             return setTimeout(() => {
-              remote.getCurrentWindow().close()
-            }, (process.env.NODE_ENV === 'production') ? 500 : 50000)
+              if (process.env.NODE_ENV === 'production') {
+                remote.getCurrentWindow().close()
+              }
+            }, 500)
           }
 
           console.error(event.message)
