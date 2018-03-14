@@ -43,6 +43,7 @@ export const LAYOUT_3D_VANITIES = {
       element.layout.rotation.w,
       element.layout.rotation,
     );
+    element.hasLayout = true;
   },
   'rotation.y': (name, element, value) => {
     element.layout.rotation.y = value;
@@ -53,6 +54,7 @@ export const LAYOUT_3D_VANITIES = {
       element.layout.rotation.w,
       element.layout.orientation,
     );
+    element.hasLayout = true;
   },
   'rotation.z': (name, element, value) => {
     element.layout.rotation.z = value;
@@ -63,6 +65,7 @@ export const LAYOUT_3D_VANITIES = {
       element.layout.rotation.w,
       element.layout.orientation,
     );
+    element.hasLayout = true;
   },
   'rotation.w': (name, element, value) => {
     element.layout.rotation.w = value;
@@ -73,6 +76,7 @@ export const LAYOUT_3D_VANITIES = {
       element.layout.rotation.w,
       element.layout.orientation,
     );
+    element.hasLayout = true;
   },
 
   // If you really want to set what we call 'position' then
@@ -90,48 +94,63 @@ export const LAYOUT_3D_VANITIES = {
 
   'align.x': (name, element, value) => {
     element.layout.align.x = value;
+    element.hasLayout = true;
   },
   'align.y': (name, element, value) => {
     element.layout.align.y = value;
+    element.hasLayout = true;
   },
   'align.z': (name, element, value) => {
     element.layout.align.z = value;
+    element.hasLayout = true;
   },
   'mount.x': (name, element, value) => {
     element.layout.mount.x = value;
+    element.hasLayout = true;
   },
   'mount.y': (name, element, value) => {
     element.layout.mount.y = value;
+    element.hasLayout = true;
   },
   'mount.z': (name, element, value) => {
     element.layout.mount.z = value;
+    element.hasLayout = true;
   },
   'origin.x': (name, element, value) => {
     element.layout.origin.x = value;
+    element.hasLayout = true;
   },
   'origin.y': (name, element, value) => {
     element.layout.origin.y = value;
+    element.hasLayout = true;
   },
   'origin.z': (name, element, value) => {
     element.layout.origin.z = value;
+    element.hasLayout = true;
   },
   'scale.x': (name, element, value) => {
     element.layout.scale.x = value;
+    element.hasLayout = true;
   },
   'scale.y': (name, element, value) => {
     element.layout.scale.y = value;
+    element.hasLayout = true;
   },
   'scale.z': (name, element, value) => {
     element.layout.scale.z = value;
+    element.hasLayout = true;
   },
   'sizeAbsolute.x': (name, element, value) => {
     element.layout.sizeAbsolute.x = value;
+    element.hasLayout = true;
   },
   'sizeAbsolute.y': (name, element, value) => {
     element.layout.sizeAbsolute.y = value;
+    element.hasLayout = true;
   },
   'sizeAbsolute.z': (name, element, value) => {
     element.layout.sizeAbsolute.z = value;
+    element.hasLayout = true;
   },
   'sizeDifferential.x': (name, element, value) => {
     element.layout.sizeDifferential.x = value;
@@ -162,12 +181,15 @@ export const LAYOUT_3D_VANITIES = {
   },
   'translation.x': (name, element, value) => {
     element.layout.translation.x = value;
+    element.hasLayout = true;
   },
   'translation.y': (name, element, value) => {
     element.layout.translation.y = value;
+    element.hasLayout = true;
   },
   'translation.z': (name, element, value) => {
     element.layout.translation.z = value;
+    element.hasLayout = true;
   },
 };
 

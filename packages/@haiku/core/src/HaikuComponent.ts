@@ -1431,11 +1431,20 @@ function computeAndApplyNodeLayout(element, parent) {
 
     // Don't assume the element has/needs a layout, for example, control-flow injectees
     if (element.layout && element.layout.matrix) {
-      element.layout.computed = Layout3D.computeLayout(
-        element.layout,
-        element.layout.matrix,
-        parentSize,
-      );
+      if (element.hasLayout) {
+        element.layout.computed = Layout3D.computeLayout(
+          element.layout,
+          element.layout.matrix,
+          parentSize,
+        );
+      } else {
+        delete element.layout.computed;
+        element.layout.computed = {
+          ...element.layout,
+          size: parentSize,
+          matrix: Layout3D.createMatrix(),
+        };
+      }
     }
   }
 }
