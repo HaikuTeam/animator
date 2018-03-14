@@ -235,5 +235,5 @@ function getTransitionValue(currentKeyframe, currentTransition, nextKeyframe, ne
 export default {
   calculateValue,
   calculateValueAndReturnUndefinedIfNotWorthwhile,
-  sortedKeyframes
+  sortedKeyframes,
 };

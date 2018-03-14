@@ -92,10 +92,6 @@ export default function HaikuComponent(bytecode: any, context, config, metadata)
   this.cache = {};
   this._builder = new ValueBuilder(this);
 
-  if (!config.options.hotEditingMode) {
-    preoptimizeBytecodeInPlace(this._builder, this._bytecode, null);
-  }
-
   // STATES
   this._states = {}; // Storage for getter/setter actions in userland logic
   this.state = {}; // Public accessor object, e.g. this.state.foo = 1
@@ -212,6 +208,20 @@ export default function HaikuComponent(bytecode: any, context, config, metadata)
 
   // Useful when debugging to understand cross-component effects
   this._entityIndex = HaikuComponent['components'].push(this) - 1;
+
+  // Try to optimize the bytecode before we actually begin playback
+  // This has to happen after all of the above construction occurs
+  if (!config.options.hotEditingMode) {
+    // We need to be able to query the tree in order to fully optimize
+    this._rehydrateFlatManaTree();
+
+    preoptimizeBytecodeInPlace(
+      this,
+      this._builder,
+      this._bytecode,
+      null,
+    );
+  }
 }
 
 HaikuComponent['PLAYER_VERSION'] = VERSION; // #LEGACY
