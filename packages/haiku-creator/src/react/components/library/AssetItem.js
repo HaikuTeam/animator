@@ -260,10 +260,15 @@ class AssetItem extends React.Component {
             onClick={(clickEvent) => {
               const svgSpinner = clickEvent.currentTarget.querySelector('svg')
               const url = Figma.buildFigmaLink(this.props.asset.figmaID, this.props.asset.displayName)
+              const rotationClass = 'animation-rotating'
 
-              clickEvent.currentTarget.querySelector('svg').classList.add('animation-rotating')
+              clickEvent.currentTarget.querySelector('svg').classList.add(rotationClass)
+
+              // TODO: find out why `Promise.prototype.finally` is not available
+              // and rewrite this properly
               this.props.onRefreshFigmaAsset(url)
-                .finally(() => { svgSpinner.classList.remove('animation-rotating') })
+                .then(() => { svgSpinner.classList.remove(rotationClass) })
+                .catch(() => { svgSpinner.classList.remove(rotationClass) })
             }}
             style={{
               padding: '3px',
