@@ -25,7 +25,6 @@
     "color": "^2.0.1",
     "combokeys": "^2.4.6",
     "cst": "^0.4.10",
-    "haiku-bytecode": "3.1.17",
     "haiku-common": "3.1.17",
     "haiku-fs-extra": "3.1.17",
     "haiku-serialization": "3.1.17",

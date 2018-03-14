@@ -43,7 +43,6 @@
     "fs-extra": "^4.0.2",
     "fuzzy-string-matching": "^1.0.2",
     "gl-matrix": "^2.4.0",
-    "haiku-bytecode": "3.1.17",
     "haiku-common": "3.1.17",
     "haiku-fs-extra": "3.1.17",
     "haiku-sdk-creator": "3.1.17",

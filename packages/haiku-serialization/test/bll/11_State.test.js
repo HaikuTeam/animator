@@ -1,10 +1,8 @@
-'use strict'
+const tape = require('tape')
+const State = require('./../../src/bll/State')
 
-var test = require('tape')
-var States = require('./../src/States')
-
-test('States', function(t) {
-  var tests = [
+tape('State', (t) => {
+  const tests = [
     [{value:1},{value:1,type:'number'}],
     [{value:'1'},{value:1,type:'number'}],
     [{value:'1.0012'},{value:1.0012,type:'number'}],
@@ -32,6 +30,6 @@ test('States', function(t) {
   ]
   t.plan(tests.length)
   tests.forEach((spec) => {
-    t.equal(JSON.stringify(States.autoCastToType(spec[0])), JSON.stringify(spec[1]))
+    t.equal(JSON.stringify(State.autoCastToType(spec[0])), JSON.stringify(spec[1]))
   })
 })

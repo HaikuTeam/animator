@@ -1,4 +1,8 @@
 const lodash = require('lodash')
+const clone = require('lodash.clone')
+const merge = require('lodash.merge')
+const assign = require('lodash.assign')
+const defaults = require('lodash.defaults')
 const path = require('path')
 const BaseModel = require('./BaseModel')
 const bytecodeObjectToAST = require('./../ast/bytecodeObjectToAST')
@@ -6,11 +10,9 @@ const normalizeBytecodeFile = require('./../ast/normalizeBytecodeFile')
 const generateCode = require('./../ast/generateCode')
 const formatStandardSync = require('./../formatter/formatStandardSync')
 const xmlToMana = require('@haiku/core/lib/helpers/xmlToMana').default
-const cleanMana = require('haiku-bytecode/src/cleanMana')
-const ensureManaChildrenArray = require('haiku-bytecode/src/ensureManaChildrenArray')
-const writeMetadata = require('haiku-bytecode/src/writeMetadata')
 const convertManaLayout = require('@haiku/core/lib/layout/convertManaLayout').default
-const mergeTimelineStructure = require('haiku-bytecode/src/mergeTimelineStructure')
+const expressionToRO = require('@haiku/core/lib/reflection/expressionToRO').default
+const reifyRO = require('@haiku/core/lib/reflection/reifyRO').default
 
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const DEFAULT_TIMELINE_NAME = 'Default'
@@ -18,6 +20,27 @@ const DEFAULT_TIMELINE_TIME = 0
 const DEFAULT_ROOT_NODE_NAME = 'div'
 const FALLBACK_TEMPLATE = '<' + DEFAULT_ROOT_NODE_NAME + '></' + DEFAULT_ROOT_NODE_NAME + '>'
 const DEFAULT_CONTEXT_SIZE = { width: 550, height: 400 }
+const DO_REIFY_FUNCTIONS = true
+
+function isEmpty (val) {
+  return val === undefined || val === null
+}
+
+// TODO: There might be cases where somebody's added a keyframe value whose intent
+// is to be a reference, i.e. a variable referencing something defined in closure.
+// We can possibly handle that in the future in some cases...
+function referenceEvaluator (arg) {
+  console.warn('[bytecode] reference evaluator is not implemented')
+  return arg
+}
+
+function ensureManaChildrenArray (mana) {
+  const previous = mana.children
+  const children = []
+  mana.children = children
+  if (previous) mana.children.push(previous)
+  return mana
+}
 
 /**
  * @class Bytecode
@@ -433,7 +456,7 @@ Bytecode.decycle = (reified, { doCleanMana }) => {
 
   if (reified.template) {
     if (doCleanMana) {
-      decycled.template = cleanMana(reified.template)
+      decycled.template = Template.cleanMana(reified.template)
     } else {
       // Cleaning mana will mess with instantiated component modules, which is why
       // doCleanMana is an option
@@ -497,7 +520,7 @@ Bytecode.reinitialize = (folder, relpath, bytecode = {}, config = {}) => {
   convertManaLayout(bytecode.template)
 
   // Make sure there is at least a baseline metadata objet
-  writeMetadata(bytecode, {
+  Bytecode.writeMetadata(bytecode, {
     uuid: 'HAIKU_SHARE_UUID', // This magic string is detected+replaced by our cloud services to produce a full share link
     type: 'haiku',
     name: config.name,
@@ -542,7 +565,7 @@ Bytecode.reinitialize = (folder, relpath, bytecode = {}, config = {}) => {
   }, 'assign')
 
   // Inject the hoisted attributes into the actual timelines object
-  mergeTimelineStructure(bytecode, timeline, 'defaults')
+  Bytecode.mergeTimelineStructure(bytecode, timeline, 'defaults')
 
   // Make sure every element has an explicit translation; this is sort of a hack that makes sure
   // that when we undo changes to the artboard, all elements on stage have a first value to go back to
@@ -611,8 +634,445 @@ Bytecode.upsertDefaultProperties = (bytecode, componentId, propertiesToMerge, st
   }
 }
 
+Bytecode.batchUpsertEventHandlers = (
+  bytecode,
+  selectorName,
+  serializedEvents
+) => {
+  if (!bytecode.eventHandlers) {
+    bytecode.eventHandlers = {}
+  }
+
+  bytecode.eventHandlers[selectorName] = {}
+
+  Object.entries(serializedEvents).forEach(([event, handlerDescriptor]) => {
+    bytecode.eventHandlers[selectorName][event] = {}
+
+    if (handlerDescriptor.handler !== undefined) {
+      bytecode.eventHandlers[selectorName][event].handler = Bytecode.unserValue(
+        handlerDescriptor.handler
+      )
+    }
+  })
+
+  return bytecode
+}
+
+Bytecode.changeKeyframeValue = (bytecode, componentId, timelineName, propertyName, keyframeMs, newValue) => {
+  var property = Bytecode.ensureTimelineProperty(bytecode, timelineName, componentId, propertyName)
+  property[keyframeMs].value = Bytecode.unserValue(newValue)
+  property[keyframeMs].edited = true
+  return property
+}
+
+Bytecode.changePlaybackSpeed = (bytecode, framesPerSecond) => {
+  if (!bytecode.options) bytecode.options = {}
+  bytecode.options.fps = Math.round(parseInt(framesPerSecond, 10))
+  if (bytecode.options.fps > 60) bytecode.options.fps = 60
+}
+
+Bytecode.changeSegmentCurve = (bytecode, componentId, timelineName, propertyName, keyframeMs, newCurve) => {
+  const property = Bytecode.ensureTimelineProperty(bytecode, timelineName, componentId, propertyName)
+  if (!property[keyframeMs]) property[keyframeMs] = {}
+  property[keyframeMs].curve = Bytecode.unserValue(newCurve) // Curves are usually strings, but can be functions
+  property[keyframeMs].edited = true
+  return property
+}
+
+Bytecode.componentIdToSelector = (componentId) => {
+  if (componentId.slice(0, 6 === 'haiku:')) return componentId
+  return 'haiku:' + componentId
+}
+
+Bytecode.createKeyframe = (bytecode, componentId, timelineName, elementName, propertyName, keyframeStartMs, keyframeValueGiven, keyframeCurve, keyframeEndMs, keyframeEndValue, hostInstance, inputValues) => {
+  const property = Bytecode.ensureTimelineProperty(bytecode, timelineName, componentId, propertyName)
+
+  // These are the *calculated* forms of the value
+  const precedingValue = TimelineProperty.getPropertyValueAtTime(bytecode.timelines, timelineName, componentId, elementName, propertyName, keyframeStartMs - 1, hostInstance, inputValues)
+  const currentValue = TimelineProperty.getPropertyValueAtTime(bytecode.timelines, timelineName, componentId, elementName, propertyName, keyframeStartMs, hostInstance, inputValues)
+
+  // This is the actually assigned value specification object; we need this in case we have a function
+  const precedingAssignedValueObject = TimelineProperty.getAssignedBaselineValueObject(componentId, elementName, propertyName, timelineName, keyframeStartMs - 1, bytecode)
+  const precedingAssignedValue = precedingAssignedValueObject && precedingAssignedValueObject.value
+  const currentAssignedValueObject = TimelineProperty.getAssignedBaselineValueObject(componentId, elementName, propertyName, timelineName, keyframeStartMs, bytecode)
+  const currentAssignedValue = currentAssignedValueObject && currentAssignedValueObject.value
+
+  // This is actually an upsert of sorts
+  if (!property[keyframeStartMs]) property[keyframeStartMs] = {}
+
+  let keyframeValue = keyframeValueGiven // <~ Can be (and usually is) undefined, in which case we use a fallback preceding/current
+
+  // Successively attempt to populate the keyframe with various possibilities if the previous ones don't work
+  if (isEmpty(keyframeValue)) {
+    keyframeValue = currentAssignedValue
+  }
+  if (isEmpty(keyframeValue)) {
+    keyframeValue = precedingAssignedValue
+  }
+  if (isEmpty(keyframeValue)) {
+    keyframeValue = currentValue
+  }
+  if (isEmpty(keyframeValue)) {
+    keyframeValue = precedingValue
+  }
+
+  // Don't forget this in case we got a function e.g. __function: {....} !
+  keyframeValue = Bytecode.unserValue(keyframeValue)
+
+  property[keyframeStartMs].value = keyframeValue
+
+  if (keyframeCurve !== undefined && keyframeCurve !== null) {
+    property[keyframeStartMs].curve = Bytecode.unserValue(keyframeCurve)
+  }
+
+  property[keyframeStartMs].edited = true
+
+  if (keyframeEndMs !== undefined && keyframeEndMs !== null) {
+    // This is actually an upsert of sorts
+    if (!property[keyframeEndMs]) property[keyframeEndMs] = {}
+
+    property[keyframeEndMs].value = Bytecode.unserValue(keyframeEndValue || keyframeValue)
+    property[keyframeEndMs].edited = true
+  }
+
+  return property[keyframeStartMs]
+}
+
+Bytecode.createTimeline = (bytecode, timelineName, timelineDescriptor) => {
+  const timeline = Bytecode.ensureTimeline(bytecode, timelineName)
+  if (timelineDescriptor) merge(timeline, Bytecode.unserValue(timelineDescriptor))
+  return timeline
+}
+
+Bytecode.deleteEventHandler = (bytecode, selectorName, eventName) => {
+  if (bytecode.eventHandlers) {
+    if (bytecode.eventHandlers[selectorName]) {
+      delete bytecode.eventHandlers[selectorName][eventName]
+    }
+  }
+
+  return bytecode
+}
+
+Bytecode.deleteKeyframe = (bytecode, componentId, timelineName, propertyName, keyframeMs) => {
+  const property = Bytecode.ensureTimelineProperty(bytecode, timelineName, componentId, propertyName)
+
+  const mss = Bytecode.getSortedKeyframeKeys(property)
+
+  let list = mss.map((ms, i) => {
+    let prev = mss[i - 1]
+    let next = mss[i + 1]
+    return {
+      edited: property[ms].edited,
+      curve: property[ms].curve,
+      value: property[ms].value,
+      index: i,
+      start: ms,
+      end: (next !== undefined) ? next : ms,
+      first: prev === undefined,
+      last: next === undefined
+    }
+  })
+
+  const curr = list.filter(function _filter (item) {
+    return item.start === keyframeMs
+  })[0]
+
+  if (!curr) {
+    return property
+  }
+
+  const prev = list[curr.index - 1]
+  const next = list[curr.index + 1]
+
+  // First delete our keyframe
+  delete property[keyframeMs]
+
+  // Remove the curve from the previous keyframe if it has no subsequent keyframe to attach to
+  if (prev && !next) {
+    property[prev.start] = {}
+    property[prev.start].value = prev.value
+    if (prev.edited) property[prev.start].edited = true
+  }
+}
+
+Bytecode.deleteStateValue = (bytecode, stateName) => {
+  if (bytecode.states) {
+    delete bytecode.states[stateName]
+  }
+
+  return bytecode
+}
+
+Bytecode.deleteTimeline = (bytecode, timelineName) => {
+  if (bytecode.timelines) delete bytecode.timelines[timelineName]
+  return bytecode.timelines
+}
+
+Bytecode.duplicateTimeline = (bytecode, timelineName) => {
+  const timeline = Bytecode.ensureTimeline(bytecode, timelineName)
+  const duplicate = clone(timeline)
+  const newName = timelineName + ' copy'
+  Bytecode.createTimeline(bytecode, newName, duplicate) // This does 'unserValue' for us
+  return newName
+}
+
+Bytecode.ensureTimeline = (bytecode, timelineName) => {
+  if (!bytecode.timelines) {
+    bytecode.timelines = {}
+  }
+  if (!bytecode.timelines[timelineName]) {
+    bytecode.timelines[timelineName] = {}
+  }
+  return bytecode.timelines[timelineName]
+}
+
+Bytecode.ensureTimelineGroup = (bytecode, timelineName, componentId) => {
+  const timeline = Bytecode.ensureTimeline(bytecode, timelineName)
+  const selector = Bytecode.componentIdToSelector(componentId)
+
+  if (!timeline[selector]) {
+    timeline[selector] = {}
+  }
+
+  return timeline[selector]
+}
+
+Bytecode.ensureTimelineProperty = (bytecode, timelineName, componentId, propertyName) => {
+  const group = Bytecode.ensureTimelineGroup(bytecode, timelineName, componentId)
+
+  if (!group[propertyName]) {
+    group[propertyName] = {}
+  }
+
+  return group[propertyName]
+}
+
+Bytecode.getSortedKeyframeKeys = (property) => {
+  if (!property) return []
+  return Object.keys(property).map((ms) => parseInt(ms, 10)).sort((a, b) => a - b)
+}
+
+// I.e., make a curve out of two separate keyframes
+Bytecode.joinKeyframes = (bytecode, componentId, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, newCurve) => {
+  const property = Bytecode.ensureTimelineProperty(bytecode, timelineName, componentId, propertyName)
+
+  // May not be here due to a race condition with large projects
+  if (property[keyframeMsLeft]) {
+    property[keyframeMsLeft].curve = Bytecode.unserValue(newCurve)
+    property[keyframeMsLeft].edited = true
+  }
+
+  return property
+}
+
+Bytecode.moveKeyframes = (bytecode, keyframeMoves) => {
+  for (const timelineName in keyframeMoves) {
+    for (const componentId in keyframeMoves[timelineName]) {
+      for (const propertyName in keyframeMoves[timelineName][componentId]) {
+        // We might have received this over the wire, so we need to create reified functions out of serialized ones
+        const keyframeMove = Bytecode.unserValue(keyframeMoves[timelineName][componentId][propertyName])
+
+        const propertyObject = Bytecode.ensureTimelineProperty(
+          bytecode,
+          timelineName,
+          componentId,
+          propertyName
+        )
+
+        for (const oldMs in propertyObject) {
+          delete propertyObject[oldMs]
+        }
+
+        for (const newMs in keyframeMove) {
+          propertyObject[newMs] = keyframeMove[newMs]
+          propertyObject[newMs].edited = true
+        }
+      }
+    }
+  }
+}
+
+Bytecode.readAllEventHandlers = (bytecode) => {
+  if (!bytecode.eventHandlers) {
+    bytecode.eventHandlers = {}
+  }
+
+  return bytecode.eventHandlers
+}
+
+Bytecode.readAllStateValues = (bytecode) => {
+  if (!bytecode.states) {
+    bytecode.states = {}
+  }
+
+  return bytecode.states
+}
+
+Bytecode.renameTimeline = (bytecode, timelineNameOld, timelineNameNew) => {
+  const old = Bytecode.ensureTimeline(bytecode, timelineNameOld)
+  if (timelineNameOld === timelineNameNew) return old
+  if (bytecode.timelines[timelineNameNew]) return old
+  bytecode.timelines[timelineNameNew] = old
+  delete bytecode.timelines[timelineNameOld]
+  return old
+}
+
+Bytecode.serializeValue = (value) => {
+  return expressionToRO(value)
+}
+
+// We may have gotten the serialized form of a value, especially in the case
+// of a function expression/formula, so we have to convert its serialized form
+// into the reified form, i.e. the 'real' value we want to write to the user's
+// code file
+Bytecode.unserValue = (value) => {
+  // (The function expects the inverse of the setting)
+  const skipFunctions = !DO_REIFY_FUNCTIONS
+  return reifyRO(value, referenceEvaluator, skipFunctions)
+}
+
+// aka remove curve
+Bytecode.splitSegment = (bytecode, componentId, timelineName, elementName, propertyName, keyframeMs) => {
+  const property = Bytecode.ensureTimelineProperty(bytecode, timelineName, componentId, propertyName)
+
+  if (property[keyframeMs]) {
+    const orig = property[keyframeMs]
+    property[keyframeMs] = { value: orig.value }
+    if (orig.edited) property[keyframeMs].edited = true
+  }
+
+  return property
+}
+
+Bytecode.upsertEventHandler = (bytecode, selectorName, eventName, handlerDescriptor) => {
+  if (!bytecode.eventHandlers) {
+    bytecode.eventHandlers = {}
+  }
+
+  if (!bytecode.eventHandlers[selectorName]) {
+    bytecode.eventHandlers[selectorName] = {}
+  }
+
+  if (!bytecode.eventHandlers[selectorName][eventName]) {
+    bytecode.eventHandlers[selectorName][eventName] = {}
+  }
+
+  if (handlerDescriptor.handler !== undefined) {
+    bytecode.eventHandlers[selectorName][eventName].handler = Bytecode.unserValue(handlerDescriptor.handler)
+  }
+
+  // The 'edited' flag is used to determine whether a property is overwriteable during a merge.
+  // In multi-component, theoretically both designs can be merged and components can be merged.
+  bytecode.eventHandlers[selectorName][eventName].edited = true
+
+  return bytecode
+}
+
+Bytecode.upsertStateValue = (bytecode, stateName, stateDescriptor) => {
+  if (!bytecode.states) {
+    bytecode.states = {}
+  }
+
+  if (!bytecode.states[stateName]) {
+    bytecode.states[stateName] = {}
+  }
+
+  if (stateDescriptor.type !== undefined) {
+    bytecode.states[stateName].type = stateDescriptor.type
+  }
+
+  if (stateDescriptor.value !== undefined) {
+    bytecode.states[stateName].value = stateDescriptor.value
+  }
+
+  if (stateDescriptor.access !== undefined) {
+    bytecode.states[stateName].access = stateDescriptor.access
+  }
+
+  if (stateDescriptor.mock !== undefined) {
+    bytecode.states[stateName].mock = stateDescriptor.mock
+  }
+
+  if (stateDescriptor.get !== undefined) {
+    bytecode.states[stateName].get = Bytecode.unserValue(stateDescriptor.get)
+  }
+
+  if (stateDescriptor.set !== undefined) {
+    bytecode.states[stateName].set = Bytecode.unserValue(stateDescriptor.set)
+  }
+
+  // The 'edited' flag is used to determine whether a property is overwriteable during a merge.
+  // In multi-component, theoretically both designs can be merged and components can be merged.
+  bytecode.states[stateName].edited = true
+
+  return bytecode
+}
+
+Bytecode.writeMetadata = (bytecode, metadata) => {
+  if (!bytecode.metadata) bytecode.metadata = {}
+  if (metadata) {
+    for (const key in metadata) {
+      if (metadata[key] !== undefined) {
+        bytecode.metadata[key] = metadata[key]
+      }
+    }
+  }
+}
+
+Bytecode.upsertPropertyValue = (
+  bytecode,
+  componentId,
+  timelineName,
+  timelineTime,
+  propertiesToMerge,
+  strategy
+) => {
+  if (!strategy) {
+    strategy = 'merge'
+  }
+
+  const haikuSelector = 'haiku:' + componentId
+
+  if (!bytecode.timelines[timelineName][haikuSelector]) {
+    bytecode.timelines[timelineName][haikuSelector] = {}
+  }
+
+  const defaultTimeline = bytecode.timelines[timelineName][haikuSelector]
+
+  for (const propName in propertiesToMerge) {
+    if (!defaultTimeline[propName]) defaultTimeline[propName] = {}
+    if (!defaultTimeline[propName][timelineTime]) defaultTimeline[propName][timelineTime] = {}
+
+    switch (strategy) {
+      case 'merge':
+        defaultTimeline[propName][timelineTime].value = propertiesToMerge[propName]
+        break
+      case 'assign':
+        if (defaultTimeline[propName][timelineTime].value === undefined) defaultTimeline[propName][timelineTime].value = propertiesToMerge[propName]
+        break
+    }
+  }
+}
+
+Bytecode.mergeTimelineStructure = (bytecodeObject, timelineStructure, mergeStrategy) => {
+  for (const timelineName in timelineStructure) {
+    if (!bytecodeObject.timelines[timelineName]) {
+      bytecodeObject.timelines[timelineName] = timelineStructure[timelineName]
+    } else {
+      switch (mergeStrategy) {
+        case 'merge': merge(bytecodeObject.timelines[timelineName], timelineStructure[timelineName]); break
+        case 'assign': assign(bytecodeObject.timelines[timelineName], timelineStructure[timelineName]); break
+        case 'defaults': defaults(bytecodeObject.timelines[timelineName], timelineStructure[timelineName]); break
+        default: throw new Error('Unknown merge strategy `' + mergeStrategy + '`')
+      }
+    }
+  }
+}
+
 module.exports = Bytecode
 
 // Down here to avoid Node circular dependency stub objects. #FIXME
 const State = require('./State')
 const Template = require('./Template')
+const TimelineProperty = require('./TimelineProperty')
