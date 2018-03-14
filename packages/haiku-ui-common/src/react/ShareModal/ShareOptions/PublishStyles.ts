@@ -63,7 +63,7 @@ export const PUBLISH_SHARED = {
     backgroundColor: Palette.LIGHTER_GRAY,
   },
   code: {
-    background: Palette.FATHER_COAL,
+    backgroundColor: Palette.FATHER_COAL,
     borderRadius: 5,
     padding: '12px 20px',
     display: 'block',

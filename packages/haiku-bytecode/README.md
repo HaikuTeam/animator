@@ -1,3 +1,0 @@
-# bytecode
-
-Bytecode utilities

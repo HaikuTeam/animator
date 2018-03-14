@@ -26,7 +26,6 @@ tape('other.02', (t) => {
     return async.series([
       function (cb) { return mgp.initializeProject({}, cb) },
       function (cb) { return mgp.commitProjectIfChanged('Initialized test folder', cb) },
-      function (cb) { return mgp.setUndoBaselineIfHeadCommitExists(cb) },
       function (cb) {
         fse.outputFileSync(path.join(folder, 'hello.txt'), `${change('hello.txt')}`)
         fse.removeSync(path.join(folder, 'goodbye.txt'))

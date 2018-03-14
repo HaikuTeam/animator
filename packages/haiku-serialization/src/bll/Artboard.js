@@ -46,18 +46,23 @@ class Artboard extends BaseModel {
       }
     })
 
-    this.project.on('update', (what, arg) => {
+    this.project.on('update', (what, arg1, arg2) => {
       if (
         what === 'application-mounted' ||
-        what === 'resizeContext' ||
-        (what === 'reloaded' && arg === 'hard')
+        (what === 'reloaded' && arg1 === 'hard')
       ) {
         this.updateMountSize()
+      } else if (what === 'updateKeyframes') {
+        const timelineName = this.component.getCurrentTimelineName()
+        const artboardId = this.getElementHaikuId()
+        if (arg2 && arg2[timelineName] && arg2[timelineName][artboardId]) {
+          this.updateMountSize()
+        }
       }
     })
 
     this.project.on('remote-update', (what) => {
-      if (what === 'resizeContext') {
+      if (what === 'updateKeyframes') {
         this.updateMountSize()
       }
     })
@@ -110,7 +115,8 @@ class Artboard extends BaseModel {
         x: this._mountX,
         y: this._mountY,
         w: this._mountWidth,
-        h: this._mountHeight
+        h: this._mountHeight,
+        rect: this.mount.getBoundingClientRect()
       }
     }
   }
@@ -152,6 +158,8 @@ class Artboard extends BaseModel {
         this._mountY = mountY
       }
     }
+
+    this.emit('update', 'dimensions-reset')
   }
 
   updateMountSize ($container) {

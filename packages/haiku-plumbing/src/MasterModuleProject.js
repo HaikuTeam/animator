@@ -46,7 +46,7 @@ export default class MasterModuleProject extends EventEmitter {
 
     if (lastRead < lastWrite) return void (0)
 
-    logger.info('[master module] module replacment triggering')
+    logger.info('[master module] module replacment triggering', file.relpath, lastRead, lastWrite)
 
     // This is currently only used to detect whether we are in the midst of reloading so
     // that the master undo/redo queue can be smarter about whether to activate or not.

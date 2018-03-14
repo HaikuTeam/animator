@@ -54,10 +54,6 @@ const METHODS_TO_SKIP_IN_SENTRY = {
   setTimelineTime: true,
   doesProjectHaveUnsavedChanges: true,
   masterHeartbeat: true,
-  applyPropertyGroupDelta: true,
-  applyPropertyGroupValue: true,
-  moveSegmentEndpoints: true,
-  moveKeyframes: true,
   toggleDevTools: true,
   requestSyndicationInfo: true
 }
@@ -386,6 +382,13 @@ export default class Plumbing extends StateObject {
       folder = message.folder
     }
 
+    if (message.type === 'relay') {
+      return this.relayMessage(
+        folder,
+        message
+      )
+    }
+
     if (message.type === 'broadcast') {
       // HACK: This doesn't belong here, but it's convenient while I refactor
       if (message.name === 'component:reload:complete') {
@@ -572,6 +575,26 @@ export default class Plumbing extends StateObject {
     }, AWAIT_INTERVAL)
   }
 
+  relayMessage (folder, message) {
+    let clientSpec
+    if (message.view === 'glass') clientSpec = Q_GLASS
+    if (message.view === 'timeline') clientSpec = Q_TIMELINE
+    if (message.view === 'creator') clientSpec = Q_CREATOR
+    if (message.view === 'master') clientSpec = Q_MASTER
+
+    const clientQuery = lodash.assign({folder}, clientSpec)
+
+    logger.info(`[plumbing] relaying ${message.name} to ${message.view}`)
+
+    return this.awaitClientWithQuery(clientQuery, WAIT_DELAY, (err, client) => {
+      if (err) {
+        return logger.warn(`[plumbing] timed out awaiting relay client ${JSON.stringify(clientQuery)}`)
+      }
+
+      return this.sendClientMessage(client, message)
+    })
+  }
+
   sendQueriedClientMethod (query = {}, method, params = [], cb) {
     return this.awaitClientWithQuery(query, WAIT_DELAY, (err, client) => {
       if (err) return cb(err)
@@ -613,7 +636,12 @@ export default class Plumbing extends StateObject {
   sendClientRequest (websocket, message, callback) {
     if (message.id === undefined) message.id = `${Math.random()}`
     this.requests[message.id] = { websocket, message, callback }
+    return this.sendClientMessage(websocket, message)
+  }
+
+  sendClientMessage (websocket, message) {
     const data = JSON.stringify(message)
+
     // In case we get an error here, log it and then throw so we can see context
     if (websocket.readyState === WebSocket.OPEN) {
       return websocket.send(data, (err) => {
@@ -1106,14 +1134,6 @@ export default class Plumbing extends StateObject {
     return this.awaitMasterAndCallMethod(folder, 'unlinkAsset', [assetRelpath, { from: 'master' }], cb)
   }
 
-  gitUndo (folder, undoOptions, cb) {
-    return this.awaitMasterAndCallMethod(folder, 'gitUndo', [undoOptions, { from: 'master' }], cb)
-  }
-
-  gitRedo (folder, redoOptions, cb) {
-    return this.awaitMasterAndCallMethod(folder, 'gitRedo', [redoOptions, { from: 'master' }], cb)
-  }
-
   readAllStateValues (folder, relpath, cb) {
     return this.awaitMasterAndCallMethod(folder, 'readAllStateValues', [relpath, { from: 'master' }], cb)
   }
@@ -1126,9 +1146,7 @@ export default class Plumbing extends StateObject {
     // Params always arrive with the folder as the first argument, so we strip that off
     params = params.slice(1)
 
-    // Start with glass, since we depend on its handling of insantiateComponent to function correctly
-    const asyncMethod = experimentIsEnabled(Experiment.AsyncClientActions) ? 'each' : 'eachSeries'
-    return async[asyncMethod]([Q_GLASS, Q_TIMELINE, Q_CREATOR, Q_MASTER], (clientSpec, nextStep) => {
+    return async.eachSeries([Q_GLASS, Q_TIMELINE, Q_CREATOR, Q_MASTER], (clientSpec, nextStep) => {
       if (clientSpec.alias === alias) {
         // Don't send methods that originated with ourself
         return nextStep()
@@ -1138,25 +1156,10 @@ export default class Plumbing extends StateObject {
 
       // Master is handled differently because it's not actually a separate process
       if (clientSpec === Q_MASTER) {
-        return this.awaitMasterAndCallMethod(folder, method, params.concat({ from: alias }), nextStep)
+        return this.awaitMasterAndCallMethod(folder, method, params, nextStep)
       }
 
-      return this.sendQueriedClientMethod(lodash.assign({folder}, clientSpec), method, params.concat({ from: alias }), (err, maybeOutput) => {
-        if (err) return nextStep(err)
-
-        // HACK: Stupidly we have to rely on glass to tell us where to position the element based on the
-        // offset of the artboard. So in this one case we have the glass transmit a return value that
-        // we read and then use as the payload to the next actions in this pipeline
-        if (method === 'instantiateComponent' && clientSpec.alias === 'glass') {
-          if (maybeOutput && maybeOutput.center) {
-            // Called 'posdata' in the ActiveComponent method as the second arg.
-            // The third arg is the more open-ended 'metadata' (API change from May 10)
-            params[2] = maybeOutput.center
-          }
-        }
-
-        return nextStep()
-      })
+      return this.sendQueriedClientMethod(lodash.assign({folder}, clientSpec), method, params, nextStep)
     }, (err) => {
       return logAndHandleActionResult(err, cb, method, type, alias)
     })
@@ -1253,7 +1256,7 @@ Plumbing.prototype.upsertMaster = function ({ folder, fileOptions, envoyOptions 
           folder: master.folder,
           type: 'action',
           method: 'mergeDesigns',
-          params: [master.folder, relpath, designs]
+          params: [master.folder, relpath, designs, {from: 'master'}]
         },
         () => {
           logger.info(`[plumbing] finished merge designs`)

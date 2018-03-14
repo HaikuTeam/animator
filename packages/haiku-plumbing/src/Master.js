@@ -330,11 +330,7 @@ export default class Master extends EventEmitter {
               return void (0)
             }
 
-            // Since module change results in a (heavy) stage reload, we want to do it
-            // only if we really need to, i.e. if the file contents have changed
-            if (file.previous !== file.contents) {
-              this._mod.handleModuleChange(file)
-            }
+            this._mod.handleModuleChange(file)
           })
         }
       })
@@ -418,9 +414,7 @@ export default class Master extends EventEmitter {
 
     // Loop through all components and bump their bytecode metadata semver
     return async.eachSeries(acs, (ac, next) => {
-      const file = ac.fetchActiveBytecodeFile()
-
-      return file.writeMetadata({ version: tag }, (err) => {
+      return ac.writeMetadata({ version: tag }, (err) => {
         if (err) return next(err)
         logger.info(`[master-git] bumped bytecode semver on ${ac.getSceneName()} to ${tag}`)
         return next(null, tag)
@@ -437,14 +431,16 @@ export default class Master extends EventEmitter {
   //  */
 
   masterHeartbeat (cb) {
-    return cb(null, {
+    const state = {
       folder: this.folder,
       isReady: this._isReadyToReceiveMethods,
       isSaving: this._isSaving,
       isCommitting: this._git.hasAnyPendingCommits(),
-      gitUndoables: this._git.getGitUndoablesUptoBase(),
-      gitRedoables: this._git.getGitRedoablesUptoBase()
-    })
+      undoables: (this.project && this.project.actionStack.getUndoables()) || [],
+      redoables: (this.project && this.project.actionStack.getRedoables()) || []
+    }
+
+    return cb(null, state)
   }
 
   doesProjectHaveUnsavedChanges (cb) {
@@ -554,26 +550,6 @@ export default class Master extends EventEmitter {
     )
   }
 
-  gitUndo (undoOptions, cb) {
-    // Doing an undo while we're saving probably puts us into a bad state
-    if (this._isSaving) {
-      logger.info('[master] cannot undo while saving')
-      return cb()
-    }
-    logger.info('[master] pushing undo request onto queue')
-    return this._git.undo(undoOptions, cb)
-  }
-
-  gitRedo (redoOptions, cb) {
-    // Doing an redo while we're saving probably puts us into a bad state
-    if (this._isSaving) {
-      logger.info('[master] cannot redo while saving')
-      return cb()
-    }
-    logger.info('[master] pushing redo request onto queue')
-    return this._git.redo(redoOptions, cb)
-  }
-
   readAllStateValues (relpath, cb) {
     if (!this.project) {
       return cb(null, {})
@@ -647,11 +623,6 @@ export default class Master extends EventEmitter {
 
       (cb) => {
         return this._git.commitProjectIfChanged('Initialized folder', cb)
-      },
-
-      // Make sure we are starting with a good git history
-      (cb) => {
-        return this._git.setUndoBaselineIfHeadCommitExists(cb)
       }
     ], (err, results) => {
       if (err) return done(err)
@@ -740,11 +711,6 @@ export default class Master extends EventEmitter {
         return cb()
       },
 
-      // Make sure we are starting with a good git history
-      (cb) => {
-        return this._git.setUndoBaselineIfHeadCommitExists(cb)
-      },
-
       // Finish up and signal that we are ready
       (cb) => {
         this._isReadyToReceiveMethods = true
@@ -830,7 +796,7 @@ export default class Master extends EventEmitter {
             branch: branchName
           }
 
-          return ac.fetchActiveBytecodeFile().writeMetadata(bytecodeMetadata, (err) => {
+          return ac.writeMetadata(bytecodeMetadata, (err) => {
             if (err) return next(err)
             // #FIXME: we should have a mechanism to force flush in cases where we actually want I/O to be blocking.
             return ac.fetchActiveBytecodeFile().awaitNoFurtherContentFlushes(next)

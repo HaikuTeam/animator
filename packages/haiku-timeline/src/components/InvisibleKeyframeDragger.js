@@ -1,6 +1,5 @@
 import React from 'react'
 import lodash from 'lodash'
-import uuid from 'uuid/v1'
 import TimelineDraggable from './TimelineDraggable'
 import Globals from 'haiku-ui-common/lib/Globals'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
@@ -8,10 +7,27 @@ import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
 const THROTTLE_TIME = 17 // ms
 
 export default class InvisibleKeyframeDragger extends React.Component {
-  componentWillMount () {
-    this.teardownKeyframeUpdateReceiver = this.props.keyframe.registerUpdateReceiver(uuid(), (what) => {
-      this.handleUpdate(what)
-    })
+  constructor (props) {
+    super(props)
+    this.handleProps(props)
+  }
+
+  componentWillReceiveProps (nextProps) {
+    this.handleProps(nextProps)
+  }
+
+  handleProps ({ keyframe }) {
+    if (
+      keyframe !== this.props.keyframe ||
+      !this.teardownKeyframeUpdateReceiver
+    ) {
+      if (this.teardownKeyframeUpdateReceiver) {
+        this.teardownKeyframeUpdateReceiver()
+      }
+      this.teardownKeyframeUpdateReceiver = keyframe.registerUpdateReceiver(this.props.id, (what) => {
+        this.handleUpdate(what)
+      })
+    }
   }
 
   componentDidMount () {
@@ -59,7 +75,7 @@ export default class InvisibleKeyframeDragger extends React.Component {
           this.props.component.dragSelectedKeyframes(frameInfo.pxpf, frameInfo.mspf, dragData, { alias: 'timeline' })
         }, THROTTLE_TIME)}>
         <span
-          id={`keyframe-dragger-${this.props.keyframe.getUniqueKeyWithoutTimeIncluded()}`}
+          id={`keyframe-dragger-${this.props.keyframe.getUniqueKey()}`}
           onContextMenu={(ctxMenuEvent) => {
             ctxMenuEvent.stopPropagation()
             this.props.keyframe.handleContextMenu({...Globals}, {isViaKeyframeDraggerView: true})
@@ -94,6 +110,7 @@ export default class InvisibleKeyframeDragger extends React.Component {
 }
 
 InvisibleKeyframeDragger.propTypes = {
+  id: React.PropTypes.string.isRequired,
   offset: React.PropTypes.number.isRequired,
   keyframe: React.PropTypes.object.isRequired,
   rowHeight: React.PropTypes.number.isRequired,

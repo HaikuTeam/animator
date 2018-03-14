@@ -1,6 +1,6 @@
-const lodash = require('lodash')
-const assign = require('lodash.assign')
+const { Experiment, experimentIsEnabled } = require('haiku-common/lib/experiments')
 const BaseModel = require('./BaseModel')
+const TimelineProperty = require('haiku-serialization/src/bll/TimelineProperty')
 
 const NAVIGATION_DIRECTIONS = {
   SAME: 0,
@@ -25,6 +25,7 @@ const NAVIGATION_DIRECTIONS = {
  *.  to get the rows that would be displayed inside/underneath that row in question
  *.  (presuming that they are visible per the visibility rules).
  */
+
 class Row extends BaseModel {
   constructor (props, opts) {
     super(props, opts)
@@ -35,14 +36,13 @@ class Row extends BaseModel {
     this._isActive = false
     this._isHidden = false
     this._isHovered = false
-    this._isDeleted = false
 
     // Hacky check whether we've already auto-expanded this row
     this._wasInitiallyExpanded = false
   }
 
   getUniqueKey () {
-    return `${this.element.getComponentId()}-${this.getType()}-${this.getClusterNameString()}-${this.getPropertyNameString()}`
+    return `${this.element.getComponentId()}+${this.host.getComponentId()}-${this.getType()}-${this.getClusterNameString()}-${this.getPropertyNameString()}`
   }
 
   deselectOthers (metadata) {
@@ -54,11 +54,10 @@ class Row extends BaseModel {
   }
 
   select (metadata) {
-    if (!this._isSelected || !Row._selected[this.getUniqueKey()]) {
+    if (!this._isSelected) {
       this.deselectOthers(metadata)
 
       this._isSelected = true
-      Row._selected[this.getUniqueKey()] = this
       this.emit('update', 'row-selected', metadata)
 
       // Roundabout! Note that elements, when selected, will select their corresponding row
@@ -70,9 +69,8 @@ class Row extends BaseModel {
   }
 
   deselect (metadata) {
-    if (this._isSelected || Row._selected[this.getUniqueKey()]) {
+    if (this._isSelected) {
       this._isSelected = false
-      delete Row._selected[this.getUniqueKey()]
       this.emit('update', 'row-deselected', metadata)
 
       // Roundabout! Note that elements, when unselected, will unselect their corresponding row
@@ -88,18 +86,16 @@ class Row extends BaseModel {
   }
 
   activate () {
-    if (!this._isActive || !Row._active[this.getUniqueKey()]) {
+    if (!this._isActive) {
       this._isActive = true
-      Row._active[this.getUniqueKey()] = this
       this.emit('update', 'row-activated')
     }
     return this
   }
 
   deactivate () {
-    if (this._isActive || Row._active[this.getUniqueKey()]) {
+    if (this._isActive) {
       this._isActive = false
-      delete Row._active[this.getUniqueKey()]
       this.emit('update', 'row-deactivated')
     }
     return this
@@ -110,9 +106,8 @@ class Row extends BaseModel {
   }
 
   expand (metadata) {
-    if (!this._isExpanded || !Row._expanded[this.getUniqueKey()]) {
+    if (!this._isExpanded) {
       this._isExpanded = true
-      Row._expanded[this.getUniqueKey()] = this
       this.emit('update', 'row-expanded', metadata)
     }
 
@@ -125,9 +120,8 @@ class Row extends BaseModel {
   }
 
   collapse (metadata) {
-    if (this._isExpanded || Row._expanded[this.getUniqueKey()]) {
+    if (this._isExpanded) {
       this._isExpanded = false
-      delete Row._expanded[this.getUniqueKey()]
       this.emit('update', 'row-collapsed', metadata)
     }
     return this
@@ -158,20 +152,18 @@ class Row extends BaseModel {
   }
 
   focus (metadata) {
-    if (!this._isFocused || !Row._focused[this.getUniqueKey()]) {
+    if (!this._isFocused) {
       this.blurOthers(metadata)
 
       this._isFocused = true
-      Row._focused[this.getUniqueKey()] = this
       this.emit('update', 'row-focused', metadata)
     }
     return this
   }
 
   blur (metadata) {
-    if (this._isFocused || Row._focused[this.getUniqueKey()]) {
+    if (this._isFocused) {
       this._isFocused = false
-      delete Row._focused[this.getUniqueKey()]
       this.emit('update', 'row-blurred', metadata)
     }
     return this
@@ -182,18 +174,16 @@ class Row extends BaseModel {
   }
 
   hide () {
-    if (!this._isHidden || !Row._hidden[this.getUniqueKey()]) {
+    if (!this._isHidden) {
       this._isHidden = true
-      Row._hidden[this.getUniqueKey()] = this
       this.emit('update', 'row-hidden')
     }
     return this
   }
 
   show () {
-    if (this._isHidden || Row._hidden[this.getUniqueKey()]) {
+    if (this._isHidden) {
       this._isHidden = false
-      delete Row._hidden[this.getUniqueKey()]
       this.emit('update', 'row-shown')
     }
     return this
@@ -204,9 +194,8 @@ class Row extends BaseModel {
   }
 
   hover () {
-    if (!this._isHovered || !Row._hovered[this.getUniqueKey()]) {
+    if (!this._isHovered) {
       this._isHovered = true
-      Row._hovered[this.getUniqueKey()] = this
       this.emit('update', 'row-hovered')
     }
     return this
@@ -224,9 +213,8 @@ class Row extends BaseModel {
   }
 
   unhover () {
-    if (this._isHovered || Row._hovered[this.getUniqueKey()]) {
+    if (this._isHovered) {
       this._isHovered = false
-      delete Row._hovered[this.getUniqueKey()]
       this.emit('update', 'row-unhovered')
     }
     return this
@@ -270,56 +258,93 @@ class Row extends BaseModel {
     return baselineCurve
   }
 
-  isDeleted () {
-    return this._isDeleted
-  }
-
   delete () {
-    this._isDeleted = true
-
     // Deleting a parent row means the children also have to go
     this.children.forEach((child) => {
       child.delete()
     })
-
-    this.blur()
-    this.deselect()
-    this.unhover()
 
     this.destroy()
 
     this.emit('update', 'row-deleted')
   }
 
-  hasZerothKeyframe () {
-    return !!this.getZerothKeyframe()
+  rehydrate () {
+    this.rehydrateKeyframes()
   }
 
-  getZerothKeyframe () {
-    return this.getKeyframes().filter((keyframe) => {
-      return keyframe.getMs() < 1
-    })[0]
-  }
+  rehydrateKeyframes () {
+    const valueGroup = TimelineProperty.getValueGroup(
+      this.element.getComponentId(),
+      this.component.getCurrentTimelineName(),
+      this.getPropertyNameString(),
+      this.component.getReifiedBytecode()
+    )
 
-  ensureZerothKeyframe (metadata) {
-    if (!this.hasZerothKeyframe()) {
-      this.createKeyframe(this.getZerothValue(), 0, metadata)
-    } else {
-      // if a keyframe was dragged onto zero position we want to delete the zero keyframe
-      const keyframes = this.getKeyframes()
-      while (keyframes.length > 1 && keyframes[1].getMs() < 1) {
-        const keyframe = keyframes.shift()
-        keyframe.delete(metadata)
-      }
+    if (!valueGroup) {
+      return []
     }
-  }
 
-  fixKeyframeIndices () {
-    const siblings = this.getKeyframes()
-    siblings.forEach((keyframe, index) => {
-      keyframe.index = index
-      keyframe.uid = Keyframe.getInferredUid(this, index)
-      keyframe.cacheClear()
+    const keyframesList = Object.keys(valueGroup)
+      .map((keyframeKey) => parseInt(keyframeKey, 10))
+      .sort((a, b) => a - b)
+
+    if (keyframesList.length < 1) {
+      return []
+    }
+
+    this.getKeyframes().forEach((keyframe) => {
+      keyframe.mark()
+    })
+
+    for (let i = 0; i < keyframesList.length; i++) {
+      let mscurr = keyframesList[i]
+
+      if (isNaN(mscurr)) {
+        continue
+      }
+
+      // Unknown why, but sometimes this isn't present and we crash
+      if (!valueGroup[mscurr] || valueGroup[mscurr].value === undefined) {
+        continue
+      }
+
+      const value = valueGroup[mscurr].value
+
+      let curve = valueGroup[mscurr].curve
+      // The upsert assumes that undefined means 'leave the previous value', so if we
+      // get an undefined curve here, we need to set it explicitly as 'null' to unset
+      // the curve from the previous keyframe object that lives at this uid
+      if (curve === undefined) {
+        curve = null
+      }
+
+      const uid = Keyframe.getInferredUid(this, mscurr)
+
+      Keyframe.upsert({
+        // The keyframe's uid is in the context of the row, which is in turn in context of the component
+        uid,
+        origMs: mscurr,
+        ms: mscurr,
+        index: i,
+        value,
+        curve,
+        row: this,
+        element: this.element,
+        timeline: this.timeline,
+        component: this.component
+      }, {})
+    }
+
+    this.getKeyframes().forEach((keyframe) => {
+      keyframe.sweep()
+    })
+
+    const updatedKeyframes = this.getKeyframes()
+
+    updatedKeyframes.forEach((keyframe, idx) => {
+      keyframe._prev = updatedKeyframes[idx - 1]
+      keyframe._next = updatedKeyframes[idx + 1]
     })
   }
 
@@ -330,121 +355,45 @@ class Row extends BaseModel {
       return this.expandAndSelect(metadata)
     }
 
-    const siblings = this.getKeyframes()
-
-    let indexToAssign = null
-    let existingAtMs = null
-
-    // Try to find a sibling that already exists in our spot, so we can replace it
-    siblings.forEach((sibling) => {
-      if (sibling.getMs() === ms) {
-        existingAtMs = sibling
-        indexToAssign = existingAtMs.getIndex()
-      }
-    })
-
-    // If nothing at our spot, this is an insertion, and we have to update indices
-    if (!existingAtMs) {
-      siblings.forEach((sibling) => {
-        if (sibling.getMs() >= ms) {
-          // We're going to insert the keyframe where it belongs in sequence, per the ms value
-          // The first sibling we find represents the index our new keyframe will get
-          if (indexToAssign === null) {
-            indexToAssign = sibling.getIndex()
-          }
-          // For uids to work, we have to shift the index over for all extant keyframes
-          if (sibling.getMs() !== ms) {
-            sibling.incrementIndex()
-          }
-        }
-      })
-    }
-
-    // If no sibling had a greater ms, we are either the first (only) or last keyframe
-    if (indexToAssign === null) {
-      indexToAssign = siblings.length
-    }
-
     let valueToAssign
 
     // If no value provided, we'll grab a value from existing keyframes here
     if (value === undefined) {
-      // If we are replacing an existing keyframe, use the existing one's value
-      if (existingAtMs) {
-        valueToAssign = existingAtMs.getValue()
-      } else {
-        // Otherwise, grab the value from the previous keyframe known in the sequence
-        valueToAssign = this.getBaselineValueAtMillisecond(ms)
-      }
+      // Otherwise, grab the value from the previous keyframe known in the sequence
+      valueToAssign = this.getBaselineValueAtMillisecond(ms)
     } else {
       valueToAssign = value
     }
 
-    let curveToAssign
+    const curveToAssign = this.getBaselineCurveAtMillisecond(ms)
 
-    if (existingAtMs) {
-      curveToAssign = existingAtMs.getCurve()
-    } else {
-      // Otherwise, grab the value from the previous keyframe known in the sequence
-      curveToAssign = this.getBaselineCurveAtMillisecond(ms)
-    }
-
-    // If value is undefined, create a keyframe with the default
-    const upsertSpec = {
-      ms: ms,
-      uid: Keyframe.getInferredUid(this, indexToAssign),
-      index: indexToAssign,
-      value: valueToAssign,
-      row: this,
-      element: this.element,
-      timeline: this.timeline,
-      component: this.component
-    }
-
-    // We don't include curve so the previous curve is used if we're replacing an existing keyframe
-    if (curveToAssign) {
-      upsertSpec.curve = curveToAssign
-    }
-
-    const created = Keyframe.upsert(upsertSpec, {}, { row: this })
-
-    // Update the bytecode directly via ActiveComponent, which updates Timeline UI
+    // Update the bytecode directly via ActiveComponent, which updates Timeline UI.
+    // Note that createKeyframe handles rehydrating the keyframes with correct indices.
     this.component.createKeyframe(
       this.element.getComponentId(),
       this.timeline.getName(),
       this.element.getNameString(),
       this.getPropertyNameString(),
-      created.getMs(),
-      created.getValue(),
-      created.getCurve(),
+      ms,
+      valueToAssign,
+      curveToAssign,
       null, // end ms, not used?
       null, // end value, not used?
       metadata,
       () => {}
     )
 
-    this.ensureZerothKeyframe(metadata)
-
-    this.fixKeyframeIndices()
+    // Clear timeline caches; the max frame might have changed.
+    Timeline.clearCaches()
 
     this.emit('update', 'keyframe-create')
     if (this.parent) this.parent.emit('update', 'keyframe-create')
-
-    return created
   }
 
   deleteKeyframe (keyframe, metadata) {
     keyframe.destroy()
 
-    const siblings = this.getKeyframes()
-
-    siblings.forEach((sibling) => {
-      // Shift the indices of all those that come after this one
-      if (sibling.getMs() > keyframe.getMs()) {
-        sibling.decrementIndex()
-      }
-    })
-
+    // Note that component.deleteKeyframe handles rehydrating keyframes with the correct indices
     this.component.deleteKeyframe(
       this.element.getComponentId(),
       this.timeline.getName(),
@@ -454,64 +403,68 @@ class Row extends BaseModel {
       () => {}
     )
 
-    if (keyframe.getMs() < 1) {
-      this.ensureZerothKeyframe(metadata)
-    }
-
-    this.fixKeyframeIndices()
+    // Clear timeline caches; the max frame might have changed.
+    Timeline.clearCaches()
 
     this.emit('update', 'keyframe-delete')
     if (this.parent) this.parent.emit('update', 'keyframe-delete')
-
-    // Make sure any deleted keyframe have been fully deselected to avoid ghost issues
-    Keyframe.deselectAndDeactivateAllDeletedKeyframes({ component: this.component })
-
-    return keyframe
   }
 
   getDescriptor () {
     return this.property
   }
 
-  getKeyframes (criteria) {
-    const keyframes = this.component.getCurrentKeyframes(lodash.assign({ row: this }, criteria))
-    return lodash.orderBy(keyframes, [(k) => k.index])
+  getKeyframes () {
+    return Keyframe.where({ row: this }).sort((a, b) => a.index - b.index)
   }
 
-  getKeyframe (idx) {
-    return this.getKeyframes()[idx]
-  }
-
-  mapVisibleKeyframes (iteratee) {
+  mapVisibleKeyframes ({ maxDepth = Infinity }, iteratee) {
     // Avoid extra computation by not returning keyframes from too deep in the tree
-    if (this.depth > 3) {
+    if (this.getDepthAmongRows() > maxDepth) {
       return []
     }
 
     // If we are a heading row (either a cluster or an element), we have no keyframes,
     // so we instead query our children for the list of keyframes within us
     if (this.isHeading() || this.isClusterHeading()) {
-      return lodash.flatten(this.children.map((child) => child.mapVisibleKeyframes(iteratee)))
+      return [...this.children.map((child) => child.mapVisibleKeyframes({ maxDepth }, iteratee))]
     }
 
     const keyframes = this.getKeyframes()
     const frameInfo = this.timeline.getFrameInfo()
 
-    return keyframes.filter((keyframe) => {
-      return (
-        !keyframe.isDeleted() &&
-        !keyframe.isDestroyed() &&
-        keyframe.isVisible(frameInfo.msA, frameInfo.msB)
-      )
-    }).map(iteratee)
+    return keyframes.filter((keyframe) => keyframe.isVisible(frameInfo.msA, frameInfo.msB)).map(iteratee)
   }
 
   isState () {
     return this.property && this.property.type === 'state'
   }
 
+  isFirstRowOfSubElementSet () {
+    if (this.isHeading()) return true
+    const prev = this.prev()
+    if (!prev) return true
+    if (prev.element !== this.element) return true
+    if (prev.isHeading()) return true
+    if (prev.isClusterHeading()) {
+      return prev.isFirstRowOfSubElementSet()
+    }
+    return false
+  }
+
+  isLastRowOfSubElementSet () {
+    const next = this.next()
+    if (!next) return true
+    if (next.element !== this.element) return true
+    return false
+  }
+
   isFirstRowOfPropertyCluster () {
-    return this.cluster && this.property && this.subseq === 0
+    return this.cluster && this.property && this.getIndexWithinParentRow() === 0
+  }
+
+  isClusterProperty () {
+    return this.cluster && !this.property
   }
 
   isClusterHeading () {
@@ -524,6 +477,13 @@ class Row extends BaseModel {
 
   isProperty () {
     return !!this.property
+  }
+
+  isPropertyOfName (propertyName) {
+    return (
+      this.property &&
+      this.property.name === propertyName
+    )
   }
 
   isHeading () {
@@ -542,7 +502,7 @@ class Row extends BaseModel {
     if (this.isHeading()) id = 'heading'
     else if (this.isClusterHeading()) id = 'cluster-heading'
     else id = this.getPropertyNameString()
-    return `${this.element.getAddress()}/${id}`
+    return `${this.element.getGraphAddress()}/${id}`
   }
 
   getClusterNameString () {
@@ -574,24 +534,6 @@ class Row extends BaseModel {
   // This is a dupe of getPropertyNameString, not sure which is preferred
   getPropertyName () {
     return this.property && this.property.name
-  }
-
-  getZerothValue () {
-    // When creating a zeroth keyframe, assign to it the value of the first keyframe
-    // so when keyframes are dragged from zero, they retain the value they used to have
-    const keyframes = this.getKeyframes()
-    if (keyframes && keyframes.length > 0) {
-      const first = keyframes[0]
-      return first.getValue()
-    }
-
-    if (this.property) {
-      if (this.property.fallback !== undefined) {
-        return this.property.fallback
-      }
-    }
-
-    return 1 // Possibly safer and more obvious than 0?
   }
 
   isClusterActivated (item) {
@@ -626,20 +568,80 @@ class Row extends BaseModel {
     return typeof this.element.getStaticTemplateNode() === 'string'
   }
 
-  isPropertyOnLastComponent () {
-    // const propertyOnLastComponent = item.siblings.length > 0 && item.index === item.siblings.length - 1
+  clearEntityCaches () {
+    if (this.children) {
+      this.children.forEach((row) => {
+        row.cacheClear()
+        row.clearEntityCaches()
+      })
+    }
+
+    this.getKeyframes().forEach((keyframe) => {
+      keyframe.cacheClear()
+    })
+  }
+
+  getPosition () {
+    if (typeof this.position === 'number') return this.position
+    return Number.MAX_SAFE_INTEGER
+  }
+
+  setPosition (position) {
+    this.position = position
+  }
+
+  getDepthAmongRows () {
+    let depth = 0
+    let parent = this.parent
+    while (parent) {
+      depth += 1
+      parent = parent.parent
+    }
+    return depth
+  }
+
+  getDepthAmongElements () {
+    return this.element.getDepthAmongElements()
+  }
+
+  getAllSiblings () {
+    return (this.parent && this.parent.children) || []
+  }
+
+  getIndexWithinParentRow () {
+    const siblings = this.getAllSiblings()
+    for (let i = 0; i < siblings.length; i++) {
+      if (siblings[i] === this) return i
+    }
+    return 0
+  }
+
+  getIndexWithinHostElement () {
+    const rows = this.host.getHostedRows()
+    for (let i = 0; i < rows.length; i++) {
+      if (rows[i] === this) return i
+    }
+    return 0
+  }
+
+  doesTargetHostElement () {
+    return this.host === this.element
   }
 
   next () {
     return this.cacheFetch('next', () => {
-      return Row.find({ place: this.place + 1 })
+      return Row.findByGlobalPosition({ component: this.component }, this.getPosition() + 1)
     })
   }
 
   prev () {
     return this.cacheFetch('prev', () => {
-      return Row.find({ place: this.place - 1 })
+      return Row.findByGlobalPosition({ component: this.component }, this.getPosition() - 1)
     })
+  }
+
+  isIt () {
+    return this.getPrimaryKey() === '/Users/matthew/Code/HaikuTeam/mono/packages/haiku-timeline/test/projects/complex::main::f203a65f49c0::f203a65f49c0+f203a65f49c0-property-opacity'
   }
 
   /**
@@ -647,7 +649,7 @@ class Row extends BaseModel {
    * @description When debugging, use this to log a concise shorthand of this entity.
    */
   dump () {
-    let str = `${this.getType()}.${this.element.getComponentId()}.${this.place}|${this.depth}.${this.seq}.${this.index}`
+    let str = `${this.getType()}.${this.element.getComponentId()}<${this.element.getSafeDomFriendlyName()}>|${this.getDepthAmongRows()}.${this.getIndexWithinParentRow()}.${this.getIndexWithinHostElement()}`
     if (this.isCluster()) str += `.${this.cluster.prefix}[]`
     if (this.isProperty()) str += `.${this.getPropertyName()}`
     if (this.isSelected()) str += ' {s}'
@@ -659,27 +661,17 @@ class Row extends BaseModel {
 
 Row.DEFAULT_OPTIONS = {
   required: {
-    timeline: true,
-    element: true,
-    component: true,
-    depth: true,
-    index: true,
-    seq: true,
-    place: true
+    timeline: true, // Timeline
+    host: true, // Element
+    element: true, // Element
+    component: true // Component
   }
 }
 
-BaseModel.extend(Row)
-
-Row._selected = {}
-Row._focused = {}
-Row._expanded = {}
-Row._active = {}
-Row._hidden = {}
-Row._hovered = {}
+BaseModel.extend(Row, { useQueryCache: experimentIsEnabled(Experiment.BaseModelQueryCache) })
 
 Row.top = (criteria) => {
-  return Row.find(assign({ parent: null }, criteria))
+  return Row.find(Object.assign({ parent: null }, criteria))
 }
 
 Row.findByComponentAndHaikuId = (component, haikuId) => {
@@ -695,34 +687,33 @@ Row.findPropertyRowsByComponentAndParentHaikuId = (component, haikuId) => {
 }
 
 Row.getDisplayables = (criteria) => {
-  return Row
-    .where(criteria)
-    .filter((row) => {
-      if (row.isDeleted() || row.isDestroyed()) {
-        return false
-      }
+  const rows = Row.where(criteria)
 
+  return rows.filter((row) => {
+    // If we're targeting the host element, limit the depth we'll display;
+    // rows that target elements other than the host are sub-element rows
+    if (row.doesTargetHostElement()) {
       // Nothing after the third level of depth (elements, properties, etc)
-      if (row.depth > 3) {
+      if (row.getDepthAmongElements() > 3) {
         return false
       }
 
       // No third-level elements
-      if (row.depth === 2 && row.parent.isHeading()) {
+      if (row.getDepthAmongElements() >= 2 && row.parent && row.parent.isHeading()) {
         return false
       }
+    }
 
-      // Don't display any rows that are hidden by their parent being collapsed
-      if (row.isWithinCollapsedRow()) {
-        return false
-      }
+    // Don't display any rows that are hidden by their parent being collapsed
+    if (row.isWithinCollapsedRow()) {
+      return false
+    }
 
-      return true
-    })
-    .sort((rowA, rowB) => {
-      // This is assigned when ActiveComponent rehydrates the rows
-      return rowA.place - rowB.place
-    })
+    return true
+  }).sort((rowA, rowB) => {
+    // This is assigned when ActiveComponent rehydrates the rows
+    return rowA.getPosition() - rowB.getPosition()
+  })
 }
 
 Row.cyclicalNav = function cyclicalNav (criteria, row, navDir) {
@@ -775,7 +766,7 @@ Row.focusSelectNext = function focusSelectNext (criteria, navDir, doFocus, metad
 
   const target = (previous)
     ? Row.cyclicalNav(criteria, previous, navDir)
-    : Row.cyclicalNav(criteria, Row.find(assign({ place: 0 }, criteria)), navDir)
+    : Row.cyclicalNav(criteria, Row.findByGlobalPosition(criteria, 0), navDir)
 
   target.expand(metadata)
   target.select(metadata)
@@ -846,11 +837,17 @@ Row.dumpHierarchyInfo = (criteria) => {
   })
 }
 
-// The last row is the row with the largest 'place' via the AC _numRows counter
+Row.findByGlobalPosition = (criteria, position) => {
+  return Row.where(criteria).filter((row) => {
+    return row.getPosition() === position
+  })[0]
+}
+
+// The last row is the row with the largest global position
 Row.last = (criteria) => {
   let max = Row.first(criteria)
   Row.where(criteria).forEach((row) => {
-    if (row.place > max.place) {
+    if (row.getPosition() > max.getPosition()) {
       max = row
     }
   })
@@ -858,32 +855,34 @@ Row.last = (criteria) => {
 }
 
 Row.first = (criteria) => {
-  return Row.find(assign({ place: 0 }, criteria))
+  return Row.findByGlobalPosition(criteria, 0)
 }
 
-Row.buildPropertyUid = (component, element, addressableName) => {
-  return `${component.getPrimaryKey()}::${element.getComponentId()}-property-${addressableName}`
+// The id-generators below accept a "host element" and a "target element";
+// the host element is the element in the timeline under which a row displays;
+// the target element is the element to which the row's property value applies.
+// The host and target can be different (consider the way rows display in the timeline):
+// An element in the timeline can display rows for properties applied to its descendant
+// element, not just its own properties. In that case, the host element is not the target element,
+// and so we need to pass both in so we create non-colliding Row objects.
+
+Row.buildPropertyUid = (component, hostElement, targetElement, addressableName) => {
+  const elementId = `${hostElement.getComponentId()}+${targetElement.getComponentId()}`
+  return `${component.getPrimaryKey()}::${elementId}-property-${addressableName}`
 }
 
-Row.buildClusterUid = (component, element, propertyGroupDescriptor) => {
-  return `${component.getPrimaryKey()}::${element.getComponentId()}-cluster-${propertyGroupDescriptor.cluster.prefix}`
+Row.buildClusterUid = (component, hostElement, targetElement, propertyGroupDescriptor) => {
+  const elementId = `${hostElement.getComponentId()}+${targetElement.getComponentId()}`
+  return `${component.getPrimaryKey()}::${elementId}-cluster-${propertyGroupDescriptor.cluster.prefix}`
 }
 
-Row.buildClusterMemberUid = (component, element, propertyGroupDescriptor, addressableName) => {
-  return `${component.getPrimaryKey()}::${element.getComponentId()}-cluster-${propertyGroupDescriptor.cluster.prefix}-property-${addressableName}`
+Row.buildClusterMemberUid = (component, hostElement, targetElement, propertyGroupDescriptor, addressableName) => {
+  const elementId = `${hostElement.getComponentId()}+${targetElement.getComponentId()}`
+  return `${component.getPrimaryKey()}::${elementId}-cluster-${propertyGroupDescriptor.cluster.prefix}-property-${addressableName}`
 }
 
-Row.buildHeadingUid = (component, element) => {
-  return `${component.getPrimaryKey()}::${element.getComponentId()}-heading`
-}
-
-Row.fetchAndUnsetRowsToEnsureZerothKeyframe = (criteria) => {
-  const rows = []
-  Row.where(lodash.assign({ _needsToEnsureZerothKeyframe: true }, criteria)).forEach((row) => {
-    row._needsToEnsureZerothKeyframe = false
-    rows.push(row)
-  })
-  return rows
+Row.buildHeadingUid = (component, hostElement) => {
+  return `${component.getPrimaryKey()}::${hostElement.getComponentId()}-heading`
 }
 
 module.exports = Row

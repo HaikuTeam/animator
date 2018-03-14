@@ -1,7 +1,6 @@
 import React from 'react'
 import Color from 'color'
 import lodash from 'lodash'
-import uuid from 'uuid/v1'
 import Palette from 'haiku-ui-common/lib/Palette'
 import TimelineDraggable from './TimelineDraggable'
 import KeyframeSVG from 'haiku-ui-common/lib/react/icons/KeyframeSVG'
@@ -79,10 +78,27 @@ const CURVESVGS = {
 const THROTTLE_TIME = 17 // ms
 
 export default class TransitionBody extends React.Component {
-  componentWillMount () {
-    this.teardownKeyframeUpdateReceiver = this.props.keyframe.registerUpdateReceiver(uuid(), (what) => {
-      this.handleUpdate(what)
-    })
+  constructor (props) {
+    super(props)
+    this.handleProps(props)
+  }
+
+  componentWillReceiveProps (nextProps) {
+    this.handleProps(nextProps)
+  }
+
+  handleProps ({ keyframe }) {
+    if (
+      keyframe !== this.props.keyframe ||
+      !this.teardownKeyframeUpdateReceiver
+    ) {
+      if (this.teardownKeyframeUpdateReceiver) {
+        this.teardownKeyframeUpdateReceiver()
+      }
+      this.teardownKeyframeUpdateReceiver = keyframe.registerUpdateReceiver(this.props.id, (what) => {
+        this.handleUpdate(what)
+      })
+    }
   }
 
   componentDidMount () {
@@ -125,7 +141,7 @@ export default class TransitionBody extends React.Component {
     return (
       <TimelineDraggable
         // NOTE: We cannot use 'curr.ms' for key here because these things move around
-        id={`transition-body-${this.props.keyframe.getUniqueKeyWithoutTimeIncluded()}`}
+        id={`transition-body-${this.props.keyframe.getUniqueKey()}`}
         axis='x'
         onMouseDown={(mouseEvent) => {
           // This logic is here to allow transitions to be dragged without having
@@ -267,6 +283,7 @@ export default class TransitionBody extends React.Component {
 }
 
 TransitionBody.propTypes = {
+  id: React.PropTypes.string.isRequired,
   keyframe: React.PropTypes.object.isRequired,
   timeline: React.PropTypes.object.isRequired,
   component: React.PropTypes.object.isRequired,

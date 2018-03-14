@@ -88,25 +88,30 @@ function numberize(n) {
   return parseInt(n, 10);
 }
 
-function sortedKeyframes(keyframeGroup) {
+function sortedKeyframesCached(keyframeGroup) {
   // Cache the output of this on the object since this is very hot
   if (keyframeGroup.__sorted) {
     return keyframeGroup.__sorted;
   }
 
-  const keys = Object.keys(keyframeGroup);
-  const sorted = keys.sort(ascendingSort).map(numberize);
+  const sorted = sortedKeyframes(keyframeGroup);
 
   // Cache the sorted keys
   keyframeGroup.__sorted = sorted;
   return keyframeGroup.__sorted;
 }
 
+function sortedKeyframes(keyframeGroup) {
+  const keys = Object.keys(keyframeGroup);
+  const sorted = keys.sort(ascendingSort).map(numberize);
+  return sorted;
+}
+
 // 0:    { value: { ... } }
 // 2500: { value: { ... } }
 // 5000: { value: { ... } }
 function getKeyframesList(keyframeGroup, nowValue) {
-  const sorted = sortedKeyframes(keyframeGroup);
+  const sorted = sortedKeyframesCached(keyframeGroup);
   for (let i = 0; i < sorted.length; i++) {
     const j = i + 1;
     const current = sorted[i];
@@ -235,4 +240,5 @@ function getTransitionValue(currentKeyframe, currentTransition, nextKeyframe, ne
 export default {
   calculateValue,
   calculateValueAndReturnUndefinedIfNotWorthwhile,
+  sortedKeyframes,
 };

@@ -1,7 +1,5 @@
 const numeral = require('numeral')
-const lodash = require('lodash')
-const assign = require('lodash.assign')
-const TimelineProperty = require('haiku-bytecode/src/TimelineProperty')
+const TimelineProperty = require('haiku-serialization/src/bll/TimelineProperty')
 const getTimelineMaxTime = require('@haiku/core/lib/helpers/getTimelineMaxTime').default
 const BaseModel = require('./BaseModel')
 const MathUtils = require('./MathUtils')
@@ -10,7 +8,6 @@ const formatSeconds = require('haiku-ui-common/lib/helpers/formatSeconds').defau
 const DURATION_DRAG_INCREASE = 20 // Increase by this much per each duration increase
 const DURATION_DRAG_TIMEOUT = 300 // Wait this long before increasing the duration
 const DURATION_MOD_TIMEOUT = 100
-const STANDARD_DEBOUNCE = 100
 
 /**
  * @class Timeline
@@ -55,8 +52,6 @@ class Timeline extends BaseModel {
     this._scrollbarEnd = 0
     this._hoveredFrame = 0
     this._timeDisplayMode = Timeline.TIME_DISPLAY_MODE.FRAMES
-
-    this.debouncedRehydrate = lodash.debounce(this.rehydrate.bind(this), STANDARD_DEBOUNCE)
 
     this.raf = null // Store raf so it can be cancelled
     this.update = this.update.bind(this)
@@ -170,7 +165,7 @@ class Timeline extends BaseModel {
       const channel = this.component.project.getEnvoyChannel('timeline')
       // Don't know why, but this can be undefined in some edge case/race
       if (channel) {
-        channel.play(this.uid).then(() => {
+        channel.play(this.getPrimaryKey()).then(() => {
           this.update()
         })
       }
@@ -183,7 +178,7 @@ class Timeline extends BaseModel {
       const channel = this.component.project.getEnvoyChannel('timeline')
       // Don't know why, but this can be undefined in some edge case/race
       if (channel) {
-        channel.pause(this.uid).then((finalFrame) => {
+        channel.pause(this.getPrimaryKey()).then((finalFrame) => {
           this.setCurrentFrame(finalFrame)
           this.setAuthoritativeFrame(finalFrame)
         })
@@ -201,7 +196,7 @@ class Timeline extends BaseModel {
     // Don't bother with any part of this update if we're already at this frame
     if (forceSeek || this.getCurrentFrame() !== newFrame) {
       this.setCurrentFrame(newFrame)
-      const id = this.uid
+      const id = this.getPrimaryKey()
       const tuple = id + '|' + newFrame
       const last = this._lastSeek
       if (forceSeek || last !== tuple) {
@@ -248,12 +243,12 @@ class Timeline extends BaseModel {
       // When ActiveComponent is loaded, it calls setTimelineTimeValue() -> seek(),
       // which may occur before Envoy channels are opened, hence this check.
       if (timelineChannel) {
-        timelineChannel.seekToFrameAndPause(this.uid, newFrame).then((finalFrame) => {
+        timelineChannel.seekToFrameAndPause(this.getPrimaryKey(), newFrame).then((finalFrame) => {
           this.setCurrentFrame(finalFrame)
           this.setAuthoritativeFrame(finalFrame)
         })
       } else {
-        console.warn(`[haiku:Timeline] envoy timeline channel not open (seekToFrameAndPause ${this.uid}, ${newFrame})`)
+        console.warn(`[haiku:Timeline] envoy timeline channel not open (seekToFrameAndPause ${this.getPrimaryKey()}, ${newFrame})`)
       }
     }
   }
@@ -306,6 +301,7 @@ class Timeline extends BaseModel {
 
   setMaxFrame (maxFrame) {
     this._maxFrame = maxFrame
+    this.cacheUnset('frameInfo')
     return this
   }
 
@@ -359,7 +355,7 @@ class Timeline extends BaseModel {
         }
 
         const timelineInstance = timelineInstances[timelineName]
-        timelineInstance._controlTime(timelineTime, explicitTime)
+        timelineInstance.controlTime(timelineTime, explicitTime)
       }
     })
 
@@ -410,18 +406,13 @@ class Timeline extends BaseModel {
 
   setTimelinePixelWidth (pxWidth) {
     this._timelinePixelWidth = pxWidth
+    this.cacheUnset('frameInfo')
     this.emit('update', 'timeline-timeline-pixel-width')
     return this
   }
 
   getPropertiesPixelWidth () {
     return this._propertiesPixelWidth
-  }
-
-  setPropertiesPixelWidth (pxWidth) {
-    this._propertiesPixelWidth = pxWidth
-    this.emit('update', 'timeline-properties-pixel-width')
-    return this
   }
 
   getVisibleFrameRangeLength () {
@@ -567,72 +558,73 @@ class Timeline extends BaseModel {
              |scB
   */
   getFrameInfo () {
-    const frameInfo = {}
+    return this.cacheFetch('frameInfo', () => {
+      const frameInfo = {}
 
-    // Number of frames per second
-    frameInfo.fps = this.getFPS()
+      // Number of frames per second
+      frameInfo.fps = this.getFPS()
 
-    // Milliseconds per frame
-    frameInfo.mspf = 1000 / frameInfo.fps
+      // Milliseconds per frame
+      frameInfo.mspf = 1000 / frameInfo.fps
 
-    // The maximum milliseconds *as defined in the bytecode*
-    frameInfo.maxms = Timeline.getMaximumMs(this.component.getReifiedBytecode(), this.component.getCurrentTimelineName())
+      // The maximum milliseconds *as defined in the bytecode*
+      frameInfo.maxms = Timeline.getMaximumMs(this.component.getReifiedBytecode(), this.component.getCurrentTimelineName())
 
-    // The maximum frame *as defined in the bytecode*
-    frameInfo.maxf = Timeline.millisecondToNearestFrame(frameInfo.maxms, frameInfo.mspf) // Maximum frame defined in the timeline
+      // The maximum frame *as defined in the bytecode*
+      frameInfo.maxf = Timeline.millisecondToNearestFrame(frameInfo.maxms, frameInfo.mspf) // Maximum frame defined in the timeline
 
-    // The lowest possible frame (always 0) (this is pointless but?)
-    frameInfo.fri0 = 0
+      // The lowest possible frame (always 0) (this is pointless but?)
+      frameInfo.fri0 = 0
 
-    // The leftmost frame on the visible range
-    frameInfo.friA = (this.getLeftFrameEndpoint() < frameInfo.fri0)
-      ? frameInfo.fri0
-      : this.getLeftFrameEndpoint()
+      // The leftmost frame on the visible range
+      frameInfo.friA = (this.getLeftFrameEndpoint() < frameInfo.fri0)
+        ? frameInfo.fri0
+        : this.getLeftFrameEndpoint()
 
-    // The maximum frame that can be reached via scrolling on the timeline
-    // If the defined frame is too small, use our own virtual maximum
-    frameInfo.friMax = (frameInfo.maxf < this.getMaxFrame())
-      ? this.getMaxFrame()
-      : frameInfo.maxf
+      // The maximum frame that can be reached via scrolling on the timeline
+      // If the defined frame is too small, use our own virtual maximum
+      frameInfo.friMax = (frameInfo.maxf < this.getMaxFrame())
+        ? this.getMaxFrame()
+        : frameInfo.maxf
 
-    // Whichever max is higher: the virtual, or the assigned value
-    frameInfo.friMaxVirt = this.getMaxFrame()
+      // Whichever max is higher: the virtual, or the assigned value
+      frameInfo.friMaxVirt = this.getMaxFrame()
 
-    // The rightmost frame on the visible range
-    frameInfo.friB = (this.getRightFrameEndpoint() > frameInfo.friMaxVirt)
-      ? frameInfo.friMaxVirt
-      : this.getRightFrameEndpoint()
+      // The rightmost frame on the visible range
+      frameInfo.friB = (this.getRightFrameEndpoint() > frameInfo.friMaxVirt)
+        ? frameInfo.friMaxVirt
+        : this.getRightFrameEndpoint()
 
-    frameInfo.pxpf = this.getTimelinePixelWidth() / Math.abs(this.getRightFrameEndpoint() - this.getLeftFrameEndpoint())
+      frameInfo.pxpf = this._timelinePixelWidth / Math.abs(this.getRightFrameEndpoint() - this.getLeftFrameEndpoint())
 
-    // Pixel number for friA, the leftmost frame on the visible range
-    frameInfo.pxA = frameInfo.friA * frameInfo.pxpf
+      // Pixel number for friA, the leftmost frame on the visible range
+      frameInfo.pxA = frameInfo.friA * frameInfo.pxpf
 
-    // Pixel number for friB, the rightmost frame on the visible range
-    frameInfo.pxB = frameInfo.friB * frameInfo.pxpf
+      // Pixel number for friB, the rightmost frame on the visible range
+      frameInfo.pxB = frameInfo.friB * frameInfo.pxpf
 
-    // Pixel number for friMax2, i.e. the width in pixels of the whole timeline
-    frameInfo.pxMax = frameInfo.friMax * frameInfo.pxpf
+      // Pixel number for friMax2, i.e. the width in pixels of the whole timeline
+      frameInfo.pxMax = frameInfo.friMax * frameInfo.pxpf
 
-    // Millisecond number for friA, the leftmost frame in the visible range
-    frameInfo.msA = Math.round(frameInfo.friA * frameInfo.mspf)
+      // Millisecond number for friA, the leftmost frame in the visible range
+      frameInfo.msA = Math.round(frameInfo.friA * frameInfo.mspf)
 
-    // Millisecond number for friB, the rightmost frame in the visible range
-    frameInfo.msB = Math.round(frameInfo.friB * frameInfo.mspf)
+      // Millisecond number for friB, the rightmost frame in the visible range
+      frameInfo.msB = Math.round(frameInfo.friB * frameInfo.mspf)
 
-    // The length in pixels of the scroller view
-    frameInfo.scL = this.getPropertiesPixelWidth() + this.getTimelinePixelWidth()
+      // The length in pixels of the scroller view
+      frameInfo.scL = this._propertiesPixelWidth + this._timelinePixelWidth
 
-     // The ratio of the scroller view to the timeline view (so the scroller renders in proportion)
-    frameInfo.scRatio = frameInfo.pxMax / frameInfo.scL
+      // The ratio of the scroller view to the timeline view (so the scroller renders in proportion)
+      frameInfo.scRatio = frameInfo.pxMax / frameInfo.scL
 
-    // The pixel of the left endpoint of the scroller
-    frameInfo.scA = (frameInfo.pxA) / frameInfo.scRatio
+      // The pixel of the left endpoint of the scroller
+      frameInfo.scA = (frameInfo.pxA) / frameInfo.scRatio
 
-    // The pixel of the right endpoint of the scroller
-    frameInfo.scB = (frameInfo.pxB) / frameInfo.scRatio
-
-    return frameInfo
+      // The pixel of the right endpoint of the scroller
+      frameInfo.scB = (frameInfo.pxB) / frameInfo.scRatio
+      return frameInfo
+    })
   }
 
   getVisibleFrames () {
@@ -880,6 +872,7 @@ class Timeline extends BaseModel {
       this.setMaxFrame(r)
     }
     this.emit('update', 'timeline-frame-range')
+    this.cacheUnset('frameInfo')
     return this
   }
 
@@ -921,7 +914,7 @@ Timeline.setCurrent = function setCurrent (criteria, name) {
   Timeline.where(criteria).forEach((timeline) => {
     timeline._isCurrent = false
   })
-  const current = Timeline.find(assign({ name: name }, criteria))
+  const current = Timeline.find(Object.assign({ name: name }, criteria))
   current._isCurrent = true
   return current
 }
@@ -1026,11 +1019,11 @@ Timeline.getPropertyValueDescriptor = function getPropertyValueDescriptor (timel
 
   const propertyName = timelineRow.getPropertyNameString()
 
-  const hostInstance = timelineRow.component.fetchActiveBytecodeFile().getHostInstance()
+  const hostInstance = timelineRow.component.getCoreComponentInstance()
+
+  const hostStates = (hostInstance && hostInstance.getStates()) || {}
 
   const bytecodeFile = timelineRow.component.fetchActiveBytecodeFile()
-
-  const hostStates = bytecodeFile.getHostStates()
 
   const serializedBytecode = bytecodeFile.getSerializedBytecode()
 
@@ -1072,17 +1065,20 @@ Timeline.getPropertyValueDescriptor = function getPropertyValueDescriptor (timel
     hostStates
   )
 
-  const computedValue = TimelineProperty.getComputedValue(componentId,
+  const computedValue = TimelineProperty.getComputedValue(
+    componentId,
     elementName,
     propertyName,
     currentTimelineName,
     currentTimelineTime,
     fallbackValue,
     reifiedBytecode,
-    hostInstance, hostStates
+    hostInstance,
+    hostStates
   )
 
-  const assignedValueObject = TimelineProperty.getAssignedValueObject(componentId,
+  const assignedValueObject = TimelineProperty.getAssignedValueObject(
+    componentId,
     elementName,
     propertyName,
     currentTimelineName,
@@ -1092,7 +1088,8 @@ Timeline.getPropertyValueDescriptor = function getPropertyValueDescriptor (timel
 
   const assignedValue = assignedValueObject && assignedValueObject.value
 
-  const bookendValueObject = TimelineProperty.getAssignedBaselineValueObject(componentId,
+  const bookendValueObject = TimelineProperty.getAssignedBaselineValueObject(
+    componentId,
     elementName,
     propertyName,
     currentTimelineName,

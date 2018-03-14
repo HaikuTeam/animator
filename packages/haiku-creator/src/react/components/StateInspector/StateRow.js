@@ -2,7 +2,7 @@ import React from 'react'
 import Radium from 'radium'
 import onClickOutside from 'react-onclickoutside'
 import Color from 'color'
-import * as States from 'haiku-bytecode/src/States'
+import State from 'haiku-serialization/src/bll/State'
 import Palette from 'haiku-ui-common/lib/Palette'
 import { StackMenuSVG } from 'haiku-ui-common/lib/react/OtherIcons'
 
@@ -148,7 +148,7 @@ class StateRow extends React.Component {
     }
 
     // If we got here, Enter was pressed, meaning we want to commit the state value/name
-    desc = States.autoCastToType(desc)
+    desc = State.autoCastToType(desc)
 
     // If the name field is blank, delete the state (or just remove it if it is new)
     if (isBlank(this.state.name)) {
@@ -228,9 +228,9 @@ class StateRow extends React.Component {
 
   getEditableStateValue () {
     if (this.state.desc) {
-      return States.autoStringify(this.state.desc)
+      return State.autoStringify(this.state.desc)
     } else if (this.props.stateDescriptor) {
-      return States.autoStringify(this.props.stateDescriptor)
+      return State.autoStringify(this.props.stateDescriptor)
     } else {
       return ''
     }
@@ -238,9 +238,9 @@ class StateRow extends React.Component {
 
   getDisplayableStateValue () {
     if (this.state.valuePreEdit) {
-      return States.autoStringify({ value: this.state.valuePreEdit })
+      return State.autoStringify({ value: this.state.valuePreEdit })
     } else if (this.props.stateDescriptor) {
-      return States.autoStringify(this.props.stateDescriptor)
+      return State.autoStringify(this.props.stateDescriptor)
     } else {
       return ''
     }

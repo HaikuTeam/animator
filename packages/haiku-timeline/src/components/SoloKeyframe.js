@@ -1,13 +1,29 @@
 import React from 'react'
-import uuid from 'uuid/v1'
 import Palette from 'haiku-ui-common/lib/Palette'
 import KeyframeSVG from 'haiku-ui-common/lib/react/icons/KeyframeSVG'
 
 export default class SoloKeyframe extends React.Component {
-  componentWillMount () {
-    this.teardownKeyframeUpdateReceiver = this.props.keyframe.registerUpdateReceiver(uuid(), (what) => {
-      this.handleUpdate(what)
-    })
+  constructor (props) {
+    super(props)
+    this.handleProps(props)
+  }
+
+  componentWillReceiveProps (nextProps) {
+    this.handleProps(nextProps)
+  }
+
+  handleProps ({ keyframe }) {
+    if (
+      keyframe !== this.props.keyframe ||
+      !this.teardownKeyframeUpdateReceiver
+    ) {
+      if (this.teardownKeyframeUpdateReceiver) {
+        this.teardownKeyframeUpdateReceiver()
+      }
+      this.teardownKeyframeUpdateReceiver = keyframe.registerUpdateReceiver(this.props.id, (what) => {
+        this.handleUpdate(what)
+      })
+    }
   }
 
   componentDidMount () {
@@ -65,6 +81,7 @@ export default class SoloKeyframe extends React.Component {
 }
 
 SoloKeyframe.propTypes = {
+  id: React.PropTypes.string.isRequired,
   keyframe: React.PropTypes.object.isRequired,
   preventDragging: React.PropTypes.bool.isRequired
 }

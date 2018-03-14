@@ -1614,120 +1614,120 @@ module.exports = {
         ]
       },
 
-      {
-        elementName: "svg",
-        attributes: {
-          version: "1.1",
-          xmlns: "http://www.w3.org/2000/svg",
-          "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          source: "designs/Primitives.sketch.contents/artboards/Rectangle.svg",
-          "haiku-title": "Rectangle",
-          "haiku-id": "bb00b74e1b58",
-          style: {
-            position: "absolute",
-            margin: "0",
-            padding: "0",
-            border: "0",
-            zIndex: 12
-          },
+      // {
+      //   elementName: "svg",
+      //   attributes: {
+      //     version: "1.1",
+      //     xmlns: "http://www.w3.org/2000/svg",
+      //     "xmlns:xlink": "http://www.w3.org/1999/xlink",
+      //     source: "designs/Primitives.sketch.contents/artboards/Rectangle.svg",
+      //     "haiku-title": "Rectangle",
+      //     "haiku-id": "bb00b74e1b58",
+      //     style: {
+      //       position: "absolute",
+      //       margin: "0",
+      //       padding: "0",
+      //       border: "0",
+      //       zIndex: 12
+      //     },
 
-          viewBox: "0 0 172 172"
-        },
+      //     viewBox: "0 0 172 172"
+      //   },
 
-        children: [
-          {
-            elementName: "title",
-            attributes: { "haiku-id": "cf5916f3fa78", style: {} },
-            children: ["Rectangle"]
-          },
+      //   children: [
+      //     {
+      //       elementName: "title",
+      //       attributes: { "haiku-id": "cf5916f3fa78", style: {} },
+      //       children: ["Rectangle"]
+      //     },
 
-          {
-            elementName: "desc",
-            attributes: {
-              "haiku-id": "5befb29c8c7f",
-              content: "Created with sketchtool.",
-              style: {}
-            },
+      //     {
+      //       elementName: "desc",
+      //       attributes: {
+      //         "haiku-id": "5befb29c8c7f",
+      //         content: "Created with sketchtool.",
+      //         style: {}
+      //       },
 
-            children: []
-          },
+      //       children: []
+      //     },
 
-          {
-            elementName: "defs",
-            attributes: { "haiku-id": "a814a9d1ec17", style: {} },
-            children: []
-          },
+      //     {
+      //       elementName: "defs",
+      //       attributes: { "haiku-id": "a814a9d1ec17", style: {} },
+      //       children: []
+      //     },
 
-          {
-            elementName: "g",
-            attributes: {
-              id: "Page-1",
-              "haiku-id": "7af6b73552e8",
-              style: {},
-              stroke: "none",
-              "stroke-width": "1",
-              fill: "none",
-              "fill-rule": "evenodd"
-            },
+      //     {
+      //       elementName: "g",
+      //       attributes: {
+      //         id: "Page-1",
+      //         "haiku-id": "7af6b73552e8",
+      //         style: {},
+      //         stroke: "none",
+      //         "stroke-width": "1",
+      //         fill: "none",
+      //         "fill-rule": "evenodd"
+      //       },
 
-            children: [
-              {
-                elementName: "g",
-                attributes: {
-                  id: "Rectangle",
-                  "haiku-id": "3f30a9f08864",
-                  style: {},
-                  fill: "rgb(255, 153, 80)"
-                },
+      //       children: [
+      //         {
+      //           elementName: "g",
+      //           attributes: {
+      //             id: "Rectangle",
+      //             "haiku-id": "3f30a9f08864",
+      //             style: {},
+      //             fill: "rgb(255, 153, 80)"
+      //           },
 
-                children: [
-                  {
-                    elementName: "rect",
-                    attributes: { "haiku-id": "f40e689d9960", style: {} },
-                    children: []
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
+      //           children: [
+      //             {
+      //               elementName: "rect",
+      //               attributes: { "haiku-id": "f40e689d9960", style: {} },
+      //               children: []
+      //             }
+      //           ]
+      //         }
+      //       ]
+      //     }
+      //   ]
+      // },
 
-      {
-        elementName: designs_ted_sketch_contents_artboards_ted_svg,
-        attributes: {
-          source: "../designs_ted_sketch_contents_artboards_ted_svg/code.js",
-          "haiku-title": "designs_ted_sketch_contents_artboards_ted_svg",
-          "haiku-id": "a29349e9a353",
-          style: {
-            position: "absolute",
-            margin: "0",
-            padding: "0",
-            border: "0",
-            zIndex: 13
-          }
-        },
+      // {
+      //   elementName: designs_ted_sketch_contents_artboards_ted_svg,
+      //   attributes: {
+      //     source: "../designs_ted_sketch_contents_artboards_ted_svg/code.js",
+      //     "haiku-title": "designs_ted_sketch_contents_artboards_ted_svg",
+      //     "haiku-id": "a29349e9a353",
+      //     style: {
+      //       position: "absolute",
+      //       margin: "0",
+      //       padding: "0",
+      //       border: "0",
+      //       zIndex: 13
+      //     }
+      //   },
 
-        children: []
-      },
+      //   children: []
+      // },
 
-      {
-        elementName: designs_ted_sketch_contents_artboards_ted_svg,
-        attributes: {
-          source: "../designs_ted_sketch_contents_artboards_ted_svg/code.js",
-          "haiku-title": "designs_ted_sketch_contents_artboards_ted_svg",
-          "haiku-id": "1559e94d9e72",
-          style: {
-            position: "absolute",
-            margin: "0",
-            padding: "0",
-            border: "0",
-            zIndex: 14
-          }
-        },
+      // {
+      //   elementName: designs_ted_sketch_contents_artboards_ted_svg,
+      //   attributes: {
+      //     source: "../designs_ted_sketch_contents_artboards_ted_svg/code.js",
+      //     "haiku-title": "designs_ted_sketch_contents_artboards_ted_svg",
+      //     "haiku-id": "1559e94d9e72",
+      //     style: {
+      //       position: "absolute",
+      //       margin: "0",
+      //       padding: "0",
+      //       border: "0",
+      //       zIndex: 14
+      //     }
+      //   },
 
-        children: []
-      }
+      //   children: []
+      // }
     ]
   }
 };
