@@ -1,5 +1,4 @@
 import * as React from 'react';
-import Palette from '../../Palette';
 import {ModalWrapper, ModalHeader, ModalNotice} from '../Modal';
 import {RevealPanel} from '../RevealPanel';
 import {ProjectShareDetails} from './ProjectShareDetails';
@@ -60,7 +59,7 @@ export class ShareModal extends React.Component<PropTypes, StateTypes> {
 
     this.state = {
       showDetail: false,
-      isPublic: true, // default true so we don't ever accidentally tell the user their projects are more private than they are
+      isPublic: undefined,
       showTooltip: false,
       isPublicKnown: false,
     };
@@ -80,9 +79,8 @@ export class ShareModal extends React.Component<PropTypes, StateTypes> {
 
         // if IsPublic is undefined, it's never been published before.  toggle it true on first publish.
         if (proj.IsPublic === null || proj.IsPublic === undefined) {
-          (nextProps.envoyProject.setIsPublic(nextProps.projectUid, true) as Promise<inkstone.project.Project>).then((updatedProj) => {
-            this.setState({isPublic: updatedProj.IsPublic});
-          });
+          (nextProps.envoyProject.setIsPublic(nextProps.projectUid, true) as Promise<boolean>).then(() => {});
+          this.setState({isPublic: true});
         } else {
           this.setState({isPublic: proj.IsPublic, isPublicKnown: true});
         }
@@ -109,10 +107,8 @@ export class ShareModal extends React.Component<PropTypes, StateTypes> {
       const desiredState = !this.state.isPublic;
       const project = props.envoyProject;
 
-      (project.setIsPublic(props.projectUid, desiredState) as Promise<inkstone.project.Project>).then((proj : inkstone.project.Project) => {
-        this.setState({isPublic: proj.IsPublic, isPublicKnown: true});
-      });
-
+      (project.setIsPublic(props.projectUid, desiredState) as Promise<boolean>).then(() => {});
+      this.setState({isPublic: desiredState, isPublicKnown: true});
     } else {
       // TODO:  trigger toast
       console.error('Could not set project privacy settings.  Please contact support@haiku.ai');

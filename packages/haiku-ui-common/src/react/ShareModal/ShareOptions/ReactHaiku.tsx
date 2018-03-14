@@ -14,19 +14,20 @@ export default class VanillaJS extends React.PureComponent {
 
   render() {
     const {projectName, userName, organizationName} = this.props;
+    const componentName = projectName[0].toUpperCase() + projectName.substring(1);
 
     return (
       <NpmInstallable projectName={projectName} userName={userName} organizationName={organizationName}>
         <CodeBox>
           {dedent`
-          import ${projectName} from '@haiku/${organizationName.toLowerCase()}-${projectName.toLowerCase()}/react';
+          import ${componentName} from '@haiku/${organizationName.toLowerCase()}-${projectName.toLowerCase()}/react';
 
           /*...*/
 
           render() {
             return (
               <div>
-                <${projectName} haikuOptions={{loop: true}} />
+                <${componentName} haikuOptions={{loop: true}} />
               </div>
             );
           }

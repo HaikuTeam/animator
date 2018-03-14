@@ -130,19 +130,21 @@ export class ProjectShareDetails extends React.PureComponent {
             <p style={{height: 16, ...STYLES.info}} />
           )}
 
-          <span
-            style={assign({}, {...STYLES.info, ...STYLES.infoSpecial2})} >
+          {<span style={{visibility: this.props.isPublic === undefined ? 'hidden' : 'visible'}}>
             <span
-              id="public-private-label"
-              style={this.props.isDisabled ? STYLES.disabledToggle : STYLES.toggleLabel}>
-              {this.props.isPublic ? 'Public' : 'Private'}
+              style={assign({}, {...STYLES.info, ...STYLES.infoSpecial2})} >
+              <span
+                id="public-private-label"
+                style={this.props.isDisabled ? STYLES.disabledToggle : STYLES.toggleLabel}>
+                {this.props.isPublic ? 'Public' : 'Private'}
+              </span>
             </span>
-          </span>
-          <span
-            style={assign({}, {...STYLES.toggle, ...(isPublic && STYLES.toggleActive)})}
-            onClick={() => {!this.props.isDisabled && togglePublic();}}>
-              <span style={assign({}, {...STYLES.knob, ...(isPublic && STYLES.knobActive)})}/>
-          </span>
+            <span
+              style={assign({}, {...STYLES.toggle, ...(isPublic && STYLES.toggleActive)})}
+              onClick={() => {!this.props.isDisabled && togglePublic();}}>
+                <span style={assign({}, {...STYLES.knob, ...(isPublic && STYLES.knobActive)})}/>
+            </span>
+          </span>}
         </div>
 
         <div style={{width: '50%'}}>
