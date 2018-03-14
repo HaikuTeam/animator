@@ -1,3 +1,5 @@
+import * as Template from 'haiku-serialization/src/bll/Template';
+import parsers from '@haiku/core/lib/properties/dom/parsers';
 import {ExporterInterface} from '..';
 import BaseExporter from '../BaseExporter';
 import {evaluateInjectedFunctionInExportContext} from '../injectables';
@@ -15,17 +17,23 @@ export class HaikuStaticExporter extends BaseExporter implements ExporterInterfa
    * Essentially replaces all non-scalar timeline values with the equivalent scalar value of edit mode.
    */
   private parseBytecode() {
-    this.visitAllTimelineProperties((timeline, property) => {
-      const timelineProperty = timeline[property];
-      for (const keyframe in timelineProperty) {
-        const {value} = timelineProperty[keyframe];
-        if (typeof value !== 'function') {
-          continue;
-        }
+    Template.visitTemplate(this.bytecode.template, null, (node) => {
+      const properties = this.bytecode.timelines.Default[`haiku:${node.attributes['haiku-id']}`];
+      for (const property in properties) {
+        const timelineProperty = properties[property];
+        for (const keyframe in timelineProperty) {
+          const {value} = timelineProperty[keyframe];
+          if (typeof value === 'function') {
+            timelineProperty[keyframe] = {
+              value: evaluateInjectedFunctionInExportContext(value, this.bytecode.states || {}),
+            };
+          }
 
-        timelineProperty[keyframe] = {
-          value: evaluateInjectedFunctionInExportContext(value, this.bytecode.states || {}),
-        };
+          if (parsers[node.elementName] && parsers[node.elementName][property]) {
+            timelineProperty[keyframe].value = parsers[node.elementName][property].parse(
+              timelineProperty[keyframe].value);
+          }
+        }
       }
     });
   }
