@@ -1,15 +1,18 @@
 import React from 'react'
-import Color from 'color'
 import lodash from 'lodash'
 import Radium from 'radium'
+import { shell, ipcRenderer } from 'electron'
+import { UserSettings } from 'haiku-sdk-creator/lib/bll/User'
+import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 import Palette from 'haiku-ui-common/lib/Palette'
-import SketchDownloader from '../SketchDownloader'
 import { didAskedForSketch } from 'haiku-serialization/src/utils/HaikuHomeDir'
 import Asset from 'haiku-serialization/src/bll/Asset'
-import { shell } from 'electron'
+import Figma from 'haiku-serialization/src/bll/Figma'
 import sketchUtils from '../../../utils/sketchUtils'
+import SketchDownloader from '../SketchDownloader'
 import AssetList from './AssetList'
 import Loader from './Loader'
+import FileImporter from './FileImporter'
 
 const STYLES = {
   scrollwrap: {
@@ -36,26 +39,6 @@ const STYLES = {
   fileDropWrapper: {
     pointerEvents: 'none'
   },
-  button: {
-    position: 'relative',
-    zIndex: 2,
-    padding: '3px 9px',
-    backgroundColor: Palette.DARKER_GRAY,
-    color: Palette.ROCK,
-    fontSize: 13,
-    fontWeight: 'bold',
-    marginTop: -4,
-    borderRadius: 3,
-    cursor: 'pointer',
-    transform: 'scale(1)',
-    transition: 'transform 200ms ease',
-    ':hover': {
-      backgroundColor: Color(Palette.DARKER_GRAY).darken(0.2)
-    },
-    ':active': {
-      transform: 'scale(.8)'
-    }
-  },
   startText: {
     color: Palette.COAL,
     fontSize: 25,
@@ -68,6 +51,12 @@ const STYLES = {
     fontSize: 16,
     padding: 24,
     textAlign: 'center'
+  },
+  link: {
+    color: Palette.SUNSTONE,
+    textDecoration: 'underline',
+    cursor: 'pointer',
+    display: 'inline-block'
   }
 }
 
@@ -81,6 +70,7 @@ class Library extends React.Component {
       previewImageTime: null,
       overDropTarget: false,
       isLoading: false,
+      figma: null,
       sketchDownloader: {
         asset: null,
         isVisible: false,
@@ -90,11 +80,13 @@ class Library extends React.Component {
 
     this.handleAssetInstantiation = this.handleAssetInstantiation.bind(this)
     this.handleAssetDeletion = this.handleAssetDeletion.bind(this)
+    this.importFigmaAsset = this.importFigmaAsset.bind(this)
 
     // Debounced to avoid 'flicker' when multiple updates are received quickly
     this.handleAssetsChanged = lodash.debounce(this.handleAssetsChanged.bind(this), 250)
 
     this.broadcastListener = this.broadcastListener.bind(this)
+    this.onAuthCallback = this.onAuthCallback.bind(this)
   }
 
   broadcastListener ({ name, assets, data }) {
@@ -117,14 +109,56 @@ class Library extends React.Component {
     this.reloadAssetList()
 
     this.props.websocket.on('broadcast', this.broadcastListener)
+    ipcRenderer.on('open-url:oauth', this.onAuthCallback)
 
     sketchUtils.checkIfInstalled().then(isInstalled => {
       this.isSketchInstalled = isInstalled
+    })
+
+    this.props.user.getConfig(UserSettings.figmaToken).then((figmaToken) => {
+      const figma = new Figma({token: figmaToken})
+      this.setState({figma})
     })
   }
 
   componentWillUnmount () {
     this.props.websocket.removeListener('broadcast', this.broadcastListener)
+    ipcRenderer.removeListener('open-url:oauth', this.onAuthCallback)
+  }
+
+  figmaAuthCallback ({state, code}) {
+    Figma.getAccessToken({state, code, stateCheck: this.state.figmaState})
+      .then(({AccessToken}) => {
+        this.props.user.setConfig(UserSettings.figmaToken, AccessToken)
+        this.state.figma.token = AccessToken
+        this.props.createNotice({
+          type: 'success',
+          title: 'Yay!',
+          message: 'You are authenticated with Figma'
+        })
+      })
+      .catch((error) => {
+        console.log(error)
+        this.props.createNotice({
+          type: 'danger',
+          title: 'Error',
+          message: 'There was an error while authenticating with Figma'
+        })
+      })
+  }
+
+  onAuthCallback (_, path, params) {
+    switch (path) {
+      case '/figma':
+        this.figmaAuthCallback(params)
+    }
+  }
+
+  askForFigmaAuth () {
+    const {state, url} = Figma.buildAuthenticationLink()
+    this.setState({figmaState: state})
+    mixpanel.haikuTrack('creator:figma:askAuthentication')
+    shell.openExternal(url)
   }
 
   reloadAssetList () {
@@ -132,6 +166,59 @@ class Library extends React.Component {
       if (error) return this.setState({ error })
       this.handleAssetsChanged(assets, {isLoading: false})
     })
+  }
+
+  importFigmaAsset (url) {
+    const path = this.props.projectModel.folder
+
+    return this.state.figma.importSVG({url, path})
+      .catch((error) => {
+        let message = 'We had a problem connecting with Figma, please try again'
+
+        if (error.status === 403) {
+          message = (
+            <p>
+              We had problems importing your file.{' '}
+              If this problem persists, please click{' '}
+              <a
+                href='#'
+                style={STYLES.link}
+                onClick={() => {
+                  this.askForFigmaAuth()
+                }}
+              >
+                here
+              </a>{' '}
+              to login with Figma again.
+            </p>
+          )
+        }
+
+        if (error.status === 404) {
+          message = (
+            <p>
+              We couldn't access your file, please make sure that the file exists
+              and you have access to it.<br />
+              If you need to login with another Figma account{' '}
+              <a
+                href='#'
+                style={STYLES.link}
+                onClick={() => {
+                  this.askForFigmaAuth()
+                }}
+              >
+                click here.
+              </a>{' '}
+            </p>
+          )
+        }
+
+        this.props.createNotice({
+          type: 'danger',
+          title: 'Error',
+          message
+        })
+      })
   }
 
   handleFileInstantiation (asset) {
@@ -151,6 +238,12 @@ class Library extends React.Component {
       this.openSketchFile(asset)
     } else {
       this.setState({sketchDownloader: {...this.state.sketchDownloader, isVisible: true, asset}})
+    }
+  }
+
+  handleFigmaInstantiation (asset) {
+    if (asset.relpath !== 'hacky-figma-file[1]') {
+      shell.openExternal(Figma.buildFigmaLinkFromPath(asset.relpath))
     }
   }
 
@@ -177,6 +270,9 @@ class Library extends React.Component {
     switch (asset.kind) {
       case Asset.KINDS.SKETCH:
         this.handleSketchInstantiation(asset)
+        break
+      case Asset.KINDS.FIGMA:
+        this.handleFigmaInstantiation(asset)
         break
       case Asset.KINDS.VECTOR:
         this.handleFileInstantiation(asset)
@@ -231,13 +327,12 @@ class Library extends React.Component {
           id='library-scroll-wrap'
           style={STYLES.sectionHeader}>
           Library
-          <button style={STYLES.button} onClick={this.launchFilepicker}>+</button>
-          <input
-            type='file'
-            ref='filepicker'
-            multiple
-            onChange={(e) => this.handleFileDrop(this.refs.filepicker.files, e)}
-            style={{opacity: 0, position: 'absolute', right: 0, width: 90, zIndex: 3}} />
+          <FileImporter
+            onImportFigmaAsset={this.importFigmaAsset}
+            onAskForFigmaAuth={() => { this.askForFigmaAuth() }}
+            figma={this.state.figma}
+            onFileDrop={(files, fileDropEvent) => { this.handleFileDrop(files, fileDropEvent) }}
+          />
         </div>
         <div
           id='library-scroll-wrap'
@@ -250,6 +345,10 @@ class Library extends React.Component {
                 onDragStart={this.props.onDragStart}
                 onDragEnd={this.props.onDragEnd}
                 instantiateAsset={this.handleAssetInstantiation}
+                figma={this.state.figma}
+                onImportFigmaAsset={this.importFigmaAsset}
+                onRefreshFigmaAsset={this.importFigmaAsset}
+                onAskForFigmaAuth={() => { this.askForFigmaAuth() }}
                 deleteAsset={this.handleAssetDeletion}
                 indent={0}
                 assets={this.state.assets} />}

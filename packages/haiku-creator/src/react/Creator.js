@@ -1338,6 +1338,7 @@ export default class Creator extends React.Component {
                   }
                   {this.state.activeNav === 'library'
                     ? <Library
+                      user={this.user}
                       projectModel={this.state.projectModel}
                       layout={this.layout}
                       folder={this.state.projectFolder}

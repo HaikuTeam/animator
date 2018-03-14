@@ -3,6 +3,7 @@ import Radium from 'radium'
 import Color from 'color'
 import lodash from 'lodash'
 import Asset from 'haiku-serialization/src/bll/Asset'
+import Figma from 'haiku-serialization/src/bll/Figma'
 import { Draggable } from 'react-drag-and-drop'
 import AssetList from './AssetList'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
@@ -12,15 +13,18 @@ import {
   CollapseChevronRightSVG,
   CollapseChevronDownSVG,
   SketchIconSVG,
+  FigmaIconSVG,
   FolderIconSVG,
   TrashIconSVG,
-  ComponentIconSVG
+  ComponentIconSVG,
+  SyncIconSVG
 } from 'haiku-ui-common/lib/react/OtherIcons'
 
 import ControlImage from 'haiku-ui-common/lib/react/icons/ControlImage'
 import ControlText from 'haiku-ui-common/lib/react/icons/ControlText'
 import ControlHTML from 'haiku-ui-common/lib/react/icons/ControlHTML'
 // import ControlInput from 'haiku-ui-common/lib/react/icons/ControlInput'
+import FigmaPopover from './importers/FigmaPopover'
 
 const ASSET_ICONS = {
   ControlImage: () => { return <ControlImage /> },
@@ -121,6 +125,14 @@ const STYLES = {
       display: 'flex',
       transform: 'translateX(0)'
     }
+  },
+  threeDotMenu: {
+    position: 'absolute',
+    right: 10,
+    transform: 'rotate(90deg)',
+    ':hover': {
+      opacity: 1
+    }
   }
 }
 
@@ -152,6 +164,10 @@ class AssetItem extends React.Component {
 
   handleOpenAsset () {
     shell.openItem(this.props.asset.getAbspath())
+  }
+
+  handleOpenOnlineAsset (link) {
+    shell.openExternal(link)
   }
 
   handleShowAsset () {
@@ -205,14 +221,26 @@ class AssetItem extends React.Component {
       })
     }
 
+    if (this.isFigmaAndCanBeOpened()) {
+      items.push({
+        label: 'Open In Figma',
+        icon: FigmaIconSVG,
+        onClick: () => {
+          this.handleOpenOnlineAsset(Figma.buildFigmaLink(this.props.asset.figmaID))
+        }
+      })
+    }
+
     // Things like built-in components can't be deleted or shown in finder
-    if (!this.props.asset.isRemoteAsset()) {
+    if (!this.props.asset.isRemoteAsset() && !this.props.asset.isFigmaFile()) {
       items.push({
         label: 'Show In Finder',
         icon: FolderIconSVG,
         onClick: this.handleShowAsset.bind(this)
       })
+    }
 
+    if (!this.props.asset.isRemoteAsset()) {
       items.push({
         label: 'Delete',
         icon: TrashIconSVG,
@@ -223,6 +251,44 @@ class AssetItem extends React.Component {
     return items
   }
 
+  isFigmaAndCanBeOpened () {
+    return this.props.asset.isFigmaFile() && this.props.asset.relpath !== 'hacky-figma-file[1]'
+  }
+
+  renderSyncMenu () {
+    if (this.isFigmaAndCanBeOpened()) {
+      return (
+        <span
+          style={{...STYLES.threeDotMenu, right: '30px', transform: 'none'}}
+        >
+          <button
+            onClick={(clickEvent) => {
+              const svgSpinner = clickEvent.currentTarget.querySelector('svg')
+              const url = Figma.buildFigmaLink(this.props.asset.figmaID, this.props.asset.displayName)
+              const rotationClass = 'animation-rotating'
+
+              clickEvent.currentTarget.querySelector('svg').classList.add(rotationClass)
+
+              // TODO: find out why `Promise.prototype.finally` is not available
+              // and rewrite this properly
+              this.props.onRefreshFigmaAsset(url)
+                .then(() => { svgSpinner.classList.remove(rotationClass) })
+                .catch(() => { svgSpinner.classList.remove(rotationClass) })
+            }}
+            style={{
+              padding: '3px',
+              backgroundColor: Palette.DARK_GRAY,
+              color: Palette.ROCK
+            }}>
+            <SyncIconSVG />
+          </button>
+        </span>
+      )
+    }
+
+    return null
+  }
+
   renderThreeDotMenu () {
     // For now, don't show any menu for built-in components
     if (this.props.asset.isRemoteAsset()) {
@@ -231,13 +297,19 @@ class AssetItem extends React.Component {
 
     if (
       this.props.asset.isSketchFile() ||
+      this.isFigmaAndCanBeOpened() ||
       this.props.asset.isOrphanSvg() ||
       this.props.asset.isComponentOtherThanMain()
     ) {
       return (
         <span
+          key='three-dot-menu-container'
           className='three-dot-menu-container'
-          style={{ position: 'absolute', right: 10 }}>
+          style={{
+            ...STYLES.threeDotMenu,
+            opacity: this.props.asset.type === Asset.TYPES.CONTAINER || Radium.getState(this.state, 'asset-item-row', ':hover') ? 1 : 0
+          }}
+        >
           <button
             onClick={this.launchPopoverMenu}
             style={{
@@ -280,6 +352,17 @@ class AssetItem extends React.Component {
           onDoubleClick={this.handleInstantiate}
           style={STYLES.cardIcon}>
           <SketchIconSVG />
+        </span>
+      )
+    }
+
+    if (this.props.asset.kind === Asset.KINDS.FIGMA) {
+      return (
+        <span
+          className='figma-icon-container'
+          onDoubleClick={this.handleInstantiate}
+          style={STYLES.cardIcon}>
+          <FigmaIconSVG />
         </span>
       )
     }
@@ -328,7 +411,7 @@ class AssetItem extends React.Component {
   }
 
   renderDisplayName () {
-    return (
+    const displayName = (
       <span
         className='display-name-container'
         onDoubleClick={this.handleInstantiate}
@@ -337,6 +420,17 @@ class AssetItem extends React.Component {
         {this.props.asset.displayName}
       </span>
     )
+
+    if (this.props.asset.isFigmaFile() && !this.isFigmaAndCanBeOpened()) {
+      return <FigmaPopover
+        onImportFigmaAsset={this.props.onImportFigmaAsset}
+        onPopoverHide={this.props.onPopoverHide}
+        onAskForFigmaAuth={this.props.onAskForFigmaAuth}
+        figma={this.props.figma}
+      >{displayName}</FigmaPopover>
+    }
+
+    return displayName
   }
 
   renderSubLevel () {
@@ -350,6 +444,10 @@ class AssetItem extends React.Component {
           instantiateAsset={this.props.instantiateAsset}
           deleteAsset={this.props.deleteAsset}
           assets={this.props.asset.getChildAssets()}
+          onRefreshFigmaAsset={this.props.onRefreshFigmaAsset}
+          onImportFigmaAsset={this.props.onImportFigmaAsset}
+          onAskForFigmaAuth={this.props.onAskForFigmaAuth}
+          figma={this.props.figma}
           indent={this.props.indent + 1} />
       </Collapse>
     )
@@ -404,6 +502,7 @@ class AssetItem extends React.Component {
         className='asset-item-container'
         style={[STYLES.container]}>
         <div
+          key='asset-item-row'
           className='asset-item-row'
           style={[STYLES.row]}>
           <div
@@ -411,6 +510,7 @@ class AssetItem extends React.Component {
             style={[STYLES.header, { paddingLeft: this.props.indent * 23 }]}>
             {this.renderChevy()}
             {draggablePart}
+            {this.renderSyncMenu()}
             {this.renderThreeDotMenu()}
           </div>
         </div>
@@ -443,7 +543,8 @@ AssetItem.propTypes = {
   onDragStart: React.PropTypes.func.isRequired,
   instantiateAsset: React.PropTypes.func.isRequired,
   deleteAsset: React.PropTypes.func.isRequired,
-  projectModel: React.PropTypes.object.isRequired
+  projectModel: React.PropTypes.object.isRequired,
+  onRefreshFigmaAsset: React.PropTypes.func.isRequired
 }
 
 export default Radium(AssetItem)
