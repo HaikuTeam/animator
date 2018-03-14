@@ -15,7 +15,7 @@ class FileSystemImporter extends React.PureComponent {
   render () {
     return (
       <div style={this.props.style}>
-        From File
+        {this.props.text ? this.props.text : 'From File'}
         <input
           type='file'
           ref='filepicker'

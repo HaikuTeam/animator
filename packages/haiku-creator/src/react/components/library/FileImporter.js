@@ -1,6 +1,7 @@
 import React from 'react'
 import Color from 'color'
 import Popover from 'react-popover'
+import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
 import Palette from 'haiku-ui-common/lib/Palette'
 import FigmaImporter from './importers/FigmaImporter'
 import FileSystemImporter from './importers/FileSystemImporter'
@@ -64,7 +65,14 @@ class FileImporter extends React.PureComponent {
 
   get popoverBody () {
     return (
-      <div style={{...DASH_STYLES.popover.container, right: 0, top: 0, position: 'initial'}}>
+      <div
+        style={{
+          ...DASH_STYLES.popover.container,
+          right: 0,
+          top: 0,
+          position: 'initial'
+        }}
+      >
         <div style={STYLES.popover.item}>
           <FileSystemImporter style={STYLES.popover.text} />
         </div>
@@ -75,7 +83,9 @@ class FileImporter extends React.PureComponent {
             onImportFigmaAsset={this.props.onImportFigmaAsset}
             onAskForFigmaAuth={this.props.onAskForFigmaAuth}
             style={STYLES.popover.text}
-            onPopoverHide={() => { this.hidePopover() }}
+            onPopoverHide={() => {
+              this.hidePopover()
+            }}
           />
         </div>
       </div>
@@ -83,26 +93,39 @@ class FileImporter extends React.PureComponent {
   }
 
   render () {
-    return (
-      <Popover
-        onOuterAction={() => {
-          this.hidePopover()
-        }}
-        isOpen={this.state.isPopoverOpen}
-        place='below'
-        tipSize={0.01}
-        body={this.popoverBody}
-      >
+    if (experimentIsEnabled(Experiment.FigmaIntegration)) {
+      return (
+        <Popover
+          onOuterAction={() => {
+            this.hidePopover()
+          }}
+          isOpen={this.state.isPopoverOpen}
+          place='below'
+          tipSize={0.01}
+          body={this.popoverBody}
+        >
+          <button
+            style={STYLES.button}
+            onClick={() => {
+              this.showPopover()
+            }}
+          >
+            +
+          </button>
+        </Popover>
+      )
+    } else {
+      return (
         <button
           style={STYLES.button}
           onClick={() => {
             this.showPopover()
           }}
         >
-          +
+          <FileSystemImporter style={STYLES.popover.text} text='+' />
         </button>
-      </Popover>
-    )
+      )
+    }
   }
 }
 
