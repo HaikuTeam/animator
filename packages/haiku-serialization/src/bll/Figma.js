@@ -215,7 +215,7 @@ class Figma {
    * @param {string} fileName
    * @returns {string}
    */
-  static buildFigmaLink (fileID, fileName) {
+  static buildFigmaLink (fileID, fileName = '') {
     return `${FIGMA_URL}file/${fileID}/${fileName}`
   }
 
