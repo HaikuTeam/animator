@@ -1090,6 +1090,12 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
   const parsee = this._parsees[timelineName][flexId][outputName];
 
   for (const ms in cluster) {
+    // In case we pre-sorted the cluster
+    if (ms === '__sorted') {
+      parsee[ms] = cluster[ms];
+      continue;
+    }
+
     const descriptor = cluster[ms];
 
     // Important: The ActiveComponent depends on the ability to be able to get fresh values via this option
@@ -1305,6 +1311,16 @@ ValueBuilder.prototype.grabValue = function _grabValue(
   skipCache,
   clearSortedKeyframesCache,
 ) {
+  // If we have a pre-built value already, we neither need to parse nor interpolate
+  const nearestMs = Math.round(Math.round(timelineTime / 16.666) * 16.666);
+  if (
+    propertiesGroup[propertyName] &&
+    propertiesGroup[propertyName][nearestMs] &&
+    propertiesGroup[propertyName][nearestMs].built
+  ) {
+    return propertiesGroup[propertyName][nearestMs].value;
+  }
+
   const parsedValueCluster = this.fetchParsedValueCluster(
     timelineName,
     flexId,
