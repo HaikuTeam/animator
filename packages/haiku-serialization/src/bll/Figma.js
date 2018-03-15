@@ -173,14 +173,14 @@ class Figma {
 
     return new Promise((resolve, reject) => {
       this._requestLib({ uri, headers }, (error, response, body) => {
-        if(error || response.statusCode !== 200) {
+        if (error || response.statusCode !== 200) {
           try {
             reject(JSON.parse(body))
           } catch (e) {
             reject(new Error('There was an error connecting with Figma.'))
           }
         } else {
-           resolve(body)
+          resolve(body)
         }
       })
     })
