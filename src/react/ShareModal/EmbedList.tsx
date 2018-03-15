@@ -42,6 +42,7 @@ export class EmbedList extends React.PureComponent {
     isSnapshotSaveInProgress: React.PropTypes.bool,
     snapshotSyndicated: React.PropTypes.bool,
     snapshotPublished: React.PropTypes.bool,
+    mixpanel: React.PropTypes.object,
   };
 
   renderShareOptions () {
@@ -68,6 +69,12 @@ export class EmbedList extends React.PureComponent {
           <ExternalLink
             style={STYLES.circle}
             href="https://docs.haiku.ai/embedding-and-using-haiku/publishing-and-embedding.html"
+            onClick={() => {
+              this.props.mixpanel.haikuTrack('install-options', {
+                from: 'app',
+                event: 'open-help-embedding',
+              });
+            }}
           >
             ?
           </ExternalLink>
