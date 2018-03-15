@@ -5438,5 +5438,87 @@
       "label": "fix",
       "message": "When marshalling params, leave dollar signs alone"
     }
+  },
+  "3.1.18": {
+    "f760e87e39648d0d836bd15dff24fb25e8e4e754": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "enable figma integration on production"
+    },
+    "8e5088b8906753e814a44ad9795910e1f1ec0471": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "support DMG upload and syndication."
+    },
+    "269c5a7a6183fe0a7f6f1ddc191a3697372c9384": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "use the correct test command for haiku-serialization"
+    },
+    "b791b55206419e2a6013317085cb5486b16a95fa": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "fix up a figma failing test"
+    },
+    "ce6da83430e765fc902aa1200c97f66312ac9d96": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "add missing imports"
+    },
+    "543f673f8a5c7c86b17a37cbf62810589dc449d1": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "@haiku/sdk-inkstone hookup to get Figma access token."
+    },
+    "915c2e30b9d2f86aca3f1ea5b64ebee672bd65a9": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "remove hardcoded test inkstone URL from right-click menu."
+    },
+    "e5a87cba13b60223dba952275eaa426d7ab47f78": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Parse transform component strings whose values are delimited by spaces"
+    },
+    "abc84d4551dc356a53dd80be63bc3da9b410c2d3": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "do not hardcode project in forkability check...."
+    },
+    "e4b579bf80b1f20e875347cfcfd4719fe7a9ae59": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Add right-click menu option to \"Fork this component\""
+    },
+    "cf728ea3c5d91b439e43219d9b039bfebac32d7c": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "basic URL-driven forking functionality."
+    },
+    "1dea3db1bc0aa91df87efb2879dfcba2e5f154cd": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add @haiku/sdk-inkstone endpoint for forking a community project."
+    },
+    "a7f46121163074cba711b59536e6753de5afdc32": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "hook haikuStatic exporter format into publish flow."
+    },
+    "042efeda95ee73925665a123931f4db210f30c55": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add haikuStatic exporter format."
+    },
+    "7b138ab9413c279a77472db4585560a2d83e3281": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "use the correct casing on the npm package name in publish modal"
+    },
+    "e7f6b1996859ca1c9d5bb2828094e2ce15cd6f9a": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Don't crash if the function signature is something we cannot parse"
+    }
   }
 }
