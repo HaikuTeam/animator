@@ -173,7 +173,9 @@ class Library extends React.Component {
 
     return this.state.figma.importSVG({url, path})
       .catch((error) => {
-        let message = 'We had a problem connecting with Figma, please try again'
+        mixpanel.haikuTrack('creator:figma:fileImport:fail')
+
+        let message = 'We had a problem connecting with Figma, please check your internet connection and try again'
 
         if (error.status === 403) {
           message = (
