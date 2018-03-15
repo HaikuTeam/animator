@@ -3,6 +3,7 @@ import {MaybeAsync} from '../envoy';
 export enum ExporterFormat {
   Unknown = 'Unknown',
   Bodymovin = 'Bodymovin',
+  HaikuStatic = 'HaikuStatic',
 }
 
 export interface ExporterRequest {

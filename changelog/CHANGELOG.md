@@ -1,6 +1,30 @@
 # Changelog
 
 
+## 3.1.18
+
+### Features
+
+ * enable figma integration on production
+ * support DMG upload and syndication.
+ * @haiku/sdk-inkstone hookup to get Figma access token.
+ * Add right-click menu option to "Fork this component"
+ * basic URL-driven forking functionality.
+ * add @haiku/sdk-inkstone endpoint for forking a community project.
+ * hook haikuStatic exporter format into publish flow.
+ * add haikuStatic exporter format.
+
+### Bug Fixes
+
+ * use the correct test command for haiku-serialization
+ * fix up a figma failing test
+ * add missing imports
+ * remove hardcoded test inkstone URL from right-click menu.
+ * Parse transform component strings whose values are delimited by spaces
+ * do not hardcode project in forkability check....
+ * use the correct casing on the npm package name in publish modal
+ * Don't crash if the function signature is something we cannot parse
+
 ## 3.1.17
 
 ### Bug Fixes

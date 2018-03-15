@@ -18,6 +18,10 @@ class AssetList extends React.Component {
               deleteAsset={this.props.deleteAsset}
               asset={asset}
               indent={this.props.indent}
+              figma={this.props.figma}
+              onAskForFigmaAuth={this.props.onAskForFigmaAuth}
+              onImportFigmaAsset={this.props.onImportFigmaAsset}
+              onRefreshFigmaAsset={this.props.onRefreshFigmaAsset}
               />
           )
         })}
@@ -33,7 +37,8 @@ AssetList.propTypes = {
   onDragStart: React.PropTypes.func.isRequired,
   instantiateAsset: React.PropTypes.func.isRequired,
   deleteAsset: React.PropTypes.func.isRequired,
-  projectModel: React.PropTypes.object.isRequired
+  projectModel: React.PropTypes.object.isRequired,
+  onRefreshFigmaAsset: React.PropTypes.func.isRequired
 }
 
 export default Radium(AssetList)

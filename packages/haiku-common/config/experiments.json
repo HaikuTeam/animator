@@ -81,5 +81,9 @@
   "StageResizeAllSides": {
     "development": true,
     "production": false
+  },
+  "FigmaIntegration": {
+    "development": true,
+    "production": true
   }
 }

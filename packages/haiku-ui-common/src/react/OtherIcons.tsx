@@ -22,12 +22,12 @@ export const MenuIconSVG = ({children, width = 20, height = 20}) => (
 );
 
 // Library Asset Icons Wrapper
-export const LibIconSVG = (props) => (
+export const LibIconSVG = ({children, viewbox = '0 0 16 14'}) => (
   <svg
-    viewBox="0 0 16 14"
+    viewBox={viewbox}
     width="16px"
     height="14px">
-    {props.children}
+    {children}
   </svg>
 );
 
@@ -101,6 +101,16 @@ export const ChevronDownIconSVG = ({color = '#636E71'}) => (
 export const SketchIconSVG = ({color = '#93999A'}) => (
   <LibIconSVG>
     <path d="M15.915 3.64L13.39.173A.417.417 0 0 0 13.052 0H2.947a.417.417 0 0 0-.337.173L.084 3.64a.444.444 0 0 0 .024.55l7.578 8.666a.415.415 0 0 0 .627 0l7.579-8.667a.442.442 0 0 0 .023-.549zm-5.955.693L8 11.06 6.04 4.333h3.92zm-3.645-.866L8 1.155l1.684 2.312H6.315zm2.527-2.6h3.368l-1.684 2.311L8.842.867zM5.473 3.178L3.79.867h3.369L5.473 3.178zm-.842.289H1.263l1.684-2.312 1.684 2.312zm.53.866l1.896 6.508-5.69-6.508H5.16zm5.678 0h3.794l-5.691 6.508 1.897-6.508zm.53-.866l1.683-2.312 1.684 2.312h-3.368z" fill="#93999A"/>
+  </LibIconSVG>
+);
+
+export const FigmaIconSVG = ({color = '#93999A'}) => (
+  <LibIconSVG viewbox="0 0 38 57">
+    <path d="M19 28.5a9.5 9.5 0 0 1 9.5-9.5 9.5 9.5 0 0 1 9.5 9.5 9.5 9.5 0 0 1-9.5 9.5 9.5 9.5 0 0 1-9.5-9.5z" fill={color}/>
+    <path d="M0 47.5A9.5 9.5 0 0 1 9.5 38H19v9.5A9.5 9.5 0 0 1 9.5 57 9.5 9.5 0 0 1 0 47.5z" fill={color}/>
+    <path d="M19 0v19h9.5A9.5 9.5 0 0 0 38 9.5 9.5 9.5 0 0 0 28.5 0H19z" fill={color}/>
+    <path d="M0 9.5A9.5 9.5 0 0 0 9.5 19H19V0H9.5A9.5 9.5 0 0 0 0 9.5z" fill={color}/>
+    <path d="M0 28.5A9.5 9.5 0 0 0 9.5 38H19V19H9.5A9.5 9.5 0 0 0 0 28.5z" fill={color}/>
   </LibIconSVG>
 );
 
@@ -481,3 +491,8 @@ export const PresentIconSVG = ({size = 13}) => (
   </svg>
 );
 
+export const SyncIconSVG = ({color = '#93999A'}) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 20 20">
+    <path d="M19.854 8.646a.5.5 0 0 0-.707 0l-1.149 1.149a7.94 7.94 0 0 0-2.341-5.452A7.948 7.948 0 0 0 10 2a7.988 7.988 0 0 0-7.077 4.266.5.5 0 0 0 .884.468A6.99 6.99 0 0 1 10 3c3.789 0 6.885 3.027 6.997 6.789l-1.143-1.143a.5.5 0 0 0-.707.707l2 2a.498.498 0 0 0 .708 0l2-2a.5.5 0 0 0 0-.707zM16.869 13.058a.5.5 0 0 0-.676.208A6.99 6.99 0 0 1 10 17c-3.789 0-6.885-3.027-6.997-6.789l1.143 1.143a.498.498 0 0 0 .708 0 .5.5 0 0 0 0-.707l-2-2a.5.5 0 0 0-.707 0l-2 2a.5.5 0 0 0 .707.707l1.149-1.149a7.94 7.94 0 0 0 2.341 5.452A7.948 7.948 0 0 0 10.001 18a7.988 7.988 0 0 0 7.077-4.266.5.5 0 0 0-.208-.676z" fill={color}/>
+  </svg>
+);

@@ -129,7 +129,11 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   isSelectionSketchEditable () {
-    return !!this.getSourcePath()
+    const sourcePath = this.getSourcePath()
+    return (
+      sourcePath &&
+      Sketch.isSketchFolder(sourcePath)
+    )
   }
 
   getSketchAssetPath () {
@@ -138,6 +142,26 @@ class ElementSelectionProxy extends BaseModel {
       sourcePath &&
       sourcePath.split(/\.sketch\.contents/)[0].concat('.sketch')
     )
+  }
+
+  isSelectionFigmaEditable () {
+    const sourcePath = this.getSourcePath()
+    return (
+      sourcePath &&
+      Figma.isFigmaFolder(sourcePath)
+    )
+  }
+
+  getFigmaAssetPath () {
+    const sourcePath = this.getSourcePath()
+    return (
+      sourcePath &&
+      sourcePath.split(/\.figma\.contents/)[0].concat('.figma')
+    )
+  }
+
+  getFigmaAssetLink () {
+    return Figma.buildFigmaLinkFromPath(this.getFigmaAssetPath())
   }
 
   canCut () {

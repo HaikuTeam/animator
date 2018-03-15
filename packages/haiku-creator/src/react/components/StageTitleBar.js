@@ -305,7 +305,7 @@ class StageTitleBar extends React.Component {
     return {
       commitMessage: 'Changes saved (via Haiku Desktop)',
       saveStrategy: SNAPSHOT_SAVE_RESOLUTION_STRATEGIES[this.state.snapshotSaveResolutionStrategyName],
-      exporterFormats: [ExporterFormat.Bodymovin]
+      exporterFormats: [ExporterFormat.Bodymovin, ExporterFormat.HaikuStatic]
     }
   }
 
@@ -315,6 +315,11 @@ class StageTitleBar extends React.Component {
     if (this.state.snapshotMergeConflicts) return void (0)
 
     this.setState({showSharePopover: true})
+
+    mixpanel.haikuTrack('install-options', {
+      from: 'app',
+      event: 'show-all-options'
+    })
 
     return this.performProjectSave()
   }
@@ -578,6 +583,7 @@ class StageTitleBar extends React.Component {
             ref={(el) => { this._shareModal = el }}
             projectUid={projectInfo.uuid}
             sha={projectInfo.sha}
+            mixpanel={mixpanel}
           />
         }
       </div>

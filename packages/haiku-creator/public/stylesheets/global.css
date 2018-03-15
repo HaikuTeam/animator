@@ -485,3 +485,21 @@ input::-webkit-input-placeholder {
 .react-draggable-dragging {
   cursor: -webkit-grabbing;
 }
+
+input[type=file]::-webkit-file-upload-button { /* chromes and blink button */
+    cursor: pointer;
+}
+
+.animation-rotating {
+  animation: rotation 2s infinite linear;
+}
+
+@keyframes rotation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(359deg);
+  }
+}
+

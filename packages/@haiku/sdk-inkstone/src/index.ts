@@ -9,8 +9,10 @@ const ENDPOINTS = {
   CHANGE_PASSWORD: 'v0/user/password',
   ORGANIZATION_LIST: 'v0/organization',
   COMMUNITY_PROJECT_LIST: 'v0/community',
-  SET_COMMUNITY_HAIKUDOS: 'v0/community/:ORGANIZATION_NAME/:PROJECT_NAME/haikudos',
+  SET_COMMUNITY_HAIKUDOS: 'v0/community/:ORGANIZATION_NAME/:PROJECT_NAME/hai-kudos',
   COMMUNITY_PROFILE: 'v0/community/:ORGANIZATION_NAME',
+  GET_COMMUNITY_PROJECT: 'v0/community/:ORGANIZATION_NAME/:PROJECT_NAME',
+  FORK_COMMUNITY_PROJECT: 'v0/community/:ORGANIZATION_NAME/:PROJECT_NAME/fork',
   PROJECT_LIST: 'v0/project',
   PROJECT_UPDATE: 'v0/project',
   INVITE_PREFINERY_CHECK: 'v0/invite/check',
@@ -21,6 +23,8 @@ const ENDPOINTS = {
   PROJECT_SNAPSHOT_BY_NAME_AND_SHA: 'v0/project/:NAME/snapshot/:SHA',
   PROJECT_GET_BY_NAME: 'v0/project/:NAME',
   PROJECT_GET_BY_UNIQUE_ID: 'v0/project/:UNIQUE_ID',
+  PROJECT_MAKE_PUBLIC_BY_NAME_OR_UNIQUE_ID: 'v0/project/:NAME_OR_UNIQUE_ID/is_public',
+  PROJECT_MAKE_PRIVATE_BY_NAME_OR_UNIQUE_ID: 'v0/project/:NAME_OR_UNIQUE_ID/is_public',
   PROJECT_DELETE_BY_NAME: 'v0/project/:NAME',
   SUPPORT_UPLOAD_GET_PRESIGNED_URL: 'v0/support/upload/:UUID',
   UPDATES: 'v0/updates',
@@ -30,6 +34,7 @@ const ENDPOINTS = {
   USER_REQUEST_CONFIRM: 'v0/user/resend-confirmation/:email',
   RESET_PASSWORD: 'v0/reset-password',
   RESET_PASSWORD_CLAIM: 'v0/reset-password/:UUID/claim',
+  FIGMA_ACCCESS_TOKEN_GET: 'v0/integrations/figma/token',
 };
 
 let request = requestLib.defaults({
@@ -473,17 +478,58 @@ export namespace inkstone {
     }
   }
 
+  export namespace integrations {
+    export interface AccessTokenResponse {
+      AccessToken: string;
+      RefreshToken: string;
+      ExpiresIn: number;
+    }
+
+    /**
+     * Get a Figma access token using a Figma authorization code.
+     * @param {string} code
+     * @param {inkstone.Callback<inkstone.integrations.AccessTokenResponse>} cb
+     */
+    export function getFigmaAccessToken(code: string, cb: inkstone.Callback<AccessTokenResponse>) {
+      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        url: inkstoneConfig.baseUrl + ENDPOINTS.FIGMA_ACCCESS_TOKEN_GET + '?Code=' + encodeURIComponent(code),
+        headers: baseHeaders,
+      };
+
+      request.get(options, (err, httpResponse, body) => {
+
+        if (httpResponse && httpResponse.statusCode === 200) {
+          cb(undefined, JSON.parse(body) as AccessTokenResponse, httpResponse);
+        } else {
+          cb(safeError(err), undefined, httpResponse);
+        }
+      });
+    }
+  }
+
   export namespace community {
     export interface HaiKudos {
       TotalFromCurrentUser?: number;
       Total: number;
     }
 
+    export interface SimpleNamedEntity {
+      Name: string;
+    }
+
     export interface CommunityProject {
-      Project: project.Project;
-      Organization: organization.Organization;
-      EmbedUrl: string;
-      HaiKudos: HaiKudos;
+      Project: SimpleNamedEntity;
+      Organization: SimpleNamedEntity;
+      IsSyndicated?: boolean;
+      IsPublic?: boolean;
+      BytecodeUrl?: string;
+      StandaloneUrl?: string;
+      EmbedUrl?: string;
+      LottieUrl?: string;
+      GifUrl?: string;
+      StillUrl?: string;
+      VideoUrl?: string;
+      HaiKudos?: HaiKudos;
     }
 
     export interface OrganizationAndCommunityProjects {
@@ -512,7 +558,36 @@ export namespace inkstone {
 
       request.get(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
-          cb(undefined, body as CommunityProject[], httpResponse);
+          cb(undefined, JSON.parse(body) as CommunityProject[], httpResponse);
+        } else {
+          cb(safeError(err), undefined, httpResponse);
+        }
+      });
+    }
+
+    /**
+     * Fork a community project.
+     *
+     * This endpoint requires auth.
+     * @param {string} authToken
+     * @param {inkstone.community.CommunityProject} project
+     * @param {inkstone.Callback<inkstone.project.Project>} cb
+     */
+    export function forkCommunityProject(
+      authToken: string, project: CommunityProject, cb: inkstone.Callback<project.Project>) {
+      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        url: inkstoneConfig.baseUrl + ENDPOINTS.FORK_COMMUNITY_PROJECT
+          .replace(':ORGANIZATION_NAME', project.Organization.Name)
+          .replace(':PROJECT_NAME', project.Project.Name),
+        headers: {
+          ...baseHeaders,
+          ...maybeAuthorizationHeaders(authToken),
+        },
+      };
+
+      request.post(options, (err, httpResponse, body) => {
+        if (httpResponse && httpResponse.statusCode === 201) {
+          cb(undefined, JSON.parse(body) as project.Project, httpResponse);
         } else {
           cb(safeError(err), undefined, httpResponse);
         }
@@ -552,7 +627,7 @@ export namespace inkstone {
       };
 
       request.put(options, (err, httpResponse) => {
-        if (httpResponse && httpResponse.statusCode === 200) {
+        if (httpResponse && httpResponse.statusCode === 204) {
           cb(undefined, true, httpResponse);
         } else {
           cb(safeError(err), false, httpResponse);
@@ -584,7 +659,37 @@ export namespace inkstone {
 
       request.get(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
-          cb(undefined, body as OrganizationAndCommunityProjects, httpResponse);
+          cb(undefined, JSON.parse(body) as OrganizationAndCommunityProjects, httpResponse);
+        } else {
+          cb(safeError(err), undefined, httpResponse);
+        }
+      });
+    }
+
+    /**
+     * Get a community project by organization and project name.
+     *
+     * @param {string | undefined} authToken
+     * @param {string} organizationName
+     * @param {string} projectName
+     * @param {inkstone.Callback<inkstone.community.CommunityProject>} cb
+     */
+    export function getProject(
+      authToken: string|undefined, organizationName: string, projectName: string,
+      cb: inkstone.Callback<CommunityProject>) {
+      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        url: inkstoneConfig.baseUrl + ENDPOINTS.GET_COMMUNITY_PROJECT
+          .replace(':ORGANIZATION_NAME', organizationName)
+          .replace(':PROJECT_NAME', projectName),
+        headers: {
+          ...baseHeaders,
+          ...maybeAuthorizationHeaders(authToken),
+        },
+      };
+
+      request.get(options, (err, httpResponse, body) => {
+        if (httpResponse && httpResponse.statusCode === 200) {
+          cb(undefined, JSON.parse(body) as CommunityProject, httpResponse);
         } else {
           cb(safeError(err), undefined, httpResponse);
         }
@@ -600,6 +705,7 @@ export namespace inkstone {
       GitRemoteName: string;
       GitRemoteArn: string;
       IsPublic: boolean;
+      ForkComplete: boolean;
 
       // Current: GitLab-specific fields.
       RepositoryUrl: string;
@@ -664,6 +770,42 @@ export namespace inkstone {
           cb(undefined, project, httpResponse);
         } else {
           cb(safeError(err), undefined, httpResponse);
+        }
+      });
+    }
+
+    export function makePublic(authToken: string, nameOrUniqueId: string, cb: inkstone.Callback<boolean>) {
+      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_MAKE_PUBLIC_BY_NAME_OR_UNIQUE_ID.replace(
+          ':NAME_OR_UNIQUE_ID', nameOrUniqueId),
+        headers: _.extend(baseHeaders, {
+          Authorization: `INKSTONE auth_token="${authToken}"`,
+        }),
+      };
+
+      request.put(options, (err, httpResponse) => {
+        if (httpResponse && httpResponse.statusCode === 204) {
+          cb(undefined, true, httpResponse);
+        } else {
+          cb(safeError(err), false, httpResponse);
+        }
+      });
+    }
+
+    export function makePrivate(authToken: string, nameOrUniqueId: string, cb: inkstone.Callback<boolean>) {
+      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_MAKE_PRIVATE_BY_NAME_OR_UNIQUE_ID.replace(
+          ':NAME_OR_UNIQUE_ID', nameOrUniqueId),
+        headers: _.extend(baseHeaders, {
+          Authorization: `INKSTONE auth_token="${authToken}"`,
+        }),
+      };
+
+      request.delete(options, (err, httpResponse) => {
+        if (httpResponse && httpResponse.statusCode === 204) {
+          cb(undefined, true, httpResponse);
+        } else {
+          cb(safeError(err), false, httpResponse);
         }
       });
     }

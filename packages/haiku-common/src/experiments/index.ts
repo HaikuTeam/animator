@@ -29,6 +29,7 @@ export enum Experiment {
   ElementDepthFilter = 'ElementDepthFilter',
   StageSelectionMarquee = 'StageSelectionMarquee',
   StageResizeAllSides = 'StageResizeAllSides',
+  FigmaIntegration = 'FigmaIntegration',
 }
 
 /**

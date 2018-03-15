@@ -93,14 +93,22 @@ export default class TopMenu extends EventEmitter {
     if (experimentIsEnabled(Experiment.LottieExportInGlobalMenu)) {
       projectSubmenu.push({
         label: 'Export',
-        submenu: [{
-          label: ExporterFormat.Bodymovin,
-          enabled: isProjectOpen,
-          accelerator: 'Cmd+Shift+E', // TODO(sashajoseph): Remove this?
-          click: () => {
-            this.emit('global-menu:export', [ExporterFormat.Bodymovin])
+        submenu: [
+          {
+            label: ExporterFormat.Bodymovin,
+            enabled: isProjectOpen,
+            click: () => {
+              this.emit('global-menu:export', [ExporterFormat.Bodymovin])
+            }
+          },
+          {
+            label: ExporterFormat.HaikuStatic,
+            enabled: isProjectOpen,
+            click: () => {
+              this.emit('global-menu:export', [ExporterFormat.HaikuStatic])
+            }
           }
-        }]
+        ]
       })
     }
 

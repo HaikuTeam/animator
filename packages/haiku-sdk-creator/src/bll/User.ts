@@ -18,6 +18,7 @@ export enum UserSettings {
   lastViewedChangelog = 'lastViewedChangelog',
   defaultTimeDisplayMode = 'defaultTimeDisplayMode',
   timeDisplayModes = 'timeDisplayModes',
+  figmaToken = 'figmaToken',
 }
 
 export class UserHandler implements User {

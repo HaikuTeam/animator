@@ -99,6 +99,7 @@ export class ProjectShareDetails extends React.PureComponent {
     isSnapshotSaveInProgress: React.PropTypes.bool,
     isPublic: React.PropTypes.bool,
     togglePublic: React.PropTypes.func,
+    mixpanel: React.PropTypes.object,
   };
 
   render() {
@@ -110,6 +111,7 @@ export class ProjectShareDetails extends React.PureComponent {
       onHide,
       isPublic,
       togglePublic,
+      mixpanel,
     } = this.props;
 
     return (
@@ -128,19 +130,21 @@ export class ProjectShareDetails extends React.PureComponent {
             <p style={{height: 16, ...STYLES.info}} />
           )}
 
-          <span
-            style={assign({}, {...STYLES.info, ...STYLES.infoSpecial2})} >
+          {<span style={{visibility: this.props.isPublic === undefined ? 'hidden' : 'visible'}}>
             <span
-              id="public-private-label"
-              style={this.props.isDisabled ? STYLES.disabledToggle : STYLES.toggleLabel}>
-              {this.props.isPublic ? 'Public' : 'Private'}
+              style={assign({}, {...STYLES.info, ...STYLES.infoSpecial2})} >
+              <span
+                id="public-private-label"
+                style={this.props.isDisabled ? STYLES.disabledToggle : STYLES.toggleLabel}>
+                {this.props.isPublic ? 'Public' : 'Private'}
+              </span>
             </span>
-          </span>
-          <span
-            style={assign({}, {...STYLES.toggle, ...(isPublic && STYLES.toggleActive)})}
-            onClick={() => {!this.props.isDisabled && togglePublic();}}>
-              <span style={assign({}, {...STYLES.knob, ...(isPublic && STYLES.knobActive)})}/>
-          </span>
+            <span
+              style={assign({}, {...STYLES.toggle, ...(isPublic && STYLES.toggleActive)})}
+              onClick={() => {!this.props.isDisabled && togglePublic();}}>
+                <span style={assign({}, {...STYLES.knob, ...(isPublic && STYLES.knobActive)})}/>
+            </span>
+          </span>}
         </div>
 
         <div style={{width: '50%'}}>
@@ -150,6 +154,18 @@ export class ProjectShareDetails extends React.PureComponent {
           <LinkHolster
             isSnapshotSaveInProgress={isSnapshotSaveInProgress}
             linkAddress={linkAddress}
+            onCopy={() => {
+              this.props.mixpanel.haikuTrack('install-options', {
+                from: 'app',
+                event: 'copy-share-link',
+              });
+            }}
+            onLinkOpen={() => {
+              this.props.mixpanel.haikuTrack('install-options', {
+                from: 'app',
+                event: 'open-share-link',
+              });
+            }}
           />
           {
             !this.props.isDisabled &&

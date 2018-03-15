@@ -13,7 +13,14 @@ function separate(str) {
   const type = bits[0];
   return {
     type,
-    values: bits[1].replace(')', '').split(/\s*,\s*/gi).map((str2) => parseCssValueString(str2, type)),
+    // The transform component string may look like any of these:
+    //    translate(0.12,3)
+    //    translate(0.12 3.555)
+    //    translate(1, 2)
+    // Note the variations of comma, space, and decimals that are possible.
+    // This parsing step individuates them, producing an array of objects that
+    // describe the numeric value and the inferred unit.
+    values: bits[1].replace(')', '').split(/\s*[, ]+\s*/gi).map((str2) => parseCssValueString(str2, type)),
   };
 }
 

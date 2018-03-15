@@ -1,12 +1,14 @@
 import async from 'async'
 import path from 'path'
 import { debounce } from 'lodash'
+import { ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
 import fse from 'haiku-fs-extra'
 import walkFiles from 'haiku-serialization/src/utils/walkFiles'
 import File from 'haiku-serialization/src/bll/File'
 import Project from 'haiku-serialization/src/bll/Project'
 import ModuleWrapper from 'haiku-serialization/src/bll/ModuleWrapper'
 import Sketch from 'haiku-serialization/src/bll/Sketch'
+import Figma from 'haiku-serialization/src/bll/Figma'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import MockWebsocket from 'haiku-serialization/src/ws/MockWebsocket'
 import { EventEmitter } from 'events'
@@ -534,7 +536,7 @@ export default class Master extends EventEmitter {
       [
         /* Remove associated Sketch contents from disk */
         (cb) => {
-          Sketch.isSketchFile(abspath)
+          Sketch.isSketchFile(abspath) || Figma.isFigmaFile(abspath)
             ? fse.remove(`${abspath}.contents`, cb)
             : cb()
         },
@@ -829,7 +831,15 @@ export default class Master extends EventEmitter {
 
           return async.series(exporterFormats.map((format) => (nextFormat) => {
             // For now, we only support one exported format: lottie.json
-            const filename = ac.getAbsoluteLottieFilePath()
+            let filename
+            switch (format) {
+              case ExporterFormat.Bodymovin:
+                filename = ac.getAbsoluteLottieFilePath()
+                break
+              case ExporterFormat.HaikuStatic:
+                filename = ac.getAbsoluteHaikuStaticFilePath()
+                break
+            }
 
             return saveExport({format, filename}, ac, (err) => {
               if (err) {
