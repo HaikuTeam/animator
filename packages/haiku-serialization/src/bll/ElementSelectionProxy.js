@@ -4,6 +4,8 @@ const BaseModel = require('./BaseModel')
 const TransformCache = require('./TransformCache')
 const Layout3D = require('@haiku/core/lib/Layout3D').default
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
+const Figma = require('./Figma')
+const Sketch = require('./Sketch')
 
 const PI_OVER_12 = Math.PI / 12
 
@@ -130,7 +132,7 @@ class ElementSelectionProxy extends BaseModel {
 
   isSelectionSketchEditable () {
     const sourcePath = this.getSourcePath()
-    return (
+    return !!(
       sourcePath &&
       Sketch.isSketchFolder(sourcePath)
     )
@@ -146,7 +148,7 @@ class ElementSelectionProxy extends BaseModel {
 
   isSelectionFigmaEditable () {
     const sourcePath = this.getSourcePath()
-    return (
+    return !!(
       sourcePath &&
       Figma.isFigmaFolder(sourcePath)
     )
