@@ -43,7 +43,7 @@ Sketch.isSketchFile = (abspath) => {
 }
 
 Sketch.isSketchFolder = (abspath) => {
-  return abspath.match(IS_SKETCH_FOLDER_RE)
+  return !!abspath && abspath.match(IS_SKETCH_FOLDER_RE)
 }
 
 Sketch.exportFolderPath = (sketchRelpath) => {
