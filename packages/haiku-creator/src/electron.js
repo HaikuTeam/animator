@@ -8,6 +8,7 @@ import qs from 'qs'
 
 import { isProxied } from 'haiku-common/lib/proxies'
 import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
+import logger from 'haiku-serialization/src/utils/LoggerInstance'
 
 import TopMenu from './TopMenu'
 
@@ -183,6 +184,7 @@ function createWindow () {
 
 // Transmit haiku://foo/bar?baz=bat as the "open-url:foo" event with arguments [_, "/bar", {"baz": "bat"}]
 app.on('open-url', (event, url) => {
+  logger.info(`[creator] handling custom protocol URL ${url}`)
   event.preventDefault()
   const parsedUrl = parse(url)
   browserWindow.webContents.send(`open-url:${parsedUrl.host}`, parsedUrl.pathname, qs.parse(parsedUrl.query))
