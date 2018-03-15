@@ -64,6 +64,6 @@
   },
   "FigmaIntegration": {
     "development": true,
-    "production": false
+    "production": true
   }
 }
