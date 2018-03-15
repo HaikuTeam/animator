@@ -14,6 +14,10 @@ if (!global.process.env.NODE_ENV || global.process.env.NODE_ENV !== 'development
 if (process.env.HAIKU_APP_LAUNCH_CLI === '1') {
   require('@haiku/cli');
 } else {
+  const {app} = require('electron');
+  app.once('open-url', (event, url) => {
+    global.process.env.HAIKU_INITIAL_URL = url;
+  });
   const haikuHelperArgs = {stdio: 'inherit'};
   if (global.process.env.HAIKU_DEBUG) {
     haikuHelperArgs.execArgv = ['--inspect=9221'];
