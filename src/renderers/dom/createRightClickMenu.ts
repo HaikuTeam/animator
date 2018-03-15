@@ -4,7 +4,6 @@
 
 const MENU_GLOBAL_ID = 'haiku-right-click-menu';
 const WIDTH = 167;
-const HEIGHT = 44;
 
 /* tslint:disable */
 const haikuIcon =
@@ -21,7 +20,7 @@ const haikuIcon =
 
 const sharePageIcon =
   '' +
-  '<svg style="transform:translate(-1px, 3px);margin-right:3px;" width="14px" height="14px" viewBox="0 0 11 10" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">' +
+  '<svg style="transform:translate(-1px, 3px);margin-right:1px;" width="14px" height="14px" viewBox="0 0 11 10" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">' +
   '  <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">' +
   '      <g id="menu" transform="translate(-8.000000, -32.000000)">' +
   '          <g id="0884-focus" transform="translate(8.500000, 32.000000)">' +
@@ -37,8 +36,17 @@ const sharePageIcon =
   '      </g>' +
   '  </g>' +
   '</svg>';
-/* tslint:enable */
 
+const forkIcon =
+  '' +
+  '<svg style="margin-right:5px;transform:translate(1px,3px);" width="11px" height="13px" viewBox="0 0 11 14" xmlns="http://www.w3.org/2000/svg">' +
+  '    <g fill="#899497" fill-rule="evenodd">' +
+  '        <path d="M1.764 2.506c.544 0 .964-.394.964-.853 0-.46-.42-.853-.964-.853S.8 1.194.8 1.653c0 .459.42.853.964.853zm0 .8C.79 3.306 0 2.566 0 1.653S.79 0 1.764 0s1.764.74 1.764 1.653-.79 1.653-1.764 1.653zm7.472-.8c.544 0 .964-.394.964-.853 0-.46-.42-.853-.964-.853s-.964.394-.964.853c0 .459.42.853.964.853zm0 .8c-.974 0-1.764-.74-1.764-1.653S8.262 0 9.236 0 11 .74 11 1.653s-.79 1.653-1.764 1.653zM1.764 13.2c.544 0 .964-.394.964-.853 0-.459-.42-.853-.964-.853s-.964.394-.964.853c0 .46.42.853.964.853zm0 .8C.79 14 0 13.26 0 12.347s.79-1.653 1.764-1.653 1.764.74 1.764 1.653S2.738 14 1.764 14z"/>' +
+  '        <path d="M9.636 3.028h-.8v-.421h.8v1.497c0 2.241-1.525 2.711-5.326 2.711-1.307 0-2.01.707-2.193 2.252l-.795-.094c.229-1.928 1.253-2.958 2.988-2.958 3.34 0 4.526-.365 4.526-1.911V2.61c0-.003 0-.003.8-.004v.422z"/>' +
+  '        <path d="M1.33 3h.8v8h-.8z"/>' +
+  '    </g>' +
+  '</svg>';
+/* tslint:enable */
 // Haiku servers will substitute the _actual_ full string in any js file,
 // so it's split into pieces here to avoid that build step
 const SUBSTITUTION_STRING = 'HAIKU' + '_' + 'SHARE' + '_' + 'UUID';
@@ -93,6 +101,22 @@ export default function createRightClickMenu(domElement, component) {
   const menu = findOrCreateMenuElement(doc);
 
   const escaper = doc.createElement('textarea');
+  const metadata = component._bytecode && component._bytecode.metadata;
+  let isPublic = false;
+
+  if (metadata && metadata.project && metadata.organization && window && window.fetch) {
+    try {
+      window.fetch(`https://inkstone.haiku.ai/v0/community/${metadata.organization}/${metadata.project}`).then(
+        ({ok}) => {
+          if (ok) {
+            isPublic = true;
+          }
+        },
+      );
+    } catch (e) {
+      // ...noop. We were unable to determinine forkability.
+    }
+  }
 
   function escapeHTML(html) {
     escaper.textContent = html;
@@ -102,11 +126,8 @@ export default function createRightClickMenu(domElement, component) {
   // revealMenu(100,100) // Uncomment me to render the menu while testing
 
   function revealMenu(mx, my) {
-    let height = HEIGHT;
     const lines = [];
     let titleLine = null;
-
-    const metadata = component._bytecode && component._bytecode.metadata;
 
     /* tslint:disable */
     if (metadata && metadata.project) {
@@ -122,14 +143,23 @@ export default function createRightClickMenu(domElement, component) {
         byline +
         '</p>';
     }
-    if (metadata && metadata.uuid && metadata.uuid !== SUBSTITUTION_STRING) {
+    if (isPublic && metadata && metadata.uuid && metadata.uuid !== SUBSTITUTION_STRING) {
       lines.push(
         '<a onMouseOver="this.style.backgroundColor=\'rgba(140,140,140,.07)\'" onMouseOut="this.style.backgroundColor=\'transparent\'" style="display:block;color:black;text-decoration:none;padding: 5px 13px;line-height:12px;" href="https://share.haiku.ai/' +
         escapeHTML(metadata.uuid) +
         '" target="_blank">' +
         sharePageIcon +
-        '  View Component</a>',
+        ' View on Haiku Community</a>',
       );
+    }
+    if (isPublic) {
+      lines.push(
+        '<a onMouseOver="this.style.backgroundColor=\'rgba(140,140,140,.07)\'" onMouseOut="this.style.backgroundColor=\'transparent\'" style="display:block;color:black;text-decoration:none;padding: 5px 13px;line-height:12px;" href="https://share.haiku.ai/u/' +
+        escapeHTML(`${metadata.organization}/${metadata.project}/fork`) +
+        '" target="_blank">' +
+        forkIcon +
+        ' Fork this component</a>',
+      )
     }
     lines.push(
       '<a onMouseOver="this.style.backgroundColor=\'rgba(140,140,140,.07)\'" onMouseOut="this.style.backgroundColor=\'transparent\'" style="display:block;color:black;text-decoration:none;padding: 5px 13px;line-height:12px;" href="https://www.haiku.ai" target="_blank">' +
@@ -142,11 +172,9 @@ export default function createRightClickMenu(domElement, component) {
       return undefined;
     }
 
-    height = lines.length > 1 ? 88 : 61;
-    height = titleLine ? height : 22;
-
-    menu.style.width = px(WIDTH);
-    menu.style.height = px(height);
+    menu.style.width = 'auto';
+    menu.style.minWidth = WIDTH;
+    menu.style.height = 'auto';
     menu.style.top = px(my);
     menu.style.left = px(mx);
     menu.style.pointerEvents = 'auto';
@@ -154,8 +182,13 @@ export default function createRightClickMenu(domElement, component) {
     menu.innerHTML = titleLine ? titleLine + lines.join('\n') : lines.join('\n');
   }
 
-  function hideMenu() {
+  function hideMenu(nativeEvent) {
+    if (nativeEvent.button === 2 || nativeEvent.ctrlKey) {
+      // Firefox treats contextmenu mouseups as clicks for some reason. This short-circuits that behavior.
+      return;
+    }
     menu.style.width = px(0);
+    menu.style.minWidth = px(0);
     menu.style.height = px(0);
     menu.style.top = px(0);
     menu.style.left = px(0);
