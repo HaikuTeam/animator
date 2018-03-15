@@ -55,10 +55,10 @@ export class TooltipBasic extends React.PureComponent {
   render () {
     return (
       <div style={{
-          ...STYLES.tooltip,
-          ...(this.props.light && STYLES.light),
-          ...{top: this.props.top},
-        }}>
+        ...STYLES.tooltip,
+        ...(this.props.light && STYLES.light),
+        ...{top: this.props.top},
+      }}>
         <span style={{...STYLES.tip, ...(this.props.light && STYLES.tipLight)}} />
         {this.props.children}
       </div>

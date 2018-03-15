@@ -43,7 +43,7 @@ export class LoadingTopBar extends React.PureComponent {
           width: `${this.props.progress}%`,
           transition: `width ${this.props.speed} cubic-bezier(0.4, 0, 1, 1), opacity 300ms ease`,
           opacity: this.props.done ? 0 : 1,
-          ...STYLES.bar
+          ...STYLES.bar,
         }}
       />
     );

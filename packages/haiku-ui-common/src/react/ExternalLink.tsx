@@ -1,5 +1,5 @@
 import * as React from 'react';
-import isElectron from '../helpers/isElectron'
+import isElectron from '../helpers/isElectron';
 
 export class ExternalLink extends React.PureComponent {
   props;
@@ -20,7 +20,7 @@ export class ExternalLink extends React.PureComponent {
         style={this.props.style}
         onClick={(clickEvent) => {
           if (isElectron()) {
-            const {shell} = require('electron')
+            const {shell} = require('electron');
             clickEvent.preventDefault();
             shell.openExternal(this.props.href);
           }

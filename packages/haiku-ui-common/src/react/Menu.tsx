@@ -54,7 +54,7 @@ const STYLES = {
     transform: 'rotate(-90deg)',
     marginLeft: '15px',
   },
-} as React.CSSProperties
+} as React.CSSProperties;
 
 const CLOSE_IF_SELECTED_CLASS = 'js-close-on-click';
 
@@ -179,7 +179,7 @@ export class SubMenu extends React.Component {
         className="submenu-li"
         style={{
           ...STYLES.menuItem,
-          ...(this.state.isHovered && STYLES.menuItemHovered)
+          ...(this.state.isHovered && STYLES.menuItemHovered),
         }}
         onMouseEnter={this.open}
         onMouseLeave={this.close}
