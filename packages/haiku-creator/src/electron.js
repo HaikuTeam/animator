@@ -58,6 +58,15 @@ if (!haiku.plumbing.url) {
   haiku.plumbing.url = `http://${global.process.env.HAIKU_PLUMBING_HOST || '0.0.0.0'}:${global.process.env.HAIKU_PLUMBING_PORT}/?token=${process.env.HAIKU_WS_SECURITY_TOKEN}`
 }
 
+const handleUrl = (url) => {
+  if (!browserWindow) {
+    logger.warn(`[creator] unable to handle custom protocol URL ${url}; browserWindow not ready`)
+  }
+  logger.info(`[creator] handling custom protocol URL ${url}`)
+  const parsedUrl = parse(url)
+  browserWindow.webContents.send(`open-url:${parsedUrl.host}`, parsedUrl.pathname, qs.parse(parsedUrl.query))
+}
+
 function different (a, b) {
   return a !== b
 }
@@ -150,6 +159,9 @@ function createWindow () {
       }
 
       browserWindow.webContents.send('haiku', haiku)
+      if (global.process.env.HAIKU_INITIAL_URL) {
+        handleUrl(global.process.env.HAIKU_INITIAL_URL)
+      }
     })
   })
 
@@ -184,10 +196,8 @@ function createWindow () {
 
 // Transmit haiku://foo/bar?baz=bat as the "open-url:foo" event with arguments [_, "/bar", {"baz": "bat"}]
 app.on('open-url', (event, url) => {
-  logger.info(`[creator] handling custom protocol URL ${url}`)
   event.preventDefault()
-  const parsedUrl = parse(url)
-  browserWindow.webContents.send(`open-url:${parsedUrl.host}`, parsedUrl.pathname, qs.parse(parsedUrl.query))
+  handleUrl(url)
 })
 
 if (app.isReady()) {
