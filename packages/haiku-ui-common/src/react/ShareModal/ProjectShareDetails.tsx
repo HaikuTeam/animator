@@ -1,5 +1,4 @@
 import * as React from 'react';
-import * as assign from 'lodash.assign';
 import * as Color from 'color';
 import Palette from '../../Palette';
 import {LinkHolster} from './LinkHolster';
@@ -9,14 +8,14 @@ const STYLES = {
     display: 'flex',
     justifyContent: 'space-between',
     padding: '15px 0',
-  } as React.CSSProperties,
+  },
   title: {
     color: Palette.PALE_GRAY,
     fontSize: '18px',
     margin: '0',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
-  } as React.CSSProperties,
+  },
   info: {
     color: Palette.PALE_GRAY,
     cursor: 'default',
@@ -24,7 +23,7 @@ const STYLES = {
     margin: '0',
     fontStyle: 'italic',
     lineHeight: '1.2em',
-  } as React.CSSProperties,
+  },
   infoHeading: {
     float: 'left',
     textAlign: 'left',
@@ -61,14 +60,14 @@ const STYLES = {
     position: 'relative',
     marginTop: 10,
     marginLeft: 10,
-  } as React.CSSProperties,
+  },
   toggleLabel: {
     width: 47,
     display: 'inline-block',
-  } as React.CSSProperties,
+  },
   toggleActive: {
     backgroundColor: Color(Palette.LIGHTEST_PINK).fade(.5),
-  } as React.CSSProperties,
+  },
   knob: {
     display: 'inline-block',
     position: 'absolute',
@@ -79,7 +78,7 @@ const STYLES = {
     borderRadius: 16,
     backgroundColor: Palette.DARKER_ROCK,
     transition: 'transform 220ms cubic-bezier(0.25, 0.1, 0.29, 1.45)',
-  } as React.CSSProperties,
+  },
   knobActive: {
     backgroundColor: Palette.LIGHTEST_PINK,
     transform: 'translateX(18px)',
@@ -87,7 +86,7 @@ const STYLES = {
   disabledToggle: {
     opacity: .5,
   },
-};
+} as React.CSSProperties;
 
 export class ProjectShareDetails extends React.PureComponent {
   props;
@@ -132,7 +131,7 @@ export class ProjectShareDetails extends React.PureComponent {
 
           {<span style={{visibility: this.props.isPublic === undefined ? 'hidden' : 'visible'}}>
             <span
-              style={assign({}, {...STYLES.info, ...STYLES.infoSpecial2})} >
+              style={{...STYLES.info, ...STYLES.infoSpecial2}} >
               <span
                 id="public-private-label"
                 style={this.props.isDisabled ? STYLES.disabledToggle : STYLES.toggleLabel}>
@@ -140,15 +139,15 @@ export class ProjectShareDetails extends React.PureComponent {
               </span>
             </span>
             <span
-              style={assign({}, {...STYLES.toggle, ...(isPublic && STYLES.toggleActive)})}
+              style={{...STYLES.toggle, ...(isPublic && STYLES.toggleActive)}}
               onClick={() => {!this.props.isDisabled && togglePublic();}}>
-                <span style={assign({}, {...STYLES.knob, ...(isPublic && STYLES.knobActive)})}/>
+                <span style={{...STYLES.knob, ...(isPublic && STYLES.knobActive)}}/>
             </span>
           </span>}
         </div>
 
         <div style={{width: '50%'}}>
-          <p style={assign({}, {...STYLES.info, ...STYLES.infoHeading})}>
+          <p style={{...STYLES.info, ...STYLES.infoHeading}}>
             <strong>Shareable link:</strong>
           </p>
           <LinkHolster
@@ -169,7 +168,7 @@ export class ProjectShareDetails extends React.PureComponent {
           />
           {
             !this.props.isDisabled &&
-            <p style={assign({}, {...STYLES.info, ...STYLES.infoSpecial})}>
+            <p style={{...STYLES.info, ...STYLES.infoSpecial}}>
               Anyone&nbsp;
               {
                 !this.props.isPublic && <span>with the link&nbsp;</span>

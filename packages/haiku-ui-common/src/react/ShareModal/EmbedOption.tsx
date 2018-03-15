@@ -1,5 +1,4 @@
 import * as React from 'react';
-import * as assign from 'lodash.assign';
 import Palette from '../../Palette';
 import {LoadingTopBar} from '../../LoadingTopBar';
 import {TooltipBasic} from '../TooltipBasic';
@@ -25,7 +24,7 @@ const STYLES = {
       cursor: 'wait',
     },
   },
-};
+} as React.CSSProperties;
 
 export class EmbedOption extends React.PureComponent {
   props;
@@ -147,15 +146,12 @@ export class EmbedOption extends React.PureComponent {
     return (
       <li style={{position: 'relative'}}>
         <button
-          style={assign(
-            {},
-            {
-              ...SHARED_STYLES.btn,
-              ...STYLES.entry,
-              ...(!this.state.done && STYLES.entry.loading),
-              ...(effectivelyDisabled && STYLES.entry.disabled),
-            },
-          )}
+          style={{
+            ...SHARED_STYLES.btn,
+            ...STYLES.entry,
+            ...(!this.state.done && STYLES.entry.loading),
+            ...(effectivelyDisabled && STYLES.entry.disabled),
+          }}
           disabled={!this.state.done}
           onMouseOver={() => {
             if (effectivelyDisabled) { this.setState({showTooltip: true}); }
