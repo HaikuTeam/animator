@@ -59,7 +59,6 @@ class Figma {
       .then((elements) => this.getSVGContents(elements))
       .then((elements) => this.writeSVGInDisk(elements, id, name, path))
       .then(() => { mixpanel.haikuTrack('creator:figma:fileImport:success') })
-      .catch(() => { mixpanel.haikuTrack('creator:figma:fileImport:fail') })
   }
 
   /**
@@ -174,7 +173,15 @@ class Figma {
 
     return new Promise((resolve, reject) => {
       this._requestLib({ uri, headers }, (error, response, body) => {
-        error || response.statusCode !== 200 ? reject(JSON.parse(body)) : resolve(body)
+        if (error || response.statusCode !== 200) {
+          try {
+            reject(JSON.parse(body))
+          } catch (e) {
+            reject(new Error('There was an error connecting with Figma.'))
+          }
+        } else {
+          resolve(body)
+        }
       })
     })
   }
@@ -208,7 +215,7 @@ class Figma {
    * @param {string} fileName
    * @returns {string}
    */
-  static buildFigmaLink (fileID, fileName) {
+  static buildFigmaLink (fileID, fileName = '') {
     return `${FIGMA_URL}file/${fileID}/${fileName}`
   }
 
