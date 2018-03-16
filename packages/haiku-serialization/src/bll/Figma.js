@@ -99,7 +99,7 @@ class Figma {
       elements.map((element) => {
         const path =
           assetBaseFolder + FOLDERS[element.type] + element.name + '.svg'
-        return fse.writeFile(path, element.svg)
+        return fse.writeFile(path, element.svg || '<svg version="1.1" xmlns="http://www.w3.org/2000/svg"></svg>')
       })
     )
   }

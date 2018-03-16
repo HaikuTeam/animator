@@ -384,6 +384,9 @@ Every slice and group will be imported here.
 `
 
 Asset.ingestAssets = (project, dict) => {
+  Asset.all().forEach((asset) => {
+    asset.destroy()
+  })
   const componentFolderAsset = Asset.upsert({
     uid: path.join(project.getFolder(), 'code'),
     type: Asset.TYPES.CONTAINER,
