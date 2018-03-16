@@ -1,6 +1,6 @@
 const { Experiment, experimentIsEnabled } = require('haiku-common/lib/experiments')
 const BaseModel = require('./BaseModel')
-const TimelineProperty = require('haiku-bytecode/src/TimelineProperty')
+const TimelineProperty = require('haiku-serialization/src/bll/TimelineProperty')
 
 const NAVIGATION_DIRECTIONS = {
   SAME: 0,

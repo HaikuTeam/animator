@@ -5,20 +5,59 @@ const pascalcase = require('pascalcase')
 const SVGPoints = require('@haiku/core/lib/helpers/SVGPoints').default
 const convertManaLayout = require('@haiku/core/lib/layout/convertManaLayout').default
 const visitManaTree = require('@haiku/core/lib/helpers/visitManaTree').default
-const insertAttributesIntoTimelineGroup = require('haiku-bytecode/src/insertAttributesIntoTimelineGroup')
-const extractReferenceIdFromUrlReference = require('haiku-bytecode/src/extractReferenceIdFromUrlReference')
-const States = require('haiku-bytecode/src/States')
 const jsonStableStringify = require('json-stable-stringify')
-
+const assign = require('lodash.assign')
+const defaults = require('lodash.defaults')
+const BasicUtils = require('@haiku/core/lib/helpers/BasicUtils').default
+const styleStringToObject = require('to-style').object
 const BaseModel = require('./BaseModel')
-
 const CryptoUtils = require('./../utils/CryptoUtils')
+
+const SELF_CLOSING_TAG_NAMES = [
+  'area',
+  'base',
+  'br',
+  'col',
+  'command',
+  'embed',
+  'hr',
+  'img',
+  'input',
+  'keygen',
+  'link',
+  'meta',
+  'param',
+  'source',
+  'track',
+  'wbr'
+]
+
+const COLON = ':'
+const SEMI = ';'
+const OPEN_TAG = '<'
+const CLOSE_TAG = '>'
+const SPACE = ' '
+const EMPTY = ''
+const EQ = '='
+const DQUOTE = '"'
+const SLASH = '/'
+const STYLE = 'style'
+const CLASS_NAME = 'className'
+const CLASS = 'class'
+
+const GROUP_DELIMITER = '.'
+const MERGE_STRATEGIES = {
+  assign: 'assign',
+  defaults: 'defaults'
+}
 
 const ROOT_LOCATOR = '0'
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const SOURCE_ATTRIBUTE = 'source'
 const HAIKU_TITLE_ATTRIBUTE = 'haiku-title'
 const HAIKU_SELECTOR_PREFIX = 'haiku'
+
+const REF_MATCHER_RE = /^url\(#(.*)\)$/
 
 const TEMPLATE_METADATA_ATTRIBUTES = {
   version: true,
@@ -45,6 +84,16 @@ const SELECTOR_ATTRIBUTES = {
   'className': 'class',
   'name': 'name',
   'type': 'type'
+}
+
+function isSerializedFunction (object) {
+  return object && !!object.__function
+}
+
+function extractReferenceIdFromUrlReference (stringValue) {
+  var matches = REF_MATCHER_RE.exec(stringValue)
+  if (matches) return matches[1]
+  return null
 }
 
 /**
@@ -235,7 +284,7 @@ Template.manaToDynamicBytecode = (mana, identifier, modpath, options = {}) => {
 
       const stateName = State.buildStateNameFromElementPropertyName(0, states, elementNode, propertyName)
 
-      const stateDescriptor = States.autoCastToType({
+      const stateDescriptor = State.autoCastToType({
         value: Template.fixKeyframeValue(elementNode, propertyName, keyframeDescriptor.value),
         access: Property.PRIVATE_PROPERTY_WHEN_HOISTING_TO_STATE[propertyName] ? 'private' : 'public'
       })
@@ -325,8 +374,8 @@ Template.hoistNodeAttributes = function hoistNodeAttributes (manaNode, haikuId, 
     if (!timelineObj[haikuIdSelector]) timelineObj[haikuIdSelector] = {}
     const timelineGroup = timelineObj[haikuIdSelector]
 
-    insertAttributesIntoTimelineGroup(timelineGroup, timelineTime, defaultAttributes, mergeStrategy)
-    insertAttributesIntoTimelineGroup(timelineGroup, timelineTime, controlAttributes, mergeStrategy)
+    Template.insertAttributesIntoTimelineGroup(timelineGroup, timelineTime, defaultAttributes, mergeStrategy)
+    Template.insertAttributesIntoTimelineGroup(timelineGroup, timelineTime, controlAttributes, mergeStrategy)
   }
 
   // Clear off attributes that have been 'hoisted' into the control objects
@@ -827,6 +876,250 @@ Template.clone = (out, mana) => {
   }
 
   return out
+}
+
+Template.insertAttributesIntoTimelineGroup = (timelineGroup, timelineTime, givenAttributes, mergeStrategy) => {
+  for (const attributeName in givenAttributes) {
+    const attributeValue = givenAttributes[attributeName]
+    if (attributeValue && typeof attributeValue === 'object') {
+      for (const subKey in attributeValue) {
+        const subVal = attributeValue[subKey]
+        const fullName = attributeName + GROUP_DELIMITER + subKey
+        Template.mergeOne(timelineGroup, fullName, subVal, timelineTime, mergeStrategy)
+      }
+    } else {
+      Template.mergeOne(timelineGroup, attributeName, attributeValue, timelineTime, mergeStrategy)
+    }
+  }
+}
+
+Template.mergeOne = (timelineGroup, attributeName, attributeValue, timelineTime, mergeStrategy) => {
+  if (!timelineGroup[attributeName]) timelineGroup[attributeName] = {}
+  if (!timelineGroup[attributeName][timelineTime]) timelineGroup[attributeName][timelineTime] = {}
+  Template.mergeAppliedValue(attributeName, timelineGroup[attributeName][timelineTime], attributeValue, mergeStrategy)
+}
+
+Template.mergeAppliedValue = (name, valueDescriptor, incomingValue, mergeStrategy) => {
+  if (BasicUtils.isObject(valueDescriptor.value) && BasicUtils.isObject(incomingValue) && !isSerializedFunction(valueDescriptor.value) && !isSerializedFunction(incomingValue)) {
+    switch (mergeStrategy) {
+      case MERGE_STRATEGIES.assign: assign(valueDescriptor.value, incomingValue); break
+      case MERGE_STRATEGIES.defaults: defaults(valueDescriptor.value, incomingValue); break
+      default: throw new Error('Merge strategy provided is missing or invalid')
+    }
+  } else {
+    switch (mergeStrategy) {
+      case MERGE_STRATEGIES.assign: valueDescriptor.value = incomingValue; break
+      case MERGE_STRATEGIES.defaults: if (valueDescriptor.value === undefined) valueDescriptor.value = incomingValue; break
+      default: throw new Error('Merge strategy provided is missing or invalid')
+    }
+  }
+}
+
+Template.manaToJson = (mana, replacer, spacing) => {
+  const out = Template.cleanMana(mana)
+  return JSON.stringify(out, replacer || null, spacing || 2)
+}
+
+Template.cleanMana = (mana) => {
+  const out = {}
+  if (!mana) return null
+  if (typeof mana === 'string') return mana
+  out.elementName = mana.elementName
+
+  // cleanMana is used when producing a decycled (wire-ready) bytecode object during editing.
+  // If the bytecode has any subcomponents, which are designated using the .elementName
+  // in the same way the React designates components by the .type, then treat the
+  // node as a simple <div>. TODO: We may actually want to decycle the subcomponent here.
+  if (out.elementName && typeof out.elementName === 'object') {
+    out.elementName = 'div'
+  }
+
+  out.attributes = mana.attributes
+  out.children = mana.children && mana.children.map(Template.cleanMana)
+  return out
+}
+
+Template.manaChildToHtml = (child, mapping, options) => {
+  if (Template.cannotUse(child)) return EMPTY
+  if (Template.alreadySerial(child)) {
+    return child
+  } else {
+    return Template.manaToHtml(EMPTY, child, mapping, options)
+  }
+}
+
+Template.styleToJSXString = (style) => {
+  if (typeof style === 'string') style = styleStringToObject(style, { camelize: true })
+  const out = '{' + JSON.stringify(style) + '}'
+  return out
+}
+
+Template.styleToString = (style) => {
+  let out = ''
+  if (!style) return out
+  if (typeof style === 'string') return style
+  if (typeof style !== 'object') return out
+  for (const styleKey in style) {
+    const styleValue = style[styleKey]
+    // TODO: Add correct spacing instead of this compact format?
+    out += styleKey + COLON + styleValue + SEMI
+  }
+  return out
+}
+
+Template.isEmptyObject = (object) => {
+  return object === null || object === undefined
+}
+
+Template.manaToHtml = (out, object, mapping, options) => {
+  if (Template.alreadySerial(object)) return object
+  if (Template.cannotUse(object)) return EMPTY
+
+  let name = object[(mapping && mapping.name) || 'elementName']
+
+  if (name && typeof name === 'object') name = name.name
+
+  const attributes = object[(mapping && mapping.attributes) || 'attributes']
+  const children = object[(mapping && mapping.children) || 'children']
+
+  if (name) {
+    out += OPEN_TAG + name
+
+    let style = attributes && attributes[STYLE]
+
+    if (style) {
+      if (options && options.jsx) {
+        style = Template.styleToJSXString(style)
+      } else {
+        style = Template.styleToString(style)
+      }
+
+      if (attributes) attributes[STYLE] = style
+    }
+
+    if (attributes && !Template.isEmptyObject(attributes)) {
+      for (let attributeName in attributes) {
+        const attrVal = attributes[attributeName]
+
+        if (attributeName === STYLE) {
+          if (attrVal === EMPTY || Template.isEmptyObject(attrVal)) {
+            continue
+          }
+        }
+
+        if (attributeName === CLASS_NAME) attributeName = CLASS
+
+        if (options && options.jsx && attributeName === STYLE) {
+          out += SPACE + attributeName + EQ + attrVal
+        } else {
+          out += SPACE + attributeName + EQ + DQUOTE + attrVal + DQUOTE
+        }
+      }
+    }
+
+    out += CLOSE_TAG
+
+    if (Array.isArray(children)) {
+      if (children && children.length > 0) {
+        for (let i = 0; i < children.length; i++) {
+          out += Template.manaChildToHtml(children[i], mapping, options)
+        }
+      }
+    } else {
+      out += Template.manaChildToHtml(children, mapping, options)
+    }
+
+    if (SELF_CLOSING_TAG_NAMES.indexOf(name) === -1) {
+      out += OPEN_TAG + SLASH + name + CLOSE_TAG
+    }
+  }
+
+  return out
+}
+
+Template.getStackingInfo = (
+  bytecode,
+  staticTemplateManaNode,
+  timelineName,
+  timelineTime
+) => {
+  const haikuIdsToZIndices = {}
+
+  const zIndicesToHaikuIds = {}
+
+  for (let i = staticTemplateManaNode.children.length - 1; i >= 0; i--) {
+    const child = staticTemplateManaNode.children[i]
+
+    if (!child || typeof child === 'string') {
+      continue
+    }
+
+    const haikuId = child.attributes[HAIKU_ID_ATTRIBUTE]
+
+    const explicitZ = Template.getPropertyValue(
+      bytecode,
+      haikuId,
+      timelineName,
+      timelineTime,
+      'style.zIndex'
+    )
+
+    // NaN would cause an endless loop, so fallback to 0
+    const foundZ = parseInt(explicitZ || (i + 1), 10) || 0
+    const finalZ = Template.uniqueZ(foundZ, zIndicesToHaikuIds)
+
+    haikuIdsToZIndices[haikuId] = finalZ
+    zIndicesToHaikuIds[finalZ] = haikuId
+  }
+
+  const listOfZs = []
+
+  for (const haikuId2 in haikuIdsToZIndices) {
+    const zIndex = haikuIdsToZIndices[haikuId2]
+    listOfZs.push(zIndex)
+  }
+
+  listOfZs.sort((a, b) => {
+    return a - b
+  })
+
+  const zinfo = listOfZs.map((zIndex) => {
+    return {
+      zIndex: zIndex,
+      haikuId: zIndicesToHaikuIds[zIndex]
+    }
+  })
+
+  return zinfo
+}
+
+Template.uniqueZ = (z, mapping) => {
+  if (mapping[z]) return Template.uniqueZ(z + 1, mapping)
+  return z
+}
+
+Template.getPropertyValue = (
+  bytecode,
+  componentId,
+  timelineName,
+  timelineTime,
+  propertyName
+) => {
+  if (!bytecode) return
+  if (!bytecode.timelines) return
+  if (!bytecode.timelines[timelineName]) return
+  if (!bytecode.timelines[timelineName][`haiku:${componentId}`]) return
+  if (!bytecode.timelines[timelineName][`haiku:${componentId}`][propertyName]) return
+  if (!bytecode.timelines[timelineName][`haiku:${componentId}`][propertyName][timelineTime]) return
+  return bytecode.timelines[timelineName][`haiku:${componentId}`][propertyName][timelineTime].value
+}
+
+Template.cannotUse = (object) => {
+  return object === false || object === null || object === undefined || typeof object === 'function'
+}
+
+Template.alreadySerial = (object) => {
+  return typeof object === 'string' || typeof object === 'number'
 }
 
 module.exports = Template

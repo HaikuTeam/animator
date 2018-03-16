@@ -3,12 +3,8 @@ const Layout3D = require('@haiku/core/lib/Layout3D').default
 const cssQueryTree = require('@haiku/core/lib/helpers/cssQueryTree').default
 const KnownDOMEvents = require('@haiku/core/lib/renderers/dom/Events').default
 const DOMSchema = require('@haiku/core/lib/properties/dom/schema').default
-const TimelineProperty = require('haiku-bytecode/src/TimelineProperty')
-const manaToHtml = require('haiku-bytecode/src/manaToHtml')
-const manaToJson = require('haiku-bytecode/src/manaToJson')
 const titlecase = require('titlecase')
 const decamelize = require('decamelize')
-const getStackingInfo = require('haiku-bytecode/src/getStackingInfo')
 const polygonOverlap = require('polygon-overlap')
 const BaseModel = require('./BaseModel')
 const TransformCache = require('./TransformCache')
@@ -372,7 +368,7 @@ class Element extends BaseModel {
   getStackingInfo () {
     if (!this.parent) return void (0)
     if (!this.parent.getStaticTemplateNode()) return void (0)
-    return getStackingInfo(
+    return Template.getStackingInfo(
       this.component.getReifiedBytecode(),
       this.parent.getStaticTemplateNode(),
       this.component.getCurrentTimelineName(),
@@ -1583,11 +1579,11 @@ class Element extends BaseModel {
   }
 
   toXMLString () {
-    return manaToHtml('', this.getLiveRenderedNode() || EMPTY_ELEMENT)
+    return Template.manaToHtml('', this.getLiveRenderedNode() || EMPTY_ELEMENT)
   }
 
   toJSONString () {
-    return manaToJson(this.getLiveRenderedNode() || EMPTY_ELEMENT, null, 2)
+    return Template.manaToJson(this.getLiveRenderedNode() || EMPTY_ELEMENT, null, 2)
   }
 
   /**
@@ -1908,12 +1904,6 @@ Element.querySelectorAll = (selector, mana) => {
   })
 }
 
-/**
- * Hey! If you want to add any properties here, you might also need to update
- * - haiku-bytecode/src/properties/dom/schema,
- * - haiku-bytecode/src/properties/dom/fallbacks
- */
-
 Element.ALWAYS_ALLOWED_PROPS = {
   'sizeAbsolute.x': true,
   'sizeAbsolute.y': true,
@@ -2002,3 +1992,4 @@ const MathUtils = require('./MathUtils')
 const Property = require('./Property')
 const Row = require('./Row')
 const Template = require('./Template')
+const TimelineProperty = require('./TimelineProperty')

@@ -1,5 +1,5 @@
 const numeral = require('numeral')
-const TimelineProperty = require('haiku-bytecode/src/TimelineProperty')
+const TimelineProperty = require('haiku-serialization/src/bll/TimelineProperty')
 const getTimelineMaxTime = require('@haiku/core/lib/helpers/getTimelineMaxTime').default
 const BaseModel = require('./BaseModel')
 const MathUtils = require('./MathUtils')

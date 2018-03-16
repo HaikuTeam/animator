@@ -36,7 +36,6 @@
     "@haiku/core": "3.1.19",
     "@haiku/sdk-client": "3.1.19",
     "@haiku/sdk-inkstone": "3.1.19",
-    "haiku-bytecode": "3.1.19",
     "haiku-common": "3.1.19",
     "haiku-creator": "3.1.19",
     "haiku-formats": "3.1.19",

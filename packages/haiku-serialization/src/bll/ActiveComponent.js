@@ -3,26 +3,16 @@ const lodash = require('lodash')
 const pretty = require('pretty')
 const async = require('async')
 const jss = require('json-stable-stringify')
-const mergeTimelineStructure = require('haiku-bytecode/src/mergeTimelineStructure')
 const {sortedKeyframes} = require('@haiku/core/lib/Transitions').default
 const HaikuDOMAdapter = require('@haiku/core/lib/adapters/dom').default
-const TimelineProperty = require('haiku-bytecode/src/TimelineProperty')
 const {InteractionMode, isPreviewMode} = require('@haiku/core/lib/helpers/interactionModes')
 const initializeComponentTree = require('@haiku/core/lib/helpers/initializeComponentTree').default
 const Layout3D = require('@haiku/core/lib/Layout3D').default
 const BaseModel = require('./BaseModel')
-const Bytecode = require('./Bytecode')
 const logger = require('./../utils/LoggerInstance')
 const toTitleCase = require('./helpers/toTitleCase')
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 const Lock = require('./Lock')
-const BytecodeActions = require('haiku-bytecode/src/actions')
-const getPropertyValue = require('haiku-bytecode/src/getPropertyValue')
-const upsertPropertyValue = require('haiku-bytecode/src/upsertPropertyValue')
-const getStackingInfo = require('haiku-bytecode/src/getStackingInfo')
-const writeMetadata = require('haiku-bytecode/src/writeMetadata')
-const unserValue = require('haiku-bytecode/src/actions/unserValue')
-const serializeValue = require('haiku-bytecode/src/actions/serializeValue')
 
 const KEYFRAME_MOVE_DEBOUNCE_TIME = 100
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
@@ -782,7 +772,7 @@ class ActiveComponent extends BaseModel {
     // so that it displays on top of other elements by in the stack display
     bytecode.template.children.unshift(mana)
 
-    mergeTimelineStructure(bytecode, timelines, 'assign')
+    Bytecode.mergeTimelineStructure(bytecode, timelines, 'assign')
 
     // And move the element to the z-front of all the rest of the layers
     // This must be part of this atomic action or undo/redo won't work properly
@@ -1277,7 +1267,7 @@ class ActiveComponent extends BaseModel {
         existingNode.children.push(incomingChild)
       }
 
-      mergeTimelineStructure(existingBytecode, timelinesObject, 'assign')
+      Bytecode.mergeTimelineStructure(existingBytecode, timelinesObject, 'assign')
 
       this.mergeRemovedOutputs(existingBytecode, existingNode, removedOutputs)
     })
@@ -1371,10 +1361,10 @@ class ActiveComponent extends BaseModel {
    * @param metadata {Object}
    */
   pasteThing (pasteableSerial, {skipHashPadding}, metadata, cb) {
-    const pasteable = unserValue(pasteableSerial)
+    const pasteable = Bytecode.unserValue(pasteableSerial)
 
     return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
-      return this.project.updateHook('pasteThing', this.getSceneCodeRelpath(), serializeValue(pasteable), {skipHashPadding}, metadata, (fire) => {
+      return this.project.updateHook('pasteThing', this.getSceneCodeRelpath(), Bytecode.serializeValue(pasteable), {skipHashPadding}, metadata, (fire) => {
         return this.performComponentWork((bytecode, mana, done) => {
           switch (pasteable.kind) {
             case 'bytecode':
@@ -2072,7 +2062,7 @@ class ActiveComponent extends BaseModel {
     propertiesToMerge,
     strategy
   ) {
-    return upsertPropertyValue(
+    return Bytecode.upsertPropertyValue(
       bytecode,
       componentId,
       timelineName,
@@ -2085,7 +2075,7 @@ class ActiveComponent extends BaseModel {
   getDeclaredPropertyValue (componentId, timelineName, timelineTime, propertyName) {
     const bytecode = this.getReifiedBytecode()
 
-    let propertyValue = getPropertyValue(
+    let propertyValue = Template.getPropertyValue(
       bytecode,
       componentId,
       timelineName,
@@ -2337,7 +2327,7 @@ class ActiveComponent extends BaseModel {
   }
 
   normalizeStackingAndReturnInfo (bytecode, mana, timelineName, timelineTime) {
-    const stackingInfo = getStackingInfo(
+    const stackingInfo = Template.getStackingInfo(
       bytecode,
       mana,
       timelineName,
@@ -2352,7 +2342,7 @@ class ActiveComponent extends BaseModel {
   getRawStackingInfo (timelineName, timelineTime) {
     const bytecode = this.getReifiedBytecode()
 
-    return getStackingInfo(
+    return Template.getStackingInfo(
       bytecode,
       bytecode.template,
       timelineName,
@@ -2388,7 +2378,7 @@ class ActiveComponent extends BaseModel {
    */
   writeMetadata (metadata, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
-      writeMetadata(bytecode, metadata)
+      Bytecode.writeMetadata(bytecode, metadata)
       done()
     }, cb)
   }
@@ -2402,7 +2392,7 @@ class ActiveComponent extends BaseModel {
 
   readAllEventHandlersActual (cb) {
     const bytecode = this.getSerializedBytecode()
-    return cb(null, BytecodeActions.readAllEventHandlers(bytecode))
+    return cb(null, Bytecode.readAllEventHandlers(bytecode))
   }
 
   /**
@@ -2414,16 +2404,16 @@ class ActiveComponent extends BaseModel {
 
   readAllStateValuesActual (cb) {
     const bytecode = this.getSerializedBytecode()
-    return cb(null, BytecodeActions.readAllStateValues(bytecode))
+    return cb(null, Bytecode.readAllStateValues(bytecode))
   }
 
   /**
    * @method upsertEventHandler
    */
   upsertEventHandler (selectorName, eventName, handlerDescriptorMaybeSerial, metadata, cb) {
-    const handlerDescriptor = unserValue(handlerDescriptorMaybeSerial)
+    const handlerDescriptor = Bytecode.unserValue(handlerDescriptorMaybeSerial)
 
-    return this.project.updateHook('upsertEventHandler', this.getSceneCodeRelpath(), selectorName, eventName, serializeValue(handlerDescriptor), metadata, (fire) => {
+    return this.project.updateHook('upsertEventHandler', this.getSceneCodeRelpath(), selectorName, eventName, Bytecode.serializeValue(handlerDescriptor), metadata, (fire) => {
       handlerDescriptor.edited = true
 
       return this.upsertEventHandlerActual(selectorName, eventName, handlerDescriptor, (err) => {
@@ -2447,7 +2437,7 @@ class ActiveComponent extends BaseModel {
 
   upsertEventHandlerActual (selectorName, eventName, handlerDescriptor, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
-      BytecodeActions.upsertEventHandler(bytecode, selectorName, eventName, handlerDescriptor)
+      Bytecode.upsertEventHandler(bytecode, selectorName, eventName, handlerDescriptor)
       done()
     }, cb)
   }
@@ -2456,9 +2446,9 @@ class ActiveComponent extends BaseModel {
    * @method batchUpsertEventHandlers
    */
   batchUpsertEventHandlers (selectorName, eventsSerial, metadata, cb) {
-    const events = unserValue(eventsSerial)
+    const events = Bytecode.unserValue(eventsSerial)
 
-    return this.project.updateHook('batchUpsertEventHandlers', this.getSceneCodeRelpath(), selectorName, serializeValue(events), metadata, (fire) => {
+    return this.project.updateHook('batchUpsertEventHandlers', this.getSceneCodeRelpath(), selectorName, Bytecode.serializeValue(events), metadata, (fire) => {
       return this.batchUpsertEventHandlersActual(selectorName, events, (err) => {
         if (err) {
           logger.error(`[active component (${this.project.getAlias()})]`, err)
@@ -2481,7 +2471,7 @@ class ActiveComponent extends BaseModel {
 
   batchUpsertEventHandlersActual (selectorName, serializedEvents, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
-      BytecodeActions.batchUpsertEventHandlers(bytecode, selectorName, serializedEvents)
+      Bytecode.batchUpsertEventHandlers(bytecode, selectorName, serializedEvents)
       done()
     }, cb)
   }
@@ -2513,7 +2503,7 @@ class ActiveComponent extends BaseModel {
 
   deleteEventHandlerActual (selectorName, eventName, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
-      BytecodeActions.deleteEventHandler(bytecode, selectorName, eventName)
+      Bytecode.deleteEventHandler(bytecode, selectorName, eventName)
       done()
     }, cb)
   }
@@ -2522,9 +2512,9 @@ class ActiveComponent extends BaseModel {
    * @method changeKeyframeValue
    */
   changeKeyframeValue (componentId, timelineName, propertyName, keyframeMs, newValueSerial, metadata, cb) {
-    const newValue = unserValue(newValueSerial)
+    const newValue = Bytecode.unserValue(newValueSerial)
 
-    return this.project.updateHook('changeKeyframeValue', this.getSceneCodeRelpath(), componentId, timelineName, propertyName, keyframeMs, serializeValue(newValue), metadata, (fire) => {
+    return this.project.updateHook('changeKeyframeValue', this.getSceneCodeRelpath(), componentId, timelineName, propertyName, keyframeMs, Bytecode.serializeValue(newValue), metadata, (fire) => {
       this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
 
       return this.changeKeyframeValueActual(componentId, timelineName, propertyName, keyframeMs, newValue, metadata, (err) => {
@@ -2543,7 +2533,7 @@ class ActiveComponent extends BaseModel {
 
   changeKeyframeValueActual (componentId, timelineName, propertyName, keyframeMs, newValue, metadata, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
-      BytecodeActions.changeKeyframeValue(bytecode, componentId, timelineName, propertyName, keyframeMs, newValue)
+      Bytecode.changeKeyframeValue(bytecode, componentId, timelineName, propertyName, keyframeMs, newValue)
       done()
     }, cb)
   }
@@ -2552,9 +2542,9 @@ class ActiveComponent extends BaseModel {
    * @method changeSegmentCurve
    */
   changeSegmentCurve (componentId, timelineName, propertyName, keyframeMs, newCurveSerial, metadata, cb) {
-    const newCurve = unserValue(newCurveSerial)
+    const newCurve = Bytecode.unserValue(newCurveSerial)
 
-    return this.project.updateHook('changeSegmentCurve', this.getSceneCodeRelpath(), componentId, timelineName, propertyName, keyframeMs, serializeValue(newCurve), metadata, (fire) => {
+    return this.project.updateHook('changeSegmentCurve', this.getSceneCodeRelpath(), componentId, timelineName, propertyName, keyframeMs, Bytecode.serializeValue(newCurve), metadata, (fire) => {
       this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
 
       return this.changeSegmentCurveActual(componentId, timelineName, propertyName, keyframeMs, newCurve, metadata, (err) => {
@@ -2573,7 +2563,7 @@ class ActiveComponent extends BaseModel {
 
   changeSegmentCurveActual (componentId, timelineName, propertyName, keyframeMs, newCurve, metadata, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
-      BytecodeActions.changeSegmentCurve(bytecode, componentId, timelineName, propertyName, keyframeMs, newCurve)
+      Bytecode.changeSegmentCurve(bytecode, componentId, timelineName, propertyName, keyframeMs, newCurve)
       done()
     }, cb)
   }
@@ -2582,9 +2572,9 @@ class ActiveComponent extends BaseModel {
    * @method joinKeyframes
    */
   joinKeyframes (componentId, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, newCurveSerial, metadata, cb) {
-    const newCurve = unserValue(newCurveSerial)
+    const newCurve = Bytecode.unserValue(newCurveSerial)
 
-    return this.project.updateHook('joinKeyframes', this.getSceneCodeRelpath(), componentId, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, serializeValue(newCurve), metadata, (fire) => {
+    return this.project.updateHook('joinKeyframes', this.getSceneCodeRelpath(), componentId, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, Bytecode.serializeValue(newCurve), metadata, (fire) => {
       this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
 
       return this.joinKeyframesActual(componentId, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, newCurve, metadata, (err) => {
@@ -2603,7 +2593,7 @@ class ActiveComponent extends BaseModel {
 
   joinKeyframesActual (componentId, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, newCurve, metadata, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
-      BytecodeActions.joinKeyframes(bytecode, componentId, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, newCurve)
+      Bytecode.joinKeyframes(bytecode, componentId, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, newCurve)
       done()
     }, cb)
   }
@@ -2631,7 +2621,7 @@ class ActiveComponent extends BaseModel {
 
   splitSegmentActual (componentId, timelineName, elementName, propertyName, keyframeMs, metadata, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
-      BytecodeActions.splitSegment(bytecode, componentId, timelineName, elementName, propertyName, keyframeMs)
+      Bytecode.splitSegment(bytecode, componentId, timelineName, elementName, propertyName, keyframeMs)
       done()
     }, cb)
   }
@@ -2672,11 +2662,11 @@ class ActiveComponent extends BaseModel {
 
     if (descriptor[0].value === undefined) {
       if (initialKeyframeObj) {
-        descriptor[0].value = unserValue(initialKeyframeObj.value)
-        descriptor[0].curve = unserValue(initialKeyframeObj.curve)
+        descriptor[0].value = Bytecode.unserValue(initialKeyframeObj.value)
+        descriptor[0].curve = Bytecode.unserValue(initialKeyframeObj.curve)
       } else {
         // Otherwise, use the fallback if we have no next keyframe defined
-        descriptor[0].value = unserValue(this.getDeclaredPropertyValue(
+        descriptor[0].value = Bytecode.unserValue(this.getDeclaredPropertyValue(
           componentId,
           timelineName,
           0,
@@ -2702,9 +2692,9 @@ class ActiveComponent extends BaseModel {
       return cb()
     }
 
-    const keyframeMoves = unserValue(keyframeMovesSerial)
+    const keyframeMoves = Bytecode.unserValue(keyframeMovesSerial)
 
-    return this.project.updateHook('moveKeyframes', this.getSceneCodeRelpath(), serializeValue(keyframeMoves), metadata, (fire) => {
+    return this.project.updateHook('moveKeyframes', this.getSceneCodeRelpath(), Bytecode.serializeValue(keyframeMoves), metadata, (fire) => {
       for (const timelineName in keyframeMoves) {
         for (const componentId in keyframeMoves[timelineName]) {
           this.clearCachedClusters(timelineName, componentId)
@@ -2752,7 +2742,7 @@ class ActiveComponent extends BaseModel {
 
   moveKeyframesActual (keyframeMoves, metadata, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
-      BytecodeActions.moveKeyframes(bytecode, keyframeMoves)
+      Bytecode.moveKeyframes(bytecode, keyframeMoves)
 
       for (const timelineName in keyframeMoves) {
         for (const componentId in keyframeMoves[timelineName]) {
@@ -2778,9 +2768,9 @@ class ActiveComponent extends BaseModel {
    * @method moveKeyframes
    */
   updateKeyframes (keyframeUpdatesSerial, metadata, cb) {
-    const keyframeUpdates = unserValue(keyframeUpdatesSerial)
+    const keyframeUpdates = Bytecode.unserValue(keyframeUpdatesSerial)
 
-    return this.project.updateHook('updateKeyframes', this.getSceneCodeRelpath(), serializeValue(keyframeUpdates), metadata, (fire) => {
+    return this.project.updateHook('updateKeyframes', this.getSceneCodeRelpath(), Bytecode.serializeValue(keyframeUpdates), metadata, (fire) => {
       for (const timelineName in keyframeUpdates) {
         for (const componentId in keyframeUpdates[timelineName]) {
           this.clearCachedClusters(timelineName, componentId)
@@ -2850,9 +2840,9 @@ class ActiveComponent extends BaseModel {
     metadata,
     cb
   ) {
-    const keyframeValue = unserValue(keyframeValueSerial)
-    const keyframeCurve = unserValue(keyframeCurveSerial)
-    const keyframeEndValue = unserValue(keyframeEndValueSerial)
+    const keyframeValue = Bytecode.unserValue(keyframeValueSerial)
+    const keyframeCurve = Bytecode.unserValue(keyframeCurveSerial)
+    const keyframeEndValue = Bytecode.unserValue(keyframeEndValueSerial)
 
     return this.project.updateHook(
       'createKeyframe',
@@ -2862,10 +2852,10 @@ class ActiveComponent extends BaseModel {
       elementName,
       propertyName,
       keyframeStartMs,
-      serializeValue(keyframeValue),
-      serializeValue(keyframeCurve),
+      Bytecode.serializeValue(keyframeValue),
+      Bytecode.serializeValue(keyframeCurve),
       keyframeEndMs,
-      serializeValue(keyframeEndValue),
+      Bytecode.serializeValue(keyframeEndValue),
       metadata,
       (fire) => {
         this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
@@ -2902,7 +2892,7 @@ class ActiveComponent extends BaseModel {
       const host = this.getCoreComponentInstance()
       const states = (host && host.getStates()) || {}
 
-      BytecodeActions.createKeyframe(
+      Bytecode.createKeyframe(
         bytecode,
         componentId,
         timelineName,
@@ -2965,7 +2955,7 @@ class ActiveComponent extends BaseModel {
 
   deleteKeyframeActual (componentId, timelineName, propertyName, keyframeMs, metadata, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
-      BytecodeActions.deleteKeyframe(bytecode, componentId, timelineName, propertyName, keyframeMs)
+      Bytecode.deleteKeyframe(bytecode, componentId, timelineName, propertyName, keyframeMs)
 
       this.ensureZerothKeyframe(
         bytecode,
@@ -3127,9 +3117,9 @@ class ActiveComponent extends BaseModel {
    * @method upsertStateValue
    */
   upsertStateValue (stateName, stateDescriptorSerial, metadata, cb) {
-    const stateDescriptor = unserValue(stateDescriptorSerial)
+    const stateDescriptor = Bytecode.unserValue(stateDescriptorSerial)
 
-    return this.project.updateHook('upsertStateValue', this.getSceneCodeRelpath(), stateName, serializeValue(stateDescriptor), metadata, (fire) => {
+    return this.project.updateHook('upsertStateValue', this.getSceneCodeRelpath(), stateName, Bytecode.serializeValue(stateDescriptor), metadata, (fire) => {
       stateDescriptor.edited = true
 
       return this.upsertStateValueActual(stateName, stateDescriptor, metadata, (err) => {
@@ -3148,7 +3138,7 @@ class ActiveComponent extends BaseModel {
 
   upsertStateValueActual (stateName, stateDescriptor, metadata, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
-      BytecodeActions.upsertStateValue(bytecode, stateName, stateDescriptor)
+      Bytecode.upsertStateValue(bytecode, stateName, stateDescriptor)
       done()
     }, cb)
   }
@@ -3174,7 +3164,7 @@ class ActiveComponent extends BaseModel {
 
   deleteStateValueActual (stateName, metadata, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
-      BytecodeActions.deleteStateValue(bytecode, stateName)
+      Bytecode.deleteStateValue(bytecode, stateName)
       done()
     }, cb)
   }
@@ -3315,9 +3305,9 @@ class ActiveComponent extends BaseModel {
    * @method createTimeline
    */
   createTimeline (timelineName, timelineDescriptorSerial, metadata, cb) {
-    const timelineDescriptor = unserValue(timelineDescriptorSerial)
+    const timelineDescriptor = Bytecode.unserValue(timelineDescriptorSerial)
 
-    return this.project.updateHook('createTimeline', this.getSceneCodeRelpath(), timelineName, serializeValue(timelineDescriptor), metadata, (fire) => {
+    return this.project.updateHook('createTimeline', this.getSceneCodeRelpath(), timelineName, Bytecode.serializeValue(timelineDescriptor), metadata, (fire) => {
       return this.createTimelineActual(timelineName, timelineDescriptor, metadata, (err) => {
         if (err) {
           logger.error(`[active component (${this.project.getAlias()})]`, err)
@@ -3334,7 +3324,7 @@ class ActiveComponent extends BaseModel {
 
   createTimelineActual (timelineName, timelineDescriptor, metadata, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
-      BytecodeActions.createTimeline(bytecode, timelineName, timelineDescriptor)
+      Bytecode.createTimeline(bytecode, timelineName, timelineDescriptor)
       done()
     }, cb)
   }
@@ -3360,7 +3350,7 @@ class ActiveComponent extends BaseModel {
 
   renameTimelineActual (timelineNameOld, timelineNameNew, metadata, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
-      BytecodeActions.renameTimeline(bytecode, timelineNameOld, timelineNameNew)
+      Bytecode.renameTimeline(bytecode, timelineNameOld, timelineNameNew)
       done()
     }, cb)
   }
@@ -3386,7 +3376,7 @@ class ActiveComponent extends BaseModel {
 
   deleteTimelineActual (timelineName, metadata, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
-      BytecodeActions.deleteTimeline(bytecode, timelineName)
+      Bytecode.deleteTimeline(bytecode, timelineName)
       done()
     }, cb)
   }
@@ -3412,7 +3402,7 @@ class ActiveComponent extends BaseModel {
 
   duplicateTimelineActual (timelineName, metadata, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
-      BytecodeActions.duplicateTimeline(bytecode, timelineName)
+      Bytecode.duplicateTimeline(bytecode, timelineName)
       done()
     }, cb)
   }
@@ -3438,7 +3428,7 @@ class ActiveComponent extends BaseModel {
 
   changePlaybackSpeedActual (framesPerSecond, metadata, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
-      BytecodeActions.changePlaybackSpeed(bytecode, framesPerSecond)
+      Bytecode.changePlaybackSpeed(bytecode, framesPerSecond)
       done()
     }, cb)
   }
@@ -3480,6 +3470,7 @@ module.exports = ActiveComponent
 
 // Down here to avoid Node circular dependency stub objects. #FIXME
 const Artboard = require('./Artboard')
+const Bytecode = require('./Bytecode')
 const Design = require('./Design')
 const Element = require('./Element')
 const ElementSelectionProxy = require('./ElementSelectionProxy')
@@ -3492,3 +3483,4 @@ const Row = require('./Row')
 const SelectionMarquee = require('./SelectionMarquee')
 const Template = require('./Template')
 const Timeline = require('./Timeline')
+const TimelineProperty = require('./TimelineProperty')
