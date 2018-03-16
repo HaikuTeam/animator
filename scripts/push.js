@@ -90,7 +90,7 @@ cp.execSync(`node ./scripts/build-core.js --skip-compile=1`, processOptions)
 // our standalones.
 cp.execSync('git fetch')
 cp.execSync('git merge origin/master')
-cp.execSync(`git tag -a ${nowVersion()}`)
+cp.execSync(`git tag -a ${nowVersion()} -m 'release ${nowVersion()}'`)
 cp.execSync('git push -u origin master --tags')
 // Sync these changes down to development before continuing.
 cp.execSync('git fetch origin development:development')
