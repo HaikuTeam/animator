@@ -1752,7 +1752,8 @@ export class Glass extends React.Component {
     })
 
     items.push({ type: 'separator' })
-    if (Sketch.isSketchFolder(sourcePath)) {
+
+    if (sourcePath && Sketch.isSketchFolder(sourcePath)) {
       const sketchAssetPath = sourcePath && sourcePath.split(/\.sketch\.contents/)[0].concat('.sketch')
 
       items.push({
@@ -1764,7 +1765,7 @@ export class Glass extends React.Component {
       })
     }
 
-    if (Figma.isFigmaFolder(sourcePath)) {
+    if (sourcePath && Figma.isFigmaFolder(sourcePath)) {
       const figmaAssetPath = sourcePath && sourcePath.split(/\.figma\.contents/)[0].concat('.figma')
 
       items.push({
