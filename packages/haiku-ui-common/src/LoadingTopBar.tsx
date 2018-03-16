@@ -1,5 +1,4 @@
 import * as React from 'react';
-import * as assign from 'lodash.assign';
 import Palette from './Palette';
 
 const STYLES = {
@@ -9,7 +8,7 @@ const STYLES = {
     left: '0',
     height: '3px',
     backgroundColor: Palette.LIGHT_PINK,
-  },
+  } as React.CSSProperties,
 };
 
 export class LoadingTopBar extends React.PureComponent {
@@ -40,14 +39,12 @@ export class LoadingTopBar extends React.PureComponent {
   render() {
     return (
       <span
-        style={assign(
-          {
-            width: `${this.props.progress}%`,
-            transition: `width ${this.props.speed} cubic-bezier(0.4, 0, 1, 1), opacity 300ms ease`,
-            opacity: this.props.done ? 0 : 1,
-          },
-          STYLES.bar,
-        )}
+        style={{
+          width: `${this.props.progress}%`,
+          transition: `width ${this.props.speed} cubic-bezier(0.4, 0, 1, 1), opacity 300ms ease`,
+          opacity: this.props.done ? 0 : 1,
+          ...STYLES.bar,
+        }}
       />
     );
   }
