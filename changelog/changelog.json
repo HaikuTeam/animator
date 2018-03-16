@@ -5619,5 +5619,17 @@
       "label": "fix",
       "message": "typo in figma import modal."
     }
+  },
+  "3.1.21": {
+    "9dff9155d815fa22f377d3ecea2ef98f0e4bb1ae": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "sweep assets before re-ingesting them."
+    },
+    "c6d82957696c4c57b7e3a835e575a18c1032d7c7": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "actually pass fileId forward in recursive Figma#findItems call."
+    }
   }
 }
