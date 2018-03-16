@@ -169,7 +169,7 @@ class Asset extends BaseModel {
       children: [],
       slicesFolderAsset, // Hacky, but avoids extra 'upsert' logic
       artboardsFolderAsset,
-      dtModified: dict[relpath].dtModified
+      dtModified: (dict[relpath] && dict[relpath].dtModified) || Date.now()
     })
 
     this.addChild(sketchAsset)
