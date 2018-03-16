@@ -13,6 +13,7 @@ import cssQueryList from './helpers/cssQueryList';
 import {isPreviewMode} from './helpers/interactionModes';
 import isMutableProperty from './helpers/isMutableProperty';
 import manaFlattenTree from './helpers/manaFlattenTree';
+import preoptimizeBytecodeInPlace from './helpers/preoptimizeBytecodeInPlace';
 import scopifyElements from './helpers/scopifyElements';
 import SimpleEventEmitter from './helpers/SimpleEventEmitter';
 import upgradeBytecodeInPlace from './helpers/upgradeBytecodeInPlace';
@@ -207,6 +208,20 @@ export default function HaikuComponent(bytecode: any, context, config, metadata)
 
   // Useful when debugging to understand cross-component effects
   this._entityIndex = HaikuComponent['components'].push(this) - 1;
+
+  // Try to optimize the bytecode before we actually begin playback
+  // This has to happen after all of the above construction occurs
+  if (!config.options.hotEditingMode) {
+    // We need to be able to query the tree in order to fully optimize
+    this._rehydrateFlatManaTree();
+
+    preoptimizeBytecodeInPlace(
+      this,
+      this._builder,
+      this._bytecode,
+      null,
+    );
+  }
 }
 
 HaikuComponent['PLAYER_VERSION'] = VERSION; // #LEGACY
