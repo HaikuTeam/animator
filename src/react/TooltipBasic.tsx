@@ -1,6 +1,5 @@
 import * as React from 'react';
 import Palette from '../Palette';
-import * as assign from 'lodash.assign';
 
 /*
   This component is very rudimentary atm and needs to be fleshed out for
@@ -55,13 +54,12 @@ export class TooltipBasic extends React.PureComponent {
 
   render () {
     return (
-      <div style={
-        assign({}, {
-          ...STYLES.tooltip,
-          ...(this.props.light && STYLES.light),
-          ...{top: this.props.top},
-        })}>
-        <span style={assign({}, {...STYLES.tip, ...(this.props.light && STYLES.tipLight)})} />
+      <div style={{
+        ...STYLES.tooltip,
+        ...(this.props.light && STYLES.light),
+        ...{top: this.props.top},
+      }}>
+        <span style={{...STYLES.tip, ...(this.props.light && STYLES.tipLight)}} />
         {this.props.children}
       </div>
     );

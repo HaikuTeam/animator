@@ -3,3 +3,4 @@ import { storiesOf } from '@storybook/react';
 
 import './PopoverMenu';
 import './OtherIcons';
+import './Palette';
