@@ -158,7 +158,7 @@ class Figma {
       if (VALID_TYPES[item.type]) {
         result.push({ id: item.id, name: Figma.getUniqueName(fileId, item.name), type: item.type })
       } else if (item.children) {
-        result.push(...this.findItems(item.children))
+        result.push(...this.findItems(item.children, fileId))
       }
     }
 
