@@ -209,23 +209,28 @@ class Asset extends BaseModel {
       dtModified: Date.now()
     })
 
-    const figmaAsset = Asset.upsert({
-      uid: path.join(project.getFolder(), relpath),
-      type: Asset.TYPES.CONTAINER,
-      kind: Asset.KINDS.FIGMA,
-      proximity: Asset.PROXIMITIES.LOCAL,
-      figmaID: Figma.findIDFromPath(relpath),
-      project,
-      relpath,
-      displayName: path.basename(relpath).match(/-(\w+)\./)[1],
-      children: [],
-      slicesFolderAsset, // Hacky, but avoids extra 'upsert' logic
-      groupsFolderAsset,
-      dtModified: Date.now()
-    })
+    try {
+      const figmaAsset = Asset.upsert({
+        uid: path.join(project.getFolder(), relpath),
+        type: Asset.TYPES.CONTAINER,
+        kind: Asset.KINDS.FIGMA,
+        proximity: Asset.PROXIMITIES.LOCAL,
+        figmaID: Figma.findIDFromPath(relpath),
+        project,
+        relpath,
+        displayName: path.basename(relpath).match(/(\w+)-([\w-]+)\./)[2],
+        children: [],
+        slicesFolderAsset, // Hacky, but avoids extra 'upsert' logic
+        groupsFolderAsset,
+        dtModified: Date.now()
+      })
 
-    this.addChild(figmaAsset)
-    return figmaAsset
+      this.addChild(figmaAsset)
+      return figmaAsset
+    } catch (e) {
+      // ... unable to upsert.
+      return null
+    }
   }
 
   getChildAssets () {
@@ -472,7 +477,9 @@ Asset.ingestAssets = (project, dict) => {
           break
         case 'figma':
           const figmaAsset = designFolderAsset.addFigmaAsset(generatorRelpath)
-          figmaAsset.addFigmaChild(svgAsset)
+          if (figmaAsset) {
+            figmaAsset.addFigmaChild(svgAsset)
+          }
           break
         default:
           designFolderAsset.addChild(svgAsset)
