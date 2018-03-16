@@ -5587,5 +5587,37 @@
       "label": "fix",
       "message": "use the correct casing on the npm package name in publish modal"
     }
+  },
+  "3.1.20": {
+    "0d596010e9e489882ec7a0602c91e755d66b3d16": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "add extra checks to figma path checkers"
+    },
+    "ff7bd30f00b578d04a18dc2423ddf2e8957de961": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Check for source path before trying to match it"
+    },
+    "538694e408e0dc24f84aa8d5a4522f2ac97bbdec": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "allow duplicate slice names to exist in the wild."
+    },
+    "986ad753b9b4ec52b1e9e7c4fe8ecfcca02c5e5a": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "catch svgo errors"
+    },
+    "0f5cc849fff23ecb774254d2405dc55b7d0555e8": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "add a missing prop in the propchain of svg imports"
+    },
+    "45fdbf6f4ff77b478568671d298a4b2298894492": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "typo in figma import modal."
+    }
   }
 }
