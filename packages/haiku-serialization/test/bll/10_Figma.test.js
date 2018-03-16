@@ -46,7 +46,7 @@ tape('Figma.request allows a param to disable authentication', (t) => {
 })
 
 tape('Figma.findInstantiableElements', (t) => {
-  t.plan(4)
+  t.plan(6)
 
   const sliceKey = '5:0'
   const groupKey = '8:0'
@@ -55,8 +55,10 @@ tape('Figma.findInstantiableElements', (t) => {
 
   t.ok(Array.isArray(elements), 'returns an array of elements')
   t.equal(elements.length, 3, 'returns an array that includes all elements required to be finded')
-  t.equal(elements[0].id, groupKey, 'includes elements of type SLICE')
-  t.equal(elements[1].id, sliceKey, 'includes elements of type GROUP')
+  t.equal(elements[0].id, groupKey, 'includes elements of type GROUP')
+  t.equal(elements[1].id, sliceKey, 'includes elements of type SLICE')
+  t.equal(elements[1].name, 'Slice', 'passes through first unique instances of element names')
+  t.equal(elements[2].name, 'Slice Copy 1', 'renames duplicately named slices to allow async fetch/write')
 })
 
 tape('Figma.getSVGLinks', async (t) => {
