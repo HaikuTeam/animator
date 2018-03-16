@@ -46,8 +46,7 @@
     "haiku-serialization": "3.1.19",
     "haiku-state-object": "3.1.19",
     "haiku-timeline": "3.1.19",
-    "haiku-ui-common": "3.1.19",
-    "haiku-websockets": "3.1.19"
+    "haiku-ui-common": "3.1.19"
   },
   "devDependencies": {
     "async": "^2.5.0",

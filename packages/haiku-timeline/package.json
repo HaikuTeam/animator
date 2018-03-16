@@ -36,7 +36,6 @@
     "codemirror": "^5.28.0",
     "color": "^2.0.1",
     "decamelize": "^1.2.0",
-    "haiku-bytecode": "3.1.19",
     "haiku-fs-extra": "3.1.19",
     "haiku-serialization": "3.1.19",
     "haiku-ui-common": "3.1.19",
