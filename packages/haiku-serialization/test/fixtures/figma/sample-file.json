@@ -195,7 +195,7 @@
           },
           {
             "id": "5:1",
-            "name": "Slice 2",
+            "name": "Slice",
             "type": "SLICE",
             "absoluteBoundingBox": {
               "x": -574,

@@ -77,7 +77,7 @@ class FigmaForm extends React.PureComponent {
           <div
             style={{ ...STYLES.form, textTransform: 'none', height: '130px', minWidth: '200px' }}
           >
-            <p>Yor assets are being imported, please hold.</p>
+            <p>Your assets are being imported, please hold.</p>
             <span style={STYLES.formButton} onClick={this.props.onPopoverHide}>
               OK
             </span>

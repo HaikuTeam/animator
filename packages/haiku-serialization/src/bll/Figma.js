@@ -21,6 +21,8 @@ const FOLDERS = {
   [VALID_TYPES.GROUP]: 'groups/'
 }
 
+const uniqueNameResolver = {}
+
 /**
  * @class Figma
  * @description
@@ -54,7 +56,7 @@ class Figma {
     mixpanel.haikuTrack('creator:figma:fileImport:start')
 
     return this.fetchDocument(id)
-      .then((document) => this.findInstantiableElements(document))
+      .then((document) => this.findInstantiableElements(document, id))
       .then((elements) => this.getSVGLinks(elements, id))
       .then((elements) => this.getSVGContents(elements))
       .then((elements) => this.writeSVGInDisk(elements, id, name, path))
@@ -149,12 +151,12 @@ class Figma {
     })
   }
 
-  findItems (arr) {
+  findItems (arr, fileId) {
     const result = []
 
     for (let item of arr) {
       if (VALID_TYPES[item.type]) {
-        result.push({ id: item.id, name: item.name, type: item.type })
+        result.push({ id: item.id, name: Figma.getUniqueName(fileId, item.name), type: item.type })
       } else if (item.children) {
         result.push(...this.findItems(item.children))
       }
@@ -163,9 +165,10 @@ class Figma {
     return result
   }
 
-  findInstantiableElements (rawFile) {
+  findInstantiableElements (rawFile, fileId) {
     const file = JSON.parse(rawFile)
-    return this.findItems(file.document.children)
+    uniqueNameResolver[fileId] = {}
+    return this.findItems(file.document.children, fileId)
   }
 
   request ({ uri, auth = true }) {
@@ -255,7 +258,7 @@ class Figma {
    * @returns {boolean}
    */
   static isFigmaFile (path) {
-    return path.match(IS_FIGMA_FILE_RE)
+    return !!path && path.match(IS_FIGMA_FILE_RE)
   }
 
   /**
@@ -264,7 +267,7 @@ class Figma {
    * @returns {boolean}
    */
   static isFigmaFolder (path) {
-    return path.match(IS_FIGMA_FOLDER_RE)
+    return !!path && path.match(IS_FIGMA_FOLDER_RE)
   }
 
   /**
@@ -281,6 +284,27 @@ class Figma {
   static buildFigmaLinkFromPath (relpath) {
     const id = Figma.findIDFromPath(relpath)
     return Figma.buildFigmaLink(id)
+  }
+
+  /**
+   * Using uniqueNameResolver hashmap, retrieve a unique name for this Figma sync. This allows duplicate names on slices
+   * while still allowing us to fetch and write out SVG contents async.
+   * @param {string} fileId
+   * @param {string} name
+   * @returns {string}
+   */
+  static getUniqueName (fileId, name) {
+    if (!uniqueNameResolver[fileId]) {
+      // This should never happen.
+      uniqueNameResolver[fileId] = {}
+    }
+
+    if (!uniqueNameResolver[fileId].hasOwnProperty(name)) {
+      uniqueNameResolver[fileId][name] = 0
+      return name
+    }
+
+    return `${name} Copy ${++uniqueNameResolver[fileId][name]}`
   }
 }
 

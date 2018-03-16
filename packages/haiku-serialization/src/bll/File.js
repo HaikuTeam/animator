@@ -380,6 +380,9 @@ File.readMana = function readMana (folder, relpath, cb) {
 
         return cb(null, manaOptimized)
       })
+      .catch(() => {
+        return cb(new Error(`We couldn't parse ${relpath}`))
+      })
     } else {
       const manaFull = xmlToMana(buffer.toString())
 

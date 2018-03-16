@@ -65,6 +65,11 @@ class FileImporter extends React.PureComponent {
     this.setState({ isPopoverOpen: false })
   }
 
+  onFileDrop (dropEvent) {
+    this.hidePopover()
+    this.props.onFileDrop(dropEvent)
+  }
+
   get popoverBody () {
     return (
       <div
@@ -76,7 +81,10 @@ class FileImporter extends React.PureComponent {
         }}
       >
         <div style={STYLES.popover.item}>
-          <FileSystemImporter style={STYLES.popover.text} />
+          <FileSystemImporter
+            onFileDrop={(fileDropEvent) => { this.onFileDrop(fileDropEvent) }}
+            style={STYLES.popover.text}
+          />
         </div>
         <div style={STYLES.popover.item}>
           <FigmaImporter
@@ -123,7 +131,10 @@ class FileImporter extends React.PureComponent {
             this.showPopover()
           }}
         >
-          <FileSystemImporter style={STYLES.popover.text} text='+' />
+          <FileSystemImporter
+            style={STYLES.popover.text} text='+'
+            onFileDrop={(fileDropEvent) => { this.onFileDrop(fileDropEvent) }}
+          />
         </button>
       )
     }
