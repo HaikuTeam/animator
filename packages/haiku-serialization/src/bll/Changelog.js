@@ -1,6 +1,8 @@
 const fs = require('fs')
 const path = require('path')
 
+const semver = require('semver')
+
 const DEFAULT_CHANGELOG_PATH = path.join(__dirname, '..', '..', '..', '..', 'changelog/public')
 
 class Changelog {
@@ -22,11 +24,25 @@ class Changelog {
   }
 
   readChangelogs () {
-    const dir = fs.readdirSync(this.changelogPath, 'utf8')
-    const pos = dir.indexOf(`${this.lastViewedChangelog}.json`)
-    const rawChangelogs = pos === -1 ? dir : dir.slice(pos + 1)
+    const rawChangelogs = fs.readdirSync(this.changelogPath, 'utf8').filter(
+      (filename) => {
+        return filename === 'latest.json' ||
+          semver.gt(path.basename(filename, '.json'), this.lastViewedChangelog || '0.0.0')
+      }
+    ).sort((a, b) => {
+      if (b === 'latest.json') {
+        return -1
+      }
 
-    return Promise.all(rawChangelogs.map(this.readSingleChangelog.bind(this)))
+      if (a === 'latest.json') {
+        return 1
+      }
+
+      console.log(a, b)
+      return semver.lt(path.basename(a, '.json'), path.basename(b, '.json')) ? -1 : 1
+    })
+
+    return Promise.all(rawChangelogs.map((changelogFilename) => this.readSingleChangelog(changelogFilename)))
   }
 
   getChangelog () {

@@ -74,6 +74,7 @@
     "@types/gl-matrix": "^2.4.0",
     "eslint": "^3.19.0",
     "eslint-config-standard": "^10.2.1",
+    "semver": "^5.4.1",
     "snazzy": "^7.0.0",
     "standard": "^10.0.2",
     "tap-spec": "^4.1.1",

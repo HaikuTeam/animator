@@ -29,12 +29,13 @@ tape('Changelog.readChangelogs reads and parses changelogs in a directory', asyn
 })
 
 tape('Changelog.readChangelogs returns changelogs ordered by version', async (t) => {
-  t.plan(2)
+  t.plan(3)
 
   try {
     const changelogManager = new Changelog('0.0.0', 'test/fixtures/changelog/')
     const changelogs = await changelogManager.readChangelogs()
     t.equal(changelogs[0].version, '1.2.3')
+    t.equal(changelogs[1].version, '1.2.11')
     t.equal(changelogs[2].version, '4.3.2')
   } catch (e) {
     t.error(e)
@@ -65,7 +66,7 @@ tape('Changelog.readChangelogs returns an aggregated changelog with the correct 
     const changelog = await changelogManager.getChangelog()
 
     t.equal(changelog.version, '4.3.2')
-    t.ok(changelog.sections["Fixes"])
+    t.ok(changelog.sections["Fixes"].indexOf('Fix: 1.2.11 fixes') !== -1)
     t.ok(changelog.sections["What's new"])
     t.notOk(changelog.sections["1.2.3 Heading"])
   } catch (e) {
