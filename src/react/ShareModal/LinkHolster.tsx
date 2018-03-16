@@ -1,5 +1,4 @@
 import * as React from 'react';
-import * as assign from 'lodash.assign';
 import {shell} from 'electron';
 import * as CopyToClipboard from 'react-copy-to-clipboard';
 import {ThreeBounce} from 'better-react-spinkit';

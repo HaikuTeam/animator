@@ -1,5 +1,4 @@
 import * as React from 'react';
-import * as assign from 'lodash.assign';
 import Palette from '../../Palette';
 import {Tooltip} from '../Tooltip';
 import {ExternalLink} from '../ExternalLink';
