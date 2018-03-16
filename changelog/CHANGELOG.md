@@ -1,6 +1,13 @@
 # Changelog
 
 
+## 3.1.23
+
+### Bug Fixes
+
+ * use proper semver ordering to display changelog
+ * Don't call dtModified on undefined
+
 ## 3.1.22
 
 ### Bug Fixes
