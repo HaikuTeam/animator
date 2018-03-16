@@ -94,7 +94,7 @@ class FigmaForm extends React.PureComponent {
               autoFocus
               type='text'
               style={STYLES.urlInput}
-              placeholder='http://figma.com/id/name'
+              placeholder='http://figma.com/file/id/name'
               ref={(inputRef) => {
                 this.inputRef = inputRef
               }}

@@ -1,6 +1,27 @@
 # Changelog
 
 
+## 3.1.19
+
+### Bug Fixes
+
+ * allow users to fork-on-launch in release mode.
+ * minor UI perks related to figma
+ * properly catch errors during figma requests
+ * check if abspath exist before matching
+ * remove hardcoded test inkstone URL from right-click menu.
+ * Parse transform component strings whose values are delimited by spaces
+ * do not hardcode project in forkability check....
+ * use the correct casing on the npm package name in publish modal
+
+### Features
+
+ * enable figma integration on production
+ * @haiku/sdk-inkstone hookup to get Figma access token.
+ * Add right-click menu option to "Fork this component"
+ * basic URL-driven forking functionality.
+ * add @haiku/sdk-inkstone endpoint for forking a community project.
+
 ## 3.1.18
 
 ### Features

@@ -33,7 +33,7 @@ class FigmaImporter extends React.PureComponent {
             this.renderForm()
           }}
         >
-          Figma
+          Connect Figma Project
         </button>
 
         {this.state.isFormVisible && (

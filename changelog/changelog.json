@@ -5520,5 +5520,72 @@
       "label": "fix",
       "message": "Don't crash if the function signature is something we cannot parse"
     }
+  },
+  "3.1.19": {
+    "808bed71a0e7ec3e6741406b016d59919ca70d1b": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "allow users to fork-on-launch in release mode."
+    },
+    "b7b233ad0eaecd8a9b7e22a0106d354ea322b1d3": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "minor UI perks related to figma"
+    },
+    "ffbc67bb4550f770eaeb9e978457ce5bc938eb31": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "properly catch errors during figma requests"
+    },
+    "7bd7f113c23a1ed213ceee233dbb31785c5682bb": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "check if abspath exist before matching"
+    },
+    "75d04459f7f3296ca1381cbb67a428ed907b2b12": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "enable figma integration on production"
+    },
+    "7f7b778ee079b626dbd764620bed5f6afd93043a": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "@haiku/sdk-inkstone hookup to get Figma access token."
+    },
+    "1b8a9ae6a1241db0fbbe9cc1bf7ff08689a76507": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "remove hardcoded test inkstone URL from right-click menu."
+    },
+    "eaa57894991a4b1d2414b3008a11d4b8491ee1be": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Parse transform component strings whose values are delimited by spaces"
+    },
+    "549cef2215e89f6fb38806d420fecef2427a83e9": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "do not hardcode project in forkability check...."
+    },
+    "a7a7e2a373633ae2ff31923ba8a2dc52ccb5b112": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Add right-click menu option to \"Fork this component\""
+    },
+    "010b855dd477040f11dbc4558731c384aced5ead": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "basic URL-driven forking functionality."
+    },
+    "f9e53eda813b3b816c41883a5b420d4a14e7ab9d": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add @haiku/sdk-inkstone endpoint for forking a community project."
+    },
+    "5e1b6391756e2bc35b32dfce7d0f5099f53c8b73": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "use the correct casing on the npm package name in publish modal"
+    }
   }
 }
