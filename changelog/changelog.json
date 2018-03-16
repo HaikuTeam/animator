@@ -5631,5 +5631,12 @@
       "label": "fix",
       "message": "actually pass fileId forward in recursive Figma#findItems call."
     }
+  },
+  "3.1.22": {
+    "9a23f07a0067b53f2f8dfab57d13e64d1550f384": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "handle the case that figma assets have dashes in their names."
+    }
   }
 }

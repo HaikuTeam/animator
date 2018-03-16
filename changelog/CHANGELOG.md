@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 3.1.22
+
+### Bug Fixes
+
+ * handle the case that figma assets have dashes in their names.
+
 ## 3.1.21
 
 ### Bug Fixes
