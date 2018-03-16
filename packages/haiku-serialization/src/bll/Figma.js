@@ -258,7 +258,7 @@ class Figma {
    * @returns {boolean}
    */
   static isFigmaFile (path) {
-    return path.match(IS_FIGMA_FILE_RE)
+    return !!path && path.match(IS_FIGMA_FILE_RE)
   }
 
   /**
@@ -267,7 +267,7 @@ class Figma {
    * @returns {boolean}
    */
   static isFigmaFolder (path) {
-    return path.match(IS_FIGMA_FOLDER_RE)
+    return !!path && path.match(IS_FIGMA_FOLDER_RE)
   }
 
   /**
