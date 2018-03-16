@@ -46,150 +46,164 @@ if (!HaikuGlobal.HaikuGlobalAnimationHarness) {
   HaikuGlobal.HaikuGlobalAnimationHarness.frame();
 }
 
-// tslint:disable-next-line:function-name
-export default function HaikuClock(tickables, component, options) {
-  SimpleEventEmitter.create(this);
+// tslint:disable:variable-name
+export default class HaikuClock {
+  _component;
+  _deltaSinceLastTick;
+  _entityIndex;
+  _isRunning;
+  _localExplicitlySetTime;
+  _localFramesElapsed;
+  _localTimeElapsed;
+  _numLoopsRun;
+  options;
+  _tickables;
+  GLOBAL_ANIMATION_HARNESS;
 
-  this._tickables = tickables;
-  this._component = component;
+  constructor (tickables, component, options) {
+    SimpleEventEmitter.create(this);
 
-  this.assignOptions(options);
+    this._tickables = tickables;
+    this._component = component;
 
-  this._isRunning = false;
-  this._reinitialize();
+    this.assignOptions(options);
 
-  // Bind to avoid `this`-detachment when called by raf
-  HaikuGlobal.HaikuGlobalAnimationHarness.queue.push(this.run.bind(this));
+    this._isRunning = false;
+    this.reinitialize();
 
-  // Tests and others may need this to cancel the rAF loop, to avoid leaked handles
-  this.GLOBAL_ANIMATION_HARNESS = HaikuGlobal.HaikuGlobalAnimationHarness;
+    // Bind to avoid `this`-detachment when called by raf
+    HaikuGlobal.HaikuGlobalAnimationHarness.queue.push(this.run.bind(this));
 
-  // Useful when debugging to understand cross-component effects
-  this._entityIndex = HaikuClock['clocks'].push(this) - 1;
+    // Tests and others may need this to cancel the rAF loop, to avoid leaked handles
+    this.GLOBAL_ANIMATION_HARNESS = HaikuGlobal.HaikuGlobalAnimationHarness;
+
+    // Useful when debugging to understand cross-component effects
+    this._entityIndex = HaikuClock['clocks'].push(this) - 1;
+  }
+
+  reinitialize() {
+    this._numLoopsRun = 0;
+    this._localFramesElapsed = 0;
+    this._localTimeElapsed = 0;
+    this._deltaSinceLastTick = 0;
+    this._localExplicitlySetTime = null;
+    return this;
+  }
+
+  addTickable(tickable) {
+    this._tickables.push(tickable);
+    return this;
+  }
+
+  assignOptions(options) {
+    this.options = assign(this.options || {}, DEFAULT_OPTIONS, options || {});
+    return this;
+  }
+
+  run() {
+    if (this.isRunning()) {
+      // If time is "controlled" we are locked to an explicitly set local time, so no math is needed.
+      if (this.isTimeControlled()) {
+        this.tick();
+      } else {
+        // If we got here, we need to evaluate the time elapsed, and determine if we've waited long enough for a frame
+        this._numLoopsRun++;
+
+        const prevTime = this._localTimeElapsed;
+        const nextTime = prevTime + this.options.frameDuration;
+        const deltaSinceLastTick = nextTime - prevTime + this._deltaSinceLastTick;
+
+        if (
+          deltaSinceLastTick >=
+          this.options.frameDelay - this.options.marginOfErrorForDelta
+        ) {
+          this.tick();
+
+          this._localFramesElapsed++;
+          this._localTimeElapsed = nextTime;
+          this._deltaSinceLastTick = 0; // Must reset delta when frame has been completed
+        } else {
+          // If we got here, this loop is faster than the desired speed; wait till next call
+          this._deltaSinceLastTick = deltaSinceLastTick;
+        }
+      }
+    }
+
+    return this;
+  }
+
+  tick() {
+    for (let i = 0; i < this._tickables.length; i++) {
+      this._tickables[i].performTick();
+    }
+    return this;
+  }
+
+  getTime() {
+    return this.getExplicitTime();
+  }
+
+  setTime(time) {
+    this._localExplicitlySetTime = parseInt(time || 0, 10);
+    return this;
+  }
+
+  getFPS() {
+    return Math.round(1000 / this.options.frameDuration);
+  }
+
+  /**
+   * @method getExplicitTime
+   * @description Return either the running time or the controlled time, depending on whether this
+   * clock is in control mode or not.
+   */
+  getExplicitTime() {
+    if (this.isTimeControlled()) {
+      return this.getControlledTime();
+    }
+    return this.getRunningTime();
+  }
+
+  /**
+   * @method getControlledTime
+   * @description Return the value of time that has been explicitly controlled.
+   */
+  getControlledTime() {
+    return this._localExplicitlySetTime;
+  }
+
+  isTimeControlled() {
+    return typeof this._localExplicitlySetTime === NUMBER;
+  }
+
+  /**
+   * @method getRunningTime
+   * @description Return the running time, which is the value of time that has elapsed whether or
+   * not time has been 'controlled' in control mode.
+   */
+  getRunningTime() {
+    return this._localTimeElapsed;
+  }
+
+  isRunning() {
+    return this._isRunning;
+  }
+
+  start() {
+    this._isRunning = true;
+    return this;
+  }
+
+  stop() {
+    this._isRunning = false;
+    return this;
+  }
+
+  getFrameDuration() {
+    return this.options.frameDuration;
+  }
 }
 
 HaikuClock['clocks'] = [];
 
 HaikuGlobal['HaikuClock'] = HaikuClock;
-
-HaikuClock.prototype._reinitialize = function _reinitialize() {
-  this._numLoopsRun = 0;
-  this._localFramesElapsed = 0;
-  this._localTimeElapsed = 0;
-  this._deltaSinceLastTick = 0;
-  this._localExplicitlySetTime = null;
-  return this;
-};
-
-HaikuClock.prototype.addTickable = function addTickable(tickable) {
-  this._tickables.push(tickable);
-  return this;
-};
-
-HaikuClock.prototype.assignOptions = function assignOptions(options) {
-  this.options = assign(this.options || {}, DEFAULT_OPTIONS, options || {});
-  return this;
-};
-
-HaikuClock.prototype.run = function run() {
-  if (this.isRunning()) {
-    // If time is "controlled" we are locked to an explicitly set local time, so no math is needed.
-    if (this._isTimeControlled()) {
-      this.tick();
-    } else {
-      // If we got here, we need to evaluate the time elapsed, and determine if we've waited long enough for a frame
-      this._numLoopsRun++;
-
-      const prevTime = this._localTimeElapsed;
-      const nextTime = prevTime + this.options.frameDuration;
-      const deltaSinceLastTick = nextTime - prevTime + this._deltaSinceLastTick;
-
-      if (
-        deltaSinceLastTick >=
-        this.options.frameDelay - this.options.marginOfErrorForDelta
-      ) {
-        this.tick();
-
-        this._localFramesElapsed++;
-        this._localTimeElapsed = nextTime;
-        this._deltaSinceLastTick = 0; // Must reset delta when frame has been completed
-      } else {
-        // If we got here, this loop is faster than the desired speed; wait till next call
-        this._deltaSinceLastTick = deltaSinceLastTick;
-      }
-    }
-  }
-
-  return this;
-};
-
-HaikuClock.prototype.tick = function tick() {
-  for (let i = 0; i < this._tickables.length; i++) {
-    this._tickables[i].performTick();
-  }
-  return this;
-};
-
-HaikuClock.prototype.getTime = function getTime() {
-  return this.getExplicitTime();
-};
-
-HaikuClock.prototype.setTime = function setTime(time) {
-  this._localExplicitlySetTime = parseInt(time || 0, 10);
-  return this;
-};
-
-HaikuClock.prototype.getFPS = function getFPS() {
-  return Math.round(1000 / this.options.frameDuration);
-};
-
-/**
- * @method getExplicitTime
- * @description Return either the running time or the controlled time, depending on whether this
- * clock is in control mode or not.
- */
-HaikuClock.prototype.getExplicitTime = function getExplicitTime() {
-  if (this._isTimeControlled()) {
-    return this.getControlledTime();
-  }
-  return this.getRunningTime();
-};
-
-/**
- * @method getControlledTime
- * @description Return the value of time that has been explicitly controlled.
- */
-HaikuClock.prototype.getControlledTime = function getControlledTime() {
-  return this._localExplicitlySetTime;
-};
-
-HaikuClock.prototype._isTimeControlled = function _isTimeControlled() {
-  return typeof this._localExplicitlySetTime === NUMBER;
-};
-
-/**
- * @method getRunningTime
- * @description Return the running time, which is the value of time that has elapsed whether or
- * not time has been 'controlled' in control mode.
- */
-HaikuClock.prototype.getRunningTime = function getRunningTime() {
-  return this._localTimeElapsed;
-};
-
-HaikuClock.prototype.isRunning = function isRunning() {
-  return this._isRunning;
-};
-
-HaikuClock.prototype.start = function start() {
-  this._isRunning = true;
-  return this;
-};
-
-HaikuClock.prototype.stop = function stop() {
-  this._isRunning = false;
-  return this;
-};
-
-HaikuClock.prototype.getFrameDuration = function getFrameDuration() {
-  return this.options.frameDuration;
-};

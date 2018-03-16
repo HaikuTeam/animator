@@ -204,7 +204,6 @@ Please send contributions via [pull request](https://github.com/HaikuTeam/core/p
 
 **Code improvements**
 
-- Use modern class syntax throughout _(in progress!)_
 - Use arrow functions throughout _(in progress!)_
 - Improve test coverage
 - Inline source code docs
