@@ -1,5 +1,4 @@
 import * as React from 'react';
-import * as assign from 'lodash.assign';
 import Palette from './../Palette';
 import {DownCarrotSVG} from './OtherIcons';
 
@@ -55,7 +54,7 @@ const STYLES = {
     transform: 'rotate(-90deg)',
     marginLeft: '15px',
   },
-};
+} as React.CSSProperties;
 
 const CLOSE_IF_SELECTED_CLASS = 'js-close-on-click';
 
@@ -130,13 +129,12 @@ export class Menu extends React.Component {
         <ul
           onClick={(event) => { this.closeIfOptionSelected(event); }}
           onMouseLeave={(event) => { this.close(); }}
-          style={assign(
-            {},
-            STYLES.resetList,
-            STYLES.menu,
-            this.state.isOpen && STYLES.menuOpen,
-            this.state.isOpen && this.getWrapperStyles(),
-          )}
+          style={{
+            ...STYLES.resetList,
+            ...STYLES.menu,
+            ...(this.state.isOpen && STYLES.menuOpen),
+            ...(this.state.isOpen && this.getWrapperStyles()),
+          }}
         >
           {this.props.children}
         </ul>
@@ -179,11 +177,10 @@ export class SubMenu extends React.Component {
     return (
       <li
         className="submenu-li"
-        style={assign(
-          {},
-          STYLES.menuItem,
-          this.state.isHovered && STYLES.menuItemHovered,
-        )}
+        style={{
+          ...STYLES.menuItem,
+          ...(this.state.isHovered && STYLES.menuItemHovered),
+        }}
         onMouseEnter={this.open}
         onMouseLeave={this.close}
       >
@@ -193,13 +190,12 @@ export class SubMenu extends React.Component {
         </div>
         <ul
           className="submenu-ul"
-          style={assign(
-            {},
-            STYLES.resetList,
-            STYLES.menu,
-            STYLES.subMenu,
-            this.state.isOpen && STYLES.subMenuOpen,
-          )}
+          style={{
+            ...STYLES.resetList,
+            ...STYLES.menu,
+            ...STYLES.subMenu,
+            ...(this.state.isOpen && STYLES.subMenuOpen),
+          }}
         >
           {children}
         </ul>
@@ -216,12 +212,11 @@ export const MenuItem = ({children, data, disabled, onClick, style}) => {
       onClick={(event) => {
         if (!disabled) { onClick(event, data); }
       }}
-      style={assign(
-        {},
-        STYLES.menuItem,
-        disabled && STYLES.menuItemDisabled,
-        style,
-      )}
+      style={{
+        ...STYLES.menuItem,
+        ...(disabled && STYLES.menuItemDisabled),
+        ...style,
+      }}
     >
       {children}
     </li>
