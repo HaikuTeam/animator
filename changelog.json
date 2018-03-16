@@ -5638,5 +5638,17 @@
       "label": "fix",
       "message": "handle the case that figma assets have dashes in their names."
     }
+  },
+  "3.1.23": {
+    "5d4995e358fd7cf7501ce61e112a8b6ddbb302e7": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "use proper semver ordering to display changelog"
+    },
+    "65f73e5c09a4c3aa24d477d057bcb884b55ab627": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Don't call dtModified on undefined"
+    }
   }
 }
