@@ -2,6 +2,7 @@ const cp = require('child_process')
 
 const getPackages = require('./helpers/packages')
 const log = require('./helpers/log')
+const nowVersion = require('./helpers/nowVersion')
 
 const branch = cp.execSync('git symbolic-ref --short -q HEAD || git rev-parse --short HEAD').toString().trim()
 if (branch !== 'master') {
@@ -89,7 +90,8 @@ cp.execSync(`node ./scripts/build-core.js --skip-compile=1`, processOptions)
 // our standalones.
 cp.execSync('git fetch')
 cp.execSync('git merge origin/master')
-cp.execSync('git push -u origin master')
+cp.execSync(`git tag -a ${nowVersion()} -m 'release ${nowVersion()}'`)
+cp.execSync('git push -u origin master --tags')
 // Sync these changes down to development before continuing.
 cp.execSync('git fetch origin development:development')
 cp.execSync('git checkout development')
