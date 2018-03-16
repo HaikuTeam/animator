@@ -1,6 +1,13 @@
 # Changelog
 
 
+## 3.1.21
+
+### Bug Fixes
+
+ * sweep assets before re-ingesting them.
+ * actually pass fileId forward in recursive Figma#findItems call.
+
 ## 3.1.20
 
 ### Bug Fixes
