@@ -99,7 +99,7 @@ class Figma {
       elements.map((element) => {
         const path =
           assetBaseFolder + FOLDERS[element.type] + element.name + '.svg'
-        return fse.writeFile(path, element.svg)
+        return fse.writeFile(path, element.svg || '<svg version="1.1" xmlns="http://www.w3.org/2000/svg"></svg>')
       })
     )
   }
@@ -158,7 +158,7 @@ class Figma {
       if (VALID_TYPES[item.type]) {
         result.push({ id: item.id, name: Figma.getUniqueName(fileId, item.name), type: item.type })
       } else if (item.children) {
-        result.push(...this.findItems(item.children))
+        result.push(...this.findItems(item.children, fileId))
       }
     }
 
@@ -219,7 +219,7 @@ class Figma {
    * @returns {string}
    */
   static buildFigmaLink (fileID, fileName = '') {
-    return `${FIGMA_URL}file/${fileID}/${fileName}`
+    return `${FIGMA_URL}files/${fileID}/${fileName}`
   }
 
   /**

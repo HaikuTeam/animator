@@ -1,6 +1,37 @@
 # Changelog
 
 
+## 3.1.23
+
+### Bug Fixes
+
+ * use proper semver ordering to display changelog
+ * Don't call dtModified on undefined
+
+## 3.1.22
+
+### Bug Fixes
+
+ * handle the case that figma assets have dashes in their names.
+
+## 3.1.21
+
+### Bug Fixes
+
+ * sweep assets before re-ingesting them.
+ * actually pass fileId forward in recursive Figma#findItems call.
+
+## 3.1.20
+
+### Bug Fixes
+
+ * add extra checks to figma path checkers
+ * Check for source path before trying to match it
+ * allow duplicate slice names to exist in the wild.
+ * catch svgo errors
+ * add a missing prop in the propchain of svg imports
+ * typo in figma import modal.
+
 ## 3.1.19
 
 ### Bug Fixes

@@ -5587,5 +5587,68 @@
       "label": "fix",
       "message": "use the correct casing on the npm package name in publish modal"
     }
+  },
+  "3.1.20": {
+    "0d596010e9e489882ec7a0602c91e755d66b3d16": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "add extra checks to figma path checkers"
+    },
+    "ff7bd30f00b578d04a18dc2423ddf2e8957de961": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Check for source path before trying to match it"
+    },
+    "538694e408e0dc24f84aa8d5a4522f2ac97bbdec": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "allow duplicate slice names to exist in the wild."
+    },
+    "986ad753b9b4ec52b1e9e7c4fe8ecfcca02c5e5a": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "catch svgo errors"
+    },
+    "0f5cc849fff23ecb774254d2405dc55b7d0555e8": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "add a missing prop in the propchain of svg imports"
+    },
+    "45fdbf6f4ff77b478568671d298a4b2298894492": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "typo in figma import modal."
+    }
+  },
+  "3.1.21": {
+    "9dff9155d815fa22f377d3ecea2ef98f0e4bb1ae": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "sweep assets before re-ingesting them."
+    },
+    "c6d82957696c4c57b7e3a835e575a18c1032d7c7": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "actually pass fileId forward in recursive Figma#findItems call."
+    }
+  },
+  "3.1.22": {
+    "9a23f07a0067b53f2f8dfab57d13e64d1550f384": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "handle the case that figma assets have dashes in their names."
+    }
+  },
+  "3.1.23": {
+    "5d4995e358fd7cf7501ce61e112a8b6ddbb302e7": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "use proper semver ordering to display changelog"
+    },
+    "65f73e5c09a4c3aa24d477d057bcb884b55ab627": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Don't call dtModified on undefined"
+    }
   }
 }
