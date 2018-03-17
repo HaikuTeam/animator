@@ -820,6 +820,10 @@ export default class HaikuComponent {
     return this._flatManaTree;
   }
 
+  renderUsingOwnContext() {
+    return this._context.render();
+  }
+
   render(container, renderOptions) {
     if (this.isDeactivated()) {
       // If deactivated, pretend like there is nothing to render
