@@ -9,7 +9,7 @@ const STYLE = {
     top: '-31px',
     left: '-6px',
     cursor: 'pointer',
-    overflow: 'hidden',
+    overflow: 'hidden'
   },
   addAction: {
     padding: '0 8px',
@@ -21,7 +21,7 @@ const STYLE = {
   },
   show: {
     opacity: 1,
-    transform: 'scale(1)',
+    transform: 'scale(1)'
   },
   plus: {
     width: '12px',
@@ -31,7 +31,7 @@ const STYLE = {
     justifyContent: 'center',
     borderRadius: '50%',
     border: '1px solid rgba(255,255,255,.2)',
-    fontSize: '20px',
+    fontSize: '20px'
   }
 }
 
@@ -74,7 +74,8 @@ class FrameAction extends React.Component {
       return (
         <div
           onMouseDown={(event) => {
-            if (this.state.achievedHover) this.openFrameActionsEditor(event)}
+            if (this.state.achievedHover) this.openFrameActionsEditor(event)
+          }
           }
           style={[STYLE.base, STYLE.addAction, this.state.achievedHover && STYLE.show]}>
           <div
