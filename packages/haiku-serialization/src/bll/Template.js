@@ -5,45 +5,13 @@ const pascalcase = require('pascalcase')
 const SVGPoints = require('@haiku/core/lib/helpers/SVGPoints').default
 const convertManaLayout = require('@haiku/core/lib/layout/convertManaLayout').default
 const visitManaTree = require('@haiku/core/lib/helpers/visitManaTree').default
+const manaToXml = require('@haiku/core/lib/helpers/manaToXml').default
 const jsonStableStringify = require('json-stable-stringify')
 const assign = require('lodash.assign')
 const defaults = require('lodash.defaults')
 const BasicUtils = require('@haiku/core/lib/helpers/BasicUtils').default
-const styleStringToObject = require('to-style').object
 const BaseModel = require('./BaseModel')
 const CryptoUtils = require('./../utils/CryptoUtils')
-
-const SELF_CLOSING_TAG_NAMES = [
-  'area',
-  'base',
-  'br',
-  'col',
-  'command',
-  'embed',
-  'hr',
-  'img',
-  'input',
-  'keygen',
-  'link',
-  'meta',
-  'param',
-  'source',
-  'track',
-  'wbr'
-]
-
-const COLON = ':'
-const SEMI = ';'
-const OPEN_TAG = '<'
-const CLOSE_TAG = '>'
-const SPACE = ' '
-const EMPTY = ''
-const EQ = '='
-const DQUOTE = '"'
-const SLASH = '/'
-const STYLE = 'style'
-const CLASS_NAME = 'className'
-const CLASS = 'class'
 
 const GROUP_DELIMITER = '.'
 const MERGE_STRATEGIES = {
@@ -939,102 +907,8 @@ Template.cleanMana = (mana) => {
   return out
 }
 
-Template.manaChildToHtml = (child, mapping, options) => {
-  if (Template.cannotUse(child)) return EMPTY
-  if (Template.alreadySerial(child)) {
-    return child
-  } else {
-    return Template.manaToHtml(EMPTY, child, mapping, options)
-  }
-}
-
-Template.styleToJSXString = (style) => {
-  if (typeof style === 'string') style = styleStringToObject(style, { camelize: true })
-  const out = '{' + JSON.stringify(style) + '}'
-  return out
-}
-
-Template.styleToString = (style) => {
-  let out = ''
-  if (!style) return out
-  if (typeof style === 'string') return style
-  if (typeof style !== 'object') return out
-  for (const styleKey in style) {
-    const styleValue = style[styleKey]
-    // TODO: Add correct spacing instead of this compact format?
-    out += styleKey + COLON + styleValue + SEMI
-  }
-  return out
-}
-
-Template.isEmptyObject = (object) => {
-  return object === null || object === undefined
-}
-
 Template.manaToHtml = (out, object, mapping, options) => {
-  if (Template.alreadySerial(object)) return object
-  if (Template.cannotUse(object)) return EMPTY
-
-  let name = object[(mapping && mapping.name) || 'elementName']
-
-  if (name && typeof name === 'object') name = name.name
-
-  const attributes = object[(mapping && mapping.attributes) || 'attributes']
-  const children = object[(mapping && mapping.children) || 'children']
-
-  if (name) {
-    out += OPEN_TAG + name
-
-    let style = attributes && attributes[STYLE]
-
-    if (style) {
-      if (options && options.jsx) {
-        style = Template.styleToJSXString(style)
-      } else {
-        style = Template.styleToString(style)
-      }
-
-      if (attributes) attributes[STYLE] = style
-    }
-
-    if (attributes && !Template.isEmptyObject(attributes)) {
-      for (let attributeName in attributes) {
-        const attrVal = attributes[attributeName]
-
-        if (attributeName === STYLE) {
-          if (attrVal === EMPTY || Template.isEmptyObject(attrVal)) {
-            continue
-          }
-        }
-
-        if (attributeName === CLASS_NAME) attributeName = CLASS
-
-        if (options && options.jsx && attributeName === STYLE) {
-          out += SPACE + attributeName + EQ + attrVal
-        } else {
-          out += SPACE + attributeName + EQ + DQUOTE + attrVal + DQUOTE
-        }
-      }
-    }
-
-    out += CLOSE_TAG
-
-    if (Array.isArray(children)) {
-      if (children && children.length > 0) {
-        for (let i = 0; i < children.length; i++) {
-          out += Template.manaChildToHtml(children[i], mapping, options)
-        }
-      }
-    } else {
-      out += Template.manaChildToHtml(children, mapping, options)
-    }
-
-    if (SELF_CLOSING_TAG_NAMES.indexOf(name) === -1) {
-      out += OPEN_TAG + SLASH + name + CLOSE_TAG
-    }
-  }
-
-  return out
+  return manaToXml(out, object, mapping, options)
 }
 
 Template.getStackingInfo = (
@@ -1112,14 +986,6 @@ Template.getPropertyValue = (
   if (!bytecode.timelines[timelineName][`haiku:${componentId}`][propertyName]) return
   if (!bytecode.timelines[timelineName][`haiku:${componentId}`][propertyName][timelineTime]) return
   return bytecode.timelines[timelineName][`haiku:${componentId}`][propertyName][timelineTime].value
-}
-
-Template.cannotUse = (object) => {
-  return object === false || object === null || object === undefined || typeof object === 'function'
-}
-
-Template.alreadySerial = (object) => {
-  return typeof object === 'string' || typeof object === 'number'
 }
 
 module.exports = Template

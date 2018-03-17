@@ -366,8 +366,24 @@ File.readMana = function readMana (folder, relpath, cb) {
   return File.read(folder, relpath, (err, buffer) => {
     if (err) return cb(err)
 
+    const xml = buffer.toString()
+
+    const returnUnoptimizedMana = () => {
+      const manaFull = xmlToMana(xml)
+
+      if (!manaFull) {
+        return cb(new Error(`We couldn't load the contents of ${relpath}`))
+      }
+
+      if (experimentIsEnabled(Experiment.NormalizeSvgContent)) {
+        return cb(null, Template.normalize(manaFull))
+      }
+
+      return cb(null, manaFull)
+    }
+
     if (experimentIsEnabled(Experiment.SvgOptimizer)) {
-      return getSvgOptimizer().optimize(buffer.toString(), { path: path.join(folder, relpath) }).then((contents) => {
+      return getSvgOptimizer().optimize(xml, { path: path.join(folder, relpath) }).then((contents) => {
         const manaOptimized = xmlToMana(contents.data)
 
         if (!manaOptimized) {
@@ -381,20 +397,11 @@ File.readMana = function readMana (folder, relpath, cb) {
         return cb(null, manaOptimized)
       })
       .catch(() => {
-        return cb(new Error(`We couldn't parse ${relpath}`))
+        logger.warn(`[file] svgo couldn't parse ${relpath}`)
+        return returnUnoptimizedMana()
       })
     } else {
-      const manaFull = xmlToMana(buffer.toString())
-
-      if (!manaFull) {
-        return cb(new Error(`We couldn't load the contents of ${relpath}`))
-      }
-
-      if (experimentIsEnabled(Experiment.NormalizeSvgContent)) {
-        return cb(null, Template.normalize(manaFull))
-      }
-
-      return cb(null, manaFull)
+      return returnUnoptimizedMana()
     }
   })
 }

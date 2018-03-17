@@ -216,25 +216,30 @@ export default class HaikuContext {
     this._prng = new PRNG(this.config.options.seed);
   }
 
-  // Call to completely update the entire component tree - as though it were the first time
-  performFullFlushRender() {
-    if (!this._mount) {
-      return void (0);
-    }
+  render() {
     const container = this._renderer.createContainer(this._mount);
     const tree = this.component.render(container, this.config.options);
 
     // The component can optionally return undefined as a signal to take no action
     // TODO: Maybe something other than undefined would be better
     if (tree !== undefined) {
-      this._renderer.render(this._mount, container, tree, this.component);
+      return this._renderer.render(this._mount, container, tree, this.component);
     }
+  }
+
+  // Call to completely update the entire component tree - as though it were the first time
+  performFullFlushRender() {
+    if (!this._mount) {
+      return;
+    }
+
+    this.render();
   }
 
   // Call to update elements of the this.component tree - but only those that we detect have changed
   performPatchRender(skipCache = false) {
     if (!this._mount) {
-      return void (0);
+      return;
     }
 
     const container = this._renderer.shouldCreateContainer
@@ -250,7 +255,7 @@ export default class HaikuContext {
   // haikuConfig.options that may affect it, e.g. CSS overflow or positioning settings
   updateMountRootStyles() {
     if (!this._mount) {
-      return void (0);
+      return;
     }
 
     // We can assume the mount has only one child since we only mount one component into it (#?)
