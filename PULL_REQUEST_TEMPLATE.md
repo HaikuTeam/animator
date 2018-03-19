@@ -2,15 +2,11 @@ OK to merge.
 
 Short review.
 
-Purpose of changes:
+Summary of changes:
 
 - …
 
-Summary of work (include Asana links if any):
-
-- [ ] …
-
-Regressions to look for:
+Regressions to look for::
 
 - …
 
@@ -21,9 +17,7 @@ Notes for reviewers:
 Completed checkin tasks:
 
 - [ ] Did manual testing of interrelated functionality
-- [ ] Added measurement instrumentation (Mixpanel, etc.)
 - [ ] Ran `$ yarn lint-all` and fixed all formatting issues
 - [ ] Ran `$ yarn test-all` and all tests passed
-- [ ] Did the [E2E checklist](https://haiku.quip.com/dGqeAEVSWdmg)
-- [ ] Expanded the [QA checklist](https://haiku.quip.com/rqwsAPsCGxqT)
+- [ ] Added measurement instrumentation (Mixpanel, etc.)
 - [ ] Wrote an automated test covering new functionality
