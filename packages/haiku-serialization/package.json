@@ -51,6 +51,7 @@
     "lodash": "^4.17.4",
     "lodash.assign": "^4.2.0",
     "lodash.debounce": "4.0.8",
+    "lodash.defaults": "^4.2.0",
     "lodash.find": "^4.6.0",
     "lodash.merge": "4.6.0",
     "mixpanel": "0.6.0",
