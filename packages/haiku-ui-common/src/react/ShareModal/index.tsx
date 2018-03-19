@@ -11,7 +11,7 @@ const STYLES = {
   wrapper: {
     width: 500,
     overflow: 'hidden',
-    left: 'calc(50% + 150px)',
+    left: '50%',
     transform: 'translateX(-50%)',
     top: 110,
     margin: 0,
