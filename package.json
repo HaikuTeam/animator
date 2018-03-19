@@ -33,7 +33,8 @@
     "tape": "^4.8.0",
     "tslint": "^5.7.0",
     "tslint-config-haiku": "^1.0.0",
-    "typescript": "^2.5.2"
+    "typescript": "^2.5.2",
+    "webpack-conditional-loader": "^1.0.12"
   },
   "license": "UNLICENSED",
   "dependencies": {

@@ -3,7 +3,7 @@ module.exports = (baseConfig, env) => {
   const config = genDefaultConfig(baseConfig, env);
   config.module.rules.push({
     test: /\.(ts|tsx)$/,
-    loader: require.resolve('awesome-typescript-loader')
+    use: ['awesome-typescript-loader', 'webpack-conditional-loader']
   });
   config.resolve.extensions.push('.ts', '.tsx');
   return config;
