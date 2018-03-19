@@ -11933,6 +11933,10 @@ webpack-concat-plugin@^2.4.2:
     schema-utils "^0.4.3"
     uglify-es "^3.2.2"
 
+webpack-conditional-loader@^1.0.12:
+  version "1.0.12"
+  resolved "https://registry.yarnpkg.com/webpack-conditional-loader/-/webpack-conditional-loader-1.0.12.tgz#3e1d6f182aefac6d914c99acd0f861eddddfb728"
+
 webpack-dev-middleware@^1.12.2:
   version "1.12.2"
   resolved "https://registry.yarnpkg.com/webpack-dev-middleware/-/webpack-dev-middleware-1.12.2.tgz#f8fc1120ce3b4fc5680ceecb43d777966b21105e"
