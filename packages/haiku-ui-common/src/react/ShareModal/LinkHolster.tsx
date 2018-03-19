@@ -104,7 +104,7 @@ export class LinkHolster extends React.PureComponent {
             style={STYLES.link}
             onClick={() => {
               // #if false
-              const {shell} = require('electron')
+              const {shell} = require('electron');
               shell.openExternal(linkAddress);
               // #endif
 
