@@ -96,7 +96,7 @@ tape('Figma.buildFigmaLink', (t) => {
 
   const url = Figma.buildFigmaLink(fileKey)
 
-  t.ok(url.includes(`/files/${fileKey}`), 'builds a link to the figma file')
+  t.ok(url.includes(`/file/${fileKey}`), 'builds a link to the figma file')
 })
 
 tape('Figma.isFigmaFile', (t) => {
