@@ -35,26 +35,25 @@ const STYLE = {
   }
 }
 
-let timeout
-
 class FrameAction extends React.Component {
   constructor () {
     super()
     this.openFrameActionsEditor = this.openFrameActionsEditor.bind(this)
+    this.timeout = null
     this.state = {
       achievedHover: false
     }
   }
 
   setHover () {
-    timeout = setTimeout(() => {
+    this.timeout = setTimeout(() => {
       this.setState({achievedHover: true})
     }, 520)
   }
 
   componentWillUnmount () {
-    if (timeout) {
-      clearTimeout(timeout)
+    if (this.timeout) {
+      clearTimeout(this.timeout)
     }
   }
 
@@ -81,7 +80,7 @@ class FrameAction extends React.Component {
           <div
             style={STYLE.plus}
             onMouseEnter={() => this.setHover()}
-            onMouseLeave={() => timeout && clearTimeout(timeout)}>
+            onMouseLeave={() => this.timeout && clearTimeout(this.timeout)}>
             +
           </div>
         </div>
