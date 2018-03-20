@@ -105,12 +105,14 @@ class StateRow extends React.Component {
   }
 
   componentWillReceiveProps (nextProps) {
-    this.setState({
-      originalName: nextProps.stateName,
-      name: nextProps.stateName,
-      desc: nextProps.stateDescriptor,
-      valuePreEdit: nextProps.stateDescriptor.value
-    })
+    if (!nextProps.isNew) {
+      this.setState({
+        originalName: nextProps.stateName,
+        name: nextProps.stateName,
+        desc: nextProps.stateDescriptor,
+        valuePreEdit: nextProps.stateDescriptor.value
+      })
+    }
   }
 
   handleTabSwitch (event, side) {
