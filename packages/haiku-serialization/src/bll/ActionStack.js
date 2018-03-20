@@ -373,7 +373,7 @@ ActionStack.METHOD_INVERTERS = {
     before: (ac, [keyframeUpdates]) => {
       const previousUpdates = ac.snapshotKeyframeUpdates(keyframeUpdates)
       return {
-        method: 'updateKeyframes',
+        method: ac.updateKeyframes.name,
         params: [previousUpdates]
       }
     }
@@ -383,7 +383,7 @@ ActionStack.METHOD_INVERTERS = {
     before: (ac, [keyframeMoves]) => {
       const previousMoves = ac.snapshotKeyframeMoves(keyframeMoves)
       return {
-        method: 'moveKeyframes',
+        method: ac.moveKeyframes.name,
         params: [previousMoves]
       }
     }
@@ -393,7 +393,7 @@ ActionStack.METHOD_INVERTERS = {
     after: (ac, [modpath, coords], output) => {
       if (output) {
         return {
-          method: 'deleteComponent',
+          method: ac.deleteComponent.name,
           params: [output.attributes['haiku-id']]
         }
       }
@@ -405,7 +405,7 @@ ActionStack.METHOD_INVERTERS = {
       const element = ac.findElementByComponentId(haikuId)
       if (element) {
         return {
-          method: 'pasteThing',
+          method: ac.pasteThing.name,
           params: [
             element.clip(),
             // Paste the content-as is; don't pad ids or our previous undoable
@@ -420,7 +420,7 @@ ActionStack.METHOD_INVERTERS = {
   pasteThing: {
     after: (ac, [pasteable, request], {haikuId}) => {
       return {
-        method: 'deleteComponent',
+        method: ac.deleteComponent.name,
         params: [haikuId]
       }
     }
@@ -430,7 +430,7 @@ ActionStack.METHOD_INVERTERS = {
     before: (ac, [componentId, timelineName, propertyName, keyframeMs, newValue]) => {
       const oldValue = ac.getKeyframeValue(componentId, timelineName, keyframeMs, propertyName)
       return {
-        method: 'changeKeyframeValue',
+        method: ac.changeKeyframeValue.name,
         params: [componentId, timelineName, propertyName, keyframeMs, oldValue]
       }
     }
@@ -440,7 +440,7 @@ ActionStack.METHOD_INVERTERS = {
     before: (ac, [componentId, timelineName, propertyName, keyframeMs, newCurve]) => {
       const oldCurve = ac.getKeyframeCurve(componentId, timelineName, keyframeMs, propertyName)
       return {
-        method: 'changeKeyframeCurve',
+        method: ac.changeSegmentCurve.name,
         params: [componentId, timelineName, propertyName, keyframeMs, oldCurve]
       }
     }
@@ -452,12 +452,12 @@ ActionStack.METHOD_INVERTERS = {
       const oldCurve = ac.getKeyframeCurve(componentId, timelineName, keyframeStartMs, propertyName)
       if (oldValue !== undefined) {
         return {
-          method: 'createKeyframe',
+          method: ac.createKeyframe.name,
           params: [componentId, timelineName, elementName, propertyName, keyframeStartMs, oldValue, oldCurve, null, null]
         }
       } else {
         return {
-          method: 'deleteKeyframe',
+          method: ac.deleteKeyframe.name,
           params: [componentId, timelineName, propertyName, keyframeStartMs]
         }
       }
@@ -470,7 +470,7 @@ ActionStack.METHOD_INVERTERS = {
       const oldValue = ac.getKeyframeValue(componentId, timelineName, keyframeMs, propertyName)
       const oldCurve = ac.getKeyframeCurve(componentId, timelineName, keyframeMs, propertyName)
       return {
-        method: 'createKeyframe',
+        method: ac.createKeyframe.name,
         params: [componentId, timelineName, elementName, propertyName, keyframeMs, oldValue, oldCurve, null, null]
       }
     }
@@ -479,7 +479,7 @@ ActionStack.METHOD_INVERTERS = {
   joinKeyframes: {
     before: (ac, [componentId, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, newCurve]) => {
       return {
-        method: 'splitSegment',
+        method: ac.splitSegment.name,
         params: [componentId, timelineName, elementName, propertyName, keyframeMsLeft]
       }
     }
@@ -489,7 +489,7 @@ ActionStack.METHOD_INVERTERS = {
     before: (ac, [componentId, timelineName, elementName, propertyName, keyframeMs]) => {
       const oldCurve = ac.getKeyframeCurve(componentId, timelineName, keyframeMs, propertyName)
       return {
-        method: 'joinKeyframes',
+        method: ac.joinKeyframes.name,
         params: [componentId, timelineName, elementName, propertyName, keyframeMs, null, oldCurve]
       }
     }
@@ -498,7 +498,7 @@ ActionStack.METHOD_INVERTERS = {
   groupElements: {
     after: (ac, [componentIds], groupComponentId) => {
       return {
-        method: 'ungroupElements',
+        method: ac.ungroupElements.name,
         params: [groupComponentId]
       }
     }
@@ -507,7 +507,7 @@ ActionStack.METHOD_INVERTERS = {
   ungroupElements: {
     after: (ac, [componentId], ungroupedComponentIds) => {
       return {
-        method: 'groupElements',
+        method: ac.groupElements.name,
         params: [ungroupedComponentIds]
       }
     }
@@ -518,12 +518,12 @@ ActionStack.METHOD_INVERTERS = {
       const previousDescriptor = lodash.clone(ac.getStateDescriptor(stateName))
       if (!previousDescriptor) {
         return {
-          method: 'deleteStateValue',
+          method: ac.deleteStateValue.name,
           params: [stateName]
         }
       } else {
         return {
-          method: 'upsertStateValue',
+          method: ac.upsertStateValue.name,
           params: [stateName, previousDescriptor]
         }
       }
@@ -534,7 +534,7 @@ ActionStack.METHOD_INVERTERS = {
     before: (ac, [stateName]) => {
       const previousDescriptor = lodash.clone(ac.getStateDescriptor(stateName))
       return {
-        method: 'upsertStateValue',
+        method: ac.upsertStateValue.name,
         params: [stateName, previousDescriptor]
       }
     }
@@ -544,7 +544,7 @@ ActionStack.METHOD_INVERTERS = {
     before: (ac, [componentId, timelineName, timelineTime]) => {
       const moves = ac.gatherKeyframeMoves(componentId, timelineName, ['style.zIndex'])
       return {
-        method: 'moveKeyframes',
+        method: ac.moveKeyframes.name,
         params: [moves]
       }
     }
@@ -554,7 +554,7 @@ ActionStack.METHOD_INVERTERS = {
     before: (ac, [componentId, timelineName, timelineTime]) => {
       const moves = ac.gatherKeyframeMoves(componentId, timelineName, ['style.zIndex'])
       return {
-        method: 'moveKeyframes',
+        method: ac.moveKeyframes.name,
         params: [moves]
       }
     }
@@ -564,7 +564,7 @@ ActionStack.METHOD_INVERTERS = {
     before: (ac, [componentId, timelineName, timelineTime]) => {
       const moves = ac.gatherKeyframeMoves(componentId, timelineName, ['style.zIndex'])
       return {
-        method: 'moveKeyframes',
+        method: ac.moveKeyframes.name,
         params: [moves]
       }
     }
@@ -574,7 +574,7 @@ ActionStack.METHOD_INVERTERS = {
     before: (ac, [componentId, timelineName, timelineTime]) => {
       const moves = ac.gatherKeyframeMoves(componentId, timelineName, ['style.zIndex'])
       return {
-        method: 'moveKeyframes',
+        method: ac.moveKeyframes.name,
         params: [moves]
       }
     }
