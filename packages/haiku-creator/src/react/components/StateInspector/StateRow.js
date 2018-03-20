@@ -201,23 +201,18 @@ class StateRow extends React.Component {
   submitChanges () {
     const didValueChange = this.state.desc.value !== this.state.valuePreEdit
     const didNameChange = this.state.name !== this.props.stateName
+    const voidFunc = () => {}
 
     if (didNameChange && didValueChange) {
       return this.props.deleteStateValue(this.props.stateName, () => {
-        return this.props.upsertStateValue(this.state.name, this.state.desc, () => {
-          this.setState({ isEditing: false })
-        })
+        return this.props.upsertStateValue(this.state.name, this.state.desc, voidFunc)
       })
     } else if (didNameChange) {
       return this.props.deleteStateValue(this.props.stateName, () => {
-        return this.props.upsertStateValue(this.state.name, this.state.desc, () => {
-          this.setState({ isEditing: false })
-        })
+        return this.props.upsertStateValue(this.state.name, this.state.desc, voidFunc)
       })
     } else if (didValueChange) {
-      return this.props.upsertStateValue(this.state.name, this.state.desc, () => {
-        this.setState({ isEditing: false })
-      })
+      return this.props.upsertStateValue(this.state.name, this.state.desc, voidFunc)
     }
   }
 
