@@ -15,7 +15,7 @@ const blankProject = path.join(plumbingPackage.abspath, 'test/fixtures/projects/
 
 let mainProcess
 
-global.process.env.NODE_ENV = 'development'
+global.process.env.NODE_ENV = global.process.env.NODE_ENV || 'development'
 
 /**
  * Run this script when you want to start local development
@@ -70,7 +70,7 @@ if (argv.default === true) {
 
 const availablePresets = {
   glass: 'primitives-glass',
-  timeline: 'complex-timeline',
+  timeline: 'metapoem2-timeline',
   blank: 'blank',
   'blank-noclean': 'blank-noclean'
 }
