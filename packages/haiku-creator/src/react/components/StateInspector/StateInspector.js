@@ -45,6 +45,11 @@ const STYLES = {
     ':active': {
       transform: 'scale(.8)'
     }
+  },
+  emptyMessage: {
+    lineHeight: '16px',
+    color: Palette.DARKER_ROCK2,
+    padding: '0 14px'
   }
 }
 
@@ -192,6 +197,11 @@ class StateInspector extends React.Component {
               )
             }).reverse()
             : <Loader />
+          }
+          {this.shouldDisplayEmptyMessage() &&
+            <p style={STYLES.emptyMessage}>
+              You have no states yet! Click on the plus sign above to add one.
+            </p>
           }
         </div>
       </div>
