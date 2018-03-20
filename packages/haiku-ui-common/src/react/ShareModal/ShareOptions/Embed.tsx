@@ -22,7 +22,7 @@ export default class Embed extends React.PureComponent {
 
   render () {
     const {userName, projectName, organizationName, sha} = this.props;
-    const scriptPath = `${this.cdnBase}index.standalone.js`;
+    const scriptPath = `https://code.haiku.ai/scripts/core/HaikuCore.${process.env.HAIKU_RELEASE_VERSION}.min.js`;
     const embedPath = `${this.cdnBase}index.embed.js`;
 
     return (

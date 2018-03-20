@@ -1,7 +1,7 @@
 const path = require('path');
 const cp = require('child_process');
 
-if (!global.process.env.NODE_ENV || global.process.env.NODE_ENV !== 'development') {
+if (!global.process.env.NODE_ENV || global.process.env.NODE_ENV === 'production') {
   process.env.HAIKU_GLASS_URL_MODE = 'distro';
   process.env.HAIKU_TIMELINE_URL_MODE = 'distro';
   process.env.HAIKU_INTERPRETER_URL_MODE = 'distro';
@@ -17,8 +17,11 @@ if (process.env.HAIKU_APP_LAUNCH_CLI === '1') {
   const {app, dialog} = require('electron');
 
   if (process.env.NODE_ENV === 'production' && !app.isInApplicationsFolder()) {
-    dialog.showErrorBox('Move to Applications folder', 'You cannot run Haiku for Mac from the current folder. Please move Haiku for Mac to the Applications folder and try again.')
-    global.process.exit(0)
+    dialog.showErrorBox(
+      'Move to Applications folder',
+      'You cannot run Haiku for Mac from the current folder. Please move Haiku for Mac to the Applications folder and try again.'
+    );
+    global.process.exit(0);
   }
   app.once('open-url', (event, url) => {
     global.process.env.HAIKU_INITIAL_URL = url;

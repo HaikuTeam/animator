@@ -63,7 +63,7 @@ const keyframeUpdatesToHotComponentDescriptors = (keyframeUpdates) => {
 
 /**
  * @class ActiveComponent
- * @descriptionx
+ * @description
  *.  Encapsulates and consolidates code to edit a live in-stage component.
  *.  TODO: This should just be called 'Component' or 'LiveComponent' or something, with
  *.  only one of them being "active" at a certain point in time.

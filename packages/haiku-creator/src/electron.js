@@ -84,7 +84,6 @@ function createWindow () {
     folder: null
   }
 
-  console.info('TopMenu create (1)')
   topmenu.create(menuspec)
 
   ipcMain.on('master:heartbeat', (ipcEvent, masterState) => {
@@ -124,7 +123,6 @@ function createWindow () {
     }
 
     if (didChange) {
-      console.info('TopMenu create (2)')
       topmenu.create(menuspec)
     }
   })

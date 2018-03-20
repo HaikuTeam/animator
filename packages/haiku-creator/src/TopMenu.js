@@ -42,7 +42,7 @@ export default class TopMenu extends EventEmitter {
       type: 'separator'
     })
 
-    if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'staging') {
+    if (process.env.NODE_ENV !== 'production') {
       mainMenuPieces.push({
         label: 'Reload Haiku',
         accelerator: 'CmdOrCtrl+R',
