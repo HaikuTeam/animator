@@ -6,7 +6,7 @@ Summary of changes:
 
 - …
 
-Regressions to look for::
+Regressions to look for:
 
 - …
 
