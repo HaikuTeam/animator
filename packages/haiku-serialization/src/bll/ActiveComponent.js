@@ -1484,17 +1484,35 @@ class ActiveComponent extends BaseModel {
     const updates = {}
 
     for (const timelineName in keyframeUpdates) {
-      if (!bytecode.timelines[timelineName]) continue
       updates[timelineName] = {}
+
       for (const componentId in keyframeUpdates[timelineName]) {
         const selector = Template.buildHaikuIdSelector(componentId)
-        if (!bytecode.timelines[timelineName][selector]) continue
+
         updates[timelineName][componentId] = {}
+
         for (const propertyName in keyframeUpdates[timelineName][componentId]) {
-          if (!bytecode.timelines[timelineName][selector][propertyName]) continue
           updates[timelineName][componentId][propertyName] = {}
+
           for (const keyframeMs in keyframeUpdates[timelineName][componentId][propertyName]) {
-            if (!bytecode.timelines[timelineName][selector][propertyName][keyframeMs]) continue
+            if (
+              !bytecode.timelines[timelineName] ||
+              !bytecode.timelines[timelineName][selector] ||
+              !bytecode.timelines[timelineName][selector][propertyName] ||
+              !bytecode.timelines[timelineName][selector][propertyName][keyframeMs]
+            ) {
+              const elementName = this.getElementNameOfComponentId(componentId)
+
+              updates[timelineName][componentId][propertyName][keyframeMs] = {
+                value: TimelineProperty.getFallbackValue(
+                  componentId,
+                  elementName,
+                  propertyName
+                )
+              }
+
+              continue
+            }
 
             const keyfVal = (typeof bytecode.timelines[timelineName][selector][propertyName][keyframeMs].value === 'function')
               ? bytecode.timelines[timelineName][selector][propertyName][keyframeMs].value
