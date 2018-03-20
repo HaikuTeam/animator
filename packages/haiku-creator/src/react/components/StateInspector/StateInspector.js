@@ -198,7 +198,8 @@ class StateInspector extends React.Component {
           }
           {this.shouldDisplayEmptyMessage() &&
             <p style={STYLES.emptyMessage}>
-              You have no states yet! Click on the plus sign above to add one.
+              You have no states yet! Click on the plus sign above to add one. <br />
+              States can be referenced by name in property input fields
             </p>
           }
         </div>
