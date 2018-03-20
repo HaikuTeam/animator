@@ -157,9 +157,7 @@ class StateRow extends React.Component {
       if (this.props.isNew) {
         return this.props.closeNewStateForm()
       } else {
-        return this.props.deleteStateValue(this.state.originalName, () => {
-          return this.setState({isEditing: false})
-        })
+        return this.props.deleteStateValue(this.state.originalName, () => {})
       }
     }
 
