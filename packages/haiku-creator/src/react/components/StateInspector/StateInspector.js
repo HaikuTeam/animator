@@ -150,7 +150,7 @@ class StateInspector extends React.Component {
     return `State Inspector (${this.props.projectModel.getCurrentActiveComponent().getSceneName()})`
   }
 
-  shouldDisplayEmptyMessage() {
+  shouldDisplayEmptyMessage () {
     return (
       this.state.statesData &&
       Object.keys(this.state.statesData).length === 0 &&
