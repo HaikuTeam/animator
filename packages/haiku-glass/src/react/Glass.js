@@ -199,14 +199,14 @@ export class Glass extends React.Component {
       })
     }, 100)
 
-    this.handleGroupDebounced = lodash.debounce(this.handleGroup.bind(this), 200, {leading: true, trailing: false})
-    this.handleUngroupDebounced = lodash.debounce(this.handleUngroup.bind(this), 200, {leading: true, trailing: false})
-    this.handleCutDebounced = lodash.debounce(this.handleCut.bind(this), 200, {leading: true, trailing: false})
-    this.handleCopyDebounced = lodash.debounce(this.handleCopy.bind(this), 200, {leading: true, trailing: false})
-    this.handlePasteDebounced = lodash.debounce(this.handlePaste.bind(this), 200, {leading: true, trailing: false})
-    this.handleSelectAllDebounced = lodash.debounce(this.handleSelectAll.bind(this), 200, {leading: true, trailing: false})
-    this.handleUndoDebounced = lodash.debounce(this.handleUndo.bind(this), 200, {leading: true, trailing: false})
-    this.handleRedoDebounced = lodash.debounce(this.handleRedo.bind(this), 200, {leading: true, trailing: false})
+    this.handleGroupDebounced = lodash.debounce(() => this.handleGroup(), 200, {leading: true, trailing: false})
+    this.handleUngroupDebounced = lodash.debounce(() => this.handleUngroup(), 200, {leading: true, trailing: false})
+    this.handleCutDebounced = lodash.debounce(() => this.handleCut(), 200, {leading: true, trailing: false})
+    this.handleCopyDebounced = lodash.debounce(() => this.handleCopy(), 200, {leading: true, trailing: false})
+    this.handlePasteDebounced = lodash.debounce(() => this.handlePaste(), 200, {leading: true, trailing: false})
+    this.handleSelectAllDebounced = lodash.debounce(() => this.handleSelectAll(), 200, {leading: true, trailing: false})
+    this.handleUndoDebounced = lodash.debounce(() => this.handleUndo(), 200, {leading: true, trailing: false})
+    this.handleRedoDebounced = lodash.debounce(() => this.handleRedo(), 200, {leading: true, trailing: false})
 
     // For debugging
     window.glass = this
