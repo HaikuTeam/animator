@@ -323,7 +323,7 @@ class Library extends React.Component {
     return (
       <div
         id='library-wrapper'
-        style={{height: '100%'}}>
+        style={{height: '100%', display: this.props.visible ? 'initial' : 'none'}}>
         <div
           id='library-scroll-wrap'
           style={STYLES.sectionHeader}>

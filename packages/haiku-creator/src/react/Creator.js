@@ -1336,25 +1336,25 @@ export default class Creator extends React.Component {
                       />
                     )
                   }
-                  {this.state.activeNav === 'library'
-                    ? <Library
-                      user={this.user}
-                      projectModel={this.state.projectModel}
-                      layout={this.layout}
-                      folder={this.state.projectFolder}
-                      haiku={this.props.haiku}
-                      websocket={this.props.websocket}
-                      onDragEnd={this.onLibraryDragEnd.bind(this)}
-                      onDragStart={this.onLibraryDragStart.bind(this)}
-                      createNotice={this.createNotice}
-                      removeNotice={this.removeNotice} />
-                    : <StateInspector
-                      projectModel={this.state.projectModel}
-                      createNotice={this.createNotice}
-                      removeNotice={this.removeNotice}
-                      folder={this.state.projectFolder}
-                      websocket={this.props.websocket} />
-                  }
+                  <Library
+                    user={this.user}
+                    projectModel={this.state.projectModel}
+                    layout={this.layout}
+                    folder={this.state.projectFolder}
+                    haiku={this.props.haiku}
+                    websocket={this.props.websocket}
+                    onDragEnd={this.onLibraryDragEnd.bind(this)}
+                    onDragStart={this.onLibraryDragStart.bind(this)}
+                    createNotice={this.createNotice}
+                    removeNotice={this.removeNotice}
+                    visible={this.state.activeNav === 'library'} />
+                  <StateInspector
+                    projectModel={this.state.projectModel}
+                    createNotice={this.createNotice}
+                    removeNotice={this.removeNotice}
+                    folder={this.state.projectFolder}
+                    websocket={this.props.websocket}
+                    visible={this.state.activeNav === 'state_inspector'} />
                 </SideBar>
                 <div style={{ position: 'relative', width: '100%', height: '100%' }}>
                   <Stage

@@ -61,7 +61,7 @@ class StateInspector extends React.Component {
     }
   }
 
-  componentDidMount () {
+  populateStatesData () {
     this.props.projectModel.readAllStateValues(
       (err, statesData) => {
         if (err) {
@@ -74,6 +74,12 @@ class StateInspector extends React.Component {
         this.setState({ statesData })
       }
     )
+  }
+
+  componentWillReceiveProps (nextProps) {
+    if (nextProps.visible && !this.state.statesData) {
+      this.populateStatesData()
+    }
   }
 
   upsertStateValue (stateName, stateDescriptor, maybeCb) {
@@ -139,9 +145,17 @@ class StateInspector extends React.Component {
     return `State Inspector (${this.props.projectModel.getCurrentActiveComponent().getSceneName()})`
   }
 
+  shouldDisplayEmptyMessage() {
+    return (
+      this.state.statesData &&
+      Object.keys(this.state.statesData).length === 0 &&
+      !this.state.addingNew
+    )
+  }
+
   render () {
     return (
-      <div style={STYLES.container}>
+      <div style={{...STYLES.container, visibility: this.props.visible ? 'initial' : 'none'}}>
         <div style={STYLES.sectionHeader}>
           {this.getHeadingText()}
           <button id='add-state-button' style={STYLES.button}
