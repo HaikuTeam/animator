@@ -640,10 +640,6 @@ class Row extends BaseModel {
     })
   }
 
-  isIt () {
-    return this.getPrimaryKey() === '/Users/matthew/Code/HaikuTeam/mono/packages/haiku-timeline/test/projects/complex::main::f203a65f49c0::f203a65f49c0+f203a65f49c0-property-opacity'
-  }
-
   /**
    * @method dump
    * @description When debugging, use this to log a concise shorthand of this entity.
