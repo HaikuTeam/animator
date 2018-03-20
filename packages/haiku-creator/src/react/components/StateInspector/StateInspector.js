@@ -175,7 +175,6 @@ class StateInspector extends React.Component {
               stateDescriptor={{value: ''}}
               stateName={''}
               isNew
-              allStatesData={this.state.statesData}
               createNotice={this.props.createNotice}
               removeNotice={this.props.removeNotice}
               closeNewStateForm={this.closeNewStateForm}
@@ -187,7 +186,6 @@ class StateInspector extends React.Component {
               return (
                 <StateRow
                   key={`${stateName}-row`}
-                  allStatesData={this.state.statesData}
                   stateDescriptor={stateDescriptor}
                   stateName={stateName}
                   createNotice={this.props.createNotice}
