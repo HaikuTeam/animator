@@ -29,6 +29,30 @@ const ACCUMULATORS = {
     return true
   }
 }
+const INVERTER_ACCUMULATORS = {
+  updateKeyframes: (baseInverter, newInverter) => {
+    const basis1 = baseInverter.params[1]
+    const basis2 = newInverter.params[1]
+
+    for (const timelineName in basis2) {
+      if (!basis1[timelineName]) basis1[timelineName] = {}
+      for (const componentId in basis2[timelineName]) {
+        if (!basis1[timelineName][componentId]) basis1[timelineName][componentId] = {}
+        for (const propertyName in basis2[timelineName][componentId]) {
+          if (!basis1[timelineName][componentId][propertyName]) basis1[timelineName][componentId][propertyName] = {}
+          for (const keyframeMs in basis2[timelineName][componentId][propertyName]) {
+            if (basis1[timelineName][componentId][propertyName][keyframeMs]) {
+              continue
+            }
+            basis1[timelineName][componentId][propertyName][keyframeMs] = basis2[timelineName][componentId][propertyName][keyframeMs]
+          }
+        }
+      }
+    }
+
+    return true
+  }
+}
 
 /**
  * @class ActionStack
@@ -54,6 +78,8 @@ class ActionStack extends BaseModel {
     this.undoables = []
     this.redoables = []
     this.actions = []
+
+    this.accumulatedInverters = {}
 
     this.processActions()
   }
@@ -229,6 +255,13 @@ class ActionStack extends BaseModel {
         const [relpath] = params
         inversion.params.unshift(relpath)
         inversion.params.push(metadata)
+        if (when === 'before' && INVERTER_ACCUMULATORS[method]) {
+          if (this.accumulatedInverters[method]) {
+            INVERTER_ACCUMULATORS[method](this.accumulatedInverters[method], inversion)
+          } else {
+            this.accumulatedInverters[method] = inversion
+          }
+        }
       }
 
       return inversion
@@ -263,6 +296,8 @@ class ActionStack extends BaseModel {
 
       if (!inverter) {
         inverter = this.buildMethodInverterAction(ac, method, params, metadata, 'after', out)
+      } else {
+        delete this.accumulatedInverters[method]
       }
 
       let did = false
