@@ -1,7 +1,7 @@
 const path = require('path');
 const cp = require('child_process');
 
-if (!global.process.env.NODE_ENV || global.process.env.NODE_ENV !== 'development') {
+if (!global.process.env.NODE_ENV || global.process.env.NODE_ENV === 'production') {
   process.env.HAIKU_GLASS_URL_MODE = 'distro';
   process.env.HAIKU_TIMELINE_URL_MODE = 'distro';
   process.env.HAIKU_INTERPRETER_URL_MODE = 'distro';
