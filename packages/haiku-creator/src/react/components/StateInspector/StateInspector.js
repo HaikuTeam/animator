@@ -45,6 +45,11 @@ const STYLES = {
     ':active': {
       transform: 'scale(.8)'
     }
+  },
+  emptyMessage: {
+    lineHeight: '16px',
+    color: Palette.DARKER_ROCK2,
+    padding: '0 14px'
   }
 }
 
@@ -61,7 +66,7 @@ class StateInspector extends React.Component {
     }
   }
 
-  componentDidMount () {
+  populateStatesData () {
     this.props.projectModel.readAllStateValues(
       (err, statesData) => {
         if (err) {
@@ -74,6 +79,12 @@ class StateInspector extends React.Component {
         this.setState({ statesData })
       }
     )
+  }
+
+  componentWillReceiveProps (nextProps) {
+    if (nextProps.visible && !this.state.statesData) {
+      this.populateStatesData()
+    }
   }
 
   upsertStateValue (stateName, stateDescriptor, maybeCb) {
@@ -139,9 +150,17 @@ class StateInspector extends React.Component {
     return `State Inspector (${this.props.projectModel.getCurrentActiveComponent().getSceneName()})`
   }
 
+  shouldDisplayEmptyMessage () {
+    return (
+      this.state.statesData &&
+      Object.keys(this.state.statesData).length === 0 &&
+      !this.state.addingNew
+    )
+  }
+
   render () {
     return (
-      <div style={STYLES.container}>
+      <div style={{...STYLES.container, visibility: this.props.visible ? 'initial' : 'none'}}>
         <div style={STYLES.sectionHeader}>
           {this.getHeadingText()}
           <button id='add-state-button' style={STYLES.button}
@@ -156,7 +175,6 @@ class StateInspector extends React.Component {
               stateDescriptor={{value: ''}}
               stateName={''}
               isNew
-              allStatesData={this.state.statesData}
               createNotice={this.props.createNotice}
               removeNotice={this.props.removeNotice}
               closeNewStateForm={this.closeNewStateForm}
@@ -168,7 +186,6 @@ class StateInspector extends React.Component {
               return (
                 <StateRow
                   key={`${stateName}-row`}
-                  allStatesData={this.state.statesData}
                   stateDescriptor={stateDescriptor}
                   stateName={stateName}
                   createNotice={this.props.createNotice}
@@ -178,6 +195,12 @@ class StateInspector extends React.Component {
               )
             }).reverse()
             : <Loader />
+          }
+          {this.shouldDisplayEmptyMessage() &&
+            <p style={STYLES.emptyMessage}>
+              You have no states yet! Click on the plus sign above to add one. <br />
+              States can be referenced by name in property input fields
+            </p>
           }
         </div>
       </div>
