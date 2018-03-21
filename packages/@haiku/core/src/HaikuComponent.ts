@@ -13,6 +13,7 @@ import cssQueryList from './helpers/cssQueryList';
 import {isPreviewMode} from './helpers/interactionModes';
 import isMutableProperty from './helpers/isMutableProperty';
 import manaFlattenTree from './helpers/manaFlattenTree';
+import preoptimizeBytecodeInPlace from './helpers/preoptimizeBytecodeInPlace';
 import scopifyElements from './helpers/scopifyElements';
 import SimpleEventEmitter from './helpers/SimpleEventEmitter';
 import upgradeBytecodeInPlace from './helpers/upgradeBytecodeInPlace';
@@ -207,6 +208,20 @@ export default function HaikuComponent(bytecode: any, context, config, metadata)
 
   // Useful when debugging to understand cross-component effects
   this._entityIndex = HaikuComponent['components'].push(this) - 1;
+
+  // Try to optimize the bytecode before we actually begin playback
+  // This has to happen after all of the above construction occurs
+  if (!config.options.hotEditingMode) {
+    // We need to be able to query the tree in order to fully optimize
+    this._rehydrateFlatManaTree();
+
+    preoptimizeBytecodeInPlace(
+      this,
+      this._builder,
+      this._bytecode,
+      null,
+    );
+  }
 }
 
 HaikuComponent['PLAYER_VERSION'] = VERSION; // #LEGACY
@@ -1219,6 +1234,7 @@ function applyBehaviors(timelinesRunning, deltas, component, context, isPatchOpe
           isPatchOperation,
           component,
           skipCache,
+          component.config.options.staticMode,
         );
 
         // [#LEGACY?]
@@ -1430,11 +1446,20 @@ function computeAndApplyNodeLayout(element, parent) {
 
     // Don't assume the element has/needs a layout, for example, control-flow injectees
     if (element.layout && element.layout.matrix) {
-      element.layout.computed = Layout3D.computeLayout(
-        element.layout,
-        element.layout.matrix,
-        parentSize,
-      );
+      if (element.hasLayout) {
+        element.layout.computed = Layout3D.computeLayout(
+          element.layout,
+          element.layout.matrix,
+          parentSize,
+        );
+      } else {
+        delete element.layout.computed;
+        element.layout.computed = {
+          ...element.layout,
+          size: parentSize,
+          matrix: Layout3D.createMatrix(),
+        };
+      }
     }
   }
 }

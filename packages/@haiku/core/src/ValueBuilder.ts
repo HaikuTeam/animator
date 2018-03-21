@@ -1089,7 +1089,14 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
 
   const parsee = this._parsees[timelineName][flexId][outputName];
 
+  const isMaybeAnimated = Object.keys(cluster).length > 1;
   for (const ms in cluster) {
+    // In case we pre-sorted the cluster
+    if (ms === '__sorted') {
+      parsee[ms] = cluster[ms];
+      continue;
+    }
+
     const descriptor = cluster[ms];
 
     // Important: The ActiveComponent depends on the ability to be able to get fresh values via this option
@@ -1142,7 +1149,7 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
       }
 
       const parser2 = this.getParser(outputName, matchingElement);
-      if (parser2) {
+      if (parser2 && isMaybeAnimated) {
         parsee[ms].value = parser2(descriptor.value);
       } else {
         parsee[ms].value = descriptor.value;
@@ -1227,6 +1234,7 @@ ValueBuilder.prototype.build = function _build(
   isPatchOperation,
   haikuComponent,
   skipCache = false,
+  staticMode = false,
 ) {
   let isAnythingWorthUpdating = false;
 
@@ -1241,6 +1249,8 @@ ValueBuilder.prototype.build = function _build(
       haikuComponent,
       isPatchOperation,
       skipCache,
+      false,
+      staticMode,
     );
 
     // We use undefined as a signal that it's not worthwhile to put this value in the list of updates.
@@ -1292,6 +1302,7 @@ ValueBuilder.prototype.build = function _build(
  * @param isPatchOperation {Boolean} Is this a patch?
  * @param skipCache {Boolean} Skip caching?
  * @param clearSortedKeyframesCache
+ * @param staticMode
  */
 ValueBuilder.prototype.grabValue = function _grabValue(
   timelineName,
@@ -1304,17 +1315,30 @@ ValueBuilder.prototype.grabValue = function _grabValue(
   isPatchOperation,
   skipCache,
   clearSortedKeyframesCache,
+  staticMode,
 ) {
-  const parsedValueCluster = this.fetchParsedValueCluster(
-    timelineName,
-    flexId,
-    matchingElement,
-    propertyName,
-    propertiesGroup[propertyName],
-    haikuComponent,
-    isPatchOperation,
-    skipCache,
-  );
+  // If we have a pre-built value already, we neither need to parse nor interpolate
+  const nearestMs = Math.round(Math.round(timelineTime / 16.666) * 16.666);
+  if (
+    propertiesGroup[propertyName] &&
+    propertiesGroup[propertyName][nearestMs] &&
+    propertiesGroup[propertyName][nearestMs].built
+  ) {
+    return propertiesGroup[propertyName][nearestMs].value;
+  }
+
+  const parsedValueCluster = (staticMode && isPatchOperation)
+    ? this._parsees[timelineName][flexId][propertyName]
+    : this.fetchParsedValueCluster(
+      timelineName,
+      flexId,
+      matchingElement,
+      propertyName,
+      propertiesGroup[propertyName],
+      haikuComponent,
+      isPatchOperation,
+      skipCache,
+    );
 
   // If there is no property of that name, we would have gotten nothing back, so we can't forward this to Transitions
   // since it expects to receive a populated cluster object
