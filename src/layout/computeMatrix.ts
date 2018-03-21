@@ -26,6 +26,7 @@
  * THE SOFTWARE.
  */
 
+// #origin
 export default function computeMatrix(layoutSpec, currentMatrix, currentsizeAbsolute, parentsizeAbsolute) {
   const alignY = layoutSpec.align.y * parentsizeAbsolute.y;
   const alignX = layoutSpec.align.x * parentsizeAbsolute.x;

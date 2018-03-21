@@ -13,6 +13,7 @@ const STRING_TYPE = 'string';
  * Think of this like a migration that always runs in production components just in case we
  * get something that happens to be legacy.
  */
+// #origin
 export default function upgradeBytecodeInPlace(bytecode, options) {
   if (!bytecode.states) {
     bytecode.states = {};

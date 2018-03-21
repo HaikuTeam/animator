@@ -106,13 +106,13 @@ export const LAYOUT_3D_VANITIES = {
   'mount.z': (name, element, value) => {
     element.layout.mount.z = value;
   },
-  'origin.x': (name, element, value) => {
+  'origin.x': (name, element, value) => { // #origin
     element.layout.origin.x = value;
   },
-  'origin.y': (name, element, value) => {
+  'origin.y': (name, element, value) => { // #origin
     element.layout.origin.y = value;
   },
-  'origin.z': (name, element, value) => {
+  'origin.z': (name, element, value) => { // #origin
     element.layout.origin.z = value;
   },
   'scale.x': (name, element, value) => {
@@ -587,7 +587,7 @@ const STYLE_VANITIES = {
   'style.top': styleSetter('top'),
   'style.transform': styleSetter('transform'),
   'style.transformBox': styleSetter('transformBox'),
-  'style.transformOrigin': styleSetter('transformOrigin'),
+  'style.transformOrigin': styleSetter('transformOrigin'), // #origin
   'style.transformStyle': styleSetter('transformStyle'),
   'style.transition': styleSetter('transition'),
   'style.transitionDelay': styleSetter('transitionDelay'),

@@ -16,12 +16,14 @@ function hasExplicitStyle(domElement, key) {
   return !!domElement.__haikuExplicitStyles[key];
 }
 
+// #origin
 export default function applyCssLayout(domElement, virtualElement, nodeLayout, computedLayout, pixelRatio, context) {
   // No point continuing if there's no computedLayout contents
   if (computedLayout.opacity === undefined && !computedLayout.size && !computedLayout.matrix) {
     return;
   }
 
+  // #origin
   const elementScope = scopeOfElement(virtualElement);
 
   if (nodeLayout.shown === false) {
@@ -87,6 +89,7 @@ export default function applyCssLayout(domElement, virtualElement, nodeLayout, c
     }
   }
 
+  // #origin
   if (computedLayout.matrix) {
     const attributeTransform = domElement.getAttribute('transform');
     // IE doesn't support using transform on the CSS style in SVG elements, so if we are in SVG,

@@ -90,9 +90,9 @@ function createLayoutSpec(ax, ay, az) {
   return {
     shown: true,
     opacity: 1.0,
-    mount: {x: ax || 0, y: ay || 0, z: az || 0}, // anchor in self
-    align: {x: ax || 0, y: ay || 0, z: az || 0}, // anchor in context
-    origin: {x: ax || 0, y: ay || 0, z: az || 0}, // transform origin
+    mount: {x: ax || 0, y: ay || 0, z: az || 0}, // anchor in self // #origin?
+    align: {x: ax || 0, y: ay || 0, z: az || 0}, // anchor in context // #origin?
+    origin: {x: ax || 0, y: ay || 0, z: az || 0}, // transform origin // #origin?
     translation: {x: 0, y: 0, z: 0},
     rotation: {x: 0, y: 0, z: 0, w: 0},
     orientation: {x: 0, y: 0, z: 0, w: 0},
