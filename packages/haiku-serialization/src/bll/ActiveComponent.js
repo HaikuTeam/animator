@@ -2735,17 +2735,22 @@ class ActiveComponent extends BaseModel {
             for (const timelineName in keyframeMoves) {
               for (const componentId in keyframeMoves[timelineName]) {
                 const element = this.findElementByComponentId(componentId)
+                if (!element) { // Entity may not exist in all views
+                  continue
+                }
+
                 for (const propertyName in keyframeMoves[timelineName][componentId]) {
                   const row = element.getPropertyRowByPropertyName(propertyName)
-                  // The row object does not exist inside the glass app
-                  if (row) {
-                    // The pkey of keyframes is {row.pkey}+{keyframe.ms}. Since we've just modified
-                    // the ms value through a move, we need to update its uid according to that new ms
-                    // since when we rehydrate, we'll want upsertion to match the new ms value
-                    // so we don't end up with extra objects or other stale things laying around
-                    row.getKeyframes().forEach((keyframe) => keyframe.updateOwnMetadata())
-                    row.rehydrate()
+                  if (!row) { // Entity may not exist in all views
+                    continue
                   }
+
+                  // The pkey of keyframes is {row.pkey}+{keyframe.ms}. Since we've just modified
+                  // the ms value through a move, we need to update its uid according to that new ms
+                  // since when we rehydrate, we'll want upsertion to match the new ms value
+                  // so we don't end up with extra objects or other stale things laying around
+                  row.getKeyframes().forEach((keyframe) => keyframe.updateOwnMetadata())
+                  row.rehydrate()
                 }
               }
             }
@@ -2892,7 +2897,15 @@ class ActiveComponent extends BaseModel {
                 return
               }
               const element = this.findElementByComponentId(componentId)
+              if (!element) { // Entity may not exist in all views
+                return
+              }
+
               const row = element.getPropertyRowByPropertyName(propertyName)
+              if (!row) { // Entity may not exist in all views
+                return
+              }
+
               row.getKeyframes().forEach((keyframe) => keyframe.updateOwnMetadata())
               row.rehydrate()
             }
@@ -2958,8 +2971,17 @@ class ActiveComponent extends BaseModel {
               this.rehydrate()
               return
             }
+
             const element = this.findElementByComponentId(componentId)
+            if (!element) { // Entity may not exist in all views
+              return
+            }
+
             const row = element.getPropertyRowByPropertyName(propertyName)
+            if (!row) { // Entity may not exist in all views
+              return
+            }
+
             row.getKeyframes().forEach((keyframe) => keyframe.updateOwnMetadata())
             row.rehydrate()
           }
