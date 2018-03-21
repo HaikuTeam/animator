@@ -51,11 +51,11 @@ export default function computeOrientationFlexibly(xIn, yIn, zIn, w, quat) {
     const sp = -2 * (quat.y * quat.z - quat.w * quat.x);
 
     if (Math.abs(sp) > 0.99999) {
-      y = y == null ? Math.PI * 0.5 * sp : y;
+      y = y == null ? Math.PI * 0.5 * sp : y; // #origin?
       x = x == null
         ? Math.atan2(
             -quat.x * quat.z + quat.w * quat.y,
-            0.5 - quat.y * quat.y - quat.z * quat.z,
+            0.5 - quat.y * quat.y - quat.z * quat.z, // #origin?
           )
         : x;
       z = z == null ? 0 : z;
@@ -64,21 +64,21 @@ export default function computeOrientationFlexibly(xIn, yIn, zIn, w, quat) {
       x = x == null
         ? Math.atan2(
             quat.x * quat.z + quat.w * quat.y,
-            0.5 - quat.x * quat.x - quat.y * quat.y,
+            0.5 - quat.x * quat.x - quat.y * quat.y, // #origin?
           )
         : x;
       z = z == null
         ? Math.atan2(
             quat.x * quat.y + quat.w * quat.z,
-            0.5 - quat.x * quat.x - quat.z * quat.z,
+            0.5 - quat.x * quat.x - quat.z * quat.z, // #origin?
           )
         : z;
     }
   }
 
-  const hx = x * 0.5;
-  const hy = y * 0.5;
-  const hz = z * 0.5;
+  const hx = x * 0.5; // #origin?
+  const hy = y * 0.5; // #origin?
+  const hz = z * 0.5; // #origin?
 
   const sx = Math.sin(hx);
   const sy = Math.sin(hy);

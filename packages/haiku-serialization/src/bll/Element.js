@@ -190,6 +190,7 @@ class Element extends BaseModel {
     return this.component.getCoreComponentInstance()
   }
 
+  // #origin
   getOriginOffsetMatrix () {
     const offset = Layout3D.createMatrix()
     if (this.isTextNode()) {
@@ -198,11 +199,12 @@ class Element extends BaseModel {
     const layout = this.getLayoutSpec()
     const size = layout.sizeAbsolute
     const origin = layout.origin
-    offset[12] = -size.x * (0.5 - origin.x)
-    offset[13] = -size.y * (0.5 - origin.y)
+    offset[12] = -size.x * (0.5 - origin.x) // #origin
+    offset[13] = -size.y * (0.5 - origin.y) // #origin
     return offset
   }
 
+  // #origin
   getOriginResetMatrix () {
     const reset = this.getOriginOffsetMatrix()
     reset[12] = -reset[12]
@@ -452,6 +454,7 @@ class Element extends BaseModel {
     })
   }
 
+  // #origin
   getOriginOffsetComposedMatrix () {
     const offset = this.getOriginOffsetMatrix()
     const reset = this.getOriginResetMatrix()
@@ -564,9 +567,9 @@ class Element extends BaseModel {
         z: grabValue('align.z')
       },
       origin: {
-        x: grabValue('origin.x'),
-        y: grabValue('origin.y'),
-        z: grabValue('origin.z')
+        x: grabValue('origin.x'), // #origin
+        y: grabValue('origin.y'), // #origin
+        z: grabValue('origin.z') // #origin
       },
       translation: {
         x: grabValue('translation.x'),
@@ -619,9 +622,9 @@ class Element extends BaseModel {
     const w = layout.size.x
     const h = layout.size.y
     return [
-      {x: 0, y: 0}, {x: w / 2, y: 0}, {x: w, y: 0},
-      {x: 0, y: h / 2}, {x: w / 2, y: h / 2}, {x: w, y: h / 2},
-      {x: 0, y: h}, {x: w / 2, y: h}, {x: w, y: h}
+      {x: 0, y: 0}, {x: w / 2, y: 0}, {x: w, y: 0}, // #origin
+      {x: 0, y: h / 2}, {x: w / 2, y: h / 2}, {x: w, y: h / 2}, // #origin
+      {x: 0, y: h}, {x: w / 2, y: h}, {x: w, y: h} // #origin
     ]
   }
 
@@ -1516,9 +1519,9 @@ class Element extends BaseModel {
 
   getOrigin () {
     return {
-      x: this.computePropertyValue('origin.x'),
-      y: this.computePropertyValue('origin.y'),
-      z: this.computePropertyValue('origin.z')
+      x: this.computePropertyValue('origin.x'), // #origin
+      y: this.computePropertyValue('origin.y'), // #origin
+      z: this.computePropertyValue('origin.z') // #origin
     }
   }
 
@@ -1743,9 +1746,9 @@ Element.getBoundingBoxPoints = (points) => {
   const w = x2 - x1
   const h = y2 - y1
   return [
-    {x: x1, y: y1}, {x: x1 + w / 2, y: y1}, {x: x2, y: y1},
-    {x: x1, y: y1 + h / 2}, {x: x1 + w / 2, y: y1 + h / 2}, {x: x2, y: y1 + h / 2},
-    {x: x1, y: y2}, {x: x1 + w / 2, y: y2}, {x: x2, y: y2}
+    {x: x1, y: y1}, {x: x1 + w / 2, y: y1}, {x: x2, y: y1}, // #origin
+    {x: x1, y: y1 + h / 2}, {x: x1 + w / 2, y: y1 + h / 2}, {x: x2, y: y1 + h / 2}, // #origin
+    {x: x1, y: y2}, {x: x1 + w / 2, y: y2}, {x: x2, y: y2} // #origin
   ]
 }
 
@@ -1793,8 +1796,8 @@ Element.distanceBetweenPoints = (p1, p2, zoomFactor) => {
 }
 
 Element.getOriginPosition = (element) => {
-  const originFractionX = element.computePropertyValue('origin.x')
-  const originFractionY = element.computePropertyValue('origin.y')
+  const originFractionX = element.computePropertyValue('origin.x') // #origin
+  const originFractionY = element.computePropertyValue('origin.y') // #origin
   const width = element.computePropertyValue('sizeAbsolute.x')
   const height = element.computePropertyValue('sizeAbsolute.y')
   const left = element.computePropertyValue('translation.x')
@@ -1952,13 +1955,13 @@ Element.FORBIDDEN_PROPS = {
   'width': true,
   'height': true,
   'transform': true,
-  'transformOrigin': true,
+  'transformOrigin': true, // #origin
   'style.position': true,
   'style.display': true,
   'style.width': true,
   'style.height': true,
   'style.transform': true,
-  'style.transformOrigin': true
+  'style.transformOrigin': true // #origin
 }
 
 Element.ALLOWED_TAGNAMES = {

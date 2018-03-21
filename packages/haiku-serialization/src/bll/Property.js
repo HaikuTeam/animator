@@ -82,7 +82,7 @@ Property.doesPropertyGroupContainRotation = (propertyGroup) => {
 Property.PREFIX_TO_CLUSTER_NAME = {
   'mount': 'Mount',
   'align': 'Align',
-  'origin': 'Origin',
+  'origin': 'Origin', // #origin
   'translation': 'Position',
   'rotation': 'Rotation',
   'scale': 'Scale',
@@ -156,9 +156,9 @@ Property.ALWAYS_CREATE_AS_PROPERTY_NEVER_AS_STATE = {
   'align.x': true,
   'align.y': true,
   'align.z': true,
-  'origin.x': true,
-  'origin.y': true,
-  'origin.z': true,
+  'origin.x': true, // #origin
+  'origin.y': true, // #origin
+  'origin.z': true, // #origin
   'opacity': true,
   'shown': true,
   'perspective': true, // Future proofing
@@ -185,9 +185,9 @@ Property.EXCLUDE_FROM_JIT = {
   'mount.x': true,
   'mount.y': true,
   'mount.z': true,
-  'origin.x': true,
-  'origin.y': true,
-  'origin.z': true,
+  'origin.x': true, // #origin
+  'origin.y': true, // #origin
+  'origin.z': true, // #origin
   'scale.z': true, // Not sane until we have true 3D objects
   'sizeAbsolute.z': true, // Not sane until we have true 3D objects
   'rotation.w': true // Too much great power too much great responsibility
@@ -433,11 +433,11 @@ Property.shouldBasicallyIncludeProperty = (propertyName, propertyObject, element
 
 Property.PRIVATE_PROPERTY_WHEN_HOISTING_TO_STATE = {
   'transform': true,
-  'transformOrigin': true,
+  'transformOrigin': true, // #origin
   'style.position': true,
   'style.display': true,
   'style.transform': true,
-  'style.transformOrigin': true
+  'style.transformOrigin': true // #origin
 }
 
 Property.TEXT_FRIENDLY_SVG_ELEMENTS = {

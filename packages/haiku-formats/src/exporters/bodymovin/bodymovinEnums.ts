@@ -59,7 +59,7 @@ export const enum ShapeType {
 }
 
 export const enum TransformKey {
-  TransformOrigin = 'a',
+  TransformOrigin = 'a', // #origin
   BorderRadius = 'r',
   Color = 'c',
   FillRule = 'r',

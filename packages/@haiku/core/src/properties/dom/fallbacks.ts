@@ -20,9 +20,9 @@ const LAYOUT_3D_FALLBACKS = {
   'align.x': LAYOUT_DEFAULTS.align.x,
   'align.y': LAYOUT_DEFAULTS.align.y,
   'align.z': LAYOUT_DEFAULTS.align.z,
-  'origin.x': LAYOUT_DEFAULTS.origin.x,
-  'origin.y': LAYOUT_DEFAULTS.origin.y,
-  'origin.z': LAYOUT_DEFAULTS.origin.z,
+  'origin.x': LAYOUT_DEFAULTS.origin.x, // #origin
+  'origin.y': LAYOUT_DEFAULTS.origin.y, // #origin
+  'origin.z': LAYOUT_DEFAULTS.origin.z, // #origin
   'translation.x': LAYOUT_DEFAULTS.translation.x,
   'translation.y': LAYOUT_DEFAULTS.translation.y,
   'translation.z': LAYOUT_DEFAULTS.translation.z,
@@ -54,8 +54,8 @@ const LAYOUT_2D_FALLBACKS = {
   'mount.y': LAYOUT_DEFAULTS.mount.y,
   'align.x': LAYOUT_DEFAULTS.align.x,
   'align.y': LAYOUT_DEFAULTS.align.y,
-  'origin.x': LAYOUT_DEFAULTS.origin.x,
-  'origin.y': LAYOUT_DEFAULTS.origin.y,
+  'origin.x': LAYOUT_DEFAULTS.origin.x, // #origin
+  'origin.y': LAYOUT_DEFAULTS.origin.y, // #origin
   'translation.x': LAYOUT_DEFAULTS.translation.x,
   'translation.y': LAYOUT_DEFAULTS.translation.y,
   'rotation.z': LAYOUT_DEFAULTS.rotation.z,

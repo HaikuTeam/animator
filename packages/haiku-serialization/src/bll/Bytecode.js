@@ -550,6 +550,7 @@ Bytecode.reinitialize = (folder, relpath, bytecode = {}, config = {}) => {
 
   let contextHaikuId = bytecode.template.attributes[HAIKU_ID_ATTRIBUTE]
 
+  // #origin
   Bytecode.upsertDefaultProperties(bytecode, contextHaikuId, {
     'style.WebkitTapHighlightColor': 'rgba(0,0,0,0)',
     'style.transformStyle': 'flat',
@@ -574,6 +575,7 @@ Bytecode.reinitialize = (folder, relpath, bytecode = {}, config = {}) => {
     const childId = child.attributes && child.attributes[HAIKU_ID_ATTRIBUTE]
     if (childId) {
       const selector = Template.buildHaikuIdSelector(childId)
+      // #origin?
       Bytecode.ensureDefinedKeyframeProperty(bytecode, DEFAULT_TIMELINE_NAME, selector, 'translation.x', DEFAULT_TIMELINE_TIME, 0)
       Bytecode.ensureDefinedKeyframeProperty(bytecode, DEFAULT_TIMELINE_NAME, selector, 'translation.y', DEFAULT_TIMELINE_TIME, 0)
     }

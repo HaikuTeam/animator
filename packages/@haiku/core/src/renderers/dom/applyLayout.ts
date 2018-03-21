@@ -71,6 +71,7 @@ export default function applyLayout(
     // Don't assign layout to things that never need it like <desc>, <title>, etc.
     // Check if we're inside an <svg> component *and* one of the actually renderable svg-type els
     if (
+      // #origin
       scopeOfElement(virtualElement) === SVG &&
       !SVG_RENDERABLES[virtualElement.elementName]
     ) {

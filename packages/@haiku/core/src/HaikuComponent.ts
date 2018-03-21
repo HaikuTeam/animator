@@ -1422,7 +1422,7 @@ function computeAndApplyPresetSizing(element, container, mode, deltas) {
   // This makes sure that the sizing occurs with respect to a correct and consistent origin point,
   // but only if the user didn't happen to explicitly set this value (we allow their override).
   if (!element.attributes.style['transform-origin']) {
-    element.attributes.style['transform-origin'] = 'top left';
+    element.attributes.style['transform-origin'] = 'top left'; // #origin
   }
 
   // IMPORTANT: If any value has been changed on the element, you must set this to true.
@@ -1491,8 +1491,8 @@ function computeAndApplyPresetSizing(element, container, mode, deltas) {
       }
 
       // Offset the translation so that the element remains centered within the letterboxing
-      const containTranslationOffsetX = -(containScaleToUse * elementWidth - containerWidth) / 2;
-      const containTranslationOffsetY = -(containScaleToUse * elementHeight - containerHeight) / 2;
+      const containTranslationOffsetX = -(containScaleToUse * elementWidth - containerWidth) / 2; // #origin
+      const containTranslationOffsetY = -(containScaleToUse * elementHeight - containerHeight) / 2; // #origin
       if (element.layout.translation.x !== containTranslationOffsetX) {
         changed = true;
         element.layout.translation.x = containTranslationOffsetX;
@@ -1533,8 +1533,8 @@ function computeAndApplyPresetSizing(element, container, mode, deltas) {
       }
 
       // Offset the translation so that the element remains centered despite clipping
-      const coverTranslationOffsetX = -(coverScaleToUse * elementWidth - containerWidth) / 2;
-      const coverTranslationOffsetY = -(coverScaleToUse * elementHeight - containerHeight) / 2;
+      const coverTranslationOffsetX = -(coverScaleToUse * elementWidth - containerWidth) / 2; // #origin
+      const coverTranslationOffsetY = -(coverScaleToUse * elementHeight - containerHeight) / 2; // #origin
       if (element.layout.translation.x !== coverTranslationOffsetX) {
         changed = true;
         element.layout.translation.x = coverTranslationOffsetX;

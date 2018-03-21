@@ -7,6 +7,7 @@ import mat4Decompose, {DecomposedMat4} from '../vendor/mat4-decompose';
 import math3d from '../vendor/math3d';
 import MathUtils from './MathUtils';
 
+// #origin
 export default function composedTransformsToTimelineProperties(out, matrices) {
   // Note the array reversal - to combine matrices we go in the opposite of the transform sequence
   // I.e. if we transform A->B->C, the multiplication order should be CxBxA

@@ -327,9 +327,9 @@ class ElementSelectionProxy extends BaseModel {
       mount: {x: 0, y: 0, z: 0},
       align: {x: 0, y: 0, z: 0},
       origin: {
-        x: this.computePropertyValue('origin.x'),
-        y: this.computePropertyValue('origin.y'),
-        z: this.computePropertyValue('origin.z')
+        x: this.computePropertyValue('origin.x'), // #origin
+        y: this.computePropertyValue('origin.y'), // #origin
+        z: this.computePropertyValue('origin.z') // #origin
       },
       translation: {
         x: this.computePropertyValue('translation.x'),
@@ -881,9 +881,9 @@ ElementSelectionProxy.DEFAULT_PROPERTY_VALUES = {
   'scale.x': 1,
   'scale.y': 1,
   'scale.z': 1,
-  'origin.x': 0.5,
-  'origin.y': 0.5,
-  'origin.z': 0.5,
+  'origin.x': 0.5, // #origin
+  'origin.y': 0.5, // #origin
+  'origin.z': 0.5, // #origin
   'sizeAbsolute.x': 1, // Note that we compute this dynamically when proxying
   'sizeAbsolute.y': 1, // Note that we compute this dynamically when proxying
   'sizeAbsolute.z': 1
@@ -1104,8 +1104,8 @@ ElementSelectionProxy.computeScalePropertyGroupDelta = (
   const baseTranslationOffset = (activationPoint.alt)
     ? [0, 0]
     : [
-      (isLeft ? -1 : 1) * (destinationScaleX - targetScaleX) * (targetWidth * 0.5),
-      (isTop ? -1 : 1) * (destinationScaleY - targetScaleY) * (targetHeight * 0.5)
+      (isLeft ? -1 : 1) * (destinationScaleX - targetScaleX) * (targetWidth * 0.5),  // #origin
+      (isTop ? -1 : 1) * (destinationScaleY - targetScaleY) * (targetHeight * 0.5)  // #origin
     ]
 
   const translationOffset = [
@@ -1160,8 +1160,8 @@ ElementSelectionProxy.computeRotationPropertyGroupDelta = (
   const rect = targetElement.$el().getBoundingClientRect()
 
   // TODO: Replace 0.5 with the origin value
-  const cx = rect.left + ((rect.right - rect.left) * 0.5)
-  const cy = rect.top + ((rect.bottom - rect.top) * 0.5)
+  const cx = rect.left + ((rect.right - rect.left) * 0.5) // #origin
+  const cy = rect.top + ((rect.bottom - rect.top) * 0.5) // #origin
 
   //       *mouse(x,y)
   //      /|

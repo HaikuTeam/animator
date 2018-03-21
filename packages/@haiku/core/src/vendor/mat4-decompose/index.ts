@@ -86,10 +86,10 @@ export default function decomposeMat4(matrix): boolean|DecomposedMat4 {
 
   // Now, get the rotations out
   const quaternion: FourTuple = [
-    0.5 * Math.sqrt(Math.max(1 + row[0][0] - row[1][1] - row[2][2], 0)),
-    0.5 * Math.sqrt(Math.max(1 - row[0][0] + row[1][1] - row[2][2], 0)),
-    0.5 * Math.sqrt(Math.max(1 - row[0][0] - row[1][1] + row[2][2], 0)),
-    0.5 * Math.sqrt(Math.max(1 + row[0][0] + row[1][1] + row[2][2], 0)),
+    0.5 * Math.sqrt(Math.max(1 + row[0][0] - row[1][1] - row[2][2], 0)), // #origin
+    0.5 * Math.sqrt(Math.max(1 - row[0][0] + row[1][1] - row[2][2], 0)), // #origin
+    0.5 * Math.sqrt(Math.max(1 - row[0][0] - row[1][1] + row[2][2], 0)), // #origin
+    0.5 * Math.sqrt(Math.max(1 + row[0][0] + row[1][1] + row[2][2], 0)), // #origin
   ];
 
   if (row[2][1] > row[1][2]) {

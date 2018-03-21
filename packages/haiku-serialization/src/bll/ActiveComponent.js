@@ -930,8 +930,8 @@ class ActiveComponent extends BaseModel {
       const instantiateeHeight = (insertedTimeline['sizeAbsolute.y'] && insertedTimeline['sizeAbsolute.y'][timelineTime] && insertedTimeline['sizeAbsolute.y'][timelineTime].value) || 1
 
       const propertyGroup = {
-        'translation.x': (maybeCoords.x || 0) - instantiateeWidth / 2,
-        'translation.y': (maybeCoords.y || 0) - instantiateeHeight / 2
+        'translation.x': (maybeCoords.x || 0) - instantiateeWidth / 2, // #origin
+        'translation.y': (maybeCoords.y || 0) - instantiateeHeight / 2  // #origin
       }
 
       TimelineProperty.addPropertyGroup(
@@ -3162,8 +3162,8 @@ class ActiveComponent extends BaseModel {
       // We have to pad with the rect dimensions because the instantiation process
       // assumes an offset from the size is needed (hack)
       const coords = {
-        x: rect.left + rect.width / 2,
-        y: rect.top + rect.height / 2
+        x: rect.left + rect.width / 2,  // #origin?
+        y: rect.top + rect.height / 2  // #origin?
       }
 
       // The derived id of the new group element (used for undo)
