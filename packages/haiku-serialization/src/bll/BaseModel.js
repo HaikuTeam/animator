@@ -281,17 +281,29 @@ class BaseModel extends EventEmitter {
       this.children = []
     }
 
-    let found = false
+    let found = null
 
-    this.children.forEach((child) => {
-      if (child === entity) {
-        found = true
+    this.children.forEach((child, index) => {
+      if (
+        child && (
+          child === entity ||
+          child.getPrimaryKey() === entity.getPrimaryKey()
+        )
+      ) {
+        found = index
       }
     })
 
-    if (!found) {
+    if (typeof found === 'number') {
+      // Replace the existing one with the new one, in the same slot
+      this.children.splice(found, 1, entity)
+    } else if (found === null) {
+      // But if we didn't find any copy, just insert at the end of the list
       this.children.push(entity)
     }
+
+    // Important; some dependencies downstream need this
+    entity.parent = this
   }
 
   removeChild (entity) {
@@ -300,7 +312,10 @@ class BaseModel extends EventEmitter {
     }
 
     for (let i = this.children.length - 1; i >= 0; i--) {
-      if (this.children[i] === entity) {
+      if (
+        this.children[i] === entity ||
+        this.children[i].getPrimaryKey() === entity.getPrimaryKey()
+      ) {
         this.children.splice(i, 1)
       }
     }
