@@ -65,9 +65,12 @@ class FileImporter extends React.PureComponent {
     this.setState({ isPopoverOpen: false })
   }
 
-  onFileDrop (dropEvent) {
+  onFileDrop (filePaths) {
     this.hidePopover()
-    this.props.onFileDrop(dropEvent)
+
+    if (filePaths) {
+      this.props.onFileDrop(filePaths)
+    }
   }
 
   get popoverBody () {

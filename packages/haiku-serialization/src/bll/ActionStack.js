@@ -25,8 +25,6 @@ const ACCUMULATORS = {
         }
       }
     }
-
-    return true
   }
 }
 const INVERTER_ACCUMULATORS = {
@@ -49,10 +47,10 @@ const INVERTER_ACCUMULATORS = {
         }
       }
     }
-
-    return true
   }
 }
+
+const shouldAccumulate = (method, params) => ACCUMULATORS[method] && !params[3].cursor
 
 /**
  * @class ActionStack
@@ -79,8 +77,8 @@ class ActionStack extends BaseModel {
     this.redoables = []
     this.actions = []
 
+    this.accumulatorTimeouts = {}
     this.accumulatedInverters = {}
-
     this.processActions()
   }
 
@@ -98,19 +96,29 @@ class ActionStack extends BaseModel {
     }
 
     // Psuedo-debounce fast actions to avoid stuttering on stage
-    if (ACCUMULATORS[action.method]) {
+    delete this.accumulatorTimeouts[action.method]
+    if (shouldAccumulate(action.method, action.params)) {
       // We may want to wait longer for more updates to accumulate
       if (
         action.timestamp &&
         (Date.now() - action.timestamp) < PROPERTY_GROUP_ACCUMULATION_TIME
       ) {
         // Early return is important here so we don't transmit the action yet
-        return setTimeout(() => this.processActions(), TIMER_TIMEOUT)
+        this.accumulatorTimeouts[action.method] = setTimeout(() => this.processActions(), TIMER_TIMEOUT)
+        return
       }
     }
 
     // Since we're going to process now, we can remove from the queue
     this.shiftAndProcessLatestAction()
+  }
+
+  forceAccumulation () {
+    for (const method in this.accumulatorTimeouts) {
+      clearTimeout(this.accumulatorTimeouts[method])
+      delete this.accumulatorTimeouts[method]
+      this.shiftAndProcessLatestAction()
+    }
   }
 
   shiftAndProcessLatestAction () {
@@ -153,34 +161,19 @@ class ActionStack extends BaseModel {
     )
   }
 
-  /**
-   * @method mergeMatch
-   * @description
-   *   Given the signature of an action, and a matched action previously in the queue,
-   *   merge the payload so we don't transmit two actions when one would do.
-   * @returns {Boolean} - Whether or not we merged the action (important!)
-   */
-  mergeMatch (method, params, match) {
-    if (ACCUMULATORS[method]) {
-      return ACCUMULATORS[method](params, match)
-    }
-    return false
-  }
-
   enqueueAction (method, params, callback, before) {
-    // Find the most recent action that meets our criteria, and merge our payload with it
-    for (let i = this.actions.length - 1; i >= 0; i--) {
+    if (shouldAccumulate(method, params)) {
       // Find the most recent action that meets our criteria, and merge our payload with it
-      const action = this.actions[i]
+      for (let i = this.actions.length - 1; i >= 0; i--) {
+        // Find the most recent action that meets our criteria, and merge our payload with it
+        const action = this.actions[i]
 
-      if (
-        action.method === method &&
-        action.params[0] === params[0] && // folder
-        action.params[1] === params[1] // relpath
-      ) {
-        // Returns true if we merged, indicating we don't have to enqueue
-        if (this.mergeMatch(method, params, action)) {
-          // Used to delay transmission and allow extra accumulation
+        if (
+          action.method === method &&
+          action.params[0] === params[0] && // folder
+          action.params[1] === params[1] // relpath
+        ) {
+          ACCUMULATORS[method](params, action)
           action.timestamp = Date.now()
           return
         }
@@ -199,7 +192,7 @@ class ActionStack extends BaseModel {
     // If not an accumulator method, invoke it immediately
     if (
       this.actions.length < 2 &&
-      !ACCUMULATORS[method]) {
+      !shouldAccumulate(method, params)) {
       this.shiftAndProcessLatestAction()
     }
   }
@@ -330,6 +323,7 @@ class ActionStack extends BaseModel {
   }
 
   undo (options, metadata, cb) {
+    this.forceAccumulation()
     if (this.getUndoables().length < 1) {
       return cb()
     }
@@ -338,7 +332,6 @@ class ActionStack extends BaseModel {
 
     return Lock.request(Lock.LOCKS.ActionStackUndoRedo, (release) => {
       const { method, params } = this.popUndoable()
-
       const ac = this.project.findActiveComponentBySource(params[0])
 
       if (!ac) {
@@ -358,6 +351,7 @@ class ActionStack extends BaseModel {
   }
 
   redo (options, metadata, cb) {
+    this.forceAccumulation()
     if (this.getRedoables().length < 1) {
       return cb()
     }
@@ -366,7 +360,6 @@ class ActionStack extends BaseModel {
 
     return Lock.request(Lock.LOCKS.ActionStackUndoRedo, (release) => {
       const { method, params } = this.popRedoable()
-
       const ac = this.project.findActiveComponentBySource(params[0])
 
       if (!ac) {
