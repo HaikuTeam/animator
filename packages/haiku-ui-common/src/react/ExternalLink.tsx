@@ -20,9 +20,11 @@ export class ExternalLink extends React.PureComponent {
         style={this.props.style}
         onClick={(clickEvent) => {
           if (isElectron()) {
+            // #if false
             const {shell} = require('electron');
             clickEvent.preventDefault();
             shell.openExternal(this.props.href);
+            // #endif
           }
 
           if (this.props.onClick) {

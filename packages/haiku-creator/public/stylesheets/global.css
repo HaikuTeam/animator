@@ -305,7 +305,7 @@ input::-webkit-input-placeholder {
   right: 5px;
   bottom: 5px;
   cursor: -webkit-image-set(
-    url('./assets/cursors/rotation-cursor-tl.png') 1x
+    url('../assets/cursors/rotation-cursor-tl.png') 1x
   ) 16 16, auto;
 }
 
@@ -313,7 +313,7 @@ input::-webkit-input-placeholder {
   left: 5px;
   bottom: 5px;
   cursor: -webkit-image-set(
-    url('./assets/cursors/rotation-cursor-tr.png') 1x
+    url('../assets/cursors/rotation-cursor-tr.png') 1x
   ) 0 16, auto;
 }
 
@@ -321,7 +321,7 @@ input::-webkit-input-placeholder {
   right: 5px;
   top: 5px;
   cursor: -webkit-image-set(
-    url('./assets/cursors/rotation-cursor-bl.png') 1x
+    url('../assets/cursors/rotation-cursor-bl.png') 1x
   ) 16 0, auto;
 }
 
@@ -329,7 +329,7 @@ input::-webkit-input-placeholder {
   left: 5px;
   top: 5px;
   cursor: -webkit-image-set(
-    url('./assets/cursors/rotation-cursor-br.png') 1x
+    url('../assets/cursors/rotation-cursor-br.png') 1x
   ) 0 0, auto;
 }
 
@@ -337,7 +337,7 @@ input::-webkit-input-placeholder {
   right: 5px;
   bottom: 5px;
   cursor: -webkit-image-set(
-    url('./assets/cursors/rotation-cursor-t.png') 1x
+    url('../assets/cursors/rotation-cursor-t.png') 1x
   ) 11 11, auto;
 }
 
@@ -345,7 +345,7 @@ input::-webkit-input-placeholder {
   left: 5px;
   bottom: 5px;
   cursor: -webkit-image-set(
-    url('./assets/cursors/rotation-cursor-r.png') 1x
+    url('../assets/cursors/rotation-cursor-r.png') 1x
   ) 11 11, auto;
 }
 
@@ -353,7 +353,7 @@ input::-webkit-input-placeholder {
   right: 5px;
   top: 5px;
   cursor: -webkit-image-set(
-    url('./assets/cursors/rotation-cursor-b.png') 1x
+    url('../assets/cursors/rotation-cursor-b.png') 1x
   ) 11 11, auto;
 }
 
@@ -361,7 +361,7 @@ input::-webkit-input-placeholder {
   left: 5px;
   top: 5px;
   cursor: -webkit-image-set(
-    url('./assets/cursors/rotation-cursor-l.png') 1x
+    url('../assets/cursors/rotation-cursor-l.png') 1x
   ) 11 11, auto;
 }
 
