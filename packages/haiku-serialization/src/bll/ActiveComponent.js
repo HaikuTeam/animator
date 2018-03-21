@@ -3168,7 +3168,10 @@ class ActiveComponent extends BaseModel {
           return cb(err)
         }
 
-        return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+        return this.reload({
+          hardReload: this.project.isRemoteRequest(metadata),
+          forceFlush: true
+        }, null, () => {
           fire()
           return cb()
         })
@@ -3194,7 +3197,10 @@ class ActiveComponent extends BaseModel {
           return cb(err)
         }
 
-        return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+        return this.reload({
+          hardReload: this.project.isRemoteRequest(metadata),
+          forceFlush: true
+        }, null, () => {
           fire()
           return cb()
         })
