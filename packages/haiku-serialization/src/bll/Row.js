@@ -632,9 +632,6 @@ class Row extends BaseModel {
     let str = `${this.getType()}.${this.element.getComponentId()}<${this.element.getSafeDomFriendlyName()}>|${this.getDepthAmongRows()}.${this.getIndexWithinParentRow()}.${this.getIndexWithinHostElement()}`
     if (this.isCluster()) str += `.${this.cluster.prefix}[]`
     if (this.isProperty()) str += `.${this.getPropertyName()}`
-    if (this.isSelected()) str += ' {s}'
-    if (this.isFocused()) str += ' {f}'
-    if (this.isExpanded()) str += ' {e}'
     return str
   }
 }
