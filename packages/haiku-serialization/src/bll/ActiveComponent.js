@@ -2370,32 +2370,16 @@ class ActiveComponent extends BaseModel {
   }
 
   setZIndicesForStackingInfo (bytecode, timelineName, timelineTime, stackingInfo) {
-    // If we received items out of order, fix their z-indexes. Retain as many original z-indexes as possible.
+    // If we received items out of order, fix their z-indexes.
     stackingInfo
-      .reduce((accumulator, { zIndex, haikuId }, currentIndex) => {
-        if (currentIndex === 0) {
-          return [{zIndex, haikuId}]
-        }
-
-        if (accumulator[currentIndex - 1].zIndex < zIndex) {
-          accumulator.push({zIndex, haikuId})
-        } else {
-          accumulator.push({
-            haikuId,
-            zIndex: accumulator[currentIndex - 1].zIndex + 1
-          })
-        }
-
-        return accumulator
-      }, [])
-      .forEach(({ haikuId, zIndex }) => {
+      .forEach(({ haikuId }, arrayIndex) => {
         this.upsertProperties(
           bytecode,
           haikuId,
           timelineName,
           timelineTime,
           {
-            'style.zIndex': zIndex
+            'style.zIndex': arrayIndex + 1
           },
           'merge'
         )
@@ -3258,8 +3242,11 @@ class ActiveComponent extends BaseModel {
 
   zMoveToFrontImpl (bytecode, componentId, timelineName, timelineTime) {
     const stackingInfo = Template.getStackingInfo(bytecode, bytecode.template, timelineName, timelineTime)
-    const {ourStackObject} = this.grabStackObjectFromStackingInfo(stackingInfo, componentId)
-    stackingInfo.push(ourStackObject)
+    this.grabStackObjectFromStackingInfo(stackingInfo, componentId)
+    stackingInfo.push({
+      haikuId: componentId,
+      zIndex: (stackingInfo.length > 0) ? stackingInfo[stackingInfo.length - 1].zIndex + 1 : 1
+    })
     this.setZIndicesForStackingInfo(bytecode, timelineName, timelineTime, stackingInfo)
     return stackingInfo
   }
@@ -3370,8 +3357,11 @@ class ActiveComponent extends BaseModel {
     let stackingInfo
     return this.performComponentTimelinesWork((bytecode, mana, timelines, done) => {
       stackingInfo = Template.getStackingInfo(bytecode, mana, timelineName, timelineTime)
-      const {ourStackObject} = this.grabStackObjectFromStackingInfo(stackingInfo, componentId)
-      stackingInfo.unshift(ourStackObject)
+      this.grabStackObjectFromStackingInfo(stackingInfo, componentId)
+      stackingInfo.unshift({
+        haikuId: componentId,
+        zIndex: 1
+      })
       this.setZIndicesForStackingInfo(bytecode, timelineName, timelineTime, stackingInfo)
       done()
     }, (err) => {
