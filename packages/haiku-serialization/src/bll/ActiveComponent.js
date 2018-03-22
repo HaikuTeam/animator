@@ -1505,8 +1505,19 @@ class ActiveComponent extends BaseModel {
               !bytecode.timelines[timelineName][selector][propertyName] ||
               !bytecode.timelines[timelineName][selector][propertyName][keyframeMs]
             ) {
-              // Special marker for inverter: before, there was no keyframe here.
-              updates[timelineName][componentId][propertyName][keyframeMs] = null
+              if (Number(keyframeMs) === 0) {
+                const elementName = this.getElementNameOfComponentId(componentId)
+                updates[timelineName][componentId][propertyName][keyframeMs] = {
+                  value: TimelineProperty.getFallbackValue(
+                    componentId,
+                    elementName,
+                    propertyName
+                  )
+                }
+              } else {
+                // Special marker for inverter: before, there was no keyframe here.
+                updates[timelineName][componentId][propertyName][keyframeMs] = null
+              }
               continue
             }
 
