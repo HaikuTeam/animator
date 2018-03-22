@@ -1505,16 +1505,8 @@ class ActiveComponent extends BaseModel {
               !bytecode.timelines[timelineName][selector][propertyName] ||
               !bytecode.timelines[timelineName][selector][propertyName][keyframeMs]
             ) {
-              const elementName = this.getElementNameOfComponentId(componentId)
-
-              updates[timelineName][componentId][propertyName][keyframeMs] = {
-                value: TimelineProperty.getFallbackValue(
-                  componentId,
-                  elementName,
-                  propertyName
-                )
-              }
-
+              // Special marker for inverter: before, there was no keyframe here.
+              updates[timelineName][componentId][propertyName][keyframeMs] = null
               continue
             }
 
@@ -1842,10 +1834,10 @@ class ActiveComponent extends BaseModel {
     // HaikuComponent instances to ensure correct rendering. This can be skipped if softReload() was called in the
     // context of a hard reload, because hardReload() calls forceFlush() after soft reloading.
     if (!reloadOptions.hardReload) {
-      if (reloadOptions.hotComponents) {
-        this.addHotComponents(reloadOptions.hotComponents)
-      } else if (reloadOptions.forceFlush) {
+      if (reloadOptions.forceFlush) {
         this.forceFlush()
+      } else if (reloadOptions.hotComponents) {
+        this.addHotComponents(reloadOptions.hotComponents)
       }
     }
 
@@ -2811,6 +2803,7 @@ class ActiveComponent extends BaseModel {
 
         return this.reload({
           hardReload: this.project.isRemoteRequest(metadata),
+          forceFlush: !!metadata.cursor,
           hotComponents: keyframeUpdatesToHotComponentDescriptors(keyframeUpdates)
         }, null, () => {
           fire()
@@ -2830,8 +2823,13 @@ class ActiveComponent extends BaseModel {
           for (const propertyName in keyframeUpdates[timelineName][componentId]) {
             if (!bytecode.timelines[timelineName][selector][propertyName]) bytecode.timelines[timelineName][selector][propertyName] = {}
             for (const keyframeMs in keyframeUpdates[timelineName][componentId][propertyName]) {
-              if (!bytecode.timelines[timelineName][selector][propertyName][keyframeMs]) bytecode.timelines[timelineName][selector][propertyName][keyframeMs] = {}
               const propertyObj = keyframeUpdates[timelineName][componentId][propertyName][keyframeMs]
+              if (propertyObj === null) {
+                // Special directive to remove this property if defined.
+                delete bytecode.timelines[timelineName][selector][propertyName][keyframeMs]
+                continue
+              }
+              if (!bytecode.timelines[timelineName][selector][propertyName][keyframeMs]) bytecode.timelines[timelineName][selector][propertyName][keyframeMs] = {}
 
               const keyfVal = (typeof propertyObj.value === 'function')
                 ? propertyObj.value

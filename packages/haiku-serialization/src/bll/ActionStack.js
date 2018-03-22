@@ -39,7 +39,7 @@ const INVERTER_ACCUMULATORS = {
         for (const propertyName in basis2[timelineName][componentId]) {
           if (!basis1[timelineName][componentId][propertyName]) basis1[timelineName][componentId][propertyName] = {}
           for (const keyframeMs in basis2[timelineName][componentId][propertyName]) {
-            if (basis1[timelineName][componentId][propertyName][keyframeMs]) {
+            if (basis1[timelineName][componentId][propertyName][keyframeMs] !== undefined) {
               continue
             }
             basis1[timelineName][componentId][propertyName][keyframeMs] = basis2[timelineName][componentId][propertyName][keyframeMs]
