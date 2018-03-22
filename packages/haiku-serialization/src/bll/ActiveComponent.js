@@ -2010,14 +2010,28 @@ class ActiveComponent extends BaseModel {
 
     const root = this.fetchRootElement()
 
-    // Sweep of elements must happen first or we'll end up with stale rows
+    Keyframe.where({ component: this }).forEach((keyframe) => {
+      keyframe.mark()
+    })
+
+    Row.where({ component: this }).forEach((row) => {
+      row.mark()
+    })
+
     Element.where({ component: this }).forEach((element) => {
       if (element !== root) {
         element.mark()
       }
     })
 
+    // We *must* unset this or else stale elements will be left, messing up rehydration
+    root.children = []
+
     root.rehydrate()
+
+    root.visitAll((element) => {
+      element.rehydrateRows()
+    })
 
     Element.where({ component: this }).forEach((element) => {
       if (element !== root) {
@@ -2025,23 +2039,26 @@ class ActiveComponent extends BaseModel {
       }
     })
 
-    // We should only need the row model hydrated in the context of the timeline or test
-    if (this.project.getAlias() === 'timeline' || this.project.getAlias() === 'test') {
-      // Hydrate rows via element so the rows order matches depth-first element order
-      root.visitAll((element) => element.rehydrateRows())
-      this.cacheUnset('displayableRows')
+    Row.where({ component: this }).forEach((row) => {
+      row.sweep()
+    })
 
-      const row = root.getHostedRows()[0]
-      if (row) {
-        // Expand the first (topmost) row by default, only if this is the first run
-        if (!row._wasInitiallyExpanded) {
-          row._isExpanded = true
-          row._wasInitiallyExpanded = true
-        }
+    Keyframe.where({ component: this }).forEach((keyframe) => {
+      keyframe.sweep()
+    })
+
+    this.cacheUnset('displayableRows')
+
+    const row = root.getHostedRows()[0]
+    if (row) {
+      // Expand the first (topmost) row by default, only if this is the first run
+      if (!row._wasInitiallyExpanded) {
+        row._isExpanded = true
+        row._wasInitiallyExpanded = true
       }
-
-      this.positionRows()
     }
+
+    this.positionRows()
   }
 
   positionRows () {

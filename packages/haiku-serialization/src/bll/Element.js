@@ -1884,9 +1884,8 @@ Element.upsertElementFromVirtualElement = (
     index,
     address,
     component,
-    parent
-    // _isSelected: false,
-    // _isHovered: false,
+    parent,
+    children: [] // We *must* unset this or else stale elements will be left, messing up rehydration
   }, metadata)
 
   if (parent) {

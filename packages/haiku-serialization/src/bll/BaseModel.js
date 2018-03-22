@@ -147,8 +147,6 @@ class BaseModel extends EventEmitter {
   sweep () {
     if (this.__marked) {
       this.destroy()
-      // This is safe to call even if the entity doesn't have a `.parent`
-      this.removeFromParent()
       return true
     }
     return false
@@ -244,6 +242,7 @@ class BaseModel extends EventEmitter {
   }
 
   destroy () {
+    this.removeFromParent()
     this.constructor.remove(this)
     this.constructor.clearCaches()
     this.__destroyed = Date.now()
@@ -281,7 +280,7 @@ class BaseModel extends EventEmitter {
       this.children = []
     }
 
-    let found = null
+    const found = []
 
     this.children.forEach((child, index) => {
       if (
@@ -290,14 +289,20 @@ class BaseModel extends EventEmitter {
           child.getPrimaryKey() === entity.getPrimaryKey()
         )
       ) {
-        found = index
+        found.push({child, index})
       }
     })
 
-    if (typeof found === 'number') {
-      // Replace the existing one with the new one, in the same slot
-      this.children.splice(found, 1, entity)
-    } else if (found === null) {
+    if (found.length > 0) {
+      found.forEach(({child, index}) => {
+        // Replace the existing one with the new one, in the same slot
+        this.children.splice(index, 1, entity)
+        // If the child entity is garbage, collect it
+        if (child !== entity) {
+          child.destroy()
+        }
+      })
+    } else {
       // But if we didn't find any copy, just insert at the end of the list
       this.children.push(entity)
     }

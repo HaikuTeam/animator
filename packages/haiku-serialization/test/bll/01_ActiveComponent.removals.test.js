@@ -12,7 +12,7 @@ const HaikuContext = require('@haiku/core/lib/HaikuContext').default
 const HaikuHTMLRenderer = require('@haiku/core/lib/renderers/html').default
 
 tape('ActiveComponent.removals[1]', (t) => {
-  t.plan(3)
+  t.plan(4)
   const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'removals-1')
   fse.removeSync(folder)
   const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
@@ -32,15 +32,14 @@ tape('ActiveComponent.removals[1]', (t) => {
         (cb) => {
           const root = ac0.fetchRootElement()
           t.equal(root.children.length, 3)
-          t.deepEqual(Row.getDisplayables({component: ac0}).map((r) => r.dump()), [ 'element-heading.e4a9e4d8baa7<div>|0.0.0', 'cluster-heading.e4a9e4d8baa7<div>|1.0.1.sizeAbsolute[]', 'property.e4a9e4d8baa7<div>|1.1.4.opacity', 'cluster-heading.e4a9e4d8baa7<div>|1.2.5.style[]', 'element-heading.a1ace0824b5d<svg>|1.5.0', 'property.a1ace0824b5d<svg>|2.0.1.opacity', 'cluster-heading.a1ace0824b5d<svg>|2.1.2.translation[]', 'cluster-heading.a1ace0824b5d<svg>|2.2.6.rotation[]', 'cluster-heading.a1ace0824b5d<svg>|2.3.10.scale[]', 'cluster-heading.a1ace0824b5d<svg>|2.4.13.style[]', 'element-heading.78d50680cca7<svg>|1.4.0', 'property.78d50680cca7<svg>|2.0.1.opacity', 'cluster-heading.78d50680cca7<svg>|2.1.2.translation[]', 'cluster-heading.78d50680cca7<svg>|2.2.6.rotation[]', 'cluster-heading.78d50680cca7<svg>|2.3.10.scale[]', 'cluster-heading.78d50680cca7<svg>|2.4.13.style[]', 'element-heading.3a76003334e4<svg>|1.3.0', 'property.3a76003334e4<svg>|2.0.1.opacity', 'cluster-heading.3a76003334e4<svg>|2.1.2.translation[]', 'cluster-heading.3a76003334e4<svg>|2.2.6.rotation[]', 'cluster-heading.3a76003334e4<svg>|2.3.10.scale[]', 'cluster-heading.3a76003334e4<svg>|2.4.13.style[]' ])
-          return ac0.deleteComponent(root.children[1].getComponentId(), {from: 'test'}, cb)
+          t.deepEqual(Row.getDisplayables({component: ac0}).map((r) => r.dump()), [ 'element-heading.e4a9e4d8baa7<div>|0.0.0', 'cluster-heading.e4a9e4d8baa7<div>|1.0.1.sizeAbsolute[]', 'property.e4a9e4d8baa7<div>|1.1.4.opacity', 'cluster-heading.e4a9e4d8baa7<div>|1.2.5.style[]', 'element-heading.a1ace0824b5d<svg>|1.3.0', 'property.a1ace0824b5d<svg>|2.0.1.opacity', 'cluster-heading.a1ace0824b5d<svg>|2.1.2.translation[]', 'cluster-heading.a1ace0824b5d<svg>|2.2.6.rotation[]', 'cluster-heading.a1ace0824b5d<svg>|2.3.10.scale[]', 'cluster-heading.a1ace0824b5d<svg>|2.4.13.style[]', 'element-heading.78d50680cca7<svg>|1.4.0', 'property.78d50680cca7<svg>|2.0.1.opacity', 'cluster-heading.78d50680cca7<svg>|2.1.2.translation[]', 'cluster-heading.78d50680cca7<svg>|2.2.6.rotation[]', 'cluster-heading.78d50680cca7<svg>|2.3.10.scale[]', 'cluster-heading.78d50680cca7<svg>|2.4.13.style[]', 'element-heading.3a76003334e4<svg>|1.5.0', 'property.3a76003334e4<svg>|2.0.1.opacity', 'cluster-heading.3a76003334e4<svg>|2.1.2.translation[]', 'cluster-heading.3a76003334e4<svg>|2.2.6.rotation[]', 'cluster-heading.3a76003334e4<svg>|2.3.10.scale[]', 'cluster-heading.3a76003334e4<svg>|2.4.13.style[]' ])
+          const cid = root.children[1].getComponentId()
+          console.log(cid,',,,,,')
+          return ac0.deleteComponent(cid, {from: 'test'}, cb)
         },
         (cb) => {
           const root = ac0.fetchRootElement()
-
-          // TODO:
-          // Add test of Row.getDisplayables({component: ac0}).map((r) => r.dump()) here
-
+          t.deepEqual(Row.getDisplayables({component: ac0}).map((r) => r.dump()), [ 'element-heading.e4a9e4d8baa7<div>|0.0.0', 'cluster-heading.e4a9e4d8baa7<div>|1.0.1.sizeAbsolute[]', 'property.e4a9e4d8baa7<div>|1.1.4.opacity', 'cluster-heading.e4a9e4d8baa7<div>|1.2.5.style[]', 'element-heading.a1ace0824b5d<svg>|1.3.0', 'property.a1ace0824b5d<svg>|2.0.1.opacity', 'cluster-heading.a1ace0824b5d<svg>|2.1.2.translation[]', 'cluster-heading.a1ace0824b5d<svg>|2.2.6.rotation[]', 'cluster-heading.a1ace0824b5d<svg>|2.3.10.scale[]', 'cluster-heading.a1ace0824b5d<svg>|2.4.13.style[]', 'element-heading.3a76003334e4<svg>|1.4.0', 'property.3a76003334e4<svg>|2.0.1.opacity', 'cluster-heading.3a76003334e4<svg>|2.1.2.translation[]', 'cluster-heading.3a76003334e4<svg>|2.2.6.rotation[]', 'cluster-heading.3a76003334e4<svg>|2.3.10.scale[]', 'cluster-heading.3a76003334e4<svg>|2.4.13.style[]' ])
           return cb()
         }
       ], (err) => {
