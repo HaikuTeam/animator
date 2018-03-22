@@ -917,59 +917,51 @@ Template.getStackingInfo = (
   timelineName,
   timelineTime
 ) => {
-  const haikuIdsToZIndices = {}
+  return staticTemplateManaNode.children
+    .filter((child) => child && typeof child !== 'string')
+    .map((child, index) => {
+      const haikuId = child.attributes[HAIKU_ID_ATTRIBUTE]
+      const zIndex = parseInt(Template.getPropertyValue(
+        bytecode,
+        haikuId,
+        timelineName,
+        timelineTime,
+        'style.zIndex'
+      ), 10) || undefined
+      return {
+        haikuId,
+        zIndex,
+        index
+      }
+    })
+    .sort((a, b) => {
+      // zIndexes should sort normally at the front of the list
+      if (a.zIndex !== undefined && b.zIndex !== undefined) {
+        return a.zIndex - b.zIndex
+      }
 
-  const zIndicesToHaikuIds = {}
+      // Push undefined zIndexes to the end of the list, sorted by original order of appearance.
+      if ((a.zIndex === undefined) ^ (b.zIndex === undefined)) {
+        return (a.zIndex === undefined) ? 1 : -1
+      }
 
-  for (let i = staticTemplateManaNode.children.length - 1; i >= 0; i--) {
-    const child = staticTemplateManaNode.children[i]
+      return a.index - b.index
+    })
+    .reduce((accumulator, {zIndex, haikuId}, currentIndex) => {
+      if (currentIndex === 0) {
+        return [{
+          zIndex: Math.max(zIndex || 1, 1),
+          haikuId
+        }]
+      }
 
-    if (!child || typeof child === 'string') {
-      continue
-    }
-
-    const haikuId = child.attributes[HAIKU_ID_ATTRIBUTE]
-
-    const explicitZ = Template.getPropertyValue(
-      bytecode,
-      haikuId,
-      timelineName,
-      timelineTime,
-      'style.zIndex'
-    )
-
-    // NaN would cause an endless loop, so fallback to 0
-    const foundZ = parseInt(explicitZ || (i + 1), 10) || 0
-    const finalZ = Template.uniqueZ(foundZ, zIndicesToHaikuIds)
-
-    haikuIdsToZIndices[haikuId] = finalZ
-    zIndicesToHaikuIds[finalZ] = haikuId
-  }
-
-  const listOfZs = []
-
-  for (const haikuId2 in haikuIdsToZIndices) {
-    const zIndex = haikuIdsToZIndices[haikuId2]
-    listOfZs.push(zIndex)
-  }
-
-  listOfZs.sort((a, b) => {
-    return a - b
-  })
-
-  const zinfo = listOfZs.map((zIndex) => {
-    return {
-      zIndex: zIndex,
-      haikuId: zIndicesToHaikuIds[zIndex]
-    }
-  })
-
-  return zinfo
-}
-
-Template.uniqueZ = (z, mapping) => {
-  if (mapping[z]) return Template.uniqueZ(z + 1, mapping)
-  return z
+      const nextZ = accumulator[accumulator.length - 1].zIndex + 1
+      accumulator.push({
+        zIndex: (zIndex === undefined) ? nextZ : Math.max(zIndex, nextZ),
+        haikuId
+      })
+      return accumulator
+    }, [])
 }
 
 Template.getPropertyValue = (

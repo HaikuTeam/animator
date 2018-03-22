@@ -248,37 +248,37 @@ tape('Project.undo-redo[2]', (t) => {
             },
             (cb) => {
               snaps.push(ac.getBytecodeJSON()) // 1
-              t.equal(JSON.stringify(ac.getRawStackingInfo('Default', 0)), '[{"zIndex":1,"haikuId":"69e1be578b89"},{"zIndex":2,"haikuId":"1d04cfa992ef"},{"zIndex":3,"haikuId":"8c4b7b1ef094"},{"zIndex":4,"haikuId":"403bf109aa01"},{"zIndex":5,"haikuId":"a253613d2d06"},{"zIndex":6,"haikuId":"2a321e0a9a80"},{"zIndex":7,"haikuId":"037037c64252"}]')
+              t.equal(JSON.stringify(ac.getRawStackingInfo('Default', 0)), '[{"zIndex":1,"haikuId":"69e1be578b89"},{"zIndex":2,"haikuId":"1d04cfa992ef"},{"zIndex":3,"haikuId":"8c4b7b1ef094"},{"zIndex":5,"haikuId":"403bf109aa01"},{"zIndex":6,"haikuId":"a253613d2d06"},{"zIndex":7,"haikuId":"2a321e0a9a80"},{"zIndex":8,"haikuId":"037037c64252"}]')
               return ac.zMoveToBack(componentId, 'Default', 0, {from: 'test'}, cb)
             },
             (cb) => {
               snaps.push(ac.getBytecodeJSON()) // 2
-              t.equal(JSON.stringify(ac.getRawStackingInfo('Default', 0)), '[{"zIndex":1,"haikuId":"037037c64252"},{"zIndex":2,"haikuId":"69e1be578b89"},{"zIndex":3,"haikuId":"1d04cfa992ef"},{"zIndex":4,"haikuId":"8c4b7b1ef094"},{"zIndex":5,"haikuId":"403bf109aa01"},{"zIndex":6,"haikuId":"a253613d2d06"},{"zIndex":7,"haikuId":"2a321e0a9a80"}]')
+              t.equal(JSON.stringify(ac.getRawStackingInfo('Default', 0)), '[{"zIndex":8,"haikuId":"037037c64252"},{"zIndex":9,"haikuId":"69e1be578b89"},{"zIndex":10,"haikuId":"1d04cfa992ef"},{"zIndex":11,"haikuId":"8c4b7b1ef094"},{"zIndex":12,"haikuId":"403bf109aa01"},{"zIndex":13,"haikuId":"a253613d2d06"},{"zIndex":14,"haikuId":"2a321e0a9a80"}]')
               return ac.zMoveForward(componentId, 'Default', 0, {from: 'test'}, cb)
             },
             (cb) => {
               snaps.push(ac.getBytecodeJSON()) // 3
-              t.equal(JSON.stringify(ac.getRawStackingInfo('Default', 0)), '[{"zIndex":1,"haikuId":"69e1be578b89"},{"zIndex":2,"haikuId":"037037c64252"},{"zIndex":3,"haikuId":"1d04cfa992ef"},{"zIndex":4,"haikuId":"8c4b7b1ef094"},{"zIndex":5,"haikuId":"403bf109aa01"},{"zIndex":6,"haikuId":"a253613d2d06"},{"zIndex":7,"haikuId":"2a321e0a9a80"}]')
+              t.equal(JSON.stringify(ac.getRawStackingInfo('Default', 0)), '[{"zIndex":9,"haikuId":"69e1be578b89"},{"zIndex":10,"haikuId":"037037c64252"},{"zIndex":11,"haikuId":"1d04cfa992ef"},{"zIndex":12,"haikuId":"8c4b7b1ef094"},{"zIndex":13,"haikuId":"403bf109aa01"},{"zIndex":14,"haikuId":"a253613d2d06"},{"zIndex":15,"haikuId":"2a321e0a9a80"}]')
               return ac.zMoveForward(componentId, 'Default', 0, {from: 'test'}, cb)
             },
             (cb) => {
               snaps.push(ac.getBytecodeJSON()) // 4
-              t.equal(JSON.stringify(ac.getRawStackingInfo('Default', 0)), '[{"zIndex":1,"haikuId":"69e1be578b89"},{"zIndex":2,"haikuId":"1d04cfa992ef"},{"zIndex":3,"haikuId":"037037c64252"},{"zIndex":4,"haikuId":"8c4b7b1ef094"},{"zIndex":5,"haikuId":"403bf109aa01"},{"zIndex":6,"haikuId":"a253613d2d06"},{"zIndex":7,"haikuId":"2a321e0a9a80"}]')
+              t.equal(JSON.stringify(ac.getRawStackingInfo('Default', 0)), '[{"zIndex":9,"haikuId":"69e1be578b89"},{"zIndex":11,"haikuId":"1d04cfa992ef"},{"zIndex":12,"haikuId":"037037c64252"},{"zIndex":13,"haikuId":"8c4b7b1ef094"},{"zIndex":14,"haikuId":"403bf109aa01"},{"zIndex":15,"haikuId":"a253613d2d06"},{"zIndex":16,"haikuId":"2a321e0a9a80"}]')
               return ac.zMoveForward(componentId, 'Default', 0, {from: 'test'}, cb)
             },
             (cb) => {
               snaps.push(ac.getBytecodeJSON()) // 5
-              t.equal(JSON.stringify(ac.getRawStackingInfo('Default', 0)), '[{"zIndex":1,"haikuId":"69e1be578b89"},{"zIndex":2,"haikuId":"1d04cfa992ef"},{"zIndex":3,"haikuId":"8c4b7b1ef094"},{"zIndex":4,"haikuId":"037037c64252"},{"zIndex":5,"haikuId":"403bf109aa01"},{"zIndex":6,"haikuId":"a253613d2d06"},{"zIndex":7,"haikuId":"2a321e0a9a80"}]')
+              t.equal(JSON.stringify(ac.getRawStackingInfo('Default', 0)), '[{"zIndex":9,"haikuId":"69e1be578b89"},{"zIndex":11,"haikuId":"1d04cfa992ef"},{"zIndex":13,"haikuId":"8c4b7b1ef094"},{"zIndex":14,"haikuId":"037037c64252"},{"zIndex":15,"haikuId":"403bf109aa01"},{"zIndex":16,"haikuId":"a253613d2d06"},{"zIndex":17,"haikuId":"2a321e0a9a80"}]')
               return ac.zMoveBackward(componentId, 'Default', 0, {from: 'test'}, cb)
             },
             (cb) => {
               snaps.push(ac.getBytecodeJSON()) // 6
-              t.equal(JSON.stringify(ac.getRawStackingInfo('Default', 0)), '[{"zIndex":1,"haikuId":"69e1be578b89"},{"zIndex":2,"haikuId":"1d04cfa992ef"},{"zIndex":3,"haikuId":"037037c64252"},{"zIndex":4,"haikuId":"8c4b7b1ef094"},{"zIndex":5,"haikuId":"403bf109aa01"},{"zIndex":6,"haikuId":"a253613d2d06"},{"zIndex":7,"haikuId":"2a321e0a9a80"}]')
+              t.equal(JSON.stringify(ac.getRawStackingInfo('Default', 0)), '[{"zIndex":9,"haikuId":"69e1be578b89"},{"zIndex":11,"haikuId":"1d04cfa992ef"},{"zIndex":14,"haikuId":"037037c64252"},{"zIndex":15,"haikuId":"8c4b7b1ef094"},{"zIndex":16,"haikuId":"403bf109aa01"},{"zIndex":17,"haikuId":"a253613d2d06"},{"zIndex":18,"haikuId":"2a321e0a9a80"}]')
               return ac.zMoveBackward(componentId, 'Default', 0, {from: 'test'}, cb)
             },
             (cb) => {
               snaps.push(ac.getBytecodeJSON()) // 7
-              t.equal(JSON.stringify(ac.getRawStackingInfo('Default', 0)), '[{"zIndex":1,"haikuId":"69e1be578b89"},{"zIndex":2,"haikuId":"037037c64252"},{"zIndex":3,"haikuId":"1d04cfa992ef"},{"zIndex":4,"haikuId":"8c4b7b1ef094"},{"zIndex":5,"haikuId":"403bf109aa01"},{"zIndex":6,"haikuId":"a253613d2d06"},{"zIndex":7,"haikuId":"2a321e0a9a80"}]')
+              t.equal(JSON.stringify(ac.getRawStackingInfo('Default', 0)), '[{"zIndex":9,"haikuId":"69e1be578b89"},{"zIndex":14,"haikuId":"037037c64252"},{"zIndex":15,"haikuId":"1d04cfa992ef"},{"zIndex":16,"haikuId":"8c4b7b1ef094"},{"zIndex":17,"haikuId":"403bf109aa01"},{"zIndex":18,"haikuId":"a253613d2d06"},{"zIndex":19,"haikuId":"2a321e0a9a80"}]')
               return cb()
             },
             // (cb) => {

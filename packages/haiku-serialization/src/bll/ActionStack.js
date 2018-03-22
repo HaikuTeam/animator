@@ -570,7 +570,7 @@ ActionStack.METHOD_INVERTERS = {
 
   zMoveToFront: {
     before: (ac, [componentId, timelineName, timelineTime]) => {
-      const moves = ac.gatherKeyframeMoves(componentId, timelineName, ['style.zIndex'])
+      const moves = ac.gatherZIndexKeyframeMoves(timelineName)
       return {
         method: ac.moveKeyframes.name,
         params: [moves]
@@ -580,7 +580,7 @@ ActionStack.METHOD_INVERTERS = {
 
   zMoveForward: {
     before: (ac, [componentId, timelineName, timelineTime]) => {
-      const moves = ac.gatherKeyframeMoves(componentId, timelineName, ['style.zIndex'])
+      const moves = ac.gatherZIndexKeyframeMoves(timelineName)
       return {
         method: ac.moveKeyframes.name,
         params: [moves]
@@ -590,7 +590,7 @@ ActionStack.METHOD_INVERTERS = {
 
   zMoveBackward: {
     before: (ac, [componentId, timelineName, timelineTime]) => {
-      const moves = ac.gatherKeyframeMoves(componentId, timelineName, ['style.zIndex'])
+      const moves = ac.gatherZIndexKeyframeMoves(timelineName)
       return {
         method: ac.moveKeyframes.name,
         params: [moves]
@@ -600,7 +600,7 @@ ActionStack.METHOD_INVERTERS = {
 
   zMoveToBack: {
     before: (ac, [componentId, timelineName, timelineTime]) => {
-      const moves = ac.gatherKeyframeMoves(componentId, timelineName, ['style.zIndex'])
+      const moves = ac.gatherZIndexKeyframeMoves(timelineName)
       return {
         method: ac.moveKeyframes.name,
         params: [moves]

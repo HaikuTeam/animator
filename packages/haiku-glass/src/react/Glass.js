@@ -906,14 +906,14 @@ export class Glass extends React.Component {
       return
     }
 
-    this.state.isMouseDown = true
-    this.state.lastMouseDownTime = Date.now()
-    const mouseDownPosition = this.storeAndReturnMousePosition(mousedownEvent, 'lastMouseDownPosition')
-
     // Only count left clicks
     if (mousedownEvent.nativeEvent.button !== 0) {
       return
     }
+
+    this.state.isMouseDown = true
+    this.state.lastMouseDownTime = Date.now()
+    const mouseDownPosition = this.storeAndReturnMousePosition(mousedownEvent, 'lastMouseDownPosition')
 
     // We are panning now, so don't un/select anything
     if (Globals.isSpaceKeyDown) {

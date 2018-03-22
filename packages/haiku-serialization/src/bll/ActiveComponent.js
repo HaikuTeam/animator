@@ -36,6 +36,10 @@ const describeHotComponent = (componentId, timelineName, timelineTime, propertyG
   }
 }
 
+const stackingInfoToHotComponentDescriptors = (stackingInfo, timelineName, timelineTime) => stackingInfo.map(
+  ({haikuId}) => describeHotComponent(haikuId, timelineName, timelineTime, ['style.zIndex'])
+)
+
 const keyframeUpdatesToHotComponentDescriptors = (keyframeUpdates) => {
   const hotComponentDescriptors = []
 
@@ -1529,6 +1533,16 @@ class ActiveComponent extends BaseModel {
     return updates
   }
 
+  gatherZIndexKeyframeMoves (timelineName) {
+    const keyframeMovesDescriptor = {[timelineName]: {}}
+    this.getReifiedTemplate().children.forEach((child) => {
+      keyframeMovesDescriptor[timelineName][child.attributes[HAIKU_ID_ATTRIBUTE]] = {
+        'style.zIndex': {}
+      }
+    })
+    return this.snapshotKeyframeMoves(keyframeMovesDescriptor)
+  }
+
   gatherKeyframeMoves (componentId, timelineName, propertyNames) {
     const keyframeMovesDescriptor = {}
     keyframeMovesDescriptor[timelineName] = {}
@@ -2344,19 +2358,6 @@ class ActiveComponent extends BaseModel {
     return bytecode && bytecode.timelines && bytecode.timelines[timelineName]
   }
 
-  normalizeStackingAndReturnInfo (bytecode, mana, timelineName, timelineTime) {
-    const stackingInfo = Template.getStackingInfo(
-      bytecode,
-      mana,
-      timelineName,
-      timelineTime
-    )
-
-    this.setZIndicesForStackingInfo(bytecode, timelineName, timelineTime, stackingInfo)
-
-    return stackingInfo
-  }
-
   getRawStackingInfo (timelineName, timelineTime) {
     const bytecode = this.getReifiedBytecode()
 
@@ -2369,24 +2370,42 @@ class ActiveComponent extends BaseModel {
   }
 
   setZIndicesForStackingInfo (bytecode, timelineName, timelineTime, stackingInfo) {
-    stackingInfo.forEach(({ haikuId }, arrayIndex) => {
-      this.upsertProperties(
-        bytecode,
-        haikuId,
-        timelineName,
-        timelineTime,
-        {
-          'style.zIndex': arrayIndex + 1 // No 0-index
-        },
-        'merge'
-      )
-    })
+    // If we received items out of order, fix their z-indexes. Retain as many original z-indexes as possible.
+    stackingInfo
+      .reduce((accumulator, { zIndex, haikuId }, currentIndex) => {
+        if (currentIndex === 0) {
+          return [{zIndex, haikuId}]
+        }
+
+        if (accumulator[currentIndex - 1].zIndex < zIndex) {
+          accumulator.push({zIndex, haikuId})
+        } else {
+          accumulator.push({
+            haikuId,
+            zIndex: accumulator[currentIndex - 1].zIndex + 1
+          })
+        }
+
+        return accumulator
+      }, [])
+      .forEach(({ haikuId, zIndex }) => {
+        this.upsertProperties(
+          bytecode,
+          haikuId,
+          timelineName,
+          timelineTime,
+          {
+            'style.zIndex': zIndex
+          },
+          'merge'
+        )
+      })
   }
 
   grabStackObjectFromStackingInfo (stackingInfo, componentId) {
-    for (let i = stackingInfo.length - 1; i >= 0; i--) {
-      if (stackingInfo[i].haikuId === componentId) {
-        return stackingInfo.splice(i, 1)[0]
+    for (let index = stackingInfo.length - 1; index >= 0; index--) {
+      if (stackingInfo[index].haikuId === componentId) {
+        return {ourStackObject: stackingInfo.splice(index, 1)[0], index}
       }
     }
   }
@@ -3095,8 +3114,8 @@ class ActiveComponent extends BaseModel {
       group.children.push.apply(group.children, nodesToRegroup)
 
       // Place the new group at the top (TODO: retain inner stacking order somehow)
-      const stackingInfo = this.normalizeStackingAndReturnInfo(bytecode, mana, timelineName, timelineTime)
-      const ourStackObject = this.grabStackObjectFromStackingInfo(stackingInfo, groupComponentId)
+      const stackingInfo = Template.getStackingInfo(bytecode, mana, timelineName, timelineTime)
+      const {ourStackObject} = this.grabStackObjectFromStackingInfo(stackingInfo, groupComponentId)
       stackingInfo.push(ourStackObject) // Push to front
       this.setZIndicesForStackingInfo(bytecode, timelineName, timelineTime, stackingInfo)
 
@@ -3220,7 +3239,7 @@ class ActiveComponent extends BaseModel {
    */
   zMoveToFront (componentId, timelineName, timelineTime, metadata, cb) {
     return this.project.updateHook('zMoveToFront', this.getSceneCodeRelpath(), componentId, timelineName, timelineTime, metadata, (fire) => {
-      return this.zMoveToFrontActual(componentId, timelineName, timelineTime, metadata, (err) => {
+      return this.zMoveToFrontActual(componentId, timelineName, timelineTime, metadata, (err, stackingInfo) => {
         if (err) {
           logger.error(`[active component (${this.project.getAlias()})]`, err)
           return cb(err)
@@ -3228,7 +3247,7 @@ class ActiveComponent extends BaseModel {
 
         return this.reload({
           hardReload: this.project.isRemoteRequest(metadata),
-          hotComponents: [describeHotComponent(componentId, timelineName, timelineTime, ['style.zIndex'])]
+          hotComponents: stackingInfoToHotComponentDescriptors(stackingInfo, timelineName, timelineTime)
         }, null, () => {
           fire()
           return cb()
@@ -3238,17 +3257,21 @@ class ActiveComponent extends BaseModel {
   }
 
   zMoveToFrontImpl (bytecode, componentId, timelineName, timelineTime) {
-    const stackingInfo = this.normalizeStackingAndReturnInfo(bytecode, bytecode.template, timelineName, timelineTime)
-    const ourStackObject = this.grabStackObjectFromStackingInfo(stackingInfo, componentId)
+    const stackingInfo = Template.getStackingInfo(bytecode, bytecode.template, timelineName, timelineTime)
+    const {ourStackObject} = this.grabStackObjectFromStackingInfo(stackingInfo, componentId)
     stackingInfo.push(ourStackObject)
     this.setZIndicesForStackingInfo(bytecode, timelineName, timelineTime, stackingInfo)
+    return stackingInfo
   }
 
   zMoveToFrontActual (componentId, timelineName, timelineTime, metadata, cb) {
+    let stackingInfo
     return this.performComponentTimelinesWork((bytecode, mana, timelines, done) => {
-      this.zMoveToFrontImpl(bytecode, componentId, timelineName, timelineTime)
+      stackingInfo = this.zMoveToFrontImpl(bytecode, componentId, timelineName, timelineTime)
       done()
-    }, cb)
+    }, (err) => {
+      cb(err, stackingInfo)
+    })
   }
 
   /**
@@ -3256,7 +3279,7 @@ class ActiveComponent extends BaseModel {
    */
   zMoveForward (componentId, timelineName, timelineTime, metadata, cb) {
     return this.project.updateHook('zMoveForward', this.getSceneCodeRelpath(), componentId, timelineName, timelineTime, metadata, (fire) => {
-      return this.zMoveForwardActual(componentId, timelineName, timelineTime, metadata, (err) => {
+      return this.zMoveForwardActual(componentId, timelineName, timelineTime, metadata, (err, stackingInfo) => {
         if (err) {
           logger.error(`[active component (${this.project.getAlias()})]`, err)
           return cb(err)
@@ -3264,7 +3287,7 @@ class ActiveComponent extends BaseModel {
 
         return this.reload({
           hardReload: this.project.isRemoteRequest(metadata),
-          hotComponents: [describeHotComponent(componentId, timelineName, timelineTime, ['style.zIndex'])]
+          hotComponents: stackingInfoToHotComponentDescriptors(stackingInfo, timelineName, timelineTime)
         }, null, () => {
           fire()
           return cb()
@@ -3274,13 +3297,16 @@ class ActiveComponent extends BaseModel {
   }
 
   zMoveForwardActual (componentId, timelineName, timelineTime, metadata, cb) {
+    let stackingInfo
     return this.performComponentTimelinesWork((bytecode, mana, timelines, done) => {
-      const stackingInfo = this.normalizeStackingAndReturnInfo(bytecode, mana, timelineName, timelineTime)
-      const ourStackObject = this.grabStackObjectFromStackingInfo(stackingInfo, componentId)
-      stackingInfo.splice(ourStackObject.zIndex, 0, ourStackObject)
+      stackingInfo = Template.getStackingInfo(bytecode, mana, timelineName, timelineTime)
+      const {ourStackObject, index} = this.grabStackObjectFromStackingInfo(stackingInfo, componentId)
+      stackingInfo.splice(index + 1, 0, ourStackObject)
       this.setZIndicesForStackingInfo(bytecode, timelineName, timelineTime, stackingInfo)
       done()
-    }, cb)
+    }, (err) => {
+      cb(err, stackingInfo)
+    })
   }
 
   /**
@@ -3288,7 +3314,7 @@ class ActiveComponent extends BaseModel {
    */
   zMoveBackward (componentId, timelineName, timelineTime, metadata, cb) {
     return this.project.updateHook('zMoveBackward', this.getSceneCodeRelpath(), componentId, timelineName, timelineTime, metadata, (fire) => {
-      return this.zMoveBackwardActual(componentId, timelineName, timelineTime, metadata, (err) => {
+      return this.zMoveBackwardActual(componentId, timelineName, timelineTime, metadata, (err, stackingInfo) => {
         if (err) {
           logger.error(`[active component (${this.project.getAlias()})]`, err)
           return cb(err)
@@ -3296,7 +3322,7 @@ class ActiveComponent extends BaseModel {
 
         return this.reload({
           hardReload: this.project.isRemoteRequest(metadata),
-          hotComponents: [describeHotComponent(componentId, timelineName, timelineTime, ['style.zIndex'])]
+          hotComponents: stackingInfoToHotComponentDescriptors(stackingInfo, timelineName, timelineTime)
         }, null, () => {
           fire()
           return cb()
@@ -3306,13 +3332,16 @@ class ActiveComponent extends BaseModel {
   }
 
   zMoveBackwardActual (componentId, timelineName, timelineTime, metadata, cb) {
+    let stackingInfo
     return this.performComponentTimelinesWork((bytecode, mana, timelines, done) => {
-      const stackingInfo = this.normalizeStackingAndReturnInfo(bytecode, mana, timelineName, timelineTime)
-      const ourStackObject = this.grabStackObjectFromStackingInfo(stackingInfo, componentId)
-      stackingInfo.splice(ourStackObject.zIndex - 2, 0, ourStackObject)
+      stackingInfo = Template.getStackingInfo(bytecode, mana, timelineName, timelineTime)
+      const {ourStackObject, index} = this.grabStackObjectFromStackingInfo(stackingInfo, componentId)
+      stackingInfo.splice(Math.max(index - 1, 0), 0, ourStackObject)
       this.setZIndicesForStackingInfo(bytecode, timelineName, timelineTime, stackingInfo)
       done()
-    }, cb)
+    }, (err) => {
+      cb(err, stackingInfo)
+    })
   }
 
   /**
@@ -3320,7 +3349,7 @@ class ActiveComponent extends BaseModel {
    */
   zMoveToBack (componentId, timelineName, timelineTime, metadata, cb) {
     return this.project.updateHook('zMoveToBack', this.getSceneCodeRelpath(), componentId, timelineName, timelineTime, metadata, (fire) => {
-      return this.zMoveToBackActual(componentId, timelineName, timelineTime, metadata, (err) => {
+      return this.zMoveToBackActual(componentId, timelineName, timelineTime, metadata, (err, stackingInfo) => {
         if (err) {
           logger.error(`[active component (${this.project.getAlias()})]`, err)
           return cb(err)
@@ -3328,7 +3357,7 @@ class ActiveComponent extends BaseModel {
 
         return this.reload({
           hardReload: this.project.isRemoteRequest(metadata),
-          hotComponents: [describeHotComponent(componentId, timelineName, timelineTime, ['style.zIndex'])]
+          hotComponents: stackingInfoToHotComponentDescriptors(stackingInfo, timelineName, timelineTime)
         }, null, () => {
           fire()
           return cb()
@@ -3338,13 +3367,16 @@ class ActiveComponent extends BaseModel {
   }
 
   zMoveToBackActual (componentId, timelineName, timelineTime, metadata, cb) {
+    let stackingInfo
     return this.performComponentTimelinesWork((bytecode, mana, timelines, done) => {
-      const stackingInfo = this.normalizeStackingAndReturnInfo(bytecode, mana, timelineName, timelineTime)
-      const ourStackObject = this.grabStackObjectFromStackingInfo(stackingInfo, componentId)
+      stackingInfo = Template.getStackingInfo(bytecode, mana, timelineName, timelineTime)
+      const {ourStackObject} = this.grabStackObjectFromStackingInfo(stackingInfo, componentId)
       stackingInfo.unshift(ourStackObject)
       this.setZIndicesForStackingInfo(bytecode, timelineName, timelineTime, stackingInfo)
       done()
-    }, cb)
+    }, (err) => {
+      cb(err, stackingInfo)
+    })
   }
 
   /**

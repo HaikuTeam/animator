@@ -35,7 +35,7 @@ tape('ActiveComponent.prototype.instantiateComponent-with-z', (t) => {
         (cb) => { return ac0.instantiateComponent('designs/Circle.svg', {}, {from: 'test'}, cb) },
         (cb) => { t.deepEqual(ac0.getRawStackingInfo('Default', 0), [ { zIndex: 1, haikuId: '3a76003334e4' }, { zIndex: 2, haikuId: '78d50680cca7' }, { zIndex: 3, haikuId: 'a1ace0824b5d' }, { zIndex: 4, haikuId: '794695508bbf' } ]); return cb() },
         (cb) => { return ac0.zMoveBackward('a1ace0824b5d', 'Default', 0, {from: 'test'}, cb) },
-        (cb) => { t.deepEqual(ac0.getRawStackingInfo('Default', 0), [ { zIndex: 1, haikuId: '3a76003334e4' }, { zIndex: 2, haikuId: 'a1ace0824b5d' }, { zIndex: 3, haikuId: '78d50680cca7' }, { zIndex: 4, haikuId: '794695508bbf' } ]); return cb() },
+        (cb) => { t.deepEqual(ac0.getRawStackingInfo('Default', 0), [ { zIndex: 1, haikuId: '3a76003334e4' }, { zIndex: 3, haikuId: 'a1ace0824b5d' }, { zIndex: 4, haikuId: '78d50680cca7' }, { zIndex: 5, haikuId: '794695508bbf' } ]); return cb() },
       ], (err) => {
         if (err) throw err
         fse.removeSync(folder)
