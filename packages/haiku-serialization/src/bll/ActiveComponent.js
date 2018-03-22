@@ -2030,18 +2030,18 @@ class ActiveComponent extends BaseModel {
       // Hydrate rows via element so the rows order matches depth-first element order
       root.visitAll((element) => element.rehydrateRows())
       this.cacheUnset('displayableRows')
-    }
 
-    const row = root.getHostedRows()[0]
-    if (row) {
-      // Expand the first (topmost) row by default, only if this is the first run
-      if (!row._wasInitiallyExpanded) {
-        row._isExpanded = true
-        row._wasInitiallyExpanded = true
+      const row = root.getHostedRows()[0]
+      if (row) {
+        // Expand the first (topmost) row by default, only if this is the first run
+        if (!row._wasInitiallyExpanded) {
+          row._isExpanded = true
+          row._wasInitiallyExpanded = true
+        }
       }
-    }
 
-    this.positionRows()
+      this.positionRows()
+    }
   }
 
   positionRows () {
