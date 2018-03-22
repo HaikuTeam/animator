@@ -860,7 +860,7 @@ class Element extends BaseModel {
     }, {})
 
     if (parentElementHeadingRow) {
-      parentElementHeadingRow.addChild(currentElementHeadingRow)
+      parentElementHeadingRow.insertChild(currentElementHeadingRow)
     }
 
     this._headingRow = currentElementHeadingRow
@@ -895,7 +895,7 @@ class Element extends BaseModel {
           }, {})
 
           this._clusterAndPropertyRows.push(clusterRow)
-          currentElementHeadingRow.addChild(clusterRow)
+          currentElementHeadingRow.insertChild(clusterRow)
           clusters[clusterId] = true
         }
 
@@ -913,7 +913,7 @@ class Element extends BaseModel {
 
         this._clusterAndPropertyRows.push(clusterMember)
         clusterMember.rehydrate()
-        clusterRow.addChild(clusterMember)
+        clusterRow.insertChild(clusterMember)
       } else {
         // Properties represented as a single row, like 'opacity'
         const propertyRow = Row.upsert({
@@ -930,7 +930,7 @@ class Element extends BaseModel {
 
         this._clusterAndPropertyRows.push(propertyRow)
         propertyRow.rehydrate()
-        currentElementHeadingRow.addChild(propertyRow)
+        currentElementHeadingRow.insertChild(propertyRow)
       }
     })
 

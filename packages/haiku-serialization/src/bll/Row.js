@@ -548,22 +548,6 @@ class Row extends BaseModel {
     return this.parent && (this.parent.isCollapsed() || this.parent.isWithinCollapsedRow())
   }
 
-  addChild (row) {
-    let found = false
-    for (let i = 0; i < this.children.length; i++) {
-      let child = this.children[i]
-      if (
-        child === row || child.getPrimaryKey() === row.getPrimaryKey()) {
-        found = true
-        break
-      }
-    }
-    if (!found) {
-      this.children.push(row)
-    }
-    return this
-  }
-
   representsStringNode () {
     return typeof this.element.getStaticTemplateNode() === 'string'
   }
