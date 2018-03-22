@@ -418,7 +418,8 @@ const getStableCacheKey = (prefix, criteria) => {
 
   const cacheKeyComponents = [prefix]
   for (const key in criteria) {
-    cacheKeyComponents.push(key, criteria[key].toString())
+    const value = (criteria[key] && criteria[key].toString()) || criteria[key] + ''
+    cacheKeyComponents.push(key, value)
   }
 
   return cacheKeyComponents.join('|')
