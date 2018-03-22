@@ -184,7 +184,7 @@ tape('Project.undo-redo[1]', (t) => {
 })
 
 tape('Project.undo-redo[2]', (t) => {
-  t.plan(9)
+  t.plan(17)
   const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'project-undoredo-02')
 
   fse.removeSync(folder)
@@ -242,93 +242,93 @@ tape('Project.undo-redo[2]', (t) => {
               return cb()
             },
             (cb) => {
-              snaps.push(ac.getBytecodeJSON()) // 0
+              snaps.push(ac.getRawStackingInfo()) // 0
               t.equal(JSON.stringify(ac.getRawStackingInfo('Default', 0)), '[{"zIndex":1,"haikuId":"69e1be578b89"},{"zIndex":2,"haikuId":"1d04cfa992ef"},{"zIndex":3,"haikuId":"8c4b7b1ef094"},{"zIndex":4,"haikuId":"037037c64252"},{"zIndex":5,"haikuId":"403bf109aa01"},{"zIndex":6,"haikuId":"a253613d2d06"},{"zIndex":7,"haikuId":"2a321e0a9a80"}]')
               return ac.zMoveToFront(componentId, 'Default', 0, {from: 'test'}, cb)
             },
             (cb) => {
-              snaps.push(ac.getBytecodeJSON()) // 1
+              snaps.push(ac.getRawStackingInfo()) // 1
               t.equal(JSON.stringify(ac.getRawStackingInfo('Default', 0)), '[{"zIndex":1,"haikuId":"69e1be578b89"},{"zIndex":2,"haikuId":"1d04cfa992ef"},{"zIndex":3,"haikuId":"8c4b7b1ef094"},{"zIndex":4,"haikuId":"403bf109aa01"},{"zIndex":5,"haikuId":"a253613d2d06"},{"zIndex":6,"haikuId":"2a321e0a9a80"},{"zIndex":7,"haikuId":"037037c64252"}]')
               return ac.zMoveToBack(componentId, 'Default', 0, {from: 'test'}, cb)
             },
             (cb) => {
-              snaps.push(ac.getBytecodeJSON()) // 2
+              snaps.push(ac.getRawStackingInfo()) // 2
               t.equal(JSON.stringify(ac.getRawStackingInfo('Default', 0)), '[{"zIndex":1,"haikuId":"037037c64252"},{"zIndex":2,"haikuId":"69e1be578b89"},{"zIndex":3,"haikuId":"1d04cfa992ef"},{"zIndex":4,"haikuId":"8c4b7b1ef094"},{"zIndex":5,"haikuId":"403bf109aa01"},{"zIndex":6,"haikuId":"a253613d2d06"},{"zIndex":7,"haikuId":"2a321e0a9a80"}]')
               return ac.zMoveForward(componentId, 'Default', 0, {from: 'test'}, cb)
             },
             (cb) => {
-              snaps.push(ac.getBytecodeJSON()) // 3
+              snaps.push(ac.getRawStackingInfo()) // 3
               t.equal(JSON.stringify(ac.getRawStackingInfo('Default', 0)), '[{"zIndex":1,"haikuId":"69e1be578b89"},{"zIndex":2,"haikuId":"037037c64252"},{"zIndex":3,"haikuId":"1d04cfa992ef"},{"zIndex":4,"haikuId":"8c4b7b1ef094"},{"zIndex":5,"haikuId":"403bf109aa01"},{"zIndex":6,"haikuId":"a253613d2d06"},{"zIndex":7,"haikuId":"2a321e0a9a80"}]')
               return ac.zMoveForward(componentId, 'Default', 0, {from: 'test'}, cb)
             },
             (cb) => {
-              snaps.push(ac.getBytecodeJSON()) // 4
+              snaps.push(ac.getRawStackingInfo()) // 4
               t.equal(JSON.stringify(ac.getRawStackingInfo('Default', 0)), '[{"zIndex":1,"haikuId":"69e1be578b89"},{"zIndex":2,"haikuId":"1d04cfa992ef"},{"zIndex":3,"haikuId":"037037c64252"},{"zIndex":4,"haikuId":"8c4b7b1ef094"},{"zIndex":5,"haikuId":"403bf109aa01"},{"zIndex":6,"haikuId":"a253613d2d06"},{"zIndex":7,"haikuId":"2a321e0a9a80"}]')
               return ac.zMoveForward(componentId, 'Default', 0, {from: 'test'}, cb)
             },
             (cb) => {
-              snaps.push(ac.getBytecodeJSON()) // 5
+              snaps.push(ac.getRawStackingInfo()) // 5
               t.equal(JSON.stringify(ac.getRawStackingInfo('Default', 0)), '[{"zIndex":1,"haikuId":"69e1be578b89"},{"zIndex":2,"haikuId":"1d04cfa992ef"},{"zIndex":3,"haikuId":"8c4b7b1ef094"},{"zIndex":4,"haikuId":"037037c64252"},{"zIndex":5,"haikuId":"403bf109aa01"},{"zIndex":6,"haikuId":"a253613d2d06"},{"zIndex":7,"haikuId":"2a321e0a9a80"}]')
               return ac.zMoveBackward(componentId, 'Default', 0, {from: 'test'}, cb)
             },
             (cb) => {
-              snaps.push(ac.getBytecodeJSON()) // 6
+              snaps.push(ac.getRawStackingInfo()) // 6
               t.equal(JSON.stringify(ac.getRawStackingInfo('Default', 0)), '[{"zIndex":1,"haikuId":"69e1be578b89"},{"zIndex":2,"haikuId":"1d04cfa992ef"},{"zIndex":3,"haikuId":"037037c64252"},{"zIndex":4,"haikuId":"8c4b7b1ef094"},{"zIndex":5,"haikuId":"403bf109aa01"},{"zIndex":6,"haikuId":"a253613d2d06"},{"zIndex":7,"haikuId":"2a321e0a9a80"}]')
               return ac.zMoveBackward(componentId, 'Default', 0, {from: 'test'}, cb)
             },
             (cb) => {
-              snaps.push(ac.getBytecodeJSON()) // 7
+              snaps.push(ac.getRawStackingInfo()) // 7
               t.equal(JSON.stringify(ac.getRawStackingInfo('Default', 0)), '[{"zIndex":1,"haikuId":"69e1be578b89"},{"zIndex":2,"haikuId":"037037c64252"},{"zIndex":3,"haikuId":"1d04cfa992ef"},{"zIndex":4,"haikuId":"8c4b7b1ef094"},{"zIndex":5,"haikuId":"403bf109aa01"},{"zIndex":6,"haikuId":"a253613d2d06"},{"zIndex":7,"haikuId":"2a321e0a9a80"}]')
               return cb()
             },
-            // (cb) => {
-            //   return $undo(() => {
-            //     t.equal(ac.getBytecodeJSON(), snaps[6])
-            //     return cb()
-            //   })
-            // },
-            // (cb) => {
-            //   return $undo(() => {
-            //     t.equal(ac.getBytecodeJSON(), snaps[5])
-            //     return cb()
-            //   })
-            // },
-            // (cb) => {
-            //   return $undo(() => {
-            //     t.equal(ac.getBytecodeJSON(), snaps[4])
-            //     return cb()
-            //   })
-            // },
-            // (cb) => {
-            //   return $undo(() => {
-            //     t.equal(ac.getBytecodeJSON(), snaps[3])
-            //     return cb()
-            //   })
-            // },
-            // (cb) => {
-            //   return $redo(() => {
-            //     t.equal(ac.getBytecodeJSON(), snaps[4])
-            //     return cb()
-            //   })
-            // },
-            // (cb) => {
-            //   return $redo(() => {
-            //     t.equal(ac.getBytecodeJSON(), snaps[5])
-            //     return cb()
-            //   })
-            // },
-            // (cb) => {
-            //   return $undo(() => {
-            //     t.equal(ac.getBytecodeJSON(), snaps[4])
-            //     return cb()
-            //   })
-            // },
-            // (cb) => {
-            //   return $undo(() => {
-            //     t.equal(ac.getBytecodeJSON(), snaps[3])
-            //     return cb()
-            //   })
-            // },
+            (cb) => {
+              return $undo(() => {
+                t.deepEqual(ac.getRawStackingInfo(), snaps[6])
+                return cb()
+              })
+            },
+            (cb) => {
+              return $undo(() => {
+                t.deepEqual(ac.getRawStackingInfo(), snaps[5])
+                return cb()
+              })
+            },
+            (cb) => {
+              return $undo(() => {
+                t.deepEqual(ac.getRawStackingInfo(), snaps[4])
+                return cb()
+              })
+            },
+            (cb) => {
+              return $undo(() => {
+                t.deepEqual(ac.getRawStackingInfo(), snaps[3])
+                return cb()
+              })
+            },
+            (cb) => {
+              return $redo(() => {
+                t.deepEqual(ac.getRawStackingInfo(), snaps[4])
+                return cb()
+              })
+            },
+            (cb) => {
+              return $redo(() => {
+                t.deepEqual(ac.getRawStackingInfo(), snaps[5])
+                return cb()
+              })
+            },
+            (cb) => {
+              return $undo(() => {
+                t.deepEqual(ac.getRawStackingInfo(), snaps[4])
+                return cb()
+              })
+            },
+            (cb) => {
+              return $undo(() => {
+                t.deepEqual(ac.getRawStackingInfo(), snaps[3])
+                return cb()
+              })
+            },
           ], cb)
         },
       ], (err) => {
@@ -411,7 +411,7 @@ tape('Project.undo-redo[3]', (t) => {
                     'linear',
                     null,
                     null,
-                    {from: 'test'}, 
+                    {from: 'test'},
                     nextN
                   )
                 }, nextComponentId)
