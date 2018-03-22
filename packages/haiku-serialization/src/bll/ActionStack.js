@@ -330,7 +330,7 @@ class ActionStack extends BaseModel {
 
     logger.info(`[action stack (${this.project.getAlias()})] undo (us=${this.getUndoables().length})`)
 
-    return Lock.request(Lock.LOCKS.ActionStackUndoRedo, (release) => {
+    return Lock.request(Lock.LOCKS.ActionStackUndoRedo, false, (release) => {
       const { method, params } = this.popUndoable()
       const ac = this.project.findActiveComponentBySource(params[0])
 
@@ -358,7 +358,7 @@ class ActionStack extends BaseModel {
 
     logger.info(`[action stack (${this.project.getAlias()})] redo (rs=${this.getRedoables().length})`)
 
-    return Lock.request(Lock.LOCKS.ActionStackUndoRedo, (release) => {
+    return Lock.request(Lock.LOCKS.ActionStackUndoRedo, false, (release) => {
       const { method, params } = this.popRedoable()
       const ac = this.project.findActiveComponentBySource(params[0])
 

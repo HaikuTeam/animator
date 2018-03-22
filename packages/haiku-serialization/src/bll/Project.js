@@ -154,7 +154,7 @@ class Project extends BaseModel {
   }
 
   handleMethodCall (method, params, message, cb) {
-    return Lock.request(Lock.LOCKS.ProjectMethodHandler, (release) => {
+    return Lock.request(Lock.LOCKS.ProjectMethodHandler, false, (release) => {
       // Try matching a method on a given active component
       const ac = this.findActiveComponentBySource(params[0])
 

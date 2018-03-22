@@ -1,3 +1,5 @@
+const { EventEmitter } = require('events')
+
 const ACTIVE_LOCKS = {}
 
 const LOCKS = {
@@ -9,7 +11,9 @@ const LOCKS = {
   ActionStackUndoRedo: 'ActionStackUndoRedo'
 }
 
-const request = (key, cb) => {
+const emitter = new EventEmitter()
+
+const request = (key, emit, cb) => {
   if (!key) {
     throw new Error('Lock key must be truthy')
   }
@@ -20,9 +24,15 @@ const request = (key, cb) => {
   }
 
   ACTIVE_LOCKS[key] = true
+  if (emit) {
+    emitter.emit('lock-on', key)
+  }
 
   const release = () => {
     ACTIVE_LOCKS[key] = false
+    if (emit) {
+      emitter.emit('lock-off', key)
+    }
   }
 
   return cb(release)
@@ -36,6 +46,7 @@ const clearAll = () => {
 
 module.exports = {
   request,
+  emitter,
   clearAll,
   LOCKS,
   ACTIVE_LOCKS

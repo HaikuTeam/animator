@@ -247,7 +247,7 @@ File.DEFAULT_CONTEXT_SIZE = DEFAULT_CONTEXT_SIZE
 
 File.write = function write (folder, relpath, contents, cb) {
   let abspath = path.join(folder, relpath)
-  return Lock.request(Lock.LOCKS.FileReadWrite(abspath), (release) => {
+  return Lock.request(Lock.LOCKS.FileReadWrite(abspath), true, (release) => {
     return _writeFile(abspath, contents, (err) => {
       release()
       if (err) return cb(err)
@@ -258,7 +258,7 @@ File.write = function write (folder, relpath, contents, cb) {
 
 File.read = function read (folder, relpath, cb) {
   let abspath = path.join(folder, relpath)
-  return Lock.request(Lock.LOCKS.FileReadWrite(abspath), (release) => {
+  return Lock.request(Lock.LOCKS.FileReadWrite(abspath), false, (release) => {
     return _readFile(abspath, (err, buffer) => {
       release()
       if (err) return cb(err)

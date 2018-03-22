@@ -495,7 +495,7 @@ class ActiveComponent extends BaseModel {
   }
 
   selectAll (options, metadata, cb) {
-    return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
       this.getArtboard().getElement().children.forEach((element) => {
         element.select(metadata)
       })
@@ -507,7 +507,7 @@ class ActiveComponent extends BaseModel {
   }
 
   selectElement (componentId, metadata, cb) {
-    return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
       // Assuming the update occurs remotely, we want to unselect everything but the selected one
       Element.unselectAllElements({ component: this }, metadata)
 
@@ -538,7 +538,7 @@ class ActiveComponent extends BaseModel {
   }
 
   unselectElement (componentId, metadata, cb) {
-    return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
       return this.unselectElementWithinTime(1000, componentId, metadata, () => {
         release()
         return cb() // Must return or the plumbing action circuit never completes
@@ -555,7 +555,7 @@ class ActiveComponent extends BaseModel {
   * @description Changes the current interaction mode and flushes all cachés
   */
   setInteractionMode (interactionMode, metadata, cb) {
-    return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
       this._interactionMode = interactionMode
 
       this.getActiveInstancesOfHaikuCoreComponent().forEach((instance) => {
@@ -938,7 +938,7 @@ class ActiveComponent extends BaseModel {
    * @param cb {Function}
    */
   instantiateComponent (relpath, coords, metadata, cb) {
-    return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
       return this.project.updateHook(
         'instantiateComponent',
         this.getSceneCodeRelpath(),
@@ -1016,7 +1016,7 @@ class ActiveComponent extends BaseModel {
   }
 
   deleteComponent (componentId, metadata, cb) {
-    return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
       this.project.updateHook(
         'deleteComponent',
         this.getSceneCodeRelpath(),
@@ -1329,7 +1329,7 @@ class ActiveComponent extends BaseModel {
   }
 
   mergeDesigns (designs, metadata, cb) {
-    return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
       return this.project.updateHook('mergeDesigns', this.getSceneCodeRelpath(), designs, metadata, (fire) => {
         // Since several designs are merged, and that process occurs async, we can get into a situation
         // where individual fragments are inserted but their parent layouts have not been appropriately
@@ -1367,7 +1367,7 @@ class ActiveComponent extends BaseModel {
   pasteThing (pasteableSerial, {skipHashPadding}, metadata, cb) {
     const pasteable = Bytecode.unserValue(pasteableSerial)
 
-    return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
       return this.project.updateHook('pasteThing', this.getSceneCodeRelpath(), Bytecode.serializeValue(pasteable), {skipHashPadding}, metadata, (fire) => {
         return this.performComponentWork((bytecode, mana, done) => {
           switch (pasteable.kind) {
@@ -1644,7 +1644,7 @@ class ActiveComponent extends BaseModel {
 
     // Note that this lock only occurs in .reload(); if you ever call hardReload or
     // softReload a la carte, you might get a race condition!
-    return Lock.request(Lock.LOCKS.ActiveComponentReload, (release) => {
+    return Lock.request(Lock.LOCKS.ActiveComponentReload, false, (release) => {
       const finish = (err) => {
         release()
 
@@ -1899,7 +1899,7 @@ class ActiveComponent extends BaseModel {
    * by the Glass.
    */
   mountApplication ($el, instanceConfig, cb) {
-    return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
       this.getMount().remountInto($el)
 
       this.codeReloadingOn()
@@ -1969,7 +1969,7 @@ class ActiveComponent extends BaseModel {
    * events can interfere with what the user is doing and a UI lock of some kind is required.
    */
   moduleReplace (cb) {
-    return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
       this.codeReloadingOn()
 
       return this.reload({ hardReload: true, fileReload: true }, null, (err) => {
@@ -2294,7 +2294,7 @@ class ActiveComponent extends BaseModel {
     // Playback during an update creates difficult-to-debug conditions
     this.sleepComponentsOn()
 
-    return Lock.request(Lock.LOCKS.FilePerformComponentWork, (release) => {
+    return Lock.request(Lock.LOCKS.FilePerformComponentWork, false, (release) => {
       const finish = (err, result) => {
         release()
         return cb(err, result)
