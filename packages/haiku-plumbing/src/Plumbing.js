@@ -235,7 +235,7 @@ export default class Plumbing extends StateObject {
 
       haiku.socket.token = HAIKU_WS_SECURITY_TOKEN
 
-      return this.launchControlServer(haiku.socket, (err, server, host, port) => {
+      return this.launchControlServer(haiku.socket, haiku.envoy.host, (err, server, host, port) => {
         if (err) return cb(err)
 
         // Forward these env vars to creator
@@ -1327,9 +1327,7 @@ function getPort (host, cb) {
   return server
 }
 
-Plumbing.prototype.launchControlServer = function launchControlServer (socketInfo, cb) {
-  const host = (socketInfo && socketInfo.host) || '0.0.0.0'
-
+Plumbing.prototype.launchControlServer = function launchControlServer (socketInfo, host, cb) {
   if (socketInfo && socketInfo.port) {
     logger.info(`[plumbing] plumbing websocket server listening on specified port ${socketInfo.port}...`)
 
