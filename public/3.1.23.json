@@ -1,0 +1,14 @@
+{
+  "date": "March 15, 2018",
+  "sections": {
+    "What's new": [
+      "Figma integration! Log in with your Figma account and use Figma assets in your Haiku projects",
+      "Haiku Community! Publish components to https://share.haiku.ai, give kudos, and fork projects",
+      "Launched a knowledge base at https://help.haiku.ai"
+    ],
+    "Fixes": [
+      "Fixed a bug that could cause elements with filter gradients to render incorrectly",
+      "Publish UI install instructions now always display project names and usernames in lowercase"
+    ]
+  }
+}
