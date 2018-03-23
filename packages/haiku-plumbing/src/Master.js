@@ -4,6 +4,7 @@ import { debounce } from 'lodash'
 import { ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
 import fse from 'haiku-fs-extra'
 import walkFiles from 'haiku-serialization/src/utils/walkFiles'
+import BaseModel from 'haiku-serialization/src/bll/BaseModel'
 import File from 'haiku-serialization/src/bll/File'
 import Project from 'haiku-serialization/src/bll/Project'
 import ModuleWrapper from 'haiku-serialization/src/bll/ModuleWrapper'
@@ -169,6 +170,18 @@ export default class Master extends EventEmitter {
     // We end up oversaturating the sockets unless we debounce this
     this.debouncedEmitAssetsChanged = debounce(this.emitAssetsChanged.bind(this), 100, { trailing: true })
     this.debouncedEmitDesignNeedsMergeRequest = debounce(this.emitDesignNeedsMergeRequest.bind(this), 500, { trailing: true })
+  }
+
+  handleBroadcast (message) {
+    switch (message.name) {
+      case 'remote-model:receive-sync':
+        BaseModel.receiveSync(message)
+        break
+
+      case 'component:reload:complete':
+        this._mod.handleReloadComplete(message)
+        break
+    }
   }
 
   getActiveComponent () {

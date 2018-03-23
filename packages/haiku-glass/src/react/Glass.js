@@ -625,7 +625,7 @@ export class Glass extends React.Component {
 
     this.addEmitterListener(this.props.websocket, 'broadcast', (message) => {
       switch (message.name) {
-        case: 'model:sync':
+        case 'remote-model:receive-sync':
           BaseModel.receiveSync(message)
           break
 

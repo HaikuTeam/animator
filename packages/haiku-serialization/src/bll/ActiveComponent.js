@@ -198,7 +198,9 @@ class ActiveComponent extends BaseModel {
     return Element.findByComponentAndHaikuId(this, haikuId)
   }
 
-  findTemplateNodeByComponentId (mana, componentId) {
+  findTemplateNodeByComponentId (componentId) {
+    const mana = this.getReifiedBytecode().template
+
     let foundNode
 
     if (mana.attributes && mana.attributes[HAIKU_ID_ATTRIBUTE] === componentId) {
@@ -1472,7 +1474,7 @@ class ActiveComponent extends BaseModel {
     keyframes.forEach((keyframe) => keyframe.dragStop(dragData))
 
     // We only update once we're finished dragging because moving keyframes may end up
-    // destroying/creating keyframes in the bytecode, and when rehydrate is called, the
+    // destroying/creating keyframes in the bytecode, and when rehydrate() is called, the
     // ids (which are based on keyframe indices) would end up offset
     this.commitAccumulatedKeyframeMovesDebounced()
   }
@@ -2016,6 +2018,9 @@ class ActiveComponent extends BaseModel {
   }
 
   rehydrate () {
+    // Don't allow any incoming syncs while we're in the midst of this
+    // BaseModel.__sync = false
+
     // Required before rehydration because entities use the timeline entity
     this.upsertCurrentTimeline()
 
@@ -2070,6 +2075,9 @@ class ActiveComponent extends BaseModel {
     }
 
     this.positionRows()
+
+    // Now that we have all the initial models ready, we can receive syncs
+    // BaseModel.__sync = true
   }
 
   positionRows () {
@@ -2368,8 +2376,7 @@ class ActiveComponent extends BaseModel {
   }
 
   getElementNameOfComponentId (componentId) {
-    const template = this.getReifiedBytecode().template
-    const element = this.findTemplateNodeByComponentId(template, componentId)
+    const element = this.findTemplateNodeByComponentId(componentId)
     return element && element.elementName
   }
 

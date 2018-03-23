@@ -395,7 +395,7 @@ class Timeline extends React.Component {
     this.addEmitterListener(this.props.websocket, 'broadcast', (message) => {
       if (message.folder !== this.props.folder) return void (0)
       switch (message.name) {
-        case: 'model:sync':
+        case 'remote-model:receive-sync':
           BaseModel.receiveSync(message)
           break
 

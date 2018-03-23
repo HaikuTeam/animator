@@ -504,7 +504,7 @@ export default class Creator extends React.Component {
   componentDidMount () {
     this.props.websocket.on('broadcast', (message) => {
       switch (message.name) {
-        case: 'model:sync':
+        case 'remote-model:receive-sync':
           BaseModel.receiveSync(message)
           break
 

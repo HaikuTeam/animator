@@ -245,10 +245,10 @@ File.DEFAULT_OPTIONS = {
 
 File.DEFAULT_CONTEXT_SIZE = DEFAULT_CONTEXT_SIZE
 
-File.write = function write (folder, relpath, contents, cb) {
+File.write = (folder, relpath, contents, cb) => {
   let abspath = path.join(folder, relpath)
   return Lock.request(Lock.LOCKS.FileReadWrite(abspath), true, (release) => {
-    return _writeFile(abspath, contents, (err) => {
+    return fse.outputFile(abspath, contents, (err) => {
       release()
       if (err) return cb(err)
       return cb()
@@ -256,10 +256,10 @@ File.write = function write (folder, relpath, contents, cb) {
   })
 }
 
-File.read = function read (folder, relpath, cb) {
+File.read = (folder, relpath, cb) => {
   let abspath = path.join(folder, relpath)
   return Lock.request(Lock.LOCKS.FileReadWrite(abspath), false, (release) => {
-    return _readFile(abspath, (err, buffer) => {
+    return fse.readFile(abspath, (err, buffer) => {
       release()
       if (err) return cb(err)
       return cb(null, buffer.toString())
@@ -267,11 +267,11 @@ File.read = function read (folder, relpath, cb) {
   })
 }
 
-File.isPathCode = function isPathCode (relpath) {
+File.isPathCode = (relpath) => {
   return _isFileCode(relpath)
 }
 
-File.ingestOne = function ingestOne (folder, relpath, cb) {
+File.ingestOne = (folder, relpath, cb) => {
   // This can be used to determine if an in-memory-only update occurred after or before a filesystem update.
   // Track it here so we get an accurate picture of when the ingestion routine actually began, including before
   // we actually talked to the real filesystem, which can take some time
@@ -280,7 +280,7 @@ File.ingestOne = function ingestOne (folder, relpath, cb) {
   return File.ingestContents(folder, relpath, { dtLastReadStart }, cb)
 }
 
-File.ingestContents = function ingestContents (folder, relpath, { dtLastReadStart }, cb) {
+File.ingestContents = (folder, relpath, { dtLastReadStart }, cb) => {
   // Note: The only properties that should be in the object at this point should be relpath and folder,
   // otherwise the upsert won't work correctly since it uses these props as a comparison
   const fileAttrs = {
@@ -318,7 +318,7 @@ File.ingestContents = function ingestContents (folder, relpath, { dtLastReadStar
   })
 }
 
-File.expelOne = function expelOne (folder, relpath, cb) {
+File.expelOne = (folder, relpath, cb) => {
   // TODO
   const file = File.findById(path.join(folder, relpath))
   if (file) {
@@ -327,12 +327,13 @@ File.expelOne = function expelOne (folder, relpath, cb) {
   cb()
 }
 
-File.ingestFromFolder = function ingestFromFolder (folder, options, cb) {
-  function isExcluded (relpath) {
+File.ingestFromFolder = (folder, options, cb) => {
+  const isExcluded = (relpath) => {
     if (!options) return false
     if (!options.exclude) return false
     return options.exclude(relpath)
   }
+
   return walkFiles(folder, (err, entries) => {
     if (err) return cb(err)
     const picks = []
@@ -362,7 +363,7 @@ File.ingestFromFolder = function ingestFromFolder (folder, options, cb) {
  * @param relpath {String} Relative path to SVG design asset within folder
  * @param cb {Function} Callback
  */
-File.readMana = function readMana (folder, relpath, cb) {
+File.readMana = (folder, relpath, cb) => {
   return File.read(folder, relpath, (err, buffer) => {
     if (err) return cb(err)
 
@@ -398,7 +399,9 @@ File.readMana = function readMana (folder, relpath, cb) {
       })
       .catch(() => {
         logger.warn(`[file] svgo couldn't parse ${relpath}`)
-        return returnUnoptimizedMana()
+        return setTimeout(() => { // Escape promise chain so exceptions occur with more normal traces
+          return returnUnoptimizedMana()
+        })
       })
     } else {
       return returnUnoptimizedMana()
@@ -406,19 +409,11 @@ File.readMana = function readMana (folder, relpath, cb) {
   })
 }
 
-function _isFileCode (relpath) {
+const _isFileCode = (relpath) => {
   return path.extname(relpath) === '.js'
 }
 
-function _readFile (abspath, cb) {
-  return fse.readFile(abspath, cb)
-}
-
-function _writeFile (abspath, contents, cb) {
-  return fse.outputFile(abspath, contents, cb)
-}
-
-function _looksLikeMassiveFile (relpath) {
+const _looksLikeMassiveFile = (relpath) => {
   return relpath.match(/\.(standalone|bundle|embed)\.(js|html)$/)
 }
 

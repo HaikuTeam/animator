@@ -390,12 +390,7 @@ export default class Plumbing extends StateObject {
     }
 
     if (message.type === 'broadcast') {
-      // HACK: This doesn't belong here, but it's convenient while I refactor
-      if (message.name === 'component:reload:complete') {
-        return this.findMasterByFolder(folder)._mod.handleReloadComplete(message)
-      }
-
-      if ()
+      this.findMasterByFolder(folder).handleBroadcast(message)
 
       // Give clients the chance to emit events to all others
       return this.sendBroadcastMessage(message, folder, alias, websocket)
