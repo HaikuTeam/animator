@@ -1,0 +1,616 @@
+var Haiku = require("@haiku/core");
+module.exports = {
+  metadata: {
+    uuid: "ff42afe5-6d74-4174-a23a-e48cec867c3d",
+    type: "haiku",
+    name: "Test",
+    relpath: "code/main/code.js",
+    version: "0.0.2",
+    core: "3.1.32",
+    player: "3.1.32",
+    organization: "sillyleo",
+    project: "Test",
+    branch: "master"
+  },
+  options: {},
+  states: {},
+  eventHandlers: {},
+  timelines: {
+    Default: {
+      "haiku:e4a9e4d8baa7": {
+        "style.WebkitTapHighlightColor": { "0": { value: "rgba(0,0,0,0)" } },
+        "style.transformStyle": { "0": { value: "flat" } },
+        "style.perspective": { "0": { value: "none", edited: true } },
+        "style.position": { "0": { value: "relative" } },
+        "style.overflowX": { "0": { value: "hidden" } },
+        "style.overflowY": { "0": { value: "hidden" } },
+        "sizeAbsolute.x": { "0": { value: 405.875 } },
+        "sizeAbsolute.y": { "0": { value: 732.625 } },
+        "sizeMode.x": { "0": { value: 1 } },
+        "sizeMode.y": { "0": { value: 1 } },
+        "sizeMode.z": { "0": { value: 1 } }
+      },
+      "haiku:ed9732e3df20": {
+        "style.position": { "0": { value: "absolute" } },
+        "style.margin": { "0": { value: "0" } },
+        "style.padding": { "0": { value: "0" } },
+        "style.border": { "0": { value: "0" } },
+        "sizeAbsolute.x": { "0": { value: 414 } },
+        "sizeMode.x": { "0": { value: 1 } },
+        "sizeAbsolute.y": { "0": { value: 204 } },
+        "sizeMode.y": { "0": { value: 1 } },
+        "translation.x": {
+          "0": { value: 0, edited: true },
+          "400": { value: 0, edited: true }
+        },
+        "translation.y": {
+          "0": { value: -117.25, edited: true, curve: "easeOutCubic" },
+          "400": { value: -6.3125 }
+        },
+        "style.zIndex": { "0": { value: 2 } }
+      },
+      "haiku:b8b428f2ed07": {
+        "style.position": { "0": { value: "absolute" } },
+        "style.margin": { "0": { value: "0" } },
+        "style.padding": { "0": { value: "0" } },
+        "style.border": { "0": { value: "0" } },
+        "sizeAbsolute.x": { "0": { value: 131 } },
+        "sizeMode.x": { "0": { value: 1 } },
+        "sizeAbsolute.y": { "0": { value: 77 } },
+        "sizeMode.y": { "0": { value: 1 } },
+        "translation.x": {
+          "0": { value: 135.3125, edited: true },
+          "400": { value: 135.3125, curve: "linear", edited: true },
+          "567": { value: 135.3125, edited: true }
+        },
+        "translation.y": {
+          "0": { value: 737.125, edited: true },
+          "400": { value: 776.1875, curve: "linear", edited: true },
+          "567": { value: 639.46875, edited: true }
+        },
+        "style.zIndex": { "0": { value: 6 } },
+        "translation.z": {
+          "0": { value: 0, curve: null, edited: true },
+          "567": { value: 0, edited: true }
+        },
+        opacity: {
+          "0": { value: 0, curve: null, edited: true },
+          "400": { value: 0, edited: true, curve: "linear" },
+          "567": { value: 1, edited: true }
+        }
+      },
+      "haiku:82c161f082ea": {
+        "style.position": { "0": { value: "absolute" } },
+        "style.margin": { "0": { value: "0" } },
+        "style.padding": { "0": { value: "0" } },
+        "style.border": { "0": { value: "0" } },
+        "sizeAbsolute.x": { "0": { value: 414 } },
+        "sizeMode.x": { "0": { value: 1 } },
+        "sizeAbsolute.y": { "0": { value: 247 } },
+        "sizeMode.y": { "0": { value: 1 } },
+        "translation.x": {
+          "0": { value: -3.4375, edited: true, curve: "linear" },
+          "400": { value: -3.4375 }
+        },
+        "translation.y": {
+          "0": { value: 760.625, edited: true, curve: "linear" },
+          "400": { value: 487.1875 }
+        },
+        "style.zIndex": { "0": { value: 3 } }
+      },
+      "haiku:641386b9d3b5": {
+        "style.position": { "0": { value: "absolute" } },
+        "style.margin": { "0": { value: "0" } },
+        "style.padding": { "0": { value: "0" } },
+        "style.border": { "0": { value: "0" } },
+        "sizeAbsolute.x": { "0": { value: 414 } },
+        "sizeMode.x": { "0": { value: 1 } },
+        "sizeAbsolute.y": { "0": { value: 187 } },
+        "sizeMode.y": { "0": { value: 1 } },
+        "translation.x": {
+          "0": { value: -4.9375, edited: true, curve: "linear" },
+          "400": { value: -4.9375 }
+        },
+        "translation.y": {
+          "0": { value: 804.171875, edited: true, curve: "linear" },
+          "400": { value: 548.3125 }
+        },
+        "style.zIndex": { "0": { value: 4 } }
+      },
+      "haiku:268d35d711a8": {
+        stroke: { "0": { value: "none" } },
+        "stroke-width": { "0": { value: "1" } },
+        fill: { "0": { value: "none" } },
+        "fill-rule": { "0": { value: "evenodd" } }
+      },
+      "haiku:bd654921194e": {
+        fill: { "0": { value: "#000000" } },
+        "fill-rule": { "0": { value: "nonzero" } }
+      },
+      "haiku:bc600555632e": {
+        d: {
+          "0": {
+            value: "M406.868037,203.999996 C349.958685,183.471643 246.219072,178.885182 239.648721,172.011029 C232.165352,164.181643 228.451177,89.612874 228.307132,101.131326 C228.163086,112.649778 223.573634,155.892 216.281326,172.011029 C193.865232,169.200455 107.711969,179.937469 98.7251255,179.840415 C89.7382817,179.74236 80.2902919,130.491772 80.2902919,130.491772 C80.2902919,130.491772 83.6033403,174.738557 80.2902919,184.702138 C49.6780278,189.386645 22.2820292,197.552448 3.2381397,204 L0,204 L0,0 L414,0 L414,204 L406.868048,204 Z"
+          }
+        }
+      },
+      "haiku:9c8faae3da96": {
+        stroke: { "0": { value: "none" } },
+        "stroke-width": { "0": { value: "1" } },
+        fill: { "0": { value: "none" } },
+        "fill-rule": { "0": { value: "evenodd" } }
+      },
+      "haiku:c05ced55b2dc": {
+        "translation.x": { "0": { value: -142 } },
+        "translation.y": { "0": { value: -637 } }
+      },
+      "haiku:7f669cac9093": { "translation.y": { "0": { value: 636 } } },
+      "haiku:46e439488bb8": {
+        x: { "0": { value: "0" } },
+        y: { "0": { value: "0" } },
+        "sizeAbsolute.x": { "0": { value: 414 } },
+        "sizeMode.x": { "0": { value: 1 } },
+        "sizeAbsolute.y": { "0": { value: 78 } },
+        "sizeMode.y": { "0": { value: 1 } }
+      },
+      "haiku:da839d5cb471": {
+        d: {
+          "0": {
+            value: "M209.6363,22.5539076 C209.6363,22.5539076 209.6363,22.5539076 209.6363,22.5539076 C208.2603,23.0809636 206.7397,23.0809636 205.3637,22.5539076 C205.3637,22.5539076 205.3637,22.5539076 205.3637,22.5539076 L150.13628,1.40083545 C146.20903,-0.10337814 142,2.8123684 142,7.03711978 L142,71.9628689 C142,76.1876605 146.20903,79.103407 150.13628,77.5991412 L205.3637,56.4460308 C206.7397,55.9190753 208.2603,55.9190753 209.6363,56.4460308 L264.864,77.5991412 C268.791,79.103407 273,76.1876605 273,71.9628689 L273,7.03711978 C273,2.8123684 268.791,-0.10337814 264.864,1.40083545 L209.6363,22.5539076 Z"
+          }
+        },
+        fill: { "0": { value: "#EB5757" } },
+        "fill-rule": { "0": { value: "nonzero" } }
+      },
+      "haiku:9fdf74836c4f": {
+        stroke: { "0": { value: "none" } },
+        "stroke-width": { "0": { value: "1" } },
+        fill: { "0": { value: "none" } },
+        "fill-rule": { "0": { value: "evenodd" } }
+      },
+      "haiku:56b8935bd044": {
+        fill: { "0": { value: "#FFFFFF" } },
+        "fill-rule": { "0": { value: "nonzero" } },
+        "translation.y": { "0": { value: -489 } }
+      },
+      "haiku:815b67e42abe": { "translation.y": { "0": { value: 489 } } },
+      "haiku:c92ff10d4e4f": {
+        d: {
+          "0": {
+            value: "M0,0 L176.556,70.2794 C195.47,77.8085 216.544,77.8434 235.483,70.3769 L414,0 L414,247 L0,247 L0,0 Z"
+          }
+        }
+      },
+      "haiku:6b83dfd89231": {
+        stroke: { "0": { value: "none" } },
+        "stroke-width": { "0": { value: "1" } },
+        fill: { "0": { value: "none" } },
+        "fill-rule": { "0": { value: "evenodd" } }
+      },
+      "haiku:cb990f681a01": {
+        fill: { "0": { value: "#000000" } },
+        "fill-rule": { "0": { value: "nonzero" } },
+        "translation.y": { "0": { value: -549 } }
+      },
+      "haiku:e1714fa225ba": { "translation.y": { "0": { value: 549 } } },
+      "haiku:d053d857079e": {
+        d: {
+          "0": {
+            value: "M0,0 L176.556,70.2794 C195.47,77.8085 216.544,77.8434 235.483,70.3769 L414,0 L414,187 L0,187 L0,0 Z"
+          }
+        }
+      },
+      "haiku:211dd5e09ef5": {
+        "style.position": { "0": { value: "absolute" } },
+        "style.margin": { "0": { value: "0" } },
+        "style.padding": { "0": { value: "0" } },
+        "style.border": { "0": { value: "0" } },
+        "sizeAbsolute.x": { "0": { value: 90 } },
+        "sizeMode.x": { "0": { value: 1 } },
+        "sizeAbsolute.y": { "0": { value: 90 } },
+        "sizeMode.y": { "0": { value: 1 } },
+        "translation.x": {
+          "0": { value: 159.15821075439487, edited: true },
+          "400": { value: 159.15821075439487 }
+        },
+        "translation.y": {
+          "0": { value: 352.7211922407153, edited: true },
+          "400": { value: 390.868164896965 }
+        },
+        "style.zIndex": { "0": { value: 1 } },
+        "scale.x": {
+          "0": { value: 4.4993489583333375 },
+          "400": { value: 4.4993489583333375 }
+        },
+        "scale.y": {
+          "0": { value: 9.863661024305557 },
+          "400": { value: 6.981445312500003 }
+        }
+      },
+      "haiku:888b4978ab18": {
+        stroke: { "0": { value: "none" } },
+        "stroke-width": { "0": { value: "1" } },
+        fill: { "0": { value: "none" } },
+        "fill-rule": { "0": { value: "evenodd" } }
+      },
+      "haiku:882684a04c63": {
+        fill: { "0": { value: "#FFF3ED" } },
+        "translation.y": { "0": { value: -392 } }
+      },
+      "haiku:ca8e88c4ad09": {
+        x: { "0": { value: "0" } },
+        y: { "0": { value: "392" } },
+        "sizeAbsolute.x": { "0": { value: 90 } },
+        "sizeMode.x": { "0": { value: 1 } },
+        "sizeAbsolute.y": { "0": { value: 90 } },
+        "sizeMode.y": { "0": { value: 1 } }
+      },
+      "haiku:b8a8459fa737": {
+        "style.position": { "0": { value: "absolute" } },
+        "style.margin": { "0": { value: "0" } },
+        "style.padding": { "0": { value: "0" } },
+        "style.border": { "0": { value: "0" } },
+        "sizeAbsolute.x": { "0": { value: 414 } },
+        "sizeMode.x": { "0": { value: 1 } },
+        "sizeAbsolute.y": { "0": { value: 219 } },
+        "sizeMode.y": { "0": { value: 1 } },
+        "translation.x": {
+          "0": { value: -2.4999923706054688, edited: true, curve: "linear" },
+          "400": { value: -2.4999923706054688 }
+        },
+        "translation.y": {
+          "0": { value: -164.67187416553497, edited: true, curve: "linear" },
+          "400": { value: 233.76562583446503 }
+        },
+        "style.zIndex": { "0": { value: 5 } },
+        opacity: {
+          "0": { value: 0, edited: true, curve: "linear" },
+          "350": { value: 0, edited: true, curve: "linear" },
+          "400": { value: 1, edited: true }
+        }
+      },
+      "haiku:82ad5831e3ab": {
+        stroke: { "0": { value: "none" } },
+        "stroke-width": { "0": { value: "1" } },
+        fill: { "0": { value: "none" } },
+        "fill-rule": { "0": { value: "evenodd" } }
+      },
+      "haiku:3f94ee3f3f17": {
+        "fill-rule": { "0": { value: "nonzero" } },
+        "translation.y": { "0": { value: -218 } }
+      },
+      "haiku:f9334cf7f8a7": { "translation.y": { "0": { value: 218 } } },
+      "haiku:4aa73a472be0": {
+        d: {
+          "0": {
+            value: "M289.5,127 C325.122437,127 354,98.5701141 354,63.5 C354,28.4299857 325.122437,0 289.5,0 C253.877663,0 225,28.4299857 225,63.5 C225,98.5701141 253.877663,127 289.5,127 Z"
+          }
+        },
+        fill: { "0": { value: "#FFFFFF" } }
+      },
+      "haiku:5be626abfb94": {
+        d: {
+          "0": {
+            value: "M289.99995,77 C297.17968,77 303,71.1796369 303,64 C303,56.8202922 297.17968,51 289.99995,51 C282.82029,51 277,56.8202922 277,64 C277,71.1796369 282.82029,77 289.99995,77 Z"
+          }
+        },
+        fill: { "0": { value: "#382718" } }
+      },
+      "haiku:8355483613d2": {
+        d: {
+          "0": {
+            value: "M125.5,127 C161.122437,127 190,98.5701141 190,63.5 C190,28.4299857 161.122437,0 125.5,0 C89.8776634,0 61,28.4299857 61,63.5 C61,98.5701141 89.8776634,127 125.5,127 Z"
+          }
+        },
+        fill: { "0": { value: "#FFFFFF" } }
+      },
+      "haiku:d1a1c9f6e620": {
+        d: {
+          "0": {
+            value: "M124.99995,77 C132.17968,77 138,71.1796369 138,64 C138,56.8202922 132.17968,51 124.99995,51 C117.82029,51 112,56.8202922 112,64 C112,71.1796369 117.82029,77 124.99995,77 Z"
+          }
+        },
+        fill: { "0": { value: "#382718" } }
+      },
+      "haiku:4507403e48d6": {
+        d: {
+          "0": {
+            value: "M61.7486955,55.6855901 C65.6510495,24.3022242 92.753984,0 125.608195,0 C158.462498,0 185.565354,24.3022242 189.467696,55.6855901 L225.637556,55.6855901 C229.53991,24.3022242 256.642845,0 289.497056,0 C322.351359,0 349.454215,24.3022242 353.356557,55.6855901 L414,55.6855901 L414,69.468583 L353.558434,69.468583 C350.510156,101.739811 322.992698,127 289.497056,127 C256.001508,127 228.483966,101.739811 225.435678,69.468583 L189.669573,69.468583 C186.621296,101.739811 159.103837,127 125.608195,127 C92.112647,127 64.5951048,101.739811 61.5468176,69.468583 L0,69.468583 L0,55.6855901 L61.7486955,55.6855901 Z M289.50005,115 C318.626013,115 342,91.8132599 342,63.5000498 C342,35.1869395 318.626013,12 289.50005,12 C260.374187,12 237,35.1869395 237,63.5000498 C237,91.8132599 260.374187,115 289.50005,115 Z M125.50005,115 C154.626013,115 178,91.8132599 178,63.5000498 C178,35.1869395 154.626013,12 125.50005,12 C96.3741869,12 73,35.1869395 73,63.5000498 C73,91.8132599 96.3741869,115 125.50005,115 Z"
+          }
+        },
+        fill: { "0": { value: "#000000" } }
+      },
+      "haiku:88ee957898d2": {
+        fill: { "0": { value: "#FA893B" } },
+        "translation.x": { "0": { value: 137 } },
+        "translation.y": { "0": { value: 190 } }
+      },
+      "haiku:b397ce48fc10": {
+        d: {
+          "0": {
+            value: "M139.181977,4.06313636 C141.059342,7.72429988 139.595837,12.2051046 135.912081,14.0714029 C125.342652,19.4254981 111.863207,22.8214953 98.0404766,25.0137623 C84.1172806,27.2219255 69.3496699,28.2822929 55.9233061,28.7265881 C42.4787484,29.1714794 30.2633754,29.0020869 21.4122658,28.722316 C16.9830622,28.5823312 13.3871771,28.414429 10.8902207,28.280902 C9.64151257,28.2141384 8.6670418,28.1559191 7.99992719,28.1140925 C7.66635988,28.0931296 7.40957664,28.0763394 7.23373605,28.0645167 L7.03116449,28.050707 L6.95590991,28.0455407 C6.95432045,28.045342 6.95305088,28.045342 7.48710045,20.6235652 L6.95305088,28.045342 C2.82875429,27.7521588 -0.275554903,24.1917367 0.0193929471,20.0928351 C0.314319805,15.9942315 3.8963536,12.9092013 8.02029031,13.2017884 C8.02058021,13.2017884 8.02000041,13.2017884 8.02029031,13.2017884 L8.06920378,13.2052656 L8.24094576,13.2168896 C8.39599337,13.2272221 8.63141384,13.2427207 8.94308854,13.2622928 C9.56646792,13.3013375 10.4946543,13.3568744 11.6946489,13.4210548 C14.0951379,13.5494156 17.5808602,13.7123503 21.888205,13.8484605 C30.5103919,14.1210781 42.3885788,14.284907 55.4250744,13.853428 C68.4797638,13.4214522 82.5806997,12.3959568 95.6808738,10.3183402 C108.881214,8.22485726 120.580261,5.13509794 129.111379,0.813140652 C132.795135,-1.05309401 137.303611,0.401981786 139.181977,4.06313636 Z"
+          }
+        }
+      }
+    }
+  },
+  template: {
+    elementName: "div",
+    attributes: { "haiku-id": "e4a9e4d8baa7", "haiku-title": "Test" },
+    children: [
+      {
+        elementName: "svg",
+        attributes: {
+          version: "1.1",
+          xmlns: "http://www.w3.org/2000/svg",
+          "xmlns:xlink": "http://www.w3.org/1999/xlink",
+          source: "designs/Leo in Suite.sketch.contents/slices/face.svg",
+          "haiku-id": "b8a8459fa737",
+          "haiku-title": "face"
+        },
+        children: [
+          {
+            elementName: "g",
+            attributes: { "haiku-id": "82ad5831e3ab", id: "Page-1" },
+            children: [
+              {
+                elementName: "g",
+                attributes: { "haiku-id": "3f94ee3f3f17", id: "iPhone-8-Plus" },
+                children: [
+                  {
+                    elementName: "g",
+                    attributes: { "haiku-id": "f9334cf7f8a7", id: "face" },
+                    children: [
+                      {
+                        elementName: "g",
+                        attributes: {
+                          "haiku-id": "e9aa336884a4",
+                          id: "glasses"
+                        },
+                        children: [
+                          {
+                            elementName: "path",
+                            attributes: {
+                              "haiku-id": "4aa73a472be0",
+                              id: "path0_fill"
+                            },
+                            children: []
+                          },
+                          {
+                            elementName: "path",
+                            attributes: {
+                              "haiku-id": "5be626abfb94",
+                              id: "path5_fill"
+                            },
+                            children: []
+                          },
+                          {
+                            elementName: "path",
+                            attributes: {
+                              "haiku-id": "8355483613d2",
+                              id: "path0_fill-copy"
+                            },
+                            children: []
+                          },
+                          {
+                            elementName: "path",
+                            attributes: {
+                              "haiku-id": "d1a1c9f6e620",
+                              id: "path5_fill"
+                            },
+                            children: []
+                          },
+                          {
+                            elementName: "path",
+                            attributes: { "haiku-id": "4507403e48d6" },
+                            children: []
+                          }
+                        ]
+                      },
+                      {
+                        elementName: "g",
+                        attributes: { "haiku-id": "88ee957898d2", id: "mouth" },
+                        children: [
+                          {
+                            elementName: "path",
+                            attributes: {
+                              "haiku-id": "b397ce48fc10",
+                              id: "path0_fill"
+                            },
+                            children: []
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        elementName: "svg",
+        attributes: {
+          version: "1.1",
+          xmlns: "http://www.w3.org/2000/svg",
+          "xmlns:xlink": "http://www.w3.org/1999/xlink",
+          source: "designs/Leo in Suite.sketch.contents/slices/facecolor.svg",
+          "haiku-id": "211dd5e09ef5",
+          "haiku-title": "facecolor"
+        },
+        children: [
+          {
+            elementName: "g",
+            attributes: { "haiku-id": "888b4978ab18", id: "Page-1" },
+            children: [
+              {
+                elementName: "g",
+                attributes: { "haiku-id": "882684a04c63", id: "iPhone-8-Plus" },
+                children: [
+                  {
+                    elementName: "rect",
+                    attributes: { "haiku-id": "ca8e88c4ad09", id: "facecolor" },
+                    children: []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        elementName: "svg",
+        attributes: {
+          version: "1.1",
+          xmlns: "http://www.w3.org/2000/svg",
+          "xmlns:xlink": "http://www.w3.org/1999/xlink",
+          source: "designs/Leo in Suite.sketch.contents/slices/top suit.svg",
+          "haiku-id": "641386b9d3b5",
+          "haiku-title": "top suit"
+        },
+        children: [
+          {
+            elementName: "g",
+            attributes: { "haiku-id": "6b83dfd89231", id: "Page-1" },
+            children: [
+              {
+                elementName: "g",
+                attributes: { "haiku-id": "cb990f681a01", id: "iPhone-8-Plus" },
+                children: [
+                  {
+                    elementName: "g",
+                    attributes: { "haiku-id": "e1714fa225ba", id: "top-suit" },
+                    children: [
+                      {
+                        elementName: "path",
+                        attributes: { "haiku-id": "d053d857079e", id: "suite" },
+                        children: []
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        elementName: "svg",
+        attributes: {
+          version: "1.1",
+          xmlns: "http://www.w3.org/2000/svg",
+          "xmlns:xlink": "http://www.w3.org/1999/xlink",
+          source: "designs/Leo in Suite.sketch.contents/slices/shirt.svg",
+          "haiku-id": "82c161f082ea",
+          "haiku-title": "shirt"
+        },
+        children: [
+          {
+            elementName: "g",
+            attributes: { "haiku-id": "9fdf74836c4f", id: "Page-1" },
+            children: [
+              {
+                elementName: "g",
+                attributes: { "haiku-id": "56b8935bd044", id: "iPhone-8-Plus" },
+                children: [
+                  {
+                    elementName: "g",
+                    attributes: { "haiku-id": "815b67e42abe", id: "shirt" },
+                    children: [
+                      {
+                        elementName: "path",
+                        attributes: {
+                          "haiku-id": "c92ff10d4e4f",
+                          id: "path0_fill"
+                        },
+                        children: []
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        elementName: "svg",
+        attributes: {
+          version: "1.1",
+          xmlns: "http://www.w3.org/2000/svg",
+          "xmlns:xlink": "http://www.w3.org/1999/xlink",
+          source: "designs/Leo in Suite.sketch.contents/slices/juju.svg",
+          "haiku-id": "b8b428f2ed07",
+          "haiku-title": "juju"
+        },
+        children: [
+          {
+            elementName: "g",
+            attributes: { "haiku-id": "9c8faae3da96", id: "Page-1" },
+            children: [
+              {
+                elementName: "g",
+                attributes: { "haiku-id": "c05ced55b2dc", id: "iPhone-8-Plus" },
+                children: [
+                  {
+                    elementName: "g",
+                    attributes: { "haiku-id": "7f669cac9093", id: "juju" },
+                    children: [
+                      {
+                        elementName: "rect",
+                        attributes: {
+                          "haiku-id": "46e439488bb8",
+                          id: "Rectangle-4"
+                        },
+                        children: []
+                      },
+                      {
+                        elementName: "path",
+                        attributes: {
+                          "haiku-id": "da839d5cb471",
+                          id: "path0_fill"
+                        },
+                        children: []
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        elementName: "svg",
+        attributes: {
+          version: "1.1",
+          xmlns: "http://www.w3.org/2000/svg",
+          "xmlns:xlink": "http://www.w3.org/1999/xlink",
+          source: "designs/Leo in Suite.sketch.contents/slices/hair.svg",
+          "haiku-id": "ed9732e3df20",
+          "haiku-title": "hair"
+        },
+        children: [
+          {
+            elementName: "g",
+            attributes: { "haiku-id": "268d35d711a8", id: "Page-1" },
+            children: [
+              {
+                elementName: "g",
+                attributes: { "haiku-id": "bd654921194e", id: "iPhone-8-Plus" },
+                children: [
+                  {
+                    elementName: "path",
+                    attributes: { "haiku-id": "bc600555632e", id: "hair" },
+                    children: []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+};

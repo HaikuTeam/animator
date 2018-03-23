@@ -218,27 +218,25 @@ const translateInterpolationPoints = (points: BodymovinPathComponent, vertices: 
 
 /**
  * Translates an SVG path to a Bodymovin interpolation trace.
- * @param {string} path
  * @returns {[key in PathKey]: BodymovinPathComponent}
+ * @param points
+ * @param closed
  */
-export const pathToInterpolationTrace = (points: PathPoint[]) => {
+export const pathToInterpolationTrace = (points: PathPoint[], closed: boolean) => {
   const vertices: BodymovinPathComponent = [];
   const interpolationInPoints: BodymovinPathComponent = [];
   const interpolationOutPoints: BodymovinPathComponent = [];
-
-  let closed = true;
 
   // Force the last vertex to be the same as the first so we can use the same algorithm for closed and open paths.
   // The renderer will respect the value of "closed" we pass below.
   if (points.length > 1 &&
     (points[0].x !== points[points.length - 1].x || points[0].y !== points[points.length - 1].y)) {
-    closed = false;
     points.push(points[0]);
   }
 
   let lastVertex;
   points.forEach((point, index) => {
-    if (point.moveTo && index === 0) {
+    if (index === 0) {
       // We are at a moveto. This pushes a new vertex onto our trace.
       vertices.push(lastVertex = [point.x, point.y] as BodymovinCoordinates);
     } else if (point.curve) {
@@ -386,62 +384,32 @@ const polygonContainsPoint = (polygon: PathPoint[], p: PathPoint): boolean => {
  * @param {string} path
  * @returns {string[]}
  */
-export const decomposePath = (path: string|PathPoint[]): PathPoint[][] => {
+export const decomposePath = (path: string|PathPoint[]): {points: PathPoint[], closed: boolean}[] => {
+  if (!Array.isArray(path)) {
+    return decomposePath(pathToPoints(path));
+  }
+
   const allClosedPaths = [];
-  if (Array.isArray(path)) {
-    let lastIndex = 0;
-    for (let i = 0; i < path.length; ++i) {
-      if (path[i].closed || i === path.length - 1) {
-        allClosedPaths.push(path.slice(lastIndex, i + 1));
-        lastIndex = i + 1;
-      }
-    }
-  } else {
-    allClosedPaths.push(...path.split(/z/ig).filter((segment) => !!segment).map(pathToPoints));
-  }
-  const closureEndpoints: [number, number][] = [];
-  let cursorIndex = 0;
-  let enclosureIndex = undefined;
-  let enclosure: PathPoint[] = [];
-  if (allClosedPaths.length < 2) {
-    return allClosedPaths;
-  }
-
-  while (cursorIndex < allClosedPaths.length) {
-    // Check if the first point of the current path is contained within the current enclosure. (This is trivially
-    // false for the first point of the first path.)
-    const chosenPoint = allClosedPaths[cursorIndex][0];
-    if (polygonContainsPoint(enclosure, chosenPoint)) {
-      cursorIndex++;
-      continue;
+  let lastIndex = 0;
+  for (let i = 0; i < path.length; ++i) {
+    if (path[i].closed || i === path.length - 1) {
+      allClosedPaths.push({
+        points: path.slice(lastIndex, i + 1),
+        closed: path[i].closed,
+      });
+      lastIndex = i + 1;
     }
 
-    // We have started a new shape! Capture the union of the polygons from enclosureIndex->cursorIndex in
-    // decomposed, then reset.
-    if (enclosureIndex !== undefined) {
-      closureEndpoints.push([enclosureIndex, cursorIndex]);
+    if (path[i].moveTo && i !== lastIndex) {
+      allClosedPaths.push({
+        points: path.slice(lastIndex, i),
+        closed: false,
+      });
+      lastIndex = i;
     }
-
-    enclosure = allClosedPaths[cursorIndex];
-    enclosureIndex = cursorIndex;
-    cursorIndex++;
   }
 
-  closureEndpoints.push([enclosureIndex, cursorIndex]);
-
-  // We now have an array like [[0, 1], [1, 2], [2, 5]] of non-contiguous junctures in a compound path. As the final
-  // step, collapse these into their final PathPoint[][] form.
-  return closureEndpoints.map(
-    ([start, end]) => allClosedPaths
-      .slice(start, end)
-      .reduce(
-        (collation, vertices) => {
-          collation.push(...vertices);
-          return collation;
-        },
-        [],
-      ),
-  );
+  return allClosedPaths;
 };
 
 /**
