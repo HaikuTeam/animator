@@ -842,6 +842,15 @@ export default class Plumbing extends StateObject {
   authenticateUser (username, password, cb) {
     this.set('organizationName', null) // Unset this cache to avoid writing others folders if somebody switches accounts in the middle of a session
     return inkstone.user.authenticate(username, password, (authErr, authResponse, httpResponse) => {
+      if (!httpResponse) {
+        this.sentryError('authenticationProxyError', authErr)
+        // eslint-disable-next-line standard/no-callback-literal
+        return cb({
+          code: 407,
+          message: 'Unable to log in. Are you behind a VPN?'
+        })
+      }
+
       if (httpResponse.statusCode === 401 || httpResponse.statusCode === 403) {
         // eslint-disable-next-line standard/no-callback-literal
         return cb({
