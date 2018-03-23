@@ -181,12 +181,6 @@ class ProjectBrowser extends React.Component {
     return this.props.websocket.request({ method: 'deleteProject', params: [name, path] }, cb)
   }
 
-  logOut () {
-    return this.props.websocket.request({ method: 'doLogOut' }, () => {
-      this.props.clearAuth()
-    })
-  }
-
   showNewProjectModal () {
     this.setState({ showNewProjectModal: true, newProjectError: null })
   }
@@ -401,13 +395,7 @@ class ProjectBrowser extends React.Component {
         <div
           id='haiku-button-logout'
           style={[DASH_STYLES.popover.item, DASH_STYLES.popover.pointer]}
-          onClick={() => {
-            this.logOut()
-
-            mixpanel.haikuTrack('creator:project-browser:user-menu-option-selected', {
-              option: 'logout'
-            })
-          }}>
+          onClick={this.props.logOut}>
           <span style={DASH_STYLES.popover.icon}>
             <LogOutSVG />
           </span>
