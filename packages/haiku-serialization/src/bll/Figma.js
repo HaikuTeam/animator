@@ -139,7 +139,7 @@ class Figma {
 
       if (ids.length === 0) {
         // eslint-disable-next-line
-        reject({err: 'We couldn\'t find any groups or slices in your project.'})
+        return reject({err: 'We couldn\'t find any groups or slices in your project.'})
       }
 
       this.request({ uri })
