@@ -138,6 +138,7 @@ class Figma {
       const uri = API_BASE + 'images/' + id + '?' + params.toString()
 
       if (ids.length === 0) {
+        // eslint-disable-next-line
         reject({err: 'We couldn\'t find any groups or slices in your project.'})
       }
 
