@@ -3,6 +3,7 @@ import Color from 'color'
 import lodash from 'lodash'
 import { DraggableCore } from 'react-draggable'
 import Combokeys from 'combokeys'
+import BaseModel from 'haiku-serialization/src/bll/BaseModel'
 import Project from 'haiku-serialization/src/bll/Project'
 import Row from 'haiku-serialization/src/bll/Row'
 import Keyframe from 'haiku-serialization/src/bll/Keyframe'
@@ -394,6 +395,10 @@ class Timeline extends React.Component {
     this.addEmitterListener(this.props.websocket, 'broadcast', (message) => {
       if (message.folder !== this.props.folder) return void (0)
       switch (message.name) {
+        case: 'model:sync':
+          BaseModel.receiveSync(message)
+          break
+
         case 'component:reload':
           this.getActiveComponent().moduleReplace(() => {})
           break

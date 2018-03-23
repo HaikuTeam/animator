@@ -4,6 +4,8 @@ const MemoryStorage = require('./storage/MemoryStorage')
 const DiskStorage = require('./storage/DiskStorage')
 const CryptoUtils = require('./../utils/CryptoUtils')
 const EmitterManager = require('./../utils/EmitterManager')
+const expressionToRO = require('@haiku/core/lib/reflection/expressionToRO').default
+const reifyRO = require('@haiku/core/lib/reflection/reifyRO').default
 
 /**
  * @class BaseModel
@@ -391,8 +393,141 @@ class BaseModel extends EventEmitter {
     if (pojo) {
       this.constructor.fromPOJO(pojo)
     }
-    return this
   }
+
+  sync ({ syncIntent }) {
+    this.component.project.broadcastPayload(Object.assign(
+      this.getWireReadyPayload(),
+      {
+        name: 'model:sync',
+        folder: this.component.project.getFolder(),
+        syncIntent
+      }
+    ))
+  }
+
+  getWireReadyPayload () {
+    return {
+      className: this.getClassName(),
+      primaryKey: this.getPrimaryKey(),
+      objectAttributes: this.getWireReadyObjectAttributes()
+    }
+  }
+
+  getWireReadyObjectAttributes () {
+    return getWireReadyObjectAttributes(this, true, true)
+  }
+}
+
+BaseModel.receiveSync = ({ folder, syncIntent, className, primaryKey, objectAttributes }) => {
+  switch (syncIntent) {
+    case 'upsert':
+      return BaseModel.upsertFromWireObjectAttributes({ className, primaryKey, objectAttributes })
+
+    case 'destroy':
+      return BaseModel.instanceFromModelSpec({ className, primaryKey }).destroy()
+
+    default:
+      throw new Error(`BaseModel sync receipt intent '${syncIntent}' unknown`)
+  }
+}
+
+BaseModel.upsertFromWireObjectAttributes = ({ className, primaryKey, objectAttributes }) => {
+  const klass = BaseModel.getModelClassByClassName(className)
+
+
+
+
+  // Need to look up the pkey field from the instance config
+  // and attach it to the spec object so the upsert targets
+  // the correct instance
+
+
+
+
+  const spec = {}
+
+  for (const key in objectAttributes) {
+    const val = objectAttributes[key]
+
+    if (val && val.__model) {
+      spec[key] = BaseModel.instanceFromModelSpec(val.__model)
+      continue
+    }
+
+    spec[key] = reifyRO(val)
+  }
+
+  return klass.upsert(spec)
+}
+
+BaseModel.instanceFromModelSpec = ({ className, primaryKey }) => {
+  const klass = BaseModel.getModelClassByClassName(className)
+  const instance = klass.findById(primaryKey)
+  return instance
+}
+
+BaseModel.getWireReadyObjectAttributes = (obj, isBase = false, goDeep = false) => {
+  if (
+    typeof obj === 'boolean' ||
+    typeof obj === 'number' ||
+    typeof obj === 'string' ||
+    typeof obj === 'function' ||
+    !obj
+  ) {
+    return expressionToRO(obj)
+  }
+
+  if (goDeep) {
+    if (Array.isArray(obj)) {
+      return obj.map(getWireReadyObjectAttributes)
+    }
+
+    const out = {}
+
+    for (const key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        if (!RESERVED_PROPERTY_KEYS[key]) {
+          const result = getWireReadyObjectAttributes(obj[key], false, false)
+          if (result !== undefined) {
+            out[key] = result
+          }
+        }
+      }
+    }
+
+    return out
+  }
+
+  if (obj instanceof BaseModel && !goDeep) {
+    return {
+      __model: {
+        className: obj.getClassName(),
+        primaryKey: obj.getPrimaryKey()
+      }
+    }
+  }
+}
+
+const RESERVED_PROPERTY_KEYS = {
+   _events: true,
+   _eventsCount: true,
+   _maxListeners: true,
+   addEmitterListener: true,
+   addEmitterListenerIfNotAlreadyRegistered: true,
+   removeEmitterListeners: true,
+   uid: true,
+   parent: true, // exclude?
+   children: true, // exclude?
+   __cache: true,
+   __updated: true,
+   __storage: true,
+   __checked: true,
+   __initialized: true,
+   __marked: true,
+   __destroyed: true,
+   _updateReceivers: true,
+   __proxy: true
 }
 
 BaseModel.DEFAULT_OPTIONS = {}
@@ -416,6 +551,12 @@ BaseModel.extend = function extend (klass, opts) {
   }
 }
 
+const KNOWN_MODEL_CLASSES = {}
+
+BaseModel.getModelClassByClassName = (className) => {
+  return KNOWN_MODEL_CLASSES[className]
+}
+
 const getStableCacheKey = (prefix, criteria) => {
   if (typeof criteria !== 'object') {
     return false
@@ -431,9 +572,12 @@ const getStableCacheKey = (prefix, criteria) => {
 }
 
 const createCollection = (klass, opts) => {
+  KNOWN_MODEL_CLASSES[klass.name] = klass
+
   klass.config = {
     primaryKey: 'uid'
   }
+
   Object.assign(klass.config, opts)
 
   // Use two internal representations of the full table: an array collection for querying where order matters, and a

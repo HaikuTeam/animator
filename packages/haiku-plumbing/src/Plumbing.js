@@ -395,6 +395,8 @@ export default class Plumbing extends StateObject {
         return this.findMasterByFolder(folder)._mod.handleReloadComplete(message)
       }
 
+      if ()
+
       // Give clients the chance to emit events to all others
       return this.sendBroadcastMessage(message, folder, alias, websocket)
     }

@@ -5,6 +5,7 @@ import path from 'path'
 import Combokeys from 'combokeys'
 import HaikuDOMRenderer from '@haiku/core/lib/renderers/dom'
 import HaikuContext from '@haiku/core/lib/HaikuContext'
+import BaseModel from 'haiku-serialization/src/bll/BaseModel'
 import Project from 'haiku-serialization/src/bll/Project'
 import Config from '@haiku/core/lib/Config'
 import Element from 'haiku-serialization/src/bll/Element'
@@ -624,6 +625,10 @@ export class Glass extends React.Component {
 
     this.addEmitterListener(this.props.websocket, 'broadcast', (message) => {
       switch (message.name) {
+        case: 'model:sync':
+          BaseModel.receiveSync(message)
+          break
+
         case 'component:reload':
           // Race condition where Master emits this event during initial load of assets in
           // a project, resulting in this message arriving before we've initialized
