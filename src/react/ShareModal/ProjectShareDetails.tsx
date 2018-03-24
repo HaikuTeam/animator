@@ -106,8 +106,8 @@ const STYLES = {
   tiptext: {
     fontSize: '11px',
     lineHeight: 1.2,
-    padding: '8px 0'
-  }
+    padding: '8px 0',
+  },
 } as React.CSSProperties;
 
 export class ProjectShareDetails extends React.PureComponent {
