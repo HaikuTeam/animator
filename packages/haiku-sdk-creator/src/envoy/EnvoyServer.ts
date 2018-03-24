@@ -50,7 +50,7 @@ export default class EnvoyServer {
     this.logger = mergedOptions.logger || new EnvoyLogger('info', mergedOptions.logger);
 
     // If present, the passed-in port will be checked for availability, otherwise one will be chosen for us
-    findOpenPort(mergedOptions.port, mergedOptions.host, (portErr, port) => {
+    findOpenPort(mergedOptions.port, mergedOptions.host, (portErr, host, port) => {
       if (portErr) {
         throw portErr;
       }
@@ -59,17 +59,22 @@ export default class EnvoyServer {
 
       this.server = new WebSocket.Server(
         {
+          host,
           port,
-          host: mergedOptions.host,
         },
         () => {
           this.isServerReady = true;
-          this.host = mergedOptions.host;
+          this.host = host;
           this.port = port;
 
           this.logger.info(`[haiku envoy server] ready and listening on port ${this.port} on ${this.host}`);
         },
       );
+
+      this.server.on('error', (err) => {
+        // Event emitted right before closing.
+        this.logger.warn(`[haiku envoy server] caught error: ${err}`);
+      });
 
       this.server.on('connection', (client: IdentifiableWebSocket, request: any) => {
         const params = getWebsocketConnectionRequestParams(client, request);

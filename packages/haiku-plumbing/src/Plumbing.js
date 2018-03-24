@@ -231,7 +231,7 @@ export default class Plumbing extends StateObject {
 
       haiku.socket.token = HAIKU_WS_SECURITY_TOKEN
 
-      return this.launchControlServer(haiku.socket, (err, server, host, port) => {
+      return this.launchControlServer(haiku.socket, haiku.envoy.host, (err, server, host, port) => {
         if (err) return cb(err)
 
         // Forward these env vars to creator
@@ -867,6 +867,15 @@ export default class Plumbing extends StateObject {
   authenticateUser (username, password, cb) {
     this.set('organizationName', null) // Unset this cache to avoid writing others folders if somebody switches accounts in the middle of a session
     return inkstone.user.authenticate(username, password, (authErr, authResponse, httpResponse) => {
+      if (!httpResponse) {
+        this.sentryError('authenticationProxyError', authErr)
+        // eslint-disable-next-line standard/no-callback-literal
+        return cb({
+          code: 407,
+          message: 'Unable to log in. Are you behind a VPN?'
+        })
+      }
+
       if (httpResponse.statusCode === 401 || httpResponse.statusCode === 403) {
         // eslint-disable-next-line standard/no-callback-literal
         return cb({
@@ -1327,9 +1336,7 @@ function getPort (host, cb) {
   return server
 }
 
-Plumbing.prototype.launchControlServer = function launchControlServer (socketInfo, cb) {
-  const host = (socketInfo && socketInfo.host) || '0.0.0.0'
-
+Plumbing.prototype.launchControlServer = function launchControlServer (socketInfo, host, cb) {
   if (socketInfo && socketInfo.port) {
     logger.info(`[plumbing] plumbing websocket server listening on specified port ${socketInfo.port}...`)
 
