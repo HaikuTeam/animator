@@ -395,7 +395,15 @@ class ProjectBrowser extends React.Component {
 
   renderUserMenuItems () {
     return (
-      <div style={DASH_STYLES.popover.container} onClick={this.closePopover}>
+      <div style={[DASH_STYLES.popover.container, {width: 158}]} onClick={this.closePopover}>
+        <div style={DASH_STYLES.popover.item}>
+          <span style={[DASH_STYLES.popover.text, DASH_STYLES.upcase]}>
+            Signed In As <span style={[{fontWeight: '600', color: Palette.SUNSTONE}, DASH_STYLES.noSelect]}>
+              {this.props.username}
+            </span>
+          </span>
+        </div>
+
         <div style={[DASH_STYLES.popover.item, DASH_STYLES.popover.pointer]}>
           <ExternalLink
             key="user-profile"
@@ -403,7 +411,7 @@ class ProjectBrowser extends React.Component {
             <span style={[DASH_STYLES.popover.icon, {transform: 'translateY(3px)'}]}>
               <UserIconSVG />
             </span>
-            <span style={[DASH_STYLES.popover.text, DASH_STYLES.upcase]}>{this.props.username}</span>
+            <span style={[DASH_STYLES.popover.text, DASH_STYLES.upcase]}>Your Profile</span>
           </ExternalLink>
         </div>
         <div
