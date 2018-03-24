@@ -54,6 +54,7 @@ class BaseModel extends EventEmitter {
 
     this.setOptions(opts)
 
+    // If validation is off, we know what we're doing and will add required props later
     if (!this.options.validationOff) {
       if (this.options.required) {
         for (let requirement in this.options.required) {
@@ -71,6 +72,11 @@ class BaseModel extends EventEmitter {
     this.syncDebounced = lodash.debounce(() => {
       this.sync()
     }, SYNC_DEBOUNCE_TIME)
+
+    // Enough models have this relationship that we provide it from BaseModel;
+    // we set this before .assign() though in case they were provided in the constructor
+    this.parent = null
+    this.children = []
 
     // Assign initial attributes. Note that __sync is falsy until later
     this.assign(props)
@@ -95,10 +101,6 @@ class BaseModel extends EventEmitter {
     // When a model instance is destroyed, it may not be immediately garbage collected.
     this.__destroyed = null
     this._updateReceivers = {}
-
-    // Enough models have this relationship that we provide it from BaseModel
-    this.parent = null
-    this.children = []
 
     if (this.afterInitialize) {
       this.afterInitialize()

@@ -397,8 +397,10 @@ File.readMana = (folder, relpath, cb) => {
 
         return cb(null, manaOptimized)
       })
-      .catch(() => {
-        logger.warn(`[file] svgo couldn't parse ${relpath}`)
+      .catch((exception) => {
+        // Log the exception too in case the error occurred as part of our pipeline
+        logger.warn(`[file] svgo couldn't parse ${relpath}`, exception)
+
         return setTimeout(() => { // Escape promise chain so exceptions occur with more normal traces
           return returnUnoptimizedMana()
         })

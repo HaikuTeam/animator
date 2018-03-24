@@ -198,6 +198,23 @@ class ActiveComponent extends BaseModel {
     return Element.findByComponentAndHaikuId(this, haikuId)
   }
 
+  locateTemplateNodeByComponentId (componentId) {
+    return this.getTemplateNodesByComponentId()[componentId]
+  }
+
+  getTemplateNodesByComponentId () {
+    return this.cacheFetch('getTemplateNodesByComponentId', () => {
+      const nodes = {}
+      const mana = this.getReifiedBytecode().template
+      Template.visit(mana, (node) => {
+        if (node && node.attributes && node.attributes[HAIKU_ID_ATTRIBUTE]) {
+          nodes[node.attributes[HAIKU_ID_ATTRIBUTE]] = node
+        }
+      })
+      return nodes
+    })
+  }
+
   findTemplateNodeByComponentId (componentId) {
     const mana = this.getReifiedBytecode().template
 
@@ -2002,9 +2019,6 @@ class ActiveComponent extends BaseModel {
     const found = Element.findById(uid)
 
     if (found) {
-      // Without this, the element instance in 'master' can end up with a stale node
-      found.staticTemplateNode = staticTemplateNode
-
       return found
     }
 
@@ -2019,7 +2033,10 @@ class ActiveComponent extends BaseModel {
 
   rehydrate () {
     // Don't allow any incoming syncs while we're in the midst of this
-    // BaseModel.__sync = false
+    BaseModel.__sync = false
+
+    this.cacheUnset('displayableRows')
+    this.cacheUnset('getTemplateNodesByComponentId')
 
     // Required before rehydration because entities use the timeline entity
     this.upsertCurrentTimeline()
@@ -2063,8 +2080,6 @@ class ActiveComponent extends BaseModel {
       keyframe.sweep()
     })
 
-    this.cacheUnset('displayableRows')
-
     const row = root.getHostedRows()[0]
     if (row) {
       // Expand the first (topmost) row by default, only if this is the first run
@@ -2077,7 +2092,7 @@ class ActiveComponent extends BaseModel {
     this.positionRows()
 
     // Now that we have all the initial models ready, we can receive syncs
-    // BaseModel.__sync = true
+    BaseModel.__sync = true
   }
 
   positionRows () {

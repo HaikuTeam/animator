@@ -31,16 +31,16 @@ tape('ActiveComponent.removals[1]', (t) => {
         (cb) => { return ac0.instantiateComponent('designs/Circle.svg', {}, {from: 'test'}, cb) },
         (cb) => {
           const root = ac0.fetchRootElement()
-          console.log(ac0.getKeyframes()[10].getWireReadyPayload())
-          // t.equal(root.children.length, 3)
-          // t.deepEqual(Row.getDisplayables({component: ac0}).map((r) => r.dump()), [ 'element-heading.e4a9e4d8baa7<div>|0.0.0', 'cluster-heading.e4a9e4d8baa7<div>|1.0.1.sizeAbsolute[]', 'property.e4a9e4d8baa7<div>|1.1.4.opacity', 'cluster-heading.e4a9e4d8baa7<div>|1.2.5.style[]', 'element-heading.a1ace0824b5d<svg>|1.3.0', 'property.a1ace0824b5d<svg>|2.0.1.opacity', 'cluster-heading.a1ace0824b5d<svg>|2.1.2.translation[]', 'cluster-heading.a1ace0824b5d<svg>|2.2.6.rotation[]', 'cluster-heading.a1ace0824b5d<svg>|2.3.10.scale[]', 'cluster-heading.a1ace0824b5d<svg>|2.4.13.style[]', 'element-heading.78d50680cca7<svg>|1.4.0', 'property.78d50680cca7<svg>|2.0.1.opacity', 'cluster-heading.78d50680cca7<svg>|2.1.2.translation[]', 'cluster-heading.78d50680cca7<svg>|2.2.6.rotation[]', 'cluster-heading.78d50680cca7<svg>|2.3.10.scale[]', 'cluster-heading.78d50680cca7<svg>|2.4.13.style[]', 'element-heading.3a76003334e4<svg>|1.5.0', 'property.3a76003334e4<svg>|2.0.1.opacity', 'cluster-heading.3a76003334e4<svg>|2.1.2.translation[]', 'cluster-heading.3a76003334e4<svg>|2.2.6.rotation[]', 'cluster-heading.3a76003334e4<svg>|2.3.10.scale[]', 'cluster-heading.3a76003334e4<svg>|2.4.13.style[]' ])
-          // return ac0.deleteComponent(cid, {from: 'test'}, cb)
+          t.equal(root.children.length, 3)
+          t.deepEqual(Row.getDisplayables({component: ac0}).map((r) => r.dump()), [ 'element-heading.e4a9e4d8baa7<div>|0.0.0', 'cluster-heading.e4a9e4d8baa7<div>|1.0.1.sizeAbsolute[]', 'property.e4a9e4d8baa7<div>|1.1.4.opacity', 'cluster-heading.e4a9e4d8baa7<div>|1.2.5.style[]', 'element-heading.a1ace0824b5d<svg>|1.3.0', 'property.a1ace0824b5d<svg>|2.0.1.opacity', 'cluster-heading.a1ace0824b5d<svg>|2.1.2.translation[]', 'cluster-heading.a1ace0824b5d<svg>|2.2.6.rotation[]', 'cluster-heading.a1ace0824b5d<svg>|2.3.10.scale[]', 'cluster-heading.a1ace0824b5d<svg>|2.4.13.style[]', 'element-heading.78d50680cca7<svg>|1.4.0', 'property.78d50680cca7<svg>|2.0.1.opacity', 'cluster-heading.78d50680cca7<svg>|2.1.2.translation[]', 'cluster-heading.78d50680cca7<svg>|2.2.6.rotation[]', 'cluster-heading.78d50680cca7<svg>|2.3.10.scale[]', 'cluster-heading.78d50680cca7<svg>|2.4.13.style[]', 'element-heading.3a76003334e4<svg>|1.5.0', 'property.3a76003334e4<svg>|2.0.1.opacity', 'cluster-heading.3a76003334e4<svg>|2.1.2.translation[]', 'cluster-heading.3a76003334e4<svg>|2.2.6.rotation[]', 'cluster-heading.3a76003334e4<svg>|2.3.10.scale[]', 'cluster-heading.3a76003334e4<svg>|2.4.13.style[]' ])
+          const cid = ac0.getReifiedBytecode().template.children[1].attributes['haiku-id']
+          return ac0.deleteComponent(cid, {from: 'test'}, cb)
         },
-        // (cb) => {
-        //   const root = ac0.fetchRootElement()
-        //   t.deepEqual(Row.getDisplayables({component: ac0}).map((r) => r.dump()), [ 'element-heading.e4a9e4d8baa7<div>|0.0.0', 'cluster-heading.e4a9e4d8baa7<div>|1.0.1.sizeAbsolute[]', 'property.e4a9e4d8baa7<div>|1.1.4.opacity', 'cluster-heading.e4a9e4d8baa7<div>|1.2.5.style[]', 'element-heading.a1ace0824b5d<svg>|1.3.0', 'property.a1ace0824b5d<svg>|2.0.1.opacity', 'cluster-heading.a1ace0824b5d<svg>|2.1.2.translation[]', 'cluster-heading.a1ace0824b5d<svg>|2.2.6.rotation[]', 'cluster-heading.a1ace0824b5d<svg>|2.3.10.scale[]', 'cluster-heading.a1ace0824b5d<svg>|2.4.13.style[]', 'element-heading.3a76003334e4<svg>|1.4.0', 'property.3a76003334e4<svg>|2.0.1.opacity', 'cluster-heading.3a76003334e4<svg>|2.1.2.translation[]', 'cluster-heading.3a76003334e4<svg>|2.2.6.rotation[]', 'cluster-heading.3a76003334e4<svg>|2.3.10.scale[]', 'cluster-heading.3a76003334e4<svg>|2.4.13.style[]' ])
-        //   return cb()
-        // }
+        (cb) => {
+          const root = ac0.fetchRootElement()
+          t.deepEqual(Row.getDisplayables({component: ac0}).map((r) => r.dump()), [ 'element-heading.e4a9e4d8baa7<div>|0.0.0', 'cluster-heading.e4a9e4d8baa7<div>|1.0.1.sizeAbsolute[]', 'property.e4a9e4d8baa7<div>|1.1.4.opacity', 'cluster-heading.e4a9e4d8baa7<div>|1.2.5.style[]', 'element-heading.a1ace0824b5d<svg>|1.3.0', 'property.a1ace0824b5d<svg>|2.0.1.opacity', 'cluster-heading.a1ace0824b5d<svg>|2.1.2.translation[]', 'cluster-heading.a1ace0824b5d<svg>|2.2.6.rotation[]', 'cluster-heading.a1ace0824b5d<svg>|2.3.10.scale[]', 'cluster-heading.a1ace0824b5d<svg>|2.4.13.style[]', 'element-heading.3a76003334e4<svg>|1.4.0', 'property.3a76003334e4<svg>|2.0.1.opacity', 'cluster-heading.3a76003334e4<svg>|2.1.2.translation[]', 'cluster-heading.3a76003334e4<svg>|2.2.6.rotation[]', 'cluster-heading.3a76003334e4<svg>|2.3.10.scale[]', 'cluster-heading.3a76003334e4<svg>|2.4.13.style[]' ])
+          return cb()
+        }
       ], (err) => {
         if (err) throw err
         t.ok(true)

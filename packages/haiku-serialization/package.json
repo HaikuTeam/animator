@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "yarn test:bll",
-    "test:bll": "NODE_ENV=test tape \"test/bll/**/01_ActiveComponent.remo*.test.js\" | tap-spec || true",
+    "test:bll": "NODE_ENV=test tape \"test/bll/**/*.test.js\" | tap-spec || true",
     "test-report": "NODE_ENV=test tape \"test/bll/**/*.test.js\" > test-result.tap",
     "lint": "eslint \"src/**/*.js\"",
     "fix": "yarn lint --fix",

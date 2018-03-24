@@ -183,7 +183,7 @@ class Element extends BaseModel {
   }
 
   getStaticTemplateNode () {
-    return this.staticTemplateNode
+    return this.component.locateTemplateNodeByComponentId(this.componentId)
   }
 
   getCoreHostComponentInstance () {
@@ -736,7 +736,9 @@ class Element extends BaseModel {
 
   getHostedComponentBytecode () {
     if (this.isTextNode()) return null
-    const elementName = this.getStaticTemplateNode().elementName
+    const node = this.getStaticTemplateNode()
+    if (!node) return null
+    const elementName = node.elementName
     if (!elementName) return null
     if (typeof elementName !== 'object') return null
     return elementName
@@ -758,7 +760,9 @@ class Element extends BaseModel {
   getNameString () {
     if (this.isTextNode()) return '<text>' // HACK, but not sure what else to do
     if (this.isComponent()) return 'div' // this tends to be the default
-    return this.getStaticTemplateNode().elementName
+    const node = this.getStaticTemplateNode()
+    if (node) return node.elementName
+    return 'div'
   }
 
   getSafeDomFriendlyName () {
@@ -771,8 +775,7 @@ class Element extends BaseModel {
   }
 
   getComponentId () {
-    if (this.isTextNode()) return this.getPrimaryKey() // HACK, but not sure what else to do
-    return this.getStaticTemplateNode().attributes[HAIKU_ID_ATTRIBUTE]
+    return this.componentId
   }
 
   getGraphAddress () {
@@ -1602,8 +1605,8 @@ Element.DEFAULT_OPTIONS = {
   required: {
     component: true,
     uid: true,
-    staticTemplateNode: true,
-    address: true
+    address: true,
+    componentId: true
   }
 }
 
@@ -1878,9 +1881,13 @@ Element.upsertElementFromVirtualElement = (
 
   const metadata = component.project.getMetadata()
 
+  const componentId = (typeof staticTemplateNode === 'string')
+    ? uid
+    : staticTemplateNode.attributes[HAIKU_ID_ATTRIBUTE]
+
   const element = Element.upsert({
     uid,
-    staticTemplateNode,
+    componentId,
     index,
     address,
     component,
