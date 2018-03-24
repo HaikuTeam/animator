@@ -1,8 +1,9 @@
 import * as net from 'net';
 
 const DEFAULT_PORT_SEARCH_START = 45032;
-const DEFAULT_HOST = global.process.env.HAIKU_PLUMBING_HOST || '0.0.0.0';
+let DEFAULT_HOST = global.process.env.HAIKU_PLUMBING_HOST || '0.0.0.0';
 const ADDRESS_IN_USE_CODE = 'EADDRINUSE';
+const DNS_ERROR_CODE = 'ENOTFOUND';
 
 /**
  * @function findOpenPort
@@ -21,7 +22,7 @@ export default function findOpenPort(inPort: number, inHost: string, cb: Functio
 
     server.once('listening', () => {
       server.once('close', () => {
-        return cb(null, port);
+        return cb(null, host, port);
       });
       server.close();
     });
@@ -29,6 +30,11 @@ export default function findOpenPort(inPort: number, inHost: string, cb: Functio
     server.on('error', (err: any) => {
       if (err && err.code === ADDRESS_IN_USE_CODE) {
         return findOpenPort(port + 1, host, cb);
+      }
+
+      if (err && err.code === DNS_ERROR_CODE && inHost !== '0.0.0.0') {
+        DEFAULT_HOST = global.process.env.HAIKU_PLUMBING_HOST = '0.0.0.0';
+        return findOpenPort(port, DEFAULT_HOST, cb);
       }
 
       // If not an address-in-use error, something bad has happened and we likely shouldn't continue.

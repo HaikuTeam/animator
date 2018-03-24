@@ -1210,6 +1210,17 @@ export default class Creator extends React.Component {
     )
   }
 
+  logOut () {
+    return this.props.websocket.request({ method: 'doLogOut' }, () => {
+      this.clearAuth()
+      this.user.setConfig(UserSettings.figmaToken, null)
+
+      mixpanel.haikuTrack('creator:project-browser:user-menu-option-selected', {
+        option: 'logout'
+      })
+    })
+  }
+
   clearAuth () {
     this.setState({ readyForAuth: true, isUserAuthenticated: false, username: '' })
   }
@@ -1310,7 +1321,7 @@ export default class Creator extends React.Component {
             launchProject={this.launchProject}
             createNotice={this.createNotice}
             removeNotice={this.removeNotice}
-            clearAuth={this.clearAuth}
+            logOut={() => { this.logOut() }}
             notices={this.state.notices}
             envoyClient={this.envoyClient}
             doShowProjectLoader={this.state.doShowProjectLoader}

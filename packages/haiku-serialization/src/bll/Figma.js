@@ -137,6 +137,11 @@ class Figma {
       const params = new URLSearchParams([['format', 'svg'], ['ids', ids]])
       const uri = API_BASE + 'images/' + id + '?' + params.toString()
 
+      if (ids.length === 0) {
+        // eslint-disable-next-line
+        return reject({err: 'We couldn\'t find any groups or slices in your project.'})
+      }
+
       this.request({ uri })
         .then((SVGLinks) => {
           // TODO: links comes with an error param, we should check that

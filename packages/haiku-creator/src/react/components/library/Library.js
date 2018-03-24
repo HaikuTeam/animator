@@ -172,10 +172,10 @@ class Library extends React.Component {
     const path = this.props.projectModel.folder
 
     return this.state.figma.importSVG({url, path})
-      .catch((error) => {
+      .catch((error = {}) => {
         mixpanel.haikuTrack('creator:figma:fileImport:fail')
 
-        let message = 'We had a problem connecting with Figma. Please check your internet connection and try again.'
+        let message = error.err || 'We had a problem connecting with Figma. Please check your internet connection and try again.'
 
         if (error.status === 403) {
           message = (
@@ -230,7 +230,11 @@ class Library extends React.Component {
       {from: 'creator'},
       (err) => {
         if (err) {
-          return this.props.createNotice({ type: 'danger', title: err.name, message: err.message })
+          if (err.code === 'ENOENT') {
+            return this.props.createNotice({ type: 'error', title: 'Error', message: 'We couldn\'t find that file. 😩 Please try again in a few moments. If you still see this error, contact Haiku for support.' })
+          } else {
+            return this.props.createNotice({ type: 'error', title: 'Error', message: err.message })
+          }
         }
       }
     )
