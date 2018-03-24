@@ -8,7 +8,6 @@ import Palette from 'haiku-ui-common/lib/Palette'
 import { ThreeBounce } from 'better-react-spinkit'
 import Color from 'color'
 import { BTN_STYLES } from '../styles/btnShared'
-import { DASH_STYLES } from '../styles/dashShared'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import ToolSelector from './ToolSelector'
 import Toggle from './Toggle'
@@ -127,7 +126,7 @@ const STYLES = {
   link2: {
     color: Palette.LIGHT_BLUE,
     cursor: 'pointer'
-  },
+  }
 }
 
 const SNAPSHOT_SAVE_RESOLUTION_STRATEGIES = {
@@ -243,8 +242,6 @@ class StageTitleBar extends React.Component {
         this.props.removeNotice(undefined, noticeNotice.id)
       }, 3000)
     })
-
-
 
     ipcRenderer.on('global-menu:save', () => {
       if (!this._isMounted) {
