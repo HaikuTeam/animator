@@ -1,6 +1,7 @@
 import lodash from 'lodash'
 import React from 'react'
 import Radium from 'radium'
+import Popover from 'react-popover'
 import { CSSTransition, TransitionGroup } from 'react-transition-group'
 import { FadingCircle } from 'better-react-spinkit'
 import Palette from 'haiku-ui-common/lib/Palette'
@@ -12,7 +13,7 @@ import { TOUR_CHANNEL } from 'haiku-sdk-creator/lib/tour'
 import { UserIconSVG, LogOutSVG, LogoMicroSVG, PresentIconSVG } from 'haiku-ui-common/lib/react/OtherIcons'
 import { DASH_STYLES } from '../styles/dashShared'
 import { BTN_STYLES } from '../styles/btnShared'
-import Popover from 'react-popover'
+import { ExternalLink } from 'haiku-ui-common/lib/react/ExternalLink'
 
 const HARDCODED_PROJECTS_LIMIT = 15
 
@@ -395,8 +396,15 @@ class ProjectBrowser extends React.Component {
   renderUserMenuItems () {
     return (
       <div style={DASH_STYLES.popover.container} onClick={this.closePopover}>
-        <div style={DASH_STYLES.popover.item}>
-          <span style={[DASH_STYLES.popover.text, DASH_STYLES.noSelect]}>{this.props.username}</span>
+        <div style={[DASH_STYLES.popover.item, DASH_STYLES.popover.pointer]}>
+          <ExternalLink
+            key="user-profile"
+            href={`https://share.haiku.ai/u/${this.props.username}`}>
+            <span style={[DASH_STYLES.popover.icon, {transform: 'translateY(3px)'}]}>
+              <UserIconSVG />
+            </span>
+            <span style={[DASH_STYLES.popover.text, DASH_STYLES.upcase]}>{this.props.username}</span>
+          </ExternalLink>
         </div>
         <div
           id='haiku-button-logout'
