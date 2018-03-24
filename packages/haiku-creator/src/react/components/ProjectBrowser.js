@@ -14,7 +14,7 @@ import { DASH_STYLES } from '../styles/dashShared'
 import { BTN_STYLES } from '../styles/btnShared'
 import Popover from 'react-popover'
 
-const HARDCODED_PROJECTS_LIMIT = 15
+const HARDCODED_PROJECTS_LIMIT = 50
 
 const STYLES = {
   adminButton: {
