@@ -3,7 +3,7 @@ import Palette from './../../Palette';
 
 const STYLES = {
   width: '100%',
-  background: Palette.BLACK,
+  backgroundColor: Palette.BLACK,
   borderTopRightRadius: '7px',
   borderTopLeftRadius: '7px',
   padding: '5px 20px',
