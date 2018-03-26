@@ -9,7 +9,6 @@ import { ThreeBounce } from 'better-react-spinkit'
 import Color from 'color'
 import { BTN_STYLES } from '../styles/btnShared'
 import CopyToClipboard from 'react-copy-to-clipboard'
-import ToolSelector from './ToolSelector'
 import Toggle from './Toggle'
 import {ShareModal} from 'haiku-ui-common/lib/react/ShareModal'
 import {
@@ -211,8 +210,6 @@ class StageTitleBar extends React.Component {
       semverVersion: '0.0.0',
       showCopied: false,
       projectInfo: {},
-      gitUndoables: [],
-      gitRedoables: [],
       snapshotSyndicated: true,
       snapshotPublished: true
     }
@@ -278,13 +275,6 @@ class StageTitleBar extends React.Component {
           }
 
           ipcRenderer.send('master:heartbeat', assign({}, masterState))
-
-          if (this._isMounted) {
-            this.setState({
-              gitUndoables: masterState.gitUndoables,
-              gitRedoables: masterState.gitRedoables
-            })
-          }
         })
       }
     }, 1000)
@@ -601,11 +591,6 @@ class StageTitleBar extends React.Component {
             mixpanel={mixpanel}
           />
         }
-
-        { false &&
-          <ToolSelector websocket={this.props.websocket} />
-        }
-
       </div>
     )
   }

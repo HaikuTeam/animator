@@ -21,15 +21,13 @@ if (!MAIN['HaikuHelpers']) {
 if (!MAIN['HaikuHelpers'][VERSION]) {
   MAIN['HaikuHelpers'][VERSION] = {
     helpers: {},
-    schema: {},
   };
 }
 
 const exp = MAIN['HaikuHelpers'][VERSION];
 
-exp['register'] = function register(name, method) {
+exp['register'] = (name, method) => {
   exp.helpers[name] = method;
-  exp.schema[name] = 'function';
   return exp;
 };
 

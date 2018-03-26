@@ -2,15 +2,16 @@ import React from 'react'
 import lodash from 'lodash'
 import Radium from 'radium'
 import path from 'path'
+import Combokeys from 'combokeys'
 import HaikuDOMRenderer from '@haiku/core/lib/renderers/dom'
 import HaikuContext from '@haiku/core/lib/HaikuContext'
+import BaseModel from 'haiku-serialization/src/bll/BaseModel'
 import Project from 'haiku-serialization/src/bll/Project'
 import Config from '@haiku/core/lib/Config'
 import Element from 'haiku-serialization/src/bll/Element'
+import ElementSelectionProxy from 'haiku-serialization/src/bll/ElementSelectionProxy'
 import Design from 'haiku-serialization/src/bll/Design'
 import Asset from 'haiku-serialization/src/bll/Asset'
-import Figma from 'haiku-serialization/src/bll/Figma'
-import Sketch from 'haiku-serialization/src/bll/Sketch'
 import ModuleWrapper from 'haiku-serialization/src/bll/ModuleWrapper'
 import EmitterManager from 'haiku-serialization/src/utils/EmitterManager'
 import react2haiku from 'haiku-serialization/src/utils/react2haiku'
@@ -22,13 +23,13 @@ import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
 import getLocalDomEventPosition from 'haiku-ui-common/lib/helpers/getLocalDomEventPosition'
 import requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates'
 import {GearSVG} from 'haiku-ui-common/lib/react/OtherIcons'
-import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 
 const Globals = require('haiku-ui-common/lib/Globals').default
-const { clipboard, shell } = require('electron')
+const {clipboard, shell} = require('electron')
 const fse = require('haiku-fs-extra')
 const moment = require('moment')
-const { HOMEDIR_PATH } = require('haiku-serialization/src/utils/HaikuHomeDir')
+const {HOMEDIR_PATH} = require('haiku-serialization/src/utils/HaikuHomeDir')
 
 fse.mkdirpSync(HOMEDIR_PATH)
 
@@ -85,6 +86,8 @@ function writeHtmlSnapshot (html, react) {
 const GEAR_REACT = GearSVG({color: Palette.DARKER_ROCK2})
 const GEAR_HAIKU = react2haiku(GEAR_REACT)
 
+const combokeys = new Combokeys(document.documentElement)
+
 // The class is exported also _without_ the radium wrapper to allow jsdom testing
 export class Glass extends React.Component {
   constructor (props) {
@@ -137,19 +140,16 @@ export class Glass extends React.Component {
     this._stopwatch = null
     this._lastAuthoritativeFrame = 0
 
-    this._lastSelectedElement = null
-    this._clipboardActionLock = false
+    this._clipboardActionInfiniteLoopPrevention = false
 
     this.drawLoop = this.drawLoop.bind(this)
     this.draw = this.draw.bind(this)
 
     const haikuConfig = Config.build({
-      options: {
-        seed: Config.seed(),
-        cache: {}
-      }
+      seed: Config.seed(),
+      cache: {}
     })
-    this._haikuRenderer = new HaikuDOMRenderer(haikuConfig)
+    this._haikuRenderer = new HaikuDOMRenderer(null, haikuConfig)
     this._haikuContext = new HaikuContext(
       null,
       this._haikuRenderer,
@@ -187,11 +187,50 @@ export class Glass extends React.Component {
       ]
     }
 
+    this.handleDimensionsReset = lodash.debounce(() => {
+      // Need to notify creator of viewport change so instantiation position is correct;
+      // this event is also called whenever the window is resized
+      this.props.websocket.send({
+        type: 'broadcast',
+        name: 'dimensions-reset',
+        from: 'glass',
+        data: this.getArtboardRenderInfo()
+      })
+    }, 100)
+
+    this.handleGroupDebounced = lodash.debounce(() => this.handleGroup(), 200, {leading: true, trailing: false})
+    this.handleUngroupDebounced = lodash.debounce(() => this.handleUngroup(), 200, {leading: true, trailing: false})
+    this.handleCutDebounced = lodash.debounce(() => this.handleCut(), 200, {leading: true, trailing: false})
+    this.handleCopyDebounced = lodash.debounce(() => this.handleCopy(), 200, {leading: true, trailing: false})
+    this.handlePasteDebounced = lodash.debounce(() => this.handlePaste(), 200, {leading: true, trailing: false})
+    this.handleSelectAllDebounced = lodash.debounce(() => this.handleSelectAll(), 200, {leading: true, trailing: false})
+    this.handleUndoDebounced = lodash.debounce(() => this.handleUndo(), 200, {leading: true, trailing: false})
+    this.handleRedoDebounced = lodash.debounce(() => this.handleRedo(), 200, {leading: true, trailing: false})
+
     // For debugging
     window.glass = this
 
     // TODO: Is there any race condition with kicking this off immediately?
     this.drawLoop()
+  }
+
+  isTextInputFocused () {
+    const tagName = (
+      document.activeElement &&
+      document.activeElement.tagName &&
+      document.activeElement.tagName.toLowerCase()
+    )
+
+    return (
+      tagName && (
+        tagName === 'input' ||
+        tagName === 'textarea'
+      )
+    )
+  }
+
+  isTextSelected () {
+    return window.getSelection().type === 'Range'
   }
 
   awaitRef (name, cb) {
@@ -216,11 +255,6 @@ export class Glass extends React.Component {
       timelineChannel.on('didSeek', this.handleTimelineDidSeek.bind(this))
     })
 
-    this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'envoy:glassClientReady', (glassChannel) => {
-      glassChannel.on('cut', () => { this.handleVirtualClipboard('cut') })
-      glassChannel.on('copy', () => { this.handleVirtualClipboard('copy') })
-    })
-
     this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'envoy:tourClientReady', (client) => {
       this.tourClient = client
       this.tourClient.on('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
@@ -234,15 +268,12 @@ export class Glass extends React.Component {
         case 'application-mounted':
           this.handleHaikuComponentMounted()
           break
-        case 'element-selected':
-          this.setLastSelectedElement(args[0])
-          break
-        case 'element-unselected':
-          this.setLastSelectedElement(null)
-          break
         case 'dimensions-changed':
           this.resetContainerDimensions()
           this.forceUpdate()
+          break
+        case 'dimensions-reset':
+          this.handleDimensionsReset()
           break
       }
     })
@@ -251,12 +282,6 @@ export class Glass extends React.Component {
       switch (what) {
         case 'setCurrentActiveComponent':
           this.handleActiveComponentReady()
-          break
-        case 'selectElement':
-          this.setLastSelectedElement(this.getActiveComponent().findElementByComponentId(args[0]))
-          break
-        case 'unselectElement':
-          this.setLastSelectedElement(null)
           break
         case 'setInteractionMode':
           this.handleInteractionModeChange()
@@ -278,26 +303,16 @@ export class Glass extends React.Component {
   }
 
   handleActiveComponentReady () {
-    // This fires when the context menu cut/copy action has been fired - not a keyboard action.
-    // This fires with cut OR copy. In case of cut, the element has already been .cut()!
-    this.addEmitterListener(this.getActiveComponent(), 'element:copy', (element) => {
-      if (this.isPreviewMode()) return
-      this.setLastSelectedElement(element)
-      this.handleVirtualClipboard('copy')
-    })
-
     this.mountHaikuComponent()
   }
 
   mountHaikuComponent () {
     this.awaitRef('mount', (ref) => {
       this.getActiveComponent().mountApplication(ref, {
-        options: {
-          freeze: true,
-          overflowX: 'visible',
-          overflowY: 'visible',
-          contextMenu: 'disabled'
-        },
+        freeze: true,
+        overflowX: 'visible',
+        overflowY: 'visible',
+        contextMenu: 'disabled',
         reloadMode: ModuleWrapper.RELOAD_MODES.MONKEYPATCHED_OR_ISOLATED
       })
     })
@@ -329,14 +344,16 @@ export class Glass extends React.Component {
   }
 
   handleShowEventHandlersEditor (elementUID, options, frame) {
-    this.setLastSelectedElement(this.getActiveComponent().findElementByUid(elementUID))
-
     // The EventHandlerEditor uses this field to know whether to launch in frame mode vs event mode
     if (isNumeric(frame)) {
       options.frame = frame
     }
 
-    this.showEventHandlersEditor(null, this.getLastSelectedElement(), options)
+    this.showEventHandlersEditor(
+      null,
+      this.getActiveComponent().findElementByUid(elementUID),
+      options
+    )
   }
 
   handleRequestElementCoordinates ({selector, webview}) {
@@ -426,6 +443,16 @@ export class Glass extends React.Component {
     // If the user e.g. Cmd+tabs away from the window
     this.addEmitterListener(window, 'blur', () => {
       Globals.allKeysUp()
+      this.setState({
+        controlActivation: null,
+        isAnythingScaling: false,
+        isAnythingRotating: false,
+        globalControlPointHandleClass: '',
+        isStageSelected: false,
+        isStageNameHovering: false,
+        isMouseDown: false,
+        isMouseDragging: false
+      })
     })
 
     this.addEmitterListener(window, 'dragover', Asset.preventDefaultDrag, false)
@@ -482,29 +509,6 @@ export class Glass extends React.Component {
       false
     )
 
-    // Pasteable things are stored at the global level in the clipboard but we need that action to fire from the top level
-    // so that all the views get the message, so we emit this as an event and then wait for the call to pasteThing
-    this.addEmitterListener(document, 'paste', (pasteEvent) => {
-      if (this.isPreviewMode()) return void (0)
-      // Notify creator that we have some content that the person wishes to paste on the stage;
-      // the top level needs to handle this because it does content type detection.
-      pasteEvent.preventDefault()
-      this.props.websocket.send({
-        type: 'broadcast',
-        name: 'current-pasteable:request-paste',
-        from: 'glass',
-        data: null // This can hold coordinates for the location of the paste
-      })
-    })
-
-    this.addEmitterListener(document, 'cut', () => {
-      this.handleVirtualClipboard('cut')
-    })
-
-    this.addEmitterListener(document, 'copy', () => {
-      this.handleVirtualClipboard('copy')
-    })
-
     this.addEmitterListener(this.props.websocket, 'method', (method, params, message, cb) => {
       // Harness to enable cross-subview integration testing
       if (method === 'executeFunctionSpecification') {
@@ -523,15 +527,110 @@ export class Glass extends React.Component {
       }
     })
 
+    combokeys.bind('command+z', () => {
+      this.handleUndoDebounced()
+    })
+
+    combokeys.bind('command+shift+z', () => {
+      this.handleRedoDebounced()
+    })
+
+    combokeys.bind('command+x', () => {
+      this.handleCutDebounced()
+    })
+
+    combokeys.bind('command+c', () => {
+      this.handleCopyDebounced()
+    })
+
+    combokeys.bind('command+v', () => {
+      this.handlePasteDebounced()
+    })
+
+    if (experimentIsEnabled(Experiment.ElementMultiSelectAndTransform)) {
+      combokeys.bind('command+a', () => {
+        this.handleSelectAllDebounced()
+      })
+    }
+
+    if (experimentIsEnabled(Experiment.GroupUngroup)) {
+      combokeys.bind('command+g', () => {
+        this.handleGroupDebounced()
+      })
+
+      combokeys.bind('command+shift+g', () => {
+        this.handleUngroupDebounced()
+      })
+    }
+
+    this.addEmitterListener(this.props.websocket, 'relay', (message) => {
+      console.info('[glass] relay received', message.name, 'from', message.from)
+
+      switch (message.name) {
+        case 'global-menu:zoom-in':
+          this.getActiveComponent().getArtboard().zoomIn(1.25)
+          break
+
+        case 'global-menu:zoom-out':
+          this.getActiveComponent().getArtboard().zoomOut(1.25)
+          break
+
+        case 'global-menu:group':
+          if (experimentIsEnabled(Experiment.GroupUngroup)) {
+            this.handleGroupDebounced()
+          }
+          break
+
+        case 'global-menu:ungroup':
+          if (experimentIsEnabled(Experiment.GroupUngroup)) {
+            this.handleUngroupDebounced()
+          }
+          break
+
+        case 'global-menu:cut':
+          if (this.fetchProxyElementForSelection().hasAnythingInSelectionButNotArtboard()) {
+            this.handleCutDebounced()
+          }
+          break
+
+        case 'global-menu:copy':
+          if (this.fetchProxyElementForSelection().hasAnythingInSelectionButNotArtboard()) {
+            this.handleCopyDebounced()
+          }
+          break
+
+        case 'global-menu:paste':
+          this.handlePasteDebounced()
+          break
+
+        case 'global-menu:selectall':
+          if (experimentIsEnabled(Experiment.ElementMultiSelectAndTransform)) {
+            this.handleSelectAllDebounced()
+          }
+          break
+
+        case 'global-menu:undo':
+          this.handleUndoDebounced()
+          break
+
+        case 'global-menu:redo':
+          this.handleRedoDebounced()
+          break
+      }
+    })
+
     this.addEmitterListener(this.props.websocket, 'broadcast', (message) => {
       switch (message.name) {
+        case 'remote-model:receive-sync':
+          BaseModel.receiveSync(message)
+          break
+
         case 'component:reload':
           // Race condition where Master emits this event during initial load of assets in
           // a project, resulting in this message arriving before we've initialized
           if (this.getActiveComponent()) {
             return this.getActiveComponent().moduleReplace((err) => {
-              // Notify the plumbing that the module replacement here has finished, which should reactivate
-              // the undo/redo queues which should be waiting for this to finish
+              // Notify the plumbing that the module replacement here has finished;
               // Note how we do this whether or not we got an error from the action
               this.props.websocket.send({
                 type: 'broadcast',
@@ -550,18 +649,6 @@ export class Glass extends React.Component {
             console.warn('[haiku-glass] active component not initialized; cannot reload')
             return
           }
-
-        case 'view:zoom-in':
-          this.getActiveComponent().getArtboard().zoomIn(1.25)
-          break
-
-        case 'view:zoom-out':
-          this.getActiveComponent().getArtboard().zoomOut(1.25)
-          break
-
-        case 'drawing:setActive':
-          this.getActiveComponent().getArtboard().setDrawingTool(message.params[0], message.params[1])
-          break
 
         case 'show-event-handlers-editor':
           this.handleShowEventHandlersEditor(
@@ -618,80 +705,77 @@ export class Glass extends React.Component {
     this.removeEmitterListeners()
     this.tourClient.off('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
     this.project.getEnvoyClient().closeConnection()
+    combokeys.detach()
   }
 
-  setLastSelectedElement (el) {
-    this._lastSelectedElement = el
+  handleUndo () {
+    if (this.project) {
+      Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'})
+      this.project.undo({}, {from: 'glass'}, () => {})
+    }
   }
 
-  getLastSelectedElement () {
-    return this._lastSelectedElement
+  handleRedo () {
+    if (this.project) {
+      Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'})
+      this.project.redo({}, {from: 'glass'}, () => {})
+    }
   }
 
-  handleVirtualClipboard (clipboardAction, maybeClipboardEvent) {
-    if (
-      // Avoid any interaction in preview mode
-      this.isPreviewMode() ||
-      // Avoid infinite loops due to the way we leverage execCommand
-      this._clipboardActionLock ||
-      // Avoid interfering with cut/copy events in the events editor
-      this.state.isEventHandlerEditorOpen ||
-      // Nothing can be done if no active component
-      !this.getActiveComponent()
-    ) {
-      return false
+  handleCut () {
+    this.fetchProxyElementForSelection().cut({from: 'glass'})
+  }
+
+  handleCopy () {
+    this.fetchProxyElementForSelection().copy({from: 'glass'})
+  }
+
+  handlePaste () {
+    const pasteables = ElementSelectionProxy.getPasteables()
+    return this.fetchProxyElementForSelection().pasteClipsAndSelect(
+      pasteables,
+      {from: 'glass'},
+      () => {}
+    )
+  }
+
+  handleDelete () {
+    if (this.isPreviewMode()) {
+      return
     }
 
-    this._clipboardActionLock = true
+    if (this.getActiveComponent()) {
+      const proxy = this.fetchProxyElementForSelection()
+      proxy.remove()
+    }
+  }
 
-    const lastSelectedElement = this.getLastSelectedElement()
+  handleSelectAll () {
+    if (this.getActiveComponent()) {
+      this.getActiveComponent().selectAll({}, {from: 'glass'}, () => {})
+    }
+  }
 
-    if (lastSelectedElement) {
-      const hash = this.getActiveComponent().getInsertionPointHash()
+  handleGroup () {
+    const proxy = this.fetchProxyElementForSelection()
+    if (proxy.canGroup()) {
+      proxy.group({from: 'glass'})
+    }
+  }
 
-      // Gotta grab this content before cutting, or we'll end up with a partial object that won't work
-      let clipboardPayload = lastSelectedElement.getClipboardPayload(
-        'glass',
-        (oldId) => {
-          return `${oldId}-${hash}`
-        }
-      )
-
-      if (clipboardAction === 'cut') {
-        lastSelectedElement.cut()
-      }
-
-      let serializedPayload = JSON.stringify(['application/haiku', clipboardPayload])
-
-      clipboard.writeText(serializedPayload)
-
-      this._clipboardActionLock = false
-    } else {
-      this._clipboardActionLock = false
+  handleUngroup () {
+    const proxy = this.fetchProxyElementForSelection()
+    if (proxy.canUngroup()) {
+      proxy.ungroup({from: 'glass'})
     }
   }
 
   createComponentFromSelectedElements () {
-    const selectedElements = Element.where({ _isSelected: true, component: this.getActiveComponent() })
-    // Our selection becomes invalid as soon as we call this since we're completely changing
-    // the elements that are currently on stage including our selection
-    Element.unselectAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
-    this.getActiveComponent().createComponentFromElements(selectedElements, { from: 'glass' }, (err) => {
-      if (err) {
-        console.error(err)
-      }
-    })
+    // TODO
   }
 
-  editComponentElement (element) {
-    const hostedComponent = element.getHostedComponent()
-    if (hostedComponent) {
-      this.project.setCurrentActiveComponent(hostedComponent.getSceneName(), { from: 'glass' }, (err) => {
-        if (err) {
-          console.error(err)
-        }
-      })
-    }
+  editComponentElement (proxy) {
+    // TODO
   }
 
   handleWindowResize () {
@@ -708,7 +792,11 @@ export class Glass extends React.Component {
   }
 
   showEventHandlersEditor (clickEvent, targetElement, options) {
-    if (this.isPreviewMode()) return void (0)
+    if (this.isPreviewMode()) {
+      return
+    }
+
+    console.info(`[glass] showing action editor`, targetElement, options)
 
     this.setState({
       targetElement: targetElement,
@@ -751,7 +839,7 @@ export class Glass extends React.Component {
 
   windowMouseMoveHandler (nativeEvent) {
     if (this.state.isEventHandlerEditorOpen) {
-      return void (0)
+      return
     }
 
     nativeEvent.preventDefault()
@@ -760,7 +848,7 @@ export class Glass extends React.Component {
 
   windowMouseUpHandler (nativeEvent) {
     if (this.state.isEventHandlerEditorOpen) {
-      return void (0)
+      return
     }
 
     nativeEvent.preventDefault()
@@ -769,7 +857,7 @@ export class Glass extends React.Component {
 
   windowMouseDownHandler (nativeEvent) {
     if (this.state.isEventHandlerEditorOpen) {
-      return void (0)
+      return
     }
 
     nativeEvent.preventDefault()
@@ -778,7 +866,7 @@ export class Glass extends React.Component {
 
   windowClickHandler (nativeEvent) {
     if (this.isPreviewMode() || this.state.isEventHandlerEditorOpen) {
-      return void (0)
+      return
     }
 
     nativeEvent.preventDefault()
@@ -787,7 +875,7 @@ export class Glass extends React.Component {
 
   windowDblClickHandler (nativeEvent) {
     if (this.isPreviewMode() || this.state.isEventHandlerEditorOpen) {
-      return void (0)
+      return
     }
 
     nativeEvent.preventDefault()
@@ -796,7 +884,7 @@ export class Glass extends React.Component {
 
   windowKeyDownHandler (nativeEvent) {
     if (this.isPreviewMode() || this.state.isEventHandlerEditorOpen) {
-      return void (0)
+      return
     }
 
     this.handleKeyDown({ nativeEvent })
@@ -804,7 +892,7 @@ export class Glass extends React.Component {
 
   windowKeyUpHandler (nativeEvent) {
     if (this.isPreviewMode() || this.state.isEventHandlerEditorOpen) {
-      return void (0)
+      return
     }
 
     this.handleKeyUp({ nativeEvent })
@@ -816,118 +904,274 @@ export class Glass extends React.Component {
     }
 
     if (this.state.isEventHandlerEditorOpen) {
-      return void (0)
+      return
     }
-
-    this.state.isMouseDown = true
-
-    this.state.lastMouseDownTime = Date.now()
-    this.storeAndReturnMousePosition(mousedownEvent, 'lastMouseDownPosition')
-
-    // store all elements' transforms
-    // TODO:  should we store only the selected element's transform?
-    //       this could become a bottleneck with a high number of elements
-    const elems = Element.where({component: this.getActiveComponent()}); // semicolon required
-
-    (elems || []).forEach((elem) => {
-      elem.pushCachedTransform('CONSTRAINED_DRAG') // wishlist:  enum
-    })
 
     // Only count left clicks
     if (mousedownEvent.nativeEvent.button !== 0) {
       return
     }
 
+    this.state.isMouseDown = true
+    this.state.lastMouseDownTime = Date.now()
+    const mouseDownPosition = this.storeAndReturnMousePosition(mousedownEvent, 'lastMouseDownPosition')
+
     // We are panning now, so don't un/select anything
     if (Globals.isSpaceKeyDown) {
       return
     }
 
+    const finish = () => {
+      this.fetchProxyElementForSelection().pushCachedTransform('CONSTRAINED_DRAG') // wishlist: enum
+    }
+
     if (this.getActiveComponent().getArtboard().getActiveDrawingTool() !== 'pointer') {
       // TODO: Drawing tools
     } else if (!this.isPreviewMode()) {
-      const target = this.findNearestDomSelectionTarget(mousedownEvent.nativeEvent.target)
+      let target = this.findNearestDomSelectionTarget(mousedownEvent.nativeEvent.target)
 
+      // True if the user has clicked the transform control for a selected element
       if (target === SELECTION_TYPES.ON_STAGE_CONTROL) {
         return
       }
 
+      // True if the user has clicked on the stage, but not on any on-stage element
       if (!target || !target.hasAttribute) {
-        // If shift is down, that's constrained scaling or translation. If cmd, that's rotation mode.
-        // Alt + click + drag duplicates elements
-        // I.e., only unselect elements if we're not doing either of those operations
+        // Unselect all the elements unless the user is doing a meta-operation, as indicated by these keys
         if (!Globals.isShiftKeyDown && !Globals.isCommandKeyDown && !Globals.isAltKeyDown) {
           Element.unselectAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
         }
+
+        if (!Globals.isCommandKeyDown && !Globals.isAltKeyDown) {
+          if (this.getActiveComponent()) {
+            if (experimentIsEnabled(Experiment.StageSelectionMarquee)) {
+              this.getActiveComponent().getSelectionMarquee().startSelection(mouseDownPosition)
+            }
+          }
+        }
+
         return
       }
 
-      if (
-        target.hasAttribute('source') &&
-        target.hasAttribute('haiku-id') &&
-        target.parentNode !== this.refs.mount &&
-        target.parentNode !== this.getActiveComponent().getMount().$el()
-      ) {
+      target = this.validTargetOrNull(target)
+
+      // Truthy if we found a valid, selectable element target
+      if (target) {
         // First make sure we are grabbing the correct element based on the context.
         // If we've landed on a component sub-element, we need to go up and select the wrapper.
         let haikuId = target.getAttribute('haiku-id')
+
         if (this.isDomNodeChildOfComponentWrapperDomNode(target)) {
           haikuId = target.parentNode.getAttribute('haiku-id')
         }
 
         const elementTargeted = this.getActiveComponent().findElementByComponentId(haikuId)
-        const allSelectedElements = Element.where({ _isSelected: true, component: this.getActiveComponent() })
 
-        if (Globals.isControlKeyDown) {
-          if (allSelectedElements.length > 0) {
-            return
-          }
-          // This call also unselects all elements, so we don't need to do that work here too
-          return this.getActiveComponent().selectElement(haikuId, { from: 'glass' }, () => {})
-        }
-
-        if (experimentIsEnabled(Experiment.MultiComponentFeatures)) {
-          if (Globals.isShiftKeyDown) {
-            // Shift being down indicates we are in multi-select mode
-            if (elementTargeted.isSelected()) {
-              return elementTargeted.unselectSoftly({ from: 'glass' })
+        if (experimentIsEnabled(Experiment.ElementMultiSelectAndTransform)) {
+          if (elementTargeted.isRootElement()) { // The artboard can only be selected alone
+            Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'})
+            this.ensureElementIsSelected(elementTargeted, finish)
+          } else {
+            if (!Globals.isControlKeyDown && !Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // none
+              this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
+                this.ensureElementIsSelected(elementTargeted, finish)
+              })
+            } else if (!Globals.isControlKeyDown && !Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Alt
+              this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
+                this.ensureElementIsSelected(elementTargeted, () => {
+                  this.duplicateSelectedElementsThenSelectDuplicates(finish)
+                })
+              })
+            } else if (!Globals.isControlKeyDown && Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Shift
+              this.toggleMultiElementSelection(elementTargeted, finish)
+            } else if (!Globals.isControlKeyDown && Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Shift+Alt
+              this.toggleMultiElementSelection(elementTargeted, () => {
+                this.duplicateSelectedElementsThenSelectDuplicates(finish)
+              })
+            } else if (Globals.isControlKeyDown && !Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Ctrl
+              this.deselectAllOtherElements(elementTargeted, () => {
+                this.ensureElementIsSelected(elementTargeted, finish)
+              })
+            } else if (Globals.isControlKeyDown && !Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Ctrl+Alt
+              this.deselectAllOtherElements(elementTargeted, () => {
+                this.ensureElementIsSelected(elementTargeted, finish)
+              })
+            } else if (Globals.isControlKeyDown && Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Ctrl+Shift
+              this.ensureElementIsSelected(elementTargeted, finish)
+            } else if (Globals.isControlKeyDown && Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Ctrl+Shift+Alt
+              this.ensureElementIsSelected(elementTargeted, finish)
             }
-            return elementTargeted.selectSoftly({ from: 'glass' })
           }
-        }
-
-        if (Globals.isAltKeyDown) {
-          // duplicate element here and immediately select it
-          // TODO:  support multi-select here (forEach instead of single haikuId)
-
-          const ac0 = this.getActiveComponent()
-          const origElement = Element.findByComponentAndHaikuId(ac0, haikuId)
-
-          // HACK:  zb, patching into paste logic because this was the only way I could discover/contrive
-          //       to duplicate an element (ideally this behavior should belong to the Element view-model
-          //       but the interface between in-mem elements and persisted elements is so heterogenous and
-          //       undiscoverable that I had to resort to this.)
-          // ALSO:  this paste logic starts to get REALLY SLOW for |elements| > 8 or so
-          ac0.pasteThing(origElement.getClipboardPayload(), {}, {from: 'glass'}, (err, idObj) => {
-            if (err) {
-              throw err
-            }
-
-            Element.findByComponentAndHaikuId(ac0, idObj.haikuId).pushCachedTransform('CONSTRAINED_DRAG')
-            this.getActiveComponent().selectElement(idObj.haikuId, { from: 'glass' }, () => {})
-          })
         } else {
-          // This call also unselects all elements, so we don't need to do that work here too
-          this.getActiveComponent().selectElement(haikuId, { from: 'glass' }, () => {})
+          if (elementTargeted.isRootElement()) { // The artboard can only be selected alone
+            Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'})
+            this.ensureElementIsSelected(elementTargeted, finish)
+          } else {
+            if (!Globals.isControlKeyDown && !Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // none
+              this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
+                this.ensureElementIsSelected(elementTargeted, finish)
+              })
+            } else if (!Globals.isControlKeyDown && !Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Alt
+              this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
+                this.ensureElementIsSelected(elementTargeted, () => {
+                  this.duplicateSelectedElementsThenSelectDuplicates(finish)
+                })
+              })
+            } else if (!Globals.isControlKeyDown && Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Shift
+              this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
+                this.ensureElementIsSelected(elementTargeted, finish)
+              })
+            } else if (!Globals.isControlKeyDown && Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Shift+Alt
+              this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
+                this.ensureElementIsSelected(elementTargeted, () => {
+                  this.duplicateSelectedElementsThenSelectDuplicates(finish)
+                })
+              })
+            } else if (Globals.isControlKeyDown && !Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Ctrl
+              this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
+                this.ensureElementIsSelected(elementTargeted, finish)
+              })
+            } else if (Globals.isControlKeyDown && !Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Ctrl+Alt
+              this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
+                this.ensureElementIsSelected(elementTargeted, finish)
+              })
+            } else if (Globals.isControlKeyDown && Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Ctrl+Shift
+              this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
+                this.ensureElementIsSelected(elementTargeted, finish)
+              })
+            } else if (Globals.isControlKeyDown && Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Ctrl+Shift+Alt
+              this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
+                this.ensureElementIsSelected(elementTargeted, finish)
+              })
+            }
+          }
         }
+      } else {
+        // TODO: In what situations can we ever get here?
       }
     }
+  }
+
+  validTargetOrNull (target) {
+    // If not even a node, we have no valid target
+    if (
+      !target ||
+      !target.hasAttribute
+    ) {
+      return null
+    }
+
+    // If no parent node, we must be too far; no valid target
+    if (
+      !target.parentNode ||
+      !target.parentNode.hasAttribute
+    ) {
+      return null
+    }
+
+    // If our parent is the mount, we're at the target - the top level
+    if (this.targetIsMount(target.parentNode)) {
+      return target
+    }
+
+    // Special case; don't jump to parent if we're in a component wrapper
+    if (this.isDomNodeChildOfComponentWrapperDomNode(target)) {
+      return target
+    }
+
+    // If we don't have selectable metadata, try our parent
+    if (!target.hasAttribute('haiku-id')) {
+      return this.validTargetOrNull(target.parentNode)
+    }
+
+    // If the parent is valid, we may want to jump up to it;
+    // note that we already checked if the parent is the mount above;
+    // we don't jump if the next one up is the artboard either
+    if (
+      target.parentNode.hasAttribute('haiku-id') &&
+      !this.targetIsMount(target.parentNode.parentNode)
+    ) {
+      return this.validTargetOrNull(target.parentNode)
+    }
+
+    // If we got here, we should be the topmost valid target
+    return target
+  }
+
+  targetIsMount (target) {
+    return (
+      target === this.refs.mount ||
+      target === this.getActiveComponent().getMount().$el()
+    )
+  }
+
+  deselectAllOtherElementsIfTargetNotAmongThem (target, cb) {
+    const selecteds = Element.where({ component: this.getActiveComponent(), _isSelected: true })
+    const isAmongSelection = selecteds.indexOf(target) !== -1
+    if (!isAmongSelection) {
+      selecteds.forEach((element) => {
+        if (element !== target) element.unselectSoftly({from: 'glass'})
+      })
+    }
+    return cb()
+  }
+
+  deselectAllOtherElements (target, cb) {
+    const selecteds = Element.where({ component: this.getActiveComponent(), _isSelected: true })
+    selecteds.forEach((element) => {
+      if (element !== target) element.unselectSoftly({from: 'glass'})
+    })
+    return cb()
+  }
+
+  ensureElementIsSelected (target, cb) {
+    target.selectSoftly({from: 'glass'})
+    return cb()
+  }
+
+  duplicateSelectedElementsThenSelectDuplicates (cb) {
+    const proxy = this.fetchProxyElementForSelection()
+    proxy.duplicateAllAndSelectDuplicates({from: 'glass'}, (err, proxyForDuplicates) => {
+      if (err) return cb(err)
+      return cb()
+    })
+  }
+
+  toggleMultiElementSelection (target, cb) {
+    if (target.isSelected()) {
+      target.unselectSoftly({from: 'glass'})
+    } else {
+      target.selectSoftly({from: 'glass'})
+    }
+    return cb()
+  }
+
+  toggleSelectionStateWithRespectToBox (box) {
+    const elements = Element.where({component: this.getActiveComponent()})
+      .filter((element) => !element.isRootElement())
+
+    // Note: We don't allow the artboard to be selected as part of multi-selection
+    elements.forEach((element) => {
+      // We don't want to select elements deeper than the top level
+      if (element.getDepthAmongElements() < 2) {
+        const overlaps = element.doesOverlapWithBox(box)
+        if (overlaps) {
+          element.selectSoftly({from: 'glass'})
+        } else {
+          element.unselectSoftly({from: 'glass'})
+        }
+      }
+    })
   }
 
   isDomNodeChildOfComponentWrapperDomNode (target) {
     // If the user selected one of the children of a component that has been instantiated on stage
     // we need to actually select the parent (wrapper) element since that's what our component manages
-    if (target.parentNode && target.parentNode.getAttribute('haiku-id') && target.parentNode.getAttribute('source')) {
+    if (
+      target.parentNode &&
+      target.parentNode.getAttribute('haiku-id') &&
+      target.parentNode.getAttribute('source')
+    ) {
       const targetCodeSourceWithRespectToProjectRoot = Design.designSourceToCodeSource(target.getAttribute('source'))
       const targetCodeSourceWithRespectToInstantiatorComponent = target.parentNode.getAttribute('source')
       if (this.getActiveComponent().getRelpathWithRespectToProjectFromPathRelativeToUs(targetCodeSourceWithRespectToInstantiatorComponent) === targetCodeSourceWithRespectToProjectRoot) {
@@ -971,6 +1215,10 @@ export class Glass extends React.Component {
       return void (0)
     }
 
+    if (this.getActiveComponent()) {
+      this.getActiveComponent().getSelectionMarquee().endSelection()
+    }
+
     this.storeAndReturnMousePosition(mouseupEvent, 'lastMouseUpPosition')
     this.state.isMouseDown = false
     this.state.lastMouseUpTime = Date.now()
@@ -987,6 +1235,11 @@ export class Glass extends React.Component {
     if (this.isPreviewMode()) {
       return void (0)
     }
+
+    if (this.getActiveComponent()) {
+      this.getActiveComponent().getSelectionMarquee().endSelection()
+    }
+
     this.storeAndReturnMousePosition(clickEvent)
   }
 
@@ -997,6 +1250,10 @@ export class Glass extends React.Component {
 
     if (this.isPreviewMode()) {
       return void (0)
+    }
+
+    if (this.getActiveComponent()) {
+      this.getActiveComponent().getSelectionMarquee().endSelection()
     }
 
     this.storeAndReturnMousePosition(doubleClickEvent)
@@ -1034,47 +1291,31 @@ export class Glass extends React.Component {
   }
 
   handleKeyLeftArrow (keyEvent) {
-    if (!this.getActiveComponent()) {
-      return
-    }
-
+    if (!this.getActiveComponent()) return
     const delta = keyEvent.shiftKey ? 5 : 1
-    this.getActiveComponent().queryElements({ _isSelected: true }).forEach((element) => {
-      element.move(-delta, 0, this.state.mousePositionCurrent, this.state.mousePositionPrevious)
-    })
+    const proxy = this.fetchProxyElementForSelection()
+    proxy.move(-delta, 0, this.state.mousePositionCurrent, this.state.mousePositionPrevious)
   }
 
   handleKeyUpArrow (keyEvent) {
-    if (!this.getActiveComponent()) {
-      return
-    }
-
+    if (!this.getActiveComponent()) return
     const delta = keyEvent.shiftKey ? 5 : 1
-    this.getActiveComponent().queryElements({ _isSelected: true }).forEach((element) => {
-      element.move(0, -delta, this.state.mousePositionCurrent, this.state.mousePositionPrevious)
-    })
+    const proxy = this.fetchProxyElementForSelection()
+    proxy.move(0, -delta, this.state.mousePositionCurrent, this.state.mousePositionPrevious)
   }
 
   handleKeyRightArrow (keyEvent) {
-    if (!this.getActiveComponent()) {
-      return
-    }
-
+    if (!this.getActiveComponent()) return
     const delta = keyEvent.shiftKey ? 5 : 1
-    this.getActiveComponent().queryElements({ _isSelected: true }).forEach((element) => {
-      element.move(delta, 0, this.state.mousePositionCurrent, this.state.mousePositionPrevious)
-    })
+    const proxy = this.fetchProxyElementForSelection()
+    proxy.move(delta, 0, this.state.mousePositionCurrent, this.state.mousePositionPrevious)
   }
 
   handleKeyDownArrow (keyEvent) {
-    if (!this.getActiveComponent()) {
-      return
-    }
-
+    if (!this.getActiveComponent()) return
     const delta = keyEvent.shiftKey ? 5 : 1
-    this.getActiveComponent().queryElements({ _isSelected: true }).forEach((element) => {
-      element.move(0, delta, this.state.mousePositionCurrent, this.state.mousePositionPrevious)
-    })
+    const proxy = this.fetchProxyElementForSelection()
+    proxy.move(0, delta, this.state.mousePositionCurrent, this.state.mousePositionPrevious)
   }
 
   handleKeyDown (keyEvent) {
@@ -1087,14 +1328,18 @@ export class Glass extends React.Component {
       this.getActiveComponent().getArtboard().resetZoomPan()
     }
 
+    if (this.getActiveComponent()) {
+      this.getActiveComponent().getSelectionMarquee().endSelection()
+    }
+
     switch (keyEvent.nativeEvent.which) {
       case 27: this.handleKeyEscape(); break
       case 37: this.handleKeyLeftArrow(keyEvent.nativeEvent); break
       case 38: this.handleKeyUpArrow(keyEvent.nativeEvent); break
       case 39: this.handleKeyRightArrow(keyEvent.nativeEvent); break
       case 40: this.handleKeyDownArrow(keyEvent.nativeEvent); break
-      case 46: this.handleKeyDelete(); break
-      case 8: this.handleKeyDelete(); break
+      case 46: this.handleDelete(); break
+      case 8: this.handleDelete(); break
       case 13: this.handleKeyEnter(); break
       case 16: this.handleKeyShift(keyEvent.nativeEvent); break
       case 17: this.handleKeyCtrl(keyEvent.nativeEvent); break
@@ -1108,6 +1353,10 @@ export class Glass extends React.Component {
   handleKeyUp (keyEvent) {
     if (this.state.isEventHandlerEditorOpen) {
       return
+    }
+
+    if (this.getActiveComponent()) {
+      this.getActiveComponent().getSelectionMarquee().endSelection()
     }
 
     switch (keyEvent.nativeEvent.which) {
@@ -1168,6 +1417,11 @@ export class Glass extends React.Component {
   }
 
   handleMouseOverStageName () {
+    // Don't highlight the stage name/artboard boundary if the selection marquee is active
+    if (this.getActiveComponent() && this.getActiveComponent().getSelectionMarquee().isActive()) {
+      return
+    }
+
     this.setState({ isStageNameHovering: true })
   }
 
@@ -1188,6 +1442,13 @@ export class Glass extends React.Component {
     const mousePositionCurrent = this.storeAndReturnMousePosition(mousemoveEvent)
     const mousePositionPrevious = this.state.mousePositionPrevious || mousePositionCurrent
 
+    const marquee = this.getActiveComponent().getSelectionMarquee()
+    if (marquee.isActive()) {
+      marquee.moveSelection(mousePositionCurrent)
+      const marqueeBox = marquee.getBox()
+      this.toggleSelectionStateWithRespectToBox(marqueeBox)
+    }
+
     let dx = (mousePositionCurrent.x - mousePositionPrevious.x) / zoom
     let dy = (mousePositionCurrent.y - mousePositionPrevious.y) / zoom
     if (dx === 0 && dy === 0) return mousePositionCurrent
@@ -1204,49 +1465,27 @@ export class Glass extends React.Component {
           mousemoveEvent.nativeEvent.clientY - this.state.stageMouseDown.y
         )
       } else if (!this.isPreviewMode()) {
-        var selected = this.getActiveComponent().queryElements({ _isSelected: true })
-        if (selected.length > 0) {
-          selected.forEach((element) => {
-            element.drag(dx, dy, mousePositionCurrent, mousePositionPrevious, lastMouseDownPosition, this.state, viewportTransform, Globals)
-          })
+        const proxy = this.fetchProxyElementForSelection()
+
+        // Do not drag elements if the user is actively selecting them
+        if (!marquee.isActive()) {
+          proxy.drag(
+            dx,
+            dy,
+            mousePositionCurrent,
+            mousePositionPrevious,
+            lastMouseDownPosition,
+            this.state.isAnythingScaling,
+            this.state.isAnythingRotating,
+            this.state.controlActivation,
+            viewportTransform,
+            Globals
+          )
         }
       }
     }
 
     return mousePositionCurrent
-  }
-
-  handleKeyDelete () {
-    if (!this.getActiveComponent()) {
-      return
-    }
-
-    if (this.isPreviewMode()) {
-      return void (0)
-    }
-
-    this.getActiveComponent().queryElements({ _isSelected: true }).forEach((element) => {
-      // Don't let folks delete the artboard; things get bad if this happens
-      if (!element.isRootElement()) {
-        element.remove()
-      }
-    })
-  }
-
-  getSelectionMarqueeSize () {
-    if (
-      !this.state.mousePositionCurrent ||
-      !this.state.lastMouseDownPosition ||
-      !this.getActiveComponent()) {
-      return { x: 0, y: 0, width: 0, height: 0 }
-    }
-
-    return {
-      x: this.state.lastMouseDownPosition.x + this.getActiveComponent().getArtboard().getRect().left,
-      y: this.state.lastMouseDownPosition.y + this.getActiveComponent().getArtboard().getRect().top,
-      width: this.state.mousePositionCurrent.x - this.state.lastMouseDownPosition.x,
-      height: this.state.mousePositionCurrent.y - this.state.lastMouseDownPosition.y
-    }
   }
 
   controlActivation (activationInfo) {
@@ -1302,40 +1541,32 @@ export class Glass extends React.Component {
       return
     }
 
-    const selected = this.getActiveComponent().queryElements({ _isSelected: true })
+    const container = this._haikuRenderer.createContainer(this.refs.overlay)
+    const parts = this.buildDrawnOverlays()
 
-    if (selected.length > 0) {
-      const container = this._haikuRenderer.createContainer(this.refs.overlay)
-
-      const parts = this.buildDrawnOverlays(selected)
-
-      const overlay = {
-        elementName: 'div',
-        attributes: {
-          id: 'haiku-glass-overlay-root',
-          style: {
-            transform: 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)',
-            position: 'absolute',
-            overflow: 'visible',
-            left: this.getActiveComponent().getArtboard().getMountX() + 'px',
-            top: this.getActiveComponent().getArtboard().getMountY() + 'px',
-            width: this.getActiveComponent().getArtboard().getMountWidth() + 'px',
-            height: this.getActiveComponent().getArtboard().getMountHeight() + 'px'
-          }
-        },
-        children: parts
-      }
-
-      // HACK! We already cache the control point listeners ourselves, so clear the cache
-      // used normally by the component instance for caching/deduping listeners in production.
-      // If we don't do this, rendered elements that disappear and re-appear won't have the
-      // event listener correctly applied to the newly created DOM node (listeners won't work)
-      this._haikuContext.component.clearRegisteredElementEventListeners()
-
-      this._haikuRenderer.render(this.refs.overlay, container, overlay, this._haikuContext.component, false)
-    } else {
-      this._haikuRenderer.render(this.refs.overlay, { /* container */ }, { elementName: 'div' }, this._haikuContext.component, false)
+    const overlay = {
+      elementName: 'div',
+      attributes: {
+        id: 'haiku-glass-overlay-root',
+        style: {
+          transform: 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)',
+          position: 'absolute',
+          overflow: 'visible',
+          left: this.getActiveComponent().getArtboard().getMountX() + 'px',
+          top: this.getActiveComponent().getArtboard().getMountY() + 'px',
+          width: this.getActiveComponent().getArtboard().getMountWidth() + 'px',
+          height: this.getActiveComponent().getArtboard().getMountHeight() + 'px'
+        }
+      },
+      children: parts
     }
+
+    // HACK! We already cache the control point listeners ourselves, so clear the cache
+    // used normally by the component instance for caching/deduping listeners in production.
+    // If we don't do this, rendered elements that disappear and re-appear won't have the
+    // event listener correctly applied to the newly created DOM node (listeners won't work)
+    this._haikuContext.component.clearRegisteredElementEventListeners()
+    this._haikuRenderer.render(this.refs.overlay, container, overlay, this._haikuContext.component, false)
   }
 
   // This method creates objects which represent Haiku Core rendering instructions for displaying all of
@@ -1344,7 +1575,7 @@ export class Glass extends React.Component {
   // and flushes updates to them on each frame. So what _this method_ does is just build those objects and then
   // these get passed into a Haiku Core render method (see above). LONG STORY SHORT: This creates a flat list of
   // nodes that get rendered to the DOM by the Haiku Core.
-  buildDrawnOverlays (selectedElements) {
+  buildDrawnOverlays () {
     const overlays = []
 
     // Don't show any overlays if we're in preview (aka 'live') interactionMode
@@ -1352,42 +1583,75 @@ export class Glass extends React.Component {
       return overlays
     }
 
-    if (selectedElements.length > 0) {
-      if (selectedElements.length === 1) {
-        let pointsForElement
+    const proxy = this.fetchProxyElementForSelection()
 
-        const element = selectedElements[0]
-
-        if (element.isRenderableType()) {
-          pointsForElement = element.getPointsTransformed(true)
-          this.renderMorphPointsOverlay(pointsForElement, overlays)
-        } else {
-          pointsForElement = element.getBoxPointsTransformed()
-          const rotationZ = element.getPropertyValue('rotation.z') || 0
-          let scaleX = element.getPropertyValue('scale.x')
-          if (scaleX === undefined || scaleX === null) scaleX = 1
-          let scaleY = element.getPropertyValue('scale.y')
-          if (scaleY === undefined || scaleY === null) scaleY = 1
-          this.renderTransformBoxOverlay(element, pointsForElement, overlays, element.canRotate(), Globals.isCommandKeyDown, true, rotationZ, scaleX, scaleY)
-          this.renderEventHandlersOverlay(element, pointsForElement, overlays, rotationZ, scaleX, scaleY)
-        }
-      } else {
-        // TODO: Render control points across multiple selected elements
-        const pointsForGroup = Element.getBoundingBoxPointsForElements(selectedElements)
-        this.renderTransformBoxOverlay(null, pointsForGroup, overlays, false, Globals.isCommandKeyDown, false, 0, 1, 1)
-      }
-      if (this.state.isMouseDragging) {
-        // TODO: Draw tooltip with points info
-      }
+    if (proxy.hasAnythingInSelection()) {
+      this.renderTransformBoxOverlay(
+        proxy.getBoxPointsTransformed(),
+        overlays,
+        proxy.canRotate(),
+        Globals.isCommandKeyDown,
+        proxy.canControlHandles(),
+        proxy.getElementOrProxyPropertyValue('rotation.z'),
+        proxy.getElementOrProxyPropertyValue('scale.x'),
+        proxy.getElementOrProxyPropertyValue('scale.y')
+      )
     }
+
+    if (proxy.hasAnythingInSelection()) {
+      this.renderEventHandlersOverlay(
+        proxy.getBoxPointsTransformed(),
+        overlays,
+        proxy.getElementOrProxyPropertyValue('rotation.z'),
+        proxy.getElementOrProxyPropertyValue('scale.x'),
+        proxy.getElementOrProxyPropertyValue('scale.y')
+      )
+    }
+
+    this.renderSelectionMarquee(overlays)
 
     return overlays
   }
 
-  renderMorphPointsOverlay (points, overlays) {
-    points.forEach((point, index) => {
-      overlays.push(this.renderControlPoint(point.x, point.y, index))
-    })
+  fetchProxyElementForSelection () {
+    const selection = Element.where({ component: this.getActiveComponent(), _isSelected: true })
+    const proxy = ElementSelectionProxy.fromSelection(selection, { component: this.getActiveComponent() })
+    return proxy
+  }
+
+  renderSelectionMarquee (overlays) {
+    if (this.getActiveComponent()) {
+      const marquee = this.getActiveComponent().getSelectionMarquee()
+
+      if (marquee.isActive()) {
+        const {
+          x,
+          y,
+          width,
+          height
+        } = marquee.getBox()
+
+        overlays.push({
+          elementName: 'div',
+          attributes: {
+            id: `selection-marquee-${marquee.getPrimaryKey()}`,
+            key: 'selection-marquee',
+            style: {
+              position: 'absolute',
+              pointerEvents: 'none',
+              left: `${x}px`,
+              top: `${y}px`,
+              border: '1px solid ' + Palette.DARKER_ROCK2,
+              backgroundColor: Palette.ROCK,
+              opacity: 0.25,
+              width: `${width}px`,
+              height: `${height}px`,
+              borderRadius: '1px'
+            }
+          }
+        })
+      }
+    }
   }
 
   renderLine (x1, y1, x2, y2) {
@@ -1535,7 +1799,7 @@ export class Glass extends React.Component {
     return this.elementContextMenuButton
   }
 
-  renderEventHandlersOverlay (element, points, overlays, rotationZ, scaleX, scaleY) {
+  renderEventHandlersOverlay (points, overlays, rotationZ, scaleX, scaleY) {
     // If the size is smaller than a threshold, only display the corners.
     // And if it is smaller even than that, don't display the points at all
     const dx = Element.distanceBetweenPoints(points[0], points[2], this.state.zoomXY)
@@ -1547,7 +1811,7 @@ export class Glass extends React.Component {
     overlays.push(this.buildElementContextMenuIcon(x, y, rotationZ, scaleX, scaleY))
   }
 
-  renderTransformBoxOverlay (maybeElement, points, overlays, canRotate, isRotationModeOn, canControlHandles, rotationZ, scaleX, scaleY) {
+  renderTransformBoxOverlay (points, overlays, canRotate, isRotationModeOn, canControlHandles, rotationZ, scaleX, scaleY) {
     if (!this.getActiveComponent()) {
       return
     }
@@ -1558,10 +1822,6 @@ export class Glass extends React.Component {
     const dy = Element.distanceBetweenPoints(points[0], points[6], this.getActiveComponent().getArtboard().getZoom())
 
     let pointDisplayMode = POINT_DISPLAY_MODES.NORMAL
-    // No element means we are displaying points around multi-selection
-    if (!maybeElement) {
-      pointDisplayMode = POINT_DISPLAY_MODES.NONE
-    }
 
     if (pointDisplayMode !== POINT_DISPLAY_MODES.NONE) {
       if (dx < POINTS_THRESHOLD_NONE || dy < POINTS_THRESHOLD_NONE) {
@@ -1602,18 +1862,16 @@ export class Glass extends React.Component {
 
     const controlIndex = this.state.controlActivation.index
     const isRotationModeOn = Globals.isCommandKeyDown
-    const selectedElements = this.getActiveComponent().queryElements({ _isSelected: true })
-    if (selectedElements.length === 1) {
-      const selectedElement = selectedElements[0]
-      const rotationZ = selectedElement.getPropertyValue('rotation.z') || 0
-      let scaleX = selectedElement.getPropertyValue('scale.x')
-      if (scaleX === undefined || scaleX === null) scaleX = 1
-      let scaleY = selectedElement.getPropertyValue('scale.y')
-      if (scaleY === undefined || scaleY === null) scaleY = 1
-      return this.getHandleClass(controlIndex, true, isRotationModeOn, rotationZ, scaleX, scaleY)
-    } else {
-      return this.getHandleClass(controlIndex, false, isRotationModeOn, 0, 1, 1)
-    }
+    const proxy = this.fetchProxyElementForSelection()
+
+    return this.getHandleClass(
+      controlIndex,
+      proxy.canRotate(),
+      isRotationModeOn,
+      proxy.getElementOrProxyPropertyValue('rotation.z'),
+      proxy.getElementOrProxyPropertyValue('scale.x'),
+      proxy.getElementOrProxyPropertyValue('scale.y')
+    )
   }
 
   getCSSTransform (zoom, pan) {
@@ -1681,9 +1939,7 @@ export class Glass extends React.Component {
   getContextMenuItems () {
     const items = []
 
-    const selectedElements = this.getActiveComponent().queryElements({ _isSelected: true })
-    const selectedElement = selectedElements.length === 1 && selectedElements[0]
-    const sourcePath = selectedElement && selectedElement.staticTemplateNode && selectedElement.staticTemplateNode.attributes && selectedElement.staticTemplateNode.attributes['source']
+    const proxy = this.fetchProxyElementForSelection()
 
     if (experimentIsEnabled(Experiment.CommentsOnStage)) {
       items.push({
@@ -1715,14 +1971,7 @@ export class Glass extends React.Component {
       items.push({
         label: 'Create Component',
         // If a single element is already a component, we don't let it be created as one
-        enabled: (
-          selectedElements.length > 0 &&
-          !(
-            selectedElements.length === 1 &&
-            selectedElement &&
-            selectedElement.isComponent()
-          )
-        ),
+        enabled: proxy.canCreateComponentFromSelection(),
         onClick: () => {
           this.createComponentFromSelectedElements()
         }
@@ -1730,13 +1979,9 @@ export class Glass extends React.Component {
 
       items.push({
         label: 'Edit Component',
-        enabled: (
-          selectedElements.length === 1 &&
-          selectedElement &&
-          selectedElement.isComponent()
-        ),
+        enabled: proxy.canEditComponentFromSelection(),
         onClick: () => {
-          this.editComponentElement(selectedElement)
+          this.editComponentElement(proxy.getSingleComponentElement())
         }
       })
 
@@ -1745,80 +1990,83 @@ export class Glass extends React.Component {
 
     items.push({
       label: 'Edit Element Actions',
-      enabled: !!selectedElement,
+      enabled: proxy.doesManageSingleElement(),
       onClick: (event) => {
-        this.showEventHandlersEditor(event, selectedElement)
+        this.showEventHandlersEditor(event, proxy.selection[0])
       }
     })
 
     items.push({ type: 'separator' })
 
-    if (sourcePath && Sketch.isSketchFolder(sourcePath)) {
-      const sketchAssetPath = sourcePath && sourcePath.split(/\.sketch\.contents/)[0].concat('.sketch')
+    items.push({
+      label: 'Edit in Sketch',
+      enabled: proxy.isSelectionSketchEditable(),
+      onClick: () => {
+        shell.openItem(path.join(this.props.folder, proxy.getSketchAssetPath()))
+      }
+    })
 
-      items.push({
-        label: 'Edit in Sketch',
-        enabled: !!sourcePath,
-        onClick: () => {
-          shell.openItem(path.join(this.props.folder, sketchAssetPath))
-        }
-      })
-    }
-
-    if (sourcePath && Figma.isFigmaFolder(sourcePath)) {
-      const figmaAssetPath = sourcePath && sourcePath.split(/\.figma\.contents/)[0].concat('.figma')
-
-      items.push({
-        label: 'Edit in Figma',
-        enabled: !!sourcePath,
-        onClick: () => {
-          shell.openExternal(Figma.buildFigmaLinkFromPath(figmaAssetPath))
-        }
-      })
-    }
+    items.push({
+      label: 'Edit in Figma',
+      enabled: proxy.isSelectionFigmaEditable(),
+      onClick: () => {
+        shell.openExternal(proxy.getFigmaAssetLink())
+      }
+    })
 
     items.push({ type: 'separator' })
 
     items.push({
       label: 'Cut',
-      enabled: !!selectedElement,
+      enabled: proxy.canCut(),
       onClick: () => {
-        selectedElement.cut()
+        this.handleCut()
       }
     })
 
     items.push({
       label: 'Copy',
-      enabled: !!selectedElement,
+      enabled: proxy.canCopy(),
       onClick: () => {
-        selectedElement.copy()
+        this.handleCopy()
       }
     })
 
     items.push({
       label: 'Paste',
-      enabled: selectedElements.length < 1, // TODO: How can we determine whether we have a pasteable ready?
+      enabled: proxy.canPaste(),
       onClick: (event) => {
-        if (this.isPreviewMode()) {
-          return
-        }
-
-        this.props.websocket.send({
-          type: 'broadcast',
-          name: 'current-pasteable:request-paste',
-          from: 'glass',
-          data: this.state.mousePositionCurrent
-        })
+        this.handlePaste()
       }
     })
 
     items.push({ type: 'separator' })
 
+    if (experimentIsEnabled(Experiment.GroupUngroup)) {
+      items.push({
+        label: 'Group',
+        enabled: proxy.canGroup(),
+        onClick: () => {
+          this.handleGroupDebounced()
+        }
+      })
+
+      items.push({
+        label: 'Ungroup',
+        enabled: proxy.canUngroup(),
+        onClick: (event) => {
+          this.handleUngroupDebounced()
+        }
+      })
+
+      items.push({ type: 'separator' })
+    }
+
     items.push({
       label: 'Delete',
-      enabled: selectedElement && !selectedElement.isRootElement(),
+      enabled: proxy.canDelete(),
       onClick: () => {
-        selectedElement.remove({ from: 'glass' })
+        this.handleDelete()
       }
     })
 
@@ -1826,33 +2074,33 @@ export class Glass extends React.Component {
 
     items.push({
       label: 'Forward',
-      enabled: !!(selectedElement && !selectedElement.isAtFront()),
+      enabled: proxy.canBringForward(),
       onClick: () => {
-        selectedElement.bringForward()
+        proxy.bringForward()
       }
     })
 
     items.push({
       label: 'Backward',
-      enabled: !!(selectedElement && !selectedElement.isAtBack()),
+      enabled: proxy.canSendBackward(),
       onClick: () => {
-        selectedElement.sendBackward()
+        proxy.sendBackward()
       }
     })
 
     items.push({
       label: 'Bring to Front',
-      enabled: !!(selectedElement && !selectedElement.isAtFront()),
+      enabled: proxy.canBringToFront(),
       onClick: () => {
-        selectedElement.bringToFront()
+        proxy.bringToFront()
       }
     })
 
     items.push({
       label: 'Send to Back',
-      enabled: !!(selectedElement && !selectedElement.isAtBack()),
+      enabled: proxy.canSendToBack(),
       onClick: () => {
-        selectedElement.sendToBack()
+        proxy.sendToBack()
       }
     })
 
@@ -1860,15 +2108,15 @@ export class Glass extends React.Component {
 
     items.push({
       label: 'Copy SVG',
-      enabled: !!selectedElement,
+      enabled: proxy.canCopySVG(),
       onClick: (event) => {
-        clipboard.writeText(selectedElement.toXMLString())
+        clipboard.writeText(proxy.copySVG())
       }
     })
 
     items.push({
       label: 'HTML Snapshot',
-      enabled: !!selectedElement,
+      enabled: proxy.canHTMLSnapshot(),
       onClick: (event) => {
         this.getActiveComponent().htmlSnapshot((err, html) => {
           if (err) {
@@ -1943,6 +2191,8 @@ export class Glass extends React.Component {
 
         {(!this.isPreviewMode())
           ? <div
+            id='zoom-indicator'
+            className='no-select'
             style={{
               position: 'fixed',
               top: 5,

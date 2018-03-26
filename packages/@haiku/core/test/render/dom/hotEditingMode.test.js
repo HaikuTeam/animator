@@ -16,7 +16,7 @@ test('render.dom.hotEditingMode.on', function (t) {
     }
   }
 
-  const config = { options: { hotEditingMode: true } }
+  const config = { hotEditingMode: true }
 
   TestHelpers.createRenderTest(
     template,
@@ -28,6 +28,11 @@ test('render.dom.hotEditingMode.on', function (t) {
       t.equal(mount.firstChild.haiku.virtual.layout.opacity, 1, 'initial opacity is 1')
       component._bytecode.timelines.Default['haiku:abcde'].opacity['0'].value = 0.5
       component.clearCaches()
+      component.addHotComponent({
+        timelineName: 'Default',
+        selector: 'haiku:abcde',
+        propertyNames: ['opacity'],
+      })
       context.tick()
       t.equal(mount.firstChild.haiku.virtual.layout.opacity, 0.5, 'non-animated property updated in hot-editing mode')
       teardown()
@@ -52,7 +57,7 @@ test('render.dom.hotEditingMode.off', function (t) {
     }
   }
 
-  const config = { options: { hotEditingMode: false } }
+  const config = { hotEditingMode: false }
 
   TestHelpers.createRenderTest(
     template,

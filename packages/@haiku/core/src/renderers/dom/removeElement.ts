@@ -8,5 +8,6 @@ export default function removeElement(domElement, flexId, component) {
   }
 
   domElement.parentNode.removeChild(domElement);
+
   return domElement;
 }

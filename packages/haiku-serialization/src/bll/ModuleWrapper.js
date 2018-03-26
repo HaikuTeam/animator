@@ -165,7 +165,7 @@ class ModuleWrapper extends BaseModel {
   }
 
   reload (cb) {
-    return Lock.request(Lock.LOCKS.FileReadWrite(this.getAbspath()), (release) => {
+    return Lock.request(Lock.LOCKS.FileReadWrite(this.getAbspath()), false, (release) => {
       try {
         this.load()
       } catch (exception) {

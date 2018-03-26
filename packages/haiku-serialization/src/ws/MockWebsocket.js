@@ -5,7 +5,9 @@ class MockWebsocket {
   send () {}
   method () {}
   request () {}
-  action () {}
+  action (method, params, cb) {
+    return cb()
+  }
 }
 
 module.exports = MockWebsocket

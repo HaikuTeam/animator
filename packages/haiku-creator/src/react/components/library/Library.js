@@ -224,15 +224,20 @@ class Library extends React.Component {
   }
 
   handleFileInstantiation (asset) {
-    return this.props.projectModel.transmitInstantiateComponent(asset.getRelpath(), {}, (err) => {
-      if (err) {
-        if (err.code === 'ENOENT') {
-          return this.props.createNotice({ type: 'error', title: 'Error', message: 'We couldn\'t find that file. 😩 Please try again in a few moments. If you still see this error, contact Haiku for support.' })
-        } else {
-          return this.props.createNotice({ type: 'error', title: 'Error', message: err.message })
+    return this.props.projectModel.getCurrentActiveComponent().instantiateComponent(
+      asset.getRelpath(),
+      {x: 0, y: 0}, // Double click places the element at top-right
+      {from: 'creator'},
+      (err) => {
+        if (err) {
+          if (err.code === 'ENOENT') {
+            return this.props.createNotice({ type: 'error', title: 'Error', message: 'We couldn\'t find that file. 😩 Please try again in a few moments. If you still see this error, contact Haiku for support.' })
+          } else {
+            return this.props.createNotice({ type: 'error', title: 'Error', message: err.message })
+          }
         }
       }
-    })
+    )
   }
 
   openSketchFile (asset) {

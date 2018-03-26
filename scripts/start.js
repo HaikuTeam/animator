@@ -15,7 +15,7 @@ const blankProject = path.join(plumbingPackage.abspath, 'test/fixtures/projects/
 
 let mainProcess
 
-global.process.env.NODE_ENV = 'development'
+global.process.env.NODE_ENV = global.process.env.NODE_ENV || 'development'
 
 /**
  * Run this script when you want to start local development
@@ -54,7 +54,8 @@ const FOLDER_CHOICES = {
   'complex-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/complex'),
   'SuperComplex-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/SuperComplex'),
   'AliensRepro-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/AliensRepro'),
-  'Move-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/Move')
+  'Move-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/Move'),
+  'metapoem2-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/metapoem2')
 }
 
 // Support:
@@ -69,7 +70,7 @@ if (argv.default === true) {
 
 const availablePresets = {
   glass: 'primitives-glass',
-  timeline: 'complex-timeline',
+  timeline: 'metapoem2-timeline',
   blank: 'blank',
   'blank-noclean': 'blank-noclean'
 }
@@ -123,7 +124,8 @@ function runInteractive () {
             { name: 'complex (timeline)', value: 'complex-timeline' },
             { name: 'SuperComplex (timeline)', value: 'SuperComplex-timeline' },
             { name: 'AliensRepro (timeline)', value: 'AliensRepro-timeline' },
-            { name: 'Move (timeline)', value: 'Move-timeline' }
+            { name: 'Move (timeline)', value: 'Move-timeline' },
+            { name: 'metapoem2 (timeline)', value: 'metapoem2-timeline' }
           ],
           default: inputs.folderChoice
         },

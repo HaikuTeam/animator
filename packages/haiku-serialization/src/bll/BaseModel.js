@@ -1,6 +1,14 @@
 const { EventEmitter } = require('events')
-const EmitterManager = require('./../utils/EmitterManager')
 const lodash = require('lodash')
+const MemoryStorage = require('./storage/MemoryStorage')
+const DiskStorage = require('./storage/DiskStorage')
+const CryptoUtils = require('./../utils/CryptoUtils')
+const EmitterManager = require('./../utils/EmitterManager')
+const logger = require('./../utils/LoggerInstance')
+const expressionToRO = require('@haiku/core/lib/reflection/expressionToRO').default
+const reifyRO = require('@haiku/core/lib/reflection/reifyRO').default
+
+const SYNC_DEBOUNCE_TIME = 100 // ms
 
 /**
  * @class BaseModel
@@ -46,27 +54,38 @@ class BaseModel extends EventEmitter {
 
     this.setOptions(opts)
 
-    if (this.options.required) {
-      for (let requirement in this.options.required) {
-        if (props[requirement] === undefined) {
-          throw new Error(`Property '${requirement}' is required`)
+    // If validation is off, we know what we're doing and will add required props later
+    if (!this.options.validationOff) {
+      if (this.options.required) {
+        for (let requirement in this.options.required) {
+          if (props[requirement] === undefined) {
+            throw new Error(`Property '${requirement}' is required`)
+          }
         }
       }
     }
 
-    const emit = this.emit
-    this.emit = (a, b, c, d, e, f, g, h, i) => {
-      emit.call(this, a, b, c, d, e, f, g, h, i)
-      this.constructor.emit(a, this, b, c, d, e, f, g, h, i)
-    }
+    // Whether or not we should actively sync to remote instances of this model
+    this.__sync = false
 
+    // Allow us to freely call sync on any update without backing up websockets
+    this.syncDebounced = lodash.debounce(() => {
+      this.sync()
+    }, SYNC_DEBOUNCE_TIME)
+
+    // Enough models have this relationship that we provide it from BaseModel;
+    // we set this before .assign() though in case they were provided in the constructor
+    this.parent = null
+    this.children = []
+
+    // Assign initial attributes. Note that __sync is falsy until later
     this.assign(props)
 
     if (!this.getPrimaryKey()) {
       this.setPrimaryKey(this.generateUniqueId())
     }
 
-    this.constructor.add(this)
+    this.__storage = 'mem'
 
     // Generic cache object that can store 'anything' that model instances want.
     this.__cache = {}
@@ -79,10 +98,63 @@ class BaseModel extends EventEmitter {
     this.__initialized = Date.now()
     this.__marked = false
 
-    // When a model instance is destroyed, it is kept in the collection but not included in queries.
+    // When a model instance is destroyed, it may not be immediately garbage collected.
     this.__destroyed = null
+    this._updateReceivers = {}
 
-    if (this.afterInitialize) this.afterInitialize()
+    if (this.afterInitialize) {
+      this.afterInitialize()
+    }
+
+    // Now that we're done constructing, assume we're ready to send syncs
+    this.__sync = true
+
+    if (this.constructor.config.useQueryCache) {
+      this.__proxy = new Proxy(this, {
+        set: (object, property, value) => {
+          this.constructor.dirtyQueryCacheKeys.add(property)
+          object[property] = value
+          return true
+        }
+      })
+    } else {
+      this.__proxy = this
+    }
+
+    this.constructor.add(this.__proxy)
+    return this.__proxy
+  }
+
+  /**
+   * This method returns a teardown function that decommissions the update receiver provided in its second argument as
+   * a callback.
+   *
+   * IMPORTANT: Always call the teardown function when the entity is expected not to go out of scope but the update
+   * receiver is.
+   *
+   * @param source
+   * @param cb
+   * @returns {function()}
+   */
+  registerUpdateReceiver (source, cb) {
+    if (typeof cb !== 'function') {
+      return () => {}
+    }
+    this._updateReceivers[source] = cb
+    return () => {
+      delete this._updateReceivers[source]
+    }
+  }
+
+  notifyUpdateReceivers (what) {
+    Object.keys(this._updateReceivers).forEach((receiver) => {
+      this._updateReceivers[receiver](what)
+    })
+  }
+
+  emit (...args) {
+    super.emit.call(this.__proxy, ...args)
+    this.constructor.emit(args[0], this.__proxy, ...args.slice(1))
   }
 
   getEchoInfo () {
@@ -96,14 +168,15 @@ class BaseModel extends EventEmitter {
   mark () {
     // This gets set to `false` whenever we are upserted (constructed or initialized)
     this.__marked = true
+    return true
   }
 
   sweep () {
     if (this.__marked) {
       this.destroy()
-      // This is safe to call even if the entity doesn't have a `.parent`
-      this.removeFromParent()
+      return true
     }
+    return false
   }
 
   generateUniqueId () {
@@ -111,7 +184,7 @@ class BaseModel extends EventEmitter {
   }
 
   forceUpdate () {
-    this.setUpdate()
+    this.setUpdateTimestamp()
     this.cacheClear()
     return this
   }
@@ -122,12 +195,12 @@ class BaseModel extends EventEmitter {
   }
 
   cacheGet (key) {
-    return lodash.get(this.__cache, key)
+    return this.__cache[key]
   }
 
   cacheSet (key, value) {
     this.setUpdateTimestamp()
-    return lodash.set(this.__cache, key, value)
+    this.__cache[key] = value
   }
 
   cacheFetch (key, provider) {
@@ -139,7 +212,7 @@ class BaseModel extends EventEmitter {
   }
 
   cacheUnset (key) {
-    return lodash.set(this.__cache, key, undefined)
+    this.__cache[key] = undefined
   }
 
   setUpdateTimestamp () {
@@ -151,22 +224,26 @@ class BaseModel extends EventEmitter {
     return this.__updated
   }
 
-  didUpdateSince (time) {
-    return time <= this.__updated
-  }
-
-  didUpdateSinceLastCheck () {
-    const answer = this.__checked < this.__updated
-    this.__checked = Date.now()
-    return answer
-  }
-
   getClassName () {
     return this.constructor.name
   }
 
+  getPrimaryKeyShort () {
+    const key = this.getPrimaryKey()
+    const parts = key.split(':')
+    return parts[parts.length - 1]
+  }
+
   getPrimaryKey () {
     return this[this.constructor.config.primaryKey]
+  }
+
+  getKeySHA () {
+    return CryptoUtils.sha256(`${this.getClassName()}-${this.getPrimaryKey()}`)
+  }
+
+  toString () {
+    return this.getPrimaryKey()
   }
 
   setPrimaryKey (value) {
@@ -174,29 +251,15 @@ class BaseModel extends EventEmitter {
     return this
   }
 
-  getOptions () {
-    return this.options
-  }
-
   setOptions (opts) {
-    lodash.assign(this.options, this.constructor.DEFAULT_OPTIONS, opts)
-    return this
-  }
-
-  getOption (key) {
-    return this.options[key]
-  }
-
-  setOption (key, value) {
-    this.options[key] = value
-    return this
+    Object.assign(this.options, this.constructor.DEFAULT_OPTIONS, opts)
   }
 
   assign (props) {
     if (props) {
       for (const key in props) {
         if (props[key] !== undefined) {
-          this[key] = props[key]
+          this.set(key, props[key])
         }
       }
     }
@@ -205,66 +268,75 @@ class BaseModel extends EventEmitter {
     return this
   }
 
-  destroy () {
-    if (this.beforeDestroy) this.beforeDestroy()
-    this.constructor.remove(this)
-    this.constructor.clearCaches()
-    this.setPrimaryKey(undefined)
-    this.__destroyed = Date.now()
-    if (this.afterDestroy) this.afterDestroy()
-    return this
+  set (key, value) {
+    this[key] = value
+    this.syncDebounced()
   }
 
-  destroyedAt () {
-    return this.__destroyed
+  destroy () {
+    this.removeFromParent()
+    this.constructor.remove(this)
+    this.constructor.clearCaches()
+    this.__destroyed = Date.now()
+    this.syncDebounced()
   }
 
   isDestroyed () {
     return !!this.__destroyed
   }
 
-  sameAs (other) {
-    if (!other) return false
-    if (this === other) return true
-    return false
-  }
-
   hasAll (criteria) {
-    let match = true
+    if (!criteria) {
+      return true
+    }
+
     for (const key in criteria) {
       if (criteria[key] !== this[key]) {
-        match = false
+        return false
       }
     }
-    return match
+    return true
   }
 
   hasAny (criteria) {
-    let match = false
     for (const key in criteria) {
       if (criteria[key] === this[key]) {
-        match = true
+        return true
       }
     }
-    return match
+    return false
   }
 
   insertChild (entity) {
-    if (!this.children) {
-      this.children = []
-    }
+    const found = []
 
-    let found = false
-
-    this.children.forEach((child) => {
-      if (child === entity) {
-        found = true
+    this.children.forEach((child, index) => {
+      if (
+        child && (
+          child === entity ||
+          child.getPrimaryKey() === entity.getPrimaryKey()
+        )
+      ) {
+        found.push({child, index})
       }
     })
 
-    if (!found) {
+    if (found.length > 0) {
+      found.forEach(({child, index}) => {
+        // Replace the existing one with the new one, in the same slot
+        this.children.splice(index, 1, entity)
+        // If the child entity is garbage, collect it
+        if (child !== entity) {
+          child.destroy()
+        }
+      })
+    } else {
+      // But if we didn't find any copy, just insert at the end of the list
       this.children.push(entity)
     }
+
+    // Important; some dependencies downstream need this
+    entity.parent = this
   }
 
   removeChild (entity) {
@@ -273,7 +345,10 @@ class BaseModel extends EventEmitter {
     }
 
     for (let i = this.children.length - 1; i >= 0; i--) {
-      if (this.children[i] === entity) {
+      if (
+        this.children[i] === entity ||
+        this.children[i].getPrimaryKey() === entity.getPrimaryKey()
+      ) {
         this.children.splice(i, 1)
       }
     }
@@ -294,13 +369,259 @@ class BaseModel extends EventEmitter {
   off (channel, fn) {
     return this.removeListener(channel, fn)
   }
+
+  assertStorable () {
+    if (!this.constructor.toPOJO) {
+      throw new Error(`BaseModel subclass must implement 'toPOJO'`)
+    }
+
+    if (!this.constructor.fromPOJO) {
+      throw new Error(`BaseModel subclass must implement 'fromPOJO'`)
+    }
+
+    if (!BaseModel.storage) {
+      throw new Error(`BaseModel has no 'storage' configured`)
+    }
+
+    if (!this.getStorage()) {
+      throw new Error(`BaseModel has no '${this.getStorageType()} storage' configured`)
+    }
+  }
+
+  getStorageType () {
+    return this.__storage
+  }
+
+  setStorageType (type) {
+    if (!BaseModel.storage[type]) {
+      throw new Error(`BaseModel has no storage module '${type}'`)
+    }
+    this.__storage = type
+  }
+
+  getStorageModule () {
+    return BaseModel.storage[this.getStorageType()]
+  }
+
+  store () {
+    this.assertStorable()
+    const pojo = this.constructor.toPOJO(this)
+    const key = `${this.getClassName()}-${this.getKeySHA()}`
+    const storage = this.getStorageModule()
+    return storage.store(key, pojo)
+  }
+
+  unstore () {
+    this.assertStorable()
+    const key = `${this.getClassName()}-${this.getKeySHA()}`
+    const storage = this.getStorageModule()
+    const pojo = storage.unstore(key)
+    if (pojo) {
+      this.constructor.fromPOJO(pojo)
+    }
+  }
+
+  sync () {
+    if (
+      // Don't send syncs until we're globally ready to do so
+      !BaseModel.__sync ||
+      // Don't actually transmit if we aren't sync-ready yet
+      !this.__sync ||
+      // Don't try to transmit if we have no synchronize capability
+      !this.synchronize
+    ) {
+      return
+    }
+
+    this.synchronize(Object.assign(
+      this.getWireReadyPayload(),
+      {
+        name: 'remote-model:receive-sync',
+        syncIntent: (this.isDestroyed())
+          ? BaseModel.SYNC_INTENTS.destroy
+          : BaseModel.SYNC_INTENTS.upsert
+      }
+    ))
+  }
+
+  getWireReadyPayload () {
+    return {
+      className: this.getClassName(),
+      primaryKey: this.getPrimaryKey(),
+      objectAttributes: this.getWireReadyObjectAttributes()
+    }
+  }
+
+  getWireReadyObjectAttributes () {
+    return BaseModel.getWireReadyObjectAttributes(this, true, true)
+  }
+}
+
+BaseModel.SYNC_INTENTS = {
+  upsert: 'upsert',
+  destroy: 'destroy'
+}
+
+// Use this to toggle whether any model can send/receive syncs or not
+BaseModel.__sync = false // Caution: singleton
+
+BaseModel.receiveSync = ({ syncIntent, className, primaryKey, objectAttributes }) => {
+  // Don't try to receive any syncs if we aren't ready at all yet
+  if (!BaseModel.__sync) {
+    logger.warn(`BaseModel sync not ready to ${syncIntent} ${className} ${primaryKey}`)
+    return
+  }
+
+  if (!BaseModel.SYNC_INTENTS[syncIntent]) {
+    throw new Error(`BaseModel sync intent invalid; cannot receive`)
+  }
+
+  let instance
+
+  switch (syncIntent) {
+    case BaseModel.SYNC_INTENTS.upsert:
+      instance = BaseModel.upsertFromWireObjectAttributes({ className, primaryKey, objectAttributes })
+      if (instance) {
+        instance.emit('local-model:handle-sync', { syncIntent })
+      } else {
+        logger.warn(`BaseModel sync could not ${syncIntent} ${className} ${primaryKey}`)
+      }
+      break
+
+    case BaseModel.SYNC_INTENTS.destroy:
+      instance = BaseModel.instanceFromModelSpec({ className, primaryKey })
+      if (instance) {
+        instance.destroy()
+        instance.emit('local-model:handle-sync', { syncIntent })
+      } else {
+        logger.warn(`BaseModel sync could not ${syncIntent} ${className} ${primaryKey}`)
+      }
+      break
+  }
+}
+
+BaseModel.upsertFromWireObjectAttributes = ({ className, primaryKey, objectAttributes }) => {
+  const klass = BaseModel.getModelClassByClassName(className)
+
+  if (!klass) {
+    // We may not have a class yet if we're not fully bootstrapped (race condition)
+    return
+  }
+
+  const upsertSpec = {}
+
+  for (const attrKey in objectAttributes) {
+    const attrVal = objectAttributes[attrKey]
+
+    // Transform a reference to an instance into the instance itself
+    if (attrVal && attrVal.__model) {
+      upsertSpec[attrKey] = BaseModel.instanceFromModelSpec(attrVal.__model)
+      continue
+    }
+
+    upsertSpec[attrKey] = reifyRO(attrVal)
+  }
+
+  // Must set the primary key as part of the upsertSpec for the lookup to work
+  upsertSpec[klass.config.primaryKey] = primaryKey
+
+  return klass.upsert(upsertSpec, { validationOff: true })
+}
+
+BaseModel.instanceFromModelSpec = ({ className, primaryKey }) => {
+  const klass = BaseModel.getModelClassByClassName(className)
+  // In case we receive a sync before bootstrapped, don't assume we have a class
+  const instance = klass && klass.findById(primaryKey)
+  return instance // This may be undefined in race condition cases
+}
+
+BaseModel.getWireReadyObjectAttributes = (obj, isBase = false, goDeep = false) => {
+  if (
+    typeof obj === 'boolean' ||
+    typeof obj === 'number' ||
+    typeof obj === 'string' ||
+    typeof obj === 'function' ||
+    !obj
+  ) {
+    return expressionToRO(obj)
+  }
+
+  if (goDeep) {
+    if (Array.isArray(obj)) {
+      return obj.map(BaseModel.getWireReadyObjectAttributes)
+    }
+
+    const out = {}
+
+    for (const key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        if (
+          // Exclude any property blacklisted as reserved
+          !RESERVED_PROPERTY_KEYS[key] &&
+          // Exclude any property that matches our primary key name
+          obj.constructor.config.primaryKey !== key
+        ) {
+          const result = BaseModel.getWireReadyObjectAttributes(obj[key], false, false)
+
+          // Undefined indicates no change when upserting, to we just exclude these
+          if (result !== undefined) {
+            out[key] = result
+          }
+        }
+      }
+    }
+
+    return out
+  }
+
+  if (obj instanceof BaseModel && !goDeep) {
+    return {
+      __model: {
+        className: obj.getClassName(),
+        primaryKey: obj.getPrimaryKey()
+      }
+    }
+  }
+}
+
+// HACK: I want to blacklist all methods properties that belong to BaseModel,
+// but I can't figure out how to do it. klass.prototype[] didn't work?
+const RESERVED_PROPERTY_KEYS = {
+  __cache: true,
+  __checked: true,
+  __destroyed: true,
+  __initialized: true,
+  __marked: true,
+  __proxy: true,
+  __storage: true,
+  __sync: true,
+  __updated: true,
+  _events: true,
+  _eventsCount: true,
+  _maxListeners: true,
+  _updateReceivers: true,
+  addEmitterListener: true,
+  addEmitterListenerIfNotAlreadyRegistered: true,
+  children: true,
+  options: true,
+  parent: true,
+  removeEmitterListeners: true,
+  synchronize: true,
+  sync: true,
+  syncDebounced: true,
+  uid: true
 }
 
 BaseModel.DEFAULT_OPTIONS = {}
 
+BaseModel.storage = {
+  mem: new MemoryStorage(),
+  disk: new DiskStorage()
+}
+
 BaseModel.extend = function extend (klass, opts) {
   if (!klass.extended) {
-    createCollection(klass, [], opts)
+    createCollection(klass, opts)
 
     klass.emitter = new EventEmitter()
     klass.emit = klass.emitter.emit.bind(klass.emitter)
@@ -312,76 +633,156 @@ BaseModel.extend = function extend (klass, opts) {
   }
 }
 
-function createCollection (klass, collection, opts) {
-  klass.config = lodash.assign({
-    primaryKey: 'uid'
-  }, opts)
+const getStableCacheKey = (prefix, criteria) => {
+  if (typeof criteria !== 'object') {
+    return false
+  }
 
-  klass.configure = (config) => {
-    lodash.assign(klass.config, config)
+  const cacheKeyComponents = [prefix]
+  for (const key in criteria) {
+    const value = (criteria[key] && criteria[key].toString()) || criteria[key] + ''
+    cacheKeyComponents.push(key, value)
+  }
+
+  return cacheKeyComponents.join('|')
+}
+
+const KNOWN_MODEL_CLASSES = {}
+
+BaseModel.getModelClassByClassName = (className) => {
+  return KNOWN_MODEL_CLASSES[className]
+}
+
+const createCollection = (klass, opts) => {
+  KNOWN_MODEL_CLASSES[klass.name] = klass
+
+  klass.config = {
+    primaryKey: 'uid'
+  }
+
+  Object.assign(klass.config, opts)
+
+  // Use two internal representations of the full table: an array collection for querying where order matters, and a
+  // hashmap collection for fast primary key lookups.
+  const arrayCollection = []
+  const hashmapCollection = {}
+
+  let queryCache = {}
+  klass.dirtyQueryCacheKeys = new Set()
+
+  const purgeDirtyQueryCacheKeys = (keys) => {
+    keys.forEach((dirtyKey) => {
+      if (klass.dirtyQueryCacheKeys.has(dirtyKey)) {
+        klass.dirtyQueryCacheKeys.delete(dirtyKey)
+        Object.keys(queryCache).filter((name) => name.includes(dirtyKey)).forEach((dirtyCacheKey) => {
+          delete queryCache[dirtyCacheKey]
+        })
+      }
+    })
+  }
+
+  const cachedQuery = (prefix, criteria, iteratee) => {
+    const cacheKey = getStableCacheKey(prefix, criteria)
+    if (cacheKey === false) {
+      return klass.filter(iteratee)
+    }
+
+    purgeDirtyQueryCacheKeys(Object.keys(criteria))
+    if (!queryCache[cacheKey]) {
+      queryCache[cacheKey] = klass.filter(iteratee)
+    }
+
+    return queryCache[cacheKey]
+  }
+
+  const clearQueryCache = () => {
+    if (klass.config.useQueryCache) {
+      queryCache = {}
+      klass.dirtyQueryCacheKeys.clear()
+    }
   }
 
   klass.idx = (instance) => {
-    for (let i = 0; i < collection.length; i++) {
-      if (collection[i].sameAs(instance)) return i
+    for (let i = 0; i < arrayCollection.length; i++) {
+      if (arrayCollection[i] === instance) return i
     }
     return -1
   }
 
-  klass.get = (instance) => {
-    const idx = klass.idx(instance)
-    if (idx === -1) return null
-    return collection[idx]
+  klass.setInstancePrimaryKey = (instance, primaryKey) => {
+    if (klass.has(instance)) {
+      delete hashmapCollection[instance.getPrimaryKey()]
+      instance.setPrimaryKey(primaryKey)
+      hashmapCollection[instance.getPrimaryKey()] = instance
+    }
   }
 
-  klass.has = (instance) => !!klass.get(instance)
+  klass.get = (instance) => {
+    return hashmapCollection[instance.getPrimaryKey()] || null
+  }
+
+  klass.has = (instance) => hashmapCollection[instance.getPrimaryKey()] !== undefined
 
   klass.add = (instance) => {
-    if (!klass.has(instance)) collection.push(instance)
-    return collection
+    if (!klass.has(instance)) {
+      clearQueryCache()
+      arrayCollection.push(instance)
+      hashmapCollection[instance.getPrimaryKey()] = instance
+    }
   }
 
   klass.remove = (instance) => {
+    // Note: We previously only did this work if klass.has() evaluated to true,
+    // but this caused issues where models weren't removed correctly if we ended
+    // up adding multiple elements to the collection with the same id, which occurred
+    // due to an implementation detail in Keyframe when dragging to 0
     const idx = klass.idx(instance)
-    if (idx === -1) return null
-    collection.splice(idx, 1)
-    return collection
+    if (idx !== -1) {
+      arrayCollection.splice(idx, 1)
+      clearQueryCache()
+    }
+    delete hashmapCollection[instance.getPrimaryKey()]
   }
 
-  klass.all = () => collection.filter((item) => !item.isDestroyed())
-
-  klass.collection = () => collection
+  klass.all = () => arrayCollection
 
   klass.count = () => klass.all().length
 
   klass.filter = (iteratee) => klass.all().filter(iteratee)
 
   klass.where = (criteria) => {
-    if (!criteria) return klass.all()
-    if (Object.keys(criteria).length < 0) return klass.all()
+    if (klass.config.useQueryCache) {
+      return cachedQuery('where', criteria, (instance) => instance.hasAll(criteria))
+    }
+
     return klass.filter((instance) => instance.hasAll(criteria))
   }
 
-  klass.any = (criteria) => klass.filter((instance) => instance.hasAny(criteria))
+  klass.any = (criteria) => {
+    if (klass.config.useQueryCache) {
+      cachedQuery('any', criteria, (instance) => instance.hasAny(criteria))
+    }
+
+    return klass.filter((instance) => instance.hasAll(criteria))
+  }
 
   klass.find = (criteria) => {
     const found = klass.where(criteria)
     return found && found[0]
   }
 
-  klass.findById = (id) => {
-    const criteria = {}
-    criteria[klass.config.primaryKey] = id
-    return klass.find(criteria)
-  }
+  klass.findById = (id) => hashmapCollection[id]
 
   // eslint-disable-next-line
   klass.create = (props, opts) => new klass(props, opts)
 
   klass.upsert = (props, opts) => {
     klass.clearCaches()
-    const pkey = props[klass.config.primaryKey]
-    const found = klass.findById(pkey) // Criteria in case of id collisions :/
+
+    const primaryKey = props[klass.config.primaryKey]
+
+    const found = klass.findById(primaryKey) // Criteria in case of id collisions :/
+
     if (found) {
       found.assign(props)
       found.setOptions(opts)
@@ -390,14 +791,18 @@ function createCollection (klass, collection, opts) {
       found.__initialized = Date.now()
       found.__marked = false
 
-      if (found.afterInitialize) found.afterInitialize()
+      if (found.afterInitialize) {
+        found.afterInitialize()
+      }
+
       return found
     }
+
     return klass.create(props, opts)
   }
 
   klass.clearCaches = () => {
-    collection.forEach((item) => {
+    arrayCollection.forEach((item) => {
       item.cacheClear()
     })
   }

@@ -58,11 +58,21 @@ TestHelpers.run(
     const frames = ([1,2,3,4,5,6]).map((n) => Math.round((n * 3) * 16.666))
     return async.each(Object.keys(PROP_NAMES), (propertyName, nextPropertyName) => {
       return async.eachSeries(frames, (frame, nextFrame) => {
-        const moves = {}; moves[frame] = {value: PROP_NAMES[propertyName]};
+        const moves = {}
+        moves[frame] = {value: PROP_NAMES[propertyName]}
+        const keyframeMoves = {}
+        keyframeMoves[propertyName] = moves
         return t.plumbing.invokeAction(
           folder,
           'moveKeyframes',
-          ['code/main/code.js', 'd7e12f40e778', 'Default', propertyName, moves],
+          [
+            'code/main/code.js',
+            {
+              'Default': {
+                'd7e12f40e778': keyframeMoves
+              }
+            }
+          ],
           nextFrame
         )
       }, nextPropertyName)

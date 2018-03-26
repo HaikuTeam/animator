@@ -11,10 +11,10 @@ module.exports = function requestElementCoordinates (
     currentWebview
   )
 
-  const element = document.querySelector(selector)
+  const domElement = document.querySelector(selector)
 
-  if (element) {
-    let {top, left, width, height} = element.getBoundingClientRect()
+  if (domElement) {
+    let {top, left, width, height} = domElement.getBoundingClientRect()
     if (shouldNotifyEnvoy) {
       console.info(
         `[${currentWebview}] receive element coordinates`,
@@ -25,7 +25,7 @@ module.exports = function requestElementCoordinates (
       tourClient.receiveElementCoordinates(currentWebview, {top, left, width, height})
     }
   } else {
-    // If we didn't find an element, try again in 300ms
+    // If we didn't find a DOM element, try again in 300ms
     if (maxNumberOfTries >= currentNumberOfTries) {
       setTimeout(() => {
         requestElementCoordinates.apply(this, [

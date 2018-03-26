@@ -1,8 +1,6 @@
 var HaikuCreation = require('@haiku/core/dom')
 module.exports = HaikuCreation(require('./code.js'), {
-  options: {
-    loop: true
-  },
+  loop: true,
   states: {
     bgcolor: {
       value: 'red'

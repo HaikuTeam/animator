@@ -721,6 +721,11 @@ export default class ExpressionInput extends React.Component {
       // If you want to handle an input when focused, used handleEditorKeydown
       return 2
     } else if (selectedRow && selectedRow.isProperty()) {
+      if (keydownEvent.metaKey) {
+        // Don't focus/nav if the user is doing e.g. Cmd+Z
+        return 1
+      }
+
       // Up/down arrows (when selected) navigate the selection state between cells
       if (keydownEvent.which === 38) { // Up arrow
         this.requestNavigate(NAVIGATION_DIRECTIONS.PREV, false)
@@ -938,13 +943,13 @@ export default class ExpressionInput extends React.Component {
   }
 
   getLabelString () {
-    let row = this.props.component.getFocusedRow()
-    let name = (row && row.getPropertyName()) || ''
+    const row = this.props.component.getFocusedRow()
+    const name = (row && row.getPropertyName()) || ''
     return humanizePropertyName(name)
   }
 
   getRootRect () {
-    let row = this.props.component.getFocusedRow()
+    const row = this.props.component.getFocusedRow()
 
     if (!row) {
       return {
@@ -955,19 +960,18 @@ export default class ExpressionInput extends React.Component {
 
     // When we become focused, we need to move to the position of the input cell we are
     // working with, and we do so by looking up the DOM node of the cell matching our property id
-    let elid = row.getInputPropertyId()
-    let fellow = document.getElementById(elid)
+    const domElementFellow = document.getElementById(row.getInputPropertyId())
 
     // There might not be an element for the input cell if the cell was unfocused as part of accordion
     // collapse (which would result in that element being removed from the DOM), hence this guard
-    if (!fellow) {
+    if (!domElementFellow) {
       return {
         left: 0,
         top: 0
       }
     }
 
-    return fellow.getBoundingClientRect()
+    return domElementFellow.getBoundingClientRect()
   }
 
   getEvalutatorStateColor () {
@@ -1044,7 +1048,7 @@ export default class ExpressionInput extends React.Component {
   getSaveButtonStyle () {
     return {
       fontSize: '10px',
-      background: Palette.PINK,
+      backgroundColor: Palette.PINK,
       padding: '2px 8px',
       borderRadius: '4px',
       color: Palette.SUNSTONE,

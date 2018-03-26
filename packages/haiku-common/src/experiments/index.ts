@@ -24,6 +24,11 @@ export enum Experiment {
   MultiComponentControlsLibrary = 'MultiComponentControlsLibrary',
   ShowSubElementsInJitMenu = 'ShowSubElementsInJitMenu',
   ElementMultiSelectAndTransform = 'ElementMultiSelectAndTransform',
+  GroupUngroup = 'GroupUngroup',
+  BaseModelQueryCache = 'BaseModelQueryCache',
+  ElementDepthFilter = 'ElementDepthFilter',
+  StageSelectionMarquee = 'StageSelectionMarquee',
+  StageResizeAllSides = 'StageResizeAllSides',
   FigmaIntegration = 'FigmaIntegration',
 }
 

@@ -1,5 +1,4 @@
 const Mixpanel = require('mixpanel')
-const assign = require('lodash.assign')
 const os = require('os')
 
 const tokens = {
@@ -31,11 +30,11 @@ const defaultPayload = {
 }
 
 mixpanel.mergeToPayload = function mergeToPayload (keepPayload) {
-  return assign(defaultPayload, keepPayload)
+  return Object.assign(defaultPayload, keepPayload)
 }
 
 function _getPayload (eventName, eventPayload) {
-  return assign({}, defaultPayload, eventPayload)
+  return Object.assign({}, defaultPayload, eventPayload)
 }
 
 function _safeStringify (obj) {
