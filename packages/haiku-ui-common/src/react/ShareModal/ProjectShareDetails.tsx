@@ -2,6 +2,7 @@ import * as React from 'react';
 import * as Color from 'color';
 import Palette from '../../Palette';
 import {LinkHolster} from './LinkHolster';
+import {TooltipBasic} from '../TooltipBasic';
 
 const STYLES = {
   wrapper: {
@@ -53,13 +54,13 @@ const STYLES = {
     display: 'inline-block',
     float: 'left',
     cursor: 'pointer',
-    width: 34,
-    height: 16,
+    width: 28,
+    height: 12,
     backgroundColor: Palette.GRAY,
     borderRadius: 16,
     position: 'relative',
     marginTop: 10,
-    marginLeft: 10,
+    marginRight: 10,
   },
   toggleLabel: {
     width: 47,
@@ -71,20 +72,41 @@ const STYLES = {
   knob: {
     display: 'inline-block',
     position: 'absolute',
-    top: 0,
+    top: -1,
     left: 0,
-    width: 16,
-    height: 16,
-    borderRadius: 16,
+    width: 14,
+    height: 14,
+    borderRadius: 14,
     backgroundColor: Palette.DARKER_ROCK,
     transition: 'transform 220ms cubic-bezier(0.25, 0.1, 0.29, 1.45)',
   },
   knobActive: {
     backgroundColor: Palette.LIGHTEST_PINK,
-    transform: 'translateX(18px)',
+    transform: 'translateX(13px)',
   },
   disabledToggle: {
     opacity: .5,
+  },
+  circle: {
+    display: 'inline-block',
+    position: 'relative',
+    border: '1px solid currentColor',
+    borderRadius: '50%',
+    width: '1.1em',
+    height: '1.2em',
+    verticalAlign: 'middle',
+    marginLeft: '5px',
+    color: Palette.DARK_ROCK,
+    fontSize: '0.7em',
+    cursor: 'pointer',
+    textAlign: 'center',
+    lineHeight: '1.2em',
+    marginTop: '12px',
+  },
+  tiptext: {
+    fontSize: '11px',
+    lineHeight: 1.2,
+    padding: '8px 0',
   },
 } as React.CSSProperties;
 
@@ -99,6 +121,10 @@ export class ProjectShareDetails extends React.PureComponent {
     isPublic: React.PropTypes.bool,
     togglePublic: React.PropTypes.func,
     mixpanel: React.PropTypes.object,
+  };
+
+  state = {
+    showTooltip: false,
   };
 
   render() {
@@ -129,7 +155,12 @@ export class ProjectShareDetails extends React.PureComponent {
             <p style={{height: 16, ...STYLES.info}} />
           )}
 
-          {<span style={{visibility: this.props.isPublic === undefined ? 'hidden' : 'visible'}}>
+          {<span style={{visibility: (this.props.isPublic === undefined && false) ? 'hidden' : 'visible'}}>
+            <span
+              style={{...STYLES.toggle, ...(isPublic && STYLES.toggleActive)}}
+              onClick={() => {!this.props.isDisabled && togglePublic();}}>
+                <span style={{...STYLES.knob, ...(isPublic && STYLES.knobActive)}}/>
+            </span>
             <span
               style={{...STYLES.info, ...STYLES.infoSpecial2}} >
               <span
@@ -139,9 +170,18 @@ export class ProjectShareDetails extends React.PureComponent {
               </span>
             </span>
             <span
-              style={{...STYLES.toggle, ...(isPublic && STYLES.toggleActive)}}
-              onClick={() => {!this.props.isDisabled && togglePublic();}}>
-                <span style={{...STYLES.knob, ...(isPublic && STYLES.knobActive)}}/>
+              style={STYLES.circle}
+              onMouseOver={() => this.setState({showTooltip: true}) }
+              onMouseOut={() => this.setState({showTooltip: false}) }
+            >?
+            {this.state.showTooltip &&
+              <TooltipBasic light={true} top={16} width={170}>
+                <div style={STYLES.tiptext}>
+                  Projects set to 'Public' are visible on the Haiku Community and able to be forked.
+                  We also select our favorite haiku to showcase!
+                </div>
+              </TooltipBasic>
+            }
             </span>
           </span>}
         </div>
