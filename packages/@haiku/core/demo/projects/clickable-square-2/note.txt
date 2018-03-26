@@ -1,1 +1,1 @@
-Should show a gray square that opacitates based on mouse position, which rotates when you click it, and which jumps in position at frame 22.
+Should show a gray square that opacitates based on mouse position, which rotates when you click it, and which jumps in position at frame 26. The React adapter subscribes to a handful events which should all fire. Click the red square in the React one to test that the subcomponent can emit events that bubble up to the host.

@@ -939,7 +939,7 @@ export default class Master extends EventEmitter {
 
       // I'm not actually sure this needs to run here; doesn't project do this?
       this.getActiveComponent().mountApplication(null, {
-        options: { freeze: true },
+        freeze: true,
         reloadMode: ModuleWrapper.RELOAD_MODES.MONKEYPATCHED_OR_ISOLATED
       })
     })

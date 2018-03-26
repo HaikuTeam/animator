@@ -579,11 +579,9 @@ class ActiveComponent extends BaseModel {
 
       this.getActiveInstancesOfHaikuCoreComponent().forEach((instance) => {
         instance.assignConfig({
-          options: {
-            interactionMode: interactionMode,
-            // Disable hot editing mode during preview mode for smooth playback.
-            hotEditingMode: !this.isPreviewModeActive()
-          }
+          interactionMode: interactionMode,
+          // Disable hot editing mode during preview mode for smooth playback.
+          hotEditingMode: !this.isPreviewModeActive()
         })
       })
 
@@ -597,7 +595,7 @@ class ActiveComponent extends BaseModel {
 
   setHotEditingMode (hotEditingMode) {
     this.getActiveInstancesOfHaikuCoreComponent().forEach((instance) => {
-      instance.assignConfig({ options: { hotEditingMode } })
+      instance.assignConfig({ hotEditingMode })
     })
   }
 
@@ -1802,14 +1800,12 @@ class ActiveComponent extends BaseModel {
     const factory = HaikuDOMAdapter(bytecode, null, null)
 
     const createdHaikuCoreComponent = factory(this.getMount().$el(), lodash.merge({}, {
-      options: {
-        contextMenu: 'disabled', // Don't show the right-click context menu since our editing tools use right-click
-        overflowX: 'visible',
-        overflowY: 'visible',
-        mixpanel: false, // Don't track events in mixpanel while the component is being built
-        interactionMode: this._interactionMode,
-        hotEditingMode: true // Don't clone the bytecode/template so we can mutate it in-place
-      }
+      contextMenu: 'disabled', // Don't show the right-click context menu since our editing tools use right-click
+      overflowX: 'visible',
+      overflowY: 'visible',
+      mixpanel: false, // Don't track events in mixpanel while the component is being built
+      interactionMode: this._interactionMode,
+      hotEditingMode: true // Don't clone the bytecode/template so we can mutate it in-place
     }, config))
 
     // Make sure we get notified of state updates and everything else we care about

@@ -29,10 +29,8 @@ tape('ActiveComponent.2.ativo', (t) => {
           HaikuHTMLRenderer,
           ac0.getReifiedBytecode(),
           { // config
-            options: {
-              size: {x: 100, y: 100},
-              user: {}
-            },
+            size: {x: 100, y: 100},
+            user: {}
           },
           {}, // platform
         )

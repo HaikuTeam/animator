@@ -146,12 +146,10 @@ export class Glass extends React.Component {
     this.draw = this.draw.bind(this)
 
     const haikuConfig = Config.build({
-      options: {
-        seed: Config.seed(),
-        cache: {}
-      }
+      seed: Config.seed(),
+      cache: {}
     })
-    this._haikuRenderer = new HaikuDOMRenderer(haikuConfig)
+    this._haikuRenderer = new HaikuDOMRenderer(null, haikuConfig)
     this._haikuContext = new HaikuContext(
       null,
       this._haikuRenderer,
@@ -311,12 +309,10 @@ export class Glass extends React.Component {
   mountHaikuComponent () {
     this.awaitRef('mount', (ref) => {
       this.getActiveComponent().mountApplication(ref, {
-        options: {
-          freeze: true,
-          overflowX: 'visible',
-          overflowY: 'visible',
-          contextMenu: 'disabled'
-        },
+        freeze: true,
+        overflowX: 'visible',
+        overflowY: 'visible',
+        contextMenu: 'disabled',
         reloadMode: ModuleWrapper.RELOAD_MODES.MONKEYPATCHED_OR_ISOLATED
       })
     })

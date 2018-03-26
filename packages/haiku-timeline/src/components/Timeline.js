@@ -287,7 +287,7 @@ class Timeline extends React.Component {
   mountHaikuComponent () {
     // The Timeline UI doesn't display the component, so we don't bother giving it a ref
     this.getActiveComponent().mountApplication(null, {
-      options: { freeze: true }, // No display means no need for overflow settings, etc
+      freeze: true, // No display means no need for overflow settings, etc
       reloadMode: ModuleWrapper.RELOAD_MODES.MONKEYPATCHED_OR_ISOLATED
     })
   }
