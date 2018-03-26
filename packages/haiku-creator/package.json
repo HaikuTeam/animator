@@ -29,6 +29,7 @@
     "better-react-spinkit": "2.0.0-4",
     "color": "^2.0.1",
     "combokeys": "^2.4.6",
+    "electron-proxy-agent": "^1.0.2",
     "event-emitter": "^0.3.5",
     "haiku-common": "3.1.23",
     "haiku-glass": "3.1.23",

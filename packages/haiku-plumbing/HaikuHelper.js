@@ -51,8 +51,16 @@ function go () {
         haiku.folder = path.join(global.process.cwd(), haiku.folder)
       }
     }
-    plumbing.launch(haiku, () => {
-      console.log('Haiku plumbing running')
+    plumbing.getenv((error, dotenv) => {
+      // Before we launch, read .env from ~/.haiku with extreme prejudice, overwriting any environment variables set
+      // earlier during bootstrapping.
+      if (!error) {
+        Object.assign(global.process.env, dotenv)
+        Object.assign(haiku, {dotenv})
+      }
+      plumbing.launch(haiku, () => {
+        console.log('Haiku plumbing running')
+      })
     })
   }
 }

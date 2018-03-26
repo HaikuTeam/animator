@@ -57,7 +57,7 @@
     "cli-color": "^1.2.0",
     "dependency-graph": "^0.5.0",
     "derequire": "^2.0.6",
-    "dotenv": "^4.0.0",
+    "dotenv": "^5.0.1",
     "electron": "1.8.2",
     "electron-builder": "20.0.8",
     "electron-react-devtools": "^0.5.3",

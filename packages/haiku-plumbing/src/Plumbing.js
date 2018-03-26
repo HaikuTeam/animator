@@ -1,5 +1,6 @@
 import path from 'path'
 import async from 'async'
+import dotenv from 'dotenv'
 import fse from 'haiku-fs-extra'
 import lodash from 'lodash'
 import find from 'lodash.find'
@@ -18,7 +19,7 @@ import { GLASS_CHANNEL, GlassHandler } from 'haiku-sdk-creator/lib/glass'
 import { TIMELINE_CHANNEL, TimelineHandler } from 'haiku-sdk-creator/lib/timeline'
 import { TOUR_CHANNEL, TourHandler } from 'haiku-sdk-creator/lib/tour'
 import { inkstone } from '@haiku/sdk-inkstone'
-import { client as sdkClient } from '@haiku/sdk-client'
+import { client as sdkClient, FILE_PATHS } from '@haiku/sdk-client'
 import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
 import StateObject from 'haiku-state-object'
 import serializeError from 'haiku-serialization/src/utils/serializeError'
@@ -865,6 +866,33 @@ export default class Plumbing extends StateObject {
 
   resendEmailConfirmation (username, cb) {
     return inkstone.user.requestConfirmEmail(username, cb)
+  }
+
+  getenv (cb) {
+    if (!fse.existsSync(FILE_PATHS.DOTENV)) {
+      return cb(null, {})
+    }
+
+    return cb(null, dotenv.parse(fse.readFileSync(FILE_PATHS.DOTENV)))
+  }
+
+  setenv (environmentVariables, cb) {
+    Object.assign(global.process.env, environmentVariables)
+    this.getenv((error, fullEnvironmentVariables) => {
+      // This should never happen.
+      if (error) {
+        return cb(error)
+      }
+
+      Object.assign(fullEnvironmentVariables, environmentVariables)
+      fse.writeFileSync(FILE_PATHS.DOTENV, Object.entries(fullEnvironmentVariables)
+        .reduce((accumulator, [key, value]) => {
+          accumulator += `${key}="${value}"\n`
+          return accumulator
+        }, ''))
+
+      return cb(null, fullEnvironmentVariables)
+    })
   }
 
   authenticateUser (username, password, cb) {
