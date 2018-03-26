@@ -18,9 +18,11 @@ const STYLES = {
     top: 34,
     transform: 'translateX(-50%)',
     borderRadius: '3px',
-    width: '100%',
+    maxWidth: 170,
+    minWidth: 110,
     padding: '0 4px',
     textAlign: 'center',
+    color: Palette.SUNSTONE,
     backgroundColor: Palette.DARKEST_COAL,
     borderColor: Palette.DARKEST_COAL,
     boxShadow: '0 2px 7px 0 rgba(0,0,0,.3)',
@@ -58,6 +60,7 @@ export class TooltipBasic extends React.PureComponent {
         ...STYLES.tooltip,
         ...(this.props.light && STYLES.light),
         ...{top: this.props.top},
+        ...{width: this.props.width},
       }}>
         <span style={{...STYLES.tip, ...(this.props.light && STYLES.tipLight)}} />
         {this.props.children}
