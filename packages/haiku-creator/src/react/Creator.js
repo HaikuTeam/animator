@@ -119,7 +119,7 @@ export default class Creator extends React.Component {
       newProjectLoading: false,
       interactionMode: InteractionMode.EDIT,
       showChangelogModal: false,
-      showProxySettings: false,
+      showProxySettings: false
     }
 
     this.envoyOptions = {
