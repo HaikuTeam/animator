@@ -1,5 +1,6 @@
 import path from 'path'
 import async from 'async'
+import dotenv from 'dotenv'
 import fse from 'haiku-fs-extra'
 import lodash from 'lodash'
 import find from 'lodash.find'
@@ -18,7 +19,7 @@ import { GLASS_CHANNEL, GlassHandler } from 'haiku-sdk-creator/lib/glass'
 import { TIMELINE_CHANNEL, TimelineHandler } from 'haiku-sdk-creator/lib/timeline'
 import { TOUR_CHANNEL, TourHandler } from 'haiku-sdk-creator/lib/tour'
 import { inkstone } from '@haiku/sdk-inkstone'
-import { client as sdkClient } from '@haiku/sdk-client'
+import { client as sdkClient, FILE_PATHS } from '@haiku/sdk-client'
 import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
 import StateObject from 'haiku-state-object'
 import serializeError from 'haiku-serialization/src/utils/serializeError'
@@ -235,7 +236,7 @@ export default class Plumbing extends StateObject {
 
       haiku.socket.token = HAIKU_WS_SECURITY_TOKEN
 
-      return this.launchControlServer(haiku.socket, (err, server, host, port) => {
+      return this.launchControlServer(haiku.socket, haiku.envoy.host, (err, server, host, port) => {
         if (err) return cb(err)
 
         // Forward these env vars to creator
@@ -839,9 +840,45 @@ export default class Plumbing extends StateObject {
     return inkstone.user.requestConfirmEmail(username, cb)
   }
 
+  getenv (cb) {
+    if (!fse.existsSync(FILE_PATHS.DOTENV)) {
+      return cb(null, {})
+    }
+
+    return cb(null, dotenv.parse(fse.readFileSync(FILE_PATHS.DOTENV)))
+  }
+
+  setenv (environmentVariables, cb) {
+    Object.assign(global.process.env, environmentVariables)
+    this.getenv((error, fullEnvironmentVariables) => {
+      // This should never happen.
+      if (error) {
+        return cb(error)
+      }
+
+      Object.assign(fullEnvironmentVariables, environmentVariables)
+      fse.writeFileSync(FILE_PATHS.DOTENV, Object.entries(fullEnvironmentVariables)
+        .reduce((accumulator, [key, value]) => {
+          accumulator += `${key}="${value}"\n`
+          return accumulator
+        }, ''))
+
+      return cb(null, fullEnvironmentVariables)
+    })
+  }
+
   authenticateUser (username, password, cb) {
     this.set('organizationName', null) // Unset this cache to avoid writing others folders if somebody switches accounts in the middle of a session
     return inkstone.user.authenticate(username, password, (authErr, authResponse, httpResponse) => {
+      if (!httpResponse) {
+        this.sentryError('authenticationProxyError', authErr)
+        // eslint-disable-next-line standard/no-callback-literal
+        return cb({
+          code: 407,
+          message: 'Unable to log in. Are you behind a VPN?'
+        })
+      }
+
       if (httpResponse.statusCode === 401 || httpResponse.statusCode === 403) {
         // eslint-disable-next-line standard/no-callback-literal
         return cb({
@@ -1327,9 +1364,7 @@ function getPort (host, cb) {
   return server
 }
 
-Plumbing.prototype.launchControlServer = function launchControlServer (socketInfo, cb) {
-  const host = (socketInfo && socketInfo.host) || '0.0.0.0'
-
+Plumbing.prototype.launchControlServer = function launchControlServer (socketInfo, host, cb) {
   if (socketInfo && socketInfo.port) {
     logger.info(`[plumbing] plumbing websocket server listening on specified port ${socketInfo.port}...`)
 

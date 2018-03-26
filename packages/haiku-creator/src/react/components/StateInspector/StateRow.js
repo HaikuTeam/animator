@@ -105,12 +105,14 @@ class StateRow extends React.Component {
   }
 
   componentWillReceiveProps (nextProps) {
-    this.setState({
-      originalName: nextProps.stateName,
-      name: nextProps.stateName,
-      desc: nextProps.stateDescriptor,
-      valuePreEdit: nextProps.stateDescriptor.value
-    })
+    if (!nextProps.isNew) {
+      this.setState({
+        originalName: nextProps.stateName,
+        name: nextProps.stateName,
+        desc: nextProps.stateDescriptor,
+        valuePreEdit: nextProps.stateDescriptor.value
+      })
+    }
   }
 
   handleTabSwitch (event, side) {
@@ -155,9 +157,7 @@ class StateRow extends React.Component {
       if (this.props.isNew) {
         return this.props.closeNewStateForm()
       } else {
-        return this.props.deleteStateValue(this.state.originalName, () => {
-          return this.setState({isEditing: false})
-        })
+        return this.props.deleteStateValue(this.state.originalName, () => {})
       }
     }
 
@@ -201,23 +201,18 @@ class StateRow extends React.Component {
   submitChanges () {
     const didValueChange = this.state.desc.value !== this.state.valuePreEdit
     const didNameChange = this.state.name !== this.props.stateName
+    const voidFunc = () => {}
 
     if (didNameChange && didValueChange) {
       return this.props.deleteStateValue(this.props.stateName, () => {
-        return this.props.upsertStateValue(this.state.name, this.state.desc, () => {
-          this.setState({ isEditing: false })
-        })
+        return this.props.upsertStateValue(this.state.name, this.state.desc, voidFunc)
       })
     } else if (didNameChange) {
       return this.props.deleteStateValue(this.props.stateName, () => {
-        return this.props.upsertStateValue(this.state.name, this.state.desc, () => {
-          this.setState({ isEditing: false })
-        })
+        return this.props.upsertStateValue(this.state.name, this.state.desc, voidFunc)
       })
     } else if (didValueChange) {
-      return this.props.upsertStateValue(this.state.name, this.state.desc, () => {
-        this.setState({ isEditing: false })
-      })
+      return this.props.upsertStateValue(this.state.name, this.state.desc, voidFunc)
     }
   }
 

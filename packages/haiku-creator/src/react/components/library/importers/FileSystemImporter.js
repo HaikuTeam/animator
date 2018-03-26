@@ -1,30 +1,27 @@
 import React from 'react'
-
-const STYLES = {
-  filePicker: {
-    opacity: 0,
-    position: 'absolute',
-    left: 0,
-    width: 150,
-    zIndex: 3,
-    cursor: 'pointer'
-  }
-}
+import { remote } from 'electron'
 
 class FileSystemImporter extends React.PureComponent {
+  showImportDialog () {
+    remote.dialog.showOpenDialog(
+      null,
+      {
+        filters: [{ name: 'Valid Files', extensions: ['svg', 'sketch'] }],
+        properties: ['multiSelections', 'openFile']
+      },
+      this.props.onFileDrop
+    )
+  }
+
   render () {
     return (
-      <div style={this.props.style}>
+      <div
+        style={this.props.style}
+        onClick={() => {
+          this.showImportDialog()
+        }}
+      >
         {this.props.text ? this.props.text : 'From File'}
-        <input
-          type='file'
-          ref='filepicker'
-          multiple
-          onChange={fileDropEvent => {
-            this.props.onFileDrop(this.refs.filepicker.files, fileDropEvent)
-          }}
-          style={STYLES.filePicker}
-        />
       </div>
     )
   }

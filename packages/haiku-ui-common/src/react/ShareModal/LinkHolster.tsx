@@ -1,5 +1,4 @@
 import * as React from 'react';
-import {shell} from 'electron';
 import * as CopyToClipboard from 'react-copy-to-clipboard';
 import {ThreeBounce} from 'better-react-spinkit';
 import Palette from '../../Palette';
@@ -104,7 +103,10 @@ export class LinkHolster extends React.PureComponent {
           <span
             style={STYLES.link}
             onClick={() => {
+              // #if false
+              const {shell} = require('electron');
               shell.openExternal(linkAddress);
+              // #endif
 
               if (onLinkOpen) {
                 onLinkOpen();

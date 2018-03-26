@@ -172,10 +172,10 @@ class Library extends React.Component {
     const path = this.props.projectModel.folder
 
     return this.state.figma.importSVG({url, path})
-      .catch((error) => {
+      .catch((error = {}) => {
         mixpanel.haikuTrack('creator:figma:fileImport:fail')
 
-        let message = 'We had a problem connecting with Figma. Please check your internet connection and try again.'
+        let message = error.err || 'We had a problem connecting with Figma. Please check your internet connection and try again.'
 
         if (error.status === 403) {
           message = (
@@ -226,7 +226,11 @@ class Library extends React.Component {
   handleFileInstantiation (asset) {
     return this.props.projectModel.transmitInstantiateComponent(asset.getRelpath(), {}, (err) => {
       if (err) {
-        return this.props.createNotice({ type: 'danger', title: err.name, message: err.message })
+        if (err.code === 'ENOENT') {
+          return this.props.createNotice({ type: 'error', title: 'Error', message: 'We couldn\'t find that file. 😩 Please try again in a few moments. If you still see this error, contact Haiku for support.' })
+        } else {
+          return this.props.createNotice({ type: 'error', title: 'Error', message: err.message })
+        }
       }
     })
   }
@@ -305,9 +309,8 @@ class Library extends React.Component {
     )
   }
 
-  handleFileDrop (files, event) {
+  handleFileDrop (filePaths) {
     this.setState({isLoading: true})
-    const filePaths = lodash.map(files, file => file.path)
     this.props.projectModel.bulkLinkAssets(
       filePaths,
       (error, assets) => {
@@ -324,7 +327,7 @@ class Library extends React.Component {
     return (
       <div
         id='library-wrapper'
-        style={{height: '100%'}}>
+        style={{height: '100%', display: this.props.visible ? 'initial' : 'none'}}>
         <div
           id='library-scroll-wrap'
           style={STYLES.sectionHeader}>
@@ -333,7 +336,7 @@ class Library extends React.Component {
             onImportFigmaAsset={this.importFigmaAsset}
             onAskForFigmaAuth={() => { this.askForFigmaAuth() }}
             figma={this.state.figma}
-            onFileDrop={(files, fileDropEvent) => { this.handleFileDrop(files, fileDropEvent) }}
+            onFileDrop={(filePaths) => { this.handleFileDrop(filePaths) }}
           />
         </div>
         <div

@@ -100,7 +100,7 @@ class Spotlight extends React.PureComponent {
             ...STYLES.spotlight,
             ...holeStyles,
             boxShadow: this.state.showBackground
-              ? '0 0 0 2560px rgba(0, 0, 0, 0.5), 0 0 20px 0px #000 inset'
+              ? '0 0 0 150vw rgba(0, 0, 0, 0.5), 0 0 20px 0px #000 inset'
               : ''
           }}
         />

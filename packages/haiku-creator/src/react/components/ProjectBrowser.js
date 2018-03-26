@@ -1,6 +1,7 @@
 import lodash from 'lodash'
 import React from 'react'
 import Radium from 'radium'
+import Popover from 'react-popover'
 import { CSSTransition, TransitionGroup } from 'react-transition-group'
 import { FadingCircle } from 'better-react-spinkit'
 import Palette from 'haiku-ui-common/lib/Palette'
@@ -12,13 +13,13 @@ import { TOUR_CHANNEL } from 'haiku-sdk-creator/lib/tour'
 import { UserIconSVG, LogOutSVG, LogoMicroSVG, PresentIconSVG } from 'haiku-ui-common/lib/react/OtherIcons'
 import { DASH_STYLES } from '../styles/dashShared'
 import { BTN_STYLES } from '../styles/btnShared'
-import Popover from 'react-popover'
+import { ExternalLink } from 'haiku-ui-common/lib/react/ExternalLink'
 
 const HARDCODED_PROJECTS_LIMIT = 15
 
 const STYLES = {
   adminButton: {
-    // TODO: make this a bit more subdued?
+    // TODO: make this a bit more not subdued?
     background: 'linear-gradient(180deg, rgb(247,183,89), rgb(229,116,89) 50%, rgb(213,53,89))'
   }
 }
@@ -179,12 +180,6 @@ class ProjectBrowser extends React.Component {
 
   requestDeleteProject (name, path, cb) {
     return this.props.websocket.request({ method: 'deleteProject', params: [name, path] }, cb)
-  }
-
-  logOut () {
-    return this.props.websocket.request({ method: 'doLogOut' }, () => {
-      this.props.clearAuth()
-    })
   }
 
   showNewProjectModal () {
@@ -394,20 +389,29 @@ class ProjectBrowser extends React.Component {
 
   renderUserMenuItems () {
     return (
-      <div style={DASH_STYLES.popover.container} onClick={this.closePopover}>
+      <div style={[DASH_STYLES.popover.container, {width: 158}]} onClick={this.closePopover}>
         <div style={DASH_STYLES.popover.item}>
-          <span style={[DASH_STYLES.popover.text, DASH_STYLES.noSelect]}>{this.props.username}</span>
+          <span style={[DASH_STYLES.popover.text, DASH_STYLES.upcase]}>
+            Signed In As <span style={[{fontWeight: '600', color: Palette.SUNSTONE}, DASH_STYLES.noSelect]}>
+              {this.props.username}
+            </span>
+          </span>
+        </div>
+
+        <div style={[DASH_STYLES.popover.item, DASH_STYLES.popover.pointer]}>
+          <ExternalLink
+            key='user-profile'
+            href={`https://share.haiku.ai/u/${this.props.username}`}>
+            <span style={[DASH_STYLES.popover.icon, {transform: 'translateY(3px)'}]}>
+              <UserIconSVG />
+            </span>
+            <span style={[DASH_STYLES.popover.text, DASH_STYLES.upcase]}>Your Profile</span>
+          </ExternalLink>
         </div>
         <div
           id='haiku-button-logout'
           style={[DASH_STYLES.popover.item, DASH_STYLES.popover.pointer]}
-          onClick={() => {
-            this.logOut()
-
-            mixpanel.haikuTrack('creator:project-browser:user-menu-option-selected', {
-              option: 'logout'
-            })
-          }}>
+          onClick={this.props.logOut}>
           <span style={DASH_STYLES.popover.icon}>
             <LogOutSVG />
           </span>
