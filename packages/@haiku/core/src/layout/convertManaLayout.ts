@@ -57,7 +57,6 @@ function determineSizingProp(sizeAxis, attributeValue) {
   }
 }
 
-// #origin
 /* tslint:disable */
 export default function convertManaLayout(mana) {
   visitManaTree(ROOT_LOCATOR, mana, (

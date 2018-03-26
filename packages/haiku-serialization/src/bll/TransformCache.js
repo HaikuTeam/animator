@@ -38,9 +38,9 @@ class TransformCache {
         this.host.computePropertyValue('scale.z')
       ],
       origin: [
-        this.host.computePropertyValue('origin.x'), // #origin
-        this.host.computePropertyValue('origin.y'), // #origin
-        this.host.computePropertyValue('origin.z') // #origin
+        this.host.computePropertyValue('origin.x'),
+        this.host.computePropertyValue('origin.y'),
+        this.host.computePropertyValue('origin.z')
       ],
       size: [
         this.host.computePropertyValue('sizeAbsolute.x'),

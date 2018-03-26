@@ -2,10 +2,18 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
+import {VERSION} from '../HaikuComponent';
+import addLegacyOriginSupport from './addLegacyOriginSupport';
+import compareSemver from './compareSemver';
 import visitManaTree from './visitManaTree';
 import xmlToMana from './xmlToMana';
 
 const STRING_TYPE = 'string';
+
+const enum UpgradeVersionRequirements {
+  // TODO: replace with actual version this should be bound to.
+  OriginSupport = '3.1.33',
+}
 
 /**
  * @method upgradeBytecodeInPlace
@@ -13,7 +21,6 @@ const STRING_TYPE = 'string';
  * Think of this like a migration that always runs in production components just in case we
  * get something that happens to be legacy.
  */
-// #origin
 export default function upgradeBytecodeInPlace(bytecode, options) {
   if (!bytecode.states) {
     bytecode.states = {};
@@ -141,5 +148,17 @@ export default function upgradeBytecodeInPlace(bytecode, options) {
     }
   }
 
-  // What else?
+  const coreVersion = bytecode.metadata.core || bytecode.metadata.player;
+  if (!coreVersion || compareSemver(coreVersion, UpgradeVersionRequirements.OriginSupport) < 0) {
+    // For now, we only need to check SVG children.
+    for (let i = 0; i < bytecode.template.children.length; i++) {
+      if (bytecode.template.children[i].elementName === 'svg') {
+        addLegacyOriginSupport(
+          bytecode.timelines.Default[`haiku:${bytecode.template.children[i].attributes['haiku-id']}`]);
+      }
+    }
+  }
+
+  // Ensure the bytecode metadata core version is recent.
+  bytecode.metadata.core = VERSION;
 }

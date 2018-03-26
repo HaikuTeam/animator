@@ -29,13 +29,13 @@ tape('ActiveComponent.prototype.instantiateComponent[1](design)', (t) => {
         if (err) throw err
         t.equal(mana.attributes.source, 'designs/Path.svg', 'rel source is in mana attribute')
         const timeline = ac0.getReifiedBytecode().timelines.Default['haiku:' + mana.attributes['haiku-id']]
-        t.deepEqual(timeline, { 'style.position': { 0: { value: 'absolute' } }, 'style.margin': { 0: { value: '0' } }, 'style.padding': { 0: { value: '0' } }, 'style.border': { 0: { value: '0' } }, 'sizeAbsolute.x': { 0: { value: 99 } }, 'sizeMode.x': { 0: { value: 1 } }, 'sizeAbsolute.y': { 0: { value: 69 } }, 'sizeMode.y': { 0: { value: 1 } }, 'style.zIndex': { 0: { value: 1 } }, 'translation.x': { 0: { value: 0 } }, 'translation.y': { 0: { value: 0 } } }, 'timeline is ok')
+        t.deepEqual(timeline, { 'style.position': { 0: { value: 'absolute' } }, 'style.margin': { 0: { value: '0' } }, 'style.padding': { 0: { value: '0' } }, 'style.border': { 0: { value: '0' } }, 'sizeAbsolute.x': { 0: { value: 99 } }, 'sizeMode.x': { 0: { value: 1 } }, 'sizeAbsolute.y': { 0: { value: 69 } }, 'sizeMode.y': { 0: { value: 1 } }, 'translation.x': { 0: { value: 275, edited: true } }, 'translation.y': { 0: { value: 200, edited: true } }, 'style.zIndex': { 0: { value: 1 } } }, 'timeline is ok')
         const subtemplate = ac0.getReifiedBytecode().template.children[0]
         t.equal(subtemplate.attributes['haiku-id'], mana.attributes['haiku-id'], 'template id ok')
         return waitUntilFileProbablyWroteToDisk(() => {
           return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents) => {
             t.error(err, 'no err fetching code')
-            t.equal(contents.length, 6142, 'checksum of file ok')
+            t.equal(contents.length, 6194, 'checksum of file ok')
             fse.removeSync(folder)
             t.ok(true)
           })
@@ -202,14 +202,14 @@ tape('ActiveComponent.prototype.instantiateComponent[2](component)', (t) => {
               t.error(err, 'no err upon instantiation')
               t.equal(mana.attributes.source, '../designs_path_svg/code.js', 'rel source is in mana attribute')
               const timeline = ac0.getReifiedBytecode().timelines.Default['haiku:' + mana.attributes['haiku-id']]
-              t.deepEqual(timeline, { 'style.position': { 0: { value: 'absolute' } }, 'style.margin': { 0: { value: '0' } }, 'style.padding': { 0: { value: '0' } }, 'style.border': { 0: { value: '0' } }, 'sizeAbsolute.x': { 0: { value: 99 } }, 'sizeMode.x': { 0: { value: 1 } }, 'sizeAbsolute.y': { 0: { value: 69 } }, 'sizeMode.y': { 0: { value: 1 } }, 'style.zIndex': { 0: { value: 1 } }, 'translation.x': { 0: { value: 0 } }, 'translation.y': { 0: { value: 0 } } }, 'timeline is ok')
+              t.deepEqual(timeline, { 'style.position': { 0: { value: 'absolute' } }, 'style.margin': { 0: { value: '0' } }, 'style.padding': { 0: { value: '0' } }, 'style.border': { 0: { value: '0' } }, 'sizeAbsolute.x': { 0: { value: 99 } }, 'sizeMode.x': { 0: { value: 1 } }, 'sizeAbsolute.y': { 0: { value: 69 } }, 'sizeMode.y': { 0: { value: 1 } }, 'translation.x': { 0: { value: 275, edited: true } }, 'translation.y': { 0: { value: 200, edited: true } }, 'style.zIndex': { 0: { value: 1 } } }, 'timeline is ok')
               const subtemplate = ac0.getReifiedBytecode().template.children[0]
               t.equal(subtemplate.elementName.metadata.relpath, 'code/designs_path_svg/code.js', 'el name is bytecode')
               t.deepEqual(subtemplate.attributes, { source: '../designs_path_svg/code.js', identifier: 'designs_path_svg', 'haiku-title': 'designs_path_svg', 'haiku-id': 'b97c697fa7d6' }, 'el attrs ok')
               return waitUntilFileProbablyWroteToDisk(() => {
                 return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents) => {
                   if (err) throw err
-                  t.equal(contents.length, 1958, 'checksum ok')
+                  t.equal(contents.length, 2010, 'checksum ok')
                   var lines = contents.split('\n')
                   t.equal(lines[0], 'var Haiku = require("@haiku/core");', 'first line is haiku require')
                   t.equal(lines[1], 'var designs_path_svg = require("../designs_path_svg/code.js");', 'first line is component require')

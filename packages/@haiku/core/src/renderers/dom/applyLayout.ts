@@ -11,7 +11,6 @@ import isIE from './isIE';
 import isMobile from './isMobile';
 import isTextNode from './isTextNode';
 
-const DEFAULT_PIXEL_RATIO = 1.0;
 const SVG = 'svg';
 
 const safeWindow = typeof window !== 'undefined' && window;
@@ -22,7 +21,6 @@ const PLATFORM_INFO = {
   isEdge: isEdge(safeWindow),
   windowsBrowserVersion: getWindowsBrowserVersion(safeWindow),
   hasPreserve3d: modernizr.hasPreserve3d(safeWindow), // I dunno if we actually need this
-  devicePixelRatio: DEFAULT_PIXEL_RATIO,
 };
 
 // console.info('[haiku core] platform info:', JSON.stringify(PLATFORM_INFO))
@@ -71,7 +69,6 @@ export default function applyLayout(
     // Don't assign layout to things that never need it like <desc>, <title>, etc.
     // Check if we're inside an <svg> component *and* one of the actually renderable svg-type els
     if (
-      // #origin
       scopeOfElement(virtualElement) === SVG &&
       !SVG_RENDERABLES[virtualElement.elementName]
     ) {
@@ -90,9 +87,6 @@ export default function applyLayout(
       return domElement;
     }
 
-    const devicePixelRatio =
-      (component.config && component.config.devicePixelRatio) || DEFAULT_PIXEL_RATIO;
-
     const computedLayout = virtualElement.layout.computed;
 
     // No computed layout means the el is not shown
@@ -107,7 +101,7 @@ export default function applyLayout(
 
       component.config.platform = PLATFORM_INFO;
 
-      applyCssLayout(domElement, virtualElement, virtualElement.layout, computedLayout, devicePixelRatio, component);
+      applyCssLayout(domElement, virtualElement, virtualElement.layout, computedLayout, component);
     }
   }
 

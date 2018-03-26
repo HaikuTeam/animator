@@ -24,7 +24,6 @@ function separate(str) {
   };
 }
 
-// #origin
 export default function parseCssTransformString(inStr) {
   const out = {};
 

@@ -321,11 +321,10 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
 
     // Calculate the 2D center for 3D transformations.
     if (timeline.hasOwnProperty('sizeAbsolute.x') && timeline.hasOwnProperty('sizeAbsolute.y')) {
-      centerX = initialValue(timeline, 'sizeAbsolute.x') / 2; // #origin
-      centerY = initialValue(timeline, 'sizeAbsolute.y') / 2; // #origin
+      centerX = initialValue(timeline, 'sizeAbsolute.x') / 2;
+      centerY = initialValue(timeline, 'sizeAbsolute.y') / 2;
     }
 
-    // #origin
     transforms[TransformKey.TransformOrigin] = getFixedPropertyValue([centerX, centerY, 0]);
 
     if (timeline.hasOwnProperty('translation.x') || timeline.hasOwnProperty('translation.y')) {
@@ -376,7 +375,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    */
   private transformsForShapeTimeline(timeline) {
     const transforms = {
-      [TransformKey.TransformOrigin]: getFixedPropertyValue([0, 0]), // #origin
+      [TransformKey.TransformOrigin]: getFixedPropertyValue([0, 0]),
       [TransformKey.Scale]: getFixedPropertyValue([100, 100]),
     };
 
@@ -705,8 +704,8 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     shape[TransformKey.BorderRadius] = this.getValueOrDefaultFromTimeline(timeline, 'rx', 0, parseInt);
     shape[TransformKey.Size] = this.getValue([timeline['sizeAbsolute.x'], timeline['sizeAbsolute.y']]);
     shape[TransformKey.Position] = getFixedPropertyValue([
-      initialValue(timeline, 'sizeAbsolute.x') / 2 + parseFloat(initialValueOr(timeline, 'x', 0)), // #origin
-      initialValue(timeline, 'sizeAbsolute.y') / 2 + parseFloat(initialValueOr(timeline, 'y', 0)), // #origin
+      initialValue(timeline, 'sizeAbsolute.x') / 2 + parseFloat(initialValueOr(timeline, 'x', 0)),
+      initialValue(timeline, 'sizeAbsolute.y') / 2 + parseFloat(initialValueOr(timeline, 'y', 0)),
     ]);
 
     transform[TransformKey.Position] = getFixedPropertyValue([

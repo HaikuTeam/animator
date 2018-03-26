@@ -110,6 +110,7 @@ export class Glass extends React.Component {
       mousePositionPrevious: null,
       isAnythingScaling: false,
       isAnythingRotating: false,
+      isOriginPanning: false,
       globalControlPointHandleClass: '',
       isStageSelected: false,
       isStageNameHovering: false,
@@ -951,6 +952,10 @@ export class Glass extends React.Component {
       return
     }
 
+    if (getOriginTarget(mousedownEvent.nativeEvent.target)) {
+      this.originActivation({event: mousedownEvent.nativeEvent})
+    }
+
     // We are panning now, so don't un/select anything
     if (Globals.isSpaceKeyDown) {
       return
@@ -1261,6 +1266,7 @@ export class Glass extends React.Component {
     this.setState({
       isAnythingScaling: false,
       isAnythingRotating: false,
+      isOriginPanning: false,
       globalControlPointHandleClass: '',
       controlActivation: null
     })
@@ -1512,6 +1518,7 @@ export class Glass extends React.Component {
             lastMouseDownPosition,
             this.state.isAnythingScaling,
             this.state.isAnythingRotating,
+            this.state.isOriginPanning,
             this.state.controlActivation,
             viewportTransform,
             Globals
@@ -1521,6 +1528,13 @@ export class Glass extends React.Component {
     }
 
     return mousePositionCurrent
+  }
+
+  originActivation ({event}) {
+    // TODO: support more modes (and make them discoverable).
+    this.setState({
+      isOriginPanning: Globals.isCommandKeyDown
+    })
   }
 
   controlActivation (activationInfo) {
@@ -1629,7 +1643,8 @@ export class Glass extends React.Component {
         proxy.canControlHandles(),
         proxy.getElementOrProxyPropertyValue('rotation.z'),
         proxy.getElementOrProxyPropertyValue('scale.x'),
-        proxy.getElementOrProxyPropertyValue('scale.y')
+        proxy.getElementOrProxyPropertyValue('scale.y'),
+        proxy.getOriginTransformed()
       )
     }
 
@@ -1714,6 +1729,51 @@ export class Glass extends React.Component {
           'vector-effect': 'non-scaling-stroke'
         }
       }]
+    }
+  }
+
+  renderOrigin (x, y) {
+    if (!this.getActiveComponent()) {
+      return
+    }
+
+    const scale = 1 / (this.getActiveComponent().getArtboard().getZoom() || 1)
+
+    return {
+      elementName: 'div',
+      attributes: {
+        key: 'origin',
+        class: 'origin',
+        style: {
+          position: 'absolute',
+          transform: `scale(${scale},${scale})`,
+          pointerEvents: 'auto',
+          left: (x - 3.5) + 'px',
+          top: (y - 3.5) + 'px',
+          border: '1px solid ' + Palette.RED,
+          backgroundColor: Palette.DARK_PINK,
+          boxShadow: '0 2px 6px 0 ' + Palette.SHADY, // TODO: account for rotation
+          width: '7px',
+          height: '7px',
+          borderRadius: '50%'
+        }
+      },
+      children: [
+        {
+          elementName: 'div',
+          attributes: {
+            key: 'origin-hit-area',
+            style: {
+              position: 'absolute',
+              pointerEvents: 'auto',
+              left: '-15px',
+              top: '-15px',
+              width: '30px',
+              height: '30px'
+            }
+          }
+        }
+      ]
     }
   }
 
@@ -1832,7 +1892,7 @@ export class Glass extends React.Component {
     overlays.push(this.buildElementContextMenuIcon(x, y, rotationZ, scaleX, scaleY))
   }
 
-  renderTransformBoxOverlay (points, overlays, canRotate, isRotationModeOn, canControlHandles, rotationZ, scaleX, scaleY) {
+  renderTransformBoxOverlay (points, overlays, canRotate, isRotationModeOn, canControlHandles, rotationZ, scaleX, scaleY, origin) {
     if (!this.getActiveComponent()) {
       return
     }
@@ -1875,6 +1935,10 @@ export class Glass extends React.Component {
         overlays.push(this.renderControlPoint(point.x, point.y, index, canControlHandles && this.getHandleClass(index, canRotate, isRotationModeOn, rotationZ, scaleX, scaleY)))
       }
     })
+
+    if (experimentIsEnabled(Experiment.OriginIndicator)) {
+      overlays.push(this.renderOrigin(origin.x, origin.y))
+    }
   }
 
   getGlobalControlPointHandleClass () {
@@ -2475,18 +2539,26 @@ function belongsToMenuIcon (target) {
   return belongsToMenuIcon(target.parentNode)
 }
 
-function getControlPointTarget (target) {
+function getClassBasedTarget (target, regexp) {
   if (!target || !target.getAttribute) {
     return null
   }
 
   const className = target.getAttribute('class')
 
-  if (className && className.match(/control-point/)) {
+  if (className && regexp.test(className)) {
     return target
   }
 
-  return getControlPointTarget(target.parentNode)
+  return getClassBasedTarget(target.parentNode, regexp)
+}
+
+function getControlPointTarget (target) {
+  return getClassBasedTarget(target, /control-point/)
+}
+
+function getOriginTarget (target) {
+  return getClassBasedTarget(target, /^origin$/)
 }
 
 Glass.propTypes = {

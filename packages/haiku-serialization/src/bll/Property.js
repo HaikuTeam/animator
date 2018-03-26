@@ -82,7 +82,7 @@ Property.doesPropertyGroupContainRotation = (propertyGroup) => {
 Property.PREFIX_TO_CLUSTER_NAME = {
   'mount': 'Mount',
   'align': 'Align',
-  'origin': 'Origin', // #origin
+  'origin': 'Origin',
   'translation': 'Position',
   'rotation': 'Rotation',
   'scale': 'Scale',
@@ -104,7 +104,9 @@ Property.HUMANIZED_PROP_NAMES = {
   'sizeAbsolute.x': 'Size X',
   'sizeAbsolute.y': 'Size Y',
   'style.overflowX': 'Overflow X',
-  'style.overflowY': 'Overflow Y'
+  'style.overflowY': 'Overflow Y',
+  'origin.x': 'Origin X',
+  'origin.y': 'Origin Y'
 }
 
 Property.sort = (a, b) => {
@@ -156,9 +158,9 @@ Property.ALWAYS_CREATE_AS_PROPERTY_NEVER_AS_STATE = {
   'align.x': true,
   'align.y': true,
   'align.z': true,
-  'origin.x': true, // #origin
-  'origin.y': true, // #origin
-  'origin.z': true, // #origin
+  'origin.x': true,
+  'origin.y': true,
+  'origin.z': true,
   'opacity': true,
   'shown': true,
   'perspective': true, // Future proofing
@@ -185,9 +187,7 @@ Property.EXCLUDE_FROM_JIT = {
   'mount.x': true,
   'mount.y': true,
   'mount.z': true,
-  'origin.x': true, // #origin
-  'origin.y': true, // #origin
-  'origin.z': true, // #origin
+  'origin.z': true,
   'scale.z': true, // Not sane until we have true 3D objects
   'sizeAbsolute.z': true, // Not sane until we have true 3D objects
   'rotation.w': true // Too much great power too much great responsibility
@@ -207,7 +207,9 @@ Property.EXCLUDE_FROM_JIT_IF_ROOT_ELEMENT = {
   'rotation.z': true,
   'scale.x': true,
   'scale.y': true,
-  'scale.z': true
+  'scale.z': true,
+  'origin.x': true,
+  'origin.y': true
 }
 
 Property.BUILTIN_DOM_SCHEMAS = {
@@ -258,6 +260,8 @@ Property.BUILTIN_DOM_SCHEMAS = {
     'rotation.z': 'number',
     'scale.x': 'number',
     'scale.y': 'number',
+    'origin.x': 'number',
+    'origin.y': 'number',
     'style.border': 'string',
     'style.borderBottom': 'string',
     'style.borderLeft': 'string',
@@ -433,11 +437,11 @@ Property.shouldBasicallyIncludeProperty = (propertyName, propertyObject, element
 
 Property.PRIVATE_PROPERTY_WHEN_HOISTING_TO_STATE = {
   'transform': true,
-  'transformOrigin': true, // #origin
+  'transformOrigin': true,
   'style.position': true,
   'style.display': true,
   'style.transform': true,
-  'style.transformOrigin': true // #origin
+  'style.transformOrigin': true
 }
 
 Property.TEXT_FRIENDLY_SVG_ELEMENTS = {
