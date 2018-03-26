@@ -1,12 +1,15 @@
 import EventEmitter from 'events'
+import http from 'http'
+import https from 'https'
 import path from 'path'
 import { parse } from 'url'
 import { inherits } from 'util'
 
 import { BrowserWindow, app, ipcMain, systemPreferences, session } from 'electron'
+import ElectronProxyAgent from 'electron-proxy-agent'
 import qs from 'qs'
 
-import { isProxied } from 'haiku-common/lib/proxies'
+import { isProxied, ProxyType } from 'haiku-common/lib/proxies'
 import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
 
@@ -21,6 +24,16 @@ app.setAsDefaultProtocolClient('haiku')
 
 systemPreferences.setUserDefault('NSDisabledDictationMenuItem', 'boolean', true)
 systemPreferences.setUserDefault('NSDisabledCharacterPaletteMenuItem', 'boolean', true)
+
+app.on('login', (event, webContents, request, authInfo, authenticate) => {
+  // We are currently not equipped to authenticate requests that are intercepted by a proxy but require login
+  // credentials when we encounter interference at this stage. When this functionality is added:
+  //   - `event.preventDefault()` will prevent the default behavior of Electron blocking the request.
+  //   - Invoking the callback like `authenticate(username, password)` should allow the authenticated-proxied request
+  //     through.
+  // For now, log the authorization info so we can at least see what's going on.
+  logger.warn('[unexpected proxy interference]', authInfo)
+})
 
 // See bottom
 function CreatorElectron () {
@@ -61,6 +74,7 @@ if (!haiku.plumbing.url) {
 const handleUrl = (url) => {
   if (!browserWindow) {
     logger.warn(`[creator] unable to handle custom protocol URL ${url}; browserWindow not ready`)
+    return
   }
   logger.info(`[creator] handling custom protocol URL ${url}`)
   const parsedUrl = parse(url)
@@ -151,10 +165,13 @@ function createWindow () {
   // its own websocket connections to our plumbing server, etc.
   browserWindow.webContents.on('did-finish-load', () => {
     const ses = session.fromPartition('persist:name')
+    https.globalAgent = http.globalAgent = new ElectronProxyAgent(session.defaultSession)
 
     ses.resolveProxy(haiku.plumbing.url, (proxy) => {
       haiku.proxy = {
-        url: proxy,
+        // Proxy URL will come through in PAC syntax, e.g. `PROXY secure.megacorp.com:3128`
+        // @see {@link https://en.wikipedia.org/wiki/Proxy_auto-config}
+        url: proxy.replace(`${ProxyType.Proxied} `, ''),
         active: isProxied(proxy)
       }
 
