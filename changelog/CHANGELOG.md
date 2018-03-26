@@ -1,6 +1,37 @@
 # Changelog
 
 
+## 3.1.24
+
+### Bug Fixes
+
+ * Changelog syntax error
+ * add generic VPN error to avert the ugliness of a crash.
+ * do not crash when loopback.haiku.ai is unable to resolve.
+ * add better messaging when a file is not found during instantiation
+ * improve error Figma messaging when there are no assets to import
+ * clean Figma token on logout and centralize logout methods in creator
+ * avoid setState on unmounted StateRow components
+ * do not override state with props if the state row is a new component
+ * avoid setting state of StateRow once its unmounted
+ * Typo
+ * Typo
+ * Default PR template must exist too
+ * Default PR template must exist too
+ * improve the logic to import files from disk
+ * use a safer value for the tour spotlight size
+ * revert changes on position of the share modal
+ * use the correct URL to generate Figma links
+
+### Features
+
+ * detect and upgrade proxy requirements on the fly
+ * give plumbing an all-knowing .dotenv stored in ~/.haiku
+ * proxy serialization capability in haiku-common
+ * add link in user menu to user's Community profile
+ * display a message when there are no states in the library
+ * show frame action btn only after delay
+
 ## 3.1.23
 
 ### Bug Fixes
