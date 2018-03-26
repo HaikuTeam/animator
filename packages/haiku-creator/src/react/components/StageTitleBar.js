@@ -8,7 +8,6 @@ import Palette from 'haiku-ui-common/lib/Palette'
 import { ThreeBounce } from 'better-react-spinkit'
 import Color from 'color'
 import { BTN_STYLES } from '../styles/btnShared'
-import { DASH_STYLES } from '../styles/dashShared'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import ToolSelector from './ToolSelector'
 import Toggle from './Toggle'
@@ -123,6 +122,10 @@ const STYLES = {
     marginTop: '10px',
     fontSize: '13px',
     fontStyle: 'oblique'
+  },
+  link2: {
+    color: Palette.LIGHT_BLUE,
+    cursor: 'pointer'
   }
 }
 
@@ -219,14 +222,13 @@ class StageTitleBar extends React.Component {
         return
       }
 
-      this.props.createNotice({
+      const noticeNotice = this.props.createNotice({
         type: 'info',
-        title: 'Notice',
+        title: 'Snapshot saved',
         message: (
           <p>
-            Snapshot saved —{' '}
             <span
-              style={DASH_STYLES.link}
+              style={STYLES.link2}
               onClick={() => {
                 shell.showItemInFolder(this.props.folder)
               }}
@@ -236,6 +238,9 @@ class StageTitleBar extends React.Component {
           </p>
         )
       })
+      window.setTimeout(() => {
+        this.props.removeNotice(undefined, noticeNotice.id)
+      }, 3000)
     })
 
     ipcRenderer.on('global-menu:save', () => {

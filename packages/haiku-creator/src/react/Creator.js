@@ -1385,7 +1385,7 @@ export default class Creator extends React.Component {
               transitionName='toast'
               transitionEnterTimeout={500}
               transitionLeaveTimeout={300}>
-              <div style={{ position: 'absolute', right: 0, top: 0, width: 300 }}>
+              <div style={{ position: 'absolute', right: 0, top: 44, width: 300 }}>
                 {lodash.map(this.state.notices, this.renderNotifications)}
               </div>
             </ReactCSSTransitionGroup>
