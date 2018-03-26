@@ -1,5 +1,6 @@
 import path from 'path'
 import async from 'async'
+import dotenv from 'dotenv'
 import fse from 'haiku-fs-extra'
 import lodash from 'lodash'
 import find from 'lodash.find'
@@ -9,6 +10,7 @@ import net from 'net'
 import qs from 'qs'
 import WebSocket from 'ws'
 import { EventEmitter } from 'events'
+import {FILE_PATHS} from '@haiku/sdk-client'
 import EnvoyServer from 'haiku-sdk-creator/lib/envoy/EnvoyServer'
 import EnvoyLogger from 'haiku-sdk-creator/lib/envoy/EnvoyLogger'
 import { EXPORTER_CHANNEL, ExporterHandler } from 'haiku-sdk-creator/lib/exporter'
@@ -837,6 +839,33 @@ export default class Plumbing extends StateObject {
 
   resendEmailConfirmation (username, cb) {
     return inkstone.user.requestConfirmEmail(username, cb)
+  }
+
+  getenv (cb) {
+    if (!fse.existsSync(FILE_PATHS.DOTENV)) {
+      return cb(null, {})
+    }
+
+    return cb(null, dotenv.parse(fse.readFileSync(FILE_PATHS.DOTENV)))
+  }
+
+  setenv (environmentVariables, cb) {
+    Object.assign(global.process.env, environmentVariables)
+    this.getenv((error, fullEnvironmentVariables) => {
+      // This should never happen.
+      if (error) {
+        return cb(error)
+      }
+
+      Object.assign(fullEnvironmentVariables, environmentVariables)
+      fse.writeFileSync(FILE_PATHS.DOTENV, Object.entries(fullEnvironmentVariables)
+        .reduce((accumulator, [key, value]) => {
+          accumulator += `${key}="${value}"\n`
+          return accumulator
+        }, ''))
+
+      return cb(null, fullEnvironmentVariables)
+    })
   }
 
   authenticateUser (username, password, cb) {
