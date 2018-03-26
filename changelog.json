@@ -5650,5 +5650,122 @@
       "label": "fix",
       "message": "Don't call dtModified on undefined"
     }
+  },
+  "3.1.24": {
+    "eeeee9a382f7a2b9cbb3ead6d6391f2c1a139854": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Changelog syntax error"
+    },
+    "1b054440a22c8d9f9f6ae419be079461be963af2": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "detect and upgrade proxy requirements on the fly"
+    },
+    "587a756f60c5844d658645beac6658cff9dec3a7": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "give plumbing an all-knowing .dotenv stored in ~/.haiku"
+    },
+    "607164c39aa5ed148f00afa7c5ce5b1a5b6d5285": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "proxy serialization capability in haiku-common"
+    },
+    "fa7ba6b52b87bb345924b97b165b31dd37eaf0a8": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add link in user menu to user's Community profile"
+    },
+    "c38feefa458c82c2ead4d94c15f2d06edc18a994": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "add generic VPN error to avert the ugliness of a crash."
+    },
+    "7a88bea0cca360d9abdbd2ca210b6a38ad424e90": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "do not crash when loopback.haiku.ai is unable to resolve."
+    },
+    "324b455c82784874c058ee8997d1e73fd7885ae3": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "add better messaging when a file is not found during instantiation"
+    },
+    "70fced8d847cf6306a7e2b0b7b6d199a249ef905": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "improve error Figma messaging when there are no assets to import"
+    },
+    "416c45b944c0ccbeb75922096ea2b9377bf627a1": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "clean Figma token on logout and centralize logout methods in creator"
+    },
+    "5beb8e076e4bdfc4a5392b419411615d411efd53": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "avoid setState on unmounted StateRow components"
+    },
+    "4cf26482dc3ab60017f06ba6e62667ee6dbd9104": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "do not override state with props if the state row is a new component"
+    },
+    "a629a987f11db2435c6341322b09715f9a5d2fcb": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "display a message when there are no states in the library"
+    },
+    "32e764e7d136c12b34f4cd3b6e484400ce2bfff1": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "avoid setting state of StateRow once its unmounted"
+    },
+    "90c5c7498677ff0f78a74eec2c831a96aacd232b": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Typo"
+    },
+    "70562470600a24d40dbcdd5fde39b1c284a73022": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Typo"
+    },
+    "bb796ebb0159b05e334cf4b038bf97ea67c86b60": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Default PR template must exist too"
+    },
+    "57c7dac9b93b01781e7e8e8e5c27d178b4ff9d3c": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Default PR template must exist too"
+    },
+    "848d1fde5de41d9bad9d677c1d8e3677c35561d2": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "improve the logic to import files from disk"
+    },
+    "d21f94fa8f6cfc91affde1235af039c25f6ef5c7": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "use a safer value for the tour spotlight size"
+    },
+    "eaa61c03158335497b98e07de92beb666bd06e7f": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "revert changes on position of the share modal"
+    },
+    "77cc31dbf316ff033b789478fb3e74fbb24d240b": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "use the correct URL to generate Figma links"
+    },
+    "9deb80b975a5284f603fb24a3acf550785f716de": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "show frame action btn only after delay"
+    }
   }
 }
