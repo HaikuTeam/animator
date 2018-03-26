@@ -2,7 +2,7 @@ const tape = require('tape')
 const BaseModel = require('./../../src/bll/BaseModel')
 
 tape('BaseModel', (t) => {
-  t.plan(28)
+  t.plan(25)
   t.ok(BaseModel, 'base model exists')
   class Foo extends BaseModel {}
   BaseModel.extend(Foo)
@@ -13,15 +13,11 @@ tape('BaseModel', (t) => {
   t.ok(foo, 'model instance exists')
   t.ok(foo.emit, 'model instance has emit')
   t.ok(foo.on, 'model instance has on')
-  class Baz extends BaseModel {
-    constructor (props, opts) {
-      super(props, opts)
-    }
-  }
+  class Baz extends BaseModel {}
   BaseModel.extend(Baz)
-  const baz1 = new Baz({ qux: 1 })
-  const baz2 = new Baz({ qux: 2 })
-  const baz3 = new Baz({ qux: 3 })
+  const baz1 = Baz.upsert({ qux: 1 })
+  const baz2 = Baz.upsert({ qux: 2 })
+  const baz3 = Baz.upsert({ qux: 3 })
   t.equal(Baz.all().length, 3, '3 bazzes')
   t.equal(Baz.find({ qux: 3 }), baz3, 'bazzes can be found')
   t.equal(Baz.findById(baz1.uid), baz1, 'bazzes can be found by id')
@@ -37,7 +33,7 @@ tape('BaseModel', (t) => {
   baz2.emit('yay', 123, 456)
   class Bar extends BaseModel {}
   BaseModel.extend(Bar, { primaryKey: 'relpath' })
-  const bar1 = new Bar({ relpath: 'abc' })
+  const bar1 = Bar.upsert({ relpath: 'abc' })
   t.equal(bar1.getPrimaryKey(), 'abc')
   const bar1b = Bar.upsert({ relpath: 'abc', foo: 101 })
   t.equal(bar1b, bar1)
@@ -58,9 +54,6 @@ tape('BaseModel', (t) => {
   class Bop extends BaseModel {}
   BaseModel.extend(Bop)
   const bop1 = new Bop()
-  t.equal(bop1.didUpdateSinceLastCheck(), true, 'first time did update')
-  t.equal(bop1.didUpdateSinceLastCheck(), false, 'second times did not')
-  t.equal(bop1.didUpdateSinceLastCheck(), false, 'second times did not')
   const roygbiv1 = bop1.cacheFetch('roy.g.biv', () => 123)
   t.equal(roygbiv1, 123, 'cache can fetch')
   bop1.cacheClear()

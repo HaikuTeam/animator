@@ -136,12 +136,49 @@ export default class Stage extends React.Component {
   }
 
   handleDrop (asset, clientX, clientY) {
+    const ac = (
+      this.props.projectModel &&
+      this.props.projectModel.getCurrentActiveComponent()
+    )
+
+    if (!ac) {
+      return
+    }
+
     const stageRect = this.mount.getBoundingClientRect()
-    if (clientX > stageRect.left && clientX < stageRect.right && clientY > stageRect.top && clientY < stageRect.bottom) {
-      const offsetX = clientX - stageRect.left
-      const offsetY = clientY - stageRect.top
-      if (this.props.projectModel) {
-        return this.props.projectModel.transmitInstantiateComponent(asset.getRelpath(), { offsetX, offsetY }, (err) => {
+
+    if (
+      clientX > stageRect.left &&
+      clientX < stageRect.right &&
+      clientY > stageRect.top &&
+      clientY < stageRect.bottom
+    ) {
+      // Coordinates with respect to 0,0 of the viewport
+      const coords = {
+        x: clientX - stageRect.left,
+        y: clientY - stageRect.top
+      }
+
+      // Instantiatees are translated with respect to the coordinate system of
+      // the artboard, and the stage may have been zoomed/panned
+      if (this.props.artboardDimensions) {
+        const {
+          zoom,
+          mount
+        } = this.props.artboardDimensions
+
+        coords.x -= mount.rect.left
+        coords.y -= mount.rect.top
+
+        coords.x *= 1 / zoom.x
+        coords.y *= 1 / zoom.y
+      }
+
+      return ac.instantiateComponent(
+        asset.getRelpath(),
+        coords,
+        {from: 'creator'},
+        (err) => {
           if (err) {
             if (err.code === 'ENOENT') {
               return this.props.createNotice({ type: 'error', title: 'Error', message: 'We couldn\'t find that file. 😩 Please try again in a few moments. If you still see this error, contact Haiku for support.' })
@@ -149,8 +186,8 @@ export default class Stage extends React.Component {
               return this.props.createNotice({ type: 'error', title: 'Error', message: err.message })
             }
           }
-        })
-      }
+        }
+      )
     }
   }
 

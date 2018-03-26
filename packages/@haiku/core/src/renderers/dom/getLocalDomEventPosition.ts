@@ -4,10 +4,10 @@
 
 import getDomEventPosition from './getDomEventPosition';
 
-export default function getLocalDomEventPosition(event, element) {
-  const doc = element.ownerDocument;
+export default function getLocalDomEventPosition(event, domElement) {
+  const doc = domElement.ownerDocument;
   const viewPosition = getDomEventPosition(event, doc);
-  const elementRect = element.getBoundingClientRect();
+  const elementRect = domElement.getBoundingClientRect();
   const x = viewPosition.x - elementRect.left;
   const y = viewPosition.y - elementRect.top;
   return {

@@ -246,7 +246,6 @@ Property.BUILTIN_DOM_SCHEMAS = {
     'style.WebkitTapHighlightColor': 'string'
   },
   svg: {
-    fill: 'string',
     'sizeAbsolute.x': 'number',
     'sizeAbsolute.y': 'number',
     'controlFlow.placeholder': 'any',

@@ -1,5 +1,6 @@
 const test = require('tape')
 const path = require('path')
+const {Experiment,experimentIsEnabled} = require('haiku-common/lib/experiments')
 const Asset = require('./../../src/bll/Asset')
 
 const PROJECT_MODEL_STUB = {
@@ -69,18 +70,23 @@ test('Asset.assetsToDirectoryStructure', (t) => {
   const assets = mockAssets()
 
   t.ok(assets[0],'asset exists')
-  t.equal(assets[0].kind, 'folder', 'base asset is folder')
-  t.equal(assets[0].type, 'container', 'base asset is container')
-  t.equal(assets[0].children.length, 2, 'base asset has two childs')
-  t.equal(assets[0].children[0].kind, 'sketch', 'first child asset is sketch')
-  t.equal(assets[0].children[1].kind, 'figma', 'second child asset is figma')
-  t.equal(assets[0].children[0].type, 'container', 'child asset is container')
-  t.equal(assets[0].children[0].children[0].relpath, 'designs/designs/TEST.sketch/slices', 'sketch grandchild is slices folder')
-  t.equal(assets[0].children[1].children[0].relpath, 'designs/designs/ID-TEST.figma/groups', 'figma grandchild is groups folder')
-  t.equal(assets[0].children[1].children[1].relpath, 'designs/designs/ID-TEST.figma/slices', 'figma grandchild is slices folder')
-  t.equal(assets[0].children[0].children[0].kind, 'folder', 'grandchild is folder')
-  t.equal(assets[0].children[0].children[0].type, 'container', 'grandchild is container')
-  t.equal(assets[0].dump(), "designs\n  designs/TEST.sketch\n    designs/designs/TEST.sketch/slices\n      designs/TEST.sketch.contents/slices/Dicey.svg\n      designs/TEST.sketch.contents/slices/Slicey.svg\n    designs/designs/TEST.sketch/artboards\n      designs/TEST.sketch.contents/artboards/Another Artboard.svg\n      designs/TEST.sketch.contents/artboards/Artboard.svg\n  designs/ID-TEST.figma\n    designs/designs/ID-TEST.figma/groups\n      designs/ID-TEST.figma.contents/groups/Slicey.svg\n    designs/designs/ID-TEST.figma/slices\n      designs/ID-TEST.figma.contents/slices/Slicey.svg",'tree looks ok')
+
+  const idx = (experimentIsEnabled(Experiment.MultiComponentControlsLibrary))
+    ? 1
+    : 0
+
+  t.equal(assets[idx].kind, 'folder', 'base asset is folder')
+  t.equal(assets[idx].type, 'container', 'base asset is container')
+  t.equal(assets[idx].children.length, 2, 'base asset has two children')
+  t.equal(assets[idx].children[0].kind, 'sketch', 'first child asset is sketch')
+  t.equal(assets[idx].children[1].kind, 'figma', 'second child asset is figma')
+  t.equal(assets[idx].children[0].type, 'container', 'child asset is container')
+  t.equal(assets[idx].children[0].children[0].relpath, 'designs/designs/TEST.sketch/slices', 'sketch grandchild is slices folder')
+  t.equal(assets[idx].children[1].children[0].relpath, 'designs/designs/ID-TEST.figma/groups', 'figma grandchild is groups folder')
+  t.equal(assets[idx].children[1].children[1].relpath, 'designs/designs/ID-TEST.figma/slices', 'figma grandchild is slices folder')
+  t.equal(assets[idx].children[0].children[0].kind, 'folder', 'grandchild is folder')
+  t.equal(assets[idx].children[0].children[0].type, 'container', 'grandchild is container')
+  t.equal(assets[idx].dump(), "designs\n  designs/TEST.sketch\n    designs/designs/TEST.sketch/slices\n      designs/TEST.sketch.contents/slices/Dicey.svg\n      designs/TEST.sketch.contents/slices/Slicey.svg\n    designs/designs/TEST.sketch/artboards\n      designs/TEST.sketch.contents/artboards/Another Artboard.svg\n      designs/TEST.sketch.contents/artboards/Artboard.svg\n  designs/ID-TEST.figma\n    designs/designs/ID-TEST.figma/groups\n      designs/ID-TEST.figma.contents/groups/Slicey.svg\n    designs/designs/ID-TEST.figma/slices\n      designs/ID-TEST.figma.contents/slices/Slicey.svg",'tree looks ok')
 })
 
 test('Asset.assetsToDirectoryStructure detects sketch assets without exported SVG files', (t) => {

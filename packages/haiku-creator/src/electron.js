@@ -111,17 +111,17 @@ function createWindow () {
     // (b) returns bad data, missing some fields, when master is in a bad state
     // So we check that the things exist before repopulating
     if (masterState) {
-      if (masterState.gitUndoables) {
-        if (different(menuspec.undoables.length, masterState.gitUndoables.length)) {
+      if (masterState.undoables) {
+        if (different(menuspec.undoables.length, masterState.undoables.length)) {
           didChange = true
-          menuspec.undoables = masterState.gitUndoables || []
+          menuspec.undoables = masterState.undoables || []
         }
       }
 
-      if (masterState.gitRedoables) {
-        if (different(menuspec.redoables.length, masterState.gitRedoables.length)) {
+      if (masterState.redoables) {
+        if (different(menuspec.redoables.length, masterState.redoables.length)) {
           didChange = true
-          menuspec.redoables = masterState.gitRedoables || []
+          menuspec.redoables = masterState.redoables || []
         }
       }
 
@@ -182,24 +182,31 @@ function createWindow () {
     })
   })
 
-  // TopMenu global-menu:-prefixed events should delegate to BrowserWindow for event handlers.
+  // Events to delegate to BrowserWindow event handlers.
   const globalMenuPassthroughs = [
     'check-updates',
-    'show-changelog',
+    'copy',
+    'cut',
     'export',
+    'group',
     'open-terminal',
     'open-text-editor',
+    'paste',
     'redo',
     'save',
+    'selectall',
+    'show-changelog',
     'show-project-location-toast',
     'start-tour',
     'undo',
+    'ungroup',
     'zoom-in',
     'zoom-out'
   ]
 
   globalMenuPassthroughs.forEach((command) => {
     topmenu.on(`global-menu:${command}`, (...args) => {
+      console.info(`global-menu:${command}`, args)
       browserWindow.webContents.send(`global-menu:${command}`, ...args)
     })
   })

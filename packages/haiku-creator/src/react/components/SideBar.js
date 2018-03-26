@@ -28,7 +28,6 @@ const STYLES = {
   nav: {
     // display: 'none', // COMMENTING OUT THE STATE INSPECTOR NAV SEARCH 'ADDSTATEINSPECTOR' FOR MORE
     float: 'left',
-    poistion: 'relative',
     width: 36,
     marginTop: 36,
     height: 'calc(100% - 36px)',

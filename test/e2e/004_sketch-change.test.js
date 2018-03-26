@@ -33,7 +33,7 @@ TestHelpers.run(
         'instantiateComponent',
         ['code/main/code.js', slice, {x: idx * 100, y: idx * 100 }],
         next
-      )          
+      )
     }, cb)
   })
 

@@ -11,7 +11,7 @@ if (!process.env.NODE_ENV) {
 }
 
 // Note the packages we would never want to develop for specific dev choices.
-const appOwnedDeps = ['haiku-websockets', 'haiku-creator', 'haiku-plumbing']
+const appOwnedDeps = ['haiku-creator', 'haiku-plumbing']
 const devChoiceExclusions = {
   glass: appOwnedDeps.concat(['haiku-timeline']),
   timeline: appOwnedDeps.concat(['haiku-glass']),

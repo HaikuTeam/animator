@@ -1,5 +1,4 @@
 import React from 'react'
-import {get} from 'lodash'
 import ElementTitle from './ElementTitle'
 import Editor from './Editor'
 import EditorActions from './EditorActions'
@@ -58,7 +57,13 @@ class EventHandlerEditor extends React.PureComponent {
    * 2- Instantiating a HandlerManager
    */
   shouldComponentUpdate ({element, visible, options}, {editorsWithErrors}) {
-    if (element && get(this.props, 'element.uid') !== get(element, 'uid')) {
+    const pkey1 = element && element.getPrimaryKey()
+    const pkey2 = this.props.element && this.props.element.getPrimaryKey()
+
+    if (
+      element &&
+      ((pkey1 !== pkey2) || !this.handlerManager)
+    ) {
       this.handlerManager = new HandlerManager(element)
       return true
     }
@@ -208,7 +213,9 @@ class EventHandlerEditor extends React.PureComponent {
   }
 
   render () {
-    if (!this.handlerManager) return null
+    if (!this.handlerManager) {
+      return null
+    }
 
     const visibilityStyles = this.props.visible ? {} : {visibility: 'hidden'}
 

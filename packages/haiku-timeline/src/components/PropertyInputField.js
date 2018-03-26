@@ -85,7 +85,7 @@ export default class PropertyInputField extends React.Component {
             overflow: 'hidden',
             fontFamily: 'inherit',
             cursor: 'default'
-          }, this.props.row.sameAs(this.props.row.component.getSelectedRow()) && {
+          }, this.props.row === this.props.row.component.getSelectedRow() && {
             border: '1px solid ' + Color(Palette.LIGHTEST_PINK).fade(0.2),
             zIndex: 2005
           })}>

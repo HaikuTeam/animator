@@ -1,5 +1,5 @@
-function getDomNodeRect(node) {
-  return node.getBoundingClientRect();
+function getDomNodeRect(domNode) {
+  return domNode.getBoundingClientRect();
 }
 
 export default getDomNodeRect;

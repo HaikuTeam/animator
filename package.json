@@ -37,7 +37,6 @@
     "@haiku/core": "3.1.23",
     "@haiku/sdk-client": "3.1.23",
     "@haiku/sdk-inkstone": "3.1.23",
-    "haiku-bytecode": "3.1.23",
     "haiku-common": "3.1.23",
     "haiku-creator": "3.1.23",
     "haiku-formats": "3.1.23",
@@ -48,8 +47,7 @@
     "haiku-serialization": "3.1.23",
     "haiku-state-object": "3.1.23",
     "haiku-timeline": "3.1.23",
-    "haiku-ui-common": "3.1.23",
-    "haiku-websockets": "3.1.23"
+    "haiku-ui-common": "3.1.23"
   },
   "devDependencies": {
     "async": "^2.5.0",
@@ -62,6 +60,7 @@
     "dotenv": "^5.0.1",
     "electron": "1.8.2",
     "electron-builder": "20.0.8",
+    "electron-react-devtools": "^0.5.3",
     "electron-rebuild": "^1.6.0",
     "fs-extra": "^4.0.2",
     "git-branch": "0.3.0",

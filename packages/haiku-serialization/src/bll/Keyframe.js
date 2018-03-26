@@ -1,5 +1,5 @@
-const assign = require('lodash.assign')
 const expressionToRO = require('@haiku/core/lib/reflection/expressionToRO').default
+const { Experiment, experimentIsEnabled } = require('haiku-common/lib/experiments')
 const BaseModel = require('./BaseModel')
 
 /**
@@ -17,45 +17,17 @@ class Keyframe extends BaseModel {
     super(props, opts)
 
     this._selected = false
+    this._selectedBody = false
     this._activated = false
     this._dragStartPx = null
     this._dragStartMs = null
-    this._isDeleted = false
     this._needsMove = false
-    this._selectedBody = false
     this._hasMouseDown = false
     this._lastMouseDown = 0
     this._didHandleDragStop = false
     this._didHandleContextMenu = false
     this._mouseDownState = {}
     this._updateReceivers = {}
-  }
-
-  /**
-   * This method returns a teardown function that decommissions the update receiver provided in its second argument as
-   * a callback.
-   *
-   * IMPORTANT: Always call the teardown function when the Keyframe is expected not to go out of scope but the update
-   * receiver is.
-   *
-   * @param source
-   * @param cb
-   * @returns {function()}
-   */
-  registerUpdateReceiver (source, cb) {
-    if (typeof cb !== 'function') {
-      return () => {}
-    }
-    this._updateReceivers[source] = cb
-    return () => {
-      delete this._updateReceivers[source]
-    }
-  }
-
-  notifyUpdateReceivers (what) {
-    Object.keys(this._updateReceivers).forEach((receiver) => {
-      this._updateReceivers[receiver](what)
-    })
   }
 
   activate () {
@@ -118,13 +90,9 @@ class Keyframe extends BaseModel {
     return this._selectedBody
   }
 
-  isDeleted () {
-    return this._isDeleted
-  }
-
   delete (metadata) {
     this.row.deleteKeyframe(this, metadata)
-    this._isDeleted = true
+    Timeline.clearCaches()
     return this
   }
 
@@ -184,10 +152,6 @@ class Keyframe extends BaseModel {
         }
       }
     }
-
-    // I'm adding the zeroth keyframe only after the keyframe move action is complete,
-    // otherwise the cleared cache in React will result in the dragging action to be stopped
-    this.row._needsToEnsureZerothKeyframe = true
 
     return this
   }
@@ -254,18 +218,6 @@ class Keyframe extends BaseModel {
     return this
   }
 
-  incrementIndex () {
-    this.index += 1
-    this.uid = Keyframe.getInferredUid(this.row, this.index)
-    return this
-  }
-
-  decrementIndex () {
-    this.index -= 1
-    this.uid = Keyframe.getInferredUid(this.row, this.index)
-    return this
-  }
-
   isTransitionSegment () {
     return !!this.getCurve()
   }
@@ -302,12 +254,19 @@ class Keyframe extends BaseModel {
     return !!this.next()
   }
 
-  getUniqueKey () {
-    return `${this.getUniqueKeyWithoutTimeIncluded()}-${this.getMs()}`
+  setOrigMs (ms) {
+    this.origMs = ms
   }
 
-  getUniqueKeyWithoutTimeIncluded () {
-    return `${this.row.getUniqueKey()}-${this.getIndex()}`
+  updateOwnMetadata () {
+    const ms = this.getMs()
+    const newUid = Keyframe.getInferredUid(this.row, ms)
+    this.setOrigMs(ms)
+    Keyframe.setInstancePrimaryKey(this, newUid)
+  }
+
+  getUniqueKey () {
+    return this.getPrimaryKey()
   }
 
   isWithinCollapsedRow () {
@@ -316,6 +275,10 @@ class Keyframe extends BaseModel {
 
   getFrame (mspf) {
     return Timeline.millisecondToNearestFrame(this.getMs(), mspf)
+  }
+
+  getOrigMs () {
+    return this.origMs
   }
 
   getMs () {
@@ -332,15 +295,15 @@ class Keyframe extends BaseModel {
     const previous = this.getMs()
     this.ms = normalized
 
+    // Clear timeline caches; the max frame might have changed.
+    Timeline.clearCaches()
+
     if (normalized !== previous) {
       // Indicate that we need to be moved. Must set this before calling handleKeyframeMoves
       // otherwise the update might not make it correctly to the serialization layer
       this._needsMove = true
 
       this.notifyUpdateReceivers('keyframe-ms-set')
-
-      // This runs a debounced move action
-      this.component.handleKeyframeMove()
 
       if (this.prev()) {
         this.prev().notifyUpdateReceivers('keyframe-neighbor-move')
@@ -396,31 +359,19 @@ class Keyframe extends BaseModel {
     }
 
     const next = this.next()
-    if (this.getMs() < a && (next && next.getMs() < a)) {
-      return false
-    }
-
-    return true
+    return !next || this.getMs() >= a || next.getMs() >= a
   }
 
   next () {
-    return this.cacheFetch('next', () => {
-      return this.row.getKeyframes({ index: this.index + 1 })[0]
-    })
+    return this._next
   }
 
   prev () {
-    return this.cacheFetch('prev', () => {
-      return this.row.getKeyframes({ index: this.index - 1 })[0]
-    })
+    return this._prev
   }
 
   isNextKeyframeSelected () {
     return this.next() && this.next().isSelected()
-  }
-
-  isNextKeyframeActive () {
-    return this.next() && this.next().isActive()
   }
 
   getPixelOffsetRight (base, pxpf, mspf) {
@@ -669,6 +620,7 @@ class Keyframe extends BaseModel {
 
     // Ensure we and neighbors are selected and activated since this may begin a drag
     this.select()
+
     if (isCurveTargeted) this.setBodySelected()
 
     // Loop through keyframes in this row left-to-right and update activations
@@ -848,12 +800,9 @@ Keyframe.DEFAULT_OPTIONS = {
   }
 }
 
-BaseModel.extend(Keyframe)
+BaseModel.extend(Keyframe, { useQueryCache: experimentIsEnabled(Experiment.BaseModelQueryCache) })
 
-Keyframe._selected = {}
-Keyframe._activated = {}
-
-Keyframe.deselectAndDeactivateAllKeyframes = function deselectAndDeactivateAllKeyframes (criteria) {
+Keyframe.deselectAndDeactivateAllKeyframes = (criteria) => {
   Keyframe.where(criteria).forEach((keyframe) => {
     keyframe.unsetBodySelected()
     keyframe.deselect()
@@ -861,25 +810,15 @@ Keyframe.deselectAndDeactivateAllKeyframes = function deselectAndDeactivateAllKe
   })
 }
 
-Keyframe.deselectAndDeactivateAllDeletedKeyframes = (criteria) => {
-  Keyframe.where(criteria).forEach((keyframe) => {
-    if (keyframe.isDeleted()) {
-      keyframe.unsetBodySelected()
-      keyframe.deselect()
-      keyframe.deactivate()
-    }
-  })
+Keyframe.getInferredUid = (row, ms) => {
+  return `${row.getPrimaryKey()}-keyframe-${ms}`
 }
 
-Keyframe.getInferredUid = function getInferredUid (row, index) {
-  return `${row.getPrimaryKey()}-keyframe-${index}`
-}
-
-Keyframe.buildKeyframeMoves = function buildKeyframeMoves (criteria, serialized) {
+Keyframe.buildKeyframeMoves = (criteria, serialized) => {
   // Keyframes not part of this object will be deleted from the bytecode
   const moves = {}
 
-  const movables = Keyframe.where(assign({ _needsMove: true }, criteria))
+  const movables = Keyframe.where(Object.assign({ _needsMove: true }, criteria))
 
   movables.forEach((movable) => {
     // As an optimization, skip any that we have already moved below in case of dupes
@@ -901,7 +840,6 @@ Keyframe.buildKeyframeMoves = function buildKeyframeMoves (criteria, serialized)
     // Because the keyframe move action interprets excluded entries as *deletes*, we have to
     // also include all keyframes that are a part of the same timeline/component/property tuple
     Keyframe.where(criteria).forEach((partner) => {
-      if (partner.isDeleted()) return null
       if (partner.timeline.getName() !== timelineName) return null
       if (partner.element.getComponentId() !== componentId) return null
       if (partner.row.getPropertyNameString() !== propertyName) return null

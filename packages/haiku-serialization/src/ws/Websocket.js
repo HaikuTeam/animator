@@ -115,6 +115,8 @@ Websocket.prototype.setupSocket = function setupSocket () {
       return this.emit('broadcast', message)
     } else if (message.type === 'signal') {
       return this.emit('signal', message)
+    } else if (message.type === 'relay') {
+      return this.emit('relay', message)
     }
 
     // Assume the message is a reply if the incoming has an id that matches one of our outgoing

@@ -29,19 +29,6 @@ class Asset extends BaseModel {
     return this.relpath
   }
 
-  addChild (asset) {
-    let found = false
-    this.children.forEach((child) => {
-      if (child === asset) {
-        found = true
-      }
-    })
-    if (!found) {
-      this.children.push(asset)
-    }
-    asset.parent = this
-  }
-
   getAssetInfo () {
     const parts = this.relpath.split(path.sep)
     // It's definitely not a generated piece if its length doesn't match the pattern
@@ -105,22 +92,22 @@ class Asset extends BaseModel {
 
   addSketchChild (svgAsset) {
     if (svgAsset.isSlice()) {
-      this.slicesFolderAsset.addChild(svgAsset)
+      this.slicesFolderAsset.insertChild(svgAsset)
       this.unshiftFolderAsset(this.slicesFolderAsset)
     } else if (svgAsset.isArtboard()) {
-      this.artboardsFolderAsset.addChild(svgAsset)
+      this.artboardsFolderAsset.insertChild(svgAsset)
       this.unshiftFolderAsset(this.artboardsFolderAsset)
     } else {
-      this.addChild(svgAsset)
+      this.insertChild(svgAsset)
     }
   }
 
   addFigmaChild (svgAsset) {
     if (svgAsset.isSlice()) {
-      this.slicesFolderAsset.addChild(svgAsset)
+      this.slicesFolderAsset.insertChild(svgAsset)
       this.unshiftFolderAsset(this.slicesFolderAsset)
     } else if (svgAsset.isGroup()) {
-      this.groupsFolderAsset.addChild(svgAsset)
+      this.groupsFolderAsset.insertChild(svgAsset)
       this.unshiftFolderAsset(this.groupsFolderAsset)
     }
   }
@@ -130,7 +117,7 @@ class Asset extends BaseModel {
     const result = Asset.findById(path.join(project.getFolder(), relpath))
 
     if (result) {
-      this.addChild(result)
+      this.insertChild(result)
       return result
     }
 
@@ -172,7 +159,7 @@ class Asset extends BaseModel {
       dtModified: (dict[relpath] && dict[relpath].dtModified) || Date.now()
     })
 
-    this.addChild(sketchAsset)
+    this.insertChild(sketchAsset)
     return sketchAsset
   }
 
@@ -181,7 +168,7 @@ class Asset extends BaseModel {
     const result = Asset.findById(path.join(project.getFolder(), relpath))
 
     if (result) {
-      this.addChild(result)
+      this.insertChild(result)
       return result
     }
 
@@ -225,7 +212,7 @@ class Asset extends BaseModel {
         dtModified: Date.now()
       })
 
-      this.addChild(figmaAsset)
+      this.insertChild(figmaAsset)
       return figmaAsset
     } catch (e) {
       // ... unable to upsert.
@@ -241,10 +228,10 @@ class Asset extends BaseModel {
       if (this.children.length === 0) {
         return [Asset.upsert({
           uid: 'hacky-message[0]',
+          relpath: 'hacky-message[0]',
           type: Asset.TYPES.HACKY_MESSAGE,
           kind: Asset.KINDS.HACKY_MESSAGE,
           project: this.project,
-          relpath: 'hacky-message[0]',
           displayName: 'hacky-message[0]',
           children: [],
           dtModified: Date.now(),
@@ -257,10 +244,10 @@ class Asset extends BaseModel {
             this.children[0],
             Asset.upsert({
               uid: 'hacky-message[1]',
+              relpath: 'hacky-message[1]',
               type: Asset.TYPES.HACKY_MESSAGE,
               kind: Asset.KINDS.HACKY_MESSAGE,
               project: this.project,
-              relpath: 'hacky-message[1]',
               displayName: 'hacky-message[1]',
               children: [],
               dtModified: Date.now(),
@@ -272,12 +259,12 @@ class Asset extends BaseModel {
           if (experimentIsEnabled(Experiment.FigmaIntegration)) {
             result.push(
               Asset.upsert({
-                uid: '',
+                uid: 'hacky-figma-file[1]',
+                relpath: 'hacky-figma-file[1]',
                 type: Asset.TYPES.CONTAINER,
                 kind: Asset.KINDS.FIGMA,
                 proximity: Asset.PROXIMITIES.LOCAL,
                 figmaID: '',
-                relpath: 'hacky-figma-file[1]',
                 displayName: this.project.getName() + '.figma',
                 children: [],
                 project: this.project,
@@ -287,10 +274,10 @@ class Asset extends BaseModel {
             result.push(
               Asset.upsert({
                 uid: 'hacky-message[3]',
+                relpath: 'hacky-message[3]',
                 type: Asset.TYPES.HACKY_MESSAGE,
                 kind: Asset.KINDS.HACKY_MESSAGE,
                 project: this.project,
-                relpath: 'hacky-message[3]',
                 displayName: 'hacky-message[3]',
                 children: [],
                 dtModified: Date.now(),
@@ -344,6 +331,7 @@ class Asset extends BaseModel {
 
 Asset.DEFAULT_OPTIONS = {
   required: {
+    uid: true,
     type: true,
     kind: true,
     project: true,
@@ -482,7 +470,7 @@ Asset.ingestAssets = (project, dict) => {
           }
           break
         default:
-          designFolderAsset.addChild(svgAsset)
+          designFolderAsset.insertChild(svgAsset)
       }
     } else if (path.basename(relpath) === 'code.js') { // Looks like a component
       const pathParts = relpath.split(path.sep)
@@ -498,7 +486,7 @@ Asset.ingestAssets = (project, dict) => {
         children: [],
         dtModified: dict[relpath].dtModified
       })
-      componentFolderAsset.addChild(jsAsset)
+      componentFolderAsset.insertChild(jsAsset)
     }
   }
 
