@@ -257,6 +257,14 @@ class AuthenticationUI extends React.Component {
             </p>
           )
         }
+      case 407:
+        // (we think) proxy authentication might be required.
+        return {
+          backgroundColor: Color(Palette.RED).fade(0.5),
+          message,
+          action: this.props.onShowProxySettings,
+          actionText: 'Change proxy settings.'
+        }
       default:
         return {
           backgroundColor: Color(Palette.RED).fade(0.5),
@@ -267,11 +275,20 @@ class AuthenticationUI extends React.Component {
 
   errorElement () {
     if (this.state.error) {
-      const {message, backgroundColor} = this.generateErrorSpec()
+      const {message, backgroundColor, action, actionText} = this.generateErrorSpec()
+
+      if (action && actionText) {
+        return <div style={{...STYLES.error, backgroundColor}}>
+          <span>{message}</span>
+          {' '}
+          <span style={{...STYLES.link, color: Palette.SUNSTONE}} onClick={action}>{actionText}</span>
+        </div>
+      }
 
       return <div style={{...STYLES.error, backgroundColor}}>{message}</div>
     }
   }
+
   submitButtonElement () {
     let submitButtonMessage
     if (this.state.isSubmitting) submitButtonMessage = <FadingCircle size={22} color={Palette.ROCK} />

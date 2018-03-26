@@ -24,6 +24,7 @@ import AutoUpdater from './components/AutoUpdater'
 import ProjectLoader from './components/ProjectLoader'
 import OfflineModePage from './components/OfflineModePage'
 import ProxyHelpScreen from './components/ProxyHelpScreen'
+import ProxySettingsScreen from './components/ProxySettingsScreen'
 import ChangelogModal from './components/ChangelogModal'
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/EnvoyClient'
 import { EXPORTER_CHANNEL, ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
@@ -39,6 +40,7 @@ import ActivityMonitor from '../utils/activityMonitor.js'
 import { HOMEDIR_LOGS_PATH, HOMEDIR_PATH } from 'haiku-serialization/src/utils/HaikuHomeDir'
 import requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates'
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
+import {buildProxyUrl, describeProxyFromUrl} from 'haiku-common/lib/proxies'
 import isOnline from 'is-online'
 import CreatorIntro from '@haiku/zack4-creatorintro/react'
 
@@ -116,7 +118,8 @@ export default class Creator extends React.Component {
       launchingProject: false,
       newProjectLoading: false,
       interactionMode: InteractionMode.EDIT,
-      showChangelogModal: false
+      showChangelogModal: false,
+      showProxySettings: false
     }
 
     this.envoyOptions = {
@@ -365,6 +368,10 @@ export default class Creator extends React.Component {
   }
 
   handleEnvoyUserReady () {
+    if (!this.user) {
+      return
+    }
+
     // kick off initial report
     this.onActivityReport(true, true)
 
@@ -722,6 +729,12 @@ export default class Creator extends React.Component {
     })
   }
 
+  showProxySettings () {
+    this.setState({
+      showProxySettings: true
+    })
+  }
+
   resendEmailConfirmation (username, password, cb) {
     return this.props.websocket.request({ method: 'resendEmailConfirmation', params: [username] }, () => { })
   }
@@ -730,6 +743,8 @@ export default class Creator extends React.Component {
     if (typeof this._postAuthCallback === 'function') {
       this._postAuthCallback()
     }
+
+    this.handleEnvoyUserReady()
 
     return this.setState({ isUserAuthenticated: true })
   }
@@ -1157,7 +1172,57 @@ export default class Creator extends React.Component {
     ) : null
   }
 
+  get proxyDescriptor () {
+    // Note: in the current setup, we boot all users who are unable to connect directly to the local websocket server
+    // before they can benefit from the pre-filling of of the proxy descriptor based on the proxy upgrade request
+    // identified during bootup. If we ever figure out how to allow the socket traffic to flow through a proxy, as a
+    // consolation prize for still forcing users to go through this config, the host and port should be prefilled!
+    return describeProxyFromUrl(this.props.haiku.dotenv.http_proxy || this.props.haiku.proxy.url)
+  }
+
+  set proxyDescriptor (proxyDescriptor) {
+    this.props.websocket.request(
+      {
+        method: 'setenv',
+        params: [{
+          http_proxy: buildProxyUrl(proxyDescriptor)
+        }]
+      },
+      (error, dotenv) => {
+        if (error) {
+          mixpanel.haikuTrack('creator:proxy-settings:error', {error})
+          console.warn('[creator] unable to persist proxy settings', error)
+          this.createNotice({
+            type: 'error',
+            title: 'Oh no!',
+            message: 'We were unable to save your proxy settings. 😢 Please close and reopen the application and try again. If you still see this message, contact Haiku for support.',
+            closeText: 'Okay',
+            lightScheme: true
+          })
+        } else {
+          mixpanel.haikuTrack('creator:proxy-settings:saved')
+          Object.assign(this.props.haiku, {dotenv})
+        }
+
+        this.setState({
+          showProxySettings: false
+        })
+      }
+    )
+  }
+
   render () {
+    if (this.state.showProxySettings) {
+      return (
+        <StyleRoot>
+          <ProxySettingsScreen
+            proxyDescriptor={this.proxyDescriptor}
+            onSave={(proxyDescriptor) => { this.proxyDescriptor = proxyDescriptor }}
+          />
+        </StyleRoot>
+      )
+    }
+
     if (experimentIsEnabled(Experiment.BasicOfflineMode)) {
       if (
         this.state.isOffline &&
@@ -1178,6 +1243,7 @@ export default class Creator extends React.Component {
               ref='AuthenticationUI'
               onSubmit={this.authenticateUser}
               onSubmitSuccess={this.authenticationComplete}
+              onShowProxySettings={() => { this.showProxySettings() }}
               resendEmailConfirmation={this.resendEmailConfirmation}
               {...this.props} />
           </StyleRoot>
@@ -1195,6 +1261,7 @@ export default class Creator extends React.Component {
               ref='AuthenticationUI'
               onSubmit={this.authenticateUser}
               onSubmitSuccess={this.authenticationComplete}
+              onShowProxySettings={() => { this.showProxySettings() }}
               resendEmailConfirmation={this.resendEmailConfirmation}
               {...this.props} />
           </StyleRoot>

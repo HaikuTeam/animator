@@ -7,9 +7,10 @@ import {execSync} from 'child_process';
 
 const HAIKU_ALMOST_EMPTY = 'https://github.com/HaikuTeam/almost-empty.git';
 
-const FILE_PATHS = {
+export const FILE_PATHS = {
   AUTH_TOKEN: os.homedir() + '/.haiku/auth',
   USER_ID: os.homedir() + '/.haiku/userid',
+  DOTENV: os.homedir() + '/.haiku/.env',
 };
 
 function ensureHomeFolder() {
