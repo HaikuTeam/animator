@@ -16,14 +16,12 @@ function hasExplicitStyle(domElement, key) {
   return !!domElement.__haikuExplicitStyles[key];
 }
 
-// #origin
-export default function applyCssLayout(domElement, virtualElement, nodeLayout, computedLayout, pixelRatio, context) {
+export default function applyCssLayout(domElement, virtualElement, nodeLayout, computedLayout, context) {
   // No point continuing if there's no computedLayout contents
   if (computedLayout.opacity === undefined && !computedLayout.size && !computedLayout.matrix) {
     return;
   }
 
-  // #origin
   const elementScope = scopeOfElement(virtualElement);
 
   if (nodeLayout.shown === false) {
@@ -89,14 +87,18 @@ export default function applyCssLayout(domElement, virtualElement, nodeLayout, c
     }
   }
 
-  // #origin
+  if (virtualElement.elementName === SVG && !domElement.style.transformOrigin) {
+    // Reset the transform-origin to allow our layout system to be self-contained.
+    domElement.style.transformOrigin = '0% 0% 0px';
+  }
+
   if (computedLayout.matrix) {
     const attributeTransform = domElement.getAttribute('transform');
     // IE doesn't support using transform on the CSS style in SVG elements, so if we are in SVG,
     // and if we are inside an IE context, use the transform attribute itself
     if (context.config.platform.isIE || context.config.platform.isEdge) {
       if (elementScope === SVG) {
-        const matrixString = formatTransform(computedLayout.matrix, nodeLayout.format, pixelRatio);
+        const matrixString = formatTransform(computedLayout.matrix, nodeLayout.format);
         if (!isEqualTransformString(attributeTransform, matrixString)) {
           domElement.setAttribute('transform', matrixString);
         }
@@ -106,7 +108,6 @@ export default function applyCssLayout(domElement, virtualElement, nodeLayout, c
           nodeLayout.format,
           computedLayout.matrix,
           context.config.useWebkitPrefix,
-          pixelRatio,
         );
       }
     } else {
@@ -122,7 +123,6 @@ export default function applyCssLayout(domElement, virtualElement, nodeLayout, c
             nodeLayout.format,
             computedLayout.matrix,
             context.config.useWebkitPrefix,
-            pixelRatio,
           );
         }
       }

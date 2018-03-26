@@ -26,59 +26,14 @@
  * THE SOFTWARE.
  */
 
-export default function computeOrientationFlexibly(xIn, yIn, zIn, w, quat) {
-  // The expectation is that somebody is going to pass the previous
-  // quaternion so we can adjust it relative to where it had been before,
-  // that is, by passing in Euler angles. Therefore, if the given quaternion
-  // isn't the complete object, we can't continue.
-  if (
-    !quat ||
-    (quat.x == null || quat.y == null || quat.z == null || quat.w == null)
-  ) {
-    throw new Error('No w-component nor quaternion provided!');
+export default function computeOrientationFlexibly(x, y, z) {
+  if (x === 0 && y === 0 && z === 0) {
+    return {x, y, z, w: 0};
   }
 
-  // If we got here, we are going to return a new quaternion to describe the
-  // rotation as an adjustment based around the values passed in.
-  // Before we move on to the actual calculations, we're going to handle the
-  // case that any of the other values was omitted, which we will interpret
-  // to mean we want to use the value given by the passed quaternion
-  let x = xIn;
-  let y = yIn;
-  let z = zIn;
-
-  if (x == null || y == null || z == null) {
-    const sp = -2 * (quat.y * quat.z - quat.w * quat.x);
-
-    if (Math.abs(sp) > 0.99999) {
-      y = y == null ? Math.PI * 0.5 * sp : y; // #origin?
-      x = x == null
-        ? Math.atan2(
-            -quat.x * quat.z + quat.w * quat.y,
-            0.5 - quat.y * quat.y - quat.z * quat.z, // #origin?
-          )
-        : x;
-      z = z == null ? 0 : z;
-    } else {
-      y = y == null ? Math.asin(sp) : y;
-      x = x == null
-        ? Math.atan2(
-            quat.x * quat.z + quat.w * quat.y,
-            0.5 - quat.x * quat.x - quat.y * quat.y, // #origin?
-          )
-        : x;
-      z = z == null
-        ? Math.atan2(
-            quat.x * quat.y + quat.w * quat.z,
-            0.5 - quat.x * quat.x - quat.z * quat.z, // #origin?
-          )
-        : z;
-    }
-  }
-
-  const hx = x * 0.5; // #origin?
-  const hy = y * 0.5; // #origin?
-  const hz = z * 0.5; // #origin?
+  const hx = x * 0.5;
+  const hy = y * 0.5;
+  const hz = z * 0.5;
 
   const sx = Math.sin(hx);
   const sy = Math.sin(hy);
@@ -92,10 +47,10 @@ export default function computeOrientationFlexibly(xIn, yIn, zIn, w, quat) {
   const sycz = sy * cz;
   const cycz = cy * cz;
 
-  const qx = sx * cycz + cx * sysz;
-  const qy = cx * sycz - sx * cysz;
-  const qz = cx * cysz + sx * sycz;
-  const qw = cx * cycz - sx * sysz;
-
-  return {x: qx, y: qy, z: qz, w: qw};
+  return {
+    x: sx * cycz + cx * sysz,
+    y: cx * sycz - sx * cysz,
+    z: cx * cysz + sx * sycz,
+    w: cx * cycz - sx * sysz,
+  };
 }

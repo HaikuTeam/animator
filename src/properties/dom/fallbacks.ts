@@ -9,7 +9,13 @@ const TEXT_CONTENT_FALLBACKS = {
   content: null,
 };
 
-const LAYOUT_DEFAULTS = Layout3D.createLayoutSpec(null, null, null);
+const LAYOUT_DEFAULTS = Layout3D.createLayoutSpec();
+
+const LAYOUT_COORDINATE_SYSTEM_FALLBACKS = {
+  'origin.x': 0.5,
+  'origin.y': 0.5,
+  'origin.z': 0.5,
+};
 
 const LAYOUT_3D_FALLBACKS = {
   shown: LAYOUT_DEFAULTS.shown,
@@ -20,9 +26,9 @@ const LAYOUT_3D_FALLBACKS = {
   'align.x': LAYOUT_DEFAULTS.align.x,
   'align.y': LAYOUT_DEFAULTS.align.y,
   'align.z': LAYOUT_DEFAULTS.align.z,
-  'origin.x': LAYOUT_DEFAULTS.origin.x, // #origin
-  'origin.y': LAYOUT_DEFAULTS.origin.y, // #origin
-  'origin.z': LAYOUT_DEFAULTS.origin.z, // #origin
+  'origin.x': LAYOUT_DEFAULTS.origin.x,
+  'origin.y': LAYOUT_DEFAULTS.origin.y,
+  'origin.z': LAYOUT_DEFAULTS.origin.z,
   'translation.x': LAYOUT_DEFAULTS.translation.x,
   'translation.y': LAYOUT_DEFAULTS.translation.y,
   'translation.z': LAYOUT_DEFAULTS.translation.z,
@@ -54,8 +60,8 @@ const LAYOUT_2D_FALLBACKS = {
   'mount.y': LAYOUT_DEFAULTS.mount.y,
   'align.x': LAYOUT_DEFAULTS.align.x,
   'align.y': LAYOUT_DEFAULTS.align.y,
-  'origin.x': LAYOUT_DEFAULTS.origin.x, // #origin
-  'origin.y': LAYOUT_DEFAULTS.origin.y, // #origin
+  'origin.x': LAYOUT_DEFAULTS.origin.x,
+  'origin.y': LAYOUT_DEFAULTS.origin.y,
   'translation.x': LAYOUT_DEFAULTS.translation.x,
   'translation.y': LAYOUT_DEFAULTS.translation.y,
   'rotation.z': LAYOUT_DEFAULTS.rotation.z,
@@ -927,6 +933,7 @@ export default {
   svg: has(
     CONTROL_FLOW_FALLBACKS,
     LAYOUT_3D_FALLBACKS,
+    LAYOUT_COORDINATE_SYSTEM_FALLBACKS,
     PRESENTATION_FALLBACKS,
     STYLE_FALLBACKS,
   ),
