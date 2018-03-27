@@ -43,7 +43,6 @@ class ProjectBrowser extends React.Component {
       recordedDelete: '',
       recordedNewProjectName: '',
       projToDelete: '',
-      projToDeleteIndex: null,
       projToDuplicateIndex: null,
       confirmDeleteMatches: false,
       atProjectMax: false,
@@ -129,28 +128,24 @@ class ProjectBrowser extends React.Component {
     })
   }
 
-  showDeleteModal (index) {
-    const projectsList = this.state.projectsList
-    const name = projectsList[index].projectName
+  showDeleteModal (name) {
     if (this.deleteInput) {
       this.deleteInput.value = ''
     }
 
     this.setState({
       showDeleteModal: true,
-      projToDelete: name,
-      projToDeleteIndex: index
+      projToDelete: name
     })
   }
 
   performDeleteProject () {
-    const index = this.state.projToDeleteIndex
     const projectsList = this.state.projectsList
-    const name = projectsList[index].projectName
-    projectsList[index].isDeleted = true
+    const projectToDelete = projectsList.find(project => project.projectName === this.state.projToDelete)
     const deleteStart = Date.now()
+    projectToDelete.isDeleted = true
     this.setState({ projectsList }, () => {
-      this.requestDeleteProject(name, projectsList[index].projectPath, (deleteError) => {
+      this.requestDeleteProject(projectToDelete.projectName, projectToDelete.projectPath, (deleteError) => {
         if (deleteError) {
           this.props.createNotice({
             type: 'error',
@@ -160,7 +155,7 @@ class ProjectBrowser extends React.Component {
             lightScheme: true
           })
           // Oops, we actually didn't delete this project. Let's put it back.
-          projectsList[index].isDeleted = false
+          projectToDelete.isDeleted = false
           this.setState({ projectsList })
           return
         }
@@ -168,9 +163,8 @@ class ProjectBrowser extends React.Component {
         // Make sure at least 200ms (the duration of the "delete" transition) have passed before actually removing
         // the project.
         setTimeout(() => {
-          projectsList.splice(index, 1)
           this.setState({
-            projectsList,
+            projectsList: projectsList.filter(project => project.projectName !== projectToDelete.projectName),
             atProjectMax: !this.props.isAdmin && projectsList.length >= HARDCODED_PROJECTS_LIMIT
           })
         }, Math.min(200, Date.now() - deleteStart))
@@ -232,7 +226,7 @@ class ProjectBrowser extends React.Component {
             projectPath={projectObject.projectPath}
             isDeleted={projectObject.isDeleted}
             launchProject={() => this.handleProjectLaunch(projectObject)}
-            showDeleteModal={() => this.showDeleteModal(index)}
+            showDeleteModal={() => this.showDeleteModal(projectObject.projectName)}
             showDuplicateProjectModal={() => this.showDuplicateProjectModal(index)}
             atProjectMax={this.state.atProjectMax}
           />
