@@ -5767,5 +5767,77 @@
       "label": "feat",
       "message": "show frame action btn only after delay"
     }
+  },
+  "3.1.25": {
+    "b3d1cfced53e41c4c4b0ac3946e455f73309166c": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Changelog syntax error"
+    },
+    "fd21449b1631759ff1a94fca11336df6c8ba1d70": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "give plumbing an all-knowing .dotenv stored in ~/.haiku"
+    },
+    "92b53ae1d68126595d2a989e29bfc27c46504c14": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "proxy serialization capability in haiku-common"
+    },
+    "f5015b6e1651af4625ae84bba8d1bc55a0404269": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add link in user menu to user's Community profile"
+    },
+    "a701e471f8d977e4f6217f0072efe384db72aa2e": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "make file watchers write-aware to avoid unnecessary module reloading."
+    },
+    "5f8b7698b5bf2c699956ad74a973324d4ac8472c": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Handle query keys that don't have .toString"
+    },
+    "0fa2eb7f9a6ec9878bb37a1d11876c9cf832b918": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "allow keyframes to be removed by reversing updateKeyframes"
+    },
+    "08aeffed7a035208b188f84e230026b9c6cfbb9f": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Prevent duplicate child insertions"
+    },
+    "5414640c26b463c5019a85c1684eb7ce8241d35c": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Force flush when changing states to force expr reeval so error displays for orphaned states"
+    },
+    "ea53d165ffe98732b6aceae010f240d2f000ded5": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Don't assume row/element exist in all views (fixes undo of keyframe creation via timeline)"
+    },
+    "fe65d3b0738cf2cfe55ee1928d29e822088f295d": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Ensure we snapshot undefined keyframe values so inversion works correctly under race conditions"
+    },
+    "b6f30245468e3bd30cd21ba2d2faf78137661eb2": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "put test back in order for Figma."
+    },
+    "a634c78a4fef133e35336396fb1a8481ee829520": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "revert changes on position of the share modal"
+    },
+    "9873b94191f53df6d596e60af8a5bf5b15aa2a6f": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Add HTML renderer, don't fail if SVGO can't parse (it chokes on styles), and add test of messed up Ativo.svg"
+    }
   }
 }
