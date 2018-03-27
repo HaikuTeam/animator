@@ -1,0 +1,25 @@
+{
+  "date": "March 26, 2018",
+  "sections": {
+    "What's new": [
+      "Proxy settings! You can now use Haiku with your corporate VPN",
+      "Improved error messaging when there are no Figma assets to import",
+      "Added a hint to add states when there are none in the State Inspector",
+      "Made toggling between the Library and State Inspector faster",
+      "\"Snapshot Saved\" notices are now dismissed automatically",
+      "Added link to your profile in the user menu"
+    ],
+    "Fixes": [
+      "Fixed crash when using Haiku with a VPN or without an internet connection",
+      "Fixed bug causing states to fail to save if focus on the input was lost",
+      "Fixed edge cases with the display of the tour spotlight",
+      "Prevented accidental import of file formats we don't handle yet",
+      "Fixed bug where pressing \"Cancel\" could cause the Library to appear blank",
+      "Fixed problem preventing the \"Fork\" option from appearing in the Haiku right-click menu in production components",
+      "Fixed incorrect format of URL for opening Figma links in the browser",
+      "Ensured that the Figma auth token gets cleared on logout",
+      "Clarified error message when a Sketch slice cannot be found",
+      "Clarified purpose of Public/Private toggle when publishing"
+    ]
+  }
+}
