@@ -69,6 +69,8 @@ function go () {
     email: config.email
   })
 
+  window.isWebview = config.webview
+
   ReactDOM.render(
     <Timeline
       envoy={config.envoy}

@@ -62,7 +62,7 @@ if (webFrame) {
   if (webFrame.setLayoutZoomLevelLimits) webFrame.setLayoutZoomLevelLimits(0, 0)
 }
 
-const MENU_ACTION_DEBOUNCE_TIME = 500
+const MENU_ACTION_DEBOUNCE_TIME = 100
 const FORK_OPERATION_TIMEOUT = 2000
 const MAX_FORK_ATTEMPTS = 15
 
@@ -246,7 +246,8 @@ export default class Creator extends React.Component {
         type: 'relay',
         from: 'creator',
         view: 'timeline',
-        name: 'global-menu:undo'
+        name: 'global-menu:undo',
+        time: Date.now()
       })
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
@@ -257,7 +258,8 @@ export default class Creator extends React.Component {
         type: 'relay',
         from: 'creator',
         view: 'timeline',
-        name: 'global-menu:redo'
+        name: 'global-menu:redo',
+        time: Date.now()
       })
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 

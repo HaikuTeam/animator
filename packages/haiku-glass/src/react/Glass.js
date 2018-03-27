@@ -35,6 +35,12 @@ fse.mkdirpSync(HOMEDIR_PATH)
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'glass'
 
+const ifIsRunningStandalone = (cb) => {
+  if (!window.isWebview) {
+    return cb()
+  }
+}
+
 const CLOCKWISE_CONTROL_POINTS = {
   0: [0, 1, 2, 5, 8, 7, 6, 3],
   1: [6, 7, 8, 5, 2, 1, 0, 3], // flipped vertical
@@ -62,7 +68,7 @@ const SELECTION_TYPES = {
   ON_STAGE_CONTROL: 'on_stage_control'
 }
 
-const MENU_ACTION_DEBOUNCE_TIME = 500
+const MENU_ACTION_DEBOUNCE_TIME = 100
 const DIMENSIONS_RESET_DEBOUNCE_TIME = 100
 
 const BIG_NUMBER = 99999
@@ -208,8 +214,8 @@ export class Glass extends React.Component {
     this.handleCopyDebounced = lodash.debounce(() => this.handleCopy(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
     this.handlePasteDebounced = lodash.debounce(() => this.handlePaste(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
     this.handleSelectAllDebounced = lodash.debounce(() => this.handleSelectAll(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
-    this.handleUndoDebounced = lodash.debounce(() => this.handleUndo(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
-    this.handleRedoDebounced = lodash.debounce(() => this.handleRedo(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
+    this.handleUndoDebounced = lodash.debounce((payload) => this.handleUndo(payload), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
+    this.handleRedoDebounced = lodash.debounce((payload) => this.handleRedo(payload), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
 
     // For debugging
     window.glass = this
@@ -534,38 +540,48 @@ export class Glass extends React.Component {
     })
 
     combokeys.bind('command+z', () => {
-      this.handleUndoDebounced()
+      ifIsRunningStandalone(() => {
+        this.handleUndoDebounced({
+          from: 'glass',
+          time: Date.now()
+        })
+      })
     })
 
     combokeys.bind('command+shift+z', () => {
-      this.handleRedoDebounced()
+      ifIsRunningStandalone(() => {
+        this.handleRedoDebounced({
+          from: 'glass',
+          time: Date.now()
+        })
+      })
     })
 
     combokeys.bind('command+x', () => {
-      this.handleCutDebounced()
+      ifIsRunningStandalone(() => this.handleCutDebounced())
     })
 
     combokeys.bind('command+c', () => {
-      this.handleCopyDebounced()
+      ifIsRunningStandalone(() => this.handleCopyDebounced())
     })
 
     combokeys.bind('command+v', () => {
-      this.handlePasteDebounced()
+      ifIsRunningStandalone(() => this.handlePasteDebounced())
     })
 
     if (experimentIsEnabled(Experiment.ElementMultiSelectAndTransform)) {
       combokeys.bind('command+a', () => {
-        this.handleSelectAllDebounced()
+        ifIsRunningStandalone(() => this.handleSelectAllDebounced())
       })
     }
 
     if (experimentIsEnabled(Experiment.GroupUngroup)) {
       combokeys.bind('command+g', () => {
-        this.handleGroupDebounced()
+        ifIsRunningStandalone(() => this.handleGroupDebounced())
       })
 
       combokeys.bind('command+shift+g', () => {
-        this.handleUngroupDebounced()
+        ifIsRunningStandalone(() => this.handleUngroupDebounced())
       })
     }
 
@@ -616,11 +632,11 @@ export class Glass extends React.Component {
           break
 
         case 'global-menu:undo':
-          this.handleUndoDebounced()
+          this.handleUndoDebounced(message)
           break
 
         case 'global-menu:redo':
-          this.handleRedoDebounced()
+          this.handleRedoDebounced(message)
           break
       }
     })
@@ -710,14 +726,14 @@ export class Glass extends React.Component {
     combokeys.detach()
   }
 
-  handleUndo () {
+  handleUndo (payload) {
     if (this.project) {
       Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'})
       this.project.undo({}, {from: 'glass'}, () => {})
     }
   }
 
-  handleRedo () {
+  handleRedo (payload) {
     if (this.project) {
       Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'})
       this.project.redo({}, {from: 'glass'}, () => {})

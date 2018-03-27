@@ -63,6 +63,7 @@ export default class Stage extends React.Component {
       plumbing: this.props.haiku.plumbing.url,
       folder: this.props.folder,
       email: this.props.username,
+      webview: true,
       envoy: {
         host: this.props.envoyClient.getOption('host'),
         port: this.props.envoyClient.getOption('port'),

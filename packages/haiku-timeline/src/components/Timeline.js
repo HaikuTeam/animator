@@ -47,6 +47,12 @@ if (webFrame) {
   if (webFrame.setLayoutZoomLevelLimits) webFrame.setLayoutZoomLevelLimits(0, 0)
 }
 
+const ifIsRunningStandalone = (cb) => {
+  if (!window.isWebview) {
+    return cb()
+  }
+}
+
 const DEFAULTS = {
   rowHeight: 25,
   inputCellWidth: 75,
@@ -65,7 +71,7 @@ const DEFAULTS = {
 }
 
 const THROTTLE_TIME = 32 // ms
-const MENU_ACTION_DEBOUNCE_TIME = 500
+const MENU_ACTION_DEBOUNCE_TIME = 100
 
 const combokeys = new Combokeys(document.documentElement)
 
@@ -188,27 +194,45 @@ class Timeline extends React.Component {
     })
 
     combokeys.bind('command+z', () => {
-      this.handleUndoDebounced()
+      ifIsRunningStandalone(() => {
+        this.handleUndoDebounced({
+          from: 'timeline',
+          time: Date.now()
+        })
+      })
     })
 
     combokeys.bind('command+shift+z', () => {
-      this.handleRedoDebounced()
+      ifIsRunningStandalone(() => {
+        this.handleRedoDebounced({
+          from: 'timeline',
+          time: Date.now()
+        })
+      })
     })
 
     combokeys.bind('command+x', () => {
-      this.handleCutDebounced()
+      ifIsRunningStandalone(() => {
+        this.handleCutDebounced()
+      })
     })
 
     combokeys.bind('command+c', () => {
-      this.handleCopyDebounced()
+      ifIsRunningStandalone(() => {
+        this.handleCopyDebounced()
+      })
     })
 
     combokeys.bind('command+v', () => {
-      this.handlePasteDebounced()
+      ifIsRunningStandalone(() => {
+        this.handlePasteDebounced()
+      })
     })
 
     combokeys.bind('command+a', () => {
-      this.handleSelectAllDebounced()
+      ifIsRunningStandalone(() => {
+        this.handleSelectAllDebounced()
+      })
     })
   }
 

@@ -44,9 +44,9 @@ function createWindow () {
   browserWindow.maximize()
   browserWindow.loadURL(url)
 
-  // if (process.env.DEV === '1') {
-  browserWindow.webContents.openDevTools()
-  // }
+  if (process.env.DEV === '1') {
+    browserWindow.webContents.openDevTools()
+  }
 
   browserWindow.on('closed', () => { browserWindow = null })
 }

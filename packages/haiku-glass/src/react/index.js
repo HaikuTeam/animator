@@ -68,6 +68,8 @@ function go () {
     email: config.email
   })
 
+  window.isWebview = config.webview
+
   ReactDOM.render(
     <Glass
       envoy={config.envoy}
