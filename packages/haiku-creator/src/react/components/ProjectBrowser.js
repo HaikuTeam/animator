@@ -160,6 +160,12 @@ class ProjectBrowser extends React.Component {
           return
         }
 
+        mixpanel.haikuTrack('creator:project:deleted', {
+          username: this.props.username,
+          project: projectToDelete.projectName,
+          organization: this.props.organizationName
+        })
+
         // Make sure at least 200ms (the duration of the "delete" transition) have passed before actually removing
         // the project.
         setTimeout(() => {
