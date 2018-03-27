@@ -1,6 +1,13 @@
 # Changelog
 
 
+## 3.1.27
+
+### Bug Fixes
+
+ * use a project names instead of indexes to delete projects
+ * Typo in tracking / analytics section (#8)
+
 ## 3.1.26
 
 ### Bug Fixes

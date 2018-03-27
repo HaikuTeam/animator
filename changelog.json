@@ -5856,5 +5856,17 @@
       "label": "feat",
       "message": "Add HTML renderer, don't fail if SVGO can't parse (it chokes on styles), and add test of messed up Ativo.svg"
     }
+  },
+  "3.1.27": {
+    "d3c9069eb2614905e8a049f8d54faced58eb0ca8": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "use a project names instead of indexes to delete projects"
+    },
+    "50393cd17792f3341444e8887bcf2f4265aded6c": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Typo in tracking / analytics section (#8)"
+    }
   }
 }
