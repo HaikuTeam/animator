@@ -62,6 +62,7 @@ if (webFrame) {
   if (webFrame.setLayoutZoomLevelLimits) webFrame.setLayoutZoomLevelLimits(0, 0)
 }
 
+const MENU_ACTION_DEBOUNCE_TIME = 500
 const FORK_OPERATION_TIMEOUT = 2000
 const MAX_FORK_ATTEMPTS = 15
 
@@ -166,17 +167,17 @@ export default class Creator extends React.Component {
         } else {
           this.toggleDevTools()
         }
-      }, 100, {leading: true, trailing: false}))
+      }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
     }
 
     combokeys.bind('command+option+0', lodash.debounce(() => {
       this.dumpSystemInfo()
-    }, 100, {leading: true, trailing: false}))
+    }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:open-terminal', lodash.debounce(() => {
       console.info(`[creator] global-menu:open-terminal`)
       this.openTerminal(this.state.projectFolder)
-    }, 100, {leading: true, trailing: false}))
+    }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:check-updates', lodash.debounce(() => {
       console.info(`[creator] global-menu:check-updates`)
@@ -187,12 +188,12 @@ export default class Creator extends React.Component {
           shouldSkipOptIn: true
         }
       })
-    }, 100, {leading: true, trailing: false}))
+    }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:show-changelog', lodash.debounce(() => {
       console.info(`[creator] global-menu:show-changelog`)
       this.showChangelogModal()
-    }, 100, {leading: true, trailing: false}))
+    }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:zoom-in', lodash.debounce(() => {
       console.info(`[creator] global-menu:zoom-in`)
@@ -203,7 +204,7 @@ export default class Creator extends React.Component {
         view: 'timeline',
         name: 'global-menu:zoom-in'
       })
-    }, 100, {leading: true, trailing: false}))
+    }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:zoom-out', lodash.debounce(() => {
       // Timeline will send to Glass if it doesn't want to zoom
@@ -214,7 +215,7 @@ export default class Creator extends React.Component {
         view: 'timeline',
         name: 'global-menu:zoom-out'
       })
-    }, 100, {leading: true, trailing: false}))
+    }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:group', lodash.debounce(() => {
       // Timeline will send to Glass if it doesn't want to group
@@ -225,7 +226,7 @@ export default class Creator extends React.Component {
         view: 'timeline',
         name: 'global-menu:group'
       })
-    }, 100, {leading: true, trailing: false}))
+    }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:ungroup', lodash.debounce(() => {
       // Timeline will send to Glass if it doesn't want to ungroup
@@ -236,7 +237,7 @@ export default class Creator extends React.Component {
         view: 'timeline',
         name: 'global-menu:ungroup'
       })
-    }, 100, {leading: true, trailing: false}))
+    }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:undo', lodash.debounce(() => {
       // Timeline will send to Glass if it doesn't want to undo
@@ -247,7 +248,7 @@ export default class Creator extends React.Component {
         view: 'timeline',
         name: 'global-menu:undo'
       })
-    }, 100, {leading: true, trailing: false}))
+    }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:redo', lodash.debounce(() => {
       // Timeline will send to Glass if it doesn't want to undo
@@ -258,7 +259,7 @@ export default class Creator extends React.Component {
         view: 'timeline',
         name: 'global-menu:redo'
       })
-    }, 100, {leading: true, trailing: false}))
+    }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:copy', lodash.debounce(() => {
       // Only delegate copy if we don't have anything in selection
@@ -273,7 +274,7 @@ export default class Creator extends React.Component {
           })
         }
       }
-    }, 100, {leading: true, trailing: false}))
+    }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:cut', lodash.debounce(() => {
       // Only delegate cut if we don't have anything in selection
@@ -288,7 +289,7 @@ export default class Creator extends React.Component {
           })
         }
       }
-    }, 100, {leading: true, trailing: false}))
+    }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:selectall', lodash.debounce(() => {
       // Only select all if we haven't activated a text element
@@ -303,7 +304,7 @@ export default class Creator extends React.Component {
           })
         }
       }
-    }, 100, {leading: true, trailing: false}))
+    }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:paste', lodash.debounce(() => {
       // Only paste if we haven't activated a text element
@@ -318,7 +319,7 @@ export default class Creator extends React.Component {
           })
         }
       }
-    }, 100, {leading: true, trailing: false}))
+    }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('open-url:fork', (_, path) => {
       // Incoming path should have format: /:organizationName/:projectName

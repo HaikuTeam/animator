@@ -62,6 +62,9 @@ const SELECTION_TYPES = {
   ON_STAGE_CONTROL: 'on_stage_control'
 }
 
+const MENU_ACTION_DEBOUNCE_TIME = 500
+const DIMENSIONS_RESET_DEBOUNCE_TIME = 100
+
 const BIG_NUMBER = 99999
 
 function isNumeric (n) {
@@ -197,16 +200,16 @@ export class Glass extends React.Component {
         from: 'glass',
         data: this.getArtboardRenderInfo()
       })
-    }, 100)
+    }, DIMENSIONS_RESET_DEBOUNCE_TIME)
 
-    this.handleGroupDebounced = lodash.debounce(() => this.handleGroup(), 200, {leading: true, trailing: false})
-    this.handleUngroupDebounced = lodash.debounce(() => this.handleUngroup(), 200, {leading: true, trailing: false})
-    this.handleCutDebounced = lodash.debounce(() => this.handleCut(), 200, {leading: true, trailing: false})
-    this.handleCopyDebounced = lodash.debounce(() => this.handleCopy(), 200, {leading: true, trailing: false})
-    this.handlePasteDebounced = lodash.debounce(() => this.handlePaste(), 200, {leading: true, trailing: false})
-    this.handleSelectAllDebounced = lodash.debounce(() => this.handleSelectAll(), 200, {leading: true, trailing: false})
-    this.handleUndoDebounced = lodash.debounce(() => this.handleUndo(), 200, {leading: true, trailing: false})
-    this.handleRedoDebounced = lodash.debounce(() => this.handleRedo(), 200, {leading: true, trailing: false})
+    this.handleGroupDebounced = lodash.debounce(() => this.handleGroup(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
+    this.handleUngroupDebounced = lodash.debounce(() => this.handleUngroup(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
+    this.handleCutDebounced = lodash.debounce(() => this.handleCut(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
+    this.handleCopyDebounced = lodash.debounce(() => this.handleCopy(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
+    this.handlePasteDebounced = lodash.debounce(() => this.handlePaste(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
+    this.handleSelectAllDebounced = lodash.debounce(() => this.handleSelectAll(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
+    this.handleUndoDebounced = lodash.debounce(() => this.handleUndo(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
+    this.handleRedoDebounced = lodash.debounce(() => this.handleRedo(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
 
     // For debugging
     window.glass = this

@@ -65,6 +65,7 @@ const DEFAULTS = {
 }
 
 const THROTTLE_TIME = 32 // ms
+const MENU_ACTION_DEBOUNCE_TIME = 500
 
 const combokeys = new Combokeys(document.documentElement)
 
@@ -99,12 +100,12 @@ class Timeline extends React.Component {
     this.mouseMoveListener = this.mouseMoveListener.bind(this)
     this.mouseUpListener = this.mouseUpListener.bind(this)
 
-    this.handleCutDebounced = lodash.debounce(this.handleCut.bind(this), 200, {leading: true, trailing: false})
-    this.handleCopyDebounced = lodash.debounce(this.handleCopy.bind(this), 200, {leading: true, trailing: false})
-    this.handlePasteDebounced = lodash.debounce(this.handlePaste.bind(this), 200, {leading: true, trailing: false})
-    this.handleSelectAllDebounced = lodash.debounce(this.handleSelectAll.bind(this), 200, {leading: true, trailing: false})
-    this.handleUndoDebounced = lodash.debounce(this.handleUndo.bind(this), 200, {leading: true, trailing: false})
-    this.handleRedoDebounced = lodash.debounce(this.handleRedo.bind(this), 200, {leading: true, trailing: false})
+    this.handleCutDebounced = lodash.debounce(this.handleCut.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
+    this.handleCopyDebounced = lodash.debounce(this.handleCopy.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
+    this.handlePasteDebounced = lodash.debounce(this.handlePaste.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
+    this.handleSelectAllDebounced = lodash.debounce(this.handleSelectAll.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
+    this.handleUndoDebounced = lodash.debounce(this.handleUndo.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
+    this.handleRedoDebounced = lodash.debounce(this.handleRedo.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
 
     window.timeline = this
   }
