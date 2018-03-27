@@ -1,6 +1,17 @@
 # Changelog
 
 
+## 3.1.26
+
+### Bug Fixes
+
+ * Prevent double undos
+ * Emit needs to be passed to the recursive request call
+
+### Features
+
+ * Add HTML renderer, don't fail if SVGO can't parse (it chokes on styles), and add test of messed up Ativo.svg
+
 ## 3.1.25
 
 ### Bug Fixes

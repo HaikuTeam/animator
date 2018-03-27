@@ -5839,5 +5839,22 @@
       "label": "feat",
       "message": "Add HTML renderer, don't fail if SVGO can't parse (it chokes on styles), and add test of messed up Ativo.svg"
     }
+  },
+  "3.1.26": {
+    "42760be43abe3245b2c2f5f5bd952866ad60fa50": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Prevent double undos"
+    },
+    "fca9d12acf2cbfb341de99a5406e707497913a0c": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Emit needs to be passed to the recursive request call"
+    },
+    "9c219610fc089b2077d9ced46e3576f510a0b2a6": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Add HTML renderer, don't fail if SVGO can't parse (it chokes on styles), and add test of messed up Ativo.svg"
+    }
   }
 }
