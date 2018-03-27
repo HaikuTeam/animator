@@ -20,7 +20,7 @@ const request = (key, emit, cb) => {
 
   if (ACTIVE_LOCKS[key]) {
     // Push to the end of the stack
-    return setTimeout(() => request(key, cb), 0)
+    return setTimeout(() => request(key, emit, cb), 0)
   }
 
   ACTIVE_LOCKS[key] = true
