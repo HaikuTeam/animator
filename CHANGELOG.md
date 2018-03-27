@@ -1,6 +1,28 @@
 # Changelog
 
 
+## 3.1.25
+
+### Bug Fixes
+
+ * Changelog syntax error
+ * Handle query keys that don't have .toString
+ * allow keyframes to be removed by reversing updateKeyframes
+ * Prevent duplicate child insertions
+ * Force flush when changing states to force expr reeval so error displays for orphaned states
+ * Don't assume row/element exist in all views (fixes undo of keyframe creation via timeline)
+ * Ensure we snapshot undefined keyframe values so inversion works correctly under race conditions
+ * put test back in order for Figma.
+ * revert changes on position of the share modal
+
+### Features
+
+ * give plumbing an all-knowing .dotenv stored in ~/.haiku
+ * proxy serialization capability in haiku-common
+ * add link in user menu to user's Community profile
+ * make file watchers write-aware to avoid unnecessary module reloading.
+ * Add HTML renderer, don't fail if SVGO can't parse (it chokes on styles), and add test of messed up Ativo.svg
+
 ## 3.1.24
 
 ### Bug Fixes
