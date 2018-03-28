@@ -38,7 +38,6 @@ class Changelog {
         return 1
       }
 
-      console.log(a, b)
       return semver.lt(path.basename(a, '.json'), path.basename(b, '.json')) ? -1 : 1
     })
 
