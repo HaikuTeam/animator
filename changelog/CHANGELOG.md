@@ -1,6 +1,14 @@
 # Changelog
 
 
+## 3.1.29
+
+### Bug Fixes
+
+ * Ensure action stack gets properly reset in long-running processes
+ * use strict mode to evaluate expressions
+ * enable strict mode in the Actions Editor
+
 ## 3.1.28
 
 ### Bug Fixes
