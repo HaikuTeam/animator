@@ -265,61 +265,53 @@ export default class Creator extends React.Component {
 
     ipcRenderer.on('global-menu:copy', lodash.debounce(() => {
       // Only delegate copy if we don't have anything in selection
-      if (this.isCreatorExplicitlyFocused()) {
-        if (!this.isTextSelected()) {
-          console.info(`[creator] global-menu:copy`)
-          this.props.websocket.send({
-            type: 'relay',
-            from: 'creator',
-            view: 'timeline',
-            name: 'global-menu:copy'
-          })
-        }
+      if (!this.isTextSelected()) {
+        console.info(`[creator] global-menu:copy`)
+        this.props.websocket.send({
+          type: 'relay',
+          from: 'creator',
+          view: 'timeline',
+          name: 'global-menu:copy'
+        })
       }
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:cut', lodash.debounce(() => {
       // Only delegate cut if we don't have anything in selection
-      if (this.isCreatorExplicitlyFocused()) {
-        if (!this.isTextSelected()) {
-          console.info(`[creator] global-menu:cut`)
-          this.props.websocket.send({
-            type: 'relay',
-            from: 'creator',
-            view: 'timeline',
-            name: 'global-menu:cut'
-          })
-        }
+      if (!this.isTextSelected()) {
+        console.info(`[creator] global-menu:cut`)
+        this.props.websocket.send({
+          type: 'relay',
+          from: 'creator',
+          view: 'timeline',
+          name: 'global-menu:cut'
+        })
       }
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:selectall', lodash.debounce(() => {
       // Only select all if we haven't activated a text element
-      if (this.isCreatorExplicitlyFocused()) {
-        if (!this.isTextInputFocused()) {
-          console.info(`[creator] global-menu:selectall`)
-          this.props.websocket.send({
-            type: 'relay',
-            from: 'creator',
-            view: 'timeline',
-            name: 'global-menu:selectall'
-          })
-        }
+      if (!this.isTextInputFocused()) {
+        console.info(`[creator] global-menu:selectall`)
+        this.props.websocket.send({
+          type: 'relay',
+          from: 'creator',
+          view: 'timeline',
+          name: 'global-menu:selectall'
+        })
       }
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:paste', lodash.debounce(() => {
       // Only paste if we haven't activated a text element
-      if (this.isCreatorExplicitlyFocused()) {
-        if (!this.isTextInputFocused()) {
-          console.info(`[creator] global-menu:paste`)
-          this.props.websocket.send({
-            type: 'relay',
-            from: 'creator',
-            view: 'timeline',
-            name: 'global-menu:paste'
-          })
-        }
+      if (!this.isTextInputFocused()) {
+        console.info(`[creator] global-menu:paste`)
+        this.props.websocket.send({
+          type: 'relay',
+          from: 'creator',
+          view: 'timeline',
+          name: 'global-menu:paste'
+        })
       }
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
