@@ -43,7 +43,9 @@ class ElementTitle extends React.PureComponent {
     if (this.props.title) {
       return this.props.title
     } else {
-      const title = get(this.props, 'element.staticTemplateNode.attributes.haiku-title')
+      const element = this.props.element
+      const node = element && element.getStaticTemplateNode()
+      const title = get(node, 'attributes.haiku-title')
       return title ? truncate(title, 16) : '(unknown)'
     }
   }

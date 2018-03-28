@@ -79,7 +79,6 @@ const handleUrl = (url) => {
   logger.info(`[creator] handling custom protocol URL ${url}`)
   const parsedUrl = parse(url)
   browserWindow.webContents.send(`open-url:${parsedUrl.host}`, parsedUrl.pathname, qs.parse(parsedUrl.query))
-  browserWindow.focus()
 }
 
 function different (a, b) {

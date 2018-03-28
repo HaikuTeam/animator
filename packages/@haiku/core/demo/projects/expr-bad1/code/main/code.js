@@ -28,7 +28,7 @@ module.exports = {
         "translation.x": {
           0: {
             value: Haiku.inject(function($helpers) {
-              return $helpers.random()
+              return $helpers.rand() * 100
             })
           }
         },

@@ -5,11 +5,12 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import EventsDict from './EventsDict';
+import {DEFAULTS} from '../../Config';
 import {randomString} from '../../helpers/StringUtils';
 
 const DEFAULT_HOST_ELEMENT_TAG_NAME = 'div';
 
-const HAIKU_FORWARDED_PROPS = {
+const HAIKU_CONFIG_PROPS_RENAME_MAPPING = {
   haikuOptions: 'options',
   haikuStates: 'states',
   haikuInitialStates: 'states',
@@ -18,54 +19,8 @@ const HAIKU_FORWARDED_PROPS = {
   haikuVanities: 'vanities',
 };
 
-const VALID_PROPS = {
-  tagName: 'string',
-  id: 'string',
-  className: 'string',
-  style: 'object',
-  width: 'string',
-  height: 'string',
-
-  // Convenience
-  onComponentWillMount: 'func',
-  onComponentWillUnmount: 'func',
-  onComponentDidMount: 'func',
-
-  // We allow these to be passed at the root level since that feels more natural
-  onHaikuComponentWillInitialize: 'func',
-  onHaikuComponentDidMount: 'func',
-  onHaikuComponentDidInitialize: 'func',
-  onHaikuComponentWillUnmount: 'func',
-
-  // Allow a haiku core to be (optionally) passed in
-  haikuAdapter: 'func',
-  haikuCode: 'object',
-};
-
-const REACT_ELEMENT_PROPS_TO_OMIT = {
-  onComponentWillMount: true,
-  onComponentWillUnmount: true,
-  onComponentDidMount: true,
-  onHaikuComponentWillInitialize: true,
-  onHaikuComponentDidMount: true,
-  onHaikuComponentDidInitialize: true,
-  onHaikuComponentWillUnmount: true,
-  haikuAdapter: true,
-  haikuCode: true,
-};
-
-for (const eventKey in EventsDict) {
-  VALID_PROPS[eventKey] = EventsDict[eventKey];
-}
-
-for (const fwdPropKey in HAIKU_FORWARDED_PROPS) {
-  VALID_PROPS[fwdPropKey] = 'object';
-}
-
 export interface HaikuComponentProps {
-  onComponentWillMount: Function;
-  onComponentWillUnmount: Function;
-  onComponentDidMount: Function;
+  [key: string]: any;
 }
 
 export interface HaikuComponentState {
@@ -100,16 +55,7 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
       }
     }
 
-    componentWillMount() {
-      if (this.props.onComponentWillMount) {
-        this.props.onComponentWillMount(this);
-      }
-    }
-
     componentWillUnmount() {
-      if (this.props.onComponentWillUnmount) {
-        this.props.onComponentWillUnmount(this);
-      }
       if (this.haiku) {
         this.haiku.callUnmount();
       }
@@ -122,10 +68,6 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
     attemptMount() {
       if (this.mount) {
         this.createContext(this.props);
-
-        if (this.props.onComponentDidMount) {
-          this.props.onComponentDidMount(this, this.mount);
-        }
       }
     }
 
@@ -180,8 +122,14 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
       // assigned among the whitelisted properties
       if (rawProps) {
         for (const verboseKeyName in rawProps) {
+          // We already should have subscribed at the React host element level;
+          // we don't pass in otherwise we can end up with multiple events fired
+          if (EventsDict[verboseKeyName]) {
+            continue;
+          }
 
-          const haikuConfigFinalKey = HAIKU_FORWARDED_PROPS[verboseKeyName];
+          const haikuConfigFinalKey = HAIKU_CONFIG_PROPS_RENAME_MAPPING[verboseKeyName];
+
           if (haikuConfigFinalKey) {
             haikuConfig[haikuConfigFinalKey] = rawProps[verboseKeyName];
           } else {
@@ -234,39 +182,31 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
       }
     }
 
-    createEventPropWrapper(eventListener) {
-      return function _eventPropWrapper(proxy, event) {
-        return eventListener.call(
-          this,
-          proxy,
-          event,
-          this.haiku,
-        );
-      }.bind(this);
-    }
-
     buildHostElementPropsFromRawProps(rawProps) {
-      const propsForHostElement = {} as any;
+      const propsForReactHostElement = {} as any;
 
-      // Build a basic props object which includes:
-      //    - Standard DOM event listeners
-      // But which excludes:
-      //    - Haiku special forwarded props (those belong to Haiku only)
       for (const key in rawProps) {
-        if (VALID_PROPS[key]) {
+        if (willReactProbablyHandleProp(rawProps[key], key)) {
           if (EventsDict[key]) {
-            propsForHostElement[key] = this.createEventPropWrapper(rawProps[key]);
-          } else if (!HAIKU_FORWARDED_PROPS[key]) {
-            // Don't put props that React will complain about into the tree
-            if (!REACT_ELEMENT_PROPS_TO_OMIT[key]) {
-              propsForHostElement[key] = rawProps[key];
-            }
+            // We wrap it because listeners expect to receive the Haiku component
+            // instance as an argument; and for convenience we provide the native
+            // event in addition to it and React's proxy
+            propsForReactHostElement[key] = (proxy) => {
+              return rawProps[key].call(
+                this,
+                proxy,
+                proxy && proxy.nativeEvent,
+                this.haiku,
+              );
+            };
+          } else {
+            propsForReactHostElement[key] = rawProps[key];
           }
         }
       }
 
-      const stylesForHostElement = propsForHostElement.style || {};
-      delete propsForHostElement.style;
+      // Style objects are excluded above, but we definitely want it if provided
+      const stylesForHostElement = rawProps.style || {};
 
       // Merge our basic host props with some defaults we want to assign
       return {
@@ -281,7 +221,7 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
           transform: 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)',
           ...stylesForHostElement,
         },
-        ...propsForHostElement,
+        ...propsForReactHostElement,
       };
     }
 
@@ -306,6 +246,25 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
   }
 
   return HaikuReactComponentInternal;
+}
+
+function willReactProbablyHandleProp(prop: any, key: string) {
+  // Exclude any 'complex' properties like objects
+  if (prop && typeof prop === 'object') {
+    return false;
+  }
+
+  // Assume functions, which are usually event listeners, are handled by Haiku
+  if (typeof prop === 'function') {
+    if (EventsDict[key]) {
+      return true;
+    }
+
+    return false;
+  }
+
+  // Exclude props we know target Haiku config
+  return !DEFAULTS.hasOwnProperty(key);
 }
 
 function visit(el, visitor) {

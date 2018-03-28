@@ -3,7 +3,7 @@
  */
 
 import HaikuGlobal from './HaikuGlobal';
-import SimpleEventEmitter from './helpers/SimpleEventEmitter';
+import HaikuBase from './HaikuBase';
 import assign from './vendor/assign';
 import raf from './vendor/raf';
 
@@ -23,34 +23,44 @@ const DEFAULT_OPTIONS = {
   marginOfErrorForDelta: 1.0,
 };
 
-// The global animation harness is a *singleton* so we don't want to create new ones even if this is reloaded
+// The global animation harness is a singleton
+// We don't want to create new ones even on reload
 if (!HaikuGlobal.HaikuGlobalAnimationHarness) {
   HaikuGlobal.HaikuGlobalAnimationHarness = {};
-  HaikuGlobal.HaikuGlobalAnimationHarness.queue = []; // Just an array of functions to call on every rAF tick
-  // The main frame function, loops through all those who need an animation tick and calls them
-  HaikuGlobal.HaikuGlobalAnimationHarness.frame = function HaikuGlobalAnimationHarnessFrame() {
+
+   // Array of functions to call on every rAF tick
+  HaikuGlobal.HaikuGlobalAnimationHarness.queue = [];
+
+  // The main frame function, loops through all those who
+  // need an animation tick and calls them
+  HaikuGlobal.HaikuGlobalAnimationHarness.frame = () => {
     const queue = HaikuGlobal.HaikuGlobalAnimationHarness.queue;
+
     const length = queue.length;
+
     for (let i = 0; i < length; i++) {
       queue[i]();
     }
+
     HaikuGlobal.HaikuGlobalAnimationHarness.raf = raf.request(HaikuGlobal.HaikuGlobalAnimationHarness.frame);
   };
-  // Need a mechanism to cancel the rAF loop otherwise some contexts (e.g. tests) will have leaked handles
-  HaikuGlobal.HaikuGlobalAnimationHarness.cancel = function HaikuGlobalAnimationHarnessCancel() {
+
+  // Need a mechanism to cancel the rAF loop, or else some contexts
+  // (e.g. tests) will have leaked handles
+  HaikuGlobal.HaikuGlobalAnimationHarness.cancel = () => {
     if (HaikuGlobal.HaikuGlobalAnimationHarness.raf) {
       raf.cancel(HaikuGlobal.HaikuGlobalAnimationHarness.raf);
     }
   };
+
   // Trigger the loop to start; we'll push frame functions into its queue later
   HaikuGlobal.HaikuGlobalAnimationHarness.frame();
 }
 
 // tslint:disable:variable-name
-export default class HaikuClock {
+export default class HaikuClock extends HaikuBase {
   _component;
   _deltaSinceLastTick;
-  _entityIndex;
   _isRunning;
   _localExplicitlySetTime;
   _localFramesElapsed;
@@ -61,7 +71,7 @@ export default class HaikuClock {
   GLOBAL_ANIMATION_HARNESS;
 
   constructor (tickables, component, options) {
-    SimpleEventEmitter.create(this);
+    super();
 
     this._tickables = tickables;
     this._component = component;
@@ -76,9 +86,6 @@ export default class HaikuClock {
 
     // Tests and others may need this to cancel the rAF loop, to avoid leaked handles
     this.GLOBAL_ANIMATION_HARNESS = HaikuGlobal.HaikuGlobalAnimationHarness;
-
-    // Useful when debugging to understand cross-component effects
-    this._entityIndex = HaikuClock['clocks'].push(this) - 1;
   }
 
   reinitialize() {
@@ -203,7 +210,3 @@ export default class HaikuClock {
     return this.options.frameDuration;
   }
 }
-
-HaikuClock['clocks'] = [];
-
-HaikuGlobal['HaikuClock'] = HaikuClock;

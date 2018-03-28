@@ -37,9 +37,7 @@ ReactBare.mount = function (element, React, ReactDOM) {
     render() {
       console.log('react demo re-rendering with color', this.state.color)
       return React.createElement(ReactBare, {
-        options: {
-          loop: true
-        },
+        loop: true,
         haikuAdapter: require('@haiku/core/dom'),
         haikuStates: {
           bgcolor: {

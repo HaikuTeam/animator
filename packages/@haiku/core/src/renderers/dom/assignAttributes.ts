@@ -4,7 +4,6 @@
 
 import assignClass from './assignClass';
 import assignStyle from './assignStyle';
-import attachEventListener from './attachEventListener';
 import getFlexId from './getFlexId';
 
 const STYLE = 'style';
@@ -98,26 +97,7 @@ export default function assignAttributes(domElement, virtualElement, component, 
       continue;
     }
 
-    // 'onclick', etc - Handling the chance that we got an inline event handler
-    if (key[0] === 'o' && key[1] === 'n' && typeof anotherNewValue === FUNCTION) {
-      attachEventListener(virtualElement, domElement, key.slice(2).toLowerCase(), anotherNewValue, component);
-      continue;
-    }
-
     setAttribute(domElement, key, anotherNewValue, cache);
-  }
-
-  // Any 'hidden' eventHandlers we got need to be assigned now.
-  // Note: The #legacy way this used to happen was via node attributes, which caused problems
-  // Hence them being 'hidden' in this __handlers object
-  if (virtualElement.__handlers) {
-    for (const eventName in virtualElement.__handlers) {
-      const handler = virtualElement.__handlers[eventName];
-      if (!handler.__subscribed) {
-        attachEventListener(virtualElement, domElement, eventName, handler, component);
-        handler.__subscribed = true;
-      }
-    }
   }
 
   return domElement;

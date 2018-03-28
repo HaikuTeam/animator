@@ -90,7 +90,7 @@ export default function applyLayout(
     }
 
     const devicePixelRatio =
-      (component.config.options && component.config.options.devicePixelRatio) || DEFAULT_PIXEL_RATIO;
+      (component.config && component.config.devicePixelRatio) || DEFAULT_PIXEL_RATIO;
 
     const computedLayout = virtualElement.layout.computed;
 
@@ -104,7 +104,7 @@ export default function applyLayout(
         domElement.style.display = 'block';
       }
 
-      component.config.options.platform = PLATFORM_INFO;
+      component.config.platform = PLATFORM_INFO;
 
       applyCssLayout(domElement, virtualElement, virtualElement.layout, computedLayout, devicePixelRatio, component);
     }

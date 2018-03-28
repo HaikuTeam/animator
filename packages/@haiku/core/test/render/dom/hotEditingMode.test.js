@@ -16,7 +16,7 @@ test('render.dom.hotEditingMode.on', function (t) {
     }
   }
 
-  const config = { options: { hotEditingMode: true } }
+  const config = { hotEditingMode: true }
 
   TestHelpers.createRenderTest(
     template,
@@ -57,7 +57,7 @@ test('render.dom.hotEditingMode.off', function (t) {
     }
   }
 
-  const config = { options: { hotEditingMode: false } }
+  const config = { hotEditingMode: false }
 
   TestHelpers.createRenderTest(
     template,

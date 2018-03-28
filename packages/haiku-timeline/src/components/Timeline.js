@@ -3,6 +3,7 @@ import Color from 'color'
 import lodash from 'lodash'
 import { DraggableCore } from 'react-draggable'
 import Combokeys from 'combokeys'
+import BaseModel from 'haiku-serialization/src/bll/BaseModel'
 import Project from 'haiku-serialization/src/bll/Project'
 import Row from 'haiku-serialization/src/bll/Row'
 import Keyframe from 'haiku-serialization/src/bll/Keyframe'
@@ -311,7 +312,7 @@ class Timeline extends React.Component {
   mountHaikuComponent () {
     // The Timeline UI doesn't display the component, so we don't bother giving it a ref
     this.getActiveComponent().mountApplication(null, {
-      options: { freeze: true }, // No display means no need for overflow settings, etc
+      freeze: true, // No display means no need for overflow settings, etc
       reloadMode: ModuleWrapper.RELOAD_MODES.MONKEYPATCHED_OR_ISOLATED
     })
   }
@@ -419,6 +420,10 @@ class Timeline extends React.Component {
     this.addEmitterListener(this.props.websocket, 'broadcast', (message) => {
       if (message.folder !== this.props.folder) return void (0)
       switch (message.name) {
+        case 'remote-model:receive-sync':
+          BaseModel.receiveSync(message)
+          break
+
         case 'component:reload':
           this.getActiveComponent().moduleReplace(() => {})
           break

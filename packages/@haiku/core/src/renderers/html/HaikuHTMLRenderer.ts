@@ -2,34 +2,35 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
+import HaikuBase from './../../HaikuBase';
 import render from '../dom/render';
 import manaToXml from '../../helpers/manaToXml';
 import VirtualNode, {VirtualDoc} from './VirtualNode';
 
-export default class HaikuHTMLRenderer {
+export default class HaikuHTMLRenderer extends HaikuBase {
+  mount;
   config;
   doc;
 
-  constructor(config) {
+  constructor(mount, config) {
+    super();
+
+    this.mount = mount;
     this.config = config;
     this.doc = new VirtualDoc({});
 
-    if (!this.config.options) {
-      throw new Error(`HaikuHTMLRenderer requires config.options`);
+    if (!this.config.size) {
+      throw new Error(`HaikuHTMLRenderer requires config.size`);
     }
 
-    if (!this.config.options.size) {
-      throw new Error(`HaikuHTMLRenderer requires config.options.size`);
-    }
-
-    if (!this.config.options.user) {
-      throw new Error(`HaikuHTMLRenderer requires config.options.user`);
+    if (!this.config.user) {
+      throw new Error(`HaikuHTMLRenderer requires config.user`);
     }
   }
 
-  render(mount, virtualContainer, virtualTree, component): string {
+  render(virtualContainer, virtualTree, component): string {
     const enhancedMana = render(
-      mount || new VirtualNode('div', {}, [], this.doc),
+      this.mount || new VirtualNode('div', {}, [], this.doc),
       virtualContainer,
       virtualTree,
       component,
@@ -52,7 +53,7 @@ export default class HaikuHTMLRenderer {
       isContainer: true,
       layout: {
         computed: {
-          size: this.config.options.size,
+          size: this.config.size,
         },
       },
     };
@@ -66,11 +67,11 @@ export default class HaikuHTMLRenderer {
     // no-op
   }
 
-  removeListener() {
+  mountEventListener(name: string, listener: Function) {
     // no-op
   }
 
   getUser() {
-    return this.config.options.user;
+    return this.config.user;
   }
 }

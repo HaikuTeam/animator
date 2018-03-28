@@ -8,6 +8,7 @@ import cp from 'child_process'
 import os from 'os'
 import path from 'path'
 import fs from 'fs'
+import BaseModel from 'haiku-serialization/src/bll/BaseModel'
 import Project from 'haiku-serialization/src/bll/Project'
 import ModuleWrapper from 'haiku-serialization/src/bll/ModuleWrapper'
 import Asset from 'haiku-serialization/src/bll/Asset'
@@ -505,6 +506,10 @@ export default class Creator extends React.Component {
   componentDidMount () {
     this.props.websocket.on('broadcast', (message) => {
       switch (message.name) {
+        case 'remote-model:receive-sync':
+          BaseModel.receiveSync(message)
+          break
+
         case 'dev-tools:toggle':
           return this.toggleDevTools()
         case 'project-state-change':
@@ -985,7 +990,7 @@ export default class Creator extends React.Component {
   mountHaikuComponent () {
     // The Timeline UI doesn't display the component, so we don't bother giving it a ref
     this.getActiveComponent().mountApplication(null, {
-      options: { freeze: true }, // No display means no need for overflow settings, etc
+      freeze: true, // No display means no need for overflow settings, etc
       reloadMode: ModuleWrapper.RELOAD_MODES.MONKEYPATCHED_OR_ISOLATED
     })
   }
