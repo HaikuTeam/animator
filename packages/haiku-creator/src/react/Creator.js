@@ -1047,14 +1047,14 @@ export default class Creator extends React.Component {
     return notice
   }
 
-  onLibraryDragEnd (dragEndNativeEvent, asset) {
+  onLibraryDragEnd (asset) {
     this.setState({ assetDragging: null })
     if (asset) {
       this.refs.stage.handleDrop(asset, this._lastMouseX, this._lastMouseY)
     }
   }
 
-  onLibraryDragStart (dragStartNativeEvent, asset) {
+  onLibraryDragStart (asset) {
     this.setState({ assetDragging: asset })
   }
 

@@ -150,28 +150,38 @@ class AssetItem extends React.Component {
     this.launchPopoverMenu = this.launchPopoverMenu.bind(this)
   }
 
+  endDragInCaseItWasStartedInadvertently () {
+    this.props.onDragEnd()
+  }
+
   handleDeleteAsset () {
     this.props.deleteAsset(this.props.asset)
+    this.endDragInCaseItWasStartedInadvertently()
   }
 
   handleInstantiate () {
     this.props.instantiateAsset(this.props.asset)
+    this.endDragInCaseItWasStartedInadvertently()
   }
 
   handleCollapseToggle () {
     this.setState({isOpened: !this.state.isOpened})
+    this.endDragInCaseItWasStartedInadvertently()
   }
 
   handleOpenAsset () {
     shell.openItem(this.props.asset.getAbspath())
+    this.endDragInCaseItWasStartedInadvertently()
   }
 
   handleOpenOnlineAsset (link) {
     shell.openExternal(link)
+    this.endDragInCaseItWasStartedInadvertently()
   }
 
   handleShowAsset () {
     shell.showItemInFolder(this.props.asset.getAbspath())
+    this.endDragInCaseItWasStartedInadvertently()
   }
 
   renderChevy () {
@@ -481,11 +491,11 @@ class AssetItem extends React.Component {
           className='library-draggable' /* <~ do not remove this */
           onDragEnd={(dragEndEvent) => {
             this.setState({isDragging: false})
-            this.props.onDragEnd(dragEndEvent.nativeEvent, this.props.asset)
+            this.props.onDragEnd(this.props.asset)
           }}
           onDragStart={(dragStartEvent) => {
             this.setState({isDragging: true})
-            this.props.onDragStart(dragStartEvent.nativeEvent, this.props.asset)
+            this.props.onDragStart(this.props.asset)
           }}>
           <span
             className='draggable-interior-wrap'
