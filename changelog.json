@@ -5868,5 +5868,12 @@
       "label": "fix",
       "message": "Typo in tracking / analytics section (#8)"
     }
+  },
+  "3.1.28": {
+    "46914d4e499216a700bc8ae7b3c80b60b6ec2c97": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Keyboard shortcut cut/copy/paste was messed up with my last fix"
+    }
   }
 }
