@@ -78,24 +78,6 @@ class Editor extends React.Component {
   }
 
   componentDidMount () {
-    monaco.editor.defineTheme('haiku', {
-      base: 'vs-dark',
-      inherit: true,
-      // `rules` requires colors without the leading '#' ¯\_(ツ)_/¯
-      rules: [{backgroundColor: Palette.SPECIAL_COAL.replace('#', '')}],
-      colors: {
-        'editor.foreground': Palette.PALE_GRAY,
-        'editor.background': Palette.DARKEST_COAL,
-        'editorCursor.foreground': Palette.LIGHTEST_PINK,
-        'list.focusBackground': Palette.BLACK,
-        focusBorder: Palette.BLACK,
-        'editorWidget.background': Palette.DARKEST_COAL,
-        'editor.lineHighlightBorder': Palette.DARKEST_COAL
-      }
-    })
-
-    monaco.editor.setTheme('haiku')
-
     this.editor = monaco.editor.create(this._context, {
       value: this.props.contents || '',
       language: 'javascript',
