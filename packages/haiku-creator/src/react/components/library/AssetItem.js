@@ -146,7 +146,7 @@ class AssetItem extends React.Component {
     }
 
     this.handleCollapseToggle = this.handleCollapseToggle.bind(this)
-    this.handleInstantiate = lodash.debounce(this.handleInstantiate.bind(this), 500, { trailing: true })
+    this.handleInstantiate = lodash.debounce(this.handleInstantiate.bind(this), 500, {leading: true, trailing: false})
     this.launchPopoverMenu = this.launchPopoverMenu.bind(this)
   }
 
