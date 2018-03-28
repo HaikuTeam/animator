@@ -1,11 +1,12 @@
-var test = require('tape')
-var PACKAGE = require('./../../package.json')
-var TestHelpers = require('./../TestHelpers')
-var HaikuDOMAdapter = require('./../../lib/adapters/dom').default
-test('component._getInjectables', function (t) {
-  t.plan(16)
+const test = require('tape')
+const PACKAGE = require('./../../package.json')
+const TestHelpers = require('./../TestHelpers')
+const HaikuDOMAdapter = require('./../../lib/adapters/dom').default
 
-  var bytecode = {
+test('component._getInjectables', function (t) {
+  t.plan(14)
+
+  const bytecode = {
     // Checking that the bytecode itself can define options
     options: {
       contextMenu: 'foobar123'
@@ -35,10 +36,10 @@ test('component._getInjectables', function (t) {
 
   TestHelpers.createDOM(function (err, win) {
     // Combo passing options at root and nested
-    var HaikuComponentFactory = HaikuDOMAdapter(bytecode, {}, win)
+    const HaikuComponentFactory = HaikuDOMAdapter(bytecode, {}, win)
 
     // Pass loop at root level
-    var component = HaikuComponentFactory(mount, {
+    const component = HaikuComponentFactory(mount, {
       states: {
         bux: {
           value: 9000
@@ -46,7 +47,7 @@ test('component._getInjectables', function (t) {
       }
     })
 
-    var injectables = component._getInjectables()
+    const injectables = component._getInjectables()
 
     t.ok(injectables.baz)
     t.equal(injectables.baz, 'string')
@@ -67,8 +68,6 @@ test('component._getInjectables', function (t) {
     t.ok(injectables.$user)
 
     t.ok(injectables.$helpers)
-    t.equal(injectables.$helpers.rand, 'function') // We loaded the _schema_ not the helpers
-    t.equal(injectables.$helpers.now, 'function')
 
     component._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
   })

@@ -2,8 +2,8 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import HaikuHelpers from './HaikuHelpers';
 import BasicUtils from './helpers/BasicUtils';
+import HaikuHelpers from './HaikuHelpers';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
 import {isPreviewMode} from './helpers/interactionModes';
 import parsers from './properties/dom/parsers';
@@ -11,6 +11,7 @@ import schema from './properties/dom/schema';
 import enhance from './reflection/enhance';
 import Transitions from './Transitions';
 import assign from './vendor/assign';
+import PRNG from './helpers/PRNG';
 
 const FUNCTION = 'function';
 const OBJECT = 'object';
@@ -227,7 +228,7 @@ INJECTABLES['$core'] = {
 
     out.version = hostInstance._context.CORE_VERSION || hostInstance._context.PLAYER_VERSION; // Fallback to #LEGACY
 
-    const options = hostInstance._context.config.options;
+    const options = hostInstance._context.config;
     if (options) {
       if (!out.options) {
         out.options = {};
@@ -253,7 +254,7 @@ INJECTABLES['$core'] = {
       }
       out.timeline.time.apparent = timelineInstance.getTime();
       out.timeline.time.elapsed =
-        isPreviewMode(hostInstance.config.options.interactionMode)
+        isPreviewMode(hostInstance.config.interactionMode)
         ? timelineInstance.getElapsedTime()
         : out.timeline.time.apparent;
       out.timeline.time.max = timelineInstance.getMaxTime();
@@ -262,7 +263,7 @@ INJECTABLES['$core'] = {
       }
       out.timeline.frame.apparent = timelineInstance.getFrame();
       out.timeline.frame.elapsed =
-      isPreviewMode(hostInstance.config.options.interactionMode)
+      isPreviewMode(hostInstance.config.interactionMode)
         ? timelineInstance.getUnboundedFrame()
         : out.timeline.frame.apparent;
     }
@@ -278,7 +279,7 @@ INJECTABLES['$core'] = {
       }
       out.clock.time.apparent = clockInstance.getExplicitTime();
       out.clock.time.elapsed =
-        isPreviewMode(hostInstance.config.options.interactionMode)
+        isPreviewMode(hostInstance.config.interactionMode)
         ? clockInstance.getRunningTime()
         : out.clock.time.apparent;
     }
@@ -509,7 +510,7 @@ INJECTABLES['$element'] = {
 INJECTABLES['$user'] = {
   schema: assign({}, EVENT_SCHEMA),
   summon(injectees, summonSpec, hostInstance, matchingElement) {
-    if (isPreviewMode(hostInstance.config.options.interactionMode)) {
+    if (isPreviewMode(hostInstance.config.interactionMode)) {
       injectees.$user = hostInstance._context.getGlobalUserState();
     } else {
       injectees.$user = {
@@ -559,9 +560,9 @@ INJECTABLES['$flow']['schema']['yield'] = {
 };
 
 INJECTABLES['$helpers'] = {
-  schema: HaikuHelpers.schema,
-  summon(injectees) {
-    injectees.$helpers = HaikuHelpers.helpers;
+  schema: {},
+  summon(injectees, summonSpec, hostInstance, matchingElement) {
+    injectees.$helpers = hostInstance._builder.helpers;
   },
 };
 
@@ -809,6 +810,17 @@ const areSummoneesDifferent = (previous: any, incoming: any): boolean => {
   return previous !== incoming;
 };
 
+const stringToInt = (str) => {
+  let hash = 5381;
+  let i = str.length;
+  while (i) {
+    hash = (hash * 33) ^ str.charCodeAt(--i);
+  }
+  return hash >>> 0;
+};
+
+const MAX_INT = 2147483646;
+
 /* tslint:disable:variable-name */
 export default class ValueBuilder {
   _component;
@@ -816,6 +828,13 @@ export default class ValueBuilder {
   _changes;
   _summonees;
   _evaluations;
+  _prng;
+
+  helpers;
+  _lastTimelineName;
+  _lastTimelineTime;
+  _lastFlexId;
+  _lastPropertyName;
 
   constructor(component) {
     this._component = component; // ::HaikuComponent
@@ -824,17 +843,32 @@ export default class ValueBuilder {
     this._summonees = {};
     this._evaluations = {};
 
-    HaikuHelpers.register('now', () => {
-      isPreviewMode(this._component.config.options.interactionMode)
-        ? this._component._context.getDeterministicTime()
-        : 1;
-    });
+    this.helpers = {};
 
-    HaikuHelpers.register('rand', () => {
-      isPreviewMode(this._component.config.options.interactionMode)
-        ? this._component._context.getDeterministicRand()
-        : 1;
-    });
+    for (const helperName in HaikuHelpers.helpers) {
+      this.helpers[helperName] = HaikuHelpers.helpers[helperName];
+    }
+
+    this.helpers['now'] = () => {
+      if (isPreviewMode(this._component.config.interactionMode)) {
+        return (this._component.config.timestamp || 1) + (this._lastTimelineTime || 1);
+      }
+
+      return 1;
+    };
+
+    this.helpers['rand'] = () => {
+      if (isPreviewMode(this._component.config.interactionMode)) {
+        // tslint:disable-next-line
+        const scopeKey = `${this._lastTimelineName}|${this._lastTimelineTime}|${this._lastPropertyName}|${this._lastFlexId}`;
+        const randKey = `${this._component.config.seed}@${scopeKey}`;
+        const keyInt = stringToInt(randKey);
+        const outFloat = ((keyInt + 1) % MAX_INT) / MAX_INT;
+        return outFloat;
+      }
+
+      return 1;
+    };
   }
 
   clearCaches(options) {
@@ -1315,6 +1349,12 @@ export default class ValueBuilder {
     skipCache,
     clearSortedKeyframesCache,
   ) {
+    // Used by $helpers to calculate scope-specific values;
+    this._lastTimelineName = timelineName;
+    this._lastFlexId = flexId;
+    this._lastPropertyName = propertyName;
+    this._lastTimelineTime = timelineTime;
+
     const parsedValueCluster = this.fetchParsedValueCluster(
       timelineName,
       flexId,

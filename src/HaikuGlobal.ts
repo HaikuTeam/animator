@@ -24,6 +24,14 @@ function buildRoot() {
     ROOT['haiku'] = {};
   }
 
+  if (!ROOT['haiku']['cache']) {
+    ROOT['haiku']['cache'] = {};
+  }
+
+  if (!ROOT['haiku']['models']) {
+    ROOT['haiku']['models'] = {};
+  }
+
   if (!ROOT['haiku']['enhance']) {
     /**
      * @function enhance

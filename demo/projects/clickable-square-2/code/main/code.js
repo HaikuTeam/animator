@@ -16,20 +16,31 @@ module.exports = {
   options: {},
   states: { clicks: { value: 0 }, meow: { value: 12 } },
   eventHandlers: {
-    "haiku:94a14025d5c9": {
+    "haiku:some-component": {
+      'meow:meow': {
+        handler: function(event) {
+          console.log('cs2 heard meow meow')
+          this.emit('ruff:ruff',123)
+        }
+      }
+    },
+    "haiku:696562c8dc61": {
       click: {
         handler: function(event) {
+          console.info('cs2 heard click');
           this.getTimeline("Default").gotoAndPlay(0);
           this.state.clicks = this.state.clicks + 1;
         }
       },
       "timeline:Default:26": {
         handler: function(event) {
+          console.info('cs2 heard frame listener 26');
           this.state.meow = 122;
         }
       },
       "timeline:Default:0": {
         handler: function(event) {
+          console.info('cs2 heard frame listener 0');
           this.state.meow = 12;
         }
       }
@@ -214,6 +225,36 @@ module.exports = {
             ]
           }
         ]
+      },
+      {
+        elementName: {
+          eventHandlers: {
+            'haiku:some-div': {
+              'click': {
+                handler: function (target, event) {
+                  console.log('some-component heard some-div click', target, event)
+                  this.emit('meow:meow', 'hallo')
+                }
+              }
+            }
+          },
+          template: {
+            elementName: "div",
+            attributes: {
+              'haiku-id': 'some-div',
+              style: {
+                width: '100px',
+                height: '100px',
+                backgroundColor: 'red'
+              }
+            },
+            children: ['Hello']
+          }
+        },
+        attributes: {
+          "haiku-id": "some-component"
+        },
+        children: []
       }
     ]
   }

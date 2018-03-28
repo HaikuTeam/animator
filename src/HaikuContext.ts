@@ -3,10 +3,9 @@
  */
 
 import Config from './Config';
+import HaikuBase from './HaikuBase';
 import HaikuClock from './HaikuClock';
 import HaikuComponent from './HaikuComponent';
-import HaikuGlobal from './HaikuGlobal';
-import PRNG from './helpers/PRNG';
 
 const pkg = require('./../package.json');
 const VERSION = pkg.version;
@@ -19,15 +18,13 @@ const DEFAULT_TIMELINE_NAME = 'Default';
  * The context is where information shared by all components in the tree should go, e.g. clock time.
  */
 // tslint:disable:variable-name
-export default class HaikuContext {
-  _entityIndex;
-  _mount;
-  _platform;
-  _prng;
-  _renderer;
-  _tickables;
-  _ticks;
-  _unmountedTickables;
+export default class HaikuContext extends HaikuBase {
+  mount;
+  platform;
+  renderer;
+  tickables;
+  ticks;
+  unmountedTickables;
   clock;
   component;
   config;
@@ -35,6 +32,8 @@ export default class HaikuContext {
   PLAYER_VERSION;
 
   constructor(mount, renderer, platform, bytecode, config) {
+    super();
+
     if (!renderer) {
       throw new Error('Context requires a renderer');
     }
@@ -46,53 +45,48 @@ export default class HaikuContext {
     this.PLAYER_VERSION = VERSION; // #LEGACY
     this.CORE_VERSION = VERSION;
 
-    this._prng = null; // Instantiated as part of the assignConfig step
-
     this.assignConfig(config || {}, null);
 
-    this._mount = mount;
+    this.mount = mount;
 
     // Make some Haiku internals available on the mount object for hot editing hooks, or for debugging convenience.
-    if (this._mount && !this._mount.haiku) {
-      this._mount.haiku = {
+    if (this.mount && !this.mount.haiku) {
+      this.mount.haiku = {
         context: this,
       };
     }
 
-    this._renderer = renderer;
+    this.renderer = renderer;
 
     // Initialize sets up top-level dom listeners so we don't run it if we don't have a mount
-    if (this._mount && this._renderer.initialize) {
-      this._renderer.initialize(this._mount);
+    if (this.mount && this.renderer.initialize) {
+      this.renderer.initialize();
     }
 
-    this._platform = platform;
-
-    // Useful when debugging to understand cross-component effects
-    this._entityIndex = HaikuContext['contexts'].push(this) - 1;
+    this.platform = platform;
 
     // List of tickable objects managed by this context. These are invoked on every clock tick.
     // These are removed when context unmounts and re-added in case of re-mount
-    this._tickables = [];
+    this.tickables = [];
 
     // Our own tick method is the main driver for animation inside of this context
-    this._tickables.push({performTick: this.tick.bind(this)});
+    this.tickables.push({performTick: this.tick.bind(this)});
 
-    if (this.config.options.frame) {
-      this._tickables.push({performTick: this.config.options.frame});
+    if (this.config.frame) {
+      this.tickables.push({performTick: this.config.frame});
     }
 
     this.component = new HaikuComponent(bytecode, this, this.config, null);
 
-    this.clock = new HaikuClock(this._tickables, this.component, this.config.options.clock || {});
+    this.clock = new HaikuClock(this.tickables, this.component, this.config.clock || {});
     // We need to start the loop even if we aren't autoplaying,
     // because we still need time to be calculated even if we don't 'tick'.
     this.clock.run();
     this.component.startTimeline(DEFAULT_TIMELINE_NAME);
 
     // If configured, bootstrap the Haiku right-click context menu
-    if (this._mount && this._renderer.menuize && this.config.options.contextMenu !== 'disabled') {
-      this._renderer.menuize(this._mount, this.component);
+    if (this.mount && this.renderer.menuize && this.config.contextMenu !== 'disabled') {
+      this.renderer.menuize(this.component);
     }
 
     // By default, Haiku tracks usage by transmitting component metadata to Mixpanel when initialized.
@@ -100,23 +94,23 @@ export default class HaikuContext {
     // To transmit metadata to your own Mixpanel account, set the `mixpanel` option to your Mixpanel API token.
     // Don't set up Mixpanel if we're running on localhost since we don't want test data to be tracked
     if (
-      this._mount &&
-      this._platform &&
-      this._platform.location &&
-      this._platform.location.hostname !== 'localhost' &&
-      this._platform.location.hostname !== '0.0.0.0'
+      this.mount &&
+      this.platform &&
+      this.platform.location &&
+      this.platform.location.hostname !== 'localhost' &&
+      this.platform.location.hostname !== '0.0.0.0'
     ) {
       // If configured, initialize Mixpanel with the given API token
-      if (this._renderer.mixpanel && this.config.options.mixpanel) {
-        this._renderer.mixpanel(this.config.options.mixpanel, this.component);
+      if (this.renderer.mixpanel && this.config.mixpanel) {
+        this.renderer.mixpanel(this.config.mixpanel, this.component);
       }
     }
 
     // Just a counter for the number of clock ticks that have occurred; used to determine first-frame for mounting
-    this._ticks = 0;
+    this.ticks = 0;
 
     // Assuming the user wants the app to mount immediately (the default), let's do the mount.
-    if (this.config.options.automount) {
+    if (this.config.automount) {
       // Starting the clock has the effect of doing a render at time 0, a.k.a., mounting!
       this.component.getClock().start();
     }
@@ -142,9 +136,9 @@ export default class HaikuContext {
    * @method contextMount
    */
   contextMount() {
-    if (this._unmountedTickables) {
+    if (this.unmountedTickables) {
       // Gotta remember to _remove_ the tickables so we don't end up with dupes if we re-mount later
-      const unmounted = this._unmountedTickables.splice(0);
+      const unmounted = this.unmountedTickables.splice(0);
       for (let i = 0; i < unmounted.length; i++) {
         this.addTickable(unmounted[i]);
       }
@@ -155,7 +149,7 @@ export default class HaikuContext {
    * @method contextUnmount
    */
   contextUnmount() {
-    this._unmountedTickables = this._tickables.splice(0);
+    this.unmountedTickables = this.tickables.splice(0);
   }
 
   /**
@@ -165,14 +159,14 @@ export default class HaikuContext {
    */
   addTickable(tickable) {
     let alreadyAdded = false;
-    for (let i = 0; i < this._tickables.length; i++) {
-      if (tickable === this._tickables[i]) {
+    for (let i = 0; i < this.tickables.length; i++) {
+      if (tickable === this.tickables[i]) {
         alreadyAdded = true;
         break;
       }
     }
     if (!alreadyAdded) {
-      this._tickables.push(tickable);
+      this.tickables.push(tickable);
     }
   }
 
@@ -181,9 +175,9 @@ export default class HaikuContext {
    * @description Remove a tickable object to the list of those that will be called on every clock tick.
    */
   removeTickable(tickable) {
-    for (let i = (this._tickables.length - 1); i >= 0; i--) {
-      if (tickable === this._tickables[i]) {
-        this._tickables.splice(i, 1);
+    for (let i = (this.tickables.length - 1); i >= 0; i--) {
+      if (tickable === this.tickables[i]) {
+        this.tickables.splice(i, 1);
       }
     }
   }
@@ -199,7 +193,7 @@ export default class HaikuContext {
     // HACK: Since we run this method before the clock is initialized sometimes,
     // we have to check whether the clock exists before assigning sub-options to it.
     if (this.clock) {
-      this.clock.assignOptions(this.config.options.clock);
+      this.clock.assignOptions(this.config.clock);
     }
 
     // HACK: Since we run this method before the component is initialized sometimes, we have to check whether the
@@ -211,25 +205,22 @@ export default class HaikuContext {
         this.component.assignConfig(this.config);
       }
     }
-
-    // We assign this in the configuration step since if the seed changes we need a new prng.
-    this._prng = new PRNG(this.config.options.seed);
   }
 
   render() {
-    const container = this._renderer.createContainer(this._mount);
-    const tree = this.component.render(container, this.config.options);
+    const container = this.renderer.createContainer(this.mount);
+    const tree = this.component.render(container, this.config);
 
     // The component can optionally return undefined as a signal to take no action
     // TODO: Maybe something other than undefined would be better
     if (tree !== undefined) {
-      return this._renderer.render(this._mount, container, tree, this.component);
+      return this.renderer.render(container, tree, this.component);
     }
   }
 
   // Call to completely update the entire component tree - as though it were the first time
   performFullFlushRender() {
-    if (!this._mount) {
+    if (!this.mount) {
       return;
     }
 
@@ -238,48 +229,48 @@ export default class HaikuContext {
 
   // Call to update elements of the this.component tree - but only those that we detect have changed
   performPatchRender(skipCache = false) {
-    if (!this._mount) {
+    if (!this.mount) {
       return;
     }
 
-    const container = this._renderer.shouldCreateContainer
-      ? this._renderer.createContainer(this._mount)
-      : this._renderer.getLastContainer();
-    const patches = this.component.patch(container, this.config.options, skipCache);
+    const container = this.renderer.shouldCreateContainer
+      ? this.renderer.createContainer()
+      : this.renderer.getLastContainer();
+    const patches = this.component.patch(container, this.config, skipCache);
 
-    this._renderer.patch(this._mount, patches, this.component);
+    this.renderer.patch(patches, this.component);
   }
 
   // Called on every frame, this function updates the mount+root elements
   // to ensure their style settings are in accordance with any passed-in
   // haikuConfig.options that may affect it, e.g. CSS overflow or positioning settings
   updateMountRootStyles() {
-    if (!this._mount) {
+    if (!this.mount) {
       return;
     }
 
     // We can assume the mount has only one child since we only mount one component into it (#?)
-    const root = this._mount && this._mount.children[0];
+    const root = this.mount && this.mount.children[0];
 
     if (root) {
-      if (this.config.options.position && root.style.position !== this.config.options.position) {
-        root.style.position = this.config.options.position;
+      if (this.config.position && root.style.position !== this.config.position) {
+        root.style.position = this.config.position;
       }
 
-      if (this.config.options.overflow) {
-        root.style.overflow = this.config.options.overflow;
+      if (this.config.overflow) {
+        root.style.overflow = this.config.overflow;
       } else {
         if (
-          this.config.options.overflowX &&
-          root.style.overflowX !== this.config.options.overflowX
+          this.config.overflowX &&
+          root.style.overflowX !== this.config.overflowX
         ) {
-          root.style.overflowX = this.config.options.overflowX;
+          root.style.overflowX = this.config.overflowX;
         }
         if (
-          this.config.options.overflowY &&
-          root.style.overflowY !== this.config.options.overflowY
+          this.config.overflowY &&
+          root.style.overflowY !== this.config.overflowY
         ) {
-          root.style.overflowY = this.config.options.overflowY;
+          root.style.overflowY = this.config.overflowY;
         }
       }
     }
@@ -293,7 +284,7 @@ export default class HaikuContext {
     if (!this.component.isDeactivated() && !this.component.isSleeping()) {
       // After we've hydrated the tree the first time, we can proceed with patches --
       // unless the component indicates it wants a full flush per its internal settings.
-      if (this.component._shouldPerformFullFlush() || this.config.options.forceFlush || this._ticks < 1) {
+      if (this.component._shouldPerformFullFlush() || this.config.forceFlush || this.ticks < 1) {
         this.performFullFlushRender();
 
         flushed = true;
@@ -308,38 +299,18 @@ export default class HaikuContext {
       this.updateMountRootStyles();
 
       // Do any initialization that may need to occur if we happen to be on the very first tick
-      if (this._ticks < 1) {
+      if (this.ticks < 1) {
         // If this is the 0th (first) tick, notify anybody listening that we've mounted
         // If we've already flushed, _don't_ request to trigger a re-flush (second arg)
         this.component.callRemount(null, flushed);
       }
 
-      this._ticks++;
+      this.ticks++;
     }
   }
 
-  /**
-   * @method getDeterministicRand
-   * @description Return a random number in the range [0,1].
-   * Unlike Math.random() this is deterministic, based on our seed number.
-   */
-  getDeterministicRand() {
-    return this._prng.random();
-  }
-
-  /**
-   * @method getDeterministicTime
-   * @description Return the current timestamp (Unicode) but based on our initial seeded value for 'timestamp'
-   * Ultimately this is exposed as the helper 'now'
-   */
-  getDeterministicTime() {
-    const runningTime = this.getClock().getRunningTime(); // ms
-    const seededTime = this.config.options.timestamp;
-    return seededTime + runningTime;
-  }
-
   getGlobalUserState() {
-    return this._renderer && this._renderer.getUser && this._renderer.getUser();
+    return this.renderer && this.renderer.getUser && this.renderer.getUser();
   }
 }
 
@@ -365,18 +336,15 @@ HaikuContext['createComponentFactory'] = (
   // Note that haiku Config may be passed at this level, or below at the factory invocation level.
   const haikuConfigFromTop = Config.build(
     {
-      options: {
-        // The seed value should remain constant from here on, because it is used for PRNG
-        seed: Config.seed(),
+      // The seed value should remain constant from here on, because it is used for PRNG
+      seed: Config.seed(),
 
-        // The now value is used to compute a current date with respect to the current time
-        timestamp: Date.now(),
-      },
+      // The now value is used to compute a current date with respect to the current time
+      timestamp: Date.now(),
     },
+
     // The bytecode itself may contain configuration for playback, etc., but is lower precedence than config passed in
-    {
-      options: bytecode && bytecode.options,
-    },
+    bytecode && bytecode.options,
     haikuConfigFromFactoryCreator,
   );
 
@@ -392,7 +360,7 @@ HaikuContext['createComponentFactory'] = (
 
     // Previously these were initialized in the scope above, but I moved them here which seemed to resolve
     // an initialization/mounting issue when running in React.
-    const renderer = new rendererClass(haikuConfigMerged);
+    const renderer = new rendererClass(mount, haikuConfigMerged);
     const context = new HaikuContext(mount, renderer, platform, bytecode, haikuConfigMerged);
     const component = context.getRootComponent();
 
@@ -415,12 +383,6 @@ HaikuContext['createComponentFactory'] = (
   return HaikuComponentFactory;
 };
 
-// Keep track of all instantiated contexts; this is mainly exposed for convenience when debugging the engine,
-// as well as to help provide a unique root graph address prefix for subtrees (e.g. 0.2.3.4.5)
-HaikuContext['contexts'] = [];
-
 // Also expose so we can programatically choose an instance on the page
 HaikuContext['PLAYER_VERSION'] = VERSION; // #LEGACY
 HaikuContext['CORE_VERSION'] = VERSION; // #LEGACY
-
-HaikuGlobal['HaikuContext'] = HaikuContext;
