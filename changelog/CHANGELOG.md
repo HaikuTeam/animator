@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 3.1.31
+
+### Bug Fixes
+
+ * update the state of Creator after showing the changelog
+
 ## 3.1.30
 
 ### Bug Fixes

@@ -5899,5 +5899,12 @@
       "label": "fix",
       "message": "Prevent double-click-to-instantiate from leaving the overlay div behind"
     }
+  },
+  "3.1.31": {
+    "48434c630fbe82f55a3fa997d5c9c9ee19d84d51": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "update the state of Creator after showing the changelog"
+    }
   }
 }
