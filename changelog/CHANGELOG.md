@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 3.1.28
+
+### Bug Fixes
+
+ * Keyboard shortcut cut/copy/paste was messed up with my last fix
+
 ## 3.1.27
 
 ### Bug Fixes
