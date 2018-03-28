@@ -1248,8 +1248,11 @@ export default class Creator extends React.Component {
   }
 
   showChangelogModal () {
-    this.setState({showChangelogModal: true})
-    this.user.setConfig(UserSettings.lastViewedChangelog, process.env.HAIKU_RELEASE_VERSION)
+    this.setState({ showChangelogModal: true }, () => {
+      const lastViewedChangelog = process.env.HAIKU_RELEASE_VERSION
+      this.setState({ lastViewedChangelog })
+      this.user.setConfig(UserSettings.lastViewedChangelog, lastViewedChangelog)
+    })
 
     mixpanel.haikuTrack('creator:changelog:shown')
   }
