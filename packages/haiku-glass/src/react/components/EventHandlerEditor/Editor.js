@@ -88,7 +88,6 @@ class Editor extends React.Component {
       autoIndent: true,
       contextmenu: false,
       codeLens: false,
-      quickSuggestions: false,
       parameterHints: false,
       /* Elements with `will-change: transform` are containing blocks
         for all descendants, meaning that all elements,
