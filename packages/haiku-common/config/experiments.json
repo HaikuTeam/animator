@@ -1,6 +1,7 @@
 {
   "LottieExportInGlobalMenu": {
-    "development": true
+    "development": true,
+    "production": false
   },
   "MultiComponentFeatures": {
     "development": false,
@@ -68,7 +69,7 @@
   },
   "BaseModelQueryCache": {
     "development": true,
-    "production": false
+    "production": true
   },
   "ElementDepthFilter": {
     "development": true,
@@ -80,7 +81,7 @@
   },
   "StageResizeAllSides": {
     "development": true,
-    "production": false
+    "production": true
   },
   "FigmaIntegration": {
     "development": true,
