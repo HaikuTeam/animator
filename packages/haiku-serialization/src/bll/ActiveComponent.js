@@ -2817,8 +2817,11 @@ class ActiveComponent extends BaseModel {
     const keyframeUpdates = Bytecode.unserValue(keyframeUpdatesSerial)
 
     return this.project.updateHook('updateKeyframes', this.getSceneCodeRelpath(), Bytecode.serializeValue(keyframeUpdates), metadata, (fire) => {
+      const affectedComponentIds = {}
+
       for (const timelineName in keyframeUpdates) {
         for (const componentId in keyframeUpdates[timelineName]) {
+          affectedComponentIds[componentId] = true
           this.clearCachedClusters(timelineName, componentId)
         }
       }
@@ -2831,7 +2834,9 @@ class ActiveComponent extends BaseModel {
 
         return this.reload({
           hardReload: this.project.isRemoteRequest(metadata),
-          forceFlush: !!metadata.cursor,
+          // If we're dealing with more than one component id, that might be stage resize, in which
+          // case we need to do a force flush to ensure all on-stage elements appear offset correctly
+          forceFlush: !!metadata.cursor || Object.keys(affectedComponentIds).length > 1,
           hotComponents: keyframeUpdatesToHotComponentDescriptors(keyframeUpdates)
         }, null, () => {
           fire()
