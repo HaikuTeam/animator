@@ -4,9 +4,10 @@ var fsm = require('fuzzy-string-matching')
 var uniq = require('lodash').uniq
 var FORBIDDEN_EXPRESSION_TOKENS = require('@haiku/core/lib/ValueBuilder').default.FORBIDDEN_EXPRESSION_TOKENS
 
-var PARSER = new Parser()
-PARSER._options.sourceType = 'script'
-PARSER._options.strictMode = false
+var PARSER = new Parser({
+  sourceType: 'script',
+  strictMode: true
+})
 
 // Thresholds for fuzzy string matches when detecting any of these types of tokens
 var MATCH_WEIGHTS = {
@@ -16,11 +17,11 @@ var MATCH_WEIGHTS = {
 }
 
 function wrap (exprWithourWrap) {
-  return '(function(){\n' + exprWithourWrap + '\n})'
+  return '(function(){"use strict";\n' + exprWithourWrap + '\n})'
 }
 
 function unwrap (exprWithWrap) {
-  return exprWithWrap.slice(13, exprWithWrap.length - 3)
+  return exprWithWrap.slice(26, exprWithWrap.length - 3)
 }
 
 function getSegsList (list, node) {
@@ -299,7 +300,7 @@ function parseExpression (expr, injectables, keywords, state, cursor, options) {
     var cst = PARSER._parseAst(expr)
 
     var tokens = PARSER._processTokens(cst, expr)
-    tokens = tokens.slice(6) // Slice off the "(function(){\n" tokens
+    tokens = tokens.slice(8) // Slice off the "(function(){"use strict";\n" tokens
     tokens.splice(tokens.length - 4) // Slice off the "})\n\eof" tokens
 
     let candidates = [] // Going to find possible targets and select the best fit
