@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 3.1.30
+
+### Bug Fixes
+
+ * Prevent double-click-to-instantiate from leaving the overlay div behind
+
 ## 3.1.29
 
 ### Bug Fixes
