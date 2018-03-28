@@ -5875,5 +5875,22 @@
       "label": "fix",
       "message": "Keyboard shortcut cut/copy/paste was messed up with my last fix"
     }
+  },
+  "3.1.29": {
+    "753cd2fe800277bf331118d8749eb74268b0a822": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Ensure action stack gets properly reset in long-running processes"
+    },
+    "61b5f8c04079d5d184a7fef23f93335e013b6177": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "use strict mode to evaluate expressions"
+    },
+    "d797510208349f21b4f83e021a9b5d1512394ab4": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "enable strict mode in the Actions Editor"
+    }
   }
 }
