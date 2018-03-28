@@ -71,15 +71,24 @@ const shouldAccumulate = (method, params) => ACCUMULATORS[method] && !params[3].
 class ActionStack extends BaseModel {
   constructor (props, opts) {
     super(props, opts)
+    this.resetData()
+    this.processActions()
+  }
 
+  /**
+   * @method reset
+   * @description Because Creator and Master are long-lived, there needs to be
+   * a mechanism to explicitly clear the in-memory content when the project is
+   * closed and then reopened again, otherwise it will have stale data from
+   * the previous project editing session.
+   */
+  resetData () {
     this.stopped = false
     this.undoables = []
     this.redoables = []
     this.actions = []
-
     this.accumulatorTimeouts = {}
     this.accumulatedInverters = {}
-    this.processActions()
   }
 
   stop () {

@@ -902,6 +902,10 @@ export default class Master extends EventEmitter {
     // remains alive even as the user navs between projects
     this.project.connectClients()
 
+    // Clear the undo/redo stack (etc) from the previous editing session if any is left over,
+    // and ensure that the action stack is no longer in a 'stopped' state
+    this.project.actionStack.resetData()
+
     this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'update', (what, ...args) => {
       switch (what) {
         case 'setCurrentActiveComponent': return this.handleActiveComponentReady()

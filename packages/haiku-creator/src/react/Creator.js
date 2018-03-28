@@ -940,6 +940,9 @@ export default class Creator extends React.Component {
               })
             })
 
+            // Clear the undo/redo stack (etc) from the previous editing session if any is left over
+            projectModel.actionStack.resetData()
+
             projectModel.on('update', (what) => {
               switch (what) {
                 case 'setCurrentActiveComponent':
