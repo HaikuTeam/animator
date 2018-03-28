@@ -44,14 +44,14 @@ const createRenderTest = (template, timelines, baseConfig, cb) => {
   return createDOM((err, window, mount) => {
     if (err) throw err
 
-    const config = Config.build(baseConfig, { options: { cache: {}, seed: Config.seed() } });
-    const renderer = new HaikuDOMRenderer(config);
+    const config = Config.build(baseConfig, { cache: {}, seed: Config.seed() });
+    const renderer = new HaikuDOMRenderer(mount, config);
     const context = new HaikuContext(mount, renderer, {}, { timelines, template }, config);
     const component = context.component;
     const container = renderer.createContainer(mount);
-    const tree = component.render(container, context.config.options);
+    const tree = component.render(container, context.config);
 
-    renderer.render(mount, container, tree, component, false);
+    renderer.render(container, tree, component, false);
 
     function teardown () {
       component._context.clock.GLOBAL_ANIMATION_HARNESS.cancel();

@@ -29,6 +29,7 @@ ReactDOMComponent.mount = function (element, React, ReactDOM) {
         }
       },
       onClick: function (proxy, event, instance) {
+        console.log('click',proxy,event,instance);
         instance.getDefaultTimeline().gotoAndPlay(0)
       }
     }, [

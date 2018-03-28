@@ -4,113 +4,94 @@
 
 import {InteractionMode} from './helpers/interactionModes';
 
-const DEFAULTS = {
-  // onHaikuComponentWillInitialize: Function|null
-  // Optional lifecycle event hook (see below)
-  onHaikuComponentWillInitialize: null,
+export const DEFAULTS = {
+  // seed: String
+  // Random seed used for producing deterministic randomness and namespacing CSS selector behavior
+  seed: null,
 
-  // onHaikuComponentDidMount: Function|null
-  // Optional lifecycle event hook (see below)
-  onHaikuComponentDidMount: null,
+  // timestamp: Integer
+  // Timestamp reflecting the point in time that rendering begin, for deterministic timestamp production
+  timestamp: null,
 
-  // onHaikuComponentWillMount: Function|null
-  // Optional lifecycle event hook (see below)
-  onHaikuComponentWillMount: null,
+  // automount: Boolean
+  // Whether we should mount the given context to the mount element automatically
+  automount: true,
 
-  // onHaikuComponentDidInitialize: Function|null
-  // Optional lifecycle event hook (see below)
-  onHaikuComponentDidInitialize: null,
+  // autoplay: Boolean
+  // Whether we should begin playing the context's animation automatically
+  autoplay: true,
 
-  // onHaikuComponentWillUnMount: Function|null
-  // Optional lifecycle event hook (see below)
-  onHaikuComponentWillUnmount: null,
+  // forceFlush: Boolean
+  // Whether to fully flush the component on every single frame (warning: this can severely deoptimize animation)
+  forceFlush: false,
 
-  // Object of configurable options
-  options: {
-    // seed: String
-    // Random seed used for producing deterministic randomness and namespacing CSS selector behavior
-    seed: null,
+  // freeze: Boolean
+  // Whether we should freeze timelines and not update per global timeline; useful in headless
+  freeze: false,
 
-    // automount: Boolean
-    // Whether we should mount the given context to the mount element automatically
-    automount: true,
+  // loop: Boolean
+  // Whether we should loop the animation, i.e. restart from the first frame after reaching the last
+  loop: false,
 
-    // autoplay: Boolean
-    // Whether we should begin playing the context's animation automatically
-    autoplay: true,
+  // frame: Function|null
+  // Optional function that we will call on every frame, provided for developer convenience
+  frame: null,
 
-    // forceFlush: Boolean
-    // Whether to fully flush the component on every single frame (warning: this can severely deoptimize animation)
-    forceFlush: false,
+  // clock: Object|null
+  // Configuration options that will be passed to the HaikuClock instance. See HaikuClock.js for info.
+  clock: {},
 
-    // freeze: Boolean
-    // Whether we should freeze timelines and not update per global timeline; useful in headless
-    freeze: false,
+  // sizing: String|null
+  // Configures the sizing mode of the component; may be 'normal', 'stretch', 'contain', or 'cover'. See
+  // HaikuComponent.js for info.
+  sizing: null,
 
-    // loop: Boolean
-    // Whether we should loop the animation, i.e. restart from the first frame after reaching the last
-    loop: false,
+  // alwaysComputeSizing: Boolean|null
+  // Whether we should always assume the size of the mount will change on every tick. There is a significant
+  // performance boost for all non-'normal' sizing modes if we *don't* always assume this, but the size of the
+  // mount might change underneath for reasons other than changes in media queries. To be safe, we leave this on
+  // by default.
+  alwaysComputeSizing: true,
 
-    // frame: Function|null
-    // Optional function that we will call on every frame, provided for developer convenience
-    frame: null,
+  // preserve3d: String
+  // Placeholder for an option to control whether to enable preserve-3d mode in DOM environments. [UNUSED]
+  preserve3d: 'auto',
 
-    // clock: Object|null
-    // Configuration options that will be passed to the HaikuClock instance. See HaikuClock.js for info.
-    clock: {},
+  // contextMenu: String
+  // Whether or not the Haiku context menu should display when the component is right-clicked; may be 'enabled' or
+  // 'disabled'.
+  contextMenu: 'enabled',
 
-    // sizing: String|null
-    // Configures the sizing mode of the component; may be 'normal', 'stretch', 'contain', or 'cover'. See
-    // HaikuComponent.js for info.
-    sizing: null,
+  // position: String
+  // CSS position setting for the root of the component in DOM; recommended to keep as 'relative'.
+  position: 'relative',
 
-    // alwaysComputeSizing: Boolean|null
-    // Whether we should always assume the size of the mount will change on every tick. There is a significant
-    // performance boost for all non-'normal' sizing modes if we *don't* always assume this, but the size of the
-    // mount might change underneath for reasons other than changes in media queries. To be safe, we leave this on
-    // by default.
-    alwaysComputeSizing: true,
+  // overflowX: String|null
+  // CSS overflow-x setting for the component. Convenience for allows user to specify the overflow setting without
+  // needing a wrapper element.
+  overflowX: null,
 
-    // preserve3d: String
-    // Placeholder for an option to control whether to enable preserve-3d mode in DOM environments. [UNUSED]
-    preserve3d: 'auto',
+  // overflowY: String|null
+  // CSS overflow-x setting for the component. Convenience for allows user to specify the overflow setting without
+  // needing a wrapper element.
+  overflowY: null,
 
-    // contextMenu: String
-    // Whether or not the Haiku context menu should display when the component is right-clicked; may be 'enabled' or
-    // 'disabled'.
-    contextMenu: 'enabled',
+  // overflow: String|null
+  // CSS overflow setting for the component. Use this OR overflowX/overflowY
+  overflow: null,
 
-    // position: String
-    // CSS position setting for the root of the component in DOM; recommended to keep as 'relative'.
-    position: 'relative',
+  // mixpanel: String|null
+  // If provided, a Mixpanel tracking instance will be created using this string as the API token. The default token
+  // is Haiku's production token.
+  mixpanel: '6f31d4f99cf71024ce27c3e404a79a61',
 
-    // overflowX: String|null
-    // CSS overflow-x setting for the component. Convenience for allows user to specify the overflow setting without
-    // needing a wrapper element.
-    overflowX: null,
+  // useWebkitPrefix: boolean
+  // Whether to prepend a webkit prefix to transform properties
+  useWebkitPrefix: void (0),
 
-    // overflowY: String|null
-    // CSS overflow-x setting for the component. Convenience for allows user to specify the overflow setting without
-    // needing a wrapper element.
-    overflowY: null,
-
-    // overflow: String|null
-    // CSS overflow setting for the component. Use this OR overflowX/overflowY
-    overflow: null,
-
-    // mixpanel: String|null
-    // If provided, a Mixpanel tracking instance will be created using this string as the API token. The default token
-    // is Haiku's production token.
-    mixpanel: '6f31d4f99cf71024ce27c3e404a79a61',
-
-    // useWebkitPrefix: boolean
-    // Whether to prepend a webkit prefix to transform properties
-    useWebkitPrefix: void (0),
-
-    // interactionMode: object
-    // Control how this instance handles interaction, e.g. preview mode
-    interactionMode: InteractionMode.LIVE,
-  },
+  // interactionMode: object
+  // Control how this instance handles interaction, e.g. preview mode
+  interactionMode: InteractionMode.LIVE,
 
   // states: Object|null
   // Allow states to be passed in at runtime (ASSIGNED)
@@ -141,105 +122,51 @@ function seed() {
   return Math.random().toString(36).slice(2);
 }
 
+const CONFIG_KEYS_TO_MERGE = {
+  states: true,
+  eventHandlers: true,
+  timelines: true,
+  vanities: true,
+  initialStates: true,
+};
+
 function build(...argums) {
-  const config = {
-    onHaikuComponentWillInitialize: null,
-    onHaikuComponentDidMount: null,
-    onHaikuComponentDidInitialize: null,
-    onHaikuComponentWillUnmount: null,
-    options: null,
-    states: null,
-    eventHandlers: null,
-    timelines: null,
-    template: null,
-    vanities: null,
-    children: null,
-    placeholder: null,
-  };
+  const config = {};
 
   const args = [...argums];
 
   args.unshift(DEFAULTS);
+
   args.forEach((incoming) => {
     if (!incoming || typeof incoming !== 'object') {
       return;
     }
 
-    if (incoming.onHaikuComponentWillInitialize) {
-      config.onHaikuComponentWillInitialize = incoming.onHaikuComponentWillInitialize;
-    }
-    if (incoming.onHaikuComponentDidMount) {
-      config.onHaikuComponentDidMount = incoming.onHaikuComponentDidMount;
-    }
-    if (incoming.onHaikuComponentDidInitialize) {
-      config.onHaikuComponentDidInitialize = incoming.onHaikuComponentDidInitialize;
-    }
-    if (incoming.onHaikuComponentWillUnmount) {
-      config.onHaikuComponentWillUnmount = incoming.onHaikuComponentWillUnmount;
-    }
-
-    if (incoming.options) {
-      config.options = {
-        ...config.options,
-        ...incoming.options,
-      };
-    }
-
-    // Hoist any 'options' that might have been passed at the root level up into 'options'
-    // e.g. { loop: true } -> { options: { loop: true } }
     for (const key in incoming) {
-      if (incoming[key] !== undefined && DEFAULTS.options.hasOwnProperty(key)) {
-        config.options[key] = incoming[key];
+      if (incoming[key] === undefined) {
+        continue;
       }
-    }
 
-    if (incoming.states) {
-      config.states = {
-        ...config.states,
-        ...incoming.states,
-      };
-    }
+      if (CONFIG_KEYS_TO_MERGE[key]) {
+        if (!config[key]) {
+          config[key] = {};
+        }
 
-    // For semantic purposes, also allow 'initialStates' to be passed in
-    if (incoming.initialStates && typeof incoming.initialStates === 'object') {
-      config.states = {
-        ...config.states,
-        ...incoming.initialStates,
-      };
-    }
-
-    if (incoming.eventHandlers) {
-      config.eventHandlers = {
-        ...config.eventHandlers,
-        ...incoming.eventHandlers,
-      };
-    }
-    if (incoming.timelines) {
-      config.timelines = {
-        ...config.timelines,
-        ...incoming.timelines,
-      };
-    }
-    if (incoming.vanities) {
-      config.vanities = {
-        ...config.vanities,
-        ...incoming.vanities,
-      };
-    }
-
-    if (incoming.children) {
-      config.children = incoming.children;
-    }
-    if (incoming.placeholder) {
-      config.placeholder = incoming.placeholder;
+        config[key] = {
+          ...config[key],
+          ...incoming[key],
+        };
+      } else {
+        config[key] = incoming[key];
+      }
     }
   });
 
-  // Validations:
-  if (config.options.overflow && (config.options.overflowX || config.options.overflowY)) {
+  // Validations
+  if (config['overflow'] && (config['overflowX'] || config['overflowY'])) {
     console.warn('[haiku core] `overflow` overrides `overflowY`/`overflowX`');
-    config.options.overflowX = null;
-    config.options.overflowY = null;
+    config['overflowX'] = null;
+    config['overflowY'] = null;
   }
 
   return config;

@@ -27,9 +27,7 @@ ReactDOMComponent.mount = function (element, React, ReactDOM) {
           this.mouseMoveCallback(e)
         }
       }, React.createElement(ReactDOMComponent, {
-        options: {
-          loop: true
-        },
+        loop: true,
         haikuStates: {
           mouseX: { value: this.state.mouseX },
           mouseY: { value: this.state.mouseY }

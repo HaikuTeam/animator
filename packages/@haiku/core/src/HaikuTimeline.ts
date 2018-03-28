@@ -2,8 +2,8 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
+import HaikuBase, {GLOBAL_LISTENER_KEY} from './HaikuBase';
 import getTimelineMaxTime from './helpers/getTimelineMaxTime';
-import SimpleEventEmitter from './helpers/SimpleEventEmitter';
 import assign from './vendor/assign';
 
 const NUMBER = 'number';
@@ -15,10 +15,10 @@ const DEFAULT_OPTIONS = {
 };
 
 // tslint:disable:variable-name
-export default class HaikuTimeline {
+export default class HaikuTimeline extends HaikuBase {
   options;
-  emit;
-  _component;
+  component;
+
   _name;
   _descriptor;
   _globalClockTime;
@@ -28,9 +28,10 @@ export default class HaikuTimeline {
   _isPlaying;
 
   constructor(component, name, descriptor, options) {
-    SimpleEventEmitter.create(this);
+    super();
 
-    this._component = component;
+    this.component = component;
+
     this._name = name;
     this._descriptor = descriptor;
 
@@ -46,15 +47,13 @@ export default class HaikuTimeline {
 
   assignOptions(options) {
     this.options = assign(this.options || {}, DEFAULT_OPTIONS, options || {});
-    return this;
   }
 
   ensureClockIsRunning() {
-    const clock = this._component.getClock();
+    const clock = this.component.getClock();
     if (!clock.isRunning()) {
       clock.start();
     }
-    return this;
   }
 
   /**
@@ -62,8 +61,7 @@ export default class HaikuTimeline {
    * @description Internal hook to allow Haiku to hot swap on-stage components during editing.
    */
   setComponent(component) {
-    this._component = component;
-    return this;
+    this.component = component;
   }
 
   updateInternalProperties(
@@ -103,19 +101,18 @@ export default class HaikuTimeline {
     }
 
     if (this.isPlaying()) {
-      this.shout('tick');
+      this.component.routeEventToHandlerAndEmit(
+        GLOBAL_LISTENER_KEY,
+        `timeline:${this.getName()}:${this.getFrame()}`,
+        [this.getFrame(), Math.round(this.getTime())],
+      );
     }
-
-    this.shout('update');
-
-    return this;
   }
 
   resetMaxDefinedTimeFromDescriptor(
     descriptor,
   ) {
     this._maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
-    return this;
   }
 
   isTimeControlled() {
@@ -129,7 +126,6 @@ export default class HaikuTimeline {
     this._localExplicitlySetTime = parseInt(controlledTimeToSet || 0, 10);
     // Need to update the properties so that accessors like .getFrame() work after this update.
     this.updateInternalProperties(updatedGlobalClockTime);
-    return this;
   }
 
   /**
@@ -208,7 +204,7 @@ export default class HaikuTimeline {
    */
   getBoundedFrame() {
     const time = this.getBoundedTime();
-    const timeStep = this._component.getClock().getFrameDuration();
+    const timeStep = this.component.getClock().getFrameDuration();
     return Math.round(time / timeStep);
   }
 
@@ -218,7 +214,7 @@ export default class HaikuTimeline {
    */
   getUnboundedFrame() {
     const time = this.getElapsedTime(); // The elapsed time can go larger than the max time; see timeline.js
-    const timeStep = this._component.getClock().getFrameDuration();
+    const timeStep = this.component.getClock().getFrameDuration();
     return Math.round(time / timeStep);
   }
 
@@ -269,7 +265,6 @@ export default class HaikuTimeline {
 
   setRepeat(bool) {
     this.options.loop = bool;
-    return this;
   }
 
   getRepeat() {
@@ -278,21 +273,10 @@ export default class HaikuTimeline {
 
   freeze() {
     this.options.freeze = true;
-    return this;
   }
 
   unfreeze() {
     this.options.freeze = false;
-    return this;
-  }
-
-  shout(key) {
-    const frame = this.getFrame();
-    const time = Math.round(this.getTime());
-    const name = this.getName();
-    this.emit(key, frame, time);
-    this._component.emit('timeline:' + key, name, frame, time);
-    return this;
   }
 
   start(
@@ -303,29 +287,17 @@ export default class HaikuTimeline {
     this._isPlaying = true;
     this._globalClockTime = maybeGlobalClockTime || 0;
     this._maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
-
-    this.shout('start');
-
-    return this;
   }
 
   stop(maybeGlobalClockTime, descriptor) {
     this._isPlaying = false;
     this._maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
-
-    this.shout('stop');
-
-    return this;
   }
 
   pause() {
-    const time = this._component.getClock().getTime();
-    const descriptor = this._component._getTimelineDescriptor(this._name);
+    const time = this.component.getClock().getTime();
+    const descriptor = this.component._getTimelineDescriptor(this._name);
     this.stop(time, descriptor);
-
-    this.shout('pause');
-
-    return this;
   }
 
   play(requestedOptions) {
@@ -333,8 +305,8 @@ export default class HaikuTimeline {
 
     this.ensureClockIsRunning();
 
-    const time = this._component.getClock().getTime();
-    const descriptor = this._component._getTimelineDescriptor(this._name);
+    const time = this.component.getClock().getTime();
+    const descriptor = this.component._getTimelineDescriptor(this._name);
     const local = this._localElapsedTime;
 
     this.start(time, descriptor);
@@ -347,41 +319,31 @@ export default class HaikuTimeline {
     }
 
     if (!options.skipMarkForFullFlush) {
-      this._component._markForFullFlush();
+      this.component._markForFullFlush();
     }
-
-    this.shout('play');
-
-    return this;
   }
 
   seek(ms) {
     this.ensureClockIsRunning();
-    const clockTime = this._component.getClock().getTime();
+    const clockTime = this.component.getClock().getTime();
     this.controlTime(ms, clockTime);
-    const descriptor = this._component._getTimelineDescriptor(this._name);
+    const descriptor = this.component._getTimelineDescriptor(this._name);
     this.start(clockTime, descriptor);
-    this._component._markForFullFlush();
-
-    this.shout('seek');
-
-    return this;
+    this.component._markForFullFlush();
   }
 
   gotoAndPlay(ms) {
     this.ensureClockIsRunning();
     this.seek(ms);
     this.play(null);
-    return this;
   }
 
   gotoAndStop(ms) {
     this.ensureClockIsRunning();
     this.seek(ms);
-    if (this._component && this._component._context && this._component._context.tick) {
-      this._component._context.tick();
+    if (this.component && this.component._context && this.component._context.tick) {
+      this.component._context.tick();
     }
     this.pause();
-    return this;
   }
 }

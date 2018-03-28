@@ -4,6 +4,11 @@ const MemoryStorage = require('./storage/MemoryStorage')
 const DiskStorage = require('./storage/DiskStorage')
 const CryptoUtils = require('./../utils/CryptoUtils')
 const EmitterManager = require('./../utils/EmitterManager')
+const logger = require('./../utils/LoggerInstance')
+const expressionToRO = require('@haiku/core/lib/reflection/expressionToRO').default
+const reifyRO = require('@haiku/core/lib/reflection/reifyRO').default
+
+const SYNC_DEBOUNCE_TIME = 100 // ms
 
 /**
  * @class BaseModel
@@ -49,14 +54,31 @@ class BaseModel extends EventEmitter {
 
     this.setOptions(opts)
 
-    if (this.options.required) {
-      for (let requirement in this.options.required) {
-        if (props[requirement] === undefined) {
-          throw new Error(`Property '${requirement}' is required`)
+    // If validation is off, we know what we're doing and will add required props later
+    if (!this.options.validationOff) {
+      if (this.options.required) {
+        for (let requirement in this.options.required) {
+          if (props[requirement] === undefined) {
+            throw new Error(`Property '${requirement}' is required`)
+          }
         }
       }
     }
 
+    // Whether or not we should actively sync to remote instances of this model
+    this.__sync = false
+
+    // Allow us to freely call sync on any update without backing up websockets
+    this.syncDebounced = lodash.debounce(() => {
+      this.sync()
+    }, SYNC_DEBOUNCE_TIME)
+
+    // Enough models have this relationship that we provide it from BaseModel;
+    // we set this before .assign() though in case they were provided in the constructor
+    this.parent = null
+    this.children = []
+
+    // Assign initial attributes. Note that __sync is falsy until later
     this.assign(props)
 
     if (!this.getPrimaryKey()) {
@@ -80,7 +102,12 @@ class BaseModel extends EventEmitter {
     this.__destroyed = null
     this._updateReceivers = {}
 
-    if (this.afterInitialize) this.afterInitialize()
+    if (this.afterInitialize) {
+      this.afterInitialize()
+    }
+
+    // Now that we're done constructing, assume we're ready to send syncs
+    this.__sync = true
 
     if (this.constructor.config.useQueryCache) {
       this.__proxy = new Proxy(this, {
@@ -232,7 +259,7 @@ class BaseModel extends EventEmitter {
     if (props) {
       for (const key in props) {
         if (props[key] !== undefined) {
-          this[key] = props[key]
+          this.set(key, props[key])
         }
       }
     }
@@ -241,12 +268,17 @@ class BaseModel extends EventEmitter {
     return this
   }
 
+  set (key, value) {
+    this[key] = value
+    this.syncDebounced()
+  }
+
   destroy () {
     this.removeFromParent()
     this.constructor.remove(this)
     this.constructor.clearCaches()
     this.__destroyed = Date.now()
-    return this
+    this.syncDebounced()
   }
 
   isDestroyed () {
@@ -276,10 +308,6 @@ class BaseModel extends EventEmitter {
   }
 
   insertChild (entity) {
-    if (!this.children) {
-      this.children = []
-    }
-
     const found = []
 
     this.children.forEach((child, index) => {
@@ -391,8 +419,197 @@ class BaseModel extends EventEmitter {
     if (pojo) {
       this.constructor.fromPOJO(pojo)
     }
-    return this
   }
+
+  sync () {
+    if (
+      // Don't send syncs until we're globally ready to do so
+      !BaseModel.__sync ||
+      // Don't actually transmit if we aren't sync-ready yet
+      !this.__sync ||
+      // Don't try to transmit if we have no synchronize capability
+      !this.synchronize
+    ) {
+      return
+    }
+
+    this.synchronize(Object.assign(
+      this.getWireReadyPayload(),
+      {
+        name: 'remote-model:receive-sync',
+        syncIntent: (this.isDestroyed())
+          ? BaseModel.SYNC_INTENTS.destroy
+          : BaseModel.SYNC_INTENTS.upsert
+      }
+    ))
+  }
+
+  getWireReadyPayload () {
+    return {
+      className: this.getClassName(),
+      primaryKey: this.getPrimaryKey(),
+      objectAttributes: this.getWireReadyObjectAttributes()
+    }
+  }
+
+  getWireReadyObjectAttributes () {
+    return BaseModel.getWireReadyObjectAttributes(this, true, true)
+  }
+}
+
+BaseModel.SYNC_INTENTS = {
+  upsert: 'upsert',
+  destroy: 'destroy'
+}
+
+// Use this to toggle whether any model can send/receive syncs or not
+BaseModel.__sync = false // Caution: singleton
+
+BaseModel.receiveSync = ({ syncIntent, className, primaryKey, objectAttributes }) => {
+  // Don't try to receive any syncs if we aren't ready at all yet
+  if (!BaseModel.__sync) {
+    logger.warn(`BaseModel sync not ready to ${syncIntent} ${className} ${primaryKey}`)
+    return
+  }
+
+  if (!BaseModel.SYNC_INTENTS[syncIntent]) {
+    throw new Error(`BaseModel sync intent invalid; cannot receive`)
+  }
+
+  let instance
+
+  switch (syncIntent) {
+    case BaseModel.SYNC_INTENTS.upsert:
+      instance = BaseModel.upsertFromWireObjectAttributes({ className, primaryKey, objectAttributes })
+      if (instance) {
+        instance.emit('local-model:handle-sync', { syncIntent })
+      } else {
+        logger.warn(`BaseModel sync could not ${syncIntent} ${className} ${primaryKey}`)
+      }
+      break
+
+    case BaseModel.SYNC_INTENTS.destroy:
+      instance = BaseModel.instanceFromModelSpec({ className, primaryKey })
+      if (instance) {
+        instance.destroy()
+        instance.emit('local-model:handle-sync', { syncIntent })
+      } else {
+        logger.warn(`BaseModel sync could not ${syncIntent} ${className} ${primaryKey}`)
+      }
+      break
+  }
+}
+
+BaseModel.upsertFromWireObjectAttributes = ({ className, primaryKey, objectAttributes }) => {
+  const klass = BaseModel.getModelClassByClassName(className)
+
+  if (!klass) {
+    // We may not have a class yet if we're not fully bootstrapped (race condition)
+    return
+  }
+
+  const upsertSpec = {}
+
+  for (const attrKey in objectAttributes) {
+    const attrVal = objectAttributes[attrKey]
+
+    // Transform a reference to an instance into the instance itself
+    if (attrVal && attrVal.__model) {
+      upsertSpec[attrKey] = BaseModel.instanceFromModelSpec(attrVal.__model)
+      continue
+    }
+
+    upsertSpec[attrKey] = reifyRO(attrVal)
+  }
+
+  // Must set the primary key as part of the upsertSpec for the lookup to work
+  upsertSpec[klass.config.primaryKey] = primaryKey
+
+  return klass.upsert(upsertSpec, { validationOff: true })
+}
+
+BaseModel.instanceFromModelSpec = ({ className, primaryKey }) => {
+  const klass = BaseModel.getModelClassByClassName(className)
+  // In case we receive a sync before bootstrapped, don't assume we have a class
+  const instance = klass && klass.findById(primaryKey)
+  return instance // This may be undefined in race condition cases
+}
+
+BaseModel.getWireReadyObjectAttributes = (obj, isBase = false, goDeep = false) => {
+  if (
+    typeof obj === 'boolean' ||
+    typeof obj === 'number' ||
+    typeof obj === 'string' ||
+    typeof obj === 'function' ||
+    !obj
+  ) {
+    return expressionToRO(obj)
+  }
+
+  if (goDeep) {
+    if (Array.isArray(obj)) {
+      return obj.map(BaseModel.getWireReadyObjectAttributes)
+    }
+
+    const out = {}
+
+    for (const key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        if (
+          // Exclude any property blacklisted as reserved
+          !RESERVED_PROPERTY_KEYS[key] &&
+          // Exclude any property that matches our primary key name
+          obj.constructor.config.primaryKey !== key
+        ) {
+          const result = BaseModel.getWireReadyObjectAttributes(obj[key], false, false)
+
+          // Undefined indicates no change when upserting, to we just exclude these
+          if (result !== undefined) {
+            out[key] = result
+          }
+        }
+      }
+    }
+
+    return out
+  }
+
+  if (obj instanceof BaseModel && !goDeep) {
+    return {
+      __model: {
+        className: obj.getClassName(),
+        primaryKey: obj.getPrimaryKey()
+      }
+    }
+  }
+}
+
+// HACK: I want to blacklist all methods properties that belong to BaseModel,
+// but I can't figure out how to do it. klass.prototype[] didn't work?
+const RESERVED_PROPERTY_KEYS = {
+  __cache: true,
+  __checked: true,
+  __destroyed: true,
+  __initialized: true,
+  __marked: true,
+  __proxy: true,
+  __storage: true,
+  __sync: true,
+  __updated: true,
+  _events: true,
+  _eventsCount: true,
+  _maxListeners: true,
+  _updateReceivers: true,
+  addEmitterListener: true,
+  addEmitterListenerIfNotAlreadyRegistered: true,
+  children: true,
+  options: true,
+  parent: true,
+  removeEmitterListeners: true,
+  synchronize: true,
+  sync: true,
+  syncDebounced: true,
+  uid: true
 }
 
 BaseModel.DEFAULT_OPTIONS = {}
@@ -430,10 +647,19 @@ const getStableCacheKey = (prefix, criteria) => {
   return cacheKeyComponents.join('|')
 }
 
+const KNOWN_MODEL_CLASSES = {}
+
+BaseModel.getModelClassByClassName = (className) => {
+  return KNOWN_MODEL_CLASSES[className]
+}
+
 const createCollection = (klass, opts) => {
+  KNOWN_MODEL_CLASSES[klass.name] = klass
+
   klass.config = {
     primaryKey: 'uid'
   }
+
   Object.assign(klass.config, opts)
 
   // Use two internal representations of the full table: an array collection for querying where order matters, and a
@@ -552,8 +778,11 @@ const createCollection = (klass, opts) => {
 
   klass.upsert = (props, opts) => {
     klass.clearCaches()
-    const pkey = props[klass.config.primaryKey]
-    const found = klass.findById(pkey) // Criteria in case of id collisions :/
+
+    const primaryKey = props[klass.config.primaryKey]
+
+    const found = klass.findById(primaryKey) // Criteria in case of id collisions :/
+
     if (found) {
       found.assign(props)
       found.setOptions(opts)
@@ -562,9 +791,13 @@ const createCollection = (klass, opts) => {
       found.__initialized = Date.now()
       found.__marked = false
 
-      if (found.afterInitialize) found.afterInitialize()
+      if (found.afterInitialize) {
+        found.afterInitialize()
+      }
+
       return found
     }
+
     return klass.create(props, opts)
   }
 

@@ -33,9 +33,7 @@ test('passingOptions', function (t) {
     // Combo passing options at root and nested
     var HaikuComponentFactory = HaikuDOMAdapter(bytecode, {
       position: 'yaya890',
-      options: {
-        overflowX: 'uio66'
-      }
+      overflowX: 'uio66'
     }, win)
 
     // Pass loop at root level
@@ -49,10 +47,10 @@ test('passingOptions', function (t) {
       }
     })
 
-    t.equal(component.config.options.loop, true, 'loop was set')
-    t.equal(component.config.options.contextMenu, 'foobar123', 'ctx menu was set')
-    t.equal(component.config.options.position, 'yaya890', 'pos was set')
-    t.equal(component.config.options.overflowX, 'uio66', 'overflow was set')
+    t.equal(component.config.loop, true, 'loop was set')
+    t.equal(component.config.contextMenu, 'foobar123', 'ctx menu was set')
+    t.equal(component.config.position, 'yaya890', 'pos was set')
+    t.equal(component.config.overflowX, 'uio66', 'overflow was set')
 
     t.ok(component.config.onHaikuComponentDidMount)
 

@@ -5,6 +5,7 @@ import path from 'path'
 import Combokeys from 'combokeys'
 import HaikuDOMRenderer from '@haiku/core/lib/renderers/dom'
 import HaikuContext from '@haiku/core/lib/HaikuContext'
+import BaseModel from 'haiku-serialization/src/bll/BaseModel'
 import Project from 'haiku-serialization/src/bll/Project'
 import Config from '@haiku/core/lib/Config'
 import Element from 'haiku-serialization/src/bll/Element'
@@ -154,12 +155,10 @@ export class Glass extends React.Component {
     this.draw = this.draw.bind(this)
 
     const haikuConfig = Config.build({
-      options: {
-        seed: Config.seed(),
-        cache: {}
-      }
+      seed: Config.seed(),
+      cache: {}
     })
-    this._haikuRenderer = new HaikuDOMRenderer(haikuConfig)
+    this._haikuRenderer = new HaikuDOMRenderer(null, haikuConfig)
     this._haikuContext = new HaikuContext(
       null,
       this._haikuRenderer,
@@ -169,12 +168,10 @@ export class Glass extends React.Component {
     )
 
     this.handleRequestElementCoordinates = this.handleRequestElementCoordinates.bind(this)
-    this.openContextMenu = this.openContextMenu.bind(this)
     this.elementContextMenuButton = {
       elementName: 'div',
       attributes: {
         id: `element-menu-icon-wrapper`,
-        onmousedown: this.openContextMenu,
         style: {
           position: 'absolute',
           pointerEvents: 'auto',
@@ -319,12 +316,10 @@ export class Glass extends React.Component {
   mountHaikuComponent () {
     this.awaitRef('mount', (ref) => {
       this.getActiveComponent().mountApplication(ref, {
-        options: {
-          freeze: true,
-          overflowX: 'visible',
-          overflowY: 'visible',
-          contextMenu: 'disabled'
-        },
+        freeze: true,
+        overflowX: 'visible',
+        overflowY: 'visible',
+        contextMenu: 'disabled',
         reloadMode: ModuleWrapper.RELOAD_MODES.MONKEYPATCHED_OR_ISOLATED
       })
     })
@@ -643,6 +638,10 @@ export class Glass extends React.Component {
 
     this.addEmitterListener(this.props.websocket, 'broadcast', (message) => {
       switch (message.name) {
+        case 'remote-model:receive-sync':
+          BaseModel.receiveSync(message)
+          break
+
         case 'component:reload':
           // Race condition where Master emits this event during initial load of assets in
           // a project, resulting in this message arriving before we've initialized
@@ -930,9 +929,27 @@ export class Glass extends React.Component {
       return
     }
 
+    if (belongsToMenuIcon(mousedownEvent.nativeEvent.target)) {
+      this.openContextMenu(mousedownEvent.nativeEvent)
+      return
+    }
+
     this.state.isMouseDown = true
     this.state.lastMouseDownTime = Date.now()
     const mouseDownPosition = this.storeAndReturnMousePosition(mousedownEvent, 'lastMouseDownPosition')
+
+    const controlPointTarget = getControlPointTarget(mousedownEvent.nativeEvent.target)
+
+    if (controlPointTarget) {
+      const dataIndex = parseInt(controlPointTarget.getAttribute('data-index'), 10)
+
+      this.controlActivation({
+        index: dataIndex,
+        event: mousedownEvent.nativeEvent
+      })
+
+      return
+    }
 
     // We are panning now, so don't un/select anything
     if (Globals.isSpaceKeyDown) {
@@ -1512,6 +1529,7 @@ export class Glass extends React.Component {
     }
 
     const artboard = this.getActiveComponent().getArtboard().getRect()
+
     this.setState({
       isAnythingRotating: Globals.isCommandKeyDown,
       isAnythingScaling: !Globals.isCommandKeyDown,
@@ -1559,7 +1577,11 @@ export class Glass extends React.Component {
       return
     }
 
+    // This has to happen first; renderer depends on it
+    this._haikuRenderer.mount = this.refs.overlay
+
     const container = this._haikuRenderer.createContainer(this.refs.overlay)
+
     const parts = this.buildDrawnOverlays()
 
     const overlay = {
@@ -1579,12 +1601,7 @@ export class Glass extends React.Component {
       children: parts
     }
 
-    // HACK! We already cache the control point listeners ourselves, so clear the cache
-    // used normally by the component instance for caching/deduping listeners in production.
-    // If we don't do this, rendered elements that disappear and re-appear won't have the
-    // event listener correctly applied to the newly created DOM node (listeners won't work)
-    this._haikuContext.component.clearRegisteredElementEventListeners()
-    this._haikuRenderer.render(this.refs.overlay, container, overlay, this._haikuContext.component, false)
+    this._haikuRenderer.render(container, overlay, this._haikuContext.component, false)
   }
 
   // This method creates objects which represent Haiku Core rendering instructions for displaying all of
@@ -1700,22 +1717,6 @@ export class Glass extends React.Component {
     }
   }
 
-  createControlPointListener (eventName, pointIndex) {
-    // Caching these as opposed to creating new functions hundreds of times
-    if (!this._controlPointListeners) this._controlPointListeners = {}
-    const controlKey = eventName + '-' + pointIndex
-    if (!this._controlPointListeners[controlKey]) {
-      this._controlPointListeners[controlKey] = (listenerEvent) => {
-        this.controlActivation({
-          index: pointIndex,
-          event: listenerEvent
-        })
-      }
-      this._controlPointListeners[controlKey].controlKey = controlKey
-    }
-    return this._controlPointListeners[controlKey]
-  }
-
   renderControlPoint (x, y, index, handleClass) {
     if (!this.getActiveComponent()) {
       return
@@ -1727,8 +1728,8 @@ export class Glass extends React.Component {
       elementName: 'div',
       attributes: {
         key: 'control-point-' + index,
-        class: handleClass || '',
-        onmousedown: this.createControlPointListener('mousedown', index),
+        class: `control-point ${handleClass}`,
+        'data-index': index,
         style: {
           position: 'absolute',
           transform: `scale(${scale},${scale})`,
@@ -1748,7 +1749,6 @@ export class Glass extends React.Component {
           elementName: 'div',
           attributes: {
             key: 'control-point-hit-area-' + index,
-            class: handleClass || '',
             style: {
               position: 'absolute',
               pointerEvents: 'auto',
@@ -1796,7 +1796,10 @@ export class Glass extends React.Component {
   }
 
   openContextMenu (event) {
-    if (this.isPreviewMode()) return void (0)
+    if (this.isPreviewMode()) {
+      return
+    }
+
     event.preventDefault()
     event.stopPropagation()
 
@@ -2458,6 +2461,32 @@ export class Glass extends React.Component {
       </div>
     )
   }
+}
+
+function belongsToMenuIcon (target) {
+  if (!target || !target.getAttribute) {
+    return false
+  }
+
+  if (target.getAttribute('id') === 'element-menu-icon-wrapper') {
+    return true
+  }
+
+  return belongsToMenuIcon(target.parentNode)
+}
+
+function getControlPointTarget (target) {
+  if (!target || !target.getAttribute) {
+    return null
+  }
+
+  const className = target.getAttribute('class')
+
+  if (className && className.match(/control-point/)) {
+    return target
+  }
+
+  return getControlPointTarget(target.parentNode)
 }
 
 Glass.propTypes = {

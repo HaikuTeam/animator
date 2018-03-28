@@ -198,7 +198,26 @@ class ActiveComponent extends BaseModel {
     return Element.findByComponentAndHaikuId(this, haikuId)
   }
 
-  findTemplateNodeByComponentId (mana, componentId) {
+  locateTemplateNodeByComponentId (componentId) {
+    return this.getTemplateNodesByComponentId()[componentId]
+  }
+
+  getTemplateNodesByComponentId () {
+    return this.cacheFetch('getTemplateNodesByComponentId', () => {
+      const nodes = {}
+      const mana = this.getReifiedBytecode().template
+      Template.visit(mana, (node) => {
+        if (node && node.attributes && node.attributes[HAIKU_ID_ATTRIBUTE]) {
+          nodes[node.attributes[HAIKU_ID_ATTRIBUTE]] = node
+        }
+      })
+      return nodes
+    })
+  }
+
+  findTemplateNodeByComponentId (componentId) {
+    const mana = this.getReifiedBytecode().template
+
     let foundNode
 
     if (mana.attributes && mana.attributes[HAIKU_ID_ATTRIBUTE] === componentId) {
@@ -560,11 +579,9 @@ class ActiveComponent extends BaseModel {
 
       this.getActiveInstancesOfHaikuCoreComponent().forEach((instance) => {
         instance.assignConfig({
-          options: {
-            interactionMode: interactionMode,
-            // Disable hot editing mode during preview mode for smooth playback.
-            hotEditingMode: !this.isPreviewModeActive()
-          }
+          interactionMode: interactionMode,
+          // Disable hot editing mode during preview mode for smooth playback.
+          hotEditingMode: !this.isPreviewModeActive()
         })
       })
 
@@ -578,7 +595,7 @@ class ActiveComponent extends BaseModel {
 
   setHotEditingMode (hotEditingMode) {
     this.getActiveInstancesOfHaikuCoreComponent().forEach((instance) => {
-      instance.assignConfig({ options: { hotEditingMode } })
+      instance.assignConfig({ hotEditingMode })
     })
   }
 
@@ -1472,7 +1489,7 @@ class ActiveComponent extends BaseModel {
     keyframes.forEach((keyframe) => keyframe.dragStop(dragData))
 
     // We only update once we're finished dragging because moving keyframes may end up
-    // destroying/creating keyframes in the bytecode, and when rehydrate is called, the
+    // destroying/creating keyframes in the bytecode, and when rehydrate() is called, the
     // ids (which are based on keyframe indices) would end up offset
     this.commitAccumulatedKeyframeMovesDebounced()
   }
@@ -1783,14 +1800,12 @@ class ActiveComponent extends BaseModel {
     const factory = HaikuDOMAdapter(bytecode, null, null)
 
     const createdHaikuCoreComponent = factory(this.getMount().$el(), lodash.merge({}, {
-      options: {
-        contextMenu: 'disabled', // Don't show the right-click context menu since our editing tools use right-click
-        overflowX: 'visible',
-        overflowY: 'visible',
-        mixpanel: false, // Don't track events in mixpanel while the component is being built
-        interactionMode: this._interactionMode,
-        hotEditingMode: true // Don't clone the bytecode/template so we can mutate it in-place
-      }
+      contextMenu: 'disabled', // Don't show the right-click context menu since our editing tools use right-click
+      overflowX: 'visible',
+      overflowY: 'visible',
+      mixpanel: false, // Don't track events in mixpanel while the component is being built
+      interactionMode: this._interactionMode,
+      hotEditingMode: true // Don't clone the bytecode/template so we can mutate it in-place
     }, config))
 
     // Make sure we get notified of state updates and everything else we care about
@@ -2000,9 +2015,6 @@ class ActiveComponent extends BaseModel {
     const found = Element.findById(uid)
 
     if (found) {
-      // Without this, the element instance in 'master' can end up with a stale node
-      found.staticTemplateNode = staticTemplateNode
-
       return found
     }
 
@@ -2016,6 +2028,12 @@ class ActiveComponent extends BaseModel {
   }
 
   rehydrate () {
+    // Don't allow any incoming syncs while we're in the midst of this
+    BaseModel.__sync = false
+
+    this.cacheUnset('displayableRows')
+    this.cacheUnset('getTemplateNodesByComponentId')
+
     // Required before rehydration because entities use the timeline entity
     this.upsertCurrentTimeline()
 
@@ -2058,8 +2076,6 @@ class ActiveComponent extends BaseModel {
       keyframe.sweep()
     })
 
-    this.cacheUnset('displayableRows')
-
     const row = root.getHostedRows()[0]
     if (row) {
       // Expand the first (topmost) row by default, only if this is the first run
@@ -2070,6 +2086,9 @@ class ActiveComponent extends BaseModel {
     }
 
     this.positionRows()
+
+    // Now that we have all the initial models ready, we can receive syncs
+    BaseModel.__sync = true
   }
 
   positionRows () {
@@ -2368,8 +2387,7 @@ class ActiveComponent extends BaseModel {
   }
 
   getElementNameOfComponentId (componentId) {
-    const template = this.getReifiedBytecode().template
-    const element = this.findTemplateNodeByComponentId(template, componentId)
+    const element = this.findTemplateNodeByComponentId(componentId)
     return element && element.elementName
   }
 
@@ -2817,11 +2835,8 @@ class ActiveComponent extends BaseModel {
     const keyframeUpdates = Bytecode.unserValue(keyframeUpdatesSerial)
 
     return this.project.updateHook('updateKeyframes', this.getSceneCodeRelpath(), Bytecode.serializeValue(keyframeUpdates), metadata, (fire) => {
-      const affectedComponentIds = {}
-
       for (const timelineName in keyframeUpdates) {
         for (const componentId in keyframeUpdates[timelineName]) {
-          affectedComponentIds[componentId] = true
           this.clearCachedClusters(timelineName, componentId)
         }
       }
@@ -2834,9 +2849,7 @@ class ActiveComponent extends BaseModel {
 
         return this.reload({
           hardReload: this.project.isRemoteRequest(metadata),
-          // If we're dealing with more than one component id, that might be stage resize, in which
-          // case we need to do a force flush to ensure all on-stage elements appear offset correctly
-          forceFlush: !!metadata.cursor || Object.keys(affectedComponentIds).length > 1,
+          forceFlush: !!metadata.cursor,
           hotComponents: keyframeUpdatesToHotComponentDescriptors(keyframeUpdates)
         }, null, () => {
           fire()

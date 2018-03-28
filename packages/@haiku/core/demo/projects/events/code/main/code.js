@@ -18,12 +18,12 @@ module.exports = {
   eventHandlers: {
     '#a': {
       'resize': {
-        handler: function(event) {
+        handler: function(target, event) {
           console.log('window resized')
         }
       },
       'lala':{
-        handler:function(event) {
+        handler:function(target, event) {
           console.log('#a got lala', event)
           this.state.foobar = 'WAHOOOO'
         }
@@ -31,14 +31,14 @@ module.exports = {
     },
     '#b': {
       'lala':{
-        handler:function(event) {
+        handler:function(target, event) {
           console.log('#b got lala', event)
         }
       }
     },
     '#c': {
       'click':{
-        handler:function(event){
+        handler:function(target, event){
           console.log('#c got click', event)
           event.target.dispatchEvent(new Event('lala', {
             bubbles: true

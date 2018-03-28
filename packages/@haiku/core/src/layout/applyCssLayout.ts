@@ -91,7 +91,7 @@ export default function applyCssLayout(domElement, virtualElement, nodeLayout, c
     const attributeTransform = domElement.getAttribute('transform');
     // IE doesn't support using transform on the CSS style in SVG elements, so if we are in SVG,
     // and if we are inside an IE context, use the transform attribute itself
-    if (context.config.options.platform.isIE || context.config.options.platform.isEdge) {
+    if (context.config.platform.isIE || context.config.platform.isEdge) {
       if (elementScope === SVG) {
         const matrixString = formatTransform(computedLayout.matrix, nodeLayout.format, pixelRatio);
         if (!isEqualTransformString(attributeTransform, matrixString)) {
@@ -102,7 +102,7 @@ export default function applyCssLayout(domElement, virtualElement, nodeLayout, c
           domElement.style,
           nodeLayout.format,
           computedLayout.matrix,
-          context.config.options.useWebkitPrefix,
+          context.config.useWebkitPrefix,
           pixelRatio,
         );
       }
@@ -112,14 +112,13 @@ export default function applyCssLayout(domElement, virtualElement, nodeLayout, c
       if (!hasExplicitStyle(domElement, 'transform')) {
         if (
           !attributeTransform ||
-          attributeTransform === '' ||
-          virtualElement.__transformed
+          attributeTransform === ''
         ) {
           setStyleMatrix(
             domElement.style,
             nodeLayout.format,
             computedLayout.matrix,
-            context.config.options.useWebkitPrefix,
+            context.config.useWebkitPrefix,
             pixelRatio,
           );
         }

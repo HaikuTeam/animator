@@ -9,7 +9,7 @@ const HAIKU_ID_ATTRIBUTE = 'haiku-id';
 const DEFAULT_TIMELINE_NAME = 'Default';
 
 function isBytecode(thing) {
-  return thing && typeof thing === OBJECT_TYPE && thing.template && thing.timelines;
+  return thing && typeof thing === OBJECT_TYPE && thing.template;
 }
 
 function initializeComponentTree(element, component, context, instance) {
@@ -32,15 +32,20 @@ function initializeComponentTree(element, component, context, instance) {
       element.__instance = new HaikuComponent(
         element.elementName,
         context,
-        {
-          // Exclude states, etc. (everything except 'options') since those should override *only* on the root element
-          // being instantiated.
-          options: context.config.options,
-        },
+        context.config, // config
         {
           nested: true,
         },
       );
+
+      // Bubble emitted events to the host component so it can subscribe declaratively
+      element.__instance.on('*', (key, ...args) => {
+        component.routeEventToHandler(
+          `haiku:${flexId}`,
+          key,
+          [element.instance].concat(args),
+        );
+      });
 
       // We duplicate the behavior of HaikuContext and start the default timeline
       element.__instance.startTimeline(DEFAULT_TIMELINE_NAME);

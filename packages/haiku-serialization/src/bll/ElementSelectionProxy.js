@@ -122,11 +122,13 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   getSourcePath () {
+    if (!this.selection) return
+    if (!this.selection[0]) return
+    const node = this.selection[0].getStaticTemplateNode()
     return (
-      this.selection[0] &&
-      this.selection[0].staticTemplateNode &&
-      this.selection[0].staticTemplateNode.attributes &&
-      this.selection[0].staticTemplateNode.attributes['source']
+      node &&
+      node.attributes &&
+      node.attributes['source']
     )
   }
 

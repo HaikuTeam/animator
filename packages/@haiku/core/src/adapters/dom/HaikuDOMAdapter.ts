@@ -31,10 +31,6 @@ export default function HaikuDOMAdapter(bytecode, config, safeWindow) {
     config = {};
   }
 
-  if (!config.options) {
-    config.options = {};
-  }
-
   if (!safeWindow) {
     if (typeof window !== 'undefined') {
       // tslint:disable-next-line:no-parameter-reassignment
@@ -42,10 +38,10 @@ export default function HaikuDOMAdapter(bytecode, config, safeWindow) {
     }
   }
 
-  if (config.options.useWebkitPrefix === undefined) {
+  if (config.useWebkitPrefix === undefined) {
     // Allow headless mode, e.g. in server-side rendering or in Node.js unit tests
     if (safeWindow && safeWindow.document) {
-      config.options.useWebkitPrefix = 'WebkitAppearance' in safeWindow.document.documentElement.style;
+      config.useWebkitPrefix = 'WebkitAppearance' in safeWindow.document.documentElement.style;
     }
   }
 
