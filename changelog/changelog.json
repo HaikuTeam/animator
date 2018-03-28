@@ -5892,5 +5892,12 @@
       "label": "fix",
       "message": "enable strict mode in the Actions Editor"
     }
+  },
+  "3.1.30": {
+    "16534b010f532b202be09857c8d9d6cf1d08c513": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Prevent double-click-to-instantiate from leaving the overlay div behind"
+    }
   }
 }
