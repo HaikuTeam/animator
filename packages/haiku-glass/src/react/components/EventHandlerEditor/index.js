@@ -1,11 +1,13 @@
+/* global monaco */
 import React from 'react'
+import Palette from 'haiku-ui-common/lib/Palette'
 import ElementTitle from './ElementTitle'
 import Editor from './Editor'
 import EditorActions from './EditorActions'
 import HandlerManager from './HandlerManager'
 import {ModalWrapper, ModalHeader, ModalFooter} from 'haiku-ui-common/lib/react/Modal'
 import {PrettyScroll} from 'haiku-ui-common/lib/react/PrettyScroll'
-import {EDITOR_WIDTH, EDITOR_HEIGHT, EVALUATOR_STATES} from './constants'
+import {EDITOR_WIDTH, EDITOR_HEIGHT, EVALUATOR_STATES, AUTOCOMPLETION_ITEMS} from './constants'
 
 const STYLES = {
   container: {
@@ -42,9 +44,62 @@ class EventHandlerEditor extends React.PureComponent {
     this.addAction = this.addAction.bind(this)
     this.onFrameEditorRemoved = this.onFrameEditorRemoved.bind(this)
 
+    this.setupMonaco()
+
     this.state = {
       editorsWithErrors: []
     }
+  }
+
+  setupMonaco () {
+    // Absurdely, monaco doesn't provide an importable module, so we have
+    // to do some trickery to load it (see index.html), and sometimes may not
+    // be already available, hence this weird logic.
+    if (typeof monaco === 'undefined') {
+      return setTimeout(() => {
+        this.setupMonaco()
+      }, 100)
+    }
+
+    monaco.editor.defineTheme('haiku', {
+      base: 'vs-dark',
+      inherit: true,
+      // `rules` requires colors without the leading '#' ¯\_(ツ)_/¯
+      rules: [{ backgroundColor: Palette.SPECIAL_COAL.replace('#', '') }],
+      colors: {
+        'editor.foreground': Palette.PALE_GRAY,
+        'editor.background': Palette.DARKEST_COAL,
+        'editorCursor.foreground': Palette.LIGHTEST_PINK,
+        'list.focusBackground': Palette.BLACK,
+        focusBorder: Palette.BLACK,
+        'editorWidget.background': Palette.DARKEST_COAL,
+        'editor.lineHighlightBorder': Palette.DARKEST_COAL
+      }
+    })
+
+    monaco.editor.setTheme('haiku')
+
+    // Remove the default autocompletion options (console, window, GeoLocation, etc)
+    // due to a [bug][1] in monaco this removes most of the stuff, but leaves
+    // reserved keywords as options.
+    // If you want to enable default atocompletion again, just remove the function call
+    //
+    // [1]: https://github.com/Microsoft/monaco-editor/issues/596
+    monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
+      noLib: true,
+      allowNonTsExtensions: true
+    })
+
+    // Define our own autocompletion items
+    monaco.languages.registerCompletionItemProvider('javascript', {
+      provideCompletionItems: function (model, position) {
+        return AUTOCOMPLETION_ITEMS.map((option) =>
+          Object.assign(option, {
+            kind: monaco.languages.CompletionItemKind.Function
+          })
+        )
+      }
+    })
   }
 
   /**
