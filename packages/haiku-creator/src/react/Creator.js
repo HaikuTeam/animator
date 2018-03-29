@@ -56,6 +56,7 @@ const electron = require('electron')
 const remote = electron.remote
 const { dialog } = remote
 const ipcRenderer = electron.ipcRenderer
+const clipboard = electron.clipboard
 
 var webFrame = electron.webFrame
 if (webFrame) {
@@ -274,6 +275,8 @@ export default class Creator extends React.Component {
           view: 'timeline',
           name: 'global-menu:copy'
         })
+      } else {
+        clipboard.writeText(window.getSelection().toString())
       }
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
