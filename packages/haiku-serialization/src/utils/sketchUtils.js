@@ -4,7 +4,7 @@ const logger = require('./LoggerInstance')
 const { download, unzip } = require('./fileManipulation')
 
 const DOWNLOAD_URL = 'https://download.sketchapp.com/sketch.zip'
-const command = `$(/usr/bin/find /System/Library/Frameworks -name lsregister) -dump | grep 'path:.*/Sketch\\( (\\d)\\)\\?\\.app$'`
+const SKETCH_PATH_FINDER = `$(/usr/bin/find /System/Library/Frameworks -name lsregister) -dump | grep 'path:.*/Sketch\\( (\\d)\\)\\?\\.app$'`
 
 module.exports = {
   download (progressCallback, shouldCancel) {
@@ -53,7 +53,7 @@ module.exports = {
 
   checkIfInstalled () {
     return new Promise((resolve, reject) => {
-      exec(command, (error, stdout, stderr) => {
+      exec(SKETCH_PATH_FINDER, (error, stdout, stderr) => {
         return resolve(this.parseDumpInfo(error, stdout, stderr))
       })
     })
