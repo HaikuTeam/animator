@@ -59,6 +59,12 @@ const METHODS_TO_SKIP_IN_SENTRY = {
   requestSyndicationInfo: true
 }
 
+// Use for any methods whose parameters expose sensitive info in the logs, use keys
+// for method names and values for the list of param indices you don't want to log.
+const METHODS_WITH_SENSITIVE_INFO = {
+  authenticateUser: [1]
+}
+
 const IGNORED_METHOD_MESSAGES = {
   setTimelineTime: true,
   doesProjectHaveUnsavedChanges: true,
@@ -412,7 +418,11 @@ export default class Plumbing extends StateObject {
 
   methodMessageBeforeLog (message, alias) {
     if (!IGNORED_METHOD_MESSAGES[message.method]) {
-      logger.info(`[plumbing] ↓-- ${message.method} via ${alias} -> ${JSON.stringify(message.params)} --↓`)
+      const paramsLog = METHODS_WITH_SENSITIVE_INFO[message.method]
+        ? message.params.map((param, idx) => METHODS_WITH_SENSITIVE_INFO[message.method].includes(idx) ? 'xxxxx' : param)
+        : message.params
+
+      logger.info(`[plumbing] ↓-- ${message.method} via ${alias} -> ${JSON.stringify(paramsLog)} --↓`)
     }
   }
 
@@ -892,6 +902,8 @@ export default class Plumbing extends StateObject {
     })
   }
 
+  // Note: param 1 (password) is excluded from logging via `METHODS_WITH_SENSITIVE_INFO`.
+  // Be sure to update `METHODS_WITH_SENSITIVE_INFO` if the sensitive parameters change.
   authenticateUser (username, password, cb) {
     this.set('organizationName', null) // Unset this cache to avoid writing others folders if somebody switches accounts in the middle of a session
     return inkstone.user.authenticate(username, password, (authErr, authResponse, httpResponse) => {
