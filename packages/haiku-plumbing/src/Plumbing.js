@@ -59,6 +59,10 @@ const METHODS_TO_SKIP_IN_SENTRY = {
   requestSyndicationInfo: true
 }
 
+const METHODS_WITH_SENSITIVE_INFO = {
+  authenticateUser: true
+}
+
 const IGNORED_METHOD_MESSAGES = {
   setTimelineTime: true,
   doesProjectHaveUnsavedChanges: true,
@@ -412,7 +416,11 @@ export default class Plumbing extends StateObject {
 
   methodMessageBeforeLog (message, alias) {
     if (!IGNORED_METHOD_MESSAGES[message.method]) {
-      logger.info(`[plumbing] ↓-- ${message.method} via ${alias} -> ${JSON.stringify(message.params)} --↓`)
+      const paramsLog = METHODS_WITH_SENSITIVE_INFO[message.method]
+        ? message.params.map(() => 'xxxx')
+        : message.params
+
+      logger.info(`[plumbing] ↓-- ${message.method} via ${alias} -> ${JSON.stringify(paramsLog)} --↓`)
     }
   }
 
