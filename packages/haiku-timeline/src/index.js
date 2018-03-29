@@ -8,6 +8,8 @@ import MockWebsocket from 'haiku-serialization/src/ws/MockWebsocket'
 import Timeline from './components/Timeline'
 import {sentryCallback} from 'haiku-serialization/src/utils/carbonite'
 
+const mixpanel = require('haiku-serialization/src/utils/Mixpanel')
+
 if (process.env.NODE_ENV === 'production') {
   window.Raven.config('https://d045653ab5d44c808480fa6c3fa8e87c@sentry.io/226387', {
     environment: process.env.NODE_ENV || 'development',
@@ -69,10 +71,17 @@ function go () {
     email: config.email
   })
 
+  mixpanel = require('haiku-serialization/src/utils/Mixpanel')
+
+  mixpanel.mergeToPayload({
+    distinct_id: config.email
+  })
+
   window.isWebview = config.webview
 
   ReactDOM.render(
     <Timeline
+      mixpanel={mixpanel}
       envoy={config.envoy}
       userconfig={userconfig}
       websocket={websocket}

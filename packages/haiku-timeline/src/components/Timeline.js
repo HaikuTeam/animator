@@ -1214,6 +1214,8 @@ class Timeline extends React.Component {
           const reflection = groups.length - idx
           console.info(`[timeline] z-drop ${result.draggableId} at`, reflection)
 
+          this.props.mixpanel.haikuTrack('creator:timeline:z-shift')
+
           this.getActiveComponent().zShiftIndices(
             result.draggableId,
             this.getActiveComponent().getInstantiationTimelineName(),
@@ -1371,6 +1373,7 @@ class Timeline extends React.Component {
             const row = this.getActiveComponent().getFocusedRow()
             const ms = this.getActiveComponent().getCurrentTimeline().getCurrentMs()
             console.info('[timeline] commit', JSON.stringify(committedValue), 'at', ms, 'on', row.dump())
+            this.props.mixpanel.haikuTrack('creator:timeline:create-keyframe')
             row.createKeyframe(committedValue, ms, { from: 'timeline' })
           }}
           onFocusRequested={() => {
