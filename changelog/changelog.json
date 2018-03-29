@@ -5906,5 +5906,12 @@
       "label": "fix",
       "message": "update the state of Creator after showing the changelog"
     }
+  },
+  "3.1.32": {
+    "d92de1705b6cdb942fda813723a11e5330cd913c": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Ensure resize-stage with multiple elements at multiple keyframes renders the offset correctly"
+    }
   }
 }
