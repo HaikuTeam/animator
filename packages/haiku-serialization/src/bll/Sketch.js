@@ -4,14 +4,21 @@ const { execSync } = require('child_process')
 const { PNG } = require('pngjs')
 const logger = require('./../utils/LoggerInstance')
 const BaseModel = require('./BaseModel')
+const sketchUtils = require('../utils/sketchUtils')
 
 const LOOKS_LIKE_SLICE = /\.sketch\.contents\/slices\//
 const LOOKS_LIKE_ARTBOARD = /\.sketch\.contents\/artboards\//
 const LOOKS_LIKE_PAGE = /\.sketch\.contents\/pages\//
 const IS_SKETCH_FILE_RE = /\.sketch$/
 const IS_SKETCH_FOLDER_RE = /\.sketch\.contents/
-const PARSER_CLI_PATH = '/Applications/Sketch.app/Contents/Resources/sketchtool/bin/sketchtool'
+const PARSER_CLI_PATH = '/Contents/Resources/sketchtool/bin/sketchtool'
 const BASE64_BITMAP_RE = /"data:image\/(png|jpe?g|gif);base64,(.*?)"/gi
+const DEFAULT_SKETCH_PATH = '/Applications/Sketch.app'
+let sketchPath = DEFAULT_SKETCH_PATH
+
+sketchUtils.checkIfInstalled().then((sketchPath) => {
+  sketchPath = sketchPath || DEFAULT_SKETCH_PATH
+})
 
 /**
  * @class Sketch
@@ -54,11 +61,13 @@ Sketch.exportFolderPath = (sketchRelpath) => {
 }
 
 Sketch.sketchtoolPipeline = (abspath) => {
+  const sketchtoolPath = sketchPath + PARSER_CLI_PATH
+
   // Don't bother if the file passed is not a .sketch file
   if (!Sketch.isSketchFile(abspath)) return void (0)
 
   // Don't bother if we detect that the user doesn't even have sketchtool installed
-  if (!fse.existsSync(PARSER_CLI_PATH)) return void (0)
+  if (!fse.existsSync(sketchtoolPath)) return void (0)
 
   logger.info('[sketchtool] got', abspath)
 
@@ -81,9 +90,9 @@ Sketch.sketchtoolPipeline = (abspath) => {
   // Full Command:
   // $ /Applications/Sketch.app/Contents/Resources/sketchtool/bin/sketchtool export --format=svg --output=~/TEST.sketch.export/artboards/ artboards ~/TEST.sketch
   logger.info('[sketchtool] running commands')
-  const outputSlicesCmd = `${PARSER_CLI_PATH} export --format=svg --output=${_escapeShell(sliceFolder)} slices ${_escapeShell(abspath)}`
+  const outputSlicesCmd = `${sketchtoolPath} export --format=svg --output=${_escapeShell(sliceFolder)} slices ${_escapeShell(abspath)}`
   execSync(outputSlicesCmd)
-  const outputArtboardsCmd = `${PARSER_CLI_PATH} export --format=svg --output=${_escapeShell(artboardFolder)} artboards ${_escapeShell(abspath)}`
+  const outputArtboardsCmd = `${sketchtoolPath} export --format=svg --output=${_escapeShell(artboardFolder)} artboards ${_escapeShell(abspath)}`
   execSync(outputArtboardsCmd)
 
   logger.info('[sketchtool] fix gamma correction')

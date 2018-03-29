@@ -111,8 +111,8 @@ class Library extends React.Component {
     this.props.websocket.on('broadcast', this.broadcastListener)
     ipcRenderer.on('open-url:oauth', this.onAuthCallback)
 
-    sketchUtils.checkIfInstalled().then(isInstalled => {
-      this.isSketchInstalled = isInstalled
+    sketchUtils.checkIfInstalled().then(sketchInstallationPath => {
+      this.isSketchInstalled = Boolean(sketchInstallationPath)
     })
 
     this.props.user.getConfig(UserSettings.figmaToken).then((figmaToken) => {

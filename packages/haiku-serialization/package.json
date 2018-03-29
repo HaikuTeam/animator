@@ -4,9 +4,11 @@
   "description": "Serialization utilities",
   "main": "index.js",
   "scripts": {
-    "test": "yarn test:bll",
+    "test": "yarn test:all",
+    "test:all": "NODE_ENV=test tape \"test/**/**/*.test.js\" | tap-spec || true",
+    "test:utils": "NODE_ENV=test tape \"test/utils/**/*.test.js\" | tap-spec || true",
     "test:bll": "NODE_ENV=test tape \"test/bll/**/*.test.js\" | tap-spec || true",
-    "test-report": "NODE_ENV=test tape \"test/bll/**/*.test.js\" > test-result.tap",
+    "test-report": "NODE_ENV=test tape \"test/**/**/*.test.js\" > test-result.tap",
     "lint": "eslint \"src/**/*.js\"",
     "fix": "yarn lint --fix",
     "lint-report": "yarn lint -f checkstyle -o checkstyle-result.xml"
