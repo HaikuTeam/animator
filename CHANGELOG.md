@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 3.1.32
+
+### Bug Fixes
+
+ * Ensure resize-stage with multiple elements at multiple keyframes renders the offset correctly
+
 ## 3.1.31
 
 ### Bug Fixes
