@@ -1,6 +1,7 @@
 import React from 'react'
 import DownCarrotSVG from 'haiku-ui-common/lib/react/icons/DownCarrotSVG'
 import RightCarrotSVG from 'haiku-ui-common/lib/react/icons/RightCarrotSVG'
+import DragGrip from 'haiku-ui-common/lib/react/icons/DragGrip'
 import Palette from 'haiku-ui-common/lib/Palette'
 import ComponentHeadingRowHeading from './ComponentHeadingRowHeading'
 import CollapsedPropertyTimelineSegments from './CollapsedPropertyTimelineSegments'
@@ -9,6 +10,31 @@ import PropertyManager from './PropertyManager'
 import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
 
 export default class ComponentHeadingRow extends React.Component {
+  constructor (props) {
+    super(props)
+    this.handleUpdate = this.handleUpdate.bind(this)
+  }
+
+  componentWillUnmount () {
+    this.mounted = false
+    this.props.row.host.removeListener('update', this.handleUpdate)
+  }
+
+  componentDidMount () {
+    this.mounted = true
+    this.props.row.host.on('update', this.handleUpdate)
+  }
+
+  handleUpdate (what) {
+    if (!this.mounted) return null
+    if (
+      what === 'drag-group-start' ||
+      what === 'drag-group-end'
+    ) {
+      this.forceUpdate()
+    }
+  }
+
   shouldComponentUpdate (nextProps) {
     return (
       (this.props.isExpanded ^ nextProps.isExpanded) ||
@@ -28,25 +54,11 @@ export default class ComponentHeadingRow extends React.Component {
         id={`component-heading-row-${componentId}-${this.props.row.getAddress()}`}
         key={`component-heading-row-${componentId}-${this.props.row.getAddress()}`}
         className='component-heading-row no-select'
-        data-component-id={componentId}
-        onMouseOver={() => {
-          this.props.row.hoverAndUnhoverOthers()
-        }}
-        onMouseOut={() => {
-          this.props.row.unhover()
-        }}
-        onClick={(clickEvent) => {
-          clickEvent.stopPropagation()
-          // Expand and select the entire component area when it is clicked, but note that we
-          // only collapse if the user clicked directly on the chevron.
-          this.props.row.expandAndSelect({ from: 'timeline' })
-        }}
         style={{
           display: 'table',
           tableLayout: 'fixed',
           height: this.props.isExpanded ? 0 : this.props.rowHeight,
           width: '100%',
-          cursor: 'pointer',
           position: 'relative',
           zIndex: 1007,
           backgroundColor: this.props.isExpanded ? 'transparent' : Palette.LIGHT_GRAY,
@@ -62,14 +74,44 @@ export default class ComponentHeadingRow extends React.Component {
             backgroundColor: Palette.LIGHT_GRAY,
             width: 10,
             height: this.props.rowHeight}} />}
-        <div style={{
-          display: 'table-cell',
-          width: this.props.timeline.getPropertiesPixelWidth() - 140,
-          height: 'inherit',
-          position: 'absolute',
-          zIndex: 3,
-          backgroundColor: this.props.isExpanded ? 'transparent' : Palette.LIGHT_GRAY
-        }}>
+        {!this.props.row.isRootRow() &&
+          <div
+            style={{
+              position: 'absolute',
+              top: 3,
+              left: 12,
+              zIndex: 4
+            }}
+            className='component-heading-row-drag-handle'
+            {...this.props.dragHandleProps}>
+            <span
+              style={{transform: 'scale(0.5)', display: 'block'}}>
+              <DragGrip />
+            </span>
+          </div>
+        }
+        <div
+          onMouseOver={() => {
+            this.props.row.hoverAndUnhoverOthers()
+          }}
+          onMouseOut={() => {
+            this.props.row.unhover()
+          }}
+          onClick={(clickEvent) => {
+            clickEvent.stopPropagation()
+            // Expand and select the entire component area when it is clicked, but note that we
+            // only collapse if the user clicked directly on the chevron.
+            this.props.row.expandAndSelect({ from: 'timeline' })
+          }}
+          style={{
+            display: 'table-cell',
+            width: this.props.timeline.getPropertiesPixelWidth() - 140,
+            height: 'inherit',
+            position: 'absolute',
+            cursor: 'pointer',
+            zIndex: 3,
+            backgroundColor: this.props.isExpanded ? 'transparent' : Palette.LIGHT_GRAY
+          }}>
           <div
             style={{
               height: this.props.rowHeight,
@@ -86,7 +128,7 @@ export default class ComponentHeadingRow extends React.Component {
             <span
               style={{
                 display: 'inline-block',
-                transform: this.props.row.isRootRow() ? 'translate(0, -1px)' : 'translate(15px, -1px)'
+                transform: this.props.row.isRootRow() ? 'translate(0, -1px)' : 'translate(30px, -1px)'
               }}
               onClick={(clickEvent) => {
                 // Collapse/expand the entire component area when it is clicked
@@ -193,5 +235,6 @@ ComponentHeadingRow.propTypes = {
   component: React.PropTypes.object.isRequired,
   timeline: React.PropTypes.object.isRequired,
   rowHeight: React.PropTypes.number.isRequired,
-  onEventHandlerTriggered: React.PropTypes.func.isRequired
+  onEventHandlerTriggered: React.PropTypes.func.isRequired,
+  dragHandleProps: React.PropTypes.object.isRequired
 }

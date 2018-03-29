@@ -2291,6 +2291,43 @@ class ActiveComponent extends BaseModel {
     return this.cacheFetch('displayableRows', () => Row.getDisplayables({ component: this }))
   }
 
+  getDisplayableRowsGroupedByElementInZOrder () {
+    const stack = this.getRawStackingInfo(
+      this.getCurrentTimelineName(),
+      this.getCurrentTimelineTime()
+    )
+
+    const rows = this.getDisplayableRows()
+
+    const mapping = {}
+
+    rows.forEach((row) => {
+      const hostComponentId = row.host.getComponentId()
+
+      if (!mapping[hostComponentId]) {
+        mapping[hostComponentId] = {
+          id: hostComponentId,
+          host: row.host,
+          rows: []
+        }
+      }
+
+      mapping[hostComponentId].rows.push(row)
+    })
+
+    let root
+    for (const componentId in mapping) {
+      if (mapping[componentId].host.isRootElement()) {
+        root = mapping[componentId]
+        break
+      }
+    }
+
+    return [root].concat(stack.reverse().map(({ zIndex, haikuId }) => {
+      return mapping[haikuId]
+    }))
+  }
+
   getSelectedKeyframes () {
     return Keyframe.where({ component: this, _selected: true })
   }
@@ -2398,7 +2435,6 @@ class ActiveComponent extends BaseModel {
 
   getRawStackingInfo (timelineName, timelineTime) {
     const bytecode = this.getReifiedBytecode()
-
     return Template.getStackingInfo(
       bytecode,
       bytecode.template,
@@ -3260,6 +3296,60 @@ class ActiveComponent extends BaseModel {
       Bytecode.deleteStateValue(bytecode, stateName)
       done()
     }, cb)
+  }
+
+  /**
+   * @method zShiftIndices
+   */
+  zShiftIndices (
+    componentId,
+    timelineName,
+    timelineTime,
+    newIndex,
+    metadata,
+    cb
+  ) {
+    return this.project.updateHook('zShiftIndices', this.getSceneCodeRelpath(), componentId, timelineName, timelineTime, newIndex, metadata, (fire) => {
+      return this.zShiftIndicesActual(componentId, timelineName, timelineTime, newIndex, metadata, (err, stackingInfo) => {
+        if (err) {
+          logger.error(`[active component (${this.project.getAlias()})]`, err)
+          return cb(err)
+        }
+
+        return this.reload({
+          hardReload: this.project.isRemoteRequest(metadata),
+          hotComponents: stackingInfoToHotComponentDescriptors(stackingInfo, timelineName, timelineTime)
+        }, null, () => {
+          fire()
+          return cb()
+        })
+      })
+    })
+  }
+
+  zShiftIndicesImpl (bytecode, componentId, timelineName, timelineTime, newIndex) {
+    const stackingInfo = Template.getStackingInfo(bytecode, bytecode.template, timelineName, timelineTime)
+
+    this.grabStackObjectFromStackingInfo(stackingInfo, componentId)
+
+    stackingInfo.splice(newIndex, 0, {
+      haikuId: componentId,
+      zIndex: newIndex
+    })
+
+    this.setZIndicesForStackingInfo(bytecode, timelineName, timelineTime, stackingInfo)
+
+    return stackingInfo
+  }
+
+  zShiftIndicesActual (componentId, timelineName, timelineTime, newIndex, metadata, cb) {
+    let stackingInfo
+    return this.performComponentTimelinesWork((bytecode, mana, timelines, done) => {
+      stackingInfo = this.zShiftIndicesImpl(bytecode, componentId, timelineName, timelineTime, newIndex)
+      done()
+    }, (err) => {
+      cb(err, stackingInfo)
+    })
   }
 
   /**

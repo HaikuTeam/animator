@@ -2,6 +2,7 @@ import React from 'react'
 import Color from 'color'
 import lodash from 'lodash'
 import { DraggableCore } from 'react-draggable'
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
 import Combokeys from 'combokeys'
 import BaseModel from 'haiku-serialization/src/bll/BaseModel'
 import Project from 'haiku-serialization/src/bll/Project'
@@ -1135,64 +1136,142 @@ class Timeline extends React.Component {
     )
   }
 
-  // Creates a virtual list of all the component rows (includes headings and property rows)
+  renderComponentRow (row, prev, dragHandleProps) {
+    // Cluster rows only display if collapsed, otherwise we show their properties
+    if (row.isClusterHeading() && !row.isExpanded()) {
+      return (
+        <ClusterRow
+          key={row.getUniqueKey()}
+          rowHeight={this.state.rowHeight}
+          timeline={this.getActiveComponent().getCurrentTimeline()}
+          component={this.getActiveComponent()}
+          prev={prev}
+          row={row} />
+      )
+    }
+
+    if (row.isProperty()) {
+      return (
+        <PropertyRow
+          key={row.getUniqueKey()}
+          rowHeight={this.state.rowHeight}
+          timeline={this.getActiveComponent().getCurrentTimeline()}
+          component={this.getActiveComponent()}
+          prev={prev}
+          row={row} />
+      )
+    }
+
+    if (row.isHeading()) {
+      return (
+        <ComponentHeadingRow
+          key={row.getUniqueKey()}
+          rowHeight={this.state.rowHeight}
+          timeline={this.getActiveComponent().getCurrentTimeline()}
+          component={this.getActiveComponent()}
+          row={row}
+          prev={prev}
+          onEventHandlerTriggered={this.showEventHandlersEditor}
+          isExpanded={row.isExpanded()}
+          isHidden={row.isHidden()}
+          isSelected={row.isSelected()}
+          hasAttachedActions={row.element.getDOMEvents().length > 0}
+          dragHandleProps={dragHandleProps}
+        />
+      )
+    }
+
+    // If we got here, display nothing since we don't know what to render
+    return ''
+  }
+
+  calcGroupRowsHeight (rows) {
+    let height = 0
+
+    rows.forEach((row) => {
+      if ((row.isHeading() || row.isClusterHeading()) && !row.isExpanded()) {
+        height += 1
+      } else if (row.isProperty()) {
+        height += 1
+      }
+    })
+
+    return height
+  }
+
   renderComponentRows () {
-    const rows = this.getActiveComponent().getDisplayableRows()
+    const groups = this.getActiveComponent().getDisplayableRowsGroupedByElementInZOrder()
+
     return (
-      <div
-        className='property-row-list'
-        style={{
-          position: 'absolute'
+      <DragDropContext
+        onDragEnd={(result) => {
+          // No destination means no change
+          if (!result.destination) {
+            return
+          }
+
+          const idx = result.destination.index
+          const reflection = groups.length - idx
+          console.info(`[timeline] z-drop ${result.draggableId} at`, reflection)
+
+          this.getActiveComponent().zShiftIndices(
+            result.draggableId,
+            this.getActiveComponent().getInstantiationTimelineName(),
+            this.getActiveComponent().getInstantiationTimelineTime(),
+            reflection - 1,
+            {from: 'timeline'},
+            () => {
+              this.forceUpdate()
+            }
+          )
         }}>
-        {rows.map((row, index) => {
-          const prev = rows[index - 1]
-          // Cluster rows only display if collapsed, otherwise we show their properties
-          if (row.isClusterHeading() && !row.isExpanded()) {
+        <Droppable droppableId='componentRowsDroppable'>
+          {(provided, snapshot) => {
             return (
-              <ClusterRow
-                key={row.getUniqueKey()}
-                rowHeight={this.state.rowHeight}
-                timeline={this.getActiveComponent().getCurrentTimeline()}
-                component={this.getActiveComponent()}
-                prev={prev}
-                row={row} />
+              <div
+                className='droppable-wrapper'
+                ref={provided.innerRef}>
+                {groups.map((group, indexOfGroup) => {
+                  const minHeight = this.state.rowHeight * this.calcGroupRowsHeight(group.rows)
+                  const minWidth = this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() + this.getActiveComponent().getCurrentTimeline().getTimelinePixelWidth()
+                  const prevGroup = groups[indexOfGroup - 1]
+                  return (
+                    <Draggable
+                      key={`property-row-group-${group.id}-${indexOfGroup}`}
+                      draggableId={group.id}
+                      index={indexOfGroup}>
+                      {(provided, snapshot) => {
+                        return (
+                          <div style={{
+                            minHeight, /* Row drops are mis-targeted unless we specify this height */
+                            minWidth /* Prevent horizontal scrolling in the overflow-x:auto box */
+                          }}>
+                            <div
+                              className='droppable-wrapper'
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              style={{
+                                ...provided.draggableProps.style
+                              }}>
+                              {group.rows.map((row, indexOfRowWithinGroup) => {
+                                let prevRow = group.rows[indexOfRowWithinGroup - 1]
+                                if (!prevRow && prevGroup) prevRow = prevGroup.rows[prevGroup.length - 1]
+                                return this.renderComponentRow(row, prevRow, provided.dragHandleProps)
+                              })}
+                            </div>
+                            {provided.placeholder}
+                          </div>
+                        )
+                      }}
+                    </Draggable>
+                  )
+                })}
+                {provided.placeholder}
+              </div>
             )
-          }
-
-          if (row.isProperty()) {
-            return (
-              <PropertyRow
-                key={row.getUniqueKey()}
-                rowHeight={this.state.rowHeight}
-                timeline={this.getActiveComponent().getCurrentTimeline()}
-                component={this.getActiveComponent()}
-                prev={prev}
-                row={row} />
-            )
-          }
-
-          if (row.isHeading()) {
-            return (
-              <ComponentHeadingRow
-                key={row.getUniqueKey()}
-                rowHeight={this.state.rowHeight}
-                timeline={this.getActiveComponent().getCurrentTimeline()}
-                component={this.getActiveComponent()}
-                row={row}
-                prev={prev}
-                onEventHandlerTriggered={this.showEventHandlersEditor}
-                isExpanded={row.isExpanded()}
-                isHidden={row.isHidden()}
-                isSelected={row.isSelected()}
-                hasAttachedActions={row.element.getDOMEvents().length > 0}
-              />
-            )
-          }
-
-          // If we got here, display nothing since we don't know what to render
-          return ''
-        })}
-      </div>
+          }}
+        </Droppable>
+      </DragDropContext>
     )
   }
 
@@ -1291,9 +1370,7 @@ class Timeline extends React.Component {
           onCommitValue={(committedValue) => {
             const row = this.getActiveComponent().getFocusedRow()
             const ms = this.getActiveComponent().getCurrentTimeline().getCurrentMs()
-
             console.info('[timeline] commit', JSON.stringify(committedValue), 'at', ms, 'on', row.dump())
-
             row.createKeyframe(committedValue, ms, { from: 'timeline' })
           }}
           onFocusRequested={() => {
