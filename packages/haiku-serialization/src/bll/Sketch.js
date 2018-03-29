@@ -16,8 +16,8 @@ const BASE64_BITMAP_RE = /"data:image\/(png|jpe?g|gif);base64,(.*?)"/gi
 const DEFAULT_SKETCH_PATH = '/Applications/Sketch.app'
 let sketchPath = DEFAULT_SKETCH_PATH
 
-sketchUtils.checkIfInstalled().then((sketchPath) => {
-  sketchPath = sketchPath || DEFAULT_SKETCH_PATH
+sketchUtils.checkIfInstalled().then((possibleSketchPath) => {
+  sketchPath = possibleSketchPath || DEFAULT_SKETCH_PATH
 })
 
 /**
