@@ -7,7 +7,7 @@ const DOWNLOAD_URL = 'https://download.sketchapp.com/sketch.zip'
 const command = `$(/usr/bin/find /System/Library/Frameworks -name lsregister) -dump | grep 'path:.*/Sketch\\( (\\d)\\)\\?\\.app$'`
 
 module.exports = {
-  download(progressCallback, shouldCancel) {
+  download (progressCallback, shouldCancel) {
     return new Promise((resolve, reject) => {
       const tempPath = os.tmpdir()
       const zipPath = `${tempPath}/sketch.zip`
@@ -22,16 +22,16 @@ module.exports = {
     })
   },
 
-  isInTrash(path) {
+  isInTrash (path) {
     return path.includes('.Trash')
   },
 
-  isInSystemFolder(path) {
+  isInSystemFolder (path) {
     return path.includes('__MACOSX')
   },
 
-  parseDumpInfo(error, stdout, stderr) {
-    if (error || !stdout || stdout.trim().length == 0 || stderr) {
+  parseDumpInfo (error, stdout, stderr) {
+    if (error || !stdout || stdout.trim().length === 0 || stderr) {
       return null
     }
 
@@ -57,5 +57,5 @@ module.exports = {
         return resolve(this.parseDumpInfo(error, stdout, stderr))
       })
     })
-  },
+  }
 }
