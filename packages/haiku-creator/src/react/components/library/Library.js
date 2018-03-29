@@ -246,8 +246,10 @@ class Library extends React.Component {
 
   handleSketchInstantiation (asset) {
     if (this.isSketchInstalled) {
+      mixpanel.haikuTrack('creator:sketch:open-file')
       this.openSketchFile(asset)
     } else {
+      mixpanel.haikuTrack('creator:sketch:sketch-not-installed')
       this.setState({sketchDownloader: {...this.state.sketchDownloader, isVisible: true, asset}})
     }
   }
