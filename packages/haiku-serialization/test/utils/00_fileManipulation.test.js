@@ -3,7 +3,7 @@ const fs = require('fs')
 const fileManipulation = require('../../src/utils/fileManipulation')
 
 const ROOT = process.cwd()
-const FIXTURES = `${ROOT}/test/fixtures`
+const FIXTURES = `${ROOT}/test/fixtures/fileManipulation`
 const FIXTURES_TMP = `${FIXTURES}/tmp`
 
 test('fileManipulation#unzip succesfully unzips a file', async (t) => {

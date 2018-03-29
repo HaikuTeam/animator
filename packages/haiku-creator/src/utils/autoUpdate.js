@@ -2,7 +2,7 @@ const qs = require('qs')
 const os = require('os')
 const electron = require('electron')
 const fetch = require('node-fetch')
-const {download, unzip} = require('./fileManipulation')
+const {download, unzip} = require('haiku-serialization/src/utils/fileManipulation')
 
 const DEFAULT_OPTIONS = {
   server: process.env.HAIKU_AUTOUPDATE_SERVER,

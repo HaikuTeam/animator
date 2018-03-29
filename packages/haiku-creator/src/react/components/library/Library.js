@@ -8,7 +8,7 @@ import Palette from 'haiku-ui-common/lib/Palette'
 import { didAskedForSketch } from 'haiku-serialization/src/utils/HaikuHomeDir'
 import Asset from 'haiku-serialization/src/bll/Asset'
 import Figma from 'haiku-serialization/src/bll/Figma'
-import sketchUtils from '../../../utils/sketchUtils'
+import sketchUtils from 'haiku-serialization/src/utils/sketchUtils'
 import SketchDownloader from '../SketchDownloader'
 import AssetList from './AssetList'
 import Loader from './Loader'
@@ -111,8 +111,8 @@ class Library extends React.Component {
     this.props.websocket.on('broadcast', this.broadcastListener)
     ipcRenderer.on('open-url:oauth', this.onAuthCallback)
 
-    sketchUtils.checkIfInstalled().then(isInstalled => {
-      this.isSketchInstalled = isInstalled
+    sketchUtils.checkIfInstalled().then(sketchInstallationPath => {
+      this.isSketchInstalled = Boolean(sketchInstallationPath)
     })
 
     this.props.user.getConfig(UserSettings.figmaToken).then((figmaToken) => {
@@ -246,8 +246,10 @@ class Library extends React.Component {
 
   handleSketchInstantiation (asset) {
     if (this.isSketchInstalled) {
+      mixpanel.haikuTrack('creator:sketch:open-file')
       this.openSketchFile(asset)
     } else {
+      mixpanel.haikuTrack('creator:sketch:sketch-not-installed')
       this.setState({sketchDownloader: {...this.state.sketchDownloader, isVisible: true, asset}})
     }
   }
