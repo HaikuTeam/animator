@@ -71,8 +71,6 @@ function go () {
     email: config.email
   })
 
-  mixpanel = require('haiku-serialization/src/utils/Mixpanel')
-
   mixpanel.mergeToPayload({
     distinct_id: config.email
   })
