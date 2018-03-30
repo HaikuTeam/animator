@@ -615,6 +615,16 @@ ActionStack.METHOD_INVERTERS = {
         params: [moves]
       }
     }
+  },
+
+  zShiftIndices: {
+    before: (ac, [componentId, timelineName, timelineTime, newIndex]) => {
+      const moves = ac.gatherZIndexKeyframeMoves(timelineName)
+      return {
+        method: ac.moveKeyframes.name,
+        params: [moves]
+      }
+    }
   }
 
   // mergeDesigns: {

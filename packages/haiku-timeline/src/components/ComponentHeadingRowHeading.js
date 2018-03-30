@@ -13,11 +13,13 @@ export default class ComponentHeadingRowHeading extends React.Component {
   componentWillUnmount () {
     this.mounted = false
     this.props.row.removeListener('update', this.handleUpdate)
+    this.props.row.host.removeListener('update', this.handleUpdate)
   }
 
   componentDidMount () {
     this.mounted = true
     this.props.row.on('update', this.handleUpdate)
+    this.props.row.host.on('update', this.handleUpdate)
   }
 
   handleUpdate (what) {
@@ -58,7 +60,7 @@ export default class ComponentHeadingRowHeading extends React.Component {
             color,
             position: 'relative',
             zIndex: 1005,
-            marginLeft: 10,
+            marginLeft: 25,
             display: 'inline-block',
             width: 100,
             height: 20
