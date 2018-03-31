@@ -1,10 +1,7 @@
 import React from 'react'
 import Radium from 'radium'
 import IPreview from '@haiku/taylor-ipreview2/react'
-import Palette from 'haiku-ui-common/lib/Palette'
 import {Tooltip} from 'haiku-ui-common/lib/react/Tooltip'
-import {EyeIconSVG} from 'haiku-ui-common/lib/react/OtherIcons'
-import {BTN_STYLES} from '../styles/btnShared'
 
 const STYLES = {
   disabled: {
