@@ -41,8 +41,10 @@ class Toggle extends React.Component {
         >
           <div style={STYLES.eye}>
             <IPreview
-              haikuStates={{isOn: { value: this.props.active } }}
-              onHaikuComponentDidMount={(component) => this.previewHaiku = component}
+              haikuStates={{isOn: {value: this.props.active}}}
+              onHaikuComponentDidMount={(component) => {
+                this.previewHaiku = component
+              }}
             />
           </div>
         </a>
