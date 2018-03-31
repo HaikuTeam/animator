@@ -732,14 +732,6 @@ tape('BodymovinExporter', (test: tape.Test) => {
     const bytecode = baseBytecodeCopy();
     overrideShapeElement(bytecode, 'path');
 
-    const {
-      layers: [{
-        shapes: [{it: [{ty}]}],
-      }],
-    } = rawOutput(bytecode);
-
-    test.equal(ty, 'sh', 'translates paths as shapes');
-
     // Scope for testing closed shape support.
     {
       overrideShapeAttributes(bytecode, {
@@ -748,9 +740,10 @@ tape('BodymovinExporter', (test: tape.Test) => {
 
       const {
         layers: [{
-          shapes: [{it: [{ks: {k: {c, v, i, o}}}]}],
+          shapes: [{it: [{ty, ks: {k: {c, v, i, o}}}]}],
         }],
       } = rawOutput(bytecode);
+      test.equal(ty, 'sh', 'translates paths as shapes');
       test.equal(c, true, 'creates a closed shape');
       test.deepEqual(v, [[0, 0], [1, 1]], 'gets coordinates from movetos and line endpoints');
       test.deepEqual(i, [[0, 0], [0, 0]], 'translates lines in relative to vertices');
@@ -780,9 +773,9 @@ tape('BodymovinExporter', (test: tape.Test) => {
         d: {0: {value: 'M0,0 L1,1 L0,0 Z M2,2 L3,3 L2,2 Z'}},
       });
 
-      const {layers: [{shapes}]} = rawOutput(bytecode);
-      test.deepEqual(shapes[0].it[0].ks.k.v, [[0, 0], [1, 1]], 'creates a shape from the first closed segment');
-      test.deepEqual(shapes[1].it[0].ks.k.v, [[2, 2], [3, 3]], 'creates additional shapes from other closed segments');
+      const {layers: [{shapes: [{it: [it0, it1]}]}]} = rawOutput(bytecode);
+      test.deepEqual(it0.ks.k.v, [[0, 0], [1, 1]], 'creates a shape from the first closed segment');
+      test.deepEqual(it1.ks.k.v, [[2, 2], [3, 3]], 'creates additional shapes from other closed segments');
     }
 
     // Scope for testing compound shape support, array-style.
@@ -791,41 +784,9 @@ tape('BodymovinExporter', (test: tape.Test) => {
         d: {0: {value: pathToPoints('M0,0 L1,1 L0,0 Z M2,2 L3,3 L2,2 Z')}},
       });
 
-      const {layers: [{shapes}]} = rawOutput(bytecode);
-      test.deepEqual(shapes[0].it[0].ks.k.v, [[0, 0], [1, 1]], 'creates a shape from the first closed segment');
-      test.deepEqual(shapes[1].it[0].ks.k.v, [[2, 2], [3, 3]], 'creates additional shapes from other closed segments');
-    }
-
-    // Scope for testing compound shapes that are not actually compound.
-    {
-      overrideShapeAttributes(bytecode, {
-        d: {0: {value: 'M0,0 L10,0 L10,10 L0,10 L0,0 Z M2,2 L8,2 L8,8 L2,8 L2,2 Z'}},
-        'fill-rule': {0: {value: 'evenodd'}},
-      });
-
-      const {layers: [{shapes}]} = rawOutput(bytecode);
-      test.equal(shapes.length, 1, 'does not create additional shapes out of contained paths');
-      test.deepEqual(
-        shapes[0].it[0].ks.k.v,
-        [[0, 0], [10, 0], [10, 10], [0, 10], [0, 0], [2, 2], [8, 2], [8, 8], [2, 8], [2, 2]],
-        'collates vertices from inner paths',
-      );
-    }
-
-    // Scope for testing compound shapes that are not actually compound, array-style.
-    {
-      overrideShapeAttributes(bytecode, {
-        d: {0: {value: pathToPoints('M0,0 L10,0 L10,10 L0,10 L0,0 Z M2,2 L8,2 L8,8 L2,8 L2,2 Z')}},
-        'fill-rule': {0: {value: 'evenodd'}},
-      });
-
-      const {layers: [{shapes}]} = rawOutput(bytecode);
-      test.equal(shapes.length, 1, 'does not create additional shapes out of contained paths');
-      test.deepEqual(
-        shapes[0].it[0].ks.k.v,
-        [[0, 0], [10, 0], [10, 10], [0, 10], [0, 0], [2, 2], [8, 2], [8, 8], [2, 8], [2, 2]],
-        'collates vertices from inner paths',
-      );
+      const {layers: [{shapes: [{it: [it0, it1]}]}]} = rawOutput(bytecode);
+      test.deepEqual(it0.ks.k.v, [[0, 0], [1, 1]], 'creates a shape from the first closed segment');
+      test.deepEqual(it1.ks.k.v, [[2, 2], [3, 3]], 'creates additional shapes from other closed segments');
     }
 
     // Scope for testing cubic bezier support.

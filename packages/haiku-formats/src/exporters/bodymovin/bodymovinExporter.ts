@@ -1,6 +1,7 @@
 import {
   ContextualSize,
   Maybe,
+  PathPoint,
 } from 'haiku-common/lib/types';
 import {Curve} from 'haiku-common/lib/types/enums';
 import * as Template from 'haiku-serialization/src/bll/Template';
@@ -737,56 +738,26 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * Decorates a path shape based on the attributes of a timeline.
    *
    * Note: We explicitly assume the path is not animated in all cases.
-   * @param timeline
+   * @param pathSegment
    * @param shape
-   * @param originalHaikuId
-   * @param parentNode
-   * @param decomposePaths
    */
-  private decorateShape(timeline, shape, originalHaikuId, parentNode, decomposePaths = true) {
+  private decorateShape(pathSegment: PathPoint[], closed: boolean, shape: any) {
     shape[ShapeKey.Type] = ShapeType.Shape;
-    if (!timeline.hasOwnProperty('d')) {
-      return;
-    }
 
-    const path = initialValue(timeline, 'd');
-    const pathSegments = decomposePaths ? decomposePath(path) : [path];
-
-    // We have a compound path, i.e. a path consisting of multiple singly-closed paths. Since we're in the middle of
-    // processing the current path, we have to shim in the first closed path in this method call, then recursively
-    // re-handle the successive paths as children of the same parent node.
     shape[ShapeKey.Vertices] = {
       [PropertyKey.Animated]: 0,
       [PropertyKey.Value]: {
-        ...pathToInterpolationTrace(pathSegments.shift()),
+        ...pathToInterpolationTrace(pathSegment, closed),
       },
     };
-
-    pathSegments.forEach((value, index) => {
-      // Create a shallow clone of each path segment and process it in the context of the same parent node.
-      const newHaikuId = `${originalHaikuId}:${index}`;
-      this.bytecode.timelines.Default[`haiku:${newHaikuId}`] = {
-        ...timeline,
-        d: {0: {value}},
-      };
-      this.handleShape(
-        {
-          attributes: {'haiku-id': newHaikuId},
-          elementName: SvgTag.PathShape,
-        },
-        undefined,
-        false, // Do *not* decompose paths, as this is already done.
-      );
-    });
   }
 
   /**
    * Handles a shape internally.
    * @param node
    * @param parentNode
-   * @param decomposePaths
    */
-  private handleShape(node, parentNode, decomposePaths = true) {
+  private handleShape(node, parentNode) {
     const timeline = this.timelineForNode(node, parentNode);
     const groupItems: any[] = [];
 
@@ -806,15 +777,29 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
       case SvgTag.CircleShape:
       case SvgTag.EllipseShape:
         this.decorateEllipse(timeline, shape);
+        groupItems.push(shape);
         break;
       case SvgTag.RectangleShape:
         this.decorateRectangle(timeline, shape, transform);
+        groupItems.push(shape);
         break;
       case SvgTag.PolygonShape:
         this.decoratePolygon(timeline, shape);
+        groupItems.push(shape);
         break;
       case SvgTag.PathShape:
-        this.decorateShape(timeline, shape, node.attributes['haiku-id'], parentNode, decomposePaths);
+        // Decompose and decorate individually.
+        if (!timeline.hasOwnProperty('d')) {
+          return;
+        }
+
+        const path = initialValue(timeline, 'd');
+        const pathSegments = decomposePath(path);
+        pathSegments.forEach((shapeDescriptor) => {
+          const shapeSegment = {...shape};
+          this.decorateShape(shapeDescriptor.points, shapeDescriptor.closed, shapeSegment);
+          groupItems.push(shapeSegment);
+        });
         break;
       default:
         throw new Error(`Unable to handle shape: ${node.elementName}`);
@@ -823,7 +808,6 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     // Push the shape to the top of the group stack, and append the transform at the end.
     groupItems.push(this.strokeShapeFromTimeline(timeline));
     groupItems.push(this.fillShapeFromTimeline(timeline, shape));
-    groupItems.unshift(shape);
     groupItems.push(transform);
     this.activeLayer[LayerKey.Shapes].unshift({
       [ShapeKey.Type]: ShapeType.Group,
@@ -974,7 +958,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
         const timelineProperty = timeline[property];
         const keyframes = keyframesFromTimelineProperty(timelineProperty);
         keyframes.forEach((keyframe, index) => {
-          if (timelineProperty[keyframe].hasOwnProperty('curve')) {
+          if (timelineProperty[keyframe].curve) {
             // Either a curve is defined or there is no next keyframe. Either way, there's nothing to normalize.
             return;
           }
