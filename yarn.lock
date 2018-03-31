@@ -26,6 +26,12 @@
   version "3.0.4"
   resolved "https://reservoir.haiku.ai:8910/@haiku%2fplayer/-/player-3.0.4.tgz#dd0bb8fbdea4751c8825adbd6b8ec528a781abaa"
 
+"@haiku/taylor-ipreview2@^0.0.2":
+  version "0.0.2"
+  resolved "https://reservoir.haiku.ai:8910/@haiku%2ftaylor-ipreview2/-/taylor-ipreview2-0.0.2.tgz#d46e790046082107bb2dc624fd72132e8ba9dd6a"
+  dependencies:
+    "@haiku/core" "^3.1.32"
+
 "@haiku/zack4-creatorintro@^0.0.6":
   version "0.0.6"
   resolved "https://reservoir.haiku.ai:8910/@haiku%2fzack4-creatorintro/-/zack4-creatorintro-0.0.6.tgz#56262dfd64dd54a42609883359c539f812953581"
