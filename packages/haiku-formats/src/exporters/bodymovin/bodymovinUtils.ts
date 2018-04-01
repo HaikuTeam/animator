@@ -390,12 +390,17 @@ export const decomposePath = (path: string|PathPoint[]): {points: PathPoint[], c
   }
 
   const allClosedPaths = [];
+  if (path.length < 2) {
+    return allClosedPaths;
+  }
+
   let lastIndex = 0;
   for (let i = 0; i < path.length; ++i) {
+    const isImplicitlyClosed = path[i].x === path[lastIndex].x && path[i].y === path[lastIndex].y;
     if (path[i].closed || i === path.length - 1) {
       allClosedPaths.push({
         points: path.slice(lastIndex, i + 1),
-        closed: path[i].closed,
+        closed: path[i].closed || isImplicitlyClosed,
       });
       lastIndex = i + 1;
     }
@@ -403,7 +408,7 @@ export const decomposePath = (path: string|PathPoint[]): {points: PathPoint[], c
     if (path[i].moveTo && i !== lastIndex) {
       allClosedPaths.push({
         points: path.slice(lastIndex, i),
-        closed: false,
+        closed: isImplicitlyClosed,
       });
       lastIndex = i;
     }
