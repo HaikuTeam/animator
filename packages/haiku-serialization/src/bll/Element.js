@@ -138,6 +138,8 @@ class Element extends BaseModel {
       this._isSelected = false
       delete Element.selected[this.getPrimaryKey()]
       this.emit('update', 'element-unselected', metadata)
+      // #FIXME: this is a bit overzealous.
+      ElementSelectionProxy.purge()
 
       // Roundabout! Note that rows, when deselected, will deselect their corresponding element
       const row = this.getHeadingRow()
@@ -157,6 +159,8 @@ class Element extends BaseModel {
       this._isSelected = false
       delete Element.selected[this.getPrimaryKey()]
       this.emit('update', 'element-unselected-softly', metadata)
+      // #FIXME: this is a bit overzealous.
+      ElementSelectionProxy.purge()
     }
   }
 
@@ -453,7 +457,7 @@ class Element extends BaseModel {
   getComputedLayout () {
     return Layout3D.computeLayout(
       this.getLayoutSpec(),
-      Layout3D.createMatrix(), // QUESTION: Is this ever not-identity?
+      Layout3D.createMatrix(),
       this.getParentComputedSize()
     )
   }
@@ -1465,63 +1469,6 @@ class Element extends BaseModel {
     const theirPoints = Element.boxToCornersAsPolygonPoints(box)
     const ourPoints = this.getBoxPolygonPointsTransformed()
     return polygonOverlap(theirPoints, ourPoints)
-  }
-
-  panOrigin (dx, dy, viewportTransform) {
-    // Origin panning is a position-preserving operation (in parent coordinates), requiring us to update translation to
-    // match. To achieve the desired effect, first we compute the effective (x, y) translation after accounting for
-    // z-rotation and scale, so the origin dot "lands" in an expected place while dragging.
-    const computedLayout = this.getComputedLayout()
-    const targetThetaRadians = this.computePropertyValue('rotation.z')
-    const finalDx = (dx * Math.cos(targetThetaRadians) + dy * Math.sin(targetThetaRadians)) / computedLayout.scale.x
-    const finalDy = (dy * Math.cos(targetThetaRadians) - dx * Math.sin(targetThetaRadians)) / computedLayout.scale.y
-
-    // Next, we essentially recalc the `@haiku/core/lib/layout/computeMatrix` computations in the affected (x, y)
-    // coordinate systems using the (finalDx, finalDy) as the composed translation. Some liberties are taken here—
-    // for example, we are assuming origin.z is always 0.
-    const wz = computedLayout.orientation.w * computedLayout.orientation.z
-    const xx = computedLayout.orientation.x * computedLayout.orientation.x
-    const yy = computedLayout.orientation.y * computedLayout.orientation.y
-    const zz = computedLayout.orientation.z * computedLayout.orientation.z
-    const xy = computedLayout.orientation.x * computedLayout.orientation.y
-
-    const rs0 = (1 - 2 * (yy + zz)) * computedLayout.scale.x
-    const rs1 = 2 * (xy + wz) * computedLayout.scale.x
-    const rs3 = 2 * (xy - wz) * computedLayout.scale.y
-    const rs4 = (1 - 2 * (xx + zz)) * computedLayout.scale.y
-
-    // Finally, we output the property group delta, normalizing origin in our element's coordinate system.
-    const propertyGroupDelta = {
-      'translation.x': {
-        value: finalDx * rs0 + finalDy * rs3
-      },
-      'translation.y': {
-        value: finalDx * rs1 + finalDy * rs4
-      },
-      'origin.x': {
-        value: finalDx / computedLayout.size.x / viewportTransform.zoom
-      },
-      'origin.y': {
-        value: finalDy / computedLayout.size.y / viewportTransform.zoom
-      }
-    }
-
-    const propertyGroup = this.computePropertyGroupValueFromGroupDelta(propertyGroupDelta)
-    const accumulatedUpdates = {}
-    // TODO: move the guts of this out of ElementSelectionProxy so we don't hold the awkward cross-reference.
-    ElementSelectionProxy.accumulateKeyframeUpdates(
-      accumulatedUpdates,
-      this.getComponentId(),
-      this.component.getCurrentTimelineName(),
-      this.component.getCurrentTimelineTime(),
-      propertyGroup
-    )
-
-    this.component.updateKeyframes(
-      accumulatedUpdates,
-      this.component.project.getMetadata(),
-      () => {} // no-op
-    )
   }
 
   doesContainUngroupableContent () {

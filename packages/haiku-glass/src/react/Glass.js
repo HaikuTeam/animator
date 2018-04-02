@@ -977,6 +977,12 @@ export class Glass extends React.Component {
 
       // True if the user has clicked on the stage, but not on any on-stage element
       if (!target || !target.hasAttribute) {
+        const proxy = this.fetchProxyElementForSelection()
+        if (proxy.hasMultipleInSelection()) {
+          // TODO: if the click target (x, y) is contained inside the transformed bounding box of the proxy, exit early.
+          return
+        }
+
         // Unselect all the elements unless the user is doing a meta-operation, as indicated by these keys
         if (!Globals.isShiftKeyDown && !Globals.isCommandKeyDown && !Globals.isAltKeyDown) {
           Element.unselectAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
@@ -1936,7 +1942,7 @@ export class Glass extends React.Component {
       }
     })
 
-    if (experimentIsEnabled(Experiment.OriginIndicator)) {
+    if (canRotate && experimentIsEnabled(Experiment.OriginIndicator) && pointDisplayMode !== POINT_DISPLAY_MODES.NONE) {
       overlays.push(this.renderOrigin(origin.x, origin.y))
     }
   }
