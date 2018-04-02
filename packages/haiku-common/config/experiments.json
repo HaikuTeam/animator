@@ -90,5 +90,9 @@
   "OriginIndicator": {
     "development": true,
     "production": false
+  },
+  "AdvancedMultiTransform": {
+    "development": true,
+    "production": false
   }
 }

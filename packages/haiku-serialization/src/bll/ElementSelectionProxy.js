@@ -1,7 +1,7 @@
 const async = require('async')
 const logger = require('./../utils/LoggerInstance')
 const BaseModel = require('./BaseModel')
-const {transformFourVectorByMatrix} = require('./MathUtils')
+const {rounded, transformFourVectorByMatrix} = require('./MathUtils')
 const TransformCache = require('./TransformCache')
 const Layout3D = require('@haiku/core/lib/Layout3D').default
 const invertMatrix = require('@haiku/core/lib/vendor/gl-mat4/invert').default
@@ -10,17 +10,6 @@ const Figma = require('./Figma')
 const Sketch = require('./Sketch')
 
 const PI_OVER_12 = Math.PI / 12
-
-const DELTA_ROTATION_OFFSETS = {
-  0: 16 * PI_OVER_12,
-  1: 12 * PI_OVER_12,
-  2: 8 * PI_OVER_12,
-  3: 18 * PI_OVER_12,
-  5: 6 * PI_OVER_12,
-  6: 20 * PI_OVER_12,
-  7: 24 * PI_OVER_12,
-  8: 4 * PI_OVER_12
-}
 
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 
@@ -61,7 +50,7 @@ class ElementSelectionProxy extends BaseModel {
     const xOffset = boxPoints[0].x
     const yOffset = boxPoints[0].y
     boxPoints.forEach(({x, y}) => {
-      this._proxyBoxPoints.push({x: x - xOffset, y: y - yOffset})
+      this._proxyBoxPoints.push({x: x - xOffset, y: y - yOffset, z: 0})
     })
 
     const width = Math.abs(boxPoints[0].x - boxPoints[8].x)
@@ -76,6 +65,13 @@ class ElementSelectionProxy extends BaseModel {
         'translation.y': boxPoints[0].y + height * ElementSelectionProxy.DEFAULT_PROPERTY_VALUES['origin.y']
       }
     )
+
+    this.initializeRotationSnap()
+  }
+
+  initializeRotationSnap () {
+    this.rotationSnapOffset = null
+    this.rotationSnapStrategy = null
   }
 
   hasAnythingInSelection () {
@@ -108,17 +104,13 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   canRotate () {
-    if (this.doesSelectionContainArtboard()) return false
-    return true
+    return !this.doesSelectionContainArtboard()
   }
 
   canControlHandles () {
-    if (this.hasAnythingInSelection()) return true
-    return false
-  }
-
-  fetchActiveArtboard () {
-    return Artboard.all()[0]
+    return this.hasAnythingInSelection() && (
+      this.doesManageSingleElement() || experimentIsEnabled(Experiment.AdvancedMultiTransform)
+    )
   }
 
   pushCachedTransform (key) {
@@ -328,7 +320,7 @@ class ElementSelectionProxy extends BaseModel {
     return {
       x: width,
       y: height,
-      z: 1
+      z: 0
     }
   }
 
@@ -343,7 +335,8 @@ class ElementSelectionProxy extends BaseModel {
     return Element.transformPointInPlace(
       {
         x: layout.size.x * layout.origin.x,
-        y: layout.size.y * layout.origin.y
+        y: layout.size.y * layout.origin.y,
+        z: layout.size.z * layout.origin.z
       },
       layout.matrix
     )
@@ -482,34 +475,37 @@ class ElementSelectionProxy extends BaseModel {
     if (isOriginPanning) {
       return this.panOrigin(dx, dy)
     }
-    if (isAnythingScaling) {
-      if (!controlActivation.cmd) {
-        return this.scale(
-          dx,
-          dy,
-          mouseCoordsCurrent,
-          mouseCoordsPrevious,
-          lastMouseDownCoord,
-          controlActivation,
-          viewportTransform
-        )
-      }
-    } else if (isAnythingRotating) {
-      if (controlActivation.cmd) {
-        // In case we got here, don't allow artboard to rotate
-        if (this.doesSelectionContainArtboard()) {
-          return
-        }
 
-        return this.rotate(
-          dx,
-          dy,
-          mouseCoordsCurrent,
-          mouseCoordsPrevious,
-          lastMouseDownCoord,
-          controlActivation,
-          viewportTransform
-        )
+    if (this.canControlHandles()) {
+      if (isAnythingScaling) {
+        if (!controlActivation.cmd) {
+          return this.scale(
+            dx,
+            dy,
+            mouseCoordsCurrent,
+            mouseCoordsPrevious,
+            lastMouseDownCoord,
+            controlActivation,
+            viewportTransform
+          )
+        }
+      } else if (isAnythingRotating) {
+        if (controlActivation.cmd) {
+          // In case we got here, don't allow artboard to rotate
+          if (this.doesSelectionContainArtboard()) {
+            return
+          }
+
+          return this.rotate(
+            dx,
+            dy,
+            mouseCoordsCurrent,
+            mouseCoordsPrevious,
+            lastMouseDownCoord,
+            controlActivation,
+            viewportTransform
+          )
+        }
       }
     } else {
       // In case we got here, don't allow artboard to move
@@ -545,7 +541,8 @@ class ElementSelectionProxy extends BaseModel {
     const deltaTranslationY = dy
     const delta = {
       x: deltaTranslationX,
-      y: deltaTranslationY
+      y: deltaTranslationY,
+      z: 0
     }
 
     const scaledBasisMatrix = Layout3D.computeScaledBasisMatrix(computedLayout.rotation, computedLayout.scale)
@@ -709,7 +706,8 @@ class ElementSelectionProxy extends BaseModel {
 
     const delta = {
       x: dx,
-      y: dy
+      y: dy,
+      z: 0
     }
 
     if (this.hasMultipleInSelection()) {
@@ -883,36 +881,55 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   rotate (dx, dy, coordsCurrent, coordsPrevious, lastMouseDownCoord, activationPoint, viewportTransform) {
-    // HACK: For now, disable multi-rotation until I figure out how to do it
-    if (this.hasMultipleInSelection()) {
-      return
-    }
-
     const accumulatedUpdates = {}
 
-    this.selection.forEach((element) => {
-      const propertyGroupDelta = ElementSelectionProxy.computeRotationPropertyGroupDelta(
-        element, // targetElement
-        this, // contextElement
-        dx,
-        dy,
+    if (this.hasMultipleInSelection()) {
+      const fixedPoint = this.getOriginTransformed()
+      const {
+        'rotation.z': {
+          value: rotationZ
+        }
+      } = ElementSelectionProxy.computeRotationPropertyGroupDelta(
+        this,
+        this,
         coordsCurrent,
         coordsPrevious,
-        lastMouseDownCoord,
         activationPoint,
         viewportTransform
       )
 
-      const propertyGroup = element.computePropertyGroupValueFromGroupDelta(propertyGroupDelta)
-
+      this.applyPropertyDelta('rotation.z', rotationZ)
+      this.selection.forEach((element) => {
+        ElementSelectionProxy.accumulateKeyframeUpdates(
+          accumulatedUpdates,
+          element.getComponentId(),
+          element.component.getCurrentTimelineName(),
+          element.component.getCurrentTimelineTime(),
+          ElementSelectionProxy.computeRotationPropertyGroup(
+            element,
+            rotationZ,
+            fixedPoint
+          )
+        )
+      })
+    } else {
+      const element = this.selection[0]
+      const propertyGroupDelta = ElementSelectionProxy.computeRotationPropertyGroupDelta(
+        element,
+        this,
+        coordsCurrent,
+        coordsPrevious,
+        activationPoint,
+        viewportTransform
+      )
       ElementSelectionProxy.accumulateKeyframeUpdates(
         accumulatedUpdates,
         element.getComponentId(),
         element.component.getCurrentTimelineName(),
         element.component.getCurrentTimelineTime(),
-        propertyGroup
+        element.computePropertyGroupValueFromGroupDelta(propertyGroupDelta)
       )
-    })
+    }
 
     this.component.updateKeyframes(
       accumulatedUpdates,
@@ -1022,36 +1039,30 @@ ElementSelectionProxy.DEFAULT_PROPERTY_VALUES = {
   'origin.x': 0.5,
   'origin.y': 0.5,
   'origin.z': 0.5,
-  'sizeAbsolute.x': 1, // Note that we compute this dynamically when proxying
-  'sizeAbsolute.y': 1, // Note that we compute this dynamically when proxying
-  'sizeAbsolute.z': 1
+  'sizeAbsolute.x': 0,
+  'sizeAbsolute.y': 0,
+  'sizeAbsolute.z': 0
 }
 
 ElementSelectionProxy.activeAxesFromActivationPoint = (activationPoint) => {
-  const activeAxes = [0, 0]
+  const activeAxes = new Uint8Array(2)
 
-  // Based on the handle being moved, build input vector (ignore unchanged axis by leaving as 0 when moving edge control points)
-  // note that SHIFT effectively turns on both axes as well, even when dragging from an edge control point
-  if (
-    activationPoint.shift ||
-    activationPoint.index === 6 ||
-    activationPoint.index === 3 ||
-    activationPoint.index === 0 ||
-    activationPoint.index === 2 ||
-    activationPoint.index === 5 ||
-    activationPoint.index === 8
-  ) {
+  // Shift (proportional scale) should always enable all axes.
+  if (activationPoint.shift) {
+    activeAxes[0] = activeAxes[1] = 1
+    return activeAxes
+  }
+
+  // Based on the handle being moved, build input vector (ignore unchanged axis by leaving as 0 when moving edge control
+  // points).
+
+  // x-axis is only disabled at top and bottom edges.
+  if (activationPoint.index !== 1 && activationPoint.index !== 7) {
     activeAxes[0] = 1
   }
 
-  if (activationPoint.shift ||
-    activationPoint.index === 0 ||
-    activationPoint.index === 1 ||
-    activationPoint.index === 2 ||
-    activationPoint.index === 6 ||
-    activationPoint.index === 7 ||
-    activationPoint.index === 8
-  ) {
+  // y-axis is only disabled at left and right edges.
+  if (activationPoint.index !== 3 && activationPoint.index !== 5) {
     activeAxes[1] = 1
   }
 
@@ -1062,21 +1073,9 @@ ElementSelectionProxy.sizeDeltaCoefficientFromActivationPoint = (activationPoint
   return (activationPoint.alt ? 2 : 1)
 }
 
-ElementSelectionProxy.isActivationPointLeft = (activationPoint) => {
-  return activationPoint.index === 6 || activationPoint.index === 3 || activationPoint.index === 0
-}
+ElementSelectionProxy.isActivationPointLeft = (activationPoint) => activationPoint.index % 3 === 0
 
-ElementSelectionProxy.isActivationPointTop = (activationPoint) => {
-  return activationPoint.index === 0 || activationPoint.index === 1 || activationPoint.index === 2
-}
-
-ElementSelectionProxy.isActivationPointBottom = (activationPoint) => {
-  return activationPoint.index === 6 || activationPoint.index === 7 || activationPoint.index === 8
-}
-
-ElementSelectionProxy.isActivationPointRight = (activationPoint) => {
-  return activationPoint.index === 2 || activationPoint.index === 5 || activationPoint.index === 8
-}
+ElementSelectionProxy.isActivationPointTop = (activationPoint) => activationPoint.index < 3
 
 ElementSelectionProxy.computeScaleInfoForArtboard = (
   targetElement,
@@ -1219,29 +1218,38 @@ ElementSelectionProxy.computeScalePropertyGroup = (
     // In a group-scale context, we should only apply constraints based on the bounding container. Accordingly, we
     // transform `delta` in place here so it can be reused on child elements. First, translate to "local" coordinates so
     // so that these adjustments are meaningful and correct.
-    const orthonormalBasisMatrix = Layout3D.computeOrthonormalBasisMatrix(targetLayout.rotation)
-    const orthonormalBasisMatrixInverted = []
-    invertMatrix(orthonormalBasisMatrixInverted, orthonormalBasisMatrix)
-    Element.transformPointInPlace(delta, orthonormalBasisMatrixInverted)
+    const scaledBasisMatrix = Layout3D.computeScaledBasisMatrix(targetLayout.rotation, targetLayout.scale)
+    const scaledBasisMatrixInverter = []
+    invertMatrix(scaledBasisMatrixInverter, scaledBasisMatrix)
+    Element.transformPointInPlace(delta, scaledBasisMatrixInverter)
     const activeAxes = ElementSelectionProxy.activeAxesFromActivationPoint(activationPoint)
 
-    // If we are performing a proportional scale, it has to overide "disabled axes", so we handle these as alternatives
-    // with shift taking precedence over dragging from a side.
+    delta.x *= activeAxes[0]
+    delta.y *= activeAxes[1]
+
+    // If we are performing a proportional scale, it suffices to let the longer side "dominate" the shorter one.
+    // Note that we are scale and rotation-normalized while carrying out this operation.
     if (activationPoint.shift) {
-      const absoluteWidth = targetLayout.scale.x * targetLayout.size.x
-      const absoluteHeight = targetLayout.scale.y * targetLayout.size.y
-      const proportionX = delta.x / absoluteWidth
-      const proportionY = delta.y / absoluteHeight
-      if (Math.abs(proportionX) < Math.abs(proportionY)) {
-        delta.y = proportionX * absoluteHeight
+      // We encounter a "negative proportion" trigger whenever negative Δsx increases the size, while positive Δsy
+      // decreases the size, or conversely. This is accordingly offset below.
+      const negativeProportion = ElementSelectionProxy.isActivationPointLeft(activationPoint) ^
+        ElementSelectionProxy.isActivationPointTop(activationPoint)
+      // "Edge case", lulz: if we are scaling from a vertical edge, Δsx should _always_ dominate Δsy, even if the
+      // transformed object is taller than it is wide.
+      if (activationPoint.index === 3 || activationPoint.index === 5 || targetLayout.size.x > targetLayout.size.y) {
+        delta.y = delta.x * targetLayout.size.y / targetLayout.size.x
+        if (negativeProportion) {
+          delta.y *= -1
+        }
       } else {
-        delta.x = proportionY * absoluteWidth
+        delta.x = delta.y * targetLayout.size.x / targetLayout.size.y
+        if (negativeProportion) {
+          delta.x *= -1
+        }
       }
-    } else if (!activeAxes[0] || !activeAxes[1]) {
-      delta.x *= activeAxes[0]
-      delta.y *= activeAxes[1]
     }
-    Element.transformPointInPlace(delta, orthonormalBasisMatrix)
+
+    Element.transformPointInPlace(delta, scaledBasisMatrix)
   }
 
   const layoutMatrix = targetLayout.matrix
@@ -1304,18 +1312,48 @@ ElementSelectionProxy.computeScalePropertyGroup = (
   const propertyGroupFinalVector = new Float32Array(4)
   transformFourVectorByMatrix(propertyGroupFinalVector, propertyGroupInitialVector, coefficientMatrixInverted)
 
+  targetLayout.scale.x += propertyGroupFinalVector[0]
+  targetLayout.scale.y += propertyGroupFinalVector[1]
+  targetLayout.translation.x += propertyGroupFinalVector[2]
+  targetLayout.translation.y += propertyGroupFinalVector[3]
+
   return {
     'scale.x': {
-      value: targetLayout.scale.x + propertyGroupFinalVector[0]
+      value: rounded(targetLayout.scale.x)
     },
     'scale.y': {
-      value: targetLayout.scale.y + propertyGroupFinalVector[1]
+      value: rounded(targetLayout.scale.y)
     },
     'translation.x': {
-      value: targetLayout.translation.x + propertyGroupFinalVector[2]
+      value: rounded(targetLayout.translation.x)
     },
     'translation.y': {
-      value: targetLayout.translation.y + propertyGroupFinalVector[3]
+      value: rounded(targetLayout.translation.y)
+    }
+  }
+}
+
+ElementSelectionProxy.computeRotationPropertyGroup = (element, rotationZDelta, fixedPoint) => {
+  const targetLayout = element.getComputedLayout()
+  const layoutMatrix = targetLayout.matrix
+  const layoutMatrixInverted = new Float32Array(16)
+  invertMatrix(layoutMatrixInverted, layoutMatrix)
+  const fixedPointCopy = Object.assign({}, fixedPoint)
+  Element.transformPointInPlace(fixedPointCopy, layoutMatrixInverted)
+  targetLayout.rotation.z += rotationZDelta
+  const {matrix: finalMatrix} = Layout3D.computeLayout(
+    targetLayout, Layout3D.createMatrix(), element.getParentComputedSize())
+  Element.transformPointInPlace(fixedPointCopy, finalMatrix)
+
+  return {
+    'translation.x': {
+      value: rounded(targetLayout.translation.x + fixedPointCopy.x - fixedPoint.x)
+    },
+    'translation.y': {
+      value: rounded(targetLayout.translation.y + fixedPointCopy.y - fixedPoint.y)
+    },
+    'rotation.z': {
+      value: rounded(targetLayout.rotation.z + rotationZDelta)
     }
   }
 }
@@ -1323,11 +1361,8 @@ ElementSelectionProxy.computeScalePropertyGroup = (
 ElementSelectionProxy.computeRotationPropertyGroupDelta = (
   targetElement,
   contextElement,
-  dx,
-  dy,
   coordsCurrent,
   coordsPrevious,
-  lastMouseDownCoord,
   activationPoint,
   {zoom}
 ) => {
@@ -1359,34 +1394,49 @@ ElementSelectionProxy.computeRotationPropertyGroupDelta = (
   // (cx,cy)
   // tan(θ) = h / w
 
-  // Last angle
-  const w0 = cx - x0
-  const h0 = cy - y0
-  let theta0 = Math.atan2(h0, w0)
-
   // New angle
-  const w1 = cx - x1
-  const h1 = cy - y1
-  let theta1 = Math.atan2(h1, w1)
+  const theta1 = Math.atan2(cy - y1, cx - x1)
+  // Last angle
+  const theta0 = Math.atan2(cy - y0, cx - x0)
+  const delta = theta1 - theta0
 
-  let deltaRotationZ = theta1 - theta0
-
-  // If shift is held, snap to absolute increments of pi/12
+  // If shift is held, snap to absolute increments of π / 12.
   if (activationPoint.shift) {
-    // Pretty hacky math/logic, won't allow for rotating past 2*Math.PI
-    // (unlike free rotation, which will rotate to any limit)
-    theta0 = targetElement.computePropertyValue('rotation.z')
-    theta1 = -PI_OVER_12 * Math.round(theta1 / PI_OVER_12)
-    deltaRotationZ = DELTA_ROTATION_OFFSETS[activationPoint.index] + theta1 - theta0
+    const originalRotation = targetElement.computePropertyValue('rotation.z')
+    if (!contextElement.rotationSnapOffset) {
+      // Look at the directionality of the original requested rotation and round up/down according to the apparent wish
+      // of the user. We need to stick with this strategy for as long as snapping rotation is active to avoid confusion
+      // and/or judders.
+      contextElement.rotationSnapStrategy = delta > 0 ? Math.ceil : Math.floor
+      const originalRotationRounded = PI_OVER_12 * contextElement.rotationSnapStrategy(originalRotation / PI_OVER_12)
+      contextElement.rotationSnapOffset = PI_OVER_12 * contextElement.rotationSnapStrategy(theta1 / PI_OVER_12)
+      return {
+        'rotation.z': {
+          value: originalRotationRounded - originalRotation
+        }
+      }
+    }
+
+    const theta1Rounded = PI_OVER_12 * contextElement.rotationSnapStrategy(theta1 / PI_OVER_12)
+    const effectiveDelta = theta1Rounded - contextElement.rotationSnapOffset
+    if (effectiveDelta !== 0) {
+      contextElement.rotationSnapOffset = theta1Rounded
+    }
+    return {
+      'rotation.z': {
+        value: effectiveDelta
+      }
+    }
+  } else {
+    // Reset rotation snap in case it comes back!
+    contextElement.initializeRotationSnap()
   }
 
-  const propertyGroup = {
+  return {
     'rotation.z': {
-      value: deltaRotationZ
+      value: rounded(delta)
     }
   }
-
-  return propertyGroup
 }
 
 /**
@@ -1440,5 +1490,4 @@ module.exports = ElementSelectionProxy
 
 // Down here to avoid Node circular dependency stub objects. #FIXME
 const Element = require('./Element')
-const Artboard = require('./Artboard')
 const Template = require('./Template')

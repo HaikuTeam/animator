@@ -61,6 +61,7 @@
     "numeral": "^2.0.6",
     "pascalcase": "0.1.1",
     "pngjs": "^3.2.0",
+    "point-in-polygon": "^1.0.1",
     "polygon-overlap": "^1.0.5",
     "prettier": "^0.22.0",
     "pretty": "^2.0.0",
