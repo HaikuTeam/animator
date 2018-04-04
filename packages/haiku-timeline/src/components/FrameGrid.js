@@ -24,7 +24,7 @@ export default class FrameGrid extends React.Component {
 
   upsertTimelineEvents () {
     this.timelineEvents = this.rootElement
-      .getCustomEvents()
+      .getTimelineEvents()
       .map(handler => Number(handler.split(':')[2]))
   }
 

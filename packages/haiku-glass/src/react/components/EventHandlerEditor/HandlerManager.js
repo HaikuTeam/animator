@@ -97,11 +97,11 @@ class HandlerManager {
    *
    * @returns {String[]}
    */
-  DOMEvents () {
+  userVisibleEvents () {
     const result = []
 
     for (const [event, {id, handler}] of this.appliedEventHandlers) {
-      if (this._isDOMEvent(event)) {
+      if (!this._isTimelineEvent(event)) {
         result.push({id, event, handler})
       }
     }
@@ -112,8 +112,8 @@ class HandlerManager {
   /**
    * @returns {Boolean} indicating where the element has DOM events attached
    */
-  hasDOMEvents () {
-    return Boolean(this.DOMEvents().length)
+  hasUserVisibleEvents () {
+    return Boolean(this.userVisibleEvents().length)
   }
 
   /**
@@ -178,13 +178,13 @@ class HandlerManager {
   }
 
   /**
-   * Checks if an event is a DOM event
+   * Checks if an event is a timeline event
    *
    * @param {String} event
    * @returns {Boolean}
    */
-  _isDOMEvent (event) {
-    return this.applicableEventHandlersList.includes(event)
+  _isTimelineEvent (event) {
+    return this.element.isTimelineEvent(event)
   }
 
   /**

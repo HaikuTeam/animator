@@ -1175,7 +1175,7 @@ class Timeline extends React.Component {
           isExpanded={row.isExpanded()}
           isHidden={row.isHidden()}
           isSelected={row.isSelected()}
-          hasAttachedActions={row.element.getDOMEvents().length > 0}
+          hasAttachedActions={row.element.getVisibleEvents().length > 0}
           dragHandleProps={dragHandleProps}
         />
       )

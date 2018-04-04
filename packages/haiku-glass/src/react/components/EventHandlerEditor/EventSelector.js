@@ -1,88 +1,90 @@
 import React from 'react'
-import {Menu, MenuItem, SubMenu} from 'haiku-ui-common/lib/react/Menu'
+import {SimpleSelect} from 'react-selectize'
 import Palette from 'haiku-ui-common/lib/Palette'
-import {DownCarrotSVG} from 'haiku-ui-common/lib/react/OtherIcons'
 
 const STYLES = {
   selectWrapper: {
     cursor: 'default',
     margin: '0 0 15px',
     display: 'inline-block'
-  },
-  eventsMenuTrigger: {
-    fontSize: '12px',
-    padding: '5px 13px',
-    backgroundColor: Palette.SPECIAL_COAL,
-    color: Palette.PALE_GRAY,
-    borderRadius: '4px',
-    display: 'inline-flex',
-    alignItems: 'center',
-    text: {
-      display: 'inline-block',
-      marginRight: '5px'
-    }
   }
 }
 
 class EventSelector extends React.Component {
-  constructor (props) {
-    super(props)
-
-    this.itemMappings = {}
-
-    this.state = {
-      selectedEventName: props.defaultEventName
-    }
-  }
-
-  renderSingleMenuItem ({value, label}) {
-    const isDisabled = this.props.disabledOptions.has(value)
-    this.itemMappings[value] = label
-
-    return (
-      <MenuItem
-        data={{value}}
-        key={label}
-        disabled={isDisabled}
-        onClick={(_event, selectedItem) => {
-          const selectedEventName = selectedItem.value
-          this.setState({selectedEventName})
-          this.props.onChange(selectedEventName)
-        }}
-      >
-        {label}
-      </MenuItem>
-    )
-  }
-
-  get renderMenuItems () {
-    return this.props.options.map(({label, options}) =>
-      <SubMenu title={label} key={label} hoverDelay={0}>
-        {options.map(item => this.renderSingleMenuItem(item))}
-      </SubMenu>
-    )
-  }
-
-  get renderMenuTrigger () {
-    return (
-      <div style={STYLES.eventsMenuTrigger}>
-        <span style={STYLES.eventsMenuTrigger.text}>
-          {this.itemMappings[this.state.selectedEventName]}
-        </span>
-        <DownCarrotSVG />
-      </div>
-    )
-  }
-
   render () {
+    const groups = []
+    const select = []
+    let selected
+
+    this.props.options.forEach(({label, options}) => {
+      groups.push({groupId: label, title: label})
+      options.forEach((option) => {
+        select.push({groupId: label, ...option})
+      })
+    })
+
+    selected = select.find(({value}) => value === this.props.defaultEventName)
+
     return (
       <div style={STYLES.selectWrapper}>
-        <Menu
-          trigger={this.renderMenuTrigger}
-          fixed
-        >
-          {this.renderMenuItems}
-        </Menu>
+        <style>
+          {`
+          .react-selectize.root-node {
+            width: 150px;
+          }
+
+          .react-selectize.default {
+            font-family: inherit;
+            color: ${Palette.SUNSTONE};
+          }
+
+          .simple-select.react-selectize.default.root-node:not(.open).react-selectize-control,
+          .simple-select.react-selectize.default.root-node:not(.open) .react-selectize-control,
+          .simple-select.react-selectize.default.root-node.open .react-selectize-control,
+          .react-selectize.dropdown-menu.default {
+            background: ${Palette.SPECIAL_COAL};
+            border: none;
+          }
+
+          .react-selectize.dropdown-menu.default .option-wrapper .simple-option,
+          .resizable-input {
+            color: inherit;
+          }
+
+          .react-selectize.dropdown-menu.default .option-wrapper.highlight {
+            color: inherit;
+            background: black;
+          }
+
+          .react-selectize.dropdown-menu.default .simple-group-title {
+            background: ${Palette.DARKEST_COAL};
+            text-transform: uppercase;
+            font-weight: bold;
+          }
+
+          .react-selectize.root-node .react-selectize-control .react-selectize-toggle-button path {
+            fill: #778487;
+          }
+
+          .react-selectize.root-node .react-selectize-control .react-selectize-reset-button-container {
+            display: none;
+          }
+        `}
+        </style>
+
+        <SimpleSelect
+          groups={groups}
+          options={select}
+          createFromSearch={(options, search) => {
+            return {label: search, value: search, groupId: 'Custom Events'}
+          }}
+          onValueChange={(selected) => {
+            if (selected) {
+              this.props.onChange(selected.value)
+            }
+          }}
+          defaultValue={selected}
+        />
       </div>
     )
   }

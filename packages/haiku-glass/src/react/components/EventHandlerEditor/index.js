@@ -215,13 +215,13 @@ class EventHandlerEditor extends React.PureComponent {
 
   renderEventsEditor (totalNumberOfHandlers, applicableEventHandlers) {
     // If the element doesn't have any handlers, let's show a default editor
-    if (!this.handlerManager.hasDOMEvents()) {
+    if (!this.handlerManager.hasUserVisibleEvents()) {
       this.handlerManager.addNextAvailableEventHandler()
       totalNumberOfHandlers = 1
     }
 
     return this.handlerManager
-      .DOMEvents()
+      .userVisibleEvents()
       .map(({id, event, handler}) => {
         return this.renderSingleEditor(
           id,

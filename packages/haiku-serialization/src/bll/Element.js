@@ -16,7 +16,7 @@ const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments'
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const HAIKU_TITLE_ATTRIBUTE = 'haiku-title'
 
-const CUSTOM_EVENT_PREFIX = 'timeline:'
+const TIMELINE_EVENT_PREFIX = 'timeline:'
 
 const EMPTY_ELEMENT = {elementName: 'div', attributes: {}, children: []}
 
@@ -213,16 +213,20 @@ class Element extends BaseModel {
     return this._clip
   }
 
-  getDOMEvents () {
+  getVisibleEvents () {
     return Object.keys(
       this.getReifiedEventHandlers()
-    ).filter(handler => !handler.includes(CUSTOM_EVENT_PREFIX))
+    ).filter(handler => !this.isTimelineEvent(handler))
   }
 
-  getCustomEvents () {
+  getTimelineEvents () {
     return Object.keys(
       this.getReifiedEventHandlers()
-    ).filter(handler => handler.includes(CUSTOM_EVENT_PREFIX))
+    ).filter(handler => this.isTimelineEvent(handler))
+  }
+
+  isTimelineEvent (eventName) {
+    return eventName.includes(TIMELINE_EVENT_PREFIX)
   }
 
   hasEventHandlers () {
@@ -306,6 +310,21 @@ class Element extends BaseModel {
     options.push({
       label: 'Component/Lifecycle',
       options: Element.COMPONENT_EVENTS
+    })
+
+    const customEvents = []
+    for (let name in handlers) {
+      if (!this.isTimelineEvent(name) && !predefined[name]) {
+        customEvents.push({
+          label: name,
+          value: name
+        })
+      }
+    }
+
+    options.push({
+      label: 'Custom Events',
+      options: customEvents
     })
 
     return options.filter(category => category.options.length > 0)
