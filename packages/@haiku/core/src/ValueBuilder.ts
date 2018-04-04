@@ -849,6 +849,10 @@ export default class ValueBuilder {
 
       return 1;
     };
+
+    this.helpers['find'] = (selector) => {
+      return this._component.querySelectorAll(selector);
+    };
   }
 
   clearCaches(options = {}) {
