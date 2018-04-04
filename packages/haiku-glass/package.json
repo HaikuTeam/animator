@@ -39,6 +39,7 @@
     "raven-js": "^3.18.1",
     "react": "15.6.2",
     "react-dom": "15.6.2",
+    "react-selectize": "^3.0.1",
     "strip-indent": "^2.0.0"
   },
   "devDependencies": {
