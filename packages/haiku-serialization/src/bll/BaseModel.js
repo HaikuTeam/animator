@@ -806,6 +806,18 @@ const createCollection = (klass, opts) => {
       item.cacheClear()
     })
   }
+
+  klass.sweep = () => {
+    arrayCollection.forEach((item) => {
+      item.sweep()
+    })
+  }
+
+  klass.purge = () => {
+    arrayCollection.forEach((item) => {
+      item.destroy()
+    })
+  }
 }
 
 module.exports = BaseModel

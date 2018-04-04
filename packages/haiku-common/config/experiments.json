@@ -60,7 +60,7 @@
     "production": false
   },
   "ElementMultiSelectAndTransform": {
-    "development": false,
+    "development": true,
     "production": false
   },
   "GroupUngroup": {
@@ -76,7 +76,7 @@
     "production": true
   },
   "StageSelectionMarquee": {
-    "development": false,
+    "development": true,
     "production": false
   },
   "StageResizeAllSides": {
@@ -89,10 +89,6 @@
   },
   "OriginIndicator": {
     "development": true,
-    "production": false
-  },
-  "ComponentInfoInspector": {
-    "development": false,
     "production": false
   }
 }

@@ -784,6 +784,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
         groupItems.push(shape);
         break;
       case SvgTag.PolygonShape:
+      case SvgTag.PolylineShape:
         this.decoratePolygon(timeline, shape);
         groupItems.push(shape);
         break;
@@ -844,6 +845,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
       case SvgTag.RectangleShape:
       case SvgTag.PathShape:
       case SvgTag.PolygonShape:
+      case SvgTag.PolylineShape:
         this.handleShape(node, parentNode);
         break;
       default:

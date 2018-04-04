@@ -1,8 +1,10 @@
 const async = require('async')
 const logger = require('./../utils/LoggerInstance')
 const BaseModel = require('./BaseModel')
+const {transformFourVectorByMatrix} = require('./MathUtils')
 const TransformCache = require('./TransformCache')
 const Layout3D = require('@haiku/core/lib/Layout3D').default
+const invertMatrix = require('@haiku/core/lib/vendor/gl-mat4/invert').default
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 const Figma = require('./Figma')
 const Sketch = require('./Sketch')
@@ -61,7 +63,31 @@ class ElementSelectionProxy extends BaseModel {
     this.transformCache = new TransformCache(this)
 
     // When representing multiple elements, we apply changes to our proxy properties
-    this._proxyProperties = Object.assign(ElementSelectionProxy.DEFAULT_PROPERTY_VALUES)
+    this._proxyBoxPoints = []
+    this._proxyProperties = {}
+    const boxPoints = Element.getBoundingBoxPointsForElementsTransformed(this.selection)
+    if (!boxPoints || boxPoints.length !== 9) {
+      return
+    }
+
+    const xOffset = boxPoints[0].x
+    const yOffset = boxPoints[0].y
+    boxPoints.forEach(({x, y}) => {
+      this._proxyBoxPoints.push({x: x - xOffset, y: y - yOffset})
+    })
+
+    const width = Math.abs(boxPoints[0].x - boxPoints[8].x)
+    const height = Math.abs(boxPoints[0].y - boxPoints[8].y)
+    Object.assign(
+      this._proxyProperties,
+      ElementSelectionProxy.DEFAULT_PROPERTY_VALUES,
+      {
+        'sizeAbsolute.x': width,
+        'sizeAbsolute.y': height,
+        'translation.x': boxPoints[0].x + width * ElementSelectionProxy.DEFAULT_PROPERTY_VALUES['origin.x'],
+        'translation.y': boxPoints[0].y + height * ElementSelectionProxy.DEFAULT_PROPERTY_VALUES['origin.y']
+      }
+    )
   }
 
   hasAnythingInSelection () {
@@ -309,11 +335,7 @@ class ElementSelectionProxy extends BaseModel {
     throw new Error('not yet implemented')
   }
 
-  getElement () {
-    return this.selection[0]
-  }
-
-  getParentSize () {
+  getParentComputedSize () {
     const { width, height } = this.component.getContextSize()
     return {
       x: width,
@@ -322,32 +344,34 @@ class ElementSelectionProxy extends BaseModel {
     }
   }
 
-  getProxyBoxPoints () {
-    return Element.getBoundingBoxPointsForElementsTransformed(this.selection)
-  }
-
   getOriginTransformed () {
     // If managing only one element, use its own box points
     if (this.doesManageSingleElement()) {
       return this.selection[0].getOriginTransformed()
     }
 
-    // TODO: persist and allow user to update this value.
-    // TODO: correctly calculate this value.
-    return {x: 0, y: 0}
+    const layout = this.getComputedLayout()
+
+    return Element.transformPointInPlace(
+      {
+        x: layout.size.x * layout.origin.x,
+        y: layout.size.y * layout.origin.y
+      },
+      layout.matrix
+    )
   }
 
-  getBoxPointsTransformed () {
-    // If managing only one element, use its own box points
+  getBoxPointsNotTransformed () {
+    // Return a fresh copy each time.
+    return this._proxyBoxPoints.map((point) => Object.assign({}, point))
+  }
+
+  getLayoutSpec () {
     if (this.doesManageSingleElement()) {
-      return this.selection[0].getBoxPointsTransformed()
+      return this.selection[0].getLayoutSpec()
     }
 
-    const parentSize = this.getParentSize()
-
-    const ourMatrix = Layout3D.createMatrix()
-
-    const proxyLayoutSpec = {
+    return {
       shown: true,
       opacity: 1.0,
       mount: {x: 0, y: 0, z: 0},
@@ -360,18 +384,18 @@ class ElementSelectionProxy extends BaseModel {
       translation: {
         x: this.computePropertyValue('translation.x'),
         y: this.computePropertyValue('translation.y'),
-        z: this.computePropertyValue('translation.z')
+        z: 0
       },
       rotation: {
-        x: this.computePropertyValue('rotation.x'),
-        y: this.computePropertyValue('rotation.y'),
+        x: 0,
+        y: 0,
         z: this.computePropertyValue('rotation.z'),
         w: 0
       },
       scale: {
         x: this.computePropertyValue('scale.x'),
         y: this.computePropertyValue('scale.y'),
-        z: this.computePropertyValue('scale.z')
+        z: 1
       },
       orientation: {x: 0, y: 0, z: 0, w: 0},
       sizeMode: {x: 1, y: 1, z: 1},
@@ -380,22 +404,29 @@ class ElementSelectionProxy extends BaseModel {
       sizeAbsolute: {
         x: this.computePropertyValue('sizeAbsolute.x'),
         y: this.computePropertyValue('sizeAbsolute.y'),
-        z: this.computePropertyValue('sizeAbsolute.z')
+        z: 1
       }
     }
+  }
 
-    const proxyMatrix = Layout3D.computeLayout(
-      proxyLayoutSpec,
-      ourMatrix,
-      parentSize
-    ).matrix
-
-    const proxyPoints = Element.transformPointsInPlace(
-      this.getProxyBoxPoints(),
-      proxyMatrix
+  getComputedLayout () {
+    return Layout3D.computeLayout(
+      this.getLayoutSpec(),
+      Layout3D.createMatrix(),
+      this.getParentComputedSize()
     )
+  }
 
-    return proxyPoints
+  getBoxPointsTransformed () {
+    // If managing only one element, use its own box points
+    if (this.doesManageSingleElement()) {
+      return this.selection[0].getBoxPointsTransformed()
+    }
+
+    return Element.transformPointsInPlace(
+      this.getBoxPointsNotTransformed(),
+      this.getComputedLayout().matrix
+    )
   }
 
   getBoundingClientRect () {
@@ -432,19 +463,15 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   computePropertyValue (key) {
-    // We always need to compute this dynamically because our managed elements may have been transformed
-    if (key === 'sizeAbsolute.x' || key === 'sizeAbsolute.y') {
-      const points = this.getProxyBoxPoints()
-      if (points && points.length === 9) {
-        if (key === 'sizeAbsolute.x') return Math.abs(points[2].x - points[0].x)
-        if (key === 'sizeAbsolute.y') return Math.abs(points[6].y - points[0].y)
-      }
-
-      return 1
-    }
-
-    // If managing multiple elements, use our proxy properties
     return this._proxyProperties[key]
+  }
+
+  applyPropertyValue (key, value) {
+    this._proxyProperties[key] = value
+  }
+
+  applyPropertyDelta (key, delta) {
+    this.applyPropertyValue(key, this._proxyProperties[key] + delta)
   }
 
   /**
@@ -465,7 +492,7 @@ class ElementSelectionProxy extends BaseModel {
     globals
   ) {
     if (isOriginPanning) {
-      return this.panOrigin(dx, dy, viewportTransform)
+      return this.panOrigin(dx, dy)
     }
     if (isAnythingScaling) {
       if (!controlActivation.cmd) {
@@ -506,9 +533,7 @@ class ElementSelectionProxy extends BaseModel {
         return this.moveWithShiftDown(
           dx,
           dy,
-          mouseCoordsCurrent,
-          mouseCoordsPrevious,
-          lastMouseDownCoord
+          mouseCoordsCurrent
         )
       } else {
         return this.move(
@@ -522,12 +547,62 @@ class ElementSelectionProxy extends BaseModel {
     }
   }
 
-  panOrigin (dx, dy, viewportTransform) {
-    if (this.doesManageSingleElement()) {
-      this.selection[0].panOrigin(dx, dy, viewportTransform)
-    } else {
-      // TODO.
+  panOrigin (dx, dy) {
+    // Origin panning is a position-preserving operation (in parent coordinates), requiring us to update translation to
+    // match. To achieve the desired effect, first we compute the effective (x, y) translation after accounting for
+    // z-rotation and scale, so the origin dot "lands" in an expected place while dragging.
+    const targetElement = this.doesManageSingleElement() ? this.selection[0] : this
+    const computedLayout = targetElement.getComputedLayout()
+    const deltaTranslationX = dx
+    const deltaTranslationY = dy
+    const delta = {
+      x: deltaTranslationX,
+      y: deltaTranslationY
     }
+
+    const scaledBasisMatrix = Layout3D.computeScaledBasisMatrix(computedLayout.rotation, computedLayout.scale)
+    const scaledBasisMatrixInverted = []
+    invertMatrix(scaledBasisMatrixInverted, scaledBasisMatrix)
+    Element.transformPointInPlace(delta, scaledBasisMatrixInverted)
+    const deltaOriginX = delta.x / computedLayout.size.x
+    const deltaOriginY = delta.y / computedLayout.size.y
+
+    if (targetElement === this) {
+      this.applyPropertyDelta('translation.x', deltaTranslationX)
+      this.applyPropertyDelta('translation.y', deltaTranslationY)
+      this.applyPropertyDelta('origin.x', deltaOriginX)
+      this.applyPropertyDelta('origin.y', deltaOriginY)
+      return
+    }
+
+    const propertyGroupDelta = {
+      'translation.x': {
+        value: deltaTranslationX
+      },
+      'translation.y': {
+        value: deltaTranslationY
+      },
+      'origin.x': {
+        value: deltaOriginX
+      },
+      'origin.y': {
+        value: deltaOriginY
+      }
+    }
+    const propertyGroup = targetElement.computePropertyGroupValueFromGroupDelta(propertyGroupDelta)
+    const accumulatedUpdates = {}
+    ElementSelectionProxy.accumulateKeyframeUpdates(
+      accumulatedUpdates,
+      targetElement.getComponentId(),
+      this.component.getCurrentTimelineName(),
+      this.component.getCurrentTimelineTime(),
+      propertyGroup
+    )
+    targetElement.component.updateKeyframes(
+      accumulatedUpdates,
+      this.component.project.getMetadata(),
+      () => {} // no-op
+    )
   }
 
   move (dx, dy) {
@@ -559,22 +634,37 @@ class ElementSelectionProxy extends BaseModel {
       this.component.project.getMetadata(),
       () => {} // no-op
     )
+    this.applyPropertyDelta('translation.x', dx)
+    this.applyPropertyDelta('translation.y', dy)
   }
 
-  moveWithShiftDown (dx, dy, mouseCoordsCurrent, mouseCoordsPrevious, lastMouseDownCoord) {
+  moveWithShiftDown (dx, dy, mouseCoordsCurrent) {
     const accumulatedUpdates = {}
 
-    this.selection.forEach((element) => {
-      const propertyGroup = ElementSelectionProxy.computeConstrainedMovePropertyGroup(
-        element, // targetElement
-        this, // contextElement
-        dx,
-        dy,
-        mouseCoordsCurrent,
-        mouseCoordsPrevious,
-        lastMouseDownCoord
-      )
+    const elementTransform = this.transformCache.peek('CONSTRAINED_DRAG')
+    const initialTransform = {
+      // If the user multi-selects too quickly the transform may not be available, hence the guard
+      x: (elementTransform && elementTransform.translation[0]) || 0,
+      y: (elementTransform && elementTransform.translation[1]) || 0
+    }
 
+    const isXAxis = Math.abs(mouseCoordsCurrent.x - initialTransform.x) >
+      Math.abs(mouseCoordsCurrent.y - initialTransform.y)
+
+    const constrainedDeltaX = isXAxis ? dx : initialTransform.x - this.computePropertyValue('translation.x')
+    const constrainedDeltaY = isXAxis ? initialTransform.y - this.computePropertyValue('translation.y') : dy
+
+    const propertyGroupDelta = {
+      'translation.x': {
+        value: constrainedDeltaX
+      },
+      'translation.y': {
+        value: constrainedDeltaY
+      }
+    }
+
+    this.selection.forEach((element) => {
+      const propertyGroup = element.computePropertyGroupValueFromGroupDelta(propertyGroupDelta)
       ElementSelectionProxy.accumulateKeyframeUpdates(
         accumulatedUpdates,
         element.getComponentId(),
@@ -589,6 +679,8 @@ class ElementSelectionProxy extends BaseModel {
       this.component.project.getMetadata(),
       () => {} // no-op
     )
+    this.applyPropertyDelta('translation.x', constrainedDeltaX)
+    this.applyPropertyDelta('translation.y', constrainedDeltaY)
   }
 
   scale (
@@ -615,44 +707,63 @@ class ElementSelectionProxy extends BaseModel {
     return this.scaleElements(
       dx,
       dy,
-      coordsCurrent,
-      coordsPrevious,
-      lastMouseDownCoord,
-      activationPoint,
-      viewportTransform
+      activationPoint
     )
   }
 
-  scaleElements (
-    dx,
-    dy,
-    coordsCurrent,
-    coordsPrevious,
-    lastMouseDownCoord,
-    activationPoint,
-    viewportTransform
-  ) {
-    // HACK: For now, disable multi-scale until I figure out how to do it
-    if (this.hasMultipleInSelection()) {
-      return
+  scaleElements (dx, dy, activationPoint) {
+    const accumulatedUpdates = {}
+    const proxyBoxPoints = this.getBoxPointsTransformed()
+    const fixedPoint = activationPoint.alt
+      ? this.getOriginTransformed()
+      : ElementSelectionProxy.getFixedPointForScale(proxyBoxPoints, activationPoint)
+    const translatedPoint = ElementSelectionProxy.getTranslatedPointForScale(proxyBoxPoints, activationPoint)
+
+    const delta = {
+      x: dx,
+      y: dy
     }
 
-    const accumulatedUpdates = {}
-
-    this.selection.forEach((element) => {
-      const propertyGroupDelta = ElementSelectionProxy.computeScalePropertyGroupDelta(
-        element, // targetElement
-        this, // contextElement
-        dx,
-        dy,
-        coordsCurrent,
-        coordsPrevious,
-        lastMouseDownCoord,
+    if (this.hasMultipleInSelection()) {
+      const {
+        'scale.x': {
+          value: scaleX
+        },
+        'scale.y': {
+          value: scaleY
+        },
+        'translation.x': {
+          value: translationX
+        },
+        'translation.y': {
+          value: translationY
+        }
+      } = ElementSelectionProxy.computeScalePropertyGroup(
+        this,
+        fixedPoint,
+        translatedPoint,
+        delta,
         activationPoint,
-        viewportTransform
+        true
       )
 
-      const propertyGroup = element.computePropertyGroupValueFromGroupDelta(propertyGroupDelta)
+      this.applyPropertyValue('scale.x', scaleX)
+      this.applyPropertyValue('scale.y', scaleY)
+      this.applyPropertyValue('translation.x', translationX)
+      this.applyPropertyValue('translation.y', translationY)
+    }
+
+    this.selection.forEach((element) => {
+      const propertyGroup = ElementSelectionProxy.computeScalePropertyGroup(
+        element,
+        fixedPoint,
+        translatedPoint,
+        delta,
+        activationPoint,
+        // If we manage a single element, we _should_ apply the shift/alt constraints in this pass (because we _didn't_
+        // do so above).
+        this.doesManageSingleElement()
+      )
 
       ElementSelectionProxy.accumulateKeyframeUpdates(
         accumulatedUpdates,
@@ -998,16 +1109,13 @@ ElementSelectionProxy.computeScaleInfoForArtboard = (
   const isLeft = ElementSelectionProxy.isActivationPointLeft(activationPoint)
   const isTop = ElementSelectionProxy.isActivationPointTop(activationPoint)
 
-  let dxFinal = dx
-  let dyFinal = dy
-
   const x0 = coordsPrevious.clientX
   const x1 = coordsCurrent.clientX
   const y0 = coordsPrevious.clientY
   const y1 = coordsCurrent.clientY
 
-  dxFinal = x1 - x0
-  dyFinal = y1 - y0
+  let dxFinal = x1 - x0
+  let dyFinal = y1 - y0
 
   let worldDeltaX = dxFinal / viewportTransform.zoom
   let worldDeltaY = dyFinal / viewportTransform.zoom
@@ -1067,109 +1175,161 @@ ElementSelectionProxy.computeScaleInfoForArtboard = (
   }
 }
 
-ElementSelectionProxy.computeScalePropertyGroupDelta = (
-  targetElement,
-  contextElement,
-  dx,
-  dy,
-  coordsCurrent,
-  coordsPrevious,
-  lastMouseDownCoord,
+ElementSelectionProxy.getFixedPointForScale = (proxyBoxPoints, activationPoint) => {
+  switch (activationPoint.index) {
+    case 5:
+    case 7:
+      return proxyBoxPoints[0]
+    case 1:
+      return proxyBoxPoints[6]
+    case 3:
+      return proxyBoxPoints[2]
+    default:
+      return proxyBoxPoints[8 - activationPoint.index]
+  }
+}
+
+ElementSelectionProxy.getTranslatedPointForScale = (proxyBoxPoints, activationPoint) => {
+  switch (activationPoint.index) {
+    case 5:
+    case 7:
+      return proxyBoxPoints[8]
+    case 1:
+      return proxyBoxPoints[2]
+    case 3:
+      return proxyBoxPoints[6]
+    default:
+      return proxyBoxPoints[activationPoint.index]
+  }
+}
+
+ElementSelectionProxy.computeScalePropertyGroup = (
+  element,
+  fixedPointIn,
+  translatedPointIn,
+  delta,
   activationPoint,
-  viewportTransform
+  applyConstraints
 ) => {
-  // The activation point index corresponds to a box with this coord system:
-  // 0, 1, 2
-  // 3, 4, 5
-  // 6, 7, 8
-  const activeAxes = ElementSelectionProxy.activeAxesFromActivationPoint(activationPoint)
-  const sizeDeltaCoefficient = ElementSelectionProxy.sizeDeltaCoefficientFromActivationPoint(activationPoint)
-  const isLeft = ElementSelectionProxy.isActivationPointLeft(activationPoint)
-  const isTop = ElementSelectionProxy.isActivationPointTop(activationPoint)
-
-  const dxFinal = dx
-  const dyFinal = dy
-
-  const worldDeltaX = dxFinal / viewportTransform.zoom
-  const worldDeltaY = dyFinal / viewportTransform.zoom
-
-  // Assigned below
-  let proportionX
-  let proportionY
-
-  const targetWidth = targetElement.computePropertyValue('sizeAbsolute.x')
-  const targetHeight = targetElement.computePropertyValue('sizeAbsolute.y')
-  const targetScaleX = targetElement.computePropertyValue('scale.x')
-  const targetScaleY = targetElement.computePropertyValue('scale.y')
-  const targetAbsoluteWidth = targetScaleX * targetWidth
-  const targetAbsoluteHeight = targetScaleY * targetHeight
-  const targetThetaRadians = targetElement.computePropertyValue('rotation.z')
-
-  let deltaX = worldDeltaX * Math.cos(targetThetaRadians) + worldDeltaY * Math.sin(targetThetaRadians)
-  let deltaY = -worldDeltaX * Math.sin(targetThetaRadians) + worldDeltaY * Math.cos(targetThetaRadians)
-
-  deltaX *= (isLeft ? -sizeDeltaCoefficient : sizeDeltaCoefficient)
-  deltaY *= (isTop ? -sizeDeltaCoefficient : sizeDeltaCoefficient)
-
-  // note this logic is essentially duplicated above, for artboards
-  if (activationPoint.shift) {
-    // constrain proportion
-    proportionX = deltaX / targetAbsoluteWidth
-    proportionY = deltaY / targetAbsoluteHeight
-    // this gnarly logic is just mixing EDGE constraining logic (index checks)
-    // with CORNER constraining logic (proportion comparison)
-    if (
-      activationPoint.index !== 1 &&
-      activationPoint.index !== 7 && (
-        Math.abs(proportionX) < Math.abs(proportionY) ||
-        activationPoint.index === 3 ||
-        activationPoint.index === 5
-      )
-    ) {
-      deltaY = proportionX * targetAbsoluteHeight
-    } else {
-      deltaX = proportionY * targetAbsoluteWidth
-    }
+  // Make a copy of inbound points so we can transform them in place.
+  const fixedPoint = Object.assign({}, fixedPointIn)
+  const translatedPoint = Object.assign({}, translatedPointIn)
+  // We compute the entire scale property group by fixing a point (the *temporary* transform origin) and translating a
+  // point (the point being dragged). These are represented by `fixedPoint` and `translatedPoint` respectively.
+  const targetLayout = element.getComputedLayout()
+  // Opportunity to return early if we have a downstream "division by 0" problem. Scaling _from_ 0 is not supported (and
+  // the UI should make it imposible.
+  if (targetLayout.scale.x === 0 || targetLayout.scale.y === 0) {
+    return {}
   }
 
-  const deltaScaleVector = [
-    (deltaX / (targetAbsoluteWidth / targetScaleX)) * activeAxes[0],
-    (deltaY / (targetAbsoluteHeight / targetScaleY)) * activeAxes[1]
+  if (applyConstraints) {
+    // The activation point index corresponds to a box with this coordinate system:
+    // 0 1 2
+    // 3   5
+    // 6 7 8
+    // In a group-scale context, we should only apply constraints based on the bounding container. Accordingly, we
+    // transform `delta` in place here so it can be reused on child elements. First, translate to "local" coordinates so
+    // so that these adjustments are meaningful and correct.
+    const orthonormalBasisMatrix = Layout3D.computeOrthonormalBasisMatrix(targetLayout.rotation)
+    const orthonormalBasisMatrixInverted = []
+    invertMatrix(orthonormalBasisMatrixInverted, orthonormalBasisMatrix)
+    Element.transformPointInPlace(delta, orthonormalBasisMatrixInverted)
+    const activeAxes = ElementSelectionProxy.activeAxesFromActivationPoint(activationPoint)
+
+    // If we are performing a proportional scale, it has to overide "disabled axes", so we handle these as alternatives
+    // with shift taking precedence over dragging from a side.
+    if (activationPoint.shift) {
+      const absoluteWidth = targetLayout.scale.x * targetLayout.size.x
+      const absoluteHeight = targetLayout.scale.y * targetLayout.size.y
+      const proportionX = delta.x / absoluteWidth
+      const proportionY = delta.y / absoluteHeight
+      if (Math.abs(proportionX) < Math.abs(proportionY)) {
+        delta.y = proportionX * absoluteHeight
+      } else {
+        delta.x = proportionY * absoluteWidth
+      }
+    } else if (!activeAxes[0] || !activeAxes[1]) {
+      delta.x *= activeAxes[0]
+      delta.y *= activeAxes[1]
+    }
+    Element.transformPointInPlace(delta, orthonormalBasisMatrix)
+  }
+
+  const layoutMatrix = targetLayout.matrix
+  const layoutMatrixInverted = new Float32Array(16)
+  invertMatrix(layoutMatrixInverted, layoutMatrix)
+  Element.transformPointInPlace(fixedPoint, layoutMatrixInverted)
+  Element.transformPointInPlace(translatedPoint, layoutMatrixInverted)
+
+  // To save CPU cycles and rounding errors, armed with the knowledge that a set of four unique deltas in scale.x,
+  // scale.y, translation.x, and translation.y will fix our "fixed point" and translate our "translated point" exactly
+  // as intended (proof left to reader), we can "normalize" to the requested property group after solving a linear
+  // equation in these four unknown deltas.
+  //
+  // This works because if we represent the original transformation matrix T as:
+  // [ [0]   [4]     -   [12] ]
+  // [ [1]   [5]     -   [13] ]
+  // [   -     -     -      - ]
+  // [   0     0     0      - ]
+  //
+  // With unknown scale and translation offsets Δsx, Δsy, Δtx, Δty we can obtain the corresponding transformation
+  // matrix T', where sx, sy are the original scale.x and scale.y and ox, oy are the (unchanged) scaled origin.x and
+  // origin.y:
+  // [ [0] + [0]/sx * Δsx   [4] + [4]/sy * Δsy   _   [12] - [0]/sx * ox * Δsx - [4]/sy * oy * Δsy ]
+  // [ [1] + [1]/sx * Δsx   [5] + [5]/sy * Δsy   _   [13] - [0]/sx * ox * Δsx - [5]/sy * oy * Δsy ]
+  // [                  _                    _   _                                              _ ]
+  // [                  0                    _   _                                              _ ]
+  //
+  // Our job is essentially to find Δsx, Δsy, Δtx, Δty such that:
+  //  - T * fixedPoint = T' * fixedPoint
+  //  - T * translatedPoint + <dx, dy> = T' * translatedPoint
+  //
+  // Using the notation above and cancelling terms, this boils down to the relatively simply system of linear equations,
+  // where Fx, Fy represent the fixed point and Tx, Ty represent the translated point:
+  // [ [0] * (Fx - ox) / sx   [4] * (Fy - oy) / sy   1   0 ]   [ Δsx ]   [ 0 ]
+  // [ [1] * (Fx - ox) / sx   [5] * (Fy - oy) / sy   0   1 ] * [ Δsy ] = [ 0 ]
+  // [ [0] * (Tx - ox) / sx   [4] * (Ty - oy) / sy   1   0 ]   [ Δtx ]   [ Δx ]
+  // [ [1] * (Tx - ox) / sx   [5] * (Ty - oy) / sy   1   0 ]   [ Δty ]   [ Δy ]
+  //
+  // The result is quickly computed below.
+  const originX = targetLayout.origin.x * targetLayout.size.x
+  const originY = targetLayout.origin.y * targetLayout.size.y
+  const coefficientMatrix = [
+    layoutMatrix[0] * (fixedPoint.x - originX) / targetLayout.scale.x,
+    layoutMatrix[1] * (fixedPoint.x - originX) / targetLayout.scale.x,
+    layoutMatrix[0] * (translatedPoint.x - originX) / targetLayout.scale.x,
+    layoutMatrix[1] * (translatedPoint.x - originX) / targetLayout.scale.x,
+
+    layoutMatrix[4] * (fixedPoint.y - originY) / targetLayout.scale.y,
+    layoutMatrix[5] * (fixedPoint.y - originY) / targetLayout.scale.y,
+    layoutMatrix[4] * (translatedPoint.y - originY) / targetLayout.scale.y,
+    layoutMatrix[5] * (translatedPoint.y - originY) / targetLayout.scale.y,
+    1, 0, 1, 0,
+    0, 1, 0, 1
   ]
+  const coefficientMatrixInverted = new Float32Array(16)
+  invertMatrix(coefficientMatrixInverted, coefficientMatrix)
 
-  const destinationScaleX = targetScaleX + deltaScaleVector[0]
-  const destinationScaleY = targetScaleY + deltaScaleVector[1]
+  const propertyGroupInitialVector = [0, 0, delta.x, delta.y]
 
-  const targetLayout = targetElement.getLayoutSpec()
-  const transformOrigin = CORNER_TRANSFORM_ORIGINS[activationPoint.index]
-  const baseTranslationOffset = (activationPoint.alt)
-    ? [0, 0]
-    : [
-      (destinationScaleX - targetScaleX) * targetWidth * (targetLayout.origin.x - transformOrigin.x),
-      (destinationScaleY - targetScaleY) * targetHeight * (targetLayout.origin.y - transformOrigin.y)
-    ]
+  const propertyGroupFinalVector = new Float32Array(4)
+  transformFourVectorByMatrix(propertyGroupFinalVector, propertyGroupInitialVector, coefficientMatrixInverted)
 
-  const translationOffset = [
-    baseTranslationOffset[0] * Math.cos(targetThetaRadians) - baseTranslationOffset[1] * Math.sin(targetThetaRadians),
-    baseTranslationOffset[0] * Math.sin(targetThetaRadians) + baseTranslationOffset[1] * Math.cos(targetThetaRadians)
-  ]
-
-  const propertyGroup = {
+  return {
     'scale.x': {
-      value: deltaScaleVector[0]
+      value: targetLayout.scale.x + propertyGroupFinalVector[0]
     },
     'scale.y': {
-      value: deltaScaleVector[1]
+      value: targetLayout.scale.y + propertyGroupFinalVector[1]
     },
     'translation.x': {
-      value: translationOffset[0]
+      value: targetLayout.translation.x + propertyGroupFinalVector[2]
     },
     'translation.y': {
-      value: translationOffset[1]
+      value: targetLayout.translation.y + propertyGroupFinalVector[3]
     }
   }
-
-  return propertyGroup
 }
 
 ElementSelectionProxy.computeRotationPropertyGroupDelta = (
@@ -1239,58 +1399,6 @@ ElementSelectionProxy.computeRotationPropertyGroupDelta = (
   }
 
   return propertyGroup
-}
-
-ElementSelectionProxy.computeConstrainedMovePropertyGroup = (
-  targetElement,
-  contextElement,
-  dx,
-  dy,
-  mouseCoordsCurrent,
-  mouseCoordsPrevious,
-  lastMouseDownCoord
-) => {
-  // If shift is held, should snap translation to x/y axis
-  const contextTransform = contextElement.transformCache.peek('CONSTRAINED_DRAG')
-  const elementTransform = targetElement.transformCache.peek('CONSTRAINED_DRAG')
-
-  const initialTransform = {
-    // If the user multi-selects too quckly the transform may not be available, hence the guard
-    x: (elementTransform && elementTransform.translation[0]) || 0,
-    y: (elementTransform && elementTransform.translation[1]) || 0
-  }
-
-  // We need to add our context transform to the element's individual transform value,
-  // but only if we are in multi-select mode, i.e. if the context is not the target element.
-  // If we don't do this, then as soon as constrained drag starts, the element within the
-  // multi-selection will jump over to the side of the context (i.e., back to 0)
-  if (contextElement !== targetElement) {
-    initialTransform.x += ((contextTransform && contextTransform.translation[0]) || 0)
-    initialTransform.y += ((contextTransform && contextTransform.translation[1]) || 0)
-  }
-
-  const artboard = contextElement.fetchActiveArtboard()
-
-  const isXAxis = Math.abs(mouseCoordsCurrent.x - lastMouseDownCoord.x) > Math.abs(mouseCoordsCurrent.y - lastMouseDownCoord.y)
-
-  const mouseDelta = {
-    x: mouseCoordsCurrent.x - lastMouseDownCoord.x,
-    y: mouseCoordsCurrent.y - lastMouseDownCoord.y
-  }
-
-  const mouseDeltaWorld = artboard.transformScreenToWorld(mouseDelta)
-
-  const x = isXAxis ? initialTransform.x + mouseDeltaWorld.x : initialTransform.x
-  const y = isXAxis ? initialTransform.y : initialTransform.y + mouseDeltaWorld.y
-
-  return {
-    'translation.x': {
-      value: x
-    },
-    'translation.y': {
-      value: y
-    }
-  }
 }
 
 /**

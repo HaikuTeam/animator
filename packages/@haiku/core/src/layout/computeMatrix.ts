@@ -29,8 +29,8 @@
 import Layout3D from '../Layout3D';
 
 export default function computeMatrix(layoutSpec, currentMatrix, currentsizeAbsolute, parentsizeAbsolute) {
-  const alignY = layoutSpec.align.y * parentsizeAbsolute.y;
   const alignX = layoutSpec.align.x * parentsizeAbsolute.x;
+  const alignY = layoutSpec.align.y * parentsizeAbsolute.y;
   const alignZ = layoutSpec.align.z * parentsizeAbsolute.z;
   const mountPointX = layoutSpec.mount.x * currentsizeAbsolute.x;
   const mountPointY = layoutSpec.mount.y * currentsizeAbsolute.y;

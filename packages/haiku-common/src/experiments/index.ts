@@ -31,7 +31,6 @@ export enum Experiment {
   StageResizeAllSides = 'StageResizeAllSides',
   FigmaIntegration = 'FigmaIntegration',
   OriginIndicator = 'OriginIndicator',
-  ComponentInfoInspector = 'ComponentInfoInspector',
 }
 
 /**
