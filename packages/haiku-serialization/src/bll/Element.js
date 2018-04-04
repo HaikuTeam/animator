@@ -327,7 +327,7 @@ class Element extends BaseModel {
       options: customEvents
     })
 
-    return options.filter(category => category.options.length > 0)
+    return options
   }
 
   /**

@@ -14,7 +14,6 @@ class EventSelector extends React.Component {
   render () {
     const groups = []
     const select = []
-    let selected
 
     this.props.options.forEach(({label, options}) => {
       groups.push({groupId: label, title: label})
@@ -23,7 +22,7 @@ class EventSelector extends React.Component {
       })
     })
 
-    selected = select.find(({value}) => value === this.props.defaultEventName)
+    const selected = select.find(({value}) => value === this.props.defaultEventName)
 
     return (
       <div style={STYLES.selectWrapper}>
