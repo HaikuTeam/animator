@@ -90,5 +90,9 @@
   "OriginIndicator": {
     "development": true,
     "production": false
+  },
+  "ComponentInfoInspector": {
+    "development": true,
+    "production": false
   }
 }
