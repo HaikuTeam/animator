@@ -3,9 +3,7 @@ import qs from 'qs'
 import assign from 'lodash.assign'
 import path from 'path'
 import Palette from 'haiku-ui-common/lib/Palette'
-import { remote } from 'electron'
 import { TOUR_CHANNEL } from 'haiku-sdk-creator/lib/tour'
-// import TimelineSkeletonState from '@haiku/taylor-timelineskeletonstate/react'
 
 export default class Timeline extends React.Component {
   constructor (props) {
@@ -75,33 +73,16 @@ export default class Timeline extends React.Component {
             // It seems nicest to just remove the notice after it's been on display for a couple of seconds
             window.setTimeout(() => {
               this.props.removeNotice(undefined, noticeNotice.id)
-            }, 2000)
+            }, 2500)
           }
           break
 
         case 2:
-          // 'Uncaught' indicates an unrecoverable error in Timeline, so we need to crash too
-          if (event.message.slice(0, 8) === 'Uncaught') {
-            // Give the webview's Raven instance time to transmit its crash report
-            if (process.env.NODE_ENV === 'production') {
-              return setTimeout(() => {
-                remote.getCurrentWindow().close()
-              }, 500)
-            }
-          }
-
-          console.error(event.message)
-
-          const errorNotice = this.props.createNotice({
+          this.props.createNotice({
             type: 'error',
             title: 'Error',
             message: event.message
           })
-
-          // It seems nicest to just remove the error after it's been on display for a couple of seconds
-          window.setTimeout(() => {
-            this.props.removeNotice(undefined, errorNotice.id)
-          }, 2000)
 
           break
       }

@@ -20,11 +20,6 @@ export default function scopifyElements(mana, parent, scope) {
     return mana;
   }
 
-  // We'll need the ancestry present if we need to trace back up to the scope
-  if (parent && !mana.__parent) {
-    mana.__parent = parent;
-  }
-
   mana.__scope = scope || DEFAULT_SCOPE;
 
   if (mana.children) {

@@ -91,7 +91,7 @@ class Toast extends React.Component {
   }
 
   render () {
-    const {toastType, toastTitle, toastMessage, closeText, lightScheme} = this.props
+    const {toastType, toastTitle, toastMessage, closeText, lightScheme, toastCount} = this.props
     let icon
 
     if (toastType === 'info') {
@@ -115,7 +115,7 @@ class Toast extends React.Component {
         ]}
           onClick={this.closeNotice}>{icon}
         </div>
-        <div style={[STYLES.title]}>{toastTitle}</div>
+        <div style={[STYLES.title]}>{toastTitle}{(toastCount > 1) ? ` (${toastCount})` : ''}</div>
         <div style={[STYLES.body]}>{toastMessage}</div>
         <span
           style={[STYLES.closer, lightScheme && STYLES.lightCloser]}

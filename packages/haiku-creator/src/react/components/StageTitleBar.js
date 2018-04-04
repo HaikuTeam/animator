@@ -235,9 +235,10 @@ class StageTitleBar extends React.Component {
           </p>
         )
       })
+
       window.setTimeout(() => {
         this.props.removeNotice(undefined, noticeNotice.id)
-      }, 3000)
+      }, 2500)
     })
 
     ipcRenderer.on('global-menu:save', () => {

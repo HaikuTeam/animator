@@ -16,9 +16,8 @@ export default function replaceElement(
   component,
 ) {
   const flexId = getFlexId(virtualElement);
-  if (component.cache[flexId]) {
-    component.cache[flexId] = {};
-  }
+
+  component.subcacheClear(flexId);
 
   const newElement = isTextNode(virtualElement)
     ? createTextNode(domElement, virtualElement)

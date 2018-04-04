@@ -69,7 +69,7 @@ if (argv.default === true) {
 }
 
 const availablePresets = {
-  glass: 'primitives-glass',
+  glass: 'percy-glass',
   timeline: 'metapoem2-timeline',
   blank: 'blank',
   'blank-noclean': 'blank-noclean'

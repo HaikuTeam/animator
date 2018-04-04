@@ -9,7 +9,13 @@ const TEXT_CONTENT_FALLBACKS = {
   content: null,
 };
 
-const LAYOUT_DEFAULTS = Layout3D.createLayoutSpec(null, null, null);
+const LAYOUT_DEFAULTS = Layout3D.createLayoutSpec();
+
+const LAYOUT_COORDINATE_SYSTEM_FALLBACKS = {
+  'origin.x': 0.5,
+  'origin.y': 0.5,
+  'origin.z': 0.5,
+};
 
 const LAYOUT_3D_FALLBACKS = {
   shown: LAYOUT_DEFAULTS.shown,
@@ -927,6 +933,7 @@ export default {
   svg: has(
     CONTROL_FLOW_FALLBACKS,
     LAYOUT_3D_FALLBACKS,
+    LAYOUT_COORDINATE_SYSTEM_FALLBACKS,
     PRESENTATION_FALLBACKS,
     STYLE_FALLBACKS,
   ),

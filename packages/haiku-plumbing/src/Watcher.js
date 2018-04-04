@@ -55,7 +55,12 @@ export default class Watcher extends EventEmitter {
     this.watcher.on('ready', this.emit.bind(this, 'ready'))
     this.watcher.on('add', this.emit.bind(this, 'add'))
     this.watcher.on('change', (path, maybeStats) => {
-      !this.isBlacklisted(path) && this.emit('change', path, maybeStats)
+      if (this.isBlacklisted(path)) {
+        // In case a subscriber really wants to know about changes despite the blacklist
+        this.emit('change-blacklisted', path, maybeStats)
+      } else {
+        this.emit('change', path, maybeStats)
+      }
     })
     this.watcher.on('unlink', this.emit.bind(this, 'remove'))
     this.watcher.on('error', this.emit.bind(this, 'error'))

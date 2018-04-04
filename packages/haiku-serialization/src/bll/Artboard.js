@@ -77,6 +77,18 @@ class Artboard extends BaseModel {
     this._originalPanY = 0
 
     this._zoomXY = Artboard.DEFAULT_ZOOM
+
+    this.dimensionsChangedHook()
+  }
+
+  dimensionsChangedHook () {
+    const hc = this.component.getCoreComponentInstance()
+    const renderer = hc && hc._context && hc._context.renderer
+    if (renderer) {
+      if (!renderer.config) renderer.config = {}
+      renderer.config.zoom = this.getZoom()
+      renderer.config.pan = this.getPan()
+    }
     this.emit('update', 'dimensions-changed')
   }
 
@@ -169,23 +181,23 @@ class Artboard extends BaseModel {
       this._mountHeight = updatedArtboardSize.height
     }
     this.resetContainerDimensions($container)
-    this.emit('update', 'dimensions-changed')
+    this.dimensionsChangedHook()
   }
 
   zoomIn (factor) {
     this._zoomXY = this._zoomXY * factor
-    this.emit('update', 'dimensions-changed')
+    this.dimensionsChangedHook()
   }
 
   zoomOut (factor) {
     this._zoomXY = this._zoomXY / factor
-    this.emit('update', 'dimensions-changed')
+    this.dimensionsChangedHook()
   }
 
   performPan (dx, dy) {
     this._panX = this._originalPanX + dx
     this._panY = this._originalPanY + dy
-    this.emit('update', 'dimensions-changed')
+    this.dimensionsChangedHook()
   }
 
   setDrawingTool (activeDrawingTool, drawingIsModal) {

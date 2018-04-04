@@ -162,7 +162,10 @@ class StateInspector extends React.Component {
 
   render () {
     return (
-      <div style={{...STYLES.container, visibility: this.props.visible ? 'initial' : 'none'}}>
+      <div style={{
+        ...STYLES.container,
+        display: this.props.visible ? 'initial' : 'none'
+      }}>
         <div style={STYLES.sectionHeader}>
           {this.getHeadingText()}
           <button id='add-state-button' style={STYLES.button}
@@ -200,7 +203,7 @@ class StateInspector extends React.Component {
           }
           {this.shouldDisplayEmptyMessage() &&
             <p style={STYLES.emptyMessage}>
-              You have no states yet! Click on the plus sign above to add one. <br />
+              You have no states yet! Click on the plus sign above to add one.<br /><br />
               States can be referenced by name in property input fields
             </p>
           }

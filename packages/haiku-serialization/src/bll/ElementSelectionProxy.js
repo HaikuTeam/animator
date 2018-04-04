@@ -20,6 +20,18 @@ const DELTA_ROTATION_OFFSETS = {
   8: 4 * PI_OVER_12
 }
 
+const CORNER_TRANSFORM_ORIGINS = {
+  0: {x: 1, y: 1},
+  1: {x: 0.5, y: 1},
+  2: {x: 0, y: 1},
+  3: {x: 1, y: 0.5},
+  4: {x: 0.5, y: 0.5}, // unused
+  5: {x: 0, y: 0.5},
+  6: {x: 1, y: 0},
+  7: {x: 0.5, y: 0},
+  8: {x: 0, y: 0}
+}
+
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 
 function isNumeric (n) {
@@ -297,6 +309,10 @@ class ElementSelectionProxy extends BaseModel {
     throw new Error('not yet implemented')
   }
 
+  getElement () {
+    return this.selection[0]
+  }
+
   getParentSize () {
     const { width, height } = this.component.getContextSize()
     return {
@@ -310,11 +326,21 @@ class ElementSelectionProxy extends BaseModel {
     return Element.getBoundingBoxPointsForElementsTransformed(this.selection)
   }
 
+  getOriginTransformed () {
+    // If managing only one element, use its own box points
+    if (this.doesManageSingleElement()) {
+      return this.selection[0].getOriginTransformed()
+    }
+
+    // TODO: persist and allow user to update this value.
+    // TODO: correctly calculate this value.
+    return {x: 0, y: 0}
+  }
+
   getBoxPointsTransformed () {
     // If managing only one element, use its own box points
     if (this.doesManageSingleElement()) {
-      const elementPoints = this.selection[0].getBoxPointsTransformed()
-      return elementPoints
+      return this.selection[0].getBoxPointsTransformed()
     }
 
     const parentSize = this.getParentSize()
@@ -412,9 +438,9 @@ class ElementSelectionProxy extends BaseModel {
       if (points && points.length === 9) {
         if (key === 'sizeAbsolute.x') return Math.abs(points[2].x - points[0].x)
         if (key === 'sizeAbsolute.y') return Math.abs(points[6].y - points[0].y)
-      } else {
-        return 1
       }
+
+      return 1
     }
 
     // If managing multiple elements, use our proxy properties
@@ -433,10 +459,14 @@ class ElementSelectionProxy extends BaseModel {
     lastMouseDownCoord,
     isAnythingScaling,
     isAnythingRotating,
+    isOriginPanning,
     controlActivation,
     viewportTransform,
     globals
   ) {
+    if (isOriginPanning) {
+      return this.panOrigin(dx, dy, viewportTransform)
+    }
     if (isAnythingScaling) {
       if (!controlActivation.cmd) {
         return this.scale(
@@ -489,6 +519,14 @@ class ElementSelectionProxy extends BaseModel {
           lastMouseDownCoord
         )
       }
+    }
+  }
+
+  panOrigin (dx, dy, viewportTransform) {
+    if (this.doesManageSingleElement()) {
+      this.selection[0].panOrigin(dx, dy, viewportTransform)
+    } else {
+      // TODO.
     }
   }
 
@@ -745,7 +783,7 @@ class ElementSelectionProxy extends BaseModel {
     )
   }
 
-  rotate (dx, dy, coordsCurrent, coordsPrevious, lastMouseDownCoord, activationPoint) {
+  rotate (dx, dy, coordsCurrent, coordsPrevious, lastMouseDownCoord, activationPoint, viewportTransform) {
     // HACK: For now, disable multi-rotation until I figure out how to do it
     if (this.hasMultipleInSelection()) {
       return
@@ -762,7 +800,8 @@ class ElementSelectionProxy extends BaseModel {
         coordsCurrent,
         coordsPrevious,
         lastMouseDownCoord,
-        activationPoint
+        activationPoint,
+        viewportTransform
       )
 
       const propertyGroup = element.computePropertyGroupValueFromGroupDelta(propertyGroupDelta)
@@ -1101,11 +1140,13 @@ ElementSelectionProxy.computeScalePropertyGroupDelta = (
   const destinationScaleX = targetScaleX + deltaScaleVector[0]
   const destinationScaleY = targetScaleY + deltaScaleVector[1]
 
+  const targetLayout = targetElement.getLayoutSpec()
+  const transformOrigin = CORNER_TRANSFORM_ORIGINS[activationPoint.index]
   const baseTranslationOffset = (activationPoint.alt)
     ? [0, 0]
     : [
-      (isLeft ? -1 : 1) * (destinationScaleX - targetScaleX) * (targetWidth * 0.5),
-      (isTop ? -1 : 1) * (destinationScaleY - targetScaleY) * (targetHeight * 0.5)
+      (destinationScaleX - targetScaleX) * targetWidth * (targetLayout.origin.x - transformOrigin.x),
+      (destinationScaleY - targetScaleY) * targetHeight * (targetLayout.origin.y - transformOrigin.y)
     ]
 
   const translationOffset = [
@@ -1139,7 +1180,8 @@ ElementSelectionProxy.computeRotationPropertyGroupDelta = (
   coordsCurrent,
   coordsPrevious,
   lastMouseDownCoord,
-  activationPoint
+  activationPoint,
+  {zoom}
 ) => {
   // Calculate rotation delta based on old mouse position and new
   //  *(x0, y0)
@@ -1151,17 +1193,12 @@ ElementSelectionProxy.computeRotationPropertyGroupDelta = (
   //  ^      w
   //  center of rotation
 
-  const x0 = coordsPrevious.clientX
-  const y0 = coordsPrevious.clientY
-  const x1 = coordsCurrent.clientX
-  const y1 = coordsCurrent.clientY
+  const x0 = coordsPrevious.x / zoom
+  const y0 = coordsPrevious.y / zoom
+  const x1 = coordsCurrent.x / zoom
+  const y1 = coordsCurrent.y / zoom
 
-  // TODO: Compute the rect without reaching into the DOM
-  const rect = targetElement.$el().getBoundingClientRect()
-
-  // TODO: Replace 0.5 with the origin value
-  const cx = rect.left + ((rect.right - rect.left) * 0.5)
-  const cy = rect.top + ((rect.bottom - rect.top) * 0.5)
+  const {x: cx, y: cy} = targetElement.getOriginTransformed()
 
   //       *mouse(x,y)
   //      /|
@@ -1175,16 +1212,16 @@ ElementSelectionProxy.computeRotationPropertyGroupDelta = (
   // tan(θ) = h / w
 
   // Last angle
-  const w0 = x0 - cx
-  const h0 = y0 - cy
-  let theta0 = Math.atan2(w0, h0)
+  const w0 = cx - x0
+  const h0 = cy - y0
+  let theta0 = Math.atan2(h0, w0)
 
   // New angle
-  const w1 = x1 - cx
-  const h1 = y1 - cy
-  let theta1 = Math.atan2(w1, h1)
+  const w1 = cx - x1
+  const h1 = cy - y1
+  let theta1 = Math.atan2(h1, w1)
 
-  let deltaRotationZ = theta0 - theta1
+  let deltaRotationZ = theta1 - theta0
 
   // If shift is held, snap to absolute increments of pi/12
   if (activationPoint.shift) {

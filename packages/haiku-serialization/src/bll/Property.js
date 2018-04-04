@@ -104,7 +104,9 @@ Property.HUMANIZED_PROP_NAMES = {
   'sizeAbsolute.x': 'Size X',
   'sizeAbsolute.y': 'Size Y',
   'style.overflowX': 'Overflow X',
-  'style.overflowY': 'Overflow Y'
+  'style.overflowY': 'Overflow Y',
+  'origin.x': 'Origin X',
+  'origin.y': 'Origin Y'
 }
 
 Property.sort = (a, b) => {
@@ -185,8 +187,6 @@ Property.EXCLUDE_FROM_JIT = {
   'mount.x': true,
   'mount.y': true,
   'mount.z': true,
-  'origin.x': true,
-  'origin.y': true,
   'origin.z': true,
   'scale.z': true, // Not sane until we have true 3D objects
   'sizeAbsolute.z': true, // Not sane until we have true 3D objects
@@ -207,7 +207,9 @@ Property.EXCLUDE_FROM_JIT_IF_ROOT_ELEMENT = {
   'rotation.z': true,
   'scale.x': true,
   'scale.y': true,
-  'scale.z': true
+  'scale.z': true,
+  'origin.x': true,
+  'origin.y': true
 }
 
 Property.BUILTIN_DOM_SCHEMAS = {
@@ -258,6 +260,8 @@ Property.BUILTIN_DOM_SCHEMAS = {
     'rotation.z': 'number',
     'scale.x': 'number',
     'scale.y': 'number',
+    'origin.x': 'number',
+    'origin.y': 'number',
     'style.border': 'string',
     'style.borderBottom': 'string',
     'style.borderLeft': 'string',

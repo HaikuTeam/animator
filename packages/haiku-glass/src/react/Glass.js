@@ -26,7 +26,7 @@ import {GearSVG} from 'haiku-ui-common/lib/react/OtherIcons'
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 
 const Globals = require('haiku-ui-common/lib/Globals').default
-const {clipboard, shell} = require('electron')
+const {clipboard, shell, remote} = require('electron')
 const fse = require('haiku-fs-extra')
 const moment = require('moment')
 const {HOMEDIR_PATH} = require('haiku-serialization/src/utils/HaikuHomeDir')
@@ -110,6 +110,7 @@ export class Glass extends React.Component {
       mousePositionPrevious: null,
       isAnythingScaling: false,
       isAnythingRotating: false,
+      isOriginPanning: false,
       globalControlPointHandleClass: '',
       isStageSelected: false,
       isStageNameHovering: false,
@@ -153,19 +154,6 @@ export class Glass extends React.Component {
 
     this.drawLoop = this.drawLoop.bind(this)
     this.draw = this.draw.bind(this)
-
-    const haikuConfig = Config.build({
-      seed: Config.seed(),
-      cache: {}
-    })
-    this._haikuRenderer = new HaikuDOMRenderer(null, haikuConfig)
-    this._haikuContext = new HaikuContext(
-      null,
-      this._haikuRenderer,
-      {},
-      { timelines: {}, template: { elementName: 'div', attributes: {}, children: [] } },
-      haikuConfig
-    )
 
     this.handleRequestElementCoordinates = this.handleRequestElementCoordinates.bind(this)
     this.elementContextMenuButton = {
@@ -690,7 +678,11 @@ export class Glass extends React.Component {
     }), 64)
 
     this.addEmitterListener(window, 'mouseup', this.windowMouseUpHandler.bind(this))
-    this.addEmitterListener(window, 'mousemove', this.windowMouseMoveHandler.bind(this))
+
+    this.addEmitterListener(window, 'mousemove', lodash.throttle((mouseMoveEvent) => {
+      this.windowMouseMoveHandler(mouseMoveEvent)
+    }, 32))
+
     this.addEmitterListener(window, 'dblclick', this.windowDblClickHandler.bind(this))
     this.addEmitterListener(window, 'keydown', this.windowKeyDownHandler.bind(this))
     this.addEmitterListener(window, 'keyup', this.windowKeyUpHandler.bind(this))
@@ -949,6 +941,10 @@ export class Glass extends React.Component {
       })
 
       return
+    }
+
+    if (getOriginTarget(mousedownEvent.nativeEvent.target)) {
+      this.originActivation({event: mousedownEvent.nativeEvent})
     }
 
     // We are panning now, so don't un/select anything
@@ -1261,6 +1257,7 @@ export class Glass extends React.Component {
     this.setState({
       isAnythingScaling: false,
       isAnythingRotating: false,
+      isOriginPanning: false,
       globalControlPointHandleClass: '',
       controlActivation: null
     })
@@ -1512,6 +1509,7 @@ export class Glass extends React.Component {
             lastMouseDownPosition,
             this.state.isAnythingScaling,
             this.state.isAnythingRotating,
+            this.state.isOriginPanning,
             this.state.controlActivation,
             viewportTransform,
             Globals
@@ -1521,6 +1519,13 @@ export class Glass extends React.Component {
     }
 
     return mousePositionCurrent
+  }
+
+  originActivation ({event}) {
+    // TODO: support more modes (and make them discoverable).
+    this.setState({
+      isOriginPanning: Globals.isCommandKeyDown
+    })
   }
 
   controlActivation (activationInfo) {
@@ -1577,10 +1582,27 @@ export class Glass extends React.Component {
       return
     }
 
-    // This has to happen first; renderer depends on it
-    this._haikuRenderer.mount = this.refs.overlay
+    if (!this._haikuRenderer) {
+      const haikuConfig = Config.build({
+        seed: Config.seed(),
+        cache: {}
+      })
 
-    const container = this._haikuRenderer.createContainer(this.refs.overlay)
+      this._haikuRenderer = new HaikuDOMRenderer(
+        this.refs.overlay,
+        haikuConfig
+      )
+
+      this._haikuContext = new HaikuContext(
+        null,
+        this._haikuRenderer,
+        {},
+        { timelines: {}, template: { elementName: 'div', attributes: {}, children: [] } },
+        haikuConfig
+      )
+    }
+
+    const container = this._haikuRenderer.createContainer({})
 
     const parts = this.buildDrawnOverlays()
 
@@ -1629,7 +1651,8 @@ export class Glass extends React.Component {
         proxy.canControlHandles(),
         proxy.getElementOrProxyPropertyValue('rotation.z'),
         proxy.getElementOrProxyPropertyValue('scale.x'),
-        proxy.getElementOrProxyPropertyValue('scale.y')
+        proxy.getElementOrProxyPropertyValue('scale.y'),
+        proxy.getOriginTransformed()
       )
     }
 
@@ -1714,6 +1737,51 @@ export class Glass extends React.Component {
           'vector-effect': 'non-scaling-stroke'
         }
       }]
+    }
+  }
+
+  renderOrigin (x, y) {
+    if (!this.getActiveComponent()) {
+      return
+    }
+
+    const scale = 1 / (this.getActiveComponent().getArtboard().getZoom() || 1)
+
+    return {
+      elementName: 'div',
+      attributes: {
+        key: 'origin',
+        class: 'origin',
+        style: {
+          position: 'absolute',
+          transform: `scale(${scale},${scale})`,
+          pointerEvents: 'auto',
+          left: (x - 3.5) + 'px',
+          top: (y - 3.5) + 'px',
+          border: '1px solid ' + Palette.RED,
+          backgroundColor: Palette.DARK_PINK,
+          boxShadow: '0 2px 6px 0 ' + Palette.SHADY, // TODO: account for rotation
+          width: '7px',
+          height: '7px',
+          borderRadius: '50%'
+        }
+      },
+      children: [
+        {
+          elementName: 'div',
+          attributes: {
+            key: 'origin-hit-area',
+            style: {
+              position: 'absolute',
+              pointerEvents: 'auto',
+              left: '-15px',
+              top: '-15px',
+              width: '30px',
+              height: '30px'
+            }
+          }
+        }
+      ]
     }
   }
 
@@ -1832,7 +1900,7 @@ export class Glass extends React.Component {
     overlays.push(this.buildElementContextMenuIcon(x, y, rotationZ, scaleX, scaleY))
   }
 
-  renderTransformBoxOverlay (points, overlays, canRotate, isRotationModeOn, canControlHandles, rotationZ, scaleX, scaleY) {
+  renderTransformBoxOverlay (points, overlays, canRotate, isRotationModeOn, canControlHandles, rotationZ, scaleX, scaleY, origin) {
     if (!this.getActiveComponent()) {
       return
     }
@@ -1875,6 +1943,10 @@ export class Glass extends React.Component {
         overlays.push(this.renderControlPoint(point.x, point.y, index, canControlHandles && this.getHandleClass(index, canRotate, isRotationModeOn, rotationZ, scaleX, scaleY)))
       }
     })
+
+    if (experimentIsEnabled(Experiment.OriginIndicator)) {
+      overlays.push(this.renderOrigin(origin.x, origin.y))
+    }
   }
 
   getGlobalControlPointHandleClass () {
@@ -2149,6 +2221,33 @@ export class Glass extends React.Component {
         })
       }
     })
+
+    if (process.env.NODE_ENV !== 'production') {
+      items.push({ type: 'separator' })
+
+      items.push({
+        label: 'Inspect Element',
+        enabled: proxy.doesManageSingleElement(),
+        onClick: (event) => {
+          if (remote) {
+            remote.getCurrentWindow().openDevTools()
+
+            this.getActiveComponent().devConsole.logBanner()
+
+            const publicComponentModel = this.getActiveComponent().getCoreComponentInstance()
+            const internalElementModel = proxy.getElement()
+
+            if (publicComponentModel && internalElementModel) {
+              const publicElementModel = publicComponentModel.querySelector(`haiku:${internalElementModel.getComponentId()}`)
+
+              window.element = publicElementModel
+              console.log('element', publicElementModel)
+              console.log('element.target', publicElementModel.target)
+            }
+          }
+        }
+      })
+    }
 
     return items
   }
@@ -2475,18 +2574,26 @@ function belongsToMenuIcon (target) {
   return belongsToMenuIcon(target.parentNode)
 }
 
-function getControlPointTarget (target) {
+function getClassBasedTarget (target, regexp) {
   if (!target || !target.getAttribute) {
     return null
   }
 
   const className = target.getAttribute('class')
 
-  if (className && className.match(/control-point/)) {
+  if (className && regexp.test(className)) {
     return target
   }
 
-  return getControlPointTarget(target.parentNode)
+  return getClassBasedTarget(target.parentNode, regexp)
+}
+
+function getControlPointTarget (target) {
+  return getClassBasedTarget(target, /control-point/)
+}
+
+function getOriginTarget (target) {
+  return getClassBasedTarget(target, /^origin$/)
 }
 
 Glass.propTypes = {

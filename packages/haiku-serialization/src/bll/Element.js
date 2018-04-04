@@ -55,7 +55,6 @@ class Element extends BaseModel {
     this._isHovered = false
     this._isSelected = false
     this.transformCache = new TransformCache(this)
-    this.orientation = {x: 0, y: 0, z: 0, w: 0}
 
     this._headingRow = null
     this._clusterAndPropertyRows = []
@@ -188,27 +187,6 @@ class Element extends BaseModel {
 
   getCoreHostComponentInstance () {
     return this.component.getCoreComponentInstance()
-  }
-
-  getOriginOffsetMatrix () {
-    const offset = Layout3D.createMatrix()
-    if (this.isTextNode()) {
-      return offset
-    }
-    const layout = this.getLayoutSpec()
-    const size = layout.sizeAbsolute
-    const origin = layout.origin
-    offset[12] = -size.x * (0.5 - origin.x)
-    offset[13] = -size.y * (0.5 - origin.y)
-    return offset
-  }
-
-  getOriginResetMatrix () {
-    const reset = this.getOriginOffsetMatrix()
-    reset[12] = -reset[12]
-    reset[13] = -reset[13]
-    reset[14] = -reset[14]
-    return reset
   }
 
   cut () {
@@ -453,23 +431,9 @@ class Element extends BaseModel {
   }
 
   getOriginOffsetComposedMatrix () {
-    const offset = this.getOriginOffsetMatrix()
-    const reset = this.getOriginResetMatrix()
-    const composition = this.getComposedComputedMatrix(offset)
-    const result = Layout3D.multiplyMatrices(composition, reset)
-    return result
-  }
-
-  getComposedComputedMatrix (matrix) {
-    const computedLayouts = this.getComputedLayoutAncestry()
-    let i = computedLayouts.length
-    while (i--) {
-      matrix = Layout3D.multiplyMatrices(
-        matrix,
-        computedLayouts[i].matrix
-      )
-    }
-    return matrix
+    return Layout3D.multiplyArrayOfMatrices(this.getComputedLayoutAncestry().reverse().map(
+      (layout) => layout.matrix
+    ))
   }
 
   getComputedSize () {
@@ -486,28 +450,11 @@ class Element extends BaseModel {
     return this.parent.getComputedSize()
   }
 
-  getComputedMatrix () {
-    if (this.isTextNode()) {
-      return Layout3D.createMatrix()
-    }
-    return this.getComputedLayout().matrix
-  }
-
   getComputedLayout () {
     return Layout3D.computeLayout(
       this.getLayoutSpec(),
       Layout3D.createMatrix(), // QUESTION: Is this ever not-identity?
       this.getParentComputedSize()
-    )
-  }
-
-  updateOrientationWithRotationValues (rx, ry, rz, rw) {
-    this.orientation = Layout3D.computeOrientationFlexibly(
-      rx,
-      ry,
-      rz,
-      rw,
-      this.orientation
     )
   }
 
@@ -579,13 +526,6 @@ class Element extends BaseModel {
         z: grabValue('rotation.z'),
         w: grabValue('rotation.w')
       },
-      orientation: Layout3D.computeOrientationFlexibly(
-        grabValue('rotation.x'),
-        grabValue('rotation.y'),
-        grabValue('rotation.z'),
-        grabValue('rotation.w'),
-        this.orientation
-      ),
       scale: {
         x: grabValue('scale.x'),
         y: grabValue('scale.y'),
@@ -632,22 +572,35 @@ class Element extends BaseModel {
   }
 
   getBoxPointsTransformed () {
-    const points = Element.transformPointsInPlace(
+    return Element.transformPointsInPlace(
       this.getBoxPointsNotTransformed(),
       this.getOriginOffsetComposedMatrix()
     )
-    return points
+  }
+
+  getOriginNotTransformed () {
+    const layout = this.getComputedLayout()
+    return {
+      x: layout.size.x * layout.origin.x,
+      y: layout.size.y * layout.origin.y
+    }
+  }
+
+  getOriginTransformed () {
+    return Element.transformPointInPlace(
+      this.getOriginNotTransformed(),
+      this.getOriginOffsetComposedMatrix()
+    )
   }
 
   getPropertyKeyframesObject (propertyName) {
     const bytecode = this.component.getReifiedBytecode()
-    const keyframes = TimelineProperty.getPropertySegmentsBase(
+    return TimelineProperty.getPropertySegmentsBase(
       bytecode.timelines,
       this.component.getCurrentTimelineName(),
       this.getComponentId(),
       propertyName
     )
-    return keyframes
   }
 
   computePropertyValue (propertyName, fallbackValue) {
@@ -748,7 +701,7 @@ class Element extends BaseModel {
     if (!this.isComponent()) return null
     const staticTemplateNode = this.getStaticTemplateNode()
     const coreComponentInstance = staticTemplateNode && staticTemplateNode.__instance
-    const activeComponent = coreComponentInstance && coreComponentInstance.__activeComponent
+    const activeComponent = coreComponentInstance && coreComponentInstance.__editor
     return activeComponent
   }
 
@@ -1491,6 +1444,14 @@ class Element extends BaseModel {
 
   showAddressableProperty (propertyName) {
     this._visibleProperties[propertyName] = true
+
+    this.rehydrateRows()
+
+    const row = this.getPropertyRowByPropertyName(propertyName)
+    if (row && row.isWithinCollapsedRow()) {
+      row.parent.expand(this.component.project.getMetadata())
+    }
+
     this.emit('update', 'jit-property-added')
   }
 
@@ -1514,12 +1475,61 @@ class Element extends BaseModel {
     return polygonOverlap(theirPoints, ourPoints)
   }
 
-  getOrigin () {
-    return {
-      x: this.computePropertyValue('origin.x'),
-      y: this.computePropertyValue('origin.y'),
-      z: this.computePropertyValue('origin.z')
+  panOrigin (dx, dy, viewportTransform) {
+    // Origin panning is a position-preserving operation (in parent coordinates), requiring us to update translation to
+    // match. To achieve the desired effect, first we compute the effective (x, y) translation after accounting for
+    // z-rotation and scale, so the origin dot "lands" in an expected place while dragging.
+    const computedLayout = this.getComputedLayout()
+    const targetThetaRadians = this.computePropertyValue('rotation.z')
+    const finalDx = (dx * Math.cos(targetThetaRadians) + dy * Math.sin(targetThetaRadians)) / computedLayout.scale.x
+    const finalDy = (dy * Math.cos(targetThetaRadians) - dx * Math.sin(targetThetaRadians)) / computedLayout.scale.y
+
+    // Next, we essentially recalc the `@haiku/core/lib/layout/computeMatrix` computations in the affected (x, y)
+    // coordinate systems using the (finalDx, finalDy) as the composed translation. Some liberties are taken here—
+    // for example, we are assuming origin.z is always 0.
+    const wz = computedLayout.orientation.w * computedLayout.orientation.z
+    const xx = computedLayout.orientation.x * computedLayout.orientation.x
+    const yy = computedLayout.orientation.y * computedLayout.orientation.y
+    const zz = computedLayout.orientation.z * computedLayout.orientation.z
+    const xy = computedLayout.orientation.x * computedLayout.orientation.y
+
+    const rs0 = (1 - 2 * (yy + zz)) * computedLayout.scale.x
+    const rs1 = 2 * (xy + wz) * computedLayout.scale.x
+    const rs3 = 2 * (xy - wz) * computedLayout.scale.y
+    const rs4 = (1 - 2 * (xx + zz)) * computedLayout.scale.y
+
+    // Finally, we output the property group delta, normalizing origin in our element's coordinate system.
+    const propertyGroupDelta = {
+      'translation.x': {
+        value: finalDx * rs0 + finalDy * rs3
+      },
+      'translation.y': {
+        value: finalDx * rs1 + finalDy * rs4
+      },
+      'origin.x': {
+        value: finalDx / computedLayout.size.x / viewportTransform.zoom
+      },
+      'origin.y': {
+        value: finalDy / computedLayout.size.y / viewportTransform.zoom
+      }
     }
+
+    const propertyGroup = this.computePropertyGroupValueFromGroupDelta(propertyGroupDelta)
+    const accumulatedUpdates = {}
+    // TODO: move the guts of this out of ElementSelectionProxy so we don't hold the awkward cross-reference.
+    ElementSelectionProxy.accumulateKeyframeUpdates(
+      accumulatedUpdates,
+      this.getComponentId(),
+      this.component.getCurrentTimelineName(),
+      this.component.getCurrentTimelineTime(),
+      propertyGroup
+    )
+
+    this.component.updateKeyframes(
+      accumulatedUpdates,
+      this.component.project.getMetadata(),
+      () => {} // no-op
+    )
   }
 
   doesContainUngroupableContent () {
@@ -1713,13 +1723,16 @@ Element.visitDescendants = (element, visitor) => {
 
 Element.transformPointsInPlace = (points, matrix) => {
   for (let i = 0; i < points.length; i++) {
-    let point = points[i]
-    let vector = [point.x, point.y]
-    let offset = MathUtils.transformVectorByMatrix([], vector, matrix)
-    point.x = offset[0]
-    point.y = offset[1]
+    Element.transformPointInPlace(points[i], matrix)
   }
   return points
+}
+
+Element.transformPointInPlace = (point, matrix) => {
+  const offset = MathUtils.transformVectorByMatrix([], [point.x, point.y], matrix)
+  point.x = offset[0]
+  point.y = offset[1]
+  return point
 }
 
 Element.getRotationIn360 = (radians) => {
@@ -1736,9 +1749,9 @@ Element.getBoundingBoxPoints = (points) => {
   let y2 = points[0].y
   points.forEach((point) => {
     if (point.x < x1) x1 = point.x
+    else if (point.x > x2) x2 = point.x
     if (point.y < y1) y1 = point.y
-    if (point.x > x2) x2 = point.x
-    if (point.y > y2) y2 = point.y
+    else if (point.y > y2) y2 = point.y
   })
   const w = x2 - x1
   const h = y2 - y1
@@ -1921,6 +1934,8 @@ Element.ALWAYS_ALLOWED_PROPS = {
   'rotation.y': true,
   'scale.x': true,
   'scale.y': true,
+  'origin.x': true,
+  'origin.y': true,
   'opacity': true
   // 'backgroundColor': true,
   // 'shown': true // Mainly so instantiation at non-0 times results in invisibility
@@ -1999,3 +2014,4 @@ const Property = require('./Property')
 const Row = require('./Row')
 const Template = require('./Template')
 const TimelineProperty = require('./TimelineProperty')
+const ElementSelectionProxy = require('./ElementSelectionProxy')
