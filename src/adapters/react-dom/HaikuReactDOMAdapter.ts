@@ -128,15 +128,18 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
             continue;
           }
 
-          const haikuConfigFinalKey = HAIKU_CONFIG_PROPS_RENAME_MAPPING[verboseKeyName];
+          const haikuConfigRemappedKey = HAIKU_CONFIG_PROPS_RENAME_MAPPING[verboseKeyName];
 
-          if (haikuConfigFinalKey) {
-            haikuConfig[haikuConfigFinalKey] = rawProps[verboseKeyName];
+          const haikuConfigFinalKey = haikuConfigRemappedKey || verboseKeyName;
+
+          // Special case: Options used to be a separate object, so if we see this legacy
+          // format, just merge it in with the root level of the new options
+          if (haikuConfigFinalKey === 'options') {
+            for (const optionsSubKey in rawProps[verboseKeyName]) {
+              haikuConfig[optionsSubKey] = rawProps[verboseKeyName][optionsSubKey];
+            }
           } else {
-            // We have to include the other extra properties, for example, we also want to pass:
-            //   - children (aka surrogates for controlFlow.inject or controFlow.placeholder)
-            // TODO: Whitelist these as well?
-            haikuConfig[verboseKeyName] = rawProps[verboseKeyName];
+            haikuConfig[haikuConfigFinalKey] = rawProps[verboseKeyName];
           }
         }
       }

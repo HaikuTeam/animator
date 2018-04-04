@@ -24,6 +24,7 @@ function getFnName(fn) {
 
 export default function matchByTagName(node, tagName, options) {
   const val = objectPath(node, options.name);
+
   if (val) {
     if (typeof val === STRING && val === tagName) {
       return true;

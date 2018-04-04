@@ -296,7 +296,7 @@ export default class HaikuTimeline extends HaikuBase {
 
   pause() {
     const time = this.component.getClock().getTime();
-    const descriptor = this.component._getTimelineDescriptor(this._name);
+    const descriptor = this.component.getTimelineDescriptor(this._name);
     this.stop(time, descriptor);
   }
 
@@ -306,7 +306,7 @@ export default class HaikuTimeline extends HaikuBase {
     this.ensureClockIsRunning();
 
     const time = this.component.getClock().getTime();
-    const descriptor = this.component._getTimelineDescriptor(this._name);
+    const descriptor = this.component.getTimelineDescriptor(this._name);
     const local = this._localElapsedTime;
 
     this.start(time, descriptor);
@@ -327,7 +327,7 @@ export default class HaikuTimeline extends HaikuBase {
     this.ensureClockIsRunning();
     const clockTime = this.component.getClock().getTime();
     this.controlTime(ms, clockTime);
-    const descriptor = this.component._getTimelineDescriptor(this._name);
+    const descriptor = this.component.getTimelineDescriptor(this._name);
     this.start(clockTime, descriptor);
     this.component._markForFullFlush();
   }

@@ -48,19 +48,14 @@ export default class HaikuHTMLRenderer extends HaikuBase {
     return false;
   }
 
-  createContainer() {
-    return {
-      isContainer: true,
-      layout: {
-        computed: {
-          size: this.config.size,
-        },
+  createContainer(out = {}) {
+    out['layout'] = {
+      computed: {
+        size: this.config.size,
       },
     };
-  }
 
-  getLastContainer() {
-    return this.createContainer();
+    return out;
   }
 
   initialize() {

@@ -55,7 +55,7 @@ function setAttribute(el, key, val, cache) {
 export default function assignAttributes(domElement, virtualElement, component, isPatchOperation) {
   const flexId = getFlexId(virtualElement);
 
-  const cache = component.cache[flexId];
+  const cache = component.subcacheGet(flexId);
 
   if (!isPatchOperation) {
     // Remove any attributes from the previous run that aren't present this time around

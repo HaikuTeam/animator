@@ -11,6 +11,12 @@ import replaceElement from './replaceElement';
 import shouldElementBeReplaced from './shouldElementBeReplaced';
 import updateElement from './updateElement';
 
+const connectTarget = (virtualNode, domElement) => {
+  if (virtualNode && typeof virtualNode === 'object') {
+    virtualNode.__target = domElement;
+  }
+};
+
 export default function renderTree(
   domElement,
   virtualElement,
@@ -19,6 +25,9 @@ export default function renderTree(
   isPatchOperation,
   doSkipChildren,
 ) {
+  // E.g. I might want to inspect the dom node, grab the haiku source data, etc.
+  connectTarget(virtualElement, domElement);
+
   const flexId = getFlexId(virtualElement);
 
   component._addElementToHashTable(domElement, virtualElement);
@@ -31,15 +40,13 @@ export default function renderTree(
     };
   }
 
-  // E.g. I might want to inspect the dom node, grab the haiku source data, etc.
-  virtualElement.__target = domElement;
   domElement.haiku.virtual = virtualElement;
-  // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute
-  // removals
+
+  // Must clone so we get a correct picture of differences in attributes
+  // between runs, e.g. for detecting attribute removals
   domElement.haiku.element = cloneVirtualElement(virtualElement);
-  if (!component.cache[flexId]) {
-    component.cache[flexId] = {};
-  }
+
+  component.subcacheEnsure(flexId);
 
   if (!Array.isArray(virtualChildren)) {
     return domElement;
@@ -72,6 +79,7 @@ export default function renderTree(
   let max = virtualChildren.length;
   if (max < domChildNodes.length) {
     max = domChildNodes.length;
+    max = domChildNodes.length;
   }
 
   for (let i = 0; i < max; i++) {
@@ -86,6 +94,7 @@ export default function renderTree(
       if (!domChild) {
         const insertedElement = appendChild(null, virtualChild, domElement, virtualElement, component);
         component._addElementToHashTable(insertedElement, virtualChild);
+        connectTarget(virtualChild, insertedElement);
       } else {
         // Circumstances in which we want to completely *replace* the element:
         // - We see that our cached target element is not the one at this location
@@ -95,9 +104,11 @@ export default function renderTree(
         // of itself and all of its children, because e.g. url(#...) references will retain pointers to
         // old elements and this is the only way to clear the DOM to get a correct render.
         if (shouldElementBeReplaced(domChild, virtualChild, component)) {
-          replaceElement(domChild, virtualChild, domElement, virtualElement, component);
+          const newElement = replaceElement(domChild, virtualChild, domElement, virtualElement, component);
+          connectTarget(virtualChild, newElement);
         } else {
           updateElement(domChild, virtualChild, domElement, virtualElement, component, isPatchOperation);
+          connectTarget(virtualChild, domChild);
         }
       }
     }

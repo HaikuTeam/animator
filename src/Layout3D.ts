@@ -49,7 +49,7 @@ function initializeNodeAttributes(element) {
     element.attributes.style = {};
   }
   if (!element.layout) {
-    element.layout = createLayoutSpec(null, null, null);
+    element.layout = createLayoutSpec(element.elementName === 'svg');
     element.layout.matrix = createMatrix();
     element.layout.format = ELEMENTS_2D[element.elementName]
       ? FORMATS.TWO
@@ -62,11 +62,13 @@ function initializeTreeAttributes(tree, container) {
   if (!tree || typeof tree === 'string') {
     return;
   }
+
   initializeNodeAttributes(tree);
-  tree.__parent = container;
+
   if (!tree.children || tree.children.length < 1) {
     return;
   }
+
   for (let i = 0; i < tree.children.length; i++) {
     initializeTreeAttributes(tree.children[i], tree);
   }
@@ -86,13 +88,13 @@ function initializeTreeAttributes(tree, container) {
 // EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
 // ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
-function createLayoutSpec(ax, ay, az) {
+function createLayoutSpec(createCoordinateSystem?: boolean) {
   return {
     shown: true,
     opacity: 1.0,
-    mount: {x: ax || 0, y: ay || 0, z: az || 0}, // anchor in self
-    align: {x: ax || 0, y: ay || 0, z: az || 0}, // anchor in context
-    origin: {x: ax || 0, y: ay || 0, z: az || 0}, // transform origin
+    mount: {x: 0, y: 0, z: 0}, // anchor in self
+    align: {x: 0, y: 0, z: 0}, // anchor in context
+    origin: createCoordinateSystem ? {x: 0.5, y: 0.5, z: 0.5} : {x: 0, y: 0, z: 0}, // transform origin
     translation: {x: 0, y: 0, z: 0},
     rotation: {x: 0, y: 0, z: 0, w: 0},
     orientation: {x: 0, y: 0, z: 0, w: 0},
@@ -174,5 +176,4 @@ export default {
   FORMATS,
   SIZE_ABSOLUTE,
   SIZE_PROPORTIONAL,
-  ATTRIBUTES: createLayoutSpec(null, null, null),
 };

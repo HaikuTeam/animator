@@ -37,9 +37,7 @@ export default function updateElement(
     };
   }
 
-  if (!component.cache[flexId]) {
-    component.cache[flexId] = {};
-  }
+  component.subcacheEnsure(flexId);
 
   if (!domElement.haiku.element) {
     // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute
