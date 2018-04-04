@@ -61,14 +61,14 @@ export default class HaikuDOMRenderer extends HaikuBase {
   }
 
   getZoom() {
-    return ((this.config && this.config.zoom) || 1.0)
+    return ((this.config && this.config.zoom) || 1.0);
   }
 
   getPan() {
     return {
       x: (this.config && this.config.pan && this.config.pan.x) || 0,
-      y: (this.config && this.config.pan && this.config.pan.y) || 0
-    }
+      y: (this.config && this.config.pan && this.config.pan.y) || 0,
+    };
   }
 
   createContainer(out = {}) {
@@ -317,8 +317,8 @@ export default class HaikuDOMRenderer extends HaikuBase {
   }
 
   getUser() {
-    const zoom = this.getZoom()
-    const pan = this.getPan()
+    const zoom = this.getZoom();
+    const pan = this.getPan();
     return {
       zoom,
       pan,
