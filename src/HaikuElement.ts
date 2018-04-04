@@ -172,28 +172,34 @@ export default class HaikuElement extends HaikuBase {
   }
 
   querySelector(selector: string): any {
-    let out;
+    return this.cacheFetch(`querySelector:${selector}`, () => {
+      let out;
 
-    this.visitDescendants((element) => {
-      if (element.matches(selector)) {
-        out = element;
+      this.visitDescendants((element) => {
+        if (element.matches(selector)) {
+          out = element;
 
-        // Returning `false` short-circuits the visitor
-        return false;
-      }
+          // Returning `false` short-circuits the visitor
+          return false;
+        }
+      });
+
+      return out;
     });
-
-    return out;
   }
 
-  querySelectorAll(selector: string, out = []): any {
-    this.visitDescendants((element) => {
-      if (element.matches(selector)) {
-        out.push(element);
-      }
-    });
+  querySelectorAll(selector: string): any {
+    return this.cacheFetch(`querySelectorAll:${selector}`, () => {
+      const out = [];
 
-    return out;
+      this.visitDescendants((element) => {
+        if (element.matches(selector)) {
+          out.push(element);
+        }
+      });
+
+      return out;
+    });
   }
 
   getRotationX(): number {
