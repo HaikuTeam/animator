@@ -1,6 +1,23 @@
-const isCoordInsideRect = (x, y, rect) => {
-  return rect.left <= x && x <= rect.right && rect.top <= y && y <= rect.bottom
+const pointInPolygon = require('point-in-polygon')
+
+const isCoordInsideRect = (px, py, rect) => {
+  return rect.left <= px && px <= rect.right && rect.top <= py && py <= rect.bottom
 }
+
+const rounded = (n, d = 3) => {
+  const powerOfTen = Math.pow(10, d)
+  return Math.round(n * powerOfTen) / powerOfTen
+}
+
+const basicallyEquals = (n, m) => Math.abs(n - m) < 1e-4
+
+const isCoordInsideBoxPoints = (px, py, boxPoints) => pointInPolygon(
+  [px, py], [
+    [boxPoints[0].x, boxPoints[0].y],
+    [boxPoints[2].x, boxPoints[2].y],
+    [boxPoints[8].x, boxPoints[8].y],
+    [boxPoints[6].x, boxPoints[6].y]
+  ])
 
 const modOfIndex = (idx, max) => {
   return (idx % max + max) % max
@@ -15,8 +32,9 @@ const roundUp = (numToRound, multiple) => {
 }
 
 const transformVectorByMatrix = (out, v, m) => {
-  out[0] = m[0] * v[0] + m[4] * v[1] + m[12]
-  out[1] = m[1] * v[0] + m[5] * v[1] + m[13]
+  out[0] = m[0] * v[0] + m[4] * v[1] + m[8] * v[2] + m[12]
+  out[1] = m[1] * v[0] + m[5] * v[1] + m[9] * v[2] + m[13]
+  out[2] = m[2] * v[0] + m[6] * v[1] + m[10] * v[2] + m[14]
   return out
 }
 
@@ -28,7 +46,10 @@ const transformFourVectorByMatrix = (out, v, m) => {
 }
 
 module.exports = {
+  basicallyEquals,
+  rounded,
   isCoordInsideRect,
+  isCoordInsideBoxPoints,
   modOfIndex,
   roundUp,
   transformVectorByMatrix,

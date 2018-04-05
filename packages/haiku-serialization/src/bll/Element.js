@@ -582,9 +582,9 @@ class Element extends BaseModel {
     const w = layout.size.x
     const h = layout.size.y
     return [
-      {x: 0, y: 0}, {x: w / 2, y: 0}, {x: w, y: 0},
-      {x: 0, y: h / 2}, {x: w / 2, y: h / 2}, {x: w, y: h / 2},
-      {x: 0, y: h}, {x: w / 2, y: h}, {x: w, y: h}
+      {x: 0, y: 0, z: 0}, {x: w / 2, y: 0, z: 0}, {x: w, y: 0, z: 0},
+      {x: 0, y: h / 2, z: 0}, {x: w / 2, y: h / 2, z: 0}, {x: w, y: h / 2, z: 0},
+      {x: 0, y: h, z: 0}, {x: w / 2, y: h, z: 0}, {x: w, y: h, z: 0}
     ]
   }
 
@@ -605,7 +605,8 @@ class Element extends BaseModel {
     const layout = this.getComputedLayout()
     return {
       x: layout.size.x * layout.origin.x,
-      y: layout.size.y * layout.origin.y
+      y: layout.size.y * layout.origin.y,
+      z: layout.size.z * layout.origin.z
     }
   }
 
@@ -1695,9 +1696,13 @@ Element.transformPointsInPlace = (points, matrix) => {
 }
 
 Element.transformPointInPlace = (point, matrix) => {
-  const offset = MathUtils.transformVectorByMatrix([], [point.x, point.y], matrix)
+  if (!point.hasOwnProperty('z')) {
+    throw new Error('mizzingz')
+  }
+  const offset = MathUtils.transformVectorByMatrix([], [point.x, point.y, point.z], matrix)
   point.x = offset[0]
   point.y = offset[1]
+  point.z = offset[2]
   return point
 }
 
@@ -1722,9 +1727,9 @@ Element.getBoundingBoxPoints = (points) => {
   const w = x2 - x1
   const h = y2 - y1
   return [
-    {x: x1, y: y1}, {x: x1 + w / 2, y: y1}, {x: x2, y: y1},
-    {x: x1, y: y1 + h / 2}, {x: x1 + w / 2, y: y1 + h / 2}, {x: x2, y: y1 + h / 2},
-    {x: x1, y: y2}, {x: x1 + w / 2, y: y2}, {x: x2, y: y2}
+    {x: x1, y: y1, z: 0}, {x: x1 + w / 2, y: y1, z: 0}, {x: x2, y: y1, z: 0},
+    {x: x1, y: y1 + h / 2, z: 0}, {x: x1 + w / 2, y: y1 + h / 2, z: 0}, {x: x2, y: y1 + h / 2, z: 0},
+    {x: x1, y: y2, z: 0}, {x: x1 + w / 2, y: y2, z: 0}, {x: x2, y: y2, z: 0}
   ]
 }
 
@@ -1769,19 +1774,6 @@ Element.distanceBetweenPoints = (p1, p2, zoomFactor) => {
     distance *= zoomFactor
   }
   return distance
-}
-
-Element.getOriginPosition = (element) => {
-  const originFractionX = element.computePropertyValue('origin.x')
-  const originFractionY = element.computePropertyValue('origin.y')
-  const width = element.computePropertyValue('sizeAbsolute.x')
-  const height = element.computePropertyValue('sizeAbsolute.y')
-  const left = element.computePropertyValue('translation.x')
-  const top = element.computePropertyValue('translation.y')
-  return {
-    x: left + (width * originFractionX),
-    y: top + (height * originFractionY)
-  }
 }
 
 Element.buildPrimaryKeyFromComponentParentIdAndStaticTemplateNode = (component, parentId, indexInParent, staticTemplateNode) => {

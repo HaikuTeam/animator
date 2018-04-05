@@ -32,6 +32,7 @@ export enum Experiment {
   FigmaIntegration = 'FigmaIntegration',
   OriginIndicator = 'OriginIndicator',
   ComponentInfoInspector = 'ComponentInfoInspector',
+  AdvancedMultiTransform = 'AdvancedMultiTransform',
 }
 
 /**

@@ -94,5 +94,9 @@
   "ComponentInfoInspector": {
     "development": true,
     "production": false
+  },
+  "AdvancedMultiTransform": {
+    "development": true,
+    "production": false
   }
 }
