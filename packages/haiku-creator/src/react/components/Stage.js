@@ -221,6 +221,7 @@ export default class Stage extends React.Component {
             isPreviewMode={this.props.isPreviewMode}
             isTimelineReady={this.props.isTimelineReady}
             envoyClient={this.props.envoyClient}
+            onProjectPublicChange={this.props.onProjectPublicChange}
           />
           {(experimentIsEnabled(Experiment.MultiComponentFeatures))
             ? <ComponentMenu

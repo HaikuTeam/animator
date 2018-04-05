@@ -589,6 +589,7 @@ class StageTitleBar extends React.Component {
             projectUid={projectInfo.uuid}
             sha={projectInfo.sha}
             mixpanel={mixpanel}
+            onProjectPublicChange={this.props.onProjectPublicChange}
           />
         }
       </div>
