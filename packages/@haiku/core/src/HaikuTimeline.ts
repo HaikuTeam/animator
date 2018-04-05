@@ -101,11 +101,15 @@ export default class HaikuTimeline extends HaikuBase {
     }
 
     if (this.isPlaying()) {
+      const frame = this.getFrame();
+
       this.component.routeEventToHandlerAndEmit(
         GLOBAL_LISTENER_KEY,
-        `timeline:${this.getName()}:${this.getFrame()}`,
-        [this.getFrame(), Math.round(this.getTime())],
+        `timeline:${this.getName()}:${frame}`,
+        [frame, Math.round(this.getTime())],
       );
+
+      this.emit('frame', frame);
     }
   }
 
@@ -287,17 +291,20 @@ export default class HaikuTimeline extends HaikuBase {
     this._isPlaying = true;
     this._globalClockTime = maybeGlobalClockTime || 0;
     this._maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
+    this.emit('start');
   }
 
   stop(maybeGlobalClockTime, descriptor) {
     this._isPlaying = false;
     this._maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
+    this.emit('stop');
   }
 
   pause() {
     const time = this.component.getClock().getTime();
     const descriptor = this.component.getTimelineDescriptor(this._name);
     this.stop(time, descriptor);
+    this.emit('pause');
   }
 
   play(requestedOptions) {
@@ -321,6 +328,8 @@ export default class HaikuTimeline extends HaikuBase {
     if (!options.skipMarkForFullFlush) {
       this.component._markForFullFlush();
     }
+
+    this.emit('play');
   }
 
   seek(ms) {
@@ -330,6 +339,7 @@ export default class HaikuTimeline extends HaikuBase {
     const descriptor = this.component.getTimelineDescriptor(this._name);
     this.start(clockTime, descriptor);
     this.component._markForFullFlush();
+    this.emit('seek', ms);
   }
 
   gotoAndPlay(ms) {
