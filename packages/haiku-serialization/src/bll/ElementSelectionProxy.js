@@ -1236,7 +1236,9 @@ ElementSelectionProxy.computeScalePropertyGroup = (
         ElementSelectionProxy.isActivationPointTop(activationPoint)
       // "Edge case", lulz: if we are scaling from a vertical edge, Δsx should _always_ dominate Δsy, even if the
       // transformed object is taller than it is wide.
-      if (activationPoint.index === 3 || activationPoint.index === 5 || targetLayout.size.x > targetLayout.size.y) {
+      if (activationPoint.index === 3 || activationPoint.index === 5 ||
+        (targetLayout.size.x > targetLayout.size.y && activationPoint.index !== 1 && activationPoint.index !== 7)
+      ) {
         delta.y = delta.x * targetLayout.size.y / targetLayout.size.x
         if (negativeProportion) {
           delta.y *= -1
@@ -1353,7 +1355,7 @@ ElementSelectionProxy.computeRotationPropertyGroup = (element, rotationZDelta, f
       value: rounded(targetLayout.translation.y + fixedPointCopy.y - fixedPoint.y)
     },
     'rotation.z': {
-      value: rounded(targetLayout.rotation.z + rotationZDelta)
+      value: rounded(targetLayout.rotation.z)
     }
   }
 }
