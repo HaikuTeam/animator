@@ -1,0 +1,19 @@
+{
+  "date": "March 28, 2018",
+  "sections": {
+    "What's new": [
+      "Added ability to resize the stage from all sides",
+      "Improved undo/redo performance",
+      "Improved performance when horizontally scrolling the timeline",
+      "Improved performance when moving, resizing, and rotating elements on stage",
+      "Improved performance when saving content to disk in the background"
+    ],
+    "Fixes": [
+      "Fixed various bugs with undo/redo",
+      "Fixed bug rendering filter gradient elements which Sketch had assigned the same id",
+      "Fixed bug preventing expressions from being copied correctly when elements were copied/pasted",
+      "Fixed bug that could disable mouse interactions on stage when library assets are double-clicked",
+      "Fixed delay between double-clicking a library asset and seeing it appear on stage"
+    ]
+  }
+}
