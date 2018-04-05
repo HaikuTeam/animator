@@ -1,6 +1,7 @@
 const cp = require('child_process')
 
-const getPackages = require('./helpers/packages')
+const openSourcePackages = require('./helpers/openSourcePackages')
+const openSourceProjects = require('./helpers/openSourceProjects')
 const log = require('./helpers/log')
 const nowVersion = require('./helpers/nowVersion')
 
@@ -13,50 +14,11 @@ if (branch !== 'master') {
 const ROOT = global.process.cwd()
 const processOptions = { cwd: ROOT, stdio: 'inherit' }
 
-// The set of all projects we want to open source.
-const openSourceProjects = new Set([
-  '@haiku/core',
-  '@haiku/cli',
-  'haiku-ui-common'
-])
-
-// Pull in the set of dependencies recursively.
-const openSourcePackages = getPackages(Array.from(openSourceProjects))
-const processedDependencies = new Set()
-let foundNewDeps
-do {
-  foundNewDeps = false
-  openSourcePackages.forEach((pack) => {
-    if (processedDependencies.has(pack.name)) {
-      return
-    }
-
-    if (pack.deps.size > 0) {
-      getPackages(Array.from(pack.deps)).forEach((openSourcePackage) => {
-        // Only push a new package onto the stack if it hasn't already been counted. It's possible for multiple packages
-        // to depend on the same package which is not explicitly open sourced.
-        if (
-          openSourcePackages.find((exisitingPackage) => exisitingPackage.name === openSourcePackage.name) === undefined
-        ) {
-          openSourcePackages.push(openSourcePackage)
-          foundNewDeps = true
-        }
-      })
-    }
-
-    processedDependencies.add(pack.name)
-  })
-} while (foundNewDeps)
-
 // Perform hard reset.
 cp.execSync(`git reset --hard origin/master`)
 
 // Pull standalone remotes.
-openSourcePackages.forEach((pack) => {
-  cp.execSync(`node ./scripts/git-subtree-pull.js --package=${pack.name}`, processOptions)
-})
-
-cp.execSync(`node ./scripts/git-subtree-pull.js --package=changelog`, processOptions)
+cp.execSync(`node ./scripts/git-subtree-pull.js --package=all`, processOptions)
 
 // Bump semver in all projects, plus their @haiku/* dependencies, and commit.
 cp.execSync(`node ./scripts/semver.js --non-interactive`, processOptions)
