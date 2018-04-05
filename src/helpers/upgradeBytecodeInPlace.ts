@@ -11,8 +11,7 @@ import xmlToMana from './xmlToMana';
 const STRING_TYPE = 'string';
 
 const enum UpgradeVersionRequirements {
-  // TODO: replace with actual version this should be bound to.
-  OriginSupport = '3.1.32',
+  OriginSupport = '3.2.0',
 }
 
 /**
