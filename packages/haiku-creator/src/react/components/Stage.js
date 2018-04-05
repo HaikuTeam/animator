@@ -145,16 +145,13 @@ export default class Stage extends React.Component {
       // Instantiatees are translated with respect to the coordinate system of
       // the artboard, and the stage may have been zoomed/panned
       if (this.props.artboardDimensions) {
-        const {
-          zoom,
-          mount
-        } = this.props.artboardDimensions
+        const {zoom, rect} = this.props.artboardDimensions
 
-        coords.x -= mount.rect.left
-        coords.y -= mount.rect.top
+        coords.x -= rect.left
+        coords.y -= rect.top
 
-        coords.x *= 1 / zoom.x
-        coords.y *= 1 / zoom.y
+        coords.x /= zoom
+        coords.y /= zoom
       }
 
       return ac.instantiateComponent(

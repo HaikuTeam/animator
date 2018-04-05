@@ -185,11 +185,15 @@ export class Glass extends React.Component {
     this.handleDimensionsReset = lodash.debounce(() => {
       // Need to notify creator of viewport change so instantiation position is correct;
       // this event is also called whenever the window is resized
+      const artboard = this.getActiveComponent().getArtboard()
       this.props.websocket.send({
         type: 'broadcast',
         name: 'dimensions-reset',
         from: 'glass',
-        data: this.getArtboardRenderInfo()
+        data: {
+          zoom: artboard.getZoom(),
+          rect: artboard.getRect()
+        }
       })
     }, DIMENSIONS_RESET_DEBOUNCE_TIME)
 
@@ -486,24 +490,12 @@ export class Glass extends React.Component {
         return
       }
 
-      let artboard = this.getActiveComponent().getArtboard()
-      const SCROLL_PAN_COEFFICIENT = 0.5 // 1x is default, smaller is slower
-      const deltaX = evt.wheelDeltaX
-      const deltaY = evt.wheelDeltaY
-
-      // HACK:  If you zoom and pan in quick succession, getZoom() will sometimes return 0 (or specifically, will return some value Y such that `1 / Y == Infinity`.)
-      //       [probably a FS-race related bug; should be fixed by decoupling FS read/write from an in-mem representation]
-      //       as a result, the logic that compensates for pan 'sensitivity' based on zoom goes haywire.
-      //
-      //       This null-coalesce (`|| SCROLL_PAN_COEFFICIENT`) works around this bug.
-      //       Ideally, Artboard#getZoom() should return a reliable value.
-      let scale = SCROLL_PAN_COEFFICIENT / ((artboard.getZoom() ^ 2) || SCROLL_PAN_COEFFICIENT)
-
-      const newX = deltaX * scale
-      const newY = deltaY * scale
-
+      const artboard = this.getActiveComponent().getArtboard()
+      // The 0.4 coefficient here adjusts the pan speed down, and can be adjusted if desired. Larger numbers result in
+      // faster panning.
+      const SCROLL_PAN_COEFFICIENT = 0.4 * artboard.getZoom()
       artboard.snapshotOriginalPan()
-      this.performPan(newX, newY)
+      this.performPan(evt.wheelDeltaX * SCROLL_PAN_COEFFICIENT, evt.wheelDeltaY * SCROLL_PAN_COEFFICIENT)
     }, false)
 
     this.addEmitterListener(
@@ -1352,28 +1344,28 @@ export class Glass extends React.Component {
     if (!this.getActiveComponent()) return
     const delta = keyEvent.shiftKey ? 5 : 1
     const proxy = this.fetchProxyElementForSelection()
-    proxy.move(-delta, 0, this.state.mousePositionCurrent, this.state.mousePositionPrevious)
+    proxy.move(-delta, 0)
   }
 
   handleKeyUpArrow (keyEvent) {
     if (!this.getActiveComponent()) return
     const delta = keyEvent.shiftKey ? 5 : 1
     const proxy = this.fetchProxyElementForSelection()
-    proxy.move(0, -delta, this.state.mousePositionCurrent, this.state.mousePositionPrevious)
+    proxy.move(0, -delta)
   }
 
   handleKeyRightArrow (keyEvent) {
     if (!this.getActiveComponent()) return
     const delta = keyEvent.shiftKey ? 5 : 1
     const proxy = this.fetchProxyElementForSelection()
-    proxy.move(delta, 0, this.state.mousePositionCurrent, this.state.mousePositionPrevious)
+    proxy.move(delta, 0)
   }
 
   handleKeyDownArrow (keyEvent) {
     if (!this.getActiveComponent()) return
     const delta = keyEvent.shiftKey ? 5 : 1
     const proxy = this.fetchProxyElementForSelection()
-    proxy.move(0, delta, this.state.mousePositionCurrent, this.state.mousePositionPrevious)
+    proxy.move(0, delta)
   }
 
   handleKeyDown (keyEvent) {
@@ -1507,8 +1499,8 @@ export class Glass extends React.Component {
       this.toggleSelectionStateWithRespectToBox(marqueeBox)
     }
 
-    let dx = (mousePositionCurrent.x - mousePositionPrevious.x) / zoom
-    let dy = (mousePositionCurrent.y - mousePositionPrevious.y) / zoom
+    const dx = mousePositionCurrent.x - mousePositionPrevious.x
+    const dy = mousePositionCurrent.y - mousePositionPrevious.y
     if (dx === 0 && dy === 0) return mousePositionCurrent
 
     // If we got this far, the mouse has changed its position from the most recent mousedown
@@ -1519,8 +1511,8 @@ export class Glass extends React.Component {
     if (this.state.isMouseDragging && this.state.isMouseDown) {
       if (Globals.isSpaceKeyDown && this.state.stageMouseDown) {
         this.performPan(
-          mousemoveEvent.nativeEvent.clientX - this.state.stageMouseDown.x,
-          mousemoveEvent.nativeEvent.clientY - this.state.stageMouseDown.y
+          (mousemoveEvent.nativeEvent.clientX - this.state.stageMouseDown.x) * viewportTransform.zoom,
+          (mousemoveEvent.nativeEvent.clientY - this.state.stageMouseDown.y) * viewportTransform.zoom
         )
       } else if (!this.isPreviewMode()) {
         const proxy = this.fetchProxyElementForSelection()
@@ -1555,12 +1547,6 @@ export class Glass extends React.Component {
   }
 
   controlActivation (activationInfo) {
-    if (!this.getActiveComponent()) {
-      return
-    }
-
-    const artboard = this.getActiveComponent().getArtboard().getRect()
-
     this.setState({
       isAnythingRotating: Globals.isCommandKeyDown,
       isAnythingScaling: !Globals.isCommandKeyDown,
@@ -1569,16 +1555,7 @@ export class Glass extends React.Component {
         ctrl: Globals.isControlKeyDown,
         cmd: Globals.isCommandKeyDown,
         alt: Globals.isAltKeyDown,
-        index: activationInfo.index,
-        arboard: artboard,
-        client: {
-          x: activationInfo.event.clientX,
-          y: activationInfo.event.clientY
-        },
-        coords: {
-          x: activationInfo.event.clientX - artboard.left,
-          y: activationInfo.event.clientY - artboard.top
-        }
+        index: activationInfo.index
       }
     })
   }
@@ -1593,14 +1570,17 @@ export class Glass extends React.Component {
     }
 
     this.state.mousePositionPrevious = this.state.mousePositionCurrent
-    const mousePositionCurrent = getLocalDomEventPosition(mouseEvent.nativeEvent, this.refs.container)
-    mousePositionCurrent.clientX = mouseEvent.nativeEvent.clientX
-    mousePositionCurrent.clientY = mouseEvent.nativeEvent.clientY
-    mousePositionCurrent.x -= this.getActiveComponent().getArtboard().getRect().left
-    mousePositionCurrent.y -= this.getActiveComponent().getArtboard().getRect().top
-    this.state.mousePositionCurrent = mousePositionCurrent
-    if (additionalPositionTrackingState) this.state[additionalPositionTrackingState] = mousePositionCurrent
-    return mousePositionCurrent
+    const artboard = this.getActiveComponent().getArtboard()
+    const rect = artboard.getRect()
+    const zoom = artboard.getZoom()
+    this.state.mousePositionCurrent = {
+      clientX: mouseEvent.nativeEvent.clientX,
+      clientY: mouseEvent.nativeEvent.clientY,
+      x: (mouseEvent.nativeEvent.clientX - rect.left) / zoom,
+      y: (mouseEvent.nativeEvent.clientY - rect.top) / zoom
+    }
+    if (additionalPositionTrackingState) this.state[additionalPositionTrackingState] = this.state.mousePositionCurrent
+    return this.state.mousePositionCurrent
   }
 
   drawOverlays () {
@@ -1632,6 +1612,8 @@ export class Glass extends React.Component {
 
     const parts = this.buildDrawnOverlays()
 
+    const artboard = this.getActiveComponent().getArtboard()
+
     const overlay = {
       elementName: 'div',
       attributes: {
@@ -1640,10 +1622,10 @@ export class Glass extends React.Component {
           transform: 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)',
           position: 'absolute',
           overflow: 'visible',
-          left: this.getActiveComponent().getArtboard().getMountX() + 'px',
-          top: this.getActiveComponent().getArtboard().getMountY() + 'px',
-          width: this.getActiveComponent().getArtboard().getMountWidth() + 'px',
-          height: this.getActiveComponent().getArtboard().getMountHeight() + 'px'
+          left: artboard.getMountX() + 'px',
+          top: artboard.getMountY() + 'px',
+          width: artboard.getMountWidth() + 'px',
+          height: artboard.getMountHeight() + 'px'
         }
       },
       children: parts
@@ -1824,25 +1806,26 @@ export class Glass extends React.Component {
     })
 
     if (canRotate && experimentIsEnabled(Experiment.OriginIndicator) && pointDisplayMode !== POINT_DISPLAY_MODES.NONE) {
-      overlays.push(originMana(this.getActiveComponent(), origin.x, origin.y))
+      overlays.push(originMana(scale, origin.x, origin.y))
     }
 
     // Everything below requires controllable handles.
-    if (!canControlHandles) {
+    if (!canControlHandles || this.state.isOriginPanning) {
       return
     }
 
     if (canRotate && (
-      (this.state.hoveredControlPointIndex && isRotationModeOn) ||
+      (this.state.hoveredControlPointIndex !== null && isRotationModeOn) ||
       this.state.isAnythingRotating
     )) {
-      overlays.push(rotationCursorMana(this.state.mousePositionCurrent, origin))
-    } else if (this.state.hoveredControlPointIndex || this.state.isAnythingScaling) {
+      overlays.push(rotationCursorMana(scale, this.state.mousePositionCurrent, origin))
+    } else if (this.state.hoveredControlPointIndex !== null || this.state.isAnythingScaling) {
       overlays.push(scaleCursorMana(
+        scale,
         this.state.mousePositionCurrent,
         points,
         origin,
-        (this.state.controlActivation && this.state.controlActivation.index) || this.state.hoveredControlPointIndex,
+        this.state.controlActivation ? this.state.controlActivation.index : this.state.hoveredControlPointIndex,
         this.state.controlActivation && this.state.controlActivation.alt
       ))
     }
@@ -1853,7 +1836,7 @@ export class Glass extends React.Component {
       [zoom.x, 0, 0, 0,
         0, zoom.y, 0, 0,
         0, 0, 1, 0,
-        pan.x, pan.y, 0, 1].join(',') + ')'
+        pan.x / zoom.x, pan.y / zoom.x, 0, 1].join(',') + ')'
   }
 
   isPreviewMode () {

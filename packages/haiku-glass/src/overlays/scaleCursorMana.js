@@ -1,5 +1,6 @@
 /**
  * Provides mana for the scale cursor on stage.
+ * @param scale
  * @param mousePosition
  * @param boxPoints
  * @param origin
@@ -7,7 +8,7 @@
  * @param alt
  * @returns {*}
  */
-export default ({x, y}, boxPoints, origin, activationIndex, alt) => {
+export default (scale, {x, y}, boxPoints, origin, activationIndex, alt) => {
   const activationPoint = boxPoints[activationIndex]
   const fixedPoint = alt ? origin : boxPoints[8 - activationIndex]
   return {
@@ -19,7 +20,7 @@ export default ({x, y}, boxPoints, origin, activationIndex, alt) => {
         position: 'absolute',
         left: `${x - 14}px`,
         top: `${y - 9}px`,
-        transform: `rotateZ(${Math.atan2(activationPoint.y - fixedPoint.y, activationPoint.x - fixedPoint.x)}rad)`
+        transform: `rotateZ(${Math.atan2(activationPoint.y - fixedPoint.y, activationPoint.x - fixedPoint.x)}rad) scale(${scale},${scale})`
       }
     },
     'children': [{
