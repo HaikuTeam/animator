@@ -1842,7 +1842,7 @@ export class Glass extends React.Component {
         this.state.mousePositionCurrent,
         points,
         origin,
-        this.state.hoveredControlPointIndex || this.state.controlActivation.index,
+        (this.state.controlActivation && this.state.controlActivation.index) || this.state.hoveredControlPointIndex,
         this.state.controlActivation && this.state.controlActivation.alt
       ))
     }
