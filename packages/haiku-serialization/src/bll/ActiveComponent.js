@@ -632,8 +632,7 @@ class ActiveComponent extends BaseModel {
         componentId,
         incomingBytecode.timelines,
         timelineName,
-        timelineTime,
-        incomingBytecode.template
+        timelineTime
       )
 
       if (propertyGroupToApply) {
@@ -925,13 +924,18 @@ class ActiveComponent extends BaseModel {
       }
     }
 
-    if (maybeCoords && (maybeCoords.x || maybeCoords.y)) {
-      const instantiateeWidth = (insertedTimeline['sizeAbsolute.x'] && insertedTimeline['sizeAbsolute.x'][timelineTime] && insertedTimeline['sizeAbsolute.x'][timelineTime].value) || 1
-      const instantiateeHeight = (insertedTimeline['sizeAbsolute.y'] && insertedTimeline['sizeAbsolute.y'][timelineTime] && insertedTimeline['sizeAbsolute.y'][timelineTime].value) || 1
-
-      const propertyGroup = {
-        'translation.x': (maybeCoords.x || 0) - instantiateeWidth / 2,
-        'translation.y': (maybeCoords.y || 0) - instantiateeHeight / 2
+    if (maybeCoords !== undefined) {
+      const propertyGroup = {}
+      const {width, height} = this.getContextSizeActual(timelineName, timelineTime)
+      if (maybeCoords && typeof maybeCoords.x === 'number') {
+        propertyGroup['translation.x'] = maybeCoords.x
+      } else {
+        propertyGroup['translation.x'] = width / 2
+      }
+      if (maybeCoords && typeof maybeCoords.y === 'number') {
+        propertyGroup['translation.y'] = maybeCoords.y
+      } else {
+        propertyGroup['translation.y'] = height / 2
       }
 
       TimelineProperty.addPropertyGroup(

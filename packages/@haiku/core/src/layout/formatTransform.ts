@@ -25,7 +25,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import {isMatrixableTransformArray} from '../helpers/isMatrixableTransformArray';
 import {transformValueIsEssentiallyInt} from '../helpers/transformValueIsEssentiallyInt';
 import Layout3D from '../Layout3D';
 
@@ -34,12 +33,7 @@ const TRANSFORM_ZERO = '0';
 const TRANSFORM_COMMA = ',';
 const TRANSFORM_ZILCH = TRANSFORM_ZERO + TRANSFORM_COMMA;
 
-export default function formatTransform(transform, format, devicePixelRatio) {
-  transform[12] =
-    Math.round(transform[12] * devicePixelRatio) / devicePixelRatio;
-  transform[13] =
-    Math.round(transform[13] * devicePixelRatio) / devicePixelRatio;
-
+export default function formatTransform(transform, format) {
   let prefix;
   let last;
   if (format === Layout3D.FORMATS.TWO) {

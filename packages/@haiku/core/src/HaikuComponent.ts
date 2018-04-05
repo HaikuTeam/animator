@@ -7,9 +7,7 @@ import HaikuBase, {GLOBAL_LISTENER_KEY} from './HaikuBase';
 import HaikuTimeline from './HaikuTimeline';
 import applyPropertyToElement from './helpers/applyPropertyToElement';
 import clone from './helpers/clone';
-import getFlexId from './renderers/dom/getFlexId';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
-import cssMatchOne from './helpers/cssMatchOne';
 import cssQueryList from './helpers/cssQueryList';
 import {isPreviewMode} from './helpers/interactionModes';
 import isMutableProperty from './helpers/isMutableProperty';
@@ -23,7 +21,7 @@ import ValueBuilder from './ValueBuilder';
 import assign from './vendor/assign';
 
 const pkg = require('./../package.json');
-const VERSION = pkg.version;
+export const VERSION = pkg.version;
 
 const STRING_TYPE = 'string';
 const OBJECT_TYPE = 'object';
@@ -132,13 +130,17 @@ export default class HaikuComponent extends HaikuBase {
 
     this.routeEventToHandlerAndEmit(GLOBAL_LISTENER_KEY, 'component:will-initialize', [this]);
 
-    // If the bytecode we got happens to be in an outdated format, we automatically updated it to ours
-    upgradeBytecodeInPlace(this._bytecode, {
-      // Random seed for adding instance uniqueness to ids at runtime.
-      referenceUniqueness: (config.hotEditingMode)
-        ? void (0) // During editing, Haiku.app pads ids unless this is undefined
-        : Math.random().toString(36).slice(2),
-    });
+    try {
+      // If the bytecode we got happens to be in an outdated format, we automatically updated it to ours
+      upgradeBytecodeInPlace(this._bytecode, {
+        // Random seed for adding instance uniqueness to ids at runtime.
+        referenceUniqueness: (config.hotEditingMode)
+          ? void (0) // During editing, Haiku.app pads ids unless this is undefined
+          : Math.random().toString(36).slice(2),
+      });
+    } catch (e) {
+      console.warn('[haiku core] caught error during attempt to upgrade bytecode in place');
+    }
 
     this._context = context;
     this.cache = {};
@@ -1422,7 +1424,7 @@ function computeAndApplyPresetSizing(element, container, mode, deltas) {
   // This makes sure that the sizing occurs with respect to a correct and consistent origin point,
   // but only if the user didn't happen to explicitly set this value (we allow their override).
   if (!element.attributes.style['transform-origin']) {
-    element.attributes.style['transform-origin'] = 'top left';
+    element.attributes.style['transform-origin'] = '0% 0% 0px';
   }
 
   // IMPORTANT: If any value has been changed on the element, you must set this to true.

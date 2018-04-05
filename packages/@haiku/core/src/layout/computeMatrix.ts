@@ -26,9 +26,11 @@
  * THE SOFTWARE.
  */
 
+import Layout3D from '../Layout3D';
+
 export default function computeMatrix(layoutSpec, currentMatrix, currentsizeAbsolute, parentsizeAbsolute) {
-  const alignY = layoutSpec.align.y * parentsizeAbsolute.y;
   const alignX = layoutSpec.align.x * parentsizeAbsolute.x;
+  const alignY = layoutSpec.align.y * parentsizeAbsolute.y;
   const alignZ = layoutSpec.align.z * parentsizeAbsolute.z;
   const mountPointX = layoutSpec.mount.x * currentsizeAbsolute.x;
   const mountPointY = layoutSpec.mount.y * currentsizeAbsolute.y;
@@ -36,6 +38,12 @@ export default function computeMatrix(layoutSpec, currentMatrix, currentsizeAbso
   const originX = layoutSpec.origin.x * currentsizeAbsolute.x;
   const originY = layoutSpec.origin.y * currentsizeAbsolute.y;
   const originZ = layoutSpec.origin.z * currentsizeAbsolute.z;
+
+  layoutSpec.orientation = Layout3D.computeOrientationFlexibly(
+    layoutSpec.rotation.x,
+    layoutSpec.rotation.y,
+    layoutSpec.rotation.z,
+  );
 
   const wx = layoutSpec.orientation.w * layoutSpec.orientation.x;
   const wy = layoutSpec.orientation.w * layoutSpec.orientation.y;
@@ -60,20 +68,17 @@ export default function computeMatrix(layoutSpec, currentMatrix, currentsizeAbso
   const tx =
     alignX +
     layoutSpec.translation.x -
-    mountPointX +
-    originX -
+    mountPointX -
     (rs0 * originX + rs3 * originY + rs6 * originZ);
   const ty =
     alignY +
     layoutSpec.translation.y -
-    mountPointY +
-    originY -
+    mountPointY -
     (rs1 * originX + rs4 * originY + rs7 * originZ);
   const tz =
     alignZ +
     layoutSpec.translation.z -
-    mountPointZ +
-    originZ -
+    mountPointZ -
     (rs2 * originX + rs5 * originY + rs8 * originZ);
 
   return [rs0, rs1, rs2, 0, rs3, rs4, rs5, 0, rs6, rs7, rs8, 0, tx, ty, tz, 1];

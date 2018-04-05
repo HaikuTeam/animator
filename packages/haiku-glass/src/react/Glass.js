@@ -15,6 +15,7 @@ import Asset from 'haiku-serialization/src/bll/Asset'
 import ModuleWrapper from 'haiku-serialization/src/bll/ModuleWrapper'
 import EmitterManager from 'haiku-serialization/src/utils/EmitterManager'
 import react2haiku from 'haiku-serialization/src/utils/react2haiku'
+import {isCoordInsideBoxPoints} from 'haiku-serialization/src/bll/MathUtils'
 import Palette from 'haiku-ui-common/lib/Palette'
 import Comment from './Comment'
 import EventHandlerEditor from './components/EventHandlerEditor'
@@ -24,6 +25,11 @@ import getLocalDomEventPosition from 'haiku-ui-common/lib/helpers/getLocalDomEve
 import requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates'
 import {GearSVG} from 'haiku-ui-common/lib/react/OtherIcons'
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
+import originMana from '../overlays/originMana'
+import controlPointMana from '../overlays/controlPointMana'
+import lineMana from '../overlays/lineMana'
+import rotationCursorMana from '../overlays/rotationCursorMana'
+import scaleCursorMana from '../overlays/scaleCursorMana'
 
 const Globals = require('haiku-ui-common/lib/Globals').default
 const {clipboard, shell} = require('electron')
@@ -40,13 +46,6 @@ const ifIsRunningStandalone = (cb) => {
   if (!window.isWebview) {
     return cb()
   }
-}
-
-const CLOCKWISE_CONTROL_POINTS = {
-  0: [0, 1, 2, 5, 8, 7, 6, 3],
-  1: [6, 7, 8, 5, 2, 1, 0, 3], // flipped vertical
-  2: [2, 1, 0, 3, 6, 7, 8, 5], // flipped horizontal
-  3: [8, 7, 6, 3, 0, 1, 2, 5] // flipped horizontal + vertical
 }
 
 const POINTS_THRESHOLD_REDUCED = 65 // Display only the corner control points
@@ -110,6 +109,8 @@ export class Glass extends React.Component {
       mousePositionPrevious: null,
       isAnythingScaling: false,
       isAnythingRotating: false,
+      hoveredControlPointIndex: null,
+      isOriginPanning: false,
       globalControlPointHandleClass: '',
       isStageSelected: false,
       isStageNameHovering: false,
@@ -219,6 +220,20 @@ export class Glass extends React.Component {
 
     // TODO: Is there any race condition with kicking this off immediately?
     this.drawLoop()
+
+    // Leaky abstraction: we bind control point hover behaviors to superglobals because we use @haiku/core to render
+    // control points as complex SVGs without a timeline. Ideally we would represent the entire box points overlay as a
+    // single Haiku component and subscribe to regular events.
+    window.hoverControlPoint = (hoveredControlPointIndex) => {
+      this.setState({
+        hoveredControlPointIndex
+      })
+    }
+    window.unhoverControlPoint = () => {
+      this.setState({
+        hoveredControlPointIndex: null
+      })
+    }
   }
 
   isTextInputFocused () {
@@ -951,6 +966,10 @@ export class Glass extends React.Component {
       return
     }
 
+    if (getOriginTarget(mousedownEvent.nativeEvent.target)) {
+      this.originActivation({event: mousedownEvent.nativeEvent})
+    }
+
     // We are panning now, so don't un/select anything
     if (Globals.isSpaceKeyDown) {
       return
@@ -972,6 +991,12 @@ export class Glass extends React.Component {
 
       // True if the user has clicked on the stage, but not on any on-stage element
       if (!target || !target.hasAttribute) {
+        const proxy = this.fetchProxyElementForSelection()
+        if (proxy.hasAnythingInSelection() &&
+          isCoordInsideBoxPoints(mouseDownPosition.x, mouseDownPosition.y, proxy.getBoxPointsTransformed())) {
+          return
+        }
+
         // Unselect all the elements unless the user is doing a meta-operation, as indicated by these keys
         if (!Globals.isShiftKeyDown && !Globals.isCommandKeyDown && !Globals.isAltKeyDown) {
           Element.unselectAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
@@ -1221,8 +1246,12 @@ export class Glass extends React.Component {
   findNearestDomSelectionTarget (target) {
     // Don't perform element selection if the user clicked one of the transform controls
     if (
-      (typeof target.className === 'string') &&
-      target.className.indexOf('scale-cursor') !== -1
+      typeof target.className === 'string' &&
+      (
+        target.className === 'origin' ||
+        target.className === 'control-point' ||
+        target.className === 'hit-area'
+      )
     ) {
       return SELECTION_TYPES.ON_STAGE_CONTROL
     }
@@ -1261,9 +1290,12 @@ export class Glass extends React.Component {
     this.setState({
       isAnythingScaling: false,
       isAnythingRotating: false,
+      isOriginPanning: false,
       globalControlPointHandleClass: '',
       controlActivation: null
     })
+
+    this.fetchProxyElementForSelection().initializeRotationSnap()
   }
 
   handleClick (clickEvent) {
@@ -1512,6 +1544,7 @@ export class Glass extends React.Component {
             lastMouseDownPosition,
             this.state.isAnythingScaling,
             this.state.isAnythingRotating,
+            this.state.isOriginPanning,
             this.state.controlActivation,
             viewportTransform,
             Globals
@@ -1521,6 +1554,13 @@ export class Glass extends React.Component {
     }
 
     return mousePositionCurrent
+  }
+
+  originActivation ({event}) {
+    // TODO: support more modes (and make them discoverable).
+    this.setState({
+      isOriginPanning: Globals.isCommandKeyDown
+    })
   }
 
   controlActivation (activationInfo) {
@@ -1625,11 +1665,9 @@ export class Glass extends React.Component {
         proxy.getBoxPointsTransformed(),
         overlays,
         proxy.canRotate(),
-        Globals.isCommandKeyDown,
+        !this.state.isOriginPanning && Globals.isCommandKeyDown,
         proxy.canControlHandles(),
-        proxy.getElementOrProxyPropertyValue('rotation.z'),
-        proxy.getElementOrProxyPropertyValue('scale.x'),
-        proxy.getElementOrProxyPropertyValue('scale.y')
+        proxy.getOriginTransformed()
       )
     }
 
@@ -1638,8 +1676,7 @@ export class Glass extends React.Component {
         proxy.getBoxPointsTransformed(),
         overlays,
         proxy.getElementOrProxyPropertyValue('rotation.z'),
-        proxy.getElementOrProxyPropertyValue('scale.x'),
-        proxy.getElementOrProxyPropertyValue('scale.y')
+        proxy.getElementOrProxyPropertyValue('scale.x')
       )
     }
 
@@ -1689,112 +1726,6 @@ export class Glass extends React.Component {
     }
   }
 
-  renderLine (x1, y1, x2, y2) {
-    return {
-      elementName: 'svg',
-      attributes: {
-        style: {
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          overflow: 'visible'
-        }
-      },
-      children: [{
-        elementName: 'line',
-        attributes: {
-          x1: x1,
-          y1: y1,
-          x2: x2,
-          y2: y2,
-          stroke: Palette.DARKER_ROCK2,
-          'stroke-width': '1px',
-          'vector-effect': 'non-scaling-stroke'
-        }
-      }]
-    }
-  }
-
-  renderControlPoint (x, y, index, handleClass) {
-    if (!this.getActiveComponent()) {
-      return
-    }
-
-    const scale = 1 / (this.getActiveComponent().getArtboard().getZoom() || 1)
-
-    return {
-      elementName: 'div',
-      attributes: {
-        key: 'control-point-' + index,
-        class: `control-point ${handleClass}`,
-        'data-index': index,
-        style: {
-          position: 'absolute',
-          transform: `scale(${scale},${scale})`,
-          pointerEvents: 'auto',
-          left: (x - 3.5) + 'px',
-          top: (y - 3.5) + 'px',
-          border: '1px solid ' + Palette.DARKER_ROCK2,
-          backgroundColor: Palette.ROCK,
-          boxShadow: '0 2px 6px 0 ' + Palette.SHADY, // TODO: account for rotation
-          width: '7px',
-          height: '7px',
-          borderRadius: '50%'
-        }
-      },
-      children: [
-        {
-          elementName: 'div',
-          attributes: {
-            key: 'control-point-hit-area-' + index,
-            style: {
-              position: 'absolute',
-              pointerEvents: 'auto',
-              left: '-15px',
-              top: '-15px',
-              width: '30px',
-              height: '30px'
-            }
-          }
-        }
-      ]
-    }
-  }
-
-  getHandleClass (index, canRotate, isRotationModeOn, rotationZ, scaleX, scaleY) {
-    var defaultPointGroup = CLOCKWISE_CONTROL_POINTS[0]
-    var indexOfPoint = defaultPointGroup.indexOf(index)
-
-    var keyOfPointGroup
-    if (scaleX >= 0 && scaleY >= 0) keyOfPointGroup = 0 // default
-    else if (scaleX >= 0 && scaleY < 0) keyOfPointGroup = 1 // flipped vertically
-    else if (scaleX < 0 && scaleY >= 0) keyOfPointGroup = 2 // flipped horizontally
-    else if (scaleX < 0 && scaleY < 0) keyOfPointGroup = 3 // flipped horizontally and vertically
-
-    if (keyOfPointGroup === undefined) {
-      console.warn(`[haiku-glass] unable to determine handle class due to bad scale values ${scaleX},${scaleY}`)
-      return ''
-    }
-
-    var specifiedPointGroup = CLOCKWISE_CONTROL_POINTS[keyOfPointGroup]
-
-    var rotationDegrees = Element.getRotationIn360(rotationZ)
-    // Each 45 degree turn will equate to a phase change of 1, and that phase corresponds to
-    // a starting index for the control points in clockwise order
-    var phaseNumber = ~~((rotationDegrees + 22.5) / 45) % specifiedPointGroup.length
-    var offsetIndex = (indexOfPoint + phaseNumber) % specifiedPointGroup.length
-    var shiftedIndex = specifiedPointGroup[offsetIndex]
-
-    // These class names are defined in global.css; the indices indicate the corresponding points
-    if (canRotate && isRotationModeOn) {
-      return `rotate-cursor-${shiftedIndex}`
-    } else {
-      return `scale-cursor-${shiftedIndex}`
-    }
-  }
-
   openContextMenu (event) {
     if (this.isPreviewMode()) {
       return
@@ -1809,7 +1740,7 @@ export class Glass extends React.Component {
     })
   }
 
-  buildElementContextMenuIcon (x, y, rotationZ, scaleX, scaleY) {
+  buildElementContextMenuIcon (x, y, rotationZ, scaleX) {
     const boltSize = 30
     const offsetLeft = Math.sign(scaleX) * (boltSize * Math.cos(rotationZ)) - boltSize / 2
     const offsetTop = Math.sign(scaleX) * (boltSize * Math.sin(rotationZ)) - boltSize / 2
@@ -1820,7 +1751,7 @@ export class Glass extends React.Component {
     return this.elementContextMenuButton
   }
 
-  renderEventHandlersOverlay (points, overlays, rotationZ, scaleX, scaleY) {
+  renderEventHandlersOverlay (points, overlays, rotationZ, scaleX) {
     // If the size is smaller than a threshold, only display the corners.
     // And if it is smaller even than that, don't display the points at all
     const dx = Element.distanceBetweenPoints(points[0], points[2], this.state.zoomXY)
@@ -1829,10 +1760,10 @@ export class Glass extends React.Component {
 
     if (dx < POINTS_THRESHOLD_NONE || dy < POINTS_THRESHOLD_NONE) return
 
-    overlays.push(this.buildElementContextMenuIcon(x, y, rotationZ, scaleX, scaleY))
+    overlays.push(this.buildElementContextMenuIcon(x, y, rotationZ, scaleX))
   }
 
-  renderTransformBoxOverlay (points, overlays, canRotate, isRotationModeOn, canControlHandles, rotationZ, scaleX, scaleY) {
+  renderTransformBoxOverlay (points, overlays, canRotate, isRotationModeOn, canControlHandles, origin) {
     if (!this.getActiveComponent()) {
       return
     }
@@ -1863,36 +1794,50 @@ export class Glass extends React.Component {
       const corners = [points[0], points[2], points[8], points[6]]
       corners.forEach((point, index) => {
         const next = corners[(index + 1) % corners.length]
-        overlays.push(this.renderLine(point.x, point.y, next.x, next.y))
+        overlays.push(lineMana(point.x, point.y, next.x, next.y))
       })
     }
+
+    const scale = 1 / (this.getActiveComponent().getArtboard().getZoom() || 1)
 
     points.forEach((point, index) => {
       if (!pointDisplayMode[index]) {
         return
       }
+
       if (index !== 4) {
-        overlays.push(this.renderControlPoint(point.x, point.y, index, canControlHandles && this.getHandleClass(index, canRotate, isRotationModeOn, rotationZ, scaleX, scaleY)))
+        overlays.push(controlPointMana(
+          scale,
+          point,
+          index,
+          canControlHandles ? 'none' : this.getCursorCssRule()
+        ))
       }
     })
-  }
 
-  getGlobalControlPointHandleClass () {
-    if (!this.state.controlActivation) return ''
-    if (!this.getActiveComponent()) return ''
+    if (canRotate && experimentIsEnabled(Experiment.OriginIndicator) && pointDisplayMode !== POINT_DISPLAY_MODES.NONE) {
+      overlays.push(originMana(this.getActiveComponent(), origin.x, origin.y))
+    }
 
-    const controlIndex = this.state.controlActivation.index
-    const isRotationModeOn = Globals.isCommandKeyDown
-    const proxy = this.fetchProxyElementForSelection()
+    // Everything below requires controllable handles.
+    if (!canControlHandles) {
+      return
+    }
 
-    return this.getHandleClass(
-      controlIndex,
-      proxy.canRotate(),
-      isRotationModeOn,
-      proxy.getElementOrProxyPropertyValue('rotation.z'),
-      proxy.getElementOrProxyPropertyValue('scale.x'),
-      proxy.getElementOrProxyPropertyValue('scale.y')
-    )
+    if (canRotate && (
+      (this.state.hoveredControlPointIndex && isRotationModeOn) ||
+      this.state.isAnythingRotating
+    )) {
+      overlays.push(rotationCursorMana(this.state.mousePositionCurrent, origin))
+    } else if (this.state.hoveredControlPointIndex || this.state.isAnythingScaling) {
+      overlays.push(scaleCursorMana(
+        this.state.mousePositionCurrent,
+        points,
+        origin,
+        this.state.hoveredControlPointIndex || this.state.controlActivation.index,
+        this.state.controlActivation && this.state.controlActivation.alt
+      ))
+    }
   }
 
   getCSSTransform (zoom, pan) {
@@ -1912,6 +1857,7 @@ export class Glass extends React.Component {
 
   getCursorCssRule () {
     if (this.isPreviewMode()) return 'default'
+    if (this.state.isAnythingRotating || this.state.isAnythingScaling) return 'none'
     return (this.state.stageMouseDown) ? '-webkit-grabbing' : '-webkit-grab'
   }
 
@@ -2165,7 +2111,6 @@ export class Glass extends React.Component {
     return (
       <div
         id='stage-root'
-        className={this.getGlobalControlPointHandleClass()}
         style={{
           width: '100%',
           height: '100%',
@@ -2475,18 +2420,26 @@ function belongsToMenuIcon (target) {
   return belongsToMenuIcon(target.parentNode)
 }
 
-function getControlPointTarget (target) {
+function getClassBasedTarget (target, regexp) {
   if (!target || !target.getAttribute) {
     return null
   }
 
   const className = target.getAttribute('class')
 
-  if (className && className.match(/control-point/)) {
+  if (className && regexp.test(className)) {
     return target
   }
 
-  return getControlPointTarget(target.parentNode)
+  return getClassBasedTarget(target.parentNode, regexp)
+}
+
+function getControlPointTarget (target) {
+  return getClassBasedTarget(target, /control-point/)
+}
+
+function getOriginTarget (target) {
+  return getClassBasedTarget(target, /^origin$/)
 }
 
 Glass.propTypes = {

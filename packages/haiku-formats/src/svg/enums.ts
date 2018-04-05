@@ -9,6 +9,7 @@ export enum SvgTag {
   RectangleShape = 'rect',
   PathShape = 'path',
   PolygonShape = 'polygon',
+  PolylineShape = 'polyline',
   Svg = 'svg',
   Use = 'use',
 }

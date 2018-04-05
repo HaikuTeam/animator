@@ -226,7 +226,7 @@ class Library extends React.Component {
   handleFileInstantiation (asset) {
     return this.props.projectModel.getCurrentActiveComponent().instantiateComponent(
       asset.getRelpath(),
-      {x: 0, y: 0}, // Double click places the element at top-right
+      {},
       {from: 'creator'},
       (err) => {
         if (err) {

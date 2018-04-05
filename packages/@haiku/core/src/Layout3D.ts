@@ -41,7 +41,7 @@ const FORMATS = {
   TWO: 2,
 };
 
-function initializeNodeAttributes(element) {
+const initializeNodeAttributes = (element) => {
   if (!element.attributes) {
     element.attributes = {};
   }
@@ -49,16 +49,16 @@ function initializeNodeAttributes(element) {
     element.attributes.style = {};
   }
   if (!element.layout) {
-    element.layout = createLayoutSpec(null, null, null);
+    element.layout = createLayoutSpec(element.elementName === 'svg');
     element.layout.matrix = createMatrix();
     element.layout.format = ELEMENTS_2D[element.elementName]
       ? FORMATS.TWO
       : FORMATS.THREE;
   }
   return element;
-}
+};
 
-function initializeTreeAttributes(tree, container) {
+const initializeTreeAttributes = (tree, container) => {
   if (!tree || typeof tree === 'string') {
     return;
   }
@@ -70,7 +70,7 @@ function initializeTreeAttributes(tree, container) {
   for (let i = 0; i < tree.children.length; i++) {
     initializeTreeAttributes(tree.children[i], tree);
   }
-}
+};
 
 // The layout specification naming in createLayoutSpec is derived in part from:
 // https://github.com/Famous/engine/blob/master/core/Transform.js which is MIT licensed.
@@ -86,66 +86,58 @@ function initializeTreeAttributes(tree, container) {
 // EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
 // ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
-function createLayoutSpec(ax, ay, az) {
-  return {
-    shown: true,
-    opacity: 1.0,
-    mount: {x: ax || 0, y: ay || 0, z: az || 0}, // anchor in self
-    align: {x: ax || 0, y: ay || 0, z: az || 0}, // anchor in context
-    origin: {x: ax || 0, y: ay || 0, z: az || 0}, // transform origin
-    translation: {x: 0, y: 0, z: 0},
-    rotation: {x: 0, y: 0, z: 0, w: 0},
-    orientation: {x: 0, y: 0, z: 0, w: 0},
-    scale: {x: 1, y: 1, z: 1},
-    sizeMode: {
-      x: SIZE_PROPORTIONAL,
-      y: SIZE_PROPORTIONAL,
-      z: SIZE_PROPORTIONAL,
-    },
-    sizeProportional: {x: 1, y: 1, z: 1},
-    sizeDifferential: {x: 0, y: 0, z: 0},
-    sizeAbsolute: {x: 0, y: 0, z: 0},
-  };
-}
+const createLayoutSpec = (createCoordinateSystem?: boolean) => ({
+  shown: true,
+  opacity: 1.0,
+  mount: {x: 0, y: 0, z: 0}, // anchor in self
+  align: {x: 0, y: 0, z: 0}, // anchor in context
+  origin: createCoordinateSystem ? {x: 0.5, y: 0.5, z: 0.5} : {x: 0, y: 0, z: 0}, // transform origin
+  translation: {x: 0, y: 0, z: 0},
+  rotation: {x: 0, y: 0, z: 0, w: 0},
+  orientation: {x: 0, y: 0, z: 0, w: 0},
+  scale: {x: 1, y: 1, z: 1},
+  sizeMode: {
+    x: SIZE_PROPORTIONAL,
+    y: SIZE_PROPORTIONAL,
+    z: SIZE_PROPORTIONAL,
+  },
+  sizeProportional: {x: 1, y: 1, z: 1},
+  sizeDifferential: {x: 0, y: 0, z: 0},
+  sizeAbsolute: {x: 0, y: 0, z: 0},
+});
 
-function createMatrix() {
-  return copyMatrix(IDENTITY);
-}
+const createMatrix = () => copyMatrix(IDENTITY);
 
-function copyMatrix(m: number[]) {
-  return [...m];
-}
+const copyMatrix = (m: number[]) => [...m];
 
-function multiplyMatrices(a: number[], b: number[]): number[] {
-  return [
-    a[0] * b[0] + a[1] * b[4] + a[2] * b[8] + a[3] * b[12],
-    a[0] * b[1] + a[1] * b[5] + a[2] * b[9] + a[3] * b[13],
-    a[0] * b[2] + a[1] * b[6] + a[2] * b[10] + a[3] * b[14],
-    a[0] * b[3] + a[1] * b[7] + a[2] * b[11] + a[3] * b[15],
-    a[4] * b[0] + a[5] * b[4] + a[6] * b[8] + a[7] * b[12],
-    a[4] * b[1] + a[5] * b[5] + a[6] * b[9] + a[7] * b[13],
-    a[4] * b[2] + a[5] * b[6] + a[6] * b[10] + a[7] * b[14],
-    a[4] * b[3] + a[5] * b[7] + a[6] * b[11] + a[7] * b[15],
-    a[8] * b[0] + a[9] * b[4] + a[10] * b[8] + a[11] * b[12],
-    a[8] * b[1] + a[9] * b[5] + a[10] * b[9] + a[11] * b[13],
-    a[8] * b[2] + a[9] * b[6] + a[10] * b[10] + a[11] * b[14],
-    a[8] * b[3] + a[9] * b[7] + a[10] * b[11] + a[11] * b[15],
-    a[12] * b[0] + a[13] * b[4] + a[14] * b[8] + a[15] * b[12],
-    a[12] * b[1] + a[13] * b[5] + a[14] * b[9] + a[15] * b[13],
-    a[12] * b[2] + a[13] * b[6] + a[14] * b[10] + a[15] * b[14],
-    a[12] * b[3] + a[13] * b[7] + a[14] * b[11] + a[15] * b[15],
-  ];
-}
+const multiplyMatrices = (a: number[], b: number[]): number[] => [
+  a[0] * b[0] + a[1] * b[4] + a[2] * b[8] + a[3] * b[12],
+  a[0] * b[1] + a[1] * b[5] + a[2] * b[9] + a[3] * b[13],
+  a[0] * b[2] + a[1] * b[6] + a[2] * b[10] + a[3] * b[14],
+  a[0] * b[3] + a[1] * b[7] + a[2] * b[11] + a[3] * b[15],
+  a[4] * b[0] + a[5] * b[4] + a[6] * b[8] + a[7] * b[12],
+  a[4] * b[1] + a[5] * b[5] + a[6] * b[9] + a[7] * b[13],
+  a[4] * b[2] + a[5] * b[6] + a[6] * b[10] + a[7] * b[14],
+  a[4] * b[3] + a[5] * b[7] + a[6] * b[11] + a[7] * b[15],
+  a[8] * b[0] + a[9] * b[4] + a[10] * b[8] + a[11] * b[12],
+  a[8] * b[1] + a[9] * b[5] + a[10] * b[9] + a[11] * b[13],
+  a[8] * b[2] + a[9] * b[6] + a[10] * b[10] + a[11] * b[14],
+  a[8] * b[3] + a[9] * b[7] + a[10] * b[11] + a[11] * b[15],
+  a[12] * b[0] + a[13] * b[4] + a[14] * b[8] + a[15] * b[12],
+  a[12] * b[1] + a[13] * b[5] + a[14] * b[9] + a[15] * b[13],
+  a[12] * b[2] + a[13] * b[6] + a[14] * b[10] + a[15] * b[14],
+  a[12] * b[3] + a[13] * b[7] + a[14] * b[11] + a[15] * b[15],
+];
 
-function multiplyArrayOfMatrices(arrayOfMatrices: number[][]): number[] {
+const multiplyArrayOfMatrices = (arrayOfMatrices: number[][]): number[] => {
   let product = createMatrix();
   for (let i = 0; i < arrayOfMatrices.length; i++) {
     product = multiplyMatrices(product, arrayOfMatrices[i]);
   }
   return product;
-}
+};
 
-function computeLayout(layoutSpec, currentMatrix, parentsizeAbsoluteIn) {
+const computeLayout = (layoutSpec, currentMatrix, parentsizeAbsoluteIn) => {
   // Clean out the existing computed layout from the layout spec, if it exists.
   delete layoutSpec.computed;
   const parentsizeAbsolute = parentsizeAbsoluteIn || {x: 0, y: 0, z: 0};
@@ -160,19 +152,38 @@ function computeLayout(layoutSpec, currentMatrix, parentsizeAbsoluteIn) {
     size,
     matrix: computeMatrix(layoutSpec, currentMatrix, size, parentsizeAbsolute),
   };
-}
+};
+
+const computeOrthonormalBasisMatrix = (rotation) => {
+  const orthonormalBasisLayout = {
+    ...createLayoutSpec(),
+    rotation,
+  };
+  const ignoredSize = {x: 0, y: 0, z: 0};
+  return computeMatrix(orthonormalBasisLayout, createMatrix(), ignoredSize, ignoredSize);
+};
+
+const computeScaledBasisMatrix = (rotation, scale) => {
+  const scaledBasisLayout = {
+    ...createLayoutSpec(),
+    rotation,
+    scale,
+  };
+  const ignoredSize = {x: 0, y: 0, z: 0};
+  return computeMatrix(scaledBasisLayout, createMatrix(), ignoredSize, ignoredSize);
+};
 
 export default {
   multiplyArrayOfMatrices,
   computeLayout,
+  computeOrthonormalBasisMatrix,
+  computeScaledBasisMatrix,
   createLayoutSpec,
   computeOrientationFlexibly,
   createMatrix,
-  multiplyMatrices,
   copyMatrix,
   initializeTreeAttributes,
   FORMATS,
   SIZE_ABSOLUTE,
   SIZE_PROPORTIONAL,
-  ATTRIBUTES: createLayoutSpec(null, null, null),
 };
