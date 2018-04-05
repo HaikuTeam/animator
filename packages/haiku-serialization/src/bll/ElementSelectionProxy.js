@@ -507,27 +507,27 @@ class ElementSelectionProxy extends BaseModel {
           )
         }
       }
-    } else {
-      // In case we got here, don't allow artboard to move
-      if (this.doesSelectionContainArtboard()) {
-        return
-      }
+    }
 
-      if (globals.isShiftKeyDown) {
-        return this.moveWithShiftDown(
-          dx,
-          dy,
-          mouseCoordsCurrent
-        )
-      } else {
-        return this.move(
-          dx,
-          dy,
-          mouseCoordsCurrent,
-          mouseCoordsPrevious,
-          lastMouseDownCoord
-        )
-      }
+    // In case we got here, don't allow artboard to move
+    if (this.doesSelectionContainArtboard()) {
+      return
+    }
+
+    if (globals.isShiftKeyDown) {
+      return this.moveWithShiftDown(
+        dx,
+        dy,
+        mouseCoordsCurrent
+      )
+    } else {
+      return this.move(
+        dx,
+        dy,
+        mouseCoordsCurrent,
+        mouseCoordsPrevious,
+        lastMouseDownCoord
+      )
     }
   }
 
