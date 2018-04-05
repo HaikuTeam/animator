@@ -34,6 +34,7 @@ export interface PropTypes {
   projectUid: string;
   sha: string;
   mixpanel: object;
+  onProjectPublicChange: Function;
 }
 
 export interface StateTypes {
@@ -59,7 +60,7 @@ export class ShareModal extends React.Component<PropTypes, StateTypes> {
 
     this.state = {
       showDetail: false,
-      isPublic: undefined,
+      isPublic: props.project && props.project.isPublic,
       showTooltip: false,
       isPublicKnown: false,
     };
@@ -77,10 +78,12 @@ export class ShareModal extends React.Component<PropTypes, StateTypes> {
     if (nextProps.envoyProject && nextProps.projectUid && !this.state.isPublicKnown) {
       (nextProps.envoyProject.getProjectDetail(nextProps.projectUid) as Promise<inkstone.project.Project>).then((proj: inkstone.project.Project) => {
 
-        // if IsPublic is undefined, it's never been published before.  toggle it true on first publish.
+        // if IsPublic is undefined, it's never been published before. Make it private on first publish
         if (proj.IsPublic === null || proj.IsPublic === undefined) {
-          (nextProps.envoyProject.setIsPublic(nextProps.projectUid, true) as Promise<boolean>).then(() => {});
-          this.setState({isPublic: true});
+          (nextProps.envoyProject.setIsPublic(nextProps.projectUid, false) as Promise<boolean>).then(() => {
+            this.props.onProjectPublicChange(false);
+          });
+          this.setState({isPublic: false});
         } else {
           this.setState({isPublic: proj.IsPublic, isPublicKnown: true});
         }
@@ -107,7 +110,9 @@ export class ShareModal extends React.Component<PropTypes, StateTypes> {
       const desiredState = !this.state.isPublic;
       const project = props.envoyProject;
 
-      (project.setIsPublic(props.projectUid, desiredState) as Promise<boolean>).then(() => {});
+      (project.setIsPublic(props.projectUid, desiredState) as Promise<boolean>).then(() => {
+        this.props.onProjectPublicChange(desiredState);
+      });
       this.setState({isPublic: desiredState, isPublicKnown: true});
     } else {
       // TODO:  trigger toast

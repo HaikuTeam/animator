@@ -1465,6 +1465,7 @@ function remapProjectObjectToExpectedFormat (projectObject, organizationName) {
     projectExistsLocally: fse.existsSync(projectPath),
     projectsHome: HOMEDIR_PATH,
     repositoryUrl: projectObject.RepositoryUrl,
-    forkComplete: projectObject.ForkComplete
+    forkComplete: projectObject.ForkComplete,
+    isPublic: projectObject.IsPublic
   }
 }
