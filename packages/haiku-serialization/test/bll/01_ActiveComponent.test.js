@@ -35,7 +35,7 @@ tape('ActiveComponent.prototype.instantiateComponent[1](design)', (t) => {
         return waitUntilFileProbablyWroteToDisk(() => {
           return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents) => {
             t.error(err, 'no err fetching code')
-            t.equal(contents.length, 6194, 'checksum of file ok')
+            t.equal(contents.length, 6193, 'checksum of file ok')
             fse.removeSync(folder)
             t.ok(true)
           })
@@ -209,7 +209,7 @@ tape('ActiveComponent.prototype.instantiateComponent[2](component)', (t) => {
               return waitUntilFileProbablyWroteToDisk(() => {
                 return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents) => {
                   if (err) throw err
-                  t.equal(contents.length, 2010, 'checksum ok')
+                  t.equal(contents.length, 2009, 'checksum ok')
                   var lines = contents.split('\n')
                   t.equal(lines[0], 'var Haiku = require("@haiku/core");', 'first line is haiku require')
                   t.equal(lines[1], 'var designs_path_svg = require("../designs_path_svg/code.js");', 'first line is component require')

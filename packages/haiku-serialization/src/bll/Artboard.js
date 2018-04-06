@@ -127,21 +127,13 @@ class Artboard extends BaseModel {
         x: this._mountX,
         y: this._mountY,
         w: this._mountWidth,
-        h: this._mountHeight,
-        rect: this.mount.getBoundingClientRect()
+        h: this._mountHeight
       }
     }
   }
 
   getRect () {
-    return {
-      left: this._mountX,
-      right: this._mountX + this._mountWidth,
-      top: this._mountY,
-      bottom: this._mountY + this._mountHeight,
-      width: this._mountWidth,
-      height: this._mountHeight
-    }
+    return this.mount.getBoundingClientRect()
   }
 
   resetContainerDimensions ($container) {

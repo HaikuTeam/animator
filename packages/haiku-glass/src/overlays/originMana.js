@@ -10,8 +10,8 @@ export default (scale, x, y) => ({
   attributes: {
     class: 'origin',
     style: {
-      position: 'absolute',
       transform: `scale(${scale},${scale})`,
+      position: 'absolute',
       pointerEvents: 'auto',
       left: (x - 6) + 'px',
       top: (y - 5) + 'px',

@@ -21,7 +21,7 @@ test('dom-embed', function (t) {
     t.is(window.HaikuResolve('0.0.1'), undefined, 'HaikuResolve does not resolve a version that is too low')
     const originalVersionParts = pkg.version.split('.').map(Number)
     const onePatchBehind = [...originalVersionParts]
-    onePatchBehind[2] -= 1
+    onePatchBehind[2] = Math.max(onePatchBehind[2] - 1, 0)
     console.log(onePatchBehind.join('.'))
     t.is(window.HaikuResolve(onePatchBehind.join('.')), adapter, 'HaikuResolve can resolve from an earlier patch')
     const onePatchAhead = [...originalVersionParts]

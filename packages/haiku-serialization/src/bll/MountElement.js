@@ -85,8 +85,6 @@ class MountElement extends BaseModel {
 
       // Wrap in an object so it's serializable
       return {
-        x: rect.x,
-        y: rect.y,
         width: rect.width,
         height: rect.height,
         top: rect.top,
@@ -98,14 +96,12 @@ class MountElement extends BaseModel {
       // TODO: Is it better to just return null here?
       // Use 1s instead of 0s to make div-by-zero errors less likely downstream
       return {
-        x: 1,
-        y: 1,
         width: 1,
         height: 1,
-        bottom: 1,
-        top: 1,
-        left: 1,
-        right: 1
+        bottom: 0,
+        top: 0,
+        left: 0,
+        right: 0
       }
     }
   }

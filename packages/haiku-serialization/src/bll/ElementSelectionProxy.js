@@ -103,6 +103,10 @@ class ElementSelectionProxy extends BaseModel {
     return this.selection.length === 1
   }
 
+  shouldUseChildLayout () {
+    return this.doesManageSingleElement() && !this.selection[0].isRootElement()
+  }
+
   canRotate () {
     return !this.doesSelectionContainArtboard()
   }
@@ -326,12 +330,11 @@ class ElementSelectionProxy extends BaseModel {
 
   getOriginTransformed () {
     // If managing only one element, use its own box points
-    if (this.doesManageSingleElement()) {
+    if (this.shouldUseChildLayout()) {
       return this.selection[0].getOriginTransformed()
     }
 
     const layout = this.getComputedLayout()
-
     return Element.transformPointInPlace(
       {
         x: layout.size.x * layout.origin.x,
@@ -348,7 +351,7 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   getLayoutSpec () {
-    if (this.doesManageSingleElement()) {
+    if (this.shouldUseChildLayout()) {
       return this.selection[0].getLayoutSpec()
     }
 
@@ -385,7 +388,7 @@ class ElementSelectionProxy extends BaseModel {
       sizeAbsolute: {
         x: this.computePropertyValue('sizeAbsolute.x'),
         y: this.computePropertyValue('sizeAbsolute.y'),
-        z: 1
+        z: 0
       }
     }
   }
@@ -482,10 +485,9 @@ class ElementSelectionProxy extends BaseModel {
           return this.scale(
             dx,
             dy,
+            controlActivation,
             mouseCoordsCurrent,
             mouseCoordsPrevious,
-            lastMouseDownCoord,
-            controlActivation,
             viewportTransform
           )
         }
@@ -501,9 +503,7 @@ class ElementSelectionProxy extends BaseModel {
             dy,
             mouseCoordsCurrent,
             mouseCoordsPrevious,
-            lastMouseDownCoord,
-            controlActivation,
-            viewportTransform
+            controlActivation
           )
         }
       }
@@ -535,7 +535,7 @@ class ElementSelectionProxy extends BaseModel {
     // Origin panning is a position-preserving operation (in parent coordinates), requiring us to update translation to
     // match. To achieve the desired effect, first we compute the effective (x, y) translation after accounting for
     // z-rotation and scale, so the origin dot "lands" in an expected place while dragging.
-    const targetElement = this.doesManageSingleElement() ? this.selection[0] : this
+    const targetElement = this.shouldUseChildLayout() ? this.selection[0] : this
     const computedLayout = targetElement.getComputedLayout()
     const deltaTranslationX = dx
     const deltaTranslationY = dy
@@ -671,21 +671,17 @@ class ElementSelectionProxy extends BaseModel {
   scale (
     dx,
     dy,
-    coordsCurrent,
-    coordsPrevious,
-    lastMouseDownCoord,
     activationPoint,
+    mouseCoordsCurrent,
+    mouseCoordsPrevious,
     viewportTransform
   ) {
     if (this.doesSelectionContainArtboard()) {
       return this.scaleArtboard(
-        dx,
-        dy,
-        coordsCurrent,
-        coordsPrevious,
-        lastMouseDownCoord,
-        activationPoint,
-        viewportTransform
+        mouseCoordsCurrent,
+        mouseCoordsPrevious,
+        viewportTransform,
+        activationPoint
       )
     }
 
@@ -768,13 +764,10 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   scaleArtboard (
-    dx,
-    dy,
-    coordsCurrent,
-    coordsPrevious,
-    lastMouseDownCoord,
-    activationPoint,
-    viewportTransform
+    mouseCoordsCurrent,
+    mouseCoordsPrevious,
+    {zoom},
+    activationPoint
   ) {
     const accumulatedUpdates = {}
 
@@ -791,23 +784,39 @@ class ElementSelectionProxy extends BaseModel {
       accumulatedUpdates[timelineName] = {}
     }
 
+    const dx = (mouseCoordsCurrent.clientX - mouseCoordsPrevious.clientX) * 2 / zoom
+    const dy = (mouseCoordsCurrent.clientY - mouseCoordsPrevious.clientY) * 2 / zoom
+
     const {
-      isLeft,
-      isTop,
-      deltaX,
-      deltaY,
-      finalSize
+      'scale.x': {
+        value: scaleX
+      },
+      'scale.y': {
+        value: scaleY
+      },
+      'translation.x': {
+        value: translationX
+      },
+      'translation.y': {
+        value: translationY
+      }
     } = ElementSelectionProxy.computeScaleInfoForArtboard(
-      element, // targetElement
-      this, // contextElement
+      element,
       dx,
       dy,
-      coordsCurrent,
-      coordsPrevious,
-      lastMouseDownCoord,
-      activationPoint,
-      viewportTransform
+      activationPoint
     )
+
+    const sizeX = element.computePropertyValue('sizeAbsolute.x')
+    const sizeY = element.computePropertyValue('sizeAbsolute.y')
+    const finalSize = {
+      'sizeAbsolute.x': {
+        value: rounded(scaleX * sizeX)
+      },
+      'sizeAbsolute.y': {
+        value: rounded(scaleY * sizeY)
+      }
+    }
 
     // Don't allow the user to reduce the artboard's scale to nothing
     if (finalSize['sizeAbsolute.x'].value < 5 || finalSize['sizeAbsolute.y'].value < 5) {
@@ -824,8 +833,8 @@ class ElementSelectionProxy extends BaseModel {
 
     if (experimentIsEnabled(Experiment.StageResizeAllSides)) {
       const elementOffset = {
-        'translation.x': (isLeft) ? deltaX : 0,
-        'translation.y': (isTop) ? deltaY : 0
+        'translation.x': translationX,
+        'translation.y': translationY
       }
 
       // Translate all elements on stage by the offset so the stage can be resized
@@ -880,7 +889,7 @@ class ElementSelectionProxy extends BaseModel {
     )
   }
 
-  rotate (dx, dy, coordsCurrent, coordsPrevious, lastMouseDownCoord, activationPoint, viewportTransform) {
+  rotate (dx, dy, coordsCurrent, coordsPrevious, activationPoint) {
     const accumulatedUpdates = {}
 
     if (this.hasMultipleInSelection()) {
@@ -894,8 +903,7 @@ class ElementSelectionProxy extends BaseModel {
         this,
         coordsCurrent,
         coordsPrevious,
-        activationPoint,
-        viewportTransform
+        activationPoint
       )
 
       this.applyPropertyDelta('rotation.z', rotationZ)
@@ -919,8 +927,7 @@ class ElementSelectionProxy extends BaseModel {
         this,
         coordsCurrent,
         coordsPrevious,
-        activationPoint,
-        viewportTransform
+        activationPoint
       )
       ElementSelectionProxy.accumulateKeyframeUpdates(
         accumulatedUpdates,
@@ -1079,87 +1086,25 @@ ElementSelectionProxy.isActivationPointTop = (activationPoint) => activationPoin
 
 ElementSelectionProxy.computeScaleInfoForArtboard = (
   targetElement,
-  contextElement,
   dx,
   dy,
-  coordsCurrent,
-  coordsPrevious,
-  lastMouseDownCoord,
-  activationPoint,
-  viewportTransform
+  activationPoint
 ) => {
-  // The activation point index corresponds to a box with this coord system:
-  // 0, 1, 2
-  // 3, 4, 5
-  // 6, 7, 8
-  const activeAxes = ElementSelectionProxy.activeAxesFromActivationPoint(activationPoint)
-  const isLeft = ElementSelectionProxy.isActivationPointLeft(activationPoint)
-  const isTop = ElementSelectionProxy.isActivationPointTop(activationPoint)
-
-  const x0 = coordsPrevious.clientX
-  const x1 = coordsCurrent.clientX
-  const y0 = coordsPrevious.clientY
-  const y1 = coordsCurrent.clientY
-
-  let dxFinal = x1 - x0
-  let dyFinal = y1 - y0
-
-  let worldDeltaX = dxFinal / viewportTransform.zoom
-  let worldDeltaY = dyFinal / viewportTransform.zoom
-
-  // Assigned below
-  let proportionX = 1
-  let proportionY = 1
-
-  // If no parent, we are the artboard element and must via a different method
-  const currentSize = {
-    x: targetElement.computePropertyValue('sizeAbsolute.x'),
-    y: targetElement.computePropertyValue('sizeAbsolute.y'),
-    z: targetElement.computePropertyValue('sizeAbsolute.z') || 0
-  }
-
-  const finalSize = {
-    width: currentSize.x + worldDeltaX * (isLeft ? -2 : 2) * activeAxes[0],
-    height: currentSize.y + worldDeltaY * (isTop ? -2 : 2) * activeAxes[1]
-  }
-
-  // Note this logic is essentially duplicated below, for elements
-  if (activationPoint.shift) {
-    // Constrain proportion
-    proportionX = finalSize.width / currentSize.x
-    proportionY = finalSize.height / currentSize.y
-
-    // This gnarly logic is just mixing EDGE constraining logic (index checks)
-    // with CORNER constraining logic (proportion comparison)
-    if (
-      activationPoint.index !== 1 &&
-      activationPoint.index !== 7 &&
-      (
-        Math.abs(1 - proportionX) < Math.abs(1 - proportionY) ||
-        activationPoint.index === 3 ||
-        activationPoint.index === 5
-      )
-    ) {
-      finalSize.height = proportionX * currentSize.y
-    } else {
-      finalSize.width = proportionY * currentSize.x
-    }
-  }
-
-  return {
-    isLeft,
-    isTop,
-    deltaX: currentSize.x - finalSize.width,
-    deltaY: currentSize.y - finalSize.height,
-    finalSize: {
-      'sizeAbsolute.y': {
-        value: finalSize.height
-      },
-      'sizeAbsolute.x': {
-        value: finalSize.width
-      }
-    }
-  }
+  // Disable origin scaling, which does not really make sense in this context.
+  activationPoint.alt = false
+  const boxPoints = targetElement.getBoxPointsTransformed()
+  return ElementSelectionProxy.computeScalePropertyGroup(
+    targetElement,
+    ElementSelectionProxy.getFixedPointForScale(boxPoints, activationPoint),
+    ElementSelectionProxy.getTranslatedPointForScale(boxPoints, activationPoint),
+    {
+      x: dx,
+      y: dy,
+      z: 0
+    },
+    activationPoint,
+    true
+  )
 }
 
 ElementSelectionProxy.getFixedPointForScale = (proxyBoxPoints, activationPoint) => {
@@ -1365,8 +1310,7 @@ ElementSelectionProxy.computeRotationPropertyGroupDelta = (
   contextElement,
   coordsCurrent,
   coordsPrevious,
-  activationPoint,
-  {zoom}
+  activationPoint
 ) => {
   // Calculate rotation delta based on old mouse position and new
   //  *(x0, y0)
@@ -1378,10 +1322,10 @@ ElementSelectionProxy.computeRotationPropertyGroupDelta = (
   //  ^      w
   //  center of rotation
 
-  const x0 = coordsPrevious.x / zoom
-  const y0 = coordsPrevious.y / zoom
-  const x1 = coordsCurrent.x / zoom
-  const y1 = coordsCurrent.y / zoom
+  const x0 = coordsPrevious.x
+  const y0 = coordsPrevious.y
+  const x1 = coordsCurrent.x
+  const y1 = coordsCurrent.y
 
   const {x: cx, y: cy} = targetElement.getOriginTransformed()
 

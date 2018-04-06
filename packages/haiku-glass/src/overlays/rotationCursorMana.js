@@ -3,7 +3,7 @@
  * @param mousePosition
  * @param originPosition
  */
-export default ({x, y}, {x: originX, y: originY}) => {
+export default (scale, {x, y}, {x: originX, y: originY}) => {
   return {
     elementName: 'svg',
     attributes: {
@@ -13,7 +13,7 @@ export default ({x, y}, {x: originX, y: originY}) => {
         position: 'absolute',
         left: `${x - 10}px`,
         top: `${y - 7}px`,
-        transform: `rotateZ(${Math.atan2(y - originY, x - originX) - 3 * Math.PI / 2}rad)`
+        transform: `rotateZ(${Math.atan2(y - originY, x - originX) - 3 * Math.PI / 2}rad) scale(${scale},${scale})`
       }
     },
     children: [
