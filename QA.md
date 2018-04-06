@@ -19,6 +19,8 @@ Cut/copy/paste elements on stage
 Undo/redo a sequence of cut/copy/pastes
 Create keyframes in the timeline by pairing on-stage edits with changes to the scrubber position
 Create keyframes in the timeline by editing property input fields
+Reorder the z-index of elements using the on-stage context menu
+Reorder the z-index of elements using timeline row drag-and-drop
 Add/modify/remove transitions in the timeline
 Create, drag, and delete keyframes and transitions
 Create, drag, and delete multiple keyframes and multiple transitions at the same time
@@ -59,18 +61,22 @@ I can pan the stage using spacebar+drag
 I can pan the stage using two-finger panning
 I can zoom the stage using Command+Plus/Minus
 I can zoom the stage using the global menu
+When zoomed, the scale/rotation cursors are not pixelated
 I can pan infinitely on stage without seeing a clip edge
 I can drag an element on stage (and see position changes reflected in timeline)
 Dragging an element on stage isn't laggy (dragging should be instant)
 I don't need to click the stage before starting to drag
 I can scroll to the bottom of the timeline to access all properties (nothing gets cut off at the bottom)
 I can scale an element on stage (and see scale changes reflected in timeline)
-I can shift+scale to scale an element proportionally
+I can hold down Shift and scale to scale an element proportionally
 I can scale an element down to near 0 in either dimension without a problem
+When I scale an element, the scale cursor reflects the side from which I am scaling
 When I scale an element way down, the number of transform controls reduces
 Zooming in results in more transform controls displayed (apparent size is used)
-I can hold down cmd key to toggle rotation mode on stage
+I can hold down Cmd to toggle rotation mode on stage
+When I rotate an element, the rotation cursor reflects the rotation of the element
 I can rotate an element on stage (and see rotation changes reflected in timeline)
+I can hold down Shift as I rotate and rotate by fixed increments
 On stage, right-click doesn't bring up the "public" right-click menu
 On stage, right-click doesn't select any SVGs with `<text>` in them
 Moving the scrubber on the timeline updates the current time on the stage
@@ -97,6 +103,9 @@ When instantiated, the asset looks the same as the original design (no transform
 I can instantiate two polygons, then delete the first one, and the others remain
 I can instantiate an element with actual `<text>` content, then instantiate a bunch of other elements afterward and not see a crash
 When I instantiate elements, the z-stacking order of the previous instantiatees is preserved
+I can double-click an asset to instantiate it on stage
+Double-clicking to instantiate places the element at stage center
+Double-clicking to instantiate happens instantaneously
 
 Artboard
 
@@ -161,6 +170,9 @@ Z-index shows up in the timeline
 Z-index, when done on stage, only creates keyframes at 0
 Changes to z-index reflect correctly on stage
 Changes to z-index reflect correctly in the timeline as `style.zIndex`
+I can drag-and-drop timeline rows to reorder z-index
+I can undo a z-index change in the on-stage context menu
+I can undo a z-index change that occurs via drag-and-drop in the timeline
 
 Undo+Redo+Delete+Copy+Paste
 
@@ -331,6 +343,7 @@ Logging
 
 The .app build logs to `~/.haiku/logs/haiku-debug.log`
 I don't see an ever-growing number of file ingested messages for each time I reopen a project
+User secret credentials are not included in the log
 
 Errors/notifications
 
@@ -400,6 +413,7 @@ I can use the stage gear icon to attach an action
 I can save my changes to my action
 I can cancel my changes to my action
 I can view a previously written action in the window (correct code is loaded)
+I can enter preview mode and verify that event listeners work correctly
 Code formatting is sensible after saving and reloading the function content
 I can add 2 or more actions
 I can still add snippets when there are 2 or more actions
@@ -407,12 +421,16 @@ I can still use the "new action" dropdown menu when there are 2 or more actions
 Scrolling in the action window doesn't pan the stage
 I can add a frame listener at 0
 I can add a frame listener at frame>0
+I can remove any frame listener
+I can enter preview mode and verify that frame listeners work correctly
 When an action exists on an element, a bolt icon shows next to it in the timeline
 Frame listener window opens when you click the frame listener button
 When a frame listener exists at a frame, a bolt icon shows next to it in the timeline gauge
 I can scroll on the actions editor without scrolling the stage
 I can delete a frame listener using the trash icon
 I can delete an element listener
+I can add an event listener with a custom name like "foo-bar"
+I can remove an event listener with a custom name like "foo-bar"
 
 Preview Mode/Edit Mode
 
@@ -426,6 +444,8 @@ State values changed with setState revert to previous values when preview mode i
 The timeline scrubber position is retained to what it was before entering preview mode
 I can click on the dimmed Library UI to exit preview mode
 I can click on the dimmed Timeline UI to exit preview mode
+When exiting preview mode, the on-stage transform controls are restored if an element had been selected
+When in preview mode, the preview "Eye" icon follows your mouse around
 
 Sasha
 
@@ -447,6 +467,57 @@ All of the test/demo examples render/behave correctly
 Events still fire even when playback has been `pause()`'d or `stop()`'d
 Expressions still evaluate even when playback has been `pause()`'d or `stop()`'d
 
+Stage Performance
+
+I can drag a large bitmap around the stage without bad latency
+I can drag a large/complex path around the stage without bad latency
+There isn't any judder when dragging, pausing, then dragging again
+Playback doesn't lag following lots of on-stage dragging
+Rapidly transforming Percy doesn't exhibit any lag/pauses/jank
+Small/fine-grained animations don't exhibit judder
+
+Timeline Performance
+
+"Metapoem" takes no more than ~1 second to load (rehydration)
+I can horizontally scroll the timeline at a reasonable speed
+I can expand/collapse timeline rows at a reasonable speed
+I can drag keyframes at a reasonable speed
+I can drag the scrubber at a reasonable speed, seeing values reflect in the input fields
+
+Bytecode Upgrade
+
+I can open legacy project "Moto" and it still works correctly
+I can open legacy project "Move" and it still works correctly
+I can open tour project "Percy" and it still works correctly
+I can open legacy project "Metapoem" and it still works correctly
+I can open a recent project and it still works correctly
+
+Multi-select/Multi-transform
+
+I can hold down Shift and click multiple elements to select them
+I can drag a selection marquee on stage to select multiple elements
+I can click away from multiple elements to select them
+I can click on an empty area in multi-selection to select the group
+I can drag (translate) a group of elements
+I can rotate a group of elements
+I can scale a group of elements
+When I transform a group, I see all their properties update in the timeline
+I can undo/redo a group transform, and the whole set of changes is undone correctly
+
+Origin
+
+An origin crosshairs appears when one element is selected
+An origin crosshairs appears when multiple element is selected
+I can hold down Cmd to move the origin crosshairs with one element
+I can hold down Cmd to move the origin crosshairs with multiple elements
+When moving the origin crosshairs, the element stays in the same place
+I can move the origin point outside of the element
+I can move the origin point outside of a group of elements
+I can rotate an element/group about the origin
+I can scale an element/group about the origin
+The origin value updates accordingly in the timeline when I do any of the above
+I can change the origin value by editing its rows in the timeline
+
 Code
 
 I can open code.js and verify the code for expression is ok and Haiku.inject
@@ -461,30 +532,34 @@ During a code reload the timeline does not animate, and stays at the same frame
 
 Git
 
-I can $ git push or $ git pull from the project folder without a problem
-Published projects show up on GitLab
-I can `$ git reset —hard {sha}` while editing, see the change on stage, and continue editing
-I can `$ tail ~/.haiku/logs/haiku-diffs` and see git diffs roll by
 A Git commit is made for every atomic change
-I can revert or stash changes and see the changed state reflected in the app
+I can `$ git reset —hard {sha}` while editing, see the change on stage, and continue editing
+Published projects show up on GitLab
+I can `$ git push` or `$ git pull` from the project folder without a problem
+I can `$ tail ~/.haiku/logs/haiku-diffs` and see git diffs roll by
 
 Publishing
 
 Publish works (clicking publish publishes the project and shows a share link)
 Doing publish opens Share Modal
+New projects are private by default
+I can change the project from private to public and back again
+When changing from private/public, the UI reflects this immediately
 Publish results in a share link
 I can copy the share link to clipboard using the clipboard icon
+I can copy the share link using the clipboard icon while an element is selected on stage
+I can select and copy any of the code snippets
 Before the share link is ready, the "not-allowed" cursor is shown over the share link
 Before the various install options are ready, the "not-allowed" cursor is shown over pending buttons with a progress bar
 As soon as the share link is ready, the web install options become clickable and show correct info
 As soon as the share page loads content, the mobile options become clickable and show correct info
 Eventually the "other" option (for GIF) become clickable and shows correct info
-I can copy the share link using the clipboard icon while an element is selected on stage
 I can click the link and get taken to the page in my browser
 The share page shows my component animating and looping
 The published version behaves the same as the preview mode version
 The share page puts the element in the artboard box
 The $user.mouse.y position is calculated correctly with respect to the share page artboard box
+The $user.mouse.y position is calculated correctly when the stage has been zoomed/panned
 If I publish again with no changes, I get a share link back immediately
 If I make a change and publish, I get a new share link (w/ changes reflected)
 Cmd+S should not publish the project
@@ -496,13 +571,6 @@ I can manually copy a project and things still work
 If I copy project contents to a new project, haiku.js and package.json are both updated with the new project's name
 I can replace a project's content and still load it and it still works
 I can publish a project whose content I have manually copied
-
-Stage Stress
-
-I can drag a large bitmap around the stage without bad latency
-I can drag a large/complex path around the stage without bad latency
-There isn't any judder when dragging, pausing, then dragging again
-Playback doesn't lag following lots of on-stage dragging
 
 Taylor
 
@@ -529,7 +597,7 @@ I can use the right-click menu to open in Sketch or show in finder
 I can import an SVG file using the "+" button
 I can drop a SVG directly on Haiku and have it import to the library
 I can drop a Sketch directly on Haiku and have it import to the library
-The 3-dot menu should only appear when the asset is hovered
+The "..." menu should only appear when the asset is hovered
 
 Timeline
 
@@ -540,6 +608,10 @@ Selecting an input selects that row normally
 Focusing an input selects the value (when the input is single-line)
 Escape exits the input field focus
 Clicking away exits the input field focus
+I can use the keyboard to navigate up/down in the timeline row cells
+I can navigate all the way to the top, and keep going, and I jump to the bottom cell
+I can navigate all the way to the bottom, and keep going, and I jump to the top
+When I navigate into a collapsed set of rows, they auto-expand, and the first one is selectedf
 I can enter a valid value into any input, and see it reflected on stage at time 0
 I can enter `rotation.x,y,z` `0,0,0` and not see any glitch/weirdness
 There is no problem with the tourClient being active during normal editing
@@ -671,6 +743,7 @@ As the original user, I can open and get the other user's changes
 In case of merge conflicts, I can choose ours/theirs successfully
 
 Embedding/Host Codebases
+
 By following the share page HTML embed instructions, it works
 By following the share page NPM/React instructions, it works
 It works inside create-react-app, including production (minified) build
