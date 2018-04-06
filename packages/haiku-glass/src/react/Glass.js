@@ -1826,7 +1826,7 @@ export class Glass extends React.Component {
         points,
         origin,
         this.state.controlActivation ? this.state.controlActivation.index : this.state.hoveredControlPointIndex,
-        this.state.controlActivation && this.state.controlActivation.alt
+        Globals.isAltKeyDown
       ))
     }
   }
