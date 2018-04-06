@@ -4,7 +4,7 @@
     "What's new": [
       "Origin! You can now control elements' origin of rotation and scale. Hold down Ctrl and drag the crosshairs.",
       "Multi-select! You can now select multiple elements on stage to move or delete them. (Coming soon: multi-rotation and multi-scale.)",
-      "Lottie export now supports designs with polyline elements and implicitly closed shapes.",
+      "Better z-ordering! You can now drag and drop elements in the timeline to change the z-stacking of layers on stage.",
       "You can now subscribe to custom events within the Actions panel (in addition to all the standard DOM events).",
       "The Haiku Core API now provides support for querying elements programmatically, making Expressions and Actions more powerful. See https://docs.haiku.ai for details.",
       "When you add a new property to an element in the Timeline, the group it belongs to now automatically expands."
