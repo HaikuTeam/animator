@@ -1602,10 +1602,24 @@ export class Glass extends React.Component {
         null,
         this._haikuRenderer,
         {},
-        { timelines: {}, template: { elementName: 'div', attributes: {}, children: [] } },
+        {
+          timelines: {},
+          template: {
+            elementName: 'div',
+            attributes: {},
+            children: []
+          }
+        },
         haikuConfig
       )
     }
+
+    // When we enter preview mode, this ref element is not rendered, i.e.
+    // removed from the DOM. When we exit preview mode, a new element is
+    // created, meaning that our original mount element has been detached.
+    // We need to reassign the new, attached DOM node so the transform
+    // controls render again after we exit preview mode.
+    this._haikuRenderer.mount = this.refs.overlay
 
     const container = this._haikuRenderer.createContainer({})
 
@@ -1618,7 +1632,6 @@ export class Glass extends React.Component {
       attributes: {
         id: 'haiku-glass-overlay-root',
         style: {
-          transform: 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)',
           position: 'absolute',
           overflow: 'visible',
           left: artboard.getMountX() + 'px',
@@ -1630,7 +1643,11 @@ export class Glass extends React.Component {
       children: parts
     }
 
-    this._haikuRenderer.render(container, overlay, this._haikuContext.component, false)
+    this._haikuRenderer.render(
+      container,
+      overlay,
+      this._haikuContext.component
+    )
   }
 
   // This method creates objects which represent Haiku Core rendering instructions for displaying all of

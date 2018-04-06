@@ -446,6 +446,10 @@ class ElementSelectionProxy extends BaseModel {
     return this.computePropertyValue(key)
   }
 
+  getElement () {
+    return this.selection[0]
+  }
+
   computePropertyValue (key) {
     return this._proxyProperties[key]
   }

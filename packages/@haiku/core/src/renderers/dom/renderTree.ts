@@ -79,7 +79,6 @@ export default function renderTree(
   let max = virtualChildren.length;
   if (max < domChildNodes.length) {
     max = domChildNodes.length;
-    max = domChildNodes.length;
   }
 
   for (let i = 0; i < max; i++) {
