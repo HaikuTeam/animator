@@ -1696,9 +1696,6 @@ Element.transformPointsInPlace = (points, matrix) => {
 }
 
 Element.transformPointInPlace = (point, matrix) => {
-  if (!point.hasOwnProperty('z')) {
-    throw new Error('mizzingz')
-  }
   const offset = MathUtils.transformVectorByMatrix([], [point.x, point.y, point.z], matrix)
   point.x = offset[0]
   point.y = offset[1]
