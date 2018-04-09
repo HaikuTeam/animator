@@ -98,6 +98,7 @@ Instantiated assets work if they are SVG
 Instantiated assets work if they are SVG with inline images
 An instantiated element can be deleted with the Delete key
 When element is deleted on stage, it is also deleted in the timeline
+Instantiating multiple inline image elements works ok
 Instantiating inline image, then deleting, then re-instantiating works ok
 When instantiated, the asset looks the same as the original design (no transform problems)
 I can instantiate two polygons, then delete the first one, and the others remain
@@ -298,6 +299,8 @@ Sketch
 
 I can right click the library and open a design asset in Sketch
 I can right click the library design asset in Finder
+When I make slices manually, they appear in the library
+When I make artboards manually, they appear in the library
 Changes of imported asset in Sketch reflect in library
 Changes of instantiated asset in Sketch reflect on stage
 When I change a basic primitive in Sketch, that reflects on stage no problem
@@ -463,7 +466,11 @@ Plumbing logs show up correctly for actions
 Core
 
 The perf test doesn't show a perf degradation
-All of the test/demo examples render/behave correctly
+All of the test/demo examples render/behave correctly in Chrome
+All of the test/demo examples render/behave correctly in Firefox
+All of the test/demo examples render/behave correctly in Safari
+All of the test/demo examples render/behave correctly in Edge
+All of the test/demo examples render/behave correctly in IE11*
 Events still fire even when playback has been `pause()`'d or `stop()`'d
 Expressions still evaluate even when playback has been `pause()`'d or `stop()`'d
 
