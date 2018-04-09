@@ -92,7 +92,7 @@ class Snippets extends React.PureComponent {
     } else {
       const allLines = this.props.editor.viewModel.lines.lines.length + 1
       range = new monaco.Range(allLines, 100, allLines, 100)
-      injectable = `\n${injectable}`
+      injectable = `${injectable}`
     }
 
     this.props.editor.executeEdits('snippet-injector', [
