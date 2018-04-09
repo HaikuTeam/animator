@@ -27,7 +27,9 @@ class EditorActions extends React.PureComponent {
           Cancel
         </button>
         <button
-          onClick={() => { !this.props.isSaveDisabled && this.props.onSave() }}
+          onClick={(event) => {
+            !this.props.isSaveDisabled && this.props.onSave()
+          }}
           style={{...STYLES.button, ...STYLES.doneButton, opacity: this.props.isSaveDisabled ? 0.5 : 1}}
           title={this.props.title}
         >

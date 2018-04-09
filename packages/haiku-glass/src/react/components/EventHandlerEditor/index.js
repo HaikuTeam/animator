@@ -159,13 +159,18 @@ class EventHandlerEditor extends React.PureComponent {
   }
 
   doSaveAndClose () {
-    this.doSave()
-    this.props.close()
+    if (!this.state.editorWithErrors) {
+      this.hideEditor({isDeleting: false})
+      this.props.close()
+    }
   }
 
-  doSave () {
+  doSave ({isDeleting}) {
     if (!this.state.editorWithErrors) {
-      this.handlerManager.replaceEvent(this.editor.serialize(), this.state.currentEvent)
+      if (!isDeleting) {
+        this.handlerManager.replaceEvent(this.editor.serialize(), this.state.currentEvent)
+      }
+
       const result = this.handlerManager.serialize()
       this.props.save(this.props.element, result)
     }
@@ -185,7 +190,7 @@ class EventHandlerEditor extends React.PureComponent {
       : this.state.currentEvent
 
     this.handlerManager.delete(eventToDelete)
-    this.hideEditor()
+    this.hideEditor({isDeleting: true})
   }
 
   renderEditor () {
@@ -210,10 +215,10 @@ class EventHandlerEditor extends React.PureComponent {
     this.setState({ currentEvent: event })
   }
 
-  hideEditor () {
+  hideEditor (saveParams) {
     if (!this.state.editorWithErrors) {
       this.setState({ currentEvent: null })
-      this.doSave()
+      this.doSave(saveParams)
     }
   }
 
@@ -290,7 +295,7 @@ class EventHandlerEditor extends React.PureComponent {
                   <div style={STYLES.editorsWrapper}>
                     <span
                       onClick={() => {
-                        this.hideEditor()
+                        this.hideEditor({isDeleting: false})
                       }}
                       style={{
                         ...STYLES.allOptions,
@@ -305,26 +310,25 @@ class EventHandlerEditor extends React.PureComponent {
               />
             )}
           </div>
+          {this.state.currentEvent && (
+            <ModalFooter>
+              <EditorActions
+                onCancel={() => {
+                  this.doCancel()
+                }}
+                onSave={() => {
+                  this.doSaveAndClose()
+                }}
+                title={
+                  this.state.editorWithErrors
+                    ? 'an event handler has a syntax error'
+                    : ''
+                }
+                isSaveDisabled={this.state.editorWithErrors}
+              />
+            </ModalFooter>
+          )}
         </div>
-
-        {this.state.currentEvent && (
-          <ModalFooter>
-            <EditorActions
-              onCancel={() => {
-                this.doCancel()
-              }}
-              onSave={() => {
-                this.doSaveAndClose()
-              }}
-              title={
-                this.state.editorWithErrors
-                  ? 'an event handler has a syntax error'
-                  : ''
-              }
-              isSaveDisabled={this.state.editorWithErrors}
-            />
-          </ModalFooter>
-        )}
       </ModalWrapper>
     )
   }

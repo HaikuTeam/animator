@@ -79,7 +79,6 @@ class HandlerManager {
    * @param {String} oldEventName
    */
   replaceEvent ({id, event, handler, evaluator}, oldEventName) {
-    this.appliedEventHandlers.delete(oldEventName)
     this.appliedEventHandlers.set(event, {id, handler, evaluator})
   }
 
