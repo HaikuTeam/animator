@@ -11,52 +11,30 @@ const OBJECT = 'object';
 const FUNCTION = 'function';
 const CLASS = 'class';
 const CLASS_NAME = 'className';
+const NS = 'http://www.w3.org/1999/xlink';
+const XLINK_HREF = 'xlink:href';
 
-// data:image/png;base64 etc
-
-function setAttribute(el, key, val, cache) {
-  // If key === xlink:href we are dealing with a reference and need to use a namespace.
-  if (key[0] === 'x' && key[1] === 'l' && key[2] === 'i' && key[3] === 'n' && key[4] === 'k') {
-    const ns = 'http://www.w3.org/1999/xlink';
-
-    // If the value is data:image/, treat that as a special case magic string
-    if (
-      val[0] === 'd' &&
-      val[1] === 'a' &&
-      val[2] === 't' &&
-      val[3] === 'a' &&
-      val[4] === ':' &&
-      val[5] === 'i' &&
-      val[6] === 'm' &&
-      val[7] === 'a' &&
-      val[8] === 'g' &&
-      val[9] === 'e' &&
-      val[10] === '/'
-    ) {
-      // In case of a huge image string, we don't even diff it, we just write it once and only once
-      if (!cache.base64image) {
-        el.setAttributeNS(ns, key, val);
-        cache.base64image = true;
-      }
-    } else {
-      const p0 = el.getAttributeNS(ns, key);
-      if (p0 !== val) {
-        el.setAttributeNS(ns, key, val);
-      }
+function setAttribute(
+  domElement,
+  virtualElement,
+  key,
+  val,
+  component,
+) {
+  if (key === XLINK_HREF) {
+    const p0 = domElement.getAttributeNS(NS, key);
+    if (p0 !== val) {
+      domElement.setAttributeNS(NS, key, val);
     }
   } else {
-    const p1 = el.getAttribute(key);
+    const p1 = domElement.getAttribute(key);
     if (p1 !== val) {
-      el.setAttribute(key, val);
+      domElement.setAttribute(key, val);
     }
   }
 }
 
 export default function assignAttributes(domElement, virtualElement, component, isPatchOperation) {
-  const flexId = getFlexId(virtualElement);
-
-  const cache = component.subcacheGet(flexId);
-
   if (!isPatchOperation) {
     // Remove any attributes from the previous run that aren't present this time around
     if (domElement.haiku && domElement.haiku.element) {
@@ -68,10 +46,6 @@ export default function assignAttributes(domElement, virtualElement, component, 
           // Removal of old styles is handled downstream; see assignStyle()
           if (newValue === null || newValue === undefined || oldValue !== newValue) {
             domElement.removeAttribute(oldKey);
-
-            if (cache[oldKey]) {
-              cache[oldKey] = null;
-            }
           }
         }
       }
@@ -97,7 +71,13 @@ export default function assignAttributes(domElement, virtualElement, component, 
       continue;
     }
 
-    setAttribute(domElement, key, anotherNewValue, cache);
+    setAttribute(
+      domElement,
+      virtualElement,
+      key,
+      anotherNewValue,
+      component,
+    );
   }
 
   return domElement;
