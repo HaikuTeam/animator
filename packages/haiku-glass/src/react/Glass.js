@@ -452,9 +452,9 @@ export class Glass extends React.Component {
   }
 
   componentDidMount () {
-    // If the user e.g. Cmd+tabs away from the window
-    this.addEmitterListener(window, 'blur', () => {
+    const resetKeyStates = () => {
       Globals.allKeysUp()
+
       this.setState({
         controlActivation: null,
         isAnythingScaling: false,
@@ -465,6 +465,15 @@ export class Glass extends React.Component {
         isMouseDown: false,
         isMouseDragging: false
       })
+    }
+
+    // If the user e.g. Cmd+tabs away from the window
+    this.addEmitterListener(window, 'blur', () => {
+      resetKeyStates()
+    })
+
+    this.addEmitterListener(window, 'focus', () => {
+      resetKeyStates()
     })
 
     this.addEmitterListener(window, 'dragover', Asset.preventDefaultDrag, false)
