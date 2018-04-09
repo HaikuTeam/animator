@@ -11,6 +11,7 @@ import vanities from './properties/dom/vanities';
 import clone from './helpers/clone';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
 import cssQueryList from './helpers/cssQueryList';
+import xmlToMana from './helpers/xmlToMana';
 import {isPreviewMode} from './helpers/interactionModes';
 import isMutableProperty from './helpers/isMutableProperty';
 import manaFlattenTree from './helpers/manaFlattenTree';
@@ -81,6 +82,12 @@ export default class HaikuComponent extends HaikuElement {
     container,
 ) {
     super();
+
+    // We provide rudimentary support for passing the `template` as an XML string.
+    if (typeof bytecode.template === STRING_TYPE) {
+      console.warn('[haiku core] converting template xml string to object');
+      bytecode.template = xmlToMana(bytecode.template);
+    }
 
     if (!bytecode.template) {
       console.warn('Adding missing template object to bytecode');
