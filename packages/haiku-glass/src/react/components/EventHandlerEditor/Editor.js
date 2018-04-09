@@ -117,7 +117,7 @@ class Editor extends React.Component {
         id={this.props.id}
       >
         <div style={{...STYLES.amble, ...STYLES.preamble}}>
-          {`function (${this.props.params}) {`}
+          {`function (${this.props.params.join(', ')}) {`}
         </div>
         <div
           style={STYLES.editorContext}
