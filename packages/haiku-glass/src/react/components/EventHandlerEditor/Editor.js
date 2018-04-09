@@ -81,6 +81,7 @@ class Editor extends React.Component {
     })
 
     this.editor.onDidChangeModelContent(this.handleEditorChange)
+    this.editor.focus()
     // this.editor.onMouseMove listener declared in Snippets.js
 
     this.forceUpdate()
