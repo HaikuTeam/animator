@@ -75,6 +75,10 @@ export default function applyLayout(
       return domElement;
     }
 
+    if (!parentVirtualElement) {
+      warnOnce('Cannot compute layout without parent element');
+      return domElement;
+    }
 
     if (!parentVirtualElement.layout || !parentVirtualElement.layout.computed) {
       warnOnce(
