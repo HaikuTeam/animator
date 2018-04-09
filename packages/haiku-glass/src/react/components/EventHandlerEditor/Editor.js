@@ -46,10 +46,10 @@ class Editor extends React.Component {
 
     this.handleEditorChange = this.handleEditorChange.bind(this)
     this.remove = this.remove.bind(this)
+    this.evaluator = null
 
     this.state = {
-      contents: props.contents,
-      evaluator: null
+      contents: props.contents
     }
   }
 
@@ -103,7 +103,7 @@ class Editor extends React.Component {
         type: 'FunctionExpression',
         name: null
       },
-      evaluator: this.state.evaluator
+      evaluator: this.evaluator
     }
   }
 
@@ -135,7 +135,7 @@ class Editor extends React.Component {
         <div style={{...STYLES.amble, ...STYLES.postamble}}>
           {'}'}
           <SyntaxEvaluator
-            onChange={(evaluator) => { this.setState({evaluator}) }}
+            onChange={(evaluator) => { this.evaluator = evaluator }}
             evaluate={this.state.contents}
             style={STYLES.postamble.errors}
           />

@@ -158,11 +158,16 @@ class EventHandlerEditor extends React.PureComponent {
     }
   }
 
+  doSaveAndClose () {
+    this.doSave()
+    this.props.close()
+  }
+
   doSave () {
     if (!this.state.editorWithErrors) {
+      this.handlerManager.replaceEvent(this.editor.serialize(), this.state.currentEvent)
       const result = this.handlerManager.serialize()
       this.props.save(this.props.element, result)
-      this.props.close()
     }
   }
 
@@ -170,29 +175,17 @@ class EventHandlerEditor extends React.PureComponent {
     this.props.close()
   }
 
-  onEditorContentChange (serializedEvent, oldEvent) {
-    const { evaluator } = serializedEvent
-
-    if (evaluator && evaluator.state === EVALUATOR_STATES.ERROR) {
-      this.setState({ editorWithErrors: true })
-    } else {
-      this.handlerManager.replaceEvent(serializedEvent, oldEvent)
-      this.setState({ editorWithErrors: false })
-    }
+  onEditorContentChange ({evaluator}) {
+    this.setState({ editorWithErrors: evaluator && evaluator.state === EVALUATOR_STATES.ERROR })
   }
 
   onEditorRemoved () {
-    let toDelete
+    const eventToDelete = isNumeric(this.props.options.frame)
+      ? HandlerManager.frameToEvent(this.props.options.frame)
+      : this.state.currentEvent
 
-    if (isNumeric(this.props.options.frame)) {
-      toDelete = HandlerManager.frameToEvent(this.props.options.frame)
-      this.doSave()
-    } else {
-      toDelete = this.state.currentEvent
-      this.hideEditor()
-    }
-
-    this.handlerManager.delete(toDelete)
+    this.handlerManager.delete(eventToDelete)
+    this.hideEditor()
   }
 
   renderEditor () {
@@ -208,6 +201,7 @@ class EventHandlerEditor extends React.PureComponent {
         params={handler.params}
         contents={handler.body}
         key={id}
+        ref={(editor) => { this.editor = editor }}
       />
     )
   }
@@ -219,6 +213,7 @@ class EventHandlerEditor extends React.PureComponent {
   hideEditor () {
     if (!this.state.editorWithErrors) {
       this.setState({ currentEvent: null })
+      this.doSave()
     }
   }
 
@@ -319,7 +314,7 @@ class EventHandlerEditor extends React.PureComponent {
                 this.doCancel()
               }}
               onSave={() => {
-                this.doSave()
+                this.doSaveAndClose()
               }}
               title={
                 this.state.editorWithErrors
