@@ -66,6 +66,23 @@ const keyframeUpdatesToHotComponentDescriptors = (keyframeUpdates) => {
 }
 
 /**
+ * Wraps a hard reload series step to release early (err === true) when there is a pending request for
+ * ActiveComponentHardReload. Otherwise, executes the series step as usual.
+ * @param fn
+ * @param cb
+ * @returns {*}
+ */
+const wrapHardReloadSeriesStep = (fn, cb) => {
+  if (Lock.hasPendingRequest(Lock.LOCKS.ActiveComponentReload(true))) {
+    // If we have another hard reload queued, queue custom rehydrate and continue.
+    // eslint-disable-next-line
+    return cb(true)
+  }
+
+  return fn(cb)
+}
+
+/**
  * @class ActiveComponent
  * @description
  *.  Encapsulates and consolidates code to edit a live in-stage component.
@@ -84,6 +101,9 @@ class ActiveComponent extends BaseModel {
     // Collection of instances of a @haiku/core/src/HaikuComponent
     // currently present across multiple editing context on stage
     this.instancesOfHaikuCoreComponent = []
+
+    // Queue of custom rehydrates to run. Populated when a rapid sequence of reloads backs up.
+    this.customRehydrateQueue = []
 
     // All elements representing instantiated components within us,
     // mapped by their haiku-id
@@ -1697,7 +1717,7 @@ class ActiveComponent extends BaseModel {
 
     // Note that this lock only occurs in .reload(); if you ever hard reload or
     // soft reload a la carte, you might get a race condition!
-    return Lock.request(Lock.LOCKS.ActiveComponentReload, false, (release) => {
+    return Lock.request(Lock.LOCKS.ActiveComponentReload(reloadOptions.hardReload), false, (release) => {
       const finish = (err) => {
         release()
 
@@ -1719,16 +1739,16 @@ class ActiveComponent extends BaseModel {
     const haikuCoreComponentInstances = this.getActiveInstancesOfHaikuCoreComponent()
 
     return async.series([
-      (cb) => {
+      (cb) => wrapHardReloadSeriesStep((cb) => {
         // Stop the clock so we don't continue any animations while this update is happening
         haikuCoreComponentInstances.forEach((instance) => {
           instance._context.clock.stop()
         })
 
         return cb()
-      },
+      }, cb),
 
-      (cb) => {
+      (cb) => wrapHardReloadSeriesStep((cb) => {
         if (!reloadOptions.fileReload) {
           return cb()
         }
@@ -1739,23 +1759,27 @@ class ActiveComponent extends BaseModel {
         }
 
         return this.moduleReload(reloadOptions, instanceConfig, cb)
-      },
+      }, cb),
 
-      (cb) => {
+      (cb) => wrapHardReloadSeriesStep((cb) => {
         return this.softReload(reloadOptions, instanceConfig, cb)
-      },
+      }, cb),
 
-      (cb) => {
+      (cb) => wrapHardReloadSeriesStep((cb) => {
         if (typeof reloadOptions.customRehydrate === 'function') {
           // In many cases a full rehydration isn't desired because we know exactly
           // what models need to be updated in order to proceed; if the user
           // specifies this then we call their own custom rehydration function
+          while (this.customRehydrateQueue.length > 0) {
+            this.customRehydrateQueue.shift()()
+          }
           reloadOptions.customRehydrate()
         } else {
           // Rehydrate all the view-models so our view renders correctly
           // This has to happen __after softReload__ because soft reload calls
           // flush, and all the models need access to the rendered app in
           // order to compute various things properly (race condition)
+          this.customRehydrateQueue.length = 0
           this.rehydrate()
         }
 
@@ -1772,8 +1796,20 @@ class ActiveComponent extends BaseModel {
         })
 
         return cb()
+      }, cb)
+    ], (err) => {
+      if (err === true) {
+        // We aborted due to a pending request on the ActiveComponentHardReload lock.
+        // Queue the custom rehydrate method (if necessary) and exit normally.
+        if (typeof reloadOptions.customRehydrate === 'function') {
+          this.customRehydrateQueue.push(reloadOptions.customRehydrate)
+        }
+
+        return finish()
       }
-    ], finish)
+
+      return finish(err)
+    })
   }
 
   moduleReload (reloadOptions, instanceConfig, cb) {

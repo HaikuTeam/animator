@@ -4,9 +4,9 @@ const ACTIVE_LOCKS = {}
 
 const LOCKS = {
   ActiveComponentWork: 'ActiveComponentWork',
-  ActiveComponentReload: 'ActiveComponentReload',
+  ActiveComponentReload: (hard) => `ActiveComponent${hard ? 'Hard' : 'Soft'}Reload`,
   FilePerformComponentWork: 'FilePerformComponentWork',
-  FileReadWrite: (abspath) => { return `FileReadWrite:${abspath}` },
+  FileReadWrite: (abspath) => `FileReadWrite:${abspath}`,
   ProjectMethodHandler: 'ProjectMethodHandler',
   ActionStackUndoRedo: 'ActionStackUndoRedo'
 }
@@ -20,16 +20,19 @@ const request = (key, emit, cb) => {
 
   if (ACTIVE_LOCKS[key]) {
     // Push to the end of the stack
-    return setTimeout(() => request(key, emit, cb), 0)
+    return ACTIVE_LOCKS[key].push(setTimeout(() => request(key, emit, cb), 0))
   }
 
-  ACTIVE_LOCKS[key] = true
+  ACTIVE_LOCKS[key] = [-1]
   if (emit) {
     emitter.emit('lock-on', key)
   }
 
   const release = () => {
-    ACTIVE_LOCKS[key] = false
+    ACTIVE_LOCKS[key].shift()
+    if (ACTIVE_LOCKS[key].length === 0) {
+      ACTIVE_LOCKS[key] = undefined
+    }
     if (emit) {
       emitter.emit('lock-off', key)
     }
@@ -40,14 +43,22 @@ const request = (key, emit, cb) => {
 
 const clearAll = () => {
   for (const key in ACTIVE_LOCKS) {
-    delete ACTIVE_LOCKS[key]
+    while (ACTIVE_LOCKS[key].length > 0) {
+      clearTimeout(ACTIVE_LOCKS[key].shift())
+    }
+    ACTIVE_LOCKS[key] = undefined
   }
 }
+
+const getQueueDepth = (key) => ACTIVE_LOCKS[key] ? ACTIVE_LOCKS[key].length : 0
+
+const hasPendingRequest = (key) => getQueueDepth(key) > 1
 
 module.exports = {
   request,
   emitter,
   clearAll,
+  hasPendingRequest,
   LOCKS,
   ACTIVE_LOCKS
 }
