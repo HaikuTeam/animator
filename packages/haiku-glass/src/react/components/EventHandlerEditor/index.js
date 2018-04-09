@@ -4,28 +4,49 @@ import Palette from 'haiku-ui-common/lib/Palette'
 import ElementTitle from './ElementTitle'
 import Editor from './Editor'
 import EditorActions from './EditorActions'
+import EventSelector from './EventSelector'
 import HandlerManager from './HandlerManager'
-import {ModalWrapper, ModalHeader, ModalFooter} from 'haiku-ui-common/lib/react/Modal'
-import {PrettyScroll} from 'haiku-ui-common/lib/react/PrettyScroll'
-import {EDITOR_WIDTH, EDITOR_HEIGHT, EVALUATOR_STATES, AUTOCOMPLETION_ITEMS} from './constants'
+import {
+  ModalWrapper,
+  ModalHeader,
+  ModalFooter
+} from 'haiku-ui-common/lib/react/Modal'
+import { RevealPanel } from 'haiku-ui-common/lib/react/RevealPanel'
+import {
+  EDITOR_WIDTH,
+  EVALUATOR_STATES,
+  AUTOCOMPLETION_ITEMS
+} from './constants'
 
 const STYLES = {
   container: {
     width: EDITOR_WIDTH,
-    height: EDITOR_HEIGHT,
+    minHeight: '230px',
     paddingRight: 0
   },
   outer: {
-    position: 'relative'
+    position: 'relative',
+    overflow: 'hidden'
   },
   editorsWrapper: {
-    overflowY: 'auto',
-    overflowX: 'visible',
-    height: '255px',
     width: '100%',
-    paddingRight: '18px',
-    paddingLeft: '18px',
-    paddingTop: '23px'
+    padding: '23px 0 23px 18px'
+  },
+  tag: {
+    padding: '2px 15px',
+    marginRight: '15px',
+    background: Palette.BLUE,
+    borderRadius: '4px',
+    textTransform: 'uppercase',
+    color: Palette.SUNSTONE,
+    cursor: 'pointer',
+    userSelect: 'none'
+  },
+  allOptions: {
+    cursor: 'pointer',
+    userSelect: 'none',
+    display: 'inline-block',
+    marginBottom: '15px'
   }
 }
 
@@ -38,16 +59,12 @@ class EventHandlerEditor extends React.PureComponent {
     super(props)
 
     this.handlerManager = null
-    this.onEditorContentChange = this.onEditorContentChange.bind(this)
-    this.onEditorEventChange = this.onEditorEventChange.bind(this)
-    this.onEditorRemoved = this.onEditorRemoved.bind(this)
-    this.addAction = this.addAction.bind(this)
-    this.onFrameEditorRemoved = this.onFrameEditorRemoved.bind(this)
 
     this.setupMonaco()
 
     this.state = {
-      editorsWithErrors: []
+      editorWithErrors: false,
+      currentEvent: null
     }
   }
 
@@ -111,14 +128,14 @@ class EventHandlerEditor extends React.PureComponent {
    * 1- Triggering a re-render
    * 2- Instantiating a HandlerManager
    */
-  shouldComponentUpdate ({element, visible, options}, {editorsWithErrors}) {
+  shouldComponentUpdate (
+    { element, visible, options },
+    { editorWithErrors, currentEvent }
+  ) {
     const pkey1 = element && element.getPrimaryKey()
     const pkey2 = this.props.element && this.props.element.getPrimaryKey()
 
-    if (
-      element &&
-      ((pkey1 !== pkey2) || !this.handlerManager)
-    ) {
+    if (element && (pkey1 !== pkey2 || !this.handlerManager)) {
       this.handlerManager = new HandlerManager(element)
       return true
     }
@@ -126,25 +143,24 @@ class EventHandlerEditor extends React.PureComponent {
     if (
       (options && options.frame !== this.props.options.frame) ||
       visible !== this.props.visible ||
-      editorsWithErrors.length !== this.state.editorsWithErrors.length
+      editorWithErrors !== this.state.editorWithErrors ||
+      currentEvent !== this.state.currentEvent
     ) {
       return true
     }
-
     return false
   }
 
-  addAction () {
-    this.handlerManager.addNextAvailableEventHandler()
-    this.forceUpdate()
+  componentWillReceiveProps (nextProps) {
+    if (nextProps.options.frame) {
+      const event = HandlerManager.frameToEvent(nextProps.options.frame)
+      this.setState({ currentEvent: event })
+    }
   }
 
   doSave () {
-    const result = this.handlerManager.serialize()
-
-    if (this.state.editorsWithErrors.length) {
-      this.scrollToEditor(this.state.editorsWithErrors[0])
-    } else {
+    if (!this.state.editorWithErrors) {
+      const result = this.handlerManager.serialize()
       this.props.save(this.props.element, result)
       this.props.close()
     }
@@ -155,116 +171,55 @@ class EventHandlerEditor extends React.PureComponent {
   }
 
   onEditorContentChange (serializedEvent, oldEvent) {
-    const {evaluator} = serializedEvent
+    const { evaluator } = serializedEvent
 
     if (evaluator && evaluator.state === EVALUATOR_STATES.ERROR) {
-      this.setState({
-        editorsWithErrors: this.state.editorsWithErrors.concat(
-          serializedEvent.id
-        )
-      })
+      this.setState({ editorWithErrors: true })
     } else {
       this.handlerManager.replaceEvent(serializedEvent, oldEvent)
-      this.setState({
-        editorsWithErrors: this.state.editorsWithErrors.filter(
-          (editor) => editor !== serializedEvent.id
-        )
-      })
+      this.setState({ editorWithErrors: false })
     }
   }
 
-  onEditorEventChange (serializedEvent, oldEvent) {
-    this.handlerManager.replaceEvent(serializedEvent, oldEvent)
-    this.forceUpdate()
-  }
+  onEditorRemoved () {
+    let toDelete
 
-  onEditorRemoved ({editor, event, handler}) {
-    this.handlerManager.delete(event)
-    this.forceUpdate()
-
-    if (this.handlerManager.size() === 0) {
-      this.doSave()
-    }
-  }
-
-  onFrameEditorRemoved () {
     if (isNumeric(this.props.options.frame)) {
-      const event = HandlerManager.frameToEvent(this.props.options.frame)
-      this.handlerManager.delete(event)
+      toDelete = HandlerManager.frameToEvent(this.props.options.frame)
       this.doSave()
-    }
-  }
-
-  scrollToEditor (editorId) {
-    const editor = this.wrapper.querySelector(`#${editorId}`)
-    this.wrapper.scrollTop = editor.offsetTop
-  }
-
-  renderFrameEditor (totalNumberOfHandlers, applicableEventHandlers) {
-    const event = HandlerManager.frameToEvent(this.props.options.frame)
-    const {id, handler} = this.handlerManager.getOrGenerateEventHandler(event)
-
-    return this.renderSingleEditor(
-      id,
-      event,
-      handler,
-      applicableEventHandlers,
-      totalNumberOfHandlers
-    )
-  }
-
-  renderEventsEditor (totalNumberOfHandlers, applicableEventHandlers) {
-    // If the element doesn't have any handlers, let's show a default editor
-    if (!this.handlerManager.hasUserVisibleEvents()) {
-      this.handlerManager.addNextAvailableEventHandler()
-      totalNumberOfHandlers = 1
+    } else {
+      toDelete = this.state.currentEvent
+      this.hideEditor()
     }
 
-    return this.handlerManager
-      .userVisibleEvents()
-      .map(({id, event, handler}) => {
-        return this.renderSingleEditor(
-          id,
-          event,
-          handler,
-          applicableEventHandlers,
-          totalNumberOfHandlers
-        )
-      })
-      .reverse()
+    this.handlerManager.delete(toDelete)
   }
 
-  renderSingleEditor (
-    id,
-    event,
-    handler,
-    applicableEventHandlers,
-    totalNumberOfHandlers
-  ) {
+  renderEditor () {
+    const event = this.state.currentEvent
+    const { id, handler } = this.handlerManager.getOrGenerateEventHandler(event)
+
     return (
       <Editor
-        onContentChange={this.onEditorContentChange}
-        onEventChange={this.onEditorEventChange}
-        onRemove={this.onEditorRemoved}
-        applicableHandlers={applicableEventHandlers}
-        appliedHandlers={this.handlerManager}
+        onContentChange={(serializedEvent, oldEvent) => {
+          this.onEditorContentChange(serializedEvent, oldEvent)
+        }}
         selectedEventName={event}
         params={handler.params}
         contents={handler.body}
         key={id}
-        id={id}
-        isSimplified={this.props.options.isSimplified}
       />
     )
   }
 
-  renderEditors () {
-    let totalNumberOfHandlers = this.handlerManager.size()
-    const applicableEventHandlers = this.handlerManager.getApplicableEventHandlers()
+  showEditor (event) {
+    this.setState({ currentEvent: event })
+  }
 
-    return isNumeric(this.props.options.frame)
-      ? this.renderFrameEditor(totalNumberOfHandlers, applicableEventHandlers)
-      : this.renderEventsEditor(totalNumberOfHandlers, applicableEventHandlers)
+  hideEditor () {
+    if (!this.state.editorWithErrors) {
+      this.setState({ currentEvent: null })
+    }
   }
 
   render () {
@@ -272,17 +227,17 @@ class EventHandlerEditor extends React.PureComponent {
       return null
     }
 
-    const visibilityStyles = this.props.visible ? {} : {visibility: 'hidden'}
+    const visibilityStyles = this.props.visible ? {} : { visibility: 'hidden' }
+    const applicableEventHandlers = this.handlerManager.getApplicableEventHandlers()
 
     return (
-      <ModalWrapper style={{...visibilityStyles, ...STYLES.container}}>
+      <ModalWrapper style={{ ...visibilityStyles, ...STYLES.container }}>
         <div
           onMouseDown={(mouseEvent) => {
             // Prevent outer view from closing us
             mouseEvent.stopPropagation()
           }}
         >
-
           <ModalHeader>
             <ElementTitle
               element={this.props.element}
@@ -291,27 +246,73 @@ class EventHandlerEditor extends React.PureComponent {
                   ? `Frame ${this.props.options.frame}`
                   : null
               }
-              hideActions={
-                this.props.options.isSimplified ||
-                !this.handlerManager.getNextAvailableDOMEvent()
+              onEditorRemoved={() => {
+                this.onEditorRemoved()
+              }}
+              breadcrumb={
+                isNumeric(this.props.options.frame) || !this.state.currentEvent
+                  ? ''
+                  : '> ' + this.state.currentEvent
               }
-              onNewAction={this.addAction}
-              isSimplified={this.props.options.isSimplified}
-              onFrameEditorRemoved={this.onFrameEditorRemoved}
-          />
+              isDeleteable={!!this.state.currentEvent}
+            />
           </ModalHeader>
 
           <div style={STYLES.outer}>
-            <PrettyScroll>
-              <div
-                style={STYLES.editorsWrapper}
-                ref={(el) => { this.wrapper = el }}
-              >
-                {this.renderEditors()}
-              </div>
-            </PrettyScroll>
-          </div>
+            {isNumeric(this.props.options.frame) ? (
+              <div style={STYLES.editorsWrapper}>{this.renderEditor()}</div>
+            ) : (
+              <RevealPanel
+                showDetail={!!this.state.currentEvent}
+                leftPanel={
+                  <div style={{ paddingTop: '35px' }}>
+                    <EventSelector
+                      options={applicableEventHandlers}
+                      disabledOptions={this.handlerManager}
+                      onChange={(event) => {
+                        this.showEditor(event)
+                      }}
+                    />
 
+                    {this.handlerManager
+                      .userVisibleEvents()
+                      .map(({ id, event, handler }) => {
+                        return (
+                          <span
+                            key={event}
+                            onClick={() => {
+                              this.showEditor(event)
+                            }}
+                            style={STYLES.tag}
+                          >
+                            {event}
+                          </span>
+                        )
+                      })}
+                  </div>
+                }
+                rightPanel={
+                  <div style={STYLES.editorsWrapper}>
+                    <span
+                      onClick={() => {
+                        this.hideEditor()
+                      }}
+                      style={{
+                        ...STYLES.allOptions,
+                        opacity: this.state.editorWithErrors ? '0.5' : '1'
+                      }}
+                    >
+                      &lt; All Actions
+                    </span>
+                    {this.state.currentEvent && this.renderEditor()}
+                  </div>
+                }
+              />
+            )}
+          </div>
+        </div>
+
+        {this.state.currentEvent && (
           <ModalFooter>
             <EditorActions
               onCancel={() => {
@@ -321,13 +322,14 @@ class EventHandlerEditor extends React.PureComponent {
                 this.doSave()
               }}
               title={
-                this.state.editorsWithErrors.length
+                this.state.editorWithErrors
                   ? 'an event handler has a syntax error'
                   : ''
               }
+              isSaveDisabled={this.state.editorWithErrors}
             />
           </ModalFooter>
-        </div>
+        )}
       </ModalWrapper>
     )
   }
