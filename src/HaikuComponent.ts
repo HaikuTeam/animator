@@ -90,17 +90,17 @@ export default class HaikuComponent extends HaikuElement {
     }
 
     if (!bytecode.template) {
-      console.warn('Adding missing template object to bytecode');
+      console.warn('[haiku core] adding missing template object');
       bytecode.template = {elementName: 'div', attributes: {}, children: []};
     }
 
     if (!bytecode.timelines) {
-      console.warn('Adding missing timeline object to bytecode');
+      console.warn('[haiku core] adding missing timelines object');
       bytecode.timelines = {};
     }
 
     if (!bytecode.timelines[DEFAULT_TIMELINE_NAME]) {
-      console.warn('Adding missing default timeline to bytecode');
+      console.warn('[haiku core] adding missing default timeline');
       bytecode.timelines[DEFAULT_TIMELINE_NAME] = {};
     }
 
@@ -946,19 +946,21 @@ export const initializeComponentTree = (
 };
 
 function assertTemplate(template) {
-  if (!template.attributes[HAIKU_ID_ATTRIBUTE]) {
-    console.warn('[haiku core] bytecode template has no id');
-  }
-
   if (!template) {
     throw new Error('Empty template not allowed');
   }
 
   if (typeof template === OBJECT_TYPE) {
+    if (template.attributes) {
+      if (!template.attributes[HAIKU_ID_ATTRIBUTE]) {
+        console.warn('[haiku core] bytecode template has no id');
+      }
+    } else {
+      console.warn('[haiku core] bytecode template has no attributes');
+    }
+
     if (!template.elementName) {
-      console.warn(
-        '[haiku core] warning: saw unexpected bytecode template format',
-      );
+      console.warn('[haiku core] unexpected bytecode template format');
     }
 
     return template;
