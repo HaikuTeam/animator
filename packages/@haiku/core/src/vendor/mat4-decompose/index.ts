@@ -32,44 +32,67 @@ const tmp = create();
 const row = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
 const pdum3 = [0, 0, 0];
 
-export const roundVector = (vector: number[]): number[] => vector.map((value) => Number(value.toFixed(2)));
+export function roundVector<T extends number[]>(vector: T): T {
+  return vector.map((value) => Number(value.toFixed(3))) as T;
+}
+
 export type ThreeTuple = [number, number, number];
 export type FourTuple = [number, number, number, number];
+
 export interface DecomposedMat4 {
   translation: ThreeTuple;
   scale: ThreeTuple;
+  shear: ThreeTuple;
   quaternion: FourTuple;
 }
 
-export default function decomposeMat4(matrix): boolean|DecomposedMat4 {
+export default function decomposeMat4(matrix): boolean | DecomposedMat4 {
   // normalize, if not possible then bail out early
   if (!normalize(tmp, matrix)) {
     return false;
   }
 
-  const translation = roundVector([tmp[12], tmp[13], tmp[14]]) as ThreeTuple;
+  const translation = roundVector<ThreeTuple>([tmp[12], tmp[13], tmp[14]]);
 
-  // Now get scale. 'row' is a 3 element array of 3 component vectors
+  // Now get scale and shear. 'row' is a 3 element array of 3 component vectors
   mat3from4(row, tmp);
+  const scale = [0, 0, 0] as ThreeTuple;
+  const shear = [0, 0, 0] as ThreeTuple;
 
-  // Compute scale factor and normalize rows.
-  const scale = roundVector([
-    vec3.length(row[0]),
-    vec3.length(row[1]),
-    vec3.length(row[2]),
-  ]) as ThreeTuple;
+  // Compute X scale factor and normalize first row.
+  scale[0] = vec3.length(row[0]);
+  vec3.normalize(row[0], row[0]);
+
+  // Compute XY shear factor and make 2nd row orthogonal to 1st.
+  shear[0] = vec3.dot(row[0], row[1]);
+  combine(row[1], row[1], row[0], 1.0, -shear[0]);
+
+  // Now, compute Y scale and normalize 2nd row.
+  scale[1] = vec3.length(row[1]);
+  vec3.normalize(row[1], row[1]);
+  shear[0] /= scale[1];
+
+  // Compute XZ and YZ shears, orthogonalize 3rd row
+  shear[1] = vec3.dot(row[0], row[2]);
+  combine(row[2], row[2], row[0], 1.0, -shear[1]);
+  shear[2] = vec3.dot(row[1], row[2]);
+  combine(row[2], row[2], row[1], 1.0, -shear[2]);
+
+  // Next, get Z scale and normalize 3rd row.
+  scale[2] = vec3.length(row[2]);
+  vec3.normalize(row[2], row[2]);
+  shear[1] /= scale[2];
+  shear[2] /= scale[2];
+
   // Return early if we have any 0 scale factors.
   if (scale.indexOf(0) !== -1) {
     return {
       translation: [0, 0, 0],
       scale: [0, 0, 0],
+      shear: [0, 0, 0],
       quaternion: [0, 0, 0, 0],
     };
   }
-
-  vec3.normalize(row[0], row[0]);
-  vec3.normalize(row[1], row[1]);
-  vec3.normalize(row[2], row[2]);
 
   // At this point, the matrix (in rows) is orthonormal.
   // Check for a coordinate system flip.  If the determinant
@@ -102,7 +125,12 @@ export default function decomposeMat4(matrix): boolean|DecomposedMat4 {
     quaternion[2] = -quaternion[2];
   }
 
-  return {translation, scale, quaternion};
+  return {
+    translation,
+    scale: roundVector<ThreeTuple>(scale),
+    quaternion: roundVector<FourTuple>(quaternion),
+    shear: roundVector<ThreeTuple>(shear),
+  };
 }
 
 // gets upper-left of a 4x4 matrix into a 3x3 of vectors
@@ -118,4 +146,10 @@ function mat3from4(out, mat4x4) {
   out[2][0] = mat4x4[8];
   out[2][1] = mat4x4[9];
   out[2][2] = mat4x4[10];
+}
+
+function combine(out, a, b, scale1, scale2) {
+  out[0] = a[0] * scale1 + b[0] * scale2;
+  out[1] = a[1] * scale1 + b[1] * scale2;
+  out[2] = a[2] * scale1 + b[2] * scale2;
 }

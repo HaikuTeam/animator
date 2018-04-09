@@ -15,11 +15,11 @@ test('layout.parseCssTransformString', function (t) {
     ['translate(88.000000,87.000000) translate(-88.000000,-87.000000)', {}],
     [
       'translate(88.000000,87.000000) rotate(-90.00) translate(-88.000000,-87.000000)',
-      { 'translation.x': 1, 'translation.y': 175, 'rotation.z': 4.71 }
+      { 'translation.x': 1, 'translation.y': 175, 'rotation.z': 4.712 }
     ],
     [
       'translate(55.500000, 68.500000) rotate(-9.000000) translate(-55.500000, -68.500000) translate(10.000000, 7.000000)',
-      { 'translation.x': 0.94, 'translation.y': 14.87, 'rotation.z': 6.13 }
+      { 'translation.x': 0.939, 'translation.y': 14.875, 'rotation.z': 6.127 }
     ],
     [
       'translate(88.000000,87.000000) scale(1.5,1.5)',
@@ -32,9 +32,9 @@ test('layout.parseCssTransformString', function (t) {
     ],
     [
       'rotate(45) translate(0.25,1.56)',
-      { 'translation.x': -0.93, 'translation.y': 1.28, 'rotation.z': 0.79 }
+      { 'translation.x': -0.926, 'translation.y': 1.28, 'rotation.z': 0.786 }
     ],
-    ['rotate(217) rotate(-32) rotate(56)', { 'rotation.z': 4.21 }],
+    ['rotate(217) rotate(-32) rotate(56)', { 'rotation.z': 4.208 }],
     [
       'matrix3d(1.5,0,0,0,0,1.5,0,0,0,0,1.5,0,1,1,1,1);',
       {
@@ -58,9 +58,10 @@ test('layout.parseCssTransformString', function (t) {
     [
       'matrix(1.5,1,1,1.5,0,0);',
       {
-        "rotation.z": 0.59,
-        "scale.x": 1.8,
-        "scale.y": 1.8
+        "rotation.z": 0.588,
+        "scale.x": 1.803,
+        "scale.y": 0.693,
+        "shear.xy": 2.4,
       }
     ],
     [
@@ -81,9 +82,8 @@ test('layout.parseCssTransformString', function (t) {
     [
       'rotate3d(0,90deg,120deg);',
       {
-        "rotation.x": 6.28,
-        "rotation.y": 1.57, // = Math.PI / 4
-        "rotation.z": 2.09  // = 2 * Math.PI / 3
+        "rotation.y": 1.571, // = Math.PI / 4
+        "rotation.z": 2.093  // = 2 * Math.PI / 3
       }
     ],
     [
@@ -95,18 +95,18 @@ test('layout.parseCssTransformString', function (t) {
     [
       'translate(33.000000, 92.000000) rotate(10.000000) translate(-33.000000, -92.000000) translate(-2.000000, 1.000000)',
       {
-        "translation.x": 14.33,
-        "translation.y": -3.7,
-        "rotation.z": 0.17
+        "translation.x": 14.334,
+        "translation.y": -3.695,
+        "rotation.z": 0.174
       }
     ],
     [
       'translate(43.270256, 92.695192) scale(-1, 1) rotate(10.000000) translate(-43.270256, -92.695192) translate(8.270256, 1.695192)',
       {
-        "translation.x": 61.94,
+        "translation.x": 61.937,
         "translation.y": -3,
-        "rotation.y": 3.14,
-        "rotation.z": 2.97,
+        "rotation.y": 3.142,
+        "rotation.z": 2.967,
         "scale.x": -1,
         "scale.y": -1,
         "scale.z": -1

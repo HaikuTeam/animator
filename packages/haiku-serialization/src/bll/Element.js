@@ -554,6 +554,11 @@ class Element extends BaseModel {
         y: grabValue('scale.y'),
         z: grabValue('scale.z')
       },
+      shear: {
+        xy: grabValue('shear.xy'),
+        xz: grabValue('shear.xz'),
+        yz: grabValue('shear.yz')
+      },
       sizeMode: {
         x: grabValue('sizeMode.x'),
         y: grabValue('sizeMode.y'),
@@ -1895,6 +1900,9 @@ Element.ALWAYS_ALLOWED_PROPS = {
   'scale.y': true,
   'origin.x': true,
   'origin.y': true,
+  'shear.xy': true,
+  'shear.xz': true,
+  'shear.yz': true,
   'opacity': true
   // 'backgroundColor': true,
   // 'shown': true // Mainly so instantiation at non-0 times results in invisibility

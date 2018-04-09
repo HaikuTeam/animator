@@ -372,6 +372,11 @@ class ElementSelectionProxy extends BaseModel {
         y: this.computePropertyValue('translation.y'),
         z: 0
       },
+      shear: {
+        xy: 0,
+        xz: 0,
+        yz: 0
+      },
       rotation: {
         x: 0,
         y: 0,
