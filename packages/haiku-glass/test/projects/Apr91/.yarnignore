@@ -1,0 +1,10 @@
+.DS_Store
+.git
+.svn
+*.log
+*.*.log
+*.ai
+*.sketch
+*.svg
+.env
+.haiku
