@@ -97,9 +97,11 @@ class Figma {
 
     return Promise.all(
       elements.map((element) => {
-        const path =
-          assetBaseFolder + FOLDERS[element.type] + element.name + '.svg'
-        return fse.writeFile(path, element.svg || '<svg version="1.1" xmlns="http://www.w3.org/2000/svg"></svg>')
+        if (element) {
+          const path =
+            assetBaseFolder + FOLDERS[element.type] + element.name + '.svg'
+          return fse.writeFile(path, element.svg || '<svg version="1.1" xmlns="http://www.w3.org/2000/svg"></svg>')
+        }
       })
     )
   }
@@ -117,7 +119,10 @@ class Figma {
         this.request({ uri: element.svgURL, auth: false }).then((svg) => {
           resolve(Object.assign(element, {svg}))
         })
-        .catch(reject)
+        .catch((error) => {
+          logger.error(`[figma] failed to import slice or group: ${JSON.stringify(element)}`)
+          resolve(null)
+        })
       })
     })
 
