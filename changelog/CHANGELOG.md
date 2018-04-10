@@ -1,6 +1,39 @@
 # Changelog
 
 
+## 3.2.1
+
+### Bug Fixes
+
+ * address edge cases on the logic to save Actions
+ * style and behavior fixes for the Events UI
+ * do not insert a newline with snippets in the Events UI
+ * tweak the save logic in Events UI to behave properly
+ * avoid unexpected 360deg rotations when switching quadrants.
+ * use an array for params in actions handlers
+ * use endpoint that never returns HTTP errors for checking public/forkable.
+ * Remove overcomplex cache logic causing problems for rendering data url attributes
+ * Add back support for providing the template as an xml string
+ * resolve various issues related to zooming the artboard.
+ * the active control should dominate the hovered control during scaling.
+ * resolve an edge case with proportional scaling.
+ * un-guard dragging
+ * add basic polyline support.
+ * solve for chained terminated paths and allow falsey curves.
+ * enable text to be copied in Creator
+ * update an old path
+ * typos and variable name collisions
+ * refactor the code and use better detection for Sketch paths
+
+### Features
+
+ * add ability to pull all subtrees standalone.
+ * add correct and addressable (2D) origin support.
+ * use iPreview haiku as preview button
+ * Drag+drop timeline elements to re-order z-index
+ * Improved core eventing and base model
+ * add snippets with docs in the Actions UI
+
 ## 3.1.32
 
 ### Bug Fixes
