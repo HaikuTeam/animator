@@ -1,6 +1,6 @@
 import React from 'react'
 import { StyleRoot } from 'radium'
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
+import { CSSTransition } from 'react-transition-group'
 import lodash from 'lodash'
 import Combokeys from 'combokeys'
 import EventEmitter from 'event-emitter'
@@ -1250,14 +1250,14 @@ export default class Creator extends React.Component {
 
     return (
       <div style={{ position: 'absolute', width: '100%', height: '100%', backgroundColor: '#313F41' }}>
-        <ReactCSSTransitionGroup
-          transitionName='toast'
-          transitionEnterTimeout={500}
-          transitionLeaveTimeout={300}>
+        <CSSTransition
+          classNames='toast'
+          timeout={{ enter: 500, exit: 300}}
+        >
           <div style={{ position: 'absolute', right: 0, top: 0, width: 300 }}>
             {lodash.map(this.state.notices, this.renderNotice)}
           </div>
-        </ReactCSSTransitionGroup>
+        </CSSTransition>
         <div style={{ display: 'block', width: '100%', height: '100%', position: 'fixed', top: 0, left: 0 }}>
           <CreatorIntro haikuOptions={{loop: false, sizing: 'contain', contextMenu: 'disabled'}} />
         </div>
@@ -1489,14 +1489,14 @@ export default class Creator extends React.Component {
     if (!this.state.applicationImage || this.state.folderLoadingError) {
       return (
         <div style={{ position: 'absolute', width: '100%', height: '100%' }}>
-          <ReactCSSTransitionGroup
-            transitionName='toast'
-            transitionEnterTimeout={500}
-            transitionLeaveTimeout={300}>
+          <CSSTransition
+            classNames='toast'
+            timeout={{ enter: 500, exit: 300}}
+          >
             <div style={{ position: 'absolute', right: 0, top: 0, width: 300 }}>
               {lodash.map(this.state.notices, this.renderNotice)}
             </div>
-          </ReactCSSTransitionGroup>
+          </CSSTransition>
           <div style={{ position: 'relative', width: '100%', height: '100%' }}>
             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
               <span style={{ fontSize: 24, color: '#222' }}>Loading project...</span>
@@ -1520,14 +1520,14 @@ export default class Creator extends React.Component {
           envoyClient={this.envoyClient} />
         <div style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0 }}>
           <div className='layout-box' style={{ overflow: 'visible' }}>
-            <ReactCSSTransitionGroup
-              transitionName='toast'
-              transitionEnterTimeout={500}
-              transitionLeaveTimeout={300}>
+            <CSSTransition
+              classNames='toast'
+              timeout={{ enter: 500, exit: 300}}
+            >
               <div style={{ position: 'absolute', right: 0, top: 44, width: 300 }}>
                 {lodash.map(this.state.notices, this.renderNotice)}
               </div>
-            </ReactCSSTransitionGroup>
+            </CSSTransition>
             <SplitPanel split='horizontal' minSize={300} defaultSize={this.props.height * 0.62}>
               <SplitPanel split='vertical' minSize={300} defaultSize={300}>
                 <SideBar

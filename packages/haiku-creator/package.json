@@ -50,7 +50,6 @@
     "radium": "0.18.1",
     "raven-js": "^3.18.1",
     "react": "15.6.2",
-    "react-addons-css-transition-group": "15.6.2",
     "react-animations": "0.1.0",
     "react-contextmenu": "2.1.0",
     "react-copy-to-clipboard": "^5.0.0",
