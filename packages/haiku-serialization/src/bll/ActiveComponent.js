@@ -5,8 +5,8 @@ const async = require('async')
 const jss = require('json-stable-stringify')
 const {sortedKeyframes} = require('@haiku/core/lib/Transitions').default
 const HaikuDOMAdapter = require('@haiku/core/lib/adapters/dom').default
+const {initializeComponentTree} = require('@haiku/core/lib/HaikuComponent')
 const {InteractionMode, isPreviewMode} = require('@haiku/core/lib/helpers/interactionModes')
-const initializeComponentTree = require('@haiku/core/lib/helpers/initializeComponentTree').default
 const Layout3D = require('@haiku/core/lib/Layout3D').default
 const BaseModel = require('./BaseModel')
 const logger = require('./../utils/LoggerInstance')
@@ -120,6 +120,11 @@ class ActiveComponent extends BaseModel {
       artboard: this.artboard
     })
 
+    this.devConsole = DevConsole.upsert({
+      uid: this.getPrimaryKey(),
+      component: this
+    })
+
     this.project.addActiveComponentToRegistry(this)
 
     // Used to control how we render in an editing environment, e.g. preview mode
@@ -149,7 +154,12 @@ class ActiveComponent extends BaseModel {
           what === 'jit-property-added' ||
           what === 'jit-property-removed'
         ) {
-          this.reload({ hardReload: true }, {}, () => {})
+          this.reload({
+            hardReload: true,
+            clearCacheOptions: {
+              doClearEntityCaches: true
+            }
+          }, {}, () => {})
         }
         this.emit('update', what, element, metadata)
       }
@@ -383,31 +393,32 @@ class ActiveComponent extends BaseModel {
     })
   }
 
-  clearCaches (options) {
+  clearCaches (options = {}) {
     this.getActiveInstancesOfHaikuCoreComponent().forEach((instance) => {
       instance.clearCaches(options) // Also clears instance._builder sub-caches
     })
+
     this.fetchRootElement().cacheClear()
-    this.fetchRootElement().clearEntityCaches()
-    return this
+
+    if (options.doClearEntityCaches) {
+      this.fetchRootElement().clearEntityCaches()
+    }
   }
 
   clearCachedClusters (timelineName, componentId) {
     this.getActiveInstancesOfHaikuCoreComponent().forEach((instance) => {
       instance._builder.clearCachedClusters(timelineName, componentId)
     })
-    return this
   }
 
   updateTimelineMaxes (timelineName) {
     this.getActiveInstancesOfHaikuCoreComponent().forEach((instance) => {
       let timeline = instance._timelineInstances[timelineName]
       if (timeline) {
-        let descriptor = instance._getTimelineDescriptor(timelineName)
+        let descriptor = instance.getTimelineDescriptor(timelineName)
         timeline.resetMaxDefinedTimeFromDescriptor(descriptor)
       }
     })
-    return this
   }
 
   getPropertyGroupValueFromPropertyKeys (componentId, timelineName, timelineTime, propertyKeys) {
@@ -441,7 +452,7 @@ class ActiveComponent extends BaseModel {
 
   setTimelineTimeValue (timelineTime, forceSeek = false) {
     timelineTime = Math.round(timelineTime)
-    // When doing a hardReload (in which we load a fresh component instance from disk)
+    // When doing a hard reload (in which we load a fresh component instance from disk)
     // that component will be completely fresh and not yet in 'controlled time' mode, which
     // means that it will initially start playing. Hard reload depends on being able to
     // force set a time value to get it into 'controlled time' mode, hence the `forceSeek` flag.
@@ -467,7 +478,6 @@ class ActiveComponent extends BaseModel {
    */
   handleElementSelected (componentId, metadata) {
     this.project.updateHook('selectElement', this.getSceneCodeRelpath(), componentId, metadata, (fire) => fire())
-    return this
   }
 
   /**
@@ -479,7 +489,6 @@ class ActiveComponent extends BaseModel {
    */
   handleElementUnselected (componentId, metadata) {
     this.project.updateHook('unselectElement', this.getSceneCodeRelpath(), componentId, metadata, (fire) => fire())
-    return this
   }
 
   getTopLevelElementHaikuIds () {
@@ -585,7 +594,11 @@ class ActiveComponent extends BaseModel {
         })
       })
 
-      this.reload({ hardReload: false }, null, () => {
+      this.reload({
+        clearCacheOptions: {
+          doClearEntityCaches: true
+        }
+      }, null, () => {
         release()
         this.project.updateHook('setInteractionMode', this.getSceneCodeRelpath(), this._interactionMode, metadata, (fire) => fire())
         return cb()
@@ -632,8 +645,7 @@ class ActiveComponent extends BaseModel {
         componentId,
         incomingBytecode.timelines,
         timelineName,
-        timelineTime,
-        incomingBytecode.template
+        timelineTime
       )
 
       if (propertyGroupToApply) {
@@ -925,13 +937,18 @@ class ActiveComponent extends BaseModel {
       }
     }
 
-    if (maybeCoords && (maybeCoords.x || maybeCoords.y)) {
-      const instantiateeWidth = (insertedTimeline['sizeAbsolute.x'] && insertedTimeline['sizeAbsolute.x'][timelineTime] && insertedTimeline['sizeAbsolute.x'][timelineTime].value) || 1
-      const instantiateeHeight = (insertedTimeline['sizeAbsolute.y'] && insertedTimeline['sizeAbsolute.y'][timelineTime] && insertedTimeline['sizeAbsolute.y'][timelineTime].value) || 1
-
-      const propertyGroup = {
-        'translation.x': (maybeCoords.x || 0) - instantiateeWidth / 2,
-        'translation.y': (maybeCoords.y || 0) - instantiateeHeight / 2
+    if (maybeCoords !== undefined) {
+      const propertyGroup = {}
+      const {width, height} = this.getContextSizeActual(timelineName, timelineTime)
+      if (maybeCoords && typeof maybeCoords.x === 'number') {
+        propertyGroup['translation.x'] = maybeCoords.x
+      } else {
+        propertyGroup['translation.x'] = width / 2
+      }
+      if (maybeCoords && typeof maybeCoords.y === 'number') {
+        propertyGroup['translation.y'] = maybeCoords.y
+      } else {
+        propertyGroup['translation.y'] = height / 2
       }
 
       TimelineProperty.addPropertyGroup(
@@ -971,7 +988,12 @@ class ActiveComponent extends BaseModel {
               return cb(err)
             }
 
-            return this.reload({ hardReload: true }, null, () => {
+            return this.reload({
+              hardReload: true,
+              clearCacheOptions: {
+                doClearEntityCaches: true
+              }
+            }, null, () => {
               release()
               fire(null, manaForWrapperElement)
 
@@ -1065,7 +1087,12 @@ class ActiveComponent extends BaseModel {
               return cb(err)
             }
 
-            return this.reload({ hardReload: true }, null, () => {
+            return this.reload({
+              hardReload: true,
+              clearCacheOptions: {
+                doClearEntityCaches: true
+              }
+            }, null, () => {
               release()
               fire()
               return cb()
@@ -1363,7 +1390,12 @@ class ActiveComponent extends BaseModel {
             return cb(err)
           }
 
-          return this.reload({ hardReload: true }, null, () => {
+          return this.reload({
+            hardReload: true,
+            clearCacheOptions: {
+              doClearEntityCaches: true
+            }
+          }, null, () => {
             release()
             fire()
             return cb()
@@ -1424,7 +1456,12 @@ class ActiveComponent extends BaseModel {
             return cb(err)
           }
 
-          return this.reload({ hardReload: true }, null, () => {
+          return this.reload({
+            hardReload: true,
+            clearCacheOptions: {
+              doClearEntityCaches: true
+            }
+          }, null, () => {
             release()
             fire(null, {haikuId})
             return cb(null, {haikuId})
@@ -1648,7 +1685,6 @@ class ActiveComponent extends BaseModel {
   reload (reloadOptions, instanceConfig, cb) {
     const runReload = (done) => {
       if (reloadOptions.hardReload) {
-        // Note: hardReload also calls softReload
         return this.hardReload(reloadOptions, instanceConfig, done)
       } else {
         return this.softReload(reloadOptions, instanceConfig, done)
@@ -1659,8 +1695,8 @@ class ActiveComponent extends BaseModel {
       return runReload(cb)
     }
 
-    // Note that this lock only occurs in .reload(); if you ever call hardReload or
-    // softReload a la carte, you might get a race condition!
+    // Note that this lock only occurs in .reload(); if you ever hard reload or
+    // soft reload a la carte, you might get a race condition!
     return Lock.request(Lock.LOCKS.ActiveComponentReload, false, (release) => {
       const finish = (err) => {
         release()
@@ -1717,7 +1753,7 @@ class ActiveComponent extends BaseModel {
           reloadOptions.customRehydrate()
         } else {
           // Rehydrate all the view-models so our view renders correctly
-          // This has to happen __after softReload__ because softReload calls
+          // This has to happen __after softReload__ because soft reload calls
           // flush, and all the models need access to the rendered app in
           // order to compute various things properly (race condition)
           this.rehydrate()
@@ -1777,7 +1813,7 @@ class ActiveComponent extends BaseModel {
 
     // This is an easier way to trace back to its host ActiveComponent than
     // to look things up constantly using the scene id and relative pathing hacks
-    instanceGiven.__activeComponent = this
+    instanceGiven.__editor = this
   }
 
   ingestInstantiatedSubcomponentsInTemplate () {
@@ -1849,12 +1885,7 @@ class ActiveComponent extends BaseModel {
     // Make sure the maximum keyframe is correctly defined for proper playback calc
     this.updateTimelineMaxes(this.getCurrentTimelineName())
 
-    // In case properties were totally removed as a part of this update, we need to do a full re-render
-    if (reloadOptions.clearCacheOptions) {
-      this.clearCaches(reloadOptions.clearCacheOptions)
-    } else {
-      this.clearCaches()
-    }
+    this.clearCaches(reloadOptions.clearCacheOptions)
 
     // If we were passed a "hot component" or asked to request a full flush render, forward this to our underlying
     // HaikuComponent instances to ensure correct rendering. This can be skipped if softReload() was called in the
@@ -1882,7 +1913,7 @@ class ActiveComponent extends BaseModel {
       // TODO: Should we warn here?
       if (subcomponentElement && subcomponentElement.__instance) {
         const haikuCoreComponent = subcomponentElement.__instance
-        const activeComponent = haikuCoreComponent.__activeComponent
+        const activeComponent = haikuCoreComponent.__editor
         // When we initially hydrate the project, these aren't ready yet - there's nothing
         // to initially reload because the component instances haven't started yet, so we
         // skip this step and will take care of it later when it 'matters'
@@ -1899,7 +1930,10 @@ class ActiveComponent extends BaseModel {
     return async.eachSeries(activeComponents, (activeComponent, next) => {
       // Just in case one of ourselves is nested inside us, avoid an infinite loop
       if (activeComponent === this) return next()
-      return activeComponent.reload(Object.assign({ hardReload: false, skipReloadLock: true }, reloadOptions), null, next)
+      return activeComponent.reload(Object.assign({
+        hardReload: false,
+        skipReloadLock: true
+      }, reloadOptions), null, next)
     }, (err) => {
       if (err) return cb(err)
       return cb()
@@ -1919,7 +1953,13 @@ class ActiveComponent extends BaseModel {
 
       this.codeReloadingOn()
 
-      return this.reload({ hardReload: true, fileReload: true }, instanceConfig, (err) => {
+      return this.reload({
+        hardReload: true,
+        fileReload: true,
+        clearCacheOptions: {
+          doClearEntityCaches: true
+        }
+      }, instanceConfig, (err) => {
         release()
 
         this.codeReloadingOff()
@@ -1987,7 +2027,13 @@ class ActiveComponent extends BaseModel {
     return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
       this.codeReloadingOn()
 
-      return this.reload({ hardReload: true, fileReload: true }, null, (err) => {
+      return this.reload({
+        hardReload: true,
+        fileReload: true,
+        clearCacheOptions: {
+          doClearEntityCaches: true
+        }
+      }, null, (err) => {
         release()
 
         this.codeReloadingOff()
@@ -2039,13 +2085,8 @@ class ActiveComponent extends BaseModel {
 
     const root = this.fetchRootElement()
 
-    Keyframe.where({ component: this }).forEach((keyframe) => {
-      keyframe.mark()
-    })
-
-    Row.where({ component: this }).forEach((row) => {
-      row.mark()
-    })
+    Keyframe.where({ component: this }).forEach((keyframe) => keyframe.mark())
+    Row.where({ component: this }).forEach((row) => row.mark())
 
     Element.where({ component: this }).forEach((element) => {
       if (element !== root) {
@@ -2068,13 +2109,8 @@ class ActiveComponent extends BaseModel {
       }
     })
 
-    Row.where({ component: this }).forEach((row) => {
-      row.sweep()
-    })
-
-    Keyframe.where({ component: this }).forEach((keyframe) => {
-      keyframe.sweep()
-    })
+    Row.where({ component: this }).forEach((row) => row.sweep())
+    Keyframe.where({ component: this }).forEach((keyframe) => keyframe.sweep())
 
     const row = root.getHostedRows()[0]
     if (row) {
@@ -2479,6 +2515,28 @@ class ActiveComponent extends BaseModel {
   }
 
   /**
+   * @method readMetadata
+   */
+  readMetadata (cb) {
+    return cb(null, this.getReifiedBytecode().metadata || {})
+  }
+
+  /**
+   * @method assignMetadata
+   */
+  assignMetadata (metadataIncoming, cb) {
+    return this.readMetadata((err, metadataExisting) => {
+      if (err) {
+        logger.info(`[active component] metadata read error`, err)
+      }
+
+      const metadataFinal = Object.assign(metadataExisting || {}, metadataIncoming)
+
+      return this.writeMetadata(metadataFinal, cb)
+    })
+  }
+
+  /**
    * @method readAllEventHandlers
    */
   readAllEventHandlers (metadata, cb) {
@@ -2520,7 +2578,8 @@ class ActiveComponent extends BaseModel {
         return this.reload({
           hardReload: this.project.isRemoteRequest(metadata),
           clearCacheOptions: {
-            clearPreviouslyRegisteredEventListeners: true
+            clearPreviouslyRegisteredEventListeners: true,
+            doClearEntityCaches: true
           }
         }, null, () => {
           fire()
@@ -2553,7 +2612,8 @@ class ActiveComponent extends BaseModel {
         return this.reload({
           hardReload: this.project.isRemoteRequest(metadata),
           clearCacheOptions: {
-            clearPreviouslyRegisteredEventListeners: true
+            clearPreviouslyRegisteredEventListeners: true,
+            doClearEntityCaches: true
           }
         }, null, () => {
           fire()
@@ -2586,7 +2646,8 @@ class ActiveComponent extends BaseModel {
           hardReload: this.project.isRemoteRequest(metadata),
           forceFlush: true,
           clearCacheOptions: {
-            clearPreviouslyRegisteredEventListeners: true
+            clearPreviouslyRegisteredEventListeners: true,
+            doClearEntityCaches: true
           }
         }, null, () => {
           fire()
@@ -2618,7 +2679,13 @@ class ActiveComponent extends BaseModel {
           return cb(err)
         }
 
-        return this.reload({ hardReload: this.project.isRemoteRequest(metadata), forceFlush: true }, null, () => {
+        return this.reload({
+          hardReload: this.project.isRemoteRequest(metadata),
+          forceFlush: true,
+          clearCacheOptions: {
+            doClearEntityCaches: true
+          }
+        }, null, () => {
           fire()
           return cb()
         })
@@ -2648,7 +2715,13 @@ class ActiveComponent extends BaseModel {
           return cb(err)
         }
 
-        return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+        return this.reload({
+          hardReload: this.project.isRemoteRequest(metadata),
+          forceFlush: true,
+          clearCacheOptions: {
+            doClearEntityCaches: true
+          }
+        }, null, () => {
           fire()
           return cb()
         })
@@ -2678,7 +2751,13 @@ class ActiveComponent extends BaseModel {
           return cb(err)
         }
 
-        return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+        return this.reload({
+          hardReload: this.project.isRemoteRequest(metadata),
+          forceFlush: true,
+          clearCacheOptions: {
+            doClearEntityCaches: true
+          }
+        }, null, () => {
           fire()
           return cb()
         })
@@ -2706,7 +2785,13 @@ class ActiveComponent extends BaseModel {
           return cb(err)
         }
 
-        return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+        return this.reload({
+          hardReload: this.project.isRemoteRequest(metadata),
+          forceFlush: true,
+          clearCacheOptions: {
+            doClearEntityCaches: true
+          }
+        }, null, () => {
           fire()
           return cb()
         })
@@ -2804,6 +2889,10 @@ class ActiveComponent extends BaseModel {
 
         return this.reload({
           hardReload: true,
+          forceFlush: true,
+          clearCacheOptions: {
+            doClearEntityCaches: true
+          },
           customRehydrate: () => {
             if (this.project.isRemoteRequest(metadata)) {
               this.rehydrate()
@@ -2886,7 +2975,30 @@ class ActiveComponent extends BaseModel {
         return this.reload({
           hardReload: this.project.isRemoteRequest(metadata),
           forceFlush: !!metadata.cursor,
-          hotComponents: keyframeUpdatesToHotComponentDescriptors(keyframeUpdates)
+          hotComponents: keyframeUpdatesToHotComponentDescriptors(keyframeUpdates),
+          clearCacheOptions: {
+            doClearEntityCaches: !!metadata.cursor
+          },
+          customRehydrate: () => {
+            const componentIds = {}
+
+            for (const timelineName in keyframeUpdates) {
+              for (const componentId in keyframeUpdates[timelineName]) {
+                // Only run once for each component id
+                if (componentIds[componentId]) continue
+                componentIds[componentId] = true
+
+                const element = this.findElementByComponentId(componentId)
+
+                // Not all views necessarily have the same collection of elements
+                if (element) {
+                  Row.where({ component: this, target: element }).forEach((row) => {
+                    row.rehydrate()
+                  })
+                }
+              }
+            }
+          }
         }, null, () => {
           fire()
           return cb()
@@ -2974,6 +3086,9 @@ class ActiveComponent extends BaseModel {
 
           return this.reload({
             hardReload: true,
+            clearCacheOptions: {
+              doClearEntityCaches: true
+            },
             customRehydrate: () => {
               if (this.project.isRemoteRequest(metadata)) {
                 this.rehydrate()
@@ -3049,6 +3164,9 @@ class ActiveComponent extends BaseModel {
         // second-from-last keyframe, request a force flush.
         return this.reload({
           hardReload: true,
+          clearCacheOptions: {
+            doClearEntityCaches: true
+          },
           customRehydrate: () => {
             if (this.project.isRemoteRequest(metadata)) {
               this.rehydrate()
@@ -3102,7 +3220,12 @@ class ActiveComponent extends BaseModel {
           return cb(err)
         }
 
-        return this.reload({ hardReload: true }, null, () => {
+        return this.reload({
+          hardReload: true,
+          clearCacheOptions: {
+            doClearEntityCaches: true
+          }
+        }, null, () => {
           fire(null, groupComponentId)
           return cb()
         })
@@ -3218,7 +3341,12 @@ class ActiveComponent extends BaseModel {
           return cb(err)
         }
 
-        return this.reload({ hardReload: true }, null, () => {
+        return this.reload({
+          hardReload: true,
+          clearCacheOptions: {
+            doClearEntityCaches: true
+          }
+        }, null, () => {
           fire(null, ungroupedComponentIds)
           return cb()
         })
@@ -3253,7 +3381,10 @@ class ActiveComponent extends BaseModel {
 
         return this.reload({
           hardReload: this.project.isRemoteRequest(metadata),
-          forceFlush: true
+          forceFlush: true,
+          clearCacheOptions: {
+            doClearEntityCaches: true
+          }
         }, null, () => {
           fire()
           return cb()
@@ -3282,7 +3413,10 @@ class ActiveComponent extends BaseModel {
 
         return this.reload({
           hardReload: this.project.isRemoteRequest(metadata),
-          forceFlush: true
+          forceFlush: true,
+          clearCacheOptions: {
+            doClearEntityCaches: true
+          }
         }, null, () => {
           fire()
           return cb()
@@ -3318,7 +3452,10 @@ class ActiveComponent extends BaseModel {
 
         return this.reload({
           hardReload: this.project.isRemoteRequest(metadata),
-          hotComponents: stackingInfoToHotComponentDescriptors(stackingInfo, timelineName, timelineTime)
+          hotComponents: stackingInfoToHotComponentDescriptors(stackingInfo, timelineName, timelineTime),
+          clearCacheOptions: {
+            doClearEntityCaches: true
+          }
         }, null, () => {
           fire()
           return cb()
@@ -3365,7 +3502,10 @@ class ActiveComponent extends BaseModel {
 
         return this.reload({
           hardReload: this.project.isRemoteRequest(metadata),
-          hotComponents: stackingInfoToHotComponentDescriptors(stackingInfo, timelineName, timelineTime)
+          hotComponents: stackingInfoToHotComponentDescriptors(stackingInfo, timelineName, timelineTime),
+          clearCacheOptions: {
+            doClearEntityCaches: true
+          }
         }, null, () => {
           fire()
           return cb()
@@ -3408,7 +3548,10 @@ class ActiveComponent extends BaseModel {
 
         return this.reload({
           hardReload: this.project.isRemoteRequest(metadata),
-          hotComponents: stackingInfoToHotComponentDescriptors(stackingInfo, timelineName, timelineTime)
+          hotComponents: stackingInfoToHotComponentDescriptors(stackingInfo, timelineName, timelineTime),
+          clearCacheOptions: {
+            doClearEntityCaches: true
+          }
         }, null, () => {
           fire()
           return cb()
@@ -3443,7 +3586,10 @@ class ActiveComponent extends BaseModel {
 
         return this.reload({
           hardReload: this.project.isRemoteRequest(metadata),
-          hotComponents: stackingInfoToHotComponentDescriptors(stackingInfo, timelineName, timelineTime)
+          hotComponents: stackingInfoToHotComponentDescriptors(stackingInfo, timelineName, timelineTime),
+          clearCacheOptions: {
+            doClearEntityCaches: true
+          }
         }, null, () => {
           fire()
           return cb()
@@ -3478,7 +3624,10 @@ class ActiveComponent extends BaseModel {
 
         return this.reload({
           hardReload: this.project.isRemoteRequest(metadata),
-          hotComponents: stackingInfoToHotComponentDescriptors(stackingInfo, timelineName, timelineTime)
+          hotComponents: stackingInfoToHotComponentDescriptors(stackingInfo, timelineName, timelineTime),
+          clearCacheOptions: {
+            doClearEntityCaches: true
+          }
         }, null, () => {
           fire()
           return cb()
@@ -3516,7 +3665,12 @@ class ActiveComponent extends BaseModel {
           return cb(err)
         }
 
-        return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+        return this.reload({
+          hardReload: this.project.isRemoteRequest(metadata),
+          clearCacheOptions: {
+            doClearEntityCaches: true
+          }
+        }, null, () => {
           fire()
           return cb()
         })
@@ -3542,7 +3696,12 @@ class ActiveComponent extends BaseModel {
           return cb(err)
         }
 
-        return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+        return this.reload({
+          hardReload: this.project.isRemoteRequest(metadata),
+          clearCacheOptions: {
+            doClearEntityCaches: true
+          }
+        }, null, () => {
           fire()
           return cb()
         })
@@ -3568,7 +3727,12 @@ class ActiveComponent extends BaseModel {
           return cb(err)
         }
 
-        return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+        return this.reload({
+          hardReload: this.project.isRemoteRequest(metadata),
+          clearCacheOptions: {
+            doClearEntityCaches: true
+          }
+        }, null, () => {
           fire()
           return cb()
         })
@@ -3594,7 +3758,12 @@ class ActiveComponent extends BaseModel {
           return cb(err)
         }
 
-        return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+        return this.reload({
+          hardReload: this.project.isRemoteRequest(metadata),
+          clearCacheOptions: {
+            doClearEntityCaches: true
+          }
+        }, null, () => {
           fire()
           return cb()
         })
@@ -3620,7 +3789,12 @@ class ActiveComponent extends BaseModel {
           return cb(err)
         }
 
-        return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+        return this.reload({
+          hardReload: this.project.isRemoteRequest(metadata),
+          clearCacheOptions: {
+            doClearEntityCaches: true
+          }
+        }, null, () => {
           fire()
           return cb()
         })
@@ -3674,6 +3848,7 @@ module.exports = ActiveComponent
 const Artboard = require('./Artboard')
 const Bytecode = require('./Bytecode')
 const Design = require('./Design')
+const DevConsole = require('./DevConsole')
 const Element = require('./Element')
 const ElementSelectionProxy = require('./ElementSelectionProxy')
 const File = require('./File')

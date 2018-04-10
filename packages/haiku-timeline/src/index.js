@@ -32,7 +32,15 @@ function _traceKitFormatErrorStack (error) {
   return error
 }
 
+const heardErrors = {}
+
 window.onerror = function (msg, url, line, col, error) {
+  if (heardErrors[msg]) {
+    return false
+  }
+
+  heardErrors[msg] = true
+
   if (process.env.NODE_ENV === 'production') {
     _traceKitFormatErrorStack(error)
     window.Raven.captureException(error)
@@ -59,12 +67,11 @@ function go () {
     ? new Websocket(_fixPlumbingUrl(config.plumbing), config.folder, 'controllee', 'timeline', null, config.socket.token)
     : new MockWebsocket()
 
-  // Add extra context to Sentry reports, this info is also used
-  // by carbonite.
+  // Add extra context to Sentry reports, this info is also used by carbonite.
   const folderHelper = config.folder.split('/').reverse()
   window.Raven.setExtraContext({
-    organizationName: folderHelper[1],
-    projectName: folderHelper[0],
+    organizationName: folderHelper[1] || 'unknown',
+    projectName: folderHelper[0] || 'unknown',
     projectPath: config.folder
   })
   window.Raven.setUserContext({

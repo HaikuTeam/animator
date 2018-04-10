@@ -16,7 +16,7 @@ const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments'
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const HAIKU_TITLE_ATTRIBUTE = 'haiku-title'
 
-const CUSTOM_EVENT_PREFIX = 'timeline:'
+const TIMELINE_EVENT_PREFIX = 'timeline:'
 
 const EMPTY_ELEMENT = {elementName: 'div', attributes: {}, children: []}
 
@@ -55,7 +55,6 @@ class Element extends BaseModel {
     this._isHovered = false
     this._isSelected = false
     this.transformCache = new TransformCache(this)
-    this.orientation = {x: 0, y: 0, z: 0, w: 0}
 
     this._headingRow = null
     this._clusterAndPropertyRows = []
@@ -139,6 +138,8 @@ class Element extends BaseModel {
       this._isSelected = false
       delete Element.selected[this.getPrimaryKey()]
       this.emit('update', 'element-unselected', metadata)
+      // #FIXME: this is a bit overzealous.
+      ElementSelectionProxy.purge()
 
       // Roundabout! Note that rows, when deselected, will deselect their corresponding element
       const row = this.getHeadingRow()
@@ -158,6 +159,8 @@ class Element extends BaseModel {
       this._isSelected = false
       delete Element.selected[this.getPrimaryKey()]
       this.emit('update', 'element-unselected-softly', metadata)
+      // #FIXME: this is a bit overzealous.
+      ElementSelectionProxy.purge()
     }
   }
 
@@ -190,27 +193,6 @@ class Element extends BaseModel {
     return this.component.getCoreComponentInstance()
   }
 
-  getOriginOffsetMatrix () {
-    const offset = Layout3D.createMatrix()
-    if (this.isTextNode()) {
-      return offset
-    }
-    const layout = this.getLayoutSpec()
-    const size = layout.sizeAbsolute
-    const origin = layout.origin
-    offset[12] = -size.x * (0.5 - origin.x)
-    offset[13] = -size.y * (0.5 - origin.y)
-    return offset
-  }
-
-  getOriginResetMatrix () {
-    const reset = this.getOriginOffsetMatrix()
-    reset[12] = -reset[12]
-    reset[13] = -reset[13]
-    reset[14] = -reset[14]
-    return reset
-  }
-
   cut () {
     // Note that .copy() also calls .clip()
     const clip = this.copy()
@@ -231,16 +213,20 @@ class Element extends BaseModel {
     return this._clip
   }
 
-  getDOMEvents () {
+  getVisibleEvents () {
     return Object.keys(
       this.getReifiedEventHandlers()
-    ).filter(handler => !handler.includes(CUSTOM_EVENT_PREFIX))
+    ).filter(handler => !this.isTimelineEvent(handler))
   }
 
-  getCustomEvents () {
+  getTimelineEvents () {
     return Object.keys(
       this.getReifiedEventHandlers()
-    ).filter(handler => handler.includes(CUSTOM_EVENT_PREFIX))
+    ).filter(handler => this.isTimelineEvent(handler))
+  }
+
+  isTimelineEvent (eventName) {
+    return eventName.includes(TIMELINE_EVENT_PREFIX)
   }
 
   hasEventHandlers () {
@@ -326,7 +312,22 @@ class Element extends BaseModel {
       options: Element.COMPONENT_EVENTS
     })
 
-    return options.filter(category => category.options.length > 0)
+    const customEvents = []
+    for (let name in handlers) {
+      if (!this.isTimelineEvent(name) && !predefined[name]) {
+        customEvents.push({
+          label: name,
+          value: name
+        })
+      }
+    }
+
+    options.push({
+      label: 'Custom Events',
+      options: customEvents
+    })
+
+    return options
   }
 
   /**
@@ -453,23 +454,9 @@ class Element extends BaseModel {
   }
 
   getOriginOffsetComposedMatrix () {
-    const offset = this.getOriginOffsetMatrix()
-    const reset = this.getOriginResetMatrix()
-    const composition = this.getComposedComputedMatrix(offset)
-    const result = Layout3D.multiplyMatrices(composition, reset)
-    return result
-  }
-
-  getComposedComputedMatrix (matrix) {
-    const computedLayouts = this.getComputedLayoutAncestry()
-    let i = computedLayouts.length
-    while (i--) {
-      matrix = Layout3D.multiplyMatrices(
-        matrix,
-        computedLayouts[i].matrix
-      )
-    }
-    return matrix
+    return Layout3D.multiplyArrayOfMatrices(this.getComputedLayoutAncestry().reverse().map(
+      (layout) => layout.matrix
+    ))
   }
 
   getComputedSize () {
@@ -486,28 +473,11 @@ class Element extends BaseModel {
     return this.parent.getComputedSize()
   }
 
-  getComputedMatrix () {
-    if (this.isTextNode()) {
-      return Layout3D.createMatrix()
-    }
-    return this.getComputedLayout().matrix
-  }
-
   getComputedLayout () {
     return Layout3D.computeLayout(
       this.getLayoutSpec(),
-      Layout3D.createMatrix(), // QUESTION: Is this ever not-identity?
+      Layout3D.createMatrix(),
       this.getParentComputedSize()
-    )
-  }
-
-  updateOrientationWithRotationValues (rx, ry, rz, rw) {
-    this.orientation = Layout3D.computeOrientationFlexibly(
-      rx,
-      ry,
-      rz,
-      rw,
-      this.orientation
     )
   }
 
@@ -579,13 +549,6 @@ class Element extends BaseModel {
         z: grabValue('rotation.z'),
         w: grabValue('rotation.w')
       },
-      orientation: Layout3D.computeOrientationFlexibly(
-        grabValue('rotation.x'),
-        grabValue('rotation.y'),
-        grabValue('rotation.z'),
-        grabValue('rotation.w'),
-        this.orientation
-      ),
       scale: {
         x: grabValue('scale.x'),
         y: grabValue('scale.y'),
@@ -619,9 +582,9 @@ class Element extends BaseModel {
     const w = layout.size.x
     const h = layout.size.y
     return [
-      {x: 0, y: 0}, {x: w / 2, y: 0}, {x: w, y: 0},
-      {x: 0, y: h / 2}, {x: w / 2, y: h / 2}, {x: w, y: h / 2},
-      {x: 0, y: h}, {x: w / 2, y: h}, {x: w, y: h}
+      {x: 0, y: 0, z: 0}, {x: w / 2, y: 0, z: 0}, {x: w, y: 0, z: 0},
+      {x: 0, y: h / 2, z: 0}, {x: w / 2, y: h / 2, z: 0}, {x: w, y: h / 2, z: 0},
+      {x: 0, y: h, z: 0}, {x: w / 2, y: h, z: 0}, {x: w, y: h, z: 0}
     ]
   }
 
@@ -632,22 +595,36 @@ class Element extends BaseModel {
   }
 
   getBoxPointsTransformed () {
-    const points = Element.transformPointsInPlace(
+    return Element.transformPointsInPlace(
       this.getBoxPointsNotTransformed(),
       this.getOriginOffsetComposedMatrix()
     )
-    return points
+  }
+
+  getOriginNotTransformed () {
+    const layout = this.getComputedLayout()
+    return {
+      x: layout.size.x * layout.origin.x,
+      y: layout.size.y * layout.origin.y,
+      z: layout.size.z * layout.origin.z
+    }
+  }
+
+  getOriginTransformed () {
+    return Element.transformPointInPlace(
+      this.getOriginNotTransformed(),
+      this.getOriginOffsetComposedMatrix()
+    )
   }
 
   getPropertyKeyframesObject (propertyName) {
     const bytecode = this.component.getReifiedBytecode()
-    const keyframes = TimelineProperty.getPropertySegmentsBase(
+    return TimelineProperty.getPropertySegmentsBase(
       bytecode.timelines,
       this.component.getCurrentTimelineName(),
       this.getComponentId(),
       propertyName
     )
-    return keyframes
   }
 
   computePropertyValue (propertyName, fallbackValue) {
@@ -748,7 +725,7 @@ class Element extends BaseModel {
     if (!this.isComponent()) return null
     const staticTemplateNode = this.getStaticTemplateNode()
     const coreComponentInstance = staticTemplateNode && staticTemplateNode.__instance
-    const activeComponent = coreComponentInstance && coreComponentInstance.__activeComponent
+    const activeComponent = coreComponentInstance && coreComponentInstance.__editor
     return activeComponent
   }
 
@@ -1491,6 +1468,14 @@ class Element extends BaseModel {
 
   showAddressableProperty (propertyName) {
     this._visibleProperties[propertyName] = true
+
+    this.rehydrateRows()
+
+    const row = this.getPropertyRowByPropertyName(propertyName)
+    if (row && row.isWithinCollapsedRow()) {
+      row.parent.expand(this.component.project.getMetadata())
+    }
+
     this.emit('update', 'jit-property-added')
   }
 
@@ -1512,14 +1497,6 @@ class Element extends BaseModel {
     const theirPoints = Element.boxToCornersAsPolygonPoints(box)
     const ourPoints = this.getBoxPolygonPointsTransformed()
     return polygonOverlap(theirPoints, ourPoints)
-  }
-
-  getOrigin () {
-    return {
-      x: this.computePropertyValue('origin.x'),
-      y: this.computePropertyValue('origin.y'),
-      z: this.computePropertyValue('origin.z')
-    }
   }
 
   doesContainUngroupableContent () {
@@ -1713,13 +1690,17 @@ Element.visitDescendants = (element, visitor) => {
 
 Element.transformPointsInPlace = (points, matrix) => {
   for (let i = 0; i < points.length; i++) {
-    let point = points[i]
-    let vector = [point.x, point.y]
-    let offset = MathUtils.transformVectorByMatrix([], vector, matrix)
-    point.x = offset[0]
-    point.y = offset[1]
+    Element.transformPointInPlace(points[i], matrix)
   }
   return points
+}
+
+Element.transformPointInPlace = (point, matrix) => {
+  const offset = MathUtils.transformVectorByMatrix([], [point.x, point.y, point.z], matrix)
+  point.x = offset[0]
+  point.y = offset[1]
+  point.z = offset[2]
+  return point
 }
 
 Element.getRotationIn360 = (radians) => {
@@ -1736,16 +1717,16 @@ Element.getBoundingBoxPoints = (points) => {
   let y2 = points[0].y
   points.forEach((point) => {
     if (point.x < x1) x1 = point.x
+    else if (point.x > x2) x2 = point.x
     if (point.y < y1) y1 = point.y
-    if (point.x > x2) x2 = point.x
-    if (point.y > y2) y2 = point.y
+    else if (point.y > y2) y2 = point.y
   })
   const w = x2 - x1
   const h = y2 - y1
   return [
-    {x: x1, y: y1}, {x: x1 + w / 2, y: y1}, {x: x2, y: y1},
-    {x: x1, y: y1 + h / 2}, {x: x1 + w / 2, y: y1 + h / 2}, {x: x2, y: y1 + h / 2},
-    {x: x1, y: y2}, {x: x1 + w / 2, y: y2}, {x: x2, y: y2}
+    {x: x1, y: y1, z: 0}, {x: x1 + w / 2, y: y1, z: 0}, {x: x2, y: y1, z: 0},
+    {x: x1, y: y1 + h / 2, z: 0}, {x: x1 + w / 2, y: y1 + h / 2, z: 0}, {x: x2, y: y1 + h / 2, z: 0},
+    {x: x1, y: y2, z: 0}, {x: x1 + w / 2, y: y2, z: 0}, {x: x2, y: y2, z: 0}
   ]
 }
 
@@ -1790,19 +1771,6 @@ Element.distanceBetweenPoints = (p1, p2, zoomFactor) => {
     distance *= zoomFactor
   }
   return distance
-}
-
-Element.getOriginPosition = (element) => {
-  const originFractionX = element.computePropertyValue('origin.x')
-  const originFractionY = element.computePropertyValue('origin.y')
-  const width = element.computePropertyValue('sizeAbsolute.x')
-  const height = element.computePropertyValue('sizeAbsolute.y')
-  const left = element.computePropertyValue('translation.x')
-  const top = element.computePropertyValue('translation.y')
-  return {
-    x: left + (width * originFractionX),
-    y: top + (height * originFractionY)
-  }
 }
 
 Element.buildPrimaryKeyFromComponentParentIdAndStaticTemplateNode = (component, parentId, indexInParent, staticTemplateNode) => {
@@ -1921,6 +1889,8 @@ Element.ALWAYS_ALLOWED_PROPS = {
   'rotation.y': true,
   'scale.x': true,
   'scale.y': true,
+  'origin.x': true,
+  'origin.y': true,
   'opacity': true
   // 'backgroundColor': true,
   // 'shown': true // Mainly so instantiation at non-0 times results in invisibility
@@ -1999,3 +1969,4 @@ const Property = require('./Property')
 const Row = require('./Row')
 const Template = require('./Template')
 const TimelineProperty = require('./TimelineProperty')
+const ElementSelectionProxy = require('./ElementSelectionProxy')

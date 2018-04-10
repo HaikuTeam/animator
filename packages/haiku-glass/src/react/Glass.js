@@ -15,18 +15,23 @@ import Asset from 'haiku-serialization/src/bll/Asset'
 import ModuleWrapper from 'haiku-serialization/src/bll/ModuleWrapper'
 import EmitterManager from 'haiku-serialization/src/utils/EmitterManager'
 import react2haiku from 'haiku-serialization/src/utils/react2haiku'
+import {isCoordInsideBoxPoints} from 'haiku-serialization/src/bll/MathUtils'
 import Palette from 'haiku-ui-common/lib/Palette'
 import Comment from './Comment'
 import EventHandlerEditor from './components/EventHandlerEditor'
 import Comments from './Comments'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
-import getLocalDomEventPosition from 'haiku-ui-common/lib/helpers/getLocalDomEventPosition'
 import requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates'
 import {GearSVG} from 'haiku-ui-common/lib/react/OtherIcons'
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
+import originMana from '../overlays/originMana'
+import controlPointMana from '../overlays/controlPointMana'
+import lineMana from '../overlays/lineMana'
+import rotationCursorMana from '../overlays/rotationCursorMana'
+import scaleCursorMana from '../overlays/scaleCursorMana'
 
 const Globals = require('haiku-ui-common/lib/Globals').default
-const {clipboard, shell} = require('electron')
+const {clipboard, shell, remote} = require('electron')
 const fse = require('haiku-fs-extra')
 const moment = require('moment')
 const {HOMEDIR_PATH} = require('haiku-serialization/src/utils/HaikuHomeDir')
@@ -40,13 +45,6 @@ const ifIsRunningStandalone = (cb) => {
   if (!window.isWebview) {
     return cb()
   }
-}
-
-const CLOCKWISE_CONTROL_POINTS = {
-  0: [0, 1, 2, 5, 8, 7, 6, 3],
-  1: [6, 7, 8, 5, 2, 1, 0, 3], // flipped vertical
-  2: [2, 1, 0, 3, 6, 7, 8, 5], // flipped horizontal
-  3: [8, 7, 6, 3, 0, 1, 2, 5] // flipped horizontal + vertical
 }
 
 const POINTS_THRESHOLD_REDUCED = 65 // Display only the corner control points
@@ -110,6 +108,8 @@ export class Glass extends React.Component {
       mousePositionPrevious: null,
       isAnythingScaling: false,
       isAnythingRotating: false,
+      hoveredControlPointIndex: null,
+      isOriginPanning: false,
       globalControlPointHandleClass: '',
       isStageSelected: false,
       isStageNameHovering: false,
@@ -154,19 +154,6 @@ export class Glass extends React.Component {
     this.drawLoop = this.drawLoop.bind(this)
     this.draw = this.draw.bind(this)
 
-    const haikuConfig = Config.build({
-      seed: Config.seed(),
-      cache: {}
-    })
-    this._haikuRenderer = new HaikuDOMRenderer(null, haikuConfig)
-    this._haikuContext = new HaikuContext(
-      null,
-      this._haikuRenderer,
-      {},
-      { timelines: {}, template: { elementName: 'div', attributes: {}, children: [] } },
-      haikuConfig
-    )
-
     this.handleRequestElementCoordinates = this.handleRequestElementCoordinates.bind(this)
     this.elementContextMenuButton = {
       elementName: 'div',
@@ -197,11 +184,15 @@ export class Glass extends React.Component {
     this.handleDimensionsReset = lodash.debounce(() => {
       // Need to notify creator of viewport change so instantiation position is correct;
       // this event is also called whenever the window is resized
+      const artboard = this.getActiveComponent().getArtboard()
       this.props.websocket.send({
         type: 'broadcast',
         name: 'dimensions-reset',
         from: 'glass',
-        data: this.getArtboardRenderInfo()
+        data: {
+          zoom: artboard.getZoom(),
+          rect: artboard.getRect()
+        }
       })
     }, DIMENSIONS_RESET_DEBOUNCE_TIME)
 
@@ -219,6 +210,20 @@ export class Glass extends React.Component {
 
     // TODO: Is there any race condition with kicking this off immediately?
     this.drawLoop()
+
+    // Leaky abstraction: we bind control point hover behaviors to superglobals because we use @haiku/core to render
+    // control points as complex SVGs without a timeline. Ideally we would represent the entire box points overlay as a
+    // single Haiku component and subscribe to regular events.
+    window.hoverControlPoint = (hoveredControlPointIndex) => {
+      this.setState({
+        hoveredControlPointIndex
+      })
+    }
+    window.unhoverControlPoint = () => {
+      this.setState({
+        hoveredControlPointIndex: null
+      })
+    }
   }
 
   isTextInputFocused () {
@@ -447,9 +452,9 @@ export class Glass extends React.Component {
   }
 
   componentDidMount () {
-    // If the user e.g. Cmd+tabs away from the window
-    this.addEmitterListener(window, 'blur', () => {
+    const resetKeyStates = () => {
       Globals.allKeysUp()
+
       this.setState({
         controlActivation: null,
         isAnythingScaling: false,
@@ -460,6 +465,15 @@ export class Glass extends React.Component {
         isMouseDown: false,
         isMouseDragging: false
       })
+    }
+
+    // If the user e.g. Cmd+tabs away from the window
+    this.addEmitterListener(window, 'blur', () => {
+      resetKeyStates()
+    })
+
+    this.addEmitterListener(window, 'focus', () => {
+      resetKeyStates()
     })
 
     this.addEmitterListener(window, 'dragover', Asset.preventDefaultDrag, false)
@@ -484,24 +498,12 @@ export class Glass extends React.Component {
         return
       }
 
-      let artboard = this.getActiveComponent().getArtboard()
-      const SCROLL_PAN_COEFFICIENT = 0.5 // 1x is default, smaller is slower
-      const deltaX = evt.wheelDeltaX
-      const deltaY = evt.wheelDeltaY
-
-      // HACK:  If you zoom and pan in quick succession, getZoom() will sometimes return 0 (or specifically, will return some value Y such that `1 / Y == Infinity`.)
-      //       [probably a FS-race related bug; should be fixed by decoupling FS read/write from an in-mem representation]
-      //       as a result, the logic that compensates for pan 'sensitivity' based on zoom goes haywire.
-      //
-      //       This null-coalesce (`|| SCROLL_PAN_COEFFICIENT`) works around this bug.
-      //       Ideally, Artboard#getZoom() should return a reliable value.
-      let scale = SCROLL_PAN_COEFFICIENT / ((artboard.getZoom() ^ 2) || SCROLL_PAN_COEFFICIENT)
-
-      const newX = deltaX * scale
-      const newY = deltaY * scale
-
+      const artboard = this.getActiveComponent().getArtboard()
+      // The 0.4 coefficient here adjusts the pan speed down, and can be adjusted if desired. Larger numbers result in
+      // faster panning.
+      const SCROLL_PAN_COEFFICIENT = 0.4 * artboard.getZoom()
       artboard.snapshotOriginalPan()
-      this.performPan(newX, newY)
+      this.performPan(evt.wheelDeltaX * SCROLL_PAN_COEFFICIENT, evt.wheelDeltaY * SCROLL_PAN_COEFFICIENT)
     }, false)
 
     this.addEmitterListener(
@@ -690,7 +692,11 @@ export class Glass extends React.Component {
     }), 64)
 
     this.addEmitterListener(window, 'mouseup', this.windowMouseUpHandler.bind(this))
-    this.addEmitterListener(window, 'mousemove', this.windowMouseMoveHandler.bind(this))
+
+    this.addEmitterListener(window, 'mousemove', lodash.throttle((mouseMoveEvent) => {
+      this.windowMouseMoveHandler(mouseMoveEvent)
+    }, 32))
+
     this.addEmitterListener(window, 'dblclick', this.windowDblClickHandler.bind(this))
     this.addEmitterListener(window, 'keydown', this.windowKeyDownHandler.bind(this))
     this.addEmitterListener(window, 'keyup', this.windowKeyUpHandler.bind(this))
@@ -951,6 +957,10 @@ export class Glass extends React.Component {
       return
     }
 
+    if (getOriginTarget(mousedownEvent.nativeEvent.target)) {
+      this.originActivation({event: mousedownEvent.nativeEvent})
+    }
+
     // We are panning now, so don't un/select anything
     if (Globals.isSpaceKeyDown) {
       return
@@ -972,6 +982,12 @@ export class Glass extends React.Component {
 
       // True if the user has clicked on the stage, but not on any on-stage element
       if (!target || !target.hasAttribute) {
+        const proxy = this.fetchProxyElementForSelection()
+        if (proxy.hasAnythingInSelection() &&
+          isCoordInsideBoxPoints(mouseDownPosition.x, mouseDownPosition.y, proxy.getBoxPointsTransformed())) {
+          return
+        }
+
         // Unselect all the elements unless the user is doing a meta-operation, as indicated by these keys
         if (!Globals.isShiftKeyDown && !Globals.isCommandKeyDown && !Globals.isAltKeyDown) {
           Element.unselectAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
@@ -1221,8 +1237,12 @@ export class Glass extends React.Component {
   findNearestDomSelectionTarget (target) {
     // Don't perform element selection if the user clicked one of the transform controls
     if (
-      (typeof target.className === 'string') &&
-      target.className.indexOf('scale-cursor') !== -1
+      typeof target.className === 'string' &&
+      (
+        target.className === 'origin' ||
+        target.className === 'control-point' ||
+        target.className === 'hit-area'
+      )
     ) {
       return SELECTION_TYPES.ON_STAGE_CONTROL
     }
@@ -1261,9 +1281,12 @@ export class Glass extends React.Component {
     this.setState({
       isAnythingScaling: false,
       isAnythingRotating: false,
+      isOriginPanning: false,
       globalControlPointHandleClass: '',
       controlActivation: null
     })
+
+    this.fetchProxyElementForSelection().initializeRotationSnap()
   }
 
   handleClick (clickEvent) {
@@ -1329,28 +1352,28 @@ export class Glass extends React.Component {
     if (!this.getActiveComponent()) return
     const delta = keyEvent.shiftKey ? 5 : 1
     const proxy = this.fetchProxyElementForSelection()
-    proxy.move(-delta, 0, this.state.mousePositionCurrent, this.state.mousePositionPrevious)
+    proxy.move(-delta, 0)
   }
 
   handleKeyUpArrow (keyEvent) {
     if (!this.getActiveComponent()) return
     const delta = keyEvent.shiftKey ? 5 : 1
     const proxy = this.fetchProxyElementForSelection()
-    proxy.move(0, -delta, this.state.mousePositionCurrent, this.state.mousePositionPrevious)
+    proxy.move(0, -delta)
   }
 
   handleKeyRightArrow (keyEvent) {
     if (!this.getActiveComponent()) return
     const delta = keyEvent.shiftKey ? 5 : 1
     const proxy = this.fetchProxyElementForSelection()
-    proxy.move(delta, 0, this.state.mousePositionCurrent, this.state.mousePositionPrevious)
+    proxy.move(delta, 0)
   }
 
   handleKeyDownArrow (keyEvent) {
     if (!this.getActiveComponent()) return
     const delta = keyEvent.shiftKey ? 5 : 1
     const proxy = this.fetchProxyElementForSelection()
-    proxy.move(0, delta, this.state.mousePositionCurrent, this.state.mousePositionPrevious)
+    proxy.move(0, delta)
   }
 
   handleKeyDown (keyEvent) {
@@ -1484,8 +1507,8 @@ export class Glass extends React.Component {
       this.toggleSelectionStateWithRespectToBox(marqueeBox)
     }
 
-    let dx = (mousePositionCurrent.x - mousePositionPrevious.x) / zoom
-    let dy = (mousePositionCurrent.y - mousePositionPrevious.y) / zoom
+    const dx = mousePositionCurrent.x - mousePositionPrevious.x
+    const dy = mousePositionCurrent.y - mousePositionPrevious.y
     if (dx === 0 && dy === 0) return mousePositionCurrent
 
     // If we got this far, the mouse has changed its position from the most recent mousedown
@@ -1496,8 +1519,8 @@ export class Glass extends React.Component {
     if (this.state.isMouseDragging && this.state.isMouseDown) {
       if (Globals.isSpaceKeyDown && this.state.stageMouseDown) {
         this.performPan(
-          mousemoveEvent.nativeEvent.clientX - this.state.stageMouseDown.x,
-          mousemoveEvent.nativeEvent.clientY - this.state.stageMouseDown.y
+          (mousemoveEvent.nativeEvent.clientX - this.state.stageMouseDown.x) * viewportTransform.zoom,
+          (mousemoveEvent.nativeEvent.clientY - this.state.stageMouseDown.y) * viewportTransform.zoom
         )
       } else if (!this.isPreviewMode()) {
         const proxy = this.fetchProxyElementForSelection()
@@ -1512,6 +1535,7 @@ export class Glass extends React.Component {
             lastMouseDownPosition,
             this.state.isAnythingScaling,
             this.state.isAnythingRotating,
+            this.state.isOriginPanning,
             this.state.controlActivation,
             viewportTransform,
             Globals
@@ -1523,13 +1547,14 @@ export class Glass extends React.Component {
     return mousePositionCurrent
   }
 
+  originActivation ({event}) {
+    // TODO: support more modes (and make them discoverable).
+    this.setState({
+      isOriginPanning: Globals.isCommandKeyDown
+    })
+  }
+
   controlActivation (activationInfo) {
-    if (!this.getActiveComponent()) {
-      return
-    }
-
-    const artboard = this.getActiveComponent().getArtboard().getRect()
-
     this.setState({
       isAnythingRotating: Globals.isCommandKeyDown,
       isAnythingScaling: !Globals.isCommandKeyDown,
@@ -1538,16 +1563,7 @@ export class Glass extends React.Component {
         ctrl: Globals.isControlKeyDown,
         cmd: Globals.isCommandKeyDown,
         alt: Globals.isAltKeyDown,
-        index: activationInfo.index,
-        arboard: artboard,
-        client: {
-          x: activationInfo.event.clientX,
-          y: activationInfo.event.clientY
-        },
-        coords: {
-          x: activationInfo.event.clientX - artboard.left,
-          y: activationInfo.event.clientY - artboard.top
-        }
+        index: activationInfo.index
       }
     })
   }
@@ -1562,14 +1578,17 @@ export class Glass extends React.Component {
     }
 
     this.state.mousePositionPrevious = this.state.mousePositionCurrent
-    const mousePositionCurrent = getLocalDomEventPosition(mouseEvent.nativeEvent, this.refs.container)
-    mousePositionCurrent.clientX = mouseEvent.nativeEvent.clientX
-    mousePositionCurrent.clientY = mouseEvent.nativeEvent.clientY
-    mousePositionCurrent.x -= this.getActiveComponent().getArtboard().getRect().left
-    mousePositionCurrent.y -= this.getActiveComponent().getArtboard().getRect().top
-    this.state.mousePositionCurrent = mousePositionCurrent
-    if (additionalPositionTrackingState) this.state[additionalPositionTrackingState] = mousePositionCurrent
-    return mousePositionCurrent
+    const artboard = this.getActiveComponent().getArtboard()
+    const rect = artboard.getRect()
+    const zoom = artboard.getZoom()
+    this.state.mousePositionCurrent = {
+      clientX: mouseEvent.nativeEvent.clientX,
+      clientY: mouseEvent.nativeEvent.clientY,
+      x: (mouseEvent.nativeEvent.clientX - rect.left) / zoom,
+      y: (mouseEvent.nativeEvent.clientY - rect.top) / zoom
+    }
+    if (additionalPositionTrackingState) this.state[additionalPositionTrackingState] = this.state.mousePositionCurrent
+    return this.state.mousePositionCurrent
   }
 
   drawOverlays () {
@@ -1577,31 +1596,67 @@ export class Glass extends React.Component {
       return
     }
 
-    // This has to happen first; renderer depends on it
+    if (!this._haikuRenderer) {
+      const haikuConfig = Config.build({
+        seed: Config.seed(),
+        cache: {}
+      })
+
+      this._haikuRenderer = new HaikuDOMRenderer(
+        this.refs.overlay,
+        haikuConfig
+      )
+
+      this._haikuContext = new HaikuContext(
+        null,
+        this._haikuRenderer,
+        {},
+        {
+          timelines: {},
+          template: {
+            elementName: 'div',
+            attributes: {},
+            children: []
+          }
+        },
+        haikuConfig
+      )
+    }
+
+    // When we enter preview mode, this ref element is not rendered, i.e.
+    // removed from the DOM. When we exit preview mode, a new element is
+    // created, meaning that our original mount element has been detached.
+    // We need to reassign the new, attached DOM node so the transform
+    // controls render again after we exit preview mode.
     this._haikuRenderer.mount = this.refs.overlay
 
-    const container = this._haikuRenderer.createContainer(this.refs.overlay)
+    const container = this._haikuRenderer.createContainer({})
 
     const parts = this.buildDrawnOverlays()
+
+    const artboard = this.getActiveComponent().getArtboard()
 
     const overlay = {
       elementName: 'div',
       attributes: {
         id: 'haiku-glass-overlay-root',
         style: {
-          transform: 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)',
           position: 'absolute',
           overflow: 'visible',
-          left: this.getActiveComponent().getArtboard().getMountX() + 'px',
-          top: this.getActiveComponent().getArtboard().getMountY() + 'px',
-          width: this.getActiveComponent().getArtboard().getMountWidth() + 'px',
-          height: this.getActiveComponent().getArtboard().getMountHeight() + 'px'
+          left: artboard.getMountX() + 'px',
+          top: artboard.getMountY() + 'px',
+          width: artboard.getMountWidth() + 'px',
+          height: artboard.getMountHeight() + 'px'
         }
       },
       children: parts
     }
 
-    this._haikuRenderer.render(container, overlay, this._haikuContext.component, false)
+    this._haikuRenderer.render(
+      container,
+      overlay,
+      this._haikuContext.component
+    )
   }
 
   // This method creates objects which represent Haiku Core rendering instructions for displaying all of
@@ -1625,11 +1680,9 @@ export class Glass extends React.Component {
         proxy.getBoxPointsTransformed(),
         overlays,
         proxy.canRotate(),
-        Globals.isCommandKeyDown,
+        !this.state.isOriginPanning && Globals.isCommandKeyDown,
         proxy.canControlHandles(),
-        proxy.getElementOrProxyPropertyValue('rotation.z'),
-        proxy.getElementOrProxyPropertyValue('scale.x'),
-        proxy.getElementOrProxyPropertyValue('scale.y')
+        proxy.getOriginTransformed()
       )
     }
 
@@ -1638,8 +1691,7 @@ export class Glass extends React.Component {
         proxy.getBoxPointsTransformed(),
         overlays,
         proxy.getElementOrProxyPropertyValue('rotation.z'),
-        proxy.getElementOrProxyPropertyValue('scale.x'),
-        proxy.getElementOrProxyPropertyValue('scale.y')
+        proxy.getElementOrProxyPropertyValue('scale.x')
       )
     }
 
@@ -1689,112 +1741,6 @@ export class Glass extends React.Component {
     }
   }
 
-  renderLine (x1, y1, x2, y2) {
-    return {
-      elementName: 'svg',
-      attributes: {
-        style: {
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          overflow: 'visible'
-        }
-      },
-      children: [{
-        elementName: 'line',
-        attributes: {
-          x1: x1,
-          y1: y1,
-          x2: x2,
-          y2: y2,
-          stroke: Palette.DARKER_ROCK2,
-          'stroke-width': '1px',
-          'vector-effect': 'non-scaling-stroke'
-        }
-      }]
-    }
-  }
-
-  renderControlPoint (x, y, index, handleClass) {
-    if (!this.getActiveComponent()) {
-      return
-    }
-
-    const scale = 1 / (this.getActiveComponent().getArtboard().getZoom() || 1)
-
-    return {
-      elementName: 'div',
-      attributes: {
-        key: 'control-point-' + index,
-        class: `control-point ${handleClass}`,
-        'data-index': index,
-        style: {
-          position: 'absolute',
-          transform: `scale(${scale},${scale})`,
-          pointerEvents: 'auto',
-          left: (x - 3.5) + 'px',
-          top: (y - 3.5) + 'px',
-          border: '1px solid ' + Palette.DARKER_ROCK2,
-          backgroundColor: Palette.ROCK,
-          boxShadow: '0 2px 6px 0 ' + Palette.SHADY, // TODO: account for rotation
-          width: '7px',
-          height: '7px',
-          borderRadius: '50%'
-        }
-      },
-      children: [
-        {
-          elementName: 'div',
-          attributes: {
-            key: 'control-point-hit-area-' + index,
-            style: {
-              position: 'absolute',
-              pointerEvents: 'auto',
-              left: '-15px',
-              top: '-15px',
-              width: '30px',
-              height: '30px'
-            }
-          }
-        }
-      ]
-    }
-  }
-
-  getHandleClass (index, canRotate, isRotationModeOn, rotationZ, scaleX, scaleY) {
-    var defaultPointGroup = CLOCKWISE_CONTROL_POINTS[0]
-    var indexOfPoint = defaultPointGroup.indexOf(index)
-
-    var keyOfPointGroup
-    if (scaleX >= 0 && scaleY >= 0) keyOfPointGroup = 0 // default
-    else if (scaleX >= 0 && scaleY < 0) keyOfPointGroup = 1 // flipped vertically
-    else if (scaleX < 0 && scaleY >= 0) keyOfPointGroup = 2 // flipped horizontally
-    else if (scaleX < 0 && scaleY < 0) keyOfPointGroup = 3 // flipped horizontally and vertically
-
-    if (keyOfPointGroup === undefined) {
-      console.warn(`[haiku-glass] unable to determine handle class due to bad scale values ${scaleX},${scaleY}`)
-      return ''
-    }
-
-    var specifiedPointGroup = CLOCKWISE_CONTROL_POINTS[keyOfPointGroup]
-
-    var rotationDegrees = Element.getRotationIn360(rotationZ)
-    // Each 45 degree turn will equate to a phase change of 1, and that phase corresponds to
-    // a starting index for the control points in clockwise order
-    var phaseNumber = ~~((rotationDegrees + 22.5) / 45) % specifiedPointGroup.length
-    var offsetIndex = (indexOfPoint + phaseNumber) % specifiedPointGroup.length
-    var shiftedIndex = specifiedPointGroup[offsetIndex]
-
-    // These class names are defined in global.css; the indices indicate the corresponding points
-    if (canRotate && isRotationModeOn) {
-      return `rotate-cursor-${shiftedIndex}`
-    } else {
-      return `scale-cursor-${shiftedIndex}`
-    }
-  }
-
   openContextMenu (event) {
     if (this.isPreviewMode()) {
       return
@@ -1809,7 +1755,7 @@ export class Glass extends React.Component {
     })
   }
 
-  buildElementContextMenuIcon (x, y, rotationZ, scaleX, scaleY) {
+  buildElementContextMenuIcon (x, y, rotationZ, scaleX) {
     const boltSize = 30
     const offsetLeft = Math.sign(scaleX) * (boltSize * Math.cos(rotationZ)) - boltSize / 2
     const offsetTop = Math.sign(scaleX) * (boltSize * Math.sin(rotationZ)) - boltSize / 2
@@ -1820,7 +1766,7 @@ export class Glass extends React.Component {
     return this.elementContextMenuButton
   }
 
-  renderEventHandlersOverlay (points, overlays, rotationZ, scaleX, scaleY) {
+  renderEventHandlersOverlay (points, overlays, rotationZ, scaleX) {
     // If the size is smaller than a threshold, only display the corners.
     // And if it is smaller even than that, don't display the points at all
     const dx = Element.distanceBetweenPoints(points[0], points[2], this.state.zoomXY)
@@ -1829,10 +1775,10 @@ export class Glass extends React.Component {
 
     if (dx < POINTS_THRESHOLD_NONE || dy < POINTS_THRESHOLD_NONE) return
 
-    overlays.push(this.buildElementContextMenuIcon(x, y, rotationZ, scaleX, scaleY))
+    overlays.push(this.buildElementContextMenuIcon(x, y, rotationZ, scaleX))
   }
 
-  renderTransformBoxOverlay (points, overlays, canRotate, isRotationModeOn, canControlHandles, rotationZ, scaleX, scaleY) {
+  renderTransformBoxOverlay (points, overlays, canRotate, isRotationModeOn, canControlHandles, origin) {
     if (!this.getActiveComponent()) {
       return
     }
@@ -1863,36 +1809,51 @@ export class Glass extends React.Component {
       const corners = [points[0], points[2], points[8], points[6]]
       corners.forEach((point, index) => {
         const next = corners[(index + 1) % corners.length]
-        overlays.push(this.renderLine(point.x, point.y, next.x, next.y))
+        overlays.push(lineMana(point.x, point.y, next.x, next.y))
       })
     }
+
+    const scale = 1 / (this.getActiveComponent().getArtboard().getZoom() || 1)
 
     points.forEach((point, index) => {
       if (!pointDisplayMode[index]) {
         return
       }
+
       if (index !== 4) {
-        overlays.push(this.renderControlPoint(point.x, point.y, index, canControlHandles && this.getHandleClass(index, canRotate, isRotationModeOn, rotationZ, scaleX, scaleY)))
+        overlays.push(controlPointMana(
+          scale,
+          point,
+          index,
+          canControlHandles ? 'none' : this.getCursorCssRule()
+        ))
       }
     })
-  }
 
-  getGlobalControlPointHandleClass () {
-    if (!this.state.controlActivation) return ''
-    if (!this.getActiveComponent()) return ''
+    if (canRotate && experimentIsEnabled(Experiment.OriginIndicator) && pointDisplayMode !== POINT_DISPLAY_MODES.NONE) {
+      overlays.push(originMana(scale, origin.x, origin.y))
+    }
 
-    const controlIndex = this.state.controlActivation.index
-    const isRotationModeOn = Globals.isCommandKeyDown
-    const proxy = this.fetchProxyElementForSelection()
+    // Everything below requires controllable handles.
+    if (!canControlHandles || this.state.isOriginPanning) {
+      return
+    }
 
-    return this.getHandleClass(
-      controlIndex,
-      proxy.canRotate(),
-      isRotationModeOn,
-      proxy.getElementOrProxyPropertyValue('rotation.z'),
-      proxy.getElementOrProxyPropertyValue('scale.x'),
-      proxy.getElementOrProxyPropertyValue('scale.y')
-    )
+    if (canRotate && (
+      (this.state.hoveredControlPointIndex !== null && isRotationModeOn) ||
+      this.state.isAnythingRotating
+    )) {
+      overlays.push(rotationCursorMana(scale, this.state.mousePositionCurrent, origin))
+    } else if (this.state.hoveredControlPointIndex !== null || this.state.isAnythingScaling) {
+      overlays.push(scaleCursorMana(
+        scale,
+        this.state.mousePositionCurrent,
+        points,
+        origin,
+        this.state.controlActivation ? this.state.controlActivation.index : this.state.hoveredControlPointIndex,
+        Globals.isAltKeyDown
+      ))
+    }
   }
 
   getCSSTransform (zoom, pan) {
@@ -1900,7 +1861,7 @@ export class Glass extends React.Component {
       [zoom.x, 0, 0, 0,
         0, zoom.y, 0, 0,
         0, 0, 1, 0,
-        pan.x, pan.y, 0, 1].join(',') + ')'
+        pan.x / zoom.x, pan.y / zoom.x, 0, 1].join(',') + ')'
   }
 
   isPreviewMode () {
@@ -1912,6 +1873,7 @@ export class Glass extends React.Component {
 
   getCursorCssRule () {
     if (this.isPreviewMode()) return 'default'
+    if (this.state.isAnythingRotating || this.state.isAnythingScaling) return 'none'
     return (this.state.stageMouseDown) ? '-webkit-grabbing' : '-webkit-grab'
   }
 
@@ -2150,6 +2112,33 @@ export class Glass extends React.Component {
       }
     })
 
+    if (process.env.NODE_ENV !== 'production') {
+      items.push({ type: 'separator' })
+
+      items.push({
+        label: 'Inspect Element',
+        enabled: proxy.doesManageSingleElement(),
+        onClick: (event) => {
+          if (remote) {
+            remote.getCurrentWindow().openDevTools()
+
+            this.getActiveComponent().devConsole.logBanner()
+
+            const publicComponentModel = this.getActiveComponent().getCoreComponentInstance()
+            const internalElementModel = proxy.getElement()
+
+            if (publicComponentModel && internalElementModel) {
+              const publicElementModel = publicComponentModel.querySelector(`haiku:${internalElementModel.getComponentId()}`)
+
+              window.element = publicElementModel
+              console.log('element', publicElementModel)
+              console.log('element.target', publicElementModel.target)
+            }
+          }
+        }
+      })
+    }
+
     return items
   }
 
@@ -2165,7 +2154,6 @@ export class Glass extends React.Component {
     return (
       <div
         id='stage-root'
-        className={this.getGlobalControlPointHandleClass()}
         style={{
           width: '100%',
           height: '100%',
@@ -2187,6 +2175,10 @@ export class Glass extends React.Component {
             ) {
             // If unselecting anything except an actual element, assume we want to deselect all
             Element.unselectAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
+          }
+
+          if (this.state.isEventHandlerEditorOpen) {
+            this.hideEventHandlersEditor()
           }
 
           if (this.getActiveComponent() && !this.isPreviewMode()) {
@@ -2475,18 +2467,26 @@ function belongsToMenuIcon (target) {
   return belongsToMenuIcon(target.parentNode)
 }
 
-function getControlPointTarget (target) {
+function getClassBasedTarget (target, regexp) {
   if (!target || !target.getAttribute) {
     return null
   }
 
   const className = target.getAttribute('class')
 
-  if (className && className.match(/control-point/)) {
+  if (className && regexp.test(className)) {
     return target
   }
 
-  return getControlPointTarget(target.parentNode)
+  return getClassBasedTarget(target.parentNode, regexp)
+}
+
+function getControlPointTarget (target) {
+  return getClassBasedTarget(target, /control-point/)
+}
+
+function getOriginTarget (target) {
+  return getClassBasedTarget(target, /^origin$/)
 }
 
 Glass.propTypes = {

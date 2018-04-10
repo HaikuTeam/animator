@@ -272,7 +272,13 @@ module.exports = {
         "sizeAbsolute.y": { "0": { value: 130 } },
         "sizeMode.y": { "0": { value: 1 } },
         "translation.x": {
-          "0": { value: 167.79999999999995, edited: true },
+          "0": {
+            value: Haiku.inject(function($user) {
+              return $user.mouse.x;
+            }, '$user'),
+            // value: 167.79999999999995,
+            edited: true
+          },
           "950": {
             value: 167.79999999999995,
             edited: true,

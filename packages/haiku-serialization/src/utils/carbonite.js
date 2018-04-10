@@ -1,5 +1,5 @@
 const request = require('request')
-const {exec} = require('child_process')
+const {exec, fork} = require('child_process')
 const path = require('path')
 const fs = require('fs-extra')
 const {inkstone} = require('@haiku/sdk-inkstone')
@@ -9,6 +9,7 @@ const {
   Experiment,
   experimentIsEnabled
 } = require('haiku-common/lib/experiments')
+const logger = require('haiku-serialization/src/utils/LoggerInstance')
 const {
   HOMEDIR_PATH,
   HOMEDIR_PROJECTS_PATH,
@@ -19,23 +20,11 @@ const {
 const UPLOAD_INTERVAL = 10 /* in minutes */
 let lastUploadTime = null
 
+const AWS_S3_HOST = 'http://support.haiku.ai.s3-us-west-2.amazonaws.com'
+
 function _hasElapsedEnoughTime () {
   if (!lastUploadTime) return true
   return Date.now() - lastUploadTime >= UPLOAD_INTERVAL * 60000
-}
-
-function _generateScreenshot (path) {
-  return new Promise((resolve, reject) => {
-    resolve()
-
-    // TODO: robertodip figure out why plumbing is giving errors
-    // const {remote} = require('electron')
-    //   remote.getCurrentWindow().capturePage(function(buf) {
-    //     fs.writeFile(path, buf.toPng(), err => {
-    //       err ? reject(err) : resolve()
-    //     })
-    //   })
-  })
 }
 
 function _ensureFolderExist (folder) {
@@ -60,11 +49,20 @@ function _upload (url, filePath) {
   return new Promise((resolve, reject) => {
     fs.readFile(filePath, (err, data) => {
       if (err) reject(err)
+
+      logger.info(`[carbonite] uploading ${filePath} to ${url}`)
+
       request.put(
         url,
         {body: data, headers: {'x-amz-acl': 'public-read'}},
         (err, response) => {
-          err ? reject(err) : resolve(response)
+          logger.info(`[carbonite] upload complete`)
+
+          if (err) {
+            reject(err)
+          } else {
+            resolve(response)
+          }
         }
       )
     })
@@ -73,6 +71,7 @@ function _upload (url, filePath) {
 
 function _zipProjectFolders ({destination, sources}) {
   const parsedDestination = JSON.stringify(destination)
+
   const parsedSources = sources
     .map(source => JSON.stringify(path.relative(HOMEDIR_PATH, source)))
     .join(' ')
@@ -88,30 +87,51 @@ function _zipProjectFolders ({destination, sources}) {
   })
 }
 
-function crashReport (orgName, projectName, projectPath) {
-  if (!projectPath || !_hasElapsedEnoughTime()) return
+function crashReport (orgName = 'unknown', projectName = 'unknown', projectPath) {
+  if (!projectPath || !_hasElapsedEnoughTime()) {
+    return
+  }
+
+  lastUploadTime = Date.now()
 
   const timestamp = generateUUIDv4.default()
-  const screenshotPath = path.join(HOMEDIR_PATH, `screenshot-${timestamp}.png`)
   const zipName = `${timestamp}.zip`
   const zipPath = path.join(HOMEDIR_CRASH_REPORTS_PATH, zipName)
-  const AWS3Server = 'http://support.haiku.ai.s3-us-west-2.amazonaws.com'
-  lastUploadTime = Date.now()
+
+  const finalUrl = `${AWS_S3_HOST}/${orgName}/${zipName}`
+
+  crashReportFork(projectPath, zipName, zipPath, finalUrl)
+
+  return finalUrl
+}
+
+function crashReportFork (projectPath, zipName, zipPath, finalUrl) {
+  logger.info(`[carbonite] initiating crash report`, projectPath, zipName, zipPath, finalUrl)
+  process.env.HAIKU_CRASH_REPORT_PROJECT_PATH = projectPath
+  process.env.HAIKU_CRASH_REPORT_ZIP_PATH = zipPath
+  process.env.HAIKU_CRASH_REPORT_ZIP_NAME = zipName
+  process.env.HAIKU_CRASH_REPORT_URL = finalUrl
+  fork(path.join(__dirname, 'carbonite-proc.js'), [], {stdio: 'inherit'})
+}
+
+function crashReportCreate (cb) {
+  logger.info(`[carbonite] preparing crash report for ${process.env.HAIKU_CRASH_REPORT_URL}`)
 
   _ensureFolderExist(HOMEDIR_PROJECTS_PATH)
     .then(_ensureFolderExist(HOMEDIR_CRASH_REPORTS_PATH))
-    .then(_generateScreenshot(screenshotPath))
     .then(() =>
       _zipProjectFolders({
-        destination: zipPath,
-        sources: [projectPath, HOMEDIR_LOGS_PATH]
+        destination: process.env.HAIKU_CRASH_REPORT_ZIP_PATH,
+        sources: [process.env.HAIKU_CRASH_REPORT_PROJECT_PATH, HOMEDIR_LOGS_PATH]
       })
     )
-    .then(() => _getPreSignedURL(zipName))
-    .then(AWS3URL => _upload(AWS3URL, zipPath))
-    .catch(error => { console.log(error) })
-
-  return `${AWS3Server}/${orgName}/${zipName}`
+    .then(() => _getPreSignedURL(process.env.HAIKU_CRASH_REPORT_ZIP_NAME))
+    .then(AWS3URL => _upload(AWS3URL, process.env.HAIKU_CRASH_REPORT_ZIP_PATH))
+    .then(cb)
+    .catch(error => {
+      console.log(error)
+      cb()
+    })
 }
 
 function sentryCallback (data) {
@@ -121,6 +141,7 @@ function sentryCallback (data) {
     data.extra.projectPath
   ) {
     const {organizationName, projectName, projectPath} = data.extra
+    logger.info(`[carbonite] sentry callback`, organizationName, projectName, projectPath)
     data.extra.carbonite = crashReport(organizationName, projectName, projectPath)
     data.extra.experiments = {}
     for (const [key, value] of Object.entries(Experiment)) {
@@ -133,5 +154,6 @@ function sentryCallback (data) {
 
 module.exports = {
   crashReport,
-  sentryCallback
+  sentryCallback,
+  crashReportCreate
 }

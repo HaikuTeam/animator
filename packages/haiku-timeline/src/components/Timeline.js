@@ -158,9 +158,9 @@ class Timeline extends React.Component {
   componentDidMount () {
     this.mounted = true
 
-    // If the user e.g. Cmd+tabs away from the window
-    this.addEmitterListener(window, 'blur', () => {
+    const resetKeyStates = () => {
       Globals.allKeysUp()
+
       this.setState({
         isShiftKeyDown: false,
         isCommandKeyDown: false,
@@ -169,12 +169,22 @@ class Timeline extends React.Component {
         avoidTimelinePointerEvents: false,
         isRepeat: true
       })
+    }
+
+    // If the user e.g. Cmd+tabs away from the window
+    this.addEmitterListener(window, 'blur', () => {
+      resetKeyStates()
+
       // If an expression input is focused when we leave this webview, close it
       if (this.getActiveComponent()) {
         this.getActiveComponent().getRows().forEach((row) => {
           row.blur({ from: 'timeline' })
         })
       }
+    })
+
+    this.addEmitterListener(window, 'focus', () => {
+      resetKeyStates()
     })
 
     this.addEmitterListener(this.props.websocket, 'method', (method, params, message, cb) => {
@@ -1175,7 +1185,7 @@ class Timeline extends React.Component {
           isExpanded={row.isExpanded()}
           isHidden={row.isHidden()}
           isSelected={row.isSelected()}
-          hasAttachedActions={row.element.getDOMEvents().length > 0}
+          hasAttachedActions={row.element.getVisibleEvents().length > 0}
           dragHandleProps={dragHandleProps}
         />
       )

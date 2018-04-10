@@ -4,10 +4,12 @@ import Palette from 'haiku-ui-common/lib/Palette'
 import {
   ChevronLeftMenuIconSVG,
   StateInspectorIconSVG,
+  ComponentInfoIconSVG,
   LibraryIconSVG,
   LogoMiniSVG
   } from 'haiku-ui-common/lib/react/OtherIcons'
 import { BTN_STYLES } from '../styles/btnShared'
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 
 const STYLES = {
   container: {
@@ -62,11 +64,14 @@ const STYLES = {
   activeSecond: { // Yes, this is gross ¯\_(ツ)_/¯
     transform: 'translateY(40px)'
   },
+  activeThird: { // Yes, this is gross ¯\_(ツ)_/¯
+    transform: 'translateY(80px)'
+  },
   panelWrapper: {
     float: 'left',
     marginTop: 36,
     height: 'calc(100% - 36px)',
-    width: 'calc(100% - 36px)'          // ADDSTATEINSPECTOR
+    width: 'calc(100% - 36px)' // ADDSTATEINSPECTOR
   }
 }
 
@@ -117,7 +122,11 @@ class SideBar extends React.Component {
           }
         </div>
         <div style={STYLES.nav}>
-          <div style={[STYLES.activeIndicator, this.props.activeNav === 'state_inspector' && STYLES.activeSecond]} />
+          <div style={[
+            STYLES.activeIndicator,
+            this.props.activeNav === 'state_inspector' && STYLES.activeSecond,
+            this.props.activeNav === 'component_info_inspector' && STYLES.activeThird
+          ]} />
           <div key='library'
             style={[STYLES.btnNav, this.props.activeNav === 'library' && STYLES.activeBtnNav]}
             onClick={() => this.props.switchActiveNav('library')}>
@@ -128,6 +137,13 @@ class SideBar extends React.Component {
               style={[STYLES.btnNav, this.props.activeNav === 'state_inspector' && STYLES.activeBtnNav]}
               onClick={() => this.props.switchActiveNav('state_inspector')}>
               <StateInspectorIconSVG color={Palette.ROCK} />
+            </div>
+            : ''}
+          {(experimentIsEnabled(Experiment.ComponentInfoInspector) && activeComponent)
+            ? <div id='component-info-inspector' key='component_info_inspector'
+              style={[STYLES.btnNav, this.props.activeNav === 'component_info_inspector' && STYLES.activeBtnNav]}
+              onClick={() => this.props.switchActiveNav('component_info_inspector')}>
+              <ComponentInfoIconSVG color={Palette.ROCK} />
             </div>
             : ''}
         </div>

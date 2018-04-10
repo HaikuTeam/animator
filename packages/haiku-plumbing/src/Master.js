@@ -198,6 +198,7 @@ export default class Master extends EventEmitter {
     this._watcher = new Watcher()
     this._watcher.watch(this.folder)
     this._watcher.on('change', this.handleFileChange.bind(this))
+    this._watcher.on('change-blacklisted', this.handleFileChangeBlacklisted.bind(this))
     this._watcher.on('add', this.handleFileAdd.bind(this))
     this._watcher.on('remove', this.handleFileRemove.bind(this))
   }
@@ -305,6 +306,19 @@ export default class Master extends EventEmitter {
   //  * watchers/handlers
   //  * =================
   //  */
+
+  /**
+   * @description The default file-change watcher, handleFileChange, is write-aware,
+   * meaning that it ignores changes if a disk write is occuring as an optimization.
+   * However, we still want to do a Git commit on atomic changes, so this listener
+   * subscribes to *all* updates, even updates that have been 'blacklisted'.
+   */
+  handleFileChangeBlacklisted (abspath) {
+    const relpath = path.relative(this.folder, abspath)
+    return this.waitForSaveToComplete(() => {
+      return this._git.commitFileIfChanged(relpath, `Changed ${relpath}`, () => {})
+    })
+  }
 
   handleFileChange (abspath) {
     const relpath = path.relative(this.folder, abspath)

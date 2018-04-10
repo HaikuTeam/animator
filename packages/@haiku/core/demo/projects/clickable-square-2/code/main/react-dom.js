@@ -18,6 +18,13 @@ ReactDOMComponent.mount = (element, React, ReactDOM) => {
         },
         onRuffRuff: () => {
           console.info('react heard ruff ruff')
+        },
+        haikuOptions: {
+          lala: 1,
+          baba: 2
+        },
+        haikuStates: {
+          something: 'nothing'
         }
       })
     }

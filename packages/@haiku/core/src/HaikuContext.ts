@@ -9,7 +9,6 @@ import HaikuComponent from './HaikuComponent';
 
 const pkg = require('./../package.json');
 const VERSION = pkg.version;
-const DEFAULT_TIMELINE_NAME = 'Default';
 
 /**
  * @class HaikuContext
@@ -19,17 +18,18 @@ const DEFAULT_TIMELINE_NAME = 'Default';
  */
 // tslint:disable:variable-name
 export default class HaikuContext extends HaikuBase {
+  clock;
+  component;
+  config;
+  container;
+  CORE_VERSION;
   mount;
   platform;
+  PLAYER_VERSION;
   renderer;
   tickables;
   ticks;
   unmountedTickables;
-  clock;
-  component;
-  config;
-  CORE_VERSION;
-  PLAYER_VERSION;
 
   constructor(mount, renderer, platform, bytecode, config) {
     super();
@@ -76,13 +76,24 @@ export default class HaikuContext extends HaikuBase {
       this.tickables.push({performTick: this.config.frame});
     }
 
-    this.component = new HaikuComponent(bytecode, this, this.config, null);
-
     this.clock = new HaikuClock(this.tickables, this.component, this.config.clock || {});
+
     // We need to start the loop even if we aren't autoplaying,
     // because we still need time to be calculated even if we don't 'tick'.
     this.clock.run();
-    this.component.startTimeline(DEFAULT_TIMELINE_NAME);
+
+    this.container = this.renderer.createContainer({
+      elementName: bytecode,
+      attributes: {},
+      children: [bytecode.template],
+    });
+
+    this.component = new HaikuComponent(
+      bytecode,
+      this,
+      this.config,
+      this.container,
+    );
 
     // If configured, bootstrap the Haiku right-click context menu
     if (this.mount && this.renderer.menuize && this.config.contextMenu !== 'disabled') {
@@ -207,14 +218,23 @@ export default class HaikuContext extends HaikuBase {
     }
   }
 
+  getContainer(doForceRecalc = false) {
+    if (doForceRecalc || this.renderer.shouldCreateContainer) {
+      // Mutates this.container in place
+      this.renderer.createContainer(this.container);
+    }
+
+    return this.container;
+  }
+
+
   render() {
-    const container = this.renderer.createContainer(this.mount);
-    const tree = this.component.render(container, this.config);
+    const tree = this.component.render(this.getContainer(true), this.config);
 
     // The component can optionally return undefined as a signal to take no action
     // TODO: Maybe something other than undefined would be better
     if (tree !== undefined) {
-      return this.renderer.render(container, tree, this.component);
+      return this.renderer.render(this.getContainer(), tree, this.component);
     }
   }
 
@@ -233,10 +253,7 @@ export default class HaikuContext extends HaikuBase {
       return;
     }
 
-    const container = this.renderer.shouldCreateContainer
-      ? this.renderer.createContainer()
-      : this.renderer.getLastContainer();
-    const patches = this.component.patch(container, this.config, skipCache);
+    const patches = this.component.patch(this.getContainer(), this.config, skipCache);
 
     this.renderer.patch(patches, this.component);
   }

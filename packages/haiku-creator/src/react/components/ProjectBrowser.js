@@ -27,7 +27,7 @@ const STYLES = {
 class ProjectBrowser extends React.Component {
   constructor (props) {
     super(props)
-    this.renderNotifications = this.renderNotifications.bind(this)
+    this.renderNotice = this.renderNotice.bind(this)
     this.openPopover = this.openPopover.bind(this)
     this.closePopover = this.closePopover.bind(this)
     this.handleProjectLaunch = this.handleProjectLaunch.bind(this)
@@ -347,7 +347,7 @@ class ProjectBrowser extends React.Component {
     })
   }
 
-  renderNotifications (content, i) {
+  renderNotice (content, i) {
     return (
       <CSSTransition timeout={400} classNames='toast' key={i + content.title}>
         <Toast
@@ -542,7 +542,7 @@ class ProjectBrowser extends React.Component {
     return (
       <div style={DASH_STYLES.dashWrap}>
         <TransitionGroup style={{position: 'absolute', right: 0, top: 35, width: 300, height: '100vh'}}>
-          {lodash.map(this.props.notices, this.renderNotifications)}
+          {lodash.map(this.props.notices, this.renderNotice)}
         </TransitionGroup>
 
         { this.state.showNewProjectModal && this.renderNewProjectModal() }

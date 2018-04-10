@@ -7,7 +7,6 @@ import ComponentMenu from './ComponentMenu/ComponentMenu'
 import Palette from 'haiku-ui-common/lib/Palette'
 import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
 import { TOUR_CHANNEL } from 'haiku-sdk-creator/lib/tour'
-import { remote } from 'electron'
 
 const STAGE_BOX_STYLE = {
   overflow: 'hidden',
@@ -87,33 +86,16 @@ export default class Stage extends React.Component {
             var notice = this.props.createNotice({ type: 'info', title: 'Notice', message: msg })
             window.setTimeout(() => {
               this.props.removeNotice(undefined, notice.id)
-            }, 1000)
+            }, 2500)
           }
           break
 
         case 2:
-          // 'Uncaught' indicates an unrecoverable error in Glass, so we need to crash too
-          if (event.message.slice(0, 8) === 'Uncaught') {
-            // Give the webview's Raven instance time to transmit its crash report
-            if (process.env.NODE_ENV === 'production') {
-              return setTimeout(() => {
-                remote.getCurrentWindow().close()
-              }, 500)
-            }
-          }
-
-          console.error(event.message)
-
-          const errorNotice = this.props.createNotice({
+          this.props.createNotice({
             type: 'error',
             title: 'Error',
             message: event.message
           })
-
-          // It seems nicest to just remove the error after it's been on display for a couple of seconds
-          window.setTimeout(() => {
-            this.props.removeNotice(undefined, errorNotice.id)
-          }, 2000)
 
           break
       }
@@ -163,16 +145,13 @@ export default class Stage extends React.Component {
       // Instantiatees are translated with respect to the coordinate system of
       // the artboard, and the stage may have been zoomed/panned
       if (this.props.artboardDimensions) {
-        const {
-          zoom,
-          mount
-        } = this.props.artboardDimensions
+        const {zoom, rect} = this.props.artboardDimensions
 
-        coords.x -= mount.rect.left
-        coords.y -= mount.rect.top
+        coords.x -= rect.left
+        coords.y -= rect.top
 
-        coords.x *= 1 / zoom.x
-        coords.y *= 1 / zoom.y
+        coords.x /= zoom
+        coords.y /= zoom
       }
 
       return ac.instantiateComponent(

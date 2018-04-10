@@ -1,0 +1,17 @@
+{
+  "name": "@haiku/matthew2-usersmatthewcodehaikuteammonopackageshaikuglasstestprojectsapr91",
+  "version": "0.0.1",
+  "haiku": {
+    "organization": "matthew2",
+    "project": "UsersMatthewCodeHaikuTeamMonoPackagesHaikuGlassTestProjectsApr91"
+  },
+  "authors": [
+    "Haiku User",
+    "Haiku <contact@haiku.ai>"
+  ],
+  "license": "LicenseRef-LICENSE",
+  "main": "index.js",
+  "dependencies": {
+    "@haiku/core": "^3.2.0"
+  }
+}

@@ -101,11 +101,15 @@ export default class HaikuTimeline extends HaikuBase {
     }
 
     if (this.isPlaying()) {
+      const frame = this.getFrame();
+
       this.component.routeEventToHandlerAndEmit(
         GLOBAL_LISTENER_KEY,
-        `timeline:${this.getName()}:${this.getFrame()}`,
-        [this.getFrame(), Math.round(this.getTime())],
+        `timeline:${this.getName()}:${frame}`,
+        [frame, Math.round(this.getTime())],
       );
+
+      this.emit('frame', frame);
     }
   }
 
@@ -287,17 +291,20 @@ export default class HaikuTimeline extends HaikuBase {
     this._isPlaying = true;
     this._globalClockTime = maybeGlobalClockTime || 0;
     this._maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
+    this.emit('start');
   }
 
   stop(maybeGlobalClockTime, descriptor) {
     this._isPlaying = false;
     this._maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
+    this.emit('stop');
   }
 
   pause() {
     const time = this.component.getClock().getTime();
-    const descriptor = this.component._getTimelineDescriptor(this._name);
+    const descriptor = this.component.getTimelineDescriptor(this._name);
     this.stop(time, descriptor);
+    this.emit('pause');
   }
 
   play(requestedOptions) {
@@ -306,7 +313,7 @@ export default class HaikuTimeline extends HaikuBase {
     this.ensureClockIsRunning();
 
     const time = this.component.getClock().getTime();
-    const descriptor = this.component._getTimelineDescriptor(this._name);
+    const descriptor = this.component.getTimelineDescriptor(this._name);
     const local = this._localElapsedTime;
 
     this.start(time, descriptor);
@@ -321,15 +328,18 @@ export default class HaikuTimeline extends HaikuBase {
     if (!options.skipMarkForFullFlush) {
       this.component._markForFullFlush();
     }
+
+    this.emit('play');
   }
 
   seek(ms) {
     this.ensureClockIsRunning();
     const clockTime = this.component.getClock().getTime();
     this.controlTime(ms, clockTime);
-    const descriptor = this.component._getTimelineDescriptor(this._name);
+    const descriptor = this.component.getTimelineDescriptor(this._name);
     this.start(clockTime, descriptor);
     this.component._markForFullFlush();
+    this.emit('seek', ms);
   }
 
   gotoAndPlay(ms) {

@@ -373,7 +373,6 @@ const assignElementInjectables = (obj, key, summonSpec, hostInstance, element) =
   out.properties.opacity = element.layout.opacity;
   out.properties.origin = element.layout.origin;
   out.properties.rotation = element.layout.rotation;
-  out.properties.orientation = element.layout.orientation;
   out.properties.scale = element.layout.scale;
   out.properties.shown = element.layout.shown;
   out.properties.sizeAbsolute = element.layout.sizeAbsolute;
@@ -472,7 +471,7 @@ INJECTABLES['$component'] = {
       injectees.$component = injectees.$tree.component;
     } else {
       const subspec = (typeof summonSpec === 'string') ? summonSpec : summonSpec.$component;
-      assignElementInjectables(injectees, '$component', subspec, hostInstance, hostInstance._getTopLevelElement());
+      assignElementInjectables(injectees, '$component', subspec, hostInstance, hostInstance.getTemplate());
     }
   },
 };
@@ -489,7 +488,7 @@ INJECTABLES['$root'] = {
     } else {
       // Until we support nested components, $root resolves to $component
       const subspec = (typeof summonSpec === 'string') ? summonSpec : summonSpec.$root;
-      assignElementInjectables(injectees, '$root', subspec, hostInstance, hostInstance._getTopLevelElement());
+      assignElementInjectables(injectees, '$root', subspec, hostInstance, hostInstance.getTemplate());
     }
   },
 };
@@ -707,25 +706,6 @@ const FORBIDDEN_EXPRESSION_TOKENS = {
   defineProperty: true, // Object.
 };
 
-const cc = (obj, timelineName, flexId, propertyKeys) => {
-  if (!obj[timelineName]) {
-    return false;
-  }
-  if (!obj[timelineName][flexId]) {
-    return false;
-  }
-  if (!propertyKeys) {
-    return false;
-  }
-  if (propertyKeys.length < 1) {
-    return false;
-  }
-  for (let i = 0; i < propertyKeys.length; i++) {
-    obj[timelineName][flexId][propertyKeys[i]] = {};
-  }
-  return true;
-};
-
 /**
  * When evaluating expressions written by the user, don't crash everything.
  * Log the error (but only once, since we're animating) and then return a
@@ -869,23 +849,17 @@ export default class ValueBuilder {
 
       return 1;
     };
+
+    this.helpers['find'] = (selector) => {
+      return this._component.querySelectorAll(selector);
+    };
   }
 
-  clearCaches(options) {
-    if (options && options.clearOnlySpecificProperties) {
-      const timelineName = options.clearOnlySpecificProperties.timelineName;
-      const flexId = options.clearOnlySpecificProperties.componentId;
-      const propertyKeys = options.clearOnlySpecificProperties.propertyKeys;
-      cc(this._parsees, timelineName, flexId, propertyKeys);
-      cc(this._summonees, timelineName, flexId, propertyKeys);
-      cc(this._evaluations, timelineName, flexId, propertyKeys);
-      cc(this._changes, timelineName, flexId, propertyKeys);
-    } else {
-      this._parsees = {};
-      this._changes = {};
-      this._summonees = {};
-      this._evaluations = {};
-    }
+  clearCaches(options = {}) {
+    this._parsees = {};
+    this._changes = {};
+    this._summonees = {};
+    this._evaluations = {};
     return this;
   }
 
