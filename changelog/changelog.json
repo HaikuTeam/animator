@@ -6079,5 +6079,32 @@
       "label": "fix",
       "message": "for dependency hell leading to initially crashing build."
     }
+  },
+  "3.2.4": {
+    "d88b76b1872efe2248f98c6265e60ff940a6daa1": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Rehydrate correctly when keyframes are updated and ensure we emit the event"
+    },
+    "3d41f9696bd11f76d5db3747b823821b35325e44": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "multiple lint fixes"
+    },
+    "53abac13d07ad75fcf66380ba6755cd0e773040b": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "adjust spacing to make the linter happy"
+    },
+    "06ce828919b7eb638183c807a1d405e4c7d83ef0": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "use the corret font-family for the figma import"
+    },
+    "a556ea321e7cbb445f05113b3ea039ceb3215bbf": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "contemplate the case of a file not having a URL to download from Figma"
+    }
   }
 }

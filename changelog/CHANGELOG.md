@@ -1,6 +1,16 @@
 # Changelog
 
 
+## 3.2.4
+
+### Bug Fixes
+
+ * Rehydrate correctly when keyframes are updated and ensure we emit the event
+ * multiple lint fixes
+ * adjust spacing to make the linter happy
+ * use the corret font-family for the figma import
+ * contemplate the case of a file not having a URL to download from Figma
+
 ## 3.2.3
 
 ### Bug Fixes
