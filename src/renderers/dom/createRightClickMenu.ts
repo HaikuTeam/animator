@@ -103,18 +103,18 @@ export default function createRightClickMenu(domElement, component) {
   const escaper = doc.createElement('textarea');
   const metadata = component._bytecode && component._bytecode.metadata;
   let isPublic = false;
+  let isForkable = false;
 
   if (metadata && metadata.project && metadata.organization && window && window.fetch) {
     try {
-      window.fetch(`https://inkstone.haiku.ai/v0/community/${metadata.organization}/${metadata.project}`).then(
-        ({ok}) => {
-          if (ok) {
-            isPublic = true;
-          }
-        },
-      );
+      window.fetch(`https://inkstone.haiku.ai/v0/community/${metadata.organization}/${metadata.project}/metadata`)
+        .then((response) => response.json() as Promise<{IsPublic: boolean, IsForkable: boolean}>)
+        .then((responseJson) => {
+          isPublic = responseJson.IsPublic;
+          isForkable = responseJson.IsForkable;
+        });
     } catch (e) {
-      // ...noop. We were unable to determinine forkability.
+      // ...noop. We were unable to determine forkability.
     }
   }
 
@@ -139,7 +139,7 @@ export default function createRightClickMenu(domElement, component) {
       }
       let byline = who;
       titleLine =
-        '<p style="margin:0;margin-bottom:4px;padding:12px 0 7px;line-height:12px;text-align:center;border-bottom:1px solid rgba(140,140,140,.14);">' +
+        '<p style="margin:0;margin-bottom:4px;padding:12px 13px 7px;line-height:12px;text-align:center;border-bottom:1px solid rgba(140,140,140,.14);">' +
         byline +
         '</p>';
     }
@@ -152,7 +152,7 @@ export default function createRightClickMenu(domElement, component) {
         ' View on Haiku Community</a>',
       );
     }
-    if (isPublic) {
+    if (isForkable) {
       lines.push(
         '<a onMouseOver="this.style.backgroundColor=\'rgba(140,140,140,.07)\'" onMouseOut="this.style.backgroundColor=\'transparent\'" style="display:block;color:black;text-decoration:none;padding: 5px 13px;line-height:12px;" href="https://share.haiku.ai/u/' +
         escapeHTML(`${metadata.organization}/${metadata.project}/fork`) +
