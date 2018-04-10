@@ -1,6 +1,7 @@
 const tape = require('tape');
 const upgradeBytecodeInPlace = require('../../lib/helpers/upgradeBytecodeInPlace').default;
 const VERSION = require('../../package.json').version;
+const TestHelpers = require('../TestHelpers');
 
 tape('upgradeBytecodeInPlace', (t) => {
   tape('legacyOriginSupport', (t) => {
@@ -11,6 +12,12 @@ tape('upgradeBytecodeInPlace', (t) => {
       timelines: {
         Default: {
           'haiku:svg': {},
+          'haiku:g': {
+            'origin.x': {0: {value: 0.5}},
+            'origin.y': {0: {value: 0.5}},
+            'mount.x': {0: {value: 0.5}},
+            'mount.y': {0: {value: 0.5}},
+          }
         },
       },
       template: {
@@ -18,6 +25,10 @@ tape('upgradeBytecodeInPlace', (t) => {
           {
             elementName: 'svg',
             attributes: {'haiku-id': 'svg'},
+            children: [{
+              elementName: 'g',
+              attributes: {'haiku-id': 'g'}
+            }]
           },
           {
             elementName: 'svg',
@@ -27,16 +38,24 @@ tape('upgradeBytecodeInPlace', (t) => {
       },
     };
 
-    upgradeBytecodeInPlace(oldBytecode);
-
-    t.is(oldBytecode.metadata.core, VERSION);
-    t.deepEqual(oldBytecode.timelines, {
-      Default: {
-        'haiku:svg': {
-          'mount.x': {0: {value: -0.5}},
-          'mount.y': {0: {value: -0.5}},
+    TestHelpers.createComponent(oldBytecode, {}, (component, teardown)  => {
+      t.is(oldBytecode.metadata.core, VERSION);
+      t.deepEqual(oldBytecode.timelines, {
+        Default: {
+          'haiku:svg': {
+            'mount.x': {0: {value: -0.5}},
+            'mount.y': {0: {value: -0.5}},
+          },
+          'haiku:g': {
+            'origin.x': {0: {value: 0.5}},
+            'origin.y': {0: {value: 0.5}},
+            'mount.x': {0: {value: 0}},
+            'mount.y': {0: {value: 0}},
+            'mount.z': {0: {value: 0}},
+          },
         },
-      },
+      });
+      teardown();
     });
 
     const newBytecode = {
@@ -56,13 +75,15 @@ tape('upgradeBytecodeInPlace', (t) => {
       },
     };
 
-    upgradeBytecodeInPlace(newBytecode);
-    t.deepEqual(newBytecode.timelines, {
-      Default: {
-        'haiku:svg': {},
-      },
+    TestHelpers.createComponent(newBytecode, {}, (component, teardown)  => {
+      t.deepEqual(newBytecode.timelines, {
+        Default: {
+          'haiku:svg': {},
+        },
+      });
+      teardown();
+      t.end();
     });
-    t.end();
   });
 
   t.end();

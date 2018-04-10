@@ -8,7 +8,6 @@ import HaikuContext from './HaikuContext';
 import {GLOBAL_LISTENER_KEY} from './HaikuBase';
 import HaikuTimeline from './HaikuTimeline';
 import vanities from './properties/dom/vanities';
-import clone from './helpers/clone';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
 import cssQueryList from './helpers/cssQueryList';
 import xmlToMana from './helpers/xmlToMana';
@@ -77,7 +76,7 @@ export default class HaikuComponent extends HaikuElement {
 
   constructor(
     bytecode: any,
-    context,
+    context: HaikuContext,
     config,
     container,
 ) {
@@ -135,18 +134,6 @@ export default class HaikuComponent extends HaikuElement {
 
     this.routeEventToHandlerAndEmit(GLOBAL_LISTENER_KEY, 'component:will-initialize', [this]);
 
-    try {
-      // If the bytecode we got happens to be in an outdated format, we automatically updated it to ours
-      upgradeBytecodeInPlace(this._bytecode, {
-        // Random seed for adding instance uniqueness to ids at runtime.
-        referenceUniqueness: (config.hotEditingMode)
-          ? void (0) // During editing, Haiku.app pads ids unless this is undefined
-          : Math.random().toString(36).slice(2),
-      });
-    } catch (e) {
-      console.warn('[haiku core] caught error during attempt to upgrade bytecode in place');
-    }
-
     this._context = context;
 
     this._builder = new ValueBuilder(this);
@@ -167,6 +154,18 @@ export default class HaikuComponent extends HaikuElement {
 
     // Ensure all __instance, __parent, etc. are properly set up and connected to the models
     this.reinitializeTree(container);
+
+    try {
+      // If the bytecode we got happens to be in an outdated format, we automatically update it to the latest.
+      upgradeBytecodeInPlace(this, {
+        // Random seed for adding instance uniqueness to ids at runtime.
+        referenceUniqueness: (config.hotEditingMode)
+          ? void (0) // During editing, Haiku.app pads ids unless this is undefined
+          : Math.random().toString(36).slice(2),
+      });
+    } catch (e) {
+      console.warn('[haiku core] caught error during attempt to upgrade bytecode in place');
+    }
 
     // Flag used internally to determine whether we need to re-render the full tree or can survive by just patching
     this._needsFullFlush = false;
