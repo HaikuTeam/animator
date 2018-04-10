@@ -1252,7 +1252,7 @@ export default class Creator extends React.Component {
       <div style={{ position: 'absolute', width: '100%', height: '100%', backgroundColor: '#313F41' }}>
         <CSSTransition
           classNames='toast'
-          timeout={{ enter: 500, exit: 300}}
+          timeout={{ enter: 500, exit: 300 }}
         >
           <div style={{ position: 'absolute', right: 0, top: 0, width: 300 }}>
             {lodash.map(this.state.notices, this.renderNotice)}
@@ -1491,7 +1491,7 @@ export default class Creator extends React.Component {
         <div style={{ position: 'absolute', width: '100%', height: '100%' }}>
           <CSSTransition
             classNames='toast'
-            timeout={{ enter: 500, exit: 300}}
+            timeout={{ enter: 500, exit: 300 }}
           >
             <div style={{ position: 'absolute', right: 0, top: 0, width: 300 }}>
               {lodash.map(this.state.notices, this.renderNotice)}
@@ -1522,7 +1522,7 @@ export default class Creator extends React.Component {
           <div className='layout-box' style={{ overflow: 'visible' }}>
             <CSSTransition
               classNames='toast'
-              timeout={{ enter: 500, exit: 300}}
+              timeout={{ enter: 500, exit: 300 }}
             >
               <div style={{ position: 'absolute', right: 0, top: 44, width: 300 }}>
                 {lodash.map(this.state.notices, this.renderNotice)}
