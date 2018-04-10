@@ -1,10 +1,8 @@
 /* global monaco */
 import React from 'react'
-// import Radium from 'radium'
 import {shell} from 'electron'
-import {Menu, MenuItem} from 'haiku-ui-common/lib/react/Menu'
-import {ShareSVG} from 'haiku-ui-common/lib/react/OtherIcons'
 import Palette from 'haiku-ui-common/lib/Palette'
+import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
 
 const STYLES = {
   wrapper: {
@@ -29,35 +27,38 @@ const STYLES = {
   }
 }
 
-const SNIPPET_OPTIONS = {
-  'Change State': {
-    value: 'this.setState({stateName: value})'
-  },
-  'Go To And Play': {
-    value: 'this.getDefaultTimeline().gotoAndPlay(ms)'
-  },
-  'Go To And Stop': {
-    value: 'this.getDefaultTimeline().gotoAndStop(ms)'
-  },
-  Pause: {
-    value: 'this.getDefaultTimeline().pause()'
-  },
-  Stop: {
-    value: 'this.getDefaultTimeline().stop()'
-  },
-  Docs: {
-    value: () => {
-      shell.openExternal('https://docs.haiku.ai/using-haiku/summonables.html')
-    },
-    icon: ShareSVG
-  }
-}
-
 class Snippets extends React.PureComponent {
   constructor (props) {
     super(props)
 
-    this.insertSnippet = this.insertSnippet.bind(this)
+    this.snippetOptions = [
+      {
+        label: 'Change State',
+        onClick: () => { this.insertSnippet('this.setState({stateName: value})') }
+      },
+      {
+        label: 'Go To And Play',
+        onClick: () => { this.insertSnippet('this.getDefaultTimeline().gotoAndPlay(ms)') }
+      },
+      {
+        label: 'Go To And Stop',
+        onClick: () => { this.insertSnippet('this.getDefaultTimeline().gotoAndStop(ms)') }
+      },
+      {
+        label: 'Pause',
+        onClick: () => { this.insertSnippet('this.getDefaultTimeline().pause()') }
+      },
+      {
+        label: 'Stop',
+        onClick: () => { this.insertSnippet('this.getDefaultTimeline().stop()') }
+      },
+      {
+        label: 'Docs ↗',
+        onClick: () => {
+          shell.openExternal('https://docs.haiku.ai/using-haiku/summonables.html')
+        }
+      }
+    ]
   }
 
   componentWillReceiveProps (newProps) {
@@ -77,7 +78,7 @@ class Snippets extends React.PureComponent {
     return lineNumber !== 1 && column !== 1
   }
 
-  insertSnippet (event, {injectable}) {
+  insertSnippet (injectable) {
     if (typeof injectable === 'function') {
       return injectable()
     }
@@ -91,7 +92,7 @@ class Snippets extends React.PureComponent {
     } else {
       const allLines = this.props.editor.viewModel.lines.lines.length + 1
       range = new monaco.Range(allLines, 100, allLines, 100)
-      injectable = `\n${injectable}`
+      injectable = `${injectable}`
     }
 
     this.props.editor.executeEdits('snippet-injector', [
@@ -106,39 +107,15 @@ class Snippets extends React.PureComponent {
     this.props.editor.pushUndoStop()
   }
 
-  renderItems () {
-    return Object.entries(SNIPPET_OPTIONS).map(([option, {value, icon}]) => {
-      return (
-        <MenuItem
-          key={option}
-          data={{injectable: value}}
-          onClick={this.insertSnippet}
-          style={{justifyContent: 'initial'}}
-        >
-          <span style={{marginRight: '8px'}}>
-            {option}
-          </span>
-
-          {icon && icon({})}
-        </MenuItem>
-      )
-    })
-  }
-
   render () {
     return (
-      <div style={STYLES.wrapper} ref={element => (this._plus = element)}>
-        <Menu
-          fixed
-          offset={{left: -80, top: 0}}
-          trigger={
-            <div style={STYLES.button} className='js-snipet-trigger'>
-              +
-            </div>
-          }
-        >
-          {this.renderItems()}
-        </Menu>
+      <div style={STYLES.wrapper} ref={element => (this._plus = element)}
+        onClick={(event) => {
+          PopoverMenu.launch({event, items: this.snippetOptions})
+        }}>
+        <div style={STYLES.button}>
+          +
+        </div>
       </div>
     )
   }

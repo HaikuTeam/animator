@@ -8,6 +8,7 @@ const NOOP_CB = () => {}
 const TIMER_TIMEOUT = 64
 const PROPERTY_GROUP_ACCUMULATION_TIME = 500
 const MAX_UNDOABLES_LEN = 50
+
 const ACCUMULATORS = {
   updateKeyframes: (params, match) => {
     const updates1 = match.params[2]
@@ -27,6 +28,7 @@ const ACCUMULATORS = {
     }
   }
 }
+
 const INVERTER_ACCUMULATORS = {
   updateKeyframes: (baseInverter, newInverter) => {
     const basis1 = baseInverter.params[1]
@@ -255,8 +257,10 @@ class ActionStack extends BaseModel {
 
       if (inversion) {
         const [relpath] = params
+
         inversion.params.unshift(relpath)
         inversion.params.push(metadata)
+
         if (when === 'before' && INVERTER_ACCUMULATORS[method]) {
           if (this.accumulatedInverters[method]) {
             INVERTER_ACCUMULATORS[method](this.accumulatedInverters[method], inversion)

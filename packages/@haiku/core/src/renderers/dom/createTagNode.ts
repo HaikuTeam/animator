@@ -36,9 +36,7 @@ export default function createTagNode(
     };
   }
 
-  if (!component.cache[flexId]) {
-    component.cache[flexId] = {};
-  }
+  component.subcacheEnsure(flexId);
 
   const incomingKey =
     virtualElement.key ||

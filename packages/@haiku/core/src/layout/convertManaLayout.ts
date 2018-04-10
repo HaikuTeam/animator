@@ -5,6 +5,7 @@
 import parseCssTransformString from './../helpers/parseCssTransformString';
 import visitManaTree from './../helpers/visitManaTree';
 import cssValue from './../vendor/css-value';
+import Layout3D from './../Layout3D';
 
 const ROOT_LOCATOR = '0';
 
@@ -29,6 +30,10 @@ const TRANSFORM_COMPONENT_WHITELIST = {
   'align.y': true,
   'align.z': true,
 };
+
+function isNumericDefined(value): boolean {
+  return typeof value === 'number';
+}
 
 function determineSizingProp(sizeAxis, attributeValue) {
   const parsedValues = cssValue(attributeValue + ''); // Someone may have sent a number
@@ -55,6 +60,31 @@ function determineSizingProp(sizeAxis, attributeValue) {
     default:
       return false;
   }
+}
+
+const DEFAULT_SIZE_ABSOLUTE = 100;
+const DEFAULT_SIZE_PROPORTIONAL = 1.0; // 100%
+
+function fallbackSizeAbsolute(node: any, axis: string): number {
+  // This pathway assumes we've already tried attributes.width and attributes.style.width
+  if (node && node.attributes) {
+    const viewboxString = (node.attributes.viewBox || node.attributes.viewbox) + '';
+    const viewboxPieces = viewboxString.split(/\s+/).map((str) => Number(str));
+
+    if (axis === 'x') {
+      return viewboxPieces[2] || DEFAULT_SIZE_ABSOLUTE;
+    }
+
+    if (axis === 'y') {
+      return viewboxPieces[3] || DEFAULT_SIZE_ABSOLUTE;
+    }
+  }
+
+  return DEFAULT_SIZE_ABSOLUTE;
+}
+
+function fallbackSizeProportional(node: any, axis: string): number {
+  return DEFAULT_SIZE_PROPORTIONAL;
 }
 
 /* tslint:disable */
@@ -135,6 +165,40 @@ export default function convertManaLayout(mana) {
           attributes['sizeMode.y'] = heightStyleProp.mode;
           delete attributes.style.height; // Strip off the old value which is no longer needed
         }
+      }
+    }
+
+    // For instantiatee roots, we want to ensure some kind of sizing is defined
+    if (!parent) {
+      // Force absolute sizing if we haven't explicitly set any sizing mode by now
+      if (!isNumericDefined(attributes['sizeMode.x'])) {
+        attributes['sizeMode.x'] = Layout3D.SIZE_ABSOLUTE;
+      }
+      if (!isNumericDefined(attributes['sizeMode.y'])) {
+        attributes['sizeMode.y'] = Layout3D.SIZE_ABSOLUTE;
+      }
+
+      // Assign an absolute size no matter what, since this is the most common case,
+      // even if somehow the element still ends up in proportional size mode, these should be set
+      if (!isNumericDefined(attributes['sizeAbsolute.x'])) {
+        attributes['sizeAbsolute.x'] = fallbackSizeAbsolute(node, 'x');
+      }
+      if (!isNumericDefined(attributes['sizeAbsolute.y'])) {
+        attributes['sizeAbsolute.y'] = fallbackSizeAbsolute(node, 'y');
+      }
+
+      // On the off chance we got a proportional size mode, but no proportional size, make it 100%
+      if (
+        attributes['sizeMode.x'] === Layout3D.SIZE_PROPORTIONAL &&
+        (!isNumericDefined(attributes['sizeProportional.x']))
+      ) {
+        attributes['sizeProportional.x'] = fallbackSizeProportional(node, 'x');
+      }
+      if (
+        attributes['sizeMode.y'] === Layout3D.SIZE_PROPORTIONAL &&
+        (!isNumericDefined(attributes['sizeProportional.y']))
+      ) {
+        attributes['sizeProportional.y'] = fallbackSizeProportional(node, 'y');
       }
     }
 

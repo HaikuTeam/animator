@@ -131,8 +131,8 @@ export const composeTimelines = (
     };
   }
 
-  const childPseudoElement = {layout: createLayoutSpec(null, null, null)};
-  const parentPseudoElement = {layout: createLayoutSpec(null, null, null)};
+  const childPseudoElement = {layout: createLayoutSpec()};
+  const parentPseudoElement = {layout: createLayoutSpec()};
   shimLayoutForPseudoElement(childTimeline, childPseudoElement);
   shimLayoutForPseudoElement(parentTimeline, parentPseudoElement);
   const childMatrix = computeMatrix(childPseudoElement.layout, createMatrix(), shapeLayerSize, animationSize);

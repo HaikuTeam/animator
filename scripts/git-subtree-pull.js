@@ -5,13 +5,21 @@ const log = require('./helpers/log')
 const nowVersion = require('./helpers/nowVersion')
 const getPackage = require('./helpers/packages')
 
-const ROOT = path.join(__dirname, '..')
+const ROOT = global.process.cwd()
 const branch = argv.branch || 'master'
 const packageName = argv.package
 const semver = nowVersion()
 
 if (!packageName) {
   throw new Error('a --package argument is required')
+}
+
+if (packageName === 'all') {
+  const openSourcePackages = require('./helpers/openSourcePackages')
+  openSourcePackages.forEach((pack) => {
+    cp.execSync(`node ./scripts/git-subtree-pull.js --package=${pack.name}`, { cwd: ROOT, stdio: 'inherit' })
+  })
+  global.process.exit(0)
 }
 
 const pack = packageName === 'changelog'

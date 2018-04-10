@@ -13,14 +13,17 @@ const camelize = (str: string): string => {
   }).replace(/\s+/g, '');
 };
 
-const addInstanceToGlobalModelRegistry = (instance: any): number => {
-  const className = instance.getClassName();
-
+const upsertInstanceRegistry = (className: string) => {
   if (!HaikuGlobal.models[className]) {
     HaikuGlobal.models[className] = [];
   }
+  return HaikuGlobal.models[className];
+};
 
-  return HaikuGlobal.models[className].push(instance);
+const addInstanceToGlobalModelRegistry = (instance: any): number => {
+  const className = instance.getClassName();
+  const instanceRegistry = upsertInstanceRegistry(className);
+  return instanceRegistry.push(instance);
 };
 
 const addValueToGlobalCache = (key: string, value: any) => {
@@ -48,17 +51,17 @@ const clearAllCaches = () => {
 export default class HaikuBase {
   private listeners;
 
-  id;
+  $id;
   config; // Implemented by subclass
   parent; // Implemented by subclass
 
   constructor() {
-    this.id = addInstanceToGlobalModelRegistry(this);
+    this.$id = addInstanceToGlobalModelRegistry(this);
     this.listeners = {};
   }
 
   getId(): number {
-    return this.id;
+    return this.$id;
   }
 
   getRegistryIndex(): number {
@@ -104,6 +107,20 @@ export default class HaikuBase {
 
   cacheClear() {
     clearMatchingPropertiesInGlobalCache(this.getPrimaryKey());
+  }
+
+  subcacheGet(key: string) {
+    return this.cacheGet(key);
+  }
+
+  subcacheEnsure(key: string) {
+    if (!this.cacheGet(key)) {
+      this.cacheSet(key, {});
+    }
+  }
+
+  subcacheClear(key: string) {
+    this.cacheSet(key, {});
   }
 
   on(key: string, listener: Function) {
@@ -196,3 +213,7 @@ export default class HaikuBase {
     }
   }
 }
+
+HaikuBase['getRegistryForClass'] = (klass) => {
+  return upsertInstanceRegistry(klass.name);
+};

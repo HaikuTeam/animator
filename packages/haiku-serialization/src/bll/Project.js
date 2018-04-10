@@ -4,6 +4,7 @@ const async = require('async')
 const WebSocket = require('ws')
 const dedent = require('dedent')
 const pascalcase = require('pascalcase')
+const lodash = require('lodash')
 const { Experiment, experimentIsEnabled } = require('haiku-common/lib/experiments')
 const EnvoyClient = require('haiku-sdk-creator/lib/envoy/EnvoyClient').default
 const EnvoyLogger = require('haiku-sdk-creator/lib/envoy/EnvoyLogger').default
@@ -702,6 +703,88 @@ class Project extends BaseModel {
     }
 
     return rootComponentId
+  }
+
+  getPackageJsonPath () {
+    return path.join(this.getFolder(), 'package.json')
+  }
+
+  getDefaultComponentInfo () {
+
+  }
+
+  readPackageJsonSafe (cb) {
+    let pkg
+
+    try {
+      pkg = fse.readJsonSync(this.getPackageJsonPath(), {throws: false})
+    } catch (exception) {
+      logger.warn(`[project (${this.getAlias()})] package.json error:`, exception)
+      pkg = {}
+    }
+
+    return cb(pkg)
+  }
+
+  writePackageJson (pkg, cb) {
+    try {
+      fse.outputJsonSync(this.getPackageJsonPath(), pkg)
+    } catch (exception) {
+      return cb(exception)
+    }
+
+    return cb()
+  }
+
+  readComponentInfo (scenename, cb) {
+    return this.readPackageJsonSafe((pkg) => {
+      const info = lodash.get(pkg, `haiku.${scenename}`) || {}
+
+      const getMetadata = (cb) => {
+        const ac = this.findActiveComponentBySceneName(scenename)
+
+        if (!ac) {
+          return cb({}) // eslint-disable-line standard/no-callback-literal
+        }
+
+        return ac.readMetadata((err, metadata) => {
+          if (err) {
+            logger.warn(`[project (${this.getAlias()})] component metadata error:`, err)
+          }
+
+          return cb(metadata || {})
+        })
+      }
+
+      return getMetadata((metadata) => {
+        const final = lodash.assign({}, metadata, info)
+        return cb(null, final)
+      })
+    })
+  }
+
+  /**
+   * @method writeComponentInfo
+   * @description Writes to both the package.json and the bytecode.metdata
+   */
+  writeComponentInfo (scenename, info, cb) {
+    return this.readPackageJsonSafe((pkg) => {
+      if (!pkg.haiku) pkg.haiku = {}
+
+      pkg.haiku[scenename] = info
+
+      return this.writePackageJson(pkg, (err) => {
+        if (err) return cb(err)
+
+        const ac = this.findActiveComponentBySceneName(scenename)
+
+        if (ac) {
+          return ac.assignMetadata(info, cb)
+        }
+
+        return cb()
+      })
+    })
   }
 
   setupActiveComponent (relpath, cb) {

@@ -30,6 +30,9 @@ export enum Experiment {
   StageSelectionMarquee = 'StageSelectionMarquee',
   StageResizeAllSides = 'StageResizeAllSides',
   FigmaIntegration = 'FigmaIntegration',
+  OriginIndicator = 'OriginIndicator',
+  ComponentInfoInspector = 'ComponentInfoInspector',
+  AdvancedMultiTransform = 'AdvancedMultiTransform',
 }
 
 /**

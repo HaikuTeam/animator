@@ -16,6 +16,7 @@ import AuthenticationUI from './components/AuthenticationUI'
 import ProjectBrowser from './components/ProjectBrowser'
 import SideBar from './components/SideBar'
 import Library from './components/library/Library'
+import ComponentInfoInspector from './components/ComponentInfoInspector/ComponentInfoInspector'
 import StateInspector from './components/StateInspector/StateInspector'
 import SplitPanel from './components/SplitPanel'
 import Stage from './components/Stage'
@@ -78,7 +79,7 @@ export default class Creator extends React.Component {
     this.launchProject = this.launchProject.bind(this)
     this.removeNotice = this.removeNotice.bind(this)
     this.createNotice = this.createNotice.bind(this)
-    this.renderNotifications = this.renderNotifications.bind(this)
+    this.renderNotice = this.renderNotice.bind(this)
     this.receiveProjectInfo = this.receiveProjectInfo.bind(this)
     this.handleFindElementCoordinates = this.handleFindElementCoordinates.bind(this)
     this.handleFindWebviewCoordinates = this.handleFindWebviewCoordinates.bind(this)
@@ -740,12 +741,13 @@ export default class Creator extends React.Component {
     this.tourChannel.receiveWebviewCoordinates('creator', { top: 0, left: 0 })
   }
 
-  renderNotifications (content, i) {
+  renderNotice (content, i) {
     return (
       <Toast
         toastType={content.type}
         toastTitle={content.title}
         toastMessage={content.message}
+        toastCount={content.count || 1}
         closeText={content.closeText}
         key={i + content.title}
         myKey={i}
@@ -790,7 +792,7 @@ export default class Creator extends React.Component {
   }
 
   switchActiveNav (activeNav) {
-    this.setState({ activeNav })
+    this.setState({activeNav})
 
     mixpanel.haikuTrack('creator:project:left-nav-switch', {
       option: activeNav
@@ -869,8 +871,7 @@ export default class Creator extends React.Component {
       projectName // Have to set this here, because we pass this whole object to StateTitleBar, which needs this to properly call saveProject
     }
 
-    // Add extra context to Sentry reports, this info is also used
-    // by carbonite.
+    // Add extra context to Sentry reports, this info is also used by carbonite.
     window.Raven.setExtraContext({
       organizationName: this.state.organizationName,
       projectPath: projectObject.projectPath,
@@ -1035,26 +1036,56 @@ export default class Creator extends React.Component {
       lightScheme: bool (optional, defaults to dark)
     } */
 
+    // 'Uncaught' indicates an unrecoverable error, so we need to crash
+    if (notice.type === 'error' && notice.message.slice(0, 8) === 'Uncaught') {
+      if (process.env.NODE_ENV === 'production') {
+        remote.getCurrentWindow().close()
+      }
+    }
+
     notice.id = Math.random() + ''
+    notice.count = 1
+    notice.timestamp = Date.now()
 
     const notices = this.state.notices
-    let replacedExisting = false
 
-    notices.forEach((n, i) => {
-      if (n.message === notice.message) {
-        notices.splice(i, 1)
-        replacedExisting = true
-        this.setState({ notices }, () => {
-          notices.unshift(notice)
-          this.setState({ notices })
-        })
+    let found = false
+
+    // Don't display more than five errors at a time
+    if (notices.length > 5) {
+      return
+    }
+
+    // Throttle display to avoid creating a 60fps update death spiral
+    const last = notices[0]
+    if (last && (notice.timestamp - last.timestamp) < 500) {
+      return
+    }
+
+    notices.forEach((existing) => {
+      if (
+        existing.type === notice.type &&
+        existing.message === notice.message
+      ) {
+        found = true
+
+        // If we get a bunch of errors of the same kind, that's most likely a bad problem
+        if (existing.count >= 25) {
+          if (process.env.NODE_ENV === 'production') {
+            remote.getCurrentWindow().close()
+          }
+        } else {
+          existing.count += 1
+        }
       }
     })
 
-    if (!replacedExisting) {
+    if (!found) {
+      console.error(notice.message)
       notices.unshift(notice)
-      this.setState({ notices })
     }
+
+    this.setState({ notices })
 
     return notice
   }
@@ -1224,7 +1255,7 @@ export default class Creator extends React.Component {
           transitionEnterTimeout={500}
           transitionLeaveTimeout={300}>
           <div style={{ position: 'absolute', right: 0, top: 0, width: 300 }}>
-            {lodash.map(this.state.notices, this.renderNotifications)}
+            {lodash.map(this.state.notices, this.renderNotice)}
           </div>
         </ReactCSSTransitionGroup>
         <div style={{ display: 'block', width: '100%', height: '100%', position: 'fixed', top: 0, left: 0 }}>
@@ -1463,7 +1494,7 @@ export default class Creator extends React.Component {
             transitionEnterTimeout={500}
             transitionLeaveTimeout={300}>
             <div style={{ position: 'absolute', right: 0, top: 0, width: 300 }}>
-              {lodash.map(this.state.notices, this.renderNotifications)}
+              {lodash.map(this.state.notices, this.renderNotice)}
             </div>
           </ReactCSSTransitionGroup>
           <div style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -1494,7 +1525,7 @@ export default class Creator extends React.Component {
               transitionEnterTimeout={500}
               transitionLeaveTimeout={300}>
               <div style={{ position: 'absolute', right: 0, top: 44, width: 300 }}>
-                {lodash.map(this.state.notices, this.renderNotifications)}
+                {lodash.map(this.state.notices, this.renderNotice)}
               </div>
             </ReactCSSTransitionGroup>
             <SplitPanel split='horizontal' minSize={300} defaultSize={this.props.height * 0.62}>
@@ -1541,6 +1572,13 @@ export default class Creator extends React.Component {
                     folder={this.state.projectFolder}
                     websocket={this.props.websocket}
                     visible={this.state.activeNav === 'state_inspector'} />
+                  <ComponentInfoInspector
+                    projectModel={this.state.projectModel}
+                    createNotice={this.createNotice}
+                    removeNotice={this.removeNotice}
+                    folder={this.state.projectFolder}
+                    websocket={this.props.websocket}
+                    visible={this.state.activeNav === 'component_info_inspector'} />
                 </SideBar>
                 <div style={{ position: 'relative', width: '100%', height: '100%' }}>
                   <Stage

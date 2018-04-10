@@ -3,7 +3,7 @@ const PACKAGE = require('./../../package.json')
 const TestHelpers = require('./../TestHelpers')
 const HaikuDOMAdapter = require('./../../lib/adapters/dom').default
 
-test('component._getInjectables', function (t) {
+test('component.getInjectables', function (t) {
   t.plan(14)
 
   const bytecode = {
@@ -47,7 +47,7 @@ test('component._getInjectables', function (t) {
       }
     })
 
-    const injectables = component._getInjectables()
+    const injectables = component.getInjectables()
 
     t.ok(injectables.baz)
     t.equal(injectables.baz, 'string')

@@ -21,7 +21,7 @@ export default function patch(topLevelDomElement, patchesDict, component) {
     const domElement = component._getRealElementAtId(flexId);
 
     if (domElement) {
-      const nestedModuleElement = component._nestedComponentElements[flexId];
+      const nestedModuleElement = component.nestedComponentElements[flexId];
 
       updateElement(
         domElement,

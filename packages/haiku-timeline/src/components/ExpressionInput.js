@@ -393,7 +393,7 @@ export default class ExpressionInput extends React.Component {
       //
       // Since ActiveComponent manages multiple instances, we kind of have to choose just one
       const instance = this.props.reactParent.getActiveComponent().getCoreComponentInstance()
-      let injectables = (instance && instance._getInjectables()) || {}
+      let injectables = (instance && instance.getInjectables()) || {}
 
       this.resetSyntaxInjectables(injectables)
 

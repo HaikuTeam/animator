@@ -3,9 +3,7 @@
  */
 
 export default function removeElement(domElement, flexId, component) {
-  if (component.cache[flexId]) {
-    component.cache[flexId] = {};
-  }
+  component.subcacheClear(flexId);
 
   domElement.parentNode.removeChild(domElement);
 

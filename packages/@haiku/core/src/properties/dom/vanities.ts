@@ -36,43 +36,15 @@ export const LAYOUT_3D_VANITIES = {
   // the w-component of the quaternion and carry it
   'rotation.x': (name, element, value) => {
     element.layout.rotation.x = value;
-    element.layout.orientation = Layout3D.computeOrientationFlexibly(
-      element.layout.rotation.x,
-      element.layout.rotation.y,
-      element.layout.rotation.z,
-      element.layout.rotation.w,
-      element.layout.orientation,
-    );
   },
   'rotation.y': (name, element, value) => {
     element.layout.rotation.y = value;
-    element.layout.orientation = Layout3D.computeOrientationFlexibly(
-      element.layout.rotation.x,
-      element.layout.rotation.y,
-      element.layout.rotation.z,
-      element.layout.rotation.w,
-      element.layout.orientation,
-    );
   },
   'rotation.z': (name, element, value) => {
     element.layout.rotation.z = value;
-    element.layout.orientation = Layout3D.computeOrientationFlexibly(
-      element.layout.rotation.x,
-      element.layout.rotation.y,
-      element.layout.rotation.z,
-      element.layout.rotation.w,
-      element.layout.orientation,
-    );
   },
   'rotation.w': (name, element, value) => {
     element.layout.rotation.w = value;
-    element.layout.orientation = Layout3D.computeOrientationFlexibly(
-      element.layout.rotation.x,
-      element.layout.rotation.y,
-      element.layout.rotation.z,
-      element.layout.rotation.w,
-      element.layout.orientation,
-    );
   },
 
   // If you really want to set what we call 'position' then

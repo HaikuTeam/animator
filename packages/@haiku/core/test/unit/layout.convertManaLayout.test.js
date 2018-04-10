@@ -578,6 +578,10 @@ test('layout.convertManaLayout', (t) => {
         elementName: 'svg',
         attributes: {
           'translation.x': 10,
+          'sizeMode.x': 1,
+          'sizeMode.y': 1,
+          'sizeAbsolute.x': 100,
+          'sizeAbsolute.y': 100
         },
         children: []
       }
@@ -596,6 +600,10 @@ test('layout.convertManaLayout', (t) => {
           'x': '10',
           'y': '20',
           'translation.x': 10,
+          'sizeMode.x': 1,
+          'sizeMode.y': 1,
+          'sizeAbsolute.x': 100,
+          'sizeAbsolute.y': 100
         },
         children: []
       }

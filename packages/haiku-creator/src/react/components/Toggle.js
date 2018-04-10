@@ -45,6 +45,7 @@ class Toggle extends React.Component {
               onHaikuComponentDidMount={(component) => {
                 this.previewHaiku = component
               }}
+              contextMenu='disabled'
             />
           </div>
         </a>

@@ -17,7 +17,6 @@ export default class HaikuDOMRenderer extends HaikuBase {
   config;
   user;
   shouldCreateContainer;
-  _lastContainer;
 
   constructor(mount, config) {
     super();
@@ -36,8 +35,8 @@ export default class HaikuDOMRenderer extends HaikuBase {
       mouches: [], // [{ x: 'number', y: 'number' }] - Both touches and mouse cursor info
     };
 
-    this._lastContainer = undefined;
     this.config = config;
+
     this.shouldCreateContainer = true;
   }
 
@@ -61,13 +60,29 @@ export default class HaikuDOMRenderer extends HaikuBase {
     return this.config && this.config.sizing && this.config.sizing !== 'normal';
   }
 
-  createContainer() {
-    this._lastContainer = {
-      isContainer: true,
-      layout: {
-        computed: {
-          size: getElementSize(this.mount),
-        },
+  getZoom() {
+    return ((this.config && this.config.zoom) || 1.0);
+  }
+
+  getPan() {
+    return {
+      x: (this.config && this.config.pan && this.config.pan.x) || 0,
+      y: (this.config && this.config.pan && this.config.pan.y) || 0,
+    };
+  }
+
+  createContainer(out = {}) {
+    let size;
+    if (this.mount) {
+      size = getElementSize(this.mount);
+    } else {
+      console.warn('[haiku dom renderer] mount empty; using fallback size');
+      size = {x: 1, y: 1};
+    }
+
+    out['layout'] = {
+      computed: {
+        size,
       },
     };
 
@@ -75,11 +90,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
       this.shouldCreateContainer = false;
     }
 
-    return this._lastContainer;
-  }
-
-  getLastContainer() {
-    return this._lastContainer;
+    return out;
   }
 
   initialize() {
@@ -306,10 +317,14 @@ export default class HaikuDOMRenderer extends HaikuBase {
   }
 
   getUser() {
+    const zoom = this.getZoom();
+    const pan = this.getPan();
     return {
+      zoom,
+      pan,
       mouse: {
-        x: this.user.mouse.x,
-        y: this.user.mouse.y,
+        x: (this.user.mouse.x) / zoom,
+        y: (this.user.mouse.y) / zoom,
         down: this.user.mouse.down,
         buttons: [...this.user.mouse.buttons],
       },

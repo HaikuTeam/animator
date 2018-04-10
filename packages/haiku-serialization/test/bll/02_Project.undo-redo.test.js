@@ -50,7 +50,7 @@ tape('Project.undo-redo[1]', (t) => {
         (cb) => {
           const snaps = []
           snaps.push(ac.getBytecodeJSON()) // 0
-          return ac.instantiateComponent('designs/Rect.svg', {}, {from: 'test'}, (err) => {
+          return ac.instantiateComponent('designs/Rect.svg', undefined, {from: 'test'}, (err) => {
             if (err) throw err
             snaps.push(ac.getBytecodeJSON()) // 1
             return $undo((err) => {
@@ -72,7 +72,7 @@ tape('Project.undo-redo[1]', (t) => {
         (cb) => {
           const snaps = []
           snaps.push(ac.getBytecodeJSON()) // 0
-          return ac.instantiateComponent('designs/Rect.svg', {}, {from: 'test'}, (err, mana) => {
+          return ac.instantiateComponent('designs/Rect.svg', undefined, {from: 'test'}, (err, mana) => {
             if (err) throw err
             snaps.push(ac.getBytecodeJSON()) // 1
             return ac.deleteComponent(mana.attributes['haiku-id'], {from: 'test'}, (err) => {
