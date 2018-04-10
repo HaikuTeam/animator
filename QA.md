@@ -305,6 +305,25 @@ Resizing the dividers results in the stage moving accordingly
 I can toggle between the Library and State Inspector
 When the Library is reloaded, it is populated with the assets I have
 
+Forking
+
+I can fork a published, public project in the wild via right-click menu
+I can't fork a published, non-public project in the wild via right-click menu (no option is shown)
+I can fork a project by running open `haiku://fork/:organizationName/:projectName`
+
+Designer Collaboration
+
+As another user in the org, I can open the project
+As another user in the org, I can make changes and publish
+As the original user, I can open and get the other user's changes
+In case of merge conflicts, I can choose ours/theirs successfully
+
+Embedding/Host Codebases
+
+By following the share page HTML embed instructions, it works
+By following the share page NPM/React instructions, it works
+It works inside create-react-app, including production (minified) build
+
 Roberto
 
 Sketch
