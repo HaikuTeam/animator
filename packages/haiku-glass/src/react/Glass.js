@@ -829,10 +829,13 @@ export class Glass extends React.Component {
   }
 
   hideEventHandlersEditor () {
-    this.setState({
-      targetElement: null,
-      isEventHandlerEditorOpen: false
-    })
+    if (this.editor && this.editor.canBeClosedExternally()) {
+      this.setState({
+        targetElement: null,
+        isEventHandlerEditorOpen: false,
+        eventHandlerEditorOptions: {}
+      })
+    }
   }
 
   saveEventHandlers (targetElement, serializedEvents) {
@@ -2227,6 +2230,7 @@ export class Glass extends React.Component {
             close={() => { this.hideEventHandlersEditor() }}
             visible={this.state.isEventHandlerEditorOpen}
             options={this.state.eventHandlerEditorOptions}
+            ref={(editor) => { this.editor = editor }}
           />
         }
 

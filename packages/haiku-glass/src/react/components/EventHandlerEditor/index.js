@@ -32,6 +32,9 @@ const STYLES = {
     width: '100%',
     padding: '23px 0 23px 18px'
   },
+  frameEditorWrapper: {
+    padding: '23px 23px 45px 18px'
+  },
   tag: {
     padding: '2px 15px',
     marginRight: '15px',
@@ -158,10 +161,15 @@ class EventHandlerEditor extends React.PureComponent {
     }
   }
 
+  canBeClosedExternally () {
+    return !this.state.currentEvent
+  }
+
   doSaveAndClose () {
     if (!this.state.editorWithErrors) {
-      this.hideEditor({isDeleting: false})
-      this.props.close()
+      this.hideEditor({isDeleting: false}, () => {
+        this.props.close()
+      })
     }
   }
 
@@ -177,7 +185,9 @@ class EventHandlerEditor extends React.PureComponent {
   }
 
   doCancel () {
-    this.props.close()
+    this.setState({ currentEvent: null }, () => {
+      this.props.close()
+    })
   }
 
   onEditorContentChange ({evaluator}) {
@@ -215,9 +225,9 @@ class EventHandlerEditor extends React.PureComponent {
     this.setState({ currentEvent: event })
   }
 
-  hideEditor (saveParams) {
+  hideEditor (saveParams, callback) {
     if (!this.state.editorWithErrors) {
-      this.setState({ currentEvent: null })
+      this.setState({ currentEvent: null }, callback)
       this.doSave(saveParams)
     }
   }
@@ -259,8 +269,8 @@ class EventHandlerEditor extends React.PureComponent {
           </ModalHeader>
 
           <div style={STYLES.outer}>
-            {isNumeric(this.props.options.frame) ? (
-              <div style={STYLES.editorsWrapper}>{this.renderEditor()}</div>
+            {isNumeric(this.props.options.frame) && this.state.currentEvent ? (
+              <div style={{...STYLES.editorsWrapper, ...STYLES.frameEditorWrapper}}>{this.renderEditor()}</div>
             ) : (
               <RevealPanel
                 showDetail={!!this.state.currentEvent}
