@@ -2177,6 +2177,10 @@ export class Glass extends React.Component {
             Element.unselectAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
           }
 
+          if (this.state.isEventHandlerEditorOpen) {
+            this.hideEventHandlersEditor()
+          }
+
           if (this.getActiveComponent() && !this.isPreviewMode()) {
             this.getActiveComponent().getArtboard().snapshotOriginalPan()
           }

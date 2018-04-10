@@ -6,7 +6,8 @@ const STYLES = {
   selectWrapper: {
     cursor: 'default',
     margin: '0 0 15px',
-    display: 'inline-block'
+    display: 'inline-block',
+    width: '100%'
   }
 }
 
@@ -22,14 +23,13 @@ class EventSelector extends React.Component {
       })
     })
 
-    const selected = select.find(({value}) => value === this.props.defaultEventName)
-
     return (
       <div style={STYLES.selectWrapper}>
         <style>
           {`
-          .react-selectize.root-node {
-            width: 150px;
+          .react-selectize.root-node,
+          .dropdown-menu.tethered {
+            width: 457px;
           }
 
           .react-selectize.default {
@@ -41,7 +41,7 @@ class EventSelector extends React.Component {
           .simple-select.react-selectize.default.root-node:not(.open) .react-selectize-control,
           .simple-select.react-selectize.default.root-node.open .react-selectize-control,
           .react-selectize.dropdown-menu.default {
-            background: ${Palette.SPECIAL_COAL};
+            background: ${Palette.DARKEST_COAL};
             border: none;
           }
 
@@ -56,17 +56,18 @@ class EventSelector extends React.Component {
           }
 
           .react-selectize.dropdown-menu.default .simple-group-title {
-            background: ${Palette.DARKEST_COAL};
+            background: ${Palette.SPECIAL_COAL};
             text-transform: uppercase;
             font-weight: bold;
           }
 
-          .react-selectize.root-node .react-selectize-control .react-selectize-toggle-button path {
-            fill: #778487;
+          .react-selectize.root-node .react-selectize-control .react-selectize-reset-button-container,
+          .react-selectize.root-node .react-selectize-control .react-selectize-toggle-button-container {
+            display: none;
           }
 
-          .react-selectize.root-node .react-selectize-control .react-selectize-reset-button-container {
-            display: none;
+          .tether-element {
+            z-index: 999999;
           }
         `}
         </style>
@@ -74,15 +75,18 @@ class EventSelector extends React.Component {
         <SimpleSelect
           groups={groups}
           options={select}
+          hideResetButton
+          placeholder={'Add a new Action'}
+          tether
           createFromSearch={(options, search) => {
             return {label: search, value: search, groupId: 'Custom Events'}
           }}
+          value={null}
           onValueChange={(selected) => {
             if (selected) {
               this.props.onChange(selected.value)
             }
           }}
-          defaultValue={selected}
         />
       </div>
     )

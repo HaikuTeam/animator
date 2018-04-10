@@ -8,7 +8,7 @@ export const EVALUATOR_STATES = {
 
 export const EDITOR_WIDTH = 500
 
-export const EDITOR_HEIGHT = 380
+export const EDITOR_HEIGHT = 480
 
 export const AUTOCOMPLETION_ITEMS = [
   {

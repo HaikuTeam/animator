@@ -1309,6 +1309,16 @@ ElementSelectionProxy.computeRotationPropertyGroup = (element, rotationZDelta, f
   }
 }
 
+ElementSelectionProxy.normalizeRotationDelta = (delta) => {
+  if (Math.abs(delta) > Math.PI) {
+    // If we have somehow flipped over an axis, normalize in [-π, π]. In realistic scenarios, we are actually
+    // normalizing in [- π / 64, π / 64] or so.
+    return delta - 2 * Math.PI * Math.sign(delta)
+  }
+
+  return delta
+}
+
 ElementSelectionProxy.computeRotationPropertyGroupDelta = (
   targetElement,
   contextElement,
@@ -1348,7 +1358,7 @@ ElementSelectionProxy.computeRotationPropertyGroupDelta = (
   const theta1 = Math.atan2(cy - y1, cx - x1)
   // Last angle
   const theta0 = Math.atan2(cy - y0, cx - x0)
-  const delta = theta1 - theta0
+  const delta = ElementSelectionProxy.normalizeRotationDelta(theta1 - theta0)
 
   // If shift is held, snap to absolute increments of π / 12.
   if (activationPoint.shift) {

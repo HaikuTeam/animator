@@ -79,7 +79,6 @@ class HandlerManager {
    * @param {String} oldEventName
    */
   replaceEvent ({id, event, handler, evaluator}, oldEventName) {
-    this.appliedEventHandlers.delete(oldEventName)
     this.appliedEventHandlers.set(event, {id, handler, evaluator})
   }
 
@@ -256,7 +255,7 @@ class HandlerManager {
       event,
       handler: {
         body: `/** action logic goes here */`,
-        params: [`target, event`]
+        params: ['target', 'event']
       }
     }
   }
