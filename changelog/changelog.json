@@ -6072,5 +6072,12 @@
       "label": "feat",
       "message": "Improved core eventing and base model"
     }
+  },
+  "3.2.3": {
+    "d34338fbdf9fcc84f2c7710f9572134827645201": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for dependency hell leading to initially crashing build."
+    }
   }
 }

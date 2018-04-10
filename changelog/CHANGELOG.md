@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 3.2.3
+
+### Bug Fixes
+
+ * for dependency hell leading to initially crashing build.
+
 ## 3.2.2
 
 ### Bug Fixes
