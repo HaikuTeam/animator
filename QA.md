@@ -552,6 +552,7 @@ Doing publish opens Share Modal
 New projects are private by default
 I can change the project from private to public and back again
 When changing from private/public, the UI reflects this immediately
+After the publish action completes, the toggle remains in the same position I switched it to
 Publish results in a share link
 I can copy the share link to clipboard using the clipboard icon
 I can copy the share link using the clipboard icon while an element is selected on stage
