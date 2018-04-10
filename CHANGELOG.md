@@ -1,6 +1,20 @@
 # Changelog
 
 
+## 3.2.2
+
+### Bug Fixes
+
+ * Broken reference
+ * use endpoint that never returns HTTP errors for checking public/forkable.
+ * Remove overcomplex cache logic causing problems for rendering data url attributes
+ * Add back support for providing the template as an xml string
+
+### Features
+
+ * add correct and addressable (2D) origin support.
+ * Improved core eventing and base model
+
 ## 3.2.1
 
 ### Bug Fixes

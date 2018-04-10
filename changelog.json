@@ -6040,5 +6040,37 @@
       "label": "feat",
       "message": "add snippets with docs in the Actions UI"
     }
+  },
+  "3.2.2": {
+    "a46ec34ed0796e729390718a7fb0e8b800b5ce55": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Broken reference"
+    },
+    "995686a22fe8fae5ef54c97c5736abf61d843633": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "use endpoint that never returns HTTP errors for checking public/forkable."
+    },
+    "f107407b36f8f4889e6a12ae2a479e64f5ffed34": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Remove overcomplex cache logic causing problems for rendering data url attributes"
+    },
+    "1f48e6a1bd67f5c2dc742c16845465e716c0bcf0": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Add back support for providing the template as an xml string"
+    },
+    "9c0e65d46f55f838c0c3732f97d4770025fd86b1": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add correct and addressable (2D) origin support."
+    },
+    "79225a706095eee2247e46a1353a090ea9e1e881": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Improved core eventing and base model"
+    }
   }
 }
