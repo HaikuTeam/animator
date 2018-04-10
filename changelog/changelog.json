@@ -5913,5 +5913,132 @@
       "label": "fix",
       "message": "Ensure resize-stage with multiple elements at multiple keyframes renders the offset correctly"
     }
+  },
+  "3.2.1": {
+    "bfda2bb8577fc911967991bb914928a0733cd69b": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "address edge cases on the logic to save Actions"
+    },
+    "1202aca6aa6f77351d641f7adfa43b63140eaf2a": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "style and behavior fixes for the Events UI"
+    },
+    "d7ef253e9bbf2c3068066fc6a215faf680cfc8fb": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "do not insert a newline with snippets in the Events UI"
+    },
+    "73d11519e05e468b3410a1382d62efa6698aec2f": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "tweak the save logic in Events UI to behave properly"
+    },
+    "dad3732800596f147a1047094fc5f062c1142dee": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "avoid unexpected 360deg rotations when switching quadrants."
+    },
+    "df00858135adde14cf6fdaa4ffadaadb235c895d": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "use an array for params in actions handlers"
+    },
+    "fd467389f7744a01913946dac7ec3738aa2b4ab4": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "use endpoint that never returns HTTP errors for checking public/forkable."
+    },
+    "ed178fefc2020021ddb76ef73009c16f1951dca5": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Remove overcomplex cache logic causing problems for rendering data url attributes"
+    },
+    "ce50e72e47b434345d1f0424ceb6b057763218be": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Add back support for providing the template as an xml string"
+    },
+    "c434486ebd0aac098482408586dfc18c837eef8b": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "resolve various issues related to zooming the artboard."
+    },
+    "5157dd7e0575e617884125a4a8c73bb6a05dd430": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add ability to pull all subtrees standalone."
+    },
+    "7c3c1290df3c60200ee5fc2ae74471ec8fa57afd": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "the active control should dominate the hovered control during scaling."
+    },
+    "67cb0700c10b21f5fc778d08a364771cb2051f5e": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "resolve an edge case with proportional scaling."
+    },
+    "75fbd656fe561b8644bbee19fb023fddda7c8135": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "un-guard dragging"
+    },
+    "d91574492f208b76feb39d10593ba83c576c7e61": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "add basic polyline support."
+    },
+    "c5d3e8a16a1cd78c15a68e807e058b6e7fd0e62f": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add correct and addressable (2D) origin support."
+    },
+    "2f66ad1eea0317a8523fc4f3997aa651671c6115": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "use iPreview haiku as preview button"
+    },
+    "27cfbab7790b31eaf3d627ad5aecc6c06d375ae7": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "solve for chained terminated paths and allow falsey curves."
+    },
+    "7df2f28dbe68e6ce1111d902b5f14fdcc7f697ef": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Drag+drop timeline elements to re-order z-index"
+    },
+    "033042e2cec73adf735ebb2675f524b305feb13e": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "enable text to be copied in Creator"
+    },
+    "0a7119cce83a24a7e7c629ed15b829eff076cb1a": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "update an old path"
+    },
+    "a810a9e2cad44419eadc60cff0fbdbebf0d3ce21": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "typos and variable name collisions"
+    },
+    "18bc913858fb57cc7788ed8d151275bb021af3ce": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "refactor the code and use better detection for Sketch paths"
+    },
+    "1a742d0d8117e462200ca093d66af3e3a24858ac": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Improved core eventing and base model"
+    },
+    "3c906865680451af48f88798c698064dcbea537d": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add snippets with docs in the Actions UI"
+    }
   }
 }

@@ -38,6 +38,64 @@ Publish the component
 View the component playing in the share page
 Paste share link in Slack and verify the GIF shows up
 
+Trouble Spots
+
+I can open an existing project 5 times (navigating back and forth from editor to dashboard)
+I can open a new project 5 times (navigating back and forth from editor to dashboard)
+I can instantiate the Haiku "H", drag it 5 times, then quickly delete it, without causing a crash
+Instantiating multiple inline image elements works (images don't disappear)
+Instantiating inline image, then deleting it, then re-instantiating it works
+I can instantiate two polygons, then delete the first one, and the others remain
+I can instantiate an element with `<text>` content, then instantiate other elements and not crash
+I can copy+paste an element several times, then delete the first one, and the others remain
+I can copy+paste an element with a gradient, move the copy, and it works
+I can copy+paste an element that has a gradient, then delete the first one, and the others remain
+I can copy+paste a polygon, then delete the first one, and the others remain
+I can Alt+drag 20 copies of an element quickly without seeing a crash or a toast
+I can instantiate an element, cut it, undo the cut, and then select and move the element without crash
+After undoing, I can make on-stage changes beyond the max defined frame
+I can undo a deletion of an element and things still work normally
+I can undo a change to an element with a shadow and still instantiate/edit other elements
+I can undo several transform changes quickly and things don't break
+If my component has a playing time>0, undo/redo doesn't play the timeline
+I can create a keyframe in the timeline directly, change it, and undo the change
+I can create an keyframe with an expression in the timeline, change it, and undo the change
+I can instantiate a slice, undo, redo
+I can instantiate a slice, delete, undo, redo
+I can delete existing element, undo, redo
+I can Alt+drag to copy element, undo, redo
+I can move, rotate, scale element, undo, redo
+I can copy an element, paste it, move it, undo, undo, redo
+I can cut an element, paste it, delete it, undo, undo, redo
+I can zMoveToBack, zMoveToFront, zMoveBackward, etc., undo, redo
+I can delete keyframe, undo, redo
+I can create keyframe, undo, redo
+I can move keyframes across multiple rows, undo
+I can undo a change from a keyframe value to an expression, and vice versa
+I can undo a z-index change that occurred via the on-stage context menu
+I can undo a z-index change that occurred via drag-and-drop in the timeline
+I can move many keyframes, including an expression, undo, redo, and verify the expression still works
+Instantiate component, move on stage, click timeline, undo until component is gone, then redo all actions
+When I use Sketch to change a polygon with a gradient or shadow, that reflects on stage
+When I use Sketch to change a polygon with multiple instances on stage, all reflect the change
+After changing a Sketch design that affects multiple instances of a polygon, I can delete the first polygon
+After making changes in Sketch, I can continue editing when the scrubber is beyond the last keyframe
+I can move an element, change it in Sketch, move the scrubber, change in Sketch, then move the element
+When I make a Sketch change in a project with Actions defined, the code in code.js looks correct
+I can instantiate two different slices, change one in Sketch, and then rapidly instantiate the other one
+I don't see an ever-growing number of "file ingested" messages for each time I reopen a project
+Text selection doesn't keep appearing/reappearing as I type in an expression field
+Choosing an expression autocomplete entry doesn't obliterate the part of text I've just typed
+I can change the name of a state used by an expression, and an error will indicate the orphaned identifier
+Rapidly transforming Percy in multiple ways (move, rotate, scale) doesn't exhibit any lag/pauses/jank
+The $user.mouse.y position is calculated correctly with respect to the share page artboard box
+The $user.mouse.y position is calculated correctly when the stage has been zoomed/panned
+I can enter `rotation.x,y,z` `0,0,0` (defaults) and not see any change in rotation reflected
+I can scrub wildly over a keyframe sequence that involves rotation and the rotation doesn't become nondeterministic
+In a heavy project, dragging many keyframes quickly at once doesn't cause a "Red Wall of Death" diff
+I can play a short (<30f) animation on a loop and playback doesn't slow down
+I can drag a keyframe from 0, delete it, then drag another from 0, and the new one works ok
+
 Matthew
 
 New Project
@@ -83,7 +141,6 @@ Moving the scrubber on the timeline updates the current time on the stage
 I can delete an element (reflects on stage+timeline)
 When I transform an on-stage element I see a keyframe created on the timeline
 I can grip very small elements
-I can instantiate the Haiku "H" element, drag it five times, with a small pause between each drag, then after the fifth drag, quickly delete it, without causing a crash
 
 Instantiation
 
@@ -98,11 +155,7 @@ Instantiated assets work if they are SVG
 Instantiated assets work if they are SVG with inline images
 An instantiated element can be deleted with the Delete key
 When element is deleted on stage, it is also deleted in the timeline
-Instantiating multiple inline image elements works ok
-Instantiating inline image, then deleting, then re-instantiating works ok
 When instantiated, the asset looks the same as the original design (no transform problems)
-I can instantiate two polygons, then delete the first one, and the others remain
-I can instantiate an element with actual `<text>` content, then instantiate a bunch of other elements afterward and not see a crash
 When I instantiate elements, the z-stacking order of the previous instantiatees is preserved
 I can double-click an asset to instantiate it on stage
 Double-clicking to instantiate places the element at stage center
@@ -136,13 +189,7 @@ I can cut/copy elements on stage using right-click menu
 I can paste elements on stage using right-click menu
 I can cut/copy/paste elements on stage using the global menu
 After paste, I can drag the element on stage
-I can copy+paste an element several times, then delete the first one, and the others remain
-I can copy+paste an element with a gradient, move the copy, and it works
-I can copy+paste an element that has a gradient several times, then delete the first one, and the others remain
-I can copy+paste a polygon, then delete the first one, and the others remain
 I can use Alt+drag (or Option+drag) to create copies of an element on stage
-I can Alt+drag 20 copies of an element very quickly without seeing a crash or a toast (do this like you're extremely impatient, trying to create 20 copies as quickly as you can)
-I can instantiate an element, cut it, undo the cut, and then select and move the element without causing a crash
 
 Undo/redo
 
@@ -151,15 +198,7 @@ I can undo/redo a sequence of changes using the global menu
 I can still make changes after I undo
 Undo/redo doesn't degrade the performance of the app
 After I undo, the timeline also reflects what I just undid on stage
-Performing undo preserves the scrubber time
-After undoing, I can make on-stage changes beyond the max defined frame
-I can undo a deletion of an element and things still work normally
-I can undo a change to an element with a shadow and still instantiate/edit other elements
-I can undo several changes really fast and things don't brea
-If my component has a playing time>0, undo/redo doesn't play the timeline
-I can create a keyframe in the timeline, change it, and undo the change
-I can create an keyframe expression in the timeline, change it, and undo the change
-I can undo a change from a keyframe value to an expression, and vice versa
+Performing undo preserves the current scrubber time
 
 Z-index
 
@@ -172,30 +211,6 @@ Z-index, when done on stage, only creates keyframes at 0
 Changes to z-index reflect correctly on stage
 Changes to z-index reflect correctly in the timeline as `style.zIndex`
 I can drag-and-drop timeline rows to reorder z-index
-I can undo a z-index change in the on-stage context menu
-I can undo a z-index change that occurs via drag-and-drop in the timeline
-
-Undo+Redo+Delete+Copy+Paste
-
-Delete keyframe, undo, redo
-Create keyframe, undo, redo
-Move keyframes across multiple rows, undo
-Move keyframes, including an expression, across multiple rows, undo, redo, verify expression still works
-Instantiate component, undo, redo
-Instantiate component, delete, undo, redo
-Delete existing component, undo, redo
-Alt+drag to copy element, undo, redo
-Move, rotate, scale element, undo, redo
-Copy element, paste it, move it, undo, undo, redo...
-Cut element, paste it, delete it, undo, undo, redo...
-zMoveToBack, zMoveToFront, zMoveBackward, etc., undo, redo
-Instantiate component, move on stage, click timeline, undo until component is gone, then redo all actions
-I can undo a text change in an expression without causing a different kind of undo
-I can undo a text change in a state field without causing a different kind of undo
-I can copy expression field text without it copying the element on stage
-I can copy state value text without it copying the element on stage
-I can paste text into a state value field
-I can paste text into an expression field
 
 Nad
 
@@ -215,7 +230,6 @@ I can see a present box with a pink dot in the project browser after an update
 I can open the changelog modal from the user menu
 I can open the changelog modal from the app menu (Help > What's New)
 I can message support via the in-editor intercom "SUPPORT" button
-I can open the app via open `haiku://:`
 
 Auth
 
@@ -267,7 +281,6 @@ I can resize the window and the flex layout works correctly
 My computer's fan doesn't spin up just from looking at this page
 The thumbnails all animate smoothly when hovered
 Template projects are loaded properly
-Opening a project that exists on GitLab but not locally clones the project the first time
 
 Editing Navigation
 
@@ -278,12 +291,11 @@ The editing screen loads in under 10 seconds
 I can click the back button "<" to go back to the project's screen
 I can open the same project again without a problem
 I can open a different project than before, without a problem
-I can open an existing project 5 times (navigating back and forth from editor to dashboard)
-I can open a new project 5 times (navigating back and forth from editor to dashboard)
-I can nav back to the dashboard before the Glass/Timeline webviews have loaded without crashing
 I can "Open in Terminal" via the global menu
 When pressing Cmd+S a toast with a link to view the project in finder appears
-Modifying the app layout
+
+App Layout
+
 Editor view shows the Stage, Timeline, and Library
 I can resize the library pane and the timeline pane using the resize dividers
 Resizing the dividers doesn't cause any weirdness or clipping on stag
@@ -292,6 +304,25 @@ Resizing the dividers doesn't cause layout weirdness in timeline
 Resizing the dividers results in the stage moving accordingly
 I can toggle between the Library and State Inspector
 When the Library is reloaded, it is populated with the assets I have
+
+Forking
+
+I can fork a published, public project in the wild via right-click menu
+I can't fork a published, non-public project in the wild via right-click menu (no option is shown)
+I can fork a project by running open `haiku://fork/:organizationName/:projectName`
+
+Designer Collaboration
+
+As another user in the org, I can open the project
+As another user in the org, I can make changes and publish
+As the original user, I can open and get the other user's changes
+In case of merge conflicts, I can choose ours/theirs successfully
+
+Embedding/Host Codebases
+
+By following the share page HTML embed instructions, it works
+By following the share page NPM/React instructions, it works
+It works inside create-react-app, including production (minified) build
 
 Roberto
 
@@ -304,17 +335,10 @@ When I make artboards manually, they appear in the library
 Changes of imported asset in Sketch reflect in library
 Changes of instantiated asset in Sketch reflect on stage
 When I change a basic primitive in Sketch, that reflects on stage no problem
-When I change a polygon with a gradient fill, gradient border, or box shadow, that reflects on stage
-When I change a polygon with multiple instances on stage, all of them reflect the change
-After changing a Sketch design that affects multiple instances of a polygon, I can delete the first instance
 I can still continue editing after changes in Sketch
-I can continue editing when the scrubber is beyond the last keyframe after making changes in Sketch
 If I don't have Sketch, trying to open in Sketch asks me if I want to install i
-I can move el, change in Sketch, move scrubber, change in Sketch, move el, and it all works right
 Removing a slice from Sketch doesn't make things explode
 Removing a slice that exists on stage doesn't make things explode
-Sketch change in project with actions writes actions to disk correctly (no wrapper code)
-I can instantiate two different slices, change one in Sketch, and then rapidly instantiate another of the other one without seeing a crash or a toast (must instantiate right away after making the Sketch change — try to do it before the design change reflects on stage)
 
 Figma
 
@@ -345,23 +369,23 @@ Mixpanel sends event for opening Figma
 Logging
 
 The .app build logs to `~/.haiku/logs/haiku-debug.log`
-I don't see an ever-growing number of file ingested messages for each time I reopen a project
 User secret credentials are not included in the log
 
 Errors/notifications
 
 Crash in Master, Plumbing, Glass, Timeline, or Creator sends Sentry notice
-n error response in Plumbing method sends Sentry notice
+An error response in Plumbing method sends Sentry notice
 An error will upload the user's project and metadata to S3 (Carbonite)
 Errors result in a toast being displayed to the user on any screen
 If rapid errors occur, Carbonite snapshots only occur once per 10 minutes
 Carbonite errors can originate successfully from from Master, Plumbing, Glass, Timeline, or Creator
+Carbonite report still gets sent even if the app crashes quickly
 
 Autoupdate
 
 After the splash screen, "Checking for updates..." is shown
 If an update is available, it is downloaded, showing a progress bar
-When the app starts, and there's a download available, the download should auto started forcing the user to download it (ie no opt-in prompt)
+When the app starts, and there's a download available, the download should auto start (no opt-in)
 Once update is downloaded, the app closes and then restarts with the new version
 User can click check for updates menu item
 I can see a present box with a pink dot in the project browser after an update
@@ -376,7 +400,7 @@ I can accept the tour and go through all the steps without a problem
 The preview mode step turn preview mode off when you hit "Next"
 I can use the global menu to start the tour at any time
 If I start the tour and don't have Percy there's no error or weirdness
-I can see a back button on the steps > 3
+I can see a back button on the appropriate steps
 I can use the back button
 I can drag any of the tour windows around if they get in the way
 Overlays on library and timeline doesn't overlap with tour tooltip
@@ -394,8 +418,6 @@ I can escape to exit an expression
 I can click away to exit an expression
 I can create an expression that causes a runtime error and things don't crash (error shown)
 Text selection turns into plain cursor when I mouse click expression field that is selected
-Text selection doesn't keep appearing/reappearing as I type in the field
-Choosing autocomplete doesn't obliterate the part of text I've just typed
 Pressing tab while an autocompletion is selected chooses that item
 Pressing enter while an autocompletion is selected chooses that item
 I can save a multiline expression by pressing the "save" button on the left side
@@ -407,7 +429,6 @@ I can rename a state entry in the states UI
 I can change a state entry value in the states UI
 I can remove an entry in the states UI by removing both fields
 I can bind an expression to a declared state
-I can change the name of a state to which an expression has already been bound, and an error message will display indicating the orphaned symbol
 
 Actions
 
@@ -460,6 +481,7 @@ If dev, mono can launch Timeline individually
 If dev, all of the lint runs pass in all of the projects (`$ yarn lint-all`)
 If dev, all of the tests pass in all of the projects (`$ yarn test && yarn test-all`)
 If dev, I can test `haiku://` URLs using yarn test-url
+If prod, I can open the app via open `haiku://:`
 I can refresh creator, load the same project, and go back to editing as normal
 Plumbing logs show up correctly for actions
 
@@ -480,7 +502,6 @@ I can drag a large bitmap around the stage without bad latency
 I can drag a large/complex path around the stage without bad latency
 There isn't any judder when dragging, pausing, then dragging again
 Playback doesn't lag following lots of on-stage dragging
-Rapidly transforming Percy doesn't exhibit any lag/pauses/jank
 Small/fine-grained animations don't exhibit judder
 
 Timeline Performance
@@ -527,7 +548,7 @@ I can change the origin value by editing its rows in the timeline
 
 Code
 
-I can open code.js and verify the code for expression is ok and Haiku.inject
+I can open code.js and verify the code for expressions is ok and Haiku.inject is present
 I can open code.js and verify the action got written ok
 I can open code.js and verify the state got written ok
 I can open code.js and verify a require('@haiku/core') at the top
@@ -537,13 +558,13 @@ I can still edit in timeline after a code reload
 After a code reload, the timeline input fields reflect the correct values
 During a code reload the timeline does not animate, and stays at the same frame
 
-Git
+Git/Gitlab
 
 A Git commit is made for every atomic change
 I can `$ git reset —hard {sha}` while editing, see the change on stage, and continue editing
 Published projects show up on GitLab
 I can `$ git push` or `$ git pull` from the project folder without a problem
-I can `$ tail ~/.haiku/logs/haiku-diffs` and see git diffs roll by
+Opening a project that exists on GitLab but not locally clones the project the first time
 
 Publishing
 
@@ -561,24 +582,40 @@ Before the share link is ready, the "not-allowed" cursor is shown over the share
 Before the various install options are ready, the "not-allowed" cursor is shown over pending buttons with a progress bar
 As soon as the share link is ready, the web install options become clickable and show correct info
 As soon as the share page loads content, the mobile options become clickable and show correct info
-Eventually the "other" option (for GIF) become clickable and shows correct info
+Eventually the "other" option (for GIF) becomes clickable and shows correct info
 I can click the link and get taken to the page in my browser
 The share page shows my component animating and looping
 The published version behaves the same as the preview mode version
-The share page puts the element in the artboard box
-The $user.mouse.y position is calculated correctly with respect to the share page artboard box
-The $user.mouse.y position is calculated correctly when the stage has been zoomed/panned
+The share page renders the element inside the artboard box
 If I publish again with no changes, I get a share link back immediately
-If I make a change and publish, I get a new share link (w/ changes reflected)
-Cmd+S should not publish the project
+If I make a change and publish, I get a new share link
+Cmd+S should not publish the project, but should display an info toast
 All the instructions in the publish UI for each format are correct
 
-File System
+Release Collateral
 
-I can manually copy a project and things still work
-If I copy project contents to a new project, haiku.js and package.json are both updated with the new project's name
-I can replace a project's content and still load it and it still works
-I can publish a project whose content I have manually copied
+I can download and extract the .zip archive of the release
+The CLI installer works (`$ curl http://code.haiku.ai/scripts/cli/installer.js | node`)
+The CLI npm package works (`$ npm install @haiku/cli`)
+Core CDN links work (`http://code.haiku.ai/scripts/core/HaikuCore.<{version}|latest>[.min].js (http://code.haiku.ai/scripts/core/HaikuCore.%3C%7Bversion%7D|latest%3E[.min].js)`)
+Core standalone repo has latest https://github.com/HaikuTeam/core
+Core npm package is up to date https://www.npmjs.com/package/@haiku/core
+
+Sharing
+
+The share page HTML snippet is correct
+The share page React snippet is correct
+The lottie.json file works in http://editor.lottiefiles.com/
+Publishing produces a static bundle at code/main/static.json which renders correctly on my community profile
+Share page CodePen content works correctly
+Changes made in Sketch after first publish also appear correctly on the published share page
+A GIF shows up in Slack when the link is shared in Slack
+
+CLI
+
+I can use Haiku CLI to login and logout
+Haiku CLI invalidates bad logins
+I can clone a project in my org with $ haiku clone
 
 Taylor
 
@@ -621,8 +658,6 @@ I can navigate all the way to the top, and keep going, and I jump to the bottom 
 I can navigate all the way to the bottom, and keep going, and I jump to the top
 When I navigate into a collapsed set of rows, they auto-expand, and the first one is selectedf
 I can enter a valid value into any input, and see it reflected on stage at time 0
-I can enter `rotation.x,y,z` `0,0,0` and not see any glitch/weirdness
-There is no problem with the tourClient being active during normal editing
 I can enter a valid value into any input, and see it reflected on stage at time N>0
 When I enter an input, I see a keyframe created in the timeline
 If I enter an invalid value (e.g. string into numeric field), the field complains
@@ -634,7 +669,7 @@ Holding shift or clicking doesn't accidentally activate the expression input
 The assigned curve displays as a rendered curve on the timeline
 I can right-click on the timeline in an empty area to create a keyframe at that spot
 I can right click on an existing curve to create a keyframe at that spot
-I can right click on an existing 'constant body' to create a keyframe at that spot
+I can right click on an existing constant body to create a keyframe at that spot
 The keyframe created doesn't have a curve
 I can change the value of a keyframe that I created via right-click
 Activating a keyframe/segment highlights it
@@ -644,14 +679,13 @@ I can use the scrollbar to zoom and pan the timeline
 Using scrollbar to zoom and pan updates all rows correctly
 The scrollbar shows a mini version of the playhead position
 The scrollbar is proportional to the length of the timeline
-I can scroll beyond the last keyframe to create 'infinite' more keyframes
-In a heavy project, dragging many keyframes doesn't cause a "Red Wall of Death"
+I can scroll beyond the last keyframe to create "infinite" more keyframes
 Moving the scrubber doesn't vertically scroll the timeline
 I can play/pause/rewind/forward using the playback controls
 Forwarding to the end changes the stage to the correct end state
 Spacebar works for playback (pauses if playing, plays if paused, etc)
 I can use the scrollbar to pan/zoom the timeline
-I can manually drag the scrubber to different places (→ changes on stage+timeline)
+I can manually drag the scrubber to different places (reflecting changes on stage+timeline)
 I can click on the "gauge" to move the scrubber to that time
 I can move the scrubber to a time greater than 60 (or the max keyframe)
 I can create keyframes greater than frame 60 (or the max keyframe)
@@ -661,11 +695,16 @@ I can click the time/frame box to toggle from frames to seconds
 Milliseconds and frames display properly at different zoom levels
 When playback reaches the timeline page boundary, the timeline paginates
 When I play the timeline, it plays back on stage at a reasonable speed
-If I scroll the timeline all the way to the right, I can go further than the last frame and the scrollbar proportion updates
-I can play a short (<30f) animation on a loop and it doesn't gradually slow down
+The scrollbar proportion updates if I scroll to create more keyframes
 I can play an animation with only keyframe 0 and it works
 I can play an animation with only keyframe 0 and 1 and it doesn't crash
-I can scrub wildly over a sequence that involves rotation and the rotation doesn't get weird
+
+JIT Properties
+
+The JIT properties available for the root element are limited
+The JIT properties for other elements in the timeline are correct and not overwhelming
+I can add a JIT property to an element, which creates a row in the timeline for that property name
+If I add a JIT property like style.border, the row cluster automatically expands
 
 Solo Keyframes
 
@@ -687,7 +726,6 @@ If three keyframes are selected I can deselect the rightmost
 I am able to delete a keyframe
 After being deleted, a keyframe's value no longer shows up in the timeline input field
 I can add a curve to a keyframe that was dragged from 0
-I can drag a keyframe from 0, delete it, then drag another from 0, and the new one works ok
 
 Curves/Tweens/Transition Segments
 
@@ -703,14 +741,13 @@ I am able to drag a tween without selecting it previously
 I am able to select a tween and then drag it
 I am able to select and drag multiple tweens
 I can drag a tween which has a keyframe at frame 0
-When I drag the tween with a keyframe at frame 0 a newly keyframe is created at frame 0
 I am able to select a mix of tweens and keyframes
 I am able to drag a mix of selected tweens and keyframes
 If a tween is selected and I click a keyframe, the tween gets deselected
 If a tween is selected and I click another tween, the first tween gets deselected
 I am able to deselect a tween right clicking into another keyframe
 If multiple tweens are selected and I right-click on one, all tweens remain selected and context menu opens
-If multiple tweens are selected and I right-click on tween "A" that is not selected, previously selected tweens get unselected and "A" is selected, then the context menu is open
+Right-clicking an uneselected tween when others are already selected deselects the others
 If I select two keyframes that belong to a tween, the tween is selected too
 If I have three tweens, I can multiselect the tweens on the right and left, leaving the middle unselected
 I can deselect the tween whose right keyframe is last in a row, and its right keyframe gets deselected
@@ -724,49 +761,3 @@ I am able to deselect multiple segments by clicking elsewhere
 I am able to deselect a previously selected segment holding Shift and clicking on it
 I am able to deselect a segment by right-clicking a tween
 I am able to deselect a segment by right-clicking a keyframe
-
-Zack
-
-Sharing
-
-The share page HTML snippet is correct
-The share page React snippet is correct
-The lottie.json file works in http://editor.lottiefiles.com/
-Publishing produces a static bundle at code/main/static.json which renders correctly on my community profile
-Share page CodePen content works correctly
-Changes made in Sketch after first publish also appear correctly on the published share page
-A GIF shows up in Slack when the link is shared in Slack
-
-Forking
-
-I can fork a published, public project in the wild via right-click menu
-I can't fork a published, non-public project in the wild via right-click menu (no option is shown)
-I can fork a project by running open `haiku://fork/:organizationName/:projectName`
-
-Designer Collaboration
-
-As another user in the org, I can open the project
-As another user in the org, I can make changes and publish
-As the original user, I can open and get the other user's changes
-In case of merge conflicts, I can choose ours/theirs successfully
-
-Embedding/Host Codebases
-
-By following the share page HTML embed instructions, it works
-By following the share page NPM/React instructions, it works
-It works inside create-react-app, including production (minified) build
-
-CLI
-
-I can use Haiku CLI to login and logout
-Haiku CLI invalidates bad logins
-I can clone a project in my org with $ haiku clone
-
-Release Collateral
-
-I can download and extract the .zip archive of the release
-The CLI installer works (`$ curl http://code.haiku.ai/scripts/cli/installer.js | node`)
-The CLI npm package works (`$ npm install @haiku/cli`)
-Core CDN links work (`http://code.haiku.ai/scripts/core/HaikuCore.<{version}|latest>[.min].js (http://code.haiku.ai/scripts/core/HaikuCore.%3C%7Bversion%7D|latest%3E[.min].js)`)
-Core standalone repo has latest https://github.com/HaikuTeam/core
-Core npm package is up to date https://www.npmjs.com/package/@haiku/core
