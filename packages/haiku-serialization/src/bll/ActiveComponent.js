@@ -2978,6 +2978,26 @@ class ActiveComponent extends BaseModel {
           hotComponents: keyframeUpdatesToHotComponentDescriptors(keyframeUpdates),
           clearCacheOptions: {
             doClearEntityCaches: !!metadata.cursor
+          },
+          customRehydrate: () => {
+            const componentIds = {}
+
+            for (const timelineName in keyframeUpdates) {
+              for (const componentId in keyframeUpdates[timelineName]) {
+                // Only run once for each component id
+                if (componentIds[componentId]) continue
+                componentIds[componentId] = true
+
+                const element = this.findElementByComponentId(componentId)
+
+                // Not all views necessarily have the same collection of elements
+                if (element) {
+                  Row.where({ component: this, target: element }).forEach((row) => {
+                    row.rehydrate()
+                  })
+                }
+              }
+            }
           }
         }, null, () => {
           fire()
