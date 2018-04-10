@@ -8,7 +8,7 @@ const STYLES = {
     width: '100%',
     display: 'inline-block',
     textAlign: 'left',
-    fontFamily: inherit,
+    fontFamily: 'inherit'
   }
 }
 

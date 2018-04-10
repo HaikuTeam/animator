@@ -120,8 +120,8 @@ class Figma {
           resolve(Object.assign(element, {svg}))
         })
         .catch((error) => {
-          logger.error(`[figma] failed to import slice or group: ${JSON.stringify(element)}`)
-          resolve(null)
+          logger.error(`[figma] failed to import slice or group: ${JSON.stringify(element)}`, error)
+          resolve()
         })
       })
     })
