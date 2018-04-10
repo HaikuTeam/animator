@@ -1,7 +1,7 @@
 import React from 'react'
-import {download} from '../../utils/sketchUtils'
-import {DOWNLOAD_STYLES as STYLES} from '../styles/downloadShared'
+import {download} from 'haiku-serialization/src/utils/HaikuHomeDir'
 import {createSketchDialogFile} from 'haiku-serialization/src/utils/HaikuHomeDir'
+import {DOWNLOAD_STYLES as STYLES} from '../styles/downloadShared'
 
 let statuses = {
   PROMPT_USER: 'PromptUser',
