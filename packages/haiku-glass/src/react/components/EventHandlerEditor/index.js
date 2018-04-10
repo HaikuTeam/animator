@@ -165,42 +165,50 @@ class EventHandlerEditor extends React.PureComponent {
     return !this.state.currentEvent
   }
 
-  doSaveAndClose () {
-    if (!this.state.editorWithErrors) {
-      this.hideEditor({isDeleting: false}, () => {
-        this.props.close()
-      })
-    }
+  doPersist () {
+    const result = this.handlerManager.serialize()
+    this.props.save(this.props.element, result)
   }
 
-  doSave ({isDeleting}) {
-    if (!this.state.editorWithErrors) {
-      if (!isDeleting) {
-        this.handlerManager.replaceEvent(this.editor.serialize(), this.state.currentEvent)
-      }
-
-      const result = this.handlerManager.serialize()
-      this.props.save(this.props.element, result)
-    }
-  }
-
-  doCancel () {
-    this.setState({ currentEvent: null }, () => {
+  doClose () {
+    this.hideEditor(() => {
       this.props.close()
     })
   }
 
-  onEditorContentChange ({evaluator}) {
-    this.setState({ editorWithErrors: evaluator && evaluator.state === EVALUATOR_STATES.ERROR })
+  doSave () {
+    if (!this.state.editorWithErrors) {
+      this.handlerManager.replaceEvent(
+        this.editor.serialize(),
+        this.state.currentEvent
+      )
+      this.doPersist()
+    }
   }
 
-  onEditorRemoved () {
+  doRemove () {
     const eventToDelete = isNumeric(this.props.options.frame)
       ? HandlerManager.frameToEvent(this.props.options.frame)
       : this.state.currentEvent
 
     this.handlerManager.delete(eventToDelete)
-    this.hideEditor({isDeleting: true})
+    this.doPersist()
+  }
+
+  showEditor (event) {
+    this.setState({ currentEvent: event })
+  }
+
+  hideEditor (callback) {
+    if (!this.state.editorWithErrors) {
+      this.setState({ currentEvent: null }, callback)
+    }
+  }
+
+  onEditorContentChange ({ evaluator }) {
+    this.setState({
+      editorWithErrors: evaluator && evaluator.state === EVALUATOR_STATES.ERROR
+    })
   }
 
   renderEditor () {
@@ -216,20 +224,11 @@ class EventHandlerEditor extends React.PureComponent {
         params={handler.params}
         contents={handler.body}
         key={id}
-        ref={(editor) => { this.editor = editor }}
+        ref={(editor) => {
+          this.editor = editor
+        }}
       />
     )
-  }
-
-  showEditor (event) {
-    this.setState({ currentEvent: event })
-  }
-
-  hideEditor (saveParams, callback) {
-    if (!this.state.editorWithErrors) {
-      this.setState({ currentEvent: null }, callback)
-      this.doSave(saveParams)
-    }
   }
 
   render () {
@@ -257,7 +256,12 @@ class EventHandlerEditor extends React.PureComponent {
                   : null
               }
               onEditorRemoved={() => {
-                this.onEditorRemoved()
+                this.doRemove()
+                if (isNumeric(this.props.options.frame)) {
+                  this.doClose()
+                } else {
+                  this.hideEditor()
+                }
               }}
               breadcrumb={
                 isNumeric(this.props.options.frame) || !this.state.currentEvent
@@ -270,7 +274,14 @@ class EventHandlerEditor extends React.PureComponent {
 
           <div style={STYLES.outer}>
             {isNumeric(this.props.options.frame) && this.state.currentEvent ? (
-              <div style={{...STYLES.editorsWrapper, ...STYLES.frameEditorWrapper}}>{this.renderEditor()}</div>
+              <div
+                style={{
+                  ...STYLES.editorsWrapper,
+                  ...STYLES.frameEditorWrapper
+                }}
+              >
+                {this.renderEditor()}
+              </div>
             ) : (
               <RevealPanel
                 showDetail={!!this.state.currentEvent}
@@ -305,7 +316,8 @@ class EventHandlerEditor extends React.PureComponent {
                   <div style={STYLES.editorsWrapper}>
                     <span
                       onClick={() => {
-                        this.hideEditor({isDeleting: false})
+                        this.doSave()
+                        this.hideEditor()
                       }}
                       style={{
                         ...STYLES.allOptions,
@@ -324,10 +336,11 @@ class EventHandlerEditor extends React.PureComponent {
             <ModalFooter>
               <EditorActions
                 onCancel={() => {
-                  this.doCancel()
+                  this.doClose()
                 }}
                 onSave={() => {
-                  this.doSaveAndClose()
+                  this.doSave()
+                  this.doClose()
                 }}
                 title={
                   this.state.editorWithErrors
