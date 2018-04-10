@@ -2085,13 +2085,8 @@ class ActiveComponent extends BaseModel {
 
     const root = this.fetchRootElement()
 
-    Keyframe.where({ component: this }).forEach((keyframe) => {
-      keyframe.mark()
-    })
-
-    Row.where({ component: this }).forEach((row) => {
-      row.mark()
-    })
+    Keyframe.where({ component: this }).forEach((keyframe) => keyframe.mark())
+    Row.where({ component: this }).forEach((row) => row.mark())
 
     Element.where({ component: this }).forEach((element) => {
       if (element !== root) {
@@ -2114,13 +2109,8 @@ class ActiveComponent extends BaseModel {
       }
     })
 
-    Row.where({ component: this }).forEach((row) => {
-      row.sweep()
-    })
-
-    Keyframe.where({ component: this }).forEach((keyframe) => {
-      keyframe.sweep()
-    })
+    Row.where({ component: this }).forEach((row) => row.sweep())
+    Keyframe.where({ component: this }).forEach((keyframe) => keyframe.sweep())
 
     const row = root.getHostedRows()[0]
     if (row) {
