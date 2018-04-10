@@ -19,7 +19,10 @@
   <div id="mount"></div>
   {{{after}}}
   <script>
-    window.HaikuDOMAdapter.default(window.bytecode)(document.getElementById('mount'), {loop: true});
+    window.debugComponent = window.HaikuDOMAdapter.default(window.bytecode)(
+      document.getElementById('mount'),
+      {loop: true}
+    );
   </script>
 </body>
 </html>

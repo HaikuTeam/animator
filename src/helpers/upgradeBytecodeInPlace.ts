@@ -2,11 +2,12 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import {VERSION} from '../HaikuComponent';
+import HaikuComponent, {VERSION} from '../HaikuComponent';
 import addLegacyOriginSupport from './addLegacyOriginSupport';
 import compareSemver from './compareSemver';
 import visitManaTree from './visitManaTree';
 import xmlToMana from './xmlToMana';
+import schema from '../properties/dom/schema';
 
 const STRING_TYPE = 'string';
 
@@ -20,7 +21,8 @@ const enum UpgradeVersionRequirements {
  * Think of this like a migration that always runs in production components just in case we
  * get something that happens to be legacy.
  */
-export default function upgradeBytecodeInPlace(bytecode, options) {
+export default function upgradeBytecodeInPlace(component: HaikuComponent, options) {
+  const bytecode = component._bytecode;
   if (!bytecode.states) {
     bytecode.states = {};
   }
@@ -153,13 +155,38 @@ export default function upgradeBytecodeInPlace(bytecode, options) {
 
   const coreVersion = bytecode.metadata.core || bytecode.metadata.player;
   if (!coreVersion || compareSemver(coreVersion, UpgradeVersionRequirements.OriginSupport) < 0) {
-    // For now, we only need to check SVG children.
-    for (let i = 0; i < bytecode.template.children.length; i++) {
-      if (bytecode.template.children[i].elementName === 'svg') {
+    // Call render once to create required layouts.
+    component.render(
+      {
+        layout: {
+          computed: {
+            size: {
+              x: 1,
+              y: 1,
+            },
+          },
+        },
+      },
+      component.config,
+    );
+    component.visit((element) => {
+      if (schema[element.tagName] && schema[element.tagName]['origin.x']) {
+        // We only need to upgrade elements whose schemas support origin.
         addLegacyOriginSupport(
-          bytecode.timelines.Default[`haiku:${bytecode.template.children[i].attributes['haiku-id']}`]);
+          element.tagName === 'svg',
+          element.rawLayout,
+          (
+            (element.parent && element.parent.layout && element.parent.layout.size) ||
+            {x: 0, y: 0, z: 0}
+          ),
+          bytecode.timelines.Default[`haiku:${element.getComponentId()}`],
+        );
       }
-    }
+    });
+
+    // Bust caches; we only rendered to populate our layout stubs.
+    component.clearCaches();
+    component._markForFullFlush();
   }
 
   // Ensure the bytecode metadata core version is recent.
