@@ -2992,7 +2992,7 @@ class ActiveComponent extends BaseModel {
 
                 // Not all views necessarily have the same collection of elements
                 if (element) {
-                  Row.where({ component: this, target: element }).forEach((row) => {
+                  Row.where({ component: this, element }).forEach((row) => {
                     row.rehydrate()
                   })
                 }

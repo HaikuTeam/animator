@@ -271,6 +271,7 @@ class Row extends BaseModel {
 
   rehydrate () {
     this.rehydrateKeyframes()
+    this.emit('update', 'row-rehydrated')
   }
 
   rehydrateKeyframes () {

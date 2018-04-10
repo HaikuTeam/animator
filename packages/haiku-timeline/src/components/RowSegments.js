@@ -31,7 +31,8 @@ export default class RowSegments extends React.Component {
       what === 'keyframe-delete' ||
       what === 'keyframe-remove-curve' ||
       what === 'keyframe-add-curve' ||
-      what === 'keyframe-change-curve'
+      what === 'keyframe-change-curve' ||
+      what === 'row-rehydrated'
     ) {
       this.forceUpdate()
     }

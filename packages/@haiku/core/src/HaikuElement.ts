@@ -113,6 +113,66 @@ export default class HaikuElement extends HaikuBase {
     return this.node && this.node.__target;
   }
 
+  get rotationX(): number {
+    return this.rotation && this.rotation.x;
+  }
+
+  get rotationY(): number {
+    return this.rotation && this.rotation.y;
+  }
+
+  get rotationZ(): number {
+    return this.rotation && this.rotation.z;
+  }
+
+  get scaleX(): number {
+    return this.scale && this.scale.x;
+  }
+
+  get scaleY(): number {
+    return this.scale && this.scale.y;
+  }
+
+  get scaleZ(): number {
+    return this.scale && this.scale.z;
+  }
+
+  get positionX(): number {
+    return this.translation && this.translation.x;
+  }
+
+  get positionY(): number {
+    return this.translation && this.translation.y;
+  }
+
+  get positionZ(): number {
+    return this.translation && this.translation.z;
+  }
+
+  get translationX(): number {
+    return this.translation && this.translation.x;
+  }
+
+  get translationY(): number {
+    return this.translation && this.translation.y;
+  }
+
+  get translationZ(): number {
+    return this.translation && this.translation.z;
+  }
+
+  get sizeX(): number {
+    return this.size && this.size.x;
+  }
+
+  get sizeY(): number {
+    return this.size && this.size.y;
+  }
+
+  get sizeZ(): number {
+    return this.size && this.size.z;
+  }
+
   getComponentId(): string {
     return this.attributes[HAIKU_ID_ATTRIBUTE];
   }
@@ -200,66 +260,6 @@ export default class HaikuElement extends HaikuBase {
 
       return out;
     });
-  }
-
-  getRotationX(): number {
-    return this.rotation && this.rotation.x;
-  }
-
-  getRotationY(): number {
-    return this.rotation && this.rotation.y;
-  }
-
-  getRotationZ(): number {
-    return this.rotation && this.rotation.z;
-  }
-
-  getScaleX(): number {
-    return this.scale && this.scale.x;
-  }
-
-  getScaleY(): number {
-    return this.scale && this.scale.y;
-  }
-
-  getScaleZ(): number {
-    return this.scale && this.scale.z;
-  }
-
-  getPositionX(): number {
-    return this.translation && this.translation.x;
-  }
-
-  getPositionY(): number {
-    return this.translation && this.translation.y;
-  }
-
-  getPositionZ(): number {
-    return this.translation && this.translation.z;
-  }
-
-  getTranslationX(): number {
-    return this.translation && this.translation.x;
-  }
-
-  getTranslationY(): number {
-    return this.translation && this.translation.y;
-  }
-
-  getTranslationZ(): number {
-    return this.translation && this.translation.z;
-  }
-
-  getSizeX(): number {
-    return this.size && this.size.x;
-  }
-
-  getSizeY(): number {
-    return this.size && this.size.y;
-  }
-
-  getSizeZ(): number {
-    return this.size && this.size.z;
   }
 }
 
