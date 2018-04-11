@@ -3,150 +3,91 @@
  * @param scale
  * @param x
  * @param y
+ * @param isDraggable
  * @returns {*}
  */
-export default (scale, x, y) => ({
-  elementName: 'div',
-  attributes: {
-    class: 'origin',
-    style: {
-      transform: `scale(${scale},${scale})`,
-      position: 'absolute',
-      pointerEvents: 'auto',
-      left: (x - 6) + 'px',
-      top: (y - 5) + 'px',
-      width: '11px',
-      height: '11px'
-    }
-  },
-  children: [
-    {
-      elementName: 'svg',
-      attributes: {
-        width: 11,
-        height: 11,
-        style: {
-          position: 'absolute'
+export default (scale, x, y, isDraggable) => isDraggable
+  ? {
+    elementName: 'g',
+    attributes: {
+      transform: `scale(${scale}) translate(${x - 12.5} ${y - 12.5})`,
+      style: {
+        pointerEvents: 'all',
+        transformOrigin: `${x}px ${y}px 0px`
+      }
+    },
+    children: [
+      {
+        elementName: 'path',
+        attributes: {
+          d: 'M13 12h3.5a.5.5 0 0 1 0 1H13v3.5a.5.5 0 0 1-1 0V13h-3.5a.5.5 0 0 1 0-1h3.5v-3.5a.5.5 0 0 1 1 0v3.5z',
+          fill: '#000',
+          filter: 'url(#b)'
         }
       },
-      children: [
-        {
-          elementName: 'defs',
-          children: [
-            {
-              elementName: 'filter',
-              attributes: {
-                x: '-22.2%',
-                y: '-11.1%',
-                width: '144.4%',
-                height: '144.4%',
-                filterUnits: 'objectBoundingBox',
-                id: 'b'
-              },
-              children: [
-                {
-                  elementName: 'feOffset',
-                  attributes: {dy: '1', in: 'SourceAlpha', result: 'shadowOffsetOuter1'}
-                },
-                {
-                  elementName: 'feGaussianBlur',
-                  attributes: {stdDeviation: '.5', in: 'shadowOffsetOuter1', result: 'shadowBlurOuter1'}
-                },
-                {
-                  elementName: 'feColorMatrix',
-                  attributes: {
-                    values: '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.31323596 0',
-                    in: 'shadowBlurOuter1',
-                    result: 'shadowMatrixOuter1'
-                  }
-                },
-                {
-                  elementName: 'feMerge',
-                  attributes: {},
-                  children: [
-                    {
-                      elementName: 'feMergeNode',
-                      attributes: {in: 'shadowMatrixOuter1'}
-                    },
-                    {
-                      elementName: 'feMergeNode',
-                      attributes: {in: 'SourceGraphic'}
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        },
-        {
-          elementName: 'g',
-          attributes: {
-            filter: 'url(#b)',
-            transform: 'translate(1)',
-            fill: 'none',
-            'fill-rule': 'evenodd'
-          },
-          children: [
-            {
-              elementName: 'g',
-              attributes: {
-                transform: 'translate(4)',
-                fill: '#3F4A4D'
-              },
-              children: [
-                {
-                  elementName: 'rect',
-                  attributes: {width: 1, height: 2, rx: 0.5}
-                },
-                {
-                  elementName: 'rect',
-                  attributes: {y: 7, width: 1, height: 2, rx: 0.5}
-                }
-              ]
-            },
-            {
-              elementName: 'g',
-              attributes: {transform: 'rotate(90 2.5 6.5)', fill: '#3F4A4D'},
-              children: [
-                {
-                  elementName: 'rect',
-                  attributes: {width: 1, height: 2, rx: 0.5}
-                },
-                {
-                  elementName: 'rect',
-                  attributes: {y: 7, width: 1, height: 2, rx: 0.5}
-                }
-              ]
-            },
-            {
-              elementName: 'rect',
-              attributes: {
-                stroke: '#3F4A4D',
-                fill: '#FFF',
-                x: 1.875,
-                y: 1.875,
-                width: 5.25,
-                height: 5.25,
-                rx: 2.625
-              }
-            }
-          ]
+      {
+        elementName: 'path',
+        attributes: {
+          d: 'M13 12h3.5a.5.5 0 0 1 0 1H13v3.5a.5.5 0 0 1-1 0V13h-3.5a.5.5 0 0 1 0-1h3.5v-3.5a.5.5 0 0 1 1 0v3.5z',
+          fill: '#3f4a4d'
         }
-      ]
-    },
-    {
-      elementName: 'div',
-      attributes: {
-        class: 'hit-area',
-        style: {
-          position: 'absolute',
-          pointerEvents: 'auto',
-          left: '-15px',
-          top: '-15px',
-          width: '30px',
-          height: '30px'
+      },
+      {
+        elementName: 'circle',
+        attributes: {
+          cx: 12.5,
+          cy: 12.5,
+          r: 2.5,
+          fill: '#000',
+          filter: 'url(#a)'
+        }
+      },
+      {
+        elementName: 'circle',
+        attributes: {
+          cx: 12.5,
+          cy: 12.5,
+          r: 2.5,
+          fill: '#fff',
+          stroke: '#3f4a4d'
+        }
+      },
+      {
+        elementName: 'circle',
+        attributes: {
+          cx: 12.5,
+          cy: 12.5,
+          r: 12.5,
+          fill: 'none',
+          class: 'origin'
         }
       }
-    }
-  ]
-})
+    ]
+  }
+  : {
+    elementName: 'g',
+    attributes: {
+      transform: `scale(${scale}) translate(${x - 5.5} ${y - 5.5})`,
+      style: {
+        pointerEvents: 'none',
+        transformOrigin: `${x}px ${y}px 0px`
+      }
+    },
+    children: [
+      {
+        elementName: 'path',
+        attributes: {
+          d: 'M6 5h3.5a.5.5 0 0 1 0 1H6v3.5a.5.5 0 0 1-1 0V6h-3.5a.5.5 0 0 1 0-1h3.5v-3.5a.5.5 0 0 1 1 0v3.5z',
+          fill: '#000',
+          filter: 'url(#b)'
+        }
+      },
+      {
+        elementName: 'path',
+        attributes: {
+          d: 'M6 5h3.5a.5.5 0 0 1 0 1H6v3.5a.5.5 0 0 1-1 0V6h-3.5a.5.5 0 0 1 0-1h3.5v-3.5a.5.5 0 0 1 1 0v3.5z',
+          fill: '#3f4a4d'
+        }
+      }
+    ]
+  }

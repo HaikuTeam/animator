@@ -26,7 +26,8 @@ import {GearSVG} from 'haiku-ui-common/lib/react/OtherIcons'
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 import originMana from '../overlays/originMana'
 import controlPointMana from '../overlays/controlPointMana'
-import lineMana from '../overlays/lineMana'
+import boxMana from '../overlays/boxMana'
+import defsMana from '../overlays/defsMana'
 import rotationCursorMana from '../overlays/rotationCursorMana'
 import scaleCursorMana from '../overlays/scaleCursorMana'
 
@@ -945,162 +946,160 @@ export class Glass extends React.Component {
     this.state.lastMouseDownTime = Date.now()
     const mouseDownPosition = this.storeAndReturnMousePosition(mousedownEvent, 'lastMouseDownPosition')
 
-    const controlPointTarget = getControlPointTarget(mousedownEvent.nativeEvent.target)
+    switch (mousedownEvent.nativeEvent.target.getAttribute('class')) {
+      case 'control-point':
+        const dataIndex = parseInt(mousedownEvent.nativeEvent.target.getAttribute('data-index'), 10)
 
-    if (controlPointTarget) {
-      const dataIndex = parseInt(controlPointTarget.getAttribute('data-index'), 10)
-
-      this.controlActivation({
-        index: dataIndex,
-        event: mousedownEvent.nativeEvent
-      })
-
-      return
-    }
-
-    if (getOriginTarget(mousedownEvent.nativeEvent.target)) {
-      this.originActivation({event: mousedownEvent.nativeEvent})
-    }
-
-    // We are panning now, so don't un/select anything
-    if (Globals.isSpaceKeyDown) {
-      return
-    }
-
-    const finish = () => {
-      this.fetchProxyElementForSelection().pushCachedTransform('CONSTRAINED_DRAG') // wishlist: enum
-    }
-
-    if (this.getActiveComponent().getArtboard().getActiveDrawingTool() !== 'pointer') {
-      // TODO: Drawing tools
-    } else if (!this.isPreviewMode()) {
-      let target = this.findNearestDomSelectionTarget(mousedownEvent.nativeEvent.target)
-
-      // True if the user has clicked the transform control for a selected element
-      if (target === SELECTION_TYPES.ON_STAGE_CONTROL) {
-        return
-      }
-
-      // True if the user has clicked on the stage, but not on any on-stage element
-      if (!target || !target.hasAttribute) {
-        const proxy = this.fetchProxyElementForSelection()
-        if (proxy.hasAnythingInSelection() &&
-          isCoordInsideBoxPoints(mouseDownPosition.x, mouseDownPosition.y, proxy.getBoxPointsTransformed())) {
+        this.controlActivation({
+          index: dataIndex,
+          event: mousedownEvent.nativeEvent
+        })
+        break
+      case 'origin':
+        this.originActivation({event: mousedownEvent.nativeEvent})
+        break
+      default:
+        // We are panning now, so don't un/select anything
+        if (Globals.isSpaceKeyDown) {
           return
         }
 
-        // Unselect all the elements unless the user is doing a meta-operation, as indicated by these keys
-        if (!Globals.isShiftKeyDown && !Globals.isCommandKeyDown && !Globals.isAltKeyDown) {
-          Element.unselectAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
+        const finish = () => {
+          this.fetchProxyElementForSelection().pushCachedTransform('CONSTRAINED_DRAG') // wishlist: enum
         }
 
-        if (!Globals.isCommandKeyDown && !Globals.isAltKeyDown) {
-          if (this.getActiveComponent()) {
-            if (experimentIsEnabled(Experiment.StageSelectionMarquee)) {
-              this.getActiveComponent().getSelectionMarquee().startSelection(mouseDownPosition)
-            }
+        if (this.getActiveComponent().getArtboard().getActiveDrawingTool() !== 'pointer') {
+          // TODO: Drawing tools
+        } else if (!this.isPreviewMode()) {
+          let target = this.findNearestDomSelectionTarget(mousedownEvent.nativeEvent.target)
+
+          // True if the user has clicked the transform control for a selected element
+          if (target === SELECTION_TYPES.ON_STAGE_CONTROL) {
+            return
           }
-        }
 
-        return
-      }
+          // True if the user has clicked on the stage, but not on any on-stage element
+          if (!target || !target.hasAttribute) {
+            const proxy = this.fetchProxyElementForSelection()
+            if (proxy.hasAnythingInSelection() &&
+              isCoordInsideBoxPoints(mouseDownPosition.x, mouseDownPosition.y, proxy.getBoxPointsTransformed())) {
+              return
+            }
 
-      target = this.validTargetOrNull(target)
+            // Unselect all the elements unless the user is doing a meta-operation, as indicated by these keys
+            if (!Globals.isShiftKeyDown && !Globals.isCommandKeyDown && !Globals.isAltKeyDown) {
+              Element.unselectAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
+            }
 
-      // Truthy if we found a valid, selectable element target
-      if (target) {
-        // First make sure we are grabbing the correct element based on the context.
-        // If we've landed on a component sub-element, we need to go up and select the wrapper.
-        let haikuId = target.getAttribute('haiku-id')
+            if (!Globals.isCommandKeyDown && !Globals.isAltKeyDown) {
+              if (this.getActiveComponent()) {
+                if (experimentIsEnabled(Experiment.StageSelectionMarquee)) {
+                  this.getActiveComponent().getSelectionMarquee().startSelection(mouseDownPosition)
+                }
+              }
+            }
 
-        if (this.isDomNodeChildOfComponentWrapperDomNode(target)) {
-          haikuId = target.parentNode.getAttribute('haiku-id')
-        }
+            return
+          }
 
-        const elementTargeted = this.getActiveComponent().findElementByComponentId(haikuId)
+          target = this.validTargetOrNull(target)
 
-        if (experimentIsEnabled(Experiment.ElementMultiSelectAndTransform)) {
-          if (elementTargeted.isRootElement()) { // The artboard can only be selected alone
-            Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'})
-            this.ensureElementIsSelected(elementTargeted, finish)
+          // Truthy if we found a valid, selectable element target
+          if (target) {
+            // First make sure we are grabbing the correct element based on the context.
+            // If we've landed on a component sub-element, we need to go up and select the wrapper.
+            let haikuId = target.getAttribute('haiku-id')
+
+            if (this.isDomNodeChildOfComponentWrapperDomNode(target)) {
+              haikuId = target.parentNode.getAttribute('haiku-id')
+            }
+
+            const elementTargeted = this.getActiveComponent().findElementByComponentId(haikuId)
+
+            if (experimentIsEnabled(Experiment.ElementMultiSelectAndTransform)) {
+              if (elementTargeted.isRootElement()) { // The artboard can only be selected alone
+                Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'})
+                this.ensureElementIsSelected(elementTargeted, finish)
+              } else {
+                if (!Globals.isControlKeyDown && !Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // none
+                  this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
+                    this.ensureElementIsSelected(elementTargeted, finish)
+                  })
+                } else if (!Globals.isControlKeyDown && !Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Alt
+                  this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
+                    this.ensureElementIsSelected(elementTargeted, () => {
+                      this.duplicateSelectedElementsThenSelectDuplicates(finish)
+                    })
+                  })
+                } else if (!Globals.isControlKeyDown && Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Shift
+                  this.toggleMultiElementSelection(elementTargeted, finish)
+                } else if (!Globals.isControlKeyDown && Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Shift+Alt
+                  this.toggleMultiElementSelection(elementTargeted, () => {
+                    this.duplicateSelectedElementsThenSelectDuplicates(finish)
+                  })
+                } else if (Globals.isControlKeyDown && !Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Ctrl
+                  this.deselectAllOtherElements(elementTargeted, () => {
+                    this.ensureElementIsSelected(elementTargeted, finish)
+                  })
+                } else if (Globals.isControlKeyDown && !Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Ctrl+Alt
+                  this.deselectAllOtherElements(elementTargeted, () => {
+                    this.ensureElementIsSelected(elementTargeted, finish)
+                  })
+                } else if (Globals.isControlKeyDown && Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Ctrl+Shift
+                  this.ensureElementIsSelected(elementTargeted, finish)
+                } else if (Globals.isControlKeyDown && Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Ctrl+Shift+Alt
+                  this.ensureElementIsSelected(elementTargeted, finish)
+                }
+              }
+            } else {
+              if (elementTargeted.isRootElement()) { // The artboard can only be selected alone
+                Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'})
+                this.ensureElementIsSelected(elementTargeted, finish)
+              } else {
+                if (!Globals.isControlKeyDown && !Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // none
+                  this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
+                    this.ensureElementIsSelected(elementTargeted, finish)
+                  })
+                } else if (!Globals.isControlKeyDown && !Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Alt
+                  this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
+                    this.ensureElementIsSelected(elementTargeted, () => {
+                      this.duplicateSelectedElementsThenSelectDuplicates(finish)
+                    })
+                  })
+                } else if (!Globals.isControlKeyDown && Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Shift
+                  this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
+                    this.ensureElementIsSelected(elementTargeted, finish)
+                  })
+                } else if (!Globals.isControlKeyDown && Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Shift+Alt
+                  this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
+                    this.ensureElementIsSelected(elementTargeted, () => {
+                      this.duplicateSelectedElementsThenSelectDuplicates(finish)
+                    })
+                  })
+                } else if (Globals.isControlKeyDown && !Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Ctrl
+                  this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
+                    this.ensureElementIsSelected(elementTargeted, finish)
+                  })
+                } else if (Globals.isControlKeyDown && !Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Ctrl+Alt
+                  this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
+                    this.ensureElementIsSelected(elementTargeted, finish)
+                  })
+                } else if (Globals.isControlKeyDown && Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Ctrl+Shift
+                  this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
+                    this.ensureElementIsSelected(elementTargeted, finish)
+                  })
+                } else if (Globals.isControlKeyDown && Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Ctrl+Shift+Alt
+                  this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
+                    this.ensureElementIsSelected(elementTargeted, finish)
+                  })
+                }
+              }
+            }
           } else {
-            if (!Globals.isControlKeyDown && !Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // none
-              this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
-                this.ensureElementIsSelected(elementTargeted, finish)
-              })
-            } else if (!Globals.isControlKeyDown && !Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Alt
-              this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
-                this.ensureElementIsSelected(elementTargeted, () => {
-                  this.duplicateSelectedElementsThenSelectDuplicates(finish)
-                })
-              })
-            } else if (!Globals.isControlKeyDown && Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Shift
-              this.toggleMultiElementSelection(elementTargeted, finish)
-            } else if (!Globals.isControlKeyDown && Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Shift+Alt
-              this.toggleMultiElementSelection(elementTargeted, () => {
-                this.duplicateSelectedElementsThenSelectDuplicates(finish)
-              })
-            } else if (Globals.isControlKeyDown && !Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Ctrl
-              this.deselectAllOtherElements(elementTargeted, () => {
-                this.ensureElementIsSelected(elementTargeted, finish)
-              })
-            } else if (Globals.isControlKeyDown && !Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Ctrl+Alt
-              this.deselectAllOtherElements(elementTargeted, () => {
-                this.ensureElementIsSelected(elementTargeted, finish)
-              })
-            } else if (Globals.isControlKeyDown && Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Ctrl+Shift
-              this.ensureElementIsSelected(elementTargeted, finish)
-            } else if (Globals.isControlKeyDown && Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Ctrl+Shift+Alt
-              this.ensureElementIsSelected(elementTargeted, finish)
-            }
-          }
-        } else {
-          if (elementTargeted.isRootElement()) { // The artboard can only be selected alone
-            Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'})
-            this.ensureElementIsSelected(elementTargeted, finish)
-          } else {
-            if (!Globals.isControlKeyDown && !Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // none
-              this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
-                this.ensureElementIsSelected(elementTargeted, finish)
-              })
-            } else if (!Globals.isControlKeyDown && !Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Alt
-              this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
-                this.ensureElementIsSelected(elementTargeted, () => {
-                  this.duplicateSelectedElementsThenSelectDuplicates(finish)
-                })
-              })
-            } else if (!Globals.isControlKeyDown && Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Shift
-              this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
-                this.ensureElementIsSelected(elementTargeted, finish)
-              })
-            } else if (!Globals.isControlKeyDown && Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Shift+Alt
-              this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
-                this.ensureElementIsSelected(elementTargeted, () => {
-                  this.duplicateSelectedElementsThenSelectDuplicates(finish)
-                })
-              })
-            } else if (Globals.isControlKeyDown && !Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Ctrl
-              this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
-                this.ensureElementIsSelected(elementTargeted, finish)
-              })
-            } else if (Globals.isControlKeyDown && !Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Ctrl+Alt
-              this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
-                this.ensureElementIsSelected(elementTargeted, finish)
-              })
-            } else if (Globals.isControlKeyDown && Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Ctrl+Shift
-              this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
-                this.ensureElementIsSelected(elementTargeted, finish)
-              })
-            } else if (Globals.isControlKeyDown && Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Ctrl+Shift+Alt
-              this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
-                this.ensureElementIsSelected(elementTargeted, finish)
-              })
-            }
+            // TODO: In what situations can we ever get here?
           }
         }
-      } else {
-        // TODO: In what situations can we ever get here?
-      }
+        break
     }
   }
 
@@ -1613,7 +1612,6 @@ export class Glass extends React.Component {
         this._haikuRenderer,
         {},
         {
-          timelines: {},
           template: {
             elementName: 'div',
             attributes: {},
@@ -1631,11 +1629,15 @@ export class Glass extends React.Component {
     // controls render again after we exit preview mode.
     this._haikuRenderer.mount = this.refs.overlay
 
-    const container = this._haikuRenderer.createContainer({})
-
-    const parts = this.buildDrawnOverlays()
+    const container = {
+      layout: {
+        computed: {x: 1, y: 1}
+      }
+    }
 
     const artboard = this.getActiveComponent().getArtboard()
+
+    const {transformBoxOverlays, otherOverlays} = this.buildDrawnOverlays()
 
     const overlay = {
       elementName: 'div',
@@ -1650,7 +1652,23 @@ export class Glass extends React.Component {
           height: artboard.getMountHeight() + 'px'
         }
       },
-      children: parts
+      children: [
+        {
+          'elementName': 'svg',
+          attributes: {
+            style: {
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              overflow: 'visible'
+            }
+          },
+          children: transformBoxOverlays
+        },
+        ...otherOverlays
+      ]
     }
 
     this._haikuRenderer.render(
@@ -1667,7 +1685,10 @@ export class Glass extends React.Component {
   // these get passed into a Haiku Core render method (see above). LONG STORY SHORT: This creates a flat list of
   // nodes that get rendered to the DOM by the Haiku Core.
   buildDrawnOverlays () {
-    const overlays = []
+    const overlays = {
+      transformBoxOverlays: [],
+      otherOverlays: []
+    }
 
     // Don't show any overlays if we're in preview (aka 'live') interactionMode
     if (this.isPreviewMode()) {
@@ -1679,7 +1700,7 @@ export class Glass extends React.Component {
     if (proxy.hasAnythingInSelection()) {
       this.renderTransformBoxOverlay(
         proxy.getBoxPointsTransformed(),
-        overlays,
+        overlays.transformBoxOverlays,
         proxy.canRotate(),
         !this.state.isOriginPanning && Globals.isCommandKeyDown,
         proxy.canControlHandles(),
@@ -1690,14 +1711,13 @@ export class Glass extends React.Component {
     if (proxy.hasAnythingInSelection()) {
       this.renderEventHandlersOverlay(
         proxy.getBoxPointsTransformed(),
-        overlays,
+        overlays.otherOverlays,
         proxy.getElementOrProxyPropertyValue('rotation.z'),
         proxy.getElementOrProxyPropertyValue('scale.x')
       )
     }
 
-    this.renderSelectionMarquee(overlays)
-
+    this.renderSelectionMarquee(overlays.transformBoxOverlays)
     return overlays
   }
 
@@ -1720,21 +1740,22 @@ export class Glass extends React.Component {
         } = marquee.getBox()
 
         overlays.push({
-          elementName: 'div',
+          elementName: 'rect',
           attributes: {
             id: `selection-marquee-${marquee.getPrimaryKey()}`,
             key: 'selection-marquee',
+            x,
+            y,
+            width,
+            height,
+            stroke: Palette.DARKER_ROCK2,
+            'stroke-width': 1,
+            fill: Palette.ROCK,
+            'fill-opacity': 0.25,
+            rx: 1,
+            ry: 1,
             style: {
-              position: 'absolute',
-              pointerEvents: 'none',
-              left: `${x}px`,
-              top: `${y}px`,
-              border: '1px solid ' + Palette.DARKER_ROCK2,
-              backgroundColor: Palette.ROCK,
-              opacity: 0.25,
-              width: `${width}px`,
-              height: `${height}px`,
-              borderRadius: '1px'
+              pointerEvents: 'none'
             }
           }
         })
@@ -1784,10 +1805,14 @@ export class Glass extends React.Component {
       return
     }
 
+    overlays.push(defsMana)
+
+    const zoom = this.getActiveComponent().getArtboard().getZoom()
+
     // If the size is smaller than a threshold, only display the corners.
     // And if it is smaller even than that, don't display the points at all
-    const dx = Element.distanceBetweenPoints(points[0], points[2], this.getActiveComponent().getArtboard().getZoom())
-    const dy = Element.distanceBetweenPoints(points[0], points[6], this.getActiveComponent().getArtboard().getZoom())
+    const dx = Element.distanceBetweenPoints(points[0], points[2], zoom)
+    const dy = Element.distanceBetweenPoints(points[0], points[6], zoom)
 
     let pointDisplayMode = POINT_DISPLAY_MODES.NORMAL
 
@@ -1803,18 +1828,15 @@ export class Glass extends React.Component {
       }
     }
 
-    let lineDisplayMode = LINE_DISPLAY_MODES.NORMAL
-    if (dx < POINTS_THRESHOLD_NONE || dy < POINTS_THRESHOLD_NONE) lineDisplayMode = LINE_DISPLAY_MODES.NONE
+    const lineDisplayMode = (pointDisplayMode === POINT_DISPLAY_MODES.NONE)
+      ? LINE_DISPLAY_MODES.NONE
+      : LINE_DISPLAY_MODES.NORMAL
 
     if (lineDisplayMode !== LINE_DISPLAY_MODES.NONE) {
-      const corners = [points[0], points[2], points[8], points[6]]
-      corners.forEach((point, index) => {
-        const next = corners[(index + 1) % corners.length]
-        overlays.push(lineMana(point.x, point.y, next.x, next.y))
-      })
+      overlays.push(boxMana([points[0], points[2], points[8], points[6]].map((point) => [point.x, point.y])))
     }
 
-    const scale = 1 / (this.getActiveComponent().getArtboard().getZoom() || 1)
+    const scale = 1 / (zoom || 1)
 
     points.forEach((point, index) => {
       if (!pointDisplayMode[index]) {
@@ -1832,7 +1854,7 @@ export class Glass extends React.Component {
     })
 
     if (canRotate && experimentIsEnabled(Experiment.OriginIndicator) && pointDisplayMode !== POINT_DISPLAY_MODES.NONE) {
-      overlays.push(originMana(scale, origin.x, origin.y))
+      overlays.push(originMana(scale, origin.x, origin.y, Globals.isCommandKeyDown))
     }
 
     // Everything below requires controllable handles.
@@ -2467,28 +2489,6 @@ function belongsToMenuIcon (target) {
   }
 
   return belongsToMenuIcon(target.parentNode)
-}
-
-function getClassBasedTarget (target, regexp) {
-  if (!target || !target.getAttribute) {
-    return null
-  }
-
-  const className = target.getAttribute('class')
-
-  if (className && regexp.test(className)) {
-    return target
-  }
-
-  return getClassBasedTarget(target.parentNode, regexp)
-}
-
-function getControlPointTarget (target) {
-  return getClassBasedTarget(target, /control-point/)
-}
-
-function getOriginTarget (target) {
-  return getClassBasedTarget(target, /^origin$/)
 }
 
 Glass.propTypes = {

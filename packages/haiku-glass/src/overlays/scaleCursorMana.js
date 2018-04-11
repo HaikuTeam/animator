@@ -12,90 +12,46 @@ export default (scale, {x, y}, boxPoints, origin, activationIndex, alt) => {
   const activationPoint = boxPoints[activationIndex]
   const fixedPoint = alt ? origin : boxPoints[8 - activationIndex]
   return {
-    elementName: 'svg',
+    elementName: 'g',
     attributes: {
-      width: '28',
-      height: '18',
+      transform: `scale(${scale})`,
       style: {
-        position: 'absolute',
-        left: `${x - 14}px`,
-        top: `${y - 9}px`,
-        transform: `rotateZ(${Math.atan2(activationPoint.y - fixedPoint.y, activationPoint.x - fixedPoint.x)}rad) scale(${scale},${scale})`
+        transformOrigin: `${x}px ${y}px 0px`
       }
     },
-    'children': [{
-      elementName: 'defs',
-      children: [{
-        elementName: 'filter',
-        attributes: {
-          x: '-18.9%',
-          y: '-42.2%',
-          width: '134.9%',
-          height: '191.9%',
-          filterUnits: 'objectBoundingBox',
-          id: 'd'
-        },
-        children: [{
-          elementName: 'feMorphology',
-          attributes: {
-            radius: '1',
-            operator: 'dilate',
-            in: 'SourceAlpha',
-            result: 'shadowSpreadOuter1'
-          }
-        }, {
-          elementName: 'feOffset',
-          attributes: {
-            dx: -0.3,
-            dy: 0.3,
-            in: 'shadowSpreadOuter1',
-            result: 'shadowOffsetOuter1'
-          }
-        }, {
-          elementName: 'feGaussianBlur',
-          attributes: {
-            stdDeviation: 0.5,
-            in: 'shadowOffsetOuter1',
-            result: 'shadowBlurOuter1'
-          }
-        }, {
-          elementName: 'feComposite',
-          attributes: {
-            in: 'shadowBlurOuter1',
-            in2: 'SourceAlpha',
-            operator: 'out',
-            result: 'shadowBlurOuter1'
-          }
-        }, {
-          elementName: 'feColorMatrix',
-          attributes: {
-            values: '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.134227808 0',
-            in: 'shadowBlurOuter1'
-          }
-        }]
-      }]
-    }, {
+    children: [{
       elementName: 'g',
       attributes: {
-        transform: 'translate(-483 -211)',
-        fill: 'none',
-        'fill-rule': 'evenodd'
+        transform: `translate(${x - 14} ${y - 9}) rotate(${Math.atan2(activationPoint.y - fixedPoint.y, activationPoint.x - fixedPoint.x) * 180 / Math.PI} 14 9)`
       },
-      children: [{
-        elementName: 'path',
-        attributes: {
-          d: 'M503.972 218.5V216l3.972 3.972-3.972 3.972V221.5h-13v2.444L487 219.972l3.972-3.972v2.5h13z',
-          fill: '#000',
-          filter: 'url(#d)'
+      children: [
+        {
+          elementName: 'g',
+          attributes: {
+            transform: 'translate(-483 -211)',
+            fill: 'none',
+            'fill-rule': 'evenodd'
+          },
+          children: [
+            {
+              elementName: 'path',
+              attributes: {
+                d: 'M503.972 218.5V216l3.972 3.972-3.972 3.972V221.5h-13v2.444L487 219.972l3.972-3.972v2.5h13z',
+                fill: '#000',
+                filter: 'url(#d)'
+              }
+            },
+            {
+              elementName: 'path',
+              attributes: {
+                d: 'M503.972 218.5V216l3.972 3.972-3.972 3.972V221.5h-13v2.444L487 219.972l3.972-3.972v2.5h13z',
+                stroke: '#FFF',
+                fill: '#0D0C0C'
+              }
+            }
+          ]
         }
-      }, {
-        elementName: 'path',
-        attributes: {
-          d: 'M503.972 218.5V216l3.972 3.972-3.972 3.972V221.5h-13v2.444L487 219.972l3.972-3.972v2.5h13z',
-          stroke: '#FFF',
-          fill: '#0D0C0C'
-        }
-      }]
+      ]
     }]
   }
 }
