@@ -474,11 +474,11 @@ class Element extends BaseModel {
   }
 
   getComputedLayout () {
-    return Layout3D.computeLayout(
+    return this.cacheFetch('getComputedLayout', () => Layout3D.computeLayout(
       this.getLayoutSpec(),
       Layout3D.createMatrix(),
       this.getParentComputedSize()
-    )
+    ))
   }
 
   getLayoutSpec () {

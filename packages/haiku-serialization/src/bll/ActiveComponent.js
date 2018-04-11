@@ -1759,6 +1759,9 @@ class ActiveComponent extends BaseModel {
           this.rehydrate()
         }
 
+        // Fix caches from our on-stage controls.
+        ElementSelectionProxy.clearCaches()
+
         // If we don't do this here, continued edits at this time won't work properly.
         // We have to do this  __after rehydrate__ so we update all copies fo the models we've
         // just loaded into memory who have reset attributes.
