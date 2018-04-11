@@ -1,6 +1,13 @@
 # Changelog
 
 
+## 3.2.6
+
+### Bug Fixes
+
+ * upgrade bytecode in place only after setting up caches.
+ * add a more robust origin upgrade to support very old bytecode assets.
+
 ## 3.2.5
 
 ### Bug Fixes
