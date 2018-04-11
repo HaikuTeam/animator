@@ -1400,6 +1400,7 @@ export default class Creator extends React.Component {
             ref='ProjectBrowser'
             lastViewedChangelog={this.state.lastViewedChangelog}
             onShowChangelogModal={() => { this.showChangelogModal() }}
+            showChangelogModal={this.state.showChangelogModal}
             launchingProject={this.state.launchingProject}
             newProjectLoading={this.state.newProjectLoading}
             setProjectLaunchStatus={this.setProjectLaunchStatus.bind(this)}
@@ -1451,6 +1452,7 @@ export default class Creator extends React.Component {
             ref='ProjectBrowser'
             lastViewedChangelog={this.state.lastViewedChangelog}
             onShowChangelogModal={() => { this.showChangelogModal() }}
+            showChangelogModal={this.state.showChangelogModal}            
             loadProjects={this.loadProjects}
             launchProject={this.launchProject}
             createNotice={this.createNotice}

@@ -292,7 +292,8 @@ export const DASH_STYLES = {
     left: 0,
     zIndex: 100,
     width: '100%',
-    height: '100%'
+    height: '100%',
+    backgroundColor: Color(Palette.FATHER_COAL).fade(.4)
   },
   modal: {
     position: 'absolute',
@@ -309,6 +310,7 @@ export const DASH_STYLES = {
   },
   modalTitle: {
     color: Palette.SUNSTONE,
+
     fontSize: 16,
     marginBottom: 12
   },

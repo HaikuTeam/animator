@@ -203,7 +203,7 @@ class ProjectBrowser extends React.Component {
   }
 
   projectsListElement () {
-    const { showDeleteModal, showNewProjectModal } = this.state
+    const { showDeleteModal, showNewProjectModal, showChangelogModal } = this.state
     const { launchingProject } = this.props
     if (this.state.areProjectsLoading) {
       return (
@@ -217,7 +217,7 @@ class ProjectBrowser extends React.Component {
       <div
         style={[
           DASH_STYLES.projectsWrapper,
-          (showDeleteModal || showNewProjectModal || launchingProject) && {filter: 'blur(2px)'}
+          (showDeleteModal || showNewProjectModal || launchingProject || showChangelogModal) && {filter: 'blur(2px)'}
         ]}
         onScroll={lodash.throttle(() => {
           this.tourChannel.updateLayout()
@@ -607,7 +607,8 @@ ProjectBrowser.propTypes = {
   newProjectLoading: React.PropTypes.bool.isRequired,
   launchingProject: React.PropTypes.bool.isRequired,
   lastViewedChangelog: React.PropTypes.string,
-  onShowChangelogModal: React.PropTypes.func.isRequired
+  onShowChangelogModal: React.PropTypes.func.isRequired,
+  showChangelogModal: React.PropTypes.bool.isRequired,
 }
 
 export default Radium(ProjectBrowser)

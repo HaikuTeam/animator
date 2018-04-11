@@ -8,6 +8,7 @@ import {
 } from 'haiku-ui-common/lib/react/Modal'
 import {LogoMicroSVG} from 'haiku-ui-common/lib/react/OtherIcons'
 import {BTN_STYLES} from '../styles/btnShared'
+import {DASH_STYLES} from '../styles/dashShared'
 import Palette from 'haiku-ui-common/lib/Palette'
 import {PrettyScroll} from 'haiku-ui-common/lib/react/PrettyScroll'
 import Changelog from 'haiku-serialization/src/bll/Changelog'
@@ -15,7 +16,10 @@ import Changelog from 'haiku-serialization/src/bll/Changelog'
 const STYLES = {
   modalWrapper: {
     maxWidth: '540px',
-    zIndex: '9002'
+    zIndex: '9002',
+    position: 'absolute',
+    top: '50%',
+    transform: 'translateY(-50%)'
   },
   modalContent: {
     padding: '20px 40px 60px'
@@ -91,62 +95,58 @@ class ChangelogModal extends React.PureComponent {
       return null
     }
     return (
-      <ModalWrapper style={STYLES.modalWrapper}>
-        <ModalHeader>
-          <h2>
-            <i>Release Notes</i>
-          </h2>
-        </ModalHeader>
+      <div id="changelogwrap" style={DASH_STYLES.overlay} onClick={this.props.onClose}>
+        <ModalWrapper style={STYLES.modalWrapper}>
+          <ModalHeader>
+            <h2>
+              <i>Release Notes</i>
+            </h2>
+          </ModalHeader>
 
-        <div style={STYLES.modalContent}>
-          <div>
-            <div style={STYLES.logoAndVersion}>
-              <LogoMicroSVG style={STYLES.iconStyle} size={24} />
-              <span style={STYLES.version}>{process.env.HAIKU_RELEASE_VERSION}</span>
+          <div style={STYLES.modalContent}>
+            <div>
+              <div style={STYLES.logoAndVersion}>
+                <LogoMicroSVG style={STYLES.iconStyle} size={24} />
+                <span style={STYLES.version}>{process.env.HAIKU_RELEASE_VERSION}</span>
+              </div>
+              <time style={STYLES.date}>{changelog.date}</time>
             </div>
-            <time style={STYLES.date}>{changelog.date}</time>
-          </div>
 
-          {/* Shamefully dirty, but we need to style the content coming from
-            the changelog, which is dynamic */}
-          <style>
-            {`
-              .changelog {
-                max-height: 350px;
-                overflow: auto;
-              }
-
-              .changelog a {
-                color: ${Palette.SUNSTONE};
-              }
-
-              .changelog p {
-                margin: 0;
-              }
-            `}
-          </style>
-
-          <PrettyScroll>
-            <div
-              className='changelog'
-              onClick={(e) => {
-                if (e.target.href) {
-                  e.preventDefault()
-                  shell.openExternal(e.target.href)
+            {/* Shamefully dirty, but we need to style the content coming from
+              the changelog, which is dynamic */}
+            <style>
+              {`
+                .changelog {
+                  max-height: 350px;
+                  overflow: auto;
                 }
-              }}
-            >
-              {this.renderSections(changelog)}
-            </div>
-          </PrettyScroll>
-        </div>
 
-        <ModalFooter>
-          <button style={STYLES.button} onClick={this.props.onClose}>
-            Done
-          </button>
-        </ModalFooter>
-      </ModalWrapper>
+                .changelog a {
+                  color: ${Palette.SUNSTONE};
+                }
+
+                .changelog p {
+                  margin: 0;
+                }
+              `}
+            </style>
+
+            <PrettyScroll>
+              <div
+                className='changelog'
+                onClick={(e) => {
+                  if (e.target.href) {
+                    e.preventDefault()
+                    shell.openExternal(e.target.href)
+                  }
+                }}
+              >
+                {this.renderSections(changelog)}
+              </div>
+            </PrettyScroll>
+          </div>
+        </ModalWrapper>
+      </div>
     )
   }
 }
