@@ -1492,6 +1492,10 @@ export class Glass extends React.Component {
       return
     }
 
+    if (mousemoveEvent.nativeEvent.target.getAttribute('class') !== 'control-point') {
+      this.state.hoveredControlPointIndex = null
+    }
+
     const zoom = this.getActiveComponent().getArtboard().getZoom() || 1
     const pan = this.getActiveComponent().getArtboard().getPan() || {x: 0, y: 0}
     const viewportTransform = {zoom, pan}
@@ -1867,7 +1871,9 @@ export class Glass extends React.Component {
       this.state.isAnythingRotating
     )) {
       overlays.push(rotationCursorMana(scale, this.state.mousePositionCurrent, origin))
-    } else if (this.state.hoveredControlPointIndex !== null || this.state.isAnythingScaling) {
+    } else if (this.state.isAnythingScaling ||
+      (this.state.hoveredControlPointIndex !== null && !this.state.isMouseDown)
+    ) {
       overlays.push(scaleCursorMana(
         scale,
         this.state.mousePositionCurrent,
