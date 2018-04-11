@@ -1189,7 +1189,7 @@ export class Glass extends React.Component {
   }
 
   toggleMultiElementSelection (target, cb) {
-    if (target.isSelected()) {
+    if (target.isSelected() && this.fetchProxyElementForSelection().hasMultipleInSelection()) {
       target.unselectSoftly({from: 'glass'})
     } else {
       target.selectSoftly({from: 'glass'})
