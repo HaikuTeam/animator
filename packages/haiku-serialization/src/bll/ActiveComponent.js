@@ -2329,8 +2329,8 @@ class ActiveComponent extends BaseModel {
 
   getDisplayableRowsGroupedByElementInZOrder () {
     const stack = this.getRawStackingInfo(
-      this.getCurrentTimelineName(),
-      this.getCurrentTimelineTime()
+      this.getInstantiationTimelineName(),
+      this.getInstantiationTimelineTime() // Assume z-dragging only at 0
     )
 
     const rows = this.getDisplayableRows()
