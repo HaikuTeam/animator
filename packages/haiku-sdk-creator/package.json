@@ -26,6 +26,8 @@
     "@haiku/sdk-client": "3.2.8",
     "@haiku/sdk-inkstone": "3.2.8",
     "bluebird": "^3.5.0",
+    "dedent": "^0.7.0",
+    "haiku-fs-extra": "3.2.8",
     "haiku-serialization": "3.2.8",
     "qs": "6.4.0",
     "ws": "3.2.0"
