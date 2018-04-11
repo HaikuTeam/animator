@@ -457,6 +457,8 @@ class ActiveComponent extends BaseModel {
     // means that it will initially start playing. Hard reload depends on being able to
     // force set a time value to get it into 'controlled time' mode, hence the `forceSeek` flag.
     if (forceSeek || timelineTime !== this.getCurrentTimelineTime()) {
+      // Purge any ElementSelectionProxy caches in case the layout of selected elements is changing.
+      ElementSelectionProxy.clearCaches()
       // Note that this call reaches in and updates our instance's timeline objects
       Timeline.setCurrentTime({ component: this }, timelineTime, /* skipTransmit= */ true, forceSeek)
       // Perform a lightweight full flush render, recomputing all values without without trying to be clever about
