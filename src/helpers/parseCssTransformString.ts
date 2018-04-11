@@ -94,11 +94,12 @@ export default function parseCssTransformString(inStr) {
         layout.translate[1] = spec.values[1] ? spec.values[1].value : 0;
         break;
       case 'matrix':
-        layout.scale[0] = spec.values[0].value;
-        layout.scale[1] = spec.values[3].value;
-        layout.translate[0] = spec.values[4].value;
-        layout.translate[1] = spec.values[5].value;
-        break;
+        return [
+          spec.values[0].value, spec.values[1].value, 0, 0,
+          spec.values[2].value, spec.values[3].value, 0, 0,
+          0, 0, 1, 0,
+          spec.values[4].value, spec.values[5].value, 0, 1,
+        ];
 
       // 3D
       case 'rotate3d':
