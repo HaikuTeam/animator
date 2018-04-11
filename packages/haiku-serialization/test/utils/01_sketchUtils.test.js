@@ -1,23 +1,49 @@
 const test = require('tape')
 const sketchUtils = require('../../src/utils/sketchUtils')
 
-test('sketchUtils.parseDumpInfo', async (t) => {
-  t.plan(8)
+const validDump = `
+  path:          /Applications/__MACOSX/Sketch.app
+  path:          /Applications/Sketch.app
+`
 
-  const validDump = `
-    path:          /Applications/__MACOSX/Sketch.app
-    path:          /Applications/Sketch.app
-  `
+test('sketchUtils.dumpToPaths', (t) => {
+  t.plan(5)
 
-  t.notOk(sketchUtils.parseDumpInfo(new Error()), 'returns null if an error ocurred')
-  t.notOk(sketchUtils.parseDumpInfo(null, '', 'stderror'), 'returns null if stderr value is not empty')
-  t.notOk(sketchUtils.parseDumpInfo(null, '\n   \n', ''), 'returns null if the dump call returns a string without valid info')
-  t.notOk(sketchUtils.parseDumpInfo(null, '', ''), 'returns null if stderr value is not empty')
-  t.notOk(sketchUtils.parseDumpInfo(null, 'path:          /Applications/__MACOSX/Sketch.app', ''), 'returns null if the dump is a path in an auxiliary system location')
-  t.notOk(sketchUtils.parseDumpInfo(null, 'path:          /Users/roperzh/.Trash/Sketch.app', ''), 'returns null if Sketch is in the trash')
-  t.notOk(sketchUtils.parseDumpInfo(null, 'wrong formatted output', ''), 'returns null if the dump output is not in the expected format')
-  t.equal('/Applications/Sketch.app', sketchUtils.parseDumpInfo(null, validDump, ''), 'returns a valid path if the dump call is fine')
+  const resultWithValidDump = sketchUtils.dumpToPaths(validDump)
+  t.ok(Array.isArray(resultWithValidDump), 'returns an array of paths')
+  t.equal(resultWithValidDump.length, 2, 'returns the correct number of paths')
+  t.equal(resultWithValidDump[0], '/Applications/__MACOSX/Sketch.app', 'returns the correct content')
+
+  const resultWithInvalidDump = sketchUtils.dumpToPaths('asdfwer')
+  t.ok(Array.isArray(resultWithInvalidDump), 'returns an array of paths even with invalid data')
+  t.equal(resultWithInvalidDump.length, 0)
 
   t.end()
 })
 
+test('sketchUtils.pathsToInstallationInfo', async (t) => {
+  t.plan(1)
+
+  const paths = ['/Some/Weird/Path/Sketch.app']
+  const installInfo = await sketchUtils.pathsToInstallationInfo(paths)
+  t.equal(installInfo[0], null)
+
+  t.end()
+})
+
+test('sketchUtils.findBestPath', (t) => {
+  t.plan()
+
+  const installInfo = [
+    null,
+    {sketchPath: '/Applications/Sketch2.app', sketchtoolBuildNumber: 51147},
+    null,
+    {sketchPath: '/Applications/Sketch.app', sketchtoolBuildNumber: 51167},
+    null
+  ]
+  const bestPath = sketchUtils.findBestPath(installInfo)
+
+  t.equal(bestPath, '/Applications/Sketch.app', 'finds the best path based on the build number')
+
+  t.end()
+})
