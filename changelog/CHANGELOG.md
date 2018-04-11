@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 3.2.8
+
+### Bug Fixes
+
+ * Use correct time for listing elements z-stack order
+
 ## 3.2.7
 
 ### Bug Fixes
