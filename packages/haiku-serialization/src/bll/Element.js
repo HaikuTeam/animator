@@ -1755,7 +1755,7 @@ Element.getBoundingBoxPointsForElementsNotTransformed = (elements) => {
 Element.boxToCornersAsPolygonPoints = ({ x, y, width, height }) => {
   return [
     [x, y], [x + width, y],
-    [x, y + height], [x + width, y + height]
+    [x + width, y + height], [x, y + height]
   ]
 }
 
