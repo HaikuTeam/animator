@@ -93,6 +93,10 @@ export default class HaikuElement extends HaikuBase {
     return this.node && this.node.layout && this.node.layout.computed;
   }
 
+  get rawLayout(): any {
+    return this.node && this.node.layout;
+  }
+
   get translation(): any {
     return this.layout && this.layout.translation;
   }
