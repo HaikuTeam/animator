@@ -362,14 +362,6 @@ class Project extends BaseModel {
     }, cb)
   }
 
-  toggleDevTools () {
-    return this.websocket.send({
-      folder: this.getFolder(),
-      method: 'toggleDevTools',
-      params: [this.getFolder()]
-    })
-  }
-
   requestSyndicationInfo (cb) {
     return this.websocket.request({
       folder: this.getFolder(),

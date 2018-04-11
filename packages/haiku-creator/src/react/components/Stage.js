@@ -113,8 +113,11 @@ export default class Stage extends React.Component {
 
   toggleDevTools () {
     if (this.webview) {
-      if (this.webview.isDevToolsOpened()) this.webview.closeDevTools()
-      else this.webview.openDevTools()
+      if (this.webview.isDevToolsOpened()) {
+        this.webview.closeDevTools()
+      } else {
+        this.webview.openDevTools()
+      }
     }
   }
 

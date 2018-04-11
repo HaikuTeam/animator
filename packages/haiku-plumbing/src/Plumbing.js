@@ -55,7 +55,6 @@ const METHODS_TO_SKIP_IN_SENTRY = {
   setTimelineTime: true,
   doesProjectHaveUnsavedChanges: true,
   masterHeartbeat: true,
-  toggleDevTools: true,
   requestSyndicationInfo: true
 }
 
@@ -76,7 +75,6 @@ const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
   setTimelineTime: true,
   doesProjectHaveUnsavedChanges: true,
   masterHeartbeat: true,
-  toggleDevTools: true,
   openTextEditor: true,
   openTerminal: true,
   saveProject: true,
@@ -685,11 +683,6 @@ export default class Plumbing extends StateObject {
 
       if (cb) cb()
     })
-  }
-
-  toggleDevTools (folder, cb) {
-    this.sendBroadcastMessage({ type: 'broadcast', name: 'dev-tools:toggle' })
-    cb()
   }
 
   /**
