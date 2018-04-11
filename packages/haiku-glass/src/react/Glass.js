@@ -149,8 +149,6 @@ export class Glass extends React.Component {
     this._stopwatch = null
     this._lastAuthoritativeFrame = 0
 
-    this._clipboardActionInfiniteLoopPrevention = false
-
     this.drawLoop = this.drawLoop.bind(this)
     this.draw = this.draw.bind(this)
 
