@@ -292,12 +292,15 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
 
       ## Copyright
 
-      ${copyrightNotice}
+      Please refer to LICENSE.txt.
     `)
 
-    fse.outputFileSync(dir(projectPath, 'LICENSE.txt'), dedent`
-      ${copyrightNotice}
-    `)
+    // If it isn't already a part of the project, add a default license
+    if (looksLikeBrandNewProject) {
+      fse.outputFileSync(dir(projectPath, 'LICENSE.txt'), dedent`
+        ${copyrightNotice}
+      `)
+    }
 
     let embedName = `HaikuComponentEmbed_${organizationName}_${projectNameSafe}`
     let standaloneName = `HaikuComponent_${organizationName}_${projectNameSafe}`
