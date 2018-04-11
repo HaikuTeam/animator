@@ -27,7 +27,7 @@ const STYLES = {
   },
   editorContext: {
     fontFamily: 'Fira Mono',
-    height: '255px',
+    height: '200px',
     width: '100%',
     padding: '6px 0 6px 22px',
     backgroundColor: Palette.DARKEST_COAL,
