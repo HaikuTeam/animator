@@ -138,12 +138,11 @@ export class ShareModal extends React.Component<PropTypes, StateTypes> {
     return (
       <ModalWrapper style={STYLES.wrapper}>
         {this.error && <ModalNotice message={'Publish was unsuccessful. Please try again momentarily.'} />}
-
         <ModalHeader>
           <ProjectShareDetails
             semverVersion={semverVersion}
             projectName={project.projectName}
-            isDisabled={!this.state.isPublicKnown}
+            isDisabled={!this.state.isPublicKnown || !snapshotSyndicated}
             linkAddress={linkAddress}
             isProjectInfoFetchInProgress={isProjectInfoFetchInProgress}
             isSnapshotSaveInProgress={isSnapshotSaveInProgress}
