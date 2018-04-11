@@ -173,8 +173,13 @@ export default class Creator extends React.Component {
       }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
     }
 
-    combokeys.bind('command+option+0', lodash.debounce(() => {
-      this.dumpSystemInfo()
+    // Top secret way to open the dev tools even if running in production
+    combokeys.bind('command+option+shift+i', lodash.debounce(() => {
+      if (this.state.projectModel) {
+        this.state.projectModel.toggleDevTools()
+      } else {
+        this.toggleDevTools()
+      }
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:open-terminal', lodash.debounce(() => {
@@ -449,29 +454,6 @@ export default class Creator extends React.Component {
     } catch (exception) {
       console.error(exception)
     }
-  }
-
-  dumpSystemInfo () {
-    const timestamp = Date.now()
-    const dumpdir = path.join(HOMEDIR_PATH, 'dumps', `dump-${timestamp}`)
-    cp.execSync(`mkdir -p ${JSON.stringify(dumpdir)}`)
-    fs.writeFileSync(path.join(dumpdir, 'argv'), JSON.stringify(process.argv, null, 2))
-    fs.writeFileSync(path.join(dumpdir, 'env'), JSON.stringify(process.env, null, 2))
-    if (fs.existsSync(path.join(HOMEDIR_LOGS_PATH, 'haiku-debug.log'))) {
-      fs.writeFileSync(path.join(dumpdir, 'log'), fs.readFileSync(path.join(HOMEDIR_LOGS_PATH, 'haiku-debug.log')).toString())
-    }
-    fs.writeFileSync(path.join(dumpdir, 'info'), JSON.stringify({
-      activeFolder: this.state.projectFolder,
-      reactState: this.state,
-      __filename: __filename,
-      __dirname: __dirname
-    }, null, 2))
-    if (this.state.projectFolder) {
-      // The project folder itself will contain git logs and other goodies we mgiht want to look at
-      cp.execSync(`tar -zcvf ${JSON.stringify(path.join(dumpdir, 'project.tar.gz'))} ${JSON.stringify(this.state.projectFolder)}`)
-    }
-    // For convenience, zip up the entire dump folder...
-    cp.execSync(`tar -zcvf ${JSON.stringify(path.join(os.homedir(), `haiku-dump-${timestamp}.tar.gz`))} ${JSON.stringify(dumpdir)}`)
   }
 
   toggleDevTools () {
