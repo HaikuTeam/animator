@@ -6106,5 +6106,12 @@
       "label": "fix",
       "message": "contemplate the case of a file not having a URL to download from Figma"
     }
+  },
+  "3.2.5": {
+    "e1345e33b0a3d6fe34b72bb0316956460d0597e2": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "add a more robust origin upgrade to support very old bytecode assets."
+    }
   }
 }

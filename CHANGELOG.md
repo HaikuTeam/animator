@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 3.2.5
+
+### Bug Fixes
+
+ * add a more robust origin upgrade to support very old bytecode assets.
+
 ## 3.2.4
 
 ### Bug Fixes
