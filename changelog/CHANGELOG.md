@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 3.2.7
+
+### Bug Fixes
+
+ * upgrade bytecode in place only after setting up caches.
+
 ## 3.2.6
 
 ### Bug Fixes

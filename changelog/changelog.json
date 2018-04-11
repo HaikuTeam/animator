@@ -6125,5 +6125,12 @@
       "label": "fix",
       "message": "add a more robust origin upgrade to support very old bytecode assets."
     }
+  },
+  "3.2.7": {
+    "365c15a2d10d495dc8330d06cfb28eed9a5c7edc": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "upgrade bytecode in place only after setting up caches."
+    }
   }
 }
