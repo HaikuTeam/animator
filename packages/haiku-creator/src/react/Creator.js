@@ -165,21 +165,13 @@ export default class Creator extends React.Component {
 
     if (process.env.NODE_ENV !== 'production') {
       combokeys.bind('command+option+i', lodash.debounce(() => {
-        if (this.state.projectModel) {
-          this.state.projectModel.toggleDevTools()
-        } else {
-          this.toggleDevTools()
-        }
+        this.toggleDevTools()
       }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
     }
 
     // Top secret way to open the dev tools even if running in production
     combokeys.bind('command+option+shift+i', lodash.debounce(() => {
-      if (this.state.projectModel) {
-        this.state.projectModel.toggleDevTools()
-      } else {
-        this.toggleDevTools()
-      }
+      this.toggleDevTools()
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:open-terminal', lodash.debounce(() => {
@@ -458,10 +450,20 @@ export default class Creator extends React.Component {
 
   toggleDevTools () {
     const win = remote.getCurrentWindow()
-    if (win.isDevToolsOpened()) win.closeDevTools()
-    else win.openDevTools()
-    if (this.refs.stage) this.refs.stage.toggleDevTools()
-    if (this.refs.timeline) this.refs.timeline.toggleDevTools()
+
+    if (win.isDevToolsOpened()) {
+      win.closeDevTools()
+    } else {
+      win.openDevTools()
+    }
+
+    if (this.refs.stage) {
+      this.refs.stage.toggleDevTools()
+    }
+
+    if (this.refs.timeline) {
+      this.refs.timeline.toggleDevTools()
+    }
   }
 
   handleEnvoyUserReady () {
@@ -496,10 +498,9 @@ export default class Creator extends React.Component {
           BaseModel.receiveSync(message)
           break
 
-        case 'dev-tools:toggle':
-          return this.toggleDevTools()
         case 'project-state-change':
           return this.handleConnectedProjectModelStateChange(message)
+
         case 'dimensions-reset':
           return this.setState({ artboardDimensions: message.data })
       }
