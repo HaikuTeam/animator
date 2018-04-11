@@ -47,7 +47,7 @@ export default (scale, {x, y}, index, cursor) => ({
         r: 12.5,
         fill: 'none',
         class: 'control-point',
-        'data-index': index,
+        'data-index': index
       }
     }
   ]
