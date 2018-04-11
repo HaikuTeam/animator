@@ -222,9 +222,6 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
     // Do a bunch of fix-ups that modify the folder content from legacy naming and folder structure.
     // We need to change this subroutine any time we make a change to the project content structure
     let filesToMove = {
-      // Meta files
-      'readme.md': 'README.md', // LEGACY: I think we used to name it lowercase, but we want upper
-      'license.txt': 'LICENSE.txt', // LEGACY: I think we used to name it lowercase, but we want upper
       // Core code files
       'bytecode.js': 'code/main/code.js'
 
