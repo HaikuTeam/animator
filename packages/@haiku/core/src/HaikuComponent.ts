@@ -207,6 +207,7 @@ export default class HaikuComponent extends HaikuElement {
       });
     } catch (e) {
       console.warn('[haiku core] caught error during attempt to upgrade bytecode in place');
+      console.warn(e);
     }
 
     // Start the default timeline to initiate the component;
@@ -1290,17 +1291,19 @@ function applyContextChanges(component, template, container, context, renderOpti
     false, // isPatchOperation
   );
 
-  component.eachEventHandler((eventSelector, eventName, {handler}) => {
-    if (component.registeredEventHandlers[eventName]) {
-      return;
-    }
+  if (component._context.renderer.mount) {
+    component.eachEventHandler((eventSelector, eventName, {handler}) => {
+      if (component.registeredEventHandlers[eventName]) {
+        return;
+      }
 
-    component.registeredEventHandlers[eventName] = true;
+      component.registeredEventHandlers[eventName] = true;
 
-    component._context.renderer.mountEventListener(eventSelector, eventName, (...args) => {
-      component.routeEventToHandlerAndEmit(eventSelector, eventName, args);
+      component._context.renderer.mountEventListener(eventSelector, eventName, (...args) => {
+        component.routeEventToHandlerAndEmit(eventSelector, eventName, args);
+      });
     });
-  });
+  }
 
   if (renderOptions.sizing) {
     computeAndApplyPresetSizing(
