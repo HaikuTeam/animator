@@ -4,13 +4,14 @@ import Palette from '../../../Palette';
 
 const STYLES = {
   imgWrapper: {
-    width: '100%',
+    width: 'calc(100% + 20px)',
     minHeight: '200px',
     backgroundColor: Palette.GRAY,
     overflow: 'hidden',
   } as React.CSSProperties,
   image: {
-    maxWidth: '100%',
+    maxWidth: 'calc(100% + 20px)',
+    maxHeight: '440px',
   },
 };
 
@@ -40,11 +41,13 @@ export default class Gif extends React.PureComponent {
         <div style={STYLES.imgWrapper}>
           <img src={gif} style={STYLES.image} />
         </div>
-        <LinkHolster
-          linkAddress={gif}
-          showLoadingBar={false}
-          dark={true}
-        />
+        <div style={{ width: 'calc(100% + 20px)'}}>
+          <LinkHolster
+            linkAddress={gif}
+            showLoadingBar={false}
+            dark={true}
+          />
+        </div>
       </div>
     );
   }
