@@ -2104,6 +2104,7 @@ class ActiveComponent extends BaseModel {
 
     root.rehydrate()
 
+    // Note that visitAll also visits self, so all elements' rows get rehydrated here
     root.visitAll((element) => {
       element.rehydrateRows()
     })
@@ -2126,27 +2127,8 @@ class ActiveComponent extends BaseModel {
       }
     }
 
-    this.positionRows()
-
     // Now that we have all the initial models ready, we can receive syncs
     BaseModel.__sync = true
-  }
-
-  positionRows () {
-    let position = 0
-
-    Template.visit(this.getReifiedBytecode().template, (node) => {
-      if (node.attributes && node.attributes[HAIKU_ID_ATTRIBUTE]) {
-        const element = this.findElementByComponentId(node.attributes[HAIKU_ID_ATTRIBUTE])
-
-        if (element) {
-          element.getHostedRowsInDefaultDisplayPositionOrder().forEach((row) => {
-            row.setPosition(position)
-            position += 1
-          })
-        }
-      }
-    })
   }
 
   getReifiedBytecode () {
@@ -2328,45 +2310,50 @@ class ActiveComponent extends BaseModel {
     return Row.where(criteria)
   }
 
-  getDisplayableRows () {
-    return this.cacheFetch('displayableRows', () => Row.getDisplayables({ component: this }))
-  }
-
   getDisplayableRowsGroupedByElementInZOrder () {
     const stack = this.getRawStackingInfo(
       this.getInstantiationTimelineName(),
       this.getInstantiationTimelineTime() // Assume z-dragging only at 0
-    )
+    ).reverse()
 
-    const rows = this.getDisplayableRows()
+    const root = this.fetchRootElement()
 
-    const mapping = {}
+    const rows = root.getHostedPropertyRows()
+    const all = [].concat(rows)
 
-    rows.forEach((row) => {
-      const hostComponentId = row.host.getComponentId()
-
-      if (!mapping[hostComponentId]) {
-        mapping[hostComponentId] = {
-          id: hostComponentId,
-          host: row.host,
-          rows: []
-        }
+    const groups = [{
+      host: root,
+      id: root.getComponentId(),
+      rows: rows.filter((row) => !row.isWithinCollapsedRow())
+    }].concat(stack.map(({haikuId}) => {
+      const child = this.findElementByComponentId(haikuId)
+      const rows = child.getHostedPropertyRows()
+      all.push.apply(all, rows)
+      return {
+        host: child,
+        id: child.getComponentId(),
+        rows: rows.filter((row) => !row.isWithinCollapsedRow())
       }
-
-      mapping[hostComponentId].rows.push(row)
-    })
-
-    let root
-    for (const componentId in mapping) {
-      if (mapping[componentId].host.isRootElement()) {
-        root = mapping[componentId]
-        break
-      }
-    }
-
-    return [root].concat(stack.reverse().map(({ zIndex, haikuId }) => {
-      return mapping[haikuId]
     }))
+
+    // It's hacky to do this here but ultimately easier than finding the
+    // right place to do it when rehydrating. Note that prev/next is only
+    // used by Timeline in order to provide keyboard navigation of rows
+    const first = all[0]
+    const last = all[all.length - 1]
+    all.forEach((row, index) => {
+      const prev = all[index - 1]
+      row._prev = null
+      row._next = null
+      if (prev) {
+        row._prev = prev
+        prev._next = row
+      }
+    })
+    first._prev = last
+    last._next = first
+
+    return groups
   }
 
   getSelectedKeyframes () {

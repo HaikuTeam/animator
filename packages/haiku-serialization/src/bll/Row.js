@@ -614,15 +614,11 @@ class Row extends BaseModel {
   }
 
   next () {
-    return this.cacheFetch('next', () => {
-      return Row.findByGlobalPosition({ component: this.component }, this.getPosition() + 1)
-    })
+    return this._next
   }
 
   prev () {
-    return this.cacheFetch('prev', () => {
-      return Row.findByGlobalPosition({ component: this.component }, this.getPosition() - 1)
-    })
+    return this._prev
   }
 
   /**
@@ -664,59 +660,19 @@ Row.findPropertyRowsByComponentAndParentHaikuId = (component, haikuId) => {
   })
 }
 
-Row.getDisplayables = (criteria) => {
-  const rows = Row.where(criteria)
-
-  return rows.filter((row) => {
-    // If we're targeting the host element, limit the depth we'll display;
-    // rows that target elements other than the host are sub-element rows
-    if (row.doesTargetHostElement()) {
-      // Nothing after the third level of depth (elements, properties, etc)
-      if (row.getDepthAmongElements() > 3) {
-        return false
-      }
-
-      // No third-level elements
-      if (row.getDepthAmongElements() >= 2 && row.parent && row.parent.isHeading()) {
-        return false
-      }
-    }
-
-    // Don't display any rows that are hidden by their parent being collapsed
-    if (row.isWithinCollapsedRow()) {
-      return false
-    }
-
-    return true
-  }).sort((rowA, rowB) => {
-    // This is assigned when ActiveComponent rehydrates the rows
-    return rowA.getPosition() - rowB.getPosition()
-  })
-}
-
-Row.cyclicalNav = function cyclicalNav (criteria, row, navDir) {
+Row.cyclicalNav = (criteria, row, navDir) => {
   let target
 
   if (navDir === undefined || navDir === null || navDir === NAVIGATION_DIRECTIONS.SAME) {
     target = row
-  } else if (navDir === NAVIGATION_DIRECTIONS.NEXT) {
-    target = row && row.next()
-  } else if (navDir === NAVIGATION_DIRECTIONS.PREV) {
-    target = row && row.prev()
-  }
-
-  if (!target && (navDir === NAVIGATION_DIRECTIONS.PREV)) {
-    // Already at top, need to jump to the bottom
-    target = Row.last(criteria)
-  } else if (!target && (navDir === NAVIGATION_DIRECTIONS.NEXT)) {
-    // Already at bottom, need to jump to the top
-    target = Row.first(criteria)
-  } else if (!target && (navDir === NAVIGATION_DIRECTIONS.SAME)) {
-    throw new Error('unable to navigate due to missing selection')
+  } else if (row && navDir === NAVIGATION_DIRECTIONS.NEXT) {
+    target = row.next()
+  } else if (row && navDir === NAVIGATION_DIRECTIONS.PREV) {
+    target = row.prev()
   }
 
   // Only allow navigating through rows that we can act upon in the timeline
-  if (!target.isProperty()) {
+  if (target && !target.isProperty()) {
     // Endless recursion without this check
     if (navDir !== undefined && navDir !== null && navDir !== NAVIGATION_DIRECTIONS.SAME) {
       return Row.cyclicalNav(criteria, target, navDir)
@@ -726,7 +682,7 @@ Row.cyclicalNav = function cyclicalNav (criteria, row, navDir) {
   return target
 }
 
-Row.focusSelectNext = function focusSelectNext (criteria, navDir, doFocus, metadata) {
+Row.focusSelectNext = (criteria, navDir, doFocus, metadata) => {
   const selected = Row.getSelectedRow(criteria)
   const focused = Row.getFocusedRow(criteria)
 
@@ -746,11 +702,11 @@ Row.focusSelectNext = function focusSelectNext (criteria, navDir, doFocus, metad
     ? Row.cyclicalNav(criteria, previous, navDir)
     : Row.cyclicalNav(criteria, Row.findByGlobalPosition(criteria, 0), navDir)
 
-  target.expand(metadata)
-  target.select(metadata)
-  if (doFocus) target.focus(metadata)
-
-  return target
+  if (target) {
+    target.expand(metadata)
+    target.select(metadata)
+    if (doFocus) target.focus(metadata)
+  }
 }
 
 Row.getSelectedRow = function getSelectedRow (criteria) {
@@ -813,27 +769,6 @@ Row.dumpHierarchyInfo = (criteria) => {
   return Row.rsmap(criteria, (row) => {
     return row.dump()
   })
-}
-
-Row.findByGlobalPosition = (criteria, position) => {
-  return Row.where(criteria).filter((row) => {
-    return row.getPosition() === position
-  })[0]
-}
-
-// The last row is the row with the largest global position
-Row.last = (criteria) => {
-  let max = Row.first(criteria)
-  Row.where(criteria).forEach((row) => {
-    if (row.getPosition() > max.getPosition()) {
-      max = row
-    }
-  })
-  return max
-}
-
-Row.first = (criteria) => {
-  return Row.findByGlobalPosition(criteria, 0)
 }
 
 // The id-generators below accept a "host element" and a "target element";
