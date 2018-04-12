@@ -329,20 +329,22 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   getOriginTransformed () {
-    // If managing only one element, use its own box points
-    if (this.shouldUseChildLayout()) {
-      return this.selection[0].getOriginTransformed()
-    }
+    return this.cacheFetch('getOriginTransformed', () => {
+      // If managing only one element, use its own box points
+      if (this.shouldUseChildLayout()) {
+        return this.selection[0].getOriginTransformed()
+      }
 
-    const layout = this.getComputedLayout()
-    return Element.transformPointInPlace(
-      {
-        x: layout.size.x * layout.origin.x,
-        y: layout.size.y * layout.origin.y,
-        z: layout.size.z * layout.origin.z
-      },
-      layout.matrix
-    )
+      const layout = this.getComputedLayout()
+      return Element.transformPointInPlace(
+        {
+          x: layout.size.x * layout.origin.x,
+          y: layout.size.y * layout.origin.y,
+          z: layout.size.z * layout.origin.z
+        },
+        layout.matrix
+      )
+    })
   }
 
   getBoxPointsNotTransformed () {
@@ -394,23 +396,45 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   getComputedLayout () {
-    return Layout3D.computeLayout(
+    return this.cacheFetch('getComputedLayout', () => Layout3D.computeLayout(
       this.getLayoutSpec(),
       Layout3D.createMatrix(),
       this.getParentComputedSize()
-    )
+    ))
   }
 
   getBoxPointsTransformed () {
-    // If managing only one element, use its own box points
-    if (this.doesManageSingleElement()) {
-      return this.selection[0].getBoxPointsTransformed()
-    }
+    return this.cacheFetch('getBoxPointsTransformed', () => {
+      // If managing only one element, use its own box points
+      if (this.doesManageSingleElement()) {
+        return this.selection[0].getBoxPointsTransformed()
+      }
 
-    return Element.transformPointsInPlace(
-      this.getBoxPointsNotTransformed(),
-      this.getComputedLayout().matrix
-    )
+      return Element.transformPointsInPlace(
+        this.getBoxPointsNotTransformed(),
+        this.getComputedLayout().matrix
+      )
+    })
+  }
+
+  getControlsPosition (basisPointIndex, xOffset, yOffset) {
+    return this.cacheFetch('getControlsPosition', () => {
+      const layout = this.getComputedLayout()
+      const orthonormalBasisMatrix = Layout3D.computeOrthonormalBasisMatrix(layout.rotation)
+      const offset = {
+        x: xOffset * Math.sign(layout.scale.x),
+        y: yOffset * Math.sign(layout.scale.y),
+        z: 0
+      }
+      Element.transformPointInPlace(offset, orthonormalBasisMatrix)
+      const basisPoint = this.getBoxPointsTransformed()[basisPointIndex]
+
+      return {
+        x: basisPoint.x + offset.x,
+        y: basisPoint.y + offset.y,
+        z: basisPoint.z
+      }
+    })
   }
 
   getBoundingClientRect () {
@@ -456,6 +480,7 @@ class ElementSelectionProxy extends BaseModel {
 
   applyPropertyValue (key, value) {
     this._proxyProperties[key] = value
+    this.cacheClear()
   }
 
   applyPropertyDelta (key, delta) {
@@ -590,8 +615,19 @@ class ElementSelectionProxy extends BaseModel {
     targetElement.component.updateKeyframes(
       accumulatedUpdates,
       this.component.project.getMetadata(),
-      () => {} // no-op
+      () => {
+        this.cacheClear()
+      }
     )
+  }
+
+  cacheClear () {
+    if (this.hasAnythingInSelection()) {
+      super.cacheClear()
+      this.selection.forEach((element) => {
+        element.cacheClear()
+      })
+    }
   }
 
   move (dx, dy) {
@@ -763,7 +799,9 @@ class ElementSelectionProxy extends BaseModel {
     this.component.updateKeyframes(
       accumulatedUpdates,
       this.component.project.getMetadata(),
-      () => {} // no-op
+      () => {
+        this.cacheClear()
+      }
     )
   }
 
@@ -889,7 +927,9 @@ class ElementSelectionProxy extends BaseModel {
     this.component.updateKeyframes(
       accumulatedUpdates,
       this.component.project.getMetadata(),
-      () => {} // no-op
+      () => {
+        this.cacheClear()
+      }
     )
   }
 
@@ -945,7 +985,9 @@ class ElementSelectionProxy extends BaseModel {
     this.component.updateKeyframes(
       accumulatedUpdates,
       this.component.project.getMetadata(),
-      () => {} // no-op
+      () => {
+        this.cacheClear()
+      }
     )
   }
 
@@ -1432,7 +1474,7 @@ ElementSelectionProxy.accumulateKeyframeUpdates = (
 
 ElementSelectionProxy.fromSelection = (selection, query) => {
   const uid = selection.map((element) => element.getPrimaryKey()).sort().join('+') || 'none'
-  return ElementSelectionProxy.upsert(Object.assign({ uid, selection }, query))
+  return ElementSelectionProxy.findById(uid) || ElementSelectionProxy.upsert(Object.assign({ uid, selection }, query))
 }
 
 const PASTEABLES = []

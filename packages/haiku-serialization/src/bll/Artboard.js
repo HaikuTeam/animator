@@ -89,6 +89,7 @@ class Artboard extends BaseModel {
       renderer.config.zoom = this.getZoom()
       renderer.config.pan = this.getPan()
     }
+    ElementSelectionProxy.clearCaches()
     this.emit('update', 'dimensions-changed')
   }
 
@@ -278,3 +279,4 @@ module.exports = Artboard
 
 // Down here to avoid Node circular dependency stub objects. #FIXME
 const Element = require('./Element')
+const ElementSelectionProxy = require('./ElementSelectionProxy')

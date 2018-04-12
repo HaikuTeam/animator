@@ -1,82 +1,23 @@
 /**
  * Provides mana for the rotation cursor on stage.
+ * @param scale
  * @param mousePosition
  * @param originPosition
  */
-export default (scale, {x, y}, {x: originX, y: originY}) => {
-  return {
-    elementName: 'svg',
+export default (scale, {x, y}, {x: originX, y: originY}) => ({
+  elementName: 'g',
+  attributes: {
+    transform: `scale(${scale})`,
+    style: {
+      transformOrigin: `${x}px ${y}px 0px`
+    }
+  },
+  children: [{
+    elementName: 'g',
     attributes: {
-      width: 20,
-      height: 14,
-      style: {
-        position: 'absolute',
-        left: `${x - 10}px`,
-        top: `${y - 7}px`,
-        transform: `rotateZ(${Math.atan2(y - originY, x - originX) - 3 * Math.PI / 2}rad) scale(${scale},${scale})`
-      }
+      transform: `translate(${x - 10} ${y - 7}) rotate(${Math.atan2(y - originY, x - originX) * 180 / Math.PI - 270} 10 7)`
     },
     children: [
-      {
-        elementName: 'defs',
-        children: [
-          {
-            elementName: 'filter',
-            attributes: {
-              x: '-28.3%',
-              y: '-23.4%',
-              width: '152.4%',
-              height: '151.1%',
-              filterUnits: 'objectBoundingBox',
-              id: 'c'
-            },
-            children: [
-              {
-                elementName: 'feMorphology',
-                attributes: {
-                  radius: '1',
-                  operator: 'dilate',
-                  in: 'SourceAlpha',
-                  result: 'shadowSpreadOuter1'
-                }
-              },
-              {
-                elementName: 'feOffset',
-                attributes: {
-                  dx: -0.3,
-                  dy: 0.3,
-                  in: 'shadowSpreadOuter1',
-                  result: 'shadowOffsetOuter1'
-                }
-              },
-              {
-                elementName: 'feGaussianBlur',
-                attributes: {
-                  stdDeviation: 0.5,
-                  in: 'shadowOffsetOuter1',
-                  result: 'shadowBlurOuter1'
-                }
-              },
-              {
-                elementName: 'feComposite',
-                attributes: {
-                  in: 'shadowBlurOuter1',
-                  in2: 'SourceAlpha',
-                  operator: 'out',
-                  result: 'shadowBlurOuter1'
-                }
-              },
-              {
-                elementName: 'feColorMatrix',
-                attributes: {
-                  'values': '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.134227808 0',
-                  'in': 'shadowBlurOuter1'
-                }
-              }
-            ]
-          }
-        ]
-      },
       {
         elementName: 'g',
         attributes: {
@@ -104,5 +45,5 @@ export default (scale, {x, y}, {x: originX, y: originY}) => {
         ]
       }
     ]
-  }
-}
+  }]
+})
