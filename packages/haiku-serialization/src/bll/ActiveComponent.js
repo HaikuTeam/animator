@@ -525,7 +525,7 @@ class ActiveComponent extends BaseModel {
   selectAll (options, metadata, cb) {
     return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
       this.getArtboard().getElement().children.forEach((element) => {
-        element.select(metadata)
+        element.selectSoftly(metadata)
       })
 
       release()
