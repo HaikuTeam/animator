@@ -61,7 +61,7 @@ export const colorTransformer = (color: string) => {
  * @param {number} radians
  * @returns {number}
  */
-export const rotationTransformer = (radians: number) => radians * 360 / 2 / Math.PI;
+export const rotationTransformer = (radians: number) => radians * 180 / Math.PI;
 
 /**
  * Transforms a CSS stroke-linecap into an After Effects Line Cap.

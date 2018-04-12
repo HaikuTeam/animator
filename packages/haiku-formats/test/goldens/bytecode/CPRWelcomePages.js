@@ -6,7 +6,7 @@ module.exports = {
     name: "CPRWelcomePages",
     relpath: "code/main/code.js",
     version: "0.0.2",
-    core: "3.1.32",
+    core: "3.2.8",
     player: "3.1.32",
     organization: "rudymatos",
     project: "CPRWelcomePages",
@@ -43,7 +43,9 @@ module.exports = {
         "translation.y": { "0": { value: 30.29812834224593, edited: true } },
         "style.zIndex": { "0": { value: 1 } },
         "scale.x": { "0": { value: 1.1758001672108904 } },
-        "scale.y": { "0": { value: 1.1758001672108904 } }
+        "scale.y": { "0": { value: 1.1758001672108904 } },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:8a57024e0901": {
         points: {
@@ -214,7 +216,9 @@ module.exports = {
           "0": { value: 1, curve: "easeInCubic", edited: true },
           "1100": { value: 1.5, edited: true, curve: "easeOutCubic" },
           "1667": { value: 1, edited: true }
-        }
+        },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:bdcc32a322e7": {
         stroke: { "0": { value: "none" } },
@@ -263,7 +267,9 @@ module.exports = {
           "0": { value: 1, edited: true, curve: "easeInCubic" },
           "833": { value: 1.5, edited: true, curve: "easeOutCubic" },
           "1417": { value: 1, edited: true }
-        }
+        },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:0566a91e2156": {
         stroke: { "0": { value: "none" } },
@@ -312,7 +318,9 @@ module.exports = {
         opacity: {
           "0": { value: 0, edited: true, curve: "easeInCubic" },
           "817": { value: 1, edited: true }
-        }
+        },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:96355f4a9815": {
         stroke: { "0": { value: "none" } },

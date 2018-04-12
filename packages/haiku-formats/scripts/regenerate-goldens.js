@@ -8,15 +8,16 @@ const goldensRoot = join(global.process.cwd(), 'test/goldens');
 
 readdir(join(goldensRoot, 'bytecode'), (_, bytecodeFiles) => {
   each(bytecodeFiles, (filename, next) => {
-    const name = basename(filename, '.js');
-    const bodymovinExporter = new BodymovinExporter(require(join(goldensRoot, 'bytecode', filename)));
+    const bytecodeFilename = join(goldensRoot, 'bytecode', filename);
+    const name = basename(bytecodeFilename, '.js');
+    const bodymovinExporter = new BodymovinExporter(require(bytecodeFilename));
     // Clear require cache.
-    delete require[join(goldensRoot, 'bytecode', filename)];
+    delete require.cache[require.resolve(bytecodeFilename)];
     writeFile(
       join(goldensRoot, 'bodymovin', `${name}.json`),
       JSON.stringify(bodymovinExporter.rawOutput(), null, 2),
       () => {
-        const haikuStaticExporter = new HaikuStaticExporter(require(join(goldensRoot, 'bytecode', filename)));
+        const haikuStaticExporter = new HaikuStaticExporter(require(bytecodeFilename));
         writeFile(
           join(goldensRoot, 'haikuStatic', `${name}.json`),
           JSON.stringify(haikuStaticExporter.rawOutput(), null, 2),

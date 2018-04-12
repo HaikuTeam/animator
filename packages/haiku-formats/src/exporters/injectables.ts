@@ -42,6 +42,9 @@ class DefaultStub {
 export const evaluateInjectedFunctionInExportContext = (timelinePropertyValue, states) => {
   const rfo = functionToRFO(timelinePropertyValue);
   const defaultStub = new DefaultStub();
-  const params = rfo.__function.params.map((param) => states.hasOwnProperty(param) ? states[param].value : defaultStub);
+  const params = rfo.__function.params.map((param) => (global[param] || states.hasOwnProperty(param))
+    ? (global[param] || states[param].value)
+    : defaultStub,
+  );
   return timelinePropertyValue.apply(undefined, params) || 0;
 };
