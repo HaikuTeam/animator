@@ -84,233 +84,191 @@
       "haiku:354ad02de7ff": {
         "style.position": {
           "0": {
-            "value": "absolute",
-            "curve": "linear"
+            "value": "absolute"
           }
         },
         "style.margin": {
           "0": {
-            "value": "0",
-            "curve": "linear"
+            "value": "0"
           }
         },
         "style.padding": {
           "0": {
-            "value": "0",
-            "curve": "linear"
+            "value": "0"
           }
         },
         "style.border": {
           "0": {
-            "value": "0",
-            "curve": "linear"
+            "value": "0"
           }
         },
         "sizeAbsolute.x": {
           "0": {
-            "value": 500,
-            "curve": "linear"
+            "value": 500
           }
         },
         "sizeMode.x": {
           "0": {
-            "value": 1,
-            "curve": "linear"
+            "value": 1
           }
         },
         "sizeAbsolute.y": {
           "0": {
-            "value": 500,
-            "curve": "linear"
+            "value": 500
           }
         },
         "sizeMode.y": {
           "0": {
-            "value": 1,
-            "curve": "linear"
+            "value": 1
           }
         },
         "translation.x": {
           "0": {
             "value": 0,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           },
-          "35": {
+          "583": {
             "value": 0,
             "edited": true,
             "curve": "easeInSine"
           },
-          "60": {
+          "1000": {
             "value": 600,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           },
-          "119": {
-            "value": 600,
-            "edited": true,
-            "curve": "linear"
-          },
-          "120": {
+          "2000": {
             "value": -600,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           },
-          "160": {
+          "2667": {
             "value": -600,
             "edited": true,
             "curve": "easeInSine"
           },
-          "185": {
+          "3083": {
             "value": 0,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           }
         },
         "translation.y": {
           "0": {
             "value": 0,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           },
-          "35": {
+          "583": {
             "value": 0,
             "edited": true,
             "curve": "easeInSine"
           },
-          "60": {
+          "1000": {
             "value": 200,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           },
-          "120": {
+          "2000": {
             "value": 200,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           },
-          "160": {
+          "2667": {
             "value": 200,
             "edited": true,
             "curve": "easeInSine"
           },
-          "185": {
+          "3083": {
             "value": 0,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           }
         },
         "style.zIndex": {
           "0": {
-            "value": 1,
-            "curve": "linear"
+            "value": 1
           }
         },
         "translation.z": {
           "0": {
             "value": 0,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           }
         },
         "rotation.x": {
           "0": {
             "value": 0,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           }
         },
         "rotation.y": {
           "0": {
             "value": 0,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           }
         },
         "rotation.z": {
           "0": {
             "value": 0,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           },
-          "35": {
+          "583": {
             "value": 0,
             "edited": true,
             "curve": "easeInSine"
           },
-          "60": {
+          "1000": {
             "value": 0.5,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           },
-          "119": {
-            "value": 0.5,
-            "edited": true,
-            "curve": "linear"
-          },
-          "120": {
+          "2000": {
             "value": -0.5,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           },
-          "160": {
+          "2667": {
             "value": -0.5,
             "edited": true,
             "curve": "easeInSine"
           },
-          "185": {
+          "3083": {
             "value": 0,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           }
         }
       },
       "haiku:7607cdf180f1": {
         "style.position": {
           "0": {
-            "value": "absolute",
-            "curve": "linear"
+            "value": "absolute"
           }
         },
         "style.margin": {
           "0": {
-            "value": "0",
-            "curve": "linear"
+            "value": "0"
           }
         },
         "style.padding": {
           "0": {
-            "value": "0",
-            "curve": "linear"
+            "value": "0"
           }
         },
         "style.border": {
           "0": {
-            "value": "0",
-            "curve": "linear"
+            "value": "0"
           }
         },
         "sizeAbsolute.x": {
           "0": {
-            "value": 224,
-            "curve": "linear"
+            "value": 224
           }
         },
         "sizeMode.x": {
           "0": {
-            "value": 1,
-            "curve": "linear"
+            "value": 1
           }
         },
         "sizeAbsolute.y": {
           "0": {
-            "value": 225,
-            "curve": "linear"
+            "value": 225
           }
         },
         "sizeMode.y": {
           "0": {
-            "value": 1,
-            "curve": "linear"
+            "value": 1
           }
         },
         "translation.x": {
@@ -319,20 +277,19 @@
             "edited": true,
             "curve": "easeInSine"
           },
-          "20": {
+          "333": {
             "value": 55.5,
             "edited": true,
             "curve": "linear"
           },
-          "38": {
+          "633": {
             "value": 163.5,
             "edited": true,
             "curve": "linear"
           },
-          "60": {
+          "1000": {
             "value": 810.375,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           }
         },
         "translation.y": {
@@ -341,26 +298,24 @@
             "edited": true,
             "curve": "easeInSine"
           },
-          "20": {
+          "333": {
             "value": 97.5,
             "edited": true,
             "curve": "linear"
           },
-          "38": {
+          "633": {
             "value": 61.5,
             "edited": true,
             "curve": "linear"
           },
-          "60": {
+          "1000": {
             "value": 284.9375,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           }
         },
         "style.zIndex": {
           "0": {
-            "value": 2,
-            "curve": "linear"
+            "value": 2
           }
         },
         "opacity": {
@@ -369,20 +324,13 @@
             "edited": true,
             "curve": "easeInSine"
           },
-          "15": {
+          "250": {
             "value": 1,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           },
-          "119": {
-            "value": 1,
-            "edited": true,
-            "curve": "linear"
-          },
-          "120": {
+          "2000": {
             "value": 0,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           }
         },
         "rotation.z": {
@@ -391,719 +339,552 @@
             "edited": true,
             "curve": "easeInSine"
           },
-          "20": {
+          "333": {
             "value": 0.207519640162249,
             "edited": true,
             "curve": "linear"
           },
-          "38": {
+          "633": {
             "value": 0.5,
             "edited": true,
             "curve": "linear"
           },
-          "60": {
+          "1000": {
             "value": 1,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           }
         }
       },
       "haiku:6fae16b81aab": {
         "style.position": {
           "0": {
-            "value": "absolute",
-            "curve": "linear"
+            "value": "absolute"
           }
         },
         "style.margin": {
           "0": {
-            "value": "0",
-            "curve": "linear"
+            "value": "0"
           }
         },
         "style.padding": {
           "0": {
-            "value": "0",
-            "curve": "linear"
+            "value": "0"
           }
         },
         "style.border": {
           "0": {
-            "value": "0",
-            "curve": "linear"
+            "value": "0"
           }
         },
         "sizeAbsolute.x": {
           "0": {
-            "value": 500,
-            "curve": "linear"
+            "value": 500
           }
         },
         "sizeMode.x": {
           "0": {
-            "value": 1,
-            "curve": "linear"
+            "value": 1
           }
         },
         "sizeAbsolute.y": {
           "0": {
-            "value": 500,
-            "curve": "linear"
+            "value": 500
           }
         },
         "sizeMode.y": {
           "0": {
-            "value": 1,
-            "curve": "linear"
+            "value": 1
           }
         },
         "translation.x": {
           "0": {
             "value": -600,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           },
-          "35": {
+          "583": {
             "value": -600,
             "edited": true,
             "curve": "easeInSine"
           },
-          "60": {
+          "1000": {
             "value": 0,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           },
-          "95": {
+          "1583": {
             "value": 0,
             "edited": true,
             "curve": "easeInSine"
           },
-          "120": {
+          "2000": {
             "value": 600,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           },
-          "160": {
+          "2667": {
             "value": 600,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           }
         },
         "translation.y": {
           "0": {
             "value": 200,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           },
-          "35": {
+          "583": {
             "value": 200,
             "edited": true,
             "curve": "easeInSine"
           },
-          "60": {
+          "1000": {
             "value": 0,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           },
-          "95": {
+          "1583": {
             "value": 0,
             "edited": true,
             "curve": "easeInSine"
           },
-          "120": {
+          "2000": {
             "value": 200,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           },
-          "160": {
+          "2667": {
             "value": 200,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           }
         },
         "style.zIndex": {
           "0": {
-            "value": 3,
-            "curve": "linear"
+            "value": 3
           }
         },
         "translation.z": {
           "0": {
             "value": 0,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           }
         },
         "rotation.z": {
           "0": {
             "value": -0.5,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           },
-          "35": {
+          "583": {
             "value": -0.5,
             "edited": true,
             "curve": "easeInSine"
           },
-          "60": {
+          "1000": {
             "value": 0,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           },
-          "95": {
+          "1583": {
             "value": 0,
             "edited": true,
             "curve": "easeInSine"
           },
-          "120": {
+          "2000": {
             "value": 0.5,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           },
-          "160": {
+          "2667": {
             "value": 0.5,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           }
         },
         "scale.x": {
           "0": {
             "value": 1,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           }
         },
         "scale.y": {
           "0": {
             "value": 1,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           }
         }
       },
       "haiku:a5ee1e240e15": {
         "style.position": {
           "0": {
-            "value": "absolute",
-            "curve": "linear"
+            "value": "absolute"
           }
         },
         "style.margin": {
           "0": {
-            "value": "0",
-            "curve": "linear"
+            "value": "0"
           }
         },
         "style.padding": {
           "0": {
-            "value": "0",
-            "curve": "linear"
+            "value": "0"
           }
         },
         "style.border": {
           "0": {
-            "value": "0",
-            "curve": "linear"
+            "value": "0"
           }
         },
         "sizeAbsolute.x": {
           "0": {
-            "value": 500,
-            "curve": "linear"
+            "value": 500
           }
         },
         "sizeMode.x": {
           "0": {
-            "value": 1,
-            "curve": "linear"
+            "value": 1
           }
         },
         "sizeAbsolute.y": {
           "0": {
-            "value": 500,
-            "curve": "linear"
+            "value": 500
           }
         },
         "sizeMode.y": {
           "0": {
-            "value": 1,
-            "curve": "linear"
+            "value": 1
           }
         },
         "translation.x": {
           "0": {
             "value": -1200,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           },
-          "59": {
-            "value": -1200,
-            "edited": true,
-            "curve": "linear"
-          },
-          "60": {
+          "1000": {
             "value": -600,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           },
-          "95": {
+          "1583": {
             "value": -600,
             "edited": true,
             "curve": "easeInSine"
           },
-          "120": {
+          "2000": {
             "value": 0,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           },
-          "160": {
+          "2667": {
             "value": 0,
             "edited": true,
             "curve": "easeInSine"
           },
-          "185": {
+          "3083": {
             "value": 600,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           }
         },
         "translation.y": {
           "0": {
             "value": 200,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           },
-          "95": {
+          "1583": {
             "value": 200,
             "edited": true,
             "curve": "easeInSine"
           },
-          "120": {
+          "2000": {
             "value": 0,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           },
-          "160": {
+          "2667": {
             "value": 0,
             "edited": true,
             "curve": "easeInSine"
           },
-          "185": {
+          "3083": {
             "value": 200,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           }
         },
         "style.zIndex": {
           "0": {
-            "value": 4,
-            "curve": "linear"
+            "value": 4
           }
         },
         "rotation.z": {
           "0": {
             "value": -0.5,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           },
-          "95": {
+          "1583": {
             "value": -0.5,
             "edited": true,
             "curve": "easeInSine"
           },
-          "120": {
+          "2000": {
             "value": 0,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           },
-          "160": {
+          "2667": {
             "value": 0,
             "edited": true,
             "curve": "easeInSine"
           },
-          "185": {
+          "3083": {
             "value": 0.5,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           }
         }
       },
       "haiku:6da557f6c4b3": {
         "style.position": {
           "0": {
-            "value": "absolute",
-            "curve": "linear"
+            "value": "absolute"
           }
         },
         "style.margin": {
           "0": {
-            "value": "0",
-            "curve": "linear"
+            "value": "0"
           }
         },
         "style.padding": {
           "0": {
-            "value": "0",
-            "curve": "linear"
+            "value": "0"
           }
         },
         "style.border": {
           "0": {
-            "value": "0",
-            "curve": "linear"
+            "value": "0"
           }
         },
         "sizeAbsolute.x": {
           "0": {
-            "value": 209,
-            "curve": "linear"
+            "value": 209
           }
         },
         "sizeMode.x": {
           "0": {
-            "value": 1,
-            "curve": "linear"
+            "value": 1
           }
         },
         "sizeAbsolute.y": {
           "0": {
-            "value": 192,
-            "curve": "linear"
+            "value": 192
           }
         },
         "sizeMode.y": {
           "0": {
-            "value": 1,
-            "curve": "linear"
+            "value": 1
           }
         },
         "translation.x": {
           "0": {
             "value": -370,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           },
-          "35": {
+          "583": {
             "value": -370,
             "edited": true,
             "curve": "easeInSine"
           },
-          "60": {
-            "curve": [
-              0.4,
-              2.5,
-              0.367,
-              0.556
-            ],
-            "value": 255
+          "1000": {
+            "value": 255,
+            "edited": true,
+            "curve": "easeOutElastic"
           },
-          "77": {
-            "curve": "easeOutSine",
-            "value": 255
-          },
-          "80": {
-            "curve": "easeInSine",
-            "value": 255
-          },
-          "84": {
-            "curve": "easeOutSine",
-            "value": 255
-          },
-          "87": {
-            "curve": "easeInSine",
-            "value": 255
-          },
-          "95": {
+          "1583": {
             "value": 255,
             "edited": true,
             "curve": "easeInSine"
           },
-          "120": {
+          "2000": {
             "value": 870,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           }
         },
         "translation.y": {
           "0": {
             "value": 280,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           },
-          "35": {
+          "583": {
             "value": 280,
             "edited": true,
             "curve": "easeInSine"
           },
-          "60": {
-            "curve": [
-              0.4,
-              2.5,
-              0.367,
-              0.556
-            ],
-            "value": 120
+          "1000": {
+            "value": 120,
+            "edited": true,
+            "curve": "easeOutElastic"
           },
-          "77": {
-            "curve": "easeOutSine",
-            "value": 120
-          },
-          "80": {
-            "curve": "easeInSine",
-            "value": 120
-          },
-          "84": {
-            "curve": "easeOutSine",
-            "value": 120
-          },
-          "87": {
-            "curve": "easeInSine",
-            "value": 120
-          },
-          "95": {
+          "1583": {
             "value": 120,
             "edited": true,
             "curve": "easeInSine"
           },
-          "120": {
+          "2000": {
             "value": 380,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           }
         },
         "style.zIndex": {
           "0": {
-            "value": 5,
-            "curve": "linear"
+            "value": 5
           }
         },
         "rotation.z": {
           "0": {
             "value": -0.5,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           },
-          "35": {
+          "583": {
             "value": -0.5,
             "edited": true,
             "curve": "easeInSine"
           },
-          "60": {
-            "curve": [
-              0.4,
-              2.5,
-              0.367,
-              0.556
-            ],
-            "value": -0.06429506519858252
+          "1000": {
+            "value": -0.06429506519858252,
+            "edited": true,
+            "curve": "easeOutElastic"
           },
-          "77": {
-            "curve": "easeOutSine",
-            "value": 0.22163689528329167
-          },
-          "80": {
-            "curve": "easeInSine",
-            "value": 0.22655492500357993
-          },
-          "84": {
-            "curve": "easeOutSine",
-            "value": 0.22163689528329167
-          },
-          "87": {
-            "curve": "easeInSine",
-            "value": 0.22040738785321962
-          },
-          "95": {
+          "1583": {
             "value": 0.22163689528329167,
             "edited": true,
             "curve": "easeInSine"
           },
-          "120": {
+          "2000": {
             "value": 0.7,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           }
         },
         "scale.x": {
           "0": {
             "value": 1,
-            "edited": true,
-            "curve": "linear"
-          }
-        },
-        "scale.y": {
-          "0": {
-            "value": 1,
-            "curve": "linear"
+            "edited": true
           }
         }
       },
       "haiku:84e8b4a123b7": {
         "style.position": {
           "0": {
-            "value": "absolute",
-            "curve": "linear"
+            "value": "absolute"
           }
         },
         "style.margin": {
           "0": {
-            "value": "0",
-            "curve": "linear"
+            "value": "0"
           }
         },
         "style.padding": {
           "0": {
-            "value": "0",
-            "curve": "linear"
+            "value": "0"
           }
         },
         "style.border": {
           "0": {
-            "value": "0",
-            "curve": "linear"
+            "value": "0"
           }
         },
         "sizeAbsolute.x": {
           "0": {
-            "value": 205,
-            "curve": "linear"
+            "value": 205
           }
         },
         "sizeMode.x": {
           "0": {
-            "value": 1,
-            "curve": "linear"
+            "value": 1
           }
         },
         "sizeAbsolute.y": {
           "0": {
-            "value": 243,
-            "curve": "linear"
+            "value": 243
           }
         },
         "sizeMode.y": {
           "0": {
-            "value": 1,
-            "curve": "linear"
+            "value": 1
           }
         },
         "translation.x": {
           "0": {
             "value": 126.40625,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           },
-          "94": {
-            "value": 126.40625,
-            "edited": true,
-            "curve": "linear"
-          },
-          "95": {
+          "1583": {
             "value": -573.4375,
             "edited": true,
             "curve": "easeInSine"
           },
-          "120": {
+          "2000": {
             "value": 46.71875,
             "edited": true,
             "curve": "linear"
           },
-          "160": {
+          "2667": {
             "value": 218.59375,
             "edited": true,
             "curve": "easeInSine"
           },
-          "185": {
+          "3083": {
             "value": 850,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           }
         },
         "translation.y": {
           "0": {
             "value": 126.9375,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           },
-          "94": {
-            "value": 126.9375,
-            "edited": true,
-            "curve": "linear"
-          },
-          "95": {
+          "1583": {
             "value": 450.546875,
             "edited": true,
             "curve": "easeInSine"
           },
-          "120": {
+          "2000": {
             "value": 138.09375,
             "edited": true,
             "curve": "linear"
           },
-          "160": {
+          "2667": {
             "value": 85.359375,
             "edited": true,
             "curve": "easeInSine"
           },
-          "185": {
+          "3083": {
             "value": 320,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           }
         },
         "style.zIndex": {
           "0": {
-            "value": 6,
-            "curve": "linear"
+            "value": 6
           }
         },
         "opacity": {
           "0": {
             "value": 0,
-            "curve": "linear",
+            "curve": null,
             "edited": true
           },
-          "94": {
-            "value": 0,
-            "curve": "linear",
-            "edited": true
-          },
-          "95": {
+          "1583": {
             "value": 1,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           }
         },
         "rotation.z": {
           "0": {
             "value": 0,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           },
-          "94": {
-            "value": 0,
-            "edited": true,
-            "curve": "linear"
-          },
-          "95": {
+          "1583": {
             "value": -0.5,
             "edited": true,
             "curve": "easeInSine"
           },
-          "120": {
+          "2000": {
             "value": 0,
             "edited": true,
             "curve": "linear"
           },
-          "160": {
+          "2667": {
             "value": 0.26834761958989306,
             "edited": true,
             "curve": "easeInSine"
           },
-          "185": {
+          "3083": {
             "value": 0.9,
-            "edited": true,
-            "curve": "linear"
+            "edited": true
           }
         }
       },
