@@ -323,11 +323,13 @@ export const DASH_STYLES = {
     backgroundColor: Color(Palette.COAL).darken(0.3),
     width: '100%',
     height: 53,
-    color: Palette.SUNSTONE,
     padding: 20,
     borderRadius: 5,
     fontSize: 15,
-    marginBottom: 42
+    marginBottom: 42,
+    color: Palette.LIGHTEST_PINK, // this is color of the cursor
+    textShadow: '0px 0px 0px ' + Palette.SUNSTONE, // this is color of the text
+    '-webkit-text-fill-color': 'transparent'
   },
   newProjectError: {
     display: 'block',
