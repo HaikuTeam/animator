@@ -417,6 +417,26 @@ class ElementSelectionProxy extends BaseModel {
     })
   }
 
+  getControlsPosition (basisPointIndex, xOffset, yOffset) {
+    return this.cacheFetch('getControlsPosition', () => {
+      const layout = this.getComputedLayout()
+      const orthonormalBasisMatrix = Layout3D.computeOrthonormalBasisMatrix(layout.rotation)
+      const offset = {
+        x: xOffset * Math.sign(layout.scale.x),
+        y: yOffset * Math.sign(layout.scale.y),
+        z: 0
+      }
+      Element.transformPointInPlace(offset, orthonormalBasisMatrix)
+      const basisPoint = this.getBoxPointsTransformed()[basisPointIndex]
+
+      return {
+        x: basisPoint.x + offset.x,
+        y: basisPoint.y + offset.y,
+        z: basisPoint.z
+      }
+    })
+  }
+
   getBoundingClientRect () {
     const points = this.getBoxPointsTransformed()
 

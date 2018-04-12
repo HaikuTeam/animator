@@ -14,7 +14,6 @@ import Design from 'haiku-serialization/src/bll/Design'
 import Asset from 'haiku-serialization/src/bll/Asset'
 import ModuleWrapper from 'haiku-serialization/src/bll/ModuleWrapper'
 import EmitterManager from 'haiku-serialization/src/utils/EmitterManager'
-import react2haiku from 'haiku-serialization/src/utils/react2haiku'
 import {isCoordInsideBoxPoints} from 'haiku-serialization/src/bll/MathUtils'
 import Palette from 'haiku-ui-common/lib/Palette'
 import Comment from './Comment'
@@ -22,12 +21,12 @@ import EventHandlerEditor from './components/EventHandlerEditor'
 import Comments from './Comments'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
 import requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates'
-import {GearSVG} from 'haiku-ui-common/lib/react/OtherIcons'
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 import originMana from '../overlays/originMana'
 import controlPointMana from '../overlays/controlPointMana'
 import boxMana from '../overlays/boxMana'
 import defsMana from '../overlays/defsMana'
+import gearMana from '../overlays/gearMana'
 import rotationCursorMana from '../overlays/rotationCursorMana'
 import scaleCursorMana from '../overlays/scaleCursorMana'
 
@@ -59,11 +58,6 @@ const POINT_DISPLAY_MODES = {
   NONE: [0, 0, 0, 0, 0, 0, 0, 0, 0]
 }
 
-const LINE_DISPLAY_MODES = {
-  NORMAL: 1,
-  NONE: 2
-}
-
 const SELECTION_TYPES = {
   ON_STAGE_CONTROL: 'on_stage_control'
 }
@@ -90,9 +84,6 @@ function writeHtmlSnapshot (html, react) {
     shell.openItem(filepath)
   })
 }
-
-const GEAR_REACT = GearSVG({color: Palette.DARKER_ROCK2})
-const GEAR_HAIKU = react2haiku(GEAR_REACT)
 
 const combokeys = new Combokeys(document.documentElement)
 
@@ -154,31 +145,6 @@ export class Glass extends React.Component {
     this.draw = this.draw.bind(this)
 
     this.handleRequestElementCoordinates = this.handleRequestElementCoordinates.bind(this)
-    this.elementContextMenuButton = {
-      elementName: 'div',
-      attributes: {
-        id: `element-menu-icon-wrapper`,
-        style: {
-          position: 'absolute',
-          pointerEvents: 'auto',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          left: '0px', // overwritten later
-          top: '0px', // overwritten later
-          border: '1px solid ' + Palette.DARKER_ROCK2,
-          backgroundColor: 'transparent',
-          boxShadow: '0 2px 6px 0 ' + Palette.SHADY, // TODO: account for rotation
-          width: '0px', // overwritten later
-          height: '0px', // overwritten later
-          borderRadius: '50%',
-          cursor: 'pointer'
-        }
-      },
-      children: [
-        GEAR_HAIKU
-      ]
-    }
 
     this.handleDimensionsReset = lodash.debounce(() => {
       // Need to notify creator of viewport change so instantiation position is correct;
@@ -1641,8 +1607,6 @@ export class Glass extends React.Component {
 
     const artboard = this.getActiveComponent().getArtboard()
 
-    const {transformBoxOverlays, otherOverlays} = this.buildDrawnOverlays()
-
     const overlay = {
       elementName: 'div',
       attributes: {
@@ -1669,9 +1633,8 @@ export class Glass extends React.Component {
               overflow: 'visible'
             }
           },
-          children: transformBoxOverlays
-        },
-        ...otherOverlays
+          children: this.buildDrawnOverlays()
+        }
       ]
     }
 
@@ -1689,10 +1652,7 @@ export class Glass extends React.Component {
   // these get passed into a Haiku Core render method (see above). LONG STORY SHORT: This creates a flat list of
   // nodes that get rendered to the DOM by the Haiku Core.
   buildDrawnOverlays () {
-    const overlays = {
-      transformBoxOverlays: [],
-      otherOverlays: []
-    }
+    const overlays = []
 
     // Don't show any overlays if we're in preview (aka 'live') interactionMode
     if (this.isPreviewMode()) {
@@ -1703,25 +1663,13 @@ export class Glass extends React.Component {
 
     if (proxy.hasAnythingInSelection()) {
       this.renderTransformBoxOverlay(
-        proxy.getBoxPointsTransformed(),
-        overlays.transformBoxOverlays,
-        proxy.canRotate(),
-        !this.state.isOriginPanning && Globals.isCommandKeyDown,
-        proxy.canControlHandles(),
-        proxy.getOriginTransformed()
+        proxy,
+        overlays,
+        !this.state.isOriginPanning && Globals.isCommandKeyDown
       )
     }
 
-    if (proxy.hasAnythingInSelection()) {
-      this.renderEventHandlersOverlay(
-        proxy.getBoxPointsTransformed(),
-        overlays.otherOverlays,
-        proxy.getElementOrProxyPropertyValue('rotation.z'),
-        proxy.getElementOrProxyPropertyValue('scale.x')
-      )
-    }
-
-    this.renderSelectionMarquee(overlays.transformBoxOverlays)
+    this.renderSelectionMarquee(overlays)
     return overlays
   }
 
@@ -1781,30 +1729,7 @@ export class Glass extends React.Component {
     })
   }
 
-  buildElementContextMenuIcon (x, y, rotationZ, scaleX) {
-    const boltSize = 30
-    const offsetLeft = Math.sign(scaleX) * (boltSize * Math.cos(rotationZ)) - boltSize / 2
-    const offsetTop = Math.sign(scaleX) * (boltSize * Math.sin(rotationZ)) - boltSize / 2
-    this.elementContextMenuButton.attributes.style.left = `${x + offsetLeft}px`
-    this.elementContextMenuButton.attributes.style.top = `${y + offsetTop}px`
-    this.elementContextMenuButton.attributes.style.width = `${boltSize}px`
-    this.elementContextMenuButton.attributes.style.height = `${boltSize}px`
-    return this.elementContextMenuButton
-  }
-
-  renderEventHandlersOverlay (points, overlays, rotationZ, scaleX) {
-    // If the size is smaller than a threshold, only display the corners.
-    // And if it is smaller even than that, don't display the points at all
-    const dx = Element.distanceBetweenPoints(points[0], points[2], this.state.zoomXY)
-    const dy = Element.distanceBetweenPoints(points[0], points[6], this.state.zoomXY)
-    const {x, y} = points[5]
-
-    if (dx < POINTS_THRESHOLD_NONE || dy < POINTS_THRESHOLD_NONE) return
-
-    overlays.push(this.buildElementContextMenuIcon(x, y, rotationZ, scaleX))
-  }
-
-  renderTransformBoxOverlay (points, overlays, canRotate, isRotationModeOn, canControlHandles, origin) {
+  renderTransformBoxOverlay (proxy, overlays, isRotationModeOn) {
     if (!this.getActiveComponent()) {
       return
     }
@@ -1812,6 +1737,7 @@ export class Glass extends React.Component {
     overlays.push(defsMana)
 
     const zoom = this.getActiveComponent().getArtboard().getZoom()
+    const points = proxy.getBoxPointsTransformed()
 
     // If the size is smaller than a threshold, only display the corners.
     // And if it is smaller even than that, don't display the points at all
@@ -1820,27 +1746,25 @@ export class Glass extends React.Component {
 
     let pointDisplayMode = POINT_DISPLAY_MODES.NORMAL
 
-    if (pointDisplayMode !== POINT_DISPLAY_MODES.NONE) {
-      if (dx < POINTS_THRESHOLD_NONE || dy < POINTS_THRESHOLD_NONE) {
-        pointDisplayMode = POINT_DISPLAY_MODES.NONE
-      } else if (dx < POINTS_THRESHOLD_REDUCED && dy < POINTS_THRESHOLD_REDUCED) {
-        pointDisplayMode = POINT_DISPLAY_MODES.REDUCED_ON_BOTH
-      } else if (dx < POINTS_THRESHOLD_REDUCED && dy >= POINTS_THRESHOLD_REDUCED) {
-        pointDisplayMode = POINT_DISPLAY_MODES.REDUCED_ON_TOP_BOTTOM
-      } else if (dx >= POINTS_THRESHOLD_REDUCED && dy < POINTS_THRESHOLD_REDUCED) {
-        pointDisplayMode = POINT_DISPLAY_MODES.REDUCED_ON_LEFT_RIGHT
-      }
-    }
-
-    const lineDisplayMode = (pointDisplayMode === POINT_DISPLAY_MODES.NONE)
-      ? LINE_DISPLAY_MODES.NONE
-      : LINE_DISPLAY_MODES.NORMAL
-
-    if (lineDisplayMode !== LINE_DISPLAY_MODES.NONE) {
-      overlays.push(boxMana([points[0], points[2], points[8], points[6]].map((point) => [point.x, point.y])))
+    if (dx < POINTS_THRESHOLD_NONE || dy < POINTS_THRESHOLD_NONE) {
+      pointDisplayMode = POINT_DISPLAY_MODES.NONE
+    } else if (dx < POINTS_THRESHOLD_REDUCED && dy < POINTS_THRESHOLD_REDUCED) {
+      pointDisplayMode = POINT_DISPLAY_MODES.REDUCED_ON_BOTH
+    } else if (dx < POINTS_THRESHOLD_REDUCED && dy >= POINTS_THRESHOLD_REDUCED) {
+      pointDisplayMode = POINT_DISPLAY_MODES.REDUCED_ON_TOP_BOTTOM
+    } else if (dx >= POINTS_THRESHOLD_REDUCED && dy < POINTS_THRESHOLD_REDUCED) {
+      pointDisplayMode = POINT_DISPLAY_MODES.REDUCED_ON_LEFT_RIGHT
     }
 
     const scale = 1 / (zoom || 1)
+    const canRotate = proxy.canRotate()
+    const canControlHandles = proxy.canControlHandles()
+    const origin = proxy.getOriginTransformed()
+
+    if (pointDisplayMode !== POINT_DISPLAY_MODES.NONE) {
+      overlays.push(boxMana([points[0], points[2], points[8], points[6]].map((point) => [point.x, point.y])))
+      overlays.push(gearMana(scale, proxy.getControlsPosition(5, 30 * scale, 1 * scale)))
+    }
 
     points.forEach((point, index) => {
       if (!pointDisplayMode[index]) {

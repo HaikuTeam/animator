@@ -187,6 +187,60 @@ export default {
           in: 'shadowBlurOuter1'
         }
       }]
+    },
+    {
+      elementName: 'filter',
+      attributes: {
+        x: '-13.2%',
+        y: '-7.9%',
+        width: '126.3%',
+        height: '126.3%',
+        filterUnits: 'objectBoundingBox',
+        id: 'e'
+      },
+      'children': [
+        {
+          elementName: 'feMorphology',
+          attributes: {
+            radius: '.5',
+            operator: 'dilate',
+            in: 'SourceAlpha',
+            result: 'shadowSpreadOuter1'
+          }
+        },
+        {
+          elementName: 'feOffset',
+          attributes: {
+            dy: '1',
+            in: 'shadowSpreadOuter1',
+            result: 'shadowOffsetOuter1'
+          }
+        },
+        {
+          elementName: 'feGaussianBlur',
+          attributes: {
+            stdDeviation: '.5',
+            in: 'shadowOffsetOuter1',
+            result: 'shadowBlurOuter1'
+          }
+        },
+        {
+          elementName: 'feComposite',
+          attributes: {
+            in: 'shadowBlurOuter1',
+            in2: 'SourceAlpha',
+            operator: 'out',
+            result: 'shadowBlurOuter1'
+          }
+        },
+        {
+          elementName: 'feColorMatrix',
+          attributes: {
+            values: '0 0 0 0 0.0572963765 0 0 0 0 0.0587644961 0 0 0 0 0.059204932 0 0 0 0.307631341 0',
+            in: 'shadowBlurOuter1'
+          }
+        }
+      ]
     }
   ]
 }
