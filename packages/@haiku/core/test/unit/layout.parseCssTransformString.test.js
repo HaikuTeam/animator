@@ -56,6 +56,14 @@ test('layout.parseCssTransformString', function (t) {
       }
     ],
     [
+      'matrix(1.5,1,1,1.5,0,0);',
+      {
+        "rotation.z": 0.59,
+        "scale.x": 1.8,
+        "scale.y": 1.8
+      }
+    ],
+    [
       'translate3d(1,2,3);',
       {
         "translation.x": 1,

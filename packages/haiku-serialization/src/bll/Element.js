@@ -474,11 +474,11 @@ class Element extends BaseModel {
   }
 
   getComputedLayout () {
-    return Layout3D.computeLayout(
+    return this.cacheFetch('getComputedLayout', () => Layout3D.computeLayout(
       this.getLayoutSpec(),
       Layout3D.createMatrix(),
       this.getParentComputedSize()
-    )
+    ))
   }
 
   getLayoutSpec () {
@@ -1755,7 +1755,7 @@ Element.getBoundingBoxPointsForElementsNotTransformed = (elements) => {
 Element.boxToCornersAsPolygonPoints = ({ x, y, width, height }) => {
   return [
     [x, y], [x + width, y],
-    [x, y + height], [x + width, y + height]
+    [x + width, y + height], [x, y + height]
   ]
 }
 
