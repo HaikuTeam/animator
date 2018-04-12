@@ -3313,6 +3313,8 @@ class ActiveComponent extends BaseModel {
       const ourStackObject = stackObject && stackObject.ourStackObject
       if (ourStackObject) {
         stackingInfo.push(ourStackObject) // Push to front
+      } else {
+        console.warn(`[active component] stack object missing at ${timelineName} ${timelineTime}`)
       }
 
       this.setZIndicesForStackingInfo(bytecode, timelineName, timelineTime, stackingInfo)
@@ -3581,6 +3583,8 @@ class ActiveComponent extends BaseModel {
       if (ourStackObject) {
         const index = stackObject.index
         stackingInfo.splice(index + 1, 0, ourStackObject)
+      } else {
+        console.warn(`[active component] stack object missing at ${timelineName} ${timelineTime}`)
       }
       this.setZIndicesForStackingInfo(bytecode, timelineName, timelineTime, stackingInfo)
       done()
@@ -3624,6 +3628,8 @@ class ActiveComponent extends BaseModel {
       if (ourStackObject) {
         const index = stackObject.index
         stackingInfo.splice(Math.max(index - 1, 0), 0, ourStackObject)
+      } else {
+        console.warn(`[active component] stack object missing at ${timelineName} ${timelineTime}`)
       }
       this.setZIndicesForStackingInfo(bytecode, timelineName, timelineTime, stackingInfo)
       done()
