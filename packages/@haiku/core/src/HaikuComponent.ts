@@ -1291,11 +1291,13 @@ function applyContextChanges(component, template, container, context, renderOpti
   );
 
   component.eachEventHandler((eventSelector, eventName, {handler}) => {
-    if (component.registeredEventHandlers[eventName]) {
+    const registrationKey  = `${eventSelector}:${eventName}`;
+
+    if (component.registeredEventHandlers[registrationKey]) {
       return;
     }
 
-    component.registeredEventHandlers[eventName] = true;
+    component.registeredEventHandlers[registrationKey] = true;
 
     component._context.renderer.mountEventListener(eventSelector, eventName, (...args) => {
       component.routeEventToHandlerAndEmit(eventSelector, eventName, args);
