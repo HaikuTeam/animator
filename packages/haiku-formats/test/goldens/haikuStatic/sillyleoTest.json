@@ -5,7 +5,7 @@
     "name": "Test",
     "relpath": "code/main/code.js",
     "version": "0.0.2",
-    "core": "3.1.32",
+    "core": "3.2.8",
     "player": "3.1.32",
     "organization": "sillyleo",
     "project": "Test",
@@ -139,6 +139,16 @@
           "0": {
             "value": 2
           }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
+          }
         }
       },
       "haiku:b8b428f2ed07": {
@@ -243,6 +253,16 @@
             "value": 1,
             "edited": true
           }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
+          }
         }
       },
       "haiku:82c161f082ea": {
@@ -310,6 +330,16 @@
           "0": {
             "value": 3
           }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
+          }
         }
       },
       "haiku:641386b9d3b5": {
@@ -376,6 +406,16 @@
         "style.zIndex": {
           "0": {
             "value": 4
+          }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
           }
         }
       },
@@ -695,6 +735,16 @@
           "400": {
             "value": 6.981445312500003
           }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
+          }
         }
       },
       "haiku:888b4978ab18": {
@@ -843,6 +893,16 @@
           "400": {
             "value": 1,
             "edited": true
+          }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
           }
         }
       },

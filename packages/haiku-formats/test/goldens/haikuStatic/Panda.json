@@ -4,7 +4,7 @@
     "type": "haiku",
     "name": "babyphone",
     "relpath": "code/main/code.js",
-    "core": "3.0.21",
+    "core": "3.2.8",
     "player": "3.0.21",
     "version": "0.0.5",
     "organization": "thomaspetrach",
@@ -131,6 +131,16 @@
             "value": 0,
             "edited": true
           }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
+          }
         }
       },
       "haiku:d73bd1daafad": {
@@ -213,6 +223,16 @@
           "0": {
             "value": 1,
             "edited": true
+          }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
           }
         }
       },
@@ -344,6 +364,16 @@
             "value": -3.7233672589565003e-8,
             "edited": true
           }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
+          }
         }
       },
       "haiku:bf40e73e7fa2": {
@@ -408,6 +438,16 @@
           "0": {
             "value": 4
           }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
+          }
         }
       },
       "haiku:40843fa0886a": {
@@ -471,6 +511,16 @@
         "style.zIndex": {
           "0": {
             "value": 2
+          }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
           }
         }
       },
@@ -553,6 +603,16 @@
           "0": {
             "value": 12
           }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
+          }
         }
       },
       "haiku:a267f6fd18e6": {
@@ -625,6 +685,16 @@
         "style.zIndex": {
           "0": {
             "value": 1
+          }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
           }
         }
       },
@@ -812,7 +882,7 @@
         },
         "filter": {
           "0": {
-            "value": "url(#filter-2-efce77)"
+            "value": "url(#filter-2-efce77-uwftbdh51xs)"
           }
         }
       },
@@ -1134,7 +1204,7 @@
         },
         "filter": {
           "0": {
-            "value": "url(#filter-2-021e2a)"
+            "value": "url(#filter-2-021e2a-uwftbdh51xs)"
           }
         }
       },
@@ -1434,7 +1504,7 @@
         },
         "filter": {
           "0": {
-            "value": "url(#filter-2-139f12)"
+            "value": "url(#filter-2-139f12-uwftbdh51xs)"
           }
         }
       },
@@ -1543,6 +1613,16 @@
           "1467": {
             "value": 0,
             "edited": true
+          }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
           }
         }
       },
@@ -1984,6 +2064,16 @@
             "value": 1,
             "edited": true
           }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
+          }
         }
       },
       "haiku:c64cf8b8f60a": {
@@ -2147,7 +2237,7 @@
                 "elementName": "filter",
                 "attributes": {
                   "haiku-id": "6c901f41e499",
-                  "id": "filter-2-021e2a"
+                  "id": "filter-2-021e2a-uwftbdh51xs"
                 },
                 "children": [
                   {
@@ -2389,7 +2479,7 @@
                 "elementName": "filter",
                 "attributes": {
                   "haiku-id": "789684579467",
-                  "id": "filter-2-efce77"
+                  "id": "filter-2-efce77-uwftbdh51xs"
                 },
                 "children": [
                   {
@@ -2500,7 +2590,7 @@
                 "elementName": "filter",
                 "attributes": {
                   "haiku-id": "ee58e5b88196",
-                  "id": "filter-2-139f12"
+                  "id": "filter-2-139f12-uwftbdh51xs"
                 },
                 "children": [
                   {

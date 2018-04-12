@@ -5,7 +5,7 @@
     "name": "Personality",
     "relpath": "code/main/code.js",
     "version": "0.0.3",
-    "core": "3.1.31",
+    "core": "3.2.8",
     "player": "3.1.31",
     "organization": "kelyvin",
     "project": "Personality",
@@ -228,6 +228,16 @@
             "value": 0,
             "edited": true
           }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
+          }
         }
       },
       "haiku:7607cdf180f1": {
@@ -352,6 +362,16 @@
           "1000": {
             "value": 1,
             "edited": true
+          }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
           }
         }
       },
@@ -502,6 +522,16 @@
             "value": 1,
             "edited": true
           }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
+          }
         }
       },
       "haiku:a5ee1e240e15": {
@@ -624,6 +654,16 @@
           "3083": {
             "value": 0.5,
             "edited": true
+          }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
           }
         }
       },
@@ -752,6 +792,16 @@
           "0": {
             "value": 1,
             "edited": true
+          }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
           }
         }
       },
@@ -885,6 +935,16 @@
           "3083": {
             "value": 0.9,
             "edited": true
+          }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
           }
         }
       },

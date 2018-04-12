@@ -5,7 +5,7 @@
     "name": "CPRWelcomePages",
     "relpath": "code/main/code.js",
     "version": "0.0.2",
-    "core": "3.1.32",
+    "core": "3.2.8",
     "player": "3.1.32",
     "organization": "rudymatos",
     "project": "CPRWelcomePages",
@@ -139,6 +139,16 @@
         "scale.y": {
           "0": {
             "value": 1.1758001672108904
+          }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
           }
         }
       },
@@ -504,6 +514,16 @@
             "value": 1,
             "edited": true
           }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
+          }
         }
       },
       "haiku:bdcc32a322e7": {
@@ -664,6 +684,16 @@
             "value": 1,
             "edited": true
           }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
+          }
         }
       },
       "haiku:0566a91e2156": {
@@ -823,6 +853,16 @@
           "817": {
             "value": 1,
             "edited": true
+          }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
           }
         }
       },

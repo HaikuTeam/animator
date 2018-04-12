@@ -8,7 +8,8 @@
     "version": "0.0.12",
     "organization": "DVSoftware",
     "project": "CoinZeroLoader",
-    "branch": "master"
+    "branch": "master",
+    "core": "3.2.8"
   },
   "options": {},
   "states": {},
@@ -196,6 +197,16 @@
             "value": 0,
             "edited": true
           }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
+          }
         }
       },
       "haiku:ad6c945e1d25": {
@@ -334,6 +345,16 @@
             "value": 0,
             "edited": true
           }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
+          }
         }
       },
       "haiku:096f75d30796": {
@@ -459,6 +480,16 @@
           "800": {
             "value": 0,
             "edited": true
+          }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
           }
         }
       },
@@ -587,6 +618,16 @@
             "value": 0,
             "edited": true
           }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
+          }
         }
       },
       "haiku:d35c92964336": {
@@ -712,6 +753,16 @@
           "1200": {
             "value": 0,
             "edited": true
+          }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
           }
         }
       },
@@ -839,6 +890,16 @@
             "value": 0,
             "edited": true
           }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
+          }
         }
       },
       "haiku:e1f848803d12": {
@@ -964,6 +1025,16 @@
           "1600": {
             "value": 0,
             "edited": true
+          }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
           }
         }
       },
@@ -1091,6 +1162,16 @@
             "value": 0,
             "edited": true
           }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
+          }
         }
       },
       "haiku:10a5364e7747": {
@@ -1216,6 +1297,16 @@
           "2000": {
             "value": 0,
             "edited": true
+          }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
           }
         }
       },
@@ -1343,6 +1434,16 @@
             "value": 0,
             "edited": true
           }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
+          }
         }
       },
       "haiku:0eecd9327ada": {
@@ -1468,6 +1569,16 @@
           "2400": {
             "value": 0,
             "edited": true
+          }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
           }
         }
       },
@@ -1595,6 +1706,16 @@
             "value": 0,
             "edited": true
           }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
+          }
         }
       },
       "haiku:3fbd1eeb5602": {
@@ -1720,6 +1841,16 @@
           "2800": {
             "value": 0,
             "edited": true
+          }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
           }
         }
       },
@@ -1847,6 +1978,16 @@
             "value": 0,
             "edited": true
           }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
+          }
         }
       },
       "haiku:d2cade177220": {
@@ -1972,6 +2113,16 @@
           "3200": {
             "value": 0,
             "edited": true
+          }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
           }
         }
       },
@@ -2099,6 +2250,16 @@
             "value": 0,
             "edited": true
           }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
+          }
         }
       },
       "haiku:4c1d13ea186a": {
@@ -2224,6 +2385,16 @@
           "3600": {
             "value": 0,
             "edited": true
+          }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
           }
         }
       },
@@ -2351,6 +2522,16 @@
             "value": 0,
             "edited": true
           }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
+          }
         }
       },
       "haiku:55d98289cfb3": {
@@ -2476,6 +2657,16 @@
           "4000": {
             "value": 0,
             "edited": true
+          }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
           }
         }
       },
@@ -2603,6 +2794,16 @@
             "value": 0,
             "edited": true
           }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
+          }
         }
       },
       "haiku:30f3dea9d667": {
@@ -2728,6 +2929,16 @@
           "4400": {
             "value": 0,
             "edited": true
+          }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
           }
         }
       },
@@ -2855,6 +3066,16 @@
             "value": 1,
             "edited": true
           }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
+          }
         }
       },
       "haiku:ed4e71482133": {
@@ -2955,6 +3176,16 @@
           "0": {
             "value": 6,
             "edited": true
+          }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
           }
         }
       },

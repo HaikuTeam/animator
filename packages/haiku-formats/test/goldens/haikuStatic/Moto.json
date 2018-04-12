@@ -1,10 +1,4 @@
 {
-  "states": {
-    "who": {
-      "type": "number",
-      "value": 1
-    }
-  },
   "metadata": {
     "relpath": "code/main/code.js",
     "type": "haiku",
@@ -14,9 +8,16 @@
     "organization": "SashaDotCom",
     "project": "Moto",
     "branch": "master",
-    "player": "2.3.69"
+    "player": "2.3.69",
+    "core": "3.2.8"
   },
   "options": {},
+  "states": {
+    "who": {
+      "type": "number",
+      "value": 1
+    }
+  },
   "eventHandlers": {},
   "timelines": {
     "Default": {
@@ -90,7 +91,7 @@
             "edited": true
           }
         },
-        "backgroundColor": {
+        "style.backgroundColor": {
           "0": {
             "value": ""
           },
@@ -180,6 +181,16 @@
           "0": {
             "value": 1,
             "edited": true
+          }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
           }
         }
       },
@@ -324,6 +335,16 @@
             "value": -1,
             "edited": true
           }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
+          }
         }
       },
       "haiku:1c85cfe5ff2e": {
@@ -381,12 +402,17 @@
         },
         "mount.x": {
           "0": {
-            "value": 0.5
+            "value": 0
           }
         },
         "mount.y": {
           "0": {
-            "value": 0.5
+            "value": 0
+          }
+        },
+        "mount.z": {
+          "0": {
+            "value": 0
           }
         }
       },
@@ -593,6 +619,16 @@
           "0": {
             "value": 3
           }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
+          }
         }
       },
       "haiku:768e2bd21912": {
@@ -700,6 +736,16 @@
         "style.zIndex": {
           "0": {
             "value": 4
+          }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
           }
         }
       },
@@ -887,6 +933,16 @@
             "value": -0.012164296566126165,
             "edited": true
           }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
+          }
         }
       },
       "haiku:c4c209968eb1": {
@@ -944,12 +1000,17 @@
         },
         "mount.x": {
           "0": {
-            "value": 0.5
+            "value": 0
           }
         },
         "mount.y": {
           "0": {
-            "value": 0.5
+            "value": 0
+          }
+        },
+        "mount.z": {
+          "0": {
+            "value": 0
           }
         }
       },
@@ -1226,6 +1287,16 @@
           "0": {
             "value": 6
           }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
+          }
         }
       },
       "haiku:c4d620a11658": {
@@ -1413,6 +1484,16 @@
           "0": {
             "value": 1.1428571428571428,
             "edited": true
+          }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
           }
         }
       },
@@ -1617,6 +1698,16 @@
             "value": 1.7,
             "edited": true
           }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
+          }
         }
       },
       "haiku:eb8a4845c4ba": {
@@ -1734,6 +1825,16 @@
         "style.zIndex": {
           "0": {
             "value": 9
+          }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
           }
         }
       },
@@ -1917,6 +2018,16 @@
           "1550": {
             "value": 2.7,
             "edited": true
+          }
+        },
+        "mount.x": {
+          "0": {
+            "value": -0.5
+          }
+        },
+        "mount.y": {
+          "0": {
+            "value": -0.5
           }
         }
       },
@@ -2134,11 +2245,14 @@
             "attributes": {
               "haiku-id": "7c2d8c40b8ae"
             },
-            "children": []
+            "children": [
+              "bg"
+            ]
           },
           {
             "elementName": "desc",
             "attributes": {
+              "content": "Created with sketchtool.",
               "haiku-id": "517395892f58"
             },
             "children": []
@@ -2185,11 +2299,14 @@
             "attributes": {
               "haiku-id": "e6ab3d96bea9"
             },
-            "children": []
+            "children": [
+              "sun"
+            ]
           },
           {
             "elementName": "desc",
             "attributes": {
+              "content": "Created with sketchtool.",
               "haiku-id": "e22de510efbf"
             },
             "children": []
@@ -2285,11 +2402,14 @@
             "attributes": {
               "haiku-id": "d9e4d53f262e"
             },
-            "children": []
+            "children": [
+              "mountain-range"
+            ]
           },
           {
             "elementName": "desc",
             "attributes": {
+              "content": "Created with sketchtool.",
               "haiku-id": "e0f7f2f50b2a"
             },
             "children": []
@@ -2336,11 +2456,14 @@
             "attributes": {
               "haiku-id": "7ef163049af5"
             },
-            "children": []
+            "children": [
+              "tree-range"
+            ]
           },
           {
             "elementName": "desc",
             "attributes": {
+              "content": "Created with sketchtool.",
               "haiku-id": "9c68d2ef772b"
             },
             "children": []
@@ -2387,11 +2510,14 @@
             "attributes": {
               "haiku-id": "60810a72f807"
             },
-            "children": []
+            "children": [
+              "moto"
+            ]
           },
           {
             "elementName": "desc",
             "attributes": {
+              "content": "Created with sketchtool.",
               "haiku-id": "3f79879c812c"
             },
             "children": []
@@ -2503,11 +2629,14 @@
             "attributes": {
               "haiku-id": "34c8fd93d17b"
             },
-            "children": []
+            "children": [
+              "goodCLoud"
+            ]
           },
           {
             "elementName": "desc",
             "attributes": {
+              "content": "Created with sketchtool.",
               "haiku-id": "5376117a1e9d"
             },
             "children": []
@@ -2554,11 +2683,14 @@
             "attributes": {
               "haiku-id": "7873166e3baa"
             },
-            "children": []
+            "children": [
+              "goodCLoud"
+            ]
           },
           {
             "elementName": "desc",
             "attributes": {
+              "content": "Created with sketchtool.",
               "haiku-id": "56d3486a89dd"
             },
             "children": []
@@ -2605,11 +2737,14 @@
             "attributes": {
               "haiku-id": "b4b855a7cd20"
             },
-            "children": []
+            "children": [
+              "smoke"
+            ]
           },
           {
             "elementName": "desc",
             "attributes": {
+              "content": "Created with sketchtool.",
               "haiku-id": "cde5b1b4a453"
             },
             "children": []
@@ -2656,11 +2791,14 @@
             "attributes": {
               "haiku-id": "db51c57e9399"
             },
-            "children": []
+            "children": [
+              "smoke"
+            ]
           },
           {
             "elementName": "desc",
             "attributes": {
+              "content": "Created with sketchtool.",
               "haiku-id": "5a0fc80d07e3"
             },
             "children": []
@@ -2707,11 +2845,14 @@
             "attributes": {
               "haiku-id": "31fd6451abfa"
             },
-            "children": []
+            "children": [
+              "smoke"
+            ]
           },
           {
             "elementName": "desc",
             "attributes": {
+              "content": "Created with sketchtool.",
               "haiku-id": "73034d6b5a5a"
             },
             "children": []
