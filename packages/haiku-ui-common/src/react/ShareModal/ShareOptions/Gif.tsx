@@ -41,7 +41,7 @@ export default class Gif extends React.PureComponent {
         <div style={STYLES.imgWrapper}>
           <img src={gif} style={STYLES.image} />
         </div>
-        <div style={{ width: 'calc(100% + 20px)'}}>
+        <div style={{width: 'calc(100% + 20px)'}}>
           <LinkHolster
             linkAddress={gif}
             showLoadingBar={false}

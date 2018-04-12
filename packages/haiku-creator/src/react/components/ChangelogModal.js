@@ -3,8 +3,7 @@ import marked from 'marked'
 import {shell} from 'electron'
 import {
   ModalWrapper,
-  ModalHeader,
-  ModalFooter
+  ModalHeader
 } from 'haiku-ui-common/lib/react/Modal'
 import {LogoMicroSVG} from 'haiku-ui-common/lib/react/OtherIcons'
 import {BTN_STYLES} from '../styles/btnShared'
@@ -95,7 +94,7 @@ class ChangelogModal extends React.PureComponent {
       return null
     }
     return (
-      <div id="changelogwrap" style={DASH_STYLES.overlay} onClick={this.props.onClose}>
+      <div id='changelogwrap' style={DASH_STYLES.overlay} onClick={this.props.onClose}>
         <ModalWrapper style={STYLES.modalWrapper}>
           <ModalHeader>
             <h2>

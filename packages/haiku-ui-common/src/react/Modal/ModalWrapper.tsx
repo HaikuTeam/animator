@@ -19,7 +19,7 @@ export class ModalWrapper extends React.PureComponent {
 
   render () {
     return (
-      <div style={{ ...STYLES, ...this.props.style }}
+      <div style={{...STYLES, ...this.props.style}}
         onClick={(event) => event.stopPropagation()}>
         {this.props.children}
       </div>

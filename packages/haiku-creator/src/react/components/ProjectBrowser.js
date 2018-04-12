@@ -608,7 +608,7 @@ ProjectBrowser.propTypes = {
   launchingProject: React.PropTypes.bool.isRequired,
   lastViewedChangelog: React.PropTypes.string,
   onShowChangelogModal: React.PropTypes.func.isRequired,
-  showChangelogModal: React.PropTypes.bool.isRequired,
+  showChangelogModal: React.PropTypes.bool.isRequired
 }
 
 export default Radium(ProjectBrowser)
