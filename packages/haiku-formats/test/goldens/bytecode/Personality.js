@@ -6,7 +6,7 @@ module.exports = {
     name: "Personality",
     relpath: "code/main/code.js",
     version: "0.0.3",
-    core: "3.1.31",
+    core: "3.2.8",
     player: "3.1.31",
     organization: "kelyvin",
     project: "Personality",
@@ -67,7 +67,9 @@ module.exports = {
           "2000": { value: -0.5, edited: true },
           "2667": { value: -0.5, edited: true, curve: "easeInSine" },
           "3083": { value: 0, edited: true }
-        }
+        },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:7607cdf180f1": {
         "style.position": { "0": { value: "absolute" } },
@@ -105,7 +107,9 @@ module.exports = {
           "333": { value: 0.207519640162249, edited: true, curve: "linear" },
           "633": { value: 0.5, edited: true, curve: "linear" },
           "1000": { value: 1, edited: true }
-        }
+        },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:6fae16b81aab": {
         "style.position": { "0": { value: "absolute" } },
@@ -143,7 +147,9 @@ module.exports = {
           "2667": { value: 0.5, edited: true }
         },
         "scale.x": { "0": { value: 1, edited: true } },
-        "scale.y": { "0": { value: 1, edited: true } }
+        "scale.y": { "0": { value: 1, edited: true } },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:a5ee1e240e15": {
         "style.position": { "0": { value: "absolute" } },
@@ -176,7 +182,9 @@ module.exports = {
           "2000": { value: 0, edited: true },
           "2667": { value: 0, edited: true, curve: "easeInSine" },
           "3083": { value: 0.5, edited: true }
-        }
+        },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:6da557f6c4b3": {
         "style.position": { "0": { value: "absolute" } },
@@ -217,7 +225,9 @@ module.exports = {
           },
           "2000": { value: 0.7, edited: true }
         },
-        "scale.x": { "0": { value: 1, edited: true } }
+        "scale.x": { "0": { value: 1, edited: true } },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:84e8b4a123b7": {
         "style.position": { "0": { value: "absolute" } },
@@ -257,7 +267,9 @@ module.exports = {
             curve: "easeInSine"
           },
           "3083": { value: 0.9, edited: true }
-        }
+        },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:379fd266f556": {
         stroke: { "0": { value: "none" } },

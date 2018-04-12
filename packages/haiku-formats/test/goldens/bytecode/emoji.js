@@ -1,4 +1,4 @@
-var Haiku = require("@haiku/player");
+var Haiku = require("@haiku/core");
 module.exports = {
   metadata: {
     uuid: "HAIKU_SHARE_UUID",
@@ -9,9 +9,9 @@ module.exports = {
     version: "0.0.16",
     organization: "nad",
     project: "NewReactions",
-    branch: "master"
+    branch: "master",
+    core: "3.2.8"
   },
-
   options: {},
   states: {},
   eventHandlers: {},
@@ -41,7 +41,9 @@ module.exports = {
         "translation.x": { "0": { value: 33, edited: true } },
         "translation.y": { "0": { value: 73, edited: true } },
         "style.zIndex": { "0": { value: 3 } },
-        opacity: { "0": { value: 1, edited: true } }
+        opacity: { "0": { value: 1, edited: true } },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:949b9bed7ebb": {
         stroke: { "0": { value: "none" } },
@@ -86,7 +88,9 @@ module.exports = {
           "1667": { value: 0.2, edited: true, curve: "easeInCubic" },
           "2000": { value: -0.2, edited: true, curve: "easeInCubic" },
           "2333": { value: 0, edited: true }
-        }
+        },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:351b9a69bafb": {
         stroke: { "0": { value: "none" } },
@@ -140,7 +144,9 @@ module.exports = {
           "1667": { value: 0.2, edited: true, curve: "easeInCubic" },
           "2000": { value: -0.2, edited: true, curve: "easeInCubic" },
           "2333": { value: 0, edited: true }
-        }
+        },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:faef12a80966": {
         stroke: { "0": { value: "none" } },
@@ -172,7 +178,9 @@ module.exports = {
         "sizeMode.y": { "0": { value: 1 } },
         "translation.x": { "0": { value: 167, edited: true } },
         "translation.y": { "0": { value: 73, edited: true } },
-        "style.zIndex": { "0": { value: 6 } }
+        "style.zIndex": { "0": { value: 6 } },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:7c0ae3b34ef5": {
         stroke: { "0": { value: "none" } },
@@ -227,7 +235,9 @@ module.exports = {
           "3000": { value: 1, edited: true, curve: "easeInCubic" },
           "3333": { value: 1.3, edited: true, curve: "easeOutCubic" },
           "3667": { value: 1, edited: true }
-        }
+        },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:e8c971c87c29": {
         stroke: { "0": { value: "none" } },
@@ -259,7 +269,9 @@ module.exports = {
         "sizeMode.y": { "0": { value: 1 } },
         "translation.x": { "0": { value: 310, edited: true } },
         "translation.y": { "0": { value: 75, edited: true } },
-        "style.zIndex": { "0": { value: 8 } }
+        "style.zIndex": { "0": { value: 8 } },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:d0c854d10f70": {
         stroke: { "0": { value: "none" } },
@@ -287,7 +299,9 @@ module.exports = {
         "translation.x": { "0": { value: 594, edited: true } },
         "translation.y": { "0": { value: 76, edited: true } },
         "style.zIndex": { "0": { value: 10 } },
-        opacity: { "0": { value: 1 }, "3833": { value: 1, edited: true } }
+        opacity: { "0": { value: 1 }, "3833": { value: 1, edited: true } },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:5b1f3bc74dc6": {
         stroke: { "0": { value: "none" } },
@@ -314,7 +328,9 @@ module.exports = {
         "sizeMode.y": { "0": { value: 1 } },
         "translation.x": { "0": { value: 735, edited: true } },
         "translation.y": { "0": { value: 75, edited: true } },
-        "style.zIndex": { "0": { value: 11 } }
+        "style.zIndex": { "0": { value: 11 } },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:36f0264e57cb": {
         stroke: { "0": { value: "none" } },
@@ -341,7 +357,9 @@ module.exports = {
         "sizeMode.y": { "0": { value: 1 } },
         "translation.x": { "0": { value: 884, edited: true } },
         "translation.y": { "0": { value: 74, edited: true } },
-        "style.zIndex": { "0": { value: 2 } }
+        "style.zIndex": { "0": { value: 2 } },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:8416c08b6c33": {
         x1: { "0": { value: "50%" } },
@@ -406,7 +424,9 @@ module.exports = {
           "1833": { value: 90.5, edited: true, curve: "easeOutSine" },
           "2500": { value: 100.5, edited: true }
         },
-        "style.zIndex": { "0": { value: 13 } }
+        "style.zIndex": { "0": { value: 13 } },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:922e4b07b86e": {
         stroke: { "0": { value: "none" } },
@@ -449,7 +469,9 @@ module.exports = {
           "1833": { value: 90.5, edited: true, curve: "easeOutSine" },
           "2500": { value: 101.5, edited: true }
         },
-        "style.zIndex": { "0": { value: 14 } }
+        "style.zIndex": { "0": { value: 14 } },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:4714f91efd35": {
         stroke: { "0": { value: "none" } },
@@ -520,7 +542,9 @@ module.exports = {
           "3333": { value: 1, edited: true, curve: "easeInCubic" },
           "3500": { value: 1.2, edited: true, curve: "easeOutCubic" },
           "3667": { value: 1, edited: true }
-        }
+        },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:38f46bbbb4ba": {
         d: {
@@ -629,7 +653,9 @@ module.exports = {
           "2000": { value: -0.2, edited: true },
           "2333": { value: -0.2, edited: true, curve: "easeOutCubic" },
           "2833": { value: 0, edited: true }
-        }
+        },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:8b54b9125717": {
         stroke: { "0": { value: "none" } },
@@ -699,7 +725,9 @@ module.exports = {
           "3000": { value: 1, edited: true, curve: "easeInCubic" },
           "3167": { value: 0.3, edited: true, curve: "easeOutCubic" },
           "3333": { value: 1, edited: true }
-        }
+        },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:033a694a2771": {
         stroke: { "0": { value: "none" } },
@@ -777,7 +805,9 @@ module.exports = {
           "3000": { value: 1, edited: true, curve: "easeInCubic" },
           "3167": { value: 0.3, edited: true, curve: "easeOutCubic" },
           "3333": { value: 1, edited: true }
-        }
+        },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:8455db55d48b": {
         stroke: { "0": { value: "none" } },
@@ -838,7 +868,9 @@ module.exports = {
           "2000": { value: -0.3, edited: true },
           "2333": { value: -0.3, edited: true, curve: "easeOutCubic" },
           "2833": { value: 0, edited: true }
-        }
+        },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:a3a4de1b337b": {
         stroke: { "0": { value: "none" } },
@@ -908,7 +940,9 @@ module.exports = {
           "2000": { value: -0.3, edited: true },
           "2333": { value: -0.3, edited: true, curve: "easeOutCubic" },
           "2833": { value: 0, edited: true }
-        }
+        },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:917184ce0df4": {
         stroke: { "0": { value: "none" } },
@@ -956,7 +990,9 @@ module.exports = {
           "3167": { value: 0.2, edited: true, curve: "easeOutCubic" },
           "3500": { value: 1, edited: true }
         },
-        opacity: { "0": { value: 1, edited: true } }
+        opacity: { "0": { value: 1, edited: true } },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:ec43738f5364": {
         stroke: { "0": { value: "none" } },
@@ -1002,7 +1038,9 @@ module.exports = {
           "2833": { value: 1, edited: true, curve: "easeInCubic" },
           "3167": { value: 0.2, edited: true, curve: "easeOutCubic" },
           "3500": { value: 1, edited: true }
-        }
+        },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:699e1de08034": {
         stroke: { "0": { value: "none" } },
@@ -1039,7 +1077,9 @@ module.exports = {
           "3333": { value: 99.5, edited: true, curve: "easeOutSine" },
           "3833": { value: 111.5, edited: true }
         },
-        "style.zIndex": { "0": { value: 28 } }
+        "style.zIndex": { "0": { value: 28 } },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:ef3e3f8ddcb3": {
         stroke: { "0": { value: "none" } },
@@ -1077,7 +1117,9 @@ module.exports = {
           "3333": { value: 99.5, edited: true, curve: "easeOutSine" },
           "3833": { value: 111.5, edited: true }
         },
-        "style.zIndex": { "0": { value: 29 } }
+        "style.zIndex": { "0": { value: 29 } },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:1070f5bf680a": {
         stroke: { "0": { value: "none" } },
@@ -1125,7 +1167,9 @@ module.exports = {
           "3000": { value: 0.9, edited: true },
           "3333": { value: 0.9, edited: true, curve: "easeOutSine" },
           "3833": { value: 1, edited: true }
-        }
+        },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:553a1f784903": {
         stroke: { "0": { value: "none" } },
@@ -1179,7 +1223,9 @@ module.exports = {
           "667": { value: 1, edited: true },
           "1000": { value: 1, edited: true, curve: "easeOutSine" },
           "1500": { value: 0, edited: true }
-        }
+        },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:561600e8f52e": {
         stroke: { "0": { value: "none" } },
@@ -1237,7 +1283,9 @@ module.exports = {
           "2000": { value: 1, edited: true },
           "2333": { value: 1, edited: true, curve: "easeOutCubic" },
           "3000": { value: 0.2, edited: true }
-        }
+        },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:94ccb83e827f": {
         stroke: { "0": { value: "none" } },
@@ -1288,7 +1336,9 @@ module.exports = {
           "833": { value: 3, edited: true },
           "2167": { value: 3, edited: true, curve: "easeOutSine" },
           "2750": { value: 1, edited: true }
-        }
+        },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:135073ec8f3f": {
         stroke: { "0": { value: "none" } },
@@ -1348,7 +1398,9 @@ module.exports = {
           "2000": { value: 1, edited: true },
           "2750": { value: 1, edited: true },
           "3833": { value: 1, edited: true }
-        }
+        },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:3a546e8a355c": {
         stroke: { "0": { value: "none" } },
@@ -1407,7 +1459,9 @@ module.exports = {
           "2000": { value: 1, edited: true },
           "2750": { value: 1, edited: true },
           "3833": { value: 1, edited: true }
-        }
+        },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:ef564d2f1a55": {
         stroke: { "0": { value: "none" } },
@@ -1464,7 +1518,9 @@ module.exports = {
           "3833": { value: 1, edited: true }
         },
         "rotation.y": { "0": { value: 0 } },
-        "rotation.x": { "0": { value: 0 } }
+        "rotation.x": { "0": { value: 0 } },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:d114c7d69b43": {
         stroke: { "0": { value: "none" } },
@@ -1519,7 +1575,9 @@ module.exports = {
           "0": { value: 1 },
           "2750": { value: 1, edited: true },
           "3833": { value: 1, edited: true }
-        }
+        },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:daac9a1cbdff": {
         stroke: { "0": { value: "none" } },
@@ -1558,7 +1616,9 @@ module.exports = {
           "1500": { value: 0, edited: true, curve: "easeInOutBack" },
           "2500": { value: 0.5, edited: true, curve: "easeInSine" },
           "3333": { value: 0, edited: true }
-        }
+        },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:185c434e4397": {
         x: { "0": { value: "-93.8%" } },
@@ -1601,7 +1661,7 @@ module.exports = {
       },
       "haiku:987078de03b4": {
         fill: { "0": { value: "#F55065" } },
-        filter: { "0": { value: "url(#filter-1-8d2479)" } },
+        filter: { "0": { value: "url(#filter-1-8d2479-cee7w192hxi)" } },
         cx: { "0": { value: "19.5141176" } },
         cy: { "0": { value: "47.2032632" } },
         rx: { "0": { value: "8.21647059" } },
@@ -1609,7 +1669,7 @@ module.exports = {
       },
       "haiku:96e0d7aeeaa7": {
         fill: { "0": { value: "#F55065" } },
-        filter: { "0": { value: "url(#filter-2-8d2479)" } },
+        filter: { "0": { value: "url(#filter-2-8d2479-cee7w192hxi)" } },
         cx: { "0": { value: "67.7858824" } },
         cy: { "0": { value: "33.8632105" } },
         rx: { "0": { value: "8.21647059" } },
@@ -1659,7 +1719,9 @@ module.exports = {
           "1383": { value: 0.7, edited: true },
           "3183": { value: 0.7, edited: true, curve: "easeOutSine" },
           "3800": { value: 0, edited: true }
-        }
+        },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:744241e2759d": {
         stroke: { "0": { value: "none" } },
@@ -1676,10 +1738,9 @@ module.exports = {
       }
     }
   },
-
   template: {
     elementName: "div",
-    attributes: { "haiku-title": "NewReactions", "haiku-id": "00cd2e21b0cd" },
+    attributes: { "haiku-id": "00cd2e21b0cd", "haiku-title": "NewReactions" },
     children: [
       {
         elementName: "svg",
@@ -1709,15 +1770,15 @@ module.exports = {
           },
           {
             elementName: "g",
-            attributes: { id: "Page-1", "haiku-id": "949b9bed7ebb" },
+            attributes: { "haiku-id": "949b9bed7ebb", id: "Page-1" },
             children: [
               {
                 elementName: "g",
-                attributes: { id: "like", "haiku-id": "ac4fdd00b286" },
+                attributes: { "haiku-id": "ac4fdd00b286", id: "like" },
                 children: [
                   {
                     elementName: "ellipse",
-                    attributes: { id: "like_face", "haiku-id": "fd37d771bdb4" },
+                    attributes: { "haiku-id": "fd37d771bdb4", id: "like_face" },
                     children: []
                   }
                 ]
@@ -1754,17 +1815,17 @@ module.exports = {
           },
           {
             elementName: "g",
-            attributes: { id: "Page-1", "haiku-id": "351b9a69bafb" },
+            attributes: { "haiku-id": "351b9a69bafb", id: "Page-1" },
             children: [
               {
                 elementName: "g",
-                attributes: { id: "like", "haiku-id": "079c9ff892de" },
+                attributes: { "haiku-id": "079c9ff892de", id: "like" },
                 children: [
                   {
                     elementName: "path",
                     attributes: {
-                      id: "like_collar",
-                      "haiku-id": "7dd83a746f3b"
+                      "haiku-id": "7dd83a746f3b",
+                      id: "like_collar"
                     },
                     children: []
                   }
@@ -1802,15 +1863,15 @@ module.exports = {
           },
           {
             elementName: "g",
-            attributes: { id: "Page-1", "haiku-id": "faef12a80966" },
+            attributes: { "haiku-id": "faef12a80966", id: "Page-1" },
             children: [
               {
                 elementName: "g",
-                attributes: { id: "like", "haiku-id": "f19246c3635d" },
+                attributes: { "haiku-id": "f19246c3635d", id: "like" },
                 children: [
                   {
                     elementName: "path",
-                    attributes: { id: "like_hand", "haiku-id": "8b98224e4649" },
+                    attributes: { "haiku-id": "8b98224e4649", id: "like_hand" },
                     children: []
                   }
                 ]
@@ -1847,15 +1908,15 @@ module.exports = {
           },
           {
             elementName: "g",
-            attributes: { id: "Page-1", "haiku-id": "7c0ae3b34ef5" },
+            attributes: { "haiku-id": "7c0ae3b34ef5", id: "Page-1" },
             children: [
               {
                 elementName: "g",
-                attributes: { id: "love", "haiku-id": "42dff91ba7e0" },
+                attributes: { "haiku-id": "42dff91ba7e0", id: "love" },
                 children: [
                   {
                     elementName: "ellipse",
-                    attributes: { id: "love_face", "haiku-id": "d7da244ad8aa" },
+                    attributes: { "haiku-id": "d7da244ad8aa", id: "love_face" },
                     children: []
                   }
                 ]
@@ -1892,17 +1953,17 @@ module.exports = {
           },
           {
             elementName: "g",
-            attributes: { id: "Page-1", "haiku-id": "e8c971c87c29" },
+            attributes: { "haiku-id": "e8c971c87c29", id: "Page-1" },
             children: [
               {
                 elementName: "g",
-                attributes: { id: "love", "haiku-id": "ed799c030702" },
+                attributes: { "haiku-id": "ed799c030702", id: "love" },
                 children: [
                   {
                     elementName: "path",
                     attributes: {
-                      id: "love_heart",
-                      "haiku-id": "71f3672c5921"
+                      "haiku-id": "71f3672c5921",
+                      id: "love_heart"
                     },
                     children: []
                   }
@@ -1940,15 +2001,15 @@ module.exports = {
           },
           {
             elementName: "g",
-            attributes: { id: "Page-1", "haiku-id": "d0c854d10f70" },
+            attributes: { "haiku-id": "d0c854d10f70", id: "Page-1" },
             children: [
               {
                 elementName: "g",
-                attributes: { id: "haha", "haiku-id": "2940be7ad6f3" },
+                attributes: { "haiku-id": "2940be7ad6f3", id: "haha" },
                 children: [
                   {
                     elementName: "ellipse",
-                    attributes: { id: "haha_face", "haiku-id": "9770e5eb7bf8" },
+                    attributes: { "haiku-id": "9770e5eb7bf8", id: "haha_face" },
                     children: []
                   }
                 ]
@@ -1985,15 +2046,15 @@ module.exports = {
           },
           {
             elementName: "g",
-            attributes: { id: "Page-1", "haiku-id": "5b1f3bc74dc6" },
+            attributes: { "haiku-id": "5b1f3bc74dc6", id: "Page-1" },
             children: [
               {
                 elementName: "g",
-                attributes: { id: "wow", "haiku-id": "916868f8fbc0" },
+                attributes: { "haiku-id": "916868f8fbc0", id: "wow" },
                 children: [
                   {
                     elementName: "ellipse",
-                    attributes: { id: "wow_face", "haiku-id": "23a0d04c3f51" },
+                    attributes: { "haiku-id": "23a0d04c3f51", id: "wow_face" },
                     children: []
                   }
                 ]
@@ -2030,24 +2091,24 @@ module.exports = {
           },
           {
             elementName: "g",
-            attributes: { id: "Page-1", "haiku-id": "36f0264e57cb" },
+            attributes: { "haiku-id": "36f0264e57cb", id: "Page-1" },
             children: [
               {
                 elementName: "g",
-                attributes: { id: "sad", "haiku-id": "822641b4cf01" },
+                attributes: { "haiku-id": "822641b4cf01", id: "sad" },
                 children: [
                   {
                     elementName: "g",
                     attributes: {
-                      id: "sad_face_comp",
-                      "haiku-id": "b06fa4fac363"
+                      "haiku-id": "b06fa4fac363",
+                      id: "sad_face_comp"
                     },
                     children: [
                       {
                         elementName: "ellipse",
                         attributes: {
-                          id: "sad_face",
-                          "haiku-id": "3e6571614e61"
+                          "haiku-id": "3e6571614e61",
+                          id: "sad_face"
                         },
                         children: []
                       }
@@ -2087,8 +2148,8 @@ module.exports = {
               {
                 elementName: "linearGradient",
                 attributes: {
-                  id: "linearGradient-1-d562a4",
-                  "haiku-id": "8416c08b6c33"
+                  "haiku-id": "8416c08b6c33",
+                  id: "linearGradient-1-d562a4"
                 },
                 children: [
                   {
@@ -2122,21 +2183,21 @@ module.exports = {
           },
           {
             elementName: "g",
-            attributes: { id: "Page-1", "haiku-id": "849e53ad12f1" },
+            attributes: { "haiku-id": "849e53ad12f1", id: "Page-1" },
             children: [
               {
                 elementName: "g",
-                attributes: { id: "angry", "haiku-id": "6877e3f9365f" },
+                attributes: { "haiku-id": "6877e3f9365f", id: "angry" },
                 children: [
                   {
                     elementName: "g",
-                    attributes: { id: "emoji", "haiku-id": "d10ae60fbe14" },
+                    attributes: { "haiku-id": "d10ae60fbe14", id: "emoji" },
                     children: [
                       {
                         elementName: "ellipse",
                         attributes: {
-                          id: "ang_face",
-                          "haiku-id": "cc63ba48ccfa"
+                          "haiku-id": "cc63ba48ccfa",
+                          id: "ang_face"
                         },
                         children: []
                       }
@@ -2176,17 +2237,17 @@ module.exports = {
           },
           {
             elementName: "g",
-            attributes: { id: "Page-1", "haiku-id": "922e4b07b86e" },
+            attributes: { "haiku-id": "922e4b07b86e", id: "Page-1" },
             children: [
               {
                 elementName: "g",
-                attributes: { id: "haha", "haiku-id": "b99ee3f3a312" },
+                attributes: { "haiku-id": "b99ee3f3a312", id: "haha" },
                 children: [
                   {
                     elementName: "path",
                     attributes: {
-                      id: "haha_eye_l",
-                      "haiku-id": "118185ab477f"
+                      "haiku-id": "118185ab477f",
+                      id: "haha_eye_l"
                     },
                     children: []
                   }
@@ -2224,17 +2285,17 @@ module.exports = {
           },
           {
             elementName: "g",
-            attributes: { id: "Page-1", "haiku-id": "4714f91efd35" },
+            attributes: { "haiku-id": "4714f91efd35", id: "Page-1" },
             children: [
               {
                 elementName: "g",
-                attributes: { id: "haha", "haiku-id": "0b2558dc0923" },
+                attributes: { "haiku-id": "0b2558dc0923", id: "haha" },
                 children: [
                   {
                     elementName: "path",
                     attributes: {
-                      id: "haha_eye_r",
-                      "haiku-id": "f0787bea27b6"
+                      "haiku-id": "f0787bea27b6",
+                      id: "haha_eye_r"
                     },
                     children: []
                   }
@@ -2271,50 +2332,57 @@ module.exports = {
             children: [
               {
                 elementName: "path",
-                attributes: { id: "path-1-e3e0de", "haiku-id": "38f46bbbb4ba" },
+                attributes: { "haiku-id": "38f46bbbb4ba", id: "path-1-e3e0de" },
                 children: []
               }
             ]
           },
           {
             elementName: "g",
-            attributes: { id: "Page-1", "haiku-id": "67d5baef9338" },
+            attributes: { "haiku-id": "67d5baef9338", id: "Page-1" },
             children: [
               {
                 elementName: "g",
-                attributes: { id: "haha", "haiku-id": "23a6fded05b9" },
+                attributes: { "haiku-id": "23a6fded05b9", id: "haha" },
                 children: [
                   {
                     elementName: "g",
                     attributes: {
-                      id: "haha_mouth",
-                      "haiku-id": "37e769f916ad"
+                      "haiku-id": "37e769f916ad",
+                      id: "haha_mouth"
                     },
                     children: [
                       {
                         elementName: "mask",
                         attributes: {
-                          id: "mask-2-e3e0de",
-                          "haiku-id": "85131caa8e3f"
+                          "haiku-id": "85131caa8e3f",
+                          id: "mask-2-e3e0de"
                         },
                         children: [
                           {
                             elementName: "use",
-                            attributes: { "haiku-id": "dfd6f4864e68" },
+                            attributes: {
+                              "xlink:href": "#path-1-e3e0de",
+                              "haiku-id": "dfd6f4864e68"
+                            },
                             children: []
                           }
                         ]
                       },
                       {
                         elementName: "use",
-                        attributes: { id: "Mask", "haiku-id": "952434a76cee" },
+                        attributes: {
+                          "xlink:href": "#path-1-e3e0de",
+                          "haiku-id": "952434a76cee",
+                          id: "Mask"
+                        },
                         children: []
                       },
                       {
                         elementName: "ellipse",
                         attributes: {
-                          id: "Oval-12",
-                          "haiku-id": "4c33f976e1eb"
+                          "haiku-id": "4c33f976e1eb",
+                          id: "Oval-12"
                         },
                         children: []
                       }
@@ -2354,15 +2422,15 @@ module.exports = {
           },
           {
             elementName: "g",
-            attributes: { id: "Page-1", "haiku-id": "8b54b9125717" },
+            attributes: { "haiku-id": "8b54b9125717", id: "Page-1" },
             children: [
               {
                 elementName: "g",
-                attributes: { id: "wow", "haiku-id": "fc3ed60ce71b" },
+                attributes: { "haiku-id": "fc3ed60ce71b", id: "wow" },
                 children: [
                   {
                     elementName: "ellipse",
-                    attributes: { id: "wow_mouth", "haiku-id": "d2f45d7fd38b" },
+                    attributes: { "haiku-id": "d2f45d7fd38b", id: "wow_mouth" },
                     children: []
                   }
                 ]
@@ -2399,15 +2467,15 @@ module.exports = {
           },
           {
             elementName: "g",
-            attributes: { id: "Page-1", "haiku-id": "033a694a2771" },
+            attributes: { "haiku-id": "033a694a2771", id: "Page-1" },
             children: [
               {
                 elementName: "g",
-                attributes: { id: "wow", "haiku-id": "63791cbd470b" },
+                attributes: { "haiku-id": "63791cbd470b", id: "wow" },
                 children: [
                   {
                     elementName: "ellipse",
-                    attributes: { id: "wow_eye_l", "haiku-id": "94e22837409d" },
+                    attributes: { "haiku-id": "94e22837409d", id: "wow_eye_l" },
                     children: []
                   }
                 ]
@@ -2444,15 +2512,15 @@ module.exports = {
           },
           {
             elementName: "g",
-            attributes: { id: "Page-1", "haiku-id": "8455db55d48b" },
+            attributes: { "haiku-id": "8455db55d48b", id: "Page-1" },
             children: [
               {
                 elementName: "g",
-                attributes: { id: "wow", "haiku-id": "86b40f0d02e9" },
+                attributes: { "haiku-id": "86b40f0d02e9", id: "wow" },
                 children: [
                   {
                     elementName: "ellipse",
-                    attributes: { id: "wow_eye_r", "haiku-id": "47e6e9fdec68" },
+                    attributes: { "haiku-id": "47e6e9fdec68", id: "wow_eye_r" },
                     children: []
                   }
                 ]
@@ -2489,17 +2557,17 @@ module.exports = {
           },
           {
             elementName: "g",
-            attributes: { id: "Page-1", "haiku-id": "a3a4de1b337b" },
+            attributes: { "haiku-id": "a3a4de1b337b", id: "Page-1" },
             children: [
               {
                 elementName: "g",
-                attributes: { id: "wow", "haiku-id": "7a59b4f0fa22" },
+                attributes: { "haiku-id": "7a59b4f0fa22", id: "wow" },
                 children: [
                   {
                     elementName: "path",
                     attributes: {
-                      id: "wow_eyebr_l",
-                      "haiku-id": "9f2d9c5195e6"
+                      "haiku-id": "9f2d9c5195e6",
+                      id: "wow_eyebr_l"
                     },
                     children: []
                   }
@@ -2537,17 +2605,17 @@ module.exports = {
           },
           {
             elementName: "g",
-            attributes: { id: "Page-1", "haiku-id": "917184ce0df4" },
+            attributes: { "haiku-id": "917184ce0df4", id: "Page-1" },
             children: [
               {
                 elementName: "g",
-                attributes: { id: "wow", "haiku-id": "90b7e2d649cb" },
+                attributes: { "haiku-id": "90b7e2d649cb", id: "wow" },
                 children: [
                   {
                     elementName: "path",
                     attributes: {
-                      id: "wow_eyebr_r",
-                      "haiku-id": "b9568e6d5399"
+                      "haiku-id": "b9568e6d5399",
+                      id: "wow_eyebr_r"
                     },
                     children: []
                   }
@@ -2585,24 +2653,24 @@ module.exports = {
           },
           {
             elementName: "g",
-            attributes: { id: "Page-1", "haiku-id": "ec43738f5364" },
+            attributes: { "haiku-id": "ec43738f5364", id: "Page-1" },
             children: [
               {
                 elementName: "g",
-                attributes: { id: "sad", "haiku-id": "1b4cb47aea39" },
+                attributes: { "haiku-id": "1b4cb47aea39", id: "sad" },
                 children: [
                   {
                     elementName: "g",
                     attributes: {
-                      id: "sad_face_comp",
-                      "haiku-id": "7e86c8b19eff"
+                      "haiku-id": "7e86c8b19eff",
+                      id: "sad_face_comp"
                     },
                     children: [
                       {
                         elementName: "ellipse",
                         attributes: {
-                          id: "sad_eye_l",
-                          "haiku-id": "3aca124ade66"
+                          "haiku-id": "3aca124ade66",
+                          id: "sad_eye_l"
                         },
                         children: []
                       }
@@ -2642,24 +2710,24 @@ module.exports = {
           },
           {
             elementName: "g",
-            attributes: { id: "Page-1", "haiku-id": "699e1de08034" },
+            attributes: { "haiku-id": "699e1de08034", id: "Page-1" },
             children: [
               {
                 elementName: "g",
-                attributes: { id: "sad", "haiku-id": "f0d33f35e464" },
+                attributes: { "haiku-id": "f0d33f35e464", id: "sad" },
                 children: [
                   {
                     elementName: "g",
                     attributes: {
-                      id: "sad_face_comp",
-                      "haiku-id": "d0f961eb3682"
+                      "haiku-id": "d0f961eb3682",
+                      id: "sad_face_comp"
                     },
                     children: [
                       {
                         elementName: "ellipse",
                         attributes: {
-                          id: "sad_eye_r",
-                          "haiku-id": "9dfbc9e3b2f4"
+                          "haiku-id": "9dfbc9e3b2f4",
+                          id: "sad_eye_r"
                         },
                         children: []
                       }
@@ -2699,24 +2767,24 @@ module.exports = {
           },
           {
             elementName: "g",
-            attributes: { id: "Page-1", "haiku-id": "ef3e3f8ddcb3" },
+            attributes: { "haiku-id": "ef3e3f8ddcb3", id: "Page-1" },
             children: [
               {
                 elementName: "g",
-                attributes: { id: "sad", "haiku-id": "5ef03ab2dd92" },
+                attributes: { "haiku-id": "5ef03ab2dd92", id: "sad" },
                 children: [
                   {
                     elementName: "g",
                     attributes: {
-                      id: "sad_face_comp",
-                      "haiku-id": "6080a317d701"
+                      "haiku-id": "6080a317d701",
+                      id: "sad_face_comp"
                     },
                     children: [
                       {
                         elementName: "path",
                         attributes: {
-                          id: "sad_eyebr_l",
-                          "haiku-id": "81069c22323b"
+                          "haiku-id": "81069c22323b",
+                          id: "sad_eyebr_l"
                         },
                         children: []
                       }
@@ -2756,24 +2824,24 @@ module.exports = {
           },
           {
             elementName: "g",
-            attributes: { id: "Page-1", "haiku-id": "1070f5bf680a" },
+            attributes: { "haiku-id": "1070f5bf680a", id: "Page-1" },
             children: [
               {
                 elementName: "g",
-                attributes: { id: "sad", "haiku-id": "b9f72cacd5df" },
+                attributes: { "haiku-id": "b9f72cacd5df", id: "sad" },
                 children: [
                   {
                     elementName: "g",
                     attributes: {
-                      id: "sad_face_comp",
-                      "haiku-id": "70d1c6c149ce"
+                      "haiku-id": "70d1c6c149ce",
+                      id: "sad_face_comp"
                     },
                     children: [
                       {
                         elementName: "path",
                         attributes: {
-                          id: "sad_eyebr_r",
-                          "haiku-id": "a12d70c446ea"
+                          "haiku-id": "a12d70c446ea",
+                          id: "sad_eyebr_r"
                         },
                         children: []
                       }
@@ -2813,24 +2881,24 @@ module.exports = {
           },
           {
             elementName: "g",
-            attributes: { id: "Page-1", "haiku-id": "553a1f784903" },
+            attributes: { "haiku-id": "553a1f784903", id: "Page-1" },
             children: [
               {
                 elementName: "g",
-                attributes: { id: "sad", "haiku-id": "e90ce995b115" },
+                attributes: { "haiku-id": "e90ce995b115", id: "sad" },
                 children: [
                   {
                     elementName: "g",
                     attributes: {
-                      id: "sad_face_comp",
-                      "haiku-id": "3ddde95ffec7"
+                      "haiku-id": "3ddde95ffec7",
+                      id: "sad_face_comp"
                     },
                     children: [
                       {
                         elementName: "path",
                         attributes: {
-                          id: "sad_mouth",
-                          "haiku-id": "97e0a93f9216"
+                          "haiku-id": "97e0a93f9216",
+                          id: "sad_mouth"
                         },
                         children: []
                       }
@@ -2870,24 +2938,24 @@ module.exports = {
           },
           {
             elementName: "g",
-            attributes: { id: "Page-1", "haiku-id": "561600e8f52e" },
+            attributes: { "haiku-id": "561600e8f52e", id: "Page-1" },
             children: [
               {
                 elementName: "g",
-                attributes: { id: "sad", "haiku-id": "7aeef3018ecf" },
+                attributes: { "haiku-id": "7aeef3018ecf", id: "sad" },
                 children: [
                   {
                     elementName: "g",
                     attributes: {
-                      id: "sad_face_comp",
-                      "haiku-id": "c7cd2b679ea6"
+                      "haiku-id": "c7cd2b679ea6",
+                      id: "sad_face_comp"
                     },
                     children: [
                       {
                         elementName: "path",
                         attributes: {
-                          id: "sad_tear",
-                          "haiku-id": "475ff339190c"
+                          "haiku-id": "475ff339190c",
+                          id: "sad_tear"
                         },
                         children: []
                       }
@@ -2927,24 +2995,24 @@ module.exports = {
           },
           {
             elementName: "g",
-            attributes: { id: "Page-1", "haiku-id": "94ccb83e827f" },
+            attributes: { "haiku-id": "94ccb83e827f", id: "Page-1" },
             children: [
               {
                 elementName: "g",
-                attributes: { id: "sad", "haiku-id": "6ceb6c5c86e9" },
+                attributes: { "haiku-id": "6ceb6c5c86e9", id: "sad" },
                 children: [
                   {
                     elementName: "g",
                     attributes: {
-                      id: "sad_face_comp",
-                      "haiku-id": "5445feb83515"
+                      "haiku-id": "5445feb83515",
+                      id: "sad_face_comp"
                     },
                     children: [
                       {
                         elementName: "path",
                         attributes: {
-                          id: "sad_tear",
-                          "haiku-id": "c5d0f27747ea"
+                          "haiku-id": "c5d0f27747ea",
+                          id: "sad_tear"
                         },
                         children: []
                       }
@@ -2984,21 +3052,21 @@ module.exports = {
           },
           {
             elementName: "g",
-            attributes: { id: "Page-1", "haiku-id": "135073ec8f3f" },
+            attributes: { "haiku-id": "135073ec8f3f", id: "Page-1" },
             children: [
               {
                 elementName: "g",
-                attributes: { id: "angry", "haiku-id": "dee410e1520c" },
+                attributes: { "haiku-id": "dee410e1520c", id: "angry" },
                 children: [
                   {
                     elementName: "g",
-                    attributes: { id: "emoji", "haiku-id": "7b4601bfb5c9" },
+                    attributes: { "haiku-id": "7b4601bfb5c9", id: "emoji" },
                     children: [
                       {
                         elementName: "path",
                         attributes: {
-                          id: "ang_mouth",
-                          "haiku-id": "4f096bcd0496"
+                          "haiku-id": "4f096bcd0496",
+                          id: "ang_mouth"
                         },
                         children: []
                       }
@@ -3038,21 +3106,21 @@ module.exports = {
           },
           {
             elementName: "g",
-            attributes: { id: "Page-1", "haiku-id": "3a546e8a355c" },
+            attributes: { "haiku-id": "3a546e8a355c", id: "Page-1" },
             children: [
               {
                 elementName: "g",
-                attributes: { id: "angry", "haiku-id": "8afcd0aca9f1" },
+                attributes: { "haiku-id": "8afcd0aca9f1", id: "angry" },
                 children: [
                   {
                     elementName: "g",
-                    attributes: { id: "emoji", "haiku-id": "a067f2be2001" },
+                    attributes: { "haiku-id": "a067f2be2001", id: "emoji" },
                     children: [
                       {
                         elementName: "ellipse",
                         attributes: {
-                          id: "ang_eye_l",
-                          "haiku-id": "0c8bc8bb8097"
+                          "haiku-id": "0c8bc8bb8097",
+                          id: "ang_eye_l"
                         },
                         children: []
                       }
@@ -3092,21 +3160,21 @@ module.exports = {
           },
           {
             elementName: "g",
-            attributes: { id: "Page-1", "haiku-id": "ef564d2f1a55" },
+            attributes: { "haiku-id": "ef564d2f1a55", id: "Page-1" },
             children: [
               {
                 elementName: "g",
-                attributes: { id: "angry", "haiku-id": "f608a425cb48" },
+                attributes: { "haiku-id": "f608a425cb48", id: "angry" },
                 children: [
                   {
                     elementName: "g",
-                    attributes: { id: "emoji", "haiku-id": "d1de49c42e69" },
+                    attributes: { "haiku-id": "d1de49c42e69", id: "emoji" },
                     children: [
                       {
                         elementName: "ellipse",
                         attributes: {
-                          id: "ang_eye_r",
-                          "haiku-id": "14fd0bfd1f86"
+                          "haiku-id": "14fd0bfd1f86",
+                          id: "ang_eye_r"
                         },
                         children: []
                       }
@@ -3146,21 +3214,21 @@ module.exports = {
           },
           {
             elementName: "g",
-            attributes: { id: "Page-1", "haiku-id": "d114c7d69b43" },
+            attributes: { "haiku-id": "d114c7d69b43", id: "Page-1" },
             children: [
               {
                 elementName: "g",
-                attributes: { id: "angry", "haiku-id": "1930a3bb6dc2" },
+                attributes: { "haiku-id": "1930a3bb6dc2", id: "angry" },
                 children: [
                   {
                     elementName: "g",
-                    attributes: { id: "emoji", "haiku-id": "fec21924a619" },
+                    attributes: { "haiku-id": "fec21924a619", id: "emoji" },
                     children: [
                       {
                         elementName: "path",
                         attributes: {
-                          id: "ang_eyebr_l",
-                          "haiku-id": "025f3ca2d975"
+                          "haiku-id": "025f3ca2d975",
+                          id: "ang_eyebr_l"
                         },
                         children: []
                       }
@@ -3200,21 +3268,21 @@ module.exports = {
           },
           {
             elementName: "g",
-            attributes: { id: "Page-1", "haiku-id": "daac9a1cbdff" },
+            attributes: { "haiku-id": "daac9a1cbdff", id: "Page-1" },
             children: [
               {
                 elementName: "g",
-                attributes: { id: "angry", "haiku-id": "c7ca6c0fe443" },
+                attributes: { "haiku-id": "c7ca6c0fe443", id: "angry" },
                 children: [
                   {
                     elementName: "g",
-                    attributes: { id: "emoji", "haiku-id": "f7083116afd9" },
+                    attributes: { "haiku-id": "f7083116afd9", id: "emoji" },
                     children: [
                       {
                         elementName: "path",
                         attributes: {
-                          id: "ang_eyebr_r",
-                          "haiku-id": "4bb0e0b95984"
+                          "haiku-id": "4bb0e0b95984",
+                          id: "ang_eyebr_r"
                         },
                         children: []
                       }
@@ -3254,8 +3322,8 @@ module.exports = {
               {
                 elementName: "filter",
                 attributes: {
-                  id: "filter-1-8d2479",
-                  "haiku-id": "185c434e4397"
+                  "haiku-id": "185c434e4397",
+                  id: "filter-1-8d2479-cee7w192hxi"
                 },
                 children: [
                   {
@@ -3268,8 +3336,8 @@ module.exports = {
               {
                 elementName: "filter",
                 attributes: {
-                  id: "filter-2-8d2479",
-                  "haiku-id": "9613097c3a0d"
+                  "haiku-id": "9613097c3a0d",
+                  id: "filter-2-8d2479-cee7w192hxi"
                 },
                 children: [
                   {
@@ -3283,46 +3351,46 @@ module.exports = {
           },
           {
             elementName: "g",
-            attributes: { id: "Page-1", "haiku-id": "64b1c06cb86d" },
+            attributes: { "haiku-id": "64b1c06cb86d", id: "Page-1" },
             children: [
               {
                 elementName: "g",
-                attributes: { id: "yay_whole", "haiku-id": "020139cff8ed" },
+                attributes: { "haiku-id": "020139cff8ed", id: "yay_whole" },
                 children: [
                   {
                     elementName: "ellipse",
-                    attributes: { id: "yay_face", "haiku-id": "61ebcaa1f9b4" },
+                    attributes: { "haiku-id": "61ebcaa1f9b4", id: "yay_face" },
                     children: []
                   },
                   {
                     elementName: "ellipse",
                     attributes: {
-                      id: "yay_blush_l",
-                      "haiku-id": "987078de03b4"
+                      "haiku-id": "987078de03b4",
+                      id: "yay_blush_l"
                     },
                     children: []
                   },
                   {
                     elementName: "ellipse",
                     attributes: {
-                      id: "yay_blush_r",
-                      "haiku-id": "96e0d7aeeaa7"
+                      "haiku-id": "96e0d7aeeaa7",
+                      id: "yay_blush_r"
                     },
                     children: []
                   },
                   {
                     elementName: "path",
-                    attributes: { id: "yay_eye_l", "haiku-id": "cabfcc4af921" },
+                    attributes: { "haiku-id": "cabfcc4af921", id: "yay_eye_l" },
                     children: []
                   },
                   {
                     elementName: "path",
-                    attributes: { id: "yay_eye_r", "haiku-id": "16968f00567e" },
+                    attributes: { "haiku-id": "16968f00567e", id: "yay_eye_r" },
                     children: []
                   },
                   {
                     elementName: "path",
-                    attributes: { id: "yay_mouth", "haiku-id": "4add94d5ab79" },
+                    attributes: { "haiku-id": "4add94d5ab79", id: "yay_mouth" },
                     children: []
                   }
                 ]
@@ -3338,8 +3406,8 @@ module.exports = {
           xmlns: "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
           source: "designs/NewReactions.sketch.contents/slices/ang_redface.svg",
-          "haiku-title": "ang_redface",
-          "haiku-id": "3d5f52d8aa5d"
+          "haiku-id": "3d5f52d8aa5d",
+          "haiku-title": "ang_redface"
         },
         children: [
           {
@@ -3359,21 +3427,21 @@ module.exports = {
           },
           {
             elementName: "g",
-            attributes: { id: "Page-1", "haiku-id": "744241e2759d" },
+            attributes: { "haiku-id": "744241e2759d", id: "Page-1" },
             children: [
               {
                 elementName: "g",
-                attributes: { id: "angry", "haiku-id": "247ca7856537" },
+                attributes: { "haiku-id": "247ca7856537", id: "angry" },
                 children: [
                   {
                     elementName: "g",
-                    attributes: { id: "emoji", "haiku-id": "de3918adef60" },
+                    attributes: { "haiku-id": "de3918adef60", id: "emoji" },
                     children: [
                       {
                         elementName: "ellipse",
                         attributes: {
-                          id: "ang_redface",
-                          "haiku-id": "cf5bb4804816"
+                          "haiku-id": "cf5bb4804816",
+                          id: "ang_redface"
                         },
                         children: []
                       }

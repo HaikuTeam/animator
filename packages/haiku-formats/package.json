@@ -17,6 +17,7 @@
     "compile": "tsc",
     "develop": "tsc --watch",
     "regenerate-goldens": "tsc && node ./scripts/regenerate-goldens.js",
+    "upgrade-goldens": "tsc && node ./scripts/upgrade-goldens.js",
     "demos": "node ./scripts/demos.js"
   },
   "authors": [
