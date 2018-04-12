@@ -1,6 +1,32 @@
 # Changelog
 
 
+## 3.2.9
+
+### Bug Fixes
+
+ * Ensure row expands when timeline area is clicked
+ * upgrade tests to use upgraded bytecode.
+ * clear require cache correctly when generating/testing goldens.
+ * allow registration of multiple events of the same type on different selectors.
+ * use isNumeric to determine if a frame is a timeline event or not
+ * un-break origin upgrade in headless mode.
+ * upgrade bytecode in place only after setting up caches.
+ * use selectSoftly during selectAll to fix selectAll.
+ * Check for presence of stack object
+ * parse transform matrix correctly.
+ * use correct polygon points for marquee selection.
+ * avoid overzealous scaling cursors.
+ * linting
+ * reduce the editor size
+ * lint pass
+ * do not rename metadata files
+
+### Features
+
+ * add ability to upgrade goldens in place with #science.
+ * improve the logic to find Sketch paths
+
 ## 3.2.8
 
 ### Bug Fixes

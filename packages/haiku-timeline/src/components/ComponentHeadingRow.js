@@ -91,6 +91,7 @@ export default class ComponentHeadingRow extends React.Component {
           </div>
         }
         <div
+          className='component-heading-row-inner no-select'
           onMouseOver={() => {
             this.props.row.hoverAndUnhoverOthers()
           }}
@@ -105,7 +106,7 @@ export default class ComponentHeadingRow extends React.Component {
           }}
           style={{
             display: 'table-cell',
-            width: this.props.timeline.getPropertiesPixelWidth() - 140,
+            width: (this.props.row.isExpanded()) ? this.props.timeline.getPropertiesPixelWidth() - 140 : '100%',
             height: 'inherit',
             position: 'absolute',
             cursor: 'pointer',

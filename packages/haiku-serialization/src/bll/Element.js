@@ -56,8 +56,8 @@ class Element extends BaseModel {
     this._isSelected = false
     this.transformCache = new TransformCache(this)
 
-    this._headingRow = null
     this._clusterAndPropertyRows = []
+    this._headingRow = null
   }
 
   $el () {
@@ -763,7 +763,7 @@ class Element extends BaseModel {
     return lodash.uniq([].concat(this.getHostedRows(), this.getTargetingRows()))
   }
 
-  getHostedRowsInDefaultDisplayPositionOrder () {
+  getHostedPropertyRows () {
     const rows = []
 
     const heading = this.getHeadingRow()
@@ -773,11 +773,14 @@ class Element extends BaseModel {
 
       if (heading.children) {
         heading.children.forEach((child) => {
-          rows.push(child)
-          if (child.children) {
-            child.children.forEach((grandchild) => {
-              rows.push(grandchild)
-            })
+          if (child.isClusterHeading() || child.isProperty()) {
+            rows.push(child)
+
+            if (child.children) {
+              child.children.forEach((grandchild) => {
+                rows.push(grandchild)
+              })
+            }
           }
         })
       }
@@ -817,10 +820,6 @@ class Element extends BaseModel {
     const existingRows = this.getAllRows()
     existingRows.forEach((row) => row.mark())
 
-    // Populating this cache of rows for faster lookups
-    this._headingRow = null
-    this._clusterAndPropertyRows = []
-
     const hostElement = this
     const component = this.component
     const timeline = this.component.getCurrentTimeline()
@@ -844,6 +843,7 @@ class Element extends BaseModel {
     }
 
     this._headingRow = currentElementHeadingRow
+    this._clusterAndPropertyRows = []
 
     const clusters = {}
 
@@ -854,11 +854,15 @@ class Element extends BaseModel {
     ) => {
       if (propertyGroupDescriptor.cluster) {
         // Properties that are 'clustered', like rotation.x,y,z
-        const clusterId = Row.buildClusterUid(this, hostElement, targetElement, propertyGroupDescriptor)
+        const clusterId = Row.buildClusterUid(
+          this,
+          hostElement,
+          targetElement,
+          propertyGroupDescriptor
+        )
 
         let clusterRow
 
-        // Ensure we get a correct number for the row index
         if (clusters[clusterId]) {
           clusterRow = Row.findById(clusterId)
         } else {
