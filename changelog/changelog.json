@@ -6139,5 +6139,97 @@
       "label": "fix",
       "message": "Use correct time for listing elements z-stack order"
     }
+  },
+  "3.2.9": {
+    "81c3293ef8c601fa2710bda5ff7694b63359dd7f": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Ensure row expands when timeline area is clicked"
+    },
+    "5fd74ce74103c9f3c2b67f9fbe7e251d2a0d6cf5": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "upgrade tests to use upgraded bytecode."
+    },
+    "3adb16ad1c3e7d1f42e722dbe149b0c236d303eb": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add ability to upgrade goldens in place with #science."
+    },
+    "c0f86a46d8a6612f5c25b775f644aa8409a3053a": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "clear require cache correctly when generating/testing goldens."
+    },
+    "38f64d17d880027dd0e92bc26b69b98575df5861": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "allow registration of multiple events of the same type on different selectors."
+    },
+    "f56bd380dcdcad650070e4e6c2e72e674b6ae3ec": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "use isNumeric to determine if a frame is a timeline event or not"
+    },
+    "7a3bba006cf096fe558f925f304190a03e7a486c": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "un-break origin upgrade in headless mode."
+    },
+    "78cf3290a806fbf1158038ce98d390e0bd40a6fd": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "upgrade bytecode in place only after setting up caches."
+    },
+    "c88e9707d370e7a5dc83e2f323df51404a75045a": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "use selectSoftly during selectAll to fix selectAll."
+    },
+    "413ab4a967425f2d20dd4fe9853f4dbc0d2063bf": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Check for presence of stack object"
+    },
+    "a604bc12737b3ac6bd820acfd40e751e3e244e19": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "improve the logic to find Sketch paths"
+    },
+    "c0837779e43f672906cd5b0c60b886744c124b4a": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "parse transform matrix correctly."
+    },
+    "561a5ba589aaebb1f442a64429d678e734242ed0": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "use correct polygon points for marquee selection."
+    },
+    "5ca12bae684deb2a8a3309a551cad8cb0e2e3613": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "avoid overzealous scaling cursors."
+    },
+    "144b1f44e2806b2f6903d62b31f13c32e3e785ec": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "linting"
+    },
+    "fb05f07d5ef0aa81f9ede8c58bbf89c69c72f7a9": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "reduce the editor size"
+    },
+    "9ff9bb3b7316118132b04585dbac71262d35b549": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "lint pass"
+    },
+    "b268093a59f700c90cd358742c6aff1bb77a96c9": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "do not rename metadata files"
+    }
   }
 }
