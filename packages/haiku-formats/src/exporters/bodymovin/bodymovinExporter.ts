@@ -316,27 +316,25 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     const transforms = {};
     transforms[TransformKey.OuterRadius] = getFixedPropertyValue([0, 0, 0]);
 
-    let centerX = 0;
-    let centerY = 0;
+    const sizeX = initialValueOr(timeline, 'sizeAbsolute.x', 0);
+    const sizeY = initialValueOr(timeline, 'sizeAbsolute.y', 0);
+    const originX = sizeX * (initialValueOr(timeline, 'origin.x', 0.5));
+    const originY = sizeY * (initialValueOr(timeline, 'origin.y', 0.5));
+    const mountX = sizeX * initialValueOr(timeline, 'mount.x', 0);
+    const mountY = sizeY * initialValueOr(timeline, 'mount.y', 0);
 
-    // Calculate the 2D center for 3D transformations.
-    if (timeline.hasOwnProperty('sizeAbsolute.x') && timeline.hasOwnProperty('sizeAbsolute.y')) {
-      centerX = initialValue(timeline, 'sizeAbsolute.x') / 2;
-      centerY = initialValue(timeline, 'sizeAbsolute.y') / 2;
-    }
-
-    transforms[TransformKey.TransformOrigin] = getFixedPropertyValue([centerX, centerY, 0]);
+    transforms[TransformKey.TransformOrigin] = getFixedPropertyValue([originX, originY, 0]);
 
     if (timeline.hasOwnProperty('translation.x') || timeline.hasOwnProperty('translation.y')) {
       transforms[TransformKey.Position] = {
         [TransformKey.PositionSplit]: true,
         x: this.getValue(
           timeline['translation.x'] || simulateLayoutProperty(LayoutPropertyType.Additive),
-          (value) => value + centerX,
+          (value) => value - mountX,
         ),
         y: this.getValue(
           timeline['translation.y'] || simulateLayoutProperty(LayoutPropertyType.Additive),
-          (value) => value + centerY,
+          (value) => value - mountY,
         ),
       };
     } else {
@@ -427,9 +425,9 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     const originalTimeline = this.timelineForNode(node);
     const originalHaikuId = node.attributes['haiku-id'];
     let transcludedIdField;
-    if (originalTimeline.hasOwnProperty('href')) {
+    if (originalTimeline.hasOwnProperty('href') || node.attributes.hasOwnProperty('href')) {
       transcludedIdField = 'href';
-    } else if (originalTimeline.hasOwnProperty('xlink:href')) {
+    } else if (originalTimeline.hasOwnProperty('xlink:href') || node.attributes.hasOwnProperty('xlink:href')) {
       transcludedIdField = 'xlink:href';
     }
 
@@ -438,7 +436,11 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
       return;
     }
 
-    const transcludedId = initialValue(originalTimeline, transcludedIdField).replace(/^#/, '');
+    const transcludedId = (node.attributes[transcludedIdField]
+      ? node.attributes[transcludedIdField]
+      : initialValue(originalTimeline, transcludedIdField)
+    ).replace(/^#/, '');
+
     if (!this.transclusions.hasOwnProperty(transcludedId)) {
       // Not good, and shouldn't happen! Do nothing.
       return;
@@ -1113,8 +1115,15 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     this.handleWrapper();
 
     this.bytecode.template.children.forEach((template) => {
+      // TODO: Remove this when it's time to support groups.
       if (template.elementName !== SvgTag.Svg) {
         throw new Error(`Unexpected wrapper child element: ${template.elementName}`);
+      }
+      // Hack: make sure defs are first so transclusion works as expected.
+      // TODO: Move this logic into mana instantiation. Defs always have to be output first.
+      const maybeDefsIndex = template.children.findIndex((element) => element.elementName === SvgTag.Defs);
+      if (maybeDefsIndex > 0) {
+        template.children.unshift(...template.children.splice(maybeDefsIndex, 1));
       }
       Template.visitTemplate(template, null, (node, parentNode) => {
         this.handleElement(node, parentNode);
