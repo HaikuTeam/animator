@@ -68,8 +68,8 @@
     "production": false
   },
   "BaseModelQueryCache": {
-    "development": true,
-    "production": true
+    "development": false,
+    "production": false
   },
   "ElementDepthFilter": {
     "development": true,
