@@ -249,10 +249,15 @@ tape('BodymovinExporter', (test: tape.Test) => {
     bytecode.timelines.Default['haiku:svg']['sizeAbsolute.y'] = {0: {value: 200}};
     bytecode.timelines.Default['haiku:svg']['translation.x'] = {0: {value: 10}};
     bytecode.timelines.Default['haiku:svg']['translation.y'] = {0: {value: 20}};
+    bytecode.timelines.Default['haiku:svg']['origin.x'] = {0: {value: 0.25}};
+    bytecode.timelines.Default['haiku:svg']['origin.y'] = {0: {value: 0.25}};
+    // Simulates legacy mode for old Haiku.
+    bytecode.timelines.Default['haiku:svg']['mount.x'] = {0: {value: -0.5}};
+    bytecode.timelines.Default['haiku:svg']['mount.y'] = {0: {value: -0.5}};
     const {layers: [{ks: {a, p}}]} = rawOutput(bytecode);
-    test.deepEqual(a.k, [100 / 2, 200 / 2, 0], 'places the transform-origin at the 2D center of the layer');
-    test.equal(p.x.k, 10 + 100 / 2, 'increments translation.x by the x-coordinate of the 2D center');
-    test.equal(p.y.k, 20 + 200 / 2, 'increments translation.y by the y-coordinate of the 2D center');
+    test.deepEqual(a.k, [25, 50, 0], 'places the transform-origin in self-coordinates');
+    test.equal(p.x.k, 10 + 100 / 2, 'decrements translation.x by the x-mount');
+    test.equal(p.y.k, 20 + 200 / 2, 'decrements translation.y by the y-mount');
     test.end();
   });
 
@@ -423,7 +428,7 @@ tape('BodymovinExporter', (test: tape.Test) => {
         y2: {0: {value: '75%'}},
       };
 
-      bytecode.template.children[0].children.unshift({
+      bytecode.template.children[0].children.push({
         elementName: 'defs',
         attributes: {'haiku-id': 'unused'},
         children: [{
@@ -887,10 +892,11 @@ tape('BodymovinExporter', (test: tape.Test) => {
     bytecode.timelines.Default['haiku:svg'].opacity = {
       0: {
         value: Haiku.inject(
-          function(two, $user, $basicMagic, $deepMagic) {
-            return .12 * two + $user.mouse.x / 100 + $basicMagic - $deepMagic.arbitrarily.nested.magic;
+          function(two, Math, $user, $basicMagic, $deepMagic) {
+            return .12 * two + $user.mouse.x / 100 + $basicMagic - $deepMagic.arbitrarily.nested.magic + Math.sqrt(0);
           },
           'two',
+          'Math',
           '$user',
           '$basicMagic',
           '$deepMagic',

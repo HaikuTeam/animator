@@ -6,7 +6,7 @@ module.exports = {
     name: "Test",
     relpath: "code/main/code.js",
     version: "0.0.2",
-    core: "3.1.32",
+    core: "3.2.8",
     player: "3.1.32",
     organization: "sillyleo",
     project: "Test",
@@ -47,7 +47,9 @@ module.exports = {
           "0": { value: -117.25, edited: true, curve: "easeOutCubic" },
           "400": { value: -6.3125 }
         },
-        "style.zIndex": { "0": { value: 2 } }
+        "style.zIndex": { "0": { value: 2 } },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:b8b428f2ed07": {
         "style.position": { "0": { value: "absolute" } },
@@ -77,7 +79,9 @@ module.exports = {
           "0": { value: 0, curve: null, edited: true },
           "400": { value: 0, edited: true, curve: "linear" },
           "567": { value: 1, edited: true }
-        }
+        },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:82c161f082ea": {
         "style.position": { "0": { value: "absolute" } },
@@ -96,7 +100,9 @@ module.exports = {
           "0": { value: 760.625, edited: true, curve: "linear" },
           "400": { value: 487.1875 }
         },
-        "style.zIndex": { "0": { value: 3 } }
+        "style.zIndex": { "0": { value: 3 } },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:641386b9d3b5": {
         "style.position": { "0": { value: "absolute" } },
@@ -115,7 +121,9 @@ module.exports = {
           "0": { value: 804.171875, edited: true, curve: "linear" },
           "400": { value: 548.3125 }
         },
-        "style.zIndex": { "0": { value: 4 } }
+        "style.zIndex": { "0": { value: 4 } },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:268d35d711a8": {
         stroke: { "0": { value: "none" } },
@@ -225,7 +233,9 @@ module.exports = {
         "scale.y": {
           "0": { value: 9.863661024305557 },
           "400": { value: 6.981445312500003 }
-        }
+        },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:888b4978ab18": {
         stroke: { "0": { value: "none" } },
@@ -267,7 +277,9 @@ module.exports = {
           "0": { value: 0, edited: true, curve: "linear" },
           "350": { value: 0, edited: true, curve: "linear" },
           "400": { value: 1, edited: true }
-        }
+        },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
       },
       "haiku:82ad5831e3ab": {
         stroke: { "0": { value: "none" } },
