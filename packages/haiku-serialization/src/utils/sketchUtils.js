@@ -1,10 +1,12 @@
 const os = require('os')
+const path = require('path')
 const { exec } = require('child_process')
 const logger = require('./LoggerInstance')
 const { download, unzip } = require('./fileManipulation')
 
 const DOWNLOAD_URL = 'https://download.sketchapp.com/sketch.zip'
 const SKETCH_PATH_FINDER = `$(/usr/bin/find /System/Library/Frameworks -name lsregister) -dump | grep 'path:.*/Sketch\\( (\\d)\\)\\?\\.app$'`
+const PARSER_CLI_PATH = '/Contents/Resources/sketchtool/bin/sketchtool'
 
 module.exports = {
   download (progressCallback, shouldCancel) {
@@ -22,40 +24,73 @@ module.exports = {
     })
   },
 
-  isInTrash (path) {
-    return path.includes('.Trash')
-  },
+  dumpToPaths (rawDump) {
+    logger.info('[sketch utils] about to parse Sketch paths', rawDump)
 
-  isInSystemFolder (path) {
-    return path.includes('__MACOSX')
-  },
-
-  parseDumpInfo (error, stdout, stderr) {
-    if (error || !stdout || stdout.trim().length === 0 || stderr) {
-      return null
-    }
-
-    let sketchInstallationPath = null
-    logger.info('[sketch utils] about to parse Sketch paths', stdout)
-
-    try {
-      sketchInstallationPath = stdout
+    return rawDump
         .trim()
         .split('\n')
-        .map((pathWithExtras) => pathWithExtras.split(':')[1].trim())
-        .find((path) => !this.isInTrash(path) && !this.isInSystemFolder(path))
-    } catch (error) {
-      logger.error('[sketch utils] error finding Sketch path: ', error)
-    }
+        .map((pathWithExtras) => {
+          try {
+            return pathWithExtras.split(':')[1].trim()
+          } catch (error) {
+            return null
+          }
+        })
+        .filter(Boolean)
+  },
 
-    return sketchInstallationPath
+  pathsToInstallationInfo (sketchPaths) {
+    const resolvingSketchPaths = sketchPaths.map((sketchPath) => {
+      return new Promise((resolve, reject) => {
+        const sketchtoolPath = path.join(sketchPath, PARSER_CLI_PATH)
+
+        exec(`${sketchtoolPath} --version`, (error, stdout, stderr) => {
+          if (error || !stdout || stdout.trim().length === 0 || stderr) {
+            return resolve(null)
+          }
+
+          const rawBuildNumber = stdout.match(/\((.*?)\)/)[1]
+          const sketchtoolBuildNumber = Number(rawBuildNumber)
+          return resolve({sketchPath, sketchtoolBuildNumber})
+        })
+      })
+    })
+
+    return Promise.all(resolvingSketchPaths)
+  },
+
+  getDumpInfo () {
+    return new Promise((resolve, reject) => {
+      exec(SKETCH_PATH_FINDER, (error, stdout, stderr) => {
+        if (error || !stdout || stdout.trim().length === 0 || stderr) {
+          reject(error)
+        }
+
+        return resolve(stdout, stderr)
+      })
+    })
+  },
+
+  findBestPath (sketchPaths) {
+    const sortedPaths = sketchPaths
+      .filter(Boolean)
+      .sort((a, b) => b.sketchtoolBuildNumber - a.sketchtoolBuildNumber)
+
+    return sortedPaths[0] && sortedPaths[0].sketchPath
   },
 
   checkIfInstalled () {
     return new Promise((resolve, reject) => {
-      exec(SKETCH_PATH_FINDER, (error, stdout, stderr) => {
-        return resolve(this.parseDumpInfo(error, stdout, stderr))
-      })
+      this.getDumpInfo()
+        .then(this.dumpToPaths)
+        .then(this.pathsToInstallationInfo)
+        .then(this.findBestPath)
+        .then((bestPath) => { resolve(bestPath) })
+        .catch((error) => {
+          logger.error('[sketch utils] error finding Sketch: ', error)
+          resolve(null)
+        })
     })
   }
 }
