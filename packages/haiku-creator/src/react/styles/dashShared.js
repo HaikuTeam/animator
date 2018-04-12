@@ -292,7 +292,8 @@ export const DASH_STYLES = {
     left: 0,
     zIndex: 100,
     width: '100%',
-    height: '100%'
+    height: '100%',
+    backgroundColor: Color(Palette.FATHER_COAL).fade(0.4)
   },
   modal: {
     position: 'absolute',
@@ -309,6 +310,7 @@ export const DASH_STYLES = {
   },
   modalTitle: {
     color: Palette.SUNSTONE,
+
     fontSize: 16,
     marginBottom: 12
   },
@@ -321,11 +323,13 @@ export const DASH_STYLES = {
     backgroundColor: Color(Palette.COAL).darken(0.3),
     width: '100%',
     height: 53,
-    color: Palette.SUNSTONE,
     padding: 20,
     borderRadius: 5,
     fontSize: 15,
-    marginBottom: 42
+    marginBottom: 42,
+    color: Palette.LIGHTEST_PINK, // this is color of the cursor
+    textShadow: '0px 0px 0px ' + Palette.SUNSTONE, // this is color of the text
+    '-webkit-text-fill-color': 'transparent'
   },
   newProjectError: {
     display: 'block',

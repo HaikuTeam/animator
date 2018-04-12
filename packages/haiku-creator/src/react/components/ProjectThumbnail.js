@@ -107,7 +107,7 @@ class ProjectThumbnail extends React.Component {
         </div>
         <div style={DASH_STYLES.titleStrip}>
           <span style={DASH_STYLES.title}>
-            {this.props.projectName.charAt(0).toUpperCase() + this.props.projectName.slice(1)}
+            {this.props.projectName}
           </span>
           <span
             style={[DASH_STYLES.titleOptions, {transform: 'translateY(1px)'}]}

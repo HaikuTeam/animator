@@ -20,6 +20,7 @@ export class CodeBox extends React.PureComponent {
 
   render () {
     atomDark['pre[class*="language-"]'].background = Palette.FATHER_COAL;
+    atomDark['pre[class*="language-"]'].userSelect = 'all';
 
     return (
       <SyntaxHighlighter language={this.props.lang} style={atomDark}>

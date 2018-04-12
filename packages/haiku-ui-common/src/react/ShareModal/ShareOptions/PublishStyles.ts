@@ -5,7 +5,7 @@ import Palette from '../../../Palette';
 export const PUBLISH_SHARED = {
   codebox: {
     color: Palette.ROCK,
-    userSelect: 'auto',
+    userSelect: 'all',
   },
   container: {
     padding: '0 30px',
@@ -68,9 +68,9 @@ export const PUBLISH_SHARED = {
     padding: '12px 20px',
     display: 'block',
     overflowX: 'auto',
-    MozUserSelect: 'text',
-    WebkitUserSelect: 'text',
-    userSelect: 'text',
+    MozUserSelect: 'all',
+    WebkitUserSelect: 'all',
+    userSelect: 'all',
   } as React.CSSProperties,
   instructionsRow: {
     width: '100%',
