@@ -3302,8 +3302,14 @@ class ActiveComponent extends BaseModel {
 
       // Place the new group at the top (TODO: retain inner stacking order somehow)
       const stackingInfo = Template.getStackingInfo(bytecode, mana, timelineName, timelineTime)
-      const {ourStackObject} = this.grabStackObjectFromStackingInfo(stackingInfo, groupComponentId)
-      stackingInfo.push(ourStackObject) // Push to front
+      const stackObject = this.grabStackObjectFromStackingInfo(stackingInfo, groupComponentId)
+
+      // Don't know why, but sometimes the stack object can be undefined
+      const ourStackObject = stackObject && stackObject.ourStackObject
+      if (ourStackObject) {
+        stackingInfo.push(ourStackObject) // Push to front
+      }
+
       this.setZIndicesForStackingInfo(bytecode, timelineName, timelineTime, stackingInfo)
 
       // const host = this.getCoreComponentInstance()
@@ -3564,8 +3570,13 @@ class ActiveComponent extends BaseModel {
     let stackingInfo
     return this.performComponentTimelinesWork((bytecode, mana, timelines, done) => {
       stackingInfo = Template.getStackingInfo(bytecode, mana, timelineName, timelineTime)
-      const {ourStackObject, index} = this.grabStackObjectFromStackingInfo(stackingInfo, componentId)
-      stackingInfo.splice(index + 1, 0, ourStackObject)
+      const stackObject = this.grabStackObjectFromStackingInfo(stackingInfo, componentId)
+      const ourStackObject = stackObject && stackObject.ourStackObject
+      // Don't know why, but for some reason stackObject can be undefined
+      if (ourStackObject) {
+        const index = stackObject.index
+        stackingInfo.splice(index + 1, 0, ourStackObject)
+      }
       this.setZIndicesForStackingInfo(bytecode, timelineName, timelineTime, stackingInfo)
       done()
     }, (err) => {
@@ -3602,8 +3613,13 @@ class ActiveComponent extends BaseModel {
     let stackingInfo
     return this.performComponentTimelinesWork((bytecode, mana, timelines, done) => {
       stackingInfo = Template.getStackingInfo(bytecode, mana, timelineName, timelineTime)
-      const {ourStackObject, index} = this.grabStackObjectFromStackingInfo(stackingInfo, componentId)
-      stackingInfo.splice(Math.max(index - 1, 0), 0, ourStackObject)
+      const stackObject = this.grabStackObjectFromStackingInfo(stackingInfo, componentId)
+      const ourStackObject = stackObject && stackObject.ourStackObject
+      // Don't know why, but for some reason stackObject can be undefined
+      if (ourStackObject) {
+        const index = stackObject.index
+        stackingInfo.splice(Math.max(index - 1, 0), 0, ourStackObject)
+      }
       this.setZIndicesForStackingInfo(bytecode, timelineName, timelineTime, stackingInfo)
       done()
     }, (err) => {
