@@ -155,18 +155,6 @@ export default class HaikuComponent extends HaikuElement {
     // Ensure all __instance, __parent, etc. are properly set up and connected to the models
     this.reinitializeTree(container);
 
-    try {
-      // If the bytecode we got happens to be in an outdated format, we automatically update it to the latest.
-      upgradeBytecodeInPlace(this, {
-        // Random seed for adding instance uniqueness to ids at runtime.
-        referenceUniqueness: (config.hotEditingMode)
-          ? void (0) // During editing, Haiku.app pads ids unless this is undefined
-          : Math.random().toString(36).slice(2),
-      });
-    } catch (e) {
-      console.warn('[haiku core] caught error during attempt to upgrade bytecode in place');
-    }
-
     // Flag used internally to determine whether we need to re-render the full tree or can survive by just patching
     this._needsFullFlush = false;
 
@@ -219,6 +207,7 @@ export default class HaikuComponent extends HaikuElement {
       });
     } catch (e) {
       console.warn('[haiku core] caught error during attempt to upgrade bytecode in place');
+      console.warn(e);
     }
 
     // Start the default timeline to initiate the component;
@@ -1302,17 +1291,21 @@ function applyContextChanges(component, template, container, context, renderOpti
     false, // isPatchOperation
   );
 
-  component.eachEventHandler((eventSelector, eventName, {handler}) => {
-    if (component.registeredEventHandlers[eventName]) {
-      return;
-    }
+  if (component._context.renderer.mount) {
+    component.eachEventHandler((eventSelector, eventName, {handler}) => {
+      const registrationKey  = `${eventSelector}:${eventName}`;
 
-    component.registeredEventHandlers[eventName] = true;
+      if (component.registeredEventHandlers[registrationKey]) {
+        return;
+      }
 
-    component._context.renderer.mountEventListener(eventSelector, eventName, (...args) => {
-      component.routeEventToHandlerAndEmit(eventSelector, eventName, args);
+      component.registeredEventHandlers[registrationKey] = true;
+
+      component._context.renderer.mountEventListener(eventSelector, eventName, (...args) => {
+        component.routeEventToHandlerAndEmit(eventSelector, eventName, args);
+      });
     });
-  });
+  }
 
   if (renderOptions.sizing) {
     computeAndApplyPresetSizing(

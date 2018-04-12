@@ -155,7 +155,7 @@ class EventHandlerEditor extends React.PureComponent {
   }
 
   componentWillReceiveProps (nextProps) {
-    if (nextProps.options.frame) {
+    if (isNumeric(nextProps.options.frame)) {
       const event = HandlerManager.frameToEvent(nextProps.options.frame)
       this.setState({ currentEvent: event })
     }
