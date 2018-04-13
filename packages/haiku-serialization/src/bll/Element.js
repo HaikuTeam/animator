@@ -658,7 +658,7 @@ class Element extends BaseModel {
 
       if (isNumeric(existingPropertyValue) && isNumeric(deltaPropertyValue)) {
         propertyGroupValue[propertyName] = {
-          value: existingPropertyValue + deltaPropertyValue
+          value: MathUtils.rounded(existingPropertyValue + deltaPropertyValue)
         }
       } else {
         propertyGroupValue[propertyName] = {
