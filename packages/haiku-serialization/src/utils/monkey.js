@@ -55,6 +55,10 @@ const loggableArgs = (args) => {
 
 const recordClass = (klass, hook, options = {}) => {
   Object.getOwnPropertyNames(klass.prototype).forEach((fn) => {
+    if (fn === 'constructor') {
+      return
+    }
+
     if (typeof klass.prototype[fn] === 'function') {
       const original = klass.prototype[fn]
 
