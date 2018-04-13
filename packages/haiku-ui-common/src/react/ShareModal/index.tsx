@@ -75,7 +75,7 @@ export class ShareModal extends React.Component<PropTypes, StateTypes> {
       this.error = null;
     }
 
-    if (nextProps.envoyProject && nextProps.projectUid && !this.state.isPublicKnown) {
+    if (nextProps.envoyProject && nextProps.projectUid && nextProps.projectUid !== this.props.projectUid && !this.state.isPublicKnown) {
       (nextProps.envoyProject.getProjectDetail(nextProps.projectUid) as Promise<inkstone.project.Project>).then((proj: inkstone.project.Project) => {
 
         // if IsPublic is undefined, it's never been published before. Make it private on first publish
