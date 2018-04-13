@@ -42,6 +42,8 @@ Error.stackTraceLimit = Infinity // Show long stack traces when errors are shown
 
 const Raven = require('./Raven')
 
+require('haiku-serialization/src/utils/monkey')('plumbing', __dirname, process.env)
+
 // Don't allow malicious websites to connect to our websocket server (Plumbing or Envoy)
 export const HAIKU_WS_SECURITY_TOKEN = Math.random().toString(36).substring(7) + Math.random().toString(36).substring(7)
 const WS_POLICY_VIOLATION_CODE = 1008
