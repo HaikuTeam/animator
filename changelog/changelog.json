@@ -6231,5 +6231,27 @@
       "label": "fix",
       "message": "do not rename metadata files"
     }
+  },
+  "3.2.10": {
+    "89ff041022958da5de2686278cad962b6416df03": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "allow registration of multiple events of the same type on different selectors."
+    },
+    "a117e08db735904ef66da551be786db21887fc23": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "un-break origin upgrade in headless mode."
+    },
+    "0ba59138f1a8c137a8efde8588b2bbe0a63845f8": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "upgrade bytecode in place only after setting up caches."
+    },
+    "7082d48d7802e0d4333684a747c6fcf0347ed1ed": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "parse transform matrix correctly."
+    }
   }
 }
