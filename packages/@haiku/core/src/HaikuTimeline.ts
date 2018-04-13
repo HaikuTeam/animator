@@ -102,14 +102,15 @@ export default class HaikuTimeline extends HaikuBase {
 
     if (this.isPlaying()) {
       const frame = this.getFrame();
+      const time = Math.round(this.getTime());
 
       this.component.routeEventToHandlerAndEmit(
         GLOBAL_LISTENER_KEY,
         `timeline:${this.getName()}:${frame}`,
-        [frame, Math.round(this.getTime())],
+        [frame, time],
       );
 
-      this.emit('frame', frame);
+      this.emit('tick', frame, time);
     }
   }
 

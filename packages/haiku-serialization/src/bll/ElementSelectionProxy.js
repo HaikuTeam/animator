@@ -13,9 +13,9 @@ const PI_OVER_12 = Math.PI / 12
 
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 
-function isNumeric (n) {
-  return !isNaN(parseFloat(n)) && isFinite(n)
-}
+const isNumeric = (n) => !isNaN(parseFloat(n)) && isFinite(n)
+
+const forceNumeric = (n) => (isNaN(n) || !isFinite(n)) ? 0 : n
 
 /**
  * @class ElementSelectionProxy
@@ -578,8 +578,8 @@ class ElementSelectionProxy extends BaseModel {
     const scaledBasisMatrixInverted = []
     invertMatrix(scaledBasisMatrixInverted, scaledBasisMatrix)
     Element.transformPointInPlace(delta, scaledBasisMatrixInverted)
-    const deltaOriginX = delta.x / computedLayout.size.x
-    const deltaOriginY = delta.y / computedLayout.size.y
+    const deltaOriginX = rounded(forceNumeric(delta.x / computedLayout.size.x))
+    const deltaOriginY = rounded(forceNumeric(delta.y / computedLayout.size.y))
 
     if (targetElement === this) {
       this.applyPropertyDelta('translation.x', deltaTranslationX)

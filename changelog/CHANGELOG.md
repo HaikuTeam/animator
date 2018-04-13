@@ -1,6 +1,15 @@
 # Changelog
 
 
+## 3.2.10
+
+### Bug Fixes
+
+ * allow registration of multiple events of the same type on different selectors.
+ * un-break origin upgrade in headless mode.
+ * upgrade bytecode in place only after setting up caches.
+ * parse transform matrix correctly.
+
 ## 3.2.9
 
 ### Bug Fixes
