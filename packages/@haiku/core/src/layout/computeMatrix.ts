@@ -55,15 +55,34 @@ export default function computeMatrix(layoutSpec, currentMatrix, currentsizeAbso
   const xz = layoutSpec.orientation.x * layoutSpec.orientation.z;
   const yz = layoutSpec.orientation.y * layoutSpec.orientation.z;
 
-  const rs0 = (1 - 2 * (yy + zz)) * layoutSpec.scale.x;
-  const rs1 = 2 * (xy + wz) * layoutSpec.scale.x;
-  const rs2 = 2 * (xz - wy) * layoutSpec.scale.x;
-  const rs3 = 2 * (xy - wz) * layoutSpec.scale.y;
-  const rs4 = (1 - 2 * (xx + zz)) * layoutSpec.scale.y;
-  const rs5 = 2 * (yz + wx) * layoutSpec.scale.y;
-  const rs6 = 2 * (xz + wy) * layoutSpec.scale.z;
-  const rs7 = 2 * (yz - wx) * layoutSpec.scale.z;
-  const rs8 = (1 - 2 * (xx + yy)) * layoutSpec.scale.z;
+  let rs0 = (1 - 2 * (yy + zz));
+  let rs1 = 2 * (xy + wz);
+  let rs2 = 2 * (xz - wy);
+  let rs3 = 2 * (xy - wz);
+  let rs4 = (1 - 2 * (xx + zz));
+  let rs5 = 2 * (yz + wx);
+  let rs6 = 2 * (xz + wy);
+  let rs7 = 2 * (yz - wx);
+  let rs8 = (1 - 2 * (xx + yy));
+
+  if (layoutSpec.shear.xy || layoutSpec.shear.xz || layoutSpec.shear.yz) {
+    rs6 += layoutSpec.shear.yz * rs3 + layoutSpec.shear.xz * rs0;
+    rs7 += layoutSpec.shear.yz * rs4 + layoutSpec.shear.xz * rs1;
+    rs8 += layoutSpec.shear.yz * rs5 + layoutSpec.shear.xz * rs2;
+    rs3 += layoutSpec.shear.xy * rs0;
+    rs4 += layoutSpec.shear.xy * rs1;
+    rs5 += layoutSpec.shear.xy * rs2;
+  }
+
+  rs0 *= layoutSpec.scale.x;
+  rs1 *= layoutSpec.scale.x;
+  rs2 *= layoutSpec.scale.x;
+  rs3 *= layoutSpec.scale.y;
+  rs4 *= layoutSpec.scale.y;
+  rs5 *= layoutSpec.scale.y;
+  rs6 *= layoutSpec.scale.z;
+  rs7 *= layoutSpec.scale.z;
+  rs8 *= layoutSpec.scale.z;
 
   const tx =
     alignX +

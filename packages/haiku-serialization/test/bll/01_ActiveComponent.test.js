@@ -1,10 +1,10 @@
 const tape = require('tape')
 const path = require('path')
 const fse = require('haiku-fs-extra')
+const {VERSION} = require('@haiku/core/lib/HaikuComponent')
 
 const Project = require('./../../src/bll/Project')
 const File = require('./../../src/bll/File')
-const Element = require('./../../src/bll/Element')
 
 const waitUntilFileProbablyWroteToDisk = (fn) => {
   return setTimeout(fn, 2000) // Disk writes happen on a 500ms interval
@@ -35,7 +35,7 @@ tape('ActiveComponent.prototype.instantiateComponent[1](design)', (t) => {
         return waitUntilFileProbablyWroteToDisk(() => {
           return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents) => {
             t.error(err, 'no err fetching code')
-            t.equal(contents.length, 6193, 'checksum of file ok')
+            t.equal(contents.length, 6188 + VERSION.length, 'checksum of file ok')
             fse.removeSync(folder)
             t.ok(true)
           })
@@ -165,7 +165,7 @@ tape('ActiveComponent.prototype.mergeDesign[3](design)', (t) => {
                       diffs.push([line, lines2[index]])
                     }
                   })
-                  t.equal(JSON.stringify(diffs), JSON.stringify([["      \"haiku:f35f9141b983\": {","      \"haiku:fe79a0a60860\": {"],["      \"haiku:d5960b443b19\": {","      \"haiku:0e767d9d32ee\": {"],["      \"haiku:0e868981ec4a\": {","      \"haiku:c917eaabf7a9\": {"],["      \"haiku:23ffb92b7e5b\": { \"translation.y\": { \"0\": { value: 72.38 } } },","      \"haiku:c198ef41de4b\": { \"translation.y\": { \"0\": { value: 72.38 } } },"],["      \"haiku:33cde524cfdd\": {","      \"haiku:e3396d8dedba\": {"],["      \"haiku:a6dbfcb360d4\": {","      \"haiku:7d89a3712af1\": {"],["      \"haiku:89c814618c88\": {","      \"haiku:9a8ca46cd4b8\": {"],["      \"haiku:62c2ca0179e9\": {","      \"haiku:e72ef1f2ccf0\": {"],["        fill: { \"0\": { value: \"#FF5E87\" } },","        fill: { \"0\": { value: \"#000000\" } },"],["      \"haiku:69d14f7e3c86\": {","      \"haiku:6ae06a3fe0fe\": {"],["        fill: { \"0\": { value: \"#FF5E87\" } },","        fill: { \"0\": { value: \"#000000\" } },"],["            attributes: { \"haiku-id\": \"f35f9141b983\", id: \"Page-1\" },","            attributes: { \"haiku-id\": \"fe79a0a60860\", id: \"Page-1\" },"],["                attributes: { \"haiku-id\": \"d5960b443b19\", id: \"Screen-3\" },","                attributes: { \"haiku-id\": \"0e767d9d32ee\", id: \"Screen-3\" },"],["                    attributes: { \"haiku-id\": \"0e868981ec4a\", id: \"percy\" },","                    attributes: { \"haiku-id\": \"c917eaabf7a9\", id: \"percy\" },"],["                        attributes: { \"haiku-id\": \"23ffb92b7e5b\", id: \"nose\" },","                        attributes: { \"haiku-id\": \"c198ef41de4b\", id: \"nose\" },"],["                              \"haiku-id\": \"33cde524cfdd\",","                              \"haiku-id\": \"e3396d8dedba\","],["                              \"haiku-id\": \"a6dbfcb360d4\",","                              \"haiku-id\": \"7d89a3712af1\","],["                              \"haiku-id\": \"89c814618c88\",","                              \"haiku-id\": \"9a8ca46cd4b8\","],["                              \"haiku-id\": \"62c2ca0179e9\",","                              \"haiku-id\": \"e72ef1f2ccf0\","],["                              \"haiku-id\": \"69d14f7e3c86\",","                              \"haiku-id\": \"6ae06a3fe0fe\","]]))
+                  t.equal(JSON.stringify(diffs), JSON.stringify([["      \"haiku:f35f9141b983\": {","      \"haiku:fe79a0a60860\": {"],["      \"haiku:d5960b443b19\": {","      \"haiku:0e767d9d32ee\": {"],["      \"haiku:0e868981ec4a\": {","      \"haiku:c917eaabf7a9\": {"],["      \"haiku:23ffb92b7e5b\": { \"translation.y\": { \"0\": { value: 72.378 } } },","      \"haiku:c198ef41de4b\": { \"translation.y\": { \"0\": { value: 72.378 } } },"],["      \"haiku:33cde524cfdd\": {","      \"haiku:e3396d8dedba\": {"],["      \"haiku:a6dbfcb360d4\": {","      \"haiku:7d89a3712af1\": {"],["      \"haiku:89c814618c88\": {","      \"haiku:9a8ca46cd4b8\": {"],["      \"haiku:62c2ca0179e9\": {","      \"haiku:e72ef1f2ccf0\": {"],["        fill: { \"0\": { value: \"#FF5E87\" } },","        fill: { \"0\": { value: \"#000000\" } },"],["      \"haiku:69d14f7e3c86\": {","      \"haiku:6ae06a3fe0fe\": {"],["        fill: { \"0\": { value: \"#FF5E87\" } },","        fill: { \"0\": { value: \"#000000\" } },"],["            attributes: { \"haiku-id\": \"f35f9141b983\", id: \"Page-1\" },","            attributes: { \"haiku-id\": \"fe79a0a60860\", id: \"Page-1\" },"],["                attributes: { \"haiku-id\": \"d5960b443b19\", id: \"Screen-3\" },","                attributes: { \"haiku-id\": \"0e767d9d32ee\", id: \"Screen-3\" },"],["                    attributes: { \"haiku-id\": \"0e868981ec4a\", id: \"percy\" },","                    attributes: { \"haiku-id\": \"c917eaabf7a9\", id: \"percy\" },"],["                        attributes: { \"haiku-id\": \"23ffb92b7e5b\", id: \"nose\" },","                        attributes: { \"haiku-id\": \"c198ef41de4b\", id: \"nose\" },"],["                              \"haiku-id\": \"33cde524cfdd\",","                              \"haiku-id\": \"e3396d8dedba\","],["                              \"haiku-id\": \"a6dbfcb360d4\",","                              \"haiku-id\": \"7d89a3712af1\","],["                              \"haiku-id\": \"89c814618c88\",","                              \"haiku-id\": \"9a8ca46cd4b8\","],["                              \"haiku-id\": \"62c2ca0179e9\",","                              \"haiku-id\": \"e72ef1f2ccf0\","],["                              \"haiku-id\": \"69d14f7e3c86\",","                              \"haiku-id\": \"6ae06a3fe0fe\","]]))
                   fse.removeSync(folder)
                   t.ok(true)
                 })
@@ -209,7 +209,7 @@ tape('ActiveComponent.prototype.instantiateComponent[2](component)', (t) => {
               return waitUntilFileProbablyWroteToDisk(() => {
                 return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents) => {
                   if (err) throw err
-                  t.equal(contents.length, 2009, 'checksum ok')
+                  t.equal(contents.length, 2004 + VERSION.length, 'checksum ok')
                   var lines = contents.split('\n')
                   t.equal(lines[0], 'var Haiku = require("@haiku/core");', 'first line is haiku require')
                   t.equal(lines[1], 'var designs_path_svg = require("../designs_path_svg/code.js");', 'first line is component require')

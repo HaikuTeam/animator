@@ -13,6 +13,7 @@ test('Layout3D.computeLayout', function (t) {
       rotation: {x: 0, y: 0, z: 0, w: 0},
       orientation: {x: 0, y: 0, z: 0, w: 0},
       scale: {x: 1, y: 1, z: 1},
+      shear: {xy: 0, xz: 0, yz: 0},
       sizeProportional: {x: 0.5, y: 1, z: 1},
       sizeMode: {x: 0, y: 0, z: 0},
       sizeDifferential: {x: 0, y: 0, z: 0},

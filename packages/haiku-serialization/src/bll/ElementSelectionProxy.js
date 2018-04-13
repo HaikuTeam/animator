@@ -372,6 +372,11 @@ class ElementSelectionProxy extends BaseModel {
         y: this.computePropertyValue('translation.y'),
         z: 0
       },
+      shear: {
+        xy: 0,
+        xz: 0,
+        yz: 0
+      },
       rotation: {
         x: 0,
         y: 0,
@@ -564,22 +569,26 @@ class ElementSelectionProxy extends BaseModel {
     // Origin panning is a position-preserving operation (in parent coordinates), requiring us to update translation to
     // match. To achieve the desired effect, first we compute the effective (x, y) translation after accounting for
     // z-rotation and scale, so the origin dot "lands" in an expected place while dragging.
+
+    // We don't want to mutate around with z origin or translation when we have a 3D rotated object, so it's simpler to
+    // start with the scaled basis matrix S and solve directly:
+    //   S * [ deltaX; deltaY; 0, 1] = [ dx, dy, ?, 1 ]
+    // We don't particularly care what the value of `?` is here, so this resolves to a system of linear equations in two
+    // unknowns:
+    //   [ S[0] S[4] ] [ deltaX ] = [ dx ]
+    //   [ S[1] S[5] ] [ deltaY ]   [ dy ]
+    // We can solve this directly.
     const targetElement = this.shouldUseChildLayout() ? this.selection[0] : this
     const computedLayout = targetElement.getComputedLayout()
-    const deltaTranslationX = dx
-    const deltaTranslationY = dy
-    const delta = {
-      x: deltaTranslationX,
-      y: deltaTranslationY,
-      z: 0
-    }
-
     const scaledBasisMatrix = Layout3D.computeScaledBasisMatrix(computedLayout.rotation, computedLayout.scale)
-    const scaledBasisMatrixInverted = []
-    invertMatrix(scaledBasisMatrixInverted, scaledBasisMatrix)
-    Element.transformPointInPlace(delta, scaledBasisMatrixInverted)
-    const deltaOriginX = rounded(forceNumeric(delta.x / computedLayout.size.x))
-    const deltaOriginY = rounded(forceNumeric(delta.y / computedLayout.size.y))
+    const determinant = scaledBasisMatrix[0] * scaledBasisMatrix[5] - scaledBasisMatrix[1] * scaledBasisMatrix[4]
+    const deltaX = (scaledBasisMatrix[5] * dx - scaledBasisMatrix[4] * dy) / determinant
+    const deltaY = (-scaledBasisMatrix[1] * dx + scaledBasisMatrix[0] * dy) / determinant
+    const deltaOriginX = rounded(forceNumeric(deltaX / computedLayout.size.x))
+    const deltaOriginY = rounded(forceNumeric(deltaY / computedLayout.size.y))
+    const {matrix: layoutMatrix} = computedLayout
+    const deltaTranslationX = layoutMatrix[0] * deltaX + layoutMatrix[4] * deltaY
+    const deltaTranslationY = layoutMatrix[1] * deltaX + layoutMatrix[5] * deltaY
 
     if (targetElement === this) {
       this.applyPropertyDelta('translation.x', deltaTranslationX)
@@ -1426,7 +1435,7 @@ ElementSelectionProxy.computeRotationPropertyGroupDelta = (
     }
     return {
       'rotation.z': {
-        value: effectiveDelta
+        value: ElementSelectionProxy.normalizeRotationDelta(effectiveDelta)
       }
     }
   } else {

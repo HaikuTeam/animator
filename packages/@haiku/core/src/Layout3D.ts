@@ -98,6 +98,7 @@ const createLayoutSpec = (createCoordinateSystem?: boolean) => ({
   rotation: {x: 0, y: 0, z: 0, w: 0},
   orientation: {x: 0, y: 0, z: 0, w: 0},
   scale: {x: 1, y: 1, z: 1},
+  shear: {xy: 0, xz: 0, yz: 0},
   sizeMode: {
     x: SIZE_PROPORTIONAL,
     y: SIZE_PROPORTIONAL,

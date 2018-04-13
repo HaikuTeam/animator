@@ -132,6 +132,15 @@ export const LAYOUT_3D_VANITIES = {
   'sizeProportional.z': (name, element, value) => {
     element.layout.sizeProportional.z = value;
   },
+  'shear.xy': (name, element, value) => {
+    element.layout.shear.xy = value;
+  },
+  'shear.xz': (name, element, value) => {
+    element.layout.shear.xz = value;
+  },
+  'shear.yz': (name, element, value) => {
+    element.layout.shear.yz = value;
+  },
   'translation.x': (name, element, value) => {
     element.layout.translation.x = value;
   },
