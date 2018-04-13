@@ -1435,7 +1435,7 @@ ElementSelectionProxy.computeRotationPropertyGroupDelta = (
     }
     return {
       'rotation.z': {
-        value: effectiveDelta
+        value: ElementSelectionProxy.normalizeRotationDelta(effectiveDelta)
       }
     }
   } else {
