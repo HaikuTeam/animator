@@ -2206,7 +2206,8 @@ export class Glass extends React.Component {
                 top: container.y,
                 left: container.x,
                 width: container.w,
-                height: container.h
+                height: container.h,
+                overflow: 'visible'
               }}>
               <defs>
                 <filter id='background-blur' x='-50%' y='-50%' width='200%' height='200%'>
