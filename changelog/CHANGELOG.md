@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 3.2.11
+
+### Bug Fixes
+
+ * allow live stage background to overflow
+
 ## 3.2.10
 
 ### Bug Fixes

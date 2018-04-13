@@ -6253,5 +6253,12 @@
       "label": "fix",
       "message": "parse transform matrix correctly."
     }
+  },
+  "3.2.11": {
+    "24a04af50fc810a32d7b72410396e69056dc2c62": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "allow live stage background to overflow"
+    }
   }
 }
