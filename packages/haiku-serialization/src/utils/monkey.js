@@ -1,6 +1,8 @@
 const fse = require('haiku-fs-extra')
 const fs = require('fs')
 const path = require('path')
+const util = require('util')
+const uselector = require('unique-selector').default
 const basedir = path.join(__dirname, '..', '..', '..', '..')
 const config = require(path.join(basedir, 'monkey.config.js'))
 
@@ -13,56 +15,39 @@ const validWorkspace = (workspace) => {
   }
 }
 
-const loggableArg = (arg, n = 2) => {
-  if (Array.isArray(arg)) {
-    if (n > 0) {
-      return arg.map((a) => {
-        return loggableArg(a, n - 1)
-      })
-    } else {
-      return '[…]'
-    }
-  } else if (typeof arg === 'object') {
-    if (arg.constructor.prototype !== Object.constructor.prototype) {
-      return arg.constructor.name
-    } else {
-      if (n > 0) {
-        const out = {}
-        for (const key in arg) {
-          out[key] = loggableArg(arg[key], n - 1)
-        }
-        return out
-      } else {
-        return '{…}'
-      }
-    }
-  } else if (typeof arg === 'function') {
-    return `<${arg.name || 'anonymous'}>`
-  } else {
-    return arg + ''
-  }
-}
-
 const loggableArgs = (args) => {
-  return args.map((a) => {
+  return args.map((arg) => {
     try {
-      return JSON.stringify(a)
+      return util.inspect(arg, {
+        depth: 1,
+        maxArrayLength: 10
+      }).replace(/\s+/g, ' ')
     } catch (exception) {
+      console.warn('[monkey]', exception.message)
       return '?'
     }
   })
 }
 
+const doExcludeMethodOfName = (name, options = {}) => {
+  return (
+    name === 'constructor' || // Including the constructor interferes with existing object extensions
+    name.slice(0, 3) === 'get' || // Avoid getter noise
+    name.slice(0, 2) === 'is' || // Avoid boolean method noise
+    (options.exclude && options.exclude[name]) // Explicit method exclusions per module
+  )
+}
+
 const recordClass = (klass, hook, options = {}) => {
-  Object.getOwnPropertyNames(klass.prototype).forEach((fn) => {
-    if (fn === 'constructor') {
+  Object.getOwnPropertyNames(klass.prototype).forEach((name) => {
+    if (doExcludeMethodOfName(name, options)) {
       return
     }
 
-    if (typeof klass.prototype[fn] === 'function') {
-      const original = klass.prototype[fn]
+    if (typeof klass.prototype[name] === 'function') {
+      const original = klass.prototype[name]
 
-      klass.prototype[fn] = function (...args) {
+      klass.prototype[name] = function (...args) {
         hook(klass, original, this, args)
         return original.call(this, ...args)
       }
@@ -70,14 +55,35 @@ const recordClass = (klass, hook, options = {}) => {
   })
 }
 
-module.exports = (view, dirname, env, options = {}) => {
+const loggableEventTarget = (target) => {
+  if (!target) return '?'
+  if (typeof target !== 'object') return '?'
+  try {
+    return uselector(target)
+  } catch (exception) {
+    return '?'
+  }
+}
+
+const loggableEventValue = (event) => {
+  if (!event) return null
+  if (event.code) {
+    // eslint-disable-next-line
+    return `(${event.code}${(event.metaKey && '+meta') || ''}${(event.shiftKey && '+shift') || ''}${(event.altKey && '+alt') || ''}${(event.ctrlKey && '+ctrl' || '')})`
+  }
+  if (event.clientX) {
+    return `[${event.clientX},${event.clientY}]`
+  }
+}
+
+module.exports = (view, dirname, env, win) => {
   const workspace = validWorkspace(env.HAIKU_RECORDER_WORKSPACE)
 
   if (!workspace) {
     return
   }
 
-  const logfile = path.join(workspace, `logfile-${view}`)
+  const logfile = path.join(workspace, `logfile`)
   fse.outputFileSync(logfile, '') // Empty file to start with
 
   // TODO: When should we call stream.end()?
@@ -85,19 +91,55 @@ module.exports = (view, dirname, env, options = {}) => {
 
   if (config.modules) {
     for (const modname in config.modules) {
-      for (const cached in require.cache) {
-        if (cached.indexOf(modname) !== -1) {
-          console.info(`[monkey] enabled recording of ${cached}`)
+      let options = config.modules[modname]
 
-          recordClass(
-            require.cache[cached].exports,
-            // This function is invoked any time the host class' method is called
-            (klass, fn, binding, args) => {
-              stream.write(`${view} ${Date.now()} ${klass.name}#${fn.name}(${loggableArgs(args).join(',')})\n`)
-            }
-          )
+      if (!options) {
+        continue
+      }
+
+      if (typeof options !== 'object') {
+        options = {}
+      }
+
+      for (const cached in require.cache) {
+        if (cached.indexOf(modname) === -1) {
+          continue
         }
+
+        console.info(`[monkey] enabling recording of ${cached}`)
+
+        recordClass(
+          require.cache[cached].exports,
+          // This function is invoked any time the host class' method is called
+          (klass, fn, binding, args) => {
+            const out = `${view} ${Date.now()} ${klass.name}#${fn.name}(${loggableArgs(args).join(', ')})\n`
+
+            if (options.log && options.log.not) {
+              // Allow configuration to prevent methods from reaching the logs
+              if (options.log.not(out)) {
+                return
+              }
+            }
+
+            stream.write(out)
+          },
+          options
+        )
       }
     }
+  }
+
+  if (win) {
+    const handleUIEvent = (event) => {
+      const out = `${view} ${Date.now()} (ui) '${(event && event.type) || '?'}' ${loggableEventTarget(event && event.target) || ''} ${loggableEventValue(event) || ''}\n`
+      stream.write(out)
+    }
+
+    win.addEventListener('focus', handleUIEvent)
+    win.addEventListener('blur', handleUIEvent)
+    win.addEventListener('mousedown', handleUIEvent)
+    win.addEventListener('mouseup', handleUIEvent)
+    win.addEventListener('keydown', handleUIEvent)
+    win.addEventListener('keyup', handleUIEvent)
   }
 }
