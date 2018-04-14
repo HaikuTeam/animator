@@ -598,8 +598,6 @@ class Keyframe extends BaseModel {
       )
     }
 
-    console.log("isCommandKeyDown", isCommandKeyDown)
-
     this.setMouseDown()
     this.unsetDidHandleDragStop()
 
