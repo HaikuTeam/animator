@@ -645,7 +645,8 @@ export default class Master extends EventEmitter {
         return ProjectFolder.buildProjectContent(null, this.folder, projectName, 'haiku', {
           organizationName: projectOptions.organizationName, // Important: Must set this here or the package.name will be wrong
           skipContentCreation: false,
-          skipCDNBundles: true
+          skipCDNBundles: true,
+          isPublic: projectOptions.isPublic
         }, cb)
       },
 

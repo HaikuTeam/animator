@@ -705,7 +705,7 @@ export default class Plumbing extends StateObject {
    */
   initializeProject (
     maybeProjectName,
-    { projectsHome, projectPath, skipContentCreation, organizationName, authorName, repositoryUrl },
+    { projectsHome, projectPath, skipContentCreation, organizationName, authorName, repositoryUrl, isPublic },
     maybeUsername,
     maybePassword,
     finish
@@ -793,7 +793,8 @@ export default class Plumbing extends StateObject {
         repositoryUrl: projectOptions.repositoryUrl,
         username: gitInitializeUsername,
         password: gitInitializePassword,
-        authorName
+        authorName,
+        isPublic
       }
 
       return this.initializeFolder(maybeProjectName, projectFolder, gitInitializeUsername, gitInitializePassword, projectOptionsAgain, (err) => {
