@@ -1007,10 +1007,10 @@ export default class Plumbing extends StateObject {
     }
   }
 
-  createProject (name, cb) {
-    logger.info('[plumbing] creating project', name)
+  createProject (name, isPublic, cb) {
+    logger.info('[plumbing] creating project', name, isPublic)
     const authToken = sdkClient.config.getAuthToken()
-    return inkstone.project.create(authToken, { Name: name }, (projectCreateErr, projectPayload) => {
+    return inkstone.project.create(authToken, { Name: name, IsPublic: isPublic }, (projectCreateErr, projectPayload) => {
       if (projectCreateErr) {
         this.sentryError('createProject', projectCreateErr)
         return cb(projectCreateErr)

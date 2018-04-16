@@ -326,7 +326,7 @@ export const DASH_STYLES = {
     padding: 20,
     borderRadius: 5,
     fontSize: 15,
-    marginBottom: 42,
+    marginBottom: 10,
     color: Palette.LIGHTEST_PINK, // this is color of the cursor
     textShadow: '0px 0px 0px ' + Palette.SUNSTONE, // this is color of the text
     '-webkit-text-fill-color': 'transparent'
