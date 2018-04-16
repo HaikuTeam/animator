@@ -15,7 +15,7 @@ import { DASH_STYLES } from '../styles/dashShared'
 import { BTN_STYLES } from '../styles/btnShared'
 import { ExternalLink } from 'haiku-ui-common/lib/react/ExternalLink'
 
-const HARDCODED_PROJECTS_LIMIT = 15
+const HARDCODED_PROJECTS_LIMIT = 50
 
 const STYLES = {
   adminButton: {
