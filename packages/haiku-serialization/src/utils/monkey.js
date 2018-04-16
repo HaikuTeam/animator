@@ -32,8 +32,10 @@ const loggableArgs = (args) => {
 const doExcludeMethodOfName = (name, options = {}) => {
   return (
     name === 'constructor' || // Including the constructor interferes with existing object extensions
-    name.slice(0, 3) === 'get' || // Avoid getter noise
-    name.slice(0, 2) === 'is' || // Avoid boolean method noise
+    name.slice(0, 2) === 'is' || // Avoid noise
+    name.slice(0, 3) === 'get' || // Avoid noise
+    name.slice(0, 4) === 'find' || // Avoid noise
+    name.slice(0, 5) === 'fetch' || // Avoid noise
     (options.exclude && options.exclude[name]) // Explicit method exclusions per module
   )
 }
@@ -108,11 +110,14 @@ module.exports = (view, dirname, env, win) => {
 
         console.info(`[monkey] enabling recording of ${cached}`)
 
+        let exports = require.cache[cached].exports
+        if (exports.default) exports = exports.default
+
         recordClass(
-          require.cache[cached].exports,
+          exports,
           // This function is invoked any time the host class' method is called
           (klass, fn, binding, args) => {
-            const out = `${view} ${Date.now()} ${klass.name}#${fn.name}(${loggableArgs(args).join(', ')})\n`
+            const out = `${Date.now()} (${view}) ${klass.name}#${fn.name}(${loggableArgs(args).join(', ')})\n`
 
             if (options.log && options.log.not) {
               // Allow configuration to prevent methods from reaching the logs
@@ -131,7 +136,7 @@ module.exports = (view, dirname, env, win) => {
 
   if (win) {
     const handleUIEvent = (event) => {
-      const out = `${view} ${Date.now()} (ui) '${(event && event.type) || '?'}' ${loggableEventTarget(event && event.target) || ''} ${loggableEventValue(event) || ''}\n`
+      const out = `${Date.now()} (ui-${view})'${(event && event.type) || '?'}' ${loggableEventTarget(event && event.target) || ''} ${loggableEventValue(event) || ''}\n`
       stream.write(out)
     }
 
