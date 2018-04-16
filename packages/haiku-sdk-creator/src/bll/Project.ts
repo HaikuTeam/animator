@@ -1,13 +1,10 @@
-import {outputFile} from 'haiku-fs-extra';
-import {join} from 'path';
-import * as dedent from 'dedent';
 import {client as sdkClient} from '@haiku/sdk-client';
 import {inkstone} from '@haiku/sdk-inkstone';
 import {MaybeAsync} from '../envoy';
 
 
 export interface Project {
-  setIsPublic: (uniqueId: string, organizationName: string, projectPath: string, isPublic: boolean) => MaybeAsync<boolean>;
+  setIsPublic: (uniqueId: string, isPublic: boolean) => MaybeAsync<boolean>;
   getProjectDetail: (uniqueId: string) => Promise<inkstone.project.Project>;
 }
 
@@ -35,7 +32,7 @@ export class ProjectHandler implements Project {
     });
   }
 
-  setIsPublic(uniqueId: string, organizationName: string, projectPath: string, isPublic: boolean): Promise<boolean> {
+  setIsPublic(uniqueId: string, isPublic: boolean): Promise<boolean> {
     return new Promise<boolean>((resolve, reject) => {
       const apiMethod = isPublic ? inkstone.project.makePublic : inkstone.project.makePrivate;
 
