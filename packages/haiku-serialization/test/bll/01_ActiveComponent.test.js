@@ -11,7 +11,7 @@ const waitUntilFileProbablyWroteToDisk = (fn) => {
 }
 
 tape('ActiveComponent.prototype.instantiateComponent[1](design)', (t) => {
-  t.plan(7)
+  t.plan(6)
   const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'instantiate-01')
   fse.removeSync(folder)
   const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
@@ -178,7 +178,7 @@ tape('ActiveComponent.prototype.mergeDesign[3](design)', (t) => {
 })
 
 tape('ActiveComponent.prototype.instantiateComponent[2](component)', (t) => {
-  t.plan(10)
+  t.plan(8)
   const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'instantiate-02')
   fse.removeSync(folder)
   const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
