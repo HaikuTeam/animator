@@ -1,0 +1,31 @@
+{
+  "date": "April 6, 2018",
+  "sections": {
+    "What's new": [
+      "Origin! You can now control elements' origin of rotation and scale. Hold down 'Command' and drag the crosshairs.",
+      "Multi-select! You can now select multiple elements on stage to move or delete them. (Coming soon: multi-rotation and multi-scale.)",
+      "Better z-ordering! You can now drag and drop elements in the timeline to change the z-stacking of layers on stage.",
+      "Lottie export now supports polyline elements and implicitly closed shapes.",
+      "You can now subscribe to custom events within the Actions panel (in addition to all the standard DOM events).",
+      "The Haiku Core API now provides support for querying elements programmatically, making Expressions and Actions more powerful. See https://docs.haiku.ai for details.",
+      "Made the Action UI clearer and improved the flow for creating new actions.",
+      "The Action code editor now displays some code snippets with docs as you type.",
+      "When you add a new property to an element in the Timeline, the group it belongs to now automatically expands.",
+      "New projects are now private by default. An option to make them public is available when you click the 'Publish' button.",
+      "Improved documentation of classes and methods in Haiku Core.",
+      "Fixed bug with mobile layout on the Share Page.",
+      "Increased the maximum limit for projects — Haiku accounts can now create up to 50 projects."
+    ],
+    "Fixes": [
+      "Fixed a longstanding rounding error which could cause juddering animation. Micro-animations are much smoother now!",
+      "Fixed a bug that prevented individual changes from being registered as separate Git commits.",
+      "Fixed a performance regression introduced in the last release. Elements on stage can be moved/transformed smoothly again.",
+      "Fixed a bug that prevented the ability of some SVG files to be transformed on stage.",
+      "Fixed a bug preventing code snippets in the Publish panel from being copied to your clipboard.",
+      "Improved error handling so that rapidly occurring errors don't overwhelm the application.",
+      "Improved error handling so that error reports are now transmitted more reliably if the app crashes.",
+      "Fixed $user.mouse.x and $user.mouse.y position calculations to account for the stage zoom factor.",
+      "Improved the reliability of Sketch installation detection, so fewer users receive the prompt to install."
+    ]
+  }
+}
