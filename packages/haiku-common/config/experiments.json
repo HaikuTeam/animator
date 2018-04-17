@@ -64,7 +64,7 @@
     "production": true
   },
   "GroupUngroup": {
-    "development": false,
+    "development": true,
     "production": false
   },
   "BaseModelQueryCache": {

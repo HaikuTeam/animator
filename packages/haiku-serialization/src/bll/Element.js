@@ -1,6 +1,9 @@
 const lodash = require('lodash')
+const HaikuElement = require('@haiku/core/lib/HaikuElement').default
 const Layout3D = require('@haiku/core/lib/Layout3D').default
 const cssQueryTree = require('@haiku/core/lib/helpers/cssQueryTree').default
+const composedTransformsToTimelineProperties = require('@haiku/core/lib/helpers/composedTransformsToTimelineProperties').default
+const {LAYOUT_3D_SCHEMA} = require('@haiku/core/lib/properties/dom/schema')
 const KnownDOMEvents = require('@haiku/core/lib/renderers/dom/Events').default
 const DOMSchema = require('@haiku/core/lib/properties/dom/schema').default
 const titlecase = require('titlecase')
@@ -1508,40 +1511,6 @@ class Element extends BaseModel {
     return polygonOverlap(theirPoints, ourPoints)
   }
 
-  doesContainUngroupableContent () {
-    return !!this.getParentOfUngroupables()
-  }
-
-  getParentOfUngroupables () {
-    // Returning null if we don't have anything that can be ungrouped
-    let out = null
-
-    Template.visit(this.getStaticTemplateNode(), (node, parent, index, depth) => {
-      // Use the first element we've found
-      if (out) {
-        return
-      }
-
-      if (Element.nodeIsGrouper(node)) {
-        if (
-          node.children &&
-          // If we have more than one groupee in our contents, we can group
-          node.children.filter((child) => {
-            return child && Element.nodeIsGroupee(child)
-          }).length > 1
-        ) {
-          out = {
-            node,
-            depth,
-            index
-          }
-        }
-      }
-    })
-
-    return out
-  }
-
   /**
    * DANGER
    * The methods below rely on the player having rendered the component;
@@ -1558,6 +1527,128 @@ class Element extends BaseModel {
     }
     const element = instance.findElementsByHaikuId(this.getComponentId())[0]
     return element
+  }
+
+  getHaikuElement () {
+    return HaikuElement.findOrCreateByNode(this.getLiveRenderedNode())
+  }
+
+  getUngroupables () {
+    const ungroupables = []
+    this.getHaikuElement().visitDescendants((descendantHaikuElement) => {
+      const eligibleChildren = descendantHaikuElement.children.filter((element) => element.tagName !== 'defs')
+      if (eligibleChildren.length > 1) {
+        ungroupables.push(...eligibleChildren)
+        return false
+      }
+    }, (node) => node.tagName !== 'defs')
+    return ungroupables
+  }
+
+  doesContainUngroupableContent () {
+    return this.getUngroupables().length > 1
+  }
+
+  ungroup (metadata) {
+    const nodes = []
+    switch (this.getStaticTemplateNode().elementName) {
+      case 'svg':
+        this.ungroupSvg(nodes)
+        break
+      default:
+        // TODO: do divs as well.
+    }
+
+    return this.component.ungroupElements(
+      this.getComponentId(),
+      nodes,
+      metadata,
+      () => {}
+    )
+  }
+
+  ungroupSvg (nodes) {
+    const defs = []
+    const svgElement = this.getHaikuElement()
+    const ungroupables = this.getUngroupables()
+    const bytecode = this.component.getReifiedBytecode()
+    svgElement.children.forEach((haikuElement) => {
+      if (haikuElement.tagName === 'defs') {
+        defs.push(haikuElement.node)
+        return
+      }
+
+      const mergedAttributes = {}
+      haikuElement.visit((descendantHaikuElement) => {
+        if (descendantHaikuElement.tagName === 'path') {
+          console.log(require('util').inspect(descendantHaikuElement.attributes, null, false))
+        }
+
+        if (ungroupables.indexOf(descendantHaikuElement) === -1) {
+          if (Element.nodeIsGrouper(descendantHaikuElement.node)) {
+            for (const propertyName in bytecode.timelines[this.component.getCurrentTimelineName()][`haiku:${descendantHaikuElement.getComponentId()}`]) {
+              mergedAttributes[propertyName] = descendantHaikuElement.getComponentId()
+            }
+          }
+          return
+        }
+
+        const attributes = Object.keys(mergedAttributes).reduce((accumulator, propertyName) => {
+          if (!LAYOUT_3D_SCHEMA.hasOwnProperty(propertyName)) {
+            // accumulator[propertyName] = mergedAttributes[propertyName][0].value
+            accumulator[propertyName] = this.component.getComputedPropertyValue(
+              descendantHaikuElement.node,
+              mergedAttributes[propertyName],
+              this.component.getCurrentTimelineName(),
+              this.component.getCurrentTimelineTime(),
+              propertyName,
+              undefined
+            )
+          }
+          return accumulator
+        }, {})
+
+        const boundingBox = descendantHaikuElement.target.getBBox()
+        const originX = boundingBox.width / 2
+        const originY = boundingBox.height / 2
+        const layoutMatrix = descendantHaikuElement.layoutMatrix
+        layoutMatrix[12] += (boundingBox.x + originX) * layoutMatrix[0] + (boundingBox.y + originY) * layoutMatrix[4]
+        layoutMatrix[13] += (boundingBox.x + originX) * layoutMatrix[1] + (boundingBox.y + originY) * layoutMatrix[5]
+        const layoutAncestryMatrices = descendantHaikuElement.layoutAncestryMatrices
+        descendantHaikuElement.visit((subHaikuElement) => {
+          // Clean out the computed layout so we can hoist it to the parent SVG element.
+          delete subHaikuElement.node.layout
+        })
+
+        Object.assign(attributes, {
+          width: boundingBox.width,
+          height: boundingBox.height,
+          // Important: in case we have borders that spill outside the bounding box, allow SVG overflow so nothing
+          // is clipped.
+          'style.overflow': 'visible',
+          source: `${svgElement.attributes.source}#${descendantHaikuElement.id}`,
+          [HAIKU_TITLE_ATTRIBUTE]: descendantHaikuElement.title || descendantHaikuElement.id
+        })
+
+        composedTransformsToTimelineProperties(attributes, layoutAncestryMatrices)
+
+        nodes.push(Template.cleanMana({
+          elementName: 'svg',
+          attributes,
+          children: [
+            {
+              elementName: 'g',
+              attributes: {
+                transform: `translate(${-boundingBox.x} ${-boundingBox.y})`
+              },
+              children: [...defs, descendantHaikuElement.node]
+            }
+          ]
+        }, true))
+
+        return false
+      })
+    })
   }
 
   getCoreTargetComponentInstance () {
@@ -1617,29 +1708,6 @@ Element.nodeIsGrouper = (node) => {
     node.elementName === 'svg' ||
     node.elementName === 'g' ||
     node.elementName === 'div'
-  )
-}
-
-Element.nodeIsGroupee = (node) => {
-  // Don't include empty groups
-  if (
-    node.elementName === 'g' &&
-    (!node.children || node.children.length < 1)
-  ) {
-    return false
-  }
-
-  return (
-    Element.nodeIsGrouper(node) ||
-    node.elementName === 'rect' ||
-    node.elementName === 'line' ||
-    node.elementName === 'circle' ||
-    node.elementName === 'ellipse' ||
-    node.elementName === 'polygon' ||
-    node.elementName === 'polyline' ||
-    node.elementName === 'path' ||
-    node.elementName === 'text' ||
-    node.elementName === 'tspan'
   )
 }
 

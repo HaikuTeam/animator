@@ -11,10 +11,6 @@ export default function composedTransformsToTimelineProperties(out, matrices, ex
   // I.e. if we transform A->B->C, the multiplication order should be CxBxA
   const decomposed = mat4Decompose(Layout3D.multiplyArrayOfMatrices(matrices.reverse()));
 
-  if (decomposed === false) {
-    return out;
-  }
-
   const {translation, scale, shear, quaternion} = decomposed as DecomposedMat4;
   if (scale.indexOf(0) !== -1) {
     // In any dimension and axis of rotation, a single scale factor of 0 vanishes to the horizon. We can pick an

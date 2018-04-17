@@ -66,9 +66,10 @@ export default function computeMatrix(layoutSpec, currentMatrix, currentsizeAbso
   let rs8 = (1 - 2 * (xx + yy));
 
   if (layoutSpec.shear.xy || layoutSpec.shear.xz || layoutSpec.shear.yz) {
-    rs6 += layoutSpec.shear.yz * rs3 + layoutSpec.shear.xz * rs0;
-    rs7 += layoutSpec.shear.yz * rs4 + layoutSpec.shear.xz * rs1;
-    rs8 += layoutSpec.shear.yz * rs5 + layoutSpec.shear.xz * rs2;
+    const shearXzProxy = layoutSpec.shear.xy * layoutSpec.shear.yz + layoutSpec.shear.xz;
+    rs6 += layoutSpec.shear.yz * rs3 + shearXzProxy * rs0;
+    rs7 += layoutSpec.shear.yz * rs4 + shearXzProxy * rs1;
+    rs8 += layoutSpec.shear.yz * rs5 + shearXzProxy * rs2;
     rs3 += layoutSpec.shear.xy * rs0;
     rs4 += layoutSpec.shear.xy * rs1;
     rs5 += layoutSpec.shear.xy * rs2;

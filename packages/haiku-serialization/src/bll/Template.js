@@ -888,7 +888,7 @@ Template.manaToJson = (mana, replacer, spacing) => {
   return JSON.stringify(out, replacer || null, spacing || 2)
 }
 
-Template.cleanMana = (mana) => {
+Template.cleanMana = (mana, resetIds = false) => {
   const out = {}
   if (!mana) return null
   if (typeof mana === 'string') return mana
@@ -903,7 +903,11 @@ Template.cleanMana = (mana) => {
   }
 
   out.attributes = mana.attributes
-  out.children = mana.children && mana.children.map(Template.cleanMana)
+  if (resetIds) {
+    delete out.attributes[HAIKU_ID_ATTRIBUTE]
+  }
+
+  out.children = mana.children && mana.children.map((childMana) => Template.cleanMana(childMana, resetIds))
   return out
 }
 

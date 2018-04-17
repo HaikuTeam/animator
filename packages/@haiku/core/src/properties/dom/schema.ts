@@ -12,7 +12,7 @@ const TEXT_CONTENT_SCHEMA = {
   content: 'string',
 };
 
-const LAYOUT_3D_SCHEMA = {
+export const LAYOUT_3D_SCHEMA = {
   shown: 'boolean',
   opacity: 'number',
   'mount.x': 'number',

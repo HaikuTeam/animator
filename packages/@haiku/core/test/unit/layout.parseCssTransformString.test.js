@@ -82,8 +82,14 @@ test('layout.parseCssTransformString', function (t) {
     [
       'rotate3d(0,90deg,120deg);',
       {
-        "rotation.y": 1.571, // = Math.PI / 4
-        "rotation.z": 2.093  // = 2 * Math.PI / 3
+        "scale.x": 0 // Because the horizon has vanished.
+      }
+    ],
+    [
+      'rotate3d(0,60deg,120deg);',
+      {
+        "rotation.y": 1.047, // = Math.PI / 3
+        "rotation.z": 2.094  // = 2 * Math.PI / 3
       }
     ],
     [

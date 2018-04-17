@@ -1,8 +1,9 @@
 import HaikuBase from './HaikuBase';
 import cssMatchOne from './helpers/cssMatchOne';
+import Layout3D from './Layout3D';
 
-const HAIKU_ID_ATTRIBUTE = 'haiku-id';
-const HAIKU_TITLE_ATTRIBUTE = 'haiku-title';
+export const HAIKU_ID_ATTRIBUTE = 'haiku-id';
+export const HAIKU_TITLE_ATTRIBUTE = 'haiku-title';
 const HAIKU_SOURCE_ATTRIBUTE = 'source';
 const DEFAULT_TAG_NAME = 'div';
 const COMPONENT_PSEUDO_TAG_NAME = DEFAULT_TAG_NAME;
@@ -91,6 +92,33 @@ export default class HaikuElement extends HaikuBase {
 
   get layout(): any {
     return this.node && this.node.layout && this.node.layout.computed;
+  }
+
+  get layoutMatrix(): number[] {
+    return (this.layout && this.layout.matrix) || Layout3D.createMatrix();
+  }
+
+  get layoutAncestry(): any[] {
+    if (!this.layout) {
+      return [];
+    }
+
+    const ancestry = [this.layout];
+    // tslint:disable-next-line:no-this-assignment
+    let ancestor = this;
+    while (ancestor.parent) {
+      ancestor = ancestor.parent;
+      const layout = ancestor.layout;
+      if (layout) {
+        ancestry.unshift(layout);
+      }
+    }
+
+    return ancestry;
+  }
+
+  get layoutAncestryMatrices(): number[][] {
+    return this.layoutAncestry.map((layout) => layout.matrix);
   }
 
   get rawLayout(): any {
@@ -219,17 +247,17 @@ export default class HaikuElement extends HaikuBase {
     );
   }
 
-  visit(iteratee: Function) {
+  visit(iteratee: Function, filter?: Function) {
     if (iteratee(this) !== false) {
-      return this.visitDescendants(iteratee);
+      return this.visitDescendants(iteratee, filter);
     }
   }
 
-  visitDescendants(iteratee: Function) {
-    const children = this.children;
+  visitDescendants(iteratee: Function, filter?: Function) {
+    const children = filter ? this.children.filter(filter) : this.children;
 
     for (let i = 0; i < children.length; i++) {
-      if (children[i].visit(iteratee) === false) {
+      if (children[i].visit(iteratee, filter) === false) {
         break;
       }
     }
@@ -270,13 +298,7 @@ export default class HaikuElement extends HaikuBase {
 HaikuElement['findByNode'] = (node) => {
   const registry = HaikuBase['getRegistryForClass'](HaikuElement);
 
-  const matches = registry.filter((instance) => {
-    return instance.node === node;
-  });
-
-  if (matches.length > 0) {
-    return matches[0];
-  }
+  return registry.find((instance) => instance.node === node);
 };
 
 HaikuElement['connectNodeWithElement'] = (node, element) => {

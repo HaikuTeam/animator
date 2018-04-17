@@ -4,6 +4,7 @@ const BaseModel = require('./BaseModel')
 const {rounded, transformFourVectorByMatrix} = require('./MathUtils')
 const TransformCache = require('./TransformCache')
 const Layout3D = require('@haiku/core/lib/Layout3D').default
+const composedTransformsToTimelineProperties = require('@haiku/core/lib/helpers/composedTransformsToTimelineProperties').default
 const invertMatrix = require('@haiku/core/lib/vendor/gl-mat4/invert').default
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 const Figma = require('./Figma')
@@ -286,15 +287,7 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   ungroup (metadata) {
-    const grouperElement = this.selection[0].getParentOfUngroupables()
-
-    if (grouperElement) {
-      return this.component.ungroupElements(
-        grouperElement.attributes[HAIKU_ID_ATTRIBUTE],
-        metadata,
-        () => {}
-      )
-    }
+    return this.selection[0].ungroup(metadata)
   }
 
   canCopySVG () {
@@ -756,6 +749,9 @@ class ElementSelectionProxy extends BaseModel {
     }
 
     if (this.hasMultipleInSelection()) {
+      const matrixBefore = this.getComputedLayout().matrix
+      const matrixBeforeInverted = []
+      invertMatrix(matrixBeforeInverted, matrixBefore)
       const {
         'scale.x': {
           value: scaleX
@@ -782,9 +778,42 @@ class ElementSelectionProxy extends BaseModel {
       this.applyPropertyValue('scale.y', scaleY)
       this.applyPropertyValue('translation.x', translationX)
       this.applyPropertyValue('translation.y', translationY)
-    }
-
-    this.selection.forEach((element) => {
+      const matrixAfter = this.getComputedLayout().matrix
+      this.selection.forEach((element) => {
+        const layoutSpec = element.getComputedLayout()
+        const propertyGroup = {}
+        const finalMatrix = Layout3D.multiplyArrayOfMatrices([
+          element.getOriginOffsetComposedMatrix(),
+          matrixBeforeInverted,
+          matrixAfter
+        ])
+        composedTransformsToTimelineProperties(propertyGroup, [finalMatrix], true)
+        const [rs0, rs1, rs2, _, rs3, rs4, rs5, __, rs6, rs7, rs8] = finalMatrix
+        const alignX = layoutSpec.align.x * layoutSpec.size.x
+        const alignY = layoutSpec.align.y * layoutSpec.size.y
+        const alignZ = layoutSpec.align.z * layoutSpec.size.z
+        const mountPointX = layoutSpec.mount.x * layoutSpec.size.x
+        const mountPointY = layoutSpec.mount.y * layoutSpec.size.y
+        const mountPointZ = layoutSpec.mount.z * layoutSpec.size.z
+        const originX = layoutSpec.origin.x * layoutSpec.size.x
+        const originY = layoutSpec.origin.y * layoutSpec.size.y
+        const originZ = layoutSpec.origin.z * layoutSpec.size.z
+        propertyGroup['translation.x'] += rs0 * originX + rs3 * originY + rs6 * originZ
+        propertyGroup['translation.y'] += rs1 * originX + rs4 * originY + rs7 * originZ
+        propertyGroup['translation.z'] += rs2 * originX + rs5 * originY + rs8 * originZ
+        ElementSelectionProxy.accumulateKeyframeUpdates(
+          accumulatedUpdates,
+          element.getComponentId(),
+          element.component.getCurrentTimelineName(),
+          element.component.getCurrentTimelineTime(),
+          Object.keys(propertyGroup).reduce((accumulator, property) => {
+            accumulator[property] = { value: propertyGroup[property] }
+            return accumulator
+          }, {})
+        )
+      })
+    } else {
+      const element = this.selection[0]
       const propertyGroup = ElementSelectionProxy.computeScalePropertyGroup(
         element,
         fixedPoint,
@@ -803,7 +832,7 @@ class ElementSelectionProxy extends BaseModel {
         element.component.getCurrentTimelineTime(),
         propertyGroup
       )
-    })
+    }
 
     this.component.updateKeyframes(
       accumulatedUpdates,

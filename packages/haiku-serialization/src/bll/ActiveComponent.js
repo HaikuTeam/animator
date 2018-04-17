@@ -3,6 +3,7 @@ const lodash = require('lodash')
 const pretty = require('pretty')
 const async = require('async')
 const jss = require('json-stable-stringify')
+const {HAIKU_ID_ATTRIBUTE} = require('@haiku/core/lib/HaikuElement')
 const {sortedKeyframes} = require('@haiku/core/lib/Transitions').default
 const HaikuDOMAdapter = require('@haiku/core/lib/adapters/dom').default
 const {initializeComponentTree} = require('@haiku/core/lib/HaikuComponent')
@@ -15,7 +16,6 @@ const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments'
 const Lock = require('./Lock')
 
 const KEYFRAME_MOVE_DEBOUNCE_TIME = 100
-const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const DEFAULT_SCENE_NAME = 'main' // e.g. code/main/*
 const DEFAULT_INTERACTION_MODE = InteractionMode.EDIT
 const DEFAULT_TIMELINE_NAME = 'Default'
@@ -1065,21 +1065,7 @@ class ActiveComponent extends BaseModel {
         metadata,
         (fire) => {
           return this.performComponentWork((bytecode, mana, done) => {
-            Template.visitManaTree(mana, (elementName, attributes, children, node, locator, parent, index) => {
-              if (!attributes) return null
-              if (!attributes[HAIKU_ID_ATTRIBUTE]) return null
-              if (componentId !== attributes[HAIKU_ID_ATTRIBUTE]) return null
-
-              if (parent) {
-                // Where the magic happens ^_^
-                parent.children.splice(index, 1)
-              } else {
-                // No parent means we are at the top
-                mana.elementName = 'div'
-                mana.attributes = {}
-                mana.children = []
-              }
-            })
+            this.deleteComponentImpl(mana, componentId)
 
             done()
           }, (err) => {
@@ -1102,6 +1088,24 @@ class ActiveComponent extends BaseModel {
           })
         }
       )
+    })
+  }
+
+  deleteComponentImpl (mana, componentId) {
+    Template.visitManaTree(mana, (elementName, attributes, children, node, locator, parent, index) => {
+      if (!attributes) return null
+      if (!attributes[HAIKU_ID_ATTRIBUTE]) return null
+      if (componentId !== attributes[HAIKU_ID_ATTRIBUTE]) return null
+
+      if (parent) {
+        // Where the magic happens ^_^
+        parent.children.splice(index, 1)
+      } else {
+        // No parent means we are at the top
+        mana.elementName = 'div'
+        mana.attributes = {}
+        mana.children = []
+      }
     })
   }
 
@@ -3333,9 +3337,10 @@ class ActiveComponent extends BaseModel {
   /**
    * @method ungroupElements
    */
-  ungroupElements (componentId, metadata, cb) {
-    return this.project.updateHook('ungroupElements', this.getSceneCodeRelpath(), componentId, metadata, (fire) => {
-      return this.ungroupElementsActual(componentId, metadata, (err, ungroupedComponentIds) => {
+  ungroupElements (componentId, nodes, metadata, cb) {
+    return this.project.updateHook('ungroupElements', this.getSceneCodeRelpath(), componentId, nodes, metadata, (fire) => {
+      const clonedNodes = lodash.cloneDeep(nodes)
+      return this.ungroupElementsActual(componentId, clonedNodes, metadata, (err, ungroupedComponentIds) => {
         if (err) {
           logger.error(`[active component (${this.project.getAlias()})]`, err)
           return cb(err)
@@ -3354,13 +3359,19 @@ class ActiveComponent extends BaseModel {
     })
   }
 
-  ungroupElementsActual (componentId, metadata, cb) {
+  ungroupElementsActual (componentId, nodes, metadata, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
-      const ungroupedComponentIds = []
+      // `nodes` is an array of clean mana we can instantiate as-is.
+      const updatedComponentIds = nodes.map((node) => this.instantiateManaInBytecode(
+        node,
+        bytecode,
+        {},
+        undefined
+      ))
 
-      // Do the ungrouping here
+      this.deleteComponentImpl(mana, componentId)
 
-      done(null, ungroupedComponentIds)
+      done(null, updatedComponentIds)
     }, cb)
   }
 

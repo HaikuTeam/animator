@@ -46,10 +46,15 @@ export interface DecomposedMat4 {
   quaternion: FourTuple;
 }
 
-export default function decomposeMat4(matrix): boolean | DecomposedMat4 {
-  // normalize, if not possible then bail out early
-  if (!normalize(tmp, matrix)) {
-    return false;
+export default function decomposeMat4(matrix): DecomposedMat4 {
+  // Normalize. If not possible or we have a 0 scale factor, bail out early.
+  if (!normalize(tmp, matrix) || !tmp[0] || !tmp[5] || !tmp[10]) {
+    return {
+      translation: [0, 0, 0],
+      scale: [0, 0, 0],
+      shear: [0, 0, 0],
+      quaternion: [0, 0, 0, 0],
+    };
   }
 
   const translation = roundVector<ThreeTuple>([tmp[12], tmp[13], tmp[14]]);
@@ -83,16 +88,6 @@ export default function decomposeMat4(matrix): boolean | DecomposedMat4 {
   vec3.normalize(row[2], row[2]);
   shear[1] /= scale[2];
   shear[2] /= scale[2];
-
-  // Return early if we have any 0 scale factors.
-  if (scale.indexOf(0) !== -1) {
-    return {
-      translation: [0, 0, 0],
-      scale: [0, 0, 0],
-      shear: [0, 0, 0],
-      quaternion: [0, 0, 0, 0],
-    };
-  }
 
   // At this point, the matrix (in rows) is orthonormal.
   // Check for a coordinate system flip.  If the determinant
