@@ -36,7 +36,7 @@ class PrivatePublicToggle extends React.PureComponent {
     return (
       <form style={this.props.isDisabled ? STYLES.disabledForm : STYLES.toggleLabel}>
         <label style={STYLES.field}>
-          <input type="radio" value="public" onChange={() => { onChange(!isPublic) }} checked={isPublic} style={STYLES.input} />
+          <input type='radio' value='public' onChange={() => { onChange(!isPublic) }} checked={isPublic} style={STYLES.input} />
           <span style={STYLES.label}>Public</span>
           <div style={STYLES.description}>
           Visible on the <ExternalLink style={STYLES.link} href={`https://share.haiku.ai/`}>Haiku Community</ExternalLink>, and able to be forked.
@@ -46,7 +46,7 @@ class PrivatePublicToggle extends React.PureComponent {
           </div>
         </label>
         <label style={STYLES.field}>
-          <input type="radio" value="private" onChange={() => { onChange(!isPublic) }} checked={!isPublic} style={STYLES.input} />
+          <input type='radio' value='private' onChange={() => { onChange(!isPublic) }} checked={!isPublic} style={STYLES.input} />
           <span style={STYLES.label}>Private</span>
           <div style={STYLES.description}>
           Visible only to those with the secret project share-link.
