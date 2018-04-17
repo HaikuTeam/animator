@@ -1032,14 +1032,14 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     const coupledPropertyLists = [['scale.x', 'scale.y']];
     this.visitAllTimelines((timeline) => {
       coupledPropertyLists.forEach((coupledPropertyList) => {
-        if (coupledPropertyList.find((property) => property in timeline) === undefined) {
+        if (coupledPropertyList.find((property) => timelineHasProperties(timeline, property)) === undefined) {
           // We only need to preprocess elements that are actually transformed by some coupled properties in each list.
           return;
         }
 
         // Shim in defaults for coupled properties that are not explicitly provided. Because we only currently
         // support multiplicative coupled properties (scale), this is straightforward.
-        coupledPropertyList.filter((property) => !(property in timeline)).forEach((property) => {
+        coupledPropertyList.filter((property) => !timelineHasProperties(timeline, property)).forEach((property) => {
           timeline[property] = simulateLayoutProperty(LayoutPropertyType.Multiplicative);
         });
 
