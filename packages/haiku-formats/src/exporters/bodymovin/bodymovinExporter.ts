@@ -9,9 +9,9 @@ import * as difference from 'lodash/difference';
 import * as flatten from 'lodash/flatten';
 import * as mapKeys from 'lodash/mapKeys';
 import {ExporterInterface} from '..';
-import BaseExporter from '../BaseExporter';
 
 import {SvgTag} from '../../svg/enums';
+import BaseExporter from '../BaseExporter';
 import {
   decomposeCurveBetweenKeyframes,
   getCurveInterpolationPoints,
@@ -326,15 +326,17 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
 
     transforms[TransformKey.TransformOrigin] = getFixedPropertyValue([originX, originY, 0]);
 
-    if (timelineHasProperties(timeline, 'translation.x', 'translation.y')) {
+    if (timelineHasProperties(timeline, 'translation.x') || timelineHasProperties(timeline, 'translation.y')) {
       transforms[TransformKey.Position] = {
         [TransformKey.PositionSplit]: true,
         x: this.getValue(
-          timeline['translation.x'] || simulateLayoutProperty(LayoutPropertyType.Additive),
+          timelineHasProperties(timeline, 'translation.x') ? timeline['translation.x'] : simulateLayoutProperty(
+            LayoutPropertyType.Additive),
           (value) => value - mountX,
         ),
         y: this.getValue(
-          timeline['translation.y'] || simulateLayoutProperty(LayoutPropertyType.Additive),
+          timelineHasProperties(timeline, 'translation.y') ? timeline['translation.y'] : simulateLayoutProperty(
+            LayoutPropertyType.Additive),
           (value) => value - mountY,
         ),
       };
