@@ -457,7 +457,7 @@ class ProjectBrowser extends React.Component {
         }}
       >
         <div style={DASH_STYLES.modal} onClick={(e) => e.stopPropagation()}>
-          <div style={DASH_STYLES.modalTitle}>{duplicate ? 'Name Duplicated Project' : 'Name Project To Start'}</div>
+          <div style={DASH_STYLES.modalTitle}>{duplicate ? 'Name Duplicated Project' : 'Project Setup'}</div>
           <div style={[DASH_STYLES.inputTitle, DASH_STYLES.upcase]}>Project Name</div>
           <input
             key='new-project-input'
@@ -476,7 +476,6 @@ class ProjectBrowser extends React.Component {
               onChange={(isPublic) => { this.handleNewProjectToggleChange(isPublic) }}
               isPublic={this.state.newProjectIsPublic}
             />
-            <PrivatePublicTooltip />
           </div>
           <span key='new-project-error' style={DASH_STYLES.newProjectError}>{this.state.newProjectError}</span>
           <button key='new-project-go-button'
