@@ -588,12 +588,12 @@ class Keyframe extends BaseModel {
 
   handleMouseDown (
     {nativeEvent: {which}},
-    {isShiftKeyDown, isControlKeyDown},
+    {isShiftKeyDown, isControlKeyDown, isCommandKeyDown},
     {isViaConstantBodyView, isViaTransitionBodyView}
   ) {
     if (isControlKeyDown || which === 3) {
       return this.handleContextMenu(
-        {isShiftKeyDown, isControlKeyDown},
+        {isShiftKeyDown, isControlKeyDown, isCommandKeyDown},
         {isViaConstantBodyView, isViaTransitionBodyView}
       )
     }
@@ -611,7 +611,7 @@ class Keyframe extends BaseModel {
     })
 
     // Unless the shift key is down, a direct click normally clear others
-    if (!isShiftKeyDown) {
+    if (!isShiftKeyDown && !isCommandKeyDown) {
       // But only if we're touching an unrelated (unselected) set of keyframes
       if (!this.isSelected()) {
         this.clearOtherKeyframes()
@@ -631,7 +631,7 @@ class Keyframe extends BaseModel {
 
   handleMouseUp (
     {nativeEvent: {which}},
-    {lastMouseButtonPressed, isShiftKeyDown, isControlKeyDown},
+    {lastMouseButtonPressed, isShiftKeyDown, isControlKeyDown, isCommandKeyDown},
     {isViaConstantBodyView, isViaTransitionBodyView}
   ) {
     if (!this.isMouseDown()) {
@@ -640,7 +640,7 @@ class Keyframe extends BaseModel {
       if (otherKeyframe && otherKeyframe !== this) {
         otherKeyframe.handleMouseUp(
           {nativeEvent: {which}},
-          {lastMouseButtonPressed, isShiftKeyDown, isControlKeyDown},
+          {lastMouseButtonPressed, isShiftKeyDown, isControlKeyDown, isCommandKeyDown},
           {isViaConstantBodyView, isViaTransitionBodyView}
         )
       }
@@ -662,13 +662,13 @@ class Keyframe extends BaseModel {
 
     this.unsetMouseDownState()
 
-    if (!isShiftKeyDown) {
+    if (!isShiftKeyDown && !isCommandKeyDown) {
       // Since mouseup commits the action, we don't check for selection state here
       this.clearOtherKeyframes()
     }
 
     // If shift is down on mouse up, we deselect current selections
-    if (isShiftKeyDown) {
+    if (isShiftKeyDown || isCommandKeyDown) {
       if (wasCurveTargeted) {
         if (wasSelectedBody) {
           this.unsetBodySelected()
@@ -699,7 +699,7 @@ class Keyframe extends BaseModel {
   }
 
   handleContextMenu (
-    {isShiftKeyDown},
+    {isShiftKeyDown, isCommandKeyDown},
     {isViaConstantBodyView, isViaTransitionBodyView}
   ) {
     this.unsetMouseDown()
@@ -719,7 +719,7 @@ class Keyframe extends BaseModel {
     const isCurveTargeted = (isViaTransitionBodyView || isViaConstantBodyView)
 
     // Unless the shift key is down, a direct click normally clear others
-    if (!isShiftKeyDown) {
+    if (!isShiftKeyDown && !isCommandKeyDown) {
       // But only if we're touching an unrelated (unselected) set of keyframes
 
       if (isCurveTargeted && !this.isNextKeyframeSelected()) {
@@ -745,13 +745,13 @@ class Keyframe extends BaseModel {
 
   handleDragStop (
     dragData,
-    {wasDrag, lastMouseButtonPressed, isShiftKeyDown, isControlKeyDown},
+    {wasDrag, lastMouseButtonPressed, isShiftKeyDown, isControlKeyDown, isCommandKeyDown},
     {isViaConstantBodyView, isViaTransitionBodyView}
   ) {
     if (!wasDrag) {
       return this.handleMouseUp(
         {nativeEvent: {which: 1}}, // Mock
-        {isShiftKeyDown, isControlKeyDown},
+        {isShiftKeyDown, isControlKeyDown, isCommandKeyDown},
         {isViaConstantBodyView, isViaTransitionBodyView}
       )
     }
