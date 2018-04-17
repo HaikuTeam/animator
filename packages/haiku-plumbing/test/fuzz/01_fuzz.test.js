@@ -10,11 +10,12 @@ const TestHelpers = require('./../TestHelpers')
 tape('other.01', (t) => {
   t.plan(1)
   const projectName = 'UnitTestProj' + Date.now()
+  const isPublic = false
   TestHelpers.launch((plumbing, teardownMaster, teardown) => {
     const folder = () => Object.keys(plumbing.masters)[0]
     return async.series([
       function (cb) { return plumbing.authenticateUser('matthew+matthew@haiku.ai', 'supersecure', cb) },
-      function (cb) { return plumbing.createProject(projectName, cb) },
+      function (cb) { return plumbing.createProject(projectName, isPublic, cb) },
 
       // Initially create the project
       function (cb) {

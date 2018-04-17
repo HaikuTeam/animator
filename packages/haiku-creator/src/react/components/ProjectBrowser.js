@@ -9,13 +9,15 @@ import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 import Toast from './notifications/Toast'
 import NotificationExplorer from './notifications/NotificationExplorer'
 import ProjectThumbnail from './ProjectThumbnail'
+import PrivatePublicToggle from './PrivatePublicToggle'
+import PrivatePublicTooltip from './PrivatePublicTooltip'
 import { TOUR_CHANNEL } from 'haiku-sdk-creator/lib/tour'
 import { UserIconSVG, LogOutSVG, LogoMicroSVG, PresentIconSVG } from 'haiku-ui-common/lib/react/OtherIcons'
 import { DASH_STYLES } from '../styles/dashShared'
 import { BTN_STYLES } from '../styles/btnShared'
 import { ExternalLink } from 'haiku-ui-common/lib/react/ExternalLink'
 
-const HARDCODED_PROJECTS_LIMIT = 15
+const HARDCODED_PROJECTS_LIMIT = 50
 
 const STYLES = {
   adminButton: {
@@ -276,6 +278,10 @@ class ProjectBrowser extends React.Component {
     return this.state.projectsList.find((project) => equivalentNameMatcher.test(project.projectName)) !== undefined
   }
 
+  handleNewProjectToggleChange (newProjectIsPublic) {
+    this.setState({newProjectIsPublic})
+  }
+
   handleNewProjectInputChange (event) {
     const rawValue = event.target.value || ''
 
@@ -298,6 +304,7 @@ class ProjectBrowser extends React.Component {
     if (!rawNameValue) return false
     // HACK:  strip all non-alphanumeric chars for now.  something more user-friendly would be ideal
     const name = rawNameValue && rawNameValue.replace(/[^a-z0-9]/gi, '')
+    const isPublic = this.state.newProjectIsPublic
     if (duplicate) {
       this.setState({ areProjectsLoading: true })
     } else {
@@ -305,7 +312,7 @@ class ProjectBrowser extends React.Component {
     }
 
     this.closeModals()
-    this.props.websocket.request({ method: 'createProject', params: [name] }, (err, newProject) => {
+    this.props.websocket.request({ method: 'createProject', params: [name, isPublic] }, (err, newProject) => {
       if (err) {
         this.props.createNotice({
           type: 'error',
@@ -368,7 +375,8 @@ class ProjectBrowser extends React.Component {
       showDuplicateProjectModal: false,
       showDeleteModal: false,
       recordedNewProjectName: '',
-      recordedDelete: ''
+      recordedDelete: '',
+      newProjectIsPublic: false
     })
   }
 
@@ -449,7 +457,7 @@ class ProjectBrowser extends React.Component {
         }}
       >
         <div style={DASH_STYLES.modal} onClick={(e) => e.stopPropagation()}>
-          <div style={DASH_STYLES.modalTitle}>{duplicate ? 'Name Duplicated Project' : 'Name Project To Start'}</div>
+          <div style={DASH_STYLES.modalTitle}>{duplicate ? 'Name Duplicated Project' : 'Project Setup'}</div>
           <div style={[DASH_STYLES.inputTitle, DASH_STYLES.upcase]}>Project Name</div>
           <input
             key='new-project-input'
@@ -463,6 +471,12 @@ class ProjectBrowser extends React.Component {
             onChange={(e) => { this.handleNewProjectInputChange(e) }}
             placeholder='NewProjectName'
             autoFocus />
+          <div style={{marginBottom: '30px'}}>
+            <PrivatePublicToggle
+              onChange={(isPublic) => { this.handleNewProjectToggleChange(isPublic) }}
+              isPublic={this.state.newProjectIsPublic}
+            />
+          </div>
           <span key='new-project-error' style={DASH_STYLES.newProjectError}>{this.state.newProjectError}</span>
           <button key='new-project-go-button'
             disabled={this.props.newProjectLoading || !this.state.recordedNewProjectName || this.state.newProjectError}

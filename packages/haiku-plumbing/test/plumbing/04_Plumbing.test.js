@@ -14,6 +14,7 @@ tape('Plumbing', (t) => {
   TestHelpers.launch((plumbing, _, teardown) => {
     const projectName = 'TestProject' + randomString(20)
     const duplicateProjectName = 'TestProject' + randomString(20)
+    const isPublic = false
     return async.waterfall([
       (cb) => {
         return plumbing.authenticateUser('matthew+matthew@haiku.ai', 'supersecure', (err, resp) => {
@@ -28,7 +29,7 @@ tape('Plumbing', (t) => {
         })
       },
       (cb) => {
-        return plumbing.createProject(projectName, (err, projectObject) => {
+        return plumbing.createProject(projectName, isPublic, (err, projectObject) => {
           t.error(err, 'no err creating')
           if (!projectObject) {
             throw new Error('the test account has reached the max number projects')
@@ -113,7 +114,7 @@ var primaryAssetPath =     '${primaryAssetPath}'
 var alsoPrimaryAssetPath = '${primaryAssetPath}'
 `)
         // Make a duplicate and verify it has the expected contents.
-        return plumbing.createProject(duplicateProjectName, (err, duplicateProject) => {
+        return plumbing.createProject(duplicateProjectName, isPublic, (err, duplicateProject) => {
           t.error(err, 'no err creating')
           if (!duplicateProject) {
             throw new Error('the test account has reached the max number projects')
