@@ -114,7 +114,7 @@ class Project extends BaseModel {
 
       this._envoyClient = new EnvoyClient(Object.assign({
         WebSocket: websocketClient,
-        logger: new EnvoyLogger('warn', console)
+        logger: new EnvoyLogger('warn')
       }, this.getEnvoyOptions()))
 
       this._envoyClient.get('timeline').then((timelineChannel) => {

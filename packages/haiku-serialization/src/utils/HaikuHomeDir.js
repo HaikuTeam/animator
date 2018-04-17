@@ -53,7 +53,7 @@ function isDir (abspath) {
   try {
     return fse.lstatSync(abspath).isDirectory()
   } catch (exception) {
-    console.warn(exception)
+    logger.warn(exception)
     return false
   }
 }
@@ -102,3 +102,5 @@ out.enumerateAllProjectsByOrganization = (cb) => {
 }
 
 module.exports = out
+
+const logger = require('./LoggerInstance')

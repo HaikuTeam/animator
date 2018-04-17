@@ -41,6 +41,7 @@ import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 import {buildProxyUrl, describeProxyFromUrl} from 'haiku-common/lib/proxies'
 import isOnline from 'is-online'
 import CreatorIntro from '@haiku/zack4-creatorintro/react'
+import logger from 'haiku-serialization/src/utils/LoggerInstance'
 
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'creator'
@@ -171,12 +172,12 @@ export default class Creator extends React.Component {
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:open-terminal', lodash.debounce(() => {
-      console.info(`[creator] global-menu:open-terminal`)
+      logger.info(`[creator] global-menu:open-terminal`)
       this.openTerminal(this.state.projectFolder)
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:check-updates', lodash.debounce(() => {
-      console.info(`[creator] global-menu:check-updates`)
+      logger.info(`[creator] global-menu:check-updates`)
       this.setState({
         updater: {
           shouldCheck: true,
@@ -187,12 +188,12 @@ export default class Creator extends React.Component {
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:show-changelog', lodash.debounce(() => {
-      console.info(`[creator] global-menu:show-changelog`)
+      logger.info(`[creator] global-menu:show-changelog`)
       this.showChangelogModal()
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:zoom-in', lodash.debounce(() => {
-      console.info(`[creator] global-menu:zoom-in`)
+      logger.info(`[creator] global-menu:zoom-in`)
       // Timeline will send to Glass if it doesn't want to zoom
       this.props.websocket.send({
         type: 'relay',
@@ -204,7 +205,7 @@ export default class Creator extends React.Component {
 
     ipcRenderer.on('global-menu:zoom-out', lodash.debounce(() => {
       // Timeline will send to Glass if it doesn't want to zoom
-      console.info(`[creator] global-menu:zoom-out`)
+      logger.info(`[creator] global-menu:zoom-out`)
       this.props.websocket.send({
         type: 'relay',
         from: 'creator',
@@ -215,7 +216,7 @@ export default class Creator extends React.Component {
 
     ipcRenderer.on('global-menu:group', lodash.debounce(() => {
       // Timeline will send to Glass if it doesn't want to group
-      console.info(`[creator] global-menu:group`)
+      logger.info(`[creator] global-menu:group`)
       this.props.websocket.send({
         type: 'relay',
         from: 'creator',
@@ -226,7 +227,7 @@ export default class Creator extends React.Component {
 
     ipcRenderer.on('global-menu:ungroup', lodash.debounce(() => {
       // Timeline will send to Glass if it doesn't want to ungroup
-      console.info(`[creator] global-menu:ungroup`)
+      logger.info(`[creator] global-menu:ungroup`)
       this.props.websocket.send({
         type: 'relay',
         from: 'creator',
@@ -237,7 +238,7 @@ export default class Creator extends React.Component {
 
     ipcRenderer.on('global-menu:undo', lodash.debounce(() => {
       // Timeline will send to Glass if it doesn't want to undo
-      console.info(`[creator] global-menu:undo`)
+      logger.info(`[creator] global-menu:undo`)
       this.props.websocket.send({
         type: 'relay',
         from: 'creator',
@@ -249,7 +250,7 @@ export default class Creator extends React.Component {
 
     ipcRenderer.on('global-menu:redo', lodash.debounce(() => {
       // Timeline will send to Glass if it doesn't want to undo
-      console.info(`[creator] global-menu:redo`)
+      logger.info(`[creator] global-menu:redo`)
       this.props.websocket.send({
         type: 'relay',
         from: 'creator',
@@ -262,7 +263,7 @@ export default class Creator extends React.Component {
     ipcRenderer.on('global-menu:copy', lodash.debounce(() => {
       // Only delegate copy if we don't have anything in selection
       if (!this.isTextSelected()) {
-        console.info(`[creator] global-menu:copy`)
+        logger.info(`[creator] global-menu:copy`)
         this.props.websocket.send({
           type: 'relay',
           from: 'creator',
@@ -277,7 +278,7 @@ export default class Creator extends React.Component {
     ipcRenderer.on('global-menu:cut', lodash.debounce(() => {
       // Only delegate cut if we don't have anything in selection
       if (!this.isTextSelected()) {
-        console.info(`[creator] global-menu:cut`)
+        logger.info(`[creator] global-menu:cut`)
         this.props.websocket.send({
           type: 'relay',
           from: 'creator',
@@ -290,7 +291,7 @@ export default class Creator extends React.Component {
     ipcRenderer.on('global-menu:selectall', lodash.debounce(() => {
       // Only select all if we haven't activated a text element
       if (!this.isTextInputFocused()) {
-        console.info(`[creator] global-menu:selectall`)
+        logger.info(`[creator] global-menu:selectall`)
         this.props.websocket.send({
           type: 'relay',
           from: 'creator',
@@ -303,7 +304,7 @@ export default class Creator extends React.Component {
     ipcRenderer.on('global-menu:paste', lodash.debounce(() => {
       // Only paste if we haven't activated a text element
       if (!this.isTextInputFocused()) {
-        console.info(`[creator] global-menu:paste`)
+        logger.info(`[creator] global-menu:paste`)
         this.props.websocket.send({
           type: 'relay',
           from: 'creator',
@@ -366,7 +367,7 @@ export default class Creator extends React.Component {
           }
         })
       } catch (exception) {
-        console.warn(exception)
+        logger.warn(exception)
       }
     }
 
@@ -440,7 +441,7 @@ export default class Creator extends React.Component {
     try {
       cp.execSync('open -b com.apple.terminal ' + JSON.stringify(folder) + ' || true')
     } catch (exception) {
-      console.error(exception)
+      logger.error(exception)
     }
   }
 
@@ -635,7 +636,7 @@ export default class Creator extends React.Component {
             // through the projects index
             return this.launchFolder(null, this.props.folder, (error) => {
               if (error) {
-                console.error(error)
+                logger.error(error)
                 this.setState({ folderLoadingError: error })
                 return this.createNotice({
                   type: 'error',
@@ -1060,7 +1061,7 @@ export default class Creator extends React.Component {
     })
 
     if (!found) {
-      console.error(notice.message)
+      logger.error(notice.message)
       notices.unshift(notice)
     }
 
@@ -1203,7 +1204,7 @@ export default class Creator extends React.Component {
     return this.props.websocket.request(
       { method: 'teardownMaster', params: [this.state.projectModel.getFolder()] },
       () => {
-        console.info('[creator] master torn down')
+        logger.info('[creator] master torn down')
         this.setDashboardVisibility(true, launchingProject)
         this.onTimelineUnmounted()
         this.unsetAllProjectModelsState(this.state.projectModel.getFolder(), 'project:ready')
@@ -1309,7 +1310,7 @@ export default class Creator extends React.Component {
       (error, dotenv) => {
         if (error) {
           mixpanel.haikuTrack('creator:proxy-settings:error', {error})
-          console.warn('[creator] unable to persist proxy settings', error)
+          logger.warn('[creator] unable to persist proxy settings', error)
           this.createNotice({
             type: 'error',
             title: 'Oh no!',

@@ -13,6 +13,7 @@ const xmlToMana = require('@haiku/core/lib/helpers/xmlToMana').default
 const convertManaLayout = require('@haiku/core/lib/layout/convertManaLayout').default
 const expressionToRO = require('@haiku/core/lib/reflection/expressionToRO').default
 const reifyRO = require('@haiku/core/lib/reflection/reifyRO').default
+const logger = require('haiku-serialization/src/utils/LoggerInstance')
 
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const DEFAULT_TIMELINE_NAME = 'Default'
@@ -30,7 +31,7 @@ function isEmpty (val) {
 // is to be a reference, i.e. a variable referencing something defined in closure.
 // We can possibly handle that in the future in some cases...
 function referenceEvaluator (arg) {
-  console.warn('[bytecode] reference evaluator is not implemented')
+  logger.warn('[bytecode] reference evaluator is not implemented')
   return arg
 }
 

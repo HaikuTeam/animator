@@ -30,7 +30,49 @@ module.exports = {
         fetchRootElement: true,
         eachCoreComponentInstance: true,
         findElementByComponentId: true,
-        unselectElementWithinTime: true
+        unselectElementWithinTime: true,
+        handleUpdatedBytecode: true
+      }
+    },
+    'haiku-serialization/src/bll/Timeline.js': {
+      exclude: {
+        mapVisibleFrames: true,
+        mapVisibleTimes: true,
+        seekToTime: true,
+        seek: true,
+        setCurrentFrame: true,
+        setAuthoritativeFrame: true,
+        updateCurrentFrame: true,
+        setCurrentFrame: true,
+        tryToLeftAlignTickerInVisibleFrameRange: true,
+        hoverFrame: true,
+        setTimelinePixelWidth: true
+      }
+    },
+    'haiku-serialization/src/bll/Element.js': {
+      exclude: {
+      }
+    },
+    'haiku-serialization/src/bll/Row.js': {
+      exclude: {
+        prev: true,
+        next: true,
+        hover: true,
+        unhover: true,
+        mapVisibleKeyframes: true,
+        doesTargetHostElement: true,
+        deselect: true,
+        rehydrate: true,
+        rehydrateKeyframes: true,
+        blur: true,
+        hoverAndUnhoverOthers: true
+      }
+    },
+    'haiku-serialization/src/bll/Keyframe.js': {
+      exclude: {
+        prev: true,
+        next: true,
+        hasNextKeyframe: true
       }
     },
     'haiku-serialization/src/bll/Project.js': {
@@ -47,7 +89,8 @@ module.exports = {
     'haiku-serialization/src/bll/File.js': {
       exclude: {
         assertContents: true,
-        assertBytecode: true
+        assertBytecode: true,
+        maybeLogDiff: true
       }
     }
   }

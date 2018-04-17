@@ -1,19 +1,9 @@
-const fse = require('haiku-fs-extra')
-const fs = require('fs')
 const path = require('path')
 const util = require('util')
 const uselector = require('unique-selector').default
 const basedir = path.join(__dirname, '..', '..', '..', '..')
 const config = require(path.join(basedir, 'monkey.config.js'))
-
-const validWorkspace = (workspace) => {
-  if (workspace && typeof workspace === 'string') {
-    fse.mkdirpSync(workspace)
-    return workspace
-  } else {
-    return false
-  }
-}
+const logger = require('./LoggerInstance')
 
 const loggableArgs = (args) => {
   return args.map((arg) => {
@@ -23,7 +13,6 @@ const loggableArgs = (args) => {
         maxArrayLength: 10
       }).replace(/\s+/g, ' ')
     } catch (exception) {
-      console.warn('[monkey]', exception.message)
       return '?'
     }
   })
@@ -78,73 +67,76 @@ const loggableEventValue = (event) => {
   }
 }
 
-module.exports = (view, dirname, env, win) => {
-  const workspace = validWorkspace(env.HAIKU_RECORDER_WORKSPACE)
+module.exports = (view, win) => {
+  // Instruct the logger to prefix calls with the name of the view
+  logger.view = view
 
-  if (!workspace) {
-    return
-  }
+  if (
+    process.env.NODE_ENV !== 'production' ||
+    process.env.HAIKU_RECORDER_ON === '1'
+  ) {
+    if (config.modules) {
+      for (const modname in config.modules) {
+        let options = config.modules[modname]
 
-  const logfile = path.join(workspace, `logfile`)
-  fse.outputFileSync(logfile, '') // Empty file to start with
-
-  // TODO: When should we call stream.end()?
-  const stream = fs.createWriteStream(logfile, {flags: 'a'})
-
-  if (config.modules) {
-    for (const modname in config.modules) {
-      let options = config.modules[modname]
-
-      if (!options) {
-        continue
-      }
-
-      if (typeof options !== 'object') {
-        options = {}
-      }
-
-      for (const cached in require.cache) {
-        if (cached.indexOf(modname) === -1) {
+        if (!options) {
           continue
         }
 
-        console.info(`[monkey] enabling recording of ${cached}`)
+        if (typeof options !== 'object') {
+          options = {}
+        }
 
-        let exports = require.cache[cached].exports
-        if (exports.default) exports = exports.default
+        for (const cached in require.cache) {
+          if (cached.indexOf(modname) === -1) {
+            continue
+          }
 
-        recordClass(
-          exports,
-          // This function is invoked any time the host class' method is called
-          (klass, fn, binding, args) => {
-            const out = `${Date.now()} (${view}) ${klass.name}#${fn.name}(${loggableArgs(args).join(', ')})\n`
+          logger.info(`[monkey] enabling recording of ${cached}`)
 
-            if (options.log && options.log.not) {
-              // Allow configuration to prevent methods from reaching the logs
-              if (options.log.not(out)) {
-                return
+          let exports = require.cache[cached].exports
+
+          // In case we got a module that exports an ES6 class
+          if (exports.default) exports = exports.default
+
+          recordClass(
+            exports,
+            // This function is invoked any time the host class' method is called
+            (klass, fn, binding, args) => {
+              const out = `${klass.name}#${fn.name}(${loggableArgs(args).join(', ')})`
+
+              if (options.log && options.log.not) {
+                // Allow configuration to prevent methods from reaching the logs
+                if (options.log.not(out)) {
+                  return
+                }
               }
-            }
 
-            stream.write(out)
-          },
-          options
-        )
+              logger.info(out)
+            },
+            options
+          )
+        }
       }
     }
   }
 
-  if (win) {
-    const handleUIEvent = (event) => {
-      const out = `${Date.now()} (ui-${view})'${(event && event.type) || '?'}' ${loggableEventTarget(event && event.target) || ''} ${loggableEventValue(event) || ''}\n`
-      stream.write(out)
-    }
+  if (
+    process.env.NODE_ENV !== 'production' ||
+    process.env.HAIKU_RECORDER_ON === '1'
+  ) {
+    if (win) {
+      const handleUIEvent = (event) => {
+        const out = `(ui) '${(event && event.type) || '?'}' ${loggableEventTarget(event && event.target) || ''} ${loggableEventValue(event) || ''}`
+        logger.info(out)
+      }
 
-    win.addEventListener('focus', handleUIEvent)
-    win.addEventListener('blur', handleUIEvent)
-    win.addEventListener('mousedown', handleUIEvent)
-    win.addEventListener('mouseup', handleUIEvent)
-    win.addEventListener('keydown', handleUIEvent)
-    win.addEventListener('keyup', handleUIEvent)
+      win.addEventListener('focus', handleUIEvent)
+      win.addEventListener('blur', handleUIEvent)
+      win.addEventListener('mousedown', handleUIEvent)
+      win.addEventListener('mouseup', handleUIEvent)
+      win.addEventListener('keydown', handleUIEvent)
+      win.addEventListener('keyup', handleUIEvent)
+    }
   }
 }

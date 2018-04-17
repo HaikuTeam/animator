@@ -3,6 +3,7 @@ const electron = require('electron')
 const app = electron.app
 const BrowserWindow = electron.BrowserWindow
 const path = require('path')
+const logger = require('haiku-serialization/src/utils/LoggerInstance')
 
 /**
  * This file is bypassed when loaded in the full app.
@@ -21,7 +22,7 @@ if (process.env.MOCK_ENVOY) {
   params.envoy = { mock: true }
 }
 
-console.info('[glass] launching window with params', params)
+logger.info('[glass] launching window with params', params)
 
 const query = qs.stringify(params)
 

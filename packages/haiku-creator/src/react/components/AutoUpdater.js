@@ -1,6 +1,7 @@
 import React from 'react'
 import autoUpdate from '../../utils/autoUpdate'
 import {DOWNLOAD_STYLES as STYLES} from '../styles/downloadShared'
+import logger from 'haiku-serialization/src/utils/LoggerInstance'
 
 let statuses = {
   IDLE: 'Idle',
@@ -60,7 +61,7 @@ class AutoUpdater extends React.Component {
   }
 
   onFail (error) {
-    console.error(error)
+    logger.error(error)
     this.setState({status: statuses.DOWNLOAD_FAILED})
   }
 

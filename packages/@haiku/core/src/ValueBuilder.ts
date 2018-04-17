@@ -304,11 +304,6 @@ const EVENT_SCHEMA = {
     which: 'number',
     code: 'number', // alias for 'which'
   }],
-  // TODO:
-  // accelerometer
-  // compass
-  // mic
-  // camera
 };
 
 const ELEMENT_SCHEMA = {
@@ -321,17 +316,6 @@ const ELEMENT_SCHEMA = {
     }
     return defined;
   },
-
-  // TODO
-  // bbox: {
-  //   x: 'number',
-  //   y: 'number',
-  //   width: 'number',
-  //   height: 'number'
-  // },
-
-  // TODO
-  // events: EVENT_SCHEMA
 };
 
 const assignElementInjectables = (obj, key, summonSpec, hostInstance, element) => {
@@ -347,13 +331,6 @@ const assignElementInjectables = (obj, key, summonSpec, hostInstance, element) =
 
   obj[key] = {};
   const out = obj[key];
-
-  // It's not clear yet when we need fallbacks
-  // var fallbacks = DOMFallbacks[element.elementName]
-  // if (!fallbacks) {
-  //   console.warn('[haiku core] element ' + element.elementName + ' has no fallbacks defined')
-  //   return {}
-  // }
 
   out.properties = {
     name: null,

@@ -157,9 +157,9 @@ function createWindow () {
   browserWindow.maximize()
   browserWindow.loadURL(appUrl)
 
-  if (process.env.DEV === '1') {
-    browserWindow.openDevTools()
-  }
+  // if (process.env.DEV === '1') {
+  browserWindow.openDevTools()
+  // }
 
   // Sending our haiku configuration into the view so it can correctly set up
   // its own websocket connections to our plumbing server, etc.
@@ -206,7 +206,7 @@ function createWindow () {
 
   globalMenuPassthroughs.forEach((command) => {
     topmenu.on(`global-menu:${command}`, (...args) => {
-      console.info(`global-menu:${command}`, args)
+      logger.info(`global-menu:${command}`, args)
       browserWindow.webContents.send(`global-menu:${command}`, ...args)
     })
   })

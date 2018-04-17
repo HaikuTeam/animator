@@ -157,14 +157,6 @@ class BaseModel extends EventEmitter {
     this.constructor.emit(args[0], this.__proxy, ...args.slice(1))
   }
 
-  getEchoInfo () {
-    return `${this.getClassName()}[${this.getPrimaryKey()}](${(this.dump && this.dump()) || '#'})`
-  }
-
-  echoInfo () {
-    console.info(this.getEchoInfo())
-  }
-
   mark () {
     // This gets set to `false` whenever we are upserted (constructed or initialized)
     this.__marked = true
