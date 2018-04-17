@@ -7,6 +7,10 @@ export class PrettyScroll extends React.PureComponent {
       <div>
         <style>
           {`
+            .haiku-scroll {
+              padding-right: 20px;
+            }
+
             .haiku-scroll::-webkit-scrollbar {
               width: 8px;
             }
