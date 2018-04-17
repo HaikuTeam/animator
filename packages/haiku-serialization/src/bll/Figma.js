@@ -89,17 +89,22 @@ class Figma {
     const assetBaseFolder = abspath + '.contents/'
     fse.emptyDirSync(assetBaseFolder)
 
-    const sliceFolder = assetBaseFolder + 'slices/'
+    const sliceFolder = assetBaseFolder + FOLDERS[VALID_TYPES.SLICE]
     fse.mkdirpSync(sliceFolder)
 
-    const groupFolder = assetBaseFolder + 'groups/'
+    const groupFolder = assetBaseFolder + FOLDERS[VALID_TYPES.GROUP]
     fse.mkdirpSync(groupFolder)
+
+    const otherFolder = assetBaseFolder + FOLDERS.OTHER
+    fse.mkdirpSync(otherFolder)
 
     return Promise.all(
       elements.map((element) => {
         if (element) {
-          const path =
-            assetBaseFolder + FOLDERS[element.type] + element.name + '.svg'
+          // Mimic the behaior of our Sketch importer: move to the slices folder
+          // everything that is marked for export
+          const folder = FOLDERS[element.type] || FOLDERS.SLICE
+          const path = assetBaseFolder + folder + element.name + '.svg'
           return fse.writeFile(path, element.svg || '<svg version="1.1" xmlns="http://www.w3.org/2000/svg"></svg>')
         }
       })
@@ -165,8 +170,12 @@ class Figma {
     const result = []
 
     for (let item of arr) {
-      if (VALID_TYPES[item.type]) {
-        result.push({ id: item.id, name: Figma.getUniqueName(fileId, item.name), type: item.type })
+      if (VALID_TYPES[item.type] || (item.exportSettings && item.exportSettings.length > 0)) {
+        result.push({
+          id: item.id,
+          name: Figma.getUniqueName(fileId, item.name),
+          type: item.type
+        })
       } else if (item.children) {
         result.push(...this.findItems(item.children, fileId))
       }
