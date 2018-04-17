@@ -6260,5 +6260,22 @@
       "label": "fix",
       "message": "allow live stage background to overflow"
     }
+  },
+  "3.2.12": {
+    "fdc1b0ef645870a3a6692a131ac50ccce224dbca": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "raise the project limit to 50 in the UI"
+    },
+    "2002e41699c81459354da871754501133218e9f6": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "avoid multiple public/private checks for the same project"
+    },
+    "a6d9a7bc9ab236edf7664f93ab59ec37523ef8fd": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "set missing state variables to enable the publish button on fail"
+    }
   }
 }

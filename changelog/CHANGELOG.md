@@ -1,6 +1,17 @@
 # Changelog
 
 
+## 3.2.12
+
+### Features
+
+ * raise the project limit to 50 in the UI
+
+### Bug Fixes
+
+ * avoid multiple public/private checks for the same project
+ * set missing state variables to enable the publish button on fail
+
 ## 3.2.11
 
 ### Bug Fixes
