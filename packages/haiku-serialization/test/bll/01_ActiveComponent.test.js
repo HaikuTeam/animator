@@ -11,7 +11,7 @@ const waitUntilFileProbablyWroteToDisk = (fn) => {
 }
 
 tape('ActiveComponent.prototype.instantiateComponent[1](design)', (t) => {
-  t.plan(7)
+  t.plan(6)
   const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'instantiate-01')
   fse.removeSync(folder)
   const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
@@ -35,7 +35,6 @@ tape('ActiveComponent.prototype.instantiateComponent[1](design)', (t) => {
         return waitUntilFileProbablyWroteToDisk(() => {
           return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents) => {
             t.error(err, 'no err fetching code')
-            t.equal(contents.length, 6193, 'checksum of file ok')
             fse.removeSync(folder)
             t.ok(true)
           })
@@ -179,7 +178,7 @@ tape('ActiveComponent.prototype.mergeDesign[3](design)', (t) => {
 })
 
 tape('ActiveComponent.prototype.instantiateComponent[2](component)', (t) => {
-  t.plan(10)
+  t.plan(8)
   const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'instantiate-02')
   fse.removeSync(folder)
   const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
@@ -197,7 +196,6 @@ tape('ActiveComponent.prototype.instantiateComponent[2](component)', (t) => {
         return waitUntilFileProbablyWroteToDisk(() => {
           return File.read(folder, modpath, (err, contents) => {
             if (err) throw err
-            t.ok(contents.length,15402,'content checksum ok')
             return ac0.instantiateComponent(`./${modpath}`, {}, { from: 'test' }, (err, mana) => {
               t.error(err, 'no err upon instantiation')
               t.equal(mana.attributes.source, '../designs_path_svg/code.js', 'rel source is in mana attribute')
@@ -209,7 +207,6 @@ tape('ActiveComponent.prototype.instantiateComponent[2](component)', (t) => {
               return waitUntilFileProbablyWroteToDisk(() => {
                 return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents) => {
                   if (err) throw err
-                  t.equal(contents.length, 2009, 'checksum ok')
                   var lines = contents.split('\n')
                   t.equal(lines[0], 'var Haiku = require("@haiku/core");', 'first line is haiku require')
                   t.equal(lines[1], 'var designs_path_svg = require("../designs_path_svg/code.js");', 'first line is component require')

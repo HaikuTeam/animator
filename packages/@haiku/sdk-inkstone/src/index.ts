@@ -724,6 +724,7 @@ export namespace inkstone {
 
     export interface ProjectCreateParams {
       Name: string;
+      IsPublic: boolean;
     }
 
     export interface ProjectUpdateParams {

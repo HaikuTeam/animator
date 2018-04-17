@@ -362,7 +362,10 @@ class StageTitleBar extends React.Component {
           })
           this.clearSyndicationChecks()
           return this.setState({
-            showSharePopover: false
+            showSharePopover: false,
+            isSnapshotSaveInProgress: false,
+            snapshotSyndicated: undefined,
+            snapshotPublished: undefined
           })
         }
 
@@ -522,11 +525,11 @@ class StageTitleBar extends React.Component {
             <button key='save'
               id='publish'
               onClick={this.handleSaveSnapshotClick}
-              disabled={!this.props.isTimelineReady && !this.state.snapshotSyndicated}
+              disabled={!this.props.isTimelineReady && this.state.snapshotSyndicated === false}
               style={[
                 BTN_STYLES.btnText,
                 BTN_STYLES.rightBtns,
-                !this.state.snapshotSyndicated && STYLES.disabled,
+                this.state.snapshotSyndicated === false && STYLES.disabled,
                 !this.props.isTimelineReady && STYLES.disabled
               ]}
             >
@@ -575,7 +578,6 @@ class StageTitleBar extends React.Component {
 
         {experimentIsEnabled(Experiment.NewPublishUI) && this.state.showSharePopover && !this.props.isPreviewMode &&
           <ShareModal
-            envoyProject={this.props.envoyProject}
             project={this.props.project}
             snapshotSaveConfirmed={this.state.snapshotSaveConfirmed}
             isSnapshotSaveInProgress={this.state.isSnapshotSaveInProgress}
