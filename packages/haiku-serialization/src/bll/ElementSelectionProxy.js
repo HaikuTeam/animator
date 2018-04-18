@@ -12,8 +12,6 @@ const Sketch = require('./Sketch')
 
 const PI_OVER_12 = Math.PI / 12
 
-const HAIKU_ID_ATTRIBUTE = 'haiku-id'
-
 const isNumeric = (n) => !isNaN(parseFloat(n)) && isFinite(n)
 
 const forceNumeric = (n) => (isNaN(n) || !isFinite(n)) ? 0 : n
@@ -788,7 +786,6 @@ class ElementSelectionProxy extends BaseModel {
           matrixAfter
         ])
         composedTransformsToTimelineProperties(propertyGroup, [finalMatrix], true)
-        const [rs0, rs1, rs2, _, rs3, rs4, rs5, __, rs6, rs7, rs8] = finalMatrix
         const alignX = layoutSpec.align.x * layoutSpec.size.x
         const alignY = layoutSpec.align.y * layoutSpec.size.y
         const alignZ = layoutSpec.align.z * layoutSpec.size.z
@@ -798,9 +795,12 @@ class ElementSelectionProxy extends BaseModel {
         const originX = layoutSpec.origin.x * layoutSpec.size.x
         const originY = layoutSpec.origin.y * layoutSpec.size.y
         const originZ = layoutSpec.origin.z * layoutSpec.size.z
-        propertyGroup['translation.x'] += rs0 * originX + rs3 * originY + rs6 * originZ
-        propertyGroup['translation.y'] += rs1 * originX + rs4 * originY + rs7 * originZ
-        propertyGroup['translation.z'] += rs2 * originX + rs5 * originY + rs8 * originZ
+        propertyGroup['translation.x'] +=
+          finalMatrix[0] * originX + finalMatrix[4] * originY + finalMatrix[8] * originZ + mountPointX - alignX
+        propertyGroup['translation.y'] +=
+          finalMatrix[1] * originX + finalMatrix[5] * originY + finalMatrix[9] * originZ + mountPointY - alignY
+        propertyGroup['translation.z'] +=
+          finalMatrix[2] * originX + finalMatrix[6] * originY + finalMatrix[10] * originZ + mountPointZ - alignZ
         ElementSelectionProxy.accumulateKeyframeUpdates(
           accumulatedUpdates,
           element.getComponentId(),
