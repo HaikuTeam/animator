@@ -31,7 +31,17 @@ export const initialValueOrNull = (timeline: any, property: string): any => time
 export const initialValueOr = (timeline: any, property: string, value: any): any => timeline.hasOwnProperty(property)
   ? initialValue(timeline, property) : value;
 
-/**
+export const timelineHasProperties = (timeline: any, ...properties: string[]): boolean => {
+  for (let i = 0; i < properties.length; ++i) {
+    if (typeof timeline[properties[i]] !== 'object' || Object.keys(timeline[properties[i]]).length === 0) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
+  /**
  * Private helper method for `simulateLayoutProperty`.
  * @param value
  * @returns {{'0': {value: number}}}
