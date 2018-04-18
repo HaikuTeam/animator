@@ -541,13 +541,6 @@ Bytecode.reinitialize = (folder, relpath, bytecode = {}, config = {}) => {
     { title: config.name }
   )
 
-  // Move inline attributes at the top level into the control object
-  const timeline = Template.hoistTreeAttributes(
-    bytecode.template,
-    DEFAULT_TIMELINE_NAME,
-    DEFAULT_TIMELINE_TIME
-  )
-
   let contextHaikuId = bytecode.template.attributes[HAIKU_ID_ATTRIBUTE]
 
   Bytecode.upsertDefaultProperties(bytecode, contextHaikuId, {
@@ -563,9 +556,6 @@ Bytecode.reinitialize = (folder, relpath, bytecode = {}, config = {}) => {
     'sizeMode.y': 1,
     'sizeMode.z': 1
   }, 'assign')
-
-  // Inject the hoisted attributes into the actual timelines object
-  Bytecode.mergeTimelineStructure(bytecode, timeline, 'defaults')
 
   // Make sure every element has an explicit translation; this is sort of a hack that makes sure
   // that when we undo changes to the artboard, all elements on stage have a first value to go back to
