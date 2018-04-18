@@ -1,6 +1,19 @@
 # Changelog
 
 
+## 3.2.14
+
+### Bug Fixes
+
+ * parse translation when any value is provided.
+ * allow empty property groups in lottie export.
+ * add a padding to the custom scrollbar component
+ * post actual messages to sentry on Figma import errors
+
+### Features
+
+ * add support for importing Figma assets that are marked for export
+
 ## 3.2.13
 
 ## 3.2.12

@@ -6278,5 +6278,32 @@
       "message": "set missing state variables to enable the publish button on fail"
     }
   },
-  "3.2.13": {}
+  "3.2.13": {},
+  "3.2.14": {
+    "6362ceb9617eb46f7d8e69bce8c0219f84c0c86a": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "parse translation when any value is provided."
+    },
+    "92249f6ce80ae813ac8d6381eada2d5e4b7a0d74": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "allow empty property groups in lottie export."
+    },
+    "8697a63e464da2238f70a80c44c1a95d8a306905": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "add a padding to the custom scrollbar component"
+    },
+    "2a281a216886cb9f6684bcfee087afbb22524bfa": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add support for importing Figma assets that are marked for export"
+    },
+    "bd51619aac0224baf7f53da25d219338f054385a": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "post actual messages to sentry on Figma import errors"
+    }
+  }
 }
