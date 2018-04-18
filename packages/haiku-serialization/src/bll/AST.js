@@ -5,6 +5,7 @@ const objectToRO = require('@haiku/core/lib/reflection/objectToRO').default
 const bytecodeObjectToAST = require('./../ast/bytecodeObjectToAST')
 const parseCode = require('./../ast/parseCode')
 const generateCode = require('./../ast/generateCode')
+const logger = require('./../utils/LoggerInstance')
 
 /**
  * @class AST
@@ -116,7 +117,7 @@ AST.mutateWith = (abspath, fn) => {
     fse.outputFileSync(abspath, formatted)
     return void (0)
   } catch (exception) {
-    console.warn('[file] Could not provide AST for ' + abspath + '; ' + exception)
+    logger.warn('[ast] could not provide AST for ' + abspath + '; ' + exception)
     return void (0)
   }
 }

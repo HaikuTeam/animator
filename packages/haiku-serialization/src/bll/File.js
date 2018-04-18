@@ -5,7 +5,7 @@ const path = require('path')
 const xmlToMana = require('@haiku/core/lib/helpers/xmlToMana').default
 const objectToRO = require('@haiku/core/lib/reflection/objectToRO').default
 const BaseModel = require('./BaseModel')
-const Logger = require('./../utils/Logger')
+const logger = require('./../utils/LoggerInstance')
 const walkFiles = require('./../utils/walkFiles')
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 const getSvgOptimizer = require('./../svg/getSvgOptimizer')
@@ -14,9 +14,6 @@ const Lock = require('./Lock')
 // This file also depends on '@haiku/core/lib/HaikuComponent'
 // in the sense that one of those instances is assigned as .hostInstance here.
 // ^^ Leave this message in this file so we can grep for it if necessary
-
-const logger = new Logger()
-const differ = require('./../utils/LoggerInstanceDiffs')
 
 const DEFAULT_CONTEXT_SIZE = { width: 550, height: 400 }
 const DISK_FLUSH_TIMEOUT = 500
@@ -149,7 +146,7 @@ class File extends BaseModel {
         // Diffs of 'snapshots' or bundled code are usually fairly useless to show and too long anyway.
         // These files are written as part of the save process
         if (!_looksLikeMassiveFile(this.relpath)) {
-          differ.difflog(previous, contents, { relpath: this.relpath })
+          logger.diff(previous, contents, { relpath: this.relpath })
         }
       }
     }

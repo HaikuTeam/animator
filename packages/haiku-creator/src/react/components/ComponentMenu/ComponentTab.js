@@ -3,6 +3,7 @@ import Radium from 'radium'
 import Palette from 'haiku-ui-common/lib/Palette'
 import {CloseIconSVG} from 'haiku-ui-common/lib/react/OtherIcons'
 import toTitleCase from '../../helpers/toTitleCase'
+import logger from 'haiku-serialization/src/utils/LoggerInstance'
 
 const STYLES = {
   container: {
@@ -63,7 +64,7 @@ class ComponentTab extends React.Component {
 
     this.props.projectModel.setCurrentActiveComponent(this.props.tab.scenename, { from: 'creator' }, (err) => {
       if (err) {
-        console.error(err)
+        logger.error(err)
       }
     })
   }
@@ -71,7 +72,7 @@ class ComponentTab extends React.Component {
   closeComponentTab () {
     this.props.projectModel.closeNamedActiveComponent(this.props.tab.scenename, { from: 'creator' }, (err) => {
       if (err) {
-        console.error(err)
+        logger.error(err)
       }
     })
   }

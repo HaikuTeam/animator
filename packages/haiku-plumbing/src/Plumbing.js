@@ -42,6 +42,8 @@ Error.stackTraceLimit = Infinity // Show long stack traces when errors are shown
 
 const Raven = require('./Raven')
 
+require('haiku-serialization/src/utils/monkey')('main')
+
 // Don't allow malicious websites to connect to our websocket server (Plumbing or Envoy)
 export const HAIKU_WS_SECURITY_TOKEN = Math.random().toString(36).substring(7) + Math.random().toString(36).substring(7)
 const WS_POLICY_VIOLATION_CODE = 1008
@@ -307,8 +309,6 @@ export default class Plumbing extends StateObject {
               alias,
               message.folder || folder,
               message,
-              websocket,
-              server,
               createResponder(message, websocket)
             )
           })
@@ -375,13 +375,11 @@ export default class Plumbing extends StateObject {
       'plumbing',
       folder,
       { method, params, folder, type: 'action' },
-      null,
-      null,
       cb
     )
   }
 
-  handleRemoteMessage (type, alias, folder, message, websocket, server, responder) {
+  handleRemoteMessage (type, alias, folder, message, cb) {
     // IMPORTANT! Creator uses this
     if (!folder && message.folder) {
       folder = message.folder
@@ -398,7 +396,7 @@ export default class Plumbing extends StateObject {
       this.findMasterByFolder(folder).handleBroadcast(message)
 
       // Give clients the chance to emit events to all others
-      return this.sendBroadcastMessage(message, folder, alias, websocket)
+      return this.sendBroadcastMessage(message, folder, alias)
     }
 
     if (message.id && this.requests[message.id]) {
@@ -410,7 +408,7 @@ export default class Plumbing extends StateObject {
 
     if (message.method) {
       // Ensure that actions/methods occur in order by using a queue
-      return this.processMethodMessage(type, alias, folder, message, responder)
+      return this.processMethodMessage(type, alias, folder, message, cb)
     }
   }
 
@@ -509,11 +507,20 @@ export default class Plumbing extends StateObject {
     }
   }
 
-  sendBroadcastMessage (message, folder, alias, websocket) {
+  sendBroadcastMessage (message, folder, alias) {
     this.clients.forEach((client) => {
-      if (websocket && client === websocket) return void (0) // Skip message's send
-      if (client.readyState !== WebSocket.OPEN) return void (0)
+      // Don't send the broadcast to the sender
+      if (client && client.params && client.params.alias === alias) {
+        return
+      }
+
+      // Don't send if we know the socket isn't open
+      if (client.readyState !== WebSocket.OPEN) {
+        return
+      }
+
       delete message.id // Don't confuse this as a request/response
+
       sendMessageToClient(client, merge(message, { folder, alias }))
     })
   }
@@ -1244,8 +1251,6 @@ Plumbing.prototype.upsertMaster = function ({ folder, fileOptions, envoyOptions 
       'master',
       folder,
       payload,
-      null, // websocket
-      null, // server
       cb
     )
   }

@@ -1,5 +1,6 @@
 const DOMSchema = require('@haiku/core/lib/properties/dom/schema').default
 const DOMFallbacks = require('@haiku/core/lib/properties/dom/fallbacks').default
+const logger = require('haiku-serialization/src/utils/LoggerInstance')
 require('@haiku/core/lib/ValueBuilder') // Implicit dependency; do not remove
 
 const TimelineProperty = {}
@@ -63,7 +64,7 @@ TimelineProperty.getFallbackValue = (
   if (!schema) {
     // If we don't have a value at 0, and if we are lacking an element spec, use whatever value
     // is assigned for the next keyframe (i.e. a constant segment)
-    console.warn('[bytecode] schema for ' + elementName + ' not found; using assignment value')
+    logger.warn('[timeline property] schema for ' + elementName + ' not found; using assignment value')
     return valueAssignedInThisOperation
   }
 
@@ -71,7 +72,7 @@ TimelineProperty.getFallbackValue = (
 
   // If no property by this name, no choice but undefined
   if (!fallback) {
-    console.warn('[bytecode] fallback for ' + elementName + ' not found; using undefined')
+    logger.warn('[timeline property] fallback for ' + elementName + ' not found; using undefined')
     return
   }
 
@@ -194,11 +195,10 @@ TimelineProperty.getPropertyValueAtTime = (
         }
         // Fall through to fallback if no computed value
       } else {
-        console.warn('[bytecode] host instance and value builder may be required to compute a value for ' + outputName)
+        logger.warn('[timeline property] host instance and value builder may be required to compute a value for ' + outputName)
       }
     } catch (exception) {
-      // console.error(exception)
-      console.warn('[bytecode] unable to compute dynamic value for ' + timelineName + ' ' + componentId + ' ' + outputName + ' ' + time + ' [' + exception.message + ']')
+      logger.warn('[timeline property] unable to compute dynamic value for ' + timelineName + ' ' + componentId + ' ' + outputName + ' ' + time + ' [' + exception.message + ']')
     }
   }
 

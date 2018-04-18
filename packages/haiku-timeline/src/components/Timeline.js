@@ -27,6 +27,7 @@ import TimelineRangeScrollbar from './TimelineRangeScrollbar'
 import HorzScrollShadow from './HorzScrollShadow'
 import {InteractionMode, isPreviewMode} from '@haiku/core/lib/helpers/interactionModes'
 import { USER_CHANNEL, UserSettings } from 'haiku-sdk-creator/lib/bll/User'
+import logger from 'haiku-serialization/src/utils/LoggerInstance'
 
 const Globals = require('haiku-ui-common/lib/Globals').default // Sorry, hack
 
@@ -346,7 +347,7 @@ class Timeline extends React.Component {
     this.addEmitterListener(window, 'mouseup', this.mouseUpListener.bind(this))
 
     this.addEmitterListener(this.props.websocket, 'relay', (message) => {
-      console.info('[timeline] relay received', message.name, 'from', message.from)
+      logger.info('relay received', message.name, 'from', message.from)
 
       // The next relay destination in the sequence is always glass
       const relayable = lodash.assign(message, {view: 'glass'})
@@ -1222,7 +1223,7 @@ class Timeline extends React.Component {
 
           const idx = result.destination.index
           const reflection = groups.length - idx
-          console.info(`[timeline] z-drop ${result.draggableId} at`, reflection)
+          logger.info(`z-drop ${result.draggableId} at`, reflection)
 
           this.props.mixpanel.haikuTrack('creator:timeline:z-shift')
 
@@ -1382,7 +1383,7 @@ class Timeline extends React.Component {
           onCommitValue={(committedValue) => {
             const row = this.getActiveComponent().getFocusedRow()
             const ms = this.getActiveComponent().getCurrentTimeline().getCurrentMs()
-            console.info('[timeline] commit', JSON.stringify(committedValue), 'at', ms, 'on', row.dump())
+            logger.info('commit', JSON.stringify(committedValue), 'at', ms, 'on', row.dump())
             this.props.mixpanel.haikuTrack('creator:timeline:create-keyframe')
             row.createKeyframe(committedValue, ms, { from: 'timeline' })
           }}

@@ -20,8 +20,9 @@ import {
 } from 'haiku-ui-common/lib/react/OtherIcons'
 import { ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
 import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
+import logger from 'haiku-serialization/src/utils/LoggerInstance'
 
-var mixpanel = require('haiku-serialization/src/utils/Mixpanel')
+const mixpanel = require('haiku-serialization/src/utils/Mixpanel')
 
 const STYLES = {
   hide: {
@@ -261,7 +262,7 @@ class StageTitleBar extends React.Component {
           if (heartbeatErr || !masterState) {
             // If master disconnects we might not even get an error, so create a fake error in its place
             if (!heartbeatErr) heartbeatErr = new Error('Unknown problem with master heartbeat')
-            console.error(heartbeatErr)
+            logger.error(heartbeatErr)
 
             // If master has disconnected, stop running this interval so we don't get pulsing error messages
             clearInterval(this._fetchMasterStateInterval)
@@ -414,7 +415,7 @@ class StageTitleBar extends React.Component {
       }
 
       if (snapshotSaveError) {
-        console.error(snapshotSaveError)
+        logger.error(snapshotSaveError)
         return this.setState({ isSnapshotSaveInProgress: false, snapshotSaveResolutionStrategyName: 'normal', snapshotSaveError }, () => {
           return setTimeout(() => this.setState({ snapshotSaveError: null }), 2000)
         })
@@ -428,7 +429,7 @@ class StageTitleBar extends React.Component {
 
       if (snapshotData) {
         if (snapshotData.conflicts) {
-          console.warn('[creator] Merge conflicts found!')
+          logger.warn('[creator] merge conflicts found')
           this.props.createNotice({
             type: 'warning',
             title: 'Merge conflicts!',
@@ -440,7 +441,7 @@ class StageTitleBar extends React.Component {
           })
         }
 
-        console.info('[creator] Save complete', snapshotData)
+        logger.info('[creator] save complete', snapshotData)
 
         // Unless we set back to normal, subsequent saves will still be set to use the strict ours/theirs strategy,
         // which will clobber updates that we might want to actually merge gracefully.

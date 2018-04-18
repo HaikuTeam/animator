@@ -33,7 +33,7 @@ export interface EnvoyOptions {
 
 export const DEFAULT_ENVOY_OPTIONS: EnvoyOptions = {
   host: global.process.env.HAIKU_PLUMBING_HOST || '0.0.0.0',
-  logger: console,
+  logger: null, // By deaulft we use the centralized logging instance
   mock: false, // In mock mode, clients don't try to connect to the server
   path: '/',
   port: null, // We choose a port automatically if none passed explicitly

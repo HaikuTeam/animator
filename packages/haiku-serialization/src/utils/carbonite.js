@@ -129,7 +129,7 @@ function crashReportCreate (cb) {
     .then(AWS3URL => _upload(AWS3URL, process.env.HAIKU_CRASH_REPORT_ZIP_PATH))
     .then(cb)
     .catch(error => {
-      console.log(error)
+      logger.error(error)
       cb()
     })
 }

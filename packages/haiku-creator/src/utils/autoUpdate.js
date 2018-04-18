@@ -3,6 +3,7 @@ const os = require('os')
 const electron = require('electron')
 const fetch = require('node-fetch')
 const {download, unzip} = require('haiku-serialization/src/utils/fileManipulation')
+const logger = require('haiku-serialization/src/utils/LoggerInstance')
 
 const DEFAULT_OPTIONS = {
   server: process.env.HAIKU_AUTOUPDATE_SERVER,
@@ -34,7 +35,7 @@ module.exports = {
         const installationPath = '/Applications'
         const execPath = '/Applications/Haiku.app/Contents/MacOS/Haiku'
 
-        console.info('[autoupdater] About to download an update:', options, url)
+        logger.info('[autoupdater] About to download an update:', options, url)
 
         download(url, zipPath, progressCallback)
           .then(() => {

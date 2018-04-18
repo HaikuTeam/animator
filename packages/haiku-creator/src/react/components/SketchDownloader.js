@@ -1,6 +1,7 @@
 import React from 'react'
 import {download, createSketchDialogFile} from 'haiku-serialization/src/utils/HaikuHomeDir'
 import {DOWNLOAD_STYLES as STYLES} from '../styles/downloadShared'
+import logger from 'haiku-serialization/src/utils/LoggerInstance'
 
 let statuses = {
   PROMPT_USER: 'PromptUser',
@@ -52,7 +53,7 @@ class SketchDownloader extends React.Component {
       shouldCancel: false
     })
 
-    console.error(error)
+    logger.error(error)
   }
 
   hide () {

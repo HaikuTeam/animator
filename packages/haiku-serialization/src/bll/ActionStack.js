@@ -324,7 +324,7 @@ class ActionStack extends BaseModel {
 
         if (did) {
           logger.info(
-            `[action stack (${this.project.getAlias()})] inversion :::`,
+            `[action stack] inversion :::`,
             metadata.cursor,
             inverter.method,
             inverter.params,
@@ -341,7 +341,7 @@ class ActionStack extends BaseModel {
       return cb()
     }
 
-    logger.info(`[action stack (${this.project.getAlias()})] undo (us=${this.getUndoables().length})`)
+    logger.info(`[action stack] undo (us=${this.getUndoables().length})`)
 
     return Lock.request(Lock.LOCKS.ActionStackUndoRedo, false, (release) => {
       const { method, params } = this.popUndoable()
@@ -369,7 +369,7 @@ class ActionStack extends BaseModel {
       return cb()
     }
 
-    logger.info(`[action stack (${this.project.getAlias()})] redo (rs=${this.getRedoables().length})`)
+    logger.info(`[action stack] redo (rs=${this.getRedoables().length})`)
 
     return Lock.request(Lock.LOCKS.ActionStackUndoRedo, false, (release) => {
       const { method, params } = this.popRedoable()

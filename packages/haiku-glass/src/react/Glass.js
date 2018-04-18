@@ -29,6 +29,7 @@ import defsMana from '../overlays/defsMana'
 import gearMana from '../overlays/gearMana'
 import rotationCursorMana from '../overlays/rotationCursorMana'
 import scaleCursorMana from '../overlays/scaleCursorMana'
+import logger from 'haiku-serialization/src/utils/LoggerInstance'
 
 const Globals = require('haiku-ui-common/lib/Globals').default
 const {clipboard, shell, remote} = require('electron')
@@ -548,7 +549,7 @@ export class Glass extends React.Component {
     }
 
     this.addEmitterListener(this.props.websocket, 'relay', (message) => {
-      console.info('[glass] relay received', message.name, 'from', message.from)
+      logger.info('relay received', message.name, 'from', message.from)
 
       switch (message.name) {
         case 'global-menu:zoom-in':
@@ -623,14 +624,14 @@ export class Glass extends React.Component {
               })
 
               if (err) {
-                console.error(err)
+                logger.error(err)
                 return
               }
 
               this.getActiveComponent().getArtboard().updateMountSize(this.refs.container)
             })
           } else {
-            console.warn('[haiku-glass] active component not initialized; cannot reload')
+            logger.warn('active component not initialized; cannot reload')
             return
           }
 
@@ -784,7 +785,7 @@ export class Glass extends React.Component {
       return
     }
 
-    console.info(`[glass] showing action editor`, targetElement, options)
+    logger.info(`showing action editor`, targetElement, options)
 
     this.setState({
       targetElement: targetElement,
@@ -2082,7 +2083,6 @@ export class Glass extends React.Component {
 
             if (publicComponentModel && internalElementModel) {
               const publicElementModel = publicComponentModel.querySelector(`haiku:${internalElementModel.getComponentId()}`)
-
               window.element = publicElementModel
               console.log('element', publicElementModel)
               console.log('element.target', publicElementModel.target)

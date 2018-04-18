@@ -5,6 +5,7 @@ import {
 } from 'haiku-common/lib/types';
 import {Curve} from 'haiku-common/lib/types/enums';
 import * as Template from 'haiku-serialization/src/bll/Template';
+import LoggerInstance from 'haiku-serialization/src/utils/LoggerInstance';
 import * as difference from 'lodash/difference';
 import * as flatten from 'lodash/flatten';
 import * as mapKeys from 'lodash/mapKeys';
@@ -622,7 +623,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
         break;
       default:
         // This is probably a pattern fill, which Bodymovin doesn't seem to support.
-        console.warn(`[formats] encountered unsupported paint server: ${node.elementName}`);
+        LoggerInstance.warn(`[formats] encountered unsupported paint server: ${node.elementName}`);
     }
   }
 
@@ -853,7 +854,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
         this.handleShape(node, parentNode);
         break;
       default:
-        console.info(`[formats] Skipping element: ${node.elementName}`);
+        LoggerInstance.info(`[formats] Skipping element: ${node.elementName}`);
     }
   }
 

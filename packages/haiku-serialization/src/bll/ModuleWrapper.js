@@ -2,6 +2,7 @@ const path = require('path')
 const BaseModel = require('./BaseModel')
 const overrideModulesLoaded = require('./../utils/overrideModulesLoaded')
 const Lock = require('./Lock')
+const logger = require('./../utils/LoggerInstance')
 
 // When building a distribution (see 'distro' repo) the node_modules folder is at a different level #FIXME matthew
 const CANONICAL_CORE_SOURCE_CODE_PATH = path.dirname(require.resolve('@haiku/core'))
@@ -144,7 +145,7 @@ class ModuleWrapper extends BaseModel {
       this._projectConfig = require(path.join(this.file.folder, 'haiku.js'))
       return this._projectConfig
     } catch (exception) {
-      console.warn('[module wrapper] Cannot load haiku.js')
+      logger.warn('[module wrapper] Cannot load haiku.js')
       this._projectConfig = {}
       return this._projectConfig
     }
@@ -169,7 +170,7 @@ class ModuleWrapper extends BaseModel {
       try {
         this.load()
       } catch (exception) {
-        console.warn('[mod] ' + this.getAbspath() + ' could not be loaded (' + exception + ')')
+        logger.warn('[module wrapper] ' + this.getAbspath() + ' could not be loaded (' + exception + ')')
         this.exp = null
         release()
         return cb()

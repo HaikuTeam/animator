@@ -12,6 +12,7 @@ const defaults = require('lodash.defaults')
 const BasicUtils = require('@haiku/core/lib/helpers/BasicUtils').default
 const BaseModel = require('./BaseModel')
 const CryptoUtils = require('./../utils/CryptoUtils')
+const logger = require('haiku-serialization/src/utils/LoggerInstance')
 
 const GROUP_DELIMITER = '.'
 const MERGE_STRATEGIES = {
@@ -728,7 +729,7 @@ Template.normalize = (mana) => {
   } catch (exception) {
     // Unsure what input we might get, so to be safe, catch errors and return the original
     // if we hit a problem while attempting to normalize their content
-    console.warn(exception)
+    logger.warn('[template]', exception)
     return mana
   }
 }

@@ -4,6 +4,7 @@ const getTimelineMaxTime = require('@haiku/core/lib/helpers/getTimelineMaxTime')
 const BaseModel = require('./BaseModel')
 const MathUtils = require('./MathUtils')
 const formatSeconds = require('haiku-ui-common/lib/helpers/formatSeconds').default
+const logger = require('haiku-serialization/src/utils/LoggerInstance')
 
 const DURATION_DRAG_INCREASE = 20 // Increase by this much per each duration increase
 const DURATION_DRAG_TIMEOUT = 300 // Wait this long before increasing the duration
@@ -214,7 +215,7 @@ class Timeline extends BaseModel {
           if (timelineChannel) {
             timelineChannel.seekToFrame(id, newFrame)
           } else {
-            console.warn(`[haiku:timeline] envoy timeline channel not open (seekToFrame ${id}, ${newFrame})`)
+            logger.warn(`[timeline] envoy timeline channel not open (seekToFrame ${id}, ${newFrame})`)
           }
         }
       }
@@ -248,7 +249,7 @@ class Timeline extends BaseModel {
           this.setAuthoritativeFrame(finalFrame)
         })
       } else {
-        console.warn(`[haiku:Timeline] envoy timeline channel not open (seekToFrameAndPause ${this.getPrimaryKey()}, ${newFrame})`)
+        logger.warn(`[timeline] envoy timeline channel not open (seekToFrameAndPause ${this.getPrimaryKey()}, ${newFrame})`)
       }
     }
   }

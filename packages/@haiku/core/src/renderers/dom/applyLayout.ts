@@ -23,8 +23,6 @@ const PLATFORM_INFO = {
   hasPreserve3d: modernizr.hasPreserve3d(safeWindow), // I dunno if we actually need this
 };
 
-// console.info('[haiku core] platform info:', JSON.stringify(PLATFORM_INFO))
-
 const SVG_RENDERABLES = {
   a: true,
   audio: true,
