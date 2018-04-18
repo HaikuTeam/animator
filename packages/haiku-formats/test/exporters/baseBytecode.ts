@@ -28,7 +28,8 @@ export default {
           "0": {
             "value": 20
           }
-        }
+        },
+        "scale.x": {}
       },
       "haiku:shape": {
         "stroke": {

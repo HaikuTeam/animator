@@ -5,7 +5,8 @@
       "Moved the public/private project toggle to project creation."
     ],
     "Fixes": [
-      "Fixed an issue with the new 50 project limit for Haiku accounts."
+      "Fixed an issue with the new 50 project limit for Haiku accounts.",
+      "Fixed a Lottie compatibility issue preventing some haiku from rendering in Lottie."
     ]
   }
 }

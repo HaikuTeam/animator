@@ -9,9 +9,9 @@ import * as difference from 'lodash/difference';
 import * as flatten from 'lodash/flatten';
 import * as mapKeys from 'lodash/mapKeys';
 import {ExporterInterface} from '..';
-import BaseExporter from '../BaseExporter';
 
 import {SvgTag} from '../../svg/enums';
+import BaseExporter from '../BaseExporter';
 import {
   decomposeCurveBetweenKeyframes,
   getCurveInterpolationPoints,
@@ -28,6 +28,7 @@ import {
   initialValueOr,
   initialValueOrNull,
   simulateLayoutProperty,
+  timelineHasProperties,
 } from '../timelineUtils';
 import {
   AnimationKey,
@@ -280,7 +281,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @returns {any}
    */
   private getValueOrDefaultFromTimeline(timeline, property, defaultValue, mutator = undefined) {
-    if (timeline.hasOwnProperty(property)) {
+    if (timelineHasProperties(timeline, property)) {
       return this.getValue(timeline[property], mutator);
     }
 
@@ -325,15 +326,17 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
 
     transforms[TransformKey.TransformOrigin] = getFixedPropertyValue([originX, originY, 0]);
 
-    if (timeline.hasOwnProperty('translation.x') || timeline.hasOwnProperty('translation.y')) {
+    if (timelineHasProperties(timeline, 'translation.x') || timelineHasProperties(timeline, 'translation.y')) {
       transforms[TransformKey.Position] = {
         [TransformKey.PositionSplit]: true,
         x: this.getValue(
-          timeline['translation.x'] || simulateLayoutProperty(LayoutPropertyType.Additive),
+          timelineHasProperties(timeline, 'translation.x') ? timeline['translation.x'] : simulateLayoutProperty(
+            LayoutPropertyType.Additive),
           (value) => value - mountX,
         ),
         y: this.getValue(
-          timeline['translation.y'] || simulateLayoutProperty(LayoutPropertyType.Additive),
+          timelineHasProperties(timeline, 'translation.y') ? timeline['translation.y'] : simulateLayoutProperty(
+            LayoutPropertyType.Additive),
           (value) => value - mountY,
         ),
       };
@@ -348,7 +351,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     transforms[TransformKey.RotationZ] =
       this.getValueOrDefaultFromTimeline(timeline, 'rotation.z', 0, rotationTransformer);
 
-    if (timeline.hasOwnProperty('scale.x') && timeline.hasOwnProperty('scale.y')) {
+    if (timelineHasProperties(timeline, 'scale.x', 'scale.y')) {
       transforms[TransformKey.Scale] = this.getValue(
         [
           timeline['scale.x'] || simulateLayoutProperty(LayoutPropertyType.Multiplicative),
@@ -377,7 +380,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
       [TransformKey.Scale]: getFixedPropertyValue([100, 100]),
     };
 
-    if (timeline.hasOwnProperty('translation.x') || timeline.hasOwnProperty('translation.y')) {
+    if (timelineHasProperties(timeline, 'translation.x', 'translation.y')) {
       transforms[TransformKey.Position] = this.getValue([
         timeline['translation.x'] || simulateLayoutProperty(LayoutPropertyType.Additive),
         timeline['translation.y'] || simulateLayoutProperty(LayoutPropertyType.Additive),
@@ -499,8 +502,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    */
   private strokeShapeFromTimeline(timeline) {
     // Return early if there is nothing to render.
-    if (!timeline.hasOwnProperty('stroke') || !timeline.hasOwnProperty('stroke-width') ||
-      initialValue(timeline, 'stroke') === 'none') {
+    if (!timelineHasProperties(timeline, 'stroke', 'stroke-width') || initialValue(timeline, 'stroke') === 'none') {
       return {
         [ShapeKey.Type]: ShapeType.Stroke,
         [TransformKey.Opacity]: getFixedPropertyValue(0),
@@ -541,7 +543,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
       }
 
       const timeline = this.timelineForNode(node);
-      if (!timeline.hasOwnProperty('stop-color') || !timeline.hasOwnProperty('offset')) {
+      if (!timelineHasProperties(timeline, 'stop-color', 'offset')) {
         return;
       }
 
@@ -631,7 +633,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @returns {?{}}
    */
   private fillShapeFromTimeline(timeline, shape) {
-    if (!timeline.hasOwnProperty('fill') || initialValue(timeline, 'fill') === 'none') {
+    if (!timelineHasProperties(timeline, 'fill') || initialValue(timeline, 'fill') === 'none') {
       return {
         [ShapeKey.Type]: ShapeType.Fill,
         [TransformKey.Opacity]: getFixedPropertyValue(0),
@@ -669,15 +671,15 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    */
   private decorateEllipse(timeline, shape) {
     shape[ShapeKey.Type] = ShapeType.Ellipse;
-    if (timeline.hasOwnProperty('cy') && timeline.hasOwnProperty('cx')) {
+    if (timelineHasProperties(timeline, 'cy', 'cx')) {
       shape[TransformKey.Position] = this.getValue([timeline.cx, timeline.cy], (s) => parseInt(s, 10));
     } else {
       shape[TransformKey.Position] = getFixedPropertyValue([0, 0]);
     }
 
-    if (timeline.hasOwnProperty('r')) {
+    if (timelineHasProperties(timeline, 'r')) {
       shape[TransformKey.Size] = this.getValue([timeline.r, timeline.r], (r) => 2 * r);
-    } else if (timeline.hasOwnProperty('rx') && timeline.hasOwnProperty('ry')) {
+    } else if (timelineHasProperties(timeline, 'rx', 'ry')) {
       shape[TransformKey.Size] = this.getValue([timeline.rx, timeline.ry], (r) => 2 * r);
     } else {
       // It would be ideal to abort the shape layer here, but for now we can just shrink it to radius 0.
@@ -696,7 +698,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    */
   private decorateRectangle(timeline, shape, transform) {
     shape[ShapeKey.Type] = ShapeType.Rectangle;
-    if (!timeline.hasOwnProperty('sizeAbsolute.x') || !timeline.hasOwnProperty('sizeAbsolute.y')) {
+    if (!timelineHasProperties(timeline, 'sizeAbsolute.x', 'sizeAbsolute.y')) {
       shape[TransformKey.Size] = getFixedPropertyValue([0, 0]);
       shape[TransformKey.Position] = getFixedPropertyValue([0, 0]);
       shape[TransformKey.BorderRadius] = getFixedPropertyValue(0);
@@ -725,7 +727,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    */
   private decoratePolygon(timeline, shape) {
     shape[ShapeKey.Type] = ShapeType.Shape;
-    if (timeline.hasOwnProperty('points')) {
+    if (timelineHasProperties(timeline, 'points')) {
       shape[ShapeKey.Vertices] = {
         [PropertyKey.Animated]: 0,
         [PropertyKey.Value]: {
@@ -792,7 +794,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
         break;
       case SvgTag.PathShape:
         // Decompose and decorate individually.
-        if (!timeline.hasOwnProperty('d')) {
+        if (!timelineHasProperties(timeline, 'd')) {
           return;
         }
 
@@ -862,7 +864,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    */
   private handleWrapper() {
     const wrapperTimeline = this.timelineForNode(this.bytecode.template);
-    if (wrapperTimeline.hasOwnProperty('sizeAbsolute.x') && wrapperTimeline.hasOwnProperty('sizeAbsolute.y')) {
+    if (timelineHasProperties(wrapperTimeline, 'sizeAbsolute.x', 'sizeAbsolute.y')) {
       const [width, height] = [
         initialValue(wrapperTimeline, 'sizeAbsolute.x'),
         initialValue(wrapperTimeline, 'sizeAbsolute.y'),
@@ -870,8 +872,8 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
       this.animationSize.x = width;
       this.animationSize.y = height;
       if (
-        wrapperTimeline.hasOwnProperty('style.backgroundColor') ||
-        wrapperTimeline.hasOwnProperty('backgroundColor')
+        timelineHasProperties(wrapperTimeline, 'style.backgroundColor') ||
+        timelineHasProperties(wrapperTimeline, 'backgroundColor')
       ) {
         const color = initialValueOrNull(wrapperTimeline, 'style.backgroundColor') ||
           initialValueOrNull(wrapperTimeline, 'backgroundColor');
@@ -1030,14 +1032,14 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     const coupledPropertyLists = [['scale.x', 'scale.y']];
     this.visitAllTimelines((timeline) => {
       coupledPropertyLists.forEach((coupledPropertyList) => {
-        if (coupledPropertyList.find((property) => property in timeline) === undefined) {
+        if (coupledPropertyList.find((property) => timelineHasProperties(timeline, property)) === undefined) {
           // We only need to preprocess elements that are actually transformed by some coupled properties in each list.
           return;
         }
 
         // Shim in defaults for coupled properties that are not explicitly provided. Because we only currently
         // support multiplicative coupled properties (scale), this is straightforward.
-        coupledPropertyList.filter((property) => !(property in timeline)).forEach((property) => {
+        coupledPropertyList.filter((property) => !timelineHasProperties(timeline, property)).forEach((property) => {
           timeline[property] = simulateLayoutProperty(LayoutPropertyType.Multiplicative);
         });
 
@@ -1079,7 +1081,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    */
   private zIndexForNode(node) {
     const timeline = this.timelineForNode(node);
-    if (timeline.hasOwnProperty('style.zIndex')) {
+    if (timelineHasProperties(timeline, 'style.zIndex')) {
       return initialValue(timeline, 'style.zIndex');
     }
 

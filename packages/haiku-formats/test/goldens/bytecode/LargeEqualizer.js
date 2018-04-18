@@ -1,0 +1,333 @@
+var Haiku = require("@haiku/core");
+module.exports = {
+  metadata: {
+    uuid: "f9dacc95-4d05-4ab8-b9b6-c2436353a42b",
+    type: "haiku",
+    name: "LargeEqualizer",
+    relpath: "code/main/code.js",
+    core: "3.2.11",
+    player: "3.2.11",
+    version: "0.0.6",
+    organization: "rjaylward",
+    project: "LargeEqualizer",
+    branch: "master"
+  },
+  options: {},
+  states: { s: { type: "number", value: 10, edited: true } },
+  eventHandlers: {},
+  timelines: {
+    Default: {
+      "haiku:e4a9e4d8baa7": {
+        "style.WebkitTapHighlightColor": { "0": { value: "rgba(0,0,0,0)" } },
+        "style.position": { "0": { value: "relative" } },
+        "style.overflowX": { "0": { value: "hidden" } },
+        "style.overflowY": { "0": { value: "hidden" } },
+        "sizeAbsolute.x": { "0": { value: 100, edited: true } },
+        "sizeAbsolute.y": { "0": { value: 100, edited: true } },
+        "sizeMode.x": { "0": { value: 1 } },
+        "sizeMode.y": { "0": { value: 1 } },
+        "sizeMode.z": { "0": { value: 1 } },
+        "style.transformStyle": { "0": { value: "flat" } },
+        "style.perspective": { "0": { value: "none" } }
+      },
+      "haiku:36419f2559c0": {
+        viewBox: { "0": { value: "0 0 190 1000" } },
+        "style.position": { "0": { value: "absolute" } },
+        "style.margin": { "0": { value: "0" } },
+        "style.padding": { "0": { value: "0" } },
+        "style.border": { "0": { value: "0" } },
+        "sizeAbsolute.x": { "0": { value: 190 } },
+        "sizeMode.x": { "0": { value: 1 } },
+        "sizeAbsolute.y": { "0": { value: 1000 } },
+        "sizeMode.y": { "0": { value: 1 } },
+        "translation.x": { "0": { value: 4.8, edited: true } },
+        "translation.y": {
+          "0": { value: 80, edited: true, curve: "linear" },
+          "1000": { value: 20, edited: true, curve: "linear" },
+          "1667": { value: 70, edited: true, curve: "linear" },
+          "2217": { value: 10, edited: true, curve: "linear" },
+          "3383": { value: 60, curve: "linear", edited: true },
+          "4100": { value: 20, curve: "linear", edited: true },
+          "5000": { value: 80, edited: true }
+        },
+        "style.zIndex": { "0": { value: 1 } },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
+      },
+      "haiku:36419f2559c0-e15349": {
+        viewBox: { "0": { value: "0 0 190 1000" } },
+        "style.position": { "0": { value: "absolute" } },
+        "style.margin": { "0": { value: "0" } },
+        "style.padding": { "0": { value: "0" } },
+        "style.border": { "0": { value: "0" } },
+        "sizeAbsolute.x": { "0": { value: 190 } },
+        "sizeMode.x": { "0": { value: 1 } },
+        "sizeAbsolute.y": { "0": { value: 1000 } },
+        "sizeMode.y": { "0": { value: 1 } },
+        "translation.x": { "0": { value: 29, edited: true } },
+        "translation.y": {
+          "0": { value: 65, edited: true, curve: "linear" },
+          "533": { value: 80, edited: true, curve: "linear" },
+          "1333": { value: 18, edited: true, curve: "linear" },
+          "2600": { value: 80, edited: true, curve: "linear" },
+          "3500": { value: 18, edited: true, curve: "linear" },
+          "4550": { value: 76, curve: "linear", edited: true },
+          "5000": { value: 65, edited: true }
+        },
+        "style.zIndex": { "0": { value: 2 } },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
+      },
+      "haiku:36419f2559c0-e15349-fe156e": {
+        viewBox: { "0": { value: "0 0 190 1000" } },
+        "style.position": { "0": { value: "absolute" } },
+        "style.margin": { "0": { value: "0" } },
+        "style.padding": { "0": { value: "0" } },
+        "style.border": { "0": { value: "0" } },
+        "sizeAbsolute.x": { "0": { value: 190 } },
+        "sizeMode.x": { "0": { value: 1 } },
+        "sizeAbsolute.y": { "0": { value: 1000 } },
+        "sizeMode.y": { "0": { value: 1 } },
+        "translation.x": { "0": { value: 52, edited: true } },
+        "translation.y": {
+          "0": { value: 35, edited: true, curve: "linear" },
+          "1167": { value: 90, edited: true, curve: "linear" },
+          "2033": { value: 10, curve: "linear", edited: true },
+          "2500": { value: 70, curve: "linear", edited: true },
+          "3167": { value: 18, curve: "linear", edited: true },
+          "4117": { value: 73, curve: "linear", edited: true },
+          "5000": { value: 35, edited: true }
+        },
+        "style.zIndex": { "0": { value: 3 } },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } }
+      },
+      "haiku:36419f2559c0-e15349-fe156e-babb1d": {
+        viewBox: { "0": { value: "0 0 190 1000" } },
+        "style.position": { "0": { value: "absolute" } },
+        "style.margin": { "0": { value: "0" } },
+        "style.padding": { "0": { value: "0" } },
+        "style.border": { "0": { value: "0" } },
+        "sizeAbsolute.x": { "0": { value: 190 } },
+        "sizeMode.x": { "0": { value: 1 } },
+        "sizeAbsolute.y": { "0": { value: 1000 } },
+        "sizeMode.y": { "0": { value: 1 } },
+        "translation.x": { "0": { value: 76, edited: true } },
+        "translation.y": {
+          "0": { value: 76, edited: true, curve: "linear" },
+          "650": { value: 14, edited: true, curve: "linear" },
+          "900": { value: 50, curve: "linear", edited: true },
+          "1883": { value: 8, curve: "linear", edited: true },
+          "2767": { value: 57, curve: "linear", edited: true },
+          "3200": { value: 40, curve: "linear", edited: true },
+          "3533": { value: 78, curve: "linear", edited: true },
+          "4417": { value: 20, curve: "linear", edited: true },
+          "5000": { value: 76, edited: true }
+        },
+        "style.zIndex": { "0": { value: 4 } },
+        "mount.x": { "0": { value: -0.5 } },
+        "mount.y": { "0": { value: -0.5 } },
+        "scale.x": {},
+        "scale.y": {}
+      },
+      "haiku:d685c3605eac": {
+        stroke: { "0": { value: "none" } },
+        "stroke-width": { "0": { value: "1" } },
+        fill: { "0": { value: "none" } },
+        "fill-rule": { "0": { value: "evenodd" } }
+      },
+      "haiku:0f8010e7b1f0": {
+        fill: { "0": { value: "#00B4B3" } },
+        "translation.x": { "0": { value: -121 } }
+      },
+      "haiku:011e1b366108": {
+        x: { "0": { value: "121" } },
+        y: { "0": { value: "0" } },
+        "sizeAbsolute.x": { "0": { value: 19 } },
+        "sizeMode.x": { "0": { value: 1 } },
+        "sizeAbsolute.y": { "0": { value: 100 } },
+        "sizeMode.y": { "0": { value: 1 } }
+      },
+      "haiku:5f579dac6bf1": {
+        stroke: { "0": { value: "none" } },
+        "stroke-width": { "0": { value: "1" } },
+        fill: { "0": { value: "none" } },
+        "fill-rule": { "0": { value: "evenodd" } }
+      },
+      "haiku:3a80fb4a85c7": {
+        fill: { "0": { value: "#00B4B3" } },
+        "translation.x": { "0": { value: -121 } }
+      },
+      "haiku:cc006c306083": {
+        x: { "0": { value: "121" } },
+        y: { "0": { value: "0" } },
+        "sizeAbsolute.x": { "0": { value: 19 } },
+        "sizeMode.x": { "0": { value: 1 } },
+        "sizeAbsolute.y": { "0": { value: 100 } },
+        "sizeMode.y": { "0": { value: 1 } }
+      },
+      "haiku:14c4da3fa61c": {
+        stroke: { "0": { value: "none" } },
+        "stroke-width": { "0": { value: "1" } },
+        fill: { "0": { value: "none" } },
+        "fill-rule": { "0": { value: "evenodd" } }
+      },
+      "haiku:b8e49bed6314": {
+        fill: { "0": { value: "#00B4B3" } },
+        "translation.x": { "0": { value: -121 } }
+      },
+      "haiku:ef51e9b8a600": {
+        x: { "0": { value: "121" } },
+        y: { "0": { value: "0" } },
+        "sizeAbsolute.x": { "0": { value: 19 } },
+        "sizeMode.x": { "0": { value: 1 } },
+        "sizeAbsolute.y": { "0": { value: 100 } },
+        "sizeMode.y": { "0": { value: 1 } }
+      },
+      "haiku:f0962c04bea8": {
+        stroke: { "0": { value: "none" } },
+        "stroke-width": { "0": { value: "1" } },
+        fill: { "0": { value: "none" } },
+        "fill-rule": { "0": { value: "evenodd" } }
+      },
+      "haiku:3b1da30b5d93": {
+        fill: { "0": { value: "#00B4B3" } },
+        "translation.x": { "0": { value: -121 } }
+      },
+      "haiku:cea1d81d6954": {
+        x: { "0": { value: "121" } },
+        y: { "0": { value: "0" } },
+        "sizeAbsolute.x": { "0": { value: 19 } },
+        "sizeMode.x": { "0": { value: 1 } },
+        "sizeAbsolute.y": { "0": { value: 100 } },
+        "sizeMode.y": { "0": { value: 1 } }
+      }
+    }
+  },
+  template: {
+    elementName: "div",
+    attributes: { "haiku-id": "e4a9e4d8baa7", "haiku-title": "LargeEqualizer" },
+    children: [
+      {
+        elementName: "svg",
+        attributes: {
+          version: "1.1",
+          xmlns: "http://www.w3.org/2000/svg",
+          "xmlns:xlink": "http://www.w3.org/1999/xlink",
+          source: "designs/LargeEqualizer.sketch.contents/slices/Rectangle.svg",
+          "haiku-id": "36419f2559c0",
+          "haiku-title": "Rectangle"
+        },
+        children: [
+          {
+            elementName: "g",
+            attributes: { "haiku-id": "d685c3605eac", id: "Page-1" },
+            children: [
+              {
+                elementName: "g",
+                attributes: { "haiku-id": "0f8010e7b1f0", id: "Artboard" },
+                children: [
+                  {
+                    elementName: "rect",
+                    attributes: { "haiku-id": "011e1b366108", id: "Rectangle" },
+                    children: []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        elementName: "svg",
+        attributes: {
+          version: "1.1",
+          xmlns: "http://www.w3.org/2000/svg",
+          "xmlns:xlink": "http://www.w3.org/1999/xlink",
+          source: "designs/LargeEqualizer.sketch.contents/slices/Rectangle.svg",
+          "haiku-id": "36419f2559c0-e15349",
+          "haiku-title": "Rectangle-e15349"
+        },
+        children: [
+          {
+            elementName: "g",
+            attributes: { "haiku-id": "5f579dac6bf1", id: "Page-1" },
+            children: [
+              {
+                elementName: "g",
+                attributes: { "haiku-id": "3a80fb4a85c7", id: "Artboard" },
+                children: [
+                  {
+                    elementName: "rect",
+                    attributes: { "haiku-id": "cc006c306083", id: "Rectangle" },
+                    children: []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        elementName: "svg",
+        attributes: {
+          version: "1.1",
+          xmlns: "http://www.w3.org/2000/svg",
+          "xmlns:xlink": "http://www.w3.org/1999/xlink",
+          source: "designs/LargeEqualizer.sketch.contents/slices/Rectangle.svg",
+          "haiku-id": "36419f2559c0-e15349-fe156e",
+          "haiku-title": "Rectangle-e15349-fe156e"
+        },
+        children: [
+          {
+            elementName: "g",
+            attributes: { "haiku-id": "14c4da3fa61c", id: "Page-1" },
+            children: [
+              {
+                elementName: "g",
+                attributes: { "haiku-id": "b8e49bed6314", id: "Artboard" },
+                children: [
+                  {
+                    elementName: "rect",
+                    attributes: { "haiku-id": "ef51e9b8a600", id: "Rectangle" },
+                    children: []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        elementName: "svg",
+        attributes: {
+          version: "1.1",
+          xmlns: "http://www.w3.org/2000/svg",
+          "xmlns:xlink": "http://www.w3.org/1999/xlink",
+          source: "designs/LargeEqualizer.sketch.contents/slices/Rectangle.svg",
+          "haiku-id": "36419f2559c0-e15349-fe156e-babb1d",
+          "haiku-title": "Rectangle-e15349-fe156e-babb1d"
+        },
+        children: [
+          {
+            elementName: "g",
+            attributes: { "haiku-id": "f0962c04bea8", id: "Page-1" },
+            children: [
+              {
+                elementName: "g",
+                attributes: { "haiku-id": "3b1da30b5d93", id: "Artboard" },
+                children: [
+                  {
+                    elementName: "rect",
+                    attributes: { "haiku-id": "cea1d81d6954", id: "Rectangle" },
+                    children: []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+};
