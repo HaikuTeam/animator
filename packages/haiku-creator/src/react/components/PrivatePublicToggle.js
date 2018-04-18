@@ -39,10 +39,8 @@ class PrivatePublicToggle extends React.PureComponent {
           <input type='radio' value='public' onChange={() => { onChange(!isPublic) }} checked={isPublic} style={STYLES.input} />
           <span style={STYLES.label}>Public</span>
           <div style={STYLES.description}>
-          Visible on the <ExternalLink style={STYLES.link} href={`https://share.haiku.ai/`}>Haiku Community</ExternalLink>, and able to be forked.
-            {/* Add when docs section is ready.
-            <ExternalLink href={`https://docs.haiku.ai/forked`}>forked
-            </ExternalLink> */}
+          Visible on the <ExternalLink style={STYLES.link} href={`https://share.haiku.ai/`}>Haiku Community</ExternalLink>, 
+          and able to be <ExternalLink style={STYLES.link} href={`https://docs.haiku.ai/embedding-and-using-haiku/publishing-and-embedding.html#forking`}>forked</ExternalLink>.
           </div>
         </label>
         <label style={STYLES.field}>
