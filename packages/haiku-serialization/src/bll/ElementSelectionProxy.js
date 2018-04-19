@@ -483,6 +483,14 @@ class ElementSelectionProxy extends BaseModel {
     this.applyPropertyValue(key, this._proxyProperties[key] + delta)
   }
 
+  reset () {
+    const layout = this.getComputedLayout()
+    this.applyPropertyValue('sizeAbsolute.x', layout.size.x * layout.scale.x)
+    this.applyPropertyValue('sizeAbsolute.y', layout.size.y * layout.scale.y)
+    this.applyPropertyValue('scale.x', 1)
+    this.applyPropertyValue('scale.y', 1)
+  }
+
   /**
    * @method drag
    * @description Scale, rotate, or translate the elements in the selection
@@ -1365,26 +1373,46 @@ ElementSelectionProxy.computeScalePropertyGroup = (
 }
 
 ElementSelectionProxy.computeRotationPropertyGroup = (element, rotationZDelta, fixedPoint) => {
-  const targetLayout = element.getComputedLayout()
-  const layoutMatrix = targetLayout.matrix
-  const layoutMatrixInverted = new Float32Array(16)
-  invertMatrix(layoutMatrixInverted, layoutMatrix)
-  const fixedPointCopy = Object.assign({}, fixedPoint)
-  Element.transformPointInPlace(fixedPointCopy, layoutMatrixInverted)
-  targetLayout.rotation.z += rotationZDelta
-  const {matrix: finalMatrix} = Layout3D.computeLayout(
-    targetLayout, Layout3D.createMatrix(), element.getParentComputedSize())
-  Element.transformPointInPlace(fixedPointCopy, finalMatrix)
+  // Given a known rotation delta, we can directly compute the new property group for a subelement of a selection.
+  //       target origin (x1, y1)
+  //      /|
+  //     /
+  //    /
+  //   /
+  //  /
+  // /dz
+  // context origin (x0, y0)
+  // It suffices to rotate the ray <x1 - x0, y1 - y0> about the origin and then renormalize in context coordinates.
 
+  // First build a simple rotation matrix to hold the rotation by `rotationZDelta`. (We could do this directly but
+  // prefer to use the layout system for consistent rounding etc.)
+  const layout = Layout3D.createLayoutSpec()
+  layout.rotation.z = rotationZDelta
+  const ignoredSize = {x: 0, y: 0, z: 0}
+  const {default: computeMatrix} = require('@haiku/core/lib/layout/computeMatrix')
+  const matrix = computeMatrix(layout, Layout3D.createMatrix(), ignoredSize, ignoredSize)
+
+  // Next build the vector from `fixedPoint` to `targetOrigin` and rotate it.
+  const targetOrigin = element.getOriginTransformed()
+  const ray = {
+    x: targetOrigin.x - fixedPoint.x,
+    y: targetOrigin.y - fixedPoint.y,
+    z: targetOrigin.z - fixedPoint.z
+  }
+  Element.transformPointInPlace(ray, matrix)
+
+  // Return directly after offsetting translation by the `fixedPoint`'s coordinates. Note that we are choosing _not_ to
+  // change the z-translation, effectively projecting the origin of rotation from the context element onto the z = C
+  // plane, where C is the z-translation of the target origin. This is a natural expectation of multi-rotation.
   return {
     'translation.x': {
-      value: rounded(targetLayout.translation.x + fixedPointCopy.x - fixedPoint.x)
+      value: rounded(fixedPoint.x + ray.x)
     },
     'translation.y': {
-      value: rounded(targetLayout.translation.y + fixedPointCopy.y - fixedPoint.y)
+      value: rounded(fixedPoint.y + ray.y)
     },
     'rotation.z': {
-      value: rounded(targetLayout.rotation.z)
+      value: rounded(element.getComputedLayout().rotation.z + rotationZDelta)
     }
   }
 }
