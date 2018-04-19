@@ -18,7 +18,7 @@ import FileImporter from './FileImporter'
 const STYLES = {
   scrollwrap: {
     overflowY: 'auto',
-    height: '100%'
+    height: 'calc(100% - 35px)'
   },
   sectionHeader: {
     cursor: 'default',
