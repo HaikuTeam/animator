@@ -117,6 +117,7 @@ class SideBar extends React.Component {
                  {width: 'auto', position: 'absolute', right: 6}
                ]}>
                <ChevronLeftMenuIconSVG />
+               DASHBOARD
              </button>
             : ''
           }
