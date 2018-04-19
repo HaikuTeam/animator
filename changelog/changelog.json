@@ -6305,5 +6305,12 @@
       "label": "fix",
       "message": "post actual messages to sentry on Figma import errors"
     }
+  },
+  "3.2.15": {
+    "1efa790474fa080780a058a754c89b2995056ada": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "library scroll area"
+    }
   }
 }

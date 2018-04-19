@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 3.2.15
+
+### Bug Fixes
+
+ * library scroll area
+
 ## 3.2.14
 
 ### Bug Fixes
