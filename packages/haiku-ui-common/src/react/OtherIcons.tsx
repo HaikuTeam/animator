@@ -178,7 +178,7 @@ export const CollapseChevronRightSVG = ({color = '#93999A'}) => (
 );
 
 export const ChevronLeftMenuIconSVG = ({color = Palette.ROCK}) => (
-  <svg width="14" height="17" viewBox="0 0 18 18">
+  <svg width="13" height="15" viewBox="0 0 18 18">
     <path d="M10 19a.5.5 0 0 0 .354-.853L1.708 9.501 10.354.855a.5.5 0 0 0-.707-.707l-9 9a.5.5 0 0 0 0 .707l9 9a.498.498 0 0 0 .354.146L10 19z" fill={color}/>
   </svg>
 );
