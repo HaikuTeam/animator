@@ -1551,6 +1551,7 @@ class Element extends BaseModel {
 
   ungroup (metadata) {
     const nodes = []
+    this.ungroupWrapper(nodes)
     switch (this.getStaticTemplateNode().elementName) {
       case 'svg':
         this.ungroupSvg(nodes)
@@ -1567,6 +1568,54 @@ class Element extends BaseModel {
     )
   }
 
+  ungroupWrapper (nodes) {
+    const haikuElement = this.getHaikuElement()
+    const baseStyles = haikuElement.attributes.style
+    if (!baseStyles) {
+      return
+    }
+
+    const style = {}
+    Object.keys(baseStyles).forEach((styleName) => {
+      switch (styleName) {
+        case 'background':
+        case 'backgroundColor':
+          style[styleName] = baseStyles[styleName]
+      }
+    })
+
+    if (Object.keys(style).length === 0) {
+      // We didn't find any styles that would justify ungrouping the wrapper.
+      return
+    }
+
+    // Upsert the wrapper div the styles on this node "imply".
+    const attributes = Object.assign({
+      width: haikuElement.layout.size.x,
+      height: haikuElement.layout.size.y,
+      source: haikuElement.attributes.source
+    }, {style})
+    const layoutMatrix = this.getOriginOffsetComposedMatrix()
+    const originX = haikuElement.layout.size.x / 2
+    const originY = haikuElement.layout.size.y / 2
+    layoutMatrix[12] += originX * layoutMatrix[0] + originY * layoutMatrix[4]
+    layoutMatrix[13] += originX * layoutMatrix[1] + originY * layoutMatrix[5]
+    composedTransformsToTimelineProperties(attributes, [layoutMatrix])
+    nodes.push(Template.cleanMana({
+      elementName: 'svg',
+      attributes,
+      children: [{
+        elementName: 'rect',
+        attributes: {
+          width: haikuElement.layout.size.x,
+          height: haikuElement.layout.size.y,
+          fill: 'none',
+          stroke: 'none'
+        }
+      }]
+    }, true))
+  }
+
   ungroupSvg (nodes) {
     const defs = []
     const svgElement = this.getHaikuElement()
@@ -1580,10 +1629,6 @@ class Element extends BaseModel {
 
       const mergedAttributes = {}
       haikuElement.visit((descendantHaikuElement) => {
-        if (descendantHaikuElement.tagName === 'path') {
-          console.log(require('util').inspect(descendantHaikuElement.attributes, null, false))
-        }
-
         if (ungroupables.indexOf(descendantHaikuElement) === -1) {
           if (Element.nodeIsGrouper(descendantHaikuElement.node)) {
             for (const propertyName in bytecode.timelines[this.component.getCurrentTimelineName()][`haiku:${descendantHaikuElement.getComponentId()}`]) {

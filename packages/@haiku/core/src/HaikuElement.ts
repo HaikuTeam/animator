@@ -104,7 +104,7 @@ export default class HaikuElement extends HaikuBase {
     }
 
     const ancestry = [this.layout];
-    // tslint:disable-next-line:no-this-assignment
+    // tslint:disable-next-line:no-var-self
     let ancestor = this;
     while (ancestor.parent) {
       ancestor = ancestor.parent;
