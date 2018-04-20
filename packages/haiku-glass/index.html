@@ -11,6 +11,25 @@
         // noop: eval is forbidden
       }
     </script>
+    <title>Haiku Glass</title>
+    <style>
+      html, body, #root {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        border: 0;
+        margin: 0;
+        padding: 0;
+        background-color: #ebebeb;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script src="../../node_modules/raven-js/dist/raven.js"></script>
+    <script>
+      require('./lib/react/index')
+    </script>
     <script>
       // Monaco uses a custom amd loader that over-rides node's require.
       // Keep a reference to node's require so we can restore it after executing the amd loader file.
@@ -42,25 +61,6 @@
       amdRequire(['vs/editor/editor.main'], function() {
         window.monaco = monaco
       });
-    </script>
-    <title>Haiku Glass</title>
-    <style>
-      html, body, #root {
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        border: 0;
-        margin: 0;
-        padding: 0;
-        background-color: #ebebeb;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script src="../../node_modules/raven-js/dist/raven.js"></script>
-    <script>
-      require('./lib/react/index')
     </script>
   </body>
 </html>
