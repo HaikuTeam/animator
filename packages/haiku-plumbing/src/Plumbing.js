@@ -84,7 +84,9 @@ const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
   doLogOut: true,
   deleteProject: true,
   teardownMaster: true,
-  requestSyndicationInfo: true
+  requestSyndicationInfo: true,
+  hoverElement: true,
+  unhoverElement: true
 }
 
 const METHOD_MESSAGES_TIMEOUT = 15000

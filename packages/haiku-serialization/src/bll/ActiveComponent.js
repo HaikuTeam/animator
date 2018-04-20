@@ -150,6 +150,10 @@ class ActiveComponent extends BaseModel {
           this.handleElementSelected(element.getComponentId(), metadata)
         } else if (what === 'element-unselected') {
           this.handleElementUnselected(element.getComponentId(), metadata)
+        } else if (what === 'element-hovered') {
+          this.handleElementHovered(element.getComponentId(), metadata)
+        } else if (what === 'element-unhovered') {
+          this.handleElementUnhovered(element.getComponentId(), metadata)
         } else if (
           what === 'jit-property-added' ||
           what === 'jit-property-removed'
@@ -493,6 +497,14 @@ class ActiveComponent extends BaseModel {
     this.project.updateHook('unselectElement', this.getSceneCodeRelpath(), componentId, metadata, (fire) => fire())
   }
 
+  handleElementHovered (componentId, metadata) {
+    this.project.updateHook('hoverElement', this.getSceneCodeRelpath(), componentId, metadata, (fire) => fire())
+  }
+
+  handleElementUnhovered (componentId, metadata) {
+    this.project.updateHook('unhoverElement', this.getSceneCodeRelpath(), componentId, metadata, (fire) => fire())
+  }
+
   getTopLevelElementHaikuIds () {
     const template = this.getReifiedBytecode().template
     const children = (template && template.children) || []
@@ -573,6 +585,24 @@ class ActiveComponent extends BaseModel {
         release()
         return cb() // Must return or the plumbing action circuit never completes
       })
+    })
+  }
+
+  hoverElement (componentId, metadata, cb) {
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
+      const element = Element.findByComponentAndHaikuId(this, componentId)
+      element.hoverOn(metadata)
+      release()
+      return cb()
+    })
+  }
+
+  unhoverElement (componentId, metadata, cb) {
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
+      const element = Element.findByComponentAndHaikuId(this, componentId)
+      element.hoverOff(metadata)
+      release()
+      return cb()
     })
   }
 

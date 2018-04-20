@@ -33,6 +33,7 @@ export enum Experiment {
   OriginIndicator = 'OriginIndicator',
   ComponentInfoInspector = 'ComponentInfoInspector',
   AdvancedMultiTransform = 'AdvancedMultiTransform',
+  OutliningElementsOnStage = 'OutliningElementsOnStage',
 }
 
 /**
