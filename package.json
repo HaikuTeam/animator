@@ -17,8 +17,6 @@
   "license": "UNLICENSED",
   "types": "./lib/index.d.ts",
   "dependencies": {
-    "lodash": "^4.17.4",
-    "mkdirp": "^0.5.1",
     "request": "^2.83.0"
   },
   "devDependencies": {
