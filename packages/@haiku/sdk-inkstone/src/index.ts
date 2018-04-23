@@ -1,5 +1,5 @@
 import * as requestLib from 'request';
-import * as _ from 'lodash';
+
 const packageJson = require('../package.json');
 
 // TODO: make file paths cross-platform friendly
@@ -37,12 +37,28 @@ const ENDPOINTS = {
   FIGMA_ACCCESS_TOKEN_GET: 'v0/integrations/figma/token',
 };
 
-let request = requestLib.defaults({
+let request: {get: Function, post: Function, put: Function, delete: Function};
+
+const getInstanceWithDefaults = (defaults) => {
+  if (typeof requestLib.defaults === 'function') {
+    return requestLib.defaults(defaults);
+  }
+
+  return {
+    get: (options, cb) => requestLib.get({...defaults, ...options}, cb),
+    post: (options, cb) => requestLib.post({...defaults, ...options}, cb),
+    put: (options, cb) => requestLib.put({...defaults, ...options}, cb),
+    delete: (options, cb) => requestLib.delete({...defaults, ...options}, cb),
+  };
+};
+
+request = getInstanceWithDefaults({
   // Delegate to the browser to handle "strictSSL" if we're in a browser context. We have seen some false
   // negatives with the 'request' Node dependency in certain contextx, and every modern browser has its own,
   // battle-hardened strict SSL behavior which will stop requests in preflight regardless of this setting.
   // There isn't an unspoofable way to prove we're in a browser and not Node, but the check here is perfectly valid.
   strictSSL: typeof window === 'undefined' || Object.prototype.toString.call(window) !== '[object Window]',
+  withCredentials: true,
 });
 
 /**
@@ -58,7 +74,7 @@ function safeError(err: any): any {
   return new Error('Uncategorized error');
 }
 
-const maybeAuthorizationHeaders = (authToken?: string): {Authorization: string}|undefined => {
+const maybeAuthorizationHeaders = (authToken: string|undefined): {Authorization: string}|undefined => {
   if (authToken) {
     return {
       Authorization: `INKSTONE auth_token="${authToken}"`,
@@ -76,19 +92,20 @@ export namespace inkstone {
     haikuBinaryPath?: string;
   }
 
-  const inkstoneConfig: InkstoneConfig = {
+  let inkstoneConfig: InkstoneConfig = {
     baseUrl: 'https://inkstone.haiku.ai/',
     baseShareUrl: 'https://share.haiku.ai/',
     haikuBinaryPath: '/Applications/Haiku.app/Contents/MacOS/Haiku',
   };
 
   export function setConfig(newVals: InkstoneConfig) {
-    _.extend(inkstoneConfig, newVals);
+    inkstoneConfig = {...inkstoneConfig, ...newVals};
 
     // ease SSL restrictions for dev
     if (newVals.baseUrl && newVals.baseUrl.indexOf('https://localhost') === 0) {
-      request = requestLib.defaults({
+      request = getInstanceWithDefaults({
         strictSSL: false,
+        withCredentials: true,
       });
     }
   }
@@ -101,14 +118,14 @@ export namespace inkstone {
   export type Callback<T> = (err: string, data: T, response: requestLib.RequestResponse) => void;
 
   export namespace support {
-    export function getPresignedUrl(authToken: string, uuid: string, cb: inkstone.Callback<String>) {
-
+    export function getPresignedUrl(authToken: string|undefined, uuid: string, cb: inkstone.Callback<String>) {
 
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.SUPPORT_UPLOAD_GET_PRESIGNED_URL.replace(':UUID', uuid),
-        headers: _.extend(baseHeaders, {
-          Authorization: `INKSTONE auth_token="${authToken}"`,
-        }),
+        headers: {
+          ...baseHeaders,
+          ...maybeAuthorizationHeaders(authToken),
+        },
       };
 
       request.get(options, (err, httpResponse, body) => {
@@ -162,12 +179,13 @@ export namespace inkstone {
       });
     }
 
-    export function getDetails(authToken: string, cb: inkstone.Callback<User>) {
+    export function getDetails(authToken: string|undefined, cb: inkstone.Callback<User>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.USER_DETAIL,
-        headers: _.extend(baseHeaders, {
-          Authorization: `INKSTONE auth_token="${authToken}"`,
-        }),
+        headers: {
+          ...baseHeaders,
+          ...maybeAuthorizationHeaders(authToken),
+        },
       };
 
       request.get(options, (err, httpResponse, body) => {
@@ -181,12 +199,17 @@ export namespace inkstone {
       });
     }
 
-    export function changePassword(authToken: string, params: ChangePasswordParams, cb: inkstone.Callback<string>) {
+    export function changePassword(
+      authToken: string | undefined,
+      params: ChangePasswordParams,
+      cb: inkstone.Callback<string>,
+    ) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.CHANGE_PASSWORD,
-        headers: _.extend(baseHeaders, {
-          Authorization: `INKSTONE auth_token="${authToken}"`,
-        }),
+        headers: {
+          ...baseHeaders,
+          ...maybeAuthorizationHeaders(authToken),
+        },
         json: params,
       };
 
@@ -384,12 +407,13 @@ export namespace inkstone {
       Name: string;
     }
 
-    export function list(authToken: string, cb: inkstone.Callback<Organization[]>) {
+    export function list(authToken: string|undefined, cb: inkstone.Callback<Organization[]>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.ORGANIZATION_LIST,
-        headers: _.extend(baseHeaders, {
-          Authorization: `INKSTONE auth_token="${authToken}"`,
-        }),
+        headers: {
+          ...baseHeaders,
+          ...maybeAuthorizationHeaders(authToken),
+        },
       };
 
       request.get(options, (err, httpResponse, body) => {
@@ -574,7 +598,7 @@ export namespace inkstone {
      * @param {inkstone.Callback<inkstone.project.Project>} cb
      */
     export function forkCommunityProject(
-      authToken: string, project: CommunityProject, cb: inkstone.Callback<project.Project>) {
+      authToken: string|undefined, project: CommunityProject, cb: inkstone.Callback<project.Project>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.FORK_COMMUNITY_PROJECT
           .replace(':ORGANIZATION_NAME', project.Organization.Name)
@@ -612,7 +636,11 @@ export namespace inkstone {
      * @param {inkstone.community.SetHaiKudosParams} params
      * @param {inkstone.Callback<boolean>} cb
      */
-    export function setHaiKudos(authToken: string, params: SetHaiKudosParams, cb: inkstone.Callback<boolean>) {
+    export function setHaiKudos(
+      authToken: string | undefined,
+      params: SetHaiKudosParams,
+      cb: inkstone.Callback<boolean>,
+    ) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.SET_COMMUNITY_HAIKUDOS
           .replace(':ORGANIZATION_NAME', params.OrganizationName)
@@ -736,12 +764,13 @@ export namespace inkstone {
       MakePrivate?: boolean;
     }
 
-    export function create(authToken: string, params: ProjectCreateParams, cb: inkstone.Callback<Project>) {
+    export function create(authToken: string|undefined, params: ProjectCreateParams, cb: inkstone.Callback<Project>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_CREATE,
-        headers: _.extend(baseHeaders, {
-          Authorization: `INKSTONE auth_token="${authToken}"`,
-        }),
+        headers: {
+          ...baseHeaders,
+          ...maybeAuthorizationHeaders(authToken),
+        },
         json: params,
       };
 
@@ -756,12 +785,13 @@ export namespace inkstone {
     }
 
 
-    export function update(authToken: string, params: ProjectUpdateParams, cb: inkstone.Callback<Project>) {
+    export function update(authToken: string|undefined, params: ProjectUpdateParams, cb: inkstone.Callback<Project>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_UPDATE,
-        headers: _.extend(baseHeaders, {
-          Authorization: `INKSTONE auth_token="${authToken}"`,
-        }),
+        headers: {
+          ...baseHeaders,
+          ...maybeAuthorizationHeaders(authToken),
+        },
         json: params,
       };
 
@@ -775,13 +805,14 @@ export namespace inkstone {
       });
     }
 
-    export function makePublic(authToken: string, nameOrUniqueId: string, cb: inkstone.Callback<boolean>) {
+    export function makePublic(authToken: string|undefined, nameOrUniqueId: string, cb: inkstone.Callback<boolean>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_MAKE_PUBLIC_BY_NAME_OR_UNIQUE_ID.replace(
           ':NAME_OR_UNIQUE_ID', nameOrUniqueId),
-        headers: _.extend(baseHeaders, {
-          Authorization: `INKSTONE auth_token="${authToken}"`,
-        }),
+        headers: {
+          ...baseHeaders,
+          ...maybeAuthorizationHeaders(authToken),
+        },
       };
 
       request.put(options, (err, httpResponse) => {
@@ -793,13 +824,14 @@ export namespace inkstone {
       });
     }
 
-    export function makePrivate(authToken: string, nameOrUniqueId: string, cb: inkstone.Callback<boolean>) {
+    export function makePrivate(authToken: string|undefined, nameOrUniqueId: string, cb: inkstone.Callback<boolean>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_MAKE_PRIVATE_BY_NAME_OR_UNIQUE_ID.replace(
           ':NAME_OR_UNIQUE_ID', nameOrUniqueId),
-        headers: _.extend(baseHeaders, {
-          Authorization: `INKSTONE auth_token="${authToken}"`,
-        }),
+        headers: {
+          ...baseHeaders,
+          ...maybeAuthorizationHeaders(authToken),
+        },
       };
 
       request.delete(options, (err, httpResponse) => {
@@ -811,12 +843,13 @@ export namespace inkstone {
       });
     }
 
-    export function list(authToken: string, cb: inkstone.Callback<Project[]>) {
+    export function list(authToken: string|undefined, cb: inkstone.Callback<Project[]>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_LIST,
-        headers: _.extend(baseHeaders, {
-          Authorization: `INKSTONE auth_token="${authToken}"`,
-        }),
+        headers: {
+          ...baseHeaders,
+          ...maybeAuthorizationHeaders(authToken),
+        },
       };
 
       request.get(options, (err, httpResponse, body) => {
@@ -829,12 +862,13 @@ export namespace inkstone {
       });
     }
 
-    export function getByName(authToken: string, name: string, cb: inkstone.Callback<ProjectAndCredentials>) {
+    export function getByName(authToken: string|undefined, name: string, cb: inkstone.Callback<ProjectAndCredentials>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_GET_BY_NAME.replace(':NAME', encodeURIComponent(name)),
-        headers: _.extend(baseHeaders, {
-          Authorization: `INKSTONE auth_token="${authToken}"`,
-        }),
+        headers: {
+          ...baseHeaders,
+          ...maybeAuthorizationHeaders(authToken),
+        },
       };
 
       request.get(options, (err, httpResponse, body) => {
@@ -847,13 +881,18 @@ export namespace inkstone {
       });
     }
 
-    export function getByUniqueId(authToken: string, uniqueId: string, cb: inkstone.Callback<ProjectAndCredentials>) {
+    export function getByUniqueId(
+      authToken: string | undefined,
+      uniqueId: string,
+      cb: inkstone.Callback<ProjectAndCredentials>,
+    ) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl +
           ENDPOINTS.PROJECT_GET_BY_UNIQUE_ID.replace(':UNIQUE_ID', encodeURIComponent(uniqueId)),
-        headers: _.extend(baseHeaders, {
-          Authorization: `INKSTONE auth_token="${authToken}"`,
-        }),
+        headers: {
+          ...baseHeaders,
+          ...maybeAuthorizationHeaders(authToken),
+        },
       };
 
       request.get(options, (err, httpResponse, body) => {
@@ -866,13 +905,14 @@ export namespace inkstone {
       });
     }
 
-    export function deleteByName(authToken: string, name: string, cb: inkstone.Callback<boolean>) {
+    export function deleteByName(authToken: string|undefined, name: string, cb: inkstone.Callback<boolean>) {
 
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_DELETE_BY_NAME.replace(':NAME', encodeURIComponent(name)),
-        headers: _.extend(baseHeaders, {
-          Authorization: `INKSTONE auth_token="${authToken}"`,
-        }),
+        headers: {
+          ...baseHeaders,
+          ...maybeAuthorizationHeaders(authToken),
+        },
       };
 
       request.delete(options, (err, httpResponse, body) => {
@@ -885,14 +925,15 @@ export namespace inkstone {
     }
 
     export function createProjectSnapshotByNameAndSha(
-      authToken: string, name: string, sha: string, cb: inkstone.Callback<snapshot.Snapshot>) {
+      authToken: string|undefined, name: string, sha: string, cb: inkstone.Callback<snapshot.Snapshot>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_SNAPSHOT_BY_NAME_AND_SHA
           .replace(':NAME', encodeURIComponent(name))
           .replace(':SHA', encodeURIComponent(sha)),
-        headers: _.extend(baseHeaders, {
-          Authorization: `INKSTONE auth_token="${authToken}"`,
-        }),
+        headers: {
+          ...baseHeaders,
+          ...maybeAuthorizationHeaders(authToken),
+        },
       };
 
       request.put(options, (err, httpResponse, body) => {
@@ -907,13 +948,14 @@ export namespace inkstone {
   }
 
   export namespace updates {
-    export function check(authToken: string, query: string, cb: inkstone.Callback<boolean>) {
+    export function check(authToken: string|undefined, query: string, cb: inkstone.Callback<boolean>) {
 
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.UPDATES + query,
-        headers: _.extend(baseHeaders, {
-          Authorization: `INKSTONE auth_token="${authToken}"`,
-        }),
+        headers: {
+          ...baseHeaders,
+          ...maybeAuthorizationHeaders(authToken),
+        },
       };
 
       request.get(options, (err, httpResponse, body) => {
