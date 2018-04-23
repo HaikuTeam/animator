@@ -1,4 +1,5 @@
 import React from 'react'
+import lodash from 'lodash'
 import humanizePropertyName from 'haiku-ui-common/lib/helpers/humanizePropertyName'
 import truncate from 'haiku-ui-common/lib/helpers/truncate'
 import DownCarrotSVG from 'haiku-ui-common/lib/react/icons/DownCarrotSVG'
@@ -11,6 +12,21 @@ import PropertyTimelineSegments from './PropertyTimelineSegments'
 import PropertyRowHeading from './PropertyRowHeading'
 
 export default class PropertyRow extends React.Component {
+  constructor (props) {
+    super(props)
+
+    this.throttledHandleRowHovered = lodash.throttle(this.handleRowHovered, 20).bind(this)
+    this.throttledHandleRowUnhovered = lodash.throttle(this.handleRowUnhovered, 20).bind(this)
+  }
+
+  handleRowHovered (event) {
+    this.props.row.hoverAndUnhoverOthers({ from: 'timeline' })
+  }
+
+  handleRowUnhovered (event) {
+    this.props.row.unhover({ from: 'timeline' })
+  }
+
   maybeRenderFamilySvg () {
     if (!this.props.prev) return false
     if (this.props.row.doesTargetHostElement()) return false
@@ -50,12 +66,8 @@ export default class PropertyRow extends React.Component {
       <div
         id={`property-row-${this.props.row.getAddress()}-${componentId}-${propertyName}`}
         className='property-row'
-        onMouseEnter={() => {
-          this.props.row.hoverAndUnhoverOthers()
-        }}
-        onMouseLeave={() => {
-          this.props.row.unhover()
-        }}
+        onMouseEnter={this.throttledHandleRowHovered}
+        onMouseLeave={this.throttledHandleRowUnhovered}
         style={{
           height: this.props.rowHeight,
           width: this.props.timeline.getPropertiesPixelWidth() + this.props.timeline.getTimelinePixelWidth(),

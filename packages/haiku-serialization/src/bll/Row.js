@@ -193,10 +193,15 @@ class Row extends BaseModel {
     return this._isHidden
   }
 
-  hover () {
+  hover (metadata) {
     if (!this._isHovered) {
       this._isHovered = true
       this.emit('update', 'row-hovered')
+
+      // Roundabout! Note that elements, when hovered, will hover their corresponding row
+      if (this.isHeading() && this.element && !this.element.isHovered() && !this.element.isSelected()) {
+        this.element.hoverOn(metadata)
+      }
     }
     return this
   }
@@ -205,17 +210,22 @@ class Row extends BaseModel {
     return this._isHovered
   }
 
-  hoverAndUnhoverOthers () {
+  hoverAndUnhoverOthers (metadata) {
     Row.where({ component: this.component }).forEach((row) => {
-      if (row !== this) row.unhover()
+      if (row !== this) row.unhover(metadata)
     })
-    this.hover()
+    this.hover(metadata)
   }
 
-  unhover () {
+  unhover (metadata) {
     if (this._isHovered) {
       this._isHovered = false
       this.emit('update', 'row-unhovered')
+
+      // Roundabout! Note that elements, when hovered, will hover their corresponding row
+      if (this.isHeading() && this.element && this.element.isHovered()) {
+        this.element.hoverOff(metadata)
+      }
     }
     return this
   }

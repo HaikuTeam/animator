@@ -98,5 +98,9 @@
   "AdvancedMultiTransform": {
     "development": true,
     "production": false
+  },
+  "OutliningElementsOnStage": {
+    "development": true,
+    "production": false
   }
 }

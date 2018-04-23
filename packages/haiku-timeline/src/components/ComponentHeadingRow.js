@@ -1,4 +1,5 @@
 import React from 'react'
+import lodash from 'lodash'
 import DownCarrotSVG from 'haiku-ui-common/lib/react/icons/DownCarrotSVG'
 import RightCarrotSVG from 'haiku-ui-common/lib/react/icons/RightCarrotSVG'
 import DragGrip from 'haiku-ui-common/lib/react/icons/DragGrip'
@@ -13,6 +14,8 @@ export default class ComponentHeadingRow extends React.Component {
   constructor (props) {
     super(props)
     this.handleUpdate = this.handleUpdate.bind(this)
+    this.throttledHandleRowHovered = lodash.throttle(this.handleRowHovered, 20).bind(this)
+    this.throttledHandleRowUnhovered = lodash.throttle(this.handleRowUnhovered, 20).bind(this)
   }
 
   componentWillUnmount () {
@@ -42,6 +45,14 @@ export default class ComponentHeadingRow extends React.Component {
       (this.props.isSelected ^ nextProps.isSelected) ||
       (this.props.hasAttachedActions ^ nextProps.hasAttachedActions)
     )
+  }
+
+  handleRowHovered (event) {
+    this.props.row.hoverAndUnhoverOthers({ from: 'timeline' })
+  }
+
+  handleRowUnhovered (event) {
+    this.props.row.unhover({ from: 'timeline' })
   }
 
   render () {
@@ -92,12 +103,8 @@ export default class ComponentHeadingRow extends React.Component {
         }
         <div
           className='component-heading-row-inner no-select'
-          onMouseOver={() => {
-            this.props.row.hoverAndUnhoverOthers()
-          }}
-          onMouseOut={() => {
-            this.props.row.unhover()
-          }}
+          onMouseOver={this.throttledHandleRowHovered}
+          onMouseOut={this.throttledHandleRowUnhovered}
           onClick={(clickEvent) => {
             clickEvent.stopPropagation()
             // Expand and select the entire component area when it is clicked, but note that we

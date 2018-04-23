@@ -67,6 +67,8 @@ const DIMENSIONS_RESET_DEBOUNCE_TIME = 100
 
 const BIG_NUMBER = 99999
 
+const OUTLINE_CLONE_SUFFIX = 'outline-clone-helper'
+
 function isNumeric (n) {
   return !isNaN(parseFloat(n)) && isFinite(n)
 }
@@ -252,6 +254,13 @@ export class Glass extends React.Component {
         case 'dimensions-reset':
           this.handleDimensionsReset()
           break
+        case 'hoverElement':
+          this.hoverHighlight(args[1])
+          break
+        case 'unhoverElement':
+        case 'selectElement':
+          this.unhoverHighlight(args[1])
+          break
       }
     })
 
@@ -262,6 +271,13 @@ export class Glass extends React.Component {
           break
         case 'setInteractionMode':
           this.handleInteractionModeChange()
+          break
+        case 'hoverElement':
+          this.hoverHighlight(args[1])
+          break
+        case 'unhoverElement':
+        case 'selectElement':
+          this.unhoverHighlight(args[1])
           break
       }
     })
@@ -665,6 +681,7 @@ export class Glass extends React.Component {
     this.addEmitterListener(window, 'dblclick', this.windowDblClickHandler.bind(this))
     this.addEmitterListener(window, 'keydown', this.windowKeyDownHandler.bind(this))
     this.addEmitterListener(window, 'keyup', this.windowKeyUpHandler.bind(this))
+    this.addEmitterListener(window, 'mouseover', this.windowMouseOverHandler.bind(this))
     this.addEmitterListener(window, 'mouseout', this.windowMouseOutHandler.bind(this))
     // When the mouse is clicked, below is the order that events fire
     this.addEmitterListener(window, 'mousedown', this.windowMouseDownHandler.bind(this))
@@ -816,15 +833,80 @@ export class Glass extends React.Component {
     this.getActiveComponent().getArtboard().performPan(dx, dy)
   }
 
-  windowMouseOutHandler (nativeEvent) {
+  hoverHighlight (haikuId) {
+    if (experimentIsEnabled(Experiment.OutliningElementsOnStage) && !this.isPreviewMode()) {
+      const element = Element.find({componentId: haikuId})
+
+      if (!element.isSelected() && !this.state.isMouseDragging) {
+        const $domElement = document.querySelector(`[haiku-id='${haikuId}']`)
+        const $duplicate = $domElement.cloneNode()
+        $duplicate.style.outline = `1px solid ${Palette.LIGHT_PINK}`
+        $duplicate.style.zIndex = '999999999'
+        $duplicate.style.pointerEvents = 'none'
+        $duplicate.setAttribute('haiku-id', `${haikuId}-${OUTLINE_CLONE_SUFFIX}`)
+        this.refs.outline.appendChild($duplicate)
+      }
+    }
+  }
+
+  unhoverHighlight (haikuId) {
+    if (experimentIsEnabled(Experiment.OutliningElementsOnStage) && !this.isPreviewMode()) {
+      const $domElement = document.querySelector(`[haiku-id='${haikuId}-${OUTLINE_CLONE_SUFFIX}']`)
+
+      if ($domElement) {
+        $domElement.remove()
+      }
+    }
+  }
+
+  findElementAssociatedToMouseEvent (mouseEvent) {
+    let target = this.findNearestDomSelectionTarget(mouseEvent.target)
+
+    // True if the action was performed on the transform control for a selected element
+    if (target === SELECTION_TYPES.ON_STAGE_CONTROL) {
+      return
+    }
+
+    // True if the action was performed on the stage, but not on any on-stage element
+    if (!target || !target.hasAttribute) {
+      return
+    }
+
+    target = this.validTargetOrNull(target)
+
+    // Truthy if we found a valid, selectable element target
+    if (target) {
+      // First make sure we are grabbing the correct element based on the context.
+      // If we've landed on a component sub-element, we need to go up and select the wrapper.
+      let haikuId = target.getAttribute('haiku-id')
+
+      if (this.isDomNodeChildOfComponentWrapperDomNode(target)) {
+        haikuId = target.parentNode.getAttribute('haiku-id')
+      }
+
+      return this.getActiveComponent().findElementByComponentId(haikuId)
+    }
+  }
+
+  windowMouseOverHandler (mouseOver) {
     if (this.isPreviewMode()) {
       return void (0)
     }
 
-    const source = nativeEvent.relatedTarget || nativeEvent.toElement
-    if (!source || source.nodeName === 'HTML') {
-      // unhover?
-      // cleanup?
+    const element = this.findElementAssociatedToMouseEvent(mouseOver)
+    if (element) {
+      element.hoverOn({from: 'glass'})
+    }
+  }
+
+  windowMouseOutHandler (mouseOut) {
+    if (this.isPreviewMode()) {
+      return void (0)
+    }
+
+    const element = this.findElementAssociatedToMouseEvent(mouseOut)
+    if (element) {
+      element.hoverOff({from: 'glass'})
     }
   }
 
@@ -2399,6 +2481,23 @@ export class Glass extends React.Component {
                 top: container.y,
                 left: container.x,
                 zIndex: 1999,
+                opacity: (this.state.isEventHandlerEditorOpen) ? 0.5 : 1.0
+              }} />
+            : ''}
+
+          {(!this.isPreviewMode())
+            ? <div
+              ref='outline'
+              id='haiku-glass-outline-mount'
+              style={{
+                position: 'absolute',
+                pointerEvents: 'none',
+                left: mount.x,
+                top: mount.y,
+                width: mount.w,
+                height: mount.h,
+                overflow: this.isPreviewMode() ? 'hidden' : 'visible',
+                zIndex: 60,
                 opacity: (this.state.isEventHandlerEditorOpen) ? 0.5 : 1.0
               }} />
             : ''}
