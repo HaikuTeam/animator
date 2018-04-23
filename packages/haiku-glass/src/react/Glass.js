@@ -258,8 +258,6 @@ export class Glass extends React.Component {
           this.hoverHighlight(args[1])
           break
         case 'unhoverElement':
-          this.unhoverHighlight(args[1])
-          break
         case 'selectElement':
           this.unhoverHighlight(args[1])
           break
@@ -278,8 +276,6 @@ export class Glass extends React.Component {
           this.hoverHighlight(args[1])
           break
         case 'unhoverElement':
-          this.unhoverHighlight(args[1])
-          break
         case 'selectElement':
           this.unhoverHighlight(args[1])
           break
