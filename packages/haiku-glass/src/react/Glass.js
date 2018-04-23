@@ -844,7 +844,7 @@ export class Glass extends React.Component {
         $duplicate.style.zIndex = '999999999'
         $duplicate.style.pointerEvents = 'none'
         $duplicate.setAttribute('haiku-id', `${haikuId}-${OUTLINE_CLONE_SUFFIX}`)
-        $domElement.parentNode.appendChild($duplicate)
+        this.refs.outline.appendChild($duplicate)
       }
     }
   }
@@ -2481,6 +2481,23 @@ export class Glass extends React.Component {
                 top: container.y,
                 left: container.x,
                 zIndex: 1999,
+                opacity: (this.state.isEventHandlerEditorOpen) ? 0.5 : 1.0
+              }} />
+            : ''}
+
+          {(!this.isPreviewMode())
+            ? <div
+              ref='outline'
+              id='haiku-glass-outline-mount'
+              style={{
+                position: 'absolute',
+                pointerEvents: 'none',
+                left: mount.x,
+                top: mount.y,
+                width: mount.w,
+                height: mount.h,
+                overflow: this.isPreviewMode() ? 'hidden' : 'visible',
+                zIndex: 60,
                 opacity: (this.state.isEventHandlerEditorOpen) ? 0.5 : 1.0
               }} />
             : ''}
