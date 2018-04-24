@@ -2485,6 +2485,8 @@ export class Glass extends React.Component {
               }} />
             : ''}
 
+          {this.renderHotComponentMount(mount, drawingClassName)}
+
           {(!this.isPreviewMode())
             ? <div
               ref='outline'
@@ -2501,8 +2503,6 @@ export class Glass extends React.Component {
                 opacity: (this.state.isEventHandlerEditorOpen) ? 0.5 : 1.0
               }} />
             : ''}
-
-          {this.renderHotComponentMount(mount, drawingClassName)}
         </div>
       </div>
     )
