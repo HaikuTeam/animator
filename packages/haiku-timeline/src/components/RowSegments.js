@@ -124,7 +124,19 @@ export default class RowSegments extends React.Component {
             <div
               id={`keyframe-container-${keyframe.getUniqueKey()}`}
               key={`keyframe-container-${keyframe.getUniqueKey()}`}
-              className={`keyframe-container no-select`}>
+              className={`keyframe-container no-select`}
+              onDoubleClick={(doubleClickEvent) => {
+                if (
+                  doubleClickEvent.target &&
+                  doubleClickEvent.target.id &&
+                  doubleClickEvent.target.id.includes('keyframe-dragger')
+                ) {
+                  this.props.timeline.seekToTime(keyframe.origMs)
+                  this.props.row.blurOthers({ from: 'timeline' })
+                  this.props.row.focus({ from: 'timeline' })
+                  this.props.row.select({ from: 'timeline' })
+                }
+              }}>
               {segmentPieces}
             </div>
           )
