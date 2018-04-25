@@ -181,47 +181,63 @@ class Library extends React.Component {
         mixpanel.haikuTrack('creator:figma:fileImport:fail', reportData)
 
         if (error.status === 403) {
-          message = (
-            <p>
-              We had problems importing your file.{' '}
-              If this problem persists, please click{' '}
-              <a
-                href='#'
-                style={STYLES.link}
-                onClick={() => {
-                  this.askForFigmaAuth()
-                }}
-              >
-                here
-              </a>{' '}
-              to log in with Figma again.
-            </p>
-          )
+          return this.props.createNotice({
+            type: 'danger',
+            title: 'Error',
+            message: (
+              <p>
+                We had problems importing your file.{' '}
+                If this problem persists, please click{' '}
+                <a
+                  href='#'
+                  style={STYLES.link}
+                  onClick={() => {
+                    this.askForFigmaAuth()
+                  }}
+                >
+                  here
+                </a>{' '}
+                to log in with Figma again.
+              </p>
+            )
+          })
         }
 
         if (error.status === 404) {
-          message = (
-            <p>
-              We couldn't access your file, please make sure that the file exists
-              and you have access to it.<br />
-              If you need to log in with another Figma account{' '}
-              <a
-                href='#'
-                style={STYLES.link}
-                onClick={() => {
-                  this.askForFigmaAuth()
-                }}
-              >
-                click here.
-              </a>{' '}
-            </p>
-          )
+          return this.props.createNotice({
+            type: 'danger',
+            title: 'Error',
+            message: (
+              <p>
+                We couldn't access your file, please make sure that the file exists
+                and you have access to it.<br />
+                If you need to log in with another Figma account{' '}
+                <a
+                  href='#'
+                  style={STYLES.link}
+                  onClick={() => {
+                    this.askForFigmaAuth()
+                  }}
+                >
+                  click here.
+                </a>{' '}
+              </p>
+            )
+          })
+        }
+
+        if (error.status === 424) {
+          return this.props.createNotice({
+            type: 'info',
+            title: 'Info',
+            message: message
+          })
         }
 
         this.props.createNotice({
           type: 'danger',
           title: 'Error',
-          message
+          message: message
         })
       })
   }
