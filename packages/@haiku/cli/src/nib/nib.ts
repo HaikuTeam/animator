@@ -193,7 +193,7 @@ ${vals.options || ''}`);
         context.exit(0);
       } else {
         this.usage(
-          head,
+          [],
           commands,
           context,
         );
