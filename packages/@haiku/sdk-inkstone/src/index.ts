@@ -6,6 +6,7 @@ const packageJson = require('../package.json');
 const ENDPOINTS = {
   PROJECT_CREATE: 'v0/project',
   LOGIN: 'v0/user/auth',
+  LOGOUT: 'v0/user/auth',
   CHANGE_PASSWORD: 'v0/user/password',
   ORGANIZATION_LIST: 'v0/organization',
   COMMUNITY_PROJECT_LIST: 'v0/community',
@@ -48,7 +49,7 @@ const getInstanceWithDefaults = (defaults) => {
     get: (options, cb) => requestLib.get({...defaults, ...options}, cb),
     post: (options, cb) => requestLib.post({...defaults, ...options}, cb),
     put: (options, cb) => requestLib.put({...defaults, ...options}, cb),
-    delete: (options, cb) => requestLib.delete({...defaults, ...options}, cb),
+    delete: (options, cb) => requestLib.del({...defaults, ...options}, cb),
   };
 };
 
@@ -179,6 +180,20 @@ export namespace inkstone {
       });
     }
 
+    export function unauthenticate(authToken: string|undefined, cb: inkstone.Callback<boolean>) {
+      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        url: inkstoneConfig.baseUrl + ENDPOINTS.LOGOUT,
+        headers: {
+          ...baseHeaders,
+          ...maybeAuthorizationHeaders(authToken),
+        },
+      };
+
+      request.delete(options, (err, httpResponse) => {
+        cb(undefined, true, httpResponse);
+      });
+    }
+
     export function getDetails(authToken: string|undefined, cb: inkstone.Callback<User>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.USER_DETAIL,
@@ -238,14 +253,28 @@ export namespace inkstone {
       });
     }
 
-    export function requestResetPassword(email: string, cb: inkstone.Callback<boolean>) {
+    export interface PasswordResetCreateParams {
+      Email: string;
+      ContinueUrl?: string;
+    }
+
+    export function requestResetPassword(params: string|PasswordResetCreateParams, cb: inkstone.Callback<boolean>) {
+      const body = {} as {email: string, continue_url: string};
+      if (typeof params === 'string') {
+        // Legacy: params passed as string.
+        body.email = params;
+      } else {
+        body.email = params.Email;
+        body.continue_url = params.ContinueUrl;
+      }
+
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.RESET_PASSWORD,
         headers: baseHeaders,
-        body: JSON.stringify({email}),
+        body: JSON.stringify(body),
       };
 
-      request.post(options, (err, httpResponse, body) => {
+      request.post(options, (err, httpResponse) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, true, httpResponse);
         } else {
@@ -254,11 +283,21 @@ export namespace inkstone {
       });
     }
 
-    export function requestConfirmEmail(email: string, cb: inkstone.Callback<Authentication>) {
+    export interface RequestConfirmEmailParams {
+      Email: string;
+      ContinueUrl?: string;
+    }
+
+    export function requestConfirmEmail(params: string|RequestConfirmEmailParams, cb: inkstone.Callback<Authentication>) {
+      const email = typeof params === 'string' ? params : params.Email;
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.USER_REQUEST_CONFIRM.replace(':email', email),
         headers: baseHeaders,
       };
+
+      if (typeof params !== 'string' && params.ContinueUrl) {
+        options.url += `?continue_url=${encodeURIComponent(params.ContinueUrl)}`;
+      }
 
       request.post(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
@@ -293,6 +332,7 @@ export namespace inkstone {
       Password: string;
       OrganizationName: string;
       NewsletterOptIn?: boolean;
+      ContinueUrl?: string;
     }
 
     export function create(user: UserCreateParams, cb: inkstone.Callback<boolean>) {
