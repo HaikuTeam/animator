@@ -1,4 +1,5 @@
 import React from 'react'
+import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 import TransitionBody from './TransitionBody'
 import ConstantBody from './ConstantBody'
 import SoloKeyframe from './SoloKeyframe'
@@ -135,6 +136,7 @@ export default class RowSegments extends React.Component {
                   this.props.row.blurOthers({ from: 'timeline' })
                   this.props.row.focus({ from: 'timeline' })
                   this.props.row.select({ from: 'timeline' })
+                  mixpanel.haikuTrack('timeline:keyframe:double-clicked')
                 }
               }}>
               {segmentPieces}
