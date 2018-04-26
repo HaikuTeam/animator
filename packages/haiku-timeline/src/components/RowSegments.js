@@ -136,7 +136,7 @@ export default class RowSegments extends React.Component {
                   this.props.row.blurOthers({ from: 'timeline' })
                   this.props.row.focus({ from: 'timeline' })
                   this.props.row.select({ from: 'timeline' })
-                  mixpanel.haikuTrack('timeline:keyframe:double-clicked')
+                  mixpanel.haikuTrack('creator:timeline:keyframe:double-clicked')
                 }
               }}>
               {segmentPieces}
