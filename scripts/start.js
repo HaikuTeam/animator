@@ -6,6 +6,7 @@ const inquirer = require('inquirer')
 const path = require('path')
 const argv = require('yargs').argv
 const log = require('./helpers/log')
+const spawn = require('cross-spawn')
 
 const allPackages = require('./helpers/packages')()
 const groups = lodash.keyBy(allPackages, 'shortname')
@@ -234,7 +235,7 @@ function go () {
   // Allow anything in .env to override the environment variables we set here.
   require('dotenv').config()
   log.hat('Note: NOT watching for code changes. To watch for code changes, run yarn watch-all in a new tab.')
-  mainProcess = cp.spawn('yarn', args, { cwd, env: global.process.env, stdio: 'inherit' })
+  mainProcess = spawn('yarn', args, { cwd, env: global.process.env, stdio: 'inherit' })
 
   global.process.on('exit', () => {
     if (mainProcess && !mainProcess.killed) {
