@@ -1,3 +1,4 @@
+/* eslint-disable prefer-promise-reject-errors */
 const { URL, URLSearchParams } = require('url')
 const request = require('request')
 const fse = require('haiku-fs-extra')
@@ -148,8 +149,10 @@ class Figma {
       const uri = API_BASE + 'images/' + id + '?' + params.toString()
 
       if (ids.length === 0) {
-        // eslint-disable-next-line
-        return reject({err: 'We couldn\'t find any groups or slices in your project.'})
+        return reject({
+          status: 424,
+          err: 'It looks like the Figma document you imported doesn\'t have any groups or slices. Try adding some and re-syncing.'
+        })
       }
 
       this.request({ uri })
@@ -199,7 +202,7 @@ class Figma {
           try {
             reject(JSON.parse(body))
           } catch (e) {
-            reject(new Error('There was an error connecting with Figma.'))
+            reject({status: 500, err: 'There was an error connecting with Figma.'})
           }
         } else {
           resolve(body)
@@ -262,7 +265,7 @@ class Figma {
   static getAccessToken ({code, state, stateCheck}) {
     return new Promise((resolve, reject) => {
       if (state !== stateCheck) {
-        reject(new Error('Invalid state code'))
+        reject({status: 403, err: 'Invalid state code'})
       }
 
       inkstone.integrations.getFigmaAccessToken(code, (error, response) => {
