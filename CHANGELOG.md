@@ -1,6 +1,16 @@
 # Changelog
 
 
+## 3.2.17
+
+### Bug Fixes
+
+ * properly print help info when an unknown command is used in nib
+
+### Features
+
+ * modify @haiku/sdk-inkstone to accept cookies.
+
 ## 3.2.16
 
 ## 3.2.15

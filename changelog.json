@@ -6313,5 +6313,17 @@
       "message": "library scroll area"
     }
   },
-  "3.2.16": {}
+  "3.2.16": {},
+  "3.2.17": {
+    "088e52849273a76dfdf39c5a65e094a05972cf75": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "properly print help info when an unknown command is used in nib"
+    },
+    "deab82d401e38c88dd57d2e38b34b517d735eb19": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "modify @haiku/sdk-inkstone to accept cookies."
+    }
+  }
 }
