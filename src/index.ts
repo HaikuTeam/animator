@@ -288,7 +288,8 @@ export namespace inkstone {
       ContinueUrl?: string;
     }
 
-    export function requestConfirmEmail(params: string|RequestConfirmEmailParams, cb: inkstone.Callback<Authentication>) {
+    export function requestConfirmEmail(
+      params: string|RequestConfirmEmailParams, cb: inkstone.Callback<Authentication>) {
       const email = typeof params === 'string' ? params : params.Email;
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.USER_REQUEST_CONFIRM.replace(':email', email),
