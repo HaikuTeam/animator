@@ -1,5 +1,5 @@
 const childProcess = require('child_process')
-const fse = require('fs-extra')
+const fse = require('haiku-fs-extra')
 const path = require('path')
 
 const log = require('./helpers/log')
@@ -31,10 +31,25 @@ function logExec (cwd, cmd) {
   return childProcess.execSync(cmd, { cwd, stdio: 'inherit' })
 }
 
+
 // Clear previous contents.
-logExec(ROOT, `rm -rf ${DISTRO_DIR}`)
+try {
+  log.log(`Clear previous contents from ${DISTRO_DIR}`)
+  fse.removeSync(`${DISTRO_DIR}`)
+  log.log('success!')
+} catch (err) {
+  log.error(err)
+}
+
 // We need the base distro dir, and also this subdir; two birds/one stone
-logExec(ROOT, `mkdir -p ${DISTRO_DIR}/changelog/public`)
+try {
+  log.log(`Create distro dirs ${DISTRO_DIR}/changelog/public`)
+  fse.ensureDirSync(`${DISTRO_DIR}/changelog/public`)
+  log.log('success!')
+} catch (err) {
+  log.error(err)
+}
+
 // Place a shim package.json and the necessary bootstrapping files.
 fse.writeJsonSync(path.join(DISTRO_DIR, 'package.json'), {
   name: 'haiku',
@@ -43,21 +58,48 @@ fse.writeJsonSync(path.join(DISTRO_DIR, 'package.json'), {
   version: nowVersion(),
   dependencies: require(path.join(global.process.cwd(), 'package.json')).dependencies
 }, {spaces: 2})
-logExec(ROOT, `cp index.js config.js ${DISTRO_DIR}`)
-// Must copy the changelog contents for "What's New" to work
-logExec(ROOT, `cp changelog/public/*.json ${DISTRO_DIR}/changelog/public/`)
+
+
+try {
+  log.log(`Copy index.js, config.js and changelogs to ${DISTRO_DIR}`)
+  fse.copySync('index.js', `${DISTRO_DIR}/index.js`)
+  fse.copySync('config.js', `${DISTRO_DIR}/config.js`)
+  fse.copySync('changelog/public/', `${DISTRO_DIR}/changelog/public/`)
+  log.log('success!')
+} catch (err) {
+  log.err(err)
+}
+
 // Build everything, then load production dependencies.
 logExec(ROOT, `yarn install ${YARN_INSTALL_FLAGS} --production=false`)
 logExec(ROOT, `yarn compile-all --force`)
 logExec(ROOT, `yarn install ${YARN_INSTALL_FLAGS} --production`)
+
+
 // Important: if we have any modules self-linked, get rid of them with extreme prejudice.
-logExec(ROOT, `rm -rf packages/*/node_modules/@haiku packages/*/node_modules/haiku-* \
-                      packages/*/*/node_modules/@haiku packages/*/*/node_modules/haiku-*`)
+try {
+  log.log(`Clear any self-linked module`)
+  fse.removePatternSync('packages/*/node_modules/@haiku packages/*/node_modules/haiku-*')
+  fse.removePatternSync('packages/*/*/node_modules/@haiku packages/*/*/node_modules/haiku-*')
+  log.log('success!')
+} catch (err) {
+  log.err(err)
+}
+
+
 // Place node modules in their canonical location.
-logExec(ROOT, `rsync ${RSYNC_FLAGS} node_modules ${DISTRO_DIR}`)
+try {
+  log.log(`Copy node modules to their canonical location. It may take a while..`)
+  fse.copySync(path.join(ROOT, 'node_modules'), path.join(ROOT, DISTRO_DIR, 'node_modules'), {deference: true})
+  log.log('success!')
+} catch (err) {
+  log.err(err)
+}
+
 // Restore dev dependencies in mono.
 logExec(ROOT, `yarn install ${YARN_INSTALL_FLAGS} --production=false`)
 // Uglify sources in release.
 logExec(ROOT, 'node ./scripts/distro-uglify-sources.js')
+
 // Rebuild.
 logExec(ROOT, `yarn electron-rebuild --module-dir ${path.join(DISTRO_DIR, 'node_modules', 'nodegit')}`)
