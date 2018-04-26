@@ -47,6 +47,7 @@
     "async": "^2.5.0",
     "babel-cli": "^6.26.0",
     "babel-preset-react-app": "^2.2.0",
+    "cross-env": "^5.1.4",
     "electron": "1.8.2",
     "eslint": "^3.19.0",
     "eslint-config-standard-jsx": "^4.0.2",
@@ -58,13 +59,13 @@
     "tape": "^4.8.0"
   },
   "scripts": {
-    "start": "AUTOSTART=main electron --enable-logging --remote-debugging-port=9222 ./lib/electron.js",
+    "start": "cross-env AUTOSTART=main electron --enable-logging --remote-debugging-port=9222 ./lib/electron.js",
     "watch": "babel --watch src --out-dir lib --source-maps inline",
-    "compile": "NODE_ENV=development babel src --out-dir lib --source-maps inline",
+    "compile": "cross-env NODE_ENV=development babel src --out-dir lib --source-maps inline",
     "lint": "eslint \"src/**/*.js\"",
     "fix": "yarn lint --fix",
     "lint-report": "yarn lint -f checkstyle -o checkstyle-result.xml",
-    "test": "NODE_ENV=development yarn compile && tape \"test/**/*.test.js\" | tap-spec || true",
+    "test": "cross-env NODE_ENV=development yarn compile && tape \"test/**/*.test.js\" | tap-spec || true",
     "test-report": "tape \"test/**/*.test.js\" > test-result.tap"
   }
 }
