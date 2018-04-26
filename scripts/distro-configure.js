@@ -1,5 +1,6 @@
 var argv = require('yargs').argv
 var fse = require('fs-extra')
+var os = require('os')
 var path = require('path')
 var lodash = require('lodash')
 var inquirer = require('inquirer')
@@ -12,6 +13,19 @@ var ENVS = { development: true, production: true }
 
 forceNodeEnvProduction()
 
+function getReleasePlatform(){  
+  switch (os.platform()) {
+    case 'darwin':
+      return 'mac'
+    case 'win32':
+      return 'windows'
+    case 'linux':
+      return 'linux'
+    default:
+      return 'unknown'
+  }
+}
+
 var inputs = lodash.assign({
   branch: 'master',
   environment: 'production',
@@ -19,6 +33,7 @@ var inputs = lodash.assign({
   uglify: false,
   upload: true,
   shout: true,
+  platform: getReleasePlatform(),
   version: fse.readJsonSync(path.join(ROOT, 'package.json')).version
 }, argv)
 
