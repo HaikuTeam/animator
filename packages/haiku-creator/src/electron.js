@@ -1,6 +1,7 @@
 import EventEmitter from 'events'
 import http from 'http'
 import https from 'https'
+import os from 'os'
 import path from 'path'
 import { parse } from 'url'
 import { inherits } from 'util'
@@ -22,8 +23,12 @@ if (!app) {
 app.setName('Haiku')
 app.setAsDefaultProtocolClient('haiku')
 
-systemPreferences.setUserDefault('NSDisabledDictationMenuItem', 'boolean', true)
-systemPreferences.setUserDefault('NSDisabledCharacterPaletteMenuItem', 'boolean', true)
+
+// Disable "Start Dictation" and "Emoji & Symbols" menu items on MAC 
+if (os.platform() === 'darwin') {
+  systemPreferences.setUserDefault('NSDisabledDictationMenuItem', 'boolean', true)
+  systemPreferences.setUserDefault('NSDisabledCharacterPaletteMenuItem', 'boolean', true)
+}
 
 app.on('login', (event, webContents, request, authInfo, authenticate) => {
   // We are currently not equipped to authenticate requests that are intercepted by a proxy but require login
