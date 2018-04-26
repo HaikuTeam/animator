@@ -374,6 +374,15 @@ const polygonContainsPoint = (polygon: PathPoint[], p: PathPoint): boolean => {
   return intersections % 2 === 1;
 };
 
+
+export const getPath = (path: string|PathPoint[]): PathPoint[] => {
+  if (!Array.isArray(path)) {
+    return pathToPoints(path);
+  }
+
+  return path;
+};
+
 /**
  * Decomposes a path, which might be compound, into singly-closed paths which might not be contiguous.
  *
@@ -386,7 +395,7 @@ const polygonContainsPoint = (polygon: PathPoint[], p: PathPoint): boolean => {
  */
 export const decomposePath = (path: string|PathPoint[]): {points: PathPoint[], closed: boolean}[] => {
   if (!Array.isArray(path)) {
-    return decomposePath(pathToPoints(path));
+    return decomposePath(getPath(path));
   }
 
   const allClosedPaths = [];

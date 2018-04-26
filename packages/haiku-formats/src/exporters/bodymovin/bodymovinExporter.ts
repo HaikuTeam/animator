@@ -1,3 +1,4 @@
+import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
 import {
   ContextualSize,
   Maybe,
@@ -64,6 +65,7 @@ import {
   decomposePath,
   getBodymovinVersion,
   getFixedPropertyValue,
+  getPath,
   getShapeDimensions,
   keyframesFromTimelineProperty,
   lottieAndroidStreamSafeToJson,
@@ -72,6 +74,8 @@ import {
   pointsToInterpolationTrace,
   timelineValuesAreEquivalent,
 } from './bodymovinUtils';
+
+const {pathToPoints} = SVGPoints;
 
 let bodymovinVersion: Maybe<string>;
 
@@ -798,13 +802,15 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
           return;
         }
 
-        const path = initialValue(timeline, 'd');
+        const path = getPath(initialValue(timeline, 'd'));
         const pathSegments = decomposePath(path);
         pathSegments.forEach((shapeDescriptor) => {
           const shapeSegment = {...shape};
           this.decorateShape(shapeDescriptor.points, shapeDescriptor.closed, shapeSegment);
           groupItems.push(shapeSegment);
         });
+        // Decorate the original shape in case we need to manage a complex fill (e.g. gradient stops).
+        this.decorateShape(path, true, shape);
         break;
       default:
         throw new Error(`Unable to handle shape: ${node.elementName}`);
