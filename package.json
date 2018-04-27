@@ -121,7 +121,12 @@
     },
     "win": {
       "target": [
-        "nsis"
+        {
+          "target": "nsis",
+          "arch": [
+            "ia32"
+          ]
+        }
       ]
     },
     "protocols": {

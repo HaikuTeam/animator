@@ -103,5 +103,12 @@ logExec(ROOT, `yarn install ${YARN_INSTALL_FLAGS} --production=false`)
 // Uglify sources in release.
 logExec(ROOT, 'node ./scripts/distro-uglify-sources.js')
 
-// Rebuild.
-logExec(ROOT, `yarn electron-rebuild --module-dir ${path.join(DISTRO_DIR, 'node_modules', 'nodegit')}`)
+
+// Rebuild native modules
+// Use 32bits on windows to ensure maximum compatibility 
+if (process.env.HAIKU_RELEASE_PLATFORM==='windows'){
+  logExec(ROOT, `yarn electron-rebuild --arch=ia32 --module-dir ${path.join(DISTRO_DIR, 'node_modules', 'nodegit')}`)
+}
+else{
+  logExec(ROOT, `yarn electron-rebuild --module-dir ${path.join(DISTRO_DIR, 'node_modules', 'nodegit')}`)
+}
