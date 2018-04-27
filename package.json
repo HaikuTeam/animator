@@ -93,7 +93,7 @@
   },
   "build": {
     "appId": "com.Haiku.HaikuForDesignersAndEngineers",
-    "copyright": "Copyright (c) 2017 Haiku",
+    "copyright": "Copyright (c) 2018 Haiku",
     "directories": {
       "app": "source"
     },
@@ -107,6 +107,21 @@
       "target": [
         "zip",
         "dmg"
+      ]
+    },
+    "linux": {
+    "maintainer" : "Haiku Team <contact@haiku.ai>",
+    "category": "Graphics;Development;VectorGraphics",
+    "icon" : "build/icon.icns",
+      "target": [
+        "deb",
+        "AppImage",
+        "pacman"
+      ]
+    },
+    "win": {
+      "target": [
+        "nsis"
       ]
     },
     "protocols": {

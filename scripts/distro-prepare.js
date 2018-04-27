@@ -1,6 +1,7 @@
 const childProcess = require('child_process')
-const fse = require('haiku-fs-extra')
+const fse = require('fs-extra')
 const path = require('path')
+const rimraf = require('rimraf')
 
 const log = require('./helpers/log')
 const nowVersion = require('./helpers/nowVersion')
@@ -79,18 +80,19 @@ logExec(ROOT, `yarn install ${YARN_INSTALL_FLAGS} --production`)
 // Important: if we have any modules self-linked, get rid of them with extreme prejudice.
 try {
   log.log(`Clear any self-linked module`)
-  fse.removePatternSync('packages/*/node_modules/@haiku packages/*/node_modules/haiku-*')
-  fse.removePatternSync('packages/*/*/node_modules/@haiku packages/*/*/node_modules/haiku-*')
+  rimraf.sync('packages/*/node_modules/@haiku')
+  rimraf.sync('/*/node_modules/haiku-*')
+  rimraf.sync('packages/*/*/node_modules/@haiku')
+  rimraf.sync('packages/*/*/node_modules/haiku-*')
   log.log('success!')
 } catch (err) {
   log.err(err)
 }
 
-
 // Place node modules in their canonical location.
 try {
   log.log(`Copy node modules to their canonical location. It may take a while..`)
-  fse.copySync(path.join(ROOT, 'node_modules'), path.join(ROOT, DISTRO_DIR, 'node_modules'), {deference: true})
+  fse.copySync(path.join(ROOT, 'node_modules'), path.join(ROOT, DISTRO_DIR, 'node_modules'), {dereference: true})
   log.log('success!')
 } catch (err) {
   log.err(err)
