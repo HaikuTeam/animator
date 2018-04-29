@@ -26,7 +26,7 @@ Assuming a clean Windows 10, open a PowerShell with admin rights:
 Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 
 # Install git
-choco install git -y 
+choco install git python2 -y 
 
 # Install nodejs 
 choco install nodejs-lts -y --version 8.9.3
