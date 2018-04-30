@@ -94,10 +94,10 @@ export namespace inkstone {
     PerPage: number;
   }
 
-  export interface PaginatedResponse {
+  export interface PaginatedResponse<T> {
     Page: number;
     TotalPages: number;
-    Collection: any[];
+    Collection: T[];
   }
 
   export interface InkstoneConfig {
@@ -672,12 +672,12 @@ export namespace inkstone {
      * hai-kudos field.
      * @param {string | undefined} authToken
      * @param {CommunityProjectsQuery} query
-     * @param {inkstone.Callback<inkstone.community.CommunityProjectsPaginatedResponse[]>} cb
+     * @param {inkstone.Callback<inkstone.PaginatedResponse<CommunityProject>[]>} cb
      */
     export function projectList(
       authToken: string | undefined,
       query: CommunityProjectsQuery,
-      cb: inkstone.Callback<inkstone.PaginatedResponse>,
+      cb: inkstone.Callback<inkstone.PaginatedResponse<CommunityProject>>,
     ) {
       // TODO: automate this
       let queryString = '';
@@ -699,7 +699,7 @@ export namespace inkstone {
             Collection: JSON.parse(body) as CommunityProject[],
             Page: Number(httpResponse.headers['x-pagination-page']),
             TotalPages: Number(httpResponse.headers['x-pagination-total-pages']),
-          } as inkstone.PaginatedResponse;
+          };
 
           cb(undefined, paginatedResult, httpResponse);
         } else {
