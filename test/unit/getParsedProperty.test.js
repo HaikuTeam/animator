@@ -1,21 +1,21 @@
 'use strict'
 
-var test = require('tape')
-var getParsedProperty = require('./../../lib/helpers/getParsedProperty').default
+const test = require('tape')
+const getParsedProperty = require('./../../lib/helpers/getParsedProperty').default
 
 test('getParsedProperty', function (t) {
   t.plan(1)
 
-  var rawProps = {options: {sizing: 'cover'}}
-  var parsedProp = getParsedProperty(rawProps, 'options')
+  const rawProps = {options: {sizing: 'cover'}}
+  const parsedProp = getParsedProperty(rawProps, 'options')
   t.deepEqual(parsedProp, {sizing: 'cover'}, 'flattens out items if they are contained in a poperty named "options"')
 })
 
 test('getParsedProperty', function (t) {
   t.plan(2)
 
-  var rawProps = {haikuOptions: {loop: true}, haikuStates: {count: 1}}
-  var parsedProp = getParsedProperty(rawProps, 'haikuOptions')
+  const rawProps = {haikuOptions: {loop: true}, haikuStates: {count: 1}}
+  let parsedProp = getParsedProperty(rawProps, 'haikuOptions')
   t.equal(parsedProp.loop, true, 'remaps deprecated property names')
 
   parsedProp = getParsedProperty(rawProps, 'haikuStates')
@@ -25,8 +25,8 @@ test('getParsedProperty', function (t) {
 test('getParsedProperty', function (t) {
   t.plan(2)
 
-  var rawProps = {loop: true, alwaysComputeSizing: false}
-  var parsedProp = getParsedProperty(rawProps, 'loop')
+  const rawProps = {loop: true, alwaysComputeSizing: false}
+  let parsedProp = getParsedProperty(rawProps, 'loop')
   t.equal(parsedProp.loop, true)
 
   parsedProp = getParsedProperty(rawProps, 'alwaysComputeSizing')
