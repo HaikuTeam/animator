@@ -7,6 +7,7 @@ const path = require('path')
 const argv = require('yargs').argv
 const log = require('./helpers/log')
 const spawn = require('cross-spawn')
+const os = require('os')
 
 const allPackages = require('./helpers/packages')()
 const groups = lodash.keyBy(allPackages, 'shortname')
@@ -174,6 +175,21 @@ function runAutomatic () {
   go()
 }
 
+// TODO: Duplicated from distro-configure.js. Move it to
+// right place
+function getReleasePlatform () {
+  switch (os.platform()) {
+    case 'darwin':
+      return 'mac'
+    case 'win32':
+      return 'windows'
+    case 'linux':
+      return 'linux'
+    default:
+      throw new Error('Unknown operating system')
+  }
+}
+
 function setup () {
   log.hat(`preparing to develop locally`, 'cyan')
 
@@ -184,7 +200,7 @@ function setup () {
   // These are just stubbed out for completeness' sake
   global.process.env.HAIKU_RELEASE_ENVIRONMENT = process.env.NODE_ENV
   global.process.env.HAIKU_RELEASE_BRANCH = 'master'
-  global.process.env.HAIKU_RELEASE_PLATFORM = 'mac'
+  global.process.env.HAIKU_RELEASE_PLATFORM = getReleasePlatform()
   global.process.env.HAIKU_RELEASE_VERSION = require('./../package.json').version
   global.process.env.HAIKU_AUTOUPDATE_SERVER = 'http://localhost:3002'
 

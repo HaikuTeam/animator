@@ -13,7 +13,7 @@ var ENVS = { development: true, production: true }
 
 forceNodeEnvProduction()
 
-function getReleasePlatform(){  
+function getReleasePlatform () {
   switch (os.platform()) {
     case 'darwin':
       return 'mac'
@@ -22,7 +22,7 @@ function getReleasePlatform(){
     case 'linux':
       return 'linux'
     default:
-      return 'unknown'
+      throw new Error('Unknown operating system')
   }
 }
 

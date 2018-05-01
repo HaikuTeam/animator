@@ -110,9 +110,9 @@
       ]
     },
     "linux": {
-    "maintainer" : "Haiku Team <contact@haiku.ai>",
-    "category": "Graphics;Development;VectorGraphics",
-    "icon" : "build/icon.icns",
+      "maintainer" : "Haiku Team <contact@haiku.ai>",
+      "category": "Graphics;Development;VectorGraphics",
+      "icon" : "build/icon.icns",
       "target": [
         "deb",
         "AppImage",

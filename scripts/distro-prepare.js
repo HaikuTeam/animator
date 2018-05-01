@@ -13,13 +13,6 @@ forceNodeEnvProduction()
 const ROOT = global.process.cwd()
 const DISTRO_DIR = 'source' // Location of distro source code to push
 
-const RSYNC_FLAGS = [
-  '--archive',
-  '--quiet',
-  '--recursive', // Include dirs and subdirs
-  '-L'
-].join(' ')
-
 const YARN_INSTALL_FLAGS = [
   '--frozen-lockfile', // Force use of dependencies from yarn.lock
   '--non-interactive', // Don't prompt (just in case)
@@ -32,24 +25,13 @@ function logExec (cwd, cmd) {
   return childProcess.execSync(cmd, { cwd, stdio: 'inherit' })
 }
 
-
 // Clear previous contents.
-try {
-  log.log(`Clear previous contents from ${DISTRO_DIR}`)
-  fse.removeSync(`${DISTRO_DIR}`)
-  log.log('success!')
-} catch (err) {
-  log.error(err)
-}
+log.log(`Clear previous contents from ${DISTRO_DIR}`)
+fse.removeSync(`${DISTRO_DIR}`)
 
 // We need the base distro dir, and also this subdir; two birds/one stone
-try {
-  log.log(`Create distro dirs ${DISTRO_DIR}/changelog/public`)
-  fse.ensureDirSync(`${DISTRO_DIR}/changelog/public`)
-  log.log('success!')
-} catch (err) {
-  log.error(err)
-}
+log.log(`Create distro dirs ${DISTRO_DIR}/changelog/public`)
+fse.ensureDirSync(`${DISTRO_DIR}/changelog/public`)
 
 // Place a shim package.json and the necessary bootstrapping files.
 fse.writeJsonSync(path.join(DISTRO_DIR, 'package.json'), {
@@ -60,55 +42,36 @@ fse.writeJsonSync(path.join(DISTRO_DIR, 'package.json'), {
   dependencies: require(path.join(global.process.cwd(), 'package.json')).dependencies
 }, {spaces: 2})
 
-
-try {
-  log.log(`Copy index.js, config.js and changelogs to ${DISTRO_DIR}`)
-  fse.copySync('index.js', `${DISTRO_DIR}/index.js`)
-  fse.copySync('config.js', `${DISTRO_DIR}/config.js`)
-  fse.copySync('changelog/public/', `${DISTRO_DIR}/changelog/public/`)
-  log.log('success!')
-} catch (err) {
-  log.err(err)
-}
+log.log(`Copy index.js, config.js and changelogs to ${DISTRO_DIR}`)
+fse.copySync('index.js', `${DISTRO_DIR}/index.js`)
+fse.copySync('config.js', `${DISTRO_DIR}/config.js`)
+fse.copySync('changelog/public/', `${DISTRO_DIR}/changelog/public/`)
 
 // Build everything, then load production dependencies.
 logExec(ROOT, `yarn install ${YARN_INSTALL_FLAGS} --production=false`)
 logExec(ROOT, `yarn compile-all --force`)
 logExec(ROOT, `yarn install ${YARN_INSTALL_FLAGS} --production`)
 
-
 // Important: if we have any modules self-linked, get rid of them with extreme prejudice.
-try {
-  log.log(`Clear any self-linked module`)
-  rimraf.sync('packages/*/node_modules/@haiku')
-  rimraf.sync('/*/node_modules/haiku-*')
-  rimraf.sync('packages/*/*/node_modules/@haiku')
-  rimraf.sync('packages/*/*/node_modules/haiku-*')
-  log.log('success!')
-} catch (err) {
-  log.err(err)
-}
+log.log(`Clear any self-linked module`)
+rimraf.sync('packages/*/node_modules/@haiku')
+rimraf.sync('/*/node_modules/haiku-*')
+rimraf.sync('packages/*/*/node_modules/@haiku')
+rimraf.sync('packages/*/*/node_modules/haiku-*')
 
 // Place node modules in their canonical location.
-try {
-  log.log(`Copy node modules to their canonical location. It may take a while..`)
-  fse.copySync(path.join(ROOT, 'node_modules'), path.join(ROOT, DISTRO_DIR, 'node_modules'), {dereference: true})
-  log.log('success!')
-} catch (err) {
-  log.err(err)
-}
+log.log(`Copy node modules to their canonical location. It may take a while..`)
+fse.copySync(path.join(ROOT, 'node_modules'), path.join(ROOT, DISTRO_DIR, 'node_modules'), {dereference: true})
 
 // Restore dev dependencies in mono.
 logExec(ROOT, `yarn install ${YARN_INSTALL_FLAGS} --production=false`)
 // Uglify sources in release.
 logExec(ROOT, 'node ./scripts/distro-uglify-sources.js')
 
-
 // Rebuild native modules
-// Use 32bits on windows to ensure maximum compatibility 
-if (process.env.HAIKU_RELEASE_PLATFORM==='windows'){
+// Use 32bits on windows to ensure maximum compatibility
+if (process.env.HAIKU_RELEASE_PLATFORM === 'windows') {
   logExec(ROOT, `yarn electron-rebuild --arch=ia32 --module-dir ${path.join(DISTRO_DIR, 'node_modules', 'nodegit')}`)
-}
-else{
+} else {
   logExec(ROOT, `yarn electron-rebuild --module-dir ${path.join(DISTRO_DIR, 'node_modules', 'nodegit')}`)
 }

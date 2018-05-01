@@ -3,7 +3,7 @@ const cp = require('child_process')
 const fs = require('fs')
 const path = require('path')
 const argv = require('yargs').argv
-const glob = require("glob")
+const glob = require('glob')
 
 const allPackages = require('./helpers/packages')()
 const log = require('./helpers/log')
@@ -13,15 +13,11 @@ if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = 'development'
 }
 
-
-function getModificationTime(file){
-  return new Date(fs.statSync(file).mtime)
-}
+const getModificationTime = (file) => new Date(fs.statSync(file).mtime)
 
 async.each(allPackages, (pack, done) => {
   if (pack.pkg && pack.pkg.scripts && pack.pkg.scripts.compile) {
     const lastCompileFilename = path.join(pack.abspath, '.last-compile')
-
 
     /* Load last compile time from file */
     let lastCompileTime = null
@@ -34,12 +30,12 @@ async.each(allPackages, (pack, done) => {
 
     /* Get modified file since last compilation */
     let files = glob.sync(`${pack.abspath}/src/**`, {})
-    let modifiedFiles = files.filter(file => getModificationTime(file) > lastCompileTime)
+    let modifiedFiles = files.filter((file) => getModificationTime(file) > lastCompileTime)
 
     /* Compile package if it has any modified file */
     if (modifiedFiles.length > 0) {
       log.warn(`Detected ${modifiedFiles.length} changed file(s) in ${pack.shortname}. Compiling....`)
-      cp.execSync('yarn run compile', { cwd: pack.abspath, stdio: 'inherit'})
+      cp.execSync('yarn run compile', {cwd: pack.abspath, stdio: 'inherit'})
     } else {
       log.log(`No changes in ${pack.shortname} since last compile. Skipping....`)
     }
