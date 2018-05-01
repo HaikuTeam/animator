@@ -6,7 +6,7 @@ import path from 'path'
 import { parse } from 'url'
 import { inherits } from 'util'
 
-import { BrowserWindow, app, ipcMain, systemPreferences, session } from 'electron'
+import { BrowserWindow, app, ipcMain, systemPreferences, session, globalShortcut } from 'electron'
 import ElectronProxyAgent from 'electron-proxy-agent'
 import qs from 'qs'
 
@@ -23,8 +23,7 @@ if (!app) {
 app.setName('Haiku')
 app.setAsDefaultProtocolClient('haiku')
 
-
-// Disable "Start Dictation" and "Emoji & Symbols" menu items on MAC 
+// Disable "Start Dictation" and "Emoji & Symbols" menu items on MAC
 if (os.platform() === 'darwin') {
   systemPreferences.setUserDefault('NSDisabledDictationMenuItem', 'boolean', true)
   systemPreferences.setUserDefault('NSDisabledCharacterPaletteMenuItem', 'boolean', true)
@@ -186,6 +185,41 @@ function createWindow () {
       }
     })
   })
+
+  // Workaround to fix electron(Chromium) distinct codepath for
+  // Windows and Linux shortcuts. More info:
+  // https://github.com/electron/electron/issues/7165#issuecomment-246486798
+  // https://github.com/buttercup/buttercup-desktop/pull/223
+  function registerShortcuts () {
+    logger.info('[Shortcut workaround] Registering global shortcuts')
+    globalShortcut.register('CmdOrCtrl+C', () => {
+      console.info(`[Shortcut workaround] global-menu:copy`, [])
+      browserWindow.webContents.send('global-menu:copy')
+    })
+    globalShortcut.register('CmdOrCtrl+V', () => {
+      console.info(`[Shortcut workaround] global-menu:paste`, [])
+      browserWindow.webContents.send('global-menu:paste')
+    })
+    globalShortcut.register('CmdOrCtrl+X', () => {
+      console.info(`[Shortcut workaround] global-menu:cut`, [])
+      browserWindow.webContents.send('global-menu:cut')
+    })
+  }
+
+  function unregisterShortcuts () {
+    logger.info('[Shortcut workaround] Unregistering global shortcuts')
+    globalShortcut.unregister('CmdOrCtrl+C')
+    globalShortcut.unregister('CmdOrCtrl+V')
+    globalShortcut.unregister('CmdOrCtrl+X')
+  }
+  // Only set shortcut workaround for Windows or Linux
+  if (global.process.env.HAIKU_RELEASE_PLATFORM === 'windows' ||
+      global.process.env.HAIKU_RELEASE_PLATFORM === 'linux') {
+    logger.info('[Shortcut workaround] Setting hooks to accept shortcuts on Windows/Linux')
+    registerShortcuts()
+    browserWindow.on('focus', registerShortcuts)
+    browserWindow.on('blur', unregisterShortcuts)
+  }
 
   // Events to delegate to BrowserWindow event handlers.
   const globalMenuPassthroughs = [
