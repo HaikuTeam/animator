@@ -3,6 +3,21 @@
  */
 
 import {randomString} from '../../helpers/StringUtils';
+import getParsedProperty from '../../helpers/getParsedProperty';
+
+function clearProps(props): Object {
+  let result = {};
+
+  for (const verboseKeyName in props) {
+    if (props[verboseKeyName] === undefined) {
+      continue;
+    }
+
+    result = {...result, ...getParsedProperty(props, verboseKeyName)};
+  }
+
+  return result;
+}
 
 export interface HaikuVueComponent {}
 
@@ -10,22 +25,43 @@ export interface HaikuVueComponent {}
 export default function HaikuVueDOMAdapter(haikuComponentFactory): HaikuVueComponent {
   return {
     props: {
-      haikuOptions: Object,
-      haikuStates: Object,
+      // We use null (which is the equivalent of 'any') for Boolean values
+      // because Vue does typecasting for us, which sets undefined to false.
+      automount: null,
+      autoplay: null,
+      forceFlush: null,
+      freeze: null,
+      loop: null,
+      alwaysComputeSizing: null,
+      useWebkitPrefix: null,
+      seed: String,
+      sizing: String,
+      timestamp: Number,
+      frame: Function,
+      clock: Object,
+      preserve3d: String,
+      contextMenu: String,
+      position: String,
+      overflowX: String,
+      overflowY: String,
+      overflow: String,
+      mixpanel: String,
+      interactionMode: Object,
+      states: Object,
       eventHandlers: Object,
       timelines: Object,
       vanities: Object,
+      children: Array,
       placeholder: Object,
+      // LEGACY
+      haikuOptions: Object,
     },
     mounted() {
+      const clearedProps = clearProps(this.$props);
+
       this.haiku = haikuComponentFactory(this.$el, {
+        ...clearedProps,
         ref: this.$el,
-        options: this.$props.haikuOptions,
-        states: this.$props.haikuStates,
-        eventHandlers: this.$props.eventHandlers,
-        timelines: this.$props.timelines,
-        vanities: this.$props.vanities,
-        placeholder: this.$props.placeholder,
         onHaikuComponentWillInitialize: (component) => {
           this.$emit('haikuComponentWillInitialize', component);
         },
@@ -44,14 +80,8 @@ export default function HaikuVueDOMAdapter(haikuComponentFactory): HaikuVueCompo
       });
     },
     updated() {
-      this.haiku.assignConfig({
-        options: this.$props.haikuOptions,
-        states: this.$props.haikuStates,
-        eventHandlers: this.$props.eventHandlers,
-        timelines: this.$props.timelines,
-        vanities: this.$props.vanities,
-        placeholder: this.$props.placeholder,
-      });
+      const clearedProps = clearProps(this.$props);
+      this.haiku.assignConfig(clearedProps);
     },
     destroyed() {
       this.haiku.callUnmount();
