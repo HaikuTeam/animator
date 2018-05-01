@@ -107,6 +107,9 @@
         "dmg"
       ]
     },
+    "dmg": {
+      "icon": "build/dmgIcon.icns"
+    },
     "protocols": {
       "name": "haiku",
       "schemes": [
