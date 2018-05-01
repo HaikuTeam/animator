@@ -7,17 +7,9 @@ import * as ReactDOM from 'react-dom';
 import EventsDict from './EventsDict';
 import {DEFAULTS} from '../../Config';
 import {randomString} from '../../helpers/StringUtils';
+import getParsedProperty from '../../helpers/getParsedProperty';
 
 const DEFAULT_HOST_ELEMENT_TAG_NAME = 'div';
-
-const HAIKU_CONFIG_PROPS_RENAME_MAPPING = {
-  haikuOptions: 'options',
-  haikuStates: 'states',
-  haikuInitialStates: 'states',
-  haikuEventHandlers: 'eventHandlers',
-  haikuTimelines: 'timelines',
-  haikuVanities: 'vanities',
-};
 
 export interface HaikuComponentProps {
   [key: string]: any;
@@ -74,7 +66,7 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
     buildHaikuCompatibleConfigFromRawProps(rawProps) {
       // Note that these vanities are called _after_ an initial render,
       // i.e., after this.mount is supposed to have been attached.
-      const haikuConfig = {
+      let haikuConfig = {
         ref: this.mount,
         vanities: {
           'controlFlow.placeholder': function _controlFlowPlaceholderReactVanity(
@@ -128,19 +120,7 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
             continue;
           }
 
-          const haikuConfigRemappedKey = HAIKU_CONFIG_PROPS_RENAME_MAPPING[verboseKeyName];
-
-          const haikuConfigFinalKey = haikuConfigRemappedKey || verboseKeyName;
-
-          // Special case: Options used to be a separate object, so if we see this legacy
-          // format, just merge it in with the root level of the new options
-          if (haikuConfigFinalKey === 'options') {
-            for (const optionsSubKey in rawProps[verboseKeyName]) {
-              haikuConfig[optionsSubKey] = rawProps[verboseKeyName][optionsSubKey];
-            }
-          } else {
-            haikuConfig[haikuConfigFinalKey] = rawProps[verboseKeyName];
-          }
+          haikuConfig = {...haikuConfig, ...getParsedProperty(rawProps, verboseKeyName)};
         }
       }
 
