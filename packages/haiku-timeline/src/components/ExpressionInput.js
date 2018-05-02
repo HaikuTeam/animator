@@ -58,6 +58,7 @@ const MIN_EDITOR_WIDTH_MULTILINE = 200
 const MAX_EDITOR_WIDTH_MULTILINE = 600
 const MIN_EDITOR_WIDTH_SINGLE_LINE = 140
 const MAX_EDITOR_WIDTH_SINGLE_LINE = 400
+const NUMERIC_CHANGE_BATCH = 10
 
 function setOptions (opts) {
   for (var key in opts) this.setOption(key, opts[key])
@@ -562,6 +563,15 @@ export default class ExpressionInput extends React.Component {
     }
   }
 
+  changeCurrentValueIfNumericBy (number) {
+    if (this.state.editedValue && isNumeric(this.state.editedValue.body)) {
+      const currentValue = Number(this.state.editedValue.body)
+      const newValue = String(currentValue + number)
+      this.setEditorValue(newValue)
+      this.handleEditorChange(this.codemirror, {})
+    }
+  }
+
   handleEditorKeydown (cm, keydownEvent) {
     keydownEvent._alreadyHandled = true
 
@@ -592,12 +602,21 @@ export default class ExpressionInput extends React.Component {
     }
 
     if (this.state.editingMode === EDITOR_MODES.SINGLE_LINE) {
+      if (keydownEvent.shiftKey) {
+        if (keydownEvent.which === 38) {
+          return this.changeCurrentValueIfNumericBy(NUMERIC_CHANGE_BATCH)
+        }
+
+        if (keydownEvent.which === 40) {
+          return this.changeCurrentValueIfNumericBy(-NUMERIC_CHANGE_BATCH)
+        }
+      }
+
       // If tab during single-line editing, commit and navigate
       if (keydownEvent.which === 9) { // Tab
         keydownEvent.preventDefault()
         return this.performCommit(NAVIGATION_DIRECTIONS.NEXT, false)
       }
-
       if (keydownEvent.which === 13) { // Enter
         // Shift+Enter when multi-line starts multi-line mode (and adds a new line)
         if (keydownEvent.shiftKey) {
