@@ -190,6 +190,10 @@ function getReleasePlatform () {
   }
 }
 
+function getReleaseArchitecture () {
+  return os.arch()
+}
+
 function setup () {
   log.hat(`preparing to develop locally`, 'cyan')
 
@@ -201,6 +205,7 @@ function setup () {
   global.process.env.HAIKU_RELEASE_ENVIRONMENT = process.env.NODE_ENV
   global.process.env.HAIKU_RELEASE_BRANCH = 'master'
   global.process.env.HAIKU_RELEASE_PLATFORM = getReleasePlatform()
+  global.process.env.HAIKU_RELEASE_ARCHITECTURE = getReleaseArchitecture()
   global.process.env.HAIKU_RELEASE_VERSION = require('./../package.json').version
   global.process.env.HAIKU_AUTOUPDATE_SERVER = 'http://localhost:3002'
 

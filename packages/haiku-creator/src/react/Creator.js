@@ -449,7 +449,7 @@ export default class Creator extends React.Component {
           cp.execSync(`open -b com.apple.terminal ${JSON.stringify(folder)} || true`)
           break
         case 'windows':
-          cp.spawn(`cd ${JSON.stringify(folder)} && start ${process.env.windir}\\${process.env.arch === 'x64' ? 'Sysnative' : 'System32'}\\cmd.exe`, {detached: true, shell: true})
+          cp.spawn(`cd ${JSON.stringify(folder)} && start ${process.env.windir}\\${process.env.HAIKU_RELEASE_ARCHITECTURE === 'x64' ? 'System32' : 'Sysnative'}\\cmd.exe`, {detached: true, shell: true})
           break
         case 'linux':
           if (process.env.DESKTOP_SESSION === 'gnome' || process.env.DESKTOP_SESSION === 'gnome-classic') {

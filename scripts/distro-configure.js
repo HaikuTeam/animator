@@ -26,6 +26,10 @@ function getReleasePlatform () {
   }
 }
 
+function getReleaseArchitecture () {
+  return os.arch()
+}
+
 var inputs = lodash.assign({
   branch: 'master',
   environment: 'production',
@@ -34,6 +38,7 @@ var inputs = lodash.assign({
   upload: true,
   shout: true,
   platform: getReleasePlatform(),
+  architecture: getReleaseArchitecture(),
   version: fse.readJsonSync(path.join(ROOT, 'package.json')).version
 }, argv)
 
