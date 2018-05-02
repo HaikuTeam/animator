@@ -81,16 +81,22 @@ module.exports = {
   },
 
   checkIfInstalled () {
-    return new Promise((resolve, reject) => {
-      this.getDumpInfo()
-        .then(this.dumpToPaths)
-        .then(this.pathsToInstallationInfo)
-        .then(this.findBestPath)
-        .then((bestPath) => { resolve(bestPath) })
-        .catch((error) => {
-          logger.error('[sketch utils] error finding Sketch: ', error)
-          resolve(null)
-        })
-    })
+    // Only Mac has sketch support
+    if (process.env.HAIKU_RELEASE_PLATFORM === 'mac') {
+      return new Promise((resolve, reject) => {
+        this.getDumpInfo()
+          .then(this.dumpToPaths)
+          .then(this.pathsToInstallationInfo)
+          .then(this.findBestPath)
+          .then((bestPath) => { resolve(bestPath) })
+          .catch((error) => {
+            logger.error('[sketch utils] error finding Sketch: ', error)
+            resolve(null)
+          })
+      })
+    } else {
+      logger.info('[sketch utils] Platform does not support Sketch')
+      return new Promise((resolve, reject) => { resolve(null) })
+    }
   }
 }
