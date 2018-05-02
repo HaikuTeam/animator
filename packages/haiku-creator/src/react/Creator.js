@@ -449,19 +449,19 @@ export default class Creator extends React.Component {
           cp.execSync(`open -b com.apple.terminal ${JSON.stringify(folder)} || true`)
           break
         case 'windows':
-          cp.execSync(`cd ${JSON.stringify(folder)} && start ${process.env.windir}\\${process.env.arch === 'x64' ? 'Sysnative' : 'System32'}\\cmd.exe`)
+          cp.spawn(`cd ${JSON.stringify(folder)} && start ${process.env.windir}\\${process.env.arch === 'x64' ? 'Sysnative' : 'System32'}\\cmd.exe`, {detached: true, shell: true})
           break
         case 'linux':
           if (process.env.DESKTOP_SESSION === 'gnome' || process.env.DESKTOP_SESSION === 'gnome-classic') {
-            cp.execSync(`cd ${JSON.stringify(folder)} && gnome-terminal`)
+            cp.exec(`cd ${JSON.stringify(folder)} && gnome-terminal`)
           } else if (process.env.DESKTOP_SESSION === 'kde-plasma') {
-            cp.execSync(`cd ${JSON.stringify(folder)} && konsole`)
+            cp.exec(`cd ${JSON.stringify(folder)} && konsole`)
           } else if (process.env.COLORTERM) {
-            cp.execSync(`cd ${JSON.stringify(folder)} && ${process.env.COLORTERM}`)
+            cp.exec(`cd ${JSON.stringify(folder)} && ${process.env.COLORTERM}`)
           } else if (process.env.TERM) {
-            cp.execSync(`cd ${JSON.stringify(folder)} && ${process.env.TERM}`)
+            cp.exec(`cd ${JSON.stringify(folder)} && ${process.env.TERM}`)
           } else {
-            cp.execSync(`cd ${JSON.stringify(folder)} && xterm`)
+            cp.exec(`cd ${JSON.stringify(folder)} && xterm`)
           }
           break
         default:
