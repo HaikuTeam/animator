@@ -400,7 +400,7 @@ Template.getAllElementsByHaikuId = function getAllElementsByHaikuId (mana) {
 
 Template.fixManaSourceAttribute = function fixManaSourceAttribute (mana, relpath) {
   if (!mana.attributes[SOURCE_ATTRIBUTE]) {
-    mana.attributes[SOURCE_ATTRIBUTE] = path.normalize(relpath)
+    mana.attributes[SOURCE_ATTRIBUTE] = path.posix.normalize(relpath)
   }
 }
 
