@@ -163,6 +163,9 @@ export default class Creator extends React.Component {
       combokeys.bind('command+option+i', lodash.debounce(() => {
         this.toggleDevTools()
       }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
+      combokeys.bind('ctrl+shift+i', lodash.debounce(() => {
+        this.toggleDevTools()
+      }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
     }
 
     // Top secret way to open the dev tools even if running in production
@@ -446,19 +449,19 @@ export default class Creator extends React.Component {
           cp.execSync(`open -b com.apple.terminal ${JSON.stringify(folder)} || true`)
           break
         case 'windows':
-          cp.execSync(`${process.env.windir}\\${process.env.arch === 'x64' ? 'Sysnative' : 'System32'}\\cmd.exe`)
+          cp.execSync(`cd ${JSON.stringify(folder)} && start ${process.env.windir}\\${process.env.arch === 'x64' ? 'Sysnative' : 'System32'}\\cmd.exe`)
           break
         case 'linux':
           if (process.env.DESKTOP_SESSION === 'gnome' || process.env.DESKTOP_SESSION === 'gnome-classic') {
-            cp.execSync(`gnome-terminal ${JSON.stringify(folder)}`)
+            cp.execSync(`cd ${JSON.stringify(folder)} && gnome-terminal`)
           } else if (process.env.DESKTOP_SESSION === 'kde-plasma') {
-            cp.execSync(`konsole ${JSON.stringify(folder)}`)
+            cp.execSync(`cd ${JSON.stringify(folder)} && konsole`)
           } else if (process.env.COLORTERM) {
-            cp.execSync(`${process.env.COLORTERM} ${JSON.stringify(folder)}`)
+            cp.execSync(`cd ${JSON.stringify(folder)} && ${process.env.COLORTERM}`)
           } else if (process.env.TERM) {
-            cp.execSync(`${process.env.TERM} ${JSON.stringify(folder)}`)
+            cp.execSync(`cd ${JSON.stringify(folder)} && ${process.env.TERM}`)
           } else {
-            cp.execSync(`xterm ${JSON.stringify(folder)}`)
+            cp.execSync(`cd ${JSON.stringify(folder)} && xterm`)
           }
           break
         default:
