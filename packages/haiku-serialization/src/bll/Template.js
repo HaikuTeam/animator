@@ -85,7 +85,7 @@ Template.prepareManaAndBuildTimelinesObject = (mana, hash, timelineName, timelin
     Template.ensureTitleAndUidifyTree(
       mana,
       // We shouldn't assume that any node has a source attribute
-      path.normalize(mana.attributes[SOURCE_ATTRIBUTE] || ''),
+      path.posix.normalize(mana.attributes[SOURCE_ATTRIBUTE] || ''),
       hash
     )
   }
