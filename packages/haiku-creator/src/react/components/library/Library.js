@@ -267,7 +267,8 @@ class Library extends React.Component {
     if (this.isSketchInstalled) {
       mixpanel.haikuTrack('creator:sketch:open-file')
       this.openSketchFile(asset)
-    } else {
+    // On library Sketch asset double click, ask to download Sketch only if on mac
+    } else if (process.env.HAIKU_RELEASE_PLATFORM === 'mac') {
       mixpanel.haikuTrack('creator:sketch:sketch-not-installed')
       this.setState({sketchDownloader: {...this.state.sketchDownloader, isVisible: true, asset}})
     }

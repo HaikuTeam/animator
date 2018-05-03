@@ -223,7 +223,8 @@ class AssetItem extends React.Component {
   getAssetMenuItems () {
     const items = []
 
-    if (this.props.asset.isSketchFile()) {
+    // Only display Open In Sketch on mac
+    if (this.props.asset.isSketchFile() && process.env.HAIKU_RELEASE_PLATFORM === 'mac') {
       items.push({
         label: 'Open In Sketch',
         icon: SketchIconSVG,
