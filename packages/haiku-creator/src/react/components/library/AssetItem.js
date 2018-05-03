@@ -389,7 +389,15 @@ class AssetItem extends React.Component {
     }
 
     if (this.props.asset.kind === Asset.KINDS.VECTOR) {
-      const imageSrc = `${escape(this.props.asset.getAbspath())}?t=${this.props.asset.dtModified}`
+      var imageSrc;
+      // Windows platform paths needs transformation to display correct icon and preview
+      // eg. C:\test\a.svg -> /C:/test/a.svg
+      if (process.env.HAIKU_RELEASE_PLATFORM === 'windows') {
+        imageSrc = `/${escape(this.props.asset.getAbspath().replace(/\\/g, '\/'))}?t=${this.props.asset.dtModified}`
+      }
+      else{ 
+        imageSrc = `${escape(this.props.asset.getAbspath())}?t=${this.props.asset.dtModified}`
+      }
       return (
         <span
           className='thumbnail-icon-container'
