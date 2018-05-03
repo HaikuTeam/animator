@@ -1,13 +1,12 @@
 {
-  "date": "April 17, 2018",
+  "date": "May 3, 2018",
   "sections": {
     "What's new": [
-      "Moved the public/private project toggle to project creation.",
-      "The Figma integration now supports assets which are marked for export in addition to slices and groups."
+      "Double-clicking a keyframe now seeks to the indicated time."
     ],
     "Fixes": [
-      "Fixed an issue with the new 50 project limit for Haiku accounts.",
-      "Fixed a Lottie compatibility issue preventing some haiku from rendering in Lottie."
+      "Fixed multiple Lottie issues resulting in some users getting an empty `lottie.json` file.",
+      "Fixed an issue preventing the Vue adapter from receiving Haiku options correctly."
     ]
   }
 }
