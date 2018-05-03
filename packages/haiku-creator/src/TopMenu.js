@@ -69,11 +69,13 @@ export default class TopMenu extends EventEmitter {
       role: 'minimize'
     })
 
-    mainMenuPieces.push({
-      label: 'Hide Haiku',
-      accelerator: 'CmdOrCtrl+H',
-      role: 'hide'
-    })
+    if (process.env.HAIKU_RELEASE_PLATFORM === 'mac'){
+      mainMenuPieces.push({
+        label: 'Hide Haiku',
+        accelerator: 'CmdOrCtrl+H',
+        role: 'hide'
+      })
+    }
 
     mainMenuPieces.push({
       type: 'separator'
