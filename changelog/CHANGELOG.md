@@ -1,6 +1,16 @@
 # Changelog
 
 
+## 3.2.19
+
+### Bug Fixes
+
+ * allow the Vue adapter to receive options
+
+### Features
+
+ * add endpoints to feature/unfeature and pagination
+
 ## 3.2.18
 
 ### Features

@@ -6362,5 +6362,17 @@
       "label": "feat",
       "message": "modify @haiku/sdk-inkstone to accept cookies."
     }
+  },
+  "3.2.19": {
+    "abe57cc1fc1d5ed5bd74202e9a215140f6c1f898": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "allow the Vue adapter to receive options"
+    },
+    "49a4257cc651aaf9d8e4166911338a2f85a0a4a3": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add endpoints to feature/unfeature and pagination"
+    }
   }
 }
