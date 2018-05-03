@@ -6325,5 +6325,42 @@
       "label": "feat",
       "message": "modify @haiku/sdk-inkstone to accept cookies."
     }
+  },
+  "3.2.18": {
+    "736c173a8a40ad0b13df3418616e7458694f558d": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "change numeric vals with up/down+shift in expressions"
+    },
+    "9a74f0eecf6c2a08a8bd62366c464bf951ca14d0": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "allow the Vue adapter to receive options"
+    },
+    "6f60c7ceac9dd7d0dd6faa77d454003ec9c9d7af": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add endpoints to feature/unfeature and pagination"
+    },
+    "1c560a656cecbe18d6400a068daf8be93322e5a3": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "don't crash lottie export when we have to fill a gradient path"
+    },
+    "fb0240213ccd837f8de21330f2305c4f56b59580": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "properly print help info when an unknown command is used in nib"
+    },
+    "71c8781d00762a80f595d06763259f0207e3985f": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "seek timeline and open expression editor on keyframe dblclick"
+    },
+    "2ba66547ba96c798978e95ccd2a41d154904c9f2": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "modify @haiku/sdk-inkstone to accept cookies."
+    }
   }
 }
