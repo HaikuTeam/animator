@@ -1934,13 +1934,16 @@ export class Glass extends React.Component {
 
     items.push({ type: 'separator' })
 
-    items.push({
-      label: 'Edit in Sketch',
-      enabled: proxy.isSelectionSketchEditable(),
-      onClick: () => {
-        shell.openItem(path.join(this.props.folder, proxy.getSketchAssetPath()))
-      }
-    })
+    // Only display Edit In Sketch on mac
+    if (process.env.HAIKU_RELEASE_PLATFORM === 'mac') {
+      items.push({
+        label: 'Edit in Sketch',
+        enabled: proxy.isSelectionSketchEditable(),
+        onClick: () => {
+          shell.openItem(path.join(this.props.folder, proxy.getSketchAssetPath()))
+        }
+      })
+    }
 
     items.push({
       label: 'Edit in Figma',
