@@ -145,8 +145,21 @@ export class TourHandler implements Tour {
 
   private webviewData: object = {};
 
+  // platformStates maps currentStep to platformState and it is set on 
+  // constructor according to current platform (atm, mac or window/linux)
+  private platformStates: number[];
+
   constructor(server: EnvoyServer) {
     this.server = server;
+
+    //Set state sequence array according to platform
+    if (process.env['HAIKU_RELEASE_PLATFORM'] === 'mac') {
+      // Mac state sequence
+      this.platformStates = [0, 1, 2, 3, 4, 5, 6 ,7, 8, 9, 10];
+    } else {
+      // Windows and Linux state sequence
+      this.platformStates = [0, 1, 2, 3, 4, 5, 6, 9, 10];
+    }
   }
 
   private renderCurrentStepAgain() {
@@ -176,7 +189,7 @@ export class TourHandler implements Tour {
       payload: {
         ...state,
         coordinates: position,
-        stepData: {current: this.currentStep, total: this.states.length - 1},
+        stepData: {current: this.currentStep, total: this.platformStates.length - 1},
       },
       name: 'tour:requestShowStep',
     });
@@ -196,12 +209,13 @@ export class TourHandler implements Tour {
     });
   }
 
-  private getState() {
-    return this.states[this.currentStep];
+  // It maps sequential currentStep to platform state
+  private getPlatformState() {
+    return this.states[this.platformStates[this.currentStep]];
   }
 
   receiveElementCoordinates(webview: string, position: ClientBoundingRect) {
-    const state = this.getState();
+    const state = this.getPlatformState();
     const fallbackPosition = {top: 0, left: 0};
     const origin = this.webviewData[webview] || fallbackPosition;
     const top = origin.top + position.top;
@@ -252,7 +266,7 @@ export class TourHandler implements Tour {
 
     this.currentStep++;
 
-    const nextState = this.getState();
+    const nextState = this.getPlatformState();
 
     if (nextState) {
       this.requestElementCoordinates(nextState);
@@ -263,7 +277,7 @@ export class TourHandler implements Tour {
 
   prev() {
     if (this.isActive && this.currentStep-- > 0) {
-      const nextState = this.getState();
+      const nextState = this.getPlatformState();
       this.requestElementCoordinates(nextState);
     }
   }
