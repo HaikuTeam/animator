@@ -531,6 +531,25 @@ export class Glass extends React.Component {
       ifIsRunningStandalone(() => this.handlePasteDebounced())
     })
 
+  // Workaround to fix electron(Chromium) distinct codepath for
+  // Windows and Linux shortcuts. More info:
+  // https://github.com/electron/electron/issues/7165#issuecomment-246486798
+  // https://github.com/buttercup/buttercup-desktop/pull/223
+   if (global.process.env.HAIKU_RELEASE_PLATFORM === 'windows' ||
+       global.process.env.HAIKU_RELEASE_PLATFORM === 'linux') {
+          combokeys.bind('ctrl+x', () => {
+            this.handleCutDebounced()
+          })
+      
+          combokeys.bind('ctrl+c', () => {
+            this.handleCopyDebounced()
+          })
+      
+          combokeys.bind('ctrl+v', () => {
+            this.handlePasteDebounced()
+          })
+    }
+
     if (experimentIsEnabled(Experiment.ElementMultiSelectAndTransform)) {
       combokeys.bind('command+a', () => {
         ifIsRunningStandalone(() => this.handleSelectAllDebounced())
@@ -1829,7 +1848,7 @@ export class Glass extends React.Component {
   getCursorCssRule () {
     if (this.isPreviewMode()) return 'default'
     if (this.state.isAnythingRotating || this.state.isAnythingScaling) return 'none'
-    return (this.state.stageMouseDown) ? '-webkit-grabbing' : 'default'
+    return (this.state.stageMouseDown) ? 'move' : 'default'
   }
 
   renderHotComponentMount (mount, drawingClassName) {
