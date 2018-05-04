@@ -15,6 +15,15 @@ const Globals = {
     Globals.isAltKeyDown = false;
     Globals.isSpaceKeyDown = false;
   },
+
+  // Special key is resposible for initiating rotate and reset zoom
+  isSpecialKeyDown: () => {
+    if (process.env['HAIKU_RELEASE_PLATFORM'] === 'mac'){
+      return Globals.isCommandKeyDown;
+    } else{
+      return Globals.isControlKeyDown;
+    }
+  }
 };
 
 window.addEventListener('mousemove', (mouseMoveEvent) => {
