@@ -1,3 +1,6 @@
+import * as enviroment from 'haiku-common/lib/environments'
+
+
 /* tslint:disable:variable-name */
 const Globals = {
   mouse: {x: 0, y: 0},
@@ -18,12 +21,11 @@ const Globals = {
 
   // Special key is resposible for initiating rotate and reset zoom
   isSpecialKeyDown: () => {
-    if (process.env['HAIKU_RELEASE_PLATFORM'] === 'mac'){
+    if (enviroment.isMac()) {
       return Globals.isCommandKeyDown;
-    } else{
-      return Globals.isControlKeyDown;
-    }
-  }
+    } 
+    return Globals.isControlKeyDown;
+  },
 };
 
 window.addEventListener('mousemove', (mouseMoveEvent) => {
