@@ -90,7 +90,8 @@ export default class HaikuContext extends HaikuBase {
 
     this.component = new HaikuComponent(
       bytecode,
-      this,
+      this, // context
+      null, // host
       this.config,
       this.container,
     );
@@ -129,7 +130,7 @@ export default class HaikuContext extends HaikuBase {
 
   /**
    * @method getRootComponent
-   * @description Return the root component associated with this context (of which there is only one).
+   * @description Returns the HaikuComponent managed by this context.
    */
   getRootComponent() {
     return this.component;
@@ -137,7 +138,7 @@ export default class HaikuContext extends HaikuBase {
 
   /**
    * @method getClock
-   * @description Return the clock instance associated with this context
+   * @description Returns the HaikuClock instance associated with this context.
    */
   getClock() {
     return this.clock;
@@ -145,6 +146,7 @@ export default class HaikuContext extends HaikuBase {
 
   /**
    * @method contextMount
+   * @description Adds this context the global update loop.
    */
   contextMount() {
     if (this.unmountedTickables) {
@@ -158,6 +160,7 @@ export default class HaikuContext extends HaikuBase {
 
   /**
    * @method contextUnmount
+   * @description Removes this context from global update loop.
    */
   contextUnmount() {
     this.unmountedTickables = this.tickables.splice(0);
@@ -195,72 +198,72 @@ export default class HaikuContext extends HaikuBase {
 
   /**
    * @method assignConfig
-   * @description Update our internal settings with those passed in, using the assign algorithm.
-   * This also updates the internal options for the clock instance and root component instance.
+   * @description Updates internal configuration options, assigning those passed in.
+   * Also updates the configuration of the clock instance and managed component instance.
    */
   assignConfig(config, options) {
     this.config = {...config};
 
-    // HACK: Since we run this method before the clock is initialized sometimes,
-    // we have to check whether the clock exists before assigning sub-options to it.
-    if (this.clock) {
+    if (this.clock) { // This method may run before the clock is initialized
       this.clock.assignOptions(this.config.clock);
     }
 
-    // HACK: Since we run this method before the component is initialized sometimes, we have to check whether the
-    // component exists before assigning options to it.
-    if (this.component) {
-      // This step can optionally be skipped since this.component might be updating _us_, and we don't want to create an
-      // infinite loop.
-      if (!options || !options.skipComponentAssign) {
+    if (this.component) { // This method may run before the managed component is initialized
+      if (!options || !options.skipComponentAssign) { // Avoid an infinite loop if the managed component is updating us
         this.component.assignConfig(this.config);
       }
     }
   }
 
+  /**
+   * @method getContainer
+   * @description Returns the container, a virtual-element-like object that provides sizing
+   * constraints at the topmost/outermost level from which the descendant layout can be calculated.
+   */
   getContainer(doForceRecalc = false) {
     if (doForceRecalc || this.renderer.shouldCreateContainer) {
-      // Mutates this.container in place
-      this.renderer.createContainer(this.container);
+      this.renderer.createContainer(this.container); // The container is mutated in place
     }
 
     return this.container;
   }
 
-
-  render() {
-    const tree = this.component.render(this.getContainer(true), this.config);
-
-    // The component can optionally return undefined as a signal to take no action
-    // TODO: Maybe something other than undefined would be better
-    if (tree !== undefined) {
-      return this.renderer.render(this.getContainer(), tree, this.component);
-    }
-  }
-
-  // Call to completely update the entire component tree - as though it were the first time
+  /**
+   * @method performFullFlushRender
+   * @description Updates the entire component tree, flushing updates to the rendering medium.
+   */
   performFullFlushRender() {
     if (!this.mount) {
       return;
     }
 
-    this.render();
+    this.component.performFullFlushRenderWithRenderer(
+      this.renderer,
+      this.config,
+    );
   }
 
-  // Call to update elements of the this.component tree - but only those that we detect have changed
+  /**
+   * @method performPatchRender
+   * @description Updates the component tree, but only updating properties we know have changed.
+   */
   performPatchRender(skipCache = false) {
     if (!this.mount) {
       return;
     }
 
-    const patches = this.component.patch(this.getContainer(), this.config, skipCache);
-
-    this.renderer.patch(patches, this.component);
+    this.component.performPatchRenderWithRenderer(
+      this.renderer,
+      this.config,
+      skipCache,
+    );
   }
 
-  // Called on every frame, this function updates the mount+root elements
-  // to ensure their style settings are in accordance with any passed-in
-  // haikuConfig.options that may affect it, e.g. CSS overflow or positioning settings
+  /**
+   * @method updateMountRootStyles
+   * @description Reconciles the properties of the rendering medium's mount element with any
+   * configuration options that have been passed in, e.g. CSS overflow settings.
+   */
   updateMountRootStyles() {
     if (!this.mount) {
       return;
@@ -293,15 +296,21 @@ export default class HaikuContext extends HaikuBase {
     }
   }
 
+  /**
+   * @method tick
+   * @description Advances the component animation by one tick. Note that one tick is not necessarily
+   * equivalent to one frame. If the animation frame loop is running too fast, the clock may wait before
+   * incrementing the frame number. In other words, a tick implies an update but not necessarily a change.
+   */
   tick(skipCache = false) {
     let flushed = false;
 
     // Only continue ticking and updating if our root component is still activated and awake;
     // this is mainly a hacky internal hook used during hot editing inside Haiku Desktop
-    if (!this.component.isDeactivated() && !this.component.isSleeping()) {
+    if (!this.component.isDeactivated && !this.component.isSleeping) {
       // After we've hydrated the tree the first time, we can proceed with patches --
       // unless the component indicates it wants a full flush per its internal settings.
-      if (this.component._shouldPerformFullFlush() || this.config.forceFlush || this.ticks < 1) {
+      if (this.component.shouldPerformFullFlush() || this.config.forceFlush || this.ticks < 1) {
         this.performFullFlushRender();
 
         flushed = true;
@@ -309,7 +318,7 @@ export default class HaikuContext extends HaikuBase {
         this.performPatchRender(skipCache);
       }
 
-      // We update the mount root *after* we complete the render pass ^^ because configuration
+      // We update the mount root *after* we complete the render pass because configuration
       // from the top level should unset anything that the component set.
       // Specifically important wrt overflow, where the component probably defines
       // overflowX/overflowY: hidden, but our configuration might define them as visible.
@@ -326,6 +335,11 @@ export default class HaikuContext extends HaikuBase {
     }
   }
 
+  /**
+   * @method getGlobalUserState
+   * @description Since the core renderer is medium-agnostic, we rely on the renderer to provide data
+   * about the current user (the mouse position, for example). This method is just a convenience wrapper.
+   */
   getGlobalUserState() {
     return this.renderer && this.renderer.getUser && this.renderer.getUser();
   }
@@ -341,7 +355,7 @@ HaikuContext['createComponentFactory'] = (
   bytecode,
   haikuConfigFromFactoryCreator,
   platform,
-) => {
+): Function => {
   if (!rendererClass) {
     throw new Error('A runtime renderer class object is required');
   }
@@ -356,7 +370,7 @@ HaikuContext['createComponentFactory'] = (
       // The seed value should remain constant from here on, because it is used for PRNG
       seed: Config.seed(),
 
-      // The now value is used to compute a current date with respect to the current time
+      // The now-value is used to compute a current date with respect to the current time
       timestamp: Date.now(),
     },
 
@@ -367,11 +381,11 @@ HaikuContext['createComponentFactory'] = (
 
   /**
    * @function HaikuComponentFactory
-   * @description Creates a new HaikuComponent instance.
+   * @description Creates a HaikuContext instance, with a component, and returns the component.
    * The (renderer, bytecode) pair are bootstrapped into the given mount element, and played.
    */
   // tslint:disable-next-line:function-name
-  const HaikuComponentFactory = (mount, haikuConfigFromFactory) => {
+  const HaikuComponentFactory = (mount, haikuConfigFromFactory): HaikuComponent => {
     // Merge any config received "late" with the config we might have already gotten during bootstrapping
     const haikuConfigMerged = Config.build(haikuConfigFromTop, haikuConfigFromFactory);
 
@@ -385,6 +399,7 @@ HaikuContext['createComponentFactory'] = (
     // It's a bit hacky to just expose these in this way, but it proves pretty convenient downstream.
     HaikuComponentFactory['bytecode'] = bytecode;
     HaikuComponentFactory['renderer'] = renderer;
+
     // Note that these ones could theoretically change if this factory was called more than once; use with care
     HaikuComponentFactory['mount'] = mount;
     HaikuComponentFactory['context'] = context;

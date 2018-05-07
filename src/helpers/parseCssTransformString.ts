@@ -48,18 +48,22 @@ export default function parseCssTransformString(inStr) {
       translate: [0, 0, 0],
       rotate: [0, 0, 0],
       scale: [1, 1, 1],
+      skew: [0, 0],
     };
 
     switch (spec.type) {
       // 1D
       case 'rotatex':
-        layout.rotate[0] = spec.values[0].value;
+        layout.rotate[0] =
+          spec.values[0].unit === 'deg' ? MathUtils.degreesToRadians(spec.values[0].value) : spec.values[0].value;
         break;
       case 'rotatey':
-        layout.rotate[1] = spec.values[0].value;
+        layout.rotate[1] =
+          spec.values[0].unit === 'deg' ? MathUtils.degreesToRadians(spec.values[0].value) : spec.values[0].value;
         break;
       case 'rotatez':
-        layout.rotate[2] = spec.values[0].value;
+        layout.rotate[2] =
+          spec.values[0].unit === 'deg' ? MathUtils.degreesToRadians(spec.values[0].value) : spec.values[0].value;
         break;
       case 'translatex':
         layout.translate[0] = spec.values[0].value;
@@ -79,6 +83,14 @@ export default function parseCssTransformString(inStr) {
       case 'scalez':
         layout.scale[2] = spec.values[0].value;
         break;
+      case 'skewx':
+        layout.skew[0] =
+          spec.values[0].unit === 'deg' ? MathUtils.degreesToRadians(spec.values[0].value) : spec.values[0].value;
+        break;
+      case 'skewy':
+        layout.skew[1] =
+          spec.values[0].unit === 'deg' ? MathUtils.degreesToRadians(spec.values[0].value) : spec.values[0].value;
+        break;
 
       // 2D
       case 'rotate':
@@ -88,6 +100,14 @@ export default function parseCssTransformString(inStr) {
       case 'scale':
         layout.scale[0] = spec.values[0].value;
         layout.scale[1] = spec.values[1] ? spec.values[1].value : spec.values[0].value;
+        break;
+      case 'skew':
+        layout.skew[0] =
+          spec.values[0].unit === 'deg' ? MathUtils.degreesToRadians(spec.values[0].value) : spec.values[0].value;
+        if (spec.values[1]) {
+          layout.skew[1] =
+            spec.values[1].unit === 'deg' ? MathUtils.degreesToRadians(spec.values[1].value) : spec.values[1].value;
+        }
         break;
       case 'translate':
         layout.translate[0] = spec.values[0].value;

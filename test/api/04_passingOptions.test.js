@@ -56,6 +56,6 @@ test('passingOptions', function (t) {
 
     t.equal(component._states.bux, 9000, 'states were set')
 
-    component._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
+    component.context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
   })
 })

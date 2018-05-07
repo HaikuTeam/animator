@@ -1,9 +1,10 @@
 import HaikuBase from './HaikuBase';
 import cssMatchOne from './helpers/cssMatchOne';
+import Layout3D from './Layout3D';
 
-const HAIKU_ID_ATTRIBUTE = 'haiku-id';
-const HAIKU_TITLE_ATTRIBUTE = 'haiku-title';
-const HAIKU_SOURCE_ATTRIBUTE = 'source';
+export const HAIKU_ID_ATTRIBUTE = 'haiku-id';
+export const HAIKU_TITLE_ATTRIBUTE = 'haiku-title';
+const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source';
 const DEFAULT_TAG_NAME = 'div';
 const COMPONENT_PSEUDO_TAG_NAME = DEFAULT_TAG_NAME;
 const TEXT_PSEUDO_TAG_NAME = '__text__';
@@ -68,11 +69,25 @@ export default class HaikuElement extends HaikuBase {
     return 1;
   }
 
+  /**
+   * @method subcomponent
+   * @description Returns the HaikuComponent instance that manages nodes below this one.
+   * This node is considered the 'wrapper' node and its child is considered the 'root'.
+   */
+  get subcomponent(): any {
+    return this.node && this.node.__subcomponent;
+  }
+
+  /**
+   * @method subcomponent
+   * @description Returns the HaikuComponent instance that manages this node and those beneath.
+   * This node is considered the 'root' node of the instance.
+   */
   get instance(): any {
     return this.node && this.node.__instance;
   }
 
-  get context(): any {
+  get instanceContext(): any {
     return this.node && this.node.__context;
   }
 
@@ -84,13 +99,35 @@ export default class HaikuElement extends HaikuBase {
     return this.parentNode && this.parentNode.__element;
   }
 
-  get host(): any {
-    if (this.instance) { return this.instance; }
-    return this.parent && this.parent.host;
-  }
-
   get layout(): any {
     return this.node && this.node.layout && this.node.layout.computed;
+  }
+
+  get layoutMatrix(): number[] {
+    return (this.layout && this.layout.matrix) || Layout3D.createMatrix();
+  }
+
+  get layoutAncestry(): any[] {
+    if (!this.layout) {
+      return [];
+    }
+
+    const ancestry = [this.layout];
+    // tslint:disable-next-line:no-var-self
+    let ancestor = this;
+    while (ancestor.parent) {
+      ancestor = ancestor.parent;
+      const layout = ancestor.layout;
+      if (layout) {
+        ancestry.unshift(layout);
+      }
+    }
+
+    return ancestry;
+  }
+
+  get layoutAncestryMatrices(): number[][] {
+    return this.layoutAncestry.map((layout) => layout.matrix);
   }
 
   get rawLayout(): any {
@@ -109,12 +146,30 @@ export default class HaikuElement extends HaikuBase {
     return this.layout && this.layout.scale;
   }
 
+  get origin(): any {
+    return this.layout && this.layout.origin;
+  }
+
+  get mount(): any {
+    return this.layout && this.layout.mount;
+  }
+
+  get align(): any {
+    return this.layout && this.layout.align;
+  }
+
   get size(): any {
     return this.layout && this.layout.size;
   }
 
+  get targets(): any[] {
+    return (this.node && this.node.__targets) || [];
+  }
+
   get target(): any {
-    return this.node && this.node.__target;
+    // Assume the first discovered target is the canonical target due to an implementation
+    // detail in the Haiku editing environment; FIXME
+    return this.targets[0];
   }
 
   get rotationX(): number {
@@ -177,6 +232,42 @@ export default class HaikuElement extends HaikuBase {
     return this.size && this.size.z;
   }
 
+  get originX(): number {
+    return this.origin && this.origin.x;
+  }
+
+  get originY(): number {
+    return this.origin && this.origin.y;
+  }
+
+  get originZ(): number {
+    return this.origin && this.origin.z;
+  }
+
+  get mountX(): number {
+    return this.mount && this.mount.x;
+  }
+
+  get mountY(): number {
+    return this.mount && this.mount.y;
+  }
+
+  get mountZ(): number {
+    return this.mount && this.mount.z;
+  }
+
+  get alignX(): number {
+    return this.align && this.align.x;
+  }
+
+  get alignY(): number {
+    return this.align && this.align.y;
+  }
+
+  get alignZ(): number {
+    return this.align && this.align.z;
+  }
+
   getComponentId(): string {
     return this.attributes[HAIKU_ID_ATTRIBUTE];
   }
@@ -219,17 +310,17 @@ export default class HaikuElement extends HaikuBase {
     );
   }
 
-  visit(iteratee: Function) {
+  visit(iteratee: Function, filter?: Function) {
     if (iteratee(this) !== false) {
-      return this.visitDescendants(iteratee);
+      return this.visitDescendants(iteratee, filter);
     }
   }
 
-  visitDescendants(iteratee: Function) {
-    const children = this.children;
+  visitDescendants(iteratee: Function, filter?: Function) {
+    const children = filter ? this.children.filter(filter) : this.children;
 
     for (let i = 0; i < children.length; i++) {
-      if (children[i].visit(iteratee) === false) {
+      if (children[i].visit(iteratee, filter) === false) {
         break;
       }
     }
@@ -270,13 +361,7 @@ export default class HaikuElement extends HaikuBase {
 HaikuElement['findByNode'] = (node) => {
   const registry = HaikuBase['getRegistryForClass'](HaikuElement);
 
-  const matches = registry.filter((instance) => {
-    return instance.node === node;
-  });
-
-  if (matches.length > 0) {
-    return matches[0];
-  }
+  return registry.find((instance) => instance.node === node);
 };
 
 HaikuElement['connectNodeWithElement'] = (node, element) => {

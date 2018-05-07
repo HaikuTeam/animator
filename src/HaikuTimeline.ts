@@ -3,6 +3,7 @@
  */
 
 import HaikuBase, {GLOBAL_LISTENER_KEY} from './HaikuBase';
+import HaikuComponent from './HaikuComponent';
 import getTimelineMaxTime from './helpers/getTimelineMaxTime';
 import assign from './vendor/assign';
 
@@ -18,9 +19,9 @@ const DEFAULT_OPTIONS = {
 export default class HaikuTimeline extends HaikuBase {
   options;
   component;
+  name;
+  descriptor;
 
-  _name;
-  _descriptor;
   _globalClockTime;
   _localElapsedTime;
   _localExplicitlySetTime;
@@ -31,9 +32,8 @@ export default class HaikuTimeline extends HaikuBase {
     super();
 
     this.component = component;
-
-    this._name = name;
-    this._descriptor = descriptor;
+    this.name = name;
+    this.descriptor = descriptor;
 
     this.assignOptions(options || {});
 
@@ -138,7 +138,7 @@ export default class HaikuTimeline extends HaikuBase {
    * @description Return the name of this timeline
    */
   getName() {
-    return this._name;
+    return this.name;
   }
 
   /**
@@ -260,6 +260,10 @@ export default class HaikuTimeline extends HaikuBase {
     return ~~this.getElapsedTime() > this.getMaxTime();
   }
 
+  isUnfinished() {
+    return !this.isFinished();
+  }
+
   duration() {
     return this.getMaxTime() || 0;
   }
@@ -303,7 +307,7 @@ export default class HaikuTimeline extends HaikuBase {
 
   pause() {
     const time = this.component.getClock().getTime();
-    const descriptor = this.component.getTimelineDescriptor(this._name);
+    const descriptor = this.component.getTimelineDescriptor(this.name);
     this.stop(time, descriptor);
     this.emit('pause');
   }
@@ -314,7 +318,7 @@ export default class HaikuTimeline extends HaikuBase {
     this.ensureClockIsRunning();
 
     const time = this.component.getClock().getTime();
-    const descriptor = this.component.getTimelineDescriptor(this._name);
+    const descriptor = this.component.getTimelineDescriptor(this.name);
     const local = this._localElapsedTime;
 
     this.start(time, descriptor);
@@ -327,7 +331,7 @@ export default class HaikuTimeline extends HaikuBase {
     }
 
     if (!options.skipMarkForFullFlush) {
-      this.component._markForFullFlush();
+      this.component.markForFullFlush();
     }
 
     this.emit('play');
@@ -337,9 +341,9 @@ export default class HaikuTimeline extends HaikuBase {
     this.ensureClockIsRunning();
     const clockTime = this.component.getClock().getTime();
     this.controlTime(ms, clockTime);
-    const descriptor = this.component.getTimelineDescriptor(this._name);
+    const descriptor = this.component.getTimelineDescriptor(this.name);
     this.start(clockTime, descriptor);
-    this.component._markForFullFlush();
+    this.component.markForFullFlush();
     this.emit('seek', ms);
   }
 
@@ -352,9 +356,30 @@ export default class HaikuTimeline extends HaikuBase {
   gotoAndStop(ms) {
     this.ensureClockIsRunning();
     this.seek(ms);
-    if (this.component && this.component._context && this.component._context.tick) {
-      this.component._context.tick();
+    if (this.component && this.component.context && this.component.context.tick) {
+      this.component.context.tick();
     }
     this.pause();
   }
 }
+
+HaikuTimeline['all'] = (): HaikuTimeline[] => {
+  const all = HaikuBase['getRegistryForClass'](HaikuTimeline);
+  return all.filter((timeline) => !timeline.isDestroyed);
+};
+
+HaikuTimeline['where'] = (criteria): HaikuTimeline[] => {
+  const all = HaikuTimeline['all']();
+  return all.filter((timeline) => {
+    return timeline.matchesCriteria(criteria);
+  });
+};
+
+HaikuTimeline['create'] = (component: HaikuComponent, name, descriptor, config): HaikuTimeline => {
+  return new HaikuTimeline(
+    component,
+    name,
+    descriptor,
+    config,
+  );
+};

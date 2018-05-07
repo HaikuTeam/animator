@@ -27,10 +27,10 @@ export default function mixpanelInit(mixpanelToken, component) {
       script.src = 'https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js';
       head.appendChild(script);
 
-      window['mixpanel'].init(mixpanelToken);
+      window['mixpanel'].init(mixpanelToken, {ip: false});
     }
 
-    const metadata = (component._bytecode && component._bytecode.metadata) || {};
+    const metadata = (component.bytecode && component.bytecode.metadata) || {};
 
     window['mixpanel'].track(
       'component:initialize',

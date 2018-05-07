@@ -42,6 +42,6 @@ test('exposedProperties', function (t) {
     t.equal(component.PLAYER_VERSION, PACKAGE.version, 'player version is present on component') // #LEGACY
     t.equal(component.CORE_VERSION, PACKAGE.version, 'core version is present on component')
 
-    component._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
+    component.context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
   })
 })

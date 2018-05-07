@@ -49,19 +49,6 @@ export default function compose(out, opt) {
     mat4.multiply(out, out, tmpMat4);
   }
 
-  // apply the independent skewX() and skewY() operations
-  if (typeof opt.skewX === 'number') {
-    tmpMat4[4] = Math.tan(opt.skewX);
-    tmpMat4[1] = 0;
-    mat4.multiply(out, out, tmpMat4);
-  }
-
-  if (typeof opt.skewY === 'number') {
-    tmpMat4[4] = 0;
-    tmpMat4[1] = Math.tan(opt.skewY);
-    mat4.multiply(out, out, tmpMat4);
-  }
-
   // apply scale() operation
   mat4.scale(out, out, scale);
 

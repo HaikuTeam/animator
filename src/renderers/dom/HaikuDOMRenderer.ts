@@ -38,14 +38,25 @@ export default class HaikuDOMRenderer extends HaikuBase {
     this.config = config;
 
     this.shouldCreateContainer = true;
+
+    // Ensure we don't conflict with existing content in the mount
+    this.clear();
+  }
+
+  clear() {
+    if (this.mount) {
+      while (this.mount.firstChild) {
+        this.mount.removeChild(this.mount.firstChild);
+      }
+    }
   }
 
   render(virtualContainer, virtualTree, component) {
     return render(this.mount, virtualContainer, virtualTree, component);
   }
 
-  patch(patchesDict, component) {
-    return patch(this.mount, patchesDict, component);
+  patch(component, patches) {
+    return patch(component, patches);
   }
 
   menuize(component) {

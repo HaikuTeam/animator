@@ -43,6 +43,6 @@ test('dom-embed', function (t) {
     t.equal(component.PLAYER_VERSION, pkg.version, 'player version equal') // #LEGACY
     t.equal(component.CORE_VERSION, pkg.version, 'core version equal')
 
-    component._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
+    component.context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
   })
 })

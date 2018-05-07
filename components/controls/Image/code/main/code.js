@@ -15,6 +15,9 @@ module.exports = {
   timelines: {
     Default: {
       'haiku:HaikuControlsImageDivWrapper': {
+        'origin.x': { '0': { value: 0 } },
+        'origin.y': { '0': { value: 0 } },
+        'origin.z': { '0': { value: 0 } },
         'style.WebkitTapHighlightColor': { '0': { value: 'rgba(0,0,0,0)' } },
         'style.position': { '0': { value: 'relative' } },
         'style.overflowX': { '0': { value: 'hidden' } },
@@ -29,7 +32,6 @@ module.exports = {
             }, 'sizeAbsolute.x')
           }
         },
-
         'sizeAbsolute.y': {
           '0': {
             value: Haiku.inject(function (sizeAbsoluteY) {

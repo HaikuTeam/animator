@@ -52,12 +52,14 @@ export default class HaikuBase {
   private listeners;
 
   $id;
+  isDestroyed;
   config; // Implemented by subclass
   parent; // Implemented by subclass
 
   constructor() {
     this.$id = addInstanceToGlobalModelRegistry(this);
     this.listeners = {};
+    this.isDestroyed = false;
   }
 
   getId(): number {
@@ -211,6 +213,26 @@ export default class HaikuBase {
     if (typeof this.config[keyCamelCaseWithOnHaikuPrefix] === 'function') {
       this.config[keyCamelCaseWithOnHaikuPrefix].apply(null, args);
     }
+  }
+
+  matchesCriteria (criteria): boolean {
+    if (!criteria) {
+      return false;
+    }
+
+    let answer = true;
+
+    for (const key in criteria) {
+      if (this[key] !== criteria[key]) {
+        answer = false;
+      }
+    }
+
+    return answer;
+  }
+
+  destroy() {
+    this.isDestroyed = true;
   }
 }
 

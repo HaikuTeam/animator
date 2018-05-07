@@ -2,6 +2,7 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
+import Layout3D from '../Layout3D';
 import formatTransform from './formatTransform';
 import isEqualTransformString from './isEqualTransformString';
 import scopeOfElement from './scopeOfElement';
@@ -87,8 +88,8 @@ export default function applyCssLayout(domElement, virtualElement, nodeLayout, c
     }
   }
 
-  if (virtualElement.elementName === SVG && !domElement.style.transformOrigin) {
-    // Reset the transform-origin to allow our layout system to be self-contained.
+  if (Layout3D.virtualElementIsLayoutContainer(virtualElement)) {
+    // Reset the transform-origin so that our layout system can be self-contained.
     domElement.style.transformOrigin = '0% 0% 0px';
   }
 
