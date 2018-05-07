@@ -6,6 +6,7 @@ const packageJson = require('../package.json');
 const ENDPOINTS = {
   PROJECT_CREATE: 'v0/project',
   LOGIN: 'v0/user/auth',
+  LOGOUT: 'v0/user/auth',
   CHANGE_PASSWORD: 'v0/user/password',
   ORGANIZATION_LIST: 'v0/organization',
   COMMUNITY_PROJECT_LIST: 'v0/community',
@@ -20,6 +21,8 @@ const ENDPOINTS = {
   INVITE_CLAIM: 'v0/invite/claim',
   SNAPSHOT_GET_BY_ID: 'v0/snapshot/:ID',
   SNAPSHOT_SYNDICATED_BY_ID: 'v0/snapshot/:ID/syndicated',
+  SNAPSHOT_FEATURE_BY_ID: 'v0/snapshot/:ID/is_featured',
+  SNAPSHOT_UNFEATURE_BY_ID: 'v0/snapshot/:ID/is_featured',
   PROJECT_SNAPSHOT_BY_NAME_AND_SHA: 'v0/project/:NAME/snapshot/:SHA',
   PROJECT_GET_BY_NAME: 'v0/project/:NAME',
   PROJECT_GET_BY_UNIQUE_ID: 'v0/project/:UNIQUE_ID',
@@ -48,7 +51,7 @@ const getInstanceWithDefaults = (defaults) => {
     get: (options, cb) => requestLib.get({...defaults, ...options}, cb),
     post: (options, cb) => requestLib.post({...defaults, ...options}, cb),
     put: (options, cb) => requestLib.put({...defaults, ...options}, cb),
-    delete: (options, cb) => requestLib.delete({...defaults, ...options}, cb),
+    delete: (options, cb) => requestLib.del({...defaults, ...options}, cb),
   };
 };
 
@@ -85,6 +88,17 @@ const maybeAuthorizationHeaders = (authToken: string|undefined): {Authorization:
 };
 
 export namespace inkstone {
+
+  export interface Pagination {
+    Page: number;
+    PerPage: number;
+  }
+
+  export interface PaginatedResponse<T> {
+    Page: number;
+    TotalPages: number;
+    Collection: T[];
+  }
 
   export interface InkstoneConfig {
     baseUrl?: string;
@@ -179,6 +193,20 @@ export namespace inkstone {
       });
     }
 
+    export function unauthenticate(authToken: string|undefined, cb: inkstone.Callback<boolean>) {
+      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        url: inkstoneConfig.baseUrl + ENDPOINTS.LOGOUT,
+        headers: {
+          ...baseHeaders,
+          ...maybeAuthorizationHeaders(authToken),
+        },
+      };
+
+      request.delete(options, (err, httpResponse) => {
+        cb(undefined, true, httpResponse);
+      });
+    }
+
     export function getDetails(authToken: string|undefined, cb: inkstone.Callback<User>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.USER_DETAIL,
@@ -238,14 +266,28 @@ export namespace inkstone {
       });
     }
 
-    export function requestResetPassword(email: string, cb: inkstone.Callback<boolean>) {
+    export interface PasswordResetCreateParams {
+      Email: string;
+      ContinueUrl?: string;
+    }
+
+    export function requestResetPassword(params: string|PasswordResetCreateParams, cb: inkstone.Callback<boolean>) {
+      const body = {} as {email: string, continue_url: string};
+      if (typeof params === 'string') {
+        // Legacy: params passed as string.
+        body.email = params;
+      } else {
+        body.email = params.Email;
+        body.continue_url = params.ContinueUrl;
+      }
+
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.RESET_PASSWORD,
         headers: baseHeaders,
-        body: JSON.stringify({email}),
+        body: JSON.stringify(body),
       };
 
-      request.post(options, (err, httpResponse, body) => {
+      request.post(options, (err, httpResponse) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, true, httpResponse);
         } else {
@@ -254,11 +296,22 @@ export namespace inkstone {
       });
     }
 
-    export function requestConfirmEmail(email: string, cb: inkstone.Callback<Authentication>) {
+    export interface RequestConfirmEmailParams {
+      Email: string;
+      ContinueUrl?: string;
+    }
+
+    export function requestConfirmEmail(
+      params: string|RequestConfirmEmailParams, cb: inkstone.Callback<Authentication>) {
+      const email = typeof params === 'string' ? params : params.Email;
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.USER_REQUEST_CONFIRM.replace(':email', email),
         headers: baseHeaders,
       };
+
+      if (typeof params !== 'string' && params.ContinueUrl) {
+        options.url += `?continue_url=${encodeURIComponent(params.ContinueUrl)}`;
+      }
 
       request.post(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
@@ -293,6 +346,7 @@ export namespace inkstone {
       Password: string;
       OrganizationName: string;
       NewsletterOptIn?: boolean;
+      ContinueUrl?: string;
     }
 
     export function create(user: UserCreateParams, cb: inkstone.Callback<boolean>) {
@@ -500,6 +554,44 @@ export namespace inkstone {
     export function assembleSnapshotLinkFromSnapshot(snapshot: Snapshot) {
       return `${inkstoneConfig.baseShareUrl}${snapshot.UniqueId}/latest`;
     }
+
+    export function feature(authToken: string|undefined, uniqueId: string, cb: inkstone.Callback<boolean>) {
+      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        url: inkstoneConfig.baseUrl + ENDPOINTS.SNAPSHOT_FEATURE_BY_ID.replace(
+          ':ID', uniqueId),
+        headers: {
+          ...baseHeaders,
+          ...maybeAuthorizationHeaders(authToken),
+        },
+      };
+
+      request.put(options, (err, httpResponse) => {
+        if (httpResponse && httpResponse.statusCode === 204) {
+          cb(undefined, true, httpResponse);
+        } else {
+          cb(safeError(err), false, httpResponse);
+        }
+      });
+    }
+
+    export function unfeature(authToken: string|undefined, uniqueId: string, cb: inkstone.Callback<boolean>) {
+      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        url: inkstoneConfig.baseUrl + ENDPOINTS.SNAPSHOT_UNFEATURE_BY_ID.replace(
+          ':ID', uniqueId),
+        headers: {
+          ...baseHeaders,
+          ...maybeAuthorizationHeaders(authToken),
+        },
+      };
+
+      request.delete(options, (err, httpResponse) => {
+        if (httpResponse && httpResponse.statusCode === 204) {
+          cb(undefined, true, httpResponse);
+        } else {
+          cb(safeError(err), false, httpResponse);
+        }
+      });
+    }
   }
 
   export namespace integrations {
@@ -554,12 +646,22 @@ export namespace inkstone {
       StillUrl?: string;
       VideoUrl?: string;
       HaiKudos?: HaiKudos;
+      SnapshotUuid?: string;
     }
 
     export interface OrganizationAndCommunityProjects {
       IsCurrentUser: boolean;
       Organization: organization.Organization;
       CommunityProjects: CommunityProject[];
+    }
+
+    export interface CommunityProjectsFilters {
+      IsFeatured: boolean;
+    }
+
+    export interface CommunityProjectsQuery {
+      Pagination: inkstone.Pagination;
+      Filters: CommunityProjectsFilters;
     }
 
     /**
@@ -569,11 +671,22 @@ export namespace inkstone {
      * request on behalf of a logged-in user, pass in their auth token to populate the `TotalFromCurrentUser`
      * hai-kudos field.
      * @param {string | undefined} authToken
-     * @param {inkstone.Callback<inkstone.community.CommunityProject[]>} cb
+     * @param {CommunityProjectsQuery} query
+     * @param {inkstone.Callback<inkstone.PaginatedResponse<CommunityProject>[]>} cb
      */
-    export function projectList(authToken: string|undefined, cb: inkstone.Callback<CommunityProject[]>) {
+    export function projectList(
+      authToken: string | undefined,
+      query: CommunityProjectsQuery,
+      cb: inkstone.Callback<inkstone.PaginatedResponse<CommunityProject>>,
+    ) {
+      // TODO: automate this
+      let queryString = '';
+      queryString += `?page=${query.Pagination.Page}`;
+      queryString += `&per_page=${query.Pagination.PerPage}`;
+      queryString += `&filters.is_featured=${query.Filters.IsFeatured}`;
+
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
-        url: inkstoneConfig.baseUrl + ENDPOINTS.COMMUNITY_PROJECT_LIST,
+        url: inkstoneConfig.baseUrl + ENDPOINTS.COMMUNITY_PROJECT_LIST + queryString,
         headers: {
           ...baseHeaders,
           ...maybeAuthorizationHeaders(authToken),
@@ -582,7 +695,13 @@ export namespace inkstone {
 
       request.get(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
-          cb(undefined, JSON.parse(body) as CommunityProject[], httpResponse);
+          const paginatedResult = {
+            Collection: JSON.parse(body) as CommunityProject[],
+            Page: Number(httpResponse.headers['x-pagination-page']),
+            TotalPages: Number(httpResponse.headers['x-pagination-total-pages']),
+          };
+
+          cb(undefined, paginatedResult, httpResponse);
         } else {
           cb(safeError(err), undefined, httpResponse);
         }

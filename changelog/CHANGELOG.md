@@ -1,6 +1,31 @@
 # Changelog
 
 
+## 3.2.19
+
+### Bug Fixes
+
+ * allow the Vue adapter to receive options
+
+### Features
+
+ * add endpoints to feature/unfeature and pagination
+
+## 3.2.18
+
+### Features
+
+ * change numeric vals with up/down+shift in expressions
+ * add endpoints to feature/unfeature and pagination
+ * seek timeline and open expression editor on keyframe dblclick
+ * modify @haiku/sdk-inkstone to accept cookies.
+
+### Bug Fixes
+
+ * allow the Vue adapter to receive options
+ * don't crash lottie export when we have to fill a gradient path
+ * properly print help info when an unknown command is used in nib
+
 ## 3.2.17
 
 ### Bug Fixes
