@@ -1,12 +1,21 @@
 import React from 'react'
 import { remote } from 'electron'
+import {isMac} from 'haiku-common/lib/environments/os'
 
 class FileSystemImporter extends React.PureComponent {
   showImportDialog () {
+    const validExtensions = ['svg']
+
+    // Only mac offers support for Sketch
+    if (isMac()) {
+      validExtensions.push('sketch')
+    }
+
     remote.dialog.showOpenDialog(
       null,
       {
-        filters: [{ name: 'Valid Files', extensions: ['svg', 'sketch'] }],
+        title: 'Import to Library',
+        filters: [{ name: 'Valid Files', extensions: validExtensions }],
         properties: ['multiSelections', 'openFile']
       },
       this.props.onFileDrop

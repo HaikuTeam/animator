@@ -5,6 +5,7 @@ import Radium from 'radium'
 import { shell, ipcRenderer } from 'electron'
 import { UserSettings } from 'haiku-sdk-creator/lib/bll/User'
 import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
+import {isMac} from 'haiku-common/lib/environments/os'
 import Palette from 'haiku-ui-common/lib/Palette'
 import { didAskedForSketch } from 'haiku-serialization/src/utils/HaikuHomeDir'
 import Asset from 'haiku-serialization/src/bll/Asset'
@@ -267,7 +268,8 @@ class Library extends React.Component {
     if (this.isSketchInstalled) {
       mixpanel.haikuTrack('creator:sketch:open-file')
       this.openSketchFile(asset)
-    } else {
+    // On library Sketch asset double click, ask to download Sketch only if on mac
+    } else if (isMac()) {
       mixpanel.haikuTrack('creator:sketch:sketch-not-installed')
       this.setState({sketchDownloader: {...this.state.sketchDownloader, isVisible: true, asset}})
     }

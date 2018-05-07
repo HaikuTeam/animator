@@ -1,3 +1,5 @@
+import {isMac} from 'haiku-common/lib/environments/os';
+
 /* tslint:disable:variable-name */
 const Globals = {
   mouse: {x: 0, y: 0},
@@ -14,6 +16,14 @@ const Globals = {
     Globals.isCommandKeyDown = false;
     Globals.isAltKeyDown = false;
     Globals.isSpaceKeyDown = false;
+  },
+
+  // Special key is resposible for initiating rotate and reset zoom
+  isSpecialKeyDown: () => {
+    if (isMac()) {
+      return Globals.isCommandKeyDown;
+    }
+    return Globals.isControlKeyDown;
   },
 };
 

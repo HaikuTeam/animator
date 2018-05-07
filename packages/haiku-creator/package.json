@@ -15,7 +15,7 @@
   "scripts": {
     "start": "electron ./lib/electron.js",
     "watch": "babel --watch src --out-dir lib --source-maps inline",
-    "compile": "NODE_ENV=development babel src --out-dir lib --source-maps inline",
+    "compile": "cross-env NODE_ENV=development babel src --out-dir lib --source-maps inline",
     "lint": "eslint \"src/**/*.js\"",
     "fix": "yarn lint --fix",
     "lint-report": "yarn lint -f checkstyle -o checkstyle-result.xml",
@@ -66,6 +66,7 @@
     "babel-cli": "^6.26.0",
     "babel-preset-react-app": "^2.2.0",
     "babel-register": "6.26.0",
+    "cross-env": "^5.1.4",
     "electron": "1.8.2",
     "eslint": "^3.19.0",
     "eslint-config-standard-jsx": "^4.0.2",

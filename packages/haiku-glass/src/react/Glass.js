@@ -29,6 +29,7 @@ import defsMana from '../overlays/defsMana'
 import gearMana from '../overlays/gearMana'
 import rotationCursorMana from '../overlays/rotationCursorMana'
 import scaleCursorMana from '../overlays/scaleCursorMana'
+import {isMac, isWindows, isLinux} from 'haiku-common/lib/environments/os'
 
 const Globals = require('haiku-ui-common/lib/Globals').default
 const {clipboard, shell, remote} = require('electron')
@@ -547,6 +548,24 @@ export class Glass extends React.Component {
       ifIsRunningStandalone(() => this.handlePasteDebounced())
     })
 
+    // Workaround to fix electron(Chromium) distinct codepath for
+    // Windows and Linux shortcuts. More info:
+    // https://github.com/electron/electron/issues/7165#issuecomment-246486798
+    // https://github.com/buttercup/buttercup-desktop/pull/223
+    if (isWindows() || isLinux()) {
+      combokeys.bind('ctrl+x', () => {
+        this.handleCutDebounced()
+      })
+
+      combokeys.bind('ctrl+c', () => {
+        this.handleCopyDebounced()
+      })
+
+      combokeys.bind('ctrl+v', () => {
+        this.handlePasteDebounced()
+      })
+    }
+
     if (experimentIsEnabled(Experiment.ElementMultiSelectAndTransform)) {
       combokeys.bind('command+a', () => {
         ifIsRunningStandalone(() => this.handleSelectAllDebounced())
@@ -1035,11 +1054,11 @@ export class Glass extends React.Component {
             }
 
             // Unselect all the elements unless the user is doing a meta-operation, as indicated by these keys
-            if (!Globals.isShiftKeyDown && !Globals.isCommandKeyDown && !Globals.isAltKeyDown) {
+            if (!Globals.isShiftKeyDown && !Globals.isSpecialKeyDown() && !Globals.isAltKeyDown) {
               Element.unselectAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
             }
 
-            if (!Globals.isCommandKeyDown && !Globals.isAltKeyDown) {
+            if (!Globals.isSpecialKeyDown() && !Globals.isAltKeyDown) {
               if (this.getActiveComponent()) {
                 if (experimentIsEnabled(Experiment.StageSelectionMarquee)) {
                   this.getActiveComponent().getSelectionMarquee().startSelection(mouseDownPosition)
@@ -1430,7 +1449,7 @@ export class Glass extends React.Component {
     }
 
     // Cmd + 0 centers & resets zoom
-    if (Globals.isCommandKeyDown && keyEvent.nativeEvent.which === 48) {
+    if (Globals.isSpecialKeyDown() && keyEvent.nativeEvent.which === 48) {
       this.getActiveComponent().getArtboard().resetZoomPan()
     }
 
@@ -1602,18 +1621,20 @@ export class Glass extends React.Component {
   originActivation ({event}) {
     // TODO: support more modes (and make them discoverable).
     this.setState({
-      isOriginPanning: Globals.isCommandKeyDown
+      isOriginPanning: Globals.isSpecialKeyDown()
     })
   }
 
   controlActivation (activationInfo) {
     this.setState({
-      isAnythingRotating: Globals.isCommandKeyDown,
-      isAnythingScaling: !Globals.isCommandKeyDown,
+      isAnythingRotating: Globals.isSpecialKeyDown(),
+      isAnythingScaling: !Globals.isSpecialKeyDown(),
       controlActivation: {
         shift: Globals.isShiftKeyDown,
         ctrl: Globals.isControlKeyDown,
-        cmd: Globals.isCommandKeyDown,
+        // Should be isCommandKeyDown, but it not really abstracted. A refactor could include
+        // merging isAnythingRotating/isAnythingScaling and controlActivation.cmd logics
+        cmd: Globals.isSpecialKeyDown(),
         alt: Globals.isAltKeyDown,
         index: activationInfo.index
       }
@@ -1747,7 +1768,7 @@ export class Glass extends React.Component {
       this.renderTransformBoxOverlay(
         proxy,
         overlays,
-        !this.state.isOriginPanning && Globals.isCommandKeyDown
+        !this.state.isOriginPanning && Globals.isSpecialKeyDown()
       )
     }
 
@@ -1864,7 +1885,7 @@ export class Glass extends React.Component {
     })
 
     if (canRotate && experimentIsEnabled(Experiment.OriginIndicator) && pointDisplayMode !== POINT_DISPLAY_MODES.NONE) {
-      overlays.push(originMana(scale, origin.x, origin.y, Globals.isCommandKeyDown))
+      overlays.push(originMana(scale, origin.x, origin.y, Globals.isSpecialKeyDown()))
     }
 
     // Everything below requires controllable handles.
@@ -2016,13 +2037,16 @@ export class Glass extends React.Component {
 
     items.push({ type: 'separator' })
 
-    items.push({
-      label: 'Edit in Sketch',
-      enabled: proxy.isSelectionSketchEditable(),
-      onClick: () => {
-        shell.openItem(path.join(this.props.folder, proxy.getSketchAssetPath()))
-      }
-    })
+    // Only display Edit In Sketch on mac
+    if (isMac()) {
+      items.push({
+        label: 'Edit in Sketch',
+        enabled: proxy.isSelectionSketchEditable(),
+        onClick: () => {
+          shell.openItem(path.join(this.props.folder, proxy.getSketchAssetPath()))
+        }
+      })
+    }
 
     items.push({
       label: 'Edit in Figma',

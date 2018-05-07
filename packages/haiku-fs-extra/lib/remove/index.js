@@ -4,6 +4,10 @@ function removeSync (dir) {
   return rimraf.sync(dir, {disableGlob: true})
 }
 
+function removePatternSync (dir) {
+  return rimraf.sync(dir, {disableGlob: false})
+}
+
 function remove (dir, callback) {
   var options = {disableGlob: true}
   return callback ? rimraf(dir, options, callback) : rimraf(dir, options, function () {})
@@ -11,5 +15,6 @@ function remove (dir, callback) {
 
 module.exports = {
   remove: remove,
-  removeSync: removeSync
+  removeSync: removeSync,
+  removePatternSync: removePatternSync,
 }

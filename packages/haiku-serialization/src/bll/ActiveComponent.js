@@ -3883,7 +3883,13 @@ ActiveComponent.DEFAULT_OPTIONS = {
 BaseModel.extend(ActiveComponent)
 
 ActiveComponent.buildPrimaryKey = (folder, scenename) => {
-  return folder + '::' + scenename
+  // This replace is a workaround on Windows port to fix that svg fill='url()' cannot
+  // understand an URI with backslashes ( rfc2396.txt also states that
+  // shouldn't exist backslash on URI ), which is a given by Windows folder path
+  //
+  // The ideal solution would be use something else to buildPrimaryKey such as
+  // organizationName + projectName + scenename
+  return folder.replace(/\\/g, '/') + '::' + scenename
 }
 
 module.exports = ActiveComponent

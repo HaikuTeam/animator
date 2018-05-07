@@ -27,6 +27,7 @@ import TimelineRangeScrollbar from './TimelineRangeScrollbar'
 import HorzScrollShadow from './HorzScrollShadow'
 import {InteractionMode, isPreviewMode} from '@haiku/core/lib/helpers/interactionModes'
 import { USER_CHANNEL, UserSettings } from 'haiku-sdk-creator/lib/bll/User'
+import {isWindows, isLinux} from 'haiku-common/lib/environments/os'
 
 const Globals = require('haiku-ui-common/lib/Globals').default // Sorry, hack
 
@@ -240,6 +241,24 @@ class Timeline extends React.Component {
         this.handlePasteDebounced()
       })
     })
+
+    // Workaround to fix electron(Chromium) distinct codepath for
+    // Windows and Linux shortcuts. More info:
+    // https://github.com/electron/electron/issues/7165#issuecomment-246486798
+    // https://github.com/buttercup/buttercup-desktop/pull/223
+    if (isWindows() || isLinux()) {
+      combokeys.bind('ctrl+x', () => {
+        this.handleCutDebounced()
+      })
+
+      combokeys.bind('ctrl+c', () => {
+        this.handleCopyDebounced()
+      })
+
+      combokeys.bind('ctrl+v', () => {
+        this.handlePasteDebounced()
+      })
+    }
 
     combokeys.bind('command+a', () => {
       ifIsRunningStandalone(() => {

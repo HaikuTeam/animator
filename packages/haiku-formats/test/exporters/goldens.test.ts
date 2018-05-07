@@ -22,7 +22,9 @@ tape('haiku-formats goldens', (test: tape.Test) => {
             join(goldensRoot, 'bodymovin', `${name}.json`),
             (_, contents) => {
               test.equal(
-                contents.toString(),
+                // This aditional conversion is necessary to avoid any errors 
+                // from git.autocrlf on Windows
+                JSON.stringify(JSON.parse(contents.toString()),null,2),
                 JSON.stringify(exporter.rawOutput(), null, 2),
                 `bodymovin goldens match: ${name}`,
               );
@@ -47,7 +49,9 @@ tape('haiku-formats goldens', (test: tape.Test) => {
             join(goldensRoot, 'haikuStatic', `${name}.json`),
             (_, contents) => {
               test.equal(
-                contents.toString(),
+                // This aditional conversion is necessary to avoid any errors 
+                // from git.autocrlf on Windows
+                JSON.stringify(JSON.parse(contents.toString()),null,2),
                 JSON.stringify(exporter.rawOutput(), null, 2),
                 `haikuStatic goldens match: ${name}`,
               );

@@ -2,24 +2,9 @@
 
 Haiku monorepo. Plus command-line tools to make cross-project scripting simpler.
 
-## Setup
+## Install OS dependencies
 
-**ssh setup**
-
-You may need to:
-
-    ssh-add -K ~/.ssh/id_rsa
-
-And add to `~/.ssh/config`:
-
-    Host github.com
-      User git
-      AddKeysToAgent yes
-      UseKeychain yes
-      IdentityFile ~/.ssh/id_rsa
-
-**Prerequisites**
-
+### Mac
 1.) nvm 0.33.6:
 
     $ curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.6/install.sh | bash
@@ -32,7 +17,36 @@ And add to `~/.ssh/config`:
 
     $ curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.3.2
 
-**Setup**
+### Windows
+
+Assuming a clean Windows 10, open a PowerShell with admin rights:
+
+```
+# Install Chocolatey package manager
+Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+
+# Install git
+choco install git python2 -y 
+
+# Install nodejs 
+choco install nodejs-lts -y --version 8.9.3
+
+# Ignore dependencies to force using specified node version 
+choco install yarn -y --version 1.3.2  --ignore-dependencies
+
+# Update PowerShell environment vars
+refreshenv
+
+# Install windows build tools ( to compile native electron modules eg. nodegit)
+npm install windows-build-tools@2.3.0 -g
+```
+
+### Linux
+
+Install dependencies according to user distribution (apt-get, dnf, etc). 
+
+
+## Install project dependencies
 
 After you clone the repository, simply run:
 
@@ -40,7 +54,7 @@ After you clone the repository, simply run:
 
 ## Development
 
-#### Starting
+### Starting
 
 Assuming you've done the initial setup, you can start all the dev servers with:
 
@@ -52,13 +66,13 @@ You can also skip the interactive prompt and start with good defaults with:
 
 You can also set some overriding environment variables (e.g. `HAIKU_API`, `SHARE_URL`) by making a `.env` file in the mono root. Refer to `.env.example` for an example.
 
-#### Developing
+### Developing
 
 For the compiler to watch for changes as you develop, run the following command in a separate Terminal tab:
 
     $ yarn watch-all
 
-#### Finishing
+### Finishing
 
 First lint all of the code:
 
@@ -76,7 +90,7 @@ Assuming no lint errors or test failures, push your changes:
 
     $ git push
 
-#### Debugging
+### Debugging
 
 There are configurations included here for debugging any of the UI directly from inside VS Code.
 

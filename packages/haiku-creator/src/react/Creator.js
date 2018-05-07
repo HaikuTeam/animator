@@ -163,6 +163,9 @@ export default class Creator extends React.Component {
       combokeys.bind('command+option+i', lodash.debounce(() => {
         this.toggleDevTools()
       }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
+      combokeys.bind('ctrl+shift+i', lodash.debounce(() => {
+        this.toggleDevTools()
+      }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
     }
 
     // Top secret way to open the dev tools even if running in production
@@ -438,7 +441,32 @@ export default class Creator extends React.Component {
 
   openTerminal (folder) {
     try {
-      cp.execSync('open -b com.apple.terminal ' + JSON.stringify(folder) + ' || true')
+      // Inspiration from:
+      // https://github.com/Microsoft/sqlopsstudio/blob/master/src/vs/workbench/parts/execution/electron-browser/terminal.ts
+      var platform = process.env.HAIKU_RELEASE_PLATFORM
+      switch (platform) {
+        case 'mac':
+          cp.execSync(`open -b com.apple.terminal ${JSON.stringify(folder)} || true`)
+          break
+        case 'windows':
+          cp.spawn(`cd ${JSON.stringify(folder)} && start ${process.env.windir}\\${process.env.HAIKU_RELEASE_ARCHITECTURE === 'x64' ? 'System32' : 'Sysnative'}\\cmd.exe`, {detached: true, shell: true})
+          break
+        case 'linux':
+          if (process.env.DESKTOP_SESSION === 'gnome' || process.env.DESKTOP_SESSION === 'gnome-classic') {
+            cp.exec(`cd ${JSON.stringify(folder)} && gnome-terminal`)
+          } else if (process.env.DESKTOP_SESSION === 'kde-plasma') {
+            cp.exec(`cd ${JSON.stringify(folder)} && konsole`)
+          } else if (process.env.COLORTERM) {
+            cp.exec(`cd ${JSON.stringify(folder)} && ${process.env.COLORTERM}`)
+          } else if (process.env.TERM) {
+            cp.exec(`cd ${JSON.stringify(folder)} && ${process.env.TERM}`)
+          } else {
+            cp.exec(`cd ${JSON.stringify(folder)} && xterm`)
+          }
+          break
+        default:
+          throw new Error('Unknown platform')
+      }
     } catch (exception) {
       console.error(exception)
     }

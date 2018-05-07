@@ -85,7 +85,7 @@ Template.prepareManaAndBuildTimelinesObject = (mana, hash, timelineName, timelin
     Template.ensureTitleAndUidifyTree(
       mana,
       // We shouldn't assume that any node has a source attribute
-      path.normalize(mana.attributes[SOURCE_ATTRIBUTE] || ''),
+      path.posix.normalize(mana.attributes[SOURCE_ATTRIBUTE] || ''),
       hash
     )
   }
@@ -400,7 +400,7 @@ Template.getAllElementsByHaikuId = function getAllElementsByHaikuId (mana) {
 
 Template.fixManaSourceAttribute = function fixManaSourceAttribute (mana, relpath) {
   if (!mana.attributes[SOURCE_ATTRIBUTE]) {
-    mana.attributes[SOURCE_ATTRIBUTE] = path.normalize(relpath)
+    mana.attributes[SOURCE_ATTRIBUTE] = path.posix.normalize(relpath)
   }
 }
 

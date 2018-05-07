@@ -55,6 +55,8 @@
     "babel-cli": "^6.26.0",
     "babel-preset-react-app": "^2.2.0",
     "cli-color": "^1.2.0",
+    "cross-env": "^5.1.4",
+    "cross-spawn": "^6.0.5",
     "dependency-graph": "^0.5.0",
     "derequire": "^2.0.6",
     "dotenv": "^5.0.1",
@@ -91,7 +93,7 @@
   },
   "build": {
     "appId": "com.Haiku.HaikuForDesignersAndEngineers",
-    "copyright": "Copyright (c) 2017 Haiku",
+    "copyright": "Copyright (c) 2018 Haiku",
     "directories": {
       "app": "source"
     },
@@ -105,6 +107,25 @@
       "target": [
         "zip",
         "dmg"
+      ]
+    },
+    "linux": {
+      "maintainer" : "Haiku Team <contact@haiku.ai>",
+      "category": "Graphics;Development;VectorGraphics",
+      "target": [
+        "deb",
+        "AppImage",
+        "pacman"
+      ]
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "ia32"
+          ]
+        }
       ]
     },
     "dmg": {

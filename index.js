@@ -1,5 +1,6 @@
 const path = require('path');
 const cp = require('child_process');
+const os = require('os')
 
 if (!global.process.env.NODE_ENV || global.process.env.NODE_ENV === 'production') {
   process.env.HAIKU_GLASS_URL_MODE = 'distro';
@@ -16,7 +17,7 @@ if (process.env.HAIKU_APP_LAUNCH_CLI === '1') {
 } else {
   const {app, dialog} = require('electron');
 
-  if (process.env.NODE_ENV === 'production' && !app.isInApplicationsFolder()) {
+  if (process.env.NODE_ENV === 'production' && os.platform() === 'darwin' && !app.isInApplicationsFolder()) {
     dialog.showErrorBox(
       'Move to Applications folder',
       'You cannot run Haiku for Mac from the current folder. Please move Haiku for Mac to the Applications folder and try again.'

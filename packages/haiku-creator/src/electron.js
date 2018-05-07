@@ -12,6 +12,7 @@ import qs from 'qs'
 import { isProxied, ProxyType } from 'haiku-common/lib/proxies'
 import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
+import {isMac} from 'haiku-common/lib/environments/os'
 
 import TopMenu from './TopMenu'
 
@@ -22,8 +23,11 @@ if (!app) {
 app.setName('Haiku')
 app.setAsDefaultProtocolClient('haiku')
 
-systemPreferences.setUserDefault('NSDisabledDictationMenuItem', 'boolean', true)
-systemPreferences.setUserDefault('NSDisabledCharacterPaletteMenuItem', 'boolean', true)
+// Disable "Start Dictation" and "Emoji & Symbols" menu items on MAC
+if (isMac()) {
+  systemPreferences.setUserDefault('NSDisabledDictationMenuItem', 'boolean', true)
+  systemPreferences.setUserDefault('NSDisabledCharacterPaletteMenuItem', 'boolean', true)
+}
 
 app.on('login', (event, webContents, request, authInfo, authenticate) => {
   // We are currently not equipped to authenticate requests that are intercepted by a proxy but require login

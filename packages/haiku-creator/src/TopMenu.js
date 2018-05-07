@@ -1,13 +1,27 @@
 import EventEmitter from 'events'
-import { Menu, app, shell } from 'electron'
+import {app, Menu, shell} from 'electron'
 
-import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
-import { TourUtils } from 'haiku-common/lib/types/enums'
-import { ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
+import {TourUtils} from 'haiku-common/lib/types/enums'
+import {isMac} from 'haiku-common/lib/environments/os'
+import {ExporterFormat} from 'haiku-sdk-creator/lib/exporter'
 
 app.setName('Haiku')
 
 export default class TopMenu extends EventEmitter {
+  // Call sendActionToFirstResponder on Mac
+  // From documentation:
+  //  "Sends the action to the first responder of application.
+  //   This is used for emulating default macOS menu behaviors.
+  //   Usually you would just use the role property of a MenuItem."
+  // Because we want a custom behavior, we can't use roles for some actions
+  sendActionToFirstReponderAndEmit (eventName) {
+    if (isMac()) {
+      Menu.sendActionToFirstResponder(`${eventName}:`)
+    }
+    this.emit(`global-menu:${eventName}`)
+  }
+
   create (options) {
     const isProjectOpen = !!options.folder
 
@@ -56,11 +70,13 @@ export default class TopMenu extends EventEmitter {
       role: 'minimize'
     })
 
-    mainMenuPieces.push({
-      label: 'Hide Haiku',
-      accelerator: 'CmdOrCtrl+H',
-      role: 'hide'
-    })
+    if (isMac()) {
+      mainMenuPieces.push({
+        label: 'Hide Haiku',
+        accelerator: 'CmdOrCtrl+H',
+        role: 'hide'
+      })
+    }
 
     mainMenuPieces.push({
       type: 'separator'
@@ -118,8 +134,7 @@ export default class TopMenu extends EventEmitter {
       label: 'Undo',
       accelerator: 'CmdOrCtrl+Z',
       click: () => {
-        Menu.sendActionToFirstResponder('undo:')
-        this.emit('global-menu:undo')
+        this.sendActionToFirstReponderAndEmit('undo')
       }
     })
 
@@ -127,8 +142,7 @@ export default class TopMenu extends EventEmitter {
       label: 'Redo',
       accelerator: 'CmdOrCtrl+Shift+Z',
       click: () => {
-        Menu.sendActionToFirstResponder('redo:')
-        this.emit('global-menu:redo')
+        this.sendActionToFirstReponderAndEmit('redo')
       }
     })
 
@@ -138,8 +152,7 @@ export default class TopMenu extends EventEmitter {
       label: 'Cut',
       accelerator: 'CmdOrCtrl+X',
       click: () => {
-        Menu.sendActionToFirstResponder('cut:')
-        this.emit('global-menu:cut')
+        this.sendActionToFirstReponderAndEmit('cut')
       }
     })
 
@@ -147,8 +160,7 @@ export default class TopMenu extends EventEmitter {
       label: 'Copy',
       accelerator: 'CmdOrCtrl+C',
       click: () => {
-        Menu.sendActionToFirstResponder('copy:')
-        this.emit('global-menu:copy')
+        this.sendActionToFirstReponderAndEmit('copy')
       }
     })
 
@@ -156,8 +168,7 @@ export default class TopMenu extends EventEmitter {
       label: 'Paste',
       accelerator: 'CmdOrCtrl+V',
       click: () => {
-        Menu.sendActionToFirstResponder('paste:')
-        this.emit('global-menu:paste')
+        this.sendActionToFirstReponderAndEmit('paste')
       }
     })
 
@@ -187,8 +198,7 @@ export default class TopMenu extends EventEmitter {
       label: 'Delete',
       accelerator: 'Delete',
       click: () => {
-        Menu.sendActionToFirstResponder('delete:')
-        this.emit('global-menu:delete')
+        this.sendActionToFirstReponderAndEmit('delete')
       }
     })
 
@@ -196,8 +206,7 @@ export default class TopMenu extends EventEmitter {
       label: 'Select All',
       accelerator: 'CmdOrCtrl+A',
       click: () => {
-        Menu.sendActionToFirstResponder('selectall:')
-        this.emit('global-menu:selectall')
+        this.sendActionToFirstReponderAndEmit('selectall')
       }
     })
 

@@ -3,6 +3,7 @@ const cp = require('child_process')
 const fs = require('fs')
 const path = require('path')
 const argv = require('yargs').argv
+const glob = require('glob')
 
 const allPackages = require('./helpers/packages')()
 const log = require('./helpers/log')
@@ -12,29 +13,37 @@ if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = 'development'
 }
 
+const getModificationTime = (file) => new Date(fs.statSync(file).mtime)
+
 async.each(allPackages, (pack, done) => {
   if (pack.pkg && pack.pkg.scripts && pack.pkg.scripts.compile) {
     const lastCompileFilename = path.join(pack.abspath, '.last-compile')
-    let timeFilter = ''
+
+    /* Load last compile time from file */
+    let lastCompileTime = null
     if (!argv.force && fs.existsSync(lastCompileFilename)) {
       const lastCompile = require(lastCompileFilename)
       if (lastCompile.hasOwnProperty('lastCompileTime')) {
-        timeFilter = `-newermt '${lastCompile.lastCompileTime}'`
+        lastCompileTime = new Date(lastCompile.lastCompileTime)
       }
     }
-    const filesChanged = Number(
-      cp.execSync(`find ${pack.abspath}/src -type f ${timeFilter} | wc -l | tr -d ' '`).toString().trim()
-    )
 
-    if (filesChanged > 0) {
-      log.warn(`Detected ${filesChanged} changed file(s) in ${pack.shortname}. Compiling....`)
-      cp.execSync('yarn run compile', { cwd: pack.abspath, stdio: 'inherit' })
+    /* Get modified file since last compilation */
+    let files = glob.sync(`${pack.abspath}/src/**`, {})
+    let modifiedFiles = files.filter((file) => getModificationTime(file) > lastCompileTime)
+
+    /* Compile package if it has any modified file */
+    if (modifiedFiles.length > 0) {
+      log.warn(`Detected ${modifiedFiles.length} changed file(s) in ${pack.shortname}. Compiling....`)
+      cp.execSync('yarn run compile', {cwd: pack.abspath, stdio: 'inherit'})
     } else {
       log.log(`No changes in ${pack.shortname} since last compile. Skipping....`)
     }
 
-    const lastCompileTime = cp.execSync('date').toString().trim()
+    /* Update last compile time */
+    lastCompileTime = new Date()
     fs.writeFileSync(lastCompileFilename, `module.exports = ${JSON.stringify({lastCompileTime})};`)
+
     done()
   } else {
     done()

@@ -32,7 +32,7 @@ export interface EnvoyOptions {
 }
 
 export const DEFAULT_ENVOY_OPTIONS: EnvoyOptions = {
-  host: global.process.env.HAIKU_PLUMBING_HOST || '0.0.0.0',
+  host: global.process.env.HAIKU_PLUMBING_HOST || '127.0.0.1',
   logger: console,
   mock: false, // In mock mode, clients don't try to connect to the server
   path: '/',

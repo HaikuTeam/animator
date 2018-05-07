@@ -11,7 +11,8 @@
 var env = {
   NODE_ENV: '{{appenv}}',
   HAIKU_RELEASE_VERSION: require('./package.json').version,
-  HAIKU_RELEASE_PLATFORM: 'mac',
+  HAIKU_RELEASE_PLATFORM: '{{platform}}',
+  HAIKU_RELEASE_ARCHITECTURE: '{{architecture}}',
   HAIKU_RELEASE_ENVIRONMENT: '{{appenv}}', // just a tag, really - use to push to a url that won't trigger an update to users on the mainline
   HAIKU_RELEASE_BRANCH: '{{branch}}', // just a tag, really
   HAIKU_PLUMBING_VERSION: '{{branch}}', // plumbing branch
@@ -36,5 +37,7 @@ module.exports = {
   append: '{{appenv}}',
   environment: '{{environment}}',
   upload: {{upload}},
-  shout: {{shout}}
+  shout: {{shout}},
+  platform: '{{platform}}',
+  architecture: '{{architecture}}'
 }

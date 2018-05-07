@@ -6,6 +6,8 @@ const inquirer = require('inquirer')
 const path = require('path')
 const argv = require('yargs').argv
 const log = require('./helpers/log')
+const spawn = require('cross-spawn')
+const os = require('os')
 
 const allPackages = require('./helpers/packages')()
 const groups = lodash.keyBy(allPackages, 'shortname')
@@ -173,6 +175,25 @@ function runAutomatic () {
   go()
 }
 
+// TODO: Duplicated from distro-configure.js. Move it to
+// right place
+function getReleasePlatform () {
+  switch (os.platform()) {
+    case 'darwin':
+      return 'mac'
+    case 'win32':
+      return 'windows'
+    case 'linux':
+      return 'linux'
+    default:
+      throw new Error('Unknown operating system')
+  }
+}
+
+function getReleaseArchitecture () {
+  return os.arch()
+}
+
 function setup () {
   log.hat(`preparing to develop locally`, 'cyan')
 
@@ -183,7 +204,8 @@ function setup () {
   // These are just stubbed out for completeness' sake
   global.process.env.HAIKU_RELEASE_ENVIRONMENT = process.env.NODE_ENV
   global.process.env.HAIKU_RELEASE_BRANCH = 'master'
-  global.process.env.HAIKU_RELEASE_PLATFORM = 'mac'
+  global.process.env.HAIKU_RELEASE_PLATFORM = getReleasePlatform()
+  global.process.env.HAIKU_RELEASE_ARCHITECTURE = getReleaseArchitecture()
   global.process.env.HAIKU_RELEASE_VERSION = require('./../package.json').version
   global.process.env.HAIKU_AUTOUPDATE_SERVER = 'http://localhost:3002'
 
@@ -234,7 +256,7 @@ function go () {
   // Allow anything in .env to override the environment variables we set here.
   require('dotenv').config()
   log.hat('Note: NOT watching for code changes. To watch for code changes, run yarn watch-all in a new tab.')
-  mainProcess = cp.spawn('yarn', args, { cwd, env: global.process.env, stdio: 'inherit' })
+  mainProcess = spawn('yarn', args, { cwd, env: global.process.env, stdio: 'inherit' })
 
   global.process.on('exit', () => {
     if (mainProcess && !mainProcess.killed) {
