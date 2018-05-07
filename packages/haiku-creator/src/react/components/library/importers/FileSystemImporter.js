@@ -1,13 +1,13 @@
 import React from 'react'
 import { remote } from 'electron'
-import * as environment from 'haiku-common/lib/environments'
+import {isMac} from 'haiku-common/lib/environments/os'
 
 class FileSystemImporter extends React.PureComponent {
   showImportDialog () {
-    var validExtensions = ['svg']
+    const validExtensions = ['svg']
 
     // Only mac offers support for Sketch
-    if (environment.isMac()) {
+    if (isMac()) {
       validExtensions.push('sketch')
     }
 

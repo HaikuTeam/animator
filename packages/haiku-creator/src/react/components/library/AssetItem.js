@@ -7,7 +7,7 @@ import Figma from 'haiku-serialization/src/bll/Figma'
 import { Draggable } from 'react-drag-and-drop'
 import AssetList from './AssetList'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
-import * as environment from 'haiku-common/lib/environments'
+import {isMac, isWindows} from 'haiku-common/lib/environments/os'
 import Palette from 'haiku-ui-common/lib/Palette'
 import Popover from 'react-popover'
 import {
@@ -225,7 +225,7 @@ class AssetItem extends React.Component {
     const items = []
 
     // Only display Open In Sketch on mac
-    if (this.props.asset.isSketchFile() && environment.isMac()) {
+    if (isMac() && this.props.asset.isSketchFile()) {
       items.push({
         label: 'Open In Sketch',
         icon: SketchIconSVG,
@@ -390,10 +390,10 @@ class AssetItem extends React.Component {
     }
 
     if (this.props.asset.kind === Asset.KINDS.VECTOR) {
-      var imageSrc
+      let imageSrc
       // Windows platform paths needs transformation to display correct icon and preview
       // eg. C:\test\a.svg -> /C:/test/a.svg
-      if (environment.isWindows()) {
+      if (isWindows()) {
         imageSrc = `/${escape(this.props.asset.getAbspath().replace(/\\/g, '/'))}?t=${this.props.asset.dtModified}`
       } else {
         imageSrc = `${escape(this.props.asset.getAbspath())}?t=${this.props.asset.dtModified}`

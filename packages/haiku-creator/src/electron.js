@@ -12,7 +12,7 @@ import qs from 'qs'
 import { isProxied, ProxyType } from 'haiku-common/lib/proxies'
 import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
-import * as environment from 'haiku-common/lib/environments'
+import {isMac} from 'haiku-common/lib/environments/os'
 
 import TopMenu from './TopMenu'
 
@@ -24,7 +24,7 @@ app.setName('Haiku')
 app.setAsDefaultProtocolClient('haiku')
 
 // Disable "Start Dictation" and "Emoji & Symbols" menu items on MAC
-if (environment.isMac()) {
+if (isMac()) {
   systemPreferences.setUserDefault('NSDisabledDictationMenuItem', 'boolean', true)
   systemPreferences.setUserDefault('NSDisabledCharacterPaletteMenuItem', 'boolean', true)
 }

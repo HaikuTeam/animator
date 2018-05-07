@@ -29,7 +29,7 @@ import defsMana from '../overlays/defsMana'
 import gearMana from '../overlays/gearMana'
 import rotationCursorMana from '../overlays/rotationCursorMana'
 import scaleCursorMana from '../overlays/scaleCursorMana'
-import * as environment from 'haiku-common/lib/environments'
+import {isMac, isWindows, isLinux} from 'haiku-common/lib/environments/os'
 
 const Globals = require('haiku-ui-common/lib/Globals').default
 const {clipboard, shell, remote} = require('electron')
@@ -548,11 +548,11 @@ export class Glass extends React.Component {
       ifIsRunningStandalone(() => this.handlePasteDebounced())
     })
 
-  // Workaround to fix electron(Chromium) distinct codepath for
-  // Windows and Linux shortcuts. More info:
-  // https://github.com/electron/electron/issues/7165#issuecomment-246486798
-  // https://github.com/buttercup/buttercup-desktop/pull/223
-    if (environment.isWindows() || environment.isLinux()) {
+    // Workaround to fix electron(Chromium) distinct codepath for
+    // Windows and Linux shortcuts. More info:
+    // https://github.com/electron/electron/issues/7165#issuecomment-246486798
+    // https://github.com/buttercup/buttercup-desktop/pull/223
+    if (isWindows() || isLinux()) {
       combokeys.bind('ctrl+x', () => {
         this.handleCutDebounced()
       })
@@ -2038,7 +2038,7 @@ export class Glass extends React.Component {
     items.push({ type: 'separator' })
 
     // Only display Edit In Sketch on mac
-    if (environment.isMac()) {
+    if (isMac()) {
       items.push({
         label: 'Edit in Sketch',
         enabled: proxy.isSelectionSketchEditable(),
