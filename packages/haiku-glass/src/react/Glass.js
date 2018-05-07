@@ -29,6 +29,7 @@ import defsMana from '../overlays/defsMana'
 import gearMana from '../overlays/gearMana'
 import rotationCursorMana from '../overlays/rotationCursorMana'
 import scaleCursorMana from '../overlays/scaleCursorMana'
+import * as environment from 'haiku-common/lib/environments'
 
 const Globals = require('haiku-ui-common/lib/Globals').default
 const {clipboard, shell, remote} = require('electron')
@@ -535,19 +536,18 @@ export class Glass extends React.Component {
   // Windows and Linux shortcuts. More info:
   // https://github.com/electron/electron/issues/7165#issuecomment-246486798
   // https://github.com/buttercup/buttercup-desktop/pull/223
-   if (global.process.env.HAIKU_RELEASE_PLATFORM === 'windows' ||
-       global.process.env.HAIKU_RELEASE_PLATFORM === 'linux') {
-          combokeys.bind('ctrl+x', () => {
-            this.handleCutDebounced()
-          })
-      
-          combokeys.bind('ctrl+c', () => {
-            this.handleCopyDebounced()
-          })
-      
-          combokeys.bind('ctrl+v', () => {
-            this.handlePasteDebounced()
-          })
+    if (environment.isWindows() || environment.isLinux()) {
+      combokeys.bind('ctrl+x', () => {
+        this.handleCutDebounced()
+      })
+
+      combokeys.bind('ctrl+c', () => {
+        this.handleCopyDebounced()
+      })
+
+      combokeys.bind('ctrl+v', () => {
+        this.handlePasteDebounced()
+      })
     }
 
     if (experimentIsEnabled(Experiment.ElementMultiSelectAndTransform)) {
@@ -1956,7 +1956,7 @@ export class Glass extends React.Component {
     items.push({ type: 'separator' })
 
     // Only display Edit In Sketch on mac
-    if (process.env.HAIKU_RELEASE_PLATFORM === 'mac') {
+    if (environment.isMac()) {
       items.push({
         label: 'Edit in Sketch',
         enabled: proxy.isSelectionSketchEditable(),

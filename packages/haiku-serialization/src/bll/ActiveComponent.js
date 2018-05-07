@@ -3859,7 +3859,7 @@ ActiveComponent.buildPrimaryKey = (folder, scenename) => {
   //
   // The ideal solution would be use something else to buildPrimaryKey such as
   // organizationName + projectName + scenename
-  return folder.replace(/\\/g, '\/') + '::' + scenename
+  return folder.replace(/\\/g, '/') + '::' + scenename
 }
 
 module.exports = ActiveComponent

@@ -3,6 +3,7 @@ import { Menu, app, shell } from 'electron'
 
 import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
 import { TourUtils } from 'haiku-common/lib/types/enums'
+import * as environment from 'haiku-common/lib/environments'
 import { ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
 
 app.setName('Haiku')
@@ -15,7 +16,7 @@ export default class TopMenu extends EventEmitter {
   //   Usually you would just use the role property of a MenuItem."
   // Because we want a custom behavior, we can't use roles for some actions
   sendActionToFirstReponderAndEmit (eventName) {
-    if (global.process.env.HAIKU_RELEASE_PLATFORM === 'mac') {
+    if (environment.isMac()) {
       Menu.sendActionToFirstResponder(`${eventName}:`)
     }
     this.emit(`global-menu:${eventName}`)
@@ -69,7 +70,7 @@ export default class TopMenu extends EventEmitter {
       role: 'minimize'
     })
 
-    if (process.env.HAIKU_RELEASE_PLATFORM === 'mac'){
+    if (environment.isMac()) {
       mainMenuPieces.push({
         label: 'Hide Haiku',
         accelerator: 'CmdOrCtrl+H',

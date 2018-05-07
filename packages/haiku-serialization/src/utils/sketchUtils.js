@@ -3,6 +3,7 @@ const path = require('path')
 const { exec } = require('child_process')
 const logger = require('./LoggerInstance')
 const { download, unzip } = require('./fileManipulation')
+const environment = require('haiku-common/lib/environments')
 
 const DOWNLOAD_URL = 'https://download.sketchapp.com/sketch.zip'
 const SKETCH_PATH_FINDER = `$(/usr/bin/find /System/Library/Frameworks -name lsregister) -dump | grep 'path:.*/Sketch\\( (\\d)\\)\\?\\.app$'`
@@ -82,7 +83,7 @@ module.exports = {
 
   checkIfInstalled () {
     // Only Mac has sketch support
-    if (process.env.HAIKU_RELEASE_PLATFORM === 'mac') {
+    if (environment.isMac()) {
       return new Promise((resolve, reject) => {
         this.getDumpInfo()
           .then(this.dumpToPaths)

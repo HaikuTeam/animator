@@ -1,18 +1,18 @@
 import EventEmitter from 'events'
 import http from 'http'
 import https from 'https'
-import os from 'os'
 import path from 'path'
 import { parse } from 'url'
 import { inherits } from 'util'
 
-import { BrowserWindow, app, ipcMain, systemPreferences, session, globalShortcut } from 'electron'
+import { BrowserWindow, app, ipcMain, systemPreferences, session } from 'electron'
 import ElectronProxyAgent from 'electron-proxy-agent'
 import qs from 'qs'
 
 import { isProxied, ProxyType } from 'haiku-common/lib/proxies'
 import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
+import * as environment from 'haiku-common/lib/environments'
 
 import TopMenu from './TopMenu'
 
@@ -24,7 +24,7 @@ app.setName('Haiku')
 app.setAsDefaultProtocolClient('haiku')
 
 // Disable "Start Dictation" and "Emoji & Symbols" menu items on MAC
-if (os.platform() === 'darwin') {
+if (environment.isMac()) {
   systemPreferences.setUserDefault('NSDisabledDictationMenuItem', 'boolean', true)
   systemPreferences.setUserDefault('NSDisabledCharacterPaletteMenuItem', 'boolean', true)
 }

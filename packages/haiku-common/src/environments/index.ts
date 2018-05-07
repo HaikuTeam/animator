@@ -35,4 +35,4 @@ export const getEnvironmentType = () => {
     : EnvironmentType.Development;
 };
 
-export * from './os'
+export * from './os';

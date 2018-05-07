@@ -1,4 +1,4 @@
-import * as enviroment from 'haiku-common/lib/environments'
+import * as environment from 'haiku-common/lib/environments';
 
 
 /* tslint:disable:variable-name */
@@ -21,7 +21,7 @@ const Globals = {
 
   // Special key is resposible for initiating rotate and reset zoom
   isSpecialKeyDown: () => {
-    if (enviroment.isMac()) {
+    if (environment.isMac()) {
       return Globals.isCommandKeyDown;
     } 
     return Globals.isControlKeyDown;
