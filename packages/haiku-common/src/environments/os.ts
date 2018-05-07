@@ -31,7 +31,7 @@ export const getEnvironmentOS = () => {
       return OperatingSystem.Web;
     }
     default: {
-      throw new Error('Something bad happened');
+      throw new Error('Unknown operating system');
     }
   }
 };
@@ -40,6 +40,4 @@ export const getEnvironmentOS = () => {
 export const isMac = () => getEnvironmentOS() === OperatingSystem.Mac;
 export const isWindows = () => getEnvironmentOS() === OperatingSystem.Windows;
 export const isLinux = () => getEnvironmentOS() === OperatingSystem.Linux;
-export const isPosix = () => (getEnvironmentOS() === OperatingSystem.Mac ||
-  getEnvironmentOS() === OperatingSystem.Linux);
 export const isWeb = () => getEnvironmentOS() === OperatingSystem.Web;

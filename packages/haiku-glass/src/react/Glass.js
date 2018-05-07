@@ -1848,7 +1848,7 @@ export class Glass extends React.Component {
   getCursorCssRule () {
     if (this.isPreviewMode()) return 'default'
     if (this.state.isAnythingRotating || this.state.isAnythingScaling) return 'none'
-    return (this.state.stageMouseDown) ? 'move' : 'default'
+    return (this.state.stageMouseDown) ? '-webkit-grabbing' : 'default'
   }
 
   renderHotComponentMount (mount, drawingClassName) {
