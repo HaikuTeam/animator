@@ -1,6 +1,18 @@
 # Changelog
 
 
+## 3.2.20
+
+### Bug Fixes
+
+ * disable ip collection on mixpanel in core phone home
+ * render the container for outline elements above the hot component mount
+ * do not insert outline DOM elements in user-defined components
+
+### Features
+
+ * modify expression values by one with arrow keys
+
 ## 3.2.19
 
 ### Bug Fixes
