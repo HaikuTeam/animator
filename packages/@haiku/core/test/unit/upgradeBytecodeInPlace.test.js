@@ -39,8 +39,8 @@ tape('upgradeBytecodeInPlace', (t) => {
     };
 
     TestHelpers.createComponent(oldBytecode, {}, (component, teardown)  => {
-      t.is(oldBytecode.metadata.core, VERSION);
-      t.deepEqual(oldBytecode.timelines, {
+      t.is(component.bytecode.metadata.core, VERSION);
+      t.deepEqual(component.bytecode.timelines, {
         Default: {
           'haiku:svg': {
             'mount.x': {0: {value: -0.5}},

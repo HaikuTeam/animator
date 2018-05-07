@@ -86,6 +86,7 @@ Property.PREFIX_TO_CLUSTER_NAME = {
   'translation': 'Position',
   'rotation': 'Rotation',
   'scale': 'Scale',
+  'shear': 'Shear',
   'sizeMode': 'Sizing Mode',
   'sizeProportional': 'Size %',
   'sizeDifferential': 'Size +/-',
@@ -95,9 +96,12 @@ Property.PREFIX_TO_CLUSTER_NAME = {
 }
 
 Property.HUMANIZED_PROP_NAMES = {
-  'rotation.z': 'Rotation Z', // Change me if we enable other types of rotation again
+  'rotation.z': 'Rotation Z',
   'rotation.y': 'Rotation Y',
   'rotation.x': 'Rotation X',
+  'shear.xy': 'Shear X / Y',
+  'shear.xz': 'Shear X / Z',
+  'shear.yz': 'Shear Y / Z',
   'translation.x': 'Position X',
   'translation.y': 'Position Y',
   'translation.z': 'Position Z',
@@ -152,6 +156,9 @@ Property.ALWAYS_CREATE_AS_PROPERTY_NEVER_AS_STATE = {
   'scale.x': true,
   'scale.y': true,
   'scale.z': true,
+  'shear.xy': true,
+  'shear.xz': true,
+  'shear.yz': true,
   'mount.x': true,
   'mount.y': true,
   'mount.z': true,
@@ -207,6 +214,9 @@ Property.EXCLUDE_FROM_JIT_IF_ROOT_ELEMENT = {
   'rotation.z': true,
   'scale.x': true,
   'scale.y': true,
+  'shear.xy': true,
+  'shear.xz': true,
+  'shear.yz': true,
   'scale.z': true,
   'origin.x': true,
   'origin.y': true
@@ -226,6 +236,11 @@ Property.BUILTIN_DOM_SCHEMAS = {
     'rotation.z': 'number',
     'scale.x': 'number',
     'scale.y': 'number',
+    'origin.x': 'number',
+    'origin.y': 'number',
+    'shear.xy': 'number',
+    'shear.xz': 'number',
+    'shear.yz': 'number',
     'style.background': 'string',
     'style.backgroundColor': 'string',
     'style.border': 'string',
@@ -239,6 +254,8 @@ Property.BUILTIN_DOM_SCHEMAS = {
     'style.fontSize': 'string',
     'style.fontStyle': 'string',
     'style.fontWeight': 'string',
+    'style.overflowY': 'string',
+    'style.overflowX': 'string',
     'style.textTransform': 'string',
     'style.pointerEvents': 'string',
     'style.perspective': 'string',
@@ -260,6 +277,9 @@ Property.BUILTIN_DOM_SCHEMAS = {
     'rotation.z': 'number',
     'scale.x': 'number',
     'scale.y': 'number',
+    'shear.xy': 'number',
+    'shear.xz': 'number',
+    'shear.yz': 'number',
     'origin.x': 'number',
     'origin.y': 'number',
     'style.border': 'string',
@@ -407,7 +427,13 @@ Property.EXCLUDE_FROM_ADDRESSABLES_IF_ROOT_ELEMENT = {
   'rotation.z': true,
   'scale.x': true,
   'scale.y': true,
-  'scale.z': true
+  'scale.z': true,
+  'origin.x': true,
+  'origin.y': true,
+  'origin.z': true,
+  'shear.xy': true,
+  'shear.xz': true,
+  'shear.yz': true
 }
 
 Property.EXCLUDE_FROM_ADDRESSABLES_IF_CHILD_ELEMENT = {

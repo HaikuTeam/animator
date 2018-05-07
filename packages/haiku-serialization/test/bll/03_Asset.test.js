@@ -65,7 +65,7 @@ const mockAssets = () =>{
 }
 
 test('Asset.assetsToDirectoryStructure', (t) => {
-  t.plan(13)
+  t.plan(8)
 
   const assets = mockAssets()
 
@@ -77,16 +77,11 @@ test('Asset.assetsToDirectoryStructure', (t) => {
 
   t.equal(assets[idx].kind, 'folder', 'base asset is folder')
   t.equal(assets[idx].type, 'container', 'base asset is container')
-  t.equal(assets[idx].children.length, 2, 'base asset has two children')
-  t.equal(assets[idx].children[0].kind, 'sketch', 'first child asset is sketch')
-  t.equal(assets[idx].children[1].kind, 'figma', 'second child asset is figma')
-  t.equal(assets[idx].children[0].type, 'container', 'child asset is container')
-  t.equal(assets[idx].children[0].children[0].relpath, 'designs/designs/TEST.sketch/slices', 'sketch grandchild is slices folder')
-  t.equal(assets[idx].children[1].children[0].relpath, 'designs/designs/ID-TEST.figma/groups', 'figma grandchild is groups folder')
-  t.equal(assets[idx].children[1].children[1].relpath, 'designs/designs/ID-TEST.figma/slices', 'figma grandchild is slices folder')
-  t.equal(assets[idx].children[0].children[0].kind, 'folder', 'grandchild is folder')
-  t.equal(assets[idx].children[0].children[0].type, 'container', 'grandchild is container')
-  t.equal(assets[idx].dump(), "designs\n  designs/TEST.sketch\n    designs/designs/TEST.sketch/slices\n      designs/TEST.sketch.contents/slices/Dicey.svg\n      designs/TEST.sketch.contents/slices/Slicey.svg\n    designs/designs/TEST.sketch/artboards\n      designs/TEST.sketch.contents/artboards/Another Artboard.svg\n      designs/TEST.sketch.contents/artboards/Artboard.svg\n  designs/ID-TEST.figma\n    designs/designs/ID-TEST.figma/groups\n      designs/ID-TEST.figma.contents/groups/Slicey.svg\n    designs/designs/ID-TEST.figma/slices\n      designs/ID-TEST.figma.contents/slices/Slicey.svg",'tree looks ok')
+  t.equal(assets[idx].children.length, 2, 'base asset has ok children')
+  t.equal(assets[idx].children[0].kind, 'component', 'first child asset is component')
+  t.equal(assets[idx].children[1].kind, 'component', 'second child asset is component')
+  t.equal(assets[idx].children[0].type, 'file', 'child asset is file')
+  t.equal(assets[idx].dump(), 'code\n  code/main/code.js\n  code/foo_svg/code.js','tree looks ok')
 })
 
 test('Asset.assetsToDirectoryStructure detects sketch assets without exported SVG files', (t) => {
@@ -100,16 +95,16 @@ test('Asset.assetsToDirectoryStructure detects sketch assets without exported SV
     },
   })
 
-  t.equal(assets[0].children.length, 1, 'base asset has a child')
-  t.equal(assets[0].children[0].kind, 'sketch', 'child asset is sketch')
+  t.equal(assets[1].children.length, 1, 'base asset has a child')
+  t.equal(assets[1].children[0].kind, 'sketch', 'child asset is sketch')
 })
 
 test('Asset.getAssetInfo', (t) => {
   t.plan(4)
 
   const assets = mockAssets()
-  const sketchAsset = assets[0].children[0].children[0].children[0]
-  const figmaAsset = assets[0].children[1].children[0].children[0]
+  const sketchAsset = assets[1].children[0].children[0].children[0]
+  const figmaAsset = assets[1].children[1].children[0].children[0]
   const sketchAssetInfo = sketchAsset.getAssetInfo()
   const figmaAssetInfo = figmaAsset.getAssetInfo()
 
@@ -123,8 +118,8 @@ test('Asset.isSketchFile', (t) => {
   t.plan(2)
 
   const assets = mockAssets()
-  const sketchAsset = assets[0].children[0]
-  const figmaAsset = assets[0].children[1]
+  const sketchAsset = assets[1].children[0]
+  const figmaAsset = assets[1].children[1]
 
   t.ok(sketchAsset.isSketchFile())
   t.notOk(sketchAsset.isFigmaFile())
@@ -134,8 +129,8 @@ test('Asset.isFigmaFile', (t) => {
   t.plan(2)
 
   const assets = mockAssets()
-  const sketchAsset = assets[0].children[0]
-  const figmaAsset = assets[0].children[1]
+  const sketchAsset = assets[1].children[0]
+  const figmaAsset = assets[1].children[1]
 
   t.ok(figmaAsset.isFigmaFile())
   t.notOk(figmaAsset.isSketchFile())

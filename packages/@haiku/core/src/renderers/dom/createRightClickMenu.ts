@@ -101,7 +101,7 @@ export default function createRightClickMenu(domElement, component) {
   const menu = findOrCreateMenuElement(doc);
 
   const escaper = doc.createElement('textarea');
-  const metadata = component._bytecode && component._bytecode.metadata;
+  const metadata = component.bytecode && component.bytecode.metadata;
   let isPublic = false;
   let isForkable = false;
 

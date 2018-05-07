@@ -18,8 +18,8 @@ module.exports = {
     Default: {
       "#box": {
         "content": { 0: { 
-          value: function (clicks) {
-            return clicks + ""
+          value: function (state) {
+            return state.clicks + ""
           },
         }},
         "style.width": { 0: { value: "100px" }},

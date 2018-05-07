@@ -1,1 +1,1 @@
-Open your console. Resize the window. Click the boxes. You should see things logged.
+Open your console. Click the #c box. You should see logs about 'lala' and the contents of the #c box should get changed due to a state transition.

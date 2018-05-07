@@ -1,1 +1,1 @@
-If this is working, the react side should show the filter being increasingly offset.
+The react box should show a three pairs of circles. On each pair, the right circle should be filtered with a blur effect. Each pair should see the filter increasingly offset. The vanilla and Vue boxes should just show one pair of circles.

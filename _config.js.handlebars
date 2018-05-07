@@ -11,6 +11,7 @@
 var env = {
   NODE_ENV: '{{appenv}}',
   HAIKU_RELEASE_VERSION: require('./package.json').version,
+  HAIKU_RECORDER_OFF: '1',
   HAIKU_RELEASE_PLATFORM: '{{platform}}',
   HAIKU_RELEASE_ARCHITECTURE: '{{architecture}}',
   HAIKU_RELEASE_ENVIRONMENT: '{{appenv}}', // just a tag, really - use to push to a url that won't trigger an update to users on the mainline

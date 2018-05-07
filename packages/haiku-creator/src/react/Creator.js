@@ -4,10 +4,9 @@ import { CSSTransition } from 'react-transition-group'
 import lodash from 'lodash'
 import Combokeys from 'combokeys'
 import EventEmitter from 'event-emitter'
-import cp from 'child_process'
+import path from 'path'
 import BaseModel from 'haiku-serialization/src/bll/BaseModel'
 import Project from 'haiku-serialization/src/bll/Project'
-import ModuleWrapper from 'haiku-serialization/src/bll/ModuleWrapper'
 import Asset from 'haiku-serialization/src/bll/Asset'
 import AuthenticationUI from './components/AuthenticationUI'
 import ProjectBrowser from './components/ProjectBrowser'
@@ -41,6 +40,8 @@ import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 import {buildProxyUrl, describeProxyFromUrl} from 'haiku-common/lib/proxies'
 import isOnline from 'is-online'
 import CreatorIntro from '@haiku/zack4-creatorintro/react'
+import logger from 'haiku-serialization/src/utils/LoggerInstance'
+import opn from 'opn'
 
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'creator'
@@ -51,6 +52,7 @@ var mixpanel = require('haiku-serialization/src/utils/Mixpanel')
 
 const electron = require('electron')
 const remote = electron.remote
+const shell = electron.shell
 const { dialog } = remote
 const ipcRenderer = electron.ipcRenderer
 const clipboard = electron.clipboard
@@ -173,13 +175,23 @@ export default class Creator extends React.Component {
       this.toggleDevTools()
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
+    ipcRenderer.on('global-menu:open-finder', lodash.debounce(() => {
+      logger.info(`[creator] global-menu:open-finder`)
+      this.openFinder()
+    }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
+
     ipcRenderer.on('global-menu:open-terminal', lodash.debounce(() => {
-      console.info(`[creator] global-menu:open-terminal`)
-      this.openTerminal(this.state.projectFolder)
+      logger.info(`[creator] global-menu:open-terminal`)
+      this.openTerminal()
+    }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
+
+    ipcRenderer.on('global-menu:open-text-editor', lodash.debounce(() => {
+      logger.info(`[creator] global-menu:open-text-editor`)
+      this.openTextEditor()
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:check-updates', lodash.debounce(() => {
-      console.info(`[creator] global-menu:check-updates`)
+      logger.info(`[creator] global-menu:check-updates`)
       this.setState({
         updater: {
           shouldCheck: true,
@@ -190,12 +202,12 @@ export default class Creator extends React.Component {
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:show-changelog', lodash.debounce(() => {
-      console.info(`[creator] global-menu:show-changelog`)
+      logger.info(`[creator] global-menu:show-changelog`)
       this.showChangelogModal()
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:zoom-in', lodash.debounce(() => {
-      console.info(`[creator] global-menu:zoom-in`)
+      logger.info(`[creator] global-menu:zoom-in`)
       // Timeline will send to Glass if it doesn't want to zoom
       this.props.websocket.send({
         type: 'relay',
@@ -207,7 +219,7 @@ export default class Creator extends React.Component {
 
     ipcRenderer.on('global-menu:zoom-out', lodash.debounce(() => {
       // Timeline will send to Glass if it doesn't want to zoom
-      console.info(`[creator] global-menu:zoom-out`)
+      logger.info(`[creator] global-menu:zoom-out`)
       this.props.websocket.send({
         type: 'relay',
         from: 'creator',
@@ -218,7 +230,7 @@ export default class Creator extends React.Component {
 
     ipcRenderer.on('global-menu:group', lodash.debounce(() => {
       // Timeline will send to Glass if it doesn't want to group
-      console.info(`[creator] global-menu:group`)
+      logger.info(`[creator] global-menu:group`)
       this.props.websocket.send({
         type: 'relay',
         from: 'creator',
@@ -229,7 +241,7 @@ export default class Creator extends React.Component {
 
     ipcRenderer.on('global-menu:ungroup', lodash.debounce(() => {
       // Timeline will send to Glass if it doesn't want to ungroup
-      console.info(`[creator] global-menu:ungroup`)
+      logger.info(`[creator] global-menu:ungroup`)
       this.props.websocket.send({
         type: 'relay',
         from: 'creator',
@@ -240,7 +252,7 @@ export default class Creator extends React.Component {
 
     ipcRenderer.on('global-menu:undo', lodash.debounce(() => {
       // Timeline will send to Glass if it doesn't want to undo
-      console.info(`[creator] global-menu:undo`)
+      logger.info(`[creator] global-menu:undo`)
       this.props.websocket.send({
         type: 'relay',
         from: 'creator',
@@ -252,7 +264,7 @@ export default class Creator extends React.Component {
 
     ipcRenderer.on('global-menu:redo', lodash.debounce(() => {
       // Timeline will send to Glass if it doesn't want to undo
-      console.info(`[creator] global-menu:redo`)
+      logger.info(`[creator] global-menu:redo`)
       this.props.websocket.send({
         type: 'relay',
         from: 'creator',
@@ -265,7 +277,7 @@ export default class Creator extends React.Component {
     ipcRenderer.on('global-menu:copy', lodash.debounce(() => {
       // Only delegate copy if we don't have anything in selection
       if (!this.isTextSelected()) {
-        console.info(`[creator] global-menu:copy`)
+        logger.info(`[creator] global-menu:copy`)
         this.props.websocket.send({
           type: 'relay',
           from: 'creator',
@@ -280,7 +292,7 @@ export default class Creator extends React.Component {
     ipcRenderer.on('global-menu:cut', lodash.debounce(() => {
       // Only delegate cut if we don't have anything in selection
       if (!this.isTextSelected()) {
-        console.info(`[creator] global-menu:cut`)
+        logger.info(`[creator] global-menu:cut`)
         this.props.websocket.send({
           type: 'relay',
           from: 'creator',
@@ -293,7 +305,7 @@ export default class Creator extends React.Component {
     ipcRenderer.on('global-menu:selectall', lodash.debounce(() => {
       // Only select all if we haven't activated a text element
       if (!this.isTextInputFocused()) {
-        console.info(`[creator] global-menu:selectall`)
+        logger.info(`[creator] global-menu:selectall`)
         this.props.websocket.send({
           type: 'relay',
           from: 'creator',
@@ -306,7 +318,7 @@ export default class Creator extends React.Component {
     ipcRenderer.on('global-menu:paste', lodash.debounce(() => {
       // Only paste if we haven't activated a text element
       if (!this.isTextInputFocused()) {
-        console.info(`[creator] global-menu:paste`)
+        logger.info(`[creator] global-menu:paste`)
         this.props.websocket.send({
           type: 'relay',
           from: 'creator',
@@ -369,7 +381,7 @@ export default class Creator extends React.Component {
           }
         })
       } catch (exception) {
-        console.warn(exception)
+        logger.warn(exception)
       }
     }
 
@@ -439,36 +451,57 @@ export default class Creator extends React.Component {
     return this.state.projectModel && this.state.projectModel.getCurrentActiveComponent()
   }
 
-  openTerminal (folder) {
-    try {
-      // Inspiration from:
-      // https://github.com/Microsoft/sqlopsstudio/blob/master/src/vs/workbench/parts/execution/electron-browser/terminal.ts
-      var platform = process.env.HAIKU_RELEASE_PLATFORM
-      switch (platform) {
-        case 'mac':
-          cp.execSync(`open -b com.apple.terminal ${JSON.stringify(folder)} || true`)
-          break
-        case 'windows':
-          cp.spawn(`cd ${JSON.stringify(folder)} && start ${process.env.windir}\\${process.env.HAIKU_RELEASE_ARCHITECTURE === 'x64' ? 'System32' : 'Sysnative'}\\cmd.exe`, {detached: true, shell: true})
-          break
-        case 'linux':
-          if (process.env.DESKTOP_SESSION === 'gnome' || process.env.DESKTOP_SESSION === 'gnome-classic') {
-            cp.exec(`cd ${JSON.stringify(folder)} && gnome-terminal`)
-          } else if (process.env.DESKTOP_SESSION === 'kde-plasma') {
-            cp.exec(`cd ${JSON.stringify(folder)} && konsole`)
-          } else if (process.env.COLORTERM) {
-            cp.exec(`cd ${JSON.stringify(folder)} && ${process.env.COLORTERM}`)
-          } else if (process.env.TERM) {
-            cp.exec(`cd ${JSON.stringify(folder)} && ${process.env.TERM}`)
-          } else {
-            cp.exec(`cd ${JSON.stringify(folder)} && xterm`)
-          }
-          break
-        default:
-          throw new Error('Unknown platform')
+  openFinder () {
+    if (this.state.projectModel) {
+      try {
+        logger.info('[creator] finder opening', shell.openItem(this.state.projectModel.getFolder()))
+      } catch (exception) {
+        logger.error(exception)
       }
+    }
+  }
+
+  openTerminal () {
+    if (this.state.projectModel) {
+      try {
+        logger.info('[creator] terminal opening', opn(this.state.projectModel.getFolder(), {app: 'terminal'}))
+      } catch (exception) {
+        logger.error(exception)
+      }
+    }
+  }
+
+  openTextEditor () {
+    if (this.state.projectModel) {
+      const relpath = this.state.projectModel.getCurrentActiveComponentRelpath()
+      if (relpath) {
+        this.openFileInTextEditor(
+          path.join(this.state.projectModel.getFolder(), relpath)
+        )
+      }
+    }
+  }
+
+  openFileInTextEditor (abspath) {
+    const editorEnv = process.env.EDITOR
+
+    // TODO: App names are platform-specific; need to support Windows and Linux too
+    let editorApp
+    if (typeof editorEnv !== 'string') editorApp = 'textedit'
+    if (editorEnv.match(/subl/)) editorApp = 'sublime text'
+    if (editorEnv.match(/vsc/)) editorApp = 'visual studio code'
+    if (editorEnv.match(/code/)) editorApp = 'visual studio code'
+    if (editorEnv.match(/visual/)) editorApp = 'visual studio code'
+    if (editorEnv.match(/atom/)) editorApp = 'atom'
+    if (editorEnv.match(/webstorm/)) editorApp = 'webstorm'
+    // if (editorEnv.match(/vim/)) editorApp = 'vim' // TODO: open specific file?
+    // if (editorEnv.match(/emacs/)) editorApp = 'emacs' // TODO: open specific file?
+    if (!editorApp) editorApp = 'textedit'
+
+    try {
+      logger.info(`[creator] editor ${editorEnv || '?'}->${editorApp} opening`, opn(abspath, {app: editorApp}))
     } catch (exception) {
-      console.error(exception)
+      logger.error(exception)
     }
   }
 
@@ -663,7 +696,7 @@ export default class Creator extends React.Component {
             // through the projects index
             return this.launchFolder(null, this.props.folder, (error) => {
               if (error) {
-                console.error(error)
+                logger.error(error)
                 this.setState({ folderLoadingError: error })
                 return this.createNotice({
                   type: 'error',
@@ -894,7 +927,7 @@ export default class Creator extends React.Component {
       organization: this.state.organizationName
     })
 
-    return this.props.websocket.request({ method: 'initializeProject', params: [projectName, projectObject, this.state.username, this.state.password] }, (err, projectFolder) => {
+    return this.props.websocket.request({ method: 'bootstrapProject', params: [projectName, projectObject, this.state.username, this.state.password] }, (err, projectFolder) => {
       if (err) return cb(err)
 
       window.Raven.setExtraContext({
@@ -972,9 +1005,16 @@ export default class Creator extends React.Component {
 
             projectModel.on('remote-update', (what, ...args) => {
               switch (what) {
+                case 'setCurrentActiveComponent':
+                  return this.forceUpdate()
                 case 'setInteractionMode':
                   return this.setPreviewMode(args[1])
               }
+            })
+
+            // Trigger tab UI and library panel updates
+            projectModel.on('active-component:upserted', () => {
+              this.forceUpdate()
             })
 
             // This notifies ProjectBrowser that we've successfully launched
@@ -1005,8 +1045,7 @@ export default class Creator extends React.Component {
   mountHaikuComponent () {
     // The Timeline UI doesn't display the component, so we don't bother giving it a ref
     this.getActiveComponent().mountApplication(null, {
-      freeze: true, // No display means no need for overflow settings, etc
-      reloadMode: ModuleWrapper.RELOAD_MODES.MONKEYPATCHED_OR_ISOLATED
+      freeze: true // No display means no need for overflow settings, etc
     })
   }
 
@@ -1050,6 +1089,11 @@ export default class Creator extends React.Component {
       }
     }
 
+    // Ignore Intercom widget errors which are transient and confuse the user
+    if (notice.type === 'error' && notice.message.match(/intercom/)) {
+      return
+    }
+
     notice.id = Math.random() + ''
     notice.count = 1
     notice.timestamp = Date.now()
@@ -1088,7 +1132,7 @@ export default class Creator extends React.Component {
     })
 
     if (!found) {
-      console.error(notice.message)
+      logger.error(notice.message)
       notices.unshift(notice)
     }
 
@@ -1231,7 +1275,7 @@ export default class Creator extends React.Component {
     return this.props.websocket.request(
       { method: 'teardownMaster', params: [this.state.projectModel.getFolder()] },
       () => {
-        console.info('[creator] master torn down')
+        logger.info('[creator] master torn down')
         this.setDashboardVisibility(true, launchingProject)
         this.onTimelineUnmounted()
         this.unsetAllProjectModelsState(this.state.projectModel.getFolder(), 'project:ready')
@@ -1337,7 +1381,7 @@ export default class Creator extends React.Component {
       (error, dotenv) => {
         if (error) {
           mixpanel.haikuTrack('creator:proxy-settings:error', {error})
-          console.warn('[creator] unable to persist proxy settings', error)
+          logger.warn('[creator] unable to persist proxy settings', error)
           this.createNotice({
             type: 'error',
             title: 'Oh no!',

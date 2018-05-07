@@ -80,7 +80,7 @@ class Library extends React.Component {
       }
     }
 
-    this.handleAssetInstantiation = this.handleAssetInstantiation.bind(this)
+    this.onAssetDoubleClick = this.onAssetDoubleClick.bind(this)
     this.handleAssetDeletion = this.handleAssetDeletion.bind(this)
     this.importFigmaAsset = this.importFigmaAsset.bind(this)
 
@@ -245,7 +245,7 @@ class Library extends React.Component {
 
   handleFileInstantiation (asset) {
     return this.props.projectModel.getCurrentActiveComponent().instantiateComponent(
-      asset.getRelpath(),
+      asset.getLocalizedRelpath(),
       {},
       {from: 'creator'},
       (err) => {
@@ -292,15 +292,34 @@ class Library extends React.Component {
   }
 
   handleComponentInstantiation (asset) {
-    // Yes, your observation is correct - this doesn't actually instantiate!
-    // It just toggles the active component!
-    // TODO: Rename/refactor - and note that this naming issue spans several methods here.
+    const ac = this.props.projectModel.getCurrentActiveComponent()
 
-    const scenename = this.props.projectModel.relpathToSceneName(asset.getRelpath())
-    this.props.projectModel.setCurrentActiveComponent(scenename, { from: 'creator' }, () => {})
+    // Don't allow components to be instantiated inside themselves
+    if (ac.getLocalizedRelpath() === asset.getLocalizedRelpath()) {
+      return
+    }
+
+    return ac.instantiateComponent(
+      asset.getLocalizedRelpath(),
+      {},
+      {from: 'creator'},
+      (err) => {
+        if (err) {
+          if (err.code === 'ENOENT') {
+            return this.props.createNotice({ type: 'error', title: 'Error', message: 'We couldn\'t find that component. 😩 Please try again in a few moments. If you still see this error, contact Haiku for support.' })
+          } else {
+            return this.props.createNotice({ type: 'error', title: 'Error', message: err.message })
+          }
+        }
+      }
+    )
   }
 
-  handleAssetInstantiation (asset) {
+  handleFolderDoubleClick (asset) {
+    shell.openItem(asset.getAbspath())
+  }
+
+  onAssetDoubleClick (asset) {
     switch (asset.kind) {
       case Asset.KINDS.SKETCH:
         this.handleSketchInstantiation(asset)
@@ -314,17 +333,15 @@ class Library extends React.Component {
       case Asset.KINDS.COMPONENT:
         this.handleComponentInstantiation(asset)
         break
-      default:
-        this.props.createNotice({
-          type: 'warning',
-          title: 'Oops!',
-          message: 'Couldn\'t handle that file, please contact support.'
-        })
+      case Asset.KINDS.FOLDER:
+        this.handleFolderDoubleClick(asset)
+        break
     }
   }
 
   handleAssetDeletion (asset) {
     this.setState({isLoading: true})
+
     return this.props.projectModel.unlinkAsset(
       asset.getRelpath(),
       (error, assets) => {
@@ -339,6 +356,7 @@ class Library extends React.Component {
 
   handleFileDrop (filePaths) {
     this.setState({isLoading: true})
+
     this.props.projectModel.bulkLinkAssets(
       filePaths,
       (error, assets) => {
@@ -377,7 +395,7 @@ class Library extends React.Component {
                 projectModel={this.props.projectModel}
                 onDragStart={this.props.onDragStart}
                 onDragEnd={this.props.onDragEnd}
-                instantiateAsset={this.handleAssetInstantiation}
+                onAssetDoubleClick={this.onAssetDoubleClick}
                 figma={this.state.figma}
                 onImportFigmaAsset={this.importFigmaAsset}
                 onRefreshFigmaAsset={this.importFigmaAsset}

@@ -10,11 +10,10 @@ import ElectronProxyAgent from 'electron-proxy-agent'
 import qs from 'qs'
 
 import { isProxied, ProxyType } from 'haiku-common/lib/proxies'
+import TopMenu from 'haiku-common/lib/electron/TopMenu'
 import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import {isMac} from 'haiku-common/lib/environments/os'
-
-import TopMenu from './TopMenu'
 
 if (!app) {
   throw new Error('You can only run electron.js from an electron process')
@@ -92,15 +91,21 @@ function different (a, b) {
 function createWindow () {
   mixpanel.haikuTrack('app:initialize')
 
-  const topmenu = new TopMenu()
+  browserWindow = new BrowserWindow({
+    title: 'Haiku',
+    show: false, // Don't show the window until we are ready-to-show (see below)
+    titleBarStyle: 'hidden-inset'
+  })
+
+  const topmenu = new TopMenu(browserWindow.webContents)
 
   const menuspec = {
-    undoables: [],
-    redoables: [],
     projectList: [],
     isSaving: false,
-    folder: null
+    isProjectOpen: false
   }
+
+  let folder = null
 
   topmenu.create(menuspec)
 
@@ -115,23 +120,10 @@ function createWindow () {
     // (b) returns bad data, missing some fields, when master is in a bad state
     // So we check that the things exist before repopulating
     if (masterState) {
-      if (masterState.undoables) {
-        if (different(menuspec.undoables.length, masterState.undoables.length)) {
-          didChange = true
-          menuspec.undoables = masterState.undoables || []
-        }
-      }
-
-      if (masterState.redoables) {
-        if (different(menuspec.redoables.length, masterState.redoables.length)) {
-          didChange = true
-          menuspec.redoables = masterState.redoables || []
-        }
-      }
-
-      if (different(menuspec.folder, masterState.folder)) {
+      if (different(folder, masterState.folder)) {
         didChange = true
-        menuspec.folder = masterState.folder
+        folder = masterState.folder
+        menuspec.isProjectOpen = !!masterState.folder
       }
 
       if (different(menuspec.isSaving, masterState.isSaving)) {
@@ -147,14 +139,9 @@ function createWindow () {
 
   ipcMain.on('renderer:projects-list-fetched', (ipcEvent, projectList) => {
     menuspec.projectList = projectList
-    menuspec.folder = null
+    menuspec.isProjectOpen = false
+    folder = null
     topmenu.create(menuspec)
-  })
-
-  browserWindow = new BrowserWindow({
-    title: 'Haiku',
-    show: false, // Don't show the window until we are ready-to-show (see below)
-    titleBarStyle: 'hidden-inset'
   })
 
   browserWindow.setTitle('Haiku')
@@ -183,35 +170,6 @@ function createWindow () {
       if (global.process.env.HAIKU_INITIAL_URL) {
         handleUrl(global.process.env.HAIKU_INITIAL_URL)
       }
-    })
-  })
-
-  // Events to delegate to BrowserWindow event handlers.
-  const globalMenuPassthroughs = [
-    'check-updates',
-    'copy',
-    'cut',
-    'export',
-    'group',
-    'open-terminal',
-    'open-text-editor',
-    'paste',
-    'redo',
-    'save',
-    'selectall',
-    'show-changelog',
-    'show-project-location-toast',
-    'start-tour',
-    'undo',
-    'ungroup',
-    'zoom-in',
-    'zoom-out'
-  ]
-
-  globalMenuPassthroughs.forEach((command) => {
-    topmenu.on(`global-menu:${command}`, (...args) => {
-      console.info(`global-menu:${command}`, args)
-      browserWindow.webContents.send(`global-menu:${command}`, ...args)
     })
   })
 

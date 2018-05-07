@@ -226,9 +226,9 @@ INJECTABLES['$core'] = {
     }
     const out = injectees.$core;
 
-    out.version = hostInstance._context.CORE_VERSION || hostInstance._context.PLAYER_VERSION; // Fallback to #LEGACY
+    out.version = hostInstance.context.CORE_VERSION || hostInstance.context.PLAYER_VERSION; // Fallback to #LEGACY
 
-    const options = hostInstance._context.config;
+    const options = hostInstance.context.config;
     if (options) {
       if (!out.options) {
         out.options = {};
@@ -304,11 +304,6 @@ const EVENT_SCHEMA = {
     which: 'number',
     code: 'number', // alias for 'which'
   }],
-  // TODO:
-  // accelerometer
-  // compass
-  // mic
-  // camera
 };
 
 const ELEMENT_SCHEMA = {
@@ -321,17 +316,6 @@ const ELEMENT_SCHEMA = {
     }
     return defined;
   },
-
-  // TODO
-  // bbox: {
-  //   x: 'number',
-  //   y: 'number',
-  //   width: 'number',
-  //   height: 'number'
-  // },
-
-  // TODO
-  // events: EVENT_SCHEMA
 };
 
 const assignElementInjectables = (obj, key, summonSpec, hostInstance, element) => {
@@ -347,13 +331,6 @@ const assignElementInjectables = (obj, key, summonSpec, hostInstance, element) =
 
   obj[key] = {};
   const out = obj[key];
-
-  // It's not clear yet when we need fallbacks
-  // var fallbacks = DOMFallbacks[element.elementName]
-  // if (!fallbacks) {
-  //   console.warn('[haiku core] element ' + element.elementName + ' has no fallbacks defined')
-  //   return {}
-  // }
 
   out.properties = {
     name: null,
@@ -385,12 +362,12 @@ const assignElementInjectables = (obj, key, summonSpec, hostInstance, element) =
   // defineProperty so that the calc happens lazily
   // Object.defineProperty(out, 'bbox', {
   //   get: function _get () {
-  //     return hostInstance._context._getElementBBox(element)
+  //     return hostInstance.context._getElementBBox(element)
   //   }
   // })
 
   // TODO
-  // out.events = hostInstance._context.getElementEvents(element)
+  // out.events = hostInstance.context.getElementEvents(element)
 };
 
 INJECTABLES['$tree'] = {
@@ -510,7 +487,7 @@ INJECTABLES['$user'] = {
   schema: assign({}, EVENT_SCHEMA),
   summon(injectees, summonSpec, hostInstance, matchingElement) {
     if (isPreviewMode(hostInstance.config.interactionMode)) {
-      injectees.$user = hostInstance._context.getGlobalUserState();
+      injectees.$user = hostInstance.context.getGlobalUserState();
     } else {
       injectees.$user = {
         mouse: {
@@ -1125,7 +1102,7 @@ export default class ValueBuilder {
 
         // Indicate to the downstream transition cache that this value came from a function and cannot be cached there.
         // See Transitions.js for info on how this gets handled
-        parsee[ms].machine = true;
+        parsee[ms].expression = true;
 
         // Note that evaluate doesn't necessarily call the function - it may itself return a cached value
         const functionReturnValue = this.evaluate(

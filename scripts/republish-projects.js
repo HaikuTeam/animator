@@ -52,7 +52,7 @@ const startProject = (projectObject, cb) => {
 }
 
 const republishProject = (projectObject, cb) => {
-  plumbing.initializeProject(
+  plumbing.bootstrapProject(
     projectObject.projectName,
     projectObject,
     undefined,

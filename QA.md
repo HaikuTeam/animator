@@ -212,6 +212,70 @@ Changes to z-index reflect correctly on stage
 Changes to z-index reflect correctly in the timeline as `style.zIndex`
 I can drag-and-drop timeline rows to reorder z-index
 
+Multi-Component
+
+In the library, a 'Components' folder is shown above 'Designs'
+By default, there is one component: 'Main', the current one; it is highlighted
+There are tabs above the stage reflecting editable components in the project
+On stage, the label shows {ProjectName} {ComponentName}
+At bottom of app, the label shows {ProjectName} {ComponentName}
+The timeline displays the name of the component, Main, as the root element
+The state inspector heading indicates the current component
+On stage, I can reveal the context menu and I see 'Create Component'
+Clicking 'Create Component' opens a naming dialog box
+The component name dialog can be cancelled
+I can enter a component name
+[FOR NOW] The component name field only allows numbers and lowercase letters
+The component name field shows validation errors as I type
+The 'Create Component' button is disabled if the name is invalid
+I can hit Enter or click 'Create Component' to complete the dialog
+When a component is created, the elements selected are replaced with the component
+The elements on stage are all positioned correctly for the current time
+[FOR NOW] The bounding box of the newly created component is the size of the host component's stage
+If the child has content overflowing the host's box, that content is visible in the host
+Overflow settings are automatically added as editable rows to components' timelines
+By editing the overflow settings, I can change whether the overflow-x/y  is visible/scroll/hidden
+A new tab appears for the newly created component
+A new component appears in the library for the newly created component
+I can drag and transform the component like any other element
+I can animate the component from its host like any other element
+I can use the stage context menu to 'Edit Component'
+The 'Edit Component' options is only enabled for actual component elements on stage
+Or I can use the tabs at the top to switch between editing contexts for components
+When I switch contexts, the app changes to reflect the new context: labels, timeline, state inspector...
+I can make a change in the child component, switch back to the host, and see the change reflected
+I can instantiate an additional copy of the component on the host's stage
+If I make a change to the child component, all copies of the children update in the host as well
+I can change the Sketch file and see changes reflect in all copies of the component
+Same as above, no matter which tab I happen to be editing currently
+I can add a state to the child, go back to the host, and the host shows the state in the timeline
+The host's display of the state shows the default value for the child state
+I can override the child state from the host component
+If the child state is bound to behavior, I see that affect on stage
+I can enter and exit preview mode when multiple components are in play
+If the child has animations, moving the host's scrubber plays them
+If the child has animations, playing the host plays them (note: host must have > 0 keyframes)
+If the child has animations, going into preview mode plays them (note: host must have > 0 keyframes)
+I can create a higher order component of multiple components
+I can create a higher order component mixing plain elements with components
+When I do this, all of the above functionality also continues to work correctly
+I can use the timeline scrubber to control time for subcomponents (even higher-order ones)
+I can Open in Text Editor for any component I've created
+In code.js for a host componemt, the `require` path for child components is correct
+In code.js, the element name of child component is the import of the other's code
+When I delete all instances of a child component, their `require` is removed from code.js
+The haiku-source attribute is present for components in the tree, and is respective to the project
+The haiku-title attribute is present, and is the component name of the component
+The haiku-var attribute is present, and is the same of the import var of the subcomponent
+If I try to instantiate the 'Main' component, it won't let me
+If I try to instantiate 'Foo' within itself, it won't let me
+If I create 'Foo', then 'Bar', then put 'Foo' in 'Bar' and try to put 'Bar' in 'Foo' it won't let me
+[FOR NOW] Components cannot be removed from the library
+I can copy and paste components
+I can cut and paste components
+I can undo/redo changes from a host component to a child
+I can undo/redo changes within a child, and those also reflect in the host
+
 Nad
 
 Basics

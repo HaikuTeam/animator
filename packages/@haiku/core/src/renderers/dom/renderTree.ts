@@ -13,7 +13,15 @@ import updateElement from './updateElement';
 
 const connectTarget = (virtualNode, domElement) => {
   if (virtualNode && typeof virtualNode === 'object') {
-    virtualNode.__target = domElement;
+    // A virtual node can have multiple targets in the DOM due to an implementation
+    // detail in the Haiku editing environment; FIXME
+    if (!virtualNode.__targets) {
+      virtualNode.__targets = [];
+    }
+
+    if (virtualNode.__targets.indexOf(domElement) === -1) {
+      virtualNode.__targets.push(domElement);
+    }
   }
 };
 
@@ -29,8 +37,6 @@ export default function renderTree(
   connectTarget(virtualElement, domElement);
 
   const flexId = getFlexId(virtualElement);
-
-  component._addElementToHashTable(domElement, virtualElement);
 
   if (!domElement.haiku) {
     domElement.haiku = {
@@ -54,7 +60,7 @@ export default function renderTree(
 
   // For so-called 'horizon' elements, we assume that we've ceded control to another renderer,
   // so the most we want to do is update the attributes and layout properties, but leave the rest alone
-  if (component._isHorizonElement(virtualElement)) {
+  if (component.isHorizonElement(virtualElement)) {
     return domElement;
   }
 
@@ -92,7 +98,6 @@ export default function renderTree(
     } else if (virtualChild) {
       if (!domChild) {
         const insertedElement = appendChild(null, virtualChild, domElement, virtualElement, component);
-        component._addElementToHashTable(insertedElement, virtualChild);
         connectTarget(virtualChild, insertedElement);
       } else {
         // Circumstances in which we want to completely *replace* the element:

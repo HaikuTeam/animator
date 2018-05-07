@@ -1,0 +1,1 @@
+You should see a red box offset to the top left by a random amount.

@@ -22,10 +22,26 @@ export default function expressionToRO(exp, options) {
   }
 
   if (exp && typeof exp === OBJECT) {
-    // If we got an object that already looks like a 'RO', then pass it through unmodified
-    // See 'reifyRO' for detail on how this serialization works on the opposite side
-    if (exp.__function || exp.__reference || exp.__value) {
-      return exp;
+    // If we got an object that already looks like a 'RO', then pass it through unmodified.
+    // Note that we only want to include the super-private members __*, since the object might
+    // inadvertently be storing other properties that aren't suited to serialization.
+    // See 'reifyRO' for detail on how this serialization works on the opposite side.
+    if (exp.__function) {
+      return {
+        __function: exp.__function,
+      };
+    }
+
+    if (exp.__reference) {
+      return {
+        __reference: exp.__reference,
+      };
+    }
+
+    if (exp.__value) {
+      return {
+        __value: exp.__value,
+      };
     }
 
     return objectToRO(exp, options);

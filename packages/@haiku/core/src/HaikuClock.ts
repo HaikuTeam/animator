@@ -67,6 +67,7 @@ export default class HaikuClock extends HaikuBase {
   _localTimeElapsed;
   _numLoopsRun;
   options;
+  queueIndex;
   _tickables;
   GLOBAL_ANIMATION_HARNESS;
 
@@ -82,7 +83,7 @@ export default class HaikuClock extends HaikuBase {
     this.reinitialize();
 
     // Bind to avoid `this`-detachment when called by raf
-    HaikuGlobal.HaikuGlobalAnimationHarness.queue.push(this.run.bind(this));
+    this.queueIndex = HaikuGlobal.HaikuGlobalAnimationHarness.queue.push(this.run.bind(this));
 
     // Tests and others may need this to cancel the rAF loop, to avoid leaked handles
     this.GLOBAL_ANIMATION_HARNESS = HaikuGlobal.HaikuGlobalAnimationHarness;
@@ -208,5 +209,10 @@ export default class HaikuClock extends HaikuBase {
 
   getFrameDuration() {
     return this.options.frameDuration;
+  }
+
+  destroy() {
+    super.destroy();
+    HaikuGlobal.HaikuGlobalAnimationHarness.queue.splice(this.queueIndex, 1);
   }
 }

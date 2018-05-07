@@ -5,19 +5,17 @@ const Watcher = require('./../../lib/Watcher').default
 const TestHelpers = require('./../TestHelpers')
 
 tape('Watcher', (t) => {
-  var FILES_TO_TEST = {
+  const FILES_TO_TEST = {
     '.git/foo': true,
     'baz~.sketch': true,
     'node_modules/foo/index.js': true,
     'node_modules/foo/node_modules/index.js': true,
     'bower_components/rara/foo.bar.js': true,
     'jspm_modules/blag/foo.bar.js': true,
-
     '.foobar': false,
-    'haiku.js': false,
-    'foo/haiku.js': false,
+    'foo/haiku.js': false
   }
-  const NUM_TESTS = 3
+  const NUM_TESTS = 2
   t.plan(NUM_TESTS)
   return TestHelpers.tmpdir((folder, teardown) => {
     const watcher = new Watcher()

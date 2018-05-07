@@ -41,7 +41,18 @@ const FORMATS = {
   TWO: 2,
 };
 
-const initializeNodeAttributes = (element) => {
+const DIV = 'div';
+const SVG = 'svg';
+const TYPE_STRING = 'string';
+const virtualElementIsLayoutContainer = (virtualElement) => {
+  // A virtual element is a layout container if the element is a component…
+  return typeof virtualElement.elementName !== TYPE_STRING ||
+  // …or if it is a layout container defining its own coordinate system.
+  virtualElement.elementName === SVG ||
+  virtualElement.elementName === DIV;
+};
+
+const initializeNodeAttributes = (element, isRootNode: boolean) => {
   if (!element.attributes) {
     element.attributes = {};
   }
@@ -49,7 +60,7 @@ const initializeNodeAttributes = (element) => {
     element.attributes.style = {};
   }
   if (!element.layout) {
-    element.layout = createLayoutSpec(element.elementName === 'svg');
+    element.layout = createLayoutSpec(!isRootNode && virtualElementIsLayoutContainer(element));
     element.layout.matrix = createMatrix();
     element.layout.format = ELEMENTS_2D[element.elementName]
       ? FORMATS.TWO
@@ -58,19 +69,19 @@ const initializeNodeAttributes = (element) => {
   return element;
 };
 
-const initializeTreeAttributes = (tree, container) => {
+const initializeTreeAttributes = (tree, isRootNode: boolean) => {
   if (!tree || typeof tree === 'string') {
     return;
   }
 
-  initializeNodeAttributes(tree);
+  initializeNodeAttributes(tree, isRootNode);
 
   if (!tree.children || tree.children.length < 1) {
     return;
   }
 
   for (let i = 0; i < tree.children.length; i++) {
-    initializeTreeAttributes(tree.children[i], tree);
+    initializeTreeAttributes(tree.children[i], false);
   }
 };
 
@@ -98,6 +109,7 @@ const createLayoutSpec = (createCoordinateSystem?: boolean) => ({
   rotation: {x: 0, y: 0, z: 0, w: 0},
   orientation: {x: 0, y: 0, z: 0, w: 0},
   scale: {x: 1, y: 1, z: 1},
+  shear: {xy: 0, xz: 0, yz: 0},
   sizeMode: {
     x: SIZE_PROPORTIONAL,
     y: SIZE_PROPORTIONAL,
@@ -185,6 +197,7 @@ export default {
   createMatrix,
   copyMatrix,
   initializeTreeAttributes,
+  virtualElementIsLayoutContainer,
   FORMATS,
   SIZE_ABSOLUTE,
   SIZE_PROPORTIONAL,

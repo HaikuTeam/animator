@@ -49,13 +49,13 @@ module.exports = {
 
         opacity: {
           "0": { value: 0 },
-          // "183": { value: 0.5, curve: "easeInOutBounce" },
+          "183": { value: 0.5, curve: "easeInOutBounce" },
           "250": { value: 1 },
-          // "217": { value: 0.0, curve: "linear" },
-          // "300": { value: 0.5, curve: "linear" },
-          // "350": { value: 1.0 },
-          // "1750": { value: 0 },
-          // "5000": { value: 1.0 }
+          "217": { value: 0.0, curve: "linear" },
+          "300": { value: 0.5, curve: "linear" },
+          "350": { value: 1.0 },
+          "1750": { value: 0 },
+          "5000": { value: 1.0 }
         },
 
         "sizeAbsolute.x": {

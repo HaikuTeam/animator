@@ -19,7 +19,7 @@ tape('other.01', (t) => {
 
       // Initially create the project
       function (cb) {
-        return plumbing.initializeProject(projectName, { projectName, skipContentCreation: true }, 'matthew+matthew@haiku.ai', 'supersecure', (err) => {
+        return plumbing.bootstrapProject(projectName, { projectName, skipContentCreation: true }, 'matthew+matthew@haiku.ai', 'supersecure', (err) => {
           if (err) return cb(err)
           return plumbing.startProject(projectName, folder(), cb)
         })
@@ -43,7 +43,7 @@ tape('other.01', (t) => {
       },
 
       function (cb) {
-        return plumbing.initializeProject(projectName, { projectName, skipContentCreation: true }, 'matthew+matthew@haiku.ai', 'supersecure', (err) => {
+        return plumbing.bootstrapProject(projectName, { projectName, skipContentCreation: true }, 'matthew+matthew@haiku.ai', 'supersecure', (err) => {
           if (err) return cb(err)
           return plumbing.startProject(projectName, folder(), cb)
         })
@@ -54,7 +54,7 @@ tape('other.01', (t) => {
       },
 
       function (cb) {
-        return plumbing.initializeProject(projectName, { projectName, skipContentCreation: true }, 'matthew+matthew@haiku.ai', 'supersecure', (err) => {
+        return plumbing.bootstrapProject(projectName, { projectName, skipContentCreation: true }, 'matthew+matthew@haiku.ai', 'supersecure', (err) => {
           if (err) return cb(err)
           return plumbing.startProject(projectName, folder(), cb)
         })
@@ -75,7 +75,7 @@ tape('other.01', (t) => {
       },
 
       function (cb) {
-        return plumbing.initializeProject(projectName, { projectName, skipContentCreation: true }, 'matthew+matthew@haiku.ai', 'supersecure', (err) => {
+        return plumbing.bootstrapProject(projectName, { projectName, skipContentCreation: true }, 'matthew+matthew@haiku.ai', 'supersecure', (err) => {
           if (err) return cb(err)
           return plumbing.startProject(projectName, folder(), cb)
         })
@@ -86,7 +86,7 @@ tape('other.01', (t) => {
       },
 
       function (cb) {
-        return plumbing.initializeProject(projectName, { projectName, skipContentCreation: true }, 'matthew+matthew@haiku.ai', 'supersecure', (err) => {
+        return plumbing.bootstrapProject(projectName, { projectName, skipContentCreation: true }, 'matthew+matthew@haiku.ai', 'supersecure', (err) => {
           if (err) return cb(err)
           return plumbing.startProject(projectName, folder(), cb)
         })
@@ -107,7 +107,7 @@ tape('other.01', (t) => {
       },
 
       function (cb) {
-        return plumbing.initializeProject(projectName, { projectName, skipContentCreation: true }, 'matthew+matthew@haiku.ai', 'supersecure', (err) => {
+        return plumbing.bootstrapProject(projectName, { projectName, skipContentCreation: true }, 'matthew+matthew@haiku.ai', 'supersecure', (err) => {
           if (err) return cb(err)
           return plumbing.startProject(projectName, folder(), cb)
         })
@@ -124,7 +124,7 @@ tape('other.01', (t) => {
       },
 
       function (cb) {
-        return plumbing.initializeProject(projectName, { projectName, skipContentCreation: true }, 'matthew+matthew@haiku.ai', 'supersecure', (err) => {
+        return plumbing.bootstrapProject(projectName, { projectName, skipContentCreation: true }, 'matthew+matthew@haiku.ai', 'supersecure', (err) => {
           if (err) return cb(err)
           return plumbing.startProject(projectName, folder(), cb)
         })
@@ -135,7 +135,7 @@ tape('other.01', (t) => {
       },
 
       function (cb) {
-        return plumbing.initializeProject(projectName, { projectName, skipContentCreation: true }, 'matthew+matthew@haiku.ai', 'supersecure', (err) => {
+        return plumbing.bootstrapProject(projectName, { projectName, skipContentCreation: true }, 'matthew+matthew@haiku.ai', 'supersecure', (err) => {
           if (err) return cb(err)
           return plumbing.startProject(projectName, folder(), cb)
         })
@@ -146,7 +146,7 @@ tape('other.01', (t) => {
       },
 
       function (cb) {
-        return plumbing.initializeProject(projectName, { projectName, skipContentCreation: true }, 'matthew+matthew@haiku.ai', 'supersecure', (err) => {
+        return plumbing.bootstrapProject(projectName, { projectName, skipContentCreation: true }, 'matthew+matthew@haiku.ai', 'supersecure', (err) => {
           if (err) return cb(err)
           return plumbing.startProject(projectName, folder(), cb)
         })
@@ -157,7 +157,7 @@ tape('other.01', (t) => {
       },
 
       function (cb) {
-        return plumbing.initializeProject(projectName, { projectName, skipContentCreation: true }, 'matthew+matthew@haiku.ai', 'supersecure', (err) => {
+        return plumbing.bootstrapProject(projectName, { projectName, skipContentCreation: true }, 'matthew+matthew@haiku.ai', 'supersecure', (err) => {
           if (err) return cb(err)
           return plumbing.startProject(projectName, folder(), cb)
         })
@@ -178,7 +178,7 @@ tape('other.01', (t) => {
       },
 
       function (cb) {
-        return plumbing.initializeProject(projectName, { projectName, skipContentCreation: true }, 'matthew+matthew@haiku.ai', 'supersecure', (err) => {
+        return plumbing.bootstrapProject(projectName, { projectName, skipContentCreation: true }, 'matthew+matthew@haiku.ai', 'supersecure', (err) => {
           if (err) return cb(err)
           return plumbing.startProject(projectName, folder(), cb)
         })

@@ -4,11 +4,11 @@ export * from './EnvoyLogger';
 export * from './EnvoyServer';
 
 export enum DatagramIntent {
-    REQUEST,
-    RESPONSE,
-    SCHEMA_REQUEST,
-    EVENT,
-    ID_REQUEST,
+  REQUEST,
+  RESPONSE,
+  SCHEMA_REQUEST,
+  EVENT,
+  ID_REQUEST,
 }
 
 export interface Datagram {
@@ -33,7 +33,7 @@ export interface EnvoyOptions {
 
 export const DEFAULT_ENVOY_OPTIONS: EnvoyOptions = {
   host: global.process.env.HAIKU_PLUMBING_HOST || '127.0.0.1',
-  logger: console,
+  logger: null, // By default we use the centralized logging instance
   mock: false, // In mock mode, clients don't try to connect to the server
   path: '/',
   port: null, // We choose a port automatically if none passed explicitly

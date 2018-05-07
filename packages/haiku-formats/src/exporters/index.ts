@@ -3,6 +3,7 @@ import {ExporterFormat, ExporterRequest} from 'haiku-sdk-creator/lib/exporter';
 
 import {BodymovinExporter} from './bodymovin/bodymovinExporter';
 import {HaikuStaticExporter} from './haikuStatic/haikuStaticExporter';
+import * as LoggerInstance from 'haiku-serialization/src/utils/LoggerInstance';
 
 export interface ExporterInterface {
   rawOutput(): any;
@@ -28,7 +29,7 @@ export const handleExporterSaveRequest = (request: ExporterRequest, bytecode: Ha
       const exporter: ExporterInterface = getExporter(request.format, bytecode);
       binaryOutput = exporter.binaryOutput();
     } catch (e) {
-      console.error(`[formats] caught exception during export: ${e.toString()}`);
+      LoggerInstance.error(`[formats] caught exception during export: ${e.toString()}`);
       const exporter: ExporterInterface = getExporter(request.format, bytecode);
       binaryOutput = exporter.failsafeBinaryOutput();
     } finally {

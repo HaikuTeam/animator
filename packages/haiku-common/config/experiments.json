@@ -4,12 +4,20 @@
     "production": false
   },
   "MultiComponentFeatures": {
+    "development": true,
+    "production": false
+  },
+  "MultiComponentControlsLibrary": {
     "development": false,
     "production": false
   },
   "JustInTimeProperties": {
     "development": true,
     "production": true
+  },
+  "ShowSubElementsInJitMenu": {
+    "development": false,
+    "production": false
   },
   "InstantiationOfPrimitivesAsComponents": {
     "development": false,
@@ -44,19 +52,11 @@
     "production": true
   },
   "NormalizeSvgContent": {
-    "development": true,
+    "development": false,
     "production": false
   },
   "BasicOfflineMode": {
     "development": true,
-    "production": false
-  },
-  "MultiComponentControlsLibrary": {
-    "development": false,
-    "production": false
-  },
-  "ShowSubElementsInJitMenu": {
-    "development": false,
     "production": false
   },
   "ElementMultiSelectAndTransform": {
@@ -64,7 +64,7 @@
     "production": true
   },
   "GroupUngroup": {
-    "development": false,
+    "development": true,
     "production": false
   },
   "BaseModelQueryCache": {

@@ -12,7 +12,7 @@ test('dom-embed-with-code', function (t) {
     var adapter = window.HaikuCore[pkg.version]
     var HaikuComponentFactory = adapter(require('./../fixtures/code1.js'))
     var component = HaikuComponentFactory(mount)
-    component._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
+    component.context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
     t.ok(true)
   })
 })

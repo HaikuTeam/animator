@@ -25,6 +25,9 @@ module.exports = {
   timelines: {
     Default: {
       'haiku:HaikuControlsText': {
+        'origin.x': { '0': { value: 0 } },
+        'origin.y': { '0': { value: 0 } },
+        'origin.z': { '0': { value: 0 } },
         'style.WebkitTapHighlightColor': { '0': { value: 'rgba(0,0,0,0)' } },
         'style.position': { '0': { value: 'relative' } },
         'style.overflowX': { '0': { value: 'hidden' } },
@@ -58,7 +61,7 @@ module.exports = {
           }, 'sizeAbsolute.y')
         } }
       },
-      'haiku:HaikuControlsImageSvgTextElement': {
+      'haiku:HaikuControlsSvgTextElement': {
         'sizeMode.x': { '0': { value: 1 } },
         'sizeMode.y': { '0': { value: 1 } },
         'sizeMode.z': { '0': { value: 1 } },
@@ -173,8 +176,8 @@ module.exports = {
           {
             elementName: 'text',
             attributes: {
-              'haiku-title': 'HaikuControlsImageSvgTextElement',
-              'haiku-id': 'HaikuControlsImageSvgTextElement'
+              'haiku-title': 'HaikuControlsSvgTextElement',
+              'haiku-id': 'HaikuControlsSvgTextElement'
             }
           }
         ]

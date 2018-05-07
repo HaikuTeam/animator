@@ -1,8 +1,9 @@
-var util = require('util')
-var EventEmitter = require('events').EventEmitter
-var serializeError = require('./../utils/serializeError')
+const util = require('util')
+const EventEmitter = require('events').EventEmitter
+const serializeError = require('./../utils/serializeError')
+const logger = require('./../utils/LoggerInstance')
 
-var STATES = {
+const STATES = {
   CONNECTING: 0, // The connection is not yet open.
   OPEN: 1, // The connection is open and ready to communicate.
   CLOSING: 2, // The connection is in the process of closing.
@@ -23,7 +24,7 @@ function Websocket (url, folder, clientType, clientAlias, WebSocket, token) {
   if (!clientType) throw new Error('A client type is required')
 
   if (!folder) {
-    console.warn('[websocket] received no folder argument')
+    logger.warn('[websocket] received no folder argument')
   }
 
   // NOTE: The plumbing uses these URL query params to manage comms between clients
@@ -88,23 +89,23 @@ Websocket.prototype.connect = function connect (cb) {
 }
 
 Websocket.prototype.setupSocket = function setupSocket () {
-  console.info('[websocket] connecting to ' + this.url + ' (' + (this.folder || '?') + ')')
+  logger.info('[websocket] connecting to ' + this.url + ' (' + (this.folder || '?') + ')')
 
   this.ws.onopen = () => {
-    console.info('[websocket] connection opened (' + this.url + ')')
+    logger.info('[websocket] connection opened (' + this.url + ')')
     this.emit('open')
   }
 
   this.ws.onclose = () => {
-    console.info('[websocket] connection closed (' + this.url + ')')
+    logger.info('[websocket] connection closed (' + this.url + ')')
     // Sometimes it seems this change happens on a delay so we set it right away
     this.ws.readyState = this.WebSocket.CLOSED
     this.emit('close')
   }
 
   this.ws.onerror = (error) => {
-    if (error && error.message) console.error('[websocket] error: ' + error && error.message)
-    else console.error('[websocket] error: ', error || 'Unknown')
+    if (error && error.message) logger.error('[websocket] error: ' + error && error.message)
+    else logger.error('[websocket] error: ', error || 'Unknown')
     this.emit('error', error)
   }
 
@@ -172,7 +173,7 @@ Websocket.prototype.sendImmediate = function sendImmediate (message) {
   if (this.ws.readyState === STATES.OPEN) {
     return this.sendPayload(message)
   }
-  console.warn('[websocket] connection not open (state: ' + this.ws.readyState + ')!')
+  logger.warn('[websocket] connection not open (state: ' + this.ws.readyState + ')!')
 }
 
 // Flexibly send the given message, serializing it if necessary

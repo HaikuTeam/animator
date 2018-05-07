@@ -1,11 +1,15 @@
 const lodash = require('lodash')
+const HaikuElement = require('@haiku/core/lib/HaikuElement').default
 const Layout3D = require('@haiku/core/lib/Layout3D').default
 const cssQueryTree = require('@haiku/core/lib/helpers/cssQueryTree').default
+const composedTransformsToTimelineProperties = require('@haiku/core/lib/helpers/composedTransformsToTimelineProperties').default
+const {LAYOUT_3D_SCHEMA} = require('@haiku/core/lib/properties/dom/schema')
 const KnownDOMEvents = require('@haiku/core/lib/renderers/dom/Events').default
 const DOMSchema = require('@haiku/core/lib/properties/dom/schema').default
 const titlecase = require('titlecase')
 const decamelize = require('decamelize')
 const polygonOverlap = require('polygon-overlap')
+const logger = require('./../utils/LoggerInstance')
 const BaseModel = require('./BaseModel')
 const TransformCache = require('./TransformCache')
 const RENDERABLE_ELEMENTS = require('./svg/RenderableElements')
@@ -15,6 +19,7 @@ const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments'
 
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const HAIKU_TITLE_ATTRIBUTE = 'haiku-title'
+const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source'
 
 const TIMELINE_EVENT_PREFIX = 'timeline:'
 
@@ -337,15 +342,23 @@ class Element extends BaseModel {
    * part of a pasteThing command.
    */
   buildClipboardPayload () {
+    const originalNode = this.getStaticTemplateNode()
+
     // These are cloned because we may mutate their references in place when we paste
-    const staticTemplateNode = lodash.cloneDeep(Template.manaWithOnlyStandardProps(this.getStaticTemplateNode()))
-    const serializedBytecode = lodash.cloneDeep(this.component.fetchActiveBytecodeFile().getReifiedDecycledBytecode())
+    const clonedNode = lodash.cloneDeep(
+      Template.manaWithOnlyStandardProps(originalNode, true)
+    )
+
+    const clonedBytecode = lodash.cloneDeep(
+      this.component.fetchActiveBytecodeFile().getReifiedDecycledBytecode()
+    )
+
     return {
       kind: 'bytecode',
       data: {
-        timelines: Bytecode.getAppliedTimelinesForNode({}, serializedBytecode, staticTemplateNode),
-        eventHandlers: Bytecode.getAppliedEventHandlersForNode({}, serializedBytecode, staticTemplateNode),
-        template: staticTemplateNode
+        timelines: Bytecode.getAppliedTimelinesForNode({}, clonedBytecode, clonedNode),
+        eventHandlers: Bytecode.getAppliedEventHandlersForNode({}, clonedBytecode, clonedNode),
+        template: clonedNode
       }
     }
   }
@@ -353,8 +366,11 @@ class Element extends BaseModel {
   getQualifiedBytecode () {
     // Grab the 'host' bytecode and pull any control structures applied to us from it
     // These are cloned because we may mutate their references in place if we instantiate it
-    const bytecode = lodash.cloneDeep(this.component.getReifiedBytecode())
-    const template = lodash.cloneDeep(Template.manaWithOnlyStandardProps(this.getStaticTemplateNode()))
+    const bytecode = Bytecode.clone(this.component.getReifiedBytecode())
+    const template = Template.clone(
+      {},
+      Template.manaWithOnlyStandardProps(this.getStaticTemplateNode(), false)
+    )
     const states = Bytecode.getAppliedStatesForNode({}, bytecode, template)
     const timelines = Bytecode.getAppliedTimelinesForNode({}, bytecode, template)
     const eventHandlers = Bytecode.getAppliedEventHandlersForNode({}, bytecode, template)
@@ -367,8 +383,8 @@ class Element extends BaseModel {
   }
 
   getStackingInfo () {
-    if (!this.parent) return void (0)
-    if (!this.parent.getStaticTemplateNode()) return void (0)
+    if (!this.parent) return
+    if (!this.parent.getStaticTemplateNode()) return
     return Template.getStackingInfo(
       this.component.getReifiedBytecode(),
       this.parent.getStaticTemplateNode(),
@@ -484,6 +500,12 @@ class Element extends BaseModel {
   getLayoutSpec () {
     const bytecode = this.component.getReifiedBytecode()
     const hostInstance = this.component.getCoreComponentInstance()
+
+    // Race condition when converting elements on stage to components
+    if (!hostInstance) {
+      return Layout3D.createLayoutSpec()
+    }
+
     const componentId = this.getComponentId()
     const elementName = Element.safeElementName(this.getStaticTemplateNode())
     const elementNode = hostInstance.findElementsByHaikuId(componentId)[0]
@@ -505,7 +527,7 @@ class Element extends BaseModel {
         propertiesBase,
         timelineTime,
         hostInstance,
-        !hostInstance._shouldPerformFullFlush(),
+        !hostInstance.shouldPerformFullFlush(),
         true
       )
 
@@ -553,6 +575,11 @@ class Element extends BaseModel {
         x: grabValue('scale.x'),
         y: grabValue('scale.y'),
         z: grabValue('scale.z')
+      },
+      shear: {
+        xy: grabValue('shear.xy'),
+        xz: grabValue('shear.xz'),
+        yz: grabValue('shear.yz')
       },
       sizeMode: {
         x: grabValue('sizeMode.x'),
@@ -711,6 +738,23 @@ class Element extends BaseModel {
     return !!this.getHostedComponentBytecode()
   }
 
+  isExternalComponent () {
+    if (!this.isComponent()) return false
+    return !this.isLocalComponent()
+  }
+
+  isLocalComponent () {
+    if (!this.isComponent()) return false
+    const sourceAttr = this.getSource()
+    // Like npm, assume dot-paths equate to a local component
+    return sourceAttr && sourceAttr[0] === '.'
+  }
+
+  getSource () {
+    const node = this.getStaticTemplateNode()
+    return node && node.attributes && node.attributes[HAIKU_SOURCE_ATTRIBUTE]
+  }
+
   getHostedComponentBytecode () {
     if (this.isTextNode()) return null
     const node = this.getStaticTemplateNode()
@@ -719,14 +763,6 @@ class Element extends BaseModel {
     if (!elementName) return null
     if (typeof elementName !== 'object') return null
     return elementName
-  }
-
-  getHostedComponent () {
-    if (!this.isComponent()) return null
-    const staticTemplateNode = this.getStaticTemplateNode()
-    const coreComponentInstance = staticTemplateNode && staticTemplateNode.__instance
-    const activeComponent = coreComponentInstance && coreComponentInstance.__editor
-    return activeComponent
   }
 
   getTitle () {
@@ -1476,8 +1512,11 @@ class Element extends BaseModel {
     this.rehydrateRows()
 
     const row = this.getPropertyRowByPropertyName(propertyName)
-    if (row && row.isWithinCollapsedRow()) {
-      row.parent.expand(this.component.project.getMetadata())
+    if (row) {
+      if (row.isWithinCollapsedRow()) {
+        row.parent.expand(this.component.project.getMetadata())
+      }
+      row.select(this.component.project.getMetadata())
     }
 
     this.emit('update', 'jit-property-added')
@@ -1503,40 +1542,6 @@ class Element extends BaseModel {
     return polygonOverlap(theirPoints, ourPoints)
   }
 
-  doesContainUngroupableContent () {
-    return !!this.getParentOfUngroupables()
-  }
-
-  getParentOfUngroupables () {
-    // Returning null if we don't have anything that can be ungrouped
-    let out = null
-
-    Template.visit(this.getStaticTemplateNode(), (node, parent, index, depth) => {
-      // Use the first element we've found
-      if (out) {
-        return
-      }
-
-      if (Element.nodeIsGrouper(node)) {
-        if (
-          node.children &&
-          // If we have more than one groupee in our contents, we can group
-          node.children.filter((child) => {
-            return child && Element.nodeIsGroupee(child)
-          }).length > 1
-        ) {
-          out = {
-            node,
-            depth,
-            index
-          }
-        }
-      }
-    })
-
-    return out
-  }
-
   /**
    * DANGER
    * The methods below rely on the player having rendered the component;
@@ -1555,11 +1560,245 @@ class Element extends BaseModel {
     return element
   }
 
+  getHaikuElement () {
+    return HaikuElement.findOrCreateByNode(this.getLiveRenderedNode())
+  }
+
+  getUngroupables () {
+    const haikuElement = this.getHaikuElement()
+    switch (haikuElement.tagName) {
+      case 'svg':
+      case 'div':
+        const ungroupables = []
+        this.getHaikuElement().visitDescendants((descendantHaikuElement) => {
+          const eligibleChildren = descendantHaikuElement.children.filter((element) => element.tagName !== 'defs')
+          if (eligibleChildren.length > 1) {
+            ungroupables.push(...eligibleChildren)
+            return false
+          }
+        }, (node) => node.tagName !== 'defs')
+        return ungroupables
+      default:
+        return []
+    }
+  }
+
+  doesContainUngroupableContent () {
+    return this.getUngroupables().length > 1
+  }
+
+  ungroup (metadata) {
+    const nodes = []
+    this.ungroupWrapper(nodes)
+    switch (this.getStaticTemplateNode().elementName) {
+      case 'svg':
+        this.ungroupSvg(nodes)
+        break
+      case 'div':
+        this.ungroupDiv(nodes)
+        break
+      default:
+        logger.warn(`[element] ignoring nonsense request to ungroup ${this.getStaticTemplateNode().elementName}`)
+        // TODO: do divs as well.
+    }
+
+    return this.component.ungroupElements(
+      this.getComponentId(),
+      nodes,
+      metadata,
+      () => {}
+    )
+  }
+
+  ungroupWrapper (nodes) {
+    const haikuElement = this.getHaikuElement()
+    const baseStyles = haikuElement.attributes.style
+    if (!baseStyles) {
+      return
+    }
+
+    const style = {}
+    Object.keys(baseStyles).forEach((styleName) => {
+      switch (styleName) {
+        case 'background':
+        case 'backgroundColor':
+          style[styleName] = baseStyles[styleName]
+      }
+    })
+
+    if (Object.keys(style).length === 0) {
+      // We didn't find any styles that would justify ungrouping the wrapper.
+      return
+    }
+
+    // Upsert the wrapper div the styles on this node "imply".
+    const attributes = Object.assign({
+      width: haikuElement.layout.size.x,
+      height: haikuElement.layout.size.y,
+      [HAIKU_SOURCE_ATTRIBUTE]: haikuElement.attributes[HAIKU_SOURCE_ATTRIBUTE]
+    }, {style})
+
+    const layoutMatrix = this.getOriginOffsetComposedMatrix()
+    const originX = haikuElement.layout.size.x / 2
+    const originY = haikuElement.layout.size.y / 2
+    layoutMatrix[12] += originX * layoutMatrix[0] + originY * layoutMatrix[4]
+    layoutMatrix[13] += originX * layoutMatrix[1] + originY * layoutMatrix[5]
+    composedTransformsToTimelineProperties(attributes, [layoutMatrix])
+    nodes.push(Template.cleanMana({
+      elementName: 'svg',
+      attributes,
+      children: [{
+        elementName: 'rect',
+        attributes: {
+          width: haikuElement.layout.size.x,
+          height: haikuElement.layout.size.y,
+          fill: 'none',
+          stroke: 'none'
+        }
+      }]
+    }, true))
+  }
+
+  ungroupDiv (nodes) {
+    this.getUngroupables().forEach((haikuElement) => {
+      const layoutMatrix = Layout3D.multiplyArrayOfMatrices(haikuElement.layoutAncestryMatrices.reverse())
+      const layout = haikuElement.layout
+      const attributes = {
+        width: layout.size.x,
+        height: layout.size.y,
+        [HAIKU_TITLE_ATTRIBUTE]: haikuElement.attributes[HAIKU_TITLE_ATTRIBUTE],
+        [HAIKU_SOURCE_ATTRIBUTE]: haikuElement.attributes[HAIKU_SOURCE_ATTRIBUTE],
+        'origin.x': layout.origin.x,
+        'origin.y': layout.origin.y,
+        'haiku-transclude': haikuElement.getComponentId()
+      }
+      composedTransformsToTimelineProperties(attributes, [layoutMatrix])
+      // Make sure we have something here, so we can add to it.
+      if (!attributes['translation.x']) {
+        attributes['translation.x'] = 0
+      }
+      if (!attributes['translation.y']) {
+        attributes['translation.y'] = 0
+      }
+      // Add our origin offset directly to the derived translation.
+      const originX = layout.size.x * layout.origin.x
+      const originY = layout.size.y * layout.origin.y
+
+      attributes['translation.x'] += originX * layoutMatrix[0] + originY * layoutMatrix[4]
+      attributes['translation.y'] += originX * layoutMatrix[1] + originY * layoutMatrix[5]
+      nodes.push({
+        elementName: haikuElement.tagName,
+        attributes,
+        children: []
+        // originalComponentId: haikuElement.getComponentId()
+      })
+    })
+  }
+
+  ungroupSvg (nodes) {
+    const defs = []
+    const svgElement = this.getHaikuElement()
+    const ungroupables = this.getUngroupables()
+    const bytecode = this.component.getReifiedBytecode()
+    svgElement.children.forEach((haikuElement) => {
+      if (haikuElement.tagName === 'defs') {
+        defs.push(haikuElement.node)
+        return
+      }
+
+      const mergedAttributes = {}
+      haikuElement.visit((descendantHaikuElement) => {
+        if (ungroupables.indexOf(descendantHaikuElement) === -1) {
+          if (Element.nodeIsGrouper(descendantHaikuElement.node)) {
+            for (const propertyName in bytecode.timelines[this.component.getCurrentTimelineName()][`haiku:${descendantHaikuElement.getComponentId()}`]) {
+              mergedAttributes[propertyName] = descendantHaikuElement.getComponentId()
+            }
+          }
+          return
+        }
+
+        const attributes = Object.keys(mergedAttributes).reduce((accumulator, propertyName) => {
+          if (!LAYOUT_3D_SCHEMA.hasOwnProperty(propertyName)) {
+            // accumulator[propertyName] = mergedAttributes[propertyName][0].value
+            accumulator[propertyName] = this.component.getComputedPropertyValue(
+              descendantHaikuElement.node,
+              mergedAttributes[propertyName],
+              this.component.getCurrentTimelineName(),
+              this.component.getCurrentTimelineTime(),
+              propertyName,
+              undefined
+            )
+          }
+          return accumulator
+        }, {})
+
+        const boundingBox = descendantHaikuElement.target.getBBox()
+        const originX = boundingBox.width / 2
+        const originY = boundingBox.height / 2
+        const layoutMatrix = descendantHaikuElement.layoutMatrix
+        layoutMatrix[12] += (boundingBox.x + originX) * layoutMatrix[0] + (boundingBox.y + originY) * layoutMatrix[4]
+        layoutMatrix[13] += (boundingBox.x + originX) * layoutMatrix[1] + (boundingBox.y + originY) * layoutMatrix[5]
+        const layoutAncestryMatrices = descendantHaikuElement.layoutAncestryMatrices
+        descendantHaikuElement.visit((subHaikuElement) => {
+          // Clean out the computed layout so we can hoist it to the parent SVG element.
+          delete subHaikuElement.node.layout
+        })
+
+        Object.assign(attributes, {
+          width: boundingBox.width,
+          height: boundingBox.height,
+          // Important: in case we have borders that spill outside the bounding box, allow SVG overflow so nothing
+          // is clipped.
+          'style.overflow': 'visible',
+          [HAIKU_SOURCE_ATTRIBUTE]: `${svgElement.attributes[HAIKU_SOURCE_ATTRIBUTE]}#${descendantHaikuElement.id}`,
+          [HAIKU_TITLE_ATTRIBUTE]: descendantHaikuElement.title || descendantHaikuElement.id
+        })
+
+        composedTransformsToTimelineProperties(attributes, layoutAncestryMatrices)
+
+        // In this very special mana construct, we:
+        //   - Offset the translation of the ungrouped SVG element by the render-time bounding box. This allows us
+        //     to bypass otherwise necessary recomputation of things like path vertices in a new coordinate system.
+        //   - Transclude the children of our descendant node to ensure any existing timeline properties are
+        //     preserved.
+        nodes.push(Template.cleanMana({
+          elementName: 'svg',
+          attributes,
+          children: [
+            ...defs,
+            {
+              elementName: 'g',
+              attributes: {
+                transform: `translate(${-boundingBox.x} ${-boundingBox.y})`
+              },
+              children: [Object.assign(
+                descendantHaikuElement.node,
+                {
+                  attributes: Object.assign(descendantHaikuElement.attributes, {
+                    'haiku-transclude': descendantHaikuElement.getComponentId()
+                  }),
+                  children: []
+                }
+              )]
+            }
+          ]
+        }, true))
+
+        return false
+      })
+    })
+  }
+
   getCoreTargetComponentInstance () {
     if (!this.isComponent()) return null
     const liveRenderedNode = this.getLiveRenderedNode()
     if (!liveRenderedNode) return null
-    return liveRenderedNode.__instance
+    return liveRenderedNode.__subcomponent
+  }
+
+  getAttribute (key) {
+    const node = this.getLiveRenderedNode()
+    return node && node.attributes && node.attributes[key]
   }
 
   toXMLString () {
@@ -1612,29 +1851,6 @@ Element.nodeIsGrouper = (node) => {
     node.elementName === 'svg' ||
     node.elementName === 'g' ||
     node.elementName === 'div'
-  )
-}
-
-Element.nodeIsGroupee = (node) => {
-  // Don't include empty groups
-  if (
-    node.elementName === 'g' &&
-    (!node.children || node.children.length < 1)
-  ) {
-    return false
-  }
-
-  return (
-    Element.nodeIsGrouper(node) ||
-    node.elementName === 'rect' ||
-    node.elementName === 'line' ||
-    node.elementName === 'circle' ||
-    node.elementName === 'ellipse' ||
-    node.elementName === 'polygon' ||
-    node.elementName === 'polyline' ||
-    node.elementName === 'path' ||
-    node.elementName === 'text' ||
-    node.elementName === 'tspan'
   )
 }
 
@@ -1734,28 +1950,6 @@ Element.getBoundingBoxPoints = (points) => {
   ]
 }
 
-Element.getBoundingBoxPointsForElementsTransformed = (elements) => {
-  const points = []
-  if (!elements) return points
-  if (elements.length < 1) return points
-  if (elements.length === 1) return elements[0].getBoxPointsTransformed()
-  elements.forEach((element) => {
-    element.getBoxPointsTransformed().forEach((point) => points.push(point))
-  })
-  return Element.getBoundingBoxPoints(points)
-}
-
-Element.getBoundingBoxPointsForElementsNotTransformed = (elements) => {
-  const points = []
-  if (!elements) return points
-  if (elements.length < 1) return points
-  if (elements.length === 1) return elements[0].getBoxPointsNotTransformed()
-  elements.forEach((element) => {
-    element.getBoxPointsNotTransformed().forEach((point) => points.push(point))
-  })
-  return Element.getBoundingBoxPoints(points)
-}
-
 Element.boxToCornersAsPolygonPoints = ({ x, y, width, height }) => {
   return [
     [x, y], [x + width, y],
@@ -1793,7 +1987,7 @@ Element.buildPrimaryKeyFromComponentParentIdAndStaticTemplateNode = (component, 
 }
 
 Element.buildUidFromComponentAndDomElement = (component, $el) => {
-  return `${component.getPrimaryKey()}::${$el.getAttribute('haiku-id')}`
+  return `${component.getPrimaryKey()}::${$el.getAttribute(HAIKU_ID_ATTRIBUTE)}`
 }
 
 Element.buildUidFromComponentAndHaikuId = (component, haikuId) => {
@@ -1895,6 +2089,9 @@ Element.ALWAYS_ALLOWED_PROPS = {
   'scale.y': true,
   'origin.x': true,
   'origin.y': true,
+  'shear.xy': true,
+  'shear.xz': true,
+  'shear.yz': true,
   'opacity': true
   // 'backgroundColor': true,
   // 'shown': true // Mainly so instantiation at non-0 times results in invisibility
@@ -1921,7 +2118,8 @@ Element.FORBIDDEN_PROPS = {
   // Internal metadata should not be edited
   'haiku-id': true,
   'haiku-title': true,
-  'source': true,
+  'haiku-source': true,
+  'haiku-var': true,
   // All of the below mess with the layout system
   'width': true,
   'height': true,

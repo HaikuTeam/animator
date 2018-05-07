@@ -23,7 +23,7 @@
   ],
   "devDependencies": {
     "@storybook/react": "^3.3.3",
-    "@types/node": "8.5.2",
+    "@types/node": "8.9.4",
     "@types/react": "^15.4.2",
     "electron": "1.8.2",
     "haiku-common": "3.2.19",

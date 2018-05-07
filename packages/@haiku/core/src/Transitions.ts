@@ -167,11 +167,11 @@ function calculateValueAndReturnUndefinedIfNotWorthwhile(keyframeGroup, nowValue
   const currentTransition = keyframeGroup[currentKeyframe];
   const nextTransition = keyframeGroup[nextKeyframe];
 
-  // If either this or the next transition came from a "machine" (function), we must recalc, since they may be
-  // time-dependant
+  // If either this or the next transition came from an expression,
+  // we must recalc, since they may be time-dependant
   if (
-    (currentTransition && currentTransition.machine) ||
-    (nextTransition && nextTransition.machine)
+    (currentTransition && currentTransition.expression) ||
+    (nextTransition && nextTransition.expression)
   ) {
     return getTransitionValue(
       currentKeyframe,

@@ -1,12 +1,14 @@
+import {ipcRenderer} from 'electron'
 import React from 'react'
 import ReactDOM from 'react-dom'
 import lodash from 'lodash'
-import path from 'path'
 import qs from 'qs'
 import Websocket from 'haiku-serialization/src/ws/Websocket'
 import MockWebsocket from 'haiku-serialization/src/ws/MockWebsocket'
+import Project from 'haiku-serialization/src/bll/Project'
 import Glass from './Glass'
 import {sentryCallback} from 'haiku-serialization/src/utils/carbonite'
+const mixpanel = require('haiku-serialization/src/utils/Mixpanel')
 
 if (process.env.NODE_ENV === 'production') {
   window.Raven.config('https://287e52df9cfd48aab7f6091ec17a5921@sentry.io/226362', {
@@ -58,33 +60,44 @@ function go () {
   if (!config.folder) throw new Error('A folder (the absolute path to the user project) is required')
   function _fixPlumbingUrl (url) { return url.replace(/^http/, 'ws') }
 
-  const userconfig = require(path.join(config.folder, 'haiku.js'))
+  return Project.fetchProjectConfigInfo(config.folder, (err, userconfig) => {
+    if (err) {
+      throw err
+    }
 
-  const websocket = (config.plumbing)
-    ? new Websocket(_fixPlumbingUrl(config.plumbing), config.folder, 'controllee', 'glass', null, config.socket.token)
-    : new MockWebsocket()
+    const websocket = (config.plumbing)
+      ? new Websocket(_fixPlumbingUrl(config.plumbing), config.folder, 'controllee', 'glass', null, config.socket.token)
+      : new MockWebsocket(ipcRenderer)
 
-  // Add extra context to Sentry reports, this info is also used by carbonite.
-  const folderHelper = config.folder.split('/').reverse()
-  window.Raven.setExtraContext({
-    organizationName: folderHelper[1] || 'unknown',
-    projectName: folderHelper[0] || 'unknown',
-    projectPath: config.folder
+    // Add extra context to Sentry reports, this info is also used by carbonite.
+    const folderHelper = config.folder.split('/').reverse()
+
+    window.Raven.setExtraContext({
+      organizationName: folderHelper[1] || 'unknown',
+      projectName: folderHelper[0] || 'unknown',
+      projectPath: config.folder
+    })
+
+    window.Raven.setUserContext({
+      email: config.email
+    })
+
+    mixpanel.mergeToPayload({
+      distinct_id: config.email
+    })
+
+    window.isWebview = config.webview
+
+    ReactDOM.render(
+      <Glass
+        mixpanel={mixpanel}
+        envoy={config.envoy}
+        userconfig={userconfig}
+        websocket={websocket}
+        folder={config.folder}
+        projectName={userconfig.project || 'untitled'}
+        />,
+      document.getElementById('root')
+    )
   })
-  window.Raven.setUserContext({
-    email: config.email
-  })
-
-  window.isWebview = config.webview
-
-  ReactDOM.render(
-    <Glass
-      envoy={config.envoy}
-      userconfig={userconfig}
-      websocket={websocket}
-      folder={config.folder}
-      projectName={userconfig.name || 'untitled'}
-      />,
-    document.getElementById('root')
-  )
 }

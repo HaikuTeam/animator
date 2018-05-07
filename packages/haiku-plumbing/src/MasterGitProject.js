@@ -49,7 +49,7 @@ export default class MasterGitProject extends EventEmitter {
     // Dictionary mapping SHA strings to share payloads, used for caching
     this._shareInfoPayloads = {}
 
-    // Snapshot of the current folder state as of the last fetchFolderState run
+    // Snapshot of the current folder state as of the last gderState run
     this._folderState = {}
 
     // Project info used extensively in the internal machinery, populated later
@@ -620,12 +620,11 @@ export default class MasterGitProject extends EventEmitter {
   ensureBranch (cb) {
     return Git.open(this.folder, (err, repository) => {
       if (err) return cb(err)
-      return this.safeSetupBranch(repository, this._folderState.headCommitId, cb)
+      return this.safeSetupBranch(repository, this._folderState.branchName, this._folderState.headCommitId, cb)
     })
   }
 
-  safeSetupBranch (repository, commitId, cb) {
-    const branchName = DEFAULT_BRANCH_NAME
+  safeSetupBranch (repository, branchName = DEFAULT_BRANCH_NAME, commitId, cb) {
     const refSpec = `refs/heads/${branchName}`
 
     logger.info('[master-git] remote refs: creating branch', branchName)
@@ -663,7 +662,7 @@ export default class MasterGitProject extends EventEmitter {
           return Git.buildCommit(this.folder, this._folderState.haikuUsername, null, `Base commit ${COMMIT_SUFFIX}`, oid, null, null, (err, commitId) => {
             if (err) return cb(err)
 
-            return this.safeSetupBranch(repository, commitId, (err, branchName) => {
+            return this.safeSetupBranch(repository, this._folderState.branchName, commitId, (err, branchName) => {
               if (err) return cb(err) // Should only be present if error is NOT about branch already existing
 
               const refSpecToPush = `refs/heads/${branchName}`
@@ -1019,7 +1018,7 @@ export default class MasterGitProject extends EventEmitter {
     })
   }
 
-  initializeProject (initOptions, done) {
+  initializeFolder (initOptions, done) {
     // Empty folder state since we are going to reload it in here
     this._folderState = {}
 

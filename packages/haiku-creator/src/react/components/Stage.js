@@ -158,7 +158,7 @@ export default class Stage extends React.Component {
       }
 
       return ac.instantiateComponent(
-        asset.getRelpath(),
+        asset.getLocalizedRelpath(),
         coords,
         {from: 'creator'},
         (err) => {

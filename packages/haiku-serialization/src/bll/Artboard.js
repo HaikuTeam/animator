@@ -83,7 +83,7 @@ class Artboard extends BaseModel {
 
   dimensionsChangedHook () {
     const hc = this.component.getCoreComponentInstance()
-    const renderer = hc && hc._context && hc._context.renderer
+    const renderer = hc && hc.context && hc.context.renderer
     if (renderer) {
       if (!renderer.config) renderer.config = {}
       renderer.config.zoom = this.getZoom()

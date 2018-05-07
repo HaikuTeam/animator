@@ -33,7 +33,7 @@
     "lodash": "^4.17.4"
   },
   "devDependencies": {
-    "@types/node": "8.5.2",
+    "@types/node": "8.9.4",
     "@types/tape": "^4.2.30",
     "async": "^2.5.0",
     "haiku-fs-extra": "3.2.19",

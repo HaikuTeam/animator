@@ -20,6 +20,9 @@ const TRANSFORM_COMPONENT_WHITELIST = {
   'translation.x': true,
   'translation.y': true,
   'translation.z': true,
+  'shear.xy': true,
+  'shear.xz': true,
+  'shear.yz': true,
   'mount.x': true,
   'mount.y': true,
   'mount.z': true,
@@ -101,7 +104,7 @@ export default function convertManaLayout(mana) {
     // Note the order of operations here: first we process base attributes, but then if the style
     // object has sizing attributes, those end up overriding whatever was in the base attributes.
     if (!name || !attributes) {
-      return void 0;
+      return;
     }
 
     if (name.states) {

@@ -78,6 +78,19 @@ class Asset extends BaseModel {
     return this.proximity === Asset.PROXIMITIES.REMOTE
   }
 
+  isLocalAsset () {
+    return this.proximity === Asset.PROXIMITIES.LOCAL
+  }
+
+  isLocalComponent () {
+    return this.isComponent() && this.isLocalAsset()
+  }
+
+  getLocalizedRelpath () {
+    // ActiveComponent#instantiateComponent depends on us correctly indicating a local component
+    return Template.normalizePath(`./${this.getRelpath()}`)
+  }
+
   isOrphanSvg () {
     return (this.isVector() && this.parent.kind !== Asset.KINDS.SKETCH)
   }
@@ -165,8 +178,8 @@ class Asset extends BaseModel {
 
   addFigmaAsset (relpath) {
     const {project} = this
-    const result = Asset.findById(path.join(project.getFolder(), relpath))
 
+    const result = Asset.findById(path.join(project.getFolder(), relpath))
     if (result) {
       this.insertChild(result)
       return result
@@ -196,28 +209,25 @@ class Asset extends BaseModel {
       dtModified: Date.now()
     })
 
-    try {
-      const figmaAsset = Asset.upsert({
-        uid: path.join(project.getFolder(), relpath),
-        type: Asset.TYPES.CONTAINER,
-        kind: Asset.KINDS.FIGMA,
-        proximity: Asset.PROXIMITIES.LOCAL,
-        figmaID: Figma.findIDFromPath(relpath),
-        project,
-        relpath,
-        displayName: path.basename(relpath).match(/(\w+)-([\w-]+)\./)[2],
-        children: [],
-        slicesFolderAsset, // Hacky, but avoids extra 'upsert' logic
-        groupsFolderAsset,
-        dtModified: Date.now()
-      })
+    const figmaAsset = Asset.upsert({
+      uid: path.join(project.getFolder(), relpath),
+      type: Asset.TYPES.CONTAINER,
+      kind: Asset.KINDS.FIGMA,
+      proximity: Asset.PROXIMITIES.LOCAL,
+      figmaID: Figma.findIDFromPath(relpath),
+      project,
+      relpath,
+      displayName: path.basename(relpath).match(/(\w+)-([\w-]+)\./)[2],
+      children: [],
+      slicesFolderAsset, // Hacky, but avoids extra 'upsert' logic
+      groupsFolderAsset,
+      dtModified: Date.now()
+    })
 
-      this.insertChild(figmaAsset)
-      return figmaAsset
-    } catch (e) {
-      // ... unable to upsert.
-      return null
-    }
+    this.insertChild(figmaAsset)
+
+    // Must return for the asset to be listed
+    return figmaAsset
   }
 
   getChildAssets () {
@@ -238,58 +248,59 @@ class Asset extends BaseModel {
           messageType: 'import_to_start',
           message: 'Import a Sketch or SVG file to start'
         })]
-      } if (this.children.length === 1) {
-        if (this.children[0].isPrimaryAsset() && this.children[0].children.length < 1) {
-          const result = [
-            this.children[0],
+      }
+
+      let out = this.children
+
+      if (shouldDisplayPrimaryAssetMessage(this.children)) {
+        out = out.concat(
+          Asset.upsert({
+            uid: 'hacky-message[1]',
+            relpath: 'hacky-message[1]',
+            type: Asset.TYPES.HACKY_MESSAGE,
+            kind: Asset.KINDS.HACKY_MESSAGE,
+            project: this.project,
+            displayName: 'hacky-message[1]',
+            children: [],
+            dtModified: Date.now(),
+            messageType: 'edit_primary_asset',
+            message: PRIMARY_ASSET_MESSAGE
+          })
+        )
+      }
+
+      if (experimentIsEnabled(Experiment.FigmaIntegration)) {
+        if (shouldDisplayFigmaAssetMessage(this.children)) {
+          out = out.concat(
             Asset.upsert({
-              uid: 'hacky-message[1]',
-              relpath: 'hacky-message[1]',
+              uid: 'hacky-figma-file[1]',
+              relpath: 'hacky-figma-file[1]',
+              type: Asset.TYPES.CONTAINER,
+              kind: Asset.KINDS.FIGMA,
+              proximity: Asset.PROXIMITIES.LOCAL,
+              figmaID: '',
+              displayName: this.project.getName() + '.figma',
+              children: [],
+              project: this.project,
+              dtModified: Date.now()
+            }),
+            Asset.upsert({
+              uid: 'hacky-message[3]',
+              relpath: 'hacky-message[3]',
               type: Asset.TYPES.HACKY_MESSAGE,
               kind: Asset.KINDS.HACKY_MESSAGE,
               project: this.project,
-              displayName: 'hacky-message[1]',
+              displayName: 'hacky-message[3]',
               children: [],
               dtModified: Date.now(),
               messageType: 'edit_primary_asset',
-              message: PRIMARY_ASSET_MESSAGE
+              message: FIGMA_ASSET_MESSAGE
             })
-          ]
-
-          if (experimentIsEnabled(Experiment.FigmaIntegration)) {
-            result.push(
-              Asset.upsert({
-                uid: 'hacky-figma-file[1]',
-                relpath: 'hacky-figma-file[1]',
-                type: Asset.TYPES.CONTAINER,
-                kind: Asset.KINDS.FIGMA,
-                proximity: Asset.PROXIMITIES.LOCAL,
-                figmaID: '',
-                displayName: this.project.getName() + '.figma',
-                children: [],
-                project: this.project,
-                dtModified: Date.now()
-              })
-            )
-            result.push(
-              Asset.upsert({
-                uid: 'hacky-message[3]',
-                relpath: 'hacky-message[3]',
-                type: Asset.TYPES.HACKY_MESSAGE,
-                kind: Asset.KINDS.HACKY_MESSAGE,
-                project: this.project,
-                displayName: 'hacky-message[3]',
-                children: [],
-                dtModified: Date.now(),
-                messageType: 'edit_primary_asset',
-                message: FIGMA_ASSET_MESSAGE
-              })
-            )
-          }
-
-          return result
+          )
         }
       }
+
+      return out
     }
 
     return this.children
@@ -314,7 +325,7 @@ class Asset extends BaseModel {
 
   unshiftFolderAsset (folderAsset) {
     const foundAmongChildren = this.children.indexOf(folderAsset) !== -1
-    if (!foundAmongChildren) {
+    if (folderAsset && !foundAmongChildren) {
       this.children.unshift(folderAsset)
     }
   }
@@ -380,6 +391,7 @@ Asset.ingestAssets = (project, dict) => {
   Asset.all().forEach((asset) => {
     asset.destroy()
   })
+
   const componentFolderAsset = Asset.upsert({
     uid: path.join(project.getFolder(), 'code'),
     type: Asset.TYPES.CONTAINER,
@@ -389,22 +401,6 @@ Asset.ingestAssets = (project, dict) => {
     relpath: 'code',
     displayName: 'Components',
     children: [],
-    dtModified: Date.now()
-  })
-
-  const controlsFolderAsset = Asset.upsert({
-    uid: '@haiku/core/components/controls',
-    type: Asset.TYPES.CONTAINER,
-    kind: Asset.KINDS.FOLDER,
-    proximity: Asset.PROXIMITIES.REMOTE,
-    project,
-    relpath: 'controls',
-    displayName: 'Controls',
-    children: [
-      controlComponentAsset(project, 'Image', 'controls/Image'),
-      controlComponentAsset(project, 'Text', 'controls/Text'),
-      controlComponentAsset(project, 'HTML', 'controls/HTML')
-    ],
     dtModified: Date.now()
   })
 
@@ -423,10 +419,6 @@ Asset.ingestAssets = (project, dict) => {
   })
 
   const rootAssets = [designFolderAsset]
-
-  if (experimentIsEnabled(Experiment.MultiComponentControlsLibrary)) {
-    rootAssets.unshift(controlsFolderAsset)
-  }
 
   if (experimentIsEnabled(Experiment.MultiComponentFeatures)) {
     rootAssets.unshift(componentFolderAsset)
@@ -486,7 +478,16 @@ Asset.ingestAssets = (project, dict) => {
         children: [],
         dtModified: dict[relpath].dtModified
       })
+
       componentFolderAsset.insertChild(jsAsset)
+
+      if (experimentIsEnabled(Experiment.MultiComponentControlsLibrary)) {
+        componentFolderAsset.insertChild(controlComponentAsset(project, 'Image', 'controls/Image'))
+        componentFolderAsset.insertChild(controlComponentAsset(project, 'Text', 'controls/Text'))
+        // componentFolderAsset.insertChild(controlComponentAsset(project, 'HTML', 'controls/HTML'))
+      }
+
+      componentFolderAsset.children = sortedChildrenOfComponentFolderAsset(componentFolderAsset)
     }
   }
 
@@ -501,11 +502,63 @@ function controlComponentAsset (project, displayName, partial) {
     kind: Asset.KINDS.COMPONENT,
     icon: `Control${displayName}`,
     proximity: Asset.PROXIMITIES.REMOTE,
+    isControl: true,
     project,
     relpath,
     displayName,
     children: [],
     dtModified: 1
+  })
+}
+
+const shouldDisplayPrimaryAssetMessage = (childrenOfDesignFolder) => {
+  if (childrenOfDesignFolder.length < 1) {
+    return false
+  }
+  if (childrenOfDesignFolder[0].isPrimaryAsset() && childrenOfDesignFolder[0].children.length < 1) {
+    return true
+  }
+  return false
+}
+
+const shouldDisplayFigmaAssetMessage = (childrenOfDesignFolder) => {
+  const figmaAssets = childrenOfDesignFolder.filter((child) => {
+    return child.isFigmaFile()
+  })
+  return figmaAssets.length < 1
+}
+
+const sortedChildrenOfComponentFolderAsset = (asset) => {
+  let main
+  const controls = []
+  const components = []
+
+  asset.children.forEach((child) => {
+    if (child.isControl) {
+      controls.push(child)
+    } else {
+      if (child.displayName === 'Main') {
+        main = child
+      } else {
+        components.push(child)
+      }
+    }
+  })
+
+  // In case we don't find main on the first run, which can happen sometimes
+  const out = []
+  if (main) {
+    out.push(main)
+  }
+
+  return out.concat(sortAssetsAlpha(components)).concat(sortAssetsAlpha(controls))
+}
+
+const sortAssetsAlpha = (assets) => {
+  return assets.sort((a, b) => {
+    if (a.displayName < b.displayName) return -1
+    if (a.displayName > b.displayName) return 1
+    return 0
   })
 }
 
@@ -537,3 +590,5 @@ Asset.preventDefaultDrag = (dropEvent) => {
 }
 
 module.exports = Asset
+
+const Template = require('./Template')

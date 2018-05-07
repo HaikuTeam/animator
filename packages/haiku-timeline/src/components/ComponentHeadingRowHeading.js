@@ -1,5 +1,4 @@
 import React from 'react'
-import truncate from 'haiku-ui-common/lib/helpers/truncate'
 import Palette from 'haiku-ui-common/lib/Palette'
 import {ComponentIconSVG} from 'haiku-ui-common/lib/react/OtherIcons'
 import Color from 'color'
@@ -53,7 +52,7 @@ export default class ComponentHeadingRowHeading extends React.Component {
           <span style={{marginRight: 4, display: 'inline-block', transform: 'translateY(4px)'}}>
             <ComponentIconSVG />
           </span>
-          {truncate(this.props.row.element.getTitle() || elementName, 12)}
+          {trunc(this.props.row.element.getTitle() || elementName, 12)}
         </div>)
         : (<span
           style={{
@@ -70,7 +69,7 @@ export default class ComponentHeadingRowHeading extends React.Component {
               position: 'absolute',
               display: 'inline-block',
               height: 20,
-              left: 7,
+              left: 2,
               top: 8
             }}>
             {(this.props.row.element.isComponent()) &&
@@ -82,17 +81,25 @@ export default class ComponentHeadingRowHeading extends React.Component {
               display: 'inline-block',
               height: 20,
               left: (this.props.row.element.isComponent())
-                  ? 25
+                  ? 21
                   : 5,
               top: 7,
               overflowX: 'hidden',
               width: 160
             }}>
-            {truncate(this.props.row.element.getTitle() || `<${elementName}>`, 8)}
+            {trunc(this.props.row.element.getTitle() || `<${elementName}>`, 8)}
           </span>
         </span>)
     )
   }
+}
+
+const trunc = (str, len) => {
+  if (str.length <= len) {
+    return str
+  }
+
+  return `${str.slice(0, len)}…`
 }
 
 ComponentHeadingRowHeading.propTypes = {

@@ -13,20 +13,27 @@ export default function flattenTree(node, options, unique = true, list = [], dep
     node.__index = index;
   }
 
-  const children = objectPath(node, options.children);
-  if (!children || children.length < 1 || typeof children === 'string') {
-    return list;
-  }
-  if (Array.isArray(children)) {
-    for (let i = 0; i < children.length; i++) {
-      flattenTree(children[i], options, /*unique=*/false, list, depth + 1, i);
-    }
-  } else if (typeof children === 'object') {
-    children.__depth = depth + 1;
-    children.__index = 0;
+  // Don't recurse down into the children of nested components, which should be 'invisible' to us.
+  // Nested components are indicated when their name is not a string, e.g. a component descriptor.
+  if (depth < 1 || typeof node[options.name] === 'string') {
+    const children = objectPath(node, options.children);
 
-    list.push(children);
-    return list;
+    if (!children || children.length < 1 || typeof children === 'string') {
+      return list;
+    }
+
+    if (Array.isArray(children)) {
+      for (let i = 0; i < children.length; i++) {
+        flattenTree(children[i], options, /*unique=*/false, list, depth + 1, i);
+      }
+    } else if (typeof children === 'object') {
+      children.__depth = depth + 1;
+      children.__index = 0;
+
+      list.push(children);
+      return list;
+    }
   }
+
   return unique ? BasicUtils.uniq(list) : list;
 }

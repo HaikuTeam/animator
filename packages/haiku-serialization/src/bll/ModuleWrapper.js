@@ -1,7 +1,12 @@
 const path = require('path')
+const lodash = require('lodash')
 const BaseModel = require('./BaseModel')
 const overrideModulesLoaded = require('./../utils/overrideModulesLoaded')
 const Lock = require('./Lock')
+const logger = require('./../utils/LoggerInstance')
+
+const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source'
+const HAIKU_VAR_ATTRIBUTE = 'haiku-var'
 
 // When building a distribution (see 'distro' repo) the node_modules folder is at a different level #FIXME matthew
 const CANONICAL_CORE_SOURCE_CODE_PATH = path.dirname(require.resolve('@haiku/core'))
@@ -28,13 +33,23 @@ const REPLACEMENT_MODULES = {
 const CORE_PACKAGE_JSON = require(path.join(CANONICAL_CORE_SOURCE_CODE_PATH, 'package.json'))
 const CORE_VERSION = CORE_PACKAGE_JSON.version
 
+const MODULE_CACHE_HOT = {} // May be cleared during runtime
+const MODULE_CACHE_COLD = {} // Never changes once populated
+
 // In race conditions where the project node_modules is changed while monkeypatch
 // is occurring, this allows project dependencies to be loaded without crashing
 const haikuCore = require('@haiku/core')
 const Module = require('module')
 const originalRequire = Module.prototype.require
+MODULE_CACHE_COLD['@haiku/core'] = haikuCore
+
 Module.prototype.require = function (request) {
-  if (request === '@haiku/core') return haikuCore
+  if (MODULE_CACHE_COLD[request]) {
+    return MODULE_CACHE_COLD[request]
+  }
+  if (MODULE_CACHE_HOT[request]) {
+    return MODULE_CACHE_HOT[request]
+  }
   return originalRequire.apply(this, arguments)
 }
 
@@ -59,7 +74,6 @@ class ModuleWrapper extends BaseModel {
     this.exp = null // Safest to set to null until we really load the content
 
     this._hasLoadedAtLeastOnce = false
-    this._hasMonkeypatchedContent = false
     this._projectConfig = null
   }
 
@@ -67,8 +81,8 @@ class ModuleWrapper extends BaseModel {
     return this._hasLoadedAtLeastOnce
   }
 
-  hasMonkeypatchedContent () {
-    return this._hasMonkeypatchedContent
+  clearInMemoryExport () {
+    this.exp = null
   }
 
   fetchInMemoryExport () {
@@ -77,22 +91,14 @@ class ModuleWrapper extends BaseModel {
 
   isolatedClearCache () {
     ModuleWrapper.clearRequireCache(path.dirname(this.getAbspath()))
-    // Unset this since the content would have been removed by this,
-    // and we use this to detect whether we want to reload from fs
-    this._hasMonkeypatchedContent = false
   }
 
   reloadExtantModule (cb) {
-    if (this.hasLoadedAtLeastOnce() || this.hasMonkeypatchedContent()) {
+    if (this.hasLoadedAtLeastOnce()) {
       return this.reload(cb)
     }
     // This may not work if the file doesn't seem to exist on disk yet, but will only warn
     return this.isolatedForceReload(cb)
-  }
-
-  globalForceReload (cb) {
-    ModuleWrapper.clearRequireCache()
-    return this.reload(cb)
   }
 
   isolatedForceReload (cb) {
@@ -100,21 +106,19 @@ class ModuleWrapper extends BaseModel {
     return this.reload(cb)
   }
 
-  configuredReload (config, cb) {
-    if (!config) return this.isolatedForceReload(cb)
-    if (!config.reloadMode) return this.isolatedForceReload(cb)
-    switch (config.reloadMode) {
-      case ModuleWrapper.RELOAD_MODES.GLOBAL: return this.globalForceReload(cb)
-      case ModuleWrapper.RELOAD_MODES.ISOLATED: return this.isolatedForceReload(cb)
-      case ModuleWrapper.RELOAD_MODES.CACHE: return this.reload(cb)
-      case ModuleWrapper.RELOAD_MODES.MONKEYPATCHED_OR_ISOLATED:
-        if (this._hasMonkeypatchedContent) {
-          return this.reload(cb)
-        } else {
-          return this.isolatedForceReload(cb)
-        }
-      default: return this.isolatedForceReload(cb)
+  basicReload (cb) {
+    if (this.exp) {
+      return cb(null, this.exp)
     }
+    return this.reload(cb)
+  }
+
+  configuredReload (config, cb) {
+    return this.basicReload(cb)
+  }
+
+  getFolder () {
+    return this.file.folder
   }
 
   getModpath () {
@@ -136,29 +140,15 @@ class ModuleWrapper extends BaseModel {
     return abspath
   }
 
-  getProjectConfig () {
-    if (this._projectConfig) {
-      return this._projectConfig
-    }
-    try {
-      this._projectConfig = require(path.join(this.file.folder, 'haiku.js'))
-      return this._projectConfig
-    } catch (exception) {
-      console.warn('[module wrapper] Cannot load haiku.js')
-      this._projectConfig = {}
-      return this._projectConfig
-    }
-  }
-
   load () {
     overrideModulesLoaded(
       (stop) => {
         this.exp = require(this.getAbspath())
         this._hasLoadedAtLeastOnce = true
-        this.update(this.exp)
-
-        // Tell the node hook to stop interfering with require(...)
-        stop()
+        this.update(this.exp, () => {
+          // Tell the node hook to stop interfering with require(...)
+          stop()
+        })
       },
       ModuleWrapper.getHaikuKnownImportMatch
     )
@@ -169,10 +159,20 @@ class ModuleWrapper extends BaseModel {
       try {
         this.load()
       } catch (exception) {
-        console.warn('[mod] ' + this.getAbspath() + ' could not be loaded (' + exception + ')')
-        this.exp = null
-        release()
-        return cb()
+        logger.warn(`[module wrapper] cannot load ${this.getAbspath()}`)
+        logger.warn(exception)
+
+        // Assume the file hasn't been created and we should create it
+        this.exp = {}
+        this._hasLoadedAtLeastOnce = true
+
+        this.update(this.exp, () => {
+          if (!this.isExternalModule) {
+            this.file.maybeFlushContentForceSync()
+          }
+          release()
+          return cb()
+        })
       }
 
       release()
@@ -180,23 +180,31 @@ class ModuleWrapper extends BaseModel {
     })
   }
 
-  moduleAsMana (identifier, contextDirAbspath, cb) {
-    return this.reload((err, exp) => {
+  moduleAsMana (hostfile, identifier, title, cb) {
+    return this.basicReload((err, exp) => {
       if (err) return cb(err)
       if (!exp) return cb(null, null)
 
       let source
       if (this.isExternalModule) {
-        source = this.getModpath()
+        source = Template.normalizePath(this.getModpath())
       } else {
-        source = path.normalize(path.relative(contextDirAbspath, this.getAbspath()))
+        const relpath = path.relative(this.getFolder(), this.getAbspath())
+        source = Template.normalizePath(`./${relpath}`)
       }
 
       const safe = {} // Clone to avoid clobbering/polluting with these properties
 
-      for (const key in exp) safe[key] = exp[key]
-      safe.__module = source
-      safe.__reference = identifier
+      for (const key in exp) {
+        safe[key] = exp[key]
+      }
+
+      safe.__reference = ModuleWrapper.buildReference(
+        ModuleWrapper.REF_TYPES.COMPONENT, // type
+        Template.normalizePath(`./${hostfile.relpath}`), // host
+        Template.normalizePath(`./${source}`),
+        identifier
+      )
 
       return cb(null, {
         // Nested components are represented thusly:
@@ -205,52 +213,67 @@ class ModuleWrapper extends BaseModel {
         // - Upon reification, it's loaded as bytecode with the appropriate __-references
         elementName: safe,
         attributes: {
-          source, // This important and is used for lookups relative to the host component
-          identifier, // This is important when reloading bytecode with instantiated components from disk
-          'haiku-title': identifier // This is used for display in the Timeline, Stage, etc
+          [HAIKU_SOURCE_ATTRIBUTE]: source, // This important and is used for lookups relative to the host component
+          [HAIKU_VAR_ATTRIBUTE]: identifier, // This is important when reloading bytecode with instantiated components from disk
+          'haiku-title': title // This is used for display in the Timeline, Stage, etc
         },
         children: []
       })
     })
   }
 
-  update (bytecode) {
-    const config = this.getProjectConfig()
-
-    // Reassign in case our bytecode was empty and we created a new object
-    this.exp = Bytecode.reinitialize(
-      this.file.folder,
-      path.normalize(this.file.relpath),
-      bytecode,
-      config
-    )
-
-    // Set whatever is in require.cache and make sure that everybody
-    // else is using the same bytecode we have just updated in place
-    this.monkeypatch(this.exp)
-  }
-
-  monkeypatch (exportsObject) {
-    if (!require.cache[this.getAbspath()]) {
-      // We ensure the full require.cache is populated with our entry;
-      // since the cache entry is complex, we use require's own mechanism
-      require(this.getAbspath())
+  update (bytecode, cb) {
+    if (this.isExternalModule) {
+      return cb()
     }
 
-    this._hasMonkeypatchedContent = true
-    require.cache[this.getAbspath()].exports = exportsObject
+    return Project.fetchProjectConfigInfo(this.file.folder, (err, userconfig) => {
+      if (err) return cb(err)
 
-    return exportsObject
+      // Reassign in case our bytecode was empty and we created a new object
+      this.exp = Bytecode.reinitialize(
+        this.file.folder,
+        path.normalize(this.file.relpath),
+        bytecode,
+        lodash.assign({}, userconfig, {
+          title: this.component && this.component.getTitle()
+        })
+      )
+
+      MODULE_CACHE_HOT[this.getAbspath()] = this.exp
+      MODULE_CACHE_HOT[this.getModpath()] = this.exp
+      MODULE_CACHE_HOT[this.file.getAbspath()] = this.exp
+
+      return cb()
+    })
   }
 }
 
 ModuleWrapper.DEFAULT_OPTIONS = {
   required: {
-    file: true
+    file: true,
+    component: true
   }
 }
 
 BaseModel.extend(ModuleWrapper)
+
+ModuleWrapper.buildReference = (type, host, source, identifier) => {
+  return JSON.stringify({type, host, source, identifier})
+}
+
+ModuleWrapper.parseReference = (ref) => {
+  if (typeof ref !== 'string') {
+    return null
+  }
+
+  try {
+    return JSON.parse(ref)
+  } catch (exception) {
+    logger.warn('[module wrapper]', exception)
+    return null
+  }
+}
 
 /**
  * @function modulePathToIdentifierName
@@ -296,6 +319,12 @@ ModuleWrapper.getHaikuKnownImportMatch = (importPath) => {
                    .replace(/^@haiku\/core/, REPLACEMENT_MODULES['@haiku/core'])
 }
 
+ModuleWrapper.clearHotCache = () => {
+  for (const key in MODULE_CACHE_HOT) {
+    MODULE_CACHE_HOT[key] = null
+  }
+}
+
 ModuleWrapper.clearRequireCache = (dirname) => {
   for (const key in require.cache) {
     if (dirname) {
@@ -326,16 +355,15 @@ ModuleWrapper.doesRelpathLookLikeInstalledComponent = (relpath) => {
   return parts[0] === '@haiku'
 }
 
-ModuleWrapper.CORE_VERSION = CORE_VERSION
-
-ModuleWrapper.RELOAD_MODES = {
-  GLOBAL: 1, // Completely clear the require cache
-  ISOLATED: 2, // Only clear the require cache for the module folder in question
-  CACHE: 3, // Just load the module using whatever may be cached,
-  MONKEYPATCHED_OR_ISOLATED: 4 // If monkeypatched, use that, otherwise load from disk
+ModuleWrapper.REF_TYPES = {
+  COMPONENT: 'component'
 }
+
+ModuleWrapper.CORE_VERSION = CORE_VERSION
 
 module.exports = ModuleWrapper
 
 // Down here to avoid Node circular dependency stub objects. #FIXME
 const Bytecode = require('./Bytecode')
+const Project = require('./Project')
+const Template = require('./Template')

@@ -5,7 +5,7 @@ const path = require('path')
 const xmlToMana = require('@haiku/core/lib/helpers/xmlToMana').default
 const objectToRO = require('@haiku/core/lib/reflection/objectToRO').default
 const BaseModel = require('./BaseModel')
-const Logger = require('./../utils/Logger')
+const logger = require('./../utils/LoggerInstance')
 const walkFiles = require('./../utils/walkFiles')
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 const getSvgOptimizer = require('./../svg/getSvgOptimizer')
@@ -14,9 +14,6 @@ const Lock = require('./Lock')
 // This file also depends on '@haiku/core/lib/HaikuComponent'
 // in the sense that one of those instances is assigned as .hostInstance here.
 // ^^ Leave this message in this file so we can grep for it if necessary
-
-const logger = new Logger()
-const differ = require('./../utils/LoggerInstanceDiffs')
 
 const DEFAULT_CONTEXT_SIZE = { width: 550, height: 400 }
 const DISK_FLUSH_TIMEOUT = 500
@@ -39,7 +36,23 @@ class File extends BaseModel {
   constructor (props, opts) {
     super(props, opts)
 
+    const scenename = this.project.relpathToSceneName(this.relpath)
+    const uid = ActiveComponent.buildPrimaryKey(this.project.getFolder(), scenename)
+
+    // Timeline/Glass/Creator should not write to the file system
+    if (this.project.getAlias() === 'master' || this.project.getAlias() === 'test') {
+      this.project.bootstrapSceneFilesSync(scenename, this.project.userconfig)
+    }
+
+    this.component = ActiveComponent.upsert({
+      uid,
+      relpath: this.relpath,
+      project: this.project,
+      scenename // This string is important for fs lookups to work
+    })
+
     this.mod = ModuleWrapper.upsert({
+      component: this.component,
       uid: this.getAbspath(),
       file: this
     })
@@ -70,7 +83,7 @@ class File extends BaseModel {
     this._numBytecodeUpdates = 0
   }
 
-  updateInMemoryHotModule (bytecode) {
+  updateInMemoryHotModule (bytecode, cb) {
     // In no circumstance do we want to write bad bytecode to in-memory pointer.
     // so instead of returning an error message, we crash the app in hope
     // that a full restart will resolve the condition leading to this.
@@ -79,13 +92,14 @@ class File extends BaseModel {
 
     this.dtModified = Date.now()
 
-    this.mod.update(bytecode)
-
-    // Helps detect whether we need to assert that bytecode is present
-    this._numBytecodeUpdates++
+    return this.mod.update(bytecode, () => {
+      // Helps detect whether we need to assert that bytecode is present
+      this._numBytecodeUpdates++
+      return cb()
+    })
   }
 
-  requestAsyncContentFlush (flushSpec) {
+  requestAsyncContentFlush (flushSpec = {}) {
     this._pendingContentFlushes.push(flushSpec)
     this.debouncedFlushContent()
   }
@@ -122,6 +136,20 @@ class File extends BaseModel {
     })
   }
 
+  flushContentForceSync () {
+    const bytecode = this.mod.fetchInMemoryExport()
+    const incoming = this.ast.updateWithBytecodeAndReturnCode(bytecode)
+    this.previous = this.contents
+    this.contents = incoming
+    this.writeSync()
+  }
+
+  maybeFlushContentForceSync () {
+    if (this.options.doWriteToDisk) {
+      this.flushContentForceSync()
+    }
+  }
+
   assertBytecode (bytecode) {
     // If we have a blank bytecode object after the first couple of updates,
     // that usually means we're about to end up with a "Red Wall of Death"
@@ -149,7 +177,7 @@ class File extends BaseModel {
         // Diffs of 'snapshots' or bundled code are usually fairly useless to show and too long anyway.
         // These files are written as part of the save process
         if (!_looksLikeMassiveFile(this.relpath)) {
-          differ.difflog(previous, contents, { relpath: this.relpath })
+          logger.diff(previous, contents, { relpath: this.relpath })
         }
       }
     }
@@ -169,6 +197,15 @@ class File extends BaseModel {
     })
   }
 
+  writeSync () {
+    this.assertContents(this.contents)
+    this.dtLastWriteStart = Date.now()
+    logger.info(`[file] writing ${this.relpath} to disk`)
+    const abspath = path.join(this.folder, this.relpath)
+    fse.outputFileSync(abspath, this.contents)
+    this.dtLastWriteEnd = Date.now()
+  }
+
   getAbspath () {
     return path.join(this.folder, this.relpath)
   }
@@ -179,6 +216,10 @@ class File extends BaseModel {
 
   isDesign () {
     return this.type === FILE_TYPES.design
+  }
+
+  getImportPathTo (source) {
+    return Template.normalizePath(path.relative(path.dirname(this.relpath), source))
   }
 
   /**
@@ -223,7 +264,7 @@ class File extends BaseModel {
    * @description Reads a file's filesystem contents into memory. Useful if you have a reference but need its content.
    */
   read (cb) {
-    return File.ingestOne(this.folder, this.relpath, (err) => {
+    return File.ingestOne(this.project, this.folder, this.relpath, (err) => {
       if (err) return cb(err)
       return cb(null, this)
     })
@@ -239,7 +280,8 @@ File.DEFAULT_OPTIONS = {
   skipDiffLogging: false, // Log a colorized diff of every content update
   required: {
     relpath: true,
-    folder: true
+    folder: true,
+    project: true
   }
 }
 
@@ -271,22 +313,23 @@ File.isPathCode = (relpath) => {
   return _isFileCode(relpath)
 }
 
-File.ingestOne = (folder, relpath, cb) => {
+File.ingestOne = (project, folder, relpath, cb) => {
   // This can be used to determine if an in-memory-only update occurred after or before a filesystem update.
   // Track it here so we get an accurate picture of when the ingestion routine actually began, including before
   // we actually talked to the real filesystem, which can take some time
   const dtLastReadStart = Date.now()
 
-  return File.ingestContents(folder, relpath, { dtLastReadStart }, cb)
+  return File.ingestContents(project, folder, relpath, { dtLastReadStart }, cb)
 }
 
-File.ingestContents = (folder, relpath, { dtLastReadStart }, cb) => {
+File.ingestContents = (project, folder, relpath, { dtLastReadStart }, cb) => {
   // Note: The only properties that should be in the object at this point should be relpath and folder,
   // otherwise the upsert won't work correctly since it uses these props as a comparison
   const fileAttrs = {
     uid: path.normalize(path.join(folder, relpath)),
     relpath,
-    folder
+    folder,
+    project
   }
 
   const file = File.upsert(fileAttrs)
@@ -307,13 +350,13 @@ File.ingestContents = (folder, relpath, { dtLastReadStart }, cb) => {
     return file.mod.isolatedForceReload((err, bytecode) => {
       if (err) return cb(err)
 
-      file.updateInMemoryHotModule(bytecode)
+      file.updateInMemoryHotModule(bytecode, () => {
+        // This can be used to determine if an in-memory-only update occurred
+        // after or before a filesystem update. Use to decid whether to code reload
+        file.dtLastReadEnd = Date.now()
 
-      // This can be used to determine if an in-memory-only update occurred
-      // after or before a filesystem update. Use to decid whether to code reload
-      file.dtLastReadEnd = Date.now()
-
-      return cb(null, file)
+        return cb(null, file)
+      })
     })
   })
 }
@@ -327,28 +370,22 @@ File.expelOne = (folder, relpath, cb) => {
   cb()
 }
 
-File.ingestFromFolder = (folder, options, cb) => {
-  const isExcluded = (relpath) => {
-    if (!options) return false
-    if (!options.exclude) return false
-    return options.exclude(relpath)
-  }
-
+File.ingestFromFolder = (project, folder, options, cb) => {
   return walkFiles(folder, (err, entries) => {
     if (err) return cb(err)
     const picks = []
     entries.forEach((entry) => {
       const relpath = path.relative(folder, entry.path)
-      // Don't ingest massive bundle files that have no business being in memory
-      // Also skip any files that match any exclude patterns passed in with the options
-      if (!_looksLikeMassiveFile(relpath) && !isExcluded(relpath)) {
+
+      // Only allow bytecode files
+      if (!path.basename(relpath, '.js') === 'code') {
         return picks.push(entry)
       }
     })
     // Load the code first, then designs. This is so we can merge design changes!
     return async.mapSeries(picks, (entry, next) => {
       const relpath = path.relative(folder, entry.path)
-      return File.ingestOne(folder, relpath, next)
+      return File.ingestOne(project, folder, relpath, next)
     }, (err, files) => {
       if (err) return cb(err)
       return cb(null, files)
@@ -424,5 +461,6 @@ module.exports = File
 // Down here to avoid Node circular dependency stub objects. #FIXME
 const AST = require('./AST')
 const Bytecode = require('./Bytecode')
+const ActiveComponent = require('./ActiveComponent')
 const ModuleWrapper = require('./ModuleWrapper')
 const Template = require('./Template')

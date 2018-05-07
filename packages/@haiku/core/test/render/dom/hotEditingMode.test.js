@@ -26,7 +26,7 @@ test('render.dom.hotEditingMode.on', function (t) {
       if (err) throw err
       context.tick()
       t.equal(mount.firstChild.haiku.virtual.layout.opacity, 1, 'initial opacity is 1')
-      component._bytecode.timelines.Default['haiku:abcde'].opacity['0'].value = 0.5
+      component.bytecode.timelines.Default['haiku:abcde'].opacity['0'].value = 0.5
       component.clearCaches()
       component.addHotComponent({
         timelineName: 'Default',
@@ -67,7 +67,7 @@ test('render.dom.hotEditingMode.off', function (t) {
       if (err) throw err
       context.tick()
       t.equal(mount.firstChild.haiku.virtual.layout.opacity, 1, 'initial opacity is 1')
-      component._bytecode.timelines.Default['haiku:abcde'].opacity['0'].value = 0.5
+      component.bytecode.timelines.Default['haiku:abcde'].opacity['0'].value = 0.5
       component.clearCaches()
       context.tick()
       t.equal(mount.firstChild.haiku.virtual.layout.opacity, 1, 'non-animated property is static without hot-editing mode')

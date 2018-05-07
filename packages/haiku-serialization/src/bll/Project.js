@@ -14,14 +14,14 @@ const BaseModel = require('./BaseModel')
 const reifyRO = require('@haiku/core/lib/reflection/reifyRO').default
 const reifyRFO = require('@haiku/core/lib/reflection/reifyRFO').default
 const toTitleCase = require('./helpers/toTitleCase')
-const normalizeBytecodeFile = require('./../ast/normalizeBytecodeFile')
+const normalizeBytecodeAST = require('./../ast/normalizeBytecodeAST')
 const Lock = require('./Lock')
 const ActionStack = require('./ActionStack')
 
 const WHITESPACE_REGEX = /\s+/
 const UNDERSCORE = '_'
-const HAIKU_CONFIG_FILE = 'haiku.js'
-
+const FALLBACK_ORG_NAME = 'Unknown'
+const FALLBACK_SEMVER_VERSION = '0.0.0'
 const ALWAYS_IGNORED_METHODS = {
   // Handled upstream, by Creator, Glass, Timeline, etc.
   executeFunctionSpecification: true
@@ -114,7 +114,7 @@ class Project extends BaseModel {
 
       this._envoyClient = new EnvoyClient(Object.assign({
         WebSocket: websocketClient,
-        logger: new EnvoyLogger('warn', console)
+        logger: new EnvoyLogger('warn')
       }, this.getEnvoyOptions()))
 
       this._envoyClient.get('timeline').then((timelineChannel) => {
@@ -160,7 +160,7 @@ class Project extends BaseModel {
       const ac = this.findActiveComponentBySource(params[0])
 
       if (ac && typeof ac[method] === 'function') {
-        logger.info(`[project (${this.getAlias()})] component handling method ${method}`, params, typeof cb === 'function')
+        logger.info(`[project (${this.getAlias()})] component handling method ${method}`, params)
 
         return ac[method].apply(ac, params.slice(1).concat((err, out) => {
           release()
@@ -171,7 +171,7 @@ class Project extends BaseModel {
 
       // If we have a method here at the top, call it
       if (typeof this[method] === 'function') {
-        logger.info(`[project (${this.getAlias()})] project handling method ${method}`, params, typeof cb === 'function')
+        logger.info(`[project (${this.getAlias()})] project handling method ${method}`, params)
 
         return this[method].apply(this, params.concat((err, result) => {
           release()
@@ -213,14 +213,12 @@ class Project extends BaseModel {
 
   getCurrentActiveComponentRelpath () {
     const ac = this.getCurrentActiveComponent()
-    return ac && ac.getSceneCodeRelpath()
+    return ac && ac.getRelpath()
   }
 
   getCurrentActiveComponent () {
-    return this.cacheFetch('currentActiveComponent', () => {
-      if (!this._activeComponentSceneName) return null
-      return this.findActiveComponentBySceneName(this._activeComponentSceneName)
-    })
+    if (!this._activeComponentSceneName) return null
+    return this.findActiveComponentBySceneName(this._activeComponentSceneName)
   }
 
   getAllActiveComponents () {
@@ -236,6 +234,18 @@ class Project extends BaseModel {
     if (!foundAlready) {
       this._multiComponentTabs.push({ scenename, active })
     }
+  }
+
+  getExistingComponentNames () {
+    const names = {
+      'main': true // Never allow 'main'
+    }
+
+    this._multiComponentTabs.forEach((tab) => {
+      names[tab.scenename] = true
+    })
+
+    return names
   }
 
   getNextAvailableSceneNameWithPrefix (prefix, num = 0) {
@@ -340,9 +350,11 @@ class Project extends BaseModel {
       uid: this.buildFileUid(relpath),
       folder: this.getFolder(),
       dtModified: Date.now(),
+      project: this,
       relpath,
       type
     })
+
     return File.upsert(spec, this.getFileOptions())
   }
 
@@ -443,7 +455,7 @@ class Project extends BaseModel {
   addActiveComponentToRegistry (activeComponent) {
     const activeComponentKey = path.join(
       this.getFolder(),
-      activeComponent.getSceneCodeRelpath()
+      activeComponent.getRelpath()
     )
     this.ensurePlatformHaikuRegistry() // Make sure we have this.platform.haiku; race condition
     this.platform.haiku.registry[activeComponentKey] = activeComponent
@@ -453,10 +465,7 @@ class Project extends BaseModel {
   upsertSceneByName (scenename, cb) {
     const relpath = path.join('code', scenename, 'code.js')
     const bytecode = null // In this pathway, we want to create the bytecode or load it from disk
-    const instanceConfig = {
-      // If we have monkeypatched content, use that, otherwise, reload from disk
-      reloadMode: ModuleWrapper.RELOAD_MODES.MONKEYPATCHED_OR_ISOLATED
-    }
+    const instanceConfig = {}
     return this.upsertComponentBytecodeToModule(relpath, bytecode, instanceConfig, cb)
   }
 
@@ -477,14 +486,20 @@ class Project extends BaseModel {
         }
       })
 
-      this._activeComponentSceneName = scenename
-      this.cacheUnset('currentActiveComponent')
+      return Lock.awaitFree([
+        Lock.LOCKS.ActiveComponentWork,
+        Lock.LOCKS.ActiveComponentReload,
+        Lock.LOCKS.FilePerformComponentWork,
+        Lock.LOCKS.ActionStackUndoRedo
+      ], () => {
+        this._activeComponentSceneName = scenename
 
-      this.updateHook('setCurrentActiveComponent', scenename, metadata || this.getMetadata(), (fire) => fire())
-
-      const ac = this.findActiveComponentBySceneName(scenename)
-
-      return cb(null, ac)
+        this.updateHook('setCurrentActiveComponent', scenename, metadata || this.getMetadata(), (fire) => {
+          const ac = this.findActiveComponentBySceneName(scenename)
+          fire()
+          return cb(null, ac)
+        })
+      })
     }
 
     // If not in read only mode, create the component entity for the scene in question
@@ -506,7 +521,6 @@ class Project extends BaseModel {
     }
     // TODO: Make smarter instead of just choosing the first one in the list
     this._activeComponentSceneName = this._multiComponentTabs[0]
-    this.cacheUnset('currentActiveComponent')
     this.updateHook('closeNamedActiveComponent', scenename, metadata || this.getMetadata(), (fire) => fire())
     if (cb) return cb()
   }
@@ -579,17 +593,12 @@ class Project extends BaseModel {
 
     // This is going to be called once we finish up the async work below
     const finalize = (cb) => {
+      this.emit('active-component:upserted')
+
       // Note that this instanceConfig variable may get mutated below
       return ac.mountApplication(null, instanceConfig, (err) => {
         if (err) return cb(err)
-
-        return ac.performComponentWork((bytecode, mana, done) => {
-          // No-op; we only call this to ensure the file is bootstrapped and written to fs
-          done()
-        }, (err) => {
-          if (err) return cb(err)
-          return cb(null, ac)
-        })
+        return cb(null, ac)
       })
     }
 
@@ -616,21 +625,15 @@ class Project extends BaseModel {
 
         // Hacky, but in situations where we don't want to have to write to the fs before being
         // able to load the module via require() call, i.e. in the glass or timeline
-        file.mod.update(reified)
-
-        // Because we have just monkeypatched the module, we don't need to (and shouldn't) reload
-        // from disk since at this point disk will contain stale content, which we need to update later
-        // Note that this ends up passed (via scope) to the mountApplication call; see above
-        instanceConfig = Object.assign({}, instanceConfig, {
-          reloadMode: ModuleWrapper.RELOAD_MODES.CACHE
+        return file.mod.update(reified, () => {
+          return finalize(cb)
         })
-
-        return finalize(cb)
       })
     } else {
-      // If no bytecode, that's ok because we're going to load it as part of mount application step.
-      // The reload mode therein should force a reload from whatever currently lives on disk.
-      return finalize(cb)
+      // Make sure we end up with something defined for the bytecode, or things don't work
+      return file.mod.update({}, () => {
+        return finalize(cb)
+      })
     }
   }
 
@@ -639,23 +642,13 @@ class Project extends BaseModel {
   }
 
   upsertActiveComponentInstance (relpath) {
-    const scenename = this.relpathToSceneName(relpath)
+    const file = File.upsert({
+      project: this,
+      folder: this.getFolder(),
+      relpath
+    })
 
-    const uid = ActiveComponent.buildPrimaryKey(this.getFolder(), scenename)
-
-    // Timeline/Glass/Creator should not write to the file system
-    if (this.getAlias() === 'master' || this.getAlias() === 'test') {
-      // This writes to the file system so be careful about making this call
-      this.bootstrapSceneFilesSync(scenename)
-    }
-
-    const ac = ActiveComponent.upsert({
-      uid,
-      scenename, // This string is important for fs lookups to work
-      project: this
-    }, {})
-
-    return ac
+    return file.component
   }
 
   findActiveComponentBySource (relpath) {
@@ -667,12 +660,13 @@ class Project extends BaseModel {
     return ActiveComponent.findById(ActiveComponent.buildPrimaryKey(this.getFolder(), scenename))
   }
 
-  bootstrapSceneFilesSync (scenename) {
+  bootstrapSceneFilesSync (scenename, userconfig) {
     const rootComponentId = getCodeJs(
       Template.getHash(scenename, 12),
       experimentIsEnabled(Experiment.MultiComponentFeatures)
         ? scenename
-        : path.basename(this.getFolder())
+        : path.basename(this.getFolder()),
+      userconfig
     )
 
     // Only write these files if they don't exist yet; don't overwrite the user's own content
@@ -681,7 +675,7 @@ class Project extends BaseModel {
     } else if (!experimentIsEnabled(Experiment.NoNormalizeOnSetup)) {
       // If the file already exists, we can run any migration steps we might want
       AST.mutateWith(path.join(this.getFolder(), `code/${scenename}/code.js`), (ast) => {
-        normalizeBytecodeFile(ast)
+        normalizeBytecodeAST(ast)
       })
     }
 
@@ -763,7 +757,8 @@ class Project extends BaseModel {
     return this.readPackageJsonSafe((pkg) => {
       if (!pkg.haiku) pkg.haiku = {}
 
-      pkg.haiku[scenename] = info
+      if (!pkg.haiku[scenename]) pkg.haiku[scenename] = {}
+      lodash.assign(pkg.haiku[scenename], info)
 
       return this.writePackageJson(pkg, (err) => {
         if (err) return cb(err)
@@ -828,7 +823,16 @@ Project.awaitOneUpdateFromActiveComponent = (activeComponent, channel, fn) => {
   })
 }
 
-Project.setup = (folder, alias, websocket, platform = {}, userconfig = {}, fileOptions = {}, envoyOptions = {}, cb) => {
+Project.setup = (
+  folder,
+  alias,
+  websocket,
+  platform = {},
+  userconfig = {},
+  fileOptions = {},
+  envoyOptions = {},
+  cb
+) => {
   fse.mkdirpSync(path.join(folder, 'code'))
 
   const project = Project.upsert({
@@ -848,13 +852,41 @@ Project.setup = (folder, alias, websocket, platform = {}, userconfig = {}, fileO
   })
 }
 
-Project.getProjectHaikuConfig = (folder) => {
-  return require(dir(folder, HAIKU_CONFIG_FILE))
+Project.storeConfigValues = (folder, incoming) => {
+  fse.mkdirpSync(folder)
+  const pkgjson = Project.readPackageJson(folder)
+  lodash.assign(pkgjson.haiku, incoming)
+  fse.outputJsonSync(path.join(folder, 'package.json'), pkgjson, {spaces: 2})
+  return pkgjson.haiku
+}
+
+Project.readPackageJson = (folder) => {
+  let pkgjson = {}
+  try {
+    pkgjson = fse.readJsonSync(path.join(folder, 'package.json'), {throws: false})
+  } catch (e) {
+    pkgjson = {}
+  }
+  if (!pkgjson.haiku) pkgjson.haiku = {}
+  if (!pkgjson.version) pkgjson.version = FALLBACK_SEMVER_VERSION
+  return pkgjson
+}
+
+Project.fetchProjectConfigInfo = (folder, cb) => {
+  const pkgjson = Project.readPackageJson(folder)
+  const config = (pkgjson && pkgjson.haiku) || {}
+  return cb(null, lodash.assign({
+    folder,
+    uuid: 'HAIKU_SHARE_UUID', // Replaced on the server
+    core: ModuleWrapper.CORE_VERSION,
+    player: ModuleWrapper.CORE_VERSION // legacy alias for 'core'
+    // config: name, project, username, organization, branch, version, commit
+  }, config))
 }
 
 Project.getProjectNameVariations = (folder) => {
-  const projectHaikuConfig = Project.getProjectHaikuConfig(folder)
-  const projectNameSafe = Project.getSafeProjectName(folder, projectHaikuConfig.name)
+  const projectHaikuConfig = Project.readPackageJson(folder).haiku
+  const projectNameSafe = Project.getSafeProjectName(folder, projectHaikuConfig.project)
   const projectNameSafeShort = projectNameSafe.slice(0, 20)
   const projectNameLowerCase = projectNameSafe.toLowerCase()
   const reactProjectName = `React_${projectNameSafe}`
@@ -874,6 +906,11 @@ Project.getSafeProjectName = (maybeProjectPath, maybeProjectName) => {
   throw new Error('Unable to infer a project name!')
 }
 
+Project.getSafeOrgName = (maybeOrgName) => {
+  if (!maybeOrgName || typeof maybeOrgName !== 'string') maybeOrgName = FALLBACK_ORG_NAME
+  return maybeOrgName.replace(WHITESPACE_REGEX, UNDERSCORE)
+}
+
 Project.executeFunctionSpecification = (binding, alias, payload, cb) => {
   if (process.env.NODE_ENV === 'production') return cb()
   if (payload.views && payload.views.indexOf(alias) === -1) return cb()
@@ -889,13 +926,6 @@ Project.PUBLIC_METHODS = {
   renameComponent: true
 }
 
-function dir () {
-  var args = []
-  for (var i = 0; i < arguments.length; i++) args[i] = arguments[i]
-  var location = path.join.apply(path, args)
-  return location
-}
-
 // Down here to avoid Node circular dependency stub objects. #FIXME
 const ActiveComponent = require('./ActiveComponent')
 const Asset = require('./Asset')
@@ -906,11 +936,11 @@ const File = require('./File')
 const ModuleWrapper = require('./ModuleWrapper')
 const Template = require('./Template')
 
-function getCodeJs (haikuId, haikuComponentName) {
+function getCodeJs (haikuId, haikuComponentName, metadata = {}) {
   return dedent`
     var Haiku = require("@haiku/core");
     module.exports = {
-      metadata: {},
+      metadata: ${JSON.stringify(metadata, null, 2)},
       options: {},
       states: {},
       eventHandlers: {},

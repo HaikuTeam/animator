@@ -7,7 +7,7 @@ test('perf2', function (t) {
     t.equal(mount.outerHTML.length, 11, 'html checksum ok');
     TestHelpers.timeBracket([
       function (done) {
-        component._context.tick();
+        component.context.tick();
         done();
       },
       function (done, delta) {
@@ -16,7 +16,7 @@ test('perf2', function (t) {
         done();
       },
       function (done) {
-        component._context.tick();
+        component.context.tick();
         done();
       },
       function (done, delta) {

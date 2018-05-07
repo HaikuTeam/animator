@@ -1,5 +1,6 @@
 import prettier from 'prettier'
 import functionToRFO from '@haiku/core/lib/reflection/functionToRFO'
+import logger from 'haiku-serialization/src/utils/LoggerInstance'
 
 const ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
 
@@ -230,7 +231,7 @@ class HandlerManager {
           }
         } catch (e) {
           // noop. User likely was permitted to save invalid JS.
-          console.warn(`[glass] caught exception prettying handler body: ${e.toString()}`)
+          logger.warn(`[glass] caught exception prettying handler body: ${e.toString()}`)
         }
       }
       handler.body = prettierHandlerBody || this._buildEventHandler().handler.body

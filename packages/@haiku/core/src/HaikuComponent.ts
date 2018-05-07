@@ -5,7 +5,8 @@
 import Config from './Config';
 import HaikuElement from './HaikuElement';
 import HaikuContext from './HaikuContext';
-import {GLOBAL_LISTENER_KEY} from './HaikuBase';
+import {runMigrations} from './Migration';
+import HaikuBase, {GLOBAL_LISTENER_KEY} from './HaikuBase';
 import HaikuTimeline from './HaikuTimeline';
 import vanities from './properties/dom/vanities';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
@@ -15,7 +16,6 @@ import {isPreviewMode} from './helpers/interactionModes';
 import isMutableProperty from './helpers/isMutableProperty';
 import manaFlattenTree from './helpers/manaFlattenTree';
 import scopifyElements from './helpers/scopifyElements';
-import upgradeBytecodeInPlace from './helpers/upgradeBytecodeInPlace';
 import Layout3D from './Layout3D';
 import ValueBuilder from './ValueBuilder';
 import assign from './vendor/assign';
@@ -50,33 +50,32 @@ export interface HotComponent {
 
 // tslint:disable:variable-name function-name
 export default class HaikuComponent extends HaikuElement {
-  _alwaysFlush;
   _builder;
-  _bytecode;
-  _context;
-  _controlFlowData;
   _flatManaTree;
-  _hashTableOfIdsToElements;
   _horizonElements;
-  _isDeactivated;
-  _isSleeping;
-  _lastDeltaPatches;
+  isDeactivated;
+  isSleeping;
   _matchedElementCache;
   _mutableTimelines;
-  _needsFullFlush;
-  _renderScopes;
   _states;
-  _timelineInstances;
+
+  bytecode;
   config;
+  container;
+  context;
   CORE_VERSION;
+  doAlwaysFlush;
+  doesNeedFullFlush;
+  guests;
+  host;
   PLAYER_VERSION;
-  nestedComponentElements;
   registeredEventHandlers;
   state;
 
   constructor(
     bytecode: any,
     context: HaikuContext,
+    host: HaikuComponent,
     config,
     container,
 ) {
@@ -118,23 +117,26 @@ export default class HaikuComponent extends HaikuElement {
     this.PLAYER_VERSION = VERSION; // #LEGACY
     this.CORE_VERSION = VERSION;
 
-    // Config assignment (see below) depends on this property existing
-    this._bytecode = bytecode;
+    this.context = context;
+    this.container = container;
 
-    assertTemplate(this._bytecode.template);
+    this.host = host;
+    this.guests = {};
+
+    this.bytecode = (config.hotEditingMode)
+      ? bytecode
+      : clone(bytecode, this); // Important because migrations mutate the bytecode
+
+    assertTemplate(this.bytecode.template);
 
     // Allow users to expose methods that can be called in event handlers
-    if (this._bytecode.methods) {
-      for (const methodNameGiven in this._bytecode.methods) {
+    if (this.bytecode.methods) {
+      for (const methodNameGiven in this.bytecode.methods) {
         if (!this[methodNameGiven]) {
-          this[methodNameGiven] = this._bytecode.methods[methodNameGiven].bind(this);
+          this[methodNameGiven] = this.bytecode.methods[methodNameGiven].bind(this);
         }
       }
     }
-
-    this.routeEventToHandlerAndEmit(GLOBAL_LISTENER_KEY, 'component:will-initialize', [this]);
-
-    this._context = context;
 
     this._builder = new ValueBuilder(this);
 
@@ -145,24 +147,17 @@ export default class HaikuComponent extends HaikuElement {
     // could occur at any point during runtime, e.g. in React, may need to update internal states, etc.
     this.assignConfig(config);
 
-    this._timelineInstances = {};
     this._mutableTimelines = undefined;
     this._hydrateMutableTimelines();
 
     // The full version of the template gets mutated in-place by the rendering algorithm
     this._flatManaTree = [];
 
-    // Ensure all __instance, __parent, etc. are properly set up and connected to the models
-    this.reinitializeTree(container);
-
     // Flag used internally to determine whether we need to re-render the full tree or can survive by just patching
-    this._needsFullFlush = false;
+    this.doesNeedFullFlush = false;
 
     // If true, will continually flush the entire tree until explicitly set to false again
-    this._alwaysFlush = false;
-
-    // Last computed deltas for patch rendering; important for nested components
-    this._lastDeltaPatches = null;
+    this.doAlwaysFlush = false;
 
     // Dictionary of event handler names to handler functions; used to efficiently manage multiple subscriptions
     this.registeredEventHandlers = {};
@@ -170,44 +165,30 @@ export default class HaikuComponent extends HaikuElement {
     // As a performance optimization, keep track of elements we've located as key/value (selector/element) pairs
     this._matchedElementCache = {};
 
-    // A sort of cache with a mapping of elements to the scope in which they belong (div, svg, etc)
-    this._renderScopes = {};
-
-    // Dictionary of haiku-ids pointing to any nested components we have in the tree, used for patching
-    this.nestedComponentElements = {};
-
-    // Dictionary of ids-to-elements, for quick lookups.
-    // We hydrate this with elements as we render so we don't have to query the DOM
-    // to quickly load elements for patch-style rendering
-    this._hashTableOfIdsToElements = {};
-
     // Dictionary of ids-to-elements, representing elements that we
     // do not want to render past in the tree (i.e. cede control to some
     // other rendering context)
     this._horizonElements = {};
 
-    // Dictionary of ids-to-elements, representing control-flow operation
-    // status that has occurred during the rendering process, e.g. placeholder
-    // or repeat/if/yield
-    this._controlFlowData = {};
-
     // Flag to determine whether this component should continue doing any work
-    this._isDeactivated = false;
+    this.isDeactivated = false;
 
     // Flag to indicate whether we are sleeping, an ephemeral condition where no rendering occurs
-    this._isSleeping = false;
+    this.isSleeping = false;
+
+    // Ensure full tree is are properly set up and all render nodes are connected to their models
+    this.render({...this.config, forceApplyBehaviors: true});
 
     try {
       // If the bytecode we got happens to be in an outdated format, we automatically update it to the latest.
-      upgradeBytecodeInPlace(this, {
+      runMigrations(this, {
         // Random seed for adding instance uniqueness to ids at runtime.
         referenceUniqueness: (config.hotEditingMode)
-          ? void (0) // During editing, Haiku.app pads ids unless this is undefined
+          ? undefined // During editing, Haiku.app pads ids unless this is undefined
           : Math.random().toString(36).slice(2),
       });
     } catch (e) {
-      console.warn('[haiku core] caught error during attempt to upgrade bytecode in place');
-      console.warn(e);
+      console.warn('[haiku core] caught error during migration', e);
     }
 
     // Start the default timeline to initiate the component;
@@ -221,7 +202,7 @@ export default class HaikuComponent extends HaikuElement {
    * @description Track elements that are at the horizon of what we want to render, i.e., a list of
    * virtual elements that we don't want to make any updates lower than in the tree.
    */
-  _markHorizonElement(virtualElement) {
+  markHorizonElement(virtualElement) {
     if (virtualElement && virtualElement.attributes) {
       const flexId = virtualElement.attributes[HAIKU_ID_ATTRIBUTE] || virtualElement.attributes.id;
       if (flexId) {
@@ -230,7 +211,7 @@ export default class HaikuComponent extends HaikuElement {
     }
   }
 
-  _isHorizonElement(virtualElement) {
+  isHorizonElement(virtualElement) {
     if (virtualElement && virtualElement.attributes) {
       const flexId = virtualElement.attributes[HAIKU_ID_ATTRIBUTE] || virtualElement.attributes.id;
       return !!this._horizonElements[flexId];
@@ -238,75 +219,14 @@ export default class HaikuComponent extends HaikuElement {
     return false;
   }
 
-  _getRealElementAtId(flexId) {
-    return this._hashTableOfIdsToElements[flexId];
+  registerGuest(subcomponent: HaikuComponent) {
+    this.guests[subcomponent.getId()] = subcomponent;
   }
 
-  /**
-   * @description We store DOM elements in a lookup table keyed by their id so we can do fast patches.
-   * This is a hook that allows e.g. the ReactDOMAdapter to push elements into the list if it mutates the DOM.
-   * e.g. during control flow
-   */
-  _addElementToHashTable(realElement, virtualElement) {
-    if (virtualElement && virtualElement.attributes) {
-      const flexId = virtualElement.attributes['haiku-id'] || virtualElement.attributes.id;
-
-      // Don't add if there is no id, otherwise we'll end up tracking a bunch
-      // of elements all sharing a key such as `undefined` or `null` etc.
-      if (flexId) {
-        this._hashTableOfIdsToElements[flexId] = realElement;
-      }
-    }
-  }
-
-  /**
-   * @description Keep track of whether a given element has rendered its surrogate, i.e.
-   * an element passed to it as a placeholder. This is used in the renderer to determine
-   * whether the element needs to be temporarily invisible to avoid a flash of content while
-   * rendering occurs
-   */
-  _didElementRenderSurrogate(
-    virtualElement, surrogatePlacementKey, surrogateObject) {
-    if (!virtualElement) {
-      return false;
-    }
-    if (!virtualElement.attributes) {
-      return false;
-    }
-    const flexId = virtualElement.attributes['haiku-id'] || virtualElement.attributes.id;
-    if (!flexId) {
-      return false;
-    }
-    if (!this._controlFlowData[flexId]) {
-      return false;
-    }
-    if (!this._controlFlowData[flexId].renderedSurrogates) {
-      return false;
-    }
-    return this._controlFlowData[flexId].renderedSurrogates[surrogatePlacementKey] === surrogateObject;
-  }
-
-  _markElementSurrogateAsRendered(
-    virtualElement,
-    surrogatePlacementKey,
-    surrogateObject,
-  ) {
-    const flexId = (
-      virtualElement &&
-      virtualElement.attributes && (
-        virtualElement.attributes['haiku-id'] ||
-        virtualElement.attributes.id
-      )
-    );
-
-    if (flexId) {
-      if (!this._controlFlowData[flexId]) {
-        this._controlFlowData[flexId] = {};
-      }
-      if (!this._controlFlowData[flexId].renderedSurrogates) {
-        this._controlFlowData[flexId].renderedSurrogates = {};
-      }
-      this._controlFlowData[flexId].renderedSurrogates[surrogatePlacementKey] = surrogateObject;
+  activateGuests() {
+    for (const $id in this.guests) {
+      this.guests[$id].activate();
+      this.guests[$id].activateGuests();
     }
   }
 
@@ -320,7 +240,7 @@ export default class HaikuComponent extends HaikuElement {
     }
 
     if (!skipMarkForFullFlush) {
-      this._markForFullFlush();
+      this.markForFullFlush();
       this.clearCaches(null);
     }
 
@@ -328,6 +248,7 @@ export default class HaikuComponent extends HaikuElement {
     // (We have to mount first so that the component displays, but then pause it at that state.)
     // If you don't want the component to show up at all, use options.automount=false.
     const timelineInstances = this.getTimelines();
+
     for (const timelineName in timelineInstances) {
       const timelineInstance = timelineInstances[timelineName];
 
@@ -335,10 +256,10 @@ export default class HaikuComponent extends HaikuElement {
         if (timelineName === DEFAULT_TIMELINE_NAME) {
           // Assume we want to start the timeline from the beginning upon remount.
           // NOTE:
-          // timeline.play() will normally trigger _markForFullFlush because it assumes we need to render
+          // timeline.play() will normally trigger markForFullFlush because it assumes we need to render
           // from the get-go. However, in case of a callRemount, we might not want to do that since it can be kind of
           // like running the first frame twice. So we pass the option into play so it can conditionally skip the
-          // _markForFullFlush step.
+          // markForFullFlush step.
           timelineInstance.play({skipMarkForFullFlush});
         }
       } else {
@@ -346,7 +267,7 @@ export default class HaikuComponent extends HaikuElement {
       }
     }
 
-    this._context.contextMount();
+    this.context.contextMount();
 
     this.routeEventToHandlerAndEmit(GLOBAL_LISTENER_KEY, 'component:did-mount', [this]);
   }
@@ -363,7 +284,7 @@ export default class HaikuComponent extends HaikuElement {
       timelineInstance.pause();
     }
 
-    this._context.contextUnmount();
+    this.context.contextUnmount();
 
     this.routeEventToHandlerAndEmit(GLOBAL_LISTENER_KEY, 'component:will-unmount', [this]);
   }
@@ -373,18 +294,20 @@ export default class HaikuComponent extends HaikuElement {
 
     // Don't forget to update the configuration values shared by the context,
     // but skip component assignment so we don't end up in an infinite loop
-    this._context.assignConfig(this.config, {skipComponentAssign: true});
+    this.context.assignConfig(this.config, {skipComponentAssign: true});
 
-    for (const timelineName in this._timelineInstances) {
-      const timelineInstance = this._timelineInstances[timelineName];
-      timelineInstance.assignOptions(this.config);
+    const timelines = this.getTimelines();
+
+    for (const name in timelines) {
+      const timeline = timelines[name];
+      timeline.assignOptions(this.config);
     }
 
     bindStates(this._states, this, this.config.states);
 
     bindEventHandlers(this, this.config.eventHandlers);
 
-    assign(this._bytecode.timelines, this.config.timelines);
+    assign(this.bytecode.timelines, this.config.timelines);
 
     return this;
   }
@@ -416,6 +339,8 @@ export default class HaikuComponent extends HaikuElement {
   }
 
   clearCaches(options = {}) {
+    this.cacheClear();
+
     this._states = {};
 
     // Don't forget to repopulate the states with originals when we cc otherwise folks
@@ -429,41 +354,35 @@ export default class HaikuComponent extends HaikuElement {
       bindEventHandlers(this, this.config.eventHandlers);
     }
 
-    this._needsFullFlush = false;
-    this._lastDeltaPatches = null;
-
-    this._renderScopes = {};
-    this._controlFlowData = {};
-
-    this._rehydrateFlatManaTree();
+    this._flatManaTree = manaFlattenTree(this.getTemplate(), CSS_QUERY_MAPPING);
     this._matchedElementCache = {};
     this._builder.clearCaches(options);
     this._hydrateMutableTimelines();
 
     // These may have been set for caching purposes
-    if (this._bytecode.timelines) {
-      for (const timelineName in this._bytecode.timelines) {
-        delete this._bytecode.timelines[timelineName].__max;
+    if (this.bytecode.timelines) {
+      for (const timelineName in this.bytecode.timelines) {
+        delete this.bytecode.timelines[timelineName].__max;
       }
     }
-
-    return this;
   }
 
   getClock() {
-    return this._context.getClock();
+    return this.context.getClock();
   }
 
   getTemplate(): any {
-    return this._bytecode.template;
+    return this.bytecode.template;
   }
 
   getTimelines() {
-    return this.fetchTimelines();
+    return this.cacheFetch('getTimelines', () => {
+      return this.fetchTimelines();
+    });
   }
 
   fetchTimelines() {
-    const names = Object.keys(this._bytecode.timelines);
+    const names = Object.keys(this.bytecode.timelines);
 
     for (let i = 0; i < names.length; i++) {
       const name = names[i];
@@ -472,24 +391,42 @@ export default class HaikuComponent extends HaikuElement {
         continue;
       }
 
-      const descriptor = this.getTimelineDescriptor(name);
-      const existing = this._timelineInstances[name];
+      const existing = HaikuTimeline['where']({
+        name,
+        component: this,
+      })[0];
 
       if (!existing) {
-        this._timelineInstances[name] = new HaikuTimeline(
+        HaikuTimeline['create'](
           this,
           name,
-          descriptor,
+          this.getTimelineDescriptor(name),
           this.config,
         );
       }
     }
 
-    return this._timelineInstances;
+    const out = {};
+
+    HaikuTimeline['where']({component: this}).forEach((timeline) => {
+      out[timeline.getName()] = timeline;
+    });
+
+    return out;
   }
 
   getTimeline(name) {
     return this.getTimelines()[name];
+  }
+
+  fetchTimeline(name, descriptor) {
+    const found = this.getTimeline(name);
+
+    if (found) {
+      return found;
+    }
+
+    return HaikuTimeline['create'](this, name, descriptor, this.config);
   }
 
   getDefaultTimeline() {
@@ -498,42 +435,39 @@ export default class HaikuComponent extends HaikuElement {
   }
 
   stopAllTimelines() {
-    for (const timelineName in this._timelineInstances) {
-      this.stopTimeline(timelineName);
+    const timelines = this.getTimelines();
+    for (const name in timelines) {
+      this.stopTimeline(name);
     }
   }
 
   startAllTimelines() {
-    for (const timelineName in this._timelineInstances) {
-      this.startTimeline(timelineName);
+    const timelines = this.getTimelines();
+    for (const name in timelines) {
+      this.startTimeline(name);
     }
   }
 
   startTimeline(timelineName) {
-    const time = this._context.clock.getExplicitTime();
+    const time = this.context.clock.getExplicitTime();
     const descriptor = this.getTimelineDescriptor(timelineName);
-    const existing = this._timelineInstances[timelineName];
+    const existing = this.fetchTimeline(timelineName, descriptor);
     if (existing) {
       existing.start(time, descriptor);
-    } else {
-      // As a convenience we auto-initialize timeline if the user is trying to start one that hasn't initialized yet
-      const fresh = new HaikuTimeline(this, timelineName, descriptor, this.config);
-      fresh.start(time, descriptor); // Initialization alone doesn't start the timeline, so we start it explicitly
-      this._timelineInstances[timelineName] = fresh; // Don't forget to add it to our collection
     }
   }
 
   stopTimeline(timelineName) {
-    const time = this._context.clock.getExplicitTime();
+    const time = this.context.clock.getExplicitTime();
     const descriptor = this.getTimelineDescriptor(timelineName);
-    const existing = this._timelineInstances[timelineName];
+    const existing = this.getTimeline(timelineName);
     if (existing) {
       existing.stop(time, descriptor);
     }
   }
 
   getTimelineDescriptor(timelineName) {
-    return this._bytecode.timelines[timelineName];
+    return this.bytecode.timelines[timelineName];
   }
 
   getInjectables(element) {
@@ -559,26 +493,19 @@ export default class HaikuComponent extends HaikuElement {
    * ensure that this component doesn't keep updating after its replacement is loaded.
    */
   deactivate() {
-    this._isDeactivated = true;
-    return this;
+    this.isDeactivated = true;
   }
 
-  isDeactivated() {
-    return this._isDeactivated;
+  activate() {
+    this.isDeactivated = false;
   }
 
   sleepOn() {
-    this._isSleeping = true;
-    return this;
+    this.isSleeping = true;
   }
 
   sleepOff() {
-    this._isSleeping = false;
-    return this;
-  }
-
-  isSleeping() {
-    return this._isSleeping;
+    this.isSleeping = false;
   }
 
   /**
@@ -591,16 +518,31 @@ export default class HaikuComponent extends HaikuElement {
   }
 
   getBytecodeMetadata() {
-    return this._bytecode.metadata;
+    return this.bytecode.metadata;
+  }
+
+  getBytecodeRelpath (): string {
+    const metadata = this.getBytecodeMetadata();
+    return metadata && metadata.relpath;
+  }
+
+  getBytecodeProject (): string {
+    const metadata = this.getBytecodeMetadata();
+    return metadata && metadata.project;
+  }
+
+  getBytecodeOrganization (): string {
+    const metadata = this.getBytecodeMetadata();
+    return metadata && metadata.organization;
   }
 
   getAddressableProperties(out = {}) {
-    if (!this._bytecode.states) {
+    if (!this.bytecode.states) {
       return out;
     }
 
-    for (const name in this._bytecode.states) {
-      const state = this._bytecode.states[name];
+    for (const name in this.bytecode.states) {
+      const state = this.bytecode.states[name];
 
       out[name] = {
         name,
@@ -621,13 +563,13 @@ export default class HaikuComponent extends HaikuElement {
   }
 
   eachEventHandler (iteratee: Function) {
-    if (this._bytecode.eventHandlers) {
-      for (const eventSelector in this._bytecode.eventHandlers) {
-        for (const eventName in this._bytecode.eventHandlers[eventSelector]) {
+    if (this.bytecode.eventHandlers) {
+      for (const eventSelector in this.bytecode.eventHandlers) {
+        for (const eventName in this.bytecode.eventHandlers[eventSelector]) {
           iteratee(
             eventSelector,
             eventName,
-            this._bytecode.eventHandlers[eventSelector][eventName],
+            this.bytecode.eventHandlers[eventSelector][eventName],
           );
         }
       }
@@ -649,7 +591,7 @@ export default class HaikuComponent extends HaikuElement {
           return;
         }
       }
-    });  
+    });
   }
 
   routeEventToHandlerAndEmit(
@@ -661,156 +603,333 @@ export default class HaikuComponent extends HaikuElement {
     this.emit(eventNameGiven, ...eventArgs);
   }
 
-  _markForFullFlush() {
-    this._needsFullFlush = true;
+  markForFullFlush() {
+    this.doesNeedFullFlush = true;
     return this;
   }
 
-  _unmarkForFullFlush() {
-    this._needsFullFlush = false;
+  unmarkForFullFlush() {
+    this.doesNeedFullFlush = false;
     return this;
   }
 
-  _shouldPerformFullFlush() {
-    return this._needsFullFlush || this._alwaysFlush;
+  shouldPerformFullFlush() {
+    return this.doesNeedFullFlush || this.doAlwaysFlush;
   }
 
-  patch(container, patchOptions, skipCache = false) {
-    if (this.isDeactivated()) {
-      // If deactivated, pretend like there is nothing to render
-      return {};
+  performFullFlushRenderWithRenderer(renderer, options: any = {}) {
+    this.context.getContainer(true); // Force recalc of container
+    const tree = this.render(options);
+
+    // Since we just produced a full tree, we don't need a further full flush.
+    this.unmarkForFullFlush();
+
+    // Undefined signals there is no update to be made
+    if (tree !== undefined) {
+      return renderer.render(
+        this.container,
+        tree,
+        this,
+      );
+    }
+  }
+
+  render(options: any = {}) {
+    // We register ourselves with our host here because render is guaranteed to be called
+    // both in our constructor and in the case that we were deactivated/reactivated.
+    // This must run before the isDeactivated check since we may use the registry to activate later.
+    if (this.host) {
+      this.host.registerGuest(this);
     }
 
-    const time = this._context.clock.getExplicitTime();
-
-    // TODO: Determine if controlFlow directives might necessitate recalculation of the mana tree (e.g. due to $repeat).
-    const timelinesRunning = [];
-    for (const timelineName in this._timelineInstances) {
-      const timeline = this._timelineInstances[timelineName];
-      if (timeline.isPlaying()) {
-        timeline.doUpdateWithGlobalClockTime(time);
-      }
-
-      // The default timeline is always considered to be running
-      if (timelineName === 'Default' || !timeline.isFinished()) {
-        timelinesRunning.push(timeline);
-      }
-    }
-
-    this._lastDeltaPatches = gatherDeltaPatches(
-      this,
-      this.getTemplate(),
-      container,
-      this._context,
-      timelinesRunning,
-      patchOptions,
-      skipCache,
-    );
-
-    for (const flexId in this.nestedComponentElements) {
-      const compElement = this.nestedComponentElements[flexId];
-      this._lastDeltaPatches[flexId] = compElement;
-      compElement.__instance.patch(compElement, {});
-    }
-
-    return this._lastDeltaPatches;
-  }
-
-  _getPrecalcedPatches() {
-    if (this.isDeactivated()) {
-      // If deactivated, pretend like there is nothing to render
-      return {};
-    }
-    return this._lastDeltaPatches || {};
-  }
-
-  /**
-   * @method _rehydrateFlatManaTree
-   * @private
-   * @description The _flatManaTree is a cache of the flattened list of all elements in our
-   * tree; when the tree changes we need to repopulate it with the new set of elements.
-   * This method is essentially a cache invalidator.
-   */
-  _rehydrateFlatManaTree() {
-    this._flatManaTree = manaFlattenTree(this.getTemplate(), CSS_QUERY_MAPPING);
-    return this._flatManaTree;
-  }
-
-  renderUsingOwnContext() {
-    return this._context.render();
-  }
-
-  reinitializeTree(container) {
-    initializeComponentTree(
-      container,
-      null, // host
-      this._context,
-      this, // instance
-    );
-  }
-
-  render(container, renderOptions) {
-    if (this.isDeactivated()) {
+    if (this.isDeactivated) {
       // If deactivated, pretend like there is nothing to render
       return;
     }
 
-    this.reinitializeTree(container);
+    this._flatManaTree = manaFlattenTree(this.getTemplate(), CSS_QUERY_MAPPING);
+    this._matchedElementCache = {};
 
-    const time = this._context.clock.getExplicitTime();
+    const expansion = expandTreeNode(
+      this.getTemplate(), // node
+      this.container, // parent
+      this, // instance (component)
+      this.context,
+      this.host,
+      options,
+      true, // doConnectInstanceToNode
+    );
 
-    const prevFlatManaTreeLen = this._flatManaTree.length;
-    this._rehydrateFlatManaTree();
+    scopifyElements(expansion, null, null);
 
-    // Use a changing number of elements as a heuristic to decide whether we need to
-    // force a re-query of the tree. For example, take a situation where a new component
-    // has been added to the tree post-hoc, and the element cache for its query selector
-    // had contained [], a truthy value that would be returned from the cache
-    if (prevFlatManaTreeLen.length !== this._flatManaTree.length) {
-      this._matchedElementCache = {};
+    this.applyContextChanges(
+      expansion,
+      options,
+    );
+
+    return expansion;
+  }
+
+  performPatchRenderWithRenderer(renderer, options: any = {}, skipCache: boolean) {
+    const patches = this.patch(options, skipCache);
+
+    renderer.patch(
+      this,
+      patches,
+    );
+
+    for (const $id in this.guests) {
+      this.guests[$id].performPatchRenderWithRenderer(
+        renderer,
+        options,
+        skipCache,
+      );
+    }
+  }
+
+  patch(options = {}, skipCache = false) {
+    if (this.isDeactivated) {
+      // If deactivated, pretend like there is nothing to render
+      return {};
     }
 
-    for (const timelineName in this._timelineInstances) {
-      const timeline = this._timelineInstances[timelineName];
-      if (timeline.isPlaying()) {
-        timeline.doUpdateWithGlobalClockTime(time);
+    return this.gatherDeltaPatches(
+      this.getTemplate(),
+      options,
+      skipCache,
+    );
+  }
+
+  applyContextChanges(
+    template,
+    options: any = {},
+  ) {
+    Layout3D.initializeTreeAttributes(template, true);
+
+    this.applyBehaviors(
+      null,
+      options,
+      false, // isPatchOperation
+      false, // skipCache
+    );
+
+    if (this.context.renderer.mount) {
+      this.eachEventHandler((eventSelector, eventName, {handler}) => {
+        const registrationKey  = `${eventSelector}:${eventName}`;
+
+        if (this.registeredEventHandlers[registrationKey]) {
+          return;
+        }
+
+        this.registeredEventHandlers[registrationKey] = true;
+
+        this.context.renderer.mountEventListener(eventSelector, eventName, (...args) => {
+          this.routeEventToHandlerAndEmit(eventSelector, eventName, args);
+        });
+      });
+    }
+
+    if (options.sizing) {
+      computeAndApplyPresetSizing(
+        template,
+        this.container,
+        options.sizing,
+        null,
+      );
+    }
+
+    computeAndApplyTreeLayouts(
+      template,
+      this.container,
+      options,
+      this.context,
+    );
+  }
+
+  gatherDeltaPatches(
+    template,
+    options: any = {},
+    skipCache = false,
+  ) {
+    // This is what we're going to return: a dictionary of ids to elements
+    const deltas = {};
+
+    Layout3D.initializeTreeAttributes(template, true);
+
+    this.applyBehaviors(
+      deltas,
+      options,
+      true, // isPatchOperation
+      skipCache,
+    );
+
+    if (options.sizing) {
+      computeAndApplyPresetSizing(
+        template,
+        this.container,
+        options.sizing,
+        deltas,
+      );
+    }
+
+    // TODO: Calculating the tree layout should be skipped for already visited node
+    // that we have already calculated among the descendants of the changed one
+    for (const flexId in deltas) {
+      const changedNode = deltas[flexId];
+
+      computeAndApplyTreeLayouts(
+        changedNode,
+        changedNode.__parent,
+        options,
+        this.context,
+      );
+    }
+
+    return deltas;
+  }
+
+  applyBehaviors(
+    deltas,
+    options,
+    isPatchOperation,
+    skipCache = false,
+  ) {
+    const globalClockTime = this.context.clock.getExplicitTime();
+
+    for (const timelineName in this.bytecode.timelines) {
+      const timelineInstance = this.getTimeline(timelineName);
+
+      timelineInstance.doUpdateWithGlobalClockTime(globalClockTime);
+
+      const timelineTime = timelineInstance.getBoundedTime();
+
+      const timelineDescriptor = this.bytecode.timelines[timelineName];
+
+      // In hot editing mode, any timeline is fair game for mutation,
+      // even if it's not actually animated (e.g. dragging an SVG at keyframe 0).
+      const mutableTimelineDescriptor = isPatchOperation
+        ? this._mutableTimelines[timelineName]
+        : timelineDescriptor;
+
+      if (!timelineDescriptor || typeof timelineDescriptor !== 'object') {
+        continue;
+      }
+
+      for (const behaviorSelector in mutableTimelineDescriptor) {
+        const propertiesGroup = timelineDescriptor[behaviorSelector];
+
+        if (!propertiesGroup) {
+          continue;
+        }
+
+        const hasExpressions = propertyGroupNeedsExpressionEvaluated(
+          propertiesGroup,
+          timelineTime,
+        );
+
+        if (
+          options.forceApplyBehaviors ||
+          (timelineInstance.isPlaying() && timelineInstance.isUnfinished()) ||
+          hasExpressions
+        ) {
+          // proceed
+        } else {
+          continue;
+        }
+
+        const matchingElementsForBehavior = findMatchingElementsByCssSelector(
+          behaviorSelector,
+          this._flatManaTree,
+          this._matchedElementCache,
+        );
+
+        if (!matchingElementsForBehavior || matchingElementsForBehavior.length < 1) {
+          continue;
+        }
+
+        for (let j = 0; j < matchingElementsForBehavior.length; j++) {
+          const matchingElement = matchingElementsForBehavior[j];
+
+          const domId = (
+            matchingElement &&
+            matchingElement.attributes &&
+            matchingElement.attributes.id
+          );
+
+          const haikuId = (
+            matchingElement &&
+            matchingElement.attributes &&
+            matchingElement.attributes[HAIKU_ID_ATTRIBUTE]
+          );
+
+          const flexId = haikuId || domId;
+
+          const assembledOutputs = this._builder.build(
+            {}, // We provide an object onto which outputs are placed
+            timelineName,
+            timelineTime,
+            flexId,
+            matchingElement,
+            propertiesGroup,
+            isPatchOperation,
+            this,
+            skipCache,
+          );
+
+          if (assembledOutputs) {
+            // If assembledOutputs is empty, that signals that nothing has changed
+            if (deltas && flexId) {
+              deltas[flexId] = matchingElement;
+            }
+
+            for (const behaviorKey in assembledOutputs) {
+              const behaviorValue = assembledOutputs[behaviorKey];
+
+              applyPropertyToNode(
+                matchingElement,
+                behaviorKey,
+                behaviorValue,
+                this.context,
+                this,
+              );
+            }
+          }
+        }
       }
     }
-
-    // 1. Update the tree in place using all of the applied values we got from the timelines
-    applyContextChanges(
-      this,
-      this.getTemplate(),
-      container,
-      this._context,
-      renderOptions || {},
-    );
-
-    // 2. Given the above updates, 'expand' the tree to its final form;
-    // this is the object that we use to flush to the rendering medium
-    const templateExpansion = expandTreeNode(
-      this.getTemplate(),
-      this,
-      this._context,
-    );
-
-    // We've done the render so we don't need to flush anymore
-    this._unmarkForFullFlush();
-
-    return templateExpansion;
   }
 
   findElementsByHaikuId(componentId) {
-    return findMatchingElementsByCssSelector('haiku:' + componentId, this._flatManaTree, this._matchedElementCache);
+    return findMatchingElementsByCssSelector(
+      'haiku:' + componentId,
+      this._flatManaTree,
+      this._matchedElementCache,
+    );
+  }
+
+  controlTime (timelineName: string, timelineTime: number) {
+    const explicitTime = this.context.clock.getExplicitTime();
+    const timelineInstances = this.getTimelines();
+
+    for (const localTimelineName in timelineInstances) {
+      if (localTimelineName === timelineName) {
+        const timelineInstance = timelineInstances[timelineName];
+        timelineInstance.controlTime(timelineTime, explicitTime);
+      }
+    }
+
+    for (const $id in this.guests) {
+      this.guests[$id].controlTime(timelineName, timelineTime);
+    }
   }
 
   _hydrateMutableTimelines() {
     this._mutableTimelines = {};
-    if (this._bytecode.timelines) {
-      for (const timelineName in this._bytecode.timelines) {
-        for (const selector in this._bytecode.timelines[timelineName]) {
-          for (const propertyName in this._bytecode.timelines[timelineName][selector]) {
-            if (isMutableProperty(this._bytecode.timelines[timelineName][selector][propertyName], propertyName)) {
+    if (this.bytecode.timelines) {
+      for (const timelineName in this.bytecode.timelines) {
+        for (const selector in this.bytecode.timelines[timelineName]) {
+          for (const propertyName in this.bytecode.timelines[timelineName][selector]) {
+            if (isMutableProperty(this.bytecode.timelines[timelineName][selector][propertyName], propertyName)) {
               const timeline = this._mutableTimelines[timelineName] || {};
               const propertyGroup = timeline[selector] || {};
               this._mutableTimelines = {
@@ -819,7 +938,7 @@ export default class HaikuComponent extends HaikuElement {
                   ...timeline,
                   [selector]: {
                     ...propertyGroup,
-                    [propertyName]: this._bytecode.timelines[timelineName][selector][propertyName],
+                    [propertyName]: this.bytecode.timelines[timelineName][selector][propertyName],
                   },
                 },
               };
@@ -832,14 +951,14 @@ export default class HaikuComponent extends HaikuElement {
 
   addHotComponent(hotComponent: HotComponent) {
     if (
-      !this._bytecode.timelines ||
-      !this._bytecode.timelines[hotComponent.timelineName] ||
-      !this._bytecode.timelines[hotComponent.timelineName][hotComponent.selector]
+      !this.bytecode.timelines ||
+      !this.bytecode.timelines[hotComponent.timelineName] ||
+      !this.bytecode.timelines[hotComponent.timelineName][hotComponent.selector]
     ) {
       return;
     }
 
-    const propertyGroup = this._bytecode.timelines[hotComponent.timelineName][hotComponent.selector];
+    const propertyGroup = this.bytecode.timelines[hotComponent.timelineName][hotComponent.selector];
 
     const timeline = this._mutableTimelines[hotComponent.timelineName] || {};
     const mutablePropertyGroup = timeline[hotComponent.selector] || {};
@@ -863,87 +982,6 @@ export default class HaikuComponent extends HaikuElement {
 function isBytecode(thing) {
   return thing && typeof thing === OBJECT_TYPE && thing.template;
 }
-
-export const initializeComponentTree = (
-  node,
-  host,
-  context,
-  instance,
-) => {
-  if (node && typeof node === 'object') {
-    // Give it a pointer back to the host context; used by HaikuElement
-    node.__context = context;
-  }
-
-  // In addition to plain objects, a sub-node can also be a component,
-  // which we currently detect by checking to see if it looks like 'bytecode'
-  // Don't instantiate a second time if we already have the instance at this node
-  if (isBytecode(node.elementName)) {
-    // Allow an instance to be passed in if we happen to already have one representing this node.
-    if (instance) {
-      node.__instance = instance;
-    }
-
-    // In the default behavior mode (not in Haiku.app), we instantiate an instance only if we don't
-    // have one in memory already, since we can be assured that we don't handle hot replacements.
-    if (!node.__instance) {
-      node.__instance = new HaikuComponent(
-        node.elementName,
-        context,
-        context.config,
-        node, // container
-      );
-    }
-
-    HaikuElement['connectNodeWithElement'](node, node.__instance);
-
-    if (host) {
-      const flexId = (
-        node &&
-        node.attributes &&
-        (node.attributes[HAIKU_ID_ATTRIBUTE] || node.attributes.id)
-      );
-
-      host.nestedComponentElements[flexId] = node;
-
-      if (node.__instance) {
-        // Clear the previous listener (avoid multiple subscriptions to the same event)
-        if (node.__listener) {
-          node.__instance.off('*', node.__listener);
-        }
-
-        node.__listener = (key, ...args) => {
-          host.routeEventToHandler(
-            `haiku:${flexId}`,
-            key,
-            [node.instance].concat(args),
-          );
-        };
-
-        // Bubble emitted events to the host component so it can subscribe declaratively
-        node.__instance.on('*', node.__listener);
-      }
-    }
-  }
-
-  if (node && typeof node === 'object' && node.children) {
-    for (let i = 0; i < node.children.length; i++) {
-      const child = node.children[i];
-
-      if (child && typeof child === 'object') {
-        // Renderers depend on access to the renderable node's parent
-        child.__parent = node;
-
-        initializeComponentTree(
-          child,
-          host,
-          context,
-          null,
-        );
-      }
-    }
-  }
-};
 
 function assertTemplate(template) {
   if (!template) {
@@ -970,9 +1008,16 @@ function assertTemplate(template) {
 }
 
 function bindEventHandlers(component, extraEventHandlers) {
+  if (
+    !component.bytecode.eventHandlers ||
+    Array.isArray(component.bytecode.eventHandlers) // Skip legacy format; must migrate first
+  ) {
+    return;
+  }
+
   const allEventHandlers = assign(
     {},
-    component._bytecode.eventHandlers,
+    component.bytecode.eventHandlers,
     extraEventHandlers,
   );
 
@@ -1068,7 +1113,7 @@ function stateSpecValidityCheck(stateSpec: any, stateSpecName: string): boolean 
 }
 
 function bindStates(statesTargetObject, component, extraStates) {
-  const allStates = assign({}, component._bytecode.states, extraStates);
+  const allStates = assign({}, component.bytecode.states, extraStates);
 
   for (const stateSpecName in allStates) {
     const stateSpec = allStates[stateSpecName];
@@ -1127,302 +1172,187 @@ function defineSettableState(
   });
 }
 
-function applyBehaviors(
-  timelinesRunning,
-  deltas,
-  component,
-  context,
-  isPatchOperation,
-  skipCache = false,
-) {
-  for (let i = 0; i < timelinesRunning.length; i++) {
-    const timelineInstance = timelinesRunning[i];
-    const timelineName = timelineInstance.getName();
+const propertyGroupNeedsExpressionEvaluated = (
+  propertyGroup,
+  timelineTime: number,
+): boolean => {
+  let foundExpressionForTime = false;
 
-    // In hot editing mode, any timeline is fair game for mutation,
-    // even if it's not actually animated (e.g. dragging an SVG at keyframe 0).
-    const timelineDescriptor = isPatchOperation
-      ? component._mutableTimelines[timelineName]
-      : component._bytecode.timelines[timelineName];
+  for (const propertyName in propertyGroup) {
+    let leftBookend = 0;
+    let rightBookend = timelineTime;
 
-    if (typeof timelineDescriptor !== 'object') {
-      continue;
-    }
+    const propertyKeyframes = propertyGroup[propertyName];
 
-    const timelineTime = timelineInstance.getBoundedTime();
-
-    for (const behaviorSelector in timelineDescriptor) {
-      const propertiesGroup = timelineDescriptor[behaviorSelector];
-
-      if (!propertiesGroup) {
-        continue;
+    for (const keyframeMsKey in propertyKeyframes) {
+      const keyframeMs = parseInt(keyframeMsKey, 10);
+ 
+      if (keyframeMs > leftBookend && keyframeMs <= timelineTime) {
+        leftBookend = keyframeMs;
       }
 
-      const matchingElementsForBehavior = findMatchingElementsByCssSelector(
-        behaviorSelector,
-        component._flatManaTree,
-        component._matchedElementCache,
-      );
-
-      if (!matchingElementsForBehavior || matchingElementsForBehavior.length < 1) {
-        continue;
-      }
-
-      for (let j = 0; j < matchingElementsForBehavior.length; j++) {
-        const matchingElement = matchingElementsForBehavior[j];
-        const domId = matchingElement && matchingElement.attributes && matchingElement.attributes.id;
-        const haikuId = matchingElement && matchingElement.attributes && matchingElement.attributes[HAIKU_ID_ATTRIBUTE];
-        const flexId = haikuId || domId;
-
-        const assembledOutputs = component._builder.build(
-          {}, // We provide an object onto which outputs are placed
-          timelineName,
-          timelineTime,
-          flexId,
-          matchingElement,
-          propertiesGroup,
-          isPatchOperation,
-          component,
-          skipCache,
-        );
-
-        // If assembledOutputs is empty, that signals that nothing has changed
-        if (assembledOutputs && deltas && flexId) {
-          deltas[flexId] = matchingElement;
-        }
-
-        if (assembledOutputs) {
-          for (const behaviorKey in assembledOutputs) {
-            const behaviorValue = assembledOutputs[behaviorKey];
-
-            applyPropertyToElement(
-              matchingElement,
-              behaviorKey,
-              behaviorValue,
-              context,
-              component,
-            );
-          }
-        }
+      if (keyframeMs < rightBookend && keyframeMs >= timelineTime) {
+        rightBookend = keyframeMs;
       }
     }
-  }
-}
 
-function gatherDeltaPatches(
-  component,
-  template,
-  container,
-  context,
-  timelinesRunning,
-  patchOptions,
-  skipCache = false,
-) {
-  // This is what we're going to return: a dictionary of ids to elements
-  const deltas = {};
-
-  Layout3D.initializeTreeAttributes(template, container);
-
-  applyBehaviors(
-    timelinesRunning,
-    deltas,
-    component,
-    context,
-    true, // isPatchOperation
-    skipCache,
-  );
-
-  if (patchOptions.sizing) {
-    computeAndApplyPresetSizing(
-      template,
-      container,
-      patchOptions.sizing,
-      deltas,
-    );
-  }
-
-  // TODO: Calculating the tree layout should be skipped for already visited node
-  // that we have already calculated among the descendants of the changed one
-  for (const flexId in deltas) {
-    const changedNode = deltas[flexId];
-
-    computeAndApplyTreeLayouts(
-      changedNode,
-      changedNode.__parent,
-      patchOptions,
-      context,
-    );
-  }
-
-  return deltas;
-}
-
-function applyContextChanges(component, template, container, context, renderOptions) {
-  const timelinesRunning = [];
-
-  if (component._bytecode.timelines) {
-    for (const timelineName in component._bytecode.timelines) {
-      const timeline = component.getTimeline(timelineName);
-
-      if (!timeline) {
-        continue;
-      }
-
-      // For any timeline other than the default, shut it down if it has gone past
-      // its final keyframe. The default timeline is a special case which provides
-      // fallbacks/behavior that is essentially true throughout the lifespan of the component
-      if (timeline.isFinished() && timelineName !== DEFAULT_TIMELINE_NAME) {
-        continue;
-      }
-
-      timelinesRunning.push(timeline);
+    if (propertyKeyframes[leftBookend] && typeof propertyKeyframes[leftBookend].value === 'function') {
+      foundExpressionForTime = true;
+    } else if (propertyKeyframes[rightBookend] && typeof propertyKeyframes[rightBookend].value === 'function') {
+      foundExpressionForTime = true;
     }
   }
 
-  Layout3D.initializeTreeAttributes(template, container);
+  return foundExpressionForTime;
+};
 
-  scopifyElements(template, null, null);
-
-  applyBehaviors(
-    timelinesRunning,
-    null,
-    component,
-    context,
-    false, // isPatchOperation
-  );
-
-  if (component._context.renderer.mount) {
-    component.eachEventHandler((eventSelector, eventName, {handler}) => {
-      const registrationKey  = `${eventSelector}:${eventName}`;
-
-      if (component.registeredEventHandlers[registrationKey]) {
-        return;
-      }
-
-      component.registeredEventHandlers[registrationKey] = true;
-
-      component._context.renderer.mountEventListener(eventSelector, eventName, (...args) => {
-        component.routeEventToHandlerAndEmit(eventSelector, eventName, args);
-      });
-    });
-  }
-
-  if (renderOptions.sizing) {
-    computeAndApplyPresetSizing(
-      template,
-      container,
-      renderOptions.sizing,
-      null,
-    );
-  }
-
-  computeAndApplyTreeLayouts(
-    template,
-    container,
-    renderOptions,
-    context,
-  );
-
-  return template;
-}
-
-function applyPropertyToElement(
-  element,
+function applyPropertyToNode(
+  node,
   name,
   value,
   context,
   component,
 ) {
-  let type;
+  const instance = node.__subcomponent || node.__instance;
+  const type = (instance && instance.tagName) || node.elementName;
+  const vanity = vanities[type] && vanities[type][name];
+  const addressables = instance && instance.getAddressableProperties();
+  const addressee = addressables && addressables[name] !== undefined && instance;
 
-  if (element.__instance) {
-    // Assume that nested components are always wrapped in a div
-    type = 'div';
-
-    // See if the instance at this node will allow us to apply this property
-    const addressables = element.__instance.getAddressableProperties();
-    if (addressables[name] !== undefined) {
-      // Call the 'setter' of the given addressable property
-      element.__instance.state[name] = value;
-    }
-
-    // Still apply known vanities even if the name collides with the addressable
-    // This is important for components that want to handle e.g. size internally
-    // but still want their wrapper element to display correctly
-    if (vanities[type] && vanities[type][name]) {
-      vanities[type][name](name, element, value, context, component);
-    }
+  if (addressee && vanity) {
+    addressee.set(name, value);
+    vanity(name, node, value, context, component);
+  } else if (addressee) {
+    addressee.set(name, value);
+  } else if (vanity) {
+    vanity(name, node, value, context, component);
   } else {
-    // Assume we're dealing with a normal built-in render node
-    type = element.elementName;
-
-    // Use the vanity if provided, otherwise fallback to attributes
-    if (vanities[type] && vanities[type][name]) {
-      vanities[type][name](name, element, value, context, component);
-    } else {
-      element.attributes[name] = value;
-    }
+    node.attributes[name] = value;
   }
 }
 
-function expandTreeNode(node, component, context) {
-  // Nothing to expand if the node happens to be text or another unexpected type
+function connectInstanceNodeWithHostComponent(node, host) {
+  const flexId = (
+    node &&
+    node.attributes &&
+    (node.attributes[HAIKU_ID_ATTRIBUTE] || node.attributes.id)
+  );
+
+  // Clear the previous listener (avoid multiple subscriptions to the same event)
+  if (node.__listener) {
+    node.__instance.off('*', node.__listener);
+  }
+
+  node.__listener = (key, ...args) => {
+    host.routeEventToHandler(
+      `haiku:${flexId}`,
+      key,
+      [node.__instance].concat(args),
+    );
+  };
+
+  // Bubble emitted events to the host component so it can subscribe declaratively
+  node.__instance.on('*', node.__listener);
+}
+
+function expandTreeNode(
+  node,
+  parent,
+  component: HaikuComponent,
+  context: HaikuContext,
+  host: HaikuComponent,
+  options: any = {},
+  doConnectInstanceToNode: boolean,
+) {
+  // Nothing to expand if the node happens to be text or unexpected type
   if (!node || typeof node !== 'object') {
     return node;
   }
 
-  // Handlers attach first since they may want to respond to an immediate property setter
-  if (node.__handlers) {
-    for (const key in node.__handlers) {
-      const handler = node.__handlers[key];
+  // Give it a pointer back to the host context; used by HaikuElement
+  node.__context = context;
 
-      // Don't subscribe twice!
-      if (!handler.__subscribed) {
-        if (node.__instance) { // We might have a component from a system that doesn't adhere to our own internal API
-          if (node.__instance.instance) {
-            node.__instance.instance.on(key, handler);
-            handler.__subscribed = true;
-          }
-        }
-      }
-    }
-  }
+  // Platform renderers may depend on access to the parent
+  node.__parent = parent;
 
-  if (node.__instance) {
-    // Call render on the interior node to get its full subtree, and recurse
-    const subtree = node.__instance.render(
-      node,
-      node.__instance.config,
-    );
+  // Give instances a pointer to their node and vice versa
+  if (doConnectInstanceToNode) {
+    node.__instance = component;
 
-    // No subtree usually indicates that the instance has been deactivated upstream
-    // which can occur during module replacement while editing in Haiku.app
-    if (subtree) {
-      node.children = [
-        expandTreeNode(
-          subtree,
-          node.__instance,
-          context,
-        ),
-      ];
-    }
+    HaikuElement['connectNodeWithElement'](node, node.__instance);
 
-    return node;
-  }
-
-  if (typeof node.elementName === STRING_TYPE && node.children) {
-    for (let i = 0; i < node.children.length; i++) {
-      node.children[i] = expandTreeNode(
-        node.children[i],
-        component,
-        context,
+    if (host) {
+      connectInstanceNodeWithHostComponent(
+        node,
+        host,
       );
     }
+  }
+
+  if (typeof node.elementName === STRING_TYPE) {
+    if (node.children) {
+      for (let i = 0; i < node.children.length; i++) {
+        node.children[i] = expandTreeNode(
+          node.children[i], // node
+          node, // parent
+          component, // instance (component)
+          context,
+          host,
+          options,
+          false,
+        );
+      }
+    }
 
     return node;
   }
 
-  // If we got here, we either completed recursion or there's nothing to do
+  if (isBytecode(node.elementName)) {
+    let subtree;
+
+    // Example structure showing how nodes and instances are related:
+    // <div root> instance id=1
+    //   <div>
+    //     <div>
+    //       <div wrap> subcomponent (instance id=2)
+    //         <div root> instance id=2
+    //           ...
+    if (!node.__subcomponent) {
+      // Note: .render and thus .expandTree are called by the constructor,
+      // automatically connecting the root node to itself (see stanza above).
+      node.__subcomponent = new HaikuComponent(
+        node.elementName,
+        context, // context
+        component, // host
+        {...context.config, ...options},
+        node, // container
+      );
+
+      subtree = node.__subcomponent.getTemplate();
+    } else {
+      // Reassigning is necessary since these objects may have changed between
+      // renders in the editing environment
+      node.__subcomponent.context = context; // context
+      node.__subcomponent.host = component; // host
+      node.__subcomponent.container = node; // container
+
+      subtree = node.__subcomponent.render({
+        ...node.__subcomponent.config,
+        ...options,
+      });
+
+      node.__subcomponent.startTimeline(DEFAULT_TIMELINE_NAME);
+    }
+
+    if (subtree) {
+      node.children = [subtree];
+    }
+
+    return node;
+  }
+
+  // In case we got a __reference node or other unknown
+  console.warn('[haiku core] cannot expand node');
   return node;
 }
 
@@ -1614,5 +1544,66 @@ function computeAndApplyPresetSizing(element, container, mode, deltas) {
   }
 }
 
+const clone = (value, binding) => {
+  if (!value) {
+    return value;
+  }
+
+  if (typeof value === 'boolean') {
+    return value;
+  }
+
+  if (typeof value === 'number') {
+    return value;
+  }
+
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  if (typeof value === 'function') {
+    const fn = function () {
+      return value.apply(binding, arguments);
+    };
+    // Core decorates injectee functions with metadata properties
+    for (const key in value) {
+      if (value.hasOwnProperty(key)) {
+        fn[key] = clone(value[key], binding);
+      }
+    }
+    return fn;
+  }
+
+
+  if (Array.isArray(value)) {
+    return value.map((el) => {
+      return clone(el, binding);
+    });
+  }
+
+  // Don't try to clone anything other than plain objects
+  if (typeof value === 'object' && value.constructor === Object) {
+    const out = {};
+
+    for (const key in value) {
+      if (
+        value.hasOwnProperty(key) &&
+        key.slice(0, 2) !== '__' // Exclude things like __element, __instance...
+      ) {
+        out[key] = clone(value[key], binding);
+      }
+    }
+
+    return out;
+  }
+
+  return value;
+};
+
 HaikuComponent['PLAYER_VERSION'] = VERSION; // #LEGACY
 HaikuComponent['CORE_VERSION'] = VERSION;
+
+HaikuComponent['all'] = (): HaikuComponent[] => {
+  const all = HaikuBase['getRegistryForClass'](HaikuComponent);
+  return all.filter((component) => !component.isDestroyed);
+};

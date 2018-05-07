@@ -27,7 +27,8 @@ import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 import * as ProjectFolder from './ProjectFolder'
 import { crashReport } from 'haiku-serialization/src/utils/carbonite'
-import { HOMEDIR_PATH } from 'haiku-serialization/src/utils/HaikuHomeDir'
+import HaikuHomeDir, { HOMEDIR_PATH } from 'haiku-serialization/src/utils/HaikuHomeDir'
+import Project from 'haiku-serialization/src/bll/Project'
 import functionToRFO from '@haiku/core/lib/reflection/functionToRFO'
 import Master from './Master'
 
@@ -41,6 +42,8 @@ process.env.HAIKU_SUBPROCESS = 'plumbing'
 Error.stackTraceLimit = Infinity // Show long stack traces when errors are shown
 
 const Raven = require('./Raven')
+
+require('haiku-serialization/src/utils/monkey')('main')
 
 // Don't allow malicious websites to connect to our websocket server (Plumbing or Envoy)
 export const HAIKU_WS_SECURITY_TOKEN = Math.random().toString(36).substring(7) + Math.random().toString(36).substring(7)
@@ -91,9 +94,8 @@ const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
 
 const METHOD_MESSAGES_TIMEOUT = 15000
 const METHODS_TO_AWAIT_FOREVER = {
-  initializeProject: true,
+  bootstrapProject: true,
   startProject: true,
-  restartProject: true,
   initializeFolder: true,
   isUserAuthenticated: true,
   authenticateUser: true,
@@ -131,6 +133,9 @@ const emitter = new EventEmitter()
 const PINFO = `${process.pid} ${path.basename(__filename)} ${path.basename(process.execPath)}`
 
 const PLUMBING_INSTANCES = []
+
+const DEFAULT_BRANCH_NAME = 'master'
+const FALLBACK_SEMVER_VERSION = '0.0.0'
 
 const teardownPlumbings = (cb) => {
   return async.each(PLUMBING_INSTANCES, (plumbing, next) => {
@@ -309,8 +314,6 @@ export default class Plumbing extends StateObject {
               alias,
               message.folder || folder,
               message,
-              websocket,
-              server,
               createResponder(message, websocket)
             )
           })
@@ -377,13 +380,11 @@ export default class Plumbing extends StateObject {
       'plumbing',
       folder,
       { method, params, folder, type: 'action' },
-      null,
-      null,
       cb
     )
   }
 
-  handleRemoteMessage (type, alias, folder, message, websocket, server, responder) {
+  handleRemoteMessage (type, alias, folder, message, cb) {
     // IMPORTANT! Creator uses this
     if (!folder && message.folder) {
       folder = message.folder
@@ -400,7 +401,7 @@ export default class Plumbing extends StateObject {
       this.findMasterByFolder(folder).handleBroadcast(message)
 
       // Give clients the chance to emit events to all others
-      return this.sendBroadcastMessage(message, folder, alias, websocket)
+      return this.sendBroadcastMessage(message, folder, alias)
     }
 
     if (message.id && this.requests[message.id]) {
@@ -412,7 +413,7 @@ export default class Plumbing extends StateObject {
 
     if (message.method) {
       // Ensure that actions/methods occur in order by using a queue
-      return this.processMethodMessage(type, alias, folder, message, responder)
+      return this.processMethodMessage(type, alias, folder, message, cb)
     }
   }
 
@@ -511,11 +512,20 @@ export default class Plumbing extends StateObject {
     }
   }
 
-  sendBroadcastMessage (message, folder, alias, websocket) {
+  sendBroadcastMessage (message, folder, alias) {
     this.clients.forEach((client) => {
-      if (websocket && client === websocket) return void (0) // Skip message's send
-      if (client.readyState !== WebSocket.OPEN) return void (0)
+      // Don't send the broadcast to the sender
+      if (client && client.params && client.params.alias === alias) {
+        return
+      }
+
+      // Don't send if we know the socket isn't open
+      if (client.readyState !== WebSocket.OPEN) {
+        return
+      }
+
       delete message.id // Don't confuse this as a request/response
+
       sendMessageToClient(client, merge(message, { folder, alias }))
     })
   }
@@ -700,118 +710,134 @@ export default class Plumbing extends StateObject {
   }
 
   /**
-   * @method initializeProject
+   * @method bootstrapProject
    * @description Flexible method for setting up a project based on an unknown file system state and possibly missing inputs.
    * We make a decision here as to where + whether to generate a new folder.
    * When it is ready, we kick off the content initialization step with initializeFolder.
    */
-  initializeProject (
-    maybeProjectName,
-    { projectsHome, projectPath, skipContentCreation, organizationName, authorName, repositoryUrl, isPublic },
-    maybeUsername,
-    maybePassword,
-    finish
-  ) {
-    const projectOptions = {
+  bootstrapProject (
+    projectName,
+    {
       projectsHome,
       projectPath,
       skipContentCreation,
       organizationName,
+      authorName,
       repositoryUrl,
-      projectName: maybeProjectName,
-      username: maybeUsername,
-      password: maybePassword
-    }
-
-    // TODO/QUESTION: When do these attributes get set upstream?
-    if (!projectOptions.organizationName) projectOptions.organizationName = this.get('organizationName')
-    if (!projectOptions.authorName) projectOptions.authorName = this.get('username')
-
-    // We don't need to waste time making these bundles before we have done anything -
-    // Instead, we'll generate them just-in-time when the user saves.
-    projectOptions.skipCDNBundles = true
-
-    let projectFolder
-    let didFolderAlreadyExist
-
-    return async.series([
-      (cb) => {
-        if (projectOptions.organizationName) {
-          return cb()
-        }
-        return this.getCurrentOrganizationName((err, organizationName) => {
-          if (experimentIsEnabled(Experiment.BasicOfflineMode)) {
-            // Lacking an organization doesn't prevent launching a folder
-            if (err) logger.error(err)
-          } else {
-            // Lacking an organization prevents launching a folder
-            return cb(err)
-          }
-
-          projectOptions.organizationName = organizationName
-          return cb()
-        })
-      },
-      (cb) => {
-        return ProjectFolder.ensureProject(projectOptions, (err, _projectFolder, _didFolderAlreadyExist) => {
-          if (err) return cb(err)
-          projectFolder = _projectFolder
-          didFolderAlreadyExist = _didFolderAlreadyExist
-          return cb()
-        })
-      },
-      (cb) => {
-        const haikuInfo = {
-          folder: projectFolder,
-          username: projectOptions.username,
-          organizationName: projectOptions.organizationName,
-          projectName: projectOptions.projectName,
-          projectPath: projectFolder,
-          envoy: {
-            host: this.envoyServer.host,
-            port: this.envoyServer.port,
-            token: process.env.HAIKU_WS_SECURITY_TOKEN
-          }
-        }
-        return this.spawnSubgroup(haikuInfo, (err) => {
-          if (err) return cb(err)
-          return cb()
-        })
-      }
-    ], (err) => {
+      branchName = DEFAULT_BRANCH_NAME,
+      isPublic
+    },
+    username,
+    password,
+    finish
+  ) {
+    return this.getCurrentOrganizationName((err, organizationName) => {
       if (err) {
-        this.sentryError('initializeProject', err)
-        return finish(err)
+        if (experimentIsEnabled(Experiment.BasicOfflineMode)) {
+          logger.error(err)
+        } else {
+          return finish(err)
+        }
       }
 
-      // QUESTION: Does this *need* to happen down here after the org fetch?
-      const gitInitializeUsername = projectOptions.username || this.get('username')
-      const gitInitializePassword = projectOptions.password || this.get('password')
+      organizationName = Project.getSafeOrgName(organizationName)
+      projectsHome = projectsHome || HaikuHomeDir.HOMEDIR_PROJECTS_PATH
+      projectName = Project.getSafeProjectName(projectsHome, projectName)
+      projectPath = projectPath || path.join(projectsHome, organizationName, projectName)
+      username = username || this.get('username')
+      password = password || this.get('password')
+      authorName = username
 
-      // A simpler project options to avoid passing options only used for the first pass, e.g. skipContentCreation
-      const projectOptionsAgain = {
-        didFolderAlreadyExist,
-        organizationName: projectOptions.organizationName,
-        repositoryUrl: projectOptions.repositoryUrl,
-        username: gitInitializeUsername,
-        password: gitInitializePassword,
+      // This ensures the folder exists and sets basic values inside the package.json
+      Project.storeConfigValues(projectPath, {
+        username,
+        organization: organizationName,
+        project: projectName,
+        branch: branchName,
+        version: FALLBACK_SEMVER_VERSION
+      })
+
+      const projectOptions = {
+        skipCDNBundles: true, // Don't waste time making these bundles before we need them
+        skipContentCreation,
+        projectsHome,
+        organizationName,
+        projectName,
+        projectPath,
+        repositoryUrl,
         authorName,
-        isPublic
+        username,
+        password
       }
 
-      return this.initializeFolder(maybeProjectName, projectFolder, gitInitializeUsername, gitInitializePassword, projectOptionsAgain, (err) => {
-        if (err) return finish(err)
+      return async.series([
+        (cb) => {
+          // This check is needed since Creator may wish to specify that we do/don't automatically create content.
+          // This is important because if we create content then pull from the remote, we'll get a weird initial state.
+          if (projectOptions.skipContentCreation) {
+            logger.info('[plumbing] skipping content creation (I)')
+            return cb()
+          }
 
-        if (Raven) {
-          Raven.setContext({
-            user: { email: projectOptionsAgain.username }
-          })
+          return ProjectFolder.buildProjectContent(
+            null,
+            projectPath,
+            projectName,
+            null,
+            projectOptions,
+            cb
+          )
+        },
+
+        (cb) => {
+          return this.spawnSubgroup({
+            folder: projectPath,
+            username,
+            organizationName,
+            projectName,
+            projectPath,
+            envoy: {
+              host: this.envoyServer.host,
+              port: this.envoyServer.port,
+              token: process.env.HAIKU_WS_SECURITY_TOKEN
+            }
+          }, cb)
+        }
+      ], (err) => {
+        if (err) {
+          this.sentryError('bootstrapProject', err)
+          return finish(err)
         }
 
-        this.set('lastOpenedProjectName', maybeProjectName)
-        this.set('lastOpenedProjectPath', projectFolder)
+        return this.initializeFolder(
+          projectName,
+          projectPath,
+          projectOptions.username,
+          projectOptions.password,
+          {
+            organizationName,
+            repositoryUrl,
+            username,
+            password,
+            authorName,
+            branchName,
+            isPublic
+          },
+          (err) => {
+            if (err) return finish(err)
 
-        return finish(null, projectFolder)
+            if (Raven) {
+              Raven.setContext({
+                user: { email: username }
+              })
+            }
+
+            this.set('lastOpenedProjectName', projectName)
+            this.set('lastOpenedProjectPath', projectPath)
+
+            return finish(null, projectPath)
+          }
+        )
       })
     })
   }
@@ -826,16 +852,6 @@ export default class Plumbing extends StateObject {
 
   startProject (maybeProjectName, folder, cb) {
     return this.awaitMasterAndCallMethod(folder, 'startProject', [{ from: 'master' }], cb)
-  }
-
-  restartProject (folder, projectInfo, cb) {
-    // We run initializeFolder first to ensure the Git bootstrapping works correctly, especially setting
-    // a branch name and ensuring we have a good baseline commit with which to start; we get errors on restart
-    // unless we do this so take care if you plan to re/move this
-    return this.awaitMasterAndCallMethod(folder, 'initializeFolder', [projectInfo.name, projectInfo.username, projectInfo.password, projectInfo.options, { from: 'master' }], (err) => {
-      if (err) return cb(err)
-      return this.awaitMasterAndCallMethod(folder, 'restartProject', [{ from: 'master' }], cb)
-    })
   }
 
   isUserAuthenticated (cb) {
@@ -901,7 +917,9 @@ export default class Plumbing extends StateObject {
   // Note: param 1 (password) is excluded from logging via `METHODS_WITH_SENSITIVE_INFO`.
   // Be sure to update `METHODS_WITH_SENSITIVE_INFO` if the sensitive parameters change.
   authenticateUser (username, password, cb) {
-    this.set('organizationName', null) // Unset this cache to avoid writing others folders if somebody switches accounts in the middle of a session
+    // Unset this cache to avoid writing others folders if somebody switches accounts in the middle of a session
+    this.set('organizationName', null)
+
     return inkstone.user.authenticate(username, password, (authErr, authResponse, httpResponse) => {
       if (!httpResponse) {
         this.sentryError('authenticationProxyError', authErr)
@@ -964,8 +982,12 @@ export default class Plumbing extends StateObject {
   }
 
   getCurrentOrganizationName (cb) {
-    if (this.get('organizationName')) return cb(null, this.get('organizationName'))
+    if (this.get('organizationName')) {
+      return cb(null, this.get('organizationName'))
+    }
+
     logger.info('[plumbing] fetching organization name for current user')
+
     try {
       const authToken = sdkClient.config.getAuthToken()
       return inkstone.organization.list(authToken, (orgErr, orgsArray, orgHttpResp) => {
@@ -1246,8 +1268,6 @@ Plumbing.prototype.upsertMaster = function ({ folder, fileOptions, envoyOptions 
       'master',
       folder,
       payload,
-      null, // websocket
-      null, // server
       cb
     )
   }

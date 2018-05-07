@@ -12,6 +12,7 @@ const defaults = require('lodash.defaults')
 const BasicUtils = require('@haiku/core/lib/helpers/BasicUtils').default
 const BaseModel = require('./BaseModel')
 const CryptoUtils = require('./../utils/CryptoUtils')
+const logger = require('haiku-serialization/src/utils/LoggerInstance')
 
 const GROUP_DELIMITER = '.'
 const MERGE_STRATEGIES = {
@@ -21,7 +22,7 @@ const MERGE_STRATEGIES = {
 
 const ROOT_LOCATOR = '0'
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
-const SOURCE_ATTRIBUTE = 'source'
+const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source'
 const HAIKU_TITLE_ATTRIBUTE = 'haiku-title'
 const HAIKU_SELECTOR_PREFIX = 'haiku'
 
@@ -39,11 +40,12 @@ const TEMPLATE_METADATA_ATTRIBUTES = {
   content: true,
   'http-equiv': true,
   scheme: true,
-  source: true,
   identifier: true,
   'haiku-id': true,
+  'haiku-var': true,
   'haiku-title': true,
-  'haiku-source': true
+  'haiku-source': true,
+  'haiku-transclude': true
 }
 
 const SELECTOR_ATTRIBUTES = {
@@ -77,16 +79,23 @@ Template.DEFAULT_OPTIONS = {
 
 BaseModel.extend(Template)
 
-Template.prepareManaAndBuildTimelinesObject = (mana, hash, timelineName, timelineTime, { doHashWork }) => {
+Template.prepareManaAndBuildTimelinesObject = (
+  mana,
+  hash,
+  timelineName,
+  timelineTime,
+  { doHashWork, title }
+) => {
   if (doHashWork) {
     // Each url(#whatever) needs to be unique to avoid styling collisions in the DOM
     Template.fixFragmentIdentifierReferences(mana, hash)
 
     Template.ensureTitleAndUidifyTree(
       mana,
-      // We shouldn't assume that any node has a source attribute
-      path.posix.normalize(mana.attributes[SOURCE_ATTRIBUTE] || ''),
-      hash
+      // We shouldn't assume that any node has a haiku-source attribute
+      path.posix.normalize(mana.attributes[HAIKU_SOURCE_ATTRIBUTE] || ''),
+      hash,
+      {title}
     )
   }
 
@@ -101,6 +110,13 @@ Template.prepareManaAndBuildTimelinesObject = (mana, hash, timelineName, timelin
   )
 
   return timelinesObject
+}
+
+Template.normalizePath = (str) => {
+  if (str[0] === '.') {
+    return `./${path.normalize(str)}`
+  }
+  return path.normalize(str)
 }
 
 Template.mirrorHaikuUids = (fromNode, toNode) => {
@@ -135,7 +151,7 @@ Template.mirrorHaikuUids = (fromNode, toNode) => {
 
 Template.manaWithOnlyMinimalProps = (mana) => {
   if (mana && typeof mana === 'object') {
-    var out = {}
+    const out = {}
 
     out.elementName = mana.elementName
 
@@ -159,12 +175,13 @@ Template.manaWithOnlyMinimalProps = (mana) => {
         out.attributes[HAIKU_ID_ATTRIBUTE] = mana.attributes[HAIKU_ID_ATTRIBUTE]
       }
 
-      if (mana.attributes[SOURCE_ATTRIBUTE]) {
-        out.attributes[SOURCE_ATTRIBUTE] = mana.attributes[SOURCE_ATTRIBUTE]
+      if (mana.attributes[HAIKU_SOURCE_ATTRIBUTE]) {
+        out.attributes[HAIKU_SOURCE_ATTRIBUTE] = mana.attributes[HAIKU_SOURCE_ATTRIBUTE]
       }
     }
 
-    if (mana.children) {
+    // Don't include the children if this node is a component, since those aren't in scope
+    if (typeof mana.elementName !== 'object' && mana.children) {
       out.children = mana.children.filter((child) => {
         // Exclude any empty or content-string elements.
         // This sidesteps the problem where one process shows e.g. children:["BLAH"]
@@ -181,17 +198,21 @@ Template.manaWithOnlyMinimalProps = (mana) => {
   }
 }
 
-Template.manaWithOnlyStandardProps = (mana) => {
+Template.manaWithOnlyStandardProps = (mana, doOmitSubcomponentBytecode = true, referenceSerializer) => {
   if (mana && typeof mana === 'object') {
-    var out = {}
+    const out = {}
 
     out.elementName = mana.elementName
 
     if (typeof mana.elementName === 'object') {
-      // When written to the file, we should end up with `elementName: fooBar,...`
-      // This assumes that a require() statement gets added to the AST later
-      out.elementName = {
-        __reference: out.elementName.__reference
+      if (doOmitSubcomponentBytecode) {
+        // When written to the file, we should end up with `elementName: fooBar,...`
+        // This assumes that a require() statement gets added to the AST later
+        out.elementName = {
+          __reference: (referenceSerializer)
+            ? referenceSerializer(out.elementName.__reference)
+            : out.elementName.__reference
+        }
       }
     }
 
@@ -209,7 +230,13 @@ Template.manaWithOnlyStandardProps = (mana) => {
       }
     }
 
-    out.children = mana.children && mana.children.map(Template.manaWithOnlyStandardProps)
+    if (typeof mana.elementName !== 'object') {
+      out.children = mana.children && mana.children.map((child) => {
+        return Template.manaWithOnlyStandardProps(child, doOmitSubcomponentBytecode, referenceSerializer)
+      })
+    } else {
+      out.children = []
+    }
 
     return out
   } else if (typeof mana === 'string') {
@@ -225,7 +252,10 @@ Template.manaToDynamicBytecode = (mana, identifier, modpath, options = {}) => {
     referenceRandomizer,
     'Default',
     0,
-    { doHashWork: true }
+    {
+      doHashWork: true,
+      title: options.title
+    }
   )
 
   const states = {}
@@ -295,7 +325,7 @@ Template.manaTreeToDepthFirstArray = function manaTreeToDepthFirstArray (arr, ma
  * @description Given a mana tree, move all of its control attributes (that is, things that affect its
  * behavior that the user can control) into a timeline object.
  */
-Template.hoistTreeAttributes = function hoistTreeAttributes (mana, timelineName, timelineTime) {
+Template.hoistTreeAttributes = (mana, timelineName, timelineTime) => {
   const elementsByHaikuId = Template.getAllElementsByHaikuId(mana)
   const timelineStructure = {}
 
@@ -312,17 +342,21 @@ Template.hoistTreeAttributes = function hoistTreeAttributes (mana, timelineName,
   return timelineStructure
 }
 
-Template.getControlAttributes = function getControlAttributes (attributes) {
+Template.getControlAttributes = (attributes) => {
   const out = {}
   for (const key in attributes) {
-    if (SELECTOR_ATTRIBUTES[key]) continue
-    if (TEMPLATE_METADATA_ATTRIBUTES[key]) continue
+    if (SELECTOR_ATTRIBUTES[key]) {
+      continue
+    }
+    if (TEMPLATE_METADATA_ATTRIBUTES[key]) {
+      continue
+    }
     out[key] = attributes[key]
   }
   return out
 }
 
-Template.hoistNodeAttributes = function hoistNodeAttributes (manaNode, haikuId, timelineObj, timelineName, timelineTime, mergeStrategy) {
+Template.hoistNodeAttributes = (manaNode, haikuId, timelineObj, timelineName, timelineTime, mergeStrategy) => {
   const controlAttributes = Template.getControlAttributes(manaNode.attributes)
 
   // Hoist the text content attribute as a property as well, inferring from structure
@@ -354,17 +388,17 @@ Template.hoistNodeAttributes = function hoistNodeAttributes (manaNode, haikuId, 
   }
 }
 
-Template.createHaikuId = function createHaikuId (fqa, source, context) {
+Template.createHaikuId = (fqa, source, context) => {
   const baseString = `${context}|${source}|${fqa}`
   const haikuId = CryptoUtils.sha256(baseString).slice(0, 12)
   return haikuId
 }
 
-Template.buildHaikuIdSelector = function buildHaikuIdSelector (haikuId) {
+Template.buildHaikuIdSelector = (haikuId) => {
   return `${HAIKU_SELECTOR_PREFIX}:${haikuId}`
 }
 
-Template.isHaikuIdSelector = function isHaikuIdSelector (selector) {
+Template.isHaikuIdSelector = (selector) => {
   return selector && selector.slice(0, 5) === HAIKU_SELECTOR_PREFIX && selector[5] === ':'
 }
 
@@ -372,10 +406,13 @@ Template.haikuSelectorToHaikuId = (selector) => {
   return selector.split(':')[1]
 }
 
-Template.getInsertionPointInfo = function getInsertionPointInfo (mana, index, depth, len = 6) {
+Template.getInsertionPointInfo = (mana, index, depth, len = 6) => {
   const template = Template.manaWithOnlyMinimalProps(mana)
+
   const source = jsonStableStringify(template) + '-' + index + '-' + depth
+
   const hash = Template.getHash(source, len)
+
   return {
     template,
     source,
@@ -383,12 +420,12 @@ Template.getInsertionPointInfo = function getInsertionPointInfo (mana, index, de
   }
 }
 
-Template.getHash = function getHash (str, len = 6) {
+Template.getHash = (str, len = 6) => {
   const hash = CryptoUtils.sha256(str).slice(0, len)
   return hash
 }
 
-Template.getAllElementsByHaikuId = function getAllElementsByHaikuId (mana) {
+Template.getAllElementsByHaikuId = (mana) => {
   const elements = {}
   visitManaTree(ROOT_LOCATOR, mana, (elementName, attributes, children, node) => {
     if (attributes && attributes[HAIKU_ID_ATTRIBUTE]) {
@@ -399,8 +436,8 @@ Template.getAllElementsByHaikuId = function getAllElementsByHaikuId (mana) {
 }
 
 Template.fixManaSourceAttribute = function fixManaSourceAttribute (mana, relpath) {
-  if (!mana.attributes[SOURCE_ATTRIBUTE]) {
-    mana.attributes[SOURCE_ATTRIBUTE] = path.posix.normalize(relpath)
+  if (!mana.attributes[HAIKU_SOURCE_ATTRIBUTE]) {
+    mana.attributes[HAIKU_SOURCE_ATTRIBUTE] = path.posix.normalize(relpath)
   }
 }
 
@@ -412,15 +449,15 @@ Template.fixManaSourceAttribute = function fixManaSourceAttribute (mana, relpath
  * @param references {Object} - Dict that maps old ids to new ids
  * @return {Object} The mutated mana object
  */
-Template.fixTreeIdReferences = function fixTreeIdReferences (mana, references) {
+Template.fixTreeIdReferences = (mana, references) => {
   if (Object.keys(references).length < 1) {
     return mana
   }
-  visitManaTree(ROOT_LOCATOR, mana, (elementName, attributes, children, node) => {
+  visitManaTree(ROOT_LOCATOR, mana, (elementName, attributes) => {
     if (!attributes) {
       return void (0)
     }
-    for (let id in references) {
+    for (const id in references) {
       const fixed = references[id]
       if (attributes.id === id) {
         attributes.id = fixed
@@ -558,6 +595,87 @@ Template.visit = (node, visitor, index = 0, depth = 0, address = '0') => {
   }
 }
 
+Template.inspectNodeName = (node) => {
+  let name
+  if (!node) {
+    name = 'void'
+  } else if (!node.elementName) {
+    name = 'none'
+  } else if (typeof node.elementName === 'string') {
+    name = node.elementName
+  } else if (node.elementName.__reference) {
+    name = `ref(${node.elementName.__reference})`
+  } else {
+    name = 'unknown'
+  }
+  return name
+}
+
+Template.inspectAttribute = (val) => {
+  try {
+    return JSON.stringify(val)
+  } catch (e) {
+    return '!err!'
+  }
+}
+
+Template.inspectNodeAttributes = (node) => {
+  let attrs = ''
+  if (!node) {
+    attrs = 'void'
+  } else if (!node.attributes) {
+    attrs = 'none'
+  } else if (typeof node.attributes === 'object') {
+    for (const key in node.attributes) {
+      attrs += `${key}=${Template.inspectAttribute(node.attributes[key])} `
+    }
+  } else {
+    attrs = 'unknown'
+  }
+  return attrs
+}
+
+Template.inspect = (mana) => {
+  let out = ''
+
+  Template.visit(mana, (node, parent, index, depth, address) => {
+    const name = Template.inspectNodeName(node)
+    const attrs = Template.inspectNodeAttributes(node)
+    out += `${address} <${name} ${attrs}>\n`
+  })
+
+  return out
+}
+
+Template.visitWithoutDescendingIntoSubcomponents = (
+  node,
+  visitor,
+  index = 0,
+  depth = 0,
+  address = '0'
+) => {
+  if (node) {
+    visitor(node, null, index, depth, address)
+    if (typeof node.elementName === 'string') {
+      if (node.children) {
+        for (let i = 0; i < node.children.length; i++) {
+          const child = node.children[i]
+          if (typeof child === 'string') {
+            continue
+          }
+          Template.visitWithoutDescendingIntoSubcomponents(
+            child,
+            visitor,
+            i,
+            depth + 1,
+            `${address}.${i}`
+          )
+        }
+      }
+    }
+  }
+}
+
 Template.visitNodes = (node, parent, index, visitor) => {
   if (node) {
     visitor(node, parent, index)
@@ -597,7 +715,7 @@ Template.ensureTopLevelDisplayAttributes = function ensureTopLevelDisplayAttribu
  * @param hash {String} - Digest of previous content, used as a seed for number generation
  * @param options {Object}
  */
-Template.ensureTitleAndUidifyTree = function ensureTitleAndUidifyTree (mana, source, context, hash, options) {
+Template.ensureTitleAndUidifyTree = (mana, source, context, hash, options) => {
   if (!options) options = {}
 
   // First ensure the element has a title (this is used to display a human-friendly name in the ui)
@@ -607,9 +725,9 @@ Template.ensureTitleAndUidifyTree = function ensureTitleAndUidifyTree (mana, sou
   }
   if (!mana.attributes[HAIKU_TITLE_ATTRIBUTE]) {
     let title
-    if (mana.attributes.source) {
+    if (mana.attributes[HAIKU_SOURCE_ATTRIBUTE]) {
       // The file name usually works as a good baseline, e.g. 'FooBar.svg'
-      title = path.basename(mana.attributes.source, path.extname(mana.attributes.source))
+      title = path.basename(mana.attributes[HAIKU_SOURCE_ATTRIBUTE], path.extname(mana.attributes[HAIKU_SOURCE_ATTRIBUTE]))
     }
     if (!title) {
       if (mana.children) {
@@ -654,7 +772,7 @@ Template.ensureTitleAndUidifyTree = function ensureTitleAndUidifyTree (mana, sou
   })
 }
 
-Template.ensureRootDisplayAttributes = function ensureRootDisplayAttributes (mana) {
+Template.ensureRootDisplayAttributes = (mana) => {
   merge(mana.attributes, {
     style: {
       position: 'relative',
@@ -675,7 +793,7 @@ Template.ensureRootDisplayAttributes = function ensureRootDisplayAttributes (man
   }
 }
 
-Template.cleanTemplate = function cleanTemplate (mana) {
+Template.cleanTemplate = (mana) => {
   visitManaTree(ROOT_LOCATOR, mana, (elementName, attributes, children, node) => {
     // Clean these in-memory only properties that get added (don't want to write these to the file)
     delete node.__depth
@@ -689,7 +807,7 @@ Template.cleanTemplate = function cleanTemplate (mana) {
  * Note: This check compares element names and children (recursively), but not attributes!
  * @returns {Boolean}
  */
-Template.areTemplatesEquivalent = function areTemplatesEquivalent (t1, t2) {
+Template.areTemplatesEquivalent = (t1, t2) => {
   if (!t1 && !t2) return true
   if (t1 && !t2) return false
   if (!t1 && t2) return false
@@ -710,8 +828,8 @@ Template.areTemplatesEquivalent = function areTemplatesEquivalent (t1, t2) {
 
 Template.allSourceNodes = function allSourceNodes (rootLocator, mana, iteratee) {
   visitManaTree(rootLocator, mana, (elementName, attributes, children, node, locator, parent, index) => {
-    if (attributes && attributes[SOURCE_ATTRIBUTE]) {
-      iteratee(node, attributes[SOURCE_ATTRIBUTE], parent, index)
+    if (attributes && attributes[HAIKU_SOURCE_ATTRIBUTE]) {
+      iteratee(node, attributes[HAIKU_SOURCE_ATTRIBUTE], parent, index)
     }
   })
 }
@@ -728,7 +846,7 @@ Template.normalize = (mana) => {
   } catch (exception) {
     // Unsure what input we might get, so to be safe, catch errors and return the original
     // if we hit a problem while attempting to normalize their content
-    console.warn(exception)
+    logger.warn('[template]', exception)
     return mana
   }
 }
@@ -888,7 +1006,7 @@ Template.manaToJson = (mana, replacer, spacing) => {
   return JSON.stringify(out, replacer || null, spacing || 2)
 }
 
-Template.cleanMana = (mana) => {
+Template.cleanMana = (mana, resetIds = false) => {
   const out = {}
   if (!mana) return null
   if (typeof mana === 'string') return mana
@@ -903,7 +1021,11 @@ Template.cleanMana = (mana) => {
   }
 
   out.attributes = mana.attributes
-  out.children = mana.children && mana.children.map(Template.cleanMana)
+  if (resetIds) {
+    delete out.attributes[HAIKU_ID_ATTRIBUTE]
+  }
+
+  out.children = mana.children && mana.children.map((childMana) => Template.cleanMana(childMana, resetIds))
   return out
 }
 

@@ -1,0 +1,1 @@
+A pink heart should bounce to the top and its scale animate like a beating heart. It should continue to beat even after the animation has reached the last defined frame.

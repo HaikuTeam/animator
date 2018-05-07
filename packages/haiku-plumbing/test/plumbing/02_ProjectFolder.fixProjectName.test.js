@@ -8,7 +8,7 @@ tape('ProjectFolder.fixProjectName', (t) => {
   TestHelpers.setup(function(folder, creator, glass, timeline, metadata, teardown) {
     fse.writeFileSync(path.join(folder, 'Hello.svg'), '<svg><rect x="0" y="0" stroke="1" fill="black"></rect></svg>')
     return async.series([
-      function (cb) { return creator.request('initializeProject', ['test', { projectPath: folder }, 'matthew+test@haiku.ai', 'quitesecure'], cb) },
+      function (cb) { return creator.request('bootstrapProject', ['test', { projectPath: folder }, 'matthew+test@haiku.ai', 'quitesecure'], cb) },
 
       function (cb) {
         const pkg = fse.readJsonSync(path.join(folder, 'package.json'))
@@ -21,7 +21,7 @@ tape('ProjectFolder.fixProjectName', (t) => {
       },
 
       // Re-run the same initialization step, which should fix the name
-      function (cb) { return creator.request('initializeProject', ['test', { projectPath: folder }, 'matthew+test@haiku.ai', 'quitesecure'], cb) },
+      function (cb) { return creator.request('bootstrapProject', ['test', { projectPath: folder }, 'matthew+test@haiku.ai', 'quitesecure'], cb) },
 
       function (cb) {
         const pkg = fse.readJsonSync(path.join(folder, 'package.json'))
