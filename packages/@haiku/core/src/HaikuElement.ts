@@ -358,6 +358,8 @@ export default class HaikuElement extends HaikuBase {
   }
 }
 
+HaikuElement['__name__'] = 'HaikuElement';
+
 HaikuElement['findByNode'] = (node) => {
   const registry = HaikuBase['getRegistryForClass'](HaikuElement);
 

@@ -216,3 +216,5 @@ export default class HaikuClock extends HaikuBase {
     HaikuGlobal.HaikuGlobalAnimationHarness.queue.splice(this.queueIndex, 1);
   }
 }
+
+HaikuClock['__name__'] = 'HaikuClock';

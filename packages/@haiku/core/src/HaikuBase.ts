@@ -237,5 +237,5 @@ export default class HaikuBase {
 }
 
 HaikuBase['getRegistryForClass'] = (klass) => {
-  return upsertInstanceRegistry(klass.name);
+  return upsertInstanceRegistry(klass['__name__']);
 };

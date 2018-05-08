@@ -418,3 +418,5 @@ HaikuContext['createComponentFactory'] = (
 // Also expose so we can programatically choose an instance on the page
 HaikuContext['PLAYER_VERSION'] = VERSION; // #LEGACY
 HaikuContext['CORE_VERSION'] = VERSION; // #LEGACY
+
+HaikuContext['__name__'] = 'HaikuContext';
