@@ -1003,56 +1003,54 @@ class ElementSelectionProxy extends BaseModel {
       finalSize
     )
 
-    if (experimentIsEnabled(Experiment.StageResizeAllSides)) {
-      const elementOffset = {
-        'translation.x': translationX,
-        'translation.y': translationY
+    const elementOffset = {
+      'translation.x': translationX,
+      'translation.y': translationY
+    }
+
+    // Translate all elements on stage by the offset so the stage can be resized
+    // from any side with the elements retaining their original placement
+    this.component.getTopLevelElementHaikuIds().forEach((haikuId) => {
+      const selector = Template.buildHaikuIdSelector(haikuId)
+
+      if (!accumulatedUpdates[timelineName][haikuId]) { // dupe accumulateKeyframeUpdates
+        accumulatedUpdates[timelineName][haikuId] = {}
       }
 
-      // Translate all elements on stage by the offset so the stage can be resized
-      // from any side with the elements retaining their original placement
-      this.component.getTopLevelElementHaikuIds().forEach((haikuId) => {
-        const selector = Template.buildHaikuIdSelector(haikuId)
+      if (!bytecode.timelines[timelineName][selector]) {
+        bytecode.timelines[timelineName][selector] = {}
+      }
 
-        if (!accumulatedUpdates[timelineName][haikuId]) { // dupe accumulateKeyframeUpdates
-          accumulatedUpdates[timelineName][haikuId] = {}
+      for (const propertyName in elementOffset) {
+        const offsetValue = elementOffset[propertyName]
+
+        if (!accumulatedUpdates[timelineName][haikuId][propertyName]) { // dupe accumulateKeyframeUpdates
+          accumulatedUpdates[timelineName][haikuId][propertyName] = {}
         }
 
-        if (!bytecode.timelines[timelineName][selector]) {
-          bytecode.timelines[timelineName][selector] = {}
+        if (!bytecode.timelines[timelineName][selector][propertyName]) {
+          bytecode.timelines[timelineName][selector][propertyName] = {}
         }
 
-        for (const propertyName in elementOffset) {
-          const offsetValue = elementOffset[propertyName]
+        // We must ensure the zeroth keyframe exists since some elements may end up on stage
+        // without a translation.x,y value explicitly set, and we need to offset those too.
+        if (!bytecode.timelines[timelineName][selector][propertyName][0]) {
+          bytecode.timelines[timelineName][selector][propertyName][0] = {}
+        }
 
-          if (!accumulatedUpdates[timelineName][haikuId][propertyName]) { // dupe accumulateKeyframeUpdates
-            accumulatedUpdates[timelineName][haikuId][propertyName] = {}
-          }
+        for (const keyframeMs in bytecode.timelines[timelineName][selector][propertyName]) {
+          const existingValue = bytecode.timelines[timelineName][selector][propertyName][keyframeMs].value || 0
 
-          if (!bytecode.timelines[timelineName][selector][propertyName]) {
-            bytecode.timelines[timelineName][selector][propertyName] = {}
-          }
+          if (isNumeric(existingValue)) {
+            const updatedValue = existingValue - offsetValue
 
-          // We must ensure the zeroth keyframe exists since some elements may end up on stage
-          // without a translation.x,y value explicitly set, and we need to offset those too.
-          if (!bytecode.timelines[timelineName][selector][propertyName][0]) {
-            bytecode.timelines[timelineName][selector][propertyName][0] = {}
-          }
-
-          for (const keyframeMs in bytecode.timelines[timelineName][selector][propertyName]) {
-            const existingValue = bytecode.timelines[timelineName][selector][propertyName][keyframeMs].value || 0
-
-            if (isNumeric(existingValue)) {
-              const updatedValue = existingValue - offsetValue
-
-              accumulatedUpdates[timelineName][haikuId][propertyName][keyframeMs] = { // dupe accumulateKeyframeUpdates
-                value: updatedValue
-              }
+            accumulatedUpdates[timelineName][haikuId][propertyName][keyframeMs] = { // dupe accumulateKeyframeUpdates
+              value: updatedValue
             }
           }
         }
-      })
-    }
+      }
+    })
 
     this.component.updateKeyframes(
       accumulatedUpdates,

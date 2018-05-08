@@ -1007,7 +1007,7 @@ class Element extends BaseModel {
   }
 
   rehydrate () {
-    if (!experimentIsEnabled(Experiment.ElementDepthFilter) || this.getDepthAmongElements() < 2) {
+    if (this.getDepthAmongElements() < 2) {
       this.rehydrateChildren()
     }
   }

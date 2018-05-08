@@ -8,7 +8,6 @@ import ComponentHeadingRowHeading from './ComponentHeadingRowHeading'
 import CollapsedPropertyTimelineSegments from './CollapsedPropertyTimelineSegments'
 import EventHandlerTriggerer from './EventHandlerTriggerer'
 import PropertyManager from './PropertyManager'
-import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
 
 export default class ComponentHeadingRow extends React.Component {
   constructor (props) {
@@ -200,21 +199,19 @@ export default class ComponentHeadingRow extends React.Component {
                 : ''}
             </div>
 
-            {(experimentIsEnabled(Experiment.JustInTimeProperties))
-              ? <div
-                style={{
-                  width: 10,
-                  position: 'absolute',
-                  left: 16,
-                  top: -1
-                }}>
-                {(this.props.isExpanded)
-                    ? <PropertyManager
-                      element={this.props.row.element}
-                        />
-                    : ''}
-              </div>
-              : ''}
+            <div
+              style={{
+                width: 10,
+                position: 'absolute',
+                left: 16,
+                top: -1
+              }}>
+              {(this.props.isExpanded)
+                ? <PropertyManager
+                  element={this.props.row.element}
+                />
+                : ''}
+            </div>
 
           </div>
         </div>

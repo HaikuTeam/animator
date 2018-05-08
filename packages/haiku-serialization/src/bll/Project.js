@@ -14,7 +14,6 @@ const BaseModel = require('./BaseModel')
 const reifyRO = require('@haiku/core/lib/reflection/reifyRO').default
 const reifyRFO = require('@haiku/core/lib/reflection/reifyRFO').default
 const toTitleCase = require('./helpers/toTitleCase')
-const normalizeBytecodeAST = require('./../ast/normalizeBytecodeAST')
 const Lock = require('./Lock')
 const ActionStack = require('./ActionStack')
 
@@ -713,11 +712,6 @@ class Project extends BaseModel {
     // Only write these files if they don't exist yet; don't overwrite the user's own content
     if (!fse.existsSync(path.join(this.getFolder(), `code/${scenename}/code.js`))) {
       fse.outputFileSync(path.join(this.getFolder(), `code/${scenename}/code.js`), rootComponentId)
-    } else if (!experimentIsEnabled(Experiment.NoNormalizeOnSetup)) {
-      // If the file already exists, we can run any migration steps we might want
-      AST.mutateWith(path.join(this.getFolder(), `code/${scenename}/code.js`), (ast) => {
-        normalizeBytecodeAST(ast)
-      })
     }
 
     fse.outputFileSync(path.join(this.getFolder(), `code/${scenename}/dom.js`), DOM_JS)
@@ -970,7 +964,6 @@ Project.PUBLIC_METHODS = {
 // Down here to avoid Node circular dependency stub objects. #FIXME
 const ActiveComponent = require('./ActiveComponent')
 const Asset = require('./Asset')
-const AST = require('./AST')
 const Bytecode = require('./Bytecode')
 const Design = require('./Design')
 const File = require('./File')
