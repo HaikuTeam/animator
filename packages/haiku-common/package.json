@@ -23,6 +23,7 @@
   "license": "UNLICENSED",
   "devDependencies": {
     "@types/node": "8.9.4",
+    "cross-env": "^5.1.4",
     "electron": "1.8.2",
     "haiku-testing": "3.2.20",
     "nyc": "^11.3.0",

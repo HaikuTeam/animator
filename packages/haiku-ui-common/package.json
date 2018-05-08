@@ -25,6 +25,7 @@
     "@storybook/react": "^3.3.3",
     "@types/node": "8.9.4",
     "@types/react": "^15.4.2",
+    "cross-env": "^5.1.4",
     "electron": "1.8.2",
     "haiku-testing": "3.2.20",
     "nyc": "^11.3.0",
