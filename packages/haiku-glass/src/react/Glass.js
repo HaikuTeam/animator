@@ -29,6 +29,7 @@ import defsMana from '../overlays/defsMana'
 import gearMana from '../overlays/gearMana'
 import rotationCursorMana from '../overlays/rotationCursorMana'
 import scaleCursorMana from '../overlays/scaleCursorMana'
+import directSelectionMana from '../overlays/directSelectionMana'
 
 const Globals = require('haiku-ui-common/lib/Globals').default
 const {clipboard, shell, remote} = require('electron')
@@ -66,6 +67,7 @@ const MENU_ACTION_DEBOUNCE_TIME = 100
 const DIMENSIONS_RESET_DEBOUNCE_TIME = 100
 
 const BIG_NUMBER = 99999
+const DOUBLE_CLICK_THRESHOLD_MS = 500
 
 function isNumeric (n) {
   return !isNaN(parseFloat(n)) && isFinite(n)
@@ -909,6 +911,8 @@ export class Glass extends React.Component {
     }
 
     this.state.isMouseDown = true
+    const mouseDownTimeDiff = this.state.lastMouseDownTime ? Date.now() - this.state.lastMouseDownTime : null
+    const isDoubleClick = mouseDownTimeDiff ? mouseDownTimeDiff <= DOUBLE_CLICK_THRESHOLD_MS : false
     this.state.lastMouseDownTime = Date.now()
     const mouseDownPosition = this.storeAndReturnMousePosition(mousedownEvent, 'lastMouseDownPosition')
 
@@ -990,6 +994,9 @@ export class Glass extends React.Component {
                 if (!Globals.isControlKeyDown && !Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // none
                   this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
                     this.ensureElementIsSelected(elementTargeted, finish)
+                    if(isDoubleClick) {
+                      Element.directlySelected = elementTargeted
+                    }
                   })
                 } else if (!Globals.isControlKeyDown && !Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Alt
                   this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
@@ -1659,6 +1666,11 @@ export class Glass extends React.Component {
       return overlays
     }
 
+    if(Element.directlySelected) {
+      this.renderDirectSelection(Element.directlySelected.getStaticTemplateNode(), overlays)
+      return overlays
+    }
+    
     const proxy = this.fetchProxyElementForSelection()
 
     if (proxy.hasAnythingInSelection()) {
@@ -1678,7 +1690,25 @@ export class Glass extends React.Component {
     const proxy = ElementSelectionProxy.fromSelection(selection, { component: this.getActiveComponent() })
     return proxy
   }
-
+  
+  renderDirectSelection (element, overlays) {
+    switch(element.elementName) {
+      case 'rect':
+      case 'circle':
+        overlays.push(directSelectionMana.circle(element.attributes))
+        break
+      case 'ellipse':
+        overlays.push(directSelectionMana.ellipse(element.attributes))
+        break
+      case 'line':
+      case 'polyline':
+      case 'polygon':
+    }
+    
+    
+    if(element.children) for(let i = 0; i < element.children.length; i++) this.renderDirectSelection(element.children[i], overlays)
+  }
+  
   renderSelectionMarquee (overlays) {
     if (this.getActiveComponent()) {
       const marquee = this.getActiveComponent().getSelectionMarquee()
