@@ -52,7 +52,15 @@ const visit = (pack, packages) => {
   pack.deps.forEach((dep) => {
     visit(allPackages[dep], packages)
   })
-  packages.push(pack)
+
+  // Locate the correct outlet based on packages already processed.
+  let spliceIndex = packages.length
+  packages.forEach((foundPack, foundIndex) => {
+    if (foundPack.deps.has(pack.name)) {
+      spliceIndex = Math.min(spliceIndex, foundIndex)
+    }
+  })
+  packages.splice(spliceIndex, 0, pack)
 }
 
 module.exports = (names) => {

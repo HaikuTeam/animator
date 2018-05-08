@@ -1,8 +1,4 @@
 {
-  "LottieExportInGlobalMenu": {
-    "development": true,
-    "production": false
-  },
   "MultiComponentFeatures": {
     "development": true,
     "production": false

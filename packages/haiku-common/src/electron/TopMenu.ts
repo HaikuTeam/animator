@@ -1,5 +1,4 @@
 import {app, Menu, shell} from 'electron';
-import {ExporterFormat} from 'haiku-sdk-creator/lib/exporter';
 
 import {isMac} from '../environments/os';
 import {Experiment, experimentIsEnabled} from '../experiments';
@@ -130,33 +129,6 @@ export default class TopMenu {
         },
       },
     );
-
-    if (experimentIsEnabled(Experiment.LottieExportInGlobalMenu)) {
-      projectSubmenu.push({
-        label: 'Export',
-        submenu: [
-          {
-            label: ExporterFormat.Bodymovin,
-            enabled: options.isProjectOpen,
-            click: () => {
-              this.sender.send(
-                'global-menu:export',
-                [ExporterFormat.Bodymovin],
-              );
-            },
-          }, {
-            label: ExporterFormat.HaikuStatic,
-            enabled: options.isProjectOpen,
-            click: () => {
-              this.sender.send(
-                'global-menu:export',
-                [ExporterFormat.HaikuStatic],
-              );
-            },
-          },
-        ],
-      });
-    }
 
     const editSubmenu = [];
 

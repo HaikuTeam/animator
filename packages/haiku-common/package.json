@@ -21,7 +21,6 @@
     "Sasha Joseph <sasha@haiku.ai>"
   ],
   "license": "UNLICENSED",
-  "dependencies": {},
   "devDependencies": {
     "@types/node": "8.9.4",
     "electron": "1.8.2",
