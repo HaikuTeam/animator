@@ -105,7 +105,7 @@ tape('ActiveComponent.prototype.mergeDesign[2](design)', (t) => {
           return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents1) => {
             if (err) throw err
             fse.outputFileSync(path.join(folder, 'designs/Circle.svg'), CIRCLE_SVG_2) // Other one
-            return ac0.mergeDesigns({ 'designs/Circle.svg': true }, { from: 'test' }, (err) => {
+            return project.mergeDesigns({ 'designs/Circle.svg': true }, { from: 'test' }, (err) => {
               if (err) throw err
               return waitUntilFileProbablyWroteToDisk(() => {
                 return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents2) => {
@@ -151,7 +151,7 @@ tape('ActiveComponent.prototype.mergeDesign[3](design)', (t) => {
           return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents1) => {
             if (err) throw err
             fse.outputFileSync(path.join(folder, 'designs/PercyNose.svg'), PERCY_NOSE_2) // Other one
-            return ac0.mergeDesigns({ 'designs/PercyNose.svg': true }, { from: 'test' }, (err) => {
+            return project.mergeDesigns({ 'designs/PercyNose.svg': true }, { from: 'test' }, (err) => {
               if (err) throw err
               return waitUntilFileProbablyWroteToDisk(() => {
                 return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents2) => {
