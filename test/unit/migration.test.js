@@ -1,5 +1,4 @@
 const tape = require('tape');
-const upgradeBytecodeInPlace = require('../../lib/helpers/upgradeBytecodeInPlace').default;
 const VERSION = require('../../package.json').version;
 const TestHelpers = require('../TestHelpers');
 
