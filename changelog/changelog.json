@@ -6374,5 +6374,27 @@
       "label": "feat",
       "message": "add endpoints to feature/unfeature and pagination"
     }
+  },
+  "3.2.20": {
+    "62c1959e31188e05ad46a74c4ce8e5aca70bf254": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "disable ip collection on mixpanel in core phone home"
+    },
+    "e6887a500addecfcf16ff01c88cc5f8ece423396": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "modify expression values by one with arrow keys"
+    },
+    "ebdf82cc09bebc5dad7f6260adb7cc8dbd2e6aa5": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "render the container for outline elements above the hot component mount"
+    },
+    "a61428296e2036c4cd873aee8a7989d9c6e905ec": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "do not insert outline DOM elements in user-defined components"
+    }
   }
 }
