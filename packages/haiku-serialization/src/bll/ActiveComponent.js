@@ -3541,7 +3541,6 @@ class ActiveComponent extends BaseModel {
           // original component's children, so that we don't need to recalculate layouts and properties for every
           // subelement.
           if (attributes && attributes['haiku-transclude']) {
-            console.log('eyeyeye')
             const originalComponent = this.getTemplateNodesByComponentId()[attributes['haiku-transclude']]
             if (originalComponent) {
               children.push(...originalComponent.children)
