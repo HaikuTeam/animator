@@ -267,7 +267,6 @@ export default class Master extends EventEmitter {
         this._designsPendingMerge = {}
         this.emit(
           'merge-designs',
-          this.project.getCurrentActiveComponent().getRelpath(),
           designs
         )
       }

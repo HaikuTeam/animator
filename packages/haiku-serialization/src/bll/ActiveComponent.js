@@ -590,7 +590,9 @@ class ActiveComponent extends BaseModel {
   hoverElement (componentId, metadata, cb) {
     return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
       const element = Element.findByComponentAndHaikuId(this, componentId)
-      element.hoverOn(metadata)
+      if (element) {
+        element.hoverOn(metadata)
+      }
       release()
       return cb()
     })
@@ -599,7 +601,9 @@ class ActiveComponent extends BaseModel {
   unhoverElement (componentId, metadata, cb) {
     return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
       const element = Element.findByComponentAndHaikuId(this, componentId)
-      element.hoverOff(metadata)
+      if (element) {
+        element.hoverOff(metadata)
+      }
       release()
       return cb()
     })
@@ -1536,14 +1540,14 @@ class ActiveComponent extends BaseModel {
     const timelineName = this.getMergeDesignTimelineName()
     const timelineTime = this.getMergeDesignTimelineTime()
 
-    Template.visit((existingBytecode.template), (existingNode) => {
+    Template.visitWithoutDescendingIntoSubcomponents(existingBytecode.template, (existingNode) => {
       // Only merge into any that match our source design path
       if (
         !existingNode.attributes[HAIKU_SOURCE_ATTRIBUTE] ||
         !manaIncoming.attributes[HAIKU_SOURCE_ATTRIBUTE] ||
         (
-          path.normalize(existingNode.attributes[HAIKU_SOURCE_ATTRIBUTE]) !==
-          path.normalize(manaIncoming.attributes[HAIKU_SOURCE_ATTRIBUTE])
+          Template.normalizePath(existingNode.attributes[HAIKU_SOURCE_ATTRIBUTE]) !==
+          Template.normalizePath(manaIncoming.attributes[HAIKU_SOURCE_ATTRIBUTE])
         )
       ) {
         return
@@ -1633,39 +1637,6 @@ class ActiveComponent extends BaseModel {
         return done()
       })
     }, cb)
-  }
-
-  mergeDesigns (designs, metadata, cb) {
-    return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
-      return this.project.updateHook('mergeDesigns', this.getRelpath(), designs, metadata, (fire) => {
-        // Since several designs are merged, and that process occurs async, we can get into a situation
-        // where individual fragments are inserted but their parent layouts have not been appropriately
-        // populated. To fix this, we wait to do any rendering until this whole process has finished
-        this.codeReloadingOn()
-
-        this.mergeDesignFiles(designs, (err) => {
-          // Now that we've finalized (or errored) the update, we can resume since we have no orphan fragments
-          this.codeReloadingOff()
-
-          if (err) {
-            release()
-            logger.error(`[active component (${this.project.getAlias()})]`, err)
-            return cb(err)
-          }
-
-          return this.reload({
-            hardReload: true,
-            clearCacheOptions: {
-              doClearEntityCaches: true
-            }
-          }, null, () => {
-            release()
-            fire()
-            return cb()
-          })
-        })
-      })
-    })
   }
 
   /**

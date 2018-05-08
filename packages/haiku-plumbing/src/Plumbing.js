@@ -1308,22 +1308,24 @@ Plumbing.prototype.upsertMaster = function ({ folder, fileOptions, envoyOptions 
       }, payload), () => {})
     })
 
-    master.on('merge-designs', (relpath, designs) => {
-      // Important that we enqueue this like all other actions, otherwise we'll have a race
-      this.processMethodMessage(
-        'controller',
-        'plumbing', // We'll delegate on Master's behalf
-        master.folder,
-        {
-          folder: master.folder,
-          type: 'action',
-          method: 'mergeDesigns',
-          params: [master.folder, relpath, designs, {from: 'master'}]
-        },
-        () => {
-          logger.info(`[plumbing] finished merge designs`)
-        }
-      )
+    master.on('merge-designs', (designs) => {
+      const project = Project.findById(master.folder)
+      if (project) {
+        this.processMethodMessage(
+          'controller',
+          'plumbing',
+          master.folder,
+          {
+            folder: master.folder,
+            type: 'action',
+            method: 'mergeDesigns',
+            params: [master.folder, designs, {from: 'master'}]
+          },
+          () => {
+            logger.info(`[plumbing] finished merge designs`)
+          }
+        )
+      }
     })
 
     this.masters[folder] = master

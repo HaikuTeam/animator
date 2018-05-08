@@ -9,6 +9,8 @@ const SLICES_REGEX = /\/slices\//
 const ARTBOARDS_REGEX = /\/artboards\//
 const GROUPS_REGEX = /\/groups\//
 
+const MAIN_COMPONENT_NAME = 'main'
+
 /**
  * @class Asset
  * @description
@@ -101,6 +103,10 @@ class Asset extends BaseModel {
 
   isDesignsHostFolder () {
     return this.relpath === 'designs'
+  }
+
+  isComponentsHostFolder () {
+    return this.relpath === 'code'
   }
 
   addSketchChild (svgAsset) {
@@ -234,7 +240,22 @@ class Asset extends BaseModel {
     // Super hacky - this logic probably belongs in the view instead of here.
     // We conditionally display a helpful message in the assets list if we detect that
     // the user has never imported a file before. Otherwise just return our own children
-    if (this.isDesignsHostFolder()) {
+    if (this.isComponentsHostFolder()) {
+      if (this.children.length === 0) {
+        return [Asset.upsert({
+          uid: 'hacky-message[-1]',
+          relpath: 'hacky-message[-1]',
+          type: Asset.TYPES.HACKY_MESSAGE,
+          kind: Asset.KINDS.HACKY_MESSAGE,
+          project: this.project,
+          displayName: 'hacky-message[-1]',
+          children: [],
+          dtModified: Date.now(),
+          messageType: 'create_a_component',
+          message: 'To create a component, select elements on stage and choose "Create Component" from the element menu'
+        })]
+      }
+    } else if (this.isDesignsHostFolder()) {
       if (this.children.length === 0) {
         return [Asset.upsert({
           uid: 'hacky-message[0]',
@@ -467,19 +488,23 @@ Asset.ingestAssets = (project, dict) => {
     } else if (path.basename(relpath) === 'code.js') { // Looks like a component
       const pathParts = relpath.split(path.sep)
       const namePart = pathParts[1]
-      const jsAsset = Asset.upsert({
-        uid: path.join(project.getFolder(), relpath),
-        type: Asset.TYPES.FILE,
-        kind: Asset.KINDS.COMPONENT,
-        proximity: Asset.PROXIMITIES.LOCAL,
-        project,
-        relpath,
-        displayName: toTitleCase(namePart),
-        children: [],
-        dtModified: dict[relpath].dtModified
-      })
 
-      componentFolderAsset.insertChild(jsAsset)
+      // Since the Main component can't be instantiated, we don't show it in the library
+      if (namePart !== MAIN_COMPONENT_NAME) {
+        componentFolderAsset.insertChild(
+          Asset.upsert({
+            uid: path.join(project.getFolder(), relpath),
+            type: Asset.TYPES.FILE,
+            kind: Asset.KINDS.COMPONENT,
+            proximity: Asset.PROXIMITIES.LOCAL,
+            project,
+            relpath,
+            displayName: toTitleCase(namePart),
+            children: [],
+            dtModified: dict[relpath].dtModified
+          })
+        )
+      }
 
       if (experimentIsEnabled(Experiment.MultiComponentControlsLibrary)) {
         componentFolderAsset.insertChild(controlComponentAsset(project, 'Image', 'controls/Image'))

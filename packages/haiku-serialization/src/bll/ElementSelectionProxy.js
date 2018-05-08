@@ -136,7 +136,7 @@ class ElementSelectionProxy extends BaseModel {
 
   canCreateComponentFromSelection () {
     return (
-      this.selection.length > 1
+      this.selection.length > 0
     )
   }
 

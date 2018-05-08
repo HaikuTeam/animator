@@ -157,7 +157,9 @@ class Project extends BaseModel {
   handleMethodCall (method, params, message, cb) {
     return Lock.request(Lock.LOCKS.ProjectMethodHandler, false, (release) => {
       // Try matching a method on a given active component
-      const ac = this.findActiveComponentBySource(params[0])
+      const ac = (typeof params[0] === 'string')
+        ? this.findActiveComponentBySource(params[0])
+        : null
 
       if (ac && typeof ac[method] === 'function') {
         logger.info(`[project (${this.getAlias()})] component handling method ${method}`, params)
@@ -452,6 +454,49 @@ class Project extends BaseModel {
     )
   }
 
+  mergeDesigns (designs, metadata, cb) {
+    const ac = this.getCurrentActiveComponent()
+
+    if (!ac) {
+      logger.warn(`[project] skipping design merge since no component is active`)
+      return cb()
+    }
+
+    // Since several designs are merged, and that process occurs async, we can get into a situation
+    // where individual fragments are inserted but their parent layouts have not been appropriately
+    // populated. To fix this, we wait to do any rendering until this whole process has finished
+    ac.codeReloadingOn()
+
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
+      return this.updateHook('mergeDesigns', designs, metadata || this.getMetadata(), (fire) => {
+        const components = ActiveComponent.where({project: this})
+
+        return async.eachSeries(components, (component, next) => {
+          return component.mergeDesignFiles(designs, next)
+        }, (err) => {
+          if (err) {
+            ac.codeReloadingOff()
+            release()
+            logger.error(`[project (${this.getAlias()})]`, err)
+            return cb(err)
+          }
+
+          return ac.reload({
+            hardReload: true,
+            clearCacheOptions: {
+              doClearEntityCaches: true
+            }
+          }, null, () => {
+            ac.codeReloadingOff()
+            release()
+            fire()
+            return cb()
+          })
+        })
+      })
+    })
+  }
+
   addActiveComponentToRegistry (activeComponent) {
     const activeComponentKey = path.join(
       this.getFolder(),
@@ -468,10 +513,6 @@ class Project extends BaseModel {
     const instanceConfig = {}
     return this.upsertComponentBytecodeToModule(relpath, bytecode, instanceConfig, cb)
   }
-
-  /**
-   * Methods that may be called via the view and thus require `metadata` parameter
-   */
 
   setCurrentActiveComponent (scenename, metadata, cb) {
     this.addActiveComponentToMultiComponentTabs(scenename, true)

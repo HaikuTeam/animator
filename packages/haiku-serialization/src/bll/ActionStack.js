@@ -295,9 +295,10 @@ class ActionStack extends BaseModel {
       }
     }
 
-    // This may be null if the method called is in the Project scope
-    const [relpath] = params
-    const ac = this.project.findActiveComponentBySource(relpath)
+    // No component needed nor available if the method called is in the Project scope
+    const ac = (typeof params[0] === 'string')
+      ? this.project.findActiveComponentBySource(params[0]) // relpath
+      : null
 
     const finish = (inverter) => {
       // The callback will fire immediately before the action is transmitted
@@ -346,8 +347,7 @@ class ActionStack extends BaseModel {
       return ac.pushBytecodeSnapshot(() => finish({
         method: ac.popBytecodeSnapshot.name,
         params: [
-          // relpath
-          params[0],
+          params[0], // relpath
           metadata
         ]
       }))
