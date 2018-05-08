@@ -28,6 +28,7 @@
   "devDependencies": {
     "@types/node": "8.9.4",
     "@types/tape": "^4.2.30",
+    "cross-env": "^5.1.4",
     "nyc": "^11.3.0",
     "tap-spec": "^4.1.1",
     "tape": "^4.8.0",
