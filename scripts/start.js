@@ -75,7 +75,7 @@ if (argv.default === true) {
 }
 
 const availablePresets = {
-  glass: 'mc-anim1-glass',
+  glass: 'percy-glass',
   timeline: 'complex-timeline',
   blank: 'blank',
   'blank-noclean': 'blank-noclean'
