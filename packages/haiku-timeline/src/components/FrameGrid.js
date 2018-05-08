@@ -22,6 +22,14 @@ export default class FrameGrid extends React.Component {
     this.props.timeline.on('update', this.handleUpdate)
   }
 
+  componentWillReceiveProps (nextProps) {
+    // When switching the active component, we also get a new timeline instance
+    if (nextProps.timeline !== this.props.timeline) {
+      this.props.timeline.removeListener('update', this.handleUpdate)
+      nextProps.timeline.on('update', this.handleUpdate)
+    }
+  }
+
   upsertTimelineEvents () {
     this.timelineEvents = this.rootElement
       .getTimelineEvents()

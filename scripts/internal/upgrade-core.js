@@ -48,7 +48,7 @@ plumbing.launch({ mode: 'headless' }, (err, host, port, server, spawned, envoy) 
         return async.eachSeries(candidates, (projectName, next) => {
           return async.series([
             function (done) {
-              return plumbing.initializeProject(projectName, { projectName, skipContentCreation: true }, argv.username, argv.password, done)
+              return plumbing.bootstrapProject(projectName, { projectName, skipContentCreation: true }, argv.username, argv.password, done)
             },
             function (done) {
               // Simply starting the project should have the effect of upgrading the @haiku/core version

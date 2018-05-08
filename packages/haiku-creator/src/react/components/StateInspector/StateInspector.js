@@ -61,6 +61,7 @@ class StateInspector extends React.Component {
     this.openNewStateForm = this.openNewStateForm.bind(this)
     this.closeNewStateForm = this.closeNewStateForm.bind(this)
     this.state = {
+      sceneName: 'State Inspector',
       statesData: null,
       addingNew: false
     }
@@ -76,13 +77,27 @@ class StateInspector extends React.Component {
             message: 'There was a problem loading the states data for this project'
           })
         }
-        this.setState({ statesData })
+        this.setState({
+          sceneName: this.getActiveSceneName(this.props),
+          statesData
+        })
       }
     )
   }
 
+  getActiveSceneName (props) {
+    return (
+      props.projectModel &&
+      props.projectModel.getCurrentActiveComponent() &&
+      props.projectModel.getCurrentActiveComponent().getSceneName()
+    )
+  }
+
   componentWillReceiveProps (nextProps) {
-    if (nextProps.visible && !this.state.statesData) {
+    if (
+      (nextProps.visible && !this.state.statesData) || // If we haven't populated yet
+      this.state.sceneName !== this.getActiveSceneName(nextProps) // If we have context-switched
+    ) {
       this.populateStatesData()
     }
   }
@@ -103,7 +118,10 @@ class StateInspector extends React.Component {
 
         const statesData = this.state.statesData
         statesData[stateName] = stateDescriptor
-        this.setState({statesData})
+        this.setState({
+          sceneName: this.getActiveSceneName(this.props),
+          statesData
+        })
 
         if (maybeCb) {
           return maybeCb()
@@ -127,7 +145,10 @@ class StateInspector extends React.Component {
 
         const statesData = this.state.statesData
         delete statesData[stateName]
-        this.setState({statesData})
+        this.setState({
+          sceneName: this.getActiveSceneName(this.props),
+          statesData
+        })
 
         if (maybeCb) {
           return maybeCb()
@@ -147,9 +168,7 @@ class StateInspector extends React.Component {
   }
 
   getHeadingText () {
-    if (!this.props.projectModel) return 'State Inspector'
-    if (!this.props.projectModel.getCurrentActiveComponent()) return 'State Inspector'
-    return `State Inspector (${this.props.projectModel.getCurrentActiveComponent().getSceneName()})`
+    return `State Inspector (${this.state.sceneName})`
   }
 
   shouldDisplayEmptyMessage () {

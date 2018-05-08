@@ -37,6 +37,11 @@ class TransformCache {
         this.host.computePropertyValue('scale.y'),
         this.host.computePropertyValue('scale.z')
       ],
+      shear: [
+        this.host.computePropertyValue('shear.xy'),
+        this.host.computePropertyValue('shear.xz'),
+        this.host.computePropertyValue('shear.yz')
+      ],
       origin: [
         this.host.computePropertyValue('origin.x'),
         this.host.computePropertyValue('origin.y'),

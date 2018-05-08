@@ -1,3 +1,5 @@
+const logger = require('haiku-serialization/src/utils/LoggerInstance')
+
 module.exports = function requestElementCoordinates (
   {currentWebview, requestedWebview, selector, shouldNotifyEnvoy, tourClient},
   maxNumberOfTries = 15,
@@ -5,7 +7,7 @@ module.exports = function requestElementCoordinates (
 ) {
   if (currentWebview !== requestedWebview) return
 
-  console.info(
+  logger.info(
     `[${currentWebview}] handleRequestElementCoordinates`,
     selector,
     currentWebview
@@ -16,7 +18,7 @@ module.exports = function requestElementCoordinates (
   if (domElement) {
     let {top, left, width, height} = domElement.getBoundingClientRect()
     if (shouldNotifyEnvoy) {
-      console.info(
+      logger.info(
         `[${currentWebview}] receive element coordinates`,
         selector,
         top,
@@ -35,7 +37,7 @@ module.exports = function requestElementCoordinates (
         ])
       }, 300)
     } else {
-      console.error(
+      logger.error(
         `[${currentWebview}] Error fetching ${selector} in webview ${
           currentWebview
         }`

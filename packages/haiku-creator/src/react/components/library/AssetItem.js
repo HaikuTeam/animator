@@ -147,7 +147,7 @@ class AssetItem extends React.Component {
     }
 
     this.handleCollapseToggle = this.handleCollapseToggle.bind(this)
-    this.handleInstantiate = lodash.debounce(this.handleInstantiate.bind(this), 500, {leading: true, trailing: false})
+    this.handleAssetDoubleClick = lodash.debounce(this.handleAssetDoubleClick.bind(this), 500, {leading: true, trailing: false})
     this.launchPopoverMenu = this.launchPopoverMenu.bind(this)
   }
 
@@ -160,8 +160,8 @@ class AssetItem extends React.Component {
     this.endDragInCaseItWasStartedInadvertently()
   }
 
-  handleInstantiate () {
-    this.props.instantiateAsset(this.props.asset)
+  handleAssetDoubleClick () {
+    this.props.onAssetDoubleClick(this.props.asset)
     this.endDragInCaseItWasStartedInadvertently()
   }
 
@@ -252,7 +252,10 @@ class AssetItem extends React.Component {
       })
     }
 
-    if (!this.props.asset.isRemoteAsset()) {
+    if (
+      !this.props.asset.isRemoteAsset() &&
+      !this.props.asset.isComponent()
+    ) {
       items.push({
         label: 'Delete',
         icon: TrashIconSVG,
@@ -343,8 +346,15 @@ class AssetItem extends React.Component {
       return (
         <span
           className='component-icon-container'
-          onDoubleClick={this.handleInstantiate}
-          style={STYLES.cardIcon}>
+          onDoubleClick={this.handleAssetDoubleClick}
+          style={
+            lodash.assign(
+              {},
+              STYLES.cardIcon,
+              (this.props.asset.isControl)
+                ? null
+                : {transform: 'scale(1.35)', left: 2, display: 'inline-block'}
+            )}>
 
           {(this.props.asset.icon)
             ? ASSET_ICONS[this.props.asset.icon]()
@@ -361,7 +371,7 @@ class AssetItem extends React.Component {
       return (
         <span
           className='sketch-icon-container'
-          onDoubleClick={this.handleInstantiate}
+          onDoubleClick={this.handleAssetDoubleClick}
           style={STYLES.cardIcon}>
           <SketchIconSVG />
         </span>
@@ -372,7 +382,7 @@ class AssetItem extends React.Component {
       return (
         <span
           className='figma-icon-container'
-          onDoubleClick={this.handleInstantiate}
+          onDoubleClick={this.handleAssetDoubleClick}
           style={STYLES.cardIcon}>
           <FigmaIconSVG />
         </span>
@@ -402,7 +412,7 @@ class AssetItem extends React.Component {
         <span
           className='thumbnail-icon-container'
           style={STYLES.cardIcon}
-          onDoubleClick={this.handleInstantiate}
+          onDoubleClick={this.handleAssetDoubleClick}
           onMouseOver={() => {
             this.setState({isHovered: true})
           }}
@@ -433,7 +443,7 @@ class AssetItem extends React.Component {
     const displayName = (
       <span
         className='display-name-container'
-        onDoubleClick={this.handleInstantiate}
+        onDoubleClick={this.handleAssetDoubleClick}
         onContextMenu={this.launchPopoverMenu}
         style={[STYLES.displayName, this.isAssetOfActiveComponent() && STYLES.displayName.active]}>
         {this.props.asset.displayName}
@@ -460,7 +470,7 @@ class AssetItem extends React.Component {
           projectModel={this.props.projectModel}
           onDragStart={this.props.onDragStart}
           onDragEnd={this.props.onDragEnd}
-          instantiateAsset={this.props.instantiateAsset}
+          onAssetDoubleClick={this.props.onAssetDoubleClick}
           deleteAsset={this.props.deleteAsset}
           assets={this.props.asset.getChildAssets()}
           onRefreshFigmaAsset={this.props.onRefreshFigmaAsset}
@@ -509,7 +519,7 @@ class AssetItem extends React.Component {
           <span
             className='draggable-interior-wrap'
             style={STYLES.draggableCardWrapper}
-            onDoubleClick={this.handleInstantiate}>
+            onDoubleClick={this.handleAssetDoubleClick}>
             {draggablePart}
           </span>
         </Draggable>
@@ -560,7 +570,7 @@ AssetItem.propTypes = {
   asset: React.PropTypes.object.isRequired,
   onDragEnd: React.PropTypes.func.isRequired,
   onDragStart: React.PropTypes.func.isRequired,
-  instantiateAsset: React.PropTypes.func.isRequired,
+  onAssetDoubleClick: React.PropTypes.func.isRequired,
   deleteAsset: React.PropTypes.func.isRequired,
   projectModel: React.PropTypes.object.isRequired,
   onRefreshFigmaAsset: React.PropTypes.func.isRequired

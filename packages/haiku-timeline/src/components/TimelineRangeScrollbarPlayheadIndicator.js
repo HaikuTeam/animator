@@ -28,6 +28,14 @@ export default class TimelineRangeScrollbarPlayheadIndicator extends React.Compo
     }
   }
 
+  componentWillReceiveProps (nextProps) {
+    // When switching the active component, we also get a new timeline instance
+    if (nextProps.timeline !== this.props.timeline) {
+      this.props.timeline.removeListener('update', this.handleUpdate)
+      nextProps.timeline.on('update', this.handleUpdate)
+    }
+  }
+
   getPlayheadPc (frameInfo) {
     if (frameInfo.friMaxVirt < 1) return 0
     const frame = this.props.timeline.getCurrentFrame()

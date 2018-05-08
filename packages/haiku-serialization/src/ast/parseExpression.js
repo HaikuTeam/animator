@@ -1,16 +1,17 @@
-var Parser = require('cst').Parser
-var walk = require('estree-walker').walk
-var fsm = require('fuzzy-string-matching')
-var uniq = require('lodash').uniq
-var FORBIDDEN_EXPRESSION_TOKENS = require('@haiku/core/lib/ValueBuilder').default.FORBIDDEN_EXPRESSION_TOKENS
+const Parser = require('cst').Parser
+const walk = require('estree-walker').walk
+const fsm = require('fuzzy-string-matching')
+const uniq = require('lodash').uniq
+const FORBIDDEN_EXPRESSION_TOKENS = require('@haiku/core/lib/ValueBuilder').default.FORBIDDEN_EXPRESSION_TOKENS
+const logger = require('./../utils/LoggerInstance')
 
-var PARSER = new Parser({
+const PARSER = new Parser({
   sourceType: 'script',
   strictMode: true
 })
 
 // Thresholds for fuzzy string matches when detecting any of these types of tokens
-var MATCH_WEIGHTS = {
+const MATCH_WEIGHTS = {
   INJECTABLES: 0.5,
   KEYWORDS: 0.5,
   DECLARATIONS: 0.5
@@ -411,7 +412,7 @@ function parseExpression (expr, injectables, keywords, state, cursor, options) {
       source: expr
     }
   } catch (error) {
-    console.warn('[serialization] Parsing error:', error.message)
+    logger.warn('[parse expression]', error.message)
     return {
       error: error
     }

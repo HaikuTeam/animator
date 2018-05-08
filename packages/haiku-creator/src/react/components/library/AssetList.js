@@ -14,7 +14,7 @@ class AssetList extends React.Component {
               projectModel={this.props.projectModel}
               onDragStart={this.props.onDragStart}
               onDragEnd={this.props.onDragEnd}
-              instantiateAsset={this.props.instantiateAsset}
+              onAssetDoubleClick={this.props.onAssetDoubleClick}
               deleteAsset={this.props.deleteAsset}
               asset={asset}
               indent={this.props.indent}
@@ -35,7 +35,7 @@ AssetList.propTypes = {
   assets: React.PropTypes.array.isRequired,
   onDragEnd: React.PropTypes.func.isRequired,
   onDragStart: React.PropTypes.func.isRequired,
-  instantiateAsset: React.PropTypes.func.isRequired,
+  onAssetDoubleClick: React.PropTypes.func.isRequired,
   deleteAsset: React.PropTypes.func.isRequired,
   projectModel: React.PropTypes.object.isRequired,
   onRefreshFigmaAsset: React.PropTypes.func.isRequired

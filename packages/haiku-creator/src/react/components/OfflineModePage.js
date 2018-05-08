@@ -1,6 +1,7 @@
 import React from 'react'
 import {enumerateAllProjectsByOrganization} from 'haiku-serialization/src/utils/HaikuHomeDir'
 import Palette from 'haiku-ui-common/lib/Palette'
+import logger from 'haiku-serialization/src/utils/LoggerInstance'
 
 export default class OfflineModePage extends React.Component {
   constructor (props) {
@@ -11,7 +12,7 @@ export default class OfflineModePage extends React.Component {
     }
 
     return enumerateAllProjectsByOrganization((err, organizations) => {
-      if (err) return console.error(err)
+      if (err) return logger.error(err)
       this.setState({organizations})
     })
   }
@@ -34,7 +35,7 @@ export default class OfflineModePage extends React.Component {
               })
 
               return this.props.launchFolder(project, abspath, (err) => {
-                if (err) return console.error(err)
+                if (err) return logger.error(err)
               })
             }}>
             {project}

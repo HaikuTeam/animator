@@ -1,3 +1,5 @@
+import * as LoggerInstance from 'haiku-serialization/src/utils/LoggerInstance';
+
 export type EnvoyLogLevel = 'info' | 'log' | 'warn' | 'error';
 
 export default class EnvoyLogger implements Console {
@@ -7,70 +9,70 @@ export default class EnvoyLogger implements Console {
   Console;
 
   constructor(logLevel: EnvoyLogLevel, logger?: Console) {
-    this.logger = logger || console;
+    this.logger = logger || LoggerInstance;
     this.logLevel = logLevel;
   }
 
   info(...args) {
     if (this.logLevel === 'info') {
-      return this.logger.info.apply(this, args);
+      return this.logger.info(...args);
     }
   }
 
   log(...args) {
     if (this.logLevel === 'info' || this.logLevel === 'log') {
-      return this.logger.log.apply(this, args);
+      return this.logger.log(...args);
     }
   }
 
   warn(...args) {
     if (this.logLevel === 'info' || this.logLevel === 'log' || this.logLevel === 'warn') {
-      return this.logger.warn.apply(this, args);
+      return this.logger.warn(...args);
     }
   }
 
   error(...args) {
-    return this.logger.error.apply(this, args);
+    return this.logger.error(...args);
   }
 
   assert(...args) {
-    return this.logger.assert.apply(this, args);
+    return this.logger.assert(...args);
   }
 
   clear(...args) {
-    return this.logger.clear.apply(this, args);
+    return this.logger.clear(...args);
   }
 
   count(...args) {
-    return this.logger.count.apply(this, args);
+    return this.logger.count(...args);
   }
 
   debug(...args) {
-    return this.logger.debug.apply(this, args);
+    return this.logger.debug(...args);
   }
 
   dir(...args) {
-    return this.logger.dir.apply(this, args);
+    return this.logger.dir(...args);
   }
 
-  dirxml(...args) {
-    return this.logger.dirxml.apply(this, args);
+  dirxml(arg) {
+    return this.logger.dirxml(arg);
   }
 
   exception(...args) {
-    return this.logger.exception.apply(this, args);
+    return this.logger.exception(...args);
   }
 
   group(...args) {
-    return this.logger.group.apply(this, args);
+    return this.logger.group(...args);
   }
 
   groupCollapsed(...args) {
-    return this.logger.groupCollapsed.apply(this, args);
+    return this.logger.groupCollapsed(...args);
   }
 
   groupEnd(...args) {
-    return this.logger.groupEnd.apply(this, args);
+    return this.logger.groupEnd(...args);
   }
 
   msIsIndependentlyComposed(element: any) {
@@ -78,30 +80,30 @@ export default class EnvoyLogger implements Console {
   }
 
   profile(...args) {
-    return this.logger.profile.apply(this, args);
+    return this.logger.profile(...args);
   }
 
   profileEnd(...args) {
-    return this.logger.profileEnd.apply(this, args);
+    return this.logger.profileEnd(...args);
   }
 
-  select(...args) {
-    return this.logger.select.apply(this, args);
+  select(arg) {
+    return this.logger.select(arg);
   }
 
   table(...args) {
-    return this.logger.table.apply(this, args);
+    return this.logger.table(...args);
   }
 
   time(...args) {
-    return this.logger.time.apply(this, args);
+    return this.logger.time(...args);
   }
 
   timeEnd(...args) {
-    return this.logger.timeEnd.apply(this, args);
+    return this.logger.timeEnd(...args);
   }
 
   trace(...args) {
-    return this.logger.trace.apply(this, args);
+    return this.logger.trace(...args);
   }
 }

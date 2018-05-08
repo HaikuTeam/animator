@@ -1,18 +1,15 @@
 const lodash = require('lodash')
 const clone = require('lodash.clone')
+const cloneDeepWith = require('lodash.clonedeepwith')
 const merge = require('lodash.merge')
 const assign = require('lodash.assign')
 const defaults = require('lodash.defaults')
-const path = require('path')
 const BaseModel = require('./BaseModel')
-const bytecodeObjectToAST = require('./../ast/bytecodeObjectToAST')
-const normalizeBytecodeFile = require('./../ast/normalizeBytecodeFile')
-const generateCode = require('./../ast/generateCode')
-const formatStandardSync = require('./../formatter/formatStandardSync')
 const xmlToMana = require('@haiku/core/lib/helpers/xmlToMana').default
 const convertManaLayout = require('@haiku/core/lib/layout/convertManaLayout').default
 const expressionToRO = require('@haiku/core/lib/reflection/expressionToRO').default
 const reifyRO = require('@haiku/core/lib/reflection/reifyRO').default
+const logger = require('haiku-serialization/src/utils/LoggerInstance')
 
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const DEFAULT_TIMELINE_NAME = 'Default'
@@ -29,8 +26,8 @@ function isEmpty (val) {
 // TODO: There might be cases where somebody's added a keyframe value whose intent
 // is to be a reference, i.e. a variable referencing something defined in closure.
 // We can possibly handle that in the future in some cases...
-function referenceEvaluator (arg) {
-  console.warn('[bytecode] reference evaluator is not implemented')
+function referenceEvaluatorMissing (arg) {
+  logger.warn('[bytecode] reference evaluator is not implemented')
   return arg
 }
 
@@ -54,20 +51,6 @@ Bytecode.DEFAULT_OPTIONS = {
 }
 
 BaseModel.extend(Bytecode)
-
-/**
- * @method bytecodeToCode
- * @description Given a bytecode object, convert it to its respective code string
- * @param bytecode {Object} A bytecode object (maybe reified or serialized)
- */
-Bytecode.bytecodeToCode = (bytecode) => {
-  Bytecode.cleanBytecode(bytecode)
-  Template.cleanTemplate(bytecode.template)
-  const ast = bytecodeObjectToAST(bytecode)
-  normalizeBytecodeFile(ast)
-  const code = formatStandardSync(generateCode(ast))
-  return code
-}
 
 /**
  * @method areBytecodesIsomorphic
@@ -191,6 +174,9 @@ Bytecode.padIds = (bytecode, padderFunction) => {
         transferReferences(timelineObject, originalReference, updatedReference)
         for (const timelineSelector in timelineObject) {
           for (const propertyName in timelineObject[timelineSelector]) {
+            if (propertyName === 'content') {
+              continue
+            }
             // TODO: Only apply to attributes known to use references? Or would that be brittle?
             //       For example, only filter, stroke, xlink:href...?
             for (const keyframeMs in timelineObject[timelineSelector][propertyName]) {
@@ -208,6 +194,10 @@ Bytecode.padIds = (bytecode, padderFunction) => {
 
   templateNodes.forEach((node) => {
     for (const attrKey in node.attributes) {
+      if (ATTRS_TO_EXCLUDE_FROM_ID_PADDING[attrKey]) {
+        continue
+      }
+
       const attrVal = node.attributes[attrKey]
       if (typeof attrVal !== 'string') continue
       if (fixedReferences[attrVal.trim()]) {
@@ -215,6 +205,15 @@ Bytecode.padIds = (bytecode, padderFunction) => {
       }
     }
   })
+}
+
+const ATTRS_TO_EXCLUDE_FROM_ID_PADDING = {
+  // We often derive the haiku-title from an id="" attribute, which can result in
+  // the haiku-title getting clobbered due to a collision in the fixedReferences
+  // lookup table
+  'haiku-title': true,
+  'haiku-source': true,
+  'haiku-var': true
 }
 
 function transferReferences (obj, originalReference, updatedReference) {
@@ -420,12 +419,19 @@ Bytecode.clone = (bytecode) => {
   return Bytecode.mergeBytecode({}, bytecode)
 }
 
+Bytecode.snapshot = (bytecode) => {
+  return cloneDeepWith(bytecode, (value) => {
+    if (typeof value === 'function') {
+      return value.bind({})
+    }
+  })
+}
+
 Bytecode.decycle = (reified, { doCleanMana }) => {
   const decycled = {}
 
   if (reified.metadata) decycled.metadata = reified.metadata
   if (reified.options) decycled.options = reified.options
-  if (reified.config) decycled.config = reified.config
   if (reified.settings) decycled.settings = reified.settings
   if (reified.properties) decycled.properties = reified.properties
   if (reified.states) decycled.states = reified.states
@@ -520,32 +526,20 @@ Bytecode.reinitialize = (folder, relpath, bytecode = {}, config = {}) => {
   convertManaLayout(bytecode.template)
 
   // Make sure there is at least a baseline metadata objet
-  Bytecode.writeMetadata(bytecode, {
+  Bytecode.writeMetadata(bytecode, lodash.assign({}, config, {
+    // config: name, organization, project, branch, version, core
     uuid: 'HAIKU_SHARE_UUID', // This magic string is detected+replaced by our cloud services to produce a full share link
     type: 'haiku',
-    name: config.name,
-    relpath: relpath
-  })
-
-  // The same content when instantiated in a different host folder will result in a different absolute path
-  // (here called "context"), which in turn will result in the id generation algorithm, SHA256, generating
-  // different base identifiers across different projects despite the same actions.
-  const context = path.join(path.normalize(folder), path.normalize(relpath))
+    relpath
+  }))
 
   // Make sure all elements in the tree have a haiku-id assigned
   Template.ensureTitleAndUidifyTree(
     bytecode.template,
-    path.normalize(relpath),
-    context,
+    Template.normalizePath(relpath), // Fallback for title
+    Template.normalizePath(relpath), // Seed string for hash/id generation
     '0',
-    { title: config.name }
-  )
-
-  // Move inline attributes at the top level into the control object
-  const timeline = Template.hoistTreeAttributes(
-    bytecode.template,
-    DEFAULT_TIMELINE_NAME,
-    DEFAULT_TIMELINE_TIME
+    { title: config.title }
   )
 
   let contextHaikuId = bytecode.template.attributes[HAIKU_ID_ATTRIBUTE]
@@ -555,17 +549,14 @@ Bytecode.reinitialize = (folder, relpath, bytecode = {}, config = {}) => {
     'style.transformStyle': 'flat',
     'style.perspective': 'none',
     'style.position': 'relative',
-    'style.overflowX': 'hidden',
-    'style.overflowY': 'hidden',
+    'style.overflowX': 'visible',
+    'style.overflowY': 'visible',
     'sizeAbsolute.x': DEFAULT_CONTEXT_SIZE.width,
     'sizeAbsolute.y': DEFAULT_CONTEXT_SIZE.height,
     'sizeMode.x': 1,
     'sizeMode.y': 1,
     'sizeMode.z': 1
   }, 'assign')
-
-  // Inject the hoisted attributes into the actual timelines object
-  Bytecode.mergeTimelineStructure(bytecode, timeline, 'defaults')
 
   // Make sure every element has an explicit translation; this is sort of a hack that makes sure
   // that when we undo changes to the artboard, all elements on stage have a first value to go back to
@@ -649,7 +640,7 @@ Bytecode.batchUpsertEventHandlers = (
     bytecode.eventHandlers[selectorName][event] = {}
 
     if (handlerDescriptor.handler !== undefined) {
-      bytecode.eventHandlers[selectorName][event].handler = Bytecode.unserValue(
+      bytecode.eventHandlers[selectorName][event].handler = Bytecode.unserializeValue(
         handlerDescriptor.handler
       )
     }
@@ -660,7 +651,7 @@ Bytecode.batchUpsertEventHandlers = (
 
 Bytecode.changeKeyframeValue = (bytecode, componentId, timelineName, propertyName, keyframeMs, newValue) => {
   var property = Bytecode.ensureTimelineProperty(bytecode, timelineName, componentId, propertyName)
-  property[keyframeMs].value = Bytecode.unserValue(newValue)
+  property[keyframeMs].value = Bytecode.unserializeValue(newValue)
   property[keyframeMs].edited = true
   return property
 }
@@ -674,7 +665,7 @@ Bytecode.changePlaybackSpeed = (bytecode, framesPerSecond) => {
 Bytecode.changeSegmentCurve = (bytecode, componentId, timelineName, propertyName, keyframeMs, newCurve) => {
   const property = Bytecode.ensureTimelineProperty(bytecode, timelineName, componentId, propertyName)
   if (!property[keyframeMs]) property[keyframeMs] = {}
-  property[keyframeMs].curve = Bytecode.unserValue(newCurve) // Curves are usually strings, but can be functions
+  property[keyframeMs].curve = Bytecode.unserializeValue(newCurve) // Curves are usually strings, but can be functions
   property[keyframeMs].edited = true
   return property
 }
@@ -717,12 +708,12 @@ Bytecode.createKeyframe = (bytecode, componentId, timelineName, elementName, pro
   }
 
   // Don't forget this in case we got a function e.g. __function: {....} !
-  keyframeValue = Bytecode.unserValue(keyframeValue)
+  keyframeValue = Bytecode.unserializeValue(keyframeValue)
 
   property[keyframeStartMs].value = keyframeValue
 
   if (keyframeCurve !== undefined && keyframeCurve !== null) {
-    property[keyframeStartMs].curve = Bytecode.unserValue(keyframeCurve)
+    property[keyframeStartMs].curve = Bytecode.unserializeValue(keyframeCurve)
   }
 
   property[keyframeStartMs].edited = true
@@ -731,7 +722,7 @@ Bytecode.createKeyframe = (bytecode, componentId, timelineName, elementName, pro
     // This is actually an upsert of sorts
     if (!property[keyframeEndMs]) property[keyframeEndMs] = {}
 
-    property[keyframeEndMs].value = Bytecode.unserValue(keyframeEndValue || keyframeValue)
+    property[keyframeEndMs].value = Bytecode.unserializeValue(keyframeEndValue || keyframeValue)
     property[keyframeEndMs].edited = true
   }
 
@@ -740,7 +731,7 @@ Bytecode.createKeyframe = (bytecode, componentId, timelineName, elementName, pro
 
 Bytecode.createTimeline = (bytecode, timelineName, timelineDescriptor) => {
   const timeline = Bytecode.ensureTimeline(bytecode, timelineName)
-  if (timelineDescriptor) merge(timeline, Bytecode.unserValue(timelineDescriptor))
+  if (timelineDescriptor) merge(timeline, Bytecode.unserializeValue(timelineDescriptor))
   return timeline
 }
 
@@ -813,7 +804,7 @@ Bytecode.duplicateTimeline = (bytecode, timelineName) => {
   const timeline = Bytecode.ensureTimeline(bytecode, timelineName)
   const duplicate = clone(timeline)
   const newName = timelineName + ' copy'
-  Bytecode.createTimeline(bytecode, newName, duplicate) // This does 'unserValue' for us
+  Bytecode.createTimeline(bytecode, newName, duplicate) // This does 'unserializeValue' for us
   return newName
 }
 
@@ -859,7 +850,7 @@ Bytecode.joinKeyframes = (bytecode, componentId, timelineName, elementName, prop
 
   // May not be here due to a race condition with large projects
   if (property[keyframeMsLeft]) {
-    property[keyframeMsLeft].curve = Bytecode.unserValue(newCurve)
+    property[keyframeMsLeft].curve = Bytecode.unserializeValue(newCurve)
     property[keyframeMsLeft].edited = true
   }
 
@@ -871,7 +862,7 @@ Bytecode.moveKeyframes = (bytecode, keyframeMoves) => {
     for (const componentId in keyframeMoves[timelineName]) {
       for (const propertyName in keyframeMoves[timelineName][componentId]) {
         // We might have received this over the wire, so we need to create reified functions out of serialized ones
-        const keyframeMove = Bytecode.unserValue(keyframeMoves[timelineName][componentId][propertyName])
+        const keyframeMove = Bytecode.unserializeValue(keyframeMoves[timelineName][componentId][propertyName])
 
         const propertyObject = Bytecode.ensureTimelineProperty(
           bytecode,
@@ -926,10 +917,14 @@ Bytecode.serializeValue = (value) => {
 // of a function expression/formula, so we have to convert its serialized form
 // into the reified form, i.e. the 'real' value we want to write to the user's
 // code file
-Bytecode.unserValue = (value) => {
+Bytecode.unserializeValue = (value, referenceEvaluator = referenceEvaluatorMissing) => {
   // (The function expects the inverse of the setting)
   const skipFunctions = !DO_REIFY_FUNCTIONS
-  return reifyRO(value, referenceEvaluator, skipFunctions)
+  return reifyRO(
+    value,
+    referenceEvaluator,
+    skipFunctions
+  )
 }
 
 // aka remove curve
@@ -959,7 +954,7 @@ Bytecode.upsertEventHandler = (bytecode, selectorName, eventName, handlerDescrip
   }
 
   if (handlerDescriptor.handler !== undefined) {
-    bytecode.eventHandlers[selectorName][eventName].handler = Bytecode.unserValue(handlerDescriptor.handler)
+    bytecode.eventHandlers[selectorName][eventName].handler = Bytecode.unserializeValue(handlerDescriptor.handler)
   }
 
   // The 'edited' flag is used to determine whether a property is overwriteable during a merge.
@@ -995,11 +990,11 @@ Bytecode.upsertStateValue = (bytecode, stateName, stateDescriptor) => {
   }
 
   if (stateDescriptor.get !== undefined) {
-    bytecode.states[stateName].get = Bytecode.unserValue(stateDescriptor.get)
+    bytecode.states[stateName].get = Bytecode.unserializeValue(stateDescriptor.get)
   }
 
   if (stateDescriptor.set !== undefined) {
-    bytecode.states[stateName].set = Bytecode.unserValue(stateDescriptor.set)
+    bytecode.states[stateName].set = Bytecode.unserializeValue(stateDescriptor.set)
   }
 
   // The 'edited' flag is used to determine whether a property is overwriteable during a merge.
@@ -1010,10 +1005,13 @@ Bytecode.upsertStateValue = (bytecode, stateName, stateDescriptor) => {
 }
 
 Bytecode.writeMetadata = (bytecode, metadata) => {
-  if (!bytecode.metadata) bytecode.metadata = {}
+  if (!bytecode.metadata) {
+    bytecode.metadata = {}
+  }
+
   if (metadata) {
     for (const key in metadata) {
-      if (metadata[key] !== undefined) {
+      if (metadata[key] !== undefined && metadata[key] !== null) {
         bytecode.metadata[key] = metadata[key]
       }
     }
@@ -1068,6 +1066,65 @@ Bytecode.mergeTimelineStructure = (bytecodeObject, timelineStructure, mergeStrat
       }
     }
   }
+}
+
+Bytecode.getNormalizedRelpath = (bc) => {
+  const r = bc && bc.metadata && bc.metadata.relpath
+  if (r) {
+    return Template.normalizePath(r)
+  }
+}
+
+Bytecode.isBytecodeSame = (a, b) => {
+  if (!a || !b) {
+    return false
+  }
+
+  if (a === b) {
+    return true
+  }
+
+  const relpathA = Bytecode.getNormalizedRelpath(a)
+  const relpathB = Bytecode.getNormalizedRelpath(b)
+
+  if (relpathA && relpathB) {
+    return relpathA === relpathB
+  }
+
+  return false
+}
+
+Bytecode.doesMatchOrHostBytecode = (ours, theirs, seen = {}) => {
+  seen[Bytecode.getNormalizedRelpath(ours)] = true
+
+  if (Bytecode.isBytecodeSame(ours, theirs)) {
+    return true
+  }
+
+  let answer = false
+
+  Template.visit(ours.template, (node) => {
+    // No need to proceed if we've already found our answer
+    if (answer) {
+      return
+    }
+
+    if (typeof node.elementName === 'object') {
+      const relpath = Bytecode.getNormalizedRelpath(node.elementName)
+
+      if (seen[relpath]) {
+        return
+      }
+
+      seen[relpath] = true
+
+      if (Bytecode.doesMatchOrHostBytecode(node.elementName, theirs, seen)) {
+        answer = true
+      }
+    }
+  })
+
+  return answer
 }
 
 module.exports = Bytecode

@@ -23,7 +23,6 @@
     "bluebird": "^3.5.0",
     "capitalize": "^1.0.0",
     "color": "^2.0.1",
-    "combokeys": "^2.4.6",
     "cst": "^0.4.10",
     "haiku-common": "3.2.20",
     "haiku-fs-extra": "3.2.20",

@@ -24,7 +24,6 @@ tape('other.02', (t) => {
     var mgp = new MasterGitProject(folder)
     mgp.restart({ branchName: 'master' })
     return async.series([
-      function (cb) { return mgp.initializeProject({}, cb) },
       function (cb) { return mgp.commitProjectIfChanged('Initialized test folder', cb) },
       function (cb) {
         fse.outputFileSync(path.join(folder, 'hello.txt'), `${change('hello.txt')}`)

@@ -11,7 +11,7 @@ readdir(join(goldensRoot, 'bytecode'), (_, bytecodeFiles) => {
   each(bytecodeFiles, (filename, next) => {
     const bytecodeFilename = join(goldensRoot, 'bytecode', filename);
     TestHelpers.createComponent(require(bytecodeFilename), {}, (component, teardown) => {
-      const contents = ast.updateWithBytecodeAndReturnCode(component._bytecode);
+      const contents = ast.updateWithBytecodeAndReturnCode(component.bytecode);
       writeFile(
         bytecodeFilename,
         contents,

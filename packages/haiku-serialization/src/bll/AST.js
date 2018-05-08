@@ -3,8 +3,13 @@ const prettier = require('prettier')
 const BaseModel = require('./BaseModel')
 const objectToRO = require('@haiku/core/lib/reflection/objectToRO').default
 const bytecodeObjectToAST = require('./../ast/bytecodeObjectToAST')
+const normalizeBytecodeAST = require('./../ast/normalizeBytecodeAST')
 const parseCode = require('./../ast/parseCode')
 const generateCode = require('./../ast/generateCode')
+const logger = require('./../utils/LoggerInstance')
+
+const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source'
+const HAIKU_VAR_ATTRIBUTE = 'haiku-var'
 
 /**
  * @class AST
@@ -21,19 +26,21 @@ class AST extends BaseModel {
   }
 
   updateWithBytecode (bytecode) {
-    // Grab imports before we strip off the __module property
-    const imports = AST.findImportsFromTemplate(bytecode.template)
+    // Grab imports before we strip the __reference property
+    const imports = AST.findImportsFromTemplate(this.file, bytecode.template)
 
     const safe = AST.safeBytecode(bytecode)
 
-    const decycled = Bytecode.decycle(safe, { doCleanMana: false })
+    const decycled = Bytecode.decycle(safe, {doCleanMana: false})
 
     // Strip off `__max` and other cruft editor/core may have added
     Bytecode.cleanBytecode(decycled)
+    Template.cleanTemplate(decycled.template)
 
     const ro = objectToRO(decycled)
 
     const ast = bytecodeObjectToAST(ro, imports)
+    normalizeBytecodeAST(ast)
 
     // Merge instead of replacing wholesale in case we have any pointers
     for (const k1 in this.obj) delete this.obj[k1]
@@ -60,34 +67,44 @@ AST.DEFAULT_OPTIONS = {
 
 BaseModel.extend(AST)
 
-AST.findImportsFromTemplate = (template) => {
+AST.findImportsFromTemplate = (hostfile, template) => {
   // We'll build a mapping from source path to identifier name
   const imports = {}
 
   // This assumes that the module paths have been normalized and relativized
-  Template.visit(template, (node) => {
+  Template.visitWithoutDescendingIntoSubcomponents(template, (node, parent, index, depth, address) => {
     if (node && node.elementName && typeof node.elementName === 'object') {
-      let modpath
+      let source
       let identifier
 
       // If we're loading from in-memory then this should be present
-      if (node.elementName.__module) {
-        // See Mod.prototype.moduleAsMana to understand how this gets setup
-        modpath = node.elementName.__module
-        identifier = node.elementName.__reference
+      if (node.elementName.__reference) {
+        const reference = ModuleWrapper.parseReference(node.elementName.__reference)
+        if (reference) {
+          source = reference.source
+          identifier = reference.identifier
+        }
       } else {
         // But if we just reloaded from disk via require, it'll be the bytecode object
         // and we have to do a bit of hackery in case the element was a primitive
-        modpath = node.attributes && node.attributes.source
-        identifier = node.attributes && node.attributes.identifier
+        source = node.attributes && node.attributes[HAIKU_SOURCE_ATTRIBUTE]
+        identifier = node.attributes && node.attributes[HAIKU_VAR_ATTRIBUTE]
       }
 
-      if (modpath && identifier) {
+      if (source && identifier) {
         // In case these weren't set (see above), set them so downstream codegen works :/
-        node.elementName.__module = modpath
-        node.elementName.__reference = identifier
+        node.elementName.__reference = ModuleWrapper.buildReference(
+          ModuleWrapper.REF_TYPES.COMPONENT, // type
+          Template.normalizePath(`./${hostfile.relpath}`), // host
+          Template.normalizePath(`./${source}`),
+          identifier
+        )
 
-        imports[modpath] = identifier
+        // While the source string we store as an attribute is always with respect to the project
+        // folder, the actual import path we need to write to the file is relative to this module
+        const importSourcePath = hostfile.getImportPathTo(source)
+
+        imports[importSourcePath] = identifier
       }
     }
   })
@@ -100,8 +117,19 @@ AST.safeBytecode = (bytecode) => {
   // We're dealing with a chunk of bytecode that has been rendered, so we need to fix
   // the template object which has been mutated, and return it to its serializable form
   for (const key in bytecode) {
-    if (key === 'template') safe[key] = Template.manaWithOnlyStandardProps(bytecode[key])
-    else safe[key] = bytecode[key]
+    if (key === 'template') {
+      safe[key] = Template.manaWithOnlyStandardProps(bytecode[key], true, (__reference) => {
+        const ref = ModuleWrapper.parseReference(__reference)
+
+        if (ref && ref.identifier) {
+          return ref.identifier
+        }
+
+        return __reference
+      })
+    } else {
+      safe[key] = bytecode[key]
+    }
   }
   return safe
 }
@@ -116,7 +144,7 @@ AST.mutateWith = (abspath, fn) => {
     fse.outputFileSync(abspath, formatted)
     return void (0)
   } catch (exception) {
-    console.warn('[file] Could not provide AST for ' + abspath + '; ' + exception)
+    logger.warn('[ast] could not provide AST for ' + abspath + '; ' + exception)
     return void (0)
   }
 }
@@ -131,4 +159,5 @@ module.exports = AST
 
 // Down here to avoid Node circular dependency stub objects. #FIXME
 const Bytecode = require('./Bytecode')
+const ModuleWrapper = require('./ModuleWrapper')
 const Template = require('./Template')

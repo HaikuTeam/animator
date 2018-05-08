@@ -14,7 +14,7 @@ tape('git.pkill', (t) => {
     proc.on('message', (message) => {
       if (message === 'done') {
         t.ok(true)
-        teardown()  
+        teardown()
       }
     })
   })

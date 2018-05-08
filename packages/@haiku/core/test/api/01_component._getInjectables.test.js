@@ -69,6 +69,6 @@ test('component.getInjectables', function (t) {
 
     t.ok(injectables.$helpers)
 
-    component._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
+    component.context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
   })
 })

@@ -9,6 +9,14 @@ const TIMER_TIMEOUT = 64
 const PROPERTY_GROUP_ACCUMULATION_TIME = 500
 const MAX_UNDOABLES_LEN = 50
 
+// Undoables that always require a full bytecode snapshot to be undone.
+const SNAPSHOTTED_UNDOABLES = {
+  groupElements: true,
+  ungroupElements: true,
+  conglomerateComponent: true,
+  popBytecodeSnapshot: true
+}
+
 const ACCUMULATORS = {
   updateKeyframes: (params, match) => {
     const updates1 = match.params[2]
@@ -287,52 +295,65 @@ class ActionStack extends BaseModel {
       }
     }
 
-    // This may be null if the method called is in the Project scope
-    const [relpath] = params
-    const ac = this.project.findActiveComponentBySource(relpath)
+    // No component needed nor available if the method called is in the Project scope
+    const ac = (typeof params[0] === 'string')
+      ? this.project.findActiveComponentBySource(params[0]) // relpath
+      : null
 
-    let inverter = this.buildMethodInverterAction(ac, method, params, metadata, 'before')
+    const finish = (inverter) => {
+      // The callback will fire immediately before the action is transmitted
+      // This callback is named handleActionResolution
+      return continuation((err, out) => {
+        if (err) {
+          return
+        }
 
-    // The callback will fire immediately before the action is transmitted
-    // This callback is named handleActionResolution
-    return continuation((err, out) => {
-      if (err) {
-        return
-      }
+        if (!inverter) {
+          inverter = this.buildMethodInverterAction(ac, method, params, metadata, 'after', out)
+        } else {
+          delete this.accumulatedInverters[method]
+        }
 
-      if (!inverter) {
-        inverter = this.buildMethodInverterAction(ac, method, params, metadata, 'after', out)
-      } else {
-        delete this.accumulatedInverters[method]
-      }
+        let did = false
 
-      let did = false
-
-      if (inverter) {
-        // Note that we use the cursor mode we snapshotted when the method was initiated
-        if (
-          // No cursor mode is equivalent to the default cursor mode
+        if (inverter) {
+          // Note that we use the cursor mode we snapshotted when the method was initiated
+          if (
+            // No cursor mode is equivalent to the default cursor mode
           !metadata.cursor ||
           metadata.cursor === ActionStack.CURSOR_MODES.undo
-        ) {
-          did = true
-          this.addUndoable(inverter)
-        } else if (metadata.cursor === ActionStack.CURSOR_MODES.redo) {
-          did = true
-          this.addRedoable(inverter)
-        }
+          ) {
+            did = true
+            this.addUndoable(inverter)
+          } else if (metadata.cursor === ActionStack.CURSOR_MODES.redo) {
+            did = true
+            this.addRedoable(inverter)
+          }
 
-        if (did) {
-          logger.info(
-            `[action stack (${this.project.getAlias()})] inversion :::`,
-            metadata.cursor,
-            inverter.method,
-            inverter.params,
-            this.getUndoables().length, '<~u|r~>', this.getRedoables().length
-          )
+          if (did) {
+            logger.info(
+              `[action stack] inversion :::`,
+              metadata.cursor,
+              inverter.method,
+              inverter.params,
+              this.getUndoables().length, '<~u|r~>', this.getRedoables().length
+            )
+          }
         }
-      }
-    })
+      })
+    }
+
+    if (SNAPSHOTTED_UNDOABLES[method]) {
+      return ac.pushBytecodeSnapshot(() => finish({
+        method: ac.popBytecodeSnapshot.name,
+        params: [
+          params[0], // relpath
+          metadata
+        ]
+      }))
+    }
+
+    return finish(this.buildMethodInverterAction(ac, method, params, metadata, 'before'))
   }
 
   undo (options, metadata, cb) {
@@ -341,7 +362,7 @@ class ActionStack extends BaseModel {
       return cb()
     }
 
-    logger.info(`[action stack (${this.project.getAlias()})] undo (us=${this.getUndoables().length})`)
+    logger.info(`[action stack] undo (us=${this.getUndoables().length})`)
 
     return Lock.request(Lock.LOCKS.ActionStackUndoRedo, false, (release) => {
       const { method, params } = this.popUndoable()
@@ -369,7 +390,7 @@ class ActionStack extends BaseModel {
       return cb()
     }
 
-    logger.info(`[action stack (${this.project.getAlias()})] redo (rs=${this.getRedoables().length})`)
+    logger.info(`[action stack] redo (rs=${this.getRedoables().length})`)
 
     return Lock.request(Lock.LOCKS.ActionStackUndoRedo, false, (release) => {
       const { method, params } = this.popRedoable()
@@ -532,24 +553,6 @@ ActionStack.METHOD_INVERTERS = {
       return {
         method: ac.joinKeyframes.name,
         params: [componentId, timelineName, elementName, propertyName, keyframeMs, null, oldCurve]
-      }
-    }
-  },
-
-  groupElements: {
-    after: (ac, [componentIds], groupComponentId) => {
-      return {
-        method: ac.ungroupElements.name,
-        params: [groupComponentId]
-      }
-    }
-  },
-
-  ungroupElements: {
-    after: (ac, [componentId], ungroupedComponentIds) => {
-      return {
-        method: ac.groupElements.name,
-        params: [ungroupedComponentIds]
       }
     }
   },

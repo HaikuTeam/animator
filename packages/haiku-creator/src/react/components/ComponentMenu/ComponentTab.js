@@ -1,8 +1,8 @@
 import React from 'react'
 import Radium from 'radium'
 import Palette from 'haiku-ui-common/lib/Palette'
-import {CloseIconSVG} from 'haiku-ui-common/lib/react/OtherIcons'
 import toTitleCase from '../../helpers/toTitleCase'
+import logger from 'haiku-serialization/src/utils/LoggerInstance'
 
 const STYLES = {
   container: {
@@ -44,12 +44,8 @@ const STYLES = {
 class ComponentTab extends React.Component {
   constructor (props) {
     super(props)
-    this.state = {
-      isHoveringDeleteButton: false,
-      isHoveringTab: false
-    }
+    this.state = {}
     this.changeComponent = this.changeComponent.bind(this)
-    this.closeComponentTab = this.closeComponentTab.bind(this)
   }
 
   changeComponent () {
@@ -63,15 +59,7 @@ class ComponentTab extends React.Component {
 
     this.props.projectModel.setCurrentActiveComponent(this.props.tab.scenename, { from: 'creator' }, (err) => {
       if (err) {
-        console.error(err)
-      }
-    })
-  }
-
-  closeComponentTab () {
-    this.props.projectModel.closeNamedActiveComponent(this.props.tab.scenename, { from: 'creator' }, (err) => {
-      if (err) {
-        console.error(err)
+        logger.error(err)
       }
     })
   }
@@ -79,12 +67,6 @@ class ComponentTab extends React.Component {
   render () {
     return (
       <div
-        onMouseEnter={() => {
-          this.setState({ isHoveringTab: true })
-        }}
-        onMouseLeave={() => {
-          this.setState({ isHoveringTab: false })
-        }}
         style={STYLES.container}>
         <div
           onClick={this.changeComponent}
@@ -92,30 +74,6 @@ class ComponentTab extends React.Component {
           <span style={STYLES.label} className='no-select'>
             {toTitleCase(this.props.tab.scenename)}
           </span>
-          {(this.props.tab.scenename !== 'main' && this.state.isHoveringTab)
-            ? <span
-              onClick={this.closeComponentTab}
-              onMouseEnter={() => {
-                this.setState({ isHoveringDeleteButton: true })
-              }}
-              onMouseLeave={() => {
-                this.setState({ isHoveringDeleteButton: false })
-              }}
-              style={{
-                width: 16,
-                height: 16,
-                position: 'absolute',
-                top: 5,
-                right: 4,
-                transform: 'scale(0.7)',
-                display: 'inline-block'
-              }}>
-              <CloseIconSVG
-                color={(this.state.isHoveringDeleteButton)
-                    ? Palette.COAL
-                    : Palette.DARK_ROCK} />
-            </span>
-            : ''}
         </div>
       </div>
     )

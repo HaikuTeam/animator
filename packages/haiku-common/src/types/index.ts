@@ -36,3 +36,13 @@ export type TemplateElement<T> = {
 export type TemplateElementAttributes = {
   [key: string]: any;
 };
+
+export type PlumbingProject = {
+  projectPath: string;
+  projectName: string;
+  projectExistsLocally: boolean;
+  projectsHome: string;
+  repositoryUrl: string;
+  forkComplete: boolean;
+  isPublic:boolean;
+};

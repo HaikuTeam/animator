@@ -1,8 +1,9 @@
-var qs = require('qs')
-var path = require('path')
-var electron = require('electron')
-var app = electron.app
-var BrowserWindow = electron.BrowserWindow
+import path from 'path'
+
+import qs from 'qs'
+import {app, BrowserWindow} from 'electron'
+
+import TopMenu from 'haiku-common/lib/electron/TopMenu'
 
 /**
  * This file is bypassed when loaded in the full app.
@@ -13,9 +14,7 @@ if (!app) {
   throw new Error('You can only run electron.js from an electron process')
 }
 
-var url = 'file://' + path.join(__dirname, '..', 'index.html')
-
-var params = {
+const params = {
   email: 'matthew+SENTRY-TESTING-USER@haiku.ai',
   folder: process.env.HAIKU_PROJECT_FOLDER,
   plumbing: process.env.HAIKU_PLUMBING_URL
@@ -27,28 +26,39 @@ if (process.env.MOCK_ENVOY) {
 
 const query = qs.stringify(params)
 
-url = `${url}?${query}`
+const url = `file://${path.join(__dirname, '..', 'index.html')}?${query}`
 
-let browserWindow = null
+let mainWindow = null
 
 app.on('window-all-closed', () => {
   app.quit()
 })
 
 function createWindow () {
-  browserWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     webPreferences: {
       webSecurity: false
     }
   })
-  browserWindow.maximize()
-  browserWindow.loadURL(url)
+  mainWindow.maximize()
+  mainWindow.loadURL(url)
 
   if (process.env.DEV === '1') {
-    browserWindow.webContents.openDevTools()
+    mainWindow.webContents.openDevTools()
   }
 
-  browserWindow.on('closed', () => { browserWindow = null })
+  mainWindow.on('closed', () => { mainWindow = null })
+
+  const topmenu = new TopMenu({
+    // TODO: refactor to support using the real top menu in timeline standalone mode.
+    send: () => {}
+  })
+
+  topmenu.create({
+    projectList: [],
+    isSaving: false,
+    isProjectOpen: true
+  })
 }
 
 app.on('ready', createWindow)

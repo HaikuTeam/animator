@@ -79,7 +79,7 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
             visit(this.mount, (node) => {
               const flexId = flexIdIfSame(element, node);
               if (flexId) {
-                if (!component._didElementRenderSurrogate(element, surrogate)) {
+                if (element.__surrogate !== surrogate) {
                   if (
                     typeof surrogate.type === 'string' ||
                     (typeof surrogate.type === 'function' && surrogate.type.isHaikuAdapter)) {
@@ -98,11 +98,11 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
                   node.style.visibility = 'hidden';
                   ReactDOM.render(surrogate, node);
                   window.requestAnimationFrame(() => {
-                    component._markElementSurrogateAsRendered(element, surrogate);
+                    element.__surrogate = surrogate;
                     node.style.visibility = 'visible';
                   });
-                  component._markHorizonElement(element);
-                  component._markForFullFlush();
+                  component.markHorizonElement(element);
+                  component.markForFullFlush();
                 }
               }
             });

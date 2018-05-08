@@ -2,7 +2,6 @@ import React from 'react'
 import lodash from 'lodash'
 import Radium from 'radium'
 import path from 'path'
-import Combokeys from 'combokeys'
 import HaikuDOMRenderer from '@haiku/core/lib/renderers/dom'
 import HaikuContext from '@haiku/core/lib/HaikuContext'
 import BaseModel from 'haiku-serialization/src/bll/BaseModel'
@@ -10,14 +9,15 @@ import Project from 'haiku-serialization/src/bll/Project'
 import Config from '@haiku/core/lib/Config'
 import Element from 'haiku-serialization/src/bll/Element'
 import ElementSelectionProxy from 'haiku-serialization/src/bll/ElementSelectionProxy'
-import Design from 'haiku-serialization/src/bll/Design'
 import Asset from 'haiku-serialization/src/bll/Asset'
-import ModuleWrapper from 'haiku-serialization/src/bll/ModuleWrapper'
 import EmitterManager from 'haiku-serialization/src/utils/EmitterManager'
 import {isCoordInsideBoxPoints} from 'haiku-serialization/src/bll/MathUtils'
 import Palette from 'haiku-ui-common/lib/Palette'
 import Comment from './Comment'
 import EventHandlerEditor from './components/EventHandlerEditor'
+import CreateComponentModal from './modals/CreateComponentModal'
+import CreateGroupModal from './modals/CreateGroupModal'
+import UngroupModal from './modals/UngroupModal'
 import Comments from './Comments'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
 import requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates'
@@ -29,8 +29,10 @@ import defsMana from '../overlays/defsMana'
 import gearMana from '../overlays/gearMana'
 import rotationCursorMana from '../overlays/rotationCursorMana'
 import scaleCursorMana from '../overlays/scaleCursorMana'
-import {isMac, isWindows, isLinux} from 'haiku-common/lib/environments/os'
+import logger from 'haiku-serialization/src/utils/LoggerInstance'
+import {isMac} from 'haiku-common/lib/environments/os'
 
+const mixpanel = require('haiku-serialization/src/utils/Mixpanel')
 const Globals = require('haiku-ui-common/lib/Globals').default
 const {clipboard, shell, remote} = require('electron')
 const fse = require('haiku-fs-extra')
@@ -41,12 +43,6 @@ fse.mkdirpSync(HOMEDIR_PATH)
 
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'glass'
-
-const ifIsRunningStandalone = (cb) => {
-  if (!window.isWebview) {
-    return cb()
-  }
-}
 
 const POINTS_THRESHOLD_REDUCED = 65 // Display only the corner control points
 const POINTS_THRESHOLD_NONE = 15 // Display no control points nor line
@@ -65,8 +61,9 @@ const SELECTION_TYPES = {
 
 const MENU_ACTION_DEBOUNCE_TIME = 100
 const DIMENSIONS_RESET_DEBOUNCE_TIME = 100
-
 const BIG_NUMBER = 99999
+const HAIKU_ID_ATTRIBUTE = 'haiku-id'
+const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source'
 
 const OUTLINE_CLONE_SUFFIX = 'outline-clone-helper'
 
@@ -87,8 +84,6 @@ function writeHtmlSnapshot (html, react) {
     shell.openItem(filepath)
   })
 }
-
-const combokeys = new Combokeys(document.documentElement)
 
 // The class is exported also _without_ the radium wrapper to allow jsdom testing
 export class Glass extends React.Component {
@@ -118,6 +113,9 @@ export class Glass extends React.Component {
       doShowComments: false,
       targetElement: null,
       isEventHandlerEditorOpen: false,
+      isCreateComponentModalOpen: false,
+      isCreateGroupModalOpen: false,
+      isUngroupModalOpen: false,
       eventHandlerEditorOptions: {}
     }
 
@@ -138,21 +136,13 @@ export class Glass extends React.Component {
       }
     )
 
-    this._comments = new Comments(this.props.folder)
-
-    this._playing = false
-    this._stopwatch = null
-    this._lastAuthoritativeFrame = 0
-
-    this.drawLoop = this.drawLoop.bind(this)
-    this.draw = this.draw.bind(this)
-
     this.handleRequestElementCoordinates = this.handleRequestElementCoordinates.bind(this)
 
     this.handleDimensionsReset = lodash.debounce(() => {
       // Need to notify creator of viewport change so instantiation position is correct;
       // this event is also called whenever the window is resized
       const artboard = this.getActiveComponent().getArtboard()
+
       this.props.websocket.send({
         type: 'broadcast',
         name: 'dimensions-reset',
@@ -164,7 +154,15 @@ export class Glass extends React.Component {
       })
     }, DIMENSIONS_RESET_DEBOUNCE_TIME)
 
-    this.handleGroupDebounced = lodash.debounce(() => this.handleGroup(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
+    this._comments = new Comments(this.props.folder)
+
+    this._playing = false
+    this._stopwatch = null
+    this._lastAuthoritativeFrame = 0
+
+    this.drawLoop = this.drawLoop.bind(this)
+    this.draw = this.draw.bind(this)
+
     this.handleUngroupDebounced = lodash.debounce(() => this.handleUngroup(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
     this.handleCutDebounced = lodash.debounce(() => this.handleCut(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
     this.handleCopyDebounced = lodash.debounce(() => this.handleCopy(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
@@ -241,6 +239,10 @@ export class Glass extends React.Component {
     })
 
     this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'update', (what, ...args) => {
+      if (!this.getActiveComponent()) {
+        return
+      }
+
       switch (what) {
         case 'setCurrentActiveComponent':
           this.handleActiveComponentReady()
@@ -283,6 +285,10 @@ export class Glass extends React.Component {
       }
     })
 
+    this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'change-authoritative-frame', (frame) => {
+      this.handleTimelineDidSeek({frame})
+    })
+
     // When all views send this, we know it's ok to initialize the 'main' component
     this.project.broadcastPayload({
       name: 'project-state-change',
@@ -306,8 +312,7 @@ export class Glass extends React.Component {
         freeze: true,
         overflowX: 'visible',
         overflowY: 'visible',
-        contextMenu: 'disabled',
-        reloadMode: ModuleWrapper.RELOAD_MODES.MONKEYPATCHED_OR_ISOLATED
+        contextMenu: 'disabled'
       })
     })
   }
@@ -393,6 +398,17 @@ export class Glass extends React.Component {
     this._stopwatch = Date.now()
   }
 
+  /**
+   * @method handleFrameChange
+   * @description This method is called continuously as part of the glass draw loop.
+   * The purpose is to allow the glass to play the animation smoothly at 60fps even when
+   * "move to frame x" updates originating from other processes don't arrive fast enough.
+   * Basically, play the animation and use the most recently received authoritative frame
+   * as a guideline for what time to seek to. An important side effect is that if you
+   * want to set the timeline time programmatically in glass, you also need to ensure that
+   * the _lastAuthoritativeFrame value is updated otherwise your setting will get
+   * overridden by this loop.
+   */
   handleFrameChange () {
     let seekMs = 0
 
@@ -518,91 +534,29 @@ export class Glass extends React.Component {
       }
     })
 
-    combokeys.bind('command+z', () => {
-      ifIsRunningStandalone(() => {
-        this.handleUndoDebounced({
-          from: 'glass',
-          time: Date.now()
-        })
-      })
-    })
-
-    combokeys.bind('command+shift+z', () => {
-      ifIsRunningStandalone(() => {
-        this.handleRedoDebounced({
-          from: 'glass',
-          time: Date.now()
-        })
-      })
-    })
-
-    combokeys.bind('command+x', () => {
-      ifIsRunningStandalone(() => this.handleCutDebounced())
-    })
-
-    combokeys.bind('command+c', () => {
-      ifIsRunningStandalone(() => this.handleCopyDebounced())
-    })
-
-    combokeys.bind('command+v', () => {
-      ifIsRunningStandalone(() => this.handlePasteDebounced())
-    })
-
-    // Workaround to fix electron(Chromium) distinct codepath for
-    // Windows and Linux shortcuts. More info:
-    // https://github.com/electron/electron/issues/7165#issuecomment-246486798
-    // https://github.com/buttercup/buttercup-desktop/pull/223
-    if (isWindows() || isLinux()) {
-      combokeys.bind('ctrl+x', () => {
-        this.handleCutDebounced()
-      })
-
-      combokeys.bind('ctrl+c', () => {
-        this.handleCopyDebounced()
-      })
-
-      combokeys.bind('ctrl+v', () => {
-        this.handlePasteDebounced()
-      })
-    }
-
-    if (experimentIsEnabled(Experiment.ElementMultiSelectAndTransform)) {
-      combokeys.bind('command+a', () => {
-        ifIsRunningStandalone(() => this.handleSelectAllDebounced())
-      })
-    }
-
-    if (experimentIsEnabled(Experiment.GroupUngroup)) {
-      combokeys.bind('command+g', () => {
-        ifIsRunningStandalone(() => this.handleGroupDebounced())
-      })
-
-      combokeys.bind('command+shift+g', () => {
-        ifIsRunningStandalone(() => this.handleUngroupDebounced())
-      })
-    }
-
     this.addEmitterListener(this.props.websocket, 'relay', (message) => {
-      console.info('[glass] relay received', message.name, 'from', message.from)
+      logger.info('relay received', message.name, 'from', message.from)
 
       switch (message.name) {
         case 'global-menu:zoom-in':
+          mixpanel.haikuTrack('creator:glass:zoom-in')
           this.getActiveComponent().getArtboard().zoomIn(1.25)
           break
 
         case 'global-menu:zoom-out':
+          mixpanel.haikuTrack('creator:glass:zoom-out')
           this.getActiveComponent().getArtboard().zoomOut(1.25)
           break
 
         case 'global-menu:group':
           if (experimentIsEnabled(Experiment.GroupUngroup)) {
-            this.handleGroupDebounced()
+            this.launchGroupNameModal()
           }
           break
 
         case 'global-menu:ungroup':
           if (experimentIsEnabled(Experiment.GroupUngroup)) {
-            this.handleUngroupDebounced()
+            this.launchUngroupModal()
           }
           break
 
@@ -658,14 +612,14 @@ export class Glass extends React.Component {
               })
 
               if (err) {
-                console.error(err)
+                logger.error(err)
                 return
               }
 
               this.getActiveComponent().getArtboard().updateMountSize(this.refs.container)
             })
           } else {
-            console.warn('[haiku-glass] active component not initialized; cannot reload')
+            logger.warn('active component not initialized; cannot reload')
             return
           }
 
@@ -729,11 +683,11 @@ export class Glass extends React.Component {
     this.removeEmitterListeners()
     this.tourClient.off('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
     this.project.getEnvoyClient().closeConnection()
-    combokeys.detach()
   }
 
   handleUndo (payload) {
     if (this.project) {
+      mixpanel.haikuTrack('creator:glass:undo')
       Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'})
       this.project.undo({}, {from: 'glass'}, () => {})
     }
@@ -741,20 +695,24 @@ export class Glass extends React.Component {
 
   handleRedo (payload) {
     if (this.project) {
+      mixpanel.haikuTrack('creator:glass:redo')
       Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'})
       this.project.redo({}, {from: 'glass'}, () => {})
     }
   }
 
   handleCut () {
+    mixpanel.haikuTrack('creator:glass:cut')
     this.fetchProxyElementForSelection().cut({from: 'glass'})
   }
 
   handleCopy () {
+    mixpanel.haikuTrack('creator:glass:copy')
     this.fetchProxyElementForSelection().copy({from: 'glass'})
   }
 
   handlePaste () {
+    mixpanel.haikuTrack('creator:glass:paste')
     const pasteables = ElementSelectionProxy.getPasteables()
     return this.fetchProxyElementForSelection().pasteClipsAndSelect(
       pasteables,
@@ -769,6 +727,7 @@ export class Glass extends React.Component {
     }
 
     if (this.getActiveComponent()) {
+      mixpanel.haikuTrack('creator:glass:delete-element')
       const proxy = this.fetchProxyElementForSelection()
       proxy.remove()
     }
@@ -776,30 +735,94 @@ export class Glass extends React.Component {
 
   handleSelectAll () {
     if (this.getActiveComponent()) {
+      mixpanel.haikuTrack('creator:glass:select-all')
       this.getActiveComponent().selectAll({}, {from: 'glass'}, () => {})
     }
   }
 
-  handleGroup () {
+  createGroupWithTitle (title) {
     const proxy = this.fetchProxyElementForSelection()
     if (proxy.canGroup()) {
-      proxy.group({from: 'glass'})
+      mixpanel.haikuTrack('creator:glass:group')
+      proxy.group({from: 'glass'}, title)
     }
   }
 
   handleUngroup () {
     const proxy = this.fetchProxyElementForSelection()
     if (proxy.canUngroup()) {
+      mixpanel.haikuTrack('creator:glass:ungroup')
       proxy.ungroup({from: 'glass'})
     }
   }
 
-  createComponentFromSelectedElements () {
-    // TODO
+  launchComponentNameModal () {
+    this.setState({
+      isCreateComponentModalOpen: true
+    })
   }
 
-  editComponentElement (proxy) {
-    // TODO
+  launchGroupNameModal () {
+    this.setState({
+      isCreateGroupModalOpen: true
+    })
+  }
+
+  launchUngroupModal () {
+    this.setState({
+      isUngroupModalOpen: true
+    })
+  }
+
+  conglomerateComponentFromSelectedElementsWithTitle (title) {
+    const elements = Element.where({
+      _isSelected: true,
+      component: this.getActiveComponent()
+    })
+
+    // Our selection becomes invalid as soon as we call this since we're changing
+    // the elements that are currently on stage (including our current selection)
+    Element.unselectAllElements({
+      component: this.getActiveComponent()
+    }, { from: 'glass' })
+
+    mixpanel.haikuTrack('creator:glass:create-component', {
+      title
+    })
+
+    this.getActiveComponent().conglomerateComponent(
+      elements.map((element) => element.getComponentId()),
+      title,
+      {
+        'translation.x': 0,
+        'translation.y': 0,
+        // TODO: For now make the component the same size as the artboard so
+        // we don't have to worry about offsets or bounding box sizing
+        'sizeAbsolute.x': this.getActiveComponent().getArtboard().getMountWidth(),
+        'sizeAbsolute.y': this.getActiveComponent().getArtboard().getMountHeight(),
+        'sizeMode.x': 1,
+        'sizeMode.y': 1,
+        'sizeMode.z': 1
+      },
+      {from: 'glass'},
+      (err) => {
+        if (err) logger.error(err)
+      }
+    )
+  }
+
+  editComponent (relpath) {
+    const ac = this.project.findActiveComponentBySource(relpath)
+
+    if (ac && ac !== this.getActiveComponent()) {
+      mixpanel.haikuTrack('creator:glass:edit-component', {
+        title: ac.getTitle()
+      })
+
+      ac.setAsCurrentActiveComponent({from: 'glass'}, (err) => {
+        if (err) return logger.error(err)
+      })
+    }
   }
 
   handleWindowResize () {
@@ -820,7 +843,8 @@ export class Glass extends React.Component {
       return
     }
 
-    console.info(`[glass] showing action editor`, targetElement, options)
+    mixpanel.haikuTrack('creator:glass:show-event-handlers-editor')
+    logger.info(`showing action editor`, targetElement, options)
 
     this.setState({
       targetElement: targetElement,
@@ -831,6 +855,7 @@ export class Glass extends React.Component {
 
   hideEventHandlersEditor () {
     if (this.editor && this.editor.canBeClosedExternally()) {
+      mixpanel.haikuTrack('creator:glass:hide-event-handlers-editor')
       this.setState({
         targetElement: null,
         isEventHandlerEditorOpen: false,
@@ -909,7 +934,7 @@ export class Glass extends React.Component {
 
   windowMouseOverHandler (mouseOver) {
     if (this.isPreviewMode()) {
-      return void (0)
+      return
     }
 
     const element = this.findElementAssociatedToMouseEvent(mouseOver)
@@ -920,7 +945,7 @@ export class Glass extends React.Component {
 
   windowMouseOutHandler (mouseOut) {
     if (this.isPreviewMode()) {
-      return void (0)
+      return
     }
 
     const element = this.findElementAssociatedToMouseEvent(mouseOut)
@@ -929,8 +954,17 @@ export class Glass extends React.Component {
     }
   }
 
+  get areAnyModalsOpen () {
+    return this.state.isEventHandlerEditorOpen || this.state.isCreateComponentModalOpen ||
+      this.state.isCreateGroupModalOpen || this.state.isUngroupModalOpen
+  }
+
+  get shouldNotHandldKeyboardEvents () {
+    return this.isPreviewMode() || this.areAnyModalsOpen
+  }
+
   windowMouseMoveHandler (nativeEvent) {
-    if (this.state.isEventHandlerEditorOpen) {
+    if (this.areAnyModalsOpen) {
       return
     }
 
@@ -939,7 +973,7 @@ export class Glass extends React.Component {
   }
 
   windowMouseUpHandler (nativeEvent) {
-    if (this.state.isEventHandlerEditorOpen) {
+    if (this.areAnyModalsOpen) {
       return
     }
 
@@ -948,7 +982,7 @@ export class Glass extends React.Component {
   }
 
   windowMouseDownHandler (nativeEvent) {
-    if (this.state.isEventHandlerEditorOpen) {
+    if (this.areAnyModalsOpen) {
       return
     }
 
@@ -957,7 +991,7 @@ export class Glass extends React.Component {
   }
 
   windowClickHandler (nativeEvent) {
-    if (this.isPreviewMode() || this.state.isEventHandlerEditorOpen) {
+    if (this.shouldNotHandldKeyboardEvents) {
       return
     }
 
@@ -966,7 +1000,7 @@ export class Glass extends React.Component {
   }
 
   windowDblClickHandler (nativeEvent) {
-    if (this.isPreviewMode() || this.state.isEventHandlerEditorOpen) {
+    if (this.shouldNotHandldKeyboardEvents) {
       return
     }
 
@@ -975,7 +1009,7 @@ export class Glass extends React.Component {
   }
 
   windowKeyDownHandler (nativeEvent) {
-    if (this.isPreviewMode() || this.state.isEventHandlerEditorOpen) {
+    if (this.shouldNotHandldKeyboardEvents) {
       return
     }
 
@@ -983,7 +1017,7 @@ export class Glass extends React.Component {
   }
 
   windowKeyUpHandler (nativeEvent) {
-    if (this.isPreviewMode() || this.state.isEventHandlerEditorOpen) {
+    if (this.shouldNotHandldKeyboardEvents) {
       return
     }
 
@@ -991,16 +1025,8 @@ export class Glass extends React.Component {
   }
 
   handleMouseDown (mousedownEvent) {
-    if (!this.getActiveComponent()) {
-      return
-    }
-
-    if (this.state.isEventHandlerEditorOpen) {
-      return
-    }
-
     // Only count left clicks
-    if (mousedownEvent.nativeEvent.button !== 0) {
+    if (!this.getActiveComponent() || this.areAnyModalsOpen || mousedownEvent.nativeEvent.button !== 0) {
       return
     }
 
@@ -1075,10 +1101,10 @@ export class Glass extends React.Component {
           if (target) {
             // First make sure we are grabbing the correct element based on the context.
             // If we've landed on a component sub-element, we need to go up and select the wrapper.
-            let haikuId = target.getAttribute('haiku-id')
+            let haikuId = target.getAttribute(HAIKU_ID_ATTRIBUTE)
 
             if (this.isDomNodeChildOfComponentWrapperDomNode(target)) {
-              haikuId = target.parentNode.getAttribute('haiku-id')
+              haikuId = target.parentNode.getAttribute(HAIKU_ID_ATTRIBUTE)
             }
 
             const elementTargeted = this.getActiveComponent().findElementByComponentId(haikuId)
@@ -1198,7 +1224,7 @@ export class Glass extends React.Component {
     }
 
     // If we don't have selectable metadata, try our parent
-    if (!target.hasAttribute('haiku-id')) {
+    if (!target.hasAttribute(HAIKU_ID_ATTRIBUTE)) {
       return this.validTargetOrNull(target.parentNode)
     }
 
@@ -1206,7 +1232,7 @@ export class Glass extends React.Component {
     // note that we already checked if the parent is the mount above;
     // we don't jump if the next one up is the artboard either
     if (
-      target.parentNode.hasAttribute('haiku-id') &&
+      target.parentNode.hasAttribute(HAIKU_ID_ATTRIBUTE) &&
       !this.targetIsMount(target.parentNode.parentNode)
     ) {
       return this.validTargetOrNull(target.parentNode)
@@ -1287,16 +1313,10 @@ export class Glass extends React.Component {
     // we need to actually select the parent (wrapper) element since that's what our component manages
     if (
       target.parentNode &&
-      target.parentNode.getAttribute('haiku-id') &&
-      target.parentNode.getAttribute('source')
+      target.parentNode.getAttribute(HAIKU_ID_ATTRIBUTE) &&
+      target.parentNode.getAttribute(HAIKU_SOURCE_ATTRIBUTE)
     ) {
-      const targetCodeSourceWithRespectToProjectRoot = Design.designSourceToCodeSource(target.getAttribute('source'))
-      const targetCodeSourceWithRespectToInstantiatorComponent = target.parentNode.getAttribute('source')
-      if (this.getActiveComponent().getRelpathWithRespectToProjectFromPathRelativeToUs(targetCodeSourceWithRespectToInstantiatorComponent) === targetCodeSourceWithRespectToProjectRoot) {
-        // If this element's design source is the code source of the parent, we've reached the component wrapper
-        // The element to select is the parent node (the node in the context of the active component)
-        return true
-      }
+      return true
     }
     return false
   }
@@ -1319,8 +1339,8 @@ export class Glass extends React.Component {
     while (
       target.hasAttribute &&
       (
-        !target.hasAttribute('source') || // Only root elements of an instantiated component have this attribute
-        !target.hasAttribute('haiku-id') || // Only haiku elements have this
+        !target.hasAttribute(HAIKU_SOURCE_ATTRIBUTE) || // Only root elements of an instantiated component have this attribute
+        !target.hasAttribute(HAIKU_ID_ATTRIBUTE) || // Only haiku elements have this
         !Element.findById(
           Element.buildUidFromComponentAndDomElement(this.getActiveComponent(), target)
         )
@@ -1389,11 +1409,10 @@ export class Glass extends React.Component {
     }
 
     const target = this.findNearestDomSelectionTarget(doubleClickEvent.nativeEvent.target)
+    const source = target && target.getAttribute && target.getAttribute(HAIKU_SOURCE_ATTRIBUTE)
 
-    // Double clicking in a component means we want to drill down and start editing it
-    if (this.isDomNodeChildOfComponentWrapperDomNode(target)) {
-      const element = Element.findById(Element.buildUidFromComponentAndDomElement(this.getActiveComponent(), target))
-      element.component.setAsCurrentActiveComponent({ from: 'glass' })
+    if (source && source[0] === '.') {
+      this.editComponent(source)
     }
   }
 
@@ -2012,7 +2031,8 @@ export class Glass extends React.Component {
         // If a single element is already a component, we don't let it be created as one
         enabled: proxy.canCreateComponentFromSelection(),
         onClick: () => {
-          this.createComponentFromSelectedElements()
+          mixpanel.haikuTrack('creator:glass:launch-create-component-modal')
+          this.launchComponentNameModal()
         }
       })
 
@@ -2020,7 +2040,7 @@ export class Glass extends React.Component {
         label: 'Edit Component',
         enabled: proxy.canEditComponentFromSelection(),
         onClick: () => {
-          this.editComponentElement(proxy.getSingleComponentElement())
+          this.editComponent(proxy.getSingleComponentElementRelpath())
         }
       })
 
@@ -2037,12 +2057,22 @@ export class Glass extends React.Component {
 
     items.push({ type: 'separator' })
 
+    items.push({
+      label: 'Open in Finder',
+      enabled: proxy.isSelectionFinderOpenable(),
+      onClick: () => {
+        mixpanel.haikuTrack('creator:glass:open-in-finder')
+        shell.openItem(proxy.getAbspath())
+      }
+    })
+
     // Only display Edit In Sketch on mac
     if (isMac()) {
       items.push({
         label: 'Edit in Sketch',
         enabled: proxy.isSelectionSketchEditable(),
         onClick: () => {
+          mixpanel.haikuTrack('creator:glass:edit-in-sketch')
           shell.openItem(path.join(this.props.folder, proxy.getSketchAssetPath()))
         }
       })
@@ -2052,6 +2082,7 @@ export class Glass extends React.Component {
       label: 'Edit in Figma',
       enabled: proxy.isSelectionFigmaEditable(),
       onClick: () => {
+        mixpanel.haikuTrack('creator:glass:edit-in-figma')
         shell.openExternal(proxy.getFigmaAssetLink())
       }
     })
@@ -2089,15 +2120,16 @@ export class Glass extends React.Component {
         label: 'Group',
         enabled: proxy.canGroup(),
         onClick: () => {
-          this.handleGroupDebounced()
+          mixpanel.haikuTrack('creator:glass:launch-create-group-modal')
+          this.launchGroupNameModal()
         }
       })
 
       items.push({
         label: 'Ungroup',
         enabled: proxy.canUngroup(),
-        onClick: (event) => {
-          this.handleUngroupDebounced()
+        onClick: () => {
+          this.launchUngroupModal()
         }
       })
 
@@ -2118,6 +2150,7 @@ export class Glass extends React.Component {
       label: 'Forward',
       enabled: proxy.canBringForward(),
       onClick: () => {
+        mixpanel.haikuTrack('creator:glass:bring-forward')
         proxy.bringForward()
       }
     })
@@ -2126,6 +2159,7 @@ export class Glass extends React.Component {
       label: 'Backward',
       enabled: proxy.canSendBackward(),
       onClick: () => {
+        mixpanel.haikuTrack('creator:glass:send-backward')
         proxy.sendBackward()
       }
     })
@@ -2134,6 +2168,7 @@ export class Glass extends React.Component {
       label: 'Bring to Front',
       enabled: proxy.canBringToFront(),
       onClick: () => {
+        mixpanel.haikuTrack('creator:glass:bring-to-front')
         proxy.bringToFront()
       }
     })
@@ -2142,6 +2177,7 @@ export class Glass extends React.Component {
       label: 'Send to Back',
       enabled: proxy.canSendToBack(),
       onClick: () => {
+        mixpanel.haikuTrack('creator:glass:send-to-back')
         proxy.sendToBack()
       }
     })
@@ -2152,6 +2188,7 @@ export class Glass extends React.Component {
       label: 'Copy SVG',
       enabled: proxy.canCopySVG(),
       onClick: (event) => {
+        mixpanel.haikuTrack('creator:glass:copy-svg')
         clipboard.writeText(proxy.copySVG())
       }
     })
@@ -2160,6 +2197,7 @@ export class Glass extends React.Component {
       label: 'HTML Snapshot',
       enabled: proxy.canHTMLSnapshot(),
       onClick: (event) => {
+        mixpanel.haikuTrack('creator:glass:html-snapshot')
         this.getActiveComponent().htmlSnapshot((err, html) => {
           if (err) {
             return
@@ -2188,7 +2226,6 @@ export class Glass extends React.Component {
 
             if (publicComponentModel && internalElementModel) {
               const publicElementModel = publicComponentModel.querySelector(`haiku:${internalElementModel.getComponentId()}`)
-
               window.element = publicElementModel
               console.log('element', publicElementModel)
               console.log('element.target', publicElementModel.target)
@@ -2290,6 +2327,60 @@ export class Glass extends React.Component {
           />
         }
 
+        {!this.isPreviewMode() && this.state.isCreateComponentModalOpen &&
+          <CreateComponentModal
+            isOpen={this.state.isCreateComponentModalOpen}
+            existingComponentNames={this.project.getExistingComponentNames()}
+            onSubmit={(componentName) => {
+              this.setState({
+                isCreateComponentModalOpen: false
+              }, () => {
+                this.conglomerateComponentFromSelectedElementsWithTitle(componentName)
+              })
+            }}
+            onCancel={() => {
+              this.setState({
+                isCreateComponentModalOpen: false
+              })
+            }}
+          />
+        }
+
+        {!this.isPreviewMode() && this.state.isCreateGroupModalOpen &&
+          <CreateGroupModal
+            groupName={this.getActiveComponent().nextSuggestedGroupName}
+            onSubmit={(groupName) => {
+              this.setState({
+                isCreateGroupModalOpen: false
+              }, () => {
+                this.createGroupWithTitle(groupName)
+              })
+            }}
+            onCancel={() => {
+              this.setState({
+                isCreateGroupModalOpen: false
+              })
+            }}
+          />
+        }
+
+        {!this.isPreviewMode() && this.state.isUngroupModalOpen &&
+          <UngroupModal
+            onSubmit={(groupName) => {
+              this.setState({
+                isUngroupModalOpen: false
+              }, () => {
+                this.handleUngroupDebounced()
+              })
+            }}
+            onCancel={() => {
+              this.setState({
+                isUngroupModalOpen: false
+              })
+            }}
+          />
+        }
+
         <div
           ref='container'
           id='haiku-glass-stage-container'
@@ -2372,9 +2463,7 @@ export class Glass extends React.Component {
                 fontWeight='lighter'
                 fontFamily='Fira Sans'
                 fontSize='13'>
-                {(this.getActiveComponent())
-                  ? this.getActiveComponent().getFriendlySceneName(this.props.projectName)
-                  : this.props.projectName}
+                {`${this.props.userconfig.project || '[n/a]'} (${(this.getActiveComponent() && this.getActiveComponent().getTitle()) || '…'})`}
               </text>
             </svg>
             : ''}

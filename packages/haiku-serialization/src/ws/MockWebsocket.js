@@ -1,7 +1,21 @@
 class MockWebsocket {
+  constructor (eventEmitter = null) {
+    this.eventEmitter = eventEmitter
+  }
+
+  on (eventName, handler) {
+    if (this.eventEmitter === null) {
+      return
+    }
+
+    // In mock mode, we can use whatever event emitter was provided to us.
+    this.eventEmitter.on(eventName, (_, payload) => {
+      handler(payload)
+    })
+  }
+
   connect () {}
   disconnect () {}
-  on () {}
   send () {}
   method () {}
   request () {}

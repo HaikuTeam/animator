@@ -4,8 +4,6 @@ import {RevealPanel} from '../RevealPanel';
 import {ProjectShareDetails} from './ProjectShareDetails';
 import {EmbedList} from './EmbedList';
 import {EmbedDetails} from './EmbedDetails';
-import {Project} from 'haiku-sdk-creator/lib/bll/Project';
-import {inkstone} from '@haiku/sdk-inkstone';
 
 const STYLES = {
   wrapper: {

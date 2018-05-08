@@ -44,10 +44,27 @@ const clearAll = () => {
   }
 }
 
+const awaitFree = (keys, cb) => {
+  let anyLocked = false
+
+  keys.forEach((key) => {
+    if (ACTIVE_LOCKS[key]) {
+      anyLocked = true
+    }
+  })
+
+  if (anyLocked) {
+    return setTimeout(() => awaitFree(keys, cb), 100)
+  }
+
+  return cb()
+}
+
 module.exports = {
   request,
   emitter,
   clearAll,
+  awaitFree,
   LOCKS,
   ACTIVE_LOCKS
 }

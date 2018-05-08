@@ -1,8 +1,8 @@
-const qs = require('qs')
-const electron = require('electron')
-const app = electron.app
-const BrowserWindow = electron.BrowserWindow
-const path = require('path')
+import qs from 'qs'
+import {app, BrowserWindow} from 'electron'
+import path from 'path'
+import TopMenu from 'haiku-common/lib/electron/TopMenu'
+import logger from 'haiku-serialization/src/utils/LoggerInstance'
 
 /**
  * This file is bypassed when loaded in the full app.
@@ -21,7 +21,7 @@ if (process.env.MOCK_ENVOY) {
   params.envoy = { mock: true }
 }
 
-console.info('[glass] launching window with params', params)
+logger.info('[glass] launching window with params', params)
 
 const query = qs.stringify(params)
 
@@ -39,6 +39,18 @@ function createWindow () {
 
   mainWindow.on('closed', function () {
     mainWindow = null
+  })
+
+  const topmenu = new TopMenu({
+    send: (name) => {
+      mainWindow.webContents.send('relay', {name, from: 'electron'})
+    }
+  })
+
+  topmenu.create({
+    projectList: [],
+    isSaving: false,
+    isProjectOpen: true
   })
 }
 

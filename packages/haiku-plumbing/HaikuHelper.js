@@ -3,6 +3,7 @@ const ReplBase = require('./lib/ReplBase').default
 const envInfo = require('./lib/envInfo').default
 const haikuInfo = require('./lib/haikuInfo').default
 const path = require('path')
+const logger = require('haiku-serialization/src/utils/LoggerInstance')
 
 global.eval = function () {
   // noop: eval is forbidden
@@ -30,10 +31,10 @@ function go () {
 
   if (flags.mode !== 'headless') haiku.mode = 'creator'
 
-  console.log('Haiku plumbing launching')
-  console.log('args:', args)
-  console.log('flags:', flags)
-  console.log('config:', haiku)
+  logger.log('Haiku plumbing launching')
+  logger.log('args:', args)
+  logger.log('flags:', flags)
+  logger.log('config:', haiku)
 
   const plumbing = new Plumbing()
 
@@ -59,7 +60,7 @@ function go () {
         Object.assign(haiku, {dotenv})
       }
       plumbing.launch(haiku, () => {
-        console.log('Haiku plumbing running')
+        logger.log('Haiku plumbing running')
       })
     })
   }
@@ -74,7 +75,7 @@ function startEmUp (plumbing, haiku, cb) {
         folder = path.join(global.process.cwd(), folder)
       }
 
-      plumbing.initializeProject(null, { projectPath: folder }, null, null, (err) => {
+      plumbing.bootstrapProject(null, { projectPath: folder }, null, null, (err) => {
         if (err) throw err
         plumbing.startProject(null, folder, (err) => {
           if (err) throw err

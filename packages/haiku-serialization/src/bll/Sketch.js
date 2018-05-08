@@ -13,12 +13,6 @@ const IS_SKETCH_FILE_RE = /\.sketch$/
 const IS_SKETCH_FOLDER_RE = /\.sketch\.contents/
 const PARSER_CLI_PATH = '/Contents/Resources/sketchtool/bin/sketchtool'
 const BASE64_BITMAP_RE = /"data:image\/(png|jpe?g|gif);base64,(.*?)"/gi
-const DEFAULT_SKETCH_PATH = '/Applications/Sketch.app'
-let sketchPath = DEFAULT_SKETCH_PATH
-
-sketchUtils.checkIfInstalled().then((possibleSketchPath) => {
-  sketchPath = possibleSketchPath || DEFAULT_SKETCH_PATH
-})
 
 /**
  * @class Sketch
@@ -26,6 +20,14 @@ sketchUtils.checkIfInstalled().then((possibleSketchPath) => {
  *.  Collection of static class methods and constants related to Sketch assets.
  */
 class Sketch extends BaseModel {}
+
+Sketch.INSTALL_PATH = '/Applications/Sketch.app'
+
+Sketch.findAndUpdateInstallPath = () => {
+  sketchUtils.checkIfInstalled().then((possibleSketchPath) => {
+    Sketch.INSTALL_PATH = possibleSketchPath || Sketch.INSTALL_PATH
+  })
+}
 
 Sketch.DEFAULT_OPTIONS = {
   required: {}
@@ -61,7 +63,7 @@ Sketch.exportFolderPath = (sketchRelpath) => {
 }
 
 Sketch.sketchtoolPipeline = (abspath) => {
-  const sketchtoolPath = sketchPath + PARSER_CLI_PATH
+  const sketchtoolPath = Sketch.INSTALL_PATH + PARSER_CLI_PATH
 
   // Don't bother if the file passed is not a .sketch file
   if (!Sketch.isSketchFile(abspath)) return void (0)

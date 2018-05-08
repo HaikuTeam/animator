@@ -114,6 +114,14 @@ export default class VirtualNode {
     return this.attributes[name];
   }
 
+  getAttributeNS(ns: string, name: string) {
+    return this.attributes[name];
+  }
+
+  setAttributeNS(ns: string, name: string, value: any) {
+    this.attributes[name] = value;
+  }
+
   addEventListener(name: string, fn: Function) {
     if (!this.listeners[name]) {
       this.listeners[name] = [];

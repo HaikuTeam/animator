@@ -27,7 +27,8 @@ module.exports = {
   template: {
     elementName: "div",
     attributes: {
-      "haiku-title": "HaikuComponent"
+      "haiku-title": "HaikuComponent",
+      "haiku-id": "abc123890aaa"
     },
 
     children: []

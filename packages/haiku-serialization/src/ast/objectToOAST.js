@@ -1,13 +1,13 @@
 function objectToOAST (obj) {
-  var oast = {
+  const oast = {
     type: 'ObjectExpression',
     properties: []
   }
 
-  for (var key in obj) {
+  for (const key in obj) {
     if (key === undefined) continue
-    var keyexp = expressionToOASTComponent(key)
-    var valueexp = expressionToOASTComponent(obj[key], key)
+    const keyexp = expressionToOASTComponent(key)
+    const valueexp = expressionToOASTComponent(obj[key], key)
     oast.properties.push({
       type: 'ObjectProperty',
       key: keyexp,
@@ -21,4 +21,4 @@ function objectToOAST (obj) {
 module.exports = objectToOAST
 
 // Down here to avoid circular dependency blank object
-var expressionToOASTComponent = require('./expressionToOASTComponent')
+const expressionToOASTComponent = require('./expressionToOASTComponent')

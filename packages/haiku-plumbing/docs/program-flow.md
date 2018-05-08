@@ -31,7 +31,7 @@ The high-level business logic of Haiku Desktop isn't obvious since it's spread b
 ## Project editor
 
 1. The project-launch sequence occurs:
-  2. Creator tells Plumbing to `initializeProject`:
+  2. Creator tells Plumbing to `bootstrapProject`:
     1. Default files (package.json, .gitignore, etc.) are created if not present
     2. `npm install` is run
     1. Plumbing creates _a master subproc_ (Master) for that folder

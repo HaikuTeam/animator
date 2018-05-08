@@ -30,7 +30,7 @@ export default function mixpanelInit(mixpanelToken, component) {
       window['mixpanel'].init(mixpanelToken, {ip: false});
     }
 
-    const metadata = (component._bytecode && component._bytecode.metadata) || {};
+    const metadata = (component.bytecode && component.bytecode.metadata) || {};
 
     window['mixpanel'].track(
       'component:initialize',

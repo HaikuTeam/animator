@@ -153,7 +153,7 @@ tape('TimelineProperty.getBaselineValue', function(t) {
   hostInstance = {}
   hostInstance._builder = new ValueBuilder(hostInstance)
   hostInstance.findElementsByHaikuId = findElementsByHaikuId
-  hostInstance._shouldPerformFullFlush = () => {}
+  hostInstance.shouldPerformFullFlush = () => {}
   inputValues = {}
   bv = TimelineProperty.getBaselineValue('abcde', 'svg', 'opacity', 'Default', 123, 0.666, {
     timelines: {
@@ -176,7 +176,7 @@ tape('TimelineProperty.getBaselineValue', function(t) {
   hostInstance = {}
   hostInstance._builder = new ValueBuilder(hostInstance)
   hostInstance.findElementsByHaikuId = findElementsByHaikuId
-  hostInstance._shouldPerformFullFlush = () => {}
+  hostInstance.shouldPerformFullFlush = () => {}
   inputValues = {}
   bv = TimelineProperty.getBaselineValue('abcde', 'svg', 'opacity', 'Default', 0, 0.666, {
     timelines: {
@@ -200,7 +200,7 @@ tape('TimelineProperty.getBaselineValue', function(t) {
   hostInstance = {}
   hostInstance._builder = new ValueBuilder(hostInstance)
   hostInstance.findElementsByHaikuId = findElementsByHaikuId
-  hostInstance._shouldPerformFullFlush = () => {}
+  hostInstance.shouldPerformFullFlush = () => {}
   inputValues = {}
   bv = TimelineProperty.getBaselineValue('abcde', 'svg', 'opacity', 'Default', 100, 0.666, {
     timelines: {
@@ -223,7 +223,7 @@ tape('TimelineProperty.getBaselineValue', function(t) {
   hostInstance = {}
   hostInstance._builder = new ValueBuilder(hostInstance)
   hostInstance.findElementsByHaikuId = findElementsByHaikuId
-  hostInstance._shouldPerformFullFlush = () => {}
+  hostInstance.shouldPerformFullFlush = () => {}
   inputValues = {}
   bv = TimelineProperty.getBaselineValue('abcde', 'svg', 'opacity', 'Default', 1000000, 0.666, {
     timelines: {
@@ -247,7 +247,7 @@ tape('TimelineProperty.getBaselineValue', function(t) {
   hostInstance = {}
   hostInstance._builder = new ValueBuilder(hostInstance)
   hostInstance.findElementsByHaikuId = findElementsByHaikuId
-  hostInstance._shouldPerformFullFlush = () => {}
+  hostInstance.shouldPerformFullFlush = () => {}
   inputValues = {}
   bv = TimelineProperty.getBaselineValue('abcde', 'svg', 'opacity', 'Default', 99, 0.666, {
     timelines: {
@@ -271,7 +271,7 @@ tape('TimelineProperty.getBaselineValue', function(t) {
   hostInstance = {}
   hostInstance._builder = new ValueBuilder(hostInstance)
   hostInstance.findElementsByHaikuId = findElementsByHaikuId
-  hostInstance._shouldPerformFullFlush = () => {}
+  hostInstance.shouldPerformFullFlush = () => {}
   inputValues = {}
   bv = TimelineProperty.getBaselineValue('abcde', 'svg', 'boovador', 'Default', 99, undefined, {
     timelines: {

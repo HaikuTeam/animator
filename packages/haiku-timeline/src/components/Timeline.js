@@ -8,7 +8,6 @@ import BaseModel from 'haiku-serialization/src/bll/BaseModel'
 import Project from 'haiku-serialization/src/bll/Project'
 import Row from 'haiku-serialization/src/bll/Row'
 import Keyframe from 'haiku-serialization/src/bll/Keyframe'
-import ModuleWrapper from 'haiku-serialization/src/bll/ModuleWrapper'
 import requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates'
 import EmitterManager from 'haiku-serialization/src/utils/EmitterManager'
 import Palette from 'haiku-ui-common/lib/Palette'
@@ -27,6 +26,7 @@ import TimelineRangeScrollbar from './TimelineRangeScrollbar'
 import HorzScrollShadow from './HorzScrollShadow'
 import {InteractionMode, isPreviewMode} from '@haiku/core/lib/helpers/interactionModes'
 import { USER_CHANNEL, UserSettings } from 'haiku-sdk-creator/lib/bll/User'
+import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import {isWindows, isLinux} from 'haiku-common/lib/environments/os'
 
 const Globals = require('haiku-ui-common/lib/Globals').default // Sorry, hack
@@ -322,37 +322,8 @@ class Timeline extends React.Component {
       }
     })
 
-    // When all views send this, we know it's ok to initialize the 'main' component
-    this.project.broadcastPayload({
-      name: 'project-state-change',
-      what: 'project:ready'
-    })
-
-    // When developing Timeline in standalone, this env var directs it to automatically
-    // set the current active component, which is normally initiated by Creator
-    if (process.env.AUTOSTART) {
-      this.project.setCurrentActiveComponent(process.env.AUTOSTART, { from: 'timeline' }, () => {})
-    }
-  }
-
-  handleActiveComponentReady () {
-    this.mountHaikuComponent()
-  }
-
-  mountHaikuComponent () {
-    // The Timeline UI doesn't display the component, so we don't bother giving it a ref
-    this.getActiveComponent().mountApplication(null, {
-      freeze: true, // No display means no need for overflow settings, etc
-      reloadMode: ModuleWrapper.RELOAD_MODES.MONKEYPATCHED_OR_ISOLATED
-    })
-  }
-
-  handleHaikuComponentMounted () {
-    this.loadUserSettings()
-    this.getActiveComponent().getCurrentTimeline().setTimelinePixelWidth(document.body.clientWidth - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() + 20)
-
     this.addEmitterListener(window, 'resize', lodash.throttle(() => {
-      if (this.mounted) {
+      if (this.mounted && this.getActiveComponent()) {
         const pxWidth = document.body.clientWidth - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()
         this.getActiveComponent().getCurrentTimeline().setTimelinePixelWidth(pxWidth + 20)
         this.forceUpdate()
@@ -365,7 +336,7 @@ class Timeline extends React.Component {
     this.addEmitterListener(window, 'mouseup', this.mouseUpListener.bind(this))
 
     this.addEmitterListener(this.props.websocket, 'relay', (message) => {
-      console.info('[timeline] relay received', message.name, 'from', message.from)
+      logger.info('relay received', message.name, 'from', message.from)
 
       // The next relay destination in the sequence is always glass
       const relayable = lodash.assign(message, {view: 'glass'})
@@ -448,18 +419,25 @@ class Timeline extends React.Component {
     })
 
     this.addEmitterListener(this.props.websocket, 'broadcast', (message) => {
-      if (message.folder !== this.props.folder) return void (0)
+      if (message.folder !== this.props.folder) {
+        return
+      }
+
       switch (message.name) {
         case 'remote-model:receive-sync':
           BaseModel.receiveSync(message)
           break
 
         case 'component:reload':
-          this.getActiveComponent().moduleReplace(() => {})
+          if (this.getActiveComponent()) {
+            this.getActiveComponent().moduleReplace(() => {})
+          }
           break
 
         case 'event-handlers-updated':
-          this.getActiveComponent().getCurrentTimeline().notifyFrameActionChange()
+          if (this.getActiveComponent()) {
+            this.getActiveComponent().getCurrentTimeline().notifyFrameActionChange()
+          }
           break
       }
     })
@@ -475,12 +453,18 @@ class Timeline extends React.Component {
     }, 16), { passive: true })
 
     this.addEmitterListener(document, 'mousemove', (mouseMoveEvent) => {
+      if (!this.getActiveComponent()) {
+        return
+      }
+
       const timeline = this.getActiveComponent().getCurrentTimeline()
-      // The timeline might not be initialized as of the first mouse move
+
       if (timeline) {
         const frameInfo = timeline.getFrameInfo()
         let pxInTimeline = mouseMoveEvent.clientX - timeline.getPropertiesPixelWidth()
-        if (pxInTimeline < 0) pxInTimeline = 0
+        if (pxInTimeline < 0) {
+          pxInTimeline = 0
+        }
         const frameForPx = frameInfo.friA + Math.round(pxInTimeline / frameInfo.pxpf)
         timeline.hoverFrame(frameForPx)
       }
@@ -501,6 +485,34 @@ class Timeline extends React.Component {
         // TODO: Handle scrolling to the correct row
       }
     })
+
+    // When all views send this, we know it's ok to initialize the 'main' component
+    this.project.broadcastPayload({
+      name: 'project-state-change',
+      what: 'project:ready'
+    })
+
+    // When developing Timeline in standalone, this env var directs it to automatically
+    // set the current active component, which is normally initiated by Creator
+    if (process.env.AUTOSTART) {
+      this.project.setCurrentActiveComponent(process.env.AUTOSTART, { from: 'timeline' }, () => {})
+    }
+  }
+
+  handleActiveComponentReady () {
+    this.mountHaikuComponent()
+  }
+
+  mountHaikuComponent () {
+    // The Timeline UI doesn't display the component, so we don't bother giving it a ref
+    this.getActiveComponent().mountApplication(null, {
+      freeze: true // No display means no need for overflow settings, etc
+    })
+  }
+
+  handleHaikuComponentMounted () {
+    this.loadUserSettings()
+    this.getActiveComponent().getCurrentTimeline().setTimelinePixelWidth(document.body.clientWidth - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() + 20)
 
     if (this.mounted) {
       this.forceUpdate()
@@ -799,10 +811,10 @@ class Timeline extends React.Component {
 
       // case 38: // up
       // case 40: // down
-      // case 46: //delete
       // case 13: //enter
       // delete
-      case 8: this.getActiveComponent().deleteSelectedKeyframes({ from: 'timeline' }); break // Only if there are any
+      // case 46: //delete
+      // case 8: //delete
       case 16: this.updateKeyboardState({ isShiftKeyDown: true }); break
       case 17: this.updateKeyboardState({ isControlKeyDown: true }); break
       case 18: this.updateKeyboardState({ isAltKeyDown: true }); break
@@ -820,9 +832,9 @@ class Timeline extends React.Component {
       // case 39: //right
       // case 38: // up
       // case 40: // down
-      // case 46: //delete
-      // case 8: //delete
       // case 13: //enter
+      case 46: this.getActiveComponent().deleteSelectedKeyframes({ from: 'timeline' }); break // Only if there are any
+      case 8: this.getActiveComponent().deleteSelectedKeyframes({ from: 'timeline' }); break // Only if there are any
       case 16: this.updateKeyboardState({ isShiftKeyDown: false }); break
       case 17: this.updateKeyboardState({ isControlKeyDown: false }); break
       case 18: this.updateKeyboardState({ isAltKeyDown: false }); break
@@ -919,7 +931,7 @@ class Timeline extends React.Component {
         }}>
         <ControlsArea
           timeline={this.getActiveComponent().getCurrentTimeline()}
-          activeComponentDisplayName={this.props.userconfig.name}
+          activeComponentDisplayName={`${this.props.userconfig.project} (${this.getActiveComponent().getTitle()})`}
           selectedTimelineName={this.getActiveComponent().getCurrentTimeline().getName()}
           playbackSpeed={this.state.playerPlaybackSpeed}
           changeTimelineName={(oldTimelineName, newTimelineName) => {
@@ -1241,7 +1253,7 @@ class Timeline extends React.Component {
 
           const idx = result.destination.index
           const reflection = groups.length - idx
-          console.info(`[timeline] z-drop ${result.draggableId} at`, reflection)
+          logger.info(`z-drop ${result.draggableId} at`, reflection)
 
           this.props.mixpanel.haikuTrack('creator:timeline:z-shift')
 
@@ -1401,7 +1413,7 @@ class Timeline extends React.Component {
           onCommitValue={(committedValue) => {
             const row = this.getActiveComponent().getFocusedRow()
             const ms = this.getActiveComponent().getCurrentTimeline().getCurrentMs()
-            console.info('[timeline] commit', JSON.stringify(committedValue), 'at', ms, 'on', row.dump())
+            logger.info('commit', JSON.stringify(committedValue), 'at', ms, 'on', row.dump())
             this.props.mixpanel.haikuTrack('creator:timeline:create-keyframe')
             row.createKeyframe(committedValue, ms, { from: 'timeline' })
           }}

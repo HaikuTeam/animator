@@ -3,41 +3,31 @@
  */
 
 import updateElement from './updateElement';
+import HaikuComponent from '../../HaikuComponent';
 
-export default function patch(topLevelDomElement, patchesDict, component) {
-  // Just in case we get a null which might be set as a no-op signal by a component upstream
-  if (!patchesDict) {
-    return topLevelDomElement;
+export default function patch(
+  component: HaikuComponent,
+  patches: any,
+) {
+  // The component upstream may use an empty value to indicate a no-op
+  if (!patches || Object.keys(patches).length < 1) {
+    return;
   }
 
-  const keysToUpdate = Object.keys(patchesDict);
-  if (keysToUpdate.length < 1) {
-    return topLevelDomElement;
-  }
+  for (const flexId in patches) {
+    const virtualElement = patches[flexId];
 
-  for (const flexId in patchesDict) {
-    const virtualElement = patchesDict[flexId];
+    if (virtualElement.__targets) {
+      for (let i = 0; i < virtualElement.__targets.length; i++) {
+        const target = virtualElement.__targets[i];
 
-    const domElement = component._getRealElementAtId(flexId);
-
-    if (domElement) {
-      const nestedModuleElement = component.nestedComponentElements[flexId];
-
-      updateElement(
-        domElement,
-        virtualElement,
-        domElement.parentNode,
-        virtualElement.__parent,
-        component,
-        true,
-      );
-
-      // If there is a nested component at this location, let it patch inside its scope
-      if (nestedModuleElement && nestedModuleElement.__instance) {
-        patch(
-          domElement,
-          nestedModuleElement.__instance._getPrecalcedPatches(),
-          nestedModuleElement.__instance,
+        updateElement(
+          target,
+          virtualElement,
+          target.parentNode,
+          virtualElement.__parent,
+          component,
+          true,
         );
       }
     }

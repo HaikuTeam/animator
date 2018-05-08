@@ -48,13 +48,12 @@ const createRenderTest = (template, timelines, baseConfig, cb) => {
     const renderer = new HaikuDOMRenderer(mount, config);
     const context = new HaikuContext(mount, renderer, {}, { timelines, template }, config);
     const component = context.component;
-    const container = renderer.createContainer(mount);
-    const tree = component.render(container, context.config);
+    const tree = component.render(context.config);
 
-    renderer.render(container, tree, component, false);
+    renderer.render(context.container, tree, component, false);
 
     function teardown () {
-      component._context.clock.GLOBAL_ANIMATION_HARNESS.cancel();
+      component.context.clock.GLOBAL_ANIMATION_HARNESS.cancel();
       return;
     }
 
@@ -71,7 +70,7 @@ const createComponent = (bytecode, options, cb) => {
 
     // If rafs and timers aren't cancelled, the tests never finish due to leaked handles
     const teardown = () => {
-      component._context.clock.GLOBAL_ANIMATION_HARNESS.cancel();
+      component.context.clock.GLOBAL_ANIMATION_HARNESS.cancel();
       return;
     }
 

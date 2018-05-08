@@ -54,6 +54,9 @@ const FOLDER_CHOICES = {
   'comet-rotation-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/comet-rotation'),
   'ttt-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/TicTacToe1'),
   'Apr91-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/Apr91'),
+  'mc1-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/mc1'),
+  'mc0-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/mc0'),
+  'mc-anim1-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/mc-anim1'),
   'complex-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/complex'),
   'SuperComplex-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/SuperComplex'),
   'AliensRepro-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/AliensRepro'),
@@ -73,7 +76,7 @@ if (argv.default === true) {
 
 const availablePresets = {
   glass: 'percy-glass',
-  timeline: 'metapoem2-timeline',
+  timeline: 'complex-timeline',
   blank: 'blank',
   'blank-noclean': 'blank-noclean'
 }

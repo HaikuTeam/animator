@@ -1,5 +1,6 @@
 const Mixpanel = require('mixpanel')
 const os = require('os')
+const logger = require('./LoggerInstance')
 
 const tokens = {
   development: '53f3639f564804dcb710fd18511d1c0b',
@@ -47,7 +48,7 @@ function _safeStringify (obj) {
 
 mixpanel.haikuTrack = function haikuTrack (eventName, eventPayload) {
   const finalPayload = _getPayload(eventName, eventPayload)
-  console.info('[mixpanel]', eventName, finalPayload)
+  logger.info('[mixpanel]', eventName, finalPayload)
   return mixpanel.track(eventName, finalPayload)
 }
 

@@ -6,6 +6,7 @@ const path = require('path')
 const JSDOM = require('jsdom').JSDOM
 const React = require('react')
 const ReactDOM = require('react-dom')
+const Project = require('haiku-serialization/src/bll/Project')
 
 const TestHelpers = {}
 
@@ -50,21 +51,23 @@ function createApp (folder, cb) {
   return createDOM(folder, function (err, win, _teardown) {
     if (err) throw err
     const Timeline = require('./../lib/components/Timeline').default
-    const userconfig = require(path.join(folder, 'haiku.js'))
-    const websocket = { on: () => {}, send: () => {}, method: () => {}, request: () => {}, action: () => {}, connect: () => {} }
-    ReactDOM.render(
-      React.createElement(Timeline, {
-        userconfig: userconfig,
-        websocket: websocket,
-        folder: folder,
-        envoy: { mock: true }
-      }),
-      document.getElementById('root')
-    )
-    function teardown () {
-      _teardown()
-    }
-    return cb(window.timeline, window, teardown)
+    return Project.fetchProjectConfigInfo(folder, (err, userconfig) => {
+      if (err) throw err
+      const websocket = { on: () => {}, send: () => {}, method: () => {}, request: () => {}, action: () => {}, connect: () => {} }
+      ReactDOM.render(
+        React.createElement(Timeline, {
+          userconfig: userconfig,
+          websocket: websocket,
+          folder: folder,
+          envoy: { mock: true }
+        }),
+        document.getElementById('root')
+      )
+      function teardown () {
+        _teardown()
+      }
+      return cb(window.timeline, window, teardown)
+    })
   })
 }
 

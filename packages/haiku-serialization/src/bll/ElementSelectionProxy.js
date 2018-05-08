@@ -1,21 +1,25 @@
 const async = require('async')
+const path = require('path')
 const logger = require('./../utils/LoggerInstance')
 const BaseModel = require('./BaseModel')
 const {rounded, transformFourVectorByMatrix} = require('./MathUtils')
 const TransformCache = require('./TransformCache')
-const Layout3D = require('@haiku/core/lib/Layout3D').default
-const invertMatrix = require('@haiku/core/lib/vendor/gl-mat4/invert').default
+const {default: computeMatrix} = require('@haiku/core/lib/layout/computeMatrix')
+const {default: Layout3D} = require('@haiku/core/lib/Layout3D')
+const {default: composedTransformsToTimelineProperties} = require('@haiku/core/lib/helpers/composedTransformsToTimelineProperties')
+const {default: invertMatrix} = require('@haiku/core/lib/vendor/gl-mat4/invert')
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 const Figma = require('./Figma')
 const Sketch = require('./Sketch')
 
 const PI_OVER_12 = Math.PI / 12
 
-const HAIKU_ID_ATTRIBUTE = 'haiku-id'
-
 const isNumeric = (n) => !isNaN(parseFloat(n)) && isFinite(n)
 
 const forceNumeric = (n) => (isNaN(n) || !isFinite(n)) ? 0 : n
+
+const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source'
+const HAIKU_TITLE_ATTRIBUTE = 'haiku-title'
 
 /**
  * @class ElementSelectionProxy
@@ -36,16 +40,22 @@ class ElementSelectionProxy extends BaseModel {
       throw new Error('ElementSelectionProxy can only manage an artboard alone')
     }
 
+    if (!this.hasAnythingInSelection()) {
+      return
+    }
+
     // Allows transforms to be recalled on demand, e.g. during Alt+drag
     this.transformCache = new TransformCache(this)
 
     // When representing multiple elements, we apply changes to our proxy properties
     this._proxyBoxPoints = []
     this._proxyProperties = {}
-    const boxPoints = Element.getBoundingBoxPointsForElementsTransformed(this.selection)
-    if (!boxPoints || boxPoints.length !== 9) {
-      return
-    }
+    const boxPoints = Element.getBoundingBoxPoints(
+      this.selection.map((element) => element.getBoxPointsTransformed()).reduce((accumulator, boxPoints) => {
+        accumulator.push(...boxPoints)
+        return accumulator
+      }, [])
+    )
 
     const xOffset = boxPoints[0].x
     const yOffset = boxPoints[0].y
@@ -126,12 +136,7 @@ class ElementSelectionProxy extends BaseModel {
 
   canCreateComponentFromSelection () {
     return (
-      this.selection.length > 0 &&
-      !(
-        this.selection.length === 1 &&
-        this.selection[0] &&
-        this.selection[0].isComponent()
-      )
+      this.selection.length > 0
     )
   }
 
@@ -139,7 +144,8 @@ class ElementSelectionProxy extends BaseModel {
     return (
       this.selection.length === 1 &&
       this.selection[0] &&
-      this.selection[0].isComponent()
+      this.selection[0].isComponent() &&
+      this.selection[0].isLocalComponent()
     )
   }
 
@@ -150,8 +156,27 @@ class ElementSelectionProxy extends BaseModel {
     return (
       node &&
       node.attributes &&
-      node.attributes['source']
+      node.attributes[HAIKU_SOURCE_ATTRIBUTE]
     )
+  }
+
+  isSelectionFinderOpenable () {
+    const sourcePath = this.getSourcePath()
+    if (!sourcePath) return false
+  }
+
+  getAbspath () {
+    const folder = this.component.project.getFolder()
+    if (this.isSelectionSketchEditable()) {
+      return path.join(folder, this.getSourcePath(), '..', '..')
+    }
+    if (this.canEditComponentFromSelection()) {
+      const sourcePath = this.getSourcePath()
+      const componentFolder = this.component.getSceneCodeFolder()
+      const targetPath = path.resolve(componentFolder, sourcePath)
+      return path.dirname(targetPath)
+    }
+    return folder
   }
 
   isSelectionSketchEditable () {
@@ -262,18 +287,71 @@ class ElementSelectionProxy extends BaseModel {
     )
   }
 
-  group (metadata) {
-    const elementHaikuIds = this.selection.map((element) => {
+  group (metadata, groupTitle) {
+    if (!this.hasAnythingInSelection()) {
+      return
+    }
+
+    const componentIds = this.selection.map((element) => {
       return element.getComponentId()
     })
 
-    if (elementHaikuIds.length > 0) {
-      return this.component.groupElements(
-        elementHaikuIds,
-        metadata,
-        () => {}
-      )
+    // Re-normalize scale to 1 to simplify the upcoming math, but give our incoming group the same origin and rotation
+    // as its ElementSelectionProxy. This allows us to keep visual continuity between onstage transforms before and
+    // after grouping.
+    this.reset()
+    const computedLayout = this.getComputedLayout()
+    const attributes = {
+      width: computedLayout.size.x,
+      height: computedLayout.size.y,
+      [HAIKU_SOURCE_ATTRIBUTE]: '<group>',
+      [HAIKU_TITLE_ATTRIBUTE]: groupTitle,
+      'origin.x': computedLayout.origin.x,
+      'origin.y': computedLayout.origin.y,
+      'rotation.z': computedLayout.rotation.z
     }
+
+    // The new top-level object that will host the groupees. We can use the top-left box point of the selection proxy to
+    // determine the correct translation offset of a new, non-virtual bounding box. To avoid recalculating the layouts
+    // of inner elements, we wrap an additional inner div providing orientation/position offsets. Instantiation of this
+    // mana in bytecode will transcribe these explicit transforms into the declarative layout system.
+    const boxPoint = this.getBoxPointsTransformed()[0]
+
+    // This shim layout has the effect of first reversing our rotation, then translating the top-left box point up to
+    // (0, 0) in the parent coordinate system. In 2D, we're basically producing this matrix:
+    // [ 1 0 -x ]   [ cos(-z)  -sin(-z)  0 ]
+    // [ 0 1 -y ] * [ sin(-z)   cos(-z)  0 ]
+    // [ 0 0  1 ]   [       0         0  1 ]
+    const shimLayout = Layout3D.createLayoutSpec()
+    shimLayout.rotation.z = -computedLayout.rotation.z
+    shimLayout.origin = computedLayout.origin
+    const ignoredSize = {x: 0, y: 0, z: 0}
+    const shimMatrix = computeMatrix(shimLayout, Layout3D.createMatrix(), computedLayout.size, ignoredSize)
+    shimMatrix[12] = -(boxPoint.x * shimMatrix[0] + boxPoint.y * shimMatrix[4])
+    shimMatrix[13] = -(boxPoint.x * shimMatrix[1] + boxPoint.y * shimMatrix[5])
+    const groupMana = {
+      elementName: 'div',
+      attributes,
+      children: [{
+        elementName: 'div',
+        attributes: {
+          transform: `matrix3d(${shimMatrix.join(',')})`,
+          'origin.x': 0,
+          'origin.y': 0,
+          children: []
+        }
+      }]
+    }
+
+    return this.component.groupElements(
+      componentIds,
+      groupMana,
+      // The ElementSelectionProxy origin is the correct `coords` for the new group, since we kept the origin used
+      // during on-stage transformation.
+      this.getOriginTransformed(),
+      metadata,
+      () => {}
+    )
   }
 
   canUngroup () {
@@ -286,15 +364,7 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   ungroup (metadata) {
-    const grouperElement = this.selection[0].getParentOfUngroupables()
-
-    if (grouperElement) {
-      return this.component.ungroupElements(
-        grouperElement.attributes[HAIKU_ID_ATTRIBUTE],
-        metadata,
-        () => {}
-      )
-    }
+    return this.selection[0].ungroup(metadata)
   }
 
   canCopySVG () {
@@ -316,7 +386,11 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   getSingleComponentElement () {
-    throw new Error('not yet implemented')
+    return this.selection[0]
+  }
+
+  getSingleComponentElementRelpath () {
+    return this.selection[0].getAttribute(HAIKU_SOURCE_ATTRIBUTE)
   }
 
   getParentComputedSize () {
@@ -371,6 +445,11 @@ class ElementSelectionProxy extends BaseModel {
         x: this.computePropertyValue('translation.x'),
         y: this.computePropertyValue('translation.y'),
         z: 0
+      },
+      shear: {
+        xy: 0,
+        xz: 0,
+        yz: 0
       },
       rotation: {
         x: 0,
@@ -487,6 +566,15 @@ class ElementSelectionProxy extends BaseModel {
     this.applyPropertyValue(key, this._proxyProperties[key] + delta)
   }
 
+  reset () {
+    const layout = this.getComputedLayout()
+    // TODO: support negative scale.
+    this.applyPropertyValue('sizeAbsolute.x', layout.size.x * layout.scale.x)
+    this.applyPropertyValue('sizeAbsolute.y', layout.size.y * layout.scale.y)
+    this.applyPropertyValue('scale.x', 1)
+    this.applyPropertyValue('scale.y', 1)
+  }
+
   /**
    * @method drag
    * @description Scale, rotate, or translate the elements in the selection
@@ -564,22 +652,26 @@ class ElementSelectionProxy extends BaseModel {
     // Origin panning is a position-preserving operation (in parent coordinates), requiring us to update translation to
     // match. To achieve the desired effect, first we compute the effective (x, y) translation after accounting for
     // z-rotation and scale, so the origin dot "lands" in an expected place while dragging.
+
+    // We don't want to mutate around with z origin or translation when we have a 3D rotated object, so it's simpler to
+    // start with the scaled basis matrix S and solve directly:
+    //   S * [ deltaX; deltaY; 0, 1] = [ dx, dy, ?, 1 ]
+    // We don't particularly care what the value of `?` is here, so this resolves to a system of linear equations in two
+    // unknowns:
+    //   [ S[0] S[4] ] [ deltaX ] = [ dx ]
+    //   [ S[1] S[5] ] [ deltaY ]   [ dy ]
+    // We can solve this directly.
     const targetElement = this.shouldUseChildLayout() ? this.selection[0] : this
     const computedLayout = targetElement.getComputedLayout()
-    const deltaTranslationX = dx
-    const deltaTranslationY = dy
-    const delta = {
-      x: deltaTranslationX,
-      y: deltaTranslationY,
-      z: 0
-    }
-
     const scaledBasisMatrix = Layout3D.computeScaledBasisMatrix(computedLayout.rotation, computedLayout.scale)
-    const scaledBasisMatrixInverted = []
-    invertMatrix(scaledBasisMatrixInverted, scaledBasisMatrix)
-    Element.transformPointInPlace(delta, scaledBasisMatrixInverted)
-    const deltaOriginX = rounded(forceNumeric(delta.x / computedLayout.size.x))
-    const deltaOriginY = rounded(forceNumeric(delta.y / computedLayout.size.y))
+    const determinant = scaledBasisMatrix[0] * scaledBasisMatrix[5] - scaledBasisMatrix[1] * scaledBasisMatrix[4]
+    const deltaX = (scaledBasisMatrix[5] * dx - scaledBasisMatrix[4] * dy) / determinant
+    const deltaY = (-scaledBasisMatrix[1] * dx + scaledBasisMatrix[0] * dy) / determinant
+    const deltaOriginX = rounded(forceNumeric(deltaX / computedLayout.size.x))
+    const deltaOriginY = rounded(forceNumeric(deltaY / computedLayout.size.y))
+    const {matrix: layoutMatrix} = computedLayout
+    const deltaTranslationX = layoutMatrix[0] * deltaX + layoutMatrix[4] * deltaY
+    const deltaTranslationY = layoutMatrix[1] * deltaX + layoutMatrix[5] * deltaY
 
     if (targetElement === this) {
       this.applyPropertyDelta('translation.x', deltaTranslationX)
@@ -747,6 +839,9 @@ class ElementSelectionProxy extends BaseModel {
     }
 
     if (this.hasMultipleInSelection()) {
+      const matrixBefore = this.getComputedLayout().matrix
+      const matrixBeforeInverted = []
+      invertMatrix(matrixBeforeInverted, matrixBefore)
       const {
         'scale.x': {
           value: scaleX
@@ -773,9 +868,44 @@ class ElementSelectionProxy extends BaseModel {
       this.applyPropertyValue('scale.y', scaleY)
       this.applyPropertyValue('translation.x', translationX)
       this.applyPropertyValue('translation.y', translationY)
-    }
-
-    this.selection.forEach((element) => {
+      const matrixAfter = this.getComputedLayout().matrix
+      this.selection.forEach((element) => {
+        const layoutSpec = element.getComputedLayout()
+        const propertyGroup = {}
+        const finalMatrix = Layout3D.multiplyArrayOfMatrices([
+          element.getOriginOffsetComposedMatrix(),
+          matrixBeforeInverted,
+          matrixAfter
+        ])
+        composedTransformsToTimelineProperties(propertyGroup, [finalMatrix], true)
+        const alignX = layoutSpec.align.x * layoutSpec.size.x
+        const alignY = layoutSpec.align.y * layoutSpec.size.y
+        const alignZ = layoutSpec.align.z * layoutSpec.size.z
+        const mountPointX = layoutSpec.mount.x * layoutSpec.size.x
+        const mountPointY = layoutSpec.mount.y * layoutSpec.size.y
+        const mountPointZ = layoutSpec.mount.z * layoutSpec.size.z
+        const originX = layoutSpec.origin.x * layoutSpec.size.x
+        const originY = layoutSpec.origin.y * layoutSpec.size.y
+        const originZ = layoutSpec.origin.z * layoutSpec.size.z
+        propertyGroup['translation.x'] +=
+          finalMatrix[0] * originX + finalMatrix[4] * originY + finalMatrix[8] * originZ + mountPointX - alignX
+        propertyGroup['translation.y'] +=
+          finalMatrix[1] * originX + finalMatrix[5] * originY + finalMatrix[9] * originZ + mountPointY - alignY
+        propertyGroup['translation.z'] +=
+          finalMatrix[2] * originX + finalMatrix[6] * originY + finalMatrix[10] * originZ + mountPointZ - alignZ
+        ElementSelectionProxy.accumulateKeyframeUpdates(
+          accumulatedUpdates,
+          element.getComponentId(),
+          element.component.getCurrentTimelineName(),
+          element.component.getCurrentTimelineTime(),
+          Object.keys(propertyGroup).reduce((accumulator, property) => {
+            accumulator[property] = { value: propertyGroup[property] }
+            return accumulator
+          }, {})
+        )
+      })
+    } else {
+      const element = this.selection[0]
       const propertyGroup = ElementSelectionProxy.computeScalePropertyGroup(
         element,
         fixedPoint,
@@ -794,7 +924,7 @@ class ElementSelectionProxy extends BaseModel {
         element.component.getCurrentTimelineTime(),
         propertyGroup
       )
-    })
+    }
 
     this.component.updateKeyframes(
       accumulatedUpdates,
@@ -1327,26 +1457,46 @@ ElementSelectionProxy.computeScalePropertyGroup = (
 }
 
 ElementSelectionProxy.computeRotationPropertyGroup = (element, rotationZDelta, fixedPoint) => {
-  const targetLayout = element.getComputedLayout()
-  const layoutMatrix = targetLayout.matrix
-  const layoutMatrixInverted = new Float32Array(16)
-  invertMatrix(layoutMatrixInverted, layoutMatrix)
-  const fixedPointCopy = Object.assign({}, fixedPoint)
-  Element.transformPointInPlace(fixedPointCopy, layoutMatrixInverted)
-  targetLayout.rotation.z += rotationZDelta
-  const {matrix: finalMatrix} = Layout3D.computeLayout(
-    targetLayout, Layout3D.createMatrix(), element.getParentComputedSize())
-  Element.transformPointInPlace(fixedPointCopy, finalMatrix)
+  // Given a known rotation delta, we can directly compute the new property group for a subelement of a selection.
+  //       target origin (x1, y1)
+  //      /|
+  //     /
+  //    /
+  //   /
+  //  /
+  // /dz
+  // context origin (x0, y0)
+  // It suffices to rotate the ray <x1 - x0, y1 - y0> about the origin and then renormalize in context coordinates.
 
+  // First build a simple rotation matrix to hold the rotation by `rotationZDelta`. (We could do this directly but
+  // prefer to use the layout system for consistent rounding etc.)
+  const layout = Layout3D.createLayoutSpec()
+  layout.rotation.z = rotationZDelta
+  const ignoredSize = {x: 0, y: 0, z: 0}
+  const {default: computeMatrix} = require('@haiku/core/lib/layout/computeMatrix')
+  const matrix = computeMatrix(layout, Layout3D.createMatrix(), ignoredSize, ignoredSize)
+
+  // Next build the vector from `fixedPoint` to `targetOrigin` and rotate it.
+  const targetOrigin = element.getOriginTransformed()
+  const ray = {
+    x: targetOrigin.x - fixedPoint.x,
+    y: targetOrigin.y - fixedPoint.y,
+    z: targetOrigin.z - fixedPoint.z
+  }
+  Element.transformPointInPlace(ray, matrix)
+
+  // Return directly after offsetting translation by the `fixedPoint`'s coordinates. Note that we are choosing _not_ to
+  // change the z-translation, effectively projecting the origin of rotation from the context element onto the z = C
+  // plane, where C is the z-translation of the target origin. This is a natural expectation of multi-rotation.
   return {
     'translation.x': {
-      value: rounded(targetLayout.translation.x + fixedPointCopy.x - fixedPoint.x)
+      value: rounded(fixedPoint.x + ray.x)
     },
     'translation.y': {
-      value: rounded(targetLayout.translation.y + fixedPointCopy.y - fixedPoint.y)
+      value: rounded(fixedPoint.y + ray.y)
     },
     'rotation.z': {
-      value: rounded(targetLayout.rotation.z)
+      value: rounded(element.getComputedLayout().rotation.z + rotationZDelta)
     }
   }
 }
@@ -1426,7 +1576,7 @@ ElementSelectionProxy.computeRotationPropertyGroupDelta = (
     }
     return {
       'rotation.z': {
-        value: effectiveDelta
+        value: ElementSelectionProxy.normalizeRotationDelta(effectiveDelta)
       }
     }
   } else {

@@ -12,7 +12,7 @@ const TEXT_CONTENT_SCHEMA = {
   content: 'string',
 };
 
-const LAYOUT_3D_SCHEMA = {
+export const LAYOUT_3D_SCHEMA = {
   shown: 'boolean',
   opacity: 'number',
   'mount.x': 'number',
@@ -34,6 +34,9 @@ const LAYOUT_3D_SCHEMA = {
   'scale.x': 'number',
   'scale.y': 'number',
   'scale.z': 'number',
+  'shear.xy': 'number',
+  'shear.xz': 'number',
+  'shear.yz': 'number',
   'sizeAbsolute.x': 'number',
   'sizeAbsolute.y': 'number',
   'sizeAbsolute.z': 'number',
@@ -65,6 +68,7 @@ const LAYOUT_2D_SCHEMA = {
   'rotation.z': 'number',
   'scale.x': 'number',
   'scale.y': 'number',
+  'shear.xy': 'number',
   'sizeAbsolute.x': 'number',
   'sizeAbsolute.y': 'number',
   'sizeProportional.x': 'number',
