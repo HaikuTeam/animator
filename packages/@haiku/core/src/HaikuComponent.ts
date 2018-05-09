@@ -184,7 +184,7 @@ export default class HaikuComponent extends HaikuElement {
         referenceUniqueness: (config.hotEditingMode)
           ? undefined // During editing, Haiku.app pads ids unless this is undefined
           : Math.random().toString(36).slice(2),
-      });
+      }, VERSION);
     } catch (e) {
       console.warn('[haiku core] caught error during migration', e);
     }

@@ -3,7 +3,6 @@
  */
 
 import computeMatrix from './layout/computeMatrix';
-import computeOrientationFlexibly from './layout/computeOrientationFlexibly';
 import computeSize from './layout/computeSize';
 
 const ELEMENTS_2D = {
@@ -193,7 +192,6 @@ export default {
   computeOrthonormalBasisMatrix,
   computeScaledBasisMatrix,
   createLayoutSpec,
-  computeOrientationFlexibly,
   createMatrix,
   copyMatrix,
   initializeTreeAttributes,
