@@ -167,8 +167,7 @@ class Timeline extends React.Component {
         isCommandKeyDown: false,
         isControlKeyDown: false,
         isAltKeyDown: false,
-        avoidTimelinePointerEvents: false,
-        isRepeat: true
+        avoidTimelinePointerEvents: false
       })
     }
 
