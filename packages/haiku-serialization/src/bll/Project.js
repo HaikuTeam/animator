@@ -924,15 +924,17 @@ Project.fetchProjectConfigInfo = (folder, cb) => {
   }, config))
 }
 
+Project.getAngularSelectorName = (name) => name
+  .replace(/([A-Z])/g, (char) => `-${char.toLowerCase()}`)
+  .replace(/^-/, '')
+
 Project.getProjectNameVariations = (folder) => {
   const projectHaikuConfig = Project.readPackageJson(folder).haiku
   const projectNameSafe = Project.getSafeProjectName(folder, projectHaikuConfig.project)
   const projectNameSafeShort = projectNameSafe.slice(0, 20)
   const projectNameLowerCase = projectNameSafe.toLowerCase()
   const reactProjectName = `React_${projectNameSafe}`
-  const angularSelectorName = projectNameSafe
-    .replace(/([A-Z])/g, (char) => `-${char.toLowerCase()}`)
-    .replace(/^-/, '')
+  const angularSelectorName = Project.getAngularSelectorName(projectNameSafe)
   const primaryAssetPath = `designs/${projectNameSafeShort}.sketch`
   return {
     projectNameSafe,
