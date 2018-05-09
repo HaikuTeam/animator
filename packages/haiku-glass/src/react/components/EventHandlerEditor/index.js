@@ -35,9 +35,16 @@ const STYLES = {
   frameEditorWrapper: {
     padding: '23px 23px 45px 18px'
   },
+  tagWrapper: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    paddingRight: '25px'
+  },
   tag: {
     padding: '2px 15px',
+    height: '25px',
     marginRight: '15px',
+    marginBottom: '15px',
     background: Palette.BLUE,
     borderRadius: '4px',
     textTransform: 'uppercase',
@@ -295,21 +302,23 @@ class EventHandlerEditor extends React.PureComponent {
                       }}
                     />
 
-                    {this.handlerManager
-                      .userVisibleEvents()
-                      .map(({ id, event, handler }) => {
-                        return (
-                          <span
-                            key={event}
-                            onClick={() => {
-                              this.showEditor(event)
-                            }}
-                            style={STYLES.tag}
-                          >
-                            {event}
-                          </span>
-                        )
-                      })}
+                    <div style={STYLES.tagWrapper}>
+                      {this.handlerManager
+                        .userVisibleEvents()
+                        .map(({ id, event, handler }) => {
+                          return (
+                            <span
+                              key={event}
+                              onClick={() => {
+                                this.showEditor(event)
+                              }}
+                              style={STYLES.tag}
+                            >
+                              {event}
+                            </span>
+                          )
+                        })}
+                    </div>
                   </div>
                 }
                 rightPanel={
