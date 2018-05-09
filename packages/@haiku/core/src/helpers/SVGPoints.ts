@@ -39,6 +39,8 @@ const SVG_COMMAND_TYPES = {
   polygon: true,
 };
 
+const pointsRegex = /(\d+\.*\d*)((\s+,?\s*)|(,\s*))(\d+\.*\d*)/g;
+
 function polyPointsStringToPoints(pointsString) {
   if (!pointsString) {
     return [];
@@ -47,16 +49,14 @@ function polyPointsStringToPoints(pointsString) {
     return pointsString;
   }
   const points = [];
-  const couples = pointsString.split(/\s+/);
-  for (let i = 0; i < couples.length; i++) {
-    const pair = couples[i];
-    const segs = pair.split(/,\s*/);
+  let matches;
+  while(matches = pointsRegex.exec(pointsString)) {
     const coord = [];
-    if (segs[0]) {
-      coord[0] = Number(segs[0]);
+    if (matches[1]) {
+      coord[0] = Number(matches[1]);
     }
-    if (segs[1]) {
-      coord[1] = Number(segs[1]);
+    if (matches[5]) {
+      coord[1] = Number(matches[5]);
     }
     points.push(coord);
   }

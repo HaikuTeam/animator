@@ -1834,6 +1834,7 @@ BaseModel.extend(Element)
 
 Element.selected = {}
 Element.hovered = {}
+Element.directlySelected = null
 
 Element.cache = {
   domNodes: {},

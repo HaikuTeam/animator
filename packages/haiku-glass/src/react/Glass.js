@@ -31,6 +31,7 @@ import rotationCursorMana from '../overlays/rotationCursorMana'
 import scaleCursorMana from '../overlays/scaleCursorMana'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import {isMac} from 'haiku-common/lib/environments/os'
+import directSelectionMana from '../overlays/directSelectionMana'
 
 const mixpanel = require('haiku-serialization/src/utils/Mixpanel')
 const Globals = require('haiku-ui-common/lib/Globals').default
@@ -66,6 +67,7 @@ const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source'
 
 const OUTLINE_CLONE_SUFFIX = 'outline-clone-helper'
+const DOUBLE_CLICK_THRESHOLD_MS = 500
 
 function isNumeric (n) {
   return !isNaN(parseFloat(n)) && isFinite(n)
@@ -1036,6 +1038,8 @@ export class Glass extends React.Component {
     }
 
     this.state.isMouseDown = true
+    const mouseDownTimeDiff = this.state.lastMouseDownTime ? Date.now() - this.state.lastMouseDownTime : null
+    const isDoubleClick = mouseDownTimeDiff ? mouseDownTimeDiff <= DOUBLE_CLICK_THRESHOLD_MS : false
     this.state.lastMouseDownTime = Date.now()
     const mouseDownPosition = this.storeAndReturnMousePosition(mousedownEvent, 'lastMouseDownPosition')
 
@@ -1117,6 +1121,9 @@ export class Glass extends React.Component {
                 if (!Globals.isControlKeyDown && !Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // none
                   this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
                     this.ensureElementIsSelected(elementTargeted, finish)
+                    if(isDoubleClick) {
+                      Element.directlySelected = elementTargeted
+                    }
                   })
                 } else if (!Globals.isControlKeyDown && !Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Alt
                   this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
@@ -1781,6 +1788,14 @@ export class Glass extends React.Component {
       return overlays
     }
 
+    if(Element.directlySelected) {
+      Element.directlySelected.getHaikuElement().visit((descendant) => {
+        this.renderDirectSelection(descendant, overlays)
+      })
+      
+      return overlays
+    }
+    
     const proxy = this.fetchProxyElementForSelection()
 
     if (proxy.hasAnythingInSelection()) {
@@ -1800,7 +1815,22 @@ export class Glass extends React.Component {
     const proxy = ElementSelectionProxy.fromSelection(selection, { component: this.getActiveComponent() })
     return proxy
   }
-
+  
+  renderDirectSelection (element, overlays) {
+    switch(element.type) {
+      case 'rect':
+        overlays.push(directSelectionMana[element.type]({...element.attributes, width: element.sizeX, height: element.sizeY}, element.layoutAncestryMatrices))
+        break
+      case 'circle':
+      case 'ellipse':
+      case 'line':
+      case 'polyline':
+      case 'path':
+      case 'polygon':
+        overlays.push(directSelectionMana[element.type](element.attributes, element.layoutAncestryMatrices))
+    }
+  }
+  
   renderSelectionMarquee (overlays) {
     if (this.getActiveComponent()) {
       const marquee = this.getActiveComponent().getSelectionMarquee()
