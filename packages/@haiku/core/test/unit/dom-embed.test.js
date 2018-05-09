@@ -4,7 +4,7 @@ var TestHelpers = require('./../TestHelpers')
 var HaikuDOMAdapter = require('./../../dom')
 
 test('dom-embed', function (t) {
-  t.plan(12)
+  t.plan(13)
 
   TestHelpers.createDOM((err, win, mount) => {
     if (err) throw err
@@ -39,6 +39,7 @@ test('dom-embed', function (t) {
 
     var component = HaikuComponentFactory(mount)
 
+    t.equal(component.constructor.__name__, 'HaikuComponent', 'component is component')
     t.equal(component.constructor.name, 'HaikuComponent', 'component is component')
     t.equal(component.PLAYER_VERSION, pkg.version, 'player version equal') // #LEGACY
     t.equal(component.CORE_VERSION, pkg.version, 'core version equal')

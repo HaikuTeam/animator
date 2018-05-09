@@ -1600,6 +1600,8 @@ const clone = (value, binding) => {
   return value;
 };
 
+HaikuComponent['__name__'] = 'HaikuComponent';
+
 HaikuComponent['PLAYER_VERSION'] = VERSION; // #LEGACY
 HaikuComponent['CORE_VERSION'] = VERSION;
 
@@ -1607,3 +1609,4 @@ HaikuComponent['all'] = (): HaikuComponent[] => {
   const all = HaikuBase['getRegistryForClass'](HaikuComponent);
   return all.filter((component) => !component.isDestroyed);
 };
+

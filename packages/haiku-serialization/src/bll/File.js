@@ -420,20 +420,19 @@ File.readMana = (folder, relpath, cb) => {
       return cb(null, manaFull)
     }
 
-    if (experimentIsEnabled(Experiment.SvgOptimizer)) {
-      return getSvgOptimizer().optimize(xml, { path: path.join(folder, relpath) }).then((contents) => {
-        const manaOptimized = xmlToMana(contents.data)
+    return getSvgOptimizer().optimize(xml, { path: path.join(folder, relpath) }).then((contents) => {
+      const manaOptimized = xmlToMana(contents.data)
 
-        if (!manaOptimized) {
-          return cb(new Error(`We couldn't load the contents of ${relpath}`))
-        }
+      if (!manaOptimized) {
+        return cb(new Error(`We couldn't load the contents of ${relpath}`))
+      }
 
-        if (experimentIsEnabled(Experiment.NormalizeSvgContent)) {
-          return cb(null, Template.normalize(manaOptimized))
-        }
+      if (experimentIsEnabled(Experiment.NormalizeSvgContent)) {
+        return cb(null, Template.normalize(manaOptimized))
+      }
 
-        return cb(null, manaOptimized)
-      })
+      return cb(null, manaOptimized)
+    })
       .catch((exception) => {
         // Log the exception too in case the error occurred as part of our pipeline
         logger.warn(`[file] svgo couldn't parse ${relpath}`, exception)
@@ -442,9 +441,6 @@ File.readMana = (folder, relpath, cb) => {
           return returnUnoptimizedMana()
         })
       })
-    } else {
-      return returnUnoptimizedMana()
-    }
   })
 }
 

@@ -1086,9 +1086,7 @@ export class Glass extends React.Component {
 
             if (!Globals.isSpecialKeyDown() && !Globals.isAltKeyDown) {
               if (this.getActiveComponent()) {
-                if (experimentIsEnabled(Experiment.StageSelectionMarquee)) {
-                  this.getActiveComponent().getSelectionMarquee().startSelection(mouseDownPosition)
-                }
+                this.getActiveComponent().getSelectionMarquee().startSelection(mouseDownPosition)
               }
             }
 
@@ -1109,83 +1107,38 @@ export class Glass extends React.Component {
 
             const elementTargeted = this.getActiveComponent().findElementByComponentId(haikuId)
 
-            if (experimentIsEnabled(Experiment.ElementMultiSelectAndTransform)) {
-              if (elementTargeted.isRootElement()) { // The artboard can only be selected alone
-                Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'})
-                this.ensureElementIsSelected(elementTargeted, finish)
-              } else {
-                if (!Globals.isControlKeyDown && !Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // none
-                  this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
-                    this.ensureElementIsSelected(elementTargeted, finish)
-                  })
-                } else if (!Globals.isControlKeyDown && !Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Alt
-                  this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
-                    this.ensureElementIsSelected(elementTargeted, () => {
-                      this.duplicateSelectedElementsThenSelectDuplicates(finish)
-                    })
-                  })
-                } else if (!Globals.isControlKeyDown && Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Shift
-                  this.toggleMultiElementSelection(elementTargeted, finish)
-                } else if (!Globals.isControlKeyDown && Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Shift+Alt
-                  this.toggleMultiElementSelection(elementTargeted, () => {
+            if (elementTargeted.isRootElement()) { // The artboard can only be selected alone
+              Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'})
+              this.ensureElementIsSelected(elementTargeted, finish)
+            } else {
+              if (!Globals.isControlKeyDown && !Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // none
+                this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
+                  this.ensureElementIsSelected(elementTargeted, finish)
+                })
+              } else if (!Globals.isControlKeyDown && !Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Alt
+                this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
+                  this.ensureElementIsSelected(elementTargeted, () => {
                     this.duplicateSelectedElementsThenSelectDuplicates(finish)
                   })
-                } else if (Globals.isControlKeyDown && !Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Ctrl
-                  this.deselectAllOtherElements(elementTargeted, () => {
-                    this.ensureElementIsSelected(elementTargeted, finish)
-                  })
-                } else if (Globals.isControlKeyDown && !Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Ctrl+Alt
-                  this.deselectAllOtherElements(elementTargeted, () => {
-                    this.ensureElementIsSelected(elementTargeted, finish)
-                  })
-                } else if (Globals.isControlKeyDown && Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Ctrl+Shift
+                })
+              } else if (!Globals.isControlKeyDown && Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Shift
+                this.toggleMultiElementSelection(elementTargeted, finish)
+              } else if (!Globals.isControlKeyDown && Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Shift+Alt
+                this.toggleMultiElementSelection(elementTargeted, () => {
+                  this.duplicateSelectedElementsThenSelectDuplicates(finish)
+                })
+              } else if (Globals.isControlKeyDown && !Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Ctrl
+                this.deselectAllOtherElements(elementTargeted, () => {
                   this.ensureElementIsSelected(elementTargeted, finish)
-                } else if (Globals.isControlKeyDown && Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Ctrl+Shift+Alt
+                })
+              } else if (Globals.isControlKeyDown && !Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Ctrl+Alt
+                this.deselectAllOtherElements(elementTargeted, () => {
                   this.ensureElementIsSelected(elementTargeted, finish)
-                }
-              }
-            } else {
-              if (elementTargeted.isRootElement()) { // The artboard can only be selected alone
-                Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'})
+                })
+              } else if (Globals.isControlKeyDown && Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Ctrl+Shift
                 this.ensureElementIsSelected(elementTargeted, finish)
-              } else {
-                if (!Globals.isControlKeyDown && !Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // none
-                  this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
-                    this.ensureElementIsSelected(elementTargeted, finish)
-                  })
-                } else if (!Globals.isControlKeyDown && !Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Alt
-                  this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
-                    this.ensureElementIsSelected(elementTargeted, () => {
-                      this.duplicateSelectedElementsThenSelectDuplicates(finish)
-                    })
-                  })
-                } else if (!Globals.isControlKeyDown && Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Shift
-                  this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
-                    this.ensureElementIsSelected(elementTargeted, finish)
-                  })
-                } else if (!Globals.isControlKeyDown && Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Shift+Alt
-                  this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
-                    this.ensureElementIsSelected(elementTargeted, () => {
-                      this.duplicateSelectedElementsThenSelectDuplicates(finish)
-                    })
-                  })
-                } else if (Globals.isControlKeyDown && !Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Ctrl
-                  this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
-                    this.ensureElementIsSelected(elementTargeted, finish)
-                  })
-                } else if (Globals.isControlKeyDown && !Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Ctrl+Alt
-                  this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
-                    this.ensureElementIsSelected(elementTargeted, finish)
-                  })
-                } else if (Globals.isControlKeyDown && Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Ctrl+Shift
-                  this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
-                    this.ensureElementIsSelected(elementTargeted, finish)
-                  })
-                } else if (Globals.isControlKeyDown && Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Ctrl+Shift+Alt
-                  this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
-                    this.ensureElementIsSelected(elementTargeted, finish)
-                  })
-                }
+              } else if (Globals.isControlKeyDown && Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Ctrl+Shift+Alt
+                this.ensureElementIsSelected(elementTargeted, finish)
               }
             }
           } else {
@@ -1903,7 +1856,7 @@ export class Glass extends React.Component {
       }
     })
 
-    if (canRotate && experimentIsEnabled(Experiment.OriginIndicator) && pointDisplayMode !== POINT_DISPLAY_MODES.NONE) {
+    if (canRotate && pointDisplayMode !== POINT_DISPLAY_MODES.NONE) {
       overlays.push(originMana(scale, origin.x, origin.y, Globals.isSpecialKeyDown()))
     }
 

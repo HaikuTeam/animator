@@ -1,7 +1,6 @@
 import React from 'react'
 import Color from 'color'
 import Popover from 'react-popover'
-import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
 import Palette from 'haiku-ui-common/lib/Palette'
 import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 import FigmaImporter from './importers/FigmaImporter'
@@ -105,42 +104,26 @@ class FileImporter extends React.PureComponent {
   }
 
   render () {
-    if (experimentIsEnabled(Experiment.FigmaIntegration)) {
-      return (
-        <Popover
-          onOuterAction={() => {
-            this.hidePopover()
-          }}
-          isOpen={this.state.isPopoverOpen}
-          place='below'
-          tipSize={0.01}
-          body={this.popoverBody}
-        >
-          <button
-            style={STYLES.button}
-            onClick={() => {
-              this.showPopover()
-            }}
-          >
-            +
-          </button>
-        </Popover>
-      )
-    } else {
-      return (
+    return (
+      <Popover
+        onOuterAction={() => {
+          this.hidePopover()
+        }}
+        isOpen={this.state.isPopoverOpen}
+        place='below'
+        tipSize={0.01}
+        body={this.popoverBody}
+      >
         <button
           style={STYLES.button}
           onClick={() => {
             this.showPopover()
           }}
         >
-          <FileSystemImporter
-            style={STYLES.popover.text} text='+'
-            onFileDrop={(fileDropEvent) => { this.onFileDrop(fileDropEvent) }}
-          />
+          +
         </button>
-      )
-    }
+      </Popover>
+    )
   }
 }
 

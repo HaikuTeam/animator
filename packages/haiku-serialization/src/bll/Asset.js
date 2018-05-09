@@ -290,35 +290,33 @@ class Asset extends BaseModel {
         )
       }
 
-      if (experimentIsEnabled(Experiment.FigmaIntegration)) {
-        if (shouldDisplayFigmaAssetMessage(this.children)) {
-          out = out.concat(
-            Asset.upsert({
-              uid: 'hacky-figma-file[1]',
-              relpath: 'hacky-figma-file[1]',
-              type: Asset.TYPES.CONTAINER,
-              kind: Asset.KINDS.FIGMA,
-              proximity: Asset.PROXIMITIES.LOCAL,
-              figmaID: '',
-              displayName: this.project.getName() + '.figma',
-              children: [],
-              project: this.project,
-              dtModified: Date.now()
-            }),
-            Asset.upsert({
-              uid: 'hacky-message[3]',
-              relpath: 'hacky-message[3]',
-              type: Asset.TYPES.HACKY_MESSAGE,
-              kind: Asset.KINDS.HACKY_MESSAGE,
-              project: this.project,
-              displayName: 'hacky-message[3]',
-              children: [],
-              dtModified: Date.now(),
-              messageType: 'edit_primary_asset',
-              message: FIGMA_ASSET_MESSAGE
-            })
-          )
-        }
+      if (shouldDisplayFigmaAssetMessage(this.children)) {
+        out = out.concat(
+          Asset.upsert({
+            uid: 'hacky-figma-file[1]',
+            relpath: 'hacky-figma-file[1]',
+            type: Asset.TYPES.CONTAINER,
+            kind: Asset.KINDS.FIGMA,
+            proximity: Asset.PROXIMITIES.LOCAL,
+            figmaID: '',
+            displayName: this.project.getName() + '.figma',
+            children: [],
+            project: this.project,
+            dtModified: Date.now()
+          }),
+          Asset.upsert({
+            uid: 'hacky-message[3]',
+            relpath: 'hacky-message[3]',
+            type: Asset.TYPES.HACKY_MESSAGE,
+            kind: Asset.KINDS.HACKY_MESSAGE,
+            project: this.project,
+            displayName: 'hacky-message[3]',
+            children: [],
+            dtModified: Date.now(),
+            messageType: 'edit_primary_asset',
+            message: FIGMA_ASSET_MESSAGE
+          })
+        )
       }
 
       return out
