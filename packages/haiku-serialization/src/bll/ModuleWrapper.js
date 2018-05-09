@@ -143,6 +143,7 @@ class ModuleWrapper extends BaseModel {
   load () {
     overrideModulesLoaded(
       (stop) => {
+        this.isolatedClearCache()
         this.exp = require(this.getAbspath())
         this._hasLoadedAtLeastOnce = true
         this.update(this.exp, () => {
@@ -227,25 +228,19 @@ class ModuleWrapper extends BaseModel {
       return cb()
     }
 
-    return Project.fetchProjectConfigInfo(this.file.folder, (err, userconfig) => {
-      if (err) return cb(err)
+    // Reassign in case our bytecode was empty and we created a new object
+    this.exp = Bytecode.reinitialize(
+      this.file.folder,
+      path.normalize(this.file.relpath),
+      bytecode,
+      {title: this.component && this.component.getTitle()}
+    )
 
-      // Reassign in case our bytecode was empty and we created a new object
-      this.exp = Bytecode.reinitialize(
-        this.file.folder,
-        path.normalize(this.file.relpath),
-        bytecode,
-        lodash.assign({}, userconfig, {
-          title: this.component && this.component.getTitle()
-        })
-      )
+    MODULE_CACHE_HOT[this.getAbspath()] = this.exp
+    MODULE_CACHE_HOT[this.getModpath()] = this.exp
+    MODULE_CACHE_HOT[this.file.getAbspath()] = this.exp
 
-      MODULE_CACHE_HOT[this.getAbspath()] = this.exp
-      MODULE_CACHE_HOT[this.getModpath()] = this.exp
-      MODULE_CACHE_HOT[this.file.getAbspath()] = this.exp
-
-      return cb()
-    })
+    return cb()
   }
 }
 

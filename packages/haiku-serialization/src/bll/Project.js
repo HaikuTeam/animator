@@ -784,31 +784,6 @@ class Project extends BaseModel {
     })
   }
 
-  /**
-   * @method writeComponentInfo
-   * @description Writes to both the package.json and the bytecode.metdata
-   */
-  writeComponentInfo (scenename, info, cb) {
-    return this.readPackageJsonSafe((pkg) => {
-      if (!pkg.haiku) pkg.haiku = {}
-
-      if (!pkg.haiku[scenename]) pkg.haiku[scenename] = {}
-      lodash.assign(pkg.haiku[scenename], info)
-
-      return this.writePackageJson(pkg, (err) => {
-        if (err) return cb(err)
-
-        const ac = this.findActiveComponentBySceneName(scenename)
-
-        if (ac) {
-          return ac.assignMetadata(info, cb)
-        }
-
-        return cb()
-      })
-    })
-  }
-
   setupActiveComponent (relpath, cb) {
     const activeComponent = this.upsertActiveComponentInstance(relpath)
     return cb(null, activeComponent)

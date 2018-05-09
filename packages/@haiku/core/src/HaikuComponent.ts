@@ -78,7 +78,7 @@ export default class HaikuComponent extends HaikuElement {
     host: HaikuComponent,
     config,
     container,
-) {
+  ) {
     super();
 
     // We provide rudimentary support for passing the `template` as an XML string.

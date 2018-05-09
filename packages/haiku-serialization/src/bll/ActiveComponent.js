@@ -2704,21 +2704,6 @@ class ActiveComponent extends BaseModel {
   }
 
   /**
-   * @method assignMetadata
-   */
-  assignMetadata (metadataIncoming, cb) {
-    return this.readMetadata((err, metadataExisting) => {
-      if (err) {
-        logger.info(`[active component] metadata read error`, err)
-      }
-
-      const metadataFinal = Object.assign(metadataExisting || {}, metadataIncoming)
-
-      return this.writeMetadata(metadataFinal, cb)
-    })
-  }
-
-  /**
    * @method readAllEventHandlers
    */
   readAllEventHandlers (metadata, cb) {
