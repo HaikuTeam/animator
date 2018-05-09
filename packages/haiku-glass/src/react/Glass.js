@@ -1127,7 +1127,6 @@ export class Glass extends React.Component {
                         if(descendant.isComponent()) return
                         if(geometryUtils.isPointInsidePrimitive(descendant, mouseDownPosition)) {
                           Element.directlySelected = descendant
-                          console.log(descendant)
                           return false // stop searching
                         }
                       })

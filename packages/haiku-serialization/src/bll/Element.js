@@ -1857,6 +1857,7 @@ Element.nodeIsGrouper = (node) => {
 
 Element.unselectAllElements = function (criteria, metadata) {
   Element.where(criteria).forEach((element) => element.unselect(metadata))
+  Element.directlySelected = null
 }
 
 Element.clearCaches = function clearCaches () {
