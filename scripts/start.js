@@ -24,7 +24,7 @@ global.process.env.NODE_ENV = global.process.env.NODE_ENV || 'development'
  */
 
 const DEFAULTS = {
-  dev: false,
+  dev: true,
   devChoice: 'everything',
   folderChoice: 'none',
   skipInitialBuild: false
@@ -200,7 +200,10 @@ function getReleaseArchitecture () {
 function setup () {
   log.hat(`preparing to develop locally`, 'cyan')
 
-  global.process.env.DEV = (inputs.dev) ? '1' : undefined
+  if (global.process.env.DEV === undefined) {
+    global.process.env.DEV = (inputs.dev) ? '1' : undefined
+  }
+
   global.process.env.HAIKU_SKIP_AUTOUPDATE = '1'
   global.process.env.HAIKU_PLUMBING_PORT = '1024'
 
