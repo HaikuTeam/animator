@@ -216,6 +216,14 @@ export default class ComponentHeadingRow extends React.Component {
           </div>
         </div>
         <div
+          onClick={(clickEvent) => {
+            // We need this click listener here or we won't capture events that occur on
+            // the keyframe pills or transition body segments
+            clickEvent.stopPropagation()
+            // Expand and select the entire component area when it is clicked, but note that we
+            // only collapse if the user clicked directly on the chevron.
+            this.props.row.expandAndSelect({ from: 'timeline' })
+          }}
           className='component-collapsed-segments-box'
           style={{
             display: 'table-cell',
