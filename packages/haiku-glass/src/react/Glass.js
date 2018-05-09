@@ -576,7 +576,7 @@ export class Glass extends React.Component {
           this.handlePasteDebounced()
           break
 
-        case 'global-menu:selectall':
+        case 'global-menu:selectAll':
           if (experimentIsEnabled(Experiment.ElementMultiSelectAndTransform)) {
             this.handleSelectAllDebounced()
           }

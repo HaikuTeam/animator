@@ -212,7 +212,7 @@ export default class TopMenu {
       accelerator: 'CmdOrCtrl+A',
       enabled: options.isProjectOpen,
       click: () => {
-        this.sendActionToFirstReponderAndEmit('selectall');
+        this.sendActionToFirstReponderAndEmit('selectAll');
       },
     });
 

@@ -302,15 +302,15 @@ export default class Creator extends React.Component {
       }
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
-    ipcRenderer.on('global-menu:selectall', lodash.debounce(() => {
+    ipcRenderer.on('global-menu:selectAll', lodash.debounce(() => {
       // Only select all if we haven't activated a text element
       if (!this.isTextInputFocused()) {
-        logger.info(`[creator] global-menu:selectall`)
+        logger.info(`[creator] global-menu:selectAll`)
         this.props.websocket.send({
           type: 'relay',
           from: 'creator',
           view: 'timeline',
-          name: 'global-menu:selectall'
+          name: 'global-menu:selectAll'
         })
       }
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
