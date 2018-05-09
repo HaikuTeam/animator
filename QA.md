@@ -667,8 +667,10 @@ Core npm package is up to date https://www.npmjs.com/package/@haiku/core
 
 Sharing
 
-The share page HTML snippet is correct
-The share page React snippet is correct
+The share page and modal HTML snippets are correct
+The share page and modal React snippet are correct
+The share page and modal Vue snippets are correct
+The share page and modal Angular snippets are correct
 The lottie.json file works in http://editor.lottiefiles.com/
 Publishing produces a static bundle at code/main/static.json which renders correctly on my community profile
 Share page CodePen content works correctly
