@@ -19,7 +19,8 @@ const STYLES = {
     position: 'absolute',
     top: '50%',
     left: '50%',
-    transform: 'translate(-50%, -50%)'
+    transform: 'translate(-50%, -50%)',
+    userSelect: 'none'
   },
   tip: {
     position: 'absolute',
@@ -36,7 +37,8 @@ const STYLES = {
     textAlign: 'left',
     boxShadow: '0 22px 74px 0 rgba(0,14,14,0.46)',
     display: 'flex',
-    alignItems: 'center'
+    alignItems: 'center',
+    userSelect: 'none'
   },
   pretip: {
     fontStyle: 'italic',

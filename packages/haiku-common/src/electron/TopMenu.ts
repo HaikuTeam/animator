@@ -210,9 +210,8 @@ export default class TopMenu {
     editSubmenu.push({
       label: 'Select All',
       accelerator: 'CmdOrCtrl+A',
-      enabled: options.isProjectOpen,
       click: () => {
-        this.sendActionToFirstReponderAndEmit('selectall');
+        this.sendActionToFirstReponderAndEmit('selectAll');
       },
     });
 

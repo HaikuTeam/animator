@@ -576,8 +576,10 @@ export class Glass extends React.Component {
           this.handlePasteDebounced()
           break
 
-        case 'global-menu:selectall':
-          this.handleSelectAllDebounced()
+        case 'global-menu:selectAll':
+          if (experimentIsEnabled(Experiment.ElementMultiSelectAndTransform)) {
+            this.handleSelectAllDebounced()
+          }
           break
 
         case 'global-menu:undo':

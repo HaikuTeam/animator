@@ -394,7 +394,7 @@ class Timeline extends React.Component {
           }
           break
 
-        case 'global-menu:selectall':
+        case 'global-menu:selectAll':
           // Delegate selectall only if the user is not editing something here
           if (!document.hasFocus()) {
             if (!this.isTextInputFocused()) {
