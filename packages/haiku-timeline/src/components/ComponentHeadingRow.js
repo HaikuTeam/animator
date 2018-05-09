@@ -13,8 +13,8 @@ export default class ComponentHeadingRow extends React.Component {
   constructor (props) {
     super(props)
     this.handleUpdate = this.handleUpdate.bind(this)
-    this.throttledHandleRowHovered = lodash.throttle(this.handleRowHovered, 20).bind(this)
-    this.throttledHandleRowUnhovered = lodash.throttle(this.handleRowUnhovered, 20).bind(this)
+    this.throttledHandleRowHovered = lodash.throttle(this.handleRowHovered, 100).bind(this)
+    this.throttledHandleRowUnhovered = lodash.throttle(this.handleRowUnhovered, 100).bind(this)
   }
 
   componentWillUnmount () {
