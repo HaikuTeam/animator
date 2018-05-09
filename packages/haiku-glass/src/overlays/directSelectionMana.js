@@ -175,8 +175,55 @@ export const path = ({d}, layoutAncestry) => ({
         d,
       }
     },
-    // ...SVGPoints.pathToPoints(d).map((pt) => { debugger; return anchorPoint(1, {x: pt[0], y: pt[1]})})
+    ...SVGPoints.pathToPoints(d).map((pt) => { return anchorPoint(1, pt)})
   ]
 })
 
-export default { ellipse, circle, polygon, rect, path } // TODO: line, polyline
+export const line = ({x1, y1, x2, y2}, layoutAncestry) => ({
+  elementName: 'g',
+  attributes: {
+    style: {
+      transform: `matrix3d(${Layout3D.multiplyArrayOfMatrices(layoutAncestry.reverse()).join(',')})`,
+      transformOrigin: 'top left',
+    },
+  },
+  children: [
+    {
+      elementName: 'line',
+      attributes: {
+        stroke: Palette.DARKER_ROCK2,
+        'stroke-width': '1px',
+        'vector-effect': 'non-scaling-stroke',
+        fill: 'none',
+        x1, y1, x2, y2,
+      }
+    },
+    anchorPoint(1, {x: x1, y: y1}),
+    anchorPoint(1, {x: x2, y: y2})
+  ]
+})
+
+export const polyline = ({points}, layoutAncestry) => ({
+  elementName: 'g',
+  attributes: {
+    style: {
+      transform: `matrix3d(${Layout3D.multiplyArrayOfMatrices(layoutAncestry.reverse()).join(',')})`,
+      transformOrigin: 'top left',
+    },
+  },
+  children: [
+    {
+      elementName: 'polyline',
+      attributes: {
+        stroke: Palette.DARKER_ROCK2,
+        'stroke-width': '1px',
+        'vector-effect': 'non-scaling-stroke',
+        fill: 'none',
+        points
+      }
+    },
+    ...SVGPoints.polyPointsStringToPoints(points).map((pt) => { return anchorPoint(1, {x: pt[0], y: pt[1]})})
+  ]
+})
+
+export default { ellipse, circle, polygon, rect, path, line, polyline }

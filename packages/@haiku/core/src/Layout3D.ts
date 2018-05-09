@@ -151,6 +151,10 @@ const multiplyArrayOfMatrices = (arrayOfMatrices: number[][]): number[] => {
   return product;
 };
 
+const decomposeMatrixTranslation = (mat: number[]): {x: number, y: number} => {
+  return {x: mat[12], y: mat[13]}
+}
+
 const computeLayout = (layoutSpec, currentMatrix, parentsizeAbsoluteIn) => {
   // Clean out the existing computed layout from the layout spec, if it exists.
   delete layoutSpec.computed;
@@ -189,6 +193,7 @@ const computeScaledBasisMatrix = (rotation, scale) => {
 
 export default {
   multiplyArrayOfMatrices,
+  decomposeMatrixTranslation,
   computeLayout,
   computeOrthonormalBasisMatrix,
   computeScaledBasisMatrix,

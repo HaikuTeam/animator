@@ -32,6 +32,7 @@ import scaleCursorMana from '../overlays/scaleCursorMana'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import {isMac} from 'haiku-common/lib/environments/os'
 import directSelectionMana from '../overlays/directSelectionMana'
+import geometryUtils from '@haiku/core/lib/helpers/geometryUtils'
 
 const mixpanel = require('haiku-serialization/src/utils/Mixpanel')
 const Globals = require('haiku-ui-common/lib/Globals').default
@@ -1122,7 +1123,14 @@ export class Glass extends React.Component {
                   this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
                     this.ensureElementIsSelected(elementTargeted, finish)
                     if(isDoubleClick) {
-                      Element.directlySelected = elementTargeted
+                      elementTargeted.getHaikuElement().visit((descendant) => {
+                        if(descendant.isComponent()) return
+                        if(geometryUtils.isPointInsidePrimitive(descendant, mouseDownPosition)) {
+                          Element.directlySelected = descendant
+                          console.log(descendant)
+                          return false // stop searching
+                        }
+                      })
                     }
                   })
                 } else if (!Globals.isControlKeyDown && !Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Alt
@@ -1789,10 +1797,7 @@ export class Glass extends React.Component {
     }
 
     if(Element.directlySelected) {
-      Element.directlySelected.getHaikuElement().visit((descendant) => {
-        this.renderDirectSelection(descendant, overlays)
-      })
-      
+      this.renderDirectSelection(Element.directlySelected, overlays)
       return overlays
     }
     
