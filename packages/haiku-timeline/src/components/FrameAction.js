@@ -35,6 +35,8 @@ const STYLE = {
   }
 }
 
+const HOVER_INTENT_TIME = 150
+
 class FrameAction extends React.Component {
   constructor () {
     super()
@@ -46,15 +48,23 @@ class FrameAction extends React.Component {
   }
 
   setHover () {
-    this.timeout = setTimeout(() => {
-      this.setState({achievedHover: true})
-    }, 520)
+    if (!this.timeout) {
+      this.timeout = setTimeout(() => {
+        this.timeout = null
+        this.setState({achievedHover: true})
+      }, HOVER_INTENT_TIME)
+    }
+  }
+
+  unsetTimeout () {
+    if (this.timeout) {
+      clearTimeout(this.timeout)
+      this.timeout = null
+    }
   }
 
   componentWillUnmount () {
-    if (this.timeout) {
-      clearTimeout(this.timeout)
-    }
+    this.unsetTimeout()
   }
 
   openFrameActionsEditor (e) {
@@ -72,15 +82,16 @@ class FrameAction extends React.Component {
     } else {
       return (
         <div
+          className='frame-action-box'
+          onMouseOver={() => this.setHover()}
+          onMouseLeave={() => this.unsetTimeout()}
           onMouseDown={(event) => {
             if (this.state.achievedHover) this.openFrameActionsEditor(event)
           }
           }
           style={[STYLE.base, STYLE.addAction, this.state.achievedHover && STYLE.show]}>
           <div
-            style={STYLE.plus}
-            onMouseEnter={() => this.setHover()}
-            onMouseLeave={() => this.timeout && clearTimeout(this.timeout)}>
+            style={STYLE.plus}>
             +
           </div>
         </div>
