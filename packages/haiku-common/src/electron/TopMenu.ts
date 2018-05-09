@@ -49,14 +49,16 @@ export default class TopMenu {
         click: () => {
           this.sender.send('global-menu:open-terminal');
         },
-      }, {
-        label: 'Open in Text Editor',
-        accelerator: 'CmdOrCtrl+Option+E',
-        enabled: options.isProjectOpen,
-        click: () => {
-          this.sender.send('global-menu:open-text-editor');
-        },
       },
+      // This functionality causes a crash in prod for unknown reasons. Uncomment when fixed.
+      // {
+      //   label: 'Open in Text Editor',
+      //   accelerator: 'CmdOrCtrl+Option+E',
+      //   enabled: options.isProjectOpen,
+      //   click: () => {
+      //     this.sender.send('global-menu:open-text-editor');
+      //   },
+      // },
     ];
 
     const mainMenuPieces = [];
