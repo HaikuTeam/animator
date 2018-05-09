@@ -1,38 +1,38 @@
  /* Copy from haiku-common/src/types/enums.ts  */
 export enum Curve {
-  EaseInBack = 'easeInBack',
-  EaseInCirc = 'easeInCirc',
-  EaseInCubic = 'easeInCubic',
-  EaseInExpo = 'easeInExpo',
-  EaseInQuad = 'easeInQuad',
-  EaseInQuart = 'easeInQuart',
-  EaseInBounce = 'easeInBounce',
-  EaseInElastic = 'easeInElastic',
-  EaseInQuint = 'easeInQuint',
-  EaseInSine = 'easeInSine',
-  EaseOutBack = 'easeOutBack',
-  EaseOutCirc = 'easeOutCirc',
-  EaseOutCubic = 'easeOutCubic',
-  EaseOutExpo = 'easeOutExpo',
-  EaseOutQuad = 'easeOutQuad',
-  EaseOutQuart = 'easeOutQuart',
-  EaseOutBounce = 'easeOutBounce',
-  EaseOutElastic = 'easeOutElastic',
-  EaseOutQuint = 'easeOutQuint',
-  EaseOutSine = 'easeOutSine',
-  EaseInOutBack = 'easeInOutBack',
-  EaseInOutCirc = 'easeInOutCirc',
-  EaseInOutCubic = 'easeInOutCubic',
-  EaseInOutExpo = 'easeInOutExpo',
-  EaseInOutQuad = 'easeInOutQuad',
-  EaseInOutQuart = 'easeInOutQuart',
-  EaseInOutBounce = 'easeInOutBounce',
-  EaseInOutElastic = 'easeInOutElastic',
-  EaseInOutQuint = 'easeInOutQuint',
-  EaseInOutSine = 'easeInOutSine',
-  Linear = 'linear',
+  easeInBack,
+  easeInCirc,
+  easeInCubic,
+  easeInExpo,
+  easeInQuad,
+  easeInQuart,
+  easeInBounce,
+  easeInElastic,
+  easeInQuint,
+  easeInSine,
+  easeOutBack,
+  easeOutCirc,
+  easeOutCubic,
+  easeOutExpo,
+  easeOutQuad,
+  easeOutQuart,
+  easeOutBounce,
+  easeOutElastic,
+  easeOutQuint,
+  easeOutSine,
+  easeInOutBack,
+  easeInOutCirc,
+  easeInOutCubic,
+  easeInOutExpo,
+  easeInOutQuad,
+  easeInOutQuart,
+  easeInOutBounce,
+  easeInOutElastic,
+  easeInOutQuint,
+  easeInOutSine,
+  linear,
 }
-  
+
 /**
  * Haiku element tree. eg. <div><svg>...</div></svg>. 
  * `source` and `identifier` are rarely used.
@@ -70,9 +70,9 @@ export type HaikuEventHandlers = {
  * Value of an element property in a given frame. 
  */
 export type HaikuTimelineValue = {
-  value: (boolean | string | ((any) => string));
+  value: (boolean | string | number | ((any) => string));
   edited?: boolean;
-  curve?: Curve;
+  curve?: keyof typeof Curve;
 };
 
 /**

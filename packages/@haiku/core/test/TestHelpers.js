@@ -5,6 +5,9 @@ const HaikuDOMAdapter = require('../lib/adapters/dom').default;
 const HaikuDOMRenderer = require('../lib/renderers/dom').default;
 const HaikuContext = require('../lib/HaikuContext').default;
 const HaikuGlobal = require('../lib/HaikuGlobal').default;
+const ts = require("typescript");
+const fs = require("fs");
+const path = require("path");
 
 const createDOM = (cb) => {
   const html = '<!doctype html><html><body><div id="mount"></div></body></html>';
@@ -107,11 +110,60 @@ const getBytecode = (projectName) => {
   return require(`../demo/projects/${projectName}/code/main/code.js`);
 }
 
+
+/* Inspired by  https://gist.github.com/teppeis/6e0f2d823a94de4ae442 and
+ * https://github.com/Microsoft/TypeScript/wiki/Using-the-Compiler-API */
+function compileStringToTypescript(contents, libSource, compilerOptions) {
+    // Generated outputs
+    var outputs = [];
+    // Create a compilerHost object to allow the compiler to read and write files
+    var compilerHost = {
+        getSourceFile: function (filename, languageVersion) {
+            if (filename === "file.ts")
+                return ts.createSourceFile(filename, contents, compilerOptions.target, "0");
+            if (filename === "lib.d.ts")
+                return ts.createSourceFile(filename, libSource, compilerOptions.target, "0");
+            return undefined;
+        },
+        writeFile: function (name, text, writeByteOrderMark) {
+            outputs.push({ name: name, text: text, writeByteOrderMark: writeByteOrderMark });
+        },
+        getDefaultLibFileName: function () { return "lib.d.ts"; },
+        useCaseSensitiveFileNames: function () { return false; },
+        getCanonicalFileName: function (filename) { return filename; },
+        getCurrentDirectory: function () { return ""; },
+        getNewLine: function () { return "\n"; }
+    };
+    // Create a program from inputs
+    var program = ts.createProgram(["file.ts"], compilerOptions, compilerHost);
+
+    let emitResult = program.emit();
+
+    let allDiagnostics = ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics);
+
+    allDiagnostics.forEach(diagnostic => {
+        if (diagnostic.file) {
+          console.log(diagnostic.code)
+            let { line, character } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
+            let message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
+            console.log(`${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`);
+        }
+        else {
+            console.log(`${ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n')}`);
+        }
+    });
+
+
+    console.log(emitResult)
+
+}
+
 module.exports = {
   createDOM,
   createRenderTest,
   createComponent,
   getBytecode,
   simulateEvent,
-  timeBracket
+  timeBracket,
+  compileStringToTypescript
 };
