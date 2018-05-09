@@ -75,7 +75,7 @@ export default class HaikuBase {
   }
 
   getClassName(): string {
-    return this.constructor['name'];
+    return this.constructor['__name__'];
   }
 
   buildQualifiedCacheKey(key: string) {
