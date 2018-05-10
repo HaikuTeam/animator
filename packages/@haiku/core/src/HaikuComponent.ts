@@ -673,6 +673,10 @@ export default class HaikuComponent extends HaikuElement {
   }
 
   performPatchRenderWithRenderer(renderer, options: any = {}, skipCache: boolean) {
+    if (renderer.shouldCreateContainer) {
+      this.context.getContainer(true); // Force recalc of container
+    }
+
     const patches = this.patch(options, skipCache);
 
     renderer.patch(
