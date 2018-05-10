@@ -801,7 +801,11 @@ export default class HaikuComponent extends HaikuElement {
     for (const timelineName in this.bytecode.timelines) {
       const timelineInstance = this.getTimeline(timelineName);
 
-      timelineInstance.doUpdateWithGlobalClockTime(globalClockTime);
+      // If we update with the global clock time while a timeline is paused, the next
+      // time we resume playing it will "jump forward" to the time that has elapsed.
+      if (timelineInstance.isPlaying()) {
+        timelineInstance.doUpdateWithGlobalClockTime(globalClockTime);
+      }
 
       const timelineTime = timelineInstance.getBoundedTime();
 
