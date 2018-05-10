@@ -1,5 +1,4 @@
 const path = require('path')
-const lodash = require('lodash')
 const BaseModel = require('./BaseModel')
 const overrideModulesLoaded = require('./../utils/overrideModulesLoaded')
 const Lock = require('./Lock')
@@ -360,5 +359,4 @@ module.exports = ModuleWrapper
 
 // Down here to avoid Node circular dependency stub objects. #FIXME
 const Bytecode = require('./Bytecode')
-const Project = require('./Project')
 const Template = require('./Template')
