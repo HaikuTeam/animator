@@ -2,27 +2,48 @@ var test = require('tape')
 var PACKAGE = require('./../../package.json')
 var TestHelpers = require('./../TestHelpers')
 var Config = require('./../../lib/Config').default
-var tsc = require("typescript")
 var glob = require('glob')
 var fs = require('fs');
 
-test('passingOptions', function (t) {
-  t.plan(1)
 
+test('Test Haiku bytecode typing on compile time', function (t) {
+  /* Load bytecode type definition from disk */ 
+  const haykuBytecodeTypeString = fs.readFileSync('api/HaikuBytecode.ts',{encoding:'utf8'})
 
-  let files = glob.sync(`demo/projects/*/code/main/code.js`, {})
+  /* Get all bytecode file names from demo projects */
+  const bytecodeFiles = glob.sync(`demo/projects/*/code/main/code.js`, {})
 
-  files.forEach( (file) => {
-    var haikuBytecodeString = fs.readFileSync(file,{encoding:'utf8'})
-          .replace(/module.exports =/g, "const bytecode: HaikuBytecode =").replace(/"/g, "'")
+  const nonConformantBytecodeFiles = [
+    /* Non corformant eventHandler */
+    'demo/projects/clickable-square/code/main/code.js',
+    /* Non corformant eventHandler */
+    'demo/projects/events/code/main/code.js',
+    /* Contains curve type 'cubicBezierCubic' */
+    'demo/projects/mountainsillo/code/main/code.js'
+  ]
 
-    var haykuBytecodeTypeDefinitionString = fs.readFileSync('api/HaikuBytecode.ts',{encoding:'utf8'})
+  /* Number of tests are the number of demos */
+  t.plan(bytecodeFiles.length)
 
-    var stringToCompile = haykuBytecodeTypeDefinitionString + haikuBytecodeString
+  bytecodeFiles.forEach( (file) => {
 
-    //console.log("stringToCompile",stringToCompile)
+    /* Load bytecode from file and transform it in a instance of HaikuBytecode by replacing string*/
+    const haikuBytecodeString = fs.readFileSync(file,{encoding:'utf8'})
+          .replace(/module.exports =/g, "const bytecode: HaikuBytecode =")
 
-    TestHelpers.compileStringToTypescript(stringToCompile, "", {strict:false})
-
+    const stringToCompile = haykuBytecodeTypeString + haikuBytecodeString
+    
+    /* Compile bytecode type definition + bytecode into a single compilation unit to 
+    check typing error on compile time */
+    errors = TestHelpers.compileStringToTypescript(stringToCompile, "", {strict:false})
+    
+    /* Assumes non-conformant bytecodes should fail */
+    if (nonConformantBytecodeFiles.includes(file)){
+      t.isNotEqual(errors.length, 0  , `Testing non-conformant bytecode ${file}`)
+    }
+    else{
+      t.equal(errors.length, 0  , `Testing bytecode ${file}`)
+    }
   })
+
 })

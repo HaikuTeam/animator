@@ -45,11 +45,20 @@ export type HaikuTemplate = {
   children : HaikuTemplate[] | string[];
 };
 
+
+/**
+ * Haiku state.
+ */
+export type HaikuState = {
+  value: string | number | object;
+  type?:string;
+};
+
 /**
  * Haiku states.
  */
 export type HaikuStates = {
-  [stateName: string] : {value: string | {text: string}[] };
+  [stateName: string] : HaikuState;
 };
 
 /**
@@ -70,7 +79,7 @@ export type HaikuEventHandlers = {
  * Value of an element property in a given frame. 
  */
 export type HaikuTimelineValue = {
-  value: (boolean | string | number | ((any) => string));
+  value: (boolean | string | number | ((any) => string) | ((any) => number));
   edited?: boolean;
   curve?: keyof typeof Curve;
 };
@@ -114,6 +123,7 @@ export type HaikuMetadata = {
   organization?: string;
   project?: string;
   branch?: string;
+  title?: string;
 };
   
 /**
@@ -134,7 +144,8 @@ type HaikuBytecode = {
   eventHandlers: HaikuEventHandlers;
   timelines: HaikuTimelines;
   metadata?: HaikuMetadata;
-  properties?: HaikuProperties[]
+  properties?: HaikuProperties[];
+  options?: any
 };
   
 export default HaikuBytecode;

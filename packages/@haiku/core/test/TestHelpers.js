@@ -135,27 +135,24 @@ function compileStringToTypescript(contents, libSource, compilerOptions) {
         getNewLine: function () { return "\n"; }
     };
     // Create a program from inputs
-    var program = ts.createProgram(["file.ts"], compilerOptions, compilerHost);
+    const program = ts.createProgram(["file.ts"], compilerOptions, compilerHost);
 
-    let emitResult = program.emit();
+    const emitResult = program.emit();
 
-    let allDiagnostics = ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics);
+    const allDiagnostics = ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics);
 
-    allDiagnostics.forEach(diagnostic => {
-        if (diagnostic.file) {
-          console.log(diagnostic.code)
-            let { line, character } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
-            let message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
-            console.log(`${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`);
-        }
-        else {
-            console.log(`${ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n')}`);
-        }
+    const fileErrors = allDiagnostics.filter( (diagnostic) => diagnostic.file)// && diagnostic.code == 2322)
+    
+    fileErrors.forEach(fileError => {
+      let { line, character } = fileError.file.getLineAndCharacterOfPosition(fileError.start);
+      let message = ts.flattenDiagnosticMessageText(fileError.messageText, '\n');
+      console.log(`[${fileError.code}] ${fileError.file.fileName} (${line + 1},${character + 1}): ${message}`);
     });
+    
+    const TYPE_ERRO_CODE = 2322
+    const typeErrors = allDiagnostics.filter( (diagnostic) => diagnostic.code == TYPE_ERRO_CODE)
 
-
-    console.log(emitResult)
-
+    return typeErrors
 }
 
 module.exports = {
