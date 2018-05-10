@@ -19,15 +19,22 @@ export default class AngularHaiku extends React.PureComponent {
       <NpmInstallable projectName={projectName} userName={userName} organizationName={organizationName}>
         <CodeBox>
           {dedent`
-          // ${projectName}Module provides the Angular component: <${angularSelectorName}></${angularSelectorName}>.
           import ${projectName}Module from '@haiku/${organizationName.toLowerCase()}-${projectName.toLowerCase()}/angular-module';
 
           @NgModule({
             ...,
+            declarations: [..., AppComponent],
             imports: [..., ${projectName}Module],
             ...
           })
           export class AppModule {...}
+
+          @Component({
+            ...,
+            template: \`<${angularSelectorName} [loop]="true"></${angularSelectorName}>\`,
+            ...
+          })
+          export class AppComponent {...}
           `}
         </CodeBox>
       </NpmInstallable>
