@@ -997,6 +997,8 @@ export default class Creator extends React.Component {
             projectModel.actionStack.resetData()
 
             projectModel.on('update', (what) => {
+              logger.info(`[creator] local update ${what}`)
+
               switch (what) {
                 case 'setCurrentActiveComponent':
                   this.handleActiveComponentReady()
@@ -1004,6 +1006,8 @@ export default class Creator extends React.Component {
             })
 
             projectModel.on('remote-update', (what, ...args) => {
+              logger.info(`[creator] remote update ${what}`)
+
               switch (what) {
                 case 'setCurrentActiveComponent':
                   return this.forceUpdate()

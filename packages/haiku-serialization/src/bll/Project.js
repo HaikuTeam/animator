@@ -25,6 +25,10 @@ const ALWAYS_IGNORED_METHODS = {
   // Handled upstream, by Creator, Glass, Timeline, etc.
   executeFunctionSpecification: true
 }
+const SILENT_METHODS = {
+  hoverElement: true,
+  unhoverElement: true
+}
 
 /**
  * @class Project
@@ -161,7 +165,9 @@ class Project extends BaseModel {
         : null
 
       if (ac && typeof ac[method] === 'function') {
-        logger.info(`[project (${this.getAlias()})] component handling method ${method}`, params)
+        if (!SILENT_METHODS[method]) {
+          logger.info(`[project (${this.getAlias()})] component handling method ${method}`, params)
+        }
 
         return ac[method].apply(ac, params.slice(1).concat((err, out) => {
           release()
@@ -172,7 +178,9 @@ class Project extends BaseModel {
 
       // If we have a method here at the top, call it
       if (typeof this[method] === 'function') {
-        logger.info(`[project (${this.getAlias()})] project handling method ${method}`, params)
+        if (!SILENT_METHODS) {
+          logger.info(`[project (${this.getAlias()})] project handling method ${method}`, params)
+        }
 
         return this[method].apply(this, params.concat((err, result) => {
           release()

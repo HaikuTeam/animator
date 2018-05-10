@@ -295,6 +295,8 @@ class Timeline extends React.Component {
     })
 
     this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'update', (what, arg) => {
+      logger.info(`[timeline] local update ${what}`)
+
       switch (what) {
         case 'setCurrentActiveComponent':
           this.handleActiveComponentReady()
@@ -311,6 +313,8 @@ class Timeline extends React.Component {
     })
 
     this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'remote-update', (what, ...args) => {
+      logger.info(`[timeline] remote update ${what}`)
+
       switch (what) {
         case 'setCurrentActiveComponent':
           this.handleActiveComponentReady()
