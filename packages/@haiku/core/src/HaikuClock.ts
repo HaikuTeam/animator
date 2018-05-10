@@ -59,7 +59,6 @@ if (!HaikuGlobal.HaikuGlobalAnimationHarness) {
 
 // tslint:disable:variable-name
 export default class HaikuClock extends HaikuBase {
-  _component;
   _deltaSinceLastTick;
   _isRunning;
   _localExplicitlySetTime;
@@ -71,11 +70,10 @@ export default class HaikuClock extends HaikuBase {
   _tickables;
   GLOBAL_ANIMATION_HARNESS;
 
-  constructor (tickables, component, options) {
+  constructor (tickables, options) {
     super();
 
     this._tickables = tickables;
-    this._component = component;
 
     this.assignOptions(options);
 

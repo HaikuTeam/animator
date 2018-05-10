@@ -2073,9 +2073,12 @@ class ActiveComponent extends BaseModel {
       if (this.isProjectActiveComponent()) {
         // Clean up all existing objects which could interfere with rendering
         HaikuComponent.all().forEach((existing) => {
-          existing.deactivate()
-          existing.context.contextUnmount()
-          existing.context.getClock().stop()
+          // Don't turn off haiku in Haiku
+          if (existing.config.hotEditingMode) {
+            existing.deactivate()
+            existing.context.contextUnmount()
+            existing.context.getClock().stop()
+          }
         })
       }
 

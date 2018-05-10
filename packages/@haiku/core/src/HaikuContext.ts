@@ -76,7 +76,7 @@ export default class HaikuContext extends HaikuBase {
       this.tickables.push({performTick: this.config.frame});
     }
 
-    this.clock = new HaikuClock(this.tickables, this.component, this.config.clock || {});
+    this.clock = new HaikuClock(this.tickables, this.config.clock || {});
 
     // We need to start the loop even if we aren't autoplaying,
     // because we still need time to be calculated even if we don't 'tick'.
@@ -181,18 +181,6 @@ export default class HaikuContext extends HaikuBase {
     }
     if (!alreadyAdded) {
       this.tickables.push(tickable);
-    }
-  }
-
-  /**
-   * @method removeTickable
-   * @description Remove a tickable object to the list of those that will be called on every clock tick.
-   */
-  removeTickable(tickable) {
-    for (let i = (this.tickables.length - 1); i >= 0; i--) {
-      if (tickable === this.tickables[i]) {
-        this.tickables.splice(i, 1);
-      }
     }
   }
 

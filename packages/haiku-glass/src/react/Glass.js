@@ -577,9 +577,7 @@ export class Glass extends React.Component {
           break
 
         case 'global-menu:selectAll':
-          if (experimentIsEnabled(Experiment.ElementMultiSelectAndTransform)) {
-            this.handleSelectAllDebounced()
-          }
+          this.handleSelectAllDebounced()
           break
 
         case 'global-menu:undo':

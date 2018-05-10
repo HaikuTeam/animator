@@ -62,7 +62,7 @@ export default class HaikuComponent extends HaikuElement {
   bytecode;
   config;
   container;
-  context;
+  context: HaikuContext;
   CORE_VERSION;
   doAlwaysFlush;
   doesNeedFullFlush;
