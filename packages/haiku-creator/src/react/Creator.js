@@ -1446,19 +1446,20 @@ export default class Creator extends React.Component {
     ) : null
   }
 
-  showNewProjectModal (duplicate = false) {
-    this.setState({ showNewProjectModal: true, isDuplicateProjectModal: duplicate })
+  showNewProjectModal (isDuplicateProjectModal = false, duplicateProjectName) {
+    this.setState({ showNewProjectModal: true, isDuplicateProjectModal, duplicateProjectName })
     mixpanel.haikuTrack('creator:new-project:shown')
   }
 
   hideNewProjectModal () {
-    this.setState({ showNewProjectModal: false, isDuplicateProjectModal: false })
+    this.setState({ showNewProjectModal: false, isDuplicateProjectModal: false, duplicateProjectName: null })
   }
 
   renderNewProjectModal() {
     return (
       this.state.showNewProjectModal && (
         <NewProjectModal
+          defaultProjectName={this.state.duplicateProjectName}
           duplicate={this.state.isDuplicateProjectModal}
           disabled={this.state.newProjectLoading}
           onCreateProject={(projectName, isPublic, duplicate, callback) => {
@@ -1595,7 +1596,7 @@ export default class Creator extends React.Component {
         <div>
           <ProjectBrowser
             ref='ProjectBrowser'
-            onShowNewProjectModal={(duplicate) => { this.showNewProjectModal(duplicate) }}
+            onShowNewProjectModal={(...args) => { this.showNewProjectModal(...args) }}
             lastViewedChangelog={this.state.lastViewedChangelog}
             onShowChangelogModal={() => { this.showChangelogModal() }}
             showChangelogModal={this.state.showChangelogModal}
@@ -1650,7 +1651,7 @@ export default class Creator extends React.Component {
           />
           <ProjectBrowser
             ref='ProjectBrowser'
-            onShowNewProjectModal={(duplicate) => { this.showNewProjectModal(duplicate) }}
+            onShowNewProjectModal={(...args) => { this.showNewProjectModal(...args) }}
             lastViewedChangelog={this.state.lastViewedChangelog}
             onShowChangelogModal={() => { this.showChangelogModal() }}
             showChangelogModal={this.state.showChangelogModal}

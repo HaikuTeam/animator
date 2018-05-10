@@ -38,12 +38,10 @@ class ProjectBrowser extends React.Component {
       areProjectsLoading: true,
       isPopoverOpen: false,
       showNewProjectModal: false,
-      showDuplicateProjectModal: false,
       showDeleteModal: false,
       recordedDelete: '',
       recordedNewProjectName: '',
       projToDelete: '',
-      projToDuplicateIndex: null,
       confirmDeleteMatches: false,
       atProjectMax: false,
       newProjectError: null
@@ -191,21 +189,30 @@ class ProjectBrowser extends React.Component {
     return this.state.projectsList.find((project) => equivalentNameMatcher.test(project.projectName)) !== undefined
   }
 
+  trimAndSuffix (base, suffix) {
+    const remainingChars = 32 - (base.length + suffix.length)
+
+    if (remainingChars < 0) {
+      base = base.slice(0, remainingChars)
+    }
+
+    return `${base}${suffix}`
+  }
+
   showDuplicateProjectModal (projToDuplicateIndex) {
-    this.props.onShowNewProjectModal(true)
-    const duplicateNameBase = `${this.state.projectsList[projToDuplicateIndex].projectName}Copy`
-    let recordedNewProjectName = duplicateNameBase
+    const duplicateNameBase = this.state.projectsList[projToDuplicateIndex].projectName
+    const suffixBase = 'Copy'
+    let suffix = suffixBase
     let iteration = 1
-    while (this.doesProjectNameExist(recordedNewProjectName)) {
-      recordedNewProjectName = `${duplicateNameBase}${iteration}`
+    let potentialName = this.trimAndSuffix(duplicateNameBase, suffix)
+
+    while (this.doesProjectNameExist(potentialName)) {
+      suffix = `${suffixBase}${iteration}`
+      potentialName = this.trimAndSuffix(duplicateNameBase, suffix)
       iteration++
     }
-    this.setState({
-      projToDuplicateIndex,
-      recordedNewProjectName,
-      showDuplicateProjectModal: true,
-      newProjectError: null
-    })
+
+    this.props.onShowNewProjectModal(true, potentialName)
   }
 
   projectsListElement () {
@@ -280,10 +287,7 @@ class ProjectBrowser extends React.Component {
 
   closeModals () {
     this.setState({
-      showNewProjectModal: false,
-      showDuplicateProjectModal: false,
       showDeleteModal: false,
-      recordedNewProjectName: '',
       recordedDelete: '',
       newProjectIsPublic: true
     })

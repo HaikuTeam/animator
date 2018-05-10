@@ -12,7 +12,7 @@ class NewProjectModal extends React.PureComponent {
     this.state = {
       newProjectIsPublic: false,
       newProjecterror: null,
-      recordedNewProjectName: ''
+      recordedNewProjectName: props.defaultProjectName || ''
     }
   }
 
@@ -77,7 +77,7 @@ class NewProjectModal extends React.PureComponent {
             disabled={disabled}
             onKeyDown={(e) => { this.handleNewProjectInputKeyDown(e, duplicate) }}
             style={[DASH_STYLES.newProjectInput]}
-            value={this.props.defaultProjectName}
+            value={this.state.recordedNewProjectName}
             onChange={(e) => { this.handleNewProjectInputChange(e) }}
             placeholder='NewProjectName'
             autoFocus />
