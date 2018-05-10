@@ -4,8 +4,12 @@
 
 import HaikuElement from '../HaikuElement'
 import Layout3D from '../Layout3D'
+import invertMatrix from '../vendor/gl-mat4/invert'
+import createMatrix from '../vendor/gl-mat4/create'
 import SVGPoints from './SVGPoints'
 import visitManaTree from './visitManaTree';
+import getElementSize from '../renderers/dom/getElementSize';
+import invert from '../vendor/gl-mat4/invert';
 
 export const LINE_SELECTION_THRESHOLD = 5 // Number of pixels allowance for a line to be selected
 
@@ -13,6 +17,70 @@ export interface vec2 {
   x: number;
   y: number;
 }
+
+class BezierPoint {
+  anchor: vec2;
+  h1: vec2 = {x:0,y:0};
+  h2: vec2 = {x:0,y:0};
+}
+
+interface SVGCurve {
+  type: string;
+  x1, y1, x2, y2: number;
+}
+
+interface SVGPoint {
+  curve?: SVGCurve;
+  moveTo?: boolean;
+  closed?: boolean;
+  x: number;
+  y: number;
+}
+
+class BezierPath {
+  points: BezierPoint[] = [];
+  
+  static fromSVGPoints(points: SVGPoint[]): BezierPath[] {
+    const paths = []
+    
+    let curPath: BezierPath = null
+    let cursor: vec2 = {x: 0, y: 0}
+    let backPoint = null
+    
+    for(let i = 0; i < points.length; i++) {
+      if(!curPath) curPath = new BezierPath()
+      
+      if(points[i].moveTo) {
+        cursor = points[i]
+        continue
+      }
+      
+      //TODO: Defines next two points...
+      const newPoint = new BezierPoint()
+      newPoint.anchor = cursor
+      if(points[i].curve) {
+        newPoint.h1 = {x: points[i].curve.x1, y: points[i].curve.y1}
+        newPoint.h2 = {x: points[i].curve.x2, y: points[i].curve.y2}
+        newPoint
+      } else {
+        newPoint.h1 = newPoint.anchor
+        newPoint.h2 = newPoint.anchor
+      }
+      curPath.points.push(newPoint)
+      
+      if(points[i].closed) {
+        paths.push(curPath)
+        curPath = null
+      }
+      
+    }
+    
+    if(curPath) paths.push(curPath)
+    return paths
+  }
+}
+
+
 
 export const distance = (a: vec2, b: vec2): number => {
   return Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2))
@@ -77,8 +145,20 @@ const pointOnLineSegment = (a: vec2, b: vec2, test: vec2): boolean => {
 }
 
 export const isPointInsidePrimitive = (element: HaikuElement, point: vec2): boolean => {
-  const offset = Layout3D.decomposeMatrixTranslation(Layout3D.multiplyArrayOfMatrices(element.layoutAncestryMatrices.reverse()))
-  const correctedPoint = {x: point.x - offset.x, y: point.y - offset.y}
+  
+  let type = element.type
+  const original = element;
+  if(element.type == 'use') {
+    element = element.getTranscludedElement();
+  }
+  
+  const offset = Layout3D.multiplyArrayOfMatrices(original.layoutAncestryMatrices.reverse())
+  const invertedOffset = createMatrix(); invertMatrix(invertedOffset, offset)
+  const p = [point.x, point.y, 0, 1];
+  const correctedPoint = {
+    x: invertedOffset[0] * p[0] + invertedOffset[4] * p[1] + invertedOffset[8] * p[2] + invertedOffset[12] * p[3],
+    y: invertedOffset[1] * p[0] + invertedOffset[5] * p[1] + invertedOffset[9] * p[2] + invertedOffset[13] * p[3]
+  };
   
   switch(element.type) {
     case 'rect':
@@ -118,7 +198,17 @@ export const isPointInsidePrimitive = (element: HaikuElement, point: vec2): bool
       return evenOddRaycastPointInPolygon(polyPoints, correctedPoint)
     }
     
-    // TODO: case 'path':
+    case 'path': {
+      // Build a straight-line approximation of the path and use the same algorithm as polygon
+      const pathPoints = SVGPoints.pathToPoints(element.attributes.d)
+      // console.log(pathPoints)
+      return false
+    //   const polyPoints = []
+    //   for(let i = 0; i < pathPoints.length; i++) {
+    
+    //   }
+    //   return evenOddRaycastPointInPolygon(polyPoints, correctedPoint)
+    }
   }
   
   return false

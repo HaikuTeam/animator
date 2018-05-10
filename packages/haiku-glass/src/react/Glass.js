@@ -1125,6 +1125,7 @@ export class Glass extends React.Component {
                     if(isDoubleClick) {
                       elementTargeted.getHaikuElement().visit((descendant) => {
                         if(descendant.isComponent()) return
+                        if(descendant.isChildOfDefs) return
                         if(geometryUtils.isPointInsidePrimitive(descendant, mouseDownPosition)) {
                           Element.directlySelected = descendant
                           return false // stop searching
