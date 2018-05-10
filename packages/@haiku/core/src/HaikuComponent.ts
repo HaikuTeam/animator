@@ -58,6 +58,10 @@ export default class HaikuComponent extends HaikuElement {
   _states;
 
   bytecode;
+  /**
+   * @deprecated
+   */
+  _bytecode;
   config;
   container;
   context: HaikuContext;
@@ -198,6 +202,9 @@ export default class HaikuComponent extends HaikuElement {
     this.startTimeline(DEFAULT_TIMELINE_NAME);
 
     this.routeEventToHandlerAndEmit(GLOBAL_LISTENER_KEY, 'component:did-initialize', [this]);
+
+    // #FIXME: some handlers may still reference `_bytecode` directly.
+    this._bytecode = this.bytecode;
   }
 
   /**
