@@ -27,7 +27,7 @@ export default class VanillaJS extends React.PureComponent {
           render() {
             return (
               <div>
-                <${componentName} haikuOptions={{loop: true}} />
+                <${componentName} loop={true} />
               </div>
             );
           }
