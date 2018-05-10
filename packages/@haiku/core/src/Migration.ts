@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import HaikuComponent, {VERSION} from './HaikuComponent';
+import HaikuComponent from './HaikuComponent';
 import addLegacyOriginSupport from './helpers/addLegacyOriginSupport';
 import compareSemver from './helpers/compareSemver';
 import visitManaTree from './helpers/visitManaTree';
@@ -24,7 +24,7 @@ const HAIKU_VAR_ATTRIBUTE = 'haiku-var';
  * Think of this like a migration that always runs in production components just in case we
  * get something that happens to be legacy.
  */
-export function runMigrations(component: HaikuComponent, options: any) {
+export function runMigrations(component: HaikuComponent, options: any, version: string) {
   const bytecode = component.bytecode;
   if (!bytecode.states) {
     bytecode.states = {};
@@ -190,5 +190,5 @@ export function runMigrations(component: HaikuComponent, options: any) {
   }
 
   // Ensure the bytecode metadata core version is recent.
-  bytecode.metadata.core = VERSION;
+  bytecode.metadata.core = version;
 }

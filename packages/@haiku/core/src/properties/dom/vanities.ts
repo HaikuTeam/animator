@@ -2,7 +2,6 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import Layout3D from './../../Layout3D';
 import cssMatchOne from './../../helpers/cssMatchOne';
 import has from './has';
 

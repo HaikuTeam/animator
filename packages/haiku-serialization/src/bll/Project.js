@@ -714,9 +714,14 @@ class Project extends BaseModel {
       fse.outputFileSync(path.join(this.getFolder(), `code/${scenename}/code.js`), rootComponentId)
     }
 
+    const nameVariations = this.getNameVariations()
     fse.outputFileSync(path.join(this.getFolder(), `code/${scenename}/dom.js`), DOM_JS)
     fse.outputFileSync(path.join(this.getFolder(), `code/${scenename}/dom-embed.js`), DOM_EMBED_JS)
     fse.outputFileSync(path.join(this.getFolder(), `code/${scenename}/react-dom.js`), REACT_DOM_JS)
+    fse.outputFileSync(
+      path.join(this.getFolder(), `code/${scenename}/angular-dom.js`),
+      ANGULAR_DOM_JS(nameVariations.angularSelectorName, scenename)
+    )
     fse.outputFileSync(path.join(this.getFolder(), `code/${scenename}/vue-dom.js`), VUE_DOM_JS)
 
     if (!fse.existsSync(path.join(this.getFolder(), `code/${scenename}/dom-standalone.js`))) {
@@ -894,18 +899,24 @@ Project.fetchProjectConfigInfo = (folder, cb) => {
   }, config))
 }
 
+Project.getAngularSelectorName = (name) => name
+  .replace(/([A-Z])/g, (char) => `-${char.toLowerCase()}`)
+  .replace(/^-/, '')
+
 Project.getProjectNameVariations = (folder) => {
   const projectHaikuConfig = Project.readPackageJson(folder).haiku
   const projectNameSafe = Project.getSafeProjectName(folder, projectHaikuConfig.project)
   const projectNameSafeShort = projectNameSafe.slice(0, 20)
   const projectNameLowerCase = projectNameSafe.toLowerCase()
   const reactProjectName = `React_${projectNameSafe}`
+  const angularSelectorName = Project.getAngularSelectorName(projectNameSafe)
   const primaryAssetPath = `designs/${projectNameSafeShort}.sketch`
   return {
     projectNameSafe,
     projectNameSafeShort,
     projectNameLowerCase,
     reactProjectName,
+    angularSelectorName,
     primaryAssetPath
   }
 }
@@ -1005,6 +1016,12 @@ const REACT_DOM_JS = dedent`
   var HaikuReactComponent = HaikuReactAdapter(require('./dom'))
   if (HaikuReactComponent.default) HaikuReactComponent = HaikuReactComponent.default
   module.exports = HaikuReactComponent
+`.trim()
+
+const ANGULAR_DOM_JS = (selector, scenename) => dedent`
+  var HaikuAngularAdapter = require('@haiku/core/dom/angular')
+  var HaikuAngularModule = HaikuAngularAdapter('${selector}${scenename !== 'main' ? `-${scenename}` : ''}', require('./dom'))
+  module.exports = HaikuAngularModule
 `.trim()
 
 const VUE_DOM_JS = dedent`

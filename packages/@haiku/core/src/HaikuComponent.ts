@@ -28,8 +28,6 @@ const OBJECT_TYPE = 'object';
 const HAIKU_ID_ATTRIBUTE = 'haiku-id';
 const DEFAULT_TIMELINE_NAME = 'Default';
 
-const GENERIC_SELECTOR = '*';
-
 const CSS_QUERY_MAPPING = {
   name: 'elementName',
   attributes: 'attributes',
@@ -181,12 +179,16 @@ export default class HaikuComponent extends HaikuElement {
 
     try {
       // If the bytecode we got happens to be in an outdated format, we automatically update it to the latest.
-      runMigrations(this, {
-        // Random seed for adding instance uniqueness to ids at runtime.
-        referenceUniqueness: (config.hotEditingMode)
-          ? undefined // During editing, Haiku.app pads ids unless this is undefined
-          : Math.random().toString(36).slice(2),
-      });
+      runMigrations(
+        this,
+        {
+          // Random seed for adding instance uniqueness to ids at runtime.
+          referenceUniqueness: (config.hotEditingMode)
+            ? undefined // During editing, Haiku.app pads ids unless this is undefined
+            : Math.random().toString(36).slice(2),
+        },
+        VERSION,
+      );
     } catch (e) {
       console.warn('[haiku core] caught error during migration', e);
     }

@@ -49,6 +49,7 @@
   ],
   "license": "MIT",
   "devDependencies": {
+    "@angular/core": "^6.0.0",
     "@types/node": "8.9.4",
     "@types/tape": "^4.2.30",
     "async": "^2.5.0",
@@ -83,6 +84,7 @@
     "webpack": "^3.8.1"
   },
   "peerDependencies": {
+    "@angular/core": "^5.2.5",
     "react": "^16.0.0 || ^15.4.2",
     "react-dom": "^16.0.0 || ^15.4.2"
   }

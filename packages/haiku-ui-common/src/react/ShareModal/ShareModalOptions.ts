@@ -23,8 +23,8 @@ export const SHARE_OPTIONS = {
       template: 'VueHaiku',
     },
     Angular: {
-      disabled: true,
-      template: '',
+      disabled: false,
+      template: 'AngularHaiku',
     },
   },
   [ShareCategory.Mobile]: {

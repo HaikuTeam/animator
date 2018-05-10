@@ -22,6 +22,12 @@
     "7zip-bin-mac" "~1.0.1"
     "7zip-bin-win" "~2.2.0"
 
+"@angular/core@^6.0.0":
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/@angular/core/-/core-6.0.0.tgz#785cc8a37b7fb784a6b7dcbd0984abb4f10e5dfe"
+  dependencies:
+    tslib "^1.9.0"
+
 "@haiku/player@^3.0.4":
   version "3.0.4"
   resolved "https://reservoir.haiku.ai:8910/@haiku%2fplayer/-/player-3.0.4.tgz#dd0bb8fbdea4751c8825adbd6b8ec528a781abaa"
@@ -11536,6 +11542,10 @@ ts-loader@^3.1.1:
 tslib@^1.0.0, tslib@^1.7.1, tslib@^1.8.1:
   version "1.8.1"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.8.1.tgz#6946af2d1d651a7b1863b531d6e5afa41aa44eac"
+
+tslib@^1.9.0:
+  version "1.9.0"
+  resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.9.0.tgz#e37a86fda8cbbaf23a057f473c9f4dc64e5fc2e8"
 
 tslint-config-airbnb@^5.3.0:
   version "5.4.2"

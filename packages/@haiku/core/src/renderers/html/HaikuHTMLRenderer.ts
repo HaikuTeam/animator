@@ -3,7 +3,7 @@
  */
 
 import HaikuBase from './../../HaikuBase';
-import render from '../dom/render';
+import HaikuDOMRenderer from '../dom/HaikuDOMRenderer';
 import manaToXml from '../../helpers/manaToXml';
 import VirtualNode, {VirtualDoc} from './VirtualNode';
 
@@ -29,11 +29,13 @@ export default class HaikuHTMLRenderer extends HaikuBase {
   }
 
   render(virtualContainer, virtualTree, component): string {
-    const enhancedMana = render(
+    const enhancedMana = HaikuDOMRenderer.renderTree(
       this.mount || new VirtualNode('div', {}, [], this.doc),
       virtualContainer,
-      virtualTree,
+      [virtualTree],
       component,
+      false, // isPatchOperation
+      false, // doSkipChildren
     );
 
     return manaToXml(

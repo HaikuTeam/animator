@@ -226,6 +226,12 @@ export function buildProjectContent (
         // By default, a react-dom module is exported; see code/main/* for other options
         module.exports = require('./code/main/react-dom')
       `)
+      fse.outputFileSync(dir(projectPath, 'angular-module.js'), dedent`
+        // By default, a Angular module is exported; see code/main/* for other options
+        module.exports = {
+          default: require('./code/main/angular-dom')
+        }
+      `)
       fse.outputFileSync(dir(projectPath, 'vue.js'), dedent`
         // By default, a vue-dom module is exported; see code/main/* for other options
         module.exports = require('./code/main/vue-dom')

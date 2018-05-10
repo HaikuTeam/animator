@@ -64,6 +64,7 @@ const UNWATCHABLE_RELPATHS = {
 }
 
 const UNWATCHABLE_BASENAMES = {
+  'angular-dom.js': true,
   'index.standalone.js': true,
   'index.embed.js': true,
   'dom-embed.js': true,

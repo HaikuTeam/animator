@@ -9,7 +9,7 @@
     "experimentalDecorators": true,
     "isolatedModules": false,
     "lib": [
-      "es5",
+      "es6",
       "dom"
     ],
     "module": "commonjs",
