@@ -33,6 +33,14 @@ export enum Curve {
   linear,
 }
 
+/** 
+ * Allowed state types, including function return type for timeline functions, 
+ * state getter and setter. 
+ * To remove any restriction, define `HaikuStateTypes` as `any`
+ */
+export type HaikuStateTypes = string | number | object | boolean | null |
+                                  (string|number|object|boolean|null)[];
+
 /**
  * Haiku element tree. eg. <div><svg>...</div></svg>. 
  * `source` and `identifier` are rarely used.
@@ -40,18 +48,26 @@ export enum Curve {
 export type HaikuTemplate = {
   elementName: string;
   attributes: {[attribute: string] : string;
+    /**
+     * @deprecated as of 3.2.20
+     */
     source?: string;
+    /**
+     * @deprecated as of 3.2.20
+     */
     identifier?: string; };
   children : HaikuTemplate[] | string[];
 };
-
 
 /**
  * Haiku state.
  */
 export type HaikuState = {
-  value: string | number | object;
+  value: HaikuStateTypes;
   type?:string;
+  access?:string;
+  getter?: () => HaikuStateTypes;
+  setter?: (param: HaikuStateTypes) => void;
 };
 
 /**
@@ -79,7 +95,7 @@ export type HaikuEventHandlers = {
  * Value of an element property in a given frame. 
  */
 export type HaikuTimelineValue = {
-  value: (boolean | string | number | ((any) => string) | ((any) => number));
+  value: (boolean | string | number | ((any) => HaikuStateTypes));
   edited?: boolean;
   curve?: keyof typeof Curve;
 };
@@ -113,6 +129,9 @@ export type HaikuTimelines = {
 export type HaikuMetadata = {
   folder?: string;
   uuid: string;
+  /**
+   * @deprecated as of 3.2.20
+   */
   player?: string;
   type: string;
   name?: string;
@@ -144,6 +163,9 @@ type HaikuBytecode = {
   eventHandlers: HaikuEventHandlers;
   timelines: HaikuTimelines;
   metadata?: HaikuMetadata;
+  /**
+   * @deprecated as of 3.2.20
+   */
   properties?: HaikuProperties[];
   options?: any
 };
