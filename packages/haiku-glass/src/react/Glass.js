@@ -1822,9 +1822,14 @@ export class Glass extends React.Component {
   }
   
   renderDirectSelection (element, overlays) {
+    const original = element
+    if(element.type == 'use') {
+      element = element.getTranscludedElement()
+    }
+    
     switch(element.type) {
       case 'rect':
-        overlays.push(directSelectionMana[element.type]({...element.attributes, width: element.sizeX, height: element.sizeY}, element.layoutAncestryMatrices))
+        overlays.push(directSelectionMana[element.type]({...element.attributes, width: element.sizeX, height: element.sizeY}, original.layoutAncestryMatrices))
         break
       case 'circle':
       case 'ellipse':
@@ -1832,7 +1837,7 @@ export class Glass extends React.Component {
       case 'polyline':
       case 'path':
       case 'polygon':
-        overlays.push(directSelectionMana[element.type](element.attributes, element.layoutAncestryMatrices))
+        overlays.push(directSelectionMana[element.type](element.attributes, original.layoutAncestryMatrices))
     }
   }
   

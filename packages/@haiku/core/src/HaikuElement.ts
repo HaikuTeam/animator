@@ -149,6 +149,8 @@ export default class HaikuElement extends HaikuBase {
   }
   
   getTranscludedElement(): HaikuElement {
+    if(this.type != 'use') return this;
+    
     let out;
     let href = this.attributes['xlink:href'] || this.attributes['href'];
     if(!href) return out;

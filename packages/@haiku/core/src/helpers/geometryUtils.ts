@@ -133,20 +133,19 @@ const vec2Normalize = (a: vec2): vec2 => {
 }
 
 const pointOnLineSegment = (a: vec2, b: vec2, test: vec2): boolean => {
-    const at = vec2Sub(test, a)
-    const ab = vec2Normalize(vec2Sub(b, a))
-    let normalPoint = vec2Add(a, vec2MulScalar(ab, vec2Dot(at, ab)))
-    
-    // constrain to the line segement
-    if(normalPoint.x < Math.min(a.x, b.x) || normalPoint.x > Math.max(a.x, b.x) || normalPoint.y < Math.min(a.y, b.y) || normalPoint.y > Math.max(a.y, b.y)) {
-      normalPoint = b
-    }
-    return distance(normalPoint, test) <= LINE_SELECTION_THRESHOLD
+  const at = vec2Sub(test, a)
+  const ab = vec2Normalize(vec2Sub(b, a))
+  let normalPoint = vec2Add(a, vec2MulScalar(ab, vec2Dot(at, ab)))
+  
+  // constrain to the line segement
+  if(normalPoint.x < Math.min(a.x, b.x) || normalPoint.x > Math.max(a.x, b.x) || normalPoint.y < Math.min(a.y, b.y) || normalPoint.y > Math.max(a.y, b.y)) {
+    normalPoint = b
+  }
+  return distance(normalPoint, test) <= LINE_SELECTION_THRESHOLD
 }
 
 export const isPointInsidePrimitive = (element: HaikuElement, point: vec2): boolean => {
   
-  let type = element.type
   const original = element;
   if(element.type == 'use') {
     element = element.getTranscludedElement();

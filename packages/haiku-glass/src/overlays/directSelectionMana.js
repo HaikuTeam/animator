@@ -133,7 +133,14 @@ export const ellipse = ({cx, cy, rx, ry}, layoutAncestry) => ({
   ]
 })
 
-export const polygon = ({points}, layoutAncestry) => ({
+
+let lastThing = null;
+
+export const polygon = ({points}, layoutAncestry) => {
+  if(lastThing !== JSON.stringify(Layout3D.multiplyArrayOfMatrices(JSON.parse(JSON.stringify(layoutAncestry)).reverse()).join(','))) console.log('DIFF!', lastThing)
+  lastThing = JSON.stringify(Layout3D.multiplyArrayOfMatrices(JSON.parse(JSON.stringify(layoutAncestry)).reverse()).join(','))
+  
+  return {
   elementName: 'g',
   attributes: {
     style: {
@@ -154,7 +161,7 @@ export const polygon = ({points}, layoutAncestry) => ({
     },
     ...SVGPoints.polyPointsStringToPoints(points).map((pt) => { return anchorPoint(1, {x: pt[0], y: pt[1]})})
   ]
-})
+}}
 
 export const path = ({d}, layoutAncestry) => ({
   elementName: 'g',
