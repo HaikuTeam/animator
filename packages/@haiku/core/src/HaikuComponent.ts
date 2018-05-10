@@ -742,7 +742,7 @@ export default class HaikuComponent extends HaikuElement {
       });
     }
 
-    if (options.sizing) {
+    if (!this.host && options.sizing) {
       computeAndApplyPresetSizing(
         template,
         this.container,
@@ -776,7 +776,7 @@ export default class HaikuComponent extends HaikuElement {
       skipCache,
     );
 
-    if (options.sizing) {
+    if (!this.host && options.sizing) {
       computeAndApplyPresetSizing(
         template,
         this.container,
