@@ -19,6 +19,7 @@ import scopifyElements from './helpers/scopifyElements';
 import Layout3D from './Layout3D';
 import ValueBuilder from './ValueBuilder';
 import assign from './vendor/assign';
+import HaikuBytecode from './api/HaikuBytecode';
 
 const pkg = require('./../package.json');
 export const VERSION = pkg.version;
@@ -76,7 +77,7 @@ export default class HaikuComponent extends HaikuElement {
   state;
 
   constructor(
-    bytecode: any,
+    bytecode: HaikuBytecode,
     context: HaikuContext,
     host: HaikuComponent,
     config,

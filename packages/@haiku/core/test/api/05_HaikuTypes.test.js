@@ -8,7 +8,7 @@ var fs = require('fs');
 
 test('Test Haiku bytecode typing on compile time', function (t) {
   /* Load bytecode type definition from disk */ 
-  const haykuBytecodeTypeString = fs.readFileSync('api/HaikuBytecode.ts',{encoding:'utf8'})
+  const haykuBytecodeTypeString = fs.readFileSync('src/api/HaikuBytecode.ts',{encoding:'utf8'})
 
   /* Get all bytecode file names from demo projects */
   const bytecodeFiles = glob.sync(`demo/projects/*/code/main/code.js`, {})
@@ -18,8 +18,6 @@ test('Test Haiku bytecode typing on compile time', function (t) {
     'demo/projects/clickable-square/code/main/code.js',
     /* Non corformant eventHandler */
     'demo/projects/events/code/main/code.js',
-    /* Contains curve type 'cubicBezierCubic' */
-    'demo/projects/mountainsillo/code/main/code.js'
   ]
 
   /* Number of tests are the number of demos */
