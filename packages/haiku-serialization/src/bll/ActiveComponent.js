@@ -2013,11 +2013,11 @@ class ActiveComponent extends BaseModel {
       },
 
       (cb) => {
-        if (!reloadOptions.fileReload) {
+        if (!reloadOptions.moduleReloadMethod) {
           return cb()
         }
 
-        return this.moduleCreate(instanceConfig, cb)
+        return this.moduleCreate(reloadOptions.moduleReloadMethod, instanceConfig, cb)
       },
 
       (cb) => {
@@ -2065,8 +2065,8 @@ class ActiveComponent extends BaseModel {
     ], finish)
   }
 
-  moduleCreate (instanceConfig, cb) {
-    return this.fetchActiveBytecodeFile().mod.configuredReload(instanceConfig, (err) => {
+  moduleCreate (moduleReloadMethod = 'basicReload', instanceConfig = {}, cb) {
+    return this.fetchActiveBytecodeFile().mod[moduleReloadMethod]((err) => {
       if (err) return cb(err)
 
       // Don't clean up instances which may own the current editing context
@@ -2127,7 +2127,7 @@ class ActiveComponent extends BaseModel {
 
     return this.reload({
       hardReload: true,
-      fileReload: true,
+      moduleReloadMethod: 'basicReload',
       clearCacheOptions: {
         doClearEntityCaches: true
       }
@@ -2198,7 +2198,7 @@ class ActiveComponent extends BaseModel {
 
       return this.reload({
         hardReload: true,
-        fileReload: true,
+        moduleReloadMethod: 'reload',
         clearCacheOptions: {
           doClearEntityCaches: true
         }

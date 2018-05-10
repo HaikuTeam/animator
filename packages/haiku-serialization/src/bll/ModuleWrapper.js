@@ -90,6 +90,7 @@ class ModuleWrapper extends BaseModel {
 
   isolatedClearCache () {
     ModuleWrapper.clearRequireCache(path.dirname(this.getAbspath()))
+    ModuleWrapper.clearHotCache()
   }
 
   reloadExtantModule (cb) {
@@ -110,10 +111,6 @@ class ModuleWrapper extends BaseModel {
       return cb(null, this.exp)
     }
     return this.reload(cb)
-  }
-
-  configuredReload (config, cb) {
-    return this.basicReload(cb)
   }
 
   getFolder () {
@@ -314,21 +311,32 @@ ModuleWrapper.getHaikuKnownImportMatch = (importPath) => {
 }
 
 ModuleWrapper.clearHotCache = () => {
+  const cleared = {}
+
   for (const key in MODULE_CACHE_HOT) {
+    cleared[key] = true
     MODULE_CACHE_HOT[key] = null
   }
+
+  logger.info(`[module wrapper] cleared hot cache`, cleared)
 }
 
 ModuleWrapper.clearRequireCache = (dirname) => {
+  const cleared = {}
+
   for (const key in require.cache) {
     if (dirname) {
       if (key.indexOf(dirname) !== -1) {
+        cleared[key] = true
         delete require.cache[key]
       }
     } else if (!key.match(/node_modules/)) {
+      cleared[key] = true
       delete require.cache[key]
     }
   }
+
+  logger.info(`[module wrapper] cleared require cache`, cleared)
 }
 
 ModuleWrapper.doesRelpathLookLikeLocalComponent = (relpath) => {
