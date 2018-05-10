@@ -282,6 +282,11 @@ class Row extends BaseModel {
   rehydrate () {
     this.rehydrateKeyframes()
     this.emit('update', 'row-rehydrated')
+    // Need to inform our heading row about the update or else updates to rows within collapsed rows
+    // won't see their keyframe updates reflected within the timeline
+    if (this.parent) {
+      this.parent.emit('update', 'child-row-rehydrated')
+    }
   }
 
   rehydrateKeyframes () {

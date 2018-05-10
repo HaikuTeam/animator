@@ -1,4 +1,5 @@
 import React from 'react'
+import lodash from 'lodash'
 import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 import TransitionBody from './TransitionBody'
 import ConstantBody from './ConstantBody'
@@ -9,6 +10,7 @@ export default class RowSegments extends React.Component {
   constructor (props) {
     super(props)
     this.handleUpdate = this.handleUpdate.bind(this)
+    this.debouncedForceUpdate = lodash.debounce(this.forceUpdate.bind(this), 64, {leading: false, trailing: true})
   }
 
   componentWillUnmount () {
@@ -41,9 +43,10 @@ export default class RowSegments extends React.Component {
       what === 'keyframe-remove-curve' ||
       what === 'keyframe-add-curve' ||
       what === 'keyframe-change-curve' ||
-      what === 'row-rehydrated'
+      what === 'row-rehydrated' ||
+      what === 'child-row-rehydrated'
     ) {
-      this.forceUpdate()
+      this.debouncedForceUpdate()
     }
   }
 
