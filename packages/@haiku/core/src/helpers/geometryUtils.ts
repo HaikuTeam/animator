@@ -12,6 +12,7 @@ import getElementSize from '../renderers/dom/getElementSize';
 import invert from '../vendor/gl-mat4/invert';
 
 export const LINE_SELECTION_THRESHOLD = 5 // Number of pixels allowance for a line to be selected
+export const CUBIC_BEZIER_APPROXIMATION_RESOLUTION = 10 // Number of segments to create when approximating a cubic bezier segment
 
 export interface vec2 {
   x: number;
@@ -20,8 +21,8 @@ export interface vec2 {
 
 class BezierPoint {
   anchor: vec2;
-  h1: vec2 = {x:0,y:0};
-  h2: vec2 = {x:0,y:0};
+  h1: vec2?;
+  h2: vec2?;
 }
 
 interface SVGCurve {
@@ -37,40 +38,69 @@ interface SVGPoint {
   y: number;
 }
 
+export const bezierCubic = (a: vec2, h1: vec2, h2: vec2, b: vec2, t: number): => {
+	const t2 = t*t;
+	const t3 = t2*t;
+	const mt = 1-t;
+	const mt2 = mt*mt;
+	const mt3 = mt2*mt;
+	return {
+		x: a.x * mt3  +  3 * h1.x * mt2 * t  +  3 * h2.x * mt * t2  +  b.x * t3,
+		y: a.y * mt3  +  3 * h1.y * mt2 * t  +  3 * h2.y * mt * t2  +  b.y * t3
+	};
+}
+
 class BezierPath {
   points: BezierPoint[] = [];
+  closed: boolean = false;
+  
+  toApproximatedPolygon(): vec2[] {
+    const out: vec2[] = []
+    for(let i = 0; i < this.points.length; i++) {
+      let nextIndex = i+1
+      if(nextIndex == this.points.length) nextIndex = 0
+      if(this.points[i].h2 || this.points[nextIndex].h1) {
+        const h1 = this.points[i].h2 || this.points[i].anchor
+        const h2 = this.points[nextIndex].h1 || this.points[nextIndex].anchor
+        for(let t = 0; t < CUBIC_BEZIER_APPROXIMATION_RESOLUTION; t++) {
+          out.push(bezierCubic(this.points[i].anchor, h1, h2, this.points[nextIndex].anchor, 1 / t))
+        }
+      } else {
+        out.push(this.points[i].anchor)
+      }
+    }
+    
+    return out;
+  }
   
   static fromSVGPoints(points: SVGPoint[]): BezierPath[] {
     const paths = []
     
     let curPath: BezierPath = null
-    let cursor: vec2 = {x: 0, y: 0}
     let backPoint = null
     
     for(let i = 0; i < points.length; i++) {
       if(!curPath) curPath = new BezierPath()
       
-      if(points[i].moveTo) {
-        cursor = points[i]
-        continue
-      }
-      
-      //TODO: Defines next two points...
       const newPoint = new BezierPoint()
-      newPoint.anchor = cursor
-      if(points[i].curve) {
-        newPoint.h1 = {x: points[i].curve.x1, y: points[i].curve.y1}
-        newPoint.h2 = {x: points[i].curve.x2, y: points[i].curve.y2}
-        newPoint
+      newPoint.anchor = points[i]
+      if(i < points.length-1 && points[i+1].curve) {
+        newPoint.h2 = {x: points[i+1].curve.x1, y: points[i+1].curve.y1}
       } else {
-        newPoint.h1 = newPoint.anchor
-        newPoint.h2 = newPoint.anchor
+        newPoint.h2 = null
+      }
+      if(points[i].curve) {
+        newPoint.h1 = {x: points[i].curve.x2, y: points[i].curve.y2}
+      } else {
+        newPoint.h1 = null
       }
       curPath.points.push(newPoint)
       
       if(points[i].closed) {
+        curPath.closed = true
         paths.push(curPath)
         curPath = null
+        i++; // ignore the final point after closing, it's a duplicate of the first point
       }
       
     }
@@ -144,6 +174,13 @@ const pointOnLineSegment = (a: vec2, b: vec2, test: vec2): boolean => {
   return distance(normalPoint, test) <= LINE_SELECTION_THRESHOLD
 }
 
+const pointOnPolyLineSegment = (points: vec2[], test: vec2): boolean => {
+  for(let i = 1; i < points.length; i++) {
+    if(pointOnLineSegment(points[i-1], points[i], test)) return true
+  }
+  return false
+}
+
 export const isPointInsidePrimitive = (element: HaikuElement, point: vec2): boolean => {
   
   const original = element;
@@ -186,11 +223,7 @@ export const isPointInsidePrimitive = (element: HaikuElement, point: vec2): bool
     
     case 'polyline': {
       const polyPoints = SVGPoints.polyPointsStringToPoints(element.attributes.points).map((pt) => ({x: pt[0], y: pt[1]}))
-      for(let i = 1; i < polyPoints.length; i++) {
-        if(pointOnLineSegment(polyPoints[i-1], polyPoints[i], correctedPoint)) return true
-      }
-      return false
-      
+      return pointOnPolyLineSegment(polyPoints, correctedPoint)
     }
     case 'polygon': {
       const polyPoints = SVGPoints.polyPointsStringToPoints(element.attributes.points).map((pt) => ({x: pt[0], y: pt[1]}))
@@ -199,14 +232,12 @@ export const isPointInsidePrimitive = (element: HaikuElement, point: vec2): bool
     
     case 'path': {
       // Build a straight-line approximation of the path and use the same algorithm as polygon
-      const pathPoints = SVGPoints.pathToPoints(element.attributes.d)
-      // console.log(pathPoints)
+      const beziers = BezierPath.fromSVGPoints(SVGPoints.pathToPoints(element.attributes.d))
+      for(let i = 0; i < beziers.length; i++) {
+        if(beziers[i].closed && evenOddRaycastPointInPolygon(beziers[i].toApproximatedPolygon(), correctedPoint)) return true
+        else if(pointOnPolyLineSegment(beziers[i].toApproximatedPolygon(), correctedPoint)) return true
+      }
       return false
-    //   const polyPoints = []
-    //   for(let i = 0; i < pathPoints.length; i++) {
-    
-    //   }
-    //   return evenOddRaycastPointInPolygon(polyPoints, correctedPoint)
     }
   }
   
