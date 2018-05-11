@@ -617,28 +617,22 @@ class ActiveComponent extends BaseModel {
   * @method setInteractionMode
   * @description Changes the current interaction mode and flushes all cachés
   */
-  setInteractionMode (interactionMode, metadata, cb) {
-    return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
-      this._interactionMode = interactionMode
+  setInteractionMode (interactionMode, cb) {
+    this._interactionMode = interactionMode
 
-      this.allOwnCoreComponentInstances().forEach((instance) => {
-        instance.assignConfig({
-          interactionMode: interactionMode,
-          // Disable hot editing mode during preview mode for smooth playback.
-          hotEditingMode: !this.isPreviewModeActive()
-        })
-      })
-
-      this.reload({
-        clearCacheOptions: {
-          doClearEntityCaches: true
-        }
-      }, null, () => {
-        release()
-        this.project.updateHook('setInteractionMode', this.getRelpath(), this._interactionMode, metadata, (fire) => fire())
-        return cb()
+    this.allOwnCoreComponentInstances().forEach((instance) => {
+      instance.assignConfig({
+        interactionMode: interactionMode,
+        // Disable hot editing mode during preview mode for smooth playback.
+        hotEditingMode: !this.isPreviewModeActive()
       })
     })
+
+    return this.reload({
+      clearCacheOptions: {
+        doClearEntityCaches: true
+      }
+    }, null, cb)
   }
 
   setHotEditingMode (hotEditingMode) {

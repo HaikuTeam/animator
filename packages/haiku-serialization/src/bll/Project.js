@@ -405,8 +405,29 @@ class Project extends BaseModel {
     }, cb)
   }
 
-  setInteractionMode (interactionMode, cb) {
-    return this.getCurrentActiveComponent().setInteractionMode(interactionMode, this.getMetadata(), cb)
+  setInteractionMode (interactionMode, metadata, cb) {
+    const components = ActiveComponent.where({project: this})
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
+      return async.eachSeries(components, (component, next) => {
+        // If we toggle preview mode before any subcomponents are bootstrapped,
+        // the bytecode for those subcomponents will be null
+        return component.moduleCreate('basicReload', {}, (err) => {
+          if (err) {
+            return next(err)
+          }
+          return component.setInteractionMode(interactionMode, next)
+        })
+      }, (err) => {
+        if (err) {
+          release()
+          return cb(err)
+        }
+
+        release()
+        this.updateHook('setInteractionMode', interactionMode, metadata, (fire) => fire())
+        return cb()
+      })
+    })
   }
 
   linkAsset (assetAbspath, cb) {

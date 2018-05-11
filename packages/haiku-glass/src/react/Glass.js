@@ -818,17 +818,26 @@ export class Glass extends React.Component {
   }
 
   editComponent (relpath) {
-    const ac = this.project.findActiveComponentBySource(relpath)
+    // Stop preview mode if it happens to be active when we switch contexts
+    this.project.setInteractionMode(0, {from: 'glass'}, (err) => {
+      if (err) {
+        logger.error(err)
+      }
 
-    if (ac && ac !== this.getActiveComponent()) {
-      mixpanel.haikuTrack('creator:glass:edit-component', {
-        title: ac.getTitle()
-      })
+      const ac = this.project.findActiveComponentBySource(relpath)
 
-      ac.setAsCurrentActiveComponent({from: 'glass'}, (err) => {
-        if (err) return logger.error(err)
-      })
-    }
+      if (ac && ac !== this.getActiveComponent()) {
+        mixpanel.haikuTrack('creator:glass:edit-component', {
+          title: ac.getTitle()
+        })
+
+        ac.setAsCurrentActiveComponent({from: 'glass'}, (err) => {
+          if (err) {
+            logger.error(err)
+          }
+        })
+      }
+    })
   }
 
   handleWindowResize () {

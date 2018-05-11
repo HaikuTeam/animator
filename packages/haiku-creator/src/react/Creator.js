@@ -810,11 +810,16 @@ export default class Creator extends React.Component {
     mixpanel.haikuTrack(`creator:preview-mode:${report}`)
   }
 
+  handleInteractionModeChange (interactionMode) {
+    this.setState({interactionMode})
+    this.mixpanelReportPreviewMode(interactionMode)
+  }
+
   setPreviewMode (interactionMode) {
     if (this.state.projectModel) {
-      this.state.projectModel.setInteractionMode(interactionMode, () => { })
-      this.setState({ interactionMode })
-      this.mixpanelReportPreviewMode(interactionMode)
+      this.state.projectModel.setInteractionMode(interactionMode, {from: 'creator'}, () => {
+        this.handleInteractionModeChange(interactionMode)
+      })
     }
   }
 
@@ -1004,12 +1009,17 @@ export default class Creator extends React.Component {
             // Clear the undo/redo stack (etc) from the previous editing session if any is left over
             projectModel.actionStack.resetData()
 
-            projectModel.on('update', (what) => {
+            projectModel.on('update', (what, ...args) => {
               // logger.info(`[creator] local update ${what}`)
 
               switch (what) {
                 case 'setCurrentActiveComponent':
                   this.handleActiveComponentReady()
+                  break
+
+                case 'setInteractionMode':
+                  this.handleInteractionModeChange(...args)
+                  break
               }
             })
 
@@ -1018,9 +1028,12 @@ export default class Creator extends React.Component {
 
               switch (what) {
                 case 'setCurrentActiveComponent':
-                  return this.forceUpdate()
+                  this.forceUpdate()
+                  break
+
                 case 'setInteractionMode':
-                  return this.setPreviewMode(args[1])
+                  this.handleInteractionModeChange(...args)
+                  break
               }
             })
 

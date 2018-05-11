@@ -295,7 +295,7 @@ class Timeline extends React.Component {
     })
 
     this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'update', (what, arg) => {
-      // logger.info(`[timeline] local update ${what}`)
+      logger.info(`[timeline] local update ${what}`)
 
       switch (what) {
         case 'setCurrentActiveComponent':
@@ -313,7 +313,7 @@ class Timeline extends React.Component {
     })
 
     this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'remote-update', (what, ...args) => {
-      // logger.info(`[timeline] remote update ${what}`)
+      logger.info(`[timeline] remote update ${what}`)
 
       switch (what) {
         case 'setCurrentActiveComponent':
@@ -528,11 +528,12 @@ class Timeline extends React.Component {
     })
   }
 
-  handleInteractionModeChange (relpath, interactionMode) {
+  handleInteractionModeChange (interactionMode) {
     const timeline = this.getActiveComponent().getCurrentTimeline()
     if (timeline.isPlaying()) {
       timeline.pause()
     }
+
     this.setState({isPreviewModeActive: isPreviewMode(interactionMode)})
   }
 
@@ -1155,7 +1156,7 @@ class Timeline extends React.Component {
   }
 
   disablePreviewMode () {
-    this.project.setInteractionMode(InteractionMode.EDIT, () => {})
+    this.project.setInteractionMode(InteractionMode.EDIT, {from: 'timeline'}, () => {})
   }
 
   renderBottomControls () {
