@@ -247,7 +247,7 @@ export class Glass extends React.Component {
         return
       }
 
-      logger.info(`[glass] local update ${what}`)
+      // logger.info(`[glass] local update ${what}`)
 
       switch (what) {
         case 'setCurrentActiveComponent':
@@ -274,7 +274,7 @@ export class Glass extends React.Component {
     })
 
     this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'remote-update', (what, ...args) => {
-      logger.info(`[glass] remote update ${what}`)
+      // logger.info(`[glass] remote update ${what}`)
 
       switch (what) {
         case 'setCurrentActiveComponent':

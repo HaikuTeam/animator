@@ -916,7 +916,7 @@ export default class Master extends EventEmitter {
     this.project.actionStack.resetData()
 
     this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'update', (what, ...args) => {
-      logger.info(`[master] local update ${what}`)
+      // logger.info(`[master] local update ${what}`)
 
       switch (what) {
         case 'setCurrentActiveComponent': return this.handleActiveComponentReady()
@@ -926,7 +926,7 @@ export default class Master extends EventEmitter {
     })
 
     this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'remote-update', (what, ...args) => {
-      logger.info(`[master] remote update ${what}`)
+      // logger.info(`[master] remote update ${what}`)
 
       switch (what) {
         case 'setCurrentActiveComponent': return this.handleActiveComponentReady()
