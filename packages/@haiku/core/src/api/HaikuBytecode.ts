@@ -14,7 +14,7 @@ export type BytecodeStateType = PrimitiveType|PrimitiveType[];
  * Haiku bytecode element tree. eg. <div><svg>...</svg></div>.
  * `source` and `identifier` are rarely used.
  */
-export type BytecodeTemplate = {
+export type BytecodeNode = {
   elementName: string;
   attributes: {
     [attribute: string] : string;
@@ -27,12 +27,11 @@ export type BytecodeTemplate = {
      */
     identifier?: string;
   };
-  /*  Had to change children type from BytecodeTemplate[]|string[], as union 
-   *  types do not have call signature (eg. cannot use forEach). More indo
-   *  at https://stackoverflow.com/a/47493372/1524655 and
-   *  https://github.com/Microsoft/TypeScript/issues/7294#issuecomment-380586802
-   */
-  children: (BytecodeTemplate|string)[];
+  // Children type changed from BytecodeNode[]|string[], as union 
+  // types do not have call signature (eg. cannot use forEach). More indo
+  // at https://stackoverflow.com/a/47493372/1524655 and
+  // https://github.com/Microsoft/TypeScript/issues/7294#issuecomment-380586802
+  children: (BytecodeNode|string)[];
 };
 
 /**
@@ -126,20 +125,114 @@ export type BytecodeMetadata = {
   title?: string;
 };
 
+
 /**
- * Properties. 
+ * Bytecode options. 
  */
-export type BytecodeProperties = {
-  name: string;
-  type: string;
-  value: number;
+export type BytecodeOptions = {
+  // Random seed used for producing deterministic randomness 
+  // and namespacing CSS selector behavior
+  seed?: string,
+
+  // Timestamp reflecting the point in time that rendering begin, 
+  // for deterministic timestamp production
+  timestamp?: number,
+
+  // Whether we should mount the given context to the mount 
+  // element automatically
+  automount?: boolean,
+
+  // Whether we should begin playing the context's animation automatically
+  autoplay?: boolean,
+
+  // Whether to fully flush the component on every single frame 
+  // (warning: this can severely deoptimize animation)
+  forceFlush?: boolean,
+
+  // Whether we should freeze timelines and not update per global 
+  // timeline; useful in headless
+  freeze?: boolean,
+
+  // Whether we should loop the animation, i.e. restart from 
+  // the first frame after reaching the last
+  loop?: boolean,
+
+  // Optional function that we will call on every frame, provided 
+  // for developer convenience
+  frame?: (() => void)|null,
+
+  // Configuration options that will be passed to the HaikuClock instance. 
+  // See HaikuClock.js for info.
+  clock?: object|null,
+
+  // Configures the sizing mode of the component; may be 'normal', 
+  // 'stretch', 'contain', or 'cover'. See HaikuComponent.js for info.
+  sizing?: string|null,
+
+  // Whether we should always assume the size of the mount will change on every tick. There is a significant
+  // performance boost for all non-'normal' sizing modes if we *don't* always assume this, but the size of the
+  // mount might change underneath for reasons other than changes in media queries. To be safe, we leave this on
+  // by default.
+  alwaysComputeSizing?: boolean|null,
+
+  // Placeholder for an option to control whether to enable 
+  // preserve-3d mode in DOM environments. [UNUSED]
+  preserve3d?: string,
+
+  // Whether or not the Haiku context menu should display when the 
+  // component is right-clicked; may be 'enabled' or 'disabled'.
+  contextMenu?: string,
+
+  // CSS position setting for the root of the component in DOM; 
+  // recommended to keep as 'relative'.
+  position?: string,
+
+  // CSS overflow-x setting for the component. Convenience for allows user 
+  // to specify the overflow setting without needing a wrapper element.
+  overflowX?: string|null,
+
+  // CSS overflow-x setting for the component. Convenience for allows user 
+  // to specify the overflow setting without needing a wrapper element.
+  overflowY?: string|null,
+
+  // CSS overflow setting for the component. Use this OR overflowX/overflowY
+  overflow?: string|null,
+
+  // If provided, a Mixpanel tracking instance will be created using this 
+  // string as the API token. The default token is Haiku's production token.
+  mixpanel?: string|null,
+
+  // Whether to prepend a webkit prefix to transform properties
+  useWebkitPrefix?: boolean,
+
+  // Control how this instance handles interaction, e.g. preview mode
+  // TODO: create an use an enum from @haiku/core/src/helpers/interactionModes.ts
+  interactionMode?: number,
+
+  // Allow states to be passed in at runtime (ASSIGNED)
+  states?: object|null,
+
+  // Allow custom event handlers to be passed in at runtime (ASSIGNED)
+  eventHandlers?: object|null,
+
+  // Allow timelines to be passed in at runtime (ASSIGNED)
+  timelines?: object|null,
+
+  // Allow vanities to be passed in at runtime (ASSIGNED)
+  vanities?: object|null,
+
+  // Children may be passed in, typically via the React adapter
+  children?: PrimitiveType[]|null,
+
+  // Key/values representing placeholders to inject, usually via React adapter
+  placeholder?: object|null,
 };
 
 /**
  * Bytecode definition. Properties are *rarely* used.
  */
 export type HaikuBytecode = {
-  template: BytecodeTemplate|string;
+  template: BytecodeNode|string;
   states?: BytecodeStates;
   eventHandlers: BytecodeEventHandlers;
   timelines: BytecodeTimelines;
@@ -148,6 +241,6 @@ export type HaikuBytecode = {
    * @deprecated as of 3.2.20
    */
   properties?: any[];
-  options?: any
+  options?: BytecodeOptions
 };
 

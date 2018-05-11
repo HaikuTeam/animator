@@ -76,7 +76,7 @@ import {
   timelineValuesAreEquivalent,
 } from './bodymovinUtils';
 import {
-  BytecodeTemplate, 
+  BytecodeNode, 
   HaikuBytecode, 
   BytecodeTimelines, 
   BytecodeTimelineProperty,
@@ -207,7 +207,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @param parentNode
    * @returns {{}}
    */
-  private timelineForNode(node: BytecodeTemplate, parentNode?: BytecodeTemplate): BytecodeTimelineProperties {
+  private timelineForNode(node: BytecodeNode, parentNode?: BytecodeNode): BytecodeTimelineProperties {
     return this.timelineForId(node.attributes['haiku-id'], parentNode ? parentNode.attributes['haiku-id'] : undefined);
   }
 
@@ -413,7 +413,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @param node
    * @param parentNode
    */
-  private handleGroup(node: BytecodeTemplate, parentNode: BytecodeTemplate) {
+  private handleGroup(node: BytecodeNode, parentNode: BytecodeNode) {
     this.groupHierarchy[node.attributes['haiku-id']] = {
       parentId: parentNode.attributes['haiku-id'],
       inheritFromParent: parentNode.elementName === SvgTag.Group,
@@ -424,7 +424,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * Writes out defs from the timeline for a single node.
    * @param node
    */
-  private handleDefinition(node :BytecodeTemplate) {
+  private handleDefinition(node :BytecodeNode) {
     this.definitionHaikuIds.push(node.attributes['haiku-id']);
     if (node.attributes.hasOwnProperty('id')) {
       this.transclusions[node.attributes.id] = node;
@@ -436,7 +436,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @param node
    * @param parentNode
    */
-  private handleTransclusion(node: BytecodeTemplate, parentNode: BytecodeTemplate) {
+  private handleTransclusion(node: BytecodeNode, parentNode: BytecodeNode) {
     // Write a new haiku ID based on the result of transcluding the requested ID to this element.
     const originalTimeline = this.timelineForNode(node);
     const originalHaikuId = node.attributes['haiku-id'];
@@ -487,7 +487,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * TODO: Handle viewBox?
    * @param node
    */
-  private handleSvgLayer(node :BytecodeTemplate) {
+  private handleSvgLayer(node :BytecodeNode) {
     const timeline = this.timelineForNode(node);
     this.layers.push({
       [LayerKey.Type]: LayerType.Shape,
@@ -774,7 +774,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @param node
    * @param parentNode
    */
-  private handleShape(node: BytecodeTemplate, parentNode: BytecodeTemplate) {
+  private handleShape(node: BytecodeNode, parentNode: BytecodeNode) {
     const timeline = this.timelineForNode(node, parentNode);
     const groupItems: any[] = [];
 
@@ -841,7 +841,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @param parentNode
    * @param skipTranscludedElements
    */
-  private handleElement(node :BytecodeTemplate, parentNode :BytecodeTemplate, skipTranscludedElements = true) {
+  private handleElement(node :BytecodeNode, parentNode :BytecodeNode, skipTranscludedElements = true) {
     // If we are at a definition or a child of a definition, store it in case it's referenced later and move on.
     if (parentNode && (parentNode.elementName === SvgTag.Defs ||
         (skipTranscludedElements && this.definitionHaikuIds.indexOf(parentNode.attributes['haiku-id']) !== -1))) {
@@ -878,7 +878,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * TODO: Support animations on the wrapper color and opacity.
    */
   private handleWrapper() {
-    const wrapperTimeline = this.timelineForNode(this.bytecode.template as BytecodeTemplate);
+    const wrapperTimeline = this.timelineForNode(this.bytecode.template as BytecodeNode);
     if (timelineHasProperties(wrapperTimeline, 'sizeAbsolute.x', 'sizeAbsolute.y')) {
       const [width, height] = [
         initialValue(wrapperTimeline, 'sizeAbsolute.x'),
@@ -899,7 +899,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
 
         // Bodymovin won't understand background color as a directive. We will need to fake a rectangle for the
         // equivalent effect. Start by creating a virtual node.
-        const wrapperNode : BytecodeTemplate = {
+        const wrapperNode : BytecodeNode = {
           elementName: SvgTag.Svg,
           attributes: {'haiku-id': 'wrapper'},
           children: [{
@@ -973,7 +973,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * where jumps occur and shimming in keyframes forcing a linear transition within a single frame.
    */
   private normalizeCurves() {
-    (this.bytecode.template as BytecodeTemplate).children.forEach((node :BytecodeTemplate) => {
+    (this.bytecode.template as BytecodeNode).children.forEach((node :BytecodeNode) => {
       const timeline = this.timelineForNode(node);
       for (const property in timeline) {
         const timelineProperty = timeline[property];
@@ -1107,8 +1107,8 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * Parses class-local bytecode using internal methods.
    */
   private parseBytecode() {
-    if ((this.bytecode.template as BytecodeTemplate).elementName !== 'div') {
-      throw new Error(`Unexpected wrapper element: ${(this.bytecode.template as BytecodeTemplate).elementName}`);
+    if ((this.bytecode.template as BytecodeNode).elementName !== 'div') {
+      throw new Error(`Unexpected wrapper element: ${(this.bytecode.template as BytecodeNode).elementName}`);
     }
 
     // Rewrite timelines to use keyframes instead of millitimes, which is the Bodymovin way. It makes sense to do
@@ -1131,14 +1131,14 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     // Handle the wrapper as a special case.
     this.handleWrapper();
 
-    (this.bytecode.template as BytecodeTemplate).children.forEach((template: BytecodeTemplate) => {
+    (this.bytecode.template as BytecodeNode).children.forEach((template: BytecodeNode) => {
       // TODO: Remove this when it's time to support groups.
       if (template.elementName !== SvgTag.Svg) {
         throw new Error(`Unexpected wrapper child element: ${template.elementName}`);
       }
       // Hack: make sure defs are first so transclusion works as expected.
       // TODO: Move this logic into mana instantiation. Defs always have to be output first.
-      const maybeDefsIndex = (template.children as BytecodeTemplate[])
+      const maybeDefsIndex = (template.children as BytecodeNode[])
                   .findIndex((element) => element.elementName === SvgTag.Defs);
                   
       if (maybeDefsIndex > 0) {
