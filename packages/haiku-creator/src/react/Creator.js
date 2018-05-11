@@ -555,11 +555,19 @@ export default class Creator extends React.Component {
           BaseModel.receiveSync(message)
           break
 
+        case 'component:reload':
+          if (this.getActiveComponent()) {
+            this.getActiveComponent().moduleReplace(() => {})
+          }
+          break
+
         case 'project-state-change':
-          return this.handleConnectedProjectModelStateChange(message)
+          this.handleConnectedProjectModelStateChange(message)
+          break
 
         case 'dimensions-reset':
-          return this.setState({ artboardDimensions: message.data })
+          this.setState({ artboardDimensions: message.data })
+          break
       }
     })
 
