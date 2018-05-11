@@ -2,21 +2,22 @@
  * @file Type definition for Haiku bytecode.
  */
 
+export type PrimitiveType = string|number|object|boolean|null;
+
 /** 
  * Allowed state types, including function return type for timeline functions, 
  * state getter and setter. 
- * To remove any restriction, define `BytecodeStateTypes` as `any`
  */
-export type BytecodeStateType = string | number | object | boolean | null |
-                                  (string|number|object|boolean|null)[];
+export type BytecodeStateType = PrimitiveType|PrimitiveType[];
 
 /**
- * Haiku bytecode element tree. eg. <div><svg>...</div></svg>. 
+ * Haiku bytecode element tree. eg. <div><svg>...</svg></div>.
  * `source` and `identifier` are rarely used.
  */
 export type BytecodeTemplate = {
   elementName: string;
-  attributes: {[attribute: string] : string;
+  attributes: {
+    [attribute: string] : string;
     /**
      * @deprecated as of 3.2.20
      */
@@ -24,8 +25,9 @@ export type BytecodeTemplate = {
     /**
      * @deprecated as of 3.2.20
      */
-    identifier?: string; };
-  children : BytecodeTemplate[] | string[];
+    identifier?: string;
+  };
+  children: BytecodeTemplate[]|string[];
 };
 
 /**
@@ -33,8 +35,8 @@ export type BytecodeTemplate = {
  */
 export type BytecodeState = {
   value: BytecodeStateType;
-  type?:string;
-  access?:string;
+  type?: string;
+  access?: string;
   getter?: () => BytecodeStateType;
   setter?: (param: BytecodeStateType) => void;
 };
@@ -43,7 +45,7 @@ export type BytecodeState = {
  * Haiku bytecode state list.
  */
 export type BytecodeStates = {
-  [stateName: string] : BytecodeState;
+  [stateName: string]: BytecodeState;
 };
 
 /**
@@ -64,7 +66,7 @@ export type BytecodeEventHandlers = {
  * Value of an element property in a given frame. 
  */
 export type BytecodeTimelineValue = {
-  value: (boolean | string | number | ((any) => BytecodeStateType));
+  value: (boolean|string|number|((any) => BytecodeStateType));
   edited?: boolean;
   curve?: string;
 };
@@ -74,10 +76,9 @@ export type BytecodeTimelineValue = {
  * *Most* of tests use frameNum as string.
  */
 export type BytecodeElementTimeline = {
-  [propertyName: string]: {[frameNum : number]: BytecodeTimelineValue} | 
-                            {[frameNum : string]: BytecodeTimelineValue};
+  [propertyName: string]: {[key in string]: BytecodeTimelineValue};
 };
-  
+
 /**
  * Tuples of `elementName` and `BytecodeElementTimeline`. 
  */
@@ -113,7 +114,7 @@ export type BytecodeMetadata = {
   branch?: string;
   title?: string;
 };
-  
+
 /**
  * Properties. 
  */
@@ -122,7 +123,7 @@ export type BytecodeProperties = {
   type: string;
   value: number;
 };
-  
+
 /**
  * Bytecode definition. Properties are *rarely* used.
  */
@@ -138,5 +139,5 @@ type HaikuBytecode = {
   properties?: BytecodeProperties[];
   options?: any
 };
-  
+
 export default HaikuBytecode;
