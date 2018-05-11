@@ -878,7 +878,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * TODO: Support animations on the wrapper color and opacity.
    */
   private handleWrapper() {
-    const wrapperTimeline = this.timelineForNode(this.bytecode.template);
+    const wrapperTimeline = this.timelineForNode(this.bytecode.template as BytecodeTemplate);
     if (timelineHasProperties(wrapperTimeline, 'sizeAbsolute.x', 'sizeAbsolute.y')) {
       const [width, height] = [
         initialValue(wrapperTimeline, 'sizeAbsolute.x'),
@@ -973,9 +973,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * where jumps occur and shimming in keyframes forcing a linear transition within a single frame.
    */
   private normalizeCurves() {
-    this.bytecode.template.children.forEach((node :BytecodeTemplate) => {console.log(node);});
-
-    this.bytecode.template.children.forEach((node :BytecodeTemplate) => {
+    (this.bytecode.template as BytecodeTemplate).children.forEach((node :BytecodeTemplate) => {
       const timeline = this.timelineForNode(node);
       for (const property in timeline) {
         const timelineProperty = timeline[property];
@@ -1109,8 +1107,8 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * Parses class-local bytecode using internal methods.
    */
   private parseBytecode() {
-    if (this.bytecode.template.elementName !== 'div') {
-      throw new Error(`Unexpected wrapper element: ${this.bytecode.template.elementName}`);
+    if ((this.bytecode.template as BytecodeTemplate).elementName !== 'div') {
+      throw new Error(`Unexpected wrapper element: ${(this.bytecode.template as BytecodeTemplate).elementName}`);
     }
 
     // Rewrite timelines to use keyframes instead of millitimes, which is the Bodymovin way. It makes sense to do
@@ -1133,7 +1131,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     // Handle the wrapper as a special case.
     this.handleWrapper();
 
-    this.bytecode.template.children.forEach((template: BytecodeTemplate) => {
+    (this.bytecode.template as BytecodeTemplate).children.forEach((template: BytecodeTemplate) => {
       // TODO: Remove this when it's time to support groups.
       if (template.elementName !== SvgTag.Svg) {
         throw new Error(`Unexpected wrapper child element: ${template.elementName}`);

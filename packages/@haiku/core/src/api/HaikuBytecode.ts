@@ -54,10 +54,10 @@ export type BytecodeStates = {
 };
 
 /**
- * Haiku bytecode function `handler` for an specific `eventName`. 
+ * Haiku bytecode function `handler` for an specific `eventSelectors`. 
  */
 export type BytecodeEventHandler = {
-  [eventName: string]: {handler: (any) => any};
+  [eventSelectors: string]: {handler: (any) => any};
 };
 
 /**
@@ -139,7 +139,7 @@ export type BytecodeProperties = {
  * Bytecode definition. Properties are *rarely* used.
  */
 export type HaikuBytecode = {
-  template: BytecodeTemplate;
+  template: BytecodeTemplate|string;
   states?: BytecodeStates;
   eventHandlers: BytecodeEventHandlers;
   timelines: BytecodeTimelines;
@@ -147,7 +147,7 @@ export type HaikuBytecode = {
   /**
    * @deprecated as of 3.2.20
    */
-  properties?: BytecodeProperties[];
+  properties?: any[];
   options?: any
 };
 
