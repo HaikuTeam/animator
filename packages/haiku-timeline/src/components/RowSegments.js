@@ -10,7 +10,11 @@ export default class RowSegments extends React.Component {
   constructor (props) {
     super(props)
     this.handleUpdate = this.handleUpdate.bind(this)
-    this.debouncedForceUpdate = lodash.debounce(this.forceUpdate.bind(this), 64, {leading: false, trailing: true})
+    this.debouncedForceUpdate = lodash.debounce(() => {
+      if (this.mounted) {
+        this.forceUpdate()
+      }
+    }, 64, {leading: false, trailing: true})
   }
 
   componentWillUnmount () {
@@ -34,10 +38,19 @@ export default class RowSegments extends React.Component {
   }
 
   handleUpdate (what) {
-    if (!this.mounted) return null
+    if (!this.mounted) {
+      return
+    }
+
     if (
       what === 'timeline-frame-range' ||
-      what === 'timeline-timeline-pixel-width' ||
+      what === 'timeline-timeline-pixel-width'
+    ) {
+      this.forceUpdate()
+      return
+    }
+
+    if (
       what === 'keyframe-create' ||
       what === 'keyframe-delete' ||
       what === 'keyframe-remove-curve' ||
