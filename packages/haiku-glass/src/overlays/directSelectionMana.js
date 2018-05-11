@@ -48,9 +48,10 @@ const anchorPoint = (scale, {x, y}) => ({
   ]
 });
 
-export const rect = ({x, y, width, height, rx, ry}, layoutAncestry) => ({
+export const rect = (id, {x, y, width, height, rx, ry}, layoutAncestry) => ({
   elementName: 'g',
   attributes: {
+    id,
     style: {
       transform: `matrix3d(${Layout3D.multiplyArrayOfMatrices(layoutAncestry.reverse()).join(',')})`,
       transformOrigin: 'top left',
@@ -79,9 +80,10 @@ export const rect = ({x, y, width, height, rx, ry}, layoutAncestry) => ({
   ]
 })
 
-export const circle = ({cx, cy, r}, layoutAncestry) => ({
+export const circle = (id, {cx, cy, r}, layoutAncestry) => ({
   elementName: 'g',
   attributes: {
+    id,
     style: {
       transform: `matrix3d(${Layout3D.multiplyArrayOfMatrices(layoutAncestry.reverse()).join(',')})`,
       transformOrigin: 'top left',
@@ -104,9 +106,10 @@ export const circle = ({cx, cy, r}, layoutAncestry) => ({
   ]
 })
 
-export const ellipse = ({cx, cy, rx, ry}, layoutAncestry) => ({
+export const ellipse = (id, {cx, cy, rx, ry}, layoutAncestry) => ({
   elementName: 'g',
   attributes: {
+    id,
     style: {
       transform: `matrix3d(${Layout3D.multiplyArrayOfMatrices(layoutAncestry.reverse()).join(',')})`,
       transformOrigin: 'top left',
@@ -136,13 +139,14 @@ export const ellipse = ({cx, cy, rx, ry}, layoutAncestry) => ({
 
 let lastThing = null;
 
-export const polygon = ({points}, layoutAncestry) => {
-  if(lastThing !== JSON.stringify(Layout3D.multiplyArrayOfMatrices(JSON.parse(JSON.stringify(layoutAncestry)).reverse()).join(','))) console.log('DIFF!', lastThing)
-  lastThing = JSON.stringify(Layout3D.multiplyArrayOfMatrices(JSON.parse(JSON.stringify(layoutAncestry)).reverse()).join(','))
+export const polygon = (id, {points}, layoutAncestry) => {
+  if(lastThing !== Layout3D.multiplyArrayOfMatrices(JSON.parse(JSON.stringify(layoutAncestry)).reverse()).join(',')) console.log('DIFF!', lastThing)
+  lastThing = Layout3D.multiplyArrayOfMatrices(JSON.parse(JSON.stringify(layoutAncestry)).reverse()).join(',')
   
   return {
   elementName: 'g',
   attributes: {
+    id,
     style: {
       transform: `matrix3d(${Layout3D.multiplyArrayOfMatrices(layoutAncestry.reverse()).join(',')})`,
       transformOrigin: 'top left',
@@ -163,9 +167,10 @@ export const polygon = ({points}, layoutAncestry) => {
   ]
 }}
 
-export const path = ({d}, layoutAncestry) => ({
+export const path = (id, {d}, layoutAncestry) => ({
   elementName: 'g',
   attributes: {
+    id,
     style: {
       transform: `matrix3d(${Layout3D.multiplyArrayOfMatrices(layoutAncestry.reverse()).join(',')})`,
       transformOrigin: 'top left',
@@ -186,9 +191,10 @@ export const path = ({d}, layoutAncestry) => ({
   ]
 })
 
-export const line = ({x1, y1, x2, y2}, layoutAncestry) => ({
+export const line = (id, {x1, y1, x2, y2}, layoutAncestry) => ({
   elementName: 'g',
   attributes: {
+    id,
     style: {
       transform: `matrix3d(${Layout3D.multiplyArrayOfMatrices(layoutAncestry.reverse()).join(',')})`,
       transformOrigin: 'top left',
@@ -210,9 +216,10 @@ export const line = ({x1, y1, x2, y2}, layoutAncestry) => ({
   ]
 })
 
-export const polyline = ({points}, layoutAncestry) => ({
+export const polyline = (id, {points}, layoutAncestry) => ({
   elementName: 'g',
   attributes: {
+    id,
     style: {
       transform: `matrix3d(${Layout3D.multiplyArrayOfMatrices(layoutAncestry.reverse()).join(',')})`,
       transformOrigin: 'top left',

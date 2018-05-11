@@ -1829,7 +1829,7 @@ export class Glass extends React.Component {
     
     switch(element.type) {
       case 'rect':
-        overlays.push(directSelectionMana[element.type]({...element.attributes, width: element.sizeX, height: element.sizeY}, original.layoutAncestryMatrices))
+        overlays.push(directSelectionMana[element.type](element.id, {...element.attributes, width: element.sizeX, height: element.sizeY}, original.layoutAncestryMatrices))
         break
       case 'circle':
       case 'ellipse':
@@ -1837,7 +1837,7 @@ export class Glass extends React.Component {
       case 'polyline':
       case 'path':
       case 'polygon':
-        overlays.push(directSelectionMana[element.type](element.attributes, original.layoutAncestryMatrices))
+        overlays.push(directSelectionMana[element.type](element.id, element.attributes, original.layoutAncestryMatrices))
     }
   }
   
