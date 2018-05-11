@@ -38,7 +38,7 @@ interface SVGPoint {
   y: number;
 }
 
-export const bezierCubic = (a: vec2, h1: vec2, h2: vec2, b: vec2, t: number): => {
+export const bezierCubic = (a: vec2, h1: vec2, h2: vec2, b: vec2, t: number): vec2 => {
 	const t2 = t*t;
 	const t3 = t2*t;
 	const mt = 1-t;
