@@ -1,4 +1,10 @@
 import {LayoutPropertyType} from './layout';
+import {
+  BytecodeTimeline, 
+  BytecodeTimelines, 
+  BytecodeTimelineProperties, 
+  BytecodeTimelineValue,
+} from '@haiku/core/lib/api/HaikuBytecode';
 
 /**
  * Gets the initial value of a timeline property.
@@ -10,7 +16,8 @@ import {LayoutPropertyType} from './layout';
  * @param {string} property
  * @returns {any}
  */
-export const initialValue = (timeline: any, property: string): any => timeline[property][0].value;
+export const initialValue = (timeline: BytecodeTimelineProperties, property: string): any => 
+  timeline[property][0].value;
 
 /**
  * Get the initial value of a timeline property, or `null` if the property is not defined.
@@ -18,9 +25,8 @@ export const initialValue = (timeline: any, property: string): any => timeline[p
  * @param {string} property
  * @returns {any?}
  */
-export const initialValueOrNull = (timeline: any, property: string): any => timeline.hasOwnProperty(property)
-  ? initialValue(timeline, property)
-  : null;
+export const initialValueOrNull = (timeline: BytecodeTimelineProperties, property: string): any => 
+  timeline.hasOwnProperty(property) ? initialValue(timeline, property) : null;
 
 /**
  * Get the initial value of a timeline property, or an acceptable default if the property is not defined.
@@ -28,10 +34,10 @@ export const initialValueOrNull = (timeline: any, property: string): any => time
  * @param {string} property
  * @returns {any}
  */
-export const initialValueOr = (timeline: any, property: string, value: any): any => timeline.hasOwnProperty(property)
-  ? initialValue(timeline, property) : value;
+export const initialValueOr = (timeline: BytecodeTimelineProperties, property: string, value: any): any =>
+  timeline.hasOwnProperty(property) ? initialValue(timeline, property) : value;
 
-export const timelineHasProperties = (timeline: any, ...properties: string[]): boolean => {
+export const timelineHasProperties = (timeline: BytecodeTimelineProperties, ...properties: string[]): boolean => {
   for (let i = 0; i < properties.length; ++i) {
     if (typeof timeline[properties[i]] !== 'object' || Object.keys(timeline[properties[i]]).length === 0) {
       return false;

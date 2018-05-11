@@ -14,6 +14,12 @@ import {
   BodymovinPathComponent,
   BodymovinProperty,
 } from './bodymovinTypes';
+import {
+  BytecodeTimelineValue, 
+  BytecodeTimeline, 
+  BytecodeTimelineProperties, 
+  BytecodeTimelineProperty,
+} from '@haiku/core/lib/api/HaikuBytecode';
 
 const {pathToPoints} = SVGPoints;
 
@@ -433,7 +439,7 @@ export const decomposePath = (path: string|PathPoint[]): {points: PathPoint[], c
  * @param timelineProperty
  * @returns {number[]}
  */
-export const keyframesFromTimelineProperty = (timelineProperty): number[] => {
+export const keyframesFromTimelineProperty = (timelineProperty: BytecodeTimelineProperty): number[] => {
   const keyframes: number[] = Object.keys(timelineProperty).map((i) => parseInt(i, 10));
   keyframes.sort((a, b) => a - b);
   return keyframes;

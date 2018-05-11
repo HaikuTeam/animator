@@ -1,5 +1,6 @@
 /** @file Generic handling for injectables through export. */
 import functionToRFO from '@haiku/core/lib/reflection/functionToRFO';
+import {BytecodeStates} from '@haiku/core/lib/api/HaikuBytecode';
 
 /**
  * A class we can instantiate to act as a stub for injectables that can't be evaluated sensibly during export.
@@ -39,7 +40,7 @@ class DefaultStub {
  *   The state tree we should evaluate parameters against.
  * @returns {any}
  */
-export const evaluateInjectedFunctionInExportContext = (timelinePropertyValue, states) => {
+export const evaluateInjectedFunctionInExportContext = (timelinePropertyValue, states: BytecodeStates) => {
   const rfo = functionToRFO(timelinePropertyValue);
   const defaultStub = new DefaultStub();
   const params = rfo.__function.params.map((param) => (global[param] || states.hasOwnProperty(param))

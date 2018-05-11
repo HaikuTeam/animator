@@ -19,7 +19,7 @@ import scopifyElements from './helpers/scopifyElements';
 import Layout3D from './Layout3D';
 import ValueBuilder from './ValueBuilder';
 import assign from './vendor/assign';
-import HaikuBytecode from './api/HaikuBytecode';
+import {HaikuBytecode} from './api/HaikuBytecode';
 
 const pkg = require('./../package.json');
 export const VERSION = pkg.version;

@@ -1,10 +1,14 @@
+import {HaikuBytecode, BytecodeTimeline, BytecodeTimelineValue, 
+  BytecodeTimelineProperties,
+  BytecodeTimelines} from '@haiku/core/lib/api/HaikuBytecode';
+
 export default class BaseExporter {
-  constructor(protected bytecode) {}
+  constructor(protected bytecode :HaikuBytecode) {}
 
   /**
    * Internal method for visiting every timeline and applying a callback to it.
    */
-  protected visitAllTimelines(callback: (timeline: any) => void) {
+  protected visitAllTimelines(callback: (timeline: BytecodeTimelineProperties) => void) {
     for (const timelineId in this.bytecode.timelines) {
       for (const haikuId in this.bytecode.timelines[timelineId]) {
         if (/^__/.test(haikuId)) {
@@ -18,7 +22,7 @@ export default class BaseExporter {
   /**
    * Internal method for visiting every timeline property and applying a callback to it.
    */
-  protected visitAllTimelineProperties(callback: (timeline: any, property: string) => void) {
+  protected visitAllTimelineProperties(callback: (timeline: BytecodeTimelineProperties, property: string) => void) {
     this.visitAllTimelines((timeline) => {
       for (const property in timeline) {
         callback(timeline, property);

@@ -27,7 +27,12 @@ export type BytecodeTemplate = {
      */
     identifier?: string;
   };
-  children: BytecodeTemplate[]|string[];
+  /*  Had to change children type from BytecodeTemplate[]|string[], as union 
+   *  types do not have call signature (eg. cannot use forEach). More indo
+   *  at https://stackoverflow.com/a/47493372/1524655 and
+   *  https://github.com/Microsoft/TypeScript/issues/7294#issuecomment-380586802
+   */
+  children: (BytecodeTemplate|string)[];
 };
 
 /**
@@ -66,31 +71,37 @@ export type BytecodeEventHandlers = {
  * Value of an element property in a given frame. 
  */
 export type BytecodeTimelineValue = {
-  value: (boolean|string|number|((any) => BytecodeStateType));
+  value: (BytecodeStateType|((any) => BytecodeStateType));
   edited?: boolean;
-  curve?: string;
+  curve?: any;
 };
 
+
 /**
- * Map `propertyName` to a list of `frameNum` and its given `BytecodeTimelineValue`.
- * *Most* of tests use frameNum as string.
+ * Map `frameNum` to a to a `BytecodeTimelineValue`.
  */
-export type BytecodeElementTimeline = {
-  [propertyName: string]: {[key in string]: BytecodeTimelineValue};
+export type BytecodeTimelineProperty = {[frameNum: string]: BytecodeTimelineValue};
+
+
+/**
+ * Map `propertyName` to a `BytecodeTimelineProperty` 
+ */
+export type BytecodeTimelineProperties = {
+  [propertyName: string]: BytecodeTimelineProperty;
 };
 
 /**
- * Tuples of `elementName` and `BytecodeElementTimeline`. 
+ * Tuples of `haikuId` and `BytecodeTimelineProperties`. 
  */
 export type BytecodeTimeline = {
-  [elementName: string]: BytecodeElementTimeline;
+  [haikuId: string]: BytecodeTimelineProperties;
 };
 
 /**
  * Tuples of `timelineName` and `BytecodeTimeline`. 
  */
 export type BytecodeTimelines = {
-  [timelineName: string]: BytecodeTimeline;
+  [timelineId: string]: BytecodeTimeline;
 };
   
 /**
@@ -127,8 +138,8 @@ export type BytecodeProperties = {
 /**
  * Bytecode definition. Properties are *rarely* used.
  */
-type HaikuBytecode = {
-  template: BytecodeTemplate | string;
+export type HaikuBytecode = {
+  template: BytecodeTemplate;
   states?: BytecodeStates;
   eventHandlers: BytecodeEventHandlers;
   timelines: BytecodeTimelines;
@@ -140,4 +151,3 @@ type HaikuBytecode = {
   options?: any
 };
 
-export default HaikuBytecode;
