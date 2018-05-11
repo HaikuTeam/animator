@@ -21,8 +21,8 @@ export interface vec2 {
 
 class BezierPoint {
   anchor: vec2;
-  h1: vec2?;
-  h2: vec2?;
+  h1: vec2;
+  h2: vec2;
 }
 
 interface SVGCurve {
