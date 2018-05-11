@@ -1858,6 +1858,10 @@ Element.unselectAllElements = function (criteria, metadata) {
   Element.where(criteria).forEach((element) => element.unselect(metadata))
 }
 
+Element.hoverOffAllElements = function (criteria, metadata) {
+  Element.where(criteria).forEach((element) => element.hoverOff(metadata))
+}
+
 Element.clearCaches = function clearCaches () {
   Element.cache = {
     domNodes: {},

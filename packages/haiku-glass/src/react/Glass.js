@@ -138,6 +138,10 @@ export class Glass extends React.Component {
 
     this.handleRequestElementCoordinates = this.handleRequestElementCoordinates.bind(this)
 
+    this.debouncedWindowMouseOverOutHandler = lodash.debounce((mouseEvent) => {
+      this.windowMouseOverOutHandler(mouseEvent)
+    }, 10)
+
     this.handleDimensionsReset = lodash.debounce(() => {
       // Need to notify creator of viewport change so instantiation position is correct;
       // this event is also called whenever the window is resized
@@ -656,8 +660,8 @@ export class Glass extends React.Component {
     this.addEmitterListener(window, 'dblclick', this.windowDblClickHandler.bind(this))
     this.addEmitterListener(window, 'keydown', this.windowKeyDownHandler.bind(this))
     this.addEmitterListener(window, 'keyup', this.windowKeyUpHandler.bind(this))
-    this.addEmitterListener(window, 'mouseover', this.windowMouseOverHandler.bind(this))
-    this.addEmitterListener(window, 'mouseout', this.windowMouseOutHandler.bind(this))
+    this.addEmitterListener(window, 'mouseover', this.debouncedWindowMouseOverOutHandler)
+    this.addEmitterListener(window, 'mouseout', this.debouncedWindowMouseOverOutHandler)
     // When the mouse is clicked, below is the order that events fire
     this.addEmitterListener(window, 'mousedown', this.windowMouseDownHandler.bind(this))
     this.addEmitterListener(window, 'mouseup', this.windowMouseUpHandler.bind(this))
@@ -880,7 +884,7 @@ export class Glass extends React.Component {
   }
 
   hoverHighlight (haikuId) {
-    if (experimentIsEnabled(Experiment.OutliningElementsOnStage) && !this.isPreviewMode()) {
+    if (experimentIsEnabled(Experiment.OutliningElementsOnStage) && !this.isPreviewMode() && !this.isMarqueeActive()) {
       const element = Element.find({componentId: haikuId})
 
       if (!element.isSelected() && !this.state.isMouseDragging) {
@@ -896,7 +900,7 @@ export class Glass extends React.Component {
   }
 
   unhoverHighlight (haikuId) {
-    if (experimentIsEnabled(Experiment.OutliningElementsOnStage) && !this.isPreviewMode()) {
+    if (experimentIsEnabled(Experiment.OutliningElementsOnStage) && !this.isPreviewMode() && !this.isMarqueeActive()) {
       const $domElement = document.querySelector(`[haiku-id='${haikuId}-${OUTLINE_CLONE_SUFFIX}']`)
 
       if ($domElement) {
@@ -934,26 +938,25 @@ export class Glass extends React.Component {
     }
   }
 
-  windowMouseOverHandler (mouseOver) {
-    if (this.isPreviewMode()) {
+  windowMouseOverOutHandler (mouseEvent) {
+    if (this.isPreviewMode() || this.isMarqueeActive()) {
       return
     }
 
-    const element = this.findElementAssociatedToMouseEvent(mouseOver)
-    if (element) {
-      element.hoverOn({from: 'glass'})
-    }
-  }
+    if (mouseEvent.type === 'mouseover') {
+      const element = this.findElementAssociatedToMouseEvent(mouseEvent)
 
-  windowMouseOutHandler (mouseOut) {
-    if (this.isPreviewMode()) {
-      return
+      if (element) {
+        if (element.isHovered()) {
+          return
+        }
+
+        Element.hoverOffAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
+        return element.hoverOn({from: 'glass'})
+      }
     }
 
-    const element = this.findElementAssociatedToMouseEvent(mouseOut)
-    if (element) {
-      element.hoverOff({from: 'glass'})
-    }
+    Element.hoverOffAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
   }
 
   get areAnyModalsOpen () {
@@ -1517,7 +1520,7 @@ export class Glass extends React.Component {
 
   handleMouseOverStageName () {
     // Don't highlight the stage name/artboard boundary if the selection marquee is active
-    if (this.getActiveComponent() && this.getActiveComponent().getSelectionMarquee().isActive()) {
+    if (this.isMarqueeActive()) {
       return
     }
 
@@ -1899,6 +1902,10 @@ export class Glass extends React.Component {
       return false
     }
     return this.getActiveComponent().isPreviewModeActive()
+  }
+
+  isMarqueeActive () {
+    return this.getActiveComponent() && this.getActiveComponent().getSelectionMarquee().isActive()
   }
 
   getCursorCssRule () {
