@@ -74,7 +74,7 @@ const animatedTimelineReducer = (accumulator: any, currentValue: any) => {
     return currentValue;
   }
 
-  currentValue[PropertyKey.Value].forEach((keyframe, index) => {
+  currentValue[PropertyKey.Value].forEach((keyframe: any, index: any) => {
     if (accumulator[PropertyKey.Value][index][AnimationKey.Time] !== keyframe[AnimationKey.Time]) {
       // This should never happen! The work done in BodymovinExporter.alignCurveKeyframes() should guarantee keyframes
       // are aligned for values that are animated together.

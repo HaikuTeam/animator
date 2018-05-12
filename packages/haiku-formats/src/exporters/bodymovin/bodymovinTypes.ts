@@ -9,7 +9,7 @@ import {
   ShapeType,
 } from './bodymovinEnums';
 
-import { BodymovinExporter } from './bodymovinExporter';
+import {BodymovinExporter} from './bodymovinExporter';
 
 export type BodymovinCoordinates = [number, number];
 

@@ -1,5 +1,5 @@
 import * as BezierEasing from 'bezier-easing';
-import * as flatten from 'lodash/flatten';
+import {flatten} from 'lodash';
 
 import {Curve} from 'haiku-common/lib/types/enums';
 import {BytecodeTimelineProperties, BytecodeTimelineValue, 

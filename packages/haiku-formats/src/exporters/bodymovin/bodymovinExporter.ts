@@ -7,9 +7,8 @@ import {
 import {Curve} from 'haiku-common/lib/types/enums';
 import * as Template from 'haiku-serialization/src/bll/Template';
 import * as LoggerInstance from 'haiku-serialization/src/utils/LoggerInstance';
-import * as difference from 'lodash/difference';
-import * as flatten from 'lodash/flatten';
-import * as mapKeys from 'lodash/mapKeys';
+
+import {difference, flatten, mapKeys} from 'lodash';
 import {ExporterInterface} from '..';
 
 import {SvgTag} from '../../svg/enums';
@@ -952,7 +951,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
         return;
       }
 
-      timeline[property] = mapKeys(timeline[property], (_, millitime: number) => Math.round(millitime * 6 / 1e2));
+      timeline[property] = mapKeys(timeline[property], (_, millitime: any) => Math.round(millitime * 6 / 1e2));
     });
   }
 

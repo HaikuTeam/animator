@@ -52,7 +52,7 @@ export const timelineHasProperties = (timeline: BytecodeTimelineProperties, ...p
  * @param value
  * @returns {{'0': {value: number}}}
  */
-const getShimLayoutTimeline = (value) => ({0: {value, curve: 'linear'}});
+const getShimLayoutTimeline = (value: number) => ({0: {value, curve: 'linear'}});
 
 /**
  * Simulate a layout property that was not explicitly provided in a timeline.

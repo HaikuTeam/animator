@@ -33,6 +33,9 @@
     "lodash": "^4.17.4"
   },
   "devDependencies": {
+    "@types/bezier-easing": "^2.0.0",
+    "@types/bluebird": "^3.5.20",
+    "@types/lodash": "^4.14.108",
     "@types/node": "8.9.4",
     "@types/tape": "^4.2.30",
     "async": "^2.5.0",
