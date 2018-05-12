@@ -56,7 +56,7 @@ export type BytecodeStates = {
  * Haiku bytecode function `handler` for an specific `eventSelectors`. 
  */
 export type BytecodeEventHandler = {
-  [eventSelectors: string]: {handler: (any) => any};
+  [eventSelectors: string]: {handler: (param: any) => any};
 };
 
 /**
@@ -70,7 +70,7 @@ export type BytecodeEventHandlers = {
  * Value of an element property in a given frame. 
  */
 export type BytecodeTimelineValue = {
-  value: (BytecodeStateType|((any) => BytecodeStateType));
+  value: (BytecodeStateType|((param: any) => BytecodeStateType));
   edited?: boolean;
   curve?: any;
 };

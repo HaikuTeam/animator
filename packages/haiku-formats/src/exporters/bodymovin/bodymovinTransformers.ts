@@ -14,13 +14,13 @@ import {getFixedPropertyValue} from './bodymovinUtils';
  * Transforms CSS opacity in [0, 1] to Bodymovin opacity in [0, 100].
  * @param opacity
  */
-export const opacityTransformer = (opacity) => 100 * opacity;
+export const opacityTransformer = (opacity: number) => 100 * opacity;
 
 /**
  * Transforms CSS scale in [0, 1] to Bodymovin scale in [0, 100].
  * @param scale
  */
-export const scaleTransformer = (scale) => 100 * scale;
+export const scaleTransformer = (scale: number) => 100 * scale;
 
 /**
  * Gets a match array for a value reference, e.g. for a property value like fill="url('#foobar')".
