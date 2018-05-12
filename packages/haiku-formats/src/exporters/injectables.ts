@@ -1,6 +1,11 @@
 /** @file Generic handling for injectables through export. */
 import functionToRFO from '@haiku/core/lib/reflection/functionToRFO';
-import {BytecodeStates} from '@haiku/core/lib/api/HaikuBytecode';
+
+import {
+  BytecodeStates, 
+  BytecodeSummonable,
+  BytecodeStateType, 
+} from '@haiku/core/lib/api/HaikuBytecode';
 
 /**
  * A class we can instantiate to act as a stub for injectables that can't be evaluated sensibly during export.
@@ -22,7 +27,7 @@ class DefaultStub {
   /**
    * Returns the Proxy through regular access, and return a 0-getter when a primitive value is requested.
    */
-  get (_, property) {
+  get (_: any, property: any) {
     if (property === Symbol.toPrimitive) {
       return () => 1;
     }
@@ -34,18 +39,19 @@ class DefaultStub {
 /**
  * A value resolver compatible with results from calling `Haiku.inject`.
  *
- * @param timelinePropertyValue
+ * @param bytecodeSummonable
  *   A timeline property value, which is assumed to be a state/summonable-injected function.
  * @param states
  *   The state tree we should evaluate parameters against.
  * @returns {any}
  */
-export const evaluateInjectedFunctionInExportContext = (timelinePropertyValue, states: BytecodeStates) => {
-  const rfo = functionToRFO(timelinePropertyValue);
+export const evaluateInjectedFunctionInExportContext = (bytecodeSummonable: BytecodeSummonable, 
+                                                        states: BytecodeStates): BytecodeStateType => {
+  const rfo = functionToRFO(bytecodeSummonable);
   const defaultStub = new DefaultStub();
-  const params = rfo.__function.params.map((param) => (global[param] || states.hasOwnProperty(param))
+  const params = rfo.__function.params.map((param: string) => (global[param] || states.hasOwnProperty(param))
     ? (global[param] || states[param].value)
     : defaultStub,
   );
-  return timelinePropertyValue.apply(undefined, params) || 0;
+  return bytecodeSummonable.apply(undefined, params) || 0;
 };

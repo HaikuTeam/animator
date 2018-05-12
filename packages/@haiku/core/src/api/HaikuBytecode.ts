@@ -10,6 +10,19 @@ export type PrimitiveType = string|number|object|boolean|null;
  */
 export type BytecodeStateType = PrimitiveType|PrimitiveType[];
 
+
+/** 
+ * `BytecodeSummonable` defines functions that can be called on timeline 
+ * property value
+ */
+export type BytecodeSummonable = ((param: any) => BytecodeStateType);
+
+
+/** 
+ * All possible types for timeline property value
+ */ 
+export type BytecodeInjectable = BytecodeStateType|BytecodeSummonable;
+
 /**
  * Haiku bytecode element tree. eg. <div><svg>...</svg></div>.
  * `source` and `identifier` are rarely used.
@@ -70,7 +83,7 @@ export type BytecodeEventHandlers = {
  * Value of an element property in a given frame. 
  */
 export type BytecodeTimelineValue = {
-  value: (BytecodeStateType|((param: any) => BytecodeStateType));
+  value: BytecodeInjectable;
   edited?: boolean;
   curve?: any;
 };

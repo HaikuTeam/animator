@@ -3,7 +3,11 @@ import {ExporterFormat, ExporterRequest} from 'haiku-sdk-creator/lib/exporter';
 
 import {BodymovinExporter} from './bodymovin/bodymovinExporter';
 import {HaikuStaticExporter} from './haikuStatic/haikuStaticExporter';
-import * as LoggerInstance from 'haiku-serialization/src/utils/LoggerInstance';
+
+// TODO: Use import after `haiku-serialization` port to typescript. 
+// `haiku-serialization` is imported using `require` to avoid:
+// "TS7016: Could not find a declaration file for module..."
+const {LoggerInstance} = require('haiku-serialization/src/utils/LoggerInstance');
 
 export interface ExporterInterface {
   rawOutput(): any;

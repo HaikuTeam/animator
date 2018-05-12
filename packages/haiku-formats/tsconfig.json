@@ -10,7 +10,7 @@
     "isolatedModules": false,
     "module": "commonjs",
     "moduleResolution": "node",
-    "noImplicitAny": false,
+    "noImplicitAny": true,
     "noLib": false,
     "outDir": "lib",
     "paths": {

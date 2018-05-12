@@ -5,8 +5,12 @@ import {
   PathPoint,
 } from 'haiku-common/lib/types';
 import {Curve} from 'haiku-common/lib/types/enums';
-import * as Template from 'haiku-serialization/src/bll/Template';
-import * as LoggerInstance from 'haiku-serialization/src/utils/LoggerInstance';
+
+// TODO: Use import after `haiku-serialization` port to typescript. 
+// `haiku-serialization` is imported using `require` to avoid:
+// "TS7016: Could not find a declaration file for module..."
+const {Template} = require('haiku-serialization/src/bll/Template');
+const {LoggerInstance} = require('haiku-serialization/src/utils/LoggerInstance');
 
 import {difference, flatten, mapKeys} from 'lodash';
 import {ExporterInterface} from '..';
@@ -85,6 +89,7 @@ import {
   BytecodeTimelines, 
   BytecodeTimelineProperty,
   BytecodeTimelineProperties,
+  BytecodeSummonable,
 } from '@haiku/core/lib/api/HaikuBytecode';
 
 const {pathToPoints} = SVGPoints;
@@ -966,7 +971,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
       for (const keyframe in timeline[property]) {
         if (typeof timeline[property][keyframe].value === 'function') {
           timeline[property][keyframe].value = evaluateInjectedFunctionInExportContext(
-            timeline[property][keyframe].value,
+            timeline[property][keyframe].value as BytecodeSummonable,
             this.bytecode.states || {},
           );
         }
