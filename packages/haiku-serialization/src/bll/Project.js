@@ -407,14 +407,24 @@ class Project extends BaseModel {
 
   setInteractionMode (interactionMode, metadata, cb) {
     const components = ActiveComponent.where({project: this})
+
+    const ac = this.getCurrentActiveComponent()
+
     return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
       return async.eachSeries(components, (component, next) => {
         // If we toggle preview mode before any subcomponents are bootstrapped,
         // the bytecode for those subcomponents will be null
-        return component.moduleCreate('basicReload', {}, (err) => {
+        return component.moduleFindOrCreate('basicReload', {}, (err) => {
           if (err) {
             return next(err)
           }
+
+          // Since we just created a module for a bunch of components that are
+          // now running in context, disable any that don't belong to the active one
+          if (ac !== component) {
+            component.deactivateInstances()
+          }
+
           return component.setInteractionMode(interactionMode, next)
         })
       }, (err) => {
@@ -500,7 +510,13 @@ class Project extends BaseModel {
         const components = ActiveComponent.where({project: this})
 
         return async.eachSeries(components, (component, next) => {
-          return component.mergeDesignFiles(designs, next)
+          return component.moduleFindOrCreate('basicReload', {}, (err) => {
+            if (err) {
+              return next(err)
+            }
+
+            return component.mergeDesignFiles(designs, next)
+          })
         }, (err) => {
           if (err) {
             ac.codeReloadingOff()

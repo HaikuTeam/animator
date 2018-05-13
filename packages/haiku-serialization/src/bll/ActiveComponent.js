@@ -261,21 +261,10 @@ class ActiveComponent extends BaseModel {
     return Timeline.DEFAULT_NAME
   }
 
-  upsertCurrentTimeline () {
-    const timeline = Timeline.upsert({
-      uid: this.buildCurrentTimelineUid(),
-      folder: this.project.getFolder(),
-      name: this.getCurrentTimelineName(),
-      component: this,
-      _isCurrent: true
-    }, {})
-    return timeline
-  }
-
   getCurrentTimelineTime () {
     // Although we own multiple instances, assume that they are operating in lockstep during
     // editing; we just need to grab a single 'canonical' one for reference
-    const canonicalCoreInstance = this.getCoreComponentInstance()
+    const canonicalCoreInstance = this.$instance
 
     // In case we get called before fully initialized, e.g. on stage during first load
     if (!canonicalCoreInstance) {
@@ -372,52 +361,41 @@ class ActiveComponent extends BaseModel {
   }
 
   forceFlush () {
-    this.allOwnCoreComponentInstances().forEach((instance) => {
-      instance.markForFullFlush(true)
-      // This guard is to allow headless mode, e.g. in Haiku's timeline application
-      if (instance.context && instance.context.tick) {
-        instance.context.tick()
+    this.$instance.markForFullFlush(true)
+
+    // This guard is to allow headless mode, e.g. in Haiku's timeline application
+    if (this.$instance.context && this.$instance.context.tick) {
+      this.$instance.context.tick()
+    }
+  }
+
+  addHotComponents (hotComponents) {
+    hotComponents.forEach((hotComponent) => {
+      // hotComponent may be null if the timeline time was not 0
+      if (hotComponent) {
+        this.$instance.addHotComponent(hotComponent)
       }
     })
   }
 
-  addHotComponents (hotComponents) {
-    this.allOwnCoreComponentInstances().forEach((instance) => {
-      hotComponents.forEach((hotComponent) => {
-        // hotComponent may be null if the timeline time was not 0
-        if (hotComponent) {
-          instance.addHotComponent(hotComponent)
-        }
-      })
-    })
-  }
-
   clearCaches (options = {}) {
-    this.allOwnCoreComponentInstances().forEach((instance) => {
-      instance.clearCaches(options) // Also clears instance._builder sub-caches
-    })
-
+    this.$instance.clearCaches(options) // Also clears instance._builder sub-caches
     this.fetchRootElement().cacheClear()
-
     if (options.doClearEntityCaches) {
       this.fetchRootElement().clearEntityCaches()
     }
   }
 
   clearCachedClusters (timelineName, componentId) {
-    this.allOwnCoreComponentInstances().forEach((instance) => {
-      instance._builder.clearCachedClusters(timelineName, componentId)
-    })
+    this.$instance._builder.clearCachedClusters(timelineName, componentId)
   }
 
   updateTimelineMaxes (timelineName) {
-    this.allOwnCoreComponentInstances().forEach((instance) => {
-      const timeline = instance.getTimeline(timelineName)
-      if (timeline) {
-        const descriptor = instance.getTimelineDescriptor(timelineName)
-        timeline.resetMaxDefinedTimeFromDescriptor(descriptor)
-      }
-    })
+    const timeline = this.$instance.getTimeline(timelineName)
+    if (timeline) {
+      const descriptor = this.$instance.getTimelineDescriptor(timelineName)
+      timeline.resetMaxDefinedTimeFromDescriptor(descriptor)
+    }
   }
 
   getPropertyGroupValueFromPropertyKeys (componentId, timelineName, timelineTime, propertyKeys) {
@@ -466,11 +444,9 @@ class ActiveComponent extends BaseModel {
 
       // Perform a lightweight full flush render, recomputing all values without without trying to be clever about
       // which properties have actually changed.
-      this.allOwnCoreComponentInstances().forEach((instance) => {
-        if (instance.context && instance.context.tick) {
-          instance.context.tick(true)
-        }
-      })
+      if (this.$instance.context && this.$instance.context.tick) {
+        this.$instance.context.tick(true)
+      }
     }
   }
 
@@ -620,13 +596,32 @@ class ActiveComponent extends BaseModel {
   setInteractionMode (interactionMode, cb) {
     this._interactionMode = interactionMode
 
-    this.allOwnCoreComponentInstances().forEach((instance) => {
-      instance.assignConfig({
-        interactionMode: interactionMode,
-        // Disable hot editing mode during preview mode for smooth playback.
-        hotEditingMode: !this.isPreviewModeActive()
-      })
+    this.$instance.assignConfig({
+      interactionMode: interactionMode,
+      // Disable hot editing mode during preview mode for smooth playback.
+      hotEditingMode: !this.isPreviewModeActive()
     })
+
+    if (this.isPreviewModeActive()) {
+      this.$instance.visitGuestHierarchy((instance) => {
+        const timeline = instance.getTimeline(this.getCurrentTimelineName())
+        timeline.unfreeze()
+        timeline.gotoAndPlay(0)
+        timeline.options.loop = true
+      })
+    } else {
+      const entity = this.getCurrentTimeline()
+      this.$instance.visitGuestHierarchy((instance) => {
+        const timeline = instance.getTimeline(this.getCurrentTimelineName())
+        // If called before hydrated, the entity object may not exist
+        if (entity) {
+          entity.seek(entity.getCurrentFrame())
+          timeline.seek(entity.getCurrentMs())
+        }
+        timeline.freeze()
+        timeline.options.loop = false
+      })
+    }
 
     return this.reload({
       clearCacheOptions: {
@@ -636,9 +631,7 @@ class ActiveComponent extends BaseModel {
   }
 
   setHotEditingMode (hotEditingMode) {
-    this.allOwnCoreComponentInstances().forEach((instance) => {
-      instance.assignConfig({ hotEditingMode })
-    })
+    this.$instance.assignConfig({hotEditingMode})
   }
 
   getInsertionPointHash () {
@@ -748,25 +741,6 @@ class ActiveComponent extends BaseModel {
 
   getTitle () {
     return pascalcase(this.getSceneName())
-  }
-
-  getCoreComponentInstance () {
-    return this.$instance
-  }
-
-  allOwnCoreComponentInstances () {
-    return HaikuComponent.all().filter((component) => {
-      return (
-        // TODO: Figure out why these properties are not set at the time this gets called
-        // component.getBytecodeOrganization() === this.project.userconfig.organization && // MyOrg
-        // component.getBytecodeProject() === this.project.getName() && // myProj
-        component.getBytecodeRelpath() === this.getRelpath() &&
-        // We want to know which components are liable to be edited, not necessarly which
-        // ones are in hot editing mode right now. Undefined is for components incidentally
-        // on the same page, such as the Preview icon, etc
-        component.config.hotEditingMode !== undefined
-      )
-    })
   }
 
   getAbspath () {
@@ -949,7 +923,7 @@ class ActiveComponent extends BaseModel {
   ) {
     // This method depends on being able to fetch data from the component instance,
     // so we call render here to ensure all the instances in the tree are bootstrapped
-    const instance = this.getCoreComponentInstance()
+    const instance = this.$instance
     if (instance) {
       instance.context.getContainer(true) // Force recalc of container for correct sizing
       instance.render() // Flush a tree, ensuring new components are initialized
@@ -1980,7 +1954,7 @@ class ActiveComponent extends BaseModel {
     this.clearCaches(reloadOptions.clearCacheOptions)
 
     // If we were passed a "hot component" or asked to request a full flush render, forward this to our underlying
-    // HaikuComponent instances to ensure correct rendering. This can be skipped if softReload() was called in the
+    // instances to ensure correct rendering. This can be skipped if softReload() was called in the
     // context of a hard reload, because hardReload() calls forceFlush() after soft reloading.
     if (!reloadOptions.hardReload) {
       if (reloadOptions.forceFlush) {
@@ -1999,9 +1973,9 @@ class ActiveComponent extends BaseModel {
     return async.series([
       (cb) => {
         // Stop the clock so we don't continue any animations while this update is happening
-        this.allOwnCoreComponentInstances().forEach((instance) => {
-          instance.context.clock.stop()
-        })
+        if (this.$instance) {
+          this.$instance.context.clock.stop()
+        }
 
         return cb()
       },
@@ -2044,9 +2018,9 @@ class ActiveComponent extends BaseModel {
         this.setTimelineTimeValue(timelineTimeBeforeReload, /* forceSeek= */ true)
 
         // Start the clock again, as we should now be ready to flow updated component.
-        this.allOwnCoreComponentInstances().forEach((instance) => {
-          instance.context.clock.start()
-        })
+        if (this.$instance) {
+          this.$instance.context.clock.start()
+        }
 
         // Solely used to allow glass to update internally when the authoritative frame changes
         this.project.emit(
@@ -2059,20 +2033,29 @@ class ActiveComponent extends BaseModel {
     ], finish)
   }
 
-  moduleCreate (moduleReloadMethod = 'basicReload', instanceConfig = {}, cb) {
-    return this.fetchActiveBytecodeFile().mod[moduleReloadMethod]((err) => {
+  moduleReload (moduleReloadMethod = 'basicReload', cb) {
+    return this.fetchActiveBytecodeFile().mod[moduleReloadMethod](cb)
+  }
+
+  deactivateInstances () {
+    if (this.$instance) {
+      this.$instance.visitGuestHierarchy((instance) => {
+        instance.deactivate()
+      })
+      this.$instance.context.contextUnmount()
+      this.$instance.context.getClock().stop()
+    }
+  }
+
+  moduleCreate (moduleReloadMethod, instanceConfig = {}, cb) {
+    return this.moduleReload(moduleReloadMethod, (err) => {
       if (err) return cb(err)
 
       // Don't clean up instances which may own the current editing context
       if (this.isProjectActiveComponent()) {
-        // Clean up all existing objects which could interfere with rendering
-        HaikuComponent.all().forEach((existing) => {
-          // Don't turn off haiku in Haiku
-          if (existing.config.hotEditingMode) {
-            existing.deactivate()
-            existing.context.contextUnmount()
-            existing.context.getClock().stop()
-          }
+        this.project.getAllActiveComponents().forEach((ac) => {
+          // We also deactivate our own instance since we're about to create a new one
+          ac.deactivateInstances()
         })
       }
 
@@ -2082,6 +2065,14 @@ class ActiveComponent extends BaseModel {
 
       return cb()
     })
+  }
+
+  moduleFindOrCreate (moduleReloadMethod, instanceConfig, cb) {
+    if (this.$instance) {
+      return cb()
+    }
+
+    return this.moduleCreate(moduleReloadMethod, instanceConfig, cb)
   }
 
   isProjectActiveComponent () {
@@ -2102,7 +2093,9 @@ class ActiveComponent extends BaseModel {
 
     createdHaikuCoreComponent.context.getContainer(true) // Force recalc of container for correct sizing
     createdHaikuCoreComponent.render() // Expand the tree, ensuring new components are initialized
-    createdHaikuCoreComponent.activateGuests() // Ensure all existing subcomponents are activated
+    createdHaikuCoreComponent.visitGuestHierarchy((instance) => {
+      instance.activate() // Ensure all existing subcomponents are activated
+    })
 
     return createdHaikuCoreComponent
   }
@@ -2261,14 +2254,21 @@ class ActiveComponent extends BaseModel {
   }
 
   rehydrate () {
+    console.log('REHYDRATE', this.getPrimaryKey())
     // Don't allow any incoming syncs while we're in the midst of this
     BaseModel.__sync = false
 
     this.cacheUnset('displayableRows')
     this.cacheUnset('getTemplateNodesByComponentId')
 
+    console.log('---->', this.buildCurrentTimelineUid())
     // Required before rehydration because entities use the timeline entity
-    this.upsertCurrentTimeline()
+    Timeline.upsert({
+      uid: this.buildCurrentTimelineUid(),
+      folder: this.project.getFolder(),
+      name: this.getCurrentTimelineName(),
+      component: this
+    }, {})
 
     const root = this.fetchRootElement()
 
@@ -2401,7 +2401,7 @@ class ActiveComponent extends BaseModel {
     const bytecode = this.getReifiedBytecode()
     const elementsById = Template.getAllElementsByHaikuId(template)
     const element = elementsById[componentId]
-    const host = this.getCoreComponentInstance()
+    const host = this.$instance
     const states = (host && host.getStates()) || {}
     return TimelineProperty.getComputedValue(componentId, Element.safeElementName(element), propertyName, timelineName || DEFAULT_TIMELINE_NAME, timelineTime || DEFAULT_TIMELINE_TIME, fallbackValue, bytecode, host, states)
   }
@@ -2418,7 +2418,7 @@ class ActiveComponent extends BaseModel {
     if (!contextHaikuId) return defaults
     const contextElementName = Element.safeElementName(bytecode.template)
     if (!contextElementName) return defaults
-    const host = this.getCoreComponentInstance()
+    const host = this.$instance
     const states = (host && host.getStates()) || {}
     const contextWidth = TimelineProperty.getComputedValue(contextHaikuId, contextElementName, 'sizeAbsolute.x', timelineName || DEFAULT_TIMELINE_NAME, timelineTime || DEFAULT_TIMELINE_TIME, 0, bytecode, host, states)
     const contextHeight = TimelineProperty.getComputedValue(contextHaikuId, contextElementName, 'sizeAbsolute.y', timelineName || DEFAULT_TIMELINE_NAME, timelineTime || DEFAULT_TIMELINE_TIME, 0, bytecode, host, states)
@@ -3307,7 +3307,7 @@ class ActiveComponent extends BaseModel {
 
   createKeyframeActual (componentId, timelineName, elementName, propertyName, keyframeStartMs, keyframeValue, keyframeCurve, keyframeEndMs, keyframeEndValue, metadata, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
-      const host = this.getCoreComponentInstance()
+      const host = this.$instance
       const states = (host && host.getStates()) || {}
 
       Bytecode.createKeyframe(

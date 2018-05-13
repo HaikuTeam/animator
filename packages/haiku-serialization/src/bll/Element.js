@@ -195,7 +195,7 @@ class Element extends BaseModel {
   }
 
   getCoreHostComponentInstance () {
-    return this.component.getCoreComponentInstance()
+    return this.component.$instance
   }
 
   cut () {
@@ -499,7 +499,7 @@ class Element extends BaseModel {
 
   getLayoutSpec () {
     const bytecode = this.component.getReifiedBytecode()
-    const hostInstance = this.component.getCoreComponentInstance()
+    const hostInstance = this.component.$instance
 
     // Race condition when converting elements on stage to components
     if (!hostInstance) {
@@ -656,7 +656,7 @@ class Element extends BaseModel {
 
   computePropertyValue (propertyName, fallbackValue) {
     const bytecode = this.component.getReifiedBytecode()
-    const host = this.component.getCoreComponentInstance()
+    const host = this.component.$instance
     const states = (host && host.getStates()) || {}
     const computed = TimelineProperty.getComputedValue(
       this.getComponentId(),
@@ -1092,11 +1092,11 @@ class Element extends BaseModel {
 
     // If this is a component, then add any of our componentAddressables states as builtinAddressables
     if (this.isComponent()) {
-      const component = this.getCoreTargetComponentInstance()
-      if (component) {
+      const instance = this.getCoreTargetComponentInstance()
+      if (instance) {
         // Note that the states also contain .value() for lazy evaluation of current state
         // Also note that states values should have a type='state' property
-        component.getAddressableProperties(componentAddressables)
+        instance.getAddressableProperties(componentAddressables)
       }
     }
 

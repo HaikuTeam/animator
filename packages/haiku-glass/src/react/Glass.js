@@ -342,11 +342,6 @@ export class Glass extends React.Component {
       this._playing = false
     }
 
-    // There is a race we've seen in production where the ac might not be ready yet
-    if (this.getActiveComponent()) {
-      this.getActiveComponent().getCurrentTimeline().togglePreviewPlayback(this.isPreviewMode())
-    }
-
     this.forceUpdate()
   }
 
@@ -2192,7 +2187,7 @@ export class Glass extends React.Component {
 
             this.getActiveComponent().devConsole.logBanner()
 
-            const publicComponentModel = this.getActiveComponent().getCoreComponentInstance()
+            const publicComponentModel = this.getActiveComponent().$instance
             const internalElementModel = proxy.getElement()
 
             if (publicComponentModel && internalElementModel) {

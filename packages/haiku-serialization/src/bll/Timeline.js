@@ -291,7 +291,7 @@ class Timeline extends BaseModel {
   }
 
   getFPS () {
-    const instance = this.component.getCoreComponentInstance()
+    const instance = this.component.$instance
     if (!instance) return 60
     return instance.getClock().getFPS()
   }
@@ -343,37 +343,11 @@ class Timeline extends BaseModel {
     const timelineTime = Math.round(frameInfo.mspf * this._currentFrame)
     const timelineName = this.component.getCurrentTimelineName()
 
-    // If we've loaded the instance, reach in and make sure its internals are up to date
-    // with ours. TODO: Explore ways to avoid duplicating the source of truth
-
-    this.component.allOwnCoreComponentInstances().forEach((instance) => {
-      instance.controlTime(timelineName, timelineTime)
-    })
+    this.component.$instance.controlTime(timelineName, timelineTime)
 
     this.emit('update', 'timeline-frame')
 
     return this
-  }
-
-  togglePreviewPlayback (isPreviewMode) {
-    const timelineName = this.component.getCurrentTimelineName()
-
-    this.component.allOwnCoreComponentInstances().forEach((instance) => {
-      const timelineInstance = instance.getTimeline(timelineName)
-
-      window.requestAnimationFrame(() => {
-        if (isPreviewMode) {
-          timelineInstance.unfreeze()
-          timelineInstance.gotoAndPlay(0)
-          timelineInstance.options.loop = true
-        } else {
-          this.seek(this.getCurrentFrame())
-          timelineInstance.freeze()
-          timelineInstance.seek(this.getCurrentMs())
-          timelineInstance.options.loop = false
-        }
-      })
-    })
   }
 
   getDurationDragStart () {
@@ -887,21 +861,11 @@ class Timeline extends BaseModel {
 Timeline.DEFAULT_OPTIONS = {
   required: {
     component: true,
-    name: true,
-    _isCurrent: true
+    name: true
   }
 }
 
 BaseModel.extend(Timeline)
-
-Timeline.setCurrent = function setCurrent (criteria, name) {
-  Timeline.where(criteria).forEach((timeline) => {
-    timeline._isCurrent = false
-  })
-  const current = Timeline.find(Object.assign({ name: name }, criteria))
-  current._isCurrent = true
-  return current
-}
 
 Timeline.eachTimelineKeyframeDescriptor = function eachTimelineKeyframeDescriptor (timelines, iteratee) {
   for (const timelineName in timelines) {
@@ -1003,7 +967,7 @@ Timeline.getPropertyValueDescriptor = function getPropertyValueDescriptor (timel
 
   const propertyName = timelineRow.getPropertyNameString()
 
-  const hostInstance = timelineRow.component.getCoreComponentInstance()
+  const hostInstance = timelineRow.component.$instance
 
   const hostStates = (hostInstance && hostInstance.getStates()) || {}
 

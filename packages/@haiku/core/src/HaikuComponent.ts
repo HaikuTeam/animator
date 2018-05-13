@@ -232,10 +232,10 @@ export default class HaikuComponent extends HaikuElement {
     this.guests[subcomponent.getId()] = subcomponent;
   }
 
-  activateGuests() {
+  visitGuestHierarchy(visitor: Function) {
+    visitor(this, this.$id, this.host);
     for (const $id in this.guests) {
-      this.guests[$id].activate();
-      this.guests[$id].activateGuests();
+      this.guests[$id].visitGuestHierarchy(visitor);
     }
   }
 
@@ -819,6 +819,7 @@ export default class HaikuComponent extends HaikuElement {
       }
 
       const timelineTime = timelineInstance.getBoundedTime();
+      // console.log(this.$id,this.getBytecodeRelpath(),timelineInstance.isFrozen());
 
       const timelineDescriptor = this.bytecode.timelines[timelineName];
 

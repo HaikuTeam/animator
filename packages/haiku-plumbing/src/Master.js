@@ -443,7 +443,7 @@ export default class Master extends EventEmitter {
     return async.eachSeries(acs, (ac, next) => {
       // Since we might be tagging components that we have never initially loaded,
       // we do so here otherwise the reified bytecode is going to be null
-      return ac.moduleCreate('basicReload', {}, (err) => {
+      return ac.moduleReload('basicReload', (err) => {
         if (err) return next(err)
 
         return ac.writeMetadata(
