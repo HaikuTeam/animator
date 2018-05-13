@@ -22,6 +22,8 @@ const DEFAULT_INTERACTION_MODE = InteractionMode.EDIT
 const DEFAULT_TIMELINE_NAME = 'Default'
 const DEFAULT_TIMELINE_TIME = 0
 const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source'
+const SELECTION_WAIT_TIME = 0
+const SELECTION_PING_TIME = 100
 
 const describeHotComponent = (componentId, timelineName, timelineTime, propertyGroup) => {
   // If our keyframe is not at t = 0, we don't actually need a hot component because we are definitely working with
@@ -502,8 +504,8 @@ class ActiveComponent extends BaseModel {
       }
 
       return setTimeout(() => {
-        return this.selectElementWithinTime(waitTime - 250, componentId, metadata, cb)
-      }, 250)
+        return this.selectElementWithinTime(waitTime - SELECTION_PING_TIME, componentId, metadata, cb)
+      }, SELECTION_PING_TIME)
     }
 
     element.select(metadata)
@@ -524,14 +526,11 @@ class ActiveComponent extends BaseModel {
   }
 
   selectElement (componentId, metadata, cb) {
-    return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
-      // Assuming the update occurs remotely, we want to unselect everything but the selected one
-      Element.unselectAllElements({ component: this }, metadata)
+    // Assuming the update occurs remotely, we want to unselect everything but the selected one
+    Element.unselectAllElements({component: this}, metadata)
 
-      return this.selectElementWithinTime(1000, componentId, metadata, () => {
-        release()
-        return cb() // Must return or the plumbing action circuit never completes
-      })
+    return this.selectElementWithinTime(SELECTION_WAIT_TIME, componentId, metadata, () => {
+      return cb() // Must return or the plumbing action circuit never completes
     })
   }
 
@@ -545,8 +544,8 @@ class ActiveComponent extends BaseModel {
       }
 
       return setTimeout(() => {
-        return this.unselectElementWithinTime(waitTime - 250, componentId, metadata, cb)
-      }, 250)
+        return this.unselectElementWithinTime(waitTime - SELECTION_PING_TIME, componentId, metadata, cb)
+      }, SELECTION_PING_TIME)
     }
 
     element.unselect(metadata)
@@ -555,34 +554,25 @@ class ActiveComponent extends BaseModel {
   }
 
   unselectElement (componentId, metadata, cb) {
-    return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
-      return this.unselectElementWithinTime(1000, componentId, metadata, () => {
-        release()
-        return cb() // Must return or the plumbing action circuit never completes
-      })
+    return this.unselectElementWithinTime(SELECTION_WAIT_TIME, componentId, metadata, () => {
+      return cb() // Must return or the plumbing action circuit never completes
     })
   }
 
   hoverElement (componentId, metadata, cb) {
-    return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
-      const element = Element.findByComponentAndHaikuId(this, componentId)
-      if (element) {
-        element.hoverOn(metadata)
-      }
-      release()
-      return cb()
-    })
+    const element = Element.findByComponentAndHaikuId(this, componentId)
+    if (element) {
+      element.hoverOn(metadata)
+    }
+    return cb()
   }
 
   unhoverElement (componentId, metadata, cb) {
-    return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
-      const element = Element.findByComponentAndHaikuId(this, componentId)
-      if (element) {
-        element.hoverOff(metadata)
-      }
-      release()
-      return cb()
-    })
+    const element = Element.findByComponentAndHaikuId(this, componentId)
+    if (element) {
+      element.hoverOff(metadata)
+    }
+    return cb()
   }
 
   isPreviewModeActive () {
@@ -2254,14 +2244,12 @@ class ActiveComponent extends BaseModel {
   }
 
   rehydrate () {
-    console.log('REHYDRATE', this.getPrimaryKey())
     // Don't allow any incoming syncs while we're in the midst of this
     BaseModel.__sync = false
 
     this.cacheUnset('displayableRows')
     this.cacheUnset('getTemplateNodesByComponentId')
 
-    console.log('---->', this.buildCurrentTimelineUid())
     // Required before rehydration because entities use the timeline entity
     Timeline.upsert({
       uid: this.buildCurrentTimelineUid(),
