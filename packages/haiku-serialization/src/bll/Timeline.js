@@ -115,9 +115,6 @@ class Timeline extends BaseModel {
     this._lastAuthoritativeFrame = authoritativeFrame
     this._stopwatch = Date.now()
     this.updateCurrentFrame(authoritativeFrame)
-    if (!this.isScrubberDragging()) {
-      this.tryToLeftAlignTickerInVisibleFrameRange(authoritativeFrame)
-    }
   }
 
   getExtrapolatedCurrentFrame () {
@@ -182,6 +179,9 @@ class Timeline extends BaseModel {
         channel.pause(this.getPrimaryKey()).then((finalFrame) => {
           this.setCurrentFrame(finalFrame)
           this.setAuthoritativeFrame(finalFrame)
+          if (!this.isScrubberDragging()) {
+            this.tryToLeftAlignTickerInVisibleFrameRange(finalFrame)
+          }
         })
       }
     }
@@ -247,6 +247,9 @@ class Timeline extends BaseModel {
         timelineChannel.seekToFrameAndPause(this.getPrimaryKey(), newFrame).then((finalFrame) => {
           this.setCurrentFrame(finalFrame)
           this.setAuthoritativeFrame(finalFrame)
+          if (!this.isScrubberDragging()) {
+            this.tryToLeftAlignTickerInVisibleFrameRange(finalFrame)
+          }
         })
       } else {
         logger.warn(`[timeline] envoy timeline channel not open (seekToFrameAndPause ${this.getPrimaryKey()}, ${newFrame})`)
