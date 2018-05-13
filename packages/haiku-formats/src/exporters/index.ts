@@ -7,7 +7,8 @@ import {HaikuStaticExporter} from './haikuStatic/haikuStaticExporter';
 // TODO: Use import after `haiku-serialization` port to typescript. 
 // `haiku-serialization` is imported using `require` to avoid:
 // "TS7016: Could not find a declaration file for module..."
-const {LoggerInstance} = require('haiku-serialization/src/utils/LoggerInstance');
+// tslint:disable-next-line:variable-name
+const LoggerInstance = require('haiku-serialization/src/utils/LoggerInstance');
 
 export interface ExporterInterface {
   rawOutput(): any;

@@ -1,5 +1,10 @@
 import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
-import {HaikuBytecode} from 'haiku-common/lib/types';
+import {HaikuBytecode, 
+  BytecodeTimeline, 
+  BytecodeTimelineValue, 
+  BytecodeTimelineProperties,
+  BytecodeTimelines,
+} from '@haiku/core/lib/api/HaikuBytecode';
 import * as tape from 'tape';
 
 import {BodymovinExporter} from '../../lib/exporters/bodymovin/bodymovinExporter';
@@ -892,7 +897,7 @@ tape('BodymovinExporter', (test: tape.Test) => {
     bytecode.timelines.Default['haiku:svg'].opacity = {
       0: {
         value: Haiku.inject(
-          function(two, Math, $user, $basicMagic, $deepMagic) {
+          (two, Math, $user, $basicMagic, $deepMagic) => {
             return .12 * two + $user.mouse.x / 100 + $basicMagic - $deepMagic.arbitrarily.nested.magic + Math.sqrt(0);
           },
           'two',

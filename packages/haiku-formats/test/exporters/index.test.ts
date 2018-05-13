@@ -1,6 +1,12 @@
 import * as tape from 'tape';
 
-import {HaikuBytecode} from 'haiku-common/lib/types';
+import {HaikuBytecode, 
+  BytecodeTimeline, 
+  BytecodeTimelineValue, 
+  BytecodeTimelineProperties,
+  BytecodeTimelines,
+} from '@haiku/core/lib/api/HaikuBytecode';
+
 import {ExporterFormat, ExporterRequest} from 'haiku-sdk-creator/lib/exporter';
 import {importStubs, stubProperties} from 'haiku-testing/lib/mock';
 
@@ -19,7 +25,8 @@ tape('handleExporterSaveRequest', (test: tape.Test) => {
 
     exporterStub.returns({binaryOutput: () => 'hello'});
 
-    const bytecode: HaikuBytecode = {foo: 'bar'};
+    // TODO: fix bytecode type
+    const bytecode: any = {foo: 'bar'};
     handleExporterSaveRequest(request, bytecode)
       .then((binaryOutput) => {
         test.equal(binaryOutput, 'hello');
@@ -42,7 +49,8 @@ tape('handleExporterSaveRequest', (test: tape.Test) => {
 
     binaryOutputStub.throws();
 
-    handleExporterSaveRequest(request, {})
+    // TODO: fix bytecode type
+    handleExporterSaveRequest(request, {} as any)
       .then((binaryOutput) => {
         test.equal(binaryOutput, JSON.stringify({}), 'uses failsafe output from exporter');
         unstub();
@@ -56,7 +64,8 @@ tape('handleExporterSaveRequest', (test: tape.Test) => {
       filename: undefined,
     };
 
-    handleExporterSaveRequest(request, {})
+    // TODO: fix bytecode type
+    handleExporterSaveRequest(request, {} as any)
       .then((binaryOutput) => {
         test.equal(binaryOutput, '', 'uses generic failsafe output of empty string');
         test.end();
