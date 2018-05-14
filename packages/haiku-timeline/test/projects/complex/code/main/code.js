@@ -33,7 +33,9 @@ module.exports = {
           "100": {
             value: [{ x: 0.5, y: 0.5, moveTo: true }, { x: 71.5, y: 58.5 }]
           }
-        }
+        },
+
+        playback: { "0": { value: "repeating" } },
       },
 
       "haiku:f203a65f49c0": {

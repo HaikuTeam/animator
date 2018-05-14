@@ -595,23 +595,22 @@ class ActiveComponent extends BaseModel {
     })
 
     if (this.isPreviewModeActive()) {
+      const timeline = this.$instance.getTimeline(this.getCurrentTimelineName())
+      timeline.gotoAndPlay(0)
+      timeline.setRepeat(true)
       this.$instance.visitGuestHierarchy((instance) => {
-        const timeline = instance.getTimeline(this.getCurrentTimelineName())
-        timeline.unfreeze()
-        timeline.gotoAndPlay(0)
-        timeline.options.loop = true
+        instance.getTimeline(this.getCurrentTimelineName()).unfreeze()
       })
     } else {
-      const entity = this.getCurrentTimeline()
+      const timeline = this.$instance.getTimeline(this.getCurrentTimelineName())
+      timeline.setRepeat(false)
+      const entity = this.getCurrentTimeline() // May be called before being hydrated
+      if (entity) {
+        entity.seek(entity.getCurrentFrame())
+        timeline.seek(entity.getCurrentMs())
+      }
       this.$instance.visitGuestHierarchy((instance) => {
-        const timeline = instance.getTimeline(this.getCurrentTimelineName())
-        // If called before hydrated, the entity object may not exist
-        if (entity) {
-          entity.seek(entity.getCurrentFrame())
-          timeline.seek(entity.getCurrentMs())
-        }
-        timeline.freeze()
-        timeline.options.loop = false
+        instance.getTimeline(this.getCurrentTimelineName()).freeze()
       })
     }
 

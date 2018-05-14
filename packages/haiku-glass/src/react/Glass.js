@@ -785,6 +785,7 @@ export class Glass extends React.Component {
         y: translation.y + size.y / 2  // assume center origin
       },
       {
+        'playback': 'repeating',
         'sizeMode.x': 1,
         'sizeMode.y': 1,
         'sizeMode.z': 1,
@@ -1360,33 +1361,41 @@ export class Glass extends React.Component {
     if (!this.getActiveComponent()) return
     const delta = keyEvent.shiftKey ? 5 : 1
     const proxy = this.fetchProxyElementForSelection()
-    proxy.move(-delta, 0)
+    if (proxy.hasAnythingInSelection()) {
+      proxy.move(-delta, 0)
+    }
   }
 
   handleKeyUpArrow (keyEvent) {
     if (!this.getActiveComponent()) return
     const delta = keyEvent.shiftKey ? 5 : 1
     const proxy = this.fetchProxyElementForSelection()
-    proxy.move(0, -delta)
+    if (proxy.hasAnythingInSelection()) {
+      proxy.move(0, -delta)
+    }
   }
 
   handleKeyRightArrow (keyEvent) {
     if (!this.getActiveComponent()) return
     const delta = keyEvent.shiftKey ? 5 : 1
     const proxy = this.fetchProxyElementForSelection()
-    proxy.move(delta, 0)
+    if (proxy.hasAnythingInSelection()) {
+      proxy.move(delta, 0)
+    }
   }
 
   handleKeyDownArrow (keyEvent) {
     if (!this.getActiveComponent()) return
     const delta = keyEvent.shiftKey ? 5 : 1
     const proxy = this.fetchProxyElementForSelection()
-    proxy.move(0, delta)
+    if (proxy.hasAnythingInSelection()) {
+      proxy.move(0, delta)
+    }
   }
 
   handleKeyDown (keyEvent) {
     if (this.state.isEventHandlerEditorOpen) {
-      return void (0)
+      return
     }
 
     // Cmd + 0 centers & resets zoom

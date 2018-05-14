@@ -4,6 +4,9 @@
 
 import cssMatchOne from './../../helpers/cssMatchOne';
 import has from './has';
+import HaikuContext from './../../HaikuContext';
+import HaikuComponent from './../../HaikuComponent';
+import HaikuTimeline from './../../HaikuTimeline';
 
 /**
  * 'Vanities' are functions that provide special handling for applied properties.
@@ -793,13 +796,102 @@ function selectSurrogate(surrogates: any, value: any): any {
   return querySelectSurrogates(surrogates, value + '');
 }
 
+const getCanonicalPlaybackValue = (value) => {
+  if (typeof value !== 'object') {
+    return {
+      Default: value,
+    };
+  }
+
+  return value;
+};
+
+const applyPlaybackStatus = (
+  status,
+  receivingTimeline,
+  receivingComponent,
+  sendingTimeline,
+  sendingComponent,
+) => {
+  // Start by unsetting the repeat value, which we'll re-set only if our value becomes 'looping'
+  receivingTimeline.setRepeat(false);
+
+  let val = status;
+
+  if (val === null || val === undefined || val === true) {
+    val = 'repeating';
+  }
+
+  const shouldRepeat = (
+    val === 'repeating' ||
+    val === 'repeat' ||
+    val === 'looping' ||
+    val === 'loop'
+  );
+
+  const shouldPlay = (
+    val === 'playing' ||
+    val === 'play'
+  );
+
+  if (shouldRepeat) {
+    receivingTimeline.setRepeat(true);
+  }
+
+  // If the sending timeline is frozen, don't inadvertently unfreeze its component's guests
+  if (!sendingTimeline.isFrozen()) {
+    if (shouldPlay || shouldRepeat) {
+      if (!receivingTimeline._isPlaying) {
+        receivingTimeline.play();
+      } else {
+        receivingTimeline.playSoftly();
+      }
+    }
+  }
+
+  // TODO
+  // if (typeof val === 'number') {
+  //   receivingTimeline.seek(val);
+  // }
+};
+
+const PLAYBACK_VANITIES = {
+  playback: (
+    name,
+    element,
+    value: any,
+    context: HaikuContext,
+    timeline: HaikuTimeline,
+    receiver: HaikuComponent,
+    sender: HaikuComponent,
+  ) => {
+    const canonicalValue = getCanonicalPlaybackValue(value);
+
+    for (const timelineName in canonicalValue) {
+      const timelineInstance = receiver.getTimeline(timelineName);
+
+      if (timelineInstance) {
+        applyPlaybackStatus(
+          canonicalValue[timelineName],
+          timelineInstance,
+          receiver,
+          timeline,
+          sender,
+        );
+      }
+    }
+  },
+};
+
 const CONTROL_FLOW_VANITIES = {
   'controlFlow.placeholder': (
     name,
     element,
     value,
     context,
-    component,
+    timeline,
+    receiver,
+    sender,
   ) => {
     if (value === null || value === undefined) {
       return;
@@ -847,15 +939,17 @@ const CONTROL_FLOW_VANITIES = {
         surrogate,
         value,
         context,
-        component,
+        timeline,
+        receiver,
+        sender,
       );
     } else {
-      controlFlowPlaceholderImpl(element, surrogate, component);
+      controlFlowPlaceholderImpl(element, surrogate, receiver);
     }
   },
 };
 
-function controlFlowPlaceholderImpl(element, surrogate, component) {
+function controlFlowPlaceholderImpl(element, surrogate, receiver) {
   if (element.__surrogate !== surrogate) {
     element.elementName = surrogate.elementName;
     element.children = surrogate.children || [];
@@ -1011,6 +1105,7 @@ export default {
     HTML_STYLE_SHORTHAND_VANITIES,
     CONTENT_VANITIES,
     TEXT_CONTENT_VANITIES,
+    PLAYBACK_VANITIES,
     CONTROL_FLOW_VANITIES,
     LAYOUT_3D_VANITIES,
     STYLE_VANITIES,

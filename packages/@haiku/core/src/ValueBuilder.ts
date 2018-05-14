@@ -234,7 +234,6 @@ INJECTABLES['$core'] = {
         out.options = {};
       }
       out.options.seed = options.seed;
-      out.options.loop = options.loop;
       out.options.sizing = options.sizing;
       out.options.preserve3d = options.preserve3d;
       out.options.position = options.position;

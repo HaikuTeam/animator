@@ -222,10 +222,15 @@ Property.EXCLUDE_FROM_JIT_IF_ROOT_ELEMENT = {
   'origin.y': true
 }
 
+Property.INCLUDE_IFF_COMPONENT = {
+  'playback': true
+}
+
 Property.BUILTIN_DOM_SCHEMAS = {
   div: {
     'sizeAbsolute.x': 'number',
     'sizeAbsolute.y': 'number',
+    'playback': 'any',
     'controlFlow.placeholder': 'any',
     opacity: 'number',
     'translation.x': 'number',
@@ -417,6 +422,7 @@ Property.BUILTIN_DOM_SCHEMAS = {
 }
 
 Property.EXCLUDE_FROM_ADDRESSABLES_IF_ROOT_ELEMENT = {
+  'playback': true,
   'content': true,
   'shown': true,
   'translation.x': true,
@@ -455,6 +461,9 @@ Property.shouldBasicallyIncludeProperty = (propertyName, propertyObject, element
     // Assume that we display everything for components
     return true
   } else if (Property.EXCLUDE_FROM_ADDRESSABLES_IF_CHILD_ELEMENT[propertyName]) {
+    return false
+  } else if (Property.INCLUDE_IFF_COMPONENT[propertyName]) {
+    // Don't display any properties that are only for components
     return false
   }
 

@@ -70,6 +70,7 @@ export default class HaikuComponent extends HaikuElement {
   doesNeedFullFlush;
   guests;
   host;
+  playback;
   PLAYER_VERSION;
   registeredEventHandlers;
   state;
@@ -908,6 +909,7 @@ export default class HaikuComponent extends HaikuElement {
                 behaviorKey,
                 behaviorValue,
                 this.context,
+                timelineInstance,
                 this,
               );
             }
@@ -923,22 +925,6 @@ export default class HaikuComponent extends HaikuElement {
       this._flatManaTree,
       this._matchedElementCache,
     );
-  }
-
-  controlTime (timelineName: string, timelineTime: number) {
-    const explicitTime = this.context.clock.getExplicitTime();
-    const timelineInstances = this.getTimelines();
-
-    for (const localTimelineName in timelineInstances) {
-      if (localTimelineName === timelineName) {
-        const timelineInstance = timelineInstances[timelineName];
-        timelineInstance.controlTime(timelineTime, explicitTime);
-      }
-    }
-
-    for (const $id in this.guests) {
-      this.guests[$id].controlTime(timelineName, timelineTime);
-    }
   }
 
   _hydrateMutableTimelines() {
@@ -994,6 +980,22 @@ export default class HaikuComponent extends HaikuElement {
         },
       },
     };
+  }
+
+  controlTime(timelineName: string, timelineTime: number) {
+    const explicitTime = this.context.clock.getExplicitTime();
+    const timelineInstances = this.getTimelines();
+
+    for (const localTimelineName in timelineInstances) {
+      if (localTimelineName === timelineName) {
+        const timelineInstance = timelineInstances[timelineName];
+        timelineInstance.controlTime(timelineTime, explicitTime);
+      }
+    }
+
+    for (const $id in this.guests) {
+      this.guests[$id].controlTime(timelineName, timelineTime);
+    }
   }
 }
 
@@ -1229,21 +1231,23 @@ function applyPropertyToNode(
   name,
   value,
   context,
-  component,
+  timeline: HaikuTimeline,
+  component: HaikuComponent,
 ) {
-  const instance = node.__subcomponent || node.__instance;
-  const type = (instance && instance.tagName) || node.elementName;
+  const sender = (node.__instance) ? node.__instance : component; // Who sent the command
+  const receiver = node.__subcomponent || node.__receiver;
+  const type = (receiver && receiver.tagName) || node.elementName;
   const vanity = vanities[type] && vanities[type][name];
-  const addressables = instance && instance.getAddressableProperties();
-  const addressee = addressables && addressables[name] !== undefined && instance;
+  const addressables = receiver && receiver.getAddressableProperties();
+  const addressee = addressables && addressables[name] !== undefined && receiver;
 
   if (addressee && vanity) {
     addressee.set(name, value);
-    vanity(name, node, value, context, component);
+    vanity(name, node, value, context, timeline, receiver, sender);
   } else if (addressee) {
     addressee.set(name, value);
   } else if (vanity) {
-    vanity(name, node, value, context, component);
+    vanity(name, node, value, context, timeline, receiver, sender);
   } else {
     node.attributes[name] = value;
   }

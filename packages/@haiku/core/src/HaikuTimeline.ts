@@ -77,7 +77,7 @@ export default class HaikuTimeline extends HaikuBase {
     } else {
       // If we are a looping timeline, reset to zero once we've gone past our max
       if (
-        this.options.loop &&
+        this.isLooping() &&
         this._localElapsedTime > this._maxExplicitlyDefinedTime
       ) {
         this._localElapsedTime =
@@ -254,7 +254,7 @@ export default class HaikuTimeline extends HaikuBase {
    * If this timeline is set to loop, it is never "finished".
    */
   isFinished() {
-    if (this.options.loop || this.isTimeControlled()) {
+    if (this.isLooping() || this.isTimeControlled()) {
       return false;
     }
     return ~~this.getElapsedTime() > this.getMaxTime();
@@ -276,8 +276,16 @@ export default class HaikuTimeline extends HaikuBase {
     this.options.loop = bool;
   }
 
-  getRepeat() {
+  getRepeat(): boolean {
     return !!this.options.loop;
+  }
+
+  isRepeating(): boolean {
+    return this.getRepeat();
+  }
+
+  isLooping(): boolean {
+    return this.isRepeating();
   }
 
   freeze() {
@@ -292,36 +300,62 @@ export default class HaikuTimeline extends HaikuBase {
     maybeGlobalClockTime,
     descriptor,
   ) {
+    this.startSoftly(maybeGlobalClockTime, descriptor);
+    this.emit('start');
+  }
+
+  startSoftly(
+    maybeGlobalClockTime,
+    descriptor,
+  ) {
     this._localElapsedTime = 0;
     this._isPlaying = true;
     this._globalClockTime = maybeGlobalClockTime || 0;
     this._maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
-    this.emit('start');
   }
 
   stop(maybeGlobalClockTime, descriptor) {
-    this._isPlaying = false;
-    this._maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
+    this.stopSoftly(maybeGlobalClockTime, descriptor);
     this.emit('stop');
   }
 
+  stopSoftly(
+    maybeGlobalClockTime,
+    descriptor,
+  ) {
+    this._isPlaying = false;
+    this._maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
+  }
+
   pause() {
-    const time = this.component.getClock().getTime();
-    const descriptor = this.component.getTimelineDescriptor(this.name);
-    this.stop(time, descriptor);
+    this.pauseSoftly();
     this.emit('pause');
   }
 
-  play(requestedOptions) {
-    const options = requestedOptions || {};
+  pauseSoftly() {
+    const time = this.component.getClock().getTime();
+    const descriptor = this.component.getTimelineDescriptor(this.name);
+    this.stopSoftly(time, descriptor);
+  }
 
+  play(options: any = {}) {
+    this.playSoftly();
+
+    if (!options || !options.skipMarkForFullFlush) {
+      this.component.markForFullFlush();
+    }
+
+    this.emit('play');
+  }
+
+  playSoftly() {
     this.ensureClockIsRunning();
 
     const time = this.component.getClock().getTime();
     const descriptor = this.component.getTimelineDescriptor(this.name);
     const local = this._localElapsedTime;
 
-    this.start(time, descriptor);
+    this.startSoftly(time, descriptor);
 
     if (this._localExplicitlySetTime !== null) {
       this._localElapsedTime = this._localExplicitlySetTime;
@@ -329,33 +363,31 @@ export default class HaikuTimeline extends HaikuBase {
     } else {
       this._localElapsedTime = local;
     }
-
-    if (!options.skipMarkForFullFlush) {
-      this.component.markForFullFlush();
-    }
-
-    this.emit('play');
   }
 
-  seek(ms) {
-    this.ensureClockIsRunning();
-    const clockTime = this.component.getClock().getTime();
-    this.controlTime(ms, clockTime);
-    const descriptor = this.component.getTimelineDescriptor(this.name);
-    this.start(clockTime, descriptor);
+  seek(ms: number) {
+    this.seekSoftly(ms);
     this.component.markForFullFlush();
     this.emit('seek', ms);
   }
 
-  gotoAndPlay(ms) {
+  seekSoftly(ms: number) {
     this.ensureClockIsRunning();
-    this.seek(ms);
+    const clockTime = this.component.getClock().getTime();
+    this.controlTime(ms, clockTime);
+    const descriptor = this.component.getTimelineDescriptor(this.name);
+    this.startSoftly(clockTime, descriptor);
+  }
+
+  gotoAndPlay(ms: number) {
+    this.ensureClockIsRunning();
+    this.seekSoftly(ms);
     this.play(null);
   }
 
-  gotoAndStop(ms) {
+  gotoAndStop(ms: number) {
     this.ensureClockIsRunning();
-    this.seek(ms);
+    this.seekSoftly(ms);
     if (this.component && this.component.context && this.component.context.tick) {
       this.component.context.tick();
     }
