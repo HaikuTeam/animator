@@ -778,14 +778,18 @@ export class Glass extends React.Component {
     this.getActiveComponent().conglomerateComponent(
       proxy.selection.map((element) => element.getComponentId()),
       title,
+      size,
+      translation,
+      { // coords
+        x: translation.x + size.x / 2, // assume center origin
+        y: translation.y + size.y / 2  // assume center origin
+      },
       {
-        'translation.x': translation.x,
-        'translation.y': translation.y,
-        'sizeAbsolute.x': size.x,
-        'sizeAbsolute.y': size.y,
         'sizeMode.x': 1,
         'sizeMode.y': 1,
-        'sizeMode.z': 1
+        'sizeMode.z': 1,
+        'origin.x': 0.5,
+        'origin.y': 0.5
       },
       {from: 'glass'},
       (err) => {

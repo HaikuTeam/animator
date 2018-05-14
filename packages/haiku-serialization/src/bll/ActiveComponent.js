@@ -25,6 +25,8 @@ const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source'
 const SELECTION_WAIT_TIME = 0
 const SELECTION_PING_TIME = 100
 
+const isNumeric = (n) => !isNaN(parseFloat(n)) && isFinite(n)
+
 const describeHotComponent = (componentId, timelineName, timelineTime, propertyGroup) => {
   // If our keyframe is not at t = 0, we don't actually need a hot component because we are definitely working with
   // a "mutable"-looking component. We have to cast a number because we sometimes arrive at this
@@ -992,6 +994,9 @@ class ActiveComponent extends BaseModel {
   conglomerateComponent (
     componentIds,
     name,
+    size,
+    translation,
+    coords,
     propertiesSerial,
     metadata,
     cb
@@ -1006,6 +1011,9 @@ class ActiveComponent extends BaseModel {
         this.getRelpath(),
         componentIds,
         name,
+        size,
+        translation,
+        coords,
         Bytecode.serializeValue(properties),
         metadata,
         (fire) => {
@@ -1032,6 +1040,9 @@ class ActiveComponent extends BaseModel {
           return this.conglomerateComponentActual(
             componentIds,
             name,
+            size,
+            translation,
+            coords,
             properties,
             metadata,
             finish
@@ -1044,6 +1055,9 @@ class ActiveComponent extends BaseModel {
   conglomerateComponentActual (
     ids,
     name,
+    size,
+    translation,
+    coords,
     properties,
     metadata,
     cb
@@ -1054,12 +1068,16 @@ class ActiveComponent extends BaseModel {
 
         // Give the new component the passed-in properties, which includes its size
         const newBytecode = newActiveComponent.getReifiedBytecode()
+
         newActiveComponent.upsertProperties(
           newBytecode,
           newBytecode.template.attributes[HAIKU_ID_ATTRIBUTE],
           newActiveComponent.getInstantiationTimelineName(),
           newActiveComponent.getInstantiationTimelineTime(),
-          properties,
+          lodash.assign({
+            'sizeAbsolute.x': size.x,
+            'sizeAbsolute.y': size.y
+          }),
           'merge'
         )
 
@@ -1072,6 +1090,50 @@ class ActiveComponent extends BaseModel {
             // We have to do this before deleting the original element or we won't
             // be able to find the node in the current host template
             const elementBytecode = element.getQualifiedBytecode()
+
+            // The size of the group selection is used to determine the size of the artboard
+            // of the new component, which means we also have to offset the translations of all
+            // children in accordance with their offset within their original artboard
+            const elementOffset = {
+              'translation.x': translation.x,
+              'translation.y': translation.y
+            }
+
+            const timelineName = this.getCurrentTimelineName()
+
+            const selector = Template.buildHaikuIdSelector(elementBytecode.template.attributes[HAIKU_ID_ATTRIBUTE])
+
+            if (!elementBytecode.timelines[timelineName][selector]) {
+              elementBytecode.timelines[timelineName][selector] = {}
+            }
+
+            for (const propertyName in elementOffset) {
+              const offsetValue = elementOffset[propertyName]
+
+              if (!elementBytecode.timelines[timelineName][selector][propertyName]) {
+                elementBytecode.timelines[timelineName][selector][propertyName] = {}
+              }
+
+              if (!elementBytecode.timelines[timelineName][selector][propertyName][0]) {
+                elementBytecode.timelines[timelineName][selector][propertyName][0] = {}
+              }
+
+              for (const keyframeMs in elementBytecode.timelines[timelineName][selector][propertyName]) {
+                const existingValue = elementBytecode.timelines[timelineName][selector][propertyName][keyframeMs].value || 0
+
+                if (typeof existingValue === 'function') {
+                  continue
+                }
+
+                const updatedValue = (isNumeric(existingValue))
+                  ? existingValue - offsetValue
+                  : offsetValue
+
+                elementBytecode.timelines[timelineName][selector][propertyName][keyframeMs] = {
+                  value: updatedValue
+                }
+              }
+            }
 
             // Insert an identical element into the newly created component
             newActiveComponent.instantiateBytecode(elementBytecode)
@@ -1094,8 +1156,8 @@ class ActiveComponent extends BaseModel {
           newActiveComponent, // subcomponent
           identifier,
           relpath,
-          {}, // coords
-          {'origin.x': 0.5, 'origin.y': 0.5}, // properties
+          coords, // "coords"/"maybeCoords"
+          properties, // properties
           metadata,
           done
         )

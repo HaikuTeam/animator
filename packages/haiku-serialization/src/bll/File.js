@@ -115,14 +115,18 @@ class File extends BaseModel {
     return cb()
   }
 
+  getCode () {
+    const bytecode = this.mod.fetchInMemoryExport()
+    return this.ast.updateWithBytecodeAndReturnCode(bytecode)
+  }
+
   flushContent () {
     // We're about to flush content for all requests received up to this point
     // If more occur during async, that's fine; we'll just get called again,
     // but those who need to wait can read the list to know what's still pending
     this._pendingContentFlushes.splice(0)
 
-    const bytecode = this.mod.fetchInMemoryExport()
-    const incoming = this.ast.updateWithBytecodeAndReturnCode(bytecode)
+    const incoming = this.getCode()
 
     this.assertContents(incoming)
 
