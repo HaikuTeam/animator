@@ -402,6 +402,28 @@ class ElementSelectionProxy extends BaseModel {
     }
   }
 
+  getConglomerateTranslation () {
+    const points = this.getBoundingBoxPoints()
+    return points[0]
+  }
+
+  getConglomerateSize () {
+    const points = this.getBoundingBoxPoints()
+    return {
+      x: points[2].x - points[0].x,
+      y: points[6].y - points[0].y
+    }
+  }
+
+  getBoundingBoxPoints () {
+    return Element.getBoundingBoxPoints(
+      this.selection.map((element) => element.getBoxPointsTransformed()).reduce((accumulator, boxPoints) => {
+        accumulator.push(...boxPoints)
+        return accumulator
+      }, [])
+    )
+  }
+
   getOriginTransformed () {
     return this.cacheFetch('getOriginTransformed', () => {
       // If managing only one element, use its own box points

@@ -776,10 +776,7 @@ export class Glass extends React.Component {
   }
 
   conglomerateComponentFromSelectedElementsWithTitle (title) {
-    const elements = Element.where({
-      _isSelected: true,
-      component: this.getActiveComponent()
-    })
+    const proxy = this.fetchProxyElementForSelection()
 
     // Our selection becomes invalid as soon as we call this since we're changing
     // the elements that are currently on stage (including our current selection)
@@ -791,16 +788,17 @@ export class Glass extends React.Component {
       title
     })
 
+    const translation = proxy.getConglomerateTranslation()
+    const size = proxy.getConglomerateSize()
+
     this.getActiveComponent().conglomerateComponent(
-      elements.map((element) => element.getComponentId()),
+      proxy.selection.map((element) => element.getComponentId()),
       title,
       {
-        'translation.x': 0,
-        'translation.y': 0,
-        // TODO: For now make the component the same size as the artboard so
-        // we don't have to worry about offsets or bounding box sizing
-        'sizeAbsolute.x': this.getActiveComponent().getArtboard().getMountWidth(),
-        'sizeAbsolute.y': this.getActiveComponent().getArtboard().getMountHeight(),
+        'translation.x': translation.x,
+        'translation.y': translation.y,
+        'sizeAbsolute.x': size.x,
+        'sizeAbsolute.y': size.y,
         'sizeMode.x': 1,
         'sizeMode.y': 1,
         'sizeMode.z': 1
