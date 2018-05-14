@@ -82,6 +82,7 @@ const STYLES = {
     fontSize: 18,
     padding: '27px',
     color: Palette.ROCK,
+    fontFamily: 'inherit',
     ':focus': {
       border: '1px solid ' + Palette.DARK_GRAY
     }

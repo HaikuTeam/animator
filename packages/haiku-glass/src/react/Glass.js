@@ -65,8 +65,6 @@ const BIG_NUMBER = 99999
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source'
 
-const OUTLINE_CLONE_SUFFIX = 'outline-clone-helper'
-
 function isNumeric (n) {
   return !isNaN(parseFloat(n)) && isFinite(n)
 }
@@ -263,13 +261,6 @@ export class Glass extends React.Component {
         case 'dimensions-reset':
           this.handleDimensionsReset()
           break
-        case 'hoverElement':
-          this.hoverHighlight(args[1])
-          break
-        case 'unhoverElement':
-        case 'selectElement':
-          this.unhoverHighlight(args[1])
-          break
       }
     })
 
@@ -282,13 +273,6 @@ export class Glass extends React.Component {
           break
         case 'setInteractionMode':
           this.handleInteractionModeChange()
-          break
-        case 'hoverElement':
-          this.hoverHighlight(args[1])
-          break
-        case 'unhoverElement':
-        case 'selectElement':
-          this.unhoverHighlight(args[1])
           break
       }
     })
@@ -883,32 +867,6 @@ export class Glass extends React.Component {
     }
 
     this.getActiveComponent().getArtboard().performPan(dx, dy)
-  }
-
-  hoverHighlight (haikuId) {
-    if (experimentIsEnabled(Experiment.OutliningElementsOnStage) && !this.isPreviewMode() && !this.isMarqueeActive()) {
-      const element = Element.find({componentId: haikuId})
-
-      if (!element.isSelected() && !this.state.isMouseDragging) {
-        const $domElement = document.querySelector(`[haiku-id='${haikuId}']`)
-        const $duplicate = $domElement.cloneNode()
-        $duplicate.style.outline = `1px solid ${Palette.LIGHT_PINK}`
-        $duplicate.style.zIndex = '999999999'
-        $duplicate.style.pointerEvents = 'none'
-        $duplicate.setAttribute('haiku-id', `${haikuId}-${OUTLINE_CLONE_SUFFIX}`)
-        this.refs.outline.appendChild($duplicate)
-      }
-    }
-  }
-
-  unhoverHighlight (haikuId) {
-    if (experimentIsEnabled(Experiment.OutliningElementsOnStage) && !this.isPreviewMode() && !this.isMarqueeActive()) {
-      const $domElement = document.querySelector(`[haiku-id='${haikuId}-${OUTLINE_CLONE_SUFFIX}']`)
-
-      if ($domElement) {
-        $domElement.remove()
-      }
-    }
   }
 
   findElementAssociatedToMouseEvent (mouseEvent) {
@@ -1752,6 +1710,7 @@ export class Glass extends React.Component {
     }
 
     this.renderSelectionMarquee(overlays)
+    this.renderOutline(overlays)
     return overlays
   }
 
@@ -1759,6 +1718,34 @@ export class Glass extends React.Component {
     const selection = Element.where({ component: this.getActiveComponent(), _isSelected: true })
     const proxy = ElementSelectionProxy.fromSelection(selection, { component: this.getActiveComponent() })
     return proxy
+  }
+
+  renderOutline (overlays) {
+    if (
+      !experimentIsEnabled(Experiment.OutliningElementsOnStage) ||
+      this.isPreviewMode() ||
+      this.isMarqueeActive()
+    ) {
+      return
+    }
+
+    const activeComponent = this.getActiveComponent()
+    if (activeComponent) {
+      const hoveredElement = Element.findHoveredElement(activeComponent)
+
+      if (hoveredElement && !hoveredElement.isSelected()) {
+        const points = hoveredElement.getBoxPointsTransformed()
+        overlays.push(
+          boxMana(
+            [points[0], points[2], points[8], points[6]].map(point => [
+              point.x,
+              point.y
+            ]),
+            Palette.LIGHT_PINK
+          )
+        )
+      }
+    }
   }
 
   renderSelectionMarquee (overlays) {

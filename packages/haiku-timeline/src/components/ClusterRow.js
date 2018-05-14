@@ -1,5 +1,4 @@
 import React from 'react'
-import lodash from 'lodash'
 import Palette from 'haiku-ui-common/lib/Palette'
 import truncate from 'haiku-ui-common/lib/helpers/truncate'
 import RightCarrotSVG from 'haiku-ui-common/lib/react/icons/RightCarrotSVG'
@@ -11,21 +10,6 @@ import Globals from 'haiku-ui-common/lib/Globals'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
 
 export default class ClusterRow extends React.Component {
-  constructor (props) {
-    super(props)
-
-    this.throttledHandleRowHovered = lodash.throttle(this.handleRowHovered, 20).bind(this)
-    this.throttledHandleRowUnhovered = lodash.throttle(this.handleRowUnhovered, 20).bind(this)
-  }
-
-  handleRowHovered (event) {
-    this.props.row.hoverAndUnhoverOthers({ from: 'timeline' })
-  }
-
-  handleRowUnhovered (event) {
-    this.props.row.unhover({ from: 'timeline' })
-  }
-
   maybeRenderFamilySvg () {
     if (!this.props.prev) return false
     if (this.props.row.doesTargetHostElement()) return false
@@ -67,8 +51,6 @@ export default class ClusterRow extends React.Component {
         }}
         id={`property-cluster-row-${this.props.row.getAddress()}-${componentId}-${clusterName}`}
         className='property-cluster-row'
-        onMouseEnter={this.throttledHandleRowHovered}
-        onMouseLeave={this.throttledHandleRowUnhovered}
         onClick={() => {
           this.props.row.expandAndSelect({ from: 'timeline' })
         }}
