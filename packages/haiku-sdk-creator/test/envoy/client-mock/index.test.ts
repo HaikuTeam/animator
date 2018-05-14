@@ -6,7 +6,7 @@ import EnvoyClient from '../../../lib/envoy/EnvoyClient';
 tape('envoy:client-mock', async (t) => {
   t.plan(4);
 
-  let client = new EnvoyClient({
+  let client: any = new EnvoyClient({
     mock: true, // This should specify that no connection should begin
     WebSocket: ws,
     logger: new EnvoyLogger('error'),

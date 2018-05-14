@@ -14,7 +14,7 @@ tape('envoy:index:basic', async (t) => {
     }
   }
 
-  let server = new EnvoyServer({logger: new EnvoyLogger('error')});
+  let server: any = new EnvoyServer({logger: new EnvoyLogger('error')});
   server = await server.ready();
   server.bindHandler('foo', TestHandler, new TestHandler());
 
@@ -39,7 +39,7 @@ tape('envoy:index:schema', async (t) => {
     }
   }
 
-  let server = new EnvoyServer({logger: new EnvoyLogger('info')});
+  let server: any = new EnvoyServer({logger: new EnvoyLogger('info')});
   server = await server.ready();
   server.bindHandler('foo', TestHandler, new TestHandler());
 
@@ -77,7 +77,7 @@ tape('envoy:index:events', async (t) => {
     }
   }
 
-  let server = new EnvoyServer({logger: new EnvoyLogger('error')});
+  let server: any = new EnvoyServer({logger: new EnvoyLogger('error')});
   server = await server.ready();
   server.bindHandler('foo-event', TestEventHandler, new TestEventHandler(server));
 
