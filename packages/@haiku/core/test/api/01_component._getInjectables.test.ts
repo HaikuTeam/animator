@@ -37,10 +37,10 @@ tape('component.getInjectables', (t) => {
 
   createDOM((err, win) => {
     // Combo passing options at root and nested
-    const HaikuComponentFactory = HaikuDOMAdapter(bytecode, {}, win);
+    const haikuComponentFactory = HaikuDOMAdapter(bytecode, {}, win);
 
     // Pass loop at root level
-    const component = HaikuComponentFactory(this.mount, {
+    const component = haikuComponentFactory(this.mount, {
       states: {
         bux: {
           value: 9000,

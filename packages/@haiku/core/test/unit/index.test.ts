@@ -1,5 +1,6 @@
 import * as tape from 'tape';
-const TestHelpers = require('./../TestHelpers');
+import * as TestHelpers from './../TestHelpers';
+
 tape('index', (t) => {
   t.plan(1);
   const bytecode = {
@@ -20,7 +21,7 @@ tape('index', (t) => {
       children: [],
     },
   };
-  TestHelpers.createComponent(bytecode, {}, function (core, teardown) {
+  TestHelpers.createComponent(bytecode, {}, (core, teardown) => {
     teardown();
     t.ok(true);
   });

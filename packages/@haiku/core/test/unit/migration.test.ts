@@ -1,6 +1,6 @@
 const tape = require('tape');
 const VERSION = require('../../package.json').version;
-const TestHelpers = require('../TestHelpers');
+import * as TestHelpers from './../TestHelpers';
 
 tape('upgradeBytecodeInPlace', (t) => {
   tape('legacyOriginSupport', (t) => {

@@ -1,15 +1,17 @@
 const jsdom = require('jsdom');
 const async = require('async');
-const Config = require('../lib/Config').default;
-const HaikuDOMAdapter = require('../lib/adapters/dom').default;
-const HaikuDOMRenderer = require('../lib/renderers/dom').default;
-const HaikuContext = require('../lib/HaikuContext').default;
-const HaikuGlobal = require('../lib/HaikuGlobal').default;
-const ts = require('typescript');
-const fs = require('fs');
-const path = require('path');
+import Config from '../lib/Config';
+// tslint:disable-next-line:variable-name
+const HaikuDOMAdapter = require('./../lib/adapters/dom').default;
+// tslint:disable-next-line:variable-name
+const HaikuDOMRenderer = require('./../lib/renderers/dom').default;
+import HaikuContext from '../lib/HaikuContext';
+import HaikuGlobal from '../lib/HaikuGlobal';
+import * as ts from 'typescript';
+import * as fs from 'fs';
+import * as path from 'path';
 
-// Tell typescript we have these types on Window
+// Tell typescript we have these types on Global
 interface Global {
   window: any;
   document: any;
@@ -62,7 +64,7 @@ const createRenderTest = (template, timelines, baseConfig, cb) => {
     const component = context.component;
     const tree = component.render(context.config);
 
-    renderer.render(context.container, tree, component, false);
+    renderer.render(context.container, tree, component);
 
     function teardown() {
       component.context.clock.GLOBAL_ANIMATION_HARNESS.cancel();
@@ -126,13 +128,13 @@ function compileStringToTypescript(contents, libSource, compilerOptions) {
     // Generated outputs
   const outputs = [];
     // Create a compilerHost object to allow the compiler to read and write files
-  const compilerHost = {
+  const compilerHost: any = {
     getSourceFile (filename, languageVersion) {
       if (filename === 'file.ts') {
-        return ts.createSourceFile(filename, contents, compilerOptions.target, '0');
+        return ts.createSourceFile(filename, contents, compilerOptions.target, false);
       }
       if (filename === 'lib.d.ts') {
-        return ts.createSourceFile(filename, libSource, compilerOptions.target, '0');
+        return ts.createSourceFile(filename, libSource, compilerOptions.target, false);
       }
       return undefined;
     },

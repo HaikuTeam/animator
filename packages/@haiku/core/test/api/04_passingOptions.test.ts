@@ -1,8 +1,9 @@
 import * as tape from 'tape';
 const PACKAGE = require('./../../package.json');
-const TestHelpers = require('./../TestHelpers');
+import * as TestHelpers from './../TestHelpers';
+// tslint:disable-next-line:variable-name
 const HaikuDOMAdapter = require('./../../lib/adapters/dom').default;
-const Config = require('./../../lib/Config').default;
+import Config from './../../lib/Config';
 tape('passingOptions', (t) => {
   t.plan(6);
 
@@ -29,7 +30,8 @@ tape('passingOptions', (t) => {
     },
   };
 
-  TestHelpers.createDOM( (err, win, b, HaikuGlobal) => {
+  // tslint:disable-next-line:variable-name
+  TestHelpers.createDOM((err, win, b, HaikuGlobal) => {
     // Combo passing options at root and nested
     const haikuComponentFactory = HaikuDOMAdapter(bytecode, {
       position: 'yaya890',

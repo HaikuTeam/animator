@@ -1,6 +1,7 @@
 import * as tape from 'tape';
 const pkg = require('./../../package.json');
-const TestHelpers = require('./../TestHelpers');
+import * as TestHelpers from './../TestHelpers';
+// tslint:disable-next-line:variable-name
 const HaikuDOMAdapter = require('./../../dom');
 
 // Tell typescript we have these types on Window

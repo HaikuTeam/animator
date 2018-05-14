@@ -18,6 +18,7 @@ tape('layout.parseCssTransformString', (t) => {
       {'translation.x': 1, 'translation.y': 175, 'rotation.z': 4.712},
     ],
     [
+      // tslint:disable-next-line:max-line-length
       'translate(55.500000, 68.500000) rotate(-9.000000) translate(-55.500000, -68.500000) translate(10.000000, 7.000000)',
       {'translation.x': 0.939, 'translation.y': 14.875, 'rotation.z': 6.126},
     ],
@@ -93,16 +94,19 @@ tape('layout.parseCssTransformString', (t) => {
       },
     ],
     [
+      // tslint:disable-next-line:max-line-length
       'matrix3d(1,0,0,.1,-0.2,-.22,30000,1,0,0,0,1,0.2,0,0,1) translate3d(10px,20,20) matrix(0,6,4,3,2.2,0) scale3d(0,0,0) rotate3d(0,0.5,0,0) rotateZ(1.2);',
       {
         'scale.x': 0,
       },
     ],
     [
+      // tslint:disable-next-line:max-line-length
       'translate(33.000000, 92.000000) rotate(10.000000) translate(-33.000000, -92.000000) translate(-2.000000, 1.000000)',
       {'translation.x': 14.334, 'translation.y': -3.695, 'rotation.z': 0.175},
     ],
     [
+      // tslint:disable-next-line:max-line-length
       'translate(43.270256, 92.695192) scale(-1, 1) rotate(10.000000) translate(-43.270256, -92.695192) translate(8.270256, 1.695192)',
       {
         'translation.x': 61.937,

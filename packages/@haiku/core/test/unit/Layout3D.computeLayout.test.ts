@@ -1,4 +1,5 @@
 import * as tape from 'tape';
+// tslint:disable-next-line:variable-name
 const Layout3D = require('./../../lib/Layout3D').default;
 
 tape('Layout3D.computeLayout', (t) => {

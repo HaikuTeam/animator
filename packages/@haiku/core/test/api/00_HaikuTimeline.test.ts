@@ -31,12 +31,12 @@ tape('HaikuTimeline', (t) => {
         component.getDefaultTimeline().seek(750);
         context.tick();
         t.equal(mount.firstChild.haiku.virtual.layout.opacity, 0.75, 'seek to 750ms');
-        setTimeout(function () {
+        setTimeout(() => {
           t.notEqual(mount.firstChild.haiku.virtual.layout.opacity, 0.75, 'playhead is moving');
           component.getDefaultTimeline().gotoAndStop(500);
-          setTimeout(function () {
+          setTimeout(() => {
             t.equal(mount.firstChild.haiku.virtual.layout.opacity, 0.5, 'stopped at 500ms');
-            setTimeout(function () {
+            setTimeout(() => {
               t.equal(mount.firstChild.haiku.virtual.layout.opacity, 0.5, 'still stopped at 500ms');
               teardown();
               t.end();

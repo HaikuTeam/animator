@@ -24,6 +24,7 @@ tape('cssQueryTree', (t) => {
   });
   t.equal(
     JSON.stringify(matches),
+    // tslint:disable-next-line:max-line-length
     '[{"elementName":"div","attributes":{"class":"bar"},"children":[{"elementName":"div","__depth":2,"__index":0},{"elementName":"h1","__depth":2,"__index":1}],"__depth":1,"__index":0}]',
     'matches list is correct',
   );
@@ -50,6 +51,7 @@ tape('cssQueryTree', (t) => {
   });
   t.equal(
     JSON.stringify(matches),
+    // tslint:disable-next-line:max-line-length
     '[{"elementName":"div","attributes":{"id":"foo"},"children":[{"elementName":"div","attributes":{"class":"bar"},"children":[{"elementName":"div","attributes":{"id":"yaya"},"__depth":2,"__index":0},{"elementName":"h1","attributes":{"id":"hoop"},"__depth":2,"__index":1}],"__depth":1,"__index":0}],"__depth":0,"__index":0},{"elementName":"div","attributes":{"class":"bar"},"children":[{"elementName":"div","attributes":{"id":"yaya"},"__depth":2,"__index":0},{"elementName":"h1","attributes":{"id":"hoop"},"__depth":2,"__index":1}],"__depth":1,"__index":0}]',
     'matches list with maxdepth set is correct',
   );

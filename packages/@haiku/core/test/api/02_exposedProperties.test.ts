@@ -3,6 +3,7 @@ const PACKAGE = require('./../../package.json');
 import {createDOM} from '../TestHelpers';
 // tslint:disable-next-line:variable-name
 const HaikuDOMAdapter = require('./../../lib/adapters/dom').default;
+
 tape('exposedProperties', (t) => {
   t.plan(6);
   const bytecode = {
