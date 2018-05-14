@@ -258,9 +258,6 @@ class Element extends BaseModel {
   }
 
   batchUpsertEventHandlers (serializedEvents) {
-    // TODO: What is this code supposed to do?
-    // let eventHandlers = this.getReifiedEventHandlers() // pointer to substructs[0].bytecode
-    // eventHandlers = serializedEvents // eslint-disable-line
     this.emit('update', 'element-event-handler-update')
     return this
   }
@@ -2000,6 +1997,10 @@ Element.buildUidFromComponentAndHaikuId = (component, haikuId) => {
 
 Element.findByComponentAndHaikuId = (component, haikuId) => {
   return Element.findById(Element.buildUidFromComponentAndHaikuId(component, haikuId))
+}
+
+Element.findHoveredElement = (component) => {
+  return Element.where({ component, _isHovered: true })[0]
 }
 
 Element.makeUid = (component, parent, index, staticTemplateNode) => {

@@ -13,8 +13,7 @@ export default class ComponentHeadingRow extends React.Component {
   constructor (props) {
     super(props)
     this.handleUpdate = this.handleUpdate.bind(this)
-    this.throttledHandleRowHovered = lodash.throttle(this.handleRowHovered, 100).bind(this)
-    this.throttledHandleRowUnhovered = lodash.throttle(this.handleRowUnhovered, 100).bind(this)
+    this.throttledHandleRowHoverUnhover = lodash.debounce(this.handleRowHoverUnhover, 100)
   }
 
   componentWillUnmount () {
@@ -46,12 +45,12 @@ export default class ComponentHeadingRow extends React.Component {
     )
   }
 
-  handleRowHovered (event) {
-    this.props.row.hoverAndUnhoverOthers({ from: 'timeline' })
-  }
-
-  handleRowUnhovered (event) {
-    this.props.row.unhover({ from: 'timeline' })
+  handleRowHoverUnhover (shouldHover) {
+    if (shouldHover) {
+      this.props.row.hoverAndUnhoverOthers({ from: 'timeline' })
+    } else {
+      this.props.row.unhover({ from: 'timeline' })
+    }
   }
 
   render () {
@@ -64,6 +63,8 @@ export default class ComponentHeadingRow extends React.Component {
         id={`component-heading-row-${componentId}-${this.props.row.getAddress()}`}
         key={`component-heading-row-${componentId}-${this.props.row.getAddress()}`}
         className='component-heading-row no-select'
+        onMouseOver={() => { this.throttledHandleRowHoverUnhover(true) }}
+        onMouseOut={() => { this.throttledHandleRowHoverUnhover(false) }}
         style={{
           display: 'table',
           tableLayout: 'fixed',
@@ -102,8 +103,6 @@ export default class ComponentHeadingRow extends React.Component {
         }
         <div
           className='component-heading-row-inner no-select'
-          onMouseOver={this.throttledHandleRowHovered}
-          onMouseOut={this.throttledHandleRowUnhovered}
           onClick={(clickEvent) => {
             clickEvent.stopPropagation()
             // Expand and select the entire component area when it is clicked, but note that we
