@@ -8,6 +8,7 @@
   },
   "scripts": {
     "lint": "tslint -p tsconfig.json -c tslint.json 'src/**/*.ts' -t stylish",
+    "lint-test": "tslint -p tsconfig.test.json -c tslint.json 'test/**/*.ts' -t stylish",
     "lint-report": "yarn lint -t checkstyle -o checkstyle-result.xml",
     "fix": "yarn lint --fix",
     "test": "tsc && tsc -p tsconfig.test.json && cross-env NODE_ENV=test tape \"~test/**/*.test.js\" | tap-spec && rm -rf ~test",
@@ -33,6 +34,7 @@
     "lodash": "^4.17.4"
   },
   "devDependencies": {
+    "@types/async": "^2.0.49",
     "@types/bezier-easing": "^2.0.0",
     "@types/bluebird": "^3.5.20",
     "@types/lodash": "^4.14.108",

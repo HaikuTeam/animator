@@ -28,7 +28,7 @@ tape('handleExporterSaveRequest', (test: tape.Test) => {
     // TODO: fix bytecode type
     const bytecode: any = {foo: 'bar'};
     handleExporterSaveRequest(request, bytecode)
-      .then((binaryOutput) => {
+      .then((binaryOutput: string) => {
         test.equal(binaryOutput, 'hello');
         test.true(exporterStub.calledWith(bytecode));
         unstub();

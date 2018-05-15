@@ -34,7 +34,7 @@ tape('bezier re-interpolation', (test: tape.Test) => {
 
     // We have to do some optimistic rounding since the evaluation of mid-point values of cubic curves is epsilon-based.
     // TODO: Back up the rounding decisions in these tests with #math.
-    const optimisticallyRound = (value, decimalPlaces = 3) => Number(value.toFixed(decimalPlaces));
+    const optimisticallyRound = (value: number, decimalPlaces = 3) => Number(value.toFixed(decimalPlaces));
 
     // The resulting curve should essentially be the decomposition of an ease-in-out curve into an ease-in curve and
     // an ease-out curve.
