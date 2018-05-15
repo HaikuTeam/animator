@@ -2,6 +2,7 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
+import fallbacks from './properties/dom/fallbacks';
 import justCurves from './vendor/just-curves';
 
 const CENT = 1.0;
@@ -127,13 +128,12 @@ function getKeyframesList(keyframeGroup, nowValue) {
   }
 }
 
-function calculateValue(keyframeGroup, nowValue) {
-  // HACK: Add a 0th keyframe automatically and set its value to the next one.
-  // This is a convenience so the data model/UI doesn't have to remember to set this.
-  // But this is probably going to bite somebody later. :/
-  // See the 'getKeyframesList' function for an additional part of this hack.
+function calculateValue(node, property, keyframeGroup, nowValue) {
+  // HACK: Add a 0th keyframe automatically and set its value to the fallback.
   if (!keyframeGroup[KEYFRAME_ZERO]) {
-    keyframeGroup[KEYFRAME_ZERO] = {};
+    keyframeGroup[KEYFRAME_ZERO] = {
+      value: fallbacks[node.elementName][property],
+    };
   }
   const keyframesList = getKeyframesList(keyframeGroup, nowValue);
   if (!keyframesList || keyframesList.length < 1) {
@@ -154,9 +154,6 @@ function calculateValue(keyframeGroup, nowValue) {
 }
 
 function calculateValueAndReturnUndefinedIfNotWorthwhile(keyframeGroup, nowValue) {
-  if (!keyframeGroup[KEYFRAME_ZERO]) {
-    keyframeGroup[KEYFRAME_ZERO] = {};
-  } // HACK: See above
   const keyframesList = getKeyframesList(keyframeGroup, nowValue);
   if (!keyframesList || keyframesList.length < 1) {
     return void 0;

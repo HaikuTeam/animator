@@ -1336,6 +1336,8 @@ export default class ValueBuilder {
       );
     } else {
       computedValueForTime = Transitions.calculateValue(
+        matchingElement,
+        propertyName,
         parsedValueCluster,
         timelineTime,
       );

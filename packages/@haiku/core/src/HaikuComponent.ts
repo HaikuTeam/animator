@@ -829,7 +829,7 @@ export default class HaikuComponent extends HaikuElement {
         ? this._mutableTimelines[timelineName]
         : timelineDescriptor;
 
-      if (!timelineDescriptor || typeof timelineDescriptor !== 'object') {
+      if (!mutableTimelineDescriptor || typeof mutableTimelineDescriptor !== 'object') {
         continue;
       }
 
