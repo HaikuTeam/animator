@@ -3262,6 +3262,9 @@ class ActiveComponent extends BaseModel {
                 : lodash.clone(propertyObj.value)
 
               bytecode.timelines[timelineName][selector][propertyName][keyframeMs].value = keyfVal
+              if (!bytecode.timelines[timelineName][selector][propertyName][0]) {
+                this.ensureZerothKeyframe(bytecode, timelineName, componentId, propertyName)
+              }
             }
           }
         }
