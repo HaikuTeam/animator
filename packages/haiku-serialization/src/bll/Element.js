@@ -92,6 +92,7 @@ class Element extends BaseModel {
 
   hoverOn (metadata) {
     if (!this._isHovered || !Element.hovered[this.getPrimaryKey()]) {
+      this.cacheClear()
       this._isHovered = true
       Element.hovered[this.getPrimaryKey()] = this
       this.emit('update', 'element-hovered', metadata)
@@ -101,6 +102,7 @@ class Element extends BaseModel {
 
   hoverOff (metadata) {
     if (this._isHovered || Element.hovered[this.getPrimaryKey()]) {
+      this.cacheClear()
       this._isHovered = false
       delete Element.hovered[this.getPrimaryKey()]
       this.emit('update', 'element-unhovered', metadata)
