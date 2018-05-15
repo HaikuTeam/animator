@@ -1848,7 +1848,6 @@ class ActiveComponent extends BaseModel {
 
                 updates[timelineName][componentId][propertyName][keyframeMs] = {
                   value: TimelineProperty.getFallbackValue(
-                    componentId,
                     elementName,
                     propertyName
                   )
@@ -2417,7 +2416,6 @@ class ActiveComponent extends BaseModel {
       const elementName = this.getElementNameOfComponentId(componentId)
 
       propertyValue = TimelineProperty.getFallbackValue(
-        componentId,
         elementName,
         propertyName
       )
@@ -3044,7 +3042,8 @@ class ActiveComponent extends BaseModel {
     bytecode,
     timelineName,
     componentId,
-    propertyName
+    propertyName,
+    fallbackToInitialKeyframeIfProvided = true
   ) {
     const selector = `haiku:${componentId}`
 
@@ -3064,10 +3063,8 @@ class ActiveComponent extends BaseModel {
     }
 
     if (descriptor[0].value === undefined) {
-      if (initialKeyframeObj) {
-        descriptor[0].value = Bytecode.unserializeValue(initialKeyframeObj.value, (ref) => {
-          return this.evaluateReference(ref)
-        })
+      if (fallbackToInitialKeyframeIfProvided && initialKeyframeObj) {
+        descriptor[0].value = Bytecode.unserializeValue(initialKeyframeObj.value, (ref) => this.evaluateReference(ref))
       } else {
         // Otherwise, use the fallback if we have no next keyframe defined
         const declaredValue = this.getDeclaredPropertyValue(
@@ -3077,9 +3074,7 @@ class ActiveComponent extends BaseModel {
           propertyName
         )
 
-        descriptor[0].value = Bytecode.unserializeValue(declaredValue, (ref) => {
-          return this.evaluateReference(ref)
-        })
+        descriptor[0].value = Bytecode.unserializeValue(declaredValue, (ref) => this.evaluateReference(ref))
       }
     }
 
@@ -3262,9 +3257,9 @@ class ActiveComponent extends BaseModel {
                 : lodash.clone(propertyObj.value)
 
               bytecode.timelines[timelineName][selector][propertyName][keyframeMs].value = keyfVal
-              if (!bytecode.timelines[timelineName][selector][propertyName][0]) {
-                this.ensureZerothKeyframe(bytecode, timelineName, componentId, propertyName)
-              }
+              // Note: we set fallbackToInitialKeyframeIfProvided to `false` here, ensuring that we always use the
+              // "implicit" value for properties whose first keyframes are created at a time after t = 0.
+              this.ensureZerothKeyframe(bytecode, timelineName, componentId, propertyName, false)
             }
           }
         }

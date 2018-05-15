@@ -25,7 +25,7 @@ TimelineProperty.addProperty = (
 
   if (!segmentsBase[0] || segmentsBase[0].value === undefined) {
     segmentsBase[0] = {}
-    segmentsBase[0].value = TimelineProperty.getFallbackValue(componentId, elementName, outputName, startValue)
+    segmentsBase[0].value = TimelineProperty.getFallbackValue(elementName, outputName, startValue)
   }
 
   const st = parseInt(startTime, 10)
@@ -49,7 +49,6 @@ TimelineProperty.addProperty = (
 }
 
 TimelineProperty.getFallbackValue = (
-  componentId,
   elementName,
   outputName,
   valueAssignedInThisOperation
@@ -206,7 +205,7 @@ TimelineProperty.getPropertyValueAtTime = (
     }
   }
 
-  return TimelineProperty.getFallbackValue(componentId, elementName, outputName)
+  return TimelineProperty.getFallbackValue(elementName, outputName)
 }
 
 TimelineProperty.addPropertyGroup = (

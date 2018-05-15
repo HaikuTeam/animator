@@ -532,7 +532,6 @@ class Element extends BaseModel {
 
       if (computedValue === undefined || computedValue === null) {
         return TimelineProperty.getFallbackValue(
-          componentId,
           elementName,
           outputName
         )
