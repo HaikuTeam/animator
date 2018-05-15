@@ -2,13 +2,11 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import fallbacks from './properties/dom/fallbacks';
 import justCurves from './vendor/just-curves';
 
 const CENT = 1.0;
 const OBJECT = 'object';
 const NUMBER = 'number';
-const KEYFRAME_ZERO = 0;
 const KEYFRAME_MARGIN = 16.666;
 const STRING = 'string';
 
@@ -128,13 +126,7 @@ function getKeyframesList(keyframeGroup, nowValue) {
   }
 }
 
-function calculateValue(node, property, keyframeGroup, nowValue) {
-  // HACK: Add a 0th keyframe automatically and set its value to the fallback.
-  if (!keyframeGroup[KEYFRAME_ZERO]) {
-    keyframeGroup[KEYFRAME_ZERO] = {
-      value: fallbacks[node.elementName][property],
-    };
-  }
+function calculateValue(keyframeGroup, nowValue) {
   const keyframesList = getKeyframesList(keyframeGroup, nowValue);
   if (!keyframesList || keyframesList.length < 1) {
     return;

@@ -6,14 +6,15 @@ import BasicUtils from './helpers/BasicUtils';
 import HaikuHelpers from './HaikuHelpers';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
 import {isPreviewMode} from './helpers/interactionModes';
+import fallbacks from './properties/dom/fallbacks';
 import parsers from './properties/dom/parsers';
 import schema from './properties/dom/schema';
 import enhance from './reflection/enhance';
 import Transitions from './Transitions';
 import assign from './vendor/assign';
-import PRNG from './helpers/PRNG';
 
 const FUNCTION = 'function';
+const KEYFRAME_ZERO = 0;
 const OBJECT = 'object';
 
 const isFunction = (value) => {
@@ -784,7 +785,6 @@ export default class ValueBuilder {
   _changes;
   _summonees;
   _evaluations;
-  _prng;
 
   helpers;
   _lastTimelineName;
@@ -1328,6 +1328,12 @@ export default class ValueBuilder {
 
     let computedValueForTime;
 
+    if (!parsedValueCluster[KEYFRAME_ZERO]) {
+      parsedValueCluster[KEYFRAME_ZERO] = {
+        value: fallbacks[matchingElement.elementName][propertyName],
+      };
+    }
+
     // Important: The ActiveComponent depends on the ability to be able to get fresh values via the skipCache option.
     if (isPatchOperation && !skipCache) {
       computedValueForTime = Transitions.calculateValueAndReturnUndefinedIfNotWorthwhile(
@@ -1336,8 +1342,6 @@ export default class ValueBuilder {
       );
     } else {
       computedValueForTime = Transitions.calculateValue(
-        matchingElement,
-        propertyName,
         parsedValueCluster,
         timelineTime,
       );
