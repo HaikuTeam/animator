@@ -820,7 +820,6 @@ export default class HaikuComponent extends HaikuElement {
       }
 
       const timelineTime = timelineInstance.getBoundedTime();
-      // console.log(this.$id,this.getBytecodeRelpath(),timelineInstance.isFrozen());
 
       const timelineDescriptor = this.bytecode.timelines[timelineName];
 
