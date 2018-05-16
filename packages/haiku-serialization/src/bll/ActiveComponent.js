@@ -1119,6 +1119,7 @@ class ActiveComponent extends BaseModel {
 
               for (const keyframeMs in elementBytecode.timelines[timelineName][selector][propertyName]) {
                 const existingValue = elementBytecode.timelines[timelineName][selector][propertyName][keyframeMs].value || 0
+                const existingCurve = elementBytecode.timelines[timelineName][selector][propertyName][keyframeMs].curve
 
                 if (typeof existingValue === 'function') {
                   continue
@@ -1130,6 +1131,10 @@ class ActiveComponent extends BaseModel {
 
                 elementBytecode.timelines[timelineName][selector][propertyName][keyframeMs] = {
                   value: updatedValue
+                }
+
+                if (existingCurve) {
+                  elementBytecode.timelines[timelineName][selector][propertyName][keyframeMs].curve = existingCurve
                 }
               }
             }
