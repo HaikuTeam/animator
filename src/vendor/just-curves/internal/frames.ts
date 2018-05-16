@@ -21,7 +21,7 @@
  */
 
 import {Curve} from '../types';
-import {floor} from '../internal';
+import {floor} from './math';
 
 export const frames = (n: number): Curve => {
   const q = 1 / (n - 1);

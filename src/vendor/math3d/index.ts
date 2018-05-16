@@ -20,14 +20,15 @@
  * OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+const precision = 1e-6;
+
 function doublesEqual(d1, d2) {
-  const preciseness = 1e-13;
-  return Math.abs(d1 - d2) < preciseness;
+  return Math.abs(d1 - d2) < precision;
 }
 
 /**
  * Returns the euler angles for the given quaternion
- * The rotations for the euler angles are applied in the order: z then x then y
+ * The rotations for the euler angles are applied in the order: z then y then x
  * @param {Quternion} quaternion
  * @returns {Object} eulerAngles: [x,y,z]
  */
@@ -43,10 +44,10 @@ function getEulerAngles(x, y, z, w) {
   }
 
   return [
-    Math.asin(2 * x * w - 2 * y * z),
-    Math.atan2(2 * x * z + 2 * y * w, 1 - 2 * (y * y) - 2 * (x * x)),
-    Math.PI - Math.atan2(2 * x * y + 2 * z * w, 1 - 2 * (y * y) - 2 * (w * w)),
-  ];
+    Math.atan2(2 * (x * w - y * z), (w * w - x * x - y * y + z * z)),
+    Math.asin(2 * (x * z + y * w)),
+    Math.atan2(2 * (z * w - x * y), (w * w + x * x - y * y - z * z)),
+  ].map((value) => (value < -precision) ? value + Math.PI * 2 : value);
 }
 
 export default {

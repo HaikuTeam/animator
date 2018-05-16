@@ -25,7 +25,7 @@ const VERSION = pkg.version;
  * @description Given a bytecode object, return a factory function which can create a DOM-playable component.
  */
 // tslint:disable-next-line:function-name
-export default function HaikuDOMAdapter(bytecode, config, safeWindow) {
+export default function HaikuDOMAdapter(bytecode, config?, safeWindow?) {
   if (!config) {
     // tslint:disable-next-line:no-parameter-reassignment
     config = {};

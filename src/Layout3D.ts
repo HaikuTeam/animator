@@ -3,8 +3,8 @@
  */
 
 import computeMatrix from './layout/computeMatrix';
-import computeOrientationFlexibly from './layout/computeOrientationFlexibly';
 import computeSize from './layout/computeSize';
+import {LayoutSpec} from './api/Layout';
 
 const ELEMENTS_2D = {
   circle: true,
@@ -99,7 +99,7 @@ const initializeTreeAttributes = (tree, isRootNode: boolean) => {
 // EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
 // ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
-const createLayoutSpec = (createCoordinateSystem?: boolean) => ({
+const createLayoutSpec = (createCoordinateSystem?: boolean): LayoutSpec => ({
   shown: true,
   opacity: 1.0,
   mount: {x: 0, y: 0, z: 0}, // anchor in self
@@ -151,16 +151,44 @@ const multiplyArrayOfMatrices = (arrayOfMatrices: number[][]): number[] => {
   return product;
 };
 
-const computeLayout = (layoutSpec, currentMatrix, parentsizeAbsoluteIn) => {
+const computeSizeOfNodeContent = (node) => {
+  // We can't compute a content size for missing or text nodes
+  if (!node || typeof node !== 'object') {
+    return null;
+  }
+
+  // For subcomponents, we should be able to read the size property directly
+  if (typeof node.elementName === 'object') {
+    const subroot = node.children && node.children[0];
+
+    if (subroot && typeof subroot === 'object') {
+      return {
+        x: subroot.layout.sizeAbsolute.x,
+        y: subroot.layout.sizeAbsolute.y,
+        z: subroot.layout.sizeAbsolute.z,
+      };
+    }
+
+    // We got an invalid format; nothing to compute
+    return null;
+  }
+
+  // TODO: Read the union of inner primitives' bounding boxes
+  return null;
+};
+
+const computeLayout = (layoutSpec, currentMatrix, parentsizeAbsoluteIn, contentSizeAbsolute) => {
   // Clean out the existing computed layout from the layout spec, if it exists.
   delete layoutSpec.computed;
+
   const parentsizeAbsolute = parentsizeAbsoluteIn || {x: 0, y: 0, z: 0};
 
   if (parentsizeAbsolute.z === undefined || parentsizeAbsolute.z === null) {
     parentsizeAbsolute.z = DEFAULT_DEPTH;
   }
 
-  const size = computeSize(layoutSpec, layoutSpec.sizeMode, parentsizeAbsolute);
+  const size = computeSize(layoutSpec, layoutSpec.sizeMode, parentsizeAbsolute, contentSizeAbsolute);
+
   return {
     ...layoutSpec,
     size,
@@ -190,10 +218,10 @@ const computeScaledBasisMatrix = (rotation, scale) => {
 export default {
   multiplyArrayOfMatrices,
   computeLayout,
+  computeSizeOfNodeContent,
   computeOrthonormalBasisMatrix,
   computeScaledBasisMatrix,
   createLayoutSpec,
-  computeOrientationFlexibly,
   createMatrix,
   copyMatrix,
   initializeTreeAttributes,

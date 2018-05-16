@@ -113,7 +113,7 @@ export default class HaikuElement extends HaikuBase {
     }
 
     const ancestry = [this.layout];
-    // tslint:disable-next-line:no-var-self
+    // tslint:disable-next-line:no-this-assignment
     let ancestor = this;
     while (ancestor.parent) {
       ancestor = ancestor.parent;
@@ -357,6 +357,8 @@ export default class HaikuElement extends HaikuBase {
     });
   }
 }
+
+HaikuElement['__name__'] = 'HaikuElement';
 
 HaikuElement['findByNode'] = (node) => {
   const registry = HaikuBase['getRegistryForClass'](HaikuElement);

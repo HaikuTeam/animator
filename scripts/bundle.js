@@ -5,7 +5,6 @@ const nodeResolve = require('rollup-plugin-node-resolve');
 const path = require('path');
 const uglify = require('rollup-plugin-uglify-es');
 const fse = require('fs-extra');
-const includePaths = require('rollup-plugin-includepaths');
 
 const ROOT = global.process.cwd();
 const DIST = path.join(ROOT, 'dist');
@@ -48,6 +47,10 @@ const adapters = {
   'vue-dom': {
     name: 'HaikuVueAdapter',
     dir: 'vue',
+  },
+  'angular-dom': {
+    name: 'HaikuAngularAdapter',
+    dir: 'angular',
   },
 };
 
