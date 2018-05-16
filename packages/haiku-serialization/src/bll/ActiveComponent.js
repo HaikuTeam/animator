@@ -2270,6 +2270,35 @@ class ActiveComponent extends BaseModel {
     })
   }
 
+  /**
+   * @method moduleSync
+   * @description Basically identical to `moduleReplace`, but without reloading from disk.
+   */
+  moduleSync (cb) {
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
+      this.codeReloadingOn()
+
+      return this.reload({
+        hardReload: true,
+        moduleReloadMethod: 'basicReload',
+        clearCacheOptions: {
+          doClearEntityCaches: true
+        }
+      }, null, (err) => {
+        release()
+
+        this.codeReloadingOff()
+
+        if (err) {
+          logger.error(`[active component (${this.project.getAlias()})]`, err)
+          return this.emit('error', err)
+        }
+
+        return cb()
+      })
+    })
+  }
+
   fetchRootElement () {
     const staticTemplateNode = this.getReifiedBytecode().template
 
@@ -2310,7 +2339,7 @@ class ActiveComponent extends BaseModel {
         // one.
         this.snapshots.splice(this.snapshots.length - 2, 1)[0],
         () => {
-          this.moduleReplace(() => {
+          this.moduleSync(() => {
             fire()
             return cb()
           })
