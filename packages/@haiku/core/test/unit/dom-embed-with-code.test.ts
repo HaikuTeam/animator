@@ -18,7 +18,7 @@ tape('dom-embed-with-code', (t) => {
     if (err) { throw err; }
     HaikuDOMAdapter.defineOnWindow();
     const adapter = window.HaikuCore[pkg.version];
-    const haikuComponentFactory = adapter(require('./../fixtures/code1.js'));
+    const haikuComponentFactory = adapter(require('./../fixtures/code1.ts'));
     const component = haikuComponentFactory(mount);
     component.context.clock.GLOBAL_ANIMATION_HARNESS.cancel();
     t.ok(true);

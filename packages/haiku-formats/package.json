@@ -36,7 +36,6 @@
   "devDependencies": {
     "@types/async": "^2.0.49",
     "@types/bezier-easing": "^2.0.0",
-    "@types/bluebird": "^3.5.20",
     "@types/lodash": "^4.14.108",
     "@types/node": "8.9.4",
     "@types/tape": "^4.2.30",
