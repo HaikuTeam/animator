@@ -7,9 +7,9 @@ import {
 import {Curve} from 'haiku-common/lib/types/enums';
 
 // @ts-ignore
-import Template from 'haiku-serialization/src/bll/Template';
+import * as Template from 'haiku-serialization/src/bll/Template';
 // @ts-ignore
-import LoggerInstance from 'haiku-serialization/src/utils/LoggerInstance';
+import * as LoggerInstance from 'haiku-serialization/src/utils/LoggerInstance';
 
 import {difference, flatten, mapKeys} from 'lodash';
 import {ExporterInterface} from '..';

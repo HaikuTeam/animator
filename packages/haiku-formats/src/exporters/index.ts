@@ -5,7 +5,7 @@ import {BodymovinExporter} from './bodymovin/bodymovinExporter';
 import {HaikuStaticExporter} from './haikuStatic/haikuStaticExporter';
 
 // @ts-ignore
-import LoggerInstance from 'haiku-serialization/src/utils/LoggerInstance';
+import * as LoggerInstance from 'haiku-serialization/src/utils/LoggerInstance';
 
 export interface ExporterInterface {
   rawOutput(): any;

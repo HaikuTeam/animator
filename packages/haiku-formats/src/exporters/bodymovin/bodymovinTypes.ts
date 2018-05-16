@@ -27,17 +27,6 @@ export type SvgInheritable = {
 export type BodymovinShape = any;
 export type BodymovinFill = any;
 
-export type BodymovinTransform = any;
-// TODO: It is commented due: https://github.com/Microsoft/TypeScript/issues/13042, 
-// should be uncommented on Typescript 2.9 
-// export type BodymovinTransform = {[TransformKey.TransformOrigin]: {
-//     a: any;
-//     k: any;
-//   };
-//   [TransformKey.Scale]: {
-//     a: any;
-//     k: any;
-//   };
-//   [TransformKey.Opacity]: object;
-//   [ShapeKey.Type]: ShapeType;
-// };
+export type BodymovinTransform = {
+  [key in TransformKey.TransformOrigin]: BodymovinProperty;
+};
