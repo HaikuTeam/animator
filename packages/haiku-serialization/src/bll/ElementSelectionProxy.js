@@ -40,6 +40,11 @@ class ElementSelectionProxy extends BaseModel {
       throw new Error('ElementSelectionProxy can only manage an artboard alone')
     }
 
+    // When representing multiple elements, we apply changes to our proxy properties
+    this._proxyBoxPoints = []
+    this._proxyProperties = {}
+    Object.assign(this._proxyProperties, ElementSelectionProxy.DEFAULT_PROPERTY_VALUES)
+
     if (!this.hasAnythingInSelection()) {
       return
     }
@@ -47,9 +52,6 @@ class ElementSelectionProxy extends BaseModel {
     // Allows transforms to be recalled on demand, e.g. during Alt+drag
     this.transformCache = new TransformCache(this)
 
-    // When representing multiple elements, we apply changes to our proxy properties
-    this._proxyBoxPoints = []
-    this._proxyProperties = {}
     const boxPoints = Element.getBoundingBoxPoints(
       this.selection.map((element) => element.getBoxPointsTransformed()).reduce((accumulator, boxPoints) => {
         accumulator.push(...boxPoints)
@@ -67,7 +69,6 @@ class ElementSelectionProxy extends BaseModel {
     const height = Math.abs(boxPoints[0].y - boxPoints[8].y)
     Object.assign(
       this._proxyProperties,
-      ElementSelectionProxy.DEFAULT_PROPERTY_VALUES,
       {
         'sizeAbsolute.x': width,
         'sizeAbsolute.y': height,

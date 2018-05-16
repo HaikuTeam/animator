@@ -3475,8 +3475,7 @@ class ActiveComponent extends BaseModel {
           }
         }, null, () => {
           fire(null, groupComponentId)
-          // TODO: fire `this.findElementByComponentId(groupComponentId).selectSoftly()`.
-          // Currently a race condition prevents this from working correctly and makes mono explode.
+          this.findElementByComponentId(groupComponentId).select(metadata)
           return cb()
         })
       })
