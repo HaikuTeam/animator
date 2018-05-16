@@ -163,7 +163,7 @@ class ModuleWrapper extends BaseModel {
         this.exp = {}
         this._hasLoadedAtLeastOnce = true
 
-        this.update(this.exp, () => {
+        return this.update(this.exp, () => {
           if (!this.isExternalModule) {
             this.file.maybeFlushContentForceSync()
           }
