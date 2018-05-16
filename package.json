@@ -31,12 +31,13 @@
     "test-report": "node ./scripts/test-report.js"
   },
   "resolutions": {
-    "@types/node": "8.9.4"
+    "@types/node": "8.9.4",
+    "tslint-config-airbnb": "5.8.0"
   },
   "dependencies": {
-    "@haiku/player": "^3.0.4",
     "@haiku/cli": "3.2.20",
     "@haiku/core": "3.2.20",
+    "@haiku/player": "^3.0.4",
     "@haiku/sdk-client": "3.2.20",
     "@haiku/sdk-inkstone": "3.2.20",
     "haiku-common": "3.2.20",

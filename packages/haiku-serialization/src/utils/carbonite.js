@@ -87,7 +87,7 @@ function _zipProjectFolders ({destination, sources}) {
   })
 }
 
-function crashReport (orgName = 'unknown', projectName = 'unknown', projectPath) {
+function crashReport (error, orgName = 'unknown', projectName = 'unknown', projectPath) {
   if (!projectPath || !_hasElapsedEnoughTime()) {
     return
   }
@@ -100,22 +100,24 @@ function crashReport (orgName = 'unknown', projectName = 'unknown', projectPath)
 
   const finalUrl = `${AWS_S3_HOST}/${orgName}/${zipName}`
 
-  crashReportFork(projectPath, zipName, zipPath, finalUrl)
+  crashReportFork(error, projectPath, zipName, zipPath, finalUrl)
 
   return finalUrl
 }
 
-function crashReportFork (projectPath, zipName, zipPath, finalUrl) {
+function crashReportFork (error, projectPath, zipName, zipPath, finalUrl) {
   logger.info(`[carbonite] initiating crash report`, projectPath, zipName, zipPath, finalUrl)
   process.env.HAIKU_CRASH_REPORT_PROJECT_PATH = projectPath
   process.env.HAIKU_CRASH_REPORT_ZIP_PATH = zipPath
   process.env.HAIKU_CRASH_REPORT_ZIP_NAME = zipName
   process.env.HAIKU_CRASH_REPORT_URL = finalUrl
+  process.env.HAIKU_CRASH_REPORT_STACKTRACE = error.stack
   fork(path.join(__dirname, 'carbonite-proc.js'), [], {stdio: 'inherit'})
 }
 
 function crashReportCreate (cb) {
   logger.info(`[carbonite] preparing crash report for ${process.env.HAIKU_CRASH_REPORT_URL}`)
+  logger.info(`[carbonite] error heard was`, process.env.HAIKU_CRASH_REPORT_STACKTRACE)
 
   _ensureFolderExist(HOMEDIR_PROJECTS_PATH)
     .then(_ensureFolderExist(HOMEDIR_CRASH_REPORTS_PATH))
@@ -134,15 +136,32 @@ function crashReportCreate (cb) {
     })
 }
 
+function createErrorFromSentryData (data) {
+  const info = data && data.exception && data.exception.values && data.exception.values[0]
+  const name = (info && info.value) || 'Unknown'
+  const error = new Error(name) // TODO: Include info.stacktrace.frames as error.stack
+  return error
+}
+
+/**
+ * @function sentryCallback
+ * @description This callback is used in places where we allow Raven itself to capture exceptions,
+ * as opposed to us manually triggering a capture. This happens in the UIs: Creator, Timeline, Stage.
+ */
 function sentryCallback (data) {
   if (
     data &&
     data.extra &&
     data.extra.projectPath
   ) {
+    // Sentry doesn't provide the original error but its own exploded form of it.
+    // We recreate it here so that the crash report function can log the error name.
+    const error = createErrorFromSentryData(data)
+
     const {organizationName, projectName, projectPath} = data.extra
     logger.info(`[carbonite] sentry callback`, organizationName, projectName, projectPath)
-    data.extra.carbonite = crashReport(organizationName, projectName, projectPath)
+
+    data.extra.carbonite = crashReport(error, organizationName, projectName, projectPath)
     data.extra.experiments = {}
     for (const [key, value] of Object.entries(Experiment)) {
       data.extra.experiments[key] = experimentIsEnabled(value)

@@ -45,6 +45,7 @@
     "decamelize": "^1.2.0",
     "dedent": "^0.7.0",
     "haiku-common": "3.2.20",
+    "haiku-serialization": "3.2.20",
     "numeral": "^2.0.6",
     "radium": "0.18.1",
     "react": "15.6.2",

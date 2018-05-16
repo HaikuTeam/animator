@@ -222,10 +222,20 @@ Property.EXCLUDE_FROM_JIT_IF_ROOT_ELEMENT = {
   'origin.y': true
 }
 
+Property.INCLUDE_IFF_COMPONENT = {
+  'playback': true
+}
+
+Property.INCLUDE_IFF_ROOT_COMPONENT = {
+  'sizeAbsolute.x': 'number',
+  'sizeAbsolute.y': 'number'
+}
+
 Property.BUILTIN_DOM_SCHEMAS = {
   div: {
     'sizeAbsolute.x': 'number',
     'sizeAbsolute.y': 'number',
+    'playback': 'any',
     'controlFlow.placeholder': 'any',
     opacity: 'number',
     'translation.x': 'number',
@@ -265,8 +275,6 @@ Property.BUILTIN_DOM_SCHEMAS = {
     'style.WebkitTapHighlightColor': 'string'
   },
   svg: {
-    'sizeAbsolute.x': 'number',
-    'sizeAbsolute.y': 'number',
     'controlFlow.placeholder': 'any',
     opacity: 'number',
     'translation.x': 'number',
@@ -417,6 +425,7 @@ Property.BUILTIN_DOM_SCHEMAS = {
 }
 
 Property.EXCLUDE_FROM_ADDRESSABLES_IF_ROOT_ELEMENT = {
+  'playback': true,
   'content': true,
   'shown': true,
   'translation.x': true,
@@ -452,9 +461,15 @@ Property.shouldBasicallyIncludeProperty = (propertyName, propertyObject, element
       return false
     }
   } else if (element.isComponent()) {
+    if (Property.INCLUDE_IFF_ROOT_COMPONENT[propertyName]) {
+      return false
+    }
     // Assume that we display everything for components
     return true
   } else if (Property.EXCLUDE_FROM_ADDRESSABLES_IF_CHILD_ELEMENT[propertyName]) {
+    return false
+  } else if (Property.INCLUDE_IFF_COMPONENT[propertyName]) {
+    // Don't display any properties that are only for components
     return false
   }
 

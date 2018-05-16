@@ -74,7 +74,9 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
             surrogate,
             value,
             context,
-            component,
+            timeline,
+            receiver,
+            sender,
           ) {
             visit(this.mount, (node) => {
               const flexId = flexIdIfSame(element, node);
@@ -101,8 +103,8 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
                     element.__surrogate = surrogate;
                     node.style.visibility = 'visible';
                   });
-                  component.markHorizonElement(element);
-                  component.markForFullFlush();
+                  receiver.markHorizonElement(element);
+                  receiver.markForFullFlush();
                 }
               }
             });

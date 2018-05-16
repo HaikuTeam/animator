@@ -29,7 +29,6 @@ module.exports = {
         fetchActiveBytecodeFile: true,
         buildCurrentTimelineUid: true,
         fetchRootElement: true,
-        allOwnCoreComponentInstances: true,
         findElementByComponentId: true,
         unselectElementWithinTime: true,
         handleUpdatedBytecode: true

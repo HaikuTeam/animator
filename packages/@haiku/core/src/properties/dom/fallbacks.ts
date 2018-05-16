@@ -318,6 +318,10 @@ const PATH_FALLBACKS = {
 
 const HTML_STYLE_SHORTHAND_FALLBACKS = {};
 
+const PLAYBACK_FALLBACKS = {
+  playback: 'repeating',
+};
+
 const CONTROL_FLOW_FALLBACKS = {
   // 'controlFlow.if': null,
   'controlFlow.repeat': null,
@@ -490,6 +494,7 @@ export default {
   div: has(
     HTML_STYLE_SHORTHAND_FALLBACKS,
     TEXT_CONTENT_FALLBACKS,
+    PLAYBACK_FALLBACKS,
     CONTROL_FLOW_FALLBACKS,
     LAYOUT_3D_FALLBACKS,
     STYLE_FALLBACKS,

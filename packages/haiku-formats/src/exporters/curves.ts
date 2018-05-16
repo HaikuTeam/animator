@@ -1,7 +1,12 @@
 import * as BezierEasing from 'bezier-easing';
-import * as flatten from 'lodash/flatten';
+import {flatten} from 'lodash';
 
 import {Curve} from 'haiku-common/lib/types/enums';
+import {
+  BytecodeTimelineProperties,
+  BytecodeTimelineValue, 
+  BytecodeTimelineProperty,
+} from '@haiku/core/lib/api/HaikuBytecode';
 
 export type InterpolationPoints = [number, number, number, number];
 
@@ -130,7 +135,8 @@ const normalizeValue = (value: number, from: number, to: number): number =>
  * @param timelineProperty
  * @param {number} keyframe
  */
-export const splitBezierForTimelinePropertyAtKeyframe = (timelineProperty, keyframe: number) => {
+export const splitBezierForTimelinePropertyAtKeyframe = (timelineProperty: BytecodeTimelineProperty, 
+                                                         keyframe: number) => {
   const allKeyframes = Object.keys(timelineProperty).map(Number);
   const previousKeyframe = Math.max(...allKeyframes.filter((k) => k < keyframe));
   const nextKeyframe = Math.min(...allKeyframes.filter((k) => k > keyframe));
@@ -157,8 +163,8 @@ export const splitBezierForTimelinePropertyAtKeyframe = (timelineProperty, keyfr
   // points to get the actual value.
   const value = denormalizeValue(
     BezierEasing(x1, y1, x2, y2)(time),
-    timelineProperty[previousKeyframe].value,
-    timelineProperty[nextKeyframe].value,
+    timelineProperty[previousKeyframe].value as number,
+    timelineProperty[nextKeyframe].value as number,
   );
   const [[_, s1, s2, s3], [e0, e1, e2, __]] = reinterpolateBezier([[0, 0], [x1, y1], [x2, y2], [1, 1]], 3, time);
 
@@ -306,15 +312,16 @@ export const isDecomposableCurve = (curve: Curve) => isBounceCurve(curve) || isE
  * @param inKeyframe
  * @param outKeyframe
  */
-export const decomposeCurveBetweenKeyframes = (timelineProperty, inKeyframe, outKeyframe) => {
+export const decomposeCurveBetweenKeyframes = (timelineProperty:BytecodeTimelineProperty, 
+                                               inKeyframe: number, outKeyframe: number) => {
   const [curve, from, to] = [
     timelineProperty[inKeyframe].curve,
     timelineProperty[inKeyframe].value,
     timelineProperty[outKeyframe].value,
   ];
 
-  const getKeyframe = (normalizedTime) => Math.floor(denormalizeValue(normalizedTime, inKeyframe, outKeyframe));
-  const getValue = (normalizedPosition) => denormalizeValue(normalizedPosition, from, to);
+  const getKeyframe = (normalizedTime: number) => Math.floor(denormalizeValue(normalizedTime, inKeyframe, outKeyframe));
+  const getValue = (normalizedPosition: number) => denormalizeValue(normalizedPosition, from as number, to as number);
 
   getBezierBreakpointsForDecomposableCurve(curve)
     .forEach(([startTime, startValue, curve]) => {

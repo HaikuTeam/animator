@@ -14,7 +14,6 @@ const BaseModel = require('./BaseModel')
 const reifyRO = require('@haiku/core/lib/reflection/reifyRO').default
 const reifyRFO = require('@haiku/core/lib/reflection/reifyRFO').default
 const toTitleCase = require('./helpers/toTitleCase')
-const normalizeBytecodeAST = require('./../ast/normalizeBytecodeAST')
 const Lock = require('./Lock')
 const ActionStack = require('./ActionStack')
 
@@ -25,6 +24,10 @@ const FALLBACK_SEMVER_VERSION = '0.0.0'
 const ALWAYS_IGNORED_METHODS = {
   // Handled upstream, by Creator, Glass, Timeline, etc.
   executeFunctionSpecification: true
+}
+const SILENT_METHODS = {
+  hoverElement: true,
+  unhoverElement: true
 }
 
 /**
@@ -162,7 +165,9 @@ class Project extends BaseModel {
         : null
 
       if (ac && typeof ac[method] === 'function') {
-        logger.info(`[project (${this.getAlias()})] component handling method ${method}`, params)
+        if (!SILENT_METHODS[method]) {
+          logger.info(`[project (${this.getAlias()})] component handling method ${method}`, params)
+        }
 
         return ac[method].apply(ac, params.slice(1).concat((err, out) => {
           release()
@@ -173,7 +178,9 @@ class Project extends BaseModel {
 
       // If we have a method here at the top, call it
       if (typeof this[method] === 'function') {
-        logger.info(`[project (${this.getAlias()})] project handling method ${method}`, params)
+        if (!SILENT_METHODS) {
+          logger.info(`[project (${this.getAlias()})] project handling method ${method}`, params)
+        }
 
         return this[method].apply(this, params.concat((err, result) => {
           release()
@@ -398,8 +405,31 @@ class Project extends BaseModel {
     }, cb)
   }
 
-  setInteractionMode (interactionMode, cb) {
-    return this.getCurrentActiveComponent().setInteractionMode(interactionMode, this.getMetadata(), cb)
+  setInteractionMode (interactionMode, metadata, cb) {
+    const components = ActiveComponent.where({project: this})
+
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
+      return async.eachSeries(components, (component, next) => {
+        // If we toggle preview mode before any subcomponents are bootstrapped,
+        // the bytecode for those subcomponents will be null
+        return component.moduleFindOrCreate('basicReload', {}, (err) => {
+          if (err) {
+            return next(err)
+          }
+
+          return component.setInteractionMode(interactionMode, next)
+        })
+      }, (err) => {
+        if (err) {
+          release()
+          return cb(err)
+        }
+
+        release()
+        this.updateHook('setInteractionMode', interactionMode, metadata, (fire) => fire())
+        return cb()
+      })
+    })
   }
 
   linkAsset (assetAbspath, cb) {
@@ -472,7 +502,13 @@ class Project extends BaseModel {
         const components = ActiveComponent.where({project: this})
 
         return async.eachSeries(components, (component, next) => {
-          return component.mergeDesignFiles(designs, next)
+          return component.moduleFindOrCreate('basicReload', {}, (err) => {
+            if (err) {
+              return next(err)
+            }
+
+            return component.mergeDesignFiles(designs, next)
+          })
         }, (err) => {
           if (err) {
             ac.codeReloadingOff()
@@ -713,16 +749,16 @@ class Project extends BaseModel {
     // Only write these files if they don't exist yet; don't overwrite the user's own content
     if (!fse.existsSync(path.join(this.getFolder(), `code/${scenename}/code.js`))) {
       fse.outputFileSync(path.join(this.getFolder(), `code/${scenename}/code.js`), rootComponentId)
-    } else if (!experimentIsEnabled(Experiment.NoNormalizeOnSetup)) {
-      // If the file already exists, we can run any migration steps we might want
-      AST.mutateWith(path.join(this.getFolder(), `code/${scenename}/code.js`), (ast) => {
-        normalizeBytecodeAST(ast)
-      })
     }
 
+    const nameVariations = this.getNameVariations()
     fse.outputFileSync(path.join(this.getFolder(), `code/${scenename}/dom.js`), DOM_JS)
     fse.outputFileSync(path.join(this.getFolder(), `code/${scenename}/dom-embed.js`), DOM_EMBED_JS)
     fse.outputFileSync(path.join(this.getFolder(), `code/${scenename}/react-dom.js`), REACT_DOM_JS)
+    fse.outputFileSync(
+      path.join(this.getFolder(), `code/${scenename}/angular-dom.js`),
+      ANGULAR_DOM_JS(nameVariations.angularSelectorName, scenename)
+    )
     fse.outputFileSync(path.join(this.getFolder(), `code/${scenename}/vue-dom.js`), VUE_DOM_JS)
 
     if (!fse.existsSync(path.join(this.getFolder(), `code/${scenename}/dom-standalone.js`))) {
@@ -786,31 +822,6 @@ class Project extends BaseModel {
       return getMetadata((metadata) => {
         const final = lodash.assign({}, metadata, info)
         return cb(null, final)
-      })
-    })
-  }
-
-  /**
-   * @method writeComponentInfo
-   * @description Writes to both the package.json and the bytecode.metdata
-   */
-  writeComponentInfo (scenename, info, cb) {
-    return this.readPackageJsonSafe((pkg) => {
-      if (!pkg.haiku) pkg.haiku = {}
-
-      if (!pkg.haiku[scenename]) pkg.haiku[scenename] = {}
-      lodash.assign(pkg.haiku[scenename], info)
-
-      return this.writePackageJson(pkg, (err) => {
-        if (err) return cb(err)
-
-        const ac = this.findActiveComponentBySceneName(scenename)
-
-        if (ac) {
-          return ac.assignMetadata(info, cb)
-        }
-
-        return cb()
       })
     })
   }
@@ -925,18 +936,27 @@ Project.fetchProjectConfigInfo = (folder, cb) => {
   }, config))
 }
 
+Project.getAngularSelectorName = (name) => name
+  .replace(/([A-Z])/g, (char) => `-${char.toLowerCase()}`)
+  .replace(/^-/, '')
+
+Project.getPrimaryAssetPath = (name) => `designs/${name}.sketch`
+
 Project.getProjectNameVariations = (folder) => {
   const projectHaikuConfig = Project.readPackageJson(folder).haiku
   const projectNameSafe = Project.getSafeProjectName(folder, projectHaikuConfig.project)
   const projectNameSafeShort = projectNameSafe.slice(0, 20)
   const projectNameLowerCase = projectNameSafe.toLowerCase()
   const reactProjectName = `React_${projectNameSafe}`
-  const primaryAssetPath = `designs/${projectNameSafeShort}.sketch`
+  const angularSelectorName = Project.getAngularSelectorName(projectNameSafe)
+  const primaryAssetPath = Project.getPrimaryAssetPath(projectNameSafeShort)
+
   return {
     projectNameSafe,
     projectNameSafeShort,
     projectNameLowerCase,
     reactProjectName,
+    angularSelectorName,
     primaryAssetPath
   }
 }
@@ -970,7 +990,6 @@ Project.PUBLIC_METHODS = {
 // Down here to avoid Node circular dependency stub objects. #FIXME
 const ActiveComponent = require('./ActiveComponent')
 const Asset = require('./Asset')
-const AST = require('./AST')
 const Bytecode = require('./Bytecode')
 const Design = require('./Design')
 const File = require('./File')
@@ -1037,6 +1056,12 @@ const REACT_DOM_JS = dedent`
   var HaikuReactComponent = HaikuReactAdapter(require('./dom'))
   if (HaikuReactComponent.default) HaikuReactComponent = HaikuReactComponent.default
   module.exports = HaikuReactComponent
+`.trim()
+
+const ANGULAR_DOM_JS = (selector, scenename) => dedent`
+  var HaikuAngularAdapter = require('@haiku/core/dom/angular')
+  var HaikuAngularModule = HaikuAngularAdapter('${selector}${scenename !== 'main' ? `-${scenename}` : ''}', require('./dom'))
+  module.exports = HaikuAngularModule
 `.trim()
 
 const VUE_DOM_JS = dedent`

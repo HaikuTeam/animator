@@ -40,6 +40,11 @@ class ElementSelectionProxy extends BaseModel {
       throw new Error('ElementSelectionProxy can only manage an artboard alone')
     }
 
+    // When representing multiple elements, we apply changes to our proxy properties
+    this._proxyBoxPoints = []
+    this._proxyProperties = {}
+    Object.assign(this._proxyProperties, ElementSelectionProxy.DEFAULT_PROPERTY_VALUES)
+
     if (!this.hasAnythingInSelection()) {
       return
     }
@@ -47,9 +52,6 @@ class ElementSelectionProxy extends BaseModel {
     // Allows transforms to be recalled on demand, e.g. during Alt+drag
     this.transformCache = new TransformCache(this)
 
-    // When representing multiple elements, we apply changes to our proxy properties
-    this._proxyBoxPoints = []
-    this._proxyProperties = {}
     const boxPoints = Element.getBoundingBoxPoints(
       this.selection.map((element) => element.getBoxPointsTransformed()).reduce((accumulator, boxPoints) => {
         accumulator.push(...boxPoints)
@@ -67,7 +69,6 @@ class ElementSelectionProxy extends BaseModel {
     const height = Math.abs(boxPoints[0].y - boxPoints[8].y)
     Object.assign(
       this._proxyProperties,
-      ElementSelectionProxy.DEFAULT_PROPERTY_VALUES,
       {
         'sizeAbsolute.x': width,
         'sizeAbsolute.y': height,
@@ -287,7 +288,7 @@ class ElementSelectionProxy extends BaseModel {
     )
   }
 
-  group (metadata, groupTitle) {
+  group (metadata) {
     if (!this.hasAnythingInSelection()) {
       return
     }
@@ -305,7 +306,7 @@ class ElementSelectionProxy extends BaseModel {
       width: computedLayout.size.x,
       height: computedLayout.size.y,
       [HAIKU_SOURCE_ATTRIBUTE]: '<group>',
-      [HAIKU_TITLE_ATTRIBUTE]: groupTitle,
+      [HAIKU_TITLE_ATTRIBUTE]: this.component.nextSuggestedGroupName,
       'origin.x': computedLayout.origin.x,
       'origin.y': computedLayout.origin.y,
       'rotation.z': computedLayout.rotation.z
@@ -402,6 +403,28 @@ class ElementSelectionProxy extends BaseModel {
     }
   }
 
+  getConglomerateTranslation () {
+    const points = this.getBoundingBoxPoints()
+    return points[0]
+  }
+
+  getConglomerateSize () {
+    const points = this.getBoundingBoxPoints()
+    return {
+      x: points[2].x - points[0].x,
+      y: points[6].y - points[0].y
+    }
+  }
+
+  getBoundingBoxPoints () {
+    return Element.getBoundingBoxPoints(
+      this.selection.map((element) => element.getBoxPointsTransformed()).reduce((accumulator, boxPoints) => {
+        accumulator.push(...boxPoints)
+        return accumulator
+      }, [])
+    )
+  }
+
   getOriginTransformed () {
     return this.cacheFetch('getOriginTransformed', () => {
       // If managing only one element, use its own box points
@@ -478,7 +501,8 @@ class ElementSelectionProxy extends BaseModel {
     return this.cacheFetch('getComputedLayout', () => Layout3D.computeLayout(
       this.getLayoutSpec(),
       Layout3D.createMatrix(),
-      this.getParentComputedSize()
+      this.getParentComputedSize(),
+      null // contentSize
     ))
   }
 
@@ -1003,56 +1027,54 @@ class ElementSelectionProxy extends BaseModel {
       finalSize
     )
 
-    if (experimentIsEnabled(Experiment.StageResizeAllSides)) {
-      const elementOffset = {
-        'translation.x': translationX,
-        'translation.y': translationY
+    const elementOffset = {
+      'translation.x': translationX,
+      'translation.y': translationY
+    }
+
+    // Translate all elements on stage by the offset so the stage can be resized
+    // from any side with the elements retaining their original placement
+    this.component.getTopLevelElementHaikuIds().forEach((haikuId) => {
+      const selector = Template.buildHaikuIdSelector(haikuId)
+
+      if (!accumulatedUpdates[timelineName][haikuId]) { // dupe accumulateKeyframeUpdates
+        accumulatedUpdates[timelineName][haikuId] = {}
       }
 
-      // Translate all elements on stage by the offset so the stage can be resized
-      // from any side with the elements retaining their original placement
-      this.component.getTopLevelElementHaikuIds().forEach((haikuId) => {
-        const selector = Template.buildHaikuIdSelector(haikuId)
+      if (!bytecode.timelines[timelineName][selector]) {
+        bytecode.timelines[timelineName][selector] = {}
+      }
 
-        if (!accumulatedUpdates[timelineName][haikuId]) { // dupe accumulateKeyframeUpdates
-          accumulatedUpdates[timelineName][haikuId] = {}
+      for (const propertyName in elementOffset) {
+        const offsetValue = elementOffset[propertyName]
+
+        if (!accumulatedUpdates[timelineName][haikuId][propertyName]) { // dupe accumulateKeyframeUpdates
+          accumulatedUpdates[timelineName][haikuId][propertyName] = {}
         }
 
-        if (!bytecode.timelines[timelineName][selector]) {
-          bytecode.timelines[timelineName][selector] = {}
+        if (!bytecode.timelines[timelineName][selector][propertyName]) {
+          bytecode.timelines[timelineName][selector][propertyName] = {}
         }
 
-        for (const propertyName in elementOffset) {
-          const offsetValue = elementOffset[propertyName]
+        // We must ensure the zeroth keyframe exists since some elements may end up on stage
+        // without a translation.x,y value explicitly set, and we need to offset those too.
+        if (!bytecode.timelines[timelineName][selector][propertyName][0]) {
+          bytecode.timelines[timelineName][selector][propertyName][0] = {}
+        }
 
-          if (!accumulatedUpdates[timelineName][haikuId][propertyName]) { // dupe accumulateKeyframeUpdates
-            accumulatedUpdates[timelineName][haikuId][propertyName] = {}
-          }
+        for (const keyframeMs in bytecode.timelines[timelineName][selector][propertyName]) {
+          const existingValue = bytecode.timelines[timelineName][selector][propertyName][keyframeMs].value || 0
 
-          if (!bytecode.timelines[timelineName][selector][propertyName]) {
-            bytecode.timelines[timelineName][selector][propertyName] = {}
-          }
+          if (isNumeric(existingValue)) {
+            const updatedValue = existingValue - offsetValue
 
-          // We must ensure the zeroth keyframe exists since some elements may end up on stage
-          // without a translation.x,y value explicitly set, and we need to offset those too.
-          if (!bytecode.timelines[timelineName][selector][propertyName][0]) {
-            bytecode.timelines[timelineName][selector][propertyName][0] = {}
-          }
-
-          for (const keyframeMs in bytecode.timelines[timelineName][selector][propertyName]) {
-            const existingValue = bytecode.timelines[timelineName][selector][propertyName][keyframeMs].value || 0
-
-            if (isNumeric(existingValue)) {
-              const updatedValue = existingValue - offsetValue
-
-              accumulatedUpdates[timelineName][haikuId][propertyName][keyframeMs] = { // dupe accumulateKeyframeUpdates
-                value: updatedValue
-              }
+            accumulatedUpdates[timelineName][haikuId][propertyName][keyframeMs] = { // dupe accumulateKeyframeUpdates
+              value: updatedValue
             }
           }
         }
-      })
-    }
+      }
+    })
 
     this.component.updateKeyframes(
       accumulatedUpdates,

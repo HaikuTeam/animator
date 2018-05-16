@@ -1,3 +1,10 @@
+final String STATUS_PENDING = 'PENDING'
+final String STATUS_SUCCESS = 'SUCCESS'
+final String STATUS_FAILURE = 'FAILURE'
+final String CONTEXT_LINT = 'health/lint'
+final String CONTEXT_TEST_MAC = 'health/test/macOS'
+final String CONTEXT_BUILD_MAC = 'build/macOS'
+
 pipeline {
     agent none
     stages {
@@ -22,12 +29,19 @@ pipeline {
                         label 'master'
                     }
                     steps {
+                        setBuildStatus(CONTEXT_LINT, 'lint started', STATUS_PENDING)
                         yarnInstallUnixLike()
                         yarnRun('lint-report')
                     }
                     post {
                         always {
                             checkstyle()
+                        }
+                        success {
+                            setBuildStatus(CONTEXT_LINT, 'no lint errors', STATUS_SUCCESS)
+                        }
+                        failure {
+                            setBuildStatus(CONTEXT_LINT, 'lint errors found', STATUS_FAILURE)
                         }
                     }
                 }
@@ -36,6 +50,7 @@ pipeline {
                         label 'master'
                     }
                     steps {
+                        setBuildStatus(CONTEXT_TEST_MAC, 'tests started', STATUS_PENDING)
                         yarnInstallUnixLike()
                         yarnRun('compile-all')
                         yarnRun('test-report')
@@ -49,6 +64,12 @@ pipeline {
                                     planRequired: true
                             ])
                         }
+                        success {
+                            setBuildStatus(CONTEXT_TEST_MAC, 'all tests pass', STATUS_SUCCESS)
+                        }
+                        failure {
+                            setBuildStatus(CONTEXT_TEST_MAC, 'tests are failing', STATUS_SUCCESS)
+                        }
                     }
                 }
             }
@@ -58,6 +79,7 @@ pipeline {
                 label 'master'
             }
             steps {
+                setBuildStatus(CONTEXT_BUILD_MAC, 'build started', STATUS_PENDING)
                 yarnInstallUnixLike()
                 nodeRun('./scripts/distro-configure.js --non-interactive')
                 nodeRun('./scripts/distro-download-secrets.js')
@@ -67,10 +89,40 @@ pipeline {
             post {
                 success {
                     archiveArtifacts artifacts: 'dist/*.dmg, dist/*-mac.zip', fingerprint: true
+                    slackSend([
+                        channel: 'releases',
+                        color: 'good',
+                        message: "PR #${env.ghprbPullId} built!\n\n" +
+                            "GitHub URL: https://github.com/HaikuTeam/mono/pull/${env.ghprbPullId}\n" +
+                            "Download Mac DMG: https://ci.haiku.ai/job/HaikuDesktop/" +
+                            "${env.BUILD_NUMBER}/artifact/dist/Haiku-${getReleaseVersion()}.dmg"
+                    ])
+                    setBuildStatus(CONTEXT_BUILD_MAC, 'build complete', STATUS_SUCCESS)
+                }
+                failure {
+                    setBuildStatus(CONTEXT_BUILD_MAC, 'build failed', STATUS_FAILURE)
                 }
             }
         }
     }
+}
+
+void setBuildStatus(String context, String message, String state) {
+    step([
+        $class: 'GitHubCommitStatusSetter',
+        contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: context],
+        reposSource: [$class: 'ManuallyEnteredRepositorySource', url: 'https://github.com/HaikuTeam/mono'],
+        errorHandlers: [[$class: 'ChangingBuildStatusErrorHandler', result: 'UNSTABLE']],
+        statusResultSource: [
+            $class: 'ConditionalStatusResultSource',
+            results: [[$class: 'AnyBuildResult', message: message, state: state]]
+        ]
+    ])
+}
+
+String getReleaseVersion() {
+    def packageJson = readJSON file: 'package.json'
+    packageJson.version
 }
 
 void yarnInstallUnixLike() {

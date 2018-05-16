@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="49px" height="39px" viewBox="0 0 49 39" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: sketchtool 49.1 (51147) - http://www.bohemiancoding.com/sketch -->
+    <title>diamond icon</title>
+    <desc>Created with sketchtool.</desc>
+    <defs>
+        <linearGradient x1="0%" y1="85.1696994%" x2="100%" y2="0%" id="linearGradient-1">
+            <stop stop-color="#3023AE" offset="0%"></stop>
+            <stop stop-color="#53A0FD" offset="47.5247532%"></stop>
+            <stop stop-color="#B4EC51" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Artbored" transform="translate(-16.000000, -14.000000)" fill="url(#linearGradient-1)">
+            <g id="Tutorial" transform="translate(16.000000, 4.000000)">
+                <path d="M48.7407923,20.92 L41.0040922,10.52 C40.7616922,10.1924 40.3773922,10 39.9724922,10 L9.02549164,10 C8.62069163,10 8.23639163,10.1924 7.99399162,10.52 L0.257191492,20.92 C-0.111508514,21.4166 -0.0806085136,22.1082 0.329391493,22.5684 L23.5396919,48.5684 C23.7846919,48.8414 24.1327919,49 24.4989919,49 C24.8651919,49 25.2133919,48.844 25.4583919,48.5684 L48.6685923,22.5684 C49.0812923,22.1056 49.1121923,21.4166 48.7407923,20.92 Z M30.5027915,23 L24.4989915,43.176 L18.4952915,23 L30.5027915,23 Z M19.3411915,20.4 L24.4989915,13.4658 L29.6568915,20.4 L19.3411915,20.4 Z M27.0779915,12.6 L37.3935915,12.6 L32.2357915,19.5342 L27.0779915,12.6 Z M16.7622915,19.5342 L11.6044915,12.6 L21.9200915,12.6 L16.7622915,19.5342 Z M14.1833915,20.4 L3.86769149,20.4 L9.02549149,13.4658 L14.1833915,20.4 Z M15.8028915,23 L21.6131915,42.5234 L4.18489149,23 L15.8028915,23 Z M33.1950915,23 L44.8130915,23 L27.3847915,42.5234 L33.1950915,23 Z M34.8146915,20.4 L39.9724915,13.4658 L45.1303915,20.4 L34.8146915,20.4 Z" id="diamond-icon"></path>
+            </g>
+        </g>
+    </g>
+</svg>

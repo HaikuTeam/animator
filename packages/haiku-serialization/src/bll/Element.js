@@ -92,6 +92,7 @@ class Element extends BaseModel {
 
   hoverOn (metadata) {
     if (!this._isHovered || !Element.hovered[this.getPrimaryKey()]) {
+      this.cacheClear()
       this._isHovered = true
       Element.hovered[this.getPrimaryKey()] = this
       this.emit('update', 'element-hovered', metadata)
@@ -101,6 +102,7 @@ class Element extends BaseModel {
 
   hoverOff (metadata) {
     if (this._isHovered || Element.hovered[this.getPrimaryKey()]) {
+      this.cacheClear()
       this._isHovered = false
       delete Element.hovered[this.getPrimaryKey()]
       this.emit('update', 'element-unhovered', metadata)
@@ -195,7 +197,7 @@ class Element extends BaseModel {
   }
 
   getCoreHostComponentInstance () {
-    return this.component.getCoreComponentInstance()
+    return this.component.$instance
   }
 
   cut () {
@@ -258,9 +260,6 @@ class Element extends BaseModel {
   }
 
   batchUpsertEventHandlers (serializedEvents) {
-    // TODO: What is this code supposed to do?
-    // let eventHandlers = this.getReifiedEventHandlers() // pointer to substructs[0].bytecode
-    // eventHandlers = serializedEvents // eslint-disable-line
     this.emit('update', 'element-event-handler-update')
     return this
   }
@@ -493,13 +492,14 @@ class Element extends BaseModel {
     return this.cacheFetch('getComputedLayout', () => Layout3D.computeLayout(
       this.getLayoutSpec(),
       Layout3D.createMatrix(),
-      this.getParentComputedSize()
+      this.getParentComputedSize(),
+      Layout3D.computeSizeOfNodeContent(this.getLiveRenderedNode())
     ))
   }
 
   getLayoutSpec () {
     const bytecode = this.component.getReifiedBytecode()
-    const hostInstance = this.component.getCoreComponentInstance()
+    const hostInstance = this.component.$instance
 
     // Race condition when converting elements on stage to components
     if (!hostInstance) {
@@ -533,7 +533,6 @@ class Element extends BaseModel {
 
       if (computedValue === undefined || computedValue === null) {
         return TimelineProperty.getFallbackValue(
-          componentId,
           elementName,
           outputName
         )
@@ -656,7 +655,7 @@ class Element extends BaseModel {
 
   computePropertyValue (propertyName, fallbackValue) {
     const bytecode = this.component.getReifiedBytecode()
-    const host = this.component.getCoreComponentInstance()
+    const host = this.component.$instance
     const states = (host && host.getStates()) || {}
     const computed = TimelineProperty.getComputedValue(
       this.getComponentId(),
@@ -1007,7 +1006,7 @@ class Element extends BaseModel {
   }
 
   rehydrate () {
-    if (!experimentIsEnabled(Experiment.ElementDepthFilter) || this.getDepthAmongElements() < 2) {
+    if (this.getDepthAmongElements() < 2) {
       this.rehydrateChildren()
     }
   }
@@ -1092,11 +1091,11 @@ class Element extends BaseModel {
 
     // If this is a component, then add any of our componentAddressables states as builtinAddressables
     if (this.isComponent()) {
-      const component = this.getCoreTargetComponentInstance()
-      if (component) {
+      const instance = this.getCoreTargetComponentInstance()
+      if (instance) {
         // Note that the states also contain .value() for lazy evaluation of current state
         // Also note that states values should have a type='state' property
-        component.getAddressableProperties(componentAddressables)
+        instance.getAddressableProperties(componentAddressables)
       }
     }
 
@@ -1858,6 +1857,10 @@ Element.unselectAllElements = function (criteria, metadata) {
   Element.where(criteria).forEach((element) => element.unselect(metadata))
 }
 
+Element.hoverOffAllElements = function (criteria, metadata) {
+  Element.where(criteria).forEach((element) => element.hoverOff(metadata))
+}
+
 Element.clearCaches = function clearCaches () {
   Element.cache = {
     domNodes: {},
@@ -1996,6 +1999,10 @@ Element.buildUidFromComponentAndHaikuId = (component, haikuId) => {
 
 Element.findByComponentAndHaikuId = (component, haikuId) => {
   return Element.findById(Element.buildUidFromComponentAndHaikuId(component, haikuId))
+}
+
+Element.findHoveredElement = (component) => {
+  return Element.where({ component, _isHovered: true })[0]
 }
 
 Element.makeUid = (component, parent, index, staticTemplateNode) => {

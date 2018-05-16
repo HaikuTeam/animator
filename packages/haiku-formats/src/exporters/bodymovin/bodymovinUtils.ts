@@ -14,6 +14,12 @@ import {
   BodymovinPathComponent,
   BodymovinProperty,
 } from './bodymovinTypes';
+import {
+  BytecodeTimelineValue, 
+  BytecodeTimeline, 
+  BytecodeTimelineProperties, 
+  BytecodeTimelineProperty,
+} from '@haiku/core/lib/api/HaikuBytecode';
 
 const {pathToPoints} = SVGPoints;
 
@@ -63,12 +69,12 @@ const {pathToPoints} = SVGPoints;
  * @returns {{}}
  * @private
  */
-const animatedTimelineReducer = (accumulator, currentValue) => {
+const animatedTimelineReducer = (accumulator: any, currentValue: any) => {
   if (Object.keys(accumulator).length === 0) {
     return currentValue;
   }
 
-  currentValue[PropertyKey.Value].forEach((keyframe, index) => {
+  currentValue[PropertyKey.Value].forEach((keyframe: any, index: any) => {
     if (accumulator[PropertyKey.Value][index][AnimationKey.Time] !== keyframe[AnimationKey.Time]) {
       // This should never happen! The work done in BodymovinExporter.alignCurveKeyframes() should guarantee keyframes
       // are aligned for values that are animated together.
@@ -94,7 +100,7 @@ const animatedTimelineReducer = (accumulator, currentValue) => {
  * @param currentValue
  * @returns {{}}
  */
-export const compoundTimelineReducer = (accumulator, currentValue) => {
+export const compoundTimelineReducer = (accumulator: any, currentValue: any) => {
   if (currentValue[PropertyKey.Animated] === 1) {
     return animatedTimelineReducer(accumulator, currentValue);
   }
@@ -178,8 +184,8 @@ export const getShapeDimensions = (shape: any): [number, number] => {
       // currently only that we might fail to perfectly render a gradient fill, so it's not the end of the world!
       const vertices = shape[ShapeKey.Vertices][PropertyKey.Value][PathKey.Points];
       return [
-        Math.max(...vertices.map((vertex) => vertex[0])),
-        Math.max(...vertices.map((vertex) => vertex[1])),
+        Math.max(...vertices.map((vertex: number[]) => vertex[0])),
+        Math.max(...vertices.map((vertex: number[]) => vertex[1])),
       ];
     default:
       throw new Error(`Invalid request to get dimensions for shape type: ${shape[ShapeKey.Type]}`);
@@ -192,7 +198,7 @@ export const getShapeDimensions = (shape: any): [number, number] => {
  * @param {(any) => any} mutator
  * @returns {any}
  */
-export const maybeApplyMutatorToProperty = (property: any, mutator: (any) => any) => {
+export const maybeApplyMutatorToProperty = (property: any, mutator: (param: any) => any) => {
   if (mutator === undefined) {
     return property;
   }
@@ -234,11 +240,11 @@ export const pathToInterpolationTrace = (points: PathPoint[], closed: boolean) =
     points.push(points[0]);
   }
 
-  let lastVertex;
+  let lastVertex: BodymovinCoordinates;
   points.forEach((point, index) => {
     if (index === 0) {
       // We are at a moveto. This pushes a new vertex onto our trace.
-      vertices.push(lastVertex = [point.x, point.y] as BodymovinCoordinates);
+      vertices.push(lastVertex = [point.x, point.y]);
     } else if (point.curve) {
       // TODO: Actually check the curve for validity (e.g. NaNs where NaNs are illegal).
       if (point.curve.type !== 'cubic') {
@@ -247,11 +253,11 @@ export const pathToInterpolationTrace = (points: PathPoint[], closed: boolean) =
       }
       interpolationOutPoints.push([point.curve.x1, point.curve.y1]); // This is the last out point.
       interpolationInPoints.push([point.curve.x2, point.curve.y2]); // This is the current in point.
-      vertices.push(lastVertex = [point.x, point.y] as BodymovinCoordinates);
+      vertices.push(lastVertex = [point.x, point.y]);
     } else {
       // We are at a lineto. This pushes a new vertex onto our trace and creates a "null interpolation".
       interpolationOutPoints.push(lastVertex);
-      vertices.push(lastVertex = [point.x, point.y] as BodymovinCoordinates);
+      vertices.push(lastVertex = [point.x, point.y]);
       interpolationInPoints.push(lastVertex);
     }
   });
@@ -398,7 +404,10 @@ export const decomposePath = (path: string|PathPoint[]): {points: PathPoint[], c
     return decomposePath(getPath(path));
   }
 
-  const allClosedPaths = [];
+  const allClosedPaths: {
+    points: PathPoint[];
+    closed: boolean;
+  }[] = [];
   if (path.length < 2) {
     return allClosedPaths;
   }
@@ -433,7 +442,7 @@ export const decomposePath = (path: string|PathPoint[]): {points: PathPoint[], c
  * @param timelineProperty
  * @returns {number[]}
  */
-export const keyframesFromTimelineProperty = (timelineProperty): number[] => {
+export const keyframesFromTimelineProperty = (timelineProperty: BytecodeTimelineProperty): number[] => {
   const keyframes: number[] = Object.keys(timelineProperty).map((i) => parseInt(i, 10));
   keyframes.sort((a, b) => a - b);
   return keyframes;

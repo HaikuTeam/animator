@@ -33,6 +33,7 @@
   "devDependencies": {
     "@types/node": "8.9.4",
     "@types/ws": "^3.0.2",
+    "@types/bluebird": "^3.5.20",
     "cross-env": "^5.1.4",
     "leaked-handles": "^5.2.0",
     "nyc": "^11.3.0",

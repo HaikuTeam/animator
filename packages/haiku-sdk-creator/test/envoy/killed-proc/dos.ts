@@ -10,7 +10,7 @@ const client = new EnvoyClient<CatHandler>({
 });
 
 async function go() {
-  const channel = await client.get('cat');
+  const channel: any = await client.get('cat');
   channel.on('meowed', (payload) => {
     // empty
   });

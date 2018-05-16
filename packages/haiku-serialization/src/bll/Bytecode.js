@@ -340,7 +340,7 @@ Bytecode.mergeBytecodeControlStructures = (b1, b2) => {
   Bytecode.mergeBytecodeStates(b1, b2)
   Bytecode.mergeBytecodeEventHandlers(b1, b2)
   if (b2.timelines && !b1.timelines) b1.timelines = {}
-  Bytecode.mergeTimelines(b1.timelines, b2.timelines)
+  return Bytecode.mergeTimelines(b1.timelines, b2.timelines)
 }
 
 Bytecode.pasteBytecode = (destination, pasted) => {

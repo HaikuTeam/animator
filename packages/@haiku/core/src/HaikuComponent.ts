@@ -19,6 +19,7 @@ import scopifyElements from './helpers/scopifyElements';
 import Layout3D from './Layout3D';
 import ValueBuilder from './ValueBuilder';
 import assign from './vendor/assign';
+import {HaikuBytecode} from './api/HaikuBytecode';
 
 const pkg = require('./../package.json');
 export const VERSION = pkg.version;
@@ -27,8 +28,6 @@ const STRING_TYPE = 'string';
 const OBJECT_TYPE = 'object';
 const HAIKU_ID_ATTRIBUTE = 'haiku-id';
 const DEFAULT_TIMELINE_NAME = 'Default';
-
-const GENERIC_SELECTOR = '*';
 
 const CSS_QUERY_MAPPING = {
   name: 'elementName',
@@ -60,25 +59,30 @@ export default class HaikuComponent extends HaikuElement {
   _states;
 
   bytecode;
+  /**
+   * @deprecated
+   */
+  _bytecode;
   config;
   container;
-  context;
+  context: HaikuContext;
   CORE_VERSION;
   doAlwaysFlush;
   doesNeedFullFlush;
   guests;
   host;
+  playback;
   PLAYER_VERSION;
   registeredEventHandlers;
   state;
 
   constructor(
-    bytecode: any,
+    bytecode: HaikuBytecode,
     context: HaikuContext,
     host: HaikuComponent,
     config,
     container,
-) {
+  ) {
     super();
 
     // We provide rudimentary support for passing the `template` as an XML string.
@@ -181,12 +185,16 @@ export default class HaikuComponent extends HaikuElement {
 
     try {
       // If the bytecode we got happens to be in an outdated format, we automatically update it to the latest.
-      runMigrations(this, {
-        // Random seed for adding instance uniqueness to ids at runtime.
-        referenceUniqueness: (config.hotEditingMode)
-          ? undefined // During editing, Haiku.app pads ids unless this is undefined
-          : Math.random().toString(36).slice(2),
-      });
+      runMigrations(
+        this,
+        {
+          // Random seed for adding instance uniqueness to ids at runtime.
+          referenceUniqueness: (config.hotEditingMode)
+            ? undefined // During editing, Haiku.app pads ids unless this is undefined
+            : Math.random().toString(36).slice(2),
+        },
+        VERSION,
+      );
     } catch (e) {
       console.warn('[haiku core] caught error during migration', e);
     }
@@ -196,6 +204,9 @@ export default class HaikuComponent extends HaikuElement {
     this.startTimeline(DEFAULT_TIMELINE_NAME);
 
     this.routeEventToHandlerAndEmit(GLOBAL_LISTENER_KEY, 'component:did-initialize', [this]);
+
+    // #FIXME: some handlers may still reference `_bytecode` directly.
+    this._bytecode = this.bytecode;
   }
 
   /**
@@ -223,10 +234,10 @@ export default class HaikuComponent extends HaikuElement {
     this.guests[subcomponent.getId()] = subcomponent;
   }
 
-  activateGuests() {
+  visitGuestHierarchy(visitor: Function) {
+    visitor(this, this.$id, this.host);
     for (const $id in this.guests) {
-      this.guests[$id].activate();
-      this.guests[$id].activateGuests();
+      this.guests[$id].visitGuestHierarchy(visitor);
     }
   }
 
@@ -671,6 +682,10 @@ export default class HaikuComponent extends HaikuElement {
   }
 
   performPatchRenderWithRenderer(renderer, options: any = {}, skipCache: boolean) {
+    if (renderer.shouldCreateContainer) {
+      this.context.getContainer(true); // Force recalc of container
+    }
+
     const patches = this.patch(options, skipCache);
 
     renderer.patch(
@@ -729,7 +744,7 @@ export default class HaikuComponent extends HaikuElement {
       });
     }
 
-    if (options.sizing) {
+    if (!this.host && options.sizing) {
       computeAndApplyPresetSizing(
         template,
         this.container,
@@ -763,7 +778,7 @@ export default class HaikuComponent extends HaikuElement {
       skipCache,
     );
 
-    if (options.sizing) {
+    if (!this.host && options.sizing) {
       computeAndApplyPresetSizing(
         template,
         this.container,
@@ -799,7 +814,11 @@ export default class HaikuComponent extends HaikuElement {
     for (const timelineName in this.bytecode.timelines) {
       const timelineInstance = this.getTimeline(timelineName);
 
-      timelineInstance.doUpdateWithGlobalClockTime(globalClockTime);
+      // If we update with the global clock time while a timeline is paused, the next
+      // time we resume playing it will "jump forward" to the time that has elapsed.
+      if (timelineInstance.isPlaying()) {
+        timelineInstance.doUpdateWithGlobalClockTime(globalClockTime);
+      }
 
       const timelineTime = timelineInstance.getBoundedTime();
 
@@ -811,7 +830,7 @@ export default class HaikuComponent extends HaikuElement {
         ? this._mutableTimelines[timelineName]
         : timelineDescriptor;
 
-      if (!timelineDescriptor || typeof timelineDescriptor !== 'object') {
+      if (!mutableTimelineDescriptor || typeof mutableTimelineDescriptor !== 'object') {
         continue;
       }
 
@@ -890,6 +909,7 @@ export default class HaikuComponent extends HaikuElement {
                 behaviorKey,
                 behaviorValue,
                 this.context,
+                timelineInstance,
                 this,
               );
             }
@@ -905,22 +925,6 @@ export default class HaikuComponent extends HaikuElement {
       this._flatManaTree,
       this._matchedElementCache,
     );
-  }
-
-  controlTime (timelineName: string, timelineTime: number) {
-    const explicitTime = this.context.clock.getExplicitTime();
-    const timelineInstances = this.getTimelines();
-
-    for (const localTimelineName in timelineInstances) {
-      if (localTimelineName === timelineName) {
-        const timelineInstance = timelineInstances[timelineName];
-        timelineInstance.controlTime(timelineTime, explicitTime);
-      }
-    }
-
-    for (const $id in this.guests) {
-      this.guests[$id].controlTime(timelineName, timelineTime);
-    }
   }
 
   _hydrateMutableTimelines() {
@@ -976,6 +980,103 @@ export default class HaikuComponent extends HaikuElement {
         },
       },
     };
+  }
+
+  controlTime(timelineName: string, timelineTime: number) {
+    const explicitTime = this.context.clock.getExplicitTime();
+    const timelineInstances = this.getTimelines();
+
+    for (const localTimelineName in timelineInstances) {
+      if (localTimelineName === timelineName) {
+        const timelineInstance = timelineInstances[timelineName];
+        timelineInstance.controlTime(timelineTime, explicitTime);
+      }
+    }
+
+    for (const $id in this.guests) {
+      this.guests[$id].controlTime(
+        timelineName,
+        this.getControlledTimeDefinedForGuestComponent(
+          this.guests[$id],
+          timelineName,
+          timelineTime,
+        ),
+      );
+    }
+  }
+
+  getControlledTimeDefinedForGuestComponent(
+    guest: HaikuComponent,
+    timelineName: string,
+    timelineTime: number,
+  ): number {
+    const wrapper = guest.parentNode;
+
+    if (!wrapper) {
+      return timelineTime;
+    }
+
+    const wrapperId = wrapper.attributes && wrapper.attributes[HAIKU_ID_ATTRIBUTE];
+
+    if (!wrapperId) {
+      return timelineTime;
+    }
+
+    const playbackValue = this.getOutputValue(
+      timelineName,
+      timelineTime,
+      wrapperId,
+      'playback',
+    );
+
+    if (typeof playbackValue === 'number') {
+      return playbackValue;
+    }
+
+    // If time is controlled and we're repeating, use a modulus of the guest's max time
+    // which will give the effect of looping the guest to its 0 if its max has been reached
+    if (playbackValue === 'repeating') {
+      const guestTimeline = guest.getTimeline(timelineName);
+
+      if (guestTimeline) {
+        const guestMax = guestTimeline.getMaxTime();
+        const finalFrame = timelineTime % guestMax; // TODO: What if final frame has a change?
+        return finalFrame;
+      }
+
+      return timelineTime;
+    }
+
+    return timelineTime;
+  }
+
+  getPropertiesGroup(timelineName: string, flexId: string) {
+    return (
+      this.bytecode &&
+      this.bytecode.timelines &&
+      this.bytecode.timelines[timelineName] &&
+      this.bytecode.timelines[timelineName][`haiku:${flexId}`]
+    );
+  }
+
+  getOutputValue(
+    timelineName: string,
+    timelineTime: number,
+    flexId: string,
+    propertyName: string,
+  ): any {
+    return this._builder.grabValue(
+      timelineName,
+      flexId,
+      null, // matchingElement - not needed?
+      propertyName,
+      this.getPropertiesGroup(timelineName, flexId),
+      timelineTime,
+      flexId,
+      false, // isPatchOperation
+      false, // skipCache
+      false, // clearSortedKeyframesCache
+    );
   }
 }
 
@@ -1211,21 +1312,23 @@ function applyPropertyToNode(
   name,
   value,
   context,
-  component,
+  timeline: HaikuTimeline,
+  component: HaikuComponent,
 ) {
-  const instance = node.__subcomponent || node.__instance;
-  const type = (instance && instance.tagName) || node.elementName;
+  const sender = (node.__instance) ? node.__instance : component; // Who sent the command
+  const receiver = node.__subcomponent || node.__receiver;
+  const type = (receiver && receiver.tagName) || node.elementName;
   const vanity = vanities[type] && vanities[type][name];
-  const addressables = instance && instance.getAddressableProperties();
-  const addressee = addressables && addressables[name] !== undefined && instance;
+  const addressables = receiver && receiver.getAddressableProperties();
+  const addressee = addressables && addressables[name] !== undefined && receiver;
 
   if (addressee && vanity) {
     addressee.set(name, value);
-    vanity(name, node, value, context, component);
+    vanity(name, node, value, context, timeline, receiver, sender);
   } else if (addressee) {
     addressee.set(name, value);
   } else if (vanity) {
-    vanity(name, node, value, context, component);
+    vanity(name, node, value, context, timeline, receiver, sender);
   } else {
     node.attributes[name] = value;
   }
@@ -1380,17 +1483,18 @@ function computeAndApplyTreeLayouts(tree, container, options, context) {
   }
 }
 
-function computeAndApplyNodeLayout(element, parent) {
-  // No point proceeding if our parent element doesn't have a computed layout
+function computeAndApplyNodeLayout(node, parent) {
+  // No point proceeding if our parent node doesn't have a computed layout
   if (parent && parent.layout && parent.layout.computed) {
     const parentSize = parent.layout.computed.size;
 
-    // Don't assume the element has/needs a layout, for example, control-flow injectees
-    if (element.layout && element.layout.matrix) {
-      element.layout.computed = Layout3D.computeLayout(
-        element.layout,
-        element.layout.matrix,
+    // Don't assume the node has/needs a layout, for example, control-flow injectees
+    if (node.layout && node.layout.matrix) {
+      node.layout.computed = Layout3D.computeLayout(
+        node.layout,
+        node.layout.matrix,
         parentSize,
+        Layout3D.computeSizeOfNodeContent(node),
       );
     }
   }
@@ -1600,6 +1704,8 @@ const clone = (value, binding) => {
   return value;
 };
 
+HaikuComponent['__name__'] = 'HaikuComponent';
+
 HaikuComponent['PLAYER_VERSION'] = VERSION; // #LEGACY
 HaikuComponent['CORE_VERSION'] = VERSION;
 
@@ -1607,3 +1713,4 @@ HaikuComponent['all'] = (): HaikuComponent[] => {
   const all = HaikuBase['getRegistryForClass'](HaikuComponent);
   return all.filter((component) => !component.isDestroyed);
 };
+

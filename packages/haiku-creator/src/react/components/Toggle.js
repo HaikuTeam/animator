@@ -39,7 +39,7 @@ class Toggle extends React.Component {
               : this.previewHaiku.getDefaultTimeline().gotoAndPlay(100)
           }}
         >
-          <div style={STYLES.eye}>
+          <div>
             <IPreview
               haikuStates={{isOn: {value: this.props.active}}}
               onHaikuComponentDidMount={(component) => {

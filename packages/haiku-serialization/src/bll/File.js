@@ -115,14 +115,18 @@ class File extends BaseModel {
     return cb()
   }
 
+  getCode () {
+    const bytecode = this.mod.fetchInMemoryExport()
+    return this.ast.updateWithBytecodeAndReturnCode(bytecode)
+  }
+
   flushContent () {
     // We're about to flush content for all requests received up to this point
     // If more occur during async, that's fine; we'll just get called again,
     // but those who need to wait can read the list to know what's still pending
     this._pendingContentFlushes.splice(0)
 
-    const bytecode = this.mod.fetchInMemoryExport()
-    const incoming = this.ast.updateWithBytecodeAndReturnCode(bytecode)
+    const incoming = this.getCode()
 
     this.assertContents(incoming)
 
@@ -420,20 +424,19 @@ File.readMana = (folder, relpath, cb) => {
       return cb(null, manaFull)
     }
 
-    if (experimentIsEnabled(Experiment.SvgOptimizer)) {
-      return getSvgOptimizer().optimize(xml, { path: path.join(folder, relpath) }).then((contents) => {
-        const manaOptimized = xmlToMana(contents.data)
+    return getSvgOptimizer().optimize(xml, { path: path.join(folder, relpath) }).then((contents) => {
+      const manaOptimized = xmlToMana(contents.data)
 
-        if (!manaOptimized) {
-          return cb(new Error(`We couldn't load the contents of ${relpath}`))
-        }
+      if (!manaOptimized) {
+        return cb(new Error(`We couldn't load the contents of ${relpath}`))
+      }
 
-        if (experimentIsEnabled(Experiment.NormalizeSvgContent)) {
-          return cb(null, Template.normalize(manaOptimized))
-        }
+      if (experimentIsEnabled(Experiment.NormalizeSvgContent)) {
+        return cb(null, Template.normalize(manaOptimized))
+      }
 
-        return cb(null, manaOptimized)
-      })
+      return cb(null, manaOptimized)
+    })
       .catch((exception) => {
         // Log the exception too in case the error occurred as part of our pipeline
         logger.warn(`[file] svgo couldn't parse ${relpath}`, exception)
@@ -442,9 +445,6 @@ File.readMana = (folder, relpath, cb) => {
           return returnUnoptimizedMana()
         })
       })
-    } else {
-      return returnUnoptimizedMana()
-    }
   })
 }
 

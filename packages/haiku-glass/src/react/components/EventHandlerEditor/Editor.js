@@ -65,13 +65,6 @@ class Editor extends React.Component {
       contextmenu: false,
       codeLens: false,
       parameterHints: false,
-      /* Elements with `will-change: transform` are containing blocks
-        for all descendants, meaning that all elements,
-        *including fixed elements* are positioned against them.
-        In order for snippets and other glorious features to break the overflow
-        of the editor, they need to be fixed against the document. */
-      // disableLayerHinting: true,
-      // fixedOverflowWidgets: true,
       scrollbar: {
         vertical: 'hidden',
         verticalScrollbarSize: '0'

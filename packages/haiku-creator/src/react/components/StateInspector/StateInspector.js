@@ -60,6 +60,7 @@ class StateInspector extends React.Component {
     this.deleteStateValue = this.deleteStateValue.bind(this)
     this.openNewStateForm = this.openNewStateForm.bind(this)
     this.closeNewStateForm = this.closeNewStateForm.bind(this)
+    this.isPopulatingStateData = false
     this.state = {
       sceneName: 'State Inspector',
       statesData: null,
@@ -68,15 +69,26 @@ class StateInspector extends React.Component {
   }
 
   populateStatesData () {
+    this.isPopulatingStateData = true
+
     this.props.projectModel.readAllStateValues(
       (err, statesData) => {
+        this.isPopulatingStateData = false
+
         if (err) {
-          return this.props.createNotice({
-            title: 'Uh oh',
-            type: 'error',
-            message: 'There was a problem loading the states data for this project'
+          // Don't rapidly re-request state 1000s of times if we got an error
+          return this.setState({
+            statesData: {},
+            sceneName: this.getActiveSceneName(this.props)
+          }, () => {
+            this.props.createNotice({
+              title: 'Uh oh',
+              type: 'error',
+              message: 'There was a problem loading the states data for this project'
+            })
           })
         }
+
         this.setState({
           sceneName: this.getActiveSceneName(this.props),
           statesData
@@ -98,7 +110,9 @@ class StateInspector extends React.Component {
       (nextProps.visible && !this.state.statesData) || // If we haven't populated yet
       this.state.sceneName !== this.getActiveSceneName(nextProps) // If we have context-switched
     ) {
-      this.populateStatesData()
+      if (!this.isPopulatingStateData) {
+        this.populateStatesData()
+      }
     }
   }
 

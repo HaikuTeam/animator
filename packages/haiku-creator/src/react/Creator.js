@@ -302,15 +302,15 @@ export default class Creator extends React.Component {
       }
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
-    ipcRenderer.on('global-menu:selectall', lodash.debounce(() => {
+    ipcRenderer.on('global-menu:selectAll', lodash.debounce(() => {
       // Only select all if we haven't activated a text element
       if (!this.isTextInputFocused()) {
-        logger.info(`[creator] global-menu:selectall`)
+        logger.info(`[creator] global-menu:selectAll`)
         this.props.websocket.send({
           type: 'relay',
           from: 'creator',
           view: 'timeline',
-          name: 'global-menu:selectall'
+          name: 'global-menu:selectAll'
         })
       }
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
@@ -555,11 +555,19 @@ export default class Creator extends React.Component {
           BaseModel.receiveSync(message)
           break
 
+        case 'component:reload':
+          if (this.getActiveComponent()) {
+            this.getActiveComponent().moduleReplace(() => {})
+          }
+          break
+
         case 'project-state-change':
-          return this.handleConnectedProjectModelStateChange(message)
+          this.handleConnectedProjectModelStateChange(message)
+          break
 
         case 'dimensions-reset':
-          return this.setState({ artboardDimensions: message.data })
+          this.setState({ artboardDimensions: message.data })
+          break
       }
     })
 
@@ -802,11 +810,16 @@ export default class Creator extends React.Component {
     mixpanel.haikuTrack(`creator:preview-mode:${report}`)
   }
 
+  handleInteractionModeChange (interactionMode) {
+    this.setState({interactionMode})
+    this.mixpanelReportPreviewMode(interactionMode)
+  }
+
   setPreviewMode (interactionMode) {
     if (this.state.projectModel) {
-      this.state.projectModel.setInteractionMode(interactionMode, () => { })
-      this.setState({ interactionMode })
-      this.mixpanelReportPreviewMode(interactionMode)
+      this.state.projectModel.setInteractionMode(interactionMode, {from: 'creator'}, () => {
+        this.handleInteractionModeChange(interactionMode)
+      })
     }
   }
 
@@ -996,19 +1009,31 @@ export default class Creator extends React.Component {
             // Clear the undo/redo stack (etc) from the previous editing session if any is left over
             projectModel.actionStack.resetData()
 
-            projectModel.on('update', (what) => {
+            projectModel.on('update', (what, ...args) => {
+              // logger.info(`[creator] local update ${what}`)
+
               switch (what) {
                 case 'setCurrentActiveComponent':
                   this.handleActiveComponentReady()
+                  break
+
+                case 'setInteractionMode':
+                  this.handleInteractionModeChange(...args)
+                  break
               }
             })
 
             projectModel.on('remote-update', (what, ...args) => {
+              // logger.info(`[creator] remote update ${what}`)
+
               switch (what) {
                 case 'setCurrentActiveComponent':
-                  return this.forceUpdate()
+                  this.forceUpdate()
+                  break
+
                 case 'setInteractionMode':
-                  return this.setPreviewMode(args[1])
+                  this.handleInteractionModeChange(...args)
+                  break
               }
             })
 

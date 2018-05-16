@@ -1,1 +1,4 @@
 lib
+checkstyle-result.xml
+test-result.tap
+~test

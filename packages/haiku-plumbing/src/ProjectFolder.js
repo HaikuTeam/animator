@@ -190,23 +190,23 @@ export function buildProjectContent (
 
       fse.outputFileSync(dir(projectPath, 'README.md'), dedent`
         # ${projectNameSafe}
-  
+
         This project was created with [Haiku](https://haiku.ai).
-  
+
         ## Install
-  
+
         \`\`\`
         $ haiku install ${projectNameSafe}
         \`\`\`
-  
+
         ## Usage
-  
+
         \`\`\`
         var ${projectNameSafe} = require('${npmPackageName}')
         \`\`\`
-  
+
         ## Copyright
-  
+
         Please refer to LICENSE.txt.
       `)
 
@@ -225,6 +225,12 @@ export function buildProjectContent (
       fse.outputFileSync(dir(projectPath, 'react.js'), dedent`
         // By default, a react-dom module is exported; see code/main/* for other options
         module.exports = require('./code/main/react-dom')
+      `)
+      fse.outputFileSync(dir(projectPath, 'angular-module.js'), dedent`
+        // By default, a Angular module is exported; see code/main/* for other options
+        module.exports = {
+          default: require('./code/main/angular-dom')
+        }
       `)
       fse.outputFileSync(dir(projectPath, 'vue.js'), dedent`
         // By default, a vue-dom module is exported; see code/main/* for other options
@@ -402,12 +408,12 @@ export function duplicateProject (destinationProject, sourceProject, cb) {
     // Create a haiku config file.
     fse.mkdirpSync(destinationProject.projectPath)
 
-    const sourceVariations = Project.getProjectNameVariations(sourceProject.projectPath)
-    const sourceAssetBasename = path.basename(sourceVariations.primaryAssetPath)
+    const sourcePrimaryAssetPath = Project.getPrimaryAssetPath(sourceProject.projectName)
+    const sourceAssetBasename = path.basename(sourcePrimaryAssetPath)
     const sourceAssetPathPattern = new RegExp(escapeRegExp(sourceAssetBasename), 'g')
 
-    const destinationVariations = Project.getProjectNameVariations(destinationProject.projectPath)
-    const destinationAssetBasename = path.basename(destinationVariations.primaryAssetPath)
+    const destinationPrimaryAssetPath = Project.getPrimaryAssetPath(destinationProject.projectName)
+    const destinationAssetBasename = path.basename(destinationPrimaryAssetPath)
     logger.info(`using ${sourceAssetBasename}, ${destinationAssetBasename}, ${sourceAssetPathPattern}`)
 
     const scenes = fse.readdirSync(path.join(sourceProject.projectPath, 'code'))
