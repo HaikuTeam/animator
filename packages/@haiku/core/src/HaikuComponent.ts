@@ -994,8 +994,89 @@ export default class HaikuComponent extends HaikuElement {
     }
 
     for (const $id in this.guests) {
-      this.guests[$id].controlTime(timelineName, timelineTime);
+      this.guests[$id].controlTime(
+        timelineName,
+        this.getControlledTimeDefinedForGuestComponent(
+          this.guests[$id],
+          timelineName,
+          timelineTime,
+        ),
+      );
     }
+  }
+
+  getControlledTimeDefinedForGuestComponent(
+    guest: HaikuComponent,
+    timelineName: string,
+    timelineTime: number,
+  ): number {
+    const wrapper = guest.parentNode;
+
+    if (!wrapper) {
+      return timelineTime;
+    }
+
+    const wrapperId = wrapper.attributes && wrapper.attributes[HAIKU_ID_ATTRIBUTE];
+
+    if (!wrapperId) {
+      return timelineTime;
+    }
+
+    const playbackValue = this.getOutputValue(
+      timelineName,
+      timelineTime,
+      wrapperId,
+      'playback',
+    );
+
+    if (typeof playbackValue === 'number') {
+      return playbackValue;
+    }
+
+    // If time is controlled and we're repeating, use a modulus of the guest's max time
+    // which will give the effect of looping the guest to its 0 if its max has been reached
+    if (playbackValue === 'repeating') {
+      const guestTimeline = guest.getTimeline(timelineName);
+
+      if (guestTimeline) {
+        const guestMax = guestTimeline.getMaxTime();
+        const finalFrame = timelineTime % guestMax; // TODO: What if final frame has a change?
+        return finalFrame;
+      }
+
+      return timelineTime;
+    }
+
+    return timelineTime;
+  }
+
+  getPropertiesGroup(timelineName: string, flexId: string) {
+    return (
+      this.bytecode &&
+      this.bytecode.timelines &&
+      this.bytecode.timelines[timelineName] &&
+      this.bytecode.timelines[timelineName][`haiku:${flexId}`]
+    );
+  }
+
+  getOutputValue(
+    timelineName: string,
+    timelineTime: number,
+    flexId: string,
+    propertyName: string,
+  ): any {
+    return this._builder.grabValue(
+      timelineName,
+      flexId,
+      null, // matchingElement - not needed?
+      propertyName,
+      this.getPropertiesGroup(timelineName, flexId),
+      timelineTime,
+      flexId,
+      false, // isPatchOperation
+      false, // skipCache
+      false, // clearSortedKeyframesCache
+    );
   }
 }
 
