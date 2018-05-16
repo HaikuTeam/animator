@@ -497,16 +497,6 @@ class Element extends BaseModel {
     ))
   }
 
-  getContentComputedSize () {
-    if (this.isTextNode()) {
-      return null
-    }
-
-    if (this.isComponent()) {
-      return this.children[0]
-    }
-  }
-
   getLayoutSpec () {
     const bytecode = this.component.getReifiedBytecode()
     const hostInstance = this.component.$instance
