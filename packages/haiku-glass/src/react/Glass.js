@@ -1253,7 +1253,9 @@ export class Glass extends React.Component {
         )
       )
     ) {
-      target = target.parentNode
+      if (target.parentNode) {
+        target = target.parentNode
+      }
     }
 
     return target
@@ -1285,7 +1287,7 @@ export class Glass extends React.Component {
 
   handleClick (clickEvent) {
     if (this.isPreviewMode()) {
-      return void (0)
+      return
     }
 
     if (this.getActiveComponent()) {
@@ -1301,7 +1303,7 @@ export class Glass extends React.Component {
     }
 
     if (this.isPreviewMode()) {
-      return void (0)
+      return
     }
 
     if (this.getActiveComponent()) {
