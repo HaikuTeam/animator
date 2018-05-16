@@ -16,8 +16,6 @@ import Palette from 'haiku-ui-common/lib/Palette'
 import Comment from './Comment'
 import EventHandlerEditor from './components/EventHandlerEditor'
 import CreateComponentModal from './modals/CreateComponentModal'
-import CreateGroupModal from './modals/CreateGroupModal'
-import UngroupModal from './modals/UngroupModal'
 import Comments from './Comments'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
 import requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates'
@@ -112,8 +110,6 @@ export class Glass extends React.Component {
       targetElement: null,
       isEventHandlerEditorOpen: false,
       isCreateComponentModalOpen: false,
-      isCreateGroupModalOpen: false,
-      isUngroupModalOpen: false,
       eventHandlerEditorOptions: {}
     }
 
@@ -165,6 +161,7 @@ export class Glass extends React.Component {
     this.drawLoop = this.drawLoop.bind(this)
     this.draw = this.draw.bind(this)
 
+    this.handleGroupDebounced = lodash.debounce(() => this.handleGroup(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
     this.handleUngroupDebounced = lodash.debounce(() => this.handleUngroup(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
     this.handleCutDebounced = lodash.debounce(() => this.handleCut(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
     this.handleCopyDebounced = lodash.debounce(() => this.handleCopy(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
@@ -537,13 +534,13 @@ export class Glass extends React.Component {
 
         case 'global-menu:group':
           if (experimentIsEnabled(Experiment.GroupUngroup)) {
-            this.launchGroupNameModal()
+            this.handleGroupDebounced()
           }
           break
 
         case 'global-menu:ungroup':
           if (experimentIsEnabled(Experiment.GroupUngroup)) {
-            this.launchUngroupModal()
+            this.handleUngroupDebounced()
           }
           break
 
@@ -725,11 +722,11 @@ export class Glass extends React.Component {
     }
   }
 
-  createGroupWithTitle (title) {
+  handleGroup () {
     const proxy = this.fetchProxyElementForSelection()
     if (proxy.canGroup()) {
       mixpanel.haikuTrack('creator:glass:group')
-      proxy.group({from: 'glass'}, title)
+      proxy.group({from: 'glass'})
     }
   }
 
@@ -744,18 +741,6 @@ export class Glass extends React.Component {
   launchComponentNameModal () {
     this.setState({
       isCreateComponentModalOpen: true
-    })
-  }
-
-  launchGroupNameModal () {
-    this.setState({
-      isCreateGroupModalOpen: true
-    })
-  }
-
-  launchUngroupModal () {
-    this.setState({
-      isUngroupModalOpen: true
     })
   }
 
@@ -925,8 +910,7 @@ export class Glass extends React.Component {
   }
 
   get areAnyModalsOpen () {
-    return this.state.isEventHandlerEditorOpen || this.state.isCreateComponentModalOpen ||
-      this.state.isCreateGroupModalOpen || this.state.isUngroupModalOpen
+    return this.state.isEventHandlerEditorOpen || this.state.isCreateComponentModalOpen
   }
 
   get shouldNotHandldKeyboardEvents () {
@@ -2084,8 +2068,8 @@ export class Glass extends React.Component {
         label: 'Group',
         enabled: proxy.canGroup(),
         onClick: () => {
-          mixpanel.haikuTrack('creator:glass:launch-create-group-modal')
-          this.launchGroupNameModal()
+          mixpanel.haikuTrack('creator:glass:create-group')
+          this.handleGroupDebounced()
         }
       })
 
@@ -2093,7 +2077,7 @@ export class Glass extends React.Component {
         label: 'Ungroup',
         enabled: proxy.canUngroup(),
         onClick: () => {
-          this.launchUngroupModal()
+          this.handleUngroupDebounced()
         }
       })
 
@@ -2305,41 +2289,6 @@ export class Glass extends React.Component {
             onCancel={() => {
               this.setState({
                 isCreateComponentModalOpen: false
-              })
-            }}
-          />
-        }
-
-        {!this.isPreviewMode() && this.state.isCreateGroupModalOpen &&
-          <CreateGroupModal
-            groupName={this.getActiveComponent().nextSuggestedGroupName}
-            onSubmit={(groupName) => {
-              this.setState({
-                isCreateGroupModalOpen: false
-              }, () => {
-                this.createGroupWithTitle(groupName)
-              })
-            }}
-            onCancel={() => {
-              this.setState({
-                isCreateGroupModalOpen: false
-              })
-            }}
-          />
-        }
-
-        {!this.isPreviewMode() && this.state.isUngroupModalOpen &&
-          <UngroupModal
-            onSubmit={(groupName) => {
-              this.setState({
-                isUngroupModalOpen: false
-              }, () => {
-                this.handleUngroupDebounced()
-              })
-            }}
-            onCancel={() => {
-              this.setState({
-                isUngroupModalOpen: false
               })
             }}
           />

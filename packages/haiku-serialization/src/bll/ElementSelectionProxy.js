@@ -287,7 +287,7 @@ class ElementSelectionProxy extends BaseModel {
     )
   }
 
-  group (metadata, groupTitle) {
+  group (metadata) {
     if (!this.hasAnythingInSelection()) {
       return
     }
@@ -305,7 +305,7 @@ class ElementSelectionProxy extends BaseModel {
       width: computedLayout.size.x,
       height: computedLayout.size.y,
       [HAIKU_SOURCE_ATTRIBUTE]: '<group>',
-      [HAIKU_TITLE_ATTRIBUTE]: groupTitle,
+      [HAIKU_TITLE_ATTRIBUTE]: this.component.nextSuggestedGroupName,
       'origin.x': computedLayout.origin.x,
       'origin.y': computedLayout.origin.y,
       'rotation.z': computedLayout.rotation.z
