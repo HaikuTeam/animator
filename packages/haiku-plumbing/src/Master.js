@@ -471,9 +471,7 @@ export default class Master extends EventEmitter {
       folder: this.folder,
       isReady: this._isReadyToReceiveMethods,
       isSaving: this._isSaving,
-      isCommitting: this._git.hasAnyPendingCommits(),
-      undoables: (this.project && this.project.actionStack.getUndoables()) || [],
-      redoables: (this.project && this.project.actionStack.getRedoables()) || []
+      isCommitting: this._git.hasAnyPendingCommits()
     }
 
     return cb(null, state)
