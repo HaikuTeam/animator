@@ -4,74 +4,7 @@
 
 import computeMatrix from './layout/computeMatrix';
 import computeSize from './layout/computeSize';
-
-
-export type LayoutSpecType = {
-  shown: boolean;
-  opacity: number;
-  mount: {
-    x: number;
-    y: number;
-    z: number;
-  };
-  align: {
-    x: number;
-    y: number;
-    z: number;
-  };
-  origin: {
-    x: number;
-    y: number;
-    z: number;
-  };
-  translation: {
-    x: number;
-    y: number;
-    z: number;
-  };
-  rotation: {
-    x: number;
-    y: number;
-    z: number;
-    w: number;
-  };
-  orientation: {
-    x: number;
-    y: number;
-    z: number;
-    w: number;
-  };
-  scale: {
-    x: number;
-    y: number;
-    z: number;
-  };
-  shear: {
-    xy: number;
-    xz: number;
-    yz: number;
-  };
-  sizeMode: {
-    x: number;
-    y: number;
-    z: number;
-  };
-  sizeProportional: {
-    x: number;
-    y: number;
-    z: number;
-  };
-  sizeDifferential: {
-    x: number;
-    y: number;
-    z: number;
-  };
-  sizeAbsolute: {
-    x: number;
-    y: number;
-    z: number;
-  };
-};
+import {LayoutSpec} from './api/Layout';
 
 const ELEMENTS_2D = {
   circle: true,
@@ -166,7 +99,7 @@ const initializeTreeAttributes = (tree, isRootNode: boolean) => {
 // EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
 // ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
-const createLayoutSpec = (createCoordinateSystem?: boolean): LayoutSpecType => ({
+const createLayoutSpec = (createCoordinateSystem?: boolean): LayoutSpec => ({
   shown: true,
   opacity: 1.0,
   mount: {x: 0, y: 0, z: 0}, // anchor in self

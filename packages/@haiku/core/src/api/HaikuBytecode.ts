@@ -176,17 +176,17 @@ export type BytecodeOptions = {
 
   // Configuration options that will be passed to the HaikuClock instance. 
   // See HaikuClock.js for info.
-  clock?: object|null,
+  clock?: object,
 
   // Configures the sizing mode of the component; may be 'normal', 
   // 'stretch', 'contain', or 'cover'. See HaikuComponent.js for info.
-  sizing?: string|null,
+  sizing?: string,
 
   // Whether we should always assume the size of the mount will change on every tick. There is a significant
   // performance boost for all non-'normal' sizing modes if we *don't* always assume this, but the size of the
   // mount might change underneath for reasons other than changes in media queries. To be safe, we leave this on
   // by default.
-  alwaysComputeSizing?: boolean|null,
+  alwaysComputeSizing?: boolean,
 
   // Placeholder for an option to control whether to enable 
   // preserve-3d mode in DOM environments. [UNUSED]
@@ -202,18 +202,18 @@ export type BytecodeOptions = {
 
   // CSS overflow-x setting for the component. Convenience for allows user 
   // to specify the overflow setting without needing a wrapper element.
-  overflowX?: string|null,
+  overflowX?: string,
 
   // CSS overflow-x setting for the component. Convenience for allows user 
   // to specify the overflow setting without needing a wrapper element.
-  overflowY?: string|null,
+  overflowY?: string,
 
   // CSS overflow setting for the component. Use this OR overflowX/overflowY
-  overflow?: string|null,
+  overflow?: string,
 
   // If provided, a Mixpanel tracking instance will be created using this 
   // string as the API token. The default token is Haiku's production token.
-  mixpanel?: string|null,
+  mixpanel?: string,
 
   // Whether to prepend a webkit prefix to transform properties
   useWebkitPrefix?: boolean,
@@ -223,22 +223,22 @@ export type BytecodeOptions = {
   interactionMode?: number,
 
   // Allow states to be passed in at runtime (ASSIGNED)
-  states?: object|null,
+  states?: object,
 
   // Allow custom event handlers to be passed in at runtime (ASSIGNED)
-  eventHandlers?: object|null,
+  eventHandlers?: object,
 
   // Allow timelines to be passed in at runtime (ASSIGNED)
-  timelines?: object|null,
+  timelines?: object,
 
   // Allow vanities to be passed in at runtime (ASSIGNED)
-  vanities?: object|null,
+  vanities?: object,
 
   // Children may be passed in, typically via the React adapter
-  children?: PrimitiveType[]|null,
+  children?: PrimitiveType[],
 
   // Key/values representing placeholders to inject, usually via React adapter
-  placeholder?: object|null,
+  placeholder?: object,
 };
 
 /**

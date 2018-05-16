@@ -1,6 +1,7 @@
 import composedTransformsToTimelineProperties from '@haiku/core/lib/helpers/composedTransformsToTimelineProperties';
 import computeMatrix from '@haiku/core/lib/layout/computeMatrix';
-import Layout3D, {LayoutSpecType} from '@haiku/core/lib/Layout3D';
+import Layout3D from '@haiku/core/lib/Layout3D';
+import {LayoutSpec} from '@haiku/core/lib/api/Layout';
 import {LAYOUT_3D_VANITIES} from '@haiku/core/lib/properties/dom/vanities';
 import {ContextualSize} from 'haiku-common/lib/types';
 import {initialValueOr} from './timelineUtils';
@@ -40,7 +41,7 @@ const supportedMultiplicativeLayoutProperties = [
  * @param timeline
  * @param element
  */
-const shimLayoutForPseudoElement = (timeline: BytecodeTimelineProperties, element: {layout: LayoutSpecType}) => {
+const shimLayoutForPseudoElement = (timeline: BytecodeTimelineProperties, element: {layout: LayoutSpec}) => {
   supportedAdditiveLayoutProperties.forEach((property) => {
     if (timeline.hasOwnProperty(property)) {
       LAYOUT_3D_VANITIES[property](null, element, initialValueOr(timeline, property, 0));
