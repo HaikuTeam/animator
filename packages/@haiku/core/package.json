@@ -23,20 +23,19 @@
   "main": "index.js",
   "scripts": {
     "bundle": "node ./scripts/bundle.js",
-    "self-link": "yarn link && yarn link @haiku/core",
+    "self-link": "link && link @haiku/core",
     "develop": "yarn self-link && node ./scripts/develop.js",
-    "compile": "yarn tsc",
-    "watch": "yarn tsc --watch",
-    "coverage": "yarn compile && nyc yarn ts-node ./../../../node_modules/tape/bin/tape 'test/**/*.test.ts' | yarn tap-spec",
-    "html-coverage": "yarn compile && nyc --reporter=html yarn ts-node ./../../../node_modules/tape/bin/tape 'test/**/*.test.ts' | yarn tap-spec",
+    "compile": "tsc",
+    "watch": "tsc --watch",
+    "coverage": "yarn compile && nyc yarn ts-node ./node_modules/.bin/tape 'test/**/*.test.ts' | tap-spec",
+    "html-coverage": "yarn compile && nyc --reporter=html yarn ts-node ./node_modules/.bin/tape 'test/**/*.test.ts' | tap-spec",
     "lint": "yarn lint-src && yarn lint-test",
     "lint-src": "yarn tslint -p tsconfig.json -c tslint.json --exclude 'src/vendor/**' 'src/**/*.ts' -t stylish",
     "lint-test": "yarn tslint -p tsconfig.test.json -c tslint.json 'test/**/*.ts' -t stylish",
     "lint-report": "yarn lint-src -t checkstyle -o checkstyle-result.xml",
     "fix": "yarn lint-src --fix && yarn lint-test --fix",
-    "test": "yarn ts-node -P tsconfig.test.json ./../../../node_modules/tape/bin/tape 'test/**/*.test.ts' | tap-spec",
-    "depcheck": "yarn depcheck .",
-    "prepublishOnly": "yarn compile"
+    "test": "yarn ts-node -P tsconfig.test.json ./node_modules/.bin/tape 'test/**/*.test.ts' | tap-spec",
+    "depcheck": "depcheck ."
   },
   "authors": [
     "Matthew Trost <matthew@haiku.ai>",
