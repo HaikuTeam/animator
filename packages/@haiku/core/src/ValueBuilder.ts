@@ -2,8 +2,8 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import BasicUtils from './helpers/BasicUtils';
 import HaikuHelpers from './HaikuHelpers';
+import BasicUtils from './helpers/BasicUtils';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
 import {isPreviewMode} from './helpers/interactionModes';
 import fallbacks from './properties/dom/fallbacks';
@@ -1330,7 +1330,8 @@ export default class ValueBuilder {
 
     if (!parsedValueCluster[KEYFRAME_ZERO]) {
       parsedValueCluster[KEYFRAME_ZERO] = {
-        value: fallbacks[matchingElement.elementName][propertyName],
+        value: (fallbacks[matchingElement.elementName] && fallbacks[matchingElement.elementName][propertyName]) ||
+          fallbacks.div[propertyName],
       };
     }
 
