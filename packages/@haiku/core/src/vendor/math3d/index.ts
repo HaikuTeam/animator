@@ -20,9 +20,10 @@
  * OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+const precision = 1e-6;
+
 function doublesEqual(d1, d2) {
-  const preciseness = 1e-13;
-  return Math.abs(d1 - d2) < preciseness;
+  return Math.abs(d1 - d2) < precision;
 }
 
 /**
@@ -43,10 +44,10 @@ function getEulerAngles(x, y, z, w) {
   }
 
   return [
-    Math.asin(2 * (x * z + y * w)),
     Math.atan2(2 * (x * w - y * z), (w * w - x * x - y * y + z * z)),
+    Math.asin(2 * (x * z + y * w)),
     Math.atan2(2 * (z * w - x * y), (w * w + x * x - y * y - z * z)),
-  ];
+  ].map((value) => (value < -precision) ? value + Math.PI * 2 : value);
 }
 
 export default {

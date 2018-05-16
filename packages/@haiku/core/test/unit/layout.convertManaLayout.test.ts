@@ -605,7 +605,6 @@ tape('layout.convertManaLayout', (t) => {
 
   data.forEach(([input, output]) => {
     const result = convertManaLayout(input);
-    console.log(JSON.stringify(result));
     t.deepEqual(result, output);
   });
 });

@@ -1,4 +1,5 @@
 import * as tape from 'tape';
+
 const parseCssTransformString = require('./../../lib/helpers/parseCssTransformString').default;
 
 tape('layout.parseCssTransformString', (t) => {
@@ -111,8 +112,8 @@ tape('layout.parseCssTransformString', (t) => {
       {
         'translation.x': 61.937,
         'translation.y': -3,
-        'rotation.y': 3.142,
-        'rotation.z': 2.967,
+        'rotation.x': 3.142,
+        'rotation.z': 6.109,
         'scale.x': -1,
         'scale.y': -1,
         'scale.z': -1,
