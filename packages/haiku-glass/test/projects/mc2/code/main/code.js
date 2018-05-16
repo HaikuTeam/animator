@@ -85,17 +85,9 @@ module.exports = {
       },
       "haiku:8d3c5af0a3f8": {
         "playback": {
-          "0": { value: "repeating" },
+          // "0": { value: "repeating" },
           // "0": { value: "playing" },
-          // "0": {
-          //   value: 100
-          // },
-          // "500": {
-          //   value: 0
-          // },
-          // "1000": {
-          //   value: 500
-          // }
+          "0": {value: 100}, "500": {value: 0}, "1000": {value: 500}
         },
         "style.position": { "0": { value: "absolute" } },
         "style.margin": { "0": { value: "0" } },

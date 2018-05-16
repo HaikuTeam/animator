@@ -849,10 +849,9 @@ const applyPlaybackStatus = (
     }
   }
 
-  // TODO
-  // if (typeof val === 'number') {
-  //   receivingTimeline.seek(val);
-  // }
+  if (typeof val === 'number') {
+    receivingTimeline.seek(val);
+  }
 };
 
 const PLAYBACK_VANITIES = {
