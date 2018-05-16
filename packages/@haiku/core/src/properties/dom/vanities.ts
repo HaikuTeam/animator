@@ -813,7 +813,7 @@ const applyPlaybackStatus = (
   sendingTimeline,
   sendingComponent,
 ) => {
-  // Start by unsetting the repeat value, which we'll re-set only if our value becomes 'looping'
+  // Start by unsetting the repeat value, which we'll re-set only if our value becomes 'repeating'
   receivingTimeline.setRepeat(false);
 
   let val = status;
@@ -822,17 +822,8 @@ const applyPlaybackStatus = (
     val = 'repeating';
   }
 
-  const shouldRepeat = (
-    val === 'repeating' ||
-    val === 'repeat' ||
-    val === 'looping' ||
-    val === 'loop'
-  );
-
-  const shouldPlay = (
-    val === 'playing' ||
-    val === 'play'
-  );
+  const shouldRepeat = val === 'repeating';
+  const shouldPlay = val === 'playing';
 
   if (shouldRepeat) {
     receivingTimeline.setRepeat(true);

@@ -319,7 +319,7 @@ const PATH_FALLBACKS = {
 const HTML_STYLE_SHORTHAND_FALLBACKS = {};
 
 const PLAYBACK_FALLBACKS = {
-  playback: 'looping',
+  playback: 'repeating',
 };
 
 const CONTROL_FLOW_FALLBACKS = {
