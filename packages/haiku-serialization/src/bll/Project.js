@@ -408,8 +408,6 @@ class Project extends BaseModel {
   setInteractionMode (interactionMode, metadata, cb) {
     const components = ActiveComponent.where({project: this})
 
-    const ac = this.getCurrentActiveComponent()
-
     return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
       return async.eachSeries(components, (component, next) => {
         // If we toggle preview mode before any subcomponents are bootstrapped,

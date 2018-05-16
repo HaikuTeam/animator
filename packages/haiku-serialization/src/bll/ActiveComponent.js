@@ -936,7 +936,7 @@ class ActiveComponent extends BaseModel {
       if (sizeAbsoluteX) {
         if (!insertedTimeline['sizeAbsolute.x']) insertedTimeline['sizeAbsolute.x'] = {}
         if (!insertedTimeline['sizeAbsolute.x'][timelineTime]) insertedTimeline['sizeAbsolute.x'][timelineTime] = {}
-        insertedTimeline['sizeAbsolute.x'][timelineTime].value = sizeAbsoluteX
+        insertedTimeline['sizeAbsolute.x'][timelineTime].value = true // 'true sizing' - use the content's size
 
         // The default size mode is proportional, so if we received an absolute size, we have to override the mode
         if (!insertedTimeline['sizeMode.x']) insertedTimeline['sizeMode.x'] = {}
@@ -949,7 +949,7 @@ class ActiveComponent extends BaseModel {
       if (sizeAbsoluteY) {
         if (!insertedTimeline['sizeAbsolute.y']) insertedTimeline['sizeAbsolute.y'] = {}
         if (!insertedTimeline['sizeAbsolute.y'][timelineTime]) insertedTimeline['sizeAbsolute.y'][timelineTime] = {}
-        insertedTimeline['sizeAbsolute.y'][timelineTime].value = sizeAbsoluteY
+        insertedTimeline['sizeAbsolute.y'][timelineTime].value = true // 'true sizing' - use the content's size
 
         // The default size mode is proportional, so if we received an absolute size, we have to override the mode
         if (!insertedTimeline['sizeMode.y']) insertedTimeline['sizeMode.y'] = {}

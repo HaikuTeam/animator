@@ -226,6 +226,11 @@ Property.INCLUDE_IFF_COMPONENT = {
   'playback': true
 }
 
+Property.INCLUDE_IFF_ROOT_COMPONENT = {
+  'sizeAbsolute.x': 'number',
+  'sizeAbsolute.y': 'number'
+}
+
 Property.BUILTIN_DOM_SCHEMAS = {
   div: {
     'sizeAbsolute.x': 'number',
@@ -270,8 +275,6 @@ Property.BUILTIN_DOM_SCHEMAS = {
     'style.WebkitTapHighlightColor': 'string'
   },
   svg: {
-    'sizeAbsolute.x': 'number',
-    'sizeAbsolute.y': 'number',
     'controlFlow.placeholder': 'any',
     opacity: 'number',
     'translation.x': 'number',
@@ -458,6 +461,9 @@ Property.shouldBasicallyIncludeProperty = (propertyName, propertyObject, element
       return false
     }
   } else if (element.isComponent()) {
+    if (Property.INCLUDE_IFF_ROOT_COMPONENT[propertyName]) {
+      return false
+    }
     // Assume that we display everything for components
     return true
   } else if (Property.EXCLUDE_FROM_ADDRESSABLES_IF_CHILD_ELEMENT[propertyName]) {

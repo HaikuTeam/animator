@@ -1402,17 +1402,18 @@ function computeAndApplyTreeLayouts(tree, container, options, context) {
   }
 }
 
-function computeAndApplyNodeLayout(element, parent) {
-  // No point proceeding if our parent element doesn't have a computed layout
+function computeAndApplyNodeLayout(node, parent) {
+  // No point proceeding if our parent node doesn't have a computed layout
   if (parent && parent.layout && parent.layout.computed) {
     const parentSize = parent.layout.computed.size;
 
-    // Don't assume the element has/needs a layout, for example, control-flow injectees
-    if (element.layout && element.layout.matrix) {
-      element.layout.computed = Layout3D.computeLayout(
-        element.layout,
-        element.layout.matrix,
+    // Don't assume the node has/needs a layout, for example, control-flow injectees
+    if (node.layout && node.layout.matrix) {
+      node.layout.computed = Layout3D.computeLayout(
+        node.layout,
+        node.layout.matrix,
         parentSize,
+        Layout3D.computeSizeOfNodeContent(node),
       );
     }
   }

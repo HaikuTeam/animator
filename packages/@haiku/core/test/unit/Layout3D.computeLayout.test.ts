@@ -23,6 +23,7 @@ tape('Layout3D.computeLayout', (t) => {
     },
     [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
     {x: 852, y: 839, z: 0},
+    null,
   ];
 
   const {align, matrix, mount, opacity, origin, shown, size, computed} = Layout3D.computeLayout(...args1);

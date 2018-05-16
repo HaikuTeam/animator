@@ -492,8 +492,19 @@ class Element extends BaseModel {
     return this.cacheFetch('getComputedLayout', () => Layout3D.computeLayout(
       this.getLayoutSpec(),
       Layout3D.createMatrix(),
-      this.getParentComputedSize()
+      this.getParentComputedSize(),
+      Layout3D.computeSizeOfNodeContent(this.getLiveRenderedNode())
     ))
+  }
+
+  getContentComputedSize () {
+    if (this.isTextNode()) {
+      return null
+    }
+
+    if (this.isComponent()) {
+      return this.children[0]
+    }
   }
 
   getLayoutSpec () {

@@ -78,7 +78,7 @@ if (argv.default === true) {
 }
 
 const availablePresets = {
-  glass: 'mc2-glass',
+  glass: 'mc0-glass',
   timeline: 'complex-timeline',
   blank: 'blank',
   'blank-noclean': 'blank-noclean'
