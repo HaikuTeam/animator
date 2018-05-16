@@ -52,6 +52,7 @@ const FOLDER_CHOICES = {
   'AliensRepro-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/AliensRepro'),
   'SuperComplex-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/SuperComplex'),
   'comet-rotation-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/comet-rotation'),
+  'grouping-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/grouping'),
   'ttt-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/TicTacToe1'),
   'Apr91-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/Apr91'),
   'mc1-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/mc1'),
