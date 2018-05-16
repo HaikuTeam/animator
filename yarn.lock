@@ -225,6 +225,18 @@
     react-treebeard "^2.1.0"
     redux "^3.7.2"
 
+"@types/async@^2.0.49":
+  version "2.0.49"
+  resolved "https://registry.yarnpkg.com/@types/async/-/async-2.0.49.tgz#92e33d13f74c895cb9a7f38ba97db8431ed14bc0"
+
+"@types/bezier-easing@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@types/bezier-easing/-/bezier-easing-2.0.0.tgz#addbc86aec544788a7dca64dd136a83c1711af16"
+
+"@types/bluebird@^3.5.20":
+  version "3.5.20"
+  resolved "https://registry.yarnpkg.com/@types/bluebird/-/bluebird-3.5.20.tgz#f6363172add6f4eabb8cada53ca9af2781e8d6a1"
+
 "@types/chalk@^0.4.31":
   version "0.4.31"
   resolved "https://registry.yarnpkg.com/@types/chalk/-/chalk-0.4.31.tgz#a31d74241a6b1edbb973cf36d97a2896834a51f9"
@@ -253,6 +265,10 @@
   dependencies:
     "@types/rx" "*"
     "@types/through" "*"
+
+"@types/lodash@^4.14.108":
+  version "4.14.108"
+  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.108.tgz#02656af3add2e5b3174f830862c47421c00ef817"
 
 "@types/mkdirp@^0.3.29":
   version "0.3.29"
@@ -7334,6 +7350,10 @@ make-dir@^1.0.0:
   dependencies:
     pify "^3.0.0"
 
+make-error@^1.1.1:
+  version "1.3.4"
+  resolved "https://registry.yarnpkg.com/make-error/-/make-error-1.3.4.tgz#19978ed575f9e9545d2ff8c13e33b5d18a67d535"
+
 make-error@^1.3.2:
   version "1.3.2"
   resolved "https://registry.yarnpkg.com/make-error/-/make-error-1.3.2.tgz#8762ffad2444dd8ff1f7c819629fa28e24fea1c4"
@@ -11539,6 +11559,19 @@ ts-loader@^3.1.1:
     loader-utils "^1.0.2"
     semver "^5.0.1"
 
+ts-node@^6.0.3:
+  version "6.0.3"
+  resolved "https://registry.yarnpkg.com/ts-node/-/ts-node-6.0.3.tgz#28bf74bcad134fad17f7469dad04638ece03f0f4"
+  dependencies:
+    arrify "^1.0.0"
+    chalk "^2.3.0"
+    diff "^3.1.0"
+    make-error "^1.1.1"
+    minimist "^1.2.0"
+    mkdirp "^0.5.1"
+    source-map-support "^0.5.3"
+    yn "^2.0.0"
+
 tslib@^1.0.0, tslib@^1.7.1, tslib@^1.8.1:
   version "1.8.1"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.8.1.tgz#6946af2d1d651a7b1863b531d6e5afa41aa44eac"
@@ -11547,9 +11580,9 @@ tslib@^1.9.0:
   version "1.9.0"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.9.0.tgz#e37a86fda8cbbaf23a057f473c9f4dc64e5fc2e8"
 
-tslint-config-airbnb@^5.3.0:
-  version "5.4.2"
-  resolved "https://registry.yarnpkg.com/tslint-config-airbnb/-/tslint-config-airbnb-5.4.2.tgz#18eeff28f697b578731249d9a3ef8955b2f04f44"
+tslint-config-airbnb@5.8.0, tslint-config-airbnb@^5.3.0:
+  version "5.8.0"
+  resolved "https://registry.yarnpkg.com/tslint-config-airbnb/-/tslint-config-airbnb-5.8.0.tgz#0398cf4b5a8715b604cb40e9580532c5c0e68716"
   dependencies:
     tslint-consistent-codestyle "^1.10.0"
     tslint-eslint-rules "^4.1.1"
@@ -12555,6 +12588,10 @@ yauzl@2.4.1:
   resolved "https://registry.yarnpkg.com/yauzl/-/yauzl-2.4.1.tgz#9528f442dab1b2284e58b4379bb194e22e0c4005"
   dependencies:
     fd-slicer "~1.0.1"
+
+yn@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/yn/-/yn-2.0.0.tgz#e5adabc8acf408f6385fc76495684c88e6af689a"
 
 zip-stream@^1.1.0:
   version "1.2.0"

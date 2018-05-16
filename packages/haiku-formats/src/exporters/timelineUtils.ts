@@ -1,4 +1,10 @@
 import {LayoutPropertyType} from './layout';
+import {
+  BytecodeTimeline, 
+  BytecodeTimelines, 
+  BytecodeTimelineProperties, 
+  BytecodeTimelineValue,
+} from '@haiku/core/lib/api/HaikuBytecode';
 
 /**
  * Gets the initial value of a timeline property.
@@ -6,32 +12,23 @@ import {LayoutPropertyType} from './layout';
  * Warning: this method uses unchecked property access, assuming that the caller has already checked the timeline
  * property exists. In cases where there's no need to check outside the context of this property, prefer
  * `initialValueOrNull` below.
- * @param timeline
- * @param {string} property
- * @returns {any}
  */
-export const initialValue = (timeline: any, property: string): any => timeline[property][0].value;
+export const initialValue = (timeline: BytecodeTimelineProperties, property: string): any => 
+  timeline[property][0].value;
 
 /**
  * Get the initial value of a timeline property, or `null` if the property is not defined.
- * @param timeline
- * @param {string} property
- * @returns {any?}
  */
-export const initialValueOrNull = (timeline: any, property: string): any => timeline.hasOwnProperty(property)
-  ? initialValue(timeline, property)
-  : null;
+export const initialValueOrNull = (timeline: BytecodeTimelineProperties, property: string): any => 
+  timeline.hasOwnProperty(property) ? initialValue(timeline, property) : null;
 
 /**
  * Get the initial value of a timeline property, or an acceptable default if the property is not defined.
- * @param timeline
- * @param {string} property
- * @returns {any}
  */
-export const initialValueOr = (timeline: any, property: string, value: any): any => timeline.hasOwnProperty(property)
-  ? initialValue(timeline, property) : value;
+export const initialValueOr = (timeline: BytecodeTimelineProperties, property: string, value: any): any =>
+  timeline.hasOwnProperty(property) ? initialValue(timeline, property) : value;
 
-export const timelineHasProperties = (timeline: any, ...properties: string[]): boolean => {
+export const timelineHasProperties = (timeline: BytecodeTimelineProperties, ...properties: string[]): boolean => {
   for (let i = 0; i < properties.length; ++i) {
     if (typeof timeline[properties[i]] !== 'object' || Object.keys(timeline[properties[i]]).length === 0) {
       return false;
@@ -46,7 +43,7 @@ export const timelineHasProperties = (timeline: any, ...properties: string[]): b
  * @param value
  * @returns {{'0': {value: number}}}
  */
-const getShimLayoutTimeline = (value) => ({0: {value, curve: 'linear'}});
+const getShimLayoutTimeline = (value: number) => ({0: {value, curve: 'linear'}});
 
 /**
  * Simulate a layout property that was not explicitly provided in a timeline.

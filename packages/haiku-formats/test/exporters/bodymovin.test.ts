@@ -1,5 +1,11 @@
 import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
-import {HaikuBytecode} from 'haiku-common/lib/types';
+import {HaikuBytecode, 
+  BytecodeTimeline, 
+  BytecodeTimelineValue, 
+  BytecodeTimelineProperties,
+  BytecodeTimelines,
+  BytecodeNode,
+} from '@haiku/core/lib/api/HaikuBytecode';
 import * as tape from 'tape';
 
 import {BodymovinExporter} from '../../lib/exporters/bodymovin/bodymovinExporter';
@@ -8,13 +14,14 @@ import baseBytecode from './baseBytecode';
 const {pathToPoints, polyPointsStringToPoints} = SVGPoints;
 const rawOutput = (bytecode: HaikuBytecode) => (new BodymovinExporter(bytecode).rawOutput());
 
-const overrideShapeAttributes = (bytecode, attributes) => {
+const overrideShapeAttributes = (bytecode: HaikuBytecode, attributes: BytecodeTimelineProperties) => {
   bytecode.timelines.Default['haiku:shape'] = attributes;
   return bytecode;
 };
 
-const overrideShapeElement = (bytecode, elementName) => {
-  bytecode.template.children[0].children[0].elementName = elementName;
+const overrideShapeElement = (bytecode: HaikuBytecode, elementName: string) => {
+  // tslint:disable-next-line:max-line-length
+  (((bytecode.template as BytecodeNode).children[0] as BytecodeNode).children[0] as BytecodeNode).elementName = elementName;
 };
 
 const baseBytecodeCopy = () => JSON.parse(JSON.stringify(baseBytecode));
@@ -888,11 +895,12 @@ tape('BodymovinExporter', (test: tape.Test) => {
     };
 
     // Simulate the actual result of calling `Haiku.inject`.
-    const Haiku = require('@haiku/core');
+    const haiku = require('@haiku/core');
     bytecode.timelines.Default['haiku:svg'].opacity = {
       0: {
-        value: Haiku.inject(
-          function(two, Math, $user, $basicMagic, $deepMagic) {
+        value: haiku.inject(
+          // tslint:disable-next-line:variable-name
+          (two: any, Math: any, $user: any, $basicMagic: any, $deepMagic: any) => {
             return .12 * two + $user.mouse.x / 100 + $basicMagic - $deepMagic.arbitrarily.nested.magic + Math.sqrt(0);
           },
           'two',

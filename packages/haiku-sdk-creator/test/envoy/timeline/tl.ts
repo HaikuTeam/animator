@@ -8,7 +8,7 @@ async function go() {
     port: parseInt(process.env.HAIKU_SDK_TEST_PORT, 10),
   });
 
-  const channel = await client.get('timeline');
+  const channel: any = await client.get('timeline');
 
   channel.on('didPlay', () => {
     console.log(1);
