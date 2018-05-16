@@ -1,6 +1,6 @@
 {
   "name": "haiku-admin-cli",
-  "version": "3.2.20",
+  "version": "3.2.21",
   "description": "Haiku Admin CLI",
   "main": "lib/index.js",
   "scripts": {
@@ -27,9 +27,9 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@haiku/cli": "3.2.20",
-    "@haiku/sdk-client": "3.2.20",
-    "@haiku/sdk-inkstone": "3.2.20",
+    "@haiku/cli": "3.2.21",
+    "@haiku/sdk-client": "3.2.21",
+    "@haiku/sdk-inkstone": "3.2.21",
     "async": "^2.5.0",
     "chalk": "^1.1.3",
     "cli-color": "^1.2.0",
