@@ -1,6 +1,19 @@
 # Changelog
 
 
+## 3.2.21
+
+### Bug Fixes
+
+ * Broke brittle asset test after small tweak
+ * Make merge design work for descendant components; other tweaks
+ * disable ip collection on mixpanel in core phone home
+
+### Features
+
+ * add Jenkinsfile for continuous delivery.
+ * Group/ungroup MVP and multi-component CRUD
+
 ## 3.2.20
 
 ### Bug Fixes
