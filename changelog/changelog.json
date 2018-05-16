@@ -6396,5 +6396,32 @@
       "label": "fix",
       "message": "do not insert outline DOM elements in user-defined components"
     }
+  },
+  "3.2.21": {
+    "b6d96249634bed478b6f22f2eb2b16b4aae57f24": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Broke brittle asset test after small tweak"
+    },
+    "bfd92740447f53aa24660b0b0fa9dcb1180227d7": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Make merge design work for descendant components; other tweaks"
+    },
+    "38482414c331142289189efd651c98acec3d356d": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add Jenkinsfile for continuous delivery."
+    },
+    "e93d43b11580ef00b6c5c62c6110648fab7d509a": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Group/ungroup MVP and multi-component CRUD"
+    },
+    "0b777f056a82a1935751fd78ca48f98630b90176": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "disable ip collection on mixpanel in core phone home"
+    }
   }
 }
