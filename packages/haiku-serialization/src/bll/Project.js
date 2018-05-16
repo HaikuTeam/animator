@@ -422,7 +422,14 @@ class Project extends BaseModel {
           // Since we just created a module for a bunch of components that are
           // now running in context, disable any that don't belong to the active one
           if (ac !== component) {
-            component.deactivateInstances()
+            if (ac.$instance) {
+              ac.$instance.visitGuestHierarchy((instance) => {
+                instance.deactivate()
+              })
+
+              ac.$instance.context.contextUnmount()
+              ac.$instance.context.getClock().stop()
+            }
           }
 
           return component.setInteractionMode(interactionMode, next)

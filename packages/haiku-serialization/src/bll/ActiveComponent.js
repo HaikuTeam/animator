@@ -2087,30 +2087,41 @@ class ActiveComponent extends BaseModel {
     return this.fetchActiveBytecodeFile().mod[moduleReloadMethod](cb)
   }
 
-  deactivateInstances () {
-    if (this.$instance) {
-      this.$instance.visitGuestHierarchy((instance) => {
-        instance.deactivate()
-      })
-      this.$instance.context.contextUnmount()
-      this.$instance.context.getClock().stop()
-    }
+  doesManageCoreInstance (instance) {
+    return (
+      path.normalize(instance.getBytecodeRelpath()) ===
+      path.normalize(this.getRelpath())
+    )
   }
 
   moduleCreate (moduleReloadMethod, instanceConfig = {}, cb) {
     return this.moduleReload(moduleReloadMethod, (err) => {
       if (err) return cb(err)
 
+      const bytecode = this.getReifiedBytecode()
+
       // Don't clean up instances which may own the current editing context
       if (this.isProjectActiveComponent()) {
         this.project.getAllActiveComponents().forEach((ac) => {
           // We also deactivate our own instance since we're about to create a new one
-          ac.deactivateInstances()
+          if (ac.$instance) {
+            ac.$instance.visitGuestHierarchy((instance) => {
+              instance.deactivate()
+
+              if (this.doesManageCoreInstance(instance)) {
+                instance.bytecode = bytecode
+                instance.clearCaches()
+              }
+            })
+
+            ac.$instance.context.contextUnmount()
+            ac.$instance.context.getClock().stop()
+          }
         })
       }
 
       const timelineTime = this.getCurrentTimelineTime()
-      this.$instance = this.createInstance(this.getReifiedBytecode(), instanceConfig)
+      this.$instance = this.createInstance(bytecode, instanceConfig)
       this.setTimelineTimeValue(timelineTime, /* forceSeek= */true)
 
       return cb()
