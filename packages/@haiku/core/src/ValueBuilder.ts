@@ -1299,6 +1299,10 @@ export default class ValueBuilder {
     skipCache,
     clearSortedKeyframesCache,
   ) {
+    if (!propertiesGroup) {
+      return undefined;
+    }
+
     // Used by $helpers to calculate scope-specific values;
     this._lastTimelineName = timelineName;
     this._lastFlexId = flexId;
