@@ -1716,11 +1716,26 @@ export class Glass extends React.Component {
                   height -= transformedDelta.y
                   break
                 case 1:
+                  y += transformedDelta.y
+                  width += transformedDelta.x
+                  height -= transformedDelta.y
+                  break
                 case 2:
+                  x += transformedDelta.x
+                  width -= transformedDelta.x
+                  height += transformedDelta.y
+                  break
                 case 3:
                   width += transformedDelta.x
                   height += transformedDelta.y
+                  break
               }
+              
+              // Prevent negative
+              width = Math.max(width, 0)
+              height = Math.max(height, 0)
+              if(width == 0) x = Number(Element.directlySelected.attributes.x)
+              if(height == 0) y = Number(Element.directlySelected.attributes.y)
               
               this.getActiveComponent().updateKeyframes({
                 [this.getActiveComponent().getCurrentTimelineName()]: {
@@ -1733,6 +1748,16 @@ export class Glass extends React.Component {
                     y: {
                       0: {
                         value: y
+                      }
+                    },
+                    'sizeAbsolute.x': {
+                      0: {
+                        value: width
+                      }
+                    },
+                    'sizeAbsolute.y': {
+                      0: {
+                        value: height
                       }
                     }
                   }
