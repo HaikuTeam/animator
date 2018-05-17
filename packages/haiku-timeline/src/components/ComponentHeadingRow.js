@@ -167,7 +167,11 @@ export default class ComponentHeadingRow extends React.Component {
               isExpanded={this.props.isExpanded}
               isSelected={this.props.isSelected}
               isHovered={this.props.isHovered}
-              onEventHandlerTriggered={this.props.onEventHandlerTriggered} />
+              onEventHandlerTriggered={this.props.onEventHandlerTriggered}
+              onExpand={() => {
+                this.props.row.expandAndSelect({ from: 'timeline' })
+              }}
+            />
           </div>
           <div
             style={

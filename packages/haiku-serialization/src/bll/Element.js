@@ -766,7 +766,11 @@ class Element extends BaseModel {
 
   getTitle () {
     if (this.isTextNode()) return '<text>' // HACK, but not sure what else to do
-    return this.getStaticTemplateNode().attributes[HAIKU_TITLE_ATTRIBUTE] || 'notitle'
+    return this.getStaticTemplateNode().attributes[HAIKU_TITLE_ATTRIBUTE] || `<${this.getNameString()}>`
+  }
+
+  setTitle (newTitle, metadata, cb) {
+    this.component.setTitleForComponent(this.getComponentId(), newTitle, metadata, cb)
   }
 
   getNameString () {
@@ -792,6 +796,12 @@ class Element extends BaseModel {
 
   getGraphAddress () {
     return this.address
+  }
+
+  updateTargetingRows (updateEventName) {
+    this.getTargetingRows().forEach((row) => {
+      row.emit('update', updateEventName)
+    })
   }
 
   getAllRows () {

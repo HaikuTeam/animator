@@ -3,10 +3,17 @@ import Palette from 'haiku-ui-common/lib/Palette'
 import {ComponentIconSVG} from 'haiku-ui-common/lib/react/OtherIcons'
 import Color from 'color'
 
+const DOUBLE_CLICK_WAIT_DELAY_MS = 100
+
 export default class ComponentHeadingRowHeading extends React.Component {
   constructor (props) {
     super(props)
     this.handleUpdate = this.handleUpdate.bind(this)
+    this.onExpandTimeout = null
+    this.state = {
+      isEditingRowTitle: false,
+      rowTitle: props.row.element.getTitle()
+    }
   }
 
   componentWillUnmount () {
@@ -28,7 +35,37 @@ export default class ComponentHeadingRowHeading extends React.Component {
       what === 'row-unhovered'
     ) {
       this.forceUpdate()
+    } else if (what === 'row-set-title') {
+      this.setState({
+        rowTitle: this.props.row.element.getTitle()
+      })
     }
+  }
+
+  handleRowTitleChange (event) {
+    this.setState({
+      rowTitle: event.target.value
+    })
+  }
+
+  handleRowTitleKeyDown (event) {
+    event.stopPropagation()
+    // Submit on Enter
+    if (event.which === 13) {
+      this.persistRowTitle()
+    }
+  }
+
+  persistRowTitle () {
+    this.props.row.element.setTitle(this.state.rowTitle, {from: 'timeline'}, (err, rowTitle) => {
+      if (err) {
+        // ...
+      }
+      this.setState({
+        rowTitle,
+        isEditingRowTitle: false
+      })
+    })
   }
 
   render () {
@@ -44,15 +81,13 @@ export default class ComponentHeadingRowHeading extends React.Component {
       color = Color(color).lighten(0.25)
     }
 
-    const elementName = this.props.row.element.getNameString()
-
     return (
       (this.props.row.isRootRow())
         ? (<div style={{height: 27, display: 'inline-block', transform: 'translateY(1px)'}}>
           <span style={{marginRight: 4, display: 'inline-block', transform: 'translateY(4px)'}}>
             <ComponentIconSVG />
           </span>
-          {trunc(this.props.row.element.getTitle() || elementName, 12)}
+          {trunc(this.state.rowTitle, 12)}
         </div>)
         : (<span
           style={{
@@ -86,8 +121,42 @@ export default class ComponentHeadingRowHeading extends React.Component {
               top: 7,
               overflowX: 'hidden',
               width: 160
-            }}>
-            {trunc(this.props.row.element.getTitle() || `<${elementName}>`, 8)}
+            }}
+            onClick={(clickEvent) => {
+              clickEvent.stopPropagation()
+              if (!this.onExpandTimeout) {
+                this.onExpandTimeout = setTimeout(this.props.onExpand, DOUBLE_CLICK_WAIT_DELAY_MS)
+              }
+            }}
+            onDoubleClick={(clickEvent) => {
+              clickEvent.stopPropagation()
+              clearTimeout(this.onExpandTimeout)
+              this.onExpandTimeout = null
+              if (!this.state.isEditingRowTitle) {
+                this.setState({isEditingRowTitle: true}, () => {
+                  this.refs.rowTitleInput && this.refs.rowTitleInput.select()
+                })
+              }
+            }}
+          >
+            {this.state.isEditingRowTitle
+              ? <input
+                style={{
+                  color,
+                  fontSize: 12,
+                  fontFamily: 'Fira Sans'
+                }}
+                ref='rowTitleInput'
+                type='text'
+                value={this.state.rowTitle}
+                onChange={(e) => this.handleRowTitleChange(e)}
+                onKeyDown={(e) => this.handleRowTitleKeyDown(e)}
+                onBlur={() => {
+                  this.persistRowTitle()
+                }}
+              />
+              : trunc(this.state.rowTitle, 8)
+            }
           </span>
         </span>)
     )
@@ -103,5 +172,6 @@ const trunc = (str, len) => {
 }
 
 ComponentHeadingRowHeading.propTypes = {
-  row: React.PropTypes.object.isRequired
+  row: React.PropTypes.object.isRequired,
+  onExpand: React.PropTypes.func.isRequired
 }
