@@ -181,6 +181,16 @@ const pointOnPolyLineSegment = (points: vec2[], test: vec2): boolean => {
   return false
 }
 
+export const transform2DPoint = (point: vec2, ancestryMatrices: any[]): vec2 => {
+  const offset = Layout3D.multiplyArrayOfMatrices(ancestryMatrices)
+  const invertedOffset = createMatrix(); invertMatrix(invertedOffset, offset)
+  const p = [point.x, point.y, 0, 1];
+  return {
+    x: invertedOffset[0] * p[0] + invertedOffset[4] * p[1] + invertedOffset[8] * p[2] + invertedOffset[12] * p[3],
+    y: invertedOffset[1] * p[0] + invertedOffset[5] * p[1] + invertedOffset[9] * p[2] + invertedOffset[13] * p[3]
+  };
+}
+
 export const isPointInsidePrimitive = (element: HaikuElement, point: vec2): boolean => {
   
   const original = element;
@@ -188,13 +198,7 @@ export const isPointInsidePrimitive = (element: HaikuElement, point: vec2): bool
     element = element.getTranscludedElement();
   }
   
-  const offset = Layout3D.multiplyArrayOfMatrices(original.layoutAncestryMatrices.reverse())
-  const invertedOffset = createMatrix(); invertMatrix(invertedOffset, offset)
-  const p = [point.x, point.y, 0, 1];
-  const correctedPoint = {
-    x: invertedOffset[0] * p[0] + invertedOffset[4] * p[1] + invertedOffset[8] * p[2] + invertedOffset[12] * p[3],
-    y: invertedOffset[1] * p[0] + invertedOffset[5] * p[1] + invertedOffset[9] * p[2] + invertedOffset[13] * p[3]
-  };
+  const correctedPoint = transform2DPoint(point, original.layoutAncestryMatrices.reverse())
   
   switch(element.type) {
     case 'rect':
@@ -244,4 +248,4 @@ export const isPointInsidePrimitive = (element: HaikuElement, point: vec2): bool
   return false
 }
 
-export default { isPointInsidePrimitive, distance };
+export default { isPointInsidePrimitive, distance, transform2DPoint };
