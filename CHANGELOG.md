@@ -1,6 +1,16 @@
 # Changelog
 
 
+## 3.2.23
+
+### Bug Fixes
+
+ * spell out yarn in self-link to avoid macOS conflict.
+
+### Features
+
+ * Playback API changes, bug fixes, minor improvements (#475)
+
 ## 3.2.22
 
 ### Features
