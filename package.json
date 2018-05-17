@@ -34,7 +34,8 @@
     "lint-test": "yarn tslint -p tsconfig.test.json -c tslint.json 'test/**/*.ts' -t stylish",
     "lint-report": "yarn lint-src -t checkstyle -o checkstyle-result.xml",
     "fix": "yarn lint-src --fix && yarn lint-test --fix",
-    "test": "yarn ts-node -P tsconfig.test.json ./node_modules/.bin/tape 'test/**/*.test.ts' | tap-spec",
+    "test": "ts-node -P tsconfig.test.json ./node_modules/.bin/tape 'test/**/*.test.ts' | tap-spec",
+    "test-report": "ts-node -P tsconfig.test.json ./node_modules/.bin/tape 'test/**/*.test.ts' > test-result.tap",
     "depcheck": "depcheck ."
   },
   "authors": [
