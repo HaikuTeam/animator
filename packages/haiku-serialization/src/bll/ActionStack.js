@@ -632,6 +632,13 @@ ActionStack.METHOD_INVERTERS = {
         params: [moves]
       }
     }
+  },
+
+  setTitleForComponent: {
+    after: (ac, [componentId], oldTitle) => ({
+      method: ac.setTitleForComponent.name,
+      params: [componentId, oldTitle]
+    })
   }
 
   // mergeDesigns: {

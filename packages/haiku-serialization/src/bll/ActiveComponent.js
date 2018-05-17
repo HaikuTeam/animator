@@ -4,7 +4,7 @@ const pretty = require('pretty')
 const async = require('async')
 const jss = require('json-stable-stringify')
 const pascalcase = require('pascalcase')
-const {HAIKU_ID_ATTRIBUTE} = require('@haiku/core/lib/HaikuElement')
+const {HAIKU_ID_ATTRIBUTE, HAIKU_TITLE_ATTRIBUTE} = require('@haiku/core/lib/HaikuElement')
 const {sortedKeyframes} = require('@haiku/core/lib/Transitions').default
 const HaikuComponent = require('@haiku/core/lib/HaikuComponent').default
 const HaikuDOMAdapter = require('@haiku/core/lib/adapters/dom').default
@@ -452,6 +452,39 @@ class ActiveComponent extends BaseModel {
         this.$instance.context.tick(true)
       }
     }
+  }
+
+  setTitleForComponent (componentId, newTitle, metadata, cb) {
+    this.project.updateHook('setTitleForComponent', this.getRelpath(), componentId, newTitle, metadata, (fire) => {
+      return this.performComponentWork((bytecode, mana, done) => {
+        const templateNode = this.locateTemplateNodeByComponentId(componentId)
+        if (!templateNode) {
+          return done(null, '', '')
+        }
+
+        if (newTitle) {
+          const oldTitle = templateNode.attributes[HAIKU_TITLE_ATTRIBUTE]
+          templateNode.attributes[HAIKU_TITLE_ATTRIBUTE] = newTitle
+          return done(null, newTitle, oldTitle)
+        }
+
+        return done(
+          null,
+          templateNode.attributes[HAIKU_TITLE_ATTRIBUTE],
+          templateNode.attributes[HAIKU_TITLE_ATTRIBUTE]
+        )
+      }, (err, newTitle, oldTitle) => {
+        if (err) {
+          return cb(err)
+        }
+        const element = this.findElementByComponentId(componentId)
+        if (element) {
+          element.updateTargetingRows('row-set-title')
+        }
+        fire(null, oldTitle)
+        return cb(null, newTitle)
+      })
+    })
   }
 
   /**
@@ -2653,14 +2686,14 @@ class ActiveComponent extends BaseModel {
     this.sleepComponentsOn()
 
     return Lock.request(Lock.LOCKS.FilePerformComponentWork, false, (release) => {
-      const finish = (err, result) => {
+      const finish = (err, ...result) => {
         release()
-        return cb(err, result)
+        return cb(err, ...result)
       }
 
       const bytecode = this.getReifiedBytecode()
 
-      return worker(bytecode, bytecode.template, (err, result) => {
+      return worker(bytecode, bytecode.template, (err, ...result) => {
         if (err) {
           return finish(err)
         }
@@ -2670,7 +2703,7 @@ class ActiveComponent extends BaseModel {
         // Now that we're finished, we can resume on-stage playback
         this.sleepComponentsOff()
 
-        return finish(null, result)
+        return finish(null, ...result)
       })
     })
   }
