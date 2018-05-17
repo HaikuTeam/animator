@@ -11,14 +11,23 @@ const STYLES = {
 }
 
 class Toggle extends React.Component {
-  constructor () {
-    super()
-    this.onToggle = this.onToggle.bind(this)
-  }
-
   onToggle () {
     if (typeof this.props.onToggle === 'function') {
       this.props.onToggle()
+    }
+  }
+
+  componentWillReceiveProps ({active}) {
+    if (active !== this.props.active) {
+      this.changeActiveState(active)
+    }
+  }
+
+  changeActiveState (active) {
+    if (active) {
+      this.previewHaiku.getDefaultTimeline().gotoAndPlay(100)
+    } else {
+      this.previewHaiku.getDefaultTimeline().gotoAndPlay(0)
     }
   }
 
@@ -34,9 +43,6 @@ class Toggle extends React.Component {
           ]}
           onClick={() => {
             this.onToggle()
-            this.props.active
-              ? this.previewHaiku.getDefaultTimeline().gotoAndPlay(0)
-              : this.previewHaiku.getDefaultTimeline().gotoAndPlay(100)
           }}
         >
           <div>
