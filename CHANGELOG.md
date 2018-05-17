@@ -1,6 +1,17 @@
 # Changelog
 
 
+## 3.2.22
+
+### Features
+
+ * Playback API changes, bug fixes, minor improvements (#475)
+ * add ability to change node titles. (#473)
+ * Group/ungroup MVP and multi-component CRUD
+ * Group/ungroup MVP and multi-component CRUD
+ * Group/ungroup MVP and multi-component CRUD
+ * Group/ungroup MVP and multi-component CRUD
+
 ## 3.2.21
 
 ### Bug Fixes
