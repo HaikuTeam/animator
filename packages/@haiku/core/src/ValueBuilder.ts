@@ -1330,8 +1330,11 @@ export default class ValueBuilder {
 
     if (!parsedValueCluster[KEYFRAME_ZERO]) {
       parsedValueCluster[KEYFRAME_ZERO] = {
-        value: (matchingElement && fallbacks[matchingElement.elementName] && fallbacks[matchingElement.elementName][propertyName]) ||
-          fallbacks.div[propertyName],
+        value: (
+          matchingElement &&
+          fallbacks[matchingElement.elementName] &&
+          fallbacks[matchingElement.elementName][propertyName]
+        ) || fallbacks.div[propertyName],
       };
     }
 
