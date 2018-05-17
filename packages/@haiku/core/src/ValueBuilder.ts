@@ -390,7 +390,7 @@ INJECTABLES['$tree'] = {
 
     injectees.$tree.parent = null;
 
-    if (matchingElement.__parent) {
+    if (matchingElement && matchingElement.__parent) {
       const subspec0 = (typeof summonSpec === 'string') ? summonSpec : (summonSpec.$tree && summonSpec.$tree.parent);
       assignElementInjectables(injectees.$tree, 'parent', subspec0, hostInstance, matchingElement.__parent);
 
@@ -405,7 +405,7 @@ INJECTABLES['$tree'] = {
 
     injectees.$tree.children = []; // Provide an array even if no children in case user tries to access
 
-    if (matchingElement.children) {
+    if (matchingElement && matchingElement.children) {
       for (let j = 0; j < matchingElement.children.length; j++) {
         const child = matchingElement.children[j];
         const subspec2 = (typeof summonSpec === 'string')
@@ -1310,7 +1310,7 @@ export default class ValueBuilder {
       flexId,
       matchingElement,
       propertyName,
-      propertiesGroup[propertyName],
+      propertiesGroup && propertiesGroup[propertyName],
       haikuComponent,
       isPatchOperation,
       skipCache,
@@ -1330,8 +1330,11 @@ export default class ValueBuilder {
 
     if (!parsedValueCluster[KEYFRAME_ZERO]) {
       parsedValueCluster[KEYFRAME_ZERO] = {
-        value: (fallbacks[matchingElement.elementName] && fallbacks[matchingElement.elementName][propertyName]) ||
-          fallbacks.div[propertyName],
+        value: (
+          matchingElement &&
+          fallbacks[matchingElement.elementName] &&
+          fallbacks[matchingElement.elementName][propertyName]
+        ) || fallbacks.div[propertyName],
       };
     }
 

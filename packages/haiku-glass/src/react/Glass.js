@@ -4,6 +4,7 @@ import Radium from 'radium'
 import path from 'path'
 import HaikuDOMRenderer from '@haiku/core/lib/renderers/dom'
 import HaikuContext from '@haiku/core/lib/HaikuContext'
+import {PLAYBACK_SETTINGS} from '@haiku/core/lib/properties/dom/vanities'
 import BaseModel from 'haiku-serialization/src/bll/BaseModel'
 import Project from 'haiku-serialization/src/bll/Project'
 import Config from '@haiku/core/lib/Config'
@@ -770,7 +771,7 @@ export class Glass extends React.Component {
         y: translation.y + size.y / 2  // assume center origin
       },
       {
-        'playback': 'repeating',
+        'playback': PLAYBACK_SETTINGS.LOOP,
         'sizeMode.x': 1,
         'sizeMode.y': 1,
         'sizeMode.z': 1,
