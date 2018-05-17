@@ -3,6 +3,10 @@ const titlecase = require('titlecase')
 const DOMFallbacks = require('@haiku/core/lib/properties/dom/fallbacks').default
 const BaseModel = require('./BaseModel')
 
+function decam (s) {
+  return decamelize(s).replace(/[\W_]/g, ' ')
+}
+
 /**
  * @class Property
  * @description
@@ -79,6 +83,24 @@ Property.doesPropertyGroupContainRotation = (propertyGroup) => {
   )
 }
 
+Property.sort = (a, b) => {
+  return a.name > b.name
+}
+
+Property.humanizePropertyName = (propertyName) => {
+  if (Property.HUMANIZED_PROP_NAMES[propertyName]) {
+    return Property.HUMANIZED_PROP_NAMES[propertyName]
+  }
+  return decam(propertyName)
+}
+
+Property.humanizePropertyNamePart = (propertyNamePart) => {
+  return titlecase(decam(propertyNamePart))
+}
+
+/**
+ * Used for rendering human-friendly cluster property headings in the Timeline UI
+ */
 Property.PREFIX_TO_CLUSTER_NAME = {
   'mount': 'Mount',
   'align': 'Align',
@@ -95,6 +117,9 @@ Property.PREFIX_TO_CLUSTER_NAME = {
   'style': 'Style'
 }
 
+/**
+ * Used for rendering human-friendly property labels in the Timeline UI
+ */
 Property.HUMANIZED_PROP_NAMES = {
   'rotation.z': 'Rotation Z',
   'rotation.y': 'Rotation Y',
@@ -113,124 +138,12 @@ Property.HUMANIZED_PROP_NAMES = {
   'origin.y': 'Origin Y'
 }
 
-Property.sort = (a, b) => {
-  return a.name > b.name
-}
-
-function decam (s) {
-  return decamelize(s).replace(/[\W_]/g, ' ')
-}
-
-Property.humanizePropertyName = (propertyName) => {
-  if (Property.HUMANIZED_PROP_NAMES[propertyName]) {
-    return Property.HUMANIZED_PROP_NAMES[propertyName]
-  }
-  return decam(propertyName)
-}
-
-Property.humanizePropertyNamePart = (propertyNamePart) => {
-  return titlecase(decam(propertyNamePart))
-}
-
-Property.ALWAYS_CREATE_AS_PROPERTY_NEVER_AS_STATE = {
-  // The parent controls these via the wrapper element
-  'sizeMode.x': true,
-  'sizeMode.y': true,
-  'sizeMode.z': true,
-  'sizeAbsolute.x': true,
-  'sizeAbsolute.y': true,
-  'sizeAbsolute.z': true,
-  'sizeDifferential.x': true,
-  'sizeDifferential.y': true,
-  'sizeDifferential.z': true,
-  'sizeProportional.x': true,
-  'sizeProportional.y': true,
-  'sizeProportional.z': true,
-  'translation.x': true,
-  'translation.y': true,
-  'translation.z': true,
-  'rotation.x': true,
-  'rotation.y': true,
-  'rotation.z': true,
-  'rotation.w': true, // Just in case this ever happens
-  'scale.x': true,
-  'scale.y': true,
-  'scale.z': true,
-  'shear.xy': true,
-  'shear.xz': true,
-  'shear.yz': true,
-  'mount.x': true,
-  'mount.y': true,
-  'mount.z': true,
-  'align.x': true,
-  'align.y': true,
-  'align.z': true,
-  'origin.x': true,
-  'origin.y': true,
-  'origin.z': true,
-  'opacity': true,
-  'shown': true,
-  'perspective': true, // Future proofing
-  'style.zIndex': true // Many of these; avoid a bajillion zIndex_1, zIndex_2 states
-}
-
-Property.EXCLUDE_FROM_JIT = {
-  'controlFlow.if': true,
-  'controlFlow.repeat': true,
-  'shown': true, // I dunno, this just always seems weird to include
-  'translation.z': true, // There is a bug with this
-  'sizeMode.x': true,
-  'sizeMode.y': true,
-  'sizeMode.z': true,
-  'sizeDifferential.x': true,
-  'sizeDifferential.y': true,
-  'sizeDifferential.z': true,
-  'sizeProportional.x': true,
-  'sizeProportional.y': true,
-  'sizeProportional.z': true,
-  'align.x': true,
-  'align.y': true,
-  'align.z': true,
-  'mount.x': true,
-  'mount.y': true,
-  'mount.z': true,
-  'origin.z': true,
-  'scale.z': true, // Not sane until we have true 3D objects
-  'sizeAbsolute.z': true, // Not sane until we have true 3D objects
-  'rotation.w': true // Too much great power too much great responsibility
-}
-
-Property.EXCLUDE_FROM_JIT_IF_ROOT_ELEMENT = {
-  'content': true,
-  'controlFlow.placeholder': true,
-  'controlFlow.repeat': true,
-  'controlFlow.if': true,
-  'controlFlow.yield': true,
-  'translation.x': true,
-  'translation.y': true,
-  'translation.z': true,
-  'rotation.x': true,
-  'rotation.y': true,
-  'rotation.z': true,
-  'scale.x': true,
-  'scale.y': true,
-  'shear.xy': true,
-  'shear.xz': true,
-  'shear.yz': true,
-  'scale.z': true,
-  'origin.x': true,
-  'origin.y': true
-}
-
-Property.INCLUDE_IFF_COMPONENT = {
-  'playback': true
-}
-
-Property.INCLUDE_IFF_ROOT_COMPONENT = {
-  'sizeAbsolute.x': 'number',
-  'sizeAbsolute.y': 'number'
-}
-
+/**
+ * Pruned-down enumeration of properties that can be applied to various DOM element types.
+ * Unlike the property enumerations in @haiku/core, this dictionary only holds properties
+ * that are usable in Haiku Desktop. Additional display precedence rules may effect whether
+ * these ultimately display in the Timeline UI, but this is the foundation.
+ */
 Property.BUILTIN_DOM_SCHEMAS = {
   div: {
     'sizeAbsolute.x': 'number',
@@ -424,67 +337,9 @@ Property.BUILTIN_DOM_SCHEMAS = {
   }
 }
 
-Property.EXCLUDE_FROM_ADDRESSABLES_IF_ROOT_ELEMENT = {
-  'playback': true,
-  'content': true,
-  'shown': true,
-  'translation.x': true,
-  'translation.y': true,
-  'translation.z': true,
-  'rotation.x': true,
-  'rotation.y': true,
-  'rotation.z': true,
-  'scale.x': true,
-  'scale.y': true,
-  'scale.z': true,
-  'origin.x': true,
-  'origin.y': true,
-  'origin.z': true,
-  'shear.xy': true,
-  'shear.xz': true,
-  'shear.yz': true
-}
-
-Property.EXCLUDE_FROM_ADDRESSABLES_IF_CHILD_ELEMENT = {
-  'sizeAbsolute.x': true,
-  'sizeAbsolute.y': true,
-  'sizeAbsolute.z': true
-}
-
-Property.shouldBasicallyIncludeProperty = (propertyName, propertyObject, element) => {
-  if (propertyObject.prefix === 'sizeMode') {
-    return false
-  }
-
-  if (element.isRootElement()) { // Artboard
-    if (Property.EXCLUDE_FROM_ADDRESSABLES_IF_ROOT_ELEMENT[propertyName]) {
-      return false
-    }
-  } else if (element.isComponent()) {
-    if (Property.INCLUDE_IFF_ROOT_COMPONENT[propertyName]) {
-      return false
-    }
-    // Assume that we display everything for components
-    return true
-  } else if (Property.EXCLUDE_FROM_ADDRESSABLES_IF_CHILD_ELEMENT[propertyName]) {
-    return false
-  } else if (Property.INCLUDE_IFF_COMPONENT[propertyName]) {
-    // Don't display any properties that are only for components
-    return false
-  }
-
-  return true
-}
-
-Property.PRIVATE_PROPERTY_WHEN_HOISTING_TO_STATE = {
-  'transform': true,
-  'transformOrigin': true,
-  'style.position': true,
-  'style.display': true,
-  'style.transform': true,
-  'style.transformOrigin': true
-}
-
+/**
+ * Enumeration of SVG element types that may contain text content.
+ */
 Property.TEXT_FRIENDLY_SVG_ELEMENTS = {
   // Note that <desc> and <title>, while valid, are excluded to avoid noise
   text: true,
@@ -493,6 +348,9 @@ Property.TEXT_FRIENDLY_SVG_ELEMENTS = {
   tspan: true
 }
 
+/**
+ * Enumeration of HTML element types that may contain text content.
+ */
 Property.TEXT_FRIENDLY_HTML_ELEMENTS = {
   // Excluding elements that create noise, i.e. those we don't want user control of
   tt: true,
@@ -544,6 +402,284 @@ Property.TEXT_FRIENDLY_HTML_ELEMENTS = {
   // title: true, Assume SVG for this use; would we ever suport document instantiation?
   script: true,
   style: true
+}
+
+/**
+ * A given mana payload can be converted into a componentization-ready bytecode object,
+ * and this enum is used to specify attributes that hoist to become private states.
+ */
+Property.PRIVATE_PROPERTY_WHEN_HOISTING_TO_STATE = {
+  'transform': true,
+  'transformOrigin': true,
+  'style.position': true,
+  'style.display': true,
+  'style.transform': true,
+  'style.transformOrigin': true
+}
+
+/**
+ * A given mana payload can be converted into a componentization-ready bytecode object,
+ * and this enum is used to specify attributes that remain properties, not hoisted to states.
+ */
+Property.ALWAYS_CREATE_AS_PROPERTY_NEVER_AS_STATE = {
+  'sizeMode.x': true,
+  'sizeMode.y': true,
+  'sizeMode.z': true,
+  'sizeAbsolute.x': true,
+  'sizeAbsolute.y': true,
+  'sizeAbsolute.z': true,
+  'sizeDifferential.x': true,
+  'sizeDifferential.y': true,
+  'sizeDifferential.z': true,
+  'sizeProportional.x': true,
+  'sizeProportional.y': true,
+  'sizeProportional.z': true,
+  'translation.x': true,
+  'translation.y': true,
+  'translation.z': true,
+  'rotation.x': true,
+  'rotation.y': true,
+  'rotation.z': true,
+  'rotation.w': true, // Just in case this ever happens
+  'scale.x': true,
+  'scale.y': true,
+  'scale.z': true,
+  'shear.xy': true,
+  'shear.xz': true,
+  'shear.yz': true,
+  'mount.x': true,
+  'mount.y': true,
+  'mount.z': true,
+  'align.x': true,
+  'align.y': true,
+  'align.z': true,
+  'origin.x': true,
+  'origin.y': true,
+  'origin.z': true,
+  'opacity': true,
+  'shown': true,
+  'perspective': true, // Future proofing
+  'style.zIndex': true // Many of these; avoid a bajillion zIndex_1, zIndex_2 states
+}
+
+Property.PREPOPULATED_VALUES = {
+  'sizeMode.x': 1,
+  'sizeMode.y': 1,
+  'sizeMode.z': 1,
+  'style.border': '0',
+  'style.margin': '0',
+  'style.padding': '0',
+  'style.overflowX': 'hidden',
+  'style.overflowY': 'hidden',
+  'style.WebkitTapHighlightColor': 'rgba(0,0,0,0)',
+  'style.backgroundColor': 'rgba(255,255,255,0)',
+  'style.zIndex': 0 // Managed via stacking UI
+}
+
+const NEVER = () => false
+
+const ALWAYS = () => true
+
+const NON_ROOT_ONLY = (name, element) => {
+  return !element.isRootElement()
+}
+
+const ROOT_ONLY = (name, element) => {
+  return element.isRootElement()
+}
+
+const NON_COMPONENT_ONLY = (name, element) => {
+  return !element.isComponent()
+}
+
+const COMPONENT_ONLY = (name, element) => {
+  return element.isComponent()
+}
+
+const IF_CHANGED_FROM_PREPOPULATED_VALUE = (name, element, property, keyframes) => {
+  const fallback = Property.PREPOPULATED_VALUES[name]
+  if (fallback === undefined) {
+    return true
+  }
+  const value = keyframes && keyframes[0] && keyframes[0].value
+  return (
+    value !== undefined &&
+    value !== fallback
+  )
+}
+
+/**
+ * Enumeration of display rules for properties which may be available for direct editing
+ * inside the Timeline UI. A rule is an ordered sequence of display tests, which are functions
+ * that return true if the property should be displayed in the scenario, or false if not.
+ * All tests must evaluate to true in order for the property to be displayed.
+ */
+Property.DISPLAY_RULES = {
+  'align.x': {jit: [NEVER], add: [NEVER]},
+  'align.y': {jit: [NEVER], add: [NEVER]},
+  'align.z': {jit: [NEVER], add: [NEVER]},
+  'content': {jit: [NON_ROOT_ONLY], add: [NON_ROOT_ONLY]},
+  'controlFlow.if': {jit: [NEVER], add: [NEVER]},
+  'controlFlow.placeholder': {jit: [NON_ROOT_ONLY, NON_COMPONENT_ONLY], add: [NEVER]},
+  'controlFlow.repeat': {jit: [NEVER], add: [NEVER]},
+  'controlFlow.yield': {jit: [NEVER], add: [NEVER]},
+  'haiku-id': {jit: [NEVER], add: [NEVER]},
+  'haiku-source': {jit: [NEVER], add: [NEVER]},
+  'haiku-title': {jit: [NEVER], add: [NEVER]},
+  'haiku-var': {jit: [NEVER], add: [NEVER]},
+  'height': {jit: [NEVER], add: [NEVER]},
+  'mount.x': {jit: [NEVER], add: [NEVER]},
+  'mount.y': {jit: [NEVER], add: [NEVER]},
+  'mount.z': {jit: [NEVER], add: [NEVER]},
+  'opacity': {jit: [NEVER], add: [ALWAYS]},
+  'origin.x': {jit: [NON_ROOT_ONLY], add: [NON_ROOT_ONLY]},
+  'origin.y': {jit: [NON_ROOT_ONLY], add: [NON_ROOT_ONLY]},
+  'origin.z': {jit: [NEVER], add: [NEVER]},
+  'playback': {jit: [NEVER], add: [NON_ROOT_ONLY, COMPONENT_ONLY]},
+  'rotation.x': {jit: [NON_ROOT_ONLY], add: [NON_ROOT_ONLY]},
+  'rotation.y': {jit: [NON_ROOT_ONLY], add: [NON_ROOT_ONLY]},
+  'rotation.z': {jit: [NON_ROOT_ONLY], add: [NON_ROOT_ONLY]},
+  'rotation.w': {jit: [NEVER], add: [NEVER]},
+  'scale.x': {jit: [NON_ROOT_ONLY], add: [NON_ROOT_ONLY]},
+  'scale.y': {jit: [NON_ROOT_ONLY], add: [NON_ROOT_ONLY]},
+  'scale.z': {jit: [NON_ROOT_ONLY], add: [NON_ROOT_ONLY]},
+  'shear.xy': {jit: [NON_ROOT_ONLY], add: [NEVER]},
+  'shear.xz': {jit: [NON_ROOT_ONLY], add: [NEVER]},
+  'shear.yz': {jit: [NON_ROOT_ONLY], add: [NEVER]},
+  'shown': {jit: [NEVER], add: [NEVER]},
+  'sizeAbsolute.x': {jit: [NON_ROOT_ONLY, COMPONENT_ONLY], add: [ROOT_ONLY]},
+  'sizeAbsolute.y': {jit: [NON_ROOT_ONLY, COMPONENT_ONLY], add: [ROOT_ONLY]},
+  'sizeAbsolute.z': {jit: [NON_ROOT_ONLY, COMPONENT_ONLY], add: [ROOT_ONLY]},
+  'sizeDifferential.x': {jit: [NEVER], add: [NEVER]},
+  'sizeDifferential.y': {jit: [NEVER], add: [NEVER]},
+  'sizeDifferential.z': {jit: [NEVER], add: [NEVER]},
+  'sizeMode.x': {jit: [NEVER], add: [IF_CHANGED_FROM_PREPOPULATED_VALUE]},
+  'sizeMode.y': {jit: [NEVER], add: [IF_CHANGED_FROM_PREPOPULATED_VALUE]},
+  'sizeMode.z': {jit: [NEVER], add: [IF_CHANGED_FROM_PREPOPULATED_VALUE]},
+  'sizeProportional.x': {jit: [NEVER], add: [NEVER]},
+  'sizeProportional.y': {jit: [NEVER], add: [NEVER]},
+  'sizeProportional.z': {jit: [NEVER], add: [NEVER]},
+  'style.background': {jit: [ALWAYS], add: [NEVER]},
+  'style.backgroundColor': {jit: [ALWAYS], add: [IF_CHANGED_FROM_PREPOPULATED_VALUE]},
+  'style.border': {jit: [ALWAYS], add: [IF_CHANGED_FROM_PREPOPULATED_VALUE]},
+  'style.borderBottom': {jit: [ALWAYS], add: [NEVER]},
+  'style.borderLeft': {jit: [ALWAYS], add: [NEVER]},
+  'style.borderRight': {jit: [ALWAYS], add: [NEVER]},
+  'style.borderTop': {jit: [ALWAYS], add: [NEVER]},
+  'style.color': {jit: [ALWAYS], add: [NEVER]},
+  'style.cursor': {jit: [ALWAYS], add: [NEVER]},
+  'style.fontFamily': {jit: [ALWAYS], add: [NEVER]},
+  'style.fontSize': {jit: [ALWAYS], add: [NEVER]},
+  'style.fontStyle': {jit: [ALWAYS], add: [NEVER]},
+  'style.fontWeight': {jit: [ALWAYS], add: [NEVER]},
+  'style.display': {jit: [NEVER], add: [NEVER]},
+  'style.height': {jit: [NEVER], add: [NEVER]},
+  'style.margin': {jit: [ALWAYS], add: [IF_CHANGED_FROM_PREPOPULATED_VALUE]},
+  'style.overflowX': {jit: [ALWAYS], add: [IF_CHANGED_FROM_PREPOPULATED_VALUE]},
+  'style.overflowY': {jit: [ALWAYS], add: [IF_CHANGED_FROM_PREPOPULATED_VALUE]},
+  'style.padding': {jit: [ALWAYS], add: [IF_CHANGED_FROM_PREPOPULATED_VALUE]},
+  'style.perspective': {jit: [ALWAYS], add: [NEVER]},
+  'style.pointerEvents': {jit: [ALWAYS], add: [NEVER]},
+  'style.position': {jit: [NEVER], add: [NEVER]},
+  'style.textTransform': {jit: [ALWAYS], add: [NEVER]},
+  'style.transform': {jit: [NEVER], add: [NEVER]},
+  'style.transformOrigin': {jit: [NEVER], add: [NEVER]},
+  'style.transformStyle': {jit: [ALWAYS], add: [NEVER]},
+  'style.WebkitTapHighlightColor': {jit: [ALWAYS], add: [IF_CHANGED_FROM_PREPOPULATED_VALUE]},
+  'style.width': {jit: [NEVER], add: [NEVER]},
+  'style.verticalAlign': {jit: [ALWAYS], add: [NEVER]},
+  'style.zIndex': {jit: [NON_ROOT_ONLY], add: [NON_ROOT_ONLY]},
+  'transform': {jit: [NEVER], add: [NEVER]},
+  'transformOrigin': {jit: [NEVER], add: [NEVER]},
+  'translation.x': {jit: [NEVER], add: [ALWAYS]},
+  'translation.y': {jit: [NEVER], add: [ALWAYS]},
+  'translation.z': {jit: [NEVER], add: [ALWAYS]},
+  'width': {jit: [NEVER], add: [NEVER]}
+}
+
+Property.includeInJIT = (name, element, property, keyframes) => {
+  return Property.includeInDisplay('jit', name, element, property, keyframes)
+}
+
+Property.includeInAddressables = (name, element, property, keyframes) => {
+  return Property.includeInDisplay('add', name, element, property, keyframes)
+}
+
+// Perform a series of truth-tests for the property which, if they all pass,
+// indicate that the property should be displayed for the given element
+Property.includeInDisplay = (type, name, element, property, keyframes) => {
+  const rule = Property.DISPLAY_RULES[name]
+  const tests = rule && rule[type]
+
+  if (!tests) {
+    return false
+  }
+
+  let include = true
+
+  for (let i = 0; i < tests.length; i++) {
+    // Early exit if we've found that one of the truth tests returned false
+    if (!include) {
+      break
+    }
+
+    include = tests[i](
+      name,
+      element,
+      property,
+      keyframes
+    )
+  }
+
+  return include
+}
+
+Property.buildFilterObject = (
+  filtered,
+  hostElement,
+  propertyName,
+  propertyObject
+) => {
+  // Highest precedence is if the property is deemed explicitly visible;
+  // Typically these get exposed when the user has selected via the JIT menu.
+  // In this case we simply give the user what they've asked for.
+  if (hostElement._visibleProperties[propertyName]) {
+    filtered[propertyName] = propertyObject
+    return
+  }
+
+  // If the property is a component state (exposed property), we absolutely want it.
+  if (propertyObject.type === 'state') {
+    filtered[propertyName] = propertyObject
+    return
+  }
+
+  const keyframesObject = hostElement.getPropertyKeyframesObject(propertyName)
+  const hasManyKeyframes = keyframesObject && Object.keys(keyframesObject).length > 1
+  const hasOneKeyframe = keyframesObject && Object.keys(keyframesObject).length === 1
+  const wasZerothKeyframeEdited = keyframesObject && keyframesObject[0] && keyframesObject[0].edited
+
+  // If the property has any keyframes defined (or explicitly edited), then we show it.
+  if (hasManyKeyframes) {
+    filtered[propertyName] = propertyObject
+    return
+  }
+
+  if (hasOneKeyframe && !keyframesObject[0]) {
+    filtered[propertyName] = propertyObject
+    return
+  }
+
+  if (wasZerothKeyframeEdited) {
+    filtered[propertyName] = propertyObject
+    return
+  }
+
+  // Finally, we drop through to custom per-property rules that may depend on the element type,
+  // its location in the tree, or what the value of its property is.
+  if (Property.includeInAddressables(propertyName, hostElement, propertyObject, keyframesObject)) {
+    filtered[propertyName] = propertyObject
+  }
 }
 
 module.exports = Property

@@ -11,6 +11,25 @@ const renderMissingLocalProjectMessage = () => {
   return <p />
 }
 
+const requireModuleFromFilename = (filename) => {
+  const mod = new Module('', module.parent)
+
+  // Module._resolveLookupPaths will use this...
+  mod.paths = [].concat(
+    path.dirname(filename),
+    Module._nodeModulePaths(__dirname)
+  )
+
+  // ...if and only if both these properties have been set.
+  mod.filename = filename
+  mod.id = filename
+
+  const src = fs.readFileSync(filename).toString()
+  mod._compile(src, filename)
+
+  return mod.exports
+}
+
 class ProjectPreview extends React.Component {
   constructor (props) {
     super(props)
@@ -23,11 +42,9 @@ class ProjectPreview extends React.Component {
   componentWillMount () {
     try {
       // TODO: Try to get the bytecode from CDN or eager clone if not yet available.
-      const bytecode = new Module('', module.parent)
-      bytecode.paths = Module._nodeModulePaths(path.dirname(__dirname))
-      bytecode._compile(fs.readFileSync(this.props.bytecodePath).toString(), '')
-      this.bytecode = bytecode.exports
-    } catch (e) {
+      this.bytecode = requireModuleFromFilename(this.props.bytecodePath)
+    } catch (exception) {
+      console.warn(exception)
       if (['Move', 'Moto', TourUtils.ProjectName].indexOf(this.props.projectName) !== -1) {
         this.bytecode = require(path.join('..', 'bytecode-fixtures', this.props.projectName))
       }
