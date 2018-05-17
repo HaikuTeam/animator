@@ -38,6 +38,7 @@ const ENDPOINTS = {
   RESET_PASSWORD: 'v0/reset-password',
   RESET_PASSWORD_CLAIM: 'v0/reset-password/:UUID/claim',
   FIGMA_ACCCESS_TOKEN_GET: 'v0/integrations/figma/token',
+  CANNY_ACCCESS_TOKEN_GET: 'v0/integrations/canny/token',
 };
 
 let request: {get: Function, post: Function, put: Function, delete: Function};
@@ -595,27 +596,53 @@ export namespace inkstone {
   }
 
   export namespace integrations {
-    export interface AccessTokenResponse {
+    export interface OAuthAccessTokenResponse {
       AccessToken: string;
       RefreshToken: string;
       ExpiresIn: number;
     }
 
+    export interface JSONWebTokenResponse {
+      AccessToken: string;
+    }
+
     /**
      * Get a Figma access token using a Figma authorization code.
      * @param {string} code
-     * @param {inkstone.Callback<inkstone.integrations.AccessTokenResponse>} cb
+     * @param {inkstone.Callback<inkstone.integrations.OAuthAccessTokenResponse>} cb
      */
-    export function getFigmaAccessToken(code: string, cb: inkstone.Callback<AccessTokenResponse>) {
+    export function getFigmaAccessToken(code: string, cb: inkstone.Callback<OAuthAccessTokenResponse>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.FIGMA_ACCCESS_TOKEN_GET + '?Code=' + encodeURIComponent(code),
         headers: baseHeaders,
       };
 
       request.get(options, (err, httpResponse, body) => {
-
         if (httpResponse && httpResponse.statusCode === 200) {
-          cb(undefined, JSON.parse(body) as AccessTokenResponse, httpResponse);
+          cb(undefined, JSON.parse(body) as OAuthAccessTokenResponse, httpResponse);
+        } else {
+          cb(safeError(err), undefined, httpResponse);
+        }
+      });
+    }
+
+    /**
+     * Get a Canny access token as a logged-in user.
+     * @param {string} code
+     * @param {inkstone.Callback<inkstone.integrations.OAuthAccessTokenResponse>} cb
+     */
+    export function getCannyAccessToken(authToken: string|undefined, cb: inkstone.Callback<JSONWebTokenResponse>) {
+      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        url: inkstoneConfig.baseUrl + ENDPOINTS.CANNY_ACCCESS_TOKEN_GET,
+        headers: {
+          ...baseHeaders,
+          ...maybeAuthorizationHeaders(authToken),
+        },
+      };
+
+      request.get(options, (err, httpResponse, body) => {
+        if (httpResponse && httpResponse.statusCode === 200) {
+          cb(undefined, JSON.parse(body) as JSONWebTokenResponse, httpResponse);
         } else {
           cb(safeError(err), undefined, httpResponse);
         }
