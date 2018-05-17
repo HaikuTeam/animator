@@ -35,7 +35,7 @@ module.exports = {
           }
         },
 
-        playback: { "0": { value: "repeating" } },
+        playback: { "0": { value: "loop" } },
       },
 
       "haiku:f203a65f49c0": {
