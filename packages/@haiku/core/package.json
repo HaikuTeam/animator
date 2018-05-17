@@ -23,7 +23,7 @@
   "main": "index.js",
   "scripts": {
     "bundle": "node ./scripts/bundle.js",
-    "self-link": "link && link @haiku/core",
+    "self-link": "yarn link && yarn link @haiku/core",
     "develop": "yarn self-link && node ./scripts/develop.js",
     "compile": "tsc",
     "watch": "tsc --watch",
