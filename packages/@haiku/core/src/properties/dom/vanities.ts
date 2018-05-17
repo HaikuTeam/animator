@@ -806,6 +806,12 @@ const getCanonicalPlaybackValue = (value) => {
   return value;
 };
 
+export const PLAYBACK_SETTINGS = {
+  ONCE: 'once',
+  LOOP: 'loop',
+  STOP: 'stop',
+};
+
 const applyPlaybackStatus = (
   status,
   receivingTimeline,
@@ -813,17 +819,18 @@ const applyPlaybackStatus = (
   sendingTimeline,
   sendingComponent,
 ) => {
-  // Start by unsetting the repeat value, which we'll re-set only if our value becomes 'repeating'
+  // Start by unsetting the repeat value, which we'll re-set only if our value becomes 'loop'
   receivingTimeline.setRepeat(false);
 
   let val = status;
 
   if (val === null || val === undefined || val === true) {
-    val = 'repeating';
+    val = PLAYBACK_SETTINGS.LOOP;
   }
 
-  const shouldRepeat = val === 'repeating';
-  const shouldPlay = val === 'playing';
+  const shouldRepeat = val === PLAYBACK_SETTINGS.LOOP;
+  const shouldPlay = val === PLAYBACK_SETTINGS.ONCE;
+  const shouldStop = val === PLAYBACK_SETTINGS.STOP;
 
   if (shouldRepeat) {
     receivingTimeline.setRepeat(true);
@@ -836,6 +843,12 @@ const applyPlaybackStatus = (
         receivingTimeline.play();
       } else {
         receivingTimeline.playSoftly();
+      }
+    } else if (shouldStop) {
+      if (receivingTimeline._isPlaying) {
+        receivingTimeline.stop();
+      } else {
+        receivingTimeline.stopSoftly();
       }
     }
   }

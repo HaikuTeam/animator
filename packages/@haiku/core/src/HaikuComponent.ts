@@ -8,7 +8,7 @@ import HaikuContext from './HaikuContext';
 import {runMigrations} from './Migration';
 import HaikuBase, {GLOBAL_LISTENER_KEY} from './HaikuBase';
 import HaikuTimeline from './HaikuTimeline';
-import vanities from './properties/dom/vanities';
+import vanities,{PLAYBACK_SETTINGS} from './properties/dom/vanities';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
 import cssQueryList from './helpers/cssQueryList';
 import xmlToMana from './helpers/xmlToMana';
@@ -1033,15 +1033,23 @@ export default class HaikuComponent extends HaikuElement {
       return playbackValue;
     }
 
-    // If time is controlled and we're repeating, use a modulus of the guest's max time
-    // which will give the effect of looping the guest to its 0 if its max has been reached
-    if (playbackValue === 'repeating') {
-      const guestTimeline = guest.getTimeline(timelineName);
+    const guestTimeline = guest.getTimeline(timelineName);
 
+    // If time is controlled and we're set to 'loop', use a modulus of the guest's max time
+    // which will give the effect of looping the guest to its 0 if its max has been reached
+    if (playbackValue === PLAYBACK_SETTINGS.LOOP) {
       if (guestTimeline) {
         const guestMax = guestTimeline.getMaxTime();
         const finalFrame = timelineTime % guestMax; // TODO: What if final frame has a change?
         return finalFrame;
+      }
+
+      return timelineTime;
+    }
+
+    if (playbackValue === PLAYBACK_SETTINGS.STOP) {
+      if (guestTimeline) {
+        return guestTimeline.getControlledTime() || 0;
       }
 
       return timelineTime;
