@@ -6455,5 +6455,17 @@
       "label": "feat",
       "message": "Group/ungroup MVP and multi-component CRUD"
     }
+  },
+  "3.2.23": {
+    "1a50d8ff9a835e213adcc3c6648fbd76e5e2a050": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "spell out yarn in self-link to avoid macOS conflict."
+    },
+    "8376d5c35c0c56f989ac9ff734dea5ab25771915": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Playback API changes, bug fixes, minor improvements (#475)"
+    }
   }
 }
