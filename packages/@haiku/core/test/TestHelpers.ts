@@ -55,12 +55,16 @@ const createDOM = (cb) => {
 };
 
 const createRenderTest = (template, timelines, baseConfig, cb) => {
+  createRenderTestFromBytecode({timelines, template}, baseConfig, cb);
+};
+
+const createRenderTestFromBytecode = (bytecode, baseConfig, cb) => {
   return createDOM((err, window, mount) => {
     if (err) { throw err; }
 
     const config = Config.build(baseConfig, {cache: {}, seed: Config.seed()});
     const renderer = new HaikuDOMRenderer(mount, config);
-    const context = new HaikuContext(mount, renderer, {}, {timelines, template}, config);
+    const context = new HaikuContext(mount, renderer, {}, bytecode, config);
     const component = context.component;
     const tree = component.render(context.config);
 
@@ -176,4 +180,5 @@ export {
   simulateEvent,
   timeBracket,
   compileStringToTypescript,
+  createRenderTestFromBytecode,
 };

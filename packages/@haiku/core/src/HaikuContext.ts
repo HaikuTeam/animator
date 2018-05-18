@@ -18,8 +18,8 @@ const VERSION = pkg.version;
  */
 // tslint:disable:variable-name
 export default class HaikuContext extends HaikuBase {
-  clock;
-  component;
+  clock: HaikuClock;
+  component: HaikuComponent;
   config;
   container;
   CORE_VERSION;

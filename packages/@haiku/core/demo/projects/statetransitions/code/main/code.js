@@ -11,38 +11,33 @@ module.exports = {
     branch: "master",
     player: "3.2.20",
     folder: "/home/jonaias/.haiku/projects/jonaias/Move",
-    core: "3.2.20",
+    core: "3.2.23",
     username: "jonas.jonaias@gmail.com",
     title: "Main"
   },
   options: {},
   states: {
-    opacityState: { type: "string", value: "0.5", edited: true },
-    position: { type: "number", value: 0, edited: true }
+    opacityState: { type: "number", value: 0.5, edited: true },
+    position1: { type: "number", value: 0, edited: true },
+    position2: { type: "number", value: 0, edited: true }
   },
   eventHandlers: {
     "haiku:1dfa2abb91b4": {
       click: {
         handler: function(target, event) {
-          this.setState({ opacityState: 1 }); /** action logic goes here */
-        }
-      }
-    },
-    "haiku:1dfa2abb91b4-acbea1": {
-      click: {
-        handler: function(target, event) {
           this.setState(
-            {
-              opacityState: 0.5,
-              position: 1
-            },
+            { opacityState: 1, position1: 300 },
             { duration: 3000, curve: "easeInBounce" }
           );
 
-          /** action logic goes here */
+          this.setState(
+            { position2: 300 },
+            { duration: 3000, curve: "linear" }
+          );
         }
       }
     },
+    "haiku:1dfa2abb91b4-acbea1": {},
     "haiku:91083482b04d": {
       "timeline:Default:18": {
         handler: function(target, event) {
@@ -53,20 +48,15 @@ module.exports = {
     "haiku:1dfa2abb91b4-288f34": {
       click: {
         handler: function(target, event) {
-          this.setState({ opacityState: 0.5 }); /** action logic goes here */
+          this.setState(
+            { opacityState: 0.5, position1: 0 },
+            { duration: 3000, curve: "easeInBounce" }
+          );
+          this.setState({ position2: 0 }, { duration: 3000, curve: "linear" });
         }
       }
     },
-    "haiku:1dfa2abb91b4-acbea1-d3c284": {
-      click: {
-        handler: function(target, event) {
-          this.setState(
-            { opacityState: 1, position: 0 },
-            { duration: 3000, curve: "easeInBounce" }
-          );
-        }
-      }
-    }
+    "haiku:1dfa2abb91b4-acbea1-d3c284": {}
   },
   timelines: {
     Default: {
@@ -96,11 +86,11 @@ module.exports = {
         "sizeAbsolute.y": { "0": { value: 14 } },
         "sizeMode.y": { "0": { value: 1 } },
         "translation.x": {
-          "0": { value: 200, edited: true },
+          "0": { value: 348, edited: true },
           "333": { value: 192.88, edited: true }
         },
         "translation.y": {
-          "0": { value: 200, edited: true },
+          "0": { value: 190, edited: true },
           "333": { value: 130.413, edited: true }
         },
         "style.zIndex": { "0": { value: 3 } },
@@ -146,19 +136,15 @@ module.exports = {
         "translation.x": {
           "0": {
             value: Haiku.inject(
-              function(position) {
-                return position * 300;
+              function(position1) {
+                return position1;
               },
-              "position"
+              "position1"
             ),
             edited: true
-          },
-          "333": { value: 234.88, edited: true }
+          }
         },
-        "translation.y": {
-          "0": { value: 300, edited: true },
-          "333": { value: 131.413, edited: true }
-        },
+        "translation.y": { "0": { value: 342, edited: true } },
         "style.zIndex": { "0": { value: 1, edited: true } },
         opacity: {
           "0": {
@@ -201,11 +187,11 @@ module.exports = {
         "sizeAbsolute.y": { "0": { value: 14 } },
         "sizeMode.y": { "0": { value: 1 } },
         "translation.x": {
-          "0": { value: 100, edited: true },
+          "0": { value: 207, edited: true },
           "333": { value: 192.88 }
         },
         "translation.y": {
-          "0": { value: 200, edited: true },
+          "0": { value: 191, edited: true },
           "333": { value: 130.413 }
         },
         "style.zIndex": { "0": { value: 2 } },
@@ -247,8 +233,18 @@ module.exports = {
         "sizeMode.x": { "0": { value: 1 } },
         "sizeAbsolute.y": { "0": { value: 14 } },
         "sizeMode.y": { "0": { value: 1 } },
-        "translation.x": { "0": { value: 415 }, "333": { value: 234.88 } },
-        "translation.y": { "0": { value: 199 }, "333": { value: 131.413 } },
+        "translation.x": {
+          "0": {
+            value: Haiku.inject(
+              function(position2) {
+                return position2;
+              },
+              "position2"
+            ),
+            edited: true
+          }
+        },
+        "translation.y": { "0": { value: 300 }, "333": { value: 131.413 } },
         "style.zIndex": { "0": { value: 1 } },
         opacity: {
           "0": {
@@ -259,7 +255,8 @@ module.exports = {
               "opacityState"
             )
           }
-        }
+        },
+        "translation.z": { "0": { value: 0 } }
       },
       "haiku:c991cf5a0eb2-acbea1-d3c284": {
         stroke: { "0": { value: "none" } },
