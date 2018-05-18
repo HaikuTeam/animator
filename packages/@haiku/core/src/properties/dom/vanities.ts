@@ -844,18 +844,51 @@ const applyPlaybackStatus = (
       } else {
         receivingTimeline.playSoftly();
       }
-    } else if (shouldStop) {
+
+      return;
+    }
+
+    if (shouldStop) {
       if (receivingTimeline._isPlaying) {
         receivingTimeline.stop();
       } else {
         receivingTimeline.stopSoftly();
       }
+
+      return;
     }
   }
 
   if (typeof val === 'number') {
-    receivingTimeline.seek(val);
+    receivingTimeline.seek(val); // Numbers are assumed to be frames
+    return;
   }
+
+  // Attempt to handle strings that specify a unit, e.g. '123ms'
+  if (typeof val === 'string') {
+    const numericSpec = unitizeString(val);
+
+    if (numericSpec) {
+      receivingTimeline.seek(numericSpec.value, numericSpec.units);
+    }
+  }
+};
+
+/**
+ * @function unitizeString
+ * @description Convert a string like '123ms' to {value: 123, units: 'ms'}
+ */
+const unitizeString = (str: string) => {
+  const match = str.match(/(\d+)(\w+)/);
+
+  if (!match || !match[1] || !match[2]) {
+    return;
+  }
+
+  return {
+    value: Number(match[1]),
+    units: match[2],
+  };
 };
 
 const PLAYBACK_VANITIES = {
