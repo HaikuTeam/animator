@@ -316,7 +316,7 @@ export default class HaikuComponent extends HaikuElement {
 
     bindStates(this._states, this, this.config.states);
 
-    bindEventHandlers(this, this.config.eventHandlers);
+    this.bindEventHandlers();
 
     assign(this.bytecode.timelines, this.config.timelines);
 
@@ -362,7 +362,7 @@ export default class HaikuComponent extends HaikuElement {
 
     // Gotta bind any event handlers that may have been dynamically added
     if (options['clearEventHandlers'] !== false) {
-      bindEventHandlers(this, this.config.eventHandlers);
+      this.bindEventHandlers();
     }
 
     this._flatManaTree = manaFlattenTree(this.getTemplate(), CSS_QUERY_MAPPING);
@@ -571,6 +571,31 @@ export default class HaikuComponent extends HaikuElement {
     }
 
     return out;
+  }
+
+  bindEventHandlers() {
+    if (
+      !this.bytecode.eventHandlers ||
+      Array.isArray(this.bytecode.eventHandlers) // Skip legacy format; must migrate first
+    ) {
+      return;
+    }
+
+    const allEventHandlers = assign(
+      {},
+      this.bytecode.eventHandlers,
+      this.config.eventHandlers,
+    );
+
+    for (const selector in allEventHandlers) {
+      const handlerGroup = allEventHandlers[selector];
+
+      for (const eventName in handlerGroup) {
+        const eventHandlerDescriptor = handlerGroup[eventName];
+
+        bindEventHandler(this, eventHandlerDescriptor, selector, eventName);
+      }
+    }
   }
 
   eachEventHandler (iteratee: Function) {
@@ -1114,31 +1139,6 @@ function assertTemplate(template) {
   }
 
   throw new Error('Unknown bytecode template format');
-}
-
-function bindEventHandlers(component, extraEventHandlers) {
-  if (
-    !component.bytecode.eventHandlers ||
-    Array.isArray(component.bytecode.eventHandlers) // Skip legacy format; must migrate first
-  ) {
-    return;
-  }
-
-  const allEventHandlers = assign(
-    {},
-    component.bytecode.eventHandlers,
-    extraEventHandlers,
-  );
-
-  for (const selector in allEventHandlers) {
-    const handlerGroup = allEventHandlers[selector];
-
-    for (const eventName in handlerGroup) {
-      const eventHandlerDescriptor = handlerGroup[eventName];
-
-      bindEventHandler(component, eventHandlerDescriptor, selector, eventName);
-    }
-  }
 }
 
 function bindEventHandler(component, eventHandlerDescriptor, selector, eventName) {

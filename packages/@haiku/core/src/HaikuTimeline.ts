@@ -15,6 +15,11 @@ const DEFAULT_OPTIONS = {
   loop: true,
 };
 
+export const enum TimeUnit {
+  Millisecond = 'ms',
+  Frame = 'fr',
+}
+
 // tslint:disable:variable-name
 export default class HaikuTimeline extends HaikuBase {
   options;
@@ -43,6 +48,17 @@ export default class HaikuTimeline extends HaikuBase {
     this._maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
 
     this._isPlaying = false;
+  }
+
+  private getMs(amount: number, unit: TimeUnit): number {
+    switch (unit) {
+      case TimeUnit.Frame:
+        return ~~(this.component.getClock().getFrameDuration() * amount);
+      case TimeUnit.Millisecond:
+      default:
+        // The only currently valid alternative to TimeUnit.Frame is TimeUnit.Millisecond.
+        return amount;
+    }
   }
 
   assignOptions(options) {
@@ -365,13 +381,14 @@ export default class HaikuTimeline extends HaikuBase {
     }
   }
 
-  seek(ms: number) {
+  seek(amount: number, unit: TimeUnit = TimeUnit.Frame) {
+    const ms = this.getMs(amount, unit);
     this.seekSoftly(ms);
     this.component.markForFullFlush();
     this.emit('seek', ms);
   }
 
-  seekSoftly(ms: number) {
+  private seekSoftly(ms: number) {
     this.ensureClockIsRunning();
     const clockTime = this.component.getClock().getTime();
     this.controlTime(ms, clockTime);
@@ -379,13 +396,15 @@ export default class HaikuTimeline extends HaikuBase {
     this.startSoftly(clockTime, descriptor);
   }
 
-  gotoAndPlay(ms: number) {
+  gotoAndPlay(amount: number, unit: TimeUnit = TimeUnit.Frame) {
+    const ms = this.getMs(amount, unit);
     this.ensureClockIsRunning();
     this.seekSoftly(ms);
     this.play(null);
   }
 
-  gotoAndStop(ms: number) {
+  gotoAndStop(amount: number, unit: TimeUnit = TimeUnit.Frame) {
+    const ms = this.getMs(amount, unit);
     this.ensureClockIsRunning();
     this.seekSoftly(ms);
     if (this.component && this.component.context && this.component.context.tick) {

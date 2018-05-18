@@ -38,11 +38,11 @@ class Snippets extends React.PureComponent {
       },
       {
         label: 'Go To And Play',
-        onClick: () => { this.insertSnippet('this.getDefaultTimeline().gotoAndPlay(ms)') }
+        onClick: () => { this.insertSnippet('this.getDefaultTimeline().gotoAndPlay(frame)') }
       },
       {
         label: 'Go To And Stop',
-        onClick: () => { this.insertSnippet('this.getDefaultTimeline().gotoAndStop(ms)') }
+        onClick: () => { this.insertSnippet('this.getDefaultTimeline().gotoAndStop(frame)') }
       },
       {
         label: 'Pause',
