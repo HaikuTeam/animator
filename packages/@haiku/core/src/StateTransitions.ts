@@ -32,7 +32,12 @@ export default class StateTransitions {
     // Copy current states as transition origin (needed to calculate interpolation)
     const origin = {};
     for (const key in target) {
-      origin[key] = this.states[key];
+      // Ignore state if it doesn't pre exist
+      if (key in this.states) {
+        origin[key] = this.states[key];
+      } else {
+        delete target[key];
+      }
     }
 
     // Select function correspondent to given string
@@ -87,6 +92,10 @@ export default class StateTransitions {
       // Set interpolated values
       this.setStates(interpolatedStates);
     }
+  }
+
+  deleteAllStateTransitions() {
+    this.transitions = [];
   }
 
 }
