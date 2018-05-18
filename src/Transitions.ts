@@ -230,4 +230,5 @@ export default {
   calculateValue,
   calculateValueAndReturnUndefinedIfNotWorthwhile,
   sortedKeyframes,
+  interpolate,
 };
