@@ -1065,8 +1065,8 @@ export default class HaikuComponent extends HaikuElement {
     if (playbackValue === PLAYBACK_SETTINGS.LOOP) {
       if (guestTimeline) {
         const guestMax = guestTimeline.getMaxTime();
-        const finalFrame = timelineTime % guestMax; // TODO: What if final frame has a change?
-        return finalFrame;
+        const finalTime = timelineTime % guestMax; // TODO: What if final frame has a change?
+        return finalTime;
       }
 
       return timelineTime;
