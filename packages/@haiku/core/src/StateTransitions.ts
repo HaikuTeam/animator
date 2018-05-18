@@ -19,6 +19,8 @@ export default class StateTransitions {
 
   states: StateValues;
   clock: HaikuClock;
+
+  // Store running state transitions
   transitions: RunningStateTransition[];
 
   constructor(states: StateValues, clock: HaikuClock) {
@@ -27,6 +29,10 @@ export default class StateTransitions {
     this.transitions = [];
   }
 
+
+  /**
+   * Create a new state transition.
+   */
   createNewTransition(target: StateValues, parameter: StateTransitionParameters) {
 
     // Copy current states as transition origin (needed to calculate interpolation)
@@ -36,6 +42,7 @@ export default class StateTransitions {
       if (key in this.states) {
         origin[key] = this.states[key];
       } else {
+        // delete state from target if it doens't pre exist
         delete target[key];
       }
     }
@@ -45,7 +52,7 @@ export default class StateTransitions {
       parameter.curve = justCurves[parameter.curve];
     }
     
-    // Set current 
+    // Set current time
     const currentTime = this.clock.getTime();
 
     // Create a transition object
@@ -67,6 +74,10 @@ export default class StateTransitions {
     }
   }
 
+  /**
+   * Should be called on every tick. It cleans expired state transitions 
+   * and execute interpolation of running state transitions.
+   */
   tickStateTransitions(): void {
     const currentTime = this.clock.getTime();
 
@@ -94,6 +105,9 @@ export default class StateTransitions {
     }
   }
 
+  /**
+   * Delete every running transition
+   */
   deleteAllStateTransitions() {
     this.transitions = [];
   }

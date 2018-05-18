@@ -150,7 +150,7 @@ export default class HaikuComponent extends HaikuElement {
     this._states = {}; // Storage for getter/setter actions in userland logic
     this.state = {}; // Public accessor object, e.g. this.state.foo = 1
 
-    // Instantiate StateTransitions. Resposible to store and execute any state transition.
+    // Instantiate StateTransitions. Responsible to store and execute any state transition.
     this.stateTransitions = new StateTransitions(this.state, this.getClock());
 
     // `assignConfig` calls bindStates and bindEventHandlers, because our incoming config, which
