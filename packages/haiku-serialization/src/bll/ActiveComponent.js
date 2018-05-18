@@ -4,6 +4,7 @@ const pretty = require('pretty')
 const async = require('async')
 const jss = require('json-stable-stringify')
 const pascalcase = require('pascalcase')
+const {LAYOUT_3D_SCHEMA} = require('@haiku/core/lib/properties/dom/schema')
 const {HAIKU_ID_ATTRIBUTE, HAIKU_TITLE_ATTRIBUTE} = require('@haiku/core/lib/HaikuElement')
 const {sortedKeyframes} = require('@haiku/core/lib/Transitions').default
 const HaikuComponent = require('@haiku/core/lib/HaikuComponent').default
@@ -429,6 +430,10 @@ class ActiveComponent extends BaseModel {
   htmlSnapshot (cb) {
     const html = this.getMountHTML()
     return cb(null, pretty(html))
+  }
+
+  setCurrentTimelineFrameValue (frame) {
+    this.getCurrentTimeline().seek(frame, /* skipTransmit= */ true)
   }
 
   setTimelineTimeValue (timelineTime, forceSeek = false) {
@@ -3563,6 +3568,7 @@ class ActiveComponent extends BaseModel {
   groupElementsActual (componentIds, groupManaIn, coords, metadata, cb) {
     // Make a copy so that we don't have to decycle.
     const groupMana = lodash.cloneDeep(groupManaIn)
+    const originalTimeline = this.getTimelineDescriptor(this.getCurrentTimelineName())
     return this.performComponentWork((bytecode, mana, done) => {
       const timelineName = this.getInstantiationTimelineName()
       const timelineTime = this.getInstantiationTimelineTime()
@@ -3572,23 +3578,47 @@ class ActiveComponent extends BaseModel {
       // We only allow grouping of the top level elements, hence iterating children, not visiting
       for (let i = mana.children.length - 1; i >= 0; i--) {
         const node = mana.children[i]
+        if (!node.attributes) {
+          continue
+        }
 
-        if (
-          node.attributes &&
-          componentIds.indexOf(node.attributes[HAIKU_ID_ATTRIBUTE]) !== -1
-        ) {
+        if (componentIds.indexOf(node.attributes[HAIKU_ID_ATTRIBUTE]) !== -1) {
+          const timelineSelector = `haiku:${node.attributes[HAIKU_ID_ATTRIBUTE]}`
           // Add to a list of nodes we want to regroup
           nodesToRegroup.push(node)
 
           // Remove node from its existing parent
           mana.children.splice(i, 1)
+
+          // Clobber all layout properties using their current values.
+          if (!originalTimeline[timelineSelector]) {
+            continue
+          }
+          const propertyGroup = Object.keys(originalTimeline[timelineSelector]).reduce((accumulator, propertyName) => {
+            if (LAYOUT_3D_SCHEMA[propertyName]) {
+              accumulator[propertyName] = {
+                0: {
+                  value: this.getComputedPropertyValue(
+                    mana,
+                    node.attributes[HAIKU_ID_ATTRIBUTE],
+                    timelineName,
+                    this.getCurrentTimelineTime(),
+                    propertyName,
+                    undefined
+                  )
+                }
+              }
+            }
+            return accumulator
+          }, {})
+          Bytecode.replaceTimelinePropertyGroups(bytecode, timelineName, timelineSelector, propertyGroup)
         }
       }
 
       const groupComponentId = this.instantiateManaInBytecode(groupMana, bytecode, {}, coords)
       groupMana.children[0].children = nodesToRegroup
 
-      // Place the new group at the top (TODO: retain inner stacking order somehow)
+      // Place the new group at the top.
       const stackingInfo = Template.getStackingInfo(bytecode, mana, timelineName, timelineTime)
       const stackObject = this.grabStackObjectFromStackingInfo(stackingInfo, groupComponentId)
 
