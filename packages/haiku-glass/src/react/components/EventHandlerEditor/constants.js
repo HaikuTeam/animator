@@ -8,8 +8,6 @@ export const EVALUATOR_STATES = {
 
 export const EDITOR_WIDTH = 500
 
-export const EDITOR_HEIGHT = 480
-
 export const AUTOCOMPLETION_ITEMS = [
   {
     detail: 'Change State',
@@ -19,12 +17,12 @@ export const AUTOCOMPLETION_ITEMS = [
   {
     detail: 'Seek and play from a specific frame.',
     label: 'gotoAndPlay',
-    insertText: 'this.getDefaultTimeline().gotoAndPlay(ms)'
+    insertText: 'this.getDefaultTimeline().gotoAndPlay(frame)'
   },
   {
     detail: 'Seek to a specific frame, and stop the timeline at that point.',
     label: 'gotoAndStop',
-    insertText: 'this.getDefaultTimeline().gotoAndStop(ms)'
+    insertText: 'this.getDefaultTimeline().gotoAndStop(frame)'
   },
   {
     detail: 'Play this timeline at the current frame.',
@@ -47,9 +45,9 @@ export const AUTOCOMPLETION_ITEMS = [
     insertText: 'this.getDefaultTimeline().start()'
   },
   {
-    detail: 'Jump to a specific time in the timeline.',
+    detail: 'Jump to a specific frame in the timeline.',
     label: 'seek',
-    insertText: 'this.getDefaultTimeline().seek(ms)'
+    insertText: 'this.getDefaultTimeline().seek(frame)'
   },
   {
     detail: 'Returns whether or not this timeline is currently playing.',

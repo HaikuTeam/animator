@@ -1,8 +1,48 @@
 const tape = require('tape');
 const VERSION = require('../../package.json').version;
+import functionToRFO from '../../src/reflection/functionToRFO';
 import * as TestHelpers from './../TestHelpers';
 
-tape('upgradeBytecodeInPlace', (t) => {
+tape('Migration', (t) => {
+  tape('timelineDefaultFrames', (t) => {
+    const oldBytecode = {
+      metadata: {
+        core: '3.2.22',
+      },
+      options: {
+        // Necessary for us to be able to see what we're doing!
+        hotEditingMode: true,
+      },
+      eventHandlers: {
+        foo: {
+          click: {
+            // tslint:disable
+            handler: function(event) {
+              const functionThatReturns2 = (ignoredArg) => {
+                return 2;
+              };
+
+              this.seek(1000);
+              this.getDefaultTimeline().gotoAndPlay(functionThatReturns2({blah: functionThatReturns2('hey')}));
+            },
+            // tslint:enable
+          },
+        },
+      },
+    };
+
+    TestHelpers.createComponent(oldBytecode, {}, (component, teardown)  => {
+      t.is(component.bytecode.metadata.core, VERSION);
+      const {__function: {body}} = functionToRFO(component.bytecode.eventHandlers.foo.click.original);
+      t.true(body.indexOf(`this.seek(1000, 'ms');`) > 0);
+      t.true(body.indexOf(
+        `this.getDefaultTimeline().gotoAndPlay(functionThatReturns2({ blah: functionThatReturns2('hey') }), 'ms');`)
+        > 0);
+      teardown();
+      t.end();
+    });
+  });
+
   tape('legacyOriginSupport', (t) => {
     const oldBytecode = {
       metadata: {

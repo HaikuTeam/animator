@@ -2,21 +2,30 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
+import reifyRFO from '@haiku/player/lib/reflection/reifyRFO';
 import HaikuComponent from './HaikuComponent';
 import addLegacyOriginSupport from './helpers/addLegacyOriginSupport';
 import compareSemver from './helpers/compareSemver';
 import visitManaTree from './helpers/visitManaTree';
 import xmlToMana from './helpers/xmlToMana';
 import schema from './properties/dom/schema';
+import functionToRFO from './reflection/functionToRFO';
 
 const STRING_TYPE = 'string';
 
-const enum UpgradeVersionRequirements {
+const enum UpgradeVersionRequirement {
   OriginSupport = '3.2.0',
+  TimelineDefaultFrames = '3.2.23',
 }
 
 const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source';
 const HAIKU_VAR_ATTRIBUTE = 'haiku-var';
+
+const requiresUpgrade = (coreVersion: string, requiredVersion: UpgradeVersionRequirement) => !coreVersion ||
+  compareSemver(
+    coreVersion,
+    requiredVersion,
+  ) < 0;
 
 /**
  * @function run
@@ -24,7 +33,7 @@ const HAIKU_VAR_ATTRIBUTE = 'haiku-var';
  * Think of this like a migration that always runs in production components just in case we
  * get something that happens to be legacy.
  */
-export function runMigrations(component: HaikuComponent, options: any, version: string) {
+export const runMigrations = (component: HaikuComponent, options: any, version: string) => {
   const bytecode = component.bytecode;
   if (!bytecode.states) {
     bytecode.states = {};
@@ -168,7 +177,8 @@ export function runMigrations(component: HaikuComponent, options: any, version: 
   }
 
   const coreVersion = bytecode.metadata.core || bytecode.metadata.player;
-  if (!coreVersion || compareSemver(coreVersion, UpgradeVersionRequirements.OriginSupport) < 0) {
+
+  if (requiresUpgrade(coreVersion, UpgradeVersionRequirement.OriginSupport)) {
     component.visit((element) => {
       if (schema[element.tagName] && schema[element.tagName]['origin.x']) {
         // We only need to upgrade elements whose schemas support origin.
@@ -189,6 +199,51 @@ export function runMigrations(component: HaikuComponent, options: any, version: 
     component.markForFullFlush();
   }
 
+  if (requiresUpgrade(coreVersion, UpgradeVersionRequirement.TimelineDefaultFrames)) {
+    let wereAnyEventHandlersUpgraded = false;
+    component.eachEventHandler((eventSelector, eventName, {original}) => {
+      const rfo = functionToRFO(original);
+      let body: string = rfo.__function.body;
+      let changed = false;
+      ['.seek(', '.gotoAndPlay(', '.gotoAndStop('].forEach((methodSignature) => {
+        for (let cursor = 0; cursor < body.length; ++cursor) {
+          if (body.substring(cursor, cursor + methodSignature.length) !== methodSignature) {
+            continue;
+          }
+
+          // We have matched e.g. this.getDefaultTimeline().seek( at the string index of ".seek(".
+          // Using the assumption that the method arguments do not contain string arguments with parentheses inside,
+          // we can apply a simple parenthesis-balancing algorithm here.
+          wereAnyEventHandlersUpgraded = changed = true;
+          cursor += methodSignature.length;
+          let openParens = 1;
+          while (openParens > 0 && cursor < body.length) {
+            if (body[cursor] === '(') {
+              openParens++;
+            } else if (body[cursor] === ')') {
+              openParens--;
+            }
+            ++cursor;
+          }
+          // Essentially, replace .seek(foo) with .seek(foo, 'ms').
+          body = `${body.slice(0, cursor - 1)}, 'ms')${body.slice(cursor)}`;
+        }
+      });
+
+      if (changed) {
+        bytecode.eventHandlers[eventSelector][eventName].handler = reifyRFO({
+          ...rfo.__function,
+          body,
+        });
+        delete bytecode.eventHandlers[eventSelector][eventName].original;
+      }
+    });
+
+    if (wereAnyEventHandlersUpgraded) {
+      component.bindEventHandlers();
+    }
+  }
+
   // Ensure the bytecode metadata core version is recent.
   bytecode.metadata.core = version;
-}
+};
