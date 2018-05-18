@@ -272,7 +272,7 @@ export default class TopMenu {
               // tslint:disable-next-line
               shell.openExternal('https://www.haiku.ai/blog/');
             },
-          }, { type: 'separator' },
+          }, {type: 'separator'},
           {
             label: 'YouTube',
             click: () => {
