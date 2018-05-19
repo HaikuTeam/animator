@@ -8,42 +8,38 @@ export type StateTransitionParameters = { curve: string, duration: number};
 export type StateValues = {[stateName: string]: any};
 
 export type RunningStateTransition = {
-  origin: StateValues,
-  target: StateValues,
+  transitionStart: StateValues,
+  transitionEnd: StateValues,
   parameter: StateTransitionParameters,
   startTime: number,
   endTime: number,
 };
 
-export default class StateTransitions {
+export default class StateTransitionManager {
 
-  states: StateValues;
-  clock: HaikuClock;
 
   // Store running state transitions
-  transitions: RunningStateTransition[];
+  private transitions: RunningStateTransition[] = [];
 
-  constructor(states: StateValues, clock: HaikuClock) {
-    this.states = states;
-    this.clock = clock;
-    this.transitions = [];
-  }
+  constructor(private states: StateValues, private readonly clock: HaikuClock) {}
 
 
   /**
    * Create a new state transition.
    */
-  createNewTransition(target: StateValues, parameter: StateTransitionParameters) {
+  createNewTransition(transitionEnd: StateValues, parameter: StateTransitionParameters) {
 
-    // Copy current states as transition origin (needed to calculate interpolation)
-    const origin = {};
-    for (const key in target) {
+    // Copy current states as transition start (needed to calculate interpolation)
+    const transitionStart = {};
+    for (const key in transitionEnd) {
       // Ignore state if it doesn't pre exist
       if (key in this.states) {
-        origin[key] = this.states[key];
+        transitionStart[key] = this.states[key];
       } else {
-        // delete state from target if it doens't pre exist
-        delete target[key];
+        // Delete state from transitionEnd if it doens't exist on states.
+        // If we don't delete it, on tickStateTransitions expired 
+        // transition delete, it will set transitionEnd
+        delete transitionEnd[key];
       }
     }
 
@@ -57,9 +53,9 @@ export default class StateTransitions {
 
     // Create a transition object
     this.transitions.push({
-      origin,
+      transitionStart,
       parameter,
-      target,
+      transitionEnd,
       startTime: currentTime,
       endTime: currentTime + parameter.duration,
     });
@@ -79,15 +75,21 @@ export default class StateTransitions {
    * and execute interpolation of running state transitions.
    */
   tickStateTransitions(): void {
+
+    // If have no running transitions, optimize it by using early retrun
+    if (this.transitions.length === 0) {
+      return;
+    }
+
     const currentTime = this.clock.getTime();
 
     // Helper functions 
     const isExpired = (transition) => currentTime >= transition.endTime;
     const isNotExpired = (transition) => currentTime < transition.endTime;
 
-    // Set target value for expired transitions before removing them
+    // Set transitionEnd value for expired transitions before removing them
     this.transitions.filter(isExpired).forEach((transition) => {
-      this.setStates(transition.target);
+      this.setStates(transition.transitionEnd);
     });
 
     // Remove expired transitions
@@ -97,8 +99,9 @@ export default class StateTransitions {
     for (const transition of this.transitions) {
 
       // Calculate interpolated states
-      const interpolatedStates = Transitions.interpolate(currentTime, transition.parameter.curve, transition.startTime,
-                                                         transition.endTime, transition.origin, transition.target);
+      const interpolatedStates =  Transitions.interpolate(
+                                    currentTime, transition.parameter.curve, transition.startTime,
+                                    transition.endTime, transition.transitionStart, transition.transitionEnd);
 
       // Set interpolated values
       this.setStates(interpolatedStates);
@@ -112,4 +115,7 @@ export default class StateTransitions {
     this.transitions = [];
   }
 
+  getNumRunningTransitions() {
+    return this.transitions.length;
+  }
 }
