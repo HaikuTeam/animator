@@ -54,6 +54,7 @@ export type BytecodeState = {
   value: BytecodeStateType;
   type?: string;
   access?: string;
+  edited?: boolean;
   getter?: () => BytecodeStateType;
   setter?: (param: BytecodeStateType) => void;
 };
@@ -69,7 +70,7 @@ export type BytecodeStates = {
  * Haiku bytecode function `handler` for an specific `eventSelectors`. 
  */
 export type BytecodeEventHandler = {
-  [eventSelectors: string]: {handler: (param: any) => any};
+  [eventSelectors: string]: {handler: (target?: any, event?: any) => void};
 };
 
 /**
