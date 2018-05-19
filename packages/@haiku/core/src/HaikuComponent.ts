@@ -20,7 +20,7 @@ import Layout3D from './Layout3D';
 import ValueBuilder from './ValueBuilder';
 import assign from './vendor/assign';
 import {HaikuBytecode} from './api/HaikuBytecode';
-import StateTransitions, {StateTransitionParameters, StateValues} from './StateTransitions';
+import StateTransitionManager, {StateTransitionParameters, StateValues} from './StateTransitionManager';
 import HaikuClock from './HaikuClock';
 
 const pkg = require('./../package.json');
@@ -77,7 +77,7 @@ export default class HaikuComponent extends HaikuElement {
   PLAYER_VERSION;
   registeredEventHandlers;
   state;
-  stateTransitions: StateTransitions;
+  stateTransitionManager: StateTransitionManager;
 
   constructor(
     bytecode: HaikuBytecode,
@@ -151,7 +151,7 @@ export default class HaikuComponent extends HaikuElement {
     this.state = {}; // Public accessor object, e.g. this.state.foo = 1
 
     // Instantiate StateTransitions. Responsible to store and execute any state transition.
-    this.stateTransitions = new StateTransitions(this.state, this.getClock());
+    this.stateTransitionManager = new StateTransitionManager(this.state, this.getClock());
 
     // `assignConfig` calls bindStates and bindEventHandlers, because our incoming config, which
     // could occur at any point during runtime, e.g. in React, may need to update internal states, etc.
@@ -338,18 +338,18 @@ export default class HaikuComponent extends HaikuElement {
     return this.state[key];
   }
 
-  setState(states: StateValues, transitionParameter: StateTransitionParameters) {
+  setState(states: StateValues, transitionParameter?: StateTransitionParameters) {
 
-    /* Do not set any state if invalid */
+    // Do not set any state if invalid
     if (!states || typeof states !== 'object') {
       return this;
     }
 
-    /* If has transition parameter, it should be treated as a transition */
+    // If has transition parameter, it should be treated as a transition
     if (transitionParameter) {
-      this.stateTransitions.createNewTransition(states, transitionParameter);
-    }else {
-      /* If not state transition, set states right away */
+      this.stateTransitionManager.createNewTransition(states, transitionParameter);
+    } else {
+      // If not state transition, set states right away
       for (const key in states) {
         this.set(key, states[key]);
       }
@@ -1104,7 +1104,7 @@ export default class HaikuComponent extends HaikuElement {
    * Execute state transitions.
    */
   tickStateTransitions(): void {
-    this.stateTransitions.tickStateTransitions();
+    this.stateTransitionManager.tickStateTransitions();
   }
 }
 
