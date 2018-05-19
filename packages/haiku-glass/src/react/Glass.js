@@ -64,18 +64,18 @@ const BIG_NUMBER = 99999
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source'
 
-function isNumeric (n) {
+const isNumeric = (n) => {
   return !isNaN(parseFloat(n)) && isFinite(n)
 }
 
-function niceTimestamp () {
+const niceTimestamp = () => {
   return moment().format('YYYY-MM-DD-HHmmss')
 }
 
-function writeHtmlSnapshot (html, react) {
+const writeHtmlSnapshot = (html, react) => {
   fse.mkdirpSync(path.join(HOMEDIR_PATH, 'snapshots'))
-  var filename = (react.props.projectName || 'Unknown') + '-' + niceTimestamp() + '.html'
-  var filepath = path.join(HOMEDIR_PATH, 'snapshots', filename)
+  const filename = (react.props.projectName || 'Unknown') + '-' + niceTimestamp() + '.html'
+  const filepath = path.join(HOMEDIR_PATH, 'snapshots', filename)
   fse.outputFile(filepath, html, (err) => {
     if (err) return void (0)
     shell.openItem(filepath)
@@ -523,6 +523,16 @@ export class Glass extends React.Component {
       logger.info('relay received', message.name, 'from', message.from)
 
       switch (message.name) {
+        case 'global-menu:open-dev-tools':
+          remote.getCurrentWebContents().openDevTools()
+          break
+
+        case 'global-menu:close-dev-tools':
+          if (remote.getCurrentWebContents().isDevToolsFocused()) {
+            remote.getCurrentWebContents().closeDevTools()
+          }
+          break
+
         case 'global-menu:zoom-in':
           mixpanel.haikuTrack('creator:glass:zoom-in')
           this.getActiveComponent().getArtboard().zoomIn(1.25)

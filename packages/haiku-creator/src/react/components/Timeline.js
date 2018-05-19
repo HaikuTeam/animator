@@ -100,16 +100,6 @@ export default class Timeline extends React.Component {
     this.mount.appendChild(this.webview)
   }
 
-  toggleDevTools () {
-    if (this.webview) {
-      if (this.webview.isDevToolsOpened()) {
-        this.webview.closeDevTools()
-      } else {
-        this.webview.openDevTools()
-      }
-    }
-  }
-
   render () {
     return (
       <div

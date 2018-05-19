@@ -1,9 +1,9 @@
+import {remote} from 'electron'
 import React from 'react'
 import Color from 'color'
 import lodash from 'lodash'
 import { DraggableCore } from 'react-draggable'
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
-import Combokeys from 'combokeys'
 import BaseModel from 'haiku-serialization/src/bll/BaseModel'
 import Project from 'haiku-serialization/src/bll/Project'
 import Row from 'haiku-serialization/src/bll/Row'
@@ -27,7 +27,6 @@ import HorzScrollShadow from './HorzScrollShadow'
 import {InteractionMode, isPreviewMode} from '@haiku/core/lib/helpers/interactionModes'
 import { USER_CHANNEL, UserSettings } from 'haiku-sdk-creator/lib/bll/User'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
-import {isWindows, isLinux} from 'haiku-common/lib/environments/os'
 
 const Globals = require('haiku-ui-common/lib/Globals').default // Sorry, hack
 
@@ -50,12 +49,6 @@ if (webFrame) {
   if (webFrame.setLayoutZoomLevelLimits) webFrame.setLayoutZoomLevelLimits(0, 0)
 }
 
-const ifIsRunningStandalone = (cb) => {
-  if (!window.isWebview) {
-    return cb()
-  }
-}
-
 const DEFAULTS = {
   rowHeight: 25,
   inputCellWidth: 75,
@@ -75,8 +68,6 @@ const DEFAULTS = {
 
 const THROTTLE_TIME = 32 // ms
 const MENU_ACTION_DEBOUNCE_TIME = 100
-
-const combokeys = new Combokeys(document.documentElement)
 
 class Timeline extends React.Component {
   constructor (props) {
@@ -147,7 +138,6 @@ class Timeline extends React.Component {
 
     // Clean up subscriptions to prevent memory leaks and react warnings
     this.removeEmitterListeners()
-    combokeys.detach()
 
     if (this.tourClient) {
       this.tourClient.off('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
@@ -203,66 +193,6 @@ class Timeline extends React.Component {
           cb
         )
       }
-    })
-
-    combokeys.bind('command+z', () => {
-      ifIsRunningStandalone(() => {
-        this.handleUndoDebounced({
-          from: 'timeline',
-          time: Date.now()
-        })
-      })
-    })
-
-    combokeys.bind('command+shift+z', () => {
-      ifIsRunningStandalone(() => {
-        this.handleRedoDebounced({
-          from: 'timeline',
-          time: Date.now()
-        })
-      })
-    })
-
-    combokeys.bind('command+x', () => {
-      ifIsRunningStandalone(() => {
-        this.handleCutDebounced()
-      })
-    })
-
-    combokeys.bind('command+c', () => {
-      ifIsRunningStandalone(() => {
-        this.handleCopyDebounced()
-      })
-    })
-
-    combokeys.bind('command+v', () => {
-      ifIsRunningStandalone(() => {
-        this.handlePasteDebounced()
-      })
-    })
-
-    // Workaround to fix electron(Chromium) distinct codepath for
-    // Windows and Linux shortcuts. More info:
-    // https://github.com/electron/electron/issues/7165#issuecomment-246486798
-    // https://github.com/buttercup/buttercup-desktop/pull/223
-    if (isWindows() || isLinux()) {
-      combokeys.bind('ctrl+x', () => {
-        this.handleCutDebounced()
-      })
-
-      combokeys.bind('ctrl+c', () => {
-        this.handleCopyDebounced()
-      })
-
-      combokeys.bind('ctrl+v', () => {
-        this.handlePasteDebounced()
-      })
-    }
-
-    combokeys.bind('command+a', () => {
-      ifIsRunningStandalone(() => {
-        this.handleSelectAllDebounced()
-      })
     })
   }
 
@@ -345,6 +275,16 @@ class Timeline extends React.Component {
       const relayable = lodash.assign(message, {view: 'glass'})
 
       switch (message.name) {
+        case 'global-menu:open-dev-tools':
+          remote.getCurrentWebContents().openDevTools()
+          break
+
+        case 'global-menu:close-dev-tools':
+          if (remote.getCurrentWebContents().isDevToolsFocused()) {
+            remote.getCurrentWebContents().closeDevTools()
+          }
+          break
+
         case 'global-menu:zoom-in':
           // For now, zoom controls only affect the stage
           this.props.websocket.send(relayable)
@@ -367,22 +307,14 @@ class Timeline extends React.Component {
 
         case 'global-menu:cut':
           // Delegate cut only if the user is not editing something here
-          if (document.hasFocus()) {
-            if (!this.isTextSelected()) {
-              this.props.websocket.send(relayable)
-            }
-          } else {
+          if (!document.hasFocus() || !this.isTextSelected()) {
             this.props.websocket.send(relayable)
           }
           break
 
         case 'global-menu:copy':
           // Delegate copy only if the user is not editing something here
-          if (document.hasFocus()) {
-            if (!this.isTextSelected()) {
-              this.props.websocket.send(relayable)
-            }
-          } else {
+          if (!document.hasFocus() || !this.isTextSelected()) {
             this.props.websocket.send(relayable)
           }
           break

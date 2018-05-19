@@ -50,8 +50,9 @@ function createWindow () {
   mainWindow.on('closed', () => { mainWindow = null })
 
   const topmenu = new TopMenu({
-    // TODO: refactor to support using the real top menu in timeline standalone mode.
-    send: () => {}
+    send: (name) => {
+      mainWindow.webContents.send('relay', {name, from: 'electron'})
+    }
   })
 
   topmenu.create({

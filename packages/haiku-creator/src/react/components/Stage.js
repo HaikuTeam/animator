@@ -111,16 +111,6 @@ export default class Stage extends React.Component {
     this.mount.appendChild(this.webview)
   }
 
-  toggleDevTools () {
-    if (this.webview) {
-      if (this.webview.isDevToolsOpened()) {
-        this.webview.closeDevTools()
-      } else {
-        this.webview.openDevTools()
-      }
-    }
-  }
-
   handleDrop (asset, clientX, clientY) {
     const ac = (
       this.props.projectModel &&
