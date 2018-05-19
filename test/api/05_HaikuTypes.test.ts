@@ -16,8 +16,6 @@ tape('Test Haiku bytecode typing on compile time', (t) => {
   const nonConformantBytecodeFiles = [
     /* Non corformant eventHandler */
     'demo/projects/clickable-square/code/main/code.js',
-    /* Non corformant eventHandler */
-    'demo/projects/events/code/main/code.js',
   ];
 
   /* Number of tests are the number of demos */
