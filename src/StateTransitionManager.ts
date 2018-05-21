@@ -5,7 +5,7 @@ import {Curve, CurveFunction, CurveDefinition} from './api/Curve';
 import {BytecodeStateType} from './api/HaikuBytecode';
 
 
-export type StateTransitionParameters = { curve: CurveDefinition, duration: number};
+export type StateTransitionParameters = { curve: CurveDefinition, duration: number, queue?: boolean};
 
 export type StateValues = {[stateName: string]: BytecodeStateType};
 
@@ -20,35 +20,45 @@ export type RunningStateTransition = {
 export default class StateTransitionManager {
 
   // Store running state transitions
-  private transitions: RunningStateTransition[] = [];
+  private transitions: {[key in string]: RunningStateTransition[]} = {};
+  
 
-  constructor(private states: StateValues, private readonly clock: HaikuClock) {}
+  constructor(private readonly states: StateValues, private readonly clock: HaikuClock) {}
 
   /**
    * Create a new state transition.
    */
   createNewTransition(transitionEnd: StateValues, parameter: StateTransitionParameters) {
 
+    // Get current time
+    const currentTime = this.clock.getTime();
+
     // Copy current states as transition start (needed to calculate interpolation)
     const transitionStart = {};
     for (const key in transitionEnd) {
       // Ignore state if it doesn't pre exist
       if (key in this.states) {
-        transitionStart[key] = this.states[key];
+        // queued transitions are add into queue
+        if (parameter.hasOwnProperty('queue') &&  parameter.queue) {
+          this.transitions[key].push({
+            parameter,
+            transitionEnd,
+            transitionStart: {[key]: this.states[key]},
+            startTime: currentTime,
+            endTime: currentTime + parameter.duration,
+          });
+        // non queued transitions are overwrite transition queue
+        } else {
+          this.transitions[key] = [{
+            parameter,
+            transitionEnd,
+            transitionStart: {[key]: this.states[key]},
+            startTime: currentTime,
+            endTime: currentTime + parameter.duration,
+          }];
+        }
       } 
     }
-    
-    // Set current time
-    const currentTime = this.clock.getTime();
-
-    // Create a transition object
-    this.transitions.push({
-      transitionStart,
-      parameter,
-      transitionEnd,
-      startTime: currentTime,
-      endTime: currentTime + parameter.duration,
-    });
   }
 
   // We technically could call HaikuComponent::setStates, but passing only 
@@ -60,57 +70,68 @@ export default class StateTransitionManager {
     }
   }
 
+  private isExpired(transition: RunningStateTransition, currentTime: number) {
+    return this.clock.getTime() >= transition.endTime;
+  }
+
+
   /**
    * Should be called on every tick. It cleans expired state transitions 
    * and execute interpolation of running state transitions.
    */
   tickStateTransitions(): void {
 
-    // If have no running transitions, optimize it by using early retrun
-    if (this.transitions.length === 0) {
-      return;
-    }
-
     const currentTime = this.clock.getTime();
+    const interpolatedStates = {};
 
-    // Helper functions 
-    const isExpired = (transition) => currentTime >= transition.endTime;
-    const isNotExpired = (transition) => currentTime < transition.endTime;
+    // For each state, process state transition queue
+    for (const stateName in this.transitions) {
 
-    // Set transitionEnd value for expired transitions before removing them
-    this.transitions.filter(isExpired).forEach((transition) => {
-      // If expired, simulate it was calculated exactly on endTime 
-      const interpolatedState = Interpolate.interpolate(
-                                      transition.endTime, transition.parameter.curve, transition.startTime,
-                                      transition.endTime, transition.transitionStart, transition.transitionEnd);
+      // On queued states, only first transition is processed, other transitions are queued.
+      if (this.transitions[stateName].length > 0) {
+        const transition = this.transitions[stateName][0];
 
-      this.setStates(interpolatedState as StateValues);
-    });
+        if (this.isExpired(transition, currentTime)) {
 
-    // Remove expired transitions
-    this.transitions = this.transitions.filter(isNotExpired);
+          // If expired, simulate it was calculated exactly on endTime.
+          Object.assign(
+            interpolatedStates,
+            Interpolate.interpolate(
+              transition.endTime, transition.parameter.curve, transition.startTime,
+              transition.endTime, transition.transitionStart, transition.transitionEnd,
+            ),
+          );
 
-    // Execute interpolation on every running state transition
-    for (const transition of this.transitions) {
-
-      // Calculate interpolated states
-      const interpolatedStates =  Interpolate.interpolate(
-                                    currentTime, transition.parameter.curve, transition.startTime,
-                                    transition.endTime, transition.transitionStart, transition.transitionEnd);
-
-      // Set interpolated values
-      this.setStates(interpolatedStates as StateValues);
+          // Remove expired transition.
+          this.transitions[stateName].splice(0,1);
+        } else {
+          // Calculate interpolated states.
+          Object.assign(
+            interpolatedStates,
+            Interpolate.interpolate(
+              currentTime, transition.parameter.curve, transition.startTime,
+              transition.endTime, transition.transitionStart, transition.transitionEnd,
+            ),
+          );
+        }
+      }
     }
+
+    this.setStates(interpolatedStates as StateValues);
   }
 
   /**
    * Delete every running transition
    */
   deleteAllStateTransitions() {
-    this.transitions = [];
+    this.transitions = {};
   }
 
-  getNumRunningTransitions() {
-    return this.transitions.length;
+  getNumQueuedTransitions() {
+    let numQueuedTransition = 0;
+    for (const stateName in this.transitions) {
+      numQueuedTransition += this.transitions[stateName].length;
+    }
+    return numQueuedTransition;
   }
 }
