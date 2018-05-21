@@ -7,9 +7,17 @@ import StateTransitionManager from './../../src/StateTransitionManager';
 
 
 tape('Test state transitions', (t) => {
-  t.plan(17);
+  t.plan(19);
 
-  const states = {var1:0, var2:5, varString:'string', varArray:[10, 0], varObject:{varString: 'string', var: 5}};
+  const states = {
+    var1:0, 
+    var2:5, 
+    varString:'string', 
+    varArray:[10, 0], 
+    varObject:{varString: 'string', var: 5},
+    varNull:null,
+    varBool:true,
+  };
   const haikuClock = new HaikuClock({}, {});
   
   const stateTransitionManager = new StateTransitionManager(states, haikuClock);
@@ -74,17 +82,17 @@ tape('Test state transitions', (t) => {
   stateTransitionManager.createNewTransition({varString:10}, {duration: 1000, curve: 'linear'});
   haikuClock.setTime(8000);
   stateTransitionManager.tickStateTransitions();
-  t.is(states.varString, 'string', 'Do not interpolate strings');
+  t.is(states.varString, 'string', 'Do not state transition strings');
 
 
   stateTransitionManager.createNewTransition({varArray:[20, 20]}, {duration: 1000, curve: 'linear'});
   haikuClock.setTime(8500);
   stateTransitionManager.tickStateTransitions();
-  t.deepEqual(states.varArray, [15, 10], 'Interpolate array');
+  t.deepEqual(states.varArray, [15, 10], 'State transition array');
 
   haikuClock.setTime(9000);
   stateTransitionManager.tickStateTransitions();
-  t.deepEqual(states.varArray, [20, 20], 'Interpolate array');
+  t.deepEqual(states.varArray, [20, 20], 'State transition array');
 
   
   stateTransitionManager.createNewTransition({varObject:{varString: 10, var: 10}}, {duration: 1000, curve: 'linear'});
@@ -92,6 +100,14 @@ tape('Test state transitions', (t) => {
   stateTransitionManager.tickStateTransitions();
   t.deepEqual(states.varObject, {varString: 'string', var: 10}, 'Interpolate only numbers on objects');
 
-  console.log(states);
 
+  stateTransitionManager.createNewTransition({varNull:10}, {duration: 1000, curve: 'linear'});
+  haikuClock.setTime(11000);
+  stateTransitionManager.tickStateTransitions();
+  t.is(states.varNull, null, 'Do not stete transition null');
+
+  stateTransitionManager.createNewTransition({varBool:10}, {duration: 1000, curve: 'linear'});
+  haikuClock.setTime(12000);
+  stateTransitionManager.tickStateTransitions();
+  t.is(states.varBool, true, 'Do not state transition boolean');
 });

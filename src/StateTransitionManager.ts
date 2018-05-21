@@ -1,11 +1,12 @@
-import Transitions from './Transitions';
+import Interpolate, {CurveDefinition} from './Interpolate';
 import HaikuClock from './HaikuClock';
 import justCurves from './vendor/just-curves';
+import {BytecodeStateType} from './api/HaikuBytecode';
 
 
-export type StateTransitionParameters = { curve: string, duration: number};
+export type StateTransitionParameters = { curve: CurveDefinition, duration: number};
 
-export type StateValues = {[stateName: string]: any};
+export type StateValues = {[stateName: string]: BytecodeStateType};
 
 export type RunningStateTransition = {
   transitionStart: StateValues,
@@ -17,12 +18,10 @@ export type RunningStateTransition = {
 
 export default class StateTransitionManager {
 
-
   // Store running state transitions
   private transitions: RunningStateTransition[] = [];
 
   constructor(private states: StateValues, private readonly clock: HaikuClock) {}
-
 
   /**
    * Create a new state transition.
@@ -36,11 +35,6 @@ export default class StateTransitionManager {
       if (key in this.states) {
         transitionStart[key] = this.states[key];
       } 
-    }
-
-    // Select function correspondent to given string
-    if (typeof parameter.curve === 'string') {
-      parameter.curve = justCurves[parameter.curve];
     }
     
     // Set current time
@@ -85,11 +79,11 @@ export default class StateTransitionManager {
     // Set transitionEnd value for expired transitions before removing them
     this.transitions.filter(isExpired).forEach((transition) => {
       // If expired, simulate it was calculated exactly on endTime 
-      const interpolatedState = Transitions.interpolate(
+      const interpolatedState = Interpolate.interpolate(
                                       transition.endTime, transition.parameter.curve, transition.startTime,
                                       transition.endTime, transition.transitionStart, transition.transitionEnd);
 
-      this.setStates(interpolatedState);
+      this.setStates(interpolatedState as StateValues);
     });
 
     // Remove expired transitions
@@ -99,12 +93,12 @@ export default class StateTransitionManager {
     for (const transition of this.transitions) {
 
       // Calculate interpolated states
-      const interpolatedStates =  Transitions.interpolate(
+      const interpolatedStates =  Interpolate.interpolate(
                                     currentTime, transition.parameter.curve, transition.startTime,
                                     transition.endTime, transition.transitionStart, transition.transitionEnd);
 
       // Set interpolated values
-      this.setStates(interpolatedStates);
+      this.setStates(interpolatedStates as StateValues);
     }
   }
 
