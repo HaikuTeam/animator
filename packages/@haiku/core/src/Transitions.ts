@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 import Interpolate from './Interpolate';
-import {CurveDefinition} from './api/HaikuBytecode';
+import {CurveDefinition} from './api/Curve';
 
 const KEYFRAME_MARGIN = 16.666;
 

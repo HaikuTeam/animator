@@ -4,7 +4,7 @@ import {
   decomposeCurveBetweenKeyframes,
   splitBezierForTimelinePropertyAtKeyframe,
 } from '../../lib/exporters/curves';
-import {Curve} from 'haiku-common/lib/types/enums';
+import {Curve, CurveFunction, CurveDefinition} from '@haiku/core/lib/api/Curve';
 
 tape('bezier re-interpolation', (test: tape.Test) => {
   test.test('keyframe injection preserves linear transitions', (test: tape.Test) => {

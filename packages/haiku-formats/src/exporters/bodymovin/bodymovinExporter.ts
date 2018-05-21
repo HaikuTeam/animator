@@ -4,7 +4,7 @@ import {
   Maybe,
   PathPoint,
 } from 'haiku-common/lib/types';
-import {Curve} from 'haiku-common/lib/types/enums';
+import {Curve, CurveFunction, CurveDefinition} from '@haiku/core/lib/api/Curve';
 
 // @ts-ignore
 import * as Template from 'haiku-serialization/src/bll/Template';

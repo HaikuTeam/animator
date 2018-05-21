@@ -1,7 +1,7 @@
 import * as BezierEasing from 'bezier-easing';
 import {flatten} from 'lodash';
 
-import {Curve} from 'haiku-common/lib/types/enums';
+import {Curve, CurveFunction, CurveDefinition} from '@haiku/core/lib/api/Curve';
 import {
   BytecodeTimelineProperties,
   BytecodeTimelineValue, 
