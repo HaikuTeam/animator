@@ -22,6 +22,7 @@ import assign from './vendor/assign';
 import {HaikuBytecode} from './api/HaikuBytecode';
 import StateTransitionManager, {StateTransitionParameters, StateValues} from './StateTransitionManager';
 import HaikuClock from './HaikuClock';
+import {Curve} from './api/Curve';
 
 const pkg = require('./../package.json');
 export const VERSION = pkg.version;
@@ -1105,6 +1106,19 @@ export default class HaikuComponent extends HaikuElement {
    */
   tickStateTransitions(): void {
     this.stateTransitionManager.tickStateTransitions();
+  }
+
+  /**
+   * Reset states to initial values by using State Transitions. Default to linear
+   */
+  resetStatesToInitialValuesWithTransition(duration: number, curve: Curve = Curve.Linear) {
+    // Build initial states
+    const initialStates = assign({}, this.bytecode.states, this.config.states);
+    for (const key in initialStates) {
+      initialStates[key] = initialStates[key].value;
+    }
+    // Create state transition to initial state values
+    this.stateTransitionManager.createNewTransition(initialStates, {curve, duration});
   }
 }
 
