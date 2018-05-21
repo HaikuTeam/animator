@@ -39,7 +39,9 @@ export default class StateTransitionManager {
       // Ignore state if it doesn't pre exist
       if (key in this.states) {
         // queued transitions are add into queue
-        if (parameter.hasOwnProperty('queue') &&  parameter.queue) {
+        // If undefined, it doesn't has any previous queued state, so we 
+        // should create a transition just like a non queued transtion
+        if (parameter.hasOwnProperty('queue') &&  parameter.queue && this.transitions[key] !== undefined) {
           this.transitions[key].push({
             parameter,
             transitionEnd,
@@ -127,7 +129,7 @@ export default class StateTransitionManager {
     this.transitions = {};
   }
 
-  getNumQueuedTransitions() {
+  get numQueuedTransitions() {
     let numQueuedTransition = 0;
     for (const stateName in this.transitions) {
       numQueuedTransition += this.transitions[stateName].length;
