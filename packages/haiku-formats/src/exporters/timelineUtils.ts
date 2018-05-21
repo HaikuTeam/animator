@@ -4,7 +4,9 @@ import {
   BytecodeTimelines, 
   BytecodeTimelineProperties, 
   BytecodeTimelineValue,
+  BytecodeTimelineProperty,
 } from '@haiku/core/lib/api/HaikuBytecode';
+import {Curve} from 'haiku-common/lib/types/enums';
 
 /**
  * Gets the initial value of a timeline property.
@@ -43,7 +45,8 @@ export const timelineHasProperties = (timeline: BytecodeTimelineProperties, ...p
  * @param value
  * @returns {{'0': {value: number}}}
  */
-const getShimLayoutTimeline = (value: number) => ({0: {value, curve: 'linear'}});
+// tslint:disable-next-line:max-line-length
+const getShimLayoutTimeline: (value: number) => BytecodeTimelineProperty = (value: number) => ({0: {value, curve: 'linear' as Curve}});
 
 /**
  * Simulate a layout property that was not explicitly provided in a timeline.
