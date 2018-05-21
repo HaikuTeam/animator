@@ -920,12 +920,13 @@ export class Glass extends React.Component {
           return
         }
 
-        Element.hoverOffAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
+        Element.hoverOffAllElements({component: this.getActiveComponent()}, {from: 'glass'})
+
         return element.hoverOn({from: 'glass'})
       }
     }
 
-    Element.hoverOffAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
+    Element.hoverOffAllElements({component: this.getActiveComponent()}, {from: 'glass'})
   }
 
   get areAnyModalsOpen () {
