@@ -1,8 +1,8 @@
+import {remote, shell, ipcRenderer, clipboard, webFrame} from 'electron'
 import React from 'react'
 import { StyleRoot } from 'radium'
 import { CSSTransition } from 'react-transition-group'
 import lodash from 'lodash'
-import Combokeys from 'combokeys'
 import EventEmitter from 'event-emitter'
 import path from 'path'
 import BaseModel from 'haiku-serialization/src/bll/BaseModel'
@@ -46,18 +46,12 @@ import opn from 'opn'
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'creator'
 
-var pkg = require('./../../package.json')
+const pkg = require('./../../package.json')
 
-var mixpanel = require('haiku-serialization/src/utils/Mixpanel')
+const mixpanel = require('haiku-serialization/src/utils/Mixpanel')
 
-const electron = require('electron')
-const remote = electron.remote
-const shell = electron.shell
 const { dialog } = remote
-const ipcRenderer = electron.ipcRenderer
-const clipboard = electron.clipboard
 
-var webFrame = electron.webFrame
 if (webFrame) {
   if (webFrame.setZoomLevelLimits) webFrame.setZoomLevelLimits(1, 1)
   if (webFrame.setLayoutZoomLevelLimits) webFrame.setLayoutZoomLevelLimits(0, 0)
@@ -159,20 +153,38 @@ export default class Creator extends React.Component {
       }
     })
 
-    const combokeys = new Combokeys(document.documentElement)
+    ipcRenderer.on('global-menu:open-dev-tools', lodash.debounce(() => {
+      remote.getCurrentWindow().openDevTools()
+      this.props.websocket.send({
+        type: 'relay',
+        from: 'creator',
+        view: 'timeline',
+        name: 'global-menu:open-dev-tools'
+      })
+      this.props.websocket.send({
+        type: 'relay',
+        from: 'creator',
+        view: 'glass',
+        name: 'global-menu:open-dev-tools'
+      })
+    }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
-    if (process.env.NODE_ENV !== 'production') {
-      combokeys.bind('command+option+i', lodash.debounce(() => {
-        this.toggleDevTools()
-      }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
-      combokeys.bind('ctrl+shift+i', lodash.debounce(() => {
-        this.toggleDevTools()
-      }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
-    }
-
-    // Top secret way to open the dev tools even if running in production
-    combokeys.bind('command+option+shift+i', lodash.debounce(() => {
-      this.toggleDevTools()
+    ipcRenderer.on('global-menu:close-dev-tools', lodash.debounce(() => {
+      if (remote.getCurrentWindow().isDevToolsFocused()) {
+        remote.getCurrentWindow().closeDevTools()
+      }
+      this.props.websocket.send({
+        type: 'relay',
+        from: 'creator',
+        view: 'timeline',
+        name: 'global-menu:close-dev-tools'
+      })
+      this.props.websocket.send({
+        type: 'relay',
+        from: 'creator',
+        view: 'glass',
+        name: 'global-menu:close-dev-tools'
+      })
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:open-finder', lodash.debounce(() => {
@@ -204,6 +216,11 @@ export default class Creator extends React.Component {
     ipcRenderer.on('global-menu:show-changelog', lodash.debounce(() => {
       logger.info(`[creator] global-menu:show-changelog`)
       this.showChangelogModal()
+    }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
+
+    ipcRenderer.on('global-menu:set-active-component', lodash.debounce((ipcEvent, scenename) => {
+      logger.info(`[creator] global-menu:set-active-component`)
+      this.state.projectModel.setCurrentActiveComponent(scenename, {from: 'creator'}, () => {})
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:zoom-in', lodash.debounce(() => {
@@ -302,15 +319,15 @@ export default class Creator extends React.Component {
       }
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
-    ipcRenderer.on('global-menu:selectall', lodash.debounce(() => {
+    ipcRenderer.on('global-menu:selectAll', lodash.debounce(() => {
       // Only select all if we haven't activated a text element
       if (!this.isTextInputFocused()) {
-        logger.info(`[creator] global-menu:selectall`)
+        logger.info(`[creator] global-menu:selectAll`)
         this.props.websocket.send({
           type: 'relay',
           from: 'creator',
           view: 'timeline',
-          name: 'global-menu:selectall'
+          name: 'global-menu:selectAll'
         })
       }
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
@@ -505,24 +522,6 @@ export default class Creator extends React.Component {
     }
   }
 
-  toggleDevTools () {
-    const win = remote.getCurrentWindow()
-
-    if (win.isDevToolsOpened()) {
-      win.closeDevTools()
-    } else {
-      win.openDevTools()
-    }
-
-    if (this.refs.stage) {
-      this.refs.stage.toggleDevTools()
-    }
-
-    if (this.refs.timeline) {
-      this.refs.timeline.toggleDevTools()
-    }
-  }
-
   handleEnvoyUserReady () {
     if (!this.user) {
       return
@@ -555,11 +554,19 @@ export default class Creator extends React.Component {
           BaseModel.receiveSync(message)
           break
 
+        case 'component:reload':
+          if (this.getActiveComponent()) {
+            this.getActiveComponent().moduleReplace(() => {})
+          }
+          break
+
         case 'project-state-change':
-          return this.handleConnectedProjectModelStateChange(message)
+          this.handleConnectedProjectModelStateChange(message)
+          break
 
         case 'dimensions-reset':
-          return this.setState({ artboardDimensions: message.data })
+          this.setState({ artboardDimensions: message.data })
+          break
       }
     })
 
@@ -802,11 +809,16 @@ export default class Creator extends React.Component {
     mixpanel.haikuTrack(`creator:preview-mode:${report}`)
   }
 
+  handleInteractionModeChange (interactionMode) {
+    this.setState({interactionMode})
+    this.mixpanelReportPreviewMode(interactionMode)
+  }
+
   setPreviewMode (interactionMode) {
     if (this.state.projectModel) {
-      this.state.projectModel.setInteractionMode(interactionMode, () => { })
-      this.setState({ interactionMode })
-      this.mixpanelReportPreviewMode(interactionMode)
+      this.state.projectModel.setInteractionMode(interactionMode, {from: 'creator'}, () => {
+        this.handleInteractionModeChange(interactionMode)
+      })
     }
   }
 
@@ -887,11 +899,11 @@ export default class Creator extends React.Component {
         timeout: 5000,
         retry: 5
       },
-      (error, projectsList) => {
+      (error, projectList) => {
         if (error) return cb(error)
-        this.setState({ projectsList })
-        ipcRenderer.send('renderer:projects-list-fetched', projectsList)
-        return cb(null, projectsList)
+        this.setState({ projectList })
+        ipcRenderer.send('topmenu:update', {projectList, isProjectOpen: false})
+        return cb(null, projectList)
       }
     )
   }
@@ -996,19 +1008,31 @@ export default class Creator extends React.Component {
             // Clear the undo/redo stack (etc) from the previous editing session if any is left over
             projectModel.actionStack.resetData()
 
-            projectModel.on('update', (what) => {
+            projectModel.on('update', (what, ...args) => {
+              // logger.info(`[creator] local update ${what}`)
+
               switch (what) {
                 case 'setCurrentActiveComponent':
                   this.handleActiveComponentReady()
+                  break
+
+                case 'setInteractionMode':
+                  this.handleInteractionModeChange(...args)
+                  break
               }
             })
 
             projectModel.on('remote-update', (what, ...args) => {
+              // logger.info(`[creator] remote update ${what}`)
+
               switch (what) {
                 case 'setCurrentActiveComponent':
-                  return this.forceUpdate()
+                  this.forceUpdate()
+                  break
+
                 case 'setInteractionMode':
-                  return this.setPreviewMode(args[1])
+                  this.handleInteractionModeChange(...args)
+                  break
               }
             })
 
@@ -1029,6 +1053,10 @@ export default class Creator extends React.Component {
 
   handleActiveComponentReady () {
     this.mountHaikuComponent()
+
+    ipcRenderer.send('topmenu:update', {
+      subComponents: this.state.projectModel.describeSubComponents()
+    })
 
     // Hide loading screens, re-enable navigating back to dashboard but only after a
     // delay since we've seen race-related crashes when people nav back too early.
@@ -1185,6 +1213,7 @@ export default class Creator extends React.Component {
 
   onNavigateToDashboard () {
     this.teardownMaster({ shouldFinishTour: true })
+    ipcRenderer.send('topmenu:update', {subComponents: [], isProjectOpen: false})
   }
 
   awaitAuthAndFire (cb) {

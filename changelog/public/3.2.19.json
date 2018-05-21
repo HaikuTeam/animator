@@ -1,0 +1,12 @@
+{
+  "date": "May 3, 2018",
+  "sections": {
+    "What's new": [
+      "Double-clicking a keyframe now seeks to the indicated time."
+    ],
+    "Fixes": [
+      "Fixed multiple Lottie issues resulting in some users getting an empty `lottie.json` file.",
+      "Fixed an issue preventing the Vue adapter from receiving Haiku options correctly."
+    ]
+  }
+}

@@ -1,15 +1,11 @@
 {
   "MultiComponentFeatures": {
     "development": true,
-    "production": false
+    "production": true
   },
   "MultiComponentControlsLibrary": {
     "development": false,
     "production": false
-  },
-  "JustInTimeProperties": {
-    "development": true,
-    "production": true
   },
   "ShowSubElementsInJitMenu": {
     "development": false,
@@ -35,18 +31,6 @@
     "development": false,
     "production": false
   },
-  "NoNormalizeOnSetup": {
-    "development": true,
-    "production": true
-  },
-  "SvgOptimizer": {
-    "development": true,
-    "production": true
-  },
-  "NewPublishUI": {
-    "development": true,
-    "production": true
-  },
   "NormalizeSvgContent": {
     "development": false,
     "production": false
@@ -55,37 +39,13 @@
     "development": true,
     "production": false
   },
-  "ElementMultiSelectAndTransform": {
-    "development": true,
-    "production": true
-  },
   "GroupUngroup": {
     "development": true,
-    "production": false
+    "production": true
   },
   "BaseModelQueryCache": {
     "development": false,
     "production": false
-  },
-  "ElementDepthFilter": {
-    "development": true,
-    "production": true
-  },
-  "StageSelectionMarquee": {
-    "development": true,
-    "production": true
-  },
-  "StageResizeAllSides": {
-    "development": true,
-    "production": true
-  },
-  "FigmaIntegration": {
-    "development": true,
-    "production": true
-  },
-  "OriginIndicator": {
-    "development": true,
-    "production": true
   },
   "ComponentInfoInspector": {
     "development": false,
@@ -97,6 +57,6 @@
   },
   "OutliningElementsOnStage": {
     "development": true,
-    "production": false
+    "production": true
   }
 }

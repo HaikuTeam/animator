@@ -7,7 +7,6 @@ import justCurves from './vendor/just-curves';
 const CENT = 1.0;
 const OBJECT = 'object';
 const NUMBER = 'number';
-const KEYFRAME_ZERO = 0;
 const KEYFRAME_MARGIN = 16.666;
 const STRING = 'string';
 
@@ -128,13 +127,6 @@ function getKeyframesList(keyframeGroup, nowValue) {
 }
 
 function calculateValue(keyframeGroup, nowValue) {
-  // HACK: Add a 0th keyframe automatically and set its value to the next one.
-  // This is a convenience so the data model/UI doesn't have to remember to set this.
-  // But this is probably going to bite somebody later. :/
-  // See the 'getKeyframesList' function for an additional part of this hack.
-  if (!keyframeGroup[KEYFRAME_ZERO]) {
-    keyframeGroup[KEYFRAME_ZERO] = {};
-  }
   const keyframesList = getKeyframesList(keyframeGroup, nowValue);
   if (!keyframesList || keyframesList.length < 1) {
     return;
@@ -154,9 +146,6 @@ function calculateValue(keyframeGroup, nowValue) {
 }
 
 function calculateValueAndReturnUndefinedIfNotWorthwhile(keyframeGroup, nowValue) {
-  if (!keyframeGroup[KEYFRAME_ZERO]) {
-    keyframeGroup[KEYFRAME_ZERO] = {};
-  } // HACK: See above
   const keyframesList = getKeyframesList(keyframeGroup, nowValue);
   if (!keyframesList || keyframesList.length < 1) {
     return void 0;

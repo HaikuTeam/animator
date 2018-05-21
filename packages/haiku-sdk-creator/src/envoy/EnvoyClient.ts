@@ -213,7 +213,8 @@ export default class EnvoyClient<T> {
       //   payload = datagram.data;
       // }
 
-      this.outstandingRequests.get(datagram.id)(datagram.data);
+      // TODO: Fix Bluebird typing error by removing any
+      (this.outstandingRequests.get(datagram.id) as any)(datagram.data);
       this.outstandingRequests.delete(datagram.id);
     } else if (datagram.intent === DatagramIntent.EVENT) {
       const event = <EnvoyEvent>JSON.parse(datagram.data);
@@ -286,7 +287,8 @@ export default class EnvoyClient<T> {
         // Await a response (or timeout, whichever comes first).
         const timeout = this.generateTimeoutPromise(mergedOptions.timeout);
 
-        const success = new Promise<any>((acceptInner) => {
+        // TODO: Fix Bluebird typing error by removing any
+        const success = new Promise<any>((acceptInner: any) => {
           this.outstandingRequests.set(datagram.id, acceptInner);
         });
 

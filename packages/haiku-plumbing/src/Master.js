@@ -64,6 +64,7 @@ const UNWATCHABLE_RELPATHS = {
 }
 
 const UNWATCHABLE_BASENAMES = {
+  'angular-dom.js': true,
   'index.standalone.js': true,
   'index.embed.js': true,
   'dom-embed.js': true,
@@ -433,18 +434,27 @@ export default class Master extends EventEmitter {
 
     // Just in case we haven't initialized our active component yet
     const acs = this.project.getAllActiveComponents()
-    if (acs.length < 1) return cb()
+
+    if (acs.length < 1) {
+      return cb()
+    }
 
     // Loop through all components and bump their bytecode metadata semver
     return async.eachSeries(acs, (ac, next) => {
-      return ac.writeMetadata(
-        { version: tag },
-        (err) => {
-          if (err) return next(err)
-          logger.info(`[master-git] bumped bytecode semver on ${ac.getSceneName()} to ${tag}`)
-          return next(null, tag)
-        }
-      )
+      // Since we might be tagging components that we have never initially loaded,
+      // we do so here otherwise the reified bytecode is going to be null
+      return ac.moduleReload('basicReload', (err) => {
+        if (err) return next(err)
+
+        return ac.writeMetadata(
+          {version: tag},
+          (err) => {
+            if (err) return next(err)
+            logger.info(`[master-git] bumped bytecode semver on ${ac.getSceneName()} to ${tag}`)
+            return next(null, tag)
+          }
+        )
+      })
     }, (err) => {
       if (err) return cb(err)
       return cb(null, tag)
@@ -461,9 +471,7 @@ export default class Master extends EventEmitter {
       folder: this.folder,
       isReady: this._isReadyToReceiveMethods,
       isSaving: this._isSaving,
-      isCommitting: this._git.hasAnyPendingCommits(),
-      undoables: (this.project && this.project.actionStack.getUndoables()) || [],
-      redoables: (this.project && this.project.actionStack.getRedoables()) || []
+      isCommitting: this._git.hasAnyPendingCommits()
     }
 
     return cb(null, state)
@@ -906,6 +914,8 @@ export default class Master extends EventEmitter {
     this.project.actionStack.resetData()
 
     this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'update', (what, ...args) => {
+      // logger.info(`[master] local update ${what}`)
+
       switch (what) {
         case 'setCurrentActiveComponent': return this.handleActiveComponentReady()
         case 'application-mounted': return this.handleHaikuComponentMounted()
@@ -914,10 +924,21 @@ export default class Master extends EventEmitter {
     })
 
     this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'remote-update', (what, ...args) => {
+      // logger.info(`[master] remote update ${what}`)
+
       switch (what) {
         case 'setCurrentActiveComponent': return this.handleActiveComponentReady()
         default: return null
       }
+    })
+
+    this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'envoy:timelineClientReady', (timelineChannel) => {
+      timelineChannel.on('didSeek', ({frame}) => {
+        const ac = this.project.getCurrentActiveComponent()
+        if (ac) {
+          ac.setCurrentTimelineFrameValue(frame)
+        }
+      })
     })
 
     this.emit('project-state-change', { what: 'project-ready' })

@@ -2,18 +2,19 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import BasicUtils from './helpers/BasicUtils';
 import HaikuHelpers from './HaikuHelpers';
+import BasicUtils from './helpers/BasicUtils';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
 import {isPreviewMode} from './helpers/interactionModes';
+import fallbacks from './properties/dom/fallbacks';
 import parsers from './properties/dom/parsers';
 import schema from './properties/dom/schema';
 import enhance from './reflection/enhance';
 import Transitions from './Transitions';
 import assign from './vendor/assign';
-import PRNG from './helpers/PRNG';
 
 const FUNCTION = 'function';
+const KEYFRAME_ZERO = 0;
 const OBJECT = 'object';
 
 const isFunction = (value) => {
@@ -234,7 +235,6 @@ INJECTABLES['$core'] = {
         out.options = {};
       }
       out.options.seed = options.seed;
-      out.options.loop = options.loop;
       out.options.sizing = options.sizing;
       out.options.preserve3d = options.preserve3d;
       out.options.position = options.position;
@@ -390,7 +390,7 @@ INJECTABLES['$tree'] = {
 
     injectees.$tree.parent = null;
 
-    if (matchingElement.__parent) {
+    if (matchingElement && matchingElement.__parent) {
       const subspec0 = (typeof summonSpec === 'string') ? summonSpec : (summonSpec.$tree && summonSpec.$tree.parent);
       assignElementInjectables(injectees.$tree, 'parent', subspec0, hostInstance, matchingElement.__parent);
 
@@ -405,7 +405,7 @@ INJECTABLES['$tree'] = {
 
     injectees.$tree.children = []; // Provide an array even if no children in case user tries to access
 
-    if (matchingElement.children) {
+    if (matchingElement && matchingElement.children) {
       for (let j = 0; j < matchingElement.children.length; j++) {
         const child = matchingElement.children[j];
         const subspec2 = (typeof summonSpec === 'string')
@@ -785,7 +785,6 @@ export default class ValueBuilder {
   _changes;
   _summonees;
   _evaluations;
-  _prng;
 
   helpers;
   _lastTimelineName;
@@ -1300,6 +1299,10 @@ export default class ValueBuilder {
     skipCache,
     clearSortedKeyframesCache,
   ) {
+    if (!propertiesGroup) {
+      return undefined;
+    }
+
     // Used by $helpers to calculate scope-specific values;
     this._lastTimelineName = timelineName;
     this._lastFlexId = flexId;
@@ -1311,7 +1314,7 @@ export default class ValueBuilder {
       flexId,
       matchingElement,
       propertyName,
-      propertiesGroup[propertyName],
+      propertiesGroup && propertiesGroup[propertyName],
       haikuComponent,
       isPatchOperation,
       skipCache,
@@ -1328,6 +1331,16 @@ export default class ValueBuilder {
     }
 
     let computedValueForTime;
+
+    if (!parsedValueCluster[KEYFRAME_ZERO]) {
+      parsedValueCluster[KEYFRAME_ZERO] = {
+        value: (
+          matchingElement &&
+          fallbacks[matchingElement.elementName] &&
+          fallbacks[matchingElement.elementName][propertyName]
+        ) || fallbacks.div[propertyName],
+      };
+    }
 
     // Important: The ActiveComponent depends on the ability to be able to get fresh values via the skipCache option.
     if (isPatchOperation && !skipCache) {

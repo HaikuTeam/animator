@@ -1,4 +1,3 @@
-const fse = require('haiku-fs-extra')
 const prettier = require('prettier')
 const BaseModel = require('./BaseModel')
 const objectToRO = require('@haiku/core/lib/reflection/objectToRO').default
@@ -6,7 +5,6 @@ const bytecodeObjectToAST = require('./../ast/bytecodeObjectToAST')
 const normalizeBytecodeAST = require('./../ast/normalizeBytecodeAST')
 const parseCode = require('./../ast/parseCode')
 const generateCode = require('./../ast/generateCode')
-const logger = require('./../utils/LoggerInstance')
 
 const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source'
 const HAIKU_VAR_ATTRIBUTE = 'haiku-var'
@@ -132,21 +130,6 @@ AST.safeBytecode = (bytecode) => {
     }
   }
   return safe
-}
-
-AST.mutateWith = (abspath, fn) => {
-  try {
-    const str = fse.readFileSync(abspath).toString()
-    const ast = parseCode(str)
-    fn(ast)
-    const code = generateCode(ast)
-    const formatted = prettier.format(code)
-    fse.outputFileSync(abspath, formatted)
-    return void (0)
-  } catch (exception) {
-    logger.warn('[ast] could not provide AST for ' + abspath + '; ' + exception)
-    return void (0)
-  }
 }
 
 AST.parseFile = (folder, relpath, contents, cb) => {

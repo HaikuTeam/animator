@@ -1,6 +1,6 @@
 {
   "name": "haiku-ui-common",
-  "version": "3.2.20",
+  "version": "3.2.23",
   "description": "Common UI components for Haiku projects.",
   "main": "lib/index.js",
   "directories": {
@@ -25,8 +25,9 @@
     "@storybook/react": "^3.3.3",
     "@types/node": "8.9.4",
     "@types/react": "^15.4.2",
+    "cross-env": "^5.1.4",
     "electron": "1.8.2",
-    "haiku-testing": "3.2.20",
+    "haiku-testing": "3.2.23",
     "nyc": "^11.3.0",
     "tap-spec": "^4.1.1",
     "tape": "^4.8.0",
@@ -43,7 +44,8 @@
     "color": "^2.0.1",
     "decamelize": "^1.2.0",
     "dedent": "^0.7.0",
-    "haiku-common": "3.2.20",
+    "haiku-common": "3.2.23",
+    "haiku-serialization": "3.2.23",
     "numeral": "^2.0.6",
     "radium": "0.18.1",
     "react": "15.6.2",

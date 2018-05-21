@@ -24,7 +24,7 @@ global.process.env.NODE_ENV = global.process.env.NODE_ENV || 'development'
  */
 
 const DEFAULTS = {
-  dev: false,
+  dev: true,
   devChoice: 'everything',
   folderChoice: 'none',
   skipInitialBuild: false
@@ -53,10 +53,14 @@ const FOLDER_CHOICES = {
   'AliensRepro-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/AliensRepro'),
   'SuperComplex-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/SuperComplex'),
   'comet-rotation-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/comet-rotation'),
+  'grouping-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/grouping'),
   'ttt-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/TicTacToe1'),
   'Apr91-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/Apr91'),
   'mc1-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/mc1'),
   'mc0-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/mc0'),
+  'mc2-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/mc2'),
+  'mc3-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/mc3'),
+  'mc4-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/mc4'),
   'mc-anim1-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/mc-anim1'),
   'complex-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/complex'),
   'SuperComplex-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/SuperComplex'),
@@ -76,7 +80,7 @@ if (argv.default === true) {
 }
 
 const availablePresets = {
-  glass: 'percy-glass',
+  glass: 'mc4-glass',
   timeline: 'complex-timeline',
   blank: 'blank',
   'blank-noclean': 'blank-noclean'
@@ -202,7 +206,10 @@ function getReleaseArchitecture () {
 function setup () {
   log.hat(`preparing to develop locally`, 'cyan')
 
-  global.process.env.DEV = (inputs.dev) ? '1' : undefined
+  if (global.process.env.DEV === undefined) {
+    global.process.env.DEV = (inputs.dev) ? '1' : undefined
+  }
+
   global.process.env.HAIKU_SKIP_AUTOUPDATE = '1'
   global.process.env.HAIKU_PLUMBING_PORT = '1024'
 

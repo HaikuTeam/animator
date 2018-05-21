@@ -82,7 +82,7 @@ class Artboard extends BaseModel {
   }
 
   dimensionsChangedHook () {
-    const hc = this.component.getCoreComponentInstance()
+    const hc = this.component.$instance
     const renderer = hc && hc.context && hc.context.renderer
     if (renderer) {
       if (!renderer.config) renderer.config = {}

@@ -329,7 +329,7 @@ export const DASH_STYLES = {
     marginBottom: 10,
     color: Palette.LIGHTEST_PINK, // this is color of the cursor
     textShadow: '0px 0px 0px ' + Palette.SUNSTONE, // this is color of the text
-    '-webkit-text-fill-color': 'transparent'
+    WebkitTextFillColor: 'transparent'
   },
   newProjectError: {
     display: 'block',

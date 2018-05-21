@@ -6396,5 +6396,76 @@
       "label": "fix",
       "message": "do not insert outline DOM elements in user-defined components"
     }
+  },
+  "3.2.21": {
+    "b6d96249634bed478b6f22f2eb2b16b4aae57f24": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Broke brittle asset test after small tweak"
+    },
+    "bfd92740447f53aa24660b0b0fa9dcb1180227d7": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Make merge design work for descendant components; other tweaks"
+    },
+    "38482414c331142289189efd651c98acec3d356d": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add Jenkinsfile for continuous delivery."
+    },
+    "e93d43b11580ef00b6c5c62c6110648fab7d509a": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Group/ungroup MVP and multi-component CRUD"
+    },
+    "0b777f056a82a1935751fd78ca48f98630b90176": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "disable ip collection on mixpanel in core phone home"
+    }
+  },
+  "3.2.22": {
+    "4c6a9cdb88015586382ead9247c0da538057c24f": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Playback API changes, bug fixes, minor improvements (#475)"
+    },
+    "80d140d2a6c5940a48271e705face8d72c4dcd66": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add ability to change node titles. (#473)"
+    },
+    "1f0db65fd54c75310b80cd5960ac80ef9b790e90": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Group/ungroup MVP and multi-component CRUD"
+    },
+    "3b6394b5700833d75583d72533d639478df14d4b": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Group/ungroup MVP and multi-component CRUD"
+    },
+    "feed9750c45f7f7aff82b17653b86f2dc6a775d5": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Group/ungroup MVP and multi-component CRUD"
+    },
+    "b5ccb38f533f5a18a8d3709a16a9c63d1a88d6e0": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Group/ungroup MVP and multi-component CRUD"
+    }
+  },
+  "3.2.23": {
+    "1a50d8ff9a835e213adcc3c6648fbd76e5e2a050": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "spell out yarn in self-link to avoid macOS conflict."
+    },
+    "8376d5c35c0c56f989ac9ff734dea5ab25771915": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Playback API changes, bug fixes, minor improvements (#475)"
+    }
   }
 }

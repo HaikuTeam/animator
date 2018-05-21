@@ -2,14 +2,39 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
+import allSvgElementNames from '../../helpers/allSvgElementNames';
 import HaikuBase, {GLOBAL_LISTENER_KEY} from './../../HaikuBase';
+import applyLayout from './applyLayout';
+import assignAttributes from './assignAttributes';
+import cloneVirtualElement from './cloneVirtualElement';
+import createSvgElement from './createSvgElement';
+import createTextNode from './createTextNode';
+import getFlexId from './getFlexId';
+import getTypeAsString from './getTypeAsString';
+import isBlankString from './isBlankString';
+import isTextNode from './isTextNode';
 import mixpanelInit from './mixpanelInit';
 import createRightClickMenu from './createRightClickMenu';
-import domToMana from './../../helpers/domToMana';
 import getElementSize from './getElementSize';
 import getLocalDomEventPosition from './getLocalDomEventPosition';
-import patch from './patch';
-import render from './render';
+import normalizeName from './normalizeName';
+import removeElement from './removeElement';
+import replaceElementWithText from './replaceElementWithText';
+import shouldElementBeReplaced from './shouldElementBeReplaced';
+
+const connectTarget = (virtualNode, domElement) => {
+  if (virtualNode && typeof virtualNode === 'object') {
+    // A virtual node can have multiple targets in the DOM due to an implementation
+    // detail in the Haiku editing environment; FIXME
+    if (!virtualNode.__targets) {
+      virtualNode.__targets = [];
+    }
+
+    if (virtualNode.__targets.indexOf(domElement) === -1) {
+      virtualNode.__targets.push(domElement);
+    }
+  }
+};
 
 // tslint:disable:variable-name
 export default class HaikuDOMRenderer extends HaikuBase {
@@ -52,11 +77,40 @@ export default class HaikuDOMRenderer extends HaikuBase {
   }
 
   render(virtualContainer, virtualTree, component) {
-    return render(this.mount, virtualContainer, virtualTree, component);
+    return HaikuDOMRenderer.renderTree(
+      this.mount,
+      virtualContainer,
+      [virtualTree],
+      component,
+      false, // isPatchOperation
+      false, // doSkipChildren
+    );
   }
 
   patch(component, patches) {
-    return patch(component, patches);
+    // The component upstream may use an empty value to indicate a no-op
+    if (!patches || Object.keys(patches).length < 1) {
+      return;
+    }
+
+    for (const flexId in patches) {
+      const virtualElement = patches[flexId];
+
+      if (virtualElement.__targets) {
+        for (let i = 0; i < virtualElement.__targets.length; i++) {
+          const target = virtualElement.__targets[i];
+
+          HaikuDOMRenderer.updateElement(
+            target,
+            virtualElement,
+            target.parentNode,
+            virtualElement.__parent,
+            component,
+            true,
+          );
+        }
+      }
+    }
   }
 
   menuize(component) {
@@ -344,4 +398,263 @@ export default class HaikuDOMRenderer extends HaikuBase {
       mouches: [...this.user.mouches],
     };
   }
+
+  static createTagNode(
+    domElement,
+    virtualElement,
+    parentVirtualElement,
+    component,
+  ) {
+    const tagName = normalizeName(getTypeAsString(virtualElement));
+    const flexId = getFlexId(virtualElement);
+
+    let newDomElement;
+    if (allSvgElementNames[tagName]) {
+      // SVG
+      newDomElement = createSvgElement(domElement, tagName);
+    } else {
+      // Normal DOM
+      newDomElement = domElement.ownerDocument.createElement(tagName);
+    }
+
+    // This didn't happen in renderTree because the element didn't exist yet.
+    if (!newDomElement.haiku) {
+      newDomElement.haiku = {
+        // This is used to detect whether the element's host component has changed.
+        // Don't remove this without understanding the effect on Haiku.app.
+        component,
+      };
+    }
+
+    component.subcacheEnsure(flexId);
+
+    const incomingKey =
+      virtualElement.key ||
+      (virtualElement.attributes && virtualElement.attributes.key);
+
+    if (incomingKey !== undefined && incomingKey !== null) {
+      newDomElement.haiku.key = incomingKey;
+    }
+
+    // updateElement recurses down into setAttributes, etc.
+    HaikuDOMRenderer.updateElement(newDomElement, virtualElement, domElement, parentVirtualElement, component, null);
+
+    return newDomElement;
+  }
+
+  static appendChild(
+    alreadyChildElement,
+    virtualElement,
+    parentDomElement,
+    parentVirtualElement,
+    component,
+  ) {
+    const domElementToInsert = isTextNode(virtualElement)
+      ? createTextNode(parentDomElement, virtualElement)
+      : HaikuDOMRenderer.createTagNode(parentDomElement, virtualElement, parentVirtualElement, component);
+
+    applyLayout(domElementToInsert, virtualElement, parentDomElement, parentVirtualElement, component, null);
+
+    parentDomElement.appendChild(domElementToInsert);
+    return domElementToInsert;
+  }
+
+  static replaceElement(
+    domElement,
+    virtualElement,
+    parentDomNode,
+    parentVirtualElement,
+    component,
+  ) {
+    const flexId = getFlexId(virtualElement);
+
+    component.subcacheClear(flexId);
+
+    const newElement = isTextNode(virtualElement)
+      ? createTextNode(domElement, virtualElement)
+      : HaikuDOMRenderer.createTagNode(domElement, virtualElement, parentVirtualElement, component);
+
+    applyLayout(newElement, virtualElement, parentDomNode, parentVirtualElement, component, null);
+
+    parentDomNode.replaceChild(newElement, domElement);
+
+    return newElement;
+  }
+
+  static updateElement(
+    domElement,
+    virtualElement,
+    parentNode,
+    parentVirtualElement,
+    component,
+    isPatchOperation,
+  ) {
+    const flexId = getFlexId(virtualElement);
+
+    // If a text node, go straight to 'replace' since we don't know the tag name
+    if (isTextNode(virtualElement)) {
+      replaceElementWithText(domElement, virtualElement, component);
+      return virtualElement;
+    }
+
+    if (!domElement.haiku) {
+      domElement.haiku = {
+        // This is used to detect whether the element's host component has changed.
+        // Don't remove this without understanding the effect on Haiku.app.
+        component,
+      };
+    }
+
+    component.subcacheEnsure(flexId);
+
+    if (!domElement.haiku.element) {
+      // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute
+      // removals
+      domElement.haiku.element = cloneVirtualElement(virtualElement);
+    }
+
+    const domTagName = domElement.tagName.toLowerCase().trim();
+    const elName = normalizeName(getTypeAsString(virtualElement));
+    const virtualElementTagName = elName.toLowerCase().trim();
+    const incomingKey = virtualElement.key || (virtualElement.attributes && virtualElement.attributes.key);
+    const existingKey = domElement.haiku && domElement.haiku.key;
+    const isKeyDifferent = incomingKey !== null && incomingKey !== undefined && incomingKey !== existingKey;
+
+    // For so-called 'horizon' elements, we assume that we've ceded control to another renderer,
+    // so the most we want to do is update the attributes and layout properties, but leave the rest alone
+    if (!component.isHorizonElement(virtualElement)) {
+      if (domTagName !== virtualElementTagName) {
+        return HaikuDOMRenderer.replaceElement(domElement, virtualElement, parentNode, parentVirtualElement, component);
+      }
+
+      if (isKeyDifferent) {
+        return HaikuDOMRenderer.replaceElement(domElement, virtualElement, parentNode, parentVirtualElement, component);
+      }
+    }
+
+    if (virtualElement.attributes && typeof virtualElement.attributes === 'object') {
+      assignAttributes(domElement, virtualElement, component, isPatchOperation);
+    }
+
+    applyLayout(domElement, virtualElement, parentNode, parentVirtualElement, component, isPatchOperation);
+    if (incomingKey !== undefined && incomingKey !== null) {
+      domElement.haiku.key = incomingKey;
+    }
+
+    const instance = (virtualElement && virtualElement.__instance) || component;
+
+    if (Array.isArray(virtualElement.children)) {
+      // For performance, we don't render children during a patch operation, except in the case
+      // that we have some text content, which we (hack) need to always assume needs an update.
+      // TODO: Fix this hack and make smarter
+      const doSkipChildren = isPatchOperation && (typeof virtualElement.children[0] !== 'string');
+      HaikuDOMRenderer.renderTree(
+        domElement, virtualElement, virtualElement.children, instance, isPatchOperation, doSkipChildren);
+    } else if (!virtualElement.children) {
+      // In case of falsy virtual children, we still need to remove elements that were already there
+      HaikuDOMRenderer.renderTree(domElement, virtualElement, [], instance, isPatchOperation, null);
+    }
+
+    return domElement;
+  }
+
+  static renderTree(
+    domElement,
+    virtualElement,
+    virtualChildren,
+    component,
+    isPatchOperation,
+    doSkipChildren,
+  ) {
+    // E.g. I might want to inspect the dom node, grab the haiku source data, etc.
+    connectTarget(virtualElement, domElement);
+
+    const flexId = getFlexId(virtualElement);
+
+    if (!domElement.haiku) {
+      domElement.haiku = {
+        // This is used to detect whether the element's host component has changed.
+        // Don't remove this without understanding the effect on Haiku.app.
+        component,
+      };
+    }
+
+    domElement.haiku.virtual = virtualElement;
+
+    // Must clone so we get a correct picture of differences in attributes
+    // between runs, e.g. for detecting attribute removals
+    domElement.haiku.element = cloneVirtualElement(virtualElement);
+
+    component.subcacheEnsure(flexId);
+
+    if (!Array.isArray(virtualChildren)) {
+      return domElement;
+    }
+
+    // For so-called 'horizon' elements, we assume that we've ceded control to another renderer,
+    // so the most we want to do is update the attributes and layout properties, but leave the rest alone
+    if (component.isHorizonElement(virtualElement)) {
+      return domElement;
+    }
+
+    // During patch renders we don't want to drill down and update children as
+    // we're just going to end up doing a lot of unnecessary DOM writes
+    if (doSkipChildren) {
+      return domElement;
+    }
+
+    while (virtualChildren.length > 0 && isBlankString(virtualChildren[0])) {
+      virtualChildren.shift();
+    }
+
+    // Store a copy of the array here, otherwise we can hit a race where as we remove
+    // elements from the DOM, the childNodes array gets shifted and the indices get offset, leading
+    // to removals not occurring properly
+    const domChildNodes = [];
+    for (let k = 0; k < domElement.childNodes.length; k++) {
+      domChildNodes[k] = domElement.childNodes[k];
+    }
+
+    let max = virtualChildren.length;
+    if (max < domChildNodes.length) {
+      max = domChildNodes.length;
+    }
+
+    for (let i = 0; i < max; i++) {
+      const virtualChild = virtualChildren[i];
+      const domChild = domChildNodes[i];
+
+      if (!virtualChild && !domChild) {
+        // empty
+      } else if (!virtualChild && domChild) {
+        removeElement(domChild, flexId, component);
+      } else if (virtualChild) {
+        if (!domChild) {
+          const insertedElement = HaikuDOMRenderer.appendChild(
+            null, virtualChild, domElement, virtualElement, component);
+          connectTarget(virtualChild, insertedElement);
+        } else {
+          // Circumstances in which we want to completely *replace* the element:
+          // - We see that our cached target element is not the one at this location
+          // - We see that the DOM id doesn't match the incoming one
+          // - we see that the haiku-id doesn't match the incoming one.
+          // If we now have an element that is different, we need to trigger a full re-render
+          // of itself and all of its children, because e.g. url(#...) references will retain pointers to
+          // old elements and this is the only way to clear the DOM to get a correct render.
+          if (shouldElementBeReplaced(domChild, virtualChild, component)) {
+            const newElement = HaikuDOMRenderer.replaceElement(
+              domChild, virtualChild, domElement, virtualElement, component);
+            connectTarget(virtualChild, newElement);
+          } else {
+            HaikuDOMRenderer.updateElement(
+              domChild, virtualChild, domElement, virtualElement, component, isPatchOperation);
+            connectTarget(virtualChild, domChild);
+          }
+        }
+      }
+    }
+
+    return domElement;
+  }
 }
+

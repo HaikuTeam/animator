@@ -394,7 +394,7 @@ export default class ExpressionInput extends React.Component {
       // parsing to produce a summary that includes add'l validation information about the contents
       //
       // Since ActiveComponent manages multiple instances, we kind of have to choose just one
-      const instance = this.props.reactParent.getActiveComponent().getCoreComponentInstance()
+      const instance = this.props.reactParent.getActiveComponent().$instance
       let injectables = (instance && instance.getInjectables()) || {}
 
       this.resetSyntaxInjectables(injectables)

@@ -1,0 +1,1 @@
+The animation should pause after 500ms, then play again. Verify that when played, the animation resumes from the point that it was paused. (It should not "jump forward" to the time that has elapsed since the pause.)

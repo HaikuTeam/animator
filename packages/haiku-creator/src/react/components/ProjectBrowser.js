@@ -581,7 +581,8 @@ class ProjectBrowser extends React.Component {
               onClick={() => this.showNewProjectModal()}
               style={[BTN_STYLES.btnIcon, BTN_STYLES.btnIconHovered]}
             >
-              <span style={{fontSize: 18}}> +</span>
+              <span style={{fontSize: 18, marginRight: 2, transform: 'translateY(-1px)'}}>+ </span>
+              <span>New Project</span>
             </button>
           )}
 

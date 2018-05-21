@@ -340,7 +340,7 @@ Bytecode.mergeBytecodeControlStructures = (b1, b2) => {
   Bytecode.mergeBytecodeStates(b1, b2)
   Bytecode.mergeBytecodeEventHandlers(b1, b2)
   if (b2.timelines && !b1.timelines) b1.timelines = {}
-  Bytecode.mergeTimelines(b1.timelines, b2.timelines)
+  return Bytecode.mergeTimelines(b1.timelines, b2.timelines)
 }
 
 Bytecode.pasteBytecode = (destination, pasted) => {
@@ -1066,6 +1066,16 @@ Bytecode.mergeTimelineStructure = (bytecodeObject, timelineStructure, mergeStrat
       }
     }
   }
+}
+
+Bytecode.replaceTimelinePropertyGroups = (bytecodeObject, timelineName, timelineSelector, propertyGroup) => {
+  if (!bytecodeObject.timelines[timelineName]) {
+    bytecodeObject.timelines[timelineName] = {}
+  }
+  if (!bytecodeObject.timelines[timelineName][timelineSelector]) {
+    bytecodeObject.timelines[timelineName][timelineSelector] = {}
+  }
+  Object.assign(bytecodeObject.timelines[timelineName][timelineSelector], propertyGroup)
 }
 
 Bytecode.getNormalizedRelpath = (bc) => {

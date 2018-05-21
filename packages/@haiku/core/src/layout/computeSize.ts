@@ -30,21 +30,44 @@ const SIZE_PROPORTIONAL = 0; // A percentage of the parent
 const SIZE_ABSOLUTE = 1; // A fixed size in screen pixels
 const SIZING_COMPONENTS = ['x', 'y', 'z'];
 
-export default function computeSize(layoutSpec, sizeModeArray, parentsizeAbsolute) {
+export default function computeSize(
+  layoutSpec,
+  sizeModeArray,
+  parentSize,
+  contentSize,
+) {
   const outputSize = {};
+
   for (let i = 0; i < SIZING_COMPONENTS.length; i++) {
     const component = SIZING_COMPONENTS[i];
+
+    const contentSizeValue = contentSize && contentSize[component];
+    const parentSizeValue = parentSize[component];
+
     switch (sizeModeArray[component]) {
       case SIZE_PROPORTIONAL:
         const sizeProportional = layoutSpec.sizeProportional[component];
         const sizeDifferential = layoutSpec.sizeDifferential[component];
-        outputSize[component] =
-          parentsizeAbsolute[component] * sizeProportional + sizeDifferential;
+        outputSize[component] = parentSizeValue * sizeProportional + sizeDifferential;
         break;
+
       case SIZE_ABSOLUTE:
-        outputSize[component] = layoutSpec.sizeAbsolute[component];
+        const givenValue = layoutSpec.sizeAbsolute[component];
+
+        // Implements 'true sizing': Use content size if available, otherwise fallback to parent
+        if (givenValue === true || givenValue === 'true') {
+          if (contentSizeValue) {
+            outputSize[component] = contentSizeValue;
+          } else {
+            outputSize[component] = parentSizeValue;
+          }
+        } else {
+          outputSize[component] = givenValue; // Assume the given value is numeric
+        }
+
         break;
     }
   }
+
   return outputSize;
 }

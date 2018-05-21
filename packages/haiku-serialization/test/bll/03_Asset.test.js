@@ -65,7 +65,7 @@ const mockAssets = () =>{
 }
 
 test('Asset.assetsToDirectoryStructure', (t) => {
-  t.plan(8)
+  t.plan(7)
 
   const assets = mockAssets()
 
@@ -77,11 +77,10 @@ test('Asset.assetsToDirectoryStructure', (t) => {
 
   t.equal(assets[idx].kind, 'folder', 'base asset is folder')
   t.equal(assets[idx].type, 'container', 'base asset is container')
-  t.equal(assets[idx].children.length, 2, 'base asset has ok children')
+  t.equal(assets[idx].children.length, 1, 'base asset has ok children')
   t.equal(assets[idx].children[0].kind, 'component', 'first child asset is component')
-  t.equal(assets[idx].children[1].kind, 'component', 'second child asset is component')
   t.equal(assets[idx].children[0].type, 'file', 'child asset is file')
-  t.equal(assets[idx].dump(), 'code\n  code/main/code.js\n  code/foo_svg/code.js','tree looks ok')
+  t.equal(assets[idx].dump(), 'code\n  code/foo_svg/code.js','tree looks ok')
 })
 
 test('Asset.assetsToDirectoryStructure detects sketch assets without exported SVG files', (t) => {

@@ -1,8 +1,10 @@
-import {HaikuBytecode} from 'haiku-common/lib/types';
+import {HaikuBytecode} from '@haiku/core/lib/api/HaikuBytecode';
 import {ExporterFormat, ExporterRequest} from 'haiku-sdk-creator/lib/exporter';
 
 import {BodymovinExporter} from './bodymovin/bodymovinExporter';
 import {HaikuStaticExporter} from './haikuStatic/haikuStaticExporter';
+
+// @ts-ignore
 import * as LoggerInstance from 'haiku-serialization/src/utils/LoggerInstance';
 
 export interface ExporterInterface {

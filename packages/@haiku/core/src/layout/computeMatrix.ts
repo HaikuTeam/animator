@@ -26,7 +26,7 @@
  * THE SOFTWARE.
  */
 
-import Layout3D from '../Layout3D';
+import computeOrientationFlexibly from './computeOrientationFlexibly';
 
 export default function computeMatrix(layoutSpec, currentMatrix, currentsizeAbsolute, parentsizeAbsolute) {
   const alignX = layoutSpec.align.x * parentsizeAbsolute.x;
@@ -39,7 +39,7 @@ export default function computeMatrix(layoutSpec, currentMatrix, currentsizeAbso
   const originY = layoutSpec.origin.y * currentsizeAbsolute.y;
   const originZ = layoutSpec.origin.z * currentsizeAbsolute.z;
 
-  layoutSpec.orientation = Layout3D.computeOrientationFlexibly(
+  layoutSpec.orientation = computeOrientationFlexibly(
     layoutSpec.rotation.x,
     layoutSpec.rotation.y,
     layoutSpec.rotation.z,

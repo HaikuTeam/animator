@@ -4,6 +4,7 @@
 
 import Layout3D from './../../Layout3D';
 import has from './has';
+import {PLAYBACK_SETTINGS} from './vanities';
 
 const TEXT_CONTENT_FALLBACKS = {
   content: null,
@@ -318,6 +319,10 @@ const PATH_FALLBACKS = {
 
 const HTML_STYLE_SHORTHAND_FALLBACKS = {};
 
+const PLAYBACK_FALLBACKS = {
+  playback: PLAYBACK_SETTINGS.LOOP,
+};
+
 const CONTROL_FLOW_FALLBACKS = {
   // 'controlFlow.if': null,
   'controlFlow.repeat': null,
@@ -490,6 +495,7 @@ export default {
   div: has(
     HTML_STYLE_SHORTHAND_FALLBACKS,
     TEXT_CONTENT_FALLBACKS,
+    PLAYBACK_FALLBACKS,
     CONTROL_FLOW_FALLBACKS,
     LAYOUT_3D_FALLBACKS,
     STYLE_FALLBACKS,

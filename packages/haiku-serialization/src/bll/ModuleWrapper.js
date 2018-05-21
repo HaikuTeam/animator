@@ -1,5 +1,4 @@
 const path = require('path')
-const lodash = require('lodash')
 const BaseModel = require('./BaseModel')
 const overrideModulesLoaded = require('./../utils/overrideModulesLoaded')
 const Lock = require('./Lock')
@@ -91,6 +90,7 @@ class ModuleWrapper extends BaseModel {
 
   isolatedClearCache () {
     ModuleWrapper.clearRequireCache(path.dirname(this.getAbspath()))
+    ModuleWrapper.clearHotCache()
   }
 
   reloadExtantModule (cb) {
@@ -111,10 +111,6 @@ class ModuleWrapper extends BaseModel {
       return cb(null, this.exp)
     }
     return this.reload(cb)
-  }
-
-  configuredReload (config, cb) {
-    return this.basicReload(cb)
   }
 
   getFolder () {
@@ -143,6 +139,7 @@ class ModuleWrapper extends BaseModel {
   load () {
     overrideModulesLoaded(
       (stop) => {
+        this.isolatedClearCache()
         this.exp = require(this.getAbspath())
         this._hasLoadedAtLeastOnce = true
         this.update(this.exp, () => {
@@ -166,7 +163,7 @@ class ModuleWrapper extends BaseModel {
         this.exp = {}
         this._hasLoadedAtLeastOnce = true
 
-        this.update(this.exp, () => {
+        return this.update(this.exp, () => {
           if (!this.isExternalModule) {
             this.file.maybeFlushContentForceSync()
           }
@@ -227,25 +224,19 @@ class ModuleWrapper extends BaseModel {
       return cb()
     }
 
-    return Project.fetchProjectConfigInfo(this.file.folder, (err, userconfig) => {
-      if (err) return cb(err)
+    // Reassign in case our bytecode was empty and we created a new object
+    this.exp = Bytecode.reinitialize(
+      this.file.folder,
+      path.normalize(this.file.relpath),
+      bytecode,
+      {title: this.component && this.component.getTitle()}
+    )
 
-      // Reassign in case our bytecode was empty and we created a new object
-      this.exp = Bytecode.reinitialize(
-        this.file.folder,
-        path.normalize(this.file.relpath),
-        bytecode,
-        lodash.assign({}, userconfig, {
-          title: this.component && this.component.getTitle()
-        })
-      )
+    MODULE_CACHE_HOT[this.getAbspath()] = this.exp
+    MODULE_CACHE_HOT[this.getModpath()] = this.exp
+    MODULE_CACHE_HOT[this.file.getAbspath()] = this.exp
 
-      MODULE_CACHE_HOT[this.getAbspath()] = this.exp
-      MODULE_CACHE_HOT[this.getModpath()] = this.exp
-      MODULE_CACHE_HOT[this.file.getAbspath()] = this.exp
-
-      return cb()
-    })
+    return cb()
   }
 }
 
@@ -320,21 +311,32 @@ ModuleWrapper.getHaikuKnownImportMatch = (importPath) => {
 }
 
 ModuleWrapper.clearHotCache = () => {
+  const cleared = {}
+
   for (const key in MODULE_CACHE_HOT) {
+    cleared[key] = true
     MODULE_CACHE_HOT[key] = null
   }
+
+  logger.info(`[module wrapper] cleared hot cache`, cleared)
 }
 
 ModuleWrapper.clearRequireCache = (dirname) => {
+  const cleared = {}
+
   for (const key in require.cache) {
     if (dirname) {
       if (key.indexOf(dirname) !== -1) {
+        cleared[key] = true
         delete require.cache[key]
       }
     } else if (!key.match(/node_modules/)) {
+      cleared[key] = true
       delete require.cache[key]
     }
   }
+
+  logger.info(`[module wrapper] cleared require cache`, cleared)
 }
 
 ModuleWrapper.doesRelpathLookLikeLocalComponent = (relpath) => {
@@ -365,5 +367,4 @@ module.exports = ModuleWrapper
 
 // Down here to avoid Node circular dependency stub objects. #FIXME
 const Bytecode = require('./Bytecode')
-const Project = require('./Project')
 const Template = require('./Template')

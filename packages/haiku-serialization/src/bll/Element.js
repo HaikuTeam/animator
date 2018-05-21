@@ -92,6 +92,7 @@ class Element extends BaseModel {
 
   hoverOn (metadata) {
     if (!this._isHovered || !Element.hovered[this.getPrimaryKey()]) {
+      this.cacheClear()
       this._isHovered = true
       Element.hovered[this.getPrimaryKey()] = this
       this.emit('update', 'element-hovered', metadata)
@@ -101,6 +102,7 @@ class Element extends BaseModel {
 
   hoverOff (metadata) {
     if (this._isHovered || Element.hovered[this.getPrimaryKey()]) {
+      this.cacheClear()
       this._isHovered = false
       delete Element.hovered[this.getPrimaryKey()]
       this.emit('update', 'element-unhovered', metadata)
@@ -195,7 +197,7 @@ class Element extends BaseModel {
   }
 
   getCoreHostComponentInstance () {
-    return this.component.getCoreComponentInstance()
+    return this.component.$instance
   }
 
   cut () {
@@ -258,9 +260,6 @@ class Element extends BaseModel {
   }
 
   batchUpsertEventHandlers (serializedEvents) {
-    // TODO: What is this code supposed to do?
-    // let eventHandlers = this.getReifiedEventHandlers() // pointer to substructs[0].bytecode
-    // eventHandlers = serializedEvents // eslint-disable-line
     this.emit('update', 'element-event-handler-update')
     return this
   }
@@ -493,13 +492,14 @@ class Element extends BaseModel {
     return this.cacheFetch('getComputedLayout', () => Layout3D.computeLayout(
       this.getLayoutSpec(),
       Layout3D.createMatrix(),
-      this.getParentComputedSize()
+      this.getParentComputedSize(),
+      Layout3D.computeSizeOfNodeContent(this.getLiveRenderedNode())
     ))
   }
 
   getLayoutSpec () {
     const bytecode = this.component.getReifiedBytecode()
-    const hostInstance = this.component.getCoreComponentInstance()
+    const hostInstance = this.component.$instance
 
     // Race condition when converting elements on stage to components
     if (!hostInstance) {
@@ -533,7 +533,6 @@ class Element extends BaseModel {
 
       if (computedValue === undefined || computedValue === null) {
         return TimelineProperty.getFallbackValue(
-          componentId,
           elementName,
           outputName
         )
@@ -656,7 +655,7 @@ class Element extends BaseModel {
 
   computePropertyValue (propertyName, fallbackValue) {
     const bytecode = this.component.getReifiedBytecode()
-    const host = this.component.getCoreComponentInstance()
+    const host = this.component.$instance
     const states = (host && host.getStates()) || {}
     const computed = TimelineProperty.getComputedValue(
       this.getComponentId(),
@@ -767,7 +766,11 @@ class Element extends BaseModel {
 
   getTitle () {
     if (this.isTextNode()) return '<text>' // HACK, but not sure what else to do
-    return this.getStaticTemplateNode().attributes[HAIKU_TITLE_ATTRIBUTE] || 'notitle'
+    return this.getStaticTemplateNode().attributes[HAIKU_TITLE_ATTRIBUTE] || `<${this.getNameString()}>`
+  }
+
+  setTitle (newTitle, metadata, cb) {
+    this.component.setTitleForComponent(this.getComponentId(), newTitle, metadata, cb)
   }
 
   getNameString () {
@@ -793,6 +796,12 @@ class Element extends BaseModel {
 
   getGraphAddress () {
     return this.address
+  }
+
+  updateTargetingRows (updateEventName) {
+    this.getTargetingRows().forEach((row) => {
+      row.emit('update', updateEventName)
+    })
   }
 
   getAllRows () {
@@ -1007,7 +1016,7 @@ class Element extends BaseModel {
   }
 
   rehydrate () {
-    if (!experimentIsEnabled(Experiment.ElementDepthFilter) || this.getDepthAmongElements() < 2) {
+    if (this.getDepthAmongElements() < 2) {
       this.rehydrateChildren()
     }
   }
@@ -1092,11 +1101,11 @@ class Element extends BaseModel {
 
     // If this is a component, then add any of our componentAddressables states as builtinAddressables
     if (this.isComponent()) {
-      const component = this.getCoreTargetComponentInstance()
-      if (component) {
+      const instance = this.getCoreTargetComponentInstance()
+      if (instance) {
         // Note that the states also contain .value() for lazy evaluation of current state
         // Also note that states values should have a type='state' property
-        component.getAddressableProperties(componentAddressables)
+        instance.getAddressableProperties(componentAddressables)
       }
     }
 
@@ -1111,9 +1120,7 @@ class Element extends BaseModel {
     const returnedAddressables = {}
 
     for (const key1 in builtinAddressables) {
-      if (!Element.FORBIDDEN_PROPS[key1]) {
-        returnedAddressables[key1] = builtinAddressables[key1]
-      }
+      returnedAddressables[key1] = builtinAddressables[key1]
     }
 
     for (const key2 in componentAddressables) {
@@ -1141,6 +1148,7 @@ class Element extends BaseModel {
     // sub-elements that wouldn't be shown in the JIT menu otherwise
     if (this.getDepthAmongElements() > 1) {
       const complete = this.getCompleteAddressableProperties()
+
       for (const key in complete) {
         if (!this._visibleProperties[key]) {
           exclusions[key] = complete[key]
@@ -1153,11 +1161,7 @@ class Element extends BaseModel {
     for (const propertyName in exclusions) {
       const propertyObj = exclusions[propertyName]
 
-      if (Property.EXCLUDE_FROM_JIT[propertyName]) {
-        continue
-      }
-
-      if (this.isRootElement() && Property.EXCLUDE_FROM_JIT_IF_ROOT_ELEMENT[propertyName]) {
+      if (!Property.includeInJIT(propertyName, this, propertyObj, null)) {
         continue
       }
 
@@ -1443,56 +1447,12 @@ class Element extends BaseModel {
     for (const propertyName in complete) {
       const propertyObject = complete[propertyName]
 
-      if (Property.shouldBasicallyIncludeProperty(propertyName, propertyObject, this)) {
-        if (this._visibleProperties[propertyName]) {
-          // Highest precedence is if the property is deemed explicitly visible;
-          // Typically these get exposed when the user has selected via the JIT menu
-          filtered[propertyName] = propertyObject
-        } else {
-          if (propertyObject.type === 'state') {
-            // If the property is a component state (exposed property), we definitely want it;
-            // the exposed states are the API to the component
-            filtered[propertyName] = propertyObject
-          } else {
-            const keyframesObject = this.getPropertyKeyframesObject(propertyName)
-
-            if (keyframesObject) {
-              if (Object.keys(keyframesObject).length > 1) {
-                // If many keyframes are defined, include the property
-                filtered[propertyName] = propertyObject
-              } else {
-                // Or if only one keyframe and that keyframe is not the 0th
-                if (!keyframesObject[0]) {
-                  filtered[propertyName] = propertyObject
-                } else {
-                  // If the keyframe has definitely been edited by the user
-                  if (keyframesObject[0].edited) {
-                    filtered[propertyName] = propertyObject
-                  } else {
-                    // If the keyframe is an internally managed prop that has been changed from its default value
-                    const fallbackValue = Element.INTERNALLY_MANAGED_PROPS_WITH_DEFAULT_VALUES[propertyName]
-
-                    // If no fallback value defined, cannot compare, so assume we want to keep it in the list
-                    if (fallbackValue === undefined) {
-                      filtered[propertyName] = propertyObject
-                    } else if (
-                      keyframesObject[0].value !== undefined &&
-                      keyframesObject[0].value !== fallbackValue
-                    ) {
-                      filtered[propertyName] = propertyObject
-                    }
-                  }
-                }
-              }
-            }
-
-            // Finally, there are som properties that we always want to show
-            if (Element.ALWAYS_ALLOWED_PROPS[propertyName]) {
-              filtered[propertyName] = propertyObject
-            }
-          }
-        }
-      }
+      Property.buildFilterObject(
+        filtered,
+        this, // hostElement
+        propertyName,
+        propertyObject
+      )
 
       // Make sure to list any exclusions we did
       if (!filtered[propertyName]) {
@@ -1860,6 +1820,10 @@ Element.unselectAllElements = function (criteria, metadata) {
   Element.directlySelected = null
 }
 
+Element.hoverOffAllElements = function (criteria, metadata) {
+  Element.where(criteria).forEach((element) => element.hoverOff(metadata))
+}
+
 Element.clearCaches = function clearCaches () {
   Element.cache = {
     domNodes: {},
@@ -2000,6 +1964,10 @@ Element.findByComponentAndHaikuId = (component, haikuId) => {
   return Element.findById(Element.buildUidFromComponentAndHaikuId(component, haikuId))
 }
 
+Element.findHoveredElement = (component) => {
+  return Element.where({ component, _isHovered: true })[0]
+}
+
 Element.makeUid = (component, parent, index, staticTemplateNode) => {
   const parentHaikuId = (
     parent &&
@@ -2076,75 +2044,6 @@ Element.querySelectorAll = (selector, mana) => {
     attributes: 'attributes',
     children: 'children'
   })
-}
-
-Element.ALWAYS_ALLOWED_PROPS = {
-  'sizeAbsolute.x': true,
-  'sizeAbsolute.y': true,
-  'translation.x': true,
-  'translation.y': true,
-  'translation.z': true, // This only works if `transform-style: preserve-3d` is set
-  'rotation.z': true,
-  'rotation.x': true,
-  'rotation.y': true,
-  'scale.x': true,
-  'scale.y': true,
-  'origin.x': true,
-  'origin.y': true,
-  'shear.xy': true,
-  'shear.xz': true,
-  'shear.yz': true,
-  'opacity': true
-  // 'backgroundColor': true,
-  // 'shown': true // Mainly so instantiation at non-0 times results in invisibility
-}
-
-// Properties that the plumbing creates automatically; this is used to avoid
-// displaying properties that have a value assigned that aren't actually assigned
-// by the user
-Element.INTERNALLY_MANAGED_PROPS_WITH_DEFAULT_VALUES = {
-  'sizeMode.x': 1,
-  'sizeMode.y': 1,
-  'sizeMode.z': 1,
-  'style.border': '0',
-  'style.margin': '0',
-  'style.padding': '0',
-  'style.overflowX': 'hidden',
-  'style.overflowY': 'hidden',
-  'style.WebkitTapHighlightColor': 'rgba(0,0,0,0)',
-  'style.backgroundColor': 'rgba(255,255,255,0)',
-  'style.zIndex': 0 // Managed via stacking UI
-}
-
-Element.FORBIDDEN_PROPS = {
-  // Internal metadata should not be edited
-  'haiku-id': true,
-  'haiku-title': true,
-  'haiku-source': true,
-  'haiku-var': true,
-  // All of the below mess with the layout system
-  'width': true,
-  'height': true,
-  'transform': true,
-  'transformOrigin': true,
-  'style.position': true,
-  'style.display': true,
-  'style.width': true,
-  'style.height': true,
-  'style.transform': true,
-  'style.transformOrigin': true
-}
-
-Element.ALLOWED_TAGNAMES = {
-  div: true,
-  svg: true,
-  g: true,
-  rect: true,
-  circle: true,
-  ellipse: true,
-  line: true,
-  polyline: true,
-  polygon: true
 }
 
 Element.FRIENDLY_NAME_SUBSTITUTES = {

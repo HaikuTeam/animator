@@ -589,12 +589,33 @@ Multi-select/Multi-transform
 I can hold down Shift and click multiple elements to select them
 I can drag a selection marquee on stage to select multiple elements
 I can click away from multiple elements to select them
-I can click on an empty area in multi-selection to select the group
-I can drag (translate) a group of elements
-I can rotate a group of elements
-I can scale a group of elements
-When I transform a group, I see all their properties update in the timeline
-I can undo/redo a group transform, and the whole set of changes is undone correctly
+I can click on an empty area in multi-selection to select the elements
+I can drag (translate) a multiselection
+I can rotate a multiselection, including an element that has 2D rotation
+I can rotate a multiselection, including an element that has 3D rotation
+I can scale a multiselection, including an element that has 2D rotation
+I can scale a multiselection, including an element that has 3D rotation
+When I transform a multiselection, I see all their properties update in the timeline
+I can undo/redo a multiselection, and the whole set of changes is undone correctly
+
+Group/ungroup
+
+I can instantiate the artboard from Moto and ungroup it
+I can instantiate an artboard with SVG <defs> and ungroup it
+I cannot ungroup an artboard or SVG that only contains one element
+I cannot group a selection that contains only one elements
+I can instantiate two slices, animate them, and create a group at keyframe N > 0
+When I create a group, I receive a dialog prompting me to name my group
+The name of the group I created appears in the timeline
+The group I created is selected upon creation
+The group I created does not alter the layout of the selection at the time of creation
+The group I created destroys any _layout_ animations of the elements that were grouped
+I can animate a group on stage, and everything animates correctly
+I can undo creation of a group, which restores both timeline and glass to expected state
+I can ungroup a group I created, including an element that has 3D rotation
+When I ungroup, I receive a dialog warning me any animations will be lost
+Ungrouping preserves the layout of the group elements I see on stage at the time I ungrouped
+Ungrouping destroys any existing _layout_ animations of the elements that were grouped
 
 Origin
 
@@ -667,8 +688,10 @@ Core npm package is up to date https://www.npmjs.com/package/@haiku/core
 
 Sharing
 
-The share page HTML snippet is correct
-The share page React snippet is correct
+The share page and modal HTML snippets are correct
+The share page and modal React snippet are correct
+The share page and modal Vue snippets are correct
+The share page and modal Angular snippets are correct
 The lottie.json file works in http://editor.lottiefiles.com/
 Publishing produces a static bundle at code/main/static.json which renders correctly on my community profile
 Share page CodePen content works correctly

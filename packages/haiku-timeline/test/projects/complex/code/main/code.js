@@ -1,6 +1,10 @@
 var Haiku = require("@haiku/core");
 var bubtonkillingsworth = require("../bubtonkillingsworth/code.js");
 module.exports = {
+  metadata: {
+    relpath: "code/main/code.js"
+  },
+
   states: {
     hello: {
       value: 123
@@ -33,7 +37,9 @@ module.exports = {
           "100": {
             value: [{ x: 0.5, y: 0.5, moveTo: true }, { x: 71.5, y: 58.5 }]
           }
-        }
+        },
+
+        playback: { "0": { value: "loop" } },
       },
 
       "haiku:f203a65f49c0": {

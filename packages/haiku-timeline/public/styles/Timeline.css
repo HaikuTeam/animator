@@ -55,8 +55,8 @@
 }
 
 #timeline ::selection {
-  background: rgb(205,49,114);
-  color: white;
+  background: rgba(38, 145, 173, .8);
+  color: #FAFCFC;
 }
 
 #timeline img::selection {

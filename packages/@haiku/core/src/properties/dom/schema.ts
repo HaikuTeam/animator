@@ -319,10 +319,13 @@ const STYLE_SCHEMA = {
 
 const HTML_STYLE_SHORTHAND_SCHEMA = {};
 
+const PLAYBACK_SCHEMA = {
+  playback: 'any',
+};
+
 const CONTROL_FLOW_SCHEMA = {
   // 'controlFlow.if': 'any',
   'controlFlow.repeat': 'any',
-  // 'controlFlow.yield': 'any',
   'controlFlow.placeholder': 'any',
 };
 
@@ -497,6 +500,7 @@ export default {
   div: has(
     HTML_STYLE_SHORTHAND_SCHEMA,
     TEXT_CONTENT_SCHEMA,
+    PLAYBACK_SCHEMA,
     CONTROL_FLOW_SCHEMA,
     LAYOUT_3D_SCHEMA,
     STYLE_SCHEMA,

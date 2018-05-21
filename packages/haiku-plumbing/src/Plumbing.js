@@ -170,6 +170,10 @@ process.on('uncaughtException', (err) => {
   // Notify mixpanel so we can track improvements to the app over time
   mixpanel.haikuTrackOnce('app:crash', { error: err.message })
 
+  if (PLUMBING_INSTANCES[0]) {
+    PLUMBING_INSTANCES[0].sentryError('?', err, {})
+  }
+
   // Exit after timeout to give a chance for mixpanel to transmit
   setTimeout(() => {
     // Wait for teardown so we don't interrupt e.g. an important disk-write
@@ -437,7 +441,9 @@ export default class Plumbing extends StateObject {
   }
 
   executeMethodMessagesWorker () {
-    if (this._isTornDown) return void (0) // Avoid leaking a handle
+    if (this._isTornDown) {
+      return // Avoid leaking a handle
+    }
 
     const nextMethodMessage = this._methodMessages.shift()
 
@@ -543,7 +549,12 @@ export default class Plumbing extends StateObject {
       } else if (typeof error === 'string') {
         error = new Error(error) // Unfortunately no good stack trace in this case
       }
-      crashReport(this.get('organizationName'), this.get('lastOpenedProjectName'), this.get('lastOpenedProjectPath'))
+      crashReport(
+        error,
+        this.get('organizationName'),
+        this.get('lastOpenedProjectName'),
+        this.get('lastOpenedProjectPath')
+      )
       return Raven.captureException(error, extras)
     } catch (exception) {
       logger.info(`[plumbing] unable to send crash report`)

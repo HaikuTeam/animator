@@ -105,7 +105,7 @@ tape('ActiveComponent.prototype.mergeDesign[2](design)', (t) => {
           return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents1) => {
             if (err) throw err
             fse.outputFileSync(path.join(folder, 'designs/Circle.svg'), CIRCLE_SVG_2) // Other one
-            return ac0.mergeDesigns({ 'designs/Circle.svg': true }, { from: 'test' }, (err) => {
+            return project.mergeDesigns({ 'designs/Circle.svg': true }, { from: 'test' }, (err) => {
               if (err) throw err
               return waitUntilFileProbablyWroteToDisk(() => {
                 return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents2) => {
@@ -151,7 +151,7 @@ tape('ActiveComponent.prototype.mergeDesign[3](design)', (t) => {
           return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents1) => {
             if (err) throw err
             fse.outputFileSync(path.join(folder, 'designs/PercyNose.svg'), PERCY_NOSE_2) // Other one
-            return ac0.mergeDesigns({ 'designs/PercyNose.svg': true }, { from: 'test' }, (err) => {
+            return project.mergeDesigns({ 'designs/PercyNose.svg': true }, { from: 'test' }, (err) => {
               if (err) throw err
               return waitUntilFileProbablyWroteToDisk(() => {
                 return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents2) => {
@@ -200,7 +200,7 @@ tape('ActiveComponent.prototype.instantiateComponent[2](component)', (t) => {
               t.error(err, 'no err upon instantiation')
               t.equal(mana.attributes['haiku-source'], './code/designs_path_svg/code.js', 'rel source is in mana attribute')
               const timeline = ac0.getReifiedBytecode().timelines.Default['haiku:' + mana.attributes['haiku-id']]
-              t.deepEqual(timeline, { 'style.position': { 0: { value: 'absolute' } }, 'style.margin': { 0: { value: '0' } }, 'style.padding': { 0: { value: '0' } }, 'style.border': { 0: { value: '0' } }, 'sizeMode.x': { 0: { value: 1 } }, 'sizeMode.y': { 0: { value: 1 } }, 'sizeAbsolute.x': { 0: { value: 99 } }, 'sizeAbsolute.y': { 0: { value: 69 } }, 'translation.x': { 0: { value: 275, edited: true } }, 'translation.y': { 0: { value: 200, edited: true } }, 'origin.x': { 0: { value: 0.5 } }, 'origin.y': { 0: { value: 0.5 } }, 'style.zIndex': { 0: { value: 1 } } }, 'timeline is ok')
+              t.deepEqual(timeline, { 'style.position': { 0: { value: 'absolute' } }, 'style.margin': { 0: { value: '0' } }, 'style.padding': { 0: { value: '0' } }, 'style.border': { 0: { value: '0' } }, 'sizeMode.x': { 0: { value: 1 } }, 'sizeMode.y': { 0: { value: 1 } }, 'sizeAbsolute.x': { 0: { value: true } }, 'sizeAbsolute.y': { 0: { value: true } }, 'translation.x': { 0: { value: 275, edited: true } }, 'translation.y': { 0: { value: 200, edited: true } }, 'origin.x': { 0: { value: 0.5 } }, 'origin.y': { 0: { value: 0.5 } }, 'style.zIndex': { 0: { value: 1 } } }, 'timeline is ok')
               const subtemplate = ac0.getReifiedBytecode().template.children[0]
               t.equal(subtemplate.elementName.metadata.relpath, 'code/designs_path_svg/code.js', 'el name is bytecode')
               t.deepEqual(subtemplate.attributes, { 'haiku-source': './code/designs_path_svg/code.js', 'haiku-var': '_code_designs_path_svg_code', 'haiku-title': 'DesignsPathSvg', 'haiku-id': '797f9682febd', style: {} }, 'el attrs ok')

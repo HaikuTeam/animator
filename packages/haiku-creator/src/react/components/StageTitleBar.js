@@ -2,24 +2,19 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import { shell, ipcRenderer } from 'electron'
 import Radium from 'radium'
-import Popover from 'react-popover'
 import assign from 'lodash.assign'
 import Palette from 'haiku-ui-common/lib/Palette'
-import { ThreeBounce } from 'better-react-spinkit'
 import Color from 'color'
 import { BTN_STYLES } from '../styles/btnShared'
-import CopyToClipboard from 'react-copy-to-clipboard'
 import Toggle from './Toggle'
 import {ShareModal} from 'haiku-ui-common/lib/react/ShareModal'
 import {
   PublishSnapshotSVG,
   ConnectionIconSVG,
   WarningIconSVG,
-  DangerIconSVG,
-  CliboardIconSVG
+  DangerIconSVG
 } from 'haiku-ui-common/lib/react/OtherIcons'
 import { ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
-import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
 
 const mixpanel = require('haiku-serialization/src/utils/Mixpanel')
@@ -138,59 +133,6 @@ const SNAPSHOT_SAVE_RESOLUTION_STRATEGIES = {
 const MAX_SYNDICATION_CHECKS = 48
 const SYNDICATION_CHECK_INTERVAL = 2500
 
-class PopoverBody extends React.Component {
-  shouldComponentUpdate (nextProps) {
-    return (
-      this.props.titleText !== nextProps.titleText ||
-      this.props.linkAddress !== nextProps.linkAddress ||
-      this.props.isSnapshotSaveInProgress !== nextProps.isSnapshotSaveInProgress ||
-      this.props.snapshotSaveConfirmed !== nextProps.snapshotSaveConfirmed
-    )
-  }
-
-  render () {
-    let popoverPosition
-
-    if (this.props.snapshotSaveConfirmed) {
-      popoverPosition = -72
-    } else if (this.props.isSnapshotSaveInProgress) {
-      popoverPosition = -70
-    } else {
-      popoverPosition = -59
-    }
-
-    return (
-      <div style={[STYLES.sharePopover, {right: popoverPosition}]}>
-        <button style={STYLES.popoverClose} onClick={this.props.close}>x</button>
-        {this.props.titleText}
-        <div style={STYLES.linkHolster}>
-          {this.props.isSnapshotSaveInProgress
-            ? <span style={[STYLES.link, STYLES.generatingLink]}>Updating Share Page</span>
-            : <span style={STYLES.link} onClick={() => shell.openExternal(this.props.linkAddress)}>{this.props.linkAddress.substring(0, 33)}</span>}
-          <CopyToClipboard
-            text={this.props.linkAddress}
-            onCopy={() => {
-              this.props.parent.setState({copied: true})
-              this.props.parent.setState({showCopied: true}, () => {
-                setTimeout(() => {
-                  this.props.parent.setState({showCopied: false})
-                }, 1900)
-              })
-            }}>
-            {(this.props.isSnapshotSaveInProgress)
-              ? <span style={[STYLES.copy, STYLES.copyLoading]}><ThreeBounce size={3} color={Palette.ROCK} /></span>
-              : <span style={STYLES.copy}><CliboardIconSVG /></span>}
-          </CopyToClipboard>
-        </div>
-        <span style={STYLES.popupNotice}>Anyone with the link can <strong>view &amp; embed</strong> your project.</span>
-        {/* todo: show last updated? <div style={STYLES.footer}>UPDATED<span style={STYLES.time}>{'9:00am Jun 15, 2017'}</span></div> */}
-      </div>
-    )
-  }
-}
-
-const PopoverBodyRadiumized = Radium(PopoverBody)
-
 class StageTitleBar extends React.Component {
   constructor (props) {
     super(props)
@@ -276,7 +218,11 @@ class StageTitleBar extends React.Component {
             })
           }
 
-          ipcRenderer.send('master:heartbeat', assign({}, masterState))
+          ipcRenderer.send('topmenu:update', {
+            isProjectOpen: !!masterState.folder,
+            isSaving: !!masterState.isSaving,
+            subComponents: this.props.projectModel.describeSubComponents()
+          })
         })
       }
     }, 1000)
@@ -508,10 +454,6 @@ class StageTitleBar extends React.Component {
   }
 
   render () {
-    const { showSharePopover } = this.state
-    const titleText = this.state.showCopied
-      ? 'Copied'
-      : 'Share & Embed'
     const projectInfo = this.withProjectInfo({})
 
     let btnText = 'PUBLISH'
@@ -521,49 +463,20 @@ class StageTitleBar extends React.Component {
 
     return (
       <div style={STYLES.frame} className='frame'>
-        {experimentIsEnabled(Experiment.NewPublishUI)
-          ? (
-            <button key='save'
-              id='publish'
-              onClick={this.handleSaveSnapshotClick}
-              disabled={!this.props.isTimelineReady && this.state.snapshotSyndicated === false}
-              style={[
-                BTN_STYLES.btnText,
-                BTN_STYLES.rightBtns,
-                this.state.snapshotSyndicated === false && STYLES.disabled,
-                !this.props.isTimelineReady && STYLES.disabled
-              ]}
-            >
-              {this.renderSnapshotSaveInnerButton()}<span style={{marginLeft: 7}}>{btnText}</span>
-            </button>
-          ) : (
-            <Popover
-              place='below'
-              isOpen={showSharePopover}
-              style={{zIndex: 2}}
-              className='publish-popover'
-              body={
-                <PopoverBodyRadiumized
-                  parent={this}
-                  titleText={titleText}
-                  snapshotSaveConfirmed={this.state.snapshotSaveConfirmed}
-                  isSnapshotSaveInProgress={this.state.isSnapshotSaveInProgress}
-                  linkAddress={this.state.linkAddress}
-                  close={() => this.setState({ showSharePopover: false })} />
-              }>
-              <button key='save'
-                id='publish'
-                onClick={this.handleSaveSnapshotClick}
-                style={[
-                  BTN_STYLES.btnText,
-                  BTN_STYLES.rightBtns,
-                  this.state.isSnapshotSaveInProgress && STYLES.disabled
-                ]}>
-                {this.renderSnapshotSaveInnerButton()}<span style={{marginLeft: 7}}>{btnText}</span>
-              </button>
-            </Popover>
-          )
-        }
+        <button
+          key='save'
+          id='publish'
+          onClick={this.handleSaveSnapshotClick}
+          disabled={!this.props.isTimelineReady && this.state.snapshotSyndicated === false}
+          style={[
+            BTN_STYLES.btnText,
+            BTN_STYLES.rightBtns,
+            this.state.snapshotSyndicated === false && STYLES.disabled,
+            !this.props.isTimelineReady && STYLES.disabled
+          ]}
+        >
+          {this.renderSnapshotSaveInnerButton()}<span style={{marginLeft: 7}}>{btnText}</span>
+        </button>
 
         <Toggle
           onToggle={this.props.onPreviewModeToggled}
@@ -577,7 +490,7 @@ class StageTitleBar extends React.Component {
           <ConnectionIconSVG />
         </button>
 
-        {experimentIsEnabled(Experiment.NewPublishUI) && this.state.showSharePopover && !this.props.isPreviewMode &&
+        {this.state.showSharePopover && !this.props.isPreviewMode &&
           <ShareModal
             project={this.props.project}
             snapshotSaveConfirmed={this.state.snapshotSaveConfirmed}
