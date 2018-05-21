@@ -76,6 +76,10 @@ class Asset extends BaseModel {
     return this.kind === Asset.KINDS.FIGMA
   }
 
+  isIllustratorFile () {
+    return this.kind === Asset.KINDS.ILLUSTRATOR
+  }
+
   isRemoteAsset () {
     return this.proximity === Asset.PROXIMITIES.REMOTE
   }
@@ -94,7 +98,7 @@ class Asset extends BaseModel {
   }
 
   isOrphanSvg () {
-    return (this.isVector() && this.parent.kind !== Asset.KINDS.SKETCH)
+    return (this.isVector() && !this.parent.isSketchFile() && !this.parent.isIllustratorFile())
   }
 
   isComponentOtherThanMain () {
@@ -129,6 +133,11 @@ class Asset extends BaseModel {
       this.groupsFolderAsset.insertChild(svgAsset)
       this.unshiftFolderAsset(this.groupsFolderAsset)
     }
+  }
+
+  addIllustratorChild (svgAsset) {
+    this.artboardsFolderAsset.insertChild(svgAsset)
+    this.unshiftFolderAsset(this.artboardsFolderAsset)
   }
 
   addSketchAsset (relpath, dict) {
@@ -236,6 +245,44 @@ class Asset extends BaseModel {
     return figmaAsset
   }
 
+  addIllustratorAsset (relpath, dict) {
+    const {project} = this
+    const result = Asset.findById(path.join(project.getFolder(), relpath))
+
+    if (result) {
+      this.insertChild(result)
+      return result
+    }
+
+    const artboardsFolderAsset = Asset.upsert({
+      uid: path.join(project.getFolder(), 'designs', relpath, 'artboards'),
+      type: Asset.TYPES.CONTAINER,
+      kind: Asset.KINDS.FOLDER,
+      proximity: Asset.PROXIMITIES.LOCAL,
+      project,
+      relpath: path.join('designs', relpath, 'artboards'),
+      displayName: 'Artboards',
+      children: [],
+      dtModified: Date.now()
+    })
+
+    const illustratorAsset = Asset.upsert({
+      uid: path.join(project.getFolder(), relpath),
+      type: Asset.TYPES.CONTAINER,
+      kind: Asset.KINDS.ILLUSTRATOR,
+      project,
+      proximity: Asset.PROXIMITIES.LOCAL,
+      relpath,
+      displayName: path.basename(relpath),
+      children: [],
+      artboardsFolderAsset,
+      dtModified: (dict[relpath] && dict[relpath].dtModified) || Date.now()
+    })
+
+    this.insertChild(illustratorAsset)
+    return illustratorAsset
+  }
+
   getChildAssets () {
     // Super hacky - this logic probably belongs in the view instead of here.
     // We conditionally display a helpful message in the assets list if we detect that
@@ -319,6 +366,34 @@ class Asset extends BaseModel {
         )
       }
 
+      if (shouldDisplayIllustratorAssetMessage(this.children)) {
+        out = out.concat(
+          Asset.upsert({
+            uid: 'hacky-illustrator-file[1]',
+            relpath: 'hacky-illustrator-file[1]',
+            type: Asset.TYPES.CONTAINER,
+            kind: Asset.KINDS.ILLUSTRATOR,
+            proximity: Asset.PROXIMITIES.LOCAL,
+            displayName: this.project.getName() + '.ai',
+            children: [],
+            project: this.project,
+            dtModified: Date.now()
+          }),
+          Asset.upsert({
+            uid: 'hacky-message[4]',
+            relpath: 'hacky-message[4]',
+            type: Asset.TYPES.HACKY_MESSAGE,
+            kind: Asset.KINDS.HACKY_MESSAGE,
+            project: this.project,
+            displayName: 'hacky-message[4]',
+            children: [],
+            dtModified: Date.now(),
+            messageType: 'edit_primary_asset',
+            message: ILLUSTRATOR_ASSET_MESSAGE
+          })
+        )
+      }
+
       return out
     }
 
@@ -384,6 +459,7 @@ Asset.KINDS = {
   FOLDER: 'folder',
   SKETCH: 'sketch',
   FIGMA: 'figma',
+  ILLUSTRATOR: 'ai',
   BITMAP: 'bitmap',
   VECTOR: 'vector',
   COMPONENT: 'component',
@@ -404,6 +480,11 @@ Every slice and artboard will be synced here when you save.
 const FIGMA_ASSET_MESSAGE = `
 ⇧ Double click to import a file from Figma.
 Every slice and group will be imported here.
+`
+
+const ILLUSTRATOR_ASSET_MESSAGE = `
+⇧ Double click to import a file from Illustrator.
+Every artboard will be imported here.
 `
 
 Asset.ingestAssets = (project, dict) => {
@@ -448,6 +529,8 @@ Asset.ingestAssets = (project, dict) => {
 
     if (extname === '.sketch') {
       designFolderAsset.addSketchAsset(relpath, dict)
+    } else if (extname === '.ai') {
+      designFolderAsset.addIllustratorAsset(relpath, dict)
     } else if (extname === '.svg') {
       // Skip any Pages that may have been previously exported by Sketchtool
       // Our workflow only deals with Artboards/Slices, so that's all we display to reduce conceptual overhead
@@ -479,6 +562,10 @@ Asset.ingestAssets = (project, dict) => {
           if (figmaAsset) {
             figmaAsset.addFigmaChild(svgAsset)
           }
+          break
+        case 'ai':
+          const illustratorAsset = designFolderAsset.addIllustratorAsset(generatorRelpath, dict)
+          illustratorAsset.addIllustratorChild(svgAsset)
           break
         default:
           designFolderAsset.insertChild(svgAsset)
@@ -545,10 +632,13 @@ const shouldDisplayPrimaryAssetMessage = (childrenOfDesignFolder) => {
 }
 
 const shouldDisplayFigmaAssetMessage = (childrenOfDesignFolder) => {
-  const figmaAssets = childrenOfDesignFolder.filter((child) => {
-    return child.isFigmaFile()
-  })
-  return figmaAssets.length < 1
+  const index = childrenOfDesignFolder.findIndex((child) => child.isFigmaFile())
+  return index === -1
+}
+
+const shouldDisplayIllustratorAssetMessage = (childrenOfDesignFolder) => {
+  const index = childrenOfDesignFolder.findIndex((child) => child.isIllustratorFile())
+  return index === -1
 }
 
 const sortedChildrenOfComponentFolderAsset = (asset) => {

@@ -10,6 +10,7 @@ const {default: invertMatrix} = require('@haiku/core/lib/vendor/gl-mat4/invert')
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 const Figma = require('./Figma')
 const Sketch = require('./Sketch')
+const Illustrator = require('./Illustrator')
 
 const PI_OVER_12 = Math.PI / 12
 
@@ -217,6 +218,22 @@ class ElementSelectionProxy extends BaseModel {
 
   getFigmaAssetLink () {
     return Figma.buildFigmaLinkFromPath(this.getFigmaAssetPath())
+  }
+
+  isSelectionIllustratorEditable () {
+    const sourcePath = this.getSourcePath()
+    return !!(
+      sourcePath &&
+      Illustrator.isIllustratorFolder(sourcePath)
+    )
+  }
+
+  getIllustratorAssetPath () {
+    const sourcePath = this.getSourcePath()
+    return (
+      sourcePath &&
+      sourcePath.split(/\.ai\.contents/)[0].concat('.ai')
+    )
   }
 
   canCut () {
