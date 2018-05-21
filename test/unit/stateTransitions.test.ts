@@ -7,9 +7,9 @@ import StateTransitionManager from './../../src/StateTransitionManager';
 
 
 tape('Test state transitions', (t) => {
-  t.plan(13);
+  t.plan(17);
 
-  const states = {var1:0, var2:5};
+  const states = {var1:0, var2:5, varString:'string', varArray:[10, 0], varObject:{varString: 'string', var: 5}};
   const haikuClock = new HaikuClock({}, {});
   
   const stateTransitionManager = new StateTransitionManager(states, haikuClock);
@@ -65,8 +65,33 @@ tape('Test state transitions', (t) => {
   stateTransitionManager.createNewTransition({var1:5}, {duration: 10000, curve: 'linear'});
   stateTransitionManager.createNewTransition({var2:5}, {duration: 20000, curve: 'linear'});
 
-  haikuClock.setTime(7000);
+  haikuClock.setTime(8000);
   stateTransitionManager.tickStateTransitions();
   stateTransitionManager.deleteAllStateTransitions();
-  t.is(stateTransitionManager.getNumRunningTransitions(), 0, 'Delete all state transitions');  
+  t.is(stateTransitionManager.getNumRunningTransitions(), 0, 'Delete all state transitions'); 
+  
+  
+  stateTransitionManager.createNewTransition({varString:10}, {duration: 1000, curve: 'linear'});
+  haikuClock.setTime(8000);
+  stateTransitionManager.tickStateTransitions();
+  t.is(states.varString, 'string', 'Do not interpolate strings');
+
+
+  stateTransitionManager.createNewTransition({varArray:[20, 20]}, {duration: 1000, curve: 'linear'});
+  haikuClock.setTime(8500);
+  stateTransitionManager.tickStateTransitions();
+  t.deepEqual(states.varArray, [15, 10], 'Interpolate array');
+
+  haikuClock.setTime(9000);
+  stateTransitionManager.tickStateTransitions();
+  t.deepEqual(states.varArray, [20, 20], 'Interpolate array');
+
+  
+  stateTransitionManager.createNewTransition({varObject:{varString: 10, var: 10}}, {duration: 1000, curve: 'linear'});
+  haikuClock.setTime(10000);
+  stateTransitionManager.tickStateTransitions();
+  t.deepEqual(states.varObject, {varString: 'string', var: 10}, 'Interpolate only numbers on objects');
+
+  console.log(states);
+
 });

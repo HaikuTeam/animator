@@ -35,12 +35,7 @@ export default class StateTransitionManager {
       // Ignore state if it doesn't pre exist
       if (key in this.states) {
         transitionStart[key] = this.states[key];
-      } else {
-        // Delete state from transitionEnd if it doens't exist on states.
-        // If we don't delete it, on tickStateTransitions expired 
-        // transition delete, it will set transitionEnd
-        delete transitionEnd[key];
-      }
+      } 
     }
 
     // Select function correspondent to given string
@@ -89,7 +84,12 @@ export default class StateTransitionManager {
 
     // Set transitionEnd value for expired transitions before removing them
     this.transitions.filter(isExpired).forEach((transition) => {
-      this.setStates(transition.transitionEnd);
+      // If expired, simulate it was calculated exactly on endTime 
+      const interpolatedState = Transitions.interpolate(
+                                      transition.endTime, transition.parameter.curve, transition.startTime,
+                                      transition.endTime, transition.transitionStart, transition.transitionEnd);
+
+      this.setStates(interpolatedState);
     });
 
     // Remove expired transitions
