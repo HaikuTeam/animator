@@ -61,6 +61,27 @@ export default class TopMenu {
       // },
     ];
 
+    if (global.process.env.NODE_ENV !== 'production') {
+      developerMenuItems.push(
+        {
+          label: 'Open Dev Tools',
+          accelerator: 'CmdOrCtrl+Option+I',
+          enabled: true,
+          click: () => {
+            this.sender.send('global-menu:open-dev-tools');
+          },
+        },
+        {
+          label: 'Close Dev Tools',
+          accelerator: 'CmdOrCtrl+W',
+          enabled: true,
+          click: () => {
+            this.sender.send('global-menu:close-dev-tools');
+          },
+        },
+      );
+    }
+
     const mainMenuPieces = [];
 
     mainMenuPieces.push({

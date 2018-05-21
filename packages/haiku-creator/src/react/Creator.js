@@ -1,8 +1,8 @@
+import {remote, shell, ipcRenderer, clipboard, webFrame} from 'electron'
 import React from 'react'
 import { StyleRoot } from 'radium'
 import { CSSTransition } from 'react-transition-group'
 import lodash from 'lodash'
-import Combokeys from 'combokeys'
 import EventEmitter from 'event-emitter'
 import path from 'path'
 import BaseModel from 'haiku-serialization/src/bll/BaseModel'
@@ -46,18 +46,12 @@ import opn from 'opn'
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'creator'
 
-var pkg = require('./../../package.json')
+const pkg = require('./../../package.json')
 
-var mixpanel = require('haiku-serialization/src/utils/Mixpanel')
+const mixpanel = require('haiku-serialization/src/utils/Mixpanel')
 
-const electron = require('electron')
-const remote = electron.remote
-const shell = electron.shell
 const { dialog } = remote
-const ipcRenderer = electron.ipcRenderer
-const clipboard = electron.clipboard
 
-var webFrame = electron.webFrame
 if (webFrame) {
   if (webFrame.setZoomLevelLimits) webFrame.setZoomLevelLimits(1, 1)
   if (webFrame.setLayoutZoomLevelLimits) webFrame.setLayoutZoomLevelLimits(0, 0)
@@ -159,20 +153,38 @@ export default class Creator extends React.Component {
       }
     })
 
-    const combokeys = new Combokeys(document.documentElement)
+    ipcRenderer.on('global-menu:open-dev-tools', lodash.debounce(() => {
+      remote.getCurrentWindow().openDevTools()
+      this.props.websocket.send({
+        type: 'relay',
+        from: 'creator',
+        view: 'timeline',
+        name: 'global-menu:open-dev-tools'
+      })
+      this.props.websocket.send({
+        type: 'relay',
+        from: 'creator',
+        view: 'glass',
+        name: 'global-menu:open-dev-tools'
+      })
+    }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
-    if (process.env.NODE_ENV !== 'production') {
-      combokeys.bind('command+option+i', lodash.debounce(() => {
-        this.toggleDevTools()
-      }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
-      combokeys.bind('ctrl+shift+i', lodash.debounce(() => {
-        this.toggleDevTools()
-      }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
-    }
-
-    // Top secret way to open the dev tools even if running in production
-    combokeys.bind('command+option+shift+i', lodash.debounce(() => {
-      this.toggleDevTools()
+    ipcRenderer.on('global-menu:close-dev-tools', lodash.debounce(() => {
+      if (remote.getCurrentWindow().isDevToolsFocused()) {
+        remote.getCurrentWindow().closeDevTools()
+      }
+      this.props.websocket.send({
+        type: 'relay',
+        from: 'creator',
+        view: 'timeline',
+        name: 'global-menu:close-dev-tools'
+      })
+      this.props.websocket.send({
+        type: 'relay',
+        from: 'creator',
+        view: 'glass',
+        name: 'global-menu:close-dev-tools'
+      })
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:open-finder', lodash.debounce(() => {
@@ -502,24 +514,6 @@ export default class Creator extends React.Component {
       logger.info(`[creator] editor ${editorEnv || '?'}->${editorApp} opening`, opn(abspath, {app: editorApp}))
     } catch (exception) {
       logger.error(exception)
-    }
-  }
-
-  toggleDevTools () {
-    const win = remote.getCurrentWindow()
-
-    if (win.isDevToolsOpened()) {
-      win.closeDevTools()
-    } else {
-      win.openDevTools()
-    }
-
-    if (this.refs.stage) {
-      this.refs.stage.toggleDevTools()
-    }
-
-    if (this.refs.timeline) {
-      this.refs.timeline.toggleDevTools()
     }
   }
 
