@@ -31,7 +31,7 @@
 .cm-s-haiku span.cm-keyword { font-weight: bold; }
 
 .cm-s-haiku .CodeMirror-linenumber { cursor: default; }
-.cm-s-haiku div.CodeMirror-selected { background: rgba(222, 80, 130, 0.8); }
+.cm-s-haiku div.CodeMirror-selected { background: rgba(38,145,173, .8); }
 .cm-s-haiku .CodeMirror-matchingbracket { background: #555 !important; }
 .cm-s-haiku .CodeMirror-activeline-background { background: #000; }
 

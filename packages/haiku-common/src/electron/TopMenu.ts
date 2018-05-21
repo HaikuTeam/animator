@@ -253,10 +253,52 @@ export default class TopMenu {
         label: 'Community',
         submenu: [
           {
-            label: 'Haiku Community on Slack',
+            label: 'Community on Slack',
             click: () => {
               // tslint:disable-next-line
-              shell.openExternal('https://join.slack.com/t/haiku-community/shared_invite/enQtMjU0NzExMzQzMjIxLTA3NjgzZDYzYmNjYzcxNmUwY2NhMTE0YTE2OGVjZGE0MDhmNGIxOWUzOTk5OTI5MmQ0ZjA5MDAwNGY1Yjk1OTg');
+              shell.openExternal('https://www.haiku.ai/slack-community/');
+            },
+          },
+          {
+            label: 'Showcase',
+            click: () => {
+              // tslint:disable-next-line
+              shell.openExternal('https://share.haiku.ai/');
+            },
+          },
+          {
+            label: 'Blog',
+            click: () => {
+              // tslint:disable-next-line
+              shell.openExternal('https://www.haiku.ai/blog/');
+            },
+          }, {type: 'separator'},
+          {
+            label: 'YouTube',
+            click: () => {
+              // tslint:disable-next-line
+              shell.openExternal('https://www.youtube.com/channel/UCFNlUrip_yGA8Ljk7QcwYog');
+            },
+          },
+          {
+            label: 'Twitter',
+            click: () => {
+              // tslint:disable-next-line
+              shell.openExternal('https://www.twitter.com/haikuforteams');
+            },
+          },
+          {
+            label: 'Facebook',
+            click: () => {
+              // tslint:disable-next-line
+              shell.openExternal('https://www.facebook.com/haikuforteams');
+            },
+          },
+          {
+            label: 'Instagram',
+            click: () => {
+              // tslint:disable-next-line
+              shell.openExternal('https://www.instagram.com/haikuforteams/');
             },
           },
         ],
