@@ -375,7 +375,7 @@ class ProjectBrowser extends React.Component {
       showDeleteModal: false,
       recordedNewProjectName: '',
       recordedDelete: '',
-      newProjectIsPublic: false
+      newProjectIsPublic: true
     })
   }
 
