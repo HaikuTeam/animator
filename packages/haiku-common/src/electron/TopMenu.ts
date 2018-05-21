@@ -52,6 +52,7 @@ export default class TopMenu {
     for (const key in this.options) {
       if (nextOptions[key] !== undefined && !isEqual(nextOptions[key], this.options[key])) {
         didChange = true;
+        break;
       }
     }
 
@@ -182,6 +183,12 @@ export default class TopMenu {
 
     const projectSubmenu = [];
 
+    const isSubComponentsMenuEnabled = (
+      this.options.subComponents &&
+      this.options.subComponents.length > 0 &&
+      this.options.isProjectOpen
+    );
+
     projectSubmenu.push(
       {
         label: 'Publish',
@@ -201,8 +208,8 @@ export default class TopMenu {
       {type: 'separator'},
       {
         label: 'Components',
-        enabled: this.options.subComponents && this.options.subComponents.length > 0,
-        submenu: componentsSubSubmenu,
+        enabled: isSubComponentsMenuEnabled,
+        submenu: (isSubComponentsMenuEnabled) ? componentsSubSubmenu : undefined,
       },
     );
 

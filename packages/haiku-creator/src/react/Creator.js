@@ -1213,6 +1213,7 @@ export default class Creator extends React.Component {
 
   onNavigateToDashboard () {
     this.teardownMaster({ shouldFinishTour: true })
+    ipcRenderer.send('topmenu:update', {subComponents: [], isProjectOpen: false})
   }
 
   awaitAuthAndFire (cb) {
