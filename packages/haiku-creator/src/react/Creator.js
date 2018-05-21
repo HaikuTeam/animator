@@ -218,6 +218,11 @@ export default class Creator extends React.Component {
       this.showChangelogModal()
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
+    ipcRenderer.on('global-menu:set-active-component', lodash.debounce((ipcEvent, scenename) => {
+      logger.info(`[creator] global-menu:set-active-component`)
+      this.state.projectModel.setCurrentActiveComponent(scenename, {from: 'creator'}, () => {})
+    }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
+
     ipcRenderer.on('global-menu:zoom-in', lodash.debounce(() => {
       logger.info(`[creator] global-menu:zoom-in`)
       // Timeline will send to Glass if it doesn't want to zoom
@@ -894,11 +899,11 @@ export default class Creator extends React.Component {
         timeout: 5000,
         retry: 5
       },
-      (error, projectsList) => {
+      (error, projectList) => {
         if (error) return cb(error)
-        this.setState({ projectsList })
-        ipcRenderer.send('renderer:projects-list-fetched', projectsList)
-        return cb(null, projectsList)
+        this.setState({ projectList })
+        ipcRenderer.send('topmenu:update', {projectList, isProjectOpen: false})
+        return cb(null, projectList)
       }
     )
   }
@@ -1048,6 +1053,10 @@ export default class Creator extends React.Component {
 
   handleActiveComponentReady () {
     this.mountHaikuComponent()
+
+    ipcRenderer.send('topmenu:update', {
+      subComponents: this.state.projectModel.describeSubComponents()
+    })
 
     // Hide loading screens, re-enable navigating back to dashboard but only after a
     // delay since we've seen race-related crashes when people nav back too early.
@@ -1204,6 +1213,7 @@ export default class Creator extends React.Component {
 
   onNavigateToDashboard () {
     this.teardownMaster({ shouldFinishTour: true })
+    ipcRenderer.send('topmenu:update', {subComponents: [], isProjectOpen: false})
   }
 
   awaitAuthAndFire (cb) {

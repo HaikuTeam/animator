@@ -218,7 +218,11 @@ class StageTitleBar extends React.Component {
             })
           }
 
-          ipcRenderer.send('master:heartbeat', assign({}, masterState))
+          ipcRenderer.send('topmenu:update', {
+            isProjectOpen: !!masterState.folder,
+            isSaving: !!masterState.isSaving,
+            subComponents: this.props.projectModel.describeSubComponents()
+          })
         })
       }
     }, 1000)

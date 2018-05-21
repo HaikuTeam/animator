@@ -33,7 +33,7 @@ import {isMac} from 'haiku-common/lib/environments/os'
 
 const mixpanel = require('haiku-serialization/src/utils/Mixpanel')
 const Globals = require('haiku-ui-common/lib/Globals').default
-const {clipboard, shell, remote} = require('electron')
+const {clipboard, shell, remote, ipcRenderer} = require('electron')
 const fse = require('haiku-fs-extra')
 const moment = require('moment')
 const {HOMEDIR_PATH} = require('haiku-serialization/src/utils/HaikuHomeDir')
@@ -294,6 +294,10 @@ export class Glass extends React.Component {
 
   handleActiveComponentReady () {
     this.mountHaikuComponent()
+
+    ipcRenderer.send('topmenu:update', {
+      subComponents: this.project.describeSubComponents()
+    })
   }
 
   mountHaikuComponent () {
@@ -541,6 +545,10 @@ export class Glass extends React.Component {
         case 'global-menu:zoom-out':
           mixpanel.haikuTrack('creator:glass:zoom-out')
           this.getActiveComponent().getArtboard().zoomOut(1.25)
+          break
+
+        case 'global-menu:set-active-component':
+          this.project.setCurrentActiveComponent(message.data, {from: 'glass'}, () => {})
           break
 
         case 'global-menu:group':

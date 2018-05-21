@@ -1,7 +1,7 @@
 import path from 'path'
 
 import qs from 'qs'
-import {app, BrowserWindow} from 'electron'
+import {app, BrowserWindow, ipcMain} from 'electron'
 
 import TopMenu from 'haiku-common/lib/electron/TopMenu'
 
@@ -40,6 +40,7 @@ function createWindow () {
       webSecurity: false
     }
   })
+
   mainWindow.maximize()
   mainWindow.loadURL(url)
 
@@ -50,15 +51,20 @@ function createWindow () {
   mainWindow.on('closed', () => { mainWindow = null })
 
   const topmenu = new TopMenu({
-    send: (name) => {
-      mainWindow.webContents.send('relay', {name, from: 'electron'})
+    send: (name, data) => {
+      mainWindow.webContents.send('relay', {name, data, from: 'electron'})
     }
   })
 
   topmenu.create({
     projectList: [],
     isSaving: false,
-    isProjectOpen: true
+    isProjectOpen: true,
+    subComponents: []
+  })
+
+  ipcMain.on('topmenu:update', (ipcEvent, nextTopmenuOptions) => {
+    topmenu.update(nextTopmenuOptions)
   })
 }
 
