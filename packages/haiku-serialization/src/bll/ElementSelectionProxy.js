@@ -864,7 +864,7 @@ class ElementSelectionProxy extends BaseModel {
 
     if (this.hasMultipleInSelection()) {
       const matrixBefore = this.getComputedLayout().matrix
-      const matrixBeforeInverted = []
+      const matrixBeforeInverted = new Float32Array(16)
       invertMatrix(matrixBeforeInverted, matrixBefore)
       const {
         'scale.x': {
@@ -1362,9 +1362,9 @@ ElementSelectionProxy.computeScalePropertyGroup = (
     // transform `delta` in place here so it can be reused on child elements. First, translate to "local" coordinates so
     // so that these adjustments are meaningful and correct.
     const scaledBasisMatrix = Layout3D.computeScaledBasisMatrix(targetLayout.rotation, targetLayout.scale)
-    const scaledBasisMatrixInverter = []
-    invertMatrix(scaledBasisMatrixInverter, scaledBasisMatrix)
-    Element.transformPointInPlace(delta, scaledBasisMatrixInverter)
+    const scaledBasisMatrixInverted = new Float32Array(16)
+    invertMatrix(scaledBasisMatrixInverted, scaledBasisMatrix)
+    Element.transformPointInPlace(delta, scaledBasisMatrixInverted)
     const activeAxes = ElementSelectionProxy.activeAxesFromActivationPoint(activationPoint)
 
     delta.x *= activeAxes[0]
