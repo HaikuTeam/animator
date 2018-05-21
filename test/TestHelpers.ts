@@ -140,7 +140,9 @@ function compileStringToTypescript(contents, libSource, compilerOptions) {
       if (filename === 'lib.d.ts') {
         return ts.createSourceFile(filename, libSource, compilerOptions.target, false);
       }
-      return undefined;
+      console.log(ts.sys.getCurrentDirectory());
+      const sourceText = ts.sys.readFile(filename);
+      return sourceText !== undefined ? ts.createSourceFile(filename, sourceText, languageVersion) : undefined;
     },
     writeFile (name, text, writeByteOrderMark) {
       outputs.push({name, text, writeByteOrderMark});
@@ -148,8 +150,11 @@ function compileStringToTypescript(contents, libSource, compilerOptions) {
     getDefaultLibFileName () { return 'lib.d.ts'; },
     useCaseSensitiveFileNames () { return false; },
     getCanonicalFileName (filename) { return filename; },
-    getCurrentDirectory () { return ''; },
     getNewLine () { return '\n'; },
+    fileExists: ts.sys.fileExists,
+    readFile: ts.sys.readFile,
+    readDirectory: ts.sys.readDirectory,
+    getCurrentDirectory: ts.sys.getCurrentDirectory,
   };
     // Create a program from inputs
   const program = ts.createProgram(['file.ts'], compilerOptions, compilerHost);
