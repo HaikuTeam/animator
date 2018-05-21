@@ -905,9 +905,8 @@ export class Glass extends React.Component {
 
   windowMouseOverOutHandler (mouseEvent) {
     if (
-      this.isPreviewMode() ||
-      this.isMarqueeActive() ||
-      this.state.isMouseDown
+      this.state.isMouseDown ||
+      this.isPreviewMode()
     ) {
       return
     }
