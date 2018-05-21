@@ -6,7 +6,7 @@ import {
   BytecodeTimelineValue,
   BytecodeTimelineProperty,
 } from '@haiku/core/lib/api/HaikuBytecode';
-import {Curve, CurveFunction, CurveDefinition} from '@haiku/core/lib/api/Curve';
+import {Curve} from '@haiku/core/lib/api/Curve';
 
 /**
  * Gets the initial value of a timeline property.

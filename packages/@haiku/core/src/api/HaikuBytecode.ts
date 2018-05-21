@@ -1,8 +1,4 @@
-import {
-  Curve, 
-  CurveDefinition, 
-  CurveFunction,
-} from './Curve';
+import {CurveDefinition} from './Curve';
 
 /**
  * @file Type definition for Haiku bytecode.
