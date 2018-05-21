@@ -55,7 +55,7 @@
 }
 
 #timeline ::selection {
-  background: #rgba(38, 145, 173, .8);
+  background: rgba(38, 145, 173, .8);
   color: #FAFCFC;
 }
 
