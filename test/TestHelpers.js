@@ -4,7 +4,7 @@ const fse = require('fs-extra')
 const lodash = require('lodash')
 const os = require('os')
 const async = require('async')
-const functionToRFO = require('@haiku/player/lib/reflection/functionToRFO').default
+const functionToRFO = require('@haiku/core/lib/reflection/functionToRFO').default
 const haikuInfo = require('../packages/haiku-plumbing/lib/haikuInfo').default()
 const Plumbing = require('../packages/haiku-plumbing/lib/Plumbing').default
 
