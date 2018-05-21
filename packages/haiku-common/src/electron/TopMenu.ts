@@ -45,7 +45,7 @@ export default class TopMenu {
   /**
    * @method update
    * @description Like create, but may optimize and not update if no changes
-   */  
+   */
   update(nextOptions: TopMenuOptions) {
     let didChange = false;
 
