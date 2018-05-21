@@ -938,7 +938,7 @@ class ElementSelectionProxy extends BaseModel {
         activationPoint,
         // If we manage a single element, we _should_ apply the shift/alt constraints in this pass (because we _didn't_
         // do so above).
-        this.doesManageSingleElement()
+        true
       )
 
       ElementSelectionProxy.accumulateKeyframeUpdates(
