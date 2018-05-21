@@ -2,7 +2,7 @@ import Palette from 'haiku-ui-common/lib/Palette'
 import Layout3D from '@haiku/core/lib/Layout3D'
 import SVGPoints from '@haiku/core/lib/helpers/SVGPoints'
 
-const anchorPoint = (index, meta, scale, {x, y}) => ({
+const anchorPoint = (index, meta, selected, scale, {x, y}) => ({
   elementName: 'g',
   attributes: {
     transform: `scale(${scale}) translate(${x - 12.5} ${y - 12.5})`,
@@ -31,7 +31,8 @@ const anchorPoint = (index, meta, scale, {x, y}) => ({
         cy: 12.5,
         r: 3.5,
         fill: '#fff',
-        stroke: '#3f4a4d'
+        stroke: '#3f4a4d',
+        'stroke-width': selected ? 2 : 1
       }
     },
     {
@@ -49,7 +50,7 @@ const anchorPoint = (index, meta, scale, {x, y}) => ({
   ]
 });
 
-export const rect = (id, {x, y, width, height, rx, ry}, layoutAncestry) => ({
+export const rect = (id, {x, y, width, height, rx, ry}, layoutAncestry, selectedAnchorIndices) => ({
   elementName: 'g',
   attributes: {
     id,
@@ -74,14 +75,14 @@ export const rect = (id, {x, y, width, height, rx, ry}, layoutAncestry) => ({
         ry: ry || 0,
       }
     },
-    anchorPoint(0, null, 1, {x: Number(x), y: Number(y)}),
-    anchorPoint(1, null, 1, {x: Number(x) + Number(width), y: Number(y)}),
-    anchorPoint(2, null, 1, {x: Number(x), y: Number(y) + Number(height)}),
-    anchorPoint(3, null, 1, {x: Number(x) + Number(width), y: Number(y) + Number(height)}),
+    anchorPoint(0, null, selectedAnchorIndices && selectedAnchorIndices.includes(0), 1, {x: Number(x), y: Number(y)}),
+    anchorPoint(1, null, selectedAnchorIndices && selectedAnchorIndices.includes(1), 1, {x: Number(x) + Number(width), y: Number(y)}),
+    anchorPoint(2, null, selectedAnchorIndices && selectedAnchorIndices.includes(2), 1, {x: Number(x), y: Number(y) + Number(height)}),
+    anchorPoint(3, null, selectedAnchorIndices && selectedAnchorIndices.includes(3), 1, {x: Number(x) + Number(width), y: Number(y) + Number(height)}),
   ]
 })
 
-export const circle = (id, {cx, cy, r}, layoutAncestry) => ({
+export const circle = (id, {cx, cy, r}, layoutAncestry, selectedAnchorIndices) => ({
   elementName: 'g',
   attributes: {
     id,
@@ -103,11 +104,11 @@ export const circle = (id, {cx, cy, r}, layoutAncestry) => ({
         r,
       }
     },
-    anchorPoint(0, null, 1, {x: Number(cx) + Number(r), y: Number(cy)}),
+    anchorPoint(0, null, selectedAnchorIndices && selectedAnchorIndices.includes(0), 1, {x: Number(cx) + Number(r), y: Number(cy)}),
   ]
 })
 
-export const ellipse = (id, {cx, cy, rx, ry}, layoutAncestry) => ({
+export const ellipse = (id, {cx, cy, rx, ry}, layoutAncestry, selectedAnchorIndices) => ({
   elementName: 'g',
   attributes: {
     id,
@@ -130,14 +131,14 @@ export const ellipse = (id, {cx, cy, rx, ry}, layoutAncestry) => ({
         ry
       }
     },
-    anchorPoint(0, null, 1, {x: Number(cx) - Number(rx), y: Number(cy)}),
-    anchorPoint(1, null, 1, {x: Number(cx) + Number(rx), y: Number(cy)}),
-    anchorPoint(2, null, 1, {x: Number(cx), y: Number(cy) + Number(ry)}),
-    anchorPoint(3, null, 1, {x: Number(cx), y: Number(cy) - Number(ry)}),
+    anchorPoint(0, null, selectedAnchorIndices && selectedAnchorIndices.includes(0), 1, {x: Number(cx) - Number(rx), y: Number(cy)}),
+    anchorPoint(1, null, selectedAnchorIndices && selectedAnchorIndices.includes(1), 1, {x: Number(cx) + Number(rx), y: Number(cy)}),
+    anchorPoint(2, null, selectedAnchorIndices && selectedAnchorIndices.includes(2), 1, {x: Number(cx), y: Number(cy) + Number(ry)}),
+    anchorPoint(3, null, selectedAnchorIndices && selectedAnchorIndices.includes(3), 1, {x: Number(cx), y: Number(cy) - Number(ry)}),
   ]
 })
 
-export const polygon = (id, {points}, layoutAncestry) => ({
+export const polygon = (id, {points}, layoutAncestry, selectedAnchorIndices) => ({
   elementName: 'g',
   attributes: {
     id,
@@ -157,11 +158,11 @@ export const polygon = (id, {points}, layoutAncestry) => ({
         points,
       }
     },
-    ...SVGPoints.polyPointsStringToPoints(points).map((pt, i) => { return anchorPoint(i, null, 1, {x: pt[0], y: pt[1]})})
+    ...SVGPoints.polyPointsStringToPoints(points).map((pt, i) => { return anchorPoint(i, null, selectedAnchorIndices && selectedAnchorIndices.includes(i), 1, {x: pt[0], y: pt[1]})})
   ]
 })
 
-export const path = (id, {d}, layoutAncestry) => {
+export const path = (id, {d}, layoutAncestry, selectedAnchorIndices) => {
   const points = SVGPoints.pathToPoints(d)
   const handles = []
   for(let i = 0; i < points.length; i++) {
@@ -203,14 +204,14 @@ export const path = (id, {d}, layoutAncestry) => {
           y2: points[handle.handleIndex == 0 ? handle.pointIndex - 1 : handle.pointIndex].y
         }
       })),
-      ...handles.map((handle) => { return anchorPoint(handle.pointIndex, handle.handleIndex, 1, handle)}),
-      ...points.map((pt, i) => { return anchorPoint(i, null, 1, pt)}),
+      ...handles.map((handle) => { return anchorPoint(handle.pointIndex, handle.handleIndex, false, 0.75, handle)}),
+      ...points.map((pt, i) => { return anchorPoint(i, null, selectedAnchorIndices && selectedAnchorIndices.includes(i), 1, pt)}),
       
     ]
   }
 }
 
-export const line = (id, {x1, y1, x2, y2}, layoutAncestry) => ({
+export const line = (id, {x1, y1, x2, y2}, layoutAncestry, selectedAnchorIndices) => ({
   elementName: 'g',
   attributes: {
     id,
@@ -230,12 +231,12 @@ export const line = (id, {x1, y1, x2, y2}, layoutAncestry) => ({
         x1, y1, x2, y2,
       }
     },
-    anchorPoint(0, 1, {x: x1, y: y1}),
-    anchorPoint(1, null, 1, {x: x2, y: y2})
+    anchorPoint(0, null, selectedAnchorIndices && selectedAnchorIndices.includes(0), 1, {x: x1, y: y1}),
+    anchorPoint(1, null, selectedAnchorIndices && selectedAnchorIndices.includes(1), 1, {x: x2, y: y2})
   ]
 })
 
-export const polyline = (id, {points}, layoutAncestry) => ({
+export const polyline = (id, {points}, layoutAncestry, selectedAnchorIndices) => ({
   elementName: 'g',
   attributes: {
     id,
@@ -255,7 +256,7 @@ export const polyline = (id, {points}, layoutAncestry) => ({
         points
       }
     },
-    ...SVGPoints.polyPointsStringToPoints(points).map((pt, i) => { return anchorPoint(i, null, 1, {x: pt[0], y: pt[1]})})
+    ...SVGPoints.polyPointsStringToPoints(points).map((pt, i) => { return anchorPoint(i, null, selectedAnchorIndices && selectedAnchorIndices.includes(i), 1, {x: pt[0], y: pt[1]})})
   ]
 })
 

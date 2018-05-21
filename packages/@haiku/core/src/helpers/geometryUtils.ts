@@ -110,7 +110,15 @@ class BezierPath {
   }
 }
 
-
+export const pointInsideRect = (pt: vec2, corner1: vec2, corner2: vec2): boolean => {
+  let c1 = {x: 0, y: 0}
+  let c2 = {x: 0, y: 0}
+  c1.x = Math.min(corner1.x, corner2.x)
+  c1.y = Math.min(corner1.y, corner2.y)
+  c2.x = Math.max(corner1.x, corner2.x)
+  c2.y = Math.max(corner1.y, corner2.y)
+  return pt.x >= c1.x && pt.x <= c2.x && pt.y >= c1.y && pt.y <= c2.y
+}
 
 export const distance = (a: vec2, b: vec2): number => {
   return Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2))

@@ -71,6 +71,13 @@ const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source'
 const OUTLINE_CLONE_SUFFIX = 'outline-clone-helper'
 const DOUBLE_CLICK_THRESHOLD_MS = 500
 
+const DIRECT_SELECTION_MULTIPLE_SELECTION_ALLOWED = {
+  'line': true,
+  'polyline': true,
+  'polygon': true,
+  'path': true,
+};
+
 function isNumeric (n) {
   return !isNaN(parseFloat(n)) && isFinite(n)
 }
@@ -1062,8 +1069,35 @@ export class Glass extends React.Component {
         const dataIndex = parseInt(mousedownEvent.nativeEvent.target.getAttribute('data-index'), 10)
         // NOTE: meta used to determine if anchor or handle for <path> (see directSelectionMana.js)
         const meta = mousedownEvent.nativeEvent.target.getAttribute('data-meta') && mousedownEvent.nativeEvent.target.getAttribute('data-meta').length ? parseInt(mousedownEvent.nativeEvent.target.getAttribute('data-meta'), 10) : null
+        
+        // Add to the selection
+        let indices
+        const alreadySelected = 
+          this.state.directSelectionAnchorActivation &&
+          this.state.directSelectionAnchorActivation.indices && 
+          this.state.directSelectionAnchorActivation.indices[Element.directlySelected.attributes['haiku-id']] &&
+          this.state.directSelectionAnchorActivation.indices[Element.directlySelected.attributes['haiku-id']].includes(dataIndex)
+        
+        if(DIRECT_SELECTION_MULTIPLE_SELECTION_ALLOWED[Element.directlySelected.type] && (Globals.isShiftKeyDown || alreadySelected)) {
+          if(this.state.directSelectionAnchorActivation) {
+            indices = {
+              ...this.state.directSelectionAnchorActivation.indices,
+            }
+          } else {
+            indices = {
+              [Element.directlySelected.attributes['haiku-id']]: [dataIndex]
+            }
+          }
+          if(!indices[Element.directlySelected.attributes['haiku-id']]) indices[Element.directlySelected.attributes['haiku-id']] = []
+          indices[Element.directlySelected.attributes['haiku-id']].push(dataIndex)
+          indices[Element.directlySelected.attributes['haiku-id']] = lodash.uniq(indices[Element.directlySelected.attributes['haiku-id']])
+        } else {
+          indices = {
+            [Element.directlySelected.attributes['haiku-id']]: [dataIndex]
+          }
+        }
         this.directSelectionAnchorActivation({
-          index: dataIndex,
+          indices,
           meta,
           event: mousedownEvent.nativeEvent,
         })
@@ -1156,6 +1190,9 @@ export class Glass extends React.Component {
                           return false // stop searching
                         }
                       })
+                    }
+                    if(!Element.directlySelected) {
+                      this.setState({directSelectionAnchorActivation: null})
                     }
                   })
                 } else if (!Globals.isControlKeyDown && !Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Alt
@@ -1411,7 +1448,7 @@ export class Glass extends React.Component {
       isOriginPanning: false,
       globalControlPointHandleClass: '',
       controlActivation: null,
-      directSelectionAnchorActivation: null
+      // directSelectionAnchorActivation: null
     })
 
     this.fetchProxyElementForSelection().initializeRotationSnap()
@@ -1664,6 +1701,9 @@ export class Glass extends React.Component {
             y: transformedCurrent.y - transformedPrevious.y
           }
           
+          const indices = this.state.directSelectionAnchorActivation.indices[Element.directlySelected.attributes['haiku-id']]
+          const lastIndex = indices[indices.length-1]
+          
           switch(Element.directlySelected.type) {
             case 'circle': {
               this.getActiveComponent().updateKeyframes({
@@ -1681,10 +1721,11 @@ export class Glass extends React.Component {
             }
             case 'ellipse': {
               let property, value
-              if(this.state.directSelectionAnchorActivation.index == 0 || this.state.directSelectionAnchorActivation.index == 1) {
+              
+              if(lastIndex == 0 || lastIndex == 1) {
                 property = 'rx'
                 value = Math.abs(transformedCurrent.x - Number(Element.directlySelected.attributes.cx))
-              } else if(this.state.directSelectionAnchorActivation.index == 2 || this.state.directSelectionAnchorActivation.index == 3) {
+              } else if(lastIndex == 2 || lastIndex == 3) {
                 property = 'ry'
                 value = Math.abs(transformedCurrent.y - Number(Element.directlySelected.attributes.cy))
               }
@@ -1708,7 +1749,7 @@ export class Glass extends React.Component {
               let width = Element.directlySelected.sizeX
               let height = Element.directlySelected.sizeY
               
-              switch(this.state.directSelectionAnchorActivation.index) {
+              switch(lastIndex) {
                 case 0:
                   x += transformedDelta.x
                   y += transformedDelta.y
@@ -1768,8 +1809,10 @@ export class Glass extends React.Component {
             case 'polyline':
             case 'polygon': {
               let points = SVGPoints.polyPointsStringToPoints(Element.directlySelected.attributes.points)
-              points[this.state.directSelectionAnchorActivation.index][0] += transformedDelta.x
-              points[this.state.directSelectionAnchorActivation.index][1] += transformedDelta.y
+              for(let i = 0; i < indices.length; i++) {
+                points[indices[i]][0] += transformedDelta.x
+                points[indices[i]][1] += transformedDelta.y
+              }
               this.getActiveComponent().updateKeyframes({
                 [this.getActiveComponent().getCurrentTimelineName()]: {
                   [Element.directlySelected.attributes['haiku-id']]: {
@@ -1785,22 +1828,18 @@ export class Glass extends React.Component {
             }
             
             case 'line': {
-              const ptIndex = String(this.state.directSelectionAnchorActivation.index + 1)
-              
+              const attrUpdate = {}
+              if(indices.includes(0)) {
+                attrUpdate.x1 = Number(Element.directlySelected.attributes.x1) + transformedDelta.x
+                attrUpdate.y1 = Number(Element.directlySelected.attributes.y1) + transformedDelta.y
+              }
+              if(indices.includes(1)) {
+                attrUpdate.x2 = Number(Element.directlySelected.attributes.x2) + transformedDelta.x
+                attrUpdate.y2 = Number(Element.directlySelected.attributes.y2) + transformedDelta.y
+              }
               this.getActiveComponent().updateKeyframes({
                 [this.getActiveComponent().getCurrentTimelineName()]: {
-                  [Element.directlySelected.attributes['haiku-id']]: {
-                    ['x' + ptIndex]: {
-                      0: {
-                        value: Number(Element.directlySelected.attributes['x' + ptIndex]) + transformedDelta.x
-                      }
-                    },
-                    ['y' + ptIndex]: {
-                      0: {
-                        value: Number(Element.directlySelected.attributes['y' + ptIndex]) + transformedDelta.y
-                      }
-                    }
-                  }
+                  [Element.directlySelected.attributes['haiku-id']]: attrUpdate
                 }
               })
             }
@@ -1809,31 +1848,33 @@ export class Glass extends React.Component {
               const points = SVGPoints.pathToPoints(Element.directlySelected.attributes.d)
               if(this.state.directSelectionAnchorActivation.meta != null) {
                 // Modify a handle
-                points[this.state.directSelectionAnchorActivation.index].curve['x' + (this.state.directSelectionAnchorActivation.meta + 1)] += transformedDelta.x
-                points[this.state.directSelectionAnchorActivation.index].curve['y' + (this.state.directSelectionAnchorActivation.meta + 1)] += transformedDelta.y
+                points[lastIndex].curve['x' + (this.state.directSelectionAnchorActivation.meta + 1)] += transformedDelta.x
+                points[lastIndex].curve['y' + (this.state.directSelectionAnchorActivation.meta + 1)] += transformedDelta.y
                 if(!Globals.isAltKeyDown) {
                   // Mirror the opposite handle if it exists
-                  if(this.state.directSelectionAnchorActivation.meta == 0 && this.state.directSelectionAnchorActivation.index > 0 && points[this.state.directSelectionAnchorActivation.index-1].curve) {
-                    points[this.state.directSelectionAnchorActivation.index-1].curve.x2 -= transformedDelta.x
-                    points[this.state.directSelectionAnchorActivation.index-1].curve.y2 -= transformedDelta.y
-                  } else if(this.state.directSelectionAnchorActivation.meta == 1 && this.state.directSelectionAnchorActivation.index < points.length-1 && points[this.state.directSelectionAnchorActivation.index+1].curve) {
-                    points[this.state.directSelectionAnchorActivation.index+1].curve.x1 -= transformedDelta.x
-                    points[this.state.directSelectionAnchorActivation.index+1].curve.y1 -= transformedDelta.y
+                  if(this.state.directSelectionAnchorActivation.meta == 0 && lastIndex > 0 && points[lastIndex-1].curve) {
+                    points[lastIndex-1].curve.x2 -= transformedDelta.x
+                    points[lastIndex-1].curve.y2 -= transformedDelta.y
+                  } else if(this.state.directSelectionAnchorActivation.meta == 1 && lastIndex < points.length-1 && points[lastIndex+1].curve) {
+                    points[lastIndex+1].curve.x1 -= transformedDelta.x
+                    points[lastIndex+1].curve.y1 -= transformedDelta.y
                   }
                 }
               } else {
-                // Modify an anchor
-                points[this.state.directSelectionAnchorActivation.index].x += transformedDelta.x
-                points[this.state.directSelectionAnchorActivation.index].y += transformedDelta.y
-                if(!Globals.isAltKeyDown) {
-                  // Move the handles with it
-                  if(points[this.state.directSelectionAnchorActivation.index].curve) {
-                    points[this.state.directSelectionAnchorActivation.index].curve.x2 += transformedDelta.x
-                    points[this.state.directSelectionAnchorActivation.index].curve.y2 += transformedDelta.y
-                  }
-                  if(this.state.directSelectionAnchorActivation.index < points.length-1 && points[this.state.directSelectionAnchorActivation.index+1].curve) {
-                    points[this.state.directSelectionAnchorActivation.index+1].curve.x1 += transformedDelta.x
-                    points[this.state.directSelectionAnchorActivation.index+1].curve.y1 += transformedDelta.y
+                // Modify anchors
+                for(let i = 0; i < indices.length; i++) {
+                  points[indices[i]].x += transformedDelta.x
+                  points[indices[i]].y += transformedDelta.y
+                  if(!Globals.isAltKeyDown) {
+                    // Move the handles with it
+                    if(points[indices[i]].curve) {
+                      points[indices[i]].curve.x2 += transformedDelta.x
+                      points[indices[i]].curve.y2 += transformedDelta.y
+                    }
+                    if(indices[i] < points.length-1 && points[indices[i]+1].curve) {
+                      points[indices[i]+1].curve.x1 += transformedDelta.x
+                      points[indices[i]+1].curve.y1 += transformedDelta.y
+                    }
                   }
                 }
               }
@@ -2029,7 +2070,7 @@ export class Glass extends React.Component {
     }
 
     if(Element.directlySelected) {
-      this.renderDirectSelection(Element.directlySelected, overlays)
+      this.renderDirectSelection(Element.directlySelected, this.state.directSelectionAnchorActivation ? this.state.directSelectionAnchorActivation.indices[Element.directlySelected.attributes['haiku-id']] : undefined, overlays)
       return overlays
     }
     
@@ -2053,7 +2094,7 @@ export class Glass extends React.Component {
     return proxy
   }
   
-  renderDirectSelection (element, overlays) {
+  renderDirectSelection (element, selectedAnchorIndices, overlays) {
     const original = element
     if(element.type == 'use') {
       element = element.getTranscludedElement()
@@ -2061,7 +2102,7 @@ export class Glass extends React.Component {
     
     switch(element.type) {
       case 'rect':
-        overlays.push(directSelectionMana[element.type](element.id, {...element.attributes, width: element.sizeX, height: element.sizeY}, original.layoutAncestryMatrices))
+        overlays.push(directSelectionMana[element.type](element.id, {...element.attributes, width: element.sizeX, height: element.sizeY}, original.layoutAncestryMatrices, selectedAnchorIndices || []))
         break
       case 'circle':
       case 'ellipse':
@@ -2069,7 +2110,7 @@ export class Glass extends React.Component {
       case 'polyline':
       case 'path':
       case 'polygon':
-        overlays.push(directSelectionMana[element.type](element.id, element.attributes, original.layoutAncestryMatrices))
+        overlays.push(directSelectionMana[element.type](element.id, element.attributes, original.layoutAncestryMatrices, selectedAnchorIndices || []))
     }
   }
   
