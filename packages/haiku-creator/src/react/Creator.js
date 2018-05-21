@@ -918,6 +918,8 @@ export default class Creator extends React.Component {
   }
 
   onProjectLaunchError (error) {
+    console.log(error)
+
     this.createNotice({
       type: 'error',
       title: 'Oh no!',
@@ -930,7 +932,6 @@ export default class Creator extends React.Component {
   }
 
   createProject (projectName, isPublic, duplicate = false, callback) {
-    this.setState({newProjectLoading: true})
     this.props.websocket.request({ method: 'createProject', params: [projectName, isPublic] }, (err, newProject) => {
       callback(err, newProject)
 
@@ -942,11 +943,7 @@ export default class Creator extends React.Component {
           closeText: 'Okay',
           lightScheme: true
         })
-        // if (duplicate) {
-        //   this.setState({ areProjectsLoading: false })
-        // } else {
-          this.setProjectLaunchStatus({newProjectLoading: false})
-        // }
+
         return
       }
 
@@ -964,9 +961,7 @@ export default class Creator extends React.Component {
     })
   }
 
-  launchProject (projectObject) {
-    const {projectName} = projectObject
-
+  launchProject (projectName, projectObject, cb) {
     this.setProjectLaunchStatus({ launchingProject: true, newProjectLoading: false })
 
     projectObject = {
@@ -1455,7 +1450,7 @@ export default class Creator extends React.Component {
     this.setState({ showNewProjectModal: false, isDuplicateProjectModal: false, duplicateProjectName: null })
   }
 
-  renderNewProjectModal() {
+  renderNewProjectModal () {
     return (
       this.state.showNewProjectModal && (
         <NewProjectModal
@@ -1473,19 +1468,19 @@ export default class Creator extends React.Component {
               if (this.state.projectModel) {
                 this.teardownMaster(
                   { shouldFinishTour: true, launchingProject: false },
-                  () => { this.launchProject(projectObject) }
+                  () => { this.launchProject(projectObject.projectName, projectObject, callback) }
                 )
               } else {
-                this.launchProject(projectObject)
+                this.launchProject(projectObject.projectName, projectObject, callback)
               }
             })
           }}
           onClose={() => {
-            this.hideNewProjectModal();
+            this.hideNewProjectModal()
           }}
         />
       )
-    );
+    )
   }
 
   get proxyDescriptor () {
