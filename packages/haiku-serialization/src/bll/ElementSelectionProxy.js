@@ -1495,7 +1495,6 @@ ElementSelectionProxy.computeRotationPropertyGroup = (element, rotationZDelta, f
   const layout = Layout3D.createLayoutSpec()
   layout.rotation.z = rotationZDelta
   const ignoredSize = {x: 0, y: 0, z: 0}
-  const {default: computeMatrix} = require('@haiku/core/lib/layout/computeMatrix')
   const matrix = computeMatrix(layout, Layout3D.createMatrix(), ignoredSize, ignoredSize)
 
   // Next build the vector from `fixedPoint` to `targetOrigin` and rotate it.
@@ -1507,20 +1506,30 @@ ElementSelectionProxy.computeRotationPropertyGroup = (element, rotationZDelta, f
   }
   Element.transformPointInPlace(ray, matrix)
 
+  const originalRotationMatrix = Layout3D.computeOrthonormalBasisMatrix(element.getLayoutSpec().rotation)
+  const attributes = {}
+  composedTransformsToTimelineProperties(attributes, [matrix, originalRotationMatrix])
+
   // Return directly after offsetting translation by the `fixedPoint`'s coordinates. Note that we are choosing _not_ to
   // change the z-translation, effectively projecting the origin of rotation from the context element onto the z = C
   // plane, where C is the z-translation of the target origin. This is a natural expectation of multi-rotation.
-  return {
-    'translation.x': {
-      value: rounded(fixedPoint.x + ray.x)
+  return Object.keys(attributes).reduce(
+    (accumulator, key) => {
+      accumulator[key] = {value: attributes[key]}
+      return accumulator
     },
-    'translation.y': {
-      value: rounded(fixedPoint.y + ray.y)
-    },
-    'rotation.z': {
-      value: rounded(element.getComputedLayout().rotation.z + rotationZDelta)
+    {
+      'translation.x': {
+        value: rounded(fixedPoint.x + ray.x)
+      },
+      'translation.y': {
+        value: rounded(fixedPoint.y + ray.y)
+      },
+      'translation.z': {
+        value: rounded(fixedPoint.z + ray.z)
+      }
     }
-  }
+  )
 }
 
 ElementSelectionProxy.normalizeRotationDelta = (delta) => {

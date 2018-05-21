@@ -1068,6 +1068,16 @@ Bytecode.mergeTimelineStructure = (bytecodeObject, timelineStructure, mergeStrat
   }
 }
 
+Bytecode.replaceTimelinePropertyGroups = (bytecodeObject, timelineName, timelineSelector, propertyGroup) => {
+  if (!bytecodeObject.timelines[timelineName]) {
+    bytecodeObject.timelines[timelineName] = {}
+  }
+  if (!bytecodeObject.timelines[timelineName][timelineSelector]) {
+    bytecodeObject.timelines[timelineName][timelineSelector] = {}
+  }
+  Object.assign(bytecodeObject.timelines[timelineName][timelineSelector], propertyGroup)
+}
+
 Bytecode.getNormalizedRelpath = (bc) => {
   const r = bc && bc.metadata && bc.metadata.relpath
   if (r) {

@@ -932,6 +932,15 @@ export default class Master extends EventEmitter {
       }
     })
 
+    this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'envoy:timelineClientReady', (timelineChannel) => {
+      timelineChannel.on('didSeek', ({frame}) => {
+        const ac = this.project.getCurrentActiveComponent()
+        if (ac) {
+          ac.setCurrentTimelineFrameValue(frame)
+        }
+      })
+    })
+
     this.emit('project-state-change', { what: 'project-ready' })
   }
 
