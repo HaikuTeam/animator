@@ -1,3 +1,5 @@
+import {Curve} from 'haiku-common/lib/types/enums';
+
 /**
  * @file Type definition for Haiku bytecode.
  */
@@ -22,6 +24,21 @@ export type BytecodeSummonable = ((param: any) => BytecodeStateType);
  * All possible types for timeline property value
  */ 
 export type BytecodeInjectable = BytecodeStateType|BytecodeSummonable;
+
+
+/** 
+ * Defines a normalized curve, to be used in BytecodeTimelineValue and also in 
+ * state transition
+ */ 
+export type CurveFunction = ((percent :number) => number);
+
+
+/** 
+ * Can be a function or a string from just-curves. The string is
+ * converted into CuverFunction inside Interpolate
+ */ 
+export type CurveDefinition = Curve|CurveFunction|number[];
+
 
 /**
  * Haiku bytecode element tree. eg. <div><svg>...</svg></div>.
@@ -86,7 +103,7 @@ export type BytecodeEventHandlers = {
 export type BytecodeTimelineValue = {
   value: BytecodeInjectable;
   edited?: boolean;
-  curve?: any;
+  curve?: CurveDefinition;
 };
 
 

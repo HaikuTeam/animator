@@ -1,7 +1,12 @@
-import Interpolate, {CurveDefinition} from './Interpolate';
+import Interpolate from './Interpolate';
 import HaikuClock from './HaikuClock';
 import justCurves from './vendor/just-curves';
-import {BytecodeStateType} from './api/HaikuBytecode';
+import {Curve} from 'haiku-common/lib/types/enums';
+import {
+  CurveFunction,
+  CurveDefinition,
+  BytecodeStateType,
+} from './api/HaikuBytecode';
 
 
 export type StateTransitionParameters = { curve: CurveDefinition, duration: number};

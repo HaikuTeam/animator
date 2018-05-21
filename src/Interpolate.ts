@@ -1,15 +1,15 @@
 /**
  * @file Interpolate functions. Used by StateTransitions and Transitions
  */
-import {BytecodeStateType} from './api/HaikuBytecode';
+import {
+  BytecodeStateType,
+  CurveFunction,
+  CurveDefinition,
+} from './api/HaikuBytecode';
 import justCurves from './vendor/just-curves';
 
 
-export type CurveFunction = ((percent :number) => number);
 
-// Can be a function or a string from just-curves. The string is
-// converted into function inside interpolate
-export type CurveDefinition = string|CurveFunction;
 
 
 const CENT = 1.0;
@@ -85,7 +85,7 @@ function interpolate(now: number, curve: CurveDefinition, started: number, ends:
   }
 
   if (typeof origin === NUMBER && typeof destination === NUMBER) {
-    return interpolateValue(origin as number, destination as number, started, ends, now, curveFunc);
+    return interpolateValue(origin as number, destination as number, started, ends, now, curveFunc as CurveFunction);
   }
 
   return origin;
