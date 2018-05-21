@@ -23,7 +23,7 @@ class NewProjectModal extends React.PureComponent {
     super(props)
 
     this.state = {
-      newProjectIsPublic: false,
+      newProjectIsPublic: true,
       newProjecterror: null,
       recordedNewProjectName: props.defaultProjectName || ''
     }
