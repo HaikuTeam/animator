@@ -1,4 +1,4 @@
-import {remote} from 'electron'
+import {remote, ipcRenderer} from 'electron'
 import React from 'react'
 import Color from 'color'
 import lodash from 'lodash'
@@ -285,6 +285,10 @@ class Timeline extends React.Component {
           }
           break
 
+        case 'global-menu:set-active-component':
+          this.project.setCurrentActiveComponent(message.data, {from: 'timeline'}, () => {})
+          break
+
         case 'global-menu:zoom-in':
           // For now, zoom controls only affect the stage
           this.props.websocket.send(relayable)
@@ -436,6 +440,10 @@ class Timeline extends React.Component {
 
   handleActiveComponentReady () {
     this.mountHaikuComponent()
+
+    ipcRenderer.send('topmenu:update', {
+      subComponents: this.project.describeSubComponents()
+    })
   }
 
   mountHaikuComponent () {

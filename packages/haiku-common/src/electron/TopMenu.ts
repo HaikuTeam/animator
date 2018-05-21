@@ -1,5 +1,5 @@
 import {app, Menu, shell} from 'electron';
-
+import {assign, isEqual} from 'lodash';
 import {isMac} from '../environments/os';
 import {Experiment, experimentIsEnabled} from '../experiments';
 import {PlumbingProject} from '../types';
@@ -11,13 +11,22 @@ export type TopMenuOptions = {
   isProjectOpen: boolean;
   isSaving: boolean;
   projectList: PlumbingProject[];
+  subComponents: SubComponent[];
 };
+
+export interface SubComponent {
+  title: string;
+  scenename: string;
+  isActive: boolean;
+}
 
 export interface TopMenuEventSender {
   send: (eventName: string, ...args: any[]) => void;
 }
 
 export default class TopMenu {
+  options: TopMenuOptions;
+
   constructor(private readonly sender: TopMenuEventSender) {}
 
   // Call sendActionToFirstResponder on Mac
@@ -33,19 +42,47 @@ export default class TopMenu {
     this.sender.send(`global-menu:${eventName}`);
   }
 
+  /**
+   * @method update
+   * @description Like create, but may optimize and not update if no changes
+   */  
+  update(nextOptions: TopMenuOptions) {
+    let didChange = false;
+
+    for (const key in this.options) {
+      if (nextOptions[key] !== undefined && !isEqual(nextOptions[key], this.options[key])) {
+        didChange = true;
+        if (didChange) {
+          console.log(':::::::::::::::::::',key);
+        }
+      }
+    }
+
+    if (didChange) {
+      const finalOptions = assign(
+        this.options,
+        nextOptions,
+      );
+
+      this.create(finalOptions);
+    }
+  }
+
   create(options: TopMenuOptions) {
+    this.options = options;
+
     const developerMenuItems = [
       {
         label: 'Open in Finder',
         accelerator: 'CmdOrCtrl+Option+F',
-        enabled: options.isProjectOpen,
+        enabled: this.options.isProjectOpen,
         click: () => {
           this.sender.send('global-menu:open-finder');
         },
       }, {
         label: 'Open in Terminal',
         accelerator: 'CmdOrCtrl+Option+T',
-        enabled: options.isProjectOpen,
+        enabled: this.options.isProjectOpen,
         click: () => {
           this.sender.send('global-menu:open-terminal');
         },
@@ -54,7 +91,7 @@ export default class TopMenu {
       // {
       //   label: 'Open in Text Editor',
       //   accelerator: 'CmdOrCtrl+Option+E',
-      //   enabled: options.isProjectOpen,
+      //   enabled: this.options.isProjectOpen,
       //   click: () => {
       //     this.sender.send('global-menu:open-text-editor');
       //   },
@@ -134,22 +171,41 @@ export default class TopMenu {
       role: 'quit',
     });
 
+    const componentsSubSubmenu = [];
+
+    this.options.subComponents.forEach(({title, scenename, isActive}) => {
+      componentsSubSubmenu.push({
+        label: title,
+        enabled: !isActive,
+        click: () => {
+          this.sender.send('global-menu:set-active-component', scenename);
+        },
+      });
+    });
+
     const projectSubmenu = [];
+
     projectSubmenu.push(
       {
         label: 'Publish',
-        enabled: !options.isSaving && options.isProjectOpen,
+        enabled: !this.options.isSaving && this.options.isProjectOpen,
         click: () => {
           this.sender.send('global-menu:save');
         },
       },
       {
         label: 'Save',
-        enabled: options.isProjectOpen,
+        enabled: this.options.isProjectOpen,
         accelerator: 'CmdOrCtrl+S',
         click: () => {
           this.sender.send('global-menu:show-project-location-toast');
         },
+      },
+      {type: 'separator'},
+      {
+        label: 'Components',
+        enabled: this.options.subComponents && this.options.subComponents.length > 0,
+        submenu: componentsSubSubmenu,
       },
     );
 
@@ -203,7 +259,7 @@ export default class TopMenu {
       editSubmenu.push({
         label: 'Group',
         accelerator: 'CmdOrCtrl+G',
-        enabled: options.isProjectOpen,
+        enabled: this.options.isProjectOpen,
         click: () => {
           this.sender.send('global-menu:group');
         },
@@ -212,7 +268,7 @@ export default class TopMenu {
       editSubmenu.push({
         label: 'Ungroup',
         accelerator: 'CmdOrCtrl+Shift+G',
-        enabled: options.isProjectOpen,
+        enabled: this.options.isProjectOpen,
         click: () => {
           this.sender.send('global-menu:ungroup');
         },
@@ -224,7 +280,7 @@ export default class TopMenu {
     editSubmenu.push({
       label: 'Delete',
       accelerator: 'Delete',
-      enabled: options.isProjectOpen,
+      enabled: this.options.isProjectOpen,
       click: () => {
         this.sendActionToFirstReponderAndEmit('delete');
       },
@@ -254,14 +310,14 @@ export default class TopMenu {
           {
             label: 'Zoom In',
             accelerator: 'CmdOrCtrl+Plus',
-            enabled: options.isProjectOpen,
+            enabled: this.options.isProjectOpen,
             click: () => {
               this.sender.send('global-menu:zoom-in');
             },
           }, {
             label: 'Zoom Out',
             accelerator: 'CmdOrCtrl+-', // not 'Minus' :/
-            enabled: options.isProjectOpen,
+            enabled: this.options.isProjectOpen,
             click: () => {
               this.sender.send('global-menu:zoom-out');
             },
@@ -333,7 +389,7 @@ export default class TopMenu {
             },
           }, {
             label: 'Take Tour',
-            enabled: !!options.projectList.find((project) => project.projectName === TourUtils.ProjectName),
+            enabled: !!this.options.projectList.find((project) => project.projectName === TourUtils.ProjectName),
             click: () => {
               this.sender.send('global-menu:start-tour');
             },

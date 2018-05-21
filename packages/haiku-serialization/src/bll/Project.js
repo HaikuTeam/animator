@@ -245,6 +245,16 @@ class Project extends BaseModel {
     }
   }
 
+  describeSubComponents () {
+    return this._multiComponentTabs.map(({scenename, active}) => {
+      return {
+        isActive: !!active,
+        scenename,
+        title: toTitleCase(scenename)
+      }
+    })
+  }
+
   getExistingComponentNames () {
     const names = {
       'main': true // Never allow 'main'
