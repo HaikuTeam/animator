@@ -52,9 +52,6 @@ export default class TopMenu {
     for (const key in this.options) {
       if (nextOptions[key] !== undefined && !isEqual(nextOptions[key], this.options[key])) {
         didChange = true;
-        if (didChange) {
-          console.log(':::::::::::::::::::',key);
-        }
       }
     }
 
