@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import reifyRFO from '@haiku/player/lib/reflection/reifyRFO';
+import reifyRFO from './reflection/reifyRFO';
 import HaikuComponent from './HaikuComponent';
 import addLegacyOriginSupport from './helpers/addLegacyOriginSupport';
 import compareSemver from './helpers/compareSemver';
