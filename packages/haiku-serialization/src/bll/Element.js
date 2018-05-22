@@ -1679,7 +1679,6 @@ class Element extends BaseModel {
 
         const attributes = Object.keys(mergedAttributes).reduce((accumulator, propertyName) => {
           if (!LAYOUT_3D_SCHEMA.hasOwnProperty(propertyName)) {
-            // accumulator[propertyName] = mergedAttributes[propertyName][0].value
             accumulator[propertyName] = this.component.getComputedPropertyValue(
               descendantHaikuElement.node,
               mergedAttributes[propertyName],
@@ -1704,7 +1703,7 @@ class Element extends BaseModel {
           delete subHaikuElement.node.layout
         })
 
-        Object.assign(attributes, {
+        const parentAttributes = {
           width: boundingBox.width,
           height: boundingBox.height,
           // Important: in case we have borders that spill outside the bounding box, allow SVG overflow so nothing
@@ -1712,9 +1711,9 @@ class Element extends BaseModel {
           'style.overflow': 'visible',
           [HAIKU_SOURCE_ATTRIBUTE]: `${svgElement.attributes[HAIKU_SOURCE_ATTRIBUTE]}#${descendantHaikuElement.id}`,
           [HAIKU_TITLE_ATTRIBUTE]: descendantHaikuElement.title || descendantHaikuElement.id
-        })
+        }
 
-        composedTransformsToTimelineProperties(attributes, layoutAncestryMatrices)
+        composedTransformsToTimelineProperties(parentAttributes, layoutAncestryMatrices)
 
         // In this very special mana construct, we:
         //   - Offset the translation of the ungrouped SVG element by the render-time bounding box. This allows us
@@ -1723,20 +1722,27 @@ class Element extends BaseModel {
         //     preserved.
         nodes.push(Template.cleanMana({
           elementName: 'svg',
-          attributes,
+          attributes: parentAttributes,
           children: [
             ...defs,
             {
               elementName: 'g',
-              attributes: {
-                transform: `translate(${-boundingBox.x} ${-boundingBox.y})`
-              },
+              attributes: Object.assign(
+                attributes,
+                {
+                  transform: `translate(${-boundingBox.x} ${-boundingBox.y})`
+                }
+              ),
               children: [Object.assign(
+                {},
                 descendantHaikuElement.node,
                 {
-                  attributes: Object.assign(descendantHaikuElement.attributes, {
-                    'haiku-transclude': descendantHaikuElement.getComponentId()
-                  }),
+                  attributes: Object.assign(
+                    {
+                      'haiku-transclude': descendantHaikuElement.getComponentId()
+                    },
+                    descendantHaikuElement.attributes
+                  ),
                   children: []
                 }
               )]
