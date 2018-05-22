@@ -396,7 +396,7 @@ export default class Master extends EventEmitter {
             }
 
             if (relpath !== this.getActiveComponent().fetchActiveBytecodeFile().relpath) {
-              return
+              return null
             }
           })
         }
