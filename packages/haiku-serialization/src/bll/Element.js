@@ -1616,7 +1616,7 @@ class Element extends BaseModel {
           stroke: 'none'
         }
       }]
-    }, true))
+    }, {resetIds: true}))
   }
 
   ungroupDiv (nodes) {
@@ -1742,7 +1742,7 @@ class Element extends BaseModel {
               )]
             }
           ]
-        }, true))
+        }, {resetIds: true}))
 
         return false
       })

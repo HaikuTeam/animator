@@ -1006,7 +1006,7 @@ Template.manaToJson = (mana, replacer, spacing) => {
   return JSON.stringify(out, replacer || null, spacing || 2)
 }
 
-Template.cleanMana = (mana, resetIds = false) => {
+Template.cleanMana = (mana, {resetIds = false, suppressSubcomponents = true}) => {
   const out = {}
   if (!mana) return null
   if (typeof mana === 'string') return mana
@@ -1016,7 +1016,7 @@ Template.cleanMana = (mana, resetIds = false) => {
   // If the bytecode has any subcomponents, which are designated using the .elementName
   // in the same way the React designates components by the .type, then treat the
   // node as a simple <div>. TODO: We may actually want to decycle the subcomponent here.
-  if (out.elementName && typeof out.elementName === 'object') {
+  if (suppressSubcomponents && out.elementName && typeof out.elementName === 'object') {
     out.elementName = 'div'
   }
 
@@ -1025,7 +1025,9 @@ Template.cleanMana = (mana, resetIds = false) => {
     delete out.attributes[HAIKU_ID_ATTRIBUTE]
   }
 
-  out.children = mana.children && mana.children.map((childMana) => Template.cleanMana(childMana, resetIds))
+  out.children = mana.children && mana.children.map(
+    (childMana) => Template.cleanMana(childMana, {resetIds, suppressSubcomponents})
+  )
   return out
 }
 
