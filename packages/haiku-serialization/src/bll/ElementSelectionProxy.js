@@ -1506,7 +1506,12 @@ ElementSelectionProxy.computeRotationPropertyGroup = (element, rotationZDelta, f
   }
   Element.transformPointInPlace(ray, matrix)
 
-  const originalRotationMatrix = Layout3D.computeOrthonormalBasisMatrix(element.getLayoutSpec().rotation)
+  const layoutSpec = element.getLayoutSpec()
+  const originalRotationMatrix = Layout3D.computeOrthonormalBasisMatrix(layoutSpec.rotation)
+  if (layoutSpec.mount.x !== 0 || layoutSpec.mount.y !== 0) {
+    ray.x += layoutSpec.mount.x * layoutSpec.sizeAbsolute.x
+    ray.y += layoutSpec.mount.y * layoutSpec.sizeAbsolute.y
+  }
   const attributes = {}
   composedTransformsToTimelineProperties(attributes, [matrix, originalRotationMatrix])
 
