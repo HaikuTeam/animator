@@ -1038,7 +1038,7 @@ export class Glass extends React.Component {
     const isDoubleClick = mouseDownTimeDiff ? mouseDownTimeDiff <= DOUBLE_CLICK_THRESHOLD_MS : false
     this.state.lastMouseDownTime = Date.now()
     const mouseDownPosition = this.storeAndReturnMousePosition(mousedownEvent, 'lastMouseDownPosition')
-
+    
     switch (mousedownEvent.nativeEvent.target.getAttribute('class')) {
       case 'direct-selection-anchor': {
         const dataIndex = parseInt(mousedownEvent.nativeEvent.target.getAttribute('data-index'), 10)
@@ -1063,9 +1063,16 @@ export class Glass extends React.Component {
               [Element.directlySelected.attributes['haiku-id']]: [dataIndex]
             }
           }
-          if(!indices[Element.directlySelected.attributes['haiku-id']]) indices[Element.directlySelected.attributes['haiku-id']] = []
-          indices[Element.directlySelected.attributes['haiku-id']].push(dataIndex)
-          indices[Element.directlySelected.attributes['haiku-id']] = lodash.uniq(indices[Element.directlySelected.attributes['haiku-id']])
+          
+          if(Globals.isShiftKeyDown && alreadySelected) {
+            // Remove if already selected
+            indices[Element.directlySelected.attributes['haiku-id']] = lodash.pull(indices[Element.directlySelected.attributes['haiku-id']], dataIndex)
+          } else {
+            // Add otherwise
+            if(!indices[Element.directlySelected.attributes['haiku-id']]) indices[Element.directlySelected.attributes['haiku-id']] = []
+            indices[Element.directlySelected.attributes['haiku-id']].push(dataIndex)
+            indices[Element.directlySelected.attributes['haiku-id']] = lodash.uniq(indices[Element.directlySelected.attributes['haiku-id']])
+          }
         } else {
           indices = {
             [Element.directlySelected.attributes['haiku-id']]: [dataIndex]
@@ -1122,7 +1129,6 @@ export class Glass extends React.Component {
             if (!Globals.isShiftKeyDown && !Globals.isSpecialKeyDown() && !Globals.isAltKeyDown) {
               Element.unselectAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
             }
-
             if (!Globals.isSpecialKeyDown() && !Globals.isAltKeyDown) {
               if (this.getActiveComponent()) {
                 this.getActiveComponent().getSelectionMarquee().startSelection(mouseDownPosition)
@@ -1153,7 +1159,68 @@ export class Glass extends React.Component {
               if (!Globals.isControlKeyDown && !Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // none
                 this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
                   this.ensureElementIsSelected(elementTargeted, finish)
-                  if(isDoubleClick) {
+                  
+                  // --- Insert new vertex ---
+                  if(Element.directlySelected && (isDoubleClick || Globals.isSpecialKeyDown())) {
+                    
+                    const transformedLocalMouse = geometryUtils.transform2DPoint(mouseDownPosition, Element.directlySelected.layoutAncestryMatrices.reverse())
+                    
+                    switch(Element.directlySelected.type) {
+                      case 'polygon':
+                      case 'polyline': {
+                        const normalPoints = []
+                        const originalPoints = SVGPoints.polyPointsStringToPoints(Element.directlySelected.attributes.points).map((pt) => ({x: pt[0], y: pt[1]}))
+                        
+                        // Insert an extra point at the end for a polygon because it's a closed shape
+                        if(Element.directlySelected.type == 'polygon') originalPoints.push(originalPoints[0])
+                        
+                        // Calculate the normal points and their distances for each segment
+                        for(let i = 0; i < originalPoints.length-1; i++) {
+                          normalPoints.push(geometryUtils.closestNormalPointOnLineSegment(originalPoints[i], originalPoints[i+1], transformedLocalMouse))
+                        }
+                        const normalDistances = normalPoints.map((pt) => (geometryUtils.distance(transformedLocalMouse, pt)))
+                        
+                        // Find the smallest distance
+                        let min = Infinity
+                        let minIdx = -1
+                        for(let i = 0; i < normalDistances.length; i++) {
+                          if(normalDistances[i] < min) {
+                            min = normalDistances[i]
+                            minIdx = i
+                          }
+                        }
+                        
+                        // Exit if it's too far away
+                        if(min > geometryUtils.LINE_SELECTION_THRESHOLD || minIdx == Infinity) break
+                        
+                        // Insert a new point at the normal
+                        originalPoints.splice(minIdx+1, 0, normalPoints[minIdx])
+                        
+                        // Adjust the selection state
+                        this.directSelectionAnchorActivation({
+                          indices: {
+                            [Element.directlySelected.attributes['haiku-id']]: [minIdx+1]
+                          }
+                        })
+                        
+                        // Remove the last extra vertex if a polygon (added above)
+                        if(Element.directlySelected.type == 'polygon') originalPoints.pop()
+                        
+                        this.getActiveComponent().updateKeyframes({
+                          [this.getActiveComponent().getCurrentTimelineName()]: {
+                            [Element.directlySelected.attributes['haiku-id']]: {
+                              points: {
+                                0: {
+                                  value: SVGPoints.pointsToPolyString(originalPoints.map((pt) => ([pt.x, pt.y])))
+                                }
+                              }
+                            }
+                          }
+                        }, {from: 'glass'}, () => {})
+                        break
+                      }
+                    }
+                  } else if(isDoubleClick) {
                     elementTargeted.getHaikuElement().visit((descendant) => {
                       if(descendant.isComponent()) return
                       if(descendant.isChildOfDefs) return

@@ -170,7 +170,7 @@ const vec2Normalize = (a: vec2): vec2 => {
   return a
 }
 
-const pointOnLineSegment = (a: vec2, b: vec2, test: vec2): boolean => {
+export const closestNormalPointOnLineSegment = (a: vec2, b: vec2, test: vec2): vec2 => {
   const at = vec2Sub(test, a)
   const ab = vec2Normalize(vec2Sub(b, a))
   let normalPoint = vec2Add(a, vec2MulScalar(ab, vec2Dot(at, ab)))
@@ -179,10 +179,15 @@ const pointOnLineSegment = (a: vec2, b: vec2, test: vec2): boolean => {
   if(normalPoint.x < Math.min(a.x, b.x) || normalPoint.x > Math.max(a.x, b.x) || normalPoint.y < Math.min(a.y, b.y) || normalPoint.y > Math.max(a.y, b.y)) {
     normalPoint = b
   }
-  return distance(normalPoint, test) <= LINE_SELECTION_THRESHOLD
+  
+  return normalPoint
 }
 
-const pointOnPolyLineSegment = (points: vec2[], test: vec2): boolean => {
+export const pointOnLineSegment = (a: vec2, b: vec2, test: vec2): boolean => {
+  return distance(closestNormalPointOnLineSegment(a, b, test), test) <= LINE_SELECTION_THRESHOLD
+}
+
+export const pointOnPolyLineSegment = (points: vec2[], test: vec2): boolean => {
   for(let i = 1; i < points.length; i++) {
     if(pointOnLineSegment(points[i-1], points[i], test)) return true
   }
@@ -256,4 +261,4 @@ export const isPointInsidePrimitive = (element: HaikuElement, point: vec2): bool
   return false
 }
 
-export default { isPointInsidePrimitive, distance, transform2DPoint };
+export default { isPointInsidePrimitive, distance, transform2DPoint, closestNormalPointOnLineSegment, LINE_SELECTION_THRESHOLD };
