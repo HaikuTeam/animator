@@ -288,7 +288,6 @@ export default class Master extends EventEmitter {
     const extname = path.extname(relpath)
     const abspath = path.join(this.folder, relpath)
     logger.info('[master] design changed', relpath)
-    this.emit('design-change', relpath, this._knownLibraryAssets)
     this.debouncedEmitAssetsChanged(this._knownLibraryAssets)
     if (extname === '.svg') {
       this.batchDesignMergeRequest(relpath, abspath)
@@ -330,14 +329,14 @@ export default class Master extends EventEmitter {
     return this.waitForSaveToComplete(() => {
       return this._git.commitFileIfChanged(relpath, `Changed ${relpath}`, () => {
         if (!_isFileSignificant(relpath)) {
-          return void (0)
+          return
         }
 
         if (extname === '.sketch') {
           logger.info('[master] sketchtool pipeline running; please wait')
           Sketch.sketchtoolPipeline(abspath)
           logger.info('[master] sketchtool done')
-          return void (0)
+          return
         }
 
         if (extname === '.js' && basename === 'code') {
@@ -346,11 +345,11 @@ export default class Master extends EventEmitter {
             logger.info('[master] file ingested (changed):', abspath)
 
             if (!this.getActiveComponent()) {
-              return void (0)
+              return
             }
 
             if (relpath !== this.getActiveComponent().fetchActiveBytecodeFile().relpath) {
-              return void (0)
+              return
             }
 
             this._mod.handleModuleChange(file)
@@ -376,14 +375,14 @@ export default class Master extends EventEmitter {
     return this.waitForSaveToComplete(() => {
       return this._git.commitFileIfChanged(relpath, `Added ${relpath}`, () => {
         if (!_isFileSignificant(relpath)) {
-          return void (0)
+          return
         }
 
         if (extname === '.sketch') {
           logger.info('[master] sketchtool pipeline running; please wait')
           Sketch.sketchtoolPipeline(abspath)
           logger.info('[master] sketchtool done')
-          return void (0)
+          return
         }
 
         if (extname === '.js' && basename === 'code') {
@@ -392,11 +391,11 @@ export default class Master extends EventEmitter {
             logger.info('[master] file ingested (added):', abspath)
 
             if (!this.getActiveComponent()) {
-              return void (0)
+              return
             }
 
             if (relpath !== this.getActiveComponent().fetchActiveBytecodeFile().relpath) {
-              return void (0)
+              return
             }
           })
         }
@@ -413,7 +412,7 @@ export default class Master extends EventEmitter {
     return this.waitForSaveToComplete(() => {
       return this._git.commitFileIfChanged(relpath, `Removed ${relpath}`, () => {
         if (!_isFileSignificant(relpath)) {
-          return void (0)
+          return
         }
 
         if (extname === '.js') {
