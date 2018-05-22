@@ -36,7 +36,7 @@ export enum Curve {
  * Defines a normalized curve, to be used in BytecodeTimelineValue and also in 
  * state transition
  */ 
-export type CurveFunction = ((percent :number) => number);
+export type CurveFunction = ((offset :number) => number);
 
 
 /** 

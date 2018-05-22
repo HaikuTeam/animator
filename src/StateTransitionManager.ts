@@ -4,7 +4,6 @@ import justCurves from './vendor/just-curves';
 import {Curve, CurveFunction, CurveDefinition} from './api/Curve';
 import {BytecodeStateType} from './api/HaikuBytecode';
 
-
 export type StateTransitionParameters = { curve: CurveDefinition, duration: number, queue?: boolean};
 
 export type StateValues = {[stateName: string]: BytecodeStateType};
@@ -12,7 +11,7 @@ export type StateValues = {[stateName: string]: BytecodeStateType};
 export type RunningStateTransition = {
   transitionStart: StateValues,
   transitionEnd: StateValues,
-  parameter: StateTransitionParameters,
+  transitionParameter: StateTransitionParameters,
   startTime: number,
   endTime: number,
 };
@@ -22,16 +21,18 @@ export default class StateTransitionManager {
   // Store running state transitions
   private transitions: {[key in string]: RunningStateTransition[]} = {};
   
-
   constructor(private readonly states: StateValues, private readonly clock: HaikuClock) {}
 
   /**
    * Create a new state transition.
    */
-  createNewTransition(transitionEnd: StateValues, parameter: StateTransitionParameters) {
+  setState(transitionEnd: StateValues, parameter?: StateTransitionParameters) {
 
     // Get current time
     const currentTime = this.clock.getTime();
+
+    // If paramers isn't set, process like a non queued SetState
+    const transitionParameter = parameter ? parameter : {duration:0, curve: Curve.Linear, queue: false};
 
     // Copy current states as transition start (needed to calculate interpolation)
     const transitionStart = {};
@@ -39,24 +40,25 @@ export default class StateTransitionManager {
       // Ignore state if it doesn't pre exist
       if (key in this.states) {
         // queued transitions are add into queue
-        // If undefined, it doesn't has any previous queued state, so we 
-        // should create a transition just like a non queued transtion
-        if (parameter.hasOwnProperty('queue') &&  parameter.queue && this.transitions[key] !== undefined) {
+        // If parameter.queue is true, it is a queued setState 
+        // If state transition for key is not created, process like a queued SetState
+        if (transitionParameter.hasOwnProperty('queue') &&  transitionParameter.queue && 
+            this.transitions[key] !== undefined) {
           this.transitions[key].push({
-            parameter,
+            transitionParameter,
             transitionEnd,
             transitionStart: {[key]: this.states[key]},
             startTime: currentTime,
-            endTime: currentTime + parameter.duration,
+            endTime: currentTime + transitionParameter.duration,
           });
         // non queued transitions are overwrite transition queue
         } else {
           this.transitions[key] = [{
-            parameter,
+            transitionParameter,
             transitionEnd,
             transitionStart: {[key]: this.states[key]},
             startTime: currentTime,
-            endTime: currentTime + parameter.duration,
+            endTime: currentTime + transitionParameter.duration,
           }];
         }
       } 
@@ -75,7 +77,6 @@ export default class StateTransitionManager {
   private isExpired(transition: RunningStateTransition, currentTime: number) {
     return this.clock.getTime() >= transition.endTime;
   }
-
 
   /**
    * Should be called on every tick. It cleans expired state transitions 
@@ -99,7 +100,7 @@ export default class StateTransitionManager {
           Object.assign(
             interpolatedStates,
             Interpolate.interpolate(
-              transition.endTime, transition.parameter.curve, transition.startTime,
+              transition.endTime, transition.transitionParameter.curve, transition.startTime,
               transition.endTime, transition.transitionStart, transition.transitionEnd,
             ),
           );
@@ -111,7 +112,7 @@ export default class StateTransitionManager {
           Object.assign(
             interpolatedStates,
             Interpolate.interpolate(
-              currentTime, transition.parameter.curve, transition.startTime,
+              currentTime, transition.transitionParameter.curve, transition.startTime,
               transition.endTime, transition.transitionStart, transition.transitionEnd,
             ),
           );

@@ -346,17 +346,11 @@ export default class HaikuComponent extends HaikuElement {
       return this;
     }
 
-    // If has transition parameter, it should be treated as a transition
-    if (transitionParameter) {
-      this.stateTransitionManager.createNewTransition(states, transitionParameter);
-    } else {
-      // If not state transition, set states right away
-      for (const key in states) {
-        this.set(key, states[key]);
-      }
-    }
+    // Set states is delegated to stateTransitionManager 
+    this.stateTransitionManager.setState(states, transitionParameter);
 
     return this;
+
   }
 
   getStates() {
@@ -1118,7 +1112,7 @@ export default class HaikuComponent extends HaikuElement {
       initialStates[key] = initialStates[key].value;
     }
     // Create state transition to initial state values
-    this.stateTransitionManager.createNewTransition(initialStates, {curve, duration});
+    this.stateTransitionManager.setState(initialStates, {curve, duration});
   }
 }
 

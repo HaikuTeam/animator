@@ -8,7 +8,7 @@ import {Curve} from '../../src/api/Curve';
 
 
 tape('Test state transitions', (t) => {
-  t.plan(26);
+  t.plan(28);
 
   const states = {
     var1:0, 
@@ -24,7 +24,7 @@ tape('Test state transitions', (t) => {
   const stateTransitionManager = new StateTransitionManager(states, haikuClock);
 
 
-  stateTransitionManager.createNewTransition({var1:10, var2:10}, {duration: 4000, curve: 'Linear' as Curve});
+  stateTransitionManager.setState({var1: 10, var2: 10}, {duration: 4000, curve: Curve.Linear});
 
 
   haikuClock.setTime(0);
@@ -46,8 +46,8 @@ tape('Test state transitions', (t) => {
   t.is(stateTransitionManager.numQueuedTransitions, 0, 'Check is expired transition is deleted');
 
 
-  stateTransitionManager.createNewTransition({var1:5}, {duration: 1000, curve: 'Linear' as Curve});
-  stateTransitionManager.createNewTransition({var2:0}, {duration: 2000, curve: 'Linear' as Curve});
+  stateTransitionManager.setState({var1: 5}, {duration: 1000, curve: Curve.Linear});
+  stateTransitionManager.setState({var2: 0}, {duration: 2000, curve: Curve.Linear});
   t.deepEqual([states.var1,  states.var2], [10, 10], 'Dual state transition at 4000ms');
 
 
@@ -66,13 +66,13 @@ tape('Test state transitions', (t) => {
   t.is(stateTransitionManager.numQueuedTransitions, 0, 'Check number of transitions at 6000ms');
 
 
-  stateTransitionManager.createNewTransition({var3:5, var1:0}, {duration: 1000, curve: 'Linear' as Curve});
+  stateTransitionManager.setState({var3: 5, var1: 0}, {duration: 1000, curve: Curve.Linear});
   haikuClock.setTime(7000);
   stateTransitionManager.tickStateTransitions();
   t.ok(!('var3' in states), 'Ignore non pre existant states');
 
-  stateTransitionManager.createNewTransition({var1:5}, {duration: 10000, curve: 'Linear' as Curve});
-  stateTransitionManager.createNewTransition({var2:5}, {duration: 20000, curve: 'Linear' as Curve});
+  stateTransitionManager.setState({var1: 5}, {duration: 10000, curve: Curve.Linear});
+  stateTransitionManager.setState({var2: 5}, {duration: 20000, curve: Curve.Linear});
 
   haikuClock.setTime(8000);
   stateTransitionManager.tickStateTransitions();
@@ -80,13 +80,13 @@ tape('Test state transitions', (t) => {
   t.is(stateTransitionManager.numQueuedTransitions, 0, 'Delete all state transitions'); 
   
   
-  stateTransitionManager.createNewTransition({varString:10}, {duration: 1000, curve: 'Linear' as Curve});
+  stateTransitionManager.setState({varString: 10}, {duration: 1000, curve: Curve.Linear});
   haikuClock.setTime(8000);
   stateTransitionManager.tickStateTransitions();
   t.is(states.varString, 'string', 'Do not state transition strings');
 
 
-  stateTransitionManager.createNewTransition({varArray:[20, 20]}, {duration: 1000, curve: 'Linear' as Curve});
+  stateTransitionManager.setState({varArray: [20, 20]}, {duration: 1000, curve: Curve.Linear});
   haikuClock.setTime(8500);
   stateTransitionManager.tickStateTransitions();
   t.deepEqual(states.varArray, [15, 10], 'State transition array');
@@ -96,37 +96,37 @@ tape('Test state transitions', (t) => {
   t.deepEqual(states.varArray, [20, 20], 'State transition array');
 
   
-  stateTransitionManager.createNewTransition({varObject:{varString: 10, var: 10}}, 
-                                             {duration: 1000, curve: 'Linear' as Curve});
+  stateTransitionManager.setState({varObject:{varString: 10, var: 10}}, 
+                                  {duration: 1000, curve: Curve.Linear});
   haikuClock.setTime(10000);
   stateTransitionManager.tickStateTransitions();
   t.deepEqual(states.varObject, {varString: 'string', var: 10}, 'Interpolate only numbers on objects');
 
 
-  stateTransitionManager.createNewTransition({varNull:10}, {duration: 1000, curve: 'Linear' as Curve});
+  stateTransitionManager.setState({varNull: 10}, {duration: 1000, curve: Curve.Linear});
   haikuClock.setTime(11000);
   stateTransitionManager.tickStateTransitions();
   t.is(states.varNull, null, 'Do not stete transition null');
 
-  stateTransitionManager.createNewTransition({varBool:10}, {duration: 1000, curve: 'Linear' as Curve});
+  stateTransitionManager.setState({varBool: 10}, {duration: 1000, curve: Curve.Linear});
   haikuClock.setTime(12000);
   stateTransitionManager.tickStateTransitions();
   t.is(states.varBool, true, 'Do not state transition boolean');
 
-  stateTransitionManager.createNewTransition({var1:5}, {duration: 1000, curve: 'Linear' as Curve, queue: true});
-  stateTransitionManager.createNewTransition({var1:10}, {duration: 1000, curve: 'Linear' as Curve, queue: true});
-  stateTransitionManager.createNewTransition({var1:15}, {duration: 1000, curve: 'Linear' as Curve, queue: true});
-  stateTransitionManager.createNewTransition({var1:2}, {duration: 1000, curve: 'Linear' as Curve});
-  stateTransitionManager.createNewTransition({var1:4}, {duration: 1000, curve: 'Linear' as Curve});
+  stateTransitionManager.setState({var1: 5}, {duration: 1000, curve: Curve.Linear, queue: true});
+  stateTransitionManager.setState({var1: 10}, {duration: 1000, curve: Curve.Linear, queue: true});
+  stateTransitionManager.setState({var1: 15}, {duration: 1000, curve: Curve.Linear, queue: true});
+  stateTransitionManager.setState({var1: 2}, {duration: 1000, curve: Curve.Linear});
+  stateTransitionManager.setState({var1: 4}, {duration: 1000, curve: Curve.Linear});
   t.is(stateTransitionManager.numQueuedTransitions, 1, 'queue=false should overwrite previous transitions');
   haikuClock.setTime(13000);
   stateTransitionManager.tickStateTransitions();
   t.is(states.var1, 4, 'With queued=false, last state transition should overwrite old ones');
 
-  stateTransitionManager.createNewTransition({var1:2}, {duration: 1000, curve: 'Linear' as Curve});
-  stateTransitionManager.createNewTransition({var1:5}, {duration: 1000, curve: 'Linear' as Curve, queue: true});
-  stateTransitionManager.createNewTransition({var1:10}, {duration: 1000, curve: 'Linear' as Curve, queue: true});
-  stateTransitionManager.createNewTransition({var1:15}, {duration: 1000, curve: 'Linear' as Curve, queue: true});
+  stateTransitionManager.setState({var1: 2}, {duration: 1000, curve: Curve.Linear});
+  stateTransitionManager.setState({var1: 5}, {duration: 1000, curve: Curve.Linear, queue: true});
+  stateTransitionManager.setState({var1: 10}, {duration: 1000, curve: Curve.Linear, queue: true});
+  stateTransitionManager.setState({var1: 15}, {duration: 1000, curve: Curve.Linear, queue: true});
   t.is(stateTransitionManager.numQueuedTransitions, 4, 'queue=true should not overwrite previous transitions');
   haikuClock.setTime(14000);
   stateTransitionManager.tickStateTransitions();
@@ -143,4 +143,18 @@ tape('Test state transitions', (t) => {
   haikuClock.setTime(17000);
   stateTransitionManager.tickStateTransitions();
   t.is(states.var1, 15, 'Check if fourth queue=true transition is executed');
+
+
+  stateTransitionManager.setState({var1: 15}, {duration: 1000, curve: Curve.Linear, queue: true});
+  stateTransitionManager.setState({var1: 20}, {duration: 2000, curve: Curve.Linear, queue: true});
+  haikuClock.setTime(17500);
+  stateTransitionManager.tickStateTransitions();
+  stateTransitionManager.setState({var1: 18});
+  haikuClock.setTime(18000);
+  stateTransitionManager.tickStateTransitions();
+  t.is(states.var1, 18, 'A setState without transition parameter should cancel any queued transition');
+  haikuClock.setTime(19000);
+  stateTransitionManager.tickStateTransitions();
+  t.is(states.var1, 18, 'A setState without transition parameter should cancel any queued transition');
+
 });
