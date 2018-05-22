@@ -588,7 +588,7 @@ Multi-select/Multi-transform
 
 I can hold down Shift and click multiple elements to select them
 I can drag a selection marquee on stage to select multiple elements
-I can click away from multiple elements to select them
+I can click away from multiple elements to deselect them
 I can click on an empty area in multi-selection to select the elements
 I can drag (translate) a multiselection
 I can rotate a multiselection, including an element that has 2D rotation
@@ -596,31 +596,30 @@ I can rotate a multiselection, including an element that has 3D rotation
 I can scale a multiselection, including an element that has 2D rotation
 I can scale a multiselection, including an element that has 3D rotation
 When I transform a multiselection, I see all their properties update in the timeline
-I can undo/redo a multiselection, and the whole set of changes is undone correctly
+I can undo/redo a multitransform, and the whole set of changes is undone correctly
 
 Group/ungroup
 
 I can instantiate the artboard from Moto and ungroup it
 I can instantiate an artboard with SVG <defs> and ungroup it
 I cannot ungroup an artboard or SVG that only contains one element
-I cannot group a selection that contains only one elements
+I cannot group a selection that contains only one element
 I can instantiate two slices, animate them, and create a group at keyframe N > 0
-When I create a group, I receive a dialog prompting me to name my group
-The name of the group I created appears in the timeline
+The group I created has the automatic name "Group N", where N is one more than the last group named like this
+I can rename the group I created, if I want, by double-clicking its name in the timeline
 The group I created is selected upon creation
 The group I created does not alter the layout of the selection at the time of creation
 The group I created destroys any _layout_ animations of the elements that were grouped
 I can animate a group on stage, and everything animates correctly
 I can undo creation of a group, which restores both timeline and glass to expected state
 I can ungroup a group I created, including an element that has 3D rotation
-When I ungroup, I receive a dialog warning me any animations will be lost
 Ungrouping preserves the layout of the group elements I see on stage at the time I ungrouped
 Ungrouping destroys any existing _layout_ animations of the elements that were grouped
 
 Origin
 
 An origin crosshairs appears when one element is selected
-An origin crosshairs appears when multiple element is selected
+An origin crosshairs appears when multiple elements are selected
 I can hold down Cmd to move the origin crosshairs with one element
 I can hold down Cmd to move the origin crosshairs with multiple elements
 When moving the origin crosshairs, the element stays in the same place
@@ -675,7 +674,6 @@ The share page renders the element inside the artboard box
 If I publish again with no changes, I get a share link back immediately
 If I make a change and publish, I get a new share link
 Cmd+S should not publish the project, but should display an info toast
-All the instructions in the publish UI for each format are correct
 
 Release Collateral
 
@@ -685,6 +683,7 @@ The CLI npm package works (`$ npm install @haiku/cli`)
 Core CDN links work (`http://code.haiku.ai/scripts/core/HaikuCore.<{version}|latest>[.min].js (http://code.haiku.ai/scripts/core/HaikuCore.%3C%7Bversion%7D|latest%3E[.min].js)`)
 Core standalone repo has latest https://github.com/HaikuTeam/core
 Core npm package is up to date https://www.npmjs.com/package/@haiku/core
+After autoupdate, share page CodePen content works correctly
 
 Sharing
 
@@ -694,7 +693,6 @@ The share page and modal Vue snippets are correct
 The share page and modal Angular snippets are correct
 The lottie.json file works in http://editor.lottiefiles.com/
 Publishing produces a static bundle at code/main/static.json which renders correctly on my community profile
-Share page CodePen content works correctly
 Changes made in Sketch after first publish also appear correctly on the published share page
 A GIF shows up in Slack when the link is shared in Slack
 
