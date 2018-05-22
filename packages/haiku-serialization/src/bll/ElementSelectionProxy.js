@@ -739,7 +739,7 @@ class ElementSelectionProxy extends BaseModel {
 
   clearAllRelatedCaches () {
     if (this.hasAnythingInSelection()) {
-      super.cache.clear()
+      this.cache.clear()
 
       this.selection.forEach((element) => {
         element.cache.clear()

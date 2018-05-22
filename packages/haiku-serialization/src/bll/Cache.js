@@ -23,18 +23,36 @@ class Cache {
     this.data[key] = undefined
   }
 
-  fetch (key, provider) {
+  fetch (key, provider, postproc) {
     const found = this.get(key)
 
     if (found !== undefined) {
-      return found
+      return (postproc) ? postproc(found) : found
     }
 
     const given = provider()
 
     this.set(key, given)
 
-    return given
+    return (postproc) ? postproc(given) : given
+  }
+
+  async (key, provider, cb, postproc) {
+    const found = this.get(key)
+
+    if (found !== undefined) {
+      return cb(null, (postproc) ? postproc(found) : found)
+    }
+
+    return provider((err, given) => {
+      if (err) {
+        return cb(err)
+      }
+
+      this.set(key, given)
+
+      return cb(null, (postproc) ? postproc(given) : given)
+    })
   }
 }
 

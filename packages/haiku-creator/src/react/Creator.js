@@ -7,6 +7,7 @@ import EventEmitter from 'event-emitter'
 import path from 'path'
 import BaseModel from 'haiku-serialization/src/bll/BaseModel'
 import Project from 'haiku-serialization/src/bll/Project'
+import File from 'haiku-serialization/src/bll/File'
 import Asset from 'haiku-serialization/src/bll/Asset'
 import AuthenticationUI from './components/AuthenticationUI'
 import ProjectBrowser from './components/ProjectBrowser'
@@ -566,6 +567,10 @@ export default class Creator extends React.Component {
 
         case 'dimensions-reset':
           this.setState({ artboardDimensions: message.data })
+          break
+
+        case 'assets-changed':
+          File.cache.clear()
           break
       }
     })

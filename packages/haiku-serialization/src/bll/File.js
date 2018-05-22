@@ -10,6 +10,7 @@ const walkFiles = require('./../utils/walkFiles')
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 const getSvgOptimizer = require('./../svg/getSvgOptimizer')
 const Lock = require('./Lock')
+const Cache = require('./Cache')
 
 // This file also depends on '@haiku/core/lib/HaikuComponent'
 // in the sense that one of those instances is assigned as .hostInstance here.
@@ -291,6 +292,8 @@ File.DEFAULT_OPTIONS = {
 
 File.DEFAULT_CONTEXT_SIZE = DEFAULT_CONTEXT_SIZE
 
+File.cache = new Cache()
+
 File.write = (folder, relpath, contents, cb) => {
   let abspath = path.join(folder, relpath)
   return Lock.request(Lock.LOCKS.FileReadWrite(abspath), true, (release) => {
@@ -397,6 +400,10 @@ File.ingestFromFolder = (project, folder, options, cb) => {
   })
 }
 
+File.buildManaCacheKey = (folder, relpath) => {
+  return `mana:${path.join(folder, relpath)}`
+}
+
 /**
  * @method readMana
  * @description Given the relative path to an SVG file, read the file into
@@ -405,46 +412,51 @@ File.ingestFromFolder = (project, folder, options, cb) => {
  * @param cb {Function} Callback
  */
 File.readMana = (folder, relpath, cb) => {
-  return File.read(folder, relpath, (err, buffer) => {
-    if (err) return cb(err)
+  return File.cache.async(File.buildManaCacheKey(folder, relpath), (done) => {
+    return File.read(folder, relpath, (err, buffer) => {
+      if (err) return done(err)
 
-    const xml = buffer.toString()
+      const xml = buffer.toString()
 
-    const returnUnoptimizedMana = () => {
-      const manaFull = xmlToMana(xml)
+      const returnUnoptimizedMana = () => {
+        const manaFull = xmlToMana(xml)
 
-      if (!manaFull) {
-        return cb(new Error(`We couldn't load the contents of ${relpath}`))
+        if (!manaFull) {
+          return done(new Error(`We couldn't load the contents of ${relpath}`))
+        }
+
+        if (experimentIsEnabled(Experiment.NormalizeSvgContent)) {
+          return done(null, Template.normalize(manaFull))
+        }
+
+        return done(null, manaFull)
       }
 
-      if (experimentIsEnabled(Experiment.NormalizeSvgContent)) {
-        return cb(null, Template.normalize(manaFull))
-      }
+      return getSvgOptimizer().optimize(xml, { path: path.join(folder, relpath) }).then((contents) => {
+        const manaOptimized = xmlToMana(contents.data)
 
-      return cb(null, manaFull)
-    }
+        if (!manaOptimized) {
+          return done(new Error(`We couldn't load the contents of ${relpath}`))
+        }
 
-    return getSvgOptimizer().optimize(xml, { path: path.join(folder, relpath) }).then((contents) => {
-      const manaOptimized = xmlToMana(contents.data)
+        if (experimentIsEnabled(Experiment.NormalizeSvgContent)) {
+          return done(null, Template.normalize(manaOptimized))
+        }
 
-      if (!manaOptimized) {
-        return cb(new Error(`We couldn't load the contents of ${relpath}`))
-      }
-
-      if (experimentIsEnabled(Experiment.NormalizeSvgContent)) {
-        return cb(null, Template.normalize(manaOptimized))
-      }
-
-      return cb(null, manaOptimized)
-    })
-      .catch((exception) => {
-        // Log the exception too in case the error occurred as part of our pipeline
-        logger.warn(`[file] svgo couldn't parse ${relpath}`, exception)
-
-        return setTimeout(() => { // Escape promise chain so exceptions occur with more normal traces
-          return returnUnoptimizedMana()
-        })
+        return done(null, manaOptimized)
       })
+        .catch((exception) => {
+          // Log the exception too in case the error occurred as part of our pipeline
+          logger.warn(`[file] svgo couldn't parse ${relpath}`, exception)
+
+          return setTimeout(() => { // Escape promise chain so exceptions occur with more normal traces
+            return returnUnoptimizedMana()
+          })
+        })
+    })
+  }, cb, (mana) => {
+    // Must clone the template here since mutation will occur in-place
+    return Template.clone({}, mana)
   })
 }
 

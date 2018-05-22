@@ -257,6 +257,7 @@ export default class Master extends EventEmitter {
   }
 
   emitAssetsChanged (assets) {
+    File.cache.clear()
     return this.emit('assets-changed', this, assets)
   }
 
