@@ -323,6 +323,7 @@ export const decomposeCurveBetweenKeyframes = (timelineProperty:BytecodeTimeline
   const getKeyframe = (normalizedTime: number) => Math.floor(denormalizeValue(normalizedTime, inKeyframe, outKeyframe));
   const getValue = (normalizedPosition: number) => denormalizeValue(normalizedPosition, from as number, to as number);
 
+  // TODO: remove need for typecasting here.
   getBezierBreakpointsForDecomposableCurve(curve as Curve)
     .forEach(([startTime, startValue, curve]) => {
       timelineProperty[getKeyframe(startTime)] = {
