@@ -47,7 +47,8 @@ class ProjectBrowser extends React.Component {
       projToDuplicateIndex: null,
       confirmDeleteMatches: false,
       atProjectMax: false,
-      newProjectError: null
+      newProjectError: null,
+      newProjectIsPublic: true
     }
   }
 
