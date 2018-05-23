@@ -788,8 +788,8 @@ class ElementSelectionProxy extends BaseModel {
     const elementTransform = this.transformCache.peek('CONSTRAINED_DRAG')
     const initialTransform = {
       // If the user multi-selects too quickly the transform may not be available, hence the guard
-      x: (elementTransform && elementTransform.translation[0]) || 0,
-      y: (elementTransform && elementTransform.translation[1]) || 0
+      x: (elementTransform && elementTransform.translation.x) || 0,
+      y: (elementTransform && elementTransform.translation.y) || 0
     }
 
     const isXAxis = Math.abs(mouseCoordsCurrent.x - initialTransform.x) >
