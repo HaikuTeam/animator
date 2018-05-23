@@ -44,7 +44,6 @@ class ProjectPreview extends React.Component {
       // TODO: Try to get the bytecode from CDN or eager clone if not yet available.
       this.bytecode = requireModuleFromFilename(this.props.bytecodePath)
     } catch (exception) {
-      console.warn(exception)
       if (['Move', 'Moto', TourUtils.ProjectName].indexOf(this.props.projectName) !== -1) {
         this.bytecode = require(path.join('..', 'bytecode-fixtures', this.props.projectName))
       }

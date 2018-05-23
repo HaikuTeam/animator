@@ -147,10 +147,6 @@ export class Glass extends React.Component {
 
     this.handleRequestElementCoordinates = this.handleRequestElementCoordinates.bind(this)
 
-    this.debouncedWindowMouseOverOutHandler = lodash.debounce((mouseEvent) => {
-      this.windowMouseOverOutHandler(mouseEvent)
-    }, 10)
-
     this.handleDimensionsReset = lodash.debounce(() => {
       // Need to notify creator of viewport change so instantiation position is correct;
       // this event is also called whenever the window is resized
@@ -680,8 +676,8 @@ export class Glass extends React.Component {
     this.addEmitterListener(window, 'dblclick', this.windowDblClickHandler.bind(this))
     this.addEmitterListener(window, 'keydown', this.windowKeyDownHandler.bind(this))
     this.addEmitterListener(window, 'keyup', this.windowKeyUpHandler.bind(this))
-    this.addEmitterListener(window, 'mouseover', this.debouncedWindowMouseOverOutHandler)
-    this.addEmitterListener(window, 'mouseout', this.debouncedWindowMouseOverOutHandler)
+    this.addEmitterListener(window, 'mouseover', this.windowMouseOverOutHandler.bind(this))
+    this.addEmitterListener(window, 'mouseout', this.windowMouseOverOutHandler.bind(this))
     // When the mouse is clicked, below is the order that events fire
     this.addEmitterListener(window, 'mousedown', this.windowMouseDownHandler.bind(this))
     this.addEmitterListener(window, 'mouseup', this.windowMouseUpHandler.bind(this))
@@ -933,7 +929,10 @@ export class Glass extends React.Component {
   }
 
   windowMouseOverOutHandler (mouseEvent) {
-    if (this.isPreviewMode() || this.isMarqueeActive()) {
+    if (
+      this.state.isMouseDown ||
+      this.isPreviewMode()
+    ) {
       return
     }
 
@@ -945,12 +944,13 @@ export class Glass extends React.Component {
           return
         }
 
-        Element.hoverOffAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
+        Element.hoverOffAllElements({component: this.getActiveComponent()}, {from: 'glass'})
+
         return element.hoverOn({from: 'glass'})
       }
     }
 
-    Element.hoverOffAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
+    Element.hoverOffAllElements({component: this.getActiveComponent()}, {from: 'glass'})
   }
 
   get areAnyModalsOpen () {
@@ -2133,8 +2133,7 @@ export class Glass extends React.Component {
 
   fetchProxyElementForSelection () {
     const selection = Element.where({ component: this.getActiveComponent(), _isSelected: true })
-    const proxy = ElementSelectionProxy.fromSelection(selection, { component: this.getActiveComponent() })
-    return proxy
+    return ElementSelectionProxy.fromSelection(selection, { component: this.getActiveComponent() })
   }
   
   renderDirectSelection (element, selectedAnchorIndices, overlays) {
