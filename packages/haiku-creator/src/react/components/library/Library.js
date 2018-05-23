@@ -129,11 +129,11 @@ class Library extends React.Component {
   }
 
   figmaAuthCallback ({state, code}) {
-    Figma.getAccessToken({state, code, stateCheck: this.state.figmaState})
+    this.props.servicesEnvoyClient.figmaGetAccessToken({state, code, stateCheck: this.state.figmaState})
       .then(({AccessToken}) => {
         this.props.user.setConfig(UserSettings.figmaToken, AccessToken)
         this.state.figma.token = AccessToken
-        this.props.createNotice({
+        return this.props.createNotice({
           type: 'success',
           title: 'Yay!',
           message: 'You are authenticated with Figma'
@@ -172,8 +172,7 @@ class Library extends React.Component {
 
   importFigmaAsset (url) {
     const path = this.props.projectModel.folder
-
-    return this.state.figma.importSVG({url, path})
+    return this.props.servicesEnvoyClient.figmaImportSVG({url, path}, this.state.figma.token)
       .catch((error = {}) => {
         let message = error.err || 'We had a problem connecting with Figma. Please check your internet connection and try again.'
         const reportData = { url, message }

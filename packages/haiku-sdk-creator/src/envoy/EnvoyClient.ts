@@ -44,7 +44,7 @@ export default class EnvoyClient<T> {
    * @param channel unique string representing the channel of the handler
    * that this client should be bound to
    */
-  get(channel: string): Promise<T> {
+  get(channel: string, requestOptions?: RequestOptions): Promise<T> {
     // Since mock mode skips the connection, there's nothing to retrieve, and
     // we will just go ahead and return ourselves early instead of schema discovery
     if (this.isInMockMode()) {
@@ -75,7 +75,7 @@ export default class EnvoyClient<T> {
                 params: args,
               };
 
-              return this.send(datagram);
+              return this.send(datagram, requestOptions);
             };
           })(property);
         }
