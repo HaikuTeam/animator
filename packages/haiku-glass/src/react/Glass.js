@@ -1594,6 +1594,8 @@ export class Glass extends React.Component {
         index: activationInfo.index
       }
     })
+
+    this.fetchProxyElementForSelection().pushCachedTransform('CONTROL_ACTIVATION')
   }
 
   storeAndReturnMousePosition (mouseEvent, additionalPositionTrackingState) {

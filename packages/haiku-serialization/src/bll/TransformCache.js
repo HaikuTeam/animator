@@ -27,7 +27,11 @@ class TransformCache {
    */
   push (key) {
     this.ensureCacheKey(key)
-    this.cache[key].push(this.host.getComputedLayout())
+    const transform = this.host.getComputedLayout()
+    if (this.host.getOriginOffsetComposedMatrix) {
+      transform.originOffsetComposedMatrix = this.host.getOriginOffsetComposedMatrix()
+    }
+    this.cache[key].push(transform)
   }
 
   peek (key) {

@@ -866,9 +866,13 @@ class ElementSelectionProxy extends BaseModel {
     }
 
     if (this.hasMultipleInSelection()) {
-      const matrixBefore = this.getComputedLayout().matrix
+      const cachedTransform = this.transformCache.peek('CONTROL_ACTIVATION')
+      if (!cachedTransform) {
+        return
+      }
       const matrixBeforeInverted = new Float32Array(16)
-      invertMatrix(matrixBeforeInverted, matrixBefore)
+      invertMatrix(matrixBeforeInverted, cachedTransform.matrix)
+
       const {
         'scale.x': {
           value: scaleX
@@ -897,10 +901,14 @@ class ElementSelectionProxy extends BaseModel {
       this.applyPropertyValue('translation.y', translationY)
       const matrixAfter = this.getComputedLayout().matrix
       this.selection.forEach((element) => {
-        const layoutSpec = element.getComputedLayout()
+        // Use our cached transform to mitigate the possibility of rounding errors at small/weird scales.
+        const layoutSpec = element.transformCache.peek('CONTROL_ACTIVATION')
+        if (!layoutSpec) {
+          return
+        }
         const propertyGroup = {}
         const finalMatrix = Layout3D.multiplyArrayOfMatrices([
-          element.getOriginOffsetComposedMatrix(),
+          layoutSpec.originOffsetComposedMatrix,
           matrixBeforeInverted,
           matrixAfter
         ])
@@ -1351,9 +1359,22 @@ ElementSelectionProxy.computeScalePropertyGroup = (
   // point (the point being dragged). These are represented by `fixedPoint` and `translatedPoint` respectively.
   const targetLayout = element.getComputedLayout()
   // Opportunity to return early if we have a downstream "division by 0" problem. Scaling _from_ 0 is not supported (and
-  // the UI should make it imposible.
+  // the UI should make it impossible.
   if (targetLayout.scale.x === 0 || targetLayout.scale.y === 0) {
-    return {}
+    return {
+      'scale.x': {
+        value: targetLayout.scale.x
+      },
+      'scale.y': {
+        value: targetLayout.scale.y
+      },
+      'translation.x': {
+        value: targetLayout.translation.x
+      },
+      'translation.y': {
+        value: targetLayout.translation.y
+      }
+    }
   }
 
   if (applyConstraints) {
