@@ -231,7 +231,12 @@ Template.manaWithOnlyStandardProps = (mana, doOmitSubcomponentBytecode = true, r
     }
 
     if (typeof mana.elementName !== 'object') {
-      out.children = mana.children && mana.children.map((child) => {
+      out.children = mana.children && mana.children.filter((child) => {
+        // Exclude any empty or content-string elements.
+        // Mana with only standard props is used when generating the AST/code for the
+        // component, or for copy/paste, and literal content strings to not belong in the template
+        return child && typeof child !== 'string'
+      }).map((child) => {
         return Template.manaWithOnlyStandardProps(child, doOmitSubcomponentBytecode, referenceSerializer)
       })
     } else {
