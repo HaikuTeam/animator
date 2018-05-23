@@ -1191,7 +1191,7 @@ export class Glass extends React.Component {
                         }
                         
                         // Exit if it's too far away
-                        if(min > geometryUtils.LINE_SELECTION_THRESHOLD || minIdx == Infinity) break
+                        if(min > geometryUtils.LINE_SELECTION_THRESHOLD) break
                         
                         // Insert a new point at the normal
                         originalPoints.splice(minIdx+1, 0, normalPoints[minIdx])
@@ -1212,6 +1212,49 @@ export class Glass extends React.Component {
                               points: {
                                 0: {
                                   value: SVGPoints.pointsToPolyString(originalPoints.map((pt) => ([pt.x, pt.y])))
+                                }
+                              }
+                            }
+                          }
+                        }, {from: 'glass'}, () => {})
+                        break
+                      }
+                      case 'path': {
+                        
+                        const beziers = geometryUtils.BezierPath.fromSVGPoints(SVGPoints.pathToPoints(Element.directlySelected.attributes.d))
+                        const approximationResolution = 10
+                        
+                        // Find the smallest distance
+                        let min = Infinity
+                        let minIdx = -1
+                        let minBezIdx = -1
+                        
+                        for(let b = 0; b < beziers.length; b++) {
+                          const approxPoints = beziers[b].toApproximatedPolygon(approximationResolution)
+                          const approxDistances = approxPoints.map((pt) => { return geometryUtils.distance(pt, transformedLocalMouse)})
+                          
+                          for(let i = 0; i < approxDistances.length; i++) {
+                            if(approxDistances[i] < min) {
+                              min = approxDistances[i]
+                              minIdx = i
+                              minBezIdx = b
+                            }
+                          }
+                        }
+                        
+                        // Exit if too far away
+                        if(min > geometryUtils.LINE_SELECTION_THRESHOLD) break
+                        
+                        // Calculate t value and surrounding points, and split
+                        const t = Math.floor(minIdx / approximationResolution) % approximationResolution / approximationResolution
+                        beziers[minBezIdx].splitSegment(Math.floor(minIdx / approximationResolution), Math.ceil(minIdx / approximationResolution), t)
+                        
+                        this.getActiveComponent().updateKeyframes({
+                          [this.getActiveComponent().getCurrentTimelineName()]: {
+                            [Element.directlySelected.attributes['haiku-id']]: {
+                              d: {
+                                0: {
+                                  value: SVGPoints.pointsToPath(geometryUtils.BezierPath.toSVGPoints(beziers))
                                 }
                               }
                             }

@@ -19,18 +19,25 @@ export interface vec2 {
   y: number;
 }
 
-class BezierPoint {
+export interface vec4 {
+  x: number;
+  y: number;
+  z: number;
+  w: number;
+}
+
+export class BezierPoint {
   anchor: vec2;
   h1: vec2;
   h2: vec2;
 }
 
-interface SVGCurve {
+export interface SVGCurve {
   type: string;
   x1, y1, x2, y2: number;
 }
 
-interface SVGPoint {
+export interface SVGPoint {
   curve?: SVGCurve;
   moveTo?: boolean;
   closed?: boolean;
@@ -50,11 +57,11 @@ export const bezierCubic = (a: vec2, h1: vec2, h2: vec2, b: vec2, t: number): ve
 	};
 }
 
-class BezierPath {
+export class BezierPath {
   points: BezierPoint[] = [];
   closed: boolean = false;
   
-  toApproximatedPolygon(): vec2[] {
+  toApproximatedPolygon(resolution: number = CUBIC_BEZIER_APPROXIMATION_RESOLUTION): vec2[] {
     const out: vec2[] = []
     for(let i = 0; i < this.points.length; i++) {
       let nextIndex = i+1
@@ -62,7 +69,7 @@ class BezierPath {
       if(this.points[i].h2 || this.points[nextIndex].h1) {
         const h1 = this.points[i].h2 || this.points[i].anchor
         const h2 = this.points[nextIndex].h1 || this.points[nextIndex].anchor
-        for(let t = 0; t < CUBIC_BEZIER_APPROXIMATION_RESOLUTION; t++) {
+        for(let t = 0; t < resolution; t++) {
           out.push(bezierCubic(this.points[i].anchor, h1, h2, this.points[nextIndex].anchor, 1 / t))
         }
       } else {
@@ -71,6 +78,26 @@ class BezierPath {
     }
     
     return out;
+  }
+  
+  splitSegment(pt1Index: number, pt2Index: number, t: number) {
+    const newPts = cubicBezierSplit(
+      t,
+      this.points[pt1Index].anchor,
+      this.points[pt1Index].h2,
+      this.points[pt2Index].h1,
+      this.points[pt2Index].anchor
+    );
+    
+    this.points[pt1Index].h2 = newPts[0][1];
+    this.points[pt2Index].h1 = newPts[1][2];
+    
+    const newPt = new BezierPoint();
+    newPt.anchor = newPts[0][3];
+    newPt.h1 = newPts[0][2];
+    newPt.h2 = newPts[1][1];
+    
+    this.points.splice(pt2Index, 0, newPt);
   }
   
   static fromSVGPoints(points: SVGPoint[]): BezierPath[] {
@@ -107,6 +134,35 @@ class BezierPath {
     
     if(curPath) paths.push(curPath)
     return paths
+  }
+  
+  static toSVGPoints(paths: BezierPath[]): SVGPoint[] {
+    const out = [];
+    // debugger;
+    
+    for(let i = 0; i < paths.length; i++) {
+      for(let j = 0; j < paths[i].points.length; j++) {
+        const pt: SVGPoint = {
+          moveTo: j == 0 ? true : undefined,
+          closed: paths[i].closed && j == paths[i].points.length-1 ? true : undefined,
+          x: paths[i].points[j].anchor.x,
+          y: paths[i].points[j].anchor.y,
+        };
+        
+        if(j != 0 && j < paths[i].points.length-1 && paths[i].points[j].h2 && paths[i].points[j+1].h1) {
+          pt.curve = {
+            type: 'cubic',
+            x1: paths[i].points[j].h2.x,
+            y1: paths[i].points[j].h2.y,
+            x2: paths[i].points[j+1].h1.x,
+            y2: paths[i].points[j+1].h1.y,
+          };
+        } 
+        out.push(pt);
+      }
+    }
+    
+    return out;
   }
 }
 
@@ -261,4 +317,39 @@ export const isPointInsidePrimitive = (element: HaikuElement, point: vec2): bool
   return false
 }
 
-export default { isPointInsidePrimitive, distance, transform2DPoint, closestNormalPointOnLineSegment, LINE_SELECTION_THRESHOLD };
+const mat4_multiply_vec4 = (m: number[], v: vec4): vec4 => {
+  return {
+    x: v.x*m[0] + v.x*m[1] + v.x*m[2] + v.x*m[3],
+    y: v.y*m[4] + v.y*m[5] + v.y*m[6] + v.y*m[7],
+    z: v.z*m[8] + v.z*m[9] + v.z*m[10] + v.z*m[11],
+    w: v.w*m[12] + v.w*m[13] + v.w*m[14] + v.w*m[15]
+  };
+}
+
+// NOTE: See Bezier curve splitting here: https://pomax.github.io/bezierinfo/#matrixsplit
+export const cubicBezierSplit = (t: number, anchor1: vec2, handle1: vec2, handle2: vec2, anchor2: vec2): [[vec2,vec2,vec2,vec2],[vec2,vec2,vec2,vec2]] => {
+  const cubicSegmentMatrix1 = [
+    1,                 0,                    0,             0,
+    -(t-1),            t,                    0,             0,
+    Math.pow(t-1, 2)   -2*t*(t-1),           t*t,           0,
+    -Math.pow(t-1, 3), 3*t*Math.pow(t-1, 2), -3*t*t*(t-1),  t*t*t
+  ];
+  const x1 = mat4_multiply_vec4(cubicSegmentMatrix1, {x: anchor1.x, y: handle1.x, z: handle2.x, w: anchor2.x});
+  const y1 = mat4_multiply_vec4(cubicSegmentMatrix1, {x: anchor1.y, y: handle1.y, z: handle2.y, w: anchor2.y});
+  
+  const cubicSegmentMatrix2 = [
+    -Math.pow(t-1, 3), 3*t*Math.pow(t-1, 2), -3*t*t*Math.pow(t-1, 3), t*t*t,
+    0,                 Math.pow(t-1, 2),     -2*t*(t-1),              t*t,
+    0,                 0,                    -(t-1),                  t,
+    0,                 0,                    0,                       1
+  ];
+  const x2 = mat4_multiply_vec4(cubicSegmentMatrix2, {x: anchor1.x, y: handle1.x, z: handle2.x, w: anchor2.x});
+  const y2 = mat4_multiply_vec4(cubicSegmentMatrix2, {x: anchor1.y, y: handle1.y, z: handle2.y, w: anchor2.y});
+  
+  return [
+    [{x: x1.x, y: y1.x}, {x: x1.y, y: y1.y}, {x: x1.z, y: y1.z}, {x: x1.w, y: y1.w}],
+    [{x: x2.x, y: y2.x}, {x: x2.y, y: y2.y}, {x: x2.z, y: y2.z}, {x: x2.w, y: y2.w}]
+  ];
+};
+
+export default { isPointInsidePrimitive, distance, transform2DPoint, closestNormalPointOnLineSegment, LINE_SELECTION_THRESHOLD, BezierPath };
