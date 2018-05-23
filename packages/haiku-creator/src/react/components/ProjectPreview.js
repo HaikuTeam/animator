@@ -35,7 +35,6 @@ class ProjectPreview extends React.Component {
     super(props)
     this.bytecode = null
     this.mount = null
-    this.timeline = null
     this.component = null
   }
 
@@ -57,22 +56,47 @@ class ProjectPreview extends React.Component {
   componentDidMount () {
     if (this.bytecode && this.mount) {
       try {
-        this.timeline = this.mountAndReturnHaikuComponent().getDefaultTimeline()
+        this.mountHaikuComponent()
       } catch (exception) {
         // noop. Probably caught a backward-incompatible change that doesn't work with the current version of Core.
       }
     }
   }
 
+  playAllTimelines () {
+    if (this.component) {
+      this.component.visitGuestHierarchy((component) => {
+        Object.values(component.getTimelines()).forEach((timeline) => {
+          timeline.unfreeze()
+          timeline.play()
+        })
+      })
+    }
+  }
+
+  pauseAllTimelines () {
+    if (this.component) {
+      this.component.visitGuestHierarchy((component) => {
+        Object.values(component.getTimelines()).forEach((timeline) => {
+          // Freezing is necessary to override host components' `playback` output from
+          // unsetting the paused value during updates, as well as to prevent timelines
+          // from expressions from updating as well
+          timeline.freeze()
+          timeline.pause()
+        })
+      })
+    }
+  }
+
   componentWillReceiveProps (nextProps) {
-    if (!this.timeline || this.props.playing === nextProps.playing) {
+    if (!this.component || this.props.playing === nextProps.playing) {
       return
     }
 
     if (nextProps.playing) {
-      this.timeline.play()
+      this.playAllTimelines()
     } else {
-      this.timeline.pause()
+      this.pauseAllTimelines()
     }
   }
 
@@ -88,7 +112,7 @@ class ProjectPreview extends React.Component {
     this.component.getClock().stop()
   }
 
-  mountAndReturnHaikuComponent () {
+  mountHaikuComponent () {
     const factory = HaikuDOMAdapter(this.bytecode)
 
     this.stopComponentClock() // Shuts down previous one prevent wasted CPU
@@ -106,7 +130,8 @@ class ProjectPreview extends React.Component {
       }
     )
 
-    return this.component
+    // For multi-components, nested timelines must explicitly be paused
+    this.pauseAllTimelines()
   }
 
   render () {

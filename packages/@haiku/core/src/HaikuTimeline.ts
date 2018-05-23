@@ -47,7 +47,7 @@ export default class HaikuTimeline extends HaikuBase {
     this._localExplicitlySetTime = null; // Only set this to a number if time is 'controlled'
     this._maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
 
-    this._isPlaying = false;
+    this._isPlaying = null;
   }
 
   private getMs(amount: number, unit: TimeUnit): number {
@@ -254,6 +254,15 @@ export default class HaikuTimeline extends HaikuBase {
    */
   isPlaying() {
     return !!this._isPlaying;
+  }
+
+  /**
+   * @method isExplicitlyPaused
+   * @description Returns T/F if the timeline has actually been paused; differentiate from
+   * the falsy state timelines have when first constructed.
+   */
+  isExplicitlyPaused() {
+    return this._isPlaying === false;
   }
 
   /**
