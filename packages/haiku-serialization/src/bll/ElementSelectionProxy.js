@@ -339,6 +339,9 @@ class ElementSelectionProxy extends BaseModel {
           transform: `matrix3d(${shimMatrix.join(',')})`,
           'origin.x': 0,
           'origin.y': 0,
+          style: {
+            pointerEvents: 'none'
+          },
           children: []
         }
       }]
