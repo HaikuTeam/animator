@@ -156,7 +156,7 @@ export const alwaysArray = (maybeArray: any): any[] => {
  * @returns {number}
  */
 export const alwaysAbsolute = (maybePercent: string|number, basis: number): number => {
-  if (typeof maybePercent === 'string' && /^\d*\.?\d+?%$/.test(maybePercent)) {
+  if (typeof maybePercent === 'string' && /^-?\d*\.?\d+?%$/.test(maybePercent)) {
     return parseFloat(maybePercent.replace('%', '')) * basis / 100;
   }
 

@@ -620,13 +620,13 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
         // Normalize the gradient in and out-points relative to the overall dimensions of the shape. Per the spec,
         // the default vector <x1, y1, x2, y2> is <0%, 0%, 100%, 0%> when any value is not explicitly provided.
         const [x1, x2] = [
-          initialValueOrNull(timeline, 'x1') || 0,
-          initialValueOrNull(timeline, 'x2') || width,
+          initialValueOr(timeline, 'x1', 0),
+          initialValueOr(timeline, 'x2', width),
         ].map((x) => alwaysAbsolute(x, width));
 
         const [y1, y2] = [
-          initialValueOrNull(timeline, 'y1') || 0,
-          initialValueOrNull(timeline, 'y2') || 0,
+          initialValueOr(timeline, 'y1', 0),
+          initialValueOr(timeline, 'y2', 0),
         ].map((y) => alwaysAbsolute(y, height));
 
         fill[TransformKey.GradientStart] = getFixedPropertyValue([x1, y1]);
