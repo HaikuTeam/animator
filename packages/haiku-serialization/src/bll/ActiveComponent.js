@@ -1365,16 +1365,22 @@ class ActiveComponent extends BaseModel {
     })
   }
 
-  deleteComponent (componentId, metadata, cb) {
+  deleteComponents (componentIds, metadata, cb) {
     return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
       this.project.updateHook(
-        'deleteComponent',
+        'deleteComponents',
         this.getRelpath(),
-        componentId,
+        componentIds,
         metadata,
         (fire) => {
           return this.performComponentWork((bytecode, mana, done) => {
-            this.deleteElementImpl(mana, componentId)
+            componentIds.forEach((componentId) => {
+              const element = this.findElementByComponentId(componentId)
+              if (element) {
+                element.remove(metadata)
+              }
+              this.deleteElementImpl(mana, componentId)
+            })
             done()
           }, (err) => {
             if (err) {
@@ -1702,35 +1708,35 @@ class ActiveComponent extends BaseModel {
   }
 
   /**
-   * @method pasteThing
+   * @method pasteThings
    * @description Flexibly paste some content into the component. Usually the thing pasted is going to be a
    * component, but this could theoretically handle any kind of 'pasteable' content.
-   * @param pasteable {Object} - Content of the thing to paste into the component.
-   * @param request {Object} - Optional object containing information about _how_ to paste, e.g. coords
+   * @param pasteablesSerial {Array.<{}>} - Content of the thing to paste into the component.
+   * @param options {{skipHashPadding: boolean}} - Optional object containing information about _how_ to paste
    * @param metadata {Object}
+   * @param cb {Function}
    */
-  pasteThing (pasteableSerial, options, metadata, cb) {
-    const pasteable = Bytecode.unserializeValue(pasteableSerial, (ref) => {
+  pasteThings (pasteablesSerial, options, metadata, cb) {
+    const pasteables = pasteablesSerial.map((pasteableSerial) => Bytecode.unserializeValue(pasteableSerial, (ref) => {
       return this.evaluateReference(ref)
-    })
+    }))
 
     return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
-      return this.project.updateHook('pasteThing', this.getRelpath(), Bytecode.serializeValue(pasteable), options, metadata, (fire) => {
+      return this.project.updateHook('pasteThings', this.getRelpath(), pasteablesSerial, options, metadata, (fire) => {
         return this.performComponentWork((bytecode, mana, done) => {
-          switch (pasteable.kind) {
-            case 'bytecode':
-              const haikuId = this.pasteBytecodeImpl(
-                bytecode,
-                pasteable.data,
-                options
-              )
-
-              return done(null, {haikuId})
-            default:
-              logger.warn(`[active component (${this.project.getAlias()})] cannot paste clipboard contents of kind ` + pasteable.kind)
-              return done(new Error('Unable to paste clipboard contents'))
-          }
-        }, (err, {haikuId}) => {
+          const haikuIds = []
+          pasteables.forEach((pasteable) => {
+            switch (pasteable.kind) {
+              case 'bytecode':
+                haikuIds.push(this.pasteBytecodeImpl(bytecode, pasteable.data, options))
+                break
+              default:
+                logger.warn(`[active component (${this.project.getAlias()})] cannot paste clipboard contents of kind ` + pasteable.kind)
+                break
+            }
+          })
+          return done(null, {haikuIds})
+        }, (err, {haikuIds}) => {
           if (err) {
             release()
             logger.error(`[active component (${this.project.getAlias()})]`, err)
@@ -1744,15 +1750,15 @@ class ActiveComponent extends BaseModel {
             }
           }, null, () => {
             release()
-            fire(null, {haikuId})
-            return cb(null, {haikuId})
+            fire(null, {haikuIds})
+            return cb(null, {haikuIds})
           })
         })
       })
     })
   }
 
-  pasteBytecodeImpl (ourBytecode, theirBytecode, {skipHashPadding}) {
+  pasteBytecodeImpl (ourBytecode, theirBytecode, {skipHashPadding = false}) {
     theirBytecode = Bytecode.clone(theirBytecode)
 
     if (!skipHashPadding) {

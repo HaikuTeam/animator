@@ -726,7 +726,7 @@ export class Glass extends React.Component {
     if (this.getActiveComponent()) {
       mixpanel.haikuTrack('creator:glass:delete-element')
       const proxy = this.fetchProxyElementForSelection()
-      proxy.remove()
+      proxy.remove(this.getActiveComponent().project.getMetadata())
     }
   }
 
@@ -1201,7 +1201,7 @@ export class Glass extends React.Component {
 
   duplicateSelectedElementsThenSelectDuplicates (cb) {
     const proxy = this.fetchProxyElementForSelection()
-    proxy.duplicateAllAndSelectDuplicates({from: 'glass'}, (err, proxyForDuplicates) => {
+    proxy.duplicateAllAndSelectDuplicates({from: 'glass'}, (err) => {
       if (err) return cb(err)
       return cb()
     })

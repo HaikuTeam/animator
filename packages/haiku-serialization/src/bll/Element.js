@@ -90,39 +90,56 @@ class Element extends BaseModel {
     return fn
   }
 
-  hoverOn (metadata) {
+  hoverOn (metadata, softly = false) {
     if (!this._isHovered || !Element.hovered[this.getPrimaryKey()]) {
       this.cacheClear()
       this._isHovered = true
       Element.hovered[this.getPrimaryKey()] = this
-      this.emit('update', 'element-hovered', metadata)
+      if (!softly) {
+        this.emit('update', 'element-hovered', metadata)
+      }
     }
     return this
   }
 
-  hoverOff (metadata) {
+  hoverOnSoftly (metadata) {
+    return this.hoverOn(metadata, true)
+  }
+
+  hoverOff (metadata, softly = false) {
     if (this._isHovered || Element.hovered[this.getPrimaryKey()]) {
       this.cacheClear()
       this._isHovered = false
       delete Element.hovered[this.getPrimaryKey()]
-      this.emit('update', 'element-unhovered', metadata)
+      if (!softly) {
+        this.emit('update', 'element-unhovered', metadata)
+      }
     }
+  }
+
+  hoverOffSoftly (metadata) {
+    return this.hoverOff(metadata, true)
   }
 
   isHovered () {
     return this._isHovered
   }
 
-  select (metadata) {
+  select (metadata, softly = false) {
     if (!this._isSelected || !Element.selected[this.getPrimaryKey()]) {
       this._isSelected = true
       Element.selected[this.getPrimaryKey()] = this
-      this.emit('update', 'element-selected', metadata)
 
-      // Roundabout! Note that rows, when selected, will select their corresponding element
-      const row = this.getHeadingRow()
-      if (row) {
-        row.expandAndSelect(metadata)
+      if (softly) {
+        this.emit('update', 'element-selected-softly', metadata)
+      } else {
+        this.emit('update', 'element-selected', metadata)
+
+        // Roundabout! Note that rows, when selected, will select their corresponding element
+        const row = this.getHeadingRow()
+        if (row) {
+          row.expandAndSelect(metadata)
+        }
       }
     }
   }
@@ -133,26 +150,27 @@ class Element extends BaseModel {
    * Mainly used for multi-selection in glass-only context.
    */
   selectSoftly (metadata) {
-    if (!this._isSelected || !Element.selected[this.getPrimaryKey()]) {
-      this._isSelected = true
-      Element.selected[this.getPrimaryKey()] = this
-      this.emit('update', 'element-selected-softly', metadata)
-    }
+    return this.select(metadata, true)
   }
 
-  unselect (metadata) {
+  unselect (metadata, softly = false) {
     if (this._isSelected || Element.selected[this.getPrimaryKey()]) {
       this._isSelected = false
       delete Element.selected[this.getPrimaryKey()]
-      this.emit('update', 'element-unselected', metadata)
+      if (softly) {
+        this.emit('update', 'element-unselected-softly', metadata)
+      } else {
+        this.emit('update', 'element-unselected', metadata)
+
+        // Roundabout! Note that rows, when deselected, will deselect their corresponding element
+        const row = this.getHeadingRow()
+        if (row && row.isSelected()) {
+          row.deselect(metadata)
+        }
+      }
+
       // #FIXME: this is a bit overzealous.
       ElementSelectionProxy.purge()
-
-      // Roundabout! Note that rows, when deselected, will deselect their corresponding element
-      const row = this.getHeadingRow()
-      if (row && row.isSelected()) {
-        row.deselect(metadata)
-      }
     }
   }
 
@@ -162,13 +180,7 @@ class Element extends BaseModel {
    * Mainly used for multi-selection in glass-only context.
    */
   unselectSoftly (metadata) {
-    if (this._isSelected || Element.selected[this.getPrimaryKey()]) {
-      this._isSelected = false
-      delete Element.selected[this.getPrimaryKey()]
-      this.emit('update', 'element-unselected-softly', metadata)
-      // #FIXME: this is a bit overzealous.
-      ElementSelectionProxy.purge()
-    }
+    return this.unselect(metadata, true)
   }
 
   getHeadingRow () {
@@ -198,13 +210,6 @@ class Element extends BaseModel {
 
   getCoreHostComponentInstance () {
     return this.component.$instance
-  }
-
-  cut () {
-    // Note that .copy() also calls .clip()
-    const clip = this.copy()
-    this.remove()
-    return clip
   }
 
   copy () {
@@ -696,15 +701,9 @@ class Element extends BaseModel {
     return propertyGroupValue
   }
 
-  remove () {
-    this.unselect(this.component.project.getMetadata())
-    this.hoverOff(this.component.project.getMetadata())
-
-    this.component.deleteComponent(
-      this.getComponentId(),
-      this.component.project.getMetadata(),
-      () => {}
-    )
+  remove (metadata) {
+    this.unselectSoftly(metadata)
+    this.hoverOffSoftly(metadata)
 
     // Destroy after the above so we retain our UID for the necessary actions
     this.destroy()
@@ -713,8 +712,6 @@ class Element extends BaseModel {
     if (row) {
       row.delete()
     }
-
-    this.emit('update', 'element-remove')
   }
 
   isRenderableType () {

@@ -455,35 +455,29 @@ ActionStack.METHOD_INVERTERS = {
     after: (ac, [modpath, coords], output) => {
       if (output) {
         return {
-          method: ac.deleteComponent.name,
-          params: [output.attributes['haiku-id']]
+          method: ac.deleteComponents.name,
+          params: [[output.attributes['haiku-id']]]
         }
       }
     }
   },
 
-  deleteComponent: {
-    before: (ac, [haikuId]) => {
-      const element = ac.findElementByComponentId(haikuId)
-      if (element) {
-        return {
-          method: ac.pasteThing.name,
-          params: [
-            element.clip(),
-            // Paste the content-as is; don't pad ids or our previous undoable
-            // references won't match the new content
-            {skipHashPadding: true}
-          ]
-        }
-      }
-    }
+  deleteComponents: {
+    before: (ac, [haikuIds]) => ({
+      method: ac.pasteThings.name,
+      params: [
+        haikuIds.map((haikuId) => ac.findElementByComponentId(haikuId)).filter((element) => !!element).map((element) => element.clip()),
+        // Paste the content-as is; don't pad ids or our previous undoable references won't match the new content
+        {skipHashPadding: true}
+      ]
+    })
   },
 
-  pasteThing: {
-    after: (ac, [pasteable, request], {haikuId}) => {
+  pasteThings: {
+    after: (ac, _, {haikuIds}) => {
       return {
-        method: ac.deleteComponent.name,
-        params: [haikuId]
+        method: ac.deleteComponents.name,
+        params: [haikuIds]
       }
     }
   },

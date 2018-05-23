@@ -66,7 +66,7 @@ tape('ActiveComponent.prototype.deleteComponent[1](design)', (t) => {
           t.error(err, 'no err reading file after inst')
           const lines = contents.split('\n')
           t.equal(lines[0],'var Haiku = require("@haiku/core");','haiku require is in place')
-          return ac0.deleteComponent(mana.attributes['haiku-id'], { from: 'test' }, (err) => {
+          return ac0.deleteComponents([mana.attributes['haiku-id']], { from: 'test' }, (err) => {
             t.error(err, 'no err deleting')
             t.equal(ac0.getReifiedBytecode().template.children.length,0,'correct number of children')
             return waitUntilFileProbablyWroteToDisk(() => {
@@ -244,7 +244,7 @@ tape('ActiveComponent.prototype.deleteComponent[2](component)', (t) => {
             t.equal(ac0.getReifiedBytecode().template.children.length,0)
             return ac0.instantiateComponent(`./${modpath}`, {}, { from: 'test' }, (err, mana) => {
               if (err) throw err
-              return ac0.deleteComponent(mana.attributes['haiku-id'], { from: 'test' }, (err) => {
+              return ac0.deleteComponents([mana.attributes['haiku-id']], { from: 'test' }, (err) => {
                 if (err) throw err
                 t.equal(ac0.getReifiedBytecode().template.children.length,0,'correct number of children')
                 return waitUntilFileProbablyWroteToDisk(() => {
@@ -284,11 +284,73 @@ tape('ActiveComponent.prototype.pasteThing[1]', (t) => {
         if (err) throw err
         const el1 = ac0.findElementByComponentId(mana.attributes['haiku-id'])
         const pasteable1 = el1.clip({from: 'test'})
-        return ac0.pasteThing(pasteable1, { x: 100, y: 100 }, { from: 'test' }, (err) => {
+        return ac0.pasteThings([pasteable1], {}, { from: 'test' }, (err) => {
           t.error(err, 'no err from paste')
           t.equal(ac0.getReifiedBytecode().template.children[1].attributes['haiku-id'],`${mana.attributes['haiku-id']}`)
           t.ok(ac0.getReifiedBytecode().timelines.Default[`haiku:${mana.attributes['haiku-id']}`])
           fse.removeSync(folder)
+        })
+      })
+    })
+  })
+})
+
+tape('ActiveComponent.prototype.pasteThing[1]', (t) => {
+  t.plan(3)
+  const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'paste-01')
+  fse.removeSync(folder)
+  const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
+  const platform = {}
+  const userconfig = {}
+  const fileOptions = { doWriteToDisk: true, skipDiffLogging: true }
+  const envoyOptions = { mock: true }
+  return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
+    return project.setCurrentActiveComponent('main', { from: 'test' }, (err) => {
+      if (err) throw err
+      fse.outputFileSync(path.join(folder, 'designs/Path.svg'), PATH_SVG_1)
+      const ac0 = project.getCurrentActiveComponent()
+      return ac0.instantiateComponent('designs/Path.svg', {}, { from: 'test' }, (err, mana) => {
+        if (err) throw err
+        const el1 = ac0.findElementByComponentId(mana.attributes['haiku-id'])
+        const pasteable1 = el1.clip({from: 'test'})
+        return ac0.pasteThings([pasteable1], {}, { from: 'test' }, (err) => {
+          t.error(err, 'no err from paste')
+          t.equal(ac0.getReifiedBytecode().template.children[1].attributes['haiku-id'],`${mana.attributes['haiku-id']}`)
+          t.ok(ac0.getReifiedBytecode().timelines.Default[`haiku:${mana.attributes['haiku-id']}`])
+          fse.removeSync(folder)
+        })
+      })
+    })
+  })
+})
+
+tape('ActiveComponent.prototype.pasteThing[2]', (t) => {
+  t.plan(2)
+  const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'paste-02')
+  fse.removeSync(folder)
+  const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
+  const platform = {}
+  const userconfig = {}
+  const fileOptions = { doWriteToDisk: true, skipDiffLogging: true }
+  const envoyOptions = { mock: true }
+  return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
+    return project.setCurrentActiveComponent('main', { from: 'test' }, (err) => {
+      if (err) throw err
+      fse.outputFileSync(path.join(folder, 'designs/Path.svg'), PATH_SVG_1)
+      const ac0 = project.getCurrentActiveComponent()
+      let el0, el1
+      return ac0.instantiateComponent('designs/Path.svg', {}, { from: 'test' }, (err, mana) => {
+        if (err) throw err
+        el0 = ac0.findElementByComponentId(mana.attributes['haiku-id'])
+        return ac0.instantiateComponent('designs/Path.svg', {}, { from: 'test' }, (err, mana) => {
+          if (err) throw err
+          el1 = ac0.findElementByComponentId(mana.attributes['haiku-id'])
+          const pasteables = [el0.clip({from: 'test'}), el1.clip({from: 'test'})]
+          return ac0.pasteThings(pasteables, {}, { from: 'test' }, (err) => {
+            t.error(err, 'no err from paste')
+            t.is(ac0.getReifiedBytecode().template.children.length, 4, 'elements were multipasted')
+            fse.removeSync(folder)
+          })
         })
       })
     })

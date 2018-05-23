@@ -1,4 +1,3 @@
-const async = require('async')
 const path = require('path')
 const logger = require('./../utils/LoggerInstance')
 const BaseModel = require('./BaseModel')
@@ -1148,20 +1147,18 @@ class ElementSelectionProxy extends BaseModel {
 
   pasteClipsAndSelect (clips, metadata, cb) {
     logger.info(`[element selection proxy] paste ${this.getComponentIds().join('|')}`)
-    const duplicates = []
-    return async.eachSeries(clips, (clip, next) => {
-      return this.component.pasteThing(clip, {}, metadata, (err, {haikuId}) => {
-        if (err) return next(err)
-        const duplicate = Element.findByComponentAndHaikuId(this.component, haikuId)
-        duplicates.push(duplicate)
-        return next()
-      })
-    }, (err) => {
+    this.component.pasteThings(clips, {}, metadata, (err, {haikuIds}) => {
       if (err) return cb(err)
       Element.unselectAllElements({component: this.component}, metadata)
-      duplicates.forEach((duplicate) => { duplicate.selectSoftly(metadata) })
-      const proxy = ElementSelectionProxy.fromSelection(duplicates, {component: this.component})
-      return cb(null, proxy)
+      console.log(haikuIds)
+      haikuIds.map(
+        (haikuId) => this.component.findElementByComponentId(haikuId)
+      ).forEach((element) => {
+        if (element) {
+          element.selectSoftly(metadata)
+        }
+      })
+      return cb(null)
     })
   }
 
@@ -1178,11 +1175,12 @@ class ElementSelectionProxy extends BaseModel {
     this.selection.forEach((element) => {
       // Don't allow the artboard to be cut
       if (!element.isRootElement()) {
-        pasteables.push(element.cut(metadata))
+        pasteables.push(element.copy())
       }
     })
 
     ElementSelectionProxy.trackPasteables(pasteables)
+    this.remove(metadata)
   }
 
   copy (metadata) {
@@ -1203,12 +1201,17 @@ class ElementSelectionProxy extends BaseModel {
   remove (metadata) {
     logger.info(`[element selection proxy] remove ${this.getComponentIds().join('|')}`)
 
-    this.selection.forEach((element) => {
-      // Don't allow the artboard to be deleted
-      if (!element.isRootElement()) {
-        element.remove(metadata)
-      }
-    })
+    const componentIdsToRemove = this.selection.filter(
+      (element) => !element.isRootElement()
+    ).map(
+      (element) => element.getComponentId()
+    )
+
+    this.component.deleteComponents(
+      componentIdsToRemove,
+      metadata,
+      () => {}
+    )
   }
 
   getComponentIds () {
