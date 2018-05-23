@@ -17,6 +17,7 @@ const logger = require('./../utils/LoggerInstance')
 const toTitleCase = require('./helpers/toTitleCase')
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 const Lock = require('./Lock')
+const SustainedWarningChecker = require('@haiku/core/lib/helpers/SustainedWarningChecker').default
 
 const KEYFRAME_MOVE_DEBOUNCE_TIME = 100
 const DEFAULT_SCENE_NAME = 'main' // e.g. code/main/*
@@ -2248,6 +2249,10 @@ class ActiveComponent extends BaseModel {
 
       const timelineTime = this.getCurrentTimelineTime()
       this.$instance = this.createInstance(bytecode, instanceConfig)
+
+      // Sustained warnings checker (eg. injected function identifier not found, etc)
+      this.sustainedWarningsChecker = new SustainedWarningChecker(this.$instance)
+
       this.setTimelineTimeValue(timelineTime, /* forceSeek= */true)
 
       return cb()

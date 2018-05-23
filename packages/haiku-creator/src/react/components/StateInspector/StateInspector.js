@@ -157,6 +157,22 @@ class StateInspector extends React.Component {
           })
         }
 
+        // Check all sustained warnings (including identifier not found)
+        const sustainedWarningsChecker = this.props.projectModel.getCurrentActiveComponent().sustainedWarningsChecker
+        sustainedWarningsChecker.checkAndGetAllSustainedWarnings()
+
+        // Check if deleted stateName is missing in any expression
+        const isIdentifierMissing = sustainedWarningsChecker.isIdentifierMissing(stateName)
+
+        // If deleted state is now missing, display on toast
+        if (isIdentifierMissing) {
+          this.props.createNotice({
+            title: 'Uh oh',
+            type: 'warning',
+            message: 'Deleted state ' + stateName + ' was in use'
+          })
+        }
+
         const statesData = this.state.statesData
         delete statesData[stateName]
         this.setState({
