@@ -3672,7 +3672,7 @@ class ActiveComponent extends BaseModel {
           undefined
         )
 
-        Template.visitManaTree(node, (elementName, attributes, children) => {
+        Template.visitManaTree(node, (elementName, attributes, children, componentMana) => {
           // Resolve and destroy the special haiku-transclude here. This special property provides an outlet for the
           // original component's children, so that we don't need to recalculate layouts and properties for every
           // subelement.
@@ -3680,6 +3680,11 @@ class ActiveComponent extends BaseModel {
             const originalComponent = this.getTemplateNodesByComponentId()[attributes['haiku-transclude']]
             if (originalComponent) {
               children.push(...originalComponent.children)
+              // If we are looking at a proper subcomponent, reassign the elementName to its transcluded bytecode.
+              if (elementName === '__component__') {
+                componentMana.elementName = originalComponent.elementName
+                attributes['haiku-var'] = originalComponent.attributes['haiku-var']
+              }
             }
             delete attributes['haiku-transclude']
           }

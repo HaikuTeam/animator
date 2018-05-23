@@ -1647,10 +1647,11 @@ class Element extends BaseModel {
       attributes['translation.x'] += originX * layoutMatrix[0] + originY * layoutMatrix[4]
       attributes['translation.y'] += originX * layoutMatrix[1] + originY * layoutMatrix[5]
       nodes.push({
-        elementName: haikuElement.tagName,
+        // Important: ensure we can serialize the node mana if we encounter a component.
+        // #FIXME: Why isn't haikuElement.isComponent() correct, and why is the component pseudo tag name 'div'?
+        elementName: typeof haikuElement.type !== 'string' ? '__component__' : haikuElement.tagName,
         attributes,
         children: []
-        // originalComponentId: haikuElement.getComponentId()
       })
     })
   }
