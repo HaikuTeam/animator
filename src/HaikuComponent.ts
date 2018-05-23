@@ -1452,7 +1452,10 @@ function expandTreeNode(
         ...options,
       });
 
-      node.__subcomponent.startTimeline(DEFAULT_TIMELINE_NAME);
+      // Don't re-start any nested timelines that have been explicitly paused
+      if (!node.__subcomponent.getDefaultTimeline().isExplicitlyPaused()) {
+        node.__subcomponent.startTimeline(DEFAULT_TIMELINE_NAME);
+      }
     }
 
     if (subtree) {
