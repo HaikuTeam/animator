@@ -561,43 +561,50 @@ class Project extends BaseModel {
   }
 
   setCurrentActiveComponent (scenename, metadata, cb) {
-    this.addActiveComponentToMultiComponentTabs(scenename, true)
+    return Lock.request(Lock.LOCKS.SetCurrentActiveCompnent, null, (release) => {
+      this.addActiveComponentToMultiComponentTabs(scenename, true)
 
-    const activateComponentContinuation = () => {
-      this._multiComponentTabs.forEach((tab) => {
-        // Deactivate all other components held in memory
-        if (tab.scenename !== scenename) {
-          tab.active = false
-        } else {
-          tab.active = true
-        }
-      })
-
-      return Lock.awaitFree([
-        Lock.LOCKS.ActiveComponentWork,
-        Lock.LOCKS.ActiveComponentReload,
-        Lock.LOCKS.FilePerformComponentWork,
-        Lock.LOCKS.ActionStackUndoRedo
-      ], () => {
-        this._activeComponentSceneName = scenename
-
-        this.updateHook('setCurrentActiveComponent', scenename, metadata || this.getMetadata(), (fire) => {
-          const ac = this.findActiveComponentBySceneName(scenename)
-          fire()
-          return cb(null, ac)
+      const activateComponentContinuation = () => {
+        this._multiComponentTabs.forEach((tab) => {
+          // Deactivate all other components held in memory
+          if (tab.scenename !== scenename) {
+            tab.active = false
+          } else {
+            tab.active = true
+          }
         })
-      })
-    }
 
-    // If not in read only mode, create the component entity for the scene in question
-    if (!this.findActiveComponentBySceneName(scenename)) {
-      return this.upsertSceneByName(scenename, (err) => {
-        if (err) return cb(err)
-        return activateComponentContinuation()
-      })
-    }
+        return Lock.awaitFree([
+          Lock.LOCKS.ActiveComponentWork,
+          Lock.LOCKS.ActiveComponentReload,
+          Lock.LOCKS.FilePerformComponentWork,
+          Lock.LOCKS.ActionStackUndoRedo
+        ], () => {
+          this._activeComponentSceneName = scenename
 
-    return activateComponentContinuation()
+          this.updateHook('setCurrentActiveComponent', scenename, metadata || this.getMetadata(), (fire) => {
+            const ac = this.findActiveComponentBySceneName(scenename)
+            fire()
+            release()
+            return cb(null, ac)
+          })
+        })
+      }
+
+      // If not in read only mode, create the component entity for the scene in question
+      if (!this.findActiveComponentBySceneName(scenename)) {
+        return this.upsertSceneByName(scenename, (err) => {
+          if (err) {
+            release()
+            return cb(err)
+          }
+
+          return activateComponentContinuation()
+        })
+      }
+
+      return activateComponentContinuation()
+    })
   }
 
   closeNamedActiveComponent (scenename, metadata, cb) {
