@@ -1138,19 +1138,24 @@ export default class Creator extends React.Component {
 
     // Check sustained warnings.
     this.getActiveComponent().on('sustained-check:start', () => {
+      const activeComponent = this.getActiveComponent()
+
+      // If activeComponent is null, delete any identifiersNotFound notice and skip it
+      if (!activeComponent) {
+        this.deleteIdentifierNotFoundNotice()
+        return
+      }
+
       // Check sustained warnings
-      this.getActiveComponent().checkSustainedWarnings()
+      activeComponent.checkSustainedWarnings()
 
       // Get current indenfiers not found
-      const currentIdentifiersNotFound = this.getActiveComponent().sustainedWarningsChecker.notFoundIdentifiers
+      const currentIdentifiersNotFound = activeComponent.sustainedWarningsChecker.notFoundIdentifiers
 
       // If changed, delete current notice and display a new notice if num identifier not found > 0
       if (!lodash.isEqual(currentIdentifiersNotFound, this.identifiersNotFound)) {
         // Delete old notice
-        if (this.identifiersNotFoundNotice) {
-          this.removeNotice(undefined, this.identifiersNotFoundNotice.id)
-          this.identifiersNotFoundNotice = undefined
-        }
+        this.deleteIdentifierNotFoundNotice()
 
         // Create new notice if has any not found indentifier
         if (currentIdentifiersNotFound.length > 0) {
@@ -1405,6 +1410,9 @@ export default class Creator extends React.Component {
   }
 
   teardownMaster ({shouldFinishTour, launchingProject = false}, cb) {
+    // Delete identifier not found notice on teardown
+    this.deleteIdentifierNotFoundNotice()
+
     // We teardownMaster FIRST because we want to close the websocket connections before
     // destroying the webviews, which leads to EPIPE/"not opened" crashes.
     // Previously we were relying on dropped connections to deallocate websockets,
@@ -1446,6 +1454,13 @@ export default class Creator extends React.Component {
         }
       }
     )
+  }
+
+  deleteIdentifierNotFoundNotice () {
+    if (this.identifiersNotFoundNotice) {
+      this.removeNotice(undefined, this.identifiersNotFoundNotice.id)
+      this.identifiersNotFoundNotice = undefined
+    }
   }
 
   renderStartupDefaultScreen () {
