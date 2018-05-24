@@ -1,3 +1,5 @@
+import {CurveDefinition} from './Curve';
+
 /**
  * @file Type definition for Haiku bytecode.
  */
@@ -22,6 +24,7 @@ export type BytecodeSummonable = ((param: any) => BytecodeStateType);
  * All possible types for timeline property value
  */ 
 export type BytecodeInjectable = BytecodeStateType|BytecodeSummonable;
+
 
 /**
  * Haiku bytecode element tree. eg. <div><svg>...</svg></div>.
@@ -54,6 +57,7 @@ export type BytecodeState = {
   value: BytecodeStateType;
   type?: string;
   access?: string;
+  edited?: boolean;
   getter?: () => BytecodeStateType;
   setter?: (param: BytecodeStateType) => void;
 };
@@ -69,7 +73,7 @@ export type BytecodeStates = {
  * Haiku bytecode function `handler` for an specific `eventSelectors`. 
  */
 export type BytecodeEventHandler = {
-  [eventSelectors: string]: {handler: (param: any) => any};
+  [eventSelectors: string]: {handler: (target?: any, event?: any) => void};
 };
 
 /**
@@ -85,7 +89,7 @@ export type BytecodeEventHandlers = {
 export type BytecodeTimelineValue = {
   value: BytecodeInjectable;
   edited?: boolean;
-  curve?: any;
+  curve?: CurveDefinition;
 };
 
 

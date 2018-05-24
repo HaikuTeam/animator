@@ -18,8 +18,8 @@ const VERSION = pkg.version;
  */
 // tslint:disable:variable-name
 export default class HaikuContext extends HaikuBase {
-  clock;
-  component;
+  clock: HaikuClock;
+  component: HaikuComponent;
   config;
   container;
   CORE_VERSION;
@@ -140,7 +140,7 @@ export default class HaikuContext extends HaikuBase {
    * @method getClock
    * @description Returns the HaikuClock instance associated with this context.
    */
-  getClock() {
+  getClock(): HaikuClock {
     return this.clock;
   }
 
@@ -296,6 +296,10 @@ export default class HaikuContext extends HaikuBase {
     // Only continue ticking and updating if our root component is still activated and awake;
     // this is mainly a hacky internal hook used during hot editing inside Haiku Desktop
     if (!this.component.isDeactivated && !this.component.isSleeping) {
+
+      // Execute state transitions on component tree
+      this.component.visitGuestHierarchy((component) => component.tickStateTransitions());
+
       // After we've hydrated the tree the first time, we can proceed with patches --
       // unless the component indicates it wants a full flush per its internal settings.
       if (this.component.shouldPerformFullFlush() || this.config.forceFlush || this.ticks < 1) {
