@@ -479,15 +479,13 @@ class ElementSelectionProxy extends BaseModel {
       rotation: {
         x: 0,
         y: 0,
-        z: this.computePropertyValue('rotation.z'),
-        w: 0
+        z: this.computePropertyValue('rotation.z')
       },
       scale: {
         x: this.computePropertyValue('scale.x'),
         y: this.computePropertyValue('scale.y'),
         z: 1
       },
-      orientation: {x: 0, y: 0, z: 0, w: 0},
       sizeMode: {x: 1, y: 1, z: 1},
       sizeProportional: {x: 1, y: 1, z: 1},
       sizeDifferential: {x: 0, y: 0, z: 0},

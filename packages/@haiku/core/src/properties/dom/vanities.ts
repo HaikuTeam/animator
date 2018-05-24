@@ -45,9 +45,6 @@ export const LAYOUT_3D_VANITIES = {
   'rotation.z': (name, element, value) => {
     element.layout.rotation.z = value;
   },
-  'rotation.w': (name, element, value) => {
-    element.layout.rotation.w = value;
-  },
 
   // If you really want to set what we call 'position' then
   // we do so on the element's attributes; this is mainly to

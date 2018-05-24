@@ -36,7 +36,6 @@ const LAYOUT_3D_FALLBACKS = {
   'rotation.x': LAYOUT_DEFAULTS.rotation.x,
   'rotation.y': LAYOUT_DEFAULTS.rotation.y,
   'rotation.z': LAYOUT_DEFAULTS.rotation.z,
-  'rotation.w': LAYOUT_DEFAULTS.rotation.w,
   'scale.x': LAYOUT_DEFAULTS.scale.x,
   'scale.y': LAYOUT_DEFAULTS.scale.y,
   'scale.z': LAYOUT_DEFAULTS.scale.z,

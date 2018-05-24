@@ -106,8 +106,7 @@ const createLayoutSpec = (createCoordinateSystem?: boolean): LayoutSpec => ({
   align: {x: 0, y: 0, z: 0}, // anchor in context
   origin: createCoordinateSystem ? {x: 0.5, y: 0.5, z: 0.5} : {x: 0, y: 0, z: 0}, // transform origin
   translation: {x: 0, y: 0, z: 0},
-  rotation: {x: 0, y: 0, z: 0, w: 0},
-  orientation: {x: 0, y: 0, z: 0, w: 0},
+  rotation: {x: 0, y: 0, z: 0},
   scale: {x: 1, y: 1, z: 1},
   shear: {xy: 0, xz: 0, yz: 0},
   sizeMode: {
