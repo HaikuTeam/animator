@@ -1220,8 +1220,8 @@ export class Glass extends React.Component {
                         break
                       }
                       case 'path': {
-                        
-                        const beziers = geometryUtils.BezierPath.fromSVGPoints(SVGPoints.pathToPoints(Element.directlySelected.attributes.d))
+                        const points = SVGPoints.pathToPoints(Element.directlySelected.attributes.d)
+                        const beziers = geometryUtils.BezierPath.fromSVGPoints(points)
                         const approximationResolution = 10
                         
                         // Find the smallest distance
@@ -1246,15 +1246,15 @@ export class Glass extends React.Component {
                         if(min > geometryUtils.LINE_SELECTION_THRESHOLD) break
                         
                         // Calculate t value and surrounding points, and split
-                        const t = Math.floor(minIdx / approximationResolution) % approximationResolution / approximationResolution
-                        beziers[minBezIdx].splitSegment(Math.floor(minIdx / approximationResolution), Math.ceil(minIdx / approximationResolution), t)
+                        const t = minIdx % approximationResolution / approximationResolution;
+                        console.log(t)
                         
                         this.getActiveComponent().updateKeyframes({
                           [this.getActiveComponent().getCurrentTimelineName()]: {
                             [Element.directlySelected.attributes['haiku-id']]: {
                               d: {
                                 0: {
-                                  value: SVGPoints.pointsToPath(geometryUtils.BezierPath.toSVGPoints(beziers))
+                                  value: SVGPoints.pointsToPath(geometryUtils.splitSegmentInSVGPoints(points, Math.floor(minIdx / approximationResolution), Math.ceil(minIdx / approximationResolution), t))
                                 }
                               }
                             }

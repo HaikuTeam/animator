@@ -57,6 +57,36 @@ export const bezierCubic = (a: vec2, h1: vec2, h2: vec2, b: vec2, t: number): ve
 	};
 }
 
+export const splitSegmentInSVGPoints = (points: SVGPoint[], pt1Index: number, pt2Index: number, t: number): SVGPoint[] => {
+  const newPts = cubicBezierSplit(
+    t,
+    points[pt1Index],
+    {x: points[pt2Index].curve.x1, y: points[pt2Index].curve.y1},
+    {x: points[pt2Index].curve.x2, y: points[pt2Index].curve.y2},
+    points[pt2Index]
+  );
+  
+  points[pt2Index].curve.x1 = newPts[1][1].x;
+  points[pt2Index].curve.y1 = newPts[1][1].y;
+  points[pt2Index].curve.x2 = newPts[1][2].x;
+  points[pt2Index].curve.y2 = newPts[1][2].y;
+  
+  const newPoint = {
+    x: newPts[0][3].x,
+    y: newPts[0][3].y,
+    curve: {
+      type: 'cubic',
+      x1: newPts[0][1].x,
+      y1: newPts[0][1].y,
+      x2: newPts[0][2].x,
+      y2: newPts[0][2].y,
+    }
+  };
+  
+  points.splice(pt2Index, 0, newPoint);
+  return points;
+}
+
 export class BezierPath {
   points: BezierPoint[] = [];
   closed: boolean = false;
@@ -80,25 +110,7 @@ export class BezierPath {
     return out;
   }
   
-  splitSegment(pt1Index: number, pt2Index: number, t: number) {
-    const newPts = cubicBezierSplit(
-      t,
-      this.points[pt1Index].anchor,
-      this.points[pt1Index].h2,
-      this.points[pt2Index].h1,
-      this.points[pt2Index].anchor
-    );
-    
-    this.points[pt1Index].h2 = newPts[0][1];
-    this.points[pt2Index].h1 = newPts[1][2];
-    
-    const newPt = new BezierPoint();
-    newPt.anchor = newPts[0][3];
-    newPt.h1 = newPts[0][2];
-    newPt.h2 = newPts[1][1];
-    
-    this.points.splice(pt2Index, 0, newPt);
-  }
+  
   
   static fromSVGPoints(points: SVGPoint[]): BezierPath[] {
     const paths = []
@@ -110,7 +122,7 @@ export class BezierPath {
       if(!curPath) curPath = new BezierPath()
       
       const newPoint = new BezierPoint()
-      newPoint.anchor = points[i]
+      newPoint.anchor = {x: points[i].x, y: points[i].y}
       if(i < points.length-1 && points[i+1].curve) {
         newPoint.h2 = {x: points[i+1].curve.x1, y: points[i+1].curve.y1}
       } else {
@@ -319,10 +331,10 @@ export const isPointInsidePrimitive = (element: HaikuElement, point: vec2): bool
 
 const mat4_multiply_vec4 = (m: number[], v: vec4): vec4 => {
   return {
-    x: v.x*m[0] + v.x*m[1] + v.x*m[2] + v.x*m[3],
-    y: v.y*m[4] + v.y*m[5] + v.y*m[6] + v.y*m[7],
-    z: v.z*m[8] + v.z*m[9] + v.z*m[10] + v.z*m[11],
-    w: v.w*m[12] + v.w*m[13] + v.w*m[14] + v.w*m[15]
+    x: v.x*m[0]  + v.y*m[1]  + v.z*m[2]  + v.w*m[3],
+    y: v.x*m[4]  + v.y*m[5]  + v.z*m[6]  + v.w*m[7],
+    z: v.x*m[8]  + v.y*m[9]  + v.z*m[10] + v.w*m[11],
+    w: v.x*m[12] + v.y*m[13] + v.z*m[14] + v.w*m[15]
   };
 }
 
@@ -331,17 +343,17 @@ export const cubicBezierSplit = (t: number, anchor1: vec2, handle1: vec2, handle
   const cubicSegmentMatrix1 = [
     1,                 0,                    0,             0,
     -(t-1),            t,                    0,             0,
-    Math.pow(t-1, 2)   -2*t*(t-1),           t*t,           0,
+    Math.pow(t-1, 2),  -2*t*(t-1),           t*t,           0,
     -Math.pow(t-1, 3), 3*t*Math.pow(t-1, 2), -3*t*t*(t-1),  t*t*t
   ];
   const x1 = mat4_multiply_vec4(cubicSegmentMatrix1, {x: anchor1.x, y: handle1.x, z: handle2.x, w: anchor2.x});
   const y1 = mat4_multiply_vec4(cubicSegmentMatrix1, {x: anchor1.y, y: handle1.y, z: handle2.y, w: anchor2.y});
   
   const cubicSegmentMatrix2 = [
-    -Math.pow(t-1, 3), 3*t*Math.pow(t-1, 2), -3*t*t*Math.pow(t-1, 3), t*t*t,
-    0,                 Math.pow(t-1, 2),     -2*t*(t-1),              t*t,
-    0,                 0,                    -(t-1),                  t,
-    0,                 0,                    0,                       1
+    -Math.pow(t-1, 3), 3*t*Math.pow(t-1, 2), -3*t*t*(t-1),  t*t*t,
+    0,                 Math.pow(t-1, 2),     -2*t*(t-1),    t*t,
+    0,                 0,                    -(t-1),        t,
+    0,                 0,                    0,             1
   ];
   const x2 = mat4_multiply_vec4(cubicSegmentMatrix2, {x: anchor1.x, y: handle1.x, z: handle2.x, w: anchor2.x});
   const y2 = mat4_multiply_vec4(cubicSegmentMatrix2, {x: anchor1.y, y: handle1.y, z: handle2.y, w: anchor2.y});
@@ -352,4 +364,4 @@ export const cubicBezierSplit = (t: number, anchor1: vec2, handle1: vec2, handle
   ];
 };
 
-export default { isPointInsidePrimitive, distance, transform2DPoint, closestNormalPointOnLineSegment, LINE_SELECTION_THRESHOLD, BezierPath };
+export default { isPointInsidePrimitive, distance, transform2DPoint, closestNormalPointOnLineSegment, LINE_SELECTION_THRESHOLD, BezierPath, splitSegmentInSVGPoints };
