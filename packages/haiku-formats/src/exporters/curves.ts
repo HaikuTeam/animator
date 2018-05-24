@@ -139,19 +139,11 @@ export const splitBezierForTimelinePropertyAtKeyframe = (
   const nextKeyframe = Math.min(...allKeyframes.filter((k) => k > keyframe));
 
   // Return early if we don't have a next keyframe to animate to.
-  if (nextKeyframe === Infinity) {
-    // There is no next keyframe! Just animate to the current value.
+  if (nextKeyframe === Infinity || previousKeyframe === -Infinity) {
+    // There is no basis keyframe! Just animate to/from the current value.
     timelineProperty[keyframe] = {
-      value: timelineProperty[previousKeyframe].value,
-      curve: Curve.Linear,
-    };
-    return;
-  }
-
-  if (previousKeyframe === -Infinity) {
-    // There is no previous keyframe (which might happen if there is no zeroeth keyframe for some reason).
-    timelineProperty[keyframe] = {
-      value: timelineProperty[Math.min(...allKeyframes)].value,
+      // #FIXME: 1 isn't always the correct fallback for properties that might not have a keyframe at 0.
+      value: (timelineProperty[previousKeyframe] && timelineProperty[previousKeyframe].value) || 1,
       curve: Curve.Linear,
     };
     return;
