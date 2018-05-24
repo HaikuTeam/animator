@@ -594,9 +594,8 @@ class ElementSelectionProxy extends BaseModel {
 
   reset () {
     const layout = this.getComputedLayout()
-    // TODO: support negative scale.
-    this.applyPropertyValue('sizeAbsolute.x', layout.size.x * layout.scale.x)
-    this.applyPropertyValue('sizeAbsolute.y', layout.size.y * layout.scale.y)
+    this.applyPropertyValue('sizeAbsolute.x', Math.abs(layout.size.x * layout.scale.x))
+    this.applyPropertyValue('sizeAbsolute.y', Math.abs(layout.size.y * layout.scale.y))
     this.applyPropertyValue('scale.x', 1)
     this.applyPropertyValue('scale.y', 1)
   }
