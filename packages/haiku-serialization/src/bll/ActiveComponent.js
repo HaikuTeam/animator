@@ -2089,8 +2089,10 @@ class ActiveComponent extends BaseModel {
   reload (reloadOptions, instanceConfig, cb) {
     const runReload = (done) => {
       if (reloadOptions.hardReload) {
+        console.log('HardReload on ',this.project.getAlias())
         return this.hardReload(reloadOptions, instanceConfig, done)
       } else {
+        console.log('SoftReload on ',this.project.getAlias())
         return this.softReload(reloadOptions, instanceConfig, done)
       }
     }
@@ -2797,6 +2799,7 @@ class ActiveComponent extends BaseModel {
   }
 
   handleUpdatedBytecode (bytecode) {
+    console.log('*************Handle updated bytecode', bytecode, this.project.getAlias())
     Bytecode.cleanBytecode(bytecode)
     Template.cleanTemplate(bytecode.template)
     const file = this.fetchActiveBytecodeFile()
@@ -2806,6 +2809,7 @@ class ActiveComponent extends BaseModel {
   }
 
   maybeRequestAsyncContentFlush () {
+    console.log('maybeRequestAsyncContentFlush', this.project.getAlias())
     const file = this.fetchActiveBytecodeFile()
     if (file.options.doWriteToDisk) {
       file.requestAsyncContentFlush()

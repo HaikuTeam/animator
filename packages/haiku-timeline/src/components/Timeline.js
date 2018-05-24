@@ -808,6 +808,7 @@ class Timeline extends React.Component {
   }
 
   handleUndo () {
+    console.log('HANDLE_UNDO_GLASS')
     if (this.project) {
       Keyframe.deselectAndDeactivateAllKeyframes({component: this.getActiveComponent()})
       this.project.undo({}, {from: 'timeline'}, () => {})
@@ -815,6 +816,7 @@ class Timeline extends React.Component {
   }
 
   handleRedo () {
+    console.log('HANDLE_REDO_GLASS')
     if (this.project) {
       Keyframe.deselectAndDeactivateAllKeyframes({component: this.getActiveComponent()})
       this.project.redo({}, {from: 'timeline'}, () => {})

@@ -4,9 +4,11 @@ import assign from 'lodash.assign'
 import path from 'path'
 import StageTitleBar from './StageTitleBar'
 import ComponentMenu from './ComponentMenu/ComponentMenu'
+import CodeEditor from './CodeEditor/CodeEditor'
 import Palette from 'haiku-ui-common/lib/Palette'
-import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
-import { TOUR_CHANNEL } from 'haiku-sdk-creator/lib/tour'
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
+import {TOUR_CHANNEL} from 'haiku-sdk-creator/lib/tour'
+import {BTN_STYLES} from '../styles/btnShared'
 
 const STAGE_BOX_STYLE = {
   overflow: 'hidden',
@@ -27,9 +29,14 @@ export default class Stage extends React.Component {
     super(props)
     this.webview = null
     this.onRequestWebviewCoordinates = this.onRequestWebviewCoordinates.bind(this)
+    this.state = {
+      componentFileContents: '',
+    }
+    this.currentEditorContents = '';
   }
 
   componentDidMount () {
+    console.log('State did mount')
     this.injectWebview()
 
     const tourChannel = this.props.envoyClient.get(TOUR_CHANNEL)
@@ -40,11 +47,29 @@ export default class Stage extends React.Component {
         this.tourClient.on('tour:requestWebviewCoordinates', this.onRequestWebviewCoordinates)
       })
     }
+
   }
 
   componentWillUnmount () {
     if (this.tourClient) {
       this.tourClient.off('tour:requestWebviewCoordinates', this.onRequestWebviewCoordinates)
+    }
+  }
+
+  componentWillMount () {
+    console.log('componentWillMount')
+    if (this.props.projectModel) {
+      this.props.projectModel.on('update', (what, ...args) => {
+  
+        console.log('RECEIVED what:', what);
+        switch (what) {
+          case 'reloaded':
+            const content = this.props.projectModel.getCurrentActiveComponent().fetchActiveBytecodeFile().getCode();
+            console.log('RELOADED content',{content:content})
+            this.setState({componentFileContents: content})
+          break;
+        }
+      })
     }
   }
 
@@ -159,10 +184,38 @@ export default class Stage extends React.Component {
     }
   }
 
+  onMonacoEditorChange = (newContent, e) => {
+    this.currentEditorContents = newContent;
+  }
+
+  saveCodeFromEditorToDisk = () => {
+    const currentEditorContents = this.currentEditorContents;
+    console.log('currentEditorContents:',{currentEditorContents: currentEditorContents})
+    this.props.projectModel.getCurrentActiveComponent().fetchActiveBytecodeFile().flushContentFromString(currentEditorContents)
+  }
+
   render () {
     const interactionModeColor = this.props.isPreviewMode
       ? Palette.LIGHTEST_PINK
       : Palette.STAGE_GRAY
+
+
+    const designVisible = this.props.showGlass;
+    const codeVisible = !this.props.showGlass;
+
+    const monacoOptions = {
+      language: 'javascript',
+      lineNumbers: 'on',
+      links: false,
+      theme: 'haiku',
+      minimap: {enabled: false},
+      autoIndent: true,
+      contextmenu: false,
+      codeLens: false,
+      parameterHints: false,
+      cursorBlinking: 'blink',
+      scrollBeyondLastLine: false
+    }
 
     return (
       <div className='layout-box'
@@ -189,6 +242,8 @@ export default class Stage extends React.Component {
             isTimelineReady={this.props.isTimelineReady}
             envoyClient={this.props.envoyClient}
             onProjectPublicChange={this.props.onProjectPublicChange}
+            onSwitchToCodeMode={this.props.onSwitchToCodeMode}
+            onSwitchToDesignMode={this.props.onSwitchToDesignMode}
           />
           {(experimentIsEnabled(Experiment.MultiComponentFeatures))
             ? <ComponentMenu
@@ -206,13 +261,67 @@ export default class Stage extends React.Component {
               top: STAGE_MOUNT_HEIGHT_OFFSET,
               left: 3,
               backgroundColor: Palette.STAGE_GRAY,
-              outline: '2px solid ' + interactionModeColor
-            }} />
+              outline: '2px solid ' + interactionModeColor,
+              visibility: designVisible ? 'visible' : 'hidden',
+            }}>
+            </div>
+
+            <div
+            id='editor-mount'
+            style={{
+              position: 'absolute',
+              width: 'calc(100% - 5px)',
+              height: `calc(100% - ${STAGE_MOUNT_HEIGHT_OFFSET + 3}px)`,
+              top: STAGE_MOUNT_HEIGHT_OFFSET,
+              left: 3,
+              backgroundColor: Palette.STAGE_GRAY,
+              outline: '2px solid ' + interactionModeColor,
+              visibility: codeVisible ? 'visible' : 'hidden',
+            }}>
+            <div style={{
+                  width: '100%',
+                  height: '100%',
+                  top:`${STAGE_MOUNT_HEIGHT_OFFSET + 3}px`
+                }}>
+            <button
+                key='save-button'
+                id='save-button'
+                onClick={this.saveCodeFromEditorToDisk}
+                style={{
+                    ...BTN_STYLES.btnText,
+                    backgroundColor: Palette.LIGHTEST_GRAY,
+                    position: 'absolute',
+                    zIndex: 2,
+                    right: '20px',
+                    top: '3px',
+                    padding: '2px 5px'
+                }}
+              >
+                <span style={{marginLeft: 7}}>SAVE</span>
+              </button>
+              <CodeEditor 
+                language='javascript'
+                value={this.state.componentFileContents}
+                options={monacoOptions}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  top:`${STAGE_MOUNT_HEIGHT_OFFSET + 3}px`
+                }}
+                onChange={this.onMonacoEditorChange}
+                projectModel={this.props.projectModel}/>
+              </div>
+            </div>
+
         </div>
       </div>
     )
   }
 }
+
+
+
+
 
 Stage.propTypes = {
   folder: React.PropTypes.string.isRequired,

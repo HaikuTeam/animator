@@ -139,6 +139,7 @@ class ModuleWrapper extends BaseModel {
   load () {
     overrideModulesLoaded(
       (stop) => {
+        console.log('************************ loading', this.getAbspath())
         this.isolatedClearCache()
         this.exp = require(this.getAbspath())
         this._hasLoadedAtLeastOnce = true

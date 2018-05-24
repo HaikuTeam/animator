@@ -125,7 +125,8 @@ export default class Creator extends React.Component {
       showChangelogModal: false,
       showProxySettings: false,
       servicesEnvoyClient: null,
-      projToDuplicateIndex: null
+      projToDuplicateIndex: null,
+      showGlass: true,
     }
 
     this.envoyOptions = {
@@ -570,7 +571,11 @@ export default class Creator extends React.Component {
 
         case 'component:reload':
           if (this.getActiveComponent()) {
-            this.getActiveComponent().moduleReplace(() => {})
+            console.log("::::::::::: ACTIVE2")
+            this.getActiveComponent().moduleReplace(() => {
+              const content = this.getActiveComponent().fetchActiveBytecodeFile().getCode();
+              this.setState({componentFileContents: content})
+            })
           }
           break
 
@@ -873,6 +878,15 @@ export default class Creator extends React.Component {
     })
   }
 
+
+  switchToDesignMode () {
+    this.setState({ showGlass: true })
+  }
+
+  switchToCodeMode () {
+    this.setState({ showGlass: false })
+  }
+
   authenticateUser (username, password, cb) {
     return this.props.websocket.request({ method: 'authenticateUser', params: [username, password] }, (error, authAnswer) => {
       if (error) return cb(error)
@@ -1075,6 +1089,14 @@ export default class Creator extends React.Component {
                   // And if we don't have anything assigned, assume we're editing the main component
                   this.state.projectModel.setCurrentActiveComponent('main', {from: 'creator'}, () => { })
                 }
+
+                if (this.getActiveComponent()) {
+                  this.getActiveComponent().moduleReplace(() => {
+                    const content = this.getActiveComponent().fetchActiveBytecodeFile().getCode();
+                    this.setState({componentFileContents: content})
+                  })
+                }
+
               })
             })
 
@@ -1087,7 +1109,7 @@ export default class Creator extends React.Component {
             projectModel.actionStack.resetData()
 
             projectModel.on('update', (what, ...args) => {
-              // logger.info(`[creator] local update ${what}`)
+              // console.log(`[creator] local update ${what}, args:`,args)
 
               switch (what) {
                 case 'setCurrentActiveComponent':
@@ -1101,7 +1123,7 @@ export default class Creator extends React.Component {
             })
 
             projectModel.on('remote-update', (what, ...args) => {
-              // logger.info(`[creator] remote update ${what}`)
+              //console.log(`[creator] remote update ${what}, args:`,args)
 
               switch (what) {
                 case 'setCurrentActiveComponent':
@@ -1824,6 +1846,10 @@ export default class Creator extends React.Component {
                     onPreviewModeToggled={() => { this.togglePreviewMode() }}
                     artboardDimensions={this.state.artboardDimensions}
                     onProjectPublicChange={(isPublic) => { this.onProjectPublicChange(isPublic) }}
+                    showGlass={this.state.showGlass}
+                    onSwitchToCodeMode={() => { this.switchToCodeMode() }}
+                    onSwitchToDesignMode={() => { this.switchToDesignMode() }}
+                    componentFileContents={this.state.componentFileContents}
                   />
                   {(this.state.assetDragging)
                     ? <div style={{ width: '100%', height: '100%', backgroundColor: 'white', opacity: 0.01, position: 'absolute', top: 0, left: 0 }} />

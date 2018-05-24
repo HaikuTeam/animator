@@ -575,6 +575,33 @@ class StageTitleBar extends React.Component {
             <EventsBoltIcon color={this.getEventHandlersEditorButtonColor()} />
           </button>
           : ''}
+        <div style={[{display: 'inline-block'}]} >
+          <button
+            key='toggle-design'
+            id='toggle-design'
+            onClick={this.props.onSwitchToDesignMode}
+            style={[
+              BTN_STYLES.btnText,
+              BTN_STYLES.centerBtns,
+              {display: 'inline-block'}
+            ]}
+          >
+            <span style={{marginLeft: 7}}>DESIGN</span>
+          </button>
+
+          <button
+            key='toggle-code'
+            id='toogle-code'
+            onClick={this.props.onSwitchToCodeMode}
+            style={[
+              BTN_STYLES.btnText,
+              BTN_STYLES.centerBtns,
+              {display: 'inline-block'}
+            ]}
+          >
+            <span style={{marginLeft: 7}}>CODE</span>
+          </button>
+        </div>
 
         <button
           key='save'
@@ -590,6 +617,8 @@ class StageTitleBar extends React.Component {
         >
           {this.renderSnapshotSaveInnerButton()}<span style={{marginLeft: 7}}>{btnText}</span>
         </button>
+
+
 
         <Toggle
           onToggle={this.props.onPreviewModeToggled}
