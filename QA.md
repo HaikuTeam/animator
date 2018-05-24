@@ -1,52 +1,16 @@
-Everyone
-
-E2E
-
-Open the app
-Log in/log out using the app
-Take the tour
-Create a new project
-Open an existing project
-Open and edit the default Sketch file (verify slices appear)
-Import a Sketch file, open it, and edit it (verify slices appear)
-Delete assets (slices and whole Sketch assets) from the library
-Instantiate a slice on stage
-Move, scale, and rotate the element on stage
-Zoom and pan on stage
-Resize the artboard
-Undo/redo a sequence of edits on stage
-Cut/copy/paste elements on stage
-Undo/redo a sequence of cut/copy/pastes
-Create keyframes in the timeline by pairing on-stage edits with changes to the scrubber position
-Create keyframes in the timeline by editing property input fields
-Reorder the z-index of elements using the on-stage context menu
-Reorder the z-index of elements using timeline row drag-and-drop
-Add/modify/remove transitions in the timeline
-Create, drag, and delete keyframes and transitions
-Create, drag, and delete multiple keyframes and multiple transitions at the same time
-Create a just-in-time property row in the timeline
-Play/pause/rewind the animation
-Create a state in the states inspector
-Bind a timeline property to that state using an expression
-Create an action that responds to an event and changes that state value
-Toggle preview mode
-Trigger an event that causes the state change to be reflected
-Toggle editing mode, reverting to the editing state
-Change a slice in Sketch to change an on-stage design
-Change a value in code/main/code.js to change the on-stage component
-Publish the component
-View the component playing in the share page
-Paste share link in Slack and verify the GIF shows up
+*Everyone*
 
 Trouble Spots
 
+I can complete the full tour
+I can open a duplicated project and the default Sketch file and its references have been renamed
 I can open an existing project 5 times (navigating back and forth from editor to dashboard)
 I can open a new project 5 times (navigating back and forth from editor to dashboard)
 I can instantiate the Haiku "H", drag it 5 times, then quickly delete it, without causing a crash
 Instantiating multiple inline image elements works (images don't disappear)
 Instantiating inline image, then deleting it, then re-instantiating it works
 I can instantiate two polygons, then delete the first one, and the others remain
-I can instantiate an element with `<text>` content, then instantiate other elements and not crash
+I can instantiate an element with text content, then instantiate other elements and not crash
 I can copy+paste an element several times, then delete the first one, and the others remain
 I can copy+paste an element with a gradient, move the copy, and it works
 I can copy+paste an element that has a gradient, then delete the first one, and the others remain
@@ -57,7 +21,7 @@ After undoing, I can make on-stage changes beyond the max defined frame
 I can undo a deletion of an element and things still work normally
 I can undo a change to an element with a shadow and still instantiate/edit other elements
 I can undo several transform changes quickly and things don't break
-If my component has a playing time>0, undo/redo doesn't play the timeline
+If my component has a playing time of more than `0`, undo/redo doesn't play the timeline
 I can create a keyframe in the timeline directly, change it, and undo the change
 I can create an keyframe with an expression in the timeline, change it, and undo the change
 I can instantiate a slice, undo, redo
@@ -67,7 +31,8 @@ I can Alt+drag to copy element, undo, redo
 I can move, rotate, scale element, undo, redo
 I can copy an element, paste it, move it, undo, undo, redo
 I can cut an element, paste it, delete it, undo, undo, redo
-I can zMoveToBack, zMoveToFront, zMoveBackward, etc., undo, redo
+I can zMoveToBack, zMoveToFront, zMoveBackward, etc., undo, redo when the scrubber is at zero
+I can use Bring to Front, Backward, and friends when the scrubber is not at zero
 I can delete keyframe, undo, redo
 I can create keyframe, undo, redo
 I can move keyframes across multiple rows, undo
@@ -87,6 +52,7 @@ I don't see an ever-growing number of "file ingested" messages for each time I r
 Text selection doesn't keep appearing/reappearing as I type in an expression field
 Choosing an expression autocomplete entry doesn't obliterate the part of text I've just typed
 I can change the name of a state used by an expression, and an error will indicate the orphaned identifier
+If I have an expression bound to time or interactivity, this continues to work even if playback is paused
 Rapidly transforming Percy in multiple ways (move, rotate, scale) doesn't exhibit any lag/pauses/jank
 The $user.mouse.y position is calculated correctly with respect to the share page artboard box
 The $user.mouse.y position is calculated correctly when the stage has been zoomed/panned
@@ -95,8 +61,132 @@ I can scrub wildly over a keyframe sequence that involves rotation and the rotat
 In a heavy project, dragging many keyframes quickly at once doesn't cause a "Red Wall of Death" diff
 I can play a short (<30f) animation on a loop and playback doesn't slow down
 I can drag a keyframe from 0, delete it, then drag another from 0, and the new one works ok
+I can ungroup the Moto artboard without a problem
+I can multi-rotate elements in a legacy project (pre-3.3)
+The "secret `<div>`" in a group of elements isn't selectable (the hitbox of the group is bounded by the transform box)
+I can scale an element down to near zero in either dimension without a problem
+I can multi-scale elements that have been rotated in three dimensions
+I can negatively multi-scale (flip) elements that have been rotated without a problem
+I can ungroup a group of components
+I can copy+paste a component
+I delete an instance of a component from the stage, and then undo this
+Multi-component projects shown on the dashboard behave like normal projects
+I can add text elements to the stage and the text content becomes "content" attributes in code.js
+I can continuously scale an element round and round without causing a freeze-up or a crash
+I can create a subcomponent, give it animations, and scrub to see the animations in the host
+I can create a subcomponent, give it animations, and use preview mode to see the animations in the host
 
-Matthew
+*Nad*
+
+Basics
+
+I can launch Haiku without seeing a crash/error
+Splash screen shows Haiku logo and correct build version
+Haiku logo appears in the dock
+The name of the app in the global menu is Haiku
+I can quit Haiku without a problem
+I can't Cmd+R (soft refresh) in the production app
+I can't open the Chrome Dev Tools in the production app
+Terms appears under Help > Terms of Service
+Privacy policy appears under Help > Privacy Policy
+If I'm behind a proxy the app shows a modal with instructions and doesn't crash
+I can see a present box with a pink dot in the project browser after an update
+I can open the changelog modal from the app menu (Help > What's New)
+I can message support via the in-editor intercom "SUPPORT" button
+
+Auth
+
+In Haiku.app, as a logged-out user, opening app takes me to login screen
+As a logged-out user, logging in with bad credentials shows meaningful error
+As a logged-out user, I can log in with my credentials
+As a logged-in user, opening app takes me to project dashboard
+Clicking on the EULA link takes me to the EULA page
+The projects dash lets me click a user button to log out
+When opening a project, removing `~/.haiku/auth`, then navigating back to project dash I'm logged out
+I can click the reset password link
+I can click the sign up link
+I can successfully reset my password and login again
+
+New Accounts
+
+I can create a brand new account
+Before verifying my email address, I see an error when logging in
+After verifying my email address, I can log in
+When I first log in, I see template projects Moto, Move, and Percy
+I can open any of the template projects without a problem
+
+Dashboard
+
+If my account has projects, I see them listed
+If my account has no projects, I see none
+Projects with local content show an animated thumbnail
+Projects without local content show an empty thumbnail
+Hovering over the thumbnail plays the haiku and shows 'Open'
+Clicking the 3dot shows options to 'Reveal In Finder' or 'Delete' or 'Duplicate'
+I can 'Reveal In Finder' a project
+I can delete a project; and it won't delete unless name is confirmed
+I can duplicate a project
+The name of duplicated project `Xyz` is suggested `XyzCopy`
+If XyzCopy already exists, the name of duplicated project `Xyz` is `XyzCopy1`, etc.
+Duplicated projects appear animated in the dashboard immediately, but have no 'Reveal in Finder' or 'Duplicate' option
+After launching a duplicated project, slices from the renamed default Sketch file are still synced to stage
+The above works with project names longer than 20 characters
+The above works with projects with more than one asset from the primary Sketch file on stage
+When naming a project, spaces and underscores and hyphens (etc) are not allowed
+When naming a project, the project name length is max 32
+When naming a project, if I choose a project name that already exists I am blocked with an error
+When I have > 50-ish projects, a message 'Max projects' is shown (note: need to reload to be respected by duplicating projects) 
+When I have > 50-ish projects, the + button is no longer shown 
+I can't create a project with a blank name
+Creating a new project immediately opens it for editing
+I can resize the window and the flex layout works correctly
+My computer's fan doesn't spin up just from looking at this page
+The thumbnails all animate smoothly when hovered
+Template projects are loaded properly
+
+Editing Navigation
+
+Clicking 'Open' on a project thumbnail starts a loading screen
+The loading screen shows waiting messages, tips, etc ("reticulating splines")
+Loading a project doesn't cause the computer to seem to go crazy
+The editing screen loads in under 10 seconds
+I can click the back button "<" to go back to the project's screen
+I can open the same project again without a problem
+I can open a different project than before, without a problem
+I can "Open in Terminal" via the global menu
+When pressing Cmd+S a toast with a link to view the project in finder appears
+
+App Layout
+
+Editor view shows the Stage, Timeline, and Library
+I can resize the library pane and the timeline pane using the resize dividers
+Resizing the dividers doesn't cause any weirdness or clipping on stag
+Resizing the dividers doesn't cause flicker on stage
+Resizing the dividers doesn't cause layout weirdness in timeline
+Resizing the dividers results in the stage moving accordingly
+I can toggle between the Library and State Inspector
+When the Library is reloaded, it is populated with the assets I have
+
+Forking
+
+I can fork a published, public project in the wild via right-click menu
+I can't fork a published, non-public project in the wild via right-click menu (no option is shown)
+I can fork a project by running open `haiku://fork/:organizationName/:projectName`
+
+Designer Collaboration // not yet relevant
+
+As another user in the org, I can open the project
+As another user in the org, I can make changes and publish
+As the original user, I can open and get the other user's changes
+In case of merge conflicts, I can choose ours/theirs successfully
+
+Embedding/Host Codebases
+
+By following the share page HTML embed instructions, it works
+By following the share page NPM/React instructions, it works
+It works inside create-react-app, including production (minified) build
+
+*Matthew*
 
 New Project
 
@@ -127,7 +217,6 @@ I don't need to click the stage before starting to drag
 I can scroll to the bottom of the timeline to access all properties (nothing gets cut off at the bottom)
 I can scale an element on stage (and see scale changes reflected in timeline)
 I can hold down Shift and scale to scale an element proportionally
-I can scale an element down to near 0 in either dimension without a problem
 When I scale an element, the scale cursor reflects the side from which I am scaling
 When I scale an element way down, the number of transform controls reduces
 Zooming in results in more transform controls displayed (apparent size is used)
@@ -225,13 +314,15 @@ On stage, I can reveal the context menu and I see 'Create Component'
 Clicking 'Create Component' opens a naming dialog box
 The component name dialog can be cancelled
 I can enter a component name
-[FOR NOW] The component name field only allows numbers and lowercase letters
+The component name field only allows numbers and lowercase letters
 The component name field shows validation errors as I type
 The 'Create Component' button is disabled if the name is invalid
 I can hit Enter or click 'Create Component' to complete the dialog
 When a component is created, the elements selected are replaced with the component
 The elements on stage are all positioned correctly for the current time
-[FOR NOW] The bounding box of the newly created component is the size of the host component's stage
+The bounding box of the newly created component is the size of the selection
+For subcomponents, the sizeAbsolute.x/y value is set to `true`
+When I resize the subcomponent, the host reflects the size change
 If the child has content overflowing the host's box, that content is visible in the host
 Overflow settings are automatically added as editable rows to components' timelines
 By editing the overflow settings, I can change whether the overflow-x/y  is visible/scroll/hidden
@@ -261,7 +352,7 @@ I can create a higher order component mixing plain elements with components
 When I do this, all of the above functionality also continues to work correctly
 I can use the timeline scrubber to control time for subcomponents (even higher-order ones)
 I can Open in Text Editor for any component I've created
-In code.js for a host componemt, the `require` path for child components is correct
+In code.js for a host component, the `require` path for child components is correct
 In code.js, the element name of child component is the import of the other's code
 When I delete all instances of a child component, their `require` is removed from code.js
 The haiku-source attribute is present for components in the tree, and is respective to the project
@@ -270,124 +361,14 @@ The haiku-var attribute is present, and is the same of the import var of the sub
 If I try to instantiate the 'Main' component, it won't let me
 If I try to instantiate 'Foo' within itself, it won't let me
 If I create 'Foo', then 'Bar', then put 'Foo' in 'Bar' and try to put 'Bar' in 'Foo' it won't let me
-[FOR NOW] Components cannot be removed from the library
 I can copy and paste components
 I can cut and paste components
 I can undo/redo changes from a host component to a child
 I can undo/redo changes within a child, and those also reflect in the host
+I can set the playback value to `'once'` or `'stop'` or `100` and these all work correctly
+I can set the playback value for a grandchild via a child, and it works correctly from the host
 
-Nad
-
-Basics
-
-I can launch Haiku without seeing a crash/error
-Splash screen shows Haiku logo and correct build version
-Haiku logo appears in the dock
-The name of the app in the global menu is Haiku
-I can quit Haiku without a problem
-I can't Cmd+R (soft refresh) in the production app
-I can't open the Chrome Dev Tools in the production app
-Terms appears under Help > Terms of Service
-Privacy policy appears under Help > Privacy Policy
-If I'm behind a proxy the app shows a modal with instructions and doesn't crash
-I can see a present box with a pink dot in the project browser after an update
-I can open the changelog modal from the app menu (Help > What's New)
-I can message support via the in-editor intercom "SUPPORT" button
-
-Auth
-
-In Haiku.app, as a logged-out user, opening app takes me to login screen
-As a logged-out user, logging in with bad credentials shows meaningful error
-As a logged-out user, I can log in with my credentials
-As a logged-in user, opening app takes me to project dashboard
-Clicking on the EULA link takes me to the EULA page
-The projects dash lets me click a user button to log out
-When opening a project, removing `~/.haiku/auth`, then navigating back to project dash I'm logged out
-I can click the reset password link
-I can click the sign up link
-I can successfully reset my password and login again
-
-New Accounts
-
-I can create a brand new account
-Before verifying my email address, I see an error when logging in
-After verifying my email address, I can log in
-When I first log in, I see template projects Moto, Move, and Percy
-I can open any of the template projects without a problem
-
-Dashboard
-
-If my account has projects, I see them listed
-If my account has no projects, I see none
-Projects with local content show an animated thumbnail
-Projects without local content show an empty thumbnail
-Hovering over the thumbnail plays the haiku and shows 'Open'
-Clicking the 3dot shows options to 'Reveal In Finder' or 'Delete' or 'Duplicate'
-I can 'Reveal In Finder' a project
-I can delete a project; and it won't delete unless name is confirmed
-I can duplicate a project
-The name of duplicated project `Xyz` is suggested `XyzCopy`
-If XyzCopy already exists, the name of duplicated project `Xyz` is `XyzCopy1`, etc.
-Duplicated projects appear animated in the dashboard immediately, but have no 'Reveal in Finder' or 'Duplicate' option
-After launching a duplicated project, I observe that the default Sketch file and its references have been renamed
-After launching a duplicated project, slices from the renamed default Sketch file are still synced to stage
-The above works with project names longer than 20 characters
-The above works with projects with more than one asset from the primary Sketch file on stage
-When naming a project, spaces and underscores and hyphens (etc) are not allowed
-When naming a project, the project name length is max 32
-When naming a project, if I choose a project name that already exists I am blocked with an error
-When I have > 50-ish projects, a message 'Max projects' is shown (note: need to reload to be respected by duplicating projects) 
-When I have > 50-ish projects, the + button is no longer shown 
-I can't create a project with a blank name
-Creating a new project immediately opens it for editing
-I can resize the window and the flex layout works correctly
-My computer's fan doesn't spin up just from looking at this page
-The thumbnails all animate smoothly when hovered
-Template projects are loaded properly
-
-Editing Navigation
-
-Clicking 'Open' on a project thumbnail starts a loading screen
-The loading screen shows waiting messages, tips, etc ("reticulating splines")
-Loading a project doesn't cause the computer to seem to go crazy
-The editing screen loads in under 10 seconds
-I can click the back button "<" to go back to the project's screen
-I can open the same project again without a problem
-I can open a different project than before, without a problem
-I can "Open in Terminal" via the global menu
-When pressing Cmd+S a toast with a link to view the project in finder appears
-
-App Layout
-
-Editor view shows the Stage, Timeline, and Library
-I can resize the library pane and the timeline pane using the resize dividers
-Resizing the dividers doesn't cause any weirdness or clipping on stag
-Resizing the dividers doesn't cause flicker on stage
-Resizing the dividers doesn't cause layout weirdness in timeline
-Resizing the dividers results in the stage moving accordingly
-I can toggle between the Library and State Inspector
-When the Library is reloaded, it is populated with the assets I have
-
-Forking
-
-I can fork a published, public project in the wild via right-click menu
-I can't fork a published, non-public project in the wild via right-click menu (no option is shown)
-I can fork a project by running open `haiku://fork/:organizationName/:projectName`
-
-Designer Collaboration // not yet relevant
-
-As another user in the org, I can open the project
-As another user in the org, I can make changes and publish
-As the original user, I can open and get the other user's changes
-In case of merge conflicts, I can choose ours/theirs successfully
-
-Embedding/Host Codebases
-
-By following the share page HTML embed instructions, it works
-By following the share page NPM/React instructions, it works
-It works inside create-react-app, including production (minified) build
-
-Roberto
+*Roberto*
 
 Sketch
 
@@ -534,7 +515,7 @@ I can click on the dimmed Timeline UI to exit preview mode
 When exiting preview mode, the on-stage transform controls are restored if an element had been selected
 When in preview mode, the preview "Eye" icon follows your mouse around
 
-Sasha
+*Sasha*
 
 Development
 
@@ -570,10 +551,11 @@ Small/fine-grained animations don't exhibit judder
 Timeline Performance
 
 "Metapoem" takes no more than ~1 second to load (rehydration)
-I can horizontally scroll the timeline at a reasonable speed
+I can horizontally scroll the timeline of "Metapoem" at a reasonable speed
 I can expand/collapse timeline rows at a reasonable speed
 I can drag keyframes at a reasonable speed
 I can drag the scrubber at a reasonable speed, seeing values reflect in the input fields
+When playback is initiated, the scrubber runs at a reasonable speed
 
 Bytecode Upgrade
 
@@ -654,7 +636,7 @@ Publishing
 
 Publish works (clicking publish publishes the project and shows a share link)
 Doing publish opens Share Modal
-New projects are private by default
+New projects are Public by default
 I can change the project from private to public and back again
 When changing from private/public, the UI reflects this immediately
 After the publish action completes, the toggle remains in the same position I switched it to
@@ -703,7 +685,7 @@ I can use Haiku CLI to login and logout
 Haiku CLI invalidates bad logins
 I can clone a project in my org with $ haiku clone
 
-Taylor
+*Taylor*
 
 Library
 
