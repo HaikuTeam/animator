@@ -189,6 +189,17 @@ export default class EnvoyServer {
               // TODO: could reply directly to the client that requested instead of broadcasting to all
               //       would require identifying the client (via datagram) & then tracking clientId in future datagrams
               this.broadcast(response);
+            })
+            .catch((error) => {
+              const response = <Datagram>{
+                channel: data.channel,
+                data: {error},
+                id: data.id,
+                intent: DatagramIntent.RESPONSE,
+              };
+              // TODO: could reply directly to the client that requested instead of broadcasting to all
+              //       would require identifying the client (via datagram) & then tracking clientId in future datagrams
+              this.broadcast(response);
             });
 
           } else {

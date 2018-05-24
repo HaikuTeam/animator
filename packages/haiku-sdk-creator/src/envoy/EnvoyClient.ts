@@ -8,6 +8,8 @@ import {
   EnvoyOptions,
   RequestOptions,
   Schema,
+  ClientRequestCallback,
+  EnvoySerializable,
 } from '.';
 
 import EnvoyLogger from './EnvoyLogger';
@@ -19,25 +21,20 @@ const AWAIT_READY_TIMEOUT = 100;
 export default class EnvoyClient<T> {
 
   private options: EnvoyOptions;
-  private datagramQueue: Datagram[];
+  private datagramQueue: Datagram[] = [];
   private channel: string;
-  private isConnected: boolean;
-  private outstandingRequests: Map<string, Promise<void>>;
+  private isConnected: boolean = false;
+  private outstandingRequests: Map<string, ClientRequestCallback> = new Map<string, ClientRequestCallback>();
   private socket: WebSocket;
   private connectingPromise: Promise<any>;
-  private eventHandlers: Map<string, Function[]>;
+  private eventHandlers: Map<string, Function[]> = new Map<string, Function[]>();
   private websocket;
   private logger: Console;
-  private schemaCache: Map<string, Schema>;
+  private schemaCache: Map<string, Schema> = new Map<string, Schema>();
 
   constructor(options?: EnvoyOptions) {
     this.options = Object.assign({}, DEFAULT_ENVOY_OPTIONS, options);
-    this.schemaCache = new Map<string, Schema>();
-    this.isConnected = false;
     this.websocket = this.options.WebSocket;
-    this.datagramQueue = [];
-    this.outstandingRequests = new Map<string, Promise<void>>();
-    this.eventHandlers = new Map<string, Function[]>();
     this.logger = this.options.logger || new EnvoyLogger('warn', this.options.logger);
     this.connect(this.options);
   }
@@ -276,7 +273,7 @@ export default class EnvoyClient<T> {
    * @param requestOptions
    */
   private send(datagram: Datagram, requestOptions?: RequestOptions): Promise<any> {
-    return new Promise<any>((accept, _) => {
+    return new Promise<any>((accept, reject) => {
       const mergedOptions = Object.assign({}, DEFAULT_REQUEST_OPTIONS, requestOptions);
 
       const requestId = generateUUIDv4();
@@ -288,21 +285,24 @@ export default class EnvoyClient<T> {
         const timeout = this.generateTimeoutPromise(mergedOptions.timeout);
 
         // TODO: Fix Bluebird typing error by removing any
-        const success = new Promise<any>((acceptInner: any) => {
-          this.outstandingRequests.set(datagram.id, acceptInner);
+        const success = new Promise<any>((acceptInner: (data: PromiseLike<EnvoySerializable>) => void, rejectInner: (error: any) => void) => {
+
+          this.outstandingRequests.set(datagram.id, (data) => {
+            if (data && data.error) {
+              return rejectInner(data.error);
+            }
+
+            return acceptInner(data);
+          });
         });
 
-        return Promise
-          .race([timeout, success])
-          .then(
+        return Promise.race([timeout, success]).then(
           (data) => {
-            // SUCCESS
             accept(data);
           },
-          () => {
-            // TIMEOUT
-            this.logger.warn(
-              '[haiku envoy client] response timed out [configured @ ' + mergedOptions.timeout + 'ms]');
+          (error) => {
+            reject(error);
+            this.logger.warn('[haiku envoy client]', error);
             this.outstandingRequests.delete(requestId);
           },
         );

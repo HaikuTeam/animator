@@ -11,13 +11,17 @@ export enum DatagramIntent {
   ID_REQUEST,
 }
 
+export type EnvoySerializable = any;
+
+export type ClientRequestCallback = (data: EnvoySerializable) => void;
+
 export interface Datagram {
   id: string;
   intent: DatagramIntent;
   channel: string;
   method?: string;
   params?: string[];
-  data?: string;
+  data?: EnvoySerializable;
 }
 
 export interface EnvoyOptions {
