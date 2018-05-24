@@ -29,7 +29,10 @@ function doublesEqual(d1, d2) {
 /**
  * Returns the euler angles for the given quaternion
  * The rotations for the euler angles are applied in the order: z then y then x
- * @param {Quternion} quaternion
+ * @param x {number} quaternion X
+ * @param y {number} quaternion Y
+ * @param z {number} quaternion Z
+ * @param w {number} quaternion W
  * @returns {Object} eulerAngles: [x,y,z]
  */
 function getEulerAngles(x, y, z, w) {
@@ -40,7 +43,7 @@ function getEulerAngles(x, y, z, w) {
   }
 
   if (doublesEqual(poleSum, -0.5)) {
-    return [-Math.PI / 2, 0, 0];
+    return [3 * Math.PI / 2, 0, 0];
   }
 
   return [
