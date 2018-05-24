@@ -191,6 +191,14 @@ export default class TopMenu {
 
     projectSubmenu.push(
       {
+        label: 'New',
+        accelerator: 'CmdOrCtrl+N',
+        enabled: !options.isSaving,
+        click: () => {
+          this.sender.send('global-menu:show-new-project-modal');
+        },
+      },
+      {
         label: 'Publish',
         enabled: !this.options.isSaving && this.options.isProjectOpen,
         click: () => {

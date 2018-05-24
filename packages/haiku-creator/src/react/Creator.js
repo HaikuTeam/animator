@@ -25,10 +25,11 @@ import OfflineModePage from './components/OfflineModePage'
 import ProxyHelpScreen from './components/ProxyHelpScreen'
 import ProxySettingsScreen from './components/ProxySettingsScreen'
 import ChangelogModal from './components/ChangelogModal'
+import NewProjectModal from './components/NewProjectModal'
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/EnvoyClient'
 import { EXPORTER_CHANNEL, ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
 // Note that `User` is imported below for type discovery
-// (which works even inside JS with supported editors, using jsdoc type annotations)
+// (which works even inside JS with supported editors, using jsfhandlc type annotations)
 import { USER_CHANNEL, User, UserSettings } from 'haiku-sdk-creator/lib/bll/User' // eslint-disable-line no-unused-vars
 import { PROJECT_CHANNEL } from 'haiku-sdk-creator/lib/bll/Project'
 import { TOUR_CHANNEL } from 'haiku-sdk-creator/lib/tour'
@@ -354,6 +355,10 @@ export default class Creator extends React.Component {
       if (matches) {
         this.forkProject(matches[1], matches[2])
       }
+    })
+
+    ipcRenderer.on('global-menu:show-new-project-modal', () => {
+      this.showNewProjectModal()
     })
 
     window.addEventListener('dragover', Asset.preventDefaultDrag, false)
@@ -919,7 +924,53 @@ export default class Creator extends React.Component {
     this.setState({projectObject: {...this.state.projectObject, isPublic}})
   }
 
+  onProjectLaunchError (error) {
+    console.log(error)
+
+    this.createNotice({
+      type: 'error',
+      title: 'Oh no!',
+      message: 'We couldn\'t open this project. 😩 Please ensure that your computer is connected to the Internet. If you\'re connected and you still see this message your files might still be processing. Please try again in a few moments. If you still see this error, contact Haiku for support.',
+      closeText: 'Okay',
+      lightScheme: true
+    })
+
+    this.setProjectLaunchStatus({ launchingProject: null })
+  }
+
+  createProject (projectName, isPublic, duplicate = false, callback) {
+    this.props.websocket.request({ method: 'createProject', params: [projectName, isPublic] }, (err, newProject) => {
+      callback(err, newProject)
+
+      if (err) {
+        this.createNotice({
+          type: 'error',
+          title: 'Oh no!',
+          message: 'We couldn\'t create your project. 😩 If this problem occurs again, please contact Haiku support.',
+          closeText: 'Okay',
+          lightScheme: true
+        })
+
+        return
+      }
+
+      if (duplicate && this.props.projToDuplicateIndex !== null) {
+        this.props.websocket.request(
+          {
+            method: 'duplicateProject',
+            params: [newProject, this.props.projectsList[this.props.projToDuplicateIndex]]
+          },
+          () => {
+
+          }
+        )
+      }
+    })
+  }
+
   launchProject (projectName, projectObject, cb) {
+    this.setProjectLaunchStatus({ launchingProject: true, newProjectLoading: false })
+
     projectObject = {
       ...projectObject,
       skipContentCreation: true, // VERY IMPORTANT - if not set to true, we can end up in a situation where we overwrite freshly cloned content from the remote!
@@ -947,7 +998,9 @@ export default class Creator extends React.Component {
     })
 
     return this.props.websocket.request({ method: 'bootstrapProject', params: [projectName, projectObject, this.state.username, this.state.password] }, (err, projectFolder) => {
-      if (err) return cb(err)
+      if (err) {
+        return this.onProjectLaunchError()
+      }
 
       window.Raven.setExtraContext({
         organizationName: this.state.organizationName,
@@ -956,7 +1009,9 @@ export default class Creator extends React.Component {
       })
 
       return this.props.websocket.request({ method: 'startProject', params: [projectName, projectFolder] }, (err, applicationImage) => {
-        if (err) return cb(err)
+        if (err) {
+          return this.onProjectLaunchError()
+        }
 
         return Project.setup(
           projectFolder,
@@ -1047,11 +1102,6 @@ export default class Creator extends React.Component {
             projectModel.on('active-component:upserted', () => {
               this.forceUpdate()
             })
-
-            // This notifies ProjectBrowser that we've successfully launched
-            // Note that we don't activate any component until all views are ready
-            // (see above)
-            return cb()
           }
         )
       })
@@ -1398,6 +1448,48 @@ export default class Creator extends React.Component {
     ) : null
   }
 
+  showNewProjectModal (isDuplicateProjectModal = false, duplicateProjectName) {
+    this.setState({ showNewProjectModal: true, isDuplicateProjectModal, duplicateProjectName })
+    mixpanel.haikuTrack('creator:new-project:shown')
+  }
+
+  hideNewProjectModal () {
+    this.setState({ showNewProjectModal: false, isDuplicateProjectModal: false, duplicateProjectName: null })
+  }
+
+  renderNewProjectModal () {
+    return (
+      this.state.showNewProjectModal && (
+        <NewProjectModal
+          defaultProjectName={this.state.duplicateProjectName}
+          duplicate={this.state.isDuplicateProjectModal}
+          disabled={this.state.newProjectLoading}
+          onCreateProject={(projectName, isPublic, duplicate, callback) => {
+            this.createProject(projectName, isPublic, duplicate, (err, projectObject) => {
+              callback(err, projectObject)
+
+              if (err) {
+                return
+              }
+
+              if (this.state.projectModel) {
+                this.teardownMaster(
+                  { shouldFinishTour: true, launchingProject: false },
+                  () => { this.launchProject(projectObject.projectName, projectObject, callback) }
+                )
+              } else {
+                this.launchProject(projectObject.projectName, projectObject, callback)
+              }
+            })
+          }}
+          onClose={() => {
+            this.hideNewProjectModal()
+          }}
+        />
+      )
+    )
+  }
+
   get proxyDescriptor () {
     // Note: in the current setup, we boot all users who are unable to connect directly to the local websocket server
     // before they can benefit from the pre-filling of of the proxy descriptor based on the proxy upgrade request
@@ -1506,6 +1598,7 @@ export default class Creator extends React.Component {
         <div>
           <ProjectBrowser
             ref='ProjectBrowser'
+            onShowNewProjectModal={(...args) => { this.showNewProjectModal(...args) }}
             lastViewedChangelog={this.state.lastViewedChangelog}
             onShowChangelogModal={() => { this.showChangelogModal() }}
             showChangelogModal={this.state.showChangelogModal}
@@ -1526,6 +1619,7 @@ export default class Creator extends React.Component {
             doShowProjectLoader={this.state.doShowProjectLoader}
             {...this.props} />
           {this.renderChangelogModal()}
+          {this.renderNewProjectModal()}
           <Tour
             projectsList={this.state.projectsList}
             envoyClient={this.envoyClient}
@@ -1547,6 +1641,7 @@ export default class Creator extends React.Component {
       return (
         <div>
           {this.renderChangelogModal()}
+          {this.renderNewProjectModal()}
           <Tour
             projectsList={this.state.projectsList}
             envoyClient={this.envoyClient} />
@@ -1558,6 +1653,7 @@ export default class Creator extends React.Component {
           />
           <ProjectBrowser
             ref='ProjectBrowser'
+            onShowNewProjectModal={(...args) => { this.showNewProjectModal(...args) }}
             lastViewedChangelog={this.state.lastViewedChangelog}
             onShowChangelogModal={() => { this.showChangelogModal() }}
             showChangelogModal={this.state.showChangelogModal}
@@ -1598,6 +1694,7 @@ export default class Creator extends React.Component {
     return (
       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
         {this.renderChangelogModal()}
+        {this.renderNewProjectModal()}
         <AutoUpdater
           onComplete={this.onAutoUpdateCheckComplete}
           check={this.state.updater.shouldCheck}

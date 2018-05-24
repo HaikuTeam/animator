@@ -306,7 +306,8 @@ export const DASH_STYLES = {
     padding: '30px 40px 20px',
     backgroundColor: Palette.COAL,
     transform: 'translate(-50%, -50%)',
-    boxShadow: '0 12px 60px 0 rgba(21,32,34,0.9)'
+    boxShadow: '0 12px 60px 0 rgba(21,32,34,0.9)',
+    overflow: 'hidden'
   },
   modalTitle: {
     color: Palette.SUNSTONE,
