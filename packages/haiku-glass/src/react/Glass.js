@@ -1421,16 +1421,10 @@ export class Glass extends React.Component {
       case 46: this.handleDelete(); break
       case 8: this.handleDelete(); break
       case 13: this.handleKeyEnter(); break
-      case 16: this.handleKeyShift(keyEvent.nativeEvent); break
-      case 17: this.handleKeyCtrl(keyEvent.nativeEvent); break
-      case 18: this.handleKeyAlt(keyEvent.nativeEvent); break
-      case 224: this.handleKeyCommand(keyEvent.nativeEvent); break
-      case 91: this.handleKeyCommand(keyEvent.nativeEvent); break
-      case 93: this.handleKeyCommand(keyEvent.nativeEvent); break
     }
   }
 
-  handleKeyUp (keyEvent) {
+  handleKeyUp () {
     if (this.state.isEventHandlerEditorOpen) {
       return
     }
@@ -1438,51 +1432,10 @@ export class Glass extends React.Component {
     if (this.getActiveComponent()) {
       this.getActiveComponent().getSelectionMarquee().endSelection()
     }
-
-    switch (keyEvent.nativeEvent.which) {
-      case 16: this.handleKeyShift(keyEvent.nativeEvent); break
-      case 17: this.handleKeyCtrl(keyEvent.nativeEvent); break
-      case 18: this.handleKeyAlt(keyEvent.nativeEvent); break
-      case 224: this.handleKeyCommand(keyEvent.nativeEvent); break
-      case 91: this.handleKeyCommand(keyEvent.nativeEvent); break
-      case 93: this.handleKeyCommand(keyEvent.nativeEvent); break
-    }
   }
 
   handleKeyEnter () {
     // noop for now
-  }
-
-  handleKeyCommand (nativeEvent) {
-    const controlActivation = this.state.controlActivation
-    if (controlActivation) {
-      controlActivation.cmd = Globals.isCommandKeyDown
-    }
-    this.setState({ controlActivation })
-  }
-
-  handleKeyShift (nativeEvent) {
-    const controlActivation = this.state.controlActivation
-    if (controlActivation) {
-      controlActivation.shift = Globals.isShiftKeyDown
-    }
-    this.setState({ controlActivation })
-  }
-
-  handleKeyCtrl (nativeEvent) {
-    const controlActivation = this.state.controlActivation
-    if (controlActivation) {
-      controlActivation.ctrl = Globals.isControlKeyDown
-    }
-    this.setState({ controlActivation })
-  }
-
-  handleKeyAlt (nativeEvent) {
-    const controlActivation = this.state.controlActivation
-    if (controlActivation) {
-      controlActivation.alt = Globals.isAltKeyDown
-    }
-    this.setState({ controlActivation })
   }
 
   handleClickStageName () {
@@ -1591,7 +1544,9 @@ export class Glass extends React.Component {
         // merging isAnythingRotating/isAnythingScaling and controlActivation.cmd logics
         cmd: Globals.isSpecialKeyDown(),
         alt: Globals.isAltKeyDown,
-        index: activationInfo.index
+        index: activationInfo.index,
+        x: this.state.mousePositionCurrent.x,
+        y: this.state.mousePositionCurrent.y
       }
     })
 
