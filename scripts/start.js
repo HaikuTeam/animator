@@ -205,7 +205,7 @@ function setup () {
   log.hat(`preparing to develop locally`, 'cyan')
 
   if (global.process.env.DEV === undefined) {
-    global.process.env.DEV = (inputs.dev) ? '1' : undefined
+    global.process.env.DEV = (inputs.dev) ? '0' : undefined
   }
 
   global.process.env.HAIKU_SKIP_AUTOUPDATE = '1'
