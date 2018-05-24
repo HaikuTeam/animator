@@ -712,6 +712,8 @@ class Element extends BaseModel {
     if (row) {
       row.delete()
     }
+
+    this.emit('update', 'element-removed')
   }
 
   isRenderableType () {

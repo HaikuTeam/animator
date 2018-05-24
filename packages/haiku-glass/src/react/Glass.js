@@ -651,8 +651,7 @@ export class Glass extends React.Component {
     this.addEmitterListener(window, 'dblclick', this.windowDblClickHandler.bind(this))
     this.addEmitterListener(window, 'keydown', this.windowKeyDownHandler.bind(this))
     this.addEmitterListener(window, 'keyup', this.windowKeyUpHandler.bind(this))
-    this.addEmitterListener(window, 'mouseover', this.windowMouseOverOutHandler.bind(this))
-    this.addEmitterListener(window, 'mouseout', this.windowMouseOverOutHandler.bind(this))
+    this.addEmitterListener(window, 'mouseover', this.windowMouseOverHandler.bind(this))
     // When the mouse is clicked, below is the order that events fire
     this.addEmitterListener(window, 'mousedown', this.windowMouseDownHandler.bind(this))
     this.addEmitterListener(window, 'mouseup', this.windowMouseUpHandler.bind(this))
@@ -903,7 +902,7 @@ export class Glass extends React.Component {
     }
   }
 
-  windowMouseOverOutHandler (mouseEvent) {
+  windowMouseOverHandler (mouseoverEvent) {
     if (
       this.state.isMouseDown ||
       this.isPreviewMode()
@@ -911,21 +910,41 @@ export class Glass extends React.Component {
       return
     }
 
-    if (mouseEvent.type === 'mouseover') {
-      const element = this.findElementAssociatedToMouseEvent(mouseEvent)
+    const element = this.findElementAssociatedToMouseEvent(mouseoverEvent)
 
-      if (element) {
-        if (element.isHovered()) {
-          return
-        }
-
-        Element.hoverOffAllElements({component: this.getActiveComponent()}, {from: 'glass'})
-
-        return element.hoverOn({from: 'glass'})
-      }
+    if (!element || element.isHovered() || element.isSelected()) {
+      return
     }
 
-    Element.hoverOffAllElements({component: this.getActiveComponent()}, {from: 'glass'})
+    Element.hoverOffAllElements({component: this.getActiveComponent(), _isHovered: true}, {from: 'glass'})
+
+    element.hoverOn({from: 'glass'})
+    const boxPoints = element.getBoxPointsTransformed()
+
+    const mousemoveHandler = (mousemoveEvent) => {
+      const artboard = this.getActiveComponent().getArtboard()
+      const rect = artboard.getRect()
+      const zoom = artboard.getZoom()
+
+      if (isCoordInsideBoxPoints(
+        (mousemoveEvent.clientX - rect.left) / zoom,
+        (mousemoveEvent.clientY - rect.top) / zoom,
+        boxPoints
+      )) {
+        return
+      }
+
+      element.hoverOff({from: 'glass'})
+      window.removeEventListener('mousemove', mousemoveHandler)
+    }
+
+    element.on('update', (event) => {
+      if (event === 'element-selected' || event === 'element-selected-softly' || event === 'element-removed') {
+        window.removeEventListener('mousemove', mousemoveHandler)
+      }
+    })
+
+    window.addEventListener('mousemove', mousemoveHandler)
   }
 
   get areAnyModalsOpen () {
