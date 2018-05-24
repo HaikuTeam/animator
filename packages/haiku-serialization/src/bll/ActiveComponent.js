@@ -17,7 +17,7 @@ const logger = require('./../utils/LoggerInstance')
 const toTitleCase = require('./helpers/toTitleCase')
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 const Lock = require('./Lock')
-const SustainedWarningChecker = require('@haiku/core/lib/helpers/SustainedWarningChecker').default
+const SustainedWarningChecker = require('haiku-common/lib/sustained-checker/SustainedWarningChecker').default
 
 const KEYFRAME_MOVE_DEBOUNCE_TIME = 100
 const CHECK_SUSTAINED_WARNINGS_DEBOUNCE_TIME = 1000

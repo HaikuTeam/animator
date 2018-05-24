@@ -1,11 +1,15 @@
 /**
  * @file Check and store SustainedWarning from HaikuComponent 
  *       (eg. identifier not found on an expression)
+ * 
+ * TODO: Move this file to haiku-creator
  */
 
+// TODO: component constructor parameter is a HaikuComponent, but haiku-common 
+// is compiled first than haiku-core, giving a compilation error. Fix it when
+// moving this file to haiku-creator
+// import HaikuComponent from '@haiku/core/lib/HaikuComponent';
 
-import HaikuComponent from './../HaikuComponent';
-import {BytecodeTimelines} from './../api/HaikuBytecode';
 
 export enum SustainedWarningKind {
     IdentifierNotFound,
@@ -31,7 +35,7 @@ export default class SustainedWarningChecker {
   // checking warning types for method like isIdentifierMissing() )
   private identifierNotFoundWarnings: SustainedWarning[] = [];
   
-  constructor(private readonly component: HaikuComponent) {}
+  constructor(private readonly component) {}
 
   /**
    * Transverse injected HaikuBytecode and check if all injected 
