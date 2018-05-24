@@ -305,7 +305,7 @@ class Timeline extends BaseModel {
 
   setMaxFrame (maxFrame) {
     this._maxFrame = maxFrame
-    this.cacheUnset('frameInfo')
+    this.cache.unset('frameInfo')
     return this
   }
 
@@ -373,7 +373,7 @@ class Timeline extends BaseModel {
 
   setTimelinePixelWidth (pxWidth) {
     this._timelinePixelWidth = pxWidth
-    this.cacheUnset('frameInfo')
+    this.cache.unset('frameInfo')
     this.emit('update', 'timeline-timeline-pixel-width')
     return this
   }
@@ -525,7 +525,7 @@ class Timeline extends BaseModel {
              |scB
   */
   getFrameInfo () {
-    return this.cacheFetch('frameInfo', () => {
+    return this.cache.fetch('frameInfo', () => {
       const frameInfo = {}
 
       // Number of frames per second
@@ -838,7 +838,7 @@ class Timeline extends BaseModel {
     if (r > this.getMaxFrame()) {
       this.setMaxFrame(r)
     }
-    this.cacheUnset('frameInfo')
+    this.cache.unset('frameInfo')
     this.emit('update', 'timeline-frame-range')
     return this
   }

@@ -571,13 +571,13 @@ class Row extends BaseModel {
   clearEntityCaches () {
     if (this.children) {
       this.children.forEach((row) => {
-        row.cacheClear()
+        row.cache.clear()
         row.clearEntityCaches()
       })
     }
 
     this.getKeyframes().forEach((keyframe) => {
-      keyframe.cacheClear()
+      keyframe.cache.clear()
     })
   }
 
