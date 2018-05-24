@@ -15,8 +15,6 @@ import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import {isMac} from 'haiku-common/lib/environments/os'
 
-import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer'
-
 if (!app) {
   throw new Error('You can only run electron.js from an electron process')
 }
@@ -117,6 +115,7 @@ function createWindow () {
   if (process.env.DEV === '1') {
     browserWindow.openDevTools()
 
+    const { default: installExtension, REACT_DEVELOPER_TOOLS } = require('electron-devtools-installer')
     installExtension(REACT_DEVELOPER_TOOLS)
         .then((name) => console.log(`Added Extension:  ${name}`))
         .catch((err) => console.log('An error occurred: ', err))
