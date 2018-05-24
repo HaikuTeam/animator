@@ -23,6 +23,7 @@ export enum Experiment {
   ComponentInfoInspector = 'ComponentInfoInspector',
   AdvancedMultiTransform = 'AdvancedMultiTransform',
   OutliningElementsOnStage = 'OutliningElementsOnStage',
+  OutliningElementsOnStageFromStage = 'OutliningElementsOnStageFromStage',
 }
 
 /**
