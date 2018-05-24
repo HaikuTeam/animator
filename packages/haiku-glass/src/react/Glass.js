@@ -1256,7 +1256,8 @@ export class Glass extends React.Component {
                         break
                       }
                     }
-                  } else if(isDoubleClick) {
+                  }
+                  if(isDoubleClick) {
                     elementTargeted.getHaikuElement().visit((descendant) => {
                       if(descendant.isComponent()) return
                       if(descendant.isChildOfDefs) return
