@@ -20,7 +20,7 @@ Undo/redo a sequence of cut/copy/pastes
 Create keyframes in the timeline by pairing on-stage edits with changes to the scrubber position
 Create keyframes in the timeline by editing property input fields
 Reorder the z-index of elements using the on-stage context menu
-Reorder the z-index of elements using timeline row drag-and-drop
+Reorder the z-index of elements using timeline row drag`-and-drop
 Add/modify/remove transitions in the timeline
 Create, drag, and delete keyframes and transitions
 Create, drag, and delete multiple keyframes and multiple transitions at the same time
@@ -291,7 +291,6 @@ Terms appears under Help > Terms of Service
 Privacy policy appears under Help > Privacy Policy
 If I'm behind a proxy the app shows a modal with instructions and doesn't crash
 I can see a present box with a pink dot in the project browser after an update
-I can open the changelog modal from the user menu
 I can open the changelog modal from the app menu (Help > What's New)
 I can message support via the in-editor intercom "SUPPORT" button
 
@@ -303,42 +302,42 @@ As a logged-out user, I can log in with my credentials
 As a logged-in user, opening app takes me to project dashboard
 Clicking on the EULA link takes me to the EULA page
 The projects dash lets me click a user button to log out
-I can open a project, remove `~/.haiku/auth`, then nav back to project dash
+When opening a project, removing `~/.haiku/auth`, then navigating back to project dash I'm logged out
 I can click the reset password link
 I can click the sign up link
 I can successfully reset my password and login again
 
 New Accounts
 
-I can create a brand new account and verify my email
-I can log into a newly created account
+I can create a brand new account
+Before verifying my email address, I see an error when logging in
+After verifying my email address, I can log in
 When I first log in, I see template projects Moto, Move, and Percy
 I can open any of the template projects without a problem
 
 Dashboard
 
 If my account has projects, I see them listed
-If my account has no projects, I see none; I see a visual cue to create one
+If my account has no projects, I see none
 Projects with local content show an animated thumbnail
 Projects without local content show an empty thumbnail
 Hovering over the thumbnail plays the haiku and shows 'Open'
 Clicking the 3dot shows options to 'Reveal In Finder' or 'Delete' or 'Duplicate'
-I can delete a project; and it won't delete unless name is confirmed
 I can 'Reveal In Finder' a project
+I can delete a project; and it won't delete unless name is confirmed
 I can duplicate a project
 The name of duplicated project `Xyz` is suggested `XyzCopy`
 If XyzCopy already exists, the name of duplicated project `Xyz` is `XyzCopy1`, etc.
-Duplicated projects appear animated in the dashboard immediately, but have no "Reveal in Finder" or "Duplicate" option
+Duplicated projects appear animated in the dashboard immediately, but have no 'Reveal in Finder' or 'Duplicate' option
 After launching a duplicated project, I observe that the default Sketch file and its references have been renamed
 After launching a duplicated project, slices from the renamed default Sketch file are still synced to stage
 The above works with project names longer than 20 characters
 The above works with projects with more than one asset from the primary Sketch file on stage
-Projects that don't exist locally yet don't have a 'Reveal in Finder' option
 When naming a project, spaces and underscores and hyphens (etc) are not allowed
 When naming a project, the project name length is max 32
 When naming a project, if I choose a project name that already exists I am blocked with an error
-When I have > 14-ish projects, a message 'Max projects' is shown
-When I have > 14-ish projects, the + button is no longer shown
+When I have > 50-ish projects, a message 'Max projects' is shown (note: need to reload to be respected by duplicating projects) 
+When I have > 50-ish projects, the + button is no longer shown 
 I can't create a project with a blank name
 Creating a new project immediately opens it for editing
 I can resize the window and the flex layout works correctly
@@ -375,7 +374,7 @@ I can fork a published, public project in the wild via right-click menu
 I can't fork a published, non-public project in the wild via right-click menu (no option is shown)
 I can fork a project by running open `haiku://fork/:organizationName/:projectName`
 
-Designer Collaboration
+Designer Collaboration // not yet relevant
 
 As another user in the org, I can open the project
 As another user in the org, I can make changes and publish
