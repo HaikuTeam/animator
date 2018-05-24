@@ -288,13 +288,13 @@ export default class EnvoyClient<T> {
         const timeout = this.generateTimeoutPromise(mergedOptions.timeout);
 
         // TODO: Fix Bluebird typing error by removing any
-        const success = new Promise<any>((acceptInner: any, rejectInner: Function) => {
+        const success = new Promise<any>((acceptInner: Function, rejectInner: Function) => {
           this.outstandingRequests.set(datagram.id, (data) => {
             if (data && data.error) {
-              return rejectInner(new Error(data.error))
+              return rejectInner(new Error(data.error));
             }
 
-            return acceptInner(data)
+            return acceptInner(data);
           });
         });
 
@@ -304,9 +304,9 @@ export default class EnvoyClient<T> {
           },
           (error) => {
             reject(error);
-            this.logger.warn("[haiku envoy client]", error);
+            this.logger.warn('[haiku envoy client]', error);
             this.outstandingRequests.delete(requestId);
-          }
+          },
         );
       }
 
