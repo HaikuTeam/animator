@@ -1222,13 +1222,13 @@ export class Glass extends React.Component {
                       case 'path': {
                         const points = SVGPoints.pathToPoints(Element.directlySelected.attributes.d)
                         const approximationResolution = 80
-                        const lut = geometryUtils.buildPathLUT(points, approximationResolution)
+                        const [lutPoints, closed] = geometryUtils.buildPathLUT(points, approximationResolution)
                         
                         // Find the smallest distance
                         let min = Infinity
                         let minIdx = -1
                         
-                        const approxDistances = lut.map((pt) => { return geometryUtils.distance(pt, transformedLocalMouse)})
+                        const approxDistances = lutPoints.map((pt) => { return geometryUtils.distance(pt, transformedLocalMouse)})
                         for(let i = 0; i < approxDistances.length; i++) {
                           if(approxDistances[i] < min) {
                             min = approxDistances[i]
@@ -1241,7 +1241,6 @@ export class Glass extends React.Component {
                         
                         // Calculate t value and surrounding points, and split
                         const t = minIdx % approximationResolution / approximationResolution;
-                        console.log(t)
                         
                         this.getActiveComponent().updateKeyframes({
                           [this.getActiveComponent().getCurrentTimelineName()]: {

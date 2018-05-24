@@ -57,7 +57,7 @@ export const bezierCubic = (a: vec2, h1: vec2, h2: vec2, b: vec2, t: number): ve
 	};
 }
 
-export const buildPathLUT = (points: SVGPoint[], segmentResolution: number): vec2[] => {
+export const buildPathLUT = (points: SVGPoint[], segmentResolution: number = CUBIC_BEZIER_APPROXIMATION_RESOLUTION): [vec2[], boolean] => {
   const out = [];
   for(let i = 0; i < points.length; i++) {
     if(points[i].moveTo) continue; //TODO: Assert that points[0] is moveTo?
@@ -69,66 +69,9 @@ export const buildPathLUT = (points: SVGPoint[], segmentResolution: number): vec
     }
   }
   
-  //TODO: Handle closures and secondary paths
-  
-  return out;
-}
-
-export const splitSegmentInSVGPoints = (points: SVGPoint[], pt1Index: number, pt2Index: number, t: number): SVGPoint[] => {
-  const newPts = cubicBezierSplit(
-    t,
-    points[pt1Index],
-    {x: points[pt2Index].curve.x1, y: points[pt2Index].curve.y1},
-    {x: points[pt2Index].curve.x2, y: points[pt2Index].curve.y2},
-    points[pt2Index]
-  );
-  
-  points[pt2Index].curve.x1 = newPts[1][1].x;
-  points[pt2Index].curve.y1 = newPts[1][1].y;
-  points[pt2Index].curve.x2 = newPts[1][2].x;
-  points[pt2Index].curve.y2 = newPts[1][2].y;
-  
-  const newPoint = {
-    x: newPts[0][3].x,
-    y: newPts[0][3].y,
-    curve: {
-      type: 'cubic',
-      x1: newPts[0][1].x,
-      y1: newPts[0][1].y,
-      x2: newPts[0][2].x,
-      y2: newPts[0][2].y,
-    }
-  };
-  
-  points.splice(pt2Index, 0, newPoint);
-  return points;
-}
-
-export class BezierPath {
-  points: BezierPoint[] = [];
-  closed: boolean = false;
-  
-  toApproximatedPolygon(resolution: number = CUBIC_BEZIER_APPROXIMATION_RESOLUTION): vec2[] {
-    const out: vec2[] = []
-    for(let i = 0; i < this.points.length; i++) {
-      let nextIndex = i+1
-      if(nextIndex == this.points.length) nextIndex = 0
-      if(this.points[i].h2 || this.points[nextIndex].h1) {
-        const h1 = this.points[i].h2 || this.points[i].anchor
-        const h2 = this.points[nextIndex].h1 || this.points[nextIndex].anchor
-        for(let t = 0; t < resolution; t++) {
-          out.push(bezierCubic(this.points[i].anchor, h1, h2, this.points[nextIndex].anchor, 1 / t))
-        }
-      } else {
-        out.push(this.points[i].anchor)
-      }
-    }
-    
-    return out;
-  }
-  
-  
-  
+  //TODO: Handle secondary paths? (return multiple arrays)
+  // The old code below may help
+  /*
   static fromSVGPoints(points: SVGPoint[]): BezierPath[] {
     const paths = []
     
@@ -160,39 +103,53 @@ export class BezierPath {
       }
       
     }
-    
-    if(curPath) paths.push(curPath)
-    return paths
+  */
+  return [out, points[points.length-1].closed];
+}
+
+export const splitSegmentInSVGPoints = (points: SVGPoint[], pt1Index: number, pt2Index: number, t: number): SVGPoint[] => {
+  let h1, h2: vec2;
+  if(points[pt2Index].curve) {
+    h1 = {x: points[pt2Index].curve.x1, y: points[pt2Index].curve.y1};
+    h2 = {x: points[pt2Index].curve.x2, y: points[pt2Index].curve.y2};
+  } else {
+    h1 = points[pt1Index];
+    h2 = points[pt2Index];
   }
   
-  static toSVGPoints(paths: BezierPath[]): SVGPoint[] {
-    const out = [];
-    // debugger;
-    
-    for(let i = 0; i < paths.length; i++) {
-      for(let j = 0; j < paths[i].points.length; j++) {
-        const pt: SVGPoint = {
-          moveTo: j == 0 ? true : undefined,
-          closed: paths[i].closed && j == paths[i].points.length-1 ? true : undefined,
-          x: paths[i].points[j].anchor.x,
-          y: paths[i].points[j].anchor.y,
-        };
-        
-        if(j != 0 && j < paths[i].points.length-1 && paths[i].points[j].h2 && paths[i].points[j+1].h1) {
-          pt.curve = {
-            type: 'cubic',
-            x1: paths[i].points[j].h2.x,
-            y1: paths[i].points[j].h2.y,
-            x2: paths[i].points[j+1].h1.x,
-            y2: paths[i].points[j+1].h1.y,
-          };
-        } 
-        out.push(pt);
-      }
-    }
-    
-    return out;
+  const newPts = cubicBezierSplit(
+    t,
+    points[pt1Index],
+    h1,
+    h2,
+    points[pt2Index]
+  );
+  
+  if(points[pt2Index].curve) {
+    points[pt2Index].curve.x1 = newPts[1][1].x;
+    points[pt2Index].curve.y1 = newPts[1][1].y;
+    points[pt2Index].curve.x2 = newPts[1][2].x;
+    points[pt2Index].curve.y2 = newPts[1][2].y;
   }
+  
+  let newCurve = null;
+  if(points[pt2Index].curve) {
+    newCurve = {
+      type: 'cubic',
+      x1: newPts[0][1].x,
+      y1: newPts[0][1].y,
+      x2: newPts[0][2].x,
+      y2: newPts[0][2].y,
+    };
+  }
+  const newPoint = {
+    x: newPts[0][3].x,
+    y: newPts[0][3].y,
+    curve: newCurve,
+  };
+  
+  points.splice(pt2Index, 0, newPoint);
+  return points;
 }
 
 export const pointInsideRect = (pt: vec2, corner1: vec2, corner2: vec2): boolean => {
@@ -334,12 +291,13 @@ export const isPointInsidePrimitive = (element: HaikuElement, point: vec2): bool
     
     case 'path': {
       // Build a straight-line approximation of the path and use the same algorithm as polygon
-      const beziers = BezierPath.fromSVGPoints(SVGPoints.pathToPoints(element.attributes.d))
-      for(let i = 0; i < beziers.length; i++) {
-        if(beziers[i].closed && evenOddRaycastPointInPolygon(beziers[i].toApproximatedPolygon(), correctedPoint)) return true
+      /* TODO:
+        if(beziers[i].closed && evenOddRaycastPointInPolygon(buildPathLUT(SVGPoints.pathToPoints(element.attributes.d)), correctedPoint)) return true
         else if(pointOnPolyLineSegment(beziers[i].toApproximatedPolygon(), correctedPoint)) return true
-      }
-      return false
+      */
+      const [points, closed] = buildPathLUT(SVGPoints.pathToPoints(element.attributes.d));
+      if(closed) return evenOddRaycastPointInPolygon(points, correctedPoint);
+      return pointOnPolyLineSegment(points, correctedPoint);
     }
   }
   
@@ -381,4 +339,4 @@ export const cubicBezierSplit = (t: number, anchor1: vec2, handle1: vec2, handle
   ];
 };
 
-export default { isPointInsidePrimitive, distance, transform2DPoint, closestNormalPointOnLineSegment, LINE_SELECTION_THRESHOLD, BezierPath, splitSegmentInSVGPoints, buildPathLUT };
+export default { isPointInsidePrimitive, distance, transform2DPoint, closestNormalPointOnLineSegment, LINE_SELECTION_THRESHOLD, splitSegmentInSVGPoints, buildPathLUT };
