@@ -1833,7 +1833,7 @@ export class Glass extends React.Component {
       return
     }
 
-    if (canRotate && (
+    if (!this.state.isAnythingScaling && canRotate && (
       (this.state.hoveredControlPointIndex !== null && isRotationModeOn) ||
       this.state.isAnythingRotating
     )) {
