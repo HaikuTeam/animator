@@ -129,6 +129,10 @@ class Library extends React.Component {
   }
 
   figmaAuthCallback ({state, code}) {
+    if (!this.props.servicesEnvoyClient || this.props.servicesEnvoyClient.isInMockMode()) {
+      return void(0)
+    }
+
     this.props.servicesEnvoyClient.figmaGetAccessToken({state, code, stateCheck: this.state.figmaState})
       .then(({AccessToken}) => {
         this.props.user.setConfig(UserSettings.figmaToken, AccessToken)
@@ -171,6 +175,10 @@ class Library extends React.Component {
   }
 
   importFigmaAsset (url) {
+    if (!this.props.servicesEnvoyClient || this.props.servicesEnvoyClient.isInMockMode()) {
+      return void(0)
+    }
+
     const path = this.props.projectModel.folder
     return this.props.servicesEnvoyClient.figmaImportSVG({url, path}, this.state.figma.token)
       .catch((error = {}) => {
