@@ -651,7 +651,9 @@ export class Glass extends React.Component {
     this.addEmitterListener(window, 'dblclick', this.windowDblClickHandler.bind(this))
     this.addEmitterListener(window, 'keydown', this.windowKeyDownHandler.bind(this))
     this.addEmitterListener(window, 'keyup', this.windowKeyUpHandler.bind(this))
-    this.addEmitterListener(window, 'mouseover', this.windowMouseOverHandler.bind(this))
+    if (experimentIsEnabled(Experiment.OutliningElementsOnStageFromStage)) {
+      this.addEmitterListener(window, 'mouseover', this.windowMouseOverHandler.bind(this))
+    }
     // When the mouse is clicked, below is the order that events fire
     this.addEmitterListener(window, 'mousedown', this.windowMouseDownHandler.bind(this))
     this.addEmitterListener(window, 'mouseup', this.windowMouseUpHandler.bind(this))
