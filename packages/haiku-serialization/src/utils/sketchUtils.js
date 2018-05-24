@@ -91,7 +91,7 @@ module.exports = {
           .then(this.findBestPath)
           .then((bestPath) => { resolve(bestPath) })
           .catch((error) => {
-            logger.error('[sketch utils] error finding Sketch: ', error)
+            logger.info('[sketch utils] error finding Sketch: ', error)
             resolve(null)
           })
       })
