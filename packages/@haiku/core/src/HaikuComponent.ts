@@ -20,6 +20,9 @@ import Layout3D from './Layout3D';
 import ValueBuilder from './ValueBuilder';
 import assign from './vendor/assign';
 import {HaikuBytecode} from './api/HaikuBytecode';
+import StateTransitionManager, {StateTransitionParameters, StateValues} from './StateTransitionManager';
+import HaikuClock from './HaikuClock';
+import {Curve} from './api/Curve';
 
 const pkg = require('./../package.json');
 export const VERSION = pkg.version;
@@ -75,6 +78,7 @@ export default class HaikuComponent extends HaikuElement {
   PLAYER_VERSION;
   registeredEventHandlers;
   state;
+  stateTransitionManager: StateTransitionManager;
 
   constructor(
     bytecode: HaikuBytecode,
@@ -146,6 +150,9 @@ export default class HaikuComponent extends HaikuElement {
 
     this._states = {}; // Storage for getter/setter actions in userland logic
     this.state = {}; // Public accessor object, e.g. this.state.foo = 1
+
+    // Instantiate StateTransitions. Responsible to store and execute any state transition.
+    this.stateTransitionManager = new StateTransitionManager(this.state, this.getClock());
 
     // `assignConfig` calls bindStates and bindEventHandlers, because our incoming config, which
     // could occur at any point during runtime, e.g. in React, may need to update internal states, etc.
@@ -332,17 +339,18 @@ export default class HaikuComponent extends HaikuElement {
     return this.state[key];
   }
 
-  setState(states) {
-    if (!states) {
+  setState(states: StateValues, transitionParameter?: StateTransitionParameters) {
+
+    // Do not set any state if invalid
+    if (!states || typeof states !== 'object') {
       return this;
     }
-    if (typeof states !== 'object') {
-      return this;
-    }
-    for (const key in states) {
-      this.set(key, states[key]);
-    }
+
+    // Set states is delegated to stateTransitionManager 
+    this.stateTransitionManager.setState(states, transitionParameter);
+
     return this;
+
   }
 
   getStates() {
@@ -1110,6 +1118,26 @@ export default class HaikuComponent extends HaikuElement {
       false, // skipCache
       false, // clearSortedKeyframesCache
     );
+  }
+
+  /**
+   * Execute state transitions.
+   */
+  tickStateTransitions(): void {
+    this.stateTransitionManager.tickStateTransitions();
+  }
+
+  /**
+   * Reset states to initial values by using State Transitions. Default to linear
+   */
+  resetStatesToInitialValuesWithTransition(duration: number, curve: Curve = Curve.Linear) {
+    // Build initial states
+    const initialStates = assign({}, this.bytecode.states, this.config.states);
+    for (const key in initialStates) {
+      initialStates[key] = initialStates[key].value;
+    }
+    // Create state transition to initial state values
+    this.stateTransitionManager.setState(initialStates, {curve, duration});
   }
 }
 

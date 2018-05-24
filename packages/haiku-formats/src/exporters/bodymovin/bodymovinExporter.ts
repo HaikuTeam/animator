@@ -4,7 +4,7 @@ import {
   Maybe,
   PathPoint,
 } from 'haiku-common/lib/types';
-import {Curve} from 'haiku-common/lib/types/enums';
+import {Curve, CurveFunction, CurveDefinition} from '@haiku/core/lib/api/Curve';
 
 // @ts-ignore
 import * as Template from 'haiku-serialization/src/bll/Template';
@@ -356,12 +356,12 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
         [TransformKey.PositionSplit]: true,
         x: this.getValue(
           timelineHasProperties(timeline, 'translation.x') ? timeline['translation.x'] : simulateLayoutProperty(
-            LayoutPropertyType.Additive),
+            LayoutPropertyType.Additive) as BytecodeTimelineProperty,
           (value) => value - mountX,
         ),
         y: this.getValue(
           timelineHasProperties(timeline, 'translation.y') ? timeline['translation.y'] : simulateLayoutProperty(
-            LayoutPropertyType.Additive),
+            LayoutPropertyType.Additive) as BytecodeTimelineProperty,
           (value) => value - mountY,
         ),
       };
@@ -379,8 +379,8 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     if (timelineHasProperties(timeline, 'scale.x', 'scale.y')) {
       transforms[TransformKey.Scale] = this.getValue(
         [
-          timeline['scale.x'] || simulateLayoutProperty(LayoutPropertyType.Multiplicative),
-          timeline['scale.y'] || simulateLayoutProperty(LayoutPropertyType.Multiplicative),
+          timeline['scale.x'] || simulateLayoutProperty(LayoutPropertyType.Multiplicative) as BytecodeTimelineProperty,
+          timeline['scale.y'] || simulateLayoutProperty(LayoutPropertyType.Multiplicative) as BytecodeTimelineProperty,
         ],
         scaleTransformer,
       );
@@ -407,8 +407,8 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
 
     if (timelineHasProperties(timeline, 'translation.x', 'translation.y')) {
       transforms[TransformKey.Position] = this.getValue([
-        timeline['translation.x'] || simulateLayoutProperty(LayoutPropertyType.Additive),
-        timeline['translation.y'] || simulateLayoutProperty(LayoutPropertyType.Additive),
+        timeline['translation.x'] || simulateLayoutProperty(LayoutPropertyType.Additive) as BytecodeTimelineProperty,
+        timeline['translation.y'] || simulateLayoutProperty(LayoutPropertyType.Additive) as BytecodeTimelineProperty,
       ]);
     } else {
       transforms[TransformKey.Position] = getFixedPropertyValue([0, 0]);
@@ -1034,7 +1034,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
       const keyframes = keyframesFromTimelineProperty(timelineProperty);
       keyframes.forEach((keyframe, index) => {
         if (!timelineProperty[keyframe].hasOwnProperty('curve') || index === keyframes.length - 1 ||
-          !isDecomposableCurve(timelineProperty[keyframe].curve)) {
+          !isDecomposableCurve(timelineProperty[keyframe].curve as Curve)) {
           // There's naught to decompose here!
           return;
         }
@@ -1068,7 +1068,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
         // Shim in defaults for coupled properties that are not explicitly provided. Because we only currently
         // support multiplicative coupled properties (scale), this is straightforward.
         coupledPropertyList.filter((property) => !timelineHasProperties(timeline, property)).forEach((property) => {
-          timeline[property] = simulateLayoutProperty(LayoutPropertyType.Multiplicative);
+          timeline[property] = simulateLayoutProperty(LayoutPropertyType.Multiplicative) as BytecodeTimelineProperty;
         });
 
         const keyframeLists = coupledPropertyList.map((property) => keyframesFromTimelineProperty(timeline[property]));
