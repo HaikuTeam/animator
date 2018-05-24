@@ -572,7 +572,7 @@ class Element extends BaseModel {
       rotation: {
         x: grabValue('rotation.x'),
         y: grabValue('rotation.y'),
-        z: grabValue('rotation.z'),
+        z: grabValue('rotation.z')
       },
       scale: {
         x: grabValue('scale.x'),
