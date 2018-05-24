@@ -12,9 +12,13 @@ export enum SustainedWarningKind {
   }
   
 export type SustainedWarning = {
+  // Bytecode location should have all nodes from Bytecode 
+  // root up to error eg. ['timelines','Default',... ]
   bytecodeLocation: string[];
   type: SustainedWarningKind;
+  // For IdentifierNotFound kind
   identifier?: string;
+  // Some warnings might include file and line
   file?: string;
   line?: number;
 };
@@ -22,11 +26,12 @@ export type SustainedWarning = {
 
 export default class SustainedWarningChecker {
 
-  // Store sustainedWarnings
-  private sustainedWarnings: SustainedWarning[] = [];
+  // Store identifier not found warnings
+  // For each type of warning, a new list should be created (It avoids 
+  // checking warning types for method like isIdentifierMissing() )
+  private identifierNotFoundWarnings: SustainedWarning[] = [];
   
   constructor(private readonly component: HaikuComponent) {}
-
 
   /**
    * Transverse injected HaikuBytecode and check if all injected 
@@ -37,7 +42,8 @@ export default class SustainedWarningChecker {
 
     const injectables = Object.keys(this.component.getInjectables());
 
-    const warnings: SustainedWarning[] = [];
+    // Reset indentifiers not found cache
+    this.identifierNotFoundWarnings = [];
 
     // Transverse timeline properties and check if value is a function
     for (const timelineName in bytecodeTimeline) {
@@ -45,6 +51,8 @@ export default class SustainedWarningChecker {
         for (const propertyName in bytecodeTimeline[timelineName][componentId]) {
           for (const keyframeMs in bytecodeTimeline[timelineName][componentId][propertyName]) {
             const maybeFunc = bytecodeTimeline[timelineName][componentId][propertyName][keyframeMs];
+            // Checks only injected (Haiku.inject) function parameters. To do a more 
+            // complete expression parsing, parseExpression can be used
             if (typeof maybeFunc.value === 'function') {
               const funcParams = maybeFunc.value.specification.params;
               
@@ -57,7 +65,7 @@ export default class SustainedWarningChecker {
                     type: SustainedWarningKind.IdentifierNotFound,
                     identifier: param,
                   };
-                  warnings.push(warning);
+                  this.identifierNotFoundWarnings.push(warning);
                 } 
               }); 
             }
@@ -65,29 +73,33 @@ export default class SustainedWarningChecker {
         }
       }
     }
-    this.sustainedWarnings.push(...warnings);
 
-    return this.sustainedWarnings;
+    return this.identifierNotFoundWarnings;
   }
 
+  /**
+   * Execute sustained warnings. Each sustained warning check caches results
+   */
   checkAndGetAllSustainedWarnings(): SustainedWarning[] {
+    // Any other sustained warning check should be included here
     this.checkIdentifierNotFound();
-    return this.sustainedWarnings;
+    return this.allCachedSustainedWarnings;
   }
 
-  getAllCachedSustainedWarnings(): SustainedWarning[] {
-    return this.sustainedWarnings;
+  /**
+   * Get sustained warning check cached results
+   */
+  get allCachedSustainedWarnings(): SustainedWarning[] {
+    // Should concat all type of warnings
+    return this.identifierNotFoundWarnings;
   }
 
-
-  isIdentifierMissing(identifier: string): boolean {
-    for (let i = 0; i < this.sustainedWarnings.length; i++) {
-      const sustainedWarning = this.sustainedWarnings[i];
-      if (sustainedWarning.type === SustainedWarningKind.IdentifierNotFound && 
-          sustainedWarning.identifier === identifier) {
-        return true;
-      }
-    }
-    return false;
+  /**
+   * Get a list of identifiers not found from checkIdentifierNotFound cache
+   */
+  get notFoundIdentifiers(): string[] {
+    const identifierList = this.identifierNotFoundWarnings.map((warning: SustainedWarning) => warning.identifier);
+    // Return unique not found identifiers
+    return Array.from(new Set(identifierList));
   }
 }
