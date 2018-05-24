@@ -130,7 +130,7 @@ class Library extends React.Component {
 
   figmaAuthCallback ({state, code}) {
     if (!this.props.servicesEnvoyClient || this.props.servicesEnvoyClient.isInMockMode()) {
-      return void(0)
+      return
     }
 
     this.props.servicesEnvoyClient.figmaGetAccessToken({state, code, stateCheck: this.state.figmaState})
@@ -176,7 +176,7 @@ class Library extends React.Component {
 
   importFigmaAsset (url) {
     if (!this.props.servicesEnvoyClient || this.props.servicesEnvoyClient.isInMockMode()) {
-      return void(0)
+      return
     }
 
     const path = this.props.projectModel.folder
