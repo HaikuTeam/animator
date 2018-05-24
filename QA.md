@@ -20,7 +20,7 @@ Undo/redo a sequence of cut/copy/pastes
 Create keyframes in the timeline by pairing on-stage edits with changes to the scrubber position
 Create keyframes in the timeline by editing property input fields
 Reorder the z-index of elements using the on-stage context menu
-Reorder the z-index of elements using timeline row drag`-and-drop
+Reorder the z-index of elements using timeline row drag-and-drop
 Add/modify/remove transitions in the timeline
 Create, drag, and delete keyframes and transitions
 Create, drag, and delete multiple keyframes and multiple transitions at the same time
