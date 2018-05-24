@@ -525,7 +525,7 @@ class ElementSelectionProxy extends BaseModel {
   getControlsPosition (basisPointIndex, xOffset, yOffset) {
     return this.cacheFetch('getControlsPosition', () => {
       const layout = this.getComputedLayout()
-      const orthonormalBasisMatrix = Layout3D.computeOrthonormalBasisMatrix(layout.rotation)
+      const orthonormalBasisMatrix = Layout3D.computeOrthonormalBasisMatrix(layout.rotation, layout.shear)
       const offset = {
         x: xOffset * Math.sign(layout.scale.x),
         y: yOffset * Math.sign(layout.scale.y),
@@ -688,7 +688,7 @@ class ElementSelectionProxy extends BaseModel {
     // We can solve this directly.
     const targetElement = this.shouldUseChildLayout() ? this.selection[0] : this
     const computedLayout = targetElement.getComputedLayout()
-    const scaledBasisMatrix = Layout3D.computeScaledBasisMatrix(computedLayout.rotation, computedLayout.scale)
+    const scaledBasisMatrix = Layout3D.computeScaledBasisMatrix(computedLayout.rotation, computedLayout.scale, computedLayout.shear)
     const determinant = scaledBasisMatrix[0] * scaledBasisMatrix[5] - scaledBasisMatrix[1] * scaledBasisMatrix[4]
     const deltaX = (scaledBasisMatrix[5] * dx - scaledBasisMatrix[4] * dy) / determinant
     const deltaY = (-scaledBasisMatrix[1] * dx + scaledBasisMatrix[0] * dy) / determinant
@@ -1387,7 +1387,7 @@ ElementSelectionProxy.computeScalePropertyGroup = (
     // In a group-scale context, we should only apply constraints based on the bounding container. Accordingly, we
     // transform `delta` in place here so it can be reused on child elements. First, translate to "local" coordinates so
     // so that these adjustments are meaningful and correct.
-    const scaledBasisMatrix = Layout3D.computeScaledBasisMatrix(targetLayout.rotation, targetLayout.scale)
+    const scaledBasisMatrix = Layout3D.computeScaledBasisMatrix(targetLayout.rotation, targetLayout.scale, targetLayout.shear)
     const scaledBasisMatrixInverted = new Float32Array(16)
     invertMatrix(scaledBasisMatrixInverted, scaledBasisMatrix)
     Element.transformPointInPlace(delta, scaledBasisMatrixInverted)
@@ -1533,7 +1533,7 @@ ElementSelectionProxy.computeRotationPropertyGroup = (element, rotationZDelta, f
   Element.transformPointInPlace(ray, matrix)
 
   const layoutSpec = element.getLayoutSpec()
-  const originalRotationMatrix = Layout3D.computeOrthonormalBasisMatrix(layoutSpec.rotation)
+  const originalRotationMatrix = Layout3D.computeOrthonormalBasisMatrix(layoutSpec.rotation, layoutSpec.shear)
   if (layoutSpec.mount.x !== 0 || layoutSpec.mount.y !== 0) {
     ray.x += layoutSpec.mount.x * layoutSpec.sizeAbsolute.x
     ray.y += layoutSpec.mount.y * layoutSpec.sizeAbsolute.y

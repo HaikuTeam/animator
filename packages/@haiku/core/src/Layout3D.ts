@@ -196,20 +196,22 @@ const computeLayout = (layoutSpec, currentMatrix, parentsizeAbsoluteIn, contentS
   };
 };
 
-const computeOrthonormalBasisMatrix = (rotation) => {
+const computeOrthonormalBasisMatrix = (rotation, shear) => {
   const orthonormalBasisLayout = {
     ...createLayoutSpec(),
     rotation,
+    shear,
   };
   const ignoredSize = {x: 0, y: 0, z: 0};
   return computeMatrix(orthonormalBasisLayout, createMatrix(), ignoredSize, ignoredSize);
 };
 
-const computeScaledBasisMatrix = (rotation, scale) => {
+const computeScaledBasisMatrix = (rotation, scale, shear) => {
   const scaledBasisLayout = {
     ...createLayoutSpec(),
     rotation,
     scale,
+    shear,
   };
   const ignoredSize = {x: 0, y: 0, z: 0};
   return computeMatrix(scaledBasisLayout, createMatrix(), ignoredSize, ignoredSize);
