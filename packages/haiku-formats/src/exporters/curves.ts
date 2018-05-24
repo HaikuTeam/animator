@@ -2,11 +2,7 @@ import * as BezierEasing from 'bezier-easing';
 import {flatten} from 'lodash';
 
 import {Curve} from 'haiku-common/lib/types/enums';
-import {
-  BytecodeTimelineProperties,
-  BytecodeTimelineValue, 
-  BytecodeTimelineProperty,
-} from '@haiku/core/lib/api/HaikuBytecode';
+import {BytecodeTimelineProperty} from '@haiku/core/lib/api/HaikuBytecode';
 
 export type InterpolationPoints = [number, number, number, number];
 
@@ -135,8 +131,9 @@ const normalizeValue = (value: number, from: number, to: number): number =>
  * @param timelineProperty
  * @param {number} keyframe
  */
-export const splitBezierForTimelinePropertyAtKeyframe = (timelineProperty: BytecodeTimelineProperty, 
-                                                         keyframe: number) => {
+export const splitBezierForTimelinePropertyAtKeyframe = (
+  timelineProperty: BytecodeTimelineProperty, keyframe: number,
+) => {
   const allKeyframes = Object.keys(timelineProperty).map(Number);
   const previousKeyframe = Math.max(...allKeyframes.filter((k) => k < keyframe));
   const nextKeyframe = Math.min(...allKeyframes.filter((k) => k > keyframe));
@@ -146,6 +143,15 @@ export const splitBezierForTimelinePropertyAtKeyframe = (timelineProperty: Bytec
     // There is no next keyframe! Just animate to the current value.
     timelineProperty[keyframe] = {
       value: timelineProperty[previousKeyframe].value,
+      curve: Curve.Linear,
+    };
+    return;
+  }
+
+  if (previousKeyframe === -Infinity) {
+    // There is no previous keyframe (which might happen if there is no zeroeth keyframe for some reason).
+    timelineProperty[keyframe] = {
+      value: timelineProperty[Math.min(...allKeyframes)].value,
       curve: Curve.Linear,
     };
     return;

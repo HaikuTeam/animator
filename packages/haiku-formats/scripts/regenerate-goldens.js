@@ -10,6 +10,9 @@ readdir(join(goldensRoot, 'bytecode'), (_, bytecodeFiles) => {
   each(bytecodeFiles, (filename, next) => {
     const bytecodeFilename = join(goldensRoot, 'bytecode', filename);
     const name = basename(bytecodeFilename, '.js');
+    if (name !== 'ContentAnimation') {
+      return next()
+    }
     const bodymovinExporter = new BodymovinExporter(require(bytecodeFilename));
     // Clear require cache.
     delete require.cache[require.resolve(bytecodeFilename)];
