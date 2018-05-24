@@ -32,6 +32,7 @@ import { EXPORTER_CHANNEL, ExporterFormat } from 'haiku-sdk-creator/lib/exporter
 import { USER_CHANNEL, User, UserSettings } from 'haiku-sdk-creator/lib/bll/User' // eslint-disable-line no-unused-vars
 import { PROJECT_CHANNEL } from 'haiku-sdk-creator/lib/bll/Project'
 import { TOUR_CHANNEL } from 'haiku-sdk-creator/lib/tour'
+import { SERVICES_CHANNEL } from 'haiku-sdk-creator/lib/services'
 import { InteractionMode, isPreviewMode } from '@haiku/core/lib/helpers/interactionModes'
 import Palette from 'haiku-ui-common/lib/Palette'
 import ActivityMonitor from '../utils/activityMonitor.js'
@@ -60,6 +61,7 @@ if (webFrame) {
 const MENU_ACTION_DEBOUNCE_TIME = 100
 const FORK_OPERATION_TIMEOUT = 2000
 const MAX_FORK_ATTEMPTS = 15
+const FIGMA_IMPORT_TIMEOUT = 1000 * 60 * 5 /* 5 minutes */
 
 export default class Creator extends React.Component {
   constructor (props) {
@@ -115,7 +117,8 @@ export default class Creator extends React.Component {
       interactionMode: InteractionMode.EDIT,
       artboardDimensions: null,
       showChangelogModal: false,
-      showProxySettings: false
+      showProxySettings: false,
+      servicesEnvoyClient: null
     }
 
     this.envoyOptions = {
@@ -634,6 +637,10 @@ export default class Creator extends React.Component {
         // this.handleEnvoyProjectReady()
       }
     )
+
+    this.envoyClient.get(SERVICES_CHANNEL, {timeout: FIGMA_IMPORT_TIMEOUT}).then((servicesEnvoyClient) => {
+      this.setState({servicesEnvoyClient})
+    })
 
     this.envoyClient.get(TOUR_CHANNEL).then((tourChannel) => {
       this.tourChannel = tourChannel
@@ -1636,6 +1643,7 @@ export default class Creator extends React.Component {
                     )
                   }
                   <Library
+                    servicesEnvoyClient={this.state.servicesEnvoyClient}
                     user={this.user}
                     projectModel={this.state.projectModel}
                     layout={this.layout}
