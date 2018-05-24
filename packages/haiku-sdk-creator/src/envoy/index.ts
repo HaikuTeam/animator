@@ -17,7 +17,7 @@ export interface Datagram {
   channel: string;
   method?: string;
   params?: string[];
-  data?: string;
+  data?: any;
 }
 
 export interface EnvoyOptions {
