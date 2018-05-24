@@ -291,7 +291,7 @@ export default class EnvoyClient<T> {
         const success = new Promise<any>((acceptInner: Function, rejectInner: Function) => {
           this.outstandingRequests.set(datagram.id, (data) => {
             if (data && data.error) {
-              return rejectInner(new Error(data.error));
+              return rejectInner(data.error);
             }
 
             return acceptInner(data);
