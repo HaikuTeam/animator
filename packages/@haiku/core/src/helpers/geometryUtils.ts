@@ -12,7 +12,7 @@ import getElementSize from '../renderers/dom/getElementSize';
 import invert from '../vendor/gl-mat4/invert';
 
 export const LINE_SELECTION_THRESHOLD = 5 // Number of pixels allowance for a line to be selected
-export const CUBIC_BEZIER_APPROXIMATION_RESOLUTION = 10 // Number of segments to create when approximating a cubic bezier segment
+export const CUBIC_BEZIER_APPROXIMATION_RESOLUTION = 80 // Number of segments to create when approximating a cubic bezier segment
 
 export interface vec2 {
   x: number;
@@ -55,6 +55,23 @@ export const bezierCubic = (a: vec2, h1: vec2, h2: vec2, b: vec2, t: number): ve
 		x: a.x * mt3  +  3 * h1.x * mt2 * t  +  3 * h2.x * mt * t2  +  b.x * t3,
 		y: a.y * mt3  +  3 * h1.y * mt2 * t  +  3 * h2.y * mt * t2  +  b.y * t3
 	};
+}
+
+export const buildPathLUT = (points: SVGPoint[], segmentResolution: number): vec2[] => {
+  const out = [];
+  for(let i = 0; i < points.length; i++) {
+    if(points[i].moveTo) continue; //TODO: Assert that points[0] is moveTo?
+    if(points[i].curve) {
+      for(let t = 0; t < 1; t += 1/segmentResolution) out.push(bezierCubic(points[i-1], {x: points[i].curve.x1, y: points[i].curve.y1}, {x: points[i].curve.x2, y: points[i].curve.y2}, points[i], t));
+    } else {
+      // Linear interpolation
+      for(let t = 0; t < 1; t += 1/segmentResolution) out.push({x: (points[i].x - points[i-1].x)*t + points[i-1].x, y: (points[i].y - points[i-1].y)*t + points[i-1].y});
+    }
+  }
+  
+  //TODO: Handle closures and secondary paths
+  
+  return out;
 }
 
 export const splitSegmentInSVGPoints = (points: SVGPoint[], pt1Index: number, pt2Index: number, t: number): SVGPoint[] => {
@@ -364,4 +381,4 @@ export const cubicBezierSplit = (t: number, anchor1: vec2, handle1: vec2, handle
   ];
 };
 
-export default { isPointInsidePrimitive, distance, transform2DPoint, closestNormalPointOnLineSegment, LINE_SELECTION_THRESHOLD, BezierPath, splitSegmentInSVGPoints };
+export default { isPointInsidePrimitive, distance, transform2DPoint, closestNormalPointOnLineSegment, LINE_SELECTION_THRESHOLD, BezierPath, splitSegmentInSVGPoints, buildPathLUT };

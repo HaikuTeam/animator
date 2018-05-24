@@ -1221,24 +1221,18 @@ export class Glass extends React.Component {
                       }
                       case 'path': {
                         const points = SVGPoints.pathToPoints(Element.directlySelected.attributes.d)
-                        const beziers = geometryUtils.BezierPath.fromSVGPoints(points)
-                        const approximationResolution = 10
+                        const approximationResolution = 80
+                        const lut = geometryUtils.buildPathLUT(points, approximationResolution)
                         
                         // Find the smallest distance
                         let min = Infinity
                         let minIdx = -1
-                        let minBezIdx = -1
                         
-                        for(let b = 0; b < beziers.length; b++) {
-                          const approxPoints = beziers[b].toApproximatedPolygon(approximationResolution)
-                          const approxDistances = approxPoints.map((pt) => { return geometryUtils.distance(pt, transformedLocalMouse)})
-                          
-                          for(let i = 0; i < approxDistances.length; i++) {
-                            if(approxDistances[i] < min) {
-                              min = approxDistances[i]
-                              minIdx = i
-                              minBezIdx = b
-                            }
+                        const approxDistances = lut.map((pt) => { return geometryUtils.distance(pt, transformedLocalMouse)})
+                        for(let i = 0; i < approxDistances.length; i++) {
+                          if(approxDistances[i] < min) {
+                            min = approxDistances[i]
+                            minIdx = i
                           }
                         }
                         
