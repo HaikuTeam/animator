@@ -275,8 +275,6 @@ class Row extends BaseModel {
     })
 
     this.destroy()
-
-    this.emit('update', 'row-deleted')
   }
 
   rehydrate () {
