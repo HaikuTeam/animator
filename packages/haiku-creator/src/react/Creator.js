@@ -87,6 +87,9 @@ export default class Creator extends React.Component {
     this.clearAuth = this.clearAuth.bind(this)
     this.layout = new EventEmitter()
     this.activityMonitor = new ActivityMonitor(window, this.onActivityReport.bind(this))
+    // Keep tracks of not found identifiers and notice id
+    this.identifiersNotFound = []
+    this.identifiersNotFoundNotice = undefined
 
     this.debouncedForceUpdate = lodash.debounce(() => {
       this.forceUpdate()
@@ -1131,6 +1134,36 @@ export default class Creator extends React.Component {
 
     ipcRenderer.send('topmenu:update', {
       subComponents: this.state.projectModel.describeSubComponents()
+    })
+
+    // Check sustained warnings.
+    this.getActiveComponent().on('sustained-check:start', () => {
+      // Check sustained warnings
+      this.getActiveComponent().checkSustainedWarnings()
+
+      // Get current indenfiers not found
+      const currentIdentifiersNotFound = this.getActiveComponent().sustainedWarningsChecker.notFoundIdentifiers
+
+      // If changed, delete current notice and display a new notice if num identifier not found > 0
+      if (!lodash.isEqual(currentIdentifiersNotFound, this.identifiersNotFound)) {
+        // Delete old notice
+        if (this.identifiersNotFoundNotice) {
+          this.removeNotice(undefined, this.identifiersNotFoundNotice.id)
+          this.identifiersNotFoundNotice = undefined
+        }
+
+        // Create new notice if has any not found indentifier
+        if (currentIdentifiersNotFound.length > 0) {
+          this.identifiersNotFoundNotice = this.createNotice({
+            title: 'Uh oh',
+            type: 'warning',
+            message: `Expressions are missing identifier(s): ${currentIdentifiersNotFound}.`
+          })
+        }
+
+        // Update list of identifiers not found
+        this.identifiersNotFound = currentIdentifiersNotFound
+      }
     })
 
     // Hide loading screens, re-enable navigating back to dashboard but only after a
