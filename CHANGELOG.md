@@ -1,6 +1,13 @@
 # Changelog
 
 
+## 3.3.2
+
+### Bug Fixes
+
+ * avoid library preview being blocked by splitview line
+ * check for component before destroying context in ProjectPreview
+
 ## 3.3.1
 
 ### Bug Fixes
