@@ -84,6 +84,7 @@ export default class Creator extends React.Component {
     this.onTimelineUnmounted = this.onTimelineUnmounted.bind(this)
     this.onNavigateToDashboard = this.onNavigateToDashboard.bind(this)
     this.disablePreviewMode = this.disablePreviewMode.bind(this)
+    this.handleProjectLoaderKeyDown = this.handleProjectLoaderKeyDown.bind(this)
     this.clearAuth = this.clearAuth.bind(this)
     this.layout = new EventEmitter()
     this.activityMonitor = new ActivityMonitor(window, this.onActivityReport.bind(this))
@@ -763,6 +764,12 @@ export default class Creator extends React.Component {
     )
   }
 
+  handleProjectLoaderKeyDown (keyDownEvent) {
+    if (keyDownEvent.keyCode === 27 && this.state.launchingProject) {
+      this.setDashboardVisibility(true)
+    }
+  }
+
   /**
    * @methjod awaitAllProjectModelsState
    * @description Long-poll our local registry until all of the subviews for the given folder
@@ -1007,6 +1014,10 @@ export default class Creator extends React.Component {
         return this.onProjectLaunchError()
       }
 
+      if (this.state.launchingProject === false) {
+        return this.cancelProjectLaunch(projectFolder)
+      }
+
       window.Raven.setExtraContext({
         organizationName: this.state.organizationName,
         projectPath: projectFolder, // Re-set in case it wasn't present in the above call
@@ -1016,6 +1027,10 @@ export default class Creator extends React.Component {
       return this.props.websocket.request({ method: 'startProject', params: [projectName, projectFolder] }, (err, applicationImage) => {
         if (err) {
           return this.onProjectLaunchError()
+        }
+
+        if (this.state.launchingProject === false) {
+          return this.cancelProjectLaunch(projectFolder)
         }
 
         return Project.setup(
@@ -1028,6 +1043,10 @@ export default class Creator extends React.Component {
           this.envoyOptions,
           (err, projectModel) => {
             if (err) return cb(err)
+
+            if (this.state.launchingProject === false) {
+              return this.cancelProjectLaunch(projectFolder)
+            }
 
             // Notify... ourselves that we've successfully set up the project model for this folder
             // Is it weird to put this here, or weirder to put a conditional hack over there?
@@ -1056,10 +1075,17 @@ export default class Creator extends React.Component {
               doShowBackToDashboardButton: false,
               dashboardVisible: false
             }, () => {
+              if (this.state.launchingProject === false) {
+                return this.cancelProjectLaunch(projectFolder)
+              }
               // Once the Timeline/Stage are being rendered, we await the point that their
               // own Project models have loaded before initiating a switch to the current
               // active component. This also waits for MasterProcess to be bootstrapped
               return this.awaitAllProjectModelsState(projectFolder, 'project:ready', true, () => {
+                if (this.state.launchingProject === false) {
+                  return this.cancelProjectLaunch(projectFolder)
+                }
+                this.setState({launchingProject: false})
                 const ac = this.state.projectModel.getCurrentActiveComponent()
                 if (ac) {
                   // Even if we already have an active component set up and assigned in memory,
@@ -1111,6 +1137,10 @@ export default class Creator extends React.Component {
         )
       })
     })
+  }
+
+  cancelProjectLaunch (projectFolder) {
+    this.teardownMaster({shouldFinishTour: true, folder: projectFolder})
   }
 
   handleActiveComponentReady () {
@@ -1358,19 +1388,20 @@ export default class Creator extends React.Component {
     )
   }
 
-  teardownMaster ({shouldFinishTour, launchingProject = false}, cb) {
+  teardownMaster ({shouldFinishTour, launchingProject = false, folder}, cb) {
+    let currentFolder = folder || this.state.projectModel.getFolder()
     // We teardownMaster FIRST because we want to close the websocket connections before
     // destroying the webviews, which leads to EPIPE/"not opened" crashes.
     // Previously we were relying on dropped connections to deallocate websockets,
     // which made it difficult to know how to handle actual errors
     return this.props.websocket.request(
-      { method: 'teardownMaster', params: [this.state.projectModel.getFolder()] },
+      { method: 'teardownMaster', params: [currentFolder] },
       () => {
         logger.info('[creator] master torn down')
         this.setDashboardVisibility(true, launchingProject)
         this.onTimelineUnmounted()
-        this.unsetAllProjectModelsState(this.state.projectModel.getFolder(), 'project:ready')
-        this.unsetAllProjectModelsState(this.state.projectModel.getFolder(), 'component:mounted')
+        this.unsetAllProjectModelsState(currentFolder, 'project:ready')
+        this.unsetAllProjectModelsState(currentFolder, 'component:mounted')
         if (shouldFinishTour) this.tourChannel.finish(false)
         this.setState({
           projectModel: null,
@@ -1636,7 +1667,7 @@ export default class Creator extends React.Component {
             runOnBackground={this.state.updater.shouldRunOnBackground}
           />
           {(this.state.launchingProject || this.state.newProjectLoading || this.state.doShowProjectLoader)
-            ? <ProjectLoader />
+            ? <ProjectLoader onKeyDown={this.handleProjectLoaderKeyDown} />
             : ''}
         </div>
       )
@@ -1670,7 +1701,7 @@ export default class Creator extends React.Component {
             envoyClient={this.envoyClient}
             {...this.props} />
           {(this.state.launchingProject || this.state.newProjectLoading || this.state.doShowProjectLoader)
-            ? <ProjectLoader />
+            ? <ProjectLoader onKeyDown={this.handleProjectLoaderKeyDown} />
             : ''}
         </div>
       )
@@ -1814,7 +1845,7 @@ export default class Creator extends React.Component {
           </div>
         </div>
         {(this.state.doShowProjectLoader)
-          ? <ProjectLoader />
+          ? <ProjectLoader onKeyDown={this.handleProjectLoaderKeyDown} />
           : ''}
       </div>
     )
