@@ -40,18 +40,10 @@ const adapters = {
     name: 'HaikuDOMAdapter',
     dir: '',
   },
-  'react-dom': {
-    name: 'HaikuReactAdapter',
-    dir: 'react',
-  },
   'vue-dom': {
     name: 'HaikuVueAdapter',
     dir: 'vue',
-  },
-  'angular-dom': {
-    name: 'HaikuAngularAdapter',
-    dir: 'angular',
-  },
+  }
 };
 
 fse.mkdirp(DIST);
