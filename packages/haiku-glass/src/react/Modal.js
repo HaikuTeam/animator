@@ -10,10 +10,18 @@ export const MODAL_STYLES = {
     padding: 20,
     margin: '0 auto'
   },
+  title: {
+    textTransform: 'uppercase',
+    fontWeight: 'normal',
+    fontSize: 15,
+    textAlign: 'left',
+    marginBottom: 7,
+    marginLeft: 7
+  },
   input: (valid) => ({
-    width: 300,
+    width: '100%',
     padding: 10,
-    backgroundColor: 'black',
+    backgroundColor: Palette.DARKEST_COAL,
     borderRadius: 2,
     color: Palette.SUNSTONE,
     border: `1px solid ${valid ? Palette.MEDIUM_COAL : Palette.RED}`,
@@ -21,21 +29,23 @@ export const MODAL_STYLES = {
   }),
   feedback: (valid) => ({
     minHeight: 18,
+    textAlign: 'left',
     color: valid ? Palette.ROCK : Palette.RED,
-    fontStyle: 'italic'
+    fontStyle: 'italic',
+    marginLeft: 7
   }),
   submit: (enabled) => ({
+    float: 'right',
     cursor: enabled ? 'pointer' : 'not-allowed',
     backgroundColor: enabled ? Palette.LIGHTEST_PINK : Palette.DARKER_GRAY,
     color: enabled ? 'white' : Palette.ROCK,
-    borderRadius: 4,
-    marginLeft: 10,
+    borderRadius: 3,
     padding: '10px 15px 8px'
   }),
   cancel: {
-    backgroundColor: Palette.DARKER_GRAY,
+    float: 'right',
     color: Palette.ROCK,
-    borderRadius: 4,
+    borderRadius: 3,
     marginRight: 10,
     padding: '10px 15px 8px'
   }
