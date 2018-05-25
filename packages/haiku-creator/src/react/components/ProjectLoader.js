@@ -101,12 +101,14 @@ class ProjectLoader extends React.Component {
 
   componentDidMount () {
     this.incrementReticulator()
+    document.addEventListener('keydown', this.props.onKeyDown)
   }
 
   componentWillUnmount () {
     if (_reticularHandle) {
       clearTimeout(_reticularHandle)
     }
+    document.removeEventListener('keydown', this.props.onKeyDown)
   }
 
   incrementReticulator () {
