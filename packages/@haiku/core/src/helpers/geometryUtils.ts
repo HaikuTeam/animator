@@ -129,8 +129,8 @@ export const splitSegmentInSVGPoints = (
   pt2Index: number,
   t: number,
 ): SVGPoint[] => {
-  
-  if(pt2Index == points.length) pt2Index = 0;
+  // tslint:disable-next-line
+  if (pt2Index === points.length) { pt2Index = 0; }
   
   let h1: vec2;
   let h2: vec2;
@@ -283,7 +283,7 @@ export const transform2DPoint = (point: vec2, ancestryMatrices: any[]): vec2 => 
 };
 
 export const isPointAlongStroke = (element: HaikuElement, point: vec2,
-  threshold: number = DEFAULT_LINE_SELECTION_THRESHOLD): boolean => {
+                                   threshold: number = DEFAULT_LINE_SELECTION_THRESHOLD): boolean => {
   
   const original = element;
   if (element.type === 'use') {
@@ -291,7 +291,10 @@ export const isPointAlongStroke = (element: HaikuElement, point: vec2,
     element = element.getTranscludedElement();
   }
   
-  if(isNaN(threshold) || threshold < DEFAULT_LINE_SELECTION_THRESHOLD) threshold = DEFAULT_LINE_SELECTION_THRESHOLD;
+  if (isNaN(threshold) || threshold < DEFAULT_LINE_SELECTION_THRESHOLD) {
+    // tslint:disable-next-line
+    threshold = DEFAULT_LINE_SELECTION_THRESHOLD;
+  }
   
   const correctedPoint = transform2DPoint(point, original.layoutAncestryMatrices.reverse());
   
@@ -311,10 +314,11 @@ export const isPointAlongStroke = (element: HaikuElement, point: vec2,
     case 'circle': {
       const dist = distance(correctedPoint, {x: Number(element.attributes.cx), y: Number(element.attributes.cy)});
       const radius = Number(element.attributes.r);
-      return dist <= radius + threshold/2 && dist >= radius - threshold/2;
+      return dist <= radius + threshold / 2 && dist >= radius - threshold / 2;
     }
     case 'ellipse': {
-      const a = Math.pow(correctedPoint.x - Number(element.attributes.cx), 2) / Math.pow(Number(element.attributes.rx), 2) +
+      const a = 
+        Math.pow(correctedPoint.x - Number(element.attributes.cx), 2) / Math.pow(Number(element.attributes.rx), 2) +
         Math.pow(correctedPoint.y - Number(element.attributes.cy), 2) / Math.pow(Number(element.attributes.ry), 2);
       return 0.9 < a && a < 1.1; // TODO: Some actually good math here! Need to take stroke width into account
     }
@@ -334,13 +338,13 @@ export const isPointAlongStroke = (element: HaikuElement, point: vec2,
     case 'path': {
       // Build a straight-line approximation of the path and use the same algorithm as polygon
       const [points, closed] = buildPathLUT(SVGPoints.pathToPoints(element.attributes.d));
-      if(closed) points.push(points[0]);
+      if (closed) { points.push(points[0]); }
       return pointOnPolyLineSegment(points, correctedPoint, threshold);
     }
   }
   
   return false;
-}
+};
 
 export const isPointInsidePrimitive = (element: HaikuElement, point: vec2): boolean => {
   
