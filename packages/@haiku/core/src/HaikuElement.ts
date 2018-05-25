@@ -132,8 +132,8 @@ export default class HaikuElement extends HaikuBase {
   
   get rootSVG(): HaikuElement {
     let parent = this.parent;
-    while(parent) {
-      if(parent.type == 'svg') return parent;
+    while (parent) {
+      if (parent.type === 'svg') { return parent; }
       parent = parent.parent;
     }
     return undefined;
@@ -141,26 +141,26 @@ export default class HaikuElement extends HaikuBase {
   
   get isChildOfDefs(): boolean {
     let parent = this.parent;
-    while(parent) {
-      if(parent.type == 'defs') return true;
+    while (parent) {
+      if (parent.type === 'defs') { return true; }
       parent = parent.parent;
     }
     return false;
   }
   
   getTranscludedElement(): HaikuElement {
-    if(this.type != 'use') return this;
+    if (this.type !== 'use') { return this; }
     
     let out;
     let href = this.attributes['xlink:href'] || this.attributes['href'];
-    if(!href) return out;
+    if (!href) { return out; }
     href = href.substr(1);
     this.rootSVG.visit((desc) => {
-      if(desc.id == href) {
+      if (desc.id === href) {
         out = desc;
         return false;
       }
-    })
+    });
     return out;
   }
 

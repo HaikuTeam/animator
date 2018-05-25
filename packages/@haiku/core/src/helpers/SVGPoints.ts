@@ -50,7 +50,7 @@ function polyPointsStringToPoints(pointsString) {
   }
   const points = [];
   let matches;
-  while(matches = pointsRegex.exec(pointsString)) {
+  while (matches = pointsRegex.exec(pointsString)) {
     const coord = [];
     if (matches[1]) {
       coord[0] = Number(matches[1]);
