@@ -6644,5 +6644,17 @@
       "label": "fix",
       "message": "spell out yarn in self-link to avoid macOS conflict."
     }
+  },
+  "3.3.2": {
+    "daf2d9ce6f6c635acd6c3e79e7c998c7d4df5809": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "avoid library preview being blocked by splitview line"
+    },
+    "c213b9ed64c3279dca627005acbcad20f619be60": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "check for component before destroying context in ProjectPreview"
+    }
   }
 }
