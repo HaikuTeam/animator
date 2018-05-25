@@ -4,7 +4,9 @@ import Layout3D from './Layout3D';
 
 export const HAIKU_ID_ATTRIBUTE = 'haiku-id';
 export const HAIKU_TITLE_ATTRIBUTE = 'haiku-title';
-const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source';
+export const HAIKU_VAR_ATTRIBUTE = 'haiku-var';
+export const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source';
+
 const DEFAULT_TAG_NAME = 'div';
 const COMPONENT_PSEUDO_TAG_NAME = DEFAULT_TAG_NAME;
 const TEXT_PSEUDO_TAG_NAME = '__text__';
