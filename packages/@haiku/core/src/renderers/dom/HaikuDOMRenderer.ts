@@ -658,3 +658,4 @@ export default class HaikuDOMRenderer extends HaikuBase {
   }
 }
 
+HaikuDOMRenderer['__name__'] = 'HaikuDOMRenderer';

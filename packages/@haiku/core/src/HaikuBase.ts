@@ -20,10 +20,26 @@ const upsertInstanceRegistry = (className: string) => {
   return HaikuGlobal.models[className];
 };
 
-const addInstanceToGlobalModelRegistry = (instance: any): number => {
+const getInstanceRegistry = (instance: HaikuBase): HaikuBase[] => {
   const className = instance.getClassName();
-  const instanceRegistry = upsertInstanceRegistry(className);
-  return instanceRegistry.push(instance);
+  return upsertInstanceRegistry(className);
+};
+
+let uniqueIdCounter = 0;
+
+const addInstanceToGlobalModelRegistry = (instance: HaikuBase): number => {
+  getInstanceRegistry(instance).push(instance);
+  return ++uniqueIdCounter;
+};
+
+const removeInstanceFromGlobalModelRegistry = (instance: HaikuBase): number => {
+  const registry = getInstanceRegistry(instance);
+  for (let i = 0; i < registry.length; i++) {
+    if (registry[i] === instance) {
+      registry.splice(i, 1);
+      return;
+    }
+  }
 };
 
 const addValueToGlobalCache = (key: string, value: any) => {
@@ -52,14 +68,12 @@ export default class HaikuBase {
   private listeners;
 
   $id;
-  isDestroyed;
   config; // Implemented by subclass
   parent; // Implemented by subclass
 
   constructor() {
     this.$id = addInstanceToGlobalModelRegistry(this);
     this.listeners = {};
-    this.isDestroyed = false;
   }
 
   getId(): number {
@@ -215,7 +229,7 @@ export default class HaikuBase {
     }
   }
 
-  matchesCriteria (criteria): boolean {
+  matchesCriteria(criteria): boolean {
     if (!criteria) {
       return false;
     }
@@ -232,7 +246,7 @@ export default class HaikuBase {
   }
 
   destroy() {
-    this.isDestroyed = true;
+    removeInstanceFromGlobalModelRegistry(this);
   }
 }
 

@@ -425,10 +425,7 @@ export default class HaikuTimeline extends HaikuBase {
 
 HaikuTimeline['__name__'] = 'HaikuTimeline';
 
-HaikuTimeline['all'] = (): HaikuTimeline[] => {
-  const all = HaikuBase['getRegistryForClass'](HaikuTimeline);
-  return all.filter((timeline) => !timeline.isDestroyed);
-};
+HaikuTimeline['all'] = (): HaikuTimeline[] => HaikuBase['getRegistryForClass'](HaikuTimeline);
 
 HaikuTimeline['where'] = (criteria): HaikuTimeline[] => {
   const all = HaikuTimeline['all']();

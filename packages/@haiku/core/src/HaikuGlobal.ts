@@ -32,6 +32,15 @@ function buildRoot() {
     ROOT['haiku']['models'] = {};
   }
 
+  if (!ROOT['haiku']['report']) {
+    ROOT['haiku']['report'] = () => Object.keys(ROOT['haiku']['models']).forEach((modelName) => {
+      console.warn(`${modelName}:
+  count: ${ROOT['haiku']['models'][modelName].length}
+  ids: ${ROOT['haiku']['models'][modelName].map((instance) => instance.$id).join(', ')}
+`);
+    });
+  }
+
   if (!ROOT['haiku']['enhance']) {
     /**
      * @function enhance

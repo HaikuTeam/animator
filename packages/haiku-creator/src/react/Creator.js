@@ -1328,6 +1328,12 @@ export default class Creator extends React.Component {
           this.tourChannel.finish(false)
         }
 
+        this.state.projectModel.getAllActiveComponents().forEach((ac) => {
+          if (ac.$instance) {
+            ac.$instance.context.destroy()
+          }
+        })
+
         // The stale project doesn't want to receive methods destined for new project models
         if (this.state.projectModel) {
           this.state.projectModel.stopHandlingMethods()
