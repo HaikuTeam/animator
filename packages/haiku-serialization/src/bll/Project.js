@@ -754,6 +754,7 @@ class Project extends BaseModel {
 
   upsertActiveComponentInstance (relpath) {
     const file = File.upsert({
+      uid: path.join(this.getFolder(), relpath),
       project: this,
       folder: this.getFolder(),
       relpath
