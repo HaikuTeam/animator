@@ -16,7 +16,8 @@ export const MODAL_STYLES = {
     backgroundColor: 'black',
     borderRadius: 2,
     color: Palette.SUNSTONE,
-    border: `1px solid ${valid ? Palette.MEDIUM_COAL : Palette.RED}`
+    border: `1px solid ${valid ? Palette.MEDIUM_COAL : Palette.RED}`,
+    fontFamily: 'inherit'
   }),
   feedback: (valid) => ({
     minHeight: 18,
@@ -28,14 +29,14 @@ export const MODAL_STYLES = {
     backgroundColor: enabled ? Palette.LIGHTEST_PINK : Palette.DARKER_GRAY,
     color: enabled ? 'white' : Palette.ROCK,
     borderRadius: 4,
-    marginRight: 10,
+    marginLeft: 10,
     padding: '10px 15px 8px'
   }),
   cancel: {
     backgroundColor: Palette.DARKER_GRAY,
     color: Palette.ROCK,
     borderRadius: 4,
-    marginLeft: 10,
+    marginRight: 10,
     padding: '10px 15px 8px'
   }
 }
