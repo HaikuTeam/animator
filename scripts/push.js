@@ -20,11 +20,6 @@ cp.execSync(`git reset --hard origin/master`)
 // Pull standalone remotes.
 cp.execSync(`node ./scripts/git-subtree-pull.js --package=all`, processOptions)
 
-// Bump semver in all projects, plus their @haiku/* dependencies, and commit.
-cp.execSync(`node ./scripts/semver.js --non-interactive`, processOptions)
-cp.execSync(`git add -u`, processOptions)
-cp.execSync(`git commit -m "auto: Bumps semver."`, processOptions)
-
 // Regenerate changelog and push to remote.
 cp.execSync(`node ./scripts/changelog.js`, processOptions)
 cp.execSync(`git add -u`, processOptions)
