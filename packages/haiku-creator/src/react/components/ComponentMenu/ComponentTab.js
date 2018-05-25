@@ -26,7 +26,7 @@ const STYLES = {
     width: '100%',
     cursor: 'default',
     ':hover': {
-      color: Palette.GRAY,
+      color: Palette.GRAY
     },
     active: {
       backgroundColor: Palette.STAGE_GRAY,
