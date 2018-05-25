@@ -8,10 +8,10 @@ const STYLES = {
     position: 'relative',
     width: '100%',
     height: 30,
-    backgroundColor: Palette.GRAY,
+    backgroundColor: Palette.PALE_GRAY,
     paddingLeft: '5px',
     paddingRight: '5px',
-    paddingTop: '7px',
+    paddingTop: '6px',
     overflow: 'hidden',
     verticalAlign: 'top'
   }

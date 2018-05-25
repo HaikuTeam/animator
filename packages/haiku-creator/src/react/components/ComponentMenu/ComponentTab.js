@@ -18,17 +18,19 @@ const STYLES = {
     position: 'relative',
     display: 'inline-block',
     backgroundColor: 'transparent',
-    borderTopLeftRadius: '6px',
-    borderTopRightRadius: '6px',
-    borderLeft: `1px solid ${Palette.GRAY}`,
-    color: Palette.STAGE_GRAY,
-    padding: '5px 25px',
+    borderTopLeftRadius: '5px',
+    borderTopRightRadius: '5px',
+    color: Palette.LIGHTEST_GRAY,
+    padding: '4px 20px',
     height: '100%',
     width: '100%',
     cursor: 'default',
+    ':hover': {
+      color: Palette.GRAY,
+    },
     active: {
       backgroundColor: Palette.STAGE_GRAY,
-      color: Palette.GRAY,
+      color: Palette.FATHER_COAL,
       cursor: 'default'
     }
   },
