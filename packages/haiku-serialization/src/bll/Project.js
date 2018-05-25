@@ -83,15 +83,31 @@ class Project extends BaseModel {
 
     // List of components we are tracking as part of the component tabs
     this._multiComponentTabs = []
+
+    // Whether we should actually receive and act upon remote methods received
+    this.isHandlingMethods = true
   }
 
   teardown () {
+    this.stopHandlingMethods()
     this.getEnvoyClient().closeConnection()
-    if (this.websocket) this.websocket.disconnect()
+    if (this.websocket) {
+      this.websocket.disconnect()
+    }
     this.actionStack.stop()
   }
 
+  stopHandlingMethods () {
+    this.isHandlingMethods = false
+  }
+
+  startHandlingMethods () {
+    this.isHandlingMethods = true
+  }
+
   connectClients () {
+    this.startHandlingMethods()
+
     if (this.websocket) {
       // Idempotent setup should handle an already-connected client gracefully
       this.websocket.connect()
@@ -150,7 +166,9 @@ class Project extends BaseModel {
   }
 
   receiveMethodCall (method, params, message, cb) {
-    if (this.isIgnoringMethodRequestsForMethod(method)) {
+    if (!this.isHandlingMethods) {
+      return cb()
+    } else if (this.isIgnoringMethodRequestsForMethod(method)) {
       return null // Another handler will call the callback in this case
     } else {
       return this.handleMethodCall(method, params, message, cb)
