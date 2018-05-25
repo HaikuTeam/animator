@@ -1211,15 +1211,15 @@ export default class Creator extends React.Component {
   }
 
   onTimelineMounted () {
-    this.setState({ isTimelineReady: true })
+    this.setState({isTimelineReady: true})
   }
 
   onTimelineUnmounted () {
-    this.setState({ isTimelineReady: false })
+    this.setState({isTimelineReady: false})
   }
 
   onNavigateToDashboard () {
-    this.teardownMaster({ shouldFinishTour: true })
+    this.teardownMaster({shouldFinishTour: true})
     ipcRenderer.send('topmenu:update', {subComponents: [], isProjectOpen: false})
   }
 
