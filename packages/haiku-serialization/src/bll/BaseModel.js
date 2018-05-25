@@ -1,5 +1,6 @@
 const { EventEmitter } = require('events')
 const lodash = require('lodash')
+const Cache = require('./Cache')
 const MemoryStorage = require('./storage/MemoryStorage')
 const DiskStorage = require('./storage/DiskStorage')
 const CryptoUtils = require('./../utils/CryptoUtils')
@@ -78,6 +79,9 @@ class BaseModel extends EventEmitter {
     this.parent = null
     this.children = []
 
+    // Generic cache object that can store 'anything' that model instances want.
+    this.cache = new Cache()
+
     // Assign initial attributes. Note that __sync is falsy until later
     this.assign(props)
 
@@ -86,9 +90,6 @@ class BaseModel extends EventEmitter {
     }
 
     this.__storage = 'mem'
-
-    // Generic cache object that can store 'anything' that model instances want.
-    this.__cache = {}
 
     // Tracking when we were last updated can be used to optimize UI updates
     this.__updated = Date.now()
@@ -177,34 +178,8 @@ class BaseModel extends EventEmitter {
 
   forceUpdate () {
     this.setUpdateTimestamp()
-    this.cacheClear()
+    this.cache.clear()
     return this
-  }
-
-  cacheClear () {
-    this.__cache = {}
-    return this
-  }
-
-  cacheGet (key) {
-    return this.__cache[key]
-  }
-
-  cacheSet (key, value) {
-    this.setUpdateTimestamp()
-    this.__cache[key] = value
-  }
-
-  cacheFetch (key, provider) {
-    const found = this.cacheGet(key)
-    if (found !== undefined) return found
-    const given = provider()
-    this.cacheSet(key, given)
-    return given
-  }
-
-  cacheUnset (key) {
-    this.__cache[key] = undefined
   }
 
   setUpdateTimestamp () {
@@ -255,7 +230,7 @@ class BaseModel extends EventEmitter {
         }
       }
     }
-    this.cacheClear()
+    this.cache.clear()
     this.setUpdateTimestamp()
     return this
   }
@@ -579,7 +554,6 @@ BaseModel.getWireReadyObjectAttributes = (obj, isBase = false, goDeep = false) =
 // HACK: I want to blacklist all methods properties that belong to BaseModel,
 // but I can't figure out how to do it. klass.prototype[] didn't work?
 const RESERVED_PROPERTY_KEYS = {
-  __cache: true,
   __checked: true,
   __destroyed: true,
   __initialized: true,
@@ -594,6 +568,7 @@ const RESERVED_PROPERTY_KEYS = {
   _updateReceivers: true,
   addEmitterListener: true,
   addEmitterListenerIfNotAlreadyRegistered: true,
+  cache: true,
   children: true,
   options: true,
   parent: true,
@@ -795,7 +770,7 @@ const createCollection = (klass, opts) => {
 
   klass.clearCaches = () => {
     arrayCollection.forEach((item) => {
-      item.cacheClear()
+      item.cache.clear()
     })
   }
 

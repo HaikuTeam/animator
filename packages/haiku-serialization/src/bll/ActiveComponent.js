@@ -175,7 +175,7 @@ class ActiveComponent extends BaseModel {
       if (row.component === this) {
         this.emit('update', what, row, this.project.getMetadata())
         if (what === 'row-collapsed' || what === 'row-expanded') {
-          this.cacheUnset('displayableRows')
+          this.cache.unset('displayableRows')
         }
       }
     })
@@ -219,7 +219,7 @@ class ActiveComponent extends BaseModel {
   }
 
   getTemplateNodesByComponentId () {
-    return this.cacheFetch('getTemplateNodesByComponentId', () => {
+    return this.cache.fetch('getTemplateNodesByComponentId', () => {
       const nodes = {}
       const mana = this.getReifiedBytecode().template
       Template.visit(mana, (node) => {
@@ -386,7 +386,7 @@ class ActiveComponent extends BaseModel {
 
   clearCaches (options = {}) {
     this.$instance.clearCaches(options) // Also clears instance._builder sub-caches
-    this.fetchRootElement().cacheClear()
+    this.fetchRootElement().cache.clear()
     if (options.doClearEntityCaches) {
       this.fetchRootElement().clearEntityCaches()
     }
@@ -2475,8 +2475,8 @@ class ActiveComponent extends BaseModel {
     // Don't allow any incoming syncs while we're in the midst of this
     BaseModel.__sync = false
 
-    this.cacheUnset('displayableRows')
-    this.cacheUnset('getTemplateNodesByComponentId')
+    this.cache.unset('displayableRows')
+    this.cache.unset('getTemplateNodesByComponentId')
 
     // Required before rehydration because entities use the timeline entity
     Timeline.upsert({

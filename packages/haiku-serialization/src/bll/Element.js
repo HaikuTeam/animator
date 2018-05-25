@@ -92,7 +92,7 @@ class Element extends BaseModel {
 
   hoverOn (metadata, softly = false) {
     if (!this._isHovered || !Element.hovered[this.getPrimaryKey()]) {
-      this.cacheClear()
+      this.cache.clear()
       this._isHovered = true
       Element.hovered[this.getPrimaryKey()] = this
       if (!softly) {
@@ -108,7 +108,7 @@ class Element extends BaseModel {
 
   hoverOff (metadata, softly = false) {
     if (this._isHovered || Element.hovered[this.getPrimaryKey()]) {
-      this.cacheClear()
+      this.cache.clear()
       this._isHovered = false
       delete Element.hovered[this.getPrimaryKey()]
       if (!softly) {
@@ -494,7 +494,7 @@ class Element extends BaseModel {
   }
 
   getComputedLayout () {
-    return this.cacheFetch('getComputedLayout', () => Layout3D.computeLayout(
+    return this.cache.fetch('getComputedLayout', () => Layout3D.computeLayout(
       this.getLayoutSpec(),
       Layout3D.createMatrix(),
       this.getParentComputedSize(),
@@ -843,18 +843,18 @@ class Element extends BaseModel {
   clearEntityCaches () {
     if (this.children) {
       this.children.forEach((element) => {
-        element.cacheClear()
+        element.cache.clear()
         element.clearEntityCaches()
       })
     }
 
     this.getHostedRows().forEach((row) => {
-      row.cacheClear()
+      row.cache.clear()
       row.clearEntityCaches()
     })
 
     this.getTargetingRows().forEach((row) => {
-      row.cacheClear()
+      row.cache.clear()
       row.clearEntityCaches()
     })
   }

@@ -9,7 +9,6 @@ import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 import Toast from './notifications/Toast'
 import NotificationExplorer from './notifications/NotificationExplorer'
 import ProjectThumbnail from './ProjectThumbnail'
-import PrivatePublicToggle from './PrivatePublicToggle'
 import { TOUR_CHANNEL } from 'haiku-sdk-creator/lib/tour'
 import { UserIconSVG, LogOutSVG, LogoMicroSVG, PresentIconSVG } from 'haiku-ui-common/lib/react/OtherIcons'
 import { DASH_STYLES } from '../styles/dashShared'
@@ -39,12 +38,10 @@ class ProjectBrowser extends React.Component {
       areProjectsLoading: true,
       isPopoverOpen: false,
       showNewProjectModal: false,
-      showDuplicateProjectModal: false,
       showDeleteModal: false,
       recordedDelete: '',
       recordedNewProjectName: '',
       projToDelete: '',
-      projToDuplicateIndex: null,
       confirmDeleteMatches: false,
       atProjectMax: false,
       newProjectError: null,
@@ -185,23 +182,38 @@ class ProjectBrowser extends React.Component {
   }
 
   showNewProjectModal () {
-    this.setState({ showNewProjectModal: true, newProjectError: null })
+    this.props.onShowNewProjectModal()
+  }
+
+  doesProjectNameExist (projectName) {
+    const equivalentNameMatcher = new RegExp(`^${projectName}$`, 'i')
+    return this.state.projectsList.find((project) => equivalentNameMatcher.test(project.projectName)) !== undefined
+  }
+
+  trimAndSuffix (base, suffix) {
+    const remainingChars = 32 - (base.length + suffix.length)
+
+    if (remainingChars < 0) {
+      base = base.slice(0, remainingChars)
+    }
+
+    return `${base}${suffix}`
   }
 
   showDuplicateProjectModal (projToDuplicateIndex) {
-    const duplicateNameBase = `${this.state.projectsList[projToDuplicateIndex].projectName}Copy`
-    let recordedNewProjectName = duplicateNameBase
+    const duplicateNameBase = this.state.projectsList[projToDuplicateIndex].projectName
+    const suffixBase = 'Copy'
+    let suffix = suffixBase
     let iteration = 1
-    while (this.doesProjectNameExist(recordedNewProjectName)) {
-      recordedNewProjectName = `${duplicateNameBase}${iteration}`
+    let potentialName = this.trimAndSuffix(duplicateNameBase, suffix)
+
+    while (this.doesProjectNameExist(potentialName)) {
+      suffix = `${suffixBase}${iteration}`
+      potentialName = this.trimAndSuffix(duplicateNameBase, suffix)
       iteration++
     }
-    this.setState({
-      projToDuplicateIndex,
-      recordedNewProjectName,
-      showDuplicateProjectModal: true,
-      newProjectError: null
-    })
+
+    this.props.onShowNewProjectModal(true, potentialName)
   }
 
   projectsListElement () {
@@ -252,106 +264,11 @@ class ProjectBrowser extends React.Component {
   }
 
   handleProjectLaunch (projectObject) {
-    this.props.setProjectLaunchStatus({ launchingProject: true, newProjectLoading: false })
-
     if (this.tourChannel) {
       this.tourChannel.hide()
     }
 
-    this.props.launchProject(projectObject.projectName, projectObject, (error) => {
-      if (error) {
-        this.props.createNotice({
-          type: 'error',
-          title: 'Oh no!',
-          message: 'We couldn\'t open this project. 😩 Please ensure that your computer is connected to the Internet. If you\'re connected and you still see this message your files might still be processing. Please try again in a few moments. If you still see this error, contact Haiku for support.',
-          closeText: 'Okay',
-          lightScheme: true
-        })
-        this.props.setProjectLaunchStatus({ launchingProject: null })
-        return this.setState({ error })
-      }
-    })
-  }
-
-  doesProjectNameExist (projectName) {
-    const equivalentNameMatcher = new RegExp(`^${projectName}$`, 'i')
-    return this.state.projectsList.find((project) => equivalentNameMatcher.test(project.projectName)) !== undefined
-  }
-
-  handleNewProjectToggleChange (newProjectIsPublic) {
-    this.setState({newProjectIsPublic})
-  }
-
-  handleNewProjectInputChange (event) {
-    const rawValue = event.target.value || ''
-
-    const recordedNewProjectName = rawValue
-      .replace(/\W+/g, '') // Non-alphanumeric characters not allowed
-      .replace(/_/g, '') // Underscores are considered alphanumeric (?); strip them
-      .slice(0, 32) // Keep the overall name length short
-
-    // Check for any projects with the exact same name.
-    const newProjectError = this.doesProjectNameExist(recordedNewProjectName)
-      ? 'A project with that name already exists'
-      : null
-
-    this.setState({ recordedNewProjectName, newProjectError })
-  }
-
-  handleNewProjectGo (duplicate = false) {
-    if (this.state.newProjectError) return false
-    const rawNameValue = this.newProjectInput.value
-    if (!rawNameValue) return false
-    // HACK:  strip all non-alphanumeric chars for now.  something more user-friendly would be ideal
-    const name = rawNameValue && rawNameValue.replace(/[^a-z0-9]/gi, '')
-    const isPublic = this.state.newProjectIsPublic
-    if (duplicate) {
-      this.setState({ areProjectsLoading: true })
-    } else {
-      this.props.setProjectLaunchStatus({newProjectLoading: true})
-    }
-
-    this.closeModals()
-    this.props.websocket.request({ method: 'createProject', params: [name, isPublic] }, (err, newProject) => {
-      if (err) {
-        this.props.createNotice({
-          type: 'error',
-          title: 'Oh no!',
-          message: 'We couldn\'t create your project. 😩 If this problem occurs again, please contact Haiku support.',
-          closeText: 'Okay',
-          lightScheme: true
-        })
-        if (duplicate) {
-          this.setState({ areProjectsLoading: false })
-        } else {
-          this.props.setProjectLaunchStatus({newProjectLoading: false})
-        }
-        return
-      }
-
-      if (duplicate && this.state.projToDuplicateIndex !== null) {
-        this.props.websocket.request(
-          {
-            method: 'duplicateProject',
-            params: [newProject, this.state.projectsList[this.state.projToDuplicateIndex]]
-          },
-          () => {
-            // Note: we are intentionally logging but not forwarding errors from project duplication. Attempting to
-            // launch an unlaunchable project should throw at that stage, and we know that we have already at least
-            // succeeded in creating a local project now.
-            this.setState({
-              projectsList: [
-                newProject,
-                ...this.state.projectsList
-              ],
-              areProjectsLoading: false
-            })
-          }
-        )
-      } else {
-        this.handleProjectLaunch(newProject)
-      }
-    })
+    this.props.launchProject(projectObject.projectName, projectObject)
   }
 
   renderNotice (content, i) {
@@ -371,10 +288,7 @@ class ProjectBrowser extends React.Component {
 
   closeModals () {
     this.setState({
-      showNewProjectModal: false,
-      showDuplicateProjectModal: false,
       showDeleteModal: false,
-      recordedNewProjectName: '',
       recordedDelete: '',
       newProjectIsPublic: true
     })
@@ -384,15 +298,6 @@ class ProjectBrowser extends React.Component {
     if (e.keyCode === 27) {
       this.closeModals()
     }
-  }
-
-  handleNewProjectInputKeyDown (e, duplicate = false) {
-    if (e.keyCode === 13) {
-      this.handleNewProjectGo(duplicate)
-      return
-    }
-
-    this.closeModalsOnEscKey(e)
   }
 
   renderUserMenuItems () {
@@ -462,62 +367,6 @@ class ProjectBrowser extends React.Component {
     )
   }
 
-  renderNewProjectModal (duplicate = false) {
-    return (
-      <div style={DASH_STYLES.overlay}
-        onClick={() => {
-          this.closeModals()
-        }}
-      >
-        <div style={DASH_STYLES.modal} onClick={(e) => e.stopPropagation()}>
-          <div style={DASH_STYLES.modalTitle}>{duplicate ? 'Name Duplicated Project' : 'Project Setup'}</div>
-          <div style={[DASH_STYLES.inputTitle, DASH_STYLES.upcase]}>Project Name</div>
-          <input
-            key='new-project-input'
-            ref={(input) => {
-              this.newProjectInput = input
-            }}
-            disabled={this.props.newProjectLoading}
-            onKeyDown={(e) => { this.handleNewProjectInputKeyDown(e, duplicate) }}
-            style={[DASH_STYLES.newProjectInput]}
-            value={this.state.recordedNewProjectName}
-            onChange={(e) => { this.handleNewProjectInputChange(e) }}
-            placeholder='NewProjectName'
-            autoFocus />
-          <div style={{marginBottom: '30px'}}>
-            <PrivatePublicToggle
-              onChange={(isPublic) => { this.handleNewProjectToggleChange(isPublic) }}
-              isPublic={this.state.newProjectIsPublic}
-            />
-          </div>
-          <span key='new-project-error' style={DASH_STYLES.newProjectError}>{this.state.newProjectError}</span>
-          <button key='new-project-go-button'
-            disabled={this.props.newProjectLoading || !this.state.recordedNewProjectName || this.state.newProjectError}
-            onClick={() => {
-              this.handleNewProjectGo(duplicate)
-            }}
-            style={[
-              BTN_STYLES.btnText,
-              BTN_STYLES.rightBtns,
-              BTN_STYLES.btnPrimaryAlt,
-              DASH_STYLES.upcase,
-              (!this.state.recordedNewProjectName || this.state.newProjectError) && BTN_STYLES.btnDisabled,
-              {marginRight: 0}
-            ]}>
-            {duplicate ? 'Duplicate Project' : 'Name Project'}
-          </button>
-          <span style={[DASH_STYLES.upcase, BTN_STYLES.btnCancel, BTN_STYLES.rightBtns]}
-            onClick={() => {
-              this.closeModals()
-            }}
-          >
-            Cancel
-          </span>
-        </div>
-      </div>
-    )
-  }
-
   renderDeleteModal () {
     return (
       <div style={DASH_STYLES.overlay}
@@ -572,9 +421,7 @@ class ProjectBrowser extends React.Component {
           {lodash.map(this.props.notices, this.renderNotice)}
         </TransitionGroup>
 
-        { this.state.showNewProjectModal && this.renderNewProjectModal() }
         { this.state.showDeleteModal && this.renderDeleteModal() }
-        { this.state.showDuplicateProjectModal && this.renderNewProjectModal(true) }
 
         <div style={DASH_STYLES.frame} className='frame'>
           {this.state.atProjectMax && (

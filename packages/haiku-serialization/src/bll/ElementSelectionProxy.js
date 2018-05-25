@@ -428,7 +428,7 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   getOriginTransformed () {
-    return this.cacheFetch('getOriginTransformed', () => {
+    return this.cache.fetch('getOriginTransformed', () => {
       // If managing only one element, use its own box points
       if (this.shouldUseChildLayout()) {
         return this.selection[0].getOriginTransformed()
@@ -498,7 +498,7 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   getComputedLayout () {
-    return this.cacheFetch('getComputedLayout', () => Layout3D.computeLayout(
+    return this.cache.fetch('getComputedLayout', () => Layout3D.computeLayout(
       this.getLayoutSpec(),
       Layout3D.createMatrix(),
       this.getParentComputedSize(),
@@ -507,7 +507,7 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   getBoxPointsTransformed () {
-    return this.cacheFetch('getBoxPointsTransformed', () => {
+    return this.cache.fetch('getBoxPointsTransformed', () => {
       // If managing only one element, use its own box points
       if (this.doesManageSingleElement()) {
         return this.selection[0].getBoxPointsTransformed()
@@ -521,7 +521,7 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   getControlsPosition (basisPointIndex, xOffset, yOffset) {
-    return this.cacheFetch('getControlsPosition', () => {
+    return this.cache.fetch('getControlsPosition', () => {
       const layout = this.getComputedLayout()
       const orthonormalBasisMatrix = Layout3D.computeOrthonormalBasisMatrix(layout.rotation, layout.shear)
       const offset = {
@@ -583,7 +583,7 @@ class ElementSelectionProxy extends BaseModel {
 
   applyPropertyValue (key, value) {
     this._proxyProperties[key] = value
-    this.cacheClear()
+    this.clearAllRelatedCaches()
   }
 
   applyPropertyDelta (key, delta) {
@@ -731,16 +731,17 @@ class ElementSelectionProxy extends BaseModel {
       accumulatedUpdates,
       this.component.project.getMetadata(),
       () => {
-        this.cacheClear()
+        this.clearAllRelatedCaches()
       }
     )
   }
 
-  cacheClear () {
+  clearAllRelatedCaches () {
     if (this.hasAnythingInSelection()) {
-      super.cacheClear()
+      this.cache.clear()
+
       this.selection.forEach((element) => {
-        element.cacheClear()
+        element.cache.clear()
       })
     }
   }
@@ -961,7 +962,7 @@ class ElementSelectionProxy extends BaseModel {
       accumulatedUpdates,
       this.component.project.getMetadata(),
       () => {
-        this.cacheClear()
+        this.clearAllRelatedCaches()
       }
     )
   }
@@ -1087,7 +1088,7 @@ class ElementSelectionProxy extends BaseModel {
       accumulatedUpdates,
       this.component.project.getMetadata(),
       () => {
-        this.cacheClear()
+        this.clearAllRelatedCaches()
       }
     )
   }
@@ -1145,7 +1146,7 @@ class ElementSelectionProxy extends BaseModel {
       accumulatedUpdates,
       this.component.project.getMetadata(),
       () => {
-        this.cacheClear()
+        this.clearAllRelatedCaches()
       }
     )
   }

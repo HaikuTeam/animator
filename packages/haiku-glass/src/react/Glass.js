@@ -8,6 +8,7 @@ import BaseModel from 'haiku-serialization/src/bll/BaseModel'
 import Project from 'haiku-serialization/src/bll/Project'
 import Config from '@haiku/core/lib/Config'
 import Element from 'haiku-serialization/src/bll/Element'
+import File from 'haiku-serialization/src/bll/File'
 import ElementSelectionProxy from 'haiku-serialization/src/bll/ElementSelectionProxy'
 import Asset from 'haiku-serialization/src/bll/Asset'
 import EmitterManager from 'haiku-serialization/src/utils/EmitterManager'
@@ -625,6 +626,10 @@ export class Glass extends React.Component {
             message.opts,
             message.frame
           )
+          break
+
+        case 'assets-changed':
+          File.cache.clear()
           break
       }
     })
