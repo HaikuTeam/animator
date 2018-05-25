@@ -399,8 +399,21 @@ class ProjectBrowser extends React.Component {
     return (
       <div style={[DASH_STYLES.popover.container, {width: 158}]} onClick={this.closePopover}>
         <div style={DASH_STYLES.popover.item}>
-          <span style={[DASH_STYLES.popover.text, DASH_STYLES.upcase]}>
-            Signed In As <span style={[{fontWeight: '600', color: Palette.SUNSTONE}, DASH_STYLES.noSelect]}>
+          <span style={[DASH_STYLES.popover.text, DASH_STYLES.upcase, {width: '100%'}]}>
+            Signed In As{' '}
+            <span
+              style={[
+                {
+                  fontWeight: '600',
+                  color: Palette.SUNSTONE,
+                  width: '100%',
+                  textOverflow: 'ellipsis',
+                  display: 'inline-block',
+                  overflow: 'hidden'
+                },
+                DASH_STYLES.noSelect
+              ]}
+            >
               {this.props.username}
             </span>
           </span>

@@ -98,6 +98,13 @@ export default class CreateComponentModal extends React.Component {
           </p>
           <div>
             <button
+              style={MODAL_STYLES.cancel}
+              onClick={() => {
+                this.cancelForm()
+              }}>
+              Cancel
+            </button>
+            <button
               disabled={!this.state.isSubmitEnabled}
               style={MODAL_STYLES.submit(this.state.isSubmitEnabled)}
               onClick={() => {
@@ -106,13 +113,6 @@ export default class CreateComponentModal extends React.Component {
                 }
               }}>
               Create Component
-            </button>
-            <button
-              style={MODAL_STYLES.cancel}
-              onClick={() => {
-                this.cancelForm()
-              }}>
-              Cancel
             </button>
           </div>
         </div>

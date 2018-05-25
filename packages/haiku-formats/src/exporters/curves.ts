@@ -2,11 +2,7 @@ import * as BezierEasing from 'bezier-easing';
 import {flatten} from 'lodash';
 
 import {Curve} from 'haiku-common/lib/types/enums';
-import {
-  BytecodeTimelineProperties,
-  BytecodeTimelineValue, 
-  BytecodeTimelineProperty,
-} from '@haiku/core/lib/api/HaikuBytecode';
+import {BytecodeTimelineProperty} from '@haiku/core/lib/api/HaikuBytecode';
 
 export type InterpolationPoints = [number, number, number, number];
 
@@ -135,17 +131,19 @@ const normalizeValue = (value: number, from: number, to: number): number =>
  * @param timelineProperty
  * @param {number} keyframe
  */
-export const splitBezierForTimelinePropertyAtKeyframe = (timelineProperty: BytecodeTimelineProperty, 
-                                                         keyframe: number) => {
+export const splitBezierForTimelinePropertyAtKeyframe = (
+  timelineProperty: BytecodeTimelineProperty, keyframe: number,
+) => {
   const allKeyframes = Object.keys(timelineProperty).map(Number);
   const previousKeyframe = Math.max(...allKeyframes.filter((k) => k < keyframe));
   const nextKeyframe = Math.min(...allKeyframes.filter((k) => k > keyframe));
 
   // Return early if we don't have a next keyframe to animate to.
-  if (nextKeyframe === Infinity) {
-    // There is no next keyframe! Just animate to the current value.
+  if (nextKeyframe === Infinity || previousKeyframe === -Infinity) {
+    // There is no basis keyframe! Just animate to/from the current value.
     timelineProperty[keyframe] = {
-      value: timelineProperty[previousKeyframe].value,
+      // #FIXME: 1 isn't always the correct fallback for properties that might not have a keyframe at 0.
+      value: (timelineProperty[previousKeyframe] && timelineProperty[previousKeyframe].value) || 1,
       curve: Curve.Linear,
     };
     return;

@@ -30,7 +30,6 @@ export const LAYOUT_3D_SCHEMA = {
   'rotation.x': 'number',
   'rotation.y': 'number',
   'rotation.z': 'number',
-  'rotation.w': 'number',
   'scale.x': 'number',
   'scale.y': 'number',
   'scale.z': 'number',
