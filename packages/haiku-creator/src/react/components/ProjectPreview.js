@@ -130,6 +130,9 @@ class ProjectPreview extends React.Component {
       }
     )
 
+    // Since we're about to pause timelines, we must re-render to ensure migration-related changes are shown
+    this.component.render(this.component.config)
+
     // For multi-components, nested timelines must explicitly be paused
     this.pauseAllTimelines()
   }
