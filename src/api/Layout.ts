@@ -27,9 +27,8 @@ export type LayoutSpec = {
     x: number;
     y: number;
     z: number;
-    w: number;
   };
-  orientation: {
+  orientation?: {
     x: number;
     y: number;
     z: number;

@@ -53,7 +53,7 @@ export default function decomposeMat4(matrix): DecomposedMat4 {
       translation: [0, 0, 0],
       scale: [0, 0, 0],
       shear: [0, 0, 0],
-      quaternion: [0, 0, 0, 0],
+      quaternion: [0, 0, 0, 1],
     };
   }
 
