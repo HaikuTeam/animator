@@ -110,7 +110,7 @@ const STYLES = {
     opacity: 0,
     top: 3,
     left: 22,
-    zIndex: 2,
+    zIndex: 2000,
     padding: 8,
     backgroundColor: Color(Palette.COAL).fade(0.4),
     border: '1px solid rgba(0,0,0,.2)',
