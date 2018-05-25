@@ -1742,7 +1742,7 @@ export class Glass extends React.Component {
               point.x,
               point.y
             ]),
-            Palette.LIGHT_PINK
+            Palette.LIGHTEST_PINK
           )
         )
       }
@@ -2462,7 +2462,7 @@ export class Glass extends React.Component {
                 style={{
                   strokeWidth: 1.5,
                   fill: 'none',
-                  stroke: Palette.LIGHT_PINK,
+                  stroke: Palette.LIGHTEST_PINK,
                   opacity: this.state.isStageNameHovering && !this.state.isStageSelected ? 0.75 : 0,
                   overflow: 'visible'
                 }}

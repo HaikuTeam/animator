@@ -61,7 +61,7 @@ export default class CreateComponentModal extends React.Component {
         isOpen={this.props.isOpen}>
         <div
           style={MODAL_STYLES.wrapper}>
-          <p>Enter a name for your component:</p>
+          <div style={MODAL_STYLES.title}>Name your component</div>
           <input
             type='text'
             autoFocus
@@ -96,14 +96,7 @@ export default class CreateComponentModal extends React.Component {
           <p style={MODAL_STYLES.feedback(this.state.componentName.length === 0)}>
             {this.state.invalidityReason || ''}
           </p>
-          <div>
-            <button
-              style={MODAL_STYLES.cancel}
-              onClick={() => {
-                this.cancelForm()
-              }}>
-              Cancel
-            </button>
+          <div style={{minHeight: 30}}>
             <button
               disabled={!this.state.isSubmitEnabled}
               style={MODAL_STYLES.submit(this.state.isSubmitEnabled)}
@@ -113,6 +106,13 @@ export default class CreateComponentModal extends React.Component {
                 }
               }}>
               Create Component
+            </button>
+            <button
+              style={MODAL_STYLES.cancel}
+              onClick={() => {
+                this.cancelForm()
+              }}>
+              Cancel
             </button>
           </div>
         </div>
