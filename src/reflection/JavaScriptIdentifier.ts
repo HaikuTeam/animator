@@ -4,7 +4,6 @@
 
 import ReservedWords from './ReservedWords';
 
-const RESERVED_WORDS_ARRAY = Object.keys(ReservedWords.WORDS);
 const WRAP_PREFIX = '_$';
 const WRAP_SUFFIX = '$_';
 const VALIDITY_REGEX = /(^[^a-zA-Z_\$])|([^a-zA-Z_\$0-9])/g;
@@ -28,10 +27,6 @@ export function toIdentifier(str: string): string {
   out = out.replace(VALIDITY_REGEX, charReplacer);
 
   if (ReservedWords.WORDS[out]) {
-    return `${WRAP_PREFIX}${out}${WRAP_SUFFIX}`;
-  }
-
-  if (RESERVED_WORDS_ARRAY.indexOf(out) >= 0) {
     return `${WRAP_PREFIX}${out}${WRAP_SUFFIX}`;
   }
 
