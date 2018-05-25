@@ -2222,7 +2222,8 @@ class ActiveComponent extends BaseModel {
 
       const bytecode = this.getReifiedBytecode()
 
-      // Don't clean up instances which may own the current editing context
+      // Don't clean up instances which may own the current editing context.
+      // WARNING: be VERY careful changing anything here—your sanity depends on it.
       if (this.isProjectActiveComponent()) {
         this.project.getAllActiveComponents().forEach((ac) => {
           // We also deactivate our own instance since we're about to create a new one
@@ -2241,6 +2242,10 @@ class ActiveComponent extends BaseModel {
             ac.$instance.context.getClock().stop()
           }
         })
+      }
+
+      if (this.$instance) {
+        this.$instance.context.destroy()
       }
 
       const timelineTime = this.getCurrentTimelineTime()

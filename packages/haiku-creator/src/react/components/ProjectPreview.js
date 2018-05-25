@@ -51,6 +51,7 @@ class ProjectPreview extends React.Component {
 
   componentWillUnmount () {
     this.stopComponentClock() // Avoid wasted CPU rendering for unseen DOM nodes
+    this.component.context.destroy()
   }
 
   componentDidMount () {

@@ -283,11 +283,30 @@ export default class HaikuComponent extends HaikuElement {
     this.routeEventToHandlerAndEmit(GLOBAL_LISTENER_KEY, 'component:did-mount', [this]);
   }
 
-  callUnmount(incomingConfig) {
-    if (incomingConfig) {
-      this.assignConfig(incomingConfig);
+  destroy() {
+    super.destroy();
+    // Destroy all timelines we host.
+    const timelineInstances = this.getTimelines();
+    for (const timelineName in timelineInstances) {
+      const timelineInstance = timelineInstances[timelineName];
+      timelineInstance.destroy();
     }
 
+    this.visitGuestHierarchy((component) => {
+      // Clean up HaikuComponent dependents.
+      // TODO: is this step necessary?
+      if (component !== this) {
+        component.destroy();
+      }
+    });
+
+    this.visitDescendants((child) => {
+      // Clean up HaikuElement dependents.
+      child.destroy();
+    });
+  }
+
+  callUnmount() {
     // Since we're unmounting, pause all animations to avoid unnecessary calc while detached
     const timelineInstances = this.getTimelines();
     for (const timelineName in timelineInstances) {
@@ -1720,8 +1739,4 @@ HaikuComponent['__name__'] = 'HaikuComponent';
 HaikuComponent['PLAYER_VERSION'] = VERSION; // #LEGACY
 HaikuComponent['CORE_VERSION'] = VERSION;
 
-HaikuComponent['all'] = (): HaikuComponent[] => {
-  const all = HaikuBase['getRegistryForClass'](HaikuComponent);
-  return all.filter((component) => !component.isDestroyed);
-};
-
+HaikuComponent['all'] = (): HaikuComponent[] => HaikuBase['getRegistryForClass'](HaikuComponent);

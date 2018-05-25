@@ -1317,6 +1317,11 @@ export default class Creator extends React.Component {
         this.unsetAllProjectModelsState(this.state.projectModel.getFolder(), 'project:ready')
         this.unsetAllProjectModelsState(this.state.projectModel.getFolder(), 'component:mounted')
         if (shouldFinishTour) this.tourChannel.finish(false)
+        this.state.projectModel.getAllActiveComponents().forEach((ac) => {
+          if (ac.$instance) {
+            ac.$instance.context.destroy()
+          }
+        })
         this.setState({
           projectModel: null,
           activeNav: 'library', // Prevents race+crash loading StateInspector when switching projects
