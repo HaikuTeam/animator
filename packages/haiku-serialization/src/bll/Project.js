@@ -560,6 +560,22 @@ class Project extends BaseModel {
     return this.upsertComponentBytecodeToModule(relpath, bytecode, instanceConfig, cb)
   }
 
+  findOrCreateActiveComponent (scenename, cb) {
+    const ac = this.findActiveComponentBySceneName(scenename)
+
+    if (ac) {
+      return cb(null, ac)
+    }
+
+    return this.upsertSceneByName(scenename, (err) => {
+      if (err) {
+        return cb(err)
+      }
+
+      return cb(null, this.findActiveComponentBySceneName(scenename))
+    })
+  }
+
   setCurrentActiveComponent (scenename, metadata, cb) {
     return Lock.request(Lock.LOCKS.SetCurrentActiveCompnent, null, (release) => {
       this.addActiveComponentToMultiComponentTabs(scenename, true)
@@ -732,7 +748,8 @@ class Project extends BaseModel {
   }
 
   relpathToSceneName (relpath) {
-    return relpath.split(path.sep)[1]
+    // Must normalize so ./foo/bar/baz becomes foo/bar/baz (note number of slashes)
+    return path.normalize(relpath).split(path.sep)[1]
   }
 
   upsertActiveComponentInstance (relpath) {

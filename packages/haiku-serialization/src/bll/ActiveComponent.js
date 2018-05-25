@@ -5,7 +5,7 @@ const async = require('async')
 const jss = require('json-stable-stringify')
 const pascalcase = require('pascalcase')
 const {LAYOUT_3D_SCHEMA} = require('@haiku/core/lib/properties/dom/schema')
-const {HAIKU_ID_ATTRIBUTE, HAIKU_TITLE_ATTRIBUTE} = require('@haiku/core/lib/HaikuElement')
+const {HAIKU_ID_ATTRIBUTE, HAIKU_TITLE_ATTRIBUTE, HAIKU_VAR_ATTRIBUTE} = require('@haiku/core/lib/HaikuElement')
 const {sortedKeyframes} = require('@haiku/core/lib/Transitions').default
 const HaikuComponent = require('@haiku/core/lib/HaikuComponent').default
 const HaikuDOMAdapter = require('@haiku/core/lib/adapters/dom').default
@@ -745,7 +745,7 @@ class ActiveComponent extends BaseModel {
       const title = subcomponent.getTitle()
 
       return mod.moduleAsMana(
-        this.fetchActiveBytecodeFile(),
+        this.getRelpath(),
         identifier,
         title,
         (err, manaForWrapperElement) => {
@@ -1316,18 +1316,21 @@ class ActiveComponent extends BaseModel {
               const subcomponent = this.project.findActiveComponentBySource(relpath)
 
               if (subcomponent) {
-                // This identifier is going to be something like foo_svg_blah
-                const localComponentIdentifier = ModuleWrapper.modulePathToIdentifierName(relpath)
+                // We can't go further unless we actually have the reified bytecode
+                return subcomponent.moduleReload('basicReload', () => {
+                  // This identifier is going to be something like foo_svg_blah
+                  const localComponentIdentifier = ModuleWrapper.modulePathToIdentifierName(relpath)
 
-                return this.instantiateReference(
-                  subcomponent,
-                  localComponentIdentifier,
-                  relpath,
-                  coords,
-                  {'origin.x': 0.5, 'origin.y': 0.5},
-                  metadata,
-                  done
-                )
+                  return this.instantiateReference(
+                    subcomponent,
+                    localComponentIdentifier,
+                    relpath,
+                    coords,
+                    {'origin.x': 0.5, 'origin.y': 0.5},
+                    metadata,
+                    done
+                  )
+                })
               } else {
                 return done(new Error(`Cannot find component ${relpath}`))
               }
@@ -1725,17 +1728,54 @@ class ActiveComponent extends BaseModel {
       return this.project.updateHook('pasteThings', this.getRelpath(), pasteablesSerial, options, metadata, (fire) => {
         return this.performComponentWork((bytecode, mana, done) => {
           const haikuIds = []
-          pasteables.forEach((pasteable) => {
-            switch (pasteable.kind) {
-              case 'bytecode':
-                haikuIds.push(this.pasteBytecodeImpl(bytecode, pasteable.data, options))
-                break
-              default:
-                logger.warn(`[active component (${this.project.getAlias()})] cannot paste clipboard contents of kind ` + pasteable.kind)
-                break
+
+          return async.eachSeries(pasteables, (pasteable, next) => {
+            if (pasteable.kind === 'bytecode') {
+              // Handle specially if the pasted thing is a component
+              const nested = (
+                pasteable.data &&
+                pasteable.data.template &&
+                pasteable.data.template.elementName
+              )
+
+              if (typeof nested === 'object') {
+                const source = pasteable.data.template.attributes[HAIKU_SOURCE_ATTRIBUTE]
+                const identifier = pasteable.data.template.attributes[HAIKU_VAR_ATTRIBUTE]
+                const scenename = this.project.relpathToSceneName(source)
+
+                nested.__reference = ModuleWrapper.buildReference(
+                  ModuleWrapper.REF_TYPES.COMPONENT, // type
+                  Template.normalizePath(`./${this.getRelpath()}`), // host
+                  Template.normalizePath(`./${source}`),
+                  identifier
+                )
+
+                return this.project.findOrCreateActiveComponent(scenename, (err, ac) => {
+                  if (err) {
+                    return next(err)
+                  }
+
+                  // We can't go further unless we actually have the reified bytecode
+                  return ac.moduleReload('basicReload', () => {
+                    // In order to render correctly, the template.elementName needs to have the full
+                    // bytecode object; note that core should automatically instantiate a HaikuComponent
+                    lodash.assign(nested, ac.getReifiedBytecode())
+
+                    haikuIds.push(this.pasteBytecodeImpl(bytecode, pasteable.data, options))
+                    return next()
+                  })
+                })
+              }
+
+              haikuIds.push(this.pasteBytecodeImpl(bytecode, pasteable.data, options))
+              return next()
             }
+
+            logger.warn(`[active component (${this.project.getAlias()})] cannot paste ${pasteable.kind}`)
+            return next()
+          }, (err) => {
+            return done(err, {haikuIds})
           })
-          return done(null, {haikuIds})
         }, (err, {haikuIds}) => {
           if (err) {
             release()
@@ -4171,7 +4211,7 @@ class ActiveComponent extends BaseModel {
 
   /**
    * @method dump
-   * @description When debugging, use this to log a concise shorthand of this entity.
+   * @description Use this to log a concise shorthand of this entity.
    */
   dump () {
     const relpath = this.getRelpath()

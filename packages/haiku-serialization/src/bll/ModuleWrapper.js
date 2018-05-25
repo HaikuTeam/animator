@@ -177,7 +177,7 @@ class ModuleWrapper extends BaseModel {
     })
   }
 
-  moduleAsMana (hostfile, identifier, title, cb) {
+  moduleAsMana (hostComponentRelpath, identifier, title, cb) {
     return this.basicReload((err, exp) => {
       if (err) return cb(err)
       if (!exp) return cb(null, null)
@@ -198,7 +198,7 @@ class ModuleWrapper extends BaseModel {
 
       safe.__reference = ModuleWrapper.buildReference(
         ModuleWrapper.REF_TYPES.COMPONENT, // type
-        Template.normalizePath(`./${hostfile.relpath}`), // host
+        Template.normalizePath(`./${hostComponentRelpath}`), // host
         Template.normalizePath(`./${source}`),
         identifier
       )
