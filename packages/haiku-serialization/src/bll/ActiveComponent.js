@@ -5,6 +5,7 @@ const async = require('async')
 const jss = require('json-stable-stringify')
 const pascalcase = require('pascalcase')
 const {LAYOUT_3D_SCHEMA} = require('@haiku/core/lib/properties/dom/schema')
+const {PLAYBACK_SETTINGS} = require('@haiku/core/lib/properties/dom/vanities')
 const {HAIKU_ID_ATTRIBUTE, HAIKU_TITLE_ATTRIBUTE, HAIKU_VAR_ATTRIBUTE} = require('@haiku/core/lib/HaikuElement')
 const {sortedKeyframes} = require('@haiku/core/lib/Transitions').default
 const HaikuComponent = require('@haiku/core/lib/HaikuComponent').default
@@ -1201,12 +1202,44 @@ class ActiveComponent extends BaseModel {
           coords, // "coords"/"maybeCoords"
           properties, // properties
           metadata,
-          done
+          (err) => {
+            if (err) {
+              return done(err)
+            }
+
+            // Now set up 'playback' settings on the same keyframes defined for the child.
+            // This makes it clear that keyframes must be defined on the parent in order for
+            // playback to work as expected in the child.
+            const insertion = this.getReifiedBytecode().template.children[0]
+
+            // Places on the host timeline that we're going to create 'playback' keyframes
+            const bookends = [
+              0,
+              Timeline.getMaximumMs(
+                newActiveComponent.getReifiedBytecode(),
+                this.getInstantiationTimelineName()
+              )
+            ]
+
+            bookends.forEach((ms) => {
+              this.upsertProperties(
+                this.getReifiedBytecode(),
+                insertion.attributes[HAIKU_ID_ATTRIBUTE],
+                this.getInstantiationTimelineName(),
+                ms,
+                {'playback': PLAYBACK_SETTINGS.LOOP},
+                'merge'
+              )
+            })
+
+            return done()
+          }
         )
       })
     }, (err) => {
       if (err) return cb(err)
-      return cb(null, this.getReifiedBytecode().template.children[0])
+      const insertion = this.getReifiedBytecode().template.children[0]
+      return cb(null, insertion)
     })
   }
 

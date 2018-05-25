@@ -888,7 +888,7 @@ Timeline.eachTimelineKeyframeDescriptor = function eachTimelineKeyframeDescripto
   }
 }
 
-Timeline.getFrameModulus = function getFrameModulus (pxpf) {
+Timeline.getFrameModulus = (pxpf) => {
   if (pxpf >= 20) return 1
   if (pxpf >= 15) return 2
   if (pxpf >= 10) return 5
@@ -899,7 +899,7 @@ Timeline.getFrameModulus = function getFrameModulus (pxpf) {
   return 50
 }
 
-Timeline.getMillisecondModulus = function getMillisecondModulus (pxpf) {
+Timeline.getMillisecondModulus = (pxpf) => {
   if (pxpf >= 20) return 25
   if (pxpf >= 15) return 50
   if (pxpf >= 10) return 100
@@ -910,7 +910,7 @@ Timeline.getMillisecondModulus = function getMillisecondModulus (pxpf) {
   return 5000
 }
 
-Timeline.getMaximumMs = function getMaximumMs (reifiedBytecode, timelineName) {
+Timeline.getMaximumMs = (reifiedBytecode, timelineName) => {
   if (!reifiedBytecode) {
     return 0
   }
