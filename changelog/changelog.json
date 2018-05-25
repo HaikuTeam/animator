@@ -6467,5 +6467,182 @@
       "label": "feat",
       "message": "Playback API changes, bug fixes, minor improvements (#475)"
     }
+  },
+  "3.3.1": {
+    "37bc4af9f695734b354ea50884aa232d7f8370d1": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Fix for 'Tab for new components created in other opened projects too'"
+    },
+    "8dec4dce083516c67088814990e21c7932f2df6a": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Fix for 'Existing projects not appearing correctly in project browser'"
+    },
+    "49f939bb8eadf2c89ab6c809f2052171ff67b05f": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for 'Copy+paste component doesn't work right after reopening project with existing component on stage'"
+    },
+    "b50794167efb45ca35a9185095368a48a83cfbc8": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "set correct position and styles for modals"
+    },
+    "66f79645cdd8b47f795ace0e9a93ee93ac6fcacd": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "avoid overflow of usernames in popup"
+    },
+    "871b4f9fea1298ad600a2ac7f11403319e86d2f7": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "correct URL when sending release to Slack."
+    },
+    "6323a5e9c1711c6b955c28a71ac728411d8f911d": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "do not perfom envoy figma calls in mock mode"
+    },
+    "d30542377289edbc9c059e4c54c252c430e3717a": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "move all figma external calls to the back-end"
+    },
+    "81f188cb74fc15682e7f2b8de8aa8dfdfabceb05": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for Element disappears when scaled down to near-zero/inverted"
+    },
+    "a7fef0fc07b154b8fa76b378d396fce8ee3f1704": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "conditionally import react devtools to avoid crashes in build"
+    },
+    "730f1ec0613a5a01a24d5bbc8c6e0cd6f4dd8a22": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "remove warning about setting state on unmounted component"
+    },
+    "1b01d10476010b3176640faaaf5ff9d1fa39015a": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for Moving mouse over a single element fires a bunch of hoverElement and unhoverElement events"
+    },
+    "943e3f6f40148c3843569c78b24cd6c01c89216b": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Ensure scrubbing works after first context switch"
+    },
+    "752771283834f5dd9a501ab216ebb24162815c3a": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "use the correct parameters for launching a project"
+    },
+    "2acbda81d02b21b2cd7d4ce5d1919fa9ad8dfcbd": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "A wild backtick appeared"
+    },
+    "533fc072518074c49f4217008b36360f914c4e2a": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "do not perfom envoy figma calls in mock mode"
+    },
+    "825c82bb9a4635423c06e12969a378d7e24019af": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "move all figma external calls to the back-end"
+    },
+    "1e81542cb4499605d2b03c3f23138f0f148c88bc": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for Element disappears when scaled down to near-zero/inverted"
+    },
+    "8cd7de6f2d11f5862f943c924303db4f7b15ed4d": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "multidelete, multipaste"
+    },
+    "a71c32a829a56e95c3b62bfd71173b17d0734e2d": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for Groups have offset inner div that extends outside of the actual bounding box, which is both selectable and hoverable"
+    },
+    "a44dfca8bb87e782ca104345d40a3859400125a0": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Don't include text literal nodes in bytecode file template"
+    },
+    "533020f9d4ef96105de66fc38cfcec6176aca833": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Prevent context switch race conditions"
+    },
+    "47f8f2c547f36b926775411d26de207d3cdc67d1": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Prevent multi-component playback on dashboard"
+    },
+    "3a5d6652ae526ef25f1ae3cc436e3f8c0c682459": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "disallow bad interactions between the tour and publish UI"
+    },
+    "b69b0ed9c0511d200f9afa02b08d61d83a873fad": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for CRASH"
+    },
+    "17ae9cc2372313da91f1295ddf6e6c91e24c22e1": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for Multirotate is broken for legacy upgraded bytecode"
+    },
+    "d9a20fbc1898c1322067a1f720ec4fa42fec2249": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for Little moto dude disappears when ungrouping moto artboard"
+    },
+    "9ab892f81035b016045fe1a6d8090fb46ce694d8": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for MC is incompatible with static.json"
+    },
+    "9d83d935eb25b80e01a494701600ea470fc7d9b3": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "ensure new project state is correctly setting public projects by default"
+    },
+    "de6af20cf3ed7c7f8f3f45f6579429297a7be87c": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Improve instantiation perf by caching File.readMana"
+    },
+    "a5df28494f3229353be7db243e95fbd03180002a": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Prevent hover flicker by early returning if the mouse is down"
+    },
+    "e99f1f01dccb91575433faed54e92f3e1d0bd535": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Too-short debounce time on heavy method caused deadlock"
+    },
+    "0258077ffb0cce773d33222f63f0ff62eef052b9": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "make new projects public by default (#485)"
+    },
+    "232c3aa28c70f3bc6a975e7a7508dff8f97b7104": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "update broken imports in core and tests (#483)"
+    },
+    "7f0e78d51e519da6bf51e1e5b8da344e06f2f135": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "spell out yarn in self-link to avoid macOS conflict."
+    }
   }
 }
