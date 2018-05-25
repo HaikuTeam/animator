@@ -1259,7 +1259,14 @@ export class Glass extends React.Component {
                     elementTargeted.getHaikuElement().visit((descendant) => {
                       if (descendant.isComponent()) return
                       if (descendant.isChildOfDefs) return
-                      if (geometryUtils.isPointInsidePrimitive(descendant, mouseDownPosition)) {
+                      if (
+                        (
+                          descendant.attributes.fill &&
+                          geometryUtils.isPointInsidePrimitive(descendant, mouseDownPosition)
+                        ) || (
+                          descendant.attributes.stroke &&
+                          geometryUtils.isPointAlongStroke(descendant, mouseDownPosition, Number(descendant.attributes['stroke-width']))
+                        )) {
                         Element.directlySelected = descendant
                         return false // stop searching
                       }
@@ -1754,7 +1761,7 @@ export class Glass extends React.Component {
             case 'ellipse': {
               let property
               let value
-              
+
               if (lastIndex === 0 || lastIndex === 1) {
                 property = 'rx'
                 value = Math.abs(transformedCurrent.x - Number(Element.directlySelected.attributes.cx))

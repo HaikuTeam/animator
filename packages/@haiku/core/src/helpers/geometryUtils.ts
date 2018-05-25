@@ -11,7 +11,7 @@ import visitManaTree from './visitManaTree';
 import getElementSize from '../renderers/dom/getElementSize';
 
 // Number of pixels allowance for a line to be selected
-export const LINE_SELECTION_THRESHOLD = 5;
+export const DEFAULT_LINE_SELECTION_THRESHOLD = 5;
 // Number of segments to create when approximating a cubic bezier segment
 export const CUBIC_BEZIER_APPROXIMATION_RESOLUTION = 80;
 
@@ -129,6 +129,9 @@ export const splitSegmentInSVGPoints = (
   pt2Index: number,
   t: number,
 ): SVGPoint[] => {
+  
+  if(pt2Index == points.length) pt2Index = 0;
+  
   let h1: vec2;
   let h2: vec2;
   if (points[pt2Index].curve) {
@@ -254,13 +257,17 @@ export const closestNormalPointOnLineSegment = (a: vec2, b: vec2, test: vec2): v
   return normalPoint;
 };
 
-export const pointOnLineSegment = (a: vec2, b: vec2, test: vec2): boolean => {
-  return distance(closestNormalPointOnLineSegment(a, b, test), test) <= LINE_SELECTION_THRESHOLD;
+export const pointOnLineSegment = (
+  a: vec2, b: vec2, test: vec2,
+  threshold: number = DEFAULT_LINE_SELECTION_THRESHOLD): boolean => {
+  return distance(closestNormalPointOnLineSegment(a, b, test), test) <= threshold;
 };
 
-export const pointOnPolyLineSegment = (points: vec2[], test: vec2): boolean => {
+export const pointOnPolyLineSegment = (
+  points: vec2[], test: vec2,
+  threshold: number = DEFAULT_LINE_SELECTION_THRESHOLD): boolean => {
   for (let i = 1; i < points.length; i++) {
-    if (pointOnLineSegment(points[i - 1], points[i], test)) { return true; }
+    if (pointOnLineSegment(points[i - 1], points[i], test, threshold)) { return true; }
   }
   return false;
 };
@@ -274,6 +281,66 @@ export const transform2DPoint = (point: vec2, ancestryMatrices: any[]): vec2 => 
     y: invertedOffset[1] * p[0] + invertedOffset[5] * p[1] + invertedOffset[9] * p[2] + invertedOffset[13] * p[3],
   };
 };
+
+export const isPointAlongStroke = (element: HaikuElement, point: vec2,
+  threshold: number = DEFAULT_LINE_SELECTION_THRESHOLD): boolean => {
+  
+  const original = element;
+  if (element.type === 'use') {
+    // tslint:disable-next-line
+    element = element.getTranscludedElement();
+  }
+  
+  if(isNaN(threshold) || threshold < DEFAULT_LINE_SELECTION_THRESHOLD) threshold = DEFAULT_LINE_SELECTION_THRESHOLD;
+  
+  const correctedPoint = transform2DPoint(point, original.layoutAncestryMatrices.reverse());
+  
+  switch (element.type) {
+    case 'rect': {
+      const p1 = {x: Number(element.attributes.x), y: Number(element.attributes.y)};
+      const p2 = {x: Number(element.attributes.x) + element.sizeX, y: Number(element.attributes.y)};
+      const p3 = {x: Number(element.attributes.x) + element.sizeX, y: Number(element.attributes.y) + element.sizeY};
+      const p4 = {x: Number(element.attributes.x), y: Number(element.attributes.y) + element.sizeY};
+      return (
+        pointOnLineSegment(p1, p2, correctedPoint, threshold) ||
+        pointOnLineSegment(p2, p3, correctedPoint, threshold) ||
+        pointOnLineSegment(p3, p4, correctedPoint, threshold) ||
+        pointOnLineSegment(p4, p1, correctedPoint, threshold)
+      );
+    }
+    case 'circle': {
+      const dist = distance(correctedPoint, {x: Number(element.attributes.cx), y: Number(element.attributes.cy)});
+      const radius = Number(element.attributes.r);
+      return dist <= radius + threshold/2 && dist >= radius - threshold/2;
+    }
+    case 'ellipse': {
+      const a = Math.pow(correctedPoint.x - Number(element.attributes.cx), 2) / Math.pow(Number(element.attributes.rx), 2) +
+        Math.pow(correctedPoint.y - Number(element.attributes.cy), 2) / Math.pow(Number(element.attributes.ry), 2);
+      return 0.9 < a && a < 1.1; // TODO: Some actually good math here! Need to take stroke width into account
+    }
+    case 'line':
+      return pointOnLineSegment(
+        {x: Number(element.attributes.x1), y: Number(element.attributes.y1)},
+        {x: Number(element.attributes.x2), y: Number(element.attributes.y2)},
+        correctedPoint, threshold);
+    
+    case 'polygon':
+    case 'polyline': {
+      const polyPoints = 
+        SVGPoints.polyPointsStringToPoints(element.attributes.points).map((pt) => ({x: pt[0], y: pt[1]}));
+      return pointOnPolyLineSegment(polyPoints, correctedPoint, threshold);
+    }
+    
+    case 'path': {
+      // Build a straight-line approximation of the path and use the same algorithm as polygon
+      const [points, closed] = buildPathLUT(SVGPoints.pathToPoints(element.attributes.d));
+      if(closed) points.push(points[0]);
+      return pointOnPolyLineSegment(points, correctedPoint, threshold);
+    }
+  }
+  
+  return false;
+}
 
 export const isPointInsidePrimitive = (element: HaikuElement, point: vec2): boolean => {
   
@@ -311,18 +378,13 @@ export const isPointInsidePrimitive = (element: HaikuElement, point: vec2): bool
         <= 1
       ) { return true; }
       return false;
-    
-    case 'line':
-      return pointOnLineSegment(
-        {x: Number(element.attributes.x1), y: Number(element.attributes.y1)},
-        {x: Number(element.attributes.x2), y: Number(element.attributes.y2)},
-        correctedPoint);
-    
+    /*
     case 'polyline': {
       const polyPoints = 
         SVGPoints.polyPointsStringToPoints(element.attributes.points).map((pt) => ({x: pt[0], y: pt[1]}));
       return pointOnPolyLineSegment(polyPoints, correctedPoint);
     }
+    */
     case 'polygon': {
       const polyPoints = 
         SVGPoints.polyPointsStringToPoints(element.attributes.points).map((pt) => ({x: pt[0], y: pt[1]}));
@@ -331,15 +393,8 @@ export const isPointInsidePrimitive = (element: HaikuElement, point: vec2): bool
     
     case 'path': {
       // Build a straight-line approximation of the path and use the same algorithm as polygon
-      /* TODO:
-        if(beziers[i].closed && evenOddRaycastPointInPolygon(
-          buildPathLUT(SVGPoints.pathToPoints(element.attributes.d)), correctedPoint
-        )) return true
-        else if(pointOnPolyLineSegment(beziers[i].toApproximatedPolygon(), correctedPoint)) return true
-      */
-      const [points, closed] = buildPathLUT(SVGPoints.pathToPoints(element.attributes.d));
-      if (closed) { return evenOddRaycastPointInPolygon(points, correctedPoint); }
-      return pointOnPolyLineSegment(points, correctedPoint);
+      const [points] = buildPathLUT(SVGPoints.pathToPoints(element.attributes.d));
+      return evenOddRaycastPointInPolygon(points, correctedPoint);
     }
   }
   
@@ -385,10 +440,11 @@ export const cubicBezierSplit = (
 
 export default {
   isPointInsidePrimitive,
+  isPointAlongStroke,
   distance,
   transform2DPoint,
   closestNormalPointOnLineSegment,
-  LINE_SELECTION_THRESHOLD,
+  DEFAULT_LINE_SELECTION_THRESHOLD,
   splitSegmentInSVGPoints,
   buildPathLUT,
 };
