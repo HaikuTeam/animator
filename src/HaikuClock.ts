@@ -2,8 +2,8 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import HaikuGlobal from './HaikuGlobal';
 import HaikuBase from './HaikuBase';
+import HaikuGlobal from './HaikuGlobal';
 import assign from './vendor/assign';
 import raf from './vendor/raf';
 
@@ -59,6 +59,10 @@ if (!HaikuGlobal.HaikuGlobalAnimationHarness) {
 
 // tslint:disable:variable-name
 export default class HaikuClock extends HaikuBase {
+  private boundRunner: () => void = () => {
+    this.run();
+  }
+
   _deltaSinceLastTick;
   _isRunning;
   _localExplicitlySetTime;
@@ -66,7 +70,6 @@ export default class HaikuClock extends HaikuBase {
   _localTimeElapsed;
   _numLoopsRun;
   options;
-  queueIndex;
   _tickables;
   GLOBAL_ANIMATION_HARNESS;
 
@@ -81,7 +84,7 @@ export default class HaikuClock extends HaikuBase {
     this.reinitialize();
 
     // Bind to avoid `this`-detachment when called by raf
-    this.queueIndex = HaikuGlobal.HaikuGlobalAnimationHarness.queue.push(this.run.bind(this));
+    HaikuGlobal.HaikuGlobalAnimationHarness.queue.push(this.boundRunner);
 
     // Tests and others may need this to cancel the rAF loop, to avoid leaked handles
     this.GLOBAL_ANIMATION_HARNESS = HaikuGlobal.HaikuGlobalAnimationHarness;
@@ -134,15 +137,12 @@ export default class HaikuClock extends HaikuBase {
         }
       }
     }
-
-    return this;
   }
 
   tick() {
     for (let i = 0; i < this._tickables.length; i++) {
       this._tickables[i].performTick();
     }
-    return this;
   }
 
   getTime() {
@@ -211,7 +211,12 @@ export default class HaikuClock extends HaikuBase {
 
   destroy() {
     super.destroy();
-    HaikuGlobal.HaikuGlobalAnimationHarness.queue.splice(this.queueIndex, 1);
+    for (let i = 0; i < HaikuGlobal.HaikuGlobalAnimationHarness.queue.length; i++) {
+      if (HaikuGlobal.HaikuGlobalAnimationHarness.queue[i] === this.boundRunner) {
+        HaikuGlobal.HaikuGlobalAnimationHarness.queue.splice(i, 1);
+        return;
+      }
+    }
   }
 }
 

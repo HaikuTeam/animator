@@ -365,7 +365,13 @@ HaikuElement['__name__'] = 'HaikuElement';
 HaikuElement['findByNode'] = (node) => {
   const registry = HaikuBase['getRegistryForClass'](HaikuElement);
 
-  return registry.find((instance) => instance.node === node);
+  for (let i = 0; i < registry.length; i++) {
+    if (registry[i].node === node) {
+      return registry[i];
+    }
+  }
+
+  return;
 };
 
 HaikuElement['connectNodeWithElement'] = (node, element) => {
