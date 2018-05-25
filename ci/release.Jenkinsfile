@@ -44,7 +44,7 @@ pipeline {
                                     color: 'good',
                                     message: "PR #${env.ghprbPullId} built!\n\n" +
                                             "GitHub URL: https://github.com/HaikuTeam/mono/pull/${env.ghprbPullId}\n" +
-                                            "Download Mac DMG: https://ci.haiku.ai/job/HaikuDesktop/" +
+                                            "Download Mac DMG: https://ci.haiku.ai/job/HaikuRelease/" +
                                             "${env.BUILD_NUMBER}/artifact/dist/Haiku-${getReleaseVersion()}.dmg"
                             ])
                             setBuildStatus(CONTEXT_BUILD_MAC, 'build complete', STATUS_SUCCESS)

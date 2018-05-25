@@ -1142,6 +1142,11 @@ export default class Plumbing extends StateObject {
     if (this.masters[folder]) {
       this.masters[folder].active = false
       this.masters[folder].watchOff()
+      this.masters[folder].project && this.masters[folder].project.getAllActiveComponents().forEach((ac) => {
+        if (ac.$instance) {
+          ac.$instance.context.destroy()
+        }
+      })
     }
 
     // Since we're about to nav back to the dashboard, we're also about to drop the

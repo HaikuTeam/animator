@@ -13,7 +13,6 @@ const TRANSFORM_COMPONENT_WHITELIST = {
   'rotation.x': true,
   'rotation.y': true,
   'rotation.z': true,
-  'rotation.w': true,
   'scale.x': true,
   'scale.y': true,
   'scale.z': true,

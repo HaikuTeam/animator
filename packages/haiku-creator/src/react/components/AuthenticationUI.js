@@ -165,8 +165,7 @@ class AuthenticationUI extends React.Component {
         return this.setState({ error, isSubmitting: false })
       }
 
-      this.setState({ isSubmitting: false, isSuccess: true })
-      this.props.onSubmitSuccess()
+      this.setState({ isSubmitting: false, isSuccess: true }, this.props.onSubmitSuccess)
     })
   }
 

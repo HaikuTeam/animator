@@ -427,7 +427,7 @@ Bytecode.snapshot = (bytecode) => {
   })
 }
 
-Bytecode.decycle = (reified, { doCleanMana }) => {
+Bytecode.decycle = (reified, { cleanManaOptions = {}, doCleanMana }) => {
   const decycled = {}
 
   if (reified.metadata) decycled.metadata = reified.metadata
@@ -462,7 +462,7 @@ Bytecode.decycle = (reified, { doCleanMana }) => {
 
   if (reified.template) {
     if (doCleanMana) {
-      decycled.template = Template.cleanMana(reified.template)
+      decycled.template = Template.cleanMana(reified.template, cleanManaOptions)
     } else {
       // Cleaning mana will mess with instantiated component modules, which is why
       // doCleanMana is an option

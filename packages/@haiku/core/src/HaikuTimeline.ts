@@ -47,7 +47,7 @@ export default class HaikuTimeline extends HaikuBase {
     this._localExplicitlySetTime = null; // Only set this to a number if time is 'controlled'
     this._maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
 
-    this._isPlaying = false;
+    this._isPlaying = null;
   }
 
   private getMs(amount: number, unit: TimeUnit): number {
@@ -257,6 +257,15 @@ export default class HaikuTimeline extends HaikuBase {
   }
 
   /**
+   * @method isExplicitlyPaused
+   * @description Returns T/F if the timeline has actually been paused; differentiate from
+   * the falsy state timelines have when first constructed.
+   */
+  isExplicitlyPaused() {
+    return this._isPlaying === false;
+  }
+
+  /**
    * @method isFrozen
    * @description Returns T/F if the timeline is frozen
    */
@@ -416,10 +425,7 @@ export default class HaikuTimeline extends HaikuBase {
 
 HaikuTimeline['__name__'] = 'HaikuTimeline';
 
-HaikuTimeline['all'] = (): HaikuTimeline[] => {
-  const all = HaikuBase['getRegistryForClass'](HaikuTimeline);
-  return all.filter((timeline) => !timeline.isDestroyed);
-};
+HaikuTimeline['all'] = (): HaikuTimeline[] => HaikuBase['getRegistryForClass'](HaikuTimeline);
 
 HaikuTimeline['where'] = (criteria): HaikuTimeline[] => {
   const all = HaikuTimeline['all']();

@@ -8,7 +8,8 @@ const LOCKS = {
   FilePerformComponentWork: 'FilePerformComponentWork',
   FileReadWrite: (abspath) => { return `FileReadWrite:${abspath}` },
   ProjectMethodHandler: 'ProjectMethodHandler',
-  ActionStackUndoRedo: 'ActionStackUndoRedo'
+  ActionStackUndoRedo: 'ActionStackUndoRedo',
+  SetCurrentActiveCompnent: 'SetCurrentActiveCompnent'
 }
 
 const emitter = new EventEmitter()

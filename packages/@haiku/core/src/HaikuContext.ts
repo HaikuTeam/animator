@@ -166,6 +166,13 @@ export default class HaikuContext extends HaikuBase {
     this.unmountedTickables = this.tickables.splice(0);
   }
 
+  destroy() {
+    super.destroy();
+    this.component.destroy();
+    this.renderer.destroy();
+    this.clock.destroy();
+  }
+
   /**
    * @method addTickable
    * @description Add a tickable object to the list of those that will be called on every clock tick.

@@ -1072,6 +1072,11 @@ export default class Creator extends React.Component {
               })
             })
 
+            // This safely reinitializes websockets and Envoy clients.
+            // We need to do this here in Creator because our process
+            // remains alive even as the user navs between projects.
+            projectModel.connectClients()
+
             // Clear the undo/redo stack (etc) from the previous editing session if any is left over
             projectModel.actionStack.resetData()
 
@@ -1266,15 +1271,15 @@ export default class Creator extends React.Component {
   }
 
   onTimelineMounted () {
-    this.setState({ isTimelineReady: true })
+    this.setState({isTimelineReady: true})
   }
 
   onTimelineUnmounted () {
-    this.setState({ isTimelineReady: false })
+    this.setState({isTimelineReady: false})
   }
 
   onNavigateToDashboard () {
-    this.teardownMaster({ shouldFinishTour: true })
+    this.teardownMaster({shouldFinishTour: true})
     ipcRenderer.send('topmenu:update', {subComponents: [], isProjectOpen: false})
   }
 
@@ -1367,11 +1372,28 @@ export default class Creator extends React.Component {
       { method: 'teardownMaster', params: [this.state.projectModel.getFolder()] },
       () => {
         logger.info('[creator] master torn down')
+
         this.setDashboardVisibility(true, launchingProject)
         this.onTimelineUnmounted()
+
         this.unsetAllProjectModelsState(this.state.projectModel.getFolder(), 'project:ready')
         this.unsetAllProjectModelsState(this.state.projectModel.getFolder(), 'component:mounted')
-        if (shouldFinishTour) this.tourChannel.finish(false)
+
+        if (shouldFinishTour) {
+          this.tourChannel.finish(false)
+        }
+
+        this.state.projectModel.getAllActiveComponents().forEach((ac) => {
+          if (ac.$instance) {
+            ac.$instance.context.destroy()
+          }
+        })
+
+        // The stale project doesn't want to receive methods destined for new project models
+        if (this.state.projectModel) {
+          this.state.projectModel.stopHandlingMethods()
+        }
+
         this.setState({
           projectModel: null,
           activeNav: 'library', // Prevents race+crash loading StateInspector when switching projects

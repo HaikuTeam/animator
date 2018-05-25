@@ -347,13 +347,19 @@ class Timeline extends React.Component {
           break
 
         case 'global-menu:undo':
-          // For consistency, let glass initiate undo/redo
-          this.props.websocket.send(relayable)
+          if (window.isWebview) { // Let work in standalone dev mode
+            this.props.websocket.send(relayable) // For consistency, let glass initiate undo/redo
+          } else {
+            this.handleUndoDebounced()
+          }
           break
 
         case 'global-menu:redo':
-          // For consistency, let glass initiate undo/redo
-          this.props.websocket.send(relayable)
+          if (window.isWebview) { // Let work in standalone dev mode
+            this.props.websocket.send(relayable) // For consistency, let glass initiate undo/redo
+          } else {
+            this.handleRedoDebounced()
+          }
           break
       }
     })

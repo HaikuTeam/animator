@@ -244,9 +244,9 @@ class File extends BaseModel {
    * serialization issues or which have the effect of adding too much metadata to the object. For example, the
    * reified bytecode by itself probably has a template that contains .__depth, .__parent, .layout properties, etc.
    */
-  getReifiedDecycledBytecode () {
+  getReifiedDecycledBytecode (cleanManaOptions = {}) {
     const reified = this.getReifiedBytecode()
-    return Bytecode.decycle(reified, { doCleanMana: true })
+    return Bytecode.decycle(reified, { cleanManaOptions, doCleanMana: true })
   }
 
   /**

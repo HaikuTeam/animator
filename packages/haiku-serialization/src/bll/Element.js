@@ -90,39 +90,56 @@ class Element extends BaseModel {
     return fn
   }
 
-  hoverOn (metadata) {
+  hoverOn (metadata, softly = false) {
     if (!this._isHovered || !Element.hovered[this.getPrimaryKey()]) {
       this.cache.clear()
       this._isHovered = true
       Element.hovered[this.getPrimaryKey()] = this
-      this.emit('update', 'element-hovered', metadata)
+      if (!softly) {
+        this.emit('update', 'element-hovered', metadata)
+      }
     }
     return this
   }
 
-  hoverOff (metadata) {
+  hoverOnSoftly (metadata) {
+    return this.hoverOn(metadata, true)
+  }
+
+  hoverOff (metadata, softly = false) {
     if (this._isHovered || Element.hovered[this.getPrimaryKey()]) {
       this.cache.clear()
       this._isHovered = false
       delete Element.hovered[this.getPrimaryKey()]
-      this.emit('update', 'element-unhovered', metadata)
+      if (!softly) {
+        this.emit('update', 'element-unhovered', metadata)
+      }
     }
+  }
+
+  hoverOffSoftly (metadata) {
+    return this.hoverOff(metadata, true)
   }
 
   isHovered () {
     return this._isHovered
   }
 
-  select (metadata) {
+  select (metadata, softly = false) {
     if (!this._isSelected || !Element.selected[this.getPrimaryKey()]) {
       this._isSelected = true
       Element.selected[this.getPrimaryKey()] = this
-      this.emit('update', 'element-selected', metadata)
 
-      // Roundabout! Note that rows, when selected, will select their corresponding element
-      const row = this.getHeadingRow()
-      if (row) {
-        row.expandAndSelect(metadata)
+      if (softly) {
+        this.emit('update', 'element-selected-softly', metadata)
+      } else {
+        this.emit('update', 'element-selected', metadata)
+
+        // Roundabout! Note that rows, when selected, will select their corresponding element
+        const row = this.getHeadingRow()
+        if (row) {
+          row.expandAndSelect(metadata)
+        }
       }
     }
   }
@@ -133,26 +150,27 @@ class Element extends BaseModel {
    * Mainly used for multi-selection in glass-only context.
    */
   selectSoftly (metadata) {
-    if (!this._isSelected || !Element.selected[this.getPrimaryKey()]) {
-      this._isSelected = true
-      Element.selected[this.getPrimaryKey()] = this
-      this.emit('update', 'element-selected-softly', metadata)
-    }
+    return this.select(metadata, true)
   }
 
-  unselect (metadata) {
+  unselect (metadata, softly = false) {
     if (this._isSelected || Element.selected[this.getPrimaryKey()]) {
       this._isSelected = false
       delete Element.selected[this.getPrimaryKey()]
-      this.emit('update', 'element-unselected', metadata)
+      if (softly) {
+        this.emit('update', 'element-unselected-softly', metadata)
+      } else {
+        this.emit('update', 'element-unselected', metadata)
+
+        // Roundabout! Note that rows, when deselected, will deselect their corresponding element
+        const row = this.getHeadingRow()
+        if (row && row.isSelected()) {
+          row.deselect(metadata)
+        }
+      }
+
       // #FIXME: this is a bit overzealous.
       ElementSelectionProxy.purge()
-
-      // Roundabout! Note that rows, when deselected, will deselect their corresponding element
-      const row = this.getHeadingRow()
-      if (row && row.isSelected()) {
-        row.deselect(metadata)
-      }
     }
   }
 
@@ -162,13 +180,7 @@ class Element extends BaseModel {
    * Mainly used for multi-selection in glass-only context.
    */
   unselectSoftly (metadata) {
-    if (this._isSelected || Element.selected[this.getPrimaryKey()]) {
-      this._isSelected = false
-      delete Element.selected[this.getPrimaryKey()]
-      this.emit('update', 'element-unselected-softly', metadata)
-      // #FIXME: this is a bit overzealous.
-      ElementSelectionProxy.purge()
-    }
+    return this.unselect(metadata, true)
   }
 
   getHeadingRow () {
@@ -198,13 +210,6 @@ class Element extends BaseModel {
 
   getCoreHostComponentInstance () {
     return this.component.$instance
-  }
-
-  cut () {
-    // Note that .copy() also calls .clip()
-    const clip = this.copy()
-    this.remove()
-    return clip
   }
 
   copy () {
@@ -567,8 +572,7 @@ class Element extends BaseModel {
       rotation: {
         x: grabValue('rotation.x'),
         y: grabValue('rotation.y'),
-        z: grabValue('rotation.z'),
-        w: grabValue('rotation.w')
+        z: grabValue('rotation.z')
       },
       scale: {
         x: grabValue('scale.x'),
@@ -696,15 +700,9 @@ class Element extends BaseModel {
     return propertyGroupValue
   }
 
-  remove () {
-    this.unselect(this.component.project.getMetadata())
-    this.hoverOff(this.component.project.getMetadata())
-
-    this.component.deleteComponent(
-      this.getComponentId(),
-      this.component.project.getMetadata(),
-      () => {}
-    )
+  remove (metadata) {
+    this.unselectSoftly(metadata)
+    this.hoverOffSoftly(metadata)
 
     // Destroy after the above so we retain our UID for the necessary actions
     this.destroy()
@@ -714,7 +712,7 @@ class Element extends BaseModel {
       row.delete()
     }
 
-    this.emit('update', 'element-remove')
+    this.emit('update', 'element-removed')
   }
 
   isRenderableType () {
@@ -1616,7 +1614,7 @@ class Element extends BaseModel {
           stroke: 'none'
         }
       }]
-    }, true))
+    }, {resetIds: true}))
   }
 
   ungroupDiv (nodes) {
@@ -1647,10 +1645,11 @@ class Element extends BaseModel {
       attributes['translation.x'] += originX * layoutMatrix[0] + originY * layoutMatrix[4]
       attributes['translation.y'] += originX * layoutMatrix[1] + originY * layoutMatrix[5]
       nodes.push({
-        elementName: haikuElement.tagName,
+        // Important: ensure we can serialize the node mana if we encounter a component.
+        // #FIXME: Why isn't haikuElement.isComponent() correct, and why is the component pseudo tag name 'div'?
+        elementName: typeof haikuElement.type !== 'string' ? '__component__' : haikuElement.tagName,
         attributes,
         children: []
-        // originalComponentId: haikuElement.getComponentId()
       })
     })
   }
@@ -1679,7 +1678,6 @@ class Element extends BaseModel {
 
         const attributes = Object.keys(mergedAttributes).reduce((accumulator, propertyName) => {
           if (!LAYOUT_3D_SCHEMA.hasOwnProperty(propertyName)) {
-            // accumulator[propertyName] = mergedAttributes[propertyName][0].value
             accumulator[propertyName] = this.component.getComputedPropertyValue(
               descendantHaikuElement.node,
               mergedAttributes[propertyName],
@@ -1704,7 +1702,7 @@ class Element extends BaseModel {
           delete subHaikuElement.node.layout
         })
 
-        Object.assign(attributes, {
+        const parentAttributes = {
           width: boundingBox.width,
           height: boundingBox.height,
           // Important: in case we have borders that spill outside the bounding box, allow SVG overflow so nothing
@@ -1712,9 +1710,9 @@ class Element extends BaseModel {
           'style.overflow': 'visible',
           [HAIKU_SOURCE_ATTRIBUTE]: `${svgElement.attributes[HAIKU_SOURCE_ATTRIBUTE]}#${descendantHaikuElement.id}`,
           [HAIKU_TITLE_ATTRIBUTE]: descendantHaikuElement.title || descendantHaikuElement.id
-        })
+        }
 
-        composedTransformsToTimelineProperties(attributes, layoutAncestryMatrices)
+        composedTransformsToTimelineProperties(parentAttributes, layoutAncestryMatrices)
 
         // In this very special mana construct, we:
         //   - Offset the translation of the ungrouped SVG element by the render-time bounding box. This allows us
@@ -1723,26 +1721,33 @@ class Element extends BaseModel {
         //     preserved.
         nodes.push(Template.cleanMana({
           elementName: 'svg',
-          attributes,
+          attributes: parentAttributes,
           children: [
             ...defs,
             {
               elementName: 'g',
-              attributes: {
-                transform: `translate(${-boundingBox.x} ${-boundingBox.y})`
-              },
+              attributes: Object.assign(
+                attributes,
+                {
+                  transform: `translate(${-boundingBox.x} ${-boundingBox.y})`
+                }
+              ),
               children: [Object.assign(
+                {},
                 descendantHaikuElement.node,
                 {
-                  attributes: Object.assign(descendantHaikuElement.attributes, {
-                    'haiku-transclude': descendantHaikuElement.getComponentId()
-                  }),
+                  attributes: Object.assign(
+                    {
+                      'haiku-transclude': descendantHaikuElement.getComponentId()
+                    },
+                    descendantHaikuElement.attributes
+                  ),
                   children: []
                 }
               )]
             }
           ]
-        }, true))
+        }, {resetIds: true}))
 
         return false
       })

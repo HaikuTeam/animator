@@ -4,7 +4,6 @@ import Radium from 'radium'
 import path from 'path'
 import HaikuDOMRenderer from '@haiku/core/lib/renderers/dom'
 import HaikuContext from '@haiku/core/lib/HaikuContext'
-import {PLAYBACK_SETTINGS} from '@haiku/core/lib/properties/dom/vanities'
 import BaseModel from 'haiku-serialization/src/bll/BaseModel'
 import Project from 'haiku-serialization/src/bll/Project'
 import Config from '@haiku/core/lib/Config'
@@ -656,8 +655,9 @@ export class Glass extends React.Component {
     this.addEmitterListener(window, 'dblclick', this.windowDblClickHandler.bind(this))
     this.addEmitterListener(window, 'keydown', this.windowKeyDownHandler.bind(this))
     this.addEmitterListener(window, 'keyup', this.windowKeyUpHandler.bind(this))
-    this.addEmitterListener(window, 'mouseover', this.windowMouseOverOutHandler.bind(this))
-    this.addEmitterListener(window, 'mouseout', this.windowMouseOverOutHandler.bind(this))
+    if (experimentIsEnabled(Experiment.OutliningElementsOnStageFromStage)) {
+      this.addEmitterListener(window, 'mouseover', this.windowMouseOverHandler.bind(this))
+    }
     // When the mouse is clicked, below is the order that events fire
     this.addEmitterListener(window, 'mousedown', this.windowMouseDownHandler.bind(this))
     this.addEmitterListener(window, 'mouseup', this.windowMouseUpHandler.bind(this))
@@ -731,7 +731,7 @@ export class Glass extends React.Component {
     if (this.getActiveComponent()) {
       mixpanel.haikuTrack('creator:glass:delete-element')
       const proxy = this.fetchProxyElementForSelection()
-      proxy.remove()
+      proxy.remove(this.getActiveComponent().project.getMetadata())
     }
   }
 
@@ -785,12 +785,14 @@ export class Glass extends React.Component {
       title,
       size,
       translation,
-      { // coords
+      { // "coords"
         x: translation.x + size.x / 2, // assume center origin
         y: translation.y + size.y / 2  // assume center origin
       },
       {
-        'playback': PLAYBACK_SETTINGS.LOOP,
+        // "properties"
+        // The setup of 'playback' is handled inside of ActiveComponent#conglomerateComponent,
+        // since it requires initializing the field for multiple keyframes
         'sizeMode.x': 1,
         'sizeMode.y': 1,
         'sizeMode.z': 1,
@@ -908,7 +910,7 @@ export class Glass extends React.Component {
     }
   }
 
-  windowMouseOverOutHandler (mouseEvent) {
+  windowMouseOverHandler (mouseoverEvent) {
     if (
       this.state.isMouseDown ||
       this.isPreviewMode()
@@ -916,21 +918,41 @@ export class Glass extends React.Component {
       return
     }
 
-    if (mouseEvent.type === 'mouseover') {
-      const element = this.findElementAssociatedToMouseEvent(mouseEvent)
+    const element = this.findElementAssociatedToMouseEvent(mouseoverEvent)
 
-      if (element) {
-        if (element.isHovered()) {
-          return
-        }
-
-        Element.hoverOffAllElements({component: this.getActiveComponent()}, {from: 'glass'})
-
-        return element.hoverOn({from: 'glass'})
-      }
+    if (!element || element.isHovered() || element.isSelected()) {
+      return
     }
 
-    Element.hoverOffAllElements({component: this.getActiveComponent()}, {from: 'glass'})
+    Element.hoverOffAllElements({component: this.getActiveComponent(), _isHovered: true}, {from: 'glass'})
+
+    element.hoverOn({from: 'glass'})
+    const boxPoints = element.getBoxPointsTransformed()
+
+    const mousemoveHandler = (mousemoveEvent) => {
+      const artboard = this.getActiveComponent().getArtboard()
+      const rect = artboard.getRect()
+      const zoom = artboard.getZoom()
+
+      if (isCoordInsideBoxPoints(
+        (mousemoveEvent.clientX - rect.left) / zoom,
+        (mousemoveEvent.clientY - rect.top) / zoom,
+        boxPoints
+      )) {
+        return
+      }
+
+      element.hoverOff({from: 'glass'})
+      window.removeEventListener('mousemove', mousemoveHandler)
+    }
+
+    element.on('update', (event) => {
+      if (event === 'element-selected' || event === 'element-selected-softly' || event === 'element-removed') {
+        window.removeEventListener('mousemove', mousemoveHandler)
+      }
+    })
+
+    window.addEventListener('mousemove', mousemoveHandler)
   }
 
   get areAnyModalsOpen () {
@@ -1206,7 +1228,7 @@ export class Glass extends React.Component {
 
   duplicateSelectedElementsThenSelectDuplicates (cb) {
     const proxy = this.fetchProxyElementForSelection()
-    proxy.duplicateAllAndSelectDuplicates({from: 'glass'}, (err, proxyForDuplicates) => {
+    proxy.duplicateAllAndSelectDuplicates({from: 'glass'}, (err) => {
       if (err) return cb(err)
       return cb()
     })
@@ -1426,16 +1448,10 @@ export class Glass extends React.Component {
       case 46: this.handleDelete(); break
       case 8: this.handleDelete(); break
       case 13: this.handleKeyEnter(); break
-      case 16: this.handleKeyShift(keyEvent.nativeEvent); break
-      case 17: this.handleKeyCtrl(keyEvent.nativeEvent); break
-      case 18: this.handleKeyAlt(keyEvent.nativeEvent); break
-      case 224: this.handleKeyCommand(keyEvent.nativeEvent); break
-      case 91: this.handleKeyCommand(keyEvent.nativeEvent); break
-      case 93: this.handleKeyCommand(keyEvent.nativeEvent); break
     }
   }
 
-  handleKeyUp (keyEvent) {
+  handleKeyUp () {
     if (this.state.isEventHandlerEditorOpen) {
       return
     }
@@ -1443,51 +1459,10 @@ export class Glass extends React.Component {
     if (this.getActiveComponent()) {
       this.getActiveComponent().getSelectionMarquee().endSelection()
     }
-
-    switch (keyEvent.nativeEvent.which) {
-      case 16: this.handleKeyShift(keyEvent.nativeEvent); break
-      case 17: this.handleKeyCtrl(keyEvent.nativeEvent); break
-      case 18: this.handleKeyAlt(keyEvent.nativeEvent); break
-      case 224: this.handleKeyCommand(keyEvent.nativeEvent); break
-      case 91: this.handleKeyCommand(keyEvent.nativeEvent); break
-      case 93: this.handleKeyCommand(keyEvent.nativeEvent); break
-    }
   }
 
   handleKeyEnter () {
     // noop for now
-  }
-
-  handleKeyCommand (nativeEvent) {
-    const controlActivation = this.state.controlActivation
-    if (controlActivation) {
-      controlActivation.cmd = Globals.isCommandKeyDown
-    }
-    this.setState({ controlActivation })
-  }
-
-  handleKeyShift (nativeEvent) {
-    const controlActivation = this.state.controlActivation
-    if (controlActivation) {
-      controlActivation.shift = Globals.isShiftKeyDown
-    }
-    this.setState({ controlActivation })
-  }
-
-  handleKeyCtrl (nativeEvent) {
-    const controlActivation = this.state.controlActivation
-    if (controlActivation) {
-      controlActivation.ctrl = Globals.isControlKeyDown
-    }
-    this.setState({ controlActivation })
-  }
-
-  handleKeyAlt (nativeEvent) {
-    const controlActivation = this.state.controlActivation
-    if (controlActivation) {
-      controlActivation.alt = Globals.isAltKeyDown
-    }
-    this.setState({ controlActivation })
   }
 
   handleClickStageName () {
@@ -1596,9 +1571,13 @@ export class Glass extends React.Component {
         // merging isAnythingRotating/isAnythingScaling and controlActivation.cmd logics
         cmd: Globals.isSpecialKeyDown(),
         alt: Globals.isAltKeyDown,
-        index: activationInfo.index
+        index: activationInfo.index,
+        x: this.state.mousePositionCurrent.x,
+        y: this.state.mousePositionCurrent.y
       }
     })
+
+    this.fetchProxyElementForSelection().pushCachedTransform('CONTROL_ACTIVATION')
   }
 
   storeAndReturnMousePosition (mouseEvent, additionalPositionTrackingState) {
@@ -1881,7 +1860,7 @@ export class Glass extends React.Component {
       return
     }
 
-    if (canRotate && (
+    if (!this.state.isAnythingScaling && canRotate && (
       (this.state.hoveredControlPointIndex !== null && isRotationModeOn) ||
       this.state.isAnythingRotating
     )) {
