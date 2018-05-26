@@ -7,6 +7,7 @@
       "Improved editing of Sketch artboards: You can now place artboards on stage and ungroup them to independently animate the elements they are composed of.",
       "Added highlighting to indicate elements which you have hovered in the timeline view.",
       "Added ability to scale and rotate multiple elements together when multiselected.",
+      "Added ability to rename elements by double clicking their titles in the timeline.",
       "Added Angular 2/4/5/6/... support via a Haiku adapter. Check the share modal for usage instructions.",
       "You can now use the up/down arrow keys to increment numeric values in the timeline property fields.",
       "Added support for importing Figma assets that contain raster images.",
