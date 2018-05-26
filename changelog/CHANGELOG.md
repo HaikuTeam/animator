@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 3.3.4
+
+### Bug Fixes
+
+ * for Figma connect results in crash
+
 ## 3.3.3
 
 ### Bug Fixes

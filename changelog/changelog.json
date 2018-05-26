@@ -6688,5 +6688,12 @@
       "label": "fix",
       "message": "update broken imports in core and tests (#483)"
     }
+  },
+  "3.3.4": {
+    "a2c51f8ac107e14744b4324fbaa1f8bd2d5cb628": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for Figma connect results in crash"
+    }
   }
 }
