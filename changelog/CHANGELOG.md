@@ -1,6 +1,17 @@
 # Changelog
 
 
+## 3.3.3
+
+### Bug Fixes
+
+ * until crashes are fixed, take away ability to undo conglomerateComponent, which did not really undo everything anyway.
+ * clear ElementSelectionProxy caches fully when timeline time changes.
+ * for 'Copy+paste component doesn't work right after reopening project with existing component on stage'
+ * for Element disappears when scaled down to near-zero/inverted
+ * Prevent multi-component playback on dashboard
+ * update broken imports in core and tests (#483)
+
 ## 3.3.2
 
 ### Bug Fixes

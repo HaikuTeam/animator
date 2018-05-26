@@ -6656,5 +6656,37 @@
       "label": "fix",
       "message": "check for component before destroying context in ProjectPreview"
     }
+  },
+  "3.3.3": {
+    "0efa017221553e2d0c7640b06d31a95785580fe0": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "until crashes are fixed, take away ability to undo conglomerateComponent, which did not really undo everything anyway."
+    },
+    "cbd15a1204f56fac78b41409132b9d7af72a948c": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "clear ElementSelectionProxy caches fully when timeline time changes."
+    },
+    "bc6af02109c378ef7196e5c4d05e3ebde1cba4b2": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for 'Copy+paste component doesn't work right after reopening project with existing component on stage'"
+    },
+    "97452ee0183d8a182e7a89f9d9e2a1ee372a3a5c": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for Element disappears when scaled down to near-zero/inverted"
+    },
+    "a537089ac6a6bc769f8950dbd550fdc2312992bb": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Prevent multi-component playback on dashboard"
+    },
+    "183323e5670189ae97b66a5c5c3086c7c5fd506e": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "update broken imports in core and tests (#483)"
+    }
   }
 }
