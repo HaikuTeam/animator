@@ -85,7 +85,9 @@ class NewProjectModal extends React.PureComponent {
           {
             this.state.isLoading && (
               <div style={STYLES.loadingScreen}>
-                <Hai loop sizing={'contain'} contextMenu={'disabled'} />
+                <Hai loop sizing={'contain'} contextMenu={'disabled'} onHaikuComponentWillUnmount={(component) => {
+                  component.context.destroy()
+                }} />
               </div>
             )
           }
