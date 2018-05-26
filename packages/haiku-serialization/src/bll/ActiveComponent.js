@@ -445,7 +445,9 @@ class ActiveComponent extends BaseModel {
     // force set a time value to get it into 'controlled time' mode, hence the `forceSeek` flag.
     if (forceSeek || timelineTime !== this.getCurrentTimelineTime()) {
       // Purge any ElementSelectionProxy caches in case the layout of selected elements is changing.
-      ElementSelectionProxy.clearCaches()
+      ElementSelectionProxy.all().forEach((proxy) => {
+        proxy.clearAllRelatedCaches()
+      })
 
       // Note that this call reaches in and updates our instance's timeline objects
       Timeline.where({component: this}).forEach((timeline) => {
