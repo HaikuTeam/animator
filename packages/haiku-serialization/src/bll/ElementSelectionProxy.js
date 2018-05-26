@@ -40,6 +40,15 @@ class ElementSelectionProxy extends BaseModel {
     }
 
     // When representing multiple elements, we apply changes to our proxy properties
+    this.reinitializeLayout()
+
+    // Allows transforms to be recalled on demand, e.g. during Alt+drag
+    this.transformCache = new TransformCache(this)
+
+    this.initializeRotationSnap()
+  }
+
+  reinitializeLayout () {
     this._proxyBoxPoints = []
     this._proxyProperties = {}
     Object.assign(this._proxyProperties, ElementSelectionProxy.DEFAULT_PROPERTY_VALUES)
@@ -47,9 +56,6 @@ class ElementSelectionProxy extends BaseModel {
     if (!this.hasAnythingInSelection()) {
       return
     }
-
-    // Allows transforms to be recalled on demand, e.g. during Alt+drag
-    this.transformCache = new TransformCache(this)
 
     const boxPoints = Element.getBoundingBoxPoints(
       this.selection.map((element) => element.getBoxPointsTransformed()).reduce((accumulator, boxPoints) => {
@@ -75,8 +81,6 @@ class ElementSelectionProxy extends BaseModel {
         'translation.y': boxPoints[0].y + height * ElementSelectionProxy.DEFAULT_PROPERTY_VALUES['origin.y']
       }
     )
-
-    this.initializeRotationSnap()
   }
 
   initializeRotationSnap () {
