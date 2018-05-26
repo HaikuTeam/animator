@@ -13,7 +13,6 @@ const MAX_UNDOABLES_LEN = 50
 const SNAPSHOTTED_UNDOABLES = {
   groupElements: true,
   ungroupElements: true,
-  conglomerateComponent: true,
   popBytecodeSnapshot: true
 }
 
