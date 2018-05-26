@@ -129,7 +129,7 @@ class Library extends React.Component {
   }
 
   figmaAuthCallback ({state, code}) {
-    if (!this.props.servicesEnvoyClient || this.props.servicesEnvoyClient.isInMockMode()) {
+    if (!this.props.servicesEnvoyClient) {
       return
     }
 
@@ -175,7 +175,7 @@ class Library extends React.Component {
   }
 
   importFigmaAsset (url) {
-    if (!this.props.servicesEnvoyClient || this.props.servicesEnvoyClient.isInMockMode()) {
+    if (!this.props.servicesEnvoyClient) {
       return
     }
 
