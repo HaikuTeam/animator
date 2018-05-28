@@ -48,6 +48,10 @@ function interpolate(now: number, curve: CurveDefinition, started: number, ends:
   // If curve is a string, transform into a function using justCurves
   const curveFunc = typeof curve === 'string' ? justCurves[curve] : curve;
 
+  if (typeof curveFunc !== 'function') {
+    return origin;
+  }
+
   if (Array.isArray(origin) && Array.isArray(destination)) {
     const arrayOutput = [];
     for (let i = 0; i < origin.length; i++) {
