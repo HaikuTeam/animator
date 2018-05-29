@@ -9,19 +9,6 @@ const path = require('path')
 const IS_ILLUSTRATOR_FILE_RE = /\.ai$/
 const IS_ILLUSTRATOR_FOLDER_RE = /\.ai\.contents/
 const EXPORTER_SCRIPT = `
-/* Crop every icon in your Illustrator file witha named artboard. This script will export them all */
-var docRef = app.activeDocument;
-// docRef.save();
-
-// Get the source path
-var originalPath = app.activeDocument.fullName.toString();
-
-// Allocate a copy of the current document that we will throw away. We do this
-// since doing an exportFile() renames the active document and it needs to be resaved to a
-// different place
-var tempFile = new File('/tmp/tosvg.ai')
-docRef.saveAs(tempFile);
-
 if (app.documents.length > 0) {
   var exportOptions = new ExportOptionsSVG()
   var type = ExportType.SVG
@@ -34,13 +21,6 @@ if (app.documents.length > 0) {
   saveMultipleArtboards = true
   app.activeDocument.exportFile(fileSpec, type, exportOptions)
 }
-
-// // Close the copy of the document we have created
-docRef.close()
-
-// // Reopen the original document
-var originalFile = new File(originalPath);
-app.open(originalFile);
 `
 
 class Illustrator {
@@ -67,13 +47,9 @@ class Illustrator {
     logger.info('[illustrator] running commands')
 
     const tmpdir = os.tmpdir()
-    console.log('!@!$!@$$! tmpdir', tmpdir)
     const fileName = uuid.v4() + '.jsx'
-    console.log('!@!$!@$$! fileName', fileName)
     const filePath = path.join(tmpdir, fileName)
-    console.log('!@!$!@$$! filePath', filePath)
     const exportScript = EXPORTER_SCRIPT.replace('DESTINATION_PATH', artboardFolder)
-    console.log('!@!$!@$$! exportScript', exportScript)
 
     fse.writeFileSync(filePath, exportScript)
 
@@ -86,7 +62,8 @@ class Illustrator {
     if (isMac()) {
       return `open -g -b com.adobe.Illustrator ${file}`
     } else if (isWindows()) {
-      return `open -g -b com.adobe.Illustrator ${file}`
+      // TODO: figure out the correct command in Windows
+      return
     }
   }
 }
