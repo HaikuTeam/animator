@@ -5,21 +5,14 @@
     "baseUrl": ".",
     "declaration": true,
     "declarationDir": "lib",
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "isolatedModules": false,
     "module": "commonjs",
     "moduleResolution": "node",
     "noImplicitAny": true,
-    "noLib": false,
     "outDir": "lib",
     "paths": {
-      "*": [
-        "lib/*"
-      ]
+      "@/*": ["src/*"]
     },
     "preserveConstEnums": false,
-    "removeComments": true,
     "rootDir": "src",
     "sourceMap": true,
     "suppressImplicitAnyIndexErrors": true,
@@ -32,10 +25,6 @@
     ]
   },
   "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx"
-  ],
-  "exclude": [
-    "node_modules"
+    "src/**/*.ts"
   ]
 }

@@ -1,39 +1,43 @@
-import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
-import {
-  ContextualSize,
-  Maybe,
-  PathPoint,
-} from 'haiku-common/lib/types';
-import {Curve, CurveFunction, CurveDefinition} from '@haiku/core/lib/api/Curve';
+import {difference, flatten, mapKeys} from 'lodash';
 
+import {Curve} from '@haiku/core/lib/api/Curve';
+import {
+  BytecodeNode,
+  HaikuBytecode,
+  BytecodeTimelineProperty,
+  BytecodeTimelineProperties,
+  BytecodeSummonable,
+} from '@haiku/core/lib/api/HaikuBytecode';
+import {CurveSpec} from '@haiku/core/lib/vendor/svg-points/types';
+import {ContextualSize, Maybe} from 'haiku-common/lib/types';
 // @ts-ignore
 import * as Template from 'haiku-serialization/src/bll/Template';
 // @ts-ignore
 import * as LoggerInstance from 'haiku-serialization/src/utils/LoggerInstance';
 
-import {difference, flatten, mapKeys} from 'lodash';
-import {ExporterInterface} from '..';
+import {ExporterInterface} from '@/exporters';
 
-import {SvgTag} from '../../svg/enums';
-import BaseExporter from '../BaseExporter';
+import {SvgTag} from '@/svg/enums';
+import BaseExporter from '@/exporters/BaseExporter';
 import {
   decomposeCurveBetweenKeyframes,
   getCurveInterpolationPoints,
   isDecomposableCurve,
   splitBezierForTimelinePropertyAtKeyframe,
-} from '../curves';
-import {evaluateInjectedFunctionInExportContext} from '../injectables';
+} from '@/exporters/curves';
+import {evaluateInjectedFunctionInExportContext} from '@/exporters/injectables';
 import {
   composeTimelines,
   LayoutPropertyType,
-} from '../layout';
+} from '@/exporters/layout';
 import {
   initialValue,
   initialValueOr,
   initialValueOrNull,
   simulateLayoutProperty,
   timelineHasProperties,
-} from '../timelineUtils';
+} from '@/exporters/timelineUtils';
+
 import {
   AnimationKey,
   FillRule,
@@ -82,16 +86,6 @@ import {
   pointsToInterpolationTrace,
   timelineValuesAreEquivalent,
 } from './bodymovinUtils';
-import {
-  BytecodeNode, 
-  HaikuBytecode, 
-  BytecodeTimelines, 
-  BytecodeTimelineProperty,
-  BytecodeTimelineProperties,
-  BytecodeSummonable,
-} from '@haiku/core/lib/api/HaikuBytecode';
-
-const {pathToPoints} = SVGPoints;
 
 let bodymovinVersion: Maybe<string>;
 
@@ -771,7 +765,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @param pathSegment
    * @param shape
    */
-  private decorateShape(pathSegment: PathPoint[], closed: boolean, shape: any) {
+  private decorateShape(pathSegment: CurveSpec[], closed: boolean, shape: any) {
     shape[ShapeKey.Type] = ShapeType.Shape;
 
     shape[ShapeKey.Vertices] = {

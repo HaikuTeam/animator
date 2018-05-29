@@ -1,13 +1,14 @@
-const {each} = require('async');
-const {join, basename} = require('path');
-const {readdir, writeFile} = require('haiku-fs-extra');
-const {BodymovinExporter} = require('../lib/exporters/bodymovin/bodymovinExporter.js');
-const {HaikuStaticExporter} = require('../lib/exporters/haikuStatic/haikuStaticExporter.js');
+import {each} from 'async';
+import {join, basename} from 'path';
+// @ts-ignore
+import {readdir, writeFile} from 'haiku-fs-extra';
+import {BodymovinExporter} from '@/exporters/bodymovin/bodymovinExporter';
+import {HaikuStaticExporter} from '@/exporters/haikuStatic/haikuStaticExporter';
 
 const goldensRoot = join(global.process.cwd(), 'test/goldens');
 
-readdir(join(goldensRoot, 'bytecode'), (_, bytecodeFiles) => {
-  each(bytecodeFiles, (filename, next) => {
+readdir(join(goldensRoot, 'bytecode'), (_, bytecodeFiles: string[]) => {
+  each(bytecodeFiles, (filename: string, next) => {
     const bytecodeFilename = join(goldensRoot, 'bytecode', filename);
     const name = basename(bytecodeFilename, '.js');
     const bodymovinExporter = new BodymovinExporter(require(bytecodeFilename));
