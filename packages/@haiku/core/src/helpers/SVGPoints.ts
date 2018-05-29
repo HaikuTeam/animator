@@ -2,7 +2,9 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import svgPoints from './../vendor/svg-points';
+import {BytecodeNode} from '../api/HaikuBytecode';
+import svgPoints from '../vendor/svg-points';
+import {PathSpec, ShapeSpec} from '../vendor/svg-points/types';
 import parseCssValueString from './parseCssValueString';
 
 const SVG_TYPES = {
@@ -39,7 +41,7 @@ const SVG_COMMAND_TYPES = {
   polygon: true,
 };
 
-function polyPointsStringToPoints(pointsString) {
+function polyPointsStringToPoints(pointsString: string) {
   if (!pointsString) {
     return [];
   }
@@ -63,7 +65,7 @@ function polyPointsStringToPoints(pointsString) {
   return points;
 }
 
-function pointsToPolyString(points) {
+function pointsToPolyString(points: string|string[][]) {
   if (!points) {
     return '';
   }
@@ -79,16 +81,16 @@ function pointsToPolyString(points) {
   return arr.join(' ');
 }
 
-function pathToPoints(pathString) {
-  const shape = {type: 'path', d: pathString};
+function pathToPoints(pathString: string) {
+  const shape = {type: 'path', d: pathString} as PathSpec;
   return svgPoints.toPoints(shape);
 }
 
-function pointsToPath(pointsArray) {
+function pointsToPath(pointsArray: {x: number, y: number}[]) {
   return svgPoints.toPath(pointsArray);
 }
 
-function manaToPoints(mana) {
+function manaToPoints(mana: BytecodeNode) {
   if (
     SVG_TYPES[mana.elementName] &&
     mana.elementName !== 'rect' &&
@@ -108,7 +110,7 @@ function manaToPoints(mana) {
         }
       }
     }
-    return svgPoints.toPoints(shape);
+    return svgPoints.toPoints(shape as ShapeSpec);
   }
 
   // div, rect, svg ...

@@ -16,7 +16,11 @@
  * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-const toPoints = (spec) => {
+import {
+  CurveSpec, ShapeSpec, CircleSpec, EllipseSpec, LineSpec, PathSpec, PolygonSpec, PolylineSpec, RectSpec,
+} from './types';
+
+const toPoints = (spec: ShapeSpec): CurveSpec[] => {
   switch (spec.type) {
     case 'circle':
       return getPointsFromCircle(spec);
@@ -32,14 +36,12 @@ const toPoints = (spec) => {
       return getPointsFromPolyline(spec);
     case 'rect':
       return getPointsFromRect(spec);
-    case 'g':
-      return getPointsFromG(spec);
     default:
       throw new Error('Not a valid shape type');
   }
 };
 
-const getPointsFromCircle = ({cx, cy, r}) => {
+const getPointsFromCircle = ({cx, cy, r}: CircleSpec): CurveSpec[] => {
   return [
     {
       x: cx,
@@ -69,7 +71,7 @@ const getPointsFromCircle = ({cx, cy, r}) => {
   ];
 };
 
-const getPointsFromEllipse = ({cx, cy, rx, ry}) => {
+const getPointsFromEllipse = ({cx, cy, rx, ry}: EllipseSpec): CurveSpec[] => {
   return [
     {
       x: cx,
@@ -80,9 +82,9 @@ const getPointsFromEllipse = ({cx, cy, rx, ry}) => {
       x: cx,
       y: cy + ry,
       curve: {
-        type: 'arc',
         rx,
         ry,
+        type: 'arc',
         sweepFlag: 1,
       },
     },
@@ -90,16 +92,16 @@ const getPointsFromEllipse = ({cx, cy, rx, ry}) => {
       x: cx,
       y: cy - ry,
       curve: {
-        type: 'arc',
         rx,
         ry,
+        type: 'arc',
         sweepFlag: 1,
       },
     },
   ];
 };
 
-const getPointsFromLine = ({x1, x2, y1, y2}) => {
+const getPointsFromLine = ({x1, x2, y1, y2}: LineSpec): CurveSpec[] => {
   return [
     {
       x: x1,
@@ -147,17 +149,20 @@ const PARSING_REGEXPS = {
   number: /^0b[01]+|^0o[0-7]+|^0x[\da-f]+|^-?\d*\.?\d+(?:e[+-]?\d+)?/i,
 };
 
-const isRelative = command => relativeCommands.indexOf(command) !== -1;
+const isRelative = (command: string): boolean => relativeCommands.indexOf(command) !== -1;
 
 const optionalArcKeys = ['xAxisRotation', 'largeArcFlag', 'sweepFlag'];
 
-const getCommands = d => d.match(validCommands);
+const getCommands = (d: string): string[] => d.match(validCommands);
 
-function tokenize(d) {
+type Token = {
+  type: string;
+  raw: string;
+};
+
+function tokenize(d: string): Token[] {
   const tokens = [];
   let chunk = d;
-  const total = chunk.length;
-  const iterations = 0;
   while (chunk.length > 0) {
     for (const regexpName in PARSING_REGEXPS) {
       const match = PARSING_REGEXPS[regexpName].exec(chunk);
@@ -175,17 +180,7 @@ function tokenize(d) {
   return tokens;
 }
 
-// const getParams = d => d.split(validCommands)
-//   .map(v => v.replace(/[0-9]+-/g, m => `${m.slice(0, -1)} -`))
-//   .map(v => v.replace(/\.[0-9]+/g, m => `${m} `))
-//   .map(v => v.trim())
-//   .filter(v => v.length > 0)
-//   .map(v => v.split(/[ ,]+/)
-//     .map(parseFloat)
-//     .filter(n => !isNaN(n))
-//   )
-
-const getParams = (d) => {
+const getParams = (d: string): number[][] => {
   const tokens = tokenize(d);
 
   const fixed = tokens.filter((t) => {
@@ -202,7 +197,7 @@ const getParams = (d) => {
       return p.length > 0;
     });
 
-  const groups = segs.map((s) => {
+  return segs.map((s) => {
     return s.split(/[ ,]+/)
       .map((n) => {
         return parseFloat(n);
@@ -211,15 +206,13 @@ const getParams = (d) => {
         return !isNaN(n);
       });
   });
-
-  return groups;
 };
 
-const getPointsFromPath = ({d}) => {
+const getPointsFromPath = ({d}: PathSpec): CurveSpec[] => {
   const commands = getCommands(d);
   const params = getParams(d);
 
-  const points = [];
+  const points: CurveSpec[] = [];
 
   let moveTo;
 
@@ -323,7 +316,7 @@ const getPointsFromPath = ({d}) => {
             const sx = (relative ? prevPoint.x : 0) + commandParams.shift();
             const sy = (relative ? prevPoint.y : 0) + commandParams.shift();
 
-            const diff = {
+            const diff: {x: number, y: number} = {
               x: null,
               y: null,
             };
@@ -419,32 +412,35 @@ const getPointsFromPath = ({d}) => {
   return points;
 };
 
-const getPointsFromPolygon = ({points}) => {
+const getPointsFromPolygon = ({points}: PolygonSpec): CurveSpec[] => {
   return getPointsFromPoints({
+    points,
     closed: true,
-    points,
   });
 };
 
-const getPointsFromPolyline = ({points}) => {
+const getPointsFromPolyline = ({points}: PolylineSpec): CurveSpec[] => {
   return getPointsFromPoints({
-    closed: false,
     points,
+    closed: false,
   });
 };
 
-const getPointsFromPoints = ({closed, points}) => {
-  const numbers = points.split(/[\s,]+/).map(n => parseFloat(n));
+const getPointsFromPoints = ({closed, points}: {closed: boolean, points: string}): CurveSpec[] => {
+  const numbers = points.split(/[\s,]+/).map((n: string) => parseFloat(n));
 
-  const p = numbers.reduce((arr, point, i) => {
-    if (i % 2 === 0) {
-      arr.push({x: point});
-    } else {
-      arr[(i - 1) / 2].y = point;
-    }
+  const p = numbers.reduce(
+    (arr, point, i) => {
+      if (i % 2 === 0) {
+        arr.push({x: point});
+      } else {
+        arr[(i - 1) / 2].y = point;
+      }
 
-    return arr;
-  },                       []);
+      return arr;
+    },
+    [],
+  );
 
   if (closed) {
     p.push({...p[0]});
@@ -455,15 +451,16 @@ const getPointsFromPoints = ({closed, points}) => {
   return p;
 };
 
-const getPointsFromRect = ({height, rx, ry, width, x, y}) => {
+const getPointsFromRect = ({height, rx, ry, width, x, y}: RectSpec): CurveSpec[] => {
   if (rx || ry) {
     return getPointsFromRectWithCornerRadius({
       height,
-      rx: rx || ry,
-      ry: ry || rx,
       width,
       x,
       y,
+      rx: rx || ry,
+      ry: ry || rx,
+      type: 'rect',
     });
   }
 
@@ -475,7 +472,7 @@ const getPointsFromRect = ({height, rx, ry, width, x, y}) => {
   });
 };
 
-const getPointsFromBasicRect = ({height, width, x, y}) => {
+const getPointsFromBasicRect = ({height, width, x, y}: RectSpec): CurveSpec[] => {
   return [
     {
       x,
@@ -483,8 +480,8 @@ const getPointsFromBasicRect = ({height, width, x, y}) => {
       moveTo: true,
     },
     {
-      x: x + width,
       y,
+      x: x + width,
     },
     {
       x: x + width,
@@ -501,59 +498,57 @@ const getPointsFromBasicRect = ({height, width, x, y}) => {
   ];
 };
 
-const getPointsFromRectWithCornerRadius = ({height, rx, ry, width, x, y}) => {
+const getPointsFromRectWithCornerRadius = ({height, rx, ry, width, x, y}: RectSpec): CurveSpec[] => {
   const curve = {
-    type: 'arc',
     rx,
     ry,
+    type: 'arc',
     sweepFlag: 1,
   };
 
   return [
     {
-      x: x + rx,
       y,
+      x: x + rx,
       moveTo: true,
     },
     {
-      x: x + width - rx,
       y,
+      x: x + width - rx,
     },
     {
+      curve,
       x: x + width,
       y: y + ry,
-      curve,
     },
     {
       x: x + width,
       y: y + height - ry,
     },
     {
+      curve,
       x: x + width - rx,
       y: y + height,
-      curve,
     },
     {
       x: x + rx,
       y: y + height,
     },
     {
+      curve,
       x,
       y: y + height - ry,
-      curve,
     },
     {
       x,
       y: y + ry,
     },
     {
-      x: x + rx,
-      y,
       curve,
+      y,
+      x: x + rx,
     },
   ];
 };
-
-const getPointsFromG = ({shapes}) => shapes.map(s => toPoints(s));
 
 export default toPoints;

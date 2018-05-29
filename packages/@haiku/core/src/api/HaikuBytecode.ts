@@ -1,8 +1,5 @@
 import {CurveDefinition} from './Curve';
-
-/**
- * @file Type definition for Haiku bytecode.
- */
+import {DomRect, LayoutSpec} from './Layout';
 
 export type PrimitiveType = string|number|object|boolean|null;
 
@@ -12,19 +9,16 @@ export type PrimitiveType = string|number|object|boolean|null;
  */
 export type BytecodeStateType = PrimitiveType|PrimitiveType[];
 
-
 /** 
  * `BytecodeSummonable` defines functions that can be called on timeline 
  * property value
  */
 export type BytecodeSummonable = ((param: any) => BytecodeStateType);
 
-
 /** 
  * All possible types for timeline property value
  */ 
 export type BytecodeInjectable = BytecodeStateType|BytecodeSummonable;
-
 
 /**
  * Haiku bytecode element tree. eg. <div><svg>...</svg></div>.
@@ -33,20 +27,21 @@ export type BytecodeInjectable = BytecodeStateType|BytecodeSummonable;
 export type BytecodeNode = {
   elementName: string;
   attributes: {
-    [attribute: string] : string;
+    [attribute: string]: any;
+    style?: {
+      [key in string]: PrimitiveType;
+    };
     /**
-     * @deprecated as of 3.2.20
+     * @deprecated
      */
     source?: string;
-    /**
-     * @deprecated as of 3.2.20
-     */
     identifier?: string;
   };
-  // Children type changed from BytecodeNode[]|string[], as union 
-  // types do not have call signature (eg. cannot use forEach). More indo
-  // at https://stackoverflow.com/a/47493372/1524655 and
-  // https://github.com/Microsoft/TypeScript/issues/7294#issuecomment-380586802
+  layout?: LayoutSpec;
+  /**
+   * @deprecated
+   */
+  rect?: DomRect;
   children: (BytecodeNode|string)[];
 };
 
