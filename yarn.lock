@@ -391,10 +391,6 @@
     "@types/rx-lite-time" "*"
     "@types/rx-lite-virtualtime" "*"
 
-"@types/sinon@^5.0.0":
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/@types/sinon/-/sinon-5.0.0.tgz#e5d49a422f64b2c658bbeb8529679c9a6a0b5a3a"
-
 "@types/tape@^4.2.30":
   version "4.2.31"
   resolved "https://registry.yarnpkg.com/@types/tape/-/tape-4.2.31.tgz#d2cd0f2e410d2c288a5eb54c01c04e6b8a301fd2"
@@ -11612,7 +11608,7 @@ tslib@^1.9.0:
   version "1.9.0"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.9.0.tgz#e37a86fda8cbbaf23a057f473c9f4dc64e5fc2e8"
 
-tslint-config-airbnb@^5.3.0:
+tslint-config-airbnb@5.8.0, tslint-config-airbnb@^5.3.0:
   version "5.8.0"
   resolved "https://registry.yarnpkg.com/tslint-config-airbnb/-/tslint-config-airbnb-5.8.0.tgz#0398cf4b5a8715b604cb40e9580532c5c0e68716"
   dependencies:
