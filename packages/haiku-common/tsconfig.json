@@ -5,26 +5,18 @@
     "baseUrl": ".",
     "declaration": true,
     "declarationDir": "lib",
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "isolatedModules": false,
     "module": "commonjs",
     "moduleResolution": "node",
-    "noImplicitAny": false,
-    "noLib": false,
+    "noImplicitAny": true,
     "outDir": "lib",
     "paths": {
-      "*": [
-        "*",
-        "lib/*"
-      ]
+      "@/*": ["src/*"]
     },
-    "preserveConstEnums": true,
-    "removeComments": true,
+    "preserveConstEnums": false,
     "rootDir": "src",
     "sourceMap": true,
     "suppressImplicitAnyIndexErrors": true,
-    "target": "es6",
+    "target": "ES6",
     "types": [
       "node"
     ],
@@ -34,10 +26,6 @@
   },
   "include": [
     "src/**/*.ts",
-    "src/**/*.tsx",
     "src/config/*.json"
-  ],
-  "exclude": [
-    "node_modules"
   ]
 }

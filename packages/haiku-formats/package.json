@@ -7,12 +7,10 @@
     "lib": "lib"
   },
   "scripts": {
-    "lint": "yarn lint-src && yarn lint-test",
-    "lint-src": "tslint -p tsconfig.json -c tslint.json 'src/**/*.ts' -t stylish",
-    "lint-test": "tslint -p tsconfig.test.json -c tslint.json 'test/**/*.ts' -t stylish",
-    "lint-report": "yarn lint-src -t checkstyle -o checkstyle-result.xml",
-    "fix": "yarn lint-src --fix && yarn lint-test --fix",
-    "ts": "ts-node -r tsconfig-paths/register -P tsconfig.test.json",
+    "lint": "tslint -p tsconfig.all.json -t stylish",
+    "lint-report": "yarn lint -t checkstyle -o checkstyle-result.xml",
+    "fix": "yarn lint --fix",
+    "ts": "ts-node -r tsconfig-paths/register -P tsconfig.all.json",
     "test": "yarn ts ./node_modules/.bin/tape 'test/**/*.test.ts' | tap-spec",
     "test-report": "yarn ts ./node_modules/.bin/tape 'test/**/*.test.ts' > test-result.tap",
     "coverage": "nyc yarn test",

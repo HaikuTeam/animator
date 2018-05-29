@@ -22,11 +22,11 @@
   ],
   "license": "UNLICENSED",
   "dependencies": {
-    "proxyquire": "^1.8.0",
     "sinon": "^4.0.1"
   },
   "devDependencies": {
     "@types/node": "8.9.4",
+    "@types/sinon": "^5.0.0",
     "@types/tape": "^4.2.30",
     "cross-env": "^5.1.4",
     "nyc": "^11.3.0",

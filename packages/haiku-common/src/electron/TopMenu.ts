@@ -1,9 +1,9 @@
-import {app, Menu, shell} from 'electron';
+import {app, Menu, MenuItemConstructorOptions, shell} from 'electron';
 import {assign, isEqual} from 'lodash';
-import {isMac} from '../environments/os';
-import {Experiment, experimentIsEnabled} from '../experiments';
-import {PlumbingProject} from '../types';
-import {TourUtils} from '../types/enums';
+import {isMac} from '@/environments/os';
+import {Experiment, experimentIsEnabled} from '@/experiments';
+import {PlumbingProject} from '@/types';
+import {TourUtils} from '@/types/enums';
 
 app.setName('Haiku');
 
@@ -169,7 +169,7 @@ export default class TopMenu {
       role: 'quit',
     });
 
-    const componentsSubSubmenu = [];
+    const componentsSubSubmenu: any[] = [];
 
     this.options.subComponents.forEach(({title, scenename, isActive}) => {
       componentsSubSubmenu.push({
@@ -344,42 +344,36 @@ export default class TopMenu {
           {
             label: 'Community on Slack',
             click: () => {
-              // tslint:disable-next-line
               shell.openExternal('https://www.haiku.ai/slack-community/');
             },
           },
           {
             label: 'Showcase',
             click: () => {
-              // tslint:disable-next-line
               shell.openExternal('https://share.haiku.ai/');
             },
           },
           {
             label: 'Blog',
             click: () => {
-              // tslint:disable-next-line
               shell.openExternal('https://www.haiku.ai/blog/');
             },
           }, {type: 'separator'},
           {
             label: 'YouTube',
             click: () => {
-              // tslint:disable-next-line
               shell.openExternal('https://www.youtube.com/channel/UCFNlUrip_yGA8Ljk7QcwYog');
             },
           },
           {
             label: 'Twitter',
             click: () => {
-              // tslint:disable-next-line
               shell.openExternal('https://www.twitter.com/haikuforteams');
             },
           },
           {
             label: 'Facebook',
             click: () => {
-              // tslint:disable-next-line
               shell.openExternal('https://www.facebook.com/haikuforteams');
             },
           },
@@ -423,6 +417,6 @@ export default class TopMenu {
           },
         ],
       },
-    ]));
+    ] as MenuItemConstructorOptions[]));
   }
 }
