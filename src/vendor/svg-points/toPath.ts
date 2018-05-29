@@ -17,8 +17,9 @@
  */
 
 import toPoints from './toPoints';
+import {CurveSpec, ShapeSpec} from './types';
 
-function pointsToD(p) {
+function pointsToD(p: CurveSpec[]) {
   let d = '';
   let i = 0;
   let firstPoint;
@@ -70,15 +71,8 @@ function pointsToD(p) {
   return d;
 }
 
-function toPath(s) {
-  const isPoints = Array.isArray(s);
-  const isGroup = isPoints ? (Array.isArray(s[0])) : (s.type === 'g');
-  const points = isPoints ? s : (isGroup ? s.shapes.map(shp => toPoints(shp)) : toPoints(s));
-
-  if (isGroup) {
-    return points.map(p => pointsToD(p));
-  }
-
+function toPath(s: CurveSpec[]|ShapeSpec) {
+  const points = Array.isArray(s) ? s : toPoints(s);
   return pointsToD(points);
 }
 
