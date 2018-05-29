@@ -15,28 +15,28 @@ import * as Template from 'haiku-serialization/src/bll/Template';
 // @ts-ignore
 import * as LoggerInstance from 'haiku-serialization/src/utils/LoggerInstance';
 
-import {ExporterInterface} from '@/exporters';
+import {ExporterInterface} from '..';
 
-import {SvgTag} from '@/svg/enums';
-import BaseExporter from '@/exporters/BaseExporter';
+import {SvgTag} from '../../svg/enums';
+import BaseExporter from '../BaseExporter';
 import {
   decomposeCurveBetweenKeyframes,
   getCurveInterpolationPoints,
   isDecomposableCurve,
   splitBezierForTimelinePropertyAtKeyframe,
-} from '@/exporters/curves';
-import {evaluateInjectedFunctionInExportContext} from '@/exporters/injectables';
+} from '../curves';
+import {evaluateInjectedFunctionInExportContext} from '../injectables';
 import {
   composeTimelines,
   LayoutPropertyType,
-} from '@/exporters/layout';
+} from '../layout';
 import {
   initialValue,
   initialValueOr,
   initialValueOrNull,
   simulateLayoutProperty,
   timelineHasProperties,
-} from '@/exporters/timelineUtils';
+} from '../timelineUtils';
 
 import {
   AnimationKey,

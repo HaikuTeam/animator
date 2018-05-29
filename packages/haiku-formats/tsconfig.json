@@ -2,16 +2,12 @@
   "compileOnSave": true,
   "compilerOptions": {
     "allowJs": false,
-    "baseUrl": ".",
     "declaration": true,
     "declarationDir": "lib",
     "module": "commonjs",
     "moduleResolution": "node",
     "noImplicitAny": true,
     "outDir": "lib",
-    "paths": {
-      "@/*": ["src/*"]
-    },
     "preserveConstEnums": false,
     "rootDir": "src",
     "sourceMap": true,

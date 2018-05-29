@@ -1,9 +1,9 @@
 import {app, Menu, MenuItemConstructorOptions, shell} from 'electron';
 import {assign, isEqual} from 'lodash';
-import {isMac} from '@/environments/os';
-import {Experiment, experimentIsEnabled} from '@/experiments';
-import {PlumbingProject} from '@/types';
-import {TourUtils} from '@/types/enums';
+import {isMac} from '../environments/os';
+import {Experiment, experimentIsEnabled} from '../experiments';
+import {PlumbingProject} from '../types';
+import {TourUtils} from '../types/enums';
 
 app.setName('Haiku');
 

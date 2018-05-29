@@ -1,4 +1,4 @@
-import {EnvironmentType, getEnvironmentType} from '@/environments';
+import {EnvironmentType, getEnvironmentType} from '../environments';
 import {getExperimentConfig} from './config';
 
 /**

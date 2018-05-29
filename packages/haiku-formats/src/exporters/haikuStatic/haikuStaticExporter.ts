@@ -1,6 +1,6 @@
-import {ExporterInterface} from '@/exporters';
-import BaseExporter from '@/exporters/BaseExporter';
-import {evaluateInjectedFunctionInExportContext} from '@/exporters/injectables';
+import {ExporterInterface} from '..';
+import BaseExporter from '../BaseExporter';
+import {evaluateInjectedFunctionInExportContext} from '../injectables';
 
 export class HaikuStaticExporter extends BaseExporter implements ExporterInterface {
   /**
