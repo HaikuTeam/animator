@@ -36,7 +36,7 @@ pipeline {
                     }
                     post {
                         always {
-                            checkstyle()
+                            checkstyle canRunOnFailed: true, defaultEncoding: '', healthy: '', pattern: '**/checkstyle-result.xml', unHealthy: ''
                         }
                         success {
                             setBuildStatus(CONTEXT_LINT, 'no lint errors', STATUS_SUCCESS)
