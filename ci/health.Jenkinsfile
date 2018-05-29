@@ -64,6 +64,7 @@ pipeline {
                                     verbose: true,
                                     planRequired: true
                             ])
+                            cobertura autoUpdateHealth: false, autoUpdateStability: false, coberturaReportFile: '**/coverage/cobertura-coverage.xml', failNoReports: false, failUnhealthy: false, failUnstable: false, maxNumberOfBuilds: 0, onlyStable: false, sourceEncoding: 'ASCII', zoomCoverageChart: false
                         }
                         success {
                             setBuildStatus(CONTEXT_TEST_MAC, 'all tests pass', STATUS_SUCCESS)
