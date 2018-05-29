@@ -8,7 +8,6 @@ import CodeEditor from './CodeEditor/CodeEditor'
 import Palette from 'haiku-ui-common/lib/Palette'
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 import {TOUR_CHANNEL} from 'haiku-sdk-creator/lib/tour'
-import {BTN_STYLES} from '../styles/btnShared'
 
 const STAGE_BOX_STYLE = {
   overflow: 'hidden',
@@ -29,10 +28,7 @@ export default class Stage extends React.Component {
     super(props)
     this.webview = null
     this.onRequestWebviewCoordinates = this.onRequestWebviewCoordinates.bind(this)
-    this.state = {
-      componentFileContents: '',
-    }
-    this.currentEditorContents = '';
+    this.state = {}
   }
 
   componentDidMount () {
@@ -53,23 +49,6 @@ export default class Stage extends React.Component {
   componentWillUnmount () {
     if (this.tourClient) {
       this.tourClient.off('tour:requestWebviewCoordinates', this.onRequestWebviewCoordinates)
-    }
-  }
-
-  componentWillMount () {
-    console.log('componentWillMount')
-    if (this.props.projectModel) {
-      this.props.projectModel.on('update', (what, ...args) => {
-  
-        console.log('RECEIVED what:', what);
-        switch (what) {
-          case 'reloaded':
-            const content = this.props.projectModel.getCurrentActiveComponent().fetchActiveBytecodeFile().getCode();
-            console.log('RELOADED content',{content:content})
-            this.setState({componentFileContents: content})
-          break;
-        }
-      })
     }
   }
 
@@ -184,39 +163,12 @@ export default class Stage extends React.Component {
     }
   }
 
-  onMonacoEditorChange = (newContent, e) => {
-    this.currentEditorContents = newContent;
-  }
-
-  saveCodeFromEditorToDisk = () => {
-    const currentEditorContents = this.currentEditorContents;
-    console.log('currentEditorContents:',{currentEditorContents: currentEditorContents})
-    this.props.projectModel.getCurrentActiveComponent().fetchActiveBytecodeFile().flushContentFromString(currentEditorContents)
-  }
-
   render () {
     const interactionModeColor = this.props.isPreviewMode
       ? Palette.LIGHTEST_PINK
       : Palette.STAGE_GRAY
 
-
-    const designVisible = this.props.showGlass;
-    const codeVisible = !this.props.showGlass;
-
-    const monacoOptions = {
-      language: 'javascript',
-      lineNumbers: 'on',
-      links: false,
-      theme: 'haiku',
-      minimap: {enabled: false},
-      autoIndent: true,
-      contextmenu: false,
-      codeLens: false,
-      parameterHints: false,
-      cursorBlinking: 'blink',
-      scrollBeyondLastLine: false
-    }
-
+ 
     return (
       <div className='layout-box'
         onMouseOver={() => this.webview.focus()}
@@ -262,7 +214,7 @@ export default class Stage extends React.Component {
               left: 3,
               backgroundColor: Palette.STAGE_GRAY,
               outline: '2px solid ' + interactionModeColor,
-              visibility: designVisible ? 'visible' : 'hidden',
+              visibility: this.props.showGlass ? 'visible' : 'hidden',
             }}>
             </div>
 
@@ -276,41 +228,12 @@ export default class Stage extends React.Component {
               left: 3,
               backgroundColor: Palette.STAGE_GRAY,
               outline: '2px solid ' + interactionModeColor,
-              visibility: codeVisible ? 'visible' : 'hidden',
+              visibility: this.props.showGlass ? 'hidden' : 'visible',
             }}>
-            <div style={{
-                  width: '100%',
-                  height: '100%',
-                  top:`${STAGE_MOUNT_HEIGHT_OFFSET + 3}px`
-                }}>
-            <button
-                key='save-button'
-                id='save-button'
-                onClick={this.saveCodeFromEditorToDisk}
-                style={{
-                    ...BTN_STYLES.btnText,
-                    backgroundColor: Palette.LIGHTEST_GRAY,
-                    position: 'absolute',
-                    zIndex: 2,
-                    right: '20px',
-                    top: '3px',
-                    padding: '2px 5px'
-                }}
-              >
-                <span style={{marginLeft: 7}}>SAVE</span>
-              </button>
               <CodeEditor 
-                language='javascript'
-                value={this.state.componentFileContents}
-                options={monacoOptions}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  top:`${STAGE_MOUNT_HEIGHT_OFFSET + 3}px`
-                }}
-                onChange={this.onMonacoEditorChange}
-                projectModel={this.props.projectModel}/>
-              </div>
+                showGlass={this.props.showGlass}
+                projectModel={this.props.projectModel}
+              />
             </div>
 
         </div>

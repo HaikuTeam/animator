@@ -5,173 +5,109 @@
 import React from 'react'
 import Radium from 'radium'
 import Palette from 'haiku-ui-common/lib/Palette'
+import {BTN_STYLES} from '../../styles/btnShared'
+import MonacoEditor from './MonacoEditor'
 
-//import * as monaco from 'monaco-editor';
-
-const STYLES = {
-  container: {
-    position: 'relative',
-    width: '100%',
-    height: '100%',
-    backgroundColor: Palette.GRAY,
-  }
-}
 
 class CodeEditor extends React.Component {
   constructor(props) {
     super(props);
-    this.containerElement = undefined;
-    this.__current_value = props.value;
-    this.onUpdateDimensions = this.updateDimensions.bind(this);
-    this.state = {}
+
+    this.state = {
+      currentActiveComponentContents: '',
+    }
+    this.currentEditorContents = '';
+  }
+
+  componentWillMount () {
+    console.log('componentWillMount')
+    if (this.props.projectModel) {
+      this.props.projectModel.on('update', (what, ...args) => {
+  
+        console.log('RECEIVED what:', what);
+        switch (what) {
+          case 'reloaded':
+            const content = this.props.projectModel.getCurrentActiveComponent().fetchActiveBytecodeFile().getCode();
+            console.log('RELOADED content',{content:content})
+            this.setState({currentActiveComponentContents: content})
+          break;
+        }
+      })
+    }
   }
 
   componentDidMount() {
-    this.initMonaco();
-    window.addEventListener("resize", this.onUpdateDimensions);
   }
 
   componentDidUpdate(prevProps) {
-    //console.log("componentDidUpdate prevProps",prevProps, " props", this.props);
-    if (this.props.value !== this.__current_value) {
-      // Always refer to the latest value
-      this.__current_value = this.props.value;
-      // Consider the situation of rendering 1+ times before the editor mounted
-      if (this.editor) {
-        this.__prevent_trigger_change_event = true;
-        this.editor.setValue(this.__current_value);
-        this.__prevent_trigger_change_event = false;
-      }
-    }
-    if (prevProps.language !== this.props.language) {
-      monaco.editor.setModelLanguage(this.editor.getModel(), this.props.language);
-    }
-    if (prevProps.theme !== this.props.theme) {
-      monaco.editor.setTheme(this.props.theme);
-    }
-    if (
-      this.editor &&
-      (this.props.width !== prevProps.width || this.props.height !== prevProps.height)
-    ) {
-      this.editor.layout();
-    }
   }
 
 
   componentWillUnmount() {
-    window.removeEventListener("resize", this.onUpdateDimensions);
-    this.destroyMonaco();
   }
 
-
-  editorWillMount() {
-    const { editorWillMount } = this.props;
-    editorWillMount(monaco);
-  }
-
-  editorDidMount(editor) {
-    this.props.editorDidMount(editor, monaco);
-    editor.onDidChangeModelContent((event) => {
-      const value = editor.getValue();
-
-      // Always refer to the latest value
-      this.__current_value = value;
-
-      // Only invoking when user input changed
-      if (!this.__prevent_trigger_change_event) {
-        this.props.onChange(value, event);
-      }
-    });
-  }
-
-  initMonaco() {
-    const value = this.props.value !== null ? this.props.value : this.props.defaultValue;
-    const { language, theme, options } = this.props;
-
-    monaco.editor.defineTheme('haiku', {
-      base: 'vs-dark',
-      inherit: true,
-      // `rules` requires colors without the leading '#' ¯\_(ツ)_/¯
-      rules: [{ backgroundColor: Palette.SPECIAL_COAL.replace('#', '') }],
-      colors: {
-        'editor.foreground': Palette.PALE_GRAY,
-        'editor.background': Palette.DARKEST_COAL,
-        'editorCursor.foreground': Palette.LIGHTEST_PINK,
-        'list.focusBackground': Palette.BLACK,
-        focusBorder: Palette.BLACK,
-        'editorWidget.background': Palette.DARKEST_COAL,
-        'editor.lineHighlightBorder': Palette.DARKEST_COAL
-      }
-    })
-
-    if (this.containerElement) {
-      // Before initializing monaco editor
-      this.editorWillMount();
-      this.editor = monaco.editor.create(this.containerElement, {
-        value,
-        language,
-        ...options
-      });
-      if (theme) {
-        monaco.editor.setTheme(theme);
-      }
-      // After initializing monaco editor
-      this.editorDidMount(this.editor);
-    }
-  }
 
   updateDimensions() {
-    console.log("Update dimensions")
-    this.editor.layout();
   }
 
-
-  destroyMonaco() {
-    if (typeof this.editor !== 'undefined') {
-      this.editor.dispose();
-    }
+  onMonacoEditorChange = (newContent, e) => {
+    this.currentEditorContents = newContent;
   }
 
-  assignRef = (component) => {
-    this.containerElement = component;
-  };
-
-  save = () => {
-
+  saveCodeFromEditorToDisk = () => {
+    const currentEditorContents = this.currentEditorContents;
+    console.log('currentEditorContents:',{currentEditorContents: currentEditorContents})
+    this.props.projectModel.getCurrentActiveComponent().fetchActiveBytecodeFile().flushContentFromString(currentEditorContents)
   }
 
   render() {
-    return <div ref={this.assignRef} style={this.props.style} className="react-monaco-editor-container" />;
+    const monacoOptions = {
+      language: 'javascript',
+      lineNumbers: 'on',
+      links: false,
+      theme: 'haiku',
+      minimap: {enabled: false},
+      autoIndent: true,
+      contextmenu: false,
+      codeLens: false,
+      parameterHints: false,
+      cursorBlinking: 'blink',
+      scrollBeyondLastLine: false
+    }
+
+    return <div style={{
+              width: '100%',
+              height: '100%',
+            }}>
+              <button
+                key='save-button'
+                id='save-button'
+                onClick={this.saveCodeFromEditorToDisk}
+                style={{
+                    ...BTN_STYLES.btnText,
+                    backgroundColor: Palette.LIGHTEST_GRAY,
+                    position: 'absolute',
+                    zIndex: 2,
+                    right: '12px',
+                    top: '3px',
+                    padding: '2px 5px'
+                }}>
+                  <span>SAVE</span>
+                </button>
+              <MonacoEditor 
+                language='javascript'
+                value={this.state.currentActiveComponentContents}
+                options={monacoOptions}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                }}
+                onChange={this.onMonacoEditorChange}
+                />
+            </div>;
   }
 
 }
-
-
-CodeEditor.propTypes = {
-  value: React.PropTypes.string,
-  defaultValue: React.PropTypes.string,
-  language: React.PropTypes.string,
-  theme: React.PropTypes.string,
-  options: React.PropTypes.object,
-  style: React.PropTypes.object,
-  editorDidMount: React.PropTypes.func,
-  editorWillMount: React.PropTypes.func,
-  onChange: React.PropTypes.func
-};
-
-
-function noop() {}
-
-CodeEditor.defaultProps = {
-  value: null,
-  defaultValue: '',
-  language: 'javascript',
-  theme: 'haiku',
-  options: {},
-  editorDidMount: noop,
-  editorWillMount: noop,
-  onChange: noop
-};
 
 
 export default Radium(CodeEditor)
