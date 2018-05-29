@@ -9,7 +9,7 @@ import * as AST from 'haiku-serialization/src/bll/AST';
 const goldensRoot = join(global.process.cwd(), 'test/goldens');
 const ast = AST.upsert({uid: 'upgrader', file: true});
 
-readdir(join(goldensRoot, 'bytecode'), (_, bytecodeFiles: string[]) => {
+readdir(join(goldensRoot, 'bytecode'), (_: any, bytecodeFiles: string[]) => {
   each(bytecodeFiles, (filename, next) => {
     const bytecodeFilename = join(goldensRoot, 'bytecode', filename);
     createComponent(require(bytecodeFilename), {}, (component: any, teardown: Function) => {

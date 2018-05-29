@@ -7,7 +7,7 @@ import {HaikuStaticExporter} from '@/exporters/haikuStatic/haikuStaticExporter';
 
 const goldensRoot = join(global.process.cwd(), 'test/goldens');
 
-readdir(join(goldensRoot, 'bytecode'), (_, bytecodeFiles: string[]) => {
+readdir(join(goldensRoot, 'bytecode'), (_: any, bytecodeFiles: string[]) => {
   each(bytecodeFiles, (filename: string, next) => {
     const bytecodeFilename = join(goldensRoot, 'bytecode', filename);
     const name = basename(bytecodeFilename, '.js');
@@ -24,7 +24,7 @@ readdir(join(goldensRoot, 'bytecode'), (_, bytecodeFiles: string[]) => {
           JSON.stringify(haikuStaticExporter.rawOutput(), null, 2),
           next,
         );
-      }
+      },
     );
   });
 });
