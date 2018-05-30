@@ -75,6 +75,7 @@ pipeline {
                     }
                     post {
                         always {
+                            archiveArtifacts artifacts: 'packages/**/test-result.tap', fingerprint: true
                             step([
                                 $class: 'TapPublisher',
                                 testResults: 'packages/**/test-result.tap',
