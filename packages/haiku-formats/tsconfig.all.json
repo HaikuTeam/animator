@@ -5,7 +5,7 @@
     "noImplicitAny": false,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@formats/*": ["src/*"]
     }
   },
   "include": [

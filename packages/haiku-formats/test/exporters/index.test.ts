@@ -3,8 +3,8 @@ import tape = require('tape');
 import {ExporterFormat, ExporterRequest} from 'haiku-sdk-creator/lib/exporter';
 import {stubProperties} from 'haiku-testing/lib/mock';
 
-import {handleExporterSaveRequest} from '@/exporters';
-import * as bodymovinExporter from '@/exporters/bodymovin/bodymovinExporter';
+import {handleExporterSaveRequest} from '@formats/exporters';
+import * as bodymovinExporter from '@formats/exporters/bodymovin/bodymovinExporter';
 
 tape('handleExporterSaveRequest', (test: tape.Test) => {
   test.test('supports exporting to Bodymovin', (test: tape.Test) => {

@@ -1,8 +1,8 @@
 import {stubProperties} from 'haiku-testing/lib/mock';
 
 import * as tape from 'tape';
-import * as config from '@/experiments/config';
-import {experimentIsEnabled, clearExperimentCache} from '@/experiments';
+import * as config from '@common/experiments/config';
+import {experimentIsEnabled, clearExperimentCache} from '@common/experiments';
 
 tape('experimentIsEnabled', (test: tape.Test) => {
   test.test('throws on unknown experiments', (test: tape.Test) => {
