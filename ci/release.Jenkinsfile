@@ -10,7 +10,9 @@ final scm = [
     doGenerateSubmoduleConfigurations: false,
     extensions: [],
     submoduleCfg: [],
-    userRemoteConfigs: [[credentialsId: '3ff59e15-b2b1-45fd-b570-8f362dc7b7fc', url: 'git@github.com:HaikuTeam/mono.git']]
+    userRemoteConfigs: [
+        [credentialsId: '3ff59e15-b2b1-45fd-b570-8f362dc7b7fc', url: 'git@github.com:HaikuTeam/mono.git']
+    ]
 ]
 
 pipeline {
@@ -79,14 +81,14 @@ pipeline {
 
 void setBuildStatus(String context, String message, String state) {
     step([
-            $class: 'GitHubCommitStatusSetter',
-            contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: context],
-            reposSource: [$class: 'ManuallyEnteredRepositorySource', url: 'https://github.com/HaikuTeam/mono'],
-            errorHandlers: [[$class: 'ChangingBuildStatusErrorHandler', result: 'UNSTABLE']],
-            statusResultSource: [
-                    $class: 'ConditionalStatusResultSource',
-                    results: [[$class: 'AnyBuildResult', message: message, state: state]]
-            ]
+        $class: 'GitHubCommitStatusSetter',
+        contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: context],
+        reposSource: [$class: 'ManuallyEnteredRepositorySource', url: 'https://github.com/HaikuTeam/mono'],
+        errorHandlers: [[$class: 'ChangingBuildStatusErrorHandler', result: 'UNSTABLE']],
+        statusResultSource: [
+            $class: 'ConditionalStatusResultSource',
+            results: [[$class: 'AnyBuildResult', message: message, state: state]]
+        ]
     ])
 }
 
