@@ -6,14 +6,12 @@ final String CONTEXT_LINT = 'health/lint'
 final String CONTEXT_TEST_MAC = 'health/test/macOS'
 
 final scm = [
-    $class: 'GitSCM',
-    branches: [[name: '${ghprbActualCommit}']],
-    doGenerateSubmoduleConfigurations: false,
-    extensions: [],
-    submoduleCfg: [],
-    userRemoteConfigs: [
-        [credentialsId: '3ff59e15-b2b1-45fd-b570-8f362dc7b7fc', url: 'git@github.com:HaikuTeam/mono.git']
-    ]
+  $class: 'GitSCM',
+  branches: [[name: '${ghprbActualCommit}']],
+  doGenerateSubmoduleConfigurations: false,
+  extensions: [],
+  submoduleCfg: [],
+  userRemoteConfigs: [[credentialsId: '3ff59e15-b2b1-45fd-b570-8f362dc7b7fc', url: 'git@github.com:HaikuTeam/mono.git']]
 ]
 
 pipeline {
