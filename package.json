@@ -6,6 +6,21 @@
   "directories": {
     "lib": "lib"
   },
+  "bin": {
+    "cross-env": "./bin/cross-env",
+    "cross-env-shell": "./bin/cross-env-shell",
+    "nyc": "./bin/nyc",
+    "tap-spec": "./bin/tap-spec",
+    "tape": "./bin/tape",
+    "ts-node": "./bin/ts-node",
+    "tsc": "./bin/tsc",
+    "tslint": "./bin/tslint",
+    "tspec": "./bin/tspec",
+    "tsserver": "./bin/tsserver"
+  },
+  "files": [
+    "bin/**/*"
+  ],
   "scripts": {
     "lint": "tslint -p tsconfig.all.json -t stylish",
     "lint-report": "yarn lint -t checkstyle -o checkstyle-result.xml",
@@ -21,20 +36,18 @@
   ],
   "license": "UNLICENSED",
   "dependencies": {
+    "@types/node": "8.9.4",
+    "@types/tape": "^4.2.30",
+    "cross-env": "^5.1.4",
     "istanbul-reporter-cobertura-haiku": "^1.0.1",
-    "sinon": "^4.0.1",
-    "ts-node": "^6.0.3",
-    "tsconfig-paths": "^3.3.2",
-    "tslint-config-haiku": "1.0.0",
-    "tslint": "^5.7.0",
-    "typescript": "^2.5.2",
     "nyc": "^11.8.0",
+    "sinon": "^4.0.1",
     "tap-spec": "^4.1.1",
     "tape": "^4.8.0",
-    "@types/tape": "^4.2.30",
-    "@types/node": "8.9.4"
-  },
-  "devDependencies": {
-    "cross-env": "^5.1.4"
+    "ts-node": "^6.0.3",
+    "tsconfig-paths": "^3.3.2",
+    "tslint": "^5.7.0",
+    "tslint-config-haiku": "1.0.0",
+    "typescript": "^2.5.2"
   }
 }
