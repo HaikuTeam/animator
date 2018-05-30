@@ -6,7 +6,7 @@
     "src/**/*.ts"
   ],
   "reporter": [
-    "cobertura",
+    "istanbul-reporter-cobertura-haiku",
     "html"
   ],
   "all": true
