@@ -1,11 +1,5 @@
 {
   "extends": [
     "tslint-config-haiku"
-  ],
-  "rules": {
-    "function-name": false,
-    "object-curly-spacing": false,
-    "max-line-length": false,
-    "comment-format": false
-  }
+  ]
 }

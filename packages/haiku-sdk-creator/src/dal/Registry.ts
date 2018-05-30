@@ -2,7 +2,6 @@ import * as path from 'path';
 import * as os from 'os';
 import * as fs from 'fs';
 import * as mkdirp from 'mkdirp';
-import { client as sdkClient } from '@haiku/sdk-client';
 
 const REGISTRY_PATH = path.join(os.homedir(), '.haiku', 'registry.json');
 

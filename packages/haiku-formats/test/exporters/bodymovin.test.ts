@@ -2,7 +2,7 @@ import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
 import {HaikuBytecode, BytecodeTimelineProperties, BytecodeNode} from '@haiku/core/lib/api/HaikuBytecode';
 import tape = require('tape');
 
-import {BodymovinExporter} from '@/exporters/bodymovin/bodymovinExporter';
+import {BodymovinExporter} from '@formats/exporters/bodymovin/bodymovinExporter';
 import baseBytecode from './baseBytecode';
 
 const {pathToPoints, polyPointsStringToPoints} = SVGPoints;

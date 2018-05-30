@@ -1,7 +1,5 @@
-import {
-  createTourFile,
-  didTakeTour,
-} from 'haiku-serialization/src/utils/HaikuHomeDir';
+// @ts-ignore
+import {createTourFile, didTakeTour} from 'haiku-serialization/src/utils/HaikuHomeDir';
 import {TourUtils} from 'haiku-common/lib/types/enums';
 import {ClientBoundingRect, MaybeAsync, Tour, TourState} from '.';
 import {EnvoyEvent} from '../envoy';
@@ -242,7 +240,7 @@ export class TourHandler implements Tour {
     this.requestHide();
   }
 
-  start(force?) {
+  start(force?: boolean) {
     if ((!didTakeTour() && !this.isActive) || force) {
       this.currentStep = 0;
       this.isActive = true;
@@ -250,7 +248,7 @@ export class TourHandler implements Tour {
     }
   }
 
-  finish(createFile?) {
+  finish(createFile?: boolean) {
     if (!this.isActive) { return; }
 
     if (createFile) {

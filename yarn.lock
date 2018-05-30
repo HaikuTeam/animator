@@ -243,10 +243,6 @@
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@types/bezier-easing/-/bezier-easing-2.0.0.tgz#addbc86aec544788a7dca64dd136a83c1711af16"
 
-"@types/bluebird@^3.5.20":
-  version "3.5.20"
-  resolved "https://registry.yarnpkg.com/@types/bluebird/-/bluebird-3.5.20.tgz#f6363172add6f4eabb8cada53ca9af2781e8d6a1"
-
 "@types/chalk@^0.4.31":
   version "0.4.31"
   resolved "https://registry.yarnpkg.com/@types/chalk/-/chalk-0.4.31.tgz#a31d74241a6b1edbb973cf36d97a2896834a51f9"
@@ -11726,7 +11722,7 @@ tslib@^1.9.0:
   version "1.9.0"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.9.0.tgz#e37a86fda8cbbaf23a057f473c9f4dc64e5fc2e8"
 
-tslint-config-airbnb@5.8.0, tslint-config-airbnb@^5.3.0:
+tslint-config-airbnb@^5.3.0:
   version "5.8.0"
   resolved "https://registry.yarnpkg.com/tslint-config-airbnb/-/tslint-config-airbnb-5.8.0.tgz#0398cf4b5a8715b604cb40e9580532c5c0e68716"
   dependencies:
@@ -11734,7 +11730,7 @@ tslint-config-airbnb@5.8.0, tslint-config-airbnb@^5.3.0:
     tslint-eslint-rules "^4.1.1"
     tslint-microsoft-contrib "~5.0.1"
 
-tslint-config-haiku@^1.0.0:
+tslint-config-haiku@1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/tslint-config-haiku/-/tslint-config-haiku-1.0.0.tgz#914c3e932f280a00e02cc87d003daf0f1e4097a0"
   dependencies:

@@ -5,8 +5,8 @@ import tape = require('tape');
 // @ts-ignore
 import haikuFsExtra = require('haiku-fs-extra');
 
-import {BodymovinExporter} from '@/exporters/bodymovin/bodymovinExporter';
-import {HaikuStaticExporter} from '@/exporters/haikuStatic/haikuStaticExporter';
+import {BodymovinExporter} from '@formats/exporters/bodymovin/bodymovinExporter';
+import {HaikuStaticExporter} from '@formats/exporters/haikuStatic/haikuStaticExporter';
 
 const {readdir, readFile} = haikuFsExtra;
 const goldensRoot = join(global.process.cwd(), 'test/goldens');

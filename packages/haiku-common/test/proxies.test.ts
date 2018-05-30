@@ -1,6 +1,6 @@
 import * as tape from 'tape';
 
-import {buildProxyUrl, isProxied, describeProxyFromUrl} from '../lib/proxies';
+import {buildProxyUrl, isProxied, describeProxyFromUrl} from '@common/proxies';
 
 tape('proxies', (test: tape.Test) => {
   test.test('isProxied', (test: tape.Test) => {

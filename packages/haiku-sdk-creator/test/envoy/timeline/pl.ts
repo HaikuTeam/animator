@@ -1,7 +1,7 @@
 import * as WebSocket from 'ws';
-import EnvoyServer from '../../../lib/envoy/EnvoyServer';
-import EnvoyLogger from '../../../lib/envoy/EnvoyLogger';
-import {TimelineHandler} from '../../../lib/timeline/TimelineHandler';
+import EnvoyServer from '@sdk-creator/envoy/EnvoyServer';
+import EnvoyLogger from '@sdk-creator/envoy/EnvoyLogger';
+import {TimelineHandler} from '@sdk-creator/timeline/TimelineHandler';
 
 async function go() {
   const envoyServer = new EnvoyServer({

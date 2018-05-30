@@ -1,5 +1,4 @@
 export * from './EnvoyClient';
-export * from './EnvoyHandler';
 export * from './EnvoyLogger';
 export * from './EnvoyServer';
 

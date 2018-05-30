@@ -1,13 +1,15 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "rootDir": ".",
     "noImplicitAny": false,
     "baseUrl": ".",
     "paths": {
-      "@common/*": ["src/*"]
+      "@testing/*": ["src/*"]
     }
   },
   "include": [
-    "test/**/*.ts"
+    "test/**/*.ts",
+    "scripts/*.ts"
   ]
 }

@@ -1,5 +1,5 @@
-import * as Promise from 'bluebird';
 import * as WebSocket from 'ws';
+// @ts-ignore
 import * as qs from 'qs';
 
 import {
@@ -13,6 +13,7 @@ import {
 
 import findOpenPort from './../utils/findOpenPort';
 import generateUUIDv4 from './../utils/generateUUIDv4';
+import EnvoyClient from './EnvoyClient';
 
 import EnvoyLogger from './EnvoyLogger';
 
@@ -50,7 +51,7 @@ export default class EnvoyServer {
     this.logger = mergedOptions.logger || new EnvoyLogger('info', mergedOptions.logger);
 
     // If present, the passed-in port will be checked for availability, otherwise one will be chosen for us
-    findOpenPort(mergedOptions.port, mergedOptions.host, (portErr, host, port) => {
+    findOpenPort(mergedOptions.port, mergedOptions.host, (portErr: Error, host: string, port: number) => {
       if (portErr) {
         throw portErr;
       }
@@ -121,14 +122,15 @@ export default class EnvoyServer {
    * @description Returns a promise that resolves when the server is established
    * and ready to accept connections from websocket clients.
    */
-  ready(): Promise<void> {
-    return new Promise(function executor(resolve) {
+  ready(): Promise<EnvoyServer> {
+    const executor = (accept: ((value?: EnvoyServer) => void)) => {
       if (this.server && this.isServerReady) {
-        resolve(this);
+        accept(this);
       } else {
-        setTimeout(executor.bind(this, resolve), AWAIT_READY_TIMEOUT);
+        setTimeout(() => executor(accept), AWAIT_READY_TIMEOUT);
       }
-    }.bind(this));
+    };
+    return new Promise(executor);
   }
 
   emit(channel: string, event: EnvoyEvent) {
@@ -177,9 +179,8 @@ export default class EnvoyServer {
           const returnValue = method.apply(handler.instance, data.params);
 
           if (returnValue && returnValue.then) {
-            //assume this is a promise, and unwrap it before sending response
-            returnValue.then((unwrapped) => {
-              // const unwrappedString = JSON.stringify(unwrapped);
+            // Assume this is a promise, and unwrap it before sending response.
+            returnValue.then((unwrapped: any) => {
               const response = <Datagram>{
                 channel: data.channel,
                 data: unwrapped,
@@ -190,7 +191,7 @@ export default class EnvoyServer {
               //       would require identifying the client (via datagram) & then tracking clientId in future datagrams
               this.broadcast(response);
             })
-            .catch((error) => {
+            .catch((error: Error) => {
               const response = <Datagram>{
                 channel: data.channel,
                 data: {error},
