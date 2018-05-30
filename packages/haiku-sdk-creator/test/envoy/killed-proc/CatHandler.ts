@@ -1,4 +1,4 @@
-import EnvoyServer from '../../../lib/envoy/EnvoyServer';
+import EnvoyServer from '@sdk-creator/envoy/EnvoyServer';
 
 export default class CatHandler {
   private server: EnvoyServer;

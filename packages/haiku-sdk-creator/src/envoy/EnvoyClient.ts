@@ -1,4 +1,3 @@
-import * as Promise from 'bluebird';
 import {
   Datagram,
   DatagramIntent,
@@ -22,13 +21,12 @@ export default class EnvoyClient<T> {
 
   private options: EnvoyOptions;
   private datagramQueue: Datagram[] = [];
-  private channel: string;
   private isConnected: boolean = false;
   private outstandingRequests: Map<string, ClientRequestCallback> = new Map<string, ClientRequestCallback>();
   private socket: WebSocket;
   private connectingPromise: Promise<any>;
   private eventHandlers: Map<string, Function[]> = new Map<string, Function[]>();
-  private websocket;
+  private websocket: typeof WebSocket;
   private logger: Console;
   private schemaCache: Map<string, Schema> = new Map<string, Schema>();
 
@@ -43,6 +41,7 @@ export default class EnvoyClient<T> {
    * Retrieves a client bound to the handler at specified channel on remote server
    * @param channel unique string representing the channel of the handler
    * that this client should be bound to
+   * @param requestOptions
    */
   get(channel: string, requestOptions?: RequestOptions): Promise<T> {
     // Since mock mode skips the connection, there's nothing to retrieve, and
@@ -64,7 +63,7 @@ export default class EnvoyClient<T> {
 
           // Set the new function behavior.
           returnMe[property] = ((prop) => {
-            return (...args) => {
+            return (...args: any[]) => {
 
               // Ask server for a response.
               // For now, return only first response received.
@@ -140,14 +139,15 @@ export default class EnvoyClient<T> {
    * @method ready
    * @description Returns a promise that resolves when the client has connected to the server
    */
-  ready(): Promise<void> {
-    return new Promise(function executor(resolve) {
+  ready(): Promise<EnvoyClient<T>> {
+    const executor = (accept: ((value?: EnvoyClient<T>) => void)) => {
       if (this.isInMockMode() || this.isConnected) {
-        resolve(this);
+        accept(this);
       } else {
-        setTimeout(executor.bind(this, resolve), AWAIT_READY_TIMEOUT);
+        setTimeout(() => executor(accept), AWAIT_READY_TIMEOUT);
       }
-    }.bind(this));
+    };
+    return new Promise(executor);
   }
 
   /**
@@ -168,7 +168,7 @@ export default class EnvoyClient<T> {
 
     this.logger.info('[haiku envoy client] connecting to websocket server %s', url);
 
-    this.connectingPromise = new Promise((accept, _) => {
+    this.connectingPromise = new Promise((accept) => {
       this.socket = new this.websocket(url);
 
       this.socket.addEventListener('open', () => {
@@ -198,23 +198,12 @@ export default class EnvoyClient<T> {
    */
   private handleRawReceivedData(data: string) {
     // If this is a response & the request id is in outstanding requests, resolve the stored promise w/ data.
-    const datagram = <Datagram>JSON.parse(data);
+    const datagram = JSON.parse(data) as Datagram;
     if (datagram.intent === DatagramIntent.RESPONSE && this.outstandingRequests.get(datagram.id)) {
-      // this.logger.info('[haiku envoy client] received data', datagram.data);
-
-      //parse this for the client if it's JSON
-      // let payload = undefined;
-      // try {
-      //   payload = JSON.parse(datagram.data);
-      // } catch (e) {
-      //   payload = datagram.data;
-      // }
-
-      // TODO: Fix Bluebird typing error by removing any
-      (this.outstandingRequests.get(datagram.id) as any)(datagram.data);
+      (this.outstandingRequests.get(datagram.id))(datagram.data);
       this.outstandingRequests.delete(datagram.id);
     } else if (datagram.intent === DatagramIntent.EVENT) {
-      const event = <EnvoyEvent>JSON.parse(datagram.data);
+      const event = JSON.parse(datagram.data) as EnvoyEvent;
       const handlers = this.eventHandlers.get(event.name);
 
       if (handlers && handlers.length) {
@@ -285,16 +274,20 @@ export default class EnvoyClient<T> {
         const timeout = this.generateTimeoutPromise(mergedOptions.timeout);
 
         // TODO: Fix Bluebird typing error by removing any
-        const success = new Promise<any>((acceptInner: (data: PromiseLike<EnvoySerializable>) => void, rejectInner: (error: any) => void) => {
+        const success = new Promise<any>(
+          (
+            acceptInner: (data: PromiseLike<EnvoySerializable>) => void,
+            rejectInner: (error: any) => void,
+          ) => {
+            this.outstandingRequests.set(datagram.id, (data) => {
+              if (data && data.error) {
+                return rejectInner(data.error);
+              }
 
-          this.outstandingRequests.set(datagram.id, (data) => {
-            if (data && data.error) {
-              return rejectInner(data.error);
-            }
-
-            return acceptInner(data);
-          });
-        });
+              return acceptInner(data);
+            });
+          },
+        );
 
         return Promise.race([timeout, success]).then(
           (data) => {

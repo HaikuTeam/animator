@@ -1,3 +1,4 @@
+// @ts-ignore
 import * as Figma from 'haiku-serialization/src/bll/Figma';
 import EnvoyServer from '../envoy/EnvoyServer';
 import {ImportSpec, MaybeAsync, TokenExchange} from '.';
@@ -15,12 +16,12 @@ export class ServicesHandler implements Services {
     this.server = server;
   }
 
-  figmaImportSVG(importSpec, authToken) {
+  figmaImportSVG(importSpec: ImportSpec, authToken: string) {
     const figma = new Figma({token: authToken});
     return figma.importSVG(importSpec);
   }
 
-  figmaGetAccessToken(tokenExchange) {
+  figmaGetAccessToken(tokenExchange: TokenExchange) {
     return Figma.getAccessToken(tokenExchange);
   }
 }

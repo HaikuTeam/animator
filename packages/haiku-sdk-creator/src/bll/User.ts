@@ -1,8 +1,8 @@
-import { client as sdkClient } from '@haiku/sdk-client';
-import { inkstone } from '@haiku/sdk-inkstone';
-import { MaybeAsync } from '../envoy';
+import {client as sdkClient} from '@haiku/sdk-client';
+import {inkstone} from '@haiku/sdk-inkstone';
 
-import { Registry } from '../dal/Registry';
+import {Registry} from '../dal/Registry';
+import {MaybeAsync} from '../envoy';
 
 export interface User {
   reportActivity: MaybeAsync<() => void>;
@@ -25,7 +25,7 @@ export class UserHandler implements User {
 
   reportActivity() {
     const authToken = sdkClient.config.getAuthToken();
-    //faked query string to keep squirrel happy.  as this is not genuinely an 'update' check, this shouldn't matter
+    // Faked query string to keep squirrel happy.  as this is not genuinely an 'update' check, this shouldn't matter.
     return inkstone.updates.check(authToken, '?platform=mac&environment=production&branch=master', () => { });
   }
 
@@ -33,7 +33,7 @@ export class UserHandler implements User {
     Registry.setConfig(key, value);
   }
 
-  getConfig(key): string {
+  getConfig(key: string): string {
     return Registry.getConfig(key);
   }
 
@@ -47,10 +47,9 @@ export class UserHandler implements User {
 
   getUserDetails(): Promise<inkstone.user.User> {
     return new Promise<inkstone.user.User>((resolve) => {
-      inkstone.user.getDetails(this.getAuthToken(), (err, user, response) => {
+      inkstone.user.getDetails(this.getAuthToken(), (err, user) => {
         resolve(user);
       });
     });
   }
-
 }

@@ -12,7 +12,8 @@
     "baseUrl": ".",
     "paths": {
       "@common/*": ["packages/haiku-common/src/*"],
-      "@formats/*": ["packages/haiku-formats/src/*"]
+      "@formats/*": ["packages/haiku-formats/src/*"],
+      "@sdk-creator/*": ["packages/haiku-sdk-creator/src/*"]
     },
     "typeRoots": [
       "node_modules/@types/"
