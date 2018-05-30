@@ -4,6 +4,15 @@ final String STATUS_FAILURE = 'FAILURE'
 final String CONTEXT_RELEASE = 'release'
 final String CONTEXT_BUILD_MAC = 'release/macOS'
 
+final scm = [
+    $class: 'GitSCM',
+    branches: [[name: '${ghprbActualCommit}']],
+    doGenerateSubmoduleConfigurations: false,
+    extensions: [],
+    submoduleCfg: [],
+    userRemoteConfigs: [[credentialsId: '3ff59e15-b2b1-45fd-b570-8f362dc7b7fc', url: 'git@github.com:HaikuTeam/mono.git']]
+]
+
 pipeline {
     agent any
     stages {
@@ -14,6 +23,7 @@ pipeline {
             }
             steps {
                 setBuildStatus(CONTEXT_RELEASE, 'builds started', STATUS_PENDING)
+                checkout changelog: false, poll: false, scm: scm
                 sh '''#!/bin/bash -x
                     curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.6/install.sh | bash
                     . $HOME/.bash_profile
