@@ -8,6 +8,18 @@ const path = require('path')
 
 const IS_ILLUSTRATOR_FILE_RE = /\.ai$/
 const IS_ILLUSTRATOR_FOLDER_RE = /\.ai\.contents/
+
+/**
+ * This template script runs inside Illustrator and perform the export of the
+ * artboards as SVG files.
+ *
+ * Full documentation of Illustrator scripting can be found [in the official reference][1].
+ *
+ * note: this script needs to be dinamically defined because the DESTINATION_PATH
+ * string changes from import to import.
+ *
+ * [1]: https://wwwimages2.adobe.com/content/dam/acom/en/devnet/illustrator/pdf/Illustrator_JavaScript_Scripting_Reference_2017.pdf
+ */
 const EXPORTER_SCRIPT = `
   if (app.documents.length > 0) {
     var exportOptions = new ExportOptionsSVG()
@@ -16,30 +28,51 @@ const EXPORTER_SCRIPT = `
     var fileSpec = new File(dest)
     var srcFile = app.activeDocument.fullName;
 
+    // Export options can be further customized, check out the documentation.
     exportOptions.embedRasterImages = true
     exportOptions.embedAllFonts = false
     exportOptions.cssProperties = SVGCSSPropertyLocation.PRESENTATIONATTRIBUTES
     exportOptions.fontSubsetting = SVGFontSubsetting.None
     exportOptions.documentEncoding = SVGDocumentEncoding.UTF8
-    saveMultipleArtboards = true
+    exportOptions.saveMultipleArtboards = true
 
+    // Export all artboards in the current document
     app.activeDocument.exportFile(fileSpec, type, exportOptions)
+
+    // Unfortunately exporting artboards sets the exported file as the current
+    // active document, so we need to close it, and open the original ai file
     app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);
     app.open(srcFile);
   }
 `
 
 class Illustrator {
+  /**
+   * Checks if the file provided looks like an Illustrator file.
+   * @param {string} abspath
+   * @returns {Boolean}
+   */
   static isIllustratorFile (abspath) {
     return abspath.match(IS_ILLUSTRATOR_FILE_RE)
   }
 
+  /**
+   * Checks if the folder provided looks like a folder that should contain
+   * Illustrator assets.
+   * @param {string} abspath
+   * @returns {Boolean}
+   */
   static isIllustratorFolder (abspath) {
     return !!abspath && abspath.match(IS_ILLUSTRATOR_FOLDER_RE)
   }
 
+  /**
+   * Import artboards as SVG files from an Illustrator document
+   * @param {string} abspath
+   * @returns {Boolean}
+   */
   static importSVG (abspath) {
-    if (!Illustrator.isIllustratorFile(abspath)) return void 0
+    if (!Illustrator.isIllustratorFile(abspath)) return false
 
     logger.info('[illustrator] got', abspath)
 
@@ -51,6 +84,10 @@ class Illustrator {
 
     logger.info('[illustrator] running commands')
 
+    // We need to create a temporary Illustrator script file with the contents of
+    // EXPORTER_SCRIPT to perform the export, this is an attempt to obscure the
+    // file name to reduce the chances of an attacker modifying the contents of this
+    // file before being executed.
     const tmpdir = os.tmpdir()
     const fileName = uuid.v4() + '.jsx'
     const filePath = path.join(tmpdir, fileName)
