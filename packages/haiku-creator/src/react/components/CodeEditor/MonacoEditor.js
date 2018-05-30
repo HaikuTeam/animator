@@ -26,7 +26,6 @@ class MonacoEditor extends React.Component {
   }
 
   componentDidUpdate (prevProps) {
-    // console.log("componentDidUpdate prevProps",prevProps, " props", this.props);
     if (this.props.value !== this.__current_value) {
       // Always refer to the latest value
       this.__current_value = this.props.value
@@ -126,7 +125,7 @@ class MonacoEditor extends React.Component {
     }
   }
 
-  assignRef (component) {
+  assignRef = (component) => {
     this.containerElement = component
   };
 

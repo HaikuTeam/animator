@@ -13,54 +13,39 @@ class CodeEditor extends React.Component {
     super(props)
 
     this.state = {
-      currentActiveComponentContents: ''
+      currentComponentCode: '',
+      currentEditorContents: '',
     }
-    this.currentEditorContents = ''
   }
 
   componentWillMount () {
     console.log('componentWillMount')
     if (this.props.projectModel) {
       this.props.projectModel.on('update', (what, ...args) => {
-        console.log('RECEIVED what:', what)
         switch (what) {
           case 'reloaded':
-            const content = this.props.projectModel.getCurrentActiveComponent().fetchActiveBytecodeFile().getCode()
-            console.log('RELOADED content', {content: content})
-            this.setState({currentActiveComponentContents: content})
+            const newComponentCode = this.props.projectModel.getCurrentActiveComponent().fetchActiveBytecodeFile().getCode()
+          
+            // If component code changed, update it on Editor 
+            // TODO: this logic could be migrated in the future to Monaco Editor
+            // getDerivedStateFromProps on react 16+ 
+            if (newComponentCode!==this.state.currentComponentCode){
+              console.log('Current component code changed!', {newComponentCode: newComponentCode})
+              this.setState({currentEditorContents: newComponentCode})
+            }
+            this.setState({currentComponentCode: newComponentCode})
             break
         }
       })
     }
   }
 
-  componentDidMount () {
-    console.log('componentDidMount')
+  onMonacoEditorChange = (newContent, e) => {
+    this.setState({currentEditorContents: newContent})
   }
 
-  componentDidUpdate (prevProps, prevState) {
-    console.log('componentDidUpdate prevProps:', prevProps, 'prevState:', prevState, 'currProps', this.props, 'currState', this.state)
-  }
-
-  componentWillUnmount () {
-    console.log('componentWillUnmount')
-  }
-
-  updateDimensions () {
-    console.log('updateDimensions')
-  }
-
-  getDerivedStateFromProps (props, state) {
-    console.log('getDerivedStateFromProps props', props, 'state', state)
-    return null
-  }
-
-  onMonacoEditorChange (newContent, e) {
-    this.currentEditorContents = newContent
-  }
-
-  saveCodeFromEditorToDisk () {
-    const currentEditorContents = this.currentEditorContents
+  saveCodeFromEditorToDisk = () => {
+    const currentEditorContents = this.state.currentEditorContents
     console.log('currentEditorContents:', {currentEditorContents: currentEditorContents})
     this.props.projectModel.getCurrentActiveComponent().fetchActiveBytecodeFile().flushContentFromString(currentEditorContents)
   }
@@ -101,7 +86,7 @@ class CodeEditor extends React.Component {
       </button>
       <MonacoEditor
         language='javascript'
-        value={this.state.currentActiveComponentContents}
+        value={this.state.currentEditorContents}
         options={monacoOptions}
         style={{
           width: '100%',
