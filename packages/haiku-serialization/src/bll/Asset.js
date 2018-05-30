@@ -319,25 +319,27 @@ class Asset extends BaseModel {
       }
 
       let out = this.children
+      const indexOfFirstSketchChild = getIndexOfFirstSketchChild(this.children)
+      const indexOfFirstFigmaChild = getIndexOfFirstFigmaChild(this.children)
+      const indexOfFirstIllustratorChild = getIndexOfFirstIllustratorChild(this.children)
 
       if (shouldDisplayPrimaryAssetMessage(this.children)) {
-        out = out.concat(
-          Asset.upsert({
-            uid: 'hacky-message[1]',
-            relpath: 'hacky-message[1]',
-            type: Asset.TYPES.HACKY_MESSAGE,
-            kind: Asset.KINDS.HACKY_MESSAGE,
-            project: this.project,
-            displayName: 'hacky-message[1]',
-            children: [],
-            dtModified: Date.now(),
-            messageType: 'edit_primary_asset',
-            message: PRIMARY_ASSET_MESSAGE
-          })
-        )
+        const asset = Asset.upsert({
+          uid: 'hacky-message[1]',
+          relpath: 'hacky-message[1]',
+          type: Asset.TYPES.HACKY_MESSAGE,
+          kind: Asset.KINDS.HACKY_MESSAGE,
+          project: this.project,
+          displayName: 'hacky-message[1]',
+          children: [],
+          dtModified: Date.now(),
+          messageType: 'edit_primary_asset',
+          message: PRIMARY_ASSET_MESSAGE
+        })
+        out.splice(indexOfFirstSketchChild + 1, 0, asset)
       }
 
-      if (shouldDisplayFigmaAssetMessage(this.children)) {
+      if (indexOfFirstFigmaChild === -1) {
         out = out.concat(
           Asset.upsert({
             uid: 'hacky-figma-file[1]',
@@ -366,32 +368,21 @@ class Asset extends BaseModel {
         )
       }
 
-      if (shouldDisplayIllustratorAssetMessage(this.children)) {
-        out = out.concat(
-          Asset.upsert({
-            uid: 'hacky-illustrator-file[1]',
-            relpath: 'hacky-illustrator-file[1]',
-            type: Asset.TYPES.CONTAINER,
-            kind: Asset.KINDS.ILLUSTRATOR,
-            proximity: Asset.PROXIMITIES.LOCAL,
-            displayName: this.project.getName() + '.ai',
-            children: [],
-            project: this.project,
-            dtModified: Date.now()
-          }),
-          Asset.upsert({
-            uid: 'hacky-message[4]',
-            relpath: 'hacky-message[4]',
-            type: Asset.TYPES.HACKY_MESSAGE,
-            kind: Asset.KINDS.HACKY_MESSAGE,
-            project: this.project,
-            displayName: 'hacky-message[4]',
-            children: [],
-            dtModified: Date.now(),
-            messageType: 'edit_primary_asset',
-            message: ILLUSTRATOR_ASSET_MESSAGE
-          })
-        )
+      if (shouldDisplayIllustratorMessage(this.children)) {
+        const asset = Asset.upsert({
+          uid: 'hacky-message[4]',
+          relpath: 'hacky-message[4]',
+          type: Asset.TYPES.HACKY_MESSAGE,
+          kind: Asset.KINDS.HACKY_MESSAGE,
+          project: this.project,
+          displayName: 'hacky-message[4]',
+          children: [],
+          dtModified: Date.now(),
+          messageType: 'edit_primary_asset',
+          message: ILLUSTRATOR_ASSET_MESSAGE
+        })
+
+        out.splice(indexOfFirstIllustratorChild + 1, 0, asset)
       }
 
       return out
@@ -403,6 +394,11 @@ class Asset extends BaseModel {
   isPrimaryAsset () {
     const { primaryAssetPath } = this.project.getNameVariations()
     return path.normalize(this.relpath) === primaryAssetPath
+  }
+
+  isDefaultIllustratorAssetPath () {
+    const { defaultIllustratorAssetPath } = this.project.getNameVariations()
+    return path.normalize(this.relpath) === defaultIllustratorAssetPath
   }
 
   isSlice () {
@@ -483,8 +479,8 @@ Every slice and group will be imported here.
 `
 
 const ILLUSTRATOR_ASSET_MESSAGE = `
-⇧ Double click to import a file from Illustrator.
-Every artboard will be imported here.
+⇧ Double click to open this file in Illustrator.
+Every artboard will be synced here when you save.
 `
 
 Asset.ingestAssets = (project, dict) => {
@@ -625,20 +621,32 @@ const shouldDisplayPrimaryAssetMessage = (childrenOfDesignFolder) => {
   if (childrenOfDesignFolder.length < 1) {
     return false
   }
-  if (childrenOfDesignFolder[0].isPrimaryAsset() && childrenOfDesignFolder[0].children.length < 1) {
+  if (childrenOfDesignFolder[1].isPrimaryAsset() && childrenOfDesignFolder[1].children.length < 1) {
     return true
   }
   return false
 }
 
-const shouldDisplayFigmaAssetMessage = (childrenOfDesignFolder) => {
-  const index = childrenOfDesignFolder.findIndex((child) => child.isFigmaFile())
-  return index === -1
+const shouldDisplayIllustratorMessage = (childrenOfDesignFolder) => {
+  if (childrenOfDesignFolder.length < 1) {
+    return false
+  }
+  if (childrenOfDesignFolder[0].isDefaultIllustratorAssetPath() && childrenOfDesignFolder[0].children.length < 1) {
+    return true
+  }
+  return false
 }
 
-const shouldDisplayIllustratorAssetMessage = (childrenOfDesignFolder) => {
-  const index = childrenOfDesignFolder.findIndex((child) => child.isIllustratorFile())
-  return index === -1
+const getIndexOfFirstSketchChild = (childrenOfDesignFolder) => {
+  return childrenOfDesignFolder.findIndex((child) => child.isSketchFile())
+}
+
+const getIndexOfFirstFigmaChild = (childrenOfDesignFolder) => {
+  return childrenOfDesignFolder.findIndex((child) => child.isFigmaFile())
+}
+
+const getIndexOfFirstIllustratorChild = (childrenOfDesignFolder) => {
+  return childrenOfDesignFolder.findIndex((child) => child.isIllustratorFile())
 }
 
 const sortedChildrenOfComponentFolderAsset = (asset) => {

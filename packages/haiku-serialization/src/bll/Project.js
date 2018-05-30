@@ -995,6 +995,8 @@ Project.getAngularSelectorName = (name) => name
 
 Project.getPrimaryAssetPath = (name) => `designs/${name}.sketch`
 
+Project.getDefaultIllustratorAssetPath = (name) => `designs/${name}.ai`
+
 Project.getProjectNameVariations = (folder) => {
   const projectHaikuConfig = Project.readPackageJson(folder).haiku
   const projectNameSafe = Project.getSafeProjectName(folder, projectHaikuConfig.project)
@@ -1003,6 +1005,7 @@ Project.getProjectNameVariations = (folder) => {
   const reactProjectName = `React_${projectNameSafe}`
   const angularSelectorName = Project.getAngularSelectorName(projectNameSafe)
   const primaryAssetPath = Project.getPrimaryAssetPath(projectNameSafeShort)
+  const defaultIllustratorAssetPath = Project.getDefaultIllustratorAssetPath(projectNameSafeShort)
 
   return {
     projectNameSafe,
@@ -1010,7 +1013,8 @@ Project.getProjectNameVariations = (folder) => {
     projectNameLowerCase,
     reactProjectName,
     angularSelectorName,
-    primaryAssetPath
+    primaryAssetPath,
+    defaultIllustratorAssetPath
   }
 }
 
