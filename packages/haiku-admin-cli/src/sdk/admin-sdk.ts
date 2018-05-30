@@ -58,7 +58,7 @@ export namespace adminSdk {
       Token: string;
     }
 
-    export function authenticate(authToken: string, username, cb: adminSdk.Callback<Authentication>) {
+    export function authenticate(authToken: string, username: string, cb: adminSdk.Callback<Authentication>) {
       const formData = {
         username,
       };

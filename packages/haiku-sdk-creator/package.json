@@ -10,7 +10,7 @@
     "lint": "tslint -p tsconfig.all.json -t stylish",
     "lint-report": "yarn lint -t checkstyle -o checkstyle-result.xml",
     "fix": "yarn lint --fix",
-    "ts": "cross-env NODE_ENV=test yarn ts-node -r tsconfig-paths/register -P tsconfig.all.json",
+    "ts": "cross-env NODE_ENV=test ts-node -r tsconfig-paths/register -P tsconfig.all.json",
     "test": "yarn ts ./node_modules/.bin/tape 'test/**/*.test.ts' | tap-spec",
     "test-report": "nyc yarn ts ./node_modules/.bin/tape 'test/**/*.test.ts' > test-result.tap",
     "compile": "tsc",
@@ -32,10 +32,6 @@
     "@types/ws": "^3.0.2",
     "cross-env": "^5.1.4",
     "haiku-testing": "3.3.4",
-    "leaked-handles": "^5.2.0",
-    "nyc": "^11.8.0",
-    "tap-spec": "^4.1.1",
-    "tape": "^4.8.0",
-    "ts-node": "^6.0.3"
+    "leaked-handles": "^5.2.0"
   }
 }
