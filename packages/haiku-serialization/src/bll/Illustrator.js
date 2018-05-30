@@ -9,18 +9,24 @@ const path = require('path')
 const IS_ILLUSTRATOR_FILE_RE = /\.ai$/
 const IS_ILLUSTRATOR_FOLDER_RE = /\.ai\.contents/
 const EXPORTER_SCRIPT = `
-if (app.documents.length > 0) {
-  var exportOptions = new ExportOptionsSVG()
-  var type = ExportType.SVG
-  var fileSpec = new File('DESTINATION_PATH')
-  exportOptions.embedRasterImages = true
-  exportOptions.embedAllFonts = false
-  exportOptions.cssProperties = SVGCSSPropertyLocation.PRESENTATIONATTRIBUTES
-  exportOptions.fontSubsetting = SVGFontSubsetting.None
-  exportOptions.documentEncoding = SVGDocumentEncoding.UTF8
-  saveMultipleArtboards = true
-  app.activeDocument.exportFile(fileSpec, type, exportOptions)
-}
+  if (app.documents.length > 0) {
+    var exportOptions = new ExportOptionsSVG()
+    var type = ExportType.SVG
+    var dest = 'DESTINATION_PATH'
+    var fileSpec = new File(dest)
+    var srcFile = app.activeDocument.fullName;
+
+    exportOptions.embedRasterImages = true
+    exportOptions.embedAllFonts = false
+    exportOptions.cssProperties = SVGCSSPropertyLocation.PRESENTATIONATTRIBUTES
+    exportOptions.fontSubsetting = SVGFontSubsetting.None
+    exportOptions.documentEncoding = SVGDocumentEncoding.UTF8
+    saveMultipleArtboards = true
+
+    app.activeDocument.exportFile(fileSpec, type, exportOptions)
+    app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);
+    app.open(srcFile);
+  }
 `
 
 class Illustrator {
