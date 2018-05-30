@@ -2089,10 +2089,10 @@ class ActiveComponent extends BaseModel {
   reload (reloadOptions, instanceConfig, cb) {
     const runReload = (done) => {
       if (reloadOptions.hardReload) {
-        console.log('HardReload on ',this.project.getAlias())
+        console.log('HardReload on ', this.project.getAlias())
         return this.hardReload(reloadOptions, instanceConfig, done)
       } else {
-        console.log('SoftReload on ',this.project.getAlias())
+        console.log('SoftReload on ', this.project.getAlias())
         return this.softReload(reloadOptions, instanceConfig, done)
       }
     }

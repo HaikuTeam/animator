@@ -571,9 +571,9 @@ export default class Creator extends React.Component {
 
         case 'component:reload':
           if (this.getActiveComponent()) {
-            console.log("::::::::::: ACTIVE2")
+            console.log('::::::::::: ACTIVE2')
             this.getActiveComponent().moduleReplace(() => {
-              const content = this.getActiveComponent().fetchActiveBytecodeFile().getCode();
+              const content = this.getActiveComponent().fetchActiveBytecodeFile().getCode()
               this.setState({componentFileContents: content})
             })
           }
@@ -878,7 +878,6 @@ export default class Creator extends React.Component {
     })
   }
 
-
   switchToDesignMode () {
     this.setState({ showGlass: true })
   }
@@ -1092,11 +1091,10 @@ export default class Creator extends React.Component {
 
                 if (this.getActiveComponent()) {
                   this.getActiveComponent().moduleReplace(() => {
-                    const content = this.getActiveComponent().fetchActiveBytecodeFile().getCode();
+                    const content = this.getActiveComponent().fetchActiveBytecodeFile().getCode()
                     this.setState({componentFileContents: content})
                   })
                 }
-
               })
             })
 
@@ -1123,7 +1121,7 @@ export default class Creator extends React.Component {
             })
 
             projectModel.on('remote-update', (what, ...args) => {
-              //console.log(`[creator] remote update ${what}, args:`,args)
+              // console.log(`[creator] remote update ${what}, args:`,args)
 
               switch (what) {
                 case 'setCurrentActiveComponent':

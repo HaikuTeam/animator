@@ -43,7 +43,6 @@ export default class Stage extends React.Component {
         this.tourClient.on('tour:requestWebviewCoordinates', this.onRequestWebviewCoordinates)
       })
     }
-
   }
 
   componentWillUnmount () {
@@ -168,7 +167,6 @@ export default class Stage extends React.Component {
       ? Palette.LIGHTEST_PINK
       : Palette.STAGE_GRAY
 
- 
     return (
       <div className='layout-box'
         onMouseOver={() => this.webview.focus()}
@@ -196,6 +194,7 @@ export default class Stage extends React.Component {
             onProjectPublicChange={this.props.onProjectPublicChange}
             onSwitchToCodeMode={this.props.onSwitchToCodeMode}
             onSwitchToDesignMode={this.props.onSwitchToDesignMode}
+            showGlass={this.props.showGlass}
           />
           {(experimentIsEnabled(Experiment.MultiComponentFeatures))
             ? <ComponentMenu
@@ -214,11 +213,10 @@ export default class Stage extends React.Component {
               left: 3,
               backgroundColor: Palette.STAGE_GRAY,
               outline: '2px solid ' + interactionModeColor,
-              visibility: this.props.showGlass ? 'visible' : 'hidden',
-            }}>
-            </div>
+              visibility: this.props.showGlass ? 'visible' : 'hidden'
+            }} />
 
-            <div
+          <div
             id='editor-mount'
             style={{
               position: 'absolute',
@@ -228,23 +226,19 @@ export default class Stage extends React.Component {
               left: 3,
               backgroundColor: Palette.STAGE_GRAY,
               outline: '2px solid ' + interactionModeColor,
-              visibility: this.props.showGlass ? 'hidden' : 'visible',
+              visibility: this.props.showGlass ? 'hidden' : 'visible'
             }}>
-              <CodeEditor 
-                showGlass={this.props.showGlass}
-                projectModel={this.props.projectModel}
+            <CodeEditor
+              showGlass={this.props.showGlass}
+              projectModel={this.props.projectModel}
               />
-            </div>
+          </div>
 
         </div>
       </div>
     )
   }
 }
-
-
-
-
 
 Stage.propTypes = {
   folder: React.PropTypes.string.isRequired,

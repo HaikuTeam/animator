@@ -583,7 +583,11 @@ class StageTitleBar extends React.Component {
             style={[
               BTN_STYLES.btnText,
               BTN_STYLES.centerBtns,
-              {display: 'inline-block'}
+              this.props.showGlass && {boxShadow: '0 4px 2px -2px #f24082'},
+              {
+                display: 'inline-block',
+                marginRight: '0px'
+              }
             ]}
           >
             <span style={{marginLeft: 7}}>DESIGN</span>
@@ -596,7 +600,11 @@ class StageTitleBar extends React.Component {
             style={[
               BTN_STYLES.btnText,
               BTN_STYLES.centerBtns,
-              {display: 'inline-block'}
+              !this.props.showGlass && {boxShadow: '0 4px 2px -2px #f24082'},
+              {
+                display: 'inline-block',
+                marginRight: '0px'
+              }
             ]}
           >
             <span style={{marginLeft: 7}}>CODE</span>
@@ -617,8 +625,6 @@ class StageTitleBar extends React.Component {
         >
           {this.renderSnapshotSaveInnerButton()}<span style={{marginLeft: 7}}>{btnText}</span>
         </button>
-
-
 
         <Toggle
           onToggle={this.props.onPreviewModeToggled}
