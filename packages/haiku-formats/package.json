@@ -41,7 +41,7 @@
     "cross-env": "^5.1.4",
     "haiku-fs-extra": "3.3.4",
     "haiku-testing": "3.3.4",
-    "istanbul-reporter-cobertura-haiku": "^1.0.0",
+    "istanbul-reporter-cobertura-haiku": "^1.0.1",
     "lottie-web": "5.1.7",
     "nodemon": "1.11.0",
     "nyc": "^11.8.0",

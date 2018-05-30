@@ -43,6 +43,11 @@ pipeline {
                         }
                         failure {
                             setBuildStatus(CONTEXT_LINT, 'lint errors found', STATUS_FAILURE)
+                            slackSend([
+                                    channel: 'engineering-feed',
+                                    color: 'warning',
+                                    message: ":professor-farnsworth: PR #${env.ghprbPullId} (https://github.com/HaikuTeam/mono/pull/${env.ghprbPullId}) has lint errors!"
+                            ])
                         }
                     }
                 }
@@ -71,6 +76,11 @@ pipeline {
                         }
                         failure {
                             setBuildStatus(CONTEXT_TEST_MAC, 'tests are failing', STATUS_SUCCESS)
+                            slackSend([
+                                    channel: 'engineering-feed',
+                                    color: 'danger',
+                                    message: ":jenkins-rage: PR #${env.ghprbPullId} (https://github.com/HaikuTeam/mono/pull/${env.ghprbPullId}) has failing tests!"
+                            ])
                         }
                     }
                 }
@@ -80,6 +90,11 @@ pipeline {
     post {
         success {
             setBuildStatus(CONTEXT_HEALTH, 'all health checks passed', STATUS_SUCCESS)
+            slackSend([
+                channel: 'engineering-feed',
+                color: 'good',
+                message: "PR #${env.ghprbPullId} (https://github.com/HaikuTeam/mono/pull/${env.ghprbPullId}) is healthy!"
+            ])
         }
         failure {
             setBuildStatus(CONTEXT_HEALTH, 'not all health checks passed', STATUS_FAILURE)
