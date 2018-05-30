@@ -33,7 +33,6 @@ class Illustrator {
   }
 
   static importSVG (abspath) {
-    console.log(abspath, Illustrator.isIllustratorFile(abspath))
     if (!Illustrator.isIllustratorFile(abspath)) return void 0
 
     logger.info('[illustrator] got', abspath)
