@@ -7,13 +7,12 @@
     "lib": "lib"
   },
   "scripts": {
-    "lint": "tslint -p tsconfig.json -c tslint.json 'src/**/*.ts' -t stylish",
+    "lint": "tslint -p tsconfig.all.json -t stylish",
     "lint-report": "yarn lint -t checkstyle -o checkstyle-result.xml",
     "fix": "yarn lint --fix",
-    "test": "tsc && tsc -p tsconfig.test.json && cross-env NODE_ENV=test tape \"~test/**/*.test.js\" | tap-spec && rm -rf ~test",
-    "test-report": "tsc -p tsconfig.test.json && cross-env NODE_ENV=test tape \"~test/**/*.test.js\" > test-result.tap",
-    "coverage": "nyc yarn test",
-    "html-coverage": "nyc --reporter=html yarn test",
+    "ts": "cross-env NODE_ENV=test yarn ts-node -r tsconfig-paths/register -P tsconfig.all.json",
+    "test": "yarn ts ./node_modules/.bin/tape 'test/**/*.test.ts' | tap-spec",
+    "test-report": "nyc yarn ts ./node_modules/.bin/tape 'test/**/*.test.ts' > test-result.tap",
     "compile": "tsc",
     "develop": "tsc --watch"
   },
