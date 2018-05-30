@@ -67,7 +67,7 @@ export class ShareModal extends React.Component<PropTypes, StateTypes> {
   }
 
   isNullOrUndefined(term) {
-    return term === null || term === undefined
+    return term === null || term === undefined;
   }
 
   componentWillReceiveProps(nextProps:PropTypes) {
