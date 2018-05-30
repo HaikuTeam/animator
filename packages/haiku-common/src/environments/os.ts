@@ -1,4 +1,3 @@
-
 /**
  * Environment operating system.
  * @enum {string}

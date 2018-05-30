@@ -8,8 +8,6 @@ const HaikuDOMRenderer = require('./../lib/renderers/dom').default;
 import HaikuContext from '../lib/HaikuContext';
 import HaikuGlobal from '../lib/HaikuGlobal';
 import * as ts from 'typescript';
-import * as fs from 'fs';
-import * as path from 'path';
 
 // Tell typescript we have these types on Global
 interface Global {

@@ -1,12 +1,14 @@
 import {each} from 'async';
 import {join, basename} from 'path';
-const fse = require('haiku-fs-extra');
-const readdir = fse.readdir;
-const readFile = fse.readFile;
-import * as tape from 'tape';
-import {BodymovinExporter} from '../../lib/exporters/bodymovin/bodymovinExporter';
-import {HaikuStaticExporter} from '../../lib/exporters/haikuStatic/haikuStaticExporter';
+import tape = require('tape');
 
+// @ts-ignore
+import haikuFsExtra = require('haiku-fs-extra');
+
+import {BodymovinExporter} from '@/exporters/bodymovin/bodymovinExporter';
+import {HaikuStaticExporter} from '@/exporters/haikuStatic/haikuStaticExporter';
+
+const {readdir, readFile} = haikuFsExtra;
 const goldensRoot = join(global.process.cwd(), 'test/goldens');
 
 tape('haiku-formats goldens', (test: tape.Test) => {

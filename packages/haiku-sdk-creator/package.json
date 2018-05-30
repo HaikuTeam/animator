@@ -36,7 +36,7 @@
     "@types/bluebird": "^3.5.20",
     "cross-env": "^5.1.4",
     "leaked-handles": "^5.2.0",
-    "nyc": "^11.3.0",
+    "nyc": "^11.8.0",
     "tap-spec": "^4.1.1",
     "tape": "^4.8.0",
     "tslint": "^5.7.0",

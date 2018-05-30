@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-export default function parseCssValueString(str, optionalPropertyHint) {
+export default function parseCssValueString(str: string, optionalPropertyHint?: string) {
   if (typeof str === 'number') {
     return {
       value: str,

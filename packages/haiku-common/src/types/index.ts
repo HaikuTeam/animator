@@ -16,14 +16,6 @@ export type CubicCurve = {
   y: number;
 };
 
-export type PathPoint = {
-  moveTo?: boolean;
-  closed?: boolean;
-  curve?: CubicCurve;
-  x: number;
-  y: number;
-};
-
 export type TemplateElement<T> = {
   elementName: string;
   attributes: TemplateElementAttributes;
