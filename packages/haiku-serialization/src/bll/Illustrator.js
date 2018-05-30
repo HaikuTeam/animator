@@ -62,7 +62,7 @@ class Illustrator {
       return `open -g -b com.adobe.Illustrator ${file}`
     } else if (isWindows()) {
       // TODO: figure out the correct command in Windows
-      return
+
     }
   }
 }
