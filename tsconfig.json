@@ -11,9 +11,11 @@
     ],
     "baseUrl": ".",
     "paths": {
+      "@admin-cli/*": ["packages/haiku-admin-cli/src/*"],
       "@common/*": ["packages/haiku-common/src/*"],
       "@formats/*": ["packages/haiku-formats/src/*"],
-      "@sdk-creator/*": ["packages/haiku-sdk-creator/src/*"]
+      "@sdk-creator/*": ["packages/haiku-sdk-creator/src/*"],
+      "@testing/*": ["packages/haiku-testing/src/*"]
     },
     "typeRoots": [
       "node_modules/@types/"
