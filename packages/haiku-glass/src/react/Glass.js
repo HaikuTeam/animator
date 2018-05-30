@@ -1043,47 +1043,46 @@ export class Glass extends React.Component {
         let dataIndex = parseInt(mousedownEvent.nativeEvent.target.getAttribute('data-index'), 10)
         // NOTE: meta used to determine if anchor or handle for <path> (see directSelectionMana.js)
         const meta = mousedownEvent.nativeEvent.target.getAttribute('data-meta') && mousedownEvent.nativeEvent.target.getAttribute('data-meta').length ? parseInt(mousedownEvent.nativeEvent.target.getAttribute('data-meta'), 10) : null
-        
+
         // NOTE: go select the previous vertex when a RHS handle is selected
-        //if(meta != null && meta == 0) dataIndex--;
-        
+        // if(meta != null && meta == 0) dataIndex--;
+
         // Convert between corners and curves
-        if(Globals.isSpecialKeyDown() && Element.directlySelected.type == 'path' && meta == null) {
+        if (Globals.isSpecialKeyDown() && Element.directlySelected.type === 'path' && meta == null) {
           const points = SVGPoints.pathToPoints(Element.directlySelected.attributes.d)
          // If the control handles share the same coordinates, then it's already a corner. Otherwise, it's a curve.
           const convertToCorner = (
-            (dataIndex == 0 && points[dataIndex+1].curve && 
-              (points[dataIndex+1].curve.x1 != points[dataIndex].x || points[dataIndex+1].curve.y1 != points[dataIndex].y)
-            )
-            ||
+            (dataIndex === 0 && points[dataIndex + 1].curve &&
+              (points[dataIndex + 1].curve.x1 !== points[dataIndex].x || points[dataIndex + 1].curve.y1 !== points[dataIndex].y)
+            ) ||
             (points[dataIndex].curve &&
-              (points[dataIndex].curve.x2 != points[dataIndex].x || points[dataIndex].curve.y2 != points[dataIndex].y)
+              (points[dataIndex].curve.x2 !== points[dataIndex].x || points[dataIndex].curve.y2 !== points[dataIndex].y)
             )
           )
-          
-          if(convertToCorner) {
-            if(dataIndex > 0) {
-              if(!points[dataIndex].curve) points[dataIndex].curve = {type: 'cubic', x1: points[dataIndex-1].x, y1: points[dataIndex-1].y}
+
+          if (convertToCorner) {
+            if (dataIndex > 0) {
+              if (!points[dataIndex].curve) points[dataIndex].curve = {type: 'cubic', x1: points[dataIndex - 1].x, y1: points[dataIndex - 1].y}
               points[dataIndex].curve.x2 = points[dataIndex].x
               points[dataIndex].curve.y2 = points[dataIndex].y
             }
-            
-            if(dataIndex < points.length-1) {
-              if(!points[dataIndex+1].curve) points[dataIndex+1].curve = {type: 'cubic', x2: points[dataIndex+1].x, y2: points[dataIndex+1].y}
-              points[dataIndex+1].curve.x1 = points[dataIndex].x
-              points[dataIndex+1].curve.y1 = points[dataIndex].y
+
+            if (dataIndex < points.length - 1) {
+              if (!points[dataIndex + 1].curve) points[dataIndex + 1].curve = {type: 'cubic', x2: points[dataIndex + 1].x, y2: points[dataIndex + 1].y}
+              points[dataIndex + 1].curve.x1 = points[dataIndex].x
+              points[dataIndex + 1].curve.y1 = points[dataIndex].y
             }
           } else {
-            if(dataIndex > 0) {
-              if(!points[dataIndex].curve) points[dataIndex].curve = {type: 'cubic', x1: points[dataIndex-1].x, y1: points[dataIndex-1].y}
+            if (dataIndex > 0) {
+              if (!points[dataIndex].curve) points[dataIndex].curve = {type: 'cubic', x1: points[dataIndex - 1].x, y1: points[dataIndex - 1].y}
               points[dataIndex].curve.x2 = points[dataIndex].x - 20
               points[dataIndex].curve.y2 = points[dataIndex].y
             }
-            
-            if(dataIndex < points.length-1) {
-              if(!points[dataIndex+1].curve) points[dataIndex+1].curve = {type: 'cubic', x2: points[dataIndex+1].x, y2: points[dataIndex+1].y}
-              points[dataIndex+1].curve.x1 = points[dataIndex].x + 20
-              points[dataIndex+1].curve.y1 = points[dataIndex].y
+
+            if (dataIndex < points.length - 1) {
+              if (!points[dataIndex + 1].curve) points[dataIndex + 1].curve = {type: 'cubic', x2: points[dataIndex + 1].x, y2: points[dataIndex + 1].y}
+              points[dataIndex + 1].curve.x1 = points[dataIndex].x + 20
+              points[dataIndex + 1].curve.y1 = points[dataIndex].y
             }
           }
           this.getActiveComponent().updateKeyframes({
@@ -1098,7 +1097,7 @@ export class Glass extends React.Component {
             }
           }, {from: 'glass'}, () => {})
         }
-        
+
         // Add to the selection
         let indices
         const alreadySelected =
@@ -1214,10 +1213,37 @@ export class Glass extends React.Component {
                 this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
                   this.ensureElementIsSelected(elementTargeted, finish)
 
-                  // --- Insert new vertex ---
-                  if (Element.directlySelected && (isDoubleClick || Globals.isSpecialKeyDown())) {
+                  const prevDirectlySelected = Element.directlySelected
+                  let clickedItemFound = false
+                  if (isDoubleClick) {
+                    elementTargeted.getHaikuElement().visit((descendant) => {
+                      if (descendant.isComponent()) return
+                      if (descendant.isChildOfDefs) return
+                      if (
+                        (
+                          descendant.attributes.fill &&
+                          geometryUtils.isPointInsidePrimitive(descendant, mouseDownPosition)
+                        ) || (
+                          descendant.attributes.stroke &&
+                          geometryUtils.isPointAlongStroke(descendant, mouseDownPosition, Number(descendant.attributes['stroke-width']))
+                        )) {
+                        clickedItemFound = true
+                        Element.directlySelected = descendant
+                        return false // stop searching
+                      }
+                    })
+
+                    if (!clickedItemFound) Element.directlySelected = null
+                  }
+
+                  if (!Element.directlySelected) {
+                    this.setState({directSelectionAnchorActivation: null})
+                  }
+
+                  // --- Insert new vertex when the selected item is unchanged ---
+                  if (Element.directlySelected && Element.directlySelected === prevDirectlySelected && (isDoubleClick || Globals.isSpecialKeyDown())) {
                     const transformedLocalMouse = geometryUtils.transform2DPoint(mouseDownPosition, Element.directlySelected.layoutAncestryMatrices.reverse())
-                    
+
                     switch (Element.directlySelected.type) {
                       case 'polygon':
                       case 'polyline': {
@@ -1294,7 +1320,7 @@ export class Glass extends React.Component {
 
                         // Calculate t value and surrounding points, and split
                         const t = minIdx % approximationResolution / approximationResolution
-                        
+
                         this.getActiveComponent().updateKeyframes({
                           [this.getActiveComponent().getCurrentTimelineName()]: {
                             [Element.directlySelected.attributes['haiku-id']]: {
@@ -1309,26 +1335,6 @@ export class Glass extends React.Component {
                         break
                       }
                     }
-                  }
-                  if (isDoubleClick) {
-                    elementTargeted.getHaikuElement().visit((descendant) => {
-                      if (descendant.isComponent()) return
-                      if (descendant.isChildOfDefs) return
-                      if (
-                        (
-                          descendant.attributes.fill &&
-                          geometryUtils.isPointInsidePrimitive(descendant, mouseDownPosition)
-                        ) || (
-                          descendant.attributes.stroke &&
-                          geometryUtils.isPointAlongStroke(descendant, mouseDownPosition, Number(descendant.attributes['stroke-width']))
-                        )) {
-                        Element.directlySelected = descendant
-                        return false // stop searching
-                      }
-                    })
-                  }
-                  if (!Element.directlySelected) {
-                    this.setState({directSelectionAnchorActivation: null})
                   }
                 })
               } else if (!Globals.isControlKeyDown && Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Shift
