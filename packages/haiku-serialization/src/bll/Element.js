@@ -1799,6 +1799,7 @@ BaseModel.extend(Element)
 
 Element.selected = {}
 Element.hovered = {}
+Element.directlySelected = null
 
 Element.cache = {
   domNodes: {},
@@ -1821,6 +1822,7 @@ Element.nodeIsGrouper = (node) => {
 
 Element.unselectAllElements = function (criteria, metadata) {
   Element.where(criteria).forEach((element) => element.unselect(metadata))
+  Element.directlySelected = null
 }
 
 Element.hoverOffAllElements = function (criteria, metadata) {

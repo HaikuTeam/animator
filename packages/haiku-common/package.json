@@ -23,5 +23,8 @@
   "devDependencies": {
     "electron": "1.8.2",
     "haiku-testing": "3.3.4"
+  },
+  "dependencies": {
+    "@haiku/core": "3.3.4"
   }
 }

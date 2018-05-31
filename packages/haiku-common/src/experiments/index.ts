@@ -24,6 +24,7 @@ export enum Experiment {
   AdvancedMultiTransform = 'AdvancedMultiTransform',
   OutliningElementsOnStage = 'OutliningElementsOnStage',
   OutliningElementsOnStageFromStage = 'OutliningElementsOnStageFromStage',
+  DirectSelectionOfPrimitives = 'DirectSelectionOfPrimitives',
 }
 
 /**

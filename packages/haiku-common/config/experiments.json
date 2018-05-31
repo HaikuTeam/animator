@@ -62,5 +62,9 @@
   "OutliningElementsOnStageFromStage": {
     "development": false,
     "production": false
+  },
+  "DirectSelectionOfPrimitives": {
+    "development": false,
+    "production": false
   }
 }

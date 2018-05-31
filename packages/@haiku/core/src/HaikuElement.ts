@@ -132,6 +132,54 @@ export default class HaikuElement extends HaikuBase {
     return this.layoutAncestry.map((layout) => layout.matrix);
   }
 
+  get rootSVG(): HaikuElement {
+    let parent = this.parent;
+    while (parent) {
+      if (parent.type === 'svg') {
+        return parent;
+      }
+      parent = parent.parent;
+    }
+    return undefined;
+  }
+
+  get isChildOfDefs(): boolean {
+    let parent = this.parent;
+    while (parent) {
+      if (parent.type === 'defs') {
+        return true;
+      }
+      parent = parent.parent;
+    }
+    return false;
+  }
+
+  getTranscludedElement(): HaikuElement|undefined {
+    if (this.type !== 'use') { return this; }
+
+    const href = this.attributes['xlink:href'] || this.attributes['href'];
+
+    if (!href) {
+      return;
+    }
+
+    const rootSVG = this.rootSVG;
+
+    if (!rootSVG) {
+      return;
+    }
+
+    const address = href.substr(1);
+    let out: HaikuElement;
+    this.rootSVG.visit((desc: HaikuElement) => {
+      if (desc.id === address) {
+        out = desc;
+        return false;
+      }
+    });
+    return out;
+  }
+
   get rawLayout(): any {
     return this.node && this.node.layout;
   }
