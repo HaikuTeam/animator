@@ -321,7 +321,7 @@ export class Context implements IContext {
     throw new Error('Unimplemented');
   }
 
-  writeLine(string) {
+  writeLine(string: string) {
     this.logger.log(string);
   }
 }

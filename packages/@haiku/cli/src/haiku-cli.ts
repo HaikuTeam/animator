@@ -4,9 +4,11 @@ import * as fs from 'fs';
 import * as dedent from 'dedent';
 import {client} from '@haiku/sdk-client';
 import {inkstone} from '@haiku/sdk-inkstone';
+// @ts-ignore
 import * as hasbin from 'hasbin';
 import * as inquirer from 'inquirer';
 import * as _ from 'lodash';
+// @ts-ignore
 import * as prependFile from 'prepend-file';
 
 import {Nib, IContext} from './nib';
@@ -75,7 +77,7 @@ const cli = new Nib({
     {
       name: 'init',
       action: doInit,
-      description: 'Inits a project for installing @haiku modules. ' + 
+      description: 'Inits a project for installing @haiku modules. ' +
         'Will write or append to a .npmrc in this directory.',
     },
     {
@@ -125,22 +127,24 @@ const cli = new Nib({
 
 export {cli};
 
-function ensureAuth(context: IContext, cb) {
-  let token = client.config.getAuthToken();
-  if (!token || token === '') {
-    context.writeLine('You must be authenticated to do that.');
-    doLogin(context, () => {
-      token = client.config.getAuthToken();
-      if (!token || token === '') {
-        context.writeLine('Hm, that didn\'t work.  Let\'s try again.');
-        ensureAuth(context, cb);
-      } else {
-        cb(token);
-      }
-    });
-  } else {
+function ensureAuth(context: IContext, cb: (token: string) => void) {
+  const token: string = client.config.getAuthToken();
+  if (token) {
     cb(token);
+    return;
   }
+
+  context.writeLine('You must be authenticated to do that.');
+  doLogin(context, () => {
+    const newToken: string = client.config.getAuthToken();
+    if (newToken) {
+      cb(newToken);
+      return;
+    }
+
+    context.writeLine('Hm, that didn\'t work.  Let\'s try again.');
+    ensureAuth(context, cb);
+  });
 }
 
 function doChangePassword(context: IContext) {
@@ -229,8 +233,8 @@ function doDelete(context: IContext) {
     context.writeLine(chalk.bold('Please note that deleting this project will delete it for your entire team.'));
     context.writeLine(chalk.red('Deleting a project cannot be undone!'));
 
-    function actuallyDelete(finalProjectName) {
-      inkstone.project.deleteByName(token, finalProjectName, (err, project) => {
+    const actuallyDelete = (finalProjectName: string) => {
+      inkstone.project.deleteByName(token, finalProjectName, (err) => {
         if (err) {
           context.writeLine(chalk.red('Error deleting project.  Does this project exist?'));
           process.exit(1);
@@ -239,7 +243,7 @@ function doDelete(context: IContext) {
           process.exit(0);
         }
       });
-    }
+    };
 
     let projectName = context.args['project-name'];
 
@@ -288,7 +292,7 @@ function doInstall(context: IContext) {
   const projectName = context.args['project-name'];
   ensureAuth(context, (token) => {
     // ensure that npm is installed
-    hasbin('npm', (result) => {
+    hasbin('npm', (result: boolean) => {
       if (result) {
         // ensure that there's a package.json in this directory
         if (fs.existsSync(process.cwd() + '/package.json')) {
@@ -452,7 +456,7 @@ function doLogout() {
 
 // TODO: update only @haiku packages, instead of all updatable packages in package.json
 function doUpdate(context: IContext) {
-  hasbin('npm', (result) => {
+  hasbin('npm', (result: boolean) => {
     if (result) {
       try {
         context.writeLine('Updating packages...');

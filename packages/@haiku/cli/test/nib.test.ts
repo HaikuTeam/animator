@@ -1,9 +1,6 @@
 import * as tape from 'tape';
 
-import {
-  Context,
-  Nib,
-} from '../lib/nib';
+import {Context, Nib} from '@cli/nib';
 
 function runBasicCommand(mockContext) {
   const nib = new Nib({
