@@ -1,7 +1,12 @@
 import {EventEmitter} from 'events';
 import {remote, BrowserWindow, Menu, MenuItem, MenuItemConstructorOptions} from 'electron';
 
-const {Menu: remoteMenu, MenuItem: remoteMenuItem} = remote;
+let remoteMenu: typeof Menu;
+let remoteMenuItem: typeof MenuItem;
+if (remote) {
+  remoteMenu = remote.Menu;
+  remoteMenuItem = remote.MenuItem;
+}
 
 const DISPLAY_HACK_TIMEOUT = 100;
 
@@ -41,6 +46,10 @@ export class PopoverMenu extends EventEmitter {
   menu: Menu = null;
 
   launch ({items}: MenuItemLaunchConfig) {
+    if (!remoteMenu) {
+      return;
+    }
+
     this.menu = new remoteMenu();
 
     items.forEach((item) => {
@@ -51,6 +60,10 @@ export class PopoverMenu extends EventEmitter {
   }
 
   show () {
+    if (!this.menu) {
+      return;
+    }
+
     setTimeout(
       () => {
         this.menu.popup(remote.getCurrentWindow());
