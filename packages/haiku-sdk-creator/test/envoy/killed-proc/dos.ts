@@ -1,6 +1,6 @@
 import * as ws from 'ws';
-import EnvoyClient from '../../../lib/envoy/EnvoyClient';
-import EnvoyLogger from '../../../lib/envoy/EnvoyLogger';
+import EnvoyClient from '@sdk-creator/envoy/EnvoyClient';
+import EnvoyLogger from '@sdk-creator/envoy/EnvoyLogger';
 import CatHandler from './CatHandler';
 
 const client = new EnvoyClient<CatHandler>({

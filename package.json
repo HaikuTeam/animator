@@ -5,7 +5,7 @@
     "packages/@haiku/*",
     "packages/haiku-*"
   ],
-  "version": "3.3.0",
+  "version": "3.3.4",
   "description": "Haiku monorepo",
   "main": "index.js",
   "author": "Matthew Trost <matthew@trost.co>",
@@ -28,29 +28,30 @@
     "test-all": "node ./scripts/test-all.js",
     "watch-all": "node ./scripts/watch-all.js",
     "lint-report": "node ./scripts/lint-report.js",
-    "test-report": "node ./scripts/test-report.js"
+    "test-report": "node ./scripts/test-report.js",
+    "postinstall": "node ./scripts/link-binaries.js"
   },
   "resolutions": {
     "@types/node": "8.9.4",
     "tslint-config-airbnb": "5.8.0"
   },
   "dependencies": {
-    "@haiku/cli": "3.3.0",
-    "@haiku/core": "3.3.0",
+    "@haiku/cli": "3.3.4",
+    "@haiku/core": "3.3.4",
     "@haiku/player": "^3.0.4",
-    "@haiku/sdk-client": "3.3.0",
-    "@haiku/sdk-inkstone": "3.3.0",
-    "haiku-common": "3.3.0",
-    "haiku-creator": "3.3.0",
-    "haiku-formats": "3.3.0",
-    "haiku-fs-extra": "3.3.0",
-    "haiku-glass": "3.3.0",
-    "haiku-plumbing": "3.3.0",
-    "haiku-sdk-creator": "3.3.0",
-    "haiku-serialization": "3.3.0",
-    "haiku-state-object": "3.3.0",
-    "haiku-timeline": "3.3.0",
-    "haiku-ui-common": "3.3.0"
+    "@haiku/sdk-client": "3.3.4",
+    "@haiku/sdk-inkstone": "3.3.4",
+    "haiku-common": "3.3.4",
+    "haiku-creator": "3.3.4",
+    "haiku-formats": "3.3.4",
+    "haiku-fs-extra": "3.3.4",
+    "haiku-glass": "3.3.4",
+    "haiku-plumbing": "3.3.4",
+    "haiku-sdk-creator": "3.3.4",
+    "haiku-serialization": "3.3.4",
+    "haiku-state-object": "3.3.4",
+    "haiku-timeline": "3.3.4",
+    "haiku-ui-common": "3.3.4"
   },
   "devDependencies": {
     "async": "^2.5.0",
@@ -65,7 +66,6 @@
     "dotenv": "^5.0.1",
     "electron": "1.8.2",
     "electron-builder": "20.0.8",
-    "electron-react-devtools": "^0.5.3",
     "electron-rebuild": "^1.6.0",
     "fs-extra": "^4.0.2",
     "git-branch": "0.3.0",

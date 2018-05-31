@@ -7,6 +7,7 @@ import EventEmitter from 'event-emitter'
 import path from 'path'
 import BaseModel from 'haiku-serialization/src/bll/BaseModel'
 import Project from 'haiku-serialization/src/bll/Project'
+import File from 'haiku-serialization/src/bll/File'
 import Asset from 'haiku-serialization/src/bll/Asset'
 import AuthenticationUI from './components/AuthenticationUI'
 import ProjectBrowser from './components/ProjectBrowser'
@@ -25,13 +26,15 @@ import OfflineModePage from './components/OfflineModePage'
 import ProxyHelpScreen from './components/ProxyHelpScreen'
 import ProxySettingsScreen from './components/ProxySettingsScreen'
 import ChangelogModal from './components/ChangelogModal'
+import NewProjectModal from './components/NewProjectModal'
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/EnvoyClient'
 import { EXPORTER_CHANNEL, ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
 // Note that `User` is imported below for type discovery
-// (which works even inside JS with supported editors, using jsdoc type annotations)
+// (which works even inside JS with supported editors, using jsfhandlc type annotations)
 import { USER_CHANNEL, User, UserSettings } from 'haiku-sdk-creator/lib/bll/User' // eslint-disable-line no-unused-vars
 import { PROJECT_CHANNEL } from 'haiku-sdk-creator/lib/bll/Project'
 import { TOUR_CHANNEL } from 'haiku-sdk-creator/lib/tour'
+import { SERVICES_CHANNEL } from 'haiku-sdk-creator/lib/services'
 import { InteractionMode, isPreviewMode } from '@haiku/core/lib/helpers/interactionModes'
 import Palette from 'haiku-ui-common/lib/Palette'
 import ActivityMonitor from '../utils/activityMonitor.js'
@@ -60,6 +63,7 @@ if (webFrame) {
 const MENU_ACTION_DEBOUNCE_TIME = 100
 const FORK_OPERATION_TIMEOUT = 2000
 const MAX_FORK_ATTEMPTS = 15
+const FIGMA_IMPORT_TIMEOUT = 1000 * 60 * 5 /* 5 minutes */
 
 export default class Creator extends React.Component {
   constructor (props) {
@@ -115,7 +119,8 @@ export default class Creator extends React.Component {
       interactionMode: InteractionMode.EDIT,
       artboardDimensions: null,
       showChangelogModal: false,
-      showProxySettings: false
+      showProxySettings: false,
+      servicesEnvoyClient: null
     }
 
     this.envoyOptions = {
@@ -353,6 +358,10 @@ export default class Creator extends React.Component {
       }
     })
 
+    ipcRenderer.on('global-menu:show-new-project-modal', () => {
+      this.showNewProjectModal()
+    })
+
     window.addEventListener('dragover', Asset.preventDefaultDrag, false)
 
     window.addEventListener(
@@ -567,6 +576,10 @@ export default class Creator extends React.Component {
         case 'dimensions-reset':
           this.setState({ artboardDimensions: message.data })
           break
+
+        case 'assets-changed':
+          File.cache.clear()
+          break
       }
     })
 
@@ -634,6 +647,10 @@ export default class Creator extends React.Component {
         // this.handleEnvoyProjectReady()
       }
     )
+
+    this.envoyClient.get(SERVICES_CHANNEL, {timeout: FIGMA_IMPORT_TIMEOUT}).then((servicesEnvoyClient) => {
+      this.setState({servicesEnvoyClient})
+    })
 
     this.envoyClient.get(TOUR_CHANNEL).then((tourChannel) => {
       this.tourChannel = tourChannel
@@ -912,7 +929,53 @@ export default class Creator extends React.Component {
     this.setState({projectObject: {...this.state.projectObject, isPublic}})
   }
 
+  onProjectLaunchError (error) {
+    console.log(error)
+
+    this.createNotice({
+      type: 'error',
+      title: 'Oh no!',
+      message: 'We couldn\'t open this project. 😩 Please ensure that your computer is connected to the Internet. If you\'re connected and you still see this message your files might still be processing. Please try again in a few moments. If you still see this error, contact Haiku for support.',
+      closeText: 'Okay',
+      lightScheme: true
+    })
+
+    this.setProjectLaunchStatus({ launchingProject: null })
+  }
+
+  createProject (projectName, isPublic, duplicate = false, callback) {
+    this.props.websocket.request({ method: 'createProject', params: [projectName, isPublic] }, (err, newProject) => {
+      callback(err, newProject)
+
+      if (err) {
+        this.createNotice({
+          type: 'error',
+          title: 'Oh no!',
+          message: 'We couldn\'t create your project. 😩 If this problem occurs again, please contact Haiku support.',
+          closeText: 'Okay',
+          lightScheme: true
+        })
+
+        return
+      }
+
+      if (duplicate && this.props.projToDuplicateIndex !== null) {
+        this.props.websocket.request(
+          {
+            method: 'duplicateProject',
+            params: [newProject, this.props.projectsList[this.props.projToDuplicateIndex]]
+          },
+          () => {
+
+          }
+        )
+      }
+    })
+  }
+
   launchProject (projectName, projectObject, cb) {
+    this.setProjectLaunchStatus({ launchingProject: true, newProjectLoading: false })
+
     projectObject = {
       ...projectObject,
       skipContentCreation: true, // VERY IMPORTANT - if not set to true, we can end up in a situation where we overwrite freshly cloned content from the remote!
@@ -940,7 +1003,9 @@ export default class Creator extends React.Component {
     })
 
     return this.props.websocket.request({ method: 'bootstrapProject', params: [projectName, projectObject, this.state.username, this.state.password] }, (err, projectFolder) => {
-      if (err) return cb(err)
+      if (err) {
+        return this.onProjectLaunchError()
+      }
 
       window.Raven.setExtraContext({
         organizationName: this.state.organizationName,
@@ -949,7 +1014,9 @@ export default class Creator extends React.Component {
       })
 
       return this.props.websocket.request({ method: 'startProject', params: [projectName, projectFolder] }, (err, applicationImage) => {
-        if (err) return cb(err)
+        if (err) {
+          return this.onProjectLaunchError()
+        }
 
         return Project.setup(
           projectFolder,
@@ -1005,6 +1072,11 @@ export default class Creator extends React.Component {
               })
             })
 
+            // This safely reinitializes websockets and Envoy clients.
+            // We need to do this here in Creator because our process
+            // remains alive even as the user navs between projects.
+            projectModel.connectClients()
+
             // Clear the undo/redo stack (etc) from the previous editing session if any is left over
             projectModel.actionStack.resetData()
 
@@ -1040,11 +1112,6 @@ export default class Creator extends React.Component {
             projectModel.on('active-component:upserted', () => {
               this.forceUpdate()
             })
-
-            // This notifies ProjectBrowser that we've successfully launched
-            // Note that we don't activate any component until all views are ready
-            // (see above)
-            return cb()
           }
         )
       })
@@ -1204,15 +1271,15 @@ export default class Creator extends React.Component {
   }
 
   onTimelineMounted () {
-    this.setState({ isTimelineReady: true })
+    this.setState({isTimelineReady: true})
   }
 
   onTimelineUnmounted () {
-    this.setState({ isTimelineReady: false })
+    this.setState({isTimelineReady: false})
   }
 
   onNavigateToDashboard () {
-    this.teardownMaster({ shouldFinishTour: true })
+    this.teardownMaster({shouldFinishTour: true})
     ipcRenderer.send('topmenu:update', {subComponents: [], isProjectOpen: false})
   }
 
@@ -1305,11 +1372,28 @@ export default class Creator extends React.Component {
       { method: 'teardownMaster', params: [this.state.projectModel.getFolder()] },
       () => {
         logger.info('[creator] master torn down')
+
         this.setDashboardVisibility(true, launchingProject)
         this.onTimelineUnmounted()
+
         this.unsetAllProjectModelsState(this.state.projectModel.getFolder(), 'project:ready')
         this.unsetAllProjectModelsState(this.state.projectModel.getFolder(), 'component:mounted')
-        if (shouldFinishTour) this.tourChannel.finish(false)
+
+        if (shouldFinishTour) {
+          this.tourChannel.finish(false)
+        }
+
+        this.state.projectModel.getAllActiveComponents().forEach((ac) => {
+          if (ac.$instance) {
+            ac.$instance.context.destroy()
+          }
+        })
+
+        // The stale project doesn't want to receive methods destined for new project models
+        if (this.state.projectModel) {
+          this.state.projectModel.stopHandlingMethods()
+        }
+
         this.setState({
           projectModel: null,
           activeNav: 'library', // Prevents race+crash loading StateInspector when switching projects
@@ -1389,6 +1473,48 @@ export default class Creator extends React.Component {
         lastViewedChangelog={this.state.lastViewedChangelog}
       />
     ) : null
+  }
+
+  showNewProjectModal (isDuplicateProjectModal = false, duplicateProjectName) {
+    this.setState({ showNewProjectModal: true, isDuplicateProjectModal, duplicateProjectName })
+    mixpanel.haikuTrack('creator:new-project:shown')
+  }
+
+  hideNewProjectModal () {
+    this.setState({ showNewProjectModal: false, isDuplicateProjectModal: false, duplicateProjectName: null })
+  }
+
+  renderNewProjectModal () {
+    return (
+      this.state.showNewProjectModal && (
+        <NewProjectModal
+          defaultProjectName={this.state.duplicateProjectName}
+          duplicate={this.state.isDuplicateProjectModal}
+          disabled={this.state.newProjectLoading}
+          onCreateProject={(projectName, isPublic, duplicate, callback) => {
+            this.createProject(projectName, isPublic, duplicate, (err, projectObject) => {
+              callback(err, projectObject)
+
+              if (err) {
+                return
+              }
+
+              if (this.state.projectModel) {
+                this.teardownMaster(
+                  { shouldFinishTour: true, launchingProject: false },
+                  () => { this.launchProject(projectObject.projectName, projectObject, callback) }
+                )
+              } else {
+                this.launchProject(projectObject.projectName, projectObject, callback)
+              }
+            })
+          }}
+          onClose={() => {
+            this.hideNewProjectModal()
+          }}
+        />
+      )
+    )
   }
 
   get proxyDescriptor () {
@@ -1499,6 +1625,7 @@ export default class Creator extends React.Component {
         <div>
           <ProjectBrowser
             ref='ProjectBrowser'
+            onShowNewProjectModal={(...args) => { this.showNewProjectModal(...args) }}
             lastViewedChangelog={this.state.lastViewedChangelog}
             onShowChangelogModal={() => { this.showChangelogModal() }}
             showChangelogModal={this.state.showChangelogModal}
@@ -1519,6 +1646,7 @@ export default class Creator extends React.Component {
             doShowProjectLoader={this.state.doShowProjectLoader}
             {...this.props} />
           {this.renderChangelogModal()}
+          {this.renderNewProjectModal()}
           <Tour
             projectsList={this.state.projectsList}
             envoyClient={this.envoyClient}
@@ -1540,6 +1668,7 @@ export default class Creator extends React.Component {
       return (
         <div>
           {this.renderChangelogModal()}
+          {this.renderNewProjectModal()}
           <Tour
             projectsList={this.state.projectsList}
             envoyClient={this.envoyClient} />
@@ -1551,6 +1680,7 @@ export default class Creator extends React.Component {
           />
           <ProjectBrowser
             ref='ProjectBrowser'
+            onShowNewProjectModal={(...args) => { this.showNewProjectModal(...args) }}
             lastViewedChangelog={this.state.lastViewedChangelog}
             onShowChangelogModal={() => { this.showChangelogModal() }}
             showChangelogModal={this.state.showChangelogModal}
@@ -1591,6 +1721,7 @@ export default class Creator extends React.Component {
     return (
       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
         {this.renderChangelogModal()}
+        {this.renderNewProjectModal()}
         <AutoUpdater
           onComplete={this.onAutoUpdateCheckComplete}
           check={this.state.updater.shouldCheck}
@@ -1636,6 +1767,7 @@ export default class Creator extends React.Component {
                     )
                   }
                   <Library
+                    servicesEnvoyClient={this.state.servicesEnvoyClient}
                     user={this.user}
                     projectModel={this.state.projectModel}
                     layout={this.layout}

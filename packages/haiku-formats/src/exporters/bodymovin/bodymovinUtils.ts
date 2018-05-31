@@ -1,5 +1,5 @@
 import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
-import {PathPoint} from 'haiku-common/lib/types';
+import {CurveSpec} from '@haiku/core/lib/vendor/svg-points/types';
 
 import {
   AnimationKey,
@@ -14,12 +14,7 @@ import {
   BodymovinPathComponent,
   BodymovinProperty,
 } from './bodymovinTypes';
-import {
-  BytecodeTimelineValue, 
-  BytecodeTimeline, 
-  BytecodeTimelineProperties, 
-  BytecodeTimelineProperty,
-} from '@haiku/core/lib/api/HaikuBytecode';
+import {BytecodeTimelineProperty} from '@haiku/core/lib/api/HaikuBytecode';
 
 const {pathToPoints} = SVGPoints;
 
@@ -156,7 +151,7 @@ export const alwaysArray = (maybeArray: any): any[] => {
  * @returns {number}
  */
 export const alwaysAbsolute = (maybePercent: string|number, basis: number): number => {
-  if (typeof maybePercent === 'string' && /^\d*\.?\d+?%$/.test(maybePercent)) {
+  if (typeof maybePercent === 'string' && /^-?\d*\.?\d+?%$/.test(maybePercent)) {
     return parseFloat(maybePercent.replace('%', '')) * basis / 100;
   }
 
@@ -228,7 +223,7 @@ const translateInterpolationPoints = (points: BodymovinPathComponent, vertices: 
  * @param points
  * @param closed
  */
-export const pathToInterpolationTrace = (points: PathPoint[], closed: boolean) => {
+export const pathToInterpolationTrace = (points: CurveSpec[], closed: boolean) => {
   const vertices: BodymovinPathComponent = [];
   const interpolationInPoints: BodymovinPathComponent = [];
   const interpolationOutPoints: BodymovinPathComponent = [];
@@ -324,16 +319,16 @@ enum Orientation {
 }
 
 /**
- * Private helper method for decomposePath. Given three PathPoints, determines their "close enough" orientation
+ * Private helper method for decomposePath. Given three CurveSpecs, determines their "close enough" orientation
  * (colinearity is cast to "CounterClockwise" without loss of effect).
  *
  * @see {@link https://www.geeksforgeeks.org/orientation-3-ordered-points/}
- * @param {PathPoint} p1
- * @param {PathPoint} p2
- * @param {PathPoint} p3
+ * @param {CurveSpec} p1
+ * @param {CurveSpec} p2
+ * @param {CurveSpec} p3
  * @returns {Orientation}
  */
-const getOrientation = (p1: PathPoint, p2: PathPoint, p3: PathPoint): Orientation => {
+const getOrientation = (p1: CurveSpec, p2: CurveSpec, p3: CurveSpec): Orientation => {
   const orientationCoefficient = ((p2.y - p1.y) * (p3.x - p2.x) || 0) - ((p2.x - p1.x) * (p3.y - p2.y) || 0);
   return (orientationCoefficient > 0) ? Orientation.Clockwise : Orientation.Counterclockwise;
 };
@@ -347,17 +342,17 @@ const getOrientation = (p1: PathPoint, p2: PathPoint, p3: PathPoint): Orientatio
  * number of times the ray from [p.x, p.y] to [+Infinity, p.y] intersects a side of the polygon. If odd, the point is
  * "inside"; else, the point is "outside".
  * @see {@link https://en.wikipedia.org/wiki/Point_in_polygon#Ray_casting_algorithm}
- * @param {PathPoint[]} polygon
- * @param {PathPoint} p
+ * @param {CurveSpec[]} polygon
+ * @param {CurveSpec} p
  * @returns {boolean}
  */
-const polygonContainsPoint = (polygon: PathPoint[], p: PathPoint): boolean => {
+const polygonContainsPoint = (polygon: CurveSpec[], p: CurveSpec): boolean => {
   // Trivial case: a polygon with < 2 vertices is always safe to split off.
   if (polygon.length < 3) {
     return false;
   }
 
-  const pInf = {x: Infinity, y: p.y} as PathPoint;
+  const pInf = {x: Infinity, y: p.y} as CurveSpec;
 
   let intersections = 0;
   let cursor = 0;
@@ -381,7 +376,7 @@ const polygonContainsPoint = (polygon: PathPoint[], p: PathPoint): boolean => {
 };
 
 
-export const getPath = (path: string|PathPoint[]): PathPoint[] => {
+export const getPath = (path: string|CurveSpec[]): CurveSpec[] => {
   if (!Array.isArray(path)) {
     return pathToPoints(path);
   }
@@ -399,13 +394,13 @@ export const getPath = (path: string|PathPoint[]): PathPoint[] => {
  * @param {string} path
  * @returns {string[]}
  */
-export const decomposePath = (path: string|PathPoint[]): {points: PathPoint[], closed: boolean}[] => {
+export const decomposePath = (path: string|CurveSpec[]): {points: CurveSpec[], closed: boolean}[] => {
   if (!Array.isArray(path)) {
     return decomposePath(getPath(path));
   }
 
   const allClosedPaths: {
-    points: PathPoint[];
+    points: CurveSpec[];
     closed: boolean;
   }[] = [];
   if (path.length < 2) {

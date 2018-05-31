@@ -4,6 +4,12 @@ class TransformCache {
     this.cache = {}
   }
 
+  ensureCacheKey (key) {
+    if (!this.cache[key]) {
+      this.cache[key] = []
+    }
+  }
+
   /**
    * @method push
    * @description
@@ -20,53 +26,22 @@ class TransformCache {
    *      - alt-dragging to duplicate an element
    */
   push (key) {
-    const stack = this.cache[key] || []
-    const transform = {
-      translation: [
-        this.host.computePropertyValue('translation.x'),
-        this.host.computePropertyValue('translation.y'),
-        this.host.computePropertyValue('translation.z')
-      ],
-      rotation: [
-        this.host.computePropertyValue('rotation.x'),
-        this.host.computePropertyValue('rotation.y'),
-        this.host.computePropertyValue('rotation.z')
-      ],
-      scale: [
-        this.host.computePropertyValue('scale.x'),
-        this.host.computePropertyValue('scale.y'),
-        this.host.computePropertyValue('scale.z')
-      ],
-      shear: [
-        this.host.computePropertyValue('shear.xy'),
-        this.host.computePropertyValue('shear.xz'),
-        this.host.computePropertyValue('shear.yz')
-      ],
-      origin: [
-        this.host.computePropertyValue('origin.x'),
-        this.host.computePropertyValue('origin.y'),
-        this.host.computePropertyValue('origin.z')
-      ],
-      size: [
-        this.host.computePropertyValue('sizeAbsolute.x'),
-        this.host.computePropertyValue('sizeAbsolute.y'),
-        this.host.computePropertyValue('sizeAbsolute.z')
-      ]
+    this.ensureCacheKey(key)
+    const transform = this.host.getComputedLayout()
+    if (this.host.getOriginOffsetComposedMatrix) {
+      transform.originOffsetComposedMatrix = this.host.getOriginOffsetComposedMatrix()
     }
-    stack.push(transform)
-    this.cache[key] = stack
+    this.cache[key].push(transform)
   }
 
   peek (key) {
-    const stack = this.cache[key] || []
-    return stack[stack.length - 1]
+    this.ensureCacheKey(key)
+    return this.cache[key][this.cache[key].length - 1]
   }
 
   pop (key) {
-    const stack = this.cache[key] || []
-    const ret = stack.pop()
-    this.cache[key] = stack
-    return ret
+    this.ensureCacheKey(key)
+    return this.cache[key].pop()
   }
 }
 

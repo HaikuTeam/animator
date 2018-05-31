@@ -1,9 +1,8 @@
 import * as ws from 'ws';
 import * as tape from 'tape';
-import EnvoyClient from '../../lib/envoy/EnvoyClient';
-import EnvoyServer from '../../lib/envoy/EnvoyServer';
-import EnvoyLogger from '../../lib/envoy/EnvoyLogger';
-import EnvoyHandler from '../../lib/envoy/EnvoyHandler';
+import EnvoyClient from '@sdk-creator/envoy/EnvoyClient';
+import EnvoyServer from '@sdk-creator/envoy/EnvoyServer';
+import EnvoyLogger from '@sdk-creator/envoy/EnvoyLogger';
 
 tape('envoy:index:basic', async (t) => {
   t.plan(1);
@@ -86,7 +85,7 @@ tape('envoy:index:events', async (t) => {
     WebSocket: ws,
     logger: new EnvoyLogger('error'),
   });
-  client.get('foo-event').then(async (fooClient: TestEventHandler & EnvoyHandler) => {
+  client.get('foo-event').then(async (fooClient: TestEventHandler & {on, off}) => {
     const handler = (payload) => {
       t.equal(payload, 'data for dayz');
       server.close();

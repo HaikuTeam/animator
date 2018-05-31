@@ -1,4 +1,3 @@
-const async = require('async')
 const path = require('path')
 const logger = require('./../utils/LoggerInstance')
 const BaseModel = require('./BaseModel')
@@ -41,6 +40,15 @@ class ElementSelectionProxy extends BaseModel {
     }
 
     // When representing multiple elements, we apply changes to our proxy properties
+    this.reinitializeLayout()
+
+    // Allows transforms to be recalled on demand, e.g. during Alt+drag
+    this.transformCache = new TransformCache(this)
+
+    this.initializeRotationSnap()
+  }
+
+  reinitializeLayout () {
     this._proxyBoxPoints = []
     this._proxyProperties = {}
     Object.assign(this._proxyProperties, ElementSelectionProxy.DEFAULT_PROPERTY_VALUES)
@@ -48,9 +56,6 @@ class ElementSelectionProxy extends BaseModel {
     if (!this.hasAnythingInSelection()) {
       return
     }
-
-    // Allows transforms to be recalled on demand, e.g. during Alt+drag
-    this.transformCache = new TransformCache(this)
 
     const boxPoints = Element.getBoundingBoxPoints(
       this.selection.map((element) => element.getBoxPointsTransformed()).reduce((accumulator, boxPoints) => {
@@ -76,8 +81,6 @@ class ElementSelectionProxy extends BaseModel {
         'translation.y': boxPoints[0].y + height * ElementSelectionProxy.DEFAULT_PROPERTY_VALUES['origin.y']
       }
     )
-
-    this.initializeRotationSnap()
   }
 
   initializeRotationSnap () {
@@ -339,6 +342,9 @@ class ElementSelectionProxy extends BaseModel {
           transform: `matrix3d(${shimMatrix.join(',')})`,
           'origin.x': 0,
           'origin.y': 0,
+          style: {
+            pointerEvents: 'none'
+          },
           children: []
         }
       }]
@@ -426,7 +432,7 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   getOriginTransformed () {
-    return this.cacheFetch('getOriginTransformed', () => {
+    return this.cache.fetch('getOriginTransformed', () => {
       // If managing only one element, use its own box points
       if (this.shouldUseChildLayout()) {
         return this.selection[0].getOriginTransformed()
@@ -477,15 +483,13 @@ class ElementSelectionProxy extends BaseModel {
       rotation: {
         x: 0,
         y: 0,
-        z: this.computePropertyValue('rotation.z'),
-        w: 0
+        z: this.computePropertyValue('rotation.z')
       },
       scale: {
         x: this.computePropertyValue('scale.x'),
         y: this.computePropertyValue('scale.y'),
         z: 1
       },
-      orientation: {x: 0, y: 0, z: 0, w: 0},
       sizeMode: {x: 1, y: 1, z: 1},
       sizeProportional: {x: 1, y: 1, z: 1},
       sizeDifferential: {x: 0, y: 0, z: 0},
@@ -498,7 +502,7 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   getComputedLayout () {
-    return this.cacheFetch('getComputedLayout', () => Layout3D.computeLayout(
+    return this.cache.fetch('getComputedLayout', () => Layout3D.computeLayout(
       this.getLayoutSpec(),
       Layout3D.createMatrix(),
       this.getParentComputedSize(),
@@ -507,7 +511,7 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   getBoxPointsTransformed () {
-    return this.cacheFetch('getBoxPointsTransformed', () => {
+    return this.cache.fetch('getBoxPointsTransformed', () => {
       // If managing only one element, use its own box points
       if (this.doesManageSingleElement()) {
         return this.selection[0].getBoxPointsTransformed()
@@ -521,9 +525,9 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   getControlsPosition (basisPointIndex, xOffset, yOffset) {
-    return this.cacheFetch('getControlsPosition', () => {
+    return this.cache.fetch('getControlsPosition', () => {
       const layout = this.getComputedLayout()
-      const orthonormalBasisMatrix = Layout3D.computeOrthonormalBasisMatrix(layout.rotation)
+      const orthonormalBasisMatrix = Layout3D.computeOrthonormalBasisMatrix(layout.rotation, layout.shear)
       const offset = {
         x: xOffset * Math.sign(layout.scale.x),
         y: yOffset * Math.sign(layout.scale.y),
@@ -583,7 +587,7 @@ class ElementSelectionProxy extends BaseModel {
 
   applyPropertyValue (key, value) {
     this._proxyProperties[key] = value
-    this.cacheClear()
+    this.clearAllRelatedCaches()
   }
 
   applyPropertyDelta (key, delta) {
@@ -592,9 +596,8 @@ class ElementSelectionProxy extends BaseModel {
 
   reset () {
     const layout = this.getComputedLayout()
-    // TODO: support negative scale.
-    this.applyPropertyValue('sizeAbsolute.x', layout.size.x * layout.scale.x)
-    this.applyPropertyValue('sizeAbsolute.y', layout.size.y * layout.scale.y)
+    this.applyPropertyValue('sizeAbsolute.x', Math.abs(layout.size.x * layout.scale.x))
+    this.applyPropertyValue('sizeAbsolute.y', Math.abs(layout.size.y * layout.scale.y))
     this.applyPropertyValue('scale.x', 1)
     this.applyPropertyValue('scale.y', 1)
   }
@@ -687,7 +690,7 @@ class ElementSelectionProxy extends BaseModel {
     // We can solve this directly.
     const targetElement = this.shouldUseChildLayout() ? this.selection[0] : this
     const computedLayout = targetElement.getComputedLayout()
-    const scaledBasisMatrix = Layout3D.computeScaledBasisMatrix(computedLayout.rotation, computedLayout.scale)
+    const scaledBasisMatrix = Layout3D.computeScaledBasisMatrix(computedLayout.rotation, computedLayout.scale, computedLayout.shear)
     const determinant = scaledBasisMatrix[0] * scaledBasisMatrix[5] - scaledBasisMatrix[1] * scaledBasisMatrix[4]
     const deltaX = (scaledBasisMatrix[5] * dx - scaledBasisMatrix[4] * dy) / determinant
     const deltaY = (-scaledBasisMatrix[1] * dx + scaledBasisMatrix[0] * dy) / determinant
@@ -732,16 +735,17 @@ class ElementSelectionProxy extends BaseModel {
       accumulatedUpdates,
       this.component.project.getMetadata(),
       () => {
-        this.cacheClear()
+        this.clearAllRelatedCaches()
       }
     )
   }
 
-  cacheClear () {
+  clearAllRelatedCaches () {
     if (this.hasAnythingInSelection()) {
-      super.cacheClear()
+      this.cache.clear()
+
       this.selection.forEach((element) => {
-        element.cacheClear()
+        element.cache.clear()
       })
     }
   }
@@ -785,8 +789,8 @@ class ElementSelectionProxy extends BaseModel {
     const elementTransform = this.transformCache.peek('CONSTRAINED_DRAG')
     const initialTransform = {
       // If the user multi-selects too quickly the transform may not be available, hence the guard
-      x: (elementTransform && elementTransform.translation[0]) || 0,
-      y: (elementTransform && elementTransform.translation[1]) || 0
+      x: (elementTransform && elementTransform.translation.x) || 0,
+      y: (elementTransform && elementTransform.translation.y) || 0
     }
 
     const isXAxis = Math.abs(mouseCoordsCurrent.x - initialTransform.x) >
@@ -863,9 +867,13 @@ class ElementSelectionProxy extends BaseModel {
     }
 
     if (this.hasMultipleInSelection()) {
-      const matrixBefore = this.getComputedLayout().matrix
+      const cachedTransform = this.transformCache.peek('CONTROL_ACTIVATION')
+      if (!cachedTransform) {
+        return
+      }
       const matrixBeforeInverted = new Float32Array(16)
-      invertMatrix(matrixBeforeInverted, matrixBefore)
+      invertMatrix(matrixBeforeInverted, cachedTransform.matrix)
+
       const {
         'scale.x': {
           value: scaleX
@@ -894,10 +902,14 @@ class ElementSelectionProxy extends BaseModel {
       this.applyPropertyValue('translation.y', translationY)
       const matrixAfter = this.getComputedLayout().matrix
       this.selection.forEach((element) => {
-        const layoutSpec = element.getComputedLayout()
+        // Use our cached transform to mitigate the possibility of rounding errors at small/weird scales.
+        const layoutSpec = element.transformCache.peek('CONTROL_ACTIVATION')
+        if (!layoutSpec) {
+          return
+        }
         const propertyGroup = {}
         const finalMatrix = Layout3D.multiplyArrayOfMatrices([
-          element.getOriginOffsetComposedMatrix(),
+          layoutSpec.originOffsetComposedMatrix,
           matrixBeforeInverted,
           matrixAfter
         ])
@@ -954,7 +966,7 @@ class ElementSelectionProxy extends BaseModel {
       accumulatedUpdates,
       this.component.project.getMetadata(),
       () => {
-        this.cacheClear()
+        this.clearAllRelatedCaches()
       }
     )
   }
@@ -1080,7 +1092,7 @@ class ElementSelectionProxy extends BaseModel {
       accumulatedUpdates,
       this.component.project.getMetadata(),
       () => {
-        this.cacheClear()
+        this.clearAllRelatedCaches()
       }
     )
   }
@@ -1138,27 +1150,25 @@ class ElementSelectionProxy extends BaseModel {
       accumulatedUpdates,
       this.component.project.getMetadata(),
       () => {
-        this.cacheClear()
+        this.clearAllRelatedCaches()
       }
     )
   }
 
   pasteClipsAndSelect (clips, metadata, cb) {
     logger.info(`[element selection proxy] paste ${this.getComponentIds().join('|')}`)
-    const duplicates = []
-    return async.eachSeries(clips, (clip, next) => {
-      return this.component.pasteThing(clip, {}, metadata, (err, {haikuId}) => {
-        if (err) return next(err)
-        const duplicate = Element.findByComponentAndHaikuId(this.component, haikuId)
-        duplicates.push(duplicate)
-        return next()
-      })
-    }, (err) => {
+    this.component.pasteThings(clips, {}, metadata, (err, {haikuIds}) => {
       if (err) return cb(err)
       Element.unselectAllElements({component: this.component}, metadata)
-      duplicates.forEach((duplicate) => { duplicate.selectSoftly(metadata) })
-      const proxy = ElementSelectionProxy.fromSelection(duplicates, {component: this.component})
-      return cb(null, proxy)
+      console.log(haikuIds)
+      haikuIds.map(
+        (haikuId) => this.component.findElementByComponentId(haikuId)
+      ).forEach((element) => {
+        if (element) {
+          element.selectSoftly(metadata)
+        }
+      })
+      return cb(null)
     })
   }
 
@@ -1175,11 +1185,12 @@ class ElementSelectionProxy extends BaseModel {
     this.selection.forEach((element) => {
       // Don't allow the artboard to be cut
       if (!element.isRootElement()) {
-        pasteables.push(element.cut(metadata))
+        pasteables.push(element.copy())
       }
     })
 
     ElementSelectionProxy.trackPasteables(pasteables)
+    this.remove(metadata)
   }
 
   copy (metadata) {
@@ -1200,12 +1211,17 @@ class ElementSelectionProxy extends BaseModel {
   remove (metadata) {
     logger.info(`[element selection proxy] remove ${this.getComponentIds().join('|')}`)
 
-    this.selection.forEach((element) => {
-      // Don't allow the artboard to be deleted
-      if (!element.isRootElement()) {
-        element.remove(metadata)
-      }
-    })
+    const componentIdsToRemove = this.selection.filter(
+      (element) => !element.isRootElement()
+    ).map(
+      (element) => element.getComponentId()
+    )
+
+    this.component.deleteComponents(
+      componentIdsToRemove,
+      metadata,
+      () => {}
+    )
   }
 
   getComponentIds () {
@@ -1348,9 +1364,22 @@ ElementSelectionProxy.computeScalePropertyGroup = (
   // point (the point being dragged). These are represented by `fixedPoint` and `translatedPoint` respectively.
   const targetLayout = element.getComputedLayout()
   // Opportunity to return early if we have a downstream "division by 0" problem. Scaling _from_ 0 is not supported (and
-  // the UI should make it imposible.
+  // the UI should make it impossible.
   if (targetLayout.scale.x === 0 || targetLayout.scale.y === 0) {
-    return {}
+    return {
+      'scale.x': {
+        value: targetLayout.scale.x
+      },
+      'scale.y': {
+        value: targetLayout.scale.y
+      },
+      'translation.x': {
+        value: targetLayout.translation.x
+      },
+      'translation.y': {
+        value: targetLayout.translation.y
+      }
+    }
   }
 
   if (applyConstraints) {
@@ -1361,7 +1390,7 @@ ElementSelectionProxy.computeScalePropertyGroup = (
     // In a group-scale context, we should only apply constraints based on the bounding container. Accordingly, we
     // transform `delta` in place here so it can be reused on child elements. First, translate to "local" coordinates so
     // so that these adjustments are meaningful and correct.
-    const scaledBasisMatrix = Layout3D.computeScaledBasisMatrix(targetLayout.rotation, targetLayout.scale)
+    const scaledBasisMatrix = Layout3D.computeScaledBasisMatrix(targetLayout.rotation, targetLayout.scale, targetLayout.shear)
     const scaledBasisMatrixInverted = new Float32Array(16)
     invertMatrix(scaledBasisMatrixInverted, scaledBasisMatrix)
     Element.transformPointInPlace(delta, scaledBasisMatrixInverted)
@@ -1506,7 +1535,12 @@ ElementSelectionProxy.computeRotationPropertyGroup = (element, rotationZDelta, f
   }
   Element.transformPointInPlace(ray, matrix)
 
-  const originalRotationMatrix = Layout3D.computeOrthonormalBasisMatrix(element.getLayoutSpec().rotation)
+  const layoutSpec = element.getLayoutSpec()
+  const originalRotationMatrix = Layout3D.computeOrthonormalBasisMatrix(layoutSpec.rotation, layoutSpec.shear)
+  if (layoutSpec.mount.x !== 0 || layoutSpec.mount.y !== 0) {
+    ray.x += layoutSpec.mount.x * layoutSpec.sizeAbsolute.x
+    ray.y += layoutSpec.mount.y * layoutSpec.sizeAbsolute.y
+  }
   const attributes = {}
   composedTransformsToTimelineProperties(attributes, [matrix, originalRotationMatrix])
 

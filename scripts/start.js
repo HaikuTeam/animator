@@ -49,6 +49,7 @@ const FOLDER_CHOICES = {
   'MattsPrimitives-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/MattsPrimitives'),
   'primitives-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/primitives'),
   'percy-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/percybanking'),
+  'statetransitions-core': path.join(ROOT, 'packages/@haiku/core/demo/projects/statetransitions'),
   'simple-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/simple'),
   'AliensRepro-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/AliensRepro'),
   'SuperComplex-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/SuperComplex'),
@@ -131,6 +132,7 @@ function runInteractive () {
             { name: 'primitives (glass)', value: 'primitives-glass' },
             { name: 'AliensRepro (glass)', value: 'AliensRepro-glass' },
             { name: 'percybanking (glass)', value: 'percy-glass' },
+            { name: 'statetransitions (core)', value: 'statetransitions-core' },
             { name: 'simple (glass)', value: 'simple-gl' },
             { name: 'SuperComplex (glass)', value: 'SuperComplex-glass' },
             { name: 'Apr91 (glass)', value: 'Apr91-glass' },
@@ -207,7 +209,7 @@ function setup () {
   log.hat(`preparing to develop locally`, 'cyan')
 
   if (global.process.env.DEV === undefined) {
-    global.process.env.DEV = (inputs.dev) ? '1' : undefined
+    global.process.env.DEV = (inputs.dev) ? '0' : undefined
   }
 
   global.process.env.HAIKU_SKIP_AUTOUPDATE = '1'

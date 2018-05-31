@@ -18,6 +18,7 @@ import { PROJECT_CHANNEL, ProjectHandler } from 'haiku-sdk-creator/lib/bll/Proje
 import { GLASS_CHANNEL, GlassHandler } from 'haiku-sdk-creator/lib/glass'
 import { TIMELINE_CHANNEL, TimelineHandler } from 'haiku-sdk-creator/lib/timeline'
 import { TOUR_CHANNEL, TourHandler } from 'haiku-sdk-creator/lib/tour'
+import { SERVICES_CHANNEL, ServicesHandler } from 'haiku-sdk-creator/lib/services'
 import { inkstone } from '@haiku/sdk-inkstone'
 import { client as sdkClient, FILE_PATHS } from '@haiku/sdk-client'
 import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
@@ -235,6 +236,7 @@ export default class Plumbing extends StateObject {
       const envoyGlassHandler = new GlassHandler(this.envoyServer)
       const envoyUserHandler = new UserHandler(this.envoyServer)
       const envoyProjectHandler = new ProjectHandler(this.envoyServer)
+      const envoyServicesHandler = new ServicesHandler(this.envoyServer)
 
       this.envoyServer.bindHandler(TIMELINE_CHANNEL, TimelineHandler, envoyTimelineHandler)
       this.envoyServer.bindHandler(TOUR_CHANNEL, TourHandler, envoyTourHandler)
@@ -242,6 +244,7 @@ export default class Plumbing extends StateObject {
       this.envoyServer.bindHandler(USER_CHANNEL, UserHandler, envoyUserHandler)
       this.envoyServer.bindHandler(GLASS_CHANNEL, GlassHandler, envoyGlassHandler)
       this.envoyServer.bindHandler(PROJECT_CHANNEL, ProjectHandler, envoyProjectHandler)
+      this.envoyServer.bindHandler(SERVICES_CHANNEL, ServicesHandler, envoyServicesHandler)
 
       logger.info('[plumbing] launching plumbing control server')
 
@@ -1139,6 +1142,11 @@ export default class Plumbing extends StateObject {
     if (this.masters[folder]) {
       this.masters[folder].active = false
       this.masters[folder].watchOff()
+      this.masters[folder].project && this.masters[folder].project.getAllActiveComponents().forEach((ac) => {
+        if (ac.$instance) {
+          ac.$instance.context.destroy()
+        }
+      })
     }
 
     // Since we're about to nav back to the dashboard, we're also about to drop the

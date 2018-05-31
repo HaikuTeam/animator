@@ -9,6 +9,7 @@ import create from '../vendor/gl-mat4/create';
 import SVGPoints from './SVGPoints';
 import visitManaTree from './visitManaTree';
 import getElementSize from '../renderers/dom/getElementSize';
+import {CurveSpec} from '@haiku/core/src/vendor/svg-points/types';
 
 // Number of pixels allowance for a line to be selected
 export const DEFAULT_LINE_SELECTION_THRESHOLD = 5;
@@ -33,19 +34,6 @@ export class BezierPoint {
   h2: vec2;
 }
 
-export interface SVGCurve {
-  type: string;
-  x1; y1; x2; y2: number;
-}
-
-export interface SVGPoint {
-  curve?: SVGCurve;
-  moveTo?: boolean;
-  closed?: boolean;
-  x: number;
-  y: number;
-}
-
 export const bezierCubic = (a: vec2, h1: vec2, h2: vec2, b: vec2, t: number): vec2 => {
   const t2 = t * t;
   const t3 = t2 * t;
@@ -59,7 +47,7 @@ export const bezierCubic = (a: vec2, h1: vec2, h2: vec2, b: vec2, t: number): ve
 };
 
 export const buildPathLUT = (
-  points: SVGPoint[],
+  points: CurveSpec[],
   segmentResolution: number = CUBIC_BEZIER_APPROXIMATION_RESOLUTION,
 ): [vec2[], boolean] => {
   const out = [];
@@ -124,11 +112,11 @@ export const buildPathLUT = (
 };
 
 export const splitSegmentInSVGPoints = (
-  points: SVGPoint[],
+  points: CurveSpec[],
   pt1Index: number,
   pt2Index: number,
   t: number,
-): SVGPoint[] => {
+): CurveSpec[] => {
   // tslint:disable-next-line
   if (pt2Index === points.length) { pt2Index = 0; }
   

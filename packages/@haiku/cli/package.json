@@ -1,6 +1,6 @@
 {
   "name": "@haiku/cli",
-  "version": "3.3.0",
+  "version": "3.3.4",
   "description": "Haiku CLI",
   "main": "lib/index.js",
   "scripts": {
@@ -33,8 +33,8 @@
     "cli-color": "^1.2.0",
     "dedent": "^0.7.0",
     "fs-extra": "^4.0.2",
-    "@haiku/sdk-client": "3.3.0",
-    "@haiku/sdk-inkstone": "3.3.0",
+    "@haiku/sdk-client": "3.3.4",
+    "@haiku/sdk-inkstone": "3.3.4",
     "hasbin": "^1.2.3",
     "inquirer": "^3.0.6",
     "lodash": "^4.17.4",
@@ -54,11 +54,11 @@
     "@types/request": "^2.0.0",
     "@types/yargs": "^6.5.0",
     "cross-env": "^5.1.4",
-    "nyc": "^11.3.0",
+    "nyc": "^11.8.0",
     "tap-spec": "^4.1.1",
     "tape": "^4.8.0",
     "tslint": "^5.7.0",
-    "tslint-config-haiku": "^1.0.0",
+    "tslint-config-haiku": "1.0.0",
     "typescript": "^2.5.2"
   }
 }

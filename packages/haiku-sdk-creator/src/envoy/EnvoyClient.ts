@@ -1,4 +1,3 @@
-import * as Promise from 'bluebird';
 import {
   Datagram,
   DatagramIntent,
@@ -8,6 +7,8 @@ import {
   EnvoyOptions,
   RequestOptions,
   Schema,
+  ClientRequestCallback,
+  EnvoySerializable,
 } from '.';
 
 import EnvoyLogger from './EnvoyLogger';
@@ -19,25 +20,19 @@ const AWAIT_READY_TIMEOUT = 100;
 export default class EnvoyClient<T> {
 
   private options: EnvoyOptions;
-  private datagramQueue: Datagram[];
-  private channel: string;
-  private isConnected: boolean;
-  private outstandingRequests: Map<string, Promise<void>>;
+  private datagramQueue: Datagram[] = [];
+  private isConnected: boolean = false;
+  private outstandingRequests: Map<string, ClientRequestCallback> = new Map<string, ClientRequestCallback>();
   private socket: WebSocket;
   private connectingPromise: Promise<any>;
-  private eventHandlers: Map<string, Function[]>;
-  private websocket;
+  private eventHandlers: Map<string, Function[]> = new Map<string, Function[]>();
+  private websocket: typeof WebSocket;
   private logger: Console;
-  private schemaCache: Map<string, Schema>;
+  private schemaCache: Map<string, Schema> = new Map<string, Schema>();
 
   constructor(options?: EnvoyOptions) {
     this.options = Object.assign({}, DEFAULT_ENVOY_OPTIONS, options);
-    this.schemaCache = new Map<string, Schema>();
-    this.isConnected = false;
     this.websocket = this.options.WebSocket;
-    this.datagramQueue = [];
-    this.outstandingRequests = new Map<string, Promise<void>>();
-    this.eventHandlers = new Map<string, Function[]>();
     this.logger = this.options.logger || new EnvoyLogger('warn', this.options.logger);
     this.connect(this.options);
   }
@@ -46,8 +41,9 @@ export default class EnvoyClient<T> {
    * Retrieves a client bound to the handler at specified channel on remote server
    * @param channel unique string representing the channel of the handler
    * that this client should be bound to
+   * @param requestOptions
    */
-  get(channel: string): Promise<T> {
+  get(channel: string, requestOptions?: RequestOptions): Promise<T> {
     // Since mock mode skips the connection, there's nothing to retrieve, and
     // we will just go ahead and return ourselves early instead of schema discovery
     if (this.isInMockMode()) {
@@ -67,7 +63,7 @@ export default class EnvoyClient<T> {
 
           // Set the new function behavior.
           returnMe[property] = ((prop) => {
-            return (...args) => {
+            return (...args: any[]) => {
 
               // Ask server for a response.
               // For now, return only first response received.
@@ -78,7 +74,7 @@ export default class EnvoyClient<T> {
                 params: args,
               };
 
-              return this.send(datagram);
+              return this.send(datagram, requestOptions);
             };
           })(property);
         }
@@ -143,14 +139,15 @@ export default class EnvoyClient<T> {
    * @method ready
    * @description Returns a promise that resolves when the client has connected to the server
    */
-  ready(): Promise<void> {
-    return new Promise(function executor(resolve) {
+  ready(): Promise<EnvoyClient<T>> {
+    const executor = (accept: ((value?: EnvoyClient<T>) => void)) => {
       if (this.isInMockMode() || this.isConnected) {
-        resolve(this);
+        accept(this);
       } else {
-        setTimeout(executor.bind(this, resolve), AWAIT_READY_TIMEOUT);
+        setTimeout(() => executor(accept), AWAIT_READY_TIMEOUT);
       }
-    }.bind(this));
+    };
+    return new Promise(executor);
   }
 
   /**
@@ -171,7 +168,7 @@ export default class EnvoyClient<T> {
 
     this.logger.info('[haiku envoy client] connecting to websocket server %s', url);
 
-    this.connectingPromise = new Promise((accept, _) => {
+    this.connectingPromise = new Promise((accept) => {
       this.socket = new this.websocket(url);
 
       this.socket.addEventListener('open', () => {
@@ -201,23 +198,12 @@ export default class EnvoyClient<T> {
    */
   private handleRawReceivedData(data: string) {
     // If this is a response & the request id is in outstanding requests, resolve the stored promise w/ data.
-    const datagram = <Datagram>JSON.parse(data);
+    const datagram = JSON.parse(data) as Datagram;
     if (datagram.intent === DatagramIntent.RESPONSE && this.outstandingRequests.get(datagram.id)) {
-      // this.logger.info('[haiku envoy client] received data', datagram.data);
-
-      //parse this for the client if it's JSON
-      // let payload = undefined;
-      // try {
-      //   payload = JSON.parse(datagram.data);
-      // } catch (e) {
-      //   payload = datagram.data;
-      // }
-
-      // TODO: Fix Bluebird typing error by removing any
-      (this.outstandingRequests.get(datagram.id) as any)(datagram.data);
+      (this.outstandingRequests.get(datagram.id))(datagram.data);
       this.outstandingRequests.delete(datagram.id);
     } else if (datagram.intent === DatagramIntent.EVENT) {
-      const event = <EnvoyEvent>JSON.parse(datagram.data);
+      const event = JSON.parse(datagram.data) as EnvoyEvent;
       const handlers = this.eventHandlers.get(event.name);
 
       if (handlers && handlers.length) {
@@ -276,7 +262,7 @@ export default class EnvoyClient<T> {
    * @param requestOptions
    */
   private send(datagram: Datagram, requestOptions?: RequestOptions): Promise<any> {
-    return new Promise<any>((accept, _) => {
+    return new Promise<any>((accept, reject) => {
       const mergedOptions = Object.assign({}, DEFAULT_REQUEST_OPTIONS, requestOptions);
 
       const requestId = generateUUIDv4();
@@ -288,21 +274,28 @@ export default class EnvoyClient<T> {
         const timeout = this.generateTimeoutPromise(mergedOptions.timeout);
 
         // TODO: Fix Bluebird typing error by removing any
-        const success = new Promise<any>((acceptInner: any) => {
-          this.outstandingRequests.set(datagram.id, acceptInner);
-        });
+        const success = new Promise<any>(
+          (
+            acceptInner: (data: PromiseLike<EnvoySerializable>) => void,
+            rejectInner: (error: any) => void,
+          ) => {
+            this.outstandingRequests.set(datagram.id, (data) => {
+              if (data && data.error) {
+                return rejectInner(data.error);
+              }
 
-        return Promise
-          .race([timeout, success])
-          .then(
+              return acceptInner(data);
+            });
+          },
+        );
+
+        return Promise.race([timeout, success]).then(
           (data) => {
-            // SUCCESS
             accept(data);
           },
-          () => {
-            // TIMEOUT
-            this.logger.warn(
-              '[haiku envoy client] response timed out [configured @ ' + mergedOptions.timeout + 'ms]');
+          (error) => {
+            reject(error);
+            this.logger.warn('[haiku envoy client]', error);
             this.outstandingRequests.delete(requestId);
           },
         );

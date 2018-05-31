@@ -7,6 +7,7 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
 import BaseModel from 'haiku-serialization/src/bll/BaseModel'
 import Project from 'haiku-serialization/src/bll/Project'
 import Row from 'haiku-serialization/src/bll/Row'
+import File from 'haiku-serialization/src/bll/File'
 import Keyframe from 'haiku-serialization/src/bll/Keyframe'
 import requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates'
 import EmitterManager from 'haiku-serialization/src/utils/EmitterManager'
@@ -346,13 +347,19 @@ class Timeline extends React.Component {
           break
 
         case 'global-menu:undo':
-          // For consistency, let glass initiate undo/redo
-          this.props.websocket.send(relayable)
+          if (window.isWebview) { // Let work in standalone dev mode
+            this.props.websocket.send(relayable) // For consistency, let glass initiate undo/redo
+          } else {
+            this.handleUndoDebounced()
+          }
           break
 
         case 'global-menu:redo':
-          // For consistency, let glass initiate undo/redo
-          this.props.websocket.send(relayable)
+          if (window.isWebview) { // Let work in standalone dev mode
+            this.props.websocket.send(relayable) // For consistency, let glass initiate undo/redo
+          } else {
+            this.handleRedoDebounced()
+          }
           break
       }
     })
@@ -377,6 +384,10 @@ class Timeline extends React.Component {
           if (this.getActiveComponent()) {
             this.getActiveComponent().getCurrentTimeline().notifyFrameActionChange()
           }
+          break
+
+        case 'assets-changed':
+          File.cache.clear()
           break
       }
     })

@@ -1,6 +1,6 @@
 {
   "name": "haiku-ui-common",
-  "version": "3.3.0",
+  "version": "3.3.4",
   "description": "Common UI components for Haiku projects.",
   "main": "lib/index.js",
   "directories": {
@@ -22,17 +22,18 @@
     "Sasha Joseph <sasha@haiku.ai>"
   ],
   "devDependencies": {
+    "@haiku/sdk-inkstone": "^3.3.4",
     "@storybook/react": "^3.3.3",
     "@types/node": "8.9.4",
     "@types/react": "^15.4.2",
     "cross-env": "^5.1.4",
     "electron": "1.8.2",
-    "haiku-testing": "3.3.0",
-    "nyc": "^11.3.0",
+    "haiku-testing": "3.3.4",
+    "nyc": "^11.8.0",
     "tap-spec": "^4.1.1",
     "tape": "^4.8.0",
     "tslint": "^5.7.0",
-    "tslint-config-haiku": "^1.0.0",
+    "tslint-config-haiku": "1.0.0",
     "typescript": "^2.5.2",
     "url-loader": "^1.0.1",
     "webpack-conditional-loader": "^1.0.12"
@@ -44,8 +45,8 @@
     "color": "^2.0.1",
     "decamelize": "^1.2.0",
     "dedent": "^0.7.0",
-    "haiku-common": "3.3.0",
-    "haiku-serialization": "3.3.0",
+    "haiku-common": "3.3.4",
+    "haiku-serialization": "3.3.4",
     "numeral": "^2.0.6",
     "radium": "0.18.1",
     "react": "15.6.2",

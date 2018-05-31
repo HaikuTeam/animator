@@ -5,7 +5,8 @@ const async = require('async')
 const jss = require('json-stable-stringify')
 const pascalcase = require('pascalcase')
 const {LAYOUT_3D_SCHEMA} = require('@haiku/core/lib/properties/dom/schema')
-const {HAIKU_ID_ATTRIBUTE, HAIKU_TITLE_ATTRIBUTE} = require('@haiku/core/lib/HaikuElement')
+const {PLAYBACK_SETTINGS} = require('@haiku/core/lib/properties/dom/vanities')
+const {HAIKU_ID_ATTRIBUTE, HAIKU_TITLE_ATTRIBUTE, HAIKU_VAR_ATTRIBUTE} = require('@haiku/core/lib/HaikuElement')
 const {sortedKeyframes} = require('@haiku/core/lib/Transitions').default
 const HaikuComponent = require('@haiku/core/lib/HaikuComponent').default
 const HaikuDOMAdapter = require('@haiku/core/lib/adapters/dom').default
@@ -174,7 +175,7 @@ class ActiveComponent extends BaseModel {
       if (row.component === this) {
         this.emit('update', what, row, this.project.getMetadata())
         if (what === 'row-collapsed' || what === 'row-expanded') {
-          this.cacheUnset('displayableRows')
+          this.cache.unset('displayableRows')
         }
       }
     })
@@ -218,7 +219,7 @@ class ActiveComponent extends BaseModel {
   }
 
   getTemplateNodesByComponentId () {
-    return this.cacheFetch('getTemplateNodesByComponentId', () => {
+    return this.cache.fetch('getTemplateNodesByComponentId', () => {
       const nodes = {}
       const mana = this.getReifiedBytecode().template
       Template.visit(mana, (node) => {
@@ -385,7 +386,7 @@ class ActiveComponent extends BaseModel {
 
   clearCaches (options = {}) {
     this.$instance.clearCaches(options) // Also clears instance._builder sub-caches
-    this.fetchRootElement().cacheClear()
+    this.fetchRootElement().cache.clear()
     if (options.doClearEntityCaches) {
       this.fetchRootElement().clearEntityCaches()
     }
@@ -443,9 +444,6 @@ class ActiveComponent extends BaseModel {
     // means that it will initially start playing. Hard reload depends on being able to
     // force set a time value to get it into 'controlled time' mode, hence the `forceSeek` flag.
     if (forceSeek || timelineTime !== this.getCurrentTimelineTime()) {
-      // Purge any ElementSelectionProxy caches in case the layout of selected elements is changing.
-      ElementSelectionProxy.clearCaches()
-
       // Note that this call reaches in and updates our instance's timeline objects
       Timeline.where({component: this}).forEach((timeline) => {
         timeline.seekToTime(timelineTime, /* skipTransmit= */ true, forceSeek)
@@ -456,6 +454,12 @@ class ActiveComponent extends BaseModel {
       if (this.$instance.context && this.$instance.context.tick) {
         this.$instance.context.tick(true)
       }
+
+      // Purge any ElementSelectionProxy caches in case the layout of selected elements is changing.
+      ElementSelectionProxy.all().forEach((proxy) => {
+        proxy.clearAllRelatedCaches()
+        proxy.reinitializeLayout()
+      })
     }
   }
 
@@ -745,7 +749,7 @@ class ActiveComponent extends BaseModel {
       const title = subcomponent.getTitle()
 
       return mod.moduleAsMana(
-        this.fetchActiveBytecodeFile(),
+        this.getRelpath(),
         identifier,
         title,
         (err, manaForWrapperElement) => {
@@ -1201,12 +1205,44 @@ class ActiveComponent extends BaseModel {
           coords, // "coords"/"maybeCoords"
           properties, // properties
           metadata,
-          done
+          (err) => {
+            if (err) {
+              return done(err)
+            }
+
+            // Now set up 'playback' settings on the same keyframes defined for the child.
+            // This makes it clear that keyframes must be defined on the parent in order for
+            // playback to work as expected in the child.
+            const insertion = this.getReifiedBytecode().template.children[0]
+
+            // Places on the host timeline that we're going to create 'playback' keyframes
+            const bookends = [
+              0,
+              Timeline.getMaximumMs(
+                newActiveComponent.getReifiedBytecode(),
+                this.getInstantiationTimelineName()
+              )
+            ]
+
+            bookends.forEach((ms) => {
+              this.upsertProperties(
+                this.getReifiedBytecode(),
+                insertion.attributes[HAIKU_ID_ATTRIBUTE],
+                this.getInstantiationTimelineName(),
+                ms,
+                {'playback': PLAYBACK_SETTINGS.LOOP},
+                'merge'
+              )
+            })
+
+            return done()
+          }
         )
       })
     }, (err) => {
       if (err) return cb(err)
-      return cb(null, this.getReifiedBytecode().template.children[0])
+      const insertion = this.getReifiedBytecode().template.children[0]
+      return cb(null, insertion)
     })
   }
 
@@ -1316,18 +1352,21 @@ class ActiveComponent extends BaseModel {
               const subcomponent = this.project.findActiveComponentBySource(relpath)
 
               if (subcomponent) {
-                // This identifier is going to be something like foo_svg_blah
-                const localComponentIdentifier = ModuleWrapper.modulePathToIdentifierName(relpath)
+                // We can't go further unless we actually have the reified bytecode
+                return subcomponent.moduleReload('basicReload', () => {
+                  // This identifier is going to be something like foo_svg_blah
+                  const localComponentIdentifier = ModuleWrapper.modulePathToIdentifierName(relpath)
 
-                return this.instantiateReference(
-                  subcomponent,
-                  localComponentIdentifier,
-                  relpath,
-                  coords,
-                  {'origin.x': 0.5, 'origin.y': 0.5},
-                  metadata,
-                  done
-                )
+                  return this.instantiateReference(
+                    subcomponent,
+                    localComponentIdentifier,
+                    relpath,
+                    coords,
+                    {'origin.x': 0.5, 'origin.y': 0.5},
+                    metadata,
+                    done
+                  )
+                })
               } else {
                 return done(new Error(`Cannot find component ${relpath}`))
               }
@@ -1365,16 +1404,22 @@ class ActiveComponent extends BaseModel {
     })
   }
 
-  deleteComponent (componentId, metadata, cb) {
+  deleteComponents (componentIds, metadata, cb) {
     return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
       this.project.updateHook(
-        'deleteComponent',
+        'deleteComponents',
         this.getRelpath(),
-        componentId,
+        componentIds,
         metadata,
         (fire) => {
           return this.performComponentWork((bytecode, mana, done) => {
-            this.deleteElementImpl(mana, componentId)
+            componentIds.forEach((componentId) => {
+              const element = this.findElementByComponentId(componentId)
+              if (element) {
+                element.remove(metadata)
+              }
+              this.deleteElementImpl(mana, componentId)
+            })
             done()
           }, (err) => {
             if (err) {
@@ -1702,35 +1747,72 @@ class ActiveComponent extends BaseModel {
   }
 
   /**
-   * @method pasteThing
+   * @method pasteThings
    * @description Flexibly paste some content into the component. Usually the thing pasted is going to be a
    * component, but this could theoretically handle any kind of 'pasteable' content.
-   * @param pasteable {Object} - Content of the thing to paste into the component.
-   * @param request {Object} - Optional object containing information about _how_ to paste, e.g. coords
+   * @param pasteablesSerial {Array.<{}>} - Content of the thing to paste into the component.
+   * @param options {{skipHashPadding: boolean}} - Optional object containing information about _how_ to paste
    * @param metadata {Object}
+   * @param cb {Function}
    */
-  pasteThing (pasteableSerial, options, metadata, cb) {
-    const pasteable = Bytecode.unserializeValue(pasteableSerial, (ref) => {
+  pasteThings (pasteablesSerial, options, metadata, cb) {
+    const pasteables = pasteablesSerial.map((pasteableSerial) => Bytecode.unserializeValue(pasteableSerial, (ref) => {
       return this.evaluateReference(ref)
-    })
+    }))
 
     return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
-      return this.project.updateHook('pasteThing', this.getRelpath(), Bytecode.serializeValue(pasteable), options, metadata, (fire) => {
+      return this.project.updateHook('pasteThings', this.getRelpath(), pasteablesSerial, options, metadata, (fire) => {
         return this.performComponentWork((bytecode, mana, done) => {
-          switch (pasteable.kind) {
-            case 'bytecode':
-              const haikuId = this.pasteBytecodeImpl(
-                bytecode,
-                pasteable.data,
-                options
+          const haikuIds = []
+
+          return async.eachSeries(pasteables, (pasteable, next) => {
+            if (pasteable.kind === 'bytecode') {
+              // Handle specially if the pasted thing is a component
+              const nested = (
+                pasteable.data &&
+                pasteable.data.template &&
+                pasteable.data.template.elementName
               )
 
-              return done(null, {haikuId})
-            default:
-              logger.warn(`[active component (${this.project.getAlias()})] cannot paste clipboard contents of kind ` + pasteable.kind)
-              return done(new Error('Unable to paste clipboard contents'))
-          }
-        }, (err, {haikuId}) => {
+              if (typeof nested === 'object') {
+                const source = pasteable.data.template.attributes[HAIKU_SOURCE_ATTRIBUTE]
+                const identifier = pasteable.data.template.attributes[HAIKU_VAR_ATTRIBUTE]
+                const scenename = this.project.relpathToSceneName(source)
+
+                nested.__reference = ModuleWrapper.buildReference(
+                  ModuleWrapper.REF_TYPES.COMPONENT, // type
+                  Template.normalizePath(`./${this.getRelpath()}`), // host
+                  Template.normalizePath(`./${source}`),
+                  identifier
+                )
+
+                return this.project.findOrCreateActiveComponent(scenename, (err, ac) => {
+                  if (err) {
+                    return next(err)
+                  }
+
+                  // We can't go further unless we actually have the reified bytecode
+                  return ac.moduleReload('basicReload', () => {
+                    // In order to render correctly, the template.elementName needs to have the full
+                    // bytecode object; note that core should automatically instantiate a HaikuComponent
+                    lodash.assign(nested, ac.getReifiedBytecode())
+
+                    haikuIds.push(this.pasteBytecodeImpl(bytecode, pasteable.data, options))
+                    return next()
+                  })
+                })
+              }
+
+              haikuIds.push(this.pasteBytecodeImpl(bytecode, pasteable.data, options))
+              return next()
+            }
+
+            logger.warn(`[active component (${this.project.getAlias()})] cannot paste ${pasteable.kind}`)
+            return next()
+          }, (err) => {
+            return done(err, {haikuIds})
+          })
+        }, (err, {haikuIds}) => {
           if (err) {
             release()
             logger.error(`[active component (${this.project.getAlias()})]`, err)
@@ -1744,15 +1826,15 @@ class ActiveComponent extends BaseModel {
             }
           }, null, () => {
             release()
-            fire(null, {haikuId})
-            return cb(null, {haikuId})
+            fire(null, {haikuIds})
+            return cb(null, {haikuIds})
           })
         })
       })
     })
   }
 
-  pasteBytecodeImpl (ourBytecode, theirBytecode, {skipHashPadding}) {
+  pasteBytecodeImpl (ourBytecode, theirBytecode, {skipHashPadding = false}) {
     theirBytecode = Bytecode.clone(theirBytecode)
 
     if (!skipHashPadding) {
@@ -2143,7 +2225,8 @@ class ActiveComponent extends BaseModel {
 
       const bytecode = this.getReifiedBytecode()
 
-      // Don't clean up instances which may own the current editing context
+      // Don't clean up instances which may own the current editing context.
+      // WARNING: be VERY careful changing anything here—your sanity depends on it.
       if (this.isProjectActiveComponent()) {
         this.project.getAllActiveComponents().forEach((ac) => {
           // We also deactivate our own instance since we're about to create a new one
@@ -2153,14 +2236,19 @@ class ActiveComponent extends BaseModel {
 
               if (this.doesManageCoreInstance(instance)) {
                 instance.bytecode = bytecode
-                instance.clearCaches()
               }
+
+              instance.clearCaches()
             })
 
             ac.$instance.context.contextUnmount()
             ac.$instance.context.getClock().stop()
           }
         })
+      }
+
+      if (this.$instance) {
+        this.$instance.context.destroy()
       }
 
       const timelineTime = this.getCurrentTimelineTime()
@@ -2390,8 +2478,8 @@ class ActiveComponent extends BaseModel {
     // Don't allow any incoming syncs while we're in the midst of this
     BaseModel.__sync = false
 
-    this.cacheUnset('displayableRows')
-    this.cacheUnset('getTemplateNodesByComponentId')
+    this.cache.unset('displayableRows')
+    this.cache.unset('getTemplateNodesByComponentId')
 
     // Required before rehydration because entities use the timeline entity
     Timeline.upsert({
@@ -3268,7 +3356,7 @@ class ActiveComponent extends BaseModel {
     const keyframeUpdates = Bytecode.unserializeValue(keyframeUpdatesSerial, (ref) => {
       return this.evaluateReference(ref)
     })
-    
+
     return this.project.updateHook('updateKeyframes', this.getRelpath(), Bytecode.serializeValue(keyframeUpdates), metadata, (fire) => {
       for (const timelineName in keyframeUpdates) {
         for (const componentId in keyframeUpdates[timelineName]) {
@@ -3350,22 +3438,22 @@ class ActiveComponent extends BaseModel {
 
       // Clear timeline caches; the max frame might have changed.
       Timeline.clearCaches()
-      
+
       done()
     }, cb)
   }
-  
+
   updateTypesActual (typeUpdates, metadata, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
       for (const id in typeUpdates) {
         const node = this.locateTemplateNodeByComponentId(id)
         node.elementName = typeUpdates[id]
       }
-      
+
       done()
     }, cb)
   }
-  
+
   updateKeyframesAndTypes (keyframeUpdatesSerial, typeUpdates, metadata, cb) {
     const keyframeUpdates = Bytecode.unserializeValue(keyframeUpdatesSerial, (ref) => {
       return this.evaluateReference(ref)
@@ -3383,8 +3471,13 @@ class ActiveComponent extends BaseModel {
           logger.error(`[active component (${this.project.getAlias()})]`, err)
           return cb(err)
         }
-        
+
         return this.updateTypesActual(typeUpdates, metadata, (err) => {
+          if (err) {
+            logger.error(`[active component (${this.project.getAlias()})]`, err)
+            return cb(err)
+          }
+
           return this.reload({
             hardReload: this.project.isRemoteRequest(metadata),
             forceFlush: !!metadata.cursor,
@@ -3394,15 +3487,15 @@ class ActiveComponent extends BaseModel {
             },
             customRehydrate: () => {
               const componentIds = {}
-  
+
               for (const timelineName in keyframeUpdates) {
                 for (const componentId in keyframeUpdates[timelineName]) {
                   // Only run once for each component id
                   if (componentIds[componentId]) continue
                   componentIds[componentId] = true
-  
+
                   const element = this.findElementByComponentId(componentId)
-  
+
                   // Not all views necessarily have the same collection of elements
                   if (element) {
                     Row.where({ component: this, element }).forEach((row) => {
@@ -3738,7 +3831,7 @@ class ActiveComponent extends BaseModel {
           undefined
         )
 
-        Template.visitManaTree(node, (elementName, attributes, children) => {
+        Template.visitManaTree(node, (elementName, attributes, children, componentMana) => {
           // Resolve and destroy the special haiku-transclude here. This special property provides an outlet for the
           // original component's children, so that we don't need to recalculate layouts and properties for every
           // subelement.
@@ -3746,6 +3839,11 @@ class ActiveComponent extends BaseModel {
             const originalComponent = this.getTemplateNodesByComponentId()[attributes['haiku-transclude']]
             if (originalComponent) {
               children.push(...originalComponent.children)
+              // If we are looking at a proper subcomponent, reassign the elementName to its transcluded bytecode.
+              if (elementName === '__component__') {
+                componentMana.elementName = originalComponent.elementName
+                attributes['haiku-var'] = originalComponent.attributes['haiku-var']
+              }
             }
             delete attributes['haiku-transclude']
           }
@@ -4225,7 +4323,7 @@ class ActiveComponent extends BaseModel {
 
   /**
    * @method dump
-   * @description When debugging, use this to log a concise shorthand of this entity.
+   * @description Use this to log a concise shorthand of this entity.
    */
   dump () {
     const relpath = this.getRelpath()

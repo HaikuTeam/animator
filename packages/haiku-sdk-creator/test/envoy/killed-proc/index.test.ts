@@ -1,8 +1,8 @@
 import * as tape from 'tape';
 import * as cp from 'child_process';
 import * as path from 'path';
-import EnvoyServer from '../../../lib/envoy/EnvoyServer';
-import EnvoyLogger from '../../../lib/envoy/EnvoyLogger';
+import EnvoyServer from '@sdk-creator/envoy/EnvoyServer';
+import EnvoyLogger from '@sdk-creator/envoy/EnvoyLogger';
 import CatHandler from './CatHandler';
 
 tape('envoy:killed-proc', async (t) => {
@@ -13,8 +13,29 @@ tape('envoy:killed-proc', async (t) => {
   server.bindHandler('cat', CatHandler, new CatHandler(server));
   process.env.HAIKU_SDK_TEST_PORT = '' + server.port;
 
-  const p1 = cp.fork(path.join(__dirname, 'uno.js'));
-  const p2 = cp.fork(path.join(__dirname, 'dos.js'));
+  // …hack. We need to use ts-node as our runner in order for everything to work correctly.
+  const p1 = cp.fork(
+    './node_modules/.bin/ts-node',
+    [
+      '-r',
+      'tsconfig-paths/register',
+      '-P',
+      'tsconfig.all.json',
+      path.join(__dirname, 'uno.ts'),
+    ],
+    {cwd: global.process.cwd()},
+  );
+  const p2 = cp.fork(
+    './node_modules/.bin/ts-node',
+    [
+      '-r',
+      'tsconfig-paths/register',
+      '-P',
+      'tsconfig.all.json',
+      path.join(__dirname, 'dos.ts'),
+    ],
+    {cwd: global.process.cwd()},
+  );
 
   setTimeout(() => {
     p2.kill();

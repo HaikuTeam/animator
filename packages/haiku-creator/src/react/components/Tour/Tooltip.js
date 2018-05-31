@@ -153,6 +153,9 @@ function Tooltip (props) {
 
   return (
     <div
+      onMouseUp={(mouseUpEvent) => {
+        mouseUpEvent.nativeEvent.stopImmediatePropagation()
+      }}
       style={{
         top,
         left,

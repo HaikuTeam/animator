@@ -1,68 +1,49 @@
+export type Mat4 = number[];
+
+export type ThreeDimensionalLayoutProperty = {
+  x: number;
+  y: number;
+  z: number;
+};
+
+export type DomRect = {
+  width: number;
+  height: number;
+  left: number;
+  top: number;
+};
+
 // The layout specification naming in createLayoutSpec is derived in part from:
 // https://github.com/Famous/engine/blob/master/core/Transform.js which is MIT licensed.
 export type LayoutSpec = {
   shown: boolean;
   opacity: number;
-  mount: {
-    x: number;
-    y: number;
-    z: number;
-  };
-  align: {
-    x: number;
-    y: number;
-    z: number;
-  };
-  origin: {
-    x: number;
-    y: number;
-    z: number;
-  };
-  translation: {
-    x: number;
-    y: number;
-    z: number;
-  };
-  rotation: {
+  mount: ThreeDimensionalLayoutProperty;
+  align: ThreeDimensionalLayoutProperty;
+  origin: ThreeDimensionalLayoutProperty;
+  translation: ThreeDimensionalLayoutProperty;
+  rotation: ThreeDimensionalLayoutProperty;
+  scale: ThreeDimensionalLayoutProperty;
+  sizeMode: ThreeDimensionalLayoutProperty;
+  sizeProportional: ThreeDimensionalLayoutProperty;
+  sizeDifferential: ThreeDimensionalLayoutProperty;
+  sizeAbsolute: ThreeDimensionalLayoutProperty;
+
+  orientation?: {
     x: number;
     y: number;
     z: number;
     w: number;
   };
-  orientation: {
-    x: number;
-    y: number;
-    z: number;
-    w: number;
-  };
-  scale: {
-    x: number;
-    y: number;
-    z: number;
-  };
+
   shear: {
     xy: number;
     xz: number;
     yz: number;
   };
-  sizeMode: {
-    x: number;
-    y: number;
-    z: number;
-  };
-  sizeProportional: {
-    x: number;
-    y: number;
-    z: number;
-  };
-  sizeDifferential: {
-    x: number;
-    y: number;
-    z: number;
-  };
-  sizeAbsolute: {
-    x: number;
-    y: number;
-    z: number;
+
+  computed?: LayoutSpec & {
+    matrix: Mat4;
+    size: ThreeDimensionalLayoutProperty;
   };
 };

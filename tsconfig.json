@@ -1,0 +1,27 @@
+{
+  "compileOnSave": true,
+  "compilerOptions": {
+    "allowJs": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noImplicitAny": false,
+    "target": "ES6",
+    "types": [
+      "node"
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@admin-cli/*": ["packages/haiku-admin-cli/src/*"],
+      "@common/*": ["packages/haiku-common/src/*"],
+      "@formats/*": ["packages/haiku-formats/src/*"],
+      "@sdk-creator/*": ["packages/haiku-sdk-creator/src/*"],
+      "@testing/*": ["packages/haiku-testing/src/*"]
+    },
+    "typeRoots": [
+      "node_modules/@types/"
+    ]
+  },
+  "include": [
+    "packages/**/*.ts"
+  ]
+}

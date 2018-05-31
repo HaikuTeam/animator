@@ -136,7 +136,7 @@ const run = (name, options = {}, runner) => {
         }
 
         // Delete the project from the list, typing in its name to confirm
-        this.creator.refs.ProjectBrowser.showDeleteModal(indexOfProject)
+        this.creator.refs.ProjectBrowser.showDeleteModal(data.project)
         return setTimeout(() => {
           this.creator.refs.ProjectBrowser.handleDeleteInputChange({target: {value: data.project}})
           return setTimeout(() => {

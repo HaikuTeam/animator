@@ -1,6 +1,73 @@
 # Changelog
 
 
+## 3.3.4
+
+### Bug Fixes
+
+ * for Figma connect results in crash
+
+## 3.3.3
+
+### Bug Fixes
+
+ * until crashes are fixed, take away ability to undo conglomerateComponent, which did not really undo everything anyway.
+ * clear ElementSelectionProxy caches fully when timeline time changes.
+ * for 'Copy+paste component doesn't work right after reopening project with existing component on stage'
+ * for Element disappears when scaled down to near-zero/inverted
+ * Prevent multi-component playback on dashboard
+ * update broken imports in core and tests (#483)
+
+## 3.3.2
+
+### Bug Fixes
+
+ * avoid library preview being blocked by splitview line
+ * check for component before destroying context in ProjectPreview
+
+## 3.3.1
+
+### Bug Fixes
+
+ * Fix for 'Tab for new components created in other opened projects too'
+ * Fix for 'Existing projects not appearing correctly in project browser'
+ * for 'Copy+paste component doesn't work right after reopening project with existing component on stage'
+ * set correct position and styles for modals
+ * avoid overflow of usernames in popup
+ * correct URL when sending release to Slack.
+ * do not perfom envoy figma calls in mock mode
+ * move all figma external calls to the back-end
+ * for Element disappears when scaled down to near-zero/inverted
+ * conditionally import react devtools to avoid crashes in build
+ * remove warning about setting state on unmounted component
+ * for Moving mouse over a single element fires a bunch of hoverElement and unhoverElement events
+ * Ensure scrubbing works after first context switch
+ * use the correct parameters for launching a project
+ * A wild backtick appeared
+ * do not perfom envoy figma calls in mock mode
+ * move all figma external calls to the back-end
+ * for Element disappears when scaled down to near-zero/inverted
+ * for Groups have offset inner div that extends outside of the actual bounding box, which is both selectable and hoverable
+ * Don't include text literal nodes in bytecode file template
+ * Prevent context switch race conditions
+ * Prevent multi-component playback on dashboard
+ * disallow bad interactions between the tour and publish UI
+ * for CRASH
+ * for Multirotate is broken for legacy upgraded bytecode
+ * for Little moto dude disappears when ungrouping moto artboard
+ * for MC is incompatible with static.json
+ * ensure new project state is correctly setting public projects by default
+ * Prevent hover flicker by early returning if the mouse is down
+ * Too-short debounce time on heavy method caused deadlock
+ * make new projects public by default (#485)
+ * update broken imports in core and tests (#483)
+ * spell out yarn in self-link to avoid macOS conflict.
+
+### Features
+
+ * multidelete, multipaste
+ * Improve instantiation perf by caching File.readMana
+
 ## 3.2.23
 
 ### Bug Fixes

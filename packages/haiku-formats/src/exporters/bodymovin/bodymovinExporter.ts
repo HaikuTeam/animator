@@ -1,17 +1,20 @@
-import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
-import {
-  ContextualSize,
-  Maybe,
-  PathPoint,
-} from 'haiku-common/lib/types';
-import {Curve} from 'haiku-common/lib/types/enums';
+import {difference, flatten, mapKeys} from 'lodash';
 
+import {Curve} from '@haiku/core/lib/api/Curve';
+import {
+  BytecodeNode,
+  HaikuBytecode,
+  BytecodeTimelineProperty,
+  BytecodeTimelineProperties,
+  BytecodeSummonable,
+} from '@haiku/core/lib/api/HaikuBytecode';
+import {CurveSpec} from '@haiku/core/lib/vendor/svg-points/types';
+import {ContextualSize, Maybe} from 'haiku-common/lib/types';
 // @ts-ignore
 import * as Template from 'haiku-serialization/src/bll/Template';
 // @ts-ignore
 import * as LoggerInstance from 'haiku-serialization/src/utils/LoggerInstance';
 
-import {difference, flatten, mapKeys} from 'lodash';
 import {ExporterInterface} from '..';
 
 import {SvgTag} from '../../svg/enums';
@@ -34,6 +37,7 @@ import {
   simulateLayoutProperty,
   timelineHasProperties,
 } from '../timelineUtils';
+
 import {
   AnimationKey,
   FillRule,
@@ -82,16 +86,6 @@ import {
   pointsToInterpolationTrace,
   timelineValuesAreEquivalent,
 } from './bodymovinUtils';
-import {
-  BytecodeNode, 
-  HaikuBytecode, 
-  BytecodeTimelines, 
-  BytecodeTimelineProperty,
-  BytecodeTimelineProperties,
-  BytecodeSummonable,
-} from '@haiku/core/lib/api/HaikuBytecode';
-
-const {pathToPoints} = SVGPoints;
 
 let bodymovinVersion: Maybe<string>;
 
@@ -356,12 +350,12 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
         [TransformKey.PositionSplit]: true,
         x: this.getValue(
           timelineHasProperties(timeline, 'translation.x') ? timeline['translation.x'] : simulateLayoutProperty(
-            LayoutPropertyType.Additive),
+            LayoutPropertyType.Additive) as BytecodeTimelineProperty,
           (value) => value - mountX,
         ),
         y: this.getValue(
           timelineHasProperties(timeline, 'translation.y') ? timeline['translation.y'] : simulateLayoutProperty(
-            LayoutPropertyType.Additive),
+            LayoutPropertyType.Additive) as BytecodeTimelineProperty,
           (value) => value - mountY,
         ),
       };
@@ -379,8 +373,8 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     if (timelineHasProperties(timeline, 'scale.x', 'scale.y')) {
       transforms[TransformKey.Scale] = this.getValue(
         [
-          timeline['scale.x'] || simulateLayoutProperty(LayoutPropertyType.Multiplicative),
-          timeline['scale.y'] || simulateLayoutProperty(LayoutPropertyType.Multiplicative),
+          timeline['scale.x'] || simulateLayoutProperty(LayoutPropertyType.Multiplicative) as BytecodeTimelineProperty,
+          timeline['scale.y'] || simulateLayoutProperty(LayoutPropertyType.Multiplicative) as BytecodeTimelineProperty,
         ],
         scaleTransformer,
       );
@@ -407,8 +401,8 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
 
     if (timelineHasProperties(timeline, 'translation.x', 'translation.y')) {
       transforms[TransformKey.Position] = this.getValue([
-        timeline['translation.x'] || simulateLayoutProperty(LayoutPropertyType.Additive),
-        timeline['translation.y'] || simulateLayoutProperty(LayoutPropertyType.Additive),
+        timeline['translation.x'] || simulateLayoutProperty(LayoutPropertyType.Additive) as BytecodeTimelineProperty,
+        timeline['translation.y'] || simulateLayoutProperty(LayoutPropertyType.Additive) as BytecodeTimelineProperty,
       ]);
     } else {
       transforms[TransformKey.Position] = getFixedPropertyValue([0, 0]);
@@ -620,13 +614,13 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
         // Normalize the gradient in and out-points relative to the overall dimensions of the shape. Per the spec,
         // the default vector <x1, y1, x2, y2> is <0%, 0%, 100%, 0%> when any value is not explicitly provided.
         const [x1, x2] = [
-          initialValueOrNull(timeline, 'x1') || 0,
-          initialValueOrNull(timeline, 'x2') || width,
+          initialValueOr(timeline, 'x1', 0),
+          initialValueOr(timeline, 'x2', width),
         ].map((x) => alwaysAbsolute(x, width));
 
         const [y1, y2] = [
-          initialValueOrNull(timeline, 'y1') || 0,
-          initialValueOrNull(timeline, 'y2') || 0,
+          initialValueOr(timeline, 'y1', 0),
+          initialValueOr(timeline, 'y2', 0),
         ].map((y) => alwaysAbsolute(y, height));
 
         fill[TransformKey.GradientStart] = getFixedPropertyValue([x1, y1]);
@@ -771,7 +765,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @param pathSegment
    * @param shape
    */
-  private decorateShape(pathSegment: PathPoint[], closed: boolean, shape: any) {
+  private decorateShape(pathSegment: CurveSpec[], closed: boolean, shape: any) {
     shape[ShapeKey.Type] = ShapeType.Shape;
 
     shape[ShapeKey.Vertices] = {
@@ -1034,7 +1028,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
       const keyframes = keyframesFromTimelineProperty(timelineProperty);
       keyframes.forEach((keyframe, index) => {
         if (!timelineProperty[keyframe].hasOwnProperty('curve') || index === keyframes.length - 1 ||
-          !isDecomposableCurve(timelineProperty[keyframe].curve)) {
+          !isDecomposableCurve(timelineProperty[keyframe].curve as Curve)) {
           // There's naught to decompose here!
           return;
         }
@@ -1068,7 +1062,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
         // Shim in defaults for coupled properties that are not explicitly provided. Because we only currently
         // support multiplicative coupled properties (scale), this is straightforward.
         coupledPropertyList.filter((property) => !timelineHasProperties(timeline, property)).forEach((property) => {
-          timeline[property] = simulateLayoutProperty(LayoutPropertyType.Multiplicative);
+          timeline[property] = simulateLayoutProperty(LayoutPropertyType.Multiplicative) as BytecodeTimelineProperty;
         });
 
         const keyframeLists = coupledPropertyList.map((property) => keyframesFromTimelineProperty(timeline[property]));

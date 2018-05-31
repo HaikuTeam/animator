@@ -23,8 +23,6 @@ log.log(`uploading cdn core ${nowVersion()}`)
 
 const bundles = [
   ['dom', 'HaikuCore'],
-  ['dom', 'HaikuPlayer'], // Legacy
-  ['react-dom', 'HaikuReact'],
   ['vue-dom', 'HaikuVue']
 ]
 
