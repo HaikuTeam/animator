@@ -108,7 +108,7 @@ export default class HaikuElement extends HaikuBase {
   get layoutMatrix(): number[] {
     return (this.layout && this.layout.matrix) || Layout3D.createMatrix();
   }
-  
+
   get layoutAncestry(): any[] {
     if (!this.layout) {
       return [];
@@ -131,34 +131,48 @@ export default class HaikuElement extends HaikuBase {
   get layoutAncestryMatrices(): number[][] {
     return this.layoutAncestry.map((layout) => layout.matrix);
   }
-  
+
   get rootSVG(): HaikuElement {
     let parent = this.parent;
     while (parent) {
-      if (parent.type === 'svg') { return parent; }
+      if (parent.type === 'svg') {
+        return parent;
+      }
       parent = parent.parent;
     }
     return undefined;
   }
-  
+
   get isChildOfDefs(): boolean {
     let parent = this.parent;
     while (parent) {
-      if (parent.type === 'defs') { return true; }
+      if (parent.type === 'defs') {
+        return true;
+      }
       parent = parent.parent;
     }
     return false;
   }
-  
-  getTranscludedElement(): HaikuElement {
+
+  getTranscludedElement(): HaikuElement|undefined {
     if (this.type !== 'use') { return this; }
-    
-    let out;
-    let href = this.attributes['xlink:href'] || this.attributes['href'];
-    if (!href) { return out; }
-    href = href.substr(1);
-    this.rootSVG.visit((desc) => {
-      if (desc.id === href) {
+
+    const href = this.attributes['xlink:href'] || this.attributes['href'];
+
+    if (!href) {
+      return;
+    }
+
+    const rootSVG = this.rootSVG;
+
+    if (!rootSVG) {
+      return;
+    }
+
+    const address = href.substr(1);
+    let out: HaikuElement;
+    this.rootSVG.visit((desc: HaikuElement) => {
+      if (desc.id === address) {
         out = desc;
         return false;
       }

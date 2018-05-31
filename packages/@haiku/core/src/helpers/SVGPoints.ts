@@ -4,7 +4,7 @@
 
 import {BytecodeNode} from '../api/HaikuBytecode';
 import svgPoints from '../vendor/svg-points';
-import {PathSpec, LineSpec, RectSpec, CircleSpec, EllipseSpec, ShapeSpec} from '../vendor/svg-points/types';
+import {LineSpec, PathSpec, RectSpec, ShapeSpec} from '../vendor/svg-points/types';
 import parseCssValueString from './parseCssValueString';
 
 // In leiu of good math, this gives pretty good results for converting arcs to cubic beziers
@@ -44,9 +44,9 @@ const SVG_COMMAND_TYPES = {
   polygon: true,
 };
 
-const pointsRegex = /(\d+\.*\d*)((\s+,?\s*)|(,\s*))(\d+\.*\d*)/g;
+const POINTS_REGEX = /(\d+\.*\d*)((\s+,?\s*)|(,\s*))(\d+\.*\d*)/g;
 
-function polyPointsStringToPoints(pointsString: string) {
+function polyPointsStringToPoints(pointsString: string|string[][]) {
   if (!pointsString) {
     return [];
   }
@@ -55,7 +55,7 @@ function polyPointsStringToPoints(pointsString: string) {
   }
   const points = [];
   let matches;
-  while (matches = pointsRegex.exec(pointsString)) {
+  while (matches = POINTS_REGEX.exec(pointsString)) {
     const coord = [];
     if (matches[1]) {
       coord[0] = Number(matches[1]);
@@ -84,15 +84,19 @@ function pointsToPolyString(points: string|string[][]) {
   return arr.join(' ');
 }
 
-function rectToPoints(x: number, y: number, width: number, height: number, rx: number, ry: number) {
-  
+function rectToPoints(x: number, y: number, width: number, height: number, rxIn: number, ryIn: number) {
+  let rx = rxIn;
+  let ry = ryIn;
   if (rx || ry) {
-    // tslint:disable-next-line:no-parameter-reassignment
-    if (rx && isNaN(ry)) { ry = rx; } // Assume equal radius if ry is not defined (SVG)
-    // tslint:disable-next-line:no-parameter-reassignment
-    if (isNaN(rx)) { rx = 0; }
-    // tslint:disable-next-line:no-parameter-reassignment
-    if (isNaN(ry)) { ry = 0; }
+    if (rx && isNaN(ry)) {
+      ry = rx;
+    } // Assume equal radius if ry is not defined (SVG)
+    if (isNaN(rx)) {
+      rx = 0;
+    }
+    if (isNaN(ry)) {
+      ry = 0;
+    }
     return [
       {
         y,
@@ -161,21 +165,17 @@ function rectToPoints(x: number, y: number, width: number, height: number, rx: n
       },
     ];
   }
-  
+
   // Non-rounded rect
-  const shape = {x, y, width, height, rx, ry, type: 'rect'} as RectSpec;
-  return svgPoints.toPoints(shape);
+  const shape = {x, y, width, height, rx, ry, type: 'rect'};
+  return svgPoints.toPoints(shape as RectSpec);
 }
 
 function circleToPoints(cx: number, cy: number, r: number) {
-  // const shape = {type: 'circle', cx, cy, r} as CircleSpec;
-  // return svgPoints.toPoints(shape);
   return ellipseToPoints(cx, cy, r, r);
 }
 
 function ellipseToPoints(cx: number, cy: number, rx: number, ry: number) {
-  // const shape = {type: 'ellipse', cx, cy, rx, ry} as EllipseSpec;
-  // return svgPoints.toPoints(shape);
   return [
     {
       x: cx,
