@@ -99,15 +99,17 @@ export default class HaikuDOMRenderer extends HaikuBase {
       if (virtualElement.__targets) {
         for (let i = 0; i < virtualElement.__targets.length; i++) {
           const target = virtualElement.__targets[i];
-
-          HaikuDOMRenderer.updateElement(
-            target,
-            virtualElement,
-            target.parentNode,
-            virtualElement.__parent,
-            component,
-            true,
-          );
+          
+          if (target.parentNode) {
+            HaikuDOMRenderer.updateElement(
+              target,
+              virtualElement,
+              target.parentNode,
+              virtualElement.__parent,
+              component,
+              true,
+            );
+          }
         }
       }
     }

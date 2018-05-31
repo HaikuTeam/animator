@@ -1245,6 +1245,136 @@ export class Glass extends React.Component {
                     const transformedLocalMouse = geometryUtils.transform2DPoint(mouseDownPosition, Element.directlySelected.layoutAncestryMatrices.reverse())
 
                     switch (Element.directlySelected.type) {
+                      
+                      case 'rect': {
+                        const r = Element.directlySelected.attributes
+                        const points = SVGPoints.rectToPoints(
+                          Number(r.x), Number(r.y),
+                          Element.directlySelected.layout.sizeAbsolute.x,
+                          Element.directlySelected.layout.sizeAbsolute.y,
+                          Number(r.rx), Number(r.ry)
+                        )
+                        
+                        this.getActiveComponent().updateKeyframesAndTypes({
+                          [this.getActiveComponent().getCurrentTimelineName()]: {
+                            [Element.directlySelected.attributes['haiku-id']]: {
+                              d: {
+                                0: {
+                                  value: SVGPoints.pointsToPath(points)
+                                }
+                              },
+                              x: {
+                                0: null
+                              },
+                              y: {
+                                0: null
+                              },
+                              rx: {
+                                0: null
+                              },
+                              ry: {
+                                0: null
+                              }
+                            }
+                          }
+                        },
+                        {
+                          [Element.directlySelected.attributes['haiku-id']]: 'path'
+                        }, {from: 'glass'}, () => {})
+                        
+                        break
+                      }
+                      case 'circle': {
+                        const r = Element.directlySelected.attributes
+                        const points = SVGPoints.circleToPoints(Number(r.cx), Number(r.cy), Number(r.r))
+                        this.getActiveComponent().updateKeyframesAndTypes({
+                          [this.getActiveComponent().getCurrentTimelineName()]: {
+                            [Element.directlySelected.attributes['haiku-id']]: {
+                              d: {
+                                0: {
+                                  value: SVGPoints.pointsToPath(points)
+                                }
+                              },
+                              cx: {
+                                0: null
+                              },
+                              cy: {
+                                0: null
+                              },
+                              r: {
+                                0: null
+                              }
+                            }
+                          }
+                        },
+                        {
+                          [Element.directlySelected.attributes['haiku-id']]: 'path'
+                        }, {from: 'glass'}, () => {})
+                        
+                        break
+                      }
+                      case 'ellipse': {
+                        const r = Element.directlySelected.attributes
+                        const points = SVGPoints.ellipseToPoints(Number(r.cx), Number(r.cy), Number(r.rx), Number(r.ry))
+                        this.getActiveComponent().updateKeyframesAndTypes({
+                          [this.getActiveComponent().getCurrentTimelineName()]: {
+                            [Element.directlySelected.attributes['haiku-id']]: {
+                              d: {
+                                0: {
+                                  value: SVGPoints.pointsToPath(points)
+                                }
+                              },
+                              cx: {
+                                0: null
+                              },
+                              cy: {
+                                0: null
+                              },
+                              rx: {
+                                0: null
+                              },
+                              ry: {
+                                0: null
+                              }
+                            }
+                          }
+                        },
+                        {
+                          [Element.directlySelected.attributes['haiku-id']]: 'path'
+                        }, {from: 'glass'}, () => {})
+                        break
+                      }
+                      case 'line': {
+                        const r = Element.directlySelected.attributes
+                        const points = SVGPoints.lineToPoints(Number(r.x1), Number(r.y1), Number(r.x2), Number(r.y2))
+                        this.getActiveComponent().updateKeyframesAndTypes({
+                          [this.getActiveComponent().getCurrentTimelineName()]: {
+                            [Element.directlySelected.attributes['haiku-id']]: {
+                              d: {
+                                0: {
+                                  value: SVGPoints.pointsToPath(points)
+                                }
+                              },
+                              x1: {
+                                0: null
+                              },
+                              y1: {
+                                0: null
+                              },
+                              x2: {
+                                0: null
+                              },
+                              y2: {
+                                0: null
+                              }
+                            }
+                          }
+                        },
+                        {
+                          [Element.directlySelected.attributes['haiku-id']]: 'path'
+                        }, {from: 'glass'}, () => {})
+                        break
+                      }
                       case 'polygon':
                       case 'polyline': {
                         const normalPoints = []
