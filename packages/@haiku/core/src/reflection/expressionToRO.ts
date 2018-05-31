@@ -12,7 +12,7 @@ const OBJECT = 'object';
 
 // The inverse of this function is 'reifyRO'
 
-export default function expressionToRO(exp, options) {
+export default function expressionToRO(exp, options?) {
   if (typeof exp === FUNCTION) {
     return functionToRFO(exp);
   }

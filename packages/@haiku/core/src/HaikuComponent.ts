@@ -21,7 +21,6 @@ import ValueBuilder from './ValueBuilder';
 import assign from './vendor/assign';
 import {HaikuBytecode} from './api/HaikuBytecode';
 import StateTransitionManager, {StateTransitionParameters, StateValues} from './StateTransitionManager';
-import HaikuClock from './HaikuClock';
 import {Curve} from './api/Curve';
 
 const pkg = require('./../package.json');
@@ -365,7 +364,7 @@ export default class HaikuComponent extends HaikuElement {
       return this;
     }
 
-    // Set states is delegated to stateTransitionManager 
+    // Set states is delegated to stateTransitionManager
     this.stateTransitionManager.setState(states, transitionParameter);
 
     return this;
@@ -1342,7 +1341,7 @@ const propertyGroupNeedsExpressionEvaluated = (
 
     for (const keyframeMsKey in propertyKeyframes) {
       const keyframeMs = parseInt(keyframeMsKey, 10);
- 
+
       if (keyframeMs > leftBookend && keyframeMs <= timelineTime) {
         leftBookend = keyframeMs;
       }
