@@ -3,15 +3,19 @@ const PACKAGE = require('./../../package.json');
 import createDOM from 'haiku-testing/src/helpers/createDOM';
 // tslint:disable-next-line:variable-name
 const HaikuDOMAdapter = require('./../../lib/adapters/dom').default;
-import Config from './../../lib/Config';
 
-tape('passingOptions', (t) => {
-  t.plan(6);
+tape('component.getInjectables', (t) => {
+  t.plan(14);
 
   const bytecode = {
     // Checking that the bytecode itself can define options
     options: {
       contextMenu: 'foobar123',
+    },
+    states: {
+      baz: {
+        value: 'abc',
+      },
     },
     timelines: {
       Default: {
@@ -31,18 +35,12 @@ tape('passingOptions', (t) => {
     },
   };
 
-  // tslint:disable-next-line:variable-name
   createDOM('my/folder', (err, $mount, $root, $win) => {
     // Combo passing options at root and nested
-    const haikuComponentFactory = HaikuDOMAdapter(bytecode, {
-      position: 'yaya890',
-      overflowX: 'uio66',
-    },                                            $win);
+    const haikuComponentFactory = HaikuDOMAdapter(bytecode, {}, $win);
 
     // Pass loop at root level
     const component = haikuComponentFactory($mount, {
-      loop: true,
-      onHaikuComponentDidMount() {},
       states: {
         bux: {
           value: 9000,
@@ -50,14 +48,27 @@ tape('passingOptions', (t) => {
       },
     });
 
-    t.equal(component.config.loop, true, 'loop was set');
-    t.equal(component.config.contextMenu, 'foobar123', 'ctx menu was set');
-    t.equal(component.config.position, 'yaya890', 'pos was set');
-    t.equal(component.config.overflowX, 'uio66', 'overflow was set');
+    const injectables = component.getInjectables();
 
-    t.ok(component.config.onHaikuComponentDidMount);
+    t.ok(injectables.baz);
+    t.equal(injectables.baz, 'string');
 
-    t.equal(component._states.bux, 9000, 'states were set');
+    t.ok(injectables.bux);
+    t.equal(injectables.bux, 'number');
+
+    t.ok(injectables.$global);
+    t.ok(injectables.$core);
+    t.ok(injectables.$component);
+    t.ok(injectables.$root);
+
+    t.ok(injectables.$element);
+    t.ok(injectables.$element.properties);
+
+    t.ok(injectables.$tree);
+    t.ok(injectables.$flow);
+    t.ok(injectables.$user);
+
+    t.ok(injectables.$helpers);
 
     component.context.clock.GLOBAL_ANIMATION_HARNESS.cancel();
     $win['teardown']();

@@ -1,5 +1,3 @@
-'use strict';
-
 import * as tape from 'tape';
 const getParsedProperty = require('./../../lib/helpers/getParsedProperty').default;
 

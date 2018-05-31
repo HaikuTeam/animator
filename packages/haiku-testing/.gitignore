@@ -7,3 +7,4 @@ coverage/
 lib/
 checkstyle-result.xml
 test-result.tap
+tmp/

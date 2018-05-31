@@ -11,9 +11,9 @@ const os = require('os')
 
 const allPackages = require('./helpers/packages')()
 const groups = lodash.keyBy(allPackages, 'shortname')
+
 const ROOT = path.join(__dirname, '..')
-const plumbingPackage = groups['plumbing']
-const blankProject = path.join(plumbingPackage.abspath, 'test/fixtures/projects/blank-project/')
+const BLANK_PROJECT_DIR = path.join(groups['testing'].abspath, 'tmp/projects/blank-project/')
 
 let mainProcess
 
@@ -44,8 +44,8 @@ if (!inputs.branch) inputs.branch = _branch
 const FOLDER_CHOICES = {
   'default': null,
   'none': null,
-  'blank': blankProject,
-  'blank-noclean': blankProject,
+  'blank': BLANK_PROJECT_DIR,
+  'blank-noclean': BLANK_PROJECT_DIR,
   'primitives-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/primitives'),
   'percy-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/percybanking'),
   'statetransitions-core': path.join(ROOT, 'packages/@haiku/core/demo/projects/statetransitions'),
@@ -80,7 +80,7 @@ if (argv.default === true) {
 }
 
 const availablePresets = {
-  glass: 'mc4-glass',
+  glass: 'percy-glass',
   timeline: 'complex-timeline',
   blank: 'blank',
   'blank-noclean': 'blank-noclean'
@@ -224,9 +224,9 @@ function setup () {
   if (inputs.devChoice === 'everything') {
     global.process.env.HAIKU_PLUMBING_URL = 'http://0.0.0.0:1024'
     if (inputs.folderChoice === 'blank') {
-      fse.removeSync(blankProject)
-      fse.mkdirpSync(blankProject)
-      fse.outputFileSync(path.join(blankProject, '.keep'), '')
+      fse.removeSync(BLANK_PROJECT_DIR)
+      fse.mkdirpSync(BLANK_PROJECT_DIR)
+      fse.outputFileSync(path.join(BLANK_PROJECT_DIR, '.keep'), '')
     }
   } else {
     global.process.env.MOCK_ENVOY = true

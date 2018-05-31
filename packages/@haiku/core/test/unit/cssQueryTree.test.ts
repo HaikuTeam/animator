@@ -1,5 +1,3 @@
-'use strict';
-
 import * as tape from 'tape';
 const queryTree = require('./../../lib/helpers/cssQueryTree').default;
 
