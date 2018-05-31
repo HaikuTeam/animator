@@ -10,7 +10,7 @@
     "cross-env": "./bin/cross-env",
     "cross-env-shell": "./bin/cross-env-shell",
     "nyc": "./bin/nyc",
-    "tap-spec": "./bin/tap-spec",
+    "tap-spec": "tap-spec",
     "tape": "./bin/tape",
     "ts-node": "./bin/ts-node",
     "tsc": "./bin/tsc",
@@ -37,17 +37,17 @@
   "license": "UNLICENSED",
   "dependencies": {
     "@types/node": "8.9.4",
-    "@types/tape": "^4.2.30",
-    "cross-env": "^5.1.4",
+    "@types/tape": "^4.2.32",
+    "cross-env": "^5.1.6",
     "istanbul-reporter-cobertura-haiku": "^1.0.1",
     "nyc": "^11.8.0",
-    "sinon": "^4.0.1",
-    "tap-spec": "^4.1.1",
-    "tape": "^4.8.0",
-    "ts-node": "^6.0.3",
+    "sinon": "^5.0.10",
+    "tap-spec": "^4.1.2",
+    "tape": "^4.9.0",
+    "ts-node": "^6.0.5",
     "tsconfig-paths": "^3.3.2",
-    "tslint": "^5.7.0",
-    "tslint-config-haiku": "1.0.0",
-    "typescript": "^2.5.2"
+    "tslint": "^5.10.0",
+    "tslint-config-haiku": "^1.0.1",
+    "typescript": "^2.9.1"
   }
 }
