@@ -4,12 +4,10 @@
 
 import HaikuElement from '../HaikuElement';
 import Layout3D from '../Layout3D';
-import invert from '../vendor/gl-mat4/invert';
 import create from '../vendor/gl-mat4/create';
+import invert from '../vendor/gl-mat4/invert';
+import {CurveSpec} from '../vendor/svg-points/types';
 import SVGPoints from './SVGPoints';
-import visitManaTree from './visitManaTree';
-import getElementSize from '../renderers/dom/getElementSize';
-import {CurveSpec} from '@haiku/core/src/vendor/svg-points/types';
 
 // Number of pixels allowance for a line to be selected
 export const DEFAULT_LINE_SELECTION_THRESHOLD = 5;
@@ -28,12 +26,6 @@ export interface vec4 {
   w: number;
 }
 
-export class BezierPoint {
-  anchor: vec2;
-  h1: vec2;
-  h2: vec2;
-}
-
 export const bezierCubic = (a: vec2, h1: vec2, h2: vec2, b: vec2, t: number): vec2 => {
   const t2 = t * t;
   const t3 = t2 * t;
@@ -41,8 +33,8 @@ export const bezierCubic = (a: vec2, h1: vec2, h2: vec2, b: vec2, t: number): ve
   const mt2 = mt * mt;
   const mt3 = mt2 * mt;
   return {
-    x: a.x * mt3  +  3 * h1.x * mt2 * t  +  3 * h2.x * mt * t2  +  b.x * t3,
-    y: a.y * mt3  +  3 * h1.y * mt2 * t  +  3 * h2.y * mt * t2  +  b.y * t3,
+    x: a.x * mt3 + 3 * h1.x * mt2 * t + 3 * h2.x * mt * t2 + b.x * t3,
+    y: a.y * mt3 + 3 * h1.y * mt2 * t + 3 * h2.y * mt * t2 + b.y * t3,
   };
 };
 
@@ -72,42 +64,8 @@ export const buildPathLUT = (
       }
     }
   }
-  
+
   // TODO: Handle secondary paths? (return multiple arrays)
-  // The old code below may help
-  /*
-  static fromSVGPoints(points: SVGPoint[]): BezierPath[] {
-    const paths = []
-    
-    let curPath: BezierPath = null
-    let backPoint = null
-    
-    for(let i = 0; i < points.length; i++) {
-      if(!curPath) curPath = new BezierPath()
-      
-      const newPoint = new BezierPoint()
-      newPoint.anchor = {x: points[i].x, y: points[i].y}
-      if(i < points.length-1 && points[i+1].curve) {
-        newPoint.h2 = {x: points[i+1].curve.x1, y: points[i+1].curve.y1}
-      } else {
-        newPoint.h2 = null
-      }
-      if(points[i].curve) {
-        newPoint.h1 = {x: points[i].curve.x2, y: points[i].curve.y2}
-      } else {
-        newPoint.h1 = null
-      }
-      curPath.points.push(newPoint)
-      
-      if(points[i].closed) {
-        curPath.closed = true
-        paths.push(curPath)
-        curPath = null
-        i++; // ignore the final point after closing, it's a duplicate of the first point
-      }
-      
-    }
-  */
   return [out, points[points.length - 1].closed];
 };
 
@@ -119,7 +77,7 @@ export const splitSegmentInSVGPoints = (
 ): CurveSpec[] => {
   // tslint:disable-next-line
   if (pt2Index === points.length) { pt2Index = 0; }
-  
+
   let h1: vec2;
   let h2: vec2;
   if (points[pt2Index].curve) {
@@ -129,7 +87,7 @@ export const splitSegmentInSVGPoints = (
     h1 = points[pt1Index];
     h2 = points[pt2Index];
   }
-  
+
   const newPts = cubicBezierSplit(
     t,
     points[pt1Index],
@@ -137,14 +95,14 @@ export const splitSegmentInSVGPoints = (
     h2,
     points[pt2Index],
   );
-  
+
   if (points[pt2Index].curve) {
     points[pt2Index].curve.x1 = newPts[1][1].x;
     points[pt2Index].curve.y1 = newPts[1][1].y;
     points[pt2Index].curve.x2 = newPts[1][2].x;
     points[pt2Index].curve.y2 = newPts[1][2].y;
   }
-  
+
   let newCurve = null;
   if (points[pt2Index].curve) {
     newCurve = {
@@ -160,7 +118,7 @@ export const splitSegmentInSVGPoints = (
     y: newPts[0][3].y,
     curve: newCurve,
   };
-  
+
   points.splice(pt2Index, 0, newPoint);
   return points;
 };
@@ -185,40 +143,40 @@ const evenOddRaycastPointInPolygon = (points: vec2[], test: vec2): boolean => {
   for (let i = 0; i < points.length; i++) {
     if (i === 0) { j = points.length - 1; }
     else { j = i - 1; }
-    
+
     if ((points[i].y > test.y) !== (points[j].y > test.y) &&
       (test.x < (points[j].x - points[i].x) * (test.y - points[i].y) / (points[j].y - points[i].y) + points[i].x)) {
       intersections++;
     }
   }
-  
+
   return intersections % 2 === 1;
 };
 
 const vec2Add = (a: vec2, b: vec2): vec2 => {
   return {x: a.x + b.x, y: a.y + b.y};
 };
+
 const vec2Sub = (a: vec2, b: vec2): vec2 => {
   return {x: a.x - b.x, y: a.y - b.y};
 };
-const vec2Mul = (a: vec2, b: vec2): vec2 => {
-  return {x: a.x * b.x, y: a.y * b.y};
-};
+
 const vec2MulScalar = (a: vec2, n: number): vec2 => {
   return {x: a.x * n, y: a.y * n};
 };
-const vec2Div = (a: vec2, b: vec2): vec2 => {
-  return {x: a.x / b.x, y: a.y / b.y};
-};
+
 const vec2DivScalar = (a: vec2, n: number): vec2 => {
   return {x: a.x / n, y: a.y / n};
 };
+
 const vec2Dot = (a: vec2, b: vec2): number => {
   return a.x * b.x + a.y * b.y;
 };
+
 const vec2Mag = (a: vec2): number => {
   return Math.sqrt(a.x * a.x + a.y * a.y);
 };
+
 const vec2Normalize = (a: vec2): vec2 => {
   const mag = vec2Mag(a);
   if (mag) {
@@ -231,7 +189,7 @@ export const closestNormalPointOnLineSegment = (a: vec2, b: vec2, test: vec2): v
   const at = vec2Sub(test, a);
   const ab = vec2Normalize(vec2Sub(b, a));
   let normalPoint = vec2Add(a, vec2MulScalar(ab, vec2Dot(at, ab)));
-  
+
   // constrain to the line segement
   if (
     normalPoint.x < Math.min(a.x, b.x) ||
@@ -241,7 +199,7 @@ export const closestNormalPointOnLineSegment = (a: vec2, b: vec2, test: vec2): v
   ) {
     normalPoint = b;
   }
-  
+
   return normalPoint;
 };
 
@@ -272,20 +230,20 @@ export const transform2DPoint = (point: vec2, ancestryMatrices: any[]): vec2 => 
 
 export const isPointAlongStroke = (element: HaikuElement, point: vec2,
                                    threshold: number = DEFAULT_LINE_SELECTION_THRESHOLD): boolean => {
-  
+
   const original = element;
   if (element.type === 'use') {
     // tslint:disable-next-line
     element = element.getTranscludedElement();
   }
-  
+
   if (isNaN(threshold) || threshold < DEFAULT_LINE_SELECTION_THRESHOLD) {
     // tslint:disable-next-line
     threshold = DEFAULT_LINE_SELECTION_THRESHOLD;
   }
-  
+
   const correctedPoint = transform2DPoint(point, original.layoutAncestryMatrices.reverse());
-  
+
   switch (element.type) {
     case 'rect': {
       const p1 = {x: Number(element.attributes.x), y: Number(element.attributes.y)};
@@ -305,7 +263,7 @@ export const isPointAlongStroke = (element: HaikuElement, point: vec2,
       return dist <= radius + threshold / 2 && dist >= radius - threshold / 2;
     }
     case 'ellipse': {
-      const a = 
+      const a =
         Math.pow(correctedPoint.x - Number(element.attributes.cx), 2) / Math.pow(Number(element.attributes.rx), 2) +
         Math.pow(correctedPoint.y - Number(element.attributes.cy), 2) / Math.pow(Number(element.attributes.ry), 2);
       return 0.9 < a && a < 1.1; // TODO: Some actually good math here! Need to take stroke width into account
@@ -315,14 +273,14 @@ export const isPointAlongStroke = (element: HaikuElement, point: vec2,
         {x: Number(element.attributes.x1), y: Number(element.attributes.y1)},
         {x: Number(element.attributes.x2), y: Number(element.attributes.y2)},
         correctedPoint, threshold);
-    
+
     case 'polygon':
     case 'polyline': {
-      const polyPoints = 
+      const polyPoints =
         SVGPoints.polyPointsStringToPoints(element.attributes.points).map((pt) => ({x: pt[0], y: pt[1]}));
       return pointOnPolyLineSegment(polyPoints, correctedPoint, threshold);
     }
-    
+
     case 'path': {
       // Build a straight-line approximation of the path and use the same algorithm as polygon
       const [points, closed] = buildPathLUT(SVGPoints.pathToPoints(element.attributes.d));
@@ -330,74 +288,66 @@ export const isPointAlongStroke = (element: HaikuElement, point: vec2,
       return pointOnPolyLineSegment(points, correctedPoint, threshold);
     }
   }
-  
+
   return false;
 };
 
 export const isPointInsidePrimitive = (element: HaikuElement, point: vec2): boolean => {
-  
+
   const original = element;
   if (element.type === 'use') {
-    // tslint:disable-next-line
+    // tslint:disable-next-line:no-parameter-reassignment
     element = element.getTranscludedElement();
   }
-  
+
   const correctedPoint = transform2DPoint(point, original.layoutAncestryMatrices.reverse());
-  
+
   switch (element.type) {
     case 'rect':
-      if (
-          correctedPoint.x >= Number(element.attributes.x) &&
-          correctedPoint.x <= Number(element.attributes.x) + element.sizeX &&
-          correctedPoint.y >= Number(element.attributes.y) &&
-          correctedPoint.y <= Number(element.attributes.y) + element.sizeY
-        ) { return true; }
-      return false;
-      
+      return correctedPoint.x >= Number(element.attributes.x) && correctedPoint.x <= Number(element.attributes.x) +
+        element.sizeX && correctedPoint.y >= Number(element.attributes.y) && correctedPoint.y <=
+        Number(element.attributes.y) + element.sizeY;
+
+
     case 'circle':
-      if (
-        distance(correctedPoint, {x: Number(element.attributes.cx), y: Number(element.attributes.cy)}) 
-        <=
-        Number(element.attributes.r)) {
-        return true;
-      }
-      return false;
-    
+      return distance(
+        correctedPoint,
+        {
+          x: Number(element.attributes.cx),
+          y: Number(element.attributes.cy),
+        },
+      ) <= Number(element.attributes.r);
+
+
     case 'ellipse':
-      if (
-        Math.pow(correctedPoint.x - Number(element.attributes.cx), 2) / Math.pow(Number(element.attributes.rx), 2) +
-        Math.pow(correctedPoint.y - Number(element.attributes.cy), 2) / Math.pow(Number(element.attributes.ry), 2)
-        <= 1
-      ) { return true; }
-      return false;
-    /*
-    case 'polyline': {
-      const polyPoints = 
-        SVGPoints.polyPointsStringToPoints(element.attributes.points).map((pt) => ({x: pt[0], y: pt[1]}));
-      return pointOnPolyLineSegment(polyPoints, correctedPoint);
-    }
-    */
-    case 'polygon': {
-      const polyPoints = 
+      return Math.pow(correctedPoint.x - Number(element.attributes.cx), 2) / Math.pow(
+        Number(element.attributes.rx),
+        2,
+      ) + Math.pow(correctedPoint.y - Number(element.attributes.cy), 2) / Math.pow(
+        Number(element.attributes.ry),
+        2,
+      ) <= 1;
+
+    case 'polygon':
+      const polyPoints =
         SVGPoints.polyPointsStringToPoints(element.attributes.points).map((pt) => ({x: pt[0], y: pt[1]}));
       return evenOddRaycastPointInPolygon(polyPoints, correctedPoint);
-    }
-    
-    case 'path': {
+
+    case 'path':
       // Build a straight-line approximation of the path and use the same algorithm as polygon
       const [points] = buildPathLUT(SVGPoints.pathToPoints(element.attributes.d));
       return evenOddRaycastPointInPolygon(points, correctedPoint);
-    }
+
+    default:
+      return false;
   }
-  
-  return false;
 };
 
 function mat4_multiply_vec4(m: number[], v: vec4): vec4 {
   return {
-    x: v.x * m[0]  + v.y * m[1]  + v.z * m[2]  + v.w * m[3],
-    y: v.x * m[4]  + v.y * m[5]  + v.z * m[6]  + v.w * m[7],
-    z: v.x * m[8]  + v.y * m[9]  + v.z * m[10] + v.w * m[11],
+    x: v.x * m[0] + v.y * m[1] + v.z * m[2] + v.w * m[3],
+    y: v.x * m[4] + v.y * m[5] + v.z * m[6] + v.w * m[7],
+    z: v.x * m[8] + v.y * m[9] + v.z * m[10] + v.w * m[11],
     w: v.x * m[12] + v.y * m[13] + v.z * m[14] + v.w * m[15],
   };
 }
@@ -407,23 +357,47 @@ export const cubicBezierSplit = (
   t: number, anchor1: vec2, handle1: vec2, handle2: vec2, anchor2: vec2,
 ): [[vec2,vec2,vec2,vec2],[vec2,vec2,vec2,vec2]] => {
   const cubicSegmentMatrix1 = [
-    1,                 0,                    0,             0,
-    -(t - 1),            t,                    0,             0,
-    Math.pow(t - 1, 2),  -2 * t * (t - 1),           t * t,           0,
-    -Math.pow(t - 1, 3), 3 * t * Math.pow(t - 1, 2), -3 * t * t * (t - 1),  t * t * t,
+    1,
+    0,
+    0,
+    0,
+    -(t - 1),
+    t,
+    0,
+    0,
+    Math.pow(t - 1, 2),
+    -2 * t * (t - 1),
+    t * t,
+    0,
+    -Math.pow(t - 1, 3),
+    3 * t * Math.pow(t - 1, 2),
+    -3 * t * t * (t - 1),
+    t * t * t,
   ];
   const x1 = mat4_multiply_vec4(cubicSegmentMatrix1, {x: anchor1.x, y: handle1.x, z: handle2.x, w: anchor2.x});
   const y1 = mat4_multiply_vec4(cubicSegmentMatrix1, {x: anchor1.y, y: handle1.y, z: handle2.y, w: anchor2.y});
-  
+
   const cubicSegmentMatrix2 = [
-    -Math.pow(t - 1, 3), 3 * t * Math.pow(t - 1, 2), -3 * t * t * (t - 1),  t * t * t,
-    0,                   Math.pow(t - 1, 2),         -2 * t * (t - 1),      t * t,
-    0,                   0,                          -(t - 1),              t,
-    0,                   0,                          0,                     1,
+    -Math.pow(t - 1, 3),
+    3 * t * Math.pow(t - 1, 2),
+    -3 * t * t * (t - 1),
+    t * t * t,
+    0,
+    Math.pow(t - 1, 2),
+    -2 * t * (t - 1),
+    t * t,
+    0,
+    0,
+    -(t - 1),
+    t,
+    0,
+    0,
+    0,
+    1,
   ];
   const x2 = mat4_multiply_vec4(cubicSegmentMatrix2, {x: anchor1.x, y: handle1.x, z: handle2.x, w: anchor2.x});
   const y2 = mat4_multiply_vec4(cubicSegmentMatrix2, {x: anchor1.y, y: handle1.y, z: handle2.y, w: anchor2.y});
-  
+
   return [
     [{x: x1.x, y: y1.x}, {x: x1.y, y: y1.y}, {x: x1.z, y: y1.z}, {x: x1.w, y: y1.w}],
     [{x: x2.x, y: y2.x}, {x: x2.y, y: y2.y}, {x: x2.z, y: y2.z}, {x: x2.w, y: y2.w}],
