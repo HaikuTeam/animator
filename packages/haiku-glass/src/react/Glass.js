@@ -1069,8 +1069,6 @@ export class Glass extends React.Component {
     }
 
     this.state.isMouseDown = true
-    const mouseDownTimeDiff = this.state.lastMouseDownTime ? Date.now() - this.state.lastMouseDownTime : null
-    const isDoubleClick = mouseDownTimeDiff ? mouseDownTimeDiff <= DOUBLE_CLICK_THRESHOLD_MS : false
     this.state.lastMouseDownTime = Date.now()
     const mouseDownPosition = this.storeAndReturnMousePosition(mousedownEvent, 'lastMouseDownPosition')
 
@@ -1081,7 +1079,6 @@ export class Glass extends React.Component {
         const meta = mousedownEvent.nativeEvent.target.getAttribute('data-meta') && mousedownEvent.nativeEvent.target.getAttribute('data-meta').length ? parseInt(mousedownEvent.nativeEvent.target.getAttribute('data-meta'), 10) : null
 
         // NOTE: go select the previous vertex when a RHS handle is selected
-        // if(meta != null && meta == 0) dataIndex--;
 
         // Convert between corners and curves
         if (Globals.isSpecialKeyDown() && Element.directlySelected.type === 'path' && meta == null) {
@@ -1249,6 +1246,12 @@ export class Glass extends React.Component {
                 this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
                   this.ensureElementIsSelected(elementTargeted, finish)
 
+                  if (!experimentIsEnabled(Experiment.DirectSelectionOfPrimitives)) {
+                    return
+                  }
+
+                  const mouseDownTimeDiff = this.state.lastMouseDownTime ? Date.now() - this.state.lastMouseDownTime : null
+                  const isDoubleClick = mouseDownTimeDiff ? mouseDownTimeDiff <= DOUBLE_CLICK_THRESHOLD_MS : false
                   const prevDirectlySelected = Element.directlySelected
                   let clickedItemFound = false
                   if (isDoubleClick) {
@@ -1707,7 +1710,6 @@ export class Glass extends React.Component {
       isOriginPanning: false,
       globalControlPointHandleClass: '',
       controlActivation: null
-      // directSelectionAnchorActivation: null
     })
 
     this.fetchProxyElementForSelection().initializeRotationSnap()
@@ -1911,7 +1913,10 @@ export class Glass extends React.Component {
           (mousemoveEvent.nativeEvent.clientY - this.state.stageMouseDown.y) * viewportTransform.zoom
         )
       } else if (!this.isPreviewMode()) {
-        if (Element.directlySelected && this.state.directSelectionAnchorActivation != null) {
+        if (
+          experimentIsEnabled(Experiment.DirectSelectionOfPrimitives) &&
+          Element.directlySelected && this.state.directSelectionAnchorActivation != null
+        ) {
           const transformedCurrent = transform2DPoint(mousePositionCurrent, Element.directlySelected.layoutAncestryMatrices.reverse())
           const transformedPrevious = transform2DPoint(mousePositionPrevious, Element.directlySelected.layoutAncestryMatrices.reverse())
           const transformedDelta = {
@@ -2334,6 +2339,9 @@ export class Glass extends React.Component {
       case 'path':
       case 'polygon':
         overlays.push(directSelectionMana[element.type](element.id, element.attributes, original.layoutAncestryMatrices, selectedAnchorIndices || []))
+        break
+      default:
+        // ...noop.
     }
   }
 
