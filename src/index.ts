@@ -41,18 +41,38 @@ const ENDPOINTS = {
   CANNY_ACCCESS_TOKEN_GET: 'v0/integrations/canny/token',
 };
 
-let request: {get: Function, post: Function, put: Function, delete: Function};
+export type RequestInstance = {
+  get: (options: requestLib.OptionsWithUrl, cb: requestLib.RequestCallback) => void;
+  post: (options: requestLib.OptionsWithUrl, cb: requestLib.RequestCallback) => void;
+  put: (options: requestLib.OptionsWithUrl, cb: requestLib.RequestCallback) => void;
+  delete: (options: requestLib.OptionsWithUrl, cb: requestLib.RequestCallback) => void;
+};
 
-const getInstanceWithDefaults = (defaults) => {
+let request: RequestInstance;
+
+const getInstanceWithDefaults = (defaults: requestLib.CoreOptions): RequestInstance => {
   if (typeof requestLib.defaults === 'function') {
     return requestLib.defaults(defaults);
   }
 
   return {
-    get: (options, cb) => requestLib.get({...defaults, ...options}, cb),
-    post: (options, cb) => requestLib.post({...defaults, ...options}, cb),
-    put: (options, cb) => requestLib.put({...defaults, ...options}, cb),
-    delete: (options, cb) => requestLib.del({...defaults, ...options}, cb),
+    get: (
+      options: requestLib.OptionsWithUrl, cb: requestLib.RequestCallback) => requestLib.get(
+      {...defaults, ...options},
+      cb,
+    ),
+    post: (options: requestLib.OptionsWithUrl, cb: requestLib.RequestCallback) => requestLib.post(
+      {...defaults, ...options},
+      cb,
+    ),
+    put: (options: requestLib.OptionsWithUrl, cb: requestLib.RequestCallback) => requestLib.put(
+      {...defaults, ...options},
+      cb,
+    ),
+    delete: (options: requestLib.OptionsWithUrl, cb: requestLib.RequestCallback) => requestLib.del(
+      {...defaults, ...options},
+      cb,
+    ),
   };
 };
 
@@ -172,7 +192,7 @@ export namespace inkstone {
       IsAdmin: boolean;
     }
 
-    export function authenticate(username, password, cb: inkstone.Callback<Authentication>) {
+    export function authenticate(username: string, password: string, cb: inkstone.Callback<Authentication>) {
       const formData = {
         username,
         password,
