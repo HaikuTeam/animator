@@ -85,6 +85,8 @@ export default class Creator extends React.Component {
     this.onNavigateToDashboard = this.onNavigateToDashboard.bind(this)
     this.disablePreviewMode = this.disablePreviewMode.bind(this)
     this.clearAuth = this.clearAuth.bind(this)
+    this.tryToChangeCurrentActiveComponent = this.tryToChangeCurrentActiveComponent.bind(this)
+    this.setNonSavedContentOnCodeEditor = this.setNonSavedContentOnCodeEditor.bind(this)
     this.layout = new EventEmitter()
     this.activityMonitor = new ActivityMonitor(window, this.onActivityReport.bind(this))
 
@@ -127,7 +129,11 @@ export default class Creator extends React.Component {
       servicesEnvoyClient: null,
       projToDuplicateIndex: null,
       showGlass: true,
+      showPopupToSaveRawEditorContents: false,
+      nonSavedContentOnCodeEditor: false,
     }
+
+
 
     this.envoyOptions = {
       token: this.props.haiku.envoy.token,
@@ -232,6 +238,7 @@ export default class Creator extends React.Component {
     ipcRenderer.on('global-menu:set-active-component', lodash.debounce((ipcEvent, scenename) => {
       logger.info(`[creator] global-menu:set-active-component`)
       this.state.projectModel.setCurrentActiveComponent(scenename, {from: 'creator'}, () => {})
+      //this.tryToChangeCurrentActiveComponent(scenename)
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:zoom-in', lodash.debounce(() => {
@@ -570,13 +577,6 @@ export default class Creator extends React.Component {
           break
 
         case 'component:reload':
-          if (this.getActiveComponent()) {
-            console.log('::::::::::: ACTIVE2')
-            this.getActiveComponent().moduleReplace(() => {
-              const content = this.getActiveComponent().fetchActiveBytecodeFile().getCode()
-              this.setState({componentFileContents: content})
-            })
-          }
           break
 
         case 'project-state-change':
@@ -1088,13 +1088,6 @@ export default class Creator extends React.Component {
                   // And if we don't have anything assigned, assume we're editing the main component
                   this.state.projectModel.setCurrentActiveComponent('main', {from: 'creator'}, () => { })
                 }
-
-                if (this.getActiveComponent()) {
-                  this.getActiveComponent().moduleReplace(() => {
-                    const content = this.getActiveComponent().fetchActiveBytecodeFile().getCode()
-                    this.setState({componentFileContents: content})
-                  })
-                }
               })
             })
 
@@ -1473,6 +1466,26 @@ export default class Creator extends React.Component {
     this.setState({ readyForAuth: true, isUserAuthenticated: false, username: '' })
   }
 
+  // Check if currently edited file is open
+  tryToChangeCurrentActiveComponent (scenename) {
+    //logger.info("%%%%%%%%%%%%%%%%%%%%tryToChangeCurrentActiveComponent")
+    
+    //console.log('#######################nonSavedContentOnCodeEditor', this.state.nonSavedContentOnCodeEditor )
+
+    // if (this.state.nonSavedContentOnCodeEditor){
+    //   this.setState({showPopupToSaveRawEditorContents: true});
+    //   this.state.projectModel.setCurrentActiveComponent(scenename, {from: 'creator'}, () => {})
+    // }
+    // else{
+      this.state.projectModel.setCurrentActiveComponent(scenename, {from: 'creator'}, () => {})
+    // }
+  }
+
+  setNonSavedContentOnCodeEditor (nonSavedContentOnCodeEditor) {
+    // debugger;
+    this.setState({nonSavedContentOnCodeEditor: nonSavedContentOnCodeEditor})
+  }
+
   setProjectLaunchStatus ({ launchingProject, newProjectLoading }) {
     if (launchingProject !== undefined) {
       this.setState({ launchingProject })
@@ -1847,7 +1860,10 @@ export default class Creator extends React.Component {
                     showGlass={this.state.showGlass}
                     onSwitchToCodeMode={() => { this.switchToCodeMode() }}
                     onSwitchToDesignMode={() => { this.switchToDesignMode() }}
-                    componentFileContents={this.state.componentFileContents}
+                    tryToChangeCurrentActiveComponent={this.tryToChangeCurrentActiveComponent}
+                    showPopupToSaveRawEditorContents={this.state.showPopupToSaveRawEditorContents}
+                    setNonSavedContentOnCodeEditor={this.setNonSavedContentOnCodeEditor}
+                    nonSavedContentOnCodeEditor={this.state.nonSavedContentOnCodeEditor}
                   />
                   {(this.state.assetDragging)
                     ? <div style={{ width: '100%', height: '100%', backgroundColor: 'white', opacity: 0.01, position: 'absolute', top: 0, left: 0 }} />

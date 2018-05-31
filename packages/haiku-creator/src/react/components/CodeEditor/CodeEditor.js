@@ -30,10 +30,14 @@ class CodeEditor extends React.Component {
             // TODO: this logic could be migrated in the future to Monaco Editor
             // getDerivedStateFromProps on react 16+ 
             if (newComponentCode!==this.state.currentComponentCode){
-              console.log('Current component code changed!', {newComponentCode: newComponentCode})
-              this.setState({currentEditorContents: newComponentCode})
+              // This probably is portable to getDerivedStateFromProps
+              this.setState({currentComponentCode: newComponentCode, currentEditorContents: newComponentCode}, () => {
+                this.onMonacoEditorChange(newComponentCode, null)
+              })
             }
-            this.setState({currentComponentCode: newComponentCode})
+            else{
+              this.setState({currentComponentCode: newComponentCode})
+            }
             break
         }
       })
@@ -42,6 +46,7 @@ class CodeEditor extends React.Component {
 
   onMonacoEditorChange = (newContent, e) => {
     this.setState({currentEditorContents: newContent})
+    this.props.setNonSavedContentOnCodeEditor(this.state.currentComponentCode!==this.state.currentEditorContents)
   }
 
   saveCodeFromEditorToDisk = () => {
@@ -93,7 +98,7 @@ class CodeEditor extends React.Component {
           height: '100%'
         }}
         onChange={this.onMonacoEditorChange}
-                />
+      />
     </div>
   }
 }

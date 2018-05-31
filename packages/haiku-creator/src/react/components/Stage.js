@@ -8,6 +8,8 @@ import CodeEditor from './CodeEditor/CodeEditor'
 import Palette from 'haiku-ui-common/lib/Palette'
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 import {TOUR_CHANNEL} from 'haiku-sdk-creator/lib/tour'
+import {ModalWrapper, ModalHeader} from 'haiku-ui-common/lib/react/Modal'
+import {BTN_STYLES} from '../styles/btnShared'
 
 const STAGE_BOX_STYLE = {
   overflow: 'hidden',
@@ -16,6 +18,29 @@ const STAGE_BOX_STYLE = {
   width: '100%',
   height: '100%',
   outline: 'none'
+}
+
+
+
+const STYLES = {
+  wrapper: {
+    fontSize: '14px',
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
+    backgroundColor: Palette.GRAY
+  },
+  modalWrapper: {
+    maxWidth: '600px',
+    top: '50%',
+    transform: 'translateY(-50%)'
+  },
+  modalBody: {
+    padding: '20px'
+  },
+  listItem: {
+    marginBottom: '8px'
+  }
 }
 
 // This may not be precisely correct; please test the UI if you enable this experiment
@@ -28,7 +53,6 @@ export default class Stage extends React.Component {
     super(props)
     this.webview = null
     this.onRequestWebviewCoordinates = this.onRequestWebviewCoordinates.bind(this)
-    this.state = {}
   }
 
   componentDidMount () {
@@ -162,6 +186,55 @@ export default class Stage extends React.Component {
     }
   }
 
+  renderModal () {
+    return (
+      <div style={STYLES.wrapper}>
+        <ModalWrapper style={STYLES.modalWrapper}>
+          <ModalHeader>
+            <h2>Do you want to save the file?</h2>
+          </ModalHeader>
+          <div style={STYLES.modalBody}>
+          Do you want to save the file or discard every change?     
+
+          <div style={[{display: 'inline-block'}]} >
+          <button
+            key='save-code'
+            id='save-code'
+            onClick={this.props.onSwitchToDesignMode}
+            style={[
+              BTN_STYLES.btnText,
+              BTN_STYLES.centerBtns,
+              {
+                display: 'inline-block',
+                marginRight: '0px'
+              }
+            ]}
+          >
+            <span style={{marginLeft: 7}}>Save</span>
+          </button>
+
+          <button
+            key='discard-code'
+            id='discard-code'
+            onClick={this.props.onSwitchToCodeMode}
+            style={[
+              BTN_STYLES.btnText,
+              BTN_STYLES.centerBtns,
+              {
+                display: 'inline-block',
+                marginRight: '0px'
+              }
+            ]}
+          >
+            <span style={{marginLeft: 7}}>Discard</span>
+          </button>
+        </div>
+          </div>
+        </ModalWrapper>
+      </div>
+    )
+  }
+
   render () {
     const interactionModeColor = this.props.isPreviewMode
       ? Palette.LIGHTEST_PINK
@@ -174,6 +247,7 @@ export default class Stage extends React.Component {
         <div
           className='stage-box'
           style={STAGE_BOX_STYLE}>
+          {this.props.nonSavedContentOnCodeEditor && this.renderModal()}
           <StageTitleBar
             folder={this.props.folder}
             envoyProject={this.props.envoyProject}
@@ -195,12 +269,15 @@ export default class Stage extends React.Component {
             onSwitchToCodeMode={this.props.onSwitchToCodeMode}
             onSwitchToDesignMode={this.props.onSwitchToDesignMode}
             showGlass={this.props.showGlass}
-          />
-          {(experimentIsEnabled(Experiment.MultiComponentFeatures))
-            ? <ComponentMenu
+            />
+          {(experimentIsEnabled(Experiment.MultiComponentFeatures)) && 
+            <ComponentMenu
               ref='component-menu'
-              projectModel={this.props.projectModel} />
-            : ''}
+              projectModel={this.props.projectModel} 
+              nonSavedContentOnCodeEditor={this.props.nonSavedContentOnCodeEditor}
+              tryToChangeCurrentActiveComponent={this.props.tryToChangeCurrentActiveComponent}
+            />
+          }
           <div
             id='stage-mount'
             ref={(element) => { this.mount = element }}
@@ -231,6 +308,8 @@ export default class Stage extends React.Component {
             <CodeEditor
               showGlass={this.props.showGlass}
               projectModel={this.props.projectModel}
+              setNonSavedContentOnCodeEditor={this.props.setNonSavedContentOnCodeEditor}
+              showPopupToSaveRawEditorContents={this.props.showPopupToSaveRawEditorContents}
               />
           </div>
 
