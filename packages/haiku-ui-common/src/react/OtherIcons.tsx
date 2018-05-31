@@ -2,8 +2,12 @@
 import * as React from 'react';
 import Palette from './../Palette';
 
+export type IconArguments = {
+  [key in string]: any;
+};
+
 // Button Icons Wrapper
-export const ButtonIconSVG = (props) => (
+export const ButtonIconSVG = (props: any) => (
   <svg
     className="btn-icon"
     viewBox="0 0 32 32">
@@ -12,7 +16,7 @@ export const ButtonIconSVG = (props) => (
 );
 
 // Button Icons Wrapper
-export const MenuIconSVG = ({children, width = 20, height = 20}) => (
+export const MenuIconSVG = ({children, width = 20, height = 20}: IconArguments) => (
   <svg
     width={width}
     height={height}
@@ -22,7 +26,7 @@ export const MenuIconSVG = ({children, width = 20, height = 20}) => (
 );
 
 // Library Asset Icons Wrapper
-export const LibIconSVG = ({children, viewbox = '0 0 16 14'}) => (
+export const LibIconSVG = ({children, viewbox = '0 0 16 14'}: IconArguments) => (
   <svg
     viewBox={viewbox}
     width="16px"
@@ -32,7 +36,7 @@ export const LibIconSVG = ({children, viewbox = '0 0 16 14'}) => (
 );
 
 // Primitives Icons Wrapper
-export const PrimitivesSVG = (props) => (
+export const PrimitivesSVG = (props: any) => (
   <svg
     viewBox="0 0 14 14"
     width="14px"
@@ -126,7 +130,7 @@ export const EventsBoltIcon = ({color = '#93999A'}) => (
   </svg>
 );
 
-export const PrimitiveIconSVG = (props) => {
+export const PrimitiveIconSVG = (props: any) => {
   let svgCode = <g></g>;
   switch (props.type) {
     case 'Rectangle':
@@ -344,13 +348,13 @@ export const ShareSVG = ({color = '#BDCCCD', fill = 'black'}) => (
   </svg>
 );
 
-export const PointerSVG = (props) => (
+export const PointerSVG = (props: any) => (
   <svg width="10" height="16">
     <path stroke="#FFF" d="M1 1.438V13.25l2.842-2.188L5.737 15l2.368-.875-1.42-4.375H10L1 1z"/>
   </svg>
 );
 
-export const PenSVG = (props) => (
+export const PenSVG = (props: any) => (
   <svg width="14" height="14">
     <g fill="#FFF">
       <path d="M9.93.093L8.153 1.878l3.869 3.887 1.793-1.868zM6.554 3.244L3.307 5.13l-3.11 6.93.203.43 3.478-3.545.264-.957 1.059-.304.915.94v1.063l-1.368.484-3.184 3.276.364.305L9.06 10.74l1.641-3.453v-.508l-3.69-3.694z"/>
@@ -358,7 +362,7 @@ export const PenSVG = (props) => (
   </svg>
 );
 
-export const DropTriangle = (props) => (
+export const DropTriangle = (props: any) => (
   <svg width="25px" height="25px" viewBox="0 0 25 25" style={{position: 'absolute', top: '0', left: 0}}>
     <polygon fill="#FFFFFF" points="23 17 23 23 17 23" />
   </svg>
@@ -373,7 +377,7 @@ export const LogOutSVG = ({color = '#BDCCCD'}) => (
   </svg>
 );
 
-export const BrushSVG = (props) => (
+export const BrushSVG = (props: any) => (
   <svg width="14" height="14">
   <g fill="#FFF">
     <path d="M13.252.105l-7.008 8.1 1.217 1.47L13.825.842c.058-.416.058-.661 0-.736-.058-.075-.249-.075-.573 0zM5.215 9.492H3.863c-.553.58-.967 1.024-1.241 1.33-.275.307-.696.663-1.262 1.07l-1.332.245c.438.606.809 1.013 1.113 1.22.305.207.799.387 1.48.54h1.91c.664-.374 1.102-.685 1.313-.932.211-.246.464-.781.76-1.605-.17-.463-.322-.787-.458-.97-.135-.182-.446-.482-.93-.898z"/>
@@ -398,7 +402,7 @@ export const LightIconSVG = ({color = '#93999A'}) => (
   </svg>
 );
 
-export const LogoMicroSVG = ({color = Palette.ROCK, size = 14, style}) => (
+export const LogoMicroSVG = ({color = Palette.ROCK, size = 14, style}: IconArguments) => (
   <svg width={size} height={size} viewBox="0 0 16 16" style={style}>
     <path d="M9.181 8.514v1.942a.43.43 0 0 1-.423.438.41.41 0 0 1-.188-.046.42.42 0 0 1-.027-.01L2.86 8.373a.419.419 0 0 1-.312-.149.443.443 0 0 1-.17-.351V2.849a.47.47 0 0 1-.036-.054l-.27-.113-1.224-.513v11.993l1.53.64v-4.03-.02a.45.45 0 0 1 .033-.19.418.418 0 0 1 .554-.234l5.713 2.477.11.051c.22.016.394.206.394.438v.868l1.516.634.015.006V7.813l-1.53.7zm-.846.206L5.248 7.38l-1.245.538 4.332 1.878V8.72zm-5.112 2.67v3.479l1.53-.64v-2.175l-1.53-.663zm-.414 4.606a.417.417 0 0 1-.301-.121l-.437-.183-1.718-.72A.434.434 0 0 1 0 14.542v-.023V1.507a.485.485 0 0 1 0-.04v-.004c0-.134.058-.253.149-.334a.453.453 0 0 1 .136-.088L2.627.06a.441.441 0 0 1 .4-.024L5.224.99h.018a.43.43 0 0 1 .423.438v2.927l2.67-1.113V1.507a.485.485 0 0 1 0-.04V1.43c0-.234.178-.426.402-.437L10.962.06a.441.441 0 0 1 .4-.023l2.289.994a.434.434 0 0 1 .349.432V14.54a.441.441 0 0 1-.21.378.453.453 0 0 1-.14.093l-2.28.953a.442.442 0 0 1-.43-.05l-.585-.244-1.735-.727a.466.466 0 0 1-.285-.448v-.89l-.006-.002.006-.013v.016L5.6 12.42v2.116a.46.46 0 0 1-.002.039.472.472 0 0 1-.285.436l-2.277.953a.44.44 0 0 1-.227.03zm8.75-1.127l1.594-.668V2.194l-1.595.667v1.465a.443.443 0 0 1-.158.342.423.423 0 0 1-.17.132L6.347 6.907l2.183.947 2.394-1.096a.418.418 0 0 1 .565.24c.044.07.07.152.07.242v7.63zm-.847-12.02a.47.47 0 0 1-.036-.054l-.27-.113-1.225-.513v1.017l1.53.64V2.85zM3.223 7.306l1.596-.689V2.194l-1.596.667v4.445zM5.665 5.3v.951l4.14-1.787-1.055-.441a.456.456 0 0 1-.01-.005L5.664 5.301zm4.32-3.814l.763.32.449.188 1.179-.494-1.19-.517-1.201.503zm-8.335 0l.763.32.449.188 1.18-.494-1.19-.517-1.202.503z" fill={color}/>
   </svg>

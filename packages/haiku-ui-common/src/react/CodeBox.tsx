@@ -1,19 +1,20 @@
+/* tslint:disable:import-name */
 import * as React from 'react';
 import Palette from '../Palette';
-// tslint:disable-next-line
+// @ts-ignore
 import SyntaxHighlighter, {registerLanguage} from 'react-syntax-highlighter/prism-light';
+// @ts-ignore
 import jsx from 'react-syntax-highlighter/languages/prism/jsx';
+// @ts-ignore
 import {atomDark} from 'react-syntax-highlighter/styles/prism';
 
 registerLanguage('jsx', jsx);
 
-export class CodeBox extends React.PureComponent {
-  props;
+export type CodeBoxProps = {
+  lang?: string;
+};
 
-  static propTypes = {
-    lang: React.PropTypes.string,
-  };
-
+export class CodeBox extends React.PureComponent<CodeBoxProps> {
   static defaultProps = {
     lang: 'jsx',
   };

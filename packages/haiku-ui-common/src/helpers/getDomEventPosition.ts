@@ -1,4 +1,4 @@
-function getDomEventPosition(event, doc) {
+function getDomEventPosition(event: MouseEvent, doc: HTMLDocument) {
   let x = -1;
   let y = -1;
   if (event.pageX || event.pageY) {

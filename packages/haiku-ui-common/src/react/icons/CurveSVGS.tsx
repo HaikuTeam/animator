@@ -1,7 +1,13 @@
 /* tslint:disable:variable-name */
 import * as React from 'react';
 
-export const EaseInOutQuartSVG = ({leftGradFill, rightGradFill, id}) => (
+export type CurveProps = {
+  leftGradFill: string;
+  rightGradFill: string;
+  id: string;
+};
+
+export const EaseInOutQuartSVG = ({leftGradFill, rightGradFill, id}: CurveProps) => (
   <svg width="100%" height="20px" viewBox="0 0 224 46" preserveAspectRatio="none">
     <defs>
       <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={`QuartCurveGradient-3-${id}`}>
@@ -15,7 +21,7 @@ export const EaseInOutQuartSVG = ({leftGradFill, rightGradFill, id}) => (
   </svg>
 );
 
-export const EaseInQuartSVG = ({leftGradFill, rightGradFill, id}) => (
+export const EaseInQuartSVG = ({leftGradFill, rightGradFill, id}: CurveProps) => (
   <svg width="100%" height="20px" viewBox="0 0 113 46" preserveAspectRatio="none">
     <defs>
       <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={`QuartCurveGradient-2-${id}`}>
@@ -29,7 +35,7 @@ export const EaseInQuartSVG = ({leftGradFill, rightGradFill, id}) => (
   </svg>
 );
 
-export const EaseOutQuartSVG = ({leftGradFill, rightGradFill, id}) => (
+export const EaseOutQuartSVG = ({leftGradFill, rightGradFill, id}: CurveProps) => (
   <svg width="100%" height="20px" viewBox="0 0 112 45" preserveAspectRatio="none">
     <defs>
       <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={`QuartCurveGradient-1-${id}`}>
@@ -43,7 +49,7 @@ export const EaseOutQuartSVG = ({leftGradFill, rightGradFill, id}) => (
   </svg>
 );
 
-export const EaseInCircSVG = ({leftGradFill, rightGradFill, id}) => (
+export const EaseInCircSVG = ({leftGradFill, rightGradFill, id}: CurveProps) => (
   <svg width="100%" height="20px" viewBox="0 0 234 45" preserveAspectRatio="none">
     <defs>
       <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={`CircCurveGradient-3-${id}`}>
@@ -57,7 +63,7 @@ export const EaseInCircSVG = ({leftGradFill, rightGradFill, id}) => (
   </svg>
 );
 
-export const EaseInOutCircSVG = ({leftGradFill, rightGradFill, id}) => (
+export const EaseInOutCircSVG = ({leftGradFill, rightGradFill, id}: CurveProps) => (
   <svg width="100%" height="20px" viewBox="0 0 468 45" preserveAspectRatio="none">
     <defs>
       <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={`CircCurveGradient-2-${id}`}>
@@ -71,7 +77,7 @@ export const EaseInOutCircSVG = ({leftGradFill, rightGradFill, id}) => (
   </svg>
 );
 
-export const EaseOutCircSVG = ({leftGradFill, rightGradFill, id}) => (
+export const EaseOutCircSVG = ({leftGradFill, rightGradFill, id}: CurveProps) => (
   <svg width="100%" height="20px" viewBox="0 0 234 45" preserveAspectRatio="none">
     <defs>
       <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={`CircCurveGradient-1-${id}`}>
@@ -85,7 +91,7 @@ export const EaseOutCircSVG = ({leftGradFill, rightGradFill, id}) => (
   </svg>
 );
 
-export const EaseInExpoSVG = ({leftGradFill, rightGradFill, id}) => (
+export const EaseInExpoSVG = ({leftGradFill, rightGradFill, id}: CurveProps) => (
   <svg width="100%" height="20px" viewBox="0 0 118 45" preserveAspectRatio="none">
     <defs>
       <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={`ExpoCurveGradient-3-${id}`}>
@@ -99,7 +105,7 @@ export const EaseInExpoSVG = ({leftGradFill, rightGradFill, id}) => (
   </svg>
 );
 
-export const EaseInOutExpoSVG = ({leftGradFill, rightGradFill, id}) => (
+export const EaseInOutExpoSVG = ({leftGradFill, rightGradFill, id}: CurveProps) => (
   <svg width="100%" height="20px" viewBox="0 0 234 45" preserveAspectRatio="none">
     <defs>
       <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={`ExpoCurveGradient-2-${id}`}>
@@ -113,7 +119,7 @@ export const EaseInOutExpoSVG = ({leftGradFill, rightGradFill, id}) => (
   </svg>
 );
 
-export const EaseOutExpoSVG = ({leftGradFill, rightGradFill, id}) => (
+export const EaseOutExpoSVG = ({leftGradFill, rightGradFill, id}: CurveProps) => (
   <svg width="100%" height="20px" viewBox="0 0 117 45" preserveAspectRatio="none">
     <defs>
       <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={`ExpoCurveGradient-1-${id}`}>
@@ -127,7 +133,7 @@ export const EaseOutExpoSVG = ({leftGradFill, rightGradFill, id}) => (
   </svg>
 );
 
-export const EaseInQuintSVG = ({leftGradFill, rightGradFill, id}) => (
+export const EaseInQuintSVG = ({leftGradFill, rightGradFill, id}: CurveProps) => (
   <svg width="100%" height="20px" viewBox="0 0 110 46" preserveAspectRatio="none">
     <defs>
       <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={`QuintCurveGradient-3-${id}`}>
@@ -141,7 +147,7 @@ export const EaseInQuintSVG = ({leftGradFill, rightGradFill, id}) => (
   </svg>
 );
 
-export const EaseInOutQuintSVG = ({leftGradFill, rightGradFill, id}) => (
+export const EaseInOutQuintSVG = ({leftGradFill, rightGradFill, id}: CurveProps) => (
   <svg width="100%" height="20px" viewBox="0 0 220 47" preserveAspectRatio="none">
     <defs>
       <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={`QuintCurveGradient-1-${id}`}>
@@ -155,7 +161,7 @@ export const EaseInOutQuintSVG = ({leftGradFill, rightGradFill, id}) => (
   </svg>
 );
 
-export const EaseOutQuintSVG = ({leftGradFill, rightGradFill, id}) => (
+export const EaseOutQuintSVG = ({leftGradFill, rightGradFill, id}: CurveProps) => (
   <svg width="100%" height="20px" viewBox="0 0 110 46" preserveAspectRatio="none">
     <defs>
       <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={`QuintCurveGradient-1-${id}`}>
@@ -169,7 +175,7 @@ export const EaseOutQuintSVG = ({leftGradFill, rightGradFill, id}) => (
   </svg>
 );
 
-export const EaseInCubicSVG = ({leftGradFill, rightGradFill, id}) => (
+export const EaseInCubicSVG = ({leftGradFill, rightGradFill, id}: CurveProps) => (
   <svg width="100%" height="20px" viewBox="0 0 222 42" preserveAspectRatio="none">
     <defs>
       <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={`CubicCurveGradient-3-${id}`}>
@@ -183,7 +189,7 @@ export const EaseInCubicSVG = ({leftGradFill, rightGradFill, id}) => (
   </svg>
 );
 
-export const EaseInOutCubicSVG = ({leftGradFill, rightGradFill, id}) => (
+export const EaseInOutCubicSVG = ({leftGradFill, rightGradFill, id}: CurveProps) => (
   <svg width="100%" height="20px" viewBox="0 0 444 42" preserveAspectRatio="none">
     <defs>
       <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={`CubicCurveGradient-2-${id}`}>
@@ -197,7 +203,7 @@ export const EaseInOutCubicSVG = ({leftGradFill, rightGradFill, id}) => (
   </svg>
 );
 
-export const EaseOutCubicSVG = ({leftGradFill, rightGradFill, id}) => (
+export const EaseOutCubicSVG = ({leftGradFill, rightGradFill, id}: CurveProps) => (
   <svg width="100%" height="20px" viewBox="0 0 222 42" preserveAspectRatio="none">
     <defs>
       <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={`CubicCurveGradient-1-${id}`}>
@@ -211,7 +217,7 @@ export const EaseOutCubicSVG = ({leftGradFill, rightGradFill, id}) => (
   </svg>
 );
 
-export const EaseInOutQuadSVG = ({leftGradFill, rightGradFill, id}) => (
+export const EaseInOutQuadSVG = ({leftGradFill, rightGradFill, id}: CurveProps) => (
   <svg width="100%" height="20px" viewBox="0 0 221 38" preserveAspectRatio="none">
     <defs>
       <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={`QuadCurveGradient-3-${id}`}>
@@ -225,7 +231,7 @@ export const EaseInOutQuadSVG = ({leftGradFill, rightGradFill, id}) => (
   </svg>
 );
 
-export const EaseInQuadSVG = ({leftGradFill, rightGradFill, id}) => (
+export const EaseInQuadSVG = ({leftGradFill, rightGradFill, id}: CurveProps) => (
   <svg width="100%" height="20px" viewBox="0 0 111 38" preserveAspectRatio="none">
     <defs>
       <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={`QuadCurveGradient-2-${id}`}>
@@ -239,7 +245,7 @@ export const EaseInQuadSVG = ({leftGradFill, rightGradFill, id}) => (
   </svg>
 );
 
-export const EaseOutQuadSVG = ({leftGradFill, rightGradFill, id}) => (
+export const EaseOutQuadSVG = ({leftGradFill, rightGradFill, id}: CurveProps) => (
   <svg width="100%" height="20px" viewBox="0 0 111 38" preserveAspectRatio="none">
     <defs>
       <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={`QuadCurveGradient-1-${id}`}>
@@ -253,7 +259,7 @@ export const EaseOutQuadSVG = ({leftGradFill, rightGradFill, id}) => (
   </svg>
 );
 
-export const EaseInOutSineSVG = ({leftGradFill, rightGradFill, id}) => (
+export const EaseInOutSineSVG = ({leftGradFill, rightGradFill, id}: CurveProps) => (
   <svg width="100%" height="20px" viewBox="0 0 227 36" preserveAspectRatio="none">
     <defs>
       <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={`SineCurveGradient-3-${id}`}>
@@ -267,7 +273,7 @@ export const EaseInOutSineSVG = ({leftGradFill, rightGradFill, id}) => (
   </svg>
 );
 
-export const EaseInSineSVG = ({leftGradFill, rightGradFill, id}) => (
+export const EaseInSineSVG = ({leftGradFill, rightGradFill, id}: CurveProps) => (
   <svg width="100%" height="20px" viewBox="0 0 114 36" preserveAspectRatio="none">
     <defs>
       <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={`SineCurveGradient-2-${id}`}>
@@ -281,7 +287,7 @@ export const EaseInSineSVG = ({leftGradFill, rightGradFill, id}) => (
   </svg>
 );
 
-export const EaseOutSineSVG = ({leftGradFill, rightGradFill, id}) => (
+export const EaseOutSineSVG = ({leftGradFill, rightGradFill, id}: CurveProps) => (
   <svg width="100%" height="20px" viewBox="0 0 114 36" preserveAspectRatio="none">
     <defs>
       <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={`SineCurveGradient-1-${id}`}>
@@ -295,7 +301,7 @@ export const EaseOutSineSVG = ({leftGradFill, rightGradFill, id}) => (
   </svg>
 );
 
-export const EaseOutBackSVG = ({leftGradFill, rightGradFill, id}) => (
+export const EaseOutBackSVG = ({leftGradFill, rightGradFill, id}: CurveProps) => (
   <svg width="100%" height="26px" viewBox="0 0 106 64" preserveAspectRatio="none">
     <defs>
       <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={`BackCurveGradient-3-${id}`}>
@@ -309,7 +315,7 @@ export const EaseOutBackSVG = ({leftGradFill, rightGradFill, id}) => (
   </svg>
 );
 
-export const EaseInOutBackSVG = ({leftGradFill, rightGradFill, id}) => (
+export const EaseInOutBackSVG = ({leftGradFill, rightGradFill, id}: CurveProps) => (
   <svg width="100%" height="26px" viewBox="0 0 212 65" preserveAspectRatio="none">
     <defs>
       <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={`BackCurveGradient-2-${id}`}>
@@ -323,7 +329,7 @@ export const EaseInOutBackSVG = ({leftGradFill, rightGradFill, id}) => (
   </svg>
 );
 
-export const EaseInBackSVG = ({leftGradFill, rightGradFill, id}) => (
+export const EaseInBackSVG = ({leftGradFill, rightGradFill, id}: CurveProps) => (
   <svg width="100%" height="26px" viewBox="0 0 106 64" preserveAspectRatio="none">
     <defs>
       <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={`BackCurveGradient-1-${id}`}>
@@ -337,7 +343,7 @@ export const EaseInBackSVG = ({leftGradFill, rightGradFill, id}) => (
   </svg>
 );
 
-export const EaseInElasticSVG = ({leftGradFill, rightGradFill, id}) => (
+export const EaseInElasticSVG = ({leftGradFill, rightGradFill, id}: CurveProps) => (
   <svg width="100%" height="27px" viewBox="0 0 222 170" preserveAspectRatio="none">
     <defs>
       <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={`ElasticCurveGradient-3-${id}`}>
@@ -351,7 +357,7 @@ export const EaseInElasticSVG = ({leftGradFill, rightGradFill, id}) => (
   </svg>
 );
 
-export const EaseInOutElasticSVG = ({leftGradFill, rightGradFill, id}) => (
+export const EaseInOutElasticSVG = ({leftGradFill, rightGradFill, id}: CurveProps) => (
   <svg width="100%" height="27px" viewBox="0 0 444 170" preserveAspectRatio="none">
     <defs>
       <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={`ElasticCurveGradient-2-${id}`}>
@@ -365,7 +371,7 @@ export const EaseInOutElasticSVG = ({leftGradFill, rightGradFill, id}) => (
   </svg>
 );
 
-export const EaseOutElasticSVG = ({leftGradFill, rightGradFill, id}) => (
+export const EaseOutElasticSVG = ({leftGradFill, rightGradFill, id}: CurveProps) => (
   <svg width="100%" height="27px" viewBox="0 0 222 170" preserveAspectRatio="none">
     <defs>
       <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={`ElasticCurveGradient-1-${id}`}>
@@ -379,7 +385,7 @@ export const EaseOutElasticSVG = ({leftGradFill, rightGradFill, id}) => (
   </svg>
 );
 
-export const EaseInBounceSVG = ({leftGradFill, rightGradFill, id}) => (
+export const EaseInBounceSVG = ({leftGradFill, rightGradFill, id}: CurveProps) => (
   <svg width="100%" height="24px" viewBox="0 0 233 122" preserveAspectRatio="none">
     <defs>
       <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={`BounceCurveGradient-1-${id}`}>
@@ -393,7 +399,7 @@ export const EaseInBounceSVG = ({leftGradFill, rightGradFill, id}) => (
   </svg>
 );
 
-export const EaseInOutBounceSVG = ({leftGradFill, rightGradFill, id}) => (
+export const EaseInOutBounceSVG = ({leftGradFill, rightGradFill, id}: CurveProps) => (
   <svg width="100%" height="24px" viewBox="0 0 465 122" preserveAspectRatio="none">
     <defs>
       <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={`BounceCurveGradient-2-${id}`}>
@@ -407,7 +413,7 @@ export const EaseInOutBounceSVG = ({leftGradFill, rightGradFill, id}) => (
   </svg>
 );
 
-export const EaseOutBounceSVG = ({leftGradFill, rightGradFill, id}) => (
+export const EaseOutBounceSVG = ({leftGradFill, rightGradFill, id}: CurveProps) => (
   <svg width="100%" height="24px" viewBox="0 0 233 122" preserveAspectRatio="none">
     <defs>
       <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={`BounceCurveGradient-3-${id}`}>
@@ -421,7 +427,7 @@ export const EaseOutBounceSVG = ({leftGradFill, rightGradFill, id}) => (
   </svg>
 );
 
-export const LinearSVG = ({leftGradFill, rightGradFill, id}) => (
+export const LinearSVG = ({leftGradFill, rightGradFill, id}: CurveProps) => (
   <svg width="100%" height="20px" viewBox="0 0 298 107" preserveAspectRatio="none">
     <defs>
       <linearGradient x1="98.721091%" y1="100%" x2="0%" y2="100%" id={`LinearCurveGradient-1-${id}`}>

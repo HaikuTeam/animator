@@ -12,11 +12,13 @@ const STYLES = {
   top: '40px',
   left: '0',
   right: '0',
+} as React.CSSProperties;
+
+export type ModalWrapperProps = {
+  style: React.CSSProperties;
 };
 
-export class ModalWrapper extends React.PureComponent {
-  props;
-
+export class ModalWrapper extends React.PureComponent<ModalWrapperProps> {
   render () {
     return (
       <div style={{...STYLES, ...this.props.style}}

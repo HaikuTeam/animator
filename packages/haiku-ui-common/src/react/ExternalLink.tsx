@@ -1,16 +1,14 @@
 import * as React from 'react';
 import isElectron from '../helpers/isElectron';
 
-export class ExternalLink extends React.PureComponent {
-  props;
+export type ExternalLinkProps = {
+  style?: React.CSSProperties;
+  title?: string;
+  onClick?: Function;
+  href: string;
+};
 
-  static propTypes = {
-    style: React.PropTypes.object,
-    title: React.PropTypes.string,
-    href: React.PropTypes.string.isRequired,
-    onClick: React.PropTypes.func,
-  };
-
+export class ExternalLink extends React.PureComponent<ExternalLinkProps> {
   render () {
     return (
       <a
@@ -20,11 +18,9 @@ export class ExternalLink extends React.PureComponent {
         style={this.props.style}
         onClick={(clickEvent) => {
           if (isElectron()) {
-            // #if false
             const {shell} = require('electron');
             clickEvent.preventDefault();
             shell.openExternal(this.props.href);
-            // #endif
           }
 
           if (this.props.onClick) {

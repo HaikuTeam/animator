@@ -1,4 +1,4 @@
-function truncate(fullStr, strLen) {
+export default (fullStr: string , strLen: number) => {
   const apparentLen = fullStr.length - 1;
 
   if (apparentLen <= strLen) {
@@ -9,7 +9,4 @@ function truncate(fullStr, strLen) {
   const backChars = 7;
 
   return fullStr.substr(0, frontChars) + '…' + fullStr.substr(fullStr.length - backChars);
-}
-
-export default truncate;
-
+};

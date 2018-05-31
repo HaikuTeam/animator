@@ -110,19 +110,22 @@ const STYLES = {
   },
 } as React.CSSProperties;
 
-export class ProjectShareDetails extends React.PureComponent {
-  props;
+export type ProjectShareDetailsProps = {
+  semverVersion: string;
+  projectName: string;
+  linkAddress: string;
+  isSnapshotSaveInProgress: boolean;
+  isPublic: boolean;
+  isDisabled: boolean;
+  togglePublic: Function;
+  mixpanel: any;
+};
 
-  static propTypes = {
-    semverVersion: React.PropTypes.string,
-    projectName: React.PropTypes.string,
-    linkAddress: React.PropTypes.string,
-    isSnapshotSaveInProgress: React.PropTypes.bool,
-    isPublic: React.PropTypes.bool,
-    togglePublic: React.PropTypes.func,
-    mixpanel: React.PropTypes.object,
-  };
+export type ProjectShareDetailsStates = {
+  showTooltip: boolean;
+};
 
+export class ProjectShareDetails extends React.PureComponent<ProjectShareDetailsProps, ProjectShareDetailsStates> {
   state = {
     showTooltip: false,
   };
@@ -133,10 +136,8 @@ export class ProjectShareDetails extends React.PureComponent {
       semverVersion,
       linkAddress,
       isSnapshotSaveInProgress,
-      onHide,
       isPublic,
       togglePublic,
-      mixpanel,
     } = this.props;
 
     return (

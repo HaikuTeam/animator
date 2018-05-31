@@ -9,20 +9,18 @@ const STYLES = {
   },
 };
 
-export class EmbedDetails extends React.PureComponent {
-  props;
+export type EmbedDetailsProps = {
+  entry?: any;
+  projectName?: string;
+  userName?: string;
+  organizationName?: string;
+  onHide: (event: any) => void;
+  projectUid?: string;
+  sha?: string;
+  mixpanel?: any;
+};
 
-  static propTypes = {
-    entry: React.PropTypes.object,
-    projectName: React.PropTypes.string,
-    userName: React.PropTypes.string,
-    organizationName: React.PropTypes.string,
-    onHide: React.PropTypes.func.isRequired,
-    projectUid: React.PropTypes.string,
-    sha: React.PropTypes.string,
-    mixpanel: React.PropTypes.object,
-  };
-
+export class EmbedDetails extends React.PureComponent<EmbedDetailsProps> {
   render () {
     if (!this.props.entry) { return null; }
 

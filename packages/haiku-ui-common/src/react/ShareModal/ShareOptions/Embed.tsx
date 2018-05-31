@@ -3,17 +3,15 @@ import * as dedent from 'dedent';
 import {PUBLISH_SHARED} from './PublishStyles';
 import {CodeBox} from '../../CodeBox';
 
-export default class Embed extends React.PureComponent {
-  props;
+export type EmbedProps = {
+  projectName: string;
+  userName: string;
+  organizationName: string;
+  projectUid: string;
+  sha: string;
+};
 
-  static propTypes = {
-    projectName: React.PropTypes.string,
-    userName: React.PropTypes.string,
-    organizationName: React.PropTypes.string,
-    projectUid: React.PropTypes.string,
-    sha: React.PropTypes.string,
-  };
-
+export default class Embed extends React.PureComponent<EmbedProps> {
   get cdnBase() {
     const cdnBase = 'https://cdn.haiku.ai/';
 

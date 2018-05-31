@@ -1,22 +1,30 @@
 {
   "compileOnSave": true,
   "compilerOptions": {
-    "allowJs": true,
+    "allowJs": false,
+    "declaration": true,
+    "declarationDir": "lib",
+    "jsx": "react",
     "module": "commonjs",
     "moduleResolution": "node",
-    "noImplicitAny": false,
-    "target": "ES6",
-    "types": [
-      "node"
-    ],
-    "baseUrl": ".",
+    "noImplicitAny": true,
+    "outDir": "lib",
     "paths": {
       "@admin-cli/*": ["packages/haiku-admin-cli/src/*"],
       "@common/*": ["packages/haiku-common/src/*"],
       "@formats/*": ["packages/haiku-formats/src/*"],
       "@sdk-creator/*": ["packages/haiku-sdk-creator/src/*"],
-      "@testing/*": ["packages/haiku-testing/src/*"]
+      "@testing/*": ["packages/haiku-testing/src/*"],
+      "@ui-common/*": ["packages/haiku-ui-common/src/*"]
     },
+    "preserveConstEnums": true,
+    "rootDir": "src",
+    "sourceMap": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "target": "ES6",
+    "types": [
+      "node"
+    ],
     "typeRoots": [
       "node_modules/@types/"
     ]
