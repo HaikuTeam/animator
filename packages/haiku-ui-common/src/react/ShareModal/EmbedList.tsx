@@ -33,17 +33,15 @@ const STYLES = {
   } as React.CSSProperties,
 };
 
-export class EmbedList extends React.PureComponent {
-  props;
+export type EmbedListProps = {
+  onOptionClicked: Function;
+  isSnapshotSaveInProgress: boolean;
+  snapshotSyndicated: boolean;
+  snapshotPublished: boolean;
+  mixpanel: any;
+};
 
-  static propTypes = {
-    onOptionClicked: React.PropTypes.func,
-    isSnapshotSaveInProgress: React.PropTypes.bool,
-    snapshotSyndicated: React.PropTypes.bool,
-    snapshotPublished: React.PropTypes.bool,
-    mixpanel: React.PropTypes.object,
-  };
-
+export class EmbedList extends React.PureComponent<EmbedListProps> {
   renderShareOptions () {
     return Object.entries(SHARE_OPTIONS).map(([category, options]) => (
       <EmbedCategory

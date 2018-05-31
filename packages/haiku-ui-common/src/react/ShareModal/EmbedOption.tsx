@@ -1,8 +1,8 @@
 import * as React from 'react';
-import Palette from '../../Palette';
 import {LoadingTopBar} from '../../LoadingTopBar';
-import {TooltipBasic} from '../TooltipBasic';
+import Palette from '../../Palette';
 import {SHARED_STYLES} from '../../SharedStyles';
+import {TooltipBasic} from '../TooltipBasic';
 import {ShareCategory} from './ShareModalOptions';
 
 const STYLES = {
@@ -26,21 +26,20 @@ const STYLES = {
   },
 } as React.CSSProperties;
 
-export class EmbedOption extends React.PureComponent {
-  props;
-  startTimeout;
-  updateTimeout;
+export type EmbedOptionProps = {
+  disabled: boolean;
+  template: string;
+  entry: string;
+  category: string;
+  onClick: Function;
+  isSnapshotSaveInProgress: boolean;
+  snapshotSyndicated: boolean;
+  snapshotPublished: boolean;
+};
 
-  static propTypes = {
-    disabled: React.PropTypes.bool,
-    template: React.PropTypes.string,
-    entry: React.PropTypes.string.isRequired,
-    category: React.PropTypes.string.isRequired,
-    onClick: React.PropTypes.func,
-    isSnapshotSaveInProgress: React.PropTypes.bool,
-    snapshotSyndicated: React.PropTypes.bool,
-    snapshotPublished: React.PropTypes.bool,
-  };
+export class EmbedOption extends React.PureComponent<EmbedOptionProps> {
+  startTimeout: number;
+  updateTimeout: number;
 
   state = {
     progress: 0,
@@ -60,7 +59,7 @@ export class EmbedOption extends React.PureComponent {
     }
   }
 
-  componentWillReceiveProps({isSnapshotSaveInProgress, snapshotSyndicated, snapshotPublished}) {
+  componentWillReceiveProps({isSnapshotSaveInProgress, snapshotSyndicated, snapshotPublished}: EmbedOptionProps) {
     if (isSnapshotSaveInProgress) {
       this.start();
       return;
@@ -81,7 +80,7 @@ export class EmbedOption extends React.PureComponent {
     }
 
     this.setState({progress: 100, speed: '0.5s'}, () => {
-      this.updateTimeout = setTimeout(
+      this.updateTimeout = window.setTimeout(
         () => {
           if (this.updateTimeout) {
             this.setState({done: true, progress: 0, speed: '1ms'});
@@ -105,7 +104,7 @@ export class EmbedOption extends React.PureComponent {
   }
 
   start() {
-    this.startTimeout = setTimeout(
+    this.startTimeout = window.setTimeout(
       () => {
         this.setState({progress: 80, speed: this.startSpeed, done: false, abandoned: false});
       },

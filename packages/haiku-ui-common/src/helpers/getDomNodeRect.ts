@@ -1,5 +1,1 @@
-function getDomNodeRect(domNode) {
-  return domNode.getBoundingClientRect();
-}
-
-export default getDomNodeRect;
+export default (domNode: Element) => domNode.getBoundingClientRect();

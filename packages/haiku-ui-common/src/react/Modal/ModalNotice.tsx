@@ -1,18 +1,12 @@
 import * as React from 'react';
 import Palette from '../../Palette';
 
-export class ModalNotice extends React.PureComponent {
-  props;
+export type ModalNoticeProps = {
+  color?: string;
+  message: string;
+};
 
-  static propTypes = {
-    color: React.PropTypes.string,
-    message: React.PropTypes.string,
-  };
-
-  static defaultProps = {
-    color: Palette.RED,
-  };
-
+export class ModalNotice extends React.PureComponent<ModalNoticeProps> {
   render () {
     return (
       <div style={{

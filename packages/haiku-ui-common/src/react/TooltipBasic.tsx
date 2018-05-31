@@ -46,14 +46,13 @@ const STYLES = {
   } as React.CSSProperties,
 };
 
-export class TooltipBasic extends React.PureComponent {
-  props;
+export type TooltipBasicProps = {
+  light?: boolean;
+  top?: number;
+  width?: number;
+};
 
-  static propTypes = {
-    light: React.PropTypes.bool,
-    top: React.PropTypes.number,
-  };
-
+export class TooltipBasic extends React.PureComponent<TooltipBasicProps> {
   render () {
     return (
       <div style={{

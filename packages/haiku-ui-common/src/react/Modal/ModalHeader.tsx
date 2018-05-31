@@ -1,7 +1,7 @@
 import * as React from 'react';
 import Palette from './../../Palette';
 
-const STYLES = {
+const STYLES: React.CSSProperties = {
   width: '100%',
   backgroundColor: Palette.BLACK,
   borderTopRightRadius: '7px',
@@ -10,9 +10,11 @@ const STYLES = {
   zIndex: 999999,
 };
 
-export class ModalHeader extends React.PureComponent {
-  props;
+export type ModalHeaderProps = {
+  style?: React.CSSProperties;
+};
 
+export class ModalHeader extends React.PureComponent<ModalHeaderProps> {
   render () {
     return (
       <div style={{...STYLES, ...this.props.style}}>

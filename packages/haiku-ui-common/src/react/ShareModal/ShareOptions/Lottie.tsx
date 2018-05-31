@@ -1,37 +1,22 @@
 import * as React from 'react';
-import * as Color from 'color';
-import Palette from '../../../Palette';
 import {PUBLISH_SHARED} from './PublishStyles';
 import {ExternalLink} from '../../ExternalLink';
 import {SHARED_STYLES} from '../../../SharedStyles';
 
-const STYLES = {
-  light: {
-    backgroundColor: Palette.ROCK,
-    opacity: 0.87,
-    color: Palette.BLUE,
-    ':hover': {
-      opacity: 1,
-    },
-  },
+export type LottieProps = {
+  entry: string;
+  userName: string;
+  organizationName: string;
+  projectUid: string;
+  sha: string;
+  mixpanel: any;
 };
 
-export default class Lottie extends React.PureComponent {
-  props;
+const CDN_BASE = 'https://cdn.haiku.ai/';
 
-  static propTypes = {
-    entry: React.PropTypes.string,
-    userName: React.PropTypes.string,
-    organizationName: React.PropTypes.string,
-    projectUid: React.PropTypes.string,
-    sha: React.PropTypes.string,
-    mixpanel: React.PropTypes.object,
-  };
-
+export default class Lottie extends React.PureComponent<LottieProps> {
   get cdnBase() {
-    const cdnBase = 'https://cdn.haiku.ai/';
-
-    return `${cdnBase + this.props.projectUid}/${this.props.sha}/`;
+    return `${CDN_BASE + this.props.projectUid}/${this.props.sha}/`;
   }
 
   render () {

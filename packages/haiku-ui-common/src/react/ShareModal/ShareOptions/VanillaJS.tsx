@@ -3,20 +3,17 @@ import * as dedent from 'dedent';
 import {CodeBox} from '../../CodeBox';
 import {NpmInstallable} from './NpmInstallable';
 
-export default class VanillaJS extends React.PureComponent {
-  props;
+export type VanillaJSProps = {
+  projectName: string;
+  organizationName: string;
+};
 
-  static propTypes = {
-    projectName: React.PropTypes.string,
-    userName: React.PropTypes.string,
-    organizationName: React.PropTypes.string,
-  };
-
+export default class VanillaJS extends React.PureComponent<VanillaJSProps> {
   render() {
-    const {projectName, userName, organizationName} = this.props;
+    const {projectName, organizationName} = this.props;
 
     return (
-      <NpmInstallable projectName={projectName} userName={userName} organizationName={organizationName}>
+      <NpmInstallable projectName={projectName} organizationName={organizationName}>
         <CodeBox>
           {dedent`
           import ${projectName} from '@haiku/${organizationName.toLowerCase()}-${projectName.toLowerCase()}';

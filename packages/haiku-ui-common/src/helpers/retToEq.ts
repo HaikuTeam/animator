@@ -1,10 +1,10 @@
-import * as EXPR_SIGNS from './ExprSigns';
+import {EQ, RET} from './ExprSigns';
 
-export default function retToEq(str) {
+export default function retToEq(str: string) {
   let fixed = str;
-  if (fixed.substring(0, 7) === (EXPR_SIGNS.RET + ' ')) {
+  if (fixed.substring(0, 7) === (RET + ' ')) {
     fixed = fixed.slice(7);
-    fixed = (EXPR_SIGNS.EQ + ' ') + fixed;
+    fixed = (EQ + ' ') + fixed;
   }
   return fixed;
 }

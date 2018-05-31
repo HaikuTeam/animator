@@ -15,10 +15,17 @@ const STYLES = {
   },
 };
 
-export default class Gif extends React.PureComponent {
-  props;
-  imgEl;
+export type GifProps = {
+  entry: string;
+  userName: string;
+  organizationName: string;
+  projectUid: string;
+  sha: string;
+};
 
+const CDN_BASE = 'https://cdn.haiku.ai/';
+
+export default class Gif extends React.PureComponent<GifProps> {
   static propTypes = {
     entry: React.PropTypes.string,
     userName: React.PropTypes.string,
@@ -28,9 +35,7 @@ export default class Gif extends React.PureComponent {
   };
 
   get cdnBase() {
-    const cdnBase = 'https://cdn.haiku.ai/';
-
-    return `${cdnBase + this.props.projectUid}/${this.props.sha}/`;
+    return `${CDN_BASE + this.props.projectUid}/${this.props.sha}/`;
   }
 
   render() {

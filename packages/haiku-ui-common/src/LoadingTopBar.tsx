@@ -11,19 +11,14 @@ const STYLES = {
   } as React.CSSProperties,
 };
 
-export class LoadingTopBar extends React.PureComponent {
-  props;
+export type LoadingTopBarProps = {
+  progress?: number;
+  speed: number|string;
+  done: boolean;
+};
 
-  static propTypes = {
-    progress: React.PropTypes.number,
-    speed: React.PropTypes.oneOfType([
-      React.PropTypes.number,
-      React.PropTypes.string,
-    ]).isRequired,
-    done: React.PropTypes.bool,
-  };
-
-  shouldComponentUpdate(nextProps, nextState) {
+export class LoadingTopBar extends React.PureComponent<LoadingTopBarProps> {
+  shouldComponentUpdate(nextProps: LoadingTopBarProps) {
     return (
       nextProps.progress !== this.props.progress ||
       nextProps.done !== this.props.done

@@ -20,19 +20,17 @@ const STYLES = {
   },
 };
 
-export class EmbedCategory extends React.PureComponent {
-  props;
+export type EmbedCategoryProps = {
+  category: string;
+  options: {};
+  onOptionClicked?: Function;
+  isSnapshotSaveInProgress?: boolean;
+  snapshotSyndicated?: boolean;
+  snapshotPublished?: boolean;
+};
 
-  static propTypes = {
-    category: React.PropTypes.string.isRequired,
-    options: React.PropTypes.object.isRequired,
-    onOptionClicked: React.PropTypes.func,
-    isSnapshotSaveInProgress: React.PropTypes.bool,
-    snapshotSyndicated: React.PropTypes.bool,
-    snapshotPublished: React.PropTypes.bool,
-  };
-
-  renderCategoryOptions (options: Object) {
+export class EmbedCategory extends React.PureComponent<EmbedCategoryProps> {
+  renderCategoryOptions (options: any) {
     return Object.entries(options).map(([entry, {disabled, template}]) => (
       <EmbedOption
         key={entry}

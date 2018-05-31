@@ -1,5 +1,7 @@
 import * as React from 'react';
+// @ts-ignore
 import * as CopyToClipboard from 'react-copy-to-clipboard';
+// @ts-ignore
 import {ThreeBounce} from 'better-react-spinkit';
 import Palette from '../../Palette';
 import {CliboardIconSVG} from '../OtherIcons';
@@ -39,18 +41,23 @@ const STYLES = {
   } as React.CSSProperties,
 };
 
-export class LinkHolster extends React.PureComponent {
-  props;
+export type LinkHolsterProps = {
+  isSnapshotSaveInProgress?: boolean;
+  linkAddress?: string;
+  showLoadingBar?: boolean;
+  dark?: boolean;
+  onCopy?: Function;
+  onLinkOpen?: Function;
+};
 
-  static propTypes = {
-    isSnapshotSaveInProgress: React.PropTypes.bool,
-    linkAddress: React.PropTypes.string,
-    showLoadingBar: React.PropTypes.bool,
-    dark: React.PropTypes.bool,
-    onCopy: React.PropTypes.func,
-    onLinkOpen: React.PropTypes.func,
-  };
+export type LinkHolsterStates = {
+  done: boolean;
+  progress: number;
+  speed: string;
+  copied: boolean;
+};
 
+export class LinkHolster extends React.PureComponent<LinkHolsterProps, LinkHolsterStates> {
   static defaultProps = {
     showLoadingBar: true,
     dark: false,
@@ -69,7 +76,7 @@ export class LinkHolster extends React.PureComponent {
     },         100);
   }
 
-  componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps(nextProps: LinkHolsterProps) {
     if (nextProps.isSnapshotSaveInProgress) {
       this.setState({done: false, progress: 80, speed: '15s'});
     } else {
