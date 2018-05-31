@@ -19,7 +19,7 @@ function ensureHomeFolder() {
 
 export namespace client {
 
-  export function verboselyLog(message: string, ...args) {
+  export function verboselyLog(message: string, ...args: any[]) {
     if (clientConfig.verbose) {
       console.log(message, ...args);
     }
@@ -126,7 +126,6 @@ export namespace client {
 
 
   export class config {
-
     static getAuthToken(): string {
       if (fs.existsSync(FILE_PATHS.AUTH_TOKEN)) {
         const token = fs.readFileSync(FILE_PATHS.AUTH_TOKEN).toString();
