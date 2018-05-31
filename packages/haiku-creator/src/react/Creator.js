@@ -1488,6 +1488,7 @@ export default class Creator extends React.Component {
     return (
       this.state.showNewProjectModal && (
         <NewProjectModal
+          ref='NewProjectModal'
           defaultProjectName={this.state.duplicateProjectName}
           duplicate={this.state.isDuplicateProjectModal}
           disabled={this.state.newProjectLoading}

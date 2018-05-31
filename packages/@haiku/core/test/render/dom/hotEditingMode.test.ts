@@ -1,5 +1,5 @@
 import * as tape from 'tape';
-import * as TestHelpers from './../../TestHelpers';
+import RenderTest from 'haiku-testing/src/RenderTest';
 
 tape('render.dom.hotEditingMode.on', (t) => {
   const template = {
@@ -18,28 +18,28 @@ tape('render.dom.hotEditingMode.on', (t) => {
 
   const config = {hotEditingMode: true};
 
-  TestHelpers.createRenderTest(
-    template,
-    timelines,
-    config,
-    (err, mount, renderer, context, component, teardown) => {
-      if (err) { throw err; }
-      context.tick();
-      t.equal(mount.firstChild.haiku.virtual.layout.opacity, 1, 'initial opacity is 1');
-      component.bytecode.timelines.Default['haiku:abcde'].opacity['0'].value = 0.5;
-      component.clearCaches();
-      component.addHotComponent({
-        timelineName: 'Default',
-        selector: 'haiku:abcde',
-        propertyNames: ['opacity'],
-      });
-      context.tick();
-      t.equal(mount.firstChild.haiku.virtual.layout.opacity, 0.5, 'non-animated property updated in hot-editing mode');
-      teardown();
-    },
-  );
+  const rt = new RenderTest('my/folder', {template, timelines}, config, (rt, done) => {
+    rt.context.tick();
+    t.equal(rt.$mount.firstChild.haiku.virtual.layout.opacity, 1, 'initial opacity is 1');
+    rt.component.bytecode.timelines.Default['haiku:abcde'].opacity['0'].value = 0.5;
+    rt.component.clearCaches();
+    rt.component.addHotComponent({
+      timelineName: 'Default',
+      selector: 'haiku:abcde',
+      propertyNames: ['opacity'],
+    });
+    rt.context.tick();
+    t.equal(
+      rt.$mount.firstChild.haiku.virtual.layout.opacity,
+      0.5,
+      'non-animated property updated in hot-editing mode',
+    );
+    done();
+  });
 
-  t.end();
+  rt.run(() => {
+    t.end();
+  });
 });
 
 tape('render.dom.hotEditingMode.off', (t) => {
@@ -59,22 +59,18 @@ tape('render.dom.hotEditingMode.off', (t) => {
 
   const config = {hotEditingMode: false};
 
-  TestHelpers.createRenderTest(
-    template,
-    timelines,
-    config,
-    (err, mount, renderer, context, component, teardown) => {
-      if (err) { throw err; }
-      context.tick();
-      t.equal(mount.firstChild.haiku.virtual.layout.opacity, 1, 'initial opacity is 1');
-      component.bytecode.timelines.Default['haiku:abcde'].opacity['0'].value = 0.5;
-      component.clearCaches();
-      context.tick();
-      // tslint:disable-next-line:max-line-length
-      t.equal(mount.firstChild.haiku.virtual.layout.opacity, 1, 'non-animated property is static without hot-editing mode');
-      teardown();
-    },
-  );
+  const rt = new RenderTest('my/folder', {template, timelines}, config, (rt, done) => {
+    rt.context.tick();
+    t.equal(rt.$mount.firstChild.haiku.virtual.layout.opacity, 1, 'initial opacity is 1');
+    rt.component.bytecode.timelines.Default['haiku:abcde'].opacity['0'].value = 0.5;
+    rt.component.clearCaches();
+    rt.context.tick();
+    // tslint:disable-next-line:max-line-length
+    t.equal(rt.$mount.firstChild.haiku.virtual.layout.opacity, 1, 'non-animated property is static without hot-editing mode');
+    done();
+  });
 
-  t.end();
+  rt.run(() => {
+    t.end();
+  });
 });

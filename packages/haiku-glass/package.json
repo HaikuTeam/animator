@@ -50,6 +50,7 @@
     "electron": "1.8.2",
     "eslint": "^3.19.0",
     "eslint-config-standard-jsx": "^4.0.2",
+    "haiku-testing": "3.3.4",
     "jsdom": "^11.1.0",
     "prop-types": "^15.6.0",
     "snazzy": "^7.0.0",

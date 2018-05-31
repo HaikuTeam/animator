@@ -1,6 +1,5 @@
 import * as tape from 'tape';
 
-
 // Tell typescript we have these types on Global
 interface Global {
   window: any;

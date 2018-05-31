@@ -52,7 +52,6 @@ async.each(allPackages, (pack, done) => {
       // Babel modules where we can skip the initial (slow) build.
       runInstruction(pack.abspath, ['watch', '--skip-initial-build'], done)
       break
-    case 'state-object':
     case 'bytecode':
     case 'serialization':
     case 'fs-extra':

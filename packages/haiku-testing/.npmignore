@@ -6,4 +6,4 @@ tsconfig.json
 tslint.json
 tsconfig.test.json
 README.md
-assets/
+fixtures/

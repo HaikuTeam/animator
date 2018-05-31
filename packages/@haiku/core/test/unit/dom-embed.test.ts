@@ -1,6 +1,6 @@
 import * as tape from 'tape';
 const pkg = require('./../../package.json');
-import * as TestHelpers from './../TestHelpers';
+import createDOM from 'haiku-testing/src/helpers/createDOM';
 // tslint:disable-next-line:variable-name
 const HaikuDOMAdapter = require('./../../dom');
 
@@ -15,7 +15,7 @@ declare var window: Window;
 tape('dom-embed', (t) => {
   t.plan(13);
 
-  TestHelpers.createDOM((err, win, mount) => {
+  createDOM('my/folder', (err, $mount, $root, $win) => {
     if (err) { throw err; }
 
     HaikuDOMAdapter.defineOnWindow();
@@ -45,8 +45,7 @@ tape('dom-embed', (t) => {
     t.equal(haikuComponentFactory.PLAYER_VERSION, pkg.version, 'player version equal'); // #LEGACY
     t.equal(haikuComponentFactory.CORE_VERSION, pkg.version, 'core version equal');
 
-
-    const component = haikuComponentFactory(mount);
+    const component = haikuComponentFactory($mount);
 
     t.equal(component.constructor.__name__, 'HaikuComponent', 'component is component');
     t.equal(component.constructor.name, 'HaikuComponent', 'component is component');
@@ -54,5 +53,6 @@ tape('dom-embed', (t) => {
     t.equal(component.CORE_VERSION, pkg.version, 'core version equal');
 
     component.context.clock.GLOBAL_ANIMATION_HARNESS.cancel();
+    $win['teardown']();
   });
 });

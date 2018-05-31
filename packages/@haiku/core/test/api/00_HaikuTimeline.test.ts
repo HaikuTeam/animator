@@ -1,5 +1,5 @@
 import * as tape from 'tape';
-import {createRenderTest} from '../TestHelpers';
+import RenderTest from 'haiku-testing/src/RenderTest';
 
 tape('HaikuTimeline', (t) => {
   t.test('gotoAndStop', (t) => {
@@ -20,31 +20,28 @@ tape('HaikuTimeline', (t) => {
       },
     };
 
-    createRenderTest(
-      template,
-      timelines,
-      undefined,
-      (err, mount, renderer, context, component, teardown) => {
-        if (err) { throw err; }
-        component.getDefaultTimeline().play();
-        t.equal(mount.firstChild.haiku.virtual.layout.opacity, 0, 'initial opacity is 0');
-        component.getDefaultTimeline().seek(750, 'ms');
-        context.tick();
-        t.equal(mount.firstChild.haiku.virtual.layout.opacity, 0.75, 'seek to 750ms');
+    const rt = new RenderTest('my/folder', {template, timelines}, {}, (rt, done) => {
+      rt.component.getDefaultTimeline().play();
+      t.equal(rt.$mount.firstChild.haiku.virtual.layout.opacity, 0, 'initial opacity is 0');
+      rt.component.getDefaultTimeline().seek(750, 'ms');
+      rt.context.tick();
+      t.equal(rt.$mount.firstChild.haiku.virtual.layout.opacity, 0.75, 'seek to 750ms');
+      setTimeout(() => {
+        t.notEqual(rt.$mount.firstChild.haiku.virtual.layout.opacity, 0.75, 'playhead is moving');
+        rt.component.getDefaultTimeline().gotoAndStop(500, 'ms');
         setTimeout(() => {
-          t.notEqual(mount.firstChild.haiku.virtual.layout.opacity, 0.75, 'playhead is moving');
-          component.getDefaultTimeline().gotoAndStop(500, 'ms');
+          t.equal(rt.$mount.firstChild.haiku.virtual.layout.opacity, 0.5, 'stopped at 500ms');
           setTimeout(() => {
-            t.equal(mount.firstChild.haiku.virtual.layout.opacity, 0.5, 'stopped at 500ms');
-            setTimeout(() => {
-              t.equal(mount.firstChild.haiku.virtual.layout.opacity, 0.5, 'still stopped at 500ms');
-              teardown();
-              t.end();
-            },         100);
+            t.equal(rt.$mount.firstChild.haiku.virtual.layout.opacity, 0.5, 'still stopped at 500ms');
+            done();
           },         100);
         },         100);
-      },
-    );
+      },         100);
+    });
+
+    rt.run(() => {
+      t.end();
+    });
   });
 
   t.end();

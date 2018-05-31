@@ -1,8 +1,15 @@
 import * as tape from 'tape';
 const pkg = require('./../../package.json');
-import * as TestHelpers from './../TestHelpers';
+import createDOM from 'haiku-testing/src/helpers/createDOM';
 // tslint:disable-next-line:variable-name
 const HaikuDOMAdapter = require('./../../dom');
+// tslint:disable-next-line:variable-name
+const Haiku = require('@haiku/core');
+
+const code1 = {
+  timelines: {Default: {}},
+  template: {elementName: 'div', attributes: {}, children: []},
+};
 
 // Tell typescript we have these types on Window
 interface Window {
@@ -14,13 +21,18 @@ declare var window: Window;
 tape('dom-embed-with-code', (t) => {
   t.plan(1);
 
-  TestHelpers.createDOM((err, win, mount) => {
-    if (err) { throw err; }
+  createDOM('my/folder', (err, $mount, $root, $win) => {
+    if (err) {
+      throw err;
+    }
+
     HaikuDOMAdapter.defineOnWindow();
     const adapter = window.HaikuCore[pkg.version];
-    const haikuComponentFactory = adapter(require('./../fixtures/code1.ts'));
-    const component = haikuComponentFactory(mount);
+    const haikuComponentFactory = adapter(code1);
+    const component = haikuComponentFactory($mount);
     component.context.clock.GLOBAL_ANIMATION_HARNESS.cancel();
+    $win['teardown']();
+
     t.ok(true);
   });
 });

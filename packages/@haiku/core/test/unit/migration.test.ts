@@ -1,7 +1,7 @@
 const tape = require('tape');
 const VERSION = require('../../package.json').version;
 import functionToRFO from '../../src/reflection/functionToRFO';
-import * as TestHelpers from './../TestHelpers';
+import createDOMComponent from 'haiku-testing/src/helpers/createDOMComponent';
 
 tape('Migration', (t) => {
   tape('timelineDefaultFrames', (t) => {
@@ -31,14 +31,18 @@ tape('Migration', (t) => {
       },
     };
 
-    TestHelpers.createComponent(oldBytecode, {}, (component, teardown)  => {
+    createDOMComponent('my/folder', oldBytecode, {}, (err, component)  => {
+      if (err) {
+        throw err;
+      }
+
       t.is(component.bytecode.metadata.core, VERSION);
       const {__function: {body}} = functionToRFO(component.bytecode.eventHandlers.foo.click.original);
       t.true(body.indexOf(`this.seek(1000, 'ms');`) > 0);
       t.true(body.indexOf(
         `this.getDefaultTimeline().gotoAndPlay(functionThatReturns2({ blah: functionThatReturns2('hey') }), 'ms');`)
         > 0);
-      teardown();
+      component['teardown']();
       t.end();
     });
   });
@@ -77,7 +81,11 @@ tape('Migration', (t) => {
       },
     };
 
-    TestHelpers.createComponent(oldBytecode, {}, (component, teardown)  => {
+    createDOMComponent('my/folder', oldBytecode, {}, (err, component)  => {
+      if (err) {
+        throw err;
+      }
+
       t.is(component.bytecode.metadata.core, VERSION);
       t.deepEqual(component.bytecode.timelines, {
         Default: {
@@ -94,7 +102,7 @@ tape('Migration', (t) => {
           },
         },
       });
-      teardown();
+      component['teardown']();
     });
 
     const newBytecode = {
@@ -114,13 +122,17 @@ tape('Migration', (t) => {
       },
     };
 
-    TestHelpers.createComponent(newBytecode, {}, (component, teardown)  => {
+    createDOMComponent('my/folder', newBytecode, {}, (err, component)  => {
+      if (err) {
+        throw err;
+      }
+
       t.deepEqual(newBytecode.timelines, {
         Default: {
           'haiku:svg': {},
         },
       });
-      teardown();
+      component['teardown']();
       t.end();
     });
   });
