@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "@types/ws": "^3.0.2",
-    "cross-env": "^5.1.4",
+    "cross-env": "^5.1.6",
     "haiku-testing": "3.3.4",
     "leaked-handles": "^5.2.0"
   }
