@@ -1,6 +1,6 @@
-import * as ws from 'ws';
 import EnvoyClient from '@sdk-creator/envoy/EnvoyClient';
 import EnvoyLogger from '@sdk-creator/envoy/EnvoyLogger';
+import * as ws from 'ws';
 import CatHandler from './CatHandler';
 
 const client = new EnvoyClient<CatHandler>({
@@ -9,7 +9,7 @@ const client = new EnvoyClient<CatHandler>({
   logger: new EnvoyLogger('error'),
 });
 
-async function go() {
+async function go () {
   const channel = await client.get('cat');
   let intervals = 0;
   setInterval(() => {

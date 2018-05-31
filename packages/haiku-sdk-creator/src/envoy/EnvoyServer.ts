@@ -1,6 +1,6 @@
-import * as WebSocket from 'ws';
 // @ts-ignore
 import * as qs from 'qs';
+import * as WebSocket from 'ws';
 
 import {
   Datagram,
@@ -8,12 +8,10 @@ import {
   DEFAULT_ENVOY_OPTIONS,
   EnvoyEvent,
   EnvoyOptions,
-  Schema,
 } from '.';
 
 import findOpenPort from './../utils/findOpenPort';
 import generateUUIDv4 from './../utils/generateUUIDv4';
-import EnvoyClient from './EnvoyClient';
 
 import EnvoyLogger from './EnvoyLogger';
 
@@ -39,7 +37,7 @@ export default class EnvoyServer {
   private clientRegistry: Map<string, IdentifiableWebSocket>;
   private logger: Console;
 
-  constructor(options?: EnvoyOptions) {
+  constructor (options?: EnvoyOptions) {
     const mergedOptions = Object.assign({}, DEFAULT_ENVOY_OPTIONS, options);
 
     this.port = null;
@@ -113,7 +111,7 @@ export default class EnvoyServer {
    * @method close
    * @description Close the server.
    */
-  close(): void {
+  close (): void {
     this.server.close();
   }
 
@@ -122,7 +120,7 @@ export default class EnvoyServer {
    * @description Returns a promise that resolves when the server is established
    * and ready to accept connections from websocket clients.
    */
-  ready(): Promise<EnvoyServer> {
+  ready (): Promise<EnvoyServer> {
     const executor = (accept: ((value?: EnvoyServer) => void)) => {
       if (this.server && this.isServerReady) {
         accept(this);
@@ -133,7 +131,7 @@ export default class EnvoyServer {
     return new Promise(executor);
   }
 
-  emit(channel: string, event: EnvoyEvent) {
+  emit (channel: string, event: EnvoyEvent) {
     this.broadcast({
       channel,
       data: JSON.stringify(event),
@@ -154,7 +152,7 @@ export default class EnvoyServer {
    * // Incoming requests will trigger methods on sparkleHandler
    * myEnvoyServer.bindHandler("Sparkles", sparkleHandler)
    */
-  bindHandler(channel: string, handlerClass: any, handlerInstance?: any) {
+  bindHandler (channel: string, handlerClass: any, handlerInstance?: any) {
     // TODO: support spawning a new process/worker for this handler.
     const instance = handlerInstance || new handlerClass();
     this.handlerRegistry.set(channel, {
@@ -168,7 +166,7 @@ export default class EnvoyServer {
    * is a request or a response and determining how/if to fire a handler
    * @param rawData the datagram object (request or response JSON blob)
    */
-  private handleRawData(rawData: string) {
+  private handleRawData (rawData: string) {
 
     const data: Datagram = JSON.parse(rawData);
     if (data.intent === DatagramIntent.REQUEST) {
@@ -181,36 +179,36 @@ export default class EnvoyServer {
           if (returnValue && returnValue.then) {
             // Assume this is a promise, and unwrap it before sending response.
             returnValue.then((unwrapped: any) => {
-              const response = <Datagram>{
+              const response = {
                 channel: data.channel,
                 data: unwrapped,
                 id: data.id,
                 intent: DatagramIntent.RESPONSE,
-              };
+              } as Datagram;
               // TODO: could reply directly to the client that requested instead of broadcasting to all
               //       would require identifying the client (via datagram) & then tracking clientId in future datagrams
               this.broadcast(response);
             })
             .catch((error: Error) => {
-              const response = <Datagram>{
+              const response = {
                 channel: data.channel,
                 data: {error},
                 id: data.id,
                 intent: DatagramIntent.RESPONSE,
-              };
+              } as Datagram;
               // TODO: could reply directly to the client that requested instead of broadcasting to all
               //       would require identifying the client (via datagram) & then tracking clientId in future datagrams
               this.broadcast(response);
             });
 
           } else {
-            const response = <Datagram>{
+            const response = {
               channel: data.channel,
               data: returnValue,
               id: data.id,
               intent: DatagramIntent.RESPONSE,
 
-            };
+            } as Datagram;
             // TODO: could reply directly to the client that requested instead of broadcasting to all
             //       would require identifying the client (via datagram) & then tracking clientId in future datagrams
             this.broadcast(response);
@@ -224,12 +222,12 @@ export default class EnvoyServer {
       const handler = this.handlerRegistry.get(data.channel);
       if (handler) {
         const schema = this.discoverSchemaOfHandlerPrototype(handler);
-        const response = <Datagram>{
+        const response = {
           channel: data.channel,
           data: JSON.stringify(schema),
           id: data.id,
           intent: DatagramIntent.RESPONSE,
-        };
+        } as Datagram;
         // TODO:  could reply directly to the client that requested instead of broadcasting to all
         //        would require identifying the client (via datagram) & then tracking clientId in future datagrams
         this.broadcast(response);
@@ -243,7 +241,7 @@ export default class EnvoyServer {
    * Sends provided datagram to all connected clients
    * @param datagram
    */
-  private broadcast(datagram: Datagram) {
+  private broadcast (datagram: Datagram) {
     // TODO:  could detect which channel a client is bound to, then broadcast a given datagram only to the relevant
     // clients. For now, every client gets every response.
     for (const [_, client] of this.clientRegistry) {
@@ -262,7 +260,7 @@ export default class EnvoyServer {
    * @param datagram
    * @param client
    */
-  private rawTransmitToClient(datagram: Datagram, client: IdentifiableWebSocket) {
+  private rawTransmitToClient (datagram: Datagram, client: IdentifiableWebSocket) {
     client.send(JSON.stringify(datagram));
   }
 
@@ -270,8 +268,8 @@ export default class EnvoyServer {
    * Loops across top-level members of handler and finds all functions, which it
    * populates into a schema object.
    */
-  private discoverSchemaOfHandlerPrototype(handlerTuple: HandlerTuple): Schema {
-    const ret = <Schema>{};
+  private discoverSchemaOfHandlerPrototype (handlerTuple: HandlerTuple): {} {
+    const ret = {};
     const proto = handlerTuple.proto;
     const instance = handlerTuple.instance;
     Object.getOwnPropertyNames(proto).forEach((name) => {
@@ -284,10 +282,10 @@ export default class EnvoyServer {
   }
 }
 
-function getWebsocketConnectionRequestParams(client: IdentifiableWebSocket, request: any) {
+function getWebsocketConnectionRequestParams (client: IdentifiableWebSocket, request: any) {
   const url = request.url || '';
   const query = url.split('?')[1] || '';
   const params = qs.parse(query);
-  params['url'] = url;
+  params.url = url;
   return params;
 }

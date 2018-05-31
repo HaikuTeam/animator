@@ -1,8 +1,8 @@
-import * as tape from 'tape';
+import EnvoyLogger from '@sdk-creator/envoy/EnvoyLogger';
+import EnvoyServer from '@sdk-creator/envoy/EnvoyServer';
 import * as cp from 'child_process';
 import * as path from 'path';
-import EnvoyServer from '@sdk-creator/envoy/EnvoyServer';
-import EnvoyLogger from '@sdk-creator/envoy/EnvoyLogger';
+import * as tape from 'tape';
 import CatHandler from './CatHandler';
 
 tape('envoy:killed-proc', async (t) => {
