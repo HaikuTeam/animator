@@ -3443,6 +3443,77 @@ class ActiveComponent extends BaseModel {
     }, cb)
   }
 
+  updateTypesActual (typeUpdates, metadata, cb) {
+    return this.performComponentWork((bytecode, mana, done) => {
+      for (const id in typeUpdates) {
+        const node = this.locateTemplateNodeByComponentId(id)
+        node.elementName = typeUpdates[id]
+      }
+
+      done()
+    }, cb)
+  }
+
+  updateKeyframesAndTypes (keyframeUpdatesSerial, typeUpdates, metadata, cb) {
+    const keyframeUpdates = Bytecode.unserializeValue(keyframeUpdatesSerial, (ref) => {
+      return this.evaluateReference(ref)
+    })
+
+    return this.project.updateHook('updateKeyframes', this.getRelpath(), Bytecode.serializeValue(keyframeUpdates), metadata, (fire) => {
+      for (const timelineName in keyframeUpdates) {
+        for (const componentId in keyframeUpdates[timelineName]) {
+          this.clearCachedClusters(timelineName, componentId)
+        }
+      }
+
+      return this.updateKeyframesActual(keyframeUpdates, metadata, (err) => {
+        if (err) {
+          logger.error(`[active component (${this.project.getAlias()})]`, err)
+          return cb(err)
+        }
+
+        return this.updateTypesActual(typeUpdates, metadata, (err) => {
+          if (err) {
+            logger.error(`[active component (${this.project.getAlias()})]`, err)
+            return cb(err)
+          }
+
+          return this.reload({
+            hardReload: this.project.isRemoteRequest(metadata),
+            forceFlush: !!metadata.cursor,
+            hotComponents: keyframeUpdatesToHotComponentDescriptors(keyframeUpdates),
+            clearCacheOptions: {
+              doClearEntityCaches: !!metadata.cursor
+            },
+            customRehydrate: () => {
+              const componentIds = {}
+
+              for (const timelineName in keyframeUpdates) {
+                for (const componentId in keyframeUpdates[timelineName]) {
+                  // Only run once for each component id
+                  if (componentIds[componentId]) continue
+                  componentIds[componentId] = true
+
+                  const element = this.findElementByComponentId(componentId)
+
+                  // Not all views necessarily have the same collection of elements
+                  if (element) {
+                    Row.where({ component: this, element }).forEach((row) => {
+                      row.rehydrate()
+                    })
+                  }
+                }
+              }
+            }
+          }, null, () => {
+            fire()
+            return cb()
+          })
+        })
+      })
+    })
+  }
+
   /**
    * @method createKeyframe
    */

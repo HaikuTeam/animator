@@ -7,7 +7,7 @@
     "Matthew Trost <matthew@haiku.ai>",
     "Taylor Poe <taylor@haiku.ai>"
   ],
-  "license": "PROPRIETARY",
+  "license": "UNLICENSED",
   "main": "index.js",
   "scripts": {
     "start": "node ./HaikuHelper.js",
