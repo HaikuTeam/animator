@@ -15,6 +15,7 @@
       "@common/*": ["packages/haiku-common/src/*"],
       "@formats/*": ["packages/haiku-formats/src/*"],
       "@sdk-creator/*": ["packages/haiku-sdk-creator/src/*"],
+      "@sdk-inkstone/*": ["packages/@haiku/sdk-inkstone/src/*"],
       "@testing/*": ["packages/haiku-testing/src/*"],
       "@ui-common/*": ["packages/haiku-ui-common/src/*"]
     },

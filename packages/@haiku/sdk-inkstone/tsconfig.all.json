@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noImplicitAny": false,
+    "baseUrl": ".",
+    "paths": {
+      "@sdk-inkstone/*": ["src/*"]
+    }
+  },
+  "include": [
+    "test/**/*.ts"
+  ]
+}
