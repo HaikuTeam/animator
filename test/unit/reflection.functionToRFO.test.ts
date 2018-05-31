@@ -1,5 +1,4 @@
-import {functionToRFOTest} from './../../test/unit/reflection.functionToRFO.impl';
-
-// Javascript test is called because Typescript compiler
-// scrambles functions comments (even with option "removeComment":false)
-functionToRFOTest();
+import * as tape from 'tape';
+import functionToRFO from '@core/reflection/functionToRFO';
+// Javascript test is called because Typescript compiler scrambles functions.
+require('./reflection.functionToRFO.impl')(tape, functionToRFO);

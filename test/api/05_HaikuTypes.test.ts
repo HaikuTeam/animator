@@ -1,48 +1,68 @@
+import * as fs from 'fs';
+import * as glob from 'glob';
 import * as tape from 'tape';
-const PACKAGE = require('./../../package.json');
 import {compileStringToTypescript} from '../TestHelpers';
-const {Config} = require('./../../lib/Config').default;
-const glob = require('glob');
-const fs = require('fs');
 
+tape(
+  'Test Haiku bytecode typing on compile time',
+  (t) => {
+    // Load bytecode type definition from disk
+    const haykuBytecodeTypeString = fs.readFileSync(
+      'src/api/HaikuBytecode.ts',
+      {encoding: 'utf8'},
+    );
 
-// This test has a a limitation.. HaikuBytecode cannot import type definitions from
-// other files, due to CompilerHost instance is functionality limited. It can fixed 
-// by completing CompilerHost instance at TestHelpers' `compileStringToTypescript`
+    // Get all bytecode file names from demo projects
+    const bytecodeFiles = glob.sync(
+      `demo/projects/*/code/main/code.js`,
+      {},
+    );
 
-tape('Test Haiku bytecode typing on compile time', (t) => {
-  // Load bytecode type definition from disk
-  const haykuBytecodeTypeString = fs.readFileSync('src/api/HaikuBytecode.ts',{encoding:'utf8'});
+    const nonConformantBytecodeFiles = [
+      // Noncorforming eventHandler
+      'demo/projects/clickable-square/code/main/code.js',
+    ];
 
-  // Get all bytecode file names from demo projects
-  const bytecodeFiles = glob.sync(`demo/projects/*/code/main/code.js`, {});
+    // Number of tests are the number of demos
+    t.plan(bytecodeFiles.length);
 
-  const nonConformantBytecodeFiles = [
-    // Non corformant eventHandler
-    'demo/projects/clickable-square/code/main/code.js',
-  ];
+    bytecodeFiles.forEach((file) => {
 
-  // Number of tests are the number of demos
-  t.plan(bytecodeFiles.length);
+      // Load bytecode from file and transform it in a instance of HaikuBytecode by replacing string
+      const haikuBytecodeString = fs.readFileSync(
+        file,
+        {encoding: 'utf8'},
+      )
+        .replace(
+          /module.exports =/g,
+          'const bytecode: HaikuBytecode =',
+        );
 
-  bytecodeFiles.forEach((file) => {
+      const stringToCompile = haykuBytecodeTypeString + haikuBytecodeString;
 
-    // Load bytecode from file and transform it in a instance of HaikuBytecode by replacing string
-    const haikuBytecodeString = fs.readFileSync(file,{encoding:'utf8'})
-          .replace(/module.exports =/g, 'const bytecode: HaikuBytecode =');
+      // Compile bytecode type definition + bytecode into a single compilation unit to
+      // check typing error on compile time
+      const errors = compileStringToTypescript(
+        stringToCompile,
+        '',
+        {strict: false},
+      );
 
-    const stringToCompile = haykuBytecodeTypeString + haikuBytecodeString;
-    
-    // Compile bytecode type definition + bytecode into a single compilation unit to 
-    // check typing error on compile time 
-    const errors = compileStringToTypescript(stringToCompile, '', {strict:false});
-    
-    // Assumes non-conformant bytecodes should fail
-    if (nonConformantBytecodeFiles.indexOf(file) > -1) {
-      t.isNotEqual(errors.length, 0  , `Testing non-conformant bytecode ${file}`);
-    } else {
-      t.equal(errors.length, 0  , `Testing bytecode ${file}`);
-    }
-  });
+      // Assumes non-conformant bytecodes should fail
+      if (nonConformantBytecodeFiles.indexOf(file) > -1) {
+        t.isNotEqual(
+          errors.length,
+          0,
+          `Testing non-conformant bytecode ${file}`,
+        );
+      } else {
+        t.equal(
+          errors.length,
+          0,
+          `Testing bytecode ${file}`,
+        );
+      }
+    });
 
-});
+  },
+);
