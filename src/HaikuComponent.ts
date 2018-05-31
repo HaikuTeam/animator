@@ -3,6 +3,7 @@
  */
 
 import Config from './Config';
+import HaikuClock from './HaikuClock';
 import HaikuElement from './HaikuElement';
 import HaikuContext from './HaikuContext';
 import {runMigrations} from './Migration';
@@ -404,7 +405,7 @@ export default class HaikuComponent extends HaikuElement {
     }
   }
 
-  getClock() {
+  getClock(): HaikuClock {
     return this.context.getClock();
   }
 
