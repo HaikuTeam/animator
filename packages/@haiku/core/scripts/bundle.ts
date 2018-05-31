@@ -13,13 +13,11 @@ const createBundle = (input, name, doUglify = false) => {
   const plugins = [
     nodeResolve({
       jsnext: true,
-      main: true
-    }),
-    commonjs({
+      main: true,
+    }), commonjs({
       sourceMap: false,
-      extensions: ['.js']
-    }),
-    json(),
+      extensions: ['.js'],
+    }), json(),
   ];
 
   if (doUglify) {
@@ -31,7 +29,7 @@ const createBundle = (input, name, doUglify = false) => {
     plugins,
   }).then((bundle) => bundle.generate({
     name,
-    format: 'iife'
+    format: 'iife',
   }));
 };
 
@@ -43,19 +41,43 @@ const adapters = {
   'vue-dom': {
     name: 'HaikuVueAdapter',
     dir: 'vue',
-  }
+  },
 };
 
 fse.mkdirp(DIST);
 for (const bundleName in adapters) {
   const {name, dir} = adapters[bundleName];
-  const input = path.join(ROOT, 'dom', dir, 'index.js');
+  const input = path.join(
+    ROOT,
+    'dom',
+    dir,
+    'index.js',
+  );
   // Full bundle.
-  createBundle(input, name).then(({code}) => {
-    fse.outputFileSync(path.join(DIST, `${bundleName}.bundle.js`), code)
+  createBundle(
+    input,
+    name,
+  ).then(({code}) => {
+    fse.outputFileSync(
+      path.join(
+        DIST,
+        `${bundleName}.bundle.js`,
+      ),
+      code,
+    );
   });
   // Minified bundle.
-  createBundle(input, name, true).then(({code}) => {
-    fse.outputFileSync(path.join(DIST, `${bundleName}.bundle.min.js`), code)
+  createBundle(
+    input,
+    name,
+    true,
+  ).then(({code}) => {
+    fse.outputFileSync(
+      path.join(
+        DIST,
+        `${bundleName}.bundle.min.js`,
+      ),
+      code,
+    );
   });
 }

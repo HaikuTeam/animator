@@ -13,6 +13,7 @@
       "@admin-cli/*": ["packages/haiku-admin-cli/src/*"],
       "@cli/*": ["packages/@haiku/cli/src/*"],
       "@common/*": ["packages/haiku-common/src/*"],
+      "@core/*": ["packages/@haiku/core/src/*"],
       "@formats/*": ["packages/haiku-formats/src/*"],
       "@sdk-creator/*": ["packages/haiku-sdk-creator/src/*"],
       "@sdk-inkstone/*": ["packages/@haiku/sdk-inkstone/src/*"],
