@@ -2,12 +2,12 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import HaikuElement from '../HaikuElement';
-import Layout3D from '../Layout3D';
-import create from '../vendor/gl-mat4/create';
-import invert from '../vendor/gl-mat4/invert';
-import {CurveSpec} from '../vendor/svg-points/types';
-import SVGPoints from './SVGPoints';
+import HaikuElement from '@haiku/core/lib/HaikuElement';
+import Layout3D from '@haiku/core/lib/Layout3D';
+import create from '@haiku/core/lib/vendor/gl-mat4/create';
+import invert from '@haiku/core/lib/vendor/gl-mat4/invert';
+import {CurveSpec} from '@haiku/core/lib/vendor/svg-points/types';
+import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
 
 // Number of pixels allowance for a line to be selected
 export const DEFAULT_LINE_SELECTION_THRESHOLD = 5;
@@ -402,15 +402,4 @@ export const cubicBezierSplit = (
     [{x: x1.x, y: y1.x}, {x: x1.y, y: y1.y}, {x: x1.z, y: y1.z}, {x: x1.w, y: y1.w}],
     [{x: x2.x, y: y2.x}, {x: x2.y, y: y2.y}, {x: x2.z, y: y2.z}, {x: x2.w, y: y2.w}],
   ];
-};
-
-export default {
-  isPointInsidePrimitive,
-  isPointAlongStroke,
-  distance,
-  transform2DPoint,
-  closestNormalPointOnLineSegment,
-  DEFAULT_LINE_SELECTION_THRESHOLD,
-  splitSegmentInSVGPoints,
-  buildPathLUT,
 };

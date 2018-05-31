@@ -31,7 +31,16 @@ import scaleCursorMana from '../overlays/scaleCursorMana'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import {isMac} from 'haiku-common/lib/environments/os'
 import directSelectionMana from '../overlays/directSelectionMana'
-import geometryUtils from '@haiku/core/lib/helpers/geometryUtils'
+import {
+  DEFAULT_LINE_SELECTION_THRESHOLD,
+  isPointInsidePrimitive,
+  isPointAlongStroke,
+  distance,
+  transform2DPoint,
+  closestNormalPointOnLineSegment,
+  splitSegmentInSVGPoints,
+  buildPathLUT
+} from 'haiku-common/lib/math/geometryUtils'
 import SVGPoints from '@haiku/core/lib/helpers/SVGPoints'
 
 const mixpanel = require('haiku-serialization/src/utils/Mixpanel')
@@ -1249,10 +1258,10 @@ export class Glass extends React.Component {
                       if (
                         (
                           descendant.attributes.fill &&
-                          geometryUtils.isPointInsidePrimitive(descendant, mouseDownPosition)
+                          isPointInsidePrimitive(descendant, mouseDownPosition)
                         ) || (
                           descendant.attributes.stroke &&
-                          geometryUtils.isPointAlongStroke(descendant, mouseDownPosition, Number(descendant.attributes['stroke-width']))
+                          isPointAlongStroke(descendant, mouseDownPosition, Number(descendant.attributes['stroke-width']))
                         )) {
                         clickedItemFound = true
                         Element.directlySelected = descendant
@@ -1269,7 +1278,7 @@ export class Glass extends React.Component {
 
                   // --- Insert new vertex when the selected item is unchanged ---
                   if (Element.directlySelected && Element.directlySelected === prevDirectlySelected && (isDoubleClick || Globals.isSpecialKeyDown())) {
-                    const transformedLocalMouse = geometryUtils.transform2DPoint(mouseDownPosition, Element.directlySelected.layoutAncestryMatrices.reverse())
+                    const transformedLocalMouse = transform2DPoint(mouseDownPosition, Element.directlySelected.layoutAncestryMatrices.reverse())
 
                     switch (Element.directlySelected.type) {
                       case 'rect': {
@@ -1411,9 +1420,9 @@ export class Glass extends React.Component {
 
                         // Calculate the normal points and their distances for each segment
                         for (let i = 0; i < originalPoints.length - 1; i++) {
-                          normalPoints.push(geometryUtils.closestNormalPointOnLineSegment(originalPoints[i], originalPoints[i + 1], transformedLocalMouse))
+                          normalPoints.push(closestNormalPointOnLineSegment(originalPoints[i], originalPoints[i + 1], transformedLocalMouse))
                         }
-                        const normalDistances = normalPoints.map((pt) => (geometryUtils.distance(transformedLocalMouse, pt)))
+                        const normalDistances = normalPoints.map((pt) => (distance(transformedLocalMouse, pt)))
 
                         // Find the smallest distance
                         let min = Infinity
@@ -1426,7 +1435,7 @@ export class Glass extends React.Component {
                         }
 
                         // Exit if it's too far away
-                        if (min > geometryUtils.LINE_SELECTION_THRESHOLD) break
+                        if (min > DEFAULT_LINE_SELECTION_THRESHOLD) break
 
                         // Insert a new point at the normal
                         originalPoints.splice(minIdx + 1, 0, normalPoints[minIdx])
@@ -1457,13 +1466,13 @@ export class Glass extends React.Component {
                       case 'path': {
                         const points = SVGPoints.pathToPoints(Element.directlySelected.attributes.d)
                         const approximationResolution = 80
-                        const [lutPoints] = geometryUtils.buildPathLUT(points, approximationResolution)
+                        const [lutPoints] = buildPathLUT(points, approximationResolution)
 
                         // Find the smallest distance
                         let min = Infinity
                         let minIdx = -1
 
-                        const approxDistances = lutPoints.map((pt) => { return geometryUtils.distance(pt, transformedLocalMouse) })
+                        const approxDistances = lutPoints.map((pt) => { return distance(pt, transformedLocalMouse) })
                         for (let i = 0; i < approxDistances.length; i++) {
                           if (approxDistances[i] < min) {
                             min = approxDistances[i]
@@ -1472,7 +1481,7 @@ export class Glass extends React.Component {
                         }
 
                         // Exit if too far away
-                        if (min > geometryUtils.LINE_SELECTION_THRESHOLD) break
+                        if (min > DEFAULT_LINE_SELECTION_THRESHOLD) break
 
                         // Calculate t value and surrounding points, and split
                         const t = minIdx % approximationResolution / approximationResolution
@@ -1482,7 +1491,7 @@ export class Glass extends React.Component {
                             [Element.directlySelected.attributes['haiku-id']]: {
                               d: {
                                 0: {
-                                  value: SVGPoints.pointsToPath(geometryUtils.splitSegmentInSVGPoints(points, Math.floor(minIdx / approximationResolution), Math.ceil(minIdx / approximationResolution), t))
+                                  value: SVGPoints.pointsToPath(splitSegmentInSVGPoints(points, Math.floor(minIdx / approximationResolution), Math.ceil(minIdx / approximationResolution), t))
                                 }
                               }
                             }
@@ -1903,8 +1912,8 @@ export class Glass extends React.Component {
         )
       } else if (!this.isPreviewMode()) {
         if (Element.directlySelected && this.state.directSelectionAnchorActivation != null) {
-          const transformedCurrent = geometryUtils.transform2DPoint(mousePositionCurrent, Element.directlySelected.layoutAncestryMatrices.reverse())
-          const transformedPrevious = geometryUtils.transform2DPoint(mousePositionPrevious, Element.directlySelected.layoutAncestryMatrices.reverse())
+          const transformedCurrent = transform2DPoint(mousePositionCurrent, Element.directlySelected.layoutAncestryMatrices.reverse())
+          const transformedPrevious = transform2DPoint(mousePositionPrevious, Element.directlySelected.layoutAncestryMatrices.reverse())
           const transformedDelta = {
             x: transformedCurrent.x - transformedPrevious.x,
             y: transformedCurrent.y - transformedPrevious.y
@@ -1920,7 +1929,7 @@ export class Glass extends React.Component {
                   [Element.directlySelected.attributes['haiku-id']]: {
                     r: {
                       0: {
-                        value: geometryUtils.distance(transformedCurrent, {x: Number(Element.directlySelected.attributes.cx), y: Number(Element.directlySelected.attributes.cy)})
+                        value: distance(transformedCurrent, {x: Number(Element.directlySelected.attributes.cx), y: Number(Element.directlySelected.attributes.cy)})
                       }
                     }
                   }
