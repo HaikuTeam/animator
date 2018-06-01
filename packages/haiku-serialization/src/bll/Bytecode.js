@@ -2,8 +2,6 @@ const lodash = require('lodash')
 const clone = require('lodash.clone')
 const cloneDeepWith = require('lodash.clonedeepwith')
 const merge = require('lodash.merge')
-const assign = require('lodash.assign')
-const defaults = require('lodash.defaults')
 const BaseModel = require('./BaseModel')
 const xmlToMana = require('@haiku/core/lib/helpers/xmlToMana').default
 const convertManaLayout = require('@haiku/core/lib/layout/convertManaLayout').default
@@ -1049,21 +1047,6 @@ Bytecode.upsertPropertyValue = (
       case 'assign':
         if (defaultTimeline[propName][timelineTime].value === undefined) defaultTimeline[propName][timelineTime].value = propertiesToMerge[propName]
         break
-    }
-  }
-}
-
-Bytecode.mergeTimelineStructure = (bytecodeObject, timelineStructure, mergeStrategy) => {
-  for (const timelineName in timelineStructure) {
-    if (!bytecodeObject.timelines[timelineName]) {
-      bytecodeObject.timelines[timelineName] = timelineStructure[timelineName]
-    } else {
-      switch (mergeStrategy) {
-        case 'merge': merge(bytecodeObject.timelines[timelineName], timelineStructure[timelineName]); break
-        case 'assign': assign(bytecodeObject.timelines[timelineName], timelineStructure[timelineName]); break
-        case 'defaults': defaults(bytecodeObject.timelines[timelineName], timelineStructure[timelineName]); break
-        default: throw new Error('Unknown merge strategy `' + mergeStrategy + '`')
-      }
     }
   }
 }

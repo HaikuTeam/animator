@@ -852,7 +852,7 @@ class ActiveComponent extends BaseModel {
 
     Bytecode.applyOverrides(overrides, timelines, timelineName, `haiku:${componentId}`, timelineTime)
 
-    Bytecode.mergeTimelineStructure(bytecode, timelines, 'assign')
+    Bytecode.mergeTimelines(bytecode.timelines, timelines)
 
     // And move the element to the z-front of all the rest of the layers
     // This must be part of this atomic action or undo/redo won't work properly
@@ -1676,14 +1676,19 @@ class ActiveComponent extends BaseModel {
         }
       )
 
-      delete timelinesObject[timelineName][safeIncoming.attributes[HAIKU_ID_ATTRIBUTE]]
+      const existingSelector = `haiku:${existingNode.attributes[HAIKU_ID_ATTRIBUTE]}`
+      const incomingSelector = `haiku:${safeIncoming.attributes[HAIKU_ID_ATTRIBUTE]}`
+
+      // Ensure properties destined for the root node are applied to the correct id
+      timelinesObject[timelineName][existingSelector] = timelinesObject[timelineName][incomingSelector]
+      delete timelinesObject[timelineName][incomingSelector]
 
       for (let i = 0; i < safeIncoming.children.length; i++) {
         const incomingChild = safeIncoming.children[i]
         existingNode.children.push(incomingChild)
       }
 
-      Bytecode.mergeTimelineStructure(existingBytecode, timelinesObject, 'assign')
+      Bytecode.mergeTimelines(existingBytecode.timelines, timelinesObject)
 
       this.mergeRemovedOutputs(existingBytecode, existingNode, removedOutputs)
     })
