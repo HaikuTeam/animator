@@ -318,7 +318,9 @@ class Asset extends BaseModel {
         })]
       }
 
-      let out = this.children
+      // Map into a new array since we'll be splicing assets into the output array in-place
+      let out = this.children.map((child) => child)
+
       const indexOfFirstSketchChild = getIndexOfFirstSketchChild(this.children)
       const indexOfFirstFigmaChild = getIndexOfFirstFigmaChild(this.children)
       const indexOfFirstIllustratorChild = getIndexOfFirstIllustratorChild(this.children)
@@ -336,6 +338,7 @@ class Asset extends BaseModel {
           messageType: 'edit_primary_asset',
           message: PRIMARY_ASSET_MESSAGE
         })
+
         out.splice(indexOfFirstSketchChild + 1, 0, asset)
       }
 
