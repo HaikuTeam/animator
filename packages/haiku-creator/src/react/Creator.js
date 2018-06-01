@@ -124,7 +124,8 @@ export default class Creator extends React.Component {
       artboardDimensions: null,
       showChangelogModal: false,
       showProxySettings: false,
-      servicesEnvoyClient: null
+      servicesEnvoyClient: null,
+      projToDuplicateIndex: null
     }
 
     this.envoyOptions = {
@@ -922,7 +923,7 @@ export default class Creator extends React.Component {
       },
       (error, projectList) => {
         if (error) return cb(error)
-        this.setState({ projectList })
+        this.setState({ projectsList: projectList })
         ipcRenderer.send('topmenu:update', {projectList, isProjectOpen: false})
         return cb(null, projectList)
       }
@@ -949,8 +950,6 @@ export default class Creator extends React.Component {
 
   createProject (projectName, isPublic, duplicate = false, callback) {
     this.props.websocket.request({ method: 'createProject', params: [projectName, isPublic] }, (err, newProject) => {
-      callback(err, newProject)
-
       if (err) {
         this.createNotice({
           type: 'error',
@@ -960,19 +959,22 @@ export default class Creator extends React.Component {
           lightScheme: true
         })
 
+        callback(err)
         return
       }
 
-      if (duplicate && this.props.projToDuplicateIndex !== null) {
+      if (duplicate && this.state.projToDuplicateIndex !== null) {
         this.props.websocket.request(
           {
             method: 'duplicateProject',
-            params: [newProject, this.props.projectsList[this.props.projToDuplicateIndex]]
+            params: [newProject, this.state.projectsList[this.state.projToDuplicateIndex]]
           },
           () => {
-
+            callback(err, newProject)
           }
         )
+      } else {
+        callback(err, newProject)
       }
     })
   }
@@ -1481,8 +1483,8 @@ export default class Creator extends React.Component {
     ) : null
   }
 
-  showNewProjectModal (isDuplicateProjectModal = false, duplicateProjectName) {
-    this.setState({ showNewProjectModal: true, isDuplicateProjectModal, duplicateProjectName })
+  showNewProjectModal (isDuplicateProjectModal = false, duplicateProjectName = '', projToDuplicateIndex = -1) {
+    this.setState({ showNewProjectModal: true, isDuplicateProjectModal, duplicateProjectName, projToDuplicateIndex })
     mixpanel.haikuTrack('creator:new-project:shown')
   }
 
