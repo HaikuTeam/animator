@@ -21,7 +21,7 @@
   ],
   "license": "UNLICENSED",
   "devDependencies": {
-    "electron": "1.8.2",
+    "electron": "2.0.2",
     "haiku-testing": "3.3.4"
   },
   "dependencies": {

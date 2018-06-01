@@ -53,7 +53,7 @@
     "jsdom": "^11.1.0",
     "leaked-handles": "^5.2.0",
     "nodemon": "1.11.0",
-    "opn": "^5.1.0",
+    "opn": "^5.3.0",
     "react": "^16.0.0",
     "react-dom": "^16.0.0",
     "react-router-dom": "^4.1.1",

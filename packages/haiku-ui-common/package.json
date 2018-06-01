@@ -28,7 +28,7 @@
     "@types/dedent": "^0.7.0",
     "@types/numeral": "^0.0.22",
     "@types/react": "^15.4.2",
-    "electron": "1.8.2",
+    "electron": "2.0.2",
     "haiku-testing": "3.3.4",
     "url-loader": "^1.0.1",
     "webpack-conditional-loader": "^1.0.12"
