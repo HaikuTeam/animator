@@ -34,6 +34,8 @@ if (!HaikuGlobal.HaikuGlobalAnimationHarness) {
     for (let i = 0; i < length; i++) {
       queue[i]();
     }
+
+    HaikuGlobal.HaikuGlobalAnimationHarness.raf = raf.request(frame);
   };
 
   HaikuGlobal.HaikuGlobalAnimationHarness = {
@@ -42,7 +44,6 @@ if (!HaikuGlobal.HaikuGlobalAnimationHarness) {
     // The main frame function, loops through all those who
     // need an animation tick and calls them
     frame,
-    raf: raf.request(frame),
     // Need a mechanism to cancel the rAF loop, or else some contexts
     // (e.g. tests) will have leaked handles
     cancel: () => {
