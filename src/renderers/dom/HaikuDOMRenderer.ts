@@ -36,6 +36,26 @@ const connectTarget = (virtualNode, domElement) => {
   }
 };
 
+const shouldListenerReceiveEvent = (name: string, event: any, match: Element): boolean => {
+  // Since we subscribe to events from the root element, we rewrite these as 'mouseover' and 'mouseout'
+  // so we can adequately capture "bubbled" enters/leaves to meet the 99% expectation of users. Then
+  // we mimic the bubbling logic here so the semantics align with normal DOM semantics
+  if (name === 'mouseenter' || name === 'mouseleave') {
+    return (
+      match === event.target &&
+      ( // Don't fire if the user's mouse went from inside the child into the target
+        !match.contains ||
+        !match.contains(event.relatedTarget)
+      )
+    );
+  }
+
+  return (
+    match === event.target ||
+    (match.contains && match.contains(event.target))
+  );
+};
+
 // tslint:disable:variable-name
 export default class HaikuDOMRenderer extends HaikuBase {
   mount;
@@ -351,7 +371,17 @@ export default class HaikuDOMRenderer extends HaikuBase {
   }
 
   mountEventListener(selector: string, name: string, listener: Function) {
-    this.mount.addEventListener(name, (domEvent) => {
+    let rewritten = name;
+
+    if (name === 'mouseenter') {
+      rewritten = 'mouseover';
+    }
+
+    if (name === 'mouseleave') {
+      rewritten = 'mouseout';
+    }
+
+    this.mount.addEventListener(rewritten, (domEvent) => {
       // If no explicit selector/target for the event, just fire the listener
       if (
         !selector || selector === GLOBAL_LISTENER_KEY ||
@@ -372,10 +402,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
       const match = this.mount.querySelector(query);
 
       if (match) {
-        if (
-          match === domEvent.target ||
-          (match.contains && match.contains(domEvent.target))
-        ) {
+        if (shouldListenerReceiveEvent(name, domEvent, match)) {
           listener(domEvent.target, domEvent);
           return;
         }
