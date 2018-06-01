@@ -117,6 +117,9 @@ class Library extends React.Component {
       this.isSketchInstalled = Boolean(sketchInstallationPath)
     })
 
+    // TODO: perform an actual check for Illustrator
+    this.isIllustratorInstalled = true
+
     this.props.user.getConfig(UserSettings.figmaToken).then((figmaToken) => {
       const figma = new Figma({token: figmaToken})
       this.setState({figma})
@@ -267,18 +270,28 @@ class Library extends React.Component {
     )
   }
 
-  openSketchFile (asset) {
+  openWithDefaultProgram (asset) {
     shell.openItem(asset.getAbspath())
   }
 
   handleSketchInstantiation (asset) {
     if (this.isSketchInstalled) {
       mixpanel.haikuTrack('creator:sketch:open-file')
-      this.openSketchFile(asset)
+      this.openWithDefaultProgram(asset)
     // On library Sketch asset double click, ask to download Sketch only if on mac
     } else if (isMac()) {
       mixpanel.haikuTrack('creator:sketch:sketch-not-installed')
       this.setState({sketchDownloader: {...this.state.sketchDownloader, isVisible: true, asset}})
+    }
+  }
+
+  handleIllustratorInstantiation (asset) {
+    if (this.isIllustratorInstalled) {
+      mixpanel.haikuTrack('creator:illustrator:open-file')
+      this.openWithDefaultProgram(asset)
+    } else {
+      mixpanel.haikuTrack('creator:illustrator:illustrator-not-installed')
+      this.props.createNotice({ type: 'error', title: 'Error', message: 'You need to have Adobe Illustrator installed to open that file.' })
     }
   }
 
@@ -290,7 +303,7 @@ class Library extends React.Component {
 
   onSketchDownloadComplete () {
     this.isSketchInstalled = true
-    this.openSketchFile(this.state.sketchDownloader.asset)
+    this.openWithDefaultProgram(this.state.sketchDownloader.asset)
     this.setState({sketchDownloader: {...this.state.sketchDownloader, isVisible: false, asset: null}})
   }
 
@@ -322,14 +335,13 @@ class Library extends React.Component {
     )
   }
 
-  handleFolderDoubleClick (asset) {
-    shell.openItem(asset.getAbspath())
-  }
-
   onAssetDoubleClick (asset) {
     switch (asset.kind) {
       case Asset.KINDS.SKETCH:
         this.handleSketchInstantiation(asset)
+        break
+      case Asset.KINDS.ILLUSTRATOR:
+        this.handleIllustratorInstantiation(asset)
         break
       case Asset.KINDS.FIGMA:
         this.handleFigmaInstantiation(asset)
@@ -341,7 +353,7 @@ class Library extends React.Component {
         this.handleComponentInstantiation(asset)
         break
       case Asset.KINDS.FOLDER:
-        this.handleFolderDoubleClick(asset)
+        this.openWithDefaultProgram(asset)
         break
     }
   }

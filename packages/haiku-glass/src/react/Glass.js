@@ -2663,6 +2663,15 @@ export class Glass extends React.Component {
       }
     })
 
+    items.push({
+      label: 'Edit in Illustrator',
+      enabled: proxy.isSelectionIllustratorEditable(),
+      onClick: () => {
+        mixpanel.haikuTrack('creator:glass:edit-in-illustrator')
+        shell.openItem(path.join(this.props.folder, proxy.getIllustratorAssetPath()))
+      }
+    })
+
     items.push({ type: 'separator' })
 
     items.push({

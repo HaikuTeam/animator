@@ -53,7 +53,8 @@ export function buildProjectContent (
       projectNameSafe,
       projectNameLowerCase,
       reactProjectName,
-      primaryAssetPath
+      primaryAssetPath,
+      defaultIllustratorAssetPath
     } = Project.getProjectNameVariations(projectPath)
 
     const organizationName = projectOptions.organizationName || FALLBACK_ORG_NAME
@@ -186,6 +187,11 @@ export function buildProjectContent (
       // If it isn't already a part of the project, add the 'blank' sketch file to users' projects
       if (!fse.existsSync(dir(projectPath, primaryAssetPath))) {
         fse.copySync(path.join(PLUMBING_DIR, 'bins', 'sketch-42.sketch'), dir(projectPath, primaryAssetPath))
+      }
+
+      // If it isn't already a part of the project, add the 'blank' sketch file to users' projects
+      if (!fse.existsSync(dir(projectPath, defaultIllustratorAssetPath))) {
+        fse.copySync(path.join(PLUMBING_DIR, 'bins', 'illustrator-default.ai'), dir(projectPath, defaultIllustratorAssetPath))
       }
 
       fse.outputFileSync(dir(projectPath, 'README.md'), dedent`

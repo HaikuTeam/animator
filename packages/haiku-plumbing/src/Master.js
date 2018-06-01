@@ -10,6 +10,7 @@ import File from 'haiku-serialization/src/bll/File'
 import Project from 'haiku-serialization/src/bll/Project'
 import Sketch from 'haiku-serialization/src/bll/Sketch'
 import Figma from 'haiku-serialization/src/bll/Figma'
+import Illustrator from 'haiku-serialization/src/bll/Illustrator'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import MockWebsocket from 'haiku-serialization/src/ws/MockWebsocket'
 import { EventEmitter } from 'events'
@@ -48,11 +49,13 @@ const SAVE_AWAIT_TIME = 64 * 2
 const WATCHABLE_EXTNAMES = {
   '.js': true,
   '.svg': true,
-  '.sketch': true
+  '.sketch': true,
+  '.ai': true
 }
 
 const DESIGN_EXTNAMES = {
   '.sketch': true,
+  '.ai': true,
   '.svg': true
 }
 
@@ -319,7 +322,7 @@ export default class Master extends EventEmitter {
     const extname = path.extname(relpath)
     const basename = path.basename(relpath, extname)
 
-    if (extname === '.sketch' || extname === '.svg') {
+    if (Sketch.isSketchFile(abspath) || Illustrator.isIllustratorFile(abspath) || extname === '.svg') {
       this._knownLibraryAssets[relpath] = { relpath, abspath, dtModified: Date.now() }
       this.emitDesignChange(relpath)
     } else if (path.basename(relpath) === 'code.js') { // Local component file
@@ -333,11 +336,18 @@ export default class Master extends EventEmitter {
           return
         }
 
-        if (extname === '.sketch') {
+        if (Sketch.isSketchFile(abspath)) {
           logger.info('[master] sketchtool pipeline running; please wait')
           Sketch.sketchtoolPipeline(abspath)
           logger.info('[master] sketchtool done')
           return
+        }
+
+        if (Illustrator.isIllustratorFile(abspath)) {
+          logger.info('[master] illustrator pipeline running; please wait')
+          Illustrator.importSVG(abspath)
+          logger.info('[master] illustrator import done')
+          return void (0)
         }
 
         if (extname === '.js' && basename === 'code') {
@@ -365,7 +375,7 @@ export default class Master extends EventEmitter {
     const extname = path.extname(relpath)
     const basename = path.basename(relpath, extname)
 
-    if (extname === '.sketch' || extname === '.svg') {
+    if (Sketch.isSketchFile(abspath) || Illustrator.isIllustratorFile(abspath) || extname === '.svg') {
       this._knownLibraryAssets[relpath] = { relpath, abspath, dtModified: Date.now() }
       this.emitDesignChange(relpath)
     } else if (path.basename(relpath) === 'code.js') { // Local component file
@@ -384,6 +394,13 @@ export default class Master extends EventEmitter {
           Sketch.sketchtoolPipeline(abspath)
           logger.info('[master] sketchtool done')
           return
+        }
+
+        if (Illustrator.isIllustratorFile(abspath)) {
+          logger.info('[master] illustrator pipeline running; please wait')
+          Illustrator.importSVG(abspath)
+          logger.info('[master] illustrator import done')
+          return void (0)
         }
 
         if (extname === '.js' && basename === 'code') {
@@ -567,9 +584,9 @@ export default class Master extends EventEmitter {
 
     return async.series(
       [
-        /* Remove associated Sketch contents from disk */
+        /* Remove associated asset contents from disk */
         (cb) => {
-          Sketch.isSketchFile(abspath) || Figma.isFigmaFile(abspath)
+          Sketch.isSketchFile(abspath) || Figma.isFigmaFile(abspath) || Illustrator.isIllustratorFile(abspath)
             ? fse.remove(`${abspath}.contents`, cb)
             : cb()
         },

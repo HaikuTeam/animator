@@ -15,6 +15,7 @@ import {
   CollapseChevronDownSVG,
   SketchIconSVG,
   FigmaIconSVG,
+  IllustratorIconSVG,
   FolderIconSVG,
   TrashIconSVG,
   ComponentIconSVG,
@@ -243,6 +244,14 @@ class AssetItem extends React.Component {
       })
     }
 
+    if (this.props.asset.isIllustratorFile()) {
+      items.push({
+        label: 'Open In Illustrator',
+        icon: IllustratorIconSVG,
+        onClick: this.handleOpenAsset.bind(this)
+      })
+    }
+
     // Things like built-in components can't be deleted or shown in finder
     if (!this.props.asset.isRemoteAsset() && !this.props.asset.isFigmaFile()) {
       items.push({
@@ -313,6 +322,7 @@ class AssetItem extends React.Component {
     if (
       this.props.asset.isSketchFile() ||
       this.isFigmaAndCanBeOpened() ||
+      this.props.asset.isIllustratorFile() ||
       this.props.asset.isOrphanSvg() ||
       this.props.asset.isComponentOtherThanMain()
     ) {
@@ -367,7 +377,7 @@ class AssetItem extends React.Component {
       )
     }
 
-    if (this.props.asset.kind === Asset.KINDS.SKETCH) {
+    if (this.props.asset.isSketchFile()) {
       return (
         <span
           className='sketch-icon-container'
@@ -378,13 +388,24 @@ class AssetItem extends React.Component {
       )
     }
 
-    if (this.props.asset.kind === Asset.KINDS.FIGMA) {
+    if (this.props.asset.isFigmaFile()) {
       return (
         <span
           className='figma-icon-container'
           onDoubleClick={this.handleAssetDoubleClick}
           style={STYLES.cardIcon}>
           <FigmaIconSVG />
+        </span>
+      )
+    }
+
+    if (this.props.asset.isIllustratorFile()) {
+      return (
+        <span
+          className='illustrator-icon-container'
+          onDoubleClick={this.handleAssetDoubleClick}
+          style={STYLES.cardIcon}>
+          <IllustratorIconSVG />
         </span>
       )
     }
