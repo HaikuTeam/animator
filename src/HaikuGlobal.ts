@@ -28,9 +28,9 @@ function buildRoot () {
   let ROOT: HaikuRoot = {};
 
   // Window gets highest precedence since most likely we're running in DOM
-  if (typeof window !== 'undefined') {
+  if (window !== undefined) {
     ROOT = window as HaikuRoot;
-  } else if (typeof global !== 'undefined') {
+  } else if (global !== undefined) {
     ROOT = global as HaikuRoot;
   } else {
     // On the off-chance there is no real global, just use the orig object
