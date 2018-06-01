@@ -421,7 +421,12 @@ class ProjectBrowser extends React.Component {
           {lodash.map(this.props.notices, this.renderNotice)}
         </TransitionGroup>
 
-        { this.state.showDeleteModal && this.renderDeleteModal() }
+        {/* This hack allows the italic variant of the font to be preloaded, avoiding FOUT */}
+        <span style={{visibility: 'hidden', width: 0, height: 0}}>
+          <span style={DASH_STYLES.projToDelete} />
+        </span>
+
+        {this.state.showDeleteModal && this.renderDeleteModal()}
 
         <div style={DASH_STYLES.frame} className='frame'>
           {this.state.atProjectMax && (
