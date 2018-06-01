@@ -15,7 +15,7 @@ export interface HaikuRoot {
     HaikuGlobalAnimationHarness?: {
       queue: (() => void)[];
       frame: () => void;
-      raf: () => void;
+      raf?: () => void;
       cancel: () => void;
     }
   };
