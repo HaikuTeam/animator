@@ -465,16 +465,35 @@ class StageTitleBar extends React.Component {
 
   isConglomerateComponentAvailable () {
     const proxy = this.fetchProxyElementForSelection()
-    return proxy && proxy.canCreateComponentFromSelection()
+    return proxy && (proxy.canCreateComponentFromSelection() || proxy.canEditComponentFromSelection())
+  }
+
+  getConglomerateComponentButtonColor () {
+    const proxy = this.fetchProxyElementForSelection()
+    if (proxy) {
+      if (proxy.canEditComponentFromSelection()) {
+        return Palette.LIGHT_BLUE
+      }
+    }
   }
 
   handleConglomerateComponent () {
     if (this.isConglomerateComponentAvailable()) {
-      this.props.websocket.send({
-        type: 'broadcast',
-        from: 'creator',
-        name: 'conglomerate-component'
-      })
+      const proxy = this.fetchProxyElementForSelection()
+
+      if (proxy.canEditComponentFromSelection()) {
+        this.props.websocket.send({
+          type: 'broadcast',
+          from: 'creator',
+          name: 'edit-component'
+        })
+      } else if (proxy.canCreateComponentFromSelection()) {
+        this.props.websocket.send({
+          type: 'broadcast',
+          from: 'creator',
+          name: 'conglomerate-component'
+        })
+      }
     }
   }
 
@@ -493,6 +512,17 @@ class StageTitleBar extends React.Component {
         opts: {},
         frame: null
       })
+    }
+  }
+
+  getEventHandlersEditorButtonColor () {
+    const proxy = this.fetchProxyElementForSelection()
+    if (proxy) {
+      if (proxy.doesManageSingleElement()) {
+        if (proxy.selection[0].hasEventHandlers()) {
+          return Palette.LIGHT_BLUE
+        }
+      }
     }
   }
 
@@ -526,7 +556,7 @@ class StageTitleBar extends React.Component {
               BTN_STYLES.btnIcon,
               BTN_STYLES.leftBtns
             ]}>
-            <ComponentIconSVG />
+            <ComponentIconSVG color={this.getConglomerateComponentButtonColor()} />
           </button>
           : ''}
 
@@ -539,7 +569,7 @@ class StageTitleBar extends React.Component {
               BTN_STYLES.btnIcon,
               BTN_STYLES.leftBtns
             ]}>
-            <EventsBoltIcon />
+            <EventsBoltIcon color={this.getEventHandlersEditorButtonColor()} />
           </button>
           : ''}
 

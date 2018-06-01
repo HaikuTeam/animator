@@ -660,6 +660,11 @@ export class Glass extends React.Component {
           )
           break
 
+        case 'edit-component':
+          const proxy = this.fetchProxyElementForSelection()
+          this.editComponent(proxy.getSingleComponentElementRelpath())
+          break
+
         case 'conglomerate-component':
           this.launchComponentNameModal()
           break
