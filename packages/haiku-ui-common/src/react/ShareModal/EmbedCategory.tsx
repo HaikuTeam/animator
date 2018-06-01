@@ -22,7 +22,7 @@ const STYLES = {
 
 export type EmbedCategoryProps = {
   category: string;
-  options: {};
+  options: any;
   onOptionClicked?: Function;
   isSnapshotSaveInProgress?: boolean;
   snapshotSyndicated?: boolean;
@@ -31,7 +31,7 @@ export type EmbedCategoryProps = {
 
 export class EmbedCategory extends React.PureComponent<EmbedCategoryProps> {
   renderCategoryOptions (options: any) {
-    return Object.entries(options).map(([entry, {disabled, template}]) => (
+    return Object.entries(options).map(([entry, {disabled, template}]: any) => (
       <EmbedOption
         key={entry}
         category={this.props.category}
