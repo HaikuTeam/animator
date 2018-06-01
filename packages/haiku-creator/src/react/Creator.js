@@ -85,8 +85,8 @@ export default class Creator extends React.Component {
     this.onNavigateToDashboard = this.onNavigateToDashboard.bind(this)
     this.disablePreviewMode = this.disablePreviewMode.bind(this)
     this.clearAuth = this.clearAuth.bind(this)
+
     this.tryToChangeCurrentActiveComponent = this.tryToChangeCurrentActiveComponent.bind(this)
-    this.setNonSavedContentOnCodeEditor = this.setNonSavedContentOnCodeEditor.bind(this)
     this.layout = new EventEmitter()
     this.activityMonitor = new ActivityMonitor(window, this.onActivityReport.bind(this))
 
@@ -130,7 +130,6 @@ export default class Creator extends React.Component {
       projToDuplicateIndex: null,
       showGlass: true,
       showPopupToSaveRawEditorContents: false,
-      nonSavedContentOnCodeEditor: false,
     }
 
 
@@ -237,8 +236,7 @@ export default class Creator extends React.Component {
 
     ipcRenderer.on('global-menu:set-active-component', lodash.debounce((ipcEvent, scenename) => {
       logger.info(`[creator] global-menu:set-active-component`)
-      this.state.projectModel.setCurrentActiveComponent(scenename, {from: 'creator'}, () => {})
-      //this.tryToChangeCurrentActiveComponent(scenename)
+      this.tryToChangeCurrentActiveComponent(scenename)
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:zoom-in', lodash.debounce(() => {
@@ -1468,22 +1466,8 @@ export default class Creator extends React.Component {
 
   // Check if currently edited file is open
   tryToChangeCurrentActiveComponent (scenename) {
-    //logger.info("%%%%%%%%%%%%%%%%%%%%tryToChangeCurrentActiveComponent")
-    
-    //console.log('#######################nonSavedContentOnCodeEditor', this.state.nonSavedContentOnCodeEditor )
-
-    // if (this.state.nonSavedContentOnCodeEditor){
-    //   this.setState({showPopupToSaveRawEditorContents: true});
-    //   this.state.projectModel.setCurrentActiveComponent(scenename, {from: 'creator'}, () => {})
-    // }
-    // else{
-      this.state.projectModel.setCurrentActiveComponent(scenename, {from: 'creator'}, () => {})
-    // }
-  }
-
-  setNonSavedContentOnCodeEditor (nonSavedContentOnCodeEditor) {
-    // debugger;
-    this.setState({nonSavedContentOnCodeEditor: nonSavedContentOnCodeEditor})
+    this.setState({showPopupToSaveRawEditorContents: true})
+    this.state.projectModel.setCurrentActiveComponent(scenename, {from: 'creator'}, () => {})
   }
 
   setProjectLaunchStatus ({ launchingProject, newProjectLoading }) {
@@ -1862,8 +1846,6 @@ export default class Creator extends React.Component {
                     onSwitchToDesignMode={() => { this.switchToDesignMode() }}
                     tryToChangeCurrentActiveComponent={this.tryToChangeCurrentActiveComponent}
                     showPopupToSaveRawEditorContents={this.state.showPopupToSaveRawEditorContents}
-                    setNonSavedContentOnCodeEditor={this.setNonSavedContentOnCodeEditor}
-                    nonSavedContentOnCodeEditor={this.state.nonSavedContentOnCodeEditor}
                   />
                   {(this.state.assetDragging)
                     ? <div style={{ width: '100%', height: '100%', backgroundColor: 'white', opacity: 0.01, position: 'absolute', top: 0, left: 0 }} />

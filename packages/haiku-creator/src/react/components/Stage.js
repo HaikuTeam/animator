@@ -53,6 +53,17 @@ export default class Stage extends React.Component {
     super(props)
     this.webview = null
     this.onRequestWebviewCoordinates = this.onRequestWebviewCoordinates.bind(this)
+    this.setNonSavedContentOnCodeEditor = this.setNonSavedContentOnCodeEditor.bind(this)
+
+    this.state = {
+      nonSavedContentOnCodeEditor: false,
+    }
+  }
+
+  setNonSavedContentOnCodeEditor (nonSavedContentOnCodeEditor) {
+    // debugger;
+    console.log('About to set', {nonSavedContentOnCodeEditor})
+    this.setState({nonSavedContentOnCodeEditor})
   }
 
   componentDidMount () {
@@ -247,7 +258,7 @@ export default class Stage extends React.Component {
         <div
           className='stage-box'
           style={STAGE_BOX_STYLE}>
-          {this.props.nonSavedContentOnCodeEditor && this.renderModal()}
+          {this.props.showPopupToSaveRawEditorContents && this.state.nonSavedContentOnCodeEditor && this.renderModal()}
           <StageTitleBar
             folder={this.props.folder}
             envoyProject={this.props.envoyProject}
@@ -274,7 +285,7 @@ export default class Stage extends React.Component {
             <ComponentMenu
               ref='component-menu'
               projectModel={this.props.projectModel} 
-              nonSavedContentOnCodeEditor={this.props.nonSavedContentOnCodeEditor}
+              nonSavedContentOnCodeEditor={this.state.nonSavedContentOnCodeEditor}
               tryToChangeCurrentActiveComponent={this.props.tryToChangeCurrentActiveComponent}
             />
           }
@@ -308,7 +319,8 @@ export default class Stage extends React.Component {
             <CodeEditor
               showGlass={this.props.showGlass}
               projectModel={this.props.projectModel}
-              setNonSavedContentOnCodeEditor={this.props.setNonSavedContentOnCodeEditor}
+              setNonSavedContentOnCodeEditor={this.setNonSavedContentOnCodeEditor}
+              nonSavedContentOnCodeEditor={this.state.nonSavedContentOnCodeEditor}
               showPopupToSaveRawEditorContents={this.props.showPopupToSaveRawEditorContents}
               />
           </div>
