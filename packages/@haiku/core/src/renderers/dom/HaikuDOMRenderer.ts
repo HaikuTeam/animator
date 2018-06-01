@@ -7,16 +7,16 @@ import HaikuBase, {GLOBAL_LISTENER_KEY} from './../../HaikuBase';
 import applyLayout from './applyLayout';
 import assignAttributes from './assignAttributes';
 import cloneVirtualElement from './cloneVirtualElement';
+import createRightClickMenu from './createRightClickMenu';
 import createSvgElement from './createSvgElement';
 import createTextNode from './createTextNode';
+import getElementSize from './getElementSize';
 import getFlexId from './getFlexId';
+import getLocalDomEventPosition from './getLocalDomEventPosition';
 import getTypeAsString from './getTypeAsString';
 import isBlankString from './isBlankString';
 import isTextNode from './isTextNode';
 import mixpanelInit from './mixpanelInit';
-import createRightClickMenu from './createRightClickMenu';
-import getElementSize from './getElementSize';
-import getLocalDomEventPosition from './getLocalDomEventPosition';
 import normalizeName from './normalizeName';
 import removeElement from './removeElement';
 import replaceElementWithText from './replaceElementWithText';
@@ -56,6 +56,17 @@ const shouldListenerReceiveEvent = (name: string, event: any, match: Element): b
   );
 };
 
+export interface MountLayout {
+  layout?: {
+    computed: {
+      size: {
+        x: number;
+        y: number;
+      };
+    };
+  };
+}
+
 // tslint:disable:variable-name
 export default class HaikuDOMRenderer extends HaikuBase {
   mount;
@@ -63,7 +74,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
   user;
   shouldCreateContainer;
 
-  constructor(mount, config) {
+  constructor (mount, config) {
     super();
 
     this.mount = mount;
@@ -88,7 +99,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
     this.clear();
   }
 
-  clear() {
+  clear () {
     if (this.mount) {
       while (this.mount.firstChild) {
         this.mount.removeChild(this.mount.firstChild);
@@ -96,7 +107,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
     }
   }
 
-  render(virtualContainer, virtualTree, component) {
+  render (virtualContainer, virtualTree, component) {
     return HaikuDOMRenderer.renderTree(
       this.mount,
       virtualContainer,
@@ -107,7 +118,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
     );
   }
 
-  patch(component, patches) {
+  patch (component, patches) {
     // The component upstream may use an empty value to indicate a no-op
     if (!patches || Object.keys(patches).length < 1) {
       return;
@@ -119,7 +130,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
       if (virtualElement.__targets) {
         for (let i = 0; i < virtualElement.__targets.length; i++) {
           const target = virtualElement.__targets[i];
-          
+
           if (target.parentNode) {
             HaikuDOMRenderer.updateElement(
               target,
@@ -135,30 +146,30 @@ export default class HaikuDOMRenderer extends HaikuBase {
     }
   }
 
-  menuize(component) {
+  menuize (component) {
     return createRightClickMenu(this.mount, component);
   }
 
-  mixpanel(mixpanelToken, component) {
+  mixpanel (mixpanelToken, component) {
     return mixpanelInit(mixpanelToken, component);
   }
 
-  hasSizing() {
+  hasSizing () {
     return this.config && this.config.sizing && this.config.sizing !== 'normal';
   }
 
-  getZoom() {
+  getZoom () {
     return ((this.config && this.config.zoom) || 1.0);
   }
 
-  getPan() {
+  getPan () {
     return {
       x: (this.config && this.config.pan && this.config.pan.x) || 0,
       y: (this.config && this.config.pan && this.config.pan.y) || 0,
     };
   }
 
-  createContainer(out = {}) {
+  createContainer (out: MountLayout = {}) {
     let size;
     if (this.mount) {
       size = getElementSize(this.mount);
@@ -167,7 +178,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
       size = {x: 1, y: 1};
     }
 
-    out['layout'] = {
+    out.layout = {
       computed: {
         size,
       },
@@ -180,7 +191,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
     return out;
   }
 
-  initialize() {
+  initialize () {
     const user = this.user;
 
     const setMouse = (mouseEvent) => {
@@ -370,7 +381,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
     });
   }
 
-  mountEventListener(selector: string, name: string, listener: Function) {
+  mountEventListener (selector: string, name: string, listener: Function) {
     let rewritten = name;
 
     if (name === 'mouseenter') {
@@ -410,7 +421,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
     });
   }
 
-  getUser() {
+  getUser () {
     const zoom = this.getZoom();
     const pan = this.getPan();
     return {
@@ -428,7 +439,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
     };
   }
 
-  static createTagNode(
+  static createTagNode (
     domElement,
     virtualElement,
     parentVirtualElement,
@@ -471,7 +482,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
     return newDomElement;
   }
 
-  static appendChild(
+  static appendChild (
     alreadyChildElement,
     virtualElement,
     parentDomElement,
@@ -488,7 +499,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
     return domElementToInsert;
   }
 
-  static replaceElement(
+  static replaceElement (
     domElement,
     virtualElement,
     parentDomNode,
@@ -510,7 +521,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
     return newElement;
   }
 
-  static updateElement(
+  static updateElement (
     domElement,
     virtualElement,
     parentNode,
@@ -587,7 +598,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
     return domElement;
   }
 
-  static renderTree(
+  static renderTree (
     domElement,
     virtualElement,
     virtualChildren,
@@ -685,6 +696,6 @@ export default class HaikuDOMRenderer extends HaikuBase {
 
     return domElement;
   }
-}
 
-HaikuDOMRenderer['__name__'] = 'HaikuDOMRenderer';
+  static __name__ = 'HaikuDOMRenderer';
+}

@@ -7,7 +7,6 @@ export enum DatagramIntent {
   RESPONSE,
   SCHEMA_REQUEST,
   EVENT,
-  ID_REQUEST,
 }
 
 export type EnvoySerializable = any;
@@ -55,15 +54,5 @@ export interface RequestOptions {
 export const DEFAULT_REQUEST_OPTIONS: RequestOptions = {
   timeout: 5000,
 };
-
-/**
- * Simple key-value pair object that describes the topology of a server-side handler
- * @example
- * {
- *   doFoo: "function",
- *   doBar: "function"
- * }
- */
-export interface Schema {}
 
 export type MaybeAsync<T> = (T | Promise<T>);

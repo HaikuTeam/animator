@@ -2,8 +2,8 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import {InteractionMode} from './helpers/interactionModes';
 import {BytecodeOptions} from './api/HaikuBytecode';
+import {InteractionMode} from './helpers/interactionModes';
 
 export const DEFAULTS: BytecodeOptions = {
   seed: null,
@@ -34,7 +34,7 @@ export const DEFAULTS: BytecodeOptions = {
   placeholder: null,
 };
 
-function seed() {
+function seed () {
   return Math.random().toString(36).slice(2);
 }
 
@@ -46,8 +46,8 @@ const CONFIG_KEYS_TO_MERGE = {
   initialStates: true,
 };
 
-function build(...argums) {
-  const config = {};
+function build (...argums): BytecodeOptions {
+  const config: BytecodeOptions = {};
 
   const args = [...argums];
 
@@ -79,10 +79,10 @@ function build(...argums) {
   });
 
   // Validations
-  if (config['overflow'] && (config['overflowX'] || config['overflowY'])) {
+  if (config.overflow && (config.overflowX || config.overflowY)) {
     console.warn('[haiku core] `overflow` overrides `overflowY`/`overflowX`');
-    config['overflowX'] = null;
-    config['overflowY'] = null;
+    config.overflowX = null;
+    config.overflowY = null;
   }
 
   return config;

@@ -95,7 +95,7 @@ export default class RowSegments extends React.Component {
                   keyframe={keyframe} />
               )
             }
-            if (keyframe.isSoloKeyframe()) {
+            if (keyframe.isSoloKeyframe() || !keyframe.hasNextKeyframe()) {
               segmentPieces.push(
                 <SoloKeyframe
                   id={`keyframe-${keyframe.getUniqueKey()}-${this.props.scope}-solo-keyframe`}

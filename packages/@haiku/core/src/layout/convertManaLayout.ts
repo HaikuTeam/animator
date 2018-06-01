@@ -4,8 +4,8 @@
 
 import parseCssTransformString from './../helpers/parseCssTransformString';
 import visitManaTree from './../helpers/visitManaTree';
-import cssValue from './../vendor/css-value';
 import Layout3D from './../Layout3D';
+import cssValue from './../vendor/css-value';
 
 const ROOT_LOCATOR = '0';
 
@@ -33,11 +33,11 @@ const TRANSFORM_COMPONENT_WHITELIST = {
   'align.z': true,
 };
 
-function isNumericDefined(value): boolean {
+function isNumericDefined (value): boolean {
   return typeof value === 'number';
 }
 
-function determineSizingProp(sizeAxis, attributeValue) {
+function determineSizingProp (sizeAxis, attributeValue) {
   const parsedValues = cssValue(attributeValue + ''); // Someone may have sent a number
   const parsedValue = parsedValues[0]; // Some CSS props have multi values, but our size ones shouldn't
   switch (parsedValue.unit) {
@@ -67,7 +67,7 @@ function determineSizingProp(sizeAxis, attributeValue) {
 const DEFAULT_SIZE_ABSOLUTE = 100;
 const DEFAULT_SIZE_PROPORTIONAL = 1.0; // 100%
 
-function fallbackSizeAbsolute(node: any, axis: string): number {
+function fallbackSizeAbsolute (node: any, axis: string): number {
   // This pathway assumes we've already tried attributes.width and attributes.style.width
   if (node && node.attributes) {
     const viewboxString = (node.attributes.viewBox || node.attributes.viewbox) + '';
@@ -85,7 +85,7 @@ function fallbackSizeAbsolute(node: any, axis: string): number {
   return DEFAULT_SIZE_ABSOLUTE;
 }
 
-function fallbackSizeProportional(node: any, axis: string): number {
+function fallbackSizeProportional (node: any, axis: string): number {
   return DEFAULT_SIZE_PROPORTIONAL;
 }
 

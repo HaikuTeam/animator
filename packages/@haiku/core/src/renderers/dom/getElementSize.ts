@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-export default function getElementSize(domElement) {
+export default function getElementSize (domElement) {
   let x;
   let y;
   if (domElement.offsetWidth === undefined) {

@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-export default function getDomEventPosition(event, doc) {
+export default function getDomEventPosition (event, doc) {
   let x = -1;
   let y = -1;
   if (event.pageX || event.pageY) {

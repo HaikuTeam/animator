@@ -2719,7 +2719,7 @@ class ActiveComponent extends BaseModel {
     const groups = [{
       host: root,
       id: root.getComponentId(),
-      rows: rows.filter((row) => !row.isWithinCollapsedRow())
+      rows: rows
     }].concat(stack.map(({haikuId}) => {
       const child = this.findElementByComponentId(haikuId)
       const rows = child.getHostedPropertyRows()
@@ -2727,7 +2727,7 @@ class ActiveComponent extends BaseModel {
       return {
         host: child,
         id: child.getComponentId(),
-        rows: rows.filter((row) => !row.isWithinCollapsedRow())
+        rows: rows
       }
     }))
 

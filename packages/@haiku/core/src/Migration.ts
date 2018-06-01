@@ -2,7 +2,6 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import reifyRFO from './reflection/reifyRFO';
 import HaikuComponent from './HaikuComponent';
 import addLegacyOriginSupport from './helpers/addLegacyOriginSupport';
 import compareSemver from './helpers/compareSemver';
@@ -10,6 +9,7 @@ import visitManaTree from './helpers/visitManaTree';
 import xmlToMana from './helpers/xmlToMana';
 import schema from './properties/dom/schema';
 import functionToRFO from './reflection/functionToRFO';
+import reifyRFO from './reflection/reifyRFO';
 
 const STRING_TYPE = 'string';
 
@@ -49,24 +49,24 @@ export const runMigrations = (component: HaikuComponent, options: any, version: 
     delete bytecode.properties;
     for (let i = 0; i < properties.length; i++) {
       const propertySpec = properties[i];
-      const updatedSpec = {};
+      const updatedSpec = {} as any;
       if (propertySpec.value !== undefined) {
-        updatedSpec['value'] = propertySpec.value;
+        updatedSpec.value = propertySpec.value;
       }
       if (propertySpec.type !== undefined) {
-        updatedSpec['type'] = propertySpec.type;
+        updatedSpec.type = propertySpec.type;
       }
       if (propertySpec.setter !== undefined) {
-        updatedSpec['set'] = propertySpec.setter;
+        updatedSpec.set = propertySpec.setter;
       }
       if (propertySpec.getter !== undefined) {
-        updatedSpec['get'] = propertySpec.getter;
+        updatedSpec.get = propertySpec.getter;
       }
       if (propertySpec.set !== undefined) {
-        updatedSpec['set'] = propertySpec.set;
+        updatedSpec.set = propertySpec.set;
       }
       if (propertySpec.get !== undefined) {
-        updatedSpec['get'] = propertySpec.get;
+        updatedSpec.get = propertySpec.get;
       }
       bytecode.states[propertySpec.name] = updatedSpec;
     }
@@ -99,7 +99,6 @@ export const runMigrations = (component: HaikuComponent, options: any, version: 
   const referencesToUpdate = {};
   const alreadyUpdatedReferences = {};
 
-  
   if (bytecode.template) {
     visitManaTree(
       '0',
@@ -141,22 +140,22 @@ export const runMigrations = (component: HaikuComponent, options: any, version: 
         // Legacy backgroundColor was a root prop; in newer versions it's style.backgroundColor.
         // We only want to update this if the user *hasn't* explicitly set style.backroundColor.
         if (
-          bytecode.timelines[timelineName][selector]['backgroundColor'] &&
+          bytecode.timelines[timelineName][selector].backgroundColor &&
           !bytecode.timelines[timelineName][selector]['style.backgroundColor']
         ) {
           bytecode.timelines[timelineName][selector]['style.backgroundColor'] =
-            bytecode.timelines[timelineName][selector]['backgroundColor'];
+            bytecode.timelines[timelineName][selector].backgroundColor;
 
-          delete bytecode.timelines[timelineName][selector]['backgroundColor'];
+          delete bytecode.timelines[timelineName][selector].backgroundColor;
           continue;
         }
 
         // If we're a filter attribute, update our references per those to whom uniqueness was added above.
         // This appends a "*-abc123" string to the filter to avoid collisions when multiple same components
         // are mounted in a single web page
-        if (bytecode.timelines[timelineName][selector]['filter']) {
-          for (const keyframeMs in bytecode.timelines[timelineName][selector]['filter']) {
-            const keyframeDesc = bytecode.timelines[timelineName][selector]['filter'][keyframeMs];
+        if (bytecode.timelines[timelineName][selector].filter) {
+          for (const keyframeMs in bytecode.timelines[timelineName][selector].filter) {
+            const keyframeDesc = bytecode.timelines[timelineName][selector].filter[keyframeMs];
             if (keyframeDesc && referencesToUpdate[keyframeDesc.value]) {
               keyframeDesc.value = referencesToUpdate[keyframeDesc.value];
             }
@@ -164,9 +163,9 @@ export const runMigrations = (component: HaikuComponent, options: any, version: 
         }
 
         // The fill attribute may reference a <filterGradient> property; avoid collisions same as above.
-        if (bytecode.timelines[timelineName][selector]['fill']) {
-          for (const keyframeMs in bytecode.timelines[timelineName][selector]['fill']) {
-            const keyframeDesc = bytecode.timelines[timelineName][selector]['fill'][keyframeMs];
+        if (bytecode.timelines[timelineName][selector].fill) {
+          for (const keyframeMs in bytecode.timelines[timelineName][selector].fill) {
+            const keyframeDesc = bytecode.timelines[timelineName][selector].fill[keyframeMs];
             if (keyframeDesc && referencesToUpdate[keyframeDesc.value]) {
               keyframeDesc.value = referencesToUpdate[keyframeDesc.value];
             }

@@ -26,7 +26,7 @@
  * THE SOFTWARE.
  */
 
-export default function computeOrientationFlexibly(x, y, z) {
+export default function computeOrientationFlexibly (x, y, z) {
   if (x === 0 && y === 0 && z === 0) {
     return {x, y, z, w: 1};
   }

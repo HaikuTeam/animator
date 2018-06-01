@@ -4,7 +4,7 @@
 
 import objectPath from './objectPath';
 
-export default function matchById(node, id, options) {
+export default function matchById (node, id, options) {
   const attributes = objectPath(node, options.attributes);
   if (attributes) {
     if (attributes.id === id) {

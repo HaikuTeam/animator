@@ -1,10 +1,10 @@
 import * as tape from 'tape';
 
-tape('index', (test: tape.Test) => {
-  test.test('the truth is true', (test: tape.Test) => {
+tape('index', (suite: tape.Test) => {
+  suite.test('the truth is true', (test: tape.Test) => {
     test.true(true);
     test.end();
   });
 
-  test.end();
+  suite.end();
 });

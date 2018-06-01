@@ -2,7 +2,8 @@ import HaikuDOMAdapter from '@core/adapters/dom/HaikuDOMAdapter';
 import * as tape from 'tape';
 import {createDOM} from '../TestHelpers';
 
-import {VERSION} from '@core/HaikuComponent';
+const pkg = require('../../package.json');
+const VERSION = pkg.version;
 
 tape(
   'exposedProperties',

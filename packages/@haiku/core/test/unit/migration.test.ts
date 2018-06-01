@@ -1,11 +1,13 @@
-import * as tape from 'tape';
-import {VERSION} from '@core/HaikuComponent';
 import functionToRFO from '@core/reflection/functionToRFO';
+import * as tape from 'tape';
 import * as TestHelpers from '../TestHelpers';
+
+const pkg = require('../../package.json');
+const VERSION = pkg.version;
 
 tape(
   'Migration',
-  (t) => {
+  (suite) => {
     tape(
       'timelineDefaultFrames',
       (t) => {
@@ -161,6 +163,6 @@ tape(
       },
     );
 
-    t.end();
+    suite.end();
   },
 );

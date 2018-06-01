@@ -1,8 +1,6 @@
 import {Timeline} from '.';
 import EnvoyServer from '../envoy/EnvoyServer';
 
-const logger = console; // TODO: hook into winston etc
-
 interface TimelineData {
   stopwatch: number;
   currentFrame: number;
@@ -24,14 +22,14 @@ export class TimelineHandler implements Timeline {
   private server: EnvoyServer;
 
   // TODO: pass EnvoyLogger in here
-  constructor(server: EnvoyServer) {
+  constructor (server: EnvoyServer) {
     this.server = server;
     this.timelineRegistry = {};
   }
 
   private timelineRegistry: {};
 
-  private getTimelineDataById(timelineId: string) {
+  private getTimelineDataById (timelineId: string) {
     if (this.timelineRegistry[timelineId]) {
       return this.timelineRegistry[timelineId];
     }
@@ -41,7 +39,7 @@ export class TimelineHandler implements Timeline {
     return newTimelineData;
   }
 
-  play(timelineId: string) {
+  play (timelineId: string) {
     const timeline = this.getTimelineDataById(timelineId);
     // TODO: need to setTimelineTime in ActiveComponent
     // let currentTime = Math.round(currentFrame * frameInfo.mspf)
@@ -57,7 +55,7 @@ export class TimelineHandler implements Timeline {
     });
   }
 
-  pause(timelineId: string): number {
+  pause (timelineId: string): number {
     const timeline = this.getTimelineDataById(timelineId);
     timeline.currentFrame = this.getCurrentFrame(timelineId);
     timeline.playing = false;
@@ -72,22 +70,15 @@ export class TimelineHandler implements Timeline {
     return timeline.currentFrame;
   }
 
-  seekToMs(timelineId: string, ms: number) {
-    const timeline = this.getTimelineDataById(timelineId);
-    // timeline.currentFrame = 0 //TODO
-    // timeline.stopwatch = Date.now()
+  seekToMs (timelineId: string, ms: number) {
     throw new Error('unimplemented');
   }
 
-  getDurationMs(timelineId: string): number {
-    const timeline = this.getTimelineDataById(timelineId);
-    // TODO: read bytecode and cache here
-    // TODO: evaluate if timeline still needs to know max duration.
-    //       if it does, query it from here instead of doing bad lookup
+  getDurationMs (timelineId: string): number {
     throw new Error('unimplemented');
   }
 
-  seekToFrame(timelineId: string, frame: number) {
+  seekToFrame (timelineId: string, frame: number) {
     const timeline = this.getTimelineDataById(timelineId);
     timeline.currentFrame = frame | 0;
     timeline.stopwatch = Date.now();
@@ -101,33 +92,30 @@ export class TimelineHandler implements Timeline {
     });
   }
 
-  seekToFrameAndPause(timelineId: string, frame: number): number {
+  seekToFrameAndPause (timelineId: string, frame: number): number {
     this.seekToFrame(timelineId, frame);
     return this.pause(timelineId);
   }
 
-  getDurationFrames(timelineId: string): number {
-    const timeline = this.getTimelineDataById(timelineId);
-    // This should perhaps be PASSED IN AS AN OPTION (and updated by the passer)
-
+  getDurationFrames (timelineId: string): number {
     // TODO: read bytecode and cache here
     // TODO: evaluate if timeline still needs to know max duration.
     //       if it does, query it from here instead of doing bad lookup
     throw new Error('unimplemented');
   }
 
-  setFps(timelineId: string, fps: number) {
+  setFps (timelineId: string, fps: number) {
     const timeline = this.getTimelineDataById(timelineId);
     timeline.fps = fps;
     throw new Error('unimplemented');
   }
 
-  getFps(timelineId: string) {
+  getFps (timelineId: string) {
     const timeline = this.getTimelineDataById(timelineId);
     return timeline.fps;
   }
 
-  getCurrentFrame(timelineId: string) {
+  getCurrentFrame (timelineId: string) {
     const timeline = this.getTimelineDataById(timelineId);
     let ret: number;
     if (timeline.playing) {

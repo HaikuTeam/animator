@@ -1,5 +1,5 @@
-import * as tape from 'tape';
 import Layout3D from '@core/Layout3D';
+import * as tape from 'tape';
 
 tape(
   'Layout3D.computeLayout',

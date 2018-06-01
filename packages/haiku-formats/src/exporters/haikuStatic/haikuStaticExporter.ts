@@ -14,7 +14,7 @@ export class HaikuStaticExporter extends BaseExporter implements ExporterInterfa
    *
    * Essentially replaces all non-scalar timeline values with the equivalent scalar value of edit mode.
    */
-  private parseBytecode() {
+  private parseBytecode () {
     this.visitAllTimelineProperties((timeline, property) => {
       const timelineProperty = timeline[property];
       for (const keyframe in timelineProperty) {
@@ -34,7 +34,7 @@ export class HaikuStaticExporter extends BaseExporter implements ExporterInterfa
    * Interface method to provide raw output.
    * @returns {{}}
    */
-  rawOutput() {
+  rawOutput () {
     if (!this.bytecodeParsed) {
       this.parseBytecode();
     }
@@ -47,7 +47,7 @@ export class HaikuStaticExporter extends BaseExporter implements ExporterInterfa
    * Interface method to provide binary output.
    * @returns {{}}
    */
-  binaryOutput() {
+  binaryOutput () {
     if (!this.bytecodeParsed) {
       this.parseBytecode();
     }
@@ -59,7 +59,7 @@ export class HaikuStaticExporter extends BaseExporter implements ExporterInterfa
    * Interface method to provide failsafe binary output.
    * @returns {{}}
    */
-  failsafeBinaryOutput() {
+  failsafeBinaryOutput () {
     return '{}';
   }
 }

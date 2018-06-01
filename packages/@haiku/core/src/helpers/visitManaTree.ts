@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-export default function visitManaTree(locator, mana, visitor, parent, index) {
+export default function visitManaTree (locator, mana, visitor, parent, index) {
   if (!mana) {
     return null;
   }

@@ -1,30 +1,31 @@
+import HaikuComponent from '../HaikuComponent';
 import {CurveDefinition} from './Curve';
 import {DomRect, LayoutSpec} from './Layout';
 
 export type PrimitiveType = string|number|object|boolean|null;
 
-/** 
- * Allowed state types, including function return type for timeline functions, 
- * state getter and setter. 
+/**
+ * Allowed state types, including function return type for timeline functions,
+ * state getter and setter.
  */
 export type BytecodeStateType = PrimitiveType|PrimitiveType[];
 
-/** 
- * `BytecodeSummonable` defines functions that can be called on timeline 
+/**
+ * `BytecodeSummonable` defines functions that can be called on timeline
  * property value
  */
 export type BytecodeSummonable = ((param: any) => BytecodeStateType);
 
-/** 
+/**
  * All possible types for timeline property value
- */ 
+ */
 export type BytecodeInjectable = BytecodeStateType|BytecodeSummonable;
 
 /**
  * Haiku bytecode element tree. eg. <div><svg>...</svg></div>.
  * `source` and `identifier` are rarely used.
  */
-export type BytecodeNode = {
+export interface BytecodeNode {
   elementName: string;
   attributes: {
     [attribute: string]: any;
@@ -43,82 +44,82 @@ export type BytecodeNode = {
    */
   rect?: DomRect;
   children: (BytecodeNode|string)[];
-};
+}
 
 /**
  * Haiku bytecode state.
  */
-export type BytecodeState = {
+export interface BytecodeState {
   value: BytecodeStateType;
   type?: string;
   access?: string;
   edited?: boolean;
   getter?: () => BytecodeStateType;
   setter?: (param: BytecodeStateType) => void;
-};
+}
 
 /**
  * Haiku bytecode state list.
  */
-export type BytecodeStates = {
+export interface BytecodeStates {
   [stateName: string]: BytecodeState;
-};
+}
 
 /**
- * Haiku bytecode function `handler` for an specific `eventSelectors`. 
+ * Haiku bytecode function `handler` for an specific `eventSelectors`.
  */
-export type BytecodeEventHandler = {
+export interface BytecodeEventHandler {
   [eventSelectors: string]: {handler: (target?: any, event?: any) => void};
-};
+}
 
 /**
- * Tuples of `elementName` and `BytecodeEventHandler`. 
+ * Tuples of `elementName` and `BytecodeEventHandler`.
  */
-export type BytecodeEventHandlers = {
+export interface BytecodeEventHandlers {
   [elementName: string]: BytecodeEventHandler;
-};
+}
 
 /**
- * Value of an element property in a given frame. 
+ * Value of an element property in a given frame.
  */
-export type BytecodeTimelineValue = {
+export interface BytecodeTimelineValue {
   value: BytecodeInjectable;
   edited?: boolean;
   curve?: CurveDefinition;
-};
-
+}
 
 /**
  * Map `frameNum` to a to a `BytecodeTimelineValue`.
  */
-export type BytecodeTimelineProperty = {[frameNum: string]: BytecodeTimelineValue};
-
+export interface BytecodeTimelineProperty {
+  [frameNum: string]: BytecodeTimelineValue;
+}
 
 /**
- * Map `propertyName` to a `BytecodeTimelineProperty` 
+ * Map `propertyName` to a `BytecodeTimelineProperty`
  */
-export type BytecodeTimelineProperties = {
+export interface BytecodeTimelineProperties {
   [propertyName: string]: BytecodeTimelineProperty;
-};
+}
 
 /**
- * Tuples of `haikuId` and `BytecodeTimelineProperties`. 
+ * Tuples of `haikuId` and `BytecodeTimelineProperties`.
  */
-export type BytecodeTimeline = {
+export interface BytecodeTimeline {
   [haikuId: string]: BytecodeTimelineProperties;
-};
+}
 
 /**
- * Tuples of `timelineName` and `BytecodeTimeline`. 
+ * Tuples of `timelineName` and `BytecodeTimeline`.
  */
-export type BytecodeTimelines = {
+export interface BytecodeTimelines {
   [timelineId: string]: BytecodeTimeline;
-};
-  
+}
+
 /**
- * Haiky bytecode metadata. 
+ * Haiku bytecode metadata.
  */
-export type BytecodeMetadata = {
+export interface BytecodeMetadata {
   folder?: string;
   uuid: string;
   /**
@@ -135,124 +136,137 @@ export type BytecodeMetadata = {
   project?: string;
   branch?: string;
   title?: string;
-};
+}
 
+export type ComponentEventHandler = (component: HaikuComponent) => void;
 
 /**
- * Bytecode options. 
+ * Bytecode options.
  */
-export type BytecodeOptions = {
-  // Random seed used for producing deterministic randomness 
+export interface BytecodeOptions {
+  // Random seed used for producing deterministic randomness
   // and namespacing CSS selector behavior
-  seed?: string,
+  seed?: string;
 
-  // Timestamp reflecting the point in time that rendering begin, 
+  // Timestamp reflecting the point in time that rendering begin,
   // for deterministic timestamp production
-  timestamp?: number,
+  timestamp?: number;
 
-  // Whether we should mount the given context to the mount 
+  // Whether we should mount the given context to the mount
   // element automatically
-  automount?: boolean,
+  automount?: boolean;
 
   // Whether we should begin playing the context's animation automatically
-  autoplay?: boolean,
+  autoplay?: boolean;
 
-  // Whether to fully flush the component on every single frame 
+  // If enabled (e.g. in the Haiku desktop app), bytecode is not cloned when a component is instantiated, and made be
+  // live-edited.
+  hotEditingMode?: boolean;
+
+  // Whether to fully flush the component on every single frame
   // (warning: this can severely deoptimize animation)
-  forceFlush?: boolean,
+  forceFlush?: boolean;
 
-  // Whether we should freeze timelines and not update per global 
+  // Whether we should freeze timelines and not update per global
   // timeline; useful in headless
-  freeze?: boolean,
+  freeze?: boolean;
 
-  // Whether we should loop the animation, i.e. restart from 
+  // Whether we should loop the animation, i.e. restart from
   // the first frame after reaching the last
-  loop?: boolean,
+  loop?: boolean;
 
-  // Optional function that we will call on every frame, provided 
+  // Optional function that we will call on every frame, provided
   // for developer convenience
-  frame?: (() => void)|null,
+  frame?: (() => void);
 
-  // Configuration options that will be passed to the HaikuClock instance. 
+  // Configuration options that will be passed to the HaikuClock instance.
   // See HaikuClock.js for info.
-  clock?: object,
+  clock?: object;
 
-  // Configures the sizing mode of the component; may be 'normal', 
+  // Configures the sizing mode of the component; may be 'normal',
   // 'stretch', 'contain', or 'cover'. See HaikuComponent.js for info.
-  sizing?: string,
+  sizing?: string;
 
   // Whether we should always assume the size of the mount will change on every tick. There is a significant
   // performance boost for all non-'normal' sizing modes if we *don't* always assume this, but the size of the
   // mount might change underneath for reasons other than changes in media queries. To be safe, we leave this on
   // by default.
-  alwaysComputeSizing?: boolean,
+  alwaysComputeSizing?: boolean;
 
-  // Placeholder for an option to control whether to enable 
+  // Placeholder for an option to control whether to enable
   // preserve-3d mode in DOM environments. [UNUSED]
-  preserve3d?: string,
+  preserve3d?: string;
 
-  // Whether or not the Haiku context menu should display when the 
+  // Whether or not the Haiku context menu should display when the
   // component is right-clicked; may be 'enabled' or 'disabled'.
-  contextMenu?: string,
+  contextMenu?: string;
 
-  // CSS position setting for the root of the component in DOM; 
+  // CSS position setting for the root of the component in DOM;
   // recommended to keep as 'relative'.
-  position?: string,
+  position?: string;
 
-  // CSS overflow-x setting for the component. Convenience for allows user 
+  // CSS overflow-x setting for the component. Convenience for allows user
   // to specify the overflow setting without needing a wrapper element.
-  overflowX?: string,
+  overflowX?: string;
 
-  // CSS overflow-x setting for the component. Convenience for allows user 
+  // CSS overflow-x setting for the component. Convenience for allows user
   // to specify the overflow setting without needing a wrapper element.
-  overflowY?: string,
+  overflowY?: string;
 
   // CSS overflow setting for the component. Use this OR overflowX/overflowY
-  overflow?: string,
+  overflow?: string;
 
-  // If provided, a Mixpanel tracking instance will be created using this 
+  // If provided, a Mixpanel tracking instance will be created using this
   // string as the API token. The default token is Haiku's production token.
-  mixpanel?: string,
+  mixpanel?: string;
 
   // Whether to prepend a webkit prefix to transform properties
-  useWebkitPrefix?: boolean,
+  useWebkitPrefix?: boolean;
 
   // Control how this instance handles interaction, e.g. preview mode
   // TODO: create an use an enum from @haiku/core/src/helpers/interactionModes.ts
-  interactionMode?: number,
+  interactionMode?: number;
+
+  // A unique ID used during migrations.
+  referenceUniqueness?: string;
 
   // Allow states to be passed in at runtime (ASSIGNED)
-  states?: object,
+  states?: object;
 
   // Allow custom event handlers to be passed in at runtime (ASSIGNED)
-  eventHandlers?: object,
+  eventHandlers?: object;
 
   // Allow timelines to be passed in at runtime (ASSIGNED)
-  timelines?: object,
+  timelines?: object;
 
   // Allow vanities to be passed in at runtime (ASSIGNED)
-  vanities?: object,
+  vanities?: object;
 
   // Children may be passed in, typically via the React adapter
-  children?: PrimitiveType[],
+  children?: PrimitiveType[];
 
   // Key/values representing placeholders to inject, usually via React adapter
-  placeholder?: object,
-};
+  placeholder?: object;
+
+  // Event handlers.
+  onHaikuComponentWillInitialize?: ComponentEventHandler;
+  onHaikuComponentDidInitialize?: ComponentEventHandler;
+  onHaikuComponentDidMount?: ComponentEventHandler;
+  onHaikuComponentWillUnmount?: ComponentEventHandler;
+}
 
 /**
  * Bytecode definition. Properties are *rarely* used.
  */
-export type HaikuBytecode = {
+export interface HaikuBytecode {
   template: BytecodeNode|string;
   states?: BytecodeStates;
-  eventHandlers: BytecodeEventHandlers;
+  eventHandlers?: BytecodeEventHandlers;
   timelines: BytecodeTimelines;
   metadata?: BytecodeMetadata;
   /**
    * @deprecated as of 3.2.20
    */
   properties?: any[];
-  options?: BytecodeOptions
-};
-
+  options?: BytecodeOptions;
+}

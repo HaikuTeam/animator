@@ -40,10 +40,6 @@ async.each(allPackages, (pack, done) => {
   }
 
   switch (shortname) {
-    case 'core':
-      // TS module, but one that uses "develop" for something different than watching.
-      runInstruction(pack.abspath, ['watch'], done)
-      break
     case 'websockets':
     case 'creator':
     case 'glass':

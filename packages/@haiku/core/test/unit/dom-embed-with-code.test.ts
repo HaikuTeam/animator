@@ -1,9 +1,11 @@
 import * as tape from 'tape';
 import * as TestHelpers from '../TestHelpers';
 
-import {VERSION} from '@core/HaikuComponent';
-import code1 from '../fixtures/code1';
 import HaikuDOMAdapter from '@core/adapters/dom/HaikuDOMAdapter';
+import code1 from '../fixtures/code1';
+
+const pkg = require('../../package.json');
+const VERSION = pkg.version;
 
 // Tell typescript we have these types on Window
 interface Window {
@@ -21,7 +23,7 @@ tape(
       if (err) {
         throw err;
       }
-      HaikuDOMAdapter['defineOnWindow']();
+      HaikuDOMAdapter.defineOnWindow();
       const adapter = window.HaikuCore[VERSION];
       const haikuComponentFactory = adapter(code1);
       const component = haikuComponentFactory(mount);

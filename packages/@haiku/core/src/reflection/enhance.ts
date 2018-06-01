@@ -4,7 +4,7 @@
 
 import functionToRFO from './functionToRFO';
 
-export default function enhance(fn, params) {
+export default function enhance (fn, params) {
   // Only create a specification if we don't already have one
   if (!fn.specification) {
     const rfo = functionToRFO(fn);

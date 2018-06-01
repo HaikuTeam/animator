@@ -26,31 +26,31 @@ const DEFAULT_OPTIONS = {
 // The global animation harness is a singleton
 // We don't want to create new ones even on reload
 if (!HaikuGlobal.HaikuGlobalAnimationHarness) {
-  HaikuGlobal.HaikuGlobalAnimationHarness = {};
+  const queue = [];
 
-   // Array of functions to call on every rAF tick
-  HaikuGlobal.HaikuGlobalAnimationHarness.queue = [];
-
-  // The main frame function, loops through all those who
-  // need an animation tick and calls them
-  HaikuGlobal.HaikuGlobalAnimationHarness.frame = () => {
-    const queue = HaikuGlobal.HaikuGlobalAnimationHarness.queue;
-
+  const frame = () => {
     const length = queue.length;
 
     for (let i = 0; i < length; i++) {
       queue[i]();
     }
 
-    HaikuGlobal.HaikuGlobalAnimationHarness.raf = raf.request(HaikuGlobal.HaikuGlobalAnimationHarness.frame);
+    HaikuGlobal.HaikuGlobalAnimationHarness.raf = raf.request(frame);
   };
 
-  // Need a mechanism to cancel the rAF loop, or else some contexts
-  // (e.g. tests) will have leaked handles
-  HaikuGlobal.HaikuGlobalAnimationHarness.cancel = () => {
-    if (HaikuGlobal.HaikuGlobalAnimationHarness.raf) {
-      raf.cancel(HaikuGlobal.HaikuGlobalAnimationHarness.raf);
-    }
+  HaikuGlobal.HaikuGlobalAnimationHarness = {
+    // Array of functions to call on every rAF tick
+    queue,
+    // The main frame function, loops through all those who
+    // need an animation tick and calls them
+    frame,
+    // Need a mechanism to cancel the rAF loop, or else some contexts
+    // (e.g. tests) will have leaked handles
+    cancel: () => {
+      if (HaikuGlobal.HaikuGlobalAnimationHarness.raf) {
+        raf.cancel(HaikuGlobal.HaikuGlobalAnimationHarness.raf);
+      }
+    },
   };
 
   // Trigger the loop to start; we'll push frame functions into its queue later
@@ -61,7 +61,7 @@ if (!HaikuGlobal.HaikuGlobalAnimationHarness) {
 export default class HaikuClock extends HaikuBase {
   private boundRunner: () => void = () => {
     this.run();
-  }
+  };
 
   _deltaSinceLastTick;
   _isRunning;
@@ -90,7 +90,7 @@ export default class HaikuClock extends HaikuBase {
     this.GLOBAL_ANIMATION_HARNESS = HaikuGlobal.HaikuGlobalAnimationHarness;
   }
 
-  reinitialize() {
+  reinitialize () {
     this._numLoopsRun = 0;
     this._localFramesElapsed = 0;
     this._localTimeElapsed = 0;
@@ -99,17 +99,17 @@ export default class HaikuClock extends HaikuBase {
     return this;
   }
 
-  addTickable(tickable) {
+  addTickable (tickable) {
     this._tickables.push(tickable);
     return this;
   }
 
-  assignOptions(options) {
+  assignOptions (options) {
     this.options = assign(this.options || {}, DEFAULT_OPTIONS, options || {});
     return this;
   }
 
-  run() {
+  run () {
     if (this.isRunning()) {
       // If time is "controlled" we are locked to an explicitly set local time, so no math is needed.
       if (this.isTimeControlled()) {
@@ -139,22 +139,22 @@ export default class HaikuClock extends HaikuBase {
     }
   }
 
-  tick() {
+  tick () {
     for (let i = 0; i < this._tickables.length; i++) {
       this._tickables[i].performTick();
     }
   }
 
-  getTime() {
+  getTime () {
     return this.getExplicitTime();
   }
 
-  setTime(time) {
+  setTime (time) {
     this._localExplicitlySetTime = parseInt(time || 0, 10);
     return this;
   }
 
-  getFPS() {
+  getFPS () {
     return Math.round(1000 / this.options.frameDuration);
   }
 
@@ -163,7 +163,7 @@ export default class HaikuClock extends HaikuBase {
    * @description Return either the running time or the controlled time, depending on whether this
    * clock is in control mode or not.
    */
-  getExplicitTime() {
+  getExplicitTime () {
     if (this.isTimeControlled()) {
       return this.getControlledTime();
     }
@@ -174,11 +174,11 @@ export default class HaikuClock extends HaikuBase {
    * @method getControlledTime
    * @description Return the value of time that has been explicitly controlled.
    */
-  getControlledTime() {
+  getControlledTime () {
     return this._localExplicitlySetTime;
   }
 
-  isTimeControlled() {
+  isTimeControlled () {
     return typeof this._localExplicitlySetTime === NUMBER;
   }
 
@@ -187,29 +187,29 @@ export default class HaikuClock extends HaikuBase {
    * @description Return the running time, which is the value of time that has elapsed whether or
    * not time has been 'controlled' in control mode.
    */
-  getRunningTime() {
+  getRunningTime () {
     return this._localTimeElapsed;
   }
 
-  isRunning() {
+  isRunning () {
     return this._isRunning;
   }
 
-  start() {
+  start () {
     this._isRunning = true;
     return this;
   }
 
-  stop() {
+  stop () {
     this._isRunning = false;
     return this;
   }
 
-  getFrameDuration() {
+  getFrameDuration () {
     return this.options.frameDuration;
   }
 
-  destroy() {
+  destroy () {
     super.destroy();
     for (let i = 0; i < HaikuGlobal.HaikuGlobalAnimationHarness.queue.length; i++) {
       if (HaikuGlobal.HaikuGlobalAnimationHarness.queue[i] === this.boundRunner) {
@@ -218,6 +218,6 @@ export default class HaikuClock extends HaikuBase {
       }
     }
   }
-}
 
-HaikuClock['__name__'] = 'HaikuClock';
+  static __name__ = 'HaikuClock';
+}

@@ -58,12 +58,6 @@ const clearMatchingPropertiesInGlobalCache = (matcher: string) => {
   }
 };
 
-const clearAllCaches = () => {
-  for (const key in HaikuGlobal.cache) {
-    delete HaikuGlobal.cache[key];
-  }
-};
-
 export default class HaikuBase {
   private listeners;
 
@@ -71,40 +65,36 @@ export default class HaikuBase {
   config; // Implemented by subclass
   parent; // Implemented by subclass
 
-  constructor() {
+  constructor () {
     this.$id = addInstanceToGlobalModelRegistry(this);
     this.listeners = {};
   }
 
-  getId(): number {
+  getId (): number {
     return this.$id;
   }
 
-  getRegistryIndex(): number {
-    return this.getId() - 1;
-  }
-
-  getPrimaryKey(): string {
+  getPrimaryKey (): string {
     return `${this.getClassName()}:${this.getId()}`;
   }
 
-  getClassName(): string {
-    return this.constructor['__name__'];
+  getClassName (): string {
+    return (this.constructor as any).__name__;
   }
 
-  buildQualifiedCacheKey(key: string) {
+  buildQualifiedCacheKey (key: string) {
     return `${this.getPrimaryKey()}:${key}`;
   }
 
-  cacheSet(key: string, value: any) {
+  cacheSet (key: string, value: any) {
     addValueToGlobalCache(this.buildQualifiedCacheKey(key), value);
   }
 
-  cacheGet(key: string) {
+  cacheGet (key: string) {
     return retrieveValueFromGlobalCache(this.buildQualifiedCacheKey(key));
   }
 
-  cacheFetch(key: string, provider: Function) {
+  cacheFetch (key: string, provider: Function) {
     const valueExisting = this.cacheGet(key);
 
     if (valueExisting !== undefined) {
@@ -117,29 +107,29 @@ export default class HaikuBase {
     return valueProvided;
   }
 
-  cacheUnset(key: string) {
+  cacheUnset (key: string) {
     addValueToGlobalCache(this.buildQualifiedCacheKey(key), undefined);
   }
 
-  cacheClear() {
+  cacheClear () {
     clearMatchingPropertiesInGlobalCache(this.getPrimaryKey());
   }
 
-  subcacheGet(key: string) {
+  subcacheGet (key: string) {
     return this.cacheGet(key);
   }
 
-  subcacheEnsure(key: string) {
+  subcacheEnsure (key: string) {
     if (!this.cacheGet(key)) {
       this.cacheSet(key, {});
     }
   }
 
-  subcacheClear(key: string) {
+  subcacheClear (key: string) {
     this.cacheSet(key, {});
   }
 
-  on(key: string, listener: Function) {
+  on (key: string, listener: Function) {
     if (!this.listeners[key]) {
       this.listeners[key] = [];
     }
@@ -147,11 +137,11 @@ export default class HaikuBase {
     this.listeners[key].push(listener);
   }
 
-  addEventListener(key: string, listener: Function) {
+  addEventListener (key: string, listener: Function) {
     this.on(key, listener);
   }
 
-  off(key: string, listener: Function) {
+  off (key: string, listener: Function) {
     if (!this.listeners[key]) {
       return;
     }
@@ -163,23 +153,23 @@ export default class HaikuBase {
     }
   }
 
-  removeEventListener(key: string, listener: Function) {
+  removeEventListener (key: string, listener: Function) {
     this.off(key, listener);
   }
 
-  removeListener(key: string, listener: Function) {
+  removeListener (key: string, listener: Function) {
     this.off(key, listener);
   }
 
-  emitToListeners(key: string, args) {
+  emitToListeners (key: string, args) {
     if (this.listeners[key]) {
       for (let i = 0; i < this.listeners[key].length; i++) {
         this.listeners[key][i].apply(null, args);
       }
-    }    
+    }
   }
 
-  emitToGenericListeners(key: string, args) {
+  emitToGenericListeners (key: string, args) {
     if (this.listeners[GLOBAL_LISTENER_KEY]) {
       for (let i = 0; i < this.listeners[GLOBAL_LISTENER_KEY].length; i++) {
         this.listeners[GLOBAL_LISTENER_KEY][i].apply(null, [key].concat(args));
@@ -187,7 +177,7 @@ export default class HaikuBase {
     }
   }
 
-  emit(key: string, ...args) {
+  emit (key: string, ...args) {
     // Specific direct listeners (this.on('foo:bar'))
     this.emitToListeners(key, args);
 
@@ -204,14 +194,14 @@ export default class HaikuBase {
     this.emitToConfigHandlers(GENERIC_EVENT_KEY, allArgs);
   }
 
-  emitToConfigHandlers(key: string, args) {
+  emitToConfigHandlers (key: string, args) {
     if (!this.config) {
       return;
     }
 
     // 'somebody:Did-Thing' -> 'somebodyDidThing'
     const keyCamelCase = this.cacheFetch(key, () => {
-      return upperCaseFirstLetter(camelize(key));  
+      return upperCaseFirstLetter(camelize(key));
     });
 
     // 'somebodyDidThing' -> 'onSomebodyDidThing'
@@ -229,7 +219,7 @@ export default class HaikuBase {
     }
   }
 
-  matchesCriteria(criteria): boolean {
+  matchesCriteria (criteria): boolean {
     if (!criteria) {
       return false;
     }
@@ -245,11 +235,11 @@ export default class HaikuBase {
     return answer;
   }
 
-  destroy() {
+  destroy () {
     removeInstanceFromGlobalModelRegistry(this);
   }
-}
 
-HaikuBase['getRegistryForClass'] = (klass) => {
-  return upsertInstanceRegistry(klass['__name__']);
-};
+  static getRegistryForClass = (klass) => {
+    return upsertInstanceRegistry(klass.__name__);
+  };
+}

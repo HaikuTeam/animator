@@ -5,7 +5,7 @@
 import BasicUtils from './BasicUtils';
 import objectPath from './objectPath';
 
-export default function flattenTree(node, options, unique = true, list = [], depth = 0, index = 0) {
+export default function flattenTree (node, options, unique = true, list = [], depth = 0, index = 0) {
   list.push(node);
 
   if (typeof node !== 'string') {

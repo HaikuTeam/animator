@@ -1,11 +1,11 @@
 import {stubProperties} from 'haiku-testing/lib/mock';
 
-import * as tape from 'tape';
+import {clearExperimentCache, experimentIsEnabled} from '@common/experiments';
 import * as config from '@common/experiments/config';
-import {experimentIsEnabled, clearExperimentCache} from '@common/experiments';
+import * as tape from 'tape';
 
-tape('experimentIsEnabled', (test: tape.Test) => {
-  test.test('throws on unknown experiments', (test: tape.Test) => {
+tape('experimentIsEnabled', (suite: tape.Test) => {
+  suite.test('throws on unknown experiments', (test: tape.Test) => {
     const [getExperimentConfig, unstub] = stubProperties(config, 'getExperimentConfig');
     getExperimentConfig.returns({});
     test.throws(experimentIsEnabled.bind('NotAnExperiment'));
@@ -13,7 +13,7 @@ tape('experimentIsEnabled', (test: tape.Test) => {
     test.end();
   });
 
-  test.test('reads enabled status from configuration', (test: tape.Test) => {
+  suite.test('reads enabled status from configuration', (test: tape.Test) => {
     const [getExperimentConfig, unstub] = stubProperties(config, 'getExperimentConfig');
     getExperimentConfig.returns({
       FooExperiment: {
@@ -28,7 +28,7 @@ tape('experimentIsEnabled', (test: tape.Test) => {
     test.end();
   });
 
-  test.test('defaults to disabled if nothing is configured for the environment', (test: tape.Test) => {
+  suite.test('defaults to disabled if nothing is configured for the environment', (test: tape.Test) => {
     const [getExperimentConfig, unstub] = stubProperties(config, 'getExperimentConfig');
     getExperimentConfig.returns({FooExperiment: {}});
 
@@ -39,7 +39,7 @@ tape('experimentIsEnabled', (test: tape.Test) => {
     test.end();
   });
 
-  test.test('caches the result of getExperimentConfig()', (test: tape.Test) => {
+  suite.test('caches the result of getExperimentConfig()', (test: tape.Test) => {
     const [getExperimentConfig, unstub] = stubProperties(config, 'getExperimentConfig');
     getExperimentConfig.returns({FooExperiment: {}});
 
@@ -53,5 +53,5 @@ tape('experimentIsEnabled', (test: tape.Test) => {
     test.end();
   });
 
-  test.end();
+  suite.end();
 });

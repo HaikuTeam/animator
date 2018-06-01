@@ -5,7 +5,7 @@
 import functionSpecificationToFunction from './functionSpecificationToFunction';
 import inject from './inject';
 
-export default function reifyRFO(rfo) {
+export default function reifyRFO (rfo) {
   const fn = functionSpecificationToFunction(
     rfo.name || '',
     rfo.params,

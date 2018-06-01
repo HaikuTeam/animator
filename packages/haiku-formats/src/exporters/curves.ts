@@ -1,8 +1,8 @@
 import * as BezierEasing from 'bezier-easing';
 import {flatten} from 'lodash';
 
-import {BytecodeTimelineProperty} from '@haiku/core/lib/api/HaikuBytecode';
 import {Curve} from '@haiku/core/lib/api/Curve';
+import {BytecodeTimelineProperty} from '@haiku/core/lib/api/HaikuBytecode';
 
 export type InterpolationPoints = [number, number, number, number];
 
@@ -310,9 +310,9 @@ export const isDecomposableCurve = (curve: Curve) => isBounceCurve(curve) || isE
  * @param inKeyframe
  * @param outKeyframe
  */
-export const decomposeCurveBetweenKeyframes = (timelineProperty:BytecodeTimelineProperty, 
+export const decomposeCurveBetweenKeyframes = (timelineProperty: BytecodeTimelineProperty,
                                                inKeyframe: number, outKeyframe: number) => {
-  const [curve, from, to] = [
+  const [curveIn, from, to] = [
     timelineProperty[inKeyframe].curve,
     timelineProperty[inKeyframe].value,
     timelineProperty[outKeyframe].value,
@@ -322,7 +322,7 @@ export const decomposeCurveBetweenKeyframes = (timelineProperty:BytecodeTimeline
   const getValue = (normalizedPosition: number) => denormalizeValue(normalizedPosition, from as number, to as number);
 
   // TODO: remove need for typecasting here.
-  getBezierBreakpointsForDecomposableCurve(curve as Curve)
+  getBezierBreakpointsForDecomposableCurve(curveIn as Curve)
     .forEach(([startTime, startValue, curve]) => {
       timelineProperty[getKeyframe(startTime)] = {
         curve,
