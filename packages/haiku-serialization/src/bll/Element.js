@@ -392,22 +392,23 @@ class Element extends BaseModel {
     return Template.getStackingInfo(
       this.component.getReifiedBytecode(),
       this.parent.getStaticTemplateNode(),
-      this.component.getCurrentTimelineName(),
-      this.component.getCurrentTimelineTime()
+      // TODO: If we ever support time-bound stacking, change these to their dynamic counterparts
+      this.component.getInstantiationTimelineName(),
+      this.component.getInstantiationTimelineTime()
     )
   }
 
   isAtFront () {
     const stackingInfo = this.getStackingInfo()
     if (!stackingInfo) return true // Can happen with artboard
-    const myIndex = lodash.findIndex(stackingInfo, { haikuId: this.getComponentId() })
+    const myIndex = lodash.findIndex(stackingInfo, {haikuId: this.getComponentId()})
     return myIndex === stackingInfo.length - 1
   }
 
   isAtBack () {
     const stackingInfo = this.getStackingInfo()
     if (!stackingInfo) return true // Can happen with artboard
-    const myIndex = lodash.findIndex(stackingInfo, { haikuId: this.getComponentId() })
+    const myIndex = lodash.findIndex(stackingInfo, {haikuId: this.getComponentId()})
     return myIndex === 0
   }
 

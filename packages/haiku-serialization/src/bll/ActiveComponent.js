@@ -44,10 +44,6 @@ const describeHotComponent = (componentId, timelineName, timelineTime, propertyG
   }
 }
 
-const stackingInfoToHotComponentDescriptors = (stackingInfo, timelineName, timelineTime) => stackingInfo.map(
-  ({haikuId}) => describeHotComponent(haikuId, timelineName, timelineTime, ['style.zIndex'])
-)
-
 const keyframeUpdatesToHotComponentDescriptors = (keyframeUpdates) => {
   const hotComponentDescriptors = []
 
@@ -3975,7 +3971,7 @@ class ActiveComponent extends BaseModel {
 
         return this.reload({
           hardReload: this.project.isRemoteRequest(metadata),
-          hotComponents: stackingInfoToHotComponentDescriptors(stackingInfo, timelineName, timelineTime),
+          forceFlush: true, // Since z-changes are fixed to frame 0, we must force flush to reflect the change at all frames
           clearCacheOptions: {
             doClearEntityCaches: true
           }
@@ -4025,7 +4021,7 @@ class ActiveComponent extends BaseModel {
 
         return this.reload({
           hardReload: this.project.isRemoteRequest(metadata),
-          hotComponents: stackingInfoToHotComponentDescriptors(stackingInfo, timelineName, timelineTime),
+          forceFlush: true, // Since z-changes are fixed to frame 0, we must force flush to reflect the change at all frames
           clearCacheOptions: {
             doClearEntityCaches: true
           }
@@ -4071,7 +4067,7 @@ class ActiveComponent extends BaseModel {
 
         return this.reload({
           hardReload: this.project.isRemoteRequest(metadata),
-          hotComponents: stackingInfoToHotComponentDescriptors(stackingInfo, timelineName, timelineTime),
+          forceFlush: true, // Since z-changes are fixed to frame 0, we must force flush to reflect the change at all frames
           clearCacheOptions: {
             doClearEntityCaches: true
           }
@@ -4116,7 +4112,7 @@ class ActiveComponent extends BaseModel {
 
         return this.reload({
           hardReload: this.project.isRemoteRequest(metadata),
-          hotComponents: stackingInfoToHotComponentDescriptors(stackingInfo, timelineName, timelineTime),
+          forceFlush: true, // Since z-changes are fixed to frame 0, we must force flush to reflect the change at all frames
           clearCacheOptions: {
             doClearEntityCaches: true
           }
@@ -4161,7 +4157,7 @@ class ActiveComponent extends BaseModel {
 
         return this.reload({
           hardReload: this.project.isRemoteRequest(metadata),
-          hotComponents: stackingInfoToHotComponentDescriptors(stackingInfo, timelineName, timelineTime),
+          forceFlush: true, // Since z-changes are fixed to frame 0, we must force flush to reflect the change at all frames
           clearCacheOptions: {
             doClearEntityCaches: true
           }
