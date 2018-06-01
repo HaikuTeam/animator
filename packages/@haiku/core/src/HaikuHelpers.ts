@@ -2,7 +2,8 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import {VERSION} from './HaikuComponent';
+const pkg = require('./../package.json');
+const VERSION = pkg.version;
 
 export interface HelpersRegistry {
   helpers: {

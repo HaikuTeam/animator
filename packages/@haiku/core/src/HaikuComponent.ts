@@ -1736,7 +1736,7 @@ const clone = (value, binding) => {
   }
 
   if (typeof value === 'function') {
-    const fn = () => value.apply(binding, [value, binding]);
+    const fn = (...args: any[]) => value.call(binding, ...args);
     // Core decorates injectee functions with metadata properties
     for (const key in value) {
       if (value.hasOwnProperty(key)) {
