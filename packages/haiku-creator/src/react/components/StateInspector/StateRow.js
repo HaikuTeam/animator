@@ -85,9 +85,11 @@ function isBlank (str) {
 class StateRow extends React.Component {
   constructor (props) {
     super(props)
+
     this.state = {
       isEditing: false,
       isHovered: false,
+      editingTarget: 'name',
       name: null,
       desc: null,
       valuePreEdit: null,
@@ -264,17 +266,20 @@ class StateRow extends React.Component {
     return (
       <form key={`${this.props.stateName}-state`}
         onMouseOver={() => this.setState({isHovered: true})}
-        onMouseOut={() => this.setState({isHovered: false})}
-        onDoubleClick={() => this.setState({isEditing: true, didEscape: false})}>
+        onMouseOut={() => this.setState({isHovered: false})}>
         {!this.state.isEditing && !this.props.isNew
           ? <div style={STYLES.stateWrapper}>
-            <div style={[STYLES.col, STYLES.col1]}>
+            <div
+              onDoubleClick={() => this.setState({isEditing: true, didEscape: false, editingTarget: 'name'})}
+              style={[STYLES.col, STYLES.col1]}>
               <span key={`${this.props.stateName}-name`}
                 style={[STYLES.pill, STYLES.pillName]}>
                 {this.props.stateName}
               </span>
             </div>
-            <div style={[STYLES.col, STYLES.col2]}>
+            <div
+              onDoubleClick={() => this.setState({isEditing: true, didEscape: false, editingTarget: 'value'})}
+              style={[STYLES.col, STYLES.col2]}>
               <span key={`${this.props.stateName}-value`}
                 style={[STYLES.pill, STYLES.pillValue, this.generateColorCap()]}>
                 {this.getDisplayableStateValue()}
@@ -297,7 +302,7 @@ class StateRow extends React.Component {
                 placeholder='STATE NAME'
                 onKeyUp={(event) => this.handleChange(event, 'name')}
                 onKeyDown={(event) => this.handleTabSwitch(event, 'name')}
-                autoFocus />
+                autoFocus={this.state.editingTarget === 'name'} />
             </div>
             <div style={[STYLES.col, STYLES.col2]}>
               <input key={`${this.props.stateName}-value`}
@@ -306,7 +311,8 @@ class StateRow extends React.Component {
                 defaultValue={this.getEditableStateValue()}
                 placeholder='STATE VALUE'
                 onKeyUp={(event) => this.handleChange(event, 'value')}
-                onKeyDown={(event) => this.handleTabSwitch(event, 'value')} />
+                onKeyDown={(event) => this.handleTabSwitch(event, 'value')}
+                autoFocus={this.state.editingTarget === 'value'} />
               <span key={`${this.props.stateName}-menu`}
                 style={[
                   STYLES.stateMenu,
