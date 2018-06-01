@@ -4,7 +4,7 @@
 
 const C1 = ', ';
 
-export default function isEqualTransformString(t1, t2) {
+export default function isEqualTransformString (t1, t2) {
   if (t1 === t2) {
     return true;
   }

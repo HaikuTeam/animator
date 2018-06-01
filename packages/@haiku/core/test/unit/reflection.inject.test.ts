@@ -34,14 +34,13 @@ tape(
     );
 
     // See what happens if only the flag is there
-    let f3: any = function (a, b, c) {
-      return [a, b, c];
-    };
+    let f3: any = (a, b, c) => [a, b, c];
     f3.injectee = true;
-    f3 = inject(f3,
-                'd',
-                'e',
-                'f',
+    f3 = inject(
+      f3,
+      'd',
+      'e',
+      'f',
     ); // ...And if we specify these
     t.equal(
       JSON.stringify(f3.specification),

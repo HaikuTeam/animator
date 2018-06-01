@@ -30,7 +30,7 @@ const SIZE_PROPORTIONAL = 0; // A percentage of the parent
 const SIZE_ABSOLUTE = 1; // A fixed size in screen pixels
 const SIZING_COMPONENTS = ['x', 'y', 'z'];
 
-export default function computeSize(
+export default function computeSize (
   layoutSpec,
   sizeModeArray,
   parentSize,

@@ -2,6 +2,7 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
+import {AdaptedWindow} from './adapters/dom/HaikuDOMAdapter';
 import HaikuHelpers from './HaikuHelpers';
 import BasicUtils from './helpers/BasicUtils';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
@@ -21,10 +22,12 @@ const isFunction = (value) => {
   return typeof value === FUNCTION;
 };
 
-const INJECTABLES = {};
+const INJECTABLES: any = {};
+
+declare var window: AdaptedWindow;
 
 if (typeof window !== 'undefined') {
-  INJECTABLES['$window'] = {
+  INJECTABLES.$window = {
     schema: {
       width: 'number',
       height: 'number',
@@ -76,7 +79,7 @@ if (typeof window !== 'undefined') {
         search: 'string',
       },
     },
-    summon(injectees, summonSpec) {
+    summon (injectees, summonSpec) {
       if (!injectees.$window) {
         injectees.$window = {};
       }
@@ -88,19 +91,19 @@ if (typeof window !== 'undefined') {
         if (!out.screen) {
           out.screen = {};
         }
-        out.screen.availHeight = window.screen['availHeight'];
-        out.screen.availLeft = window.screen['availLeft'];
-        out.screen.availWidth = window.screen['availWidth'];
-        out.screen.colorDepth = window.screen['colorDepth'];
-        out.screen.height = window.screen['height'];
-        out.screen.pixelDepth = window.screen['pixelDepth'];
-        out.screen.width = window.screen['width'];
-        if (window.screen['orientation']) {
+        out.screen.availHeight = window.screen.availHeight;
+        out.screen.availLeft = window.screen.availLeft;
+        out.screen.availWidth = window.screen.availWidth;
+        out.screen.colorDepth = window.screen.colorDepth;
+        out.screen.height = window.screen.height;
+        out.screen.pixelDepth = window.screen.pixelDepth;
+        out.screen.width = window.screen.width;
+        if (window.screen.orientation) {
           if (!out.screen.orientation) {
             out.screen.orientation = {};
           }
-          out.screen.orientation.angle = window.screen['orientation'].angle;
-          out.screen.orientation.type = window.screen['orientation'].type;
+          out.screen.orientation.angle = window.screen.orientation.angle;
+          out.screen.orientation.type = window.screen.orientation.type;
         }
       }
       if (typeof navigator !== 'undefined') {
@@ -112,7 +115,7 @@ if (typeof window !== 'undefined') {
         out.navigator.appName = navigator.appName;
         out.navigator.appVersion = navigator.appVersion;
         out.navigator.cookieEnabled = navigator.cookieEnabled;
-        out.navigator.doNotTrack = navigator['doNotTrack'];
+        out.navigator.doNotTrack = navigator.doNotTrack;
         out.navigator.language = navigator.language;
         out.navigator.maxTouchPoints = navigator.maxTouchPoints;
         out.navigator.onLine = navigator.onLine;
@@ -127,10 +130,10 @@ if (typeof window !== 'undefined') {
         }
         out.document.charset = window.document.charset;
         out.document.compatMode = window.document.compatMode;
-        out.document.contenttype = window.document['contentType'];
+        out.document.contenttype = window.document.contentType;
         out.document.cookie = window.document.cookie;
-        out.document.documentURI = window.document['documentURI'];
-        out.document.fullscreen = window.document['fullscreen'];
+        out.document.documentURI = window.document.documentURI;
+        out.document.fullscreen = window.document.fullscreen;
         out.document.readyState = window.document.readyState;
         out.document.referrer = window.document.referrer;
         out.document.title = window.document.title;
@@ -152,7 +155,7 @@ if (typeof window !== 'undefined') {
 }
 
 if (typeof global !== 'undefined') {
-  INJECTABLES['$global'] = {
+  INJECTABLES.$global = {
     schema: {
       process: {
         pid: 'number',
@@ -164,7 +167,7 @@ if (typeof global !== 'undefined') {
         env: {}, // Worth explicitly numerating these? #QUESTION
       },
     },
-    summon(injectees, summonSpec) {
+    summon (injectees, summonSpec) {
       if (!injectees.$global) {
         injectees.$global = {};
       }
@@ -186,7 +189,7 @@ if (typeof global !== 'undefined') {
   };
 }
 
-INJECTABLES['$core'] = {
+INJECTABLES.$core = {
   schema: {
     version: 'string',
     options: {
@@ -221,7 +224,7 @@ INJECTABLES['$core'] = {
       },
     },
   },
-  summon(injectees, summonSpec, hostInstance, matchingElement, timelineName) {
+  summon (injectees, summonSpec, hostInstance, matchingElement, timelineName) {
     if (!injectees.$core) {
       injectees.$core = {};
     }
@@ -308,7 +311,7 @@ const EVENT_SCHEMA = {
 
 const ELEMENT_SCHEMA = {
   // A function in the schema indicates that schema is dynamic, dependent on some external information
-  properties(element) {
+  properties (element) {
     const defined = schema[element.elementName];
     if (!defined) {
       console.warn('[haiku core] element ' + element.elementName + ' has no schema defined');
@@ -370,7 +373,7 @@ const assignElementInjectables = (obj, key, summonSpec, hostInstance, element) =
   // out.events = hostInstance.context.getElementEvents(element)
 };
 
-INJECTABLES['$tree'] = {
+INJECTABLES.$tree = {
   schema: {
     // Unique to $tree
     parent: ELEMENT_SCHEMA,
@@ -381,7 +384,7 @@ INJECTABLES['$tree'] = {
     root: ELEMENT_SCHEMA, // root at runtime
     element: ELEMENT_SCHEMA, // same as $element
   },
-  summon(injectees, summonSpec, hostInstance, matchingElement) {
+  summon (injectees, summonSpec, hostInstance, matchingElement) {
     if (!injectees.$tree) {
       injectees.$tree = {};
     }
@@ -419,19 +422,19 @@ INJECTABLES['$tree'] = {
     // and avoid recalc if it's already been added:
 
     if (!injectees.$component) {
-      INJECTABLES['$component'].summon(injectees, summonSpec, hostInstance, matchingElement);
+      INJECTABLES.$component.summon(injectees, summonSpec, hostInstance, matchingElement);
     }
 
     injectees.$tree.component = injectees.$component;
 
     if (!injectees.$root) {
-      INJECTABLES['$root'].summon(injectees, summonSpec, hostInstance, matchingElement);
+      INJECTABLES.$root.summon(injectees, summonSpec, hostInstance, matchingElement);
     }
 
     injectees.$tree.root = injectees.$root;
 
     if (!injectees.$element) {
-      INJECTABLES['$element'].summon(injectees, summonSpec, hostInstance, matchingElement);
+      INJECTABLES.$element.summon(injectees, summonSpec, hostInstance, matchingElement);
     }
 
     injectees.$tree.element = injectees.$element;
@@ -440,9 +443,9 @@ INJECTABLES['$tree'] = {
 
 // (top-level Element of a given component, (i.e. tranverse tree upward past groups but
 // stop at first component definition))
-INJECTABLES['$component'] = {
+INJECTABLES.$component = {
   schema: ELEMENT_SCHEMA,
-  summon(injectees, summonSpec, hostInstance) {
+  summon (injectees, summonSpec, hostInstance) {
     // Don't double-recalc this if it's already shown to be present in $tree
     if (injectees.$tree && injectees.$tree.component) {
       injectees.$component = injectees.$tree.component;
@@ -456,9 +459,9 @@ INJECTABLES['$component'] = {
 // absolute root of component tree (but does not traverse host codebase DOM)
 // i.e. if Haiku components are nested. Until we support nested components,
 // $root will be the same as $component
-INJECTABLES['$root'] = {
+INJECTABLES.$root = {
   schema: ELEMENT_SCHEMA,
-  summon(injectees, summonSpec, hostInstance, matchingElement) {
+  summon (injectees, summonSpec, hostInstance) {
     // Don't double-recalc this if it's already shown to be present in $tree
     if (injectees.$tree && injectees.$tree.root) {
       injectees.$root = injectees.$tree.root;
@@ -470,9 +473,9 @@ INJECTABLES['$root'] = {
   },
 };
 
-INJECTABLES['$element'] = {
+INJECTABLES.$element = {
   schema: ELEMENT_SCHEMA,
-  summon(injectees, summonSpec, hostInstance, matchingElement) {
+  summon (injectees, summonSpec, hostInstance, matchingElement) {
     // Don't double-recalc this if it's already shown to be present in $tree
     if (injectees.$tree && injectees.$tree.element) {
       injectees.$element = injectees.$tree.element;
@@ -483,9 +486,9 @@ INJECTABLES['$element'] = {
   },
 };
 
-INJECTABLES['$user'] = {
+INJECTABLES.$user = {
   schema: assign({}, EVENT_SCHEMA),
-  summon(injectees, summonSpec, hostInstance, matchingElement) {
+  summon (injectees, summonSpec, hostInstance, matchingElement) {
     if (isPreviewMode(hostInstance.config.interactionMode)) {
       injectees.$user = hostInstance.context.getGlobalUserState();
     } else {
@@ -504,7 +507,7 @@ INJECTABLES['$user'] = {
   },
 };
 
-INJECTABLES['$flow'] = {
+INJECTABLES.$flow = {
   schema: {
     repeat: {
       list: ['any'],
@@ -517,27 +520,27 @@ INJECTABLES['$flow'] = {
       node: 'any', // The injected element?
     },
   },
-  summon(injectees, summonSpec, hostInstance, matchingElement) {
+  summon (injectees, summonSpec, hostInstance, matchingElement) {
     // if (!injectees.$flow) injectees.$flow = {}
     // var out = injectees.$flow
   },
 };
 
-INJECTABLES['$flow']['schema']['if'] = {
+INJECTABLES.$flow.schema.if = {
   value: 'any',
   data: 'any', // alias for value
   payload: 'any', // alias for payload
 };
 
-INJECTABLES['$flow']['schema']['yield'] = {
+INJECTABLES.$flow.schema.yield = {
   value: 'any',
   data: 'any', // alias for value
   payload: 'any', // alias for payload
 };
 
-INJECTABLES['$helpers'] = {
+INJECTABLES.$helpers = {
   schema: {},
-  summon(injectees, summonSpec, hostInstance, matchingElement) {
+  summon (injectees, summonSpec, hostInstance, matchingElement) {
     injectees.$helpers = hostInstance._builder.helpers;
   },
 };
@@ -608,15 +611,13 @@ const BUILTIN_INJECTABLES = {
 };
 
 for (const builtinInjectableKey in BUILTIN_INJECTABLES) {
-  (function (key, value) {
-    INJECTABLES[key] = {
-      builtin: true,
-      schema: '*',
-      summon(injectees) {
-        injectees[key] = value;
-      },
-    };
-  }(builtinInjectableKey, BUILTIN_INJECTABLES[builtinInjectableKey]));
+  INJECTABLES[builtinInjectableKey] = {
+    builtin: true,
+    schema: '*',
+    summon (injectees) {
+      injectees[builtinInjectableKey] = BUILTIN_INJECTABLES[builtinInjectableKey];
+    },
+  };
 }
 
 // When editing a component, any of these appearing inside an expression will trigger a warning.
@@ -792,7 +793,7 @@ export default class ValueBuilder {
   _lastFlexId;
   _lastPropertyName;
 
-  constructor(component) {
+  constructor (component) {
     this._component = component; // ::HaikuComponent
     this._parsees = {};
     this._changes = {};
@@ -805,7 +806,7 @@ export default class ValueBuilder {
       this.helpers[helperName] = HaikuHelpers.helpers[helperName];
     }
 
-    this.helpers['now'] = () => {
+    this.helpers.now = () => {
       if (isPreviewMode(this._component.config.interactionMode)) {
         return (this._component.config.timestamp || 1) + (this._lastTimelineTime || 1);
       }
@@ -813,7 +814,7 @@ export default class ValueBuilder {
       return 1;
     };
 
-    this.helpers['rand'] = () => {
+    this.helpers.rand = () => {
       if (isPreviewMode(this._component.config.interactionMode)) {
         // tslint:disable-next-line
         const scopeKey = `${this._lastTimelineName}|${this._lastTimelineTime}|${this._lastPropertyName}|${this._lastFlexId}`;
@@ -826,12 +827,12 @@ export default class ValueBuilder {
       return 1;
     };
 
-    this.helpers['find'] = (selector) => {
+    this.helpers.find = (selector) => {
       return this._component.querySelectorAll(selector);
     };
   }
 
-  clearCaches(options = {}) {
+  clearCaches (options = {}) {
     this._parsees = {};
     this._changes = {};
     this._summonees = {};
@@ -839,14 +840,14 @@ export default class ValueBuilder {
     return this;
   }
 
-  clearCachedClusters(timelineName, componentId) {
+  clearCachedClusters (timelineName, componentId) {
     if (this._parsees[timelineName]) {
       this._parsees[timelineName][componentId] = {};
     }
     return this;
   }
 
-  evaluate(
+  evaluate (
     fn,
     timelineName,
     flexId,
@@ -904,11 +905,10 @@ export default class ValueBuilder {
       this.cacheEvaluation(timelineName, flexId, propertyName, keyframeMs, evaluation);
     }
 
-
     return evaluation;
   }
 
-  getPreviousSummonees(
+  getPreviousSummonees (
     timelineName, flexId, propertyName, keyframeMs) {
     if (!this._summonees[timelineName]) {
       return;
@@ -922,7 +922,7 @@ export default class ValueBuilder {
     return this._summonees[timelineName][flexId][propertyName][keyframeMs];
   }
 
-  cacheSummonees(
+  cacheSummonees (
     timelineName, flexId, propertyName, keyframeMs, summonees) {
     if (!this._summonees[timelineName]) {
       this._summonees[timelineName] = {};
@@ -937,7 +937,7 @@ export default class ValueBuilder {
     return summonees;
   }
 
-  getPreviousEvaluation(
+  getPreviousEvaluation (
     timelineName, flexId, propertyName, keyframeMs) {
     if (!this._evaluations[timelineName]) {
       return;
@@ -951,7 +951,7 @@ export default class ValueBuilder {
     return this._evaluations[timelineName][flexId][propertyName][keyframeMs];
   }
 
-  cacheEvaluation(
+  cacheEvaluation (
     timelineName, flexId, propertyName, keyframeMs, evaluation) {
     if (!this._evaluations[timelineName]) {
       this._evaluations[timelineName] = {};
@@ -966,7 +966,7 @@ export default class ValueBuilder {
     return evaluation;
   }
 
-  summonSummonables(
+  summonSummonables (
     paramsArray,
     timelineName,
     flexId,
@@ -1051,7 +1051,7 @@ export default class ValueBuilder {
     return summonablesArray;
   }
 
-  getSummonablesSchema() {
+  getSummonablesSchema () {
     const summonablesSchema = {};
     for (const key in INJECTABLES) {
       summonablesSchema[key] = INJECTABLES[key].schema;
@@ -1059,7 +1059,7 @@ export default class ValueBuilder {
     return summonablesSchema;
   }
 
-  fetchParsedValueCluster(
+  fetchParsedValueCluster (
     timelineName,
     flexId,
     matchingElement,
@@ -1147,7 +1147,7 @@ export default class ValueBuilder {
     return parsee;
   }
 
-  getParser(outputName, virtualElement) {
+  getParser (outputName, virtualElement) {
     if (!virtualElement) {
       return undefined;
     }
@@ -1155,7 +1155,7 @@ export default class ValueBuilder {
     return foundParser && foundParser.parse;
   }
 
-  getGenerator(outputName, virtualElement) {
+  getGenerator (outputName, virtualElement) {
     if (!virtualElement) {
       return undefined;
     }
@@ -1163,7 +1163,7 @@ export default class ValueBuilder {
     return foundGenerator && foundGenerator.generate;
   }
 
-  generateFinalValueFromParsedValue(
+  generateFinalValueFromParsedValue (
     timelineName,
     flexId,
     matchingElement,
@@ -1178,7 +1178,7 @@ export default class ValueBuilder {
     return computedValue;
   }
 
-  didChangeValue(
+  didChangeValue (
     timelineName,
     flexId,
     matchingElement,
@@ -1210,7 +1210,7 @@ export default class ValueBuilder {
    * instance state.
    * If we didn't make any changes, we return undefined here. The caller should account for this.
    */
-  build(
+  build (
     out,
     timelineName,
     timelineTime,
@@ -1287,7 +1287,7 @@ export default class ValueBuilder {
    * @param skipCache {Boolean} Skip caching?
    * @param clearSortedKeyframesCache
    */
-  grabValue(
+  grabValue (
     timelineName,
     flexId,
     matchingElement,
@@ -1367,7 +1367,7 @@ export default class ValueBuilder {
       computedValueForTime,
     );
   }
-}
 
-ValueBuilder['INJECTABLES'] = INJECTABLES;
-ValueBuilder['FORBIDDEN_EXPRESSION_TOKENS'] = FORBIDDEN_EXPRESSION_TOKENS;
+  static INJECTABLES = INJECTABLES;
+  static FORBIDDEN_EXPRESSION_TOKENS = FORBIDDEN_EXPRESSION_TOKENS;
+}

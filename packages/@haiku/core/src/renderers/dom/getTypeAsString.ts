@@ -6,7 +6,7 @@ const STRING = 'string';
 const FUNCTION = 'function';
 const OBJECT = 'object';
 
-function getType(virtualElement) {
+function getType (virtualElement) {
   const typeValue = virtualElement.elementName;
   if (typeValue && typeValue.default) {
     return typeValue.default;
@@ -14,7 +14,7 @@ function getType(virtualElement) {
   return typeValue;
 }
 
-function thingToTagName(thing) {
+function thingToTagName (thing) {
   if (typeof thing === STRING && thing.length > 0) {
     return thing;
   }
@@ -28,14 +28,14 @@ function thingToTagName(thing) {
   return 'div';
 }
 
-function objToTagName(obj) {
+function objToTagName (obj) {
   // if (obj.name) return obj.name
   // if (obj.metadata && obj.metadata.name) return obj.metadata.name
   // _warnOnce('Got blank/malformed virtual element object; falling back to <div>')
   return 'div';
 }
 
-function fnToTagName(fn) {
+function fnToTagName (fn) {
   if (fn.name) {
     return fn.name;
   }
@@ -49,7 +49,7 @@ function fnToTagName(fn) {
   }
 }
 
-export default function getTypeAsString(virtualElement) {
+export default function getTypeAsString (virtualElement) {
   let typeValue = getType(virtualElement);
   typeValue = thingToTagName(typeValue);
   if (!typeValue) {
@@ -60,7 +60,7 @@ export default function getTypeAsString(virtualElement) {
 
 const warnings = {};
 
-function warnOnce(warning) {
+function warnOnce (warning) {
   if (warnings[warning]) {
     return void 0;
   }

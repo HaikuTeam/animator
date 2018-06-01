@@ -1,17 +1,17 @@
 /**
  * The MIT License
- * 
+ *
  * Copyright (c) 2011 Heather Arthur <fayearthur@gmail.com>
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this
  * software and associated documentation files (the "Software"), to deal in the Software
  * without restriction, including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software, and to permit
  * persons to whom the Software is furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all copies
  * or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
  * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
@@ -31,23 +31,28 @@ for (const name in ColorNames) {
   }
 }
 
-const cs = {};
+export type ColorValue = [number, number, number, number];
 
-cs['get'] = function (string) {
+export interface ColorSpec {
+  model: string;
+  value: ColorValue;
+}
+
+export const get = (string): ColorSpec => {
   const prefix = string.substring(0, 3).toLowerCase();
   let val;
   let model;
   switch (prefix) {
     case 'hsl':
-      val = cs['get']['hsl'](string);
+      val = getHsl(string);
       model = 'hsl';
       break;
     case 'hwb':
-      val = cs['get']['hwb'](string);
+      val = getHwb(string);
       model = 'hwb';
       break;
     default:
-      val = cs['get']['rgb'](string);
+      val = getRgb(string);
       model = 'rgb';
       break;
   }
@@ -62,7 +67,7 @@ cs['get'] = function (string) {
   };
 };
 
-cs['get']['rgb'] = function (string) {
+const getRgb = (string): ColorValue => {
   if (!string) {
     return null;
   }
@@ -142,7 +147,7 @@ cs['get']['rgb'] = function (string) {
 
     rgb[3] = 1;
 
-    return rgb;
+    return rgb as ColorValue;
   } else {
     return null;
   }
@@ -152,10 +157,10 @@ cs['get']['rgb'] = function (string) {
   }
   rgb[3] = clamp(rgb[3], 0, 1);
 
-  return rgb;
+  return rgb as ColorValue;
 };
 
-cs['get']['hsl'] = function (string) {
+const getHsl = (string): ColorValue => {
   if (!string) {
     return null;
   }
@@ -176,7 +181,7 @@ cs['get']['hsl'] = function (string) {
   return null;
 };
 
-cs['get']['hwb'] = function (string) {
+const getHwb = (string): ColorValue => {
   if (!string) {
     return null;
   }
@@ -196,85 +201,61 @@ cs['get']['hwb'] = function (string) {
   return null;
 };
 
-cs['to'] = {};
+export const to = (model: string, rgba: ColorValue): string => {
+  switch (model) {
+    case 'hex':
+      return (
+        '#' +
+        hexDouble(rgba[0]) +
+        hexDouble(rgba[1]) +
+        hexDouble(rgba[2]) +
+        (rgba[3] < 1 ? hexDouble(Math.round(rgba[3] * 255)) : '')
+      );
+    case 'rgb':
+      return rgba.length < 4 || rgba[3] === 1
+        ? 'rgb(' +
+               Math.round(rgba[0]) +
+               ', ' +
+               Math.round(rgba[1]) +
+               ', ' +
+               Math.round(rgba[2]) +
+               ')'
+        : 'rgba(' +
+               Math.round(rgba[0]) +
+               ', ' +
+               Math.round(rgba[1]) +
+               ', ' +
+               Math.round(rgba[2]) +
+               ', ' +
+               rgba[3] +
+               ')';
+    case 'hsl':
+      return rgba.length < 4 || rgba[3] === 1
+        ? 'hsl(' + rgba[0] + ', ' + rgba[1] + '%, ' + rgba[2] + '%)'
+        : 'hsla(' +
+               rgba[0] +
+               ', ' +
+               rgba[1] +
+               '%, ' +
+               rgba[2] +
+               '%, ' +
+               rgba[3] +
+               ')';
+    case 'hwb':
+      // hwb is a bit different than rgb(a) & hsl(a) since there is no alpha specific syntax
+      // (hwb have alpha optional & 1 is default value)
+      let a = '';
+      if (rgba.length >= 4 && rgba[3] !== 1) {
+        a = ', ' + rgba[3];
+      }
 
-cs['to']['hex'] = function (rgba) {
-  return (
-    '#' +
-    hexDouble(rgba[0]) +
-    hexDouble(rgba[1]) +
-    hexDouble(rgba[2]) +
-    (rgba[3] < 1 ? hexDouble(Math.round(rgba[3] * 255)) : '')
-  );
-};
-
-cs['to']['rgb'] = function (rgba) {
-  return rgba.length < 4 || rgba[3] === 1
-    ? 'rgb(' +
-           Math.round(rgba[0]) +
-           ', ' +
-           Math.round(rgba[1]) +
-           ', ' +
-           Math.round(rgba[2]) +
-           ')'
-    : 'rgba(' +
-           Math.round(rgba[0]) +
-           ', ' +
-           Math.round(rgba[1]) +
-           ', ' +
-           Math.round(rgba[2]) +
-           ', ' +
-           rgba[3] +
-           ')';
-};
-
-cs['to']['rgb']['percent'] = function (rgba) {
-  const r = Math.round(rgba[0] / 255 * 100);
-  const g = Math.round(rgba[1] / 255 * 100);
-  const b = Math.round(rgba[2] / 255 * 100);
-
-  return rgba.length < 4 || rgba[3] === 1
-    ? 'rgb(' + r + '%, ' + g + '%, ' + b + '%)'
-    : 'rgba(' + r + '%, ' + g + '%, ' + b + '%, ' + rgba[3] + ')';
-};
-
-cs['to']['hsl'] = function (hsla) {
-  return hsla.length < 4 || hsla[3] === 1
-    ? 'hsl(' + hsla[0] + ', ' + hsla[1] + '%, ' + hsla[2] + '%)'
-    : 'hsla(' +
-           hsla[0] +
-           ', ' +
-           hsla[1] +
-           '%, ' +
-           hsla[2] +
-           '%, ' +
-           hsla[3] +
-           ')';
-};
-
-// hwb is a bit different than rgb(a) & hsl(a) since there is no alpha specific syntax
-// (hwb have alpha optional & 1 is default value)
-cs['to']['hwb'] = function (hwba) {
-  let a = '';
-  if (hwba.length >= 4 && hwba[3] !== 1) {
-    a = ', ' + hwba[3];
+      return 'hwb(' + rgba[0] + ', ' + rgba[1] + '%, ' + rgba[2] + '%' + a + ')';
   }
-
-  return 'hwb(' + hwba[0] + ', ' + hwba[1] + '%, ' + hwba[2] + '%' + a + ')';
 };
 
-cs['to']['keyword'] = function (rgb) {
-  return reverseNames[rgb.slice(0, 3)];
-};
+const clamp = (num, min, max) => Math.min(Math.max(min, num), max);
 
-// helpers
-function clamp(num, min, max) {
-  return Math.min(Math.max(min, num), max);
-}
-
-function hexDouble(num) {
+const hexDouble = (num) => {
   const str = num.toString(16).toUpperCase();
   return str.length < 2 ? '0' + str : str;
-}
-
-export default cs;
+};

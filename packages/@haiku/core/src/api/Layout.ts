@@ -1,21 +1,21 @@
 export type Mat4 = number[];
 
-export type ThreeDimensionalLayoutProperty = {
+export interface ThreeDimensionalLayoutProperty {
   x: number;
   y: number;
   z: number;
-};
+}
 
-export type DomRect = {
+export interface DomRect {
   width: number;
   height: number;
   left: number;
   top: number;
-};
+}
 
 // The layout specification naming in createLayoutSpec is derived in part from:
 // https://github.com/Famous/engine/blob/master/core/Transform.js which is MIT licensed.
-export type LayoutSpec = {
+export interface LayoutSpec {
   shown: boolean;
   opacity: number;
   mount: ThreeDimensionalLayoutProperty;
@@ -46,4 +46,4 @@ export type LayoutSpec = {
     matrix: Mat4;
     size: ThreeDimensionalLayoutProperty;
   };
-};
+}

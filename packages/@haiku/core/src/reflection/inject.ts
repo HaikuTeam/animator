@@ -4,7 +4,7 @@
 
 import enhance from './enhance';
 
-export default function inject(...args) {
+export default function inject (...args) {
   const fn = args.shift();
   if (typeof fn !== 'function') {
     console.warn('[haiku core] Inject expects a function as the first argument');

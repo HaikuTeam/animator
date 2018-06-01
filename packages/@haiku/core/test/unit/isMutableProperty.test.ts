@@ -25,7 +25,9 @@ tape(
       isMutableProperty(
         {
           0: {
-            value: function foo() {},
+            value: function foo () {
+              // ...
+            },
           },
         },
         'blah',

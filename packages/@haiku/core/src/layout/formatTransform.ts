@@ -33,7 +33,7 @@ const TRANSFORM_ZERO = '0';
 const TRANSFORM_COMMA = ',';
 const TRANSFORM_ZILCH = TRANSFORM_ZERO + TRANSFORM_COMMA;
 
-export default function formatTransform(transform, format) {
+export default function formatTransform (transform, format) {
   let prefix;
   let last;
   if (format === Layout3D.FORMATS.TWO) {

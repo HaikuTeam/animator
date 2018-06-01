@@ -10,7 +10,7 @@ const data = {
   baddies: 0,
 };
 
-function arrayParamToString(param) {
+function arrayParamToString (param) {
   const pieces = [];
 
   for (let i = 0; i < param.length; i++) {
@@ -20,7 +20,7 @@ function arrayParamToString(param) {
   return '[ ' + pieces.join(', ') + ' ]';
 }
 
-function objectParamToString(param) {
+function objectParamToString (param) {
   const pieces = [];
 
   // Special case, an object that describes a rest parameter
@@ -35,7 +35,7 @@ function objectParamToString(param) {
   return '{ ' + pieces.join(', ') + ' }';
 }
 
-function stringifyParam(param, key) {
+function stringifyParam (param, key) {
   if (param && typeof param === 'string') {
     return toIdentifier(param);
   }
@@ -72,7 +72,7 @@ function stringifyParam(param, key) {
   return '__' + data.baddies++ + '__';
 }
 
-export default function marshalParams(params) {
+export default function marshalParams (params) {
   return params
     .map((param) => {
       // Need wrap function to avoid passing the index (key) to stringifyParam, which uses that to detect something

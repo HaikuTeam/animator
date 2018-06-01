@@ -2,9 +2,9 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
+import {LayoutSpec} from './api/Layout';
 import computeMatrix from './layout/computeMatrix';
 import computeSize from './layout/computeSize';
-import {LayoutSpec} from './api/Layout';
 
 const ELEMENTS_2D = {
   circle: true,

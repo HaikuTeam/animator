@@ -2,27 +2,27 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
+import {Curve} from './api/Curve';
+import {BytecodeOptions, HaikuBytecode} from './api/HaikuBytecode';
 import Config from './Config';
-import HaikuClock from './HaikuClock';
-import HaikuElement from './HaikuElement';
-import HaikuContext from './HaikuContext';
-import {runMigrations} from './Migration';
 import HaikuBase, {GLOBAL_LISTENER_KEY} from './HaikuBase';
+import HaikuClock from './HaikuClock';
+import HaikuContext from './HaikuContext';
+import HaikuElement from './HaikuElement';
 import HaikuTimeline from './HaikuTimeline';
-import vanities,{PLAYBACK_SETTINGS} from './properties/dom/vanities';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
 import cssQueryList from './helpers/cssQueryList';
-import xmlToMana from './helpers/xmlToMana';
 import {isPreviewMode} from './helpers/interactionModes';
 import isMutableProperty from './helpers/isMutableProperty';
 import manaFlattenTree from './helpers/manaFlattenTree';
 import scopifyElements from './helpers/scopifyElements';
+import xmlToMana from './helpers/xmlToMana';
 import Layout3D from './Layout3D';
+import {runMigrations} from './Migration';
+import vanities, {PLAYBACK_SETTINGS} from './properties/dom/vanities';
+import StateTransitionManager, {StateTransitionParameters, StateValues} from './StateTransitionManager';
 import ValueBuilder from './ValueBuilder';
 import assign from './vendor/assign';
-import {HaikuBytecode} from './api/HaikuBytecode';
-import StateTransitionManager, {StateTransitionParameters, StateValues} from './StateTransitionManager';
-import {Curve} from './api/Curve';
 
 const pkg = require('./../package.json');
 export const VERSION = pkg.version;
@@ -48,6 +48,11 @@ export interface HotComponent {
   timelineName: string;
   selector: string;
   propertyNames: string[];
+}
+
+export interface ClearCacheOptions {
+  clearStates?: boolean;
+  clearEventHandlers?: boolean;
 }
 
 // tslint:disable:variable-name function-name
@@ -80,11 +85,11 @@ export default class HaikuComponent extends HaikuElement {
   state;
   stateTransitionManager: StateTransitionManager;
 
-  constructor(
+  constructor (
     bytecode: HaikuBytecode,
     context: HaikuContext,
     host: HaikuComponent,
-    config,
+    config: BytecodeOptions,
     container,
   ) {
     super();
@@ -220,7 +225,7 @@ export default class HaikuComponent extends HaikuElement {
    * @description Track elements that are at the horizon of what we want to render, i.e., a list of
    * virtual elements that we don't want to make any updates lower than in the tree.
    */
-  markHorizonElement(virtualElement) {
+  markHorizonElement (virtualElement) {
     if (virtualElement && virtualElement.attributes) {
       const flexId = virtualElement.attributes[HAIKU_ID_ATTRIBUTE] || virtualElement.attributes.id;
       if (flexId) {
@@ -229,7 +234,7 @@ export default class HaikuComponent extends HaikuElement {
     }
   }
 
-  isHorizonElement(virtualElement) {
+  isHorizonElement (virtualElement) {
     if (virtualElement && virtualElement.attributes) {
       const flexId = virtualElement.attributes[HAIKU_ID_ATTRIBUTE] || virtualElement.attributes.id;
       return !!this._horizonElements[flexId];
@@ -237,11 +242,11 @@ export default class HaikuComponent extends HaikuElement {
     return false;
   }
 
-  registerGuest(subcomponent: HaikuComponent) {
+  registerGuest (subcomponent: HaikuComponent) {
     this.guests[subcomponent.getId()] = subcomponent;
   }
 
-  visitGuestHierarchy(visitor: Function) {
+  visitGuestHierarchy (visitor: Function) {
     visitor(this, this.$id, this.host);
     for (const $id in this.guests) {
       this.guests[$id].visitGuestHierarchy(visitor);
@@ -249,7 +254,7 @@ export default class HaikuComponent extends HaikuElement {
   }
 
   // If the component needs to remount itself for some reason, make sure we fire the right events
-  callRemount(incomingConfig, skipMarkForFullFlush) {
+  callRemount (incomingConfig, skipMarkForFullFlush) {
     this.routeEventToHandlerAndEmit(GLOBAL_LISTENER_KEY, 'component:will-mount', [this]);
 
     // Note!: Only update config if we actually got incoming options!
@@ -290,7 +295,7 @@ export default class HaikuComponent extends HaikuElement {
     this.routeEventToHandlerAndEmit(GLOBAL_LISTENER_KEY, 'component:did-mount', [this]);
   }
 
-  destroy() {
+  destroy () {
     super.destroy();
     // Destroy all timelines we host.
     const timelineInstances = this.getTimelines();
@@ -313,7 +318,7 @@ export default class HaikuComponent extends HaikuElement {
     });
   }
 
-  callUnmount() {
+  callUnmount () {
     // Since we're unmounting, pause all animations to avoid unnecessary calc while detached
     const timelineInstances = this.getTimelines();
     for (const timelineName in timelineInstances) {
@@ -326,7 +331,7 @@ export default class HaikuComponent extends HaikuElement {
     this.routeEventToHandlerAndEmit(GLOBAL_LISTENER_KEY, 'component:will-unmount', [this]);
   }
 
-  assignConfig(incomingConfig) {
+  assignConfig (incomingConfig) {
     this.config = Config.build(this.config || {}, incomingConfig || {});
 
     // Don't forget to update the configuration values shared by the context,
@@ -349,16 +354,16 @@ export default class HaikuComponent extends HaikuElement {
     return this;
   }
 
-  set(key, value) {
+  set (key, value) {
     this.state[key] = value;
     return this;
   }
 
-  get(key) {
+  get (key) {
     return this.state[key];
   }
 
-  setState(states: StateValues, transitionParameter?: StateTransitionParameters) {
+  setState (states: StateValues, transitionParameter?: StateTransitionParameters) {
 
     // Do not set any state if invalid
     if (!states || typeof states !== 'object') {
@@ -372,23 +377,23 @@ export default class HaikuComponent extends HaikuElement {
 
   }
 
-  getStates() {
+  getStates () {
     return this.state;
   }
 
-  clearCaches(options = {}) {
+  clearCaches (options: ClearCacheOptions = {}) {
     this.cacheClear();
 
     this._states = {};
 
     // Don't forget to repopulate the states with originals when we cc otherwise folks
     // who depend on initial states being set will be SAD!
-    if (options['clearStates'] !== false) {
+    if (options.clearStates) {
       bindStates(this._states, this, this.config.states);
     }
 
     // Gotta bind any event handlers that may have been dynamically added
-    if (options['clearEventHandlers'] !== false) {
+    if (options.clearEventHandlers) {
       this.bindEventHandlers();
     }
 
@@ -405,21 +410,21 @@ export default class HaikuComponent extends HaikuElement {
     }
   }
 
-  getClock(): HaikuClock {
+  getClock (): HaikuClock {
     return this.context.getClock();
   }
 
-  getTemplate(): any {
+  getTemplate (): any {
     return this.bytecode.template;
   }
 
-  getTimelines() {
+  getTimelines () {
     return this.cacheFetch('getTimelines', () => {
       return this.fetchTimelines();
     });
   }
 
-  fetchTimelines() {
+  fetchTimelines () {
     const names = Object.keys(this.bytecode.timelines);
 
     for (let i = 0; i < names.length; i++) {
@@ -429,13 +434,13 @@ export default class HaikuComponent extends HaikuElement {
         continue;
       }
 
-      const existing = HaikuTimeline['where']({
+      const existing = HaikuTimeline.where({
         name,
         component: this,
       })[0];
 
       if (!existing) {
-        HaikuTimeline['create'](
+        HaikuTimeline.create(
           this,
           name,
           this.getTimelineDescriptor(name),
@@ -446,47 +451,47 @@ export default class HaikuComponent extends HaikuElement {
 
     const out = {};
 
-    HaikuTimeline['where']({component: this}).forEach((timeline) => {
+    HaikuTimeline.where({component: this}).forEach((timeline) => {
       out[timeline.getName()] = timeline;
     });
 
     return out;
   }
 
-  getTimeline(name) {
+  getTimeline (name) {
     return this.getTimelines()[name];
   }
 
-  fetchTimeline(name, descriptor) {
+  fetchTimeline (name, descriptor) {
     const found = this.getTimeline(name);
 
     if (found) {
       return found;
     }
 
-    return HaikuTimeline['create'](this, name, descriptor, this.config);
+    return HaikuTimeline.create(this, name, descriptor, this.config);
   }
 
-  getDefaultTimeline() {
+  getDefaultTimeline () {
     const timelines = this.getTimelines();
     return timelines[DEFAULT_TIMELINE_NAME];
   }
 
-  stopAllTimelines() {
+  stopAllTimelines () {
     const timelines = this.getTimelines();
     for (const name in timelines) {
       this.stopTimeline(name);
     }
   }
 
-  startAllTimelines() {
+  startAllTimelines () {
     const timelines = this.getTimelines();
     for (const name in timelines) {
       this.startTimeline(name);
     }
   }
 
-  startTimeline(timelineName) {
+  startTimeline (timelineName) {
     const time = this.context.clock.getExplicitTime();
     const descriptor = this.getTimelineDescriptor(timelineName);
     const existing = this.fetchTimeline(timelineName, descriptor);
@@ -495,7 +500,7 @@ export default class HaikuComponent extends HaikuElement {
     }
   }
 
-  stopTimeline(timelineName) {
+  stopTimeline (timelineName) {
     const time = this.context.clock.getExplicitTime();
     const descriptor = this.getTimelineDescriptor(timelineName);
     const existing = this.getTimeline(timelineName);
@@ -504,11 +509,11 @@ export default class HaikuComponent extends HaikuElement {
     }
   }
 
-  getTimelineDescriptor(timelineName) {
+  getTimelineDescriptor (timelineName) {
     return this.bytecode.timelines[timelineName];
   }
 
-  getInjectables(element) {
+  getInjectables (element) {
     const injectables = {};
 
     assign(injectables, this._builder.getSummonablesSchema(element));
@@ -530,19 +535,19 @@ export default class HaikuComponent extends HaikuElement {
    * @description When hot-reloading a component during editing, this can be used to
    * ensure that this component doesn't keep updating after its replacement is loaded.
    */
-  deactivate() {
+  deactivate () {
     this.isDeactivated = true;
   }
 
-  activate() {
+  activate () {
     this.isDeactivated = false;
   }
 
-  sleepOn() {
+  sleepOn () {
     this.isSleeping = true;
   }
 
-  sleepOff() {
+  sleepOff () {
     this.isSleeping = false;
   }
 
@@ -550,12 +555,12 @@ export default class HaikuComponent extends HaikuElement {
    * @method dump
    * @description Dump serializable info about this object
    */
-  dump() {
+  dump () {
     const metadata = this.getBytecodeMetadata();
     return `${metadata.relpath}:${this.getComponentId()}`;
   }
 
-  getBytecodeMetadata() {
+  getBytecodeMetadata () {
     return this.bytecode.metadata;
   }
 
@@ -574,7 +579,7 @@ export default class HaikuComponent extends HaikuElement {
     return metadata && metadata.organization;
   }
 
-  getAddressableProperties(out = {}) {
+  getAddressableProperties (out = {}) {
     if (!this.bytecode.states) {
       return out;
     }
@@ -600,7 +605,7 @@ export default class HaikuComponent extends HaikuElement {
     return out;
   }
 
-  bindEventHandlers() {
+  bindEventHandlers () {
     if (
       !this.bytecode.eventHandlers ||
       Array.isArray(this.bytecode.eventHandlers) // Skip legacy format; must migrate first
@@ -639,7 +644,7 @@ export default class HaikuComponent extends HaikuElement {
     }
   }
 
-  routeEventToHandler(
+  routeEventToHandler (
     eventSelectorGiven: string,
     eventNameGiven: string,
     eventArgs: any,
@@ -657,7 +662,7 @@ export default class HaikuComponent extends HaikuElement {
     });
   }
 
-  routeEventToHandlerAndEmit(
+  routeEventToHandlerAndEmit (
     eventSelectorGiven: string,
     eventNameGiven: string,
     eventArgs: any,
@@ -666,21 +671,21 @@ export default class HaikuComponent extends HaikuElement {
     this.emit(eventNameGiven, ...eventArgs);
   }
 
-  markForFullFlush() {
+  markForFullFlush () {
     this.doesNeedFullFlush = true;
     return this;
   }
 
-  unmarkForFullFlush() {
+  unmarkForFullFlush () {
     this.doesNeedFullFlush = false;
     return this;
   }
 
-  shouldPerformFullFlush() {
+  shouldPerformFullFlush () {
     return this.doesNeedFullFlush || this.doAlwaysFlush;
   }
 
-  performFullFlushRenderWithRenderer(renderer, options: any = {}) {
+  performFullFlushRenderWithRenderer (renderer, options: any = {}) {
     this.context.getContainer(true); // Force recalc of container
     const tree = this.render(options);
 
@@ -697,7 +702,7 @@ export default class HaikuComponent extends HaikuElement {
     }
   }
 
-  render(options: any = {}) {
+  render (options: any = {}) {
     // We register ourselves with our host here because render is guaranteed to be called
     // both in our constructor and in the case that we were deactivated/reactivated.
     // This must run before the isDeactivated check since we may use the registry to activate later.
@@ -733,7 +738,7 @@ export default class HaikuComponent extends HaikuElement {
     return expansion;
   }
 
-  performPatchRenderWithRenderer(renderer, options: any = {}, skipCache: boolean) {
+  performPatchRenderWithRenderer (renderer, options: any = {}, skipCache: boolean) {
     if (renderer.shouldCreateContainer) {
       this.context.getContainer(true); // Force recalc of container
     }
@@ -754,7 +759,7 @@ export default class HaikuComponent extends HaikuElement {
     }
   }
 
-  patch(options = {}, skipCache = false) {
+  patch (options = {}, skipCache = false) {
     if (this.isDeactivated) {
       // If deactivated, pretend like there is nothing to render
       return {};
@@ -767,7 +772,7 @@ export default class HaikuComponent extends HaikuElement {
     );
   }
 
-  applyContextChanges(
+  applyContextChanges (
     template,
     options: any = {},
   ) {
@@ -813,7 +818,7 @@ export default class HaikuComponent extends HaikuElement {
     );
   }
 
-  gatherDeltaPatches(
+  gatherDeltaPatches (
     template,
     options: any = {},
     skipCache = false,
@@ -855,7 +860,7 @@ export default class HaikuComponent extends HaikuElement {
     return deltas;
   }
 
-  applyBehaviors(
+  applyBehaviors (
     deltas,
     options,
     isPatchOperation,
@@ -971,7 +976,7 @@ export default class HaikuComponent extends HaikuElement {
     }
   }
 
-  findElementsByHaikuId(componentId) {
+  findElementsByHaikuId (componentId) {
     return findMatchingElementsByCssSelector(
       'haiku:' + componentId,
       this._flatManaTree,
@@ -979,7 +984,7 @@ export default class HaikuComponent extends HaikuElement {
     );
   }
 
-  _hydrateMutableTimelines() {
+  _hydrateMutableTimelines () {
     this._mutableTimelines = {};
     if (this.bytecode.timelines) {
       for (const timelineName in this.bytecode.timelines) {
@@ -1005,7 +1010,7 @@ export default class HaikuComponent extends HaikuElement {
     }
   }
 
-  addHotComponent(hotComponent: HotComponent) {
+  addHotComponent (hotComponent: HotComponent) {
     if (
       !this.bytecode.timelines ||
       !this.bytecode.timelines[hotComponent.timelineName] ||
@@ -1034,7 +1039,7 @@ export default class HaikuComponent extends HaikuElement {
     };
   }
 
-  controlTime(timelineName: string, timelineTime: number) {
+  controlTime (timelineName: string, timelineTime: number) {
     const explicitTime = this.context.clock.getExplicitTime();
     const timelineInstances = this.getTimelines();
 
@@ -1057,7 +1062,7 @@ export default class HaikuComponent extends HaikuElement {
     }
   }
 
-  getControlledTimeDefinedForGuestComponent(
+  getControlledTimeDefinedForGuestComponent (
     guest: HaikuComponent,
     timelineName: string,
     timelineTime: number,
@@ -1110,7 +1115,7 @@ export default class HaikuComponent extends HaikuElement {
     return timelineTime;
   }
 
-  getPropertiesGroup(timelineName: string, flexId: string) {
+  getPropertiesGroup (timelineName: string, flexId: string) {
     return (
       this.bytecode &&
       this.bytecode.timelines &&
@@ -1119,7 +1124,7 @@ export default class HaikuComponent extends HaikuElement {
     );
   }
 
-  getOutputValue(
+  getOutputValue (
     timelineName: string,
     timelineTime: number,
     flexId: string,
@@ -1142,14 +1147,14 @@ export default class HaikuComponent extends HaikuElement {
   /**
    * Execute state transitions.
    */
-  tickStateTransitions(): void {
+  tickStateTransitions (): void {
     this.stateTransitionManager.tickStateTransitions();
   }
 
   /**
    * Reset states to initial values by using State Transitions. Default to linear
    */
-  resetStatesToInitialValuesWithTransition(duration: number, curve: Curve = Curve.Linear) {
+  resetStatesToInitialValuesWithTransition (duration: number, curve: Curve = Curve.Linear) {
     // Build initial states
     const initialStates = assign({}, this.bytecode.states, this.config.states);
     for (const key in initialStates) {
@@ -1158,13 +1163,20 @@ export default class HaikuComponent extends HaikuElement {
     // Create state transition to initial state values
     this.stateTransitionManager.setState(initialStates, {curve, duration});
   }
+
+  static __name__ = 'HaikuComponent';
+
+  static PLAYER_VERSION = VERSION; // #LEGACY
+  static CORE_VERSION = VERSION;
+
+  static all = (): HaikuComponent[] => HaikuBase.getRegistryForClass(HaikuComponent);
 }
 
-function isBytecode(thing) {
+function isBytecode (thing) {
   return thing && typeof thing === OBJECT_TYPE && thing.template;
 }
 
-function assertTemplate(template) {
+function assertTemplate (template) {
   if (!template) {
     throw new Error('Empty template not allowed');
   }
@@ -1188,7 +1200,7 @@ function assertTemplate(template) {
   throw new Error('Unknown bytecode template format');
 }
 
-function bindEventHandler(component, eventHandlerDescriptor, selector, eventName) {
+function bindEventHandler (component, eventHandlerDescriptor, selector, eventName) {
   // If we've already set this on a previous run, ensure we reset in the same way
   // so that we don't load the handler wrapper downstream (e.g. in the events ui)
   if (eventHandlerDescriptor.original) {
@@ -1211,7 +1223,7 @@ function bindEventHandler(component, eventHandlerDescriptor, selector, eventName
   };
 }
 
-function stateSpecValidityCheck(stateSpec: any, stateSpecName: string): boolean {
+function stateSpecValidityCheck (stateSpec: any, stateSpecName: string): boolean {
   if (
     stateSpec.type === 'any' ||
     stateSpec.type === '*' ||
@@ -1268,7 +1280,7 @@ function stateSpecValidityCheck(stateSpec: any, stateSpecName: string): boolean 
   return true;
 }
 
-function bindStates(statesTargetObject, component, extraStates) {
+function bindStates (statesTargetObject, component, extraStates) {
   const allStates = assign({}, component.bytecode.states, extraStates);
 
   for (const stateSpecName in allStates) {
@@ -1295,7 +1307,7 @@ function bindStates(statesTargetObject, component, extraStates) {
   }
 }
 
-function defineSettableState(
+function defineSettableState (
   component,
   statesHostObject,
   statesTargetObject,
@@ -1306,11 +1318,11 @@ function defineSettableState(
   Object.defineProperty(statesHostObject, stateSpecName, {
     configurable: true,
 
-    get: function get() {
+    get: function get () {
       return statesTargetObject[stateSpecName];
     },
 
-    set: function set(inputValue) {
+    set: function set (inputValue) {
       if (stateSpec.setter) {
         // Important: We call the setter with a binding of the component, so it can access methods on `this`
         statesTargetObject[stateSpecName] = stateSpec.setter.call(
@@ -1362,7 +1374,7 @@ const propertyGroupNeedsExpressionEvaluated = (
   return foundExpressionForTime;
 };
 
-function applyPropertyToNode(
+function applyPropertyToNode (
   node,
   name,
   value,
@@ -1389,7 +1401,7 @@ function applyPropertyToNode(
   }
 }
 
-function connectInstanceNodeWithHostComponent(node, host) {
+function connectInstanceNodeWithHostComponent (node, host) {
   const flexId = (
     node &&
     node.attributes &&
@@ -1413,7 +1425,7 @@ function connectInstanceNodeWithHostComponent(node, host) {
   node.__instance.on('*', node.__listener);
 }
 
-function expandTreeNode(
+function expandTreeNode (
   node,
   parent,
   component: HaikuComponent,
@@ -1437,7 +1449,7 @@ function expandTreeNode(
   if (doConnectInstanceToNode) {
     node.__instance = component;
 
-    HaikuElement['connectNodeWithElement'](node, node.__instance);
+    HaikuElement.connectNodeWithElement(node, node.__instance);
 
     if (host) {
       connectInstanceNodeWithHostComponent(
@@ -1517,7 +1529,7 @@ function expandTreeNode(
   return node;
 }
 
-function findMatchingElementsByCssSelector(selector, flatManaTree, cache) {
+function findMatchingElementsByCssSelector (selector, flatManaTree, cache) {
   if (cache[selector]) {
     return cache[selector];
   }
@@ -1525,7 +1537,7 @@ function findMatchingElementsByCssSelector(selector, flatManaTree, cache) {
   return cache[selector] = cssQueryList(flatManaTree, selector, CSS_QUERY_MAPPING);
 }
 
-function computeAndApplyTreeLayouts(tree, container, options, context) {
+function computeAndApplyTreeLayouts (tree, container, options, context) {
   if (!tree || typeof tree === 'string') {
     return void 0;
   }
@@ -1541,7 +1553,7 @@ function computeAndApplyTreeLayouts(tree, container, options, context) {
   }
 }
 
-function computeAndApplyNodeLayout(node, parent) {
+function computeAndApplyNodeLayout (node, parent) {
   // No point proceeding if our parent node doesn't have a computed layout
   if (parent && parent.layout && parent.layout.computed) {
     const parentSize = parent.layout.computed.size;
@@ -1558,7 +1570,7 @@ function computeAndApplyNodeLayout(node, parent) {
   }
 }
 
-function computeAndApplyPresetSizing(element, container, mode, deltas) {
+function computeAndApplyPresetSizing (element, container, mode, deltas) {
   const elementWidth = element.layout.sizeAbsolute.x;
   const elementHeight = element.layout.sizeAbsolute.y;
 
@@ -1724,9 +1736,7 @@ const clone = (value, binding) => {
   }
 
   if (typeof value === 'function') {
-    const fn = function () {
-      return value.apply(binding, arguments);
-    };
+    const fn = () => value.apply(binding, [value, binding]);
     // Core decorates injectee functions with metadata properties
     for (const key in value) {
       if (value.hasOwnProperty(key)) {
@@ -1735,7 +1745,6 @@ const clone = (value, binding) => {
     }
     return fn;
   }
-
 
   if (Array.isArray(value)) {
     return value.map((el) => {
@@ -1761,10 +1770,3 @@ const clone = (value, binding) => {
 
   return value;
 };
-
-HaikuComponent['__name__'] = 'HaikuComponent';
-
-HaikuComponent['PLAYER_VERSION'] = VERSION; // #LEGACY
-HaikuComponent['CORE_VERSION'] = VERSION;
-
-HaikuComponent['all'] = (): HaikuComponent[] => HaikuBase['getRegistryForClass'](HaikuComponent);

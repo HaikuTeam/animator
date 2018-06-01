@@ -2,10 +2,10 @@ import * as async from 'async';
 import * as jsdom from 'jsdom';
 import * as ts from 'typescript';
 
+import HaikuDOMAdapter from '@core/adapters/dom/HaikuDOMAdapter';
 import Config from '@core/Config';
 import HaikuContext from '@core/HaikuContext';
 import HaikuGlobal from '@core/HaikuGlobal';
-import HaikuDOMAdapter from '@core/adapters/dom/HaikuDOMAdapter';
 import HaikuDOMRenderer from '@core/renderers/dom/HaikuDOMRenderer';
 
 // Tell typescript we have these types on Global
@@ -107,7 +107,7 @@ const createRenderTestFromBytecode = (bytecode, baseConfig, cb) => {
       component,
     );
 
-    function teardown() {
+    function teardown () {
       component.context.clock.GLOBAL_ANIMATION_HARNESS.cancel();
       return;
     }
@@ -179,7 +179,7 @@ const getBytecode = (projectName) => require(`../demo/projects/${projectName}/co
 
 /* Inspired by  https://gist.github.com/teppeis/6e0f2d823a94de4ae442 and
  * https://github.com/Microsoft/TypeScript/wiki/Using-the-Compiler-API */
-function compileStringToTypescript(contents, libSource, compilerOptions) {
+function compileStringToTypescript (contents, libSource, compilerOptions) {
   // Generated outputs
   const outputs = [];
   // Create a compilerHost object to allow the compiler to read and write files
@@ -244,7 +244,7 @@ function compileStringToTypescript(contents, libSource, compilerOptions) {
 
   const allDiagnostics = ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics);
 
-  const fileErrors = allDiagnostics.filter((diagnostic) => diagnostic.file);// && diagnostic.code == 2322)
+  const fileErrors = allDiagnostics.filter((diagnostic) => diagnostic.file); // && diagnostic.code == 2322)
 
   fileErrors.forEach((fileError) => {
     const {line, character} = fileError.file.getLineAndCharacterOfPosition(fileError.start);

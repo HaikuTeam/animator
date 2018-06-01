@@ -51,17 +51,17 @@ const forkIcon =
 // so it's split into pieces here to avoid that build step
 const SUBSTITUTION_STRING = 'HAIKU' + '_' + 'SHARE' + '_' + 'UUID';
 
-function setBoxShadow(el, color) {
+function setBoxShadow (el, color) {
   el.style['-webkit-box-shadow'] = '0 1px 4px 0 ' + color;
   el.style['-moz-box-shadow'] = '0 1px 4px 0 ' + color;
   el.style['box-shadow'] = '0 1px 4px 0 ' + color;
 }
 
-function px(num) {
+function px (num) {
   return num + 'px';
 }
 
-function findOrCreateMenuElement(doc) {
+function findOrCreateMenuElement (doc) {
   let menu = doc.getElementById(MENU_GLOBAL_ID);
   if (menu) {
     return menu;
@@ -89,14 +89,14 @@ function findOrCreateMenuElement(doc) {
   return menu;
 }
 
-function truncate(str, len) {
+function truncate (str, len) {
   if (str.length > len) {
     return str.slice(0, len - 3) + '...';
   }
   return str;
 }
 
-export default function createRightClickMenu(domElement, component) {
+export default function createRightClickMenu (domElement, component) {
   const doc = domElement.ownerDocument;
   const menu = findOrCreateMenuElement(doc);
 
@@ -118,14 +118,14 @@ export default function createRightClickMenu(domElement, component) {
     }
   }
 
-  function escapeHTML(html) {
+  function escapeHTML (html) {
     escaper.textContent = html;
     return escaper.innerHTML.replace(/[><,{}[\]"']/gi, '');
   }
 
   // revealMenu(100,100) // Uncomment me to render the menu while testing
 
-  function revealMenu(mx, my) {
+  function revealMenu (mx, my) {
     const lines = [];
     let titleLine = null;
 
@@ -182,7 +182,7 @@ export default function createRightClickMenu(domElement, component) {
     menu.innerHTML = titleLine ? titleLine + lines.join('\n') : lines.join('\n');
   }
 
-  function hideMenu(nativeEvent) {
+  function hideMenu (nativeEvent) {
     if (nativeEvent.button === 2 || nativeEvent.ctrlKey) {
       // Firefox treats contextmenu mouseups as clicks for some reason. This short-circuits that behavior.
       return;

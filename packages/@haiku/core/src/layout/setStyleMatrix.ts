@@ -5,7 +5,7 @@
 import formatTransform from './formatTransform';
 import isEqualTransformString from './isEqualTransformString';
 
-export default function setStyleMatrix(styleObject, format, matrix, usePrefix) {
+export default function setStyleMatrix (styleObject, format, matrix, usePrefix) {
   const matrixString = formatTransform(matrix, format);
   if (usePrefix) {
     if (!isEqualTransformString(styleObject.webkitTransform, matrixString)) {

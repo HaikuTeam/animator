@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-export default function cloneAttributes(attributes) {
+export default function cloneAttributes (attributes) {
   if (!attributes) {
     return {};
   }

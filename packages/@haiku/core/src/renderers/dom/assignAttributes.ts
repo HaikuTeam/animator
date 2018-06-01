@@ -4,23 +4,20 @@
 
 import assignClass from './assignClass';
 import assignStyle from './assignStyle';
-import getFlexId from './getFlexId';
 
 const STYLE = 'style';
 const OBJECT = 'object';
-const FUNCTION = 'function';
 const CLASS = 'class';
 const CLASS_NAME = 'className';
 const NS = 'http://www.w3.org/1999/xlink';
 const XLINK_HREF = 'xlink:href';
 
-function setAttribute(
+const setAttribute = (
   domElement,
   virtualElement,
   key,
   val,
-  component,
-) {
+) => {
   if (key === XLINK_HREF) {
     const p0 = domElement.getAttributeNS(NS, key);
     if (p0 !== val) {
@@ -32,9 +29,9 @@ function setAttribute(
       domElement.setAttribute(key, val);
     }
   }
-}
+};
 
-export default function assignAttributes(domElement, virtualElement, component, isPatchOperation) {
+export default function assignAttributes (domElement, virtualElement, component, isPatchOperation) {
   if (!isPatchOperation) {
     // Remove any attributes from the previous run that aren't present this time around
     if (domElement.haiku && domElement.haiku.element) {
@@ -76,7 +73,6 @@ export default function assignAttributes(domElement, virtualElement, component, 
       virtualElement,
       key,
       anotherNewValue,
-      component,
     );
   }
 

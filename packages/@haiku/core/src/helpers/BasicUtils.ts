@@ -8,19 +8,19 @@ const uniq = arrayUnique.uniq;
 const OBJECT = 'object';
 const FUNCTION = 'function';
 
-function isObject(value) {
+function isObject (value) {
   return value !== null && typeof value === OBJECT && !Array.isArray(value);
 }
 
-function isFunction(value) {
+function isFunction (value) {
   return typeof value === FUNCTION;
 }
 
-function isEmpty(value) {
+function isEmpty (value) {
   return value === undefined;
 }
 
-function mergeIncoming(previous, incoming) {
+function mergeIncoming (previous, incoming) {
   for (const key in incoming) {
     // Skip if there's no incoming property
     if (isEmpty(incoming[key])) {
@@ -37,7 +37,7 @@ function mergeIncoming(previous, incoming) {
   return previous;
 }
 
-function mergeValue(previous, incoming) {
+function mergeValue (previous, incoming) {
   if (isFunction(previous) || isFunction(incoming)) {
     return incoming;
   }

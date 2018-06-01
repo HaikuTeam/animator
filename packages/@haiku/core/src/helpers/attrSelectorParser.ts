@@ -4,7 +4,7 @@
 
 const ATTR_EXEC_RE = /\[([a-zA-Z0-9]+)([$|^~])?(=)?"?(.+?)?"?( i)?]/;
 
-export default function attrSelectorParser(selector) {
+export default function attrSelectorParser (selector) {
   const matches = ATTR_EXEC_RE.exec(selector);
   if (!matches) {
     return null;
