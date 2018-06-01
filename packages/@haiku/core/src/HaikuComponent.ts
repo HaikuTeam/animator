@@ -25,7 +25,7 @@ import ValueBuilder from './ValueBuilder';
 import assign from './vendor/assign';
 
 const pkg = require('./../package.json');
-export const VERSION = pkg.version;
+const VERSION = pkg.version;
 
 const STRING_TYPE = 'string';
 const OBJECT_TYPE = 'object';
@@ -384,11 +384,10 @@ export default class HaikuComponent extends HaikuElement {
   clearCaches (options: ClearCacheOptions = {}) {
     this.cacheClear();
 
-    this._states = {};
-
     // Don't forget to repopulate the states with originals when we cc otherwise folks
     // who depend on initial states being set will be SAD!
     if (options.clearStates) {
+      this._states = {};
       bindStates(this._states, this, this.config.states);
     }
 
@@ -513,7 +512,7 @@ export default class HaikuComponent extends HaikuElement {
     return this.bytecode.timelines[timelineName];
   }
 
-  getInjectables (element) {
+  getInjectables (element?): any {
     const injectables = {};
 
     assign(injectables, this._builder.getSummonablesSchema(element));

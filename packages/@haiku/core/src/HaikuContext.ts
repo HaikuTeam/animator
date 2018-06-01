@@ -414,12 +414,13 @@ export default class HaikuContext extends HaikuBase {
       HaikuComponentFactory.mount = mount;
       HaikuComponentFactory.context = context;
       HaikuComponentFactory.component = component;
-      HaikuComponentFactory.PLAYER_VERSION = VERSION; // #LEGACY
-      HaikuComponentFactory.CORE_VERSION = VERSION;
 
       // Finally, return the HaikuComponent instance which can also be used for programmatic behavior
       return component;
     };
+
+    HaikuComponentFactory.PLAYER_VERSION = VERSION; // #LEGACY
+    HaikuComponentFactory.CORE_VERSION = VERSION;
 
     return HaikuComponentFactory;
   };

@@ -4,6 +4,14 @@
 
 import tokenize from './tokenize';
 
+export interface RFO {
+  type: string;
+  name: string;
+  params: string[];
+  body: string;
+  injectee?: boolean;
+}
+
 // Order matters
 const REGEXPS = [
   {type: 'whitespace', re: /^[\s]+/},
@@ -163,15 +171,18 @@ export default function functionToRFO (fn) {
   const name = nth(2, 'identifier', tokenize(prefix, REGEXPS)).value;
   const params = signatureToParams(signature);
 
-  const spec = {
+  const spec: RFO = {
     type,
     name,
     params,
     body,
-    // If the runtime function is labeled as an injectee, we *must* indicate as much
-    // in the specification so that serialization back to code wraps it properly
-    injectee: !!fn.injectee,
   };
+
+  // If the runtime function is labeled as an injectee, we *must* indicate as much
+  // in the specification so that serialization back to code wraps it properly
+  if (fn.injectee) {
+    spec.injectee = true;
+  }
 
   return {
     __function: spec,

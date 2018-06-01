@@ -1,3 +1,4 @@
+import HaikuComponent from '../HaikuComponent';
 import {CurveDefinition} from './Curve';
 import {DomRect, LayoutSpec} from './Layout';
 
@@ -116,7 +117,7 @@ export interface BytecodeTimelines {
 }
 
 /**
- * Haiky bytecode metadata.
+ * Haiku bytecode metadata.
  */
 export interface BytecodeMetadata {
   folder?: string;
@@ -136,6 +137,8 @@ export interface BytecodeMetadata {
   branch?: string;
   title?: string;
 }
+
+export type ComponentEventHandler = (component: HaikuComponent) => void;
 
 /**
  * Bytecode options.
@@ -244,6 +247,12 @@ export interface BytecodeOptions {
 
   // Key/values representing placeholders to inject, usually via React adapter
   placeholder?: object;
+
+  // Event handlers.
+  onHaikuComponentWillInitialize?: ComponentEventHandler;
+  onHaikuComponentDidInitialize?: ComponentEventHandler;
+  onHaikuComponentDidMount?: ComponentEventHandler;
+  onHaikuComponentWillUnmount?: ComponentEventHandler;
 }
 
 /**
@@ -252,7 +261,7 @@ export interface BytecodeOptions {
 export interface HaikuBytecode {
   template: BytecodeNode|string;
   states?: BytecodeStates;
-  eventHandlers: BytecodeEventHandlers;
+  eventHandlers?: BytecodeEventHandlers;
   timelines: BytecodeTimelines;
   metadata?: BytecodeMetadata;
   /**
