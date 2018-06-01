@@ -4,7 +4,7 @@
 
 import createTextNode from './createTextNode';
 
-export default function replaceElementWithText(domElement, textContent, component) {
+export default function replaceElementWithText (domElement, textContent, component) {
   if (domElement) {
     if (domElement.textContent !== textContent) {
       const parentNode = domElement.parentNode;

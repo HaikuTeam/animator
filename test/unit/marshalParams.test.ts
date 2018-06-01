@@ -1,7 +1,7 @@
 import * as tape from 'tape';
 
-import marshalParams from '@core/reflection/marshalParams';
 import {toText} from '@core/reflection/JavaScriptIdentifier';
+import marshalParams from '@core/reflection/marshalParams';
 
 tape(
   'marshalParams',

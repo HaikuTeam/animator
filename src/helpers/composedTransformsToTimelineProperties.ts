@@ -38,7 +38,7 @@ const cleanInvalidOrOverexplicitProps = (out, explicit = false) => {
   });
 };
 
-export default function composedTransformsToTimelineProperties(out, matrices, explicit = false) {
+export default function composedTransformsToTimelineProperties (out, matrices, explicit = false) {
   // Note the array reversal - to combine matrices we go in the opposite of the transform sequence
   // I.e. if we transform A->B->C, the multiplication order should be CxBxA
   const decomposed = mat4Decompose(Layout3D.multiplyArrayOfMatrices(matrices.reverse()));

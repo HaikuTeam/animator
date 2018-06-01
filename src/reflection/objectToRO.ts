@@ -4,7 +4,7 @@
 
 import expressionToRO from './expressionToRO';
 
-export default function objectToRO(obj, options) {
+export default function objectToRO (obj, options) {
   const out = {};
   for (const key in obj) {
     if (options && options.ignore && options.ignore.test(key)) {

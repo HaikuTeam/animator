@@ -4,7 +4,7 @@
 
 import getFlexId from './getFlexId';
 
-export default function shouldElementBeReplaced(domElement, virtualElement, component) {
+export default function shouldElementBeReplaced (domElement, virtualElement, component) {
   const oldFlexId = getFlexId(domElement);
   const newFlexId = getFlexId(virtualElement);
 

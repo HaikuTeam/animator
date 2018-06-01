@@ -47,6 +47,7 @@ tape(
         {
           loop: true,
           onHaikuComponentDidMount () {
+            // ...
           },
           states: {
             bux: {

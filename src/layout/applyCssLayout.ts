@@ -10,14 +10,14 @@ import setStyleMatrix from './setStyleMatrix';
 
 const SVG = 'svg';
 
-function hasExplicitStyle(domElement, key) {
+function hasExplicitStyle (domElement, key) {
   if (!domElement.__haikuExplicitStyles) {
     return false;
   }
   return !!domElement.__haikuExplicitStyles[key];
 }
 
-export default function applyCssLayout(domElement, virtualElement, nodeLayout, computedLayout, context) {
+export default function applyCssLayout (domElement, virtualElement, nodeLayout, computedLayout, context) {
   // No point continuing if there's no computedLayout contents
   if (computedLayout.opacity === undefined && !computedLayout.size && !computedLayout.matrix) {
     return;
