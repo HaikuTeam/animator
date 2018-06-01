@@ -8,8 +8,6 @@ import CodeEditor from './CodeEditor/CodeEditor'
 import Palette from 'haiku-ui-common/lib/Palette'
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 import {TOUR_CHANNEL} from 'haiku-sdk-creator/lib/tour'
-import {ModalWrapper, ModalHeader} from 'haiku-ui-common/lib/react/Modal'
-import {BTN_STYLES} from '../styles/btnShared'
 
 const STAGE_BOX_STYLE = {
   overflow: 'hidden',
@@ -22,27 +20,6 @@ const STAGE_BOX_STYLE = {
 
 
 
-const STYLES = {
-  wrapper: {
-    fontSize: '14px',
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
-    backgroundColor: Palette.GRAY
-  },
-  modalWrapper: {
-    maxWidth: '600px',
-    top: '50%',
-    transform: 'translateY(-50%)'
-  },
-  modalBody: {
-    padding: '20px'
-  },
-  listItem: {
-    marginBottom: '8px'
-  }
-}
-
 // This may not be precisely correct; please test the UI if you enable this experiment
 const STAGE_MOUNT_HEIGHT_OFFSET = (experimentIsEnabled(Experiment.MultiComponentFeatures))
   ? 68
@@ -54,9 +31,15 @@ export default class Stage extends React.Component {
     this.webview = null
     this.onRequestWebviewCoordinates = this.onRequestWebviewCoordinates.bind(this)
     this.setNonSavedContentOnCodeEditor = this.setNonSavedContentOnCodeEditor.bind(this)
+    this.saveEditorContentsToFile = this.saveEditorContentsToFile.bind(this)
+    this.closeSaveContentsPopupAndChangeComponent = this.closeSaveContentsPopupAndChangeComponent.bind(this)
+    this.tryToChangeCurrentActiveComponent = this.tryToChangeCurrentActiveComponent.bind(this)
+    this.setShowPopupToSaveRawEditorContents = this.setShowPopupToSaveRawEditorContents.bind(this)
 
     this.state = {
       nonSavedContentOnCodeEditor: false,
+      targetComponentToChange: '',
+      showPopupToSaveRawEditorContents: false,
     }
   }
 
@@ -64,6 +47,33 @@ export default class Stage extends React.Component {
     // debugger;
     console.log('About to set', {nonSavedContentOnCodeEditor})
     this.setState({nonSavedContentOnCodeEditor})
+  }
+
+  setShowPopupToSaveRawEditorContents (showPopup) {
+    this.setState({ showPopupToSaveRawEditorContents: showPopup })
+  }
+
+  // Check if currently edited file is open
+  tryToChangeCurrentActiveComponent (scenename) {
+    if (this.state.nonSavedContentOnCodeEditor){
+      this.setShowPopupToSaveRawEditorContents(true)
+      this.setState({targetComponentToChange: scenename})
+    }
+    else{
+      this.props.projectModel.setCurrentActiveComponent(scenename, {from: 'creator'}, () => {})
+    }
+  }
+
+  saveEditorContentsToFile () {
+    console.log('saveEditorContentsToFile')
+    this.refs.codeEditor.saveCodeFromEditorToDisk()
+    this.closeSaveContentsPopupAndChangeComponent()
+  }
+
+  closeSaveContentsPopupAndChangeComponent () {
+    this.props.projectModel.setCurrentActiveComponent(this.state.targetComponentToChange,
+                                                      {from: 'creator'}, () => {})
+    this.setShowPopupToSaveRawEditorContents(false)
   }
 
   componentDidMount () {
@@ -197,55 +207,6 @@ export default class Stage extends React.Component {
     }
   }
 
-  renderModal () {
-    return (
-      <div style={STYLES.wrapper}>
-        <ModalWrapper style={STYLES.modalWrapper}>
-          <ModalHeader>
-            <h2>Do you want to save the file?</h2>
-          </ModalHeader>
-          <div style={STYLES.modalBody}>
-          Do you want to save the file or discard every change?     
-
-          <div style={[{display: 'inline-block'}]} >
-          <button
-            key='save-code'
-            id='save-code'
-            onClick={this.props.onSwitchToDesignMode}
-            style={[
-              BTN_STYLES.btnText,
-              BTN_STYLES.centerBtns,
-              {
-                display: 'inline-block',
-                marginRight: '0px'
-              }
-            ]}
-          >
-            <span style={{marginLeft: 7}}>Save</span>
-          </button>
-
-          <button
-            key='discard-code'
-            id='discard-code'
-            onClick={this.props.onSwitchToCodeMode}
-            style={[
-              BTN_STYLES.btnText,
-              BTN_STYLES.centerBtns,
-              {
-                display: 'inline-block',
-                marginRight: '0px'
-              }
-            ]}
-          >
-            <span style={{marginLeft: 7}}>Discard</span>
-          </button>
-        </div>
-          </div>
-        </ModalWrapper>
-      </div>
-    )
-  }
-
   render () {
     const interactionModeColor = this.props.isPreviewMode
       ? Palette.LIGHTEST_PINK
@@ -258,7 +219,7 @@ export default class Stage extends React.Component {
         <div
           className='stage-box'
           style={STAGE_BOX_STYLE}>
-          {this.props.showPopupToSaveRawEditorContents && this.state.nonSavedContentOnCodeEditor && this.renderModal()}
+          {this.state.showPopupToSaveRawEditorContents && this.state.nonSavedContentOnCodeEditor && this.renderModal()}
           <StageTitleBar
             folder={this.props.folder}
             envoyProject={this.props.envoyProject}
@@ -317,6 +278,7 @@ export default class Stage extends React.Component {
               visibility: this.props.showGlass ? 'hidden' : 'visible'
             }}>
             <CodeEditor
+              ref='codeEditor'
               showGlass={this.props.showGlass}
               projectModel={this.props.projectModel}
               setNonSavedContentOnCodeEditor={this.setNonSavedContentOnCodeEditor}

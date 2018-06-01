@@ -129,7 +129,6 @@ export default class Creator extends React.Component {
       servicesEnvoyClient: null,
       projToDuplicateIndex: null,
       showGlass: true,
-      showPopupToSaveRawEditorContents: false,
     }
 
 
@@ -575,6 +574,10 @@ export default class Creator extends React.Component {
           break
 
         case 'component:reload':
+          if (this.getActiveComponent()) {
+            this.getActiveComponent().moduleReplace(() => {})
+          }
+          console.log('RRRRRRRRRRRRRRRRRRRr')
           break
 
         case 'project-state-change':
@@ -1466,8 +1469,7 @@ export default class Creator extends React.Component {
 
   // Check if currently edited file is open
   tryToChangeCurrentActiveComponent (scenename) {
-    this.setState({showPopupToSaveRawEditorContents: true})
-    this.state.projectModel.setCurrentActiveComponent(scenename, {from: 'creator'}, () => {})
+    this.refs.stage.tryToChangeCurrentActiveComponent(scenename)
   }
 
   setProjectLaunchStatus ({ launchingProject, newProjectLoading }) {
@@ -1845,7 +1847,6 @@ export default class Creator extends React.Component {
                     onSwitchToCodeMode={() => { this.switchToCodeMode() }}
                     onSwitchToDesignMode={() => { this.switchToDesignMode() }}
                     tryToChangeCurrentActiveComponent={this.tryToChangeCurrentActiveComponent}
-                    showPopupToSaveRawEditorContents={this.state.showPopupToSaveRawEditorContents}
                   />
                   {(this.state.assetDragging)
                     ? <div style={{ width: '100%', height: '100%', backgroundColor: 'white', opacity: 0.01, position: 'absolute', top: 0, left: 0 }} />

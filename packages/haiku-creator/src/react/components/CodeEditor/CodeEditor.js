@@ -22,6 +22,7 @@ class CodeEditor extends React.Component {
     console.log('componentWillMount')
     if (this.props.projectModel) {
       this.props.projectModel.on('update', (what, ...args) => {
+        //console.log('RRRR what:',what)
         switch (what) {
           case 'reloaded':
             const newComponentCode = this.props.projectModel.getCurrentActiveComponent().fetchActiveBytecodeFile().getCode()
@@ -51,8 +52,10 @@ class CodeEditor extends React.Component {
 
   saveCodeFromEditorToDisk = () => {
     const currentEditorContents = this.state.currentEditorContents
-    console.log('currentEditorContents:', {currentEditorContents: currentEditorContents})
+    // Save contents to file
     this.props.projectModel.getCurrentActiveComponent().fetchActiveBytecodeFile().flushContentFromString(currentEditorContents)
+    // Force module reload
+    this.props.projectModel.getCurrentActiveComponent().moduleReplace(() => {})
   }
 
   render () {
