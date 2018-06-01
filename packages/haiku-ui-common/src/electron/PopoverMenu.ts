@@ -66,7 +66,7 @@ export class PopoverMenu extends EventEmitter {
 
     setTimeout(
       () => {
-        this.menu.popup(remote.getCurrentWindow());
+        this.menu.popup({window: remote.getCurrentWindow()});
       },
       DISPLAY_HACK_TIMEOUT,
     );
