@@ -60,7 +60,6 @@ const DEFAULTS = {
   isCommandKeyDown: false,
   isControlKeyDown: false,
   isAltKeyDown: false,
-  avoidTimelinePointerEvents: false,
   isPreviewModeActive: false,
   isRepeat: true,
   flush: false,
@@ -157,9 +156,10 @@ class Timeline extends React.Component {
         isShiftKeyDown: false,
         isCommandKeyDown: false,
         isControlKeyDown: false,
-        isAltKeyDown: false,
-        avoidTimelinePointerEvents: false
+        isAltKeyDown: false
       })
+
+      this.enableTimelinePointerEvents()
     }
 
     // If the user e.g. Cmd+tabs away from the window
@@ -1041,12 +1041,9 @@ class Timeline extends React.Component {
           onMouseDown={(event) => {
             event.persist()
 
-            this.setState({
-              doHandleMouseMovesInGauge: true,
-              avoidTimelinePointerEvents: true
-            }, () => {
-              this.mouseMoveListener(event)
-            })
+            this._doHandleMouseMovesInGauge = true
+            this.disableTimelinePointerEvents()
+            this.mouseMoveListener(event)
           }}
           style={{
             position: 'absolute',
@@ -1073,7 +1070,7 @@ class Timeline extends React.Component {
   }
 
   mouseMoveListener (evt) {
-    if (!this.state.doHandleMouseMovesInGauge) {
+    if (!this._doHandleMouseMovesInGauge) {
       return
     }
 
@@ -1100,10 +1097,18 @@ class Timeline extends React.Component {
   }
 
   mouseUpListener () {
-    this.setState({
-      doHandleMouseMovesInGauge: false,
-      avoidTimelinePointerEvents: false
-    })
+    this._doHandleMouseMovesInGauge = false
+    this.enableTimelinePointerEvents()
+  }
+
+  disableTimelinePointerEvents () {
+    this.refs.scrollview.style.pointerEvents = 'none'
+    this.refs.scrollview.style.WebkitUserSelect = 'none'
+  }
+
+  enableTimelinePointerEvents () {
+    this.refs.scrollview.style.pointerEvents = 'auto'
+    this.refs.scrollview.style.WebkitUserSelect = 'auto'
   }
 
   disablePreviewMode () {
@@ -1125,7 +1130,8 @@ class Timeline extends React.Component {
           zIndex: 10000
         }}>
         <TimelineRangeScrollbar
-          reactParent={this}
+          disableTimelinePointerEvents={() => { this.disableTimelinePointerEvents() }}
+          enableTimelinePointerEvents={() => { this.enableTimelinePointerEvents() }}
           timeline={this.getActiveComponent().getCurrentTimeline()} />
         {this.renderTimelinePlaybackControls()}
       </div>
@@ -1342,8 +1348,8 @@ class Timeline extends React.Component {
             top: 35,
             left: 0,
             width: '100%',
-            pointerEvents: this.state.avoidTimelinePointerEvents ? 'none' : 'auto',
-            WebkitUserSelect: this.state.avoidTimelinePointerEvents ? 'none' : 'auto',
+            pointerEvents: 'auto',
+            WebkitUserSelect: 'auto',
             bottom: 0,
             overflowY: 'auto',
             overflowX: 'hidden'
