@@ -3,8 +3,8 @@ import tape = require('tape');
 import {decomposeCurveBetweenKeyframes, splitBezierForTimelinePropertyAtKeyframe} from '@formats/exporters/curves';
 import {Curve} from '@haiku/core/lib/api/Curve';
 
-tape('bezier re-interpolation', (test: tape.Test) => {
-  test.test('keyframe injection preserves linear transitions', (test: tape.Test) => {
+tape('bezier re-interpolation', (suite: tape.Test) => {
+  suite.test('keyframe injection preserves linear transitions', (test: tape.Test) => {
     const timelineProperty = {
       0: {value: 0, curve: 'linear' as Curve},
       2: {value: 1},
@@ -22,7 +22,7 @@ tape('bezier re-interpolation', (test: tape.Test) => {
     test.end();
   });
 
-  test.test('keyframe injection neatly decomposes complex curves', (test: tape.Test) => {
+  suite.test('keyframe injection neatly decomposes complex curves', (test: tape.Test) => {
     const timelineProperty = {
       0: {value: 0, curve: 'easeInOutQuad' as Curve},
       2: {value: 1},
@@ -47,7 +47,7 @@ tape('bezier re-interpolation', (test: tape.Test) => {
     test.end();
   });
 
-  test.test('compound curve decomposition: elastic', (test: tape.Test) => {
+  suite.test('compound curve decomposition: elastic', (test: tape.Test) => {
     const timelineProperty = {
       0: {value: 0, curve: 'easeInOutElastic' as Curve},
       10000: {value: 10000},
@@ -104,7 +104,7 @@ tape('bezier re-interpolation', (test: tape.Test) => {
     test.end();
   });
 
-  test.test('compound curve decomposition: bounce', (test: tape.Test) => {
+  suite.test('compound curve decomposition: bounce', (test: tape.Test) => {
     const timelineProperty = {
       0: {value: 0, curve: 'easeInOutBounce' as Curve},
       10000: {value: 10000},
@@ -177,5 +177,5 @@ tape('bezier re-interpolation', (test: tape.Test) => {
     test.end();
   });
 
-  test.end();
+  suite.end();
 });

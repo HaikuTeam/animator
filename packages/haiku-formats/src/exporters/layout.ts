@@ -1,11 +1,11 @@
+import {BytecodeTimelineProperties} from '@haiku/core/lib/api/HaikuBytecode';
+import {LayoutSpec} from '@haiku/core/lib/api/Layout';
 import composedTransformsToTimelineProperties from '@haiku/core/lib/helpers/composedTransformsToTimelineProperties';
 import computeMatrix from '@haiku/core/lib/layout/computeMatrix';
 import Layout3D from '@haiku/core/lib/Layout3D';
-import {LayoutSpec} from '@haiku/core/lib/api/Layout';
 import {LAYOUT_3D_VANITIES} from '@haiku/core/lib/properties/dom/vanities';
 import {ContextualSize} from 'haiku-common/lib/types';
 import {initialValueOr} from './timelineUtils';
-import {BytecodeTimelineProperties} from '@haiku/core/lib/api/HaikuBytecode';
 
 const {createLayoutSpec, createMatrix} = Layout3D;
 

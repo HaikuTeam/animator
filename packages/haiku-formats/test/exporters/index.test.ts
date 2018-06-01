@@ -6,8 +6,8 @@ import {stubProperties} from 'haiku-testing/lib/mock';
 import {handleExporterSaveRequest} from '@formats/exporters';
 import * as bodymovinExporter from '@formats/exporters/bodymovin/bodymovinExporter';
 
-tape('handleExporterSaveRequest', (test: tape.Test) => {
-  test.test('supports exporting to Bodymovin', (test: tape.Test) => {
+tape('handleExporterSaveRequest', (suite: tape.Test) => {
+  suite.test('supports exporting to Bodymovin', (test: tape.Test) => {
     const [constructorStub, unstub] = stubProperties(bodymovinExporter, 'BodymovinExporter');
 
     constructorStub.returns({binaryOutput: () => 'hello'});
@@ -28,7 +28,7 @@ tape('handleExporterSaveRequest', (test: tape.Test) => {
       });
   });
 
-  test.test('Bodymovin failsafe resolves to empty JSON object', (test: tape.Test) => {
+  suite.test('Bodymovin failsafe resolves to empty JSON object', (test: tape.Test) => {
     const [binaryOutputStub, unstub] = stubProperties(
       bodymovinExporter.BodymovinExporter.prototype,
       'binaryOutput',
@@ -50,7 +50,7 @@ tape('handleExporterSaveRequest', (test: tape.Test) => {
       });
   });
 
-  test.test('generic failsafe resolves to empty string', (test: tape.Test) => {
+  suite.test('generic failsafe resolves to empty string', (test: tape.Test) => {
     const request: ExporterRequest = {
       format: ExporterFormat.Unknown,
       filename: undefined,
@@ -64,5 +64,5 @@ tape('handleExporterSaveRequest', (test: tape.Test) => {
       });
   });
 
-  test.end();
+  suite.end();
 });

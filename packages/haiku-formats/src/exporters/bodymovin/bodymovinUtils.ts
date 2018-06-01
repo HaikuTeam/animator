@@ -1,6 +1,7 @@
 import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
 import {CurveSpec} from '@haiku/core/lib/vendor/svg-points/types';
 
+import {BytecodeTimelineProperty} from '@haiku/core/lib/api/HaikuBytecode';
 import {
   AnimationKey,
   PathKey,
@@ -14,7 +15,6 @@ import {
   BodymovinPathComponent,
   BodymovinProperty,
 } from './bodymovinTypes';
-import {BytecodeTimelineProperty} from '@haiku/core/lib/api/HaikuBytecode';
 
 const {pathToPoints} = SVGPoints;
 
@@ -310,72 +310,6 @@ export const pointsToInterpolationTrace = (svgPoints: string|[number, number][])
   };
 };
 
-/**
- * Private helper enum for decomposePath. Colinear orientation is elided for simplicity.
- */
-enum Orientation {
-  Clockwise = 0,
-  Counterclockwise = 1,
-}
-
-/**
- * Private helper method for decomposePath. Given three CurveSpecs, determines their "close enough" orientation
- * (colinearity is cast to "CounterClockwise" without loss of effect).
- *
- * @see {@link https://www.geeksforgeeks.org/orientation-3-ordered-points/}
- * @param {CurveSpec} p1
- * @param {CurveSpec} p2
- * @param {CurveSpec} p3
- * @returns {Orientation}
- */
-const getOrientation = (p1: CurveSpec, p2: CurveSpec, p3: CurveSpec): Orientation => {
-  const orientationCoefficient = ((p2.y - p1.y) * (p3.x - p2.x) || 0) - ((p2.x - p1.x) * (p3.y - p2.y) || 0);
-  return (orientationCoefficient > 0) ? Orientation.Clockwise : Orientation.Counterclockwise;
-};
-
-/**
- * Private helper method for decomposePath. Determines if a polygon nontrivially contains a point, which is used as
- * a rough proxy for whether we should detach or conjoin chained paths. Because we are only concerned with correct
- * rendering, we don't have use for a notion of "colinearity", which makes the work here slightly more efficient.
- *
- * We use a shoddy implementation of the "Ray casting algorithm", a standard test for polygonal "insideness": count the
- * number of times the ray from [p.x, p.y] to [+Infinity, p.y] intersects a side of the polygon. If odd, the point is
- * "inside"; else, the point is "outside".
- * @see {@link https://en.wikipedia.org/wiki/Point_in_polygon#Ray_casting_algorithm}
- * @param {CurveSpec[]} polygon
- * @param {CurveSpec} p
- * @returns {boolean}
- */
-const polygonContainsPoint = (polygon: CurveSpec[], p: CurveSpec): boolean => {
-  // Trivial case: a polygon with < 2 vertices is always safe to split off.
-  if (polygon.length < 3) {
-    return false;
-  }
-
-  const pInf = {x: Infinity, y: p.y} as CurveSpec;
-
-  let intersections = 0;
-  let cursor = 0;
-
-  while (cursor < polygon.length) {
-    const [polygon1, polygon2] = (cursor === polygon.length - 1)
-      ? [polygon[cursor], polygon[0]]
-      : [polygon[cursor], polygon[cursor + 1]];
-    cursor++;
-
-    // Tests if the line segment <polygon1, polygon2> is intersected by the ray <p, pInf>.
-    if (
-      getOrientation(polygon1, polygon2, p) !== getOrientation(polygon1, polygon2, pInf)
-      && getOrientation(p, pInf, polygon1) !== getOrientation(p, pInf, polygon2)
-    ) {
-      intersections++;
-    }
-  }
-
-  return intersections % 2 === 1;
-};
-
-
 export const getPath = (path: string|CurveSpec[]): CurveSpec[] => {
   if (!Array.isArray(path)) {
     return pathToPoints(path);
@@ -457,7 +391,7 @@ export const timelineValuesAreEquivalent = (valueA: any, valueB: any): boolean =
  * That streaming parser always skips keys until it encounters the `ty` key, so we need to force it to come first.
  * @returns {Object}
  */
-export const lottieAndroidStreamSafeToJson = function lottieAndroidStreamSafeToJson() {
+export const lottieAndroidStreamSafeToJson = function () {
   if (!this.hasOwnProperty(ShapeKey.Type)) {
     return this;
   }
