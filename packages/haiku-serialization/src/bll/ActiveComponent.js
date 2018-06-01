@@ -3143,10 +3143,24 @@ class ActiveComponent extends BaseModel {
         }
 
         return this.reload({
-          hardReload: this.project.isRemoteRequest(metadata),
+          hardReload: true,
           forceFlush: true,
           clearCacheOptions: {
             doClearEntityCaches: true
+          },
+          customRehydrate: () => {
+            if (this.project.isRemoteRequest(metadata)) {
+              this.rehydrate()
+              return
+            }
+            const element = this.findElementByComponentId(componentId)
+            if (element) {
+              const row = element.getPropertyRowByPropertyName(propertyName)
+              const keyframe = row.getKeyframeByMs(keyframeMsLeft)
+              if (keyframe) {
+                keyframe.setCurve(newCurve)
+              }
+            }
           }
         }, null, () => {
           fire()
@@ -3177,10 +3191,24 @@ class ActiveComponent extends BaseModel {
         }
 
         return this.reload({
-          hardReload: this.project.isRemoteRequest(metadata),
+          hardReload: true,
           forceFlush: true,
           clearCacheOptions: {
             doClearEntityCaches: true
+          },
+          customRehydrate: () => {
+            if (this.project.isRemoteRequest(metadata)) {
+              this.rehydrate()
+              return
+            }
+            const element = this.findElementByComponentId(componentId)
+            if (element) {
+              const row = element.getPropertyRowByPropertyName(propertyName)
+              const keyframe = row.getKeyframeByMs(keyframeMs)
+              if (keyframe) {
+                keyframe.setCurve(null)
+              }
+            }
           }
         }, null, () => {
           fire()
