@@ -3,14 +3,14 @@
  */
 
 import {BytecodeOptions, HaikuBytecode} from '../../api/HaikuBytecode';
-import HaikuContext from './../../HaikuContext';
+import HaikuContext, {ComponentFactory} from './../../HaikuContext';
 import dom from './../../renderers/dom';
 
 const pkg = require('./../../../package.json');
 const VERSION = pkg.version;
 
 export interface DOMAdapter {
-  (bytecode: HaikuBytecode, config?: BytecodeOptions, safeWindow?: Window): Function;
+  (bytecode: HaikuBytecode, config?: BytecodeOptions, safeWindow?: Window): ComponentFactory;
   defineOnWindow?: () => void;
 }
 

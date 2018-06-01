@@ -2,8 +2,10 @@ import * as tape from 'tape';
 import * as TestHelpers from '../TestHelpers';
 
 import HaikuDOMAdapter from '@core/adapters/dom/HaikuDOMAdapter';
-import {VERSION} from '@core/HaikuComponent';
 import code1 from '../fixtures/code1';
+
+const pkg = require('../../package.json');
+const VERSION = pkg.version;
 
 // Tell typescript we have these types on Window
 interface Window {
