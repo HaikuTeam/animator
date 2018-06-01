@@ -485,13 +485,15 @@ class StageTitleBar extends React.Component {
         this.props.websocket.send({
           type: 'broadcast',
           from: 'creator',
-          name: 'edit-component'
+          name: 'edit-component',
+          folder: this.props.projectModel.getFolder() // required when sent via Creator
         })
       } else if (proxy.canCreateComponentFromSelection()) {
         this.props.websocket.send({
           type: 'broadcast',
           from: 'creator',
-          name: 'conglomerate-component'
+          name: 'conglomerate-component',
+          folder: this.props.projectModel.getFolder() // required when sent via Creator
         })
       }
     }
@@ -508,6 +510,7 @@ class StageTitleBar extends React.Component {
         type: 'broadcast',
         from: 'creator',
         name: 'show-event-handlers-editor',
+        folder: this.props.projectModel.getFolder(), // required when sent via Creator
         elid: this.fetchProxyElementForSelection().selection[0].getPrimaryKey(),
         opts: {},
         frame: null
