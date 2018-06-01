@@ -660,6 +660,10 @@ export class Glass extends React.Component {
           )
           break
 
+        case 'conglomerate-component':
+          this.launchComponentNameModal()
+          break
+
         case 'assets-changed':
           File.cache.clear()
           break
@@ -875,7 +879,7 @@ export class Glass extends React.Component {
   }
 
   showEventHandlersEditor (clickEvent, targetElement, options) {
-    if (this.isPreviewMode()) {
+    if (this.isPreviewMode() || !targetElement) {
       return
     }
 
@@ -883,7 +887,7 @@ export class Glass extends React.Component {
     logger.info(`showing action editor`, targetElement, options)
 
     this.setState({
-      targetElement: targetElement,
+      targetElement,
       isEventHandlerEditorOpen: true,
       eventHandlerEditorOptions: options
     })
