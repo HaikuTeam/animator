@@ -7,14 +7,14 @@ import xmlParser from './../vendor/xml-parser';
 
 const styleStringToObject = toStyle.object;
 
-function fixChildren(kids) {
+function fixChildren (kids) {
   if (Array.isArray(kids)) {
     return kids.map(fixNode);
   }
   return fixNode(kids);
 }
 
-function fixAttributes(attributes) {
+function fixAttributes (attributes) {
   if (attributes.style) {
     if (typeof attributes.style === 'string') {
       attributes.style = styleStringToObject(attributes.style, null, null, null);
@@ -23,7 +23,7 @@ function fixAttributes(attributes) {
   return attributes;
 }
 
-function fixNode(obj) {
+function fixNode (obj) {
   if (!obj) {
     return obj;
   }
@@ -41,7 +41,7 @@ function fixNode(obj) {
   };
 }
 
-export default function xmlToMana(xml) {
+export default function xmlToMana (xml) {
   const obj = xmlParser(xml).root;
   return fixNode(obj);
 }

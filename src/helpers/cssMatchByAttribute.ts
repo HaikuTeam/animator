@@ -4,7 +4,7 @@
 
 import objectPath from './objectPath';
 
-export default function matchByAttribute(
+export default function matchByAttribute (
   node,
   attrKeyToMatch,
   attrOperator,

@@ -8,7 +8,7 @@ import composedTransformsToTimelineProperties from './composedTransformsToTimeli
 import MathUtils from './MathUtils';
 import parseCssValueString from './parseCssValueString';
 
-function separate(str) {
+function separate (str) {
   const bits = str.split('(');
   const type = bits[0];
   return {
@@ -24,7 +24,7 @@ function separate(str) {
   };
 }
 
-export default function parseCssTransformString(inStr) {
+export default function parseCssTransformString (inStr) {
   const out = {};
 
   if (!inStr) {

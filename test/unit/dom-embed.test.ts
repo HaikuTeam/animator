@@ -1,8 +1,10 @@
 import * as tape from 'tape';
 import * as TestHelpers from '../TestHelpers';
 
-import {VERSION} from '@core/HaikuComponent';
 import HaikuDOMAdapter from '@core/adapters/dom/HaikuDOMAdapter';
+
+const pkg = require('../../package.json');
+const VERSION = pkg.version;
 
 // Tell typescript we have these types on Window
 interface Window {
@@ -22,7 +24,7 @@ tape(
         throw err;
       }
 
-      HaikuDOMAdapter['defineOnWindow']();
+      HaikuDOMAdapter.defineOnWindow();
 
       t.ok(
         window.HaikuCore[VERSION],
@@ -54,7 +56,6 @@ tape(
       const originalVersionParts = VERSION.split('.').map(Number);
       const onePatchBehind = [...originalVersionParts];
       onePatchBehind[2] = Math.max(onePatchBehind[2] - 1, 0);
-      console.log(onePatchBehind.join('.'));
       t.is(
         window.HaikuResolve(onePatchBehind.join('.')),
         adapter,
@@ -87,7 +88,6 @@ tape(
         VERSION,
         'core version equal',
       );
-
 
       const component = haikuComponentFactory(mount);
 

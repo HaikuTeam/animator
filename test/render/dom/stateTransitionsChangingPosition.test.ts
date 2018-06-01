@@ -19,7 +19,6 @@ tape(
           throw err;
         }
 
-
         // Test position1 from 0 -> 300
         // Element '1dfa2abb91b4-acbea1' position x is bounded to position1
         // So we artificially set time and check if element position was updated

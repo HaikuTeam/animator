@@ -32,15 +32,14 @@ export enum Curve {
     Linear = 'linear',
   }
 
-/** 
- * Defines a normalized curve, to be used in BytecodeTimelineValue and also in 
+/**
+ * Defines a normalized curve, to be used in BytecodeTimelineValue and also in
  * state transition
- */ 
-export type CurveFunction = ((offset :number) => number);
+ */
+export type CurveFunction = ((offset: number) => number);
 
-
-/** 
+/**
  * Can be a function or a string from just-curves. The string is
  * converted into CuverFunction inside Interpolate
- */ 
+ */
 export type CurveDefinition = Curve|CurveFunction|number[];

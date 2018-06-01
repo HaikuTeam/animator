@@ -2,11 +2,11 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
+import HaikuComponent from './../../HaikuComponent';
+import HaikuContext from './../../HaikuContext';
+import HaikuTimeline from './../../HaikuTimeline';
 import cssMatchOne from './../../helpers/cssMatchOne';
 import has from './has';
-import HaikuContext from './../../HaikuContext';
-import HaikuComponent from './../../HaikuComponent';
-import HaikuTimeline from './../../HaikuTimeline';
 
 /**
  * 'Vanities' are functions that provide special handling for applied properties.
@@ -153,8 +153,8 @@ export const LAYOUT_3D_VANITIES = {
 
 const LAYOUT_2D_VANITIES = {...LAYOUT_3D_VANITIES};
 
-function styleSetter(prop) {
-  return function (name, element, value) {
+function styleSetter (prop) {
+  return (name, element, value) => {
     element.attributes.style[prop] = value;
   };
 }
@@ -621,8 +621,8 @@ const CONTENT_VANITIES = {
   },
 };
 
-function attributeSetter(prop) {
-  return function (name, element, value) {
+function attributeSetter (prop) {
+  return (name, element, value) => {
     element.attributes[prop] = value;
   };
 }
@@ -706,11 +706,11 @@ const FILTER_VANITIES = {
 
 const HTML_STYLE_SHORTHAND_VANITIES = {};
 
-function isNumeric(n) {
+function isNumeric (n) {
   return !isNaN(parseFloat(n)) && isFinite(n);
 }
 
-function isInteger(x) {
+function isInteger (x) {
   return x % 1 === 0;
 }
 
@@ -724,7 +724,7 @@ const HAIKU_MATCHING_OPTIONS = {
   attributes: 'attributes',
 };
 
-function querySelectSubtree(surrogate: any, value: any): any {
+function querySelectSubtree (surrogate: any, value: any): any {
   // First try the Haiku format
   if (cssMatchOne(surrogate, value, HAIKU_MATCHING_OPTIONS)) {
     return surrogate;
@@ -764,7 +764,7 @@ function querySelectSubtree(surrogate: any, value: any): any {
   }
 }
 
-function querySelectSurrogates(surrogates: any, value: string): any {
+function querySelectSurrogates (surrogates: any, value: string): any {
   if (Array.isArray(surrogates)) {
     // Return the first match we locate in the collection
     return surrogates.map((surrogate) => querySelectSurrogates(surrogate, value))[0];
@@ -775,7 +775,7 @@ function querySelectSurrogates(surrogates: any, value: string): any {
   }
 }
 
-function selectSurrogate(surrogates: any, value: any): any {
+function selectSurrogate (surrogates: any, value: any): any {
   // If the placeholder value is intended as an array index
   if (Array.isArray(surrogates) && isNumeric(value) && isInteger(value)) {
     if (surrogates[value]) {
@@ -982,7 +982,7 @@ const CONTROL_FLOW_VANITIES = {
   },
 };
 
-function controlFlowPlaceholderImpl(element, surrogate, receiver) {
+function controlFlowPlaceholderImpl (element, surrogate, receiver) {
   if (element.__surrogate !== surrogate) {
     element.elementName = surrogate.elementName;
     element.children = surrogate.children || [];

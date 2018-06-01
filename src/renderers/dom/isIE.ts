@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-export default function isIE(window) {
+export default function isIE (window) {
   if (!window) {
     return false;
   }

@@ -12,7 +12,7 @@ const SCOPE_STRATA = {
 
 const STRING = 'string';
 
-export default function scopifyElements(mana, parent, scope) {
+export default function scopifyElements (mana, parent, scope) {
   if (!mana) {
     return mana;
   }

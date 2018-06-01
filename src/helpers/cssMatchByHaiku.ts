@@ -6,7 +6,7 @@ import objectPath from './objectPath';
 
 const HAIKU_ID_ATTRIBUTE = 'haiku-id';
 
-export default function matchByHaiku(node, haikuString, options) {
+export default function matchByHaiku (node, haikuString, options) {
   const attributes = objectPath(node, options.attributes);
   if (!attributes) {
     return false;

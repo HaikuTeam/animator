@@ -9,7 +9,7 @@ const OBJECT = 'object';
 const FUNCTION = 'function';
 
 // Quick and dirty (not AST-based) way to get the name of a function at runtime
-function getFnName(fn) {
+function getFnName (fn) {
   if (fn.name) {
     return fn.name;
   }
@@ -22,7 +22,7 @@ function getFnName(fn) {
   return ex && ex[1];
 }
 
-export default function matchByTagName(node, tagName, options) {
+export default function matchByTagName (node, tagName, options) {
   const val = objectPath(node, options.name);
 
   if (val) {

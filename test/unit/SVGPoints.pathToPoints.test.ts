@@ -1,7 +1,7 @@
 /* tslint:disable:max-line-length */
 
-import * as tape from 'tape';
 import SVGPoints from '@core/helpers/SVGPoints';
+import * as tape from 'tape';
 
 tape(
   'SVGPoints.pathToPoints',

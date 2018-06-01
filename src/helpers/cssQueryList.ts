@@ -6,7 +6,7 @@ import cssMatchOne from './cssMatchOne';
 
 const PIECE_SEPARATOR = ',';
 
-export default function queryList(list, query, options) {
+export default function queryList (list, query, options) {
   const matches = [];
   const maxdepth = options.maxdepth !== undefined
     ? parseInt(options.maxdepth, 10)

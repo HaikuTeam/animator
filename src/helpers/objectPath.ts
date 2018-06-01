@@ -4,7 +4,7 @@
 
 const STRING = 'string';
 
-export default function objectPath(obj, key) {
+export default function objectPath (obj, key) {
   if (typeof key === STRING) {
     return obj[key];
   }

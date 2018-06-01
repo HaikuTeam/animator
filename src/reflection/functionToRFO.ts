@@ -4,6 +4,14 @@
 
 import tokenize from './tokenize';
 
+export interface RFO {
+  type: string;
+  name: string;
+  params: string[];
+  body: string;
+  injectee?: boolean;
+}
+
 // Order matters
 const REGEXPS = [
   {type: 'whitespace', re: /^[\s]+/},
@@ -19,7 +27,7 @@ const REGEXPS = [
   {type: 'identifier', re: /^[a-zA-Z0-9_$]+/}, // TODO: Include unicode chars
 ];
 
-function nth(n, type, arr) {
+function nth (n, type, arr) {
   const none = {value: null, type: 'void'};
   if (arr.length < 1 || n > arr.length) {
     return none;
@@ -36,7 +44,7 @@ function nth(n, type, arr) {
   return none;
 }
 
-function tokensToParams(tokens) {
+function tokensToParams (tokens) {
   if (tokens.length < 1) {
     return [];
   }
@@ -125,7 +133,7 @@ function tokensToParams(tokens) {
   return JSON.parse(json);
 }
 
-function signatureToParams(signature) {
+function signatureToParams (signature) {
   const tokens = tokenize(signature, REGEXPS);
   const clean = [];
   for (let i = 0; i < tokens.length; i++) {
@@ -141,7 +149,7 @@ function signatureToParams(signature) {
   }
 }
 
-export default function functionToRFO(fn) {
+export default function functionToRFO (fn) {
   let str = fn.toString();
 
   // HACK: Remove paren wrapping if any was provided
@@ -163,7 +171,7 @@ export default function functionToRFO(fn) {
   const name = nth(2, 'identifier', tokenize(prefix, REGEXPS)).value;
   const params = signatureToParams(signature);
 
-  const spec = {
+  const spec: RFO = {
     type,
     name,
     params,
@@ -173,7 +181,7 @@ export default function functionToRFO(fn) {
   // If the runtime function is labeled as an injectee, we *must* indicate as much
   // in the specification so that serialization back to code wraps it properly
   if (fn.injectee) {
-    spec['injectee'] = true;
+    spec.injectee = true;
   }
 
   return {

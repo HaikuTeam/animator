@@ -1,3 +1,4 @@
+/* tslint:disable:only-arrow-functions */
 import * as tape from 'tape';
 
 // Loading the one exposed from the root to ensure Haiku.enhance ain't broken

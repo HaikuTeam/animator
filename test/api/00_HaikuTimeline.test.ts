@@ -3,8 +3,8 @@ import {createRenderTest} from '../TestHelpers';
 
 tape(
   'HaikuTimeline',
-  (t) => {
-    t.test(
+  (suite) => {
+    suite.test(
       'gotoAndStop',
       (t) => {
         const template = {
@@ -92,6 +92,6 @@ tape(
       },
     );
 
-    t.end();
+    suite.end();
   },
 );

@@ -6,7 +6,7 @@ import ColorUtils from './../../helpers/ColorUtils';
 import SVGPoints from './../../helpers/SVGPoints';
 import has from './has';
 
-function parseD(value) {
+function parseD (value) {
   // in case of d="" for any reason, don't try to expand this otherwise this will choke
   // #TODO: arguably we should preprocess SVGs before things get this far; try svgo?
   if (!value) {
@@ -19,29 +19,29 @@ function parseD(value) {
   return SVGPoints.pathToPoints(value);
 }
 
-function generateD(value) {
+function generateD (value) {
   if (typeof value === 'string') {
     return value;
   }
   return SVGPoints.pointsToPath(value);
 }
 
-function parseColor(value) {
+function parseColor (value) {
   return ColorUtils.parseString(value);
 }
 
-function generateColor(value) {
+function generateColor (value) {
   return ColorUtils.generateString(value);
 }
 
-function parsePoints(value) {
+function parsePoints (value) {
   if (Array.isArray(value)) {
     return value;
   }
   return SVGPoints.polyPointsStringToPoints(value);
 }
 
-function generatePoints(value) {
+function generatePoints (value) {
   if (typeof value === 'string') {
     return value;
   }

@@ -52,7 +52,7 @@ const SVG_RENDERABLES = {
   video: true,
 };
 
-export default function applyLayout(
+export default function applyLayout (
   domElement,
   virtualElement,
   parentDomNode,
@@ -113,7 +113,7 @@ export default function applyLayout(
 
 const warnings = {};
 
-function warnOnce(warning) {
+function warnOnce (warning) {
   if (warnings[warning]) {
     return void 0;
   }

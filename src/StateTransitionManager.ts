@@ -1,32 +1,37 @@
-import Interpolate from './Interpolate';
-import HaikuClock from './HaikuClock';
-import justCurves from './vendor/just-curves';
-import {Curve, CurveFunction, CurveDefinition} from './api/Curve';
+import {Curve, CurveDefinition} from './api/Curve';
 import {BytecodeStateType} from './api/HaikuBytecode';
+import HaikuClock from './HaikuClock';
+import Interpolate from './Interpolate';
 
-export type StateTransitionParameters = { curve: CurveDefinition, duration: number, queue?: boolean};
+export interface StateTransitionParameters {
+  curve: CurveDefinition;
+  duration: number;
+  queue?: boolean;
+}
 
-export type StateValues = {[stateName: string]: BytecodeStateType};
+export interface StateValues {
+  [stateName: string]: BytecodeStateType;
+}
 
-export type RunningStateTransition = {
-  transitionStart: StateValues,
-  transitionEnd: StateValues,
-  transitionParameter: StateTransitionParameters,
-  startTime: number,
-  endTime: number,
-};
+export interface RunningStateTransition {
+  transitionStart: StateValues;
+  transitionEnd: StateValues;
+  transitionParameter: StateTransitionParameters;
+  startTime: number;
+  endTime: number;
+}
 
 export default class StateTransitionManager {
 
   // Store running state transitions
   private transitions: {[key in string]: RunningStateTransition[]} = {};
-  
-  constructor(private readonly states: StateValues, private readonly clock: HaikuClock) {}
+
+  constructor (private readonly states: StateValues, private readonly clock: HaikuClock) {}
 
   /**
    * Create a new state transition.
    */
-  setState(transitionEnd: StateValues, parameter?: StateTransitionParameters) {
+  setState (transitionEnd: StateValues, parameter?: StateTransitionParameters) {
 
     // Get current time
     const currentTime = this.clock.getTime();
@@ -35,14 +40,13 @@ export default class StateTransitionManager {
     const transitionParameter = parameter ? parameter : {duration:0, curve: Curve.Linear, queue: false};
 
     // Copy current states as transition start (needed to calculate interpolation)
-    const transitionStart = {};
     for (const key in transitionEnd) {
       // Ignore state if it doesn't pre exist
       if (key in this.states) {
         // queued transitions are add into queue
-        // If parameter.queue is true, it is a queued setState 
+        // If parameter.queue is true, it is a queued setState
         // If state transition for key is not created, process like a queued SetState
-        if (transitionParameter.hasOwnProperty('queue') &&  transitionParameter.queue && 
+        if (transitionParameter.hasOwnProperty('queue') &&  transitionParameter.queue &&
             this.transitions[key] !== undefined) {
           this.transitions[key].push({
             transitionParameter,
@@ -61,28 +65,28 @@ export default class StateTransitionManager {
             endTime: currentTime + transitionParameter.duration,
           }];
         }
-      } 
+      }
     }
   }
 
-  // We technically could call HaikuComponent::setStates, but passing only 
+  // We technically could call HaikuComponent::setStates, but passing only
   // state parameters instead whole HaikuComponent to contructor make this class
   // less coupled
-  private setStates(states: StateValues): void {
+  private setStates (states: StateValues): void {
     for (const key in states) {
       this.states[key] = states[key];
     }
   }
 
-  private isExpired(transition: RunningStateTransition, currentTime: number) {
+  private isExpired (transition: RunningStateTransition, currentTime: number) {
     return this.clock.getTime() >= transition.endTime;
   }
 
   /**
-   * Should be called on every tick. It cleans expired state transitions 
+   * Should be called on every tick. It cleans expired state transitions
    * and execute interpolation of running state transitions.
    */
-  tickStateTransitions(): void {
+  tickStateTransitions (): void {
 
     const currentTime = this.clock.getTime();
     const interpolatedStates = {};
@@ -106,7 +110,7 @@ export default class StateTransitionManager {
           );
 
           // Remove expired transition.
-          this.transitions[stateName].splice(0,1);
+          this.transitions[stateName].splice(0, 1);
         } else {
           // Calculate interpolated states.
           Object.assign(
@@ -126,11 +130,11 @@ export default class StateTransitionManager {
   /**
    * Delete every running transition
    */
-  deleteAllStateTransitions() {
+  deleteAllStateTransitions () {
     this.transitions = {};
   }
 
-  get numQueuedTransitions() {
+  get numQueuedTransitions () {
     let numQueuedTransition = 0;
     for (const stateName in this.transitions) {
       numQueuedTransition += this.transitions[stateName].length;

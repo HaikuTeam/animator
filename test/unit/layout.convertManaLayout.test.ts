@@ -1,7 +1,7 @@
 import * as tape from 'tape';
 
-import convertManaLayout from '@core/layout/convertManaLayout';
 import xmlToMana from '@core/helpers/xmlToMana';
+import convertManaLayout from '@core/layout/convertManaLayout';
 
 tape(
   'layout.convertManaLayout',

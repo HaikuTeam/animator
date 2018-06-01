@@ -46,7 +46,7 @@ const SVG_COMMAND_TYPES = {
 
 const POINTS_REGEX = /(\d+\.*\d*)((\s+,?\s*)|(,\s*))(\d+\.*\d*)/g;
 
-function polyPointsStringToPoints(pointsString: string|string[][]) {
+function polyPointsStringToPoints (pointsString: string|string[][]) {
   if (!pointsString) {
     return [];
   }
@@ -55,6 +55,7 @@ function polyPointsStringToPoints(pointsString: string|string[][]) {
   }
   const points = [];
   let matches;
+  // tslint:disable-next-line:no-conditional-assignment
   while (matches = POINTS_REGEX.exec(pointsString)) {
     const coord = [];
     if (matches[1]) {
@@ -68,7 +69,7 @@ function polyPointsStringToPoints(pointsString: string|string[][]) {
   return points;
 }
 
-function pointsToPolyString(points: string|string[][]) {
+function pointsToPolyString (points: string|string[][]) {
   if (!points) {
     return '';
   }
@@ -84,7 +85,7 @@ function pointsToPolyString(points: string|string[][]) {
   return arr.join(' ');
 }
 
-function rectToPoints(x: number, y: number, width: number, height: number, rxIn: number, ryIn: number) {
+function rectToPoints (x: number, y: number, width: number, height: number, rxIn: number, ryIn: number) {
   let rx = rxIn;
   let ry = ryIn;
   if (rx || ry) {
@@ -171,11 +172,11 @@ function rectToPoints(x: number, y: number, width: number, height: number, rxIn:
   return svgPoints.toPoints(shape as RectSpec);
 }
 
-function circleToPoints(cx: number, cy: number, r: number) {
+function circleToPoints (cx: number, cy: number, r: number) {
   return ellipseToPoints(cx, cy, r, r);
 }
 
-function ellipseToPoints(cx: number, cy: number, rx: number, ry: number) {
+function ellipseToPoints (cx: number, cy: number, rx: number, ry: number) {
   return [
     {
       x: cx,
@@ -229,21 +230,21 @@ function ellipseToPoints(cx: number, cy: number, rx: number, ry: number) {
   ];
 }
 
-function lineToPoints(x1: number, y1: number, x2: number, y2: number) {
+function lineToPoints (x1: number, y1: number, x2: number, y2: number) {
   const shape = {x1, y1, x2, y2, type: 'line'} as LineSpec;
   return svgPoints.toPoints(shape);
 }
 
-function pathToPoints(pathString: string) {
+function pathToPoints (pathString: string) {
   const shape = {type: 'path', d: pathString} as PathSpec;
   return svgPoints.toPoints(shape);
 }
 
-function pointsToPath(pointsArray): string {
+function pointsToPath (pointsArray): string {
   return svgPoints.toPath(pointsArray);
 }
 
-function manaToPoints(mana: BytecodeNode) {
+function manaToPoints (mana: BytecodeNode) {
   if (
     SVG_TYPES[mana.elementName] &&
     mana.elementName !== 'rect' &&

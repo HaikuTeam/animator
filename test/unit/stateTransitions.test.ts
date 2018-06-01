@@ -1,8 +1,7 @@
-import * as tape from 'tape';
 import {Curve} from '@core/api/Curve';
 import HaikuClock from '@core/HaikuClock';
 import StateTransitionManager from '@core/StateTransitionManager';
-
+import * as tape from 'tape';
 
 tape(
   'Test state transitions',
@@ -31,7 +30,6 @@ tape(
       haikuClock,
     );
 
-
     stateTransitionManager.setState(
       {
         var1: 10,
@@ -42,7 +40,6 @@ tape(
         curve: Curve.Linear,
       },
     );
-
 
     haikuClock.setTime(0);
     stateTransitionManager.tickStateTransitions();
@@ -82,7 +79,6 @@ tape(
       'Check is expired transition is deleted',
     );
 
-
     stateTransitionManager.setState(
       {var1: 5},
       {
@@ -102,7 +98,6 @@ tape(
       [10, 10],
       'Dual state transition at 4000ms',
     );
-
 
     t.is(
       stateTransitionManager.numQueuedTransitions,
@@ -137,7 +132,6 @@ tape(
       0,
       'Check number of transitions at 6000ms',
     );
-
 
     stateTransitionManager.setState(
       {
@@ -180,7 +174,6 @@ tape(
       'Delete all state transitions',
     );
 
-
     stateTransitionManager.setState(
       {varString: 10},
       {
@@ -195,7 +188,6 @@ tape(
       'string',
       'Do not state transition strings',
     );
-
 
     stateTransitionManager.setState(
       {varArray: [20, 20]},
@@ -220,7 +212,6 @@ tape(
       'State transition array',
     );
 
-
     stateTransitionManager.setState(
       {
         varObject: {
@@ -243,7 +234,6 @@ tape(
       },
       'Interpolate only numbers on objects',
     );
-
 
     stateTransitionManager.setState(
       {varNull: 10},
@@ -393,7 +383,6 @@ tape(
       15,
       'Check if fourth queue=true transition is executed',
     );
-
 
     stateTransitionManager.setState(
       {var1: 15},

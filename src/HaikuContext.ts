@@ -2,13 +2,26 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
+import {BytecodeOptions, HaikuBytecode} from './api/HaikuBytecode';
 import Config from './Config';
 import HaikuBase from './HaikuBase';
 import HaikuClock from './HaikuClock';
 import HaikuComponent from './HaikuComponent';
+import HaikuDOMRenderer from './renderers/dom/HaikuDOMRenderer';
 
 const pkg = require('./../package.json');
 const VERSION = pkg.version;
+
+export interface ComponentFactory {
+  (mount: Element, config: BytecodeOptions): HaikuComponent;
+  bytecode?: HaikuBytecode;
+  renderer?: HaikuDOMRenderer;
+  mount?: Element;
+  context?: HaikuContext;
+  component?: HaikuComponent;
+  PLAYER_VERSION?: string;
+  CORE_VERSION?: string;
+}
 
 /**
  * @class HaikuContext
@@ -31,7 +44,7 @@ export default class HaikuContext extends HaikuBase {
   ticks;
   unmountedTickables;
 
-  constructor(mount, renderer, platform, bytecode, config) {
+  constructor (mount, renderer, platform, bytecode, config) {
     super();
 
     if (!renderer) {
@@ -132,7 +145,7 @@ export default class HaikuContext extends HaikuBase {
    * @method getRootComponent
    * @description Returns the HaikuComponent managed by this context.
    */
-  getRootComponent() {
+  getRootComponent () {
     return this.component;
   }
 
@@ -140,7 +153,7 @@ export default class HaikuContext extends HaikuBase {
    * @method getClock
    * @description Returns the HaikuClock instance associated with this context.
    */
-  getClock(): HaikuClock {
+  getClock (): HaikuClock {
     return this.clock;
   }
 
@@ -148,7 +161,7 @@ export default class HaikuContext extends HaikuBase {
    * @method contextMount
    * @description Adds this context the global update loop.
    */
-  contextMount() {
+  contextMount () {
     if (this.unmountedTickables) {
       // Gotta remember to _remove_ the tickables so we don't end up with dupes if we re-mount later
       const unmounted = this.unmountedTickables.splice(0);
@@ -162,11 +175,11 @@ export default class HaikuContext extends HaikuBase {
    * @method contextUnmount
    * @description Removes this context from global update loop.
    */
-  contextUnmount() {
+  contextUnmount () {
     this.unmountedTickables = this.tickables.splice(0);
   }
 
-  destroy() {
+  destroy () {
     super.destroy();
     this.component.destroy();
     this.renderer.destroy();
@@ -178,7 +191,7 @@ export default class HaikuContext extends HaikuBase {
    * @description Add a tickable object to the list of those that will be called on every clock tick.
    * This only adds if the given object isn't already present in the list.
    */
-  addTickable(tickable) {
+  addTickable (tickable) {
     let alreadyAdded = false;
     for (let i = 0; i < this.tickables.length; i++) {
       if (tickable === this.tickables[i]) {
@@ -196,7 +209,7 @@ export default class HaikuContext extends HaikuBase {
    * @description Updates internal configuration options, assigning those passed in.
    * Also updates the configuration of the clock instance and managed component instance.
    */
-  assignConfig(config, options) {
+  assignConfig (config, options) {
     this.config = {...config};
 
     if (this.clock) { // This method may run before the clock is initialized
@@ -215,7 +228,7 @@ export default class HaikuContext extends HaikuBase {
    * @description Returns the container, a virtual-element-like object that provides sizing
    * constraints at the topmost/outermost level from which the descendant layout can be calculated.
    */
-  getContainer(doForceRecalc = false) {
+  getContainer (doForceRecalc = false) {
     if (doForceRecalc || this.renderer.shouldCreateContainer) {
       this.renderer.createContainer(this.container); // The container is mutated in place
     }
@@ -227,7 +240,7 @@ export default class HaikuContext extends HaikuBase {
    * @method performFullFlushRender
    * @description Updates the entire component tree, flushing updates to the rendering medium.
    */
-  performFullFlushRender() {
+  performFullFlushRender () {
     if (!this.mount) {
       return;
     }
@@ -242,7 +255,7 @@ export default class HaikuContext extends HaikuBase {
    * @method performPatchRender
    * @description Updates the component tree, but only updating properties we know have changed.
    */
-  performPatchRender(skipCache = false) {
+  performPatchRender (skipCache = false) {
     if (!this.mount) {
       return;
     }
@@ -259,7 +272,7 @@ export default class HaikuContext extends HaikuBase {
    * @description Reconciles the properties of the rendering medium's mount element with any
    * configuration options that have been passed in, e.g. CSS overflow settings.
    */
-  updateMountRootStyles() {
+  updateMountRootStyles () {
     if (!this.mount) {
       return;
     }
@@ -297,7 +310,7 @@ export default class HaikuContext extends HaikuBase {
    * equivalent to one frame. If the animation frame loop is running too fast, the clock may wait before
    * incrementing the frame number. In other words, a tick implies an update but not necessarily a change.
    */
-  tick(skipCache = false) {
+  tick (skipCache = false) {
     let flushed = false;
 
     // Only continue ticking and updating if our root component is still activated and awake;
@@ -339,83 +352,81 @@ export default class HaikuContext extends HaikuBase {
    * @description Since the core renderer is medium-agnostic, we rely on the renderer to provide data
    * about the current user (the mouse position, for example). This method is just a convenience wrapper.
    */
-  getGlobalUserState() {
+  getGlobalUserState () {
     return this.renderer && this.renderer.getUser && this.renderer.getUser();
   }
-}
-
-/**
- * @function createComponentFactory
- * @description Returns a factory function that can create a HaikuComponent and run it upon a mount.
- * The created instance runs using the passed-in renderer, bytecode, options, and platform.
- */
-HaikuContext['createComponentFactory'] = (
-  rendererClass,
-  bytecode,
-  haikuConfigFromFactoryCreator,
-  platform,
-): Function => {
-  if (!rendererClass) {
-    throw new Error('A runtime renderer class object is required');
-  }
-
-  if (!bytecode) {
-    throw new Error('A runtime `bytecode` object is required');
-  }
-
-  // Note that haiku Config may be passed at this level, or below at the factory invocation level.
-  const haikuConfigFromTop = Config.build(
-    {
-      // The seed value should remain constant from here on, because it is used for PRNG
-      seed: Config.seed(),
-
-      // The now-value is used to compute a current date with respect to the current time
-      timestamp: Date.now(),
-    },
-
-    // The bytecode itself may contain configuration for playback, etc., but is lower precedence than config passed in
-    bytecode && bytecode.options,
-    haikuConfigFromFactoryCreator,
-  );
 
   /**
-   * @function HaikuComponentFactory
-   * @description Creates a HaikuContext instance, with a component, and returns the component.
-   * The (renderer, bytecode) pair are bootstrapped into the given mount element, and played.
+   * @function createComponentFactory
+   * @description Returns a factory function that can create a HaikuComponent and run it upon a mount.
+   * The created instance runs using the passed-in renderer, bytecode, options, and platform.
    */
-  // tslint:disable-next-line:function-name
-  const HaikuComponentFactory = (mount, haikuConfigFromFactory): HaikuComponent => {
-    // Merge any config received "late" with the config we might have already gotten during bootstrapping
-    const haikuConfigMerged = Config.build(haikuConfigFromTop, haikuConfigFromFactory);
+  static createComponentFactory = (
+    rendererClass,
+    bytecode,
+    haikuConfigFromFactoryCreator,
+    platform,
+  ): ComponentFactory => {
+    if (!rendererClass) {
+      throw new Error('A runtime renderer class object is required');
+    }
 
-    // Previously these were initialized in the scope above, but I moved them here which seemed to resolve
-    // an initialization/mounting issue when running in React.
-    const renderer = new rendererClass(mount, haikuConfigMerged);
-    const context = new HaikuContext(mount, renderer, platform, bytecode, haikuConfigMerged);
-    const component = context.getRootComponent();
+    if (!bytecode) {
+      throw new Error('A runtime `bytecode` object is required');
+    }
 
-    // These properties are added for convenience as hot editing hooks inside Haiku Desktop (and elsewhere?).
-    // It's a bit hacky to just expose these in this way, but it proves pretty convenient downstream.
-    HaikuComponentFactory['bytecode'] = bytecode;
-    HaikuComponentFactory['renderer'] = renderer;
+    // Note that haiku Config may be passed at this level, or below at the factory invocation level.
+    const haikuConfigFromTop = Config.build(
+      {
+        // The seed value should remain constant from here on, because it is used for PRNG
+        seed: Config.seed(),
 
-    // Note that these ones could theoretically change if this factory was called more than once; use with care
-    HaikuComponentFactory['mount'] = mount;
-    HaikuComponentFactory['context'] = context;
-    HaikuComponentFactory['component'] = component;
+        // The now-value is used to compute a current date with respect to the current time
+        timestamp: Date.now(),
+      },
 
-    // Finally, return the HaikuComponent instance which can also be used for programmatic behavior
-    return component;
+      // The bytecode itself may contain configuration for playback, etc., but is lower precedence than config passed in
+      bytecode && bytecode.options,
+      haikuConfigFromFactoryCreator,
+    );
+
+    /**
+     * @function HaikuComponentFactory
+     * @description Creates a HaikuContext instance, with a component, and returns the component.
+     * The (renderer, bytecode) pair are bootstrapped into the given mount element, and played.
+     */
+    const HaikuComponentFactory: ComponentFactory = (mount, haikuConfigFromFactory): HaikuComponent => {
+      // Merge any config received "late" with the config we might have already gotten during bootstrapping
+      const haikuConfigMerged = Config.build(haikuConfigFromTop, haikuConfigFromFactory);
+
+      // Previously these were initialized in the scope above, but I moved them here which seemed to resolve
+      // an initialization/mounting issue when running in React.
+      const renderer = new rendererClass(mount, haikuConfigMerged);
+      const context = new HaikuContext(mount, renderer, platform, bytecode, haikuConfigMerged);
+      const component = context.getRootComponent();
+
+      // These properties are added for convenience as hot editing hooks inside Haiku Desktop (and elsewhere?).
+      // It's a bit hacky to just expose these in this way, but it proves pretty convenient downstream.
+      HaikuComponentFactory.bytecode = bytecode;
+      HaikuComponentFactory.renderer = renderer;
+
+      // Note that these ones could theoretically change if this factory was called more than once; use with care
+      HaikuComponentFactory.mount = mount;
+      HaikuComponentFactory.context = context;
+      HaikuComponentFactory.component = component;
+
+      // Finally, return the HaikuComponent instance which can also be used for programmatic behavior
+      return component;
+    };
+
+    HaikuComponentFactory.PLAYER_VERSION = VERSION; // #LEGACY
+    HaikuComponentFactory.CORE_VERSION = VERSION;
+
+    return HaikuComponentFactory;
   };
 
-  HaikuComponentFactory['PLAYER_VERSION'] = VERSION; // #LEGACY
-  HaikuComponentFactory['CORE_VERSION'] = VERSION;
-
-  return HaikuComponentFactory;
-};
-
-// Also expose so we can programatically choose an instance on the page
-HaikuContext['PLAYER_VERSION'] = VERSION; // #LEGACY
-HaikuContext['CORE_VERSION'] = VERSION; // #LEGACY
-
-HaikuContext['__name__'] = 'HaikuContext';
+  // Also expose so we can programatically choose an instance on the page
+  static PLAYER_VERSION = VERSION; // #LEGACY
+  static CORE_VERSION = VERSION; // #LEGACY
+  static __name__ = 'HaikuContext';
+}
