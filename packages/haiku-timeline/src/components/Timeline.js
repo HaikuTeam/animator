@@ -16,9 +16,7 @@ import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
 import ControlsArea from './ControlsArea'
 import ExpressionInput from './ExpressionInput'
 import Scrubber from './ScrubberInterior'
-import ClusterRow from './ClusterRow'
-import PropertyRow from './PropertyRow'
-import ComponentHeadingRow from './ComponentHeadingRow'
+import RowManager from './RowManager'
 import FrameGrid from './FrameGrid'
 import IntercomWidget from './IntercomWidget'
 import Gauge from './Gauge'
@@ -429,9 +427,7 @@ class Timeline extends React.Component {
     })
 
     this.addEmitterListener(Row, 'update', (row, what) => {
-      if (what === 'row-collapsed' || what === 'row-expanded') {
-        this.forceUpdate()
-      } else if (what === 'row-selected') {
+      if (what === 'row-selected') {
         // TODO: Handle scrolling to the correct row
       }
     })
@@ -1138,69 +1134,6 @@ class Timeline extends React.Component {
     )
   }
 
-  renderComponentRow (row, prev, dragHandleProps) {
-    // Cluster rows only display if collapsed, otherwise we show their properties
-    if (row.isClusterHeading() && !row.isExpanded()) {
-      return (
-        <ClusterRow
-          key={row.getUniqueKey()}
-          rowHeight={this.state.rowHeight}
-          timeline={this.getActiveComponent().getCurrentTimeline()}
-          component={this.getActiveComponent()}
-          prev={prev}
-          row={row} />
-      )
-    }
-
-    if (row.isProperty()) {
-      return (
-        <PropertyRow
-          key={row.getUniqueKey()}
-          rowHeight={this.state.rowHeight}
-          timeline={this.getActiveComponent().getCurrentTimeline()}
-          component={this.getActiveComponent()}
-          prev={prev}
-          row={row} />
-      )
-    }
-
-    if (row.isHeading()) {
-      return (
-        <ComponentHeadingRow
-          key={row.getUniqueKey()}
-          rowHeight={this.state.rowHeight}
-          timeline={this.getActiveComponent().getCurrentTimeline()}
-          component={this.getActiveComponent()}
-          row={row}
-          prev={prev}
-          onEventHandlerTriggered={this.showEventHandlersEditor}
-          isExpanded={row.isExpanded()}
-          isHidden={row.isHidden()}
-          isSelected={row.isSelected()}
-          hasAttachedActions={row.element.getVisibleEvents().length > 0}
-          dragHandleProps={dragHandleProps}
-        />
-      )
-    }
-
-    // If we got here, display nothing since we don't know what to render
-    return ''
-  }
-
-  calcGroupRowsHeight (rows) {
-    let height = 0
-
-    rows.forEach((row) => {
-      if ((row.isHeading() || row.isClusterHeading()) && !row.isExpanded()) {
-        height += 1
-      } else if (row.isProperty()) {
-        height += 1
-      }
-    })
-
-    return height
-  }
-
   renderComponentRows () {
     const groups = this.getActiveComponent().getDisplayableRowsGroupedByElementInZOrder()
 
@@ -1236,7 +1169,6 @@ class Timeline extends React.Component {
                 className='droppable-wrapper'
                 ref={provided.innerRef}>
                 {groups.map((group, indexOfGroup) => {
-                  const minHeight = this.state.rowHeight * this.calcGroupRowsHeight(group.rows)
                   const minWidth = this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() + this.getActiveComponent().getCurrentTimeline().getTimelinePixelWidth()
                   const prevGroup = groups[indexOfGroup - 1]
                   return (
@@ -1247,7 +1179,6 @@ class Timeline extends React.Component {
                       {(provided, snapshot) => {
                         return (
                           <div style={{
-                            minHeight, /* Row drops are mis-targeted unless we specify this height */
                             minWidth /* Prevent horizontal scrolling in the overflow-x:auto box */
                           }}>
                             <div
@@ -1257,11 +1188,18 @@ class Timeline extends React.Component {
                               style={{
                                 ...provided.draggableProps.style
                               }}>
-                              {group.rows.map((row, indexOfRowWithinGroup) => {
-                                let prevRow = group.rows[indexOfRowWithinGroup - 1]
-                                if (!prevRow && prevGroup) prevRow = prevGroup.rows[prevGroup.length - 1]
-                                return this.renderComponentRow(row, prevRow, provided.dragHandleProps)
-                              })}
+                              <RowManager
+                                group={group}
+                                prevGroup={prevGroup}
+                                dragHandleProps={provided.dragHandleProps}
+                                rowHeight={this.state.rowHeight}
+                                getActiveComponent={() => {
+                                  return this.getActiveComponent()
+                                }}
+                                showEventHandlersEditor={() => {
+                                  this.showEventHandlersEditor()
+                                }}
+                                />
                             </div>
                             {provided.placeholder}
                           </div>
