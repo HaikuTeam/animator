@@ -103,8 +103,8 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
                     element.__surrogate = surrogate;
                     node.style.visibility = 'visible';
                   });
-                  receiver.markHorizonElement(element);
-                  receiver.markForFullFlush();
+                  sender.markHorizonElement(element);
+                  sender.markForFullFlush();
                 }
               }
             });
