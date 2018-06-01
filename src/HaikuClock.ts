@@ -26,21 +26,23 @@ const DEFAULT_OPTIONS = {
 // The global animation harness is a singleton
 // We don't want to create new ones even on reload
 if (!HaikuGlobal.HaikuGlobalAnimationHarness) {
+  const queue = [];
+
+  const frame = () => {
+    const length = queue.length;
+
+    for (let i = 0; i < length; i++) {
+      queue[i]();
+    }
+  };
+
   HaikuGlobal.HaikuGlobalAnimationHarness = {
     // Array of functions to call on every rAF tick
-    queue: [],
+    queue,
     // The main frame function, loops through all those who
     // need an animation tick and calls them
-    frame: () => {
-      const queue = HaikuGlobal.HaikuGlobalAnimationHarness.queue;
-
-      const length = queue.length;
-
-      for (let i = 0; i < length; i++) {
-        queue[i]();
-      }
-    },
-    raf: raf.request(HaikuGlobal.HaikuGlobalAnimationHarness.frame),
+    frame,
+    raf: raf.request(frame),
     // Need a mechanism to cancel the rAF loop, or else some contexts
     // (e.g. tests) will have leaked handles
     cancel: () => {
