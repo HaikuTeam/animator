@@ -49,7 +49,6 @@
     "haiku-plumbing": "3.3.4",
     "haiku-sdk-creator": "3.3.4",
     "haiku-serialization": "3.3.4",
-    "haiku-state-object": "3.3.4",
     "haiku-timeline": "3.3.4",
     "haiku-ui-common": "3.3.4"
   },

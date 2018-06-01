@@ -6,6 +6,8 @@ import lodash from 'lodash'
 import find from 'lodash.find'
 import merge from 'lodash.merge'
 import filter from 'lodash.filter'
+import get from 'lodash.get'
+import set from 'lodash.set'
 import net from 'net'
 import qs from 'qs'
 import WebSocket from 'ws'
@@ -22,7 +24,6 @@ import { SERVICES_CHANNEL, ServicesHandler } from 'haiku-sdk-creator/lib/service
 import { inkstone } from '@haiku/sdk-inkstone'
 import { client as sdkClient, FILE_PATHS } from '@haiku/sdk-client'
 import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
-import StateObject from 'haiku-state-object'
 import serializeError from 'haiku-serialization/src/utils/serializeError'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
@@ -184,7 +185,7 @@ process.on('uncaughtException', (err) => {
   }, 1000)
 })
 
-export default class Plumbing extends StateObject {
+export default class Plumbing extends EventEmitter {
   constructor () {
     super()
 
@@ -192,6 +193,8 @@ export default class Plumbing extends StateObject {
     // above this constructor, which is necessary in test environments such
     // as tape where exit might never get called despite an exit.
     PLUMBING_INSTANCES.push(this)
+
+    this.state = {}
 
     this.masters = {} // Instances of Master, keyed by folder
     this.servers = [] // Websocket servers (there is usually only one)
@@ -211,6 +214,14 @@ export default class Plumbing extends StateObject {
   /**
    * Mostly-internal methods
    */
+
+  get (key) {
+    return get(this.state, key)
+  }
+
+  set (key, value) {
+    return set(this.state, key, value)
+  }
 
   launch (haiku = {}, cb) {
     haiku = merge({}, HAIKU_DEFAULTS, haiku)
