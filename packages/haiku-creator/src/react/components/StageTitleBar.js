@@ -12,9 +12,13 @@ import {
   PublishSnapshotSVG,
   ConnectionIconSVG,
   WarningIconSVG,
-  DangerIconSVG
+  DangerIconSVG,
+  ComponentIconSVG,
+  EventsBoltIcon
 } from 'haiku-ui-common/lib/react/OtherIcons'
 import { ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
+import Element from 'haiku-serialization/src/bll/Element'
+import ElementSelectionProxy from 'haiku-serialization/src/bll/ElementSelectionProxy'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
 
 const mixpanel = require('haiku-serialization/src/utils/Mixpanel')
@@ -94,7 +98,6 @@ const STYLES = {
     cursor: 'pointer',
     backgroundColor: Color(Palette.DARK_GRAY).fade(0.68),
     border: '1px solid ' + Palette.DARK_GRAY
-
   },
   link: {
     fontSize: 10,
@@ -136,11 +139,16 @@ const SYNDICATION_CHECK_INTERVAL = 2500
 class StageTitleBar extends React.Component {
   constructor (props) {
     super(props)
+
     this.handleConnectionClick = this.handleConnectionClick.bind(this)
     this.handleSaveSnapshotClick = this.handleSaveSnapshotClick.bind(this)
     this.handleMergeResolveOurs = this.handleMergeResolveOurs.bind(this)
     this.handleMergeResolveTheirs = this.handleMergeResolveTheirs.bind(this)
+    this.handleShowEventHandlersEditor = this.handleShowEventHandlersEditor.bind(this)
+    this.handleConglomerateComponent = this.handleConglomerateComponent.bind(this)
+
     this._isMounted = false
+
     this.state = {
       snapshotSaveResolutionStrategyName: 'normal',
       isSnapshotSaveInProgress: false,
@@ -442,6 +450,85 @@ class StageTitleBar extends React.Component {
     })
   }
 
+  getActiveComponent () {
+    return this.props.projectModel && this.props.projectModel.getCurrentActiveComponent()
+  }
+
+  fetchProxyElementForSelection () {
+    const component = this.getActiveComponent()
+
+    if (component) {
+      const selection = Element.where({component, _isSelected: true})
+      return ElementSelectionProxy.fromSelection(selection, {component})
+    }
+  }
+
+  isConglomerateComponentAvailable () {
+    const proxy = this.fetchProxyElementForSelection()
+    return proxy && (proxy.canCreateComponentFromSelection() || proxy.canEditComponentFromSelection())
+  }
+
+  getConglomerateComponentButtonColor () {
+    const proxy = this.fetchProxyElementForSelection()
+    if (proxy) {
+      if (proxy.canEditComponentFromSelection()) {
+        return Palette.LIGHT_BLUE
+      }
+    }
+  }
+
+  handleConglomerateComponent () {
+    if (this.isConglomerateComponentAvailable()) {
+      const proxy = this.fetchProxyElementForSelection()
+
+      if (proxy.canEditComponentFromSelection()) {
+        this.props.websocket.send({
+          type: 'broadcast',
+          from: 'creator',
+          name: 'edit-component',
+          folder: this.props.projectModel.getFolder() // required when sent via Creator
+        })
+      } else if (proxy.canCreateComponentFromSelection()) {
+        this.props.websocket.send({
+          type: 'broadcast',
+          from: 'creator',
+          name: 'conglomerate-component',
+          folder: this.props.projectModel.getFolder() // required when sent via Creator
+        })
+      }
+    }
+  }
+
+  isEventHandlersEditorAvailable () {
+    const proxy = this.fetchProxyElementForSelection()
+    return proxy && proxy.doesManageSingleElement()
+  }
+
+  handleShowEventHandlersEditor () {
+    if (this.isEventHandlersEditorAvailable()) {
+      this.props.websocket.send({
+        type: 'broadcast',
+        from: 'creator',
+        name: 'show-event-handlers-editor',
+        folder: this.props.projectModel.getFolder(), // required when sent via Creator
+        elid: this.fetchProxyElementForSelection().selection[0].getPrimaryKey(),
+        opts: {},
+        frame: null
+      })
+    }
+  }
+
+  getEventHandlersEditorButtonColor () {
+    const proxy = this.fetchProxyElementForSelection()
+    if (proxy) {
+      if (proxy.doesManageSingleElement()) {
+        if (proxy.selection[0].hasEventHandlers()) {
+          return Palette.LIGHT_BLUE
+        }
+      }
+    }
+  }
+
   renderMergeConflictResolutionArea () {
     if (!this.state.snapshotMergeConflicts) return ''
     return (
@@ -463,6 +550,32 @@ class StageTitleBar extends React.Component {
 
     return (
       <div style={STYLES.frame} className='frame'>
+        {this.isConglomerateComponentAvailable()
+          ? <button
+            key='conglomerate-component-button'
+            id='conglomerate-component-button'
+            onClick={this.handleConglomerateComponent}
+            style={[
+              BTN_STYLES.btnIcon,
+              BTN_STYLES.leftBtns
+            ]}>
+            <ComponentIconSVG color={this.getConglomerateComponentButtonColor()} />
+          </button>
+          : ''}
+
+        {this.isEventHandlersEditorAvailable()
+          ? <button
+            key='show-event-handlers-editor-button'
+            id='show-event-handlers-editor-button'
+            onClick={this.handleShowEventHandlersEditor}
+            style={[
+              BTN_STYLES.btnIcon,
+              BTN_STYLES.leftBtns
+            ]}>
+            <EventsBoltIcon color={this.getEventHandlersEditorButtonColor()} />
+          </button>
+          : ''}
+
         <button
           key='save'
           id='publish'

@@ -141,16 +141,13 @@ class ActiveComponent extends BaseModel {
       if (element.component === this) {
         if (
           what === 'element-selected' ||
-          (
-            what === 'element-selected-softly' &&
-            Element.where({
-              component: this,
-              _isSelected: true
-            }).length === 1
-          )
+          what === 'element-selected-softly'
         ) {
           this.handleElementSelected(element.getComponentId(), metadata)
-        } else if (what === 'element-unselected') {
+        } else if (
+          what === 'element-unselected' ||
+          what === 'element-unselected-softly'
+        ) {
           this.handleElementUnselected(element.getComponentId(), metadata)
         } else if (what === 'element-hovered') {
           this.handleElementHovered(element.getComponentId(), metadata)
@@ -570,9 +567,6 @@ class ActiveComponent extends BaseModel {
   }
 
   selectElement (componentId, metadata, cb) {
-    // Assuming the update occurs remotely, we want to unselect everything but the selected one
-    Element.unselectAllElements({component: this}, metadata)
-
     return this.selectElementWithinTime(SELECTION_WAIT_TIME, componentId, metadata, () => {
       return cb() // Must return or the plumbing action circuit never completes
     })

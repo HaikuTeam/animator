@@ -88,6 +88,10 @@ export default class Creator extends React.Component {
     this.layout = new EventEmitter()
     this.activityMonitor = new ActivityMonitor(window, this.onActivityReport.bind(this))
 
+    this.debouncedForceUpdate = lodash.debounce(() => {
+      this.forceUpdate()
+    }, 100, {leading: false, trailing: true})
+
     this.state = {
       error: null,
       projectFolder: this.props.folder,
@@ -1099,7 +1103,9 @@ export default class Creator extends React.Component {
 
               switch (what) {
                 case 'setCurrentActiveComponent':
-                  this.forceUpdate()
+                case 'selectElement':
+                case 'unselectElement':
+                  this.debouncedForceUpdate()
                   break
 
                 case 'setInteractionMode':

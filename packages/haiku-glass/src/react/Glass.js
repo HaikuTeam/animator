@@ -25,7 +25,6 @@ import originMana from '../overlays/originMana'
 import controlPointMana from '../overlays/controlPointMana'
 import boxMana from '../overlays/boxMana'
 import defsMana from '../overlays/defsMana'
-import gearMana from '../overlays/gearMana'
 import rotationCursorMana from '../overlays/rotationCursorMana'
 import scaleCursorMana from '../overlays/scaleCursorMana'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
@@ -661,6 +660,15 @@ export class Glass extends React.Component {
           )
           break
 
+        case 'edit-component':
+          const proxy = this.fetchProxyElementForSelection()
+          this.editComponent(proxy.getSingleComponentElementRelpath())
+          break
+
+        case 'conglomerate-component':
+          this.launchComponentNameModal()
+          break
+
         case 'assets-changed':
           File.cache.clear()
           break
@@ -876,7 +884,7 @@ export class Glass extends React.Component {
   }
 
   showEventHandlersEditor (clickEvent, targetElement, options) {
-    if (this.isPreviewMode()) {
+    if (this.isPreviewMode() || !targetElement) {
       return
     }
 
@@ -884,7 +892,7 @@ export class Glass extends React.Component {
     logger.info(`showing action editor`, targetElement, options)
 
     this.setState({
-      targetElement: targetElement,
+      targetElement,
       isEventHandlerEditorOpen: true,
       eventHandlerEditorOptions: options
     })
@@ -2457,7 +2465,6 @@ export class Glass extends React.Component {
 
     if (pointDisplayMode !== POINT_DISPLAY_MODES.NONE) {
       overlays.push(boxMana([points[0], points[2], points[8], points[6]].map((point) => [point.x, point.y])))
-      overlays.push(gearMana(scale, proxy.getControlsPosition(5, 30 * scale, 1 * scale)))
     }
 
     points.forEach((point, index) => {
