@@ -660,6 +660,31 @@ export class Glass extends React.Component {
           )
           break
 
+        case 'instantiate-component':
+          const component = this.getActiveComponent()
+
+          if (component) {
+            Element.where({component, _isSelected: true}).forEach((element) => {
+              element.unselectSoftly({from: 'glass'})
+            })
+
+            component.instantiateComponent(
+              message.relpath,
+              message.coords || {},
+              {from: 'glass'},
+              (err) => {
+                if (err) {
+                  if (err.code === 'ENOENT') {
+                    console.error('We couldn\'t find that component. 😩 Please try again in a few moments. If you still see this error, contact Haiku for support.')
+                  } else {
+                    console.error(err.message)
+                  }
+                }
+              }
+            )
+          }
+          break
+
         case 'edit-component':
           const proxy = this.fetchProxyElementForSelection()
           this.editComponent(proxy.getSingleComponentElementRelpath())
