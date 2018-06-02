@@ -122,7 +122,8 @@ export default class ComponentHeadingRow extends React.Component {
             className='component-heading-row-inner-r1'
             style={{
               height: this.props.rowHeight,
-              marginTop: -6
+              marginTop: -6,
+              maxWidth: (this.props.row.isRootRow()) ? '120px' : undefined
             }}
             onClick={(clickEvent) => {
               // Collapse/expand the entire component area when it is clicked
