@@ -183,7 +183,8 @@ export default class ComponentHeadingRow extends React.Component {
                   marginLeft: '37px',
                   marginTop: '4px',
                   position: 'relative',
-                  height: '20px'
+                  height: '20px',
+                  maxWidth: '100px'
                 }
                 : {float: 'right', marginTop: '-15px', position: 'relative'}
             }
