@@ -1745,7 +1745,9 @@ class Element extends BaseModel {
               )]
             }
           ]
-        }, {resetIds: true}))
+          // Formerly resetIds was set to `true` but removing that setting seems to fix both
+          // SVG rendering bugs as well as a bug that prevents deletion of ungrouped elements
+        }, {resetIds: false}))
 
         return false
       })
