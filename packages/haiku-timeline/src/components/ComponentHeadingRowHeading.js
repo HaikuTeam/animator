@@ -86,11 +86,11 @@ export default class ComponentHeadingRowHeading extends React.Component {
     return (
       (this.props.row.isRootRow())
         ? (<div
-            className='component-heading-row-heading-root-box'
-            style={{
-              height: 27,
-              display: 'inline-block',
-              transform: 'translateY(1px)'}}>
+          className='component-heading-row-heading-root-box'
+          style={{
+            height: 27,
+            display: 'inline-block',
+            transform: 'translateY(1px)'}}>
           <span
             className='component-heading-row-heading-root-icon-box'
             style={{
