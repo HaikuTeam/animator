@@ -17,6 +17,7 @@ class MonacoEditor extends React.Component {
     this.containerElement = undefined
     this.__current_value = props.value
     this.onUpdateDimensions = this.updateDimensions.bind(this)
+    this.assignRef = this.assignRef.bind(this)
     this.state = {}
   }
 
@@ -125,7 +126,7 @@ class MonacoEditor extends React.Component {
     }
   }
 
-  assignRef = (component) => {
+  assignRef (component) {
     this.containerElement = component
   };
 

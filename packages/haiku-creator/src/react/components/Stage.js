@@ -18,8 +18,6 @@ const STAGE_BOX_STYLE = {
   outline: 'none'
 }
 
-
-
 // This may not be precisely correct; please test the UI if you enable this experiment
 const STAGE_MOUNT_HEIGHT_OFFSET = (experimentIsEnabled(Experiment.MultiComponentFeatures))
   ? 68
@@ -35,17 +33,16 @@ export default class Stage extends React.Component {
     this.state = {
       nonSavedContentOnCodeEditor: false,
       targetComponentToChange: '',
-      showPopupToSaveRawEditorContents: false,
+      showPopupToSaveRawEditorContents: false
     }
   }
 
   // Check if currently edited file is open
   tryToChangeCurrentActiveComponent (scenename) {
-    if (this.state.nonSavedContentOnCodeEditor){
+    if (this.state.nonSavedContentOnCodeEditor) {
       this.setState({targetComponentToChange: scenename,
-                     showPopupToSaveRawEditorContents: true})
-    }
-    else{
+        showPopupToSaveRawEditorContents: true})
+    } else {
       this.props.projectModel.setCurrentActiveComponent(scenename, {from: 'creator'}, () => {})
     }
   }
@@ -215,10 +212,10 @@ export default class Stage extends React.Component {
             onSwitchToDesignMode={this.props.onSwitchToDesignMode}
             showGlass={this.props.showGlass}
             />
-          {(experimentIsEnabled(Experiment.MultiComponentFeatures)) && 
+          {(experimentIsEnabled(Experiment.MultiComponentFeatures)) &&
             <ComponentMenu
               ref='component-menu'
-              projectModel={this.props.projectModel} 
+              projectModel={this.props.projectModel}
               nonSavedContentOnCodeEditor={this.state.nonSavedContentOnCodeEditor}
               tryToChangeCurrentActiveComponent={this.props.tryToChangeCurrentActiveComponent}
             />
@@ -254,10 +251,10 @@ export default class Stage extends React.Component {
               ref='codeEditor'
               showGlass={this.props.showGlass}
               projectModel={this.props.projectModel}
-              setNonSavedContentOnCodeEditor={(nonSaved) => this.setState({nonSavedContentOnCodeEditor:nonSaved }) }
+              setNonSavedContentOnCodeEditor={(nonSaved) => { this.setState({nonSavedContentOnCodeEditor: nonSaved }) }}
               nonSavedContentOnCodeEditor={this.state.nonSavedContentOnCodeEditor}
               showPopupToSaveRawEditorContents={this.state.showPopupToSaveRawEditorContents}
-              setShowPopupToSaveRawEditorContents={(showPopup) =>  this.setState({ showPopupToSaveRawEditorContents: showPopup}) }
+              setShowPopupToSaveRawEditorContents={(showPopup) => { this.setState({ showPopupToSaveRawEditorContents: showPopup}) }}
               targetComponentToChange={this.state.targetComponentToChange}
               />
           </div>

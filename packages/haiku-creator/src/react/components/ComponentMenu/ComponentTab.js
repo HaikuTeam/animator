@@ -76,15 +76,15 @@ class ComponentTab extends React.Component {
         <div
           onClick={this.changeComponent}
           style={[STYLES.tab, (this.props.forceActive || this.props.tab.active) && STYLES.tab.active]}>
-          <div style={{display: "inline-block", width: "70%"}}>
+          <div style={{display: 'inline-block', width: '70%'}}>
             <span style={STYLES.label} className='no-select'>
               {toTitleCase(this.props.tab.scenename)}
             </span>
           </div>
-        {(this.props.forceActive || this.props.tab.active) && this.props.nonSavedContentOnCodeEditor &&
-          <div style={{position: "absolute", display: "inline-block", width: "30%", height: "12px"}}>
-            <svg height="12" width="12">
-              <circle cx="6" cy="6" r="4" fill="#f24082" />
+          {(this.props.forceActive || this.props.tab.active) && this.props.nonSavedContentOnCodeEditor &&
+          <div style={{position: 'absolute', display: 'inline-block', width: '30%', height: '12px'}}>
+            <svg height='12' width='12'>
+              <circle cx='6' cy='6' r='4' fill='#f24082' />
             </svg>
           </div>
         }

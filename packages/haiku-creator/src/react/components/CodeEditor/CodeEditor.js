@@ -4,8 +4,6 @@
 
 import React from 'react'
 import Radium from 'radium'
-import Palette from 'haiku-ui-common/lib/Palette'
-import {BTN_STYLES} from '../../styles/btnShared'
 import MonacoEditor from './MonacoEditor'
 import SaveContentsPopup from './SaveContentsPopup'
 
@@ -13,9 +11,12 @@ class CodeEditor extends React.Component {
   constructor (props) {
     super(props)
 
+    this.onMonacoEditorChange = this.onMonacoEditorChange.bind(this)
+    this.saveCodeFromEditorToDisk = this.saveCodeFromEditorToDisk.bind(this)
+
     this.state = {
       currentComponentCode: '',
-      currentEditorContents: '',
+      currentEditorContents: ''
     }
   }
 
@@ -23,21 +24,20 @@ class CodeEditor extends React.Component {
     console.log('componentWillMount')
     if (this.props.projectModel) {
       this.props.projectModel.on('update', (what, ...args) => {
-        //console.log('RRRR what:',what)
+        // console.log('RRRR what:',what)
         switch (what) {
           case 'reloaded':
             const newComponentCode = this.props.projectModel.getCurrentActiveComponent().fetchActiveBytecodeFile().getCode()
-          
-            // If component code changed, update it on Editor 
+
+            // If component code changed, update it on Editor
             // TODO: this logic could be migrated in the future to Monaco Editor
-            // getDerivedStateFromProps on react 16+ 
-            if (newComponentCode!==this.state.currentComponentCode){
+            // getDerivedStateFromProps on react 16+
+            if (newComponentCode !== this.state.currentComponentCode) {
               // This probably is portable to getDerivedStateFromProps
               this.setState({currentComponentCode: newComponentCode, currentEditorContents: newComponentCode}, () => {
                 this.onMonacoEditorChange(newComponentCode, null)
               })
-            }
-            else{
+            } else {
               this.setState({currentComponentCode: newComponentCode})
             }
             break
@@ -46,12 +46,12 @@ class CodeEditor extends React.Component {
     }
   }
 
-  onMonacoEditorChange = (newContent, e) => {
+  onMonacoEditorChange (newContent, e) {
     this.setState({currentEditorContents: newContent})
-    this.props.setNonSavedContentOnCodeEditor(this.state.currentComponentCode!==this.state.currentEditorContents)
+    this.props.setNonSavedContentOnCodeEditor(this.state.currentComponentCode !== this.state.currentEditorContents)
   }
 
-  saveCodeFromEditorToDisk = () => {
+  saveCodeFromEditorToDisk () {
     const currentEditorContents = this.state.currentEditorContents
     // Save contents to file
     this.props.projectModel.getCurrentActiveComponent().fetchActiveBytecodeFile().flushContentFromString(currentEditorContents)
@@ -74,32 +74,14 @@ class CodeEditor extends React.Component {
       scrollBeyondLastLine: false
     }
 
-    return <div style={{
-      width: '100%',
-      height: '100%'
-    }}>
-      {this.props.showPopupToSaveRawEditorContents && 
-      <SaveContentsPopup
-        projectModel={this.props.projectModel}
-        targetComponentToChange={this.props.targetComponentToChange}
-        setShowPopupToSaveRawEditorContents={this.props.setShowPopupToSaveRawEditorContents}
-        saveCodeFromEditorToDisk={this.saveCodeFromEditorToDisk}
-      />}
-      <button
-        key='save-button'
-        id='save-button'
-        onClick={this.saveCodeFromEditorToDisk}
-        style={{
-          ...BTN_STYLES.btnText,
-          backgroundColor: Palette.LIGHTEST_GRAY,
-          position: 'absolute',
-          zIndex: 2,
-          right: '12px',
-          top: '3px',
-          padding: '2px 5px'
-        }}>
-        <span>SAVE</span>
-      </button>
+    return <div style={{width: '100%', height: '100%'}}>
+      {this.props.showPopupToSaveRawEditorContents &&
+        <SaveContentsPopup
+          projectModel={this.props.projectModel}
+          targetComponentToChange={this.props.targetComponentToChange}
+          setShowPopupToSaveRawEditorContents={this.props.setShowPopupToSaveRawEditorContents}
+          saveCodeFromEditorToDisk={this.saveCodeFromEditorToDisk}
+        />}
       <MonacoEditor
         language='javascript'
         value={this.state.currentEditorContents}

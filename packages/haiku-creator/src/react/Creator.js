@@ -131,8 +131,6 @@ export default class Creator extends React.Component {
       showGlass: true,
     }
 
-
-
     this.envoyOptions = {
       token: this.props.haiku.envoy.token,
       port: this.props.haiku.envoy.port,
