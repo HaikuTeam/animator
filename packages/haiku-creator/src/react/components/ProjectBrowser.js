@@ -213,7 +213,7 @@ class ProjectBrowser extends React.Component {
       iteration++
     }
 
-    this.props.onShowNewProjectModal(true, potentialName)
+    this.props.onShowNewProjectModal(true, potentialName, projToDuplicateIndex)
   }
 
   projectsListElement () {
