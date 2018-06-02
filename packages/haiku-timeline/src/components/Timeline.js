@@ -15,7 +15,7 @@ import Palette from 'haiku-ui-common/lib/Palette'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
 import ControlsArea from './ControlsArea'
 import ExpressionInput from './ExpressionInput'
-import Scrubber from './ScrubberInterior'
+import ScrubberInterior from './ScrubberInterior'
 import RowManager from './RowManager'
 import FrameGrid from './FrameGrid'
 import IntercomWidget from './IntercomWidget'
@@ -1055,7 +1055,7 @@ class Timeline extends React.Component {
             onShowFrameActionsEditor={this.showFrameActionsEditor} />
           <Gauge
             timeline={this.getActiveComponent().getCurrentTimeline()} />
-          <Scrubber
+          <ScrubberInterior
             reactParent={this}
             isScrubbing={this.getActiveComponent().getCurrentTimeline().isScrubberDragging()}
             timeline={this.getActiveComponent().getCurrentTimeline()} />
@@ -1073,10 +1073,16 @@ class Timeline extends React.Component {
     const frameInfo = this.getActiveComponent().getCurrentTimeline().getFrameInfo()
     const leftX = evt.clientX - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()
     const frameX = Math.round(leftX / frameInfo.pxpf)
-    const newFrame = frameInfo.friA + frameX
 
+    // Allow the scrubber to be dragged past 0 in order to reach 0
+    let newFrame = frameInfo.friA + frameX
     if (newFrame < 0) {
-      return false
+      newFrame = 0
+    }
+
+    // Avoid expensive redundant updates
+    if (newFrame === this.getActiveComponent().getCurrentTimeline().getCurrentFrame()) {
+      return
     }
 
     const pageFrameLength = this.getActiveComponent().getCurrentTimeline().getVisibleFrameRangeLength()

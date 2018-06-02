@@ -2393,6 +2393,10 @@ export class Glass extends React.Component {
           height
         } = marquee.getBox()
 
+        if (width < 2 && height < 2) {
+          return
+        }
+
         overlays.push({
           elementName: 'rect',
           attributes: {

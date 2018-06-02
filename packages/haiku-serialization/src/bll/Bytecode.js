@@ -2,8 +2,6 @@ const lodash = require('lodash')
 const clone = require('lodash.clone')
 const cloneDeepWith = require('lodash.clonedeepwith')
 const merge = require('lodash.merge')
-const assign = require('lodash.assign')
-const defaults = require('lodash.defaults')
 const BaseModel = require('./BaseModel')
 const xmlToMana = require('@haiku/core/lib/helpers/xmlToMana').default
 const convertManaLayout = require('@haiku/core/lib/layout/convertManaLayout').default
@@ -544,13 +542,17 @@ Bytecode.reinitialize = (folder, relpath, bytecode = {}, config = {}) => {
 
   let contextHaikuId = bytecode.template.attributes[HAIKU_ID_ATTRIBUTE]
 
+  const scenename = ModuleWrapper.getScenenameFromRelpath(relpath)
+
   Bytecode.upsertDefaultProperties(bytecode, contextHaikuId, {
     'style.WebkitTapHighlightColor': 'rgba(0,0,0,0)',
     'style.transformStyle': 'flat',
     'style.perspective': 'none',
     'style.position': 'relative',
-    'style.overflowX': 'visible',
-    'style.overflowY': 'visible',
+    // Subcomponents overflow is visible since that aligns with user expectation when editing in app.
+    // But when publishing the main component, the expectation is that its overflow is hidden on share page.
+    'style.overflowX': (scenename === 'main') ? 'hidden' : 'visible',
+    'style.overflowY': (scenename === 'main') ? 'hidden' : 'visible',
     'sizeAbsolute.x': DEFAULT_CONTEXT_SIZE.width,
     'sizeAbsolute.y': DEFAULT_CONTEXT_SIZE.height,
     'sizeMode.x': 1,
@@ -1053,21 +1055,6 @@ Bytecode.upsertPropertyValue = (
   }
 }
 
-Bytecode.mergeTimelineStructure = (bytecodeObject, timelineStructure, mergeStrategy) => {
-  for (const timelineName in timelineStructure) {
-    if (!bytecodeObject.timelines[timelineName]) {
-      bytecodeObject.timelines[timelineName] = timelineStructure[timelineName]
-    } else {
-      switch (mergeStrategy) {
-        case 'merge': merge(bytecodeObject.timelines[timelineName], timelineStructure[timelineName]); break
-        case 'assign': assign(bytecodeObject.timelines[timelineName], timelineStructure[timelineName]); break
-        case 'defaults': defaults(bytecodeObject.timelines[timelineName], timelineStructure[timelineName]); break
-        default: throw new Error('Unknown merge strategy `' + mergeStrategy + '`')
-      }
-    }
-  }
-}
-
 Bytecode.replaceTimelinePropertyGroups = (bytecodeObject, timelineName, timelineSelector, propertyGroup) => {
   if (!bytecodeObject.timelines[timelineName]) {
     bytecodeObject.timelines[timelineName] = {}
@@ -1140,6 +1127,7 @@ Bytecode.doesMatchOrHostBytecode = (ours, theirs, seen = {}) => {
 module.exports = Bytecode
 
 // Down here to avoid Node circular dependency stub objects. #FIXME
+const ModuleWrapper = require('./ModuleWrapper')
 const State = require('./State')
 const Template = require('./Template')
 const TimelineProperty = require('./TimelineProperty')

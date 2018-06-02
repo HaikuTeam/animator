@@ -44,10 +44,6 @@ const describeHotComponent = (componentId, timelineName, timelineTime, propertyG
   }
 }
 
-const stackingInfoToHotComponentDescriptors = (stackingInfo, timelineName, timelineTime) => stackingInfo.map(
-  ({haikuId}) => describeHotComponent(haikuId, timelineName, timelineTime, ['style.zIndex'])
-)
-
 const keyframeUpdatesToHotComponentDescriptors = (keyframeUpdates) => {
   const hotComponentDescriptors = []
 
@@ -852,7 +848,7 @@ class ActiveComponent extends BaseModel {
 
     Bytecode.applyOverrides(overrides, timelines, timelineName, `haiku:${componentId}`, timelineTime)
 
-    Bytecode.mergeTimelineStructure(bytecode, timelines, 'assign')
+    Bytecode.mergeTimelines(bytecode.timelines, timelines)
 
     // And move the element to the z-front of all the rest of the layers
     // This must be part of this atomic action or undo/redo won't work properly
@@ -1676,14 +1672,19 @@ class ActiveComponent extends BaseModel {
         }
       )
 
-      delete timelinesObject[timelineName][safeIncoming.attributes[HAIKU_ID_ATTRIBUTE]]
+      const existingSelector = `haiku:${existingNode.attributes[HAIKU_ID_ATTRIBUTE]}`
+      const incomingSelector = `haiku:${safeIncoming.attributes[HAIKU_ID_ATTRIBUTE]}`
+
+      // Ensure properties destined for the root node are applied to the correct id
+      timelinesObject[timelineName][existingSelector] = timelinesObject[timelineName][incomingSelector]
+      delete timelinesObject[timelineName][incomingSelector]
 
       for (let i = 0; i < safeIncoming.children.length; i++) {
         const incomingChild = safeIncoming.children[i]
         existingNode.children.push(incomingChild)
       }
 
-      Bytecode.mergeTimelineStructure(existingBytecode, timelinesObject, 'assign')
+      Bytecode.mergeTimelines(existingBytecode.timelines, timelinesObject)
 
       this.mergeRemovedOutputs(existingBytecode, existingNode, removedOutputs)
     })
@@ -3138,10 +3139,24 @@ class ActiveComponent extends BaseModel {
         }
 
         return this.reload({
-          hardReload: this.project.isRemoteRequest(metadata),
+          hardReload: true,
           forceFlush: true,
           clearCacheOptions: {
             doClearEntityCaches: true
+          },
+          customRehydrate: () => {
+            if (this.project.isRemoteRequest(metadata)) {
+              this.rehydrate()
+              return
+            }
+            const element = this.findElementByComponentId(componentId)
+            if (element) {
+              const row = element.getPropertyRowByPropertyName(propertyName)
+              const keyframe = row.getKeyframeByMs(keyframeMsLeft)
+              if (keyframe) {
+                keyframe.setCurve(newCurve)
+              }
+            }
           }
         }, null, () => {
           fire()
@@ -3172,10 +3187,24 @@ class ActiveComponent extends BaseModel {
         }
 
         return this.reload({
-          hardReload: this.project.isRemoteRequest(metadata),
+          hardReload: true,
           forceFlush: true,
           clearCacheOptions: {
             doClearEntityCaches: true
+          },
+          customRehydrate: () => {
+            if (this.project.isRemoteRequest(metadata)) {
+              this.rehydrate()
+              return
+            }
+            const element = this.findElementByComponentId(componentId)
+            if (element) {
+              const row = element.getPropertyRowByPropertyName(propertyName)
+              const keyframe = row.getKeyframeByMs(keyframeMs)
+              if (keyframe) {
+                keyframe.setCurve(null)
+              }
+            }
           }
         }, null, () => {
           fire()
@@ -3942,7 +3971,7 @@ class ActiveComponent extends BaseModel {
 
         return this.reload({
           hardReload: this.project.isRemoteRequest(metadata),
-          hotComponents: stackingInfoToHotComponentDescriptors(stackingInfo, timelineName, timelineTime),
+          forceFlush: true, // Since z-changes are fixed to frame 0, we must force flush to reflect the change at all frames
           clearCacheOptions: {
             doClearEntityCaches: true
           }
@@ -3992,7 +4021,7 @@ class ActiveComponent extends BaseModel {
 
         return this.reload({
           hardReload: this.project.isRemoteRequest(metadata),
-          hotComponents: stackingInfoToHotComponentDescriptors(stackingInfo, timelineName, timelineTime),
+          forceFlush: true, // Since z-changes are fixed to frame 0, we must force flush to reflect the change at all frames
           clearCacheOptions: {
             doClearEntityCaches: true
           }
@@ -4038,7 +4067,7 @@ class ActiveComponent extends BaseModel {
 
         return this.reload({
           hardReload: this.project.isRemoteRequest(metadata),
-          hotComponents: stackingInfoToHotComponentDescriptors(stackingInfo, timelineName, timelineTime),
+          forceFlush: true, // Since z-changes are fixed to frame 0, we must force flush to reflect the change at all frames
           clearCacheOptions: {
             doClearEntityCaches: true
           }
@@ -4083,7 +4112,7 @@ class ActiveComponent extends BaseModel {
 
         return this.reload({
           hardReload: this.project.isRemoteRequest(metadata),
-          hotComponents: stackingInfoToHotComponentDescriptors(stackingInfo, timelineName, timelineTime),
+          forceFlush: true, // Since z-changes are fixed to frame 0, we must force flush to reflect the change at all frames
           clearCacheOptions: {
             doClearEntityCaches: true
           }
@@ -4128,7 +4157,7 @@ class ActiveComponent extends BaseModel {
 
         return this.reload({
           hardReload: this.project.isRemoteRequest(metadata),
-          hotComponents: stackingInfoToHotComponentDescriptors(stackingInfo, timelineName, timelineTime),
+          forceFlush: true, // Since z-changes are fixed to frame 0, we must force flush to reflect the change at all frames
           clearCacheOptions: {
             doClearEntityCaches: true
           }

@@ -427,7 +427,13 @@ class Row extends BaseModel {
   }
 
   getKeyframes () {
-    return Keyframe.where({ row: this }).sort((a, b) => a.index - b.index)
+    return Keyframe.where({row: this}).sort((a, b) => a.index - b.index)
+  }
+
+  getKeyframeByMs (ms) {
+    return this.getKeyframes().filter((keyframe) => {
+      return keyframe.getMs() === ms
+    })[0]
   }
 
   mapVisibleKeyframes ({ maxDepth = Infinity }, iteratee) {
