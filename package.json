@@ -32,7 +32,8 @@
     "postinstall": "node ./scripts/link-binaries.js"
   },
   "resolutions": {
-    "@types/node": "8.9.4"
+    "@types/node": "8.9.4",
+    "node-abi": "2.4.1"
   },
   "dependencies": {
     "@haiku/cli": "3.3.4",
@@ -64,7 +65,7 @@
     "dotenv": "^5.0.1",
     "electron": "2.0.2",
     "electron-builder": "20.15.1",
-    "electron-rebuild": "^1.6.0",
+    "electron-rebuild": "^1.7.3",
     "fs-extra": "^4.0.2",
     "git-branch": "0.3.0",
     "glob": "^7.1.2",
