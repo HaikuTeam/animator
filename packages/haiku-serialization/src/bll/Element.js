@@ -74,8 +74,6 @@ class Element extends BaseModel {
 
   afterInitialize () {
     // Make sure we add to the appropriate collections to avoid unexpected state issues
-    if (this.isHovered()) Element.hovered[this.getPrimaryKey()] = this
-    if (this.isSelected()) Element.selected[this.getPrimaryKey()] = this
     this.populateVisiblePropertiesFromKeyframes()
   }
 
@@ -91,10 +89,10 @@ class Element extends BaseModel {
   }
 
   hoverOn (metadata, softly = false) {
-    if (!this._isHovered || !Element.hovered[this.getPrimaryKey()]) {
+    if (!this._isHovered) {
       this.cache.clear()
       this._isHovered = true
-      Element.hovered[this.getPrimaryKey()] = this
+
       if (!softly) {
         this.emit('update', 'element-hovered', metadata)
       }
@@ -107,10 +105,10 @@ class Element extends BaseModel {
   }
 
   hoverOff (metadata, softly = false) {
-    if (this._isHovered || Element.hovered[this.getPrimaryKey()]) {
+    if (this._isHovered) {
       this.cache.clear()
       this._isHovered = false
-      delete Element.hovered[this.getPrimaryKey()]
+
       if (!softly) {
         this.emit('update', 'element-unhovered', metadata)
       }
@@ -126,9 +124,8 @@ class Element extends BaseModel {
   }
 
   select (metadata, softly = false) {
-    if (!this._isSelected || !Element.selected[this.getPrimaryKey()]) {
+    if (!this._isSelected) {
       this._isSelected = true
-      Element.selected[this.getPrimaryKey()] = this
 
       if (softly) {
         this.emit('update', 'element-selected-softly', metadata)
@@ -154,9 +151,9 @@ class Element extends BaseModel {
   }
 
   unselect (metadata, softly = false) {
-    if (this._isSelected || Element.selected[this.getPrimaryKey()]) {
+    if (this._isSelected) {
       this._isSelected = false
-      delete Element.selected[this.getPrimaryKey()]
+
       if (softly) {
         this.emit('update', 'element-unselected-softly', metadata)
       } else {
@@ -1798,8 +1795,6 @@ Element.DEFAULT_OPTIONS = {
 
 BaseModel.extend(Element)
 
-Element.selected = {}
-Element.hovered = {}
 Element.directlySelected = null
 
 Element.cache = {
