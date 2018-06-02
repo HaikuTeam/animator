@@ -30,11 +30,7 @@ export default class Stage extends React.Component {
     super(props)
     this.webview = null
     this.onRequestWebviewCoordinates = this.onRequestWebviewCoordinates.bind(this)
-    this.setNonSavedContentOnCodeEditor = this.setNonSavedContentOnCodeEditor.bind(this)
-    this.saveEditorContentsToFile = this.saveEditorContentsToFile.bind(this)
-    this.closeSaveContentsPopupAndChangeComponent = this.closeSaveContentsPopupAndChangeComponent.bind(this)
     this.tryToChangeCurrentActiveComponent = this.tryToChangeCurrentActiveComponent.bind(this)
-    this.setShowPopupToSaveRawEditorContents = this.setShowPopupToSaveRawEditorContents.bind(this)
 
     this.state = {
       nonSavedContentOnCodeEditor: false,
@@ -43,37 +39,15 @@ export default class Stage extends React.Component {
     }
   }
 
-  setNonSavedContentOnCodeEditor (nonSavedContentOnCodeEditor) {
-    // debugger;
-    console.log('About to set', {nonSavedContentOnCodeEditor})
-    this.setState({nonSavedContentOnCodeEditor})
-  }
-
-  setShowPopupToSaveRawEditorContents (showPopup) {
-    this.setState({ showPopupToSaveRawEditorContents: showPopup })
-  }
-
   // Check if currently edited file is open
   tryToChangeCurrentActiveComponent (scenename) {
     if (this.state.nonSavedContentOnCodeEditor){
-      this.setShowPopupToSaveRawEditorContents(true)
-      this.setState({targetComponentToChange: scenename})
+      this.setState({targetComponentToChange: scenename,
+                     showPopupToSaveRawEditorContents: true})
     }
     else{
       this.props.projectModel.setCurrentActiveComponent(scenename, {from: 'creator'}, () => {})
     }
-  }
-
-  saveEditorContentsToFile () {
-    console.log('saveEditorContentsToFile')
-    this.refs.codeEditor.saveCodeFromEditorToDisk()
-    this.closeSaveContentsPopupAndChangeComponent()
-  }
-
-  closeSaveContentsPopupAndChangeComponent () {
-    this.props.projectModel.setCurrentActiveComponent(this.state.targetComponentToChange,
-                                                      {from: 'creator'}, () => {})
-    this.setShowPopupToSaveRawEditorContents(false)
   }
 
   componentDidMount () {
@@ -219,7 +193,6 @@ export default class Stage extends React.Component {
         <div
           className='stage-box'
           style={STAGE_BOX_STYLE}>
-          {this.state.showPopupToSaveRawEditorContents && this.state.nonSavedContentOnCodeEditor && this.renderModal()}
           <StageTitleBar
             folder={this.props.folder}
             envoyProject={this.props.envoyProject}
@@ -281,9 +254,11 @@ export default class Stage extends React.Component {
               ref='codeEditor'
               showGlass={this.props.showGlass}
               projectModel={this.props.projectModel}
-              setNonSavedContentOnCodeEditor={this.setNonSavedContentOnCodeEditor}
+              setNonSavedContentOnCodeEditor={(nonSaved) => this.setState({nonSavedContentOnCodeEditor:nonSaved }) }
               nonSavedContentOnCodeEditor={this.state.nonSavedContentOnCodeEditor}
-              showPopupToSaveRawEditorContents={this.props.showPopupToSaveRawEditorContents}
+              showPopupToSaveRawEditorContents={this.state.showPopupToSaveRawEditorContents}
+              setShowPopupToSaveRawEditorContents={(showPopup) =>  this.setState({ showPopupToSaveRawEditorContents: showPopup}) }
+              targetComponentToChange={this.state.targetComponentToChange}
               />
           </div>
 

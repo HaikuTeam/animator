@@ -1,7 +1,7 @@
 import React from 'react'
 import {ModalWrapper, ModalHeader, ModalFooter} from 'haiku-ui-common/lib/react/Modal'
-import {BTN_STYLES} from '../styles/btnShared'
-
+import {BTN_STYLES} from '../../styles/btnShared'
+import Palette from 'haiku-ui-common/lib/Palette'
 
 const STYLES = {
   wrapper: {
@@ -19,16 +19,28 @@ const STYLES = {
   modalBody: {
     padding: '20px'
   },
-  listItem: {
-    marginBottom: '8px'
-  }
 }
 
 
-export default class Stage extends React.Component {
+export default class SaveContentsPopup extends React.Component {
   constructor(props) {
     super(props)
+    this.saveEditorContentsToFile = this.saveEditorContentsToFile.bind(this)
+    this.closeSaveContentsPopupAndChangeComponent = this.closeSaveContentsPopupAndChangeComponent.bind(this)
 
+  }
+
+  saveEditorContentsToFile () {
+    console.log('saveEditorContentsToFile')
+    //this.refs.codeEditor.saveCodeFromEditorToDisk()
+    this.props.saveCodeFromEditorToDisk()
+    this.closeSaveContentsPopupAndChangeComponent()
+  }
+
+  closeSaveContentsPopupAndChangeComponent () {
+    this.props.projectModel.setCurrentActiveComponent(this.props.targetComponentToChange,
+                                                      {from: 'creator'}, () => {})
+    this.props.setShowPopupToSaveRawEditorContents(false)
   }
 
   render () {
@@ -36,15 +48,32 @@ export default class Stage extends React.Component {
       <div style={STYLES.wrapper}>
         <ModalWrapper style={STYLES.modalWrapper}>
           <ModalHeader>
-            <h2>Do you want to save the file?</h2>
+            <h2>Do you want to save modifications?</h2>
           </ModalHeader>
           <div style={STYLES.modalBody}>
-          Do you want to save the file or discard every change?     
-
+          Current opened file has unsaved modifications. Do you want to save or 
+          discard modifications?     
           </div>
           <ModalFooter>
 
           <div style={[{display: 'inline-block'}]} >
+
+          <button
+            key='discard-code'
+            id='discard-code'
+            onClick={this.closeSaveContentsPopupAndChangeComponent}
+            style={[
+              BTN_STYLES.btnText,
+              BTN_STYLES.centerBtns,
+              {
+                display: 'inline-block',
+                marginRight: '0px',
+              }
+            ]}
+          >
+            <span style={{marginLeft: 7, color: Palette.PINK}}>Discard</span>
+          </button>
+
           <button
             key='save-code'
             id='save-code'
@@ -59,23 +88,6 @@ export default class Stage extends React.Component {
             ]}
           >
             <span style={{marginLeft: 7, color: Palette.PINK}}>Save</span>
-          </button>
-
-          <button
-            key='discard-code'
-            id='discard-code'
-            onClick={this.closeSaveContentsPopupAndChangeComponent}
-            style={[
-              BTN_STYLES.btnText,
-              BTN_STYLES.centerBtns,
-              {
-                display: 'inline-block',
-                marginRight: '0px',
-                backgroundColor: Palette.FATHER_COAL
-              }
-            ]}
-          >
-            <span style={{marginLeft: 7, color: Palette.PINK}}>Discard</span>
           </button>
         </div>          
           </ModalFooter>

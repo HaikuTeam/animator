@@ -7,6 +7,7 @@ import Radium from 'radium'
 import Palette from 'haiku-ui-common/lib/Palette'
 import {BTN_STYLES} from '../../styles/btnShared'
 import MonacoEditor from './MonacoEditor'
+import SaveContentsPopup from './SaveContentsPopup'
 
 class CodeEditor extends React.Component {
   constructor (props) {
@@ -77,6 +78,13 @@ class CodeEditor extends React.Component {
       width: '100%',
       height: '100%'
     }}>
+      {this.props.showPopupToSaveRawEditorContents && 
+      <SaveContentsPopup
+        projectModel={this.props.projectModel}
+        targetComponentToChange={this.props.targetComponentToChange}
+        setShowPopupToSaveRawEditorContents={this.props.setShowPopupToSaveRawEditorContents}
+        saveCodeFromEditorToDisk={this.saveCodeFromEditorToDisk}
+      />}
       <button
         key='save-button'
         id='save-button'
