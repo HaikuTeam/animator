@@ -32,7 +32,9 @@ export default class ComponentHeadingRowHeading extends React.Component {
     if (!this.mounted) return null
     if (
       what === 'row-hovered' ||
-      what === 'row-unhovered'
+      what === 'row-unhovered' ||
+      what === 'element-selected' ||
+      what === 'element-unselected'
     ) {
       this.forceUpdate()
     } else if (what === 'row-set-title') {
@@ -135,7 +137,6 @@ export default class ComponentHeadingRowHeading extends React.Component {
               width: 160
             }}
             onClick={(clickEvent) => {
-              clickEvent.stopPropagation()
               if (!this.onExpandTimeout) {
                 this.onExpandTimeout = setTimeout(this.props.onExpand, DOUBLE_CLICK_WAIT_DELAY_MS)
               }

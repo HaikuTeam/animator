@@ -130,13 +130,13 @@ class Element extends BaseModel {
       if (softly) {
         this.emit('update', 'element-selected-softly', metadata)
       } else {
-        this.emit('update', 'element-selected', metadata)
-
         // Roundabout! Note that rows, when selected, will select their corresponding element
         const row = this.getHeadingRow()
         if (row) {
           row.expandAndSelect(metadata)
         }
+
+        this.emit('update', 'element-selected', metadata)
       }
     }
   }
@@ -157,13 +157,13 @@ class Element extends BaseModel {
       if (softly) {
         this.emit('update', 'element-unselected-softly', metadata)
       } else {
-        this.emit('update', 'element-unselected', metadata)
-
         // Roundabout! Note that rows, when deselected, will deselect their corresponding element
         const row = this.getHeadingRow()
         if (row && row.isSelected()) {
           row.deselect(metadata)
         }
+
+        this.emit('update', 'element-unselected', metadata)
       }
 
       // #FIXME: this is a bit overzealous.
