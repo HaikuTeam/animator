@@ -83,13 +83,24 @@ export default class ComponentHeadingRowHeading extends React.Component {
 
     return (
       (this.props.row.isRootRow())
-        ? (<div style={{height: 27, display: 'inline-block', transform: 'translateY(1px)'}}>
-          <span style={{marginRight: 4, display: 'inline-block', transform: 'translateY(4px)'}}>
+        ? (<div
+            className='component-heading-row-heading-root-box'
+            style={{
+              height: 27,
+              display: 'inline-block',
+              transform: 'translateY(1px)'}}>
+          <span
+            className='component-heading-row-heading-root-icon-box'
+            style={{
+              marginRight: 4,
+              display: 'inline-block',
+              transform: 'translateY(4px)'}}>
             <ComponentIconSVG />
           </span>
           {trunc(this.state.rowTitle, 12)}
         </div>)
         : (<span
+          className='component-heading-row-heading-child-box'
           style={{
             color,
             position: 'relative',
@@ -100,6 +111,7 @@ export default class ComponentHeadingRowHeading extends React.Component {
             height: 20
           }}>
           <span
+            className='component-heading-row-heading-child-icon-box'
             style={{
               position: 'absolute',
               display: 'inline-block',

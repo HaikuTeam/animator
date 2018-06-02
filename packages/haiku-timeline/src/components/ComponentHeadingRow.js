@@ -119,6 +119,7 @@ export default class ComponentHeadingRow extends React.Component {
             backgroundColor: this.props.isExpanded ? 'transparent' : Palette.LIGHT_GRAY
           }}>
           <div
+            className='component-heading-row-inner-r1'
             style={{
               height: this.props.rowHeight,
               marginTop: -6
@@ -132,6 +133,7 @@ export default class ComponentHeadingRow extends React.Component {
             }}
           >
             <span
+              className='component-heading-chevron-box'
               style={{
                 display: 'inline-block',
                 transform: this.props.row.isRootRow() ? 'translate(0, -1px)' : 'translate(30px, -1px)'
@@ -174,6 +176,7 @@ export default class ComponentHeadingRow extends React.Component {
             />
           </div>
           <div
+            className='component-heading-row-inner-r2'
             style={
               this.props.isExpanded
                 ? {
@@ -186,6 +189,7 @@ export default class ComponentHeadingRow extends React.Component {
             }
           >
             <div
+              className='event-handler-triggerer-button'
               style={{
                 width: 10,
                 position: 'absolute',
@@ -203,6 +207,7 @@ export default class ComponentHeadingRow extends React.Component {
             </div>
 
             <div
+              className='property-manager-button'
               style={{
                 width: 10,
                 position: 'absolute',
