@@ -32,7 +32,8 @@
     "postinstall": "node ./scripts/link-binaries.js"
   },
   "resolutions": {
-    "@types/node": "8.9.4"
+    "@types/node": "8.9.4",
+    "node-abi": "2.4.1"
   },
   "dependencies": {
     "@haiku/cli": "3.3.4",
@@ -62,9 +63,9 @@
     "dependency-graph": "^0.5.0",
     "derequire": "^2.0.6",
     "dotenv": "^5.0.1",
-    "electron": "1.8.2",
-    "electron-builder": "20.0.8",
-    "electron-rebuild": "^1.6.0",
+    "electron": "2.0.2",
+    "electron-builder": "20.15.1",
+    "electron-rebuild": "^1.7.3",
     "fs-extra": "^4.0.2",
     "git-branch": "0.3.0",
     "glob": "^7.1.2",
@@ -102,7 +103,7 @@
     "nodeGypRebuild": false,
     "productName": "Haiku",
     "forceCodeSigning": true,
-    "electronVersion": "1.8.2",
+    "electronVersion": "2.0.2",
     "mac": {
       "category": "public.app-category.developer-tools",
       "target": [
