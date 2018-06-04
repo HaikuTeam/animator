@@ -20,15 +20,14 @@ class CodeEditor extends React.Component {
       currentComponentCode: '',
       currentEditorContents: '',
       currentBytecodeErrorString: '',
-      showBytecodeErrorPopup: false,
+      showBytecodeErrorPopup: false
     }
   }
 
   componentWillMount () {
-    console.log('componentWillMount')
     if (this.props.projectModel) {
+      // Reload monaco contents on component load (eg. changing active component, loading a new project, ..)
       this.props.projectModel.on('update', (what, ...args) => {
-        // console.log('RRRR what:',what)
         switch (what) {
           case 'reloaded':
             const newComponentCode = this.props.projectModel.getCurrentActiveComponent().fetchActiveBytecodeFile().getCode()
@@ -50,6 +49,10 @@ class CodeEditor extends React.Component {
     }
   }
 
+  /**
+   * Keep monaco component synced with states from CodeEditor(currentEditorContents) and
+   * Stage(nonSavedContentOnCodeEditor)
+   */
   onMonacoEditorChange (newContent, e) {
     this.setState({currentEditorContents: newContent})
     this.props.setNonSavedContentOnCodeEditor(this.state.currentComponentCode !== this.state.currentEditorContents)
@@ -59,13 +62,16 @@ class CodeEditor extends React.Component {
     const currentEditorContents = this.state.currentEditorContents
     const activeComponent = this.props.projectModel.getCurrentActiveComponent()
 
+    // Validates bytecode before saving it, helping users avoid shooting their feet
     try {
       const absPath = activeComponent.fetchActiveBytecodeFile().getAbspath()
-      var loadedBytecode = ModuleWrapper.testLoadBytecode(currentEditorContents, absPath)
+      // TODO: in the future, change it to a bytecode validator instead a simple require
+      ModuleWrapper.testLoadBytecode(currentEditorContents, absPath)
     } catch (error) {
       this.setState({showBytecodeErrorPopup: true,
-                    currentBytecodeErrorString: `${error.name}: ${error.message}`})
-      return;
+        currentBytecodeErrorString: `${error.name}: ${error.message}`})
+      // If cannot valide it, display to user
+      return
     }
 
     // Save contents to file
@@ -100,7 +106,7 @@ class CodeEditor extends React.Component {
       {this.state.showBytecodeErrorPopup &&
         <BytecodeErrorPopup
           currentBytecodeErrorString={this.state.currentBytecodeErrorString}
-          closeBytecodeErrorPopup={() => {this.setState({showBytecodeErrorPopup: false})}}
+          closeBytecodeErrorPopup={() => { this.setState({showBytecodeErrorPopup: false}) }}
         />}
       <MonacoEditor
         language='javascript'

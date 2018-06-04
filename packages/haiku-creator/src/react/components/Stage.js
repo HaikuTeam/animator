@@ -8,7 +8,6 @@ import CodeEditor from './CodeEditor/CodeEditor'
 import Palette from 'haiku-ui-common/lib/Palette'
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 import {TOUR_CHANNEL} from 'haiku-sdk-creator/lib/tour'
-import { isThisTypeNode } from 'typescript';
 
 const STAGE_BOX_STYLE = {
   overflow: 'hidden',
@@ -32,6 +31,7 @@ export default class Stage extends React.Component {
     this.tryToChangeCurrentActiveComponent = this.tryToChangeCurrentActiveComponent.bind(this)
     this.tryToSwitchToDesign = this.tryToSwitchToDesign.bind(this)
     this.closePopupCannotSwitchToDesign = this.closePopupCannotSwitchToDesign.bind(this)
+    this.saveCodeFromEditorToDisk = this.saveCodeFromEditorToDisk.bind(this)
 
     this.state = {
       nonSavedContentOnCodeEditor: false,
@@ -51,7 +51,7 @@ export default class Stage extends React.Component {
     }
   }
 
-  tryToSwitchToDesign(){
+  tryToSwitchToDesign () {
     if (this.state.nonSavedContentOnCodeEditor) {
       this.setState({showPopupCannotSwitchToDesign: true})
     } else {
@@ -59,12 +59,11 @@ export default class Stage extends React.Component {
     }
   }
 
-  closePopupCannotSwitchToDesign() {
+  closePopupCannotSwitchToDesign () {
     this.setState({showPopupCannotSwitchToDesign: false})
   }
 
   componentDidMount () {
-    console.log('State did mount')
     this.injectWebview()
 
     const tourChannel = this.props.envoyClient.get(TOUR_CHANNEL)
@@ -194,6 +193,10 @@ export default class Stage extends React.Component {
     }
   }
 
+  saveCodeFromEditorToDisk () {
+    this.refs.codeeditor.saveCodeFromEditorToDisk()
+  }
+
   render () {
     const interactionModeColor = this.props.isPreviewMode
       ? Palette.LIGHTEST_PINK
@@ -229,6 +232,7 @@ export default class Stage extends React.Component {
             showGlass={this.props.showGlass}
             closePopupCannotSwitchToDesign={this.closePopupCannotSwitchToDesign}
             showPopupCannotSwitchToDesign={this.state.showPopupCannotSwitchToDesign}
+            saveCodeFromEditorToDisk={this.saveCodeFromEditorToDisk}
             />
           {(experimentIsEnabled(Experiment.MultiComponentFeatures)) &&
             <ComponentMenu
@@ -266,13 +270,13 @@ export default class Stage extends React.Component {
               visibility: this.props.showGlass ? 'hidden' : 'visible'
             }}>
             <CodeEditor
-              ref='codeEditor'
+              ref='codeeditor'
               showGlass={this.props.showGlass}
               projectModel={this.props.projectModel}
-              setNonSavedContentOnCodeEditor={(nonSaved) => { this.setState({nonSavedContentOnCodeEditor: nonSaved }) }}
+              setNonSavedContentOnCodeEditor={(nonSaved) => { this.setState({nonSavedContentOnCodeEditor: nonSaved}) }}
               nonSavedContentOnCodeEditor={this.state.nonSavedContentOnCodeEditor}
               showPopupToSaveRawEditorContents={this.state.showPopupToSaveRawEditorContents}
-              setShowPopupToSaveRawEditorContents={(showPopup) => { this.setState({ showPopupToSaveRawEditorContents: showPopup}) }}
+              setShowPopupToSaveRawEditorContents={(showPopup) => { this.setState({showPopupToSaveRawEditorContents: showPopup}) }}
               targetComponentToChange={this.state.targetComponentToChange}
               />
           </div>

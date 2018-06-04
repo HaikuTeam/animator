@@ -23,10 +23,6 @@ const STYLES = {
 }
 
 class CannotSwitchToDesignPopup extends React.Component {
-  constructor (props) {
-    super(props)
-   }
-
   render () {
     return (
       <div style={STYLES.wrapper}>
@@ -55,7 +51,7 @@ class CannotSwitchToDesignPopup extends React.Component {
                   }
                 ]}
               >
-              <span>Close</span>
+                <span>Close</span>
               </button>
             </div>
           </ModalFooter>

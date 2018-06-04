@@ -128,7 +128,7 @@ export default class Creator extends React.Component {
       showProxySettings: false,
       servicesEnvoyClient: null,
       projToDuplicateIndex: null,
-      showGlass: true,
+      showGlass: true
     }
 
     this.envoyOptions = {
@@ -575,7 +575,6 @@ export default class Creator extends React.Component {
           if (this.getActiveComponent()) {
             this.getActiveComponent().moduleReplace(() => {})
           }
-          console.log('RRRRRRRRRRRRRRRRRRRr')
           break
 
         case 'project-state-change':
@@ -875,14 +874,6 @@ export default class Creator extends React.Component {
     mixpanel.haikuTrack('creator:project:left-nav-switch', {
       option: activeNav
     })
-  }
-
-  switchToDesignMode () {
-    this.setState({ showGlass: true })
-  }
-
-  switchToCodeMode () {
-    this.setState({ showGlass: false })
   }
 
   authenticateUser (username, password, cb) {
@@ -1465,8 +1456,8 @@ export default class Creator extends React.Component {
     this.setState({ readyForAuth: true, isUserAuthenticated: false, username: '' })
   }
 
-  // Check if currently edited file is open
   tryToChangeCurrentActiveComponent (scenename) {
+    // Delegate to Stage, as it contains nonSavedContentOnCodeEditor state
     this.refs.stage.tryToChangeCurrentActiveComponent(scenename)
   }
 
@@ -1842,8 +1833,8 @@ export default class Creator extends React.Component {
                     artboardDimensions={this.state.artboardDimensions}
                     onProjectPublicChange={(isPublic) => { this.onProjectPublicChange(isPublic) }}
                     showGlass={this.state.showGlass}
-                    onSwitchToCodeMode={() => { this.switchToCodeMode() }}
-                    onSwitchToDesignMode={() => { this.switchToDesignMode() }}
+                    onSwitchToCodeMode={() => { this.setState({ showGlass: false }) }}
+                    onSwitchToDesignMode={() => { this.setState({ showGlass: true }) }}
                     tryToChangeCurrentActiveComponent={this.tryToChangeCurrentActiveComponent}
                   />
                   {(this.state.assetDragging)

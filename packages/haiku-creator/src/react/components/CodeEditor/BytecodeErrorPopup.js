@@ -23,10 +23,6 @@ const STYLES = {
 }
 
 class BytecodeErrorPopup extends React.Component {
-  constructor (props) {
-    super(props)
-   }
-
   render () {
     return (
       <div style={STYLES.wrapper}>
@@ -35,7 +31,7 @@ class BytecodeErrorPopup extends React.Component {
             <h2>Cannot save file</h2>
           </ModalHeader>
           <div style={STYLES.modalBody}>
-            Can't save inconsistent changes. Error message: {this.props.currentBytecodeErrorString}. 
+            Can't save inconsistent changes. Error message: {this.props.currentBytecodeErrorString}.
             Fix it and try again.
           </div>
           <br />
@@ -56,7 +52,7 @@ class BytecodeErrorPopup extends React.Component {
                   }
                 ]}
               >
-              <span>Close</span>
+                <span>Close</span>
               </button>
             </div>
           </ModalFooter>

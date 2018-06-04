@@ -4,8 +4,6 @@ const overrideModulesLoaded = require('./../utils/overrideModulesLoaded')
 const Lock = require('./Lock')
 const logger = require('./../utils/LoggerInstance')
 
-
-
 const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source'
 const HAIKU_VAR_ATTRIBUTE = 'haiku-var'
 
@@ -141,7 +139,6 @@ class ModuleWrapper extends BaseModel {
   load () {
     overrideModulesLoaded(
       (stop) => {
-        console.log('************************ loading', this.getAbspath())
         this.isolatedClearCache()
         this.exp = require(this.getAbspath())
         this._hasLoadedAtLeastOnce = true
@@ -360,38 +357,42 @@ ModuleWrapper.doesRelpathLookLikeInstalledComponent = (relpath) => {
   return parts[0] === '@haiku'
 }
 
-
-
+/**
+ * Enable loading module from string. Used to check if currently editing file can be required.
+ */
 ModuleWrapper.requireFromString = (code, filename, opts) => {
   if (typeof filename === 'object') {
-    opts = filename;
-    filename = undefined;
+    opts = filename
+    filename = undefined
   }
 
-  opts = opts || {};
-  filename = filename || '';
+  opts = opts || {}
+  filename = filename || ''
 
-  opts.appendPaths = opts.appendPaths || [];
-  opts.prependPaths = opts.prependPaths || [];
+  opts.appendPaths = opts.appendPaths || []
+  opts.prependPaths = opts.prependPaths || []
 
   if (typeof code !== 'string') {
-    throw new Error('code must be a string, not ' + typeof code);
+    throw new Error('code must be a string, not ' + typeof code)
   }
 
-  var paths = Module._nodeModulePaths(path.dirname(filename));
+  var paths = Module._nodeModulePaths(path.dirname(filename))
 
-  var parent = module.parent;
-  var m = new Module(filename, parent);
-  m.filename = filename;
-  m.paths = [].concat(opts.prependPaths).concat(paths).concat(opts.appendPaths);
-  m._compile(code, filename);
+  var parent = module.parent
+  var m = new Module(filename, parent)
+  m.filename = filename
+  m.paths = [].concat(opts.prependPaths).concat(paths).concat(opts.appendPaths)
+  m._compile(code, filename)
 
-  var exports = m.exports;
-  parent && parent.children && parent.children.splice(parent.children.indexOf(m), 1);
+  var exports = m.exports
+  parent && parent.children && parent.children.splice(parent.children.indexOf(m), 1)
 
-  return exports;
-};
+  return exports
+}
 
+/**
+ * Test load bytecode by requiring it. Used to check if currently editing file can be required.
+ */
 ModuleWrapper.testLoadBytecode = (contents, absPath) => {
   var loadedBytecode = null
   overrideModulesLoaded(
@@ -404,8 +405,6 @@ ModuleWrapper.testLoadBytecode = (contents, absPath) => {
   )
   return loadedBytecode
 }
-
-
 
 ModuleWrapper.REF_TYPES = {
   COMPONENT: 'component'

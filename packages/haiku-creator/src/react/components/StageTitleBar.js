@@ -147,6 +147,8 @@ class StageTitleBar extends React.Component {
     this.handleMergeResolveTheirs = this.handleMergeResolveTheirs.bind(this)
     this.handleShowEventHandlersEditor = this.handleShowEventHandlersEditor.bind(this)
     this.handleConglomerateComponent = this.handleConglomerateComponent.bind(this)
+    this.handleSaveOnRawCodeEditor = this.handleSaveOnRawCodeEditor.bind(this)
+    this.handleSaveOnGlass = this.handleSaveOnGlass.bind(this)
 
     this._isMounted = false
 
@@ -166,34 +168,19 @@ class StageTitleBar extends React.Component {
       snapshotPublished: true
     }
 
-    ipcRenderer.on('global-menu:show-project-location-toast', () => {
+    ipcRenderer.on('global-menu:save', () => {
       if (!this._isMounted) {
         return
       }
 
-      const noticeNotice = this.props.createNotice({
-        type: 'info',
-        title: 'Snapshot saved',
-        message: (
-          <p>
-            <span
-              style={STYLES.link2}
-              onClick={() => {
-                shell.showItemInFolder(this.props.folder)
-              }}
-            >
-              View in Finder
-            </span>
-          </p>
-        )
-      })
-
-      window.setTimeout(() => {
-        this.props.removeNotice(undefined, noticeNotice.id)
-      }, 2500)
+      if (this.props.showGlass) {
+        this.handleSaveOnGlass()
+      } else {
+        this.handleSaveOnRawCodeEditor()
+      }
     })
 
-    ipcRenderer.on('global-menu:save', () => {
+    ipcRenderer.on('global-menu:publish', () => {
       if (!this._isMounted) {
         return
       }
@@ -269,6 +256,33 @@ class StageTitleBar extends React.Component {
       saveStrategy: SNAPSHOT_SAVE_RESOLUTION_STRATEGIES[this.state.snapshotSaveResolutionStrategyName],
       exporterFormats: [ExporterFormat.Bodymovin, ExporterFormat.HaikuStatic]
     }
+  }
+
+  handleSaveOnRawCodeEditor () {
+    this.props.saveCodeFromEditorToDisk()
+  }
+
+  handleSaveOnGlass () {
+    const noticeNotice = this.props.createNotice({
+      type: 'info',
+      title: 'Snapshot saved',
+      message: (
+        <p>
+          <span
+            style={STYLES.link2}
+            onClick={() => {
+              shell.showItemInFolder(this.props.folder)
+            }}
+          >
+            View in Finder
+          </span>
+        </p>
+      )
+    })
+
+    window.setTimeout(() => {
+      this.props.removeNotice(undefined, noticeNotice.id)
+    }, 2500)
   }
 
   handleSaveSnapshotClick () {
@@ -576,9 +590,9 @@ class StageTitleBar extends React.Component {
             <EventsBoltIcon color={this.getEventHandlersEditorButtonColor()} />
           </button>
         }
-        {this.props.showPopupCannotSwitchToDesign &&  
+        {this.props.showPopupCannotSwitchToDesign &&
           <CannotSwitchToDesignPopup
-            closePopupCannotSwitchToDesign={this.props.closePopupCannotSwitchToDesign} 
+            closePopupCannotSwitchToDesign={this.props.closePopupCannotSwitchToDesign}
           />
         }
         <div style={[{display: 'inline-block'}]} >
