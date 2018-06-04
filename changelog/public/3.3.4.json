@@ -1,0 +1,23 @@
+{
+  "date": "May 25, 2018",
+  "sections": {
+    "What's new": [
+      "Components! You can now create reusable components from elements on stage. Just select some elements and choose \"Create Component\" in the element menu.",
+      "Grouping! You can now create groups of elements and transform them together. Select some elements on stage and use ⌘+G to group them. (Use ⌘+Shift+G to ungroup.)",
+      "Improved editing of Sketch artboards: You can now place artboards on stage and ungroup them to independently animate the elements they are composed of.",
+      "Added highlighting to indicate elements which you have hovered in the timeline view.",
+      "Added ability to scale and rotate multiple elements together when multiselected.",
+      "Added ability to rename elements by double clicking their titles in the timeline.",
+      "Added Angular 2/4/5/6/... support via a Haiku adapter. Check the share modal for usage instructions.",
+      "You can now use the up/down arrow keys to increment numeric values in the timeline property fields.",
+      "Added support for importing Figma assets that contain raster images.",
+      "Added ability to open a design asset in Finder using the element context menu on stage."
+    ],
+    "Fixes": [
+      "Fixed an issue which may have prevented users behind a corporate firewall from connecting with Figma.",
+      "Fixed a bug that would result in an error message being shown when clicking on a folder in the library panel.",
+      "Fixed a bug causing a transition to be created when the first keyframe is dragged away from keyframe 0.",
+      "Fixes various issues with the Lottie integration that sometimes resulted in an empty lottie.json export."
+    ]
+  }
+}
