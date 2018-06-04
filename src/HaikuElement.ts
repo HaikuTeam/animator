@@ -217,9 +217,10 @@ export default class HaikuElement extends HaikuBase {
   }
 
   get target (): any {
-    // Assume the first discovered target is the canonical target due to an implementation
-    // detail in the Haiku editing environment; FIXME
-    return this.targets[0];
+    // Assume the most recently added target is the canonical target due to an implementation
+    // detail in the Haiku editing environment; FIXME. On 3 Jun 2018 was changed from the first
+    // added to the last added one to fix a bug related to ungrouping
+    return this.targets[this.targets.length - 1];
   }
 
   get rotationX (): number {
