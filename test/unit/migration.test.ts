@@ -15,10 +15,6 @@ tape(
           metadata: {
             core: '3.2.22',
           },
-          options: {
-            // Necessary for us to be able to see what we're doing!
-            hotEditingMode: true,
-          },
           eventHandlers: {
             foo: {
               click: {
