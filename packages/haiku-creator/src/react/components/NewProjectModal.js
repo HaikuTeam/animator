@@ -9,12 +9,24 @@ import { BTN_STYLES } from '../styles/btnShared'
 const STYLES = {
   loadingScreen: {
     position: 'absolute',
-    height: '340px',
+    height: '450px',
     width: '100%',
     left: '0',
     top: '0',
     zIndex: '99999',
     backgroundColor: Palette.COAL
+  },
+  title: {
+    position: 'absolute',
+    zIndex: '999999',
+    bottom: 23,
+    left: '50%',
+    transform: 'translateX(-50%)',
+    width: '100%',
+    fontSize: 24,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    color: Palette.SUNSTONE
   }
 }
 
@@ -84,10 +96,13 @@ class NewProjectModal extends React.PureComponent {
         <div style={DASH_STYLES.modal} onClick={(e) => e.stopPropagation()}>
           {
             this.state.isLoading && (
-              <div style={STYLES.loadingScreen}>
-                <Hai loop sizing={'contain'} contextMenu={'disabled'} onHaikuComponentWillUnmount={(component) => {
+              <div style={{height: 120}}>
+                <div style={STYLES.loadingScreen}>
+                  <Hai loop sizing={'contain'} contextMenu={'disabled'} onHaikuComponentWillUnmount={(component) => {
                   component.context.destroy()
-                }} />
+                }}/>
+                </div>
+                <div style={STYLES.title}>Initializing project...</div>
               </div>
             )
           }
