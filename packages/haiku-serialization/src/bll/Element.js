@@ -1696,8 +1696,6 @@ class Element extends BaseModel {
         const originX = boundingBox.width / 2
         const originY = boundingBox.height / 2
         const layoutMatrix = descendantHaikuElement.layoutMatrix
-        const boundingBoxPoint = {x: boundingBox.x, y: boundingBox.y, z: 0}
-        Element.transformPointInPlace(boundingBoxPoint, layoutMatrix)
         layoutMatrix[12] += (boundingBox.x + originX) * layoutMatrix[0] + (boundingBox.y + originY) * layoutMatrix[4]
         layoutMatrix[13] += (boundingBox.x + originX) * layoutMatrix[1] + (boundingBox.y + originY) * layoutMatrix[5]
         const layoutAncestryMatrices = descendantHaikuElement.layoutAncestryMatrices
@@ -1713,7 +1711,7 @@ class Element extends BaseModel {
           // is clipped.
           'style.overflow': 'visible',
           [HAIKU_SOURCE_ATTRIBUTE]: `${svgElement.attributes[HAIKU_SOURCE_ATTRIBUTE]}#${descendantHaikuElement.id}`,
-          [HAIKU_TITLE_ATTRIBUTE]: descendantHaikuElement.title || descendantHaikuElement.id
+          [HAIKU_TITLE_ATTRIBUTE]: descendantHaikuElement[HAIKU_TITLE_ATTRIBUTE] || descendantHaikuElement.title || descendantHaikuElement.id
         }
 
         composedTransformsToTimelineProperties(parentAttributes, layoutAncestryMatrices)
@@ -1733,7 +1731,7 @@ class Element extends BaseModel {
               attributes: Object.assign(
                 attributes,
                 {
-                  transform: `translate(${-boundingBoxPoint.x} ${-boundingBoxPoint.y})`
+                  transform: `translate(${-boundingBox.x} ${-boundingBox.y})`
                 }
               ),
               children: [Object.assign(
