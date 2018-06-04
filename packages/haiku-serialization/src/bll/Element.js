@@ -1688,7 +1688,11 @@ class Element extends BaseModel {
           return accumulator
         }, {})
 
+        // Note the implementation details of HaikuElement#target, which actually returns
+        // the most recently added target - one of a list of possible DOM targets shared by each
+        // render node
         const boundingBox = descendantHaikuElement.target.getBBox()
+
         const originX = boundingBox.width / 2
         const originY = boundingBox.height / 2
         const layoutMatrix = descendantHaikuElement.layoutMatrix
