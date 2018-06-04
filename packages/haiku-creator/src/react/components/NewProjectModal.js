@@ -99,8 +99,8 @@ class NewProjectModal extends React.PureComponent {
               <div style={{height: 120}}>
                 <div style={STYLES.loadingScreen}>
                   <Hai loop sizing={'contain'} contextMenu={'disabled'} onHaikuComponentWillUnmount={(component) => {
-                  component.context.destroy()
-                }}/>
+                    component.context.destroy()
+                  }} />
                 </div>
                 <div style={STYLES.title}>Initializing project...</div>
               </div>
