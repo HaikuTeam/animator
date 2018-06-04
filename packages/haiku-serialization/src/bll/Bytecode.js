@@ -10,6 +10,7 @@ const reifyRO = require('@haiku/core/lib/reflection/reifyRO').default
 const logger = require('haiku-serialization/src/utils/LoggerInstance')
 
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
+const HAIKU_TITLE_ATTRIBUTE = 'haiku-title'
 const DEFAULT_TIMELINE_NAME = 'Default'
 const DEFAULT_TIMELINE_TIME = 0
 const DEFAULT_ROOT_NODE_NAME = 'div'
@@ -150,6 +151,7 @@ Bytecode.padIds = (bytecode, padderFunction) => {
       fixedReferences[haikuId] = fixedHaikuId
       node.attributes[HAIKU_ID_ATTRIBUTE] = fixedReferences[haikuId]
     }
+
     const domId = node.attributes.id
     if (domId) {
       const fixedDomId = padderFunction(domId)
@@ -157,6 +159,14 @@ Bytecode.padIds = (bytecode, padderFunction) => {
       fixedReferences[`url(#${domId})`] = `url(#${fixedDomId})` // filter="url(...)"
       fixedReferences[`#${domId}`] = `#${fixedDomId}` // xlink:href="#path-3-abc123"
       node.attributes.id = fixedReferences[domId]
+
+      // Sketch outputs layer names as element ids, which are usually human friendly.
+      // That human friendly element id is used downstream as a label for display, so
+      // we need to retain it for display purposes since we've just clobbered it here.
+      // #FIXME: In lieu of the refactoring this to build it the right way, this is my hack.
+      if (!node.attributes[HAIKU_TITLE_ATTRIBUTE]) {
+        node.attributes[HAIKU_TITLE_ATTRIBUTE] = domId
+      }
     }
   })
 

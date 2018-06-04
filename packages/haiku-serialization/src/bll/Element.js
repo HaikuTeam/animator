@@ -1711,7 +1711,7 @@ class Element extends BaseModel {
           // is clipped.
           'style.overflow': 'visible',
           [HAIKU_SOURCE_ATTRIBUTE]: `${svgElement.attributes[HAIKU_SOURCE_ATTRIBUTE]}#${descendantHaikuElement.id}`,
-          [HAIKU_TITLE_ATTRIBUTE]: descendantHaikuElement.title || descendantHaikuElement.id
+          [HAIKU_TITLE_ATTRIBUTE]: descendantHaikuElement[HAIKU_TITLE_ATTRIBUTE] || descendantHaikuElement.title || descendantHaikuElement.id
         }
 
         composedTransformsToTimelineProperties(parentAttributes, layoutAncestryMatrices)
