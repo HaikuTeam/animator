@@ -4,11 +4,7 @@
  * 
  * TODO: Move this file to haiku-creator
  */
-
-// TODO: component constructor parameter is a HaikuComponent, but haiku-common 
-// is compiled first than haiku-core, giving a compilation error. Fix it when
-// moving this file to haiku-creator
-// import HaikuComponent from '@haiku/core/lib/HaikuComponent';
+import HaikuComponent from '@haiku/core/lib/HaikuComponent';
 
 
 export enum SustainedWarningKind {
@@ -35,7 +31,7 @@ export default class SustainedWarningChecker {
   // checking warning types for method like isIdentifierMissing() )
   private identifierNotFoundWarnings: SustainedWarning[] = [];
   
-  constructor(private readonly component) {}
+  constructor(private readonly component: HaikuComponent) {}
 
   /**
    * Transverse injected HaikuBytecode and check if all injected 
@@ -60,7 +56,7 @@ export default class SustainedWarningChecker {
             if (typeof maybeFunc.value === 'function') {
               const funcParams = maybeFunc.value.specification.params;
               
-              funcParams.forEach((param) => {
+              funcParams.forEach((param: string) => {
                 // If function parameter param is not found in injectables list, create a 
                 // SustainedWarning with type SustainedWarningKind.IdentifierNotFound
                 if (injectables.indexOf(param) < 0) {
