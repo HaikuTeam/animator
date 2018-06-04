@@ -3902,7 +3902,8 @@ class ActiveComponent extends BaseModel {
           hardReload: this.project.isRemoteRequest(metadata),
           forceFlush: true,
           clearCacheOptions: {
-            doClearEntityCaches: true
+            doClearEntityCaches: true,
+            clearStates: true
           }
         }, null, () => {
           fire()
@@ -3934,7 +3935,8 @@ class ActiveComponent extends BaseModel {
           hardReload: this.project.isRemoteRequest(metadata),
           forceFlush: true,
           clearCacheOptions: {
-            doClearEntityCaches: true
+            doClearEntityCaches: true,
+            clearStates: true
           }
         }, null, () => {
           fire()
