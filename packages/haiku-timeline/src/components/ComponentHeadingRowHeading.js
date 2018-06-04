@@ -32,7 +32,9 @@ export default class ComponentHeadingRowHeading extends React.Component {
     if (!this.mounted) return null
     if (
       what === 'row-hovered' ||
-      what === 'row-unhovered'
+      what === 'row-unhovered' ||
+      what === 'element-selected' ||
+      what === 'element-unselected'
     ) {
       this.forceUpdate()
     } else if (what === 'row-set-title') {
@@ -83,13 +85,24 @@ export default class ComponentHeadingRowHeading extends React.Component {
 
     return (
       (this.props.row.isRootRow())
-        ? (<div style={{height: 27, display: 'inline-block', transform: 'translateY(1px)'}}>
-          <span style={{marginRight: 4, display: 'inline-block', transform: 'translateY(4px)'}}>
+        ? (<div
+          className='component-heading-row-heading-root-box'
+          style={{
+            height: 27,
+            display: 'inline-block',
+            transform: 'translateY(1px)'}}>
+          <span
+            className='component-heading-row-heading-root-icon-box'
+            style={{
+              marginRight: 4,
+              display: 'inline-block',
+              transform: 'translateY(4px)'}}>
             <ComponentIconSVG />
           </span>
           {trunc(this.state.rowTitle, 12)}
         </div>)
         : (<span
+          className='component-heading-row-heading-child-box'
           style={{
             color,
             position: 'relative',
@@ -100,6 +113,7 @@ export default class ComponentHeadingRowHeading extends React.Component {
             height: 20
           }}>
           <span
+            className='component-heading-row-heading-child-icon-box'
             style={{
               position: 'absolute',
               display: 'inline-block',
@@ -123,7 +137,6 @@ export default class ComponentHeadingRowHeading extends React.Component {
               width: 160
             }}
             onClick={(clickEvent) => {
-              clickEvent.stopPropagation()
               if (!this.onExpandTimeout) {
                 this.onExpandTimeout = setTimeout(this.props.onExpand, DOUBLE_CLICK_WAIT_DELAY_MS)
               }

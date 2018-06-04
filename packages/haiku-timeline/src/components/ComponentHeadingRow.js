@@ -119,9 +119,11 @@ export default class ComponentHeadingRow extends React.Component {
             backgroundColor: this.props.isExpanded ? 'transparent' : Palette.LIGHT_GRAY
           }}>
           <div
+            className='component-heading-row-inner-r1'
             style={{
               height: this.props.rowHeight,
-              marginTop: -6
+              marginTop: -6,
+              maxWidth: (this.props.row.isRootRow()) ? '120px' : undefined
             }}
             onClick={(clickEvent) => {
               // Collapse/expand the entire component area when it is clicked
@@ -132,6 +134,7 @@ export default class ComponentHeadingRow extends React.Component {
             }}
           >
             <span
+              className='component-heading-chevron-box'
               style={{
                 display: 'inline-block',
                 transform: this.props.row.isRootRow() ? 'translate(0, -1px)' : 'translate(30px, -1px)'
@@ -174,18 +177,21 @@ export default class ComponentHeadingRow extends React.Component {
             />
           </div>
           <div
+            className='component-heading-row-inner-r2'
             style={
               this.props.isExpanded
                 ? {
                   marginLeft: '37px',
                   marginTop: '4px',
                   position: 'relative',
-                  height: '20px'
+                  height: '20px',
+                  maxWidth: '100px'
                 }
                 : {float: 'right', marginTop: '-15px', position: 'relative'}
             }
           >
             <div
+              className='event-handler-triggerer-button'
               style={{
                 width: 10,
                 position: 'absolute',
@@ -203,6 +209,7 @@ export default class ComponentHeadingRow extends React.Component {
             </div>
 
             <div
+              className='property-manager-button'
               style={{
                 width: 10,
                 position: 'absolute',

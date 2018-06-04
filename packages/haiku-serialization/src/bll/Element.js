@@ -74,8 +74,6 @@ class Element extends BaseModel {
 
   afterInitialize () {
     // Make sure we add to the appropriate collections to avoid unexpected state issues
-    if (this.isHovered()) Element.hovered[this.getPrimaryKey()] = this
-    if (this.isSelected()) Element.selected[this.getPrimaryKey()] = this
     this.populateVisiblePropertiesFromKeyframes()
   }
 
@@ -91,10 +89,10 @@ class Element extends BaseModel {
   }
 
   hoverOn (metadata, softly = false) {
-    if (!this._isHovered || !Element.hovered[this.getPrimaryKey()]) {
+    if (!this._isHovered) {
       this.cache.clear()
       this._isHovered = true
-      Element.hovered[this.getPrimaryKey()] = this
+
       if (!softly) {
         this.emit('update', 'element-hovered', metadata)
       }
@@ -107,10 +105,10 @@ class Element extends BaseModel {
   }
 
   hoverOff (metadata, softly = false) {
-    if (this._isHovered || Element.hovered[this.getPrimaryKey()]) {
+    if (this._isHovered) {
       this.cache.clear()
       this._isHovered = false
-      delete Element.hovered[this.getPrimaryKey()]
+
       if (!softly) {
         this.emit('update', 'element-unhovered', metadata)
       }
@@ -126,20 +124,19 @@ class Element extends BaseModel {
   }
 
   select (metadata, softly = false) {
-    if (!this._isSelected || !Element.selected[this.getPrimaryKey()]) {
+    if (!this._isSelected) {
       this._isSelected = true
-      Element.selected[this.getPrimaryKey()] = this
 
       if (softly) {
         this.emit('update', 'element-selected-softly', metadata)
       } else {
-        this.emit('update', 'element-selected', metadata)
-
         // Roundabout! Note that rows, when selected, will select their corresponding element
         const row = this.getHeadingRow()
         if (row) {
           row.expandAndSelect(metadata)
         }
+
+        this.emit('update', 'element-selected', metadata)
       }
     }
   }
@@ -154,19 +151,19 @@ class Element extends BaseModel {
   }
 
   unselect (metadata, softly = false) {
-    if (this._isSelected || Element.selected[this.getPrimaryKey()]) {
+    if (this._isSelected) {
       this._isSelected = false
-      delete Element.selected[this.getPrimaryKey()]
+
       if (softly) {
         this.emit('update', 'element-unselected-softly', metadata)
       } else {
-        this.emit('update', 'element-unselected', metadata)
-
         // Roundabout! Note that rows, when deselected, will deselect their corresponding element
         const row = this.getHeadingRow()
         if (row && row.isSelected()) {
           row.deselect(metadata)
         }
+
+        this.emit('update', 'element-unselected', metadata)
       }
 
       // #FIXME: this is a bit overzealous.
@@ -1691,7 +1688,11 @@ class Element extends BaseModel {
           return accumulator
         }, {})
 
+        // Note the implementation details of HaikuElement#target, which actually returns
+        // the most recently added target - one of a list of possible DOM targets shared by each
+        // render node
         const boundingBox = descendantHaikuElement.target.getBBox()
+
         const originX = boundingBox.width / 2
         const originY = boundingBox.height / 2
         const layoutMatrix = descendantHaikuElement.layoutMatrix
@@ -1710,7 +1711,7 @@ class Element extends BaseModel {
           // is clipped.
           'style.overflow': 'visible',
           [HAIKU_SOURCE_ATTRIBUTE]: `${svgElement.attributes[HAIKU_SOURCE_ATTRIBUTE]}#${descendantHaikuElement.id}`,
-          [HAIKU_TITLE_ATTRIBUTE]: descendantHaikuElement.title || descendantHaikuElement.id
+          [HAIKU_TITLE_ATTRIBUTE]: descendantHaikuElement[HAIKU_TITLE_ATTRIBUTE] || descendantHaikuElement.title || descendantHaikuElement.id
         }
 
         composedTransformsToTimelineProperties(parentAttributes, layoutAncestryMatrices)
@@ -1748,7 +1749,9 @@ class Element extends BaseModel {
               )]
             }
           ]
-        }, {resetIds: true}))
+          // Formerly resetIds was set to `true` but removing that setting seems to fix both
+          // SVG rendering bugs as well as a bug that prevents deletion of ungrouped elements
+        }, {resetIds: false}))
 
         return false
       })
@@ -1798,8 +1801,6 @@ Element.DEFAULT_OPTIONS = {
 
 BaseModel.extend(Element)
 
-Element.selected = {}
-Element.hovered = {}
 Element.directlySelected = null
 
 Element.cache = {
