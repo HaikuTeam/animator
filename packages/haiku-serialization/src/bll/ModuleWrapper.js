@@ -4,6 +4,8 @@ const overrideModulesLoaded = require('./../utils/overrideModulesLoaded')
 const Lock = require('./Lock')
 const logger = require('./../utils/LoggerInstance')
 
+
+
 const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source'
 const HAIKU_VAR_ATTRIBUTE = 'haiku-var'
 
@@ -357,6 +359,53 @@ ModuleWrapper.doesRelpathLookLikeInstalledComponent = (relpath) => {
   const parts = path.normalize(relpath).split(path.sep)
   return parts[0] === '@haiku'
 }
+
+
+
+ModuleWrapper.requireFromString = (code, filename, opts) => {
+  if (typeof filename === 'object') {
+    opts = filename;
+    filename = undefined;
+  }
+
+  opts = opts || {};
+  filename = filename || '';
+
+  opts.appendPaths = opts.appendPaths || [];
+  opts.prependPaths = opts.prependPaths || [];
+
+  if (typeof code !== 'string') {
+    throw new Error('code must be a string, not ' + typeof code);
+  }
+
+  var paths = Module._nodeModulePaths(path.dirname(filename));
+
+  var parent = module.parent;
+  var m = new Module(filename, parent);
+  m.filename = filename;
+  m.paths = [].concat(opts.prependPaths).concat(paths).concat(opts.appendPaths);
+  m._compile(code, filename);
+
+  var exports = m.exports;
+  parent && parent.children && parent.children.splice(parent.children.indexOf(m), 1);
+
+  return exports;
+};
+
+ModuleWrapper.testLoadBytecode = (contents, absPath) => {
+  var loadedBytecode = null
+  overrideModulesLoaded(
+    (stop) => {
+      console.log('Test if file content is requirable', absPath)
+      loadedBytecode = ModuleWrapper.requireFromString(contents, absPath)
+      stop()
+    },
+    ModuleWrapper.getHaikuKnownImportMatch
+  )
+  return loadedBytecode
+}
+
+
 
 ModuleWrapper.REF_TYPES = {
   COMPONENT: 'component'

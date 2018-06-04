@@ -6,6 +6,8 @@ import React from 'react'
 import Radium from 'radium'
 import MonacoEditor from './MonacoEditor'
 import SaveContentsPopup from './SaveContentsPopup'
+import BytecodeErrorPopup from './BytecodeErrorPopup'
+import ModuleWrapper from 'haiku-serialization/src/bll/ModuleWrapper'
 
 class CodeEditor extends React.Component {
   constructor (props) {
@@ -16,7 +18,9 @@ class CodeEditor extends React.Component {
 
     this.state = {
       currentComponentCode: '',
-      currentEditorContents: ''
+      currentEditorContents: '',
+      currentBytecodeErrorString: '',
+      showBytecodeErrorPopup: false,
     }
   }
 
@@ -53,10 +57,21 @@ class CodeEditor extends React.Component {
 
   saveCodeFromEditorToDisk () {
     const currentEditorContents = this.state.currentEditorContents
+    const activeComponent = this.props.projectModel.getCurrentActiveComponent()
+
+    try {
+      const absPath = activeComponent.fetchActiveBytecodeFile().getAbspath()
+      var loadedBytecode = ModuleWrapper.testLoadBytecode(currentEditorContents, absPath)
+    } catch (error) {
+      this.setState({showBytecodeErrorPopup: true,
+                    currentBytecodeErrorString: `${error.name}: ${error.message}`})
+      return;
+    }
+
     // Save contents to file
-    this.props.projectModel.getCurrentActiveComponent().fetchActiveBytecodeFile().flushContentFromString(currentEditorContents)
+    activeComponent.fetchActiveBytecodeFile().flushContentFromString(currentEditorContents)
     // Force module reload
-    this.props.projectModel.getCurrentActiveComponent().moduleReplace(() => {})
+    activeComponent.moduleReplace(() => {})
   }
 
   render () {
@@ -81,6 +96,11 @@ class CodeEditor extends React.Component {
           targetComponentToChange={this.props.targetComponentToChange}
           setShowPopupToSaveRawEditorContents={this.props.setShowPopupToSaveRawEditorContents}
           saveCodeFromEditorToDisk={this.saveCodeFromEditorToDisk}
+        />}
+      {this.state.showBytecodeErrorPopup &&
+        <BytecodeErrorPopup
+          currentBytecodeErrorString={this.state.currentBytecodeErrorString}
+          closeBytecodeErrorPopup={() => {this.setState({showBytecodeErrorPopup: false})}}
         />}
       <MonacoEditor
         language='javascript'
