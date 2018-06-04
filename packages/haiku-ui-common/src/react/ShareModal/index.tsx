@@ -148,7 +148,7 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
           <ProjectShareDetails
             semverVersion={semverVersion}
             projectName={project.projectName}
-            isDisabled={!this.state.isPublicKnown || !snapshotSyndicated}
+            isDisabled={!this.state.isPublicKnown}
             linkAddress={linkAddress}
             isSnapshotSaveInProgress={isSnapshotSaveInProgress}
             isPublic={this.state.isPublic}
