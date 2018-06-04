@@ -20,6 +20,7 @@ import { ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
 import Element from 'haiku-serialization/src/bll/Element'
 import ElementSelectionProxy from 'haiku-serialization/src/bll/ElementSelectionProxy'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
+import CannotSwitchToDesignPopup from './CodeEditor/CannotSwitchToDesignPopup'
 
 const mixpanel = require('haiku-serialization/src/utils/Mixpanel')
 
@@ -550,8 +551,8 @@ class StageTitleBar extends React.Component {
 
     return (
       <div style={STYLES.frame} className='frame'>
-        {this.isConglomerateComponentAvailable()
-          ? <button
+        {this.isConglomerateComponentAvailable() &&
+          <button
             key='conglomerate-component-button'
             id='conglomerate-component-button'
             onClick={this.handleConglomerateComponent}
@@ -561,10 +562,10 @@ class StageTitleBar extends React.Component {
             ]}>
             <ComponentIconSVG color={this.getConglomerateComponentButtonColor()} />
           </button>
-          : ''}
+        }
 
-        {this.isEventHandlersEditorAvailable()
-          ? <button
+        {this.isEventHandlersEditorAvailable() &&
+          <button
             key='show-event-handlers-editor-button'
             id='show-event-handlers-editor-button'
             onClick={this.handleShowEventHandlersEditor}
@@ -574,7 +575,12 @@ class StageTitleBar extends React.Component {
             ]}>
             <EventsBoltIcon color={this.getEventHandlersEditorButtonColor()} />
           </button>
-          : ''}
+        }
+        {this.props.showPopupCannotSwitchToDesign &&  
+          <CannotSwitchToDesignPopup
+            closePopupCannotSwitchToDesign={this.props.closePopupCannotSwitchToDesign} 
+          />
+        }
         <div style={[{display: 'inline-block'}]} >
           <button
             key='toggle-design'

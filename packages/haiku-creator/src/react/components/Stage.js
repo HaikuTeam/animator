@@ -8,6 +8,7 @@ import CodeEditor from './CodeEditor/CodeEditor'
 import Palette from 'haiku-ui-common/lib/Palette'
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 import {TOUR_CHANNEL} from 'haiku-sdk-creator/lib/tour'
+import { isThisTypeNode } from 'typescript';
 
 const STAGE_BOX_STYLE = {
   overflow: 'hidden',
@@ -29,11 +30,14 @@ export default class Stage extends React.Component {
     this.webview = null
     this.onRequestWebviewCoordinates = this.onRequestWebviewCoordinates.bind(this)
     this.tryToChangeCurrentActiveComponent = this.tryToChangeCurrentActiveComponent.bind(this)
+    this.tryToSwitchToDesign = this.tryToSwitchToDesign.bind(this)
+    this.closePopupCannotSwitchToDesign = this.closePopupCannotSwitchToDesign.bind(this)
 
     this.state = {
       nonSavedContentOnCodeEditor: false,
       targetComponentToChange: '',
-      showPopupToSaveRawEditorContents: false
+      showPopupToSaveRawEditorContents: false,
+      showPopupCannotSwitchToDesign: false
     }
   }
 
@@ -45,6 +49,18 @@ export default class Stage extends React.Component {
     } else {
       this.props.projectModel.setCurrentActiveComponent(scenename, {from: 'creator'}, () => {})
     }
+  }
+
+  tryToSwitchToDesign(){
+    if (this.state.nonSavedContentOnCodeEditor) {
+      this.setState({showPopupCannotSwitchToDesign: true})
+    } else {
+      this.props.onSwitchToDesignMode()
+    }
+  }
+
+  closePopupCannotSwitchToDesign() {
+    this.setState({showPopupCannotSwitchToDesign: false})
   }
 
   componentDidMount () {
@@ -209,8 +225,10 @@ export default class Stage extends React.Component {
             envoyClient={this.props.envoyClient}
             onProjectPublicChange={this.props.onProjectPublicChange}
             onSwitchToCodeMode={this.props.onSwitchToCodeMode}
-            onSwitchToDesignMode={this.props.onSwitchToDesignMode}
+            onSwitchToDesignMode={this.tryToSwitchToDesign}
             showGlass={this.props.showGlass}
+            closePopupCannotSwitchToDesign={this.closePopupCannotSwitchToDesign}
+            showPopupCannotSwitchToDesign={this.state.showPopupCannotSwitchToDesign}
             />
           {(experimentIsEnabled(Experiment.MultiComponentFeatures)) &&
             <ComponentMenu
