@@ -1,4 +1,5 @@
 import React from 'react'
+import Radium from 'radium'
 import qs from 'qs'
 import assign from 'lodash.assign'
 import path from 'path'
@@ -18,12 +19,22 @@ const STAGE_BOX_STYLE = {
   outline: 'none'
 }
 
+const STAGE_FADE_OUT = {
+  transform: 'scale(0.8)',
+  transition: 'visibility 0s linear 240ms, opacity 240ms, transform 240ms'
+}
+
+const STAGE_FADE_IN = {
+  transform: 'scale(1)',
+  transition: 'visibility 0s linear 0s, opacity 240ms, transform 240ms'
+}
+
 // This may not be precisely correct; please test the UI if you enable this experiment
 const STAGE_MOUNT_HEIGHT_OFFSET = (experimentIsEnabled(Experiment.MultiComponentFeatures))
   ? 68
   : 38
 
-export default class Stage extends React.Component {
+class Stage extends React.Component {
   constructor (props) {
     super(props)
     this.webview = null
@@ -245,7 +256,7 @@ export default class Stage extends React.Component {
           <div
             id='stage-mount'
             ref={(element) => { this.mount = element }}
-            style={{
+            style={[{
               position: 'absolute',
               overflow: 'auto',
               width: 'calc(100% - 5px)',
@@ -254,12 +265,14 @@ export default class Stage extends React.Component {
               left: 3,
               backgroundColor: Palette.STAGE_GRAY,
               outline: '2px solid ' + interactionModeColor,
-              visibility: this.props.showGlass ? 'visible' : 'hidden'
-            }} />
+              visibility: this.props.showGlass ? 'visible' : 'hidden',
+              opacity: this.props.showGlass ? 1 : 0},
+              [this.props.showGlass && STAGE_FADE_IN], [!this.props.showGlass && STAGE_FADE_OUT]
+            ]} />
 
           <div
             id='editor-mount'
-            style={{
+            style={[{
               position: 'absolute',
               width: 'calc(100% - 5px)',
               height: `calc(100% - ${STAGE_MOUNT_HEIGHT_OFFSET + 3}px)`,
@@ -267,8 +280,10 @@ export default class Stage extends React.Component {
               left: 3,
               backgroundColor: Palette.STAGE_GRAY,
               outline: '2px solid ' + interactionModeColor,
-              visibility: this.props.showGlass ? 'hidden' : 'visible'
-            }}>
+              visibility: this.props.showGlass ? 'hidden' : 'visible',
+              opacity: this.props.showGlass ? 0 : 1},
+              [!this.props.showGlass && STAGE_FADE_IN], [this.props.showGlass && STAGE_FADE_OUT]
+            ]}>
             <CodeEditor
               ref='codeeditor'
               showGlass={this.props.showGlass}
@@ -301,3 +316,5 @@ Stage.propTypes = {
   username: React.PropTypes.string,
   password: React.PropTypes.string
 }
+
+export default Radium(Stage)

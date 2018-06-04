@@ -1833,8 +1833,8 @@ export default class Creator extends React.Component {
                     artboardDimensions={this.state.artboardDimensions}
                     onProjectPublicChange={(isPublic) => { this.onProjectPublicChange(isPublic) }}
                     showGlass={this.state.showGlass}
-                    onSwitchToCodeMode={() => { this.setState({ showGlass: false }) }}
-                    onSwitchToDesignMode={() => { this.setState({ showGlass: true }) }}
+                    onSwitchToCodeMode={() => { this.setState({activeNav: 'state_inspector', showGlass: false}) }}
+                    onSwitchToDesignMode={() => { this.setState({activeNav: 'library', showGlass: true}) }}
                     tryToChangeCurrentActiveComponent={this.tryToChangeCurrentActiveComponent}
                   />
                   {(this.state.assetDragging)
