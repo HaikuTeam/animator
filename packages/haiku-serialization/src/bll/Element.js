@@ -1709,7 +1709,9 @@ class Element extends BaseModel {
           height: boundingBox.height,
           // Important: in case we have borders that spill outside the bounding box, allow SVG overflow so nothing
           // is clipped.
-          'style.overflow': 'visible',
+          style: {
+            overflow: 'visible'
+          },
           [HAIKU_SOURCE_ATTRIBUTE]: `${svgElement.attributes[HAIKU_SOURCE_ATTRIBUTE]}#${descendantHaikuElement.id}`,
           [HAIKU_TITLE_ATTRIBUTE]: descendantHaikuElement[HAIKU_TITLE_ATTRIBUTE] || descendantHaikuElement.title || descendantHaikuElement.id
         }
@@ -1721,37 +1723,36 @@ class Element extends BaseModel {
         //     to bypass otherwise necessary recomputation of things like path vertices in a new coordinate system.
         //   - Transclude the children of our descendant node to ensure any existing timeline properties are
         //     preserved.
-        nodes.push(Template.cleanMana({
+        const node = Template.cleanMana({
           elementName: 'svg',
           attributes: parentAttributes,
-          children: [
-            ...defs,
-            {
-              elementName: 'g',
-              attributes: Object.assign(
-                attributes,
-                {
-                  transform: `translate(${-boundingBox.x} ${-boundingBox.y})`
-                }
-              ),
-              children: [Object.assign(
-                {},
-                descendantHaikuElement.node,
-                {
-                  attributes: Object.assign(
-                    {
-                      'haiku-transclude': descendantHaikuElement.getComponentId()
-                    },
-                    descendantHaikuElement.attributes
-                  ),
-                  children: []
-                }
-              )]
-            }
-          ]
-          // Formerly resetIds was set to `true` but removing that setting seems to fix both
-          // SVG rendering bugs as well as a bug that prevents deletion of ungrouped elements
-        }, {resetIds: false}))
+          children: [{
+            elementName: 'g',
+            attributes: Object.assign(
+              attributes,
+              {
+                transform: `translate(${-boundingBox.x} ${-boundingBox.y})`
+              }
+            ),
+            children: [Object.assign(
+              {},
+              descendantHaikuElement.node,
+              {
+                attributes: Object.assign(
+                  {
+                    'haiku-transclude': descendantHaikuElement.getComponentId()
+                  },
+                  descendantHaikuElement.attributes
+                ),
+                children: []
+              }
+            )]
+          }]
+        }, {resetIds: true})
+
+        // Important: hold onto the original ID references of our defs (i.e. do NOT reset IDs here).
+        node.children.unshift(...defs.map((def) => Template.cleanMana(def)))
+        nodes.push(node)
 
         return false
       })
