@@ -6695,5 +6695,217 @@
       "label": "fix",
       "message": "for Figma connect results in crash"
     }
+  },
+  "3.4.0": {
+    "00a290f6d6b8a3c66b73289c5c2b66bfe7623863": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Topbar regression; all processes need to know what elements are selected"
+    },
+    "cbeafd07a751aba4f7c8d56696ded59aec838a91": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for Bug"
+    },
+    "38f3cebc77538e79739d4fdff682c2a677b3160d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for Bug"
+    },
+    "0319c1ba4246d94bb2afcdd57e740eb577a4f28d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for Bug"
+    },
+    "ef881687d0f9490f87ff536c09ac154571643c69": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for 'Create Component' should not appear if only element selected is a component (697563057806742)"
+    },
+    "796b22ead40b0088379fc35ecc8528149d6bf992": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for Migration for gotoAndPlay APIs only works in hotEditingMode (694928618918872)"
+    },
+    "5650e8987d845bafc6738081e71dc4a8051b6913": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for Addition of state not reflected in expression (697364565996804)"
+    },
+    "ee464ef872ce7994f25f378315d2b811fe589a5a": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for Bug"
+    },
+    "a049a95b829666c70c0afe8984b077c10e65bc36": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for Ungrouping Moto artboard misplaces moto man and sun (696562098846673)"
+    },
+    "7a1c84957d5224d4b657b36a1c13f84e0f972940": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for Alt+drag to copy not working (696722424445311)"
+    },
+    "196708480be35ed7f9b28ff62bbe5e6a338d49fe": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "enable public/private to be toggled during publish"
+    },
+    "f3f1ea4b7804507c9dea5356163f9cc5af26e3a2": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'When ungrouping elements, use the layers, rather than generated ids'"
+    },
+    "75c07187477ab60f3bef0eb50a9071437c7a82cb": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'Bug"
+    },
+    "1aed721c4cefbc31c076991a98afb4f3b46c4c05": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'Bug"
+    },
+    "398a2703f8062f246ab4b29ee57c33b8203a57c4": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'Instantiation doesn't deselect other elements'"
+    },
+    "2a2296383d377c8478ef620386e9b311def65e4e": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'clicking element titles on timeline is not showing controls on stage'"
+    },
+    "e425ae8c1dc503fa5d605b27b3beed7568fe5408": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'Bug"
+    },
+    "9524e607a1afece2e88be4e7b536a6b15b02826f": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'Bug"
+    },
+    "89b5edf51af3f9a73b89fa7953a651b609c33668": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for insta-crash on duplicate project."
+    },
+    "4598944360f1e45a6c20651ab216dbe58a7811f1": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'Clicking to edit a state value instead edits its name'"
+    },
+    "d730ebcee5885ea9058e4d13260aaa86aa790f97": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'Hard to drag timeline playhead to frame 0'"
+    },
+    "b9cc8e1e11dd8f76c7776fb3e9d9f3c840e66b1e": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'Z-actions and scrubber time fixes'"
+    },
+    "ac26eff23cc5ded2fa37577ac5093a6671adbfa1": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'Undo after deleting multiple tweens at once fails'"
+    },
+    "77d829c6700985a7aecfe129aff19eb2ca9a3247": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'Tiny black dot at top-left of stage when holding mouse down on artboard name'"
+    },
+    "4180962c782f03d1d3b9052381d1ac3e8a86649d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Prevent plumbing crash by ensuring the folder is present on broadcast that originates in creator"
+    },
+    "d579d1b2f76fc84f65dca0c7863e03e99b9ef6e2": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Fix 'Bug"
+    },
+    "4096c79e16db146f90f27efe9407ccfa8136ec94": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Prevent plumbing crash by ensuring the folder is present on broadcast that originates in creator"
+    },
+    "d008f9aac6273ce8a0a344c1875e94dff63ed4cd": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'Bug"
+    },
+    "9bf2e77e8bfdb681e4e3f40a7ffe283dcdd8de41": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'Elements with shadows are clipped'"
+    },
+    "9c39fde428f7127ee78447b1eb9dfb1f40077741": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "Improve UI/X of topbar controls"
+    },
+    "9faf53ff4033c2e31a03be44d1c531ef9ff55fd1": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "'Implement top bar controls'"
+    },
+    "649b9689da2f8a766508e4e196a6ee54e9510caf": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'Fix 'flattenKeys' React error in Creator'"
+    },
+    "1ab7a827c4409552eb6cbe50d63702d36a565ba8": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'controlFlow.placeholder broken in some cases'"
+    },
+    "474f2e26d92d0e3ba8ba962ac0de76888b4721a5": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'Standalone glass not working'"
+    },
+    "6d525c66d9a4da9c116bc3dcbd1af9983d61d88b": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "initial work for direct editing"
+    },
+    "ce8f83bd824d9a11358621d9f392dc810375ab39": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "ship a default illustrator file on new projects"
+    },
+    "becf6992699675b674c6e17c633546e0a9cc9982": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "improve the logic to show hacky messages in library"
+    },
+    "fdbe9554e412c963b0a6df3f541baf46c59c29cf": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "allow illustrator files to be open with doubleclick"
+    },
+    "31fde1ba2e5d7eb42fd031206427b6822f16dc1f": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "improve the illustrator import script"
+    },
+    "95eb40b2ccbf1672a7d6a5d6137395ea0c5560fd": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "illustrator support"
+    },
+    "6a7b68130659869c5be58fcb89e48b2c8dd59a17": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "upload checkstyle result for all builds."
+    },
+    "a185143ac7dfdcbae17cca548e00e457742efb76": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for TypeError crash during interpolation."
+    }
   }
 }
