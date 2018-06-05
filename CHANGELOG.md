@@ -1,6 +1,56 @@
 # Changelog
 
 
+## 3.4.0
+
+### Bug Fixes
+
+ * Topbar regression; all processes need to know what elements are selected
+ * for Bug
+ * for Bug
+ * for Bug
+ * for 'Create Component' should not appear if only element selected is a component (697563057806742)
+ * for Migration for gotoAndPlay APIs only works in hotEditingMode (694928618918872)
+ * for Addition of state not reflected in expression (697364565996804)
+ * for Bug
+ * for Ungrouping Moto artboard misplaces moto man and sun (696562098846673)
+ * for Alt+drag to copy not working (696722424445311)
+ * 'When ungrouping elements, use the layers, rather than generated ids'
+ * 'Bug
+ * 'Bug
+ * 'Instantiation doesn't deselect other elements'
+ * 'clicking element titles on timeline is not showing controls on stage'
+ * 'Bug
+ * 'Bug
+ * for insta-crash on duplicate project.
+ * 'Clicking to edit a state value instead edits its name'
+ * 'Hard to drag timeline playhead to frame 0'
+ * 'Z-actions and scrubber time fixes'
+ * 'Undo after deleting multiple tweens at once fails'
+ * 'Tiny black dot at top-left of stage when holding mouse down on artboard name'
+ * Prevent plumbing crash by ensuring the folder is present on broadcast that originates in creator
+ * Fix 'Bug
+ * Prevent plumbing crash by ensuring the folder is present on broadcast that originates in creator
+ * 'Bug
+ * 'Elements with shadows are clipped'
+ * 'Fix 'flattenKeys' React error in Creator'
+ * 'controlFlow.placeholder broken in some cases'
+ * 'Standalone glass not working'
+ * improve the logic to show hacky messages in library
+ * allow illustrator files to be open with doubleclick
+ * upload checkstyle result for all builds.
+ * for TypeError crash during interpolation.
+
+### Features
+
+ * enable public/private to be toggled during publish
+ * Improve UI/X of topbar controls
+ * 'Implement top bar controls'
+ * initial work for direct editing
+ * ship a default illustrator file on new projects
+ * improve the illustrator import script
+ * illustrator support
+
 ## 3.3.4
 
 ### Bug Fixes
