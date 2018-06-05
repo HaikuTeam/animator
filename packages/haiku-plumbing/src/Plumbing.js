@@ -91,7 +91,8 @@ const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
   teardownMaster: true,
   requestSyndicationInfo: true,
   hoverElement: true,
-  unhoverElement: true
+  unhoverElement: true,
+  describeIntegrityHandler: true
 }
 
 const METHOD_MESSAGES_TIMEOUT = 15000
@@ -115,6 +116,7 @@ const Q_MASTER = { alias: 'master' }
 
 const AWAIT_INTERVAL = 100
 const WAIT_DELAY = 10 * 1000
+const INTEGRITY_CHECK_INTERVAL = 5000
 
 const HAIKU_DEFAULTS = {
   socket: {
@@ -209,6 +211,8 @@ export default class Plumbing extends EventEmitter {
     this.executeMethodMessagesWorker()
 
     emitter.on('teardown-requested', () => this.teardown())
+
+    this.startIntegrityChecker()
   }
 
   /**
@@ -345,6 +349,35 @@ export default class Plumbing extends EventEmitter {
     })
   }
 
+  checkIntegrity (cb) {
+    return this.invokeActionInAllFolders(
+      'describeIntegrityHandler',
+      [{from: 'plumbing'}],
+      cb
+    )
+  }
+
+  startIntegrityChecker () {
+    if (this.integrityChecker) {
+      return
+    }
+
+    this.integrityChecker = setInterval(() => {
+      this.checkIntegrity((err, results) => {
+        if (!err) {
+          logger.info(`[plumbing] integrity`, JSON.stringify(results, null, 2))
+        }
+      })
+    }, INTEGRITY_CHECK_INTERVAL)
+  }
+
+  stopIntegrityChecker () {
+    if (this.integrityChecker) {
+      clearInterval(this.integrityChecker)
+      delete this.integrityChecker
+    }
+  }
+
   removeWebsocketClient (websocket) {
     for (let j = this.clients.length - 1; j >= 0; j--) {
       let client = this.clients[j]
@@ -400,6 +433,31 @@ export default class Plumbing extends EventEmitter {
       { method, params, folder, type: 'action' },
       cb
     )
+  }
+
+  invokeActionInAllFolders (method, params, cb) {
+    const outputs = {}
+
+    return async.eachOfSeries(this.masters, (master, folder, next) => {
+      return this.invokeAction(
+        folder,
+        'describeIntegrityHandler',
+        [{from: 'plumbing'}],
+        (err, results) => {
+          if (err) {
+            return next(err)
+          }
+          outputs[folder] = results
+          return next()
+        }
+      ) 
+    }, (err) => {
+      if (err) {
+        return cb(err)
+      }
+
+      return cb(null, outputs)
+    })
   }
 
   handleRemoteMessage (type, alias, folder, message, cb) {
@@ -1240,22 +1298,34 @@ export default class Plumbing extends EventEmitter {
     // Params always arrive with the folder as the first argument, so we strip that off
     params = params.slice(1)
 
+    const actionOutputs = {}
+
     return async.eachSeries([Q_GLASS, Q_TIMELINE, Q_CREATOR, Q_MASTER], (clientSpec, nextStep) => {
+      const finishStep = (err, actionResult) => {
+        if (err) {
+          return nextStep(err)
+        }
+
+        actionOutputs[clientSpec.alias] = actionResult
+
+        return nextStep()
+      }
+
       if (clientSpec.alias === alias) {
         // Don't send methods that originated with ourself
-        return nextStep()
+        return finishStep()
       }
 
       logActionInitiation(method, clientSpec)
 
       // Master is handled differently because it's not actually a separate process
       if (clientSpec === Q_MASTER) {
-        return this.awaitMasterAndCallMethod(folder, method, params, nextStep)
+        return this.awaitMasterAndCallMethod(folder, method, params, finishStep)
       }
 
-      return this.sendQueriedClientMethod(lodash.assign({folder}, clientSpec), method, params, nextStep)
+      return this.sendQueriedClientMethod(lodash.assign({folder}, clientSpec), method, params, finishStep)
     }, (err) => {
-      return logAndHandleActionResult(err, cb, method, type, alias)
+      return logAndHandleActionResult(err, cb, method, type, alias, actionOutputs)
     })
   }
 }
@@ -1266,19 +1336,25 @@ function logActionInitiation (method, clientSpec) {
   }
 }
 
-function logAndHandleActionResult (err, cb, method, type, alias) {
+function logAndHandleActionResult (err, cb, method, type, alias, outputs) {
   if (!IGNORED_METHOD_MESSAGES[method]) {
     const status = (err) ? 'errored' : 'completed'
     logger.info(`[plumbing] <- client action ${method} from ${type}@${alias} ${status}`, err)
   }
 
   if (err) {
-    if (cb) return cb(err)
-    return void (0)
+    if (cb) {
+      return cb(err)
+    }
+
+    return
   }
 
-  if (cb) return cb()
-  return void (0)
+  if (cb) {
+    return cb(null, outputs)
+  }
+
+  return
 }
 
 Plumbing.prototype.awaitMasterAndCallMethod = function (folder, method, params, cb) {
