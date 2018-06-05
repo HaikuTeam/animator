@@ -11,7 +11,7 @@ const FUNCTION = 'function';
 
 // The inverse of this function is 'expressionToRO'
 
-export default function reifyRO(robj, referenceEvaluator, skipFunctions) {
+export default function reifyRO (robj, referenceEvaluator, skipFunctions) {
   if (robj === undefined) {
     return undefined;
   }

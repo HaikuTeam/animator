@@ -69,7 +69,7 @@ const styleToJSXString = (style) => {
   return out;
 };
 
-function isNumeric(n) {
+function isNumeric (n) {
   return !isNaN(parseFloat(n)) && isFinite(n);
 }
 
@@ -112,7 +112,7 @@ const alreadySerial = (object) => {
   return typeof object === 'string' || typeof object === 'number';
 };
 
-export default function manaToXml(accumulator: string, object, mapping, options): string {
+export default function manaToXml (accumulator: string, object, mapping, options): string {
   let out = accumulator;
 
   if (alreadySerial(object)) {

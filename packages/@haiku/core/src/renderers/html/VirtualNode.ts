@@ -2,12 +2,12 @@ export class VirtualDoc {
   defaultView: any;
   parentWindow: any;
 
-  constructor(win: any) {
+  constructor (win: any) {
     this.defaultView = win;
     this.parentWindow = win;
   }
 
-  createElementNS(namespace: string, name: string): VirtualNode {
+  createElementNS (namespace: string, name: string): VirtualNode {
     return new VirtualNode(
       name,
       {},
@@ -16,7 +16,7 @@ export class VirtualDoc {
     );
   }
 
-  createElement(name: string): VirtualNode {
+  createElement (name: string): VirtualNode {
     return new VirtualNode(
       name,
       {},
@@ -34,12 +34,12 @@ export class VirtualStyle {
   hostNode: VirtualNode;
   properties: any;
 
-  constructor(hostNode: VirtualNode, properties: any) {
+  constructor (hostNode: VirtualNode, properties: any) {
     this.hostNode = hostNode;
     this.properties = properties || {};
   }
 
-  removeProperty(name: string) {
+  removeProperty (name: string) {
     delete this.properties[name];
   }
 }
@@ -70,23 +70,23 @@ export default class VirtualNode {
     this.listeners = {};
   }
 
-  get style(): VirtualStyle {
+  get style (): VirtualStyle {
     return this.attributes.style;
   }
 
-  get childNodes() {
+  get childNodes () {
     return this.children;
   }
 
-  get tagName() {
+  get tagName () {
     return this.elementName.toUpperCase();
   }
 
-  appendChild(child: VirtualNode|string) {
+  appendChild (child: VirtualNode|string) {
     this.children.push(child);
   }
 
-  replaceChild(incoming: any, existing: any) {
+  replaceChild (incoming: any, existing: any) {
     for (let i = this.children.length - 1; i >= 0; i--) {
       if (this.children[i] === existing) {
         this.children.splice(i, 1, incoming);
@@ -94,35 +94,35 @@ export default class VirtualNode {
     }
   }
 
-  removeChild(existing: any) {
+  removeChild (existing: any) {
     for (let i = this.children.length - 1; i >= 0; i--) {
       if (this.children[i] === existing) {
-        this.children.splice(i, 1); 
+        this.children.splice(i, 1);
       }
     }
   }
 
-  removeAttribute(name: string) {
+  removeAttribute (name: string) {
     delete this.attributes[name];
   }
 
-  setAttribute(name: string, value: any) {
+  setAttribute (name: string, value: any) {
     this.attributes[name] = value;
   }
 
-  getAttribute(name: string) {
+  getAttribute (name: string) {
     return this.attributes[name];
   }
 
-  getAttributeNS(ns: string, name: string) {
+  getAttributeNS (ns: string, name: string) {
     return this.attributes[name];
   }
 
-  setAttributeNS(ns: string, name: string, value: any) {
+  setAttributeNS (ns: string, name: string, value: any) {
     this.attributes[name] = value;
   }
 
-  addEventListener(name: string, fn: Function) {
+  addEventListener (name: string, fn: Function) {
     if (!this.listeners[name]) {
       this.listeners[name] = [];
     }
@@ -130,7 +130,7 @@ export default class VirtualNode {
     this.listeners[name].push(fn);
   }
 
-  getBoundingClientRect() {
+  getBoundingClientRect () {
     return {
       top: 1,
       right: 1,

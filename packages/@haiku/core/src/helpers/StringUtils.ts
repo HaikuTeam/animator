@@ -4,7 +4,7 @@
 
 export const ALPHABET = 'abcdefghijklmnopqrstuvwxyz';
 
-export function randomString(len) {
+export function randomString (len) {
   let str = '';
   while (str.length < len) {
     str += ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
