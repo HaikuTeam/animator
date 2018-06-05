@@ -1526,7 +1526,7 @@ class Element extends BaseModel {
       case 'svg':
       case 'div':
         const ungroupables = []
-        this.getHaikuElement().visitDescendants((descendantHaikuElement) => {
+        this.getHaikuElement().visit((descendantHaikuElement) => {
           const eligibleChildren = descendantHaikuElement.children.filter((element) => element.tagName !== 'defs')
           if (eligibleChildren.length > 1) {
             ungroupables.push(...eligibleChildren)
