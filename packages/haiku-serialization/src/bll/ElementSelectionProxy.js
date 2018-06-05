@@ -140,18 +140,17 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   canCreateComponentFromSelection () {
-    return (
-      this.selection.length > 0
-    )
+    return this.selection.length > 0 && !this.isSingleComponentSelected()
+  }
+
+  isSingleComponentSelected () {
+    return this.selection.length === 1 &&
+      this.selection[0] &&
+      this.selection[0].isComponent()
   }
 
   canEditComponentFromSelection () {
-    return (
-      this.selection.length === 1 &&
-      this.selection[0] &&
-      this.selection[0].isComponent() &&
-      this.selection[0].isLocalComponent()
-    )
+    return this.isSingleComponentSelected() && this.selection[0].isLocalComponent()
   }
 
   getSourcePath () {
