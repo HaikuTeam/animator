@@ -15,6 +15,7 @@ class CodeEditor extends React.Component {
 
     this.onMonacoEditorChange = this.onMonacoEditorChange.bind(this)
     this.saveCodeFromEditorToDisk = this.saveCodeFromEditorToDisk.bind(this)
+    this.onProjectModelUpdate = this.onProjectModelUpdate.bind(this)
 
     this.state = {
       currentComponentCode: '',
@@ -24,28 +25,38 @@ class CodeEditor extends React.Component {
     }
   }
 
-  componentWillMount () {
+  onProjectModelUpdate (what, ...args) {
+    switch (what) {
+      case 'reloaded':
+        console.log('reloaded!!!',args)
+        const newComponentCode = this.props.projectModel.getCurrentActiveComponent().fetchActiveBytecodeFile().getCode()
+
+        // If component code changed, update it on Editor
+        // TODO: this logic could be migrated in the future to Monaco Editor
+        // getDerivedStateFromProps on react 16+
+        if (newComponentCode !== this.state.currentComponentCode) {
+          // This probably is portable to getDerivedStateFromProps
+          this.setState({currentComponentCode: newComponentCode, currentEditorContents: newComponentCode}, () => {
+            this.onMonacoEditorChange(newComponentCode, null)
+          })
+        } else {
+          this.setState({currentComponentCode: newComponentCode})
+        }
+        break
+    }
+  }
+
+
+  componentDidMount () {
     if (this.props.projectModel) {
       // Reload monaco contents on component load (eg. changing active component, loading a new project, ..)
-      this.props.projectModel.on('update', (what, ...args) => {
-        switch (what) {
-          case 'reloaded':
-            const newComponentCode = this.props.projectModel.getCurrentActiveComponent().fetchActiveBytecodeFile().getCode()
+      this.props.projectModel.on('update', this.onProjectModelUpdate)
+    }
+  }
 
-            // If component code changed, update it on Editor
-            // TODO: this logic could be migrated in the future to Monaco Editor
-            // getDerivedStateFromProps on react 16+
-            if (newComponentCode !== this.state.currentComponentCode) {
-              // This probably is portable to getDerivedStateFromProps
-              this.setState({currentComponentCode: newComponentCode, currentEditorContents: newComponentCode}, () => {
-                this.onMonacoEditorChange(newComponentCode, null)
-              })
-            } else {
-              this.setState({currentComponentCode: newComponentCode})
-            }
-            break
-        }
-      })
+  componentWillUnmount () {
+    if (this.props.projectModel) {
+      this.props.projectModel.removeListener('update', this.onProjectModelUpdate)
     }
   }
 
@@ -76,7 +87,9 @@ class CodeEditor extends React.Component {
 
     // Save contents to file
     activeComponent.fetchActiveBytecodeFile().flushContentFromString(currentEditorContents)
-    // Force module reload
+    // This module reload is necessary because when switching active component (eg. component 
+    // tab clicking), the file is saved in the disk but contents aren't loaded into memory. By forcing
+    // a module reload, we guarantee that the file is synced with memory
     activeComponent.moduleReplace(() => {})
   }
 

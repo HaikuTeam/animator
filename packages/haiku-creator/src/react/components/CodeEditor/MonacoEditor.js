@@ -15,7 +15,7 @@ class MonacoEditor extends React.Component {
   constructor (props) {
     super(props)
     this.containerElement = undefined
-    this.__current_value = props.value
+    this.currentValue = props.value
     this.onUpdateDimensions = this.updateDimensions.bind(this)
     this.assignRef = this.assignRef.bind(this)
     this.state = {}
@@ -27,14 +27,14 @@ class MonacoEditor extends React.Component {
   }
 
   componentDidUpdate (prevProps) {
-    if (this.props.value !== this.__current_value) {
+    if (this.props.value !== this.currentValue) {
       // Always refer to the latest value
-      this.__current_value = this.props.value
+      this.currentValue = this.props.value
       // Consider the situation of rendering 1+ times before the editor mounted
       if (this.editor) {
-        this.__prevent_trigger_change_event = true
-        this.editor.setValue(this.__current_value)
-        this.__prevent_trigger_change_event = false
+        this.preventTriggerChangeEvent = true
+        this.editor.setValue(this.currentValue)
+        this.preventTriggerChangeEvent = false
       }
     }
     if (prevProps.language !== this.props.language) {
@@ -67,10 +67,10 @@ class MonacoEditor extends React.Component {
       const value = editor.getValue()
 
       // Always refer to the latest value
-      this.__current_value = value
+      this.currentValue = value
 
       // Only invoking when user input changed
-      if (!this.__prevent_trigger_change_event) {
+      if (!this.preventTriggerChangeEvent) {
         this.props.onChange(value, event)
       }
     })
@@ -116,12 +116,11 @@ class MonacoEditor extends React.Component {
    * Update monaco editor dimensions
    */
   updateDimensions () {
-    console.log('Update dimensions')
     this.editor.layout()
   }
 
   destroyMonaco () {
-    if (typeof this.editor !== 'undefined') {
+    if (this.editor) {
       this.editor.dispose()
     }
   }
