@@ -2,10 +2,10 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import {randomString} from '../../helpers/StringUtils';
 import getParsedProperty from '../../helpers/getParsedProperty';
+import {randomString} from '../../helpers/StringUtils';
 
-function clearProps(props): Object {
+function clearProps (props): Object {
   let result = {};
 
   for (const verboseKeyName in props) {
@@ -19,10 +19,8 @@ function clearProps(props): Object {
   return result;
 }
 
-export interface HaikuVueComponent {}
-
 // tslint:disable-next-line:function-name
-export default function HaikuVueDOMAdapter(haikuComponentFactory): HaikuVueComponent {
+export default function HaikuVueDOMAdapter (haikuComponentFactory): {} {
   return {
     props: {
       // We use null (which is the equivalent of 'any') for Boolean values
@@ -56,7 +54,7 @@ export default function HaikuVueDOMAdapter(haikuComponentFactory): HaikuVueCompo
       // LEGACY
       haikuOptions: Object,
     },
-    mounted() {
+    mounted () {
       const clearedProps = clearProps(this.$props);
 
       this.haiku = haikuComponentFactory(this.$el, {
@@ -79,14 +77,14 @@ export default function HaikuVueDOMAdapter(haikuComponentFactory): HaikuVueCompo
         },
       });
     },
-    updated() {
+    updated () {
       const clearedProps = clearProps(this.$props);
       this.haiku.assignConfig(clearedProps);
     },
-    destroyed() {
+    destroyed () {
       this.haiku.callUnmount();
     },
-    render(createElement) {
+    render (createElement) {
       return createElement('div', {
         attrs: {
           id: 'haiku-vueroot-' + randomString(24),

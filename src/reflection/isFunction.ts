@@ -4,6 +4,6 @@
 
 const FUNCTION = 'function';
 
-export default function isFunction(value) {
+export default function isFunction (value) {
   return typeof value === FUNCTION;
 }
