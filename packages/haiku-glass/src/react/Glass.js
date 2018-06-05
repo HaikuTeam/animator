@@ -1539,7 +1539,11 @@ export class Glass extends React.Component {
                   }
                 })
               } else if (!Globals.isControlKeyDown && !Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Alt
-                this.duplicateSelectedElementsThenSelectDuplicates(finish)
+                this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
+                  this.ensureElementIsSelected(elementTargeted, () => {
+                    this.duplicateSelectedElementsThenSelectDuplicates(finish)
+                  })
+                })
               } else if (!Globals.isControlKeyDown && Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Shift
                 this.toggleMultiElementSelection(elementTargeted, finish)
               } else if (!Globals.isControlKeyDown && Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Shift+Alt
