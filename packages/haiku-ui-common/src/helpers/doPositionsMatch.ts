@@ -1,6 +1,6 @@
 import {Position} from './types';
 
-function doPositionsMatch(p1?: Position, p2?: Position) {
+function doPositionsMatch (p1?: Position, p2?: Position) {
   if (!p1) {
     return false;
   }

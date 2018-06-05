@@ -1,8 +1,8 @@
-import * as React from 'react';
 import * as Color from 'color';
+import * as React from 'react';
 import Palette from '../../Palette';
-import {LinkHolster} from './LinkHolster';
 import {TooltipBasic} from '../TooltipBasic';
+import {LinkHolster} from './LinkHolster';
 
 const STYLES = {
   wrapper: {
@@ -110,34 +110,61 @@ const STYLES = {
   },
 } as React.CSSProperties;
 
-export type ProjectShareDetailsProps = {
+export interface ProjectShareDetailsProps {
   semverVersion: string;
   projectName: string;
   linkAddress: string;
   isSnapshotSaveInProgress: boolean;
   isPublic: boolean;
   isDisabled: boolean;
-  togglePublic: Function;
+  togglePublic: () => void;
   mixpanel: any;
-};
+}
 
-export type ProjectShareDetailsStates = {
+export interface ProjectShareDetailsStates {
   showTooltip: boolean;
-};
+}
 
 export class ProjectShareDetails extends React.PureComponent<ProjectShareDetailsProps, ProjectShareDetailsStates> {
   state = {
     showTooltip: false,
   };
 
-  render() {
+  private togglePublic = () => {
+    if (!this.props.isDisabled) {
+      this.props.togglePublic();
+    }
+  };
+
+  private showTooltip = () => {
+    this.setState({showTooltip: true});
+  };
+
+  private hideTooltip = () => {
+    this.setState({showTooltip: false});
+  };
+
+  private onCopy = () => {
+    this.props.mixpanel.haikuTrack('install-options', {
+      from: 'app',
+      event: 'copy-share-link',
+    });
+  };
+
+  private onLinkOpen = () => {
+    this.props.mixpanel.haikuTrack('install-options', {
+      from: 'app',
+      event: 'open-share-link',
+    });
+  };
+
+  render () {
     const {
       projectName,
       semverVersion,
       linkAddress,
       isSnapshotSaveInProgress,
       isPublic,
-      togglePublic,
     } = this.props;
 
     return (
@@ -159,21 +186,24 @@ export class ProjectShareDetails extends React.PureComponent<ProjectShareDetails
           {<span style={{visibility: (this.props.isPublic === undefined && false) ? 'hidden' : 'visible'}}>
             <span
               style={{...STYLES.toggle, ...(isPublic && STYLES.toggleActive)}}
-              onClick={() => {!this.props.isDisabled && togglePublic();}}>
+              onClick={this.togglePublic}
+            >
                 <span style={{...STYLES.knob, ...(isPublic && STYLES.knobActive)}}/>
             </span>
             <span
-              style={{...STYLES.info, ...STYLES.infoSpecial2}} >
+              style={{...STYLES.info, ...STYLES.infoSpecial2}}
+            >
               <span
                 id="public-private-label"
-                style={this.props.isDisabled ? STYLES.disabledToggle : STYLES.toggleLabel}>
+                style={this.props.isDisabled ? STYLES.disabledToggle : STYLES.toggleLabel}
+              >
                 {this.props.isPublic ? 'Public' : 'Private'}
               </span>
             </span>
             <span
               style={STYLES.circle}
-              onMouseOver={() => this.setState({showTooltip: true}) }
-              onMouseOut={() => this.setState({showTooltip: false}) }
+              onMouseOver={this.showTooltip}
+              onMouseOut={this.hideTooltip}
             >?
             {this.state.showTooltip &&
               <TooltipBasic light={true} top={16} width={170}>
@@ -194,18 +224,8 @@ export class ProjectShareDetails extends React.PureComponent<ProjectShareDetails
           <LinkHolster
             isSnapshotSaveInProgress={isSnapshotSaveInProgress}
             linkAddress={linkAddress}
-            onCopy={() => {
-              this.props.mixpanel.haikuTrack('install-options', {
-                from: 'app',
-                event: 'copy-share-link',
-              });
-            }}
-            onLinkOpen={() => {
-              this.props.mixpanel.haikuTrack('install-options', {
-                from: 'app',
-                event: 'open-share-link',
-              });
-            }}
+            onCopy={this.onCopy}
+            onLinkOpen={this.onLinkOpen}
           />
           {
             !this.props.isDisabled &&

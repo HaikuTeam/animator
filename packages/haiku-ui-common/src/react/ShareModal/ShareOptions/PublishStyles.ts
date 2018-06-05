@@ -1,5 +1,5 @@
-import * as React from 'react';
 import * as Color from 'color';
+import * as React from 'react';
 import Palette from '../../../Palette';
 
 export const PUBLISH_SHARED = {

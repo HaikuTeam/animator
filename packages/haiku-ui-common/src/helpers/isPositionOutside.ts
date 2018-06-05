@@ -1,6 +1,6 @@
 import {Position} from './types';
 
-function isPositionOutside(p1: Position, box: ClientRect) {
+function isPositionOutside (p1: Position, box: ClientRect) {
   if (!p1) { return true; }
   if (!box) { return true; }
   const answer = (

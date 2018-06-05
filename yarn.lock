@@ -11084,12 +11084,6 @@ source-map-support@^0.4.0, source-map-support@^0.4.15:
   dependencies:
     source-map "^0.5.6"
 
-source-map-support@^0.5.3:
-  version "0.5.3"
-  resolved "https://registry.yarnpkg.com/source-map-support/-/source-map-support-0.5.3.tgz#2b3d5fff298cfa4d1afd7d4352d569e9a0158e76"
-  dependencies:
-    source-map "^0.6.0"
-
 source-map-support@^0.5.6:
   version "0.5.6"
   resolved "https://registry.yarnpkg.com/source-map-support/-/source-map-support-0.5.6.tgz#4435cee46b1aab62b8e8610ce60f788091c51c13"
@@ -11911,17 +11905,16 @@ ts-loader@^3.1.1:
     micromatch "^3.1.4"
     semver "^5.0.1"
 
-ts-node@^6.0.5:
-  version "6.0.5"
-  resolved "https://registry.yarnpkg.com/ts-node/-/ts-node-6.0.5.tgz#977c1c931da7a2b09ae2930101f0104a5c2271e9"
+ts-node@^6.1.0:
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/ts-node/-/ts-node-6.1.0.tgz#a2c37a11fdb58e60eca887a1269b025cf4d2f8b8"
   dependencies:
     arrify "^1.0.0"
-    chalk "^2.3.0"
     diff "^3.1.0"
     make-error "^1.1.1"
     minimist "^1.2.0"
     mkdirp "^0.5.1"
-    source-map-support "^0.5.3"
+    source-map-support "^0.5.6"
     yn "^2.0.0"
 
 tsconfig-paths@^3.3.2:
@@ -11953,9 +11946,9 @@ tslint-config-airbnb@^5.8.0:
     tslint-eslint-rules "^5.3.1"
     tslint-microsoft-contrib "~5.0.1"
 
-tslint-config-haiku@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/tslint-config-haiku/-/tslint-config-haiku-1.0.2.tgz#4abee69d0aa48a61fd031b8bca6254ccce8acb60"
+tslint-config-haiku@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/tslint-config-haiku/-/tslint-config-haiku-1.0.3.tgz#3ce6b78ff614035e9bd5741e2975ddc2682f07e0"
   dependencies:
     tslib "^1.9.2"
     tslint "^5.10.0"

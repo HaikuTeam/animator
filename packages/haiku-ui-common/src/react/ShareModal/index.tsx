@@ -1,11 +1,11 @@
-import * as React from 'react';
-import {ModalWrapper, ModalHeader, ModalNotice} from '../Modal';
-import {RevealPanel} from '../RevealPanel';
-import {ProjectShareDetails} from './ProjectShareDetails';
-import {EmbedList} from './EmbedList';
-import {EmbedDetails} from './EmbedDetails';
-import {Project} from 'haiku-sdk-creator/lib/bll/Project';
 import {inkstone} from '@haiku/sdk-inkstone';
+import {Project} from 'haiku-sdk-creator/lib/bll/Project';
+import * as React from 'react';
+import {ModalHeader, ModalNotice, ModalWrapper} from '../Modal';
+import {RevealPanel} from '../RevealPanel';
+import {EmbedDetails} from './EmbedDetails';
+import {EmbedList} from './EmbedList';
+import {ProjectShareDetails} from './ProjectShareDetails';
 
 const STYLES: React.CSSProperties = {
   wrapper: {
@@ -18,7 +18,7 @@ const STYLES: React.CSSProperties = {
   },
 };
 
-export type ShareModalProps = {
+export interface ShareModalProps {
   envoyProject: Project;
   project: any;
   error: any;
@@ -33,17 +33,17 @@ export type ShareModalProps = {
   projectUid: string;
   sha: string;
   mixpanel: any;
-  onProjectPublicChange: Function;
-};
+  onProjectPublicChange: (state: boolean) => void;
+}
 
-export type SelectedEntry = {
+export interface SelectedEntry {
   entry: {
     disabled: boolean;
     template: string;
   };
-};
+}
 
-export type ShareModalStates = {
+export interface ShareModalStates {
   selectedEntry?: {
     entry: SelectedEntry;
   };
@@ -51,7 +51,7 @@ export type ShareModalStates = {
   isPublic: boolean;
   showTooltip: boolean;
   isPublicKnown: boolean;
-};
+}
 
 const isNullOrUndefined = (term?: any) => term === null || term === undefined;
 
@@ -61,6 +61,12 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
   static defaultProps = {
     projectUid: '',
     sha: '',
+  };
+
+  private boundTogglePublic = () => this.togglePublic();
+  private boundHideDetails = () => this.hideDetails();
+  private boundOptionClicked = (selectedEntry: {entry: SelectedEntry}) => {
+    this.showDetails(selectedEntry);
   };
 
   constructor (props: ShareModalProps) {
@@ -74,7 +80,7 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
     };
   }
 
-  componentWillReceiveProps(nextProps: ShareModalProps) {
+  componentWillReceiveProps (nextProps: ShareModalProps) {
     if (nextProps.error) {
       this.error = nextProps.error;
     }
@@ -153,7 +159,7 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
             isSnapshotSaveInProgress={isSnapshotSaveInProgress}
             isPublic={this.state.isPublic}
             mixpanel={mixpanel}
-            togglePublic={() => this.togglePublic()}
+            togglePublic={this.boundTogglePublic}
           />
         </ModalHeader>
 
@@ -165,9 +171,7 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
               snapshotSyndicated={snapshotSyndicated}
               snapshotPublished={snapshotPublished}
               mixpanel={mixpanel}
-              onOptionClicked={(selectedEntry: {entry: SelectedEntry}) => {
-                this.showDetails(selectedEntry);
-              }}
+              onOptionClicked={this.boundOptionClicked}
             />
           }
           rightPanel={
@@ -179,9 +183,7 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
               projectUid={projectUid}
               sha={sha}
               mixpanel={mixpanel}
-              onHide={() => {
-                this.hideDetails();
-              }}
+              onHide={this.boundHideDetails}
             />
           }
         />

@@ -1,6 +1,6 @@
 import * as React from 'react';
-import {LinkHolster} from '../LinkHolster';
 import Palette from '../../../Palette';
+import {LinkHolster} from '../LinkHolster';
 
 const STYLES = {
   imgWrapper: {
@@ -15,13 +15,13 @@ const STYLES = {
   },
 };
 
-export type GifProps = {
+export interface GifProps {
   entry: string;
   userName: string;
   organizationName: string;
   projectUid: string;
   sha: string;
-};
+}
 
 const CDN_BASE = 'https://cdn.haiku.ai/';
 
@@ -34,11 +34,11 @@ export default class Gif extends React.PureComponent<GifProps> {
     sha: React.PropTypes.string,
   };
 
-  get cdnBase() {
+  get cdnBase () {
     return `${CDN_BASE + this.props.projectUid}/${this.props.sha}/`;
   }
 
-  render() {
+  render () {
     const gif = `${this.cdnBase}animation.gif`;
 
     return (

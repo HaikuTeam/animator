@@ -1,7 +1,7 @@
 import * as React from 'react';
 import Palette from './../../Palette';
 
-export default ({color = Palette['SUNSTONE']}) => {
+export default ({color = Palette.SUNSTONE}) => {
   return (
     <svg width="20" height="20">
       <path d="M9.5 12c-.827 0-1.5-.673-1.5-1.5S8.673 9 9.5 9s1.5.673 1.5 1.5-.673 1.5-1.5 1.5zm0-2a.5.5 0 1 0 0 1 .5.5 0 0 0 0-1zM12.328 13.828a.5.5 0 0 1-.354-.853c.661-.661 1.025-1.54 1.025-2.475s-.364-1.814-1.025-2.475a.5.5 0 0 1 .707-.707c.85.85 1.318 1.98 1.318 3.182s-.468 2.332-1.318 3.182a.498.498 0 0 1-.354.146z" fill={color}/>

@@ -1,6 +1,6 @@
 import * as React from 'react';
-import * as ShareTemplates from './ShareOptions';
 import {SHARED_STYLES} from '../../SharedStyles';
+import * as ShareTemplates from './ShareOptions';
 
 const STYLES = {
   wrapper: {
@@ -9,7 +9,7 @@ const STYLES = {
   },
 };
 
-export type EmbedDetailsProps = {
+export interface EmbedDetailsProps {
   entry?: any;
   projectName?: string;
   userName?: string;
@@ -18,7 +18,7 @@ export type EmbedDetailsProps = {
   projectUid?: string;
   sha?: string;
   mixpanel?: any;
-};
+}
 
 export class EmbedDetails extends React.PureComponent<EmbedDetailsProps> {
   render () {
