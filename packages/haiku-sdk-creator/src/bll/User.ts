@@ -23,29 +23,31 @@ export enum UserSettings {
 
 export class UserHandler implements User {
 
-  reportActivity() {
+  reportActivity () {
     const authToken = sdkClient.config.getAuthToken();
     // Faked query string to keep squirrel happy.  as this is not genuinely an 'update' check, this shouldn't matter.
-    return inkstone.updates.check(authToken, '?platform=mac&environment=production&branch=master', () => { });
+    return inkstone.updates.check(authToken, '?platform=mac&environment=production&branch=master', () => {
+      // Noop.
+    });
   }
 
-  setConfig(key: string, value: string) {
+  setConfig (key: string, value: string) {
     Registry.setConfig(key, value);
   }
 
-  getConfig(key: string): string {
+  getConfig (key: string): string {
     return Registry.getConfig(key);
   }
 
-  getAuthToken(): string {
+  getAuthToken (): string {
     return sdkClient.config.getAuthToken();
   }
 
-  getUserId(): string {
+  getUserId (): string {
     return sdkClient.config.getUserId();
   }
 
-  getUserDetails(): Promise<inkstone.user.User> {
+  getUserDetails (): Promise<inkstone.user.User> {
     return new Promise<inkstone.user.User>((resolve) => {
       inkstone.user.getDetails(this.getAuthToken(), (err, user) => {
         resolve(user);
