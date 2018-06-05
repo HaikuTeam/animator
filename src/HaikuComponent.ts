@@ -512,8 +512,7 @@ export default class HaikuComponent extends HaikuElement {
     return this.bytecode.timelines[timelineName];
   }
 
-
-  getInjectables(): any {
+  getInjectables (): any {
     const injectables = {};
 
     assign(injectables, this._builder.getSummonablesSchema());
