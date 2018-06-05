@@ -86,7 +86,7 @@ export default class Creator extends React.Component {
     this.disablePreviewMode = this.disablePreviewMode.bind(this)
     this.clearAuth = this.clearAuth.bind(this)
     this.tryToChangeCurrentActiveComponent = this.tryToChangeCurrentActiveComponent.bind(this)
-    
+
     this.layout = new EventEmitter()
     this.activityMonitor = new ActivityMonitor(window, this.onActivityReport.bind(this))
 

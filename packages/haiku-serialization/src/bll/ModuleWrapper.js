@@ -1,4 +1,5 @@
 const path = require('path')
+const fs = require('fs')
 const BaseModel = require('./BaseModel')
 const overrideModulesLoaded = require('./../utils/overrideModulesLoaded')
 const Lock = require('./Lock')
@@ -389,6 +390,12 @@ ModuleWrapper.requireFromString = (code, filename, opts) => {
   parent && parent.children && parent.children.splice(parent.children.indexOf(m), 1)
 
   return exports
+}
+
+ModuleWrapper.requireFromFile = (filename) => {
+  const contents = fs.readFileSync(filename).toString()
+
+  return ModuleWrapper.requireFromString(contents, filename)
 }
 
 /**

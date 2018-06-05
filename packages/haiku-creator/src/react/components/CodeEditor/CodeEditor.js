@@ -28,7 +28,6 @@ class CodeEditor extends React.Component {
   onProjectModelUpdate (what, ...args) {
     switch (what) {
       case 'reloaded':
-        console.log('reloaded!!!',args)
         const newComponentCode = this.props.projectModel.getCurrentActiveComponent().fetchActiveBytecodeFile().getCode()
 
         // If component code changed, update it on Editor
@@ -45,7 +44,6 @@ class CodeEditor extends React.Component {
         break
     }
   }
-
 
   componentDidMount () {
     if (this.props.projectModel) {
@@ -87,7 +85,7 @@ class CodeEditor extends React.Component {
 
     // Save contents to file
     activeComponent.fetchActiveBytecodeFile().flushContentFromString(currentEditorContents)
-    // This module reload is necessary because when switching active component (eg. component 
+    // This module reload is necessary because when switching active component (eg. component
     // tab clicking), the file is saved in the disk but contents aren't loaded into memory. By forcing
     // a module reload, we guarantee that the file is synced with memory
     activeComponent.moduleReplace(() => {})
