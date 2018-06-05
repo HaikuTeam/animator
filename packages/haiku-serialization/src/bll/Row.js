@@ -55,6 +55,7 @@ class Row extends BaseModel {
 
   select (metadata) {
     if (!this._isSelected) {
+      this.deselectOthers(metadata)
       this._isSelected = true
       this.emit('update', 'row-selected', metadata)
 
