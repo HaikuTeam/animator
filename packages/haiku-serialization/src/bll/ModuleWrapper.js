@@ -359,7 +359,7 @@ ModuleWrapper.doesRelpathLookLikeInstalledComponent = (relpath) => {
 }
 
 /**
- * Enable loading module from string. Used to check if currently editing file can be required.
+ * Enable loading module from string.
  * Heavily based on https://github.com/floatdrop/require-from-string
  */
 ModuleWrapper.requireFromString = (code, filename, opts) => {
@@ -392,6 +392,9 @@ ModuleWrapper.requireFromString = (code, filename, opts) => {
   return exports
 }
 
+/**
+ * Enable loading module from file.
+ */
 ModuleWrapper.requireFromFile = (filename) => {
   const contents = fs.readFileSync(filename).toString()
 

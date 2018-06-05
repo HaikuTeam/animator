@@ -30,7 +30,7 @@
     "haiku-ui-common": "3.3.4",
     "lodash": "^4.17.4",
     "moment": "2.18.1",
-    "monaco-editor": "^0.12.0",
+    "monaco-editor": "^0.13.1",
     "prettier": "^0.22.0",
     "pretty": "^2.0.0",
     "qs": "6.4.0",
