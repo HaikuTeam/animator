@@ -1090,11 +1090,15 @@ export default class Creator extends React.Component {
             projectModel.actionStack.resetData()
 
             projectModel.on('update', (what, ...args) => {
-              // logger.info(`[creator] local update ${what}`)
+              // console.info(`[creator] local update ${what}, args:`,args)
 
               switch (what) {
                 case 'setCurrentActiveComponent':
                   this.handleActiveComponentReady()
+                  break
+
+                case 'componentDeactivating':
+                  this.handleComponentDeactivating()
                   break
 
                 case 'setInteractionMode':
@@ -1129,6 +1133,10 @@ export default class Creator extends React.Component {
     })
   }
 
+  handleComponentDeactivating () {
+    this.getActiveComponent().removeAllListeners('sustained-check:start')
+  }
+
   handleActiveComponentReady () {
     this.mountHaikuComponent()
 
@@ -1136,7 +1144,9 @@ export default class Creator extends React.Component {
       subComponents: this.state.projectModel.describeSubComponents()
     })
 
-    // Check sustained warnings.
+    // Reset not found identifiers in case we are switching current active component
+    this.identifiersNotFound = []
+
     this.getActiveComponent().on('sustained-check:start', () => {
       const activeComponent = this.getActiveComponent()
 
@@ -1149,7 +1159,6 @@ export default class Creator extends React.Component {
       // Check sustained warnings
       activeComponent.checkSustainedWarnings()
 
-      // Get current indenfiers not found
       const currentIdentifiersNotFound = activeComponent.sustainedWarningsChecker.notFoundIdentifiers
 
       // If changed, delete current notice and display a new notice if num identifier not found > 0

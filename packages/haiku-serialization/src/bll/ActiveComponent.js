@@ -2261,7 +2261,7 @@ class ActiveComponent extends BaseModel {
       // Use debounce to emit event to trigger sustained warnings check on haiku-creator
       this.emitDebouncedCheckSustainedWarning = lodash.debounce(() => {
         this.emit('sustained-check:start')
-      }, CHECK_SUSTAINED_WARNINGS_DEBOUNCE_TIME)
+      }, CHECK_SUSTAINED_WARNINGS_DEBOUNCE_TIME, {leading: false, trailing: true})
 
       this.setTimelineTimeValue(timelineTime, /* forceSeek= */true)
 
