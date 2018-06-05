@@ -1114,7 +1114,11 @@ class Timeline extends React.Component {
   }
 
   disablePreviewMode () {
-    this.project.setInteractionMode(InteractionMode.EDIT, {from: 'timeline'}, () => {})
+    if (this.state.isPreviewModeActive) {
+      this.project.setInteractionMode(InteractionMode.EDIT, {from: 'timeline'}, () => {
+        this.setState({isPreviewModeActive: false})
+      })
+    }
   }
 
   renderBottomControls () {
@@ -1276,7 +1280,9 @@ class Timeline extends React.Component {
                 zIndex: 999999,
                 backgroundColor: Palette.COAL
               }}
-              onClick={() => { this.disablePreviewMode() }}
+              onClick={() => {
+                this.disablePreviewMode()
+              }}
             />
           )
         }
