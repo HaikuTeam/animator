@@ -938,7 +938,7 @@ export namespace inkstone {
 
       request.post(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
-          cb(undefined, JSON.parse(body) as Project, httpResponse);
+          cb(undefined, body as Project, httpResponse);
         } else {
           cb(safeError(err), undefined, httpResponse);
         }
@@ -957,7 +957,7 @@ export namespace inkstone {
 
       request.put(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
-          cb(undefined, JSON.parse(body) as Project, httpResponse);
+          cb(undefined, body as Project, httpResponse);
         } else {
           cb(safeError(err), undefined, httpResponse);
         }
