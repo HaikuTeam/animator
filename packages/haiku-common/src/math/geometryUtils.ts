@@ -3,30 +3,30 @@
  */
 
 import HaikuElement from '@haiku/core/lib/HaikuElement';
+import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
 import Layout3D from '@haiku/core/lib/Layout3D';
 import create from '@haiku/core/lib/vendor/gl-mat4/create';
 import invert from '@haiku/core/lib/vendor/gl-mat4/invert';
 import {CurveSpec} from '@haiku/core/lib/vendor/svg-points/types';
-import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
 
 // Number of pixels allowance for a line to be selected
 export const DEFAULT_LINE_SELECTION_THRESHOLD = 5;
 // Number of segments to create when approximating a cubic bezier segment
 export const CUBIC_BEZIER_APPROXIMATION_RESOLUTION = 80;
 
-export interface vec2 {
+export interface Vec2 {
   x: number;
   y: number;
 }
 
-export interface vec4 {
+export interface Vec4 {
   x: number;
   y: number;
   z: number;
   w: number;
 }
 
-export const bezierCubic = (a: vec2, h1: vec2, h2: vec2, b: vec2, t: number): vec2 => {
+export const bezierCubic = (a: Vec2, h1: Vec2, h2: Vec2, b: Vec2, t: number): Vec2 => {
   const t2 = t * t;
   const t3 = t2 * t;
   const mt = 1 - t;
@@ -41,7 +41,7 @@ export const bezierCubic = (a: vec2, h1: vec2, h2: vec2, b: vec2, t: number): ve
 export const buildPathLUT = (
   points: CurveSpec[],
   segmentResolution: number = CUBIC_BEZIER_APPROXIMATION_RESOLUTION,
-): [vec2[], boolean] => {
+): [Vec2[], boolean] => {
   const out = [];
   for (let i = 0; i < points.length; i++) {
     if (points[i].moveTo) { continue; } // TODO: Assert that points[0] is moveTo?
@@ -78,8 +78,8 @@ export const splitSegmentInSVGPoints = (
   // tslint:disable-next-line
   if (pt2Index === points.length) { pt2Index = 0; }
 
-  let h1: vec2;
-  let h2: vec2;
+  let h1: Vec2;
+  let h2: Vec2;
   if (points[pt2Index].curve) {
     h1 = {x: points[pt2Index].curve.x1, y: points[pt2Index].curve.y1};
     h2 = {x: points[pt2Index].curve.x2, y: points[pt2Index].curve.y2};
@@ -123,7 +123,7 @@ export const splitSegmentInSVGPoints = (
   return points;
 };
 
-export const pointInsideRect = (pt: vec2, corner1: vec2, corner2: vec2): boolean => {
+export const pointInsideRect = (pt: Vec2, corner1: Vec2, corner2: Vec2): boolean => {
   const c1 = {x: 0, y: 0};
   const c2 = {x: 0, y: 0};
   c1.x = Math.min(corner1.x, corner2.x);
@@ -133,16 +133,15 @@ export const pointInsideRect = (pt: vec2, corner1: vec2, corner2: vec2): boolean
   return pt.x >= c1.x && pt.x <= c2.x && pt.y >= c1.y && pt.y <= c2.y;
 };
 
-export const distance = (a: vec2, b: vec2): number => {
+export const distance = (a: Vec2, b: Vec2): number => {
   return Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2));
 };
 
-const evenOddRaycastPointInPolygon = (points: vec2[], test: vec2): boolean => {
+const evenOddRaycastPointInPolygon = (points: Vec2[], test: Vec2): boolean => {
   let intersections = 0;
   let j;
   for (let i = 0; i < points.length; i++) {
-    if (i === 0) { j = points.length - 1; }
-    else { j = i - 1; }
+    if (i === 0) { j = points.length - 1; } else { j = i - 1; }
 
     if ((points[i].y > test.y) !== (points[j].y > test.y) &&
       (test.x < (points[j].x - points[i].x) * (test.y - points[i].y) / (points[j].y - points[i].y) + points[i].x)) {
@@ -153,31 +152,31 @@ const evenOddRaycastPointInPolygon = (points: vec2[], test: vec2): boolean => {
   return intersections % 2 === 1;
 };
 
-const vec2Add = (a: vec2, b: vec2): vec2 => {
+const vec2Add = (a: Vec2, b: Vec2): Vec2 => {
   return {x: a.x + b.x, y: a.y + b.y};
 };
 
-const vec2Sub = (a: vec2, b: vec2): vec2 => {
+const vec2Sub = (a: Vec2, b: Vec2): Vec2 => {
   return {x: a.x - b.x, y: a.y - b.y};
 };
 
-const vec2MulScalar = (a: vec2, n: number): vec2 => {
+const vec2MulScalar = (a: Vec2, n: number): Vec2 => {
   return {x: a.x * n, y: a.y * n};
 };
 
-const vec2DivScalar = (a: vec2, n: number): vec2 => {
+const vec2DivScalar = (a: Vec2, n: number): Vec2 => {
   return {x: a.x / n, y: a.y / n};
 };
 
-const vec2Dot = (a: vec2, b: vec2): number => {
+const vec2Dot = (a: Vec2, b: Vec2): number => {
   return a.x * b.x + a.y * b.y;
 };
 
-const vec2Mag = (a: vec2): number => {
+const vec2Mag = (a: Vec2): number => {
   return Math.sqrt(a.x * a.x + a.y * a.y);
 };
 
-const vec2Normalize = (a: vec2): vec2 => {
+const vec2Normalize = (a: Vec2): Vec2 => {
   const mag = vec2Mag(a);
   if (mag) {
     return vec2DivScalar(a, mag);
@@ -185,7 +184,7 @@ const vec2Normalize = (a: vec2): vec2 => {
   return a;
 };
 
-export const closestNormalPointOnLineSegment = (a: vec2, b: vec2, test: vec2): vec2 => {
+export const closestNormalPointOnLineSegment = (a: Vec2, b: Vec2, test: Vec2): Vec2 => {
   const at = vec2Sub(test, a);
   const ab = vec2Normalize(vec2Sub(b, a));
   let normalPoint = vec2Add(a, vec2MulScalar(ab, vec2Dot(at, ab)));
@@ -204,13 +203,13 @@ export const closestNormalPointOnLineSegment = (a: vec2, b: vec2, test: vec2): v
 };
 
 export const pointOnLineSegment = (
-  a: vec2, b: vec2, test: vec2,
+  a: Vec2, b: Vec2, test: Vec2,
   threshold: number = DEFAULT_LINE_SELECTION_THRESHOLD): boolean => {
   return distance(closestNormalPointOnLineSegment(a, b, test), test) <= threshold;
 };
 
 export const pointOnPolyLineSegment = (
-  points: vec2[], test: vec2,
+  points: Vec2[], test: Vec2,
   threshold: number = DEFAULT_LINE_SELECTION_THRESHOLD): boolean => {
   for (let i = 1; i < points.length; i++) {
     if (pointOnLineSegment(points[i - 1], points[i], test, threshold)) { return true; }
@@ -218,7 +217,7 @@ export const pointOnPolyLineSegment = (
   return false;
 };
 
-export const transform2DPoint = (point: vec2, ancestryMatrices: any[]): vec2 => {
+export const transform2DPoint = (point: Vec2, ancestryMatrices: any[]): Vec2 => {
   const offset = Layout3D.multiplyArrayOfMatrices(ancestryMatrices);
   const invertedOffset = create(); invert(invertedOffset, offset);
   const p = [point.x, point.y, 0, 1];
@@ -228,7 +227,7 @@ export const transform2DPoint = (point: vec2, ancestryMatrices: any[]): vec2 => 
   };
 };
 
-export const isPointAlongStroke = (element: HaikuElement, point: vec2,
+export const isPointAlongStroke = (element: HaikuElement, point: Vec2,
                                    threshold: number = DEFAULT_LINE_SELECTION_THRESHOLD): boolean => {
 
   const original = element;
@@ -292,7 +291,7 @@ export const isPointAlongStroke = (element: HaikuElement, point: vec2,
   return false;
 };
 
-export const isPointInsidePrimitive = (element: HaikuElement, point: vec2): boolean => {
+export const isPointInsidePrimitive = (element: HaikuElement, point: Vec2): boolean => {
 
   const original = element;
   if (element.type === 'use') {
@@ -308,7 +307,6 @@ export const isPointInsidePrimitive = (element: HaikuElement, point: vec2): bool
         element.sizeX && correctedPoint.y >= Number(element.attributes.y) && correctedPoint.y <=
         Number(element.attributes.y) + element.sizeY;
 
-
     case 'circle':
       return distance(
         correctedPoint,
@@ -317,7 +315,6 @@ export const isPointInsidePrimitive = (element: HaikuElement, point: vec2): bool
           y: Number(element.attributes.cy),
         },
       ) <= Number(element.attributes.r);
-
 
     case 'ellipse':
       return Math.pow(correctedPoint.x - Number(element.attributes.cx), 2) / Math.pow(
@@ -343,7 +340,7 @@ export const isPointInsidePrimitive = (element: HaikuElement, point: vec2): bool
   }
 };
 
-function mat4_multiply_vec4(m: number[], v: vec4): vec4 {
+function mat4_multiply_vec4 (m: number[], v: Vec4): Vec4 {
   return {
     x: v.x * m[0] + v.y * m[1] + v.z * m[2] + v.w * m[3],
     y: v.x * m[4] + v.y * m[5] + v.z * m[6] + v.w * m[7],
@@ -354,8 +351,8 @@ function mat4_multiply_vec4(m: number[], v: vec4): vec4 {
 
 // NOTE: See Bezier curve splitting here: https://pomax.github.io/bezierinfo/#matrixsplit
 export const cubicBezierSplit = (
-  t: number, anchor1: vec2, handle1: vec2, handle2: vec2, anchor2: vec2,
-): [[vec2,vec2,vec2,vec2],[vec2,vec2,vec2,vec2]] => {
+  t: number, anchor1: Vec2, handle1: Vec2, handle2: Vec2, anchor2: Vec2,
+): [[Vec2, Vec2, Vec2, Vec2], [Vec2, Vec2, Vec2, Vec2]] => {
   const cubicSegmentMatrix1 = [
     1,
     0,
