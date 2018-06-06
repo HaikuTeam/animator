@@ -2071,6 +2071,12 @@ Element.safeElementName = (mana) => {
   return mana.elementName
 }
 
+Element.deselectAll = (criteria, metadata) => {
+  Element.where(Object.assign({_isSelected: true}, criteria)).forEach((element) => {
+    element.unselect(metadata, true)
+  })
+}
+
 module.exports = Element
 
 // Down here to avoid Node circular dependency stub objects. #FIXME
