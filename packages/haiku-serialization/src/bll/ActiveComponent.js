@@ -17,10 +17,8 @@ const logger = require('./../utils/LoggerInstance')
 const toTitleCase = require('./helpers/toTitleCase')
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 const Lock = require('./Lock')
-const SustainedWarningChecker = require('haiku-common/lib/sustained-checker/SustainedWarningChecker').default
 
 const KEYFRAME_MOVE_DEBOUNCE_TIME = 100
-const CHECK_SUSTAINED_WARNINGS_DEBOUNCE_TIME = 1000
 const DEFAULT_SCENE_NAME = 'main' // e.g. code/main/*
 const DEFAULT_INTERACTION_MODE = InteractionMode.EDIT
 const DEFAULT_TIMELINE_NAME = 'Default'
@@ -2125,10 +2123,6 @@ class ActiveComponent extends BaseModel {
 
     this.clearCaches(reloadOptions.clearCacheOptions)
 
-    // Check sustained warnings should be done after cache clear
-    // We use emit so only creator will perform sustained warning check
-    this.emitDebouncedCheckSustainedWarning()
-
     // If we were passed a "hot component" or asked to request a full flush render, forward this to our underlying
     // instances to ensure correct rendering. This can be skipped if softReload() was called in the
     // context of a hard reload, because hardReload() calls forceFlush() after soft reloading.
@@ -2254,15 +2248,6 @@ class ActiveComponent extends BaseModel {
 
       const timelineTime = this.getCurrentTimelineTime()
       this.$instance = this.createInstance(bytecode, instanceConfig)
-
-      // Sustained warnings checker (eg. injected function identifier not found, etc)
-      this.sustainedWarningsChecker = new SustainedWarningChecker(this.$instance)
-
-      // Use debounce to emit event to trigger sustained warnings check on haiku-creator
-      this.emitDebouncedCheckSustainedWarning = lodash.debounce(() => {
-        this.emit('sustained-check:start')
-      }, CHECK_SUSTAINED_WARNINGS_DEBOUNCE_TIME, {leading: false, trailing: true})
-
       this.setTimelineTimeValue(timelineTime, /* forceSeek= */true)
 
       return cb()
@@ -4369,11 +4354,6 @@ class ActiveComponent extends BaseModel {
     const relpath = this.getRelpath()
     const aid = this.getArtboard().getElementHaikuId()
     return `${relpath}(${this.getMount().getRenderId()})@${aid}/${this._interactionMode}`
-  }
-
-  // Check sustained warnings (eg identifier not found on expression)
-  checkSustainedWarnings () {
-    this.sustainedWarningsChecker.checkAndGetAllSustainedWarnings()
   }
 }
 
