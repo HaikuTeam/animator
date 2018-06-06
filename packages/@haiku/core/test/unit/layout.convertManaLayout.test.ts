@@ -1,7 +1,6 @@
-import * as tape from 'tape';
-
 import xmlToMana from '@core/helpers/xmlToMana';
 import convertManaLayout from '@core/layout/convertManaLayout';
+import * as tape from 'tape';
 
 tape(
   'layout.convertManaLayout',
@@ -751,6 +750,35 @@ tape(
               ],
             },
           ],
+        },
+      ],
+
+      [
+        xmlToMana(`
+          <rect
+            x="87.826"
+            y="164.369"
+            transform="matrix(0.9551 -0.2964 0.2964 0.9551 -52.7748 44.7846)"
+            fill="#3FA9F5"
+            width="67.002"
+            height="64.183"
+          />
+        `),
+        {
+          elementName: 'rect',
+          attributes: {
+            x: '87.826',
+            y: '164.369',
+            fill: '#3FA9F5',
+            'sizeAbsolute.x': 67.002,
+            'sizeMode.x': 1,
+            'sizeAbsolute.y': 64.183,
+            'sizeMode.y': 1,
+            'translation.x': -52.775,
+            'translation.y': 44.785,
+            'rotation.z': 5.982,
+          },
+          children: [],
         },
       ],
     ];

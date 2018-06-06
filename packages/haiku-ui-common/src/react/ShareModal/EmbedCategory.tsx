@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {EmbedOption} from './EmbedOption';
+import {SelectedEntry} from './index';
 
 const STYLES = {
   categoryWrapper: {
@@ -20,14 +21,14 @@ const STYLES = {
   },
 };
 
-export type EmbedCategoryProps = {
+export interface EmbedCategoryProps {
   category: string;
   options: any;
-  onOptionClicked?: Function;
+  onOptionClicked?: (option: {entry: SelectedEntry, template: string}) => void;
   isSnapshotSaveInProgress?: boolean;
   snapshotSyndicated?: boolean;
   snapshotPublished?: boolean;
-};
+}
 
 export class EmbedCategory extends React.PureComponent<EmbedCategoryProps> {
   renderCategoryOptions (options: any) {

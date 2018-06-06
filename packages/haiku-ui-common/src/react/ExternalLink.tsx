@@ -1,14 +1,26 @@
 import * as React from 'react';
 import isElectron from '../helpers/isElectron';
 
-export type ExternalLinkProps = {
+export interface ExternalLinkProps {
   style?: React.CSSProperties;
   title?: string;
-  onClick?: Function;
+  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
   href: string;
-};
+}
 
 export class ExternalLink extends React.PureComponent<ExternalLinkProps> {
+  private boundOnClick: React.MouseEventHandler<HTMLAnchorElement> = (clickEvent) => {
+    if (isElectron()) {
+      const {shell} = require('electron');
+      clickEvent.preventDefault();
+      shell.openExternal(this.props.href);
+    }
+
+    if (this.props.onClick) {
+      this.props.onClick(clickEvent);
+    }
+  };
+
   render () {
     return (
       <a
@@ -16,17 +28,7 @@ export class ExternalLink extends React.PureComponent<ExternalLinkProps> {
         rel="noopener noreferrer"
         title={this.props.title}
         style={this.props.style}
-        onClick={(clickEvent) => {
-          if (isElectron()) {
-            const {shell} = require('electron');
-            clickEvent.preventDefault();
-            shell.openExternal(this.props.href);
-          }
-
-          if (this.props.onClick) {
-            this.props.onClick(clickEvent);
-          }
-        }}
+        onClick={this.boundOnClick}
       >
         {this.props.children}
       </a>

@@ -225,9 +225,9 @@ export default function convertManaLayout(mana) {
       delete attributes.transform;
 
       // If the x/y attributes are present, they can interfere with the transform, so we strip them off except in
-      // the case of <image>. <image> has the special behavior that x and y position the image relative to the
-      // origin *before* any transformations are applied.
-      if (node.elementName !== 'image') {
+      // the case of <image> and <rect>. These SVG elements have the special behavior that x and y position the image
+      // relative to the origin *before* any transformations are applied.
+      if (node.elementName !== 'image' && node.elementName !== 'rect') {
         delete attributes.x;
         delete attributes.y;
       }

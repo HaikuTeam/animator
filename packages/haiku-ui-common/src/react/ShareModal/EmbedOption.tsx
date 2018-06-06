@@ -3,6 +3,7 @@ import {LoadingTopBar} from '../../LoadingTopBar';
 import Palette from '../../Palette';
 import {SHARED_STYLES} from '../../SharedStyles';
 import {TooltipBasic} from '../TooltipBasic';
+import {SelectedEntry} from './index';
 import {ShareCategory} from './ShareModalOptions';
 
 const STYLES = {
@@ -26,16 +27,16 @@ const STYLES = {
   },
 } as React.CSSProperties;
 
-export type EmbedOptionProps = {
+export interface EmbedOptionProps {
   disabled: boolean;
   template: string;
-  entry: string;
+  entry: SelectedEntry;
   category: string;
-  onClick: Function;
+  onClick: (option: {entry: SelectedEntry, template: string}) => void;
   isSnapshotSaveInProgress: boolean;
   snapshotSyndicated: boolean;
   snapshotPublished: boolean;
-};
+}
 
 export class EmbedOption extends React.PureComponent<EmbedOptionProps> {
   startTimeout: number;
@@ -49,17 +50,17 @@ export class EmbedOption extends React.PureComponent<EmbedOptionProps> {
     showTooltip: false,
   };
 
-  get tooltipText() {
+  get tooltipText () {
     return this.props.disabled ? 'Coming Soon' : 'Click for details';
   }
 
-  componentDidMount() {
+  componentDidMount () {
     if (this.props.isSnapshotSaveInProgress) {
       this.start();
     }
   }
 
-  componentWillReceiveProps({isSnapshotSaveInProgress, snapshotSyndicated, snapshotPublished}: EmbedOptionProps) {
+  componentWillReceiveProps ({isSnapshotSaveInProgress, snapshotSyndicated, snapshotPublished}: EmbedOptionProps) {
     if (isSnapshotSaveInProgress) {
       this.start();
       return;
@@ -103,7 +104,7 @@ export class EmbedOption extends React.PureComponent<EmbedOptionProps> {
     }
   }
 
-  start() {
+  start () {
     this.startTimeout = window.setTimeout(
       () => {
         this.setState({progress: 80, speed: this.startSpeed, done: false, abandoned: false});
@@ -112,7 +113,7 @@ export class EmbedOption extends React.PureComponent<EmbedOptionProps> {
     );
   }
 
-  get startSpeed() {
+  get startSpeed () {
     if (this.requiresSyndication) {
       return '60s';
     }
@@ -124,23 +125,39 @@ export class EmbedOption extends React.PureComponent<EmbedOptionProps> {
     return '15s';
   }
 
-  get requiresSyndication() {
+  get requiresSyndication () {
     return this.props.category === ShareCategory.Other;
   }
 
-  get requiresPublished() {
+  get requiresPublished () {
     return this.props.category === ShareCategory.Mobile;
   }
 
-  render() {
-    const {
-      disabled,
-      entry,
-      onClick,
-      template,
-    } = this.props;
+  get effectivelyDisabled () {
+    return this.props.disabled || this.state.abandoned;
+  }
 
-    const effectivelyDisabled = disabled || this.state.abandoned;
+  private onMouseOver = () => {
+    if (this.effectivelyDisabled) {
+      this.setState({showTooltip: true});
+    }
+  };
+
+  private onMouseOut = () => {
+    if (this.effectivelyDisabled) { this.setState({showTooltip: false}); }
+  };
+
+  private onClick = () => {
+    if (!this.effectivelyDisabled) {
+      this.props.onClick({
+        entry: this.props.entry,
+        template: this.props.template,
+      });
+    }
+  };
+
+  render () {
+    const {entry} = this.props;
 
     return (
       <li style={{position: 'relative'}}>
@@ -149,19 +166,14 @@ export class EmbedOption extends React.PureComponent<EmbedOptionProps> {
             ...SHARED_STYLES.btn,
             ...STYLES.entry,
             ...(!this.state.done && STYLES.entry.loading),
-            ...(effectivelyDisabled && STYLES.entry.disabled),
+            ...(this.effectivelyDisabled && STYLES.entry.disabled),
           }}
           disabled={!this.state.done}
-          onMouseOver={() => {
-            if (effectivelyDisabled) { this.setState({showTooltip: true}); }
-          }}onMouseOut={() => {
-            if (effectivelyDisabled) { this.setState({showTooltip: false}); }
-          }}
-          onClick={() => {
-            if (!effectivelyDisabled) { onClick({entry, template}); }
-          }}
+          onMouseOver={this.onMouseOver}
+          onMouseOut={this.onMouseOut}
+          onClick={this.onClick}
         >
-          {!effectivelyDisabled && (
+          {!this.effectivelyDisabled && (
             <LoadingTopBar
               progress={this.state.progress}
               speed={this.state.speed}

@@ -1,3 +1,3 @@
-export default function leftTrim(str: string) {
+export default function leftTrim (str: string) {
   return str.replace(/^\s+/, '');
 }

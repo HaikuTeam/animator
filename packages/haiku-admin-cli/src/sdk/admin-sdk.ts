@@ -1,5 +1,6 @@
-import * as requestLib from 'request';
+/* tslint:disable:no-namespace */
 import * as _ from 'lodash';
+import * as requestLib from 'request';
 
 const ENDPOINTS = {
   USER_LOGIN: 'v0/admin/user/auth',
@@ -13,19 +14,6 @@ let request = requestLib.defaults({
   strictSSL: typeof window === 'undefined' || Object.prototype.toString.call(window) !== '[object Window]',
 });
 
-/**
- * @function safeError
- * @description Flexibly return an error in cases where we might not have
- * received an actual error object but still need to return an error payload.
- */
-function safeError(err: any): any {
-  if (err) {
-    return err;
-  }
-
-  return new Error('Uncategorized error');
-}
-
 export namespace adminSdk {
 
   export interface InkstoneConfig {
@@ -38,7 +26,7 @@ export namespace adminSdk {
     haikuBinaryPath: '/Applications/Haiku.app/Contents/MacOS/Haiku',
   };
 
-  export function setConfig(newVals: InkstoneConfig) {
+  export function setConfig (newVals: InkstoneConfig) {
     _.extend(inkstoneConfig, newVals);
 
     // ease SSL restrictions for dev
@@ -58,7 +46,7 @@ export namespace adminSdk {
       Token: string;
     }
 
-    export function authenticate(authToken: string, username: string, cb: adminSdk.Callback<Authentication>) {
+    export function authenticate (authToken: string, username: string, cb: adminSdk.Callback<Authentication>) {
       const formData = {
         username,
       };

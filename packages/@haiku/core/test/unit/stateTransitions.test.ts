@@ -6,7 +6,7 @@ import * as tape from 'tape';
 tape(
   'Test state transitions',
   (t) => {
-    t.plan(28);
+    t.plan(31);
 
     const states = {
       var1: 0,
@@ -410,12 +410,50 @@ tape(
       18,
       'A setState without transition parameter should cancel any queued transition',
     );
+
+    stateTransitionManager.setState(
+      {var1: 20},
+      {
+        duration: 1000,
+        curve: Curve.Linear,
+        queue: true,
+      },
+    );
+    stateTransitionManager.setState(
+      {var1: 22},
+      {
+        duration: 1000,
+        curve: Curve.Linear,
+        queue: true,
+      },
+    );
     haikuClock.setTime(19000);
     stateTransitionManager.tickStateTransitions();
     t.is(
       states.var1,
-      18,
-      'A setState without transition parameter should cancel any queued transition',
+      20,
+      'First queued state transition should be executed',
+    );
+
+    haikuClock.setTime(19500);
+    stateTransitionManager.tickStateTransitions();
+    t.is(
+      states.var1,
+      21,
+      'Second queued state transition is updated on its start',
+    );
+
+    haikuClock.setTime(20000);
+    stateTransitionManager.tickStateTransitions();
+    t.is(
+      states.var1,
+      22,
+      'Second queued state transition should be executed',
+    );
+    t.is(
+      stateTransitionManager.numQueuedTransitions,
+      0,
+      'All transitions should be finished',
     );
 
   },

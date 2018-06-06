@@ -1,14 +1,14 @@
-import * as React from 'react';
 import * as dedent from 'dedent';
+import * as React from 'react';
 import {PUBLISH_SHARED} from './PublishStyles';
 
-export type NpmInstallableProps = {
+export interface NpmInstallableProps {
   projectName: string;
   organizationName: string;
-};
+}
 
 export class NpmInstallable extends React.PureComponent<NpmInstallableProps> {
-  render() {
+  render () {
     const {projectName, organizationName} = this.props;
 
     return (

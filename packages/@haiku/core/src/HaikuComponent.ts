@@ -20,6 +20,8 @@ import xmlToMana from './helpers/xmlToMana';
 import Layout3D from './Layout3D';
 import {runMigrations} from './Migration';
 import vanities, {PLAYBACK_SETTINGS} from './properties/dom/vanities';
+import functionToRFO from './reflection/functionToRFO';
+import reifyRFO from './reflection/reifyRFO';
 import StateTransitionManager, {StateTransitionParameters, StateValues} from './StateTransitionManager';
 import ValueBuilder from './ValueBuilder';
 import assign from './vendor/assign';
@@ -57,7 +59,7 @@ export interface ClearCacheOptions {
 
 // tslint:disable:variable-name function-name
 export default class HaikuComponent extends HaikuElement {
-  _builder;
+  _builder: ValueBuilder;
   _flatManaTree;
   _horizonElements;
   isDeactivated;
@@ -512,10 +514,10 @@ export default class HaikuComponent extends HaikuElement {
     return this.bytecode.timelines[timelineName];
   }
 
-  getInjectables (element?): any {
+  getInjectables (): any {
     const injectables = {};
 
-    assign(injectables, this._builder.getSummonablesSchema(element));
+    assign(injectables, this._builder.getSummonablesSchema());
 
     // Local states get precedence over global summonables, so assign them last
     for (const key in this._states) {
@@ -1735,7 +1737,7 @@ const clone = (value, binding) => {
   }
 
   if (typeof value === 'function') {
-    const fn = (...args: any[]) => value.call(binding, ...args);
+    const fn = reifyRFO(functionToRFO(value).__function);
     // Core decorates injectee functions with metadata properties
     for (const key in value) {
       if (value.hasOwnProperty(key)) {
@@ -1746,9 +1748,7 @@ const clone = (value, binding) => {
   }
 
   if (Array.isArray(value)) {
-    return value.map((el) => {
-      return clone(el, binding);
-    });
+    return value.map((el) => clone(el, binding));
   }
 
   // Don't try to clone anything other than plain objects

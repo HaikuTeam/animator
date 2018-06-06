@@ -1011,7 +1011,7 @@ Template.manaToJson = (mana, replacer, spacing) => {
   return JSON.stringify(out, replacer || null, spacing || 2)
 }
 
-Template.cleanMana = (mana, {resetIds = false, suppressSubcomponents = true}) => {
+Template.cleanMana = (mana, {resetIds = false, suppressSubcomponents = true} = {}) => {
   const out = {}
   if (!mana) return null
   if (typeof mana === 'string') return mana

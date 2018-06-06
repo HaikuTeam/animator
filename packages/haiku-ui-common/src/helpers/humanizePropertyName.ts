@@ -13,7 +13,7 @@ const HUMANIZED_PROP_NAMES = {
   'style.overflowY': 'Overflow Y',
 };
 
-export default function humanizePropertyName(propertyName: string) {
+export default function humanizePropertyName (propertyName: string) {
   if (HUMANIZED_PROP_NAMES[propertyName]) {
     return HUMANIZED_PROP_NAMES[propertyName];
   }

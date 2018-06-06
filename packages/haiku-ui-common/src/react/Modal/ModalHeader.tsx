@@ -10,9 +10,9 @@ const STYLES: React.CSSProperties = {
   zIndex: 999999,
 };
 
-export type ModalHeaderProps = {
+export interface ModalHeaderProps {
   style?: React.CSSProperties;
-};
+}
 
 export class ModalHeader extends React.PureComponent<ModalHeaderProps> {
   render () {

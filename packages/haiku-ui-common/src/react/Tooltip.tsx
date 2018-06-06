@@ -14,18 +14,18 @@ const STYLES = {
   },
 };
 
-export type TooltipProps = {
+export interface TooltipProps {
   content: string|Element;
   tooltipCloseDelay?: number;
   tooltipOpenDelay?: number;
   place: string;
   style?: React.CSSProperties;
   tooltipBackground?: string;
-};
+}
 
-export type TooltipStates = {
+export interface TooltipStates {
   isPopoverOpen: boolean;
-};
+}
 
 export class Tooltip extends React.PureComponent<TooltipProps, TooltipStates> {
   tooltipOpenTimeout: number;
@@ -42,6 +42,9 @@ export class Tooltip extends React.PureComponent<TooltipProps, TooltipStates> {
     place: 'below',
     tooltipBackground: Palette.BLACK,
   };
+
+  private boundOpenPopover = () => this.openPopover();
+  private boundClosePopover = () => this.closePopover();
 
   openPopover () {
     this.isMouseOver = true;
@@ -88,9 +91,9 @@ export class Tooltip extends React.PureComponent<TooltipProps, TooltipStates> {
         tipSize={5}
       >
         <span
-          onMouseEnter={() => {this.openPopover();}}
-          onMouseLeave={() => {this.closePopover();}}
-          onClick={() => {this.closePopover();}}
+          onMouseEnter={this.boundOpenPopover}
+          onMouseLeave={this.boundClosePopover}
+          onClick={this.boundClosePopover}
           style={this.props.style}
         >
           {this.props.children}

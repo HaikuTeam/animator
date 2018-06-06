@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-export default function domInjectStylesheet(doc, css) {
+export default function domInjectStylesheet (doc, css) {
   if (doc.createStyleSheet) {
     const sheet = doc.createStyleSheet();
     sheet.cssText = css;

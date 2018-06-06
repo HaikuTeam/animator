@@ -1,5 +1,5 @@
+import {BrowserWindow, Menu, MenuItem, MenuItemConstructorOptions, remote} from 'electron';
 import {EventEmitter} from 'events';
-import {remote, BrowserWindow, Menu, MenuItem, MenuItemConstructorOptions} from 'electron';
 
 let remoteMenu: typeof Menu;
 let remoteMenuItem: typeof MenuItem;
@@ -10,17 +10,17 @@ if (remote) {
 
 const DISPLAY_HACK_TIMEOUT = 100;
 
-export type MenuSpec = {
+export interface MenuSpec {
   type: ('normal' | 'separator' | 'submenu' | 'checkbox' | 'radio');
   label: string;
   enabled: boolean;
   submenu: MenuSpec[];
   onClick: (menuItem: MenuItem, browserWindow: BrowserWindow, event: Event) => void;
-};
+}
 
-export type MenuItemLaunchConfig = {
+export interface MenuItemLaunchConfig {
   items: MenuSpec[];
-};
+}
 
 const buildMenuItem = (menu: Menu, {type, label, enabled, submenu, onClick}: MenuSpec) => {
   const menuSpec: MenuItemConstructorOptions = {

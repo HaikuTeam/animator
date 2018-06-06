@@ -1,17 +1,17 @@
-import * as React from 'react';
 import * as dedent from 'dedent';
-import {CodeBox} from '../../CodeBox';
-import {NpmInstallable} from './NpmInstallable';
 // @ts-ignore
 import * as Project from 'haiku-serialization/src/bll/Project';
+import * as React from 'react';
+import {CodeBox} from '../../CodeBox';
+import {NpmInstallable} from './NpmInstallable';
 
-export type AngularHaikuProps = {
+export interface AngularHaikuProps {
   projectName: string;
   organizationName: string;
-};
+}
 
 export default class AngularHaiku extends React.PureComponent<AngularHaikuProps> {
-  render() {
+  render () {
     const {projectName, organizationName} = this.props;
     const angularSelectorName = Project.getAngularSelectorName(projectName);
     return (

@@ -1,23 +1,30 @@
 import * as React from 'react';
-import {PUBLISH_SHARED} from './PublishStyles';
-import {ExternalLink} from '../../ExternalLink';
 import {SHARED_STYLES} from '../../../SharedStyles';
+import {ExternalLink} from '../../ExternalLink';
+import {PUBLISH_SHARED} from './PublishStyles';
 
-export type LottieProps = {
+export interface LottieProps {
   entry: string;
   userName: string;
   organizationName: string;
   projectUid: string;
   sha: string;
   mixpanel: any;
-};
+}
 
 const CDN_BASE = 'https://cdn.haiku.ai/';
 
 export default class Lottie extends React.PureComponent<LottieProps> {
-  get cdnBase() {
+  get cdnBase () {
     return `${CDN_BASE + this.props.projectUid}/${this.props.sha}/`;
   }
+
+  private onClick = () => {
+    this.props.mixpanel.haikuTrack('install-options', {
+      from: 'app',
+      event: 'lottie-download',
+    });
+  };
 
   render () {
     const lottiePath = `${this.cdnBase}code/main/lottie.json`;
@@ -45,12 +52,7 @@ export default class Lottie extends React.PureComponent<LottieProps> {
       <div style={PUBLISH_SHARED.instructionsRow}>
         <div style={PUBLISH_SHARED.instructionsCol1} />
         <div style={{...PUBLISH_SHARED.instructionsCol2}}>
-          <ExternalLink style={SHARED_STYLES.btn}  href={lottiePath} onClick={() => {
-            this.props.mixpanel.haikuTrack('install-options', {
-              from: 'app',
-              event: 'lottie-download',
-            });
-          }}>
+          <ExternalLink style={SHARED_STYLES.btn} href={lottiePath} onClick={this.onClick}>
             Download JSON
           </ExternalLink>
         </div>

@@ -1,15 +1,15 @@
-import * as React from 'react';
 import * as dedent from 'dedent';
+import * as React from 'react';
 import {CodeBox} from '../../CodeBox';
 import {NpmInstallable} from './NpmInstallable';
 
-export type VanillaJSProps = {
+export interface VanillaJSProps {
   projectName: string;
   organizationName: string;
-};
+}
 
 export default class VanillaJS extends React.PureComponent<VanillaJSProps> {
-  render() {
+  render () {
     const {projectName, organizationName} = this.props;
 
     return (

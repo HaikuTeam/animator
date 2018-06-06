@@ -11,14 +11,14 @@ const STYLES = {
   } as React.CSSProperties,
 };
 
-export type LoadingTopBarProps = {
+export interface LoadingTopBarProps {
   progress?: number;
   speed: number|string;
   done: boolean;
-};
+}
 
 export class LoadingTopBar extends React.PureComponent<LoadingTopBarProps> {
-  shouldComponentUpdate(nextProps: LoadingTopBarProps) {
+  shouldComponentUpdate (nextProps: LoadingTopBarProps) {
     return (
       nextProps.progress !== this.props.progress ||
       nextProps.done !== this.props.done
@@ -31,7 +31,7 @@ export class LoadingTopBar extends React.PureComponent<LoadingTopBarProps> {
     done: false,
   };
 
-  render() {
+  render () {
     return (
       <span
         style={{

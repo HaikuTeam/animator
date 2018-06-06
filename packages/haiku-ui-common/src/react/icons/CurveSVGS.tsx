@@ -1,11 +1,11 @@
 /* tslint:disable:variable-name */
 import * as React from 'react';
 
-export type CurveProps = {
+export interface CurveProps {
   leftGradFill: string;
   rightGradFill: string;
   id: string;
-};
+}
 
 export const EaseInOutQuartSVG = ({leftGradFill, rightGradFill, id}: CurveProps) => (
   <svg width="100%" height="20px" viewBox="0 0 224 46" preserveAspectRatio="none">

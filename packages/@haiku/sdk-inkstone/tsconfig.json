@@ -21,7 +21,6 @@
     ]
   },
   "include": [
-    "src/**/*.ts",
-    "src/config/*.json"
+    "src/**/*.ts"
   ]
 }

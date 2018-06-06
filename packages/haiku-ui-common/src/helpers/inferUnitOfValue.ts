@@ -15,7 +15,7 @@ const UNIT_MAPPING = {
   stroke: '',
 };
 
-export default function inferUnitOfValue(propertyName: string) {
+export default function inferUnitOfValue (propertyName: string) {
   const unit = UNIT_MAPPING[propertyName];
   if (unit) {
     return unit;

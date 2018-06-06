@@ -1,23 +1,26 @@
 {
-  "date": "May 25, 2018",
+  "date": "June 5, 2018",
   "sections": {
     "What's new": [
-      "Components! You can now create reusable components from elements on stage. Just select some elements and choose \"Create Component\" in the element menu.",
-      "Grouping! You can now create groups of elements and transform them together. Select some elements on stage and use ⌘+G to group them. (Use ⌘+Shift+G to ungroup.)",
-      "Improved editing of Sketch artboards: You can now place artboards on stage and ungroup them to independently animate the elements they are composed of.",
-      "Added highlighting to indicate elements which you have hovered in the timeline view.",
-      "Added ability to scale and rotate multiple elements together when multiselected.",
-      "Added ability to rename elements by double clicking their titles in the timeline.",
-      "Added Angular 2/4/5/6/... support via a Haiku adapter. Check the share modal for usage instructions.",
-      "You can now use the up/down arrow keys to increment numeric values in the timeline property fields.",
-      "Added support for importing Figma assets that contain raster images.",
-      "Added ability to open a design asset in Finder using the element context menu on stage."
+      "Adobe Illustrator support! You can now import Adobe Illustrator design files (.ai) and animate them in Haiku.",
+      "You can now change your project from Public/Private using the \"Publish\" dialog box.",
+      "The top bar of the app now includes buttons for creating components and managing Actions.",
+      "Made various improvements to app performance."
     ],
     "Fixes": [
-      "Fixed an issue which may have prevented users behind a corporate firewall from connecting with Figma.",
-      "Fixed a bug that would result in an error message being shown when clicking on a folder in the library panel.",
-      "Fixed a bug causing a transition to be created when the first keyframe is dragged away from keyframe 0.",
-      "Fixes various issues with the Lottie integration that sometimes resulted in an empty lottie.json export."
+      "Fixed bug causing elements to disappear when ungrouped from within a subcomponent.",
+      "Fixed bug causing numeric ids to appear in the timeline instead of the Sketch layer names.",
+      "Fixed bug that prevented ungrouped elements from being deleted.",
+      "Fixed bug indicating the selected element on stage when its row in the timeline was clicked.",
+      "Fixed bug that prevented collapsed rows in the timeline from being expanded when clicked.",
+      "Fixed crashes that could occur after duplicating a project.",
+      "Fixed undo/redo behavior for \"Change Tween\" and \"Remove Tween\".",
+      "Improved stability and consistency of behavior when using \"Move to Back\", \"Bring to Front\", etc.",
+      "Fixed bug causing overflow-x and overflow-y to be set to \"visible\" instead of \"hidden\".",
+      "Fixed @haiku/core bug preventing \"mouseenter\" and \"mouseleave\" events from being fired.",
+      "Fixed bug causing clipping of Sketch elements to which shadows have been added after setting \"Make Exportable\".",
+      "Fixed bug preventing \"Control Flow > Placeholder\" elements from displaying correctly.",
+      "Made various minor improvements to the UI."
     ]
   }
 }

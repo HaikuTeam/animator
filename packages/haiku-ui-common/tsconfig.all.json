@@ -9,6 +9,8 @@
     }
   },
   "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
     "test/**/*.ts",
     "scripts/*.ts"
   ]

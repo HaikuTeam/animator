@@ -7,12 +7,12 @@ import {TourUtils} from '../types/enums';
 
 app.setName('Haiku');
 
-export type TopMenuOptions = {
+export interface TopMenuOptions {
   isProjectOpen: boolean;
   isSaving: boolean;
   projectList: PlumbingProject[];
   subComponents: SubComponent[];
-};
+}
 
 export interface SubComponent {
   title: string;
@@ -27,7 +27,7 @@ export interface TopMenuEventSender {
 export default class TopMenu {
   options: TopMenuOptions;
 
-  constructor(private readonly sender: TopMenuEventSender) {}
+  constructor (private readonly sender: TopMenuEventSender) {}
 
   // Call sendActionToFirstResponder on Mac
   // From documentation:
@@ -46,7 +46,7 @@ export default class TopMenu {
    * @method update
    * @description Like create, but may optimize and not update if no changes
    */
-  update(nextOptions: TopMenuOptions) {
+  update (nextOptions: TopMenuOptions) {
     let didChange = false;
 
     for (const key in this.options) {
@@ -66,7 +66,7 @@ export default class TopMenu {
     }
   }
 
-  create(options: TopMenuOptions) {
+  create (options: TopMenuOptions) {
     this.options = options;
 
     const developerMenuItems = [

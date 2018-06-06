@@ -6,9 +6,9 @@ const STYLES: React.CSSProperties = {
   right: '20px',
 };
 
-export type ModalFooterProps = {
+export interface ModalFooterProps {
   style: React.CSSProperties;
-};
+}
 
 export class ModalFooter extends React.PureComponent<ModalFooterProps> {
   render () {

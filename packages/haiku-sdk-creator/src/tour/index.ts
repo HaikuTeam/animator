@@ -1,11 +1,11 @@
 export interface Tour {
-  next(): MaybeAsync<void>;
-  hide(): MaybeAsync<void>;
-  start(force?: boolean): MaybeAsync<void>;
-  finish(createFile?: boolean): MaybeAsync<void>;
-  updateLayout(): MaybeAsync<void>;
-  receiveElementCoordinates(webview: string, position: ClientBoundingRect): MaybeAsync<void>;
-  receiveWebviewCoordinates(webview: string, coordinates: ClientBoundingRect): MaybeAsync<void>;
+  next (): MaybeAsync<void>;
+  hide (): MaybeAsync<void>;
+  start (force?: boolean): MaybeAsync<void>;
+  finish (createFile?: boolean): MaybeAsync<void>;
+  updateLayout (): MaybeAsync<void>;
+  receiveElementCoordinates (webview: string, position: ClientBoundingRect): MaybeAsync<void>;
+  receiveWebviewCoordinates (webview: string, coordinates: ClientBoundingRect): MaybeAsync<void>;
 }
 
 export interface TourState {
