@@ -188,8 +188,11 @@ export class Glass extends React.Component {
     this.handleUndoDebounced = lodash.debounce((payload) => this.handleUndo(payload), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
     this.handleRedoDebounced = lodash.debounce((payload) => this.handleRedo(payload), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
 
-    // For debugging
-    window.glass = this
+    if (process.env.NODE_ENV !== 'production') {
+      // For debugging
+      window.glass = this
+      window.view = this // Easy to run same instruction in different tools
+    }
 
     // TODO: Is there any race condition with kicking this off immediately?
     this.drawLoop()
