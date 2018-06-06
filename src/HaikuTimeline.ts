@@ -103,7 +103,7 @@ export default class HaikuTimeline extends HaikuBase {
     }
 
     if (this.isFinished()) {
-      this._isPlaying = false;
+      this.setPlaying(false);
     }
   }
 
@@ -321,6 +321,10 @@ export default class HaikuTimeline extends HaikuBase {
     this.options.freeze = false;
   }
 
+  setPlaying (isPlaying: boolean = true) {
+    this._isPlaying = isPlaying;
+  }
+
   start (
     maybeGlobalClockTime,
     descriptor,
@@ -334,7 +338,7 @@ export default class HaikuTimeline extends HaikuBase {
     descriptor,
   ) {
     this._localElapsedTime = 0;
-    this._isPlaying = true;
+    this.setPlaying(true);
     this._globalClockTime = maybeGlobalClockTime || 0;
     this._maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
   }
@@ -348,7 +352,7 @@ export default class HaikuTimeline extends HaikuBase {
     maybeGlobalClockTime,
     descriptor,
   ) {
-    this._isPlaying = false;
+    this.setPlaying(false);
     this._maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
   }
 
