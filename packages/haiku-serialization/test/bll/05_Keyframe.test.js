@@ -176,6 +176,22 @@ tape('Keyframe.03', (t) => {
   })
 })
 
+tape('Keyframe.04', (t) => {
+  t.plan(3)
+  return setupTest('keyframe-04', (err, ac, rows, done) => {
+    if (err) throw err
+    const kfs = rows[0].getKeyframes()
+    fireClick(kfs[0], false, { shift: false })
+    t.equal(ac.checkIfSelectedKeyframesAreMovableToZero(), false, 'the first keyframe cannot be moved to zero')
+    fireClick(kfs[1], false, { shift: false })
+    t.equal(ac.checkIfSelectedKeyframesAreMovableToZero(), true, 'the first non-zero keyframe can be moved to zero')
+    fireClick(kfs[2], false, { shift: false })
+    t.equal(ac.checkIfSelectedKeyframesAreMovableToZero(), false, 'any other keyframe cannot be moved to zero')
+
+    done()
+  })
+})
+
 // Please implement the rest of these as unit tests:
 // I am able to create a tween between two keyframes
 // I am able to select a single tween by clicking on it
