@@ -901,7 +901,7 @@ const PLAYBACK_VANITIES = {
     const canonicalValue = getCanonicalPlaybackValue(value);
 
     for (const timelineName in canonicalValue) {
-      const timelineInstance = receiver.getTimeline(timelineName);
+      const timelineInstance = receiver && receiver.getTimeline(timelineName);
 
       if (timelineInstance) {
         applyPlaybackStatus(
