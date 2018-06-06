@@ -1527,7 +1527,9 @@ class Element extends BaseModel {
       case 'div':
         const ungroupables = []
         this.getHaikuElement().visit((descendantHaikuElement) => {
-          const eligibleChildren = descendantHaikuElement.children.filter((element) => element.tagName !== 'defs')
+          const eligibleChildren = descendantHaikuElement.children.filter(
+            (element) => element.tagName !== 'defs' && element.target && (haikuElement.tagName === 'div' || typeof element.target.getBBox === 'function')
+          )
           if (eligibleChildren.length > 1) {
             ungroupables.push(...eligibleChildren)
             return false
