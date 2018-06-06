@@ -645,7 +645,7 @@ class ActiveComponent extends BaseModel {
       const entity = this.getCurrentTimeline() // May be called before being hydrated
       if (entity) {
         entity.seek(entity.getCurrentFrame())
-        timeline.seek(entity.getCurrentMs())
+        timeline.seek(entity.getCurrentFrame())
       }
       this.$instance.visitGuestHierarchy((instance) => {
         instance.getTimeline(this.getCurrentTimelineName()).freeze()
