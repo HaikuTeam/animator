@@ -19,6 +19,7 @@ export interface RunningStateTransition {
   transitionParameter: StateTransitionParameters;
   startTime: number;
   endTime: number;
+  duration: number;
 }
 
 export default class StateTransitionManager {
@@ -54,6 +55,7 @@ export default class StateTransitionManager {
             transitionStart: {[key]: this.states[key]},
             startTime: currentTime,
             endTime: currentTime + transitionParameter.duration,
+            duration: transitionParameter.duration,
           });
         // non queued transitions are overwrite transition queue
         } else {
@@ -63,10 +65,14 @@ export default class StateTransitionManager {
             transitionStart: {[key]: this.states[key]},
             startTime: currentTime,
             endTime: currentTime + transitionParameter.duration,
+            duration: transitionParameter.duration,
           }];
         }
       }
     }
+
+    // Make sure state is update on setState call
+    this.tickStateTransitions();
   }
 
   // We technically could call HaikuComponent::setStates, but passing only
@@ -111,6 +117,14 @@ export default class StateTransitionManager {
 
           // Remove expired transition.
           this.transitions[stateName].splice(0, 1);
+
+          // Update next queued state transition
+          if (this.transitions[stateName].length > 0) {
+            this.transitions[stateName][0].transitionStart = {[stateName]: interpolatedStates[stateName]};
+            this.transitions[stateName][0].startTime = currentTime;
+            this.transitions[stateName][0].endTime = currentTime + this.transitions[stateName][0].duration;
+          }
+
         } else {
           // Calculate interpolated states.
           Object.assign(
