@@ -1,5 +1,4 @@
 import React from 'react'
-import Radium from 'radium'
 import Palette from 'haiku-ui-common/lib/Palette'
 
 const STYLES = {
@@ -61,7 +60,7 @@ class PlaybackSpeedDial extends React.Component {
 
   render () {
     return (
-      <span style={[STYLES.sliderHolster, this.state.isOpen && STYLES.show]}
+      <span css={[STYLES.sliderHolster, this.state.isOpen && STYLES.show]}
         onMouseLeave={this.handleMouseLeave.bind(this)}>
         <div style={STYLES.speed}
           onClick={this.handleToggle.bind(this)}>
@@ -70,7 +69,7 @@ class PlaybackSpeedDial extends React.Component {
         </div>
         <input
           type='range'
-          style={[STYLES.input, this.state.isOpen && STYLES.show]}
+          css={[STYLES.input, this.state.isOpen && STYLES.show]}
           min={0.1}
           max={1}
           step={0.1}
@@ -81,4 +80,4 @@ class PlaybackSpeedDial extends React.Component {
   }
 }
 
-export default Radium(PlaybackSpeedDial)
+export default PlaybackSpeedDial
