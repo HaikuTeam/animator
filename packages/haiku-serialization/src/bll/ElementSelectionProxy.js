@@ -36,10 +36,6 @@ class ElementSelectionProxy extends BaseModel {
       throw new Error('ElementSelectionProxy selection must be an array')
     }
 
-    if (this.doesSelectionContainArtboard() && this.hasMultipleInSelection()) {
-      throw new Error('ElementSelectionProxy can only manage an artboard alone')
-    }
-
     // When representing multiple elements, we apply changes to our proxy properties
     this.reinitializeLayout()
 
