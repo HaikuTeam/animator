@@ -50,7 +50,9 @@ function buildRoot () {
   }
 
   if (!ROOT.haiku.idCounter) {
-    ROOT.haiku.idCounter = 0;
+    // Legacy: we start the ID counter at 1000 to avoid edge case ID collisions when there are copies of Haiku
+    // sitting on the same page.
+    ROOT.haiku.idCounter = 1000;
   }
 
   if (!ROOT.haiku.report) {
