@@ -1,5 +1,4 @@
 import React from 'react'
-import Radium from 'radium'
 import Bolt from 'haiku-ui-common/lib/react/icons/Bolt'
 import Palette from 'haiku-ui-common/lib/Palette'
 
@@ -89,7 +88,7 @@ class FrameAction extends React.Component {
             if (this.state.achievedHover) this.openFrameActionsEditor(event)
           }
           }
-          style={[STYLE.base, STYLE.addAction, this.state.achievedHover && STYLE.show]}>
+          css={[STYLE.base, STYLE.addAction, this.state.achievedHover && STYLE.show]}>
           <div
             style={STYLE.plus}>
             +
@@ -105,4 +104,4 @@ FrameAction.propTypes = {
   onShowFrameActionsEditor: React.PropTypes.func.isRequired
 }
 
-export default Radium(FrameAction)
+export default FrameAction
