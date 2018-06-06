@@ -59,7 +59,7 @@ export interface ClearCacheOptions {
 
 // tslint:disable:variable-name function-name
 export default class HaikuComponent extends HaikuElement {
-  _builder;
+  _builder: ValueBuilder;
   _flatManaTree;
   _horizonElements;
   isDeactivated;
@@ -514,10 +514,10 @@ export default class HaikuComponent extends HaikuElement {
     return this.bytecode.timelines[timelineName];
   }
 
-  getInjectables (element?): any {
+  getInjectables (): any {
     const injectables = {};
 
-    assign(injectables, this._builder.getSummonablesSchema(element));
+    assign(injectables, this._builder.getSummonablesSchema());
 
     // Local states get precedence over global summonables, so assign them last
     for (const key in this._states) {
