@@ -417,7 +417,9 @@ export default class Creator extends React.Component {
     }
 
     if (process.env.NODE_ENV !== 'production') {
+      // For debugging
       window.creator = this
+      window.view = this // Easy to run same instruction in different tools
     }
   }
 
