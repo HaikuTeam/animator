@@ -25,11 +25,9 @@ const getInstanceRegistry = (instance: HaikuBase): HaikuBase[] => {
   return upsertInstanceRegistry(className);
 };
 
-let uniqueIdCounter = 0;
-
 const addInstanceToGlobalModelRegistry = (instance: HaikuBase): number => {
   getInstanceRegistry(instance).push(instance);
-  return ++uniqueIdCounter;
+  return ++HaikuGlobal.idCounter;
 };
 
 const removeInstanceFromGlobalModelRegistry = (instance: HaikuBase): number => {
