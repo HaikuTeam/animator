@@ -899,6 +899,31 @@ class Project extends BaseModel {
     })
     return async.eachSeries(entries, this.setupScene.bind(this), cb)
   }
+
+  /**
+   * @method getComponentBytecodeSHAs
+   * @description Return a dictionary mapping component relpaths to SHA256s representing
+   * their current in-mem bytecode, e.g. {'code/main/code.js': 'abc123abc...'}
+   */
+  describeIntegrity () {
+    const shas = {}
+
+    this.getAllActiveComponents().forEach((ac) => {
+      const json = ac.getNormalizedBytecodeJSON()
+      shas[ac.getRelpath()] = {
+        alias: this.getAlias(),
+        sha: ac.getNormalizedBytecodeSHA(),
+        len: json.length,
+        json
+      }
+    })
+
+    return shas
+  }
+
+  describeIntegrityHandler (metadata, cb) {
+    return cb(null, this.describeIntegrity())
+  }
 }
 
 Project.DEFAULT_OPTIONS = {

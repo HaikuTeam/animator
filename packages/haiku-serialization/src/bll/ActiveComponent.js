@@ -14,6 +14,7 @@ const {InteractionMode, isPreviewMode} = require('@haiku/core/lib/helpers/intera
 const Layout3D = require('@haiku/core/lib/Layout3D').default
 const BaseModel = require('./BaseModel')
 const logger = require('./../utils/LoggerInstance')
+const CryptoUtils = require('./../utils/CryptoUtils')
 const toTitleCase = require('./helpers/toTitleCase')
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 const Lock = require('./Lock')
@@ -4352,6 +4353,22 @@ class ActiveComponent extends BaseModel {
   }
 
   /**
+   * @method getNormalizedBytecodeSHA
+   * @description Return a SHA256 for the current in-mem bytecode.
+   */
+  getNormalizedBytecodeSHA () {
+    return CryptoUtils.sha256(this.getNormalizedBytecodeJSON())
+  }
+
+  getNormalizedBytecode () {
+    return AST.normalizeBytecode(this.getReifiedBytecode())
+  }
+
+  getNormalizedBytecodeJSON () {
+    return jss(this.getNormalizedBytecode())
+  }
+
+  /**
    * @method dump
    * @description Use this to log a concise shorthand of this entity.
    */
@@ -4387,6 +4404,7 @@ module.exports = ActiveComponent
 
 // Down here to avoid Node circular dependency stub objects. #FIXME
 const Artboard = require('./Artboard')
+const AST = require('./AST')
 const Bytecode = require('./Bytecode')
 const Design = require('./Design')
 const DevConsole = require('./DevConsole')
