@@ -7,8 +7,8 @@ export default class FrameGrid extends React.Component {
   constructor (props) {
     super(props)
     this.handleUpdate = this.handleUpdate.bind(this)
-    // # FIXME in multicomponents (matthew)
-    this.rootElement = props.timeline.component.findElementRoots()[0]
+
+    this.rootElement = props.timeline.component.findElementRoot()
     this.upsertTimelineEvents()
   }
 
@@ -27,6 +27,9 @@ export default class FrameGrid extends React.Component {
     if (nextProps.timeline !== this.props.timeline) {
       this.props.timeline.removeListener('update', this.handleUpdate)
       nextProps.timeline.on('update', this.handleUpdate)
+
+      this.rootElement = nextProps.timeline.component.findElementRoot()
+      this.upsertTimelineEvents()
     }
   }
 
