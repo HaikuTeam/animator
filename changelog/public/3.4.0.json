@@ -1,0 +1,26 @@
+{
+  "date": "June 5, 2018",
+  "sections": {
+    "What's new": [
+      "Adobe Illustrator support! You can now import Adobe Illustrator design files (.ai) and animate them in Haiku.",
+      "You can now change your project from Public/Private using the \"Publish\" dialog box.",
+      "The top bar of the app now includes buttons for creating components and managing Actions.",
+      "Made various improvements to app performance."
+    ],
+    "Fixes": [
+      "Fixed bug causing elements to disappear when ungrouped from within a subcomponent.",
+      "Fixed bug causing numeric ids to appear in the timeline instead of the Sketch layer names.",
+      "Fixed bug that prevented ungrouped elements from being deleted.",
+      "Fixed bug indicating the selected element on stage when its row in the timeline was clicked.",
+      "Fixed bug that prevented collapsed rows in the timeline from being expanded when clicked.",
+      "Fixed crashes that could occur after duplicating a project.",
+      "Fixed undo/redo behavior for \"Change Tween\" and \"Remove Tween\".",
+      "Improved stability and consistency of behavior when using \"Move to Back\", \"Bring to Front\", etc.",
+      "Fixed bug causing overflow-x and overflow-y to be set to \"visible\" instead of \"hidden\".",
+      "Fixed @haiku/core bug preventing \"mouseenter\" and \"mouseleave\" events from being fired.",
+      "Fixed bug causing clipping of Sketch elements to which shadows have been added after setting \"Make Exportable\".",
+      "Fixed bug preventing \"Control Flow > Placeholder\" elements from displaying correctly.",
+      "Made various minor improvements to the UI."
+    ]
+  }
+}

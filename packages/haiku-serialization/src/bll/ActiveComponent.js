@@ -187,7 +187,7 @@ class ActiveComponent extends BaseModel {
   }
 
   findElementRoot () {
-    for (let element of Element.findRoots()) {
+    for (const element of Element.findRoots()) {
       if (element.component.uid === this.uid) {
         return element
       }
