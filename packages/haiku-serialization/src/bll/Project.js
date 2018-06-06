@@ -916,12 +916,8 @@ class Project extends BaseModel {
     const shas = {}
 
     this.getAllActiveComponents().forEach((ac) => {
-      const json = ac.getNormalizedBytecodeJSON()
       shas[ac.getRelpath()] = {
-        alias: this.getAlias(),
-        sha: ac.getNormalizedBytecodeSHA(),
-        len: json.length,
-        json
+        len: ac.getNormalizedBytecodeJSON().length
       }
     })
 
