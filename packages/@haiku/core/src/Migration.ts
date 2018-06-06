@@ -201,8 +201,8 @@ export const runMigrations = (component: HaikuComponent, options: any, version: 
   if (requiresUpgrade(coreVersion, UpgradeVersionRequirement.TimelineDefaultFrames)) {
     let wereAnyEventHandlersUpgraded = false;
     component.eachEventHandler((eventSelector, eventName, {original}) => {
-      const rfo = functionToRFO(original);
-      let body: string = rfo.__function.body;
+      const rfo = original.__rfo || functionToRFO(original).__function;
+      let body: string = rfo.body;
       let changed = false;
       ['.seek(', '.gotoAndPlay(', '.gotoAndStop('].forEach((methodSignature) => {
         for (let cursor = 0; cursor < body.length; ++cursor) {
@@ -231,7 +231,7 @@ export const runMigrations = (component: HaikuComponent, options: any, version: 
 
       if (changed) {
         bytecode.eventHandlers[eventSelector][eventName].handler = reifyRFO({
-          ...rfo.__function,
+          ...rfo,
           body,
         });
         delete bytecode.eventHandlers[eventSelector][eventName].original;
