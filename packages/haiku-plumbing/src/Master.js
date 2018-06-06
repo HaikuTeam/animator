@@ -964,11 +964,13 @@ export default class Master extends EventEmitter {
   handleActiveComponentReady () {
     return this.awaitActiveComponent(() => {
       attachListeners(this.project.getEnvoyClient(), this.getActiveComponent())
+      this.mountHaikuComponent()
+    })
+  }
 
-      // I'm not actually sure this needs to run here; doesn't project do this?
-      this.getActiveComponent().mountApplication(null, {
-        freeze: true
-      })
+  mountHaikuComponent () {
+    this.getActiveComponent().mountApplication(null, {
+      freeze: true
     })
   }
 
