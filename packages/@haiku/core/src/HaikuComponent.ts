@@ -20,8 +20,7 @@ import xmlToMana from './helpers/xmlToMana';
 import Layout3D from './Layout3D';
 import {runMigrations} from './Migration';
 import vanities, {PLAYBACK_SETTINGS} from './properties/dom/vanities';
-import functionToRFO from './reflection/functionToRFO';
-import reifyRFO from './reflection/reifyRFO';
+import functionToRFO, {RFO} from './reflection/functionToRFO';
 import StateTransitionManager, {StateTransitionParameters, StateValues} from './StateTransitionManager';
 import ValueBuilder from './ValueBuilder';
 import assign from './vendor/assign';
@@ -1719,6 +1718,11 @@ function computeAndApplyPresetSizing (element, container, mode, deltas) {
   }
 }
 
+export interface ClonedFunction {
+  (...args: any[]): void;
+  __rfo?: RFO;
+}
+
 const clone = (value, binding) => {
   if (!value) {
     return value;
@@ -1737,13 +1741,14 @@ const clone = (value, binding) => {
   }
 
   if (typeof value === 'function') {
-    const fn = reifyRFO(functionToRFO(value).__function);
+    const fn: ClonedFunction = (...args: any[]) => value.call(binding, ...args);
     // Core decorates injectee functions with metadata properties
     for (const key in value) {
       if (value.hasOwnProperty(key)) {
         fn[key] = clone(value[key], binding);
       }
     }
+    fn.__rfo = functionToRFO(value).__function;
     return fn;
   }
 
