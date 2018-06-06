@@ -185,17 +185,13 @@ class ActiveComponent extends BaseModel {
     )
   }
 
-  findElementRoots () {
-    return Element.findRoots()
-  }
-
   findElementRoot () {
     for (let element of Element.findRoots()) {
-        if (element.component.uid === this.uid){
+      if (element.component.uid === this.uid) {
         return element
       }
     }
-    return null;
+    return null
   }
 
   queryElements (criteria) {
