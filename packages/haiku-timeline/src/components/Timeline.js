@@ -930,7 +930,7 @@ class Timeline extends React.Component {
   }
 
   showFrameActionsEditor (frame) {
-    const elementPrimaryKey = this.getActiveComponent().findElementRoots()[0].getPrimaryKey()
+    const elementPrimaryKey = this.getActiveComponent().findElementRoot().getPrimaryKey()
     this.showEventHandlersEditor(
       elementPrimaryKey,
       frame
