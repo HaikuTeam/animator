@@ -520,6 +520,8 @@ class Timeline extends React.Component {
       }
     })
 
+    items.push({ type: 'separator' })
+
     items.push({
       label: 'Send to t0',
       enabled: this.getActiveComponent().checkIfSelectedKeyframesAreMovableToZero(),

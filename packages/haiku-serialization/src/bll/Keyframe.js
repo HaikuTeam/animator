@@ -832,11 +832,6 @@ Keyframe.buildKeyframeMoves = (criteria, serialized) => {
     if (!moves[timelineName][componentId]) moves[timelineName][componentId] = {}
     if (!moves[timelineName][componentId][propertyName]) moves[timelineName][componentId][propertyName] = {}
 
-    moves[timelineName][componentId][propertyName][movable.getMs()] = movable.getSpec(true, serialized)
-
-    // Since this action resolves the move, exclude it from future calls until set again
-    movable._needsMove = false
-
     // Because the keyframe move action interprets excluded entries as *deletes*, we have to
     // also include all keyframes that are a part of the same timeline/component/property tuple
     Keyframe.where(criteria).forEach((partner) => {
@@ -849,6 +844,11 @@ Keyframe.buildKeyframeMoves = (criteria, serialized) => {
       // Since this action resolves the move, exclude it from future calls until set again
       partner._needsMove = false
     })
+
+    moves[timelineName][componentId][propertyName][movable.getMs()] = movable.getSpec(true, serialized)
+
+    // Since this action resolves the move, exclude it from future calls until set again
+    movable._needsMove = false
   })
 
   return moves
