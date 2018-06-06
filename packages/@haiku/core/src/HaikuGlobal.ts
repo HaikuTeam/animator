@@ -12,6 +12,7 @@ export interface HaikuRoot {
     report?: () => void;
     enhance?: typeof enhance;
     inject?: typeof inject;
+    idCounter?: number;
     HaikuGlobalAnimationHarness?: {
       queue: (() => void)[];
       frame: () => void;
@@ -46,6 +47,10 @@ function buildRoot () {
 
   if (!ROOT.haiku.models) {
     ROOT.haiku.models = {};
+  }
+
+  if (!ROOT.haiku.idCounter) {
+    ROOT.haiku.idCounter = 0;
   }
 
   if (!ROOT.haiku.report) {
