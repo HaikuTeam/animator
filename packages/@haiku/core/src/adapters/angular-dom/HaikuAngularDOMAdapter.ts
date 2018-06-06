@@ -61,13 +61,15 @@ export default function HaikuAngularDOMAdapter (
     @Input()
     freeze: boolean = true;
     @Input()
+    loop: boolean = false;
+    @Input()
     frame?: Function;
     @Input()
     clock: {frameDuration?: number, frameDelay?: number, marginOfErrorForDelta?: number} = {};
     @Input()
     sizing?: string;
     @Input()
-    alwaysComputeSizing?: boolean = true;
+    alwaysComputeSizing?: boolean = false;
     @Input()
     preserve3d: string;
     @Input()
