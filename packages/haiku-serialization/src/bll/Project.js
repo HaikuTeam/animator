@@ -192,7 +192,11 @@ class Project extends BaseModel {
 
         return ac[method].apply(ac, params.slice(1).concat((err, out) => {
           release()
-          if (err) return cb(err)
+
+          if (err) {
+            return cb(err)
+          }
+
           return cb() // Skip objects that don't play well with Websockets
         }))
       }
@@ -205,7 +209,11 @@ class Project extends BaseModel {
 
         return this[method].apply(this, params.concat((err, result) => {
           release()
-          if (err) return cb(err)
+
+          if (err) {
+            return cb(err)
+          }
+
           if (SERIAL_METHODS[method]) {
             return cb(null, result)
           } else {
