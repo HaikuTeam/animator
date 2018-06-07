@@ -1,6 +1,16 @@
 # Changelog
 
 
+## 3.4.2
+
+### Bug Fixes
+
+ * ensure Angular instructions actually work.
+ * prevent global ID collisions across multiple core instances.
+ * for this resolution in a cloned function.
+ * Prevent crash if receiver component is not present
+ * do not parse here.
+
 ## 3.4.1
 
 ### Bug Fixes

@@ -6984,5 +6984,32 @@
       "label": "feat",
       "message": "initial work for direct editing"
     }
+  },
+  "3.4.2": {
+    "7978d1a03c9ca2ce813eade64f0c55fc56f11266": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure Angular instructions actually work."
+    },
+    "e84465ff51d82f859008cdf0703a339f1bc30e19": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "prevent global ID collisions across multiple core instances."
+    },
+    "17717652fb57f0b41498565ffa482412b96a2c1c": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for this resolution in a cloned function."
+    },
+    "21aaa86137698b75a8dd87da8f4dc20eb75e9444": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Prevent crash if receiver component is not present"
+    },
+    "4cc7e3d6ad609ff2b4e842c25dc9fe5a8295b039": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not parse here."
+    }
   }
 }
