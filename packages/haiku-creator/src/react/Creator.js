@@ -1066,7 +1066,8 @@ export default class Creator extends React.Component {
               projectName,
               doShowProjectLoader: true,
               doShowBackToDashboardButton: false,
-              dashboardVisible: false
+              dashboardVisible: false,
+              showGlass: true
             }, () => {
               // Once the Timeline/Stage are being rendered, we await the point that their
               // own Project models have loaded before initiating a switch to the current
