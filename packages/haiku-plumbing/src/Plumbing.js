@@ -433,32 +433,6 @@ export default class Plumbing extends EventEmitter {
     )
   }
 
-  invokeActionInAllFolders (method, params, cb) {
-    const outputs = {}
-
-    return async.eachOfSeries(this.masters, (master, folder, next) => {
-      return this.invokeAction(
-        folder,
-        'describeIntegrityHandler',
-        [{from: 'plumbing'}],
-        (err, results) => {
-          if (err) {
-            return next(err)
-          }
-
-          outputs[folder] = results
-          return next()
-        }
-      )
-    }, (err) => {
-      if (err) {
-        return cb(err)
-      }
-
-      return cb(null, outputs)
-    })
-  }
-
   handleRemoteMessage (type, alias, folder, message, cb) {
     // IMPORTANT! Creator uses this
     if (!folder && message.folder) {
@@ -1297,34 +1271,22 @@ export default class Plumbing extends EventEmitter {
     // Params always arrive with the folder as the first argument, so we strip that off
     params = params.slice(1)
 
-    const actionOutputs = {}
-
     return async.eachSeries([Q_GLASS, Q_TIMELINE, Q_CREATOR, Q_MASTER], (clientSpec, nextStep) => {
-      const finishStep = (err, actionResult) => {
-        if (err) {
-          return nextStep(err)
-        }
-
-        actionOutputs[clientSpec.alias] = actionResult
-
-        return nextStep()
-      }
-
       if (clientSpec.alias === alias) {
         // Don't send methods that originated with ourself
-        return finishStep()
+        return nextStep()
       }
 
       logActionInitiation(method, clientSpec)
 
       // Master is handled differently because it's not actually a separate process
       if (clientSpec === Q_MASTER) {
-        return this.awaitMasterAndCallMethod(folder, method, params, finishStep)
+        return this.awaitMasterAndCallMethod(folder, method, params, nextStep)
       }
 
-      return this.sendQueriedClientMethod(lodash.assign({folder}, clientSpec), method, params, finishStep)
+      return this.sendQueriedClientMethod(lodash.assign({folder}, clientSpec), method, params, nextStep)
     }, (err) => {
-      return logAndHandleActionResult(err, cb, method, type, alias, actionOutputs)
+      return logAndHandleActionResult(err, cb, method, type, alias)
     })
   }
 }
@@ -1335,23 +1297,19 @@ function logActionInitiation (method, clientSpec) {
   }
 }
 
-function logAndHandleActionResult (err, cb, method, type, alias, outputs) {
+function logAndHandleActionResult (err, cb, method, type, alias) {
   if (!IGNORED_METHOD_MESSAGES[method]) {
     const status = (err) ? 'errored' : 'completed'
     logger.info(`[plumbing] <- client action ${method} from ${type}@${alias} ${status}`, err)
   }
 
   if (err) {
-    if (cb) {
-      return cb(err)
-    }
-
-    return
+    if (cb) return cb(err)
+    return void (0)
   }
 
-  if (cb) {
-    return cb(null, outputs)
-  }
+  if (cb) return cb()
+  return void (0)
 }
 
 Plumbing.prototype.awaitMasterAndCallMethod = function (folder, method, params, cb) {
