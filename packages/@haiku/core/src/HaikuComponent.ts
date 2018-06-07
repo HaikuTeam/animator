@@ -649,6 +649,10 @@ export default class HaikuComponent extends HaikuElement {
     eventNameGiven: string,
     eventArgs: any,
   ) {
+    if (this.isDeactivated) {
+      return;
+    }
+
     this.eachEventHandler((eventSelector, eventName, {handler}) => {
       if (eventNameGiven === eventName) {
         if (
@@ -667,6 +671,10 @@ export default class HaikuComponent extends HaikuElement {
     eventNameGiven: string,
     eventArgs: any,
   ) {
+    if (this.isDeactivated) {
+      return;
+    }
+
     this.routeEventToHandler(eventSelectorGiven, eventNameGiven, eventArgs);
     this.emit(eventNameGiven, ...eventArgs);
   }
@@ -1333,7 +1341,9 @@ function defineSettableState (
         statesTargetObject[stateSpecName] = inputValue;
       }
 
-      component.emit('state:set', stateSpecName, statesTargetObject[stateSpecName]);
+      if (!component.isDeactivated) {
+        component.emit('state:set', stateSpecName, statesTargetObject[stateSpecName]);
+      }
 
       return statesTargetObject[stateSpecName];
     },
