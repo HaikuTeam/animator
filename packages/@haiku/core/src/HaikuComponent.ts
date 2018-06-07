@@ -1145,7 +1145,7 @@ export default class HaikuComponent extends HaikuElement {
       propertyName,
       this.getPropertiesGroup(timelineName, flexId),
       timelineTime,
-      flexId,
+      this, // hostInstance
       false, // isPatchOperation
       false, // skipCache
       false, // clearSortedKeyframesCache
