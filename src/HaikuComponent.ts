@@ -1350,27 +1350,39 @@ function defineSettableState (
   });
 }
 
+const msKeyToInt = (msKey: string): number => {
+  return parseInt(msKey, 10);
+};
+
 const propertyGroupNeedsExpressionEvaluated = (
   propertyGroup,
   timelineTime: number,
 ): boolean => {
   let foundExpressionForTime = false;
 
-  for (const propertyName in propertyGroup) {
-    let leftBookend = 0;
-    let rightBookend = timelineTime;
+  const roundedTime = Math.round(timelineTime);
 
+  for (const propertyName in propertyGroup) {
     const propertyKeyframes = propertyGroup[propertyName];
 
-    for (const keyframeMsKey in propertyKeyframes) {
-      const keyframeMs = parseInt(keyframeMsKey, 10);
+    const keyframeMss = Object.keys(propertyKeyframes).map(msKeyToInt).sort();
 
-      if (keyframeMs > leftBookend && keyframeMs <= timelineTime) {
-        leftBookend = keyframeMs;
+    if (keyframeMss.length < 1) {
+      return;
+    }
+
+    let leftBookend = 0;
+    let rightBookend = keyframeMss[keyframeMss.length - 1];
+
+    for (let i = 0; i < keyframeMss.length; i++) {
+      const currMs = keyframeMss[i];
+
+      if (currMs >= leftBookend && currMs <= roundedTime) {
+        leftBookend = currMs;
       }
 
-      if (keyframeMs < rightBookend && keyframeMs >= timelineTime) {
-        rightBookend = keyframeMs;
+      if (currMs <= rightBookend && currMs >= roundedTime) {
+        rightBookend = currMs;
       }
     }
 
