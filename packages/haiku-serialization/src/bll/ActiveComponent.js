@@ -2786,6 +2786,20 @@ class ActiveComponent extends BaseModel {
     return Keyframe.where({ component: this, _selected: true })
   }
 
+  /**
+   * Returns a boolean indicating if *all* of the selected keyframes
+   * are the first non-zero keyframe in their row.
+   *
+   * @returns Boolean
+   */
+  checkIfSelectedKeyframesAreMovableToZero () {
+    const selectedKeyframes = this.getSelectedKeyframes()
+    const notMovable = selectedKeyframes.findIndex(
+      (keyframe) => !(keyframe.prev() && keyframe.prev().origMs === 0)
+    )
+    return notMovable === -1
+  }
+
   getCurrentKeyframes (criteria) {
     if (!criteria) criteria = {}
     criteria.component = this
