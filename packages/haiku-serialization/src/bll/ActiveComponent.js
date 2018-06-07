@@ -2462,7 +2462,9 @@ class ActiveComponent extends BaseModel {
   pushBytecodeSnapshot (done) {
     // Push our reified decycled bytecode into our local snapshots with no prejudice.
     // TODO: does this leak too much memory?
-    this.snapshots.push(Bytecode.snapshot(this.fetchActiveBytecodeFile().getReifiedDecycledBytecode()))
+    this.snapshots.push(
+      Bytecode.snapshot(this.fetchActiveBytecodeFile().getReifiedDecycledBytecode({suppressSubcomponents: false}))
+    )
     done()
   }
 
