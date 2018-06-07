@@ -44,7 +44,7 @@ const SVG_COMMAND_TYPES = {
   polygon: true,
 };
 
-const POINTS_REGEX = /(\d+\.*\d*)((\s+,?\s*)|(,\s*))(\d+\.*\d*)/g;
+const POINTS_REGEX = /(-?\d+\.*\d*)((\s+,?\s*)|(,\s*))(-?\d+\.*\d*)/g;
 
 function polyPointsStringToPoints (pointsString: string|string[][]) {
   if (!pointsString) {
