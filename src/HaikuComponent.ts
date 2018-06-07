@@ -1787,10 +1787,16 @@ const clone = (value, binding) => {
     const out = {};
 
     for (const key in value) {
-      if (
-        value.hasOwnProperty(key) &&
-        key.slice(0, 2) !== '__' // Exclude things like __element, __instance...
-      ) {
+      if (!value.hasOwnProperty(key) || key.slice(0, 2) === '__') {
+        continue;
+      }
+
+      // If it looks like guest bytecode, don't clone it since
+      // (a) we're passing down *our* function binding, which will break event handling and
+      // (b) each HaikuComponent#constructor calls clone() on its own anyway
+      if (key === 'elementName' && typeof value[key] !== 'string') {
+        out[key] = value[key];
+      } else {
         out[key] = clone(value[key], binding);
       }
     }
