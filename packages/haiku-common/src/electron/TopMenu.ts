@@ -202,7 +202,7 @@ export default class TopMenu {
         label: 'Publish',
         enabled: !this.options.isSaving && this.options.isProjectOpen,
         click: () => {
-          this.sender.send('global-menu:save');
+          this.sender.send('global-menu:publish');
         },
       },
       {
@@ -210,7 +210,7 @@ export default class TopMenu {
         enabled: this.options.isProjectOpen,
         accelerator: 'CmdOrCtrl+S',
         click: () => {
-          this.sender.send('global-menu:show-project-location-toast');
+          this.sender.send('global-menu:save');
         },
       },
       {type: 'separator'},

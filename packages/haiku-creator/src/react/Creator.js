@@ -85,6 +85,8 @@ export default class Creator extends React.Component {
     this.onNavigateToDashboard = this.onNavigateToDashboard.bind(this)
     this.disablePreviewMode = this.disablePreviewMode.bind(this)
     this.clearAuth = this.clearAuth.bind(this)
+    this.tryToChangeCurrentActiveComponent = this.tryToChangeCurrentActiveComponent.bind(this)
+
     this.layout = new EventEmitter()
     this.activityMonitor = new ActivityMonitor(window, this.onActivityReport.bind(this))
 
@@ -125,7 +127,8 @@ export default class Creator extends React.Component {
       showChangelogModal: false,
       showProxySettings: false,
       servicesEnvoyClient: null,
-      projToDuplicateIndex: null
+      projToDuplicateIndex: null,
+      showGlass: true
     }
 
     this.envoyOptions = {
@@ -230,7 +233,7 @@ export default class Creator extends React.Component {
 
     ipcRenderer.on('global-menu:set-active-component', lodash.debounce((ipcEvent, scenename) => {
       logger.info(`[creator] global-menu:set-active-component`)
-      this.state.projectModel.setCurrentActiveComponent(scenename, {from: 'creator'}, () => {})
+      this.tryToChangeCurrentActiveComponent(scenename)
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:zoom-in', lodash.debounce(() => {
@@ -1062,7 +1065,8 @@ export default class Creator extends React.Component {
               projectName,
               doShowProjectLoader: true,
               doShowBackToDashboardButton: false,
-              dashboardVisible: false
+              dashboardVisible: false,
+              showGlass: true
             }, () => {
               // Once the Timeline/Stage are being rendered, we await the point that their
               // own Project models have loaded before initiating a switch to the current
@@ -1103,7 +1107,7 @@ export default class Creator extends React.Component {
             })
 
             projectModel.on('remote-update', (what, ...args) => {
-              // logger.info(`[creator] remote update ${what}`)
+              // console.log(`[creator] remote update ${what}, args:`,args)
 
               switch (what) {
                 case 'setCurrentActiveComponent':
@@ -1453,6 +1457,11 @@ export default class Creator extends React.Component {
 
   clearAuth () {
     this.setState({ readyForAuth: true, isUserAuthenticated: false, username: '' })
+  }
+
+  tryToChangeCurrentActiveComponent (scenename) {
+    // Delegate to Stage, as it contains nonSavedContentOnCodeEditor state
+    this.refs.stage.tryToChangeCurrentActiveComponent(scenename)
   }
 
   setProjectLaunchStatus ({ launchingProject, newProjectLoading }) {
@@ -1826,6 +1835,10 @@ export default class Creator extends React.Component {
                     onPreviewModeToggled={() => { this.togglePreviewMode() }}
                     artboardDimensions={this.state.artboardDimensions}
                     onProjectPublicChange={(isPublic) => { this.onProjectPublicChange(isPublic) }}
+                    showGlass={this.state.showGlass}
+                    onSwitchToCodeMode={() => { this.setState({activeNav: 'state_inspector', showGlass: false}) }}
+                    onSwitchToDesignMode={() => { this.setState({activeNav: 'library', showGlass: true}) }}
+                    tryToChangeCurrentActiveComponent={this.tryToChangeCurrentActiveComponent}
                   />
                   {(this.state.assetDragging)
                     ? <div style={{ width: '100%', height: '100%', backgroundColor: 'white', opacity: 0.01, position: 'absolute', top: 0, left: 0 }} />

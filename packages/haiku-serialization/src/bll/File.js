@@ -122,12 +122,16 @@ class File extends BaseModel {
   }
 
   flushContent () {
+    return this.flushContentFromString(this.getCode())
+  }
+
+  flushContentFromString (content) {
     // We're about to flush content for all requests received up to this point
     // If more occur during async, that's fine; we'll just get called again,
     // but those who need to wait can read the list to know what's still pending
     this._pendingContentFlushes.splice(0)
 
-    const incoming = this.getCode()
+    const incoming = content
 
     this.assertContents(incoming)
 

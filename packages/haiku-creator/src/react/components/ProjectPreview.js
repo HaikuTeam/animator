@@ -1,33 +1,13 @@
-import fs from 'fs'
 import path from 'path'
-import Module from 'module'
 import React, {PropTypes} from 'react'
 import HaikuDOMAdapter from '@haiku/core/dom'
 import {InteractionMode} from '@haiku/core/lib/helpers/interactionModes'
 import {TourUtils} from 'haiku-common/lib/types/enums'
+import {requireFromFile} from 'haiku-serialization/src/bll/ModuleWrapper'
 
 const renderMissingLocalProjectMessage = () => {
   // TODO: Do we want to display a message or anything else if the project isn't already present locally?
   return <p />
-}
-
-const requireModuleFromFilename = (filename) => {
-  const mod = new Module('', module.parent)
-
-  // Module._resolveLookupPaths will use this...
-  mod.paths = [].concat(
-    path.dirname(filename),
-    Module._nodeModulePaths(__dirname)
-  )
-
-  // ...if and only if both these properties have been set.
-  mod.filename = filename
-  mod.id = filename
-
-  const src = fs.readFileSync(filename).toString()
-  mod._compile(src, filename)
-
-  return mod.exports
 }
 
 class ProjectPreview extends React.Component {
@@ -41,7 +21,7 @@ class ProjectPreview extends React.Component {
   componentWillMount () {
     try {
       // TODO: Try to get the bytecode from CDN or eager clone if not yet available.
-      this.bytecode = requireModuleFromFilename(this.props.bytecodePath)
+      this.bytecode = requireFromFile(this.props.bytecodePath)
     } catch (exception) {
       if (['Move', 'Moto', TourUtils.ProjectName].indexOf(this.props.projectName) !== -1) {
         this.bytecode = require(path.join('..', 'bytecode-fixtures', this.props.projectName))

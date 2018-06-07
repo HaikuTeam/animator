@@ -2095,8 +2095,10 @@ class ActiveComponent extends BaseModel {
   reload (reloadOptions, instanceConfig, cb) {
     const runReload = (done) => {
       if (reloadOptions.hardReload) {
+        logger.info('HardReload on ', this.project.getAlias(), ', file:', this.fetchActiveBytecodeFile().relpath)
         return this.hardReload(reloadOptions, instanceConfig, done)
       } else {
+        logger.info('SoftReload on ', this.project.getAlias(), ', file:', this.fetchActiveBytecodeFile().relpath)
         return this.softReload(reloadOptions, instanceConfig, done)
       }
     }
