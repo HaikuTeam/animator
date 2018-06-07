@@ -70,6 +70,7 @@ pipeline {
 void setBuildStatus(String context, String message, String state) {
     step([
             $class: 'GitHubCommitStatusSetter',
+            commitShaSource: [$class: "ManuallyEnteredShaSource", sha: env.ghprbActualCommit],
             contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: context],
             reposSource: [$class: 'ManuallyEnteredRepositorySource', url: 'https://github.com/HaikuTeam/mono'],
             errorHandlers: [[$class: 'ChangingBuildStatusErrorHandler', result: 'UNSTABLE']],

@@ -1,6 +1,39 @@
 # Changelog
 
 
+## 3.4.2
+
+### Bug Fixes
+
+ * ensure Angular instructions actually work.
+ * prevent global ID collisions across multiple core instances.
+ * for this resolution in a cloned function.
+ * Prevent crash if receiver component is not present
+ * do not parse here.
+
+## 3.4.1
+
+### Bug Fixes
+
+ * ensure ungroupables will not crash in SVG context.
+ * ensure Angular instructions actually work.
+ * prevent global ID collisions across multiple core instances.
+ * for this resolution in a cloned function.
+ * Prevent crash if receiver component is not present
+ * Fix part one for 'Playback doesn't work after switching between component tabs' (699216096995312)
+ * Timeline row selection-related crash (699417359896532)
+ * do not parse here.
+ * for Migration for gotoAndPlay APIs only works in hotEditingMode (694928618918872)
+ * 'Bug
+ * 'Bug
+ * 'controlFlow.placeholder broken in some cases'
+
+### Features
+
+ * More descriptive commit messages
+ * add titles to element names on the timeline
+ * initial work for direct editing
+
 ## 3.4.0
 
 ### Bug Fixes

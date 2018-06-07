@@ -27,17 +27,10 @@ class AST extends BaseModel {
     // Grab imports before we strip the __reference property
     const imports = AST.findImportsFromTemplate(this.file, bytecode.template)
 
-    const safe = AST.safeBytecode(bytecode)
-
-    const decycled = Bytecode.decycle(safe, {doCleanMana: false})
-
-    // Strip off `__max` and other cruft editor/core may have added
-    Bytecode.cleanBytecode(decycled)
-    Template.cleanTemplate(decycled.template)
-
-    const ro = objectToRO(decycled)
+    const ro = AST.normalizeBytecode(bytecode)
 
     const ast = bytecodeObjectToAST(ro, imports)
+
     normalizeBytecodeAST(ast)
 
     // Merge instead of replacing wholesale in case we have any pointers
@@ -64,6 +57,18 @@ AST.DEFAULT_OPTIONS = {
 }
 
 BaseModel.extend(AST)
+
+AST.normalizeBytecode = (bytecode) => {
+  const safe = AST.safeBytecode(bytecode)
+
+  const decycled = Bytecode.decycle(safe, {doCleanMana: false})
+
+  // Strip off `__max` and other cruft editor/core may have added
+  Bytecode.cleanBytecode(decycled)
+  Template.cleanTemplate(decycled.template)
+
+  return objectToRO(decycled)
+}
 
 AST.findImportsFromTemplate = (hostfile, template) => {
   // We'll build a mapping from source path to identifier name

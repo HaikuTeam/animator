@@ -4,6 +4,7 @@ import DownCarrotSVG from 'haiku-ui-common/lib/react/icons/DownCarrotSVG'
 import RightCarrotSVG from 'haiku-ui-common/lib/react/icons/RightCarrotSVG'
 import DragGrip from 'haiku-ui-common/lib/react/icons/DragGrip'
 import Palette from 'haiku-ui-common/lib/Palette'
+import Element from 'haiku-serialization/src/bll/Element'
 import ComponentHeadingRowHeading from './ComponentHeadingRowHeading'
 import CollapsedPropertyTimelineSegments from './CollapsedPropertyTimelineSegments'
 import EventHandlerTriggerer from './EventHandlerTriggerer'
@@ -107,7 +108,8 @@ export default class ComponentHeadingRow extends React.Component {
             clickEvent.stopPropagation()
             // Expand and select the entire component area when it is clicked, but note that we
             // only collapse if the user clicked directly on the chevron.
-            this.props.row.expandAndSelect({ from: 'timeline' })
+            Element.deselectAll({component: this.props.row.component}, {from: 'timeline'})
+            this.props.row.expandAndSelect({from: 'timeline'})
           }}
           style={{
             display: 'table-cell',
@@ -172,7 +174,8 @@ export default class ComponentHeadingRow extends React.Component {
               isHovered={this.props.isHovered}
               onEventHandlerTriggered={this.props.onEventHandlerTriggered}
               onExpand={() => {
-                this.props.row.expandAndSelect({ from: 'timeline' })
+                Element.deselectAll({component: this.props.row.component}, {from: 'timeline'})
+                this.props.row.expandAndSelect({from: 'timeline'})
               }}
             />
           </div>
@@ -232,7 +235,8 @@ export default class ComponentHeadingRow extends React.Component {
             clickEvent.stopPropagation()
             // Expand and select the entire component area when it is clicked, but note that we
             // only collapse if the user clicked directly on the chevron.
-            this.props.row.expandAndSelect({ from: 'timeline' })
+            Element.deselectAll({component: this.props.row.component}, {from: 'timeline'})
+            this.props.row.expandAndSelect({from: 'timeline'})
           }}
           className='component-collapsed-segments-box'
           style={{

@@ -1,4 +1,5 @@
 const path = require('path')
+const fs = require('fs')
 const BaseModel = require('./BaseModel')
 const overrideModulesLoaded = require('./../utils/overrideModulesLoaded')
 const Lock = require('./Lock')
@@ -355,6 +356,65 @@ ModuleWrapper.doesRelpathLookLikeSVGDesign = (relpath) => {
 ModuleWrapper.doesRelpathLookLikeInstalledComponent = (relpath) => {
   const parts = path.normalize(relpath).split(path.sep)
   return parts[0] === '@haiku'
+}
+
+/**
+ * Enable loading module from string.
+ * Heavily based on https://github.com/floatdrop/require-from-string
+ */
+ModuleWrapper.requireFromString = (code, filename, opts) => {
+  if (typeof filename === 'object') {
+    opts = filename
+    filename = undefined
+  }
+
+  opts = opts || {}
+  filename = filename || ''
+
+  opts.appendPaths = opts.appendPaths || []
+  opts.prependPaths = opts.prependPaths || []
+
+  if (typeof code !== 'string') {
+    throw new Error('code must be a string, not ' + typeof code)
+  }
+
+  const paths = Module._nodeModulePaths(path.dirname(filename))
+
+  const parent = module.parent
+  const m = new Module(filename, parent)
+  m.filename = filename
+  m.paths = [].concat(opts.prependPaths).concat(paths).concat(opts.appendPaths)
+  m._compile(code, filename)
+
+  const exports = m.exports
+  parent && parent.children && parent.children.splice(parent.children.indexOf(m), 1)
+
+  return exports
+}
+
+/**
+ * Enable loading module from file.
+ */
+ModuleWrapper.requireFromFile = (filename) => {
+  const contents = fs.readFileSync(filename).toString()
+
+  return ModuleWrapper.requireFromString(contents, filename)
+}
+
+/**
+ * Test load bytecode by requiring it. Used to check if currently editing file can be required.
+ */
+ModuleWrapper.testLoadBytecode = (contents, absPath) => {
+  var loadedBytecode = null
+  overrideModulesLoaded(
+    (stop) => {
+      console.log('Test if file content is requirable', absPath)
+      loadedBytecode = ModuleWrapper.requireFromString(contents, absPath)
+      stop()
+    },
+    ModuleWrapper.getHaikuKnownImportMatch
+  )
+  return loadedBytecode
 }
 
 ModuleWrapper.REF_TYPES = {

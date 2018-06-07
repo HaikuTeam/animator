@@ -46,13 +46,17 @@ class ComponentMenu extends React.Component {
         <ComponentTab
           forceActive={this.getAllTabs().length === 1}
           projectModel={this.props.projectModel}
-          tab={this.getMainComponentTab()} />
+          tab={this.getMainComponentTab()}
+          nonSavedContentOnCodeEditor={this.props.nonSavedContentOnCodeEditor}
+          tryToChangeCurrentActiveComponent={this.props.tryToChangeCurrentActiveComponent} />
         {(this.getOtherComponentTabs().map((tab, index) => {
           return (
             <ComponentTab
               projectModel={this.props.projectModel}
               key={index}
-              tab={tab} />
+              tab={tab}
+              nonSavedContentOnCodeEditor={this.props.nonSavedContentOnCodeEditor}
+              tryToChangeCurrentActiveComponent={this.props.tryToChangeCurrentActiveComponent} />
           )
         }))}
       </div>

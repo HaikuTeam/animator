@@ -105,7 +105,11 @@ class Timeline extends React.Component {
     this.handleUndoDebounced = lodash.debounce(this.handleUndo.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
     this.handleRedoDebounced = lodash.debounce(this.handleRedo.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
 
-    window.timeline = this
+    if (process.env.NODE_ENV !== 'production') {
+      // For debugging
+      window.timeline = this
+      window.view = this // Easy to run same instruction in different tools
+    }
   }
 
   isTextInputFocused () {
@@ -930,7 +934,7 @@ class Timeline extends React.Component {
   }
 
   showFrameActionsEditor (frame) {
-    const elementPrimaryKey = this.getActiveComponent().findElementRoots()[0].getPrimaryKey()
+    const elementPrimaryKey = this.getActiveComponent().findElementRoot().getPrimaryKey()
     this.showEventHandlersEditor(
       elementPrimaryKey,
       frame

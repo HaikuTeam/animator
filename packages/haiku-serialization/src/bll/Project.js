@@ -29,6 +29,9 @@ const SILENT_METHODS = {
   hoverElement: true,
   unhoverElement: true
 }
+const SERIAL_METHODS = {
+  describeIntegrityHandler: true
+}
 
 /**
  * @class Project
@@ -189,7 +192,11 @@ class Project extends BaseModel {
 
         return ac[method].apply(ac, params.slice(1).concat((err, out) => {
           release()
-          if (err) return cb(err)
+
+          if (err) {
+            return cb(err)
+          }
+
           return cb() // Skip objects that don't play well with Websockets
         }))
       }
@@ -202,8 +209,16 @@ class Project extends BaseModel {
 
         return this[method].apply(this, params.concat((err, result) => {
           release()
-          if (err) return cb(err)
-          return cb() // Skip objects that don't play well with Websockets
+
+          if (err) {
+            return cb(err)
+          }
+
+          if (SERIAL_METHODS[method]) {
+            return cb(null, result)
+          } else {
+            return cb() // Skip objects that don't play well with Websockets
+          }
         }))
       }
 
@@ -898,6 +913,27 @@ class Project extends BaseModel {
       return entry && entry[0] !== '.'
     })
     return async.eachSeries(entries, this.setupScene.bind(this), cb)
+  }
+
+  /**
+   * @method getComponentBytecodeSHAs
+   * @description Return a dictionary mapping component relpaths to SHA256s representing
+   * their current in-mem bytecode, e.g. {'code/main/code.js': 'abc123abc...'}
+   */
+  describeIntegrity () {
+    const shas = {}
+
+    this.getAllActiveComponents().forEach((ac) => {
+      shas[ac.getRelpath()] = {
+        len: ac.getNormalizedBytecodeJSON().length
+      }
+    })
+
+    return shas
+  }
+
+  describeIntegrityHandler (metadata, cb) {
+    return cb(null, this.describeIntegrity())
   }
 }
 

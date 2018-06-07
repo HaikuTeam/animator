@@ -6907,5 +6907,109 @@
       "label": "fix",
       "message": "for TypeError crash during interpolation."
     }
+  },
+  "3.4.1": {
+    "3fd105ca1aa76e17825ac346769318b0c66e0a35": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure ungroupables will not crash in SVG context."
+    },
+    "4855b67f0ada12480f83301e57ed97542f7f66a5": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure Angular instructions actually work."
+    },
+    "4dbdc8b4ed038af91bb896204e3737e7c04dc52e": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "prevent global ID collisions across multiple core instances."
+    },
+    "5c5b7696da382de44bf168b588324956a7a0c05c": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for this resolution in a cloned function."
+    },
+    "888b7d48dead27c07a6b93274a70f4d8b429a086": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "More descriptive commit messages"
+    },
+    "a4ff0bfc06bb0ac641796643b8556d70d354f4e5": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Prevent crash if receiver component is not present"
+    },
+    "183bb0f0b8833b45005aef473079f23615c35875": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Fix part one for 'Playback doesn't work after switching between component tabs' (699216096995312)"
+    },
+    "105bc2f66da7c9a2f7b0185fb9ae4b605ee2daa9": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Timeline row selection-related crash (699417359896532)"
+    },
+    "f88d8911fc5717c6411608dd3506d0221686667e": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "add titles to element names on the timeline"
+    },
+    "addb25563c9d24c759030dac250f21f763b8a873": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not parse here."
+    },
+    "f0880bcdb7fc177c746b9db728f58fd40ec6af1a": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for Migration for gotoAndPlay APIs only works in hotEditingMode (694928618918872)"
+    },
+    "a596d5f9cac157a5400eabd44f59b4402ea7ea63": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'Bug"
+    },
+    "5b3ff38c17ab8fce0b76456f5b7ea6031b82b075": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'Bug"
+    },
+    "58d1498cc9a272f04a27eaf1fd03501f00c09002": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'controlFlow.placeholder broken in some cases'"
+    },
+    "c8c4324f2733c87c2f679c94afeecfa1876b6382": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "initial work for direct editing"
+    }
+  },
+  "3.4.2": {
+    "7978d1a03c9ca2ce813eade64f0c55fc56f11266": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure Angular instructions actually work."
+    },
+    "e84465ff51d82f859008cdf0703a339f1bc30e19": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "prevent global ID collisions across multiple core instances."
+    },
+    "17717652fb57f0b41498565ffa482412b96a2c1c": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for this resolution in a cloned function."
+    },
+    "21aaa86137698b75a8dd87da8f4dc20eb75e9444": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Prevent crash if receiver component is not present"
+    },
+    "4cc7e3d6ad609ff2b4e842c25dc9fe5a8295b039": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not parse here."
+    }
   }
 }

@@ -14,6 +14,7 @@ const {InteractionMode, isPreviewMode} = require('@haiku/core/lib/helpers/intera
 const Layout3D = require('@haiku/core/lib/Layout3D').default
 const BaseModel = require('./BaseModel')
 const logger = require('./../utils/LoggerInstance')
+const CryptoUtils = require('./../utils/CryptoUtils')
 const toTitleCase = require('./helpers/toTitleCase')
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 const Lock = require('./Lock')
@@ -185,8 +186,13 @@ class ActiveComponent extends BaseModel {
     )
   }
 
-  findElementRoots () {
-    return Element.findRoots()
+  findElementRoot () {
+    for (const element of Element.findRoots()) {
+      if (element.component.uid === this.uid) {
+        return element
+      }
+    }
+    return null
   }
 
   queryElements (criteria) {
@@ -639,7 +645,7 @@ class ActiveComponent extends BaseModel {
       const entity = this.getCurrentTimeline() // May be called before being hydrated
       if (entity) {
         entity.seek(entity.getCurrentFrame())
-        timeline.seek(entity.getCurrentMs())
+        timeline.seek(entity.getCurrentFrame())
       }
       this.$instance.visitGuestHierarchy((instance) => {
         instance.getTimeline(this.getCurrentTimelineName()).freeze()
@@ -2089,8 +2095,10 @@ class ActiveComponent extends BaseModel {
   reload (reloadOptions, instanceConfig, cb) {
     const runReload = (done) => {
       if (reloadOptions.hardReload) {
+        logger.info('HardReload on ', this.project.getAlias(), ', file:', this.fetchActiveBytecodeFile().relpath)
         return this.hardReload(reloadOptions, instanceConfig, done)
       } else {
+        logger.info('SoftReload on ', this.project.getAlias(), ', file:', this.fetchActiveBytecodeFile().relpath)
         return this.softReload(reloadOptions, instanceConfig, done)
       }
     }
@@ -2190,6 +2198,14 @@ class ActiveComponent extends BaseModel {
         // Start the clock again, as we should now be ready to flow updated component.
         if (this.$instance) {
           this.$instance.context.clock.start()
+
+          // If the scrubber had been dragged past the max defined keyframe, the timeline instances
+          // will start off in a not-playing state, the effect of which will be that scrubbing the
+          // timeline will not animate the child; this sets the value to playing so that scrubbing works
+          const timeline = this.$instance.getTimeline(this.getCurrentTimelineName())
+          if (timeline) {
+            timeline.setPlaying(true)
+          }
         }
 
         // Solely used to allow glass to update internally when the authoritative frame changes
@@ -4347,6 +4363,22 @@ class ActiveComponent extends BaseModel {
   }
 
   /**
+   * @method getNormalizedBytecodeSHA
+   * @description Return a SHA256 for the current in-mem bytecode.
+   */
+  getNormalizedBytecodeSHA () {
+    return CryptoUtils.sha256(this.getNormalizedBytecodeJSON())
+  }
+
+  getNormalizedBytecode () {
+    return AST.normalizeBytecode(this.getReifiedBytecode())
+  }
+
+  getNormalizedBytecodeJSON () {
+    return jss(this.getNormalizedBytecode())
+  }
+
+  /**
    * @method dump
    * @description Use this to log a concise shorthand of this entity.
    */
@@ -4382,6 +4414,7 @@ module.exports = ActiveComponent
 
 // Down here to avoid Node circular dependency stub objects. #FIXME
 const Artboard = require('./Artboard')
+const AST = require('./AST')
 const Bytecode = require('./Bytecode')
 const Design = require('./Design')
 const DevConsole = require('./DevConsole')
