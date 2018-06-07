@@ -357,6 +357,7 @@ class ActionStack extends BaseModel {
 
   undo (options, metadata, cb) {
     this.forceAccumulation()
+
     if (this.getUndoables().length < 1) {
       return cb()
     }
@@ -385,6 +386,7 @@ class ActionStack extends BaseModel {
 
   redo (options, metadata, cb) {
     this.forceAccumulation()
+
     if (this.getRedoables().length < 1) {
       return cb()
     }
