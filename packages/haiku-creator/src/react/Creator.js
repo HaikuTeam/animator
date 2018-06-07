@@ -1572,6 +1572,7 @@ export default class Creator extends React.Component {
               callback(err, projectObject)
 
               if (err) {
+                this.hideNewProjectModal()
                 return
               }
 
