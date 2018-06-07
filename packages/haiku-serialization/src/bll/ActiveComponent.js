@@ -2971,7 +2971,6 @@ class ActiveComponent extends BaseModel {
         return this.reload({
           hardReload: this.project.isRemoteRequest(metadata),
           clearCacheOptions: {
-            clearPreviouslyRegisteredEventListeners: true,
             doClearEntityCaches: true
           }
         }, null, () => {
@@ -3007,7 +3006,6 @@ class ActiveComponent extends BaseModel {
         return this.reload({
           hardReload: this.project.isRemoteRequest(metadata),
           clearCacheOptions: {
-            clearPreviouslyRegisteredEventListeners: true,
             doClearEntityCaches: true
           }
         }, null, () => {
@@ -3041,7 +3039,6 @@ class ActiveComponent extends BaseModel {
           hardReload: this.project.isRemoteRequest(metadata),
           forceFlush: true,
           clearCacheOptions: {
-            clearPreviouslyRegisteredEventListeners: true,
             doClearEntityCaches: true
           }
         }, null, () => {
