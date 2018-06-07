@@ -224,10 +224,12 @@ class ActionStack extends BaseModel {
   }
 
   addUndoable (undoable, ac) {
+    // TODO: reimplement this.undoables as a Map<ActiveComponent, Undoable[]>
     this.addDoable(Object.assign(undoable, {ac}), this.undoables)
   }
 
   addRedoable (redoable, ac) {
+    // TODO: reimplement this.redoables as a Map<ActiveComponent, Undoable[]>
     this.addDoable(Object.assign(redoable, {ac}), this.redoables)
   }
 
