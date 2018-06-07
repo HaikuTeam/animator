@@ -44,29 +44,21 @@ const SVG_COMMAND_TYPES = {
   polygon: true,
 };
 
-const POINTS_REGEX = /(-?\d+\.*\d*)((\s+,?\s*)|(,\s*))(-?\d+\.*\d*)/g;
-
-function polyPointsStringToPoints (pointsString: string|string[][]) {
+function polyPointsStringToPoints (pointsString: string|[number, number][]) {
   if (!pointsString) {
     return [];
   }
   if (Array.isArray(pointsString)) {
     return pointsString;
   }
-  const points = [];
-  let matches;
-  // tslint:disable-next-line:no-conditional-assignment
-  while (matches = POINTS_REGEX.exec(pointsString)) {
-    const coord = [];
-    if (matches[1]) {
-      coord[0] = Number(matches[1]);
-    }
-    if (matches[5]) {
-      coord[1] = Number(matches[5]);
-    }
-    points.push(coord);
+
+  // Normalize "x1,y1 x2,y2" syntax to "x1 y1 x2 y2" syntax before splitting.
+  const chunkedPoints = [];
+  const points: number[] = pointsString.replace(/,/g, ' ').split(/\s+/g).map(Number);
+  for (let i = 0; i < points.length; i += 2) {
+    chunkedPoints.push(points.slice(i, i + 2) as [number, number]);
   }
-  return points;
+  return chunkedPoints;
 }
 
 function pointsToPolyString (points: string|string[][]) {
