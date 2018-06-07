@@ -1100,6 +1100,10 @@ export default class HaikuComponent extends HaikuElement {
 
     const guestTimeline = guest.getTimeline(timelineName);
 
+    if (playbackValue === PLAYBACK_SETTINGS.CEDE) {
+      return guestTimeline.getTime();
+    }
+
     // If time is controlled and we're set to 'loop', use a modulus of the guest's max time
     // which will give the effect of looping the guest to its 0 if its max has been reached
     if (playbackValue === PLAYBACK_SETTINGS.LOOP) {
