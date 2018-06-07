@@ -626,10 +626,12 @@ class ActiveComponent extends BaseModel {
   setInteractionMode (interactionMode, cb) {
     this._interactionMode = interactionMode
 
-    this.$instance.assignConfig({
-      interactionMode: interactionMode,
-      // Disable hot editing mode during preview mode for smooth playback.
-      hotEditingMode: !this.isPreviewModeActive()
+    this.$instance.visitGuestHierarchy((instance) => {
+      instance.assignConfig({
+        interactionMode: interactionMode,
+        // Disable hot editing mode during preview mode for smooth playback.
+        hotEditingMode: !this.isPreviewModeActive()
+      })
     })
 
     if (this.isPreviewModeActive()) {
