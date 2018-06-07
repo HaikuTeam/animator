@@ -921,6 +921,17 @@ class Project extends BaseModel {
     return async.eachSeries(entries, this.setupScene.bind(this), cb)
   }
 
+  describeComponents () {
+    let out = ''
+
+    this.getAllActiveComponents().forEach((ac) => {
+      out += ac.getRelpath() + '\n'
+      out += (Template.inspect(ac.getReifiedBytecode().template) || '?') + '\n\n'
+    })
+
+    return out
+  }
+
   /**
    * @method getComponentBytecodeSHAs
    * @description Return a dictionary mapping component relpaths to SHA256s representing
