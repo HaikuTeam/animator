@@ -634,23 +634,41 @@ class ActiveComponent extends BaseModel {
       })
     })
 
+    const mainTimeline = this.$instance.getTimeline(this.getCurrentTimelineName())
+
     if (this.isPreviewModeActive()) {
-      const timeline = this.$instance.getTimeline(this.getCurrentTimelineName())
-      timeline.gotoAndPlay(0)
-      timeline.setRepeat(true)
+      // In preview mode, the animation loops endlessly until the user stops it
+      mainTimeline.setRepeat(true)
+
+      // Need to reset the timelines of the component an all of its guests
       this.$instance.visitGuestHierarchy((instance) => {
-        instance.getTimeline(this.getCurrentTimelineName()).unfreeze()
+        const otherTimeline = instance.getTimeline(this.getCurrentTimelineName())
+        otherTimeline.gotoAndPlay(0)
+        otherTimeline.unfreeze()
       })
     } else {
-      const timeline = this.$instance.getTimeline(this.getCurrentTimelineName())
-      timeline.setRepeat(false)
-      const entity = this.getCurrentTimeline() // May be called before being hydrated
-      if (entity) {
+      // Unset the endless looping that we began when entering preview mode
+      mainTimeline.setRepeat(false)
+
+      const entity = this.getCurrentTimeline()
+      if (entity) { // May be called before hydrated
         entity.seek(entity.getCurrentFrame())
-        timeline.seek(entity.getCurrentFrame())
       }
+
       this.$instance.visitGuestHierarchy((instance) => {
-        instance.getTimeline(this.getCurrentTimelineName()).freeze()
+        const otherTimeline = instance.getTimeline(this.getCurrentTimelineName())
+
+        if (otherTimeline === mainTimeline) {
+          if (entity) {
+            // The main timeline gets set to whatever it had been before entering preview mode
+            otherTimeline.seek(entity.getCurrentFrame())
+          }
+        } else {
+          // Bring all sub-timelines back to 0
+          otherTimeline.seek(0)
+        }
+
+        otherTimeline.freeze()
       })
     }
 
