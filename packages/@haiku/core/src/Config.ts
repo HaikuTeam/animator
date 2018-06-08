@@ -45,6 +45,8 @@ const CHILD_SAFE_CONFIG = {
   timestamp: true,
   freeze: true,
   clock: true,
+  sizing: true,
+  alwaysComputeSizing: true,
   preserve3d: true,
   contextMenu: true,
   mixpanel: true,
