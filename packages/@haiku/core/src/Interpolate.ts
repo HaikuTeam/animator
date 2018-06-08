@@ -8,6 +8,7 @@ import justCurves from './vendor/just-curves';
 const CENT = 1.0;
 const OBJECT = 'object';
 const NUMBER = 'number';
+const BOOLEAN = 'boolean';
 
 function percentOfTime (t0: number, t1: number, tnow: number) {
   const span = t1 - t0;
@@ -78,6 +79,12 @@ function interpolate (
 
   if (typeof origin === NUMBER && typeof destination === NUMBER) {
     return interpolateValue(origin as number, destination as number, started, ends, now, curveFunc as CurveFunction);
+  }
+
+  // To interpolate booleans, assumes origin/destination are 0 (false) or 1(true), interpolate,
+  // and if interpolation result>=0.5, assumes it true, false otherwise, ofc.
+  if (typeof origin === BOOLEAN && typeof destination === BOOLEAN) {
+    return interpolateValue(Number(origin), Number(destination), started, ends, now, curveFunc as CurveFunction) >= 0.5;
   }
 
   return origin;
