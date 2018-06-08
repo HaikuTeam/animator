@@ -795,7 +795,7 @@ export default class HaikuComponent extends HaikuElement {
 
     if (this.context.renderer.mount) {
       this.eachEventHandler((eventSelector, eventName, {handler}) => {
-        const registrationKey  = `${eventSelector}:${eventName}`;
+        const registrationKey = `${eventSelector}:${eventName}`;
 
         if (this.registeredEventHandlers[registrationKey]) {
           return;
@@ -803,7 +803,7 @@ export default class HaikuComponent extends HaikuElement {
 
         this.registeredEventHandlers[registrationKey] = true;
 
-        this.context.renderer.mountEventListener(eventSelector, eventName, (...args) => {
+        this.context.renderer.mountEventListener(this, eventSelector, eventName, (...args) => {
           this.routeEventToHandlerAndEmit(eventSelector, eventName, args);
         });
       });
