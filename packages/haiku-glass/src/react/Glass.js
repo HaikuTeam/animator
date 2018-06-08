@@ -927,7 +927,7 @@ export class Glass extends React.Component {
     }
 
     mixpanel.haikuTrack('creator:glass:show-event-handlers-editor')
-    logger.info(`showing action editor`, targetElement, options)
+    logger.info(`showing action editor`, options)
 
     this.setState({
       targetElement,
