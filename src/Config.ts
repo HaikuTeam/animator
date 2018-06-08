@@ -34,6 +34,36 @@ export const DEFAULTS: BytecodeOptions = {
   placeholder: null,
 };
 
+/**
+ * Configuration from HaikuContext is forwarded to all HaikuComponent instances in its tree.
+ * For child instances, certain settings (such as `loop`) give unexpected behavior and
+ * other settings (such as `states`) don't make much sense to pass down. This specifies the
+ * settings that are considered safe to forward from the context to all subcomponents.
+ */
+const CHILD_SAFE_CONFIG = {
+  seed: true,
+  timestamp: true,
+  freeze: true,
+  clock: true,
+  preserve3d: true,
+  contextMenu: true,
+  mixpanel: true,
+  useWebkitPrefix: true,
+  interactionMode: true,
+};
+
+const buildChildSafeConfig = (config: BytecodeOptions): BytecodeOptions => {
+  const out = {};
+
+  for (const key in config) {
+    if (CHILD_SAFE_CONFIG[key]) {
+      out[key] = config[key];
+    }
+  }
+
+  return out;
+};
+
 function seed () {
   return Math.random().toString(36).slice(2);
 }
@@ -92,4 +122,5 @@ export default {
   build,
   seed,
   DEFAULTS,
+  buildChildSafeConfig,
 };
