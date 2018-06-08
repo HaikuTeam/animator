@@ -449,16 +449,7 @@ Bytecode.decycle = (reified, { cleanManaOptions = {}, doCleanMana }) => {
     for (const componentId in reified.eventHandlers) {
       decycled.eventHandlers[componentId] = {}
       for (const eventListenerName in reified.eventHandlers[componentId]) {
-        // At runtime we wrap the original event handler in a wrapper function, and store
-        // the original on the 'original' property, so when serializing we need to grab the original
-        // and use it as the 'handler' or else the wrapper will be written to disk
-        const maybeOriginalFn = reified.eventHandlers[componentId][eventListenerName].original
-        const maybeHandlerFn = reified.eventHandlers[componentId][eventListenerName].handler
-
-        // If no original is present, use the handler since it shouldn't be wrapped
-        // Without this conditional, you may see event handlers get written as `null` in the code
-        const handlerToAssign = maybeOriginalFn || maybeHandlerFn
-
+        const handlerToAssign = reified.eventHandlers[componentId][eventListenerName].handler
         decycled.eventHandlers[componentId][eventListenerName] = {
           handler: handlerToAssign
         }

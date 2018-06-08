@@ -15,7 +15,7 @@ module.exports = {
     branch: "master"
   },
   options: {},
-  states: { finished: { type: "boolean", value: true, edited: true } },
+  states: { finished: { type: "boolean", value: false, edited: true } },
   eventHandlers: {
     "haiku:ecf13be9fb45": {
       click: {
@@ -28,13 +28,11 @@ module.exports = {
       },
       "timeline:Default:0": {
         handler: function(target, event) {
-          console.log("frame 0 handler",'pause',this,this.getBytecodeRelpath(),this.getDefaultTimeline());
           this.getDefaultTimeline().pause();
         }
       },
       "timeline:Default:30": {
         handler: function(target, event) {
-          console.log("frame 30 handler",'pause',this,this.getBytecodeRelpath(),this.getDefaultTimeline());
           this.setState({ finished: true });
         }
       }
