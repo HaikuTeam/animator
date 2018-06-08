@@ -621,6 +621,16 @@ export class Glass extends React.Component {
         case 'global-menu:redo':
           this.handleRedoDebounced(message)
           break
+
+        case 'global-menu:preview':
+          // This hook is only used for internal development
+          if (this.project) {
+            this.project.toggleInteractionMode({from: 'glass'}, () => {
+              // Ensure Glass UI reflects the mode-switch
+              this.forceUpdate()
+            })
+          }
+          break
       }
     })
 

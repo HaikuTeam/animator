@@ -198,6 +198,16 @@ export default class TopMenu {
           this.sender.send('global-menu:show-new-project-modal');
         },
       },
+      {type: 'separator'},
+      {
+        label: 'Preview',
+        accelerator: 'CmdOrCtrl+P',
+        enabled: !this.options.isSaving && this.options.isProjectOpen,
+        click: () => {
+          this.sender.send('global-menu:preview');
+        },
+      },
+      {type: 'separator'},
       {
         label: 'Publish',
         enabled: !this.options.isSaving && this.options.isProjectOpen,
