@@ -2839,15 +2839,8 @@ class ActiveComponent extends BaseModel {
     Template.cleanTemplate(bytecode.template)
     const file = this.fetchActiveBytecodeFile()
     file.updateInMemoryHotModule(bytecode, () => {
-      this.maybeRequestAsyncContentFlush()
+      this.fetchActiveBytecodeFile().requestAsyncContentFlush()
     })
-  }
-
-  maybeRequestAsyncContentFlush () {
-    const file = this.fetchActiveBytecodeFile()
-    if (file.options.doWriteToDisk) {
-      file.requestAsyncContentFlush()
-    }
   }
 
   performComponentTimelinesWork (worker, finish) {
