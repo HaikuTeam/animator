@@ -232,7 +232,6 @@ export const runMigrations = (component: HaikuComponent, options: any, version: 
           ...rfo,
           body,
         });
-        needsRerender = true;
       }
     });
   }
