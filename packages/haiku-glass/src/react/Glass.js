@@ -2670,9 +2670,11 @@ export class Glass extends React.Component {
 
     items.push({
       label: 'Edit Element Actions',
-      enabled: proxy.doesManageSingleElement(),
+      // Show the actions menu if there is nothing selected for editing artboard actions
+      enabled: proxy.doesManageSingleElement() || proxy.hasNothingInSelection(),
       onClick: (event) => {
-        this.showEventHandlersEditor(event, proxy.selection[0])
+        // Fallback to the artboard if there is nothing in the current selection
+        this.showEventHandlersEditor(event, proxy.selection[0] || this.getActiveComponent().getArtboard().getElement())
       }
     })
 
