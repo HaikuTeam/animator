@@ -17,16 +17,7 @@ module.exports = {
   },
   options: {},
   states: {},
-  eventHandlers: {
-    // "haiku:e4a9e4d8baa7": {
-    //   click: {
-    //     handler: function(target, event) {
-    //       /** action logic goes here */
-    //       console.log(1);
-    //     }
-    //   }
-    // }
-  },
+  eventHandlers: {},
   timelines: {
     Default: {
       "haiku:e4a9e4d8baa7": {

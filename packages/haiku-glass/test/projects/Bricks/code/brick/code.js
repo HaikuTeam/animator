@@ -15,25 +15,20 @@ module.exports = {
     branch: "master"
   },
   options: {},
-  states: { finished: { type: "boolean", value: false, edited: true } },
+  states: { locked: { type: "boolean", value: false, edited: true } },
   eventHandlers: {
     "haiku:ecf13be9fb45": {
       click: {
         handler: function(target, event) {
-          console.log('click handler',this,this.getBytecodeRelpath(),this.state.finished);
-          if (!this.state.finished) {
+          if (!this.state.locked) {
             this.getDefaultTimeline().gotoAndPlay(1);
+            this.setState({locked: true});
           }
         }
       },
       "timeline:Default:0": {
         handler: function(target, event) {
           this.getDefaultTimeline().pause();
-        }
-      },
-      "timeline:Default:30": {
-        handler: function(target, event) {
-          this.setState({ finished: true });
         }
       }
     }
