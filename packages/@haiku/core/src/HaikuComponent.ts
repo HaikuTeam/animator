@@ -53,7 +53,6 @@ export interface HotComponent {
 
 export interface ClearCacheOptions {
   clearStates?: boolean;
-  clearEventHandlers?: boolean;
 }
 
 // tslint:disable:variable-name function-name
