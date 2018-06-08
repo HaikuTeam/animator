@@ -7011,5 +7011,97 @@
       "label": "fix",
       "message": "do not parse here."
     }
+  },
+  "3.4.3": {
+    "4fa01e16a6e9b9b9570e5920a709b418c4f6f89b": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for Ctrl+clicking multi-selection deselects all but the clicked element (697563057806737)"
+    },
+    "a593c990044c3dff16131530a55aed2da7d7564a": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "require _collections correctly from svgo."
+    },
+    "e79fd5e7243c73bb78949929d8bfb2aa11a20a08": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for Bug"
+    },
+    "baacd06d526ecfa6923fe4fb5d4ec1e650ad26e9": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure migrations re-render following initial renders if bytecode was meaningfully mutated."
+    },
+    "1987a337ec45cdb7cddd2767b454d18a16ee400f": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "The sizing config needs to be passed down to children too"
+    },
+    "158bc2ceeda196c30b80edebadab6690eef88b3a": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Better playback settings when toggling between preview mode and editing mode"
+    },
+    "630aa1174a603e9733745f1021e35666c693569f": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Refactor to fix component reference confusion with multi-component event handlers"
+    },
+    "876d414dd14b393e96d30cfdd3e921aec10b3d3a": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "Allow preview mode to be toggled from the top menu (helps with dev too)"
+    },
+    "5212eb1c8f01efa1552ddd36ce01b7043071f24f": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Some config should not be passed down to child components from the context (704039297305135)"
+    },
+    "7ebfb7f7f198d5cf4f657ac870bce8cbe5e63280": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Ensure event routing is subcomponent-specific"
+    },
+    "0630d5d548bac08615baed643061940e0b5d2cf1": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Ensure child component event handlers fire in host component's preview mode (703465281990014)"
+    },
+    "1bf1d7bee17d78c6ed789826f193497fe3ec1c5a": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Don't clone child component bytecode which messes up event handler bindings"
+    },
+    "88febc1c965ce6b37c0f6a1b490b83f756fa47e4": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Fix crash when injecting .* into expression"
+    },
+    "72787b6d7c1dce405b80b70c09fc17fa2e9d190b": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for polyPointsStringToPoints regression."
+    },
+    "d5963fb9227b5e4828d3399a752fa0e6314c6c4e": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for Undoing group/ungroup of element in Main while in Child context makes Child instance in Main context disappear"
+    },
+    "263bd5fd388054897561b5db37896d5cf0b46ebf": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "Make undo/redo multi-component-aware"
+    },
+    "12f9f252d9bef1d07d717edef8897e70f4918acf": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Correct comparison of keyframe values to timeline time for detecting expressions (700874348545633)"
+    },
+    "960a3d5e91af26cfa7e808f370a0caa7a5fc1379": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Components should not fire event handlers when they have been deactivated (701883247926524)"
+    }
   }
 }
