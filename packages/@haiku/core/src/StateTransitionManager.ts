@@ -34,11 +34,21 @@ export default class StateTransitionManager {
    */
   setState (transitionEnd: StateValues, parameter?: StateTransitionParameters) {
 
+    // If not a transition, execute it right away
+    if (!parameter) {
+      for (const key in transitionEnd) {
+        delete this.transitions[key];
+      }
+      this.setStates(transitionEnd);
+      return;
+    }
+
     // Get current time
     const currentTime = this.clock.getTime();
 
-    // If paramers isn't set, process like a non queued SetState
-    const transitionParameter = parameter ? parameter : {duration:0, curve: Curve.Linear, queue: false};
+    // Set default values than assign parameters
+    const transitionParameter = {duration:0, curve: Curve.Linear, queue: false};
+    Object.assign(transitionParameter, parameter);
 
     // Copy current states as transition start (needed to calculate interpolation)
     for (const key in transitionEnd) {
@@ -47,11 +57,10 @@ export default class StateTransitionManager {
         // queued transitions are add into queue
         // If parameter.queue is true, it is a queued setState
         // If state transition for key is not created, process like a queued SetState
-        if (transitionParameter.hasOwnProperty('queue') &&  transitionParameter.queue &&
-            this.transitions[key] !== undefined) {
+        if (transitionParameter.queue && this.transitions[key]) {
           this.transitions[key].push({
             transitionParameter,
-            transitionEnd,
+            transitionEnd: {[key]: transitionEnd[key]},
             transitionStart: {[key]: this.states[key]},
             startTime: currentTime,
             endTime: currentTime + transitionParameter.duration,
@@ -61,7 +70,7 @@ export default class StateTransitionManager {
         } else {
           this.transitions[key] = [{
             transitionParameter,
-            transitionEnd,
+            transitionEnd: {[key]: transitionEnd[key]},
             transitionStart: {[key]: this.states[key]},
             startTime: currentTime,
             endTime: currentTime + transitionParameter.duration,
@@ -100,20 +109,17 @@ export default class StateTransitionManager {
     // For each state, process state transition queue
     for (const stateName in this.transitions) {
 
-      // On queued states, only first transition is processed, other transitions are queued.
+      // On queued states, only first transition is processed, other transitions are in queue.
       if (this.transitions[stateName].length > 0) {
         const transition = this.transitions[stateName][0];
 
         if (this.isExpired(transition, currentTime)) {
 
-          // If expired, simulate it was calculated exactly on endTime.
-          Object.assign(
-            interpolatedStates,
-            Interpolate.interpolate(
-              transition.endTime, transition.transitionParameter.curve, transition.startTime,
-              transition.endTime, transition.transitionStart, transition.transitionEnd,
-            ),
-          );
+          // If expired, assign transitionEnd.
+          // NOTE: In the future, with custom transition function implemented calculating
+          // interpolation at endTime will be necessary (eg. a user defined curve that at
+          // endTime isn't 100%, but let's say 60%)
+          Object.assign(interpolatedStates, transition.transitionEnd);
 
           // Remove expired transition.
           this.transitions[stateName].splice(0, 1);

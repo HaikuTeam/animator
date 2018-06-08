@@ -222,30 +222,41 @@ tape(
         curve: Curve.Linear,
       },
     );
-    haikuClock.setTime(10000);
+    haikuClock.setTime(9500);
     stateTransitionManager.tickStateTransitions();
     t.deepEqual(
       states.varObject,
       {
         varString: 'string',
+        var: 7.5,
+      },
+      'Interpolate numbers and set transition end directly on non interpolable objects',
+    );
+
+    haikuClock.setTime(10000);
+    stateTransitionManager.tickStateTransitions();
+    t.deepEqual(
+      states.varObject,
+      {
+        varString: 10,
         var: 10,
       },
-      'Interpolate only numbers on objects',
+      'Interpolate numbers and set transitionEnd directly on non interpolable objects',
     );
 
     stateTransitionManager.setState(
       {varNull: 10},
       {
         duration: 1000,
-        curve: Curve.Linear,
+        curve: Curve.EaseOutQuad,
       },
     );
     haikuClock.setTime(11000);
     stateTransitionManager.tickStateTransitions();
     t.is(
       states.varNull,
-      null,
-      'Do not state transition null',
+      10,
+      'Set transitionEnd directly on non interpolable objects',
     );
 
     stateTransitionManager.setState(
@@ -470,6 +481,26 @@ tape(
     t.is(
       states.var1,
       22,
+      'Second queued state transition should be executed',
+    );
+    t.is(
+      stateTransitionManager.numQueuedTransitions,
+      0,
+      'All transitions should be finished',
+    );
+
+    stateTransitionManager.setState(
+      {var1: 50},
+      {
+        duration: 1000,
+        curve: Curve.EaseInExpo,
+      },
+    );
+    haikuClock.setTime(21000);
+    stateTransitionManager.tickStateTransitions();
+    t.is(
+      states.var1,
+      50,
       'Second queued state transition should be executed',
     );
     t.is(
