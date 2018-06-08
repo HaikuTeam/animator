@@ -915,6 +915,10 @@ class Project extends BaseModel {
     return async.eachSeries(entries, this.setupScene.bind(this), cb)
   }
 
+  getPreviewAssetPath () {
+    return path.join(this.getFolder(), 'preview.html')
+  }
+
   /**
    * @method getComponentBytecodeSHAs
    * @description Return a dictionary mapping component relpaths to SHA256s representing

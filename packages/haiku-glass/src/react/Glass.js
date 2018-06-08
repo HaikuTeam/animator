@@ -2865,6 +2865,15 @@ export class Glass extends React.Component {
           }
         }
       })
+
+      items.push({
+        label: 'Preview in Browser',
+        enabled: proxy.hasNothingInSelection(),
+        onClick: () => {
+          const assetPath = this.project.getPreviewAssetPath()
+          shell.openItem(assetPath)
+        }
+      })
     }
 
     return items
