@@ -21,23 +21,25 @@ export type BytecodeSummonable = ((param: any) => BytecodeStateType);
  */
 export type BytecodeInjectable = BytecodeStateType|BytecodeSummonable;
 
+export interface BytecodeNodeAttributes {
+  [attribute: string]: any;
+  style?: {
+    [key in string]: PrimitiveType;
+    };
+  /**
+   * @deprecated
+   */
+  source?: string;
+  identifier?: string;
+}
+
 /**
  * Haiku bytecode element tree. eg. <div><svg>...</svg></div>.
  * `source` and `identifier` are rarely used.
  */
 export interface BytecodeNode {
   elementName: string;
-  attributes: {
-    [attribute: string]: any;
-    style?: {
-      [key in string]: PrimitiveType;
-    };
-    /**
-     * @deprecated
-     */
-    source?: string;
-    identifier?: string;
-  };
+  attributes: BytecodeNodeAttributes;
   layout?: LayoutSpec;
   /**
    * @deprecated
@@ -45,6 +47,8 @@ export interface BytecodeNode {
   rect?: DomRect;
   children: (BytecodeNode|string)[];
 }
+
+export type MaybeBytecodeNode = BytecodeNode|null;
 
 /**
  * Haiku bytecode state.
