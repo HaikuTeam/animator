@@ -6,8 +6,6 @@ import * as tape from 'tape';
 tape(
   'Test state transitions',
   (t) => {
-    t.plan(31);
-
     const states = {
       var1: 0,
       var2: 5,
@@ -247,22 +245,46 @@ tape(
     t.is(
       states.varNull,
       null,
-      'Do not stete transition null',
+      'Do not state transition null',
     );
 
     stateTransitionManager.setState(
-      {varBool: 10},
+      {varBool: false},
       {
         duration: 1000,
         curve: Curve.Linear,
       },
     );
-    haikuClock.setTime(12000);
+    haikuClock.setTime(11400);
     stateTransitionManager.tickStateTransitions();
     t.is(
       states.varBool,
       true,
-      'Do not state transition boolean',
+      'State transition boolean',
+    );
+
+    haikuClock.setTime(11500);
+    stateTransitionManager.tickStateTransitions();
+    t.is(
+      states.varBool,
+      true,
+      'State transition boolean',
+    );
+
+    haikuClock.setTime(11501);
+    stateTransitionManager.tickStateTransitions();
+    t.is(
+      states.varBool,
+      false,
+      'State transition boolean',
+    );
+
+    haikuClock.setTime(12000);
+    stateTransitionManager.tickStateTransitions();
+    t.is(
+      states.varBool,
+      false,
+      'State transition boolean',
     );
 
     stateTransitionManager.setState(
@@ -456,5 +478,6 @@ tape(
       'All transitions should be finished',
     );
 
+    t.end();
   },
 );

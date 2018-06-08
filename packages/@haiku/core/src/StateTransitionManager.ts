@@ -118,11 +118,13 @@ export default class StateTransitionManager {
           // Remove expired transition.
           this.transitions[stateName].splice(0, 1);
 
-          // Update next queued state transition
+          // Update next queued state transition or delete empty transition vector for performance reasons
           if (this.transitions[stateName].length > 0) {
             this.transitions[stateName][0].transitionStart = {[stateName]: interpolatedStates[stateName]};
             this.transitions[stateName][0].startTime = currentTime;
             this.transitions[stateName][0].endTime = currentTime + this.transitions[stateName][0].duration;
+          } else {
+            delete this.transitions[stateName];
           }
 
         } else {
