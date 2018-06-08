@@ -6,6 +6,8 @@ import * as tape from 'tape';
 tape(
   'Test state transitions',
   (t) => {
+    t.plan(31);
+
     const states = {
       var1: 0,
       var2: 5,
@@ -222,80 +224,45 @@ tape(
         curve: Curve.Linear,
       },
     );
-    haikuClock.setTime(9500);
-    stateTransitionManager.tickStateTransitions();
-    t.deepEqual(
-      states.varObject,
-      {
-        varString: 'string',
-        var: 7.5,
-      },
-      'Interpolate numbers and set transition end directly on non interpolable objects',
-    );
-
     haikuClock.setTime(10000);
     stateTransitionManager.tickStateTransitions();
     t.deepEqual(
       states.varObject,
       {
-        varString: 10,
+        varString: 'string',
         var: 10,
       },
-      'Interpolate numbers and set transitionEnd directly on non interpolable objects',
+      'Interpolate only numbers on objects',
     );
 
     stateTransitionManager.setState(
       {varNull: 10},
       {
         duration: 1000,
-        curve: Curve.EaseOutQuad,
+        curve: Curve.Linear,
       },
     );
     haikuClock.setTime(11000);
     stateTransitionManager.tickStateTransitions();
     t.is(
       states.varNull,
-      10,
-      'Set transitionEnd directly on non interpolable objects',
+      null,
+      'Do not stete transition null',
     );
 
     stateTransitionManager.setState(
-      {varBool: false},
+      {varBool: 10},
       {
         duration: 1000,
         curve: Curve.Linear,
       },
     );
-    haikuClock.setTime(11400);
-    stateTransitionManager.tickStateTransitions();
-    t.is(
-      states.varBool,
-      true,
-      'State transition boolean',
-    );
-
-    haikuClock.setTime(11500);
-    stateTransitionManager.tickStateTransitions();
-    t.is(
-      states.varBool,
-      true,
-      'State transition boolean',
-    );
-
-    haikuClock.setTime(11501);
-    stateTransitionManager.tickStateTransitions();
-    t.is(
-      states.varBool,
-      false,
-      'State transition boolean',
-    );
-
     haikuClock.setTime(12000);
     stateTransitionManager.tickStateTransitions();
     t.is(
       states.varBool,
-      false,
-      'State transition boolean',
+      true,
+      'Do not state transition boolean',
     );
 
     stateTransitionManager.setState(
@@ -489,26 +456,5 @@ tape(
       'All transitions should be finished',
     );
 
-    stateTransitionManager.setState(
-      {var1: 50},
-      {
-        duration: 1000,
-        curve: Curve.EaseInExpo,
-      },
-    );
-    haikuClock.setTime(21000);
-    stateTransitionManager.tickStateTransitions();
-    t.is(
-      states.var1,
-      50,
-      'Second queued state transition should be executed',
-    );
-    t.is(
-      stateTransitionManager.numQueuedTransitions,
-      0,
-      'All transitions should be finished',
-    );
-
-    t.end();
   },
 );
