@@ -54,7 +54,7 @@ const STYLES = {
     position: 'relative',
     paddingLeft: 13,
     userSelect: 'none',
-    cursor: 'pointer',
+    cursor: 'default',
     paddingTop: 2,
     paddingBottom: 2,
     marginTop: 2,
@@ -69,6 +69,7 @@ const STYLES = {
   },
   chevy: {
     marginRight: 8,
+    cursor: 'pointer',
   },
   cardIcon: {
     position: 'relative',
@@ -95,17 +96,7 @@ const STYLES = {
     color: Palette.DARKER_ROCK2,
   },
   draggableCardWrapper: {
-    // position: 'relative'
-    // paddingLeft: 20,
-    // paddingTop: 2,
-    // fontSize: 13,
-    // paddingBottom: 2,
-    // cursor: 'move',
-    // marginLeft: 27,
-    // whiteSpace: 'nowrap',
-    // ':hover': {
-    //   backgroundColor: Palette.DARK_GRAY,
-    // },
+    cursor: 'move'
   },
   cardImage: {
     pointerEvents: 'none',
@@ -136,6 +127,7 @@ const STYLES = {
   },
   threeDotMenu: {
     position: 'absolute',
+    cursor: 'pointer',
     right: 10,
     transform: 'rotate(90deg)',
     ':hover': {
