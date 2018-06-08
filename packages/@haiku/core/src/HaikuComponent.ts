@@ -335,9 +335,13 @@ export default class HaikuComponent extends HaikuElement {
   assignConfig (incomingConfig) {
     this.config = Config.build(this.config || {}, incomingConfig || {});
 
-    // Don't forget to update the configuration values shared by the context,
-    // but skip component assignment so we don't end up in an infinite loop
-    this.context.assignConfig(this.config, {skipComponentAssign: true});
+    // Don't assign the context config if we're a guest component;
+    // assume only the top-level component should have this power
+    if (this.host) {
+      // Don't forget to update the configuration values shared by the context,
+      // but skip component assignment so we don't end up in an infinite loop
+      this.context.assignConfig(this.config, {skipComponentAssign: true});
+    }
 
     const timelines = this.getTimelines();
 
@@ -1520,7 +1524,7 @@ function expandTreeNode (
         node.elementName,
         context, // context
         component, // host
-        {...context.config, ...options},
+        Config.buildChildSafeConfig({...context.config, ...options}),
         node, // container
       );
 
@@ -1534,7 +1538,7 @@ function expandTreeNode (
 
       subtree = node.__subcomponent.render({
         ...node.__subcomponent.config,
-        ...options,
+        ...Config.buildChildSafeConfig(options),
       });
 
       // Don't re-start any nested timelines that have been explicitly paused
