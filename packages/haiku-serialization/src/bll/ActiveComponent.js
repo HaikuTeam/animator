@@ -2267,7 +2267,9 @@ class ActiveComponent extends BaseModel {
                 instance.bytecode = bytecode
               }
 
-              instance.clearCaches()
+              instance.clearCaches({
+                clearStates: true
+              })
             })
 
             ac.$instance.context.contextUnmount()
