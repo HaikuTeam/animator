@@ -367,6 +367,10 @@ export default class Creator extends React.Component {
       this.showNewProjectModal()
     })
 
+    ipcRenderer.on('global-menu:preview', () => {
+      this.togglePreviewMode()
+    })
+
     window.addEventListener('dragover', Asset.preventDefaultDrag, false)
 
     window.addEventListener(

@@ -1,6 +1,6 @@
 {
   "name": "@haiku/sdk-client",
-  "version": "3.4.2",
+  "version": "3.4.3",
   "description": "Haiku SDK for Client",
   "main": "lib/index.js",
   "scripts": {
@@ -27,7 +27,7 @@
   "devDependencies": {
     "@types/mkdirp": "^0.3.29",
     "@types/request": "^2.0.0",
-    "haiku-testing": "3.4.2",
+    "haiku-testing": "3.4.3",
     "leaked-handles": "^5.2.0"
   }
 }

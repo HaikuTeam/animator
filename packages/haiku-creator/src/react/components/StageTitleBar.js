@@ -501,28 +501,47 @@ class StageTitleBar extends React.Component {
 
   isEventHandlersEditorAvailable () {
     const proxy = this.fetchProxyElementForSelection()
-    return proxy && proxy.doesManageSingleElement()
+    // If nothing is selected, assume the user wants to add events to the artboard
+    return proxy && (proxy.doesManageSingleElement() || proxy.hasNothingInSelection())
   }
 
   handleShowEventHandlersEditor () {
     if (this.isEventHandlersEditorAvailable()) {
-      this.props.websocket.send({
-        type: 'broadcast',
-        from: 'creator',
-        name: 'show-event-handlers-editor',
-        folder: this.props.projectModel.getFolder(), // required when sent via Creator
-        elid: this.fetchProxyElementForSelection().selection[0].getPrimaryKey(),
-        opts: {},
-        frame: null
-      })
+      const element = this.getProxySelectionElement()
+
+      if (element) {
+        this.props.websocket.send({
+          type: 'broadcast',
+          from: 'creator',
+          name: 'show-event-handlers-editor',
+          folder: this.props.projectModel.getFolder(), // required when sent via Creator
+          elid: element.getPrimaryKey(),
+          opts: {},
+          frame: null
+        })
+      }
     }
+  }
+
+  getProxySelectionElement () {
+    let element = this.fetchProxyElementForSelection().selection[0]
+
+    // Fallback to the artboard element if nothing is currently selected
+    if (!element) {
+      element = this.getActiveComponent().getArtboard().getElement()
+    }
+
+    return element
   }
 
   getEventHandlersEditorButtonColor () {
     const proxy = this.fetchProxyElementForSelection()
+
     if (proxy) {
-      if (proxy.doesManageSingleElement()) {
-        if (proxy.selection[0].hasEventHandlers()) {
+      if (proxy.doesManageSingleElement() || proxy.hasNothingInSelection()) {
+        const element = this.getProxySelectionElement()
+
+        if (element && element.hasEventHandlers()) {
           return Palette.LIGHT_BLUE
         }
       }

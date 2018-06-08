@@ -807,6 +807,7 @@ export const PLAYBACK_SETTINGS = {
   ONCE: 'once',
   LOOP: 'loop',
   STOP: 'stop',
+  CEDE: 'cede',
 };
 
 const applyPlaybackStatus = (
@@ -820,6 +821,11 @@ const applyPlaybackStatus = (
   receivingTimeline.setRepeat(false);
 
   let val = status;
+
+  // Let the child timeline do whatever it wishes without interference
+  if (val === PLAYBACK_SETTINGS.CEDE) {
+    return;
+  }
 
   if (val === null || val === undefined || val === true) {
     val = PLAYBACK_SETTINGS.LOOP;

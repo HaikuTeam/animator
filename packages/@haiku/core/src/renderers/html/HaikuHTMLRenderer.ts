@@ -5,6 +5,7 @@
 import manaToXml from '../../helpers/manaToXml';
 import HaikuDOMRenderer, {MountLayout} from '../dom/HaikuDOMRenderer';
 import HaikuBase from './../../HaikuBase';
+import HaikuComponent from './../../HaikuComponent';
 import VirtualNode, {VirtualDoc} from './VirtualNode';
 
 export default class HaikuHTMLRenderer extends HaikuBase {
@@ -64,7 +65,7 @@ export default class HaikuHTMLRenderer extends HaikuBase {
     // no-op
   }
 
-  mountEventListener (name: string, listener: Function) {
+  mountEventListener (component: HaikuComponent, selector: string, name: string, listener: Function) {
     // no-op
   }
 

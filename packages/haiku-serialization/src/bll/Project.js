@@ -13,6 +13,7 @@ const logger = require('./../utils/LoggerInstance')
 const BaseModel = require('./BaseModel')
 const reifyRO = require('@haiku/core/lib/reflection/reifyRO').default
 const reifyRFO = require('@haiku/core/lib/reflection/reifyRFO').default
+const {InteractionMode} = require('@haiku/core/lib/helpers/interactionModes')
 const toTitleCase = require('./helpers/toTitleCase')
 const Lock = require('./Lock')
 const ActionStack = require('./ActionStack')
@@ -89,6 +90,8 @@ class Project extends BaseModel {
 
     // Whether we should actually receive and act upon remote methods received
     this.isHandlingMethods = true
+
+    this.interactionMode = InteractionMode.EDIT
   }
 
   teardown () {
@@ -468,11 +471,26 @@ class Project extends BaseModel {
           return cb(err)
         }
 
+        // Only set interaction mode once it's been completely assigned to the in-mem components
+        this.interactionMode = interactionMode
+
         release()
         this.updateHook('setInteractionMode', interactionMode, metadata, (fire) => fire())
         return cb()
       })
     })
+  }
+
+  getInteractionMode () {
+    return this.interactionMode
+  }
+
+  toggleInteractionMode (metadata, cb) {
+    const interactionMode = this.interactionMode === InteractionMode.EDIT
+      ? InteractionMode.LIVE
+      : InteractionMode.EDIT
+
+    this.setInteractionMode(interactionMode, metadata, cb)
   }
 
   linkAsset (assetAbspath, cb) {
@@ -913,6 +931,10 @@ class Project extends BaseModel {
       return entry && entry[0] !== '.'
     })
     return async.eachSeries(entries, this.setupScene.bind(this), cb)
+  }
+
+  getPreviewAssetPath () {
+    return path.join(this.getFolder(), 'preview.html')
   }
 
   /**

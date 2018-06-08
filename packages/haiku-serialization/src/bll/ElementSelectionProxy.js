@@ -100,6 +100,10 @@ class ElementSelectionProxy extends BaseModel {
     return this.selection.length > 1
   }
 
+  hasNothingInSelection () {
+    return !this.hasAnythingInSelection()
+  }
+
   doesSelectionContainArtboard () {
     return !!this.getArtboardElement()
   }
