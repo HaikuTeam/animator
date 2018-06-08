@@ -15,7 +15,7 @@ exports.active = true;
 
 exports.description = 'collapses useless groups';
 
-var collections = require('./_collections'),
+var collections = require('svgo/plugins/_collections'),
   attrsInheritable = collections.inheritableAttrs,
   animationElems = collections.elemsGroups.animation;
 
