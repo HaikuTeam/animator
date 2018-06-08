@@ -846,7 +846,7 @@ export default class HaikuComponent extends HaikuElement {
     );
 
     if (this.context.renderer.mount) {
-      this.eachEventHandler((eventSelector, eventName, {handler}) => {
+      this.eachEventHandler((eventSelector, eventName) => {
         const registrationKey = `${eventSelector}:${eventName}`;
 
         if (this.registeredEventHandlers[registrationKey]) {
