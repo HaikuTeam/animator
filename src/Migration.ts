@@ -199,9 +199,8 @@ export const runMigrations = (component: HaikuComponent, options: any, version: 
   }
 
   if (requiresUpgrade(coreVersion, UpgradeVersionRequirement.TimelineDefaultFrames)) {
-    let wereAnyEventHandlersUpgraded = false;
-    component.eachEventHandler((eventSelector, eventName, {original}) => {
-      const rfo = original.__rfo || functionToRFO(original).__function;
+    component.eachEventHandler((eventSelector, eventName, {handler}) => {
+      const rfo = handler.__rfo || functionToRFO(handler).__function;
       let body: string = rfo.body;
       let changed = false;
       ['.seek(', '.gotoAndPlay(', '.gotoAndStop('].forEach((methodSignature) => {
@@ -213,7 +212,7 @@ export const runMigrations = (component: HaikuComponent, options: any, version: 
           // We have matched e.g. this.getDefaultTimeline().seek( at the string index of ".seek(".
           // Using the assumption that the method arguments do not contain string arguments with parentheses inside,
           // we can apply a simple parenthesis-balancing algorithm here.
-          wereAnyEventHandlersUpgraded = changed = true;
+          changed = true;
           cursor += methodSignature.length;
           let openParens = 1;
           while (openParens > 0 && cursor < body.length) {
@@ -234,13 +233,8 @@ export const runMigrations = (component: HaikuComponent, options: any, version: 
           ...rfo,
           body,
         });
-        delete bytecode.eventHandlers[eventSelector][eventName].original;
       }
     });
-
-    if (wereAnyEventHandlersUpgraded) {
-      component.bindEventHandlers();
-    }
   }
 
   // Ensure the bytecode metadata core version is recent.

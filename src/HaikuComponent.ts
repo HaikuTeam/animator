@@ -160,7 +160,7 @@ export default class HaikuComponent extends HaikuElement {
     // Instantiate StateTransitions. Responsible to store and execute any state transition.
     this.stateTransitionManager = new StateTransitionManager(this.state, this.getClock());
 
-    // `assignConfig` calls bindStates and bindEventHandlers, because our incoming config, which
+    // `assignConfig` calls bindStates because our incoming config, which
     // could occur at any point during runtime, e.g. in React, may need to update internal states, etc.
     this.assignConfig(config);
 
@@ -350,9 +350,7 @@ export default class HaikuComponent extends HaikuElement {
       timeline.assignOptions(this.config);
     }
 
-    bindStates(this._states, this, this.config.states);
-
-    this.bindEventHandlers();
+    this.bindStates();
 
     assign(this.bytecode.timelines, this.config.timelines);
 
@@ -393,12 +391,7 @@ export default class HaikuComponent extends HaikuElement {
     // who depend on initial states being set will be SAD!
     if (options.clearStates) {
       this._states = {};
-      bindStates(this._states, this, this.config.states);
-    }
-
-    // Gotta bind any event handlers that may have been dynamically added
-    if (options.clearEventHandlers) {
-      this.bindEventHandlers();
+      this.bindStates();
     }
 
     this._flatManaTree = manaFlattenTree(this.getTemplate(), CSS_QUERY_MAPPING);
@@ -609,41 +602,83 @@ export default class HaikuComponent extends HaikuElement {
     return out;
   }
 
-  bindEventHandlers () {
-    if (
-      !this.bytecode.eventHandlers ||
-      Array.isArray(this.bytecode.eventHandlers) // Skip legacy format; must migrate first
-    ) {
-      return;
-    }
+  bindStates () {
+    const allStates = assign({}, this.bytecode.states, this.config.states);
 
-    const allEventHandlers = assign(
-      {},
-      this.bytecode.eventHandlers,
-      this.config.eventHandlers,
-    );
+    for (const stateSpecName in allStates) {
+      const stateSpec = allStates[stateSpecName];
 
-    for (const selector in allEventHandlers) {
-      const handlerGroup = allEventHandlers[selector];
+      // 'null' is the signal for an empty prop, not undefined.
+      if (stateSpec.value === undefined) {
+        console.error(
+          'Property `' +
+          stateSpecName +
+          '` cannot be undefined; use null for empty states',
+        );
 
-      for (const eventName in handlerGroup) {
-        const eventHandlerDescriptor = handlerGroup[eventName];
+        continue;
+      }
 
-        bindEventHandler(this, eventHandlerDescriptor, selector, eventName);
+      const isValid = stateSpecValidityCheck(stateSpec, stateSpecName);
+
+      if (isValid) {
+        this._states[stateSpecName] = stateSpec.value;
+
+        this.defineSettableState(stateSpec, stateSpecName);
       }
     }
   }
 
-  eachEventHandler (iteratee: Function) {
-    if (this.bytecode.eventHandlers) {
-      for (const eventSelector in this.bytecode.eventHandlers) {
-        for (const eventName in this.bytecode.eventHandlers[eventSelector]) {
-          iteratee(
-            eventSelector,
-            eventName,
-            this.bytecode.eventHandlers[eventSelector][eventName],
+  defineSettableState (
+    stateSpec,
+    stateSpecName: string,
+  ) {
+    // Note: We define the getter/setter on the object itself, but the storage occurs on the pass-in statesTargetObject
+    Object.defineProperty(this.state, stateSpecName, {
+      configurable: true,
+
+      get: () => {
+        return this._states[stateSpecName];
+      },
+
+      set: (inputValue) => {
+        if (stateSpec.setter) {
+          // Important: We call the setter with a binding of the component, so it can access methods on `this`
+          this._states[stateSpecName] = stateSpec.setter.call(
+            this,
+            inputValue,
           );
+        } else {
+          this._states[stateSpecName] = inputValue;
         }
+
+        if (!this.isDeactivated) {
+          this.emit('state:set', stateSpecName, this._states[stateSpecName]);
+        }
+
+        return this._states[stateSpecName];
+      },
+    });
+  }
+
+  allEventHandlers (): any {
+    return assign(
+      {},
+      this.bytecode.eventHandlers,
+      this.config.eventHandlers,
+    );
+  }
+
+  eachEventHandler (iteratee: Function) {
+    const eventHandlers = this.allEventHandlers();
+
+    for (const eventSelector in eventHandlers) {
+      for (const eventName in eventHandlers[eventSelector]) {
+        iteratee(
+          eventSelector,
+          eventName,
+          eventHandlers[eventSelector][eventName],
+        );
       }
     }
   }
@@ -663,11 +698,25 @@ export default class HaikuComponent extends HaikuElement {
           eventSelectorGiven === eventSelector ||
           eventSelectorGiven === GLOBAL_LISTENER_KEY
         ) {
-          handler.apply(this, eventArgs);
+          this.callEventHandler(eventSelector, eventName, handler, eventArgs);
           return;
         }
       }
     });
+  }
+
+  callEventHandler (eventsSelector: string, eventName: string, handler: Function, eventArgs: any): any {
+    // Only fire the event listeners if the component is in 'live' interaction mode,
+    // i.e., not currently being edited inside the Haiku authoring environment
+    if (!isPreviewMode(this.config.interactionMode)) {
+      return;
+    }
+
+    try {
+      return handler.apply(this, eventArgs);
+    } catch (exception) {
+      consoleErrorOnce(exception);
+    }
   }
 
   routeEventToHandlerAndEmit (
@@ -1216,29 +1265,6 @@ function assertTemplate (template) {
   throw new Error('Unknown bytecode template format');
 }
 
-function bindEventHandler (component, eventHandlerDescriptor, selector, eventName) {
-  // If we've already set this on a previous run, ensure we reset in the same way
-  // so that we don't load the handler wrapper downstream (e.g. in the events ui)
-  if (eventHandlerDescriptor.original) {
-    eventHandlerDescriptor.handler = eventHandlerDescriptor.original;
-  }
-
-  eventHandlerDescriptor.original = eventHandlerDescriptor.handler;
-
-  eventHandlerDescriptor.handler = (event, ...args) => {
-    // Only fire the event listeners if the component is in 'live' interaction mode,
-    // i.e., not currently being edited inside the Haiku authoring environment
-    if (isPreviewMode(component.config.interactionMode)) {
-      try {
-        eventHandlerDescriptor.original.call(component, event, ...args);
-      } catch (exception) {
-        consoleErrorOnce(exception);
-        return 1;
-      }
-    }
-  };
-}
-
 function stateSpecValidityCheck (stateSpec: any, stateSpecName: string): boolean {
   if (
     stateSpec.type === 'any' ||
@@ -1294,68 +1320,6 @@ function stateSpecValidityCheck (stateSpec: any, stateSpecName: string): boolean
   }
 
   return true;
-}
-
-function bindStates (statesTargetObject, component, extraStates) {
-  const allStates = assign({}, component.bytecode.states, extraStates);
-
-  for (const stateSpecName in allStates) {
-    const stateSpec = allStates[stateSpecName];
-
-    // 'null' is the signal for an empty prop, not undefined.
-    if (stateSpec.value === undefined) {
-      console.error(
-        'Property `' +
-        stateSpecName +
-        '` cannot be undefined; use null for empty states',
-      );
-
-      continue;
-    }
-
-    const isValid = stateSpecValidityCheck(stateSpec, stateSpecName);
-
-    if (isValid) {
-      statesTargetObject[stateSpecName] = stateSpec.value;
-
-      defineSettableState(component, component.state, statesTargetObject, stateSpec, stateSpecName);
-    }
-  }
-}
-
-function defineSettableState (
-  component,
-  statesHostObject,
-  statesTargetObject,
-  stateSpec,
-  stateSpecName,
-) {
-  // Note: We define the getter/setter on the object itself, but the storage occurs on the pass-in statesTargetObject
-  Object.defineProperty(statesHostObject, stateSpecName, {
-    configurable: true,
-
-    get: function get () {
-      return statesTargetObject[stateSpecName];
-    },
-
-    set: function set (inputValue) {
-      if (stateSpec.setter) {
-        // Important: We call the setter with a binding of the component, so it can access methods on `this`
-        statesTargetObject[stateSpecName] = stateSpec.setter.call(
-          component,
-          inputValue,
-        );
-      } else {
-        statesTargetObject[stateSpecName] = inputValue;
-      }
-
-      if (!component.isDeactivated) {
-        component.emit('state:set', stateSpecName, statesTargetObject[stateSpecName]);
-      }
-
-      return statesTargetObject[stateSpecName];
-    },
-  });
 }
 
 const msKeyToInt = (msKey: string): number => {
