@@ -52,6 +52,9 @@ const CHILD_SAFE_CONFIG = {
   mixpanel: true,
   useWebkitPrefix: true,
   interactionMode: true,
+  overflowX: true,
+  overflowY: true,
+  overflow: true,
 };
 
 const buildChildSafeConfig = (config: BytecodeOptions): BytecodeOptions => {
