@@ -183,14 +183,15 @@ TimelineProperty.getPropertyValueAtTime = (
       if (hostInstance && hostInstance.builder) {
         const computedValue = hostInstance.builder.grabValue(
           timelineName,
-          componentId,
-          hostInstance.findElementsByHaikuId(componentId)[0],
+          componentId, // flexId
+          hostInstance.findElementsByHaikuId(componentId)[0], // matchingElement
           outputName, // propertyName
-          propertiesGroup,
-          time,
+          propertiesGroup[outputName], // propertyValue
+          time, // timelineTime
           hostInstance, // haikuComponent
           !hostInstance.shouldPerformFullFlush(), // isPatchOperation
-          true // skipCache
+          true, // skipCache
+          false // clearSortedKeyframeCache
         )
 
         if (computedValue !== undefined && computedValue !== null) {
