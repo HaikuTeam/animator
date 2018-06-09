@@ -803,6 +803,22 @@ const getCanonicalPlaybackValue = (value) => {
   return value;
 };
 
+const getCanonicalRepeatValue = (value: number|any[]): any[] => {
+  if (Array.isArray(value)) {
+    return value;
+  }
+
+  if (isNumeric(value)) {
+    const arr = [];
+
+    for (let i = 0; i < value; i++) {
+      arr.push({}); // Empty repeat payload spec
+    }
+
+    return arr;
+  }
+};
+
 export const PLAYBACK_SETTINGS = {
   ONCE: 'once',
   LOOP: 'loop',
@@ -985,6 +1001,34 @@ const CONTROL_FLOW_VANITIES = {
     } else {
       controlFlowPlaceholderImpl(element, surrogate, receiver);
     }
+  },
+
+  'controlFlow.repeat': (
+    name: string,
+    element: any,
+    value: any,
+    context: HaikuContext,
+    timeline: HaikuTimeline,
+    receiver: HaikuComponent,
+    sender: HaikuComponent,
+  ) => {
+    const parent = element && element.__parent;
+
+    if (!parent) {
+      return;
+    }
+
+    if (value === null || value === undefined) {
+      return;
+    }
+
+    if (!isNumeric(value) && !Array.isArray(value)) {
+      return;
+    }
+
+    const final = getCanonicalRepeatValue(value);
+
+    throw new Error('not yet implemented');
   },
 };
 
