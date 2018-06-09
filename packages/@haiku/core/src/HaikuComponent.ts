@@ -840,9 +840,7 @@ export default class HaikuComponent extends HaikuElement {
 
     this.applyBehaviors(
       null,
-      options,
-      false, // isPatchOperation
-      false, // skipCache
+      {isPatchOperation: false, skipCache: false, ...options},
     );
 
     if (this.context.renderer.mount) {
@@ -890,9 +888,7 @@ export default class HaikuComponent extends HaikuElement {
 
     this.applyBehaviors(
       deltas,
-      options,
-      true, // isPatchOperation
-      skipCache,
+      {skipCache, isPatchOperation: true, ...options},
     );
 
     if (!this.host && options.sizing) {
@@ -922,9 +918,9 @@ export default class HaikuComponent extends HaikuElement {
 
   applyBehaviors (
     deltas,
-    options,
-    isPatchOperation,
-    skipCache = false,
+    options: any = {
+      skipCache: true,
+    },
   ) {
     const globalClockTime = this.context.clock.getExplicitTime();
 
