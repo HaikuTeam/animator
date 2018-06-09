@@ -522,7 +522,7 @@ class Element extends BaseModel {
     )
 
     const grabValue = (outputName) => {
-      const computedValue = hostInstance._builder.grabValue(
+      const computedValue = hostInstance.builder.grabValue(
         timelineName,
         componentId,
         elementNode,

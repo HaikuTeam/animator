@@ -57,7 +57,7 @@ export interface ClearCacheOptions {
 
 // tslint:disable:variable-name function-name
 export default class HaikuComponent extends HaikuElement {
-  _builder;
+  builder;
   _flatManaTree;
   _horizonElements;
   isDeactivated;
@@ -151,7 +151,7 @@ export default class HaikuComponent extends HaikuElement {
       }
     }
 
-    this._builder = new ValueBuilder(this);
+    this.builder = new ValueBuilder(this);
 
     this._states = {}; // Storage for getter/setter actions in userland logic
     this.state = {}; // Public accessor object, e.g. this.state.foo = 1
@@ -395,7 +395,7 @@ export default class HaikuComponent extends HaikuElement {
 
     this._flatManaTree = manaFlattenTree(this.getTemplate(), CSS_QUERY_MAPPING);
     this._matchedElementCache = {};
-    this._builder.clearCaches(options);
+    this.builder.clearCaches(options);
     this._hydrateMutableTimelines();
 
     // These may have been set for caching purposes
@@ -512,7 +512,7 @@ export default class HaikuComponent extends HaikuElement {
   getInjectables (element?): any {
     const injectables = {};
 
-    assign(injectables, this._builder.getSummonablesSchema(element));
+    assign(injectables, this.builder.getSummonablesSchema(element));
 
     // Local states get precedence over global summonables, so assign them last
     for (const key in this._states) {
@@ -840,13 +840,11 @@ export default class HaikuComponent extends HaikuElement {
 
     this.applyBehaviors(
       null,
-      options,
-      false, // isPatchOperation
-      false, // skipCache
+      {isPatchOperation: false, skipCache: false, ...options},
     );
 
     if (this.context.renderer.mount) {
-      this.eachEventHandler((eventSelector, eventName, {handler}) => {
+      this.eachEventHandler((eventSelector, eventName) => {
         const registrationKey = `${eventSelector}:${eventName}`;
 
         if (this.registeredEventHandlers[registrationKey]) {
@@ -890,9 +888,7 @@ export default class HaikuComponent extends HaikuElement {
 
     this.applyBehaviors(
       deltas,
-      options,
-      true, // isPatchOperation
-      skipCache,
+      {skipCache, isPatchOperation: true, ...options},
     );
 
     if (!this.host && options.sizing) {
@@ -922,9 +918,9 @@ export default class HaikuComponent extends HaikuElement {
 
   applyBehaviors (
     deltas,
-    options,
-    isPatchOperation,
-    skipCache = false,
+    options: any = {
+      skipCache: true,
+    },
   ) {
     const globalClockTime = this.context.clock.getExplicitTime();
 
@@ -937,13 +933,11 @@ export default class HaikuComponent extends HaikuElement {
         timelineInstance.doUpdateWithGlobalClockTime(globalClockTime);
       }
 
-      const timelineTime = timelineInstance.getBoundedTime();
-
       const timelineDescriptor = this.bytecode.timelines[timelineName];
 
       // In hot editing mode, any timeline is fair game for mutation,
       // even if it's not actually animated (e.g. dragging an SVG at keyframe 0).
-      const mutableTimelineDescriptor = isPatchOperation
+      const mutableTimelineDescriptor = options.isPatchOperation
         ? this._mutableTimelines[timelineName]
         : timelineDescriptor;
 
@@ -951,8 +945,8 @@ export default class HaikuComponent extends HaikuElement {
         continue;
       }
 
-      for (const behaviorSelector in mutableTimelineDescriptor) {
-        const propertiesGroup = timelineDescriptor[behaviorSelector];
+      for (const elementSelector in mutableTimelineDescriptor) {
+        const propertiesGroup = timelineDescriptor[elementSelector];
 
         if (!propertiesGroup) {
           continue;
@@ -960,7 +954,7 @@ export default class HaikuComponent extends HaikuElement {
 
         const hasExpressions = propertyGroupNeedsExpressionEvaluated(
           propertiesGroup,
-          timelineTime,
+          timelineInstance.getBoundedTime(),
         );
 
         if (
@@ -973,62 +967,67 @@ export default class HaikuComponent extends HaikuElement {
           continue;
         }
 
-        const matchingElementsForBehavior = findMatchingElementsByCssSelector(
-          behaviorSelector,
-          this._flatManaTree,
-          this._matchedElementCache,
-        );
+        // This is our opportunity to group property operations that need to be in order
+        const propertyOperations = stratifyPropertyGroupIntoOrderedOperations(propertiesGroup);
 
-        if (!matchingElementsForBehavior || matchingElementsForBehavior.length < 1) {
-          continue;
-        }
+        for (let i = 0; i < propertyOperations.length; i++) {
+          const propertyGroup = propertyOperations[i];
 
-        for (let j = 0; j < matchingElementsForBehavior.length; j++) {
-          const matchingElement = matchingElementsForBehavior[j];
-
-          const domId = (
-            matchingElement &&
-            matchingElement.attributes &&
-            matchingElement.attributes.id
+          const matchingElements = findMatchingElementsByCssSelector(
+            elementSelector,
+            this._flatManaTree,
+            this._matchedElementCache,
           );
 
-          const haikuId = (
-            matchingElement &&
-            matchingElement.attributes &&
-            matchingElement.attributes[HAIKU_ID_ATTRIBUTE]
-          );
+          if (!matchingElements || matchingElements.length < 1) {
+            continue;
+          }
 
-          const flexId = haikuId || domId;
+          for (let j = 0; j < matchingElements.length; j++) {
+            const matchingElement = matchingElements[j];
 
-          const assembledOutputs = this._builder.build(
-            {}, // We provide an object onto which outputs are placed
-            timelineName,
-            timelineTime,
-            flexId,
-            matchingElement,
-            propertiesGroup,
-            isPatchOperation,
-            this,
-            skipCache,
-          );
+            const domId = (
+              matchingElement &&
+              matchingElement.attributes &&
+              matchingElement.attributes.id
+            );
 
-          if (assembledOutputs) {
-            // If assembledOutputs is empty, that signals that nothing has changed
-            if (deltas && flexId) {
-              deltas[flexId] = matchingElement;
-            }
+            const haikuId = (
+              matchingElement &&
+              matchingElement.attributes &&
+              matchingElement.attributes[HAIKU_ID_ATTRIBUTE]
+            );
 
-            for (const behaviorKey in assembledOutputs) {
-              const behaviorValue = assembledOutputs[behaviorKey];
+            const flexId = haikuId || domId;
 
-              applyPropertyToNode(
+            for (const propertyName in propertyGroup) {
+              const propertyValue = propertyGroup[propertyName];
+
+              const finalValue = this.builder.build(
+                timelineInstance.getName(),
+                timelineInstance.getBoundedTime(),
+                flexId,
                 matchingElement,
-                behaviorKey,
-                behaviorValue,
-                this.context,
-                timelineInstance,
+                propertyName,
+                propertyValue,
+                options.isPatchOperation,
                 this,
+                options.skipCache,
               );
+
+              if (finalValue !== undefined) {
+                this.applyPropertyToNode(
+                  matchingElement,
+                  propertyName,
+                  finalValue,
+                  timelineInstance,
+                );
+
+                // If even one change has been applied, the element must be patched
+                if (deltas) {
+                  deltas[flexId] = matchingElement;
+                }
+              }
             }
           }
         }
@@ -1036,9 +1035,34 @@ export default class HaikuComponent extends HaikuElement {
     }
   }
 
+  applyPropertyToNode (
+    node,
+    name,
+    value,
+    timeline: HaikuTimeline,
+  ) {
+    const sender = (node.__instance) ? node.__instance : this; // Who sent the command
+    const receiver = node.__subcomponent || node.__instance; // Who handles the command
+    const type = (receiver && receiver.tagName) || node.elementName;
+    const vanity = vanities[type] && vanities[type][name];
+    const addressables = receiver && receiver.getAddressableProperties();
+    const addressee = addressables && addressables[name] !== undefined && receiver;
+
+    if (addressee && vanity) {
+      addressee.set(name, value);
+      vanity(name, node, value, this.context, timeline, receiver, sender);
+    } else if (addressee) {
+      addressee.set(name, value);
+    } else if (vanity) {
+      vanity(name, node, value, this.context, timeline, receiver, sender);
+    } else {
+      node.attributes[name] = value;
+    }
+  }
+
   findElementsByHaikuId (componentId) {
     return findMatchingElementsByCssSelector(
-      'haiku:' + componentId,
+      `haiku:${componentId}`,
       this._flatManaTree,
       this._matchedElementCache,
     );
@@ -1194,12 +1218,13 @@ export default class HaikuComponent extends HaikuElement {
     flexId: string,
     propertyName: string,
   ): any {
-    return this._builder.grabValue(
+    const propertiesGroup = this.getPropertiesGroup(timelineName, flexId);
+    return this.builder.grabValue(
       timelineName,
       flexId,
       null, // matchingElement - not needed?
       propertyName,
-      this.getPropertiesGroup(timelineName, flexId),
+      propertiesGroup && propertiesGroup[propertyName], // propertyValue
       timelineTime,
       this, // hostInstance
       false, // isPatchOperation
@@ -1234,6 +1259,27 @@ export default class HaikuComponent extends HaikuElement {
   static CORE_VERSION = VERSION;
 
   static all = (): HaikuComponent[] => HaikuBase.getRegistryForClass(HaikuComponent);
+}
+
+const STRUCTURE_PROPERTIES = {
+  'controlFlow.repeat': true,
+  'controlFlow.if': true,
+  'controlFlow.placeholder': true,
+};
+
+function stratifyPropertyGroupIntoOrderedOperations (propertiesGroup) {
+  const structuralOps = {};
+  const presentationalOps = {};
+
+  for (const propertyName in propertiesGroup) {
+    if (STRUCTURE_PROPERTIES[propertyName]) {
+      structuralOps[propertyName] = propertiesGroup[propertyName];
+    } else {
+      presentationalOps[propertyName] = propertiesGroup[propertyName];
+    }
+  }
+
+  return [structuralOps, presentationalOps];
 }
 
 function isBytecode (thing) {
@@ -1366,33 +1412,6 @@ const propertyGroupNeedsExpressionEvaluated = (
 
   return foundExpressionForTime;
 };
-
-function applyPropertyToNode (
-  node,
-  name,
-  value,
-  context,
-  timeline: HaikuTimeline,
-  component: HaikuComponent,
-) {
-  const sender = (node.__instance) ? node.__instance : component; // Who sent the command
-  const receiver = node.__subcomponent || node.__receiver;
-  const type = (receiver && receiver.tagName) || node.elementName;
-  const vanity = vanities[type] && vanities[type][name];
-  const addressables = receiver && receiver.getAddressableProperties();
-  const addressee = addressables && addressables[name] !== undefined && receiver;
-
-  if (addressee && vanity) {
-    addressee.set(name, value);
-    vanity(name, node, value, context, timeline, receiver, sender);
-  } else if (addressee) {
-    addressee.set(name, value);
-  } else if (vanity) {
-    vanity(name, node, value, context, timeline, receiver, sender);
-  } else {
-    node.attributes[name] = value;
-  }
-}
 
 function connectInstanceNodeWithHostComponent (node, host) {
   const flexId = (

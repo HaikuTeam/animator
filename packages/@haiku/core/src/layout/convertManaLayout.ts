@@ -106,7 +106,7 @@ export default function convertManaLayout(mana) {
       return;
     }
 
-    if (name.states) {
+    if (typeof name !== 'string' && name.states) {
       const width = name.states.width;
       const height = name.states.height;
       // `elementName` is an object, so this is a recursive component: try to extract width/height from state

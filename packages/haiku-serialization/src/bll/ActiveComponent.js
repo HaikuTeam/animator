@@ -384,15 +384,16 @@ class ActiveComponent extends BaseModel {
   }
 
   clearCaches (options = {}) {
-    this.$instance.clearCaches(options) // Also clears instance._builder sub-caches
+    this.$instance.clearCaches(options) // Also clears instance.builder sub-caches
     this.fetchRootElement().cache.clear()
+
     if (options.doClearEntityCaches) {
       this.fetchRootElement().clearEntityCaches()
     }
   }
 
   clearCachedClusters (timelineName, componentId) {
-    this.$instance._builder.clearCachedClusters(timelineName, componentId)
+    this.$instance.builder.clearCachedClusters(timelineName, componentId)
   }
 
   updateTimelineMaxes (timelineName) {
@@ -2839,15 +2840,8 @@ class ActiveComponent extends BaseModel {
     Template.cleanTemplate(bytecode.template)
     const file = this.fetchActiveBytecodeFile()
     file.updateInMemoryHotModule(bytecode, () => {
-      this.maybeRequestAsyncContentFlush()
+      this.fetchActiveBytecodeFile().requestAsyncContentFlush()
     })
-  }
-
-  maybeRequestAsyncContentFlush () {
-    const file = this.fetchActiveBytecodeFile()
-    if (file.options.doWriteToDisk) {
-      file.requestAsyncContentFlush()
-    }
   }
 
   performComponentTimelinesWork (worker, finish) {

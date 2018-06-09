@@ -99,22 +99,22 @@ export const runMigrations = (component: HaikuComponent, options: any, version: 
   const referencesToUpdate = {};
   const alreadyUpdatedReferences = {};
 
+  let needsRerender = false;
+
   if (bytecode.template) {
     visitManaTree(
       '0',
       bytecode.template,
       (elementName, attributes, children, node) => {
         if (options && options.referenceUniqueness) {
-          if (
-            elementName === 'filter' ||
-            elementName === 'filterGradient'
-          ) {
+          if (elementName === 'filter' || elementName === 'filterGradient') {
             if (attributes.id && !alreadyUpdatedReferences[attributes.id]) {
               const prev = attributes.id;
               const next = prev + '-' + options.referenceUniqueness;
               attributes.id = next;
               referencesToUpdate['url(#' + prev + ')'] = 'url(#' + next + ')';
               alreadyUpdatedReferences[attributes.id] = true;
+              needsRerender = true;
             }
           }
         }
@@ -194,8 +194,7 @@ export const runMigrations = (component: HaikuComponent, options: any, version: 
     });
 
     // Bust caches; we only rendered to populate our layout stubs.
-    component.clearCaches();
-    component.markForFullFlush();
+    needsRerender = true;
   }
 
   if (requiresUpgrade(coreVersion, UpgradeVersionRequirement.TimelineDefaultFrames)) {
@@ -235,6 +234,11 @@ export const runMigrations = (component: HaikuComponent, options: any, version: 
         });
       }
     });
+  }
+
+  if (needsRerender) {
+    component.clearCaches();
+    component.markForFullFlush();
   }
 
   // Ensure the bytecode metadata core version is recent.
