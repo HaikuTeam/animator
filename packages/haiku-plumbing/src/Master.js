@@ -1037,7 +1037,7 @@ const COMMITTABLE_METHODS = {
     return `Instantiated ${componentRelpath} in ${relpath}`
   },
   batchUpsertEventHandlers: (relpath, [_, selectorName]) => {
-    return `Edited #${selectorName} actions in ${relpath}`
+    return `Edited ${selectorName} actions in ${relpath}`
   },
   changeKeyframeValue: (relpath, [_, componentId, timelineName, propertyName, keyframeMs]) => {
     return `Changed keyframe ${componentId} ${propertyName} ${keyframeMs} in ${relpath}`
@@ -1047,9 +1047,6 @@ const COMMITTABLE_METHODS = {
   },
   createKeyframe: (relpath, [_, componentId, timelineName, elementName, propertyName, keyframeMs]) => {
     return `Created keyframe for ${componentId} ${propertyName} ${keyframeMs}`
-  },
-  deleteEventHandler: (relpath, [_, selectorName, eventName]) => {
-    return `Deleted action ${eventName} on #${selectorName} in ${relpath}`
   },
   deleteKeyframe: (relpath, [_, componentId, timelineName, propertyName, keyframeMs]) => {
     return `Deleted keyframe ${componentId} ${propertyName} ${keyframeMs} from ${relpath}`
@@ -1083,9 +1080,6 @@ const COMMITTABLE_METHODS = {
   },
   updateKeyframes: (relpath, [_]) => {
     return `Updated keyframes in ${relpath}`
-  },
-  upsertEventHandler: (relpath, [_, selectorName, eventName]) => {
-    return `Updated action ${eventName} for #${selectorName} in ${relpath}`
   },
   upsertStateValue: (relpath, [_, stateName]) => {
     return `Updated state value of ${stateName} in ${relpath}`
