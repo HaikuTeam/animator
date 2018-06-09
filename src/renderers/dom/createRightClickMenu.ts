@@ -107,7 +107,7 @@ export default function createRightClickMenu (domElement, component) {
 
   if (metadata && metadata.project && metadata.organization && window && window.fetch) {
     try {
-      window.fetch(`https://inkstone.haiku.ai/v0/community/${metadata.organization}/${metadata.project}/metadata`)
+      window.fetch(`https://inkstone-edge.haiku.ai/v0/community/${metadata.organization}/${metadata.project}/metadata`)
         .then((response) => response.json() as Promise<{IsPublic: boolean, IsForkable: boolean}>)
         .then((responseJson) => {
           isPublic = responseJson.IsPublic;
