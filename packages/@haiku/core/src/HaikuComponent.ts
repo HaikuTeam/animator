@@ -1032,9 +1032,34 @@ export default class HaikuComponent extends HaikuElement {
     }
   }
 
+  applyPropertyToNode (
+    node,
+    name,
+    value,
+    timeline: HaikuTimeline,
+  ) {
+    const sender = (node.__instance) ? node.__instance : this; // Who sent the command
+    const receiver = node.__subcomponent || node.__instance; // Who handles the command
+    const type = (receiver && receiver.tagName) || node.elementName;
+    const vanity = vanities[type] && vanities[type][name];
+    const addressables = receiver && receiver.getAddressableProperties();
+    const addressee = addressables && addressables[name] !== undefined && receiver;
+
+    if (addressee && vanity) {
+      addressee.set(name, value);
+      vanity(name, node, value, this.context, timeline, receiver, sender);
+    } else if (addressee) {
+      addressee.set(name, value);
+    } else if (vanity) {
+      vanity(name, node, value, this.context, timeline, receiver, sender);
+    } else {
+      node.attributes[name] = value;
+    }
+  }
+
   findElementsByHaikuId (componentId) {
     return findMatchingElementsByCssSelector(
-      'haiku:' + componentId,
+      `haiku:${componentId}`,
       this._flatManaTree,
       this._matchedElementCache,
     );
@@ -1362,33 +1387,6 @@ const propertyGroupNeedsExpressionEvaluated = (
 
   return foundExpressionForTime;
 };
-
-function applyPropertyToNode (
-  node,
-  name,
-  value,
-  context,
-  timeline: HaikuTimeline,
-  component: HaikuComponent,
-) {
-  const sender = (node.__instance) ? node.__instance : component; // Who sent the command
-  const receiver = node.__subcomponent || node.__receiver;
-  const type = (receiver && receiver.tagName) || node.elementName;
-  const vanity = vanities[type] && vanities[type][name];
-  const addressables = receiver && receiver.getAddressableProperties();
-  const addressee = addressables && addressables[name] !== undefined && receiver;
-
-  if (addressee && vanity) {
-    addressee.set(name, value);
-    vanity(name, node, value, context, timeline, receiver, sender);
-  } else if (addressee) {
-    addressee.set(name, value);
-  } else if (vanity) {
-    vanity(name, node, value, context, timeline, receiver, sender);
-  } else {
-    node.attributes[name] = value;
-  }
-}
 
 function connectInstanceNodeWithHostComponent (node, host) {
   const flexId = (
