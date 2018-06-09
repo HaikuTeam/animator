@@ -57,7 +57,7 @@ export interface ClearCacheOptions {
 
 // tslint:disable:variable-name function-name
 export default class HaikuComponent extends HaikuElement {
-  _builder;
+  builder;
   _flatManaTree;
   _horizonElements;
   isDeactivated;
@@ -151,7 +151,7 @@ export default class HaikuComponent extends HaikuElement {
       }
     }
 
-    this._builder = new ValueBuilder(this);
+    this.builder = new ValueBuilder(this);
 
     this._states = {}; // Storage for getter/setter actions in userland logic
     this.state = {}; // Public accessor object, e.g. this.state.foo = 1
@@ -395,7 +395,7 @@ export default class HaikuComponent extends HaikuElement {
 
     this._flatManaTree = manaFlattenTree(this.getTemplate(), CSS_QUERY_MAPPING);
     this._matchedElementCache = {};
-    this._builder.clearCaches(options);
+    this.builder.clearCaches(options);
     this._hydrateMutableTimelines();
 
     // These may have been set for caching purposes
@@ -512,7 +512,7 @@ export default class HaikuComponent extends HaikuElement {
   getInjectables (element?): any {
     const injectables = {};
 
-    assign(injectables, this._builder.getSummonablesSchema(element));
+    assign(injectables, this.builder.getSummonablesSchema(element));
 
     // Local states get precedence over global summonables, so assign them last
     for (const key in this._states) {
@@ -1194,7 +1194,7 @@ export default class HaikuComponent extends HaikuElement {
     flexId: string,
     propertyName: string,
   ): any {
-    return this._builder.grabValue(
+    return this.builder.grabValue(
       timelineName,
       flexId,
       null, // matchingElement - not needed?
