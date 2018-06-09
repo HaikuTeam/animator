@@ -7103,5 +7103,57 @@
       "label": "fix",
       "message": "Components should not fire event handlers when they have been deactivated (701883247926524)"
     }
+  },
+  "3.4.4": {
+    "a5c07385c7d101489d34f4291c6d5ceef9b4ae8b": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure migrations re-render following initial renders if bytecode was meaningfully mutated."
+    },
+    "9a3c39c8b3519bf48641db195a91d46bf5d3494b": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "The sizing config needs to be passed down to children too"
+    },
+    "28ccec1515961168a310320830d5729b3b3ea0ea": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Refactor to fix component reference confusion with multi-component event handlers"
+    },
+    "37110d793cf0df132a893654695b1dce650aeebc": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Some config should not be passed down to child components from the context (704039297305135)"
+    },
+    "073362f190926afc50193928e3279e06466736ed": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Ensure event routing is subcomponent-specific"
+    },
+    "ffbe295aa97dfb3df53379b320d160a2363d5fb8": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Don't clone child component bytecode which messes up event handler bindings"
+    },
+    "186513283bd21602a4ce1d5313cfff831d529e3d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Fix crash when injecting .* into expression"
+    },
+    "8494be7fde80bac1920640bde0b70e70a148ff4d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for polyPointsStringToPoints regression."
+    },
+    "34e43fa194fca4361aa1b611fcd9f29d3b605eb2": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Correct comparison of keyframe values to timeline time for detecting expressions (700874348545633)"
+    },
+    "c66ada1a713bdc2d2865b43ba6a16d4a65f5ec46": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Components should not fire event handlers when they have been deactivated (701883247926524)"
+    }
   }
 }
