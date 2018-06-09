@@ -208,6 +208,9 @@ class File extends BaseModel {
   }
 
   writeSync () {
+    if (!this.options.doWriteToDisk) {
+      throw new Error('[file] illegal write requested')
+    }
     this.assertContents(this.contents)
     this.dtLastWriteStart = Date.now()
     logger.info(`[file] writing ${this.relpath} to disk`)
@@ -300,7 +303,7 @@ File.DEFAULT_CONTEXT_SIZE = DEFAULT_CONTEXT_SIZE
 File.cache = new Cache()
 
 File.write = (folder, relpath, contents, cb) => {
-  let abspath = path.join(folder, relpath)
+  const abspath = path.join(folder, relpath)
   return Lock.request(Lock.LOCKS.FileReadWrite(abspath), true, (release) => {
     return fse.outputFile(abspath, contents, (err) => {
       release()
