@@ -1,5 +1,6 @@
 import async from 'async'
 import path from 'path'
+import os from 'os'
 import { debounce } from 'lodash'
 import { ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
 import fse from 'haiku-fs-extra'
@@ -112,6 +113,9 @@ export default class Master extends EventEmitter {
 
     this.envoyOptions = envoyOptions
 
+    // Storage for recording changes that can be used in commit messages
+    this.changes = []
+
     // Encapsulation of project actions that relate to git or cloud saving in some way
     this._git = new MasterGitProject(this.folder)
 
@@ -223,6 +227,10 @@ export default class Master extends EventEmitter {
     }
   }
 
+  recordChange (method, params, metadata) {
+    this.changes.push({method, params, metadata, timestamp: Date.now()})
+  }
+
   handleMethodMessage (method, params, cb) {
     // We stop using the queue once we're up and running; no point keeping the queue
     if (METHODS_TO_RUN_IMMEDIATELY[method] || this._isReadyToReceiveMethods) {
@@ -240,13 +248,23 @@ export default class Master extends EventEmitter {
     // We should *always* receive the metadata {from: 'alias'} object here!
     const metadata = params.pop()
 
+    const finish = (err, out) => {
+      if (err) {
+        return cb(err)
+      }
+
+      this.recordChange(method, params)
+
+      return cb(null, out)
+    }
+
     if (typeof this[method] === 'function') {
       this.logMethodMessage(method, params)
       // Our own API does not expect the metadata object; leave it off
-      return this[method].apply(this, params.concat(cb))
+      return this[method].apply(this, params.concat(finish))
     }
 
-    return this.project.receiveMethodCall(method, params.concat(metadata), { /* message */ }, cb)
+    return this.project.receiveMethodCall(method, params.concat(metadata), { /* message */ }, finish)
   }
 
   waitForSaveToComplete (cb) {
@@ -299,10 +317,27 @@ export default class Master extends EventEmitter {
     }
   }
 
-  // /**
-  //  * watchers/handlers
-  //  * =================
-  //  */
+  buildCommitMessage (relpath) {
+    relpath = path.normalize(relpath)
+
+    let message = `Changed ${relpath}`
+
+    const changes = this.changes.splice(0).filter(({method}) => {
+      return !!COMMITTABLE_METHODS[method]
+    })
+
+    if (changes.length > 0) {
+      message = changes.map((change) => {
+        return changeToCommitMessage(relpath, change)
+      }).join('; ')
+    }
+
+    return this.normalizeCommitMessage(message)
+  }
+
+  normalizeCommitMessage (message) {
+    return `${message} (via Haiku ${ProjectFolder.getHaikuCoreVersion()} ${os.platform()})`
+  }
 
   /**
    * @description The default file-change watcher, handleFileChange, is write-aware,
@@ -313,7 +348,7 @@ export default class Master extends EventEmitter {
   handleFileChangeBlacklisted (abspath) {
     const relpath = path.relative(this.folder, abspath)
     return this.waitForSaveToComplete(() => {
-      return this._git.commitFileIfChanged(relpath, `Changed ${relpath}`, () => {})
+      return this._git.commitFileIfChanged(relpath, this.buildCommitMessage(relpath), () => {})
     })
   }
 
@@ -331,7 +366,7 @@ export default class Master extends EventEmitter {
     }
 
     return this.waitForSaveToComplete(() => {
-      return this._git.commitFileIfChanged(relpath, `Changed ${relpath}`, () => {
+      return this._git.commitFileIfChanged(relpath, this.buildCommitMessage(relpath), () => {
         if (!_isFileSignificant(relpath)) {
           return
         }
@@ -384,7 +419,7 @@ export default class Master extends EventEmitter {
     }
 
     return this.waitForSaveToComplete(() => {
-      return this._git.commitFileIfChanged(relpath, `Added ${relpath}`, () => {
+      return this._git.commitFileIfChanged(relpath, this.normalizeCommitMessage(`Added ${relpath}`), () => {
         if (!_isFileSignificant(relpath)) {
           return
         }
@@ -428,7 +463,7 @@ export default class Master extends EventEmitter {
     delete this._knownLibraryAssets[relpath]
 
     return this.waitForSaveToComplete(() => {
-      return this._git.commitFileIfChanged(relpath, `Removed ${relpath}`, () => {
+      return this._git.commitFileIfChanged(relpath, this.normalizeCommitMessage(`Removed ${relpath}`), () => {
         if (!_isFileSignificant(relpath)) {
           return
         }
@@ -477,11 +512,6 @@ export default class Master extends EventEmitter {
       return cb(null, tag)
     })
   }
-
-  // /**
-  //  * methods
-  //  * =======
-  //  */
 
   masterHeartbeat (cb) {
     const state = {
@@ -994,4 +1024,83 @@ export default class Master extends EventEmitter {
       })
     })
   }
+}
+
+const COMMITTABLE_METHODS = {
+  deleteComponents: (relpath, [_, componentIds]) => {
+    return `Deleted ${componentIds.join(', ')} from ${relpath}`
+  },
+  conglomerateComponent: (relpath, [_, componentIds, name]) => {
+    return `Created component ${name} from ${componentIds.join(', ')} in ${relpath}`
+  },
+  instantiateComponent: (relpath, [_, componentRelpath]) => {
+    return `Instantiated ${componentRelpath} in ${relpath}`
+  },
+  batchUpsertEventHandlers: (relpath, [_, selectorName]) => {
+    return `Edited ${selectorName} actions in ${relpath}`
+  },
+  changeKeyframeValue: (relpath, [_, componentId, timelineName, propertyName, keyframeMs]) => {
+    return `Changed keyframe ${componentId} ${propertyName} ${keyframeMs} in ${relpath}`
+  },
+  changeSegmentCurve: (relpath, [_, componentId, timelineName, propertyName, keyframeMs, curve]) => {
+    return `Changed curve on ${componentId} ${propertyName} ${keyframeMs} to ${curve} in ${relpath}`
+  },
+  createKeyframe: (relpath, [_, componentId, timelineName, elementName, propertyName, keyframeMs]) => {
+    return `Created keyframe for ${componentId} ${propertyName} ${keyframeMs}`
+  },
+  deleteKeyframe: (relpath, [_, componentId, timelineName, propertyName, keyframeMs]) => {
+    return `Deleted keyframe ${componentId} ${propertyName} ${keyframeMs} from ${relpath}`
+  },
+  deleteStateValue: (relpath, [_, stateName]) => {
+    return `Deleted state ${stateName} from ${relpath}`
+  },
+  groupElements: (relpath, [_, componentIds]) => {
+    return `Grouped ${componentIds.join(', ')} in ${relpath}`
+  },
+  joinKeyframes: (relpath, [_, componentId, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, newCurve]) => {
+    return `Added ${newCurve} tween to ${componentId} ${propertyName} ${keyframeMsLeft} in ${relpath}`
+  },
+  moveKeyframes: (relpath, [_]) => {
+    return `Moved keyframes in ${relpath}`
+  },
+  pasteThings: (relpath, [_]) => {
+    return `Pasted content in ${relpath}`
+  },
+  popBytecodeSnapshot: (relpath) => {
+    return `Reloaded code snapshot for ${relpath}`
+  },
+  setTitleForComponent: (relpath, [_, componentId, newTitle]) => {
+    return `Set title for ${componentId} to ${newTitle} in ${relpath}`
+  },
+  splitSegment: (relpath, [_, componentId, timelineName, elementName, propertyName, keyframeMs]) => {
+    return `Removed tween from ${componentId} ${propertyName} ${keyframeMs} in ${relpath}`
+  },
+  ungroupElements: (relpath, [_, componentId]) => {
+    return `Ungrouped ${componentId} in ${relpath}`
+  },
+  updateKeyframes: (relpath, [_]) => {
+    return `Updated keyframes in ${relpath}`
+  },
+  upsertStateValue: (relpath, [_, stateName]) => {
+    return `Updated state value of ${stateName} in ${relpath}`
+  },
+  zMoveBackward: (relpath, [_, componentId]) => {
+    return `Moved ${componentId} backward in ${relpath}`
+  },
+  zMoveForward: (relpath, [_, componentId]) => {
+    return `Moved ${componentId} forward in ${relpath}`
+  },
+  zMoveToBack: (relpath, [_, componentId]) => {
+    return `Moved ${componentId} to back in ${relpath}`
+  },
+  zMoveToFront: (relpath, [_, componentId]) => {
+    return `Moved ${componentId} to the front in ${relpath}`
+  },
+  zShiftIndices: (relpath, [_, componentId, timelineName, timelineTime, newIndex]) => {
+    return `Shifted z-index of ${componentId} to ${newIndex} in ${relpath}`
+  }
+}
+
+const changeToCommitMessage = (relpath, {method, params, metadata, timestamp}) => {
+  return COMMITTABLE_METHODS[method](relpath, params)
 }

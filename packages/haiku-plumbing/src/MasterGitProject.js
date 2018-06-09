@@ -21,7 +21,6 @@ const MAX_CLONE_ATTEMPTS = 20
 const CLONE_RETRY_DELAY = 5000
 const DEFAULT_BRANCH_NAME = 'master' // "'master' process" has nothing to do with this :/
 const BASELINE_SEMVER_TAG = '0.0.0'
-const COMMIT_SUFFIX = '(via Haiku Desktop)'
 
 function _isCommitTypeRequest ({ type }) {
   return type === 'commit'
@@ -659,7 +658,7 @@ export default class MasterGitProject extends EventEmitter {
             return cb(err)
           }
 
-          return Git.buildCommit(this.folder, this._folderState.haikuUsername, null, `Base commit ${COMMIT_SUFFIX}`, oid, null, null, (err, commitId) => {
+          return Git.buildCommit(this.folder, this._folderState.haikuUsername, null, `Base commit (via Haiku)`, oid, null, null, (err, commitId) => {
             if (err) return cb(err)
 
             return this.safeSetupBranch(repository, this._folderState.branchName, commitId, (err, branchName) => {
@@ -1005,7 +1004,8 @@ export default class MasterGitProject extends EventEmitter {
     const { message, addable } = commitOptions
 
     const finalOptions = {}
-    finalOptions.commitMessage = `${message} ${COMMIT_SUFFIX}`
+
+    finalOptions.commitMessage = message
 
     return this.fetchFolderState('commit-project', {}, () => {
       return Git.commitProject(this.folder, this._folderState.haikuUsername, this._folderState.hasHeadCommit, finalOptions, addable, (err, commitId) => {
