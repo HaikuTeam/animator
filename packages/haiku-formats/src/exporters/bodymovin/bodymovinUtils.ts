@@ -16,7 +16,7 @@ import {
   BodymovinProperty,
 } from './bodymovinTypes';
 
-const {pathToPoints} = SVGPoints;
+const {pathToPoints, polyPointsStringToPoints} = SVGPoints;
 
 /**
  * Reducer for an animated timeline property.
@@ -288,16 +288,7 @@ export const pathToInterpolationTrace = (points: CurveSpec[], closed: boolean) =
  * @returns {[key in PathKey]: BodymovinPathComponent}
  */
 export const pointsToInterpolationTrace = (svgPoints: string|[number, number][]) => {
-  const chunkedPoints: [number, number][] = [];
-  if (Array.isArray(svgPoints)) {
-    chunkedPoints.push(...svgPoints);
-  } else {
-    // Normalize "x1,y1 x2,y2" syntax to "x1 y1 x2 y2" syntax before splitting
-    const points: number[] = svgPoints.replace(/,/g, ' ').split(' ').map(Number);
-    for (let i = 0; i < points.length; i += 2) {
-      chunkedPoints.push(points.slice(i, i + 2) as [number, number]);
-    }
-  }
+  const chunkedPoints = polyPointsStringToPoints(svgPoints);
 
   // To support Bodymovin export format, we have to create a "dummy curve" with null interpolation points.
   // tslint:disable-next-line:prefer-array-literal

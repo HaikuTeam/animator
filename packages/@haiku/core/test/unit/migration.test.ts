@@ -40,7 +40,7 @@ tape(
               component.bytecode.metadata.core,
               VERSION,
             );
-            const {__function: {body}} = functionToRFO(component.bytecode.eventHandlers.foo.click.original);
+            const {__function: {body}} = functionToRFO(component.bytecode.eventHandlers.foo.click.handler);
             t.true(body.indexOf(`this.seek(1000, 'ms');`) > 0);
             t.true(
               // tslint:disable-next-line:max-line-length

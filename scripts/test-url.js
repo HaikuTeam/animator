@@ -1,4 +1,5 @@
 const cp = require('child_process')
+const path = require('path')
 
 const inquirer = require('inquirer')
 const { argv } = require('yargs')
@@ -31,7 +32,9 @@ const go = (url) => {
   if (!isAcceptableUrl(url)) {
     promptForUrl()
   } else {
-    cp.execSync(`open '${url}' -a Electron.app`)
+    cp.execSync(
+      `open '${url}' -a ${path.resolve(path.join(require.resolve('electron'), '..', 'dist', 'Electron.app'))}`
+    )
   }
 }
 

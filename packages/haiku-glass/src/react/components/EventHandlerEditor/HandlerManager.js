@@ -202,7 +202,7 @@ class HandlerManager {
     const appliedEventHandlers = element.getReifiedEventHandlers()
 
     for (const [event, rawHandler] of Object.entries(appliedEventHandlers)) {
-      const wrappedHandler = rawHandler.original || rawHandler.handler
+      const wrappedHandler = rawHandler.handler
       const handler = functionToRFO(wrappedHandler).__function
       const id = this._generateID()
 
@@ -255,7 +255,7 @@ class HandlerManager {
     return {
       event,
       handler: {
-        body: `/** action logic goes here */`,
+        body: ``,
         params: ['target', 'event']
       }
     }

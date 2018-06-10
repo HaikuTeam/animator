@@ -101,8 +101,10 @@ class File extends BaseModel {
   }
 
   requestAsyncContentFlush (flushSpec = {}) {
-    this._pendingContentFlushes.push(flushSpec)
-    this.debouncedFlushContent()
+    if (this.options.doWriteToDisk) {
+      this._pendingContentFlushes.push(flushSpec)
+      this.debouncedFlushContent()
+    }
   }
 
   awaitNoFurtherContentFlushes (cb) {
@@ -193,6 +195,9 @@ class File extends BaseModel {
   }
 
   write (cb) {
+    if (!this.options.doWriteToDisk) {
+      throw new Error('[file] illegal write requested')
+    }
     this.assertContents(this.contents)
     this.dtLastWriteStart = Date.now()
     logger.info(`[file] writing ${this.relpath} to disk`)

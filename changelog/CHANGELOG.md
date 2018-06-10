@@ -1,6 +1,47 @@
 # Changelog
 
 
+## 3.4.4
+
+### Bug Fixes
+
+ * ensure migrations re-render following initial renders if bytecode was meaningfully mutated.
+ * The sizing config needs to be passed down to children too
+ * Refactor to fix component reference confusion with multi-component event handlers
+ * Some config should not be passed down to child components from the context (704039297305135)
+ * Ensure event routing is subcomponent-specific
+ * Don't clone child component bytecode which messes up event handler bindings
+ * Fix crash when injecting .* into expression
+ * for polyPointsStringToPoints regression.
+ * Correct comparison of keyframe values to timeline time for detecting expressions (700874348545633)
+ * Components should not fire event handlers when they have been deactivated (701883247926524)
+
+## 3.4.3
+
+### Bug Fixes
+
+ * for Ctrl+clicking multi-selection deselects all but the clicked element (697563057806737)
+ * require _collections correctly from svgo.
+ * for Bug
+ * ensure migrations re-render following initial renders if bytecode was meaningfully mutated.
+ * The sizing config needs to be passed down to children too
+ * Better playback settings when toggling between preview mode and editing mode
+ * Refactor to fix component reference confusion with multi-component event handlers
+ * Some config should not be passed down to child components from the context (704039297305135)
+ * Ensure event routing is subcomponent-specific
+ * Ensure child component event handlers fire in host component's preview mode (703465281990014)
+ * Don't clone child component bytecode which messes up event handler bindings
+ * Fix crash when injecting .* into expression
+ * for polyPointsStringToPoints regression.
+ * for Undoing group/ungroup of element in Main while in Child context makes Child instance in Main context disappear
+ * Correct comparison of keyframe values to timeline time for detecting expressions (700874348545633)
+ * Components should not fire event handlers when they have been deactivated (701883247926524)
+
+### Features
+
+ * Allow preview mode to be toggled from the top menu (helps with dev too)
+ * Make undo/redo multi-component-aware
+
 ## 3.4.2
 
 ### Bug Fixes

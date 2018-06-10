@@ -4,6 +4,7 @@
 
 import allSvgElementNames from '../../helpers/allSvgElementNames';
 import HaikuBase, {GLOBAL_LISTENER_KEY} from './../../HaikuBase';
+import HaikuComponent from './../../HaikuComponent';
 import applyLayout from './applyLayout';
 import assignAttributes from './assignAttributes';
 import cloneVirtualElement from './cloneVirtualElement';
@@ -381,7 +382,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
     });
   }
 
-  mountEventListener (selector: string, name: string, listener: Function) {
+  mountEventListener (component: HaikuComponent, selector: string, name: string, listener: Function) {
     let rewritten = name;
 
     if (name === 'mouseenter') {
@@ -402,6 +403,11 @@ export default class HaikuDOMRenderer extends HaikuBase {
         return;
       }
 
+      // If no queryable node has been rendered, we can't perform a match
+      if (!component.target || !component.target.parentNode) {
+        return;
+      }
+
       let query = selector;
 
       // Convert haiku:* selectors into proper attribute selectors
@@ -410,7 +416,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
       }
 
       // If the event originated from the element or its descendants
-      const match = this.mount.querySelector(query);
+      const match = component.target.parentNode.querySelector(query);
 
       if (match) {
         if (shouldListenerReceiveEvent(name, domEvent, match)) {

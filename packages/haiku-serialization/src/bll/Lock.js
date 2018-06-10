@@ -30,10 +30,10 @@ const request = (key, emit, cb) => {
   }
 
   const release = () => {
-    ACTIVE_LOCKS[key] = false
     if (emit) {
       emitter.emit('lock-off', key)
     }
+    ACTIVE_LOCKS[key] = false
   }
 
   return cb(release)

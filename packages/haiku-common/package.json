@@ -1,6 +1,6 @@
 {
   "name": "haiku-common",
-  "version": "3.4.2",
+  "version": "3.4.4",
   "description": "Common library for Haiku.",
   "main": "lib/index.js",
   "directories": {
@@ -22,9 +22,9 @@
   "license": "UNLICENSED",
   "devDependencies": {
     "electron": "2.0.2",
-    "haiku-testing": "3.4.2"
+    "haiku-testing": "3.4.4"
   },
   "dependencies": {
-    "@haiku/core": "3.4.2"
+    "@haiku/core": "3.4.4"
   }
 }
