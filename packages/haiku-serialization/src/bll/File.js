@@ -1,4 +1,3 @@
-const async = require('async')
 const fse = require('fs-extra')
 const {debounce} = require('lodash')
 const path = require('path')
@@ -6,7 +5,6 @@ const xmlToMana = require('@haiku/core/lib/helpers/xmlToMana').default
 const objectToRO = require('@haiku/core/lib/reflection/objectToRO').default
 const BaseModel = require('./BaseModel')
 const logger = require('./../utils/LoggerInstance')
-const walkFiles = require('./../utils/walkFiles')
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 const getSvgOptimizer = require('./../svg/getSvgOptimizer')
 const Lock = require('./Lock')

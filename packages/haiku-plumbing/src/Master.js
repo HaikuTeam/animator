@@ -15,7 +15,6 @@ import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import MockWebsocket from 'haiku-serialization/src/ws/MockWebsocket'
 import { EventEmitter } from 'events'
 import EmitterManager from 'haiku-serialization/src/utils/EmitterManager'
-import * as Git from './Git'
 import Watcher from './Watcher'
 import * as ProjectFolder from './ProjectFolder'
 import MasterGitProject from './MasterGitProject'
@@ -82,11 +81,6 @@ function _isFileSignificant (relpath) {
   if (UNWATCHABLE_BASENAMES[path.basename(relpath)]) return false
   if (!WATCHABLE_EXTNAMES[path.extname(relpath)]) return false
   return true
-}
-
-function _excludeIfNotJs (relpath) {
-  if (path.extname(relpath) !== '.js') return true
-  return !_isFileSignificant(relpath)
 }
 
 export default class Master extends EventEmitter {
