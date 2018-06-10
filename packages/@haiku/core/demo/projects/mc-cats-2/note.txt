@@ -1,0 +1,4 @@
+Sky should dim and then light again, but only once.
+Left cat should keep blinking endlessly.
+Middle cat should blink only once.
+Right cat should blink, and the blink should pause as his eyelid is lifting, and remain paused.
