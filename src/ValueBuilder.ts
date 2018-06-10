@@ -3,6 +3,7 @@
  */
 
 import {AdaptedWindow} from './adapters/dom/HaikuDOMAdapter';
+import HaikuComponent from './HaikuComponent';
 import HaikuHelpers from './HaikuHelpers';
 import BasicUtils from './helpers/BasicUtils';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
@@ -849,13 +850,13 @@ export default class ValueBuilder {
 
   evaluate (
     fn,
-    timelineName,
-    flexId,
+    timelineName: string,
+    flexId: string,
     matchingElement,
-    propertyName,
+    propertyName: string,
     keyframeMs,
     keyframeCluster,
-    hostInstance,
+    hostInstance: HaikuComponent,
   ) {
     enhance(fn, null);
 
@@ -968,13 +969,13 @@ export default class ValueBuilder {
 
   summonSummonables (
     paramsArray,
-    timelineName,
-    flexId,
+    timelineName: string,
+    flexId: string,
     matchingElement,
-    propertyName,
+    propertyName: string,
     keyframeMs,
     keyframeCluster,
-    hostInstance,
+    hostInstance: HaikuComponent,
   ) {
     const summonablesArray = [];
 
@@ -1060,14 +1061,14 @@ export default class ValueBuilder {
   }
 
   fetchParsedValueCluster (
-    timelineName,
-    flexId,
+    timelineName: string,
+    flexId: string,
     matchingElement,
-    outputName,
+    outputName: string,
     cluster,
-    hostInstance,
-    isPatchOperation,
-    skipCache,
+    hostInstance: HaikuComponent,
+    isPatchOperation: boolean,
+    skipCache: boolean,
   ) {
     // Establish the cache objects for this properties group within this timeline
     if (!this._parsees[timelineName]) {
@@ -1288,16 +1289,16 @@ export default class ValueBuilder {
    * @param clearSortedKeyframesCache
    */
   grabValue (
-    timelineName,
-    flexId,
+    timelineName: string,
+    flexId: string,
     matchingElement,
-    propertyName,
+    propertyName: string,
     propertiesGroup,
-    timelineTime,
-    haikuComponent,
-    isPatchOperation,
-    skipCache,
-    clearSortedKeyframesCache,
+    timelineTime: number,
+    haikuComponent: HaikuComponent,
+    isPatchOperation: boolean,
+    skipCache: boolean,
+    clearSortedKeyframesCache: boolean,
   ) {
     if (!propertiesGroup) {
       return undefined;
