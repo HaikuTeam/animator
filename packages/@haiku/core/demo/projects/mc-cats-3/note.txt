@@ -1,0 +1,4 @@
+Sky should dim and then light again, on an endless loop.
+The left cat's eyelids should jump to a different position at 0s, 1s, 2s.
+The middle cat's eyelids should be set at half-closed, permanently.
+The right cat should continue blinking forever.

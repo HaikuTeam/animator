@@ -180,17 +180,18 @@ TimelineProperty.getPropertyValueAtTime = (
     try {
       // The hostInstance, which should be a HaikuCore, should have a 'ValueBuilder' attached to it under the property name 'builder'
       // This instance is responsible for dependency injection, caching, and recalc of transitioning values on the fly. (Pardon the dumb name.)
-      if (hostInstance && hostInstance._builder) {
-        const computedValue = hostInstance._builder.grabValue(
+      if (hostInstance && hostInstance.builder) {
+        const computedValue = hostInstance.builder.grabValue(
           timelineName,
-          componentId,
-          hostInstance.findElementsByHaikuId(componentId)[0],
+          componentId, // flexId
+          hostInstance.findElementsByHaikuId(componentId)[0], // matchingElement
           outputName, // propertyName
-          propertiesGroup,
-          time,
+          propertiesGroup[outputName], // propertyValue
+          time, // timelineTime
           hostInstance, // haikuComponent
           !hostInstance.shouldPerformFullFlush(), // isPatchOperation
-          true // skipCache
+          true, // skipCache
+          false // clearSortedKeyframeCache
         )
 
         if (computedValue !== undefined && computedValue !== null) {

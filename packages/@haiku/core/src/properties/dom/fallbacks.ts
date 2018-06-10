@@ -4,7 +4,7 @@
 
 import Layout3D from './../../Layout3D';
 import has from './has';
-import {PLAYBACK_SETTINGS} from './vanities';
+import {PlaybackSetting} from './../../HaikuTimeline';
 
 const TEXT_CONTENT_FALLBACKS = {
   content: null,
@@ -319,7 +319,7 @@ const PATH_FALLBACKS = {
 const HTML_STYLE_SHORTHAND_FALLBACKS = {};
 
 const PLAYBACK_FALLBACKS = {
-  playback: PLAYBACK_SETTINGS.LOOP,
+  playback: PlaybackSetting.LOOP,
 };
 
 const CONTROL_FLOW_FALLBACKS = {
