@@ -819,100 +819,9 @@ const getCanonicalRepeatValue = (value: number|any[]): any[] => {
   }
 };
 
-export const PLAYBACK_SETTINGS = {
-  ONCE: 'once',
-  LOOP: 'loop',
-  STOP: 'stop',
-  CEDE: 'cede',
-};
-
-const applyPlaybackStatus = (
-  status,
-  receivingTimeline,
-  receivingComponent,
-  sendingTimeline,
-  sendingComponent,
-) => {
-  // Start by unsetting the repeat value, which we'll re-set only if our value becomes 'loop'
-  receivingTimeline.setRepeat(false);
-
-  let val = status;
-
-  // Let the child timeline do whatever it wishes without interference
-  if (val === PLAYBACK_SETTINGS.CEDE) {
-    return;
-  }
-
-  if (val === null || val === undefined || val === true) {
-    val = PLAYBACK_SETTINGS.LOOP;
-  }
-
-  const shouldRepeat = val === PLAYBACK_SETTINGS.LOOP;
-  const shouldPlay = val === PLAYBACK_SETTINGS.ONCE;
-  const shouldStop = val === PLAYBACK_SETTINGS.STOP;
-
-  if (shouldRepeat) {
-    receivingTimeline.setRepeat(true);
-  }
-
-  // If the sending timeline is frozen, don't inadvertently unfreeze its component's guests
-  if (!sendingTimeline.isFrozen()) {
-    if (shouldPlay || shouldRepeat) {
-      if (!receivingTimeline._isPlaying) {
-        receivingTimeline.play();
-      } else {
-        receivingTimeline.playSoftly();
-      }
-
-      return;
-    }
-
-    if (shouldStop) {
-      if (receivingTimeline._isPlaying) {
-        receivingTimeline.stop();
-      } else {
-        receivingTimeline.stopSoftly();
-      }
-
-      return;
-    }
-  }
-
-  if (typeof val === 'number') {
-    receivingTimeline.seek(val); // Numbers are assumed to be frames
-    return;
-  }
-
-  // Attempt to handle strings that specify a unit, e.g. '123ms'
-  if (typeof val === 'string') {
-    const numericSpec = unitizeString(val);
-
-    if (numericSpec) {
-      receivingTimeline.seek(numericSpec.value, numericSpec.units);
-    }
-  }
-};
-
-/**
- * @function unitizeString
- * @description Convert a string like '123ms' to {value: 123, units: 'ms'}
- */
-const unitizeString = (str: string) => {
-  const match = str.match(/(\d+)(\w+)/);
-
-  if (!match || !match[1] || !match[2]) {
-    return;
-  }
-
-  return {
-    value: Number(match[1]),
-    units: match[2],
-  };
-};
-
 const PLAYBACK_VANITIES = {
   playback: (
-    name,
+    name: string,
     element,
     value: any,
     context: HaikuContext,
@@ -926,13 +835,7 @@ const PLAYBACK_VANITIES = {
       const timelineInstance = receiver && receiver.getTimeline(timelineName);
 
       if (timelineInstance) {
-        applyPlaybackStatus(
-          canonicalValue[timelineName],
-          timelineInstance,
-          receiver,
-          timeline,
-          sender,
-        );
+        timelineInstance.setPlaybackStatus(canonicalValue[timelineName]);
       }
     }
   },

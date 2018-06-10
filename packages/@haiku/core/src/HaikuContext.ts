@@ -316,9 +316,25 @@ export default class HaikuContext extends HaikuBase {
     // Only continue ticking and updating if our root component is still activated and awake;
     // this is mainly a hacky internal hook used during hot editing inside Haiku Desktop
     if (!this.component.isDeactivated && !this.component.isSleeping) {
+      // Perform any necessary updates that have to occur in all copmonents in the scene
+      this.component.visitGuestHierarchy((component: HaikuComponent) => {
+        // State transitions are bound to clock time, so we update them on every tick
+        component.tickStateTransitions();
 
-      // Execute state transitions on component tree
-      this.component.visitGuestHierarchy((component) => component.tickStateTransitions());
+        // The top-level component isn't controlled through playback status, so we must skip it
+        // otherwise its behavior will not reflect the playback setting specified via options
+        if (component === this.component) {
+          return;
+        }
+
+        const timelines = component.getTimelines();
+
+        for (const timelineName in timelines) {
+          // Although a timeline's playback status may not change over time, we still need
+          // to "apply" it, i.e. run the respective procedure to get the playback behavior
+          timelines[timelineName].applyPlaybackStatus();
+        }
+      });
 
       // After we've hydrated the tree the first time, we can proceed with patches --
       // unless the component indicates it wants a full flush per its internal settings.

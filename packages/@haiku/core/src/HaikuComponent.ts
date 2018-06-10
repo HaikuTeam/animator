@@ -9,7 +9,7 @@ import HaikuBase, {GLOBAL_LISTENER_KEY} from './HaikuBase';
 import HaikuClock from './HaikuClock';
 import HaikuContext from './HaikuContext';
 import HaikuElement from './HaikuElement';
-import HaikuTimeline from './HaikuTimeline';
+import HaikuTimeline, {PlaybackSetting} from './HaikuTimeline';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
 import cssQueryList from './helpers/cssQueryList';
 import {isPreviewMode} from './helpers/interactionModes';
@@ -19,7 +19,7 @@ import scopifyElements from './helpers/scopifyElements';
 import xmlToMana from './helpers/xmlToMana';
 import Layout3D from './Layout3D';
 import {runMigrations} from './Migration';
-import vanities, {PLAYBACK_SETTINGS} from './properties/dom/vanities';
+import vanities from './properties/dom/vanities';
 import functionToRFO, {RFO} from './reflection/functionToRFO';
 import StateTransitionManager, {StateTransitionParameters, StateValues} from './StateTransitionManager';
 import ValueBuilder from './ValueBuilder';
@@ -164,7 +164,7 @@ export default class HaikuComponent extends HaikuElement {
     this.assignConfig(config);
 
     this._mutableTimelines = undefined;
-    this._hydrateMutableTimelines();
+    this.hydrateMutableTimelines();
 
     // The full version of the template gets mutated in-place by the rendering algorithm
     this._flatManaTree = [];
@@ -396,7 +396,7 @@ export default class HaikuComponent extends HaikuElement {
     this._flatManaTree = manaFlattenTree(this.getTemplate(), CSS_QUERY_MAPPING);
     this._matchedElementCache = {};
     this.builder.clearCaches(options);
-    this._hydrateMutableTimelines();
+    this.hydrateMutableTimelines();
 
     // These may have been set for caching purposes
     if (this.bytecode.timelines) {
@@ -454,11 +454,11 @@ export default class HaikuComponent extends HaikuElement {
     return out;
   }
 
-  getTimeline (name) {
+  getTimeline (name): HaikuTimeline {
     return this.getTimelines()[name];
   }
 
-  fetchTimeline (name, descriptor) {
+  fetchTimeline (name, descriptor): HaikuTimeline {
     const found = this.getTimeline(name);
 
     if (found) {
@@ -468,7 +468,7 @@ export default class HaikuComponent extends HaikuElement {
     return HaikuTimeline.create(this, name, descriptor, this.config);
   }
 
-  getDefaultTimeline () {
+  getDefaultTimeline (): HaikuTimeline {
     const timelines = this.getTimelines();
     return timelines[DEFAULT_TIMELINE_NAME];
   }
@@ -1015,18 +1015,21 @@ export default class HaikuComponent extends HaikuElement {
                 options.skipCache,
               );
 
-              if (finalValue !== undefined) {
-                this.applyPropertyToNode(
-                  matchingElement,
-                  propertyName,
-                  finalValue,
-                  timelineInstance,
-                );
+              // An undefined value indicates no change i.e. nothing to be done
+              if (finalValue === undefined) {
+                continue;
+              }
 
-                // If even one change has been applied, the element must be patched
-                if (deltas) {
-                  deltas[flexId] = matchingElement;
-                }
+              this.applyPropertyToNode(
+                matchingElement,
+                propertyName,
+                finalValue,
+                timelineInstance,
+              );
+
+              // If even one change has been applied, the element must be patched
+              if (deltas) {
+                deltas[flexId] = matchingElement;
               }
             }
           }
@@ -1037,8 +1040,8 @@ export default class HaikuComponent extends HaikuElement {
 
   applyPropertyToNode (
     node,
-    name,
-    value,
+    name: string,
+    value: any,
     timeline: HaikuTimeline,
   ) {
     const sender = (node.__instance) ? node.__instance : this; // Who sent the command
@@ -1068,7 +1071,7 @@ export default class HaikuComponent extends HaikuElement {
     );
   }
 
-  _hydrateMutableTimelines () {
+  hydrateMutableTimelines () {
     this._mutableTimelines = {};
     if (this.bytecode.timelines) {
       for (const timelineName in this.bytecode.timelines) {
@@ -1176,13 +1179,13 @@ export default class HaikuComponent extends HaikuElement {
 
     const guestTimeline = guest.getTimeline(timelineName);
 
-    if (playbackValue === PLAYBACK_SETTINGS.CEDE) {
+    if (playbackValue === PlaybackSetting.CEDE) {
       return guestTimeline.getTime();
     }
 
     // If time is controlled and we're set to 'loop', use a modulus of the guest's max time
     // which will give the effect of looping the guest to its 0 if its max has been reached
-    if (playbackValue === PLAYBACK_SETTINGS.LOOP) {
+    if (playbackValue === PlaybackSetting.LOOP) {
       if (guestTimeline) {
         const guestMax = guestTimeline.getMaxTime();
         const finalTime = timelineTime % guestMax; // TODO: What if final frame has a change?
@@ -1192,7 +1195,7 @@ export default class HaikuComponent extends HaikuElement {
       return timelineTime;
     }
 
-    if (playbackValue === PLAYBACK_SETTINGS.STOP) {
+    if (playbackValue === PlaybackSetting.STOP) {
       if (guestTimeline) {
         return guestTimeline.getControlledTime() || 0;
       }

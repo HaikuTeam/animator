@@ -7,6 +7,13 @@ import HaikuComponent from './HaikuComponent';
 import getTimelineMaxTime from './helpers/getTimelineMaxTime';
 import assign from './vendor/assign';
 
+export enum PlaybackSetting {
+  ONCE = 'once',
+  LOOP = 'loop',
+  STOP = 'stop',
+  CEDE = 'cede',
+}
+
 const NUMBER = 'number';
 
 const DEFAULT_OPTIONS = {
@@ -26,6 +33,7 @@ export default class HaikuTimeline extends HaikuBase {
   component;
   name;
   descriptor;
+  status: string;
 
   _globalClockTime;
   _localElapsedTime;
@@ -39,6 +47,7 @@ export default class HaikuTimeline extends HaikuBase {
     this.component = component;
     this.name = name;
     this.descriptor = descriptor;
+    this.status = null;
 
     this.assignOptions(options || {});
 
@@ -426,6 +435,71 @@ export default class HaikuTimeline extends HaikuBase {
     this.pause();
   }
 
+  setPlaybackStatus (status: PlaybackSetting) {
+    this.status = status;
+  }
+
+  applyPlaybackStatus () {
+    // If we're frozen, we shouldn't update anything and there's nothing to do
+    if (this.isFrozen()) {
+      return;
+    }
+
+    // Our status may not change overy an arbitrary set of frames, but we still need to run
+    // the procedural logic needed to reflect the semantics of our playback status
+    let status = this.status;
+
+    // Let the child timeline do whatever it wishes without interference of any kind
+    if (status === PlaybackSetting.CEDE) {
+      return;
+    }
+
+    // Start by unsetting the repeat value, which we'll re-set only if our value becomes 'loop'.
+    // This allows an explicit play setting of 'once' to ensure the animation only does play once.
+    this.setRepeat(false);
+
+    // If no explicit status has been given, assume that the child component should loop.
+    if (!status) {
+      status = PlaybackSetting.LOOP;
+    }
+
+    const shouldRepeat = status === PlaybackSetting.LOOP;
+    const shouldPlay = status === PlaybackSetting.ONCE;
+    const shouldStop = status === PlaybackSetting.STOP;
+
+    if (shouldRepeat) {
+      this.setRepeat(true);
+    }
+
+    if (shouldPlay || shouldRepeat) {
+      if (!this.isPlaying()) {
+        this.play();
+      }
+      return;
+    }
+
+    if (shouldStop) {
+      if (this.isPlaying()) {
+        this.stop(null, null);
+      }
+      return;
+    }
+
+    if (typeof status === 'number') {
+      this.seek(status); // Numbers are assumed to be frames
+      return;
+    }
+
+    // Attempt to handle strings that specify a unit, e.g. '123ms'
+    if (typeof status === 'string') {
+      const numericSpec = unitizeString(status);
+
+      if (numericSpec) {
+        this.seek(numericSpec.value, numericSpec.units as TimeUnit);
+      }
+    }
+  }
+
   static __name__ = 'HaikuTimeline';
 
   static all = (): HaikuTimeline[] => HaikuBase.getRegistryForClass(HaikuTimeline);
@@ -446,3 +520,20 @@ export default class HaikuTimeline extends HaikuBase {
     );
   };
 }
+
+/**
+ * @function unitizeString
+ * @description Convert a string like '123ms' to {value: 123, units: 'ms'}
+ */
+const unitizeString = (str: string) => {
+  const match = str.match(/(\d+)(\w+)/);
+
+  if (!match || !match[1] || !match[2]) {
+    return;
+  }
+
+  return {
+    value: Number(match[1]),
+    units: match[2],
+  };
+};
