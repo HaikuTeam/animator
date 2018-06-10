@@ -1398,8 +1398,8 @@ Plumbing.prototype.spawnSubgroup = function (haiku, cb) {
         token: process.env.ENVOY_TOKEN
       }, haiku.envoy),
       fileOptions: {
-        doWriteToDisk: true, // default
-        skipDiffLogging: false // default
+        doWriteToDisk: true,
+        skipDiffLogging: false
       }
     })
   }

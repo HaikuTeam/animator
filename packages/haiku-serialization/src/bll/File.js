@@ -287,8 +287,8 @@ BaseModel.extend(File)
 File.TYPES = FILE_TYPES
 
 File.DEFAULT_OPTIONS = {
-  doWriteToDisk: true, // Write all actions/content updates to disk
-  skipDiffLogging: false, // Log a colorized diff of every content update
+  doWriteToDisk: false, // Write all actions/content updates to disk
+  skipDiffLogging: true, // Log a colorized diff of every content update
   required: {
     relpath: true,
     folder: true,

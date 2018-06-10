@@ -351,11 +351,10 @@ class ActiveComponent extends BaseModel {
 
     // There is a race where the file might not be ready, so we upsert
     if (!file) {
-      file = File.upsert({
-        uid,
+      logger.warn(`[active component (${folder})] fetchActiveBytecodeFile called before file was upserted`)
+      file = this.project.upsertFile({
         relpath,
-        folder,
-        project: this.project
+        type: File.TYPES.code
       })
 
       // This calls require, which might introduce its own race ¯\_(ツ)_/¯

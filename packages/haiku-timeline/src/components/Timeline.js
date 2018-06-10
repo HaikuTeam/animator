@@ -81,10 +81,7 @@ class Timeline extends React.Component {
       this.props.websocket,
       window,
       this.props.userconfig,
-      { // fileOptions
-        doWriteToDisk: false,
-        skipDiffLogging: true
-      },
+      {}, // fileOptions
       this.props.envoy,
       (err, project) => {
         if (err) throw err
