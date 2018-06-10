@@ -27,6 +27,9 @@
   "babel": {
     "presets": [
       "react-app"
+    ],
+    "plugins": [
+      "emotion"
     ]
   },
   "dependencies": {
@@ -50,7 +53,6 @@
     "react-beautiful-dnd": "^6.0.1",
     "react-dom": "15.6.2",
     "react-draggable": "2.2.3",
-    "react-emotion": "^9.1.3",
     "react-intercom": "^1.0.14",
     "react-popover": "^0.4.18",
     "react-scroll-to-component": "^1.0.1",

@@ -943,6 +943,17 @@ class Project extends BaseModel {
     return path.join(this.getFolder(), 'preview.html')
   }
 
+  describeComponents () {
+    let out = ''
+
+    this.getAllActiveComponents().forEach((ac) => {
+      out += ac.getRelpath() + '\n'
+      out += (Template.inspect(ac.getReifiedBytecode().template) || '?') + '\n\n'
+    })
+
+    return out
+  }
+
   /**
    * @method getComponentBytecodeSHAs
    * @description Return a dictionary mapping component relpaths to SHA256s representing
