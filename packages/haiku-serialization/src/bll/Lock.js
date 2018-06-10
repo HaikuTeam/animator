@@ -39,12 +39,6 @@ const request = (key, emit, cb) => {
   return cb(release)
 }
 
-const clearAll = () => {
-  for (const key in ACTIVE_LOCKS) {
-    delete ACTIVE_LOCKS[key]
-  }
-}
-
 const awaitFree = (keys, cb) => {
   let anyLocked = false
 
@@ -61,11 +55,13 @@ const awaitFree = (keys, cb) => {
   return cb()
 }
 
+const awaitAllLocksFree = (cb) => awaitFree(Object.keys(ACTIVE_LOCKS), cb)
+
 module.exports = {
   request,
   emitter,
-  clearAll,
   awaitFree,
+  awaitAllLocksFree,
   LOCKS,
   ACTIVE_LOCKS
 }

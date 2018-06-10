@@ -31,6 +31,7 @@ import * as ProjectFolder from './ProjectFolder'
 import { crashReport } from 'haiku-serialization/src/utils/carbonite'
 import HaikuHomeDir, { HOMEDIR_PATH } from 'haiku-serialization/src/utils/HaikuHomeDir'
 import Project from 'haiku-serialization/src/bll/Project'
+import {awaitAllLocksFree} from 'haiku-serialization/src/bll/Lock'
 import functionToRFO from '@haiku/core/lib/reflection/functionToRFO'
 import Master from './Master'
 
@@ -58,7 +59,6 @@ const WS_POLICY_VIOLATION_CODE = 1008
 // we'll skip Sentry for now.
 const METHODS_TO_SKIP_IN_SENTRY = {
   setTimelineTime: true,
-  doesProjectHaveUnsavedChanges: true,
   masterHeartbeat: true,
   requestSyndicationInfo: true
 }
@@ -71,14 +71,12 @@ const METHODS_WITH_SENSITIVE_INFO = {
 
 const IGNORED_METHOD_MESSAGES = {
   setTimelineTime: true,
-  doesProjectHaveUnsavedChanges: true,
   masterHeartbeat: true
 }
 
 // See note under 'processMethodMessage' for the purpose of this
 const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
   setTimelineTime: true,
-  doesProjectHaveUnsavedChanges: true,
   masterHeartbeat: true,
   openTextEditor: true,
   openTerminal: true,
@@ -761,10 +759,6 @@ export default class Plumbing extends EventEmitter {
     return this.awaitMasterAndCallMethod(folder, 'masterHeartbeat', [{ from: 'master' }], cb)
   }
 
-  doesProjectHaveUnsavedChanges (folder, cb) {
-    return this.awaitMasterAndCallMethod(folder, 'doesProjectHaveUnsavedChanges', [{ from: 'master' }], cb)
-  }
-
   /**
    * @method bootstrapProject
    * @description Flexible method for setting up a project based on an unknown file system state and possibly missing inputs.
@@ -1180,45 +1174,42 @@ export default class Plumbing extends EventEmitter {
 
   teardownMaster (folder, cb) {
     logger.info(`[plumbing] tearing down master ${folder}`)
+    awaitAllLocksFree(() => {
+      if (this.masters[folder]) {
+        this.masters[folder].active = false
+        this.masters[folder].watchOff()
+        this.masters[folder].project && this.masters[folder].project.getAllActiveComponents().forEach((ac) => {
+          if (ac.$instance) {
+            ac.$instance.context.destroy()
+          }
+        })
+      }
 
-    if (this.masters[folder]) {
-      this.masters[folder].active = false
-      this.masters[folder].watchOff()
-      this.masters[folder].project && this.masters[folder].project.getAllActiveComponents().forEach((ac) => {
-        if (ac.$instance) {
-          ac.$instance.context.destroy()
+      // Since we're about to nav back to the dashboard, we're also about to drop the
+      // connection to the websockets, so here we close them to avoid crashes
+      const clientsOfFolder = filter(this.clients, { params: { folder } })
+
+      clientsOfFolder.forEach((clientOfFolder) => {
+        const alias = clientOfFolder.params.alias
+        if (alias === 'glass' || alias === 'timeline') {
+          logger.info(`[plumbing] closing client ${alias} of ${folder}`)
+          clientOfFolder.close()
+          this.removeWebsocketClient(clientOfFolder)
         }
       })
-    }
 
-    // Since we're about to nav back to the dashboard, we're also about to drop the
-    // connection to the websockets, so here we close them to avoid crashes
-    const clientsOfFolder = filter(this.clients, { params: { folder } })
-
-    clientsOfFolder.forEach((clientOfFolder) => {
-      const alias = clientOfFolder.params.alias
-      if (alias === 'glass' || alias === 'timeline') {
-        logger.info(`[plumbing] closing client ${alias} of ${folder}`)
-        clientOfFolder.close()
-        this.removeWebsocketClient(clientOfFolder)
+      // Any messages destined for the folder need to be cleared since there's now
+      // nobody who is able to receive them
+      for (let i = this._methodMessages.length - 1; i >= 0; i--) {
+        const message = this._methodMessages[i]
+        if (message.folder === folder) {
+          logger.info(`[plumbing] clearing message`, message)
+          this._methodMessages.splice(i, 1)
+        }
       }
+
+      cb()
     })
-
-    // Any messages destined for the folder need to be cleared since there's now
-    // nobody who is able to receive them
-    for (let i = this._methodMessages.length - 1; i >= 0; i--) {
-      const message = this._methodMessages[i]
-      if (message.folder === folder) {
-        logger.info(`[plumbing] clearing message`, message)
-        this._methodMessages.splice(i, 1)
-      }
-    }
-
-    cb()
-  }
-
-  discardProjectChanges (folder, cb) {
-    return this.awaitMasterAndCallMethod(folder, 'discardProjectChanges', [{ from: 'master' }], cb)
   }
 
   saveProject (folder, projectName, maybeUsername, maybePassword, saveOptions, cb) {

@@ -918,7 +918,14 @@ class Project extends BaseModel {
   }
 
   setupScene (scenename, cb) {
-    return this.setupActiveComponent(path.join('code', scenename, 'code.js'), cb)
+    const relpath = path.join('code', scenename, 'code.js')
+    const abspath = path.join(this.getFolder(), relpath)
+    return Lock.request(Lock.LOCKS.FileReadWrite(abspath), false, (release) => {
+      return this.setupActiveComponent(relpath, (err) => {
+        release()
+        return cb(err)
+      })
+    })
   }
 
   getCodeFolderAbspath () {

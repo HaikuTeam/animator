@@ -385,29 +385,6 @@ File.expelOne = (folder, relpath, cb) => {
   cb()
 }
 
-File.ingestFromFolder = (project, folder, options, cb) => {
-  return walkFiles(folder, (err, entries) => {
-    if (err) return cb(err)
-    const picks = []
-    entries.forEach((entry) => {
-      const relpath = path.relative(folder, entry.path)
-
-      // Only allow bytecode files
-      if (!path.basename(relpath, '.js') === 'code') {
-        return picks.push(entry)
-      }
-    })
-    // Load the code first, then designs. This is so we can merge design changes!
-    return async.mapSeries(picks, (entry, next) => {
-      const relpath = path.relative(folder, entry.path)
-      return File.ingestOne(project, folder, relpath, next)
-    }, (err, files) => {
-      if (err) return cb(err)
-      return cb(null, files)
-    })
-  })
-}
-
 File.buildManaCacheKey = (folder, relpath) => {
   return `mana:${path.join(folder, relpath)}`
 }
