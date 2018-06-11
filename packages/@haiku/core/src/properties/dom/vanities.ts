@@ -4,7 +4,7 @@
 
 import HaikuComponent from './../../HaikuComponent';
 import HaikuContext from './../../HaikuContext';
-import HaikuTimeline from './../../HaikuTimeline';
+import HaikuTimeline, {PlaybackSetting} from './../../HaikuTimeline';
 import cssMatchOne from './../../helpers/cssMatchOne';
 import has from './has';
 
@@ -803,13 +803,6 @@ const getCanonicalPlaybackValue = (value) => {
   return value;
 };
 
-export const PLAYBACK_SETTINGS = {
-  ONCE: 'once',
-  LOOP: 'loop',
-  STOP: 'stop',
-  CEDE: 'cede',
-};
-
 const applyPlaybackStatus = (
   status,
   receivingTimeline,
@@ -823,17 +816,17 @@ const applyPlaybackStatus = (
   let val = status;
 
   // Let the child timeline do whatever it wishes without interference
-  if (val === PLAYBACK_SETTINGS.CEDE) {
+  if (val === PlaybackSetting.CEDE) {
     return;
   }
 
   if (val === null || val === undefined || val === true) {
-    val = PLAYBACK_SETTINGS.LOOP;
+    val = PlaybackSetting.LOOP;
   }
 
-  const shouldRepeat = val === PLAYBACK_SETTINGS.LOOP;
-  const shouldPlay = val === PLAYBACK_SETTINGS.ONCE;
-  const shouldStop = val === PLAYBACK_SETTINGS.STOP;
+  const shouldRepeat = val === PlaybackSetting.LOOP;
+  const shouldPlay = val === PlaybackSetting.ONCE;
+  const shouldStop = val === PlaybackSetting.STOP;
 
   if (shouldRepeat) {
     receivingTimeline.setRepeat(true);

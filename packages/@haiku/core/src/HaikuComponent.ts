@@ -9,7 +9,7 @@ import HaikuBase, {GLOBAL_LISTENER_KEY} from './HaikuBase';
 import HaikuClock from './HaikuClock';
 import HaikuContext from './HaikuContext';
 import HaikuElement from './HaikuElement';
-import HaikuTimeline from './HaikuTimeline';
+import HaikuTimeline, {PlaybackSetting} from './HaikuTimeline';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
 import cssQueryList from './helpers/cssQueryList';
 import {isPreviewMode} from './helpers/interactionModes';
@@ -19,7 +19,7 @@ import scopifyElements from './helpers/scopifyElements';
 import xmlToMana from './helpers/xmlToMana';
 import Layout3D from './Layout3D';
 import {runMigrations} from './Migration';
-import vanities, {PLAYBACK_SETTINGS} from './properties/dom/vanities';
+import vanities from './properties/dom/vanities';
 import functionToRFO, {RFO} from './reflection/functionToRFO';
 import StateTransitionManager, {StateTransitionParameters, StateValues} from './StateTransitionManager';
 import ValueBuilder from './ValueBuilder';
@@ -1175,13 +1175,13 @@ export default class HaikuComponent extends HaikuElement {
 
     const guestTimeline = guest.getTimeline(timelineName);
 
-    if (playbackValue === PLAYBACK_SETTINGS.CEDE) {
+    if (playbackValue === PlaybackSetting.CEDE) {
       return guestTimeline.getTime();
     }
 
     // If time is controlled and we're set to 'loop', use a modulus of the guest's max time
     // which will give the effect of looping the guest to its 0 if its max has been reached
-    if (playbackValue === PLAYBACK_SETTINGS.LOOP) {
+    if (playbackValue === PlaybackSetting.LOOP) {
       if (guestTimeline) {
         const guestMax = guestTimeline.getMaxTime();
         const finalTime = timelineTime % guestMax; // TODO: What if final frame has a change?
@@ -1191,7 +1191,7 @@ export default class HaikuComponent extends HaikuElement {
       return timelineTime;
     }
 
-    if (playbackValue === PLAYBACK_SETTINGS.STOP) {
+    if (playbackValue === PlaybackSetting.STOP) {
       if (guestTimeline) {
         return guestTimeline.getControlledTime() || 0;
       }
