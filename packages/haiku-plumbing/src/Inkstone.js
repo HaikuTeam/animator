@@ -1,7 +1,7 @@
-import lodash from 'lodash'
+import * as lodash from 'lodash'
 import { inkstone } from '@haiku/sdk-inkstone'
 import { client } from '@haiku/sdk-client'
-import logger from 'haiku-serialization/src/utils/LoggerInstance'
+import * as logger from 'haiku-serialization/src/utils/LoggerInstance'
 import * as Git from './Git'
 
 // Configure inkstone, useful for testing off of dev (HAIKU_API=https://localhost:8080/)

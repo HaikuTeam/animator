@@ -1,4 +1,4 @@
-import path from 'path'
+import * as path from 'path'
 import { argv } from 'yargs'
 import { clone } from 'lodash'
 

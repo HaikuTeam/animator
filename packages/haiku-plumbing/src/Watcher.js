@@ -1,4 +1,4 @@
-import chokidar from 'chokidar'
+import * as chokidar from 'chokidar'
 import { EventEmitter } from 'events'
 import { LOCKS, emitter } from 'haiku-serialization/src/bll/Lock'
 

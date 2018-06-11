@@ -1,4 +1,4 @@
-import fse from 'haiku-fs-extra'
+import * as fse from 'haiku-fs-extra'
 import { handleExporterSaveRequest } from 'haiku-formats/lib/exporters'
 
 export default (request, activeComponent, cb) => {

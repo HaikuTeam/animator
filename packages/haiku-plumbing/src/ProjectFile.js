@@ -1,5 +1,5 @@
-import fse from 'haiku-fs-extra'
-import path from 'path'
+import * as fse from 'haiku-fs-extra'
+import * as path from 'path'
 
 export function ensure (folder, filepath, cb) {
   return fse.ensureFile(path.join(folder, filepath), (ensureErr) => {

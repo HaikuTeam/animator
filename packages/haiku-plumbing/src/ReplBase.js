@@ -1,4 +1,4 @@
-import repl from 'repl'
+import * as repl from 'repl'
 
 function cb (err, out) {
   if (err) console.log(err)

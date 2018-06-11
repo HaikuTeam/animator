@@ -1,13 +1,13 @@
-import path from 'path'
-import fse from 'haiku-fs-extra'
-import async from 'async'
-import dedent from 'dedent'
+import * as path from 'path'
+import * as fse from 'haiku-fs-extra'
+import * as async from 'async'
+import * as dedent from 'dedent'
 import { escapeRegExp } from 'lodash'
-import semver from 'semver'
-import moment from 'moment'
+import * as semver from 'semver'
+import * as moment from 'moment'
 import Bundler from './Bundler'
-import logger from 'haiku-serialization/src/utils/LoggerInstance'
-import Project from 'haiku-serialization/src/bll/Project'
+import * as logger from 'haiku-serialization/src/utils/LoggerInstance'
+import * as Project from 'haiku-serialization/src/bll/Project'
 
 const PLUMBING_DIR = path.join(__dirname, '..')
 

@@ -1,9 +1,9 @@
 import { Repository, Reference, Signature, Reset, Remote, Clone, Cred, Commit, Merge, RevWalk, Checkout, Tag, Diff } from 'nodegit'
-import path from 'path'
-import fs from 'haiku-fs-extra'
-import async from 'async'
+import * as path from 'path'
+import * as fs from 'haiku-fs-extra'
+import * as async from 'async'
 import { Environment } from 'haiku-common/lib/environments'
-import logger from 'haiku-serialization/src/utils/LoggerInstance'
+import * as logger from 'haiku-serialization/src/utils/LoggerInstance'
 
 const DEFAULT_COMMITTER_EMAIL = 'contact@haiku.ai'
 const DEFAULT_COMMITTER_NAME = 'Haiku Plumbing'

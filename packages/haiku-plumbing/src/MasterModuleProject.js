@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import logger from 'haiku-serialization/src/utils/LoggerInstance'
+import * as logger from 'haiku-serialization/src/utils/LoggerInstance'
 
 const QUEUE_INTERVAL = 64
 const LAST_WRITE_MARGIN_OF_ERROR_MILLISECONDS = 500
