@@ -48,6 +48,11 @@
             "blendMode": "PASS_THROUGH",
             "children": [
               {
+                "id": "9:0",
+                "name": "Subgroup",
+                "type": "GROUP"
+              },
+              {
                 "id": "4:3",
                 "name": "Rectangle 2",
                 "type": "RECTANGLE",
