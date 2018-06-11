@@ -1,4 +1,3 @@
-const async = require('async')
 const fse = require('fs-extra')
 const {debounce} = require('lodash')
 const path = require('path')
@@ -6,7 +5,6 @@ const xmlToMana = require('@haiku/core/lib/helpers/xmlToMana').default
 const objectToRO = require('@haiku/core/lib/reflection/objectToRO').default
 const BaseModel = require('./BaseModel')
 const logger = require('./../utils/LoggerInstance')
-const walkFiles = require('./../utils/walkFiles')
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 const getSvgOptimizer = require('./../svg/getSvgOptimizer')
 const Lock = require('./Lock')
@@ -208,6 +206,9 @@ class File extends BaseModel {
   }
 
   writeSync () {
+    if (!this.options.doWriteToDisk) {
+      throw new Error('[file] illegal write requested')
+    }
     this.assertContents(this.contents)
     this.dtLastWriteStart = Date.now()
     logger.info(`[file] writing ${this.relpath} to disk`)
@@ -286,8 +287,8 @@ BaseModel.extend(File)
 File.TYPES = FILE_TYPES
 
 File.DEFAULT_OPTIONS = {
-  doWriteToDisk: true, // Write all actions/content updates to disk
-  skipDiffLogging: false, // Log a colorized diff of every content update
+  doWriteToDisk: false, // Write all actions/content updates to disk
+  skipDiffLogging: true, // Log a colorized diff of every content update
   required: {
     relpath: true,
     folder: true,
@@ -300,7 +301,7 @@ File.DEFAULT_CONTEXT_SIZE = DEFAULT_CONTEXT_SIZE
 File.cache = new Cache()
 
 File.write = (folder, relpath, contents, cb) => {
-  let abspath = path.join(folder, relpath)
+  const abspath = path.join(folder, relpath)
   return Lock.request(Lock.LOCKS.FileReadWrite(abspath), true, (release) => {
     return fse.outputFile(abspath, contents, (err) => {
       release()
@@ -380,29 +381,6 @@ File.expelOne = (folder, relpath, cb) => {
     file.destroy()
   }
   cb()
-}
-
-File.ingestFromFolder = (project, folder, options, cb) => {
-  return walkFiles(folder, (err, entries) => {
-    if (err) return cb(err)
-    const picks = []
-    entries.forEach((entry) => {
-      const relpath = path.relative(folder, entry.path)
-
-      // Only allow bytecode files
-      if (!path.basename(relpath, '.js') === 'code') {
-        return picks.push(entry)
-      }
-    })
-    // Load the code first, then designs. This is so we can merge design changes!
-    return async.mapSeries(picks, (entry, next) => {
-      const relpath = path.relative(folder, entry.path)
-      return File.ingestOne(project, folder, relpath, next)
-    }, (err, files) => {
-      if (err) return cb(err)
-      return cb(null, files)
-    })
-  })
 }
 
 File.buildManaCacheKey = (folder, relpath) => {
