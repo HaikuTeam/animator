@@ -383,7 +383,7 @@ class ActiveComponent extends BaseModel {
   }
 
   clearCaches (options = {}) {
-    this.$instance.clearCaches(options) // Also clears instance._builder sub-caches
+    this.$instance.clearCaches(options) // Also clears instance.builder sub-caches
     this.fetchRootElement().cache.clear()
     if (options.doClearEntityCaches) {
       this.fetchRootElement().clearEntityCaches()
@@ -391,7 +391,7 @@ class ActiveComponent extends BaseModel {
   }
 
   clearCachedClusters (timelineName, componentId) {
-    this.$instance._builder.clearCachedClusters(timelineName, componentId)
+    this.$instance.builder.clearCachedClusters(timelineName, componentId)
   }
 
   updateTimelineMaxes (timelineName) {
