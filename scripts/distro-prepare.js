@@ -45,6 +45,7 @@ fse.writeJsonSync(path.join(DISTRO_DIR, 'package.json'), {
 log.log(`Copy index.js, config.js and changelogs to ${DISTRO_DIR}`)
 fse.copySync('index.js', `${DISTRO_DIR}/index.js`)
 fse.copySync('config.js', `${DISTRO_DIR}/config.js`)
+fse.copySync('HaikuHelper.js', `${DISTRO_DIR}/HaikuHelper.js`)
 fse.copySync('monkey.config.js', `${DISTRO_DIR}/monkey.config.js`)
 fse.copySync('changelog/public/', `${DISTRO_DIR}/changelog/public/`)
 
