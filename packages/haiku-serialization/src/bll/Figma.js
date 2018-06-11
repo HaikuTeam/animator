@@ -179,7 +179,9 @@ class Figma {
           name: Figma.getUniqueName(fileId, item.name),
           type: item.type
         })
-      } else if (item.children) {
+      }
+
+      if (item.children) {
         result.push(...this.findItems(item.children, fileId))
       }
     }
