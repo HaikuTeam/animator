@@ -29,6 +29,7 @@
     "watch-all": "node ./scripts/watch-all.js",
     "lint-report": "node ./scripts/lint-report.js",
     "test-report": "node ./scripts/test-report.js",
+    "repl": "electron ./HaikuHelper.js --folder=./packages/haiku-glass/test/projects/primitives --mode=headless --repl",
     "postinstall": "node ./scripts/link-binaries.js"
   },
   "resolutions": {
