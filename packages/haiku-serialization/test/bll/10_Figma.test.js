@@ -8,20 +8,18 @@ const token = 'Rs1Ajdgb4hgmWbKcsahi2U2xtRevBqG-kipftTeZ'
 const fileKey = 'DwxTPCNWQZJyU3X44CH3DQpT'
 
 tape('Figma.parseProjectURL parses an URL and returns an object with the id and the name of a Figma project', (t) => {
-  t.plan(3)
-
   const parsedURL = Figma.parseProjectURL(`https://www.figma.com/file/${fileKey}/Sample-File`)
 
   t.equal(typeof parsedURL, 'object', 'the parsed URL is an object')
   t.equal(parsedURL.name, 'Sample-File', 'the parsed URL contains the file name under the "name" key')
   t.equal(parsedURL.id, fileKey, 'the parsed URL contains the id of the file')
+  t.end()
 })
 
 tape('Figma.parseProjectURL returns null if the URL can\'t be parsed properly', (t) => {
-  t.plan(2)
-
   t.notOk(Figma.parseProjectURL('https://www.figma.com/'))
   t.notOk(Figma.parseProjectURL('asdfasd'))
+  t.end()
 })
 
 tape('Figma.request makes a proper request', (t) => {
@@ -46,19 +44,20 @@ tape('Figma.request allows a param to disable authentication', (t) => {
 })
 
 tape('Figma.findInstantiableElements', (t) => {
-  t.plan(6)
-
   const sliceKey = '5:0'
   const groupKey = '8:0'
+  const subgroupKey = '9:0'
   const figma = new Figma({token})
   const elements = figma.findInstantiableElements(JSON.stringify(SampleFileFixture))
 
   t.ok(Array.isArray(elements), 'returns an array of elements')
-  t.equal(elements.length, 3, 'returns an array that includes all elements required to be finded')
+  t.equal(elements.length, 4, 'returns an array that includes all elements required to be found')
   t.equal(elements[0].id, groupKey, 'includes elements of type GROUP')
-  t.equal(elements[1].id, sliceKey, 'includes elements of type SLICE')
-  t.equal(elements[1].name, 'Slice', 'passes through first unique instances of element names')
-  t.equal(elements[2].name, 'Slice Copy 1', 'renames duplicately named slices to allow async fetch/write')
+  t.equal(elements[1].id, subgroupKey, 'includes subgroup elements of type GROUP')
+  t.equal(elements[2].id, sliceKey, 'includes elements of type SLICE')
+  t.equal(elements[2].name, 'Slice', 'passes through first unique instances of element names')
+  t.equal(elements[3].name, 'Slice Copy 1', 'renames duplicately named slices to allow async fetch/write')
+  t.end()
 })
 
 tape('Figma.getSVGLinks', async (t) => {
@@ -80,8 +79,6 @@ tape('Figma.getSVGLinks', async (t) => {
 })
 
 tape('Figma.buildAuthenticationLink', (t) => {
-  t.plan(3)
-
   const {url, state} = Figma.buildAuthenticationLink(fileKey)
   const parsedURL = new URL(url)
   const redirectURI = new URL(parsedURL.searchParams.get('redirect_uri'))
@@ -89,42 +86,39 @@ tape('Figma.buildAuthenticationLink', (t) => {
   t.equal(parsedURL.pathname, `/oauth`, 'points to the /oauth path in Figma')
   t.equal(redirectURI.protocol, 'haiku:', 'redirect_uri uses the haiku:// protocol')
   t.ok(url.includes(state), 'url includes the returned state')
+  t.end()
 })
 
 tape('Figma.buildFigmaLink', (t) => {
-  t.plan(1)
-
   const url = Figma.buildFigmaLink(fileKey)
 
   t.ok(url.includes(`/file/${fileKey}`), 'builds a link to the figma file')
+  t.end()
 })
 
 tape('Figma.isFigmaFile', (t) => {
-  t.plan(2)
-
   const figmaPath = `/designs/${fileKey}-something.figma`
   const otherPath = '/something/else.sketch'
 
   t.ok(Figma.isFigmaFile(figmaPath), 'returns true if the path basename ends with .figma')
   t.notOk(Figma.isFigmaFile(otherPath), 'returns false if the path basename does not ends with .figma')
+  t.end()
 })
 
 tape('Figma.isFigmaFolder', (t) => {
-  t.plan(2)
-
   const figmaPath = `/designs/${fileKey}-something.figma.contents/`
   const otherPath = '/something/else.sketch.contents/'
 
   t.ok(Figma.isFigmaFolder(figmaPath), 'returns true if the path is a figma folder')
   t.notOk(Figma.isFigmaFolder(otherPath), 'returns false if the path is not a figma folder')
+  t.end()
 })
 
 tape('Figma.findIDFromPath', (t) => {
-  t.plan(2)
-
   const figmaPath = `/designs/${fileKey}-something.figma.contents/`
   const otherPath = '/something/else.sketch.contents/'
 
   t.equal(Figma.findIDFromPath(figmaPath), fileKey, 'returns the correct ID if an ID can be found')
   t.notOk(Figma.findIDFromPath(otherPath), 'returns a falsey value if it cannot find an ID')
+  t.end()
 })
