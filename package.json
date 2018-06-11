@@ -30,6 +30,7 @@
     "watch-all": "node ./scripts/watch-all.js",
     "lint-report": "node ./scripts/lint-report.js",
     "test-report": "node ./scripts/test-report.js",
+    "repl": "electron ./HaikuHelper.js --folder=./packages/haiku-glass/test/projects/primitives --mode=headless --repl",
     "postinstall": "node ./scripts/link-binaries.js"
   },
   "resolutions": {
@@ -156,7 +157,7 @@
       "!node_modules/.bin",
       "!**/*.{md,iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj,ts,map,d.ts,idea}",
       "!**/.editorconfig",
-      "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,__pycache__,thumbs.db,.gitignore,.gitattributes,.editorconfig,.flowconfig,.yarn-metadata.json,.idea,appveyor.yml,.travis.yml,circle.yml,npm-debug.log,yarn-debug.log,.nyc_output,yarn.lock,.yarn-integrity,tslint*.json,tsconfig.json}",
+      "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,__pycache__,thumbs.db,.gitignore,.gitattributes,.editorconfig,.flowconfig,.yarn-metadata.json,.idea,appveyor.yml,.travis.yml,circle.yml,npm-debug.log,yarn-debug.log,.nyc_output,yarn.lock,.yarn-integrity,tslint*.json,tsconfig*.json}",
       "!node_modules/eslint*",
       "!node_modules/monaco-editor/dev",
       "!node_modules/mout",

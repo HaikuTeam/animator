@@ -14,7 +14,7 @@ async function go () {
   let intervals = 0;
   setInterval(() => {
     channel.meow('uno', intervals++);
-  },          1000);
+  }, 1000);
 }
 
 go();

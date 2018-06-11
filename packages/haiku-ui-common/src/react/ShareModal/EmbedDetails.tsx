@@ -22,7 +22,9 @@ export interface EmbedDetailsProps {
 
 export class EmbedDetails extends React.PureComponent<EmbedDetailsProps> {
   render () {
-    if (!this.props.entry) { return null; }
+    if (!this.props.entry) {
+      return null;
+    }
 
     // tslint:disable-next-line:variable-name
     const Template = ShareTemplates[this.props.entry.template];
