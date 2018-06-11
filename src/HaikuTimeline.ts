@@ -20,6 +20,13 @@ export const enum TimeUnit {
   Frame = 'fr',
 }
 
+export const enum PlaybackSetting {
+  ONCE = 'once',
+  LOOP = 'loop',
+  STOP = 'stop',
+  CEDE = 'cede',
+}
+
 // tslint:disable:variable-name
 export default class HaikuTimeline extends HaikuBase {
   options;
