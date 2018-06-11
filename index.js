@@ -32,7 +32,7 @@ if (process.env.HAIKU_APP_LAUNCH_CLI === '1') {
     haikuHelperArgs.execArgv = ['--inspect=9221'];
   }
   const haikuHelper = cp.fork(
-    path.join(__dirname, 'node_modules', 'haiku-plumbing', 'HaikuHelper'),
+    path.join(__dirname, 'HaikuHelper'),
     haikuHelperArgs
   );
 

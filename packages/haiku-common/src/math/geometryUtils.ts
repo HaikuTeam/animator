@@ -44,7 +44,9 @@ export const buildPathLUT = (
 ): [Vec2[], boolean] => {
   const out = [];
   for (let i = 0; i < points.length; i++) {
-    if (points[i].moveTo) { continue; } // TODO: Assert that points[0] is moveTo?
+    if (points[i].moveTo) {
+      continue;
+    } // TODO: Assert that points[0] is moveTo?
     if (points[i].curve) {
       for (let t = 0; t < 1; t += 1 / segmentResolution) {
         out.push(bezierCubic(
@@ -141,7 +143,11 @@ const evenOddRaycastPointInPolygon = (points: Vec2[], test: Vec2): boolean => {
   let intersections = 0;
   let j;
   for (let i = 0; i < points.length; i++) {
-    if (i === 0) { j = points.length - 1; } else { j = i - 1; }
+    if (i === 0) {
+      j = points.length - 1;
+    } else {
+      j = i - 1;
+    }
 
     if ((points[i].y > test.y) !== (points[j].y > test.y) &&
       (test.x < (points[j].x - points[i].x) * (test.y - points[i].y) / (points[j].y - points[i].y) + points[i].x)) {
@@ -212,7 +218,9 @@ export const pointOnPolyLineSegment = (
   points: Vec2[], test: Vec2,
   threshold: number = DEFAULT_LINE_SELECTION_THRESHOLD): boolean => {
   for (let i = 1; i < points.length; i++) {
-    if (pointOnLineSegment(points[i - 1], points[i], test, threshold)) { return true; }
+    if (pointOnLineSegment(points[i - 1], points[i], test, threshold)) {
+      return true;
+    }
   }
   return false;
 };
@@ -283,7 +291,9 @@ export const isPointAlongStroke = (element: HaikuElement, point: Vec2,
     case 'path': {
       // Build a straight-line approximation of the path and use the same algorithm as polygon
       const [points, closed] = buildPathLUT(SVGPoints.pathToPoints(element.attributes.d));
-      if (closed) { points.push(points[0]); }
+      if (closed) {
+        points.push(points[0]);
+      }
       return pointOnPolyLineSegment(points, correctedPoint, threshold);
     }
   }
