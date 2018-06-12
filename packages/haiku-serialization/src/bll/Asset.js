@@ -8,6 +8,7 @@ const PAGES_REGEX = /\/pages\//
 const SLICES_REGEX = /\/slices\//
 const ARTBOARDS_REGEX = /\/artboards\//
 const GROUPS_REGEX = /\/groups\//
+const FRAMES_REGEX = /\/frames\//
 
 const MAIN_COMPONENT_NAME = 'main'
 
@@ -141,6 +142,9 @@ class Asset extends BaseModel {
     } else if (svgAsset.isGroup()) {
       this.groupsFolderAsset.insertChild(svgAsset)
       this.unshiftFolderAsset(this.groupsFolderAsset)
+    } else if (svgAsset.isFrame()) {
+      this.framesFolderAsset.insertChild(svgAsset)
+      this.unshiftFolderAsset(this.framesFolderAsset)
     }
   }
 
@@ -209,6 +213,18 @@ class Asset extends BaseModel {
       return result
     }
 
+    const framesFolderAsset = Asset.upsert({
+      uid: path.join(project.getFolder(), 'designs', relpath, 'frames'),
+      type: Asset.TYPES.CONTAINER,
+      kind: Asset.KINDS.FOLDER,
+      proximity: Asset.PROXIMITIES.LOCAL,
+      project,
+      relpath: path.join('designs', relpath, 'frames'),
+      displayName: 'Frames',
+      children: [],
+      dtModified: Date.now()
+    })
+
     const groupsFolderAsset = Asset.upsert({
       uid: path.join(project.getFolder(), 'designs', relpath, 'groups'),
       type: Asset.TYPES.CONTAINER,
@@ -245,6 +261,7 @@ class Asset extends BaseModel {
       children: [],
       slicesFolderAsset, // Hacky, but avoids extra 'upsert' logic
       groupsFolderAsset,
+      framesFolderAsset,
       dtModified: Date.now()
     })
 
@@ -423,6 +440,10 @@ class Asset extends BaseModel {
 
   isGroup () {
     return !!this.relpath.match(GROUPS_REGEX)
+  }
+
+  isFrame () {
+    return !!this.relpath.match(FRAMES_REGEX)
   }
 
   unshiftFolderAsset (folderAsset) {
