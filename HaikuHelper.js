@@ -15,7 +15,7 @@ let args;
 let flags;
 
 if (process.env.NODE_ENV === 'production') {
-  const Raven = require('haiku-plumbing/lib/Raven');
+  const {default: Raven} = require('haiku-plumbing/lib/Raven');
   Raven.context(() => {
     go();
   });
