@@ -35,6 +35,13 @@ export default class Preview extends React.Component {
     }
   }
 
+  componentWillUnmount () {
+    if (this.component) {
+      this.component.getClock().stop()
+      this.component.context.destroy()
+    }
+  }
+
   render () {
     return (
       <div
