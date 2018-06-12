@@ -19,7 +19,6 @@ const MAIN_COMPONENT_NAME = 'main'
  *.  Includes static methods for common asset-related tasks.
  */
 class Asset extends BaseModel {
-
   getAbspath () {
     return path.join(this.project.getFolder(), this.getRelpath())
   }
