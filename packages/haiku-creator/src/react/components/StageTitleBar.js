@@ -541,7 +541,7 @@ class StageTitleBar extends React.Component {
       if (proxy.doesManageSingleElement() || proxy.hasNothingInSelection()) {
         const element = this.getProxySelectionElement()
 
-        if (element && element.hasEventHandlers()) {
+        if (element && element.hasVisibleEventHandlers()) {
           return Palette.LIGHT_BLUE
         }
       }
