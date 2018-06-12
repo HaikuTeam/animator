@@ -17,6 +17,7 @@
     "test": "yarn ts ./node_modules/.bin/tape 'test/**/*.test.ts' 'test/**/*.test.js' | tap-spec",
     "test-report": "nyc yarn ts ./node_modules/.bin/tape 'test/**/*.test.ts' 'test/**/*.test.js' > test-result.tap",
     "compile": "tsc",
+    "compile-declarations": "tsc -p tsconfig.declarations.json",
     "develop": "tsc --watch"
   },
   "dependencies": {
