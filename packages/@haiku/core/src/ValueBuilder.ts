@@ -542,7 +542,7 @@ INJECTABLES.$flow.schema.yield = {
 INJECTABLES.$helpers = {
   schema: {},
   summon (injectees, summonSpec, hostInstance, matchingElement) {
-    injectees.$helpers = hostInstance._builder.helpers;
+    injectees.$helpers = hostInstance.builder.helpers;
   },
 };
 

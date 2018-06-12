@@ -16,7 +16,6 @@ import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import MockWebsocket from 'haiku-serialization/src/ws/MockWebsocket'
 import { EventEmitter } from 'events'
 import EmitterManager from 'haiku-serialization/src/utils/EmitterManager'
-import * as Git from './Git'
 import Watcher from './Watcher'
 import * as ProjectFolder from './ProjectFolder'
 import MasterGitProject from './MasterGitProject'
@@ -83,11 +82,6 @@ function _isFileSignificant (relpath) {
   if (UNWATCHABLE_BASENAMES[path.basename(relpath)]) return false
   if (!WATCHABLE_EXTNAMES[path.extname(relpath)]) return false
   return true
-}
-
-function _excludeIfNotJs (relpath) {
-  if (path.extname(relpath) !== '.js') return true
-  return !_isFileSignificant(relpath)
 }
 
 export default class Master extends EventEmitter {
@@ -524,24 +518,6 @@ export default class Master extends EventEmitter {
     return cb(null, state)
   }
 
-  doesProjectHaveUnsavedChanges (cb) {
-    return Git.status(this.folder, {}, (statusErr, statusesDict) => {
-      if (statusErr) return cb(statusErr)
-      if (Object.keys(statusesDict).length < 1) return cb(null, false)
-      return cb(null, true)
-    })
-  }
-
-  discardProjectChanges (cb) {
-    return Git.hardReset(this.folder, 'HEAD', (err) => {
-      if (err) return cb(err)
-      return Git.removeUntrackedFiles(this.folder, (err) => {
-        if (err) return cb(err)
-        return cb()
-      })
-    })
-  }
-
   getAssets (cb) {
     return cb(null, this._knownLibraryAssets)
   }
@@ -752,14 +728,6 @@ export default class Master extends EventEmitter {
               return cb()
             }
           )
-        },
-
-        // Load all relevant files into memory (only JavaScript files for now)
-        (cb) => {
-          logger.info(`[master] ${loggingPrefix}: ingesting js files in ${this.folder}`)
-          return File.ingestFromFolder(this.project, this.folder, {
-            exclude: _excludeIfNotJs
-          }, cb)
         },
 
         // Take an initial commit of the starting state so we have a baseline

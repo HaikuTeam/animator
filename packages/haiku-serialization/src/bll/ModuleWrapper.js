@@ -169,7 +169,7 @@ class ModuleWrapper extends BaseModel {
             this.file.maybeFlushContentForceSync()
           }
           release()
-          return cb()
+          return cb(null, this.exp)
         })
       }
 

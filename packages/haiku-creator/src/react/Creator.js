@@ -143,10 +143,7 @@ export default class Creator extends React.Component {
 
     // fileOptions is something of a misnomer, but we pass these into Project so they
     // can be forwarded to file. They're also used to configure the Project model itself.
-    this.fileOptions = {
-      doWriteToDisk: false,
-      skipDiffLogging: true
-    }
+    this.fileOptions = {}
 
     // Callback for post-authentication
     this._postAuthCallback = undefined
@@ -1124,6 +1121,7 @@ export default class Creator extends React.Component {
                 case 'setCurrentActiveComponent':
                 case 'selectElement':
                 case 'unselectElement':
+                case 'batchUpsertEventHandlers':
                   this.debouncedForceUpdate()
                   break
 

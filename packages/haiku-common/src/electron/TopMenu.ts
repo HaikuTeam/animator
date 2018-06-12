@@ -201,7 +201,7 @@ export default class TopMenu {
       {type: 'separator'},
       {
         label: 'Preview',
-        accelerator: 'CmdOrCtrl+P',
+        accelerator: 'CmdOrCtrl+Enter',
         enabled: !this.options.isSaving && this.options.isProjectOpen,
         click: () => {
           this.sender.send('global-menu:preview');

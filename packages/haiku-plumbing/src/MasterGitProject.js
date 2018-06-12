@@ -10,6 +10,7 @@ import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import * as Git from './Git'
 import * as ProjectFolder from './ProjectFolder'
 import * as Inkstone from './Inkstone'
+import * as Lock from 'haiku-serialization/src/bll/Lock'
 
 const PLUMBING_PKG_PATH = path.join(__dirname, '..')
 const PLUMBING_PKG_JSON_PATH = path.join(PLUMBING_PKG_PATH, 'package.json')
@@ -944,24 +945,26 @@ export default class MasterGitProject extends EventEmitter {
       // git status is async so we lock queued commit requests until we finish
       this._isCommittingLocked = true
 
-      return this.statusForFile(relpath, (err, status) => {
-        // Everything until we commit is now sync so it's safe to turn this off
-        this._isCommittingLocked = false
+      const abspath = path.join(this.folder, relpath)
+      return Lock.request(Lock.LOCKS.FileReadWrite(abspath), false, (release) => {
+        return this.statusForFile(relpath, (err, status) => {
+          // Everything until we commit is now sync so it's safe to turn this off
+          this._isCommittingLocked = false
 
-        if (err) {
-          return cb(err)
-        }
-        if (!status) {
-          return cb() // No status means no changes
-        }
+          const finish = (err) => {
+            release()
+            return cb(err)
+          }
 
-        // 0 is UNMODIFIED, everything else is a change
-        // See http://www.nodegit.org/api/diff/#getDelta
-        if (status.num && status.num > 0) {
-          return this.commit(relpath, message, cb)
-        }
+          // No status means no changes.
+          // 0 is UNMODIFIED, everything else is a change
+          // See http://www.nodegit.org/api/diff/#getDelta
+          if (err || !status || !status.num || status.num < 1) {
+            return finish(err)
+          }
 
-        return cb()
+          return this.commit(relpath, message, finish)
+        })
       })
     })
   }

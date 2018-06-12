@@ -1,0 +1,1 @@
+The sky should turn dark and then turn light again, but only once, meanwhile all three cats should blink every second and continue blinking even after the sky does one day/night cycle.
