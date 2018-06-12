@@ -90,7 +90,6 @@ class Timeline extends React.Component {
     )
 
     this.handleRequestElementCoordinates = this.handleRequestElementCoordinates.bind(this)
-    this.showEventHandlersEditor = this.showEventHandlersEditor.bind(this)
     this.showFrameActionsEditor = this.showFrameActionsEditor.bind(this)
     this.mouseMoveListener = this.mouseMoveListener.bind(this)
     this.mouseUpListener = this.mouseUpListener.bind(this)
@@ -1207,8 +1206,8 @@ class Timeline extends React.Component {
                                 getActiveComponent={() => {
                                   return this.getActiveComponent()
                                 }}
-                                showEventHandlersEditor={() => {
-                                  this.showEventHandlersEditor()
+                                showEventHandlersEditor={(...args) => {
+                                  this.showEventHandlersEditor(...args)
                                 }}
                                 />
                             </div>

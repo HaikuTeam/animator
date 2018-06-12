@@ -510,6 +510,8 @@ class StageTitleBar extends React.Component {
       const element = this.getProxySelectionElement()
 
       if (element) {
+        mixpanel.haikuTrack('creator:top-controls:show-event-handlers-editor')
+
         this.props.websocket.send({
           type: 'broadcast',
           from: 'creator',
@@ -541,8 +543,8 @@ class StageTitleBar extends React.Component {
       if (proxy.doesManageSingleElement() || proxy.hasNothingInSelection()) {
         const element = this.getProxySelectionElement()
 
-        if (element && element.hasEventHandlers()) {
-          return Palette.LIGHT_BLUE
+        if (element && element.hasVisibleEventHandlers()) {
+          return Color(Palette.LIGHT_BLUE).lighten(0.37)
         }
       }
     }
