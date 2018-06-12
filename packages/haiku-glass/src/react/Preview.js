@@ -10,10 +10,8 @@ export default class Preview extends React.Component {
     }
 
     // We can't load from disk because the update may have not synchronized by the point that
-    // preview mode is launched, so instead we just create a pristing copy of the bytecode
-    const bytecode = this.props.component.getMemorySafeCleanBytecode()
-
-    const factory = HaikuDOMAdapter(bytecode)
+    // preview mode is launched, so instead we just create a pristine copy of the bytecode
+    const factory = HaikuDOMAdapter(this.props.component.getReifiedBytecode())
 
     this.component = factory(
       this.mount,

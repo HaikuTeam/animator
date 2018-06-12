@@ -19,10 +19,6 @@ const MAIN_COMPONENT_NAME = 'main'
  *.  Includes static methods for common asset-related tasks.
  */
 class Asset extends BaseModel {
-  isFolder () {
-    return this.type === 'folder'
-  }
-
   getAbspath () {
     return path.join(this.project.getFolder(), this.getRelpath())
   }
@@ -107,7 +103,7 @@ class Asset extends BaseModel {
   }
 
   isOrphanSvg () {
-    return (this.isVector() && !this.parent.isSketchFile() && !this.parent.isIllustratorFile())
+    return this.isVector() && this.parent.isDesignsHostFolder()
   }
 
   isComponentOtherThanMain () {
@@ -196,6 +192,8 @@ class Asset extends BaseModel {
       dtModified: (dict[relpath] && dict[relpath].dtModified) || Date.now()
     })
 
+    slicesFolderAsset.parent = artboardsFolderAsset.parent = sketchAsset
+
     this.insertChild(sketchAsset)
     return sketchAsset
   }
@@ -248,6 +246,8 @@ class Asset extends BaseModel {
       dtModified: Date.now()
     })
 
+    slicesFolderAsset.parent = groupsFolderAsset.parent = figmaAsset
+
     this.insertChild(figmaAsset)
 
     // Must return for the asset to be listed
@@ -287,6 +287,8 @@ class Asset extends BaseModel {
       artboardsFolderAsset,
       dtModified: (dict[relpath] && dict[relpath].dtModified) || Date.now()
     })
+
+    artboardsFolderAsset.parent = illustratorAsset
 
     this.insertChild(illustratorAsset)
     return illustratorAsset
@@ -496,9 +498,7 @@ Every artboard will be synced here when you save.
 `
 
 Asset.ingestAssets = (project, dict) => {
-  Asset.all().forEach((asset) => {
-    asset.destroy()
-  })
+  Asset.purge()
 
   const componentFolderAsset = Asset.upsert({
     uid: path.join(project.getFolder(), 'code'),

@@ -427,58 +427,6 @@ Bytecode.clone = (bytecode) => {
   return Bytecode.mergeBytecode({}, bytecode)
 }
 
-Bytecode.cloneClean = (val) => {
-  if (!val) {
-    return val
-  }
-
-  if (
-    typeof val === 'string' ||
-    typeof val === 'number' ||
-    typeof val === 'boolean'
-  ) {
-    return val
-  }
-
-  if (typeof val === 'function') {
-    // Copy the function to free it from existing bindings
-    return function () {
-      return val.apply(this, arguments)
-    }
-  }
-
-  if (Array.isArray(val)) {
-    return val.map(Bytecode.cloneClean)
-  }
-
-  if (typeof val === 'object') {
-    const out = {}
-
-    for (const key in val) {
-      // Don't include the node.layout property (hacky)
-      if (val.elementName && key === 'layout') {
-        continue
-      }
-
-      // Strip off any internal properties such as __instance
-      if (key.slice(0, 2) === '__') {
-        continue
-      }
-
-      // Don't include any properties not owned by the object itself
-      if (!val.hasOwnProperty(key)) {
-        continue
-      }
-
-      out[key] = Bytecode.cloneClean(val[key])
-    }
-
-    return out
-  }
-
-  return val
-}
-
 Bytecode.snapshot = (bytecode) => {
   return cloneDeepWith(bytecode, (value) => {
     if (typeof value === 'function') {

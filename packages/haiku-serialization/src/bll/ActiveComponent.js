@@ -4375,10 +4375,6 @@ class ActiveComponent extends BaseModel {
     return jss(this.getNormalizedBytecode())
   }
 
-  getMemorySafeCleanBytecode () {
-    return Bytecode.cloneClean(this.getReifiedBytecode())
-  }
-
   /**
    * @method dump
    * @description Use this to log a concise shorthand of this entity.
