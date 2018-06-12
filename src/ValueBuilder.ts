@@ -500,9 +500,13 @@ INJECTABLES.$user = {
           down: 0,
           buttons: [0, 0, 0],
         },
+        pan: {
+          x: 0,
+          y: 0,
+        },
         keys: {},
-        touches: {},
-        mouches: {},
+        touches: [],
+        mouches: [],
       };
     }
   },
