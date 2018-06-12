@@ -16,6 +16,7 @@ import {isCoordInsideBoxPoints} from 'haiku-serialization/src/bll/MathUtils'
 import Palette from 'haiku-ui-common/lib/Palette'
 import Comment from './Comment'
 import EventHandlerEditor from './components/EventHandlerEditor'
+import Preview from './Preview'
 import CreateComponentModal from './modals/CreateComponentModal'
 import Comments from './Comments'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
@@ -53,6 +54,8 @@ fse.mkdirpSync(HOMEDIR_PATH)
 
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'glass'
+
+const MAX_Z_INDEX = 1000000
 
 const POINTS_THRESHOLD_REDUCED = 65 // Display only the corner control points
 const POINTS_THRESHOLD_NONE = 15 // Display no control points nor line
@@ -2944,7 +2947,7 @@ export class Glass extends React.Component {
               position: 'fixed',
               top: 5,
               right: 10,
-              zIndex: 100000,
+              zIndex: MAX_Z_INDEX - 1,
               color: '#ccc',
               fontSize: 14
             }}>
@@ -3021,27 +3024,7 @@ export class Glass extends React.Component {
               <rect id='mount-background-blur' filter='url(#background-blur)' x={mount.x} y={mount.y} width={mount.w} height={mount.h} fill='white' />
               <rect id='mount-background' x={mount.x} y={mount.y} width={mount.w} height={mount.h} fill='white' />
             </svg>
-            : <div
-              id='haiku-glass-stage-background-preview'
-              style={{
-                position: 'relative',
-                top: container.y,
-                left: container.x,
-                width: container.w,
-                height: container.h
-              }}>
-              <div
-                id='haiku-glass-stage-background-preview-border'
-                style={{
-                  position: 'absolute',
-                  top: mount.y,
-                  left: mount.x,
-                  width: mount.w,
-                  height: mount.h,
-                  border: '1px dotted #bbb',
-                  borderRadius: '2px'
-                }} />
-            </div>}
+            : ''}
 
           {(!this.isPreviewMode())
             ? <svg
@@ -3218,6 +3201,26 @@ export class Glass extends React.Component {
                 zIndex: 60,
                 opacity: (this.state.isEventHandlerEditorOpen) ? 0.5 : 1.0
               }} />
+            : ''}
+
+          {(this.isPreviewMode())
+            ? <div
+              id='preview-container'
+              style={{
+                position: 'absolute',
+                left: 0,
+                top: 0,
+                width: '100%',
+                height: '100%',
+                overflow: 'hidden',
+                zIndex: MAX_Z_INDEX,
+                backgroundColor: 'white'
+              }}>
+              <Preview
+                container={container}
+                mount={mount}
+                component={this.getActiveComponent()} />
+            </div>
             : ''}
         </div>
       </div>
