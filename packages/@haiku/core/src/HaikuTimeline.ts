@@ -43,8 +43,6 @@ export default class HaikuTimeline extends HaikuBase {
   _maxExplicitlyDefinedTime;
   _isPlaying;
 
-  private lastUnboundedFrame = -1;
-
   constructor (component, name, descriptor, options) {
     super();
 
@@ -131,12 +129,6 @@ export default class HaikuTimeline extends HaikuBase {
 
     if (this.isPlaying()) {
       const frame = this.getUnboundedFrame();
-      if (this.lastUnboundedFrame === frame) {
-        return;
-      }
-
-      this.lastUnboundedFrame = frame;
-
       const time = Math.round(this.getTime());
 
       this.component.routeEventToHandlerAndEmit(
