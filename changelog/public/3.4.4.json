@@ -1,0 +1,13 @@
+{
+  "date": "June 6, 2018",
+  "sections": {
+    "Fixes": [
+      "Fixed bug preventing correct rendering of certain polygon and polyline shapes.",
+      "Fixed bug preventing some Haiku from playing back on the share page.",
+      "Fixed an issue preventing boolean states from being applied.",
+      "Fixed a rendering issue with certain Figma shadows.",
+      "Fixed rendering issues with certain filter effects.",
+      "Fixed various issues related to multi-component functionality."
+    ]
+  }
+}
