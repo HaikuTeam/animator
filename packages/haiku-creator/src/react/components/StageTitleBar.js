@@ -542,7 +542,7 @@ class StageTitleBar extends React.Component {
         const element = this.getProxySelectionElement()
 
         if (element && element.hasVisibleEventHandlers()) {
-          return Palette.LIGHT_BLUE
+          return Color(Palette.LIGHT_BLUE).lighten(0.37)
         }
       }
     }
