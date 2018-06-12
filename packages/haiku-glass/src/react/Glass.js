@@ -2366,10 +2366,13 @@ export class Glass extends React.Component {
     if (element.type === 'use') {
       element = element.getTranscludedElement()
     }
+    
+    const zoom = this.getActiveComponent().getArtboard().getZoom()
+    const scale = 1 / (zoom || 1)
 
     switch (element.type) {
       case 'rect':
-        overlays.push(directSelectionMana[element.type](element.id, {...element.attributes, width: element.sizeX, height: element.sizeY}, original.layoutAncestryMatrices, selectedAnchorIndices || []))
+        overlays.push(directSelectionMana[element.type](element.id, {...element.attributes, width: element.sizeX, height: element.sizeY}, original.layoutAncestryMatrices, scale, selectedAnchorIndices || []))
         break
       case 'circle':
       case 'ellipse':
@@ -2377,7 +2380,7 @@ export class Glass extends React.Component {
       case 'polyline':
       case 'path':
       case 'polygon':
-        overlays.push(directSelectionMana[element.type](element.id, element.attributes, original.layoutAncestryMatrices, selectedAnchorIndices || []))
+        overlays.push(directSelectionMana[element.type](element.id, element.attributes, original.layoutAncestryMatrices, scale, selectedAnchorIndices || []))
         break
       default:
         // ...noop.

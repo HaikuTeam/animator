@@ -50,7 +50,7 @@ const anchorPoint = (index, meta, selected, scale, {x, y}) => ({
   ]
 })
 
-export const rect = (id, {x, y, width, height, rx, ry}, layoutAncestry, selectedAnchorIndices) => ({
+export const rect = (id, {x, y, width, height, rx, ry}, layoutAncestry, controlPointScale, selectedAnchorIndices) => ({
   elementName: 'g',
   attributes: {
     id,
@@ -64,7 +64,7 @@ export const rect = (id, {x, y, width, height, rx, ry}, layoutAncestry, selected
       elementName: 'rect',
       attributes: {
         stroke: Palette.DARKER_ROCK2,
-        'stroke-width': '1px',
+        'stroke-width': `${controlPointScale}px`,
         'vector-effect': 'non-scaling-stroke',
         fill: 'none',
         x,
@@ -75,14 +75,14 @@ export const rect = (id, {x, y, width, height, rx, ry}, layoutAncestry, selected
         ry: ry || 0
       }
     },
-    anchorPoint(0, null, selectedAnchorIndices && selectedAnchorIndices.includes(0), 1, {x: Number(x), y: Number(y)}),
-    anchorPoint(1, null, selectedAnchorIndices && selectedAnchorIndices.includes(1), 1, {x: Number(x) + Number(width), y: Number(y)}),
-    anchorPoint(2, null, selectedAnchorIndices && selectedAnchorIndices.includes(2), 1, {x: Number(x), y: Number(y) + Number(height)}),
-    anchorPoint(3, null, selectedAnchorIndices && selectedAnchorIndices.includes(3), 1, {x: Number(x) + Number(width), y: Number(y) + Number(height)})
+    anchorPoint(0, null, selectedAnchorIndices && selectedAnchorIndices.includes(0), controlPointScale, {x: Number(x), y: Number(y)}),
+    anchorPoint(1, null, selectedAnchorIndices && selectedAnchorIndices.includes(1), controlPointScale, {x: Number(x) + Number(width), y: Number(y)}),
+    anchorPoint(2, null, selectedAnchorIndices && selectedAnchorIndices.includes(2), controlPointScale, {x: Number(x), y: Number(y) + Number(height)}),
+    anchorPoint(3, null, selectedAnchorIndices && selectedAnchorIndices.includes(3), controlPointScale, {x: Number(x) + Number(width), y: Number(y) + Number(height)})
   ]
 })
 
-export const circle = (id, {cx, cy, r}, layoutAncestry, selectedAnchorIndices) => ({
+export const circle = (id, {cx, cy, r}, layoutAncestry, controlPointScale, selectedAnchorIndices) => ({
   elementName: 'g',
   attributes: {
     id,
@@ -96,7 +96,7 @@ export const circle = (id, {cx, cy, r}, layoutAncestry, selectedAnchorIndices) =
       elementName: 'circle',
       attributes: {
         stroke: Palette.DARKER_ROCK2,
-        'stroke-width': '1px',
+        'stroke-width': `${controlPointScale}px`,
         'vector-effect': 'non-scaling-stroke',
         fill: 'none',
         cx,
@@ -104,11 +104,11 @@ export const circle = (id, {cx, cy, r}, layoutAncestry, selectedAnchorIndices) =
         r
       }
     },
-    anchorPoint(0, null, selectedAnchorIndices && selectedAnchorIndices.includes(0), 1, {x: Number(cx) + Number(r), y: Number(cy)})
+    anchorPoint(0, null, selectedAnchorIndices && selectedAnchorIndices.includes(0), controlPointScale, {x: Number(cx) + Number(r), y: Number(cy)})
   ]
 })
 
-export const ellipse = (id, {cx, cy, rx, ry}, layoutAncestry, selectedAnchorIndices) => ({
+export const ellipse = (id, {cx, cy, rx, ry}, layoutAncestry, controlPointScale, selectedAnchorIndices) => ({
   elementName: 'g',
   attributes: {
     id,
@@ -122,7 +122,7 @@ export const ellipse = (id, {cx, cy, rx, ry}, layoutAncestry, selectedAnchorIndi
       elementName: 'ellipse',
       attributes: {
         stroke: Palette.DARKER_ROCK2,
-        'stroke-width': '1px',
+        'stroke-width': `${controlPointScale}px`,
         'vector-effect': 'non-scaling-stroke',
         fill: 'none',
         cx,
@@ -131,14 +131,14 @@ export const ellipse = (id, {cx, cy, rx, ry}, layoutAncestry, selectedAnchorIndi
         ry
       }
     },
-    anchorPoint(0, null, selectedAnchorIndices && selectedAnchorIndices.includes(0), 1, {x: Number(cx) - Number(rx), y: Number(cy)}),
-    anchorPoint(1, null, selectedAnchorIndices && selectedAnchorIndices.includes(1), 1, {x: Number(cx) + Number(rx), y: Number(cy)}),
-    anchorPoint(2, null, selectedAnchorIndices && selectedAnchorIndices.includes(2), 1, {x: Number(cx), y: Number(cy) + Number(ry)}),
-    anchorPoint(3, null, selectedAnchorIndices && selectedAnchorIndices.includes(3), 1, {x: Number(cx), y: Number(cy) - Number(ry)})
+    anchorPoint(0, null, selectedAnchorIndices && selectedAnchorIndices.includes(0), controlPointScale, {x: Number(cx) - Number(rx), y: Number(cy)}),
+    anchorPoint(1, null, selectedAnchorIndices && selectedAnchorIndices.includes(1), controlPointScale, {x: Number(cx) + Number(rx), y: Number(cy)}),
+    anchorPoint(2, null, selectedAnchorIndices && selectedAnchorIndices.includes(2), controlPointScale, {x: Number(cx), y: Number(cy) + Number(ry)}),
+    anchorPoint(3, null, selectedAnchorIndices && selectedAnchorIndices.includes(3), controlPointScale, {x: Number(cx), y: Number(cy) - Number(ry)})
   ]
 })
 
-export const polygon = (id, {points}, layoutAncestry, selectedAnchorIndices) => ({
+export const polygon = (id, {points}, layoutAncestry, controlPointScale, selectedAnchorIndices) => ({
   elementName: 'g',
   attributes: {
     id,
@@ -152,17 +152,17 @@ export const polygon = (id, {points}, layoutAncestry, selectedAnchorIndices) => 
       elementName: 'polygon',
       attributes: {
         stroke: Palette.DARKER_ROCK2,
-        'stroke-width': '1px',
+        'stroke-width': `${controlPointScale}px`,
         'vector-effect': 'non-scaling-stroke',
         fill: 'none',
         points
       }
     },
-    ...SVGPoints.polyPointsStringToPoints(points).map((pt, i) => { return anchorPoint(i, null, selectedAnchorIndices && selectedAnchorIndices.includes(i), 1, {x: pt[0], y: pt[1]}) })
+    ...SVGPoints.polyPointsStringToPoints(points).map((pt, i) => { return anchorPoint(i, null, selectedAnchorIndices && selectedAnchorIndices.includes(i), controlPointScale, {x: pt[0], y: pt[1]}) })
   ]
 })
 
-export const path = (id, {d}, layoutAncestry, selectedAnchorIndices) => {
+export const path = (id, {d}, layoutAncestry, controlPointScale, selectedAnchorIndices) => {
   const points = SVGPoints.pathToPoints(d)
   const handles = []
   for (let i = 0; i < points.length; i++) {
@@ -185,7 +185,7 @@ export const path = (id, {d}, layoutAncestry, selectedAnchorIndices) => {
         elementName: 'path',
         attributes: {
           stroke: Palette.DARKER_ROCK2,
-          'stroke-width': '1px',
+          'stroke-width': `${controlPointScale}px`,
           'vector-effect': 'non-scaling-stroke',
           fill: 'none',
           d
@@ -204,14 +204,14 @@ export const path = (id, {d}, layoutAncestry, selectedAnchorIndices) => {
           y2: points[handle.handleIndex === 0 ? handle.pointIndex - 1 : handle.pointIndex].y
         }
       })),
-      ...handles.map((handle) => { return anchorPoint(handle.pointIndex, handle.handleIndex, false, 0.75, handle) }),
-      ...points.map((pt, i) => { return anchorPoint(i, null, selectedAnchorIndices && selectedAnchorIndices.includes(i), 1, pt) })
+      ...handles.map((handle) => { return anchorPoint(handle.pointIndex, handle.handleIndex, false, controlPointScale * 0.75, handle) }),
+      ...points.map((pt, i) => { return anchorPoint(i, null, selectedAnchorIndices && selectedAnchorIndices.includes(i), controlPointScale, pt) })
 
     ]
   }
 }
 
-export const line = (id, {x1, y1, x2, y2}, layoutAncestry, selectedAnchorIndices) => ({
+export const line = (id, {x1, y1, x2, y2}, layoutAncestry, controlPointScale, selectedAnchorIndices) => ({
   elementName: 'g',
   attributes: {
     id,
@@ -225,7 +225,7 @@ export const line = (id, {x1, y1, x2, y2}, layoutAncestry, selectedAnchorIndices
       elementName: 'line',
       attributes: {
         stroke: Palette.DARKER_ROCK2,
-        'stroke-width': '1px',
+        'stroke-width': `${controlPointScale}px`,
         'vector-effect': 'non-scaling-stroke',
         fill: 'none',
         x1,
@@ -234,12 +234,12 @@ export const line = (id, {x1, y1, x2, y2}, layoutAncestry, selectedAnchorIndices
         y2
       }
     },
-    anchorPoint(0, null, selectedAnchorIndices && selectedAnchorIndices.includes(0), 1, {x: x1, y: y1}),
-    anchorPoint(1, null, selectedAnchorIndices && selectedAnchorIndices.includes(1), 1, {x: x2, y: y2})
+    anchorPoint(0, null, selectedAnchorIndices && selectedAnchorIndices.includes(0), controlPointScale, {x: x1, y: y1}),
+    anchorPoint(1, null, selectedAnchorIndices && selectedAnchorIndices.includes(1), controlPointScale, {x: x2, y: y2})
   ]
 })
 
-export const polyline = (id, {points}, layoutAncestry, selectedAnchorIndices) => ({
+export const polyline = (id, {points}, layoutAncestry, controlPointScale, selectedAnchorIndices) => ({
   elementName: 'g',
   attributes: {
     id,
@@ -253,13 +253,13 @@ export const polyline = (id, {points}, layoutAncestry, selectedAnchorIndices) =>
       elementName: 'polyline',
       attributes: {
         stroke: Palette.DARKER_ROCK2,
-        'stroke-width': '1px',
+        'stroke-width': `${controlPointScale}px`,
         'vector-effect': 'non-scaling-stroke',
         fill: 'none',
         points
       }
     },
-    ...SVGPoints.polyPointsStringToPoints(points).map((pt, i) => { return anchorPoint(i, null, selectedAnchorIndices && selectedAnchorIndices.includes(i), 1, {x: pt[0], y: pt[1]}) })
+    ...SVGPoints.polyPointsStringToPoints(points).map((pt, i) => { return anchorPoint(i, null, selectedAnchorIndices && selectedAnchorIndices.includes(i), controlPointScale, {x: pt[0], y: pt[1]}) })
   ]
 })
 
