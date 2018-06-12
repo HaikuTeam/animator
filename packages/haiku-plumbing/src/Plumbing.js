@@ -1041,7 +1041,9 @@ export default class Plumbing extends EventEmitter {
         });
       }
 
-      return cb(authErr);
+      if (authErr) {
+        return cb(authErr);
+      }
 
       if (httpResponse.statusCode > 499) {
         const serverErr = new Error(`Auth HTTP Error: ${httpResponse.statusCode}`);
