@@ -879,8 +879,13 @@ export class Glass extends React.Component {
         'origin.y': 0.5
       },
       {from: 'glass'},
-      (err) => {
-        if (err) logger.error(err)
+      (err, mana) => {
+        if (err) {
+          logger.error(err)
+          return
+        }
+
+        this.editComponent(mana.attributes[HAIKU_SOURCE_ATTRIBUTE])
       }
     )
   }
