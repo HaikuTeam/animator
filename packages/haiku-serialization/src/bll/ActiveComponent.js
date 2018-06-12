@@ -127,7 +127,7 @@ class ActiveComponent extends BaseModel {
     this.project.addActiveComponentToRegistry(this)
 
     // Used to control how we render in an editing environment, e.g. preview mode
-    this._interactionMode = DEFAULT_INTERACTION_MODE
+    this.interactionMode = DEFAULT_INTERACTION_MODE
 
     this.project.upsertFile({
       relpath: this.getRelpath(),
@@ -615,7 +615,7 @@ class ActiveComponent extends BaseModel {
   }
 
   isPreviewModeActive () {
-    return isPreviewMode(this._interactionMode)
+    return isPreviewMode(this.interactionMode)
   }
 
   /**
@@ -623,53 +623,7 @@ class ActiveComponent extends BaseModel {
   * @description Changes the current interaction mode and flushes all cachés
   */
   setInteractionMode (interactionMode, cb) {
-    this._interactionMode = interactionMode
-
-    this.$instance.visitGuestHierarchy((instance) => {
-      instance.assignConfig({
-        interactionMode: interactionMode,
-        // Disable hot editing mode during preview mode for smooth playback.
-        hotEditingMode: !this.isPreviewModeActive()
-      })
-    })
-
-    const mainTimeline = this.$instance.getTimeline(this.getCurrentTimelineName())
-
-    if (this.isPreviewModeActive()) {
-      // In preview mode, the animation loops endlessly until the user stops it
-      mainTimeline.setRepeat(true)
-
-      // Need to reset the timelines of the component an all of its guests
-      this.$instance.visitGuestHierarchy((instance) => {
-        const otherTimeline = instance.getTimeline(this.getCurrentTimelineName())
-        otherTimeline.gotoAndPlay(0)
-        otherTimeline.unfreeze()
-      })
-    } else {
-      // Unset the endless looping that we began when entering preview mode
-      mainTimeline.setRepeat(false)
-
-      const entity = this.getCurrentTimeline()
-      if (entity) { // May be called before hydrated
-        entity.seek(entity.getCurrentFrame())
-      }
-
-      this.$instance.visitGuestHierarchy((instance) => {
-        const otherTimeline = instance.getTimeline(this.getCurrentTimelineName())
-
-        if (otherTimeline === mainTimeline) {
-          if (entity) {
-            // The main timeline gets set to whatever it had been before entering preview mode
-            otherTimeline.seek(entity.getCurrentFrame())
-          }
-        } else {
-          // Bring all sub-timelines back to 0
-          otherTimeline.seek(0)
-        }
-
-        otherTimeline.freeze()
-      })
-    }
+    this.interactionMode = interactionMode
 
     return this.reload({
       clearCacheOptions: {
@@ -678,6 +632,11 @@ class ActiveComponent extends BaseModel {
     }, null, cb)
   }
 
+  /**
+  * @method setHotEditingMode
+  * @description Changes the current hot-editing mode setting.
+  * Used by Glass when playing the component using the "play" button.
+  */
   setHotEditingMode (hotEditingMode) {
     this.$instance.assignConfig({hotEditingMode})
   }
@@ -2263,6 +2222,10 @@ class ActiveComponent extends BaseModel {
               instance.deactivate()
 
               if (this.doesManageCoreInstance(instance)) {
+                if (instance.node.__parent) {
+                  instance.node.__parent.elementName = bytecode
+                }
+
                 instance.bytecode = bytecode
               }
 
@@ -2309,7 +2272,7 @@ class ActiveComponent extends BaseModel {
       overflowX: 'visible',
       overflowY: 'visible',
       mixpanel: false, // Don't track events in mixpanel while the component is being built
-      interactionMode: this._interactionMode,
+      interactionMode: this.interactionMode,
       hotEditingMode: true // Don't clone the bytecode/template so we can mutate it in-place
     }, config))
 
@@ -4389,6 +4352,10 @@ class ActiveComponent extends BaseModel {
     return jss(this.getNormalizedBytecode())
   }
 
+  getMemorySafeCleanBytecode () {
+    return Bytecode.cloneClean(this.getReifiedBytecode())
+  }
+
   /**
    * @method dump
    * @description Use this to log a concise shorthand of this entity.
@@ -4396,7 +4363,7 @@ class ActiveComponent extends BaseModel {
   dump () {
     const relpath = this.getRelpath()
     const aid = this.getArtboard().getElementHaikuId()
-    return `${relpath}(${this.getMount().getRenderId()})@${aid}/${this._interactionMode}`
+    return `${relpath}(${this.getMount().getRenderId()})@${aid}/${this.interactionMode}`
   }
 }
 
