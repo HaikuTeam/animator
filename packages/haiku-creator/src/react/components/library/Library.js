@@ -368,6 +368,8 @@ class Library extends React.Component {
           style={STYLES.sectionHeader}>
           Library
           <FileImporter
+            websocket={this.props.websocket}
+            projectModel={this.props.projectModel}
             onImportFigmaAsset={this.importFigmaAsset}
             onAskForFigmaAuth={() => { this.askForFigmaAuth() }}
             figma={this.state.figma}
@@ -381,6 +383,7 @@ class Library extends React.Component {
             {this.state.isLoading
               ? <Loader />
               : <AssetList
+                websocket={this.props.websocket}
                 projectModel={this.props.projectModel}
                 onDragStart={this.props.onDragStart}
                 onDragEnd={this.props.onDragEnd}
