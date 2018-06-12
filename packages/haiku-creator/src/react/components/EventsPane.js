@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react';
 
 export default class EventsPane extends React.Component {
   render () {
@@ -6,6 +6,6 @@ export default class EventsPane extends React.Component {
       <div style={this.props.layout.style(this)}>
         events
       </div>
-    )
+    );
   }
 }

@@ -40,7 +40,6 @@ async.each(allPackages, (pack, done) => {
   }
 
   switch (shortname) {
-    case 'creator':
     case 'glass':
     case 'timeline':
       // Babel modules where we can skip the initial (slow) build.

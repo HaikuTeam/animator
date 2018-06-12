@@ -1,11 +1,11 @@
-export { default as AdvancedUsage } from './AdvancedUsage'
-export { default as Congratulations } from './Congratulations'
-export { default as CreateTween } from './CreateTween'
-export { default as Finish } from './Finish'
-export { default as OpenProject } from './OpenProject'
-export { default as Publish } from './Publish'
-export { default as SketchLaunch } from './SketchLaunch'
-export { default as SketchMessage } from './SketchMessage'
-export { default as TextOffscreen } from './TextOffscreen'
-export { default as TextOnscreen } from './TextOnscreen'
-export { default as Welcome } from './Welcome'
+export {default as AdvancedUsage} from './AdvancedUsage';
+export {default as Congratulations} from './Congratulations';
+export {default as CreateTween} from './CreateTween';
+export {default as Finish} from './Finish';
+export {default as OpenProject} from './OpenProject';
+export {default as Publish} from './Publish';
+export {default as SketchLaunch} from './SketchLaunch';
+export {default as SketchMessage} from './SketchMessage';
+export {default as TextOffscreen} from './TextOffscreen';
+export {default as TextOnscreen} from './TextOnscreen';
+export {default as Welcome} from './Welcome';

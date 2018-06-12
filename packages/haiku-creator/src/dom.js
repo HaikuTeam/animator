@@ -1,31 +1,37 @@
-import lodash from 'lodash'
-import React from 'react'
-import { render } from 'react-dom'
-import Websocket from 'haiku-serialization/src/ws/Websocket'
-import MockWebsocket from 'haiku-serialization/src/ws/MockWebsocket'
-import Creator from './react/Creator'
+import * as lodash from 'lodash';
+import * as React from 'react';
+import {render} from 'react-dom';
+import * as Websocket from 'haiku-serialization/src/ws/Websocket';
+import * as MockWebsocket from 'haiku-serialization/src/ws/MockWebsocket';
+import Creator from './react/Creator';
 
-var remote = require('electron').remote
+const remote = require('electron').remote;
 
-function _fixPlumbingUrl (url) { return url.replace(/^http/, 'ws') }
+function _fixPlumbingUrl (url) {
+  return url.replace(/^http/, 'ws');
+}
 
 export default function dom (modus, haiku) {
-  const listeners = {}
+  const listeners = {};
 
   const props = {
     medium: window,
     width: window.innerWidth,
     height: window.innerHeight,
-    listen: (key, fn) => { listeners[key] = fn }
-  }
+    listen: (key, fn) => {
+      listeners[key] = fn;
+    },
+  };
 
   function resizeHandler (resizeEvent) {
-    props.width = window.innerWidth
-    props.height = window.innerHeight
-    if (listeners.resize) listeners.resize(props.width, props.height)
+    props.width = window.innerWidth;
+    props.height = window.innerHeight;
+    if (listeners.resize) {
+      listeners.resize(props.width, props.height);
+    }
   }
 
-  window.addEventListener('resize', lodash.debounce(resizeHandler, 64))
+  window.addEventListener('resize', lodash.debounce(resizeHandler, 64));
 
   const websocket = haiku.plumbing && !haiku.proxy.active
     ? new Websocket(
@@ -34,23 +40,24 @@ export default function dom (modus, haiku) {
         'commander',
         'creator',
         null,
-        haiku.socket.token
+        haiku.socket.token,
       )
-    : new MockWebsocket()
+    : new MockWebsocket();
 
   websocket.on('close', () => {
-    const currentWindow = remote.getCurrentWindow()
+    const currentWindow = remote.getCurrentWindow();
     if (currentWindow) {
-      currentWindow.destroy()
+      currentWindow.destroy();
     }
-  })
+  });
 
   render(
     <Creator
       websocket={websocket}
       haiku={haiku}
       folder={haiku.folder}
-      {...props} />,
-    document.getElementById('mount')
-  )
+      {...props}
+    />,
+    document.getElementById('mount'),
+  );
 }

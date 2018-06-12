@@ -1,8 +1,8 @@
-import React from 'react'
-import Radium from 'radium'
-import Palette from 'haiku-ui-common/lib/Palette'
-import toTitleCase from '../../helpers/toTitleCase'
-import logger from 'haiku-serialization/src/utils/LoggerInstance'
+import * as React from 'react';
+import * as Radium from 'radium';
+import Palette from 'haiku-ui-common/lib/Palette';
+import toTitleCase from '../../helpers/toTitleCase';
+import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 
 const STYLES = {
   container: {
@@ -12,7 +12,7 @@ const STYLES = {
     minWidth: '80px',
     height: '100%',
     margin: '0 auto',
-    verticalAlign: 'top'
+    verticalAlign: 'top',
   },
   tab: {
     position: 'relative',
@@ -26,28 +26,28 @@ const STYLES = {
     width: '100%',
     cursor: 'default',
     ':hover': {
-      color: Palette.GRAY
+      color: Palette.GRAY,
     },
     active: {
       backgroundColor: Palette.STAGE_GRAY,
       color: Palette.FATHER_COAL,
-      cursor: 'default'
-    }
+      cursor: 'default',
+    },
   },
   label: {
     position: 'relative',
     width: '100%',
     display: 'inline-block',
     textAlign: 'center',
-    whiteSpace: 'no-wrap'
-  }
-}
+    whiteSpace: 'no-wrap',
+  },
+};
 
 class ComponentTab extends React.Component {
   constructor (props) {
-    super(props)
-    this.state = {}
-    this.changeComponent = this.changeComponent.bind(this)
+    super(props);
+    this.state = {};
+    this.changeComponent = this.changeComponent.bind(this);
   }
 
   changeComponent () {
@@ -56,21 +56,21 @@ class ComponentTab extends React.Component {
       this.props.tab.active ||
       this.props.projectModel.getCurrentActiveComponentSceneName() === this.props.tab.scenename
     ) {
-      return
+      return;
     }
 
     // Stop preview mode if it happens to be active when we switch contexts
     this.props.projectModel.setInteractionMode(0, {from: 'creator'}, (err) => {
       if (err) {
-        logger.error(err)
+        logger.error(err);
       }
 
-      this.props.projectModel.setCurrentActiveComponent(this.props.tab.scenename, { from: 'creator' }, (err) => {
-        if (err) {
-          logger.error(err)
+      this.props.projectModel.setCurrentActiveComponent(this.props.tab.scenename, {from: 'creator'}, (acErr) => {
+        if (acErr) {
+          logger.error(acErr);
         }
-      })
-    })
+      });
+    });
   }
 
   render () {
@@ -80,18 +80,18 @@ class ComponentTab extends React.Component {
         {this.props.tab && <div
           onClick={this.changeComponent}
           style={[STYLES.tab, (this.props.forceActive || this.props.tab.active) && STYLES.tab.active]}>
-          <span style={STYLES.label} className='no-select'>
+          <span style={STYLES.label} className="no-select">
             {toTitleCase(this.props.tab.scenename)}
           </span>
         </div>}
       </div>
-    )
+    );
   }
 }
 
 ComponentTab.propTypes = {
   projectModel: React.PropTypes.object.isRequired,
-  tab: React.PropTypes.object.isRequired
-}
+  tab: React.PropTypes.object.isRequired,
+};
 
-export default Radium(ComponentTab)
+export default Radium(ComponentTab);
