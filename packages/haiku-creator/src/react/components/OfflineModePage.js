@@ -1,25 +1,27 @@
-import React from 'react'
-import {enumerateAllProjectsByOrganization} from 'haiku-serialization/src/utils/HaikuHomeDir'
-import Palette from 'haiku-ui-common/lib/Palette'
-import logger from 'haiku-serialization/src/utils/LoggerInstance'
+import * as React from 'react';
+import {enumerateAllProjectsByOrganization} from 'haiku-serialization/src/utils/HaikuHomeDir';
+import Palette from 'haiku-ui-common/lib/Palette';
+import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 
 export default class OfflineModePage extends React.Component {
   constructor (props) {
-    super(props)
+    super(props);
 
     this.state = {
-      organizations: {}
-    }
+      organizations: {},
+    };
 
     return enumerateAllProjectsByOrganization((err, organizations) => {
-      if (err) return logger.error(err)
-      this.setState({organizations})
-    })
+      if (err) {
+        return logger.error(err);
+      }
+      this.setState({organizations});
+    });
   }
 
   renderProjectsList (orgName) {
-    const projects = this.state.organizations[orgName]
-    return projects.map(({ project, abspath }, index) => {
+    const projects = this.state.organizations[orgName];
+    return projects.map(({project, abspath}, index) => {
       return (
         <span
           key={abspath}>
@@ -27,28 +29,34 @@ export default class OfflineModePage extends React.Component {
             style={{
               listStyleType: 'none',
               textDecoration: 'underline',
-              cursor: 'pointer'
+              cursor: 'pointer',
             }}
             onClick={() => {
               this.props.setProjectLaunchStatus({
-                launchingProject: true
-              })
+                launchingProject: true,
+              });
 
               return this.props.launchFolder(project, abspath, (err) => {
-                if (err) return logger.error(err)
-              })
+                if (err) {
+                  return logger.error(err);
+                }
+              });
             }}>
             {project}
           </span>
           {(index < projects.length - 1) ? ', ' : ''}
         </span>
-      )
-    })
+      );
+    });
   }
 
   renderProjectsArea () {
-    if (!this.state.organizations) return <span />
-    if (Object.keys(this.state.organizations).length < 1) return <span />
+    if (!this.state.organizations) {
+      return <span />;
+    }
+    if (Object.keys(this.state.organizations).length < 1) {
+      return <span />;
+    }
     return (
       <div>
         {Object.keys(this.state.organizations).map((orgName) => {
@@ -58,16 +66,16 @@ export default class OfflineModePage extends React.Component {
               <p style={{
                 maxWidth: 600,
                 margin: '0 auto 20px',
-                fontSize: 16
+                fontSize: 16,
               }}>
                 <span><strong>{orgName}</strong>'s projects: </span>
                 {this.renderProjectsList(orgName)}
               </p>
             </div>
-          )
+          );
         })}
       </div>
-    )
+    );
   }
 
   render () {
@@ -77,13 +85,13 @@ export default class OfflineModePage extends React.Component {
           width: '100%',
           height: '100%',
           backgroundColor: Palette.GRAY,
-          paddingTop: 100
+          paddingTop: 100,
         }}
-        className='no-select'
-        id='offline-mode-page'>
+        className="no-select"
+        id="offline-mode-page">
         <div
           style={{
-            textAlign: 'center'
+            textAlign: 'center',
           }}>
           <p style={{fontSize: 24}}>
             It seems your computer is not<br />
@@ -98,11 +106,11 @@ export default class OfflineModePage extends React.Component {
           {this.renderProjectsArea()}
         </div>
       </div>
-    )
+    );
   }
 }
 
 OfflineModePage.propTypes = {
   launchFolder: React.PropTypes.func.isRequired,
-  setProjectLaunchStatus: React.PropTypes.func.isRequired
-}
+  setProjectLaunchStatus: React.PropTypes.func.isRequired,
+};

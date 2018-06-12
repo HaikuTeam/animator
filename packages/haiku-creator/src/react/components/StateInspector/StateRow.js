@@ -1,10 +1,10 @@
-import React from 'react'
-import Radium from 'radium'
-import onClickOutside from 'react-onclickoutside'
-import Color from 'color'
-import State from 'haiku-serialization/src/bll/State'
-import Palette from 'haiku-ui-common/lib/Palette'
-import { StackMenuSVG } from 'haiku-ui-common/lib/react/OtherIcons'
+import * as React from 'react';
+import * as Radium from 'radium';
+import onClickOutside from 'react-onclickoutside';
+import * as Color from 'color';
+import * as State from 'haiku-serialization/src/bll/State';
+import Palette from 'haiku-ui-common/lib/Palette';
+import {StackMenuSVG} from 'haiku-ui-common/lib/react/OtherIcons';
 
 const STYLES = {
   stateWrapper: {
@@ -12,18 +12,18 @@ const STYLES = {
     display: 'flex',
     alignItems: 'flex-start',
     ':hover': {
-      backgroundColor: Color(Palette.GRAY).darken(0.1)
-    }
+      backgroundColor: Color(Palette.GRAY).darken(0.1),
+    },
   },
   col: {
     display: 'inline-block',
-    width: '50%'
+    width: '50%',
   },
   col1: {
-    maxWidth: 145
+    maxWidth: 145,
   },
   col2: {
-    position: 'relative'
+    position: 'relative',
   },
   stateMenu: {
     width: 10,
@@ -35,19 +35,19 @@ const STYLES = {
     justifyContent: 'center',
     height: '100%',
     cursor: 'pointer',
-    ':hover': {}
+    ':hover': {},
   },
   pill: {
     padding: '2px 5px',
     borderRadius: 3,
     maxHeight: 21,
-    cursor: 'pointer'
+    cursor: 'pointer',
   },
   pillName: {
     backgroundColor: Palette.BLUE,
     float: 'right',
     marginRight: 4,
-    color: Palette.ROCK
+    color: Palette.ROCK,
   },
   pillValue: {
     backgroundColor: Color(Palette.GRAY).lighten(0.17),
@@ -55,7 +55,7 @@ const STYLES = {
     float: 'left',
     marginLeft: 4,
     maxWidth: 'calc(100% - 12px)',
-    minHeight: 22
+    minHeight: 22,
   },
   input: {
     backgroundColor: Palette.COAL,
@@ -69,22 +69,22 @@ const STYLES = {
     fontFamily: 'Fira Sans',
     border: '1px solid transparent',
     ':focus': {
-      border: '1px solid ' + Palette.LIGHTEST_PINK
-    }
+      border: '1px solid ' + Palette.LIGHTEST_PINK,
+    },
   },
   input2: {
     width: 'calc(100% - 8px)',
-    marginLeft: 4
-  }
-}
+    marginLeft: 4,
+  },
+};
 
 function isBlank (str) {
-  return /^\s*$/.test(str)
+  return /^\s*$/.test(str);
 }
 
 class StateRow extends React.Component {
   constructor (props) {
-    super(props)
+    super(props);
 
     this.state = {
       isEditing: false,
@@ -93,8 +93,8 @@ class StateRow extends React.Component {
       name: null,
       desc: null,
       valuePreEdit: null,
-      didEscape: false
-    }
+      didEscape: false,
+    };
   }
 
   componentDidMount () {
@@ -102,8 +102,8 @@ class StateRow extends React.Component {
       originalName: this.props.stateName,
       name: this.props.stateName,
       desc: this.props.stateDescriptor,
-      valuePreEdit: this.props.stateDescriptor.value
-    })
+      valuePreEdit: this.props.stateDescriptor.value,
+    });
   }
 
   componentWillReceiveProps (nextProps) {
@@ -112,55 +112,55 @@ class StateRow extends React.Component {
         originalName: nextProps.stateName,
         name: nextProps.stateName,
         desc: nextProps.stateDescriptor,
-        valuePreEdit: nextProps.stateDescriptor.value
-      })
+        valuePreEdit: nextProps.stateDescriptor.value,
+      });
     }
   }
 
   handleTabSwitch (event, side) {
     if (event.keyCode === 9) {
-      event.preventDefault()
+      event.preventDefault();
 
       if (side === 'name') {
-        this.valueInput.focus()
+        this.valueInput.focus();
       }
 
       if (side === 'value') {
-        this.nameInput.focus()
+        this.nameInput.focus();
       }
     }
   }
 
   handleChange (event, side) {
     if (event.keyCode === 27) { // esc key
-      return this.setState({isEditing: false, didEscape: true})
+      return this.setState({isEditing: false, didEscape: true});
     }
 
-    let desc = this.state.desc
+    let desc = this.state.desc;
 
     // Only update the inputs in the UI if the user didn't press Return
     // Here we're only updating the view state, we haven't committed anything yet
     if (event.key !== 'Enter') {
       if (side === 'name') {
-        let trimmedName = event.target.value.trim()
-        this.setState({ name: trimmedName })
+        const trimmedName = event.target.value.trim();
+        this.setState({name: trimmedName});
       } else { // Update the value
-        desc.value = event.target.value.trim()
-        this.setState({desc})
+        desc.value = event.target.value.trim();
+        this.setState({desc});
       }
-      return
+      return;
     }
 
     // If we got here, Enter was pressed, meaning we want to commit the state value/name
-    desc = State.autoCastToType(desc)
+    desc = State.autoCastToType(desc);
 
     // If the name field is blank, delete the state (or just remove it if it is new)
     if (isBlank(this.state.name)) {
       if (this.props.isNew) {
-        return this.props.closeNewStateForm()
-      } else {
-        return this.props.deleteStateValue(this.state.originalName, () => {})
+        return this.props.closeNewStateForm();
       }
+
+      return this.props.deleteStateValue(this.state.originalName, () => {});
     }
 
     // If made it this far, at least one of the fields is NOT blank, and we can attempt a submit
@@ -169,8 +169,8 @@ class StateRow extends React.Component {
         return this.props.createNotice({
           type: 'warning',
           title: 'Sorry',
-          message: 'State names cannot be blank'
-        })
+          message: 'State names cannot be blank',
+        });
       }
 
       // For now, only support US ASCII chars that would be valid as a JavaScript identifier
@@ -178,8 +178,8 @@ class StateRow extends React.Component {
         return this.props.createNotice({
           type: 'warning',
           title: 'Sorry',
-          message: 'State names cannot have spaces or special characters, and must begin with a letter'
-        })
+          message: 'State names cannot have spaces or special characters, and must begin with a letter',
+        });
       }
 
       if (isBlank(desc.value)) {
@@ -187,78 +187,92 @@ class StateRow extends React.Component {
       }
 
       this.setState({desc, name: this.state.name}, () => {
-        this.submitChanges()
-        if (this.props.isNew) this.props.closeNewStateForm()
-        return this.setState({isEditing: false})
-      })
+        this.submitChanges();
+        if (this.props.isNew) {
+          this.props.closeNewStateForm();
+        }
+        return this.setState({isEditing: false});
+      });
     } else { // neither were blank
       this.setState({desc, name: this.state.name}, () => {
-        this.submitChanges()
-        if (this.props.isNew) this.props.closeNewStateForm()
-        this.setState({isEditing: false})
-      })
+        this.submitChanges();
+        if (this.props.isNew) {
+          this.props.closeNewStateForm();
+        }
+        this.setState({isEditing: false});
+      });
     }
   }
 
   submitChanges () {
-    const didValueChange = this.state.desc.value !== this.state.valuePreEdit
-    const didNameChange = this.state.name !== this.props.stateName
-    const voidFunc = () => {}
+    const didValueChange = this.state.desc.value !== this.state.valuePreEdit;
+    const didNameChange = this.state.name !== this.props.stateName;
+    const voidFunc = () => {};
 
     if (didNameChange && didValueChange) {
       return this.props.deleteStateValue(this.props.stateName, () => {
-        return this.props.upsertStateValue(this.state.name, this.state.desc, voidFunc)
-      })
-    } else if (didNameChange) {
+        return this.props.upsertStateValue(this.state.name, this.state.desc, voidFunc);
+      });
+    }
+
+    if (didNameChange) {
       return this.props.deleteStateValue(this.props.stateName, () => {
-        return this.props.upsertStateValue(this.state.name, this.state.desc, voidFunc)
-      })
-    } else if (didValueChange) {
-      return this.props.upsertStateValue(this.state.name, this.state.desc, voidFunc)
+        return this.props.upsertStateValue(this.state.name, this.state.desc, voidFunc);
+      });
+    }
+
+    if (didValueChange) {
+      return this.props.upsertStateValue(this.state.name, this.state.desc, voidFunc);
     }
   }
 
   handleClickOutside () {
-    if (this.props.isNew) return this.props.closeNewStateForm()
-    this.submitChanges()
+    if (this.props.isNew) {
+      return this.props.closeNewStateForm();
+    }
+    this.submitChanges();
   }
 
   getEditableStateValue () {
     if (this.state.desc) {
-      return State.autoStringify(this.state.desc)
-    } else if (this.props.stateDescriptor) {
-      return State.autoStringify(this.props.stateDescriptor)
-    } else {
-      return ''
+      return State.autoStringify(this.state.desc);
     }
+
+    if (this.props.stateDescriptor) {
+      return State.autoStringify(this.props.stateDescriptor);
+    }
+
+    return '';
   }
 
   getDisplayableStateValue () {
     if (this.state.valuePreEdit) {
-      return State.autoStringify({ value: this.state.valuePreEdit })
-    } else if (this.props.stateDescriptor) {
-      return State.autoStringify(this.props.stateDescriptor)
-    } else {
-      return ''
+      return State.autoStringify({value: this.state.valuePreEdit});
     }
+
+    if (this.props.stateDescriptor) {
+      return State.autoStringify(this.props.stateDescriptor);
+    }
+
+    return '';
   }
 
   isValidColor (color) {
-    const dummyElement = document.createElement('span')
-    dummyElement.style.backgroundColor = color
+    const dummyElement = document.createElement('span');
+    dummyElement.style.backgroundColor = color;
 
-    return dummyElement.style.backgroundColor !== ''
+    return dummyElement.style.backgroundColor !== '';
   }
 
   generateColorCap () {
-    const maybeColor = this.getDisplayableStateValue()
+    const maybeColor = this.getDisplayableStateValue();
 
     if (this.isValidColor(maybeColor)) {
       return {
         borderRightWidth: 4,
         borderRightColor: maybeColor,
-        borderRightStyle: 'solid'
-      }
+        borderRightStyle: 'solid',
+      };
     }
   }
 
@@ -287,7 +301,7 @@ class StateRow extends React.Component {
               <span key={`${this.props.stateName}-menu`}
                 style={[
                   STYLES.stateMenu,
-                  (!this.state.isHovered || true) && {display: 'none'} // TODO: remove this '|| true' to show stack menu on hover and create popover
+                  (!this.state.isHovered || true) && {display: 'none'}, // TODO: remove this '|| true' to show stack menu on hover and create popover
                 ]}>
                 <StackMenuSVG color={Radium.getState(this.state, `${this.props.stateName}-menu`, ':hover') ? Palette.ROCK : Palette.ROCK_MUTED} />
               </span>
@@ -296,27 +310,31 @@ class StateRow extends React.Component {
           : <div style={STYLES.stateWrapper}>
             <div style={[STYLES.col, STYLES.col2]}>
               <input key={`${this.props.stateName}-name`}
-                ref={(nameInput) => { this.nameInput = nameInput }}
+                ref={(nameInput) => {
+                  this.nameInput = nameInput;
+                }}
                 style={[STYLES.pill, STYLES.input]}
                 defaultValue={this.props.stateName}
-                placeholder='STATE NAME'
+                placeholder="STATE NAME"
                 onKeyUp={(event) => this.handleChange(event, 'name')}
                 onKeyDown={(event) => this.handleTabSwitch(event, 'name')}
                 autoFocus={this.state.editingTarget === 'name'} />
             </div>
             <div style={[STYLES.col, STYLES.col2]}>
               <input key={`${this.props.stateName}-value`}
-                ref={(valueInput) => { this.valueInput = valueInput }}
+                ref={(valueInput) => {
+                  this.valueInput = valueInput;
+                }}
                 style={[STYLES.pill, STYLES.input, STYLES.input2]}
                 defaultValue={this.getEditableStateValue()}
-                placeholder='STATE VALUE'
+                placeholder="STATE VALUE"
                 onKeyUp={(event) => this.handleChange(event, 'value')}
                 onKeyDown={(event) => this.handleTabSwitch(event, 'value')}
                 autoFocus={this.state.editingTarget === 'value'} />
               <span key={`${this.props.stateName}-menu`}
                 style={[
                   STYLES.stateMenu,
-                  !Radium.getState(this.state, `${this.props.stateName}-state`, ':hover') && {display: 'none'}
+                  !Radium.getState(this.state, `${this.props.stateName}-state`, ':hover') && {display: 'none'},
                 ]}>
                 <StackMenuSVG color={Radium.getState(this.state, `${this.props.stateName}-menu`, ':hover') ? Palette.ROCK : Palette.ROCK_MUTED} />
               </span>
@@ -324,8 +342,8 @@ class StateRow extends React.Component {
           </div>
         }
       </form>
-    )
+    );
   }
 }
 
-export default onClickOutside(Radium(StateRow))
+export default onClickOutside(Radium(StateRow));

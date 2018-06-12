@@ -1,31 +1,31 @@
-import EventEmitter from 'events'
-import http from 'http'
-import https from 'https'
-import path from 'path'
-import { parse } from 'url'
-import { inherits } from 'util'
+import * as EventEmitter from 'events';
+import * as http from 'http';
+import * as https from 'https';
+import * as path from 'path';
+import {parse} from 'url';
+import {inherits} from 'util';
 
-import { BrowserWindow, app, ipcMain, systemPreferences, session } from 'electron'
-import ElectronProxyAgent from 'electron-proxy-agent'
-import qs from 'qs'
+import {BrowserWindow, app, ipcMain, systemPreferences, session} from 'electron';
+import * as ElectronProxyAgent from 'electron-proxy-agent';
+import * as qs from 'qs';
 
-import { isProxied, ProxyType } from 'haiku-common/lib/proxies'
-import TopMenu from 'haiku-common/lib/electron/TopMenu'
-import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
-import logger from 'haiku-serialization/src/utils/LoggerInstance'
-import {isMac} from 'haiku-common/lib/environments/os'
+import {isProxied, ProxyType} from 'haiku-common/lib/proxies';
+import TopMenu from 'haiku-common/lib/electron/TopMenu';
+import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
+import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
+import {isMac} from 'haiku-common/lib/environments/os';
 
 if (!app) {
-  throw new Error('You can only run electron.js from an electron process')
+  throw new Error('You can only run electron.js from an electron process');
 }
 
-app.setName('Haiku')
-app.setAsDefaultProtocolClient('haiku')
+app.setName('Haiku');
+app.setAsDefaultProtocolClient('haiku');
 
 // Disable "Start Dictation" and "Emoji & Symbols" menu items on MAC
 if (isMac()) {
-  systemPreferences.setUserDefault('NSDisabledDictationMenuItem', 'boolean', true)
-  systemPreferences.setUserDefault('NSDisabledCharacterPaletteMenuItem', 'boolean', true)
+  systemPreferences.setUserDefault('NSDisabledDictationMenuItem', 'boolean', true);
+  systemPreferences.setUserDefault('NSDisabledCharacterPaletteMenuItem', 'boolean', true);
 }
 
 app.on('login', (event, webContents, request, authInfo, authenticate) => {
@@ -35,134 +35,139 @@ app.on('login', (event, webContents, request, authInfo, authenticate) => {
   //   - Invoking the callback like `authenticate(username, password)` should allow the authenticated-proxied request
   //     through.
   // For now, log the authorization info so we can at least see what's going on.
-  logger.warn('[unexpected proxy interference]', authInfo)
-})
+  logger.warn('[unexpected proxy interference]', authInfo);
+});
 
 // See bottom
 function CreatorElectron () {
-  EventEmitter.apply(this)
+  EventEmitter.apply(this);
 }
-inherits(CreatorElectron, EventEmitter)
-const creator = new CreatorElectron()
+inherits(CreatorElectron, EventEmitter);
+const creator = new CreatorElectron();
 
-const appUrl = 'file://' + path.join(__dirname, '..', 'index.html')
+const appUrl = 'file://' + path.join(__dirname, '..', 'index.html');
 
 // Plumbing starts up this process, and it uses HAIKU_ENV to forward to us data about
 // how it has been set up, e.g. what ports it is using for websocket server, envoy, etc.
 // This is sent into the DOM part of the app at did-finish load; see below.
 const haiku = global.process.env.HAIKU_ENV
   ? JSON.parse(global.process.env.HAIKU_ENV)
-  : {}
+  : {};
 
 if (!haiku.folder) {
-  haiku.folder = global.process.env.HAIKU_PROJECT_FOLDER
+  haiku.folder = global.process.env.HAIKU_PROJECT_FOLDER;
 }
 
-let browserWindow = null
+let browserWindow = null;
 
 app.on('window-all-closed', () => {
-  app.quit()
-})
+  app.quit();
+});
 
-if (!haiku.plumbing) haiku.plumbing = {}
+if (!haiku.plumbing) {
+  haiku.plumbing = {};
+}
 
 if (!haiku.plumbing.url) {
   if (global.process.env.NODE_ENV !== 'test' && !global.process.env.HAIKU_PLUMBING_PORT) {
-    throw new Error(`Oops! You must define a HAIKU_PLUMBING_PORT env var!`)
+    throw new Error(`Oops! You must define a HAIKU_PLUMBING_PORT env var!`);
   }
 
-  haiku.plumbing.url = `http://${global.process.env.HAIKU_PLUMBING_HOST || '0.0.0.0'}:${global.process.env.HAIKU_PLUMBING_PORT}/?token=${process.env.HAIKU_WS_SECURITY_TOKEN}`
+  // tslint:disable-next-line:max-line-length
+  haiku.plumbing.url = `http://${global.process.env.HAIKU_PLUMBING_HOST || '0.0.0.0'}:${global.process.env.HAIKU_PLUMBING_PORT}/?token=${process.env.HAIKU_WS_SECURITY_TOKEN}`;
 }
 
 const handleUrl = (url) => {
   if (!browserWindow) {
-    logger.warn(`[creator] unable to handle custom protocol URL ${url}; browserWindow not ready`)
-    return
+    logger.warn(`[creator] unable to handle custom protocol URL ${url}; browserWindow not ready`);
+    return;
   }
-  logger.info(`[creator] handling custom protocol URL ${url}`)
-  const parsedUrl = parse(url)
-  browserWindow.webContents.send(`open-url:${parsedUrl.host}`, parsedUrl.pathname, qs.parse(parsedUrl.query))
-}
+  logger.info(`[creator] handling custom protocol URL ${url}`);
+  const parsedUrl = parse(url);
+  browserWindow.webContents.send(`open-url:${parsedUrl.host}`, parsedUrl.pathname, qs.parse(parsedUrl.query));
+};
 
 function createWindow () {
-  mixpanel.haikuTrack('app:initialize')
+  mixpanel.haikuTrack('app:initialize');
 
   browserWindow = new BrowserWindow({
     title: 'Haiku',
     show: false, // Don't show the window until we are ready-to-show (see below)
-    titleBarStyle: 'hiddenInset'
-  })
+    titleBarStyle: 'hiddenInset',
+  });
 
-  const topmenu = new TopMenu(browserWindow.webContents)
+  const topmenu = new TopMenu(browserWindow.webContents);
 
   const topmenuOptions = {
     projectList: [],
     isSaving: false,
     isProjectOpen: false,
-    subComponents: []
-  }
+    subComponents: [],
+  };
 
-  topmenu.create(topmenuOptions)
+  topmenu.create(topmenuOptions);
 
   ipcMain.on('topmenu:update', (ipcEvent, nextTopmenuOptions) => {
-    topmenu.update(nextTopmenuOptions)
-  })
+    topmenu.update(nextTopmenuOptions);
+  });
 
-  browserWindow.setTitle('Haiku')
-  browserWindow.maximize()
-  browserWindow.loadURL(appUrl)
+  browserWindow.setTitle('Haiku');
+  browserWindow.maximize();
+  browserWindow.loadURL(appUrl);
 
   if (process.env.DEV === '1') {
-    browserWindow.openDevTools()
+    browserWindow.openDevTools();
 
-    const { default: installExtension, REACT_DEVELOPER_TOOLS } = require('electron-devtools-installer')
+    const {default: installExtension, REACT_DEVELOPER_TOOLS} = require('electron-devtools-installer');
     installExtension(REACT_DEVELOPER_TOOLS)
         .then((name) => console.log(`Added Extension:  ${name}`))
-        .catch((err) => console.log('An error occurred: ', err))
+        .catch((err) => console.log('An error occurred: ', err));
   }
 
   // Sending our haiku configuration into the view so it can correctly set up
   // its own websocket connections to our plumbing server, etc.
   browserWindow.webContents.on('did-finish-load', () => {
-    const ses = session.fromPartition('persist:name')
-    https.globalAgent = http.globalAgent = new ElectronProxyAgent(session.defaultSession)
+    const ses = session.fromPartition('persist:name');
+    https.globalAgent = http.globalAgent = new ElectronProxyAgent(session.defaultSession);
 
     ses.resolveProxy(haiku.plumbing.url, (proxy) => {
       haiku.proxy = {
         // Proxy URL will come through in PAC syntax, e.g. `PROXY secure.megacorp.com:3128`
         // @see {@link https://en.wikipedia.org/wiki/Proxy_auto-config}
         url: proxy.replace(`${ProxyType.Proxied} `, ''),
-        active: isProxied(proxy)
-      }
+        active: isProxied(proxy),
+      };
 
-      browserWindow.webContents.send('haiku', haiku)
+      browserWindow.webContents.send('haiku', haiku);
       if (global.process.env.HAIKU_INITIAL_URL) {
-        handleUrl(global.process.env.HAIKU_INITIAL_URL)
+        handleUrl(global.process.env.HAIKU_INITIAL_URL);
       }
-    })
-  })
+    });
+  });
 
-  browserWindow.on('closed', () => { browserWindow = null })
+  browserWindow.on('closed', () => {
+    browserWindow = null;
+  });
 
   browserWindow.on('ready-to-show', () => {
-    browserWindow.show()
-  })
+    browserWindow.show();
+  });
 }
 
 // Transmit haiku://foo/bar?baz=bat as the "open-url:foo" event with arguments [_, "/bar", {"baz": "bat"}]
 app.on('open-url', (event, url) => {
-  event.preventDefault()
-  handleUrl(url)
-})
+  event.preventDefault();
+  handleUrl(url);
+});
 
 if (app.isReady()) {
-  createWindow()
+  createWindow();
 } else {
-  app.on('ready', createWindow)
+  app.on('ready', createWindow);
 }
 
 // Hacky: When plumbing launches inside an Electron process it expects an EventEmitter-like
 // object as the export, so we expose this here even though it doesn't do much
 module.exports = {
-  default: creator
-}
+  default: creator,
+};

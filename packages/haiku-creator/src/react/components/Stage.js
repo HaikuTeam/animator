@@ -1,12 +1,12 @@
-import React from 'react'
-import qs from 'qs'
-import assign from 'lodash.assign'
-import path from 'path'
-import StageTitleBar from './StageTitleBar'
-import ComponentMenu from './ComponentMenu/ComponentMenu'
-import Palette from 'haiku-ui-common/lib/Palette'
-import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
-import { TOUR_CHANNEL } from 'haiku-sdk-creator/lib/tour'
+import * as React from 'react';
+import * as qs from 'qs';
+import * as assign from 'lodash.assign';
+import * as path from 'path';
+import StageTitleBar from './StageTitleBar';
+import ComponentMenu from './ComponentMenu/ComponentMenu';
+import Palette from 'haiku-ui-common/lib/Palette';
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
+import {TOUR_CHANNEL} from 'haiku-sdk-creator/lib/tour';
 
 const STAGE_BOX_STYLE = {
   overflow: 'hidden',
@@ -14,49 +14,49 @@ const STAGE_BOX_STYLE = {
   margin: 0,
   width: '100%',
   height: '100%',
-  outline: 'none'
-}
+  outline: 'none',
+};
 
 // This may not be precisely correct; please test the UI if you enable this experiment
 const STAGE_MOUNT_HEIGHT_OFFSET = (experimentIsEnabled(Experiment.MultiComponentFeatures))
   ? 68
-  : 38
+  : 38;
 
 export default class Stage extends React.Component {
   constructor (props) {
-    super(props)
-    this.webview = null
-    this.onRequestWebviewCoordinates = this.onRequestWebviewCoordinates.bind(this)
+    super(props);
+    this.webview = null;
+    this.onRequestWebviewCoordinates = this.onRequestWebviewCoordinates.bind(this);
   }
 
   componentDidMount () {
-    this.injectWebview()
+    this.injectWebview();
 
-    const tourChannel = this.props.envoyClient.get(TOUR_CHANNEL)
+    const tourChannel = this.props.envoyClient.get(TOUR_CHANNEL);
 
     if (!this.props.envoyClient.isInMockMode()) {
       tourChannel.then((client) => {
-        this.tourClient = client
-        this.tourClient.on('tour:requestWebviewCoordinates', this.onRequestWebviewCoordinates)
-      })
+        this.tourClient = client;
+        this.tourClient.on('tour:requestWebviewCoordinates', this.onRequestWebviewCoordinates);
+      });
     }
   }
 
   componentWillUnmount () {
     if (this.tourClient) {
-      this.tourClient.off('tour:requestWebviewCoordinates', this.onRequestWebviewCoordinates)
+      this.tourClient.off('tour:requestWebviewCoordinates', this.onRequestWebviewCoordinates);
     }
   }
 
   onRequestWebviewCoordinates () {
-    let { top, left } = this.webview.getBoundingClientRect()
+    const {top, left} = this.webview.getBoundingClientRect();
     if (this.tourClient) {
-      this.tourClient.receiveWebviewCoordinates('glass', { top, left })
+      this.tourClient.receiveWebviewCoordinates('glass', {top, left});
     }
   }
 
   injectWebview () {
-    this.webview = document.createElement('webview')
+    this.webview = document.createElement('webview');
 
     const query = qs.stringify(assign({}, this.props.haiku, {
       plumbing: this.props.haiku.plumbing.url,
@@ -66,62 +66,64 @@ export default class Stage extends React.Component {
       envoy: {
         host: this.props.envoyClient.getOption('host'),
         port: this.props.envoyClient.getOption('port'),
-        token: this.props.envoyClient.getOption('token')
-      }
-    }))
+        token: this.props.envoyClient.getOption('token'),
+      },
+    }));
 
-    const url = `file://${require.resolve(path.join('haiku-glass', 'index.html'))}?${query}`
+    const url = `file://${require.resolve(path.join('haiku-glass', 'index.html'))}?${query}`;
 
-    this.webview.setAttribute('src', url)
-    this.webview.setAttribute('id', 'glass-webview')
-    this.webview.setAttribute('nodeintegration', true)
-    this.webview.style.width = '100%'
-    this.webview.style.height = '100%'
+    this.webview.setAttribute('src', url);
+    this.webview.setAttribute('id', 'glass-webview');
+    this.webview.setAttribute('nodeintegration', true);
+    this.webview.style.width = '100%';
+    this.webview.style.height = '100%';
 
     this.webview.addEventListener('console-message', (event) => {
       switch (event.level) {
         case 0:
           if (event.message.slice(0, 8) === '[notice]') {
-            var msg = event.message.replace('[notice]', '').trim()
-            var notice = this.props.createNotice({ type: 'info', title: 'Notice', message: msg })
+            const msg = event.message.replace('[notice]', '').trim();
+            const notice = this.props.createNotice({type: 'info', title: 'Notice', message: msg});
             window.setTimeout(() => {
-              this.props.removeNotice(undefined, notice.id)
-            }, 2500)
+              this.props.removeNotice(undefined, notice.id);
+            }, 2500);
           }
-          break
+          break;
 
         case 2:
           this.props.createNotice({
             type: 'error',
             title: 'Error',
-            message: event.message
-          })
+            message: event.message,
+          });
 
-          break
+          break;
       }
-    })
+    });
 
     this.webview.addEventListener('dom-ready', () => {
       if (process.env.DEV === '1') {
-        this.webview.openDevTools()
+        this.webview.openDevTools();
       }
-    })
+    });
 
-    while (this.mount.firstChild) this.mount.removeChild(this.mount.firstChild)
-    this.mount.appendChild(this.webview)
+    while (this.mount.firstChild) {
+      this.mount.removeChild(this.mount.firstChild);
+    }
+    this.mount.appendChild(this.webview);
   }
 
   handleDrop (asset, clientX, clientY) {
     const ac = (
       this.props.projectModel &&
       this.props.projectModel.getCurrentActiveComponent()
-    )
+    );
 
     if (!ac) {
-      return
+      return;
     }
 
-    const stageRect = this.mount.getBoundingClientRect()
+    const stageRect = this.mount.getBoundingClientRect();
 
     if (
       clientX > stageRect.left &&
@@ -132,19 +134,19 @@ export default class Stage extends React.Component {
       // Coordinates with respect to 0,0 of the viewport
       const coords = {
         x: clientX - stageRect.left,
-        y: clientY - stageRect.top
-      }
+        y: clientY - stageRect.top,
+      };
 
       // Instantiatees are translated with respect to the coordinate system of
       // the artboard, and the stage may have been zoomed/panned
       if (this.props.artboardDimensions) {
-        const {zoom, rect} = this.props.artboardDimensions
+        const {zoom, rect} = this.props.artboardDimensions;
 
-        coords.x -= rect.left
-        coords.y -= rect.top
+        coords.x -= rect.left;
+        coords.y -= rect.top;
 
-        coords.x /= zoom
-        coords.y /= zoom
+        coords.x /= zoom;
+        coords.y /= zoom;
       }
 
       // Glass initiates the instantiation to avoid latency on the drag&drop event
@@ -154,22 +156,22 @@ export default class Stage extends React.Component {
         folder: this.props.projectModel.getFolder(),
         name: 'instantiate-component',
         relpath: asset.getLocalizedRelpath(),
-        coords
-      })
+        coords,
+      });
     }
   }
 
   render () {
     const interactionModeColor = this.props.isPreviewMode
       ? Palette.LIGHTEST_PINK
-      : Palette.STAGE_GRAY
+      : Palette.STAGE_GRAY;
 
     return (
-      <div className='layout-box'
+      <div className="layout-box"
         onMouseOver={() => this.webview.focus()}
         onMouseOut={() => this.webview.blur()}>
         <div
-          className='stage-box'
+          className="stage-box"
           style={STAGE_BOX_STYLE}>
           <StageTitleBar
             folder={this.props.folder}
@@ -192,12 +194,14 @@ export default class Stage extends React.Component {
           />
           {(experimentIsEnabled(Experiment.MultiComponentFeatures))
             ? <ComponentMenu
-              ref='component-menu'
+              ref="component-menu"
               projectModel={this.props.projectModel} />
             : ''}
           <div
-            id='stage-mount'
-            ref={(element) => { this.mount = element }}
+            id="stage-mount"
+            ref={(element) => {
+              this.mount = element;
+            }}
             style={{
               position: 'absolute',
               overflow: 'auto',
@@ -206,11 +210,11 @@ export default class Stage extends React.Component {
               top: STAGE_MOUNT_HEIGHT_OFFSET,
               left: 3,
               backgroundColor: Palette.STAGE_GRAY,
-              outline: '2px solid ' + interactionModeColor
+              outline: '2px solid ' + interactionModeColor,
             }} />
         </div>
       </div>
-    )
+    );
   }
 }
 
@@ -226,5 +230,5 @@ Stage.propTypes = {
   organizationName: React.PropTypes.string,
   authToken: React.PropTypes.string,
   username: React.PropTypes.string,
-  password: React.PropTypes.string
-}
+  password: React.PropTypes.string,
+};

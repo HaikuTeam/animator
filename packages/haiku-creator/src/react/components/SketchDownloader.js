@@ -1,77 +1,77 @@
-import React from 'react'
-import {download, createSketchDialogFile} from 'haiku-serialization/src/utils/HaikuHomeDir'
-import {DOWNLOAD_STYLES as STYLES} from '../styles/downloadShared'
-import logger from 'haiku-serialization/src/utils/LoggerInstance'
+import * as React from 'react';
+import {download, createSketchDialogFile} from 'haiku-serialization/src/utils/HaikuHomeDir';
+import {DOWNLOAD_STYLES as STYLES} from '../styles/downloadShared';
+import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 
-let statuses = {
+const statuses = {
   PROMPT_USER: 'PromptUser',
   DOWNLOADING: 'Downloading',
-  DOWNLOAD_FAILED: 'DownloadFailed'
-}
+  DOWNLOAD_FAILED: 'DownloadFailed',
+};
 
 class SketchDownloader extends React.Component {
   constructor (props) {
-    super(props)
+    super(props);
 
-    this.hide = this.hide.bind(this)
-    this.download = this.download.bind(this)
-    this.updateProgress = this.updateProgress.bind(this)
-    this.onFail = this.onFail.bind(this)
+    this.hide = this.hide.bind(this);
+    this.download = this.download.bind(this);
+    this.updateProgress = this.updateProgress.bind(this);
+    this.onFail = this.onFail.bind(this);
 
     this.state = {
       status: statuses.PROMPT_USER,
       progress: 0,
-      shouldCancel: false
-    }
+      shouldCancel: false,
+    };
   }
 
   componentWillReceiveProps () {
-    this.setState({status: statuses.PROMPT_USER})
+    this.setState({status: statuses.PROMPT_USER});
   }
 
   download (url) {
-    this.setState({status: statuses.DOWNLOADING})
-    this.dismiss()
+    this.setState({status: statuses.DOWNLOADING});
+    this.dismiss();
 
     download(this.updateProgress, () => this.state.shouldCancel)
       .then(() => {
-        this.props.onDownloadComplete()
+        this.props.onDownloadComplete();
       })
-      .catch(error => {
-        error.message === 'Download cancelled' ? this.hide() : this.onFail(error)
-      })
+      .catch((error) => {
+        error.message === 'Download cancelled' ? this.hide() : this.onFail(error);
+      });
   }
 
   updateProgress (progress) {
-    this.setState({progress})
+    this.setState({progress});
   }
 
   onFail (error) {
     this.setState({
       status: statuses.DOWNLOAD_FAILED,
       progress: 0,
-      shouldCancel: false
-    })
+      shouldCancel: false,
+    });
 
-    logger.error(error)
+    logger.error(error);
   }
 
   hide () {
     this.setState({
       status: statuses.IDLE,
       progress: 0,
-      shouldCancel: false
-    })
+      shouldCancel: false,
+    });
 
-    this.dismiss()
+    this.dismiss();
   }
 
   dismiss () {
     if (this.checkInput.checked) {
-      createSketchDialogFile()
+      createSketchDialogFile();
     }
 
-    this.props.onDismiss(!this.checkInput.checked)
+    this.props.onDismiss(!this.checkInput.checked);
   }
 
   renderPromptUser () {
@@ -83,14 +83,16 @@ class SketchDownloader extends React.Component {
         </p>
         <p>Would you like to download Sketch?</p>
 
-        <form action='#' style={STYLES.formInput}>
+        <form action="#" style={STYLES.formInput}>
           <input
-            type='checkbox'
-            name='not-show-again'
-            id='not-show-again'
+            type="checkbox"
+            name="not-show-again"
+            id="not-show-again"
             style={STYLES.checkInput}
-            ref={(input) => { this.checkInput = input }} />
-          <label htmlFor='not-show-again'>Don't show this again.</label>
+            ref={(input) => {
+              this.checkInput = input;
+            }} />
+          <label htmlFor="not-show-again">Don't show this again.</label>
         </form>
 
         <button style={STYLES.btnSecondary} onClick={this.hide}>
@@ -100,17 +102,17 @@ class SketchDownloader extends React.Component {
           Yes
         </button>
       </div>
-    )
+    );
   }
 
   renderDownloading () {
-    const progress = this.state.progress.toFixed(1)
+    const progress = this.state.progress.toFixed(1);
 
     return (
       <div>
         <span>Downloading and installing...</span>
         <p style={STYLES.progressNumber}>{progress} %</p>
-        <progress value={progress} max='100' style={STYLES.progressBar}>
+        <progress value={progress} max="100" style={STYLES.progressBar}>
           {progress} %
         </progress>
         <button
@@ -120,7 +122,7 @@ class SketchDownloader extends React.Component {
           Cancel
         </button>
       </div>
-    )
+    );
   }
 
   renderDownloadFailed () {
@@ -134,21 +136,23 @@ class SketchDownloader extends React.Component {
           Ok
         </button>
       </div>
-    )
+    );
   }
 
   render () {
-    const {status} = this.state
-    if (status === statuses.IDLE) return null
-    let content = this[`render${status}`]()
+    const {status} = this.state;
+    if (status === statuses.IDLE) {
+      return null;
+    }
+    const content = this[`render${status}`]();
 
     return (
       <div>
         <div style={STYLES.container}>{content}</div>
         <div style={STYLES.overlay} />
       </div>
-    )
+    );
   }
 }
 
-export default SketchDownloader
+export default SketchDownloader;

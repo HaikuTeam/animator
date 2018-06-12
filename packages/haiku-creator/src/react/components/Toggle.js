@@ -1,66 +1,66 @@
-import React from 'react'
-import Radium from 'radium'
-import IPreview from '@haiku/taylor-ipreview2/react'
-import {Tooltip} from 'haiku-ui-common/lib/react/Tooltip'
+import * as React from 'react';
+import * as Radium from 'radium';
+import * as IPreview from '@haiku/taylor-ipreview2/react';
+import {Tooltip} from 'haiku-ui-common/lib/react/Tooltip';
 
 const STYLES = {
   disabled: {
     pointerEvents: 'none',
-    opacity: 0.5
-  }
-}
+    opacity: 0.5,
+  },
+};
 
 class Toggle extends React.Component {
   onToggle () {
     if (typeof this.props.onToggle === 'function') {
-      this.props.onToggle()
+      this.props.onToggle();
     }
   }
 
   componentWillReceiveProps ({active}) {
     if (active !== this.props.active) {
-      this.changeActiveState(active)
+      this.changeActiveState(active);
     }
   }
 
   changeActiveState (active) {
     if (active) {
-      this.previewHaiku.getDefaultTimeline().gotoAndPlay(100)
+      this.previewHaiku.getDefaultTimeline().gotoAndPlay(100);
     } else {
-      this.previewHaiku.getDefaultTimeline().gotoAndPlay(0)
+      this.previewHaiku.getDefaultTimeline().gotoAndPlay(0);
     }
   }
 
   render () {
     return (
-      <Tooltip content='Toggle preview' style={this.props.style}>
+      <Tooltip content="Toggle preview" style={this.props.style}>
         <a
-          href='#'
+          href="#"
           style={[
             this.props.disabled && STYLES.disabled,
             this.props.style,
-            {marginTop: -5}
+            {marginTop: -5},
           ]}
           onClick={() => {
-            this.onToggle()
+            this.onToggle();
           }}
         >
           <div>
             <IPreview
               haikuStates={{isOn: {value: this.props.active}}}
               onHaikuComponentDidMount={(component) => {
-                this.previewHaiku = component
+                this.previewHaiku = component;
               }}
               onHaikuComponentWillUnmount={(component) => {
-                component.context.destroy()
+                component.context.destroy();
               }}
-              contextMenu='disabled'
+              contextMenu="disabled"
             />
           </div>
         </a>
       </Tooltip>
-    )
+    );
   }
 }
 
-export default Radium(Toggle)
+export default Radium(Toggle);
