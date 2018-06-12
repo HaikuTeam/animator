@@ -31,6 +31,15 @@ class Asset extends BaseModel {
     return this.relpath
   }
 
+  getSceneName () {
+    if (!this.isComponent()) {
+      return
+    }
+
+    const parts = path.normalize(this.relpath).split(path.sep)
+    return parts[1]
+  }
+
   getAssetInfo () {
     const parts = this.relpath.split(path.sep)
     // It's definitely not a generated piece if its length doesn't match the pattern
