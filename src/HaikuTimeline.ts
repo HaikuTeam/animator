@@ -438,7 +438,6 @@ export default class HaikuTimeline extends HaikuBase {
   }
 
   setPlaybackStatus (status: PlaybackStatus) {
-    console.log(this.component.$id, status);
     this.status = status;
   }
 
