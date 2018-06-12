@@ -345,7 +345,7 @@ File.ingestContents = (project, folder, relpath, { dtLastReadStart }, cb) => {
     project
   }
 
-  const file = File.upsert(fileAttrs)
+  const file = project.upsertFile(fileAttrs)
 
   // Let what's happening in-memory have higher precedence than on-disk changes
   // since it's more likely that we'll be loading in stale content during fast updates,
