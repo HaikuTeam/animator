@@ -1110,6 +1110,7 @@ export default class Creator extends React.Component {
                 case 'setCurrentActiveComponent':
                 case 'selectElement':
                 case 'unselectElement':
+                case 'batchUpsertEventHandlers':
                   this.debouncedForceUpdate()
                   break
 
