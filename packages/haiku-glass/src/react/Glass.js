@@ -176,6 +176,8 @@ export class Glass extends React.Component {
     this._stopwatch = null
     this._lastAuthoritativeFrame = 0
 
+    this.didDragSinceLastMouseDown = false
+
     this.drawLoop = this.drawLoop.bind(this)
     this.draw = this.draw.bind(this)
 
@@ -1114,6 +1116,8 @@ export class Glass extends React.Component {
   }
 
   handleMouseDown (mousedownEvent) {
+    this.didDragSinceLastMouseDown = false
+
     // Only count left clicks
     if (!this.getActiveComponent() || this.areAnyModalsOpen || mousedownEvent.nativeEvent.button !== 0) {
       return
@@ -1745,7 +1749,7 @@ export class Glass extends React.Component {
 
   handleMouseUp (mouseupEvent) {
     if (this.state.isEventHandlerEditorOpen) {
-      return void (0)
+      return
     }
 
     if (this.getActiveComponent()) {
@@ -1803,7 +1807,10 @@ export class Glass extends React.Component {
     const source = target && target.getAttribute && target.getAttribute(HAIKU_SOURCE_ATTRIBUTE)
 
     if (source && source[0] === '.') {
-      this.editComponent(source)
+      // Prevent accidentally launching the subcomponent editor when the user didn't intend a double click
+      if (!this.didDragSinceLastMouseDown) {
+        this.editComponent(source)
+      }
     }
   }
 
@@ -2174,6 +2181,8 @@ export class Glass extends React.Component {
 
           // Do not drag elements if the user is actively selecting them
           if (!marquee.isActive()) {
+            this.didDragSinceLastMouseDown = true
+
             proxy.drag(
               dx,
               dy,
