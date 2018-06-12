@@ -1,3 +1,4 @@
+/* tslint:disable:no-shadowed-variable max-line-length */
 import * as async from 'async';
 import * as fse from 'haiku-fs-extra';
 import * as path from 'path';
@@ -176,7 +177,7 @@ export default class MasterGitProject extends EventEmitter {
         });
       },
       (cb) => {
-        return Git.referenceNameToId(this.folder, 'HEAD', (_err, headCommitId) => {
+        return Git.referenceNameToId(this.folder, 'HEAD', (err, headCommitId) => {
           this._folderState.headCommitId = headCommitId;
           return cb();
         });
@@ -951,9 +952,9 @@ export default class MasterGitProject extends EventEmitter {
   }
 
   // DEPRECATED: only required for non-GitLab projects.
-  pushTag (GitRemoteUrl, CodeCommitHttpsUsername, CodeCommitHttpsPassword, cb) {
-    logger.info(`[master-git] pushing tag ${this._folderState.semverVersion} to remote (${this._folderState.projectName}) ${GitRemoteUrl}`);
-    return Git.pushTagToRemote(this.folder, this._folderState.projectName, this._folderState.semverVersion, CodeCommitHttpsUsername, CodeCommitHttpsPassword, cb);
+  pushTag (gitRemoteUrl, codeCommitHttpsUsername, codeCommitHttpsPassword, cb) {
+    logger.info(`[master-git] pushing tag ${this._folderState.semverVersion} to remote (${this._folderState.projectName}) ${gitRemoteUrl}`);
+    return Git.pushTagToRemote(this.folder, this._folderState.projectName, this._folderState.semverVersion, codeCommitHttpsUsername, codeCommitHttpsPassword, cb);
   }
 
   safeGitStatus (options, cb) {
@@ -975,7 +976,7 @@ export default class MasterGitProject extends EventEmitter {
   }
 
   statusForFile (relpath, cb) {
-    return this.safeGitStatus({log: false, relpath}, (gitStatuses) => {
+    return this.safeGitStatus({relpath, log: false}, (gitStatuses) => {
       let foundStatus;
 
       if (gitStatuses) {
@@ -1054,9 +1055,9 @@ export default class MasterGitProject extends EventEmitter {
 
   commit (addable, message, cb) {
     this._requestQueue.push({
+      cb,
       type: 'commit',
       options: {addable, message},
-      cb,
     });
   }
 
