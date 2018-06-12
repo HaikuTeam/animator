@@ -186,6 +186,15 @@ class AssetItem extends React.Component {
     this.endDragInCaseItWasStartedInadvertently()
   }
 
+  handleCreateComponent () {
+    this.props.websocket.send({
+      type: 'broadcast',
+      from: 'creator',
+      folder: this.props.projectModel.getFolder(),
+      name: 'conglomerate-component'
+    })
+  }
+
   renderChevy () {
     if (this.props.asset.getChildAssets().length < 1) {
       // An 'invisible' chevron; I don't recall why we do this
@@ -224,6 +233,14 @@ class AssetItem extends React.Component {
 
   getAssetMenuItems () {
     const items = []
+
+    if (this.props.asset.isComponentsHostFolder()) {
+      items.push({
+        label: 'Create Component',
+        icon: ComponentIconSVG,
+        onClick: this.handleCreateComponent.bind(this)
+      })
+    }
 
     // Only display Open In Sketch on mac
     if (isMac() && this.props.asset.isSketchFile()) {

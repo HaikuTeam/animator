@@ -30,7 +30,7 @@ class FileSystemImporter extends React.PureComponent {
           this.showImportDialog()
         }}
       >
-        {this.props.text ? this.props.text : 'From File'}
+        {this.props.text ? this.props.text : 'Import From File'}
       </div>
     )
   }
