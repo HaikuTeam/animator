@@ -36,7 +36,7 @@ Haiku for Mac turns your designs into components and Haiku Core renders them. Si
 </p>
 <br>
 
-Haiku Core is compatible with all major modern web browsers: Firefox, Chrome, Safari, and Edge.
+Haiku Core is compatible with all major modern web browsers: Firefox, Chrome, Safari, and Edge. Its current footprint is 56kb gzipped.
 
 <br>
 
