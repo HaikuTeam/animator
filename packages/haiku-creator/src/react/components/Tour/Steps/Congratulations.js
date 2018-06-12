@@ -1,5 +1,5 @@
-import React from 'react'
-import EmbeddedVideo from '../EmbeddedVideo'
+import * as React from 'react';
+import EmbeddedVideo from '../EmbeddedVideo';
 
 export default class Congratulations extends React.Component {
   render () {
@@ -10,6 +10,6 @@ export default class Congratulations extends React.Component {
         <EmbeddedVideo name={'Congratulations'} />
         <p style={this.props.styles.text}>Enable Preview Mode in the top right corner to easily view animations and test interactive projects.</p>
       </div>
-    )
+    );
   }
 }

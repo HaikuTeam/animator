@@ -1,5 +1,5 @@
-const test = require('tape')
-const autoUpdate = require('../../src/utils/autoUpdate')
+import * as tape from 'tape';
+import autoUpdate from '@creator/utils/autoUpdate';
 
 const options = {
   server: 'https://server.com',
@@ -9,7 +9,7 @@ const options = {
   version: '1.0.1'
 }
 
-test('autoUpdate #generateURL generates an expected URL', (t) => {
+tape('autoUpdate #generateURL generates an expected URL', (t) => {
   let url
 
   url = 'https://server.com/updates/latest?environment=test&branch=master&platform=macOS&version=1.0.1'
@@ -22,7 +22,7 @@ test('autoUpdate #generateURL generates an expected URL', (t) => {
   t.end()
 })
 
-test('autoUpdate #checkUpdates returns the proper tuple if not updates are available', async (t) => {
+tape('autoUpdate #checkUpdates returns the proper tuple if not updates are available', async (t) => {
   let stubbedAutoUpdate = stub(autoUpdate, 'checkServer', async () => {
     return { status: 204, message: '' }
   })
@@ -35,7 +35,7 @@ test('autoUpdate #checkUpdates returns the proper tuple if not updates are avail
   t.end()
 })
 
-test('autoUpdate #checkUpdates returns the proper tuple if there is an update', async (t) => {
+tape('autoUpdate #checkUpdates returns the proper tuple if there is an update', async (t) => {
   let stubbedAutoUpdate = stub(autoUpdate, 'checkServer', async () => {
     return { status: 200, url: 'http://test.com' }
   })
@@ -48,7 +48,7 @@ test('autoUpdate #checkUpdates returns the proper tuple if there is an update', 
   t.end()
 })
 
-test('autoUpdate #update throws an error if does not have the correct env variables', async (t) => {
+tape('autoUpdate #update throws an error if does not have the correct env variables', async (t) => {
   try {
     await autoUpdate.update()
     t.fail('should throw error')
@@ -59,7 +59,7 @@ test('autoUpdate #update throws an error if does not have the correct env variab
   t.end()
 })
 
-test('autoUpdate #update does nothing if process.env.HAIKU_SKIP_AUTOUPDATE is set', async (t) => {
+tape('autoUpdate #update does nothing if process.env.HAIKU_SKIP_AUTOUPDATE is set', async (t) => {
   try {
     process.env.HAIKU_SKIP_AUTOUPDATE = '1'
     await autoUpdate.update()

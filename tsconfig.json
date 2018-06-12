@@ -14,6 +14,7 @@
       "@cli/*": ["packages/@haiku/cli/src/*"],
       "@common/*": ["packages/haiku-common/src/*"],
       "@core/*": ["packages/@haiku/core/src/*"],
+      "@creator/*": ["packages/haiku-creator/src/*"],
       "@formats/*": ["packages/haiku-formats/src/*"],
       "@plumbing/*": ["packages/haiku-plumbing/src/*"],
       "@sdk-creator/*": ["packages/haiku-sdk-creator/src/*"],

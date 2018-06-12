@@ -1,5 +1,5 @@
-import React from 'react'
-import EmbeddedVideo from '../EmbeddedVideo'
+import * as React from 'react';
+import EmbeddedVideo from '../EmbeddedVideo';
 
 export default function ({styles}) {
   return (
@@ -18,5 +18,5 @@ export default function ({styles}) {
         </p>
       </div>
     </div>
-  )
+  );
 }

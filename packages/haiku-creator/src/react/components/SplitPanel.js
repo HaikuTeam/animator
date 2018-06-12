@@ -1,6 +1,6 @@
-import React from 'react'
-import Radium from 'radium'
-import Draggable from 'react-draggable'
+import * as React from 'react';
+import * as Radium from 'radium';
+import * as Draggable from 'react-draggable';
 
 const STYLE = {
   wrapper: {
@@ -12,15 +12,15 @@ const STYLE = {
     vertical: {
       flexDirection: 'row',
       left: 0,
-      right: 0
+      right: 0,
     },
     horizontal: {
       bottom: 0,
       flexDirection: 'column',
       minHeight: '100%',
       top: 0,
-      width: '100%'
-    }
+      width: '100%',
+    },
   },
   resizer: {
     position: 'absolute',
@@ -30,47 +30,47 @@ const STYLE = {
     boxSizing: 'border-box',
     backgroundClip: 'padding-box',
     ':hover': {
-      transition: 'all 220ms ease'
-    }
+      transition: 'all 220ms ease',
+    },
   },
   pane: {
     position: 'relative',
     width: '100%',
-    height: '100%'
-  }
-}
+    height: '100%',
+  },
+};
 
 class SplitPanel extends React.PureComponent {
   constructor (props) {
-    super()
+    super();
 
     this.state = {
       minSize: props.minSize,
-      defaultSize: props.defaultSize
-    }
+      defaultSize: props.defaultSize,
+    };
   }
 
   isVertical () {
-    return this.props.split === 'vertical'
+    return this.props.split === 'vertical';
   }
 
   resize (mouseEvent) {
-    const defaultSize = this.isVertical() ? mouseEvent.x : mouseEvent.y
+    const defaultSize = this.isVertical() ? mouseEvent.x : mouseEvent.y;
 
-    this.setState({defaultSize})
+    this.setState({defaultSize});
   }
 
   render () {
-    const invisibleBorder = '5px solid rgba(255, 255, 255, 0)'
-    const visibleBorder = '5px solid rgba(0, 0, 0, 0.15)'
+    const invisibleBorder = '5px solid rgba(255, 255, 255, 0)';
+    const visibleBorder = '5px solid rgba(0, 0, 0, 0.15)';
 
-    let axis
-    let paneStyle
-    let resizerStyle
+    let axis;
+    let paneStyle;
+    let resizerStyle;
 
     if (this.isVertical()) {
-      axis = 'x'
-      paneStyle = {minWidth: this.state.minSize, width: this.state.defaultSize}
+      axis = 'x';
+      paneStyle = {minWidth: this.state.minSize, width: this.state.defaultSize};
       resizerStyle = {
         width: '11px',
         height: '100%',
@@ -82,15 +82,15 @@ class SplitPanel extends React.PureComponent {
         margin: '0 -6px',
         ':hover': {
           borderRight: visibleBorder,
-          borderLeft: visibleBorder
-        }
-      }
+          borderLeft: visibleBorder,
+        },
+      };
     } else {
-      axis = 'y'
+      axis = 'y';
       paneStyle = {
         minHeight: this.state.minSize,
-        height: this.state.defaultSize
-      }
+        height: this.state.defaultSize,
+      };
       resizerStyle = {
         height: '11px',
         width: '100%',
@@ -102,9 +102,9 @@ class SplitPanel extends React.PureComponent {
         margin: '-6px 0',
         ':hover': {
           borderTop: visibleBorder,
-          borderBottom: visibleBorder
-        }
-      }
+          borderBottom: visibleBorder,
+        },
+      };
     }
 
     return (
@@ -114,7 +114,7 @@ class SplitPanel extends React.PureComponent {
           <Draggable
             axis={axis}
             onStop={(mouseEvent) => {
-              this.resize(mouseEvent)
+              this.resize(mouseEvent);
             }}
             position={{x: 0, y: 0}}
           >
@@ -126,21 +126,21 @@ class SplitPanel extends React.PureComponent {
           // FIXME: horrible hack to force reflow when resizing the panel, seems
           // to be a chrome bug with this particular combo of flexbox + changing
           // size
-          height: this.isVertical() ? '' : Math.random()
+          height: this.isVertical() ? '' : Math.random(),
         }}>
           {this.props.children[1]}
         </div>
       </div>
-    )
+    );
   }
 }
 
 SplitPanel.propTypes = {
-  split: React.PropTypes.string
-}
+  split: React.PropTypes.string,
+};
 
 SplitPanel.defaultProps = {
-  split: 'horizontal'
-}
+  split: 'horizontal',
+};
 
-export default Radium(SplitPanel)
+export default Radium(SplitPanel);

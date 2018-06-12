@@ -1,5 +1,5 @@
-import Palette from 'haiku-ui-common/lib/Palette'
-import Color from 'color'
+import Palette from 'haiku-ui-common/lib/Palette';
+import * as Color from 'color';
 
 export const BTN_STYLES = {
   btnIcon: {
@@ -18,13 +18,13 @@ export const BTN_STYLES = {
     transition: 'transform 200ms ease',
     backgroundColor: Palette.FATHER_COAL,
     ':active': {
-      transform: 'scale(.8)'
-    }
+      transform: 'scale(.8)',
+    },
   },
   btnIconHover: {
     ':hover': {
-      color: Palette.ROCK
-    }
+      color: Palette.ROCK,
+    },
   },
   btnText: {
     height: '25px',
@@ -43,38 +43,38 @@ export const BTN_STYLES = {
     transition: 'transform 200ms ease, border-color 200ms ease',
     backgroundColor: Palette.FATHER_COAL,
     ':active': {
-      transform: 'scale(.9)'
+      transform: 'scale(.9)',
     },
     ':hover': {
-      color: Palette.ROCK
-    }
+      color: Palette.ROCK,
+    },
   },
   leftBtns: {
-    float: 'left'
+    float: 'left',
   },
   rightBtns: {
-    float: 'right'
+    float: 'right',
   },
   btnPrimary: {
     backgroundColor: Palette.LIGHTEST_PINK,
-    color: Palette.SUNSTONE
+    color: Palette.SUNSTONE,
   },
   btnPrimaryAlt: {
-    backgroundColor: Color(Palette.FATHER_COAL).darken(0.2)
+    backgroundColor: Color(Palette.FATHER_COAL).darken(0.2),
   },
   btnCancel: {
     letterSpacing: '1.3px',
     marginTop: 4,
     marginRight: 20,
-    cursor: 'pointer'
+    cursor: 'pointer',
   },
   btnDisabled: {
-    cursor: 'not-allowed'
+    cursor: 'not-allowed',
   },
   btnBlack: {
     backgroundColor: Palette.BLACK,
     color: Palette.PALE_GRAY,
-    padding: '5px 25px'
+    padding: '5px 25px',
   },
   /* Legacy: many UI dialogs are using this button
    * (autoupdater, tour, sketch downloader) so we keep it until we unify
@@ -88,9 +88,9 @@ export const BTN_STYLES = {
     textTransform: 'uppercase',
     transition: 'transform 200ms ease',
     ':active': {
-      transform: 'scale(.8)'
+      transform: 'scale(.8)',
     },
     padding: '10px 15px',
-    fontSize: 16
-  }
-}
+    fontSize: 16,
+  },
+};

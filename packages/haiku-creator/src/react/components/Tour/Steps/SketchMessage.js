@@ -1,7 +1,7 @@
-import React from 'react'
-import EmbeddedVideo from '../EmbeddedVideo'
+import * as React from 'react';
+import EmbeddedVideo from '../EmbeddedVideo';
 
-export default function ({ styles }) {
+export default function ({styles}) {
   return (
     <div>
       <h2 style={styles.heading}>Working with Sketch</h2>
@@ -10,5 +10,5 @@ export default function ({ styles }) {
         <EmbeddedVideo name={'SketchMessage'} />
       </div>
     </div>
-  )
+  );
 }
