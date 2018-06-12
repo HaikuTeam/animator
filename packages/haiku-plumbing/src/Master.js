@@ -5,7 +5,7 @@ import {debounce} from 'lodash';
 import {ExporterFormat} from 'haiku-sdk-creator/lib/exporter';
 import * as fse from 'haiku-fs-extra';
 import HaikuComponent from '@haiku/core/lib/HaikuComponent';
-import walkFiles from 'haiku-serialization/src/utils/walkFiles';
+import * as walkFiles from 'haiku-serialization/src/utils/walkFiles';
 import * as BaseModel from 'haiku-serialization/src/bll/BaseModel';
 import * as File from 'haiku-serialization/src/bll/File';
 import * as Project from 'haiku-serialization/src/bll/Project';

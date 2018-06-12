@@ -6,7 +6,7 @@ import * as uglify from 'rollup-plugin-uglify-es';
 import * as includePaths from 'rollup-plugin-includepaths';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 
-function createBundle (moduleDirectory, input, name, cb) {
+export const createBundle = (moduleDirectory, input, name, cb) => {
   logger.info('[bundler] beginning in basedir', moduleDirectory);
 
   rollup.rollup({
@@ -47,7 +47,3 @@ function createBundle (moduleDirectory, input, name, cb) {
     cb(err);
   });
 }
-
-module.exports = {
-  createBundle,
-};

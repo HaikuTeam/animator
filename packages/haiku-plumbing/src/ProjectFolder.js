@@ -5,7 +5,7 @@ import * as dedent from 'dedent';
 import {escapeRegExp} from 'lodash';
 import * as semver from 'semver';
 import * as moment from 'moment';
-import Bundler from './Bundler';
+import {createBundle} from './Bundler';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import * as Project from 'haiku-serialization/src/bll/Project';
 
@@ -341,7 +341,7 @@ export function buildProjectContent (
       return async.parallel([
         (cb) => {
           logger.info('[project folder] bundling code/main/dom-embed.js');
-          return Bundler.createBundle(
+          return createBundle(
             dir(projectPath, 'code/main'),
             dir(projectPath, 'code/main/dom-embed.js'),
             embedName,
@@ -358,7 +358,7 @@ export function buildProjectContent (
         },
         (cb) => {
           logger.info('[project folder] bundling code/main/dom-standalone.js');
-          return Bundler.createBundle(
+          return createBundle(
             dir(projectPath, 'code/main'),
             dir(projectPath, 'code/main/dom-standalone.js'),
             standaloneName,
