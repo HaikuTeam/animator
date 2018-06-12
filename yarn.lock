@@ -11302,9 +11302,9 @@ tslint-config-airbnb@^5.8.0:
     tslint-eslint-rules "^5.3.1"
     tslint-microsoft-contrib "~5.0.1"
 
-tslint-config-haiku@^1.0.9:
-  version "1.0.9"
-  resolved "https://registry.yarnpkg.com/tslint-config-haiku/-/tslint-config-haiku-1.0.9.tgz#d3cc98a5abb793726589a8b952e97672c6dd5094"
+tslint-config-haiku@^1.0.10:
+  version "1.0.10"
+  resolved "https://registry.yarnpkg.com/tslint-config-haiku/-/tslint-config-haiku-1.0.10.tgz#36f65af2a3a76e65f456973a7aeee101567f3b2b"
   dependencies:
     tslib "^1.9.2"
     tslint "^5.10.0"

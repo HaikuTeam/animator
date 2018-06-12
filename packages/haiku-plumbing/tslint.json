@@ -1,3 +1,6 @@
 {
-  "extends": ["tslint-config-haiku"]
+  "extends": ["tslint-config-haiku"],
+  "linterOptions": {
+    "exclude": ["test/fixtures", "test/**/*.js"]
+  }
 }
