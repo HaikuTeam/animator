@@ -1722,7 +1722,30 @@ class ActiveComponent extends BaseModel {
         if (err) return cb(err)
         return done()
       })
-    }, cb)
+    }, (err, out) => {
+      if (err) return cb(err)
+
+      const bytecode = this.getReifiedBytecode()
+
+      // Make sure all components that host a copy of us now have updated bytecode for us
+      this.project.getAllActiveComponents().forEach((ac) => {
+        if (!ac.$instance) {
+          return
+        }
+
+        ac.$instance.visitGuestHierarchy((instance) => {
+          if (this.doesManageCoreInstance(instance)) {
+            if (instance.node.__parent) {
+              instance.node.__parent.elementName = bytecode
+            }
+
+            instance.bytecode = bytecode
+          }
+        })
+      })
+
+      return cb(null, out)
+    })
   }
 
   /**
