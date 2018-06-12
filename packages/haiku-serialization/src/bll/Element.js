@@ -242,6 +242,10 @@ class Element extends BaseModel {
     return !lodash.isEmpty(this.getReifiedEventHandlers())
   }
 
+  hasVisibleEventHandlers () {
+    return !lodash.isEmpty(this.getVisibleEvents())
+  }
+
   getReifiedEventHandlers () {
     const bytecode = this.component.getReifiedBytecode()
     const selector = 'haiku:' + this.getComponentId()
