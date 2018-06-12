@@ -454,11 +454,11 @@ export default class HaikuComponent extends HaikuElement {
     return out;
   }
 
-  getTimeline (name) {
+  getTimeline (name): HaikuTimeline {
     return this.getTimelines()[name];
   }
 
-  fetchTimeline (name, descriptor) {
+  fetchTimeline (name, descriptor): HaikuTimeline {
     const found = this.getTimeline(name);
 
     if (found) {
@@ -468,7 +468,7 @@ export default class HaikuComponent extends HaikuElement {
     return HaikuTimeline.create(this, name, descriptor, this.config);
   }
 
-  getDefaultTimeline () {
+  getDefaultTimeline (): HaikuTimeline {
     const timelines = this.getTimelines();
     return timelines[DEFAULT_TIMELINE_NAME];
   }
