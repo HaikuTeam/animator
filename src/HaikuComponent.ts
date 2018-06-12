@@ -283,7 +283,9 @@ export default class HaikuComponent extends HaikuElement {
           // from the get-go. However, in case of a callRemount, we might not want to do that since it can be kind of
           // like running the first frame twice. So we pass the option into play so it can conditionally skip the
           // markForFullFlush step.
-          timelineInstance.play({skipMarkForFullFlush});
+          if (!timelineInstance.isExplicitlyPaused()) {
+            timelineInstance.play({skipMarkForFullFlush});
+          }
         }
       } else {
         timelineInstance.pause();
