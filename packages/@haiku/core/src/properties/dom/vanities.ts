@@ -4,7 +4,7 @@
 
 import HaikuComponent from './../../HaikuComponent';
 import HaikuContext from './../../HaikuContext';
-import HaikuTimeline, {PlaybackSetting} from './../../HaikuTimeline';
+import HaikuTimeline from './../../HaikuTimeline';
 import cssMatchOne from './../../helpers/cssMatchOne';
 import has from './has';
 
@@ -803,90 +803,6 @@ const getCanonicalPlaybackValue = (value) => {
   return value;
 };
 
-const applyPlaybackStatus = (
-  status,
-  receivingTimeline,
-  receivingComponent,
-  sendingTimeline,
-  sendingComponent,
-) => {
-  // Start by unsetting the repeat value, which we'll re-set only if our value becomes 'loop'
-  receivingTimeline.setRepeat(false);
-
-  let val = status;
-
-  // Let the child timeline do whatever it wishes without interference
-  if (val === PlaybackSetting.CEDE) {
-    return;
-  }
-
-  if (val === null || val === undefined || val === true) {
-    val = PlaybackSetting.LOOP;
-  }
-
-  const shouldRepeat = val === PlaybackSetting.LOOP;
-  const shouldPlay = val === PlaybackSetting.ONCE;
-  const shouldStop = val === PlaybackSetting.STOP;
-
-  if (shouldRepeat) {
-    receivingTimeline.setRepeat(true);
-  }
-
-  // If the sending timeline is frozen, don't inadvertently unfreeze its component's guests
-  if (!sendingTimeline.isFrozen()) {
-    if (shouldPlay || shouldRepeat) {
-      if (!receivingTimeline._isPlaying) {
-        receivingTimeline.play();
-      } else {
-        receivingTimeline.playSoftly();
-      }
-
-      return;
-    }
-
-    if (shouldStop) {
-      if (receivingTimeline._isPlaying) {
-        receivingTimeline.stop();
-      } else {
-        receivingTimeline.stopSoftly();
-      }
-
-      return;
-    }
-  }
-
-  if (typeof val === 'number') {
-    receivingTimeline.seek(val); // Numbers are assumed to be frames
-    return;
-  }
-
-  // Attempt to handle strings that specify a unit, e.g. '123ms'
-  if (typeof val === 'string') {
-    const numericSpec = unitizeString(val);
-
-    if (numericSpec) {
-      receivingTimeline.seek(numericSpec.value, numericSpec.units);
-    }
-  }
-};
-
-/**
- * @function unitizeString
- * @description Convert a string like '123ms' to {value: 123, units: 'ms'}
- */
-const unitizeString = (str: string) => {
-  const match = str.match(/(\d+)(\w+)/);
-
-  if (!match || !match[1] || !match[2]) {
-    return;
-  }
-
-  return {
-    value: Number(match[1]),
-    units: match[2],
-  };
-};
-
 const PLAYBACK_VANITIES = {
   playback: (
     name,
@@ -903,13 +819,7 @@ const PLAYBACK_VANITIES = {
       const timelineInstance = receiver && receiver.getTimeline(timelineName);
 
       if (timelineInstance) {
-        applyPlaybackStatus(
-          canonicalValue[timelineName],
-          timelineInstance,
-          receiver,
-          timeline,
-          sender,
-        );
+        timelineInstance.setPlaybackStatus(canonicalValue[timelineName]);
       }
     }
   },
