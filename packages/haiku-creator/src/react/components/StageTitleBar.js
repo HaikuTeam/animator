@@ -510,6 +510,8 @@ class StageTitleBar extends React.Component {
       const element = this.getProxySelectionElement()
 
       if (element) {
+        mixpanel.haikuTrack('creator:top-controls:show-event-handlers-editor')
+
         this.props.websocket.send({
           type: 'broadcast',
           from: 'creator',
