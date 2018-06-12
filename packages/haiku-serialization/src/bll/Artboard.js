@@ -203,6 +203,13 @@ class Artboard extends BaseModel {
     return this._drawingIsModal
   }
 
+  getSize () {
+    return {
+      x: this.getMountWidth(),
+      y: this.getMountHeight()
+    }
+  }
+
   getMountX () {
     return this._mountX
   }

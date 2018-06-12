@@ -11,6 +11,7 @@ class AssetList extends React.Component {
           return (
             <AssetItem
               key={asset.getPrimaryKey()}
+              websocket={this.props.websocket}
               projectModel={this.props.projectModel}
               onDragStart={this.props.onDragStart}
               onDragEnd={this.props.onDragEnd}
