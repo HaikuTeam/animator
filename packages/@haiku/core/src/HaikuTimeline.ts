@@ -43,7 +43,7 @@ export default class HaikuTimeline extends HaikuBase {
   _maxExplicitlyDefinedTime;
   _isPlaying;
 
-  private lastUnboundedFrame = 0;
+  private lastUnboundedFrame = -1;
 
   constructor (component, name, descriptor, options) {
     super();
