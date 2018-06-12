@@ -1,4 +1,4 @@
-export default (fullStr: string , strLen: number) => {
+export default (fullStr: string, strLen: number) => {
   const apparentLen = fullStr.length - 1;
 
   if (apparentLen <= strLen) {

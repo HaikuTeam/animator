@@ -1,11 +1,8 @@
-.DS_Store
 node_modules
+.DS_Store
 *.log
-*.log.*
-*.bundle.js
-dist
-.haiku
-test/fixtures/projects/blank-project
 lib/
+.nyc_output/
+coverage/
 checkstyle-result.xml
 test-result.tap

@@ -1,3 +1,4 @@
+/* tslint:disable */
 // const tape = require('tape')
 // const async = require('async')
 // const fse = require('haiku-fs-extra')

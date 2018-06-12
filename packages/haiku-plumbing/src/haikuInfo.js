@@ -1,14 +1,14 @@
-import { merge } from 'lodash'
-import envInfo from './envInfo'
+import {merge} from 'lodash';
+import envInfo from './envInfo';
 
 export default function haikuInfo () {
-  const { flags, folder, socket } = envInfo()
+  const {flags, folder, socket} = envInfo();
 
   if (!process.env.HAIKU_ENV) {
-    process.env.HAIKU_ENV = JSON.stringify(merge(flags, { folder, socket, dotenv: {} }))
+    process.env.HAIKU_ENV = JSON.stringify(merge(flags, {folder, socket, dotenv: {}}));
   }
 
-  const HAIKU = JSON.parse(process.env.HAIKU_ENV || '{}')
+  const HAIKU = JSON.parse(process.env.HAIKU_ENV || '{}');
 
-  return HAIKU
+  return HAIKU;
 }

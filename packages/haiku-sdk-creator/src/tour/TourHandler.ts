@@ -153,7 +153,7 @@ export class TourHandler implements Tour {
     // Set state sequence array according to platform
     if (process.env.HAIKU_RELEASE_PLATFORM === 'mac') {
       // Mac state sequence
-      this.platformStates = [0, 1, 2, 3, 4, 5, 6 , 7, 8, 9, 10];
+      this.platformStates = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     } else {
       // Windows and Linux state sequence
       this.platformStates = [0, 1, 2, 3, 4, 5, 6, 9, 10];
@@ -249,7 +249,9 @@ export class TourHandler implements Tour {
   }
 
   finish (createFile?: boolean) {
-    if (!this.isActive) { return; }
+    if (!this.isActive) {
+      return;
+    }
 
     if (createFile) {
       createTourFile();
@@ -260,7 +262,9 @@ export class TourHandler implements Tour {
   }
 
   next () {
-    if (!this.isActive) { return; }
+    if (!this.isActive) {
+      return;
+    }
 
     this.currentStep++;
 
