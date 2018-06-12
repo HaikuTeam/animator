@@ -73,7 +73,7 @@ export class LinkHolster extends React.PureComponent<LinkHolsterProps, LinkHolst
   componentDidMount () {
     setTimeout(() => {
       this.setState({done: false, progress: 80, speed: '15s'});
-    },         100);
+    }, 100);
   }
 
   componentWillReceiveProps (nextProps: LinkHolsterProps) {

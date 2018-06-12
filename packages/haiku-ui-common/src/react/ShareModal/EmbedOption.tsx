@@ -144,7 +144,9 @@ export class EmbedOption extends React.PureComponent<EmbedOptionProps> {
   };
 
   private onMouseOut = () => {
-    if (this.effectivelyDisabled) { this.setState({showTooltip: false}); }
+    if (this.effectivelyDisabled) {
+      this.setState({showTooltip: false});
+    }
   };
 
   private onClick = () => {
