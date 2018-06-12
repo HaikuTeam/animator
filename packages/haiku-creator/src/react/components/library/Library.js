@@ -16,6 +16,10 @@ import AssetList from './AssetList'
 import Loader from './Loader'
 import FileImporter from './FileImporter'
 
+const openWithDefaultProgram = (asset) => {
+  shell.openItem(asset.getAbspath())
+}
+
 const STYLES = {
   scrollwrap: {
     overflowY: 'auto',
@@ -254,17 +258,13 @@ class Library extends React.Component {
   }
 
   handleFileLaunch (asset) {
-    this.openWithDefaultProgram(asset)
-  }
-
-  openWithDefaultProgram (asset) {
-    shell.openItem(asset.getAbspath())
+    openWithDefaultProgram(asset)
   }
 
   handleSketchLaunch (asset) {
     if (this.isSketchInstalled) {
       mixpanel.haikuTrack('creator:sketch:open-file')
-      this.openWithDefaultProgram(asset)
+      openWithDefaultProgram(asset)
     // On library Sketch asset double click, ask to download Sketch only if on mac
     } else if (isMac()) {
       mixpanel.haikuTrack('creator:sketch:sketch-not-installed')
@@ -275,7 +275,7 @@ class Library extends React.Component {
   handleIllustratorLaunch (asset) {
     if (this.isIllustratorInstalled) {
       mixpanel.haikuTrack('creator:illustrator:open-file')
-      this.openWithDefaultProgram(asset)
+      openWithDefaultProgram(asset)
     } else {
       mixpanel.haikuTrack('creator:illustrator:illustrator-not-installed')
       this.props.createNotice({ type: 'error', title: 'Error', message: 'You need to have Adobe Illustrator installed to open that file.' })
@@ -290,7 +290,7 @@ class Library extends React.Component {
 
   onSketchDownloadComplete () {
     this.isSketchInstalled = true
-    this.openWithDefaultProgram(this.state.sketchDownloader.asset)
+    openWithDefaultProgram(this.state.sketchDownloader.asset)
     this.setState({sketchDownloader: {...this.state.sketchDownloader, isVisible: false, asset: null}})
   }
 
@@ -306,6 +306,10 @@ class Library extends React.Component {
   }
 
   onAssetDoubleClick (asset) {
+    if (!asset) {
+      return
+    }
+
     switch (asset.kind) {
       case Asset.KINDS.SKETCH:
         this.handleSketchLaunch(asset)
@@ -317,13 +321,17 @@ class Library extends React.Component {
         this.handleFigmaLaunch(asset)
         break
       case Asset.KINDS.VECTOR:
-        this.handleFileLaunch(asset)
+        if (asset.isOrphanSvg()) {
+          this.handleFileLaunch(asset)
+        } else {
+          this.onAssetDoubleClick(asset.parent)
+        }
         break
       case Asset.KINDS.COMPONENT:
         this.handleComponent(asset)
         break
       case Asset.KINDS.FOLDER:
-        this.openWithDefaultProgram(asset)
+        this.onAssetDoubleClick(asset.parent)
         break
     }
   }
