@@ -1742,10 +1742,10 @@ class ActiveComponent extends BaseModel {
         ac.$instance.visitGuestHierarchy((instance) => {
           if (this.doesManageCoreInstance(instance)) {
             if (instance.node.__parent) {
-              instance.node.__parent.elementName = bytecode
+              Object.assign(instance.node.__parent.elementName, bytecode)
             }
 
-            instance.bytecode = bytecode
+            Object.assign(instance.bytecode, bytecode)
           }
         })
       })
@@ -2252,10 +2252,10 @@ class ActiveComponent extends BaseModel {
 
               if (this.doesManageCoreInstance(instance)) {
                 if (instance.node.__parent) {
-                  instance.node.__parent.elementName = bytecode
+                  Object.assign(instance.node.__parent.elementName, bytecode)
                 }
 
-                instance.bytecode = bytecode
+                Object.assign(instance.bytecode, bytecode)
               }
 
               instance.clearCaches({
