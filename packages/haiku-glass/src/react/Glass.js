@@ -75,7 +75,7 @@ const BIG_NUMBER = 99999
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source'
 
-const DOUBLE_CLICK_THRESHOLD_MS = 500
+const DOUBLE_CLICK_THRESHOLD_MS = 250
 
 const DIRECT_SELECTION_MULTIPLE_SELECTION_ALLOWED = {
   'line': true,
@@ -1112,7 +1112,6 @@ export class Glass extends React.Component {
     }
 
     this.state.isMouseDown = true
-    this.state.lastMouseDownTime = Date.now()
     const mouseDownPosition = this.storeAndReturnMousePosition(mousedownEvent, 'lastMouseDownPosition')
 
     switch (mousedownEvent.nativeEvent.target.getAttribute('class')) {
@@ -1298,36 +1297,37 @@ export class Glass extends React.Component {
               if (!experimentIsEnabled(Experiment.DirectSelectionOfPrimitives)) {
                 return
               }
-
+              
+              this.setState({directSelectionAnchorActivation: null})
+              
               const mouseDownTimeDiff = this.state.lastMouseDownTime ? Date.now() - this.state.lastMouseDownTime : null
               const isDoubleClick = mouseDownTimeDiff ? mouseDownTimeDiff <= DOUBLE_CLICK_THRESHOLD_MS : false
               const prevDirectlySelected = Element.directlySelected
-              let clickedItemFound = false
-              if (isDoubleClick) {
-                elementTargeted.getHaikuElement().visit((descendant) => {
-                  if (descendant.isComponent()) return
-                  if (descendant.isChildOfDefs) return
-                  if (
-                    (
-                      descendant.attributes.fill &&
-                      isPointInsidePrimitive(descendant, mouseDownPosition)
-                    ) || (
-                      descendant.attributes.stroke &&
-                      isPointAlongStroke(descendant, mouseDownPosition, Number(descendant.attributes['stroke-width']))
-                    )) {
-                    clickedItemFound = true
-                    Element.directlySelected = descendant
-                    return false // stop searching
-                  }
-                })
-
-                if (!clickedItemFound) Element.directlySelected = null
+              let clickedItemFound = null
+              elementTargeted.getHaikuElement().visit((descendant) => {
+                if (descendant.isComponent()) return
+                if (descendant.isChildOfDefs) return
+                if (
+                  (
+                    descendant.attributes.fill &&
+                    isPointInsidePrimitive(descendant, mouseDownPosition)
+                  ) || (
+                    descendant.attributes.stroke &&
+                    isPointAlongStroke(descendant, mouseDownPosition, Number(descendant.attributes['stroke-width']))
+                  )) {
+                  clickedItemFound = descendant
+                  if(isDoubleClick) Element.directlySelected = descendant
+                  return false // stop searching
+                }
+              })
+              
+              if (
+                !clickedItemFound || 
+                (Element.directlySelected !== null && clickedItemFound !== Element.directlySelected)
+              ) {
+                Element.directlySelected = null
               }
-
-              if (!Element.directlySelected) {
-                this.setState({directSelectionAnchorActivation: null})
-              }
-
+              
               // --- Insert new vertex when the selected item is unchanged ---
               if (Element.directlySelected && Element.directlySelected === prevDirectlySelected && (isDoubleClick || Globals.isSpecialKeyDown())) {
                 const transformedLocalMouse = transform2DPoint(mouseDownPosition, Element.directlySelected.layoutAncestryMatrices.reverse())
@@ -1570,6 +1570,8 @@ export class Glass extends React.Component {
         }
         break
     }
+    
+    this.state.lastMouseDownTime = Date.now()
   }
 
   validTargetOrNull (target) {
@@ -1952,208 +1954,330 @@ export class Glass extends React.Component {
           (mousemoveEvent.nativeEvent.clientY - this.state.stageMouseDown.y) * viewportTransform.zoom
         )
       } else if (!this.isPreviewMode()) {
-        if (
-          experimentIsEnabled(Experiment.DirectSelectionOfPrimitives) &&
-          Element.directlySelected && this.state.directSelectionAnchorActivation != null
-        ) {
+        if (experimentIsEnabled(Experiment.DirectSelectionOfPrimitives) && Element.directlySelected) {
           const transformedCurrent = transform2DPoint(mousePositionCurrent, Element.directlySelected.layoutAncestryMatrices.reverse())
           const transformedPrevious = transform2DPoint(mousePositionPrevious, Element.directlySelected.layoutAncestryMatrices.reverse())
           const transformedDelta = {
             x: transformedCurrent.x - transformedPrevious.x,
             y: transformedCurrent.y - transformedPrevious.y
           }
+          
+          
+          if(this.state.directSelectionAnchorActivation != null) {
+            // Moving a selection of control points
+            
+            const indices = this.state.directSelectionAnchorActivation.indices[Element.directlySelected.attributes['haiku-id']]
+            const lastIndex = indices[indices.length - 1]
 
-          const indices = this.state.directSelectionAnchorActivation.indices[Element.directlySelected.attributes['haiku-id']]
-          const lastIndex = indices[indices.length - 1]
-
-          switch (Element.directlySelected.type) {
-            case 'circle': {
-              this.getActiveComponent().updateKeyframes({
-                [this.getActiveComponent().getCurrentTimelineName()]: {
-                  [Element.directlySelected.attributes['haiku-id']]: {
-                    r: {
-                      0: {
-                        value: distance(transformedCurrent, {x: Number(Element.directlySelected.attributes.cx), y: Number(Element.directlySelected.attributes.cy)})
+            switch (Element.directlySelected.type) {
+              case 'circle': {
+                this.getActiveComponent().updateKeyframes({
+                  [this.getActiveComponent().getCurrentTimelineName()]: {
+                    [Element.directlySelected.attributes['haiku-id']]: {
+                      r: {
+                        0: {
+                          value: distance(transformedCurrent, {x: Number(Element.directlySelected.attributes.cx), y: Number(Element.directlySelected.attributes.cy)})
+                        }
                       }
                     }
                   }
-                }
-              }, {from: 'glass'}, () => {})
-              break
-            }
-            case 'ellipse': {
-              let property
-              let value
-
-              if (lastIndex === 0 || lastIndex === 1) {
-                property = 'rx'
-                value = Math.abs(transformedCurrent.x - Number(Element.directlySelected.attributes.cx))
-              } else if (lastIndex === 2 || lastIndex === 3) {
-                property = 'ry'
-                value = Math.abs(transformedCurrent.y - Number(Element.directlySelected.attributes.cy))
+                }, {from: 'glass'}, () => {})
+                break
               }
+              case 'ellipse': {
+                let property
+                let value
 
-              this.getActiveComponent().updateKeyframes({
-                [this.getActiveComponent().getCurrentTimelineName()]: {
-                  [Element.directlySelected.attributes['haiku-id']]: {
-                    [property]: {
-                      0: {
-                        value
+                if (lastIndex === 0 || lastIndex === 1) {
+                  property = 'rx'
+                  value = Math.abs(transformedCurrent.x - Number(Element.directlySelected.attributes.cx))
+                } else if (lastIndex === 2 || lastIndex === 3) {
+                  property = 'ry'
+                  value = Math.abs(transformedCurrent.y - Number(Element.directlySelected.attributes.cy))
+                }
+
+                this.getActiveComponent().updateKeyframes({
+                  [this.getActiveComponent().getCurrentTimelineName()]: {
+                    [Element.directlySelected.attributes['haiku-id']]: {
+                      [property]: {
+                        0: {
+                          value
+                        }
                       }
                     }
                   }
-                }
-              }, {from: 'glass'}, () => {})
-              break
-            }
-            case 'rect': {
-              let x = Number(Element.directlySelected.attributes.x)
-              let y = Number(Element.directlySelected.attributes.y)
-              let width = Element.directlySelected.sizeX
-              let height = Element.directlySelected.sizeY
-
-              switch (lastIndex) {
-                case 0:
-                  x += transformedDelta.x
-                  y += transformedDelta.y
-                  width -= transformedDelta.x
-                  height -= transformedDelta.y
-                  break
-                case 1:
-                  y += transformedDelta.y
-                  width += transformedDelta.x
-                  height -= transformedDelta.y
-                  break
-                case 2:
-                  x += transformedDelta.x
-                  width -= transformedDelta.x
-                  height += transformedDelta.y
-                  break
-                case 3:
-                  width += transformedDelta.x
-                  height += transformedDelta.y
-                  break
+                }, {from: 'glass'}, () => {})
+                break
               }
+              case 'rect': {
+                let x = Number(Element.directlySelected.attributes.x)
+                let y = Number(Element.directlySelected.attributes.y)
+                let width = Element.directlySelected.sizeX
+                let height = Element.directlySelected.sizeY
 
-              // Prevent negative
-              width = Math.max(width, 0)
-              height = Math.max(height, 0)
-              if (width === 0) x = Number(Element.directlySelected.attributes.x)
-              if (height === 0) y = Number(Element.directlySelected.attributes.y)
+                switch (lastIndex) {
+                  case 0:
+                    x += transformedDelta.x
+                    y += transformedDelta.y
+                    width -= transformedDelta.x
+                    height -= transformedDelta.y
+                    break
+                  case 1:
+                    y += transformedDelta.y
+                    width += transformedDelta.x
+                    height -= transformedDelta.y
+                    break
+                  case 2:
+                    x += transformedDelta.x
+                    width -= transformedDelta.x
+                    height += transformedDelta.y
+                    break
+                  case 3:
+                    width += transformedDelta.x
+                    height += transformedDelta.y
+                    break
+                }
 
-              this.getActiveComponent().updateKeyframes({
-                [this.getActiveComponent().getCurrentTimelineName()]: {
-                  [Element.directlySelected.attributes['haiku-id']]: {
-                    x: {
-                      0: {
-                        value: x
-                      }
-                    },
-                    y: {
-                      0: {
-                        value: y
-                      }
-                    },
-                    'sizeAbsolute.x': {
-                      0: {
-                        value: width
-                      }
-                    },
-                    'sizeAbsolute.y': {
-                      0: {
-                        value: height
+                // Prevent negative
+                width = Math.max(width, 0)
+                height = Math.max(height, 0)
+                if (width === 0) x = Number(Element.directlySelected.attributes.x)
+                if (height === 0) y = Number(Element.directlySelected.attributes.y)
+
+                this.getActiveComponent().updateKeyframes({
+                  [this.getActiveComponent().getCurrentTimelineName()]: {
+                    [Element.directlySelected.attributes['haiku-id']]: {
+                      x: {
+                        0: {
+                          value: x
+                        }
+                      },
+                      y: {
+                        0: {
+                          value: y
+                        }
+                      },
+                      'sizeAbsolute.x': {
+                        0: {
+                          value: width
+                        }
+                      },
+                      'sizeAbsolute.y': {
+                        0: {
+                          value: height
+                        }
                       }
                     }
                   }
-                }
-              }, {from: 'glass'}, () => {})
-              break
-            }
-            case 'polyline':
-            case 'polygon': {
-              let points = SVGPoints.polyPointsStringToPoints(Element.directlySelected.attributes.points)
-              for (let i = 0; i < indices.length; i++) {
-                points[indices[i]][0] += transformedDelta.x
-                points[indices[i]][1] += transformedDelta.y
+                }, {from: 'glass'}, () => {})
+                break
               }
-              this.getActiveComponent().updateKeyframes({
-                [this.getActiveComponent().getCurrentTimelineName()]: {
-                  [Element.directlySelected.attributes['haiku-id']]: {
-                    points: {
-                      0: {
-                        value: SVGPoints.pointsToPolyString(points)
-                      }
-                    }
-                  }
-                }
-              }, {from: 'glass'}, () => {})
-              break
-            }
-
-            case 'line': {
-              const attrUpdate = {}
-              if (indices.includes(0)) {
-                attrUpdate.x1 = Number(Element.directlySelected.attributes.x1) + transformedDelta.x
-                attrUpdate.y1 = Number(Element.directlySelected.attributes.y1) + transformedDelta.y
-              }
-              if (indices.includes(1)) {
-                attrUpdate.x2 = Number(Element.directlySelected.attributes.x2) + transformedDelta.x
-                attrUpdate.y2 = Number(Element.directlySelected.attributes.y2) + transformedDelta.y
-              }
-              this.getActiveComponent().updateKeyframes({
-                [this.getActiveComponent().getCurrentTimelineName()]: {
-                  [Element.directlySelected.attributes['haiku-id']]: attrUpdate
-                }
-              })
-              break
-            }
-
-            case 'path': {
-              const points = SVGPoints.pathToPoints(Element.directlySelected.attributes.d)
-              if (this.state.directSelectionAnchorActivation.meta !== null) {
-                // Modify a handle
-                points[lastIndex].curve['x' + (this.state.directSelectionAnchorActivation.meta + 1)] += transformedDelta.x
-                points[lastIndex].curve['y' + (this.state.directSelectionAnchorActivation.meta + 1)] += transformedDelta.y
-                if (!Globals.isAltKeyDown) {
-                  // Mirror the opposite handle if it exists
-                  if (this.state.directSelectionAnchorActivation.meta === 0 && lastIndex > 0 && points[lastIndex - 1].curve) {
-                    points[lastIndex - 1].curve.x2 -= transformedDelta.x
-                    points[lastIndex - 1].curve.y2 -= transformedDelta.y
-                  } else if (this.state.directSelectionAnchorActivation.meta === 1 && lastIndex < points.length - 1 && points[lastIndex + 1].curve) {
-                    points[lastIndex + 1].curve.x1 -= transformedDelta.x
-                    points[lastIndex + 1].curve.y1 -= transformedDelta.y
-                  }
-                }
-              } else {
-                // Modify anchors
+              case 'polyline':
+              case 'polygon': {
+                let points = SVGPoints.polyPointsStringToPoints(Element.directlySelected.attributes.points)
                 for (let i = 0; i < indices.length; i++) {
-                  points[indices[i]].x += transformedDelta.x
-                  points[indices[i]].y += transformedDelta.y
-                  if (!Globals.isAltKeyDown) {
-                    // Move the handles with it
-                    if (points[indices[i]].curve) {
-                      points[indices[i]].curve.x2 += transformedDelta.x
-                      points[indices[i]].curve.y2 += transformedDelta.y
-                    }
-                    if (indices[i] < points.length - 1 && points[indices[i] + 1].curve) {
-                      points[indices[i] + 1].curve.x1 += transformedDelta.x
-                      points[indices[i] + 1].curve.y1 += transformedDelta.y
+                  points[indices[i]][0] += transformedDelta.x
+                  points[indices[i]][1] += transformedDelta.y
+                }
+                this.getActiveComponent().updateKeyframes({
+                  [this.getActiveComponent().getCurrentTimelineName()]: {
+                    [Element.directlySelected.attributes['haiku-id']]: {
+                      points: {
+                        0: {
+                          value: SVGPoints.pointsToPolyString(points)
+                        }
+                      }
                     }
                   }
-                }
+                }, {from: 'glass'}, () => {})
+                break
               }
-              this.getActiveComponent().updateKeyframes({
-                [this.getActiveComponent().getCurrentTimelineName()]: {
-                  [Element.directlySelected.attributes['haiku-id']]: {
-                    d: {
-                      0: {
-                        value: SVGPoints.pointsToPath(points)
+
+              case 'line': {
+                const attrUpdate = {}
+                if (indices.includes(0)) {
+                  attrUpdate.x1 = Number(Element.directlySelected.attributes.x1) + transformedDelta.x
+                  attrUpdate.y1 = Number(Element.directlySelected.attributes.y1) + transformedDelta.y
+                }
+                if (indices.includes(1)) {
+                  attrUpdate.x2 = Number(Element.directlySelected.attributes.x2) + transformedDelta.x
+                  attrUpdate.y2 = Number(Element.directlySelected.attributes.y2) + transformedDelta.y
+                }
+                this.getActiveComponent().updateKeyframes({
+                  [this.getActiveComponent().getCurrentTimelineName()]: {
+                    [Element.directlySelected.attributes['haiku-id']]: attrUpdate
+                  }
+                })
+                break
+              }
+
+              case 'path': {
+                const points = SVGPoints.pathToPoints(Element.directlySelected.attributes.d)
+                if (this.state.directSelectionAnchorActivation.meta !== null) {
+                  // Modify a handle
+                  points[lastIndex].curve['x' + (this.state.directSelectionAnchorActivation.meta + 1)] += transformedDelta.x
+                  points[lastIndex].curve['y' + (this.state.directSelectionAnchorActivation.meta + 1)] += transformedDelta.y
+                  if (!Globals.isAltKeyDown) {
+                    // Mirror the opposite handle if it exists
+                    if (this.state.directSelectionAnchorActivation.meta === 0 && lastIndex > 0 && points[lastIndex - 1].curve) {
+                      points[lastIndex - 1].curve.x2 -= transformedDelta.x
+                      points[lastIndex - 1].curve.y2 -= transformedDelta.y
+                    } else if (this.state.directSelectionAnchorActivation.meta === 1 && lastIndex < points.length - 1 && points[lastIndex + 1].curve) {
+                      points[lastIndex + 1].curve.x1 -= transformedDelta.x
+                      points[lastIndex + 1].curve.y1 -= transformedDelta.y
+                    }
+                  }
+                } else {
+                  // Modify anchors
+                  for (let i = 0; i < indices.length; i++) {
+                    points[indices[i]].x += transformedDelta.x
+                    points[indices[i]].y += transformedDelta.y
+                    if (!Globals.isAltKeyDown) {
+                      // Move the handles with it
+                      if (points[indices[i]].curve) {
+                        points[indices[i]].curve.x2 += transformedDelta.x
+                        points[indices[i]].curve.y2 += transformedDelta.y
+                      }
+                      if (indices[i] < points.length - 1 && points[indices[i] + 1].curve) {
+                        points[indices[i] + 1].curve.x1 += transformedDelta.x
+                        points[indices[i] + 1].curve.y1 += transformedDelta.y
                       }
                     }
                   }
                 }
-              }, {from: 'glass'}, () => {})
-              break
+                this.getActiveComponent().updateKeyframes({
+                  [this.getActiveComponent().getCurrentTimelineName()]: {
+                    [Element.directlySelected.attributes['haiku-id']]: {
+                      d: {
+                        0: {
+                          value: SVGPoints.pointsToPath(points)
+                        }
+                      }
+                    }
+                  }
+                }, {from: 'glass'}, () => {})
+                break
+              }
+            }
+          } else {
+            // Moving the whole shape
+            
+            switch (Element.directlySelected.type) {
+              case 'ellipse':
+              case 'circle': {
+                this.getActiveComponent().updateKeyframes({
+                  [this.getActiveComponent().getCurrentTimelineName()]: {
+                    [Element.directlySelected.attributes['haiku-id']]: {
+                      cx: {
+                        0: {
+                          value: Number(Element.directlySelected.attributes.cx) + transformedDelta.x
+                        }
+                      },
+                      cy: {
+                        0: {
+                          value: Number(Element.directlySelected.attributes.cy) + transformedDelta.y
+                        }
+                      }
+                    }
+                  }
+                }, {from: 'glass'}, () => {})
+                break
+              }
+              case 'rect': {
+                this.getActiveComponent().updateKeyframes({
+                  [this.getActiveComponent().getCurrentTimelineName()]: {
+                    [Element.directlySelected.attributes['haiku-id']]: {
+                      x: {
+                        0: {
+                          value: Number(Element.directlySelected.attributes.x) + transformedDelta.x
+                        }
+                      },
+                      y: {
+                        0: {
+                          value: Number(Element.directlySelected.attributes.y) + transformedDelta.y
+                        }
+                      }
+                    }
+                  }
+                }, {from: 'glass'}, () => {})
+                break
+              }
+              case 'polyline':
+              case 'polygon': {
+                let points = SVGPoints.polyPointsStringToPoints(Element.directlySelected.attributes.points)
+                for (let i = 0; i < points.length; i++) {
+                  points[i][0] += transformedDelta.x
+                  points[i][1] += transformedDelta.y
+                }
+                this.getActiveComponent().updateKeyframes({
+                  [this.getActiveComponent().getCurrentTimelineName()]: {
+                    [Element.directlySelected.attributes['haiku-id']]: {
+                      points: {
+                        0: {
+                          value: SVGPoints.pointsToPolyString(points)
+                        }
+                      }
+                    }
+                  }
+                }, {from: 'glass'}, () => {})
+                break
+              }
+
+              case 'line': {
+                this.getActiveComponent().updateKeyframes({
+                  [this.getActiveComponent().getCurrentTimelineName()]: {
+                    [Element.directlySelected.attributes['haiku-id']]: {
+                      x1: {
+                        0: {
+                          value: Number(Element.directlySelected.attributes.x1) + transformedDelta.x
+                        }
+                      },
+                      y1: {
+                        0: {
+                          value: Number(Element.directlySelected.attributes.y1) + transformedDelta.y
+                        }
+                      },
+                      x2: {
+                        0: {
+                          value: Number(Element.directlySelected.attributes.x2) + transformedDelta.x
+                        }
+                      },
+                      y2: {
+                        0: {
+                          value: Number(Element.directlySelected.attributes.y2) + transformedDelta.y
+                        }
+                      }
+                    }
+                  }
+                })
+                break
+              }
+
+              case 'path': {
+                const points = SVGPoints.pathToPoints(Element.directlySelected.attributes.d)
+                for(let i = 0; i < points.length; i++) {
+                  points[i].x += transformedDelta.x
+                  points[i].y += transformedDelta.y
+                  if(points[i].curve) {
+                    points[i].curve.x1 += transformedDelta.x
+                    points[i].curve.y1 += transformedDelta.y
+                    points[i].curve.x2 += transformedDelta.x
+                    points[i].curve.y2 += transformedDelta.y
+                  }
+                }
+                this.getActiveComponent().updateKeyframes({
+                  [this.getActiveComponent().getCurrentTimelineName()]: {
+                    [Element.directlySelected.attributes['haiku-id']]: {
+                      d: {
+                        0: {
+                          value: SVGPoints.pointsToPath(points)
+                        }
+                      }
+                    }
+                  }
+                }, {from: 'glass'}, () => {})
+                break
+              }
             }
           }
         } else {
