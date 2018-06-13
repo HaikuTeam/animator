@@ -365,17 +365,19 @@ class Project extends BaseModel {
     return this.actionStack.handleActionInitiation(method, args, metadata, (handleActionResolution) => {
       // Should only called if there is *not* an error, but sticking with err-first convention anyay
       return tx((err, out) => {
-        const integrity = this.describeIntegrity()
+        if (experimentIsEnabled(Experiment.IpcIntegrityCheck)) {
+          const integrity = this.describeIntegrity()
 
-        if (metadata.integrity && this.isRemoteRequest(metadata)) {
-          const mismatch = integritiesMismatched(metadata.integrity, integrity)
-          if (mismatch) {
-            logger.info(`Integrity mismatch:\n  them: ${mismatch[0]}\n  ours: ${mismatch[1]}`)
-            throw new Error(`Unable to update component (${method} in ${this.getAlias()})`)
+          if (metadata.integrity && this.isRemoteRequest(metadata)) {
+            const mismatch = integritiesMismatched(metadata.integrity, integrity)
+            if (mismatch) {
+              logger.info(`Integrity mismatch:\n  them: ${mismatch[0]}\n  ours: ${mismatch[1]}`)
+              throw new Error(`Unable to update component (${method} in ${this.getAlias()})`)
+            }
           }
-        }
 
-        Object.assign(metadata, {integrity})
+          Object.assign(metadata, {integrity})
+        }
 
         // If we originated the action, notify all other views
         if (!this.isRemoteRequest(metadata)) {
@@ -647,12 +649,7 @@ class Project extends BaseModel {
           }
         })
 
-        return Lock.awaitFree([
-          Lock.LOCKS.ActiveComponentWork,
-          Lock.LOCKS.ActiveComponentReload,
-          Lock.LOCKS.FilePerformComponentWork,
-          Lock.LOCKS.ActionStackUndoRedo
-        ], () => {
+        return Lock.awaitAllLocksFreeExcept([Lock.LOCKS.SetCurrentActiveCompnent, Lock.LOCKS.ProjectMethodHandler], () => {
           this._activeComponentSceneName = scenename
 
           this.updateHook('setCurrentActiveComponent', scenename, metadata || this.getMetadata(), (fire) => {
