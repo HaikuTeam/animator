@@ -371,8 +371,10 @@ class Project extends BaseModel {
           if (metadata.integrity && this.isRemoteRequest(metadata)) {
             const mismatch = integritiesMismatched(metadata.integrity, integrity)
             if (mismatch) {
-              logger.info(`Integrity mismatch:\n  them: ${mismatch[0]}\n  ours: ${mismatch[1]}`)
-              throw new Error(`Unable to update component (${method} in ${this.getAlias()})`)
+              logger.error(`Integrity mismatch:\n  them: ${mismatch[0]}\n  ours: ${mismatch[1]}`)
+              if (experimentIsEnabled(Experiment.CrashOnIpcIntegrityCheckFailure)) {
+                throw new Error(`Unable to update component (${method} in ${this.getAlias()})`)
+              }
             }
           }
 

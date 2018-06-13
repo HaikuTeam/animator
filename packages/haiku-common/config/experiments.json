@@ -70,5 +70,9 @@
   "IpcIntegrityCheck": {
     "development": true,
     "production": false
+  },
+  "CrashOnIpcIntegrityCheckFailure": {
+    "development": false,
+    "production": true
   }
 }

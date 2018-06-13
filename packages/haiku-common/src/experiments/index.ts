@@ -26,6 +26,7 @@ export enum Experiment {
   OutliningElementsOnStageFromStage = 'OutliningElementsOnStageFromStage',
   DirectSelectionOfPrimitives = 'DirectSelectionOfPrimitives',
   IpcIntegrityCheck = 'IpcIntegrityCheck',
+  CrashOnIpcIntegrityCheckFailure = 'CrashOnIpcIntegrityCheckFailure',
 }
 
 /**

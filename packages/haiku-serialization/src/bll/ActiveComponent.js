@@ -800,7 +800,8 @@ class ActiveComponent extends BaseModel {
 
   instantiateManaInBytecode (mana, bytecode, overrides, coords) {
     const {
-      hash
+      hash,
+      source
     } = Template.getInsertionPointInfo(
       bytecode.template,
       bytecode.template.children.length,
