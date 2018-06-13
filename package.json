@@ -15,6 +15,7 @@
     "add-experiment": "node ./scripts/add-experiment.js",
     "republish-projects": "node ./scripts/republish-projects.js",
     "changelog": "node ./scripts/changelog.js",
+    "demos": "node ./scripts/demos.js",
     "doctor": "node ./scripts/doctor.js",
     "go": "yarn start default",
     "lint": "standard \"./scripts/**/*.js\" --fix --verbose | snazzy",
