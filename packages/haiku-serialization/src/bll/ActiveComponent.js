@@ -641,9 +641,15 @@ class ActiveComponent extends BaseModel {
     this.$instance.assignConfig({hotEditingMode})
   }
 
+  getInsertionPointInfo () {
+    const bytecode = this.getReifiedBytecode()
+    const template = bytecode && bytecode.template
+    const length = (template && template.children && template.children.length) || 0
+    return Template.getInsertionPointInfo(template, length, 0)
+  }
+
   getInsertionPointHash () {
-    const template = this.getReifiedBytecode().template
-    return Template.getInsertionPointInfo(template, 0, 0).hash
+    return this.getInsertionPointInfo().hash
   }
 
   /**

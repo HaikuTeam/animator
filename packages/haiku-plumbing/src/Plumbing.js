@@ -89,8 +89,7 @@ const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
   teardownMaster: true,
   requestSyndicationInfo: true,
   hoverElement: true,
-  unhoverElement: true,
-  describeIntegrityHandler: true
+  unhoverElement: true
 }
 
 const METHOD_MESSAGES_TIMEOUT = 15000
@@ -114,7 +113,6 @@ const Q_MASTER = { alias: 'master' }
 
 const AWAIT_INTERVAL = 100
 const WAIT_DELAY = 10 * 1000
-const INTEGRITY_CHECK_INTERVAL = 5000
 
 const HAIKU_DEFAULTS = {
   socket: {
@@ -343,35 +341,6 @@ export default class Plumbing extends EventEmitter {
         })
       })
     })
-  }
-
-  checkIntegrity (cb) {
-    return this.invokeActionInAllFolders(
-      'describeIntegrityHandler',
-      [{from: 'plumbing'}],
-      cb
-    )
-  }
-
-  startIntegrityChecker () {
-    if (this.integrityChecker) {
-      return
-    }
-
-    this.integrityChecker = setInterval(() => {
-      this.checkIntegrity((err, results) => {
-        if (!err) {
-          console.log(require('util').inspect(results, false, null))
-        }
-      })
-    }, INTEGRITY_CHECK_INTERVAL)
-  }
-
-  stopIntegrityChecker () {
-    if (this.integrityChecker) {
-      clearInterval(this.integrityChecker)
-      delete this.integrityChecker
-    }
   }
 
   removeWebsocketClient (websocket) {

@@ -5,6 +5,7 @@ const WebSocket = require('ws')
 const dedent = require('dedent')
 const pascalcase = require('pascalcase')
 const lodash = require('lodash')
+const jss = require('json-stable-stringify')
 const { Experiment, experimentIsEnabled } = require('haiku-common/lib/experiments')
 const EnvoyClient = require('haiku-sdk-creator/lib/envoy/EnvoyClient').default
 const EnvoyLogger = require('haiku-sdk-creator/lib/envoy/EnvoyLogger').default
@@ -29,9 +30,6 @@ const ALWAYS_IGNORED_METHODS = {
 const SILENT_METHODS = {
   hoverElement: true,
   unhoverElement: true
-}
-const SERIAL_METHODS = {
-  describeIntegrityHandler: true
 }
 
 /**
@@ -217,11 +215,7 @@ class Project extends BaseModel {
             return cb(err)
           }
 
-          if (SERIAL_METHODS[method]) {
-            return cb(null, result)
-          } else {
-            return cb() // Skip objects that don't play well with Websockets
-          }
+          return cb() // Skip objects that don't play well with Websockets
         }))
       }
 
@@ -371,6 +365,18 @@ class Project extends BaseModel {
     return this.actionStack.handleActionInitiation(method, args, metadata, (handleActionResolution) => {
       // Should only called if there is *not* an error, but sticking with err-first convention anyay
       return tx((err, out) => {
+        const integrity = this.describeIntegrity()
+
+        if (metadata.integrity) {
+          const mismatch = integritiesMismatched(metadata.integrity, integrity)
+          if (mismatch) {
+            logger.info(`Integrity mismatch ${mismatch}`)
+            throw new Error(`Unable to update component (${method} in ${this.getAlias()})`)
+          }
+        }
+
+        Object.assign(metadata, {integrity})
+
         // If we originated the action, notify all other views
         if (!this.isRemoteRequest(metadata)) {
           this.emit.apply(this, ['update', method].concat(args))
@@ -944,25 +950,16 @@ class Project extends BaseModel {
     return path.join(this.getFolder(), 'preview.html')
   }
 
-  /**
-   * @method getComponentBytecodeSHAs
-   * @description Return a dictionary mapping component relpaths to SHA256s representing
-   * their current in-mem bytecode, e.g. {'code/main/code.js': 'abc123abc...'}
-   */
   describeIntegrity () {
-    const shas = {}
+    const descriptor = {}
 
     this.getAllActiveComponents().forEach((ac) => {
-      shas[ac.getRelpath()] = {
-        len: ac.getNormalizedBytecodeJSON().length
+      descriptor[ac.getRelpath()] = {
+        hash: ac.getInsertionPointHash()
       }
     })
 
-    return shas
-  }
-
-  describeIntegrityHandler (metadata, cb) {
-    return cb(null, this.describeIntegrity())
+    return descriptor
   }
 }
 
@@ -1099,6 +1096,15 @@ Project.executeFunctionSpecification = (binding, alias, payload, cb) => {
   if (payload.views && payload.views.indexOf(alias) === -1) return cb()
   const fn = reifyRFO(payload)
   return fn.call(binding, payload, cb)
+}
+
+const integritiesMismatched = (i1, i2) => {
+  const s1 = jss(i1)
+  const s2 = jss(i2)
+  if (s1 !== s2) {
+    return `${s1} vs ${s2}`
+  }
+  return false
 }
 
 // Sorry, hacky. We route some methods to this object dynamically, and in order
