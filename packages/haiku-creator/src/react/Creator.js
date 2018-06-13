@@ -1384,7 +1384,6 @@ export default class Creator extends React.Component {
       { method: 'teardownMaster', params: [this.state.projectModel.getFolder()] },
       () => {
         logger.info('[creator] master torn down')
-        BaseModel.extensions.forEach((klass) => klass.purge())
 
         this.setDashboardVisibility(true, launchingProject)
         this.onTimelineUnmounted()
@@ -1406,6 +1405,10 @@ export default class Creator extends React.Component {
         if (this.state.projectModel) {
           this.state.projectModel.stopHandlingMethods()
         }
+
+        // Clean up our litany of BaseModel extension collections in case an errant reload finds something better left
+        // unfound.
+        BaseModel.extensions.forEach((klass) => klass.purge())
 
         this.setState({
           projectModel: null,
