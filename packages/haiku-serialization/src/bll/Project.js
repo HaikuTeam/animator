@@ -367,7 +367,7 @@ class Project extends BaseModel {
       return tx((err, out) => {
         const integrity = this.describeIntegrity()
 
-        if (metadata.integrity) {
+        if (metadata.integrity && this.isRemoteRequest(metadata)) {
           const mismatch = integritiesMismatched(metadata.integrity, integrity)
           if (mismatch) {
             logger.info(`Integrity mismatch ${mismatch}`)
