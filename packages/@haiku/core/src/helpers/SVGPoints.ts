@@ -147,6 +147,7 @@ function rectToPoints (x: number, y: number, width: number, height: number, rxIn
       },
       {
         y,
+        closed: true,
         x: x + rx,
         curve: {
           type: 'cubic',
@@ -211,6 +212,7 @@ function ellipseToPoints (cx: number, cy: number, rx: number, ry: number) {
     {
       x: cx,
       y: cy - ry,
+      closed: true,
       curve: {
         type: 'cubic',
         x1: cx - rx,
