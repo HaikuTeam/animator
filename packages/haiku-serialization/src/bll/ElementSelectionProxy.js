@@ -1381,6 +1381,12 @@ ElementSelectionProxy.computeScalePropertyGroup = (
   const targetLayout = element.getComputedLayout()
   // Opportunity to return early if we have a downstream "division by 0" problem. Scaling _from_ 0 is not supported (and
   // the UI should make it impossible.
+  
+  // --- hack ---
+  if (targetLayout.scale.x === 0) targetLayout.scale.x = 0.0001
+  if (targetLayout.scale.y === 0) targetLayout.scale.y = 0.0001
+  // --- /hack ---
+  
   if (targetLayout.scale.x === 0 || targetLayout.scale.y === 0) {
     return {
       'scale.x': {
