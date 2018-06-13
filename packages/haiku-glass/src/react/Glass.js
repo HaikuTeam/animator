@@ -858,11 +858,11 @@ export class Glass extends React.Component {
       title
     })
 
-    const translation = (proxy.hasMultipleInSelection())
+    const translation = (proxy.hasAnythingInSelection())
       ? proxy.getConglomerateTranslation()
       : {x: 0, y: 0}
 
-    const size = (proxy.hasMultipleInSelection())
+    const size = (proxy.hasAnythingInSelection())
       ? proxy.getConglomerateSize()
       : this.getActiveComponent().getArtboard().getSize()
 
