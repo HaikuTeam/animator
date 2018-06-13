@@ -370,7 +370,7 @@ class Project extends BaseModel {
         if (metadata.integrity && this.isRemoteRequest(metadata)) {
           const mismatch = integritiesMismatched(metadata.integrity, integrity)
           if (mismatch) {
-            logger.info(`Integrity mismatch ${mismatch}`)
+            logger.info(`Integrity mismatch:\n  them: ${mismatch[0]}\n  ours: ${mismatch[1]}`)
             throw new Error(`Unable to update component (${method} in ${this.getAlias()})`)
           }
         }
@@ -955,7 +955,8 @@ class Project extends BaseModel {
 
     this.getAllActiveComponents().forEach((ac) => {
       descriptor[ac.getRelpath()] = {
-        hash: ac.getInsertionPointHash()
+        hash: ac.getInsertionPointHash(),
+        source: ac.getInsertionPointInfo().source
       }
     })
 
@@ -1102,7 +1103,7 @@ const integritiesMismatched = (i1, i2) => {
   const s1 = jss(i1)
   const s2 = jss(i2)
   if (s1 !== s2) {
-    return `${s1} vs ${s2}`
+    return [s1, s2]
   }
   return false
 }
