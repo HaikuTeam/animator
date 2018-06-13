@@ -146,6 +146,8 @@ class StageTitleBar extends React.Component {
     this.handleMergeResolveTheirs = this.handleMergeResolveTheirs.bind(this)
     this.handleShowEventHandlersEditor = this.handleShowEventHandlersEditor.bind(this)
     this.handleConglomerateComponent = this.handleConglomerateComponent.bind(this)
+    this.handleShowProjectLocationToast = this.handleShowProjectLocationToast.bind(this)
+    this.handleGlobalMenuSave = this.handleGlobalMenuSave.bind(this)
 
     this._isMounted = false
 
@@ -164,41 +166,6 @@ class StageTitleBar extends React.Component {
       snapshotSyndicated: true,
       snapshotPublished: true
     }
-
-    ipcRenderer.on('global-menu:show-project-location-toast', () => {
-      if (!this._isMounted) {
-        return
-      }
-
-      const noticeNotice = this.props.createNotice({
-        type: 'info',
-        title: 'Snapshot saved',
-        message: (
-          <p>
-            <span
-              style={STYLES.link2}
-              onClick={() => {
-                shell.showItemInFolder(this.props.folder)
-              }}
-            >
-              View in Finder
-            </span>
-          </p>
-        )
-      })
-
-      window.setTimeout(() => {
-        this.props.removeNotice(undefined, noticeNotice.id)
-      }, 2500)
-    })
-
-    ipcRenderer.on('global-menu:save', () => {
-      if (!this._isMounted) {
-        return
-      }
-
-      this.handleSaveSnapshotClick()
-    })
   }
 
   componentDidMount () {
@@ -250,12 +217,52 @@ class StageTitleBar extends React.Component {
         }
       }
     })
+
+    ipcRenderer.on('global-menu:show-project-location-toast', this.handleShowProjectLocationToast)
+    ipcRenderer.on('global-menu:save', this.handleGlobalMenuSave)
   }
 
   componentWillUnmount () {
     this._isMounted = false
     clearInterval(this._fetchMasterStateInterval)
+    ipcRenderer.removeListener('global-menu:show-project-location-toast', this.handleShowProjectLocationToast)
+    ipcRenderer.removeListener('global-menu:save', this.handleGlobalMenuSave)
     this.clearSyndicationChecks()
+  }
+
+  handleGlobalMenuSave () {
+    if (!this._isMounted) {
+      return
+    }
+
+    this.handleSaveSnapshotClick()
+  }
+
+  handleShowProjectLocationToast () {
+    if (!this._isMounted) {
+      return
+    }
+
+    const noticeNotice = this.props.createNotice({
+      type: 'info',
+      title: 'Snapshot saved',
+      message: (
+        <p>
+          <span
+            style={STYLES.link2}
+            onClick={() => {
+              shell.showItemInFolder(this.props.folder)
+            }}
+          >
+            View in Finder
+          </span>
+        </p>
+      )
+    })
+
+    window.setTimeout(() => {
+      this.props.removeNotice(undefined, noticeNotice.id)
+    }, 2500)
   }
 
   handleConnectionClick () {
