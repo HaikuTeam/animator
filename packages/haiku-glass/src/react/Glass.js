@@ -858,16 +858,29 @@ export class Glass extends React.Component {
       title
     })
 
-    const translation = (proxy.hasAnythingInSelection())
-      ? proxy.getConglomerateTranslation()
-      : {x: 0, y: 0}
+    let translation
+    if (proxy.hasAnythingInSelectionButNotArtboard()) {
+      translation = proxy.getConglomerateTranslation()
+    } else {
+      translation = {x: 0, y: 0}
+    }
 
-    const size = (proxy.hasAnythingInSelection())
-      ? proxy.getConglomerateSize()
-      : this.getActiveComponent().getArtboard().getSize()
+    let size
+    if (proxy.hasAnythingInSelectionButNotArtboard()) {
+      size = proxy.getConglomerateSize()
+    } else {
+      size = this.getActiveComponent().getArtboard().getSize()
+    }
+
+    let componentIds
+    if (proxy.hasAnythingInSelectionButNotArtboard()) {
+      componentIds = proxy.selection.map((element) => element.getComponentId())
+    } else {
+      componentIds = this.getActiveComponent().getTopLevelElementHaikuIds()
+    }
 
     this.getActiveComponent().conglomerateComponent(
-      proxy.selection.map((element) => element.getComponentId()),
+      componentIds,
       title,
       size,
       translation,
