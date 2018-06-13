@@ -1145,7 +1145,6 @@ export default class Plumbing extends EventEmitter {
   teardownMaster (folder, cb) {
     logger.info(`[plumbing] tearing down master ${folder}`)
     awaitAllLocksFree(() => {
-      BaseModel.extensions.forEach((klass) => klass.purge())
       if (this.masters[folder]) {
         this.masters[folder].active = false
         this.masters[folder].watchOff()
@@ -1178,6 +1177,8 @@ export default class Plumbing extends EventEmitter {
           this._methodMessages.splice(i, 1)
         }
       }
+
+      BaseModel.extensions.forEach((klass) => klass.purge())
 
       cb()
     })
