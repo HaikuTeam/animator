@@ -1384,6 +1384,7 @@ export default class Creator extends React.Component {
       { method: 'teardownMaster', params: [this.state.projectModel.getFolder()] },
       () => {
         logger.info('[creator] master torn down')
+        BaseModel.extensions.forEach((klass) => klass.purge())
 
         this.setDashboardVisibility(true, launchingProject)
         this.onTimelineUnmounted()

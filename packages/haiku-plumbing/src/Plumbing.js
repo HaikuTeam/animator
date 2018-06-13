@@ -29,6 +29,7 @@ import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 import * as ProjectFolder from './ProjectFolder'
 import { crashReport } from 'haiku-serialization/src/utils/carbonite'
+import * as BaseModel from 'haiku-serialization/src/bll/BaseModel'
 import HaikuHomeDir, { HOMEDIR_PATH } from 'haiku-serialization/src/utils/HaikuHomeDir'
 import Project from 'haiku-serialization/src/bll/Project'
 import {awaitAllLocksFree} from 'haiku-serialization/src/bll/Lock'
@@ -1144,6 +1145,7 @@ export default class Plumbing extends EventEmitter {
   teardownMaster (folder, cb) {
     logger.info(`[plumbing] tearing down master ${folder}`)
     awaitAllLocksFree(() => {
+      BaseModel.extensions.forEach((klass) => klass.purge())
       if (this.masters[folder]) {
         this.masters[folder].active = false
         this.masters[folder].watchOff()
