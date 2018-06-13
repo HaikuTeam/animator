@@ -1379,30 +1379,10 @@ ElementSelectionProxy.computeScalePropertyGroup = (
   // We compute the entire scale property group by fixing a point (the *temporary* transform origin) and translating a
   // point (the point being dragged). These are represented by `fixedPoint` and `translatedPoint` respectively.
   const targetLayout = element.getComputedLayout()
-  // Opportunity to return early if we have a downstream "division by 0" problem. Scaling _from_ 0 is not supported (and
-  // the UI should make it impossible.
 
-  // --- hack ---
+  // Prevent zero scale because matrix multiplication will lock the scale to zero permanently while interacting.
   if (targetLayout.scale.x === 0) targetLayout.scale.x = 0.0001
   if (targetLayout.scale.y === 0) targetLayout.scale.y = 0.0001
-  // --- /hack ---
-
-  if (targetLayout.scale.x === 0 || targetLayout.scale.y === 0) {
-    return {
-      'scale.x': {
-        value: targetLayout.scale.x
-      },
-      'scale.y': {
-        value: targetLayout.scale.y
-      },
-      'translation.x': {
-        value: targetLayout.translation.x
-      },
-      'translation.y': {
-        value: targetLayout.translation.y
-      }
-    }
-  }
 
   if (applyConstraints) {
     // The activation point index corresponds to a box with this coordinate system:
