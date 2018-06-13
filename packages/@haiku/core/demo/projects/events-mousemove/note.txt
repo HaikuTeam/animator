@@ -1,0 +1,1 @@
+The blue circle should follow the mouse, but should not flicker. (If it flickers, there is an issue with event bubbling i.e. mousemove transmitted for the stage and target element.)
