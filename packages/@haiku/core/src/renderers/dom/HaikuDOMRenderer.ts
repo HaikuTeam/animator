@@ -399,7 +399,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
         !selector || selector === GLOBAL_LISTENER_KEY ||
         !domEvent || !domEvent.target
       ) {
-        listener(null, domEvent);
+        listener(null, this.wrapEvent(name, domEvent, null, component));
         return;
       }
 
@@ -420,11 +420,22 @@ export default class HaikuDOMRenderer extends HaikuBase {
 
       if (match) {
         if (shouldListenerReceiveEvent(name, domEvent, match)) {
-          listener(domEvent.target, domEvent);
+          listener(domEvent.target, this.wrapEvent(name, domEvent, match, component));
           return;
         }
       }
     });
+  }
+
+  /**
+   * @description An opportunity to return an event aligned with our own API semantics.
+   * Keep in mind that the three elements involved here may be different:
+   *   this.mount - the host node for the component, the node we actually attach listeners to.
+   *   event.target - the element on which the event actually originated
+   *   elementListenedTo - the element that the user is listening to the event on
+   */
+  wrapEvent (eventName: string, nativeEvent, elementListenedTo, hostComponent: HaikuComponent) {
+    return nativeEvent;
   }
 
   getUser () {
