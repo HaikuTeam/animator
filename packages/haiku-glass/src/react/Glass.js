@@ -1297,9 +1297,9 @@ export class Glass extends React.Component {
               if (!experimentIsEnabled(Experiment.DirectSelectionOfPrimitives)) {
                 return
               }
-              
+
               this.setState({directSelectionAnchorActivation: null})
-              
+
               const mouseDownTimeDiff = this.state.lastMouseDownTime ? Date.now() - this.state.lastMouseDownTime : null
               const isDoubleClick = mouseDownTimeDiff ? mouseDownTimeDiff <= DOUBLE_CLICK_THRESHOLD_MS : false
               const prevDirectlySelected = Element.directlySelected
@@ -1316,18 +1316,18 @@ export class Glass extends React.Component {
                     isPointAlongStroke(descendant, mouseDownPosition, Number(descendant.attributes['stroke-width']))
                   )) {
                   clickedItemFound = descendant
-                  if(isDoubleClick) Element.directlySelected = descendant
+                  if (isDoubleClick) Element.directlySelected = descendant
                   return false // stop searching
                 }
               })
-              
+
               if (
-                !clickedItemFound || 
+                !clickedItemFound ||
                 (Element.directlySelected !== null && clickedItemFound !== Element.directlySelected)
               ) {
                 Element.directlySelected = null
               }
-              
+
               // --- Insert new vertex when the selected item is unchanged ---
               if (Element.directlySelected && Element.directlySelected === prevDirectlySelected && (isDoubleClick || Globals.isSpecialKeyDown())) {
                 const transformedLocalMouse = transform2DPoint(mouseDownPosition, Element.directlySelected.layoutAncestryMatrices.reverse())
@@ -1570,7 +1570,16 @@ export class Glass extends React.Component {
         }
         break
     }
-    
+
+    // Save the original state of this element for applying the total drag deltas (in handleMouseMove)
+    if (Element.directlySelected) {
+      this.selectedOriginalClickState = {
+        attributes: JSON.parse(JSON.stringify(Element.directlySelected.attributes)),
+        sizeX: Element.directlySelected.sizeX,
+        sizeY: Element.directlySelected.sizeY
+      }
+    }
+
     this.state.lastMouseDownTime = Date.now()
   }
 
@@ -1956,16 +1965,15 @@ export class Glass extends React.Component {
       } else if (!this.isPreviewMode()) {
         if (experimentIsEnabled(Experiment.DirectSelectionOfPrimitives) && Element.directlySelected) {
           const transformedCurrent = transform2DPoint(mousePositionCurrent, Element.directlySelected.layoutAncestryMatrices.reverse())
-          const transformedPrevious = transform2DPoint(mousePositionPrevious, Element.directlySelected.layoutAncestryMatrices.reverse())
-          const transformedDelta = {
-            x: transformedCurrent.x - transformedPrevious.x,
-            y: transformedCurrent.y - transformedPrevious.y
+          const transformedLastDown = transform2DPoint(lastMouseDownPosition, Element.directlySelected.layoutAncestryMatrices.reverse())
+          const transformedTotalDelta = {
+            x: transformedCurrent.x - transformedLastDown.x,
+            y: transformedCurrent.y - transformedLastDown.y
           }
-          
-          
-          if(this.state.directSelectionAnchorActivation != null) {
+
+          if (this.state.directSelectionAnchorActivation != null) {
             // Moving a selection of control points
-            
+
             const indices = this.state.directSelectionAnchorActivation.indices[Element.directlySelected.attributes['haiku-id']]
             const lastIndex = indices[indices.length - 1]
 
@@ -2010,39 +2018,39 @@ export class Glass extends React.Component {
                 break
               }
               case 'rect': {
-                let x = Number(Element.directlySelected.attributes.x)
-                let y = Number(Element.directlySelected.attributes.y)
-                let width = Element.directlySelected.sizeX
-                let height = Element.directlySelected.sizeY
+                let x = Number(this.selectedOriginalClickState.attributes.x)
+                let y = Number(this.selectedOriginalClickState.attributes.y)
+                let width = this.selectedOriginalClickState.sizeX
+                let height = this.selectedOriginalClickState.sizeY
 
                 switch (lastIndex) {
                   case 0:
-                    x += transformedDelta.x
-                    y += transformedDelta.y
-                    width -= transformedDelta.x
-                    height -= transformedDelta.y
+                    x += transformedTotalDelta.x
+                    y += transformedTotalDelta.y
+                    width -= transformedTotalDelta.x
+                    height -= transformedTotalDelta.y
                     break
                   case 1:
-                    y += transformedDelta.y
-                    width += transformedDelta.x
-                    height -= transformedDelta.y
+                    y += transformedTotalDelta.y
+                    width += transformedTotalDelta.x
+                    height -= transformedTotalDelta.y
                     break
                   case 2:
-                    x += transformedDelta.x
-                    width -= transformedDelta.x
-                    height += transformedDelta.y
+                    x += transformedTotalDelta.x
+                    width -= transformedTotalDelta.x
+                    height += transformedTotalDelta.y
                     break
                   case 3:
-                    width += transformedDelta.x
-                    height += transformedDelta.y
+                    width += transformedTotalDelta.x
+                    height += transformedTotalDelta.y
                     break
                 }
 
                 // Prevent negative
                 width = Math.max(width, 0)
                 height = Math.max(height, 0)
-                if (width === 0) x = Number(Element.directlySelected.attributes.x)
-                if (height === 0) y = Number(Element.directlySelected.attributes.y)
+                if (width === 0) x = Number(this.selectedOriginalClickState.attributes.x)
+                if (height === 0) y = Number(this.selectedOriginalClickState.attributes.y)
 
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
@@ -2074,10 +2082,10 @@ export class Glass extends React.Component {
               }
               case 'polyline':
               case 'polygon': {
-                let points = SVGPoints.polyPointsStringToPoints(Element.directlySelected.attributes.points)
+                let points = SVGPoints.polyPointsStringToPoints(this.selectedOriginalClickState.attributes.points)
                 for (let i = 0; i < indices.length; i++) {
-                  points[indices[i]][0] += transformedDelta.x
-                  points[indices[i]][1] += transformedDelta.y
+                  points[indices[i]][0] += transformedTotalDelta.x
+                  points[indices[i]][1] += transformedTotalDelta.y
                 }
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
@@ -2096,12 +2104,12 @@ export class Glass extends React.Component {
               case 'line': {
                 const attrUpdate = {}
                 if (indices.includes(0)) {
-                  attrUpdate.x1 = Number(Element.directlySelected.attributes.x1) + transformedDelta.x
-                  attrUpdate.y1 = Number(Element.directlySelected.attributes.y1) + transformedDelta.y
+                  attrUpdate.x1 = Number(this.selectedOriginalClickState.attributes.x1) + transformedTotalDelta.x
+                  attrUpdate.y1 = Number(this.selectedOriginalClickState.attributes.y1) + transformedTotalDelta.y
                 }
                 if (indices.includes(1)) {
-                  attrUpdate.x2 = Number(Element.directlySelected.attributes.x2) + transformedDelta.x
-                  attrUpdate.y2 = Number(Element.directlySelected.attributes.y2) + transformedDelta.y
+                  attrUpdate.x2 = Number(this.selectedOriginalClickState.attributes.x2) + transformedTotalDelta.x
+                  attrUpdate.y2 = Number(this.selectedOriginalClickState.attributes.y2) + transformedTotalDelta.y
                 }
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
@@ -2112,62 +2120,61 @@ export class Glass extends React.Component {
               }
 
               case 'path': {
-                const points = SVGPoints.pathToPoints(Element.directlySelected.attributes.d)
-                const closed = points[points.length-1].closed || points[points.length-2].closed
-                
-                if(closed && indices.includes(0) && !indices.includes(points.length-1)) indices.push(points.length-1) // Handle the last duplicate point from the SVG path parsing library
-                
+                const points = SVGPoints.pathToPoints(this.selectedOriginalClickState.attributes.d)
+                const closed = points[points.length - 1].closed || points[points.length - 2].closed
+
+                if (closed && indices.includes(0) && !indices.includes(points.length - 1)) indices.push(points.length - 1) // Handle the last duplicate point from the SVG path parsing library
+
                 if (this.state.directSelectionAnchorActivation.meta !== null) {
                   // Modify a handle
-                  points[lastIndex].curve['x' + (this.state.directSelectionAnchorActivation.meta + 1)] += transformedDelta.x
-                  points[lastIndex].curve['y' + (this.state.directSelectionAnchorActivation.meta + 1)] += transformedDelta.y
+                  points[lastIndex].curve['x' + (this.state.directSelectionAnchorActivation.meta + 1)] += transformedTotalDelta.x
+                  points[lastIndex].curve['y' + (this.state.directSelectionAnchorActivation.meta + 1)] += transformedTotalDelta.y
                   if (!Globals.isAltKeyDown) {
                     // Mirror the opposite handle if it exists
-                    let oppositeIndex = null;
-                    let oppositeHandle = null;
-                    if(this.state.directSelectionAnchorActivation.meta === 0) {
+                    let oppositeIndex = null
+                    let oppositeHandle = null
+                    if (this.state.directSelectionAnchorActivation.meta === 0) {
                       // look backwards
                       oppositeHandle = '2'
-                      if(lastIndex > 1) oppositeIndex = lastIndex - 1  // lastIndex > 1 (instead of 0) because 0 is typically a `moveTo` (SVG is wrong for this application)
-                      else if(closed) oppositeIndex = points.length-1
-                    } else if(this.state.directSelectionAnchorActivation.meta === 1) {
+                      if (lastIndex > 1) oppositeIndex = lastIndex - 1  // lastIndex > 1 (instead of 0) because 0 is typically a `moveTo` (SVG is wrong for this application)
+                      else if (closed) oppositeIndex = points.length - 1
+                    } else if (this.state.directSelectionAnchorActivation.meta === 1) {
                       // look forwards
                       oppositeHandle = '1'
-                      if(lastIndex < points.length-1) oppositeIndex = lastIndex + 1
-                      else if(closed) oppositeIndex = 1 // 1 (instead of 0) because 0 is typically a `moveTo` (SVG is wrong for this application)
+                      if (lastIndex < points.length - 1) oppositeIndex = lastIndex + 1
+                      else if (closed) oppositeIndex = 1 // 1 (instead of 0) because 0 is typically a `moveTo` (SVG is wrong for this application)
                     }
-                    if(oppositeIndex && !points[oppositeIndex].curve) oppositeIndex = null;
-                    if(oppositeIndex) {
-                      points[oppositeIndex].curve[`x${oppositeHandle}`] -= transformedDelta.x
-                      points[oppositeIndex].curve[`y${oppositeHandle}`] -= transformedDelta.y
+                    if (oppositeIndex && !points[oppositeIndex].curve) oppositeIndex = null
+                    if (oppositeIndex) {
+                      points[oppositeIndex].curve[`x${oppositeHandle}`] -= transformedTotalDelta.x
+                      points[oppositeIndex].curve[`y${oppositeHandle}`] -= transformedTotalDelta.y
                     }
                   }
                 } else {
                   // Modify anchors
                   for (let i = 0; i < indices.length; i++) {
-                    points[indices[i]].x += transformedDelta.x
-                    points[indices[i]].y += transformedDelta.y
+                    points[indices[i]].x += transformedTotalDelta.x
+                    points[indices[i]].y += transformedTotalDelta.y
                     if (!Globals.isAltKeyDown) {
                       // Move the handles with it
                       if (points[indices[i]].curve) {
-                        points[indices[i]].curve.x2 += transformedDelta.x
-                        points[indices[i]].curve.y2 += transformedDelta.y
+                        points[indices[i]].curve.x2 += transformedTotalDelta.x
+                        points[indices[i]].curve.y2 += transformedTotalDelta.y
                       }
                       if (indices[i] < points.length - 1 && points[indices[i] + 1].curve) {
-                        points[indices[i] + 1].curve.x1 += transformedDelta.x
-                        points[indices[i] + 1].curve.y1 += transformedDelta.y
+                        points[indices[i] + 1].curve.x1 += transformedTotalDelta.x
+                        points[indices[i] + 1].curve.y1 += transformedTotalDelta.y
                       }
                     }
                   }
                 }
-                
-                const out = SVGPoints.pointsToPath(points)
+
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
                     [Element.directlySelected.attributes['haiku-id']]: {
                       d: {
                         0: {
-                          value: out
+                          value: SVGPoints.pointsToPath(points)
                         }
                       }
                     }
@@ -2178,7 +2185,7 @@ export class Glass extends React.Component {
             }
           } else {
             // Moving the whole shape
-            
+
             switch (Element.directlySelected.type) {
               case 'ellipse':
               case 'circle': {
@@ -2187,12 +2194,12 @@ export class Glass extends React.Component {
                     [Element.directlySelected.attributes['haiku-id']]: {
                       cx: {
                         0: {
-                          value: Number(Element.directlySelected.attributes.cx) + transformedDelta.x
+                          value: Number(this.selectedOriginalClickState.attributes.cx) + transformedTotalDelta.x
                         }
                       },
                       cy: {
                         0: {
-                          value: Number(Element.directlySelected.attributes.cy) + transformedDelta.y
+                          value: Number(this.selectedOriginalClickState.attributes.cy) + transformedTotalDelta.y
                         }
                       }
                     }
@@ -2206,12 +2213,12 @@ export class Glass extends React.Component {
                     [Element.directlySelected.attributes['haiku-id']]: {
                       x: {
                         0: {
-                          value: Number(Element.directlySelected.attributes.x) + transformedDelta.x
+                          value: Number(this.selectedOriginalClickState.attributes.x) + transformedTotalDelta.x
                         }
                       },
                       y: {
                         0: {
-                          value: Number(Element.directlySelected.attributes.y) + transformedDelta.y
+                          value: Number(this.selectedOriginalClickState.attributes.y) + transformedTotalDelta.y
                         }
                       }
                     }
@@ -2221,10 +2228,10 @@ export class Glass extends React.Component {
               }
               case 'polyline':
               case 'polygon': {
-                let points = SVGPoints.polyPointsStringToPoints(Element.directlySelected.attributes.points)
+                let points = SVGPoints.polyPointsStringToPoints(this.selectedOriginalClickState.attributes.points)
                 for (let i = 0; i < points.length; i++) {
-                  points[i][0] += transformedDelta.x
-                  points[i][1] += transformedDelta.y
+                  points[i][0] += transformedTotalDelta.x
+                  points[i][1] += transformedTotalDelta.y
                 }
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
@@ -2246,22 +2253,22 @@ export class Glass extends React.Component {
                     [Element.directlySelected.attributes['haiku-id']]: {
                       x1: {
                         0: {
-                          value: Number(Element.directlySelected.attributes.x1) + transformedDelta.x
+                          value: Number(this.selectedOriginalClickState.attributes.x1) + transformedTotalDelta.x
                         }
                       },
                       y1: {
                         0: {
-                          value: Number(Element.directlySelected.attributes.y1) + transformedDelta.y
+                          value: Number(this.selectedOriginalClickState.attributes.y1) + transformedTotalDelta.y
                         }
                       },
                       x2: {
                         0: {
-                          value: Number(Element.directlySelected.attributes.x2) + transformedDelta.x
+                          value: Number(this.selectedOriginalClickState.attributes.x2) + transformedTotalDelta.x
                         }
                       },
                       y2: {
                         0: {
-                          value: Number(Element.directlySelected.attributes.y2) + transformedDelta.y
+                          value: Number(this.selectedOriginalClickState.attributes.y2) + transformedTotalDelta.y
                         }
                       }
                     }
@@ -2271,15 +2278,15 @@ export class Glass extends React.Component {
               }
 
               case 'path': {
-                const points = SVGPoints.pathToPoints(Element.directlySelected.attributes.d)
-                for(let i = 0; i < points.length; i++) {
-                  points[i].x += transformedDelta.x
-                  points[i].y += transformedDelta.y
-                  if(points[i].curve) {
-                    points[i].curve.x1 += transformedDelta.x
-                    points[i].curve.y1 += transformedDelta.y
-                    points[i].curve.x2 += transformedDelta.x
-                    points[i].curve.y2 += transformedDelta.y
+                const points = SVGPoints.pathToPoints(this.selectedOriginalClickState.attributes.d)
+                for (let i = 0; i < points.length; i++) {
+                  points[i].x += transformedTotalDelta.x
+                  points[i].y += transformedTotalDelta.y
+                  if (points[i].curve) {
+                    points[i].curve.x1 += transformedTotalDelta.x
+                    points[i].curve.y1 += transformedTotalDelta.y
+                    points[i].curve.x2 += transformedTotalDelta.x
+                    points[i].curve.y2 += transformedTotalDelta.y
                   }
                 }
                 this.getActiveComponent().updateKeyframes({
@@ -2507,7 +2514,7 @@ export class Glass extends React.Component {
     if (element.type === 'use') {
       element = element.getTranscludedElement()
     }
-    
+
     const zoom = this.getActiveComponent().getArtboard().getZoom()
     const scale = 1 / (zoom || 1)
 

@@ -52,8 +52,8 @@ const anchorPoint = (index, meta, selected, scale, {x, y}) => ({
 
 // Determines if a path is closed and returns only the logical number of anchor points
 const getLogicalAnchorsFromPoints = (points) => {
-  if(points.length && (points[points.length-2].closed || points[points.length-1].closed)) {
-    return points.slice(0, points.length-1)
+  if (points.length && (points[points.length - 2].closed || points[points.length - 1].closed)) {
+    return points.slice(0, points.length - 1)
   }
   return points
 }
@@ -179,9 +179,9 @@ export const path = (id, {d}, layoutAncestry, controlPointScale, selectedAnchorI
       handles.push({x: points[i].curve.x2, y: points[i].curve.y2, pointIndex: i, handleIndex: 1})
     }
   }
-  
+
   const anchors = getLogicalAnchorsFromPoints(points)
-  
+
   return {
     elementName: 'g',
     attributes: {

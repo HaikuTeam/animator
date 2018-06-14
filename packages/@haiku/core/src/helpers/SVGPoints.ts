@@ -4,7 +4,7 @@
 
 import {BytecodeNode} from '../api/HaikuBytecode';
 import svgPoints from '../vendor/svg-points';
-import {LineSpec, PathSpec, RectSpec, ShapeSpec} from '../vendor/svg-points/types';
+import {LineSpec, PathSpec, ShapeSpec} from '../vendor/svg-points/types';
 import parseCssValueString from './parseCssValueString';
 
 // In leiu of good math, this gives pretty good results for converting arcs to cubic beziers
@@ -178,12 +178,12 @@ function rectToPoints (x: number, y: number, width: number, height: number, rxIn
     {
       x,
       y: y + height,
-      closed: true
+      closed: true,
     },
     {
       x,
       y,
-    } // appease the SVG points library
+    }, // appease the SVG points library
   ];
 }
 
