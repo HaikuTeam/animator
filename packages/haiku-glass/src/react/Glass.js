@@ -2113,18 +2113,33 @@ export class Glass extends React.Component {
 
               case 'path': {
                 const points = SVGPoints.pathToPoints(Element.directlySelected.attributes.d)
+                const closed = points[points.length-1].closed || points[points.length-2].closed
+                
+                if(closed && indices.includes(0) && !indices.includes(points.length-1)) indices.push(points.length-1) // Handle the last duplicate point from the SVG path parsing library
+                
                 if (this.state.directSelectionAnchorActivation.meta !== null) {
                   // Modify a handle
                   points[lastIndex].curve['x' + (this.state.directSelectionAnchorActivation.meta + 1)] += transformedDelta.x
                   points[lastIndex].curve['y' + (this.state.directSelectionAnchorActivation.meta + 1)] += transformedDelta.y
                   if (!Globals.isAltKeyDown) {
                     // Mirror the opposite handle if it exists
-                    if (this.state.directSelectionAnchorActivation.meta === 0 && lastIndex > 0 && points[lastIndex - 1].curve) {
-                      points[lastIndex - 1].curve.x2 -= transformedDelta.x
-                      points[lastIndex - 1].curve.y2 -= transformedDelta.y
-                    } else if (this.state.directSelectionAnchorActivation.meta === 1 && lastIndex < points.length - 1 && points[lastIndex + 1].curve) {
-                      points[lastIndex + 1].curve.x1 -= transformedDelta.x
-                      points[lastIndex + 1].curve.y1 -= transformedDelta.y
+                    let oppositeIndex = null;
+                    let oppositeHandle = null;
+                    if(this.state.directSelectionAnchorActivation.meta === 0) {
+                      // look backwards
+                      oppositeHandle = '2'
+                      if(lastIndex > 1) oppositeIndex = lastIndex - 1  // lastIndex > 1 (instead of 0) because 0 is typically a `moveTo` (SVG is wrong for this application)
+                      else if(closed) oppositeIndex = points.length-1
+                    } else if(this.state.directSelectionAnchorActivation.meta === 1) {
+                      // look forwards
+                      oppositeHandle = '1'
+                      if(lastIndex < points.length-1) oppositeIndex = lastIndex + 1
+                      else if(closed) oppositeIndex = 1 // 1 (instead of 0) because 0 is typically a `moveTo` (SVG is wrong for this application)
+                    }
+                    if(oppositeIndex && !points[oppositeIndex].curve) oppositeIndex = null;
+                    if(oppositeIndex) {
+                      points[oppositeIndex].curve[`x${oppositeHandle}`] -= transformedDelta.x
+                      points[oppositeIndex].curve[`y${oppositeHandle}`] -= transformedDelta.y
                     }
                   }
                 } else {
@@ -2145,12 +2160,14 @@ export class Glass extends React.Component {
                     }
                   }
                 }
+                
+                const out = SVGPoints.pointsToPath(points)
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
                     [Element.directlySelected.attributes['haiku-id']]: {
                       d: {
                         0: {
-                          value: SVGPoints.pointsToPath(points)
+                          value: out
                         }
                       }
                     }

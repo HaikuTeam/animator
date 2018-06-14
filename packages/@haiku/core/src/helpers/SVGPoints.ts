@@ -147,8 +147,8 @@ function rectToPoints (x: number, y: number, width: number, height: number, rxIn
       },
       {
         y,
-        closed: true,
         x: x + rx,
+        closed: true,
         curve: {
           type: 'cubic',
           x1: x,
@@ -161,8 +161,30 @@ function rectToPoints (x: number, y: number, width: number, height: number, rxIn
   }
 
   // Non-rounded rect
-  const shape = {x, y, width, height, rx, ry, type: 'rect'};
-  return svgPoints.toPoints(shape as RectSpec);
+  return [
+    {
+      x,
+      y,
+      moveTo: true,
+    },
+    {
+      y,
+      x: x + width,
+    },
+    {
+      x: x + width,
+      y: y + height,
+    },
+    {
+      x,
+      y: y + height,
+      closed: true
+    },
+    {
+      x,
+      y,
+    } // appease the SVG points library
+  ];
 }
 
 function circleToPoints (cx: number, cy: number, r: number) {
