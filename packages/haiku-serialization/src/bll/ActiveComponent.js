@@ -1117,118 +1117,128 @@ class ActiveComponent extends BaseModel {
           const element = this.findElementByComponentId(id)
 
           // If we can't find this element, we are out of sync and need to crash
-          if (element) {
-            // Grab the bytecode that will represent the element in the sub-component.
-            // We have to do this before deleting the original element or we won't
-            // be able to find the node in the current host template
-            const elementBytecode = element.getQualifiedBytecode()
-
-            // The size of the group selection is used to determine the size of the artboard
-            // of the new component, which means we also have to offset the translations of all
-            // children in accordance with their offset within their original artboard
-            const elementOffset = {
-              'translation.x': translation.x,
-              'translation.y': translation.y
-            }
-
-            const timelineName = this.getCurrentTimelineName()
-
-            const selector = Template.buildHaikuIdSelector(elementBytecode.template.attributes[HAIKU_ID_ATTRIBUTE])
-
-            if (!elementBytecode.timelines[timelineName][selector]) {
-              elementBytecode.timelines[timelineName][selector] = {}
-            }
-
-            for (const propertyName in elementOffset) {
-              const offsetValue = elementOffset[propertyName]
-
-              if (!elementBytecode.timelines[timelineName][selector][propertyName]) {
-                elementBytecode.timelines[timelineName][selector][propertyName] = {}
-              }
-
-              if (!elementBytecode.timelines[timelineName][selector][propertyName][0]) {
-                elementBytecode.timelines[timelineName][selector][propertyName][0] = {}
-              }
-
-              for (const keyframeMs in elementBytecode.timelines[timelineName][selector][propertyName]) {
-                const existingValue = elementBytecode.timelines[timelineName][selector][propertyName][keyframeMs].value || 0
-                const existingCurve = elementBytecode.timelines[timelineName][selector][propertyName][keyframeMs].curve
-
-                if (typeof existingValue === 'function') {
-                  continue
-                }
-
-                const updatedValue = (isNumeric(existingValue))
-                  ? existingValue - offsetValue
-                  : offsetValue
-
-                elementBytecode.timelines[timelineName][selector][propertyName][keyframeMs] = {
-                  value: updatedValue
-                }
-
-                if (existingCurve) {
-                  elementBytecode.timelines[timelineName][selector][propertyName][keyframeMs].curve = existingCurve
-                }
-              }
-            }
-
-            // Insert an identical element into the newly created component
-            newActiveComponent.instantiateBytecode(elementBytecode)
-
-            // Delete all elements that are going to be replaced by the new component
-            this.deleteElementImpl(hostTemplate, id)
-          } else {
-            logger.warn(`[active component] missing element ${id} cannot be deleted`)
+          if (!element) {
+            throw new Error(`Cannot relocate element ${id}`)
           }
+
+          // Grab the bytecode that will represent the element in the sub-component.
+          // We have to do this before deleting the original element or we won't
+          // be able to find the node in the current host template
+          const elementBytecode = element.getQualifiedBytecode()
+
+          // The size of the group selection is used to determine the size of the artboard
+          // of the new component, which means we also have to offset the translations of all
+          // children in accordance with their offset within their original artboard
+          const elementOffset = {
+            'translation.x': translation.x,
+            'translation.y': translation.y
+          }
+
+          const timelineName = this.getCurrentTimelineName()
+
+          const selector = Template.buildHaikuIdSelector(elementBytecode.template.attributes[HAIKU_ID_ATTRIBUTE])
+
+          if (!elementBytecode.timelines[timelineName][selector]) {
+            elementBytecode.timelines[timelineName][selector] = {}
+          }
+
+          for (const propertyName in elementOffset) {
+            const offsetValue = elementOffset[propertyName]
+
+            if (!elementBytecode.timelines[timelineName][selector][propertyName]) {
+              elementBytecode.timelines[timelineName][selector][propertyName] = {}
+            }
+
+            if (!elementBytecode.timelines[timelineName][selector][propertyName][0]) {
+              elementBytecode.timelines[timelineName][selector][propertyName][0] = {}
+            }
+
+            for (const keyframeMs in elementBytecode.timelines[timelineName][selector][propertyName]) {
+              const existingValue = elementBytecode.timelines[timelineName][selector][propertyName][keyframeMs].value || 0
+              const existingCurve = elementBytecode.timelines[timelineName][selector][propertyName][keyframeMs].curve
+
+              if (typeof existingValue === 'function') {
+                continue
+              }
+
+              const updatedValue = (isNumeric(existingValue))
+                ? existingValue - offsetValue
+                : offsetValue
+
+              elementBytecode.timelines[timelineName][selector][propertyName][keyframeMs] = {
+                value: updatedValue
+              }
+
+              if (existingCurve) {
+                elementBytecode.timelines[timelineName][selector][propertyName][keyframeMs].curve = existingCurve
+              }
+            }
+          }
+
+          // Insert an identical element into the newly created component
+          newActiveComponent.instantiateBytecode(elementBytecode)
+
+          // Delete all elements that are going to be replaced by the new component
+          this.deleteElementImpl(hostTemplate, id)
         })
 
-        // Need to ensure we make the requisite updates to disk
-        newActiveComponent.handleUpdatedBytecode(newBytecode)
-
-        const relpath = `./${newActiveComponent.getRelpath()}`
-        const identifier = ModuleWrapper.modulePathToIdentifierName(relpath)
-
-        // Finally we instantiate the created component on our own stage
-        return this.instantiateReference(
-          newActiveComponent, // subcomponent
-          identifier,
-          relpath,
-          coords, // "coords"/"maybeCoords"
-          properties, // properties
-          metadata,
-          (err) => {
-            if (err) {
-              return done(err)
-            }
-
-            // Now set up 'playback' settings on the same keyframes defined for the child.
-            // This makes it clear that keyframes must be defined on the parent in order for
-            // playback to work as expected in the child.
-            const insertion = this.getReifiedBytecode().template.children[0]
-
-            // Places on the host timeline that we're going to create 'playback' keyframes
-            const bookends = [
-              0,
-              Timeline.getMaximumMs(
-                newActiveComponent.getReifiedBytecode(),
-                this.getInstantiationTimelineName()
-              )
-            ]
-
-            bookends.forEach((ms) => {
-              this.upsertProperties(
-                this.getReifiedBytecode(),
-                insertion.attributes[HAIKU_ID_ATTRIBUTE],
-                this.getInstantiationTimelineName(),
-                ms,
-                {'playback': PlaybackSetting.LOOP},
-                'merge'
-              )
-            })
-
-            return done()
+        // We must hard reload the new active component to ensure its own models have
+        // been hydrated, or else element removals on subsequent conglomerations will
+        // fail, i.e. template integrity will mismatch between processes and crash.
+        return newActiveComponent.reload({
+          hardReload: true,
+          clearCacheOptions: {
+            doClearEntityCaches: true
           }
-        )
+        }, {}, () => {
+          // Need to ensure we make the requisite updates to disk
+          newActiveComponent.handleUpdatedBytecode(newBytecode)
+
+          const relpath = `./${newActiveComponent.getRelpath()}`
+          const identifier = ModuleWrapper.modulePathToIdentifierName(relpath)
+
+          // Finally we instantiate the created component on our own stage
+          return this.instantiateReference(
+            newActiveComponent, // subcomponent
+            identifier,
+            relpath,
+            coords, // "coords"/"maybeCoords"
+            properties, // properties
+            metadata,
+            (err) => {
+              if (err) {
+                return done(err)
+              }
+
+              // Now set up 'playback' settings on the same keyframes defined for the child.
+              // This makes it clear that keyframes must be defined on the parent in order for
+              // playback to work as expected in the child.
+              const insertion = this.getReifiedBytecode().template.children[0]
+
+              // Places on the host timeline that we're going to create 'playback' keyframes
+              const bookends = [
+                0,
+                Timeline.getMaximumMs(
+                  newActiveComponent.getReifiedBytecode(),
+                  this.getInstantiationTimelineName()
+                )
+              ]
+
+              bookends.forEach((ms) => {
+                this.upsertProperties(
+                  this.getReifiedBytecode(),
+                  insertion.attributes[HAIKU_ID_ATTRIBUTE],
+                  this.getInstantiationTimelineName(),
+                  ms,
+                  {'playback': PlaybackSetting.LOOP},
+                  'merge'
+                )
+              })
+
+              return done()
+            }
+          )
+        })
       })
     }, (err) => {
       if (err) return cb(err)
