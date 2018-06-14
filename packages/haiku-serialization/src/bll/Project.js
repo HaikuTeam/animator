@@ -638,7 +638,7 @@ class Project extends BaseModel {
   }
 
   setCurrentActiveComponent (scenename, metadata, cb) {
-    return Lock.request(Lock.LOCKS.SetCurrentActiveCompnent, null, (release) => {
+    return Lock.request(Lock.LOCKS.SetCurrentActiveComponent, null, (release) => {
       this.addActiveComponentToMultiComponentTabs(scenename, true)
 
       const activateComponentContinuation = () => {
@@ -651,7 +651,7 @@ class Project extends BaseModel {
           }
         })
 
-        return Lock.awaitAllLocksFreeExcept([Lock.LOCKS.SetCurrentActiveCompnent, Lock.LOCKS.ProjectMethodHandler], () => {
+        return Lock.awaitAllLocksFreeExcept([Lock.LOCKS.SetCurrentActiveComponent, Lock.LOCKS.ProjectMethodHandler], () => {
           this._activeComponentSceneName = scenename
 
           this.updateHook('setCurrentActiveComponent', scenename, metadata || this.getMetadata(), (fire) => {
