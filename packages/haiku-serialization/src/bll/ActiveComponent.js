@@ -641,11 +641,31 @@ class ActiveComponent extends BaseModel {
     this.$instance.assignConfig({hotEditingMode})
   }
 
-  getInsertionPointInfo () {
+  getInsertionPointInfo (nonce = 0) {
     const bytecode = this.getReifiedBytecode()
-    const template = bytecode && bytecode.template
-    const length = (template && template.children && template.children.length) || 0
-    return Template.getInsertionPointInfo(template, length, 0)
+
+    const mana = bytecode && bytecode.template
+
+    const index = (mana && mana.children && mana.children.length) || 0
+
+    const template = mana && Template.manaWithOnlyMinimalProps(mana, (__reference) => {
+      // Here we are expected to return the value for __reference
+      if (ModuleWrapper.isValidReference(__reference)) {
+        return __reference
+      }
+
+      throw new Error(`Invalid __reference ${__reference}`)
+    })
+
+    const source = jss(template) + '-' + index + '-' + nonce
+
+    const hash = Template.getHash(source, /* len= */ 6)
+
+    return {
+      template,
+      source,
+      hash
+    }
   }
 
   getInsertionPointHash () {
@@ -801,11 +821,7 @@ class ActiveComponent extends BaseModel {
   instantiateManaInBytecode (mana, bytecode, overrides, coords) {
     const {
       hash
-    } = Template.getInsertionPointInfo(
-      bytecode.template,
-      bytecode.template.children.length,
-      0
-    )
+    } = this.getInsertionPointInfo(0)
 
     const timelineName = this.getInstantiationTimelineName()
     const timelineTime = this.getInstantiationTimelineTime()
@@ -1237,11 +1253,7 @@ class ActiveComponent extends BaseModel {
 
     const {
       hash
-    } = Template.getInsertionPointInfo(
-      existingTemplate,
-      existingTemplate.children.length,
-      0
-    )
+    } = this.getInsertionPointInfo(0)
 
     Bytecode.padIds(incomingBytecode, (oldId) => {
       return Template.getHash(`${oldId}-${hash}`, 12)
@@ -1646,11 +1658,7 @@ class ActiveComponent extends BaseModel {
 
       const {
         hash
-      } = Template.getInsertionPointInfo(
-        existingBytecode.template,
-        existingBytecode.template.children.length,
-        numMatchingNodes++
-      )
+      } = this.getInsertionPointInfo(numMatchingNodes++)
 
       const timelinesObject = Template.prepareManaAndBuildTimelinesObject(
         safeIncoming,
@@ -1849,11 +1857,7 @@ class ActiveComponent extends BaseModel {
       // As usual, we use a hash rather than randomness because of multithreading
       const {
         hash
-      } = Template.getInsertionPointInfo(
-        ourBytecode.template,
-        ourBytecode.template.children.length,
-        0
-      )
+      } = this.getInsertionPointInfo(0)
 
       // Pasting bytecode is implemented as a bytecode merge, so we pad all of the
       // ids inside the bytecode and then merge it, so we end up with a new element

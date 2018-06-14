@@ -6,7 +6,6 @@ const SVGPoints = require('@haiku/core/lib/helpers/SVGPoints').default
 const convertManaLayout = require('@haiku/core/lib/layout/convertManaLayout').default
 const visitManaTree = require('@haiku/core/lib/helpers/visitManaTree').default
 const manaToXml = require('@haiku/core/lib/helpers/manaToXml').default
-const jsonStableStringify = require('json-stable-stringify')
 const assign = require('lodash.assign')
 const defaults = require('lodash.defaults')
 const BasicUtils = require('@haiku/core/lib/helpers/BasicUtils').default
@@ -161,7 +160,7 @@ Template.manaWithOnlyMinimalProps = (mana, referenceSerializer) => {
       // When written to the file, we should end up with `elementName: fooBar,...`
       // This assumes that a require() statement gets added to the AST later
       out.elementName = {
-        __reference: referenceSerializer(out.elementName)
+        __reference: referenceSerializer(out.elementName.__reference)
       }
     }
 
@@ -411,29 +410,6 @@ Template.isHaikuIdSelector = (selector) => {
 
 Template.haikuSelectorToHaikuId = (selector) => {
   return selector.split(':')[1]
-}
-
-Template.getInsertionPointInfo = (mana, index, depth, len = 6) => {
-  const template = Template.manaWithOnlyMinimalProps(mana, (bytecode) => {
-    // Here we are expected to return the value for __reference
-    if (ModuleWrapper.isValidReference(bytecode.__reference)) {
-      return bytecode.__reference
-    }
-
-    throw new Error(`Invalid __reference ${bytecode.__reference}`)
-
-    return true
-  })
-
-  const source = jsonStableStringify(template) + '-' + index + '-' + depth
-
-  const hash = Template.getHash(source, len)
-
-  return {
-    template,
-    source,
-    hash
-  }
 }
 
 Template.getHash = (str, len = 6) => {
@@ -1128,4 +1104,3 @@ const Expression = require('./Expression')
 const Property = require('./Property')
 const State = require('./State')
 const Timeline = require('./Timeline')
-const ModuleWrapper = require('./ModuleWrapper')
