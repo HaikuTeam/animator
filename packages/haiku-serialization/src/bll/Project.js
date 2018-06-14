@@ -372,7 +372,7 @@ class Project extends BaseModel {
             const mismatch = integritiesMismatched(metadata.integrity, integrity)
             if (mismatch) {
               logger.error(`
-                Integrity mismatch due to '${method}':
+                Integrity mismatch due to ${method} in ${this.getAlias()}:
                   ${metadata.from} (their result):
                     ${mismatch[0]}
                   ${this.getAlias()} (our result):
