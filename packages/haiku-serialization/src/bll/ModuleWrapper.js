@@ -201,7 +201,7 @@ class ModuleWrapper extends BaseModel {
         // Nested components are represented thusly:
         // - The element name is the bytecode of the subcomponent
         // - When serialized the element name becomes just an identifier in the code
-        // - Upon reification, it's loaded as bytecode with the appropriate __-references
+        // - Upon reification, it's loaded as bytecode with the appropriate __-properties
         elementName: exp,
         attributes: {
           [HAIKU_SOURCE_ATTRIBUTE]: source, // This important and is used for lookups relative to the host component
