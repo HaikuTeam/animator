@@ -649,12 +649,7 @@ class ActiveComponent extends BaseModel {
     const index = (mana && mana.children && mana.children.length) || 0
 
     const template = mana && Template.manaWithOnlyMinimalProps(mana, (__reference) => {
-      // Here we are expected to return the value for __reference
-      if (ModuleWrapper.isValidReference(__reference)) {
-        return __reference
-      }
-
-      throw new Error(`Invalid __reference ${__reference} in ${this.getRelpath()}`)
+      return {}
     })
 
     const source = jss(template) + '-' + index + '-' + nonce
