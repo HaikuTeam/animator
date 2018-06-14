@@ -247,13 +247,36 @@ ModuleWrapper.buildReference = (type, host, source, identifier) => {
   return JSON.stringify({type, host, source, identifier})
 }
 
-ModuleWrapper.parseReference = (ref) => {
-  if (typeof ref !== 'string') {
+ModuleWrapper.isValidReference = (__reference) => {
+  if (!__reference) {
+    return false
+  }
+
+  if (typeof __reference !== 'string') {
+    return false
+  }
+
+  const ref = ModuleWrapper.parseReference(__reference)
+
+  if (!ref) {
+    return false
+  }
+
+  return (
+    ref.type &&
+    ref.host &&
+    ref.source &&
+    ref.identifier
+  )
+}
+
+ModuleWrapper.parseReference = (__reference) => {
+  if (typeof __reference !== 'string') {
     return null
   }
 
   try {
-    return JSON.parse(ref)
+    return JSON.parse(__reference)
   } catch (exception) {
     logger.warn('[module wrapper]', exception)
     return null

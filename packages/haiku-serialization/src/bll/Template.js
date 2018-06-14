@@ -149,7 +149,7 @@ Template.mirrorHaikuUids = (fromNode, toNode) => {
   }
 }
 
-Template.manaWithOnlyMinimalProps = (mana) => {
+Template.manaWithOnlyMinimalProps = (mana, referenceSerializer) => {
   if (mana && typeof mana === 'object') {
     const out = {}
 
@@ -161,7 +161,7 @@ Template.manaWithOnlyMinimalProps = (mana) => {
       // When written to the file, we should end up with `elementName: fooBar,...`
       // This assumes that a require() statement gets added to the AST later
       out.elementName = {
-        __reference: out.elementName.__reference
+        __reference: referenceSerializer(out.elementName)
       }
     }
 
@@ -187,7 +187,9 @@ Template.manaWithOnlyMinimalProps = (mana) => {
         // This sidesteps the problem where one process shows e.g. children:["BLAH"]
         // but another process shows children:[], which results in unstable hashes
         return child && typeof child !== 'string'
-      }).map(Template.manaWithOnlyMinimalProps)
+      }).map((child) => {
+        return Template.manaWithOnlyMinimalProps(child, referenceSerializer)
+      })
     } else {
       out.children = []
     }
@@ -412,7 +414,16 @@ Template.haikuSelectorToHaikuId = (selector) => {
 }
 
 Template.getInsertionPointInfo = (mana, index, depth, len = 6) => {
-  const template = Template.manaWithOnlyMinimalProps(mana)
+  const template = Template.manaWithOnlyMinimalProps(mana, (bytecode) => {
+    // Here we are expected to return the value for __reference
+    if (ModuleWrapper.isValidReference(bytecode.__reference)) {
+      return bytecode.__reference
+    }
+
+    throw new Error(`Invalid __reference ${bytecode.__reference}`)
+
+    return true
+  })
 
   const source = jsonStableStringify(template) + '-' + index + '-' + depth
 
@@ -1117,3 +1128,4 @@ const Expression = require('./Expression')
 const Property = require('./Property')
 const State = require('./State')
 const Timeline = require('./Timeline')
+const ModuleWrapper = require('./ModuleWrapper')
