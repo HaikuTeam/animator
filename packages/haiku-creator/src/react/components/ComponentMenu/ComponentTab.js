@@ -77,13 +77,13 @@ class ComponentTab extends React.Component {
     return (
       <div
         style={STYLES.container}>
-        <div
+        {this.props.tab && <div
           onClick={this.changeComponent}
           style={[STYLES.tab, (this.props.forceActive || this.props.tab.active) && STYLES.tab.active]}>
           <span style={STYLES.label} className='no-select'>
             {toTitleCase(this.props.tab.scenename)}
           </span>
-        </div>
+        </div>}
       </div>
     )
   }
