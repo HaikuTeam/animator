@@ -284,7 +284,7 @@ function doInit (context: IContext) {
   if (npmrc.indexOf('@haiku') === -1) {
     prependFile.sync('.npmrc', dedent`
       //reservoir.haiku.ai:8910/:_authToken=
-      @haiku:registry=https://reservoir.haiku.ai:8910/
+      @haiku:registry=https://reservoir.haiku.ai:8910/\n
     `);
   }
 }
