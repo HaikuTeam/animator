@@ -341,7 +341,7 @@ export default class Master extends EventEmitter {
           logger.info('[master] illustrator pipeline running; please wait')
           Illustrator.importSVG(abspath)
           logger.info('[master] illustrator import done')
-          return void (0)
+          return
         }
 
         if (extname === '.js' && basename === 'code') {
