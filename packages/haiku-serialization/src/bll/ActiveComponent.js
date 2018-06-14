@@ -654,7 +654,7 @@ class ActiveComponent extends BaseModel {
         return __reference
       }
 
-      throw new Error(`Invalid __reference ${__reference}`)
+      throw new Error(`Invalid __reference ${__reference} in ${this.getRelpath()}`)
     })
 
     const source = jss(template) + '-' + index + '-' + nonce
