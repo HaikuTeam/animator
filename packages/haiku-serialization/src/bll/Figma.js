@@ -16,11 +16,13 @@ const IS_FIGMA_FOLDER_RE = /\.figma\.contents/
 const VALID_TYPES = {
   SLICE: 'SLICE',
   GROUP: 'GROUP',
-  FRAME: 'FRAME'
+  FRAME: 'FRAME',
+  COMPONENT: 'COMPONENT'
 }
 const FOLDERS = {
   [VALID_TYPES.SLICE]: 'slices/',
   [VALID_TYPES.GROUP]: 'groups/',
+  [VALID_TYPES.COMPONENT]: 'groups/',
   [VALID_TYPES.FRAME]: 'frames/'
 }
 
@@ -150,7 +152,7 @@ class Figma {
   getSVGLinks (elements, id) {
     return new Promise((resolve, reject) => {
       const ids = elements.map((element) => element.id)
-      const params = new URLSearchParams([['format', 'svg'], ['ids', ids]])
+      const params = new URLSearchParams([['format', 'svg'], ['ids', ids], ['svg_include_id', true]])
       const uri = API_BASE + 'images/' + id + '?' + params.toString()
 
       if (ids.length === 0) {

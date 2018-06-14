@@ -223,6 +223,19 @@
             },
             "constraints": { "vertical": "TOP", "horizontal": "LEFT" },
             "exportSettings": []
+          },
+          {
+            "id": "7:1",
+            "name": "Component",
+            "type": "COMPONENT",
+            "absoluteBoundingBox": {
+              "x": -574,
+              "y": -116,
+              "width": 173,
+              "height": 179
+            },
+            "constraints": { "vertical": "TOP", "horizontal": "LEFT" },
+            "exportSettings": []
           }
         ],
         "backgroundColor": {
