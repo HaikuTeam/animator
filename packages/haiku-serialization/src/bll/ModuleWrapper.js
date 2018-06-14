@@ -190,13 +190,7 @@ class ModuleWrapper extends BaseModel {
         source = Template.normalizePath(`./${relpath}`)
       }
 
-      const safe = {} // Clone to avoid clobbering/polluting with these properties
-
-      for (const key in exp) {
-        safe[key] = exp[key]
-      }
-
-      safe.__reference = ModuleWrapper.buildReference(
+      exp.__reference = ModuleWrapper.buildReference(
         ModuleWrapper.REF_TYPES.COMPONENT, // type
         Template.normalizePath(`./${hostComponentRelpath}`), // host
         Template.normalizePath(`./${source}`),
@@ -208,7 +202,7 @@ class ModuleWrapper extends BaseModel {
         // - The element name is the bytecode of the subcomponent
         // - When serialized the element name becomes just an identifier in the code
         // - Upon reification, it's loaded as bytecode with the appropriate __-references
-        elementName: safe,
+        elementName: exp,
         attributes: {
           [HAIKU_SOURCE_ATTRIBUTE]: source, // This important and is used for lookups relative to the host component
           [HAIKU_VAR_ATTRIBUTE]: identifier, // This is important when reloading bytecode with instantiated components from disk
