@@ -28,6 +28,7 @@ export enum Experiment {
   IpcIntegrityCheck = 'IpcIntegrityCheck',
   CrashOnIpcIntegrityCheckFailure = 'CrashOnIpcIntegrityCheckFailure',
   IncludeSourceInIntegrityHash = 'IncludeSourceInIntegrityHash',
+  OrderedActionStack = 'OrderedActionStack',
 }
 
 /**

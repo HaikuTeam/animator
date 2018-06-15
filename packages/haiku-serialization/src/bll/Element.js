@@ -702,11 +702,7 @@ class Element extends BaseModel {
     return propertyGroupValue
   }
 
-  remove (metadata) {
-    this.unselectSoftly(metadata)
-    this.hoverOffSoftly(metadata)
-
-    // Destroy after the above so we retain our UID for the necessary actions
+  remove () {
     this.destroy()
 
     const row = this.getHeadingRow()

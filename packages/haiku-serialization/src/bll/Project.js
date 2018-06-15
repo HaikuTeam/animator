@@ -93,6 +93,9 @@ class Project extends BaseModel {
     this.isHandlingMethods = true
 
     this.interactionMode = InteractionMode.EDIT
+
+    // An internal counter of how many updateHook requests we have dispatched.
+    this.actionStackIndex = 0
   }
 
   teardown () {
@@ -362,13 +365,26 @@ class Project extends BaseModel {
     this.actionStack.redo(options, metadata, cb)
   }
 
+  advanceActionStackIndex () {
+    this.actionStackIndex++
+  }
+
   updateHook (...args) {
     const method = args.shift()
     const tx = args.pop()
-    const metadata = args[args.length - 1]
-    return this.actionStack.handleActionInitiation(method, args, metadata, (handleActionResolution) => {
-      // Should only called if there is *not* an error, but sticking with err-first convention anyay
-      return tx((err, out) => {
+    // Make our own copy of metadata to munge on, to ensure that we don't pass actionStackIndex along to dependent
+    // methods.
+    const metadata = Object.assign({}, args.pop())
+    args.push(metadata)
+    // In case this was provided by a parent updateHook.
+    delete metadata.actionStackIndex
+
+    return this.actionStack.handleActionInitiation(
+      method,
+      args,
+      metadata,
+      (handleActionResolution) => tx((err, out) => {
+        // Should only called if there is *not* an error, but sticking with err-first convention anyway.
         if (experimentIsEnabled(Experiment.IpcIntegrityCheck)) {
           const integrity = this.describeIntegrity()
 
@@ -393,17 +409,21 @@ class Project extends BaseModel {
 
         // If we originated the action, notify all other views
         if (!this.isRemoteRequest(metadata)) {
-          this.emit.apply(this, ['update', method].concat(args))
-          this.actionStack.fireAction(method, [this.getFolder()].concat(args), null, () => {
+          this.emit('update', method, ...args)
+          this.actionStack.enqueueAction(method, [this.getFolder()].concat(args), () => {
+            // Only assign the actionStackIndex before we're actually going to fire the action. This ensures we don't
+            // prematurely increment our dispatch counter when we're only going to accumulate and defer a remote update.
+            metadata.actionStackIndex = this.actionStackIndex
+            this.advanceActionStackIndex()
             handleActionResolution(err, out)
           })
         } else {
           // Otherwise we received an update and may need to update ourselves
-          this.emit.apply(this, ['remote-update', method].concat(args))
+          this.emit('remote-update', method, ...args)
           handleActionResolution(err, out)
         }
       })
-    })
+    )
   }
 
   getWebsocketBroadcastDefaults () {

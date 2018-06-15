@@ -1293,10 +1293,10 @@ class ActiveComponent extends BaseModel {
               release()
               fire(null, manaForWrapperElement)
 
-              // Immediately select the element after it is placed on stage
-              this.selectElement(manaForWrapperElement.attributes[HAIKU_ID_ATTRIBUTE], metadata, () => {})
+              cb(null, manaForWrapperElement)
 
-              return cb(null, manaForWrapperElement)
+              // Immediately select the element after it is placed on stage
+              return this.selectElement(manaForWrapperElement.attributes[HAIKU_ID_ATTRIBUTE], metadata, () => {})
             })
           }
 
@@ -1388,7 +1388,7 @@ class ActiveComponent extends BaseModel {
             componentIds.forEach((componentId) => {
               const element = this.findElementByComponentId(componentId)
               if (element) {
-                element.remove(metadata)
+                element.remove()
               }
               this.deleteElementImpl(mana, componentId)
             })
