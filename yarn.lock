@@ -9330,6 +9330,8 @@ react-html-attributes@^1.3.0:
 react-icons@^2.2.7:
   version "2.2.7"
   resolved "https://registry.yarnpkg.com/react-icons/-/react-icons-2.2.7.tgz#d7860826b258557510dac10680abea5ca23cf650"
+  dependencies:
+    react-icon-base "2.1.0"
 
 react-inspector@^2.2.2:
   version "2.2.2"
