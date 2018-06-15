@@ -21,43 +21,17 @@ pipeline {
                     nvm install 8.9.3
                     nvm use 8.9.3
                     curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.7.0'''
+                yarnInstallUnixLike()
             }
         }
         stage('Health') {
             parallel {
-                stage('Lint') {
-                    agent {
-                        label 'master'
-                    }
-                    steps {
-                        setBuildStatus(CONTEXT_LINT, 'lint started', STATUS_PENDING)
-                        yarnInstallUnixLike()
-                        yarnRun('lint-report')
-                    }
-                    post {
-                        always {
-                            checkstyle canRunOnFailed: true, defaultEncoding: '', healthy: '', pattern: '**/checkstyle-result.xml', unHealthy: ''
-                        }
-                        success {
-                            setBuildStatus(CONTEXT_LINT, 'no lint errors', STATUS_SUCCESS)
-                        }
-                        failure {
-                            setBuildStatus(CONTEXT_LINT, 'lint errors found', STATUS_FAILURE)
-                            slackSend([
-                                    channel: 'engineering-feed',
-                                    color: 'warning',
-                                    message: ":professor-farnsworth: PR #${env.ghprbPullId} (https://github.com/HaikuTeam/mono/pull/${env.ghprbPullId}) has lint errors!"
-                            ])
-                        }
-                    }
-                }
                 stage('Test-macOS') {
                     agent {
                         label 'master'
                     }
                     steps {
                         setBuildStatus(CONTEXT_TEST_MAC, 'tests started', STATUS_PENDING)
-                        yarnInstallUnixLike()
                         yarnRun('compile-all')
                         yarnRun('test-report')
                     }
@@ -83,6 +57,31 @@ pipeline {
                                     message: ":jenkins-rage: PR #${env.ghprbPullId} (https://github.com/HaikuTeam/mono/pull/${env.ghprbPullId}) has failing tests!"
                             ])
                         }
+                    }
+                }
+            }
+            stage('Lint') {
+                agent {
+                    label 'master'
+                }
+                steps {
+                    setBuildStatus(CONTEXT_LINT, 'lint started', STATUS_PENDING)
+                    yarnRun('lint-report')
+                }
+                post {
+                    always {
+                        checkstyle canRunOnFailed: true, defaultEncoding: '', healthy: '', pattern: '**/checkstyle-result.xml', unHealthy: ''
+                    }
+                    success {
+                        setBuildStatus(CONTEXT_LINT, 'no lint errors', STATUS_SUCCESS)
+                    }
+                    failure {
+                        setBuildStatus(CONTEXT_LINT, 'lint errors found', STATUS_FAILURE)
+                        slackSend([
+                                channel: 'engineering-feed',
+                                color: 'warning',
+                                message: ":professor-farnsworth: PR #${env.ghprbPullId} (https://github.com/HaikuTeam/mono/pull/${env.ghprbPullId}) has lint errors!"
+                        ])
                     }
                 }
             }
