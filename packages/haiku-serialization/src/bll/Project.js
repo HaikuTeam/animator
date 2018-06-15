@@ -12,7 +12,6 @@ const EnvoyLogger = require('haiku-sdk-creator/lib/envoy/EnvoyLogger').default
 const { GLASS_CHANNEL } = require('haiku-sdk-creator/lib/glass')
 const logger = require('./../utils/LoggerInstance')
 const BaseModel = require('./BaseModel')
-const reifyRO = require('@haiku/core/lib/reflection/reifyRO').default
 const reifyRFO = require('@haiku/core/lib/reflection/reifyRFO').default
 const {InteractionMode} = require('@haiku/core/lib/helpers/interactionModes')
 const toTitleCase = require('./helpers/toTitleCase')
@@ -1054,7 +1053,6 @@ const ActiveComponent = require('./ActiveComponent')
 const Asset = require('./Asset')
 const File = require('./File')
 const ModuleWrapper = require('./ModuleWrapper')
-const Template = require('./Template')
 
 function getCodeJs (haikuComponentName, metadata = {}) {
   return dedent`

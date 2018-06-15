@@ -675,7 +675,7 @@ export default class HaikuComponent extends HaikuElement {
 
     for (const eventSelector in eventHandlers) {
       for (const eventName in eventHandlers[eventSelector]) {
-        const descriptor = eventHandlers[eventSelector][eventName]
+        const descriptor = eventHandlers[eventSelector][eventName];
 
         if (!descriptor || !descriptor.handler) {
           continue;
