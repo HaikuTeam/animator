@@ -1513,11 +1513,7 @@ class Element extends BaseModel {
     // Note the difference from the target instance
     const instance = this.getCoreHostComponentInstance()
     // FIXME: Handle race when component instance isn't present
-    if (!instance) {
-      return null
-    }
-    const element = instance.findElementsByHaikuId(this.getComponentId())[0]
-    return element
+    return instance ? instance.findElementsByHaikuId(this.getComponentId())[0] : null
   }
 
   getHaikuElement () {

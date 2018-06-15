@@ -81,6 +81,7 @@
     "cross-env": "^5.1.6",
     "eslint": "^3.19.0",
     "eslint-config-standard": "^10.2.1",
+    "haiku-testing": "3.4.5",
     "semver": "^5.4.1",
     "snazzy": "^7.0.0",
     "standard": "^10.0.2",

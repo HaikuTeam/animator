@@ -230,9 +230,6 @@ class Timeline extends React.Component {
         case 'setCurrentActiveComponent':
           this.handleActiveComponentReady()
           break
-        case 'application-mounted':
-          this.handleHaikuComponentMounted()
-          break
         case 'reloaded':
           if (arg === 'hard' && this.mounted) {
             this.forceUpdate()
@@ -451,16 +448,7 @@ class Timeline extends React.Component {
     ipcRenderer.send('topmenu:update', {
       subComponents: this.project.describeSubComponents()
     })
-  }
 
-  mountHaikuComponent () {
-    // The Timeline UI doesn't display the component, so we don't bother giving it a ref
-    this.getActiveComponent().mountApplication(null, {
-      freeze: true // No display means no need for overflow settings, etc
-    })
-  }
-
-  handleHaikuComponentMounted () {
     this.loadUserSettings()
     this.getActiveComponent().getCurrentTimeline().setTimelinePixelWidth(document.body.clientWidth - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() + 20)
 
@@ -472,6 +460,13 @@ class Timeline extends React.Component {
       name: 'project-state-change',
       what: 'component:mounted',
       scenename: this.getActiveComponent().getSceneName()
+    })
+  }
+
+  mountHaikuComponent () {
+    // The Timeline UI doesn't display the component, so we don't bother giving it a ref
+    this.getActiveComponent().mountApplication(null, {
+      freeze: true // No display means no need for overflow settings, etc
     })
   }
 

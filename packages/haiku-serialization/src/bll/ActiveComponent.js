@@ -129,11 +129,6 @@ class ActiveComponent extends BaseModel {
     // Used to control how we render in an editing environment, e.g. preview mode
     this.interactionMode = DEFAULT_INTERACTION_MODE
 
-    this.project.upsertFile({
-      relpath: this.getRelpath(),
-      type: File.TYPES.code
-    })
-
     Element.on('update', (element, what, metadata) => {
       if (element.component === this) {
         if (
@@ -343,25 +338,7 @@ class ActiveComponent extends BaseModel {
   }
 
   fetchActiveBytecodeFile () {
-    const folder = this.project.getFolder()
-    const relpath = this.getRelpath()
-    const uid = path.join(folder, relpath)
-
-    let file = File.findById(uid)
-
-    // There is a race where the file might not be ready, so we upsert
-    if (!file) {
-      logger.warn(`[active component (${folder})] fetchActiveBytecodeFile called before file was upserted`)
-      file = this.project.upsertFile({
-        relpath,
-        type: File.TYPES.code
-      })
-
-      // This calls require, which might introduce its own race ¯\_(ツ)_/¯
-      file.mod.load()
-    }
-
-    return file
+    return this.file
   }
 
   forceFlush () {
@@ -648,9 +625,7 @@ class ActiveComponent extends BaseModel {
 
     const index = (mana && mana.children && mana.children.length) || 0
 
-    const template = mana && Template.manaWithOnlyMinimalProps(mana, (__reference) => {
-      return {}
-    })
+    const template = mana && Template.manaWithOnlyMinimalProps(mana, () => ({}))
 
     const source = jss(template) + '-' + index + '-' + nonce
 
@@ -4404,6 +4379,7 @@ class ActiveComponent extends BaseModel {
 ActiveComponent.DEFAULT_OPTIONS = {
   required: {
     uid: true,
+    file: true,
     project: true,
     relpath: true,
     scenename: true
