@@ -173,10 +173,8 @@ class ActionStack extends BaseModel {
       before()
     }
 
-    return this.emit('next', method, params, (err, out) => {
-      // Now that we've finished handling the action, resume the queue
-      return this.processActions()
-    })
+    // Resume the queue after we've finished handling the action.
+    return this.emit('next', method, params, () => this.processActions())
   }
 
   enqueueAction (method, params, before) {
