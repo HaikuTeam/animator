@@ -2340,7 +2340,7 @@ class ActiveComponent extends BaseModel {
   * own purposes, e.g. during export to another format.
   */
   reloadBytecodeFromDisk (cb) {
-    return this.fetchActiveBytecodeFile().read(cb)
+    this.fetchActiveBytecodeFile().mod.isolatedForceReload(cb)
   }
 
   sleepComponentsOn () {
