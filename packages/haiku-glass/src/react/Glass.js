@@ -54,8 +54,8 @@ fse.mkdirpSync(HOMEDIR_PATH)
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'glass'
 
-const POINTS_THRESHOLD_REDUCED = 65 // Display only the corner control points
-const POINTS_THRESHOLD_NONE = 15 // Display no control points nor line
+const POINTS_THRESHOLD_REDUCED = 20 // Display only the corner control points
+const POINTS_THRESHOLD_NONE = 8 // Display no control points nor line
 
 const POINT_DISPLAY_MODES = {
   NORMAL: [1, 1, 1, 1, 1, 1, 1, 1, 1],
