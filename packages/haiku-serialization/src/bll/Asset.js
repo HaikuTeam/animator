@@ -633,6 +633,9 @@ const shouldDisplayPrimaryAssetMessage = (childrenOfDesignFolder) => {
   if (childrenOfDesignFolder.length < 1) {
     return false
   }
+  if (!childrenOfDesignFolder[1]) {
+    return false
+  }
   if (childrenOfDesignFolder[1].isPrimaryAsset() && childrenOfDesignFolder[1].children.length < 1) {
     return true
   }
