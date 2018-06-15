@@ -878,9 +878,17 @@ class Project extends BaseModel {
     const descriptor = {}
 
     this.getAllActiveComponents().forEach((ac) => {
-      descriptor[ac.getRelpath()] = {
-        hash: ac.getInsertionPointHash(),
-        source: ac.getInsertionPointInfo().source
+      const relpath = ac.getRelpath()
+
+      const {
+        hash,
+        source
+      } = ac.getInsertionPointInfo()
+
+      descriptor[relpath] = {hash}
+
+      if (experimentIsEnabled(Experiment.IncludeSourceInIntegrityHash)) {
+        descriptor[relpath].source = source
       }
     })
 

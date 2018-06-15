@@ -74,5 +74,9 @@
   "CrashOnIpcIntegrityCheckFailure": {
     "development": true,
     "production": true
+  },
+  "IncludeSourceInIntegrityHash": {
+    "development": true,
+    "production": false
   }
 }

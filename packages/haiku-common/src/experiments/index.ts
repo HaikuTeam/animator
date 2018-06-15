@@ -27,6 +27,7 @@ export enum Experiment {
   DirectSelectionOfPrimitives = 'DirectSelectionOfPrimitives',
   IpcIntegrityCheck = 'IpcIntegrityCheck',
   CrashOnIpcIntegrityCheckFailure = 'CrashOnIpcIntegrityCheckFailure',
+  IncludeSourceInIntegrityHash = 'IncludeSourceInIntegrityHash',
 }
 
 /**
