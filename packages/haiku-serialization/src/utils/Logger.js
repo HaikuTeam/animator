@@ -2,6 +2,9 @@ const path = require('path')
 const winston = require('winston')
 const jsonStringify = require('fast-safe-stringify')
 const Differ = require('./Differ')
+const Transport = require('winston-transport')
+const EventEmitter = require('events')
+
 require('colors') // TODO: use non-string-extending module
 
 /**
@@ -21,7 +24,7 @@ const haikuFormat = winston.format.printf((info, opts) => {
     }).join(' ')
   }
 
-  // Pading is done to visually aling on file
+  // Padding is done to visually align on file
   return `${info.timestamp}|${info.view.padEnd(8)}|${info.level}${info.tag ? '|' + info.tag : ''}|${info.message}`
 })
 
@@ -33,8 +36,20 @@ const DEFAULTS = {
 
 const MAX_DIFF_LOG_LEN = 10000
 
-class Logger {
+class LogForwarderTransport extends Transport {
+  log (info, callback) {
+    setImmediate(() => {
+      this.emit('log', info)
+    })
+
+    callback()
+  }
+};
+
+class Logger extends EventEmitter {
   constructor (folder, relpath, options = {}) {
+    super(options)
+
     this.differ = new Differ()
 
     const config = Object.assign({}, DEFAULTS, options)
@@ -63,11 +78,18 @@ class Logger {
       )
     }))
 
+    // In the future this logForwarder will also send log to plumbing
+    const logForwarder = new LogForwarderTransport()
+    logForwarder.on('log', (info) => {
+      this.emit('log', info)
+    })
+    transports.push(logForwarder)
+
     this.logger = winston.createLogger({
+      transports,
       format: winston.format.combine(
         winston.format.timestamp()
       ),
-      transports: transports
     })
 
     // Hook to allow Monkey.js to configure the view prefix from which we log
@@ -76,6 +98,10 @@ class Logger {
 
   info (...args) {
     this.logger.info(args, {view: this.view})
+  }
+
+  traceInfo (tag, message, attachedObject) {
+    this.logger.info(message, {view: this.view, tag, attachedObject})
   }
 
   debug (...args) {

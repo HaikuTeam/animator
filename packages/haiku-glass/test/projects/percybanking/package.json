@@ -1,9 +1,16 @@
 {
-  "name": "@haiku/taylor4-percybanking",
+  "name": "@haiku/jonaias-homejonaiashaikuprojects",
   "version": "0.0.11",
   "haiku": {
-    "organization": "taylor4",
-    "project": "percybanking"
+    "folder": "/home/jonaias/haiku/master/packages/haiku-glass/test/projects/percybanking",
+    "uuid": "HAIKU_SHARE_UUID",
+    "core": "3.4.4",
+    "player": "3.4.4",
+    "organization": "jonaias",
+    "project": "HomeJonaiasHaikuProjects",
+    "username": "jonas.jonaias@gmail.com",
+    "branch": "master",
+    "version": "0.0.0"
   },
   "authors": [
     "Haiku User",
@@ -12,6 +19,6 @@
   "license": "LicenseRef-LICENSE",
   "main": "index.js",
   "dependencies": {
-    "@haiku/core": "2.3.35"
+    "@haiku/core": "^3.4.4"
   }
 }

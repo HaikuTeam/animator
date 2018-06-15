@@ -62,6 +62,7 @@
     "react-drag-and-drop": "2.4.0",
     "react-draggable": "2.2.3",
     "react-height": "2.2.0",
+    "react-list": "^0.8.9",
     "react-motion": "0.4.7",
     "react-onclickoutside": "^6.4.0",
     "react-popover": "^0.4.18",
