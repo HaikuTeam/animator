@@ -33,10 +33,10 @@ function go () {
     haiku.mode = 'creator';
   }
 
-  logger.log('Haiku plumbing launching');
-  logger.log('args:', args);
-  logger.log('flags:', flags);
-  logger.log('config:', haiku);
+  logger.info(`Haiku plumbing ${process.env.HAIKU_RELEASE_VERSION} on ${process.env.NODE_ENV} launching`)
+  logger.info('args:', args)
+  logger.info('flags:', flags)
+  logger.info('config:', haiku)
 
   const plumbing = new Plumbing();
 
@@ -65,7 +65,7 @@ function go () {
         Object.assign(haiku, {dotenv});
       }
       plumbing.launch(haiku, () => {
-        logger.log('Haiku plumbing running');
+        logger.info('Haiku plumbing running');
       });
     });
   }
