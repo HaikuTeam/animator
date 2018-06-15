@@ -76,7 +76,7 @@ I can continuously scale an element round and round without causing a freeze-up 
 I can create a subcomponent, give it animations, and scrub to see the animations in the host
 I can create a subcomponent, give it animations, and use preview mode to see the animations in the host
 
-*Nad*
+*Matthew*
 
 Basics
 
@@ -185,8 +185,6 @@ Embedding/Host Codebases
 By following the share page HTML embed instructions, it works
 By following the share page NPM/React instructions, it works
 It works inside create-react-app, including production (minified) build
-
-*Matthew*
 
 New Project
 
