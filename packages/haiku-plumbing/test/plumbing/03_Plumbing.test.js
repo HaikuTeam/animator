@@ -41,7 +41,7 @@ tape('Plumbing', (t) => {
         return plumbing.startProject(null, folder, (err) => {
           t.error(err, 'no err starting')
           const gitloglines = cp.execSync('git log --pretty=oneline', { cwd: folder }).toString().split('\n')
-          t.equal(gitloglines.length, 3, 'three git commits so far')
+          t.equal(gitloglines.length, 2, 'still only two git commits so far')
           return cb()
         })
       },
