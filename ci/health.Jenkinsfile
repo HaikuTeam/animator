@@ -32,6 +32,7 @@ pipeline {
                     }
                     steps {
                         setBuildStatus(CONTEXT_TEST_MAC, 'tests started', STATUS_PENDING)
+                        yarnInstallUnixLike()
                         yarnRun('compile-all')
                         yarnRun('test-report')
                     }
@@ -67,6 +68,7 @@ pipeline {
             }
             steps {
                 setBuildStatus(CONTEXT_LINT, 'lint started', STATUS_PENDING)
+                yarnInstallUnixLike()
                 yarnRun('lint-report')
             }
             post {
@@ -119,7 +121,9 @@ void setBuildStatus(String context, String message, String state) {
 void yarnInstallUnixLike() {
     sh '''#!/bin/bash -x
         . $HOME/.bash_profile
-        yarn install --frozen-lockfile --force'''
+        if [ ! -d node_modules ]; then
+            yarn install --frozen-lockfile --force
+        fi'''
 }
 
 void yarnRun(String command) {
