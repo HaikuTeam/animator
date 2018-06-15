@@ -1,0 +1,1 @@
+The blue circle should scale down to normal size and loop. When you click it, it should jump to the last frame (become small) and stay there. If clicking it doesn't bring it to the last frame, the engine was no properly ticked to reflec the jump to the final frame.

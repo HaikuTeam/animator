@@ -11,8 +11,8 @@ export default function getLocalDomEventPosition (event, domElement) {
   const x = viewPosition.x - elementRect.left;
   const y = viewPosition.y - elementRect.top;
   return {
-    x: ~~x,
-    y: ~~y,
+    x,
+    y,
     pageX: viewPosition.x,
     pageY: viewPosition.y,
   };

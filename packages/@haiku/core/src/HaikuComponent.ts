@@ -9,7 +9,7 @@ import HaikuBase, {GLOBAL_LISTENER_KEY} from './HaikuBase';
 import HaikuClock from './HaikuClock';
 import HaikuContext from './HaikuContext';
 import HaikuElement from './HaikuElement';
-import HaikuTimeline from './HaikuTimeline';
+import HaikuTimeline, {PlaybackSetting} from './HaikuTimeline';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
 import cssQueryList from './helpers/cssQueryList';
 import {isPreviewMode} from './helpers/interactionModes';
@@ -19,7 +19,7 @@ import scopifyElements from './helpers/scopifyElements';
 import xmlToMana from './helpers/xmlToMana';
 import Layout3D from './Layout3D';
 import {runMigrations} from './Migration';
-import vanities, {PLAYBACK_SETTINGS} from './properties/dom/vanities';
+import vanities from './properties/dom/vanities';
 import functionToRFO, {RFO} from './reflection/functionToRFO';
 import StateTransitionManager, {StateTransitionParameters, StateValues} from './StateTransitionManager';
 import ValueBuilder from './ValueBuilder';
@@ -57,7 +57,7 @@ export interface ClearCacheOptions {
 
 // tslint:disable:variable-name function-name
 export default class HaikuComponent extends HaikuElement {
-  _builder;
+  builder;
   _flatManaTree;
   _horizonElements;
   isDeactivated;
@@ -151,7 +151,7 @@ export default class HaikuComponent extends HaikuElement {
       }
     }
 
-    this._builder = new ValueBuilder(this);
+    this.builder = new ValueBuilder(this);
 
     this._states = {}; // Storage for getter/setter actions in userland logic
     this.state = {}; // Public accessor object, e.g. this.state.foo = 1
@@ -283,7 +283,9 @@ export default class HaikuComponent extends HaikuElement {
           // from the get-go. However, in case of a callRemount, we might not want to do that since it can be kind of
           // like running the first frame twice. So we pass the option into play so it can conditionally skip the
           // markForFullFlush step.
-          timelineInstance.play({skipMarkForFullFlush});
+          if (!timelineInstance.isExplicitlyPaused()) {
+            timelineInstance.play({skipMarkForFullFlush});
+          }
         }
       } else {
         timelineInstance.pause();
@@ -395,7 +397,7 @@ export default class HaikuComponent extends HaikuElement {
 
     this._flatManaTree = manaFlattenTree(this.getTemplate(), CSS_QUERY_MAPPING);
     this._matchedElementCache = {};
-    this._builder.clearCaches(options);
+    this.builder.clearCaches(options);
     this._hydrateMutableTimelines();
 
     // These may have been set for caching purposes
@@ -454,11 +456,11 @@ export default class HaikuComponent extends HaikuElement {
     return out;
   }
 
-  getTimeline (name) {
+  getTimeline (name): HaikuTimeline {
     return this.getTimelines()[name];
   }
 
-  fetchTimeline (name, descriptor) {
+  fetchTimeline (name, descriptor): HaikuTimeline {
     const found = this.getTimeline(name);
 
     if (found) {
@@ -468,7 +470,7 @@ export default class HaikuComponent extends HaikuElement {
     return HaikuTimeline.create(this, name, descriptor, this.config);
   }
 
-  getDefaultTimeline () {
+  getDefaultTimeline (): HaikuTimeline {
     const timelines = this.getTimelines();
     return timelines[DEFAULT_TIMELINE_NAME];
   }
@@ -512,7 +514,7 @@ export default class HaikuComponent extends HaikuElement {
   getInjectables (element?): any {
     const injectables = {};
 
-    assign(injectables, this._builder.getSummonablesSchema(element));
+    assign(injectables, this.builder.getSummonablesSchema(element));
 
     // Local states get precedence over global summonables, so assign them last
     for (const key in this._states) {
@@ -673,10 +675,16 @@ export default class HaikuComponent extends HaikuElement {
 
     for (const eventSelector in eventHandlers) {
       for (const eventName in eventHandlers[eventSelector]) {
+        const descriptor = eventHandlers[eventSelector][eventName];
+
+        if (!descriptor || !descriptor.handler) {
+          continue;
+        }
+
         iteratee(
           eventSelector,
           eventName,
-          eventHandlers[eventSelector][eventName],
+          descriptor,
         );
       }
     }
@@ -1000,7 +1008,7 @@ export default class HaikuComponent extends HaikuElement {
 
           const flexId = haikuId || domId;
 
-          const assembledOutputs = this._builder.build(
+          const assembledOutputs = this.builder.build(
             {}, // We provide an object onto which outputs are placed
             timelineName,
             timelineTime,
@@ -1021,18 +1029,41 @@ export default class HaikuComponent extends HaikuElement {
             for (const behaviorKey in assembledOutputs) {
               const behaviorValue = assembledOutputs[behaviorKey];
 
-              applyPropertyToNode(
+              this.applyPropertyToNode(
                 matchingElement,
                 behaviorKey,
                 behaviorValue,
-                this.context,
                 timelineInstance,
-                this,
               );
             }
           }
         }
       }
+    }
+  }
+
+  applyPropertyToNode (
+    node: any,
+    name: string,
+    value: any,
+    timeline: HaikuTimeline,
+  ) {
+    const sender = (node.__instance) ? node.__instance : this; // Who sent the command
+    const receiver = node.__subcomponent || node.__receiver;
+    const type = (receiver && receiver.tagName) || node.elementName;
+    const vanity = vanities[type] && vanities[type][name];
+    const addressables = receiver && receiver.getAddressableProperties();
+    const addressee = addressables && addressables[name] !== undefined && receiver;
+
+    if (addressee && vanity) {
+      addressee.set(name, value);
+      vanity(name, node, value, this.context, timeline, receiver, sender);
+    } else if (addressee) {
+      addressee.set(name, value);
+    } else if (vanity) {
+      vanity(name, node, value, this.context, timeline, receiver, sender);
+    } else {
+      node.attributes[name] = value;
     }
   }
 
@@ -1152,13 +1183,13 @@ export default class HaikuComponent extends HaikuElement {
 
     const guestTimeline = guest.getTimeline(timelineName);
 
-    if (playbackValue === PLAYBACK_SETTINGS.CEDE) {
+    if (playbackValue === PlaybackSetting.CEDE) {
       return guestTimeline.getTime();
     }
 
     // If time is controlled and we're set to 'loop', use a modulus of the guest's max time
     // which will give the effect of looping the guest to its 0 if its max has been reached
-    if (playbackValue === PLAYBACK_SETTINGS.LOOP) {
+    if (playbackValue === PlaybackSetting.LOOP) {
       if (guestTimeline) {
         const guestMax = guestTimeline.getMaxTime();
         const finalTime = timelineTime % guestMax; // TODO: What if final frame has a change?
@@ -1168,7 +1199,7 @@ export default class HaikuComponent extends HaikuElement {
       return timelineTime;
     }
 
-    if (playbackValue === PLAYBACK_SETTINGS.STOP) {
+    if (playbackValue === PlaybackSetting.STOP) {
       if (guestTimeline) {
         return guestTimeline.getControlledTime() || 0;
       }
@@ -1194,7 +1225,7 @@ export default class HaikuComponent extends HaikuElement {
     flexId: string,
     propertyName: string,
   ): any {
-    return this._builder.grabValue(
+    return this.builder.grabValue(
       timelineName,
       flexId,
       null, // matchingElement - not needed?
@@ -1366,33 +1397,6 @@ const propertyGroupNeedsExpressionEvaluated = (
 
   return foundExpressionForTime;
 };
-
-function applyPropertyToNode (
-  node,
-  name,
-  value,
-  context,
-  timeline: HaikuTimeline,
-  component: HaikuComponent,
-) {
-  const sender = (node.__instance) ? node.__instance : component; // Who sent the command
-  const receiver = node.__subcomponent || node.__receiver;
-  const type = (receiver && receiver.tagName) || node.elementName;
-  const vanity = vanities[type] && vanities[type][name];
-  const addressables = receiver && receiver.getAddressableProperties();
-  const addressee = addressables && addressables[name] !== undefined && receiver;
-
-  if (addressee && vanity) {
-    addressee.set(name, value);
-    vanity(name, node, value, context, timeline, receiver, sender);
-  } else if (addressee) {
-    addressee.set(name, value);
-  } else if (vanity) {
-    vanity(name, node, value, context, timeline, receiver, sender);
-  } else {
-    node.attributes[name] = value;
-  }
-}
 
 function connectInstanceNodeWithHostComponent (node, host) {
   const flexId = (

@@ -199,6 +199,11 @@ export const runMigrations = (component: HaikuComponent, options: any, version: 
 
   if (requiresUpgrade(coreVersion, UpgradeVersionRequirement.TimelineDefaultFrames)) {
     component.eachEventHandler((eventSelector, eventName, {handler}) => {
+      if (!handler) {
+        console.warn(`Unable to migrate event handler for ${eventSelector} ${eventName} in ${component.$id}`);
+        return;
+      }
+
       const rfo = handler.__rfo || functionToRFO(handler).__function;
       let body: string = rfo.body;
       let changed = false;

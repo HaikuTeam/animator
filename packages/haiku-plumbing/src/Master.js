@@ -341,24 +341,15 @@ export default class Master extends EventEmitter {
           logger.info('[master] illustrator pipeline running; please wait')
           Illustrator.importSVG(abspath)
           logger.info('[master] illustrator import done')
-          return void (0)
+          return
         }
 
         if (extname === '.js' && basename === 'code') {
-          return File.ingestOne(this.project, this.folder, relpath, (err, file) => {
-            if (err) return logger.info(err)
-            logger.info('[master] file ingested (changed):', abspath)
+          const file = this.getActiveComponent() && this.getActiveComponent().fetchActiveBytecodeFile()
 
-            if (!this.getActiveComponent()) {
-              return
-            }
-
-            if (relpath !== this.getActiveComponent().fetchActiveBytecodeFile().relpath) {
-              return
-            }
-
+          if (file && file.relpath === relpath) {
             this._mod.handleModuleChange(file)
-          })
+          }
         }
       })
     })
@@ -367,7 +358,6 @@ export default class Master extends EventEmitter {
   handleFileAdd (abspath) {
     const relpath = path.relative(this.folder, abspath)
     const extname = path.extname(relpath)
-    const basename = path.basename(relpath, extname)
 
     if (Sketch.isSketchFile(abspath) || Illustrator.isIllustratorFile(abspath) || extname === '.svg') {
       this._knownLibraryAssets[relpath] = { relpath, abspath, dtModified: Date.now() }
@@ -394,22 +384,6 @@ export default class Master extends EventEmitter {
           logger.info('[master] illustrator pipeline running; please wait')
           Illustrator.importSVG(abspath)
           logger.info('[master] illustrator import done')
-          return void (0)
-        }
-
-        if (extname === '.js' && basename === 'code') {
-          return File.ingestOne(this.project, this.folder, relpath, (err, file) => {
-            if (err) return logger.info(err)
-            logger.info('[master] file ingested (added):', abspath)
-
-            if (!this.getActiveComponent()) {
-              return
-            }
-
-            if (relpath !== this.getActiveComponent().fetchActiveBytecodeFile().relpath) {
-              return null
-            }
-          })
         }
       })
     })

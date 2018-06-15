@@ -1,0 +1,1 @@
+Click any of the cards. They should flip over and then stop animating. Further clicks do nothing.

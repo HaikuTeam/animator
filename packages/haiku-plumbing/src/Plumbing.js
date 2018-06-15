@@ -29,6 +29,7 @@ import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 import * as ProjectFolder from './ProjectFolder'
 import { crashReport } from 'haiku-serialization/src/utils/carbonite'
+import * as BaseModel from 'haiku-serialization/src/bll/BaseModel'
 import HaikuHomeDir, { HOMEDIR_PATH } from 'haiku-serialization/src/utils/HaikuHomeDir'
 import Project from 'haiku-serialization/src/bll/Project'
 import {awaitAllLocksFree} from 'haiku-serialization/src/bll/Lock'
@@ -89,8 +90,7 @@ const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
   teardownMaster: true,
   requestSyndicationInfo: true,
   hoverElement: true,
-  unhoverElement: true,
-  describeIntegrityHandler: true
+  unhoverElement: true
 }
 
 const METHOD_MESSAGES_TIMEOUT = 15000
@@ -114,7 +114,6 @@ const Q_MASTER = { alias: 'master' }
 
 const AWAIT_INTERVAL = 100
 const WAIT_DELAY = 10 * 1000
-const INTEGRITY_CHECK_INTERVAL = 5000
 
 const HAIKU_DEFAULTS = {
   socket: {
@@ -343,35 +342,6 @@ export default class Plumbing extends EventEmitter {
         })
       })
     })
-  }
-
-  checkIntegrity (cb) {
-    return this.invokeActionInAllFolders(
-      'describeIntegrityHandler',
-      [{from: 'plumbing'}],
-      cb
-    )
-  }
-
-  startIntegrityChecker () {
-    if (this.integrityChecker) {
-      return
-    }
-
-    this.integrityChecker = setInterval(() => {
-      this.checkIntegrity((err, results) => {
-        if (!err) {
-          console.log(require('util').inspect(results, false, null))
-        }
-      })
-    }, INTEGRITY_CHECK_INTERVAL)
-  }
-
-  stopIntegrityChecker () {
-    if (this.integrityChecker) {
-      clearInterval(this.integrityChecker)
-      delete this.integrityChecker
-    }
   }
 
   removeWebsocketClient (websocket) {
@@ -1207,6 +1177,8 @@ export default class Plumbing extends EventEmitter {
           this._methodMessages.splice(i, 1)
         }
       }
+
+      BaseModel.extensions.forEach((klass) => klass.purge())
 
       cb()
     })

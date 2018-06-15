@@ -500,9 +500,13 @@ INJECTABLES.$user = {
           down: 0,
           buttons: [0, 0, 0],
         },
+        pan: {
+          x: 0,
+          y: 0,
+        },
         keys: {},
-        touches: {},
-        mouches: {},
+        touches: [],
+        mouches: [],
       };
     }
   },
@@ -542,7 +546,7 @@ INJECTABLES.$flow.schema.yield = {
 INJECTABLES.$helpers = {
   schema: {},
   summon (injectees, summonSpec, hostInstance, matchingElement) {
-    injectees.$helpers = hostInstance._builder.helpers;
+    injectees.$helpers = hostInstance.builder.helpers;
   },
 };
 

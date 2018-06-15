@@ -25,6 +25,10 @@ export enum Experiment {
   OutliningElementsOnStage = 'OutliningElementsOnStage',
   OutliningElementsOnStageFromStage = 'OutliningElementsOnStageFromStage',
   DirectSelectionOfPrimitives = 'DirectSelectionOfPrimitives',
+  IpcIntegrityCheck = 'IpcIntegrityCheck',
+  CrashOnIpcIntegrityCheckFailure = 'CrashOnIpcIntegrityCheckFailure',
+  IncludeSourceInIntegrityHash = 'IncludeSourceInIntegrityHash',
+  OrderedActionStack = 'OrderedActionStack',
 }
 
 /**

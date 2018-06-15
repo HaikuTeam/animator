@@ -586,6 +586,8 @@ BaseModel.storage = {
   disk: new DiskStorage()
 }
 
+BaseModel.extensions = []
+
 BaseModel.extend = function extend (klass, opts) {
   if (!klass.extended) {
     createCollection(klass, opts)
@@ -597,6 +599,7 @@ BaseModel.extend = function extend (klass, opts) {
     lodash.defaults(klass.DEFAULT_OPTIONS, BaseModel.DEFAULT_OPTIONS)
 
     klass.extended = true
+    BaseModel.extensions.push(klass)
   }
 }
 

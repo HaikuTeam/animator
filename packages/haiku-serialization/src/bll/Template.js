@@ -6,7 +6,6 @@ const SVGPoints = require('@haiku/core/lib/helpers/SVGPoints').default
 const convertManaLayout = require('@haiku/core/lib/layout/convertManaLayout').default
 const visitManaTree = require('@haiku/core/lib/helpers/visitManaTree').default
 const manaToXml = require('@haiku/core/lib/helpers/manaToXml').default
-const jsonStableStringify = require('json-stable-stringify')
 const assign = require('lodash.assign')
 const defaults = require('lodash.defaults')
 const BasicUtils = require('@haiku/core/lib/helpers/BasicUtils').default
@@ -149,7 +148,7 @@ Template.mirrorHaikuUids = (fromNode, toNode) => {
   }
 }
 
-Template.manaWithOnlyMinimalProps = (mana) => {
+Template.manaWithOnlyMinimalProps = (mana, referenceSerializer) => {
   if (mana && typeof mana === 'object') {
     const out = {}
 
@@ -161,7 +160,7 @@ Template.manaWithOnlyMinimalProps = (mana) => {
       // When written to the file, we should end up with `elementName: fooBar,...`
       // This assumes that a require() statement gets added to the AST later
       out.elementName = {
-        __reference: out.elementName.__reference
+        __reference: referenceSerializer(out.elementName.__reference)
       }
     }
 
@@ -187,7 +186,9 @@ Template.manaWithOnlyMinimalProps = (mana) => {
         // This sidesteps the problem where one process shows e.g. children:["BLAH"]
         // but another process shows children:[], which results in unstable hashes
         return child && typeof child !== 'string'
-      }).map(Template.manaWithOnlyMinimalProps)
+      }).map((child) => {
+        return Template.manaWithOnlyMinimalProps(child, referenceSerializer)
+      })
     } else {
       out.children = []
     }
@@ -409,20 +410,6 @@ Template.isHaikuIdSelector = (selector) => {
 
 Template.haikuSelectorToHaikuId = (selector) => {
   return selector.split(':')[1]
-}
-
-Template.getInsertionPointInfo = (mana, index, depth, len = 6) => {
-  const template = Template.manaWithOnlyMinimalProps(mana)
-
-  const source = jsonStableStringify(template) + '-' + index + '-' + depth
-
-  const hash = Template.getHash(source, len)
-
-  return {
-    template,
-    source,
-    hash
-  }
 }
 
 Template.getHash = (str, len = 6) => {

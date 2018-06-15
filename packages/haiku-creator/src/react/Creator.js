@@ -1110,6 +1110,7 @@ export default class Creator extends React.Component {
                 case 'setCurrentActiveComponent':
                 case 'selectElement':
                 case 'unselectElement':
+                case 'batchUpsertEventHandlers':
                   this.debouncedForceUpdate()
                   break
 
@@ -1404,6 +1405,10 @@ export default class Creator extends React.Component {
         if (this.state.projectModel) {
           this.state.projectModel.stopHandlingMethods()
         }
+
+        // Clean up our litany of BaseModel extension collections in case an errant reload finds something better left
+        // unfound.
+        BaseModel.extensions.forEach((klass) => klass.purge())
 
         this.setState({
           projectModel: null,

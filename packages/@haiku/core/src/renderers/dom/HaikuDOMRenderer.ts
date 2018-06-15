@@ -37,26 +37,6 @@ const connectTarget = (virtualNode, domElement) => {
   }
 };
 
-const shouldListenerReceiveEvent = (name: string, event: any, match: Element): boolean => {
-  // Since we subscribe to events from the root element, we rewrite these as 'mouseover' and 'mouseout'
-  // so we can adequately capture "bubbled" enters/leaves to meet the 99% expectation of users. Then
-  // we mimic the bubbling logic here so the semantics align with normal DOM semantics
-  if (name === 'mouseenter' || name === 'mouseleave') {
-    return (
-      match === event.target &&
-      ( // Don't fire if the user's mouse went from inside the child into the target
-        !match.contains ||
-        !match.contains(event.relatedTarget)
-      )
-    );
-  }
-
-  return (
-    match === event.target ||
-    (match.contains && match.contains(event.target))
-  );
-};
-
 export interface MountLayout {
   layout?: {
     computed: {
@@ -192,6 +172,15 @@ export default class HaikuDOMRenderer extends HaikuBase {
     return out;
   }
 
+  getDocument () {
+    return this.mount.ownerDocument;
+  }
+
+  getWindow () {
+    const doc = this.getDocument();
+    return doc.defaultView || doc.parentWindow;
+  }
+
   initialize () {
     const user = this.user;
 
@@ -251,8 +240,8 @@ export default class HaikuDOMRenderer extends HaikuBase {
       user.touches.splice(0);
     };
 
-    const doc = this.mount.ownerDocument;
-    const win = doc.defaultView || doc.parentWindow;
+    const doc = this.getDocument();
+    const win = this.getWindow();
 
     this.mount.addEventListener('mousedown', (mouseEvent) => {
       ++user.mouse.down;
@@ -382,6 +371,21 @@ export default class HaikuDOMRenderer extends HaikuBase {
     });
   }
 
+  decideMountElement (component: HaikuComponent, selector: string, name: string) {
+    // For keyboard events, if subscribed to the component, and if the component is the runtime root,
+    // we automatically attach its handler to window, as this is the 98%-case desired behavior
+
+    if (name === 'keyup' || name === 'keydown' || name === 'keypress') {
+      if (!component.host && `haiku:${component.getComponentId()}` === selector) {
+        const win = this.getWindow();
+        return win;
+      }
+    }
+
+    // Otherwise, fallthrough and assume we want to listen to our own mount element
+    return this.mount;
+  }
+
   mountEventListener (component: HaikuComponent, selector: string, name: string, listener: Function) {
     let rewritten = name;
 
@@ -393,13 +397,16 @@ export default class HaikuDOMRenderer extends HaikuBase {
       rewritten = 'mouseout';
     }
 
-    this.mount.addEventListener(rewritten, (domEvent) => {
+    const mount = this.decideMountElement(component, selector, name);
+
+    mount.addEventListener(rewritten, (domEvent) => {
+
       // If no explicit selector/target for the event, just fire the listener
       if (
         !selector || selector === GLOBAL_LISTENER_KEY ||
         !domEvent || !domEvent.target
       ) {
-        listener(null, domEvent);
+        listener(null, this.wrapEvent(name, domEvent, null, component));
         return;
       }
 
@@ -419,12 +426,50 @@ export default class HaikuDOMRenderer extends HaikuBase {
       const match = component.target.parentNode.querySelector(query);
 
       if (match) {
-        if (shouldListenerReceiveEvent(name, domEvent, match)) {
-          listener(domEvent.target, domEvent);
+        if (this.shouldListenerReceiveEvent(name, domEvent, match, mount)) {
+          listener(domEvent.target, this.wrapEvent(name, domEvent, match, component));
           return;
         }
       }
     });
+  }
+
+  shouldListenerReceiveEvent = (name: string, event, match: Element, mount): boolean => {
+    if (name === 'keyup' || name === 'keydown' || name === 'keypress') {
+      // See not about keyboard handling in HaikuDOMRenderer#decideMountElement
+      if (mount === this.getWindow()) {
+        return true;
+      }
+    }
+
+    // Since we subscribe to events from the root element, we rewrite these as 'mouseover' and 'mouseout'
+    // so we can adequately capture "bubbled" enters/leaves to meet the 99% expectation of users. Then
+    // we mimic the bubbling logic here so the semantics align with normal DOM semantics
+    if (name === 'mouseenter' || name === 'mouseleave') {
+      return (
+        match === event.target &&
+        ( // Don't fire if the user's mouse went from inside the child into the target
+          !match.contains ||
+          !match.contains(event.relatedTarget)
+        )
+      );
+    }
+
+    return (
+      match === event.target ||
+      (match.contains && match.contains(event.target))
+    );
+  };
+
+  /**
+   * @description An opportunity to return an event aligned with our own API semantics.
+   * Keep in mind that the three elements involved here may be different:
+   *   this.mount - the host node for the component, the node we actually attach listeners to.
+   *   event.target - the element on which the event actually originated
+   *   elementListenedTo - the element that the user is listening to the event on
+   */
+  wrapEvent (eventName: string, nativeEvent, elementListenedTo, hostComponent: HaikuComponent) {
+    return nativeEvent;
   }
 
   getUser () {
