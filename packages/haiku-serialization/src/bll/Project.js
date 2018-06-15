@@ -84,6 +84,10 @@ class Project extends BaseModel {
     })
 
     // List of components we are tracking as part of the component tabs
+    /**
+     * @type {Array.<{scenename: string, active: boolean}>}
+     * @private
+     */
     this._multiComponentTabs = []
 
     // Whether we should actually receive and act upon remote methods received
@@ -264,15 +268,16 @@ class Project extends BaseModel {
     return ActiveComponent.where({ project: this })
   }
 
-  addActiveComponentToMultiComponentTabs (scenename, active) {
+  addActiveComponentToMultiComponentTabs (scenename, active = false) {
     // Update the active tabs in memory used for displaying in the UI
-    let foundAlready = false
-    this._multiComponentTabs.forEach((tab) => {
-      if (tab.scenename === scenename) foundAlready = true
-    })
-    if (!foundAlready) {
-      this._multiComponentTabs.push({ scenename, active })
+    for (const tab of this._multiComponentTabs) {
+      if (tab.scenename === scenename) {
+        tab.active = active
+        return
+      }
     }
+
+    this._multiComponentTabs.push({ scenename, active })
   }
 
   describeSubComponents () {
@@ -617,14 +622,12 @@ class Project extends BaseModel {
     )
     this.ensurePlatformHaikuRegistry() // Make sure we have this.platform.haiku; race condition
     this.platform.haiku.registry[activeComponentKey] = activeComponent
-    this.addActiveComponentToMultiComponentTabs(activeComponent.getSceneName(), null)
+    this.addActiveComponentToMultiComponentTabs(activeComponent.getSceneName(), false)
   }
 
   upsertSceneByName (scenename, cb) {
     const relpath = path.join('code', scenename, 'code.js')
-    const bytecode = null // In this pathway, we want to create the bytecode or load it from disk
-    const instanceConfig = {}
-    return this.upsertComponentBytecodeToModule(relpath, bytecode, instanceConfig, cb)
+    return this.upsertComponentBytecodeToModule(relpath, cb)
   }
 
   findOrCreateActiveComponent (scenename, cb) {
@@ -644,17 +647,18 @@ class Project extends BaseModel {
   }
 
   setCurrentActiveComponent (scenename, metadata, cb) {
-    return Lock.request(Lock.LOCKS.SetCurrentActiveComponent, null, (release) => {
-      this.addActiveComponentToMultiComponentTabs(scenename, true)
+    return Lock.request(Lock.LOCKS.SetCurrentActiveComponent, false, (release) => {
+      // If not in read only mode, create the component entity for the scene in question
+      this.findOrCreateActiveComponent(scenename, (err) => {
+        if (err) {
+          release()
+          return cb(err)
+        }
 
-      const activateComponentContinuation = () => {
+        this.addActiveComponentToMultiComponentTabs(scenename, true)
         this._multiComponentTabs.forEach((tab) => {
           // Deactivate all other components held in memory
-          if (tab.scenename !== scenename) {
-            tab.active = false
-          } else {
-            tab.active = true
-          }
+          tab.active = tab.scenename === scenename
         })
 
         return Lock.awaitAllLocksFreeExcept([Lock.LOCKS.SetCurrentActiveComponent, Lock.LOCKS.ProjectMethodHandler], () => {
@@ -667,21 +671,7 @@ class Project extends BaseModel {
             return cb(null, ac)
           })
         })
-      }
-
-      // If not in read only mode, create the component entity for the scene in question
-      if (!this.findActiveComponentBySceneName(scenename)) {
-        return this.upsertSceneByName(scenename, (err) => {
-          if (err) {
-            release()
-            return cb(err)
-          }
-
-          return activateComponentContinuation()
-        })
-      }
-
-      return activateComponentContinuation()
+      })
     })
   }
 
@@ -730,83 +720,27 @@ class Project extends BaseModel {
   }
 
   /**
-   * @method componentizeDesign
-   * @description Given a relpath to a design asset that exists on the file system,
-   * convert its contents into an component object ('bytecode'), creating a component
-   * code file within the file system.
-   * @param relpath {String} Path to the design element
-   * @param cb {Function}
-   */
-  componentizeDesign (relpath, options, cb) {
-    return Design.designAsCode(this.getFolder(), relpath, {}, (err, identifier, modpath, bytecode) => {
-      if (err) return cb(err)
-
-      return this.upsertComponentBytecodeToModule(modpath, bytecode, options, (err, component) => {
-        if (err) return cb(err)
-        return cb(null, identifier, modpath, bytecode, null, component)
-      })
-    })
-  }
-
-  /**
    * @method upsertComponentBytecodeToFile
    * @description Given a relpath and a bytecode object, insert a component file
    * at the given relpath with the given bytecode as its code.js export. If the
    * file already exists, we'll merge the bytecode objects' contents together.
    * The relpath here is the destination of the file to write to within the project
-   * @param folder {String} Absolute path to project folder
    * @param relpath {String} Relative path to destination code file within project
-   * @param bytecode {Object} A bytecode object (maybe reified or serialized)
    * @param cb {Function}
    */
-  upsertComponentBytecodeToModule (relpath, bytecode, instanceConfig, cb) {
+  upsertComponentBytecodeToModule (relpath, cb) {
     // Note: This assumes that the basic bytecode file *has already been created*
-    const ac = this.upsertActiveComponentInstance(relpath)
+    this.upsertActiveComponentInstance(relpath, (err, ac) => {
+      if (err) {
+        return cb(err)
+      }
 
-    // This is going to be called once we finish up the async work below
-    const finalize = (cb) => {
-      this.emit('active-component:upserted')
-
-      // Note that this instanceConfig variable may get mutated below
-      return ac.mountApplication(null, instanceConfig, (err) => {
+      return ac.mountApplication(null, {}, (err) => {
         if (err) return cb(err)
+        this.emit('active-component:upserted')
         return cb(null, ac)
       })
-    }
-
-    const file = this.upsertFile({
-      relpath,
-      type: File.TYPES.code
     })
-
-    const mod = ac.fetchActiveBytecodeFile().mod
-
-    // Allow bytecode already stored in memory to be passed here to avoid the need for a forced require
-    if (bytecode) {
-      // If we do a merge, we may swap this variable with the existing merged one in a moment
-      let reified = reifyRO(bytecode)
-
-      // If we have existing bytecode, we are going to merge the incoming properties
-      return mod.reloadExtantModule((err, extant) => {
-        if (err) return cb(err)
-
-        if (extant) {
-          Bytecode.mergeBytecode(extant, reified)
-          reified = extant
-        }
-
-        // Hacky, but in situations where we don't want to have to write to the fs before being
-        // able to load the module via require() call, i.e. in the glass or timeline
-        return file.mod.update(reified, () => {
-          return finalize(cb)
-        })
-      })
-    } else {
-      // Make sure we end up with something defined for the bytecode, or things don't work
-      return file.mod.update({}, () => {
-        return finalize(cb)
-      })
-    }
   }
 
   relpathToSceneName (relpath) {
@@ -814,15 +748,17 @@ class Project extends BaseModel {
     return path.normalize(relpath).split(path.sep)[1]
   }
 
-  upsertActiveComponentInstance (relpath) {
-    const file = File.upsert({
-      uid: path.join(this.getFolder(), relpath),
-      project: this,
-      folder: this.getFolder(),
-      relpath
-    })
+  upsertActiveComponentInstance (relpath, cb) {
+    const abspath = path.join(this.getFolder(), relpath)
+    return Lock.request(Lock.LOCKS.FileReadWrite(abspath), false, (release) => {
+      const file = this.upsertFile({
+        relpath,
+        type: File.TYPES.code
+      })
 
-    return file.component
+      release()
+      return cb(null, file.component)
+    })
   }
 
   findActiveComponentBySource (relpath) {
@@ -836,7 +772,6 @@ class Project extends BaseModel {
 
   bootstrapSceneFilesSync (scenename, userconfig) {
     const rootComponentId = getCodeJs(
-      Template.getHash(scenename, 12),
       experimentIsEnabled(Experiment.MultiComponentFeatures)
         ? scenename
         : path.basename(this.getFolder()),
@@ -923,32 +858,17 @@ class Project extends BaseModel {
     })
   }
 
-  setupActiveComponent (relpath, cb) {
-    const activeComponent = this.upsertActiveComponentInstance(relpath)
-    return cb(null, activeComponent)
-  }
-
-  setupScene (scenename, cb) {
-    const relpath = path.join('code', scenename, 'code.js')
-    const abspath = path.join(this.getFolder(), relpath)
-    return Lock.request(Lock.LOCKS.FileReadWrite(abspath), false, (release) => {
-      return this.setupActiveComponent(relpath, (err) => {
-        release()
-        return cb(err)
-      })
-    })
-  }
-
   getCodeFolderAbspath () {
     return path.join(this.getFolder(), 'code')
   }
 
-  rehydrate (cb) {
-    const entries = fse.readdirSync(this.getCodeFolderAbspath()).filter((entry) => {
+  rehydrate () {
+    fse.readdirSync(this.getCodeFolderAbspath()).filter((entry) => {
       // Ignore hidden files that may appear here such as everyone's favorite .DS_Store
       return entry && entry[0] !== '.'
+    }).forEach((scenename) => {
+      this.addActiveComponentToMultiComponentTabs(scenename)
     })
-    return async.eachSeries(entries, this.setupScene.bind(this), cb)
   }
 
   getPreviewAssetPath () {
@@ -1019,10 +939,8 @@ Project.setup = (
     envoyOptions
   })
 
-  return project.rehydrate((err) => {
-    if (err) return cb(err)
-    return cb(null, project)
-  })
+  project.rehydrate()
+  return cb(null, project)
 }
 
 Project.storeConfigValues = (folder, incoming) => {
@@ -1105,8 +1023,18 @@ Project.executeFunctionSpecification = (binding, alias, payload, cb) => {
 }
 
 const integritiesMismatched = (i1, i2) => {
-  const s1 = jss(i1)
-  const s2 = jss(i2)
+  const s1 = jss(Object.keys(i1).reduce((accumulator, key) => {
+    if (i2[key]) {
+      accumulator[key] = i1[key]
+    }
+    return accumulator
+  }, {}))
+  const s2 = jss(Object.keys(i1).reduce((accumulator, key) => {
+    if (i1[key]) {
+      accumulator[key] = i2[key]
+    }
+    return accumulator
+  }, {}))
   if (s1 !== s2) {
     return [s1, s2]
   }
@@ -1124,13 +1052,11 @@ Project.PUBLIC_METHODS = {
 // Down here to avoid Node circular dependency stub objects. #FIXME
 const ActiveComponent = require('./ActiveComponent')
 const Asset = require('./Asset')
-const Bytecode = require('./Bytecode')
-const Design = require('./Design')
 const File = require('./File')
 const ModuleWrapper = require('./ModuleWrapper')
 const Template = require('./Template')
 
-function getCodeJs (haikuId, haikuComponentName, metadata = {}) {
+function getCodeJs (haikuComponentName, metadata = {}) {
   return dedent`
     var Haiku = require("@haiku/core");
     module.exports = {
@@ -1144,7 +1070,6 @@ function getCodeJs (haikuId, haikuComponentName, metadata = {}) {
       template: {
         elementName: "div",
         attributes: {
-          "haiku-id": "${haikuId}",
           "haiku-title": "${haikuComponentName}"
         },
         children: []
