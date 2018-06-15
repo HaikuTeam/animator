@@ -24,37 +24,39 @@ pipeline {
                 yarnInstallUnixLike()
             }
         }
-        parallel {
-            stage('Test-macOS') {
-                agent {
-                    label 'master'
-                }
-                steps {
-                    setBuildStatus(CONTEXT_TEST_MAC, 'tests started', STATUS_PENDING)
-                    yarnRun('compile-all')
-                    yarnRun('test-report')
-                }
-                post {
-                    always {
-                        archiveArtifacts artifacts: 'packages/**/test-result.tap', fingerprint: true
-                        step([
-                            $class: 'TapPublisher',
-                            testResults: 'packages/**/test-result.tap',
-                            verbose: true,
-                            planRequired: true
-                        ])
-                        cobertura autoUpdateHealth: false, autoUpdateStability: false, coberturaReportFile: '**/coverage/cobertura-coverage.xml', failNoReports: false, failUnhealthy: false, failUnstable: false, maxNumberOfBuilds: 0, onlyStable: false, sourceEncoding: 'ASCII', zoomCoverageChart: false
+        stage('Test') {
+            parallel {
+                stage('Test-macOS') {
+                    agent {
+                        label 'master'
                     }
-                    success {
-                        setBuildStatus(CONTEXT_TEST_MAC, 'all tests pass', STATUS_SUCCESS)
+                    steps {
+                        setBuildStatus(CONTEXT_TEST_MAC, 'tests started', STATUS_PENDING)
+                        yarnRun('compile-all')
+                        yarnRun('test-report')
                     }
-                    failure {
-                        setBuildStatus(CONTEXT_TEST_MAC, 'tests are failing', STATUS_FAILURE)
-                        slackSend([
-                            channel: 'engineering-feed',
-                            color: 'danger',
-                            message: ":jenkins-rage: PR #${env.ghprbPullId} (https://github.com/HaikuTeam/mono/pull/${env.ghprbPullId}) has failing tests!"
-                        ])
+                    post {
+                        always {
+                            archiveArtifacts artifacts: 'packages/**/test-result.tap', fingerprint: true
+                            step([
+                                $class: 'TapPublisher',
+                                testResults: 'packages/**/test-result.tap',
+                                verbose: true,
+                                planRequired: true
+                            ])
+                            cobertura autoUpdateHealth: false, autoUpdateStability: false, coberturaReportFile: '**/coverage/cobertura-coverage.xml', failNoReports: false, failUnhealthy: false, failUnstable: false, maxNumberOfBuilds: 0, onlyStable: false, sourceEncoding: 'ASCII', zoomCoverageChart: false
+                        }
+                        success {
+                            setBuildStatus(CONTEXT_TEST_MAC, 'all tests pass', STATUS_SUCCESS)
+                        }
+                        failure {
+                            setBuildStatus(CONTEXT_TEST_MAC, 'tests are failing', STATUS_FAILURE)
+                            slackSend([
+                                channel: 'engineering-feed',
+                                color: 'danger',
+                                message: ":jenkins-rage: PR #${env.ghprbPullId} (https://github.com/HaikuTeam/mono/pull/${env.ghprbPullId}) has failing tests!"
+                            ])
+                        }
                     }
                 }
             }
