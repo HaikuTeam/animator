@@ -1321,27 +1321,27 @@ class ActiveComponent extends BaseModel {
 
             // For local modules, the only caveat is that the component must be known in memory already
             if (ModuleWrapper.doesRelpathLookLikeLocalComponent(relpath)) {
-              const subcomponent = this.project.findActiveComponentBySource(relpath)
+              return this.project.findActiveComponentBySource(relpath, (err, subcomponent) => {
+                if (!err && subcomponent) {
+                  // We can't go further unless we actually have the reified bytecode
+                  return subcomponent.moduleReload('basicReload', () => {
+                    // This identifier is going to be something like foo_svg_blah
+                    const localComponentIdentifier = ModuleWrapper.modulePathToIdentifierName(relpath)
 
-              if (subcomponent) {
-                // We can't go further unless we actually have the reified bytecode
-                return subcomponent.moduleReload('basicReload', () => {
-                  // This identifier is going to be something like foo_svg_blah
-                  const localComponentIdentifier = ModuleWrapper.modulePathToIdentifierName(relpath)
+                    return this.instantiateReference(
+                      subcomponent,
+                      localComponentIdentifier,
+                      relpath,
+                      coords,
+                      {'origin.x': 0.5, 'origin.y': 0.5},
+                      metadata,
+                      done
+                    )
+                  })
+                }
 
-                  return this.instantiateReference(
-                    subcomponent,
-                    localComponentIdentifier,
-                    relpath,
-                    coords,
-                    {'origin.x': 0.5, 'origin.y': 0.5},
-                    metadata,
-                    done
-                  )
-                })
-              } else {
                 return done(new Error(`Cannot find component ${relpath}`))
-              }
+              })
             }
 
             if (ModuleWrapper.doesRelpathLookLikeSVGDesign(relpath)) {
@@ -1861,7 +1861,7 @@ class ActiveComponent extends BaseModel {
     const modref = ModuleWrapper.parseReference(__reference)
 
     if (modref && modref.type && modref.type === ModuleWrapper.REF_TYPES.COMPONENT) {
-      const ac = this.project.findActiveComponentBySource(modref.source)
+      const ac = this.project.findActiveComponentBySourceIfPresent(modref.source)
 
       if (ac) {
         const bytecode = ac.getReifiedBytecode()

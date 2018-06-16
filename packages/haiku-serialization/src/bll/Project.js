@@ -189,7 +189,7 @@ class Project extends BaseModel {
     return Lock.request(Lock.LOCKS.ProjectMethodHandler, false, (release) => {
       // Try matching a method on a given active component
       const ac = (typeof params[0] === 'string')
-        ? this.findActiveComponentBySource(params[0])
+        ? this.findActiveComponentBySourceIfPresent(params[0])
         : null
 
       if (ac && typeof ac[method] === 'function') {
@@ -668,7 +668,7 @@ class Project extends BaseModel {
   setCurrentActiveComponent (scenename, metadata, cb) {
     return Lock.request(Lock.LOCKS.SetCurrentActiveComponent, false, (release) => {
       // If not in read only mode, create the component entity for the scene in question
-      this.findOrCreateActiveComponent(scenename, (err) => {
+      this.findOrCreateActiveComponent(scenename, (err, ac) => {
         if (err) {
           release()
           return cb(err)
@@ -684,7 +684,6 @@ class Project extends BaseModel {
           this._activeComponentSceneName = scenename
 
           this.updateHook('setCurrentActiveComponent', scenename, metadata || this.getMetadata(), (fire) => {
-            const ac = this.findActiveComponentBySceneName(scenename)
             fire()
             release()
             return cb(null, ac)
@@ -780,7 +779,12 @@ class Project extends BaseModel {
     })
   }
 
-  findActiveComponentBySource (relpath) {
+  findActiveComponentBySource (relpath, cb) {
+    const scenename = ModuleWrapper.getScenenameFromRelpath(relpath)
+    return this.findOrCreateActiveComponent(scenename, cb)
+  }
+
+  findActiveComponentBySourceIfPresent (relpath) {
     const scenename = ModuleWrapper.getScenenameFromRelpath(relpath)
     return this.findActiveComponentBySceneName(scenename)
   }
