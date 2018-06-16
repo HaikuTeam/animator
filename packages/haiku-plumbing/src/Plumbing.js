@@ -444,6 +444,13 @@ export default class Plumbing extends EventEmitter {
       return this.sendBroadcastMessage(message, folder, alias);
     }
 
+    if (message.type === 'log') {
+      logger.raw(message.message)
+
+      // We want logs on creator, lets send it there
+      return this.sendMessageToCreator(message, folder, alias)
+    }
+
     if (message.id && this.requests[message.id]) {
       // If we have an entry in this.requests, that means this is a reply
       const {callback} = this.requests[message.id];
@@ -570,6 +577,20 @@ export default class Plumbing extends EventEmitter {
 
       sendMessageToClient(client, merge(message, {folder, alias}));
     });
+  }
+
+  sendMessageToCreator (message, folder, alias) {
+    this.clients.forEach((client) => {
+
+      // Don't send if we know the socket isn't open
+      if (client.readyState !== WebSocket.OPEN || client.params.alias !== 'creator') {
+        return
+      }
+
+      delete message.id // Don't confuse this as a request/response
+
+      sendMessageToClient(client, merge(message, { folder, alias }))
+    })
   }
 
   sentryError (method, error, extras) {

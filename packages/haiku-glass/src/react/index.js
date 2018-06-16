@@ -8,6 +8,7 @@ import MockWebsocket from 'haiku-serialization/src/ws/MockWebsocket'
 import Project from 'haiku-serialization/src/bll/Project'
 import Glass from './Glass'
 import {sentryCallback} from 'haiku-serialization/src/utils/carbonite'
+import logger from 'haiku-serialization/src/utils/LoggerInstance'
 const mixpanel = require('haiku-serialization/src/utils/Mixpanel')
 
 if (process.env.NODE_ENV === 'production') {
@@ -68,6 +69,15 @@ function go () {
     const websocket = (config.plumbing)
       ? new Websocket(_fixPlumbingUrl(config.plumbing), config.folder, 'controllee', 'glass', null, config.socket.token)
       : new MockWebsocket(ipcRenderer)
+
+
+    websocket.on('open', () => {
+      logger.setWebsocket(websocket)
+    })
+
+    websocket.on('close', () => {
+      logger.setWebsocket(null)
+    })
 
     // Add extra context to Sentry reports, this info is also used by carbonite.
     const folderHelper = config.folder.split('/').reverse()

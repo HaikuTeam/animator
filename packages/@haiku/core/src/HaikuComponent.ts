@@ -768,6 +768,7 @@ export default class HaikuComponent extends HaikuElement {
     }
 
     try {
+      this.context.info('ACTIONS_FIRED', `Action ${eventName} on element ${eventsSelector}`, {});
       return handler.apply(this, eventArgs);
     } catch (exception) {
       consoleErrorOnce(exception);

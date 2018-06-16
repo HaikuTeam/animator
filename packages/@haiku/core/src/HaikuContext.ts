@@ -43,6 +43,7 @@ export default class HaikuContext extends HaikuBase {
   tickables;
   ticks;
   unmountedTickables;
+  logger;
 
   constructor (mount, renderer, platform, bytecode, config) {
     super();
@@ -439,6 +440,18 @@ export default class HaikuContext extends HaikuBase {
 
     return HaikuComponentFactory;
   };
+
+  // Set logger to add context info when logging while avoiding runtime overhead
+  setLogger (logger: any) {
+    this.logger = logger;
+  }
+
+  info (tag, message, attachedObject) {
+    if (this.logger) {
+      attachedObject.sceneName = this.component.bytecode.metadata.title;
+      this.logger.traceInfo(tag, message, attachedObject);
+    }
+  }
 
   // Also expose so we can programatically choose an instance on the page
   static PLAYER_VERSION = VERSION; // #LEGACY

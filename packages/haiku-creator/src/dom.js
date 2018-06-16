@@ -4,6 +4,7 @@ import {render} from 'react-dom';
 import * as Websocket from 'haiku-serialization/src/ws/Websocket';
 import * as MockWebsocket from 'haiku-serialization/src/ws/MockWebsocket';
 import Creator from './react/Creator';
+import * as logger from 'haiku-serialization/src/utils/LoggerInstance'
 
 const remote = require('electron').remote;
 
@@ -44,8 +45,13 @@ export default function dom (modus, haiku) {
       )
     : new MockWebsocket();
 
+  websocket.on('open', () => {
+      logger.setWebsocket(websocket)
+  })
+  
   websocket.on('close', () => {
-    const currentWindow = remote.getCurrentWindow();
+    logger.setWebsocket(null)
+    const currentWindow = remote.getCurrentWindow()
     if (currentWindow) {
       currentWindow.destroy();
     }

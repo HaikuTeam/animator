@@ -37,13 +37,34 @@ const DEFAULTS = {
 const MAX_DIFF_LOG_LEN = 10000
 
 class LogForwarderTransport extends Transport {
-  log (info, callback) {
-    setImmediate(() => {
-      this.emit('log', info)
-    })
+  constructor(opts) {
+    super(opts);
+    // If defined, it will forward logs to websocket
+    this.websocket = null;
+  }
 
+  log (message, callback) {
+    setImmediate(() => {
+      this.emit('log', message)
+    })
+    this.sendToPlumbing(message);
     callback()
   }
+
+  sendToPlumbing (message){
+    if (this.websocket){
+      this.websocket.send({
+        type: 'log',
+        from: message.view,
+        message,
+      })
+    }
+  }
+
+  setWebsocket (websocket){
+    this.websocket = websocket;
+  }
+
 };
 
 class Logger extends EventEmitter {
@@ -79,11 +100,11 @@ class Logger extends EventEmitter {
     }))
 
     // In the future this logForwarder will also send log to plumbing
-    const logForwarder = new LogForwarderTransport()
-    logForwarder.on('log', (info) => {
+    this.logForwarderTransport = new LogForwarderTransport()
+    this.logForwarderTransport.on('log', (info) => {
       this.emit('log', info)
     })
-    transports.push(logForwarder)
+    transports.push(this.logForwarderTransport)
 
     this.logger = winston.createLogger({
       transports,
@@ -94,6 +115,15 @@ class Logger extends EventEmitter {
 
     // Hook to allow Monkey.js to configure the view prefix from which we log
     this.view = '?'
+  }
+
+
+  setWebsocket (websocket){
+    this.logForwarderTransport.setWebsocket(websocket);
+  }
+
+  raw (jsonMessage) {
+    this.logger.log(jsonMessage)
   }
 
   info (...args) {

@@ -2321,6 +2321,9 @@ class ActiveComponent extends BaseModel {
       instance.activate() // Ensure all existing subcomponents are activated
     })
 
+    // Set logger to enable context info when logging
+    createdHaikuCoreComponent.context.setLogger(logger)
+
     return createdHaikuCoreComponent
   }
 

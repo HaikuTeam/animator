@@ -37,7 +37,11 @@ class LogViewer extends React.Component {
       }
     };
 
+<<<<<<< HEAD
     this.currentMessageKey = 0;
+=======
+    this.currentMessageKey = 1
+>>>>>>> 5257f21c2... Started preview-tracer
   }
 
   toggleTag (tagName) {
@@ -58,7 +62,22 @@ class LogViewer extends React.Component {
   componentDidMount () {
     // In the future messages will also arrive from websocket.
     if (experimentIsEnabled(Experiment.UserConsole)) {
+<<<<<<< HEAD
       logger.on('log', this.logHandler);
+=======
+      this.props.websocket.on('log', (message) => {
+        message = message.message
+        console.log("received", message)
+        message.key = this.currentMessageKey
+        this.currentMessageKey++
+        this.allLogMessages.push(message)
+        if (this.displayMessageFilter(message)) {
+          this.setState(prevState => ({
+            logMessages: [...prevState.logMessages, message]
+          }))
+        }
+      })
+>>>>>>> 5257f21c2... Started preview-tracer
     }
   }
 
