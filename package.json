@@ -23,7 +23,6 @@
     "semver": "node ./scripts/semver.js",
     "setup": "node ./scripts/setup.js",
     "start": "node ./scripts/start.js",
-    "test": "yarn compile-all && ./test/run.sh",
     "compile-all": "node ./scripts/compile-all.js",
     "lint-all": "node ./scripts/lint-all.js",
     "test-all": "node ./scripts/test-all.js",
