@@ -1202,7 +1202,7 @@ export default class Creator extends React.Component {
     }
 
     // HACK: Skip human-unfriendly duplicate error
-    if (notice.message.match(/\[active/)) {
+    if (typeof notice.message === 'string' && notice.message.match(/\[active/)) {
       return
     }
 
@@ -1244,7 +1244,10 @@ export default class Creator extends React.Component {
     })
 
     if (!found) {
-      logger.error(notice.message)
+      if (notice.type === 'error') {
+        logger.error(notice.message)
+      }
+
       notices.unshift(notice)
     }
 
