@@ -15,6 +15,7 @@
     "fix": "yarn lint --fix",
     "ts": "cross-env NODE_ENV=test ts-node -r tsconfig-paths/register -P tsconfig.all.json",
     "test": "yarn ts ./node_modules/.bin/tape 'test/**/*.test.ts' 'test/**/*.test.js' | tap-spec",
+    "e2e": "yarn ts ./node_modules/.bin/tape 'test/**/*.e2e.ts' 'test/**/*.e2e.js' | tap-spec",
     "test-report": "nyc yarn ts ./node_modules/.bin/tape 'test/**/*.test.ts' 'test/**/*.test.js' > test-result.tap",
     "compile": "tsc",
     "compile-declarations": "tsc -p tsconfig.declarations.json",
@@ -61,10 +62,12 @@
     "yargs": "^6.6.0"
   },
   "devDependencies": {
+    "@types/es6-promise": "^3.3.0",
     "electron": "2.0.2",
     "haiku-creator": "3.4.6",
     "haiku-testing": "3.4.6",
     "leaked-handles": "^5.2.0",
+    "spectron": "^3.8.0",
     "tmp": "0.0.31"
   }
 }
