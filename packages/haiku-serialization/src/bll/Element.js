@@ -242,6 +242,10 @@ class Element extends BaseModel {
     return !lodash.isEmpty(this.getReifiedEventHandlers())
   }
 
+  hasVisibleEventHandlers () {
+    return !lodash.isEmpty(this.getVisibleEvents())
+  }
+
   getReifiedEventHandlers () {
     const bytecode = this.component.getReifiedBytecode()
     const selector = 'haiku:' + this.getComponentId()
@@ -522,7 +526,7 @@ class Element extends BaseModel {
     )
 
     const grabValue = (outputName) => {
-      const computedValue = hostInstance._builder.grabValue(
+      const computedValue = hostInstance.builder.grabValue(
         timelineName,
         componentId,
         elementNode,
@@ -698,11 +702,7 @@ class Element extends BaseModel {
     return propertyGroupValue
   }
 
-  remove (metadata) {
-    this.unselectSoftly(metadata)
-    this.hoverOffSoftly(metadata)
-
-    // Destroy after the above so we retain our UID for the necessary actions
+  remove () {
     this.destroy()
 
     const row = this.getHeadingRow()
@@ -1509,11 +1509,7 @@ class Element extends BaseModel {
     // Note the difference from the target instance
     const instance = this.getCoreHostComponentInstance()
     // FIXME: Handle race when component instance isn't present
-    if (!instance) {
-      return null
-    }
-    const element = instance.findElementsByHaikuId(this.getComponentId())[0]
-    return element
+    return instance ? instance.findElementsByHaikuId(this.getComponentId())[0] : null
   }
 
   getHaikuElement () {

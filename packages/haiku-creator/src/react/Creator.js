@@ -1110,6 +1110,7 @@ export default class Creator extends React.Component {
                 case 'setCurrentActiveComponent':
                 case 'selectElement':
                 case 'unselectElement':
+                case 'batchUpsertEventHandlers':
                   this.debouncedForceUpdate()
                   break
 
@@ -1197,6 +1198,11 @@ export default class Creator extends React.Component {
 
     // Ignore Intercom widget errors which are transient and confuse the user
     if (notice.type === 'error' && notice.message.match(/intercom/)) {
+      return
+    }
+
+    // HACK: Skip human-unfriendly duplicate error
+    if (notice.message.match(/\[active/)) {
       return
     }
 
@@ -1404,6 +1410,10 @@ export default class Creator extends React.Component {
         if (this.state.projectModel) {
           this.state.projectModel.stopHandlingMethods()
         }
+
+        // Clean up our litany of BaseModel extension collections in case an errant reload finds something better left
+        // unfound.
+        BaseModel.extensions.forEach((klass) => klass.purge())
 
         this.setState({
           projectModel: null,

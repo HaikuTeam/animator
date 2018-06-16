@@ -9,7 +9,7 @@ const LOCKS = {
   FileReadWrite: (abspath) => { return `FileReadWrite:${abspath}` },
   ProjectMethodHandler: 'ProjectMethodHandler',
   ActionStackUndoRedo: 'ActionStackUndoRedo',
-  SetCurrentActiveCompnent: 'SetCurrentActiveCompnent'
+  SetCurrentActiveComponent: 'SetCurrentActiveComponent'
 }
 
 const emitter = new EventEmitter()
@@ -57,11 +57,17 @@ const awaitFree = (keys, cb) => {
 
 const awaitAllLocksFree = (cb) => awaitFree(Object.keys(ACTIVE_LOCKS), cb)
 
+const awaitAllLocksFreeExcept = (keys, cb) => {
+  const allKeys = Object.keys(ACTIVE_LOCKS).filter((key) => keys.indexOf(key) === -1)
+  return awaitFree(allKeys, cb)
+}
+
 module.exports = {
   request,
   emitter,
   awaitFree,
   awaitAllLocksFree,
+  awaitAllLocksFreeExcept,
   LOCKS,
   ACTIVE_LOCKS
 }

@@ -16,6 +16,10 @@ import AssetList from './AssetList'
 import Loader from './Loader'
 import FileImporter from './FileImporter'
 
+const openWithDefaultProgram = (asset) => {
+  shell.openItem(asset.getAbspath())
+}
+
 const STYLES = {
   scrollwrap: {
     overflowY: 'auto',
@@ -253,25 +257,14 @@ class Library extends React.Component {
       })
   }
 
-  handleFileInstantiation (asset) {
-    this.props.websocket.send({
-      type: 'broadcast',
-      from: 'creator',
-      folder: this.props.projectModel.getFolder(),
-      name: 'instantiate-component',
-      relpath: asset.getLocalizedRelpath(),
-      coords: {}
-    })
+  handleFileLaunch (asset) {
+    openWithDefaultProgram(asset)
   }
 
-  openWithDefaultProgram (asset) {
-    shell.openItem(asset.getAbspath())
-  }
-
-  handleSketchInstantiation (asset) {
+  handleSketchLaunch (asset) {
     if (this.isSketchInstalled) {
       mixpanel.haikuTrack('creator:sketch:open-file')
-      this.openWithDefaultProgram(asset)
+      openWithDefaultProgram(asset)
     // On library Sketch asset double click, ask to download Sketch only if on mac
     } else if (isMac()) {
       mixpanel.haikuTrack('creator:sketch:sketch-not-installed')
@@ -279,17 +272,17 @@ class Library extends React.Component {
     }
   }
 
-  handleIllustratorInstantiation (asset) {
+  handleIllustratorLaunch (asset) {
     if (this.isIllustratorInstalled) {
       mixpanel.haikuTrack('creator:illustrator:open-file')
-      this.openWithDefaultProgram(asset)
+      openWithDefaultProgram(asset)
     } else {
       mixpanel.haikuTrack('creator:illustrator:illustrator-not-installed')
       this.props.createNotice({ type: 'error', title: 'Error', message: 'You need to have Adobe Illustrator installed to open that file.' })
     }
   }
 
-  handleFigmaInstantiation (asset) {
+  handleFigmaLaunch (asset) {
     if (asset.relpath !== 'hacky-figma-file[1]') {
       shell.openExternal(Figma.buildFigmaLinkFromPath(asset.relpath))
     }
@@ -297,7 +290,7 @@ class Library extends React.Component {
 
   onSketchDownloadComplete () {
     this.isSketchInstalled = true
-    this.openWithDefaultProgram(this.state.sketchDownloader.asset)
+    openWithDefaultProgram(this.state.sketchDownloader.asset)
     this.setState({sketchDownloader: {...this.state.sketchDownloader, isVisible: false, asset: null}})
   }
 
@@ -305,43 +298,40 @@ class Library extends React.Component {
     this.setState({sketchDownloader: {...this.state.sketchDownloader, isVisible: false, shouldAskForSketch}})
   }
 
-  handleComponentInstantiation (asset) {
-    const ac = this.props.projectModel.getCurrentActiveComponent()
-
-    // Don't allow components to be instantiated inside themselves
-    if (ac.getLocalizedRelpath() === asset.getLocalizedRelpath()) {
-      return
+  handleComponent (asset) {
+    const scenename = asset.getSceneName()
+    if (scenename) {
+      this.props.projectModel.setCurrentActiveComponent(scenename, {from: 'creator'}, () => {})
     }
-
-    this.props.websocket.send({
-      type: 'broadcast',
-      from: 'creator',
-      folder: this.props.projectModel.getFolder(),
-      name: 'instantiate-component',
-      relpath: asset.getLocalizedRelpath(),
-      coords: {}
-    })
   }
 
   onAssetDoubleClick (asset) {
+    if (!asset) {
+      return
+    }
+
     switch (asset.kind) {
       case Asset.KINDS.SKETCH:
-        this.handleSketchInstantiation(asset)
+        this.handleSketchLaunch(asset)
         break
       case Asset.KINDS.ILLUSTRATOR:
-        this.handleIllustratorInstantiation(asset)
+        this.handleIllustratorLaunch(asset)
         break
       case Asset.KINDS.FIGMA:
-        this.handleFigmaInstantiation(asset)
+        this.handleFigmaLaunch(asset)
         break
       case Asset.KINDS.VECTOR:
-        this.handleFileInstantiation(asset)
+        if (asset.isOrphanSvg()) {
+          this.handleFileLaunch(asset)
+        } else {
+          this.onAssetDoubleClick(asset.parent)
+        }
         break
       case Asset.KINDS.COMPONENT:
-        this.handleComponentInstantiation(asset)
+        this.handleComponent(asset)
         break
       case Asset.KINDS.FOLDER:
-        this.openWithDefaultProgram(asset)
+        this.onAssetDoubleClick(asset.parent)
         break
     }
   }
@@ -386,6 +376,8 @@ class Library extends React.Component {
           style={STYLES.sectionHeader}>
           Library
           <FileImporter
+            websocket={this.props.websocket}
+            projectModel={this.props.projectModel}
             onImportFigmaAsset={this.importFigmaAsset}
             onAskForFigmaAuth={() => { this.askForFigmaAuth() }}
             figma={this.state.figma}
@@ -399,6 +391,7 @@ class Library extends React.Component {
             {this.state.isLoading
               ? <Loader />
               : <AssetList
+                websocket={this.props.websocket}
                 projectModel={this.props.projectModel}
                 onDragStart={this.props.onDragStart}
                 onDragEnd={this.props.onDragEnd}

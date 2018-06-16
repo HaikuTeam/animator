@@ -21,36 +21,11 @@ pipeline {
                     nvm install 8.9.3
                     nvm use 8.9.3
                     curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.7.0'''
+                yarnInstallUnixLike()
             }
         }
-        stage('Health') {
+        stage('Test') {
             parallel {
-                stage('Lint') {
-                    agent {
-                        label 'master'
-                    }
-                    steps {
-                        setBuildStatus(CONTEXT_LINT, 'lint started', STATUS_PENDING)
-                        yarnInstallUnixLike()
-                        yarnRun('lint-report')
-                    }
-                    post {
-                        always {
-                            checkstyle canRunOnFailed: true, defaultEncoding: '', healthy: '', pattern: '**/checkstyle-result.xml', unHealthy: ''
-                        }
-                        success {
-                            setBuildStatus(CONTEXT_LINT, 'no lint errors', STATUS_SUCCESS)
-                        }
-                        failure {
-                            setBuildStatus(CONTEXT_LINT, 'lint errors found', STATUS_FAILURE)
-                            slackSend([
-                                    channel: 'engineering-feed',
-                                    color: 'warning',
-                                    message: ":professor-farnsworth: PR #${env.ghprbPullId} (https://github.com/HaikuTeam/mono/pull/${env.ghprbPullId}) has lint errors!"
-                            ])
-                        }
-                    }
-                }
                 stage('Test-macOS') {
                     agent {
                         label 'master'
@@ -65,10 +40,10 @@ pipeline {
                         always {
                             archiveArtifacts artifacts: 'packages/**/test-result.tap', fingerprint: true
                             step([
-                                    $class: 'TapPublisher',
-                                    testResults: 'packages/**/test-result.tap',
-                                    verbose: true,
-                                    planRequired: true
+                                $class: 'TapPublisher',
+                                testResults: 'packages/**/test-result.tap',
+                                verbose: true,
+                                planRequired: true
                             ])
                             cobertura autoUpdateHealth: false, autoUpdateStability: false, coberturaReportFile: '**/coverage/cobertura-coverage.xml', failNoReports: false, failUnhealthy: false, failUnstable: false, maxNumberOfBuilds: 0, onlyStable: false, sourceEncoding: 'ASCII', zoomCoverageChart: false
                         }
@@ -78,12 +53,38 @@ pipeline {
                         failure {
                             setBuildStatus(CONTEXT_TEST_MAC, 'tests are failing', STATUS_FAILURE)
                             slackSend([
-                                    channel: 'engineering-feed',
-                                    color: 'danger',
-                                    message: ":jenkins-rage: PR #${env.ghprbPullId} (https://github.com/HaikuTeam/mono/pull/${env.ghprbPullId}) has failing tests!"
+                                channel: 'engineering-feed',
+                                color: 'danger',
+                                message: ":jenkins-rage: PR #${env.ghprbPullId} (https://github.com/HaikuTeam/mono/pull/${env.ghprbPullId}) has failing tests!"
                             ])
                         }
                     }
+                }
+            }
+        }
+        stage('Lint') {
+            agent {
+                label 'master'
+            }
+            steps {
+                setBuildStatus(CONTEXT_LINT, 'lint started', STATUS_PENDING)
+                yarnInstallUnixLike()
+                yarnRun('lint-report')
+            }
+            post {
+                always {
+                    checkstyle canRunOnFailed: true, defaultEncoding: '', healthy: '', pattern: '**/checkstyle-result.xml', unHealthy: ''
+                }
+                success {
+                    setBuildStatus(CONTEXT_LINT, 'no lint errors', STATUS_SUCCESS)
+                }
+                failure {
+                    setBuildStatus(CONTEXT_LINT, 'lint errors found', STATUS_FAILURE)
+                    slackSend([
+                        channel: 'engineering-feed',
+                        color: 'warning',
+                        message: ":professor-farnsworth: PR #${env.ghprbPullId} (https://github.com/HaikuTeam/mono/pull/${env.ghprbPullId}) has lint errors!"
+                    ])
                 }
             }
         }
@@ -120,7 +121,9 @@ void setBuildStatus(String context, String message, String state) {
 void yarnInstallUnixLike() {
     sh '''#!/bin/bash -x
         . $HOME/.bash_profile
-        yarn install --frozen-lockfile --force'''
+        if [ ! -d node_modules ]; then
+            yarn install --frozen-lockfile --force
+        fi'''
 }
 
 void yarnRun(String command) {

@@ -140,7 +140,7 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   canCreateComponentFromSelection () {
-    return this.selection.length > 0 && !this.isSingleComponentSelected()
+    return this.selection.length > 0
   }
 
   isSingleComponentSelected () {

@@ -66,5 +66,21 @@
   "DirectSelectionOfPrimitives": {
     "development": false,
     "production": false
+  },
+  "IpcIntegrityCheck": {
+    "development": true,
+    "production": true
+  },
+  "CrashOnIpcIntegrityCheckFailure": {
+    "development": true,
+    "production": true
+  },
+  "IncludeSourceInIntegrityHash": {
+    "development": true,
+    "production": false
+  },
+  "OrderedActionStack": {
+    "development": false,
+    "production": false
   }
 }
