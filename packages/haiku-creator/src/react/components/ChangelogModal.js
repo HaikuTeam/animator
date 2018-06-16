@@ -6,6 +6,7 @@ import {
   ModalHeader,
 } from 'haiku-ui-common/lib/react/Modal';
 import {LogoMicroSVG} from 'haiku-ui-common/lib/react/OtherIcons';
+import ExternalLinkSVG from 'haiku-ui-common/lib/react/Icons/ExternalLinkIconSVG';
 import {BTN_STYLES} from '../styles/btnShared';
 import {DASH_STYLES} from '../styles/dashShared';
 import Palette from 'haiku-ui-common/lib/Palette';
@@ -48,6 +49,13 @@ const STYLES = {
   list: {
     paddingLeft: '30px',
     fontSize: '13px',
+  },
+  link: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    color: Palette.LIGHT_BLUE,
+    cursor: 'pointer',
   },
 };
 
@@ -97,9 +105,18 @@ class ChangelogModal extends React.PureComponent {
       <div id="changelogwrap" style={DASH_STYLES.overlay} onClick={this.props.onClose}>
         <ModalWrapper style={STYLES.modalWrapper}>
           <ModalHeader>
-            <h2>
-              <i>Release Notes</i>
-            </h2>
+            <span><h2><i>Release Notes</i></h2></span>
+            <span
+              style={STYLES.link}
+              onClick={() => {
+                shell.openExternal('https://www.haiku.ai/release-notes');
+              }}
+            >
+              Full Changelog
+              <span style={{marginLeft: 6}}>
+                <ExternalLinkSVG color={Palette.LIGHT_BLUE} />
+              </span>
+            </span>
           </ModalHeader>
 
           <div style={STYLES.modalContent}>

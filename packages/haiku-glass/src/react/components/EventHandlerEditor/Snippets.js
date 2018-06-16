@@ -53,6 +53,10 @@ class Snippets extends React.PureComponent {
         onClick: () => { this.insertSnippet('this.getDefaultTimeline().stop()') }
       },
       {
+        label: 'Open Link',
+        onClick: () => { this.insertSnippet('window.open("https://www.haiku.ai", "_self", "location=yes")') }
+      },
+      {
         label: 'Docs ↗',
         onClick: () => {
           shell.openExternal('https://docs.haiku.ai/using-haiku/summonables.html')
