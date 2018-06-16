@@ -96,7 +96,7 @@ const STYLES = {
     color: Palette.DARKER_ROCK2,
   },
   draggableCardWrapper: {
-    cursor: 'move'
+    cursor: 'move',
   },
   cardImage: {
     pointerEvents: 'none',

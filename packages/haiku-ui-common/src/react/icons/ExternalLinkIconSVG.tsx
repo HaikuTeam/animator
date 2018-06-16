@@ -1,7 +1,7 @@
 import * as React from 'react';
 import Palette from './../../Palette';
 
-export default ({ color = Palette.ROCK }) => (
+export default ({color = Palette.ROCK}) => (
     <svg width="11px" height="11px" viewBox="0 0 26 26">
         <g fill={color}>
             <path d="M24.98-.01a1 1 0 0 0-.111.01h-7.87a1 1 0 1 0 0 2h5.586L10.292 14.293a1 1 0 1 0 1.415 1.414L24 3.414V9a1 1 0 1 0 2 0V1.127A1 1 0 0 0 24.98-.01z" />

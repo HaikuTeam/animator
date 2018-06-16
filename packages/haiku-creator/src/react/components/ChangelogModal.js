@@ -109,12 +109,12 @@ class ChangelogModal extends React.PureComponent {
             <span
               style={STYLES.link}
               onClick={() => {
-                shell.openExternal('https://www.haiku.ai/release-notes')
+                shell.openExternal('https://www.haiku.ai/release-notes');
               }}
             >
               Full Changelog
-              <span style={{ marginLeft: 6 }}>
-                <ExternalLinkSVG color={Palette.LIGHT_BLUE}/>
+              <span style={{marginLeft: 6}}>
+                <ExternalLinkSVG color={Palette.LIGHT_BLUE} />
               </span>
             </span>
           </ModalHeader>
