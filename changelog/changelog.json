@@ -7155,5 +7155,142 @@
       "label": "fix",
       "message": "Components should not fire event handlers when they have been deactivated (701883247926524)"
     }
+  },
+  "3.4.5": {
+    "dda887424d2fac9d83b564fa1ac9dec6cdd89b58": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "support lazy discovery of ACs for instantiation"
+    },
+    "6ad6c9a86a7cc55add4a1ac1c77bc05e5e707e50": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "give yarnInstallUnixLike the opportunity to skip if possible."
+    },
+    "00804f4c4bbf41b742148daa77b401c35d5939f4": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Crash caused by array access returning undefined"
+    },
+    "dcb49012e4de7b6d8e6d093bcd93024e1e6e543b": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "make reloadBytecodeFromDisk work again."
+    },
+    "440fb8ada33668f9661577ad8b425e3f7d170e57": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Register key event listeners at window when expected"
+    },
+    "e8ac31fe60346b4c6d36cf9f3bd03389e6da82c3": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Ensure rehydration of subcomponents to fix integ issue"
+    },
+    "09d71851961d247cf5de1c909bf25c404757a314": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "add a carriage return after the content to prepend on init (#553)"
+    },
+    "316cd3ab6352ccb113d7c57bd192dc0617457bd4": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Make sure creating component from artboard works (706492034868017)"
+    },
+    "e4d44591934d249a3ea6b41a334e30ac0cbdaa37": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Don't try to migrate an event handler whose handler isn't present (708807567728468)"
+    },
+    "e290f12ebd93a5bd768b44dea021c16faea1138b": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Stop emitter memory leak (708807567728471)"
+    },
+    "9bc16e55eb23ba668b8eb517d9871780d48377e2": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "linting error. 😑"
+    },
+    "37858c4391107bf054dd104439df0d9d22bf83f8": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Overwriting __reference was causing many issues (708807567728474, 709220553259039))"
+    },
+    "83a80821a56481bac99d57a49b9dbd9a3360b8e5": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Do integ check only on remote requests"
+    },
+    "ff56759c0452cc303fe819354f7bb7fce899681c": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Fix component size calc when just one element is selected"
+    },
+    "717894f3f2c752108d44618e81a05f33ced81c35": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Don't let remount unset an explicitly paused state"
+    },
+    "8a214ca8ea3466188ddc042a2366043312cbd33b": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "avoid call stack exceeded on frame event listeners."
+    },
+    "1e8a3c83f2c22be10e5c99da7d3d3692525b901c": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "simplify Preview bytecode"
+    },
+    "1e1948ad07eb6406f86e907437e3d1180b571a37": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "send missing parameters to the event handler editor via timeline"
+    },
+    "58651cba39d1b781726c424da505e0c5abcc94ac": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "update the stage title bar on batchUpsertEventHandlers"
+    },
+    "7ab5b9f25f9c2d9f221356528fe4a03cc09bf003": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "only display the events bolt as blue if the element has visible actions"
+    },
+    "ebaff7c8b0ff0cc89cb1725fb9340e7d4e7ce438": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Ensure design changes propagate to guest components in-context (687727218674223)"
+    },
+    "bebb4ee0b568e9a419251b305d4d220b9eb50773": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "Create Component from menus in the library (699191670798674)"
+    },
+    "7e4f1d7b84540e07f504dbdd5fea6bc80a512534": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Let create component from component (704910095489688)"
+    },
+    "0ca839f5196b58df1e53835397eaa0f869eaa306": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Prevent crash on create component"
+    },
+    "5c7984ac29c474c0bcb5bdc48eb869dddaf5ab75": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Fix a litany of issues and simplify code by mounting preview on a separate node with pristine bytecode"
+    },
+    "5fe82a1717bae39c8b51cb5be9561759c4e90d25": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Ensure 'playback' is applied even when no keyframe diff"
+    },
+    "82bde1a5cf80829476200666fa42ecd3ad5954a2": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "support subgroups in Figma import. (#544)"
+    }
   }
 }
