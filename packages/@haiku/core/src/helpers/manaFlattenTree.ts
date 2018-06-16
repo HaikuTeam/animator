@@ -24,7 +24,7 @@ export default function flattenTree (node, options, unique = true, list = [], de
 
     if (Array.isArray(children)) {
       for (let i = 0; i < children.length; i++) {
-        flattenTree(children[i], options, /*unique=*/false, list, depth + 1, i);
+        flattenTree(children[i], options, false, list, depth + 1, i);
       }
     } else if (typeof children === 'object') {
       children.__depth = depth + 1;

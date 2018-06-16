@@ -1,7 +1,7 @@
-import React from 'react'
-import Radium from 'radium'
-import Palette from 'haiku-ui-common/lib/Palette'
-import ComponentTab from './ComponentTab'
+import * as React from 'react';
+import * as Radium from 'radium';
+import Palette from 'haiku-ui-common/lib/Palette';
+import ComponentTab from './ComponentTab';
 
 const STYLES = {
   container: {
@@ -13,35 +13,35 @@ const STYLES = {
     paddingRight: '5px',
     paddingTop: '6px',
     overflow: 'hidden',
-    verticalAlign: 'top'
-  }
-}
+    verticalAlign: 'top',
+  },
+};
 
 class ComponentMenu extends React.Component {
   constructor (props) {
-    super(props)
-    this.state = {}
+    super(props);
+    this.state = {};
   }
 
   getAllTabs () {
-    return this.props.projectModel.getMultiComponentTabs()
+    return this.props.projectModel.getMultiComponentTabs();
   }
 
   getMainComponentTab () {
-    const tabs = this.getAllTabs()
-    return tabs.filter((tab) => tab.scenename === 'main')[0]
+    const tabs = this.getAllTabs();
+    return tabs.filter((tab) => tab.scenename === 'main')[0];
   }
 
   getOtherComponentTabs () {
-    const tabs = this.getAllTabs()
-    return tabs.filter((tab) => tab.scenename !== 'main')
+    const tabs = this.getAllTabs();
+    return tabs.filter((tab) => tab.scenename !== 'main');
   }
 
   render () {
     return (
       <div
-        id='component-menu'
-        className='no-select'
+        id="component-menu"
+        className="no-select"
         style={[STYLES.container]}>
         <ComponentTab
           forceActive={this.getAllTabs().length === 1}
@@ -53,15 +53,15 @@ class ComponentMenu extends React.Component {
               projectModel={this.props.projectModel}
               key={index}
               tab={tab} />
-          )
+          );
         }))}
       </div>
-    )
+    );
   }
 }
 
 ComponentMenu.propTypes = {
-  projectModel: React.PropTypes.object.isRequired
-}
+  projectModel: React.PropTypes.object.isRequired,
+};
 
-export default Radium(ComponentMenu)
+export default Radium(ComponentMenu);

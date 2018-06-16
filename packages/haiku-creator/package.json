@@ -13,14 +13,16 @@
     ]
   },
   "scripts": {
-    "start": "electron ./lib/electron.js",
-    "watch": "babel --watch src --out-dir lib --source-maps inline",
-    "compile": "cross-env NODE_ENV=development babel src --out-dir lib --source-maps inline",
-    "lint": "eslint \"src/**/*.js\"",
+    "lint": "tslint -p tsconfig.all.json -t stylish",
+    "lint-report": "yarn lint -t checkstyle -o checkstyle-result.xml",
     "fix": "yarn lint --fix",
-    "lint-report": "yarn lint -f checkstyle -o checkstyle-result.xml",
-    "test": "tape \"test/**/*.test.js\" | tap-spec || true",
-    "test-report": "tape \"test/**/*.test.js\" > test-result.tap"
+    "ts": "cross-env NODE_ENV=test ts-node -r tsconfig-paths/register -P tsconfig.all.json",
+    "test": "yarn ts ./node_modules/.bin/tape 'test/**/*.test.ts' 'test/**/*.test.js' | tap-spec",
+    "test-report": "nyc yarn ts ./node_modules/.bin/tape 'test/**/*.test.ts' 'test/**/*.test.js' > test-result.tap",
+    "compile": "tsc",
+    "compile-declarations": "tsc -p tsconfig.declarations.json",
+    "develop": "tsc --watch",
+    "start": "electron ./lib/electron.js"
   },
   "dependencies": {
     "@haiku/core": "3.4.6",
@@ -63,17 +65,10 @@
     "react-transition-group": "^2.2.1"
   },
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-preset-react-app": "^2.2.0",
-    "babel-register": "6.26.0",
-    "cross-env": "^5.1.6",
+    "@types/node-fetch": "^2.1.1",
+    "@types/qs": "^6.5.1",
     "electron": "2.0.2",
     "electron-devtools-installer": "^2.2.4",
-    "eslint": "^3.19.0",
-    "eslint-config-standard-jsx": "^4.0.2",
-    "snazzy": "^7.0.0",
-    "standard": "^10.0.2",
-    "tap-spec": "^4.1.2",
-    "tape": "^4.9.0"
+    "haiku-testing": "3.4.5"
   }
 }

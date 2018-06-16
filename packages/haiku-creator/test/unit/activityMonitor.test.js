@@ -1,11 +1,11 @@
-const test = require('tape')
-const EventEmitter = require('events')
-const ActivityMonitor = require('../../src/utils/activityMonitor')
+import * as tape from 'tape';
+import * as EventEmitter from 'events';
+import ActivityMonitor from '@creator/utils/activityMonitor';
 
-test('ActivityMonitor detects activity on the correct events', t => {
+tape('ActivityMonitor detects activity on the correct events', t => {
   t.plan(1)
 
-  context = setContextAndAssert((userWasActive) => {
+  const context = setContextAndAssert((userWasActive) => {
     t.ok(userWasActive, 'activity was detected')
   })
 
@@ -13,12 +13,12 @@ test('ActivityMonitor detects activity on the correct events', t => {
 })
 
 
-test('ActivityMonitor does not detect activity on random events', t => {
+tape('ActivityMonitor does not detect activity on random events', t => {
   t.plan(1)
 
   let activityDetected = false
 
-  context = setContextAndAssert((userWasActive) => {
+  const context = setContextAndAssert((userWasActive) => {
     activityDetected = userWasActive
   })
 

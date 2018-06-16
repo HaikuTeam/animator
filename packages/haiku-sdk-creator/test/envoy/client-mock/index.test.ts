@@ -30,5 +30,5 @@ tape('envoy:client-mock', async (t) => {
 
       t.ok(true, 'mock client api works without throwing an error');
     });
-  },         1000);
+  }, 1000);
 });

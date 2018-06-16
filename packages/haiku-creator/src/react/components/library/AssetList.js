@@ -1,12 +1,12 @@
-import React from 'react'
-import Radium from 'radium'
-import AssetItem from './AssetItem'
+import * as React from 'react';
+import * as Radium from 'radium';
+import AssetItem from './AssetItem';
 
 class AssetList extends React.Component {
   render () {
     return (
       <div
-        className='assets-list'>
+        className="assets-list">
         {this.props.assets.map((asset) => {
           return (
             <AssetItem
@@ -24,10 +24,10 @@ class AssetList extends React.Component {
               onImportFigmaAsset={this.props.onImportFigmaAsset}
               onRefreshFigmaAsset={this.props.onRefreshFigmaAsset}
               />
-          )
+          );
         })}
       </div>
-    )
+    );
   }
 }
 
@@ -39,7 +39,7 @@ AssetList.propTypes = {
   onAssetDoubleClick: React.PropTypes.func.isRequired,
   deleteAsset: React.PropTypes.func.isRequired,
   projectModel: React.PropTypes.object.isRequired,
-  onRefreshFigmaAsset: React.PropTypes.func.isRequired
-}
+  onRefreshFigmaAsset: React.PropTypes.func.isRequired,
+};
 
-export default Radium(AssetList)
+export default Radium(AssetList);

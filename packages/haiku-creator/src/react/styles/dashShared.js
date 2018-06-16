@@ -1,15 +1,15 @@
-import Palette from 'haiku-ui-common/lib/Palette'
-import Color from 'color'
+import Palette from 'haiku-ui-common/lib/Palette';
+import * as Color from 'color';
 
 export const DASH_STYLES = {
   upcase: {
-    textTransform: 'uppercase'
+    textTransform: 'uppercase',
   },
   dashWrap: {
     position: 'absolute',
     width: '100%',
     height: '100%',
-    backgroundColor: Palette.GRAY
+    backgroundColor: Palette.GRAY,
   },
   frame: {
     position: 'absolute',
@@ -23,7 +23,7 @@ export const DASH_STYLES = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'flex-end',
-    color: Palette.ROCK
+    color: Palette.ROCK,
   },
   bannerNotice: {
     marginRight: 14,
@@ -31,7 +31,7 @@ export const DASH_STYLES = {
     borderRadius: 3,
     padding: '0 8px',
     fontStyle: 'italic',
-    color: Palette.LIGHT_BLUE
+    color: Palette.LIGHT_BLUE,
   },
   tooltip: {
     backgroundColor: Palette.LIGHT_PINK,
@@ -40,7 +40,7 @@ export const DASH_STYLES = {
     right: '-132px',
     padding: '7px 16px',
     fontSize: 13,
-    borderRadius: 4
+    borderRadius: 4,
   },
   arrowLeft: {
     width: 0,
@@ -49,7 +49,7 @@ export const DASH_STYLES = {
     left: -10,
     borderTop: '10px solid transparent',
     borderBottom: '10px solid transparent',
-    borderRight: '10px solid ' + Palette.LIGHT_PINK
+    borderRight: '10px solid ' + Palette.LIGHT_PINK,
   },
   projectsWrapper: {
     position: 'absolute',
@@ -63,11 +63,11 @@ export const DASH_STYLES = {
     height: '100%',
     paddingLeft: 50,
     paddingRight: 50,
-    transition: 'filter 140ms'
+    transition: 'filter 140ms',
   },
   dontAtMe: {
     visibility: 'hidden',
-    height: 0
+    height: 0,
   },
   card: {
     position: 'relative',
@@ -90,15 +90,15 @@ export const DASH_STYLES = {
     transform: 'scale(1)',
     transition: 'all 200ms ease',
     ':hover': {
-      boxShadow: '0 10px 40px 0 rgba(21,32,34,0.69)'
-    }
+      boxShadow: '0 10px 40px 0 rgba(21,32,34,0.69)',
+    },
   },
   deleted: {
     transform: 'scale(.00001)',
     flex: '.00001',
     minWidth: '0',
     marginLeft: 0,
-    marginRight: 0
+    marginRight: 0,
   },
   thumb: {
     height: 190,
@@ -108,11 +108,11 @@ export const DASH_STYLES = {
     transform: 'translate3d(0,0,0)',
     transition: 'transform 140ms ease',
     margin: 0,
-    width: '100%'
+    width: '100%',
   },
   blurred: {
     filter: 'blur(13px)',
-    transform: 'translate3d(0,0,0)'
+    transform: 'translate3d(0,0,0)',
   },
   scrim: {
     position: 'absolute',
@@ -129,7 +129,7 @@ export const DASH_STYLES = {
     color: Palette.SUNSTONE,
     backgroundColor: Color(Palette.FATHER_COAL).fade(0.4),
     borderTopLeftRadius: 5,
-    borderTopRightRadius: 5
+    borderTopRightRadius: 5,
   },
   menuOption: {
     opacity: 0.84,
@@ -138,29 +138,29 @@ export const DASH_STYLES = {
     transition: 'opacity 120ms ease, transform 390ms cubic-bezier(.35,.44,0,1.3)',
     pointerEvents: 'auto',
     ':hover': {
-      opacity: 1
-    }
+      opacity: 1,
+    },
   },
   opt2: {
-    transition: 'opacity 120ms 62ms ease, transform 390ms 62ms cubic-bezier(.35,.44,0,1.3)'
+    transition: 'opacity 120ms 62ms ease, transform 390ms 62ms cubic-bezier(.35,.44,0,1.3)',
   },
   opt3: {
-    transition: 'opacity 120ms 124ms ease, transform 390ms 124ms cubic-bezier(.35,.44,0,1.3)'
+    transition: 'opacity 120ms 124ms ease, transform 390ms 124ms cubic-bezier(.35,.44,0,1.3)',
   },
   gone: {
     opacity: 0,
     pointerEvents: 'none',
-    transform: 'translateY(20px)'
+    transform: 'translateY(20px)',
   },
   single: {
     position: 'absolute',
     top: 83,
     left: '50%',
-    transform: 'translateY(0px) translateX(-50%)'
+    transform: 'translateY(0px) translateX(-50%)',
   },
   gone2: {
     transform: 'translateY(15px) translateX(-50%)',
-    transition: 'none'
+    transition: 'none',
   },
   titleStrip: {
     height: 30,
@@ -174,10 +174,10 @@ export const DASH_STYLES = {
     alignItems: 'center',
     position: 'relative',
     borderBottomLeftRadius: 5,
-    borderBottomRightRadius: 5
+    borderBottomRightRadius: 5,
   },
   title: {
-    marginRight: 'auto'
+    marginRight: 'auto',
   },
   titleOptions: {
     paddingLeft: 5,
@@ -185,18 +185,18 @@ export const DASH_STYLES = {
     opacity: 0.84,
     transition: 'opacity 120ms ease',
     ':hover': {
-      opacity: 1
-    }
+      opacity: 1,
+    },
   },
   loadingWrap: {
     height: 'calc(100% - 36px)',
     marginTop: 36,
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   activeTitle: {
-    opacity: 1
+    opacity: 1,
   },
   fieldDialogue: {
     width: 364,
@@ -212,12 +212,12 @@ export const DASH_STYLES = {
     transform: 'translateY(-25px)',
     opacity: 0,
     pointerEvents: 'none',
-    transition: 'all 300ms cubic-bezier(0.51, 0.55, 0.17, 1.55)'
+    transition: 'all 300ms cubic-bezier(0.51, 0.55, 0.17, 1.55)',
   },
   fieldDialogueActive: {
     opacity: 1,
     transform: 'translateY(0)',
-    pointerEvents: 'auto'
+    pointerEvents: 'auto',
   },
   arrowTop: {
     width: 0,
@@ -228,7 +228,7 @@ export const DASH_STYLES = {
     transform: 'translateX(-50%)',
     borderLeft: '10px solid transparent',
     borderRight: '10px solid transparent',
-    borderBottom: '10px solid ' + Palette.COAL
+    borderBottom: '10px solid ' + Palette.COAL,
   },
   emptyState: {
     position: 'absolute',
@@ -237,11 +237,11 @@ export const DASH_STYLES = {
     width: 490,
     fontSize: 40,
     color: Color(Palette.FATHER_COAL).darken(0.2),
-    textAlign: 'center'
+    textAlign: 'center',
   },
   noSelect: {
     WebkitUserSelect: 'none',
-    cursor: 'default'
+    cursor: 'default',
   },
   popover: {
     container: {
@@ -254,37 +254,37 @@ export const DASH_STYLES = {
       borderRadius: '3px',
       right: -26,
       top: 26,
-      boxShadow: '0 5px 20px 0 rgba(21,32,34,0.59)'
+      boxShadow: '0 5px 20px 0 rgba(21,32,34,0.59)',
     },
     item: {
       display: 'flex',
       textAlign: 'left',
       justifyContent: 'left',
       marginBottom: '10px',
-      color: Palette.ROCK
+      color: Palette.ROCK,
     },
     icon: {
       width: '16px',
       display: 'inline-block',
       textAlign: 'center',
       marginRight: 8,
-      marginTop: 1
+      marginTop: 1,
     },
     text: {
       display: 'inline-block',
-      WebkitUserSelect: 'none'
+      WebkitUserSelect: 'none',
     },
     pointer: {
       cursor: 'pointer',
-      color: Palette.SUNSTONE
+      color: Palette.SUNSTONE,
     },
     mini: {
       justifyContent: 'center',
       alignItems: 'center',
       fontSize: 11,
       marginTop: 14,
-      marginBottom: 5
-    }
+      marginBottom: 5,
+    },
   },
   overlay: {
     position: 'absolute',
@@ -293,7 +293,7 @@ export const DASH_STYLES = {
     zIndex: 100,
     width: '100%',
     height: '100%',
-    backgroundColor: Color(Palette.FATHER_COAL).fade(0.4)
+    backgroundColor: Color(Palette.FATHER_COAL).fade(0.4),
   },
   modal: {
     position: 'absolute',
@@ -307,18 +307,18 @@ export const DASH_STYLES = {
     backgroundColor: Palette.COAL,
     transform: 'translate(-50%, -50%)',
     boxShadow: '0 12px 60px 0 rgba(21,32,34,0.9)',
-    overflow: 'hidden'
+    overflow: 'hidden',
   },
   modalTitle: {
     color: Palette.SUNSTONE,
 
     fontSize: 16,
-    marginBottom: 12
+    marginBottom: 12,
   },
   inputTitle: {
     color: Palette.ROCK,
     fontSize: 12,
-    marginBottom: 4
+    marginBottom: 4,
   },
   newProjectInput: {
     backgroundColor: Color(Palette.COAL).darken(0.3),
@@ -328,21 +328,21 @@ export const DASH_STYLES = {
     borderRadius: 5,
     fontSize: 15,
     marginBottom: 10,
-    color: Palette.SUNSTONE
+    color: Palette.SUNSTONE,
   },
   newProjectError: {
     display: 'block',
     float: 'left',
-    marginTop: 4
+    marginTop: 4,
   },
   projToDelete: {
     color: Palette.LIGHT_BLUE,
-    fontStyle: 'italic'
+    fontStyle: 'italic',
   },
   link: {
     color: Palette.LIGHTEST_PINK,
     textDecoration: 'underline',
     cursor: 'pointer',
-    display: 'inline-block'
-  }
-}
+    display: 'inline-block',
+  },
+};

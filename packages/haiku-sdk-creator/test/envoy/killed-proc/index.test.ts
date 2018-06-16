@@ -43,6 +43,6 @@ tape('envoy:killed-proc', async (t) => {
       p1.kill();
       server.close();
       t.ok(true, 'proc kill did not destroy everything');
-    },         2500);
-  },         2500);
+    }, 2500);
+  }, 2500);
 });

@@ -1,20 +1,20 @@
-import { shell } from 'electron'
-import path from 'path'
-import Radium from 'radium'
-import React from 'react'
-import Palette from 'haiku-ui-common/lib/Palette'
-import ProjectPreview from './ProjectPreview'
-import { StackMenuSVG } from 'haiku-ui-common/lib/react/OtherIcons'
-import { DASH_STYLES } from '../styles/dashShared'
+import {shell} from 'electron';
+import * as path from 'path';
+import * as Radium from 'radium';
+import * as React from 'react';
+import Palette from 'haiku-ui-common/lib/Palette';
+import ProjectPreview from './ProjectPreview';
+import {StackMenuSVG} from 'haiku-ui-common/lib/react/OtherIcons';
+import {DASH_STYLES} from '../styles/dashShared';
 
 class ProjectThumbnail extends React.Component {
   constructor (props) {
-    super(props)
-    this.bytecodePath = path.join(this.props.projectPath, 'code', 'main', 'code.js')
+    super(props);
+    this.bytecodePath = path.join(this.props.projectPath, 'code', 'main', 'code.js');
     this.state = {
       isMenuActive: false,
-      isHovered: false
-    }
+      isHovered: false,
+    };
   }
 
   render () {
@@ -22,18 +22,18 @@ class ProjectThumbnail extends React.Component {
       <div
         style={[DASH_STYLES.card, this.props.isDeleted && DASH_STYLES.deleted]}
         id={`js-utility-${this.props.projectName}`}
-        key='wrap'
+        key="wrap"
         onMouseLeave={() => {
           this.setState({
-            isMenuActive: false
-          })
+            isMenuActive: false,
+          });
         }}
       >
         <div
-          key='thumb'
+          key="thumb"
           style={[
             DASH_STYLES.thumb,
-            this.state.isMenuActive && DASH_STYLES.blurred
+            this.state.isMenuActive && DASH_STYLES.blurred,
           ]}>
           <ProjectPreview
             bytecodePath={this.bytecodePath}
@@ -42,64 +42,64 @@ class ProjectThumbnail extends React.Component {
           />
         </div>
         <div
-          key='scrim'
-          className='js-utility-project-launcher'
+          key="scrim"
+          className="js-utility-project-launcher"
           style={[
             DASH_STYLES.scrim,
-            (this.state.isMenuActive || this.state.isHovered) && {opacity: 1}
+            (this.state.isMenuActive || this.state.isHovered) && {opacity: 1},
           ]}
           onClick={() => {
             if (!this.state.isMenuActive) {
-              this.props.launchProject(this.props.projectName)
+              this.props.launchProject(this.props.projectName);
             }
           }}
           onMouseOver={() => {
-            this.setState({isHovered: true})
+            this.setState({isHovered: true});
           }}
           onMouseLeave={() => {
-            this.setState({isHovered: false})
+            this.setState({isHovered: false});
           }}
         >
           <span
-            key='open'
+            key="open"
             style={[
               DASH_STYLES.menuOption,
               DASH_STYLES.single,
               this.state.isMenuActive && DASH_STYLES.gone,
-              !this.state.isHovered && DASH_STYLES.gone2
+              !this.state.isHovered && DASH_STYLES.gone2,
             ]}
           >
             OPEN
           </span>
           {this.props.projectExistsLocally && !this.props.atProjectMax && <span
-            key='duplicate'
+            key="duplicate"
             onClick={this.props.showDuplicateProjectModal}
             style={[
               DASH_STYLES.menuOption,
               DASH_STYLES.opt2,
-              !this.state.isMenuActive && DASH_STYLES.gone
+              !this.state.isMenuActive && DASH_STYLES.gone,
             ]}
           >
             DUPLICATE
           </span>}
           {this.props.projectExistsLocally && <span
-            key='reveal'
+            key="reveal"
             onClick={() => shell.showItemInFolder(this.props.projectPath)}
             style={[
               DASH_STYLES.menuOption,
               DASH_STYLES.opt2,
-              !this.state.isMenuActive && DASH_STYLES.gone
+              !this.state.isMenuActive && DASH_STYLES.gone,
             ]}
           >
             REVEAL IN FINDER
           </span>}
           <span
-            key='delete'
+            key="delete"
             onClick={this.props.showDeleteModal}
             style={[
               DASH_STYLES.menuOption,
               DASH_STYLES.opt2,
-              !this.state.isMenuActive && DASH_STYLES.gone
+              !this.state.isMenuActive && DASH_STYLES.gone,
             ]}
           >
             DELETE
@@ -113,16 +113,16 @@ class ProjectThumbnail extends React.Component {
             style={[DASH_STYLES.titleOptions, {transform: 'translateY(1px)'}]}
             onClick={() => {
               this.setState({
-                isMenuActive: !this.state.isMenuActive
-              })
+                isMenuActive: !this.state.isMenuActive,
+              });
             }}
           >
-            <StackMenuSVG color={Palette.SUNSTONE} width='5px' height='12px' />
+            <StackMenuSVG color={Palette.SUNSTONE} width="5px" height="12px" />
           </span>
         </div>
       </div>
-    )
+    );
   }
 }
 
-export default Radium(ProjectThumbnail)
+export default Radium(ProjectThumbnail);

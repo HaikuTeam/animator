@@ -1,30 +1,30 @@
-import React from 'react'
-import autoUpdate from '../../utils/autoUpdate'
-import {DOWNLOAD_STYLES as STYLES} from '../styles/downloadShared'
-import logger from 'haiku-serialization/src/utils/LoggerInstance'
+import * as React from 'react';
+import autoUpdate from '../../utils/autoUpdate';
+import {DOWNLOAD_STYLES as STYLES} from '../styles/downloadShared';
+import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 
-let statuses = {
+const statuses = {
   IDLE: 'Idle',
   OPT_IN: 'OptIn',
   CHECKING: 'Checking',
   DOWNLOADING: 'Downloading',
   NO_UPDATES: 'NoUpdates',
   DOWNLOAD_FINISHED: 'DownloadFinished',
-  DOWNLOAD_FAILED: 'DownloadFailed'
-}
+  DOWNLOAD_FAILED: 'DownloadFailed',
+};
 
 class AutoUpdater extends React.Component {
   constructor (props) {
-    super(props)
-    this.hide = this.hide.bind(this)
-    this.updateProgress = this.updateProgress.bind(this)
-    this.update = this.update.bind(this)
-    this.onFail = this.onFail.bind(this)
-    this.url = undefined
+    super(props);
+    this.hide = this.hide.bind(this);
+    this.updateProgress = this.updateProgress.bind(this);
+    this.update = this.update.bind(this);
+    this.onFail = this.onFail.bind(this);
+    this.url = undefined;
     this.state = {
       status: statuses.IDLE,
-      progress: 0
-    }
+      progress: 0,
+    };
   }
 
   componentWillReceiveProps (nextProps) {
@@ -33,54 +33,54 @@ class AutoUpdater extends React.Component {
       this.state.status === statuses.IDLE &&
       nextProps.check
     ) {
-      this.checkForUpdates()
+      this.checkForUpdates();
     }
   }
 
   checkForUpdates () {
-    this.setState({status: statuses.CHECKING})
+    this.setState({status: statuses.CHECKING});
 
     autoUpdate.checkUpdates()
       .then(({shouldUpdate, url}) => {
         if (shouldUpdate) {
-          this.url = url
+          this.url = url;
           this.props.skipOptIn
             ? this.update()
-            : this.setState({status: statuses.OPT_IN})
+            : this.setState({status: statuses.OPT_IN});
         } else {
           this.props.runOnBackground
             ? this.hide()
-            : this.setState({status: statuses.NO_UPDATES})
+            : this.setState({status: statuses.NO_UPDATES});
         }
       })
       .catch((err) => {
         this.props.runOnBackground
           ? this.hide()
-          : this.onFail(err)
-      })
+          : this.onFail(err);
+      });
   }
 
   onFail (error) {
-    logger.error(error)
-    this.setState({status: statuses.DOWNLOAD_FAILED})
+    logger.error(error);
+    this.setState({status: statuses.DOWNLOAD_FAILED});
   }
 
   update () {
-    this.setState({status: statuses.DOWNLOADING})
+    this.setState({status: statuses.DOWNLOADING});
     autoUpdate.update(this.url, this.updateProgress)
       .then(() => {
-        this.setState({status: statuses.DOWNLOAD_FINISHED, progress: 0})
+        this.setState({status: statuses.DOWNLOAD_FINISHED, progress: 0});
       })
-      .catch(this.onFail)
+      .catch(this.onFail);
   }
 
   updateProgress (progress) {
-    this.setState({progress})
+    this.setState({progress});
   }
 
   hide () {
-    this.setState({status: statuses.IDLE})
-    this.props.onComplete()
+    this.setState({status: statuses.IDLE});
+    this.props.onComplete();
   }
 
   renderOptIn () {
@@ -97,11 +97,11 @@ class AutoUpdater extends React.Component {
           Yes
         </button>
       </div>
-    )
+    );
   }
 
   renderDownloading () {
-    const progress = this.state.progress.toFixed(1)
+    const progress = this.state.progress.toFixed(1);
 
     return (
       <div>
@@ -110,11 +110,11 @@ class AutoUpdater extends React.Component {
           Downloading and installing...
         </span>
         <p style={STYLES.progressNumber}>{progress} %</p>
-        <progress value={progress} max='100' style={STYLES.progressBar}>
+        <progress value={progress} max="100" style={STYLES.progressBar}>
           {progress} %
         </progress>
       </div>
-    )
+    );
   }
 
   renderDownloadFinished () {
@@ -122,22 +122,24 @@ class AutoUpdater extends React.Component {
       <div>
         Update installed! Loading your Haiku!
       </div>
-    )
+    );
   }
 
   renderIdle () {
-    return null
+    return null;
   }
 
   renderNoUpdates () {
-    if (this.props.runOnBackground) return null
+    if (this.props.runOnBackground) {
+      return null;
+    }
 
     return (
       <div>
         <p>You are using the latest version</p>
         <button style={STYLES.btn} onClick={this.hide}>Ok</button>
       </div>
-    )
+    );
   }
 
   renderDownloadFailed () {
@@ -147,25 +149,27 @@ class AutoUpdater extends React.Component {
         please contact Haiku support.</p>
         <button style={STYLES.btn} onClick={this.hide}>Ok</button>
       </div>
-    )
+    );
   }
 
   renderChecking () {
-    if (this.props.runOnBackground) return null
+    if (this.props.runOnBackground) {
+      return null;
+    }
 
     return (
       <div>
         Checking for updates...
       </div>
-    )
+    );
   }
 
   render () {
     if (process.env.HAIKU_SKIP_AUTOUPDATE === '1') {
-      return null
+      return null;
     }
 
-    let content = this[`render${this.state.status}`]()
+    const content = this[`render${this.state.status}`]();
 
     if (content) {
       return (
@@ -175,11 +179,11 @@ class AutoUpdater extends React.Component {
           </div>
           <div style={STYLES.overlay} />
         </div>
-      )
-    } else {
-      return null
+      );
     }
+
+    return null;
   }
 }
 
-export default AutoUpdater
+export default AutoUpdater;

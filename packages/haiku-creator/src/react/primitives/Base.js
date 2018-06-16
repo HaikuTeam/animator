@@ -3,6 +3,6 @@ export default function Base (_, name, contents) {
     preview: null,
     isPrimitive: true,
     fileName: name,
-    contents: contents
-  }
+    contents,
+  };
 }

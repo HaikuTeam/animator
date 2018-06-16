@@ -1,13 +1,12 @@
-import React from 'react'
-import Radium from 'radium'
-// import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
-import Palette from 'haiku-ui-common/lib/Palette'
-import Loader from './Loader'
+import * as React from 'react';
+import * as Radium from 'radium';
+import Palette from 'haiku-ui-common/lib/Palette';
+import Loader from './Loader';
 
 const STYLES = {
   scrollwrap: {
     overflowY: 'auto',
-    height: '100%'
+    height: '100%',
   },
   sectionHeader: {
     cursor: 'default',
@@ -16,20 +15,20 @@ const STYLES = {
     alignItems: 'center',
     padding: '12px 14px 0',
     fontSize: 15,
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
   },
   sectionWrapper: {
     paddingTop: 6,
     paddingBottom: 6,
     position: 'relative',
     minHeight: '300px',
-    overflow: 'hidden'
+    overflow: 'hidden',
   },
   link: {
     color: Palette.SUNSTONE,
     textDecoration: 'underline',
     cursor: 'pointer',
-    display: 'inline-block'
+    display: 'inline-block',
   },
   input: {
     backgroundColor: Palette.COAL,
@@ -45,60 +44,64 @@ const STYLES = {
     borderRadius: '2px',
     outline: 'none',
     ':focus': {
-      border: '1px solid ' + Palette.LIGHTEST_PINK
-    }
-  }
-}
+      border: '1px solid ' + Palette.LIGHTEST_PINK,
+    },
+  },
+};
 
 class ComponentInfoInspector extends React.Component {
   constructor (props) {
-    super(props)
+    super(props);
 
     this.state = {
       error: null,
       isLoading: false,
-      componentInfo: null
-    }
+      componentInfo: null,
+    };
 
-    this.broadcastListener = this.broadcastListener.bind(this)
+    this.broadcastListener = this.broadcastListener.bind(this);
   }
 
   broadcastListener () {
   }
 
   componentDidMount () {
-    this.setState({isLoading: true})
-    this.reloadComponentInfo()
-    this.props.websocket.on('broadcast', this.broadcastListener)
+    this.setState({isLoading: true});
+    this.reloadComponentInfo();
+    this.props.websocket.on('broadcast', this.broadcastListener);
   }
 
   componentWillUnmount () {
-    this.props.websocket.removeListener('broadcast', this.broadcastListener)
+    this.props.websocket.removeListener('broadcast', this.broadcastListener);
   }
 
   reloadComponentInfo () {
     return this.props.projectModel.readComponentInfo(
       this.props.projectModel.getCurrentActiveComponentSceneName(),
       (error, componentInfo) => {
-        if (error) return this.setState({error})
-        this.setState({componentInfo, isLoading: false})
-      }
-    )
+        if (error) {
+          return this.setState({error});
+        }
+        this.setState({componentInfo, isLoading: false});
+      },
+    );
   }
 
   renderComponentInfoForm () {
-    const componentInfo = this.state.componentInfo || {}
+    const componentInfo = this.state.componentInfo || {};
 
-    const description = componentInfo.description || ''
+    const description = componentInfo.description || '';
 
-    let keywords = componentInfo.keywords || ''
-    if (Array.isArray(keywords)) keywords = keywords.join(', ')
+    let keywords = componentInfo.keywords || '';
+    if (Array.isArray(keywords)) {
+      keywords = keywords.join(', ');
+    }
 
     return (
       <div
         style={{
           marginLeft: 15,
-          marginRight: 20
+          marginRight: 20,
         }}>
 
         <span style={{display: 'inline-block', marginBottom: 3}}>
@@ -129,43 +132,43 @@ class ComponentInfoInspector extends React.Component {
           Description
         </span>
         <textarea
-          key='component_info_description_textarea'
+          key="component_info_description_textarea"
           style={[STYLES.input, {height: 75, marginBottom: 20, resize: 'none'}]}
           value={description}
-          placeholder='Short description of your component'
+          placeholder="Short description of your component"
           onChange={(event) => {
-            componentInfo.description = event.target.value || ''
-            this.setState({componentInfo})
+            componentInfo.description = event.target.value || '';
+            this.setState({componentInfo});
           }} />
 
         <span style={{display: 'inline-block', marginBottom: 3}}>
           Keywords
         </span>
         <textarea
-          key='component_info_keywords_textarea'
+          key="component_info_keywords_textarea"
           style={[STYLES.input, {height: 75, marginBottom: 20, resize: 'none'}]}
           value={keywords}
-          placeholder='List of comma-separated keywords'
+          placeholder="List of comma-separated keywords"
           onChange={(event) => {
-            componentInfo.keywords = event.target.value || ''
-            this.setState({componentInfo})
+            componentInfo.keywords = event.target.value || '';
+            this.setState({componentInfo});
           }} />
       </div>
-    )
+    );
   }
 
   render () {
     return (
       <div
-        id='component-info-inspector-wrapper'
+        id="component-info-inspector-wrapper"
         style={{height: '100%', display: this.props.visible ? 'initial' : 'none'}}>
         <div
-          id='library-scroll-wrap'
+          id="library-scroll-wrap"
           style={STYLES.sectionHeader}>
           Component Info
         </div>
         <div
-          id='component-info-inspector-scroll-wrap'
+          id="component-info-inspector-scroll-wrap"
           style={STYLES.scrollwrap}>
           <div style={STYLES.sectionWrapper}>
             {this.state.isLoading
@@ -174,12 +177,12 @@ class ComponentInfoInspector extends React.Component {
           </div>
         </div>
       </div>
-    )
+    );
   }
 }
 
 ComponentInfoInspector.propTypes = {
-  projectModel: React.PropTypes.object.isRequired
-}
+  projectModel: React.PropTypes.object.isRequired,
+};
 
-export default Radium(ComponentInfoInspector)
+export default Radium(ComponentInfoInspector);
