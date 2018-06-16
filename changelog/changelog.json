@@ -7292,5 +7292,47 @@
       "label": "fix",
       "message": "support subgroups in Figma import. (#544)"
     }
+  },
+  "3.4.6": {
+    "61c8fa82918c07403aeef53cf7704418a0ff6eef": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Prevent crash and don't log non-error as error"
+    },
+    "da59705efdd88df24533994399d04e54c6cd96f1": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Register key event listeners at window when expected"
+    },
+    "e79d7a397962d47f4e6da9d522476f2d3cf5d285": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "add a carriage return after the content to prepend on init (#553)"
+    },
+    "5ae1a5a2463bdb924e4c0a707c87b1f63f747069": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Don't try to migrate an event handler whose handler isn't present (708807567728468)"
+    },
+    "58e8aa132315abfdd68b75eac644b8f36a817109": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Don't let remount unset an explicitly paused state"
+    },
+    "b181c7dc6a61c62d3dbfdc884864fd01d748a941": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "avoid call stack exceeded on frame event listeners."
+    },
+    "371a96ca9866e69f40eb464d818bfc694606a57d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "simplify Preview bytecode"
+    },
+    "a24974f8b0be6bd6cfd144b833f9cb43b9cb66e6": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Ensure 'playback' is applied even when no keyframe diff"
+    }
   }
 }
