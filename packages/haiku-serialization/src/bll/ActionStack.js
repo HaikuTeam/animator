@@ -347,7 +347,7 @@ class ActionStack extends BaseModel {
 
     // No component needed nor available if the method called is in the Project scope
     const ac = (typeof params[0] === 'string')
-      ? this.project.findActiveComponentBySource(params[0]) // relpath
+      ? this.project.findActiveComponentBySourceIfPresent(params[0]) // relpath
       : null
 
     // The callback will fire immediately before the action is transmitted

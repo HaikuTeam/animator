@@ -917,19 +917,19 @@ export class Glass extends React.Component {
         logger.error(err)
       }
 
-      const ac = this.project.findActiveComponentBySource(relpath)
+      this.project.findActiveComponentBySource(relpath, (err, ac) => {
+        if (!err && ac && ac !== this.getActiveComponent()) {
+          mixpanel.haikuTrack('creator:glass:edit-component', {
+            title: ac.getTitle()
+          })
 
-      if (ac && ac !== this.getActiveComponent()) {
-        mixpanel.haikuTrack('creator:glass:edit-component', {
-          title: ac.getTitle()
-        })
-
-        ac.setAsCurrentActiveComponent({from: 'glass'}, (err) => {
-          if (err) {
-            logger.error(err)
-          }
-        })
-      }
+          ac.setAsCurrentActiveComponent({from: 'glass'}, (err) => {
+            if (err) {
+              logger.error(err)
+            }
+          })
+        }
+      })
     })
   }
 

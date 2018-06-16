@@ -1201,6 +1201,11 @@ export default class Creator extends React.Component {
       return
     }
 
+    // HACK: Skip human-unfriendly duplicate error
+    if (notice.message.match(/\[active/)) {
+      return
+    }
+
     notice.id = Math.random() + ''
     notice.count = 1
     notice.timestamp = Date.now()

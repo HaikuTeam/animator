@@ -557,7 +557,7 @@ export default class Master extends EventEmitter {
       return cb(null, {})
     }
 
-    const ac = this.project.findActiveComponentBySource(relpath)
+    const ac = this.project.findActiveComponentBySourceIfPresent(relpath)
     if (!ac) {
       return cb(null, {})
     }
@@ -571,7 +571,7 @@ export default class Master extends EventEmitter {
       return cb(null, {})
     }
 
-    const ac = this.project.findActiveComponentBySource(relpath)
+    const ac = this.project.findActiveComponentBySourceIfPresent(relpath)
     if (!ac) {
       return cb(null, {})
     }
