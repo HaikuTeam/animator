@@ -4,7 +4,7 @@
 
 import createTextNode from './createTextNode';
 
-export default function insertTextChild(domElement, index, textContent) {
+export default function insertTextChild (domElement, index, textContent) {
   const existingChild = domElement.childNodes[index];
 
   // Don't do anything if the textContent is already equal

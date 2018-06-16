@@ -12,15 +12,21 @@ const STYLES = {
   top: '40px',
   left: '0',
   right: '0',
-};
+} as React.CSSProperties;
 
-export class ModalWrapper extends React.PureComponent {
-  props;
+export interface ModalWrapperProps {
+  style: React.CSSProperties;
+}
 
+const stopPropagation: React.MouseEventHandler<HTMLDivElement> = (event) => event.stopPropagation();
+
+export class ModalWrapper extends React.PureComponent<ModalWrapperProps> {
   render () {
     return (
-      <div style={{...STYLES, ...this.props.style}}
-        onClick={(event) => event.stopPropagation()}>
+      <div
+        style={{...STYLES, ...this.props.style}}
+        onClick={stopPropagation}
+      >
         {this.props.children}
       </div>
     );

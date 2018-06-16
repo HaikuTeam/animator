@@ -4,7 +4,7 @@
 
 import reactToMana from './reactToMana';
 
-export default function reactChildrenToMana(children) {
+export default function reactChildrenToMana (children) {
   if (!children) {
     return null;
   }

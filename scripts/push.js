@@ -20,11 +20,6 @@ cp.execSync(`git reset --hard origin/master`)
 // Pull standalone remotes.
 cp.execSync(`node ./scripts/git-subtree-pull.js --package=all`, processOptions)
 
-// Bump semver in all projects, plus their @haiku/* dependencies, and commit.
-cp.execSync(`node ./scripts/semver.js --non-interactive`, processOptions)
-cp.execSync(`git add -u`, processOptions)
-cp.execSync(`git commit -m "auto: Bumps semver."`, processOptions)
-
 // Regenerate changelog and push to remote.
 cp.execSync(`node ./scripts/changelog.js`, processOptions)
 cp.execSync(`git add -u`, processOptions)
@@ -53,13 +48,7 @@ cp.execSync(`node ./scripts/build-core.js --skip-compile=1`, processOptions)
 cp.execSync('git fetch')
 cp.execSync('git merge origin/master')
 cp.execSync(`git tag -a ${nowVersion()} -m 'release ${nowVersion()}'`)
-cp.execSync('git push -u origin master --tags')
-// Sync these changes down to development before continuing.
-cp.execSync('git fetch origin development:development')
-cp.execSync('git checkout development')
-cp.execSync('git merge master')
-cp.execSync('git push -u origin development')
-cp.execSync('git checkout master')
+cp.execSync(`git push -u origin master --tags`)
 
 openSourcePackages.forEach((pack) => {
   // Publish package to NPM as is.

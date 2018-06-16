@@ -1,34 +1,86 @@
 'use strict';
 
 import * as tape from 'tape';
-const getParsedProperty = require('./../../lib/helpers/getParsedProperty').default;
 
-tape('getParsedProperty', (t) => {
-  t.plan(1);
+import {BytecodeOptions} from '@core/api/HaikuBytecode';
+import getParsedProperty from '@core/helpers/getParsedProperty';
 
-  const rawProps = {options: {sizing: 'cover'}};
-  const parsedProp = getParsedProperty(rawProps, 'options');
-  t.deepEqual(parsedProp, {sizing: 'cover'}, 'flattens out items if they are contained in a poperty named "options"');
-});
+tape(
+  'getParsedProperty',
+  (t) => {
+    t.plan(1);
 
-tape('getParsedProperty', (t) => {
-  t.plan(2);
+    const rawProps = {options: {sizing: 'cover'}};
+    const parsedProp = getParsedProperty(
+      rawProps,
+      'options',
+    );
+    t.deepEqual(
+      parsedProp,
+      {sizing: 'cover'},
+      'flattens out items if they are contained in a poperty named "options"',
+    );
+  },
+);
 
-  const rawProps = {haikuOptions: {loop: true}, haikuStates: {count: 1}};
-  let parsedProp = getParsedProperty(rawProps, 'haikuOptions');
-  t.equal(parsedProp.loop, true, 'remaps deprecated property names');
+tape(
+  'getParsedProperty',
+  (t) => {
+    t.plan(2);
 
-  parsedProp = getParsedProperty(rawProps, 'haikuStates');
-  t.deepEqual(parsedProp.states, {count: 1}, 'remaps deprecated property names');
-});
+    const rawProps = {
+      haikuOptions: {loop: true},
+      haikuStates: {count: 1},
+    };
+    let parsedProp: BytecodeOptions;
+    parsedProp = getParsedProperty(
+      rawProps,
+      'haikuOptions',
+    );
+    t.equal(
+      parsedProp.loop,
+      true,
+      'remaps deprecated property names',
+    );
 
-tape('getParsedProperty', (t) => {
-  t.plan(2);
+    parsedProp = getParsedProperty(
+      rawProps,
+      'haikuStates',
+    );
+    t.deepEqual(
+      parsedProp.states,
+      {count: 1},
+      'remaps deprecated property names',
+    );
+  },
+);
 
-  const rawProps = {loop: true, alwaysComputeSizing: false};
-  let parsedProp = getParsedProperty(rawProps, 'loop');
-  t.equal(parsedProp.loop, true);
+tape(
+  'getParsedProperty',
+  (t) => {
+    t.plan(2);
 
-  parsedProp = getParsedProperty(rawProps, 'alwaysComputeSizing');
-  t.equal(parsedProp.alwaysComputeSizing, false);
-});
+    const rawProps = {
+      loop: true,
+      alwaysComputeSizing: false,
+    };
+    let parsedProp: BytecodeOptions;
+    parsedProp = getParsedProperty(
+      rawProps,
+      'loop',
+    );
+    t.equal(
+      parsedProp.loop,
+      true,
+    );
+
+    parsedProp = getParsedProperty(
+      rawProps,
+      'alwaysComputeSizing',
+    );
+    t.equal(
+      parsedProp.alwaysComputeSizing,
+      false,
+    );
+  },
+);

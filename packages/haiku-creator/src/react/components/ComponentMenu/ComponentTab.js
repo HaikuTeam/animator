@@ -18,17 +18,19 @@ const STYLES = {
     position: 'relative',
     display: 'inline-block',
     backgroundColor: 'transparent',
-    borderTopLeftRadius: '6px',
-    borderTopRightRadius: '6px',
-    borderLeft: `1px solid ${Palette.GRAY}`,
-    color: Palette.STAGE_GRAY,
-    padding: '5px 25px',
+    borderTopLeftRadius: '5px',
+    borderTopRightRadius: '5px',
+    color: Palette.LIGHTEST_GRAY,
+    padding: '4px 20px',
     height: '100%',
     width: '100%',
     cursor: 'default',
+    ':hover': {
+      color: Palette.GRAY
+    },
     active: {
       backgroundColor: Palette.STAGE_GRAY,
-      color: Palette.GRAY,
+      color: Palette.FATHER_COAL,
       cursor: 'default'
     }
   },
@@ -63,11 +65,7 @@ class ComponentTab extends React.Component {
         logger.error(err)
       }
 
-      this.props.projectModel.setCurrentActiveComponent(this.props.tab.scenename, { from: 'creator' }, (err) => {
-        if (err) {
-          logger.error(err)
-        }
-      })
+      this.props.tryToChangeCurrentActiveComponent(this.props.tab.scenename)
     })
   }
 
@@ -78,9 +76,18 @@ class ComponentTab extends React.Component {
         <div
           onClick={this.changeComponent}
           style={[STYLES.tab, (this.props.forceActive || this.props.tab.active) && STYLES.tab.active]}>
-          <span style={STYLES.label} className='no-select'>
-            {toTitleCase(this.props.tab.scenename)}
-          </span>
+          <div style={{display: 'inline-block', width: '70%'}}>
+            <span style={STYLES.label} className='no-select'>
+              {toTitleCase(this.props.tab.scenename)}
+            </span>
+          </div>
+          {(this.props.forceActive || this.props.tab.active) && this.props.nonSavedContentOnCodeEditor &&
+          <div style={{position: 'absolute', display: 'inline-block', width: '30%', height: '12px'}}>
+            <svg height='12' width='12'>
+              <circle cx='6' cy='6' r='4' fill='#f24082' />
+            </svg>
+          </div>
+        }
         </div>
       </div>
     )

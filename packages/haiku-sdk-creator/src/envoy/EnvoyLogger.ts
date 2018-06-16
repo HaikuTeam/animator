@@ -1,109 +1,126 @@
+// @ts-ignore
 import * as LoggerInstance from 'haiku-serialization/src/utils/LoggerInstance';
 
 export type EnvoyLogLevel = 'info' | 'log' | 'warn' | 'error';
 
 export default class EnvoyLogger implements Console {
-  logger: Console;
-  logLevel: EnvoyLogLevel;
   // tslint:disable-next-line:variable-name
-  Console;
+  Console: NodeJS.ConsoleConstructor;
+  memory: any;
 
-  constructor(logLevel: EnvoyLogLevel, logger?: Console) {
-    this.logger = logger || LoggerInstance;
-    this.logLevel = logLevel;
+  constructor (private readonly logLevel: EnvoyLogLevel, private readonly logger?: Console) {
+    if (!this.logger) {
+      this.logger = LoggerInstance;
+    }
   }
 
-  info(...args) {
+  info (...args: any[]) {
     if (this.logLevel === 'info') {
       return this.logger.info(...args);
     }
   }
 
-  log(...args) {
+  log (...args: any[]) {
     if (this.logLevel === 'info' || this.logLevel === 'log') {
       return this.logger.log(...args);
     }
   }
 
-  warn(...args) {
+  warn (...args: any[]) {
     if (this.logLevel === 'info' || this.logLevel === 'log' || this.logLevel === 'warn') {
       return this.logger.warn(...args);
     }
   }
 
-  error(...args) {
+  error (...args: any[]) {
     return this.logger.error(...args);
   }
 
-  assert(...args) {
+  assert (...args: any[]) {
     return this.logger.assert(...args);
   }
 
-  clear(...args) {
-    return this.logger.clear(...args);
+  clear () {
+    return this.logger.clear();
   }
 
-  count(...args) {
+  count (...args: any[]) {
     return this.logger.count(...args);
   }
 
-  debug(...args) {
+  debug (...args: any[]) {
     return this.logger.debug(...args);
   }
 
-  dir(...args) {
+  dir (...args: any[]) {
     return this.logger.dir(...args);
   }
 
-  dirxml(arg) {
+  dirxml (arg: any[]) {
     return this.logger.dirxml(arg);
   }
 
-  exception(...args) {
+  exception (...args: any[]) {
     return this.logger.exception(...args);
   }
 
-  group(...args) {
+  group (...args: any[]) {
     return this.logger.group(...args);
   }
 
-  groupCollapsed(...args) {
+  groupCollapsed (...args: any[]) {
     return this.logger.groupCollapsed(...args);
   }
 
-  groupEnd(...args) {
-    return this.logger.groupEnd(...args);
+  groupEnd () {
+    return this.logger.groupEnd();
   }
 
-  msIsIndependentlyComposed(element: any) {
+  markTimeline (label?: string) {
+    return this.logger.markTimeline(label);
+  }
+
+  msIsIndependentlyComposed (element: any) {
     return this.logger.msIsIndependentlyComposed(element);
   }
 
-  profile(...args) {
+  profile (...args: any[]) {
     return this.logger.profile(...args);
   }
 
-  profileEnd(...args) {
-    return this.logger.profileEnd(...args);
+  profileEnd () {
+    return this.logger.profileEnd();
   }
 
-  select(arg) {
+  select (arg: any) {
     return this.logger.select(arg);
   }
 
-  table(...args) {
+  table (...args: any[]) {
     return this.logger.table(...args);
   }
 
-  time(...args) {
+  time (...args: any[]) {
     return this.logger.time(...args);
   }
 
-  timeEnd(...args) {
+  timeEnd (...args: any[]) {
     return this.logger.timeEnd(...args);
   }
 
-  trace(...args) {
+  timeStamp (...args: any[]) {
+    return this.logger.timeStamp(...args);
+  }
+
+  timeline (...args: any[]) {
+    return this.logger.timeline(...args);
+  }
+
+  timelineEnd (...args: any[]) {
+    return this.logger.timelineEnd(...args);
+  }
+
+  trace (...args: any[]) {
     return this.logger.trace(...args);
   }
 }

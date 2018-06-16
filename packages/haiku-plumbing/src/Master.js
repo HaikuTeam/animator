@@ -1,5 +1,6 @@
 import async from 'async'
 import path from 'path'
+import os from 'os'
 import { debounce } from 'lodash'
 import { ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
 import fse from 'haiku-fs-extra'
@@ -10,11 +11,11 @@ import File from 'haiku-serialization/src/bll/File'
 import Project from 'haiku-serialization/src/bll/Project'
 import Sketch from 'haiku-serialization/src/bll/Sketch'
 import Figma from 'haiku-serialization/src/bll/Figma'
+import Illustrator from 'haiku-serialization/src/bll/Illustrator'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import MockWebsocket from 'haiku-serialization/src/ws/MockWebsocket'
 import { EventEmitter } from 'events'
 import EmitterManager from 'haiku-serialization/src/utils/EmitterManager'
-import * as Git from './Git'
 import Watcher from './Watcher'
 import * as ProjectFolder from './ProjectFolder'
 import MasterGitProject from './MasterGitProject'
@@ -48,11 +49,13 @@ const SAVE_AWAIT_TIME = 64 * 2
 const WATCHABLE_EXTNAMES = {
   '.js': true,
   '.svg': true,
-  '.sketch': true
+  '.sketch': true,
+  '.ai': true
 }
 
 const DESIGN_EXTNAMES = {
   '.sketch': true,
+  '.ai': true,
   '.svg': true
 }
 
@@ -81,11 +84,6 @@ function _isFileSignificant (relpath) {
   return true
 }
 
-function _excludeIfNotJs (relpath) {
-  if (path.extname(relpath) !== '.js') return true
-  return !_isFileSignificant(relpath)
-}
-
 export default class Master extends EventEmitter {
   constructor (folder, fileOptions = {}, envoyOptions = {}) {
     super()
@@ -108,6 +106,9 @@ export default class Master extends EventEmitter {
     this.fileOptions.methodsToIgnore = this
 
     this.envoyOptions = envoyOptions
+
+    // Storage for recording changes that can be used in commit messages
+    this.changes = []
 
     // Encapsulation of project actions that relate to git or cloud saving in some way
     this._git = new MasterGitProject(this.folder)
@@ -220,6 +221,10 @@ export default class Master extends EventEmitter {
     }
   }
 
+  recordChange (method, params, metadata) {
+    this.changes.push({method, params, metadata, timestamp: Date.now()})
+  }
+
   handleMethodMessage (method, params, cb) {
     // We stop using the queue once we're up and running; no point keeping the queue
     if (METHODS_TO_RUN_IMMEDIATELY[method] || this._isReadyToReceiveMethods) {
@@ -237,13 +242,23 @@ export default class Master extends EventEmitter {
     // We should *always* receive the metadata {from: 'alias'} object here!
     const metadata = params.pop()
 
+    const finish = (err, out) => {
+      if (err) {
+        return cb(err)
+      }
+
+      this.recordChange(method, params)
+
+      return cb(null, out)
+    }
+
     if (typeof this[method] === 'function') {
       this.logMethodMessage(method, params)
       // Our own API does not expect the metadata object; leave it off
-      return this[method].apply(this, params.concat(cb))
+      return this[method].apply(this, params.concat(finish))
     }
 
-    return this.project.receiveMethodCall(method, params.concat(metadata), { /* message */ }, cb)
+    return this.project.receiveMethodCall(method, params.concat(metadata), { /* message */ }, finish)
   }
 
   waitForSaveToComplete (cb) {
@@ -257,6 +272,7 @@ export default class Master extends EventEmitter {
   }
 
   emitAssetsChanged (assets) {
+    File.cache.clear()
     return this.emit('assets-changed', this, assets)
   }
 
@@ -288,7 +304,6 @@ export default class Master extends EventEmitter {
     const extname = path.extname(relpath)
     const abspath = path.join(this.folder, relpath)
     logger.info('[master] design changed', relpath)
-    this.emit('design-change', relpath, this._knownLibraryAssets)
     this.debouncedEmitAssetsChanged(this._knownLibraryAssets)
     if (extname === '.svg') {
       this.batchDesignMergeRequest(relpath, abspath)
@@ -296,10 +311,27 @@ export default class Master extends EventEmitter {
     }
   }
 
-  // /**
-  //  * watchers/handlers
-  //  * =================
-  //  */
+  buildCommitMessage (relpath) {
+    relpath = path.normalize(relpath)
+
+    let message = `Changed ${relpath}`
+
+    const changes = this.changes.splice(0).filter(({method}) => {
+      return !!COMMITTABLE_METHODS[method]
+    })
+
+    if (changes.length > 0) {
+      message = changes.map((change) => {
+        return changeToCommitMessage(relpath, change)
+      }).join('; ')
+    }
+
+    return this.normalizeCommitMessage(message)
+  }
+
+  normalizeCommitMessage (message) {
+    return `${message} (via Haiku ${ProjectFolder.getHaikuCoreVersion()} ${os.platform()})`
+  }
 
   /**
    * @description The default file-change watcher, handleFileChange, is write-aware,
@@ -310,7 +342,7 @@ export default class Master extends EventEmitter {
   handleFileChangeBlacklisted (abspath) {
     const relpath = path.relative(this.folder, abspath)
     return this.waitForSaveToComplete(() => {
-      return this._git.commitFileIfChanged(relpath, `Changed ${relpath}`, () => {})
+      return this._git.commitFileIfChanged(relpath, this.buildCommitMessage(relpath), () => {})
     })
   }
 
@@ -319,7 +351,7 @@ export default class Master extends EventEmitter {
     const extname = path.extname(relpath)
     const basename = path.basename(relpath, extname)
 
-    if (extname === '.sketch' || extname === '.svg') {
+    if (Sketch.isSketchFile(abspath) || Illustrator.isIllustratorFile(abspath) || extname === '.svg') {
       this._knownLibraryAssets[relpath] = { relpath, abspath, dtModified: Date.now() }
       this.emitDesignChange(relpath)
     } else if (path.basename(relpath) === 'code.js') { // Local component file
@@ -328,15 +360,22 @@ export default class Master extends EventEmitter {
     }
 
     return this.waitForSaveToComplete(() => {
-      return this._git.commitFileIfChanged(relpath, `Changed ${relpath}`, () => {
+      return this._git.commitFileIfChanged(relpath, this.buildCommitMessage(relpath), () => {
         if (!_isFileSignificant(relpath)) {
-          return void (0)
+          return
         }
 
-        if (extname === '.sketch') {
+        if (Sketch.isSketchFile(abspath)) {
           logger.info('[master] sketchtool pipeline running; please wait')
           Sketch.sketchtoolPipeline(abspath)
           logger.info('[master] sketchtool done')
+          return
+        }
+
+        if (Illustrator.isIllustratorFile(abspath)) {
+          logger.info('[master] illustrator pipeline running; please wait')
+          Illustrator.importSVG(abspath)
+          logger.info('[master] illustrator import done')
           return void (0)
         }
 
@@ -346,11 +385,11 @@ export default class Master extends EventEmitter {
             logger.info('[master] file ingested (changed):', abspath)
 
             if (!this.getActiveComponent()) {
-              return void (0)
+              return
             }
 
             if (relpath !== this.getActiveComponent().fetchActiveBytecodeFile().relpath) {
-              return void (0)
+              return
             }
 
             this._mod.handleModuleChange(file)
@@ -365,7 +404,7 @@ export default class Master extends EventEmitter {
     const extname = path.extname(relpath)
     const basename = path.basename(relpath, extname)
 
-    if (extname === '.sketch' || extname === '.svg') {
+    if (Sketch.isSketchFile(abspath) || Illustrator.isIllustratorFile(abspath) || extname === '.svg') {
       this._knownLibraryAssets[relpath] = { relpath, abspath, dtModified: Date.now() }
       this.emitDesignChange(relpath)
     } else if (path.basename(relpath) === 'code.js') { // Local component file
@@ -374,15 +413,22 @@ export default class Master extends EventEmitter {
     }
 
     return this.waitForSaveToComplete(() => {
-      return this._git.commitFileIfChanged(relpath, `Added ${relpath}`, () => {
+      return this._git.commitFileIfChanged(relpath, this.normalizeCommitMessage(`Added ${relpath}`), () => {
         if (!_isFileSignificant(relpath)) {
-          return void (0)
+          return
         }
 
         if (extname === '.sketch') {
           logger.info('[master] sketchtool pipeline running; please wait')
           Sketch.sketchtoolPipeline(abspath)
           logger.info('[master] sketchtool done')
+          return
+        }
+
+        if (Illustrator.isIllustratorFile(abspath)) {
+          logger.info('[master] illustrator pipeline running; please wait')
+          Illustrator.importSVG(abspath)
+          logger.info('[master] illustrator import done')
           return void (0)
         }
 
@@ -392,11 +438,11 @@ export default class Master extends EventEmitter {
             logger.info('[master] file ingested (added):', abspath)
 
             if (!this.getActiveComponent()) {
-              return void (0)
+              return
             }
 
             if (relpath !== this.getActiveComponent().fetchActiveBytecodeFile().relpath) {
-              return void (0)
+              return null
             }
           })
         }
@@ -411,9 +457,9 @@ export default class Master extends EventEmitter {
     delete this._knownLibraryAssets[relpath]
 
     return this.waitForSaveToComplete(() => {
-      return this._git.commitFileIfChanged(relpath, `Removed ${relpath}`, () => {
+      return this._git.commitFileIfChanged(relpath, this.normalizeCommitMessage(`Removed ${relpath}`), () => {
         if (!_isFileSignificant(relpath)) {
-          return void (0)
+          return
         }
 
         if (extname === '.js') {
@@ -461,11 +507,6 @@ export default class Master extends EventEmitter {
     })
   }
 
-  // /**
-  //  * methods
-  //  * =======
-  //  */
-
   masterHeartbeat (cb) {
     const state = {
       folder: this.folder,
@@ -475,24 +516,6 @@ export default class Master extends EventEmitter {
     }
 
     return cb(null, state)
-  }
-
-  doesProjectHaveUnsavedChanges (cb) {
-    return Git.status(this.folder, {}, (statusErr, statusesDict) => {
-      if (statusErr) return cb(statusErr)
-      if (Object.keys(statusesDict).length < 1) return cb(null, false)
-      return cb(null, true)
-    })
-  }
-
-  discardProjectChanges (cb) {
-    return Git.hardReset(this.folder, 'HEAD', (err) => {
-      if (err) return cb(err)
-      return Git.removeUntrackedFiles(this.folder, (err) => {
-        if (err) return cb(err)
-        return cb()
-      })
-    })
   }
 
   getAssets (cb) {
@@ -567,9 +590,9 @@ export default class Master extends EventEmitter {
 
     return async.series(
       [
-        /* Remove associated Sketch contents from disk */
+        /* Remove associated asset contents from disk */
         (cb) => {
-          Sketch.isSketchFile(abspath) || Figma.isFigmaFile(abspath)
+          Sketch.isSketchFile(abspath) || Figma.isFigmaFile(abspath) || Illustrator.isIllustratorFile(abspath)
             ? fse.remove(`${abspath}.contents`, cb)
             : cb()
         },
@@ -705,14 +728,6 @@ export default class Master extends EventEmitter {
               return cb()
             }
           )
-        },
-
-        // Load all relevant files into memory (only JavaScript files for now)
-        (cb) => {
-          logger.info(`[master] ${loggingPrefix}: ingesting js files in ${this.folder}`)
-          return File.ingestFromFolder(this.project, this.folder, {
-            exclude: _excludeIfNotJs
-          }, cb)
         },
 
         // Take an initial commit of the starting state so we have a baseline
@@ -932,17 +947,28 @@ export default class Master extends EventEmitter {
       }
     })
 
+    this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'envoy:timelineClientReady', (timelineChannel) => {
+      timelineChannel.on('didSeek', ({frame}) => {
+        const ac = this.project.getCurrentActiveComponent()
+        if (ac) {
+          ac.setCurrentTimelineFrameValue(frame)
+        }
+      })
+    })
+
     this.emit('project-state-change', { what: 'project-ready' })
   }
 
   handleActiveComponentReady () {
     return this.awaitActiveComponent(() => {
       attachListeners(this.project.getEnvoyClient(), this.getActiveComponent())
+      this.mountHaikuComponent()
+    })
+  }
 
-      // I'm not actually sure this needs to run here; doesn't project do this?
-      this.getActiveComponent().mountApplication(null, {
-        freeze: true
-      })
+  mountHaikuComponent () {
+    this.getActiveComponent().mountApplication(null, {
+      freeze: true
     })
   }
 
@@ -966,4 +992,83 @@ export default class Master extends EventEmitter {
       })
     })
   }
+}
+
+const COMMITTABLE_METHODS = {
+  deleteComponents: (relpath, [_, componentIds]) => {
+    return `Deleted ${componentIds.join(', ')} from ${relpath}`
+  },
+  conglomerateComponent: (relpath, [_, componentIds, name]) => {
+    return `Created component ${name} from ${componentIds.join(', ')} in ${relpath}`
+  },
+  instantiateComponent: (relpath, [_, componentRelpath]) => {
+    return `Instantiated ${componentRelpath} in ${relpath}`
+  },
+  batchUpsertEventHandlers: (relpath, [_, selectorName]) => {
+    return `Edited ${selectorName} actions in ${relpath}`
+  },
+  changeKeyframeValue: (relpath, [_, componentId, timelineName, propertyName, keyframeMs]) => {
+    return `Changed keyframe ${componentId} ${propertyName} ${keyframeMs} in ${relpath}`
+  },
+  changeSegmentCurve: (relpath, [_, componentId, timelineName, propertyName, keyframeMs, curve]) => {
+    return `Changed curve on ${componentId} ${propertyName} ${keyframeMs} to ${curve} in ${relpath}`
+  },
+  createKeyframe: (relpath, [_, componentId, timelineName, elementName, propertyName, keyframeMs]) => {
+    return `Created keyframe for ${componentId} ${propertyName} ${keyframeMs}`
+  },
+  deleteKeyframe: (relpath, [_, componentId, timelineName, propertyName, keyframeMs]) => {
+    return `Deleted keyframe ${componentId} ${propertyName} ${keyframeMs} from ${relpath}`
+  },
+  deleteStateValue: (relpath, [_, stateName]) => {
+    return `Deleted state ${stateName} from ${relpath}`
+  },
+  groupElements: (relpath, [_, componentIds]) => {
+    return `Grouped ${componentIds.join(', ')} in ${relpath}`
+  },
+  joinKeyframes: (relpath, [_, componentId, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, newCurve]) => {
+    return `Added ${newCurve} tween to ${componentId} ${propertyName} ${keyframeMsLeft} in ${relpath}`
+  },
+  moveKeyframes: (relpath, [_]) => {
+    return `Moved keyframes in ${relpath}`
+  },
+  pasteThings: (relpath, [_]) => {
+    return `Pasted content in ${relpath}`
+  },
+  popBytecodeSnapshot: (relpath) => {
+    return `Reloaded code snapshot for ${relpath}`
+  },
+  setTitleForComponent: (relpath, [_, componentId, newTitle]) => {
+    return `Set title for ${componentId} to ${newTitle} in ${relpath}`
+  },
+  splitSegment: (relpath, [_, componentId, timelineName, elementName, propertyName, keyframeMs]) => {
+    return `Removed tween from ${componentId} ${propertyName} ${keyframeMs} in ${relpath}`
+  },
+  ungroupElements: (relpath, [_, componentId]) => {
+    return `Ungrouped ${componentId} in ${relpath}`
+  },
+  updateKeyframes: (relpath, [_]) => {
+    return `Updated keyframes in ${relpath}`
+  },
+  upsertStateValue: (relpath, [_, stateName]) => {
+    return `Updated state value of ${stateName} in ${relpath}`
+  },
+  zMoveBackward: (relpath, [_, componentId]) => {
+    return `Moved ${componentId} backward in ${relpath}`
+  },
+  zMoveForward: (relpath, [_, componentId]) => {
+    return `Moved ${componentId} forward in ${relpath}`
+  },
+  zMoveToBack: (relpath, [_, componentId]) => {
+    return `Moved ${componentId} to back in ${relpath}`
+  },
+  zMoveToFront: (relpath, [_, componentId]) => {
+    return `Moved ${componentId} to the front in ${relpath}`
+  },
+  zShiftIndices: (relpath, [_, componentId, timelineName, timelineTime, newIndex]) => {
+    return `Shifted z-index of ${componentId} to ${newIndex} in ${relpath}`
+  }
+}
+
+const changeToCommitMessage = (relpath, {method, params, metadata, timestamp}) => {
+  return COMMITTABLE_METHODS[method](relpath, params)
 }

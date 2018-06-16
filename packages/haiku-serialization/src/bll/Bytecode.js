@@ -2,8 +2,6 @@ const lodash = require('lodash')
 const clone = require('lodash.clone')
 const cloneDeepWith = require('lodash.clonedeepwith')
 const merge = require('lodash.merge')
-const assign = require('lodash.assign')
-const defaults = require('lodash.defaults')
 const BaseModel = require('./BaseModel')
 const xmlToMana = require('@haiku/core/lib/helpers/xmlToMana').default
 const convertManaLayout = require('@haiku/core/lib/layout/convertManaLayout').default
@@ -12,6 +10,7 @@ const reifyRO = require('@haiku/core/lib/reflection/reifyRO').default
 const logger = require('haiku-serialization/src/utils/LoggerInstance')
 
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
+const HAIKU_TITLE_ATTRIBUTE = 'haiku-title'
 const DEFAULT_TIMELINE_NAME = 'Default'
 const DEFAULT_TIMELINE_TIME = 0
 const DEFAULT_ROOT_NODE_NAME = 'div'
@@ -152,6 +151,7 @@ Bytecode.padIds = (bytecode, padderFunction) => {
       fixedReferences[haikuId] = fixedHaikuId
       node.attributes[HAIKU_ID_ATTRIBUTE] = fixedReferences[haikuId]
     }
+
     const domId = node.attributes.id
     if (domId) {
       const fixedDomId = padderFunction(domId)
@@ -159,6 +159,14 @@ Bytecode.padIds = (bytecode, padderFunction) => {
       fixedReferences[`url(#${domId})`] = `url(#${fixedDomId})` // filter="url(...)"
       fixedReferences[`#${domId}`] = `#${fixedDomId}` // xlink:href="#path-3-abc123"
       node.attributes.id = fixedReferences[domId]
+
+      // Sketch outputs layer names as element ids, which are usually human friendly.
+      // That human friendly element id is used downstream as a label for display, so
+      // we need to retain it for display purposes since we've just clobbered it here.
+      // #FIXME: In lieu of the refactoring this to build it the right way, this is my hack.
+      if (!node.attributes[HAIKU_TITLE_ATTRIBUTE]) {
+        node.attributes[HAIKU_TITLE_ATTRIBUTE] = domId
+      }
     }
   })
 
@@ -419,6 +427,58 @@ Bytecode.clone = (bytecode) => {
   return Bytecode.mergeBytecode({}, bytecode)
 }
 
+Bytecode.cloneClean = (val) => {
+  if (!val) {
+    return val
+  }
+
+  if (
+    typeof val === 'string' ||
+    typeof val === 'number' ||
+    typeof val === 'boolean'
+  ) {
+    return val
+  }
+
+  if (typeof val === 'function') {
+    // Copy the function to free it from existing bindings
+    return function () {
+      return val.apply(this, arguments)
+    }
+  }
+
+  if (Array.isArray(val)) {
+    return val.map(Bytecode.cloneClean)
+  }
+
+  if (typeof val === 'object') {
+    const out = {}
+
+    for (const key in val) {
+      // Don't include the node.layout property (hacky)
+      if (val.elementName && key === 'layout') {
+        continue
+      }
+
+      // Strip off any internal properties such as __instance
+      if (key.slice(0, 2) === '__') {
+        continue
+      }
+
+      // Don't include any properties not owned by the object itself
+      if (!val.hasOwnProperty(key)) {
+        continue
+      }
+
+      out[key] = Bytecode.cloneClean(val[key])
+    }
+
+    return out
+  }
+
+  return val
+}
+
 Bytecode.snapshot = (bytecode) => {
   return cloneDeepWith(bytecode, (value) => {
     if (typeof value === 'function') {
@@ -427,7 +487,7 @@ Bytecode.snapshot = (bytecode) => {
   })
 }
 
-Bytecode.decycle = (reified, { doCleanMana }) => {
+Bytecode.decycle = (reified, { cleanManaOptions = {}, doCleanMana }) => {
   const decycled = {}
 
   if (reified.metadata) decycled.metadata = reified.metadata
@@ -441,16 +501,7 @@ Bytecode.decycle = (reified, { doCleanMana }) => {
     for (const componentId in reified.eventHandlers) {
       decycled.eventHandlers[componentId] = {}
       for (const eventListenerName in reified.eventHandlers[componentId]) {
-        // At runtime we wrap the original event handler in a wrapper function, and store
-        // the original on the 'original' property, so when serializing we need to grab the original
-        // and use it as the 'handler' or else the wrapper will be written to disk
-        const maybeOriginalFn = reified.eventHandlers[componentId][eventListenerName].original
-        const maybeHandlerFn = reified.eventHandlers[componentId][eventListenerName].handler
-
-        // If no original is present, use the handler since it shouldn't be wrapped
-        // Without this conditional, you may see event handlers get written as `null` in the code
-        const handlerToAssign = maybeOriginalFn || maybeHandlerFn
-
+        const handlerToAssign = reified.eventHandlers[componentId][eventListenerName].handler
         decycled.eventHandlers[componentId][eventListenerName] = {
           handler: handlerToAssign
         }
@@ -462,7 +513,7 @@ Bytecode.decycle = (reified, { doCleanMana }) => {
 
   if (reified.template) {
     if (doCleanMana) {
-      decycled.template = Template.cleanMana(reified.template)
+      decycled.template = Template.cleanMana(reified.template, cleanManaOptions)
     } else {
       // Cleaning mana will mess with instantiated component modules, which is why
       // doCleanMana is an option
@@ -544,13 +595,17 @@ Bytecode.reinitialize = (folder, relpath, bytecode = {}, config = {}) => {
 
   let contextHaikuId = bytecode.template.attributes[HAIKU_ID_ATTRIBUTE]
 
+  const scenename = ModuleWrapper.getScenenameFromRelpath(relpath)
+
   Bytecode.upsertDefaultProperties(bytecode, contextHaikuId, {
     'style.WebkitTapHighlightColor': 'rgba(0,0,0,0)',
     'style.transformStyle': 'flat',
     'style.perspective': 'none',
     'style.position': 'relative',
-    'style.overflowX': 'visible',
-    'style.overflowY': 'visible',
+    // Subcomponents overflow is visible since that aligns with user expectation when editing in app.
+    // But when publishing the main component, the expectation is that its overflow is hidden on share page.
+    'style.overflowX': (scenename === 'main') ? 'hidden' : 'visible',
+    'style.overflowY': (scenename === 'main') ? 'hidden' : 'visible',
     'sizeAbsolute.x': DEFAULT_CONTEXT_SIZE.width,
     'sizeAbsolute.y': DEFAULT_CONTEXT_SIZE.height,
     'sizeMode.x': 1,
@@ -1053,19 +1108,14 @@ Bytecode.upsertPropertyValue = (
   }
 }
 
-Bytecode.mergeTimelineStructure = (bytecodeObject, timelineStructure, mergeStrategy) => {
-  for (const timelineName in timelineStructure) {
-    if (!bytecodeObject.timelines[timelineName]) {
-      bytecodeObject.timelines[timelineName] = timelineStructure[timelineName]
-    } else {
-      switch (mergeStrategy) {
-        case 'merge': merge(bytecodeObject.timelines[timelineName], timelineStructure[timelineName]); break
-        case 'assign': assign(bytecodeObject.timelines[timelineName], timelineStructure[timelineName]); break
-        case 'defaults': defaults(bytecodeObject.timelines[timelineName], timelineStructure[timelineName]); break
-        default: throw new Error('Unknown merge strategy `' + mergeStrategy + '`')
-      }
-    }
+Bytecode.replaceTimelinePropertyGroups = (bytecodeObject, timelineName, timelineSelector, propertyGroup) => {
+  if (!bytecodeObject.timelines[timelineName]) {
+    bytecodeObject.timelines[timelineName] = {}
   }
+  if (!bytecodeObject.timelines[timelineName][timelineSelector]) {
+    bytecodeObject.timelines[timelineName][timelineSelector] = {}
+  }
+  Object.assign(bytecodeObject.timelines[timelineName][timelineSelector], propertyGroup)
 }
 
 Bytecode.getNormalizedRelpath = (bc) => {
@@ -1130,6 +1180,7 @@ Bytecode.doesMatchOrHostBytecode = (ours, theirs, seen = {}) => {
 module.exports = Bytecode
 
 // Down here to avoid Node circular dependency stub objects. #FIXME
+const ModuleWrapper = require('./ModuleWrapper')
 const State = require('./State')
 const Template = require('./Template')
 const TimelineProperty = require('./TimelineProperty')

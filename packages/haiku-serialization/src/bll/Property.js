@@ -440,7 +440,6 @@ Property.ALWAYS_CREATE_AS_PROPERTY_NEVER_AS_STATE = {
   'rotation.x': true,
   'rotation.y': true,
   'rotation.z': true,
-  'rotation.w': true, // Just in case this ever happens
   'scale.x': true,
   'scale.y': true,
   'scale.z': true,
@@ -539,7 +538,6 @@ Property.DISPLAY_RULES = {
   'rotation.x': {jit: [NON_ROOT_ONLY], add: [NON_ROOT_ONLY]},
   'rotation.y': {jit: [NON_ROOT_ONLY], add: [NON_ROOT_ONLY]},
   'rotation.z': {jit: [NON_ROOT_ONLY], add: [NON_ROOT_ONLY]},
-  'rotation.w': {jit: [NEVER], add: [NEVER]},
   'scale.x': {jit: [NON_ROOT_ONLY], add: [NON_ROOT_ONLY]},
   'scale.y': {jit: [NON_ROOT_ONLY], add: [NON_ROOT_ONLY]},
   'scale.z': {jit: [NON_ROOT_ONLY], add: [NON_ROOT_ONLY]},

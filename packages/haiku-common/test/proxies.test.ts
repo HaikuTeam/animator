@@ -1,15 +1,15 @@
 import * as tape from 'tape';
 
-import {buildProxyUrl, isProxied, describeProxyFromUrl} from '../lib/proxies';
+import {buildProxyUrl, describeProxyFromUrl, isProxied} from '@common/proxies';
 
-tape('proxies', (test: tape.Test) => {
-  test.test('isProxied', (test: tape.Test) => {
+tape('proxies', (suite: tape.Test) => {
+  suite.test('isProxied', (test: tape.Test) => {
     test.true(isProxied('PROXY localhost:3128'), 'proxy PACs are proxied');
     test.false(isProxied('DIRECT'), 'direct PACs are not proxied');
     test.end();
   });
 
-  test.test('buildProxyUrl', (test: tape.Test) => {
+  suite.test('buildProxyUrl', (test: tape.Test) => {
     test.is(buildProxyUrl({host: ''}), '', 'host is required or proxy URL is empty string');
     test.is(buildProxyUrl({host: 'foobar.com'}), 'http://foobar.com', 'default port is 80 (implicitly)');
     test.is(buildProxyUrl({host: 'foobar.com', port: 8080}), 'http://foobar.com:8080', 'port is appended when passed');
@@ -21,7 +21,7 @@ tape('proxies', (test: tape.Test) => {
     test.end();
   });
 
-  test.test('describeProxyFromUrl', (test: tape.Test) => {
+  suite.test('describeProxyFromUrl', (test: tape.Test) => {
     test.deepEqual(describeProxyFromUrl('DIRECT'), {host: ''}, 'ignores direct urls');
     test.deepEqual(describeProxyFromUrl('http://localhost:3128'), {host: 'localhost', port: 3128}, 'parses http URLs');
     test.deepEqual(describeProxyFromUrl('localhost'), {host: 'localhost'}, 'parses portless, protocol-inferred URLs');
@@ -33,5 +33,5 @@ tape('proxies', (test: tape.Test) => {
     test.end();
   });
 
-  test.end();
+  suite.end();
 });

@@ -1,11 +1,8 @@
 import * as tape from 'tape';
 
-import {
-  Context,
-  Nib,
-} from '../lib/nib';
+import {Context, Nib} from '@cli/nib';
 
-function runBasicCommand(mockContext) {
+function runBasicCommand (mockContext) {
   const nib = new Nib({
     name: 'basic',
     version: '0.0.0',
@@ -77,7 +74,7 @@ tape(
   },
 );
 
-function runNestedCommand(mockContext) {
+function runNestedCommand (mockContext) {
   const nib = new Nib({
     name: 'tree',
     version: '0.0.0',
@@ -161,7 +158,7 @@ tape(
   },
 );
 
-function runFlagCommand(mockContext) {
+function runFlagCommand (mockContext) {
   const nib = new Nib({
     name: 'flag',
     version: '0.0.0',

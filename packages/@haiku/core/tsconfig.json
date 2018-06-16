@@ -2,28 +2,16 @@
   "compileOnSave": true,
   "compilerOptions": {
     "allowJs": false,
-    "baseUrl": ".",
     "declaration": true,
     "declarationDir": "lib",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "isolatedModules": false,
-    "lib": [
-      "es6",
-      "dom"
-    ],
+    "lib": ["es6", "dom"],
     "module": "commonjs",
     "moduleResolution": "node",
     "noImplicitAny": false,
-    "noLib": false,
     "outDir": "lib",
-    "paths": {
-      "*": [
-        "lib/*"
-      ]
-    },
     "preserveConstEnums": true,
-    "removeComments": true,
     "rootDir": "src",
     "sourceMap": true,
     "suppressImplicitAnyIndexErrors": true,
@@ -36,10 +24,6 @@
     ]
   },
   "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx"
-  ],
-  "exclude": [
-    "node_modules"
+    "src/**/*.ts"
   ]
 }

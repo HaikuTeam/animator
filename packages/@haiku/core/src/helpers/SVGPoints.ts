@@ -2,8 +2,13 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import svgPoints from './../vendor/svg-points';
+import {BytecodeNode} from '../api/HaikuBytecode';
+import svgPoints from '../vendor/svg-points';
+import {LineSpec, PathSpec, RectSpec, ShapeSpec} from '../vendor/svg-points/types';
 import parseCssValueString from './parseCssValueString';
+
+// In leiu of good math, this gives pretty good results for converting arcs to cubic beziers
+const MAGIC_BEZIER_ARC_RATIO = 1.8106602;
 
 const SVG_TYPES = {
   g: true,
@@ -39,31 +44,24 @@ const SVG_COMMAND_TYPES = {
   polygon: true,
 };
 
-function polyPointsStringToPoints(pointsString) {
+function polyPointsStringToPoints (pointsString: string|[number, number][]) {
   if (!pointsString) {
     return [];
   }
   if (Array.isArray(pointsString)) {
     return pointsString;
   }
-  const points = [];
-  const couples = pointsString.split(/\s+/);
-  for (let i = 0; i < couples.length; i++) {
-    const pair = couples[i];
-    const segs = pair.split(/,\s*/);
-    const coord = [];
-    if (segs[0]) {
-      coord[0] = Number(segs[0]);
-    }
-    if (segs[1]) {
-      coord[1] = Number(segs[1]);
-    }
-    points.push(coord);
+
+  // Normalize "x1,y1 x2,y2" syntax to "x1 y1 x2 y2" syntax before splitting.
+  const chunkedPoints = [];
+  const points: number[] = pointsString.replace(/,/g, ' ').split(/\s+/g).map(Number);
+  for (let i = 0; i < points.length; i += 2) {
+    chunkedPoints.push(points.slice(i, i + 2) as [number, number]);
   }
-  return points;
+  return chunkedPoints;
 }
 
-function pointsToPolyString(points) {
+function pointsToPolyString (points: string|string[][]) {
   if (!points) {
     return '';
   }
@@ -79,16 +77,166 @@ function pointsToPolyString(points) {
   return arr.join(' ');
 }
 
-function pathToPoints(pathString) {
-  const shape = {type: 'path', d: pathString};
+function rectToPoints (x: number, y: number, width: number, height: number, rxIn: number, ryIn: number) {
+  let rx = rxIn;
+  let ry = ryIn;
+  if (rx || ry) {
+    if (rx && isNaN(ry)) {
+      ry = rx;
+    } // Assume equal radius if ry is not defined (SVG)
+    if (isNaN(rx)) {
+      rx = 0;
+    }
+    if (isNaN(ry)) {
+      ry = 0;
+    }
+    return [
+      {
+        y,
+        x: x + rx,
+        moveTo: true,
+      },
+      {
+        y,
+        x: x + width - rx,
+      },
+      {
+        x: x + width,
+        y: y + ry,
+        curve: {
+          type: 'cubic',
+          x1: x + width - rx + rx / MAGIC_BEZIER_ARC_RATIO,
+          y1: y,
+          x2: x + width,
+          y2: y + ry / MAGIC_BEZIER_ARC_RATIO,
+        },
+      },
+      {
+        x: x + width,
+        y: y + height - ry,
+      },
+      {
+        x: x + width - rx,
+        y: y + height,
+        curve: {
+          type: 'cubic',
+          x1: x + width,
+          y1: y + height - ry / MAGIC_BEZIER_ARC_RATIO,
+          x2: x + width - rx + rx / MAGIC_BEZIER_ARC_RATIO,
+          y2: y + height,
+        },
+      },
+      {
+        x: x + rx,
+        y: y + height,
+      },
+      {
+        x,
+        y: y + height - ry,
+        curve: {
+          type: 'cubic',
+          x1: x + rx - rx / MAGIC_BEZIER_ARC_RATIO,
+          y1: y + height,
+          x2: x,
+          y2: y + height - ry / MAGIC_BEZIER_ARC_RATIO,
+        },
+      },
+      {
+        x,
+        y: y + ry,
+      },
+      {
+        y,
+        x: x + rx,
+        curve: {
+          type: 'cubic',
+          x1: x,
+          y1: y + ry - ry / MAGIC_BEZIER_ARC_RATIO,
+          x2: x + rx - rx / MAGIC_BEZIER_ARC_RATIO,
+          y2: y,
+        },
+      },
+    ];
+  }
+
+  // Non-rounded rect
+  const shape = {x, y, width, height, rx, ry, type: 'rect'};
+  return svgPoints.toPoints(shape as RectSpec);
+}
+
+function circleToPoints (cx: number, cy: number, r: number) {
+  return ellipseToPoints(cx, cy, r, r);
+}
+
+function ellipseToPoints (cx: number, cy: number, rx: number, ry: number) {
+  return [
+    {
+      x: cx,
+      y: cy - ry,
+      moveTo: true,
+    },
+    {
+      x: cx + rx,
+      y: cy,
+      curve: {
+        type: 'cubic',
+        x1: cx + rx / MAGIC_BEZIER_ARC_RATIO,
+        y1: cy - ry,
+        x2: cx + rx,
+        y2: cy - ry / MAGIC_BEZIER_ARC_RATIO,
+      },
+    },
+    {
+      x: cx,
+      y: cy + ry,
+      curve: {
+        type: 'cubic',
+        x1: cx + rx,
+        y1: cy + ry / MAGIC_BEZIER_ARC_RATIO,
+        x2: cx + rx / MAGIC_BEZIER_ARC_RATIO,
+        y2: cy + ry,
+      },
+    },
+    {
+      x: cx - rx,
+      y: cy,
+      curve: {
+        type: 'cubic',
+        x1: cx - rx / MAGIC_BEZIER_ARC_RATIO,
+        y1: cy + ry,
+        x2: cx - rx,
+        y2: cy + ry / MAGIC_BEZIER_ARC_RATIO,
+      },
+    },
+    {
+      x: cx,
+      y: cy - ry,
+      curve: {
+        type: 'cubic',
+        x1: cx - rx,
+        y1: cy - ry / MAGIC_BEZIER_ARC_RATIO,
+        x2: cx - rx / MAGIC_BEZIER_ARC_RATIO,
+        y2: cy - ry,
+      },
+    },
+  ];
+}
+
+function lineToPoints (x1: number, y1: number, x2: number, y2: number) {
+  const shape = {x1, y1, x2, y2, type: 'line'} as LineSpec;
   return svgPoints.toPoints(shape);
 }
 
-function pointsToPath(pointsArray) {
+function pathToPoints (pathString: string) {
+  const shape = {type: 'path', d: pathString} as PathSpec;
+  return svgPoints.toPoints(shape);
+}
+
+function pointsToPath (pointsArray): string {
   return svgPoints.toPath(pointsArray);
 }
 
-function manaToPoints(mana) {
+function manaToPoints (mana: BytecodeNode) {
   if (
     SVG_TYPES[mana.elementName] &&
     mana.elementName !== 'rect' &&
@@ -108,7 +256,7 @@ function manaToPoints(mana) {
         }
       }
     }
-    return svgPoints.toPoints(shape);
+    return svgPoints.toPoints(shape as ShapeSpec);
   }
 
   // div, rect, svg ...
@@ -164,6 +312,10 @@ function manaToPoints(mana) {
 }
 
 export default {
+  rectToPoints,
+  circleToPoints,
+  ellipseToPoints,
+  lineToPoints,
   pathToPoints,
   pointsToPath,
   polyPointsStringToPoints,

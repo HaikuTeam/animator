@@ -15,6 +15,7 @@ import {
   CollapseChevronDownSVG,
   SketchIconSVG,
   FigmaIconSVG,
+  IllustratorIconSVG,
   FolderIconSVG,
   TrashIconSVG,
   ComponentIconSVG,
@@ -110,7 +111,7 @@ const STYLES = {
     opacity: 0,
     top: 3,
     left: 22,
-    zIndex: 2,
+    zIndex: 2000,
     padding: 8,
     backgroundColor: Color(Palette.COAL).fade(0.4),
     border: '1px solid rgba(0,0,0,.2)',
@@ -185,6 +186,15 @@ class AssetItem extends React.Component {
     this.endDragInCaseItWasStartedInadvertently()
   }
 
+  handleCreateComponent () {
+    this.props.websocket.send({
+      type: 'broadcast',
+      from: 'creator',
+      folder: this.props.projectModel.getFolder(),
+      name: 'conglomerate-component'
+    })
+  }
+
   renderChevy () {
     if (this.props.asset.getChildAssets().length < 1) {
       // An 'invisible' chevron; I don't recall why we do this
@@ -224,6 +234,14 @@ class AssetItem extends React.Component {
   getAssetMenuItems () {
     const items = []
 
+    if (this.props.asset.isComponentsHostFolder()) {
+      items.push({
+        label: 'Create Component',
+        icon: ComponentIconSVG,
+        onClick: this.handleCreateComponent.bind(this)
+      })
+    }
+
     // Only display Open In Sketch on mac
     if (isMac() && this.props.asset.isSketchFile()) {
       items.push({
@@ -240,6 +258,14 @@ class AssetItem extends React.Component {
         onClick: () => {
           this.handleOpenOnlineAsset(Figma.buildFigmaLink(this.props.asset.figmaID))
         }
+      })
+    }
+
+    if (this.props.asset.isIllustratorFile()) {
+      items.push({
+        label: 'Open In Illustrator',
+        icon: IllustratorIconSVG,
+        onClick: this.handleOpenAsset.bind(this)
       })
     }
 
@@ -313,6 +339,7 @@ class AssetItem extends React.Component {
     if (
       this.props.asset.isSketchFile() ||
       this.isFigmaAndCanBeOpened() ||
+      this.props.asset.isIllustratorFile() ||
       this.props.asset.isOrphanSvg() ||
       this.props.asset.isComponentOtherThanMain()
     ) {
@@ -367,7 +394,7 @@ class AssetItem extends React.Component {
       )
     }
 
-    if (this.props.asset.kind === Asset.KINDS.SKETCH) {
+    if (this.props.asset.isSketchFile()) {
       return (
         <span
           className='sketch-icon-container'
@@ -378,13 +405,24 @@ class AssetItem extends React.Component {
       )
     }
 
-    if (this.props.asset.kind === Asset.KINDS.FIGMA) {
+    if (this.props.asset.isFigmaFile()) {
       return (
         <span
           className='figma-icon-container'
           onDoubleClick={this.handleAssetDoubleClick}
           style={STYLES.cardIcon}>
           <FigmaIconSVG />
+        </span>
+      )
+    }
+
+    if (this.props.asset.isIllustratorFile()) {
+      return (
+        <span
+          className='illustrator-icon-container'
+          onDoubleClick={this.handleAssetDoubleClick}
+          style={STYLES.cardIcon}>
+          <IllustratorIconSVG />
         </span>
       )
     }

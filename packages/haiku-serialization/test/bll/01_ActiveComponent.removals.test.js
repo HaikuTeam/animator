@@ -12,7 +12,7 @@ const HaikuContext = require('@haiku/core/lib/HaikuContext').default
 const HaikuHTMLRenderer = require('@haiku/core/lib/renderers/html').default
 
 tape('ActiveComponent.removals[1]', (t) => {
-  t.plan(3)
+  t.plan(4)
   const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'removals-1')
   fse.removeSync(folder)
   const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
@@ -33,11 +33,17 @@ tape('ActiveComponent.removals[1]', (t) => {
           const root = ac0.fetchRootElement()
           t.equal(root.children.length, 3)
           const cid = ac0.getReifiedBytecode().template.children[1].attributes['haiku-id']
-          return ac0.deleteComponent(cid, {from: 'test'}, cb)
+          return ac0.deleteComponents([cid], {from: 'test'}, cb)
         },
         (cb) => {
           const root = ac0.fetchRootElement()
           t.equal(root.children.length, 2)
+          const remainingCids = ac0.getReifiedBytecode().template.children.map((node) => node.attributes['haiku-id'])
+          return ac0.deleteComponents(remainingCids, {from: 'test'}, cb)
+        },
+        (cb) => {
+          const root = ac0.fetchRootElement()
+          t.equal(root.children.length, 0)
           return cb()
         }
       ], (err) => {

@@ -1,18 +1,19 @@
-import * as chalk from 'chalk';
 import {client} from '@haiku/sdk-client';
+import * as chalk from 'chalk';
 import * as inquirer from 'inquirer';
 
 import {adminSdk} from './sdk';
 
-import {Nib, IContext} from '@haiku/cli/lib/nib';
+import {IContext, Nib} from '@haiku/cli/lib/nib';
 
+// tslint:disable-next-line:no-var-requires
 const pkg = require('./../package.json');
 
 const cli = new Nib({
   name: 'basmala',
   version: pkg.version,
   description: 'The Haiku Admin CLI — Enables Haiku administrative access and actions from the command line.',
-  preAction(context: IContext) {
+  preAction (context: IContext) {
     adminSdk.setConfig({
       baseUrl: context.flags.api || 'https://inkstone.haiku.ai/',
     });
@@ -36,7 +37,7 @@ const cli = new Nib({
 
 export {cli};
 
-async function doUserLogin(context: IContext, cb?: Function) {
+async function doUserLogin (context: IContext, cb?: () => void) {
   let username = '';
   if (context.flags.username) {
     username = context.flags.username;
@@ -48,7 +49,7 @@ async function doUserLogin(context: IContext, cb?: Function) {
         message: 'Username or email:',
       },
     ]);
-    username = answers['username'];
+    username = answers.username;
   }
 
   adminSdk.user.authenticate(client.config.getAuthToken(), username, (err, authResponse, httpResponse) => {
@@ -70,4 +71,3 @@ async function doUserLogin(context: IContext, cb?: Function) {
     }
   });
 }
-

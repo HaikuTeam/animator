@@ -4,10 +4,10 @@
 
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import EventsDict from './EventsDict';
 import {DEFAULTS} from '../../Config';
-import {randomString} from '../../helpers/StringUtils';
 import getParsedProperty from '../../helpers/getParsedProperty';
+import {randomString} from '../../helpers/StringUtils';
+import EventsDict from './EventsDict';
 
 const DEFAULT_HOST_ELEMENT_TAG_NAME = 'div';
 
@@ -19,10 +19,8 @@ export interface HaikuComponentState {
   randomId: string;
 }
 
-export interface HaikuReactComponent {}
-
 // tslint:disable-next-line:function-name
-export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawBytecode): HaikuReactComponent {
+export default function HaikuReactDOMAdapter (haikuComponentFactory, optionalRawBytecode): {} {
   class HaikuReactComponentInternal extends React.Component<HaikuComponentProps, HaikuComponentState> {
     static React = React;
     static ReactDOM = ReactDOM;
@@ -31,7 +29,7 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
     haiku;
     mount;
 
-    constructor(props) {
+    constructor (props) {
       super(props);
       this.state = {
         // This random id is used to give us a hook to query the DOM for our mount element,
@@ -40,36 +38,36 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
       };
     }
 
-    componentWillReceiveProps(nextPropsRaw) {
+    componentWillReceiveProps (nextPropsRaw) {
       if (this.haiku) {
         const haikuConfig = this.buildHaikuCompatibleConfigFromRawProps(nextPropsRaw);
         this.haiku.assignConfig(haikuConfig);
       }
     }
 
-    componentWillUnmount() {
+    componentWillUnmount () {
       if (this.haiku) {
         this.haiku.callUnmount();
       }
     }
 
-    componentDidMount() {
+    componentDidMount () {
       this.attemptMount();
     }
 
-    attemptMount() {
+    attemptMount () {
       if (this.mount) {
         this.createContext(this.props);
       }
     }
 
-    buildHaikuCompatibleConfigFromRawProps(rawProps) {
+    buildHaikuCompatibleConfigFromRawProps (rawProps) {
       // Note that these vanities are called _after_ an initial render,
       // i.e., after this.mount is supposed to have been attached.
       let haikuConfig = {
         ref: this.mount,
         vanities: {
-          'controlFlow.placeholder': function _controlFlowPlaceholderReactVanity(
+          'controlFlow.placeholder': function _controlFlowPlaceholderReactVanity (
             element,
             surrogate,
             value,
@@ -103,8 +101,8 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
                     element.__surrogate = surrogate;
                     node.style.visibility = 'visible';
                   });
-                  receiver.markHorizonElement(element);
-                  receiver.markForFullFlush();
+                  sender.markHorizonElement(element);
+                  sender.markForFullFlush();
                 }
               }
             });
@@ -129,7 +127,7 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
       return haikuConfig;
     }
 
-    createContext(rawProps) {
+    createContext (rawProps) {
       const haikuConfig = this.buildHaikuCompatibleConfigFromRawProps(rawProps);
 
       let haikuAdapter;
@@ -167,7 +165,7 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
       }
     }
 
-    buildHostElementPropsFromRawProps(rawProps) {
+    buildHostElementPropsFromRawProps (rawProps) {
       const propsForReactHostElement = {} as any;
 
       for (const key in rawProps) {
@@ -210,11 +208,11 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
       };
     }
 
-    assignMountFromRef(element) {
+    assignMountFromRef (element) {
       this.mount = element;
     }
 
-    render() {
+    render () {
       const hostElementProps = this.buildHostElementPropsFromRawProps(this.props);
 
       // Having this ref assigned like this is critical to the adapter working,
@@ -233,7 +231,7 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
   return HaikuReactComponentInternal;
 }
 
-function willReactProbablyHandleProp(prop: any, key: string) {
+function willReactProbablyHandleProp (prop: any, key: string) {
   // Exclude any 'complex' properties like objects
   if (prop && typeof prop === 'object') {
     return false;
@@ -252,7 +250,7 @@ function willReactProbablyHandleProp(prop: any, key: string) {
   return !DEFAULTS.hasOwnProperty(key);
 }
 
-function visit(el, visitor) {
+function visit (el, visitor) {
   if (el) {
     visitor(el);
     if (el.children) {
@@ -263,7 +261,7 @@ function visit(el, visitor) {
   }
 }
 
-function flexIdIfSame(virtual, dom) {
+function flexIdIfSame (virtual, dom) {
   if (virtual.attributes) {
     if (virtual.attributes['haiku-id']) {
       if (dom.getAttribute('haiku-id') === virtual.attributes['haiku-id']) {

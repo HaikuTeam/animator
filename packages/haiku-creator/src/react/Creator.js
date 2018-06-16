@@ -1,12 +1,13 @@
+import {remote, shell, ipcRenderer, clipboard, webFrame} from 'electron'
 import React from 'react'
 import { StyleRoot } from 'radium'
 import { CSSTransition } from 'react-transition-group'
 import lodash from 'lodash'
-import Combokeys from 'combokeys'
 import EventEmitter from 'event-emitter'
 import path from 'path'
 import BaseModel from 'haiku-serialization/src/bll/BaseModel'
 import Project from 'haiku-serialization/src/bll/Project'
+import File from 'haiku-serialization/src/bll/File'
 import Asset from 'haiku-serialization/src/bll/Asset'
 import AuthenticationUI from './components/AuthenticationUI'
 import ProjectBrowser from './components/ProjectBrowser'
@@ -25,13 +26,15 @@ import OfflineModePage from './components/OfflineModePage'
 import ProxyHelpScreen from './components/ProxyHelpScreen'
 import ProxySettingsScreen from './components/ProxySettingsScreen'
 import ChangelogModal from './components/ChangelogModal'
+import NewProjectModal from './components/NewProjectModal'
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/EnvoyClient'
 import { EXPORTER_CHANNEL, ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
 // Note that `User` is imported below for type discovery
-// (which works even inside JS with supported editors, using jsdoc type annotations)
+// (which works even inside JS with supported editors, using jsfhandlc type annotations)
 import { USER_CHANNEL, User, UserSettings } from 'haiku-sdk-creator/lib/bll/User' // eslint-disable-line no-unused-vars
 import { PROJECT_CHANNEL } from 'haiku-sdk-creator/lib/bll/Project'
 import { TOUR_CHANNEL } from 'haiku-sdk-creator/lib/tour'
+import { SERVICES_CHANNEL } from 'haiku-sdk-creator/lib/services'
 import { InteractionMode, isPreviewMode } from '@haiku/core/lib/helpers/interactionModes'
 import Palette from 'haiku-ui-common/lib/Palette'
 import ActivityMonitor from '../utils/activityMonitor.js'
@@ -46,18 +49,12 @@ import opn from 'opn'
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'creator'
 
-var pkg = require('./../../package.json')
+const pkg = require('./../../package.json')
 
-var mixpanel = require('haiku-serialization/src/utils/Mixpanel')
+const mixpanel = require('haiku-serialization/src/utils/Mixpanel')
 
-const electron = require('electron')
-const remote = electron.remote
-const shell = electron.shell
 const { dialog } = remote
-const ipcRenderer = electron.ipcRenderer
-const clipboard = electron.clipboard
 
-var webFrame = electron.webFrame
 if (webFrame) {
   if (webFrame.setZoomLevelLimits) webFrame.setZoomLevelLimits(1, 1)
   if (webFrame.setLayoutZoomLevelLimits) webFrame.setLayoutZoomLevelLimits(0, 0)
@@ -66,6 +63,7 @@ if (webFrame) {
 const MENU_ACTION_DEBOUNCE_TIME = 100
 const FORK_OPERATION_TIMEOUT = 2000
 const MAX_FORK_ATTEMPTS = 15
+const FIGMA_IMPORT_TIMEOUT = 1000 * 60 * 5 /* 5 minutes */
 
 export default class Creator extends React.Component {
   constructor (props) {
@@ -87,8 +85,17 @@ export default class Creator extends React.Component {
     this.onNavigateToDashboard = this.onNavigateToDashboard.bind(this)
     this.disablePreviewMode = this.disablePreviewMode.bind(this)
     this.clearAuth = this.clearAuth.bind(this)
+    this.tryToChangeCurrentActiveComponent = this.tryToChangeCurrentActiveComponent.bind(this)
+
     this.layout = new EventEmitter()
     this.activityMonitor = new ActivityMonitor(window, this.onActivityReport.bind(this))
+    // Keep tracks of not found identifiers and notice id
+    this.identifiersNotFound = []
+    this.identifiersNotFoundNotice = undefined
+
+    this.debouncedForceUpdate = lodash.debounce(() => {
+      this.forceUpdate()
+    }, 100, {leading: false, trailing: true})
 
     this.state = {
       error: null,
@@ -121,7 +128,10 @@ export default class Creator extends React.Component {
       interactionMode: InteractionMode.EDIT,
       artboardDimensions: null,
       showChangelogModal: false,
-      showProxySettings: false
+      showProxySettings: false,
+      servicesEnvoyClient: null,
+      projToDuplicateIndex: null,
+      showGlass: true
     }
 
     this.envoyOptions = {
@@ -133,10 +143,7 @@ export default class Creator extends React.Component {
 
     // fileOptions is something of a misnomer, but we pass these into Project so they
     // can be forwarded to file. They're also used to configure the Project model itself.
-    this.fileOptions = {
-      doWriteToDisk: false,
-      skipDiffLogging: true
-    }
+    this.fileOptions = {}
 
     // Callback for post-authentication
     this._postAuthCallback = undefined
@@ -159,20 +166,38 @@ export default class Creator extends React.Component {
       }
     })
 
-    const combokeys = new Combokeys(document.documentElement)
+    ipcRenderer.on('global-menu:open-dev-tools', lodash.debounce(() => {
+      remote.getCurrentWindow().openDevTools()
+      this.props.websocket.send({
+        type: 'relay',
+        from: 'creator',
+        view: 'timeline',
+        name: 'global-menu:open-dev-tools'
+      })
+      this.props.websocket.send({
+        type: 'relay',
+        from: 'creator',
+        view: 'glass',
+        name: 'global-menu:open-dev-tools'
+      })
+    }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
-    if (process.env.NODE_ENV !== 'production') {
-      combokeys.bind('command+option+i', lodash.debounce(() => {
-        this.toggleDevTools()
-      }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
-      combokeys.bind('ctrl+shift+i', lodash.debounce(() => {
-        this.toggleDevTools()
-      }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
-    }
-
-    // Top secret way to open the dev tools even if running in production
-    combokeys.bind('command+option+shift+i', lodash.debounce(() => {
-      this.toggleDevTools()
+    ipcRenderer.on('global-menu:close-dev-tools', lodash.debounce(() => {
+      if (remote.getCurrentWindow().isDevToolsFocused()) {
+        remote.getCurrentWindow().closeDevTools()
+      }
+      this.props.websocket.send({
+        type: 'relay',
+        from: 'creator',
+        view: 'timeline',
+        name: 'global-menu:close-dev-tools'
+      })
+      this.props.websocket.send({
+        type: 'relay',
+        from: 'creator',
+        view: 'glass',
+        name: 'global-menu:close-dev-tools'
+      })
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:open-finder', lodash.debounce(() => {
@@ -204,6 +229,11 @@ export default class Creator extends React.Component {
     ipcRenderer.on('global-menu:show-changelog', lodash.debounce(() => {
       logger.info(`[creator] global-menu:show-changelog`)
       this.showChangelogModal()
+    }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
+
+    ipcRenderer.on('global-menu:set-active-component', lodash.debounce((ipcEvent, scenename) => {
+      logger.info(`[creator] global-menu:set-active-component`)
+      this.tryToChangeCurrentActiveComponent(scenename)
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}))
 
     ipcRenderer.on('global-menu:zoom-in', lodash.debounce(() => {
@@ -336,6 +366,14 @@ export default class Creator extends React.Component {
       }
     })
 
+    ipcRenderer.on('global-menu:show-new-project-modal', () => {
+      this.showNewProjectModal()
+    })
+
+    ipcRenderer.on('global-menu:preview', () => {
+      this.togglePreviewMode()
+    })
+
     window.addEventListener('dragover', Asset.preventDefaultDrag, false)
 
     window.addEventListener(
@@ -386,7 +424,9 @@ export default class Creator extends React.Component {
     }
 
     if (process.env.NODE_ENV !== 'production') {
+      // For debugging
       window.creator = this
+      window.view = this // Easy to run same instruction in different tools
     }
   }
 
@@ -505,24 +545,6 @@ export default class Creator extends React.Component {
     }
   }
 
-  toggleDevTools () {
-    const win = remote.getCurrentWindow()
-
-    if (win.isDevToolsOpened()) {
-      win.closeDevTools()
-    } else {
-      win.openDevTools()
-    }
-
-    if (this.refs.stage) {
-      this.refs.stage.toggleDevTools()
-    }
-
-    if (this.refs.timeline) {
-      this.refs.timeline.toggleDevTools()
-    }
-  }
-
   handleEnvoyUserReady () {
     if (!this.user) {
       return
@@ -567,6 +589,10 @@ export default class Creator extends React.Component {
 
         case 'dimensions-reset':
           this.setState({ artboardDimensions: message.data })
+          break
+
+        case 'assets-changed':
+          File.cache.clear()
           break
       }
     })
@@ -635,6 +661,10 @@ export default class Creator extends React.Component {
         // this.handleEnvoyProjectReady()
       }
     )
+
+    this.envoyClient.get(SERVICES_CHANNEL, {timeout: FIGMA_IMPORT_TIMEOUT}).then((servicesEnvoyClient) => {
+      this.setState({servicesEnvoyClient})
+    })
 
     this.envoyClient.get(TOUR_CHANNEL).then((tourChannel) => {
       this.tourChannel = tourChannel
@@ -900,11 +930,11 @@ export default class Creator extends React.Component {
         timeout: 5000,
         retry: 5
       },
-      (error, projectsList) => {
+      (error, projectList) => {
         if (error) return cb(error)
-        this.setState({ projectsList })
-        ipcRenderer.send('renderer:projects-list-fetched', projectsList)
-        return cb(null, projectsList)
+        this.setState({ projectsList: projectList })
+        ipcRenderer.send('topmenu:update', {projectList, isProjectOpen: false})
+        return cb(null, projectList)
       }
     )
   }
@@ -913,7 +943,54 @@ export default class Creator extends React.Component {
     this.setState({projectObject: {...this.state.projectObject, isPublic}})
   }
 
+  onProjectLaunchError (error) {
+    console.log(error)
+
+    this.createNotice({
+      type: 'error',
+      title: 'Oh no!',
+      message: 'We couldn\'t open this project. 😩 Please ensure that your computer is connected to the Internet. If you\'re connected and you still see this message your files might still be processing. Please try again in a few moments. If you still see this error, contact Haiku for support.',
+      closeText: 'Okay',
+      lightScheme: true
+    })
+
+    this.setProjectLaunchStatus({ launchingProject: null })
+  }
+
+  createProject (projectName, isPublic, duplicate = false, callback) {
+    this.props.websocket.request({ method: 'createProject', params: [projectName, isPublic] }, (err, newProject) => {
+      if (err) {
+        this.createNotice({
+          type: 'error',
+          title: 'Oh no!',
+          message: 'We couldn\'t create your project. 😩 If this problem occurs again, please contact Haiku support.',
+          closeText: 'Okay',
+          lightScheme: true
+        })
+
+        callback(err)
+        return
+      }
+
+      if (duplicate && this.state.projToDuplicateIndex !== null) {
+        this.props.websocket.request(
+          {
+            method: 'duplicateProject',
+            params: [newProject, this.state.projectsList[this.state.projToDuplicateIndex]]
+          },
+          () => {
+            callback(err, newProject)
+          }
+        )
+      } else {
+        callback(err, newProject)
+      }
+    })
+  }
+
   launchProject (projectName, projectObject, cb) {
+    this.setProjectLaunchStatus({ launchingProject: true, newProjectLoading: false })
+
     projectObject = {
       ...projectObject,
       skipContentCreation: true, // VERY IMPORTANT - if not set to true, we can end up in a situation where we overwrite freshly cloned content from the remote!
@@ -941,7 +1018,9 @@ export default class Creator extends React.Component {
     })
 
     return this.props.websocket.request({ method: 'bootstrapProject', params: [projectName, projectObject, this.state.username, this.state.password] }, (err, projectFolder) => {
-      if (err) return cb(err)
+      if (err) {
+        return this.onProjectLaunchError()
+      }
 
       window.Raven.setExtraContext({
         organizationName: this.state.organizationName,
@@ -950,7 +1029,9 @@ export default class Creator extends React.Component {
       })
 
       return this.props.websocket.request({ method: 'startProject', params: [projectName, projectFolder] }, (err, applicationImage) => {
-        if (err) return cb(err)
+        if (err) {
+          return this.onProjectLaunchError()
+        }
 
         return Project.setup(
           projectFolder,
@@ -988,7 +1069,8 @@ export default class Creator extends React.Component {
               projectName,
               doShowProjectLoader: true,
               doShowBackToDashboardButton: false,
-              dashboardVisible: false
+              dashboardVisible: false,
+              showGlass: true
             }, () => {
               // Once the Timeline/Stage are being rendered, we await the point that their
               // own Project models have loaded before initiating a switch to the current
@@ -1006,15 +1088,24 @@ export default class Creator extends React.Component {
               })
             })
 
+            // This safely reinitializes websockets and Envoy clients.
+            // We need to do this here in Creator because our process
+            // remains alive even as the user navs between projects.
+            projectModel.connectClients()
+
             // Clear the undo/redo stack (etc) from the previous editing session if any is left over
             projectModel.actionStack.resetData()
 
             projectModel.on('update', (what, ...args) => {
-              // logger.info(`[creator] local update ${what}`)
+              // console.info(`[creator] local update ${what}, args:`,args)
 
               switch (what) {
                 case 'setCurrentActiveComponent':
                   this.handleActiveComponentReady()
+                  break
+
+                case 'componentDeactivating':
+                  this.handleComponentDeactivating()
                   break
 
                 case 'setInteractionMode':
@@ -1024,11 +1115,14 @@ export default class Creator extends React.Component {
             })
 
             projectModel.on('remote-update', (what, ...args) => {
-              // logger.info(`[creator] remote update ${what}`)
+              // console.log(`[creator] remote update ${what}, args:`,args)
 
               switch (what) {
                 case 'setCurrentActiveComponent':
-                  this.forceUpdate()
+                case 'selectElement':
+                case 'unselectElement':
+                case 'batchUpsertEventHandlers':
+                  this.debouncedForceUpdate()
                   break
 
                 case 'setInteractionMode':
@@ -1041,19 +1135,58 @@ export default class Creator extends React.Component {
             projectModel.on('active-component:upserted', () => {
               this.forceUpdate()
             })
-
-            // This notifies ProjectBrowser that we've successfully launched
-            // Note that we don't activate any component until all views are ready
-            // (see above)
-            return cb()
           }
         )
       })
     })
   }
 
+  handleComponentDeactivating () {
+    this.getActiveComponent().removeAllListeners('sustained-check:start')
+  }
+
   handleActiveComponentReady () {
     this.mountHaikuComponent()
+
+    ipcRenderer.send('topmenu:update', {
+      subComponents: this.state.projectModel.describeSubComponents()
+    })
+
+    // Reset not found identifiers in case we are switching current active component
+    this.identifiersNotFound = []
+
+    this.getActiveComponent().on('sustained-check:start', () => {
+      const activeComponent = this.getActiveComponent()
+
+      // If activeComponent is null, delete any identifiersNotFound notice and skip it
+      if (!activeComponent) {
+        this.deleteIdentifierNotFoundNotice()
+        return
+      }
+
+      // Check sustained warnings
+      activeComponent.checkSustainedWarnings()
+
+      const currentIdentifiersNotFound = activeComponent.sustainedWarningsChecker.notFoundIdentifiers
+
+      // If changed, delete current notice and display a new notice if num identifier not found > 0
+      if (!lodash.isEqual(currentIdentifiersNotFound, this.identifiersNotFound)) {
+        // Delete old notice
+        this.deleteIdentifierNotFoundNotice()
+
+        // Create new notice if has any not found indentifier
+        if (currentIdentifiersNotFound.length > 0) {
+          this.identifiersNotFoundNotice = this.createNotice({
+            title: 'Uh oh',
+            type: 'warning',
+            message: `Expressions are missing identifier(s): ${currentIdentifiersNotFound}.`
+          })
+        }
+
+        // Update list of identifiers not found
+        this.identifiersNotFound = currentIdentifiersNotFound
+      }
+    })
 
     // Hide loading screens, re-enable navigating back to dashboard but only after a
     // delay since we've seen race-related crashes when people nav back too early.
@@ -1201,15 +1334,16 @@ export default class Creator extends React.Component {
   }
 
   onTimelineMounted () {
-    this.setState({ isTimelineReady: true })
+    this.setState({isTimelineReady: true})
   }
 
   onTimelineUnmounted () {
-    this.setState({ isTimelineReady: false })
+    this.setState({isTimelineReady: false})
   }
 
   onNavigateToDashboard () {
-    this.teardownMaster({ shouldFinishTour: true })
+    this.teardownMaster({shouldFinishTour: true})
+    ipcRenderer.send('topmenu:update', {subComponents: [], isProjectOpen: false})
   }
 
   awaitAuthAndFire (cb) {
@@ -1293,6 +1427,9 @@ export default class Creator extends React.Component {
   }
 
   teardownMaster ({shouldFinishTour, launchingProject = false}, cb) {
+    // Delete identifier not found notice on teardown
+    this.deleteIdentifierNotFoundNotice()
+
     // We teardownMaster FIRST because we want to close the websocket connections before
     // destroying the webviews, which leads to EPIPE/"not opened" crashes.
     // Previously we were relying on dropped connections to deallocate websockets,
@@ -1301,11 +1438,28 @@ export default class Creator extends React.Component {
       { method: 'teardownMaster', params: [this.state.projectModel.getFolder()] },
       () => {
         logger.info('[creator] master torn down')
+
         this.setDashboardVisibility(true, launchingProject)
         this.onTimelineUnmounted()
+
         this.unsetAllProjectModelsState(this.state.projectModel.getFolder(), 'project:ready')
         this.unsetAllProjectModelsState(this.state.projectModel.getFolder(), 'component:mounted')
-        if (shouldFinishTour) this.tourChannel.finish(false)
+
+        if (shouldFinishTour) {
+          this.tourChannel.finish(false)
+        }
+
+        this.state.projectModel.getAllActiveComponents().forEach((ac) => {
+          if (ac.$instance) {
+            ac.$instance.context.destroy()
+          }
+        })
+
+        // The stale project doesn't want to receive methods destined for new project models
+        if (this.state.projectModel) {
+          this.state.projectModel.stopHandlingMethods()
+        }
+
         this.setState({
           projectModel: null,
           activeNav: 'library', // Prevents race+crash loading StateInspector when switching projects
@@ -1317,6 +1471,13 @@ export default class Creator extends React.Component {
         }
       }
     )
+  }
+
+  deleteIdentifierNotFoundNotice () {
+    if (this.identifiersNotFoundNotice) {
+      this.removeNotice(undefined, this.identifiersNotFoundNotice.id)
+      this.identifiersNotFoundNotice = undefined
+    }
   }
 
   renderStartupDefaultScreen () {
@@ -1357,6 +1518,11 @@ export default class Creator extends React.Component {
     this.setState({ readyForAuth: true, isUserAuthenticated: false, username: '' })
   }
 
+  tryToChangeCurrentActiveComponent (scenename) {
+    // Delegate to Stage, as it contains nonSavedContentOnCodeEditor state
+    this.refs.stage.tryToChangeCurrentActiveComponent(scenename)
+  }
+
   setProjectLaunchStatus ({ launchingProject, newProjectLoading }) {
     if (launchingProject !== undefined) {
       this.setState({ launchingProject })
@@ -1385,6 +1551,49 @@ export default class Creator extends React.Component {
         lastViewedChangelog={this.state.lastViewedChangelog}
       />
     ) : null
+  }
+
+  showNewProjectModal (isDuplicateProjectModal = false, duplicateProjectName = '', projToDuplicateIndex = -1) {
+    this.setState({ showNewProjectModal: true, isDuplicateProjectModal, duplicateProjectName, projToDuplicateIndex })
+    mixpanel.haikuTrack('creator:new-project:shown')
+  }
+
+  hideNewProjectModal () {
+    this.setState({ showNewProjectModal: false, isDuplicateProjectModal: false, duplicateProjectName: null })
+  }
+
+  renderNewProjectModal () {
+    return (
+      this.state.showNewProjectModal && (
+        <NewProjectModal
+          defaultProjectName={this.state.duplicateProjectName}
+          duplicate={this.state.isDuplicateProjectModal}
+          disabled={this.state.newProjectLoading}
+          onCreateProject={(projectName, isPublic, duplicate, callback) => {
+            this.createProject(projectName, isPublic, duplicate, (err, projectObject) => {
+              callback(err, projectObject)
+
+              if (err) {
+                this.hideNewProjectModal()
+                return
+              }
+
+              if (this.state.projectModel) {
+                this.teardownMaster(
+                  { shouldFinishTour: true, launchingProject: false },
+                  () => { this.launchProject(projectObject.projectName, projectObject, callback) }
+                )
+              } else {
+                this.launchProject(projectObject.projectName, projectObject, callback)
+              }
+            })
+          }}
+          onClose={() => {
+            this.hideNewProjectModal()
+          }}
+        />
+      )
+    )
   }
 
   get proxyDescriptor () {
@@ -1495,6 +1704,7 @@ export default class Creator extends React.Component {
         <div>
           <ProjectBrowser
             ref='ProjectBrowser'
+            onShowNewProjectModal={(...args) => { this.showNewProjectModal(...args) }}
             lastViewedChangelog={this.state.lastViewedChangelog}
             onShowChangelogModal={() => { this.showChangelogModal() }}
             showChangelogModal={this.state.showChangelogModal}
@@ -1515,6 +1725,7 @@ export default class Creator extends React.Component {
             doShowProjectLoader={this.state.doShowProjectLoader}
             {...this.props} />
           {this.renderChangelogModal()}
+          {this.renderNewProjectModal()}
           <Tour
             projectsList={this.state.projectsList}
             envoyClient={this.envoyClient}
@@ -1536,6 +1747,7 @@ export default class Creator extends React.Component {
       return (
         <div>
           {this.renderChangelogModal()}
+          {this.renderNewProjectModal()}
           <Tour
             projectsList={this.state.projectsList}
             envoyClient={this.envoyClient} />
@@ -1547,6 +1759,7 @@ export default class Creator extends React.Component {
           />
           <ProjectBrowser
             ref='ProjectBrowser'
+            onShowNewProjectModal={(...args) => { this.showNewProjectModal(...args) }}
             lastViewedChangelog={this.state.lastViewedChangelog}
             onShowChangelogModal={() => { this.showChangelogModal() }}
             showChangelogModal={this.state.showChangelogModal}
@@ -1587,6 +1800,7 @@ export default class Creator extends React.Component {
     return (
       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
         {this.renderChangelogModal()}
+        {this.renderNewProjectModal()}
         <AutoUpdater
           onComplete={this.onAutoUpdateCheckComplete}
           check={this.state.updater.shouldCheck}
@@ -1632,6 +1846,7 @@ export default class Creator extends React.Component {
                     )
                   }
                   <Library
+                    servicesEnvoyClient={this.state.servicesEnvoyClient}
                     user={this.user}
                     projectModel={this.state.projectModel}
                     layout={this.layout}
@@ -1680,6 +1895,10 @@ export default class Creator extends React.Component {
                     onPreviewModeToggled={() => { this.togglePreviewMode() }}
                     artboardDimensions={this.state.artboardDimensions}
                     onProjectPublicChange={(isPublic) => { this.onProjectPublicChange(isPublic) }}
+                    showGlass={this.state.showGlass}
+                    onSwitchToCodeMode={() => { this.setState({activeNav: 'state_inspector', showGlass: false}) }}
+                    onSwitchToDesignMode={() => { this.setState({activeNav: 'library', showGlass: true}) }}
+                    tryToChangeCurrentActiveComponent={this.tryToChangeCurrentActiveComponent}
                   />
                   {(this.state.assetDragging)
                     ? <div style={{ width: '100%', height: '100%', backgroundColor: 'white', opacity: 0.01, position: 'absolute', top: 0, left: 0 }} />

@@ -4,11 +4,11 @@ import Radium from 'radium'
 import path from 'path'
 import HaikuDOMRenderer from '@haiku/core/lib/renderers/dom'
 import HaikuContext from '@haiku/core/lib/HaikuContext'
-import {PLAYBACK_SETTINGS} from '@haiku/core/lib/properties/dom/vanities'
 import BaseModel from 'haiku-serialization/src/bll/BaseModel'
 import Project from 'haiku-serialization/src/bll/Project'
 import Config from '@haiku/core/lib/Config'
 import Element from 'haiku-serialization/src/bll/Element'
+import File from 'haiku-serialization/src/bll/File'
 import ElementSelectionProxy from 'haiku-serialization/src/bll/ElementSelectionProxy'
 import Asset from 'haiku-serialization/src/bll/Asset'
 import EmitterManager from 'haiku-serialization/src/utils/EmitterManager'
@@ -16,6 +16,7 @@ import {isCoordInsideBoxPoints} from 'haiku-serialization/src/bll/MathUtils'
 import Palette from 'haiku-ui-common/lib/Palette'
 import Comment from './Comment'
 import EventHandlerEditor from './components/EventHandlerEditor'
+import Preview from './Preview'
 import CreateComponentModal from './modals/CreateComponentModal'
 import Comments from './Comments'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
@@ -25,15 +26,26 @@ import originMana from '../overlays/originMana'
 import controlPointMana from '../overlays/controlPointMana'
 import boxMana from '../overlays/boxMana'
 import defsMana from '../overlays/defsMana'
-import gearMana from '../overlays/gearMana'
 import rotationCursorMana from '../overlays/rotationCursorMana'
 import scaleCursorMana from '../overlays/scaleCursorMana'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import {isMac} from 'haiku-common/lib/environments/os'
+import directSelectionMana from '../overlays/directSelectionMana'
+import {
+  DEFAULT_LINE_SELECTION_THRESHOLD,
+  isPointInsidePrimitive,
+  isPointAlongStroke,
+  distance,
+  transform2DPoint,
+  closestNormalPointOnLineSegment,
+  splitSegmentInSVGPoints,
+  buildPathLUT
+} from 'haiku-common/lib/math/geometryUtils'
+import SVGPoints from '@haiku/core/lib/helpers/SVGPoints'
 
 const mixpanel = require('haiku-serialization/src/utils/Mixpanel')
 const Globals = require('haiku-ui-common/lib/Globals').default
-const {clipboard, shell, remote} = require('electron')
+const {clipboard, shell, remote, ipcRenderer} = require('electron')
 const fse = require('haiku-fs-extra')
 const moment = require('moment')
 const {HOMEDIR_PATH} = require('haiku-serialization/src/utils/HaikuHomeDir')
@@ -42,6 +54,8 @@ fse.mkdirpSync(HOMEDIR_PATH)
 
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'glass'
+
+const MAX_Z_INDEX = 1000000
 
 const POINTS_THRESHOLD_REDUCED = 65 // Display only the corner control points
 const POINTS_THRESHOLD_NONE = 15 // Display no control points nor line
@@ -64,18 +78,27 @@ const BIG_NUMBER = 99999
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source'
 
-function isNumeric (n) {
+const DOUBLE_CLICK_THRESHOLD_MS = 500
+
+const DIRECT_SELECTION_MULTIPLE_SELECTION_ALLOWED = {
+  'line': true,
+  'polyline': true,
+  'polygon': true,
+  'path': true
+}
+
+const isNumeric = (n) => {
   return !isNaN(parseFloat(n)) && isFinite(n)
 }
 
-function niceTimestamp () {
+const niceTimestamp = () => {
   return moment().format('YYYY-MM-DD-HHmmss')
 }
 
-function writeHtmlSnapshot (html, react) {
+const writeHtmlSnapshot = (html, react) => {
   fse.mkdirpSync(path.join(HOMEDIR_PATH, 'snapshots'))
-  var filename = (react.props.projectName || 'Unknown') + '-' + niceTimestamp() + '.html'
-  var filepath = path.join(HOMEDIR_PATH, 'snapshots', filename)
+  const filename = (react.props.projectName || 'Unknown') + '-' + niceTimestamp() + '.html'
+  const filepath = path.join(HOMEDIR_PATH, 'snapshots', filename)
   fse.outputFile(filepath, html, (err) => {
     if (err) return void (0)
     shell.openItem(filepath)
@@ -96,6 +119,7 @@ export class Glass extends React.Component {
       isAnythingScaling: false,
       isAnythingRotating: false,
       hoveredControlPointIndex: null,
+      hoveredDirectSelectionPointIndex: null,
       isOriginPanning: false,
       globalControlPointHandleClass: '',
       isStageSelected: false,
@@ -120,10 +144,7 @@ export class Glass extends React.Component {
       this.props.websocket,
       window,
       this.props.userconfig,
-      { // fileOptions
-        doWriteToDisk: false,
-        skipDiffLogging: true
-      },
+      {}, // fileOptions
       this.props.envoy,
       (err, project) => {
         if (err) throw err
@@ -132,10 +153,6 @@ export class Glass extends React.Component {
     )
 
     this.handleRequestElementCoordinates = this.handleRequestElementCoordinates.bind(this)
-
-    this.debouncedWindowMouseOverOutHandler = lodash.debounce((mouseEvent) => {
-      this.windowMouseOverOutHandler(mouseEvent)
-    }, 10)
 
     this.handleDimensionsReset = lodash.debounce(() => {
       // Need to notify creator of viewport change so instantiation position is correct;
@@ -159,6 +176,8 @@ export class Glass extends React.Component {
     this._stopwatch = null
     this._lastAuthoritativeFrame = 0
 
+    this.didDragSinceLastMouseDown = false
+
     this.drawLoop = this.drawLoop.bind(this)
     this.draw = this.draw.bind(this)
 
@@ -171,8 +190,11 @@ export class Glass extends React.Component {
     this.handleUndoDebounced = lodash.debounce((payload) => this.handleUndo(payload), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
     this.handleRedoDebounced = lodash.debounce((payload) => this.handleRedo(payload), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
 
-    // For debugging
-    window.glass = this
+    if (process.env.NODE_ENV !== 'production') {
+      // For debugging
+      window.glass = this
+      window.view = this // Easy to run same instruction in different tools
+    }
 
     // TODO: Is there any race condition with kicking this off immediately?
     this.drawLoop()
@@ -188,6 +210,17 @@ export class Glass extends React.Component {
     window.unhoverControlPoint = () => {
       this.setState({
         hoveredControlPointIndex: null
+      })
+    }
+    window.hoverDirectSelectionPoint = (hoveredDirectSelectionPointIndex) => {
+      this.setState({
+        hoveredDirectSelectionPointIndex
+      })
+    }
+    window.unhoverDirectSelectionPoint = () => {
+      if (this.state.isMouseDragging) return
+      this.setState({
+        hoveredDirectSelectionPointIndex: null
       })
     }
   }
@@ -294,6 +327,10 @@ export class Glass extends React.Component {
 
   handleActiveComponentReady () {
     this.mountHaikuComponent()
+
+    ipcRenderer.send('topmenu:update', {
+      subComponents: this.project.describeSubComponents()
+    })
   }
 
   mountHaikuComponent () {
@@ -523,6 +560,16 @@ export class Glass extends React.Component {
       logger.info('relay received', message.name, 'from', message.from)
 
       switch (message.name) {
+        case 'global-menu:open-dev-tools':
+          remote.getCurrentWebContents().openDevTools()
+          break
+
+        case 'global-menu:close-dev-tools':
+          if (remote.getCurrentWebContents().isDevToolsFocused()) {
+            remote.getCurrentWebContents().closeDevTools()
+          }
+          break
+
         case 'global-menu:zoom-in':
           mixpanel.haikuTrack('creator:glass:zoom-in')
           this.getActiveComponent().getArtboard().zoomIn(1.25)
@@ -531,6 +578,10 @@ export class Glass extends React.Component {
         case 'global-menu:zoom-out':
           mixpanel.haikuTrack('creator:glass:zoom-out')
           this.getActiveComponent().getArtboard().zoomOut(1.25)
+          break
+
+        case 'global-menu:set-active-component':
+          this.project.setCurrentActiveComponent(message.data, {from: 'glass'}, () => {})
           break
 
         case 'global-menu:group':
@@ -571,6 +622,16 @@ export class Glass extends React.Component {
 
         case 'global-menu:redo':
           this.handleRedoDebounced(message)
+          break
+
+        case 'global-menu:preview':
+          // This hook is only used for internal development
+          if (this.project) {
+            this.project.toggleInteractionMode({from: 'glass'}, () => {
+              // Ensure Glass UI reflects the mode-switch
+              this.forceUpdate()
+            })
+          }
           break
       }
     })
@@ -613,6 +674,44 @@ export class Glass extends React.Component {
             message.frame
           )
           break
+
+        case 'instantiate-component':
+          const component = this.getActiveComponent()
+
+          if (component) {
+            Element.where({component, _isSelected: true}).forEach((element) => {
+              element.unselectSoftly({from: 'glass'})
+            })
+
+            component.instantiateComponent(
+              message.relpath,
+              message.coords || {},
+              {from: 'glass'},
+              (err) => {
+                if (err) {
+                  if (err.code === 'ENOENT') {
+                    console.error('We couldn\'t find that component. 😩 Please try again in a few moments. If you still see this error, contact Haiku for support.')
+                  } else {
+                    console.error(err.message)
+                  }
+                }
+              }
+            )
+          }
+          break
+
+        case 'edit-component':
+          const proxy = this.fetchProxyElementForSelection()
+          this.editComponent(proxy.getSingleComponentElementRelpath())
+          break
+
+        case 'conglomerate-component':
+          this.launchComponentNameModal()
+          break
+
+        case 'assets-changed':
+          File.cache.clear()
+          break
       }
     })
 
@@ -637,8 +736,9 @@ export class Glass extends React.Component {
     this.addEmitterListener(window, 'dblclick', this.windowDblClickHandler.bind(this))
     this.addEmitterListener(window, 'keydown', this.windowKeyDownHandler.bind(this))
     this.addEmitterListener(window, 'keyup', this.windowKeyUpHandler.bind(this))
-    this.addEmitterListener(window, 'mouseover', this.debouncedWindowMouseOverOutHandler)
-    this.addEmitterListener(window, 'mouseout', this.debouncedWindowMouseOverOutHandler)
+    if (experimentIsEnabled(Experiment.OutliningElementsOnStageFromStage)) {
+      this.addEmitterListener(window, 'mouseover', this.windowMouseOverHandler.bind(this))
+    }
     // When the mouse is clicked, below is the order that events fire
     this.addEmitterListener(window, 'mousedown', this.windowMouseDownHandler.bind(this))
     this.addEmitterListener(window, 'mouseup', this.windowMouseUpHandler.bind(this))
@@ -712,7 +812,7 @@ export class Glass extends React.Component {
     if (this.getActiveComponent()) {
       mixpanel.haikuTrack('creator:glass:delete-element')
       const proxy = this.fetchProxyElementForSelection()
-      proxy.remove()
+      proxy.remove(this.getActiveComponent().project.getMetadata())
     }
   }
 
@@ -758,20 +858,27 @@ export class Glass extends React.Component {
       title
     })
 
-    const translation = proxy.getConglomerateTranslation()
-    const size = proxy.getConglomerateSize()
+    const translation = (proxy.hasMultipleInSelection())
+      ? proxy.getConglomerateTranslation()
+      : {x: 0, y: 0}
+
+    const size = (proxy.hasMultipleInSelection())
+      ? proxy.getConglomerateSize()
+      : this.getActiveComponent().getArtboard().getSize()
 
     this.getActiveComponent().conglomerateComponent(
       proxy.selection.map((element) => element.getComponentId()),
       title,
       size,
       translation,
-      { // coords
+      { // "coords"
         x: translation.x + size.x / 2, // assume center origin
         y: translation.y + size.y / 2  // assume center origin
       },
       {
-        'playback': PLAYBACK_SETTINGS.LOOP,
+        // "properties"
+        // The setup of 'playback' is handled inside of ActiveComponent#conglomerateComponent,
+        // since it requires initializing the field for multiple keyframes
         'sizeMode.x': 1,
         'sizeMode.y': 1,
         'sizeMode.z': 1,
@@ -779,8 +886,13 @@ export class Glass extends React.Component {
         'origin.y': 0.5
       },
       {from: 'glass'},
-      (err) => {
-        if (err) logger.error(err)
+      (err, mana) => {
+        if (err) {
+          logger.error(err)
+          return
+        }
+
+        this.editComponent(mana.attributes[HAIKU_SOURCE_ATTRIBUTE])
       }
     )
   }
@@ -822,15 +934,15 @@ export class Glass extends React.Component {
   }
 
   showEventHandlersEditor (clickEvent, targetElement, options) {
-    if (this.isPreviewMode()) {
+    if (this.isPreviewMode() || !targetElement) {
       return
     }
 
     mixpanel.haikuTrack('creator:glass:show-event-handlers-editor')
-    logger.info(`showing action editor`, targetElement, options)
+    logger.info(`showing action editor`, options)
 
     this.setState({
-      targetElement: targetElement,
+      targetElement,
       isEventHandlerEditorOpen: true,
       eventHandlerEditorOptions: options
     })
@@ -889,25 +1001,49 @@ export class Glass extends React.Component {
     }
   }
 
-  windowMouseOverOutHandler (mouseEvent) {
-    if (this.isPreviewMode() || this.isMarqueeActive()) {
+  windowMouseOverHandler (mouseoverEvent) {
+    if (
+      this.state.isMouseDown ||
+      this.isPreviewMode()
+    ) {
       return
     }
 
-    if (mouseEvent.type === 'mouseover') {
-      const element = this.findElementAssociatedToMouseEvent(mouseEvent)
+    const element = this.findElementAssociatedToMouseEvent(mouseoverEvent)
 
-      if (element) {
-        if (element.isHovered()) {
-          return
-        }
-
-        Element.hoverOffAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
-        return element.hoverOn({from: 'glass'})
-      }
+    if (!element || element.isHovered() || element.isSelected()) {
+      return
     }
 
-    Element.hoverOffAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
+    Element.hoverOffAllElements({component: this.getActiveComponent(), _isHovered: true}, {from: 'glass'})
+
+    element.hoverOn({from: 'glass'})
+    const boxPoints = element.getBoxPointsTransformed()
+
+    const mousemoveHandler = (mousemoveEvent) => {
+      const artboard = this.getActiveComponent().getArtboard()
+      const rect = artboard.getRect()
+      const zoom = artboard.getZoom()
+
+      if (isCoordInsideBoxPoints(
+        (mousemoveEvent.clientX - rect.left) / zoom,
+        (mousemoveEvent.clientY - rect.top) / zoom,
+        boxPoints
+      )) {
+        return
+      }
+
+      element.hoverOff({from: 'glass'})
+      window.removeEventListener('mousemove', mousemoveHandler)
+    }
+
+    element.on('update', (event) => {
+      if (event === 'element-selected' || event === 'element-selected-softly' || event === 'element-removed') {
+        window.removeEventListener('mousemove', mousemoveHandler)
+      }
+    })
+
+    window.addEventListener('mousemove', mousemoveHandler)
   }
 
   get areAnyModalsOpen () {
@@ -980,6 +1116,8 @@ export class Glass extends React.Component {
   }
 
   handleMouseDown (mousedownEvent) {
+    this.didDragSinceLastMouseDown = false
+
     // Only count left clicks
     if (!this.getActiveComponent() || this.areAnyModalsOpen || mousedownEvent.nativeEvent.button !== 0) {
       return
@@ -995,7 +1133,105 @@ export class Glass extends React.Component {
     const mouseDownPosition = this.storeAndReturnMousePosition(mousedownEvent, 'lastMouseDownPosition')
 
     switch (mousedownEvent.nativeEvent.target.getAttribute('class')) {
-      case 'control-point':
+      case 'direct-selection-anchor': {
+        let dataIndex = parseInt(mousedownEvent.nativeEvent.target.getAttribute('data-index'), 10)
+        // NOTE: meta used to determine if anchor or handle for <path> (see directSelectionMana.js)
+        const meta = mousedownEvent.nativeEvent.target.getAttribute('data-meta') && mousedownEvent.nativeEvent.target.getAttribute('data-meta').length ? parseInt(mousedownEvent.nativeEvent.target.getAttribute('data-meta'), 10) : null
+
+        // NOTE: go select the previous vertex when a RHS handle is selected
+
+        // Convert between corners and curves
+        if (Globals.isSpecialKeyDown() && Element.directlySelected.type === 'path' && meta == null) {
+          const points = SVGPoints.pathToPoints(Element.directlySelected.attributes.d)
+         // If the control handles share the same coordinates, then it's already a corner. Otherwise, it's a curve.
+          const convertToCorner = (
+            (dataIndex === 0 && points[dataIndex + 1].curve &&
+              (points[dataIndex + 1].curve.x1 !== points[dataIndex].x || points[dataIndex + 1].curve.y1 !== points[dataIndex].y)
+            ) ||
+            (points[dataIndex].curve &&
+              (points[dataIndex].curve.x2 !== points[dataIndex].x || points[dataIndex].curve.y2 !== points[dataIndex].y)
+            )
+          )
+
+          if (convertToCorner) {
+            if (dataIndex > 0) {
+              if (!points[dataIndex].curve) points[dataIndex].curve = {type: 'cubic', x1: points[dataIndex - 1].x, y1: points[dataIndex - 1].y}
+              points[dataIndex].curve.x2 = points[dataIndex].x
+              points[dataIndex].curve.y2 = points[dataIndex].y
+            }
+
+            if (dataIndex < points.length - 1) {
+              if (!points[dataIndex + 1].curve) points[dataIndex + 1].curve = {type: 'cubic', x2: points[dataIndex + 1].x, y2: points[dataIndex + 1].y}
+              points[dataIndex + 1].curve.x1 = points[dataIndex].x
+              points[dataIndex + 1].curve.y1 = points[dataIndex].y
+            }
+          } else {
+            if (dataIndex > 0) {
+              if (!points[dataIndex].curve) points[dataIndex].curve = {type: 'cubic', x1: points[dataIndex - 1].x, y1: points[dataIndex - 1].y}
+              points[dataIndex].curve.x2 = points[dataIndex].x - 20
+              points[dataIndex].curve.y2 = points[dataIndex].y
+            }
+
+            if (dataIndex < points.length - 1) {
+              if (!points[dataIndex + 1].curve) points[dataIndex + 1].curve = {type: 'cubic', x2: points[dataIndex + 1].x, y2: points[dataIndex + 1].y}
+              points[dataIndex + 1].curve.x1 = points[dataIndex].x + 20
+              points[dataIndex + 1].curve.y1 = points[dataIndex].y
+            }
+          }
+          this.getActiveComponent().updateKeyframes({
+            [this.getActiveComponent().getCurrentTimelineName()]: {
+              [Element.directlySelected.attributes['haiku-id']]: {
+                d: {
+                  0: {
+                    value: SVGPoints.pointsToPath(points)
+                  }
+                }
+              }
+            }
+          }, {from: 'glass'}, () => {})
+        }
+
+        // Add to the selection
+        let indices
+        const alreadySelected =
+          this.state.directSelectionAnchorActivation &&
+          this.state.directSelectionAnchorActivation.indices &&
+          this.state.directSelectionAnchorActivation.indices[Element.directlySelected.attributes['haiku-id']] &&
+          this.state.directSelectionAnchorActivation.indices[Element.directlySelected.attributes['haiku-id']].includes(dataIndex)
+
+        if (DIRECT_SELECTION_MULTIPLE_SELECTION_ALLOWED[Element.directlySelected.type] && (Globals.isShiftKeyDown || alreadySelected)) {
+          if (this.state.directSelectionAnchorActivation) {
+            indices = {
+              ...this.state.directSelectionAnchorActivation.indices
+            }
+          } else {
+            indices = {
+              [Element.directlySelected.attributes['haiku-id']]: [dataIndex]
+            }
+          }
+
+          if (Globals.isShiftKeyDown && alreadySelected) {
+            // Remove if already selected
+            indices[Element.directlySelected.attributes['haiku-id']] = lodash.pull(indices[Element.directlySelected.attributes['haiku-id']], dataIndex)
+          } else {
+            // Add otherwise
+            if (!indices[Element.directlySelected.attributes['haiku-id']]) indices[Element.directlySelected.attributes['haiku-id']] = []
+            indices[Element.directlySelected.attributes['haiku-id']].push(dataIndex)
+            indices[Element.directlySelected.attributes['haiku-id']] = lodash.uniq(indices[Element.directlySelected.attributes['haiku-id']])
+          }
+        } else {
+          indices = {
+            [Element.directlySelected.attributes['haiku-id']]: [dataIndex]
+          }
+        }
+        this.directSelectionAnchorActivation({
+          indices,
+          meta,
+          event: mousedownEvent.nativeEvent
+        })
+        break
+      }
+      case 'control-point': {
         const dataIndex = parseInt(mousedownEvent.nativeEvent.target.getAttribute('data-index'), 10)
 
         this.controlActivation({
@@ -1003,6 +1239,7 @@ export class Glass extends React.Component {
           event: mousedownEvent.nativeEvent
         })
         break
+      }
       case 'origin':
         this.originActivation({event: mousedownEvent.nativeEvent})
         break
@@ -1038,7 +1275,6 @@ export class Glass extends React.Component {
             if (!Globals.isShiftKeyDown && !Globals.isSpecialKeyDown() && !Globals.isAltKeyDown) {
               Element.unselectAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
             }
-
             if (!Globals.isSpecialKeyDown() && !Globals.isAltKeyDown) {
               if (this.getActiveComponent()) {
                 this.getActiveComponent().getSelectionMarquee().startSelection(mouseDownPosition)
@@ -1050,54 +1286,303 @@ export class Glass extends React.Component {
 
           target = this.validTargetOrNull(target)
 
-          // Truthy if we found a valid, selectable element target
-          if (target) {
-            // First make sure we are grabbing the correct element based on the context.
-            // If we've landed on a component sub-element, we need to go up and select the wrapper.
-            let haikuId = target.getAttribute(HAIKU_ID_ATTRIBUTE)
-
-            if (this.isDomNodeChildOfComponentWrapperDomNode(target)) {
-              haikuId = target.parentNode.getAttribute(HAIKU_ID_ATTRIBUTE)
-            }
-
-            const elementTargeted = this.getActiveComponent().findElementByComponentId(haikuId)
-
-            if (elementTargeted.isRootElement()) { // The artboard can only be selected alone
-              Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'})
-              this.ensureElementIsSelected(elementTargeted, finish)
-            } else {
-              if (!Globals.isControlKeyDown && !Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // none
-                this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
-                  this.ensureElementIsSelected(elementTargeted, finish)
-                })
-              } else if (!Globals.isControlKeyDown && !Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Alt
-                this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
-                  this.ensureElementIsSelected(elementTargeted, () => {
-                    this.duplicateSelectedElementsThenSelectDuplicates(finish)
-                  })
-                })
-              } else if (!Globals.isControlKeyDown && Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Shift
-                this.toggleMultiElementSelection(elementTargeted, finish)
-              } else if (!Globals.isControlKeyDown && Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Shift+Alt
-                this.toggleMultiElementSelection(elementTargeted, () => {
-                  this.duplicateSelectedElementsThenSelectDuplicates(finish)
-                })
-              } else if (Globals.isControlKeyDown && !Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Ctrl
-                this.deselectAllOtherElements(elementTargeted, () => {
-                  this.ensureElementIsSelected(elementTargeted, finish)
-                })
-              } else if (Globals.isControlKeyDown && !Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Ctrl+Alt
-                this.deselectAllOtherElements(elementTargeted, () => {
-                  this.ensureElementIsSelected(elementTargeted, finish)
-                })
-              } else if (Globals.isControlKeyDown && Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Ctrl+Shift
-                this.ensureElementIsSelected(elementTargeted, finish)
-              } else if (Globals.isControlKeyDown && Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Ctrl+Shift+Alt
-                this.ensureElementIsSelected(elementTargeted, finish)
-              }
-            }
-          } else {
+          if (!target) {
             // TODO: In what situations can we ever get here?
+            break
+          }
+
+          // First make sure we are grabbing the correct element based on the context.
+          // If we've landed on a component sub-element, we need to go up and select the wrapper.
+          let haikuId = target.getAttribute(HAIKU_ID_ATTRIBUTE)
+
+          if (this.isDomNodeChildOfComponentWrapperDomNode(target)) {
+            haikuId = target.parentNode.getAttribute(HAIKU_ID_ATTRIBUTE)
+          }
+
+          const elementTargeted = this.getActiveComponent().findElementByComponentId(haikuId)
+
+          if (elementTargeted.isRootElement()) { // The artboard can only be selected alone
+            Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'})
+            this.ensureElementIsSelected(elementTargeted, finish)
+          } else if (Globals.isControlKeyDown) {
+            this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
+              this.ensureElementIsSelected(elementTargeted, finish)
+            })
+          } else if (!Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // none
+            this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
+              this.ensureElementIsSelected(elementTargeted, finish)
+
+              if (!experimentIsEnabled(Experiment.DirectSelectionOfPrimitives)) {
+                return
+              }
+
+              const mouseDownTimeDiff = this.state.lastMouseDownTime ? Date.now() - this.state.lastMouseDownTime : null
+              const isDoubleClick = mouseDownTimeDiff ? mouseDownTimeDiff <= DOUBLE_CLICK_THRESHOLD_MS : false
+              const prevDirectlySelected = Element.directlySelected
+              let clickedItemFound = false
+              if (isDoubleClick) {
+                elementTargeted.getHaikuElement().visit((descendant) => {
+                  if (descendant.isComponent()) return
+                  if (descendant.isChildOfDefs) return
+                  if (
+                    (
+                      descendant.attributes.fill &&
+                      isPointInsidePrimitive(descendant, mouseDownPosition)
+                    ) || (
+                      descendant.attributes.stroke &&
+                      isPointAlongStroke(descendant, mouseDownPosition, Number(descendant.attributes['stroke-width']))
+                    )) {
+                    clickedItemFound = true
+                    Element.directlySelected = descendant
+                    return false // stop searching
+                  }
+                })
+
+                if (!clickedItemFound) Element.directlySelected = null
+              }
+
+              if (!Element.directlySelected) {
+                this.setState({directSelectionAnchorActivation: null})
+              }
+
+              // --- Insert new vertex when the selected item is unchanged ---
+              if (Element.directlySelected && Element.directlySelected === prevDirectlySelected && (isDoubleClick || Globals.isSpecialKeyDown())) {
+                const transformedLocalMouse = transform2DPoint(mouseDownPosition, Element.directlySelected.layoutAncestryMatrices.reverse())
+
+                switch (Element.directlySelected.type) {
+                  case 'rect': {
+                    const r = Element.directlySelected.attributes
+                    const points = SVGPoints.rectToPoints(
+                      Number(r.x), Number(r.y),
+                      Element.directlySelected.layout.sizeAbsolute.x,
+                      Element.directlySelected.layout.sizeAbsolute.y,
+                      Number(r.rx), Number(r.ry)
+                    )
+
+                    this.getActiveComponent().updateKeyframesAndTypes({
+                      [this.getActiveComponent().getCurrentTimelineName()]: {
+                        [Element.directlySelected.attributes['haiku-id']]: {
+                          d: {
+                            0: {
+                              value: SVGPoints.pointsToPath(points)
+                            }
+                          },
+                          x: {
+                            0: null
+                          },
+                          y: {
+                            0: null
+                          },
+                          rx: {
+                            0: null
+                          },
+                          ry: {
+                            0: null
+                          }
+                        }
+                      }
+                    },
+                      {
+                        [Element.directlySelected.attributes['haiku-id']]: 'path'
+                      }, {from: 'glass'}, () => {})
+
+                    break
+                  }
+                  case 'circle': {
+                    const r = Element.directlySelected.attributes
+                    const points = SVGPoints.circleToPoints(Number(r.cx), Number(r.cy), Number(r.r))
+                    this.getActiveComponent().updateKeyframesAndTypes({
+                      [this.getActiveComponent().getCurrentTimelineName()]: {
+                        [Element.directlySelected.attributes['haiku-id']]: {
+                          d: {
+                            0: {
+                              value: SVGPoints.pointsToPath(points)
+                            }
+                          },
+                          cx: {
+                            0: null
+                          },
+                          cy: {
+                            0: null
+                          },
+                          r: {
+                            0: null
+                          }
+                        }
+                      }
+                    },
+                      {
+                        [Element.directlySelected.attributes['haiku-id']]: 'path'
+                      }, {from: 'glass'}, () => {})
+
+                    break
+                  }
+                  case 'ellipse': {
+                    const r = Element.directlySelected.attributes
+                    const points = SVGPoints.ellipseToPoints(Number(r.cx), Number(r.cy), Number(r.rx), Number(r.ry))
+                    this.getActiveComponent().updateKeyframesAndTypes({
+                      [this.getActiveComponent().getCurrentTimelineName()]: {
+                        [Element.directlySelected.attributes['haiku-id']]: {
+                          d: {
+                            0: {
+                              value: SVGPoints.pointsToPath(points)
+                            }
+                          },
+                          cx: {
+                            0: null
+                          },
+                          cy: {
+                            0: null
+                          },
+                          rx: {
+                            0: null
+                          },
+                          ry: {
+                            0: null
+                          }
+                        }
+                      }
+                    },
+                      {
+                        [Element.directlySelected.attributes['haiku-id']]: 'path'
+                      }, {from: 'glass'}, () => {})
+                    break
+                  }
+                  case 'line': {
+                    const r = Element.directlySelected.attributes
+                    const points = SVGPoints.lineToPoints(Number(r.x1), Number(r.y1), Number(r.x2), Number(r.y2))
+                    this.getActiveComponent().updateKeyframesAndTypes({
+                      [this.getActiveComponent().getCurrentTimelineName()]: {
+                        [Element.directlySelected.attributes['haiku-id']]: {
+                          d: {
+                            0: {
+                              value: SVGPoints.pointsToPath(points)
+                            }
+                          },
+                          x1: {
+                            0: null
+                          },
+                          y1: {
+                            0: null
+                          },
+                          x2: {
+                            0: null
+                          },
+                          y2: {
+                            0: null
+                          }
+                        }
+                      }
+                    },
+                      {
+                        [Element.directlySelected.attributes['haiku-id']]: 'path'
+                      }, {from: 'glass'}, () => {})
+                    break
+                  }
+                  case 'polygon':
+                  case 'polyline': {
+                    const normalPoints = []
+                    const originalPoints = SVGPoints.polyPointsStringToPoints(Element.directlySelected.attributes.points).map((pt) => ({x: pt[0], y: pt[1]}))
+
+                    // Insert an extra point at the end for a polygon because it's a closed shape
+                    if (Element.directlySelected.type === 'polygon') originalPoints.push(originalPoints[0])
+
+                    // Calculate the normal points and their distances for each segment
+                    for (let i = 0; i < originalPoints.length - 1; i++) {
+                      normalPoints.push(closestNormalPointOnLineSegment(originalPoints[i], originalPoints[i + 1], transformedLocalMouse))
+                    }
+                    const normalDistances = normalPoints.map((pt) => (distance(transformedLocalMouse, pt)))
+
+                    // Find the smallest distance
+                    let min = Infinity
+                    let minIdx = -1
+                    for (let i = 0; i < normalDistances.length; i++) {
+                      if (normalDistances[i] < min) {
+                        min = normalDistances[i]
+                        minIdx = i
+                      }
+                    }
+
+                    // Exit if it's too far away
+                    if (min > DEFAULT_LINE_SELECTION_THRESHOLD) break
+
+                    // Insert a new point at the normal
+                    originalPoints.splice(minIdx + 1, 0, normalPoints[minIdx])
+
+                    // Adjust the selection state
+                    this.directSelectionAnchorActivation({
+                      indices: {
+                        [Element.directlySelected.attributes['haiku-id']]: [minIdx + 1]
+                      }
+                    })
+
+                    // Remove the last extra vertex if a polygon (added above)
+                    if (Element.directlySelected.type === 'polygon') originalPoints.pop()
+
+                    this.getActiveComponent().updateKeyframes({
+                      [this.getActiveComponent().getCurrentTimelineName()]: {
+                        [Element.directlySelected.attributes['haiku-id']]: {
+                          points: {
+                            0: {
+                              value: SVGPoints.pointsToPolyString(originalPoints.map((pt) => ([pt.x, pt.y])))
+                            }
+                          }
+                        }
+                      }
+                    }, {from: 'glass'}, () => {})
+                    break
+                  }
+                  case 'path': {
+                    const points = SVGPoints.pathToPoints(Element.directlySelected.attributes.d)
+                    const approximationResolution = 80
+                    const [lutPoints] = buildPathLUT(points, approximationResolution)
+
+                    // Find the smallest distance
+                    let min = Infinity
+                    let minIdx = -1
+
+                    const approxDistances = lutPoints.map((pt) => { return distance(pt, transformedLocalMouse) })
+                    for (let i = 0; i < approxDistances.length; i++) {
+                      if (approxDistances[i] < min) {
+                        min = approxDistances[i]
+                        minIdx = i
+                      }
+                    }
+
+                    // Exit if too far away
+                    if (min > DEFAULT_LINE_SELECTION_THRESHOLD) break
+
+                    // Calculate t value and surrounding points, and split
+                    const t = minIdx % approximationResolution / approximationResolution
+
+                    this.getActiveComponent().updateKeyframes({
+                      [this.getActiveComponent().getCurrentTimelineName()]: {
+                        [Element.directlySelected.attributes['haiku-id']]: {
+                          d: {
+                            0: {
+                              value: SVGPoints.pointsToPath(splitSegmentInSVGPoints(points, Math.floor(minIdx / approximationResolution), Math.ceil(minIdx / approximationResolution), t))
+                            }
+                          }
+                        }
+                      }
+                    }, {from: 'glass'}, () => {})
+                    break
+                  }
+                }
+              }
+            })
+          } else if (!Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Alt
+            this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
+              this.ensureElementIsSelected(elementTargeted, () => {
+                this.duplicateSelectedElementsThenSelectDuplicates(finish)
+              })
+            })
+          } else if (Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Shift
+            this.toggleMultiElementSelection(elementTargeted, finish)
+          } else if (Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Shift+Alt
+            this.toggleMultiElementSelection(elementTargeted, () => {
+              this.duplicateSelectedElementsThenSelectDuplicates(finish)
+            })
           }
         }
         break
@@ -1183,7 +1668,7 @@ export class Glass extends React.Component {
 
   duplicateSelectedElementsThenSelectDuplicates (cb) {
     const proxy = this.fetchProxyElementForSelection()
-    proxy.duplicateAllAndSelectDuplicates({from: 'glass'}, (err, proxyForDuplicates) => {
+    proxy.duplicateAllAndSelectDuplicates({from: 'glass'}, (err) => {
       if (err) return cb(err)
       return cb()
     })
@@ -1264,7 +1749,7 @@ export class Glass extends React.Component {
 
   handleMouseUp (mouseupEvent) {
     if (this.state.isEventHandlerEditorOpen) {
-      return void (0)
+      return
     }
 
     if (this.getActiveComponent()) {
@@ -1322,7 +1807,10 @@ export class Glass extends React.Component {
     const source = target && target.getAttribute && target.getAttribute(HAIKU_SOURCE_ATTRIBUTE)
 
     if (source && source[0] === '.') {
-      this.editComponent(source)
+      // Prevent accidentally launching the subcomponent editor when the user didn't intend a double click
+      if (!this.didDragSinceLastMouseDown) {
+        this.editComponent(source)
+      }
     }
   }
 
@@ -1403,16 +1891,10 @@ export class Glass extends React.Component {
       case 46: this.handleDelete(); break
       case 8: this.handleDelete(); break
       case 13: this.handleKeyEnter(); break
-      case 16: this.handleKeyShift(keyEvent.nativeEvent); break
-      case 17: this.handleKeyCtrl(keyEvent.nativeEvent); break
-      case 18: this.handleKeyAlt(keyEvent.nativeEvent); break
-      case 224: this.handleKeyCommand(keyEvent.nativeEvent); break
-      case 91: this.handleKeyCommand(keyEvent.nativeEvent); break
-      case 93: this.handleKeyCommand(keyEvent.nativeEvent); break
     }
   }
 
-  handleKeyUp (keyEvent) {
+  handleKeyUp () {
     if (this.state.isEventHandlerEditorOpen) {
       return
     }
@@ -1420,51 +1902,10 @@ export class Glass extends React.Component {
     if (this.getActiveComponent()) {
       this.getActiveComponent().getSelectionMarquee().endSelection()
     }
-
-    switch (keyEvent.nativeEvent.which) {
-      case 16: this.handleKeyShift(keyEvent.nativeEvent); break
-      case 17: this.handleKeyCtrl(keyEvent.nativeEvent); break
-      case 18: this.handleKeyAlt(keyEvent.nativeEvent); break
-      case 224: this.handleKeyCommand(keyEvent.nativeEvent); break
-      case 91: this.handleKeyCommand(keyEvent.nativeEvent); break
-      case 93: this.handleKeyCommand(keyEvent.nativeEvent); break
-    }
   }
 
   handleKeyEnter () {
     // noop for now
-  }
-
-  handleKeyCommand (nativeEvent) {
-    const controlActivation = this.state.controlActivation
-    if (controlActivation) {
-      controlActivation.cmd = Globals.isCommandKeyDown
-    }
-    this.setState({ controlActivation })
-  }
-
-  handleKeyShift (nativeEvent) {
-    const controlActivation = this.state.controlActivation
-    if (controlActivation) {
-      controlActivation.shift = Globals.isShiftKeyDown
-    }
-    this.setState({ controlActivation })
-  }
-
-  handleKeyCtrl (nativeEvent) {
-    const controlActivation = this.state.controlActivation
-    if (controlActivation) {
-      controlActivation.ctrl = Globals.isControlKeyDown
-    }
-    this.setState({ controlActivation })
-  }
-
-  handleKeyAlt (nativeEvent) {
-    const controlActivation = this.state.controlActivation
-    if (controlActivation) {
-      controlActivation.alt = Globals.isAltKeyDown
-    }
-    this.setState({ controlActivation })
   }
 
   handleClickStageName () {
@@ -1531,23 +1972,231 @@ export class Glass extends React.Component {
           (mousemoveEvent.nativeEvent.clientY - this.state.stageMouseDown.y) * viewportTransform.zoom
         )
       } else if (!this.isPreviewMode()) {
-        const proxy = this.fetchProxyElementForSelection()
+        if (
+          experimentIsEnabled(Experiment.DirectSelectionOfPrimitives) &&
+          Element.directlySelected && this.state.directSelectionAnchorActivation != null
+        ) {
+          const transformedCurrent = transform2DPoint(mousePositionCurrent, Element.directlySelected.layoutAncestryMatrices.reverse())
+          const transformedPrevious = transform2DPoint(mousePositionPrevious, Element.directlySelected.layoutAncestryMatrices.reverse())
+          const transformedDelta = {
+            x: transformedCurrent.x - transformedPrevious.x,
+            y: transformedCurrent.y - transformedPrevious.y
+          }
 
-        // Do not drag elements if the user is actively selecting them
-        if (!marquee.isActive()) {
-          proxy.drag(
-            dx,
-            dy,
-            mousePositionCurrent,
-            mousePositionPrevious,
-            lastMouseDownPosition,
-            this.state.isAnythingScaling,
-            this.state.isAnythingRotating,
-            this.state.isOriginPanning,
-            this.state.controlActivation,
-            viewportTransform,
-            Globals
-          )
+          const indices = this.state.directSelectionAnchorActivation.indices[Element.directlySelected.attributes['haiku-id']]
+          const lastIndex = indices[indices.length - 1]
+
+          switch (Element.directlySelected.type) {
+            case 'circle': {
+              this.getActiveComponent().updateKeyframes({
+                [this.getActiveComponent().getCurrentTimelineName()]: {
+                  [Element.directlySelected.attributes['haiku-id']]: {
+                    r: {
+                      0: {
+                        value: distance(transformedCurrent, {x: Number(Element.directlySelected.attributes.cx), y: Number(Element.directlySelected.attributes.cy)})
+                      }
+                    }
+                  }
+                }
+              }, {from: 'glass'}, () => {})
+              break
+            }
+            case 'ellipse': {
+              let property
+              let value
+
+              if (lastIndex === 0 || lastIndex === 1) {
+                property = 'rx'
+                value = Math.abs(transformedCurrent.x - Number(Element.directlySelected.attributes.cx))
+              } else if (lastIndex === 2 || lastIndex === 3) {
+                property = 'ry'
+                value = Math.abs(transformedCurrent.y - Number(Element.directlySelected.attributes.cy))
+              }
+
+              this.getActiveComponent().updateKeyframes({
+                [this.getActiveComponent().getCurrentTimelineName()]: {
+                  [Element.directlySelected.attributes['haiku-id']]: {
+                    [property]: {
+                      0: {
+                        value
+                      }
+                    }
+                  }
+                }
+              }, {from: 'glass'}, () => {})
+              break
+            }
+            case 'rect': {
+              let x = Number(Element.directlySelected.attributes.x)
+              let y = Number(Element.directlySelected.attributes.y)
+              let width = Element.directlySelected.sizeX
+              let height = Element.directlySelected.sizeY
+
+              switch (lastIndex) {
+                case 0:
+                  x += transformedDelta.x
+                  y += transformedDelta.y
+                  width -= transformedDelta.x
+                  height -= transformedDelta.y
+                  break
+                case 1:
+                  y += transformedDelta.y
+                  width += transformedDelta.x
+                  height -= transformedDelta.y
+                  break
+                case 2:
+                  x += transformedDelta.x
+                  width -= transformedDelta.x
+                  height += transformedDelta.y
+                  break
+                case 3:
+                  width += transformedDelta.x
+                  height += transformedDelta.y
+                  break
+              }
+
+              // Prevent negative
+              width = Math.max(width, 0)
+              height = Math.max(height, 0)
+              if (width === 0) x = Number(Element.directlySelected.attributes.x)
+              if (height === 0) y = Number(Element.directlySelected.attributes.y)
+
+              this.getActiveComponent().updateKeyframes({
+                [this.getActiveComponent().getCurrentTimelineName()]: {
+                  [Element.directlySelected.attributes['haiku-id']]: {
+                    x: {
+                      0: {
+                        value: x
+                      }
+                    },
+                    y: {
+                      0: {
+                        value: y
+                      }
+                    },
+                    'sizeAbsolute.x': {
+                      0: {
+                        value: width
+                      }
+                    },
+                    'sizeAbsolute.y': {
+                      0: {
+                        value: height
+                      }
+                    }
+                  }
+                }
+              }, {from: 'glass'}, () => {})
+              break
+            }
+            case 'polyline':
+            case 'polygon': {
+              let points = SVGPoints.polyPointsStringToPoints(Element.directlySelected.attributes.points)
+              for (let i = 0; i < indices.length; i++) {
+                points[indices[i]][0] += transformedDelta.x
+                points[indices[i]][1] += transformedDelta.y
+              }
+              this.getActiveComponent().updateKeyframes({
+                [this.getActiveComponent().getCurrentTimelineName()]: {
+                  [Element.directlySelected.attributes['haiku-id']]: {
+                    points: {
+                      0: {
+                        value: SVGPoints.pointsToPolyString(points)
+                      }
+                    }
+                  }
+                }
+              }, {from: 'glass'}, () => {})
+              break
+            }
+
+            case 'line': {
+              const attrUpdate = {}
+              if (indices.includes(0)) {
+                attrUpdate.x1 = Number(Element.directlySelected.attributes.x1) + transformedDelta.x
+                attrUpdate.y1 = Number(Element.directlySelected.attributes.y1) + transformedDelta.y
+              }
+              if (indices.includes(1)) {
+                attrUpdate.x2 = Number(Element.directlySelected.attributes.x2) + transformedDelta.x
+                attrUpdate.y2 = Number(Element.directlySelected.attributes.y2) + transformedDelta.y
+              }
+              this.getActiveComponent().updateKeyframes({
+                [this.getActiveComponent().getCurrentTimelineName()]: {
+                  [Element.directlySelected.attributes['haiku-id']]: attrUpdate
+                }
+              })
+              break
+            }
+
+            case 'path': {
+              const points = SVGPoints.pathToPoints(Element.directlySelected.attributes.d)
+              if (this.state.directSelectionAnchorActivation.meta !== null) {
+                // Modify a handle
+                points[lastIndex].curve['x' + (this.state.directSelectionAnchorActivation.meta + 1)] += transformedDelta.x
+                points[lastIndex].curve['y' + (this.state.directSelectionAnchorActivation.meta + 1)] += transformedDelta.y
+                if (!Globals.isAltKeyDown) {
+                  // Mirror the opposite handle if it exists
+                  if (this.state.directSelectionAnchorActivation.meta === 0 && lastIndex > 0 && points[lastIndex - 1].curve) {
+                    points[lastIndex - 1].curve.x2 -= transformedDelta.x
+                    points[lastIndex - 1].curve.y2 -= transformedDelta.y
+                  } else if (this.state.directSelectionAnchorActivation.meta === 1 && lastIndex < points.length - 1 && points[lastIndex + 1].curve) {
+                    points[lastIndex + 1].curve.x1 -= transformedDelta.x
+                    points[lastIndex + 1].curve.y1 -= transformedDelta.y
+                  }
+                }
+              } else {
+                // Modify anchors
+                for (let i = 0; i < indices.length; i++) {
+                  points[indices[i]].x += transformedDelta.x
+                  points[indices[i]].y += transformedDelta.y
+                  if (!Globals.isAltKeyDown) {
+                    // Move the handles with it
+                    if (points[indices[i]].curve) {
+                      points[indices[i]].curve.x2 += transformedDelta.x
+                      points[indices[i]].curve.y2 += transformedDelta.y
+                    }
+                    if (indices[i] < points.length - 1 && points[indices[i] + 1].curve) {
+                      points[indices[i] + 1].curve.x1 += transformedDelta.x
+                      points[indices[i] + 1].curve.y1 += transformedDelta.y
+                    }
+                  }
+                }
+              }
+              this.getActiveComponent().updateKeyframes({
+                [this.getActiveComponent().getCurrentTimelineName()]: {
+                  [Element.directlySelected.attributes['haiku-id']]: {
+                    d: {
+                      0: {
+                        value: SVGPoints.pointsToPath(points)
+                      }
+                    }
+                  }
+                }
+              }, {from: 'glass'}, () => {})
+              break
+            }
+          }
+        } else {
+          const proxy = this.fetchProxyElementForSelection()
+
+          // Do not drag elements if the user is actively selecting them
+          if (!marquee.isActive()) {
+            this.didDragSinceLastMouseDown = true
+
+            proxy.drag(
+              dx,
+              dy,
+              mousePositionCurrent,
+              mousePositionPrevious,
+              lastMouseDownPosition,
+              this.state.isAnythingScaling,
+              this.state.isAnythingRotating,
+              this.state.isOriginPanning,
+              this.state.controlActivation,
+              viewportTransform,
+              Globals
+            )
+          }
         }
       }
     }
@@ -1573,8 +2222,18 @@ export class Glass extends React.Component {
         // merging isAnythingRotating/isAnythingScaling and controlActivation.cmd logics
         cmd: Globals.isSpecialKeyDown(),
         alt: Globals.isAltKeyDown,
-        index: activationInfo.index
+        index: activationInfo.index,
+        x: this.state.mousePositionCurrent.x,
+        y: this.state.mousePositionCurrent.y
       }
+    })
+
+    this.fetchProxyElementForSelection().pushCachedTransform('CONTROL_ACTIVATION')
+  }
+
+  directSelectionAnchorActivation (activationInfo) {
+    this.setState({
+      directSelectionAnchorActivation: activationInfo
     })
   }
 
@@ -1699,6 +2358,11 @@ export class Glass extends React.Component {
       return overlays
     }
 
+    if (Element.directlySelected) {
+      this.renderDirectSelection(Element.directlySelected, this.state.directSelectionAnchorActivation ? this.state.directSelectionAnchorActivation.indices[Element.directlySelected.attributes['haiku-id']] : undefined, overlays)
+      return overlays
+    }
+
     const proxy = this.fetchProxyElementForSelection()
 
     if (proxy.hasAnythingInSelection()) {
@@ -1716,8 +2380,30 @@ export class Glass extends React.Component {
 
   fetchProxyElementForSelection () {
     const selection = Element.where({ component: this.getActiveComponent(), _isSelected: true })
-    const proxy = ElementSelectionProxy.fromSelection(selection, { component: this.getActiveComponent() })
-    return proxy
+    return ElementSelectionProxy.fromSelection(selection, { component: this.getActiveComponent() })
+  }
+
+  renderDirectSelection (element, selectedAnchorIndices, overlays) {
+    const original = element
+    if (element.type === 'use') {
+      element = element.getTranscludedElement()
+    }
+
+    switch (element.type) {
+      case 'rect':
+        overlays.push(directSelectionMana[element.type](element.id, {...element.attributes, width: element.sizeX, height: element.sizeY}, original.layoutAncestryMatrices, selectedAnchorIndices || []))
+        break
+      case 'circle':
+      case 'ellipse':
+      case 'line':
+      case 'polyline':
+      case 'path':
+      case 'polygon':
+        overlays.push(directSelectionMana[element.type](element.id, element.attributes, original.layoutAncestryMatrices, selectedAnchorIndices || []))
+        break
+      default:
+        // ...noop.
+    }
   }
 
   renderOutline (overlays) {
@@ -1741,7 +2427,7 @@ export class Glass extends React.Component {
               point.x,
               point.y
             ]),
-            Palette.LIGHT_PINK
+            Palette.LIGHTEST_PINK
           )
         )
       }
@@ -1759,6 +2445,10 @@ export class Glass extends React.Component {
           width,
           height
         } = marquee.getBox()
+
+        if (width < 2 && height < 2) {
+          return
+        }
 
         overlays.push({
           elementName: 'rect',
@@ -1832,7 +2522,6 @@ export class Glass extends React.Component {
 
     if (pointDisplayMode !== POINT_DISPLAY_MODES.NONE) {
       overlays.push(boxMana([points[0], points[2], points[8], points[6]].map((point) => [point.x, point.y])))
-      overlays.push(gearMana(scale, proxy.getControlsPosition(5, 30 * scale, 1 * scale)))
     }
 
     points.forEach((point, index) => {
@@ -1859,7 +2548,7 @@ export class Glass extends React.Component {
       return
     }
 
-    if (canRotate && (
+    if (!this.state.isAnythingScaling && canRotate && (
       (this.state.hoveredControlPointIndex !== null && isRotationModeOn) ||
       this.state.isAnythingRotating
     )) {
@@ -2000,9 +2689,11 @@ export class Glass extends React.Component {
 
     items.push({
       label: 'Edit Element Actions',
-      enabled: proxy.doesManageSingleElement(),
+      // Show the actions menu if there is nothing selected for editing artboard actions
+      enabled: proxy.doesManageSingleElement() || proxy.hasNothingInSelection(),
       onClick: (event) => {
-        this.showEventHandlersEditor(event, proxy.selection[0])
+        // Fallback to the artboard if there is nothing in the current selection
+        this.showEventHandlersEditor(event, proxy.selection[0] || this.getActiveComponent().getArtboard().getElement())
       }
     })
 
@@ -2035,6 +2726,15 @@ export class Glass extends React.Component {
       onClick: () => {
         mixpanel.haikuTrack('creator:glass:edit-in-figma')
         shell.openExternal(proxy.getFigmaAssetLink())
+      }
+    })
+
+    items.push({
+      label: 'Edit in Illustrator',
+      enabled: proxy.isSelectionIllustratorEditable(),
+      onClick: () => {
+        mixpanel.haikuTrack('creator:glass:edit-in-illustrator')
+        shell.openItem(path.join(this.props.folder, proxy.getIllustratorAssetPath()))
       }
     })
 
@@ -2184,6 +2884,15 @@ export class Glass extends React.Component {
           }
         }
       })
+
+      items.push({
+        label: 'Preview in Browser',
+        enabled: proxy.hasNothingInSelection(),
+        onClick: () => {
+          const assetPath = this.project.getPreviewAssetPath()
+          shell.openItem(assetPath)
+        }
+      })
     }
 
     return items
@@ -2257,7 +2966,7 @@ export class Glass extends React.Component {
               position: 'fixed',
               top: 5,
               right: 10,
-              zIndex: 100000,
+              zIndex: MAX_Z_INDEX - 1,
               color: '#ccc',
               fontSize: 14
             }}>
@@ -2334,27 +3043,7 @@ export class Glass extends React.Component {
               <rect id='mount-background-blur' filter='url(#background-blur)' x={mount.x} y={mount.y} width={mount.w} height={mount.h} fill='white' />
               <rect id='mount-background' x={mount.x} y={mount.y} width={mount.w} height={mount.h} fill='white' />
             </svg>
-            : <div
-              id='haiku-glass-stage-background-preview'
-              style={{
-                position: 'relative',
-                top: container.y,
-                left: container.x,
-                width: container.w,
-                height: container.h
-              }}>
-              <div
-                id='haiku-glass-stage-background-preview-border'
-                style={{
-                  position: 'absolute',
-                  top: mount.y,
-                  left: mount.x,
-                  width: mount.w,
-                  height: mount.h,
-                  border: '1px dotted #bbb',
-                  borderRadius: '2px'
-                }} />
-            </div>}
+            : ''}
 
           {(!this.isPreviewMode())
             ? <svg
@@ -2461,7 +3150,7 @@ export class Glass extends React.Component {
                 style={{
                   strokeWidth: 1.5,
                   fill: 'none',
-                  stroke: Palette.LIGHT_PINK,
+                  stroke: Palette.LIGHTEST_PINK,
                   opacity: this.state.isStageNameHovering && !this.state.isStageSelected ? 0.75 : 0,
                   overflow: 'visible'
                 }}
@@ -2531,6 +3220,26 @@ export class Glass extends React.Component {
                 zIndex: 60,
                 opacity: (this.state.isEventHandlerEditorOpen) ? 0.5 : 1.0
               }} />
+            : ''}
+
+          {(this.isPreviewMode())
+            ? <div
+              id='preview-container'
+              style={{
+                position: 'absolute',
+                left: 0,
+                top: 0,
+                width: '100%',
+                height: '100%',
+                overflow: 'hidden',
+                zIndex: MAX_Z_INDEX,
+                backgroundColor: 'white'
+              }}>
+              <Preview
+                container={container}
+                mount={mount}
+                component={this.getActiveComponent()} />
+            </div>
             : ''}
         </div>
       </div>

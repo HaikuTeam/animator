@@ -2,11 +2,11 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
+import HaikuComponent from './../../HaikuComponent';
+import HaikuContext from './../../HaikuContext';
+import HaikuTimeline from './../../HaikuTimeline';
 import cssMatchOne from './../../helpers/cssMatchOne';
 import has from './has';
-import HaikuContext from './../../HaikuContext';
-import HaikuComponent from './../../HaikuComponent';
-import HaikuTimeline from './../../HaikuTimeline';
 
 /**
  * 'Vanities' are functions that provide special handling for applied properties.
@@ -44,9 +44,6 @@ export const LAYOUT_3D_VANITIES = {
   },
   'rotation.z': (name, element, value) => {
     element.layout.rotation.z = value;
-  },
-  'rotation.w': (name, element, value) => {
-    element.layout.rotation.w = value;
   },
 
   // If you really want to set what we call 'position' then
@@ -156,8 +153,8 @@ export const LAYOUT_3D_VANITIES = {
 
 const LAYOUT_2D_VANITIES = {...LAYOUT_3D_VANITIES};
 
-function styleSetter(prop) {
-  return function (name, element, value) {
+function styleSetter (prop) {
+  return (name, element, value) => {
     element.attributes.style[prop] = value;
   };
 }
@@ -624,8 +621,8 @@ const CONTENT_VANITIES = {
   },
 };
 
-function attributeSetter(prop) {
-  return function (name, element, value) {
+function attributeSetter (prop) {
+  return (name, element, value) => {
     element.attributes[prop] = value;
   };
 }
@@ -709,11 +706,11 @@ const FILTER_VANITIES = {
 
 const HTML_STYLE_SHORTHAND_VANITIES = {};
 
-function isNumeric(n) {
+function isNumeric (n) {
   return !isNaN(parseFloat(n)) && isFinite(n);
 }
 
-function isInteger(x) {
+function isInteger (x) {
   return x % 1 === 0;
 }
 
@@ -727,7 +724,7 @@ const HAIKU_MATCHING_OPTIONS = {
   attributes: 'attributes',
 };
 
-function querySelectSubtree(surrogate: any, value: any): any {
+function querySelectSubtree (surrogate: any, value: any): any {
   // First try the Haiku format
   if (cssMatchOne(surrogate, value, HAIKU_MATCHING_OPTIONS)) {
     return surrogate;
@@ -767,7 +764,7 @@ function querySelectSubtree(surrogate: any, value: any): any {
   }
 }
 
-function querySelectSurrogates(surrogates: any, value: string): any {
+function querySelectSurrogates (surrogates: any, value: string): any {
   if (Array.isArray(surrogates)) {
     // Return the first match we locate in the collection
     return surrogates.map((surrogate) => querySelectSurrogates(surrogate, value))[0];
@@ -778,7 +775,7 @@ function querySelectSurrogates(surrogates: any, value: string): any {
   }
 }
 
-function selectSurrogate(surrogates: any, value: any): any {
+function selectSurrogate (surrogates: any, value: any): any {
   // If the placeholder value is intended as an array index
   if (Array.isArray(surrogates) && isNumeric(value) && isInteger(value)) {
     if (surrogates[value]) {
@@ -806,58 +803,6 @@ const getCanonicalPlaybackValue = (value) => {
   return value;
 };
 
-export const PLAYBACK_SETTINGS = {
-  ONCE: 'once',
-  LOOP: 'loop',
-  STOP: 'stop',
-};
-
-const applyPlaybackStatus = (
-  status,
-  receivingTimeline,
-  receivingComponent,
-  sendingTimeline,
-  sendingComponent,
-) => {
-  // Start by unsetting the repeat value, which we'll re-set only if our value becomes 'loop'
-  receivingTimeline.setRepeat(false);
-
-  let val = status;
-
-  if (val === null || val === undefined || val === true) {
-    val = PLAYBACK_SETTINGS.LOOP;
-  }
-
-  const shouldRepeat = val === PLAYBACK_SETTINGS.LOOP;
-  const shouldPlay = val === PLAYBACK_SETTINGS.ONCE;
-  const shouldStop = val === PLAYBACK_SETTINGS.STOP;
-
-  if (shouldRepeat) {
-    receivingTimeline.setRepeat(true);
-  }
-
-  // If the sending timeline is frozen, don't inadvertently unfreeze its component's guests
-  if (!sendingTimeline.isFrozen()) {
-    if (shouldPlay || shouldRepeat) {
-      if (!receivingTimeline._isPlaying) {
-        receivingTimeline.play();
-      } else {
-        receivingTimeline.playSoftly();
-      }
-    } else if (shouldStop) {
-      if (receivingTimeline._isPlaying) {
-        receivingTimeline.stop();
-      } else {
-        receivingTimeline.stopSoftly();
-      }
-    }
-  }
-
-  if (typeof val === 'number') {
-    receivingTimeline.seek(val);
-  }
-};
-
 const PLAYBACK_VANITIES = {
   playback: (
     name,
@@ -871,16 +816,10 @@ const PLAYBACK_VANITIES = {
     const canonicalValue = getCanonicalPlaybackValue(value);
 
     for (const timelineName in canonicalValue) {
-      const timelineInstance = receiver.getTimeline(timelineName);
+      const timelineInstance = receiver && receiver.getTimeline(timelineName);
 
       if (timelineInstance) {
-        applyPlaybackStatus(
-          canonicalValue[timelineName],
-          timelineInstance,
-          receiver,
-          timeline,
-          sender,
-        );
+        timelineInstance.setPlaybackStatus(canonicalValue[timelineName]);
       }
     }
   },
@@ -952,7 +891,7 @@ const CONTROL_FLOW_VANITIES = {
   },
 };
 
-function controlFlowPlaceholderImpl(element, surrogate, receiver) {
+function controlFlowPlaceholderImpl (element, surrogate, receiver) {
   if (element.__surrogate !== surrogate) {
     element.elementName = surrogate.elementName;
     element.children = surrogate.children || [];

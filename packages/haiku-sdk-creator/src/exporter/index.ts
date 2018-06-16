@@ -12,8 +12,8 @@ export interface ExporterRequest {
 }
 
 export interface Exporter {
-  save(request: ExporterRequest): MaybeAsync<void>;
-  saved(request: ExporterRequest): MaybeAsync<void>;
+  save (request: ExporterRequest): MaybeAsync<void>;
+  saved (request: ExporterRequest): MaybeAsync<void>;
 }
 
 export * from './ExporterHandler';

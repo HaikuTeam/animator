@@ -20,7 +20,7 @@ import HaikuComponent from '../../HaikuComponent';
 import {randomString} from '../../helpers/StringUtils';
 
 // tslint:disable-next-line:function-name
-export default function HaikuAngularDOMAdapter(
+export default function HaikuAngularDOMAdapter (
   selector, haikuComponentFactory, optionalRawBytecode?): ModuleWithProviders {
   @Component({
     selector,
@@ -61,13 +61,15 @@ export default function HaikuAngularDOMAdapter(
     @Input()
     freeze: boolean = true;
     @Input()
+    loop: boolean = false;
+    @Input()
     frame?: Function;
     @Input()
     clock: {frameDuration?: number, frameDelay?: number, marginOfErrorForDelta?: number} = {};
     @Input()
     sizing?: string;
     @Input()
-    alwaysComputeSizing?: boolean = true;
+    alwaysComputeSizing?: boolean = false;
     @Input()
     preserve3d: string;
     @Input()
@@ -111,7 +113,7 @@ export default function HaikuAngularDOMAdapter(
     haiku;
     randomId: string = `haiku-angularroot-${randomString(24)}`;
 
-    ngOnChanges(changes: SimpleChanges) {
+    ngOnChanges (changes: SimpleChanges) {
       this.haikuConfig = Object.keys(changes).reduce(
         (accumulator, configKey) => {
           accumulator[configKey] = changes[configKey].currentValue;
@@ -125,7 +127,7 @@ export default function HaikuAngularDOMAdapter(
       }
     }
 
-    ngAfterViewInit() {
+    ngAfterViewInit () {
       let haikuAdapter;
 
       if (this.haikuAdapter) {
@@ -161,7 +163,7 @@ export default function HaikuAngularDOMAdapter(
       }
     }
 
-    ngOnDestroy() {
+    ngOnDestroy () {
       if (this.haiku) {
         this.haiku.callUnmount();
       }

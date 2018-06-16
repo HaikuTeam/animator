@@ -1,8 +1,9 @@
 import * as React from 'react';
 import Palette from '../../Palette';
-import {Tooltip} from '../Tooltip';
 import {ExternalLink} from '../ExternalLink';
+import {Tooltip} from '../Tooltip';
 import {EmbedCategory} from './EmbedCategory';
+import {SelectedEntry} from './index';
 import {SHARE_OPTIONS} from './ShareModalOptions';
 
 const STYLES = {
@@ -33,17 +34,15 @@ const STYLES = {
   } as React.CSSProperties,
 };
 
-export class EmbedList extends React.PureComponent {
-  props;
+export interface EmbedListProps {
+  onOptionClicked: (option: {entry: SelectedEntry, template: string}) => void;
+  isSnapshotSaveInProgress: boolean;
+  snapshotSyndicated: boolean;
+  snapshotPublished: boolean;
+  mixpanel: any;
+}
 
-  static propTypes = {
-    onOptionClicked: React.PropTypes.func,
-    isSnapshotSaveInProgress: React.PropTypes.bool,
-    snapshotSyndicated: React.PropTypes.bool,
-    snapshotPublished: React.PropTypes.bool,
-    mixpanel: React.PropTypes.object,
-  };
-
+export class EmbedList extends React.PureComponent<EmbedListProps> {
   renderShareOptions () {
     return Object.entries(SHARE_OPTIONS).map(([category, options]) => (
       <EmbedCategory
@@ -58,6 +57,13 @@ export class EmbedList extends React.PureComponent {
     ));
   }
 
+  private onClick = () => {
+    this.props.mixpanel.haikuTrack('install-options', {
+      from: 'app',
+      event: 'open-help-embedding',
+    });
+  };
+
   render () {
     return (
       <div>
@@ -68,12 +74,7 @@ export class EmbedList extends React.PureComponent {
           <ExternalLink
             style={STYLES.circle}
             href="https://docs.haiku.ai/embedding-and-using-haiku/publishing-and-embedding.html"
-            onClick={() => {
-              this.props.mixpanel.haikuTrack('install-options', {
-                from: 'app',
-                event: 'open-help-embedding',
-              });
-            }}
+            onClick={this.onClick}
           >
             ?
           </ExternalLink>

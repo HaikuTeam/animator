@@ -28,7 +28,7 @@
 
 import computeOrientationFlexibly from './computeOrientationFlexibly';
 
-export default function computeMatrix(layoutSpec, currentMatrix, currentsizeAbsolute, parentsizeAbsolute) {
+export default function computeMatrix (layoutSpec, currentMatrix, currentsizeAbsolute, parentsizeAbsolute) {
   const alignX = layoutSpec.align.x * parentsizeAbsolute.x;
   const alignY = layoutSpec.align.y * parentsizeAbsolute.y;
   const alignZ = layoutSpec.align.z * parentsizeAbsolute.z;

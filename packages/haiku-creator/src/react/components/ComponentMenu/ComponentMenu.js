@@ -8,10 +8,10 @@ const STYLES = {
     position: 'relative',
     width: '100%',
     height: 30,
-    backgroundColor: Palette.GRAY,
+    backgroundColor: Palette.PALE_GRAY,
     paddingLeft: '5px',
     paddingRight: '5px',
-    paddingTop: '7px',
+    paddingTop: '6px',
     overflow: 'hidden',
     verticalAlign: 'top'
   }
@@ -46,13 +46,17 @@ class ComponentMenu extends React.Component {
         <ComponentTab
           forceActive={this.getAllTabs().length === 1}
           projectModel={this.props.projectModel}
-          tab={this.getMainComponentTab()} />
+          tab={this.getMainComponentTab()}
+          nonSavedContentOnCodeEditor={this.props.nonSavedContentOnCodeEditor}
+          tryToChangeCurrentActiveComponent={this.props.tryToChangeCurrentActiveComponent} />
         {(this.getOtherComponentTabs().map((tab, index) => {
           return (
             <ComponentTab
               projectModel={this.props.projectModel}
               key={index}
-              tab={tab} />
+              tab={tab}
+              nonSavedContentOnCodeEditor={this.props.nonSavedContentOnCodeEditor}
+              tryToChangeCurrentActiveComponent={this.props.tryToChangeCurrentActiveComponent} />
           )
         }))}
       </div>

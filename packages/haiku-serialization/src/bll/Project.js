@@ -13,6 +13,7 @@ const logger = require('./../utils/LoggerInstance')
 const BaseModel = require('./BaseModel')
 const reifyRO = require('@haiku/core/lib/reflection/reifyRO').default
 const reifyRFO = require('@haiku/core/lib/reflection/reifyRFO').default
+const {InteractionMode} = require('@haiku/core/lib/helpers/interactionModes')
 const toTitleCase = require('./helpers/toTitleCase')
 const Lock = require('./Lock')
 const ActionStack = require('./ActionStack')
@@ -28,6 +29,9 @@ const ALWAYS_IGNORED_METHODS = {
 const SILENT_METHODS = {
   hoverElement: true,
   unhoverElement: true
+}
+const SERIAL_METHODS = {
+  describeIntegrityHandler: true
 }
 
 /**
@@ -83,15 +87,33 @@ class Project extends BaseModel {
 
     // List of components we are tracking as part of the component tabs
     this._multiComponentTabs = []
+
+    // Whether we should actually receive and act upon remote methods received
+    this.isHandlingMethods = true
+
+    this.interactionMode = InteractionMode.EDIT
   }
 
   teardown () {
+    this.stopHandlingMethods()
     this.getEnvoyClient().closeConnection()
-    if (this.websocket) this.websocket.disconnect()
+    if (this.websocket) {
+      this.websocket.disconnect()
+    }
     this.actionStack.stop()
   }
 
+  stopHandlingMethods () {
+    this.isHandlingMethods = false
+  }
+
+  startHandlingMethods () {
+    this.isHandlingMethods = true
+  }
+
   connectClients () {
+    this.startHandlingMethods()
+
     if (this.websocket) {
       // Idempotent setup should handle an already-connected client gracefully
       this.websocket.connect()
@@ -150,7 +172,9 @@ class Project extends BaseModel {
   }
 
   receiveMethodCall (method, params, message, cb) {
-    if (this.isIgnoringMethodRequestsForMethod(method)) {
+    if (!this.isHandlingMethods) {
+      return cb()
+    } else if (this.isIgnoringMethodRequestsForMethod(method)) {
       return null // Another handler will call the callback in this case
     } else {
       return this.handleMethodCall(method, params, message, cb)
@@ -171,7 +195,11 @@ class Project extends BaseModel {
 
         return ac[method].apply(ac, params.slice(1).concat((err, out) => {
           release()
-          if (err) return cb(err)
+
+          if (err) {
+            return cb(err)
+          }
+
           return cb() // Skip objects that don't play well with Websockets
         }))
       }
@@ -184,8 +212,16 @@ class Project extends BaseModel {
 
         return this[method].apply(this, params.concat((err, result) => {
           release()
-          if (err) return cb(err)
-          return cb() // Skip objects that don't play well with Websockets
+
+          if (err) {
+            return cb(err)
+          }
+
+          if (SERIAL_METHODS[method]) {
+            return cb(null, result)
+          } else {
+            return cb() // Skip objects that don't play well with Websockets
+          }
         }))
       }
 
@@ -243,6 +279,16 @@ class Project extends BaseModel {
     if (!foundAlready) {
       this._multiComponentTabs.push({ scenename, active })
     }
+  }
+
+  describeSubComponents () {
+    return this._multiComponentTabs.map(({scenename, active}) => {
+      return {
+        isActive: !!active,
+        scenename,
+        title: toTitleCase(scenename)
+      }
+    })
   }
 
   getExistingComponentNames () {
@@ -425,11 +471,26 @@ class Project extends BaseModel {
           return cb(err)
         }
 
+        // Only set interaction mode once it's been completely assigned to the in-mem components
+        this.interactionMode = interactionMode
+
         release()
         this.updateHook('setInteractionMode', interactionMode, metadata, (fire) => fire())
         return cb()
       })
     })
+  }
+
+  getInteractionMode () {
+    return this.interactionMode
+  }
+
+  toggleInteractionMode (metadata, cb) {
+    const interactionMode = this.interactionMode === InteractionMode.EDIT
+      ? InteractionMode.LIVE
+      : InteractionMode.EDIT
+
+    this.setInteractionMode(interactionMode, metadata, cb)
   }
 
   linkAsset (assetAbspath, cb) {
@@ -550,44 +611,73 @@ class Project extends BaseModel {
     return this.upsertComponentBytecodeToModule(relpath, bytecode, instanceConfig, cb)
   }
 
+  findOrCreateActiveComponent (scenename, cb) {
+    const ac = this.findActiveComponentBySceneName(scenename)
+
+    if (ac) {
+      return cb(null, ac)
+    }
+
+    return this.upsertSceneByName(scenename, (err) => {
+      if (err) {
+        return cb(err)
+      }
+
+      return cb(null, this.findActiveComponentBySceneName(scenename))
+    })
+  }
+
   setCurrentActiveComponent (scenename, metadata, cb) {
-    this.addActiveComponentToMultiComponentTabs(scenename, true)
+    return Lock.request(Lock.LOCKS.SetCurrentActiveCompnent, null, (release) => {
+      this.addActiveComponentToMultiComponentTabs(scenename, true)
 
-    const activateComponentContinuation = () => {
-      this._multiComponentTabs.forEach((tab) => {
-        // Deactivate all other components held in memory
-        if (tab.scenename !== scenename) {
-          tab.active = false
-        } else {
-          tab.active = true
-        }
-      })
-
-      return Lock.awaitFree([
-        Lock.LOCKS.ActiveComponentWork,
-        Lock.LOCKS.ActiveComponentReload,
-        Lock.LOCKS.FilePerformComponentWork,
-        Lock.LOCKS.ActionStackUndoRedo
-      ], () => {
-        this._activeComponentSceneName = scenename
-
-        this.updateHook('setCurrentActiveComponent', scenename, metadata || this.getMetadata(), (fire) => {
-          const ac = this.findActiveComponentBySceneName(scenename)
-          fire()
-          return cb(null, ac)
+      const activateComponentContinuation = () => {
+        this._multiComponentTabs.forEach((tab) => {
+          // Deactivate all other components held in memory
+          if (tab.scenename !== scenename) {
+            tab.active = false
+          } else {
+            tab.active = true
+          }
         })
-      })
-    }
 
-    // If not in read only mode, create the component entity for the scene in question
-    if (!this.findActiveComponentBySceneName(scenename)) {
-      return this.upsertSceneByName(scenename, (err) => {
-        if (err) return cb(err)
-        return activateComponentContinuation()
-      })
-    }
+        return Lock.awaitFree([
+          Lock.LOCKS.ActiveComponentWork,
+          Lock.LOCKS.ActiveComponentReload,
+          Lock.LOCKS.FilePerformComponentWork,
+          Lock.LOCKS.ActionStackUndoRedo
+        ], () => {
+          // Useful to stop haiku-creator listeners when deactivating ActiveComponent
+          const currentActiveComponent = this.getCurrentActiveComponent()
+          if (currentActiveComponent) {
+            currentActiveComponent.emit('update', 'componentDeactivating')
+          }
 
-    return activateComponentContinuation()
+          this._activeComponentSceneName = scenename
+
+          this.updateHook('setCurrentActiveComponent', scenename, metadata || this.getMetadata(), (fire) => {
+            const ac = this.findActiveComponentBySceneName(scenename)
+            fire()
+            release()
+            return cb(null, ac)
+          })
+        })
+      }
+
+      // If not in read only mode, create the component entity for the scene in question
+      if (!this.findActiveComponentBySceneName(scenename)) {
+        return this.upsertSceneByName(scenename, (err) => {
+          if (err) {
+            release()
+            return cb(err)
+          }
+
+          return activateComponentContinuation()
+        })
+      }
+
+      return activateComponentContinuation()
+    })
   }
 
   closeNamedActiveComponent (scenename, metadata, cb) {
@@ -715,11 +805,13 @@ class Project extends BaseModel {
   }
 
   relpathToSceneName (relpath) {
-    return relpath.split(path.sep)[1]
+    // Must normalize so ./foo/bar/baz becomes foo/bar/baz (note number of slashes)
+    return path.normalize(relpath).split(path.sep)[1]
   }
 
   upsertActiveComponentInstance (relpath) {
     const file = File.upsert({
+      uid: path.join(this.getFolder(), relpath),
       project: this,
       folder: this.getFolder(),
       relpath
@@ -832,7 +924,14 @@ class Project extends BaseModel {
   }
 
   setupScene (scenename, cb) {
-    return this.setupActiveComponent(path.join('code', scenename, 'code.js'), cb)
+    const relpath = path.join('code', scenename, 'code.js')
+    const abspath = path.join(this.getFolder(), relpath)
+    return Lock.request(Lock.LOCKS.FileReadWrite(abspath), false, (release) => {
+      return this.setupActiveComponent(relpath, (err) => {
+        release()
+        return cb(err)
+      })
+    })
   }
 
   getCodeFolderAbspath () {
@@ -845,6 +944,42 @@ class Project extends BaseModel {
       return entry && entry[0] !== '.'
     })
     return async.eachSeries(entries, this.setupScene.bind(this), cb)
+  }
+
+  getPreviewAssetPath () {
+    return path.join(this.getFolder(), 'preview.html')
+  }
+
+  describeComponents () {
+    let out = ''
+
+    this.getAllActiveComponents().forEach((ac) => {
+      out += ac.getRelpath() + '\n'
+      out += (Template.inspect(ac.getReifiedBytecode().template) || '?') + '\n\n'
+    })
+
+    return out
+  }
+
+  /**
+   * @method getComponentBytecodeSHAs
+   * @description Return a dictionary mapping component relpaths to SHA256s representing
+   * their current in-mem bytecode, e.g. {'code/main/code.js': 'abc123abc...'}
+   */
+  describeIntegrity () {
+    const shas = {}
+
+    this.getAllActiveComponents().forEach((ac) => {
+      shas[ac.getRelpath()] = {
+        len: ac.getNormalizedBytecodeJSON().length
+      }
+    })
+
+    return shas
+  }
+
+  describeIntegrityHandler (metadata, cb) {
+    return cb(null, this.describeIntegrity())
   }
 }
 
@@ -942,6 +1077,8 @@ Project.getAngularSelectorName = (name) => name
 
 Project.getPrimaryAssetPath = (name) => `designs/${name}.sketch`
 
+Project.getDefaultIllustratorAssetPath = (name) => `designs/${name}.ai`
+
 Project.getProjectNameVariations = (folder) => {
   const projectHaikuConfig = Project.readPackageJson(folder).haiku
   const projectNameSafe = Project.getSafeProjectName(folder, projectHaikuConfig.project)
@@ -950,6 +1087,7 @@ Project.getProjectNameVariations = (folder) => {
   const reactProjectName = `React_${projectNameSafe}`
   const angularSelectorName = Project.getAngularSelectorName(projectNameSafe)
   const primaryAssetPath = Project.getPrimaryAssetPath(projectNameSafeShort)
+  const defaultIllustratorAssetPath = Project.getDefaultIllustratorAssetPath(projectNameSafeShort)
 
   return {
     projectNameSafe,
@@ -957,7 +1095,8 @@ Project.getProjectNameVariations = (folder) => {
     projectNameLowerCase,
     reactProjectName,
     angularSelectorName,
-    primaryAssetPath
+    primaryAssetPath,
+    defaultIllustratorAssetPath
   }
 }
 

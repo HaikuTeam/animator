@@ -6,7 +6,7 @@ import reactChildrenToMana from './reactChildrenToMana';
 
 const STRING_TYPE = 'string';
 
-export default function reactToMana(react) {
+export default function reactToMana (react) {
   const props = {};
   for (const key in react.props) {
     if (key !== 'children') {

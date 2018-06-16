@@ -53,16 +53,12 @@ export default class TimelineRangeScrollbar extends React.Component {
 
   onStartDragContainer (dragEvent, dragData) {
     this.props.timeline.scrollbarBodyStart(dragData)
-    this.props.reactParent.setState({
-      avoidTimelinePointerEvents: true
-    })
+    this.props.disableTimelinePointerEvents()
   }
 
   onStopDragContainer (dragEvent, dragData) {
     this.props.timeline.scrollbarBodyStop(dragData)
-    this.props.reactParent.setState({
-      avoidTimelinePointerEvents: false
-    })
+    this.props.enableTimelinePointerEvents()
   }
 
   onDragContainer (dragEvent, dragData) {
@@ -171,5 +167,6 @@ export default class TimelineRangeScrollbar extends React.Component {
 
 TimelineRangeScrollbar.propTypes = {
   timeline: React.PropTypes.object.isRequired,
-  reactParent: React.PropTypes.object.isRequired
+  disableTimelinePointerEvents: React.PropTypes.func.isRequired,
+  enableTimelinePointerEvents: React.PropTypes.func.isRequired
 }

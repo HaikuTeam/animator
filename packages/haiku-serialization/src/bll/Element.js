@@ -74,8 +74,6 @@ class Element extends BaseModel {
 
   afterInitialize () {
     // Make sure we add to the appropriate collections to avoid unexpected state issues
-    if (this.isHovered()) Element.hovered[this.getPrimaryKey()] = this
-    if (this.isSelected()) Element.selected[this.getPrimaryKey()] = this
     this.populateVisiblePropertiesFromKeyframes()
   }
 
@@ -90,39 +88,55 @@ class Element extends BaseModel {
     return fn
   }
 
-  hoverOn (metadata) {
-    if (!this._isHovered || !Element.hovered[this.getPrimaryKey()]) {
-      this.cacheClear()
+  hoverOn (metadata, softly = false) {
+    if (!this._isHovered) {
+      this.cache.clear()
       this._isHovered = true
-      Element.hovered[this.getPrimaryKey()] = this
-      this.emit('update', 'element-hovered', metadata)
+
+      if (!softly) {
+        this.emit('update', 'element-hovered', metadata)
+      }
     }
     return this
   }
 
-  hoverOff (metadata) {
-    if (this._isHovered || Element.hovered[this.getPrimaryKey()]) {
-      this.cacheClear()
+  hoverOnSoftly (metadata) {
+    return this.hoverOn(metadata, true)
+  }
+
+  hoverOff (metadata, softly = false) {
+    if (this._isHovered) {
+      this.cache.clear()
       this._isHovered = false
-      delete Element.hovered[this.getPrimaryKey()]
-      this.emit('update', 'element-unhovered', metadata)
+
+      if (!softly) {
+        this.emit('update', 'element-unhovered', metadata)
+      }
     }
+  }
+
+  hoverOffSoftly (metadata) {
+    return this.hoverOff(metadata, true)
   }
 
   isHovered () {
     return this._isHovered
   }
 
-  select (metadata) {
-    if (!this._isSelected || !Element.selected[this.getPrimaryKey()]) {
+  select (metadata, softly = false) {
+    if (!this._isSelected) {
       this._isSelected = true
-      Element.selected[this.getPrimaryKey()] = this
-      this.emit('update', 'element-selected', metadata)
 
-      // Roundabout! Note that rows, when selected, will select their corresponding element
-      const row = this.getHeadingRow()
-      if (row) {
-        row.expandAndSelect(metadata)
+      if (softly) {
+        this.emit('update', 'element-selected-softly', metadata)
+      } else {
+        // Roundabout! Note that rows, when selected, will select their corresponding element
+        const row = this.getHeadingRow()
+        if (row) {
+          row.expandAndSelect(metadata)
+        }
+
+        this.emit('update', 'element-selected', metadata)
       }
     }
   }
@@ -133,26 +147,27 @@ class Element extends BaseModel {
    * Mainly used for multi-selection in glass-only context.
    */
   selectSoftly (metadata) {
-    if (!this._isSelected || !Element.selected[this.getPrimaryKey()]) {
-      this._isSelected = true
-      Element.selected[this.getPrimaryKey()] = this
-      this.emit('update', 'element-selected-softly', metadata)
-    }
+    return this.select(metadata, true)
   }
 
-  unselect (metadata) {
-    if (this._isSelected || Element.selected[this.getPrimaryKey()]) {
+  unselect (metadata, softly = false) {
+    if (this._isSelected) {
       this._isSelected = false
-      delete Element.selected[this.getPrimaryKey()]
-      this.emit('update', 'element-unselected', metadata)
+
+      if (softly) {
+        this.emit('update', 'element-unselected-softly', metadata)
+      } else {
+        // Roundabout! Note that rows, when deselected, will deselect their corresponding element
+        const row = this.getHeadingRow()
+        if (row && row.isSelected()) {
+          row.deselect(metadata)
+        }
+
+        this.emit('update', 'element-unselected', metadata)
+      }
+
       // #FIXME: this is a bit overzealous.
       ElementSelectionProxy.purge()
-
-      // Roundabout! Note that rows, when deselected, will deselect their corresponding element
-      const row = this.getHeadingRow()
-      if (row && row.isSelected()) {
-        row.deselect(metadata)
-      }
     }
   }
 
@@ -162,13 +177,7 @@ class Element extends BaseModel {
    * Mainly used for multi-selection in glass-only context.
    */
   unselectSoftly (metadata) {
-    if (this._isSelected || Element.selected[this.getPrimaryKey()]) {
-      this._isSelected = false
-      delete Element.selected[this.getPrimaryKey()]
-      this.emit('update', 'element-unselected-softly', metadata)
-      // #FIXME: this is a bit overzealous.
-      ElementSelectionProxy.purge()
-    }
+    return this.unselect(metadata, true)
   }
 
   getHeadingRow () {
@@ -198,13 +207,6 @@ class Element extends BaseModel {
 
   getCoreHostComponentInstance () {
     return this.component.$instance
-  }
-
-  cut () {
-    // Note that .copy() also calls .clip()
-    const clip = this.copy()
-    this.remove()
-    return clip
   }
 
   copy () {
@@ -238,6 +240,10 @@ class Element extends BaseModel {
 
   hasEventHandlers () {
     return !lodash.isEmpty(this.getReifiedEventHandlers())
+  }
+
+  hasVisibleEventHandlers () {
+    return !lodash.isEmpty(this.getVisibleEvents())
   }
 
   getReifiedEventHandlers () {
@@ -387,22 +393,23 @@ class Element extends BaseModel {
     return Template.getStackingInfo(
       this.component.getReifiedBytecode(),
       this.parent.getStaticTemplateNode(),
-      this.component.getCurrentTimelineName(),
-      this.component.getCurrentTimelineTime()
+      // TODO: If we ever support time-bound stacking, change these to their dynamic counterparts
+      this.component.getInstantiationTimelineName(),
+      this.component.getInstantiationTimelineTime()
     )
   }
 
   isAtFront () {
     const stackingInfo = this.getStackingInfo()
     if (!stackingInfo) return true // Can happen with artboard
-    const myIndex = lodash.findIndex(stackingInfo, { haikuId: this.getComponentId() })
+    const myIndex = lodash.findIndex(stackingInfo, {haikuId: this.getComponentId()})
     return myIndex === stackingInfo.length - 1
   }
 
   isAtBack () {
     const stackingInfo = this.getStackingInfo()
     if (!stackingInfo) return true // Can happen with artboard
-    const myIndex = lodash.findIndex(stackingInfo, { haikuId: this.getComponentId() })
+    const myIndex = lodash.findIndex(stackingInfo, {haikuId: this.getComponentId()})
     return myIndex === 0
   }
 
@@ -489,7 +496,7 @@ class Element extends BaseModel {
   }
 
   getComputedLayout () {
-    return this.cacheFetch('getComputedLayout', () => Layout3D.computeLayout(
+    return this.cache.fetch('getComputedLayout', () => Layout3D.computeLayout(
       this.getLayoutSpec(),
       Layout3D.createMatrix(),
       this.getParentComputedSize(),
@@ -519,7 +526,7 @@ class Element extends BaseModel {
     )
 
     const grabValue = (outputName) => {
-      const computedValue = hostInstance._builder.grabValue(
+      const computedValue = hostInstance.builder.grabValue(
         timelineName,
         componentId,
         elementNode,
@@ -567,8 +574,7 @@ class Element extends BaseModel {
       rotation: {
         x: grabValue('rotation.x'),
         y: grabValue('rotation.y'),
-        z: grabValue('rotation.z'),
-        w: grabValue('rotation.w')
+        z: grabValue('rotation.z')
       },
       scale: {
         x: grabValue('scale.x'),
@@ -696,15 +702,9 @@ class Element extends BaseModel {
     return propertyGroupValue
   }
 
-  remove () {
-    this.unselect(this.component.project.getMetadata())
-    this.hoverOff(this.component.project.getMetadata())
-
-    this.component.deleteComponent(
-      this.getComponentId(),
-      this.component.project.getMetadata(),
-      () => {}
-    )
+  remove (metadata) {
+    this.unselectSoftly(metadata)
+    this.hoverOffSoftly(metadata)
 
     // Destroy after the above so we retain our UID for the necessary actions
     this.destroy()
@@ -714,7 +714,7 @@ class Element extends BaseModel {
       row.delete()
     }
 
-    this.emit('update', 'element-remove')
+    this.emit('update', 'element-removed')
   }
 
   isRenderableType () {
@@ -845,18 +845,18 @@ class Element extends BaseModel {
   clearEntityCaches () {
     if (this.children) {
       this.children.forEach((element) => {
-        element.cacheClear()
+        element.cache.clear()
         element.clearEntityCaches()
       })
     }
 
     this.getHostedRows().forEach((row) => {
-      row.cacheClear()
+      row.cache.clear()
       row.clearEntityCaches()
     })
 
     this.getTargetingRows().forEach((row) => {
-      row.cacheClear()
+      row.cache.clear()
       row.clearEntityCaches()
     })
   }
@@ -1530,8 +1530,10 @@ class Element extends BaseModel {
       case 'svg':
       case 'div':
         const ungroupables = []
-        this.getHaikuElement().visitDescendants((descendantHaikuElement) => {
-          const eligibleChildren = descendantHaikuElement.children.filter((element) => element.tagName !== 'defs')
+        this.getHaikuElement().visit((descendantHaikuElement) => {
+          const eligibleChildren = descendantHaikuElement.children.filter(
+            (element) => element.tagName !== 'defs' && element.target && (haikuElement.tagName === 'div' || typeof element.target.getBBox === 'function')
+          )
           if (eligibleChildren.length > 1) {
             ungroupables.push(...eligibleChildren)
             return false
@@ -1616,7 +1618,7 @@ class Element extends BaseModel {
           stroke: 'none'
         }
       }]
-    }, true))
+    }, {resetIds: true}))
   }
 
   ungroupDiv (nodes) {
@@ -1647,10 +1649,11 @@ class Element extends BaseModel {
       attributes['translation.x'] += originX * layoutMatrix[0] + originY * layoutMatrix[4]
       attributes['translation.y'] += originX * layoutMatrix[1] + originY * layoutMatrix[5]
       nodes.push({
-        elementName: haikuElement.tagName,
+        // Important: ensure we can serialize the node mana if we encounter a component.
+        // #FIXME: Why isn't haikuElement.isComponent() correct, and why is the component pseudo tag name 'div'?
+        elementName: typeof haikuElement.type !== 'string' ? '__component__' : haikuElement.tagName,
         attributes,
         children: []
-        // originalComponentId: haikuElement.getComponentId()
       })
     })
   }
@@ -1679,7 +1682,6 @@ class Element extends BaseModel {
 
         const attributes = Object.keys(mergedAttributes).reduce((accumulator, propertyName) => {
           if (!LAYOUT_3D_SCHEMA.hasOwnProperty(propertyName)) {
-            // accumulator[propertyName] = mergedAttributes[propertyName][0].value
             accumulator[propertyName] = this.component.getComputedPropertyValue(
               descendantHaikuElement.node,
               mergedAttributes[propertyName],
@@ -1692,7 +1694,11 @@ class Element extends BaseModel {
           return accumulator
         }, {})
 
+        // Note the implementation details of HaikuElement#target, which actually returns
+        // the most recently added target - one of a list of possible DOM targets shared by each
+        // render node
         const boundingBox = descendantHaikuElement.target.getBBox()
+
         const originX = boundingBox.width / 2
         const originY = boundingBox.height / 2
         const layoutMatrix = descendantHaikuElement.layoutMatrix
@@ -1704,45 +1710,55 @@ class Element extends BaseModel {
           delete subHaikuElement.node.layout
         })
 
-        Object.assign(attributes, {
+        const parentAttributes = {
           width: boundingBox.width,
           height: boundingBox.height,
           // Important: in case we have borders that spill outside the bounding box, allow SVG overflow so nothing
           // is clipped.
-          'style.overflow': 'visible',
+          style: {
+            overflow: 'visible'
+          },
           [HAIKU_SOURCE_ATTRIBUTE]: `${svgElement.attributes[HAIKU_SOURCE_ATTRIBUTE]}#${descendantHaikuElement.id}`,
-          [HAIKU_TITLE_ATTRIBUTE]: descendantHaikuElement.title || descendantHaikuElement.id
-        })
+          [HAIKU_TITLE_ATTRIBUTE]: descendantHaikuElement[HAIKU_TITLE_ATTRIBUTE] || descendantHaikuElement.title || descendantHaikuElement.id
+        }
 
-        composedTransformsToTimelineProperties(attributes, layoutAncestryMatrices)
+        composedTransformsToTimelineProperties(parentAttributes, layoutAncestryMatrices)
 
         // In this very special mana construct, we:
         //   - Offset the translation of the ungrouped SVG element by the render-time bounding box. This allows us
         //     to bypass otherwise necessary recomputation of things like path vertices in a new coordinate system.
         //   - Transclude the children of our descendant node to ensure any existing timeline properties are
         //     preserved.
-        nodes.push(Template.cleanMana({
+        const node = Template.cleanMana({
           elementName: 'svg',
-          attributes,
-          children: [
-            ...defs,
-            {
-              elementName: 'g',
-              attributes: {
+          attributes: parentAttributes,
+          children: [{
+            elementName: 'g',
+            attributes: Object.assign(
+              attributes,
+              {
                 transform: `translate(${-boundingBox.x} ${-boundingBox.y})`
-              },
-              children: [Object.assign(
-                descendantHaikuElement.node,
-                {
-                  attributes: Object.assign(descendantHaikuElement.attributes, {
+              }
+            ),
+            children: [Object.assign(
+              {},
+              descendantHaikuElement.node,
+              {
+                attributes: Object.assign(
+                  {
                     'haiku-transclude': descendantHaikuElement.getComponentId()
-                  }),
-                  children: []
-                }
-              )]
-            }
-          ]
-        }, true))
+                  },
+                  descendantHaikuElement.attributes
+                ),
+                children: []
+              }
+            )]
+          }]
+        }, {resetIds: true})
+
+        // Important: hold onto the original ID references of our defs (i.e. do NOT reset IDs here).
+        node.children.unshift(...defs.map((def) => Template.cleanMana(def)))
+        nodes.push(node)
 
         return false
       })
@@ -1792,8 +1808,7 @@ Element.DEFAULT_OPTIONS = {
 
 BaseModel.extend(Element)
 
-Element.selected = {}
-Element.hovered = {}
+Element.directlySelected = null
 
 Element.cache = {
   domNodes: {},
@@ -1816,6 +1831,7 @@ Element.nodeIsGrouper = (node) => {
 
 Element.unselectAllElements = function (criteria, metadata) {
   Element.where(criteria).forEach((element) => element.unselect(metadata))
+  Element.directlySelected = null
 }
 
 Element.hoverOffAllElements = function (criteria, metadata) {
@@ -2059,6 +2075,12 @@ Element.safeElementName = (mana) => {
     return 'div' // TODO: How will this bite us?
   }
   return mana.elementName
+}
+
+Element.deselectAll = (criteria, metadata) => {
+  Element.where(Object.assign({_isSelected: true}, criteria)).forEach((element) => {
+    element.unselect(metadata, true)
+  })
 }
 
 module.exports = Element

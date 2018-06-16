@@ -1,7 +1,7 @@
+import EnvoyClient from '@sdk-creator/envoy/EnvoyClient';
+import EnvoyLogger from '@sdk-creator/envoy/EnvoyLogger';
 import * as tape from 'tape';
 import * as ws from 'ws';
-import EnvoyLogger from '../../../lib/envoy/EnvoyLogger';
-import EnvoyClient from '../../../lib/envoy/EnvoyClient';
 
 tape('envoy:client-mock', async (t) => {
   t.plan(4);

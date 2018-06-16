@@ -89,6 +89,21 @@ class FileImporter extends React.PureComponent {
           />
         </div>
         <div style={STYLES.popover.item}>
+          <div
+            style={STYLES.popover.text}
+            onClick={() => {
+              this.props.websocket.send({
+                type: 'broadcast',
+                from: 'creator',
+                folder: this.props.projectModel.getFolder(),
+                name: 'conglomerate-component'
+              })
+            }}
+          >
+            Create Component
+          </div>
+        </div>
+        <div style={STYLES.popover.item}>
           <FigmaImporter
             figma={this.props.figma}
             onImportFigmaAsset={this.props.onImportFigmaAsset}
@@ -131,7 +146,9 @@ FileImporter.propTypes = {
   onFileDrop: React.PropTypes.func.isRequired,
   onImportFigmaAsset: React.PropTypes.func.isRequired,
   onAskForFigmaAuth: React.PropTypes.func.isRequired,
-  figma: React.PropTypes.object
+  figma: React.PropTypes.object,
+  websocket: React.PropTypes.object.isRequired,
+  projectModel: React.PropTypes.object.isRequired
 }
 
 export default FileImporter

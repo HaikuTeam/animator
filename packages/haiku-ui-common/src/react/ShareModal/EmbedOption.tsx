@@ -1,8 +1,9 @@
 import * as React from 'react';
-import Palette from '../../Palette';
 import {LoadingTopBar} from '../../LoadingTopBar';
-import {TooltipBasic} from '../TooltipBasic';
+import Palette from '../../Palette';
 import {SHARED_STYLES} from '../../SharedStyles';
+import {TooltipBasic} from '../TooltipBasic';
+import {SelectedEntry} from './index';
 import {ShareCategory} from './ShareModalOptions';
 
 const STYLES = {
@@ -26,21 +27,20 @@ const STYLES = {
   },
 } as React.CSSProperties;
 
-export class EmbedOption extends React.PureComponent {
-  props;
-  startTimeout;
-  updateTimeout;
+export interface EmbedOptionProps {
+  disabled: boolean;
+  template: string;
+  entry: SelectedEntry;
+  category: string;
+  onClick: (option: {entry: SelectedEntry, template: string}) => void;
+  isSnapshotSaveInProgress: boolean;
+  snapshotSyndicated: boolean;
+  snapshotPublished: boolean;
+}
 
-  static propTypes = {
-    disabled: React.PropTypes.bool,
-    template: React.PropTypes.string,
-    entry: React.PropTypes.string.isRequired,
-    category: React.PropTypes.string.isRequired,
-    onClick: React.PropTypes.func,
-    isSnapshotSaveInProgress: React.PropTypes.bool,
-    snapshotSyndicated: React.PropTypes.bool,
-    snapshotPublished: React.PropTypes.bool,
-  };
+export class EmbedOption extends React.PureComponent<EmbedOptionProps> {
+  startTimeout: number;
+  updateTimeout: number;
 
   state = {
     progress: 0,
@@ -50,17 +50,17 @@ export class EmbedOption extends React.PureComponent {
     showTooltip: false,
   };
 
-  get tooltipText() {
+  get tooltipText () {
     return this.props.disabled ? 'Coming Soon' : 'Click for details';
   }
 
-  componentDidMount() {
+  componentDidMount () {
     if (this.props.isSnapshotSaveInProgress) {
       this.start();
     }
   }
 
-  componentWillReceiveProps({isSnapshotSaveInProgress, snapshotSyndicated, snapshotPublished}) {
+  componentWillReceiveProps ({isSnapshotSaveInProgress, snapshotSyndicated, snapshotPublished}: EmbedOptionProps) {
     if (isSnapshotSaveInProgress) {
       this.start();
       return;
@@ -81,7 +81,7 @@ export class EmbedOption extends React.PureComponent {
     }
 
     this.setState({progress: 100, speed: '0.5s'}, () => {
-      this.updateTimeout = setTimeout(
+      this.updateTimeout = window.setTimeout(
         () => {
           if (this.updateTimeout) {
             this.setState({done: true, progress: 0, speed: '1ms'});
@@ -104,8 +104,8 @@ export class EmbedOption extends React.PureComponent {
     }
   }
 
-  start() {
-    this.startTimeout = setTimeout(
+  start () {
+    this.startTimeout = window.setTimeout(
       () => {
         this.setState({progress: 80, speed: this.startSpeed, done: false, abandoned: false});
       },
@@ -113,7 +113,7 @@ export class EmbedOption extends React.PureComponent {
     );
   }
 
-  get startSpeed() {
+  get startSpeed () {
     if (this.requiresSyndication) {
       return '60s';
     }
@@ -125,23 +125,39 @@ export class EmbedOption extends React.PureComponent {
     return '15s';
   }
 
-  get requiresSyndication() {
+  get requiresSyndication () {
     return this.props.category === ShareCategory.Other;
   }
 
-  get requiresPublished() {
+  get requiresPublished () {
     return this.props.category === ShareCategory.Mobile;
   }
 
-  render() {
-    const {
-      disabled,
-      entry,
-      onClick,
-      template,
-    } = this.props;
+  get effectivelyDisabled () {
+    return this.props.disabled || this.state.abandoned;
+  }
 
-    const effectivelyDisabled = disabled || this.state.abandoned;
+  private onMouseOver = () => {
+    if (this.effectivelyDisabled) {
+      this.setState({showTooltip: true});
+    }
+  };
+
+  private onMouseOut = () => {
+    if (this.effectivelyDisabled) { this.setState({showTooltip: false}); }
+  };
+
+  private onClick = () => {
+    if (!this.effectivelyDisabled) {
+      this.props.onClick({
+        entry: this.props.entry,
+        template: this.props.template,
+      });
+    }
+  };
+
+  render () {
+    const {entry} = this.props;
 
     return (
       <li style={{position: 'relative'}}>
@@ -150,19 +166,14 @@ export class EmbedOption extends React.PureComponent {
             ...SHARED_STYLES.btn,
             ...STYLES.entry,
             ...(!this.state.done && STYLES.entry.loading),
-            ...(effectivelyDisabled && STYLES.entry.disabled),
+            ...(this.effectivelyDisabled && STYLES.entry.disabled),
           }}
           disabled={!this.state.done}
-          onMouseOver={() => {
-            if (effectivelyDisabled) { this.setState({showTooltip: true}); }
-          }}onMouseOut={() => {
-            if (effectivelyDisabled) { this.setState({showTooltip: false}); }
-          }}
-          onClick={() => {
-            if (!effectivelyDisabled) { onClick({entry, template}); }
-          }}
+          onMouseOver={this.onMouseOver}
+          onMouseOut={this.onMouseOut}
+          onClick={this.onClick}
         >
-          {!effectivelyDisabled && (
+          {!this.effectivelyDisabled && (
             <LoadingTopBar
               progress={this.state.progress}
               speed={this.state.speed}

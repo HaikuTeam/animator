@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "noImplicitAny": false,
+    "baseUrl": ".",
+    "paths": {
+      "@admin-cli/*": ["src/*"]
+    }
+  },
+  "include": [
+    "src/**/*.ts",
+    "test/**/*.ts",
+    "scripts/*.ts"
+  ]
+}

@@ -45,17 +45,22 @@ class Row extends BaseModel {
     return `${this.element.getComponentId()}+${this.host.getComponentId()}-${this.getType()}-${this.getClusterNameString()}-${this.getPropertyNameString()}`
   }
 
-  deselectOthers (metadata) {
+  deselectOthers (metadata, skipSelectElements = false) {
     // Deselect all other rows; currently assume only one row selected at a time
     Row.where({ component: this.component }).forEach((row) => {
       if (row === this) return null
-      row.deselect(metadata)
+      row.deselect(metadata, skipSelectElements)
     })
   }
 
   select (metadata) {
     if (!this._isSelected) {
-      this.deselectOthers(metadata)
+      // The purpose of the `true` argument here tells the instruction to
+      // deselect the other rows, but not deselect all their respective elements;
+      // we need all processes to have a correct record of the actual number of
+      // elements which are explicitly selected on stage, otherwise certain behavior,
+      // such as the topbar controls, will not behave correctly.
+      this.deselectOthers(metadata, true)
 
       this._isSelected = true
       this.emit('update', 'row-selected', metadata)
@@ -68,13 +73,13 @@ class Row extends BaseModel {
     return this
   }
 
-  deselect (metadata) {
+  deselect (metadata, skipSelectElements = false) {
     if (this._isSelected) {
       this._isSelected = false
       this.emit('update', 'row-deselected', metadata)
 
       // Roundabout! Note that elements, when unselected, will unselect their corresponding row
-      if (this.isHeading() && this.element && this.element.isSelected()) {
+      if (!skipSelectElements && this.isHeading() && this.element && this.element.isSelected()) {
         this.element.unselect(metadata)
       }
     }
@@ -275,8 +280,6 @@ class Row extends BaseModel {
     })
 
     this.destroy()
-
-    this.emit('update', 'row-deleted')
   }
 
   rehydrate () {
@@ -431,7 +434,13 @@ class Row extends BaseModel {
   }
 
   getKeyframes () {
-    return Keyframe.where({ row: this }).sort((a, b) => a.index - b.index)
+    return Keyframe.where({row: this}).sort((a, b) => a.index - b.index)
+  }
+
+  getKeyframeByMs (ms) {
+    return this.getKeyframes().filter((keyframe) => {
+      return keyframe.getMs() === ms
+    })[0]
   }
 
   mapVisibleKeyframes ({ maxDepth = Infinity }, iteratee) {
@@ -571,13 +580,13 @@ class Row extends BaseModel {
   clearEntityCaches () {
     if (this.children) {
       this.children.forEach((row) => {
-        row.cacheClear()
+        row.cache.clear()
         row.clearEntityCaches()
       })
     }
 
     this.getKeyframes().forEach((keyframe) => {
-      keyframe.cacheClear()
+      keyframe.cache.clear()
     })
   }
 

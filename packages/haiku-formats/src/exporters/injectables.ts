@@ -2,9 +2,9 @@
 import functionToRFO from '@haiku/core/lib/reflection/functionToRFO';
 
 import {
-  BytecodeStates, 
+  BytecodeStates,
+  BytecodeStateType,
   BytecodeSummonable,
-  BytecodeStateType, 
 } from '@haiku/core/lib/api/HaikuBytecode';
 
 /**
@@ -20,7 +20,7 @@ class DefaultStub {
    * The constructor returns a Proxy, which activates the generic getter for property access mutation.
    * @returns {Proxy}
    */
-  constructor() {
+  constructor () {
     return new Proxy(this, this);
   }
 
@@ -45,7 +45,7 @@ class DefaultStub {
  *   The state tree we should evaluate parameters against.
  * @returns {any}
  */
-export const evaluateInjectedFunctionInExportContext = (bytecodeSummonable: BytecodeSummonable, 
+export const evaluateInjectedFunctionInExportContext = (bytecodeSummonable: BytecodeSummonable,
                                                         states: BytecodeStates): BytecodeStateType => {
   const rfo = functionToRFO(bytecodeSummonable);
   const defaultStub = new DefaultStub();

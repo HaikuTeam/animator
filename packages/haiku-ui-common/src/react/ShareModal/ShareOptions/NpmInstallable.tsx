@@ -1,19 +1,15 @@
-import * as React from 'react';
-import * as Color from 'color';
 import * as dedent from 'dedent';
+import * as React from 'react';
 import {PUBLISH_SHARED} from './PublishStyles';
 
-export class NpmInstallable extends React.PureComponent {
-  props;
+export interface NpmInstallableProps {
+  projectName: string;
+  organizationName: string;
+}
 
-  static propTypes = {
-    projectName: React.PropTypes.string,
-    userName: React.PropTypes.string,
-    organizationName: React.PropTypes.string,
-  };
-
-  render() {
-    const {projectName, userName, organizationName} = this.props;
+export class NpmInstallable extends React.PureComponent<NpmInstallableProps> {
+  render () {
+    const {projectName, organizationName} = this.props;
 
     return (
       <div style={PUBLISH_SHARED.block}>

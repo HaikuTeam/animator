@@ -6467,5 +6467,693 @@
       "label": "feat",
       "message": "Playback API changes, bug fixes, minor improvements (#475)"
     }
+  },
+  "3.3.1": {
+    "37bc4af9f695734b354ea50884aa232d7f8370d1": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Fix for 'Tab for new components created in other opened projects too'"
+    },
+    "8dec4dce083516c67088814990e21c7932f2df6a": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Fix for 'Existing projects not appearing correctly in project browser'"
+    },
+    "49f939bb8eadf2c89ab6c809f2052171ff67b05f": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for 'Copy+paste component doesn't work right after reopening project with existing component on stage'"
+    },
+    "b50794167efb45ca35a9185095368a48a83cfbc8": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "set correct position and styles for modals"
+    },
+    "66f79645cdd8b47f795ace0e9a93ee93ac6fcacd": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "avoid overflow of usernames in popup"
+    },
+    "871b4f9fea1298ad600a2ac7f11403319e86d2f7": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "correct URL when sending release to Slack."
+    },
+    "6323a5e9c1711c6b955c28a71ac728411d8f911d": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "do not perfom envoy figma calls in mock mode"
+    },
+    "d30542377289edbc9c059e4c54c252c430e3717a": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "move all figma external calls to the back-end"
+    },
+    "81f188cb74fc15682e7f2b8de8aa8dfdfabceb05": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for Element disappears when scaled down to near-zero/inverted"
+    },
+    "a7fef0fc07b154b8fa76b378d396fce8ee3f1704": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "conditionally import react devtools to avoid crashes in build"
+    },
+    "730f1ec0613a5a01a24d5bbc8c6e0cd6f4dd8a22": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "remove warning about setting state on unmounted component"
+    },
+    "1b01d10476010b3176640faaaf5ff9d1fa39015a": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for Moving mouse over a single element fires a bunch of hoverElement and unhoverElement events"
+    },
+    "943e3f6f40148c3843569c78b24cd6c01c89216b": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Ensure scrubbing works after first context switch"
+    },
+    "752771283834f5dd9a501ab216ebb24162815c3a": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "use the correct parameters for launching a project"
+    },
+    "2acbda81d02b21b2cd7d4ce5d1919fa9ad8dfcbd": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "A wild backtick appeared"
+    },
+    "533fc072518074c49f4217008b36360f914c4e2a": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "do not perfom envoy figma calls in mock mode"
+    },
+    "825c82bb9a4635423c06e12969a378d7e24019af": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "move all figma external calls to the back-end"
+    },
+    "1e81542cb4499605d2b03c3f23138f0f148c88bc": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for Element disappears when scaled down to near-zero/inverted"
+    },
+    "8cd7de6f2d11f5862f943c924303db4f7b15ed4d": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "multidelete, multipaste"
+    },
+    "a71c32a829a56e95c3b62bfd71173b17d0734e2d": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for Groups have offset inner div that extends outside of the actual bounding box, which is both selectable and hoverable"
+    },
+    "a44dfca8bb87e782ca104345d40a3859400125a0": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Don't include text literal nodes in bytecode file template"
+    },
+    "533020f9d4ef96105de66fc38cfcec6176aca833": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Prevent context switch race conditions"
+    },
+    "47f8f2c547f36b926775411d26de207d3cdc67d1": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Prevent multi-component playback on dashboard"
+    },
+    "3a5d6652ae526ef25f1ae3cc436e3f8c0c682459": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "disallow bad interactions between the tour and publish UI"
+    },
+    "b69b0ed9c0511d200f9afa02b08d61d83a873fad": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for CRASH"
+    },
+    "17ae9cc2372313da91f1295ddf6e6c91e24c22e1": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for Multirotate is broken for legacy upgraded bytecode"
+    },
+    "d9a20fbc1898c1322067a1f720ec4fa42fec2249": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for Little moto dude disappears when ungrouping moto artboard"
+    },
+    "9ab892f81035b016045fe1a6d8090fb46ce694d8": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for MC is incompatible with static.json"
+    },
+    "9d83d935eb25b80e01a494701600ea470fc7d9b3": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "ensure new project state is correctly setting public projects by default"
+    },
+    "de6af20cf3ed7c7f8f3f45f6579429297a7be87c": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Improve instantiation perf by caching File.readMana"
+    },
+    "a5df28494f3229353be7db243e95fbd03180002a": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Prevent hover flicker by early returning if the mouse is down"
+    },
+    "e99f1f01dccb91575433faed54e92f3e1d0bd535": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Too-short debounce time on heavy method caused deadlock"
+    },
+    "0258077ffb0cce773d33222f63f0ff62eef052b9": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "make new projects public by default (#485)"
+    },
+    "232c3aa28c70f3bc6a975e7a7508dff8f97b7104": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "update broken imports in core and tests (#483)"
+    },
+    "7f0e78d51e519da6bf51e1e5b8da344e06f2f135": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "spell out yarn in self-link to avoid macOS conflict."
+    }
+  },
+  "3.3.2": {
+    "daf2d9ce6f6c635acd6c3e79e7c998c7d4df5809": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "avoid library preview being blocked by splitview line"
+    },
+    "c213b9ed64c3279dca627005acbcad20f619be60": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "check for component before destroying context in ProjectPreview"
+    }
+  },
+  "3.3.3": {
+    "0efa017221553e2d0c7640b06d31a95785580fe0": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "until crashes are fixed, take away ability to undo conglomerateComponent, which did not really undo everything anyway."
+    },
+    "cbd15a1204f56fac78b41409132b9d7af72a948c": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "clear ElementSelectionProxy caches fully when timeline time changes."
+    },
+    "bc6af02109c378ef7196e5c4d05e3ebde1cba4b2": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for 'Copy+paste component doesn't work right after reopening project with existing component on stage'"
+    },
+    "97452ee0183d8a182e7a89f9d9e2a1ee372a3a5c": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for Element disappears when scaled down to near-zero/inverted"
+    },
+    "a537089ac6a6bc769f8950dbd550fdc2312992bb": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Prevent multi-component playback on dashboard"
+    },
+    "183323e5670189ae97b66a5c5c3086c7c5fd506e": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "update broken imports in core and tests (#483)"
+    }
+  },
+  "3.3.4": {
+    "a2c51f8ac107e14744b4324fbaa1f8bd2d5cb628": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for Figma connect results in crash"
+    }
+  },
+  "3.4.0": {
+    "00a290f6d6b8a3c66b73289c5c2b66bfe7623863": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Topbar regression; all processes need to know what elements are selected"
+    },
+    "cbeafd07a751aba4f7c8d56696ded59aec838a91": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for Bug"
+    },
+    "38f3cebc77538e79739d4fdff682c2a677b3160d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for Bug"
+    },
+    "0319c1ba4246d94bb2afcdd57e740eb577a4f28d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for Bug"
+    },
+    "ef881687d0f9490f87ff536c09ac154571643c69": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for 'Create Component' should not appear if only element selected is a component (697563057806742)"
+    },
+    "796b22ead40b0088379fc35ecc8528149d6bf992": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for Migration for gotoAndPlay APIs only works in hotEditingMode (694928618918872)"
+    },
+    "5650e8987d845bafc6738081e71dc4a8051b6913": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for Addition of state not reflected in expression (697364565996804)"
+    },
+    "ee464ef872ce7994f25f378315d2b811fe589a5a": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for Bug"
+    },
+    "a049a95b829666c70c0afe8984b077c10e65bc36": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for Ungrouping Moto artboard misplaces moto man and sun (696562098846673)"
+    },
+    "7a1c84957d5224d4b657b36a1c13f84e0f972940": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for Alt+drag to copy not working (696722424445311)"
+    },
+    "196708480be35ed7f9b28ff62bbe5e6a338d49fe": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "enable public/private to be toggled during publish"
+    },
+    "f3f1ea4b7804507c9dea5356163f9cc5af26e3a2": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'When ungrouping elements, use the layers, rather than generated ids'"
+    },
+    "75c07187477ab60f3bef0eb50a9071437c7a82cb": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'Bug"
+    },
+    "1aed721c4cefbc31c076991a98afb4f3b46c4c05": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'Bug"
+    },
+    "398a2703f8062f246ab4b29ee57c33b8203a57c4": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'Instantiation doesn't deselect other elements'"
+    },
+    "2a2296383d377c8478ef620386e9b311def65e4e": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'clicking element titles on timeline is not showing controls on stage'"
+    },
+    "e425ae8c1dc503fa5d605b27b3beed7568fe5408": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'Bug"
+    },
+    "9524e607a1afece2e88be4e7b536a6b15b02826f": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'Bug"
+    },
+    "89b5edf51af3f9a73b89fa7953a651b609c33668": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for insta-crash on duplicate project."
+    },
+    "4598944360f1e45a6c20651ab216dbe58a7811f1": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'Clicking to edit a state value instead edits its name'"
+    },
+    "d730ebcee5885ea9058e4d13260aaa86aa790f97": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'Hard to drag timeline playhead to frame 0'"
+    },
+    "b9cc8e1e11dd8f76c7776fb3e9d9f3c840e66b1e": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'Z-actions and scrubber time fixes'"
+    },
+    "ac26eff23cc5ded2fa37577ac5093a6671adbfa1": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'Undo after deleting multiple tweens at once fails'"
+    },
+    "77d829c6700985a7aecfe129aff19eb2ca9a3247": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'Tiny black dot at top-left of stage when holding mouse down on artboard name'"
+    },
+    "4180962c782f03d1d3b9052381d1ac3e8a86649d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Prevent plumbing crash by ensuring the folder is present on broadcast that originates in creator"
+    },
+    "d579d1b2f76fc84f65dca0c7863e03e99b9ef6e2": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Fix 'Bug"
+    },
+    "4096c79e16db146f90f27efe9407ccfa8136ec94": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Prevent plumbing crash by ensuring the folder is present on broadcast that originates in creator"
+    },
+    "d008f9aac6273ce8a0a344c1875e94dff63ed4cd": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'Bug"
+    },
+    "9bf2e77e8bfdb681e4e3f40a7ffe283dcdd8de41": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'Elements with shadows are clipped'"
+    },
+    "9c39fde428f7127ee78447b1eb9dfb1f40077741": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "Improve UI/X of topbar controls"
+    },
+    "9faf53ff4033c2e31a03be44d1c531ef9ff55fd1": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "'Implement top bar controls'"
+    },
+    "649b9689da2f8a766508e4e196a6ee54e9510caf": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'Fix 'flattenKeys' React error in Creator'"
+    },
+    "1ab7a827c4409552eb6cbe50d63702d36a565ba8": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'controlFlow.placeholder broken in some cases'"
+    },
+    "474f2e26d92d0e3ba8ba962ac0de76888b4721a5": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'Standalone glass not working'"
+    },
+    "6d525c66d9a4da9c116bc3dcbd1af9983d61d88b": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "initial work for direct editing"
+    },
+    "ce8f83bd824d9a11358621d9f392dc810375ab39": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "ship a default illustrator file on new projects"
+    },
+    "becf6992699675b674c6e17c633546e0a9cc9982": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "improve the logic to show hacky messages in library"
+    },
+    "fdbe9554e412c963b0a6df3f541baf46c59c29cf": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "allow illustrator files to be open with doubleclick"
+    },
+    "31fde1ba2e5d7eb42fd031206427b6822f16dc1f": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "improve the illustrator import script"
+    },
+    "95eb40b2ccbf1672a7d6a5d6137395ea0c5560fd": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "illustrator support"
+    },
+    "6a7b68130659869c5be58fcb89e48b2c8dd59a17": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "upload checkstyle result for all builds."
+    },
+    "a185143ac7dfdcbae17cca548e00e457742efb76": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for TypeError crash during interpolation."
+    }
+  },
+  "3.4.1": {
+    "3fd105ca1aa76e17825ac346769318b0c66e0a35": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure ungroupables will not crash in SVG context."
+    },
+    "4855b67f0ada12480f83301e57ed97542f7f66a5": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure Angular instructions actually work."
+    },
+    "4dbdc8b4ed038af91bb896204e3737e7c04dc52e": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "prevent global ID collisions across multiple core instances."
+    },
+    "5c5b7696da382de44bf168b588324956a7a0c05c": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for this resolution in a cloned function."
+    },
+    "888b7d48dead27c07a6b93274a70f4d8b429a086": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "More descriptive commit messages"
+    },
+    "a4ff0bfc06bb0ac641796643b8556d70d354f4e5": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Prevent crash if receiver component is not present"
+    },
+    "183bb0f0b8833b45005aef473079f23615c35875": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Fix part one for 'Playback doesn't work after switching between component tabs' (699216096995312)"
+    },
+    "105bc2f66da7c9a2f7b0185fb9ae4b605ee2daa9": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Timeline row selection-related crash (699417359896532)"
+    },
+    "f88d8911fc5717c6411608dd3506d0221686667e": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "add titles to element names on the timeline"
+    },
+    "addb25563c9d24c759030dac250f21f763b8a873": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not parse here."
+    },
+    "f0880bcdb7fc177c746b9db728f58fd40ec6af1a": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for Migration for gotoAndPlay APIs only works in hotEditingMode (694928618918872)"
+    },
+    "a596d5f9cac157a5400eabd44f59b4402ea7ea63": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'Bug"
+    },
+    "5b3ff38c17ab8fce0b76456f5b7ea6031b82b075": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'Bug"
+    },
+    "58d1498cc9a272f04a27eaf1fd03501f00c09002": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "'controlFlow.placeholder broken in some cases'"
+    },
+    "c8c4324f2733c87c2f679c94afeecfa1876b6382": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "initial work for direct editing"
+    }
+  },
+  "3.4.2": {
+    "7978d1a03c9ca2ce813eade64f0c55fc56f11266": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure Angular instructions actually work."
+    },
+    "e84465ff51d82f859008cdf0703a339f1bc30e19": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "prevent global ID collisions across multiple core instances."
+    },
+    "17717652fb57f0b41498565ffa482412b96a2c1c": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for this resolution in a cloned function."
+    },
+    "21aaa86137698b75a8dd87da8f4dc20eb75e9444": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Prevent crash if receiver component is not present"
+    },
+    "4cc7e3d6ad609ff2b4e842c25dc9fe5a8295b039": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not parse here."
+    }
+  },
+  "3.4.3": {
+    "4fa01e16a6e9b9b9570e5920a709b418c4f6f89b": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for Ctrl+clicking multi-selection deselects all but the clicked element (697563057806737)"
+    },
+    "a593c990044c3dff16131530a55aed2da7d7564a": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "require _collections correctly from svgo."
+    },
+    "e79fd5e7243c73bb78949929d8bfb2aa11a20a08": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for Bug"
+    },
+    "baacd06d526ecfa6923fe4fb5d4ec1e650ad26e9": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure migrations re-render following initial renders if bytecode was meaningfully mutated."
+    },
+    "1987a337ec45cdb7cddd2767b454d18a16ee400f": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "The sizing config needs to be passed down to children too"
+    },
+    "158bc2ceeda196c30b80edebadab6690eef88b3a": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Better playback settings when toggling between preview mode and editing mode"
+    },
+    "630aa1174a603e9733745f1021e35666c693569f": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Refactor to fix component reference confusion with multi-component event handlers"
+    },
+    "876d414dd14b393e96d30cfdd3e921aec10b3d3a": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "Allow preview mode to be toggled from the top menu (helps with dev too)"
+    },
+    "5212eb1c8f01efa1552ddd36ce01b7043071f24f": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Some config should not be passed down to child components from the context (704039297305135)"
+    },
+    "7ebfb7f7f198d5cf4f657ac870bce8cbe5e63280": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Ensure event routing is subcomponent-specific"
+    },
+    "0630d5d548bac08615baed643061940e0b5d2cf1": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Ensure child component event handlers fire in host component's preview mode (703465281990014)"
+    },
+    "1bf1d7bee17d78c6ed789826f193497fe3ec1c5a": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Don't clone child component bytecode which messes up event handler bindings"
+    },
+    "88febc1c965ce6b37c0f6a1b490b83f756fa47e4": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Fix crash when injecting .* into expression"
+    },
+    "72787b6d7c1dce405b80b70c09fc17fa2e9d190b": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for polyPointsStringToPoints regression."
+    },
+    "d5963fb9227b5e4828d3399a752fa0e6314c6c4e": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for Undoing group/ungroup of element in Main while in Child context makes Child instance in Main context disappear"
+    },
+    "263bd5fd388054897561b5db37896d5cf0b46ebf": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "Make undo/redo multi-component-aware"
+    },
+    "12f9f252d9bef1d07d717edef8897e70f4918acf": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Correct comparison of keyframe values to timeline time for detecting expressions (700874348545633)"
+    },
+    "960a3d5e91af26cfa7e808f370a0caa7a5fc1379": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Components should not fire event handlers when they have been deactivated (701883247926524)"
+    }
+  },
+  "3.4.4": {
+    "a5c07385c7d101489d34f4291c6d5ceef9b4ae8b": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure migrations re-render following initial renders if bytecode was meaningfully mutated."
+    },
+    "9a3c39c8b3519bf48641db195a91d46bf5d3494b": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "The sizing config needs to be passed down to children too"
+    },
+    "28ccec1515961168a310320830d5729b3b3ea0ea": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Refactor to fix component reference confusion with multi-component event handlers"
+    },
+    "37110d793cf0df132a893654695b1dce650aeebc": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Some config should not be passed down to child components from the context (704039297305135)"
+    },
+    "073362f190926afc50193928e3279e06466736ed": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Ensure event routing is subcomponent-specific"
+    },
+    "ffbe295aa97dfb3df53379b320d160a2363d5fb8": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Don't clone child component bytecode which messes up event handler bindings"
+    },
+    "186513283bd21602a4ce1d5313cfff831d529e3d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Fix crash when injecting .* into expression"
+    },
+    "8494be7fde80bac1920640bde0b70e70a148ff4d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for polyPointsStringToPoints regression."
+    },
+    "34e43fa194fca4361aa1b611fcd9f29d3b605eb2": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Correct comparison of keyframe values to timeline time for detecting expressions (700874348545633)"
+    },
+    "c66ada1a713bdc2d2865b43ba6a16d4a65f5ec46": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "Components should not fire event handlers when they have been deactivated (701883247926524)"
+    }
   }
 }

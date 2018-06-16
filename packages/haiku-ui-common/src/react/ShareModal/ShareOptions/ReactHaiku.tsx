@@ -1,23 +1,20 @@
-import * as React from 'react';
 import * as dedent from 'dedent';
+import * as React from 'react';
 import {CodeBox} from '../../CodeBox';
 import {NpmInstallable} from './NpmInstallable';
 
-export default class VanillaJS extends React.PureComponent {
-  props;
+export interface ReactHaikuProps {
+  projectName: string;
+  organizationName: string;
+}
 
-  static propTypes = {
-    projectName: React.PropTypes.string,
-    userName: React.PropTypes.string,
-    organizationName: React.PropTypes.string,
-  };
-
-  render() {
-    const {projectName, userName, organizationName} = this.props;
+export default class ReactHaiku extends React.PureComponent<ReactHaikuProps> {
+  render () {
+    const {projectName, organizationName} = this.props;
     const componentName = projectName[0].toUpperCase() + projectName.substring(1);
 
     return (
-      <NpmInstallable projectName={projectName} userName={userName} organizationName={organizationName}>
+      <NpmInstallable projectName={projectName} organizationName={organizationName}>
         <CodeBox>
           {dedent`
           import ${componentName} from '@haiku/${organizationName.toLowerCase()}-${projectName.toLowerCase()}/react';

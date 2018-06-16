@@ -1,17 +1,20 @@
-import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
-import {
-  ContextualSize,
-  Maybe,
-  PathPoint,
-} from 'haiku-common/lib/types';
-import {Curve} from 'haiku-common/lib/types/enums';
+import {difference, flatten, mapKeys} from 'lodash';
 
+import {Curve} from '@haiku/core/lib/api/Curve';
+import {
+  BytecodeNode,
+  BytecodeSummonable,
+  BytecodeTimelineProperties,
+  BytecodeTimelineProperty,
+  HaikuBytecode,
+} from '@haiku/core/lib/api/HaikuBytecode';
+import {CurveSpec} from '@haiku/core/lib/vendor/svg-points/types';
+import {ContextualSize, Maybe} from 'haiku-common/lib/types';
 // @ts-ignore
 import * as Template from 'haiku-serialization/src/bll/Template';
 // @ts-ignore
 import * as LoggerInstance from 'haiku-serialization/src/utils/LoggerInstance';
 
-import {difference, flatten, mapKeys} from 'lodash';
 import {ExporterInterface} from '..';
 
 import {SvgTag} from '../../svg/enums';
@@ -34,6 +37,7 @@ import {
   simulateLayoutProperty,
   timelineHasProperties,
 } from '../timelineUtils';
+
 import {
   AnimationKey,
   FillRule,
@@ -61,10 +65,10 @@ import {
   scaleTransformer,
 } from './bodymovinTransformers';
 import {
-  SvgInheritable, 
-  BodymovinShape, 
   BodymovinFill,
+  BodymovinShape,
   BodymovinTransform,
+  SvgInheritable,
 } from './bodymovinTypes';
 import {
   alwaysAbsolute,
@@ -82,16 +86,6 @@ import {
   pointsToInterpolationTrace,
   timelineValuesAreEquivalent,
 } from './bodymovinUtils';
-import {
-  BytecodeNode, 
-  HaikuBytecode, 
-  BytecodeTimelines, 
-  BytecodeTimelineProperty,
-  BytecodeTimelineProperties,
-  BytecodeSummonable,
-} from '@haiku/core/lib/api/HaikuBytecode';
-
-const {pathToPoints} = SVGPoints;
 
 let bodymovinVersion: Maybe<string>;
 
@@ -176,7 +170,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * Convenience method for retrieving the active layer.
    * @returns {any}
    */
-  private get activeLayer() {
+  private get activeLayer () {
     return this.layers.length > 0 ? this.layers[this.layers.length - 1] : null;
   }
 
@@ -184,7 +178,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * Sets the core version.
    * @param {string} version
    */
-  private setCoreVersion(version: string) {
+  private setCoreVersion (version: string) {
     this.core.v = version;
   }
 
@@ -194,7 +188,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @param {string?} parentHaikuId
    * @returns {{}}
    */
-  private timelineForId(haikuId: string, parentHaikuId?: string): BytecodeTimelineProperties {
+  private timelineForId (haikuId: string, parentHaikuId?: string): BytecodeTimelineProperties {
     const timelineId = `haiku:${haikuId}`;
     const timeline = this.bytecode.timelines.Default[timelineId] || {};
 
@@ -217,7 +211,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @param parentNode
    * @returns {{}}
    */
-  private timelineForNode(node: BytecodeNode, parentNode?: BytecodeNode): BytecodeTimelineProperties {
+  private timelineForNode (node: BytecodeNode, parentNode?: BytecodeNode): BytecodeTimelineProperties {
     return this.timelineForId(node.attributes['haiku-id'], parentNode ? parentNode.attributes['haiku-id'] : undefined);
   }
 
@@ -231,8 +225,10 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @param endKeyframe
    * @param {Function?} mutator
    */
-  private getValueAnimation(timelineProperty: BytecodeTimelineProperty, startKeyframe: number, 
-                            endKeyframe: number, mutator: MutatorType = undefined) {
+  private getValueAnimation (
+    timelineProperty: BytecodeTimelineProperty, startKeyframe: number, endKeyframe: number,
+    mutator?: MutatorType,
+  ) {
     // (Lottie assumes linear if not provided.)
     const animation = {
       [AnimationKey.Time]: startKeyframe,
@@ -259,8 +255,9 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @param {Function?} mutator
    * @returns {{}}
    */
-  private getValue(timelineProperty: (BytecodeTimelineProperty|BytecodeTimelineProperty[]), 
-                   mutator: MutatorType = undefined): object {
+  private getValue (
+    timelineProperty: (BytecodeTimelineProperty|BytecodeTimelineProperty[]), mutator?: MutatorType,
+  ): object {
     if (Array.isArray(timelineProperty)) {
       return timelineProperty
         .map((scalarTimelineProperty) => this.getValue(scalarTimelineProperty, mutator))
@@ -304,8 +301,9 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @param {?Function} mutator
    * @returns {any}
    */
-  private getValueOrDefaultFromTimeline(timeline: BytecodeTimelineProperties, 
-                                        property: string, defaultValue: any, mutator: MutatorType = undefined) {
+  private getValueOrDefaultFromTimeline (
+    timeline: BytecodeTimelineProperties, property: string, defaultValue: any, mutator?: MutatorType,
+  ) {
     if (timelineHasProperties(timeline, property)) {
       return this.getValue(timeline[property], mutator);
     }
@@ -322,7 +320,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @param timeline
    * @returns {[key in TransformKey]: {}}
    */
-  private standardTransformsForTimeline(timeline: BytecodeTimelineProperties) {
+  private standardTransformsForTimeline (timeline: BytecodeTimelineProperties) {
     return {
       [TransformKey.Opacity]: this.getValueOrDefaultFromTimeline(timeline, 'opacity', 100, opacityTransformer),
     };
@@ -338,7 +336,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @param timeline
    * @returns {[key in TransformKey]: any}
    */
-  private transformsForLayerTimeline(timeline: BytecodeTimelineProperties) {
+  private transformsForLayerTimeline (timeline: BytecodeTimelineProperties) {
     const transforms = {};
     transforms[TransformKey.OuterRadius] = getFixedPropertyValue([0, 0, 0]);
 
@@ -356,12 +354,12 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
         [TransformKey.PositionSplit]: true,
         x: this.getValue(
           timelineHasProperties(timeline, 'translation.x') ? timeline['translation.x'] : simulateLayoutProperty(
-            LayoutPropertyType.Additive),
+            LayoutPropertyType.Additive) as BytecodeTimelineProperty,
           (value) => value - mountX,
         ),
         y: this.getValue(
           timelineHasProperties(timeline, 'translation.y') ? timeline['translation.y'] : simulateLayoutProperty(
-            LayoutPropertyType.Additive),
+            LayoutPropertyType.Additive) as BytecodeTimelineProperty,
           (value) => value - mountY,
         ),
       };
@@ -379,8 +377,8 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     if (timelineHasProperties(timeline, 'scale.x', 'scale.y')) {
       transforms[TransformKey.Scale] = this.getValue(
         [
-          timeline['scale.x'] || simulateLayoutProperty(LayoutPropertyType.Multiplicative),
-          timeline['scale.y'] || simulateLayoutProperty(LayoutPropertyType.Multiplicative),
+          timeline['scale.x'] || simulateLayoutProperty(LayoutPropertyType.Multiplicative) as BytecodeTimelineProperty,
+          timeline['scale.y'] || simulateLayoutProperty(LayoutPropertyType.Multiplicative) as BytecodeTimelineProperty,
         ],
         scaleTransformer,
       );
@@ -399,7 +397,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @param timeline
    * @returns {[key in TransformKey]: {}}
    */
-  private transformsForShapeTimeline(timeline: BytecodeTimelineProperties) {
+  private transformsForShapeTimeline (timeline: BytecodeTimelineProperties) {
     const transforms = {
       [TransformKey.TransformOrigin]: getFixedPropertyValue([0, 0]),
       [TransformKey.Scale]: getFixedPropertyValue([100, 100]),
@@ -407,8 +405,8 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
 
     if (timelineHasProperties(timeline, 'translation.x', 'translation.y')) {
       transforms[TransformKey.Position] = this.getValue([
-        timeline['translation.x'] || simulateLayoutProperty(LayoutPropertyType.Additive),
-        timeline['translation.y'] || simulateLayoutProperty(LayoutPropertyType.Additive),
+        timeline['translation.x'] || simulateLayoutProperty(LayoutPropertyType.Additive) as BytecodeTimelineProperty,
+        timeline['translation.y'] || simulateLayoutProperty(LayoutPropertyType.Additive) as BytecodeTimelineProperty,
       ]);
     } else {
       transforms[TransformKey.Position] = getFixedPropertyValue([0, 0]);
@@ -425,7 +423,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @param node
    * @param parentNode
    */
-  private handleGroup(node: BytecodeNode, parentNode: BytecodeNode) {
+  private handleGroup (node: BytecodeNode, parentNode: BytecodeNode) {
     this.groupHierarchy[node.attributes['haiku-id']] = {
       parentId: parentNode.attributes['haiku-id'],
       inheritFromParent: parentNode.elementName === SvgTag.Group,
@@ -436,7 +434,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * Writes out defs from the timeline for a single node.
    * @param node
    */
-  private handleDefinition(node :BytecodeNode) {
+  private handleDefinition (node: BytecodeNode) {
     this.definitionHaikuIds.push(node.attributes['haiku-id']);
     if (node.attributes.hasOwnProperty('id')) {
       this.transclusions[node.attributes.id] = node;
@@ -448,7 +446,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @param node
    * @param parentNode
    */
-  private handleTransclusion(node: BytecodeNode, parentNode: BytecodeNode) {
+  private handleTransclusion (node: BytecodeNode, parentNode: BytecodeNode) {
     // Write a new haiku ID based on the result of transcluding the requested ID to this element.
     const originalTimeline = this.timelineForNode(node);
     const originalHaikuId = node.attributes['haiku-id'];
@@ -499,7 +497,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * TODO: Handle viewBox?
    * @param node
    */
-  private handleSvgLayer(node :BytecodeNode) {
+  private handleSvgLayer (node: BytecodeNode) {
     const timeline = this.timelineForNode(node);
     this.layers.push({
       [LayerKey.Type]: LayerType.Shape,
@@ -525,7 +523,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @returns {?{}}
    * TODO: Support paint server strokes (i.e. gradients and patterns).
    */
-  private strokeShapeFromTimeline(timeline: BytecodeTimelineProperties) {
+  private strokeShapeFromTimeline (timeline: BytecodeTimelineProperties) {
     // Return early if there is nothing to render.
     if (!timelineHasProperties(timeline, 'stroke', 'stroke-width') || initialValue(timeline, 'stroke') === 'none') {
       return {
@@ -560,7 +558,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @param gradient
    * @param probablyStops
    */
-  private decorateGradientStops(gradient: ShapeType, probablyStops: BytecodeNode[]) {
+  private decorateGradientStops (gradient: ShapeType, probablyStops: BytecodeNode[]) {
     const stops: object[] = [];
     probablyStops.forEach((node) => {
       if (node.elementName !== 'stop') {
@@ -602,7 +600,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * TODO: Break up this giant method into smaller methods.
    * TODO: Support pattern fills once available in Bodymovin.
    */
-  private decoratePaintServerFill(fill: BodymovinFill, shape: BodymovinShape, paintServerId: string) {
+  private decoratePaintServerFill (fill: BodymovinFill, shape: BodymovinShape, paintServerId: string) {
     if (!this.transclusions.hasOwnProperty(paintServerId)) {
       return;
     }
@@ -620,13 +618,13 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
         // Normalize the gradient in and out-points relative to the overall dimensions of the shape. Per the spec,
         // the default vector <x1, y1, x2, y2> is <0%, 0%, 100%, 0%> when any value is not explicitly provided.
         const [x1, x2] = [
-          initialValueOrNull(timeline, 'x1') || 0,
-          initialValueOrNull(timeline, 'x2') || width,
+          initialValueOr(timeline, 'x1', 0),
+          initialValueOr(timeline, 'x2', width),
         ].map((x) => alwaysAbsolute(x, width));
 
         const [y1, y2] = [
-          initialValueOrNull(timeline, 'y1') || 0,
-          initialValueOrNull(timeline, 'y2') || 0,
+          initialValueOr(timeline, 'y1', 0),
+          initialValueOr(timeline, 'y2', 0),
         ].map((y) => alwaysAbsolute(y, height));
 
         fill[TransformKey.GradientStart] = getFixedPropertyValue([x1, y1]);
@@ -657,7 +655,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @param shape
    * @returns {?{}}
    */
-  private fillShapeFromTimeline(timeline: BytecodeTimelineProperties, shape: BodymovinShape) {
+  private fillShapeFromTimeline (timeline: BytecodeTimelineProperties, shape: BodymovinShape) {
     if (!timelineHasProperties(timeline, 'fill') || initialValue(timeline, 'fill') === 'none') {
       return {
         [ShapeKey.Type]: ShapeType.Fill,
@@ -694,7 +692,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @param timeline
    * @param shape
    */
-  private decorateEllipse(timeline: BytecodeTimelineProperties, shape: BodymovinShape) {
+  private decorateEllipse (timeline: BytecodeTimelineProperties, shape: BodymovinShape) {
     shape[ShapeKey.Type] = ShapeType.Ellipse;
     if (timelineHasProperties(timeline, 'cy', 'cx')) {
       shape[TransformKey.Position] = this.getValue([timeline.cx, timeline.cy], (s) => parseInt(s, 10));
@@ -721,8 +719,9 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @param shape
    * @param transform
    */
-  private decorateRectangle(timeline: BytecodeTimelineProperties, shape: BodymovinShape, 
-                            transform: BodymovinTransform) {
+  private decorateRectangle (
+    timeline: BytecodeTimelineProperties, shape: BodymovinShape, transform: BodymovinTransform,
+  ) {
     shape[ShapeKey.Type] = ShapeType.Rectangle;
     if (!timelineHasProperties(timeline, 'sizeAbsolute.x', 'sizeAbsolute.y')) {
       shape[TransformKey.Size] = getFixedPropertyValue([0, 0]);
@@ -751,7 +750,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * Note: we very explicitly assume that points are not animated in this transformation. When we introduce path
    * animations, this should be revisited.
    */
-  private decoratePolygon(timeline: BytecodeTimelineProperties, shape: BodymovinShape) {
+  private decoratePolygon (timeline: BytecodeTimelineProperties, shape: BodymovinShape) {
     shape[ShapeKey.Type] = ShapeType.Shape;
     if (timelineHasProperties(timeline, 'points')) {
       shape[ShapeKey.Vertices] = {
@@ -771,7 +770,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @param pathSegment
    * @param shape
    */
-  private decorateShape(pathSegment: PathPoint[], closed: boolean, shape: any) {
+  private decorateShape (pathSegment: CurveSpec[], closed: boolean, shape: any) {
     shape[ShapeKey.Type] = ShapeType.Shape;
 
     shape[ShapeKey.Vertices] = {
@@ -787,7 +786,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @param node
    * @param parentNode
    */
-  private handleShape(node: BytecodeNode, parentNode: BytecodeNode) {
+  private handleShape (node: BytecodeNode, parentNode: BytecodeNode) {
     const timeline = this.timelineForNode(node, parentNode);
     const groupItems: any[] = [];
 
@@ -854,7 +853,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @param parentNode
    * @param skipTranscludedElements
    */
-  private handleElement(node :BytecodeNode, parentNode :BytecodeNode, skipTranscludedElements = true) {
+  private handleElement (node: BytecodeNode, parentNode: BytecodeNode, skipTranscludedElements = true) {
     // If we are at a definition or a child of a definition, store it in case it's referenced later and move on.
     if (parentNode && (parentNode.elementName === SvgTag.Defs ||
         (skipTranscludedElements && this.definitionHaikuIds.indexOf(parentNode.attributes['haiku-id']) !== -1))) {
@@ -890,7 +889,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * TODO: Change wrapper to a precomposition so we can add support for component opacity set in the bytecode.
    * TODO: Support animations on the wrapper color and opacity.
    */
-  private handleWrapper() {
+  private handleWrapper () {
     const wrapperTimeline = this.timelineForNode(this.bytecode.template as BytecodeNode);
     if (timelineHasProperties(wrapperTimeline, 'sizeAbsolute.x', 'sizeAbsolute.y')) {
       const [width, height] = [
@@ -912,7 +911,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
 
         // Bodymovin won't understand background color as a directive. We will need to fake a rectangle for the
         // equivalent effect. Start by creating a virtual node.
-        const wrapperNode : BytecodeNode = {
+        const wrapperNode: BytecodeNode = {
           elementName: SvgTag.Svg,
           attributes: {'haiku-id': 'wrapper'},
           children: [{
@@ -945,7 +944,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    *
    * Bodymovin uses keyframe-based transitions.
    */
-  private normalizeKeyframes() {
+  private normalizeKeyframes () {
     this.visitAllTimelineProperties((timeline, property) => {
       const timelineProperty = timeline[property];
       const millitimes = keyframesFromTimelineProperty(timelineProperty);
@@ -965,7 +964,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * This step is carried out during preprocessing to allow stateless modules to do the heavy lifting involved in
    * certain timeline rewrites.
    */
-  private normalizeValues() {
+  private normalizeValues () {
     this.visitAllTimelineProperties((timeline, property) => {
       for (const keyframe in timeline[property]) {
         if (typeof timeline[property][keyframe].value === 'function') {
@@ -985,8 +984,8 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * changing a value between keyframes without adding a tween), normalization mainly consists of identifying places
    * where jumps occur and shimming in keyframes forcing a linear transition within a single frame.
    */
-  private normalizeCurves() {
-    (this.bytecode.template as BytecodeNode).children.forEach((node :BytecodeNode) => {
+  private normalizeCurves () {
+    (this.bytecode.template as BytecodeNode).children.forEach((node: BytecodeNode) => {
       const timeline = this.timelineForNode(node);
       for (const property in timeline) {
         const timelineProperty = timeline[property];
@@ -1028,13 +1027,13 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * ...Bounce and ...Elastic curves can be decomposed into a sequence of continuous beziers using some shoddy
    * heuristics, which at speed approximate the actual behavior of the discontinuous functions they're derived from.
    */
-  private decomposeCompoundCurves() {
+  private decomposeCompoundCurves () {
     this.visitAllTimelineProperties((timeline, property) => {
       const timelineProperty: BytecodeTimelineProperty = timeline[property];
       const keyframes = keyframesFromTimelineProperty(timelineProperty);
       keyframes.forEach((keyframe, index) => {
         if (!timelineProperty[keyframe].hasOwnProperty('curve') || index === keyframes.length - 1 ||
-          !isDecomposableCurve(timelineProperty[keyframe].curve)) {
+          !isDecomposableCurve(timelineProperty[keyframe].curve as Curve)) {
           // There's naught to decompose here!
           return;
         }
@@ -1054,7 +1053,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * tween the elements inside an SVG container. Bodymovin does not support position-splitting for the innards of
    * shapes.
    */
-  private alignCurveKeyframes() {
+  private alignCurveKeyframes () {
     // Store the set of coupled properties that might have to be animated together with presently disjointed keyframes.
     // This is currently limited to scale.x and scale.y, but we may need to add more later.
     const coupledPropertyLists = [['scale.x', 'scale.y']];
@@ -1068,7 +1067,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
         // Shim in defaults for coupled properties that are not explicitly provided. Because we only currently
         // support multiplicative coupled properties (scale), this is straightforward.
         coupledPropertyList.filter((property) => !timelineHasProperties(timeline, property)).forEach((property) => {
-          timeline[property] = simulateLayoutProperty(LayoutPropertyType.Multiplicative);
+          timeline[property] = simulateLayoutProperty(LayoutPropertyType.Multiplicative) as BytecodeTimelineProperty;
         });
 
         const keyframeLists = coupledPropertyList.map((property) => keyframesFromTimelineProperty(timeline[property]));
@@ -1107,7 +1106,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @param node
    * @returns {number}
    */
-  private zIndexForNode(node: BytecodeNode) {
+  private zIndexForNode (node: BytecodeNode) {
     const timeline = this.timelineForNode(node);
     if (timelineHasProperties(timeline, 'style.zIndex')) {
       return initialValue(timeline, 'style.zIndex');
@@ -1119,7 +1118,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
   /**
    * Parses class-local bytecode using internal methods.
    */
-  private parseBytecode() {
+  private parseBytecode () {
     if ((this.bytecode.template as BytecodeNode).elementName !== 'div') {
       throw new Error(`Unexpected wrapper element: ${(this.bytecode.template as BytecodeNode).elementName}`);
     }
@@ -1153,7 +1152,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
       // TODO: Move this logic into mana instantiation. Defs always have to be output first.
       const maybeDefsIndex = (template.children as BytecodeNode[])
                   .findIndex((element) => element.elementName === SvgTag.Defs);
-                  
+
       if (maybeDefsIndex > 0) {
         template.children.unshift(...template.children.splice(maybeDefsIndex, 1));
       }
@@ -1181,7 +1180,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * Provide the parsed animation data.
    * @returns {{layers: Array; op: number; w: number; h: number}}
    */
-  private animationData() {
+  private animationData () {
     return {
       layers: this.layers,
       op: this.outPoint,
@@ -1194,7 +1193,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * Interface method to provide raw output.
    * @returns {{}}
    */
-  rawOutput() {
+  rawOutput () {
     if (!this.bytecodeParsed) {
       this.parseBytecode();
     }
@@ -1209,7 +1208,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * Interface method to provide binary output.
    * @returns {{}}
    */
-  binaryOutput() {
+  binaryOutput () {
     return JSON.stringify(this.rawOutput());
   }
 
@@ -1217,11 +1216,11 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * Interface method to provide failsafe binary output.
    * @returns {{}}
    */
-  failsafeBinaryOutput() {
+  failsafeBinaryOutput () {
     return '{}';
   }
 
-  constructor(protected bytecode :HaikuBytecode) {
+  constructor (protected bytecode: HaikuBytecode) {
     super(bytecode);
     // If not already known, get the Bodymovin version.
     if (!bodymovinVersion) {

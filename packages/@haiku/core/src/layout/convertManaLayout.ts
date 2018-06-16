@@ -4,8 +4,8 @@
 
 import parseCssTransformString from './../helpers/parseCssTransformString';
 import visitManaTree from './../helpers/visitManaTree';
-import cssValue from './../vendor/css-value';
 import Layout3D from './../Layout3D';
+import cssValue from './../vendor/css-value';
 
 const ROOT_LOCATOR = '0';
 
@@ -13,7 +13,6 @@ const TRANSFORM_COMPONENT_WHITELIST = {
   'rotation.x': true,
   'rotation.y': true,
   'rotation.z': true,
-  'rotation.w': true,
   'scale.x': true,
   'scale.y': true,
   'scale.z': true,
@@ -34,11 +33,11 @@ const TRANSFORM_COMPONENT_WHITELIST = {
   'align.z': true,
 };
 
-function isNumericDefined(value): boolean {
+function isNumericDefined (value): boolean {
   return typeof value === 'number';
 }
 
-function determineSizingProp(sizeAxis, attributeValue) {
+function determineSizingProp (sizeAxis, attributeValue) {
   const parsedValues = cssValue(attributeValue + ''); // Someone may have sent a number
   const parsedValue = parsedValues[0]; // Some CSS props have multi values, but our size ones shouldn't
   switch (parsedValue.unit) {
@@ -68,7 +67,7 @@ function determineSizingProp(sizeAxis, attributeValue) {
 const DEFAULT_SIZE_ABSOLUTE = 100;
 const DEFAULT_SIZE_PROPORTIONAL = 1.0; // 100%
 
-function fallbackSizeAbsolute(node: any, axis: string): number {
+function fallbackSizeAbsolute (node: any, axis: string): number {
   // This pathway assumes we've already tried attributes.width and attributes.style.width
   if (node && node.attributes) {
     const viewboxString = (node.attributes.viewBox || node.attributes.viewbox) + '';
@@ -86,7 +85,7 @@ function fallbackSizeAbsolute(node: any, axis: string): number {
   return DEFAULT_SIZE_ABSOLUTE;
 }
 
-function fallbackSizeProportional(node: any, axis: string): number {
+function fallbackSizeProportional (node: any, axis: string): number {
   return DEFAULT_SIZE_PROPORTIONAL;
 }
 
@@ -107,7 +106,7 @@ export default function convertManaLayout(mana) {
       return;
     }
 
-    if (name.states) {
+    if (typeof name !== 'string' && name.states) {
       const width = name.states.width;
       const height = name.states.height;
       // `elementName` is an object, so this is a recursive component: try to extract width/height from state
@@ -183,10 +182,10 @@ export default function convertManaLayout(mana) {
 
       // Assign an absolute size no matter what, since this is the most common case,
       // even if somehow the element still ends up in proportional size mode, these should be set
-      if (!isNumericDefined(attributes['sizeAbsolute.x'])) {
+      if (!isNumericDefined(attributes['sizeAbsolute.x']) && attributes['sizeAbsolute.x'] !== true) {
         attributes['sizeAbsolute.x'] = fallbackSizeAbsolute(node, 'x');
       }
-      if (!isNumericDefined(attributes['sizeAbsolute.y'])) {
+      if (!isNumericDefined(attributes['sizeAbsolute.y']) && attributes['sizeAbsolute.y'] !== true) {
         attributes['sizeAbsolute.y'] = fallbackSizeAbsolute(node, 'y');
       }
 
@@ -226,9 +225,9 @@ export default function convertManaLayout(mana) {
       delete attributes.transform;
 
       // If the x/y attributes are present, they can interfere with the transform, so we strip them off except in
-      // the case of <image>. <image> has the special behavior that x and y position the image relative to the
-      // origin *before* any transformations are applied.
-      if (node.elementName !== 'image') {
+      // the case of <image> and <rect>. These SVG elements have the special behavior that x and y position the image
+      // relative to the origin *before* any transformations are applied.
+      if (node.elementName !== 'image' && node.elementName !== 'rect') {
         delete attributes.x;
         delete attributes.y;
       }

@@ -4,7 +4,7 @@ import {isMac} from 'haiku-common/lib/environments/os'
 
 class FileSystemImporter extends React.PureComponent {
   showImportDialog () {
-    const validExtensions = ['svg']
+    const validExtensions = ['svg', 'ai']
 
     // Only mac offers support for Sketch
     if (isMac()) {
@@ -30,7 +30,7 @@ class FileSystemImporter extends React.PureComponent {
           this.showImportDialog()
         }}
       >
-        {this.props.text ? this.props.text : 'From File'}
+        {this.props.text ? this.props.text : 'Import From File'}
       </div>
     )
   }

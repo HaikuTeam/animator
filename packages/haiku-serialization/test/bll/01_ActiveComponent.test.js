@@ -29,7 +29,7 @@ tape('ActiveComponent.prototype.instantiateComponent[1](design)', (t) => {
         if (err) throw err
         t.equal(mana.attributes['haiku-source'], 'designs/Path.svg', 'rel source is in mana attribute')
         const timeline = ac0.getReifiedBytecode().timelines.Default['haiku:' + mana.attributes['haiku-id']]
-        t.deepEqual(timeline, { 'style.position': { 0: { value: 'absolute' } }, 'style.margin': { 0: { value: '0' } }, 'style.padding': { 0: { value: '0' } }, 'style.border': { 0: { value: '0' } }, 'sizeAbsolute.x': { 0: { value: 99 } }, 'sizeMode.x': { 0: { value: 1 } }, 'sizeAbsolute.y': { 0: { value: 69 } }, 'sizeMode.y': { 0: { value: 1 } }, 'translation.x': { 0: { value: 275, edited: true } }, 'translation.y': { 0: { value: 200, edited: true } }, 'style.zIndex': { 0: { value: 1 } } }, 'timeline is ok')
+        t.deepEqual(timeline, { 'style.position': { 0: { value: 'absolute' } }, 'style.margin': { 0: { value: '0' } }, 'style.padding': { 0: { value: '0' } }, 'style.border': { 0: { value: '0' } }, 'sizeAbsolute.x': { 0: { value: 99 } }, 'sizeMode.x': { 0: { value: 1 } }, 'sizeAbsolute.y': { 0: { value: 69 } }, 'sizeMode.y': { 0: { value: 1 } }, 'translation.x': { 0: { value: 275 } }, 'translation.y': { 0: { value: 200 } }, 'style.zIndex': { 0: { value: 1 } } }, 'timeline is ok')
         const subtemplate = ac0.getReifiedBytecode().template.children[0]
         t.equal(subtemplate.attributes['haiku-id'], mana.attributes['haiku-id'], 'template id ok')
         return waitUntilFileProbablyWroteToDisk(() => {
@@ -66,7 +66,7 @@ tape('ActiveComponent.prototype.deleteComponent[1](design)', (t) => {
           t.error(err, 'no err reading file after inst')
           const lines = contents.split('\n')
           t.equal(lines[0],'var Haiku = require("@haiku/core");','haiku require is in place')
-          return ac0.deleteComponent(mana.attributes['haiku-id'], { from: 'test' }, (err) => {
+          return ac0.deleteComponents([mana.attributes['haiku-id']], { from: 'test' }, (err) => {
             t.error(err, 'no err deleting')
             t.equal(ac0.getReifiedBytecode().template.children.length,0,'correct number of children')
             return waitUntilFileProbablyWroteToDisk(() => {
@@ -86,7 +86,7 @@ tape('ActiveComponent.prototype.deleteComponent[1](design)', (t) => {
 })
 
 tape('ActiveComponent.prototype.mergeDesign[2](design)', (t) => {
-  t.plan(2)
+  t.plan(1)
   const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'merge-design-02')
   fse.removeSync(folder)
   const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
@@ -110,15 +110,6 @@ tape('ActiveComponent.prototype.mergeDesign[2](design)', (t) => {
               return waitUntilFileProbablyWroteToDisk(() => {
                 return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents2) => {
                   if (err) throw err
-                  const diffs = []
-                  const lines1 = contents1.split('\n')
-                  const lines2 = contents2.split('\n')
-                  lines1.forEach((line, index) => {
-                    if (line !== lines2[index]) {
-                      diffs.push([line, lines2[index]])
-                    }
-                  })
-                  t.equal(JSON.stringify(diffs), JSON.stringify([["      \"haiku:9c1f414b03d9\": {","      \"haiku:61f9f98f7df2\": {"],["      \"haiku:d7cf17ceacc3\": {","      \"haiku:115c47a39e09\": {"],["        \"stop-color\": { \"0\": { value: \"#EEEEEE\" } },","        \"stop-color\": { \"0\": { value: \"#D13434\" } },"],["      \"haiku:75f016ce4612\": {","      \"haiku:900bd7da34e7\": {"],["      \"haiku:51f7dfd95edc\": {","      \"haiku:24f076d6b6e6\": {"],["      \"haiku:4eb5b73f2b15\": {","      \"haiku:45348852f58f\": {"],["        \"stop-color\": { \"0\": { value: \"#C8C8C8\" } },","        \"stop-color\": { \"0\": { value: \"#4F78EC\" } },"],["      \"haiku:0bf492f0c4aa\": {","      \"haiku:5cffca3b2ef4\": {"],["      \"haiku:b5129d1bce92\": {","      \"haiku:2c9e511ab426\": {"],["      \"haiku:12d627409aa2\": {","      \"haiku:c35418d879dc\": {"],["        x: { \"0\": { value: \"-1.3%\" } },","        x: { \"0\": { value: \"-5.1%\" } },"],["        y: { \"0\": { value: \"-1.3%\" } },","        y: { \"0\": { value: \"-5.1%\" } },"],["        \"sizeProportional.x\": { \"0\": { value: 1.026 } },","        \"sizeProportional.x\": { \"0\": { value: 1.179 } },"],["        \"sizeProportional.y\": { \"0\": { value: 1.026 } },","        \"sizeProportional.y\": { \"0\": { value: 1.103 } },"],["      \"haiku:739d0a1063b2\": {","      \"haiku:81c63bf1f319\": {"],["      \"haiku:422d3aa47256\": {","      \"haiku:32b5baa373d9\": {"],["        dx: { \"0\": { value: \"0\" } },","        dx: { \"0\": { value: \"3\" } },"],["      \"haiku:c60934f4333b\": {","      \"haiku:4f056c66d8a4\": {"],["      \"haiku:73cc8ae70990\": {","      \"haiku:e9f1f6e9633a\": {"],["      \"haiku:8566c61a52e2\": {","      \"haiku:2a47a5f89e53\": {"],["        x: { \"0\": { value: \"-1.3%\" } },","        x: { \"0\": { value: \"-3.8%\" } },"],["        y: { \"0\": { value: \"-1.3%\" } },","        y: { \"0\": { value: \"-3.8%\" } },"],["        \"sizeProportional.x\": { \"0\": { value: 1.026 } },","        \"sizeProportional.x\": { \"0\": { value: 1.1540000000000001 } },"],["        \"sizeProportional.y\": { \"0\": { value: 1.026 } },","        \"sizeProportional.y\": { \"0\": { value: 1.077 } },"],["      \"haiku:64f456f7cc31\": {","      \"haiku:b7b17a55a744\": {"],["        dx: { \"0\": { value: \"0\" } },","        dx: { \"0\": { value: \"-2\" } },"],["      \"haiku:81faca09de2f\": {","      \"haiku:348d30bdcb7a\": {"],["      \"haiku:cee484a1267b\": {","      \"haiku:c98747a83dfd\": {"],["      \"haiku:01ddb394818d\": {","      \"haiku:92a801551360\": {"],["      \"haiku:cf065341bbbd\": {","      \"haiku:55787e1e042f\": {"],["        filter: { \"0\": { value: \"url(#filter-4-ba41b8)\" } }","        filter: { \"0\": { value: \"url(#filter-4-74a585)\" } }"],["      \"haiku:f55de881e50f\": {","      \"haiku:f74c61938022\": {"],["        fill: { \"0\": { value: \"url(#linearGradient-1-ba41b8)\" } },","        fill: { \"0\": { value: \"url(#linearGradient-1-74a585)\" } },"],["      \"haiku:9db41add3fe3\": {","      \"haiku:99e0e3c61a6e\": {"],["        filter: { \"0\": { value: \"url(#filter-5-ba41b8)\" } }","        filter: { \"0\": { value: \"url(#filter-5-74a585)\" } }"],["      \"haiku:b9410bea5441\": {","      \"haiku:9cd7e796318b\": {"],["        stroke: { \"0\": { value: \"url(#linearGradient-2-ba41b8)\" } },","        stroke: { \"0\": { value: \"url(#linearGradient-2-74a585)\" } },"],["            attributes: { \"haiku-id\": \"6ef1e234855b\" },","            attributes: { \"haiku-id\": \"9dfd4a605245\" },"],["                  \"haiku-id\": \"9c1f414b03d9\",","                  \"haiku-id\": \"61f9f98f7df2\","],["                  id: \"linearGradient-1-ba41b8\"","                  id: \"linearGradient-1-74a585\""],["                    attributes: { \"haiku-id\": \"d7cf17ceacc3\" },","                    attributes: { \"haiku-id\": \"115c47a39e09\" },"],["                    attributes: { \"haiku-id\": \"75f016ce4612\" },","                    attributes: { \"haiku-id\": \"900bd7da34e7\" },"],["                  \"haiku-id\": \"51f7dfd95edc\",","                  \"haiku-id\": \"24f076d6b6e6\","],["                  id: \"linearGradient-2-ba41b8\"","                  id: \"linearGradient-2-74a585\""],["                    attributes: { \"haiku-id\": \"4eb5b73f2b15\" },","                    attributes: { \"haiku-id\": \"45348852f58f\" },"],["                    attributes: { \"haiku-id\": \"0bf492f0c4aa\" },","                    attributes: { \"haiku-id\": \"5cffca3b2ef4\" },"],["                attributes: { \"haiku-id\": \"b5129d1bce92\", id: \"path-3-ba41b8\" },","                attributes: { \"haiku-id\": \"2c9e511ab426\", id: \"path-3-74a585\" },"],["                  \"haiku-id\": \"12d627409aa2\",","                  \"haiku-id\": \"c35418d879dc\","],["                  id: \"filter-4-ba41b8\"","                  id: \"filter-4-74a585\""],["                    attributes: { \"haiku-id\": \"739d0a1063b2\" },","                    attributes: { \"haiku-id\": \"81c63bf1f319\" },"],["                    attributes: { \"haiku-id\": \"422d3aa47256\" },","                    attributes: { \"haiku-id\": \"32b5baa373d9\" },"],["                    attributes: { \"haiku-id\": \"c60934f4333b\" },","                    attributes: { \"haiku-id\": \"4f056c66d8a4\" },"],["                    attributes: { \"haiku-id\": \"73cc8ae70990\", type: \"matrix\" },","                    attributes: { \"haiku-id\": \"e9f1f6e9633a\", type: \"matrix\" },"],["                  \"haiku-id\": \"8566c61a52e2\",","                  \"haiku-id\": \"2a47a5f89e53\","],["                  id: \"filter-5-ba41b8\"","                  id: \"filter-5-74a585\""],["                    attributes: { \"haiku-id\": \"64f456f7cc31\" },","                    attributes: { \"haiku-id\": \"b7b17a55a744\" },"],["                    attributes: { \"haiku-id\": \"81faca09de2f\" },","                    attributes: { \"haiku-id\": \"348d30bdcb7a\" },"],["                    attributes: { \"haiku-id\": \"cee484a1267b\", type: \"matrix\" },","                    attributes: { \"haiku-id\": \"c98747a83dfd\", type: \"matrix\" },"],["            attributes: { \"haiku-id\": \"01ddb394818d\", id: \"Page-1\" },","            attributes: { \"haiku-id\": \"92a801551360\", id: \"Page-1\" },"],["                attributes: { \"haiku-id\": \"c0d4d057984a\", id: \"Circle\" },","                attributes: { \"haiku-id\": \"c21593638014\", id: \"Circle\" },"],["                      \"xlink:href\": \"#path-3-ba41b8\",","                      \"xlink:href\": \"#path-3-74a585\","],["                      \"haiku-id\": \"cf065341bbbd\"","                      \"haiku-id\": \"55787e1e042f\""],["                      \"xlink:href\": \"#path-3-ba41b8\",","                      \"xlink:href\": \"#path-3-74a585\","],["                      \"haiku-id\": \"f55de881e50f\"","                      \"haiku-id\": \"f74c61938022\""],["                      \"xlink:href\": \"#path-3-ba41b8\",","                      \"xlink:href\": \"#path-3-74a585\","],["                      \"haiku-id\": \"9db41add3fe3\"","                      \"haiku-id\": \"99e0e3c61a6e\""],["                      \"xlink:href\": \"#path-3-ba41b8\",","                      \"xlink:href\": \"#path-3-74a585\","],["                      \"haiku-id\": \"b9410bea5441\"","                      \"haiku-id\": \"9cd7e796318b\""]]))
                   fse.removeSync(folder)
                   t.ok(true)
                 })
@@ -132,7 +123,7 @@ tape('ActiveComponent.prototype.mergeDesign[2](design)', (t) => {
 })
 
 tape('ActiveComponent.prototype.mergeDesign[3](design)', (t) => {
-  t.plan(2)
+  t.plan(1)
   const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'merge-design-03')
   fse.removeSync(folder)
   const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
@@ -156,15 +147,6 @@ tape('ActiveComponent.prototype.mergeDesign[3](design)', (t) => {
               return waitUntilFileProbablyWroteToDisk(() => {
                 return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents2) => {
                   if (err) throw err
-                  const diffs = []
-                  const lines1 = contents1.split('\n')
-                  const lines2 = contents2.split('\n')
-                  lines1.forEach((line, index) => {
-                    if (line !== lines2[index]) {
-                      diffs.push([line, lines2[index]])
-                    }
-                  })
-                  t.equal(JSON.stringify(diffs), JSON.stringify([["      \"haiku:6af6038ac95d\": {","      \"haiku:33d86bd4b603\": {"],["      \"haiku:80b772571c50\": {","      \"haiku:3b2d1551bcd6\": {"],["      \"haiku:c63abf43f190\": {","      \"haiku:aa4fc67ccb9f\": {"],["      \"haiku:a4fc8161087a\": { \"translation.y\": { \"0\": { value: 72.378 } } },","      \"haiku:57410831e9c6\": { \"translation.y\": { \"0\": { value: 72.378 } } },"],["      \"haiku:a9fb568806f9\": {","      \"haiku:53c3c0577fa7\": {"],["      \"haiku:3170953518bb\": {","      \"haiku:8ae8dc8b1bb9\": {"],["      \"haiku:5512628f02e6\": {","      \"haiku:1c896902f80a\": {"],["      \"haiku:b9f83e051d5c\": {","      \"haiku:5fc4add068ac\": {"],["        fill: { \"0\": { value: \"#FF5E87\" } },","        fill: { \"0\": { value: \"#000000\" } },"],["      \"haiku:518be64ef576\": {","      \"haiku:98b43afe4a0c\": {"],["        fill: { \"0\": { value: \"#FF5E87\" } },","        fill: { \"0\": { value: \"#000000\" } },"],["            attributes: { \"haiku-id\": \"6af6038ac95d\", id: \"Page-1\" },","            attributes: { \"haiku-id\": \"33d86bd4b603\", id: \"Page-1\" },"],["                attributes: { \"haiku-id\": \"80b772571c50\", id: \"Screen-3\" },","                attributes: { \"haiku-id\": \"3b2d1551bcd6\", id: \"Screen-3\" },"],["                    attributes: { \"haiku-id\": \"c63abf43f190\", id: \"percy\" },","                    attributes: { \"haiku-id\": \"aa4fc67ccb9f\", id: \"percy\" },"],["                        attributes: { \"haiku-id\": \"a4fc8161087a\", id: \"nose\" },","                        attributes: { \"haiku-id\": \"57410831e9c6\", id: \"nose\" },"],["                              \"haiku-id\": \"a9fb568806f9\",","                              \"haiku-id\": \"53c3c0577fa7\","],["                              \"haiku-id\": \"3170953518bb\",","                              \"haiku-id\": \"8ae8dc8b1bb9\","],["                              \"haiku-id\": \"5512628f02e6\",","                              \"haiku-id\": \"1c896902f80a\","],["                              \"haiku-id\": \"b9f83e051d5c\",","                              \"haiku-id\": \"5fc4add068ac\","],["                              \"haiku-id\": \"518be64ef576\",","                              \"haiku-id\": \"98b43afe4a0c\","]]))
                   fse.removeSync(folder)
                   t.ok(true)
                 })
@@ -200,7 +182,7 @@ tape('ActiveComponent.prototype.instantiateComponent[2](component)', (t) => {
               t.error(err, 'no err upon instantiation')
               t.equal(mana.attributes['haiku-source'], './code/designs_path_svg/code.js', 'rel source is in mana attribute')
               const timeline = ac0.getReifiedBytecode().timelines.Default['haiku:' + mana.attributes['haiku-id']]
-              t.deepEqual(timeline, { 'style.position': { 0: { value: 'absolute' } }, 'style.margin': { 0: { value: '0' } }, 'style.padding': { 0: { value: '0' } }, 'style.border': { 0: { value: '0' } }, 'sizeMode.x': { 0: { value: 1 } }, 'sizeMode.y': { 0: { value: 1 } }, 'sizeAbsolute.x': { 0: { value: true } }, 'sizeAbsolute.y': { 0: { value: true } }, 'translation.x': { 0: { value: 275, edited: true } }, 'translation.y': { 0: { value: 200, edited: true } }, 'origin.x': { 0: { value: 0.5 } }, 'origin.y': { 0: { value: 0.5 } }, 'style.zIndex': { 0: { value: 1 } } }, 'timeline is ok')
+              t.deepEqual(timeline, { 'style.position': { 0: { value: 'absolute' } }, 'style.margin': { 0: { value: '0' } }, 'style.padding': { 0: { value: '0' } }, 'style.border': { 0: { value: '0' } }, 'sizeMode.x': { 0: { value: 1 } }, 'sizeMode.y': { 0: { value: 1 } }, 'sizeAbsolute.x': { 0: { value: true } }, 'sizeAbsolute.y': { 0: { value: true } }, 'translation.x': { 0: { value: 275 } }, 'translation.y': { 0: { value: 200 } }, 'origin.x': { 0: { value: 0.5 } }, 'origin.y': { 0: { value: 0.5 } }, 'style.zIndex': { 0: { value: 1 } } }, 'timeline is ok')
               const subtemplate = ac0.getReifiedBytecode().template.children[0]
               t.equal(subtemplate.elementName.metadata.relpath, 'code/designs_path_svg/code.js', 'el name is bytecode')
               t.deepEqual(subtemplate.attributes, { 'haiku-source': './code/designs_path_svg/code.js', 'haiku-var': '_code_designs_path_svg_code', 'haiku-title': 'DesignsPathSvg', 'haiku-id': '797f9682febd', style: {} }, 'el attrs ok')
@@ -244,7 +226,7 @@ tape('ActiveComponent.prototype.deleteComponent[2](component)', (t) => {
             t.equal(ac0.getReifiedBytecode().template.children.length,0)
             return ac0.instantiateComponent(`./${modpath}`, {}, { from: 'test' }, (err, mana) => {
               if (err) throw err
-              return ac0.deleteComponent(mana.attributes['haiku-id'], { from: 'test' }, (err) => {
+              return ac0.deleteComponents([mana.attributes['haiku-id']], { from: 'test' }, (err) => {
                 if (err) throw err
                 t.equal(ac0.getReifiedBytecode().template.children.length,0,'correct number of children')
                 return waitUntilFileProbablyWroteToDisk(() => {
@@ -284,11 +266,73 @@ tape('ActiveComponent.prototype.pasteThing[1]', (t) => {
         if (err) throw err
         const el1 = ac0.findElementByComponentId(mana.attributes['haiku-id'])
         const pasteable1 = el1.clip({from: 'test'})
-        return ac0.pasteThing(pasteable1, { x: 100, y: 100 }, { from: 'test' }, (err) => {
+        return ac0.pasteThings([pasteable1], {}, { from: 'test' }, (err) => {
           t.error(err, 'no err from paste')
           t.equal(ac0.getReifiedBytecode().template.children[1].attributes['haiku-id'],`${mana.attributes['haiku-id']}`)
           t.ok(ac0.getReifiedBytecode().timelines.Default[`haiku:${mana.attributes['haiku-id']}`])
           fse.removeSync(folder)
+        })
+      })
+    })
+  })
+})
+
+tape('ActiveComponent.prototype.pasteThing[1]', (t) => {
+  t.plan(3)
+  const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'paste-01')
+  fse.removeSync(folder)
+  const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
+  const platform = {}
+  const userconfig = {}
+  const fileOptions = { doWriteToDisk: true, skipDiffLogging: true }
+  const envoyOptions = { mock: true }
+  return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
+    return project.setCurrentActiveComponent('main', { from: 'test' }, (err) => {
+      if (err) throw err
+      fse.outputFileSync(path.join(folder, 'designs/Path.svg'), PATH_SVG_1)
+      const ac0 = project.getCurrentActiveComponent()
+      return ac0.instantiateComponent('designs/Path.svg', {}, { from: 'test' }, (err, mana) => {
+        if (err) throw err
+        const el1 = ac0.findElementByComponentId(mana.attributes['haiku-id'])
+        const pasteable1 = el1.clip({from: 'test'})
+        return ac0.pasteThings([pasteable1], {}, { from: 'test' }, (err) => {
+          t.error(err, 'no err from paste')
+          t.equal(ac0.getReifiedBytecode().template.children[1].attributes['haiku-id'],`${mana.attributes['haiku-id']}`)
+          t.ok(ac0.getReifiedBytecode().timelines.Default[`haiku:${mana.attributes['haiku-id']}`])
+          fse.removeSync(folder)
+        })
+      })
+    })
+  })
+})
+
+tape('ActiveComponent.prototype.pasteThing[2]', (t) => {
+  t.plan(2)
+  const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'paste-02')
+  fse.removeSync(folder)
+  const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
+  const platform = {}
+  const userconfig = {}
+  const fileOptions = { doWriteToDisk: true, skipDiffLogging: true }
+  const envoyOptions = { mock: true }
+  return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
+    return project.setCurrentActiveComponent('main', { from: 'test' }, (err) => {
+      if (err) throw err
+      fse.outputFileSync(path.join(folder, 'designs/Path.svg'), PATH_SVG_1)
+      const ac0 = project.getCurrentActiveComponent()
+      let el0, el1
+      return ac0.instantiateComponent('designs/Path.svg', {}, { from: 'test' }, (err, mana) => {
+        if (err) throw err
+        el0 = ac0.findElementByComponentId(mana.attributes['haiku-id'])
+        return ac0.instantiateComponent('designs/Path.svg', {}, { from: 'test' }, (err, mana) => {
+          if (err) throw err
+          el1 = ac0.findElementByComponentId(mana.attributes['haiku-id'])
+          const pasteables = [el0.clip({from: 'test'}), el1.clip({from: 'test'})]
+          return ac0.pasteThings(pasteables, {}, { from: 'test' }, (err) => {
+            t.error(err, 'no err from paste')
+            t.is(ac0.getReifiedBytecode().template.children.length, 4, 'elements were multipasted')
+            fse.removeSync(folder)
+          })
         })
       })
     })

@@ -4,7 +4,7 @@
 
 import marshalParams from './marshalParams';
 
-export default function functionSpecificationToFunction(name, params, body, type = 'FunctionExpression') {
+export default function functionSpecificationToFunction (name, params, body, type = 'FunctionExpression') {
   let fn;
 
   if (type === 'ArrowFunctionExpression') {

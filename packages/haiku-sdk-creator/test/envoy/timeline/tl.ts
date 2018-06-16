@@ -1,7 +1,7 @@
+import EnvoyClient from '@sdk-creator/envoy/EnvoyClient';
 import * as WebSocket from 'ws';
-import EnvoyClient from '../../../lib/envoy/EnvoyClient';
 
-async function go() {
+async function go () {
   const client = new EnvoyClient({
     WebSocket,
     host: '0.0.0.0',

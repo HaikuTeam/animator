@@ -1,20 +1,18 @@
-import * as React from 'react';
 import * as dedent from 'dedent';
+import * as React from 'react';
 import {CodeBox} from '../../CodeBox';
 import {NpmInstallable} from './NpmInstallable';
 
-export default class VueHaiku extends React.PureComponent {
-  props;
+export interface VueHaikuProps {
+  projectName: string;
+  organizationName: string;
+}
 
-  static propTypes = {
-    projectName: React.PropTypes.string,
-    userName: React.PropTypes.string,
-  };
-
-  render() {
-    const {projectName, userName, organizationName} = this.props;
+export default class VueHaiku extends React.PureComponent<VueHaikuProps> {
+  render () {
+    const {projectName, organizationName} = this.props;
     return (
-      <NpmInstallable projectName={projectName} userName={userName} organizationName={organizationName}>
+      <NpmInstallable projectName={projectName} organizationName={organizationName}>
         <CodeBox>
           {dedent`
           import ${projectName} from '@haiku/${organizationName.toLowerCase()}-${projectName.toLowerCase()}/vue';

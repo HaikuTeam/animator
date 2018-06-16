@@ -1,44 +1,36 @@
-import * as tape from 'tape';
-
-import {HaikuBytecode, 
-  BytecodeTimeline, 
-  BytecodeTimelineValue, 
-  BytecodeTimelineProperties,
-  BytecodeTimelines,
-} from '@haiku/core/lib/api/HaikuBytecode';
+import tape = require('tape');
 
 import {ExporterFormat, ExporterRequest} from 'haiku-sdk-creator/lib/exporter';
-import {importStubs, stubProperties} from 'haiku-testing/lib/mock';
+import {stubProperties} from 'haiku-testing/lib/mock';
 
-import {handleExporterSaveRequest} from '../../lib/exporters';
-import {BodymovinExporter} from '../../lib/exporters/bodymovin/bodymovinExporter';
+import {handleExporterSaveRequest} from '@formats/exporters';
+import * as bodymovinExporter from '@formats/exporters/bodymovin/bodymovinExporter';
 
-tape('handleExporterSaveRequest', (test: tape.Test) => {
-  test.test('supports exporting to Bodymovin', (test: tape.Test) => {
-    const [{handleExporterSaveRequest}, exporterStub, unstub] = importStubs(
-      'lib/exporters', {'./bodymovin/bodymovinExporter': 'BodymovinExporter'});
+tape('handleExporterSaveRequest', (suite: tape.Test) => {
+  suite.test('supports exporting to Bodymovin', (test: tape.Test) => {
+    const [constructorStub, unstub] = stubProperties(bodymovinExporter, 'BodymovinExporter');
+
+    constructorStub.returns({binaryOutput: () => 'hello'});
 
     const request: ExporterRequest = {
       format: ExporterFormat.Bodymovin,
       filename: undefined,
     };
 
-    exporterStub.returns({binaryOutput: () => 'hello'});
-
     // TODO: fix bytecode type
     const bytecode: any = {foo: 'bar'};
     handleExporterSaveRequest(request, bytecode)
       .then((binaryOutput: string) => {
         test.equal(binaryOutput, 'hello');
-        test.true(exporterStub.calledWith(bytecode));
+        test.true(constructorStub.calledWith(bytecode));
         unstub();
         test.end();
       });
   });
 
-  test.test('Bodymovin failsafe resolves to empty JSON object', (test: tape.Test) => {
+  suite.test('Bodymovin failsafe resolves to empty JSON object', (test: tape.Test) => {
     const [binaryOutputStub, unstub] = stubProperties(
-      BodymovinExporter.prototype,
+      bodymovinExporter.BodymovinExporter.prototype,
       'binaryOutput',
     );
 
@@ -58,7 +50,7 @@ tape('handleExporterSaveRequest', (test: tape.Test) => {
       });
   });
 
-  test.test('generic failsafe resolves to empty string', (test: tape.Test) => {
+  suite.test('generic failsafe resolves to empty string', (test: tape.Test) => {
     const request: ExporterRequest = {
       format: ExporterFormat.Unknown,
       filename: undefined,
@@ -72,5 +64,5 @@ tape('handleExporterSaveRequest', (test: tape.Test) => {
       });
   });
 
-  test.end();
+  suite.end();
 });

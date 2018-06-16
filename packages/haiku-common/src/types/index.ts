@@ -1,12 +1,12 @@
 export type Maybe<T> = T|null|undefined;
 
-export type ContextualSize = {
+export interface ContextualSize {
   x: number;
   y: number;
   z: number;
-};
+}
 
-export type CubicCurve = {
+export interface CubicCurve {
   type: string;
   x1: number;
   y1: number;
@@ -14,32 +14,24 @@ export type CubicCurve = {
   y2: number;
   x: number;
   y: number;
-};
+}
 
-export type PathPoint = {
-  moveTo?: boolean;
-  closed?: boolean;
-  curve?: CubicCurve;
-  x: number;
-  y: number;
-};
-
-export type TemplateElement<T> = {
+export interface TemplateElement<T> {
   elementName: string;
   attributes: TemplateElementAttributes;
   children: [T];
-};
+}
 
-export type TemplateElementAttributes = {
+export interface TemplateElementAttributes {
   [key: string]: any;
-};
+}
 
-export type PlumbingProject = {
+export interface PlumbingProject {
   projectPath: string;
   projectName: string;
   projectExistsLocally: boolean;
   projectsHome: string;
   repositoryUrl: string;
   forkComplete: boolean;
-  isPublic:boolean;
-};
+  isPublic: boolean;
+}

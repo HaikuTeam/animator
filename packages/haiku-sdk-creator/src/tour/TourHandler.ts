@@ -1,9 +1,7 @@
-import {
-  createTourFile,
-  didTakeTour,
-} from 'haiku-serialization/src/utils/HaikuHomeDir';
 import {TourUtils} from 'haiku-common/lib/types/enums';
-import {ClientBoundingRect, MaybeAsync, Tour, TourState} from '.';
+// @ts-ignore
+import {createTourFile, didTakeTour} from 'haiku-serialization/src/utils/HaikuHomeDir';
+import {ClientBoundingRect, Tour, TourState} from '.';
 import {EnvoyEvent} from '../envoy';
 import EnvoyServer from '../envoy/EnvoyServer';
 
@@ -83,11 +81,11 @@ export class TourHandler implements Tour {
       showPreviousButton: true,
     },
     {
-      selector: '#publish',
-      webview: 'creator',
+      selector: '.gauge-time-readout',
+      webview: 'timeline',
       component: 'Publish',
-      display: 'left',
-      offset: {top: 220, left: -150},
+      display: 'top',
+      offset: {top: 0, left: 50},
       spotlightRadius: 'hidden',
       size: 'default',
       isOverlayHideable: true,
@@ -145,24 +143,24 @@ export class TourHandler implements Tour {
 
   private webviewData: object = {};
 
-  // platformStates maps currentStep to platformState and it is set on 
+  // platformStates maps currentStep to platformState and it is set on
   // constructor according to current platform (atm, mac or window/linux)
   private platformStates: number[];
 
-  constructor(server: EnvoyServer) {
+  constructor (server: EnvoyServer) {
     this.server = server;
 
     // Set state sequence array according to platform
-    if (process.env['HAIKU_RELEASE_PLATFORM'] === 'mac') {
+    if (process.env.HAIKU_RELEASE_PLATFORM === 'mac') {
       // Mac state sequence
-      this.platformStates = [0, 1, 2, 3, 4, 5, 6 ,7, 8, 9, 10];
+      this.platformStates = [0, 1, 2, 3, 4, 5, 6 , 7, 8, 9, 10];
     } else {
       // Windows and Linux state sequence
       this.platformStates = [0, 1, 2, 3, 4, 5, 6, 9, 10];
     }
   }
 
-  private renderCurrentStepAgain() {
+  private renderCurrentStepAgain () {
     if (this.shouldRenderAgain) {
       this.currentStep--;
       this.next();
@@ -170,51 +168,51 @@ export class TourHandler implements Tour {
     }
   }
 
-  private requestWebviewCoordinates() {
-    this.server.emit(TOUR_CHANNEL, <EnvoyEvent> {
+  private requestWebviewCoordinates () {
+    this.server.emit(TOUR_CHANNEL, {
       payload: {},
       name: 'tour:requestWebviewCoordinates',
-    });
+    } as EnvoyEvent);
   }
 
-  private requestElementCoordinates(state: TourState): void {
-    this.server.emit(TOUR_CHANNEL, <EnvoyEvent> {
+  private requestElementCoordinates (state: TourState): void {
+    this.server.emit(TOUR_CHANNEL, {
       payload: state,
       name: 'tour:requestElementCoordinates',
-    });
+    } as EnvoyEvent);
   }
 
-  private requestShowStep(state: TourState, position: ClientBoundingRect) {
-    this.server.emit(TOUR_CHANNEL, <EnvoyEvent> {
+  private requestShowStep (state: TourState, position: ClientBoundingRect) {
+    this.server.emit(TOUR_CHANNEL, {
       payload: {
         ...state,
         coordinates: position,
         stepData: {current: this.currentStep, total: this.platformStates.length - 1},
       },
       name: 'tour:requestShowStep',
-    });
+    } as EnvoyEvent);
   }
 
-  private requestFinish() {
-    this.server.emit(TOUR_CHANNEL, <EnvoyEvent> {
+  private requestFinish () {
+    this.server.emit(TOUR_CHANNEL, {
       payload: {},
       name: 'tour:requestFinish',
-    });
+    } as EnvoyEvent);
   }
 
-  private requestHide() {
-    this.server.emit(TOUR_CHANNEL, <EnvoyEvent> {
+  private requestHide () {
+    this.server.emit(TOUR_CHANNEL, {
       payload: {},
       name: 'tour:hide',
-    });
+    } as EnvoyEvent);
   }
 
   // It maps sequential currentStep to platform state
-  private getPlatformState() {
+  private getPlatformState () {
     return this.states[this.platformStates[this.currentStep]];
   }
 
-  receiveElementCoordinates(webview: string, position: ClientBoundingRect) {
+  receiveElementCoordinates (webview: string, position: ClientBoundingRect) {
     const state = this.getPlatformState();
     const fallbackPosition = {top: 0, left: 0};
     const origin = this.webviewData[webview] || fallbackPosition;
@@ -225,12 +223,12 @@ export class TourHandler implements Tour {
     this.requestShowStep(state, {top, left, width, height});
   }
 
-  receiveWebviewCoordinates(webview: string, coordinates: ClientBoundingRect) {
+  receiveWebviewCoordinates (webview: string, coordinates: ClientBoundingRect) {
     this.webviewData[webview] = coordinates;
     this.renderCurrentStepAgain();
   }
 
-  updateLayout() {
+  updateLayout () {
     if (this.currentStep > 0) {
       this.shouldRenderAgain = true;
     }
@@ -238,11 +236,11 @@ export class TourHandler implements Tour {
     this.requestWebviewCoordinates();
   }
 
-  hide() {
+  hide () {
     this.requestHide();
   }
 
-  start(force?) {
+  start (force?: boolean) {
     if ((!didTakeTour() && !this.isActive) || force) {
       this.currentStep = 0;
       this.isActive = true;
@@ -250,7 +248,7 @@ export class TourHandler implements Tour {
     }
   }
 
-  finish(createFile?) {
+  finish (createFile?: boolean) {
     if (!this.isActive) { return; }
 
     if (createFile) {
@@ -261,7 +259,7 @@ export class TourHandler implements Tour {
     this.requestFinish();
   }
 
-  next() {
+  next () {
     if (!this.isActive) { return; }
 
     this.currentStep++;
@@ -275,7 +273,7 @@ export class TourHandler implements Tour {
     }
   }
 
-  prev() {
+  prev () {
     if (this.isActive && this.currentStep-- > 0) {
       const nextState = this.getPlatformState();
       this.requestElementCoordinates(nextState);

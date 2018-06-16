@@ -1,12 +1,13 @@
+import {remote, ipcRenderer} from 'electron'
 import React from 'react'
 import Color from 'color'
 import lodash from 'lodash'
 import { DraggableCore } from 'react-draggable'
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
-import Combokeys from 'combokeys'
 import BaseModel from 'haiku-serialization/src/bll/BaseModel'
 import Project from 'haiku-serialization/src/bll/Project'
 import Row from 'haiku-serialization/src/bll/Row'
+import File from 'haiku-serialization/src/bll/File'
 import Keyframe from 'haiku-serialization/src/bll/Keyframe'
 import requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates'
 import EmitterManager from 'haiku-serialization/src/utils/EmitterManager'
@@ -14,10 +15,8 @@ import Palette from 'haiku-ui-common/lib/Palette'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
 import ControlsArea from './ControlsArea'
 import ExpressionInput from './ExpressionInput'
-import Scrubber from './ScrubberInterior'
-import ClusterRow from './ClusterRow'
-import PropertyRow from './PropertyRow'
-import ComponentHeadingRow from './ComponentHeadingRow'
+import ScrubberInterior from './ScrubberInterior'
+import RowManager from './RowManager'
 import FrameGrid from './FrameGrid'
 import IntercomWidget from './IntercomWidget'
 import Gauge from './Gauge'
@@ -27,7 +26,6 @@ import HorzScrollShadow from './HorzScrollShadow'
 import {InteractionMode, isPreviewMode} from '@haiku/core/lib/helpers/interactionModes'
 import { USER_CHANNEL, UserSettings } from 'haiku-sdk-creator/lib/bll/User'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
-import {isWindows, isLinux} from 'haiku-common/lib/environments/os'
 
 const Globals = require('haiku-ui-common/lib/Globals').default // Sorry, hack
 
@@ -50,12 +48,6 @@ if (webFrame) {
   if (webFrame.setLayoutZoomLevelLimits) webFrame.setLayoutZoomLevelLimits(0, 0)
 }
 
-const ifIsRunningStandalone = (cb) => {
-  if (!window.isWebview) {
-    return cb()
-  }
-}
-
 const DEFAULTS = {
   rowHeight: 25,
   inputCellWidth: 75,
@@ -66,7 +58,6 @@ const DEFAULTS = {
   isCommandKeyDown: false,
   isControlKeyDown: false,
   isAltKeyDown: false,
-  avoidTimelinePointerEvents: false,
   isPreviewModeActive: false,
   isRepeat: true,
   flush: false,
@@ -75,8 +66,6 @@ const DEFAULTS = {
 
 const THROTTLE_TIME = 32 // ms
 const MENU_ACTION_DEBOUNCE_TIME = 100
-
-const combokeys = new Combokeys(document.documentElement)
 
 class Timeline extends React.Component {
   constructor (props) {
@@ -92,10 +81,7 @@ class Timeline extends React.Component {
       this.props.websocket,
       window,
       this.props.userconfig,
-      { // fileOptions
-        doWriteToDisk: false,
-        skipDiffLogging: true
-      },
+      {}, // fileOptions
       this.props.envoy,
       (err, project) => {
         if (err) throw err
@@ -104,7 +90,6 @@ class Timeline extends React.Component {
     )
 
     this.handleRequestElementCoordinates = this.handleRequestElementCoordinates.bind(this)
-    this.showEventHandlersEditor = this.showEventHandlersEditor.bind(this)
     this.showFrameActionsEditor = this.showFrameActionsEditor.bind(this)
     this.mouseMoveListener = this.mouseMoveListener.bind(this)
     this.mouseUpListener = this.mouseUpListener.bind(this)
@@ -116,7 +101,11 @@ class Timeline extends React.Component {
     this.handleUndoDebounced = lodash.debounce(this.handleUndo.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
     this.handleRedoDebounced = lodash.debounce(this.handleRedo.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
 
-    window.timeline = this
+    if (process.env.NODE_ENV !== 'production') {
+      // For debugging
+      window.timeline = this
+      window.view = this // Easy to run same instruction in different tools
+    }
   }
 
   isTextInputFocused () {
@@ -147,7 +136,6 @@ class Timeline extends React.Component {
 
     // Clean up subscriptions to prevent memory leaks and react warnings
     this.removeEmitterListeners()
-    combokeys.detach()
 
     if (this.tourClient) {
       this.tourClient.off('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
@@ -166,9 +154,10 @@ class Timeline extends React.Component {
         isShiftKeyDown: false,
         isCommandKeyDown: false,
         isControlKeyDown: false,
-        isAltKeyDown: false,
-        avoidTimelinePointerEvents: false
+        isAltKeyDown: false
       })
+
+      this.enableTimelinePointerEvents()
     }
 
     // If the user e.g. Cmd+tabs away from the window
@@ -203,66 +192,6 @@ class Timeline extends React.Component {
           cb
         )
       }
-    })
-
-    combokeys.bind('command+z', () => {
-      ifIsRunningStandalone(() => {
-        this.handleUndoDebounced({
-          from: 'timeline',
-          time: Date.now()
-        })
-      })
-    })
-
-    combokeys.bind('command+shift+z', () => {
-      ifIsRunningStandalone(() => {
-        this.handleRedoDebounced({
-          from: 'timeline',
-          time: Date.now()
-        })
-      })
-    })
-
-    combokeys.bind('command+x', () => {
-      ifIsRunningStandalone(() => {
-        this.handleCutDebounced()
-      })
-    })
-
-    combokeys.bind('command+c', () => {
-      ifIsRunningStandalone(() => {
-        this.handleCopyDebounced()
-      })
-    })
-
-    combokeys.bind('command+v', () => {
-      ifIsRunningStandalone(() => {
-        this.handlePasteDebounced()
-      })
-    })
-
-    // Workaround to fix electron(Chromium) distinct codepath for
-    // Windows and Linux shortcuts. More info:
-    // https://github.com/electron/electron/issues/7165#issuecomment-246486798
-    // https://github.com/buttercup/buttercup-desktop/pull/223
-    if (isWindows() || isLinux()) {
-      combokeys.bind('ctrl+x', () => {
-        this.handleCutDebounced()
-      })
-
-      combokeys.bind('ctrl+c', () => {
-        this.handleCopyDebounced()
-      })
-
-      combokeys.bind('ctrl+v', () => {
-        this.handlePasteDebounced()
-      })
-    }
-
-    combokeys.bind('command+a', () => {
-      ifIsRunningStandalone(() => {
-        this.handleSelectAllDebounced()
-      })
     })
   }
 
@@ -345,6 +274,20 @@ class Timeline extends React.Component {
       const relayable = lodash.assign(message, {view: 'glass'})
 
       switch (message.name) {
+        case 'global-menu:open-dev-tools':
+          remote.getCurrentWebContents().openDevTools()
+          break
+
+        case 'global-menu:close-dev-tools':
+          if (remote.getCurrentWebContents().isDevToolsFocused()) {
+            remote.getCurrentWebContents().closeDevTools()
+          }
+          break
+
+        case 'global-menu:set-active-component':
+          this.project.setCurrentActiveComponent(message.data, {from: 'timeline'}, () => {})
+          break
+
         case 'global-menu:zoom-in':
           // For now, zoom controls only affect the stage
           this.props.websocket.send(relayable)
@@ -367,22 +310,14 @@ class Timeline extends React.Component {
 
         case 'global-menu:cut':
           // Delegate cut only if the user is not editing something here
-          if (document.hasFocus()) {
-            if (!this.isTextSelected()) {
-              this.props.websocket.send(relayable)
-            }
-          } else {
+          if (!document.hasFocus() || !this.isTextSelected()) {
             this.props.websocket.send(relayable)
           }
           break
 
         case 'global-menu:copy':
           // Delegate copy only if the user is not editing something here
-          if (document.hasFocus()) {
-            if (!this.isTextSelected()) {
-              this.props.websocket.send(relayable)
-            }
-          } else {
+          if (!document.hasFocus() || !this.isTextSelected()) {
             this.props.websocket.send(relayable)
           }
           break
@@ -410,13 +345,19 @@ class Timeline extends React.Component {
           break
 
         case 'global-menu:undo':
-          // For consistency, let glass initiate undo/redo
-          this.props.websocket.send(relayable)
+          if (window.isWebview) { // Let work in standalone dev mode
+            this.props.websocket.send(relayable) // For consistency, let glass initiate undo/redo
+          } else {
+            this.handleUndoDebounced()
+          }
           break
 
         case 'global-menu:redo':
-          // For consistency, let glass initiate undo/redo
-          this.props.websocket.send(relayable)
+          if (window.isWebview) { // Let work in standalone dev mode
+            this.props.websocket.send(relayable) // For consistency, let glass initiate undo/redo
+          } else {
+            this.handleRedoDebounced()
+          }
           break
       }
     })
@@ -441,6 +382,10 @@ class Timeline extends React.Component {
           if (this.getActiveComponent()) {
             this.getActiveComponent().getCurrentTimeline().notifyFrameActionChange()
           }
+          break
+
+        case 'assets-changed':
+          File.cache.clear()
           break
       }
     })
@@ -482,9 +427,7 @@ class Timeline extends React.Component {
     })
 
     this.addEmitterListener(Row, 'update', (row, what) => {
-      if (what === 'row-collapsed' || what === 'row-expanded') {
-        this.forceUpdate()
-      } else if (what === 'row-selected') {
+      if (what === 'row-selected') {
         // TODO: Handle scrolling to the correct row
       }
     })
@@ -504,6 +447,10 @@ class Timeline extends React.Component {
 
   handleActiveComponentReady () {
     this.mountHaikuComponent()
+
+    ipcRenderer.send('topmenu:update', {
+      subComponents: this.project.describeSubComponents()
+    })
   }
 
   mountHaikuComponent () {
@@ -540,7 +487,8 @@ class Timeline extends React.Component {
   getPopoverMenuItems ({ event, type, model, offset, curve }) {
     const items = []
 
-    const numSelectedKeyframes = this.getActiveComponent().getSelectedKeyframes().length
+    const selectedKeyframes = this.getActiveComponent().getSelectedKeyframes()
+    const numSelectedKeyframes = selectedKeyframes.length
 
     items.push({
       label: 'Create Keyframe',
@@ -569,6 +517,17 @@ class Timeline extends React.Component {
       enabled: type === 'keyframe',
       onClick: (event) => {
         this.getActiveComponent().deleteSelectedKeyframes({ from: 'timeline' })
+      }
+    })
+
+    items.push({ type: 'separator' })
+
+    items.push({
+      label: 'Send to t0',
+      enabled: this.getActiveComponent().checkIfSelectedKeyframesAreMovableToZero(),
+      onClick: (event) => {
+        selectedKeyframes.forEach((keyframe) => { keyframe.moveTo(0, 0) })
+        this.getActiveComponent().commitAccumulatedKeyframeMovesDebounced()
       }
     })
 
@@ -983,7 +942,7 @@ class Timeline extends React.Component {
   }
 
   showFrameActionsEditor (frame) {
-    const elementPrimaryKey = this.getActiveComponent().findElementRoots()[0].getPrimaryKey()
+    const elementPrimaryKey = this.getActiveComponent().findElementRoot().getPrimaryKey()
     this.showEventHandlersEditor(
       elementPrimaryKey,
       frame
@@ -1090,12 +1049,9 @@ class Timeline extends React.Component {
           onMouseDown={(event) => {
             event.persist()
 
-            this.setState({
-              doHandleMouseMovesInGauge: true,
-              avoidTimelinePointerEvents: true
-            }, () => {
-              this.mouseMoveListener(event)
-            })
+            this._doHandleMouseMovesInGauge = true
+            this.disableTimelinePointerEvents()
+            this.mouseMoveListener(event)
           }}
           style={{
             position: 'absolute',
@@ -1111,7 +1067,7 @@ class Timeline extends React.Component {
             onShowFrameActionsEditor={this.showFrameActionsEditor} />
           <Gauge
             timeline={this.getActiveComponent().getCurrentTimeline()} />
-          <Scrubber
+          <ScrubberInterior
             reactParent={this}
             isScrubbing={this.getActiveComponent().getCurrentTimeline().isScrubberDragging()}
             timeline={this.getActiveComponent().getCurrentTimeline()} />
@@ -1122,17 +1078,23 @@ class Timeline extends React.Component {
   }
 
   mouseMoveListener (evt) {
-    if (!this.state.doHandleMouseMovesInGauge) {
+    if (!this._doHandleMouseMovesInGauge) {
       return
     }
 
     const frameInfo = this.getActiveComponent().getCurrentTimeline().getFrameInfo()
     const leftX = evt.clientX - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()
     const frameX = Math.round(leftX / frameInfo.pxpf)
-    const newFrame = frameInfo.friA + frameX
 
+    // Allow the scrubber to be dragged past 0 in order to reach 0
+    let newFrame = frameInfo.friA + frameX
     if (newFrame < 0) {
-      return false
+      newFrame = 0
+    }
+
+    // Avoid expensive redundant updates
+    if (newFrame === this.getActiveComponent().getCurrentTimeline().getCurrentFrame()) {
+      return
     }
 
     const pageFrameLength = this.getActiveComponent().getCurrentTimeline().getVisibleFrameRangeLength()
@@ -1149,14 +1111,26 @@ class Timeline extends React.Component {
   }
 
   mouseUpListener () {
-    this.setState({
-      doHandleMouseMovesInGauge: false,
-      avoidTimelinePointerEvents: false
-    })
+    this._doHandleMouseMovesInGauge = false
+    this.enableTimelinePointerEvents()
+  }
+
+  disableTimelinePointerEvents () {
+    this.refs.scrollview.style.pointerEvents = 'none'
+    this.refs.scrollview.style.WebkitUserSelect = 'none'
+  }
+
+  enableTimelinePointerEvents () {
+    this.refs.scrollview.style.pointerEvents = 'auto'
+    this.refs.scrollview.style.WebkitUserSelect = 'auto'
   }
 
   disablePreviewMode () {
-    this.project.setInteractionMode(InteractionMode.EDIT, {from: 'timeline'}, () => {})
+    if (this.state.isPreviewModeActive) {
+      this.project.setInteractionMode(InteractionMode.EDIT, {from: 'timeline'}, () => {
+        this.setState({isPreviewModeActive: false})
+      })
+    }
   }
 
   renderBottomControls () {
@@ -1174,74 +1148,12 @@ class Timeline extends React.Component {
           zIndex: 10000
         }}>
         <TimelineRangeScrollbar
-          reactParent={this}
+          disableTimelinePointerEvents={() => { this.disableTimelinePointerEvents() }}
+          enableTimelinePointerEvents={() => { this.enableTimelinePointerEvents() }}
           timeline={this.getActiveComponent().getCurrentTimeline()} />
         {this.renderTimelinePlaybackControls()}
       </div>
     )
-  }
-
-  renderComponentRow (row, prev, dragHandleProps) {
-    // Cluster rows only display if collapsed, otherwise we show their properties
-    if (row.isClusterHeading() && !row.isExpanded()) {
-      return (
-        <ClusterRow
-          key={row.getUniqueKey()}
-          rowHeight={this.state.rowHeight}
-          timeline={this.getActiveComponent().getCurrentTimeline()}
-          component={this.getActiveComponent()}
-          prev={prev}
-          row={row} />
-      )
-    }
-
-    if (row.isProperty()) {
-      return (
-        <PropertyRow
-          key={row.getUniqueKey()}
-          rowHeight={this.state.rowHeight}
-          timeline={this.getActiveComponent().getCurrentTimeline()}
-          component={this.getActiveComponent()}
-          prev={prev}
-          row={row} />
-      )
-    }
-
-    if (row.isHeading()) {
-      return (
-        <ComponentHeadingRow
-          key={row.getUniqueKey()}
-          rowHeight={this.state.rowHeight}
-          timeline={this.getActiveComponent().getCurrentTimeline()}
-          component={this.getActiveComponent()}
-          row={row}
-          prev={prev}
-          onEventHandlerTriggered={this.showEventHandlersEditor}
-          isExpanded={row.isExpanded()}
-          isHidden={row.isHidden()}
-          isSelected={row.isSelected()}
-          hasAttachedActions={row.element.getVisibleEvents().length > 0}
-          dragHandleProps={dragHandleProps}
-        />
-      )
-    }
-
-    // If we got here, display nothing since we don't know what to render
-    return ''
-  }
-
-  calcGroupRowsHeight (rows) {
-    let height = 0
-
-    rows.forEach((row) => {
-      if ((row.isHeading() || row.isClusterHeading()) && !row.isExpanded()) {
-        height += 1
-      } else if (row.isProperty()) {
-        height += 1
-      }
-    })
-
-    return height
   }
 
   renderComponentRows () {
@@ -1279,7 +1191,6 @@ class Timeline extends React.Component {
                 className='droppable-wrapper'
                 ref={provided.innerRef}>
                 {groups.map((group, indexOfGroup) => {
-                  const minHeight = this.state.rowHeight * this.calcGroupRowsHeight(group.rows)
                   const minWidth = this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() + this.getActiveComponent().getCurrentTimeline().getTimelinePixelWidth()
                   const prevGroup = groups[indexOfGroup - 1]
                   return (
@@ -1290,7 +1201,6 @@ class Timeline extends React.Component {
                       {(provided, snapshot) => {
                         return (
                           <div style={{
-                            minHeight, /* Row drops are mis-targeted unless we specify this height */
                             minWidth /* Prevent horizontal scrolling in the overflow-x:auto box */
                           }}>
                             <div
@@ -1300,11 +1210,18 @@ class Timeline extends React.Component {
                               style={{
                                 ...provided.draggableProps.style
                               }}>
-                              {group.rows.map((row, indexOfRowWithinGroup) => {
-                                let prevRow = group.rows[indexOfRowWithinGroup - 1]
-                                if (!prevRow && prevGroup) prevRow = prevGroup.rows[prevGroup.length - 1]
-                                return this.renderComponentRow(row, prevRow, provided.dragHandleProps)
-                              })}
+                              <RowManager
+                                group={group}
+                                prevGroup={prevGroup}
+                                dragHandleProps={provided.dragHandleProps}
+                                rowHeight={this.state.rowHeight}
+                                getActiveComponent={() => {
+                                  return this.getActiveComponent()
+                                }}
+                                showEventHandlersEditor={(...args) => {
+                                  this.showEventHandlersEditor(...args)
+                                }}
+                                />
                             </div>
                             {provided.placeholder}
                           </div>
@@ -1375,7 +1292,9 @@ class Timeline extends React.Component {
                 zIndex: 999999,
                 backgroundColor: Palette.COAL
               }}
-              onClick={() => { this.disablePreviewMode() }}
+              onClick={() => {
+                this.disablePreviewMode()
+              }}
             />
           )
         }
@@ -1391,8 +1310,8 @@ class Timeline extends React.Component {
             top: 35,
             left: 0,
             width: '100%',
-            pointerEvents: this.state.avoidTimelinePointerEvents ? 'none' : 'auto',
-            WebkitUserSelect: this.state.avoidTimelinePointerEvents ? 'none' : 'auto',
+            pointerEvents: 'auto',
+            WebkitUserSelect: 'auto',
             bottom: 0,
             overflowY: 'auto',
             overflowX: 'hidden'

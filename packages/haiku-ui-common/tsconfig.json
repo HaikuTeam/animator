@@ -1,32 +1,20 @@
 {
   "compileOnSave": true,
   "compilerOptions": {
-    "jsx": "react",
     "allowJs": false,
-    "baseUrl": ".",
     "declaration": true,
     "declarationDir": "lib",
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "isolatedModules": false,
+    "jsx": "react",
+    "lib": ["dom", "es2017"],
     "module": "commonjs",
     "moduleResolution": "node",
-    "noImplicitAny": false,
-    "noLib": false,
+    "noImplicitAny": true,
     "outDir": "lib",
-    "lib": ["es2017", "dom"],
-    "paths": {
-      "*": [
-        "lib/*",
-        "typings/*"
-      ]
-    },
-    "preserveConstEnums": false,
-    "removeComments": true,
+    "preserveConstEnums": true,
     "rootDir": "src",
     "sourceMap": true,
     "suppressImplicitAnyIndexErrors": true,
-    "target": "ES6",
+    "target": "ESNext",
     "types": [
       "node"
     ],
@@ -37,8 +25,5 @@
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx"
-  ],
-  "exclude": [
-    "node_modules"
   ]
 }

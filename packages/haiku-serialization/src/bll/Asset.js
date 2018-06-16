@@ -8,6 +8,7 @@ const PAGES_REGEX = /\/pages\//
 const SLICES_REGEX = /\/slices\//
 const ARTBOARDS_REGEX = /\/artboards\//
 const GROUPS_REGEX = /\/groups\//
+const FRAMES_REGEX = /\/frames\//
 
 const MAIN_COMPONENT_NAME = 'main'
 
@@ -29,6 +30,15 @@ class Asset extends BaseModel {
 
   getRelpath () {
     return this.relpath
+  }
+
+  getSceneName () {
+    if (!this.isComponent()) {
+      return
+    }
+
+    const parts = path.normalize(this.relpath).split(path.sep)
+    return parts[1]
   }
 
   getAssetInfo () {
@@ -76,6 +86,10 @@ class Asset extends BaseModel {
     return this.kind === Asset.KINDS.FIGMA
   }
 
+  isIllustratorFile () {
+    return this.kind === Asset.KINDS.ILLUSTRATOR
+  }
+
   isRemoteAsset () {
     return this.proximity === Asset.PROXIMITIES.REMOTE
   }
@@ -94,7 +108,7 @@ class Asset extends BaseModel {
   }
 
   isOrphanSvg () {
-    return (this.isVector() && this.parent.kind !== Asset.KINDS.SKETCH)
+    return (this.isVector() && !this.parent.isSketchFile() && !this.parent.isIllustratorFile())
   }
 
   isComponentOtherThanMain () {
@@ -128,7 +142,15 @@ class Asset extends BaseModel {
     } else if (svgAsset.isGroup()) {
       this.groupsFolderAsset.insertChild(svgAsset)
       this.unshiftFolderAsset(this.groupsFolderAsset)
+    } else if (svgAsset.isFrame()) {
+      this.framesFolderAsset.insertChild(svgAsset)
+      this.unshiftFolderAsset(this.framesFolderAsset)
     }
+  }
+
+  addIllustratorChild (svgAsset) {
+    this.artboardsFolderAsset.insertChild(svgAsset)
+    this.unshiftFolderAsset(this.artboardsFolderAsset)
   }
 
   addSketchAsset (relpath, dict) {
@@ -191,6 +213,18 @@ class Asset extends BaseModel {
       return result
     }
 
+    const framesFolderAsset = Asset.upsert({
+      uid: path.join(project.getFolder(), 'designs', relpath, 'frames'),
+      type: Asset.TYPES.CONTAINER,
+      kind: Asset.KINDS.FOLDER,
+      proximity: Asset.PROXIMITIES.LOCAL,
+      project,
+      relpath: path.join('designs', relpath, 'frames'),
+      displayName: 'Frames',
+      children: [],
+      dtModified: Date.now()
+    })
+
     const groupsFolderAsset = Asset.upsert({
       uid: path.join(project.getFolder(), 'designs', relpath, 'groups'),
       type: Asset.TYPES.CONTAINER,
@@ -227,6 +261,7 @@ class Asset extends BaseModel {
       children: [],
       slicesFolderAsset, // Hacky, but avoids extra 'upsert' logic
       groupsFolderAsset,
+      framesFolderAsset,
       dtModified: Date.now()
     })
 
@@ -234,6 +269,44 @@ class Asset extends BaseModel {
 
     // Must return for the asset to be listed
     return figmaAsset
+  }
+
+  addIllustratorAsset (relpath, dict) {
+    const {project} = this
+    const result = Asset.findById(path.join(project.getFolder(), relpath))
+
+    if (result) {
+      this.insertChild(result)
+      return result
+    }
+
+    const artboardsFolderAsset = Asset.upsert({
+      uid: path.join(project.getFolder(), 'designs', relpath, 'artboards'),
+      type: Asset.TYPES.CONTAINER,
+      kind: Asset.KINDS.FOLDER,
+      proximity: Asset.PROXIMITIES.LOCAL,
+      project,
+      relpath: path.join('designs', relpath, 'artboards'),
+      displayName: 'Artboards',
+      children: [],
+      dtModified: Date.now()
+    })
+
+    const illustratorAsset = Asset.upsert({
+      uid: path.join(project.getFolder(), relpath),
+      type: Asset.TYPES.CONTAINER,
+      kind: Asset.KINDS.ILLUSTRATOR,
+      project,
+      proximity: Asset.PROXIMITIES.LOCAL,
+      relpath,
+      displayName: path.basename(relpath),
+      children: [],
+      artboardsFolderAsset,
+      dtModified: (dict[relpath] && dict[relpath].dtModified) || Date.now()
+    })
+
+    this.insertChild(illustratorAsset)
+    return illustratorAsset
   }
 
   getChildAssets () {
@@ -271,26 +344,31 @@ class Asset extends BaseModel {
         })]
       }
 
-      let out = this.children
+      // Map into a new array since we'll be splicing assets into the output array in-place
+      let out = this.children.map((child) => child)
+
+      const indexOfFirstSketchChild = getIndexOfFirstSketchChild(this.children)
+      const indexOfFirstFigmaChild = getIndexOfFirstFigmaChild(this.children)
+      const indexOfFirstIllustratorChild = getIndexOfFirstIllustratorChild(this.children)
 
       if (shouldDisplayPrimaryAssetMessage(this.children)) {
-        out = out.concat(
-          Asset.upsert({
-            uid: 'hacky-message[1]',
-            relpath: 'hacky-message[1]',
-            type: Asset.TYPES.HACKY_MESSAGE,
-            kind: Asset.KINDS.HACKY_MESSAGE,
-            project: this.project,
-            displayName: 'hacky-message[1]',
-            children: [],
-            dtModified: Date.now(),
-            messageType: 'edit_primary_asset',
-            message: PRIMARY_ASSET_MESSAGE
-          })
-        )
+        const asset = Asset.upsert({
+          uid: 'hacky-message[1]',
+          relpath: 'hacky-message[1]',
+          type: Asset.TYPES.HACKY_MESSAGE,
+          kind: Asset.KINDS.HACKY_MESSAGE,
+          project: this.project,
+          displayName: 'hacky-message[1]',
+          children: [],
+          dtModified: Date.now(),
+          messageType: 'edit_primary_asset',
+          message: PRIMARY_ASSET_MESSAGE
+        })
+
+        out.splice(indexOfFirstSketchChild + 1, 0, asset)
       }
 
-      if (shouldDisplayFigmaAssetMessage(this.children)) {
+      if (indexOfFirstFigmaChild === -1) {
         out = out.concat(
           Asset.upsert({
             uid: 'hacky-figma-file[1]',
@@ -319,6 +397,23 @@ class Asset extends BaseModel {
         )
       }
 
+      if (shouldDisplayIllustratorMessage(this.children)) {
+        const asset = Asset.upsert({
+          uid: 'hacky-message[4]',
+          relpath: 'hacky-message[4]',
+          type: Asset.TYPES.HACKY_MESSAGE,
+          kind: Asset.KINDS.HACKY_MESSAGE,
+          project: this.project,
+          displayName: 'hacky-message[4]',
+          children: [],
+          dtModified: Date.now(),
+          messageType: 'edit_primary_asset',
+          message: ILLUSTRATOR_ASSET_MESSAGE
+        })
+
+        out.splice(indexOfFirstIllustratorChild + 1, 0, asset)
+      }
+
       return out
     }
 
@@ -328,6 +423,11 @@ class Asset extends BaseModel {
   isPrimaryAsset () {
     const { primaryAssetPath } = this.project.getNameVariations()
     return path.normalize(this.relpath) === primaryAssetPath
+  }
+
+  isDefaultIllustratorAssetPath () {
+    const { defaultIllustratorAssetPath } = this.project.getNameVariations()
+    return path.normalize(this.relpath) === defaultIllustratorAssetPath
   }
 
   isSlice () {
@@ -340,6 +440,10 @@ class Asset extends BaseModel {
 
   isGroup () {
     return !!this.relpath.match(GROUPS_REGEX)
+  }
+
+  isFrame () {
+    return !!this.relpath.match(FRAMES_REGEX)
   }
 
   unshiftFolderAsset (folderAsset) {
@@ -384,6 +488,7 @@ Asset.KINDS = {
   FOLDER: 'folder',
   SKETCH: 'sketch',
   FIGMA: 'figma',
+  ILLUSTRATOR: 'ai',
   BITMAP: 'bitmap',
   VECTOR: 'vector',
   COMPONENT: 'component',
@@ -404,6 +509,11 @@ Every slice and artboard will be synced here when you save.
 const FIGMA_ASSET_MESSAGE = `
 ⇧ Double click to import a file from Figma.
 Every slice and group will be imported here.
+`
+
+const ILLUSTRATOR_ASSET_MESSAGE = `
+⇧ Double click to open this file in Illustrator.
+Every artboard will be synced here when you save.
 `
 
 Asset.ingestAssets = (project, dict) => {
@@ -448,6 +558,8 @@ Asset.ingestAssets = (project, dict) => {
 
     if (extname === '.sketch') {
       designFolderAsset.addSketchAsset(relpath, dict)
+    } else if (extname === '.ai') {
+      designFolderAsset.addIllustratorAsset(relpath, dict)
     } else if (extname === '.svg') {
       // Skip any Pages that may have been previously exported by Sketchtool
       // Our workflow only deals with Artboards/Slices, so that's all we display to reduce conceptual overhead
@@ -479,6 +591,10 @@ Asset.ingestAssets = (project, dict) => {
           if (figmaAsset) {
             figmaAsset.addFigmaChild(svgAsset)
           }
+          break
+        case 'ai':
+          const illustratorAsset = designFolderAsset.addIllustratorAsset(generatorRelpath, dict)
+          illustratorAsset.addIllustratorChild(svgAsset)
           break
         default:
           designFolderAsset.insertChild(svgAsset)
@@ -538,17 +654,32 @@ const shouldDisplayPrimaryAssetMessage = (childrenOfDesignFolder) => {
   if (childrenOfDesignFolder.length < 1) {
     return false
   }
-  if (childrenOfDesignFolder[0].isPrimaryAsset() && childrenOfDesignFolder[0].children.length < 1) {
+  if (childrenOfDesignFolder[1].isPrimaryAsset() && childrenOfDesignFolder[1].children.length < 1) {
     return true
   }
   return false
 }
 
-const shouldDisplayFigmaAssetMessage = (childrenOfDesignFolder) => {
-  const figmaAssets = childrenOfDesignFolder.filter((child) => {
-    return child.isFigmaFile()
-  })
-  return figmaAssets.length < 1
+const shouldDisplayIllustratorMessage = (childrenOfDesignFolder) => {
+  if (childrenOfDesignFolder.length < 1) {
+    return false
+  }
+  if (childrenOfDesignFolder[0].isDefaultIllustratorAssetPath() && childrenOfDesignFolder[0].children.length < 1) {
+    return true
+  }
+  return false
+}
+
+const getIndexOfFirstSketchChild = (childrenOfDesignFolder) => {
+  return childrenOfDesignFolder.findIndex((child) => child.isSketchFile())
+}
+
+const getIndexOfFirstFigmaChild = (childrenOfDesignFolder) => {
+  return childrenOfDesignFolder.findIndex((child) => child.isFigmaFile())
+}
+
+const getIndexOfFirstIllustratorChild = (childrenOfDesignFolder) => {
+  return childrenOfDesignFolder.findIndex((child) => child.isIllustratorFile())
 }
 
 const sortedChildrenOfComponentFolderAsset = (asset) => {

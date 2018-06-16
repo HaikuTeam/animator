@@ -15,11 +15,15 @@ const IS_FIGMA_FILE_RE = /\.figma$/
 const IS_FIGMA_FOLDER_RE = /\.figma\.contents/
 const VALID_TYPES = {
   SLICE: 'SLICE',
-  GROUP: 'GROUP'
+  GROUP: 'GROUP',
+  FRAME: 'FRAME',
+  COMPONENT: 'COMPONENT'
 }
 const FOLDERS = {
   [VALID_TYPES.SLICE]: 'slices/',
-  [VALID_TYPES.GROUP]: 'groups/'
+  [VALID_TYPES.GROUP]: 'groups/',
+  [VALID_TYPES.COMPONENT]: 'groups/',
+  [VALID_TYPES.FRAME]: 'frames/'
 }
 
 const uniqueNameResolver = {}
@@ -96,6 +100,9 @@ class Figma {
     const groupFolder = assetBaseFolder + FOLDERS[VALID_TYPES.GROUP]
     fse.mkdirpSync(groupFolder)
 
+    const frameFolder = assetBaseFolder + FOLDERS[VALID_TYPES.FRAME]
+    fse.mkdirpSync(frameFolder)
+
     const otherFolder = assetBaseFolder + FOLDERS.OTHER
     fse.mkdirpSync(otherFolder)
 
@@ -145,7 +152,7 @@ class Figma {
   getSVGLinks (elements, id) {
     return new Promise((resolve, reject) => {
       const ids = elements.map((element) => element.id)
-      const params = new URLSearchParams([['format', 'svg'], ['ids', ids]])
+      const params = new URLSearchParams([['format', 'svg'], ['ids', ids], ['svg_include_id', true]])
       const uri = API_BASE + 'images/' + id + '?' + params.toString()
 
       if (ids.length === 0) {
@@ -179,7 +186,9 @@ class Figma {
           name: Figma.getUniqueName(fileId, item.name),
           type: item.type
         })
-      } else if (item.children) {
+      }
+
+      if (item.children) {
         result.push(...this.findItems(item.children, fileId))
       }
     }

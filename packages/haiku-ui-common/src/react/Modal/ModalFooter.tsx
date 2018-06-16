@@ -1,15 +1,16 @@
 import * as React from 'react';
-import Palette from './../../Palette';
 
-const STYLES = {
+const STYLES: React.CSSProperties = {
   position: 'absolute',
   bottom: '20px',
   right: '20px',
 };
 
-export class ModalFooter extends React.PureComponent {
-  props;
+export interface ModalFooterProps {
+  style: React.CSSProperties;
+}
 
+export class ModalFooter extends React.PureComponent<ModalFooterProps> {
   render () {
     return (
       <div style={{...STYLES, ...this.props.style}}>

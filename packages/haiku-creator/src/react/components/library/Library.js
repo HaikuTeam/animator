@@ -117,6 +117,9 @@ class Library extends React.Component {
       this.isSketchInstalled = Boolean(sketchInstallationPath)
     })
 
+    // TODO: perform an actual check for Illustrator
+    this.isIllustratorInstalled = true
+
     this.props.user.getConfig(UserSettings.figmaToken).then((figmaToken) => {
       const figma = new Figma({token: figmaToken})
       this.setState({figma})
@@ -129,11 +132,15 @@ class Library extends React.Component {
   }
 
   figmaAuthCallback ({state, code}) {
-    Figma.getAccessToken({state, code, stateCheck: this.state.figmaState})
+    if (!this.props.servicesEnvoyClient) {
+      return
+    }
+
+    this.props.servicesEnvoyClient.figmaGetAccessToken({state, code, stateCheck: this.state.figmaState})
       .then(({AccessToken}) => {
         this.props.user.setConfig(UserSettings.figmaToken, AccessToken)
         this.state.figma.token = AccessToken
-        this.props.createNotice({
+        return this.props.createNotice({
           type: 'success',
           title: 'Yay!',
           message: 'You are authenticated with Figma'
@@ -171,9 +178,12 @@ class Library extends React.Component {
   }
 
   importFigmaAsset (url) {
-    const path = this.props.projectModel.folder
+    if (!this.props.servicesEnvoyClient) {
+      return
+    }
 
-    return this.state.figma.importSVG({url, path})
+    const path = this.props.projectModel.folder
+    return this.props.servicesEnvoyClient.figmaImportSVG({url, path}, this.state.figma.token)
       .catch((error = {}) => {
         let message = error.err || 'We had a problem connecting with Figma. Please check your internet connection and try again.'
         const reportData = { url, message }
@@ -243,31 +253,18 @@ class Library extends React.Component {
       })
   }
 
-  handleFileInstantiation (asset) {
-    return this.props.projectModel.getCurrentActiveComponent().instantiateComponent(
-      asset.getLocalizedRelpath(),
-      {},
-      {from: 'creator'},
-      (err) => {
-        if (err) {
-          if (err.code === 'ENOENT') {
-            return this.props.createNotice({ type: 'error', title: 'Error', message: 'We couldn\'t find that file. 😩 Please try again in a few moments. If you still see this error, contact Haiku for support.' })
-          } else {
-            return this.props.createNotice({ type: 'error', title: 'Error', message: err.message })
-          }
-        }
-      }
-    )
+  handleFileLaunch (asset) {
+    this.openWithDefaultProgram(asset)
   }
 
-  openSketchFile (asset) {
+  openWithDefaultProgram (asset) {
     shell.openItem(asset.getAbspath())
   }
 
-  handleSketchInstantiation (asset) {
+  handleSketchLaunch (asset) {
     if (this.isSketchInstalled) {
       mixpanel.haikuTrack('creator:sketch:open-file')
-      this.openSketchFile(asset)
+      this.openWithDefaultProgram(asset)
     // On library Sketch asset double click, ask to download Sketch only if on mac
     } else if (isMac()) {
       mixpanel.haikuTrack('creator:sketch:sketch-not-installed')
@@ -275,7 +272,17 @@ class Library extends React.Component {
     }
   }
 
-  handleFigmaInstantiation (asset) {
+  handleIllustratorLaunch (asset) {
+    if (this.isIllustratorInstalled) {
+      mixpanel.haikuTrack('creator:illustrator:open-file')
+      this.openWithDefaultProgram(asset)
+    } else {
+      mixpanel.haikuTrack('creator:illustrator:illustrator-not-installed')
+      this.props.createNotice({ type: 'error', title: 'Error', message: 'You need to have Adobe Illustrator installed to open that file.' })
+    }
+  }
+
+  handleFigmaLaunch (asset) {
     if (asset.relpath !== 'hacky-figma-file[1]') {
       shell.openExternal(Figma.buildFigmaLinkFromPath(asset.relpath))
     }
@@ -283,7 +290,7 @@ class Library extends React.Component {
 
   onSketchDownloadComplete () {
     this.isSketchInstalled = true
-    this.openSketchFile(this.state.sketchDownloader.asset)
+    this.openWithDefaultProgram(this.state.sketchDownloader.asset)
     this.setState({sketchDownloader: {...this.state.sketchDownloader, isVisible: false, asset: null}})
   }
 
@@ -291,50 +298,32 @@ class Library extends React.Component {
     this.setState({sketchDownloader: {...this.state.sketchDownloader, isVisible: false, shouldAskForSketch}})
   }
 
-  handleComponentInstantiation (asset) {
-    const ac = this.props.projectModel.getCurrentActiveComponent()
-
-    // Don't allow components to be instantiated inside themselves
-    if (ac.getLocalizedRelpath() === asset.getLocalizedRelpath()) {
-      return
+  handleComponent (asset) {
+    const scenename = asset.getSceneName()
+    if (scenename) {
+      this.props.projectModel.setCurrentActiveComponent(scenename, {from: 'creator'}, () => {})
     }
-
-    return ac.instantiateComponent(
-      asset.getLocalizedRelpath(),
-      {},
-      {from: 'creator'},
-      (err) => {
-        if (err) {
-          if (err.code === 'ENOENT') {
-            return this.props.createNotice({ type: 'error', title: 'Error', message: 'We couldn\'t find that component. 😩 Please try again in a few moments. If you still see this error, contact Haiku for support.' })
-          } else {
-            return this.props.createNotice({ type: 'error', title: 'Error', message: err.message })
-          }
-        }
-      }
-    )
-  }
-
-  handleFolderDoubleClick (asset) {
-    shell.openItem(asset.getAbspath())
   }
 
   onAssetDoubleClick (asset) {
     switch (asset.kind) {
       case Asset.KINDS.SKETCH:
-        this.handleSketchInstantiation(asset)
+        this.handleSketchLaunch(asset)
+        break
+      case Asset.KINDS.ILLUSTRATOR:
+        this.handleIllustratorLaunch(asset)
         break
       case Asset.KINDS.FIGMA:
-        this.handleFigmaInstantiation(asset)
+        this.handleFigmaLaunch(asset)
         break
       case Asset.KINDS.VECTOR:
-        this.handleFileInstantiation(asset)
+        this.handleFileLaunch(asset)
         break
       case Asset.KINDS.COMPONENT:
-        this.handleComponentInstantiation(asset)
+        this.handleComponent(asset)
         break
       case Asset.KINDS.FOLDER:
-        this.handleFolderDoubleClick(asset)
+        this.openWithDefaultProgram(asset)
         break
     }
   }
@@ -379,6 +368,8 @@ class Library extends React.Component {
           style={STYLES.sectionHeader}>
           Library
           <FileImporter
+            websocket={this.props.websocket}
+            projectModel={this.props.projectModel}
             onImportFigmaAsset={this.importFigmaAsset}
             onAskForFigmaAuth={() => { this.askForFigmaAuth() }}
             figma={this.state.figma}
@@ -392,6 +383,7 @@ class Library extends React.Component {
             {this.state.isLoading
               ? <Loader />
               : <AssetList
+                websocket={this.props.websocket}
                 projectModel={this.props.projectModel}
                 onDragStart={this.props.onDragStart}
                 onDragEnd={this.props.onDragEnd}

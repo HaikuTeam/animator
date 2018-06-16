@@ -10,7 +10,7 @@ const ID_ATTRIBUTE = 'id';
  * @description Get the flexible main identifier for the element, which may
  * be either a virtual element in the mana format, or a vanilla dom node.
  */
-export default function getFlexId(element) {
+export default function getFlexId (element) {
   let flexId;
 
   if (element) {

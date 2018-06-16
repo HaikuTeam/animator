@@ -1,4 +1,3 @@
-
 /**
  * Environment operating system.
  * @enum {string}
@@ -15,7 +14,7 @@ const enum OperatingSystem {
  * possible to override them
  */
 const getOperatingSystem: () => OperatingSystem = () => {
-  const operatingSystem: string = process.env['HAIKU_RELEASE_PLATFORM'];
+  const operatingSystem: string = process.env.HAIKU_RELEASE_PLATFORM;
   switch (operatingSystem) {
     case 'windows':
       return OperatingSystem.Windows;

@@ -3,6 +3,6 @@
     "tslint-config-haiku"
   ],
   "rules": {
-    "max-line-length": 180
+    "max-line-length": false
   }
 }

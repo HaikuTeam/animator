@@ -40,10 +40,6 @@ async.each(allPackages, (pack, done) => {
   }
 
   switch (shortname) {
-    case 'core':
-      // TS module, but one that uses "develop" for something different than watching.
-      runInstruction(pack.abspath, ['watch'], done)
-      break
     case 'websockets':
     case 'creator':
     case 'glass':
@@ -52,7 +48,6 @@ async.each(allPackages, (pack, done) => {
       // Babel modules where we can skip the initial (slow) build.
       runInstruction(pack.abspath, ['watch', '--skip-initial-build'], done)
       break
-    case 'state-object':
     case 'bytecode':
     case 'serialization':
     case 'fs-extra':

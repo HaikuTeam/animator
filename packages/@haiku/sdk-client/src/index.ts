@@ -1,9 +1,9 @@
-import * as requestLib from 'request';
+// tslint:disable:no-namespace class-name
+import {execSync} from 'child_process';
 import * as fs from 'fs';
-import * as os from 'os';
 import * as _ from 'lodash';
 import * as mkdirp from 'mkdirp';
-import {execSync} from 'child_process';
+import * as os from 'os';
 
 const HAIKU_ALMOST_EMPTY = 'https://github.com/HaikuTeam/almost-empty.git';
 
@@ -13,28 +13,28 @@ export const FILE_PATHS = {
   DOTENV: os.homedir() + '/.haiku/.env',
 };
 
-function ensureHomeFolder() {
+function ensureHomeFolder () {
   mkdirp.sync(os.homedir() + '/.haiku');
 }
 
 export namespace client {
 
-  export function verboselyLog(message: string, ...args) {
+  export function verboselyLog (message: string, ...args: any[]) {
     if (clientConfig.verbose) {
       console.log(message, ...args);
     }
   }
 
-  export function error(err: any) {
+  export function error (err: any) {
     // TODO: elegantly handle errors
   }
 
   export class npm {
-    static readPackageJson(path: string = global.process.cwd() + '/package.json'): any {
+    static readPackageJson (path: string = global.process.cwd() + '/package.json'): any {
       return JSON.parse(fs.readFileSync(path, 'utf8'));
     }
 
-    static writePackageJson(jsonObject: any, path: string = global.process.cwd() + '/package.json') {
+    static writePackageJson (jsonObject: any, path: string = global.process.cwd() + '/package.json') {
       fs.writeFileSync(path, JSON.stringify(jsonObject, undefined, 2));
     }
   }
@@ -42,7 +42,7 @@ export namespace client {
   export class git {
     // 1. adds the git remote + name if it doesn't exist
     // 2. ensures that there are remote refs, pushing them if needed
-    static ensureRemoteIsInitialized(remoteName: string, remoteUrl: string, cb: Function) {
+    static ensureRemoteIsInitialized (remoteName: string, remoteUrl: string, cb: () => void) {
       // remoteName = "haiku/" + remoteName
 
       // check registered remotes
@@ -50,7 +50,7 @@ export namespace client {
 
       // TODO: solve this better than just shelling out.
       // (nodegit is an option, if we can work out native packaging/bundling)
-      const ensureRemoteRefs = function () {
+      const ensureRemoteRefs = () => {
         const results = execSync(`git ls-remote ${remoteName}`).toString();
         if (results === '') {
           // no remote refs, i.e. bare remote repo.
@@ -91,13 +91,12 @@ export namespace client {
     //       (so it doesn't need to be installed on user's command line)
     //       and 'rebrand' the exterior, e.g. update the commit message
     //       to say "Imported Haiku Component" instead of "git subrepo blargh"
-    static forciblyCloneSubrepo(remote: string, path: string, cb: Function) {
-      // remote = "haiku/" + remote
+    static forciblyCloneSubrepo (remote: string, path: string, cb: (error?: any) => {}) {
       execSync(`git subrepo clone -f ${remote} ${path}`);
       cb();
     }
 
-    static cloneRepo(remote: string, path: string, cb: (error?: any) => any) {
+    static cloneRepo (remote: string, path: string, cb: (error?: any) => any) {
       let err;
       try {
         execSync(`git clone ${remote} ${path}`);
@@ -108,9 +107,7 @@ export namespace client {
       cb(err);
     }
 
-
   }
-
 
   export interface ClientConfig {
     verbose?: boolean;
@@ -120,14 +117,12 @@ export namespace client {
     verbose: false,
   };
 
-  export function setConfig(newVals: ClientConfig) {
+  export function setConfig (newVals: ClientConfig) {
     _.extend(clientConfig, newVals);
   }
 
-
   export class config {
-
-    static getAuthToken(): string {
+    static getAuthToken (): string {
       if (fs.existsSync(FILE_PATHS.AUTH_TOKEN)) {
         const token = fs.readFileSync(FILE_PATHS.AUTH_TOKEN).toString();
         return token;
@@ -135,14 +130,14 @@ export namespace client {
       return undefined;
     }
 
-    static getUserId(): string {
+    static getUserId (): string {
       if (fs.existsSync(FILE_PATHS.USER_ID)) {
         return fs.readFileSync(FILE_PATHS.USER_ID).toString();
       }
       return undefined;
     }
 
-    static isAuthenticated(): boolean {
+    static isAuthenticated (): boolean {
       const token = config.getAuthToken();
       const userId = config.getUserId();
       // TODO: can check for token expiration here
@@ -151,12 +146,12 @@ export namespace client {
       return token !== undefined && token !== '' && userId !== undefined && userId !== '';
     }
 
-    static setAuthToken(newToken: string) {
+    static setAuthToken (newToken: string) {
       ensureHomeFolder();
       fs.writeFileSync(FILE_PATHS.AUTH_TOKEN, newToken);
     }
 
-    static setUserId(newUserId: string) {
+    static setUserId (newUserId: string) {
       ensureHomeFolder();
       fs.writeFileSync(FILE_PATHS.USER_ID, newUserId);
     }

@@ -46,22 +46,23 @@ const STYLES = {
   } as React.CSSProperties,
 };
 
-export class TooltipBasic extends React.PureComponent {
-  props;
+export interface TooltipBasicProps {
+  light?: boolean;
+  top?: number;
+  width?: number;
+}
 
-  static propTypes = {
-    light: React.PropTypes.bool,
-    top: React.PropTypes.number,
-  };
-
+export class TooltipBasic extends React.PureComponent<TooltipBasicProps> {
   render () {
     return (
-      <div style={{
-        ...STYLES.tooltip,
-        ...(this.props.light && STYLES.light),
-        ...{top: this.props.top},
-        ...{width: this.props.width},
-      }}>
+      <div
+        style={{
+          ...STYLES.tooltip,
+          ...(this.props.light && STYLES.light),
+          ...{top: this.props.top},
+          ...{width: this.props.width},
+        }}
+      >
         <span style={{...STYLES.tip, ...(this.props.light && STYLES.tipLight)}} />
         {this.props.children}
       </div>

@@ -1,4 +1,3 @@
-const async = require('async')
 const fse = require('fs-extra')
 const {debounce} = require('lodash')
 const path = require('path')
@@ -6,10 +5,10 @@ const xmlToMana = require('@haiku/core/lib/helpers/xmlToMana').default
 const objectToRO = require('@haiku/core/lib/reflection/objectToRO').default
 const BaseModel = require('./BaseModel')
 const logger = require('./../utils/LoggerInstance')
-const walkFiles = require('./../utils/walkFiles')
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 const getSvgOptimizer = require('./../svg/getSvgOptimizer')
 const Lock = require('./Lock')
+const Cache = require('./Cache')
 
 // This file also depends on '@haiku/core/lib/HaikuComponent'
 // in the sense that one of those instances is assigned as .hostInstance here.
@@ -100,8 +99,10 @@ class File extends BaseModel {
   }
 
   requestAsyncContentFlush (flushSpec = {}) {
-    this._pendingContentFlushes.push(flushSpec)
-    this.debouncedFlushContent()
+    if (this.options.doWriteToDisk) {
+      this._pendingContentFlushes.push(flushSpec)
+      this.debouncedFlushContent()
+    }
   }
 
   awaitNoFurtherContentFlushes (cb) {
@@ -121,12 +122,16 @@ class File extends BaseModel {
   }
 
   flushContent () {
+    return this.flushContentFromString(this.getCode())
+  }
+
+  flushContentFromString (content) {
     // We're about to flush content for all requests received up to this point
     // If more occur during async, that's fine; we'll just get called again,
     // but those who need to wait can read the list to know what's still pending
     this._pendingContentFlushes.splice(0)
 
-    const incoming = this.getCode()
+    const incoming = content
 
     this.assertContents(incoming)
 
@@ -188,6 +193,9 @@ class File extends BaseModel {
   }
 
   write (cb) {
+    if (!this.options.doWriteToDisk) {
+      throw new Error('[file] illegal write requested')
+    }
     this.assertContents(this.contents)
     this.dtLastWriteStart = Date.now()
     logger.info(`[file] writing ${this.relpath} to disk`)
@@ -202,6 +210,9 @@ class File extends BaseModel {
   }
 
   writeSync () {
+    if (!this.options.doWriteToDisk) {
+      throw new Error('[file] illegal write requested')
+    }
     this.assertContents(this.contents)
     this.dtLastWriteStart = Date.now()
     logger.info(`[file] writing ${this.relpath} to disk`)
@@ -243,9 +254,9 @@ class File extends BaseModel {
    * serialization issues or which have the effect of adding too much metadata to the object. For example, the
    * reified bytecode by itself probably has a template that contains .__depth, .__parent, .layout properties, etc.
    */
-  getReifiedDecycledBytecode () {
+  getReifiedDecycledBytecode (cleanManaOptions = {}) {
     const reified = this.getReifiedBytecode()
-    return Bytecode.decycle(reified, { doCleanMana: true })
+    return Bytecode.decycle(reified, { cleanManaOptions, doCleanMana: true })
   }
 
   /**
@@ -280,8 +291,8 @@ BaseModel.extend(File)
 File.TYPES = FILE_TYPES
 
 File.DEFAULT_OPTIONS = {
-  doWriteToDisk: true, // Write all actions/content updates to disk
-  skipDiffLogging: false, // Log a colorized diff of every content update
+  doWriteToDisk: false, // Write all actions/content updates to disk
+  skipDiffLogging: true, // Log a colorized diff of every content update
   required: {
     relpath: true,
     folder: true,
@@ -291,8 +302,10 @@ File.DEFAULT_OPTIONS = {
 
 File.DEFAULT_CONTEXT_SIZE = DEFAULT_CONTEXT_SIZE
 
+File.cache = new Cache()
+
 File.write = (folder, relpath, contents, cb) => {
-  let abspath = path.join(folder, relpath)
+  const abspath = path.join(folder, relpath)
   return Lock.request(Lock.LOCKS.FileReadWrite(abspath), true, (release) => {
     return fse.outputFile(abspath, contents, (err) => {
       release()
@@ -336,7 +349,7 @@ File.ingestContents = (project, folder, relpath, { dtLastReadStart }, cb) => {
     project
   }
 
-  const file = File.upsert(fileAttrs)
+  const file = project.upsertFile(fileAttrs)
 
   // Let what's happening in-memory have higher precedence than on-disk changes
   // since it's more likely that we'll be loading in stale content during fast updates,
@@ -374,27 +387,8 @@ File.expelOne = (folder, relpath, cb) => {
   cb()
 }
 
-File.ingestFromFolder = (project, folder, options, cb) => {
-  return walkFiles(folder, (err, entries) => {
-    if (err) return cb(err)
-    const picks = []
-    entries.forEach((entry) => {
-      const relpath = path.relative(folder, entry.path)
-
-      // Only allow bytecode files
-      if (!path.basename(relpath, '.js') === 'code') {
-        return picks.push(entry)
-      }
-    })
-    // Load the code first, then designs. This is so we can merge design changes!
-    return async.mapSeries(picks, (entry, next) => {
-      const relpath = path.relative(folder, entry.path)
-      return File.ingestOne(project, folder, relpath, next)
-    }, (err, files) => {
-      if (err) return cb(err)
-      return cb(null, files)
-    })
-  })
+File.buildManaCacheKey = (folder, relpath) => {
+  return `mana:${path.join(folder, relpath)}`
 }
 
 /**
@@ -405,46 +399,51 @@ File.ingestFromFolder = (project, folder, options, cb) => {
  * @param cb {Function} Callback
  */
 File.readMana = (folder, relpath, cb) => {
-  return File.read(folder, relpath, (err, buffer) => {
-    if (err) return cb(err)
+  return File.cache.async(File.buildManaCacheKey(folder, relpath), (done) => {
+    return File.read(folder, relpath, (err, buffer) => {
+      if (err) return done(err)
 
-    const xml = buffer.toString()
+      const xml = buffer.toString()
 
-    const returnUnoptimizedMana = () => {
-      const manaFull = xmlToMana(xml)
+      const returnUnoptimizedMana = () => {
+        const manaFull = xmlToMana(xml)
 
-      if (!manaFull) {
-        return cb(new Error(`We couldn't load the contents of ${relpath}`))
+        if (!manaFull) {
+          return done(new Error(`We couldn't load the contents of ${relpath}`))
+        }
+
+        if (experimentIsEnabled(Experiment.NormalizeSvgContent)) {
+          return done(null, Template.normalize(manaFull))
+        }
+
+        return done(null, manaFull)
       }
 
-      if (experimentIsEnabled(Experiment.NormalizeSvgContent)) {
-        return cb(null, Template.normalize(manaFull))
-      }
+      return getSvgOptimizer().optimize(xml, { path: path.join(folder, relpath) }).then((contents) => {
+        const manaOptimized = xmlToMana(contents.data)
 
-      return cb(null, manaFull)
-    }
+        if (!manaOptimized) {
+          return done(new Error(`We couldn't load the contents of ${relpath}`))
+        }
 
-    return getSvgOptimizer().optimize(xml, { path: path.join(folder, relpath) }).then((contents) => {
-      const manaOptimized = xmlToMana(contents.data)
+        if (experimentIsEnabled(Experiment.NormalizeSvgContent)) {
+          return done(null, Template.normalize(manaOptimized))
+        }
 
-      if (!manaOptimized) {
-        return cb(new Error(`We couldn't load the contents of ${relpath}`))
-      }
-
-      if (experimentIsEnabled(Experiment.NormalizeSvgContent)) {
-        return cb(null, Template.normalize(manaOptimized))
-      }
-
-      return cb(null, manaOptimized)
-    })
-      .catch((exception) => {
-        // Log the exception too in case the error occurred as part of our pipeline
-        logger.warn(`[file] svgo couldn't parse ${relpath}`, exception)
-
-        return setTimeout(() => { // Escape promise chain so exceptions occur with more normal traces
-          return returnUnoptimizedMana()
-        })
+        return done(null, manaOptimized)
       })
+        .catch((exception) => {
+          // Log the exception too in case the error occurred as part of our pipeline
+          logger.warn(`[file] svgo couldn't parse ${relpath}`, exception)
+
+          return setTimeout(() => { // Escape promise chain so exceptions occur with more normal traces
+            return returnUnoptimizedMana()
+          })
+        })
+    })
+  }, cb, (mana) => {
+    // Must clone the template here since mutation will occur in-place
+    return Template.clone({}, mana)
   })
 }
 

@@ -1,7 +1,7 @@
 import getDomEventPosition from './getDomEventPosition';
 import getDomNodeRect from './getDomNodeRect';
 
-function getLocalDomEventPosition(event, element) {
+function getLocalDomEventPosition (event: MouseEvent, element: Element) {
   const doc = element.ownerDocument;
   const viewPosition = getDomEventPosition(event, doc);
   const elementRect = getDomNodeRect(element);

@@ -48,6 +48,11 @@
             "blendMode": "PASS_THROUGH",
             "children": [
               {
+                "id": "9:0",
+                "name": "Subgroup",
+                "type": "GROUP"
+              },
+              {
                 "id": "4:3",
                 "name": "Rectangle 2",
                 "type": "RECTANGLE",
@@ -197,6 +202,32 @@
             "id": "5:1",
             "name": "Slice",
             "type": "SLICE",
+            "absoluteBoundingBox": {
+              "x": -574,
+              "y": -116,
+              "width": 173,
+              "height": 179
+            },
+            "constraints": { "vertical": "TOP", "horizontal": "LEFT" },
+            "exportSettings": []
+          },
+          {
+            "id": "6:1",
+            "name": "Frame",
+            "type": "FRAME",
+            "absoluteBoundingBox": {
+              "x": -574,
+              "y": -116,
+              "width": 173,
+              "height": 179
+            },
+            "constraints": { "vertical": "TOP", "horizontal": "LEFT" },
+            "exportSettings": []
+          },
+          {
+            "id": "7:1",
+            "name": "Component",
+            "type": "COMPONENT",
             "absoluteBoundingBox": {
               "x": -574,
               "y": -116,

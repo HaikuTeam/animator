@@ -11,7 +11,8 @@ const DNS_ERROR_CODE = 'ENOTFOUND';
  * specified, otherwise you end up getting false positives! E.g. ipv4 0.0.0.0 vs ipv6 ::.
  * You can pass a starting port search as the first argument, otherwise pass null and we'll use ours.
  */
-export default function findOpenPort(inPort: number, inHost: string, cb: Function): void {
+export default function findOpenPort (
+  inPort: number, inHost: string, cb: (err: any, host?: string|number, port?: number) => void): void {
   const port = inPort || DEFAULT_PORT_SEARCH_START;
   const host = inHost || DEFAULT_HOST;
 

@@ -13,7 +13,9 @@ const HUMANIZED_PROP_NAMES = {
   'style.overflowY': 'Overflow Y',
 };
 
-export default function humanizePropertyName(propertyName) {
-  if (HUMANIZED_PROP_NAMES[propertyName]) { return HUMANIZED_PROP_NAMES[propertyName]; }
+export default function humanizePropertyName (propertyName: string) {
+  if (HUMANIZED_PROP_NAMES[propertyName]) {
+    return HUMANIZED_PROP_NAMES[propertyName];
+  }
   return decamelize(propertyName).replace(/[\W_]/g, ' ');
 }

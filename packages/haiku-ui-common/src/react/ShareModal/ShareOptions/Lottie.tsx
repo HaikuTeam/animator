@@ -1,38 +1,30 @@
 import * as React from 'react';
-import * as Color from 'color';
-import Palette from '../../../Palette';
-import {PUBLISH_SHARED} from './PublishStyles';
-import {ExternalLink} from '../../ExternalLink';
 import {SHARED_STYLES} from '../../../SharedStyles';
+import {ExternalLink} from '../../ExternalLink';
+import {PUBLISH_SHARED} from './PublishStyles';
 
-const STYLES = {
-  light: {
-    backgroundColor: Palette.ROCK,
-    opacity: 0.87,
-    color: Palette.BLUE,
-    ':hover': {
-      opacity: 1,
-    },
-  },
-};
+export interface LottieProps {
+  entry: string;
+  userName: string;
+  organizationName: string;
+  projectUid: string;
+  sha: string;
+  mixpanel: any;
+}
 
-export default class Lottie extends React.PureComponent {
-  props;
+const CDN_BASE = 'https://cdn.haiku.ai/';
 
-  static propTypes = {
-    entry: React.PropTypes.string,
-    userName: React.PropTypes.string,
-    organizationName: React.PropTypes.string,
-    projectUid: React.PropTypes.string,
-    sha: React.PropTypes.string,
-    mixpanel: React.PropTypes.object,
-  };
-
-  get cdnBase() {
-    const cdnBase = 'https://cdn.haiku.ai/';
-
-    return `${cdnBase + this.props.projectUid}/${this.props.sha}/`;
+export default class Lottie extends React.PureComponent<LottieProps> {
+  get cdnBase () {
+    return `${CDN_BASE + this.props.projectUid}/${this.props.sha}/`;
   }
+
+  private onClick = () => {
+    this.props.mixpanel.haikuTrack('install-options', {
+      from: 'app',
+      event: 'lottie-download',
+    });
+  };
 
   render () {
     const lottiePath = `${this.cdnBase}code/main/lottie.json`;
@@ -60,12 +52,7 @@ export default class Lottie extends React.PureComponent {
       <div style={PUBLISH_SHARED.instructionsRow}>
         <div style={PUBLISH_SHARED.instructionsCol1} />
         <div style={{...PUBLISH_SHARED.instructionsCol2}}>
-          <ExternalLink style={SHARED_STYLES.btn}  href={lottiePath} onClick={() => {
-            this.props.mixpanel.haikuTrack('install-options', {
-              from: 'app',
-              event: 'lottie-download',
-            });
-          }}>
+          <ExternalLink style={SHARED_STYLES.btn} href={lottiePath} onClick={this.onClick}>
             Download JSON
           </ExternalLink>
         </div>

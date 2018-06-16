@@ -1,12 +1,8 @@
 import * as BezierEasing from 'bezier-easing';
 import {flatten} from 'lodash';
 
-import {Curve} from 'haiku-common/lib/types/enums';
-import {
-  BytecodeTimelineProperties,
-  BytecodeTimelineValue, 
-  BytecodeTimelineProperty,
-} from '@haiku/core/lib/api/HaikuBytecode';
+import {Curve} from '@haiku/core/lib/api/Curve';
+import {BytecodeTimelineProperty} from '@haiku/core/lib/api/HaikuBytecode';
 
 export type InterpolationPoints = [number, number, number, number];
 
@@ -135,23 +131,25 @@ const normalizeValue = (value: number, from: number, to: number): number =>
  * @param timelineProperty
  * @param {number} keyframe
  */
-export const splitBezierForTimelinePropertyAtKeyframe = (timelineProperty: BytecodeTimelineProperty, 
-                                                         keyframe: number) => {
+export const splitBezierForTimelinePropertyAtKeyframe = (
+  timelineProperty: BytecodeTimelineProperty, keyframe: number,
+) => {
   const allKeyframes = Object.keys(timelineProperty).map(Number);
   const previousKeyframe = Math.max(...allKeyframes.filter((k) => k < keyframe));
   const nextKeyframe = Math.min(...allKeyframes.filter((k) => k > keyframe));
 
   // Return early if we don't have a next keyframe to animate to.
-  if (nextKeyframe === Infinity) {
-    // There is no next keyframe! Just animate to the current value.
+  if (nextKeyframe === Infinity || previousKeyframe === -Infinity) {
+    // There is no basis keyframe! Just animate to/from the current value.
     timelineProperty[keyframe] = {
-      value: timelineProperty[previousKeyframe].value,
+      // #FIXME: 1 isn't always the correct fallback for properties that might not have a keyframe at 0.
+      value: (timelineProperty[previousKeyframe] && timelineProperty[previousKeyframe].value) || 1,
       curve: Curve.Linear,
     };
     return;
   }
 
-  const [x1, y1, x2, y2] = getCurveInterpolationPoints(timelineProperty[previousKeyframe].curve);
+  const [x1, y1, x2, y2] = getCurveInterpolationPoints(timelineProperty[previousKeyframe].curve as Curve);
 
   // Normalize keyframe (time) in [0, 1] to make the curve calculations work with existing tools.
   const time = normalizeValue(keyframe, previousKeyframe, nextKeyframe);
@@ -312,9 +310,9 @@ export const isDecomposableCurve = (curve: Curve) => isBounceCurve(curve) || isE
  * @param inKeyframe
  * @param outKeyframe
  */
-export const decomposeCurveBetweenKeyframes = (timelineProperty:BytecodeTimelineProperty, 
+export const decomposeCurveBetweenKeyframes = (timelineProperty: BytecodeTimelineProperty,
                                                inKeyframe: number, outKeyframe: number) => {
-  const [curve, from, to] = [
+  const [curveIn, from, to] = [
     timelineProperty[inKeyframe].curve,
     timelineProperty[inKeyframe].value,
     timelineProperty[outKeyframe].value,
@@ -323,7 +321,8 @@ export const decomposeCurveBetweenKeyframes = (timelineProperty:BytecodeTimeline
   const getKeyframe = (normalizedTime: number) => Math.floor(denormalizeValue(normalizedTime, inKeyframe, outKeyframe));
   const getValue = (normalizedPosition: number) => denormalizeValue(normalizedPosition, from as number, to as number);
 
-  getBezierBreakpointsForDecomposableCurve(curve)
+  // TODO: remove need for typecasting here.
+  getBezierBreakpointsForDecomposableCurve(curveIn as Curve)
     .forEach(([startTime, startValue, curve]) => {
       timelineProperty[getKeyframe(startTime)] = {
         curve,

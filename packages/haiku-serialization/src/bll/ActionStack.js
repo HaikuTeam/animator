@@ -13,7 +13,6 @@ const MAX_UNDOABLES_LEN = 50
 const SNAPSHOTTED_UNDOABLES = {
   groupElements: true,
   ungroupElements: true,
-  conglomerateComponent: true,
   popBytecodeSnapshot: true
 }
 
@@ -218,29 +217,58 @@ class ActionStack extends BaseModel {
 
   addDoable (doable, stack) {
     stack.push(doable)
+
     if (stack.length > MAX_UNDOABLES_LEN) {
       stack.shift()
     }
   }
 
-  popDoable (stack) {
-    return stack.pop()
+  addUndoable (undoable, ac) {
+    // TODO: reimplement this.undoables as a Map<ActiveComponent, Undoable[]>
+    this.addDoable(Object.assign(undoable, {ac}), this.undoables)
   }
 
-  addUndoable (undoable) {
-    this.addDoable(undoable, this.undoables)
+  addRedoable (redoable, ac) {
+    // TODO: reimplement this.redoables as a Map<ActiveComponent, Undoable[]>
+    this.addDoable(Object.assign(redoable, {ac}), this.redoables)
   }
 
-  popUndoable () {
-    return this.popDoable(this.undoables)
+  popDoable (stack, ac) {
+    // If no active component context, just use the top of the stack.
+    if (!ac) {
+      return stack.pop()
+    }
+
+    // If the top item on the stack has no active component context,
+    // pop it. We assume that it represents a project-level change.
+    const last = stack[stack.length - 1]
+    if (last && !last.ac) {
+      return stack.pop()
+    }
+
+    // Pop the stack entry that belongs to the active component context.
+    // (Like a text editor, our undo/redo is context-specific to the file.)
+    for (let i = stack.length - 1; i >= 0; i--) {
+      const entry = stack[i]
+
+      if (entry.ac === ac) {
+        return stack.splice(i, 1)[0]
+      }
+    }
+
+    // If we have an active component, but haven't found any entries in
+    // the stack to match it, then we should do nothing since the top of
+    // the stack may contain a doable for another component, which would
+    // be a surprising change for the user given the current context.
+    return null
   }
 
-  addRedoable (redoable) {
-    this.addDoable(redoable, this.redoables)
+  popUndoable (ac) {
+    return this.popDoable(this.undoables, ac)
   }
 
-  popRedoable () {
-    return this.popDoable(this.redoables)
+  popRedoable (ac) {
+    return this.popDoable(this.redoables, ac)
   }
 
   getUndoables () {
@@ -289,9 +317,9 @@ class ActionStack extends BaseModel {
       // If we're receiving an action whose originator (not us) modified its
       // undo/redo stack, we need to make sure we do that action as well
       if (metadata.cursor === ActionStack.CURSOR_MODES.redo) {
-        this.popUndoable()
+        this.popUndoable(this.project.getCurrentActiveComponent())
       } else if (metadata.cursor === ActionStack.CURSOR_MODES.undo) {
-        this.popRedoable()
+        this.popRedoable(this.project.getCurrentActiveComponent())
       }
     }
 
@@ -324,10 +352,10 @@ class ActionStack extends BaseModel {
           metadata.cursor === ActionStack.CURSOR_MODES.undo
           ) {
             did = true
-            this.addUndoable(inverter)
+            this.addUndoable(inverter, ac)
           } else if (metadata.cursor === ActionStack.CURSOR_MODES.redo) {
             did = true
-            this.addRedoable(inverter)
+            this.addRedoable(inverter, ac)
           }
 
           if (did) {
@@ -358,6 +386,7 @@ class ActionStack extends BaseModel {
 
   undo (options, metadata, cb) {
     this.forceAccumulation()
+
     if (this.getUndoables().length < 1) {
       return cb()
     }
@@ -365,8 +394,14 @@ class ActionStack extends BaseModel {
     logger.info(`[action stack] undo (us=${this.getUndoables().length})`)
 
     return Lock.request(Lock.LOCKS.ActionStackUndoRedo, false, (release) => {
-      const { method, params } = this.popUndoable()
-      const ac = this.project.findActiveComponentBySource(params[0])
+      const undoable = this.popUndoable(this.project.getCurrentActiveComponent())
+
+      if (!undoable) {
+        release()
+        return cb()
+      }
+
+      const { method, params, ac } = undoable
 
       if (!ac) {
         release()
@@ -386,6 +421,7 @@ class ActionStack extends BaseModel {
 
   redo (options, metadata, cb) {
     this.forceAccumulation()
+
     if (this.getRedoables().length < 1) {
       return cb()
     }
@@ -393,8 +429,14 @@ class ActionStack extends BaseModel {
     logger.info(`[action stack] redo (rs=${this.getRedoables().length})`)
 
     return Lock.request(Lock.LOCKS.ActionStackUndoRedo, false, (release) => {
-      const { method, params } = this.popRedoable()
-      const ac = this.project.findActiveComponentBySource(params[0])
+      const redoable = this.popRedoable(this.project.getCurrentActiveComponent())
+
+      if (!redoable) {
+        release()
+        return cb()
+      }
+
+      const { method, params, ac } = redoable
 
       if (!ac) {
         release()
@@ -455,35 +497,29 @@ ActionStack.METHOD_INVERTERS = {
     after: (ac, [modpath, coords], output) => {
       if (output) {
         return {
-          method: ac.deleteComponent.name,
-          params: [output.attributes['haiku-id']]
+          method: ac.deleteComponents.name,
+          params: [[output.attributes['haiku-id']]]
         }
       }
     }
   },
 
-  deleteComponent: {
-    before: (ac, [haikuId]) => {
-      const element = ac.findElementByComponentId(haikuId)
-      if (element) {
-        return {
-          method: ac.pasteThing.name,
-          params: [
-            element.clip(),
-            // Paste the content-as is; don't pad ids or our previous undoable
-            // references won't match the new content
-            {skipHashPadding: true}
-          ]
-        }
-      }
-    }
+  deleteComponents: {
+    before: (ac, [haikuIds]) => ({
+      method: ac.pasteThings.name,
+      params: [
+        haikuIds.map((haikuId) => ac.findElementByComponentId(haikuId)).filter((element) => !!element).map((element) => element.clip()),
+        // Paste the content-as is; don't pad ids or our previous undoable references won't match the new content
+        {skipHashPadding: true}
+      ]
+    })
   },
 
-  pasteThing: {
-    after: (ac, [pasteable, request], {haikuId}) => {
+  pasteThings: {
+    after: (ac, _, {haikuIds}) => {
       return {
-        method: ac.deleteComponent.name,
-        params: [haikuId]
+        method: ac.deleteComponents.name,
+        params: [haikuIds]
       }
     }
   },

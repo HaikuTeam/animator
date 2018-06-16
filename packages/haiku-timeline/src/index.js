@@ -1,3 +1,4 @@
+import {ipcRenderer} from 'electron'
 import React from 'react'
 import ReactDOM from 'react-dom'
 import lodash from 'lodash'
@@ -68,7 +69,7 @@ function go () {
 
     const websocket = (config.plumbing)
       ? new Websocket(_fixPlumbingUrl(config.plumbing), config.folder, 'controllee', 'timeline', null, config.socket.token)
-      : new MockWebsocket()
+      : new MockWebsocket(ipcRenderer)
 
     // Add extra context to Sentry reports, this info is also used by carbonite.
     const folderHelper = config.folder.split('/').reverse()

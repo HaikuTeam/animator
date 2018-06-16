@@ -6,6 +6,8 @@ import lodash from 'lodash'
 import find from 'lodash.find'
 import merge from 'lodash.merge'
 import filter from 'lodash.filter'
+import get from 'lodash.get'
+import set from 'lodash.set'
 import net from 'net'
 import qs from 'qs'
 import WebSocket from 'ws'
@@ -18,10 +20,10 @@ import { PROJECT_CHANNEL, ProjectHandler } from 'haiku-sdk-creator/lib/bll/Proje
 import { GLASS_CHANNEL, GlassHandler } from 'haiku-sdk-creator/lib/glass'
 import { TIMELINE_CHANNEL, TimelineHandler } from 'haiku-sdk-creator/lib/timeline'
 import { TOUR_CHANNEL, TourHandler } from 'haiku-sdk-creator/lib/tour'
+import { SERVICES_CHANNEL, ServicesHandler } from 'haiku-sdk-creator/lib/services'
 import { inkstone } from '@haiku/sdk-inkstone'
 import { client as sdkClient, FILE_PATHS } from '@haiku/sdk-client'
 import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
-import StateObject from 'haiku-state-object'
 import serializeError from 'haiku-serialization/src/utils/serializeError'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
@@ -29,6 +31,7 @@ import * as ProjectFolder from './ProjectFolder'
 import { crashReport } from 'haiku-serialization/src/utils/carbonite'
 import HaikuHomeDir, { HOMEDIR_PATH } from 'haiku-serialization/src/utils/HaikuHomeDir'
 import Project from 'haiku-serialization/src/bll/Project'
+import {awaitAllLocksFree} from 'haiku-serialization/src/bll/Lock'
 import functionToRFO from '@haiku/core/lib/reflection/functionToRFO'
 import Master from './Master'
 
@@ -56,7 +59,6 @@ const WS_POLICY_VIOLATION_CODE = 1008
 // we'll skip Sentry for now.
 const METHODS_TO_SKIP_IN_SENTRY = {
   setTimelineTime: true,
-  doesProjectHaveUnsavedChanges: true,
   masterHeartbeat: true,
   requestSyndicationInfo: true
 }
@@ -69,14 +71,12 @@ const METHODS_WITH_SENSITIVE_INFO = {
 
 const IGNORED_METHOD_MESSAGES = {
   setTimelineTime: true,
-  doesProjectHaveUnsavedChanges: true,
   masterHeartbeat: true
 }
 
 // See note under 'processMethodMessage' for the purpose of this
 const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
   setTimelineTime: true,
-  doesProjectHaveUnsavedChanges: true,
   masterHeartbeat: true,
   openTextEditor: true,
   openTerminal: true,
@@ -89,7 +89,8 @@ const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
   teardownMaster: true,
   requestSyndicationInfo: true,
   hoverElement: true,
-  unhoverElement: true
+  unhoverElement: true,
+  describeIntegrityHandler: true
 }
 
 const METHOD_MESSAGES_TIMEOUT = 15000
@@ -113,6 +114,7 @@ const Q_MASTER = { alias: 'master' }
 
 const AWAIT_INTERVAL = 100
 const WAIT_DELAY = 10 * 1000
+const INTEGRITY_CHECK_INTERVAL = 5000
 
 const HAIKU_DEFAULTS = {
   socket: {
@@ -183,7 +185,7 @@ process.on('uncaughtException', (err) => {
   }, 1000)
 })
 
-export default class Plumbing extends StateObject {
+export default class Plumbing extends EventEmitter {
   constructor () {
     super()
 
@@ -191,6 +193,8 @@ export default class Plumbing extends StateObject {
     // above this constructor, which is necessary in test environments such
     // as tape where exit might never get called despite an exit.
     PLUMBING_INSTANCES.push(this)
+
+    this.state = {}
 
     this.masters = {} // Instances of Master, keyed by folder
     this.servers = [] // Websocket servers (there is usually only one)
@@ -210,6 +214,14 @@ export default class Plumbing extends StateObject {
   /**
    * Mostly-internal methods
    */
+
+  get (key) {
+    return get(this.state, key)
+  }
+
+  set (key, value) {
+    return set(this.state, key, value)
+  }
 
   launch (haiku = {}, cb) {
     haiku = merge({}, HAIKU_DEFAULTS, haiku)
@@ -235,6 +247,7 @@ export default class Plumbing extends StateObject {
       const envoyGlassHandler = new GlassHandler(this.envoyServer)
       const envoyUserHandler = new UserHandler(this.envoyServer)
       const envoyProjectHandler = new ProjectHandler(this.envoyServer)
+      const envoyServicesHandler = new ServicesHandler(this.envoyServer)
 
       this.envoyServer.bindHandler(TIMELINE_CHANNEL, TimelineHandler, envoyTimelineHandler)
       this.envoyServer.bindHandler(TOUR_CHANNEL, TourHandler, envoyTourHandler)
@@ -242,6 +255,7 @@ export default class Plumbing extends StateObject {
       this.envoyServer.bindHandler(USER_CHANNEL, UserHandler, envoyUserHandler)
       this.envoyServer.bindHandler(GLASS_CHANNEL, GlassHandler, envoyGlassHandler)
       this.envoyServer.bindHandler(PROJECT_CHANNEL, ProjectHandler, envoyProjectHandler)
+      this.envoyServer.bindHandler(SERVICES_CHANNEL, ServicesHandler, envoyServicesHandler)
 
       logger.info('[plumbing] launching plumbing control server')
 
@@ -329,6 +343,35 @@ export default class Plumbing extends StateObject {
         })
       })
     })
+  }
+
+  checkIntegrity (cb) {
+    return this.invokeActionInAllFolders(
+      'describeIntegrityHandler',
+      [{from: 'plumbing'}],
+      cb
+    )
+  }
+
+  startIntegrityChecker () {
+    if (this.integrityChecker) {
+      return
+    }
+
+    this.integrityChecker = setInterval(() => {
+      this.checkIntegrity((err, results) => {
+        if (!err) {
+          console.log(require('util').inspect(results, false, null))
+        }
+      })
+    }, INTEGRITY_CHECK_INTERVAL)
+  }
+
+  stopIntegrityChecker () {
+    if (this.integrityChecker) {
+      clearInterval(this.integrityChecker)
+      delete this.integrityChecker
+    }
   }
 
   removeWebsocketClient (websocket) {
@@ -714,10 +757,6 @@ export default class Plumbing extends StateObject {
 
   masterHeartbeat (folder, cb) {
     return this.awaitMasterAndCallMethod(folder, 'masterHeartbeat', [{ from: 'master' }], cb)
-  }
-
-  doesProjectHaveUnsavedChanges (folder, cb) {
-    return this.awaitMasterAndCallMethod(folder, 'doesProjectHaveUnsavedChanges', [{ from: 'master' }], cb)
   }
 
   /**
@@ -1135,40 +1174,42 @@ export default class Plumbing extends StateObject {
 
   teardownMaster (folder, cb) {
     logger.info(`[plumbing] tearing down master ${folder}`)
-
-    if (this.masters[folder]) {
-      this.masters[folder].active = false
-      this.masters[folder].watchOff()
-    }
-
-    // Since we're about to nav back to the dashboard, we're also about to drop the
-    // connection to the websockets, so here we close them to avoid crashes
-    const clientsOfFolder = filter(this.clients, { params: { folder } })
-
-    clientsOfFolder.forEach((clientOfFolder) => {
-      const alias = clientOfFolder.params.alias
-      if (alias === 'glass' || alias === 'timeline') {
-        logger.info(`[plumbing] closing client ${alias} of ${folder}`)
-        clientOfFolder.close()
-        this.removeWebsocketClient(clientOfFolder)
+    awaitAllLocksFree(() => {
+      if (this.masters[folder]) {
+        this.masters[folder].active = false
+        this.masters[folder].watchOff()
+        this.masters[folder].project && this.masters[folder].project.getAllActiveComponents().forEach((ac) => {
+          if (ac.$instance) {
+            ac.$instance.context.destroy()
+          }
+        })
       }
+
+      // Since we're about to nav back to the dashboard, we're also about to drop the
+      // connection to the websockets, so here we close them to avoid crashes
+      const clientsOfFolder = filter(this.clients, { params: { folder } })
+
+      clientsOfFolder.forEach((clientOfFolder) => {
+        const alias = clientOfFolder.params.alias
+        if (alias === 'glass' || alias === 'timeline') {
+          logger.info(`[plumbing] closing client ${alias} of ${folder}`)
+          clientOfFolder.close()
+          this.removeWebsocketClient(clientOfFolder)
+        }
+      })
+
+      // Any messages destined for the folder need to be cleared since there's now
+      // nobody who is able to receive them
+      for (let i = this._methodMessages.length - 1; i >= 0; i--) {
+        const message = this._methodMessages[i]
+        if (message.folder === folder) {
+          logger.info(`[plumbing] clearing message`, message)
+          this._methodMessages.splice(i, 1)
+        }
+      }
+
+      cb()
     })
-
-    // Any messages destined for the folder need to be cleared since there's now
-    // nobody who is able to receive them
-    for (let i = this._methodMessages.length - 1; i >= 0; i--) {
-      const message = this._methodMessages[i]
-      if (message.folder === folder) {
-        logger.info(`[plumbing] clearing message`, message)
-        this._methodMessages.splice(i, 1)
-      }
-    }
-
-    cb()
-  }
-
-  discardProjectChanges (folder, cb) {
-    return this.awaitMasterAndCallMethod(folder, 'discardProjectChanges', [{ from: 'master' }], cb)
   }
 
   saveProject (folder, projectName, maybeUsername, maybePassword, saveOptions, cb) {
@@ -1357,8 +1398,8 @@ Plumbing.prototype.spawnSubgroup = function (haiku, cb) {
         token: process.env.ENVOY_TOKEN
       }, haiku.envoy),
       fileOptions: {
-        doWriteToDisk: true, // default
-        skipDiffLogging: false // default
+        doWriteToDisk: true,
+        skipDiffLogging: false
       }
     })
   }

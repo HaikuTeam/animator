@@ -2,6 +2,7 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
+import {AdaptedWindow} from '../../adapters/dom/HaikuDOMAdapter';
 import assign from './../../vendor/assign';
 
 /* tslint:disable */
@@ -12,11 +13,13 @@ const snip = new Function(`
 `);
 /* tslint:enable */
 
-export default function mixpanelInit(mixpanelToken, component) {
+declare var window: AdaptedWindow;
+
+export default function mixpanelInit (mixpanelToken, component) {
   // Only initialize Mixpanel if we're running in the browser
   if (typeof window !== 'undefined') {
     // Don't initialize multiple times if multiple components are on the page
-    if (!window['mixpanel']) {
+    if (!window.mixpanel) {
       snip();
 
       const head = document.getElementsByTagName('head')[0];
@@ -27,12 +30,12 @@ export default function mixpanelInit(mixpanelToken, component) {
       script.src = 'https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js';
       head.appendChild(script);
 
-      window['mixpanel'].init(mixpanelToken, {ip: false});
+      window.mixpanel.init(mixpanelToken, {ip: false});
     }
 
     const metadata = (component.bytecode && component.bytecode.metadata) || {};
 
-    window['mixpanel'].track(
+    window.mixpanel.track(
       'component:initialize',
       assign(
         {

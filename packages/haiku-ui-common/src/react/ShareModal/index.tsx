@@ -1,11 +1,13 @@
+import {inkstone} from '@haiku/sdk-inkstone';
+import {Project} from 'haiku-sdk-creator/lib/bll/Project';
 import * as React from 'react';
-import {ModalWrapper, ModalHeader, ModalNotice} from '../Modal';
+import {ModalHeader, ModalNotice, ModalWrapper} from '../Modal';
 import {RevealPanel} from '../RevealPanel';
-import {ProjectShareDetails} from './ProjectShareDetails';
-import {EmbedList} from './EmbedList';
 import {EmbedDetails} from './EmbedDetails';
+import {EmbedList} from './EmbedList';
+import {ProjectShareDetails} from './ProjectShareDetails';
 
-const STYLES = {
+const STYLES: React.CSSProperties = {
   wrapper: {
     width: 500,
     overflow: 'hidden',
@@ -16,13 +18,13 @@ const STYLES = {
   },
 };
 
-export interface PropTypes {
+export interface ShareModalProps {
+  envoyProject: Project;
   project: any;
   error: any;
   linkAddress: string;
   snapshotSaveConfirmed: boolean;
   isSnapshotSaveInProgress: boolean;
-  isProjectInfoFetchInProgress: boolean;
   snapshotSyndicated: boolean;
   snapshotPublished: boolean;
   semverVersion: string;
@@ -30,38 +32,55 @@ export interface PropTypes {
   organizationName: string;
   projectUid: string;
   sha: string;
-  mixpanel: object;
-  onProjectPublicChange: Function;
+  mixpanel: any;
+  onProjectPublicChange: (state: boolean) => void;
 }
 
-export interface StateTypes {
+export interface SelectedEntry {
+  entry: {
+    disabled: boolean;
+    template: string;
+  };
+}
+
+export interface ShareModalStates {
+  selectedEntry?: {
+    entry: SelectedEntry;
+  };
   showDetail: boolean;
   isPublic: boolean;
   showTooltip: boolean;
-  selectedEntry: string;
+  isPublicKnown: boolean;
 }
 
-export class ShareModal extends React.Component<PropTypes, StateTypes> {
-  state;
-  props;
-  error;
+const isNullOrUndefined = (term?: any) => term === null || term === undefined;
+
+export class ShareModal extends React.Component<ShareModalProps, ShareModalStates> {
+  error: Error;
 
   static defaultProps = {
     projectUid: '',
     sha: '',
-  } as PropTypes;
+  };
 
-  constructor (props:PropTypes) {
-    super();
+  private boundTogglePublic = () => this.togglePublic();
+  private boundHideDetails = () => this.hideDetails();
+  private boundOptionClicked = (selectedEntry: {entry: SelectedEntry}) => {
+    this.showDetails(selectedEntry);
+  };
+
+  constructor (props: ShareModalProps) {
+    super(props);
 
     this.state = {
       showDetail: false,
       isPublic: props.project && props.project.isPublic,
       showTooltip: false,
+      isPublicKnown: props.project && !isNullOrUndefined(props.project.isPublic),
     };
   }
 
-  componentWillReceiveProps(nextProps:PropTypes) {
+  componentWillReceiveProps (nextProps: ShareModalProps) {
     if (nextProps.error) {
       this.error = nextProps.error;
     }
@@ -69,9 +88,24 @@ export class ShareModal extends React.Component<PropTypes, StateTypes> {
     if (nextProps.isSnapshotSaveInProgress) {
       this.error = null;
     }
+
+    if (nextProps.envoyProject && nextProps.projectUid && nextProps.projectUid !== this.props.projectUid && !this.state.isPublicKnown) {
+      (nextProps.envoyProject.getProjectDetail(nextProps.projectUid) as Promise<inkstone.project.Project>).then((proj: inkstone.project.Project) => {
+
+        // if IsPublic is undefined, it's never been published before. Make it private on first publish
+        if (isNullOrUndefined(proj.IsPublic)) {
+          (nextProps.envoyProject.setIsPublic(nextProps.projectUid, false) as Promise<boolean>).then(() => {
+            this.props.onProjectPublicChange(false);
+          });
+          this.setState({isPublic: false, isPublicKnown: true});
+        } else {
+          this.setState({isPublic: proj.IsPublic, isPublicKnown: true});
+        }
+      });
+    }
   }
 
-  showDetails (selectedEntry) {
+  showDetails (selectedEntry: {entry: SelectedEntry}) {
     this.setState({selectedEntry, showDetail: true});
     this.props.mixpanel.haikuTrack('install-options', {
       from: 'app',
@@ -84,12 +118,25 @@ export class ShareModal extends React.Component<PropTypes, StateTypes> {
     this.setState({showDetail: false, selectedEntry: null});
   }
 
+  togglePublic () {
+    if (this.props.envoyProject) {
+      const desiredState = !this.state.isPublic;
+      const project = this.props.envoyProject;
+      (project.setIsPublic(this.props.projectUid, desiredState) as Promise<boolean>).then(() => {
+        this.props.onProjectPublicChange(desiredState);
+      });
+      this.setState({isPublic: desiredState, isPublicKnown: true});
+    } else {
+      // TODO: trigger toast.
+      console.error('Could not set project privacy settings.  Please contact support@haiku.ai');
+    }
+  }
+
   render () {
     const {
       project,
       linkAddress,
       semverVersion,
-      isProjectInfoFetchInProgress,
       isSnapshotSaveInProgress,
       snapshotSyndicated,
       snapshotPublished,
@@ -107,12 +154,12 @@ export class ShareModal extends React.Component<PropTypes, StateTypes> {
           <ProjectShareDetails
             semverVersion={semverVersion}
             projectName={project.projectName}
-            isDisabled={false}
+            isDisabled={!this.state.isPublicKnown}
             linkAddress={linkAddress}
-            isProjectInfoFetchInProgress={isProjectInfoFetchInProgress}
             isSnapshotSaveInProgress={isSnapshotSaveInProgress}
             isPublic={this.state.isPublic}
             mixpanel={mixpanel}
+            togglePublic={this.boundTogglePublic}
           />
         </ModalHeader>
 
@@ -124,9 +171,7 @@ export class ShareModal extends React.Component<PropTypes, StateTypes> {
               snapshotSyndicated={snapshotSyndicated}
               snapshotPublished={snapshotPublished}
               mixpanel={mixpanel}
-              onOptionClicked={(selectedEntry) => {
-                this.showDetails(selectedEntry);
-              }}
+              onOptionClicked={this.boundOptionClicked}
             />
           }
           rightPanel={
@@ -138,9 +183,7 @@ export class ShareModal extends React.Component<PropTypes, StateTypes> {
               projectUid={projectUid}
               sha={sha}
               mixpanel={mixpanel}
-              onHide={() => {
-                this.hideDetails();
-              }}
+              onHide={this.boundHideDetails}
             />
           }
         />

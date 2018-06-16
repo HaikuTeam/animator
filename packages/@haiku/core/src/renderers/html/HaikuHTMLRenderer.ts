@@ -2,9 +2,10 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import HaikuBase from './../../HaikuBase';
-import HaikuDOMRenderer from '../dom/HaikuDOMRenderer';
 import manaToXml from '../../helpers/manaToXml';
+import HaikuDOMRenderer, {MountLayout} from '../dom/HaikuDOMRenderer';
+import HaikuBase from './../../HaikuBase';
+import HaikuComponent from './../../HaikuComponent';
 import VirtualNode, {VirtualDoc} from './VirtualNode';
 
 export default class HaikuHTMLRenderer extends HaikuBase {
@@ -12,7 +13,7 @@ export default class HaikuHTMLRenderer extends HaikuBase {
   config;
   doc;
 
-  constructor(mount, config) {
+  constructor (mount, config) {
     super();
 
     this.mount = mount;
@@ -28,7 +29,7 @@ export default class HaikuHTMLRenderer extends HaikuBase {
     }
   }
 
-  render(virtualContainer, virtualTree, component): string {
+  render (virtualContainer, virtualTree, component): string {
     const enhancedMana = HaikuDOMRenderer.renderTree(
       this.mount || new VirtualNode('div', {}, [], this.doc),
       virtualContainer,
@@ -46,12 +47,12 @@ export default class HaikuHTMLRenderer extends HaikuBase {
     );
   }
 
-  hasSizing() {
+  hasSizing () {
     return false;
   }
 
-  createContainer(out = {}) {
-    out['layout'] = {
+  createContainer (out: MountLayout = {}) {
+    out.layout = {
       computed: {
         size: this.config.size,
       },
@@ -60,15 +61,15 @@ export default class HaikuHTMLRenderer extends HaikuBase {
     return out;
   }
 
-  initialize() {
+  initialize () {
     // no-op
   }
 
-  mountEventListener(name: string, listener: Function) {
+  mountEventListener (component: HaikuComponent, selector: string, name: string, listener: Function) {
     // no-op
   }
 
-  getUser() {
+  getUser () {
     return this.config.user;
   }
 }

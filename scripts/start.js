@@ -46,8 +46,10 @@ const FOLDER_CHOICES = {
   'none': null,
   'blank': blankProject,
   'blank-noclean': blankProject,
+  'MattsPrimitives-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/MattsPrimitives'),
   'primitives-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/primitives'),
   'percy-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/percybanking'),
+  'statetransitions-core': path.join(ROOT, 'packages/@haiku/core/demo/projects/statetransitions'),
   'simple-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/simple'),
   'AliensRepro-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/AliensRepro'),
   'SuperComplex-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/SuperComplex'),
@@ -61,6 +63,7 @@ const FOLDER_CHOICES = {
   'mc3-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/mc3'),
   'mc4-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/mc4'),
   'mc-anim1-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/mc-anim1'),
+  'Bricks-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/Bricks'),
   'complex-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/complex'),
   'SuperComplex-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/SuperComplex'),
   'AliensRepro-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/AliensRepro'),
@@ -79,7 +82,7 @@ if (argv.default === true) {
 }
 
 const availablePresets = {
-  glass: 'mc4-glass',
+  glass: 'Bricks-glass',
   timeline: 'complex-timeline',
   blank: 'blank',
   'blank-noclean': 'blank-noclean'
@@ -126,9 +129,11 @@ function runInteractive () {
             { name: 'none', value: 'none' },
             { name: 'a fresh blank project', value: 'blank' },
             { name: 'the previous "blank" project including content', value: 'blank-noclean' },
+            { name: 'Matt\'s Primitives (glass)', value: 'MattsPrimitives-glass' },
             { name: 'primitives (glass)', value: 'primitives-glass' },
             { name: 'AliensRepro (glass)', value: 'AliensRepro-glass' },
             { name: 'percybanking (glass)', value: 'percy-glass' },
+            { name: 'statetransitions (core)', value: 'statetransitions-core' },
             { name: 'simple (glass)', value: 'simple-gl' },
             { name: 'SuperComplex (glass)', value: 'SuperComplex-glass' },
             { name: 'Apr91 (glass)', value: 'Apr91-glass' },
@@ -205,7 +210,7 @@ function setup () {
   log.hat(`preparing to develop locally`, 'cyan')
 
   if (global.process.env.DEV === undefined) {
-    global.process.env.DEV = (inputs.dev) ? '1' : undefined
+    global.process.env.DEV = (inputs.dev) ? '0' : undefined
   }
 
   global.process.env.HAIKU_SKIP_AUTOUPDATE = '1'

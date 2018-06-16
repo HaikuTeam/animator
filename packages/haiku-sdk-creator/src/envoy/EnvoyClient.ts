@@ -1,13 +1,13 @@
-import * as Promise from 'bluebird';
 import {
+  ClientRequestCallback,
   Datagram,
   DatagramIntent,
   DEFAULT_ENVOY_OPTIONS,
   DEFAULT_REQUEST_OPTIONS,
   EnvoyEvent,
   EnvoyOptions,
+  EnvoySerializable,
   RequestOptions,
-  Schema,
 } from '.';
 
 import EnvoyLogger from './EnvoyLogger';
@@ -16,28 +16,24 @@ import generateUUIDv4 from '../utils/generateUUIDv4';
 
 const AWAIT_READY_TIMEOUT = 100;
 
+export type EnvoyClientEventHandler = (...args: any[]) => void;
+
 export default class EnvoyClient<T> {
 
   private options: EnvoyOptions;
-  private datagramQueue: Datagram[];
-  private channel: string;
-  private isConnected: boolean;
-  private outstandingRequests: Map<string, Promise<void>>;
+  private datagramQueue: Datagram[] = [];
+  private isConnected: boolean = false;
+  private outstandingRequests: Map<string, ClientRequestCallback> = new Map<string, ClientRequestCallback>();
   private socket: WebSocket;
   private connectingPromise: Promise<any>;
-  private eventHandlers: Map<string, Function[]>;
-  private websocket;
+  private eventHandlers: Map<string, EnvoyClientEventHandler[]> = new Map<string, EnvoyClientEventHandler[]>();
+  private websocket: typeof WebSocket;
   private logger: Console;
-  private schemaCache: Map<string, Schema>;
+  private schemaCache: Map<string, {}> = new Map<string, {}>();
 
-  constructor(options?: EnvoyOptions) {
+  constructor (options?: EnvoyOptions) {
     this.options = Object.assign({}, DEFAULT_ENVOY_OPTIONS, options);
-    this.schemaCache = new Map<string, Schema>();
-    this.isConnected = false;
     this.websocket = this.options.WebSocket;
-    this.datagramQueue = [];
-    this.outstandingRequests = new Map<string, Promise<void>>();
-    this.eventHandlers = new Map<string, Function[]>();
     this.logger = this.options.logger || new EnvoyLogger('warn', this.options.logger);
     this.connect(this.options);
   }
@@ -46,39 +42,40 @@ export default class EnvoyClient<T> {
    * Retrieves a client bound to the handler at specified channel on remote server
    * @param channel unique string representing the channel of the handler
    * that this client should be bound to
+   * @param requestOptions
    */
-  get(channel: string): Promise<T> {
+  get (channel: string, requestOptions?: RequestOptions): Promise<T> {
     // Since mock mode skips the connection, there's nothing to retrieve, and
     // we will just go ahead and return ourselves early instead of schema discovery
     if (this.isInMockMode()) {
-      let mockMe = <T>{};
+      let mockMe = {} as T;
       mockMe = this.addEventLogic(mockMe); // Only adds an 'on' method
       return Promise.resolve(mockMe);
     }
 
-    return this.getRemoteSchema(channel).then((schema: Schema) => {
-      let returnMe = <T>{};
+    return this.getRemoteSchema(channel).then((schema: {}) => {
+      let returnMe = {} as T;
 
       for (const key in schema) {
-        const property = <string>key;
+        const property = key as string;
         // TODO:  if we want to support other topologies (vs. only-top-level-functions,) we
         // can implement deserialization/handling logic here
         if (schema[key] === 'function') {
 
           // Set the new function behavior.
           returnMe[property] = ((prop) => {
-            return (...args) => {
+            return (...args: any[]) => {
 
               // Ask server for a response.
               // For now, return only first response received.
-              const datagram = <Datagram>{
+              const datagram = {
                 channel,
                 intent: DatagramIntent.REQUEST,
                 method: prop,
                 params: args,
-              };
+              } as Datagram;
 
-              return this.send(datagram);
+              return this.send(datagram, requestOptions);
             };
           })(property);
         }
@@ -94,7 +91,7 @@ export default class EnvoyClient<T> {
    * @method getOption
    * @description Returns the option of the given key
    */
-  getOption(key: string): any {
+  getOption (key: string): any {
     return this.options[key];
   }
 
@@ -102,7 +99,7 @@ export default class EnvoyClient<T> {
    * @method closeConnection
    * @description Close the websocket connection
    */
-  closeConnection() {
+  closeConnection () {
     return this.socket.close();
   }
 
@@ -112,7 +109,7 @@ export default class EnvoyClient<T> {
    * Used in dev/testing when we don't have a real socket connection.
    * Be aware that changing this will impact unit tests and dev tools.
    */
-  isInMockMode(): boolean {
+  isInMockMode (): boolean {
     return this.getOption('mock');
   }
 
@@ -120,14 +117,16 @@ export default class EnvoyClient<T> {
    * Adds the `.on` method to a generated client, so consumers can subscribe to events
    * @param subject
    */
-  private addEventLogic(subject: T): T {
-    subject['on'] = (eventName: string, handler: Function) => {
+  private addEventLogic (subject: T): T {
+    // @ts-ignore
+    subject.on = (eventName: string, handler: EnvoyClientEventHandler) => {
       const handlers = this.eventHandlers.get(eventName) || [];
       handlers.push(handler);
       this.eventHandlers.set(eventName, handlers);
     };
 
-    subject['off'] = (eventName: string, handler: Function) => {
+    // @ts-ignore
+    subject.off = (eventName: string, handler: EnvoyClientEventHandler) => {
       const handlers = this.eventHandlers.get(eventName) || [];
       const idx = handlers.indexOf(handler);
       if (idx !== -1) {
@@ -143,21 +142,22 @@ export default class EnvoyClient<T> {
    * @method ready
    * @description Returns a promise that resolves when the client has connected to the server
    */
-  ready(): Promise<void> {
-    return new Promise(function executor(resolve) {
+  ready (): Promise<EnvoyClient<T>> {
+    const executor = (accept: ((value?: EnvoyClient<T>) => void)) => {
       if (this.isInMockMode() || this.isConnected) {
-        resolve(this);
+        accept(this);
       } else {
-        setTimeout(executor.bind(this, resolve), AWAIT_READY_TIMEOUT);
+        setTimeout(() => executor(accept), AWAIT_READY_TIMEOUT);
       }
-    }.bind(this));
+    };
+    return new Promise(executor);
   }
 
   /**
    * Returns a promise that will be resolved when the connection to the remote server succeeds
    * @param options
    */
-  private connect(options: EnvoyOptions): Promise<void> {
+  private connect (options: EnvoyOptions): Promise<void> {
     this.options = options;
     if (this.isInMockMode() || this.isConnected) {
       return Promise.resolve();
@@ -171,7 +171,7 @@ export default class EnvoyClient<T> {
 
     this.logger.info('[haiku envoy client] connecting to websocket server %s', url);
 
-    this.connectingPromise = new Promise((accept, _) => {
+    this.connectingPromise = new Promise((accept) => {
       this.socket = new this.websocket(url);
 
       this.socket.addEventListener('open', () => {
@@ -199,32 +199,19 @@ export default class EnvoyClient<T> {
    * and responds to it if needed
    * @param data
    */
-  private handleRawReceivedData(data: string) {
+  private handleRawReceivedData (data: string) {
     // If this is a response & the request id is in outstanding requests, resolve the stored promise w/ data.
-    const datagram = <Datagram>JSON.parse(data);
+    const datagram = JSON.parse(data) as Datagram;
     if (datagram.intent === DatagramIntent.RESPONSE && this.outstandingRequests.get(datagram.id)) {
-      // this.logger.info('[haiku envoy client] received data', datagram.data);
-
-      //parse this for the client if it's JSON
-      // let payload = undefined;
-      // try {
-      //   payload = JSON.parse(datagram.data);
-      // } catch (e) {
-      //   payload = datagram.data;
-      // }
-
-      // TODO: Fix Bluebird typing error by removing any
-      (this.outstandingRequests.get(datagram.id) as any)(datagram.data);
+      (this.outstandingRequests.get(datagram.id))(datagram.data);
       this.outstandingRequests.delete(datagram.id);
     } else if (datagram.intent === DatagramIntent.EVENT) {
-      const event = <EnvoyEvent>JSON.parse(datagram.data);
+      const event = JSON.parse(datagram.data) as EnvoyEvent;
       const handlers = this.eventHandlers.get(event.name);
 
       if (handlers && handlers.length) {
-        for (let i = 0; i < handlers.length; i++) {
-          ((handler) => {
-            handler(event.payload);
-          })(handlers[i]);
+        for (const handler of handlers) {
+          handler(event.payload);
         }
       }
 
@@ -236,7 +223,7 @@ export default class EnvoyClient<T> {
    * Ensures connection once, then loops through queue and transmits
    * each datagram in the order enqueued
    */
-  private flushQueue() {
+  private flushQueue () {
     return new Promise((accept) => {
       // this.logger.info('[haiku envoy client] flushing queue');
       while (this.datagramQueue.length) {
@@ -254,7 +241,7 @@ export default class EnvoyClient<T> {
    * will error if connection is broken
    * @param datagram
    */
-  private rawTransmit(datagram: Datagram) {
+  private rawTransmit (datagram: Datagram) {
     // this.logger.info('[haiku envoy client] transmitting data', datagram);
     this.socket.send(JSON.stringify(datagram));
   }
@@ -263,7 +250,7 @@ export default class EnvoyClient<T> {
    * Convenience method returning a promise that will reject in `duration` ms
    * @param duration time in ms before the generated promise should be rejected
    */
-  private generateTimeoutPromise(duration: number) {
+  private generateTimeoutPromise (duration: number) {
     return new Promise<void>((accept, reject) => {
       setTimeout(reject.bind(this, new Error('[haiku envoy client] connection timed out')), duration);
     });
@@ -275,8 +262,8 @@ export default class EnvoyClient<T> {
    * @param datagram
    * @param requestOptions
    */
-  private send(datagram: Datagram, requestOptions?: RequestOptions): Promise<any> {
-    return new Promise<any>((accept, _) => {
+  private send (datagram: Datagram, requestOptions?: RequestOptions): Promise<any> {
+    return new Promise<any>((accept, reject) => {
       const mergedOptions = Object.assign({}, DEFAULT_REQUEST_OPTIONS, requestOptions);
 
       const requestId = generateUUIDv4();
@@ -288,21 +275,28 @@ export default class EnvoyClient<T> {
         const timeout = this.generateTimeoutPromise(mergedOptions.timeout);
 
         // TODO: Fix Bluebird typing error by removing any
-        const success = new Promise<any>((acceptInner: any) => {
-          this.outstandingRequests.set(datagram.id, acceptInner);
-        });
+        const success = new Promise<any>(
+          (
+            acceptInner: (data: PromiseLike<EnvoySerializable>) => void,
+            rejectInner: (error: any) => void,
+          ) => {
+            this.outstandingRequests.set(datagram.id, (data) => {
+              if (data && data.error) {
+                return rejectInner(data.error);
+              }
 
-        return Promise
-          .race([timeout, success])
-          .then(
+              return acceptInner(data);
+            });
+          },
+        );
+
+        return Promise.race([timeout, success]).then(
           (data) => {
-            // SUCCESS
             accept(data);
           },
-          () => {
-            // TIMEOUT
-            this.logger.warn(
-              '[haiku envoy client] response timed out [configured @ ' + mergedOptions.timeout + 'ms]');
+          (error) => {
+            reject(error);
+            this.logger.warn('[haiku envoy client]', error);
             this.outstandingRequests.delete(requestId);
           },
         );
@@ -315,20 +309,20 @@ export default class EnvoyClient<T> {
   /**
    * Convenience wrapper around querying peers for a SCHEMA at a given channel
    */
-  private getRemoteSchema(channel: string): Promise<Schema> {
+  private getRemoteSchema (channel: string): Promise<{}> {
     const foundSchema = this.schemaCache.get(channel);
     if (foundSchema) {
       return Promise.resolve(foundSchema);
     }
 
-    return this.send(<Datagram>{
+    return this.send({
       channel,
       id: generateUUIDv4(),
       intent: DatagramIntent.SCHEMA_REQUEST,
       method: '',
       params: [],
-    }).then((data) => {
-      const loadedSchema = <Schema>JSON.parse(data);
+    } as Datagram).then((data) => {
+      const loadedSchema = JSON.parse(data);
       if (loadedSchema) {
         this.schemaCache.set(channel, loadedSchema);
       }

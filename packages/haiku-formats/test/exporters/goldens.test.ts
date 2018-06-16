@@ -1,16 +1,18 @@
 import {each} from 'async';
-import {join, basename} from 'path';
-const fse = require('haiku-fs-extra');
-const readdir = fse.readdir;
-const readFile = fse.readFile;
-import * as tape from 'tape';
-import {BodymovinExporter} from '../../lib/exporters/bodymovin/bodymovinExporter';
-import {HaikuStaticExporter} from '../../lib/exporters/haikuStatic/haikuStaticExporter';
+import {basename, join} from 'path';
+import tape = require('tape');
 
+// @ts-ignore
+import haikuFsExtra = require('haiku-fs-extra');
+
+import {BodymovinExporter} from '@formats/exporters/bodymovin/bodymovinExporter';
+import {HaikuStaticExporter} from '@formats/exporters/haikuStatic/haikuStaticExporter';
+
+const {readdir, readFile} = haikuFsExtra;
 const goldensRoot = join(global.process.cwd(), 'test/goldens');
 
-tape('haiku-formats goldens', (test: tape.Test) => {
-  test.test('bodymovin', (test: tape.Test) => {
+tape('haiku-formats goldens', (suite: tape.Test) => {
+  suite.test('bodymovin', (test: tape.Test) => {
     readdir(join(goldensRoot, 'bytecode'), (_: any, bytecodeFiles: string[]) => {
       each(
         bytecodeFiles,
@@ -22,11 +24,11 @@ tape('haiku-formats goldens', (test: tape.Test) => {
           delete require.cache[require.resolve(bytecodeFilename)];
           readFile(
             join(goldensRoot, 'bodymovin', `${name}.json`),
-            (_: any, contents: Buffer) => {
+            (__: any, contents: Buffer) => {
               test.equal(
-                // This aditional conversion is necessary to avoid any errors 
+                // This aditional conversion is necessary to avoid any errors
                 // from git.autocrlf on Windows
-                JSON.stringify(JSON.parse(contents.toString()),null,2),
+                JSON.stringify(JSON.parse(contents.toString()), null, 2),
                 JSON.stringify(exporter.rawOutput(), null, 2),
                 `bodymovin goldens match: ${name}`,
               );
@@ -39,7 +41,7 @@ tape('haiku-formats goldens', (test: tape.Test) => {
     });
   });
 
-  test.test('haikuStatic', (test: tape.Test) => {
+  suite.test('haikuStatic', (test: tape.Test) => {
     readdir(join(goldensRoot, 'bytecode'), (_: any, bytecodeFiles: string[]) => {
       each(
         bytecodeFiles,
@@ -49,11 +51,11 @@ tape('haiku-formats goldens', (test: tape.Test) => {
           const exporter = new HaikuStaticExporter(require(bytecodeFilename));
           readFile(
             join(goldensRoot, 'haikuStatic', `${name}.json`),
-            (_: any, contents: Buffer) => {
+            (__: any, contents: Buffer) => {
               test.equal(
-                // This aditional conversion is necessary to avoid any errors 
+                // This aditional conversion is necessary to avoid any errors
                 // from git.autocrlf on Windows
-                JSON.stringify(JSON.parse(contents.toString()),null,2),
+                JSON.stringify(JSON.parse(contents.toString()), null, 2),
                 JSON.stringify(exporter.rawOutput(), null, 2),
                 `haikuStatic goldens match: ${name}`,
               );
@@ -66,5 +68,5 @@ tape('haiku-formats goldens', (test: tape.Test) => {
     });
   });
 
-  test.end();
+  suite.end();
 });

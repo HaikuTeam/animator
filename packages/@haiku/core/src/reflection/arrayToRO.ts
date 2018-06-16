@@ -4,7 +4,7 @@
 
 import expressionToRO from './expressionToRO';
 
-export default function arrayToRO(arr) {
+export default function arrayToRO (arr) {
   const out = [];
   for (let i = 0; i < arr.length; i++) {
     out[i] = expressionToRO(arr[i], null);

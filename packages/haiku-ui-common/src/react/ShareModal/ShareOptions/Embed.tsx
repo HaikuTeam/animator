@@ -1,35 +1,32 @@
-import * as React from 'react';
 import * as dedent from 'dedent';
-import {PUBLISH_SHARED} from './PublishStyles';
+import * as React from 'react';
 import {CodeBox} from '../../CodeBox';
+import {PUBLISH_SHARED} from './PublishStyles';
 
-export default class Embed extends React.PureComponent {
-  props;
+export interface EmbedProps {
+  projectName: string;
+  userName: string;
+  organizationName: string;
+  projectUid: string;
+  sha: string;
+}
 
-  static propTypes = {
-    projectName: React.PropTypes.string,
-    userName: React.PropTypes.string,
-    organizationName: React.PropTypes.string,
-    projectUid: React.PropTypes.string,
-    sha: React.PropTypes.string,
-  };
-
-  get cdnBase() {
+export default class Embed extends React.PureComponent<EmbedProps> {
+  get cdnBase () {
     const cdnBase = 'https://cdn.haiku.ai/';
 
     return `${cdnBase + this.props.projectUid}/${this.props.sha}/`;
   }
 
   render () {
-    const {userName, projectName, organizationName, sha} = this.props;
+    const {projectName, organizationName, sha} = this.props;
     const scriptPath = `https://code.haiku.ai/scripts/core/HaikuCore.${process.env.HAIKU_RELEASE_VERSION}.min.js`;
     const embedPath = `${this.cdnBase}index.embed.js`;
 
     return (
       <div style={PUBLISH_SHARED.block}>
         <div style={PUBLISH_SHARED.instructionsRow}>
-          <div style={PUBLISH_SHARED.instructionsCol1}>
-          </div>
+          <div style={PUBLISH_SHARED.instructionsCol1} />
           <div style={PUBLISH_SHARED.instructionsCol2}>
             Example usage: <br />
           </div>

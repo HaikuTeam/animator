@@ -3,7 +3,7 @@
  */
 
 // Just a utility function for populating these objects
-export default function has(...args) {
+export default function has (...args) {
   const obj = {};
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];

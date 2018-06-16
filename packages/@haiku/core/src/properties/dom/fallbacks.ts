@@ -2,9 +2,9 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
+import {PlaybackSetting} from './../../HaikuTimeline';
 import Layout3D from './../../Layout3D';
 import has from './has';
-import {PLAYBACK_SETTINGS} from './vanities';
 
 const TEXT_CONTENT_FALLBACKS = {
   content: null,
@@ -36,7 +36,6 @@ const LAYOUT_3D_FALLBACKS = {
   'rotation.x': LAYOUT_DEFAULTS.rotation.x,
   'rotation.y': LAYOUT_DEFAULTS.rotation.y,
   'rotation.z': LAYOUT_DEFAULTS.rotation.z,
-  'rotation.w': LAYOUT_DEFAULTS.rotation.w,
   'scale.x': LAYOUT_DEFAULTS.scale.x,
   'scale.y': LAYOUT_DEFAULTS.scale.y,
   'scale.z': LAYOUT_DEFAULTS.scale.z,
@@ -320,7 +319,7 @@ const PATH_FALLBACKS = {
 const HTML_STYLE_SHORTHAND_FALLBACKS = {};
 
 const PLAYBACK_FALLBACKS = {
-  playback: PLAYBACK_SETTINGS.LOOP,
+  playback: PlaybackSetting.LOOP,
 };
 
 const CONTROL_FLOW_FALLBACKS = {

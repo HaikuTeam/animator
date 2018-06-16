@@ -8,7 +8,8 @@ const LOCKS = {
   FilePerformComponentWork: 'FilePerformComponentWork',
   FileReadWrite: (abspath) => { return `FileReadWrite:${abspath}` },
   ProjectMethodHandler: 'ProjectMethodHandler',
-  ActionStackUndoRedo: 'ActionStackUndoRedo'
+  ActionStackUndoRedo: 'ActionStackUndoRedo',
+  SetCurrentActiveCompnent: 'SetCurrentActiveCompnent'
 }
 
 const emitter = new EventEmitter()
@@ -29,19 +30,13 @@ const request = (key, emit, cb) => {
   }
 
   const release = () => {
-    ACTIVE_LOCKS[key] = false
     if (emit) {
       emitter.emit('lock-off', key)
     }
+    ACTIVE_LOCKS[key] = false
   }
 
   return cb(release)
-}
-
-const clearAll = () => {
-  for (const key in ACTIVE_LOCKS) {
-    delete ACTIVE_LOCKS[key]
-  }
 }
 
 const awaitFree = (keys, cb) => {
@@ -60,11 +55,13 @@ const awaitFree = (keys, cb) => {
   return cb()
 }
 
+const awaitAllLocksFree = (cb) => awaitFree(Object.keys(ACTIVE_LOCKS), cb)
+
 module.exports = {
   request,
   emitter,
-  clearAll,
   awaitFree,
+  awaitAllLocksFree,
   LOCKS,
   ACTIVE_LOCKS
 }

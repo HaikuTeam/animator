@@ -55,8 +55,8 @@
 }
 
 ::selection {
-  background: rgb(205,49,114);
-  color: white;
+  background: #5DE2F9;
+  color: #FAFCFC;
 }
 
 img::selection {

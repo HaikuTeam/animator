@@ -19,7 +19,7 @@ pipeline {
                     . $HOME/.bash_profile
                     nvm install 8.9.3
                     nvm use 8.9.3
-                    curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.3.2'''
+                    curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.7.0'''
             }
         }
         stage('Build') {
@@ -44,7 +44,7 @@ pipeline {
                                     color: 'good',
                                     message: "PR #${env.ghprbPullId} built!\n\n" +
                                             "GitHub URL: https://github.com/HaikuTeam/mono/pull/${env.ghprbPullId}\n" +
-                                            "Download Mac DMG: https://ci.haiku.ai/job/HaikuDesktop/" +
+                                            "Download Mac DMG: https://ci.haiku.ai/job/HaikuRelease/" +
                                             "${env.BUILD_NUMBER}/artifact/dist/Haiku-${getReleaseVersion()}.dmg"
                             ])
                             setBuildStatus(CONTEXT_BUILD_MAC, 'build complete', STATUS_SUCCESS)
@@ -70,6 +70,7 @@ pipeline {
 void setBuildStatus(String context, String message, String state) {
     step([
             $class: 'GitHubCommitStatusSetter',
+            commitShaSource: [$class: "ManuallyEnteredShaSource", sha: env.ghprbActualCommit],
             contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: context],
             reposSource: [$class: 'ManuallyEnteredRepositorySource', url: 'https://github.com/HaikuTeam/mono'],
             errorHandlers: [[$class: 'ChangingBuildStatusErrorHandler', result: 'UNSTABLE']],

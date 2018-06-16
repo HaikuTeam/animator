@@ -1,6 +1,197 @@
 # Changelog
 
 
+## 3.4.4
+
+### Bug Fixes
+
+ * ensure migrations re-render following initial renders if bytecode was meaningfully mutated.
+ * The sizing config needs to be passed down to children too
+ * Refactor to fix component reference confusion with multi-component event handlers
+ * Some config should not be passed down to child components from the context (704039297305135)
+ * Ensure event routing is subcomponent-specific
+ * Don't clone child component bytecode which messes up event handler bindings
+ * Fix crash when injecting .* into expression
+ * for polyPointsStringToPoints regression.
+ * Correct comparison of keyframe values to timeline time for detecting expressions (700874348545633)
+ * Components should not fire event handlers when they have been deactivated (701883247926524)
+
+## 3.4.3
+
+### Bug Fixes
+
+ * for Ctrl+clicking multi-selection deselects all but the clicked element (697563057806737)
+ * require _collections correctly from svgo.
+ * for Bug
+ * ensure migrations re-render following initial renders if bytecode was meaningfully mutated.
+ * The sizing config needs to be passed down to children too
+ * Better playback settings when toggling between preview mode and editing mode
+ * Refactor to fix component reference confusion with multi-component event handlers
+ * Some config should not be passed down to child components from the context (704039297305135)
+ * Ensure event routing is subcomponent-specific
+ * Ensure child component event handlers fire in host component's preview mode (703465281990014)
+ * Don't clone child component bytecode which messes up event handler bindings
+ * Fix crash when injecting .* into expression
+ * for polyPointsStringToPoints regression.
+ * for Undoing group/ungroup of element in Main while in Child context makes Child instance in Main context disappear
+ * Correct comparison of keyframe values to timeline time for detecting expressions (700874348545633)
+ * Components should not fire event handlers when they have been deactivated (701883247926524)
+
+### Features
+
+ * Allow preview mode to be toggled from the top menu (helps with dev too)
+ * Make undo/redo multi-component-aware
+
+## 3.4.2
+
+### Bug Fixes
+
+ * ensure Angular instructions actually work.
+ * prevent global ID collisions across multiple core instances.
+ * for this resolution in a cloned function.
+ * Prevent crash if receiver component is not present
+ * do not parse here.
+
+## 3.4.1
+
+### Bug Fixes
+
+ * ensure ungroupables will not crash in SVG context.
+ * ensure Angular instructions actually work.
+ * prevent global ID collisions across multiple core instances.
+ * for this resolution in a cloned function.
+ * Prevent crash if receiver component is not present
+ * Fix part one for 'Playback doesn't work after switching between component tabs' (699216096995312)
+ * Timeline row selection-related crash (699417359896532)
+ * do not parse here.
+ * for Migration for gotoAndPlay APIs only works in hotEditingMode (694928618918872)
+ * 'Bug
+ * 'Bug
+ * 'controlFlow.placeholder broken in some cases'
+
+### Features
+
+ * More descriptive commit messages
+ * add titles to element names on the timeline
+ * initial work for direct editing
+
+## 3.4.0
+
+### Bug Fixes
+
+ * Topbar regression; all processes need to know what elements are selected
+ * for Bug
+ * for Bug
+ * for Bug
+ * for 'Create Component' should not appear if only element selected is a component (697563057806742)
+ * for Migration for gotoAndPlay APIs only works in hotEditingMode (694928618918872)
+ * for Addition of state not reflected in expression (697364565996804)
+ * for Bug
+ * for Ungrouping Moto artboard misplaces moto man and sun (696562098846673)
+ * for Alt+drag to copy not working (696722424445311)
+ * 'When ungrouping elements, use the layers, rather than generated ids'
+ * 'Bug
+ * 'Bug
+ * 'Instantiation doesn't deselect other elements'
+ * 'clicking element titles on timeline is not showing controls on stage'
+ * 'Bug
+ * 'Bug
+ * for insta-crash on duplicate project.
+ * 'Clicking to edit a state value instead edits its name'
+ * 'Hard to drag timeline playhead to frame 0'
+ * 'Z-actions and scrubber time fixes'
+ * 'Undo after deleting multiple tweens at once fails'
+ * 'Tiny black dot at top-left of stage when holding mouse down on artboard name'
+ * Prevent plumbing crash by ensuring the folder is present on broadcast that originates in creator
+ * Fix 'Bug
+ * Prevent plumbing crash by ensuring the folder is present on broadcast that originates in creator
+ * 'Bug
+ * 'Elements with shadows are clipped'
+ * 'Fix 'flattenKeys' React error in Creator'
+ * 'controlFlow.placeholder broken in some cases'
+ * 'Standalone glass not working'
+ * improve the logic to show hacky messages in library
+ * allow illustrator files to be open with doubleclick
+ * upload checkstyle result for all builds.
+ * for TypeError crash during interpolation.
+
+### Features
+
+ * enable public/private to be toggled during publish
+ * Improve UI/X of topbar controls
+ * 'Implement top bar controls'
+ * initial work for direct editing
+ * ship a default illustrator file on new projects
+ * improve the illustrator import script
+ * illustrator support
+
+## 3.3.4
+
+### Bug Fixes
+
+ * for Figma connect results in crash
+
+## 3.3.3
+
+### Bug Fixes
+
+ * until crashes are fixed, take away ability to undo conglomerateComponent, which did not really undo everything anyway.
+ * clear ElementSelectionProxy caches fully when timeline time changes.
+ * for 'Copy+paste component doesn't work right after reopening project with existing component on stage'
+ * for Element disappears when scaled down to near-zero/inverted
+ * Prevent multi-component playback on dashboard
+ * update broken imports in core and tests (#483)
+
+## 3.3.2
+
+### Bug Fixes
+
+ * avoid library preview being blocked by splitview line
+ * check for component before destroying context in ProjectPreview
+
+## 3.3.1
+
+### Bug Fixes
+
+ * Fix for 'Tab for new components created in other opened projects too'
+ * Fix for 'Existing projects not appearing correctly in project browser'
+ * for 'Copy+paste component doesn't work right after reopening project with existing component on stage'
+ * set correct position and styles for modals
+ * avoid overflow of usernames in popup
+ * correct URL when sending release to Slack.
+ * do not perfom envoy figma calls in mock mode
+ * move all figma external calls to the back-end
+ * for Element disappears when scaled down to near-zero/inverted
+ * conditionally import react devtools to avoid crashes in build
+ * remove warning about setting state on unmounted component
+ * for Moving mouse over a single element fires a bunch of hoverElement and unhoverElement events
+ * Ensure scrubbing works after first context switch
+ * use the correct parameters for launching a project
+ * A wild backtick appeared
+ * do not perfom envoy figma calls in mock mode
+ * move all figma external calls to the back-end
+ * for Element disappears when scaled down to near-zero/inverted
+ * for Groups have offset inner div that extends outside of the actual bounding box, which is both selectable and hoverable
+ * Don't include text literal nodes in bytecode file template
+ * Prevent context switch race conditions
+ * Prevent multi-component playback on dashboard
+ * disallow bad interactions between the tour and publish UI
+ * for CRASH
+ * for Multirotate is broken for legacy upgraded bytecode
+ * for Little moto dude disappears when ungrouping moto artboard
+ * for MC is incompatible with static.json
+ * ensure new project state is correctly setting public projects by default
+ * Prevent hover flicker by early returning if the mouse is down
+ * Too-short debounce time on heavy method caused deadlock
+ * make new projects public by default (#485)
+ * update broken imports in core and tests (#483)
+ * spell out yarn in self-link to avoid macOS conflict.
+
+### Features
+
+ * multidelete, multipaste
+ * Improve instantiation perf by caching File.readMana
+
 ## 3.2.23
 
 ### Bug Fixes

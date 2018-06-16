@@ -8,9 +8,9 @@ import {HaikuStaticExporter} from './haikuStatic/haikuStaticExporter';
 import * as LoggerInstance from 'haiku-serialization/src/utils/LoggerInstance';
 
 export interface ExporterInterface {
-  rawOutput(): any;
-  binaryOutput(): string;
-  failsafeBinaryOutput(): string;
+  rawOutput (): any;
+  binaryOutput (): string;
+  failsafeBinaryOutput (): string;
 }
 
 const getExporter = (format: ExporterFormat, bytecode: HaikuBytecode): ExporterInterface => {

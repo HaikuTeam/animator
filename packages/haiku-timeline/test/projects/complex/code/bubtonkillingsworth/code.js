@@ -1,6 +1,8 @@
 var Haiku = require("@haiku/core");
 module.exports = {
-  metadata: {},
+  metadata: {
+    relpath: "code/main/bubtonkillingsworth.js"
+  },
   options: {},
   states: {
     foo: {

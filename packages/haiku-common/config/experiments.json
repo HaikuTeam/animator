@@ -53,10 +53,18 @@
   },
   "AdvancedMultiTransform": {
     "development": true,
-    "production": false
+    "production": true
   },
   "OutliningElementsOnStage": {
     "development": true,
     "production": true
+  },
+  "OutliningElementsOnStageFromStage": {
+    "development": false,
+    "production": false
+  },
+  "DirectSelectionOfPrimitives": {
+    "development": false,
+    "production": false
   }
 }

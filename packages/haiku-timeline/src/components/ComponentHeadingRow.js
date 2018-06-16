@@ -4,6 +4,7 @@ import DownCarrotSVG from 'haiku-ui-common/lib/react/icons/DownCarrotSVG'
 import RightCarrotSVG from 'haiku-ui-common/lib/react/icons/RightCarrotSVG'
 import DragGrip from 'haiku-ui-common/lib/react/icons/DragGrip'
 import Palette from 'haiku-ui-common/lib/Palette'
+import Element from 'haiku-serialization/src/bll/Element'
 import ComponentHeadingRowHeading from './ComponentHeadingRowHeading'
 import CollapsedPropertyTimelineSegments from './CollapsedPropertyTimelineSegments'
 import EventHandlerTriggerer from './EventHandlerTriggerer'
@@ -107,7 +108,8 @@ export default class ComponentHeadingRow extends React.Component {
             clickEvent.stopPropagation()
             // Expand and select the entire component area when it is clicked, but note that we
             // only collapse if the user clicked directly on the chevron.
-            this.props.row.expandAndSelect({ from: 'timeline' })
+            Element.deselectAll({component: this.props.row.component}, {from: 'timeline'})
+            this.props.row.expandAndSelect({from: 'timeline'})
           }}
           style={{
             display: 'table-cell',
@@ -119,9 +121,11 @@ export default class ComponentHeadingRow extends React.Component {
             backgroundColor: this.props.isExpanded ? 'transparent' : Palette.LIGHT_GRAY
           }}>
           <div
+            className='component-heading-row-inner-r1'
             style={{
               height: this.props.rowHeight,
-              marginTop: -6
+              marginTop: -6,
+              maxWidth: (this.props.row.isRootRow()) ? '120px' : undefined
             }}
             onClick={(clickEvent) => {
               // Collapse/expand the entire component area when it is clicked
@@ -132,6 +136,7 @@ export default class ComponentHeadingRow extends React.Component {
             }}
           >
             <span
+              className='component-heading-chevron-box'
               style={{
                 display: 'inline-block',
                 transform: this.props.row.isRootRow() ? 'translate(0, -1px)' : 'translate(30px, -1px)'
@@ -169,23 +174,27 @@ export default class ComponentHeadingRow extends React.Component {
               isHovered={this.props.isHovered}
               onEventHandlerTriggered={this.props.onEventHandlerTriggered}
               onExpand={() => {
-                this.props.row.expandAndSelect({ from: 'timeline' })
+                Element.deselectAll({component: this.props.row.component}, {from: 'timeline'})
+                this.props.row.expandAndSelect({from: 'timeline'})
               }}
             />
           </div>
           <div
+            className='component-heading-row-inner-r2'
             style={
               this.props.isExpanded
                 ? {
                   marginLeft: '37px',
                   marginTop: '4px',
                   position: 'relative',
-                  height: '20px'
+                  height: '20px',
+                  maxWidth: '100px'
                 }
                 : {float: 'right', marginTop: '-15px', position: 'relative'}
             }
           >
             <div
+              className='event-handler-triggerer-button'
               style={{
                 width: 10,
                 position: 'absolute',
@@ -203,6 +212,7 @@ export default class ComponentHeadingRow extends React.Component {
             </div>
 
             <div
+              className='property-manager-button'
               style={{
                 width: 10,
                 position: 'absolute',
@@ -225,7 +235,8 @@ export default class ComponentHeadingRow extends React.Component {
             clickEvent.stopPropagation()
             // Expand and select the entire component area when it is clicked, but note that we
             // only collapse if the user clicked directly on the chevron.
-            this.props.row.expandAndSelect({ from: 'timeline' })
+            Element.deselectAll({component: this.props.row.component}, {from: 'timeline'})
+            this.props.row.expandAndSelect({from: 'timeline'})
           }}
           className='component-collapsed-segments-box'
           style={{

@@ -1,9 +1,11 @@
-import * as React from 'react';
-import * as CopyToClipboard from 'react-copy-to-clipboard';
+// @ts-ignore
 import {ThreeBounce} from 'better-react-spinkit';
+import * as React from 'react';
+// @ts-ignore
+import * as CopyToClipboard from 'react-copy-to-clipboard';
+import {LoadingTopBar} from '../../LoadingTopBar';
 import Palette from '../../Palette';
 import {CliboardIconSVG} from '../OtherIcons';
-import {LoadingTopBar} from '../../LoadingTopBar';
 
 const STYLES = {
   linkHolster: {
@@ -39,18 +41,23 @@ const STYLES = {
   } as React.CSSProperties,
 };
 
-export class LinkHolster extends React.PureComponent {
-  props;
+export interface LinkHolsterProps {
+  isSnapshotSaveInProgress?: boolean;
+  linkAddress?: string;
+  showLoadingBar?: boolean;
+  dark?: boolean;
+  onCopy?: () => void;
+  onLinkOpen?: () => void;
+}
 
-  static propTypes = {
-    isSnapshotSaveInProgress: React.PropTypes.bool,
-    linkAddress: React.PropTypes.string,
-    showLoadingBar: React.PropTypes.bool,
-    dark: React.PropTypes.bool,
-    onCopy: React.PropTypes.func,
-    onLinkOpen: React.PropTypes.func,
-  };
+export interface LinkHolsterStates {
+  done: boolean;
+  progress: number;
+  speed: string;
+  copied: boolean;
+}
 
+export class LinkHolster extends React.PureComponent<LinkHolsterProps, LinkHolsterStates> {
   static defaultProps = {
     showLoadingBar: true,
     dark: false,
@@ -69,7 +76,7 @@ export class LinkHolster extends React.PureComponent {
     },         100);
   }
 
-  componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps (nextProps: LinkHolsterProps) {
     if (nextProps.isSnapshotSaveInProgress) {
       this.setState({done: false, progress: 80, speed: '15s'});
     } else {
@@ -79,16 +86,17 @@ export class LinkHolster extends React.PureComponent {
 
   setCopyText () {
     this.setState({copied: true}, () => {
-      setTimeout(() => {this.setState({copied: false});}, 1900);
+      setTimeout(
+        () => {
+          this.setState({copied: false});
+        },
+        1900,
+      );
     });
   }
 
   get text () {
-    const {
-      isSnapshotSaveInProgress,
-      linkAddress,
-      onLinkOpen,
-    } = this.props;
+    const {linkAddress} = this.props;
 
     if (this.props.isSnapshotSaveInProgress) {
       return <span style={{...STYLES.link, ...STYLES.linkDisabled}}>New share link being generated</span>;
@@ -102,16 +110,7 @@ export class LinkHolster extends React.PureComponent {
       return (
           <span
             style={STYLES.link}
-            onClick={() => {
-              // #if false
-              const {shell} = require('electron');
-              shell.openExternal(linkAddress);
-              // #endif
-
-              if (onLinkOpen) {
-                onLinkOpen();
-              }
-            }}
+            onClick={this.onClick}
           >
             {linkAddress}
           </span>
@@ -121,11 +120,27 @@ export class LinkHolster extends React.PureComponent {
     return '';
   }
 
-  render() {
+  private onCopy = () => {
+    this.setCopyText();
+
+    if (this.props.onCopy) {
+      this.props.onCopy();
+    }
+  };
+
+  private onClick = () => {
+    const {shell} = require('electron');
+    shell.openExternal(this.props.linkAddress);
+
+    if (this.props.onLinkOpen) {
+      this.props.onLinkOpen();
+    }
+  };
+
+  render () {
     const {
       showLoadingBar,
       dark,
-      onCopy,
     } = this.props;
 
     return (
@@ -138,13 +153,7 @@ export class LinkHolster extends React.PureComponent {
           {this.text}
         <CopyToClipboard
           text={this.props.linkAddress}
-          onCopy={() => {
-            this.setCopyText();
-
-            if (onCopy) {
-              onCopy();
-            }
-          }}
+          onCopy={this.onCopy}
         >
           <span style={{...STYLES.linkCopyBtn, background: dark ? Palette.BLACK : Palette.COAL}}>
             <CliboardIconSVG />

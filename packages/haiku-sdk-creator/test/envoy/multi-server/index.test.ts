@@ -1,6 +1,6 @@
+import EnvoyLogger from '@sdk-creator/envoy/EnvoyLogger';
+import EnvoyServer from '@sdk-creator/envoy/EnvoyServer';
 import * as tape from 'tape';
-import EnvoyServer from '../../../lib/envoy/EnvoyServer';
-import EnvoyLogger from '../../../lib/envoy/EnvoyLogger';
 
 tape('envoy:multi-server', async (t) => {
   t.plan(7);

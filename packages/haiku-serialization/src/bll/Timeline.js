@@ -305,7 +305,7 @@ class Timeline extends BaseModel {
 
   setMaxFrame (maxFrame) {
     this._maxFrame = maxFrame
-    this.cacheUnset('frameInfo')
+    this.cache.unset('frameInfo')
     return this
   }
 
@@ -373,7 +373,7 @@ class Timeline extends BaseModel {
 
   setTimelinePixelWidth (pxWidth) {
     this._timelinePixelWidth = pxWidth
-    this.cacheUnset('frameInfo')
+    this.cache.unset('frameInfo')
     this.emit('update', 'timeline-timeline-pixel-width')
     return this
   }
@@ -525,7 +525,7 @@ class Timeline extends BaseModel {
              |scB
   */
   getFrameInfo () {
-    return this.cacheFetch('frameInfo', () => {
+    return this.cache.fetch('frameInfo', () => {
       const frameInfo = {}
 
       // Number of frames per second
@@ -838,7 +838,7 @@ class Timeline extends BaseModel {
     if (r > this.getMaxFrame()) {
       this.setMaxFrame(r)
     }
-    this.cacheUnset('frameInfo')
+    this.cache.unset('frameInfo')
     this.emit('update', 'timeline-frame-range')
     return this
   }
@@ -888,7 +888,7 @@ Timeline.eachTimelineKeyframeDescriptor = function eachTimelineKeyframeDescripto
   }
 }
 
-Timeline.getFrameModulus = function getFrameModulus (pxpf) {
+Timeline.getFrameModulus = (pxpf) => {
   if (pxpf >= 20) return 1
   if (pxpf >= 15) return 2
   if (pxpf >= 10) return 5
@@ -899,7 +899,7 @@ Timeline.getFrameModulus = function getFrameModulus (pxpf) {
   return 50
 }
 
-Timeline.getMillisecondModulus = function getMillisecondModulus (pxpf) {
+Timeline.getMillisecondModulus = (pxpf) => {
   if (pxpf >= 20) return 25
   if (pxpf >= 15) return 50
   if (pxpf >= 10) return 100
@@ -910,7 +910,7 @@ Timeline.getMillisecondModulus = function getMillisecondModulus (pxpf) {
   return 5000
 }
 
-Timeline.getMaximumMs = function getMaximumMs (reifiedBytecode, timelineName) {
+Timeline.getMaximumMs = (reifiedBytecode, timelineName) => {
   if (!reifiedBytecode) {
     return 0
   }

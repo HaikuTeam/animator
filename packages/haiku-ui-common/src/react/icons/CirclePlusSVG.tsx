@@ -1,7 +1,7 @@
 import * as React from 'react';
 import Palette from './../../Palette';
 
-export default ({color = Palette['COAL']}) => {
+export default ({color = Palette.COAL}) => {
   return (
     <svg width="17" height="17">
       <g fill="none" stroke={color}>

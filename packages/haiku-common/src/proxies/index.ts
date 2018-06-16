@@ -16,13 +16,13 @@ export const isProxied = (proxyString: string) => {
   return proxyString !== ProxyType.Direct;
 };
 
-export type ProxyDescriptor = {
+export interface ProxyDescriptor {
   host: string;
   port?: number;
   username?: string;
   password?: string;
   disableEncryption?: boolean;
-};
+}
 
 /**
  * Given a proxy descriptor, return a fully-qualified proxy URL.

@@ -84,64 +84,28 @@ const handleUrl = (url) => {
   browserWindow.webContents.send(`open-url:${parsedUrl.host}`, parsedUrl.pathname, qs.parse(parsedUrl.query))
 }
 
-function different (a, b) {
-  return a !== b
-}
-
 function createWindow () {
   mixpanel.haikuTrack('app:initialize')
 
   browserWindow = new BrowserWindow({
     title: 'Haiku',
     show: false, // Don't show the window until we are ready-to-show (see below)
-    titleBarStyle: 'hidden-inset'
+    titleBarStyle: 'hiddenInset'
   })
 
   const topmenu = new TopMenu(browserWindow.webContents)
 
-  const menuspec = {
+  const topmenuOptions = {
     projectList: [],
     isSaving: false,
-    isProjectOpen: false
+    isProjectOpen: false,
+    subComponents: []
   }
 
-  let folder = null
+  topmenu.create(topmenuOptions)
 
-  topmenu.create(menuspec)
-
-  ipcMain.on('master:heartbeat', (ipcEvent, masterState) => {
-    // Update the global menu, but only if the data feeding it appears to have changed.
-    // This is driven by a frequent heartbeat hence the reason we are checking for changes
-    // before actually re-rendering the whole thing
-    let didChange = false
-
-    // The reason for all these guards is that it appears that the heartbeat either
-    // (a) continues to tick despite master crashing
-    // (b) returns bad data, missing some fields, when master is in a bad state
-    // So we check that the things exist before repopulating
-    if (masterState) {
-      if (different(folder, masterState.folder)) {
-        didChange = true
-        folder = masterState.folder
-        menuspec.isProjectOpen = !!masterState.folder
-      }
-
-      if (different(menuspec.isSaving, masterState.isSaving)) {
-        didChange = true
-        menuspec.isSaving = masterState.isSaving
-      }
-    }
-
-    if (didChange) {
-      topmenu.create(menuspec)
-    }
-  })
-
-  ipcMain.on('renderer:projects-list-fetched', (ipcEvent, projectList) => {
-    menuspec.projectList = projectList
-    menuspec.isProjectOpen = false
-    folder = null
-    topmenu.create(menuspec)
+  ipcMain.on('topmenu:update', (ipcEvent, nextTopmenuOptions) => {
+    topmenu.update(nextTopmenuOptions)
   })
 
   browserWindow.setTitle('Haiku')
@@ -150,6 +114,11 @@ function createWindow () {
 
   if (process.env.DEV === '1') {
     browserWindow.openDevTools()
+
+    const { default: installExtension, REACT_DEVELOPER_TOOLS } = require('electron-devtools-installer')
+    installExtension(REACT_DEVELOPER_TOOLS)
+        .then((name) => console.log(`Added Extension:  ${name}`))
+        .catch((err) => console.log('An error occurred: ', err))
   }
 
   // Sending our haiku configuration into the view so it can correctly set up

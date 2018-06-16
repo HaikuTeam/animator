@@ -1,7 +1,7 @@
 /**
  * Convenience method for generating a unique id
  */
-export default function generateUUIDv4(): string {
+export default function generateUUIDv4 (): string {
   let uuid = '';
   for (let i = 0; i < 32; i++) {
     const rnd = Math.random() * 16 | 0;

@@ -1,11 +1,8 @@
-node_modules/
+node_modules
 .DS_Store
 *.log
-.vscode
-tmp
-~test
 lib/
-coverage/
 .nyc_output/
+coverage/
 checkstyle-result.xml
 test-result.tap

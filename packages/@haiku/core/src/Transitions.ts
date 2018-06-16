@@ -1,93 +1,19 @@
 /**
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
+import Interpolate from './Interpolate';
 
-import justCurves from './vendor/just-curves';
-
-const CENT = 1.0;
-const OBJECT = 'object';
-const NUMBER = 'number';
 const KEYFRAME_MARGIN = 16.666;
-const STRING = 'string';
 
-function percentOfTime(t0, t1, tnow) {
-  const span = t1 - t0;
-  if (span === 0) {
-    return CENT;
-  } // No divide-by-zero
-  const remaining = t1 - tnow;
-  return CENT - remaining / span;
-}
-
-function valueAtPercent(v0, v1, pc) {
-  const span = v1 - v0;
-  const gain = span * pc;
-  return v0 + gain;
-}
-
-function valueAtTime(v0, v1, t0, t1, tnow) {
-  const pc = percentOfTime(t0, t1, tnow);
-  return valueAtPercent(v0, v1, pc);
-}
-
-function interpolateValue(v0, v1, t0, t1, tnow, curve) {
-  let pc = percentOfTime(t0, t1, tnow);
-  if (pc > CENT) {
-    pc = CENT;
-  }
-  if (curve) {
-    pc = curve(pc);
-  }
-  return valueAtPercent(v0, v1, pc);
-}
-
-function interpolate(now, curve, started, ends, origin, destination) {
-  if (Array.isArray(origin) && Array.isArray(destination)) {
-    const arrayOutput = [];
-    for (let i = 0; i < origin.length; i++) {
-      arrayOutput[i] = interpolate(
-        now,
-        curve,
-        started,
-        ends,
-        origin[i],
-        destination[i],
-      );
-    }
-    return arrayOutput;
-  }
-
-  if (origin && typeof origin === OBJECT && destination && typeof destination === OBJECT) {
-    const objectOutput = {};
-    for (const key in origin) {
-      objectOutput[key] = interpolate(
-        now,
-        curve,
-        started,
-        ends,
-        origin[key],
-        destination[key],
-      );
-    }
-    return objectOutput;
-  }
-
-  if (typeof origin === NUMBER && typeof destination === NUMBER) {
-    return interpolateValue(origin, destination, started, ends, now, curve);
-  }
-
-  return origin;
-}
-
-function ascendingSort(a, b) {
+function ascendingSort (a, b) {
   return a - b;
 }
 
-function numberize(n) {
+function numberize (n) {
   return parseInt(n, 10);
 }
 
-function sortedKeyframesCached(keyframeGroup) {
+function sortedKeyframesCached (keyframeGroup) {
   // Cache the output of this on the object since this is very hot
   if (keyframeGroup.__sorted) {
     return keyframeGroup.__sorted;
@@ -100,7 +26,7 @@ function sortedKeyframesCached(keyframeGroup) {
   return keyframeGroup.__sorted;
 }
 
-function sortedKeyframes(keyframeGroup) {
+function sortedKeyframes (keyframeGroup) {
   const keys = Object.keys(keyframeGroup);
   const sorted = keys.sort(ascendingSort).map(numberize);
   return sorted;
@@ -109,7 +35,7 @@ function sortedKeyframes(keyframeGroup) {
 // 0:    { value: { ... } }
 // 2500: { value: { ... } }
 // 5000: { value: { ... } }
-function getKeyframesList(keyframeGroup, nowValue) {
+function getKeyframesList (keyframeGroup, nowValue) {
   const sorted = sortedKeyframesCached(keyframeGroup);
   for (let i = 0; i < sorted.length; i++) {
     const j = i + 1;
@@ -126,7 +52,7 @@ function getKeyframesList(keyframeGroup, nowValue) {
   }
 }
 
-function calculateValue(keyframeGroup, nowValue) {
+function calculateValue (keyframeGroup, nowValue) {
   const keyframesList = getKeyframesList(keyframeGroup, nowValue);
   if (!keyframesList || keyframesList.length < 1) {
     return;
@@ -145,7 +71,7 @@ function calculateValue(keyframeGroup, nowValue) {
   return finalValue;
 }
 
-function calculateValueAndReturnUndefinedIfNotWorthwhile(keyframeGroup, nowValue) {
+function calculateValueAndReturnUndefinedIfNotWorthwhile (keyframeGroup, nowValue) {
   const keyframesList = getKeyframesList(keyframeGroup, nowValue);
   if (!keyframesList || keyframesList.length < 1) {
     return void 0;
@@ -199,7 +125,7 @@ function calculateValueAndReturnUndefinedIfNotWorthwhile(keyframeGroup, nowValue
   return void 0;
 }
 
-function getTransitionValue(currentKeyframe, currentTransition, nextKeyframe, nextTransition, nowValue) {
+function getTransitionValue (currentKeyframe, currentTransition, nextKeyframe, nextTransition, nowValue) {
   const currentValue = currentTransition.value;
 
   if (!currentTransition.curve) {
@@ -209,19 +135,13 @@ function getTransitionValue(currentKeyframe, currentTransition, nextKeyframe, ne
     return currentValue;
   } // We have gone past the final transition
 
-  let currentCurve = currentTransition.curve;
-  if (typeof currentCurve === STRING) {
-    currentCurve = justCurves[currentCurve];
-  }
-  const nextValue = nextTransition.value;
-
-  const finalValue = interpolate(
+  const finalValue = Interpolate.interpolate(
     nowValue,
-    currentCurve,
+    currentTransition.curve,
     currentKeyframe,
     nextKeyframe,
     currentValue,
-    nextValue,
+    nextTransition.value,
   );
   return finalValue;
 }

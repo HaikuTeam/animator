@@ -151,7 +151,7 @@ tape('TimelineProperty.getBaselineValue', function(t) {
   let bv
 
   hostInstance = {}
-  hostInstance._builder = new ValueBuilder(hostInstance)
+  hostInstance.builder = new ValueBuilder(hostInstance)
   hostInstance.findElementsByHaikuId = findElementsByHaikuId
   hostInstance.shouldPerformFullFlush = () => {}
   inputValues = {}
@@ -174,7 +174,7 @@ tape('TimelineProperty.getBaselineValue', function(t) {
   t.equal(bv, 1, 'first is correct')
 
   hostInstance = {}
-  hostInstance._builder = new ValueBuilder(hostInstance)
+  hostInstance.builder = new ValueBuilder(hostInstance)
   hostInstance.findElementsByHaikuId = findElementsByHaikuId
   hostInstance.shouldPerformFullFlush = () => {}
   inputValues = {}
@@ -198,7 +198,7 @@ tape('TimelineProperty.getBaselineValue', function(t) {
 
   // This is the important test - ensuring we load the PREVIOUS keyframe when we have an exact fit!
   hostInstance = {}
-  hostInstance._builder = new ValueBuilder(hostInstance)
+  hostInstance.builder = new ValueBuilder(hostInstance)
   hostInstance.findElementsByHaikuId = findElementsByHaikuId
   hostInstance.shouldPerformFullFlush = () => {}
   inputValues = {}
@@ -221,7 +221,7 @@ tape('TimelineProperty.getBaselineValue', function(t) {
   t.equal(bv, 0, 'third is correct - got previous keyframe')
 
   hostInstance = {}
-  hostInstance._builder = new ValueBuilder(hostInstance)
+  hostInstance.builder = new ValueBuilder(hostInstance)
   hostInstance.findElementsByHaikuId = findElementsByHaikuId
   hostInstance.shouldPerformFullFlush = () => {}
   inputValues = {}
@@ -245,7 +245,7 @@ tape('TimelineProperty.getBaselineValue', function(t) {
 
   // Another important one: Ensure we use the dom.properties-defined fallback if there is no previous
   hostInstance = {}
-  hostInstance._builder = new ValueBuilder(hostInstance)
+  hostInstance.builder = new ValueBuilder(hostInstance)
   hostInstance.findElementsByHaikuId = findElementsByHaikuId
   hostInstance.shouldPerformFullFlush = () => {}
   inputValues = {}
@@ -269,7 +269,7 @@ tape('TimelineProperty.getBaselineValue', function(t) {
 
   // Another important one: Ensure we use the dom.properties-defined fallback if there is no previous
   hostInstance = {}
-  hostInstance._builder = new ValueBuilder(hostInstance)
+  hostInstance.builder = new ValueBuilder(hostInstance)
   hostInstance.findElementsByHaikuId = findElementsByHaikuId
   hostInstance.shouldPerformFullFlush = () => {}
   inputValues = {}

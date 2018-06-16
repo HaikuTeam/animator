@@ -1,8 +1,11 @@
 import * as tape from 'tape';
-const pkg = require('./../../package.json');
-import * as TestHelpers from './../TestHelpers';
-// tslint:disable-next-line:variable-name
-const HaikuDOMAdapter = require('./../../dom');
+import * as TestHelpers from '../TestHelpers';
+
+import HaikuDOMAdapter from '@core/adapters/dom/HaikuDOMAdapter';
+import code1 from '../fixtures/code1';
+
+const pkg = require('../../package.json');
+const VERSION = pkg.version;
 
 // Tell typescript we have these types on Window
 interface Window {
@@ -11,16 +14,21 @@ interface Window {
 
 declare var window: Window;
 
-tape('dom-embed-with-code', (t) => {
-  t.plan(1);
+tape(
+  'dom-embed-with-code',
+  (t) => {
+    t.plan(1);
 
-  TestHelpers.createDOM((err, win, mount) => {
-    if (err) { throw err; }
-    HaikuDOMAdapter.defineOnWindow();
-    const adapter = window.HaikuCore[pkg.version];
-    const haikuComponentFactory = adapter(require('./../fixtures/code1.ts'));
-    const component = haikuComponentFactory(mount);
-    component.context.clock.GLOBAL_ANIMATION_HARNESS.cancel();
-    t.ok(true);
-  });
-});
+    TestHelpers.createDOM((err, win, mount) => {
+      if (err) {
+        throw err;
+      }
+      HaikuDOMAdapter.defineOnWindow();
+      const adapter = window.HaikuCore[VERSION];
+      const haikuComponentFactory = adapter(code1);
+      const component = haikuComponentFactory(mount);
+      component.context.clock.GLOBAL_ANIMATION_HARNESS.cancel();
+      t.ok(true);
+    });
+  },
+);

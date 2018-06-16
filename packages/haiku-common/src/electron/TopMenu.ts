@@ -1,5 +1,5 @@
-import {app, Menu, shell} from 'electron';
-
+import {app, Menu, MenuItemConstructorOptions, shell} from 'electron';
+import {assign, isEqual} from 'lodash';
 import {isMac} from '../environments/os';
 import {Experiment, experimentIsEnabled} from '../experiments';
 import {PlumbingProject} from '../types';
@@ -7,18 +7,27 @@ import {TourUtils} from '../types/enums';
 
 app.setName('Haiku');
 
-export type TopMenuOptions = {
+export interface TopMenuOptions {
   isProjectOpen: boolean;
   isSaving: boolean;
   projectList: PlumbingProject[];
-};
+  subComponents: SubComponent[];
+}
+
+export interface SubComponent {
+  title: string;
+  scenename: string;
+  isActive: boolean;
+}
 
 export interface TopMenuEventSender {
   send: (eventName: string, ...args: any[]) => void;
 }
 
 export default class TopMenu {
-  constructor(private readonly sender: TopMenuEventSender) {}
+  options: TopMenuOptions;
+
+  constructor (private readonly sender: TopMenuEventSender) {}
 
   // Call sendActionToFirstResponder on Mac
   // From documentation:
@@ -33,19 +42,45 @@ export default class TopMenu {
     this.sender.send(`global-menu:${eventName}`);
   }
 
-  create(options: TopMenuOptions) {
+  /**
+   * @method update
+   * @description Like create, but may optimize and not update if no changes
+   */
+  update (nextOptions: TopMenuOptions) {
+    let didChange = false;
+
+    for (const key in this.options) {
+      if (nextOptions[key] !== undefined && !isEqual(nextOptions[key], this.options[key])) {
+        didChange = true;
+        break;
+      }
+    }
+
+    if (didChange) {
+      const finalOptions = assign(
+        this.options,
+        nextOptions,
+      );
+
+      this.create(finalOptions);
+    }
+  }
+
+  create (options: TopMenuOptions) {
+    this.options = options;
+
     const developerMenuItems = [
       {
         label: 'Open in Finder',
         accelerator: 'CmdOrCtrl+Option+F',
-        enabled: options.isProjectOpen,
+        enabled: this.options.isProjectOpen,
         click: () => {
           this.sender.send('global-menu:open-finder');
         },
       }, {
         label: 'Open in Terminal',
         accelerator: 'CmdOrCtrl+Option+T',
-        enabled: options.isProjectOpen,
+        enabled: this.options.isProjectOpen,
         click: () => {
           this.sender.send('global-menu:open-terminal');
         },
@@ -54,12 +89,33 @@ export default class TopMenu {
       // {
       //   label: 'Open in Text Editor',
       //   accelerator: 'CmdOrCtrl+Option+E',
-      //   enabled: options.isProjectOpen,
+      //   enabled: this.options.isProjectOpen,
       //   click: () => {
       //     this.sender.send('global-menu:open-text-editor');
       //   },
       // },
     ];
+
+    if (global.process.env.NODE_ENV !== 'production') {
+      developerMenuItems.push(
+        {
+          label: 'Open Dev Tools',
+          accelerator: 'CmdOrCtrl+Option+I',
+          enabled: true,
+          click: () => {
+            this.sender.send('global-menu:open-dev-tools');
+          },
+        },
+        {
+          label: 'Close Dev Tools',
+          accelerator: 'CmdOrCtrl+W',
+          enabled: true,
+          click: () => {
+            this.sender.send('global-menu:close-dev-tools');
+          },
+        },
+      );
+    }
 
     const mainMenuPieces = [];
 
@@ -113,22 +169,65 @@ export default class TopMenu {
       role: 'quit',
     });
 
+    const componentsSubSubmenu: any[] = [];
+
+    this.options.subComponents.forEach(({title, scenename, isActive}) => {
+      componentsSubSubmenu.push({
+        label: title,
+        enabled: !isActive,
+        click: () => {
+          this.sender.send('global-menu:set-active-component', scenename);
+        },
+      });
+    });
+
     const projectSubmenu = [];
+
+    const isSubComponentsMenuEnabled = (
+      this.options.subComponents &&
+      this.options.subComponents.length > 0 &&
+      this.options.isProjectOpen
+    );
+
     projectSubmenu.push(
       {
-        label: 'Publish',
-        enabled: !options.isSaving && options.isProjectOpen,
+        label: 'New',
+        accelerator: 'CmdOrCtrl+N',
+        enabled: !options.isSaving,
         click: () => {
-          this.sender.send('global-menu:save');
+          this.sender.send('global-menu:show-new-project-modal');
+        },
+      },
+      {type: 'separator'},
+      {
+        label: 'Preview',
+        accelerator: 'CmdOrCtrl+Enter',
+        enabled: !this.options.isSaving && this.options.isProjectOpen,
+        click: () => {
+          this.sender.send('global-menu:preview');
+        },
+      },
+      {type: 'separator'},
+      {
+        label: 'Publish',
+        enabled: !this.options.isSaving && this.options.isProjectOpen,
+        click: () => {
+          this.sender.send('global-menu:publish');
         },
       },
       {
         label: 'Save',
-        enabled: options.isProjectOpen,
+        enabled: this.options.isProjectOpen,
         accelerator: 'CmdOrCtrl+S',
         click: () => {
-          this.sender.send('global-menu:show-project-location-toast');
+          this.sender.send('global-menu:save');
         },
+      },
+      {type: 'separator'},
+      {
+        label: 'Components',
+        enabled: isSubComponentsMenuEnabled,
+        submenu: (isSubComponentsMenuEnabled) ? componentsSubSubmenu : undefined,
       },
     );
 
@@ -182,7 +281,7 @@ export default class TopMenu {
       editSubmenu.push({
         label: 'Group',
         accelerator: 'CmdOrCtrl+G',
-        enabled: options.isProjectOpen,
+        enabled: this.options.isProjectOpen,
         click: () => {
           this.sender.send('global-menu:group');
         },
@@ -191,7 +290,7 @@ export default class TopMenu {
       editSubmenu.push({
         label: 'Ungroup',
         accelerator: 'CmdOrCtrl+Shift+G',
-        enabled: options.isProjectOpen,
+        enabled: this.options.isProjectOpen,
         click: () => {
           this.sender.send('global-menu:ungroup');
         },
@@ -203,7 +302,7 @@ export default class TopMenu {
     editSubmenu.push({
       label: 'Delete',
       accelerator: 'Delete',
-      enabled: options.isProjectOpen,
+      enabled: this.options.isProjectOpen,
       click: () => {
         this.sendActionToFirstReponderAndEmit('delete');
       },
@@ -233,14 +332,14 @@ export default class TopMenu {
           {
             label: 'Zoom In',
             accelerator: 'CmdOrCtrl+Plus',
-            enabled: options.isProjectOpen,
+            enabled: this.options.isProjectOpen,
             click: () => {
               this.sender.send('global-menu:zoom-in');
             },
           }, {
             label: 'Zoom Out',
             accelerator: 'CmdOrCtrl+-', // not 'Minus' :/
-            enabled: options.isProjectOpen,
+            enabled: this.options.isProjectOpen,
             click: () => {
               this.sender.send('global-menu:zoom-out');
             },
@@ -253,10 +352,46 @@ export default class TopMenu {
         label: 'Community',
         submenu: [
           {
-            label: 'Haiku Community on Slack',
+            label: 'Community on Slack',
+            click: () => {
+              shell.openExternal('https://www.haiku.ai/slack-community/');
+            },
+          },
+          {
+            label: 'Showcase',
+            click: () => {
+              shell.openExternal('https://share.haiku.ai/');
+            },
+          },
+          {
+            label: 'Blog',
+            click: () => {
+              shell.openExternal('https://www.haiku.ai/blog/');
+            },
+          }, {type: 'separator'},
+          {
+            label: 'YouTube',
+            click: () => {
+              shell.openExternal('https://www.youtube.com/channel/UCFNlUrip_yGA8Ljk7QcwYog');
+            },
+          },
+          {
+            label: 'Twitter',
+            click: () => {
+              shell.openExternal('https://www.twitter.com/haikuforteams');
+            },
+          },
+          {
+            label: 'Facebook',
+            click: () => {
+              shell.openExternal('https://www.facebook.com/haikuforteams');
+            },
+          },
+          {
+            label: 'Instagram',
             click: () => {
               // tslint:disable-next-line
-              shell.openExternal('https://join.slack.com/t/haiku-community/shared_invite/enQtMjU0NzExMzQzMjIxLTA3NjgzZDYzYmNjYzcxNmUwY2NhMTE0YTE2OGVjZGE0MDhmNGIxOWUzOTk5OTI5MmQ0ZjA5MDAwNGY1Yjk1OTg');
+              shell.openExternal('https://www.instagram.com/haikuforteams/');
             },
           },
         ],
@@ -270,7 +405,7 @@ export default class TopMenu {
             },
           }, {
             label: 'Take Tour',
-            enabled: !!options.projectList.find((project) => project.projectName === TourUtils.ProjectName),
+            enabled: !!this.options.projectList.find((project) => project.projectName === TourUtils.ProjectName),
             click: () => {
               this.sender.send('global-menu:start-tour');
             },
@@ -292,6 +427,6 @@ export default class TopMenu {
           },
         ],
       },
-    ]));
+    ] as MenuItemConstructorOptions[]));
   }
 }

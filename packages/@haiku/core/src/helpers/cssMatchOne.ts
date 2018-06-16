@@ -14,7 +14,7 @@ const CLASS_PREFIX = '.';
 const ATTR_PREFIX = '[';
 const HAIKU_PREFIX = 'haiku:';
 
-export default function matchOne(node, piece, options) {
+export default function matchOne (node, piece, options) {
   if (piece.slice(0, 6) === HAIKU_PREFIX) {
     return cssMatchByHaiku(node, piece.slice(6), options);
   }

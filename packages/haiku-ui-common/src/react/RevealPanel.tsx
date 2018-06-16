@@ -13,15 +13,13 @@ const STYLES = {
   },
 };
 
-export class RevealPanel extends React.PureComponent {
-  props;
+export interface RevealPanelProps {
+  showDetail: boolean;
+  leftPanel?: React.ReactNode;
+  rightPanel?: React.ReactNode;
+}
 
-  static propTypes = {
-    showDetail: React.PropTypes.bool,
-    leftPanel: React.PropTypes.element,
-    rightPanel: React.PropTypes.element,
-  };
-
+export class RevealPanel extends React.PureComponent<RevealPanelProps> {
   render () {
     return (
       <div

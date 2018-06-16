@@ -1,6 +1,7 @@
 import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
-import {PathPoint} from 'haiku-common/lib/types';
+import {CurveSpec} from '@haiku/core/lib/vendor/svg-points/types';
 
+import {BytecodeTimelineProperty} from '@haiku/core/lib/api/HaikuBytecode';
 import {
   AnimationKey,
   PathKey,
@@ -14,14 +15,8 @@ import {
   BodymovinPathComponent,
   BodymovinProperty,
 } from './bodymovinTypes';
-import {
-  BytecodeTimelineValue, 
-  BytecodeTimeline, 
-  BytecodeTimelineProperties, 
-  BytecodeTimelineProperty,
-} from '@haiku/core/lib/api/HaikuBytecode';
 
-const {pathToPoints} = SVGPoints;
+const {pathToPoints, polyPointsStringToPoints} = SVGPoints;
 
 /**
  * Reducer for an animated timeline property.
@@ -156,7 +151,7 @@ export const alwaysArray = (maybeArray: any): any[] => {
  * @returns {number}
  */
 export const alwaysAbsolute = (maybePercent: string|number, basis: number): number => {
-  if (typeof maybePercent === 'string' && /^\d*\.?\d+?%$/.test(maybePercent)) {
+  if (typeof maybePercent === 'string' && /^-?\d*\.?\d+?%$/.test(maybePercent)) {
     return parseFloat(maybePercent.replace('%', '')) * basis / 100;
   }
 
@@ -228,7 +223,7 @@ const translateInterpolationPoints = (points: BodymovinPathComponent, vertices: 
  * @param points
  * @param closed
  */
-export const pathToInterpolationTrace = (points: PathPoint[], closed: boolean) => {
+export const pathToInterpolationTrace = (points: CurveSpec[], closed: boolean) => {
   const vertices: BodymovinPathComponent = [];
   const interpolationInPoints: BodymovinPathComponent = [];
   const interpolationOutPoints: BodymovinPathComponent = [];
@@ -293,16 +288,7 @@ export const pathToInterpolationTrace = (points: PathPoint[], closed: boolean) =
  * @returns {[key in PathKey]: BodymovinPathComponent}
  */
 export const pointsToInterpolationTrace = (svgPoints: string|[number, number][]) => {
-  const chunkedPoints: [number, number][] = [];
-  if (Array.isArray(svgPoints)) {
-    chunkedPoints.push(...svgPoints);
-  } else {
-    // Normalize "x1,y1 x2,y2" syntax to "x1 y1 x2 y2" syntax before splitting
-    const points: number[] = svgPoints.replace(/,/g, ' ').split(' ').map(Number);
-    for (let i = 0; i < points.length; i += 2) {
-      chunkedPoints.push(points.slice(i, i + 2) as [number, number]);
-    }
-  }
+  const chunkedPoints = polyPointsStringToPoints(svgPoints);
 
   // To support Bodymovin export format, we have to create a "dummy curve" with null interpolation points.
   // tslint:disable-next-line:prefer-array-literal
@@ -315,73 +301,7 @@ export const pointsToInterpolationTrace = (svgPoints: string|[number, number][])
   };
 };
 
-/**
- * Private helper enum for decomposePath. Colinear orientation is elided for simplicity.
- */
-enum Orientation {
-  Clockwise = 0,
-  Counterclockwise = 1,
-}
-
-/**
- * Private helper method for decomposePath. Given three PathPoints, determines their "close enough" orientation
- * (colinearity is cast to "CounterClockwise" without loss of effect).
- *
- * @see {@link https://www.geeksforgeeks.org/orientation-3-ordered-points/}
- * @param {PathPoint} p1
- * @param {PathPoint} p2
- * @param {PathPoint} p3
- * @returns {Orientation}
- */
-const getOrientation = (p1: PathPoint, p2: PathPoint, p3: PathPoint): Orientation => {
-  const orientationCoefficient = ((p2.y - p1.y) * (p3.x - p2.x) || 0) - ((p2.x - p1.x) * (p3.y - p2.y) || 0);
-  return (orientationCoefficient > 0) ? Orientation.Clockwise : Orientation.Counterclockwise;
-};
-
-/**
- * Private helper method for decomposePath. Determines if a polygon nontrivially contains a point, which is used as
- * a rough proxy for whether we should detach or conjoin chained paths. Because we are only concerned with correct
- * rendering, we don't have use for a notion of "colinearity", which makes the work here slightly more efficient.
- *
- * We use a shoddy implementation of the "Ray casting algorithm", a standard test for polygonal "insideness": count the
- * number of times the ray from [p.x, p.y] to [+Infinity, p.y] intersects a side of the polygon. If odd, the point is
- * "inside"; else, the point is "outside".
- * @see {@link https://en.wikipedia.org/wiki/Point_in_polygon#Ray_casting_algorithm}
- * @param {PathPoint[]} polygon
- * @param {PathPoint} p
- * @returns {boolean}
- */
-const polygonContainsPoint = (polygon: PathPoint[], p: PathPoint): boolean => {
-  // Trivial case: a polygon with < 2 vertices is always safe to split off.
-  if (polygon.length < 3) {
-    return false;
-  }
-
-  const pInf = {x: Infinity, y: p.y} as PathPoint;
-
-  let intersections = 0;
-  let cursor = 0;
-
-  while (cursor < polygon.length) {
-    const [polygon1, polygon2] = (cursor === polygon.length - 1)
-      ? [polygon[cursor], polygon[0]]
-      : [polygon[cursor], polygon[cursor + 1]];
-    cursor++;
-
-    // Tests if the line segment <polygon1, polygon2> is intersected by the ray <p, pInf>.
-    if (
-      getOrientation(polygon1, polygon2, p) !== getOrientation(polygon1, polygon2, pInf)
-      && getOrientation(p, pInf, polygon1) !== getOrientation(p, pInf, polygon2)
-    ) {
-      intersections++;
-    }
-  }
-
-  return intersections % 2 === 1;
-};
-
-
-export const getPath = (path: string|PathPoint[]): PathPoint[] => {
+export const getPath = (path: string|CurveSpec[]): CurveSpec[] => {
   if (!Array.isArray(path)) {
     return pathToPoints(path);
   }
@@ -399,13 +319,13 @@ export const getPath = (path: string|PathPoint[]): PathPoint[] => {
  * @param {string} path
  * @returns {string[]}
  */
-export const decomposePath = (path: string|PathPoint[]): {points: PathPoint[], closed: boolean}[] => {
+export const decomposePath = (path: string|CurveSpec[]): {points: CurveSpec[], closed: boolean}[] => {
   if (!Array.isArray(path)) {
     return decomposePath(getPath(path));
   }
 
   const allClosedPaths: {
-    points: PathPoint[];
+    points: CurveSpec[];
     closed: boolean;
   }[] = [];
   if (path.length < 2) {
@@ -462,7 +382,7 @@ export const timelineValuesAreEquivalent = (valueA: any, valueB: any): boolean =
  * That streaming parser always skips keys until it encounters the `ty` key, so we need to force it to come first.
  * @returns {Object}
  */
-export const lottieAndroidStreamSafeToJson = function lottieAndroidStreamSafeToJson() {
+export const lottieAndroidStreamSafeToJson = function () {
   if (!this.hasOwnProperty(ShapeKey.Type)) {
     return this;
   }

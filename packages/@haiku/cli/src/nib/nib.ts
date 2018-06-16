@@ -1,12 +1,14 @@
 import * as _ from 'lodash';
 import {argv} from 'yargs';
 
+export type NibAction = (context: IContext) => void;
+
 export interface Command {
   name: string;
   description?: string;
   aliases?: string[];
   usage?: string;
-  action?: Function;
+  action?: NibAction;
   subcommands?: Command[];
   args?: ArgumentDefinition[];
   flags?: FlagDefinition[];
@@ -29,7 +31,7 @@ export interface NibOptions {
   name: string;
   version: string;
   description?: string;
-  preAction?: Function;
+  preAction?: NibAction;
 }
 
 /**
@@ -40,7 +42,7 @@ export class Nib {
   private options: NibOptions;
   private rootContext: IContext;
 
-  constructor(options: NibOptions) {
+  constructor (options: NibOptions) {
     const args = argv._;
     const flags = _.clone(argv);
     delete flags._;
@@ -48,6 +50,7 @@ export class Nib {
     this.rootContext = new Context(
       args,
       flags,
+      console,
     );
     this.options = options;
     // user needs to call .run()
@@ -57,14 +60,14 @@ export class Nib {
    * Kicks off CLI process.  Separated from constructor for ease of testing.
    * @param mockContext optional override IContext, useful for testing
    */
-  run(mockContext?: IContext) {
+  run (mockContext?: IContext) {
     if (mockContext) {
       this.rootContext = mockContext;
     }
     this.interpretContext(this.rootContext);
   }
 
-  private usage(head: string[], command: Command | Command[], context: IContext) {
+  private usage (head: string[], command: Command | Command[], context: IContext) {
     const topLevel = head.length === 0;
     const vals: {
       name?: string,
@@ -81,12 +84,12 @@ export class Nib {
       vals.name = this.options.name + ((this.options.description && ' - ' + this.options.description) || '');
       vals.usage = this.options.name + ' [global options] command [command options] [arguments...]';
       vals.commands = '';
-      (<Command[]>command).forEach((cmd) => {
+      (command as Command[]).forEach((cmd) => {
         vals.commands += `    ${cmd.name +
         (cmd.aliases && cmd.aliases.length ? ',' + cmd.aliases.join(', ') : '')}    ${cmd.description || ''}\n`;
       });
     } else {
-      const castCmd = <Command>command;
+      const castCmd = command as Command;
       const desc = castCmd.description;
       vals.name = castCmd.name + ((desc && ' - ' + desc) || '');
       const requiredArgs = _.filter(
@@ -159,7 +162,7 @@ ${vals.options || ''}`);
    * Runs the CLI process by executing the provided context
    * @param context IContext specifying flags, args, etc.
    */
-  private interpretContext(context: IContext) {
+  private interpretContext (context: IContext) {
     const head = [];
     const arg = context.argList.shift();
     if (arg) {
@@ -184,7 +187,7 @@ ${vals.options || ''}`);
         head,
       );
     } else {
-      if (context.flags['help'] !== undefined) {
+      if (context.flags.help !== undefined) {
         this.usage(
           head,
           commands,
@@ -209,7 +212,7 @@ ${vals.options || ''}`);
    * @param context
    * @param head
    */
-  private evaluateCommand(command: Command, context: IContext, head: string[]) {
+  private evaluateCommand (command: Command, context: IContext, head: string[]) {
     let evaluatingSubcommand = false;
     const args = context.argList;
     if (command.subcommands && args.length) {
@@ -239,7 +242,7 @@ ${vals.options || ''}`);
       );
       if (requiredArgs.length > args.length) {
         // TODO: check `required`.
-        console.log('Too few arguments.');
+        context.writeLine('Too few arguments.');
         this.usage(
           head,
           command,
@@ -264,7 +267,7 @@ ${vals.options || ''}`);
         },
       );
 
-      if (context.flags['help'] !== undefined) {
+      if (context.flags.help !== undefined) {
         this.usage(
           head,
           command,
@@ -282,10 +285,8 @@ export interface IContext {
   argList: string[];
   args: {[key: string]: string};
   flags: {[key: string]: string};
-  exit: Function;
-  readLine: Function;
-  readInteractiveList: Function;
-  writeLine: Function;
+  exit: (code: number) => void;
+  writeLine: (string: string) => void;
 }
 
 /**
@@ -293,35 +294,22 @@ export interface IContext {
  * is used to run Nib — for testing, a custom IContext can be created for mock data and behavior
  */
 export class Context implements IContext {
-  argList: string[];
-  logger: {log: Function};
-  mockMode: boolean;
-  args: {[key: string]: string};
-  flags: {[key: string]: string};
+  args = {};
 
-  constructor(args: string[], flags: {[key: string]: string}, logger?: {log: Function}, mockMode = false) {
-    this.args = {};
-    this.mockMode = mockMode;
-    this.argList = args;
-    this.flags = flags;
-    this.logger = logger || console;
-  }
+  constructor (
+    readonly argList: string[],
+    readonly flags: {[key: string]: string},
+    readonly logger?: {log: (...args: any[]) => void},
+    readonly mockMode = false,
+  ) {}
 
-  exit(code: number) {
+  exit (code: number) {
     if (!this.mockMode) {
       process.exit(code);
     }
   }
 
-  readLine(): Promise<string> {
-    throw new Error('Unimplemented');
-  }
-
-  readInteractiveList(title: string, options: string[]): Promise<string> {
-    throw new Error('Unimplemented');
-  }
-
-  writeLine(string) {
+  writeLine (string: string) {
     this.logger.log(string);
   }
 }

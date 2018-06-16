@@ -1,13 +1,13 @@
-import EnvoyServer from '../../../lib/envoy/EnvoyServer';
+import EnvoyServer from '@sdk-creator/envoy/EnvoyServer';
 
 export default class CatHandler {
   private server: EnvoyServer;
 
-  constructor(server) {
+  constructor (server) {
     this.server = server;
   }
 
-  meow(source: string, num: number): number {
+  meow (source: string, num: number): number {
     this.server.emit('cat', {
       name: 'meowed',
       payload: {

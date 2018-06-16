@@ -75,7 +75,7 @@ tape('Project.undo-redo[1]', (t) => {
           return ac.instantiateComponent('designs/Rect.svg', undefined, {from: 'test'}, (err, mana) => {
             if (err) throw err
             snaps.push(ac.getBytecodeJSON()) // 1
-            return ac.deleteComponent(mana.attributes['haiku-id'], {from: 'test'}, (err) => {
+            return ac.deleteComponents([mana.attributes['haiku-id']], {from: 'test'}, (err) => {
               if (err) throw err
               snaps.push(ac.getBytecodeJSON()) // 2
               return $undo((err) => {
@@ -103,7 +103,7 @@ tape('Project.undo-redo[1]', (t) => {
             snaps.push(ac.getBytecodeJSON()) // 0
             const el = ac.findElementByComponentId(mana.attributes['haiku-id'])
             const clip = el.copy()
-            return ac.pasteThing(clip, {}, {from: 'test'}, (err) => {
+            return ac.pasteThings([clip], {}, {from: 'test'}, (err) => {
               if (err) throw err
               snaps.push(ac.getBytecodeJSON()) // 1
               return $undo((err) => {

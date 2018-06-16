@@ -4,7 +4,7 @@ const fse = require('fs-extra')
 const lodash = require('lodash')
 const os = require('os')
 const async = require('async')
-const functionToRFO = require('@haiku/player/lib/reflection/functionToRFO').default
+const functionToRFO = require('@haiku/core/lib/reflection/functionToRFO').default
 const haikuInfo = require('../packages/haiku-plumbing/lib/haikuInfo').default()
 const Plumbing = require('../packages/haiku-plumbing/lib/Plumbing').default
 
@@ -136,7 +136,7 @@ const run = (name, options = {}, runner) => {
         }
 
         // Delete the project from the list, typing in its name to confirm
-        this.creator.refs.ProjectBrowser.showDeleteModal(indexOfProject)
+        this.creator.refs.ProjectBrowser.showDeleteModal(data.project)
         return setTimeout(() => {
           this.creator.refs.ProjectBrowser.handleDeleteInputChange({target: {value: data.project}})
           return setTimeout(() => {

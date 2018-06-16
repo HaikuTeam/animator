@@ -787,7 +787,7 @@ export function commitProject (folder, username, useHeadAsParent, saveOptions = 
     return buildCommit(folder, user, email, message, oid, updateRef, parentRef, (err, commitId) => {
       if (err) return cb(err)
 
-      // logger.info(`[git] commit done (${commitId.toString()})`)
+      logger.info(`[git] commit done (${commitId.toString()})`)
 
       return cb(null, commitId)
     })

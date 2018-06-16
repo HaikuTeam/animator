@@ -20,7 +20,7 @@ pipeline {
                     . $HOME/.bash_profile
                     nvm install 8.9.3
                     nvm use 8.9.3
-                    curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.3.2'''
+                    curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.7.0'''
             }
         }
         stage('Health') {
@@ -36,13 +36,18 @@ pipeline {
                     }
                     post {
                         always {
-                            checkstyle()
+                            checkstyle canRunOnFailed: true, defaultEncoding: '', healthy: '', pattern: '**/checkstyle-result.xml', unHealthy: ''
                         }
                         success {
                             setBuildStatus(CONTEXT_LINT, 'no lint errors', STATUS_SUCCESS)
                         }
                         failure {
                             setBuildStatus(CONTEXT_LINT, 'lint errors found', STATUS_FAILURE)
+                            slackSend([
+                                    channel: 'engineering-feed',
+                                    color: 'warning',
+                                    message: ":professor-farnsworth: PR #${env.ghprbPullId} (https://github.com/HaikuTeam/mono/pull/${env.ghprbPullId}) has lint errors!"
+                            ])
                         }
                     }
                 }
@@ -58,18 +63,25 @@ pipeline {
                     }
                     post {
                         always {
+                            archiveArtifacts artifacts: 'packages/**/test-result.tap', fingerprint: true
                             step([
                                     $class: 'TapPublisher',
                                     testResults: 'packages/**/test-result.tap',
                                     verbose: true,
                                     planRequired: true
                             ])
+                            cobertura autoUpdateHealth: false, autoUpdateStability: false, coberturaReportFile: '**/coverage/cobertura-coverage.xml', failNoReports: false, failUnhealthy: false, failUnstable: false, maxNumberOfBuilds: 0, onlyStable: false, sourceEncoding: 'ASCII', zoomCoverageChart: false
                         }
                         success {
                             setBuildStatus(CONTEXT_TEST_MAC, 'all tests pass', STATUS_SUCCESS)
                         }
                         failure {
-                            setBuildStatus(CONTEXT_TEST_MAC, 'tests are failing', STATUS_SUCCESS)
+                            setBuildStatus(CONTEXT_TEST_MAC, 'tests are failing', STATUS_FAILURE)
+                            slackSend([
+                                    channel: 'engineering-feed',
+                                    color: 'danger',
+                                    message: ":jenkins-rage: PR #${env.ghprbPullId} (https://github.com/HaikuTeam/mono/pull/${env.ghprbPullId}) has failing tests!"
+                            ])
                         }
                     }
                 }
@@ -79,6 +91,11 @@ pipeline {
     post {
         success {
             setBuildStatus(CONTEXT_HEALTH, 'all health checks passed', STATUS_SUCCESS)
+            slackSend([
+                channel: 'engineering-feed',
+                color: 'good',
+                message: "PR #${env.ghprbPullId} (https://github.com/HaikuTeam/mono/pull/${env.ghprbPullId}) is healthy!"
+            ])
         }
         failure {
             setBuildStatus(CONTEXT_HEALTH, 'not all health checks passed', STATUS_FAILURE)
@@ -89,6 +106,7 @@ pipeline {
 void setBuildStatus(String context, String message, String state) {
     step([
         $class: 'GitHubCommitStatusSetter',
+        commitShaSource: [$class: "ManuallyEnteredShaSource", sha: env.ghprbActualCommit],
         contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: context],
         reposSource: [$class: 'ManuallyEnteredRepositorySource', url: 'https://github.com/HaikuTeam/mono'],
         errorHandlers: [[$class: 'ChangingBuildStatusErrorHandler', result: 'UNSTABLE']],

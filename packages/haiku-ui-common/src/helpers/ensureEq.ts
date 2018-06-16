@@ -1,10 +1,10 @@
+import {EQ} from './ExprSigns';
 import retToEq from './retToEq';
-import * as EXPR_SIGNS from './ExprSigns';
 
-export default function ensureEq(str) {
+export default function ensureEq (str: string) {
   let fixed = retToEq(str);
-  if (fixed.slice(0, 1) !== EXPR_SIGNS.EQ) {
-    fixed = EXPR_SIGNS.EQ + fixed;
+  if (fixed.slice(0, 1) !== EQ) {
+    fixed = EQ + fixed;
   }
   return fixed;
 }

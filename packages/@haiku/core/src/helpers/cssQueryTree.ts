@@ -7,7 +7,7 @@ import manaFlattenTree from './manaFlattenTree';
 
 const OBJECT = 'object';
 
-export default function queryTree(node, query, options) {
+export default function queryTree (node, query, options) {
   if (!node || typeof node !== OBJECT) {
     return [];
   }
