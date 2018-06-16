@@ -156,7 +156,7 @@ export default class HaikuComponent extends HaikuElement {
     this.state = {}; // Public accessor object, e.g. this.state.foo = 1
 
     // Instantiate StateTransitions. Responsible to store and execute any state transition.
-    this.stateTransitionManager = new StateTransitionManager(this.state, this.getClock());
+    this.stateTransitionManager = new StateTransitionManager(this.state, this.getClock(),  this.context);
 
     // `assignConfig` calls bindStates because our incoming config, which
     // could occur at any point during runtime, e.g. in React, may need to update internal states, etc.
@@ -353,6 +353,11 @@ export default class HaikuComponent extends HaikuElement {
   }
 
   set (key, value) {
+    this.context.info('STATE_CHANGES', `State ${key} changed from ${this.state[key]} to ${value}`,
+                      {state: key,
+                      from: this.state[key],
+                      to: value});
+
     this.state[key] = value;
     return this;
   }
