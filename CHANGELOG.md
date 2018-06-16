@@ -1,6 +1,19 @@
 # Changelog
 
 
+## 3.4.6
+
+### Bug Fixes
+
+ * Prevent crash and don't log non-error as error
+ * Register key event listeners at window when expected
+ * add a carriage return after the content to prepend on init (#553)
+ * Don't try to migrate an event handler whose handler isn't present (708807567728468)
+ * Don't let remount unset an explicitly paused state
+ * avoid call stack exceeded on frame event listeners.
+ * simplify Preview bytecode
+ * Ensure 'playback' is applied even when no keyframe diff
+
 ## 3.4.5
 
 ### Bug Fixes
