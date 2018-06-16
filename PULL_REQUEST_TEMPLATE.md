@@ -10,12 +10,8 @@ Regressions to look for:
 
 - …
 
-Notes for reviewers:
-
-- …
-
 Completed checkin tasks:
 
 - [ ] Did manual testing of interrelated functionality
+- [ ] Wrote an automated test for existing and modified functionality
 - [ ] Added measurement instrumentation (Mixpanel, etc.)
-- [ ] Wrote an automated test covering new functionality
