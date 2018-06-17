@@ -177,11 +177,12 @@ TimelineProperty.getPropertyValueAtTime = (
           componentId,
           hostInstance.findElementsByHaikuId(componentId)[0],
           outputName, // propertyName
-          propertiesGroup,
+          propertiesGroup[outputName], // propertyValue
           time,
           hostInstance, // haikuComponent
           !hostInstance.shouldPerformFullFlush(), // isPatchOperation
-          true // skipCache
+          true, // skipCache
+          false // clearSortedKeyframesCache
         )
 
         if (computedValue !== undefined && computedValue !== null) {

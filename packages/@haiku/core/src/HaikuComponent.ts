@@ -981,60 +981,67 @@ export default class HaikuComponent extends HaikuElement {
           continue;
         }
 
-        const matchingElementsForBehavior = findMatchingElementsByCssSelector(
-          behaviorSelector,
-          this._flatManaTree,
-          this._matchedElementCache,
-        );
+        // This is our opportunity to group property operations that need to be in order
+        const propertyOperations = collatePropertyGroup(propertiesGroup);
 
-        if (!matchingElementsForBehavior || matchingElementsForBehavior.length < 1) {
-          continue;
-        }
+        for (let i = 0; i < propertyOperations.length; i++) {
+          const propertyGroup = propertyOperations[i];
 
-        for (let j = 0; j < matchingElementsForBehavior.length; j++) {
-          const matchingElement = matchingElementsForBehavior[j];
-
-          const domId = (
-            matchingElement &&
-            matchingElement.attributes &&
-            matchingElement.attributes.id
+          const matchingElementsForBehavior = findMatchingElementsByCssSelector(
+            behaviorSelector,
+            this._flatManaTree,
+            this._matchedElementCache,
           );
 
-          const haikuId = (
-            matchingElement &&
-            matchingElement.attributes &&
-            matchingElement.attributes[HAIKU_ID_ATTRIBUTE]
-          );
+          if (!matchingElementsForBehavior || matchingElementsForBehavior.length < 1) {
+            continue;
+          }
 
-          const flexId = haikuId || domId;
+          for (let j = 0; j < matchingElementsForBehavior.length; j++) {
+            const matchingElement = matchingElementsForBehavior[j];
 
-          const assembledOutputs = this.builder.build(
-            {}, // We provide an object onto which outputs are placed
-            timelineName,
-            timelineTime,
-            flexId,
-            matchingElement,
-            propertiesGroup,
-            isPatchOperation,
-            this,
-            skipCache,
-          );
+            const domId = (
+              matchingElement &&
+              matchingElement.attributes &&
+              matchingElement.attributes.id
+            );
 
-          if (assembledOutputs) {
-            // If assembledOutputs is empty, that signals that nothing has changed
-            if (deltas && flexId) {
-              deltas[flexId] = matchingElement;
-            }
+            const haikuId = (
+              matchingElement &&
+              matchingElement.attributes &&
+              matchingElement.attributes[HAIKU_ID_ATTRIBUTE]
+            );
 
-            for (const behaviorKey in assembledOutputs) {
-              const behaviorValue = assembledOutputs[behaviorKey];
+            const flexId = haikuId || domId;
 
-              this.applyPropertyToNode(
+            for (const propertyName in propertyGroup) {
+              const propertyValue = propertyGroup[propertyName];
+
+              const finalValue = this.builder.build(
+                timelineName,
+                timelineTime,
+                flexId,
                 matchingElement,
-                behaviorKey,
-                behaviorValue,
-                timelineInstance,
+                propertyName,
+                propertyValue,
+                isPatchOperation,
+                this,
+                skipCache,
               );
+
+              if (finalValue !== undefined) {
+                this.applyPropertyToNode(
+                  matchingElement,
+                  propertyName,
+                  finalValue,
+                  timelineInstance,
+                );
+
+                // If even one change has been applied, the element must be patched
+                if (deltas) {
+                  deltas[flexId] = matchingElement;
+                }
+              }
             }
           }
         }
@@ -1280,6 +1287,27 @@ export default class HaikuComponent extends HaikuElement {
 
   static all = (): HaikuComponent[] => HaikuBase.getRegistryForClass(HaikuComponent);
 }
+
+const STRUCTURE_PROPERTIES = {
+  'controlFlow.repeat': true,
+  'controlFlow.if': true,
+  'controlFlow.placeholder': true,
+};
+
+const collatePropertyGroup = (propertiesGroup) => {
+  const structuralOps = {};
+  const presentationalOps = {};
+
+  for (const propertyName in propertiesGroup) {
+    if (STRUCTURE_PROPERTIES[propertyName]) {
+      structuralOps[propertyName] = propertiesGroup[propertyName];
+    } else {
+      presentationalOps[propertyName] = propertiesGroup[propertyName];
+    }
+  }
+
+  return [structuralOps, presentationalOps];
+};
 
 function isBytecode (thing) {
   return thing && typeof thing === OBJECT_TYPE && thing.template;

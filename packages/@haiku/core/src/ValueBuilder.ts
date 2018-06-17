@@ -5,7 +5,6 @@
 import {AdaptedWindow} from './adapters/dom/HaikuDOMAdapter';
 import HaikuComponent, {getFallback} from './HaikuComponent';
 import HaikuHelpers from './HaikuHelpers';
-import BasicUtils from './helpers/BasicUtils';
 import ColorUtils from './helpers/ColorUtils';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
 import {isPreviewMode} from './helpers/interactionModes';
@@ -1264,105 +1263,45 @@ export default class ValueBuilder {
     return answer;
   }
 
-  /**
-   * @method build
-   * @description Given an 'out' object, accumulate values into that object based on the current timeline, time, and
-   * instance state.
-   * If we didn't make any changes, we return undefined here. The caller should account for this.
-   */
   build (
-    out,
     timelineName,
     timelineTime,
     flexId,
     matchingElement,
-    propertiesGroup,
+    propertyName,
+    propertyValue,
     isPatchOperation,
     haikuComponent,
     skipCache = false,
   ) {
-    let isAnythingWorthUpdating = false;
+    const finalValue = this.grabValue(
+      timelineName,
+      flexId,
+      matchingElement,
+      propertyName,
+      propertyValue,
+      timelineTime,
+      haikuComponent,
+      isPatchOperation,
+      skipCache,
+      null,
+    );
 
-    for (const propertyName in propertiesGroup) {
-      const finalValue = this.grabValue(
-        timelineName,
-        flexId,
-        matchingElement,
-        propertyName,
-        propertiesGroup,
-        timelineTime,
-        haikuComponent,
-        isPatchOperation,
-        skipCache,
-        null,
-      );
-
-      // We use undefined as a signal that it's not worthwhile to put this value in the list of updates.
-      // null should be used in the case that we want to explicitly set an empty value
-      if (finalValue === undefined) {
-        continue;
-      }
-
-      // If this is _not_ a patch operation, we have to set the value because downstream, the renderer will strip
-      // off old attributes present on the dom nodes.
-      if (
-        !isPatchOperation ||
-        this.didChangeValue(timelineName, flexId, matchingElement, propertyName, finalValue)
-      ) {
-        if (out[propertyName] === undefined) {
-          out[propertyName] = finalValue;
-        } else {
-          out[propertyName] = BasicUtils.mergeValue(
-            out[propertyName],
-            finalValue,
-          );
-        }
-
-        isAnythingWorthUpdating = true;
-      }
-    }
-
-    if (isAnythingWorthUpdating) {
-      return out;
-    }
-
-    return undefined;
+    return finalValue;
   }
 
-  /**
-   * @method grabValue
-   * @description Given a timeline and some current state information, return a computed value for the given property
-   * name.
-   *
-   * NOTE: The 'build' method above interprets a return value of 'undefined' to mean "no change" so bear that in mind...
-   *
-   * @param timelineName {String} Name of the timeline we're using
-   * @param flexId {String} Identifier of the matching element
-   * @param matchingElement {Object} The matching element
-   * @param propertyName {String} Name of the property being grabbed, e.g. position.x
-   * @param propertiesGroup {Object} The full timeline properties group, e.g. { position.x: ..., position.y: ... }
-   * @param timelineTime {Number} The current time (in ms) that the given timeline is at
-   * @param haikuComponent {Object} Instance of HaikuComponent
-   * @param isPatchOperation {Boolean} Is this a patch?
-   * @param skipCache {Boolean} Skip caching?
-   * @param clearSortedKeyframesCache
-   */
   grabValue (
     timelineName: string,
     flexId: string,
     matchingElement,
     propertyName: string,
-    propertiesGroup,
+    propertyValue: any,
     timelineTime: number,
     haikuComponent: HaikuComponent,
     isPatchOperation: boolean,
     skipCache: boolean,
     clearSortedKeyframesCache: boolean,
   ) {
-    if (!propertiesGroup) {
-      return undefined;
-    }
-
     // Used by $helpers to calculate scope-specific values;
     this._lastTimelineName = timelineName;
     this._lastFlexId = flexId;
@@ -1374,7 +1313,7 @@ export default class ValueBuilder {
       flexId,
       matchingElement,
       propertyName,
-      propertiesGroup && propertiesGroup[propertyName],
+      propertyValue,
       haikuComponent,
       isPatchOperation,
       skipCache,

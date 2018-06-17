@@ -530,11 +530,12 @@ class Element extends BaseModel {
         componentId,
         elementNode,
         outputName,
-        propertiesBase,
+        propertiesBase[outputName],
         timelineTime,
         hostInstance,
-        !hostInstance.shouldPerformFullFlush(),
-        true
+        !hostInstance.shouldPerformFullFlush(), // isPatchOperation
+        true, // skipCache
+        false // clearSortedKeyframesCache
       )
 
       if (computedValue === undefined || computedValue === null) {
