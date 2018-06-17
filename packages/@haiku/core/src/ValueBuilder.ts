@@ -3,14 +3,13 @@
  */
 
 import {AdaptedWindow} from './adapters/dom/HaikuDOMAdapter';
-import HaikuComponent from './HaikuComponent';
+import HaikuComponent, {getFallback} from './HaikuComponent';
 import HaikuHelpers from './HaikuHelpers';
 import BasicUtils from './helpers/BasicUtils';
+import ColorUtils from './helpers/ColorUtils';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
 import {isPreviewMode} from './helpers/interactionModes';
-import fallbacks from './properties/dom/fallbacks';
-import parsers from './properties/dom/parsers';
-import schema from './properties/dom/schema';
+import SVGPoints from './helpers/SVGPoints';
 import enhance from './reflection/enhance';
 import Transitions from './Transitions';
 import assign from './vendor/assign';
@@ -310,17 +309,7 @@ const EVENT_SCHEMA = {
   }],
 };
 
-const ELEMENT_SCHEMA = {
-  // A function in the schema indicates that schema is dynamic, dependent on some external information
-  properties (element) {
-    const defined = schema[element.elementName];
-    if (!defined) {
-      console.warn('[haiku core] element ' + element.elementName + ' has no schema defined');
-      return {};
-    }
-    return defined;
-  },
-};
+const ELEMENT_SCHEMA = {};
 
 const assignElementInjectables = (obj, key, summonSpec, hostInstance, element) => {
   // If for some reason no element, nothing to do
@@ -689,12 +678,84 @@ const FORBIDDEN_EXPRESSION_TOKENS = {
   defineProperty: true, // Object.
 };
 
+const parseD = (value) => {
+  // in case of d="" for any reason, don't try to expand this otherwise this will choke
+  // #TODO: arguably we should preprocess SVGs before things get this far; try svgo?
+  if (!value) {
+    return [];
+  }
+  // Allow points to return an array for convenience, and let downstream marshal it
+  if (Array.isArray(value)) {
+    return value;
+  }
+  return SVGPoints.pathToPoints(value);
+};
+
+const generateD = (value) => {
+  if (typeof value === 'string') {
+    return value;
+  }
+  return SVGPoints.pointsToPath(value);
+};
+
+const parseColor = (value) => {
+  return ColorUtils.parseString(value);
+};
+
+const generateColor = (value) => {
+  return ColorUtils.generateString(value);
+};
+
+const parsePoints = (value) => {
+  if (Array.isArray(value)) {
+    return value;
+  }
+  return SVGPoints.polyPointsStringToPoints(value);
+};
+
+const generatePoints = (value) => {
+  if (typeof value === 'string') {
+    return value;
+  }
+  return SVGPoints.pointsToPolyString(value);
+};
+
+const PARSERS = {
+  'style.stroke': {parse: parseColor, generate: generateColor},
+  'style.fill': {parse: parseColor, generate: generateColor},
+  'style.backgroundColor': {parse: parseColor, generate: generateColor},
+  'style.borderBottomColor': {parse: parseColor, generate: generateColor},
+  'style.borderColor': {parse: parseColor, generate: generateColor},
+  'style.borderLeftColor': {parse: parseColor, generate: generateColor},
+  'style.borderRightColor': {parse: parseColor, generate: generateColor},
+  'style.borderTopColor': {parse: parseColor, generate: generateColor},
+  'style.floodColor': {parse: parseColor, generate: generateColor},
+  'style.lightingColor': {parse: parseColor, generate: generateColor},
+  'style.stopColor': {parse: parseColor, generate: generateColor},
+  stroke: {parse: parseColor, generate: generateColor},
+  fill: {parse: parseColor, generate: generateColor},
+  floodColor: {parse: parseColor, generate: generateColor},
+  lightingColor: {parse: parseColor, generate: generateColor},
+  stopColor: {parse: parseColor, generate: generateColor},
+  backgroundColor: {parse: parseColor, generate: generateColor},
+  animateColor: {parse: parseColor, generate: generateColor},
+  feColor: {parse: parseColor, generate: generateColor},
+  // Note the hyphenated duplicates, for convenience
+  'flood-color': {parse: parseColor, generate: generateColor},
+  'lighting-color': {parse: parseColor, generate: generateColor},
+  'stop-color': {parse: parseColor, generate: generateColor},
+  'background-color': {parse: parseColor, generate: generateColor},
+  'animate-color': {parse: parseColor, generate: generateColor},
+  'fe-color': {parse: parseColor, generate: generateColor},
+  d: {parse: parseD, generate: generateD},
+  points: {parse: parsePoints, generate: generatePoints},
+};
+
 /**
  * When evaluating expressions written by the user, don't crash everything.
  * Log the error (but only once, since we're animating) and then return a
  * fairly safe all-purpose value (1).
  */
-
 const safeCall = (fn, hostInstance, hostStates) => {
   try {
     return fn.call(hostInstance, hostStates);
@@ -1121,7 +1182,7 @@ export default class ValueBuilder {
         );
 
         // The function's return value is expected to be in the *raw* format - we parse to allow for interpolation
-        const parser1 = this.getParser(outputName, matchingElement);
+        const parser1 = this.getParser(outputName);
         if (parser1) {
           parsee[ms].value = parser1(functionReturnValue);
         } else {
@@ -1139,7 +1200,7 @@ export default class ValueBuilder {
           parsee[ms].curve = descriptor.curve;
         }
 
-        const parser2 = this.getParser(outputName, matchingElement);
+        const parser2 = this.getParser(outputName);
         if (parser2) {
           parsee[ms].value = parser2(descriptor.value);
         } else {
@@ -1152,19 +1213,13 @@ export default class ValueBuilder {
     return parsee;
   }
 
-  getParser (outputName, virtualElement) {
-    if (!virtualElement) {
-      return undefined;
-    }
-    const foundParser = parsers[virtualElement.elementName] && parsers[virtualElement.elementName][outputName];
+  getParser (outputName) {
+    const foundParser = PARSERS[outputName];
     return foundParser && foundParser.parse;
   }
 
-  getGenerator (outputName, virtualElement) {
-    if (!virtualElement) {
-      return undefined;
-    }
-    const foundGenerator = parsers[virtualElement.elementName] && parsers[virtualElement.elementName][outputName];
+  getGenerator (outputName) {
+    const foundGenerator = PARSERS[outputName];
     return foundGenerator && foundGenerator.generate;
   }
 
@@ -1175,7 +1230,7 @@ export default class ValueBuilder {
     outputName,
     computedValue,
   ) {
-    const generator = this.getGenerator(outputName, matchingElement);
+    const generator = this.getGenerator(outputName);
     if (generator) {
       return generator(computedValue);
     }
@@ -1339,11 +1394,7 @@ export default class ValueBuilder {
 
     if (!parsedValueCluster[KEYFRAME_ZERO]) {
       parsedValueCluster[KEYFRAME_ZERO] = {
-        value: (
-          matchingElement &&
-          fallbacks[matchingElement.elementName] &&
-          fallbacks[matchingElement.elementName][propertyName]
-        ) || fallbacks.div[propertyName],
+        value: getFallback(matchingElement && matchingElement.elementName, propertyName),
       };
     }
 
