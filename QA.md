@@ -4,6 +4,7 @@ Trouble Spots
 
 I can complete the full tour
 I can open a duplicated project and the default Sketch file and its references have been renamed
+I can open a duplicated project and the default Adobe Illustrator file and its references have been renamed
 I can open an existing project 5 times (navigating back and forth from editor to dashboard)
 I can open a new project 5 times (navigating back and forth from editor to dashboard)
 I can instantiate the Haiku "H", drag it 5 times, then quickly delete it, without causing a crash
@@ -19,6 +20,7 @@ I can Alt+drag 20 copies of an element quickly without seeing a crash or a toast
 I can instantiate an element, cut it, undo the cut, and then select and move the element without crash
 After undoing, I can make on-stage changes beyond the max defined frame
 I can undo a deletion of an element and things still work normally
+I can select multiple elements and delete them without a crash
 I can undo a change to an element with a shadow and still instantiate/edit other elements
 I can undo several transform changes quickly and things don't break
 If my component has a playing time of more than `0`, undo/redo doesn't play the timeline
@@ -53,7 +55,6 @@ Text selection doesn't keep appearing/reappearing as I type in an expression fie
 Choosing an expression autocomplete entry doesn't obliterate the part of text I've just typed
 I can change the name of a state used by an expression, and an error will indicate the orphaned identifier
 If I have an expression bound to time or interactivity, this continues to work even if playback is paused
-Rapidly transforming Percy in multiple ways (move, rotate, scale) doesn't exhibit any lag/pauses/jank
 The $user.mouse.y position is calculated correctly with respect to the share page artboard box
 The $user.mouse.y position is calculated correctly when the stage has been zoomed/panned
 I can enter `rotation.x,y,z` `0,0,0` (defaults) and not see any change in rotation reflected
@@ -62,11 +63,8 @@ In a heavy project, dragging many keyframes quickly at once doesn't cause a "Red
 I can play a short (<30f) animation on a loop and playback doesn't slow down
 I can drag a keyframe from 0, delete it, then drag another from 0, and the new one works ok
 I can ungroup the Moto artboard without a problem
-I can multi-rotate elements in a legacy project (pre-3.3)
 The "secret `<div>`" in a group of elements isn't selectable (the hitbox of the group is bounded by the transform box)
 I can scale an element down to near zero in either dimension without a problem
-I can multi-scale elements that have been rotated in three dimensions
-I can negatively multi-scale (flip) elements that have been rotated without a problem
 I can ungroup a group of components
 I can copy+paste a component
 I delete an instance of a component from the stage, and then undo this
@@ -75,6 +73,10 @@ I can add text elements to the stage and the text content becomes "content" attr
 I can continuously scale an element round and round without causing a freeze-up or a crash
 I can create a subcomponent, give it animations, and scrub to see the animations in the host
 I can create a subcomponent, give it animations, and use preview mode to see the animations in the host
+I can multi-rotate elements in a legacy project (pre-3.3)
+I can multi-scale elements that have been rotated in three dimensions
+I can negatively multi-scale (flip) elements that have been rotated without a problem
+Rapidly transforming Percy in multiple ways (move, rotate, scale) doesn't exhibit any lag/pauses/jank
 
 *Matthew*
 
@@ -89,10 +91,10 @@ I can't Cmd+R (soft refresh) in the production app
 I can't open the Chrome Dev Tools in the production app
 Terms appears under Help > Terms of Service
 Privacy policy appears under Help > Privacy Policy
-If I'm behind a proxy the app shows a modal with instructions and doesn't crash
 I can see a present box with a pink dot in the project browser after an update
 I can open the changelog modal from the app menu (Help > What's New)
 I can message support via the in-editor intercom "SUPPORT" button
+If I'm behind a proxy the app shows a modal with instructions and doesn't crash
 
 Auth
 
@@ -103,8 +105,8 @@ As a logged-in user, opening app takes me to project dashboard
 Clicking on the EULA link takes me to the EULA page
 The projects dash lets me click a user button to log out
 When opening a project, removing `~/.haiku/auth`, then navigating back to project dash I'm logged out
-I can click the reset password link
 I can click the sign up link
+I can click the reset password link
 I can successfully reset my password and login again
 
 New Accounts
@@ -130,19 +132,19 @@ The name of duplicated project `Xyz` is suggested `XyzCopy`
 If XyzCopy already exists, the name of duplicated project `Xyz` is `XyzCopy1`, etc.
 Duplicated projects appear animated in the dashboard immediately, but have no 'Reveal in Finder' or 'Duplicate' option
 After launching a duplicated project, slices from the renamed default Sketch file are still synced to stage
-The above works with project names longer than 20 characters
-The above works with projects with more than one asset from the primary Sketch file on stage
 When naming a project, spaces and underscores and hyphens (etc) are not allowed
 When naming a project, the project name length is max 32
 When naming a project, if I choose a project name that already exists I am blocked with an error
-When I have > 50-ish projects, a message 'Max projects' is shown (note: need to reload to be respected by duplicating projects) 
-When I have > 50-ish projects, the + button is no longer shown 
-I can't create a project with a blank name
 Creating a new project immediately opens it for editing
 I can resize the window and the flex layout works correctly
 My computer's fan doesn't spin up just from looking at this page
 The thumbnails all animate smoothly when hovered
 Template projects are loaded properly
+I can't create a project with a blank name
+The above works with project names longer than 20 characters
+The above works with projects with more than one asset from the primary Sketch file on stage
+When I have > 50-ish projects, a message 'Max projects' is shown (note: need to reload to be respected by duplicating projects)
+When I have > 50-ish projects, the + button is no longer shown
 
 Editing Navigation
 
@@ -172,13 +174,6 @@ Forking
 I can fork a published, public project in the wild via right-click menu
 I can't fork a published, non-public project in the wild via right-click menu (no option is shown)
 I can fork a project by running open `haiku://fork/:organizationName/:projectName`
-
-Designer Collaboration // not yet relevant
-
-As another user in the org, I can open the project
-As another user in the org, I can make changes and publish
-As the original user, I can open and get the other user's changes
-In case of merge conflicts, I can choose ours/theirs successfully
 
 Embedding/Host Codebases
 
@@ -245,8 +240,6 @@ When element is deleted on stage, it is also deleted in the timeline
 When instantiated, the asset looks the same as the original design (no transform problems)
 When I instantiate elements, the z-stacking order of the previous instantiatees is preserved
 I can double-click an asset to instantiate it on stage
-Double-clicking to instantiate places the element at stage center
-Double-clicking to instantiate happens instantaneously
 
 Artboard
 
@@ -265,11 +258,11 @@ I can selectall/cut/copy/paste text in Login UI
 I can selectall/cut/copy/paste text in State Inspector UI
 I can selectall/cut/copy/paste text in Expression Input UI (single-line)
 I can selectall/cut/copy/paste text in Expression Input UI (multi-line)
+I can selectall/cut/copy/paste text in Intercom Support Widget
 I can selectall/cut/copy/paste text in Actions UI
 I can selectall/cut/copy/paste text in Publish UI share link
 I can selectall/cut/copy/paste text in Publish UI HTML+CDN Embed snippet
 I can selectall/cut/copy/paste text in Publish UI React Embed snippet
-I can selectall/cut/copy/paste text in Intercom Support Widget
 I can cut/copy elements on stage using keyboard controls
 I can paste elements on stage using keyboard controls
 I can cut/copy elements on stage using right-click menu
@@ -302,14 +295,15 @@ I can drag-and-drop timeline rows to reorder z-index
 Multi-Component
 
 In the library, a 'Components' folder is shown above 'Designs'
-By default, there is one component: 'Main', the current one; it is highlighted
-There are tabs above the stage reflecting editable components in the project
+Tabs show up above the stage for components that have been opened
 On stage, the label shows {ProjectName} {ComponentName}
 At bottom of app, the label shows {ProjectName} {ComponentName}
 The timeline displays the name of the component, Main, as the root element
 The state inspector heading indicates the current component
 On stage, I can reveal the context menu and I see 'Create Component'
 Clicking 'Create Component' opens a naming dialog box
+There is a 'Create Component' button in the top bar
+There is a 'Create Component' option in the library menus
 The component name dialog can be cancelled
 I can enter a component name
 The component name field only allows numbers and lowercase letters
@@ -323,7 +317,7 @@ For subcomponents, the sizeAbsolute.x/y value is set to `true`
 When I resize the subcomponent, the host reflects the size change
 If the child has content overflowing the host's box, that content is visible in the host
 Overflow settings are automatically added as editable rows to components' timelines
-By editing the overflow settings, I can change whether the overflow-x/y  is visible/scroll/hidden
+By editing the overflow settings, I can change whether the overflow-x/y is visible/scroll/hidden
 A new tab appears for the newly created component
 A new component appears in the library for the newly created component
 I can drag and transform the component like any other element
@@ -344,21 +338,19 @@ If the child state is bound to behavior, I see that affect on stage
 I can enter and exit preview mode when multiple components are in play
 If the child has animations, moving the host's scrubber plays them
 If the child has animations, playing the host plays them (note: host must have > 0 keyframes)
-If the child has animations, going into preview mode plays them (note: host must have > 0 keyframes)
+If the child has animations, going into preview mode plays them
 I can create a higher order component of multiple components
 I can create a higher order component mixing plain elements with components
 When I do this, all of the above functionality also continues to work correctly
 I can use the timeline scrubber to control time for subcomponents (even higher-order ones)
-I can Open in Text Editor for any component I've created
 In code.js for a host component, the `require` path for child components is correct
 In code.js, the element name of child component is the import of the other's code
 When I delete all instances of a child component, their `require` is removed from code.js
 The haiku-source attribute is present for components in the tree, and is respective to the project
 The haiku-title attribute is present, and is the component name of the component
 The haiku-var attribute is present, and is the same of the import var of the subcomponent
-If I try to instantiate the 'Main' component, it won't let me
-If I try to instantiate 'Foo' within itself, it won't let me
-If I create 'Foo', then 'Bar', then put 'Foo' in 'Bar' and try to put 'Bar' in 'Foo' it won't let me
+If I try to instantiate 'Foo' within itself, it won't let me and tells me so
+If I create 'Foo', then 'Bar', then put 'Foo' in 'Bar' and try to put 'Bar' in 'Foo' it won't let me and tells me so
 I can copy and paste components
 I can cut and paste components
 I can undo/redo changes from a host component to a child
@@ -399,14 +391,7 @@ If the sync is successful the reload button stops spinning
 
 Tracking/Analytics
 
-Mixpanel sends event for app launch
-Mixpanel sends event for project launch
-Mixpanel sends event for fork
-Mixpanel sends event for left nav switch
-Mixpanel sends event for user menu
-Mixpanel sends event for changelog
-Mixpanel sends event for install options
-Mixpanel sends event for opening Figma
+Mixpanel sends tracking events for various actions
 
 Logging
 
@@ -418,9 +403,9 @@ Errors/notifications
 Crash in Master, Plumbing, Glass, Timeline, or Creator sends Sentry notice
 An error response in Plumbing method sends Sentry notice
 An error will upload the user's project and metadata to S3 (Carbonite)
-Errors result in a toast being displayed to the user on any screen
 If rapid errors occur, Carbonite snapshots only occur once per 10 minutes
 Carbonite errors can originate successfully from from Master, Plumbing, Glass, Timeline, or Creator
+Errors result in a toast being displayed to the user on any screen
 Carbonite report still gets sent even if the app crashes quickly
 
 Autoupdate
@@ -434,19 +419,19 @@ I can see a present box with a pink dot in the project browser after an update
 
 Tour
 
+I can use the global menu to start the tour at any time
+I can see a back button on the appropriate steps
+I can use the back button
+I can drag any of the tour windows around if they get in the way
+Overlays on library and timeline doesn't overlap with tour tooltip
+I can go back to project browser in the middle of the tour without issues
 If I haven't taken the tour, I see a prompt to do so
 I can dismiss the tour
 I can dismiss the tour ephemerally, start the app again, and see the tour prompt again
 I can dismiss the tour permanently and never see the prompt again
 I can accept the tour and go through all the steps without a problem
 The preview mode step turn preview mode off when you hit "Next"
-I can use the global menu to start the tour at any time
 If I start the tour and don't have Percy there's no error or weirdness
-I can see a back button on the appropriate steps
-I can use the back button
-I can drag any of the tour windows around if they get in the way
-Overlays on library and timeline doesn't overlap with tour tooltip
-I can go back to project browser in the middle of the tour without issues
 
 Expressions
 
@@ -458,10 +443,10 @@ I can convert normal value to expression
 I can edit expression and save in multi-line mode
 I can escape to exit an expression
 I can click away to exit an expression
-I can create an expression that causes a runtime error and things don't crash (error shown)
 Text selection turns into plain cursor when I mouse click expression field that is selected
 Pressing tab while an autocompletion is selected chooses that item
 Pressing enter while an autocompletion is selected chooses that item
+I can create an expression that causes a runtime error and things don't crash (error shown)
 I can save a multiline expression by pressing the "save" button on the left side
 
 States
@@ -481,10 +466,10 @@ I can cancel my changes to my action
 I can view a previously written action in the window (correct code is loaded)
 I can enter preview mode and verify that event listeners work correctly
 Code formatting is sensible after saving and reloading the function content
+Scrolling in the action window doesn't pan the stage
 I can add 2 or more actions
 I can still add snippets when there are 2 or more actions
 I can still use the "new action" dropdown menu when there are 2 or more actions
-Scrolling in the action window doesn't pan the stage
 I can add a frame listener at 0
 I can add a frame listener at frame>0
 I can remove any frame listener
@@ -492,7 +477,6 @@ I can enter preview mode and verify that frame listeners work correctly
 When an action exists on an element, a bolt icon shows next to it in the timeline
 Frame listener window opens when you click the frame listener button
 When a frame listener exists at a frame, a bolt icon shows next to it in the timeline gauge
-I can scroll on the actions editor without scrolling the stage
 I can delete a frame listener using the trash icon
 I can delete an element listener
 I can add an event listener with a custom name like "foo-bar"
@@ -501,7 +485,6 @@ I can remove an event listener with a custom name like "foo-bar"
 Preview Mode/Edit Mode
 
 I can toggle back and forth between 'preview' and 'edit' mode
-Expression values are set to 1 when in editing mode, and become 'real' during preview mode
 Event updates to states don't occur in editing mode, but only in live mode
 Playback works normally during preview mode
 The stage UI looks different, indicating we are in preview mode
@@ -512,174 +495,7 @@ I can click on the dimmed Library UI to exit preview mode
 I can click on the dimmed Timeline UI to exit preview mode
 When exiting preview mode, the on-stage transform controls are restored if an element had been selected
 When in preview mode, the preview "Eye" icon follows your mouse around
-
-*Sasha*
-
-Development
-
-If dev, mono can launch successfully
-If dev, mono can launch Glass individually
-If dev, mono can launch Timeline individually
-If dev, all of the lint runs pass in all of the projects (`$ yarn lint-all`)
-If dev, all of the tests pass in all of the projects (`$ yarn test && yarn test-all`)
-If dev, I can test `haiku://` URLs using yarn test-url
-If prod, I can open the app via open `haiku://:`
-I can refresh creator, load the same project, and go back to editing as normal
-Plumbing logs show up correctly for actions
-
-Core
-
-The perf test doesn't show a perf degradation
-All of the test/demo examples render/behave correctly in Chrome
-All of the test/demo examples render/behave correctly in Firefox
-All of the test/demo examples render/behave correctly in Safari
-All of the test/demo examples render/behave correctly in Edge
-All of the test/demo examples render/behave correctly in IE11*
-Events still fire even when playback has been `pause()`'d or `stop()`'d
-Expressions still evaluate even when playback has been `pause()`'d or `stop()`'d
-
-Stage Performance
-
-I can drag a large bitmap around the stage without bad latency
-I can drag a large/complex path around the stage without bad latency
-There isn't any judder when dragging, pausing, then dragging again
-Playback doesn't lag following lots of on-stage dragging
-Small/fine-grained animations don't exhibit judder
-
-Timeline Performance
-
-"Metapoem" takes no more than ~1 second to load (rehydration)
-I can horizontally scroll the timeline of "Metapoem" at a reasonable speed
-I can expand/collapse timeline rows at a reasonable speed
-I can drag keyframes at a reasonable speed
-I can drag the scrubber at a reasonable speed, seeing values reflect in the input fields
-When playback is initiated, the scrubber runs at a reasonable speed
-
-Bytecode Upgrade
-
-I can open legacy project "Moto" and it still works correctly
-I can open legacy project "Move" and it still works correctly
-I can open tour project "Percy" and it still works correctly
-I can open legacy project "Metapoem" and it still works correctly
-I can open a recent project and it still works correctly
-
-Multi-select/Multi-transform
-
-I can hold down Shift and click multiple elements to select them
-I can drag a selection marquee on stage to select multiple elements
-I can click away from multiple elements to deselect them
-I can click on an empty area in multi-selection to select the elements
-I can drag (translate) a multiselection
-I can rotate a multiselection, including an element that has 2D rotation
-I can rotate a multiselection, including an element that has 3D rotation
-I can scale a multiselection, including an element that has 2D rotation
-I can scale a multiselection, including an element that has 3D rotation
-When I transform a multiselection, I see all their properties update in the timeline
-I can undo/redo a multitransform, and the whole set of changes is undone correctly
-
-Group/ungroup
-
-I can instantiate the artboard from Moto and ungroup it
-I can instantiate an artboard with SVG <defs> and ungroup it
-I cannot ungroup an artboard or SVG that only contains one element
-I cannot group a selection that contains only one element
-I can instantiate two slices, animate them, and create a group at keyframe N > 0
-The group I created has the automatic name "Group N", where N is one more than the last group named like this
-I can rename the group I created, if I want, by double-clicking its name in the timeline
-The group I created is selected upon creation
-The group I created does not alter the layout of the selection at the time of creation
-The group I created destroys any _layout_ animations of the elements that were grouped
-I can animate a group on stage, and everything animates correctly
-I can undo creation of a group, which restores both timeline and glass to expected state
-I can ungroup a group I created, including an element that has 3D rotation
-Ungrouping preserves the layout of the group elements I see on stage at the time I ungrouped
-Ungrouping destroys any existing _layout_ animations of the elements that were grouped
-
-Origin
-
-An origin crosshairs appears when one element is selected
-An origin crosshairs appears when multiple elements are selected
-I can hold down Cmd to move the origin crosshairs with one element
-I can hold down Cmd to move the origin crosshairs with multiple elements
-When moving the origin crosshairs, the element stays in the same place
-I can move the origin point outside of the element
-I can move the origin point outside of a group of elements
-I can rotate an element/group about the origin
-I can scale an element/group about the origin
-The origin value updates accordingly in the timeline when I do any of the above
-I can change the origin value by editing its rows in the timeline
-
-Code
-
-I can open code.js and verify the code for expressions is ok and Haiku.inject is present
-I can open code.js and verify the action got written ok
-I can open code.js and verify the state got written ok
-I can open code.js and verify a require('@haiku/core') at the top
-I can manually edit the code and see the reloaded code on stage, timeline, etc.
-I can still edit on stage after a code reload
-I can still edit in timeline after a code reload
-After a code reload, the timeline input fields reflect the correct values
-During a code reload the timeline does not animate, and stays at the same frame
-
-Git/Gitlab
-
-A Git commit is made for every atomic change
-I can `$ git reset —hard {sha}` while editing, see the change on stage, and continue editing
-Published projects show up on GitLab
-I can `$ git push` or `$ git pull` from the project folder without a problem
-Opening a project that exists on GitLab but not locally clones the project the first time
-
-Publishing
-
-Publish works (clicking publish publishes the project and shows a share link)
-Doing publish opens Share Modal
-New projects are Public by default
-I can change the project from private to public and back again
-When changing from private/public, the UI reflects this immediately
-After the publish action completes, the toggle remains in the same position I switched it to
-Publish results in a share link
-I can copy the share link to clipboard using the clipboard icon
-I can copy the share link using the clipboard icon while an element is selected on stage
-I can select and copy any of the code snippets
-Before the share link is ready, the "not-allowed" cursor is shown over the share link
-Before the various install options are ready, the "not-allowed" cursor is shown over pending buttons with a progress bar
-As soon as the share link is ready, the web install options become clickable and show correct info
-As soon as the share page loads content, the mobile options become clickable and show correct info
-Eventually the "other" option (for GIF) becomes clickable and shows correct info
-I can click the link and get taken to the page in my browser
-The share page shows my component animating and looping
-The published version behaves the same as the preview mode version
-The share page renders the element inside the artboard box
-If I publish again with no changes, I get a share link back immediately
-If I make a change and publish, I get a new share link
-Cmd+S should not publish the project, but should display an info toast
-
-Release Collateral
-
-I can download and extract the .zip archive of the release
-The CLI installer works (`$ curl http://code.haiku.ai/scripts/cli/installer.js | node`)
-The CLI npm package works (`$ npm install @haiku/cli`)
-Core CDN links work (`http://code.haiku.ai/scripts/core/HaikuCore.<{version}|latest>[.min].js (http://code.haiku.ai/scripts/core/HaikuCore.%3C%7Bversion%7D|latest%3E[.min].js)`)
-Core standalone repo has latest https://github.com/HaikuTeam/core
-Core npm package is up to date https://www.npmjs.com/package/@haiku/core
-After autoupdate, share page CodePen content works correctly
-
-Sharing
-
-The share page and modal HTML snippets are correct
-The share page and modal React snippet are correct
-The share page and modal Vue snippets are correct
-The share page and modal Angular snippets are correct
-The lottie.json file works in http://editor.lottiefiles.com/
-Publishing produces a static bundle at code/main/static.json which renders correctly on my community profile
-Changes made in Sketch after first publish also appear correctly on the published share page
-A GIF shows up in Slack when the link is shared in Slack
-
-CLI
-
-I can use Haiku CLI to login and logout
-Haiku CLI invalidates bad logins
-I can clone a project in my org with $ haiku clone
+Expression values are set to 1 when in editing mode, and become 'real' during preview mode
 
 *Taylor*
 
@@ -698,15 +514,15 @@ I can expand/collapse the asset folders shown in the library
 Hovering the asset icon shows a floating preview window
 The floating preview isn't clipped at the bottom
 The floating preview isn't clipped by the stage on the right
-The library can be scrolled when there are many assets
-I can scroll all the way down to see all assets
 I can double-click a library asset to open it in Sketch
-I can use the "..." menu to delete an asset or open in Sketch
 I can use the right-click menu to open in Sketch or show in finder
 I can import an SVG file using the "+" button
 I can drop a SVG directly on Haiku and have it import to the library
 I can drop a Sketch directly on Haiku and have it import to the library
 The "..." menu should only appear when the asset is hovered
+I can use the "..." menu to delete an asset or open in Sketch
+The library can be scrolled when there are many assets
+I can scroll all the way down to see all assets
 
 Timeline
 
@@ -720,7 +536,7 @@ Clicking away exits the input field focus
 I can use the keyboard to navigate up/down in the timeline row cells
 I can navigate all the way to the top, and keep going, and I jump to the bottom cell
 I can navigate all the way to the bottom, and keep going, and I jump to the top
-When I navigate into a collapsed set of rows, they auto-expand, and the first one is selectedf
+When I navigate into a collapsed set of rows, they auto-expand, and the first one is selected
 I can enter a valid value into any input, and see it reflected on stage at time 0
 I can enter a valid value into any input, and see it reflected on stage at time N>0
 When I enter an input, I see a keyframe created in the timeline
@@ -738,6 +554,9 @@ The keyframe created doesn't have a curve
 I can change the value of a keyframe that I created via right-click
 Activating a keyframe/segment highlights it
 Highlighting just one keyframe only highlights the one
+
+Timeline Scrolling/Zooming/Display
+
 I can horizontally scroll on the timeline using my trackpad
 I can use the scrollbar to zoom and pan the timeline
 Using scrollbar to zoom and pan updates all rows correctly
@@ -745,21 +564,23 @@ The scrollbar shows a mini version of the playhead position
 The scrollbar is proportional to the length of the timeline
 I can scroll beyond the last keyframe to create "infinite" more keyframes
 Moving the scrubber doesn't vertically scroll the timeline
+The scrollbar proportion updates if I scroll to create more keyframes
+Milliseconds and frames display properly at different zoom levels
+The current time/frame changes whenever the scrubber moves
+I can click the time/frame box to toggle from frames to seconds
+
+Timeline Playback/Scrubbing
+
 I can play/pause/rewind/forward using the playback controls
 Forwarding to the end changes the stage to the correct end state
 Spacebar works for playback (pauses if playing, plays if paused, etc)
-I can use the scrollbar to pan/zoom the timeline
 I can manually drag the scrubber to different places (reflecting changes on stage+timeline)
 I can click on the "gauge" to move the scrubber to that time
 I can move the scrubber to a time greater than 60 (or the max keyframe)
 I can create keyframes greater than frame 60 (or the max keyframe)
 The timeline can play to the very end without a problem
-The current time/frame changes whenever the scrubber moves
-I can click the time/frame box to toggle from frames to seconds
-Milliseconds and frames display properly at different zoom levels
 When playback reaches the timeline page boundary, the timeline paginates
 When I play the timeline, it plays back on stage at a reasonable speed
-The scrollbar proportion updates if I scroll to create more keyframes
 I can play an animation with only keyframe 0 and it works
 I can play an animation with only keyframe 0 and 1 and it doesn't crash
 
@@ -768,9 +589,9 @@ JIT Properties
 The JIT properties available for the root element are limited
 The JIT properties for other elements in the timeline are correct and not overwhelming
 I can add a JIT property to an element, which creates a row in the timeline for that property name
-If I add a JIT property like style.border, the row cluster automatically expands
+If I add a JIT property like style.border, the row cluster automatically expands and focuses
 
-Solo Keyframes
+Solo Keyframes [doing]
 
 I am able to select a single keyframe by clicking on it
 I am able to deselect a single keyframe by clicking elsewhere
@@ -825,3 +646,169 @@ I am able to deselect multiple segments by clicking elsewhere
 I am able to deselect a previously selected segment holding Shift and clicking on it
 I am able to deselect a segment by right-clicking a tween
 I am able to deselect a segment by right-clicking a keyframe
+
+Publishing
+
+Publish works (clicking publish publishes the project and shows a share link)
+Doing publish opens Share Modal
+New projects are Public by default
+I can change the project from private to public and back again
+When changing from private/public, the UI reflects this immediately
+After the publish action completes, the toggle remains in the same position I switched it to
+Publish results in a share link
+I can copy the share link to clipboard using the clipboard icon
+I can copy the share link using the clipboard icon while an element is selected on stage
+I can select and copy any of the code snippets
+Before the share link is ready, the "not-allowed" cursor is shown over the share link
+Before the various install options are ready, the "not-allowed" cursor is shown over pending buttons with a progress bar
+As soon as the share link is ready, the web install options become clickable and show correct info
+As soon as the share page loads content, the mobile options become clickable and show correct info
+I can click the link and get taken to the page in my browser
+The share page shows my component animating and looping
+The published version behaves the same as the preview mode version
+The share page renders the element inside the artboard box
+If I publish again with no changes, I get a share link back immediately
+If I make a change and publish, I get a new share link
+Cmd+S should not publish the project, but should display an info toast
+Eventually the "other" option (for GIF) becomes clickable and shows correct info
+
+Multi-select/Multi-transform
+
+I can hold down Shift and click multiple elements to select them
+I can drag a selection marquee on stage to select multiple elements
+I can click away from multiple elements to deselect them
+I can click on an empty area in multi-selection to select the elements
+I can drag (translate) a multiselection
+I can rotate a multiselection, including an element that has 2D rotation
+I can rotate a multiselection, including an element that has 3D rotation
+I can scale a multiselection, including an element that has 2D rotation
+I can scale a multiselection, including an element that has 3D rotation
+When I transform a multiselection, I see all their properties update in the timeline
+I can undo/redo a multitransform, and the whole set of changes is undone correctly
+
+Group/ungroup
+
+I can instantiate the artboard from Moto and ungroup it
+I can instantiate an artboard with SVG <defs> and ungroup it
+I cannot ungroup an artboard or SVG that only contains one element
+I cannot group a selection that contains only one element
+I can instantiate two slices, animate them, and create a group at keyframe N > 0
+The group I created has the automatic name "Group N", where N is one more than the last group named like this
+I can rename the group I created, if I want, by double-clicking its name in the timeline
+The group I created is selected upon creation
+The group I created does not alter the layout of the selection at the time of creation
+The group I created destroys any layout animations of the elements that were grouped
+I can animate a group on stage, and everything animates correctly
+I can undo creation of a group, which restores both timeline and glass to expected state
+I can ungroup a group I created, including an element that has 3D rotation
+Ungrouping preserves the layout of the group elements I see on stage at the time I ungrouped
+Ungrouping destroys any existing layout animations of the elements that were grouped
+
+Origin
+
+An origin crosshairs appears when one element is selected
+An origin crosshairs appears when multiple elements are selected
+I can hold down Cmd to move the origin crosshairs with one element
+I can hold down Cmd to move the origin crosshairs with multiple elements
+When moving the origin crosshairs, the element stays in the same place
+I can move the origin point outside of the element
+I can move the origin point outside of a group of elements
+I can rotate an element/group about the origin
+I can scale an element/group about the origin
+The origin value updates accordingly in the timeline when I do any of the above
+I can change the origin value by editing its rows in the timeline
+
+*Sasha*
+
+Development
+
+If dev, mono can launch successfully
+If dev, mono can launch Glass individually
+If dev, mono can launch Timeline individually
+I can refresh creator, load the same project, and go back to editing as normal
+Plumbing logs show up correctly for actions
+If dev, I can test `haiku://` URLs using yarn test-url
+If prod, I can open the app via open `haiku://:`
+
+Core
+
+The perf test doesn't show a perf degradation
+Events still fire even when playback has been `pause()`'d or `stop()`'d
+Expressions still evaluate even when playback has been `pause()`'d or `stop()`'d
+All of the test/demo examples render/behave correctly in Chrome
+All of the test/demo examples render/behave correctly in Safari
+All of the test/demo examples render/behave correctly in Firefox
+All of the test/demo examples render/behave correctly in Edge
+All of the test/demo examples render/behave correctly in IE11*
+
+Stage Performance
+
+There isn't any judder when dragging, pausing, then dragging again
+I can drag a large bitmap around the stage without bad latency
+I can drag a large/complex path around the stage without bad latency
+Playback doesn't lag following lots of on-stage dragging
+Small/fine-grained animations don't exhibit judder
+
+Timeline Performance
+
+"Metapoem" takes no more than ~1 second to load (rehydration)
+I can horizontally scroll the timeline of "Metapoem" at a reasonable speed
+I can expand/collapse timeline rows at a reasonable speed
+I can drag keyframes at a reasonable speed
+I can drag the scrubber at a reasonable speed, seeing values reflect in the input fields
+When playback is initiated, the scrubber runs at a reasonable speed
+
+Bytecode Upgrade
+
+I can open legacy project "Moto" and it still works correctly
+I can open legacy project "Move" and it still works correctly
+I can open tour project "Percy" and it still works correctly
+I can open legacy project "Metapoem" and it still works correctly
+I can open a recent project and it still works correctly
+
+Code
+
+I can open code.js and verify the code for expressions is ok and Haiku.inject is present
+I can open code.js and verify the action got written ok
+I can open code.js and verify the state got written ok
+I can open code.js and verify a require('@haiku/core') at the top
+I can manually edit the code and see the reloaded code on stage, timeline, etc.
+I can still edit on stage after a code reload
+I can still edit in timeline after a code reload
+After a code reload, the timeline input fields reflect the correct values
+During a code reload the timeline does not animate, and stays at the same frame
+
+Git/Gitlab
+
+A Git commit is made for every atomic change
+I can `$ git reset —hard {sha}` while editing, see the change on stage, and continue editing
+Published projects show up on GitLab
+I can `$ git push` or `$ git pull` from the project folder without a problem
+Opening a project that exists on GitLab but not locally clones the project the first time
+
+Release Collateral
+
+I can download and extract the .zip archive of the release
+The CLI installer works (`$ curl http://code.haiku.ai/scripts/cli/installer.js | node`)
+The CLI npm package works (`$ npm install @haiku/cli`)
+Core CDN links work (`http://code.haiku.ai/scripts/core/HaikuCore.<{version}|latest>[.min].js (http://code.haiku.ai/scripts/core/HaikuCore.%3C%7Bversion%7D|latest%3E[.min].js) (http://code.haiku.ai/scripts/core/HaikuCore.%3C%7Bversion%7D|latest%3E[.min].js)`)
+Core standalone repo has latest https://github.com/HaikuTeam/core
+Core npm package is up to date https://www.npmjs.com/package/@haiku/core
+After autoupdate, share page CodePen content works correctly
+
+Sharing
+
+The share page and modal HTML snippets are correct
+The share page and modal React snippet are correct
+The share page and modal Vue snippets are correct
+The share page and modal Angular snippets are correct
+The lottie.json file works in http://editor.lottiefiles.com/
+Publishing produces a static bundle at code/main/static.json which renders correctly on my community profile
+Changes made in Sketch after first publish also appear correctly on the published share page
+A GIF shows up in Slack when the link is shared in Slack
+
+CLI
+
+I can use Haiku CLI to login and logout
+Haiku CLI invalidates bad logins
+I can clone a project in my org with `$ haiku clone`
