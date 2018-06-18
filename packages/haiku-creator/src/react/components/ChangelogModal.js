@@ -6,7 +6,7 @@ import {
   ModalHeader,
 } from 'haiku-ui-common/lib/react/Modal';
 import {LogoMicroSVG} from 'haiku-ui-common/lib/react/OtherIcons';
-import ExternalLinkSVG from 'haiku-ui-common/lib/react/Icons/ExternalLinkIconSVG';
+import ExternalLinkIconSVG from 'haiku-ui-common/lib/react/icons/ExternalLinkIconSVG';
 import {BTN_STYLES} from '../styles/btnShared';
 import {DASH_STYLES} from '../styles/dashShared';
 import Palette from 'haiku-ui-common/lib/Palette';
@@ -114,7 +114,7 @@ class ChangelogModal extends React.PureComponent {
             >
               Full Changelog
               <span style={{marginLeft: 6}}>
-                <ExternalLinkSVG color={Palette.LIGHT_BLUE} />
+                <ExternalLinkIconSVG color={Palette.LIGHT_BLUE} />
               </span>
             </span>
           </ModalHeader>
