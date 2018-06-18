@@ -69,6 +69,6 @@
     "@types/qs": "^6.5.1",
     "electron": "2.0.2",
     "electron-devtools-installer": "^2.2.4",
-    "haiku-testing": "3.4.5"
+    "haiku-testing": "3.4.6"
   }
 }
