@@ -3,6 +3,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import {ipcRenderer, shell} from 'electron';
 import * as assign from 'lodash.assign';
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import Palette from 'haiku-ui-common/lib/Palette';
 import * as Color from 'color';
 import {BTN_STYLES} from '../styles/btnShared';
@@ -668,7 +669,7 @@ class StageTitleBar extends React.Component {
             closePopupCannotSwitchToDesign={this.props.closePopupCannotSwitchToDesign}
           />
         }
-        <div style={[{display: 'inline-block'}]} >
+        {experimentIsEnabled(Experiment.CodeEditorInCreator) && <div style={[{display: 'inline-block'}]} >
           <button
             key="toggle-design"
             id="toggle-design"
@@ -702,7 +703,7 @@ class StageTitleBar extends React.Component {
           >
             <span style={{marginLeft: 7}}>CODE</span>
           </button>
-        </div>
+        </div>}
 
         <button
           key="save"
