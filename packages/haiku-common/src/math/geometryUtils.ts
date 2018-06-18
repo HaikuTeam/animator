@@ -65,8 +65,7 @@ export const buildPathLUT = (
     }
   }
 
-  // TODO: Handle secondary paths? (return multiple arrays)
-  return [out, points[points.length - 1].closed];
+  return [out, points[points.length - 1].closed || points[points.length - 2].closed];
 };
 
 export const splitSegmentInSVGPoints = (
