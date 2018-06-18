@@ -23,9 +23,11 @@ import Gauge from './Gauge'
 import GaugeTimeReadout from './GaugeTimeReadout'
 import TimelineRangeScrollbar from './TimelineRangeScrollbar'
 import HorzScrollShadow from './HorzScrollShadow'
+import Marquee from './Marquee'
 import {InteractionMode, isPreviewMode} from '@haiku/core/lib/helpers/interactionModes'
 import { USER_CHANNEL, UserSettings } from 'haiku-sdk-creator/lib/bll/User'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 
 const Globals = require('haiku-ui-common/lib/Globals').default // Sorry, hack
 
@@ -146,6 +148,12 @@ class Timeline extends React.Component {
 
   componentDidMount () {
     this.mounted = true
+
+    if (experimentIsEnabled(Experiment.TimelineMarqueeSelection)) {
+      new Marquee({area: document.querySelector('#timeline'), callback: (event, area) => {
+        this.getActiveComponent().getCurrentTimeline().notifyMarqueeSelection(area)
+      }})
+    }
 
     const resetKeyStates = () => {
       Globals.allKeysUp()
@@ -423,9 +431,13 @@ class Timeline extends React.Component {
       })
     })
 
-    this.addEmitterListener(Row, 'update', (row, what) => {
-      if (what === 'row-selected') {
-        // TODO: Handle scrolling to the correct row
+    this.addEmitterListener(Row, 'update', (row, what, metadata) => {
+      if (experimentIsEnabled(Experiment.NativeTimelineScroll) && what === 'row-selected' && metadata.from !== 'timeline') {
+        const rowElement = document.getElementById(`component-heading-row-${row.element.getComponentId()}-${row.getAddress()}`)
+
+        if (rowElement) {
+          rowElement.scrollIntoView({behavior: 'smooth', block: 'center', inline: 'start'})
+        }
       }
     })
 
@@ -1014,7 +1026,17 @@ class Timeline extends React.Component {
     return (
       <div
         className='top-controls no-select'
-        style={{
+        style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+          position: 'sticky',
+          top: 0,
+          height: this.state.rowHeight + 10,
+          width: '500vw',
+          verticalAlign: 'top',
+          fontSize: 10,
+          borderBottom: '1px solid ' + Palette.FATHER_COAL,
+          backgroundColor: Palette.COAL,
+          zIndex: 9999999999999
+        } : {
           position: 'absolute',
           top: 0,
           left: 0,
@@ -1024,16 +1046,24 @@ class Timeline extends React.Component {
           fontSize: 10,
           borderBottom: '1px solid ' + Palette.FATHER_COAL,
           backgroundColor: Palette.COAL
-        }}>
+        })}>
         <div
           className='gauge-timekeeping-wrapper'
-          style={{
+          style={( experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            height: 'inherit',
+            width: this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth(),
+            backgroundColor: Palette.COAL,
+            zIndex: 99999999
+          } : {
             position: 'absolute',
             top: 0,
             left: 0,
             height: 'inherit',
             width: this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()
-          }}>
+          })}>
           <GaugeTimeReadout
             reactParent={this}
             timeline={this.getActiveComponent().getCurrentTimeline()} />
@@ -1052,7 +1082,7 @@ class Timeline extends React.Component {
             position: 'absolute',
             top: 0,
             left: this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth(),
-            width: this.getActiveComponent().getCurrentTimeline().getTimelinePixelWidth(),
+            width: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : this.getActiveComponent().getCurrentTimeline().getTimelinePixelWidth(),
             height: 'inherit',
             verticalAlign: 'top',
             paddingTop: 12,
@@ -1195,9 +1225,7 @@ class Timeline extends React.Component {
                       index={indexOfGroup}>
                       {(provided, snapshot) => {
                         return (
-                          <div style={{
-                            minWidth /* Prevent horizontal scrolling in the overflow-x:auto box */
-                          }}>
+                          <div style={experimentIsEnabled(Experiment.NativeTimelineScroll) ? {} : {minWidth}}>
                             <div
                               className='droppable-wrapper'
                               ref={provided.innerRef}
@@ -1271,8 +1299,7 @@ class Timeline extends React.Component {
           left: 0,
           height: 'calc(100% - 45px)',
           width: '100%',
-          overflowY: 'hidden',
-          overflowX: 'hidden'
+          overflow: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'auto' : 'hidden'
         }}>
         {
           this.state.isPreviewModeActive && (
@@ -1300,7 +1327,15 @@ class Timeline extends React.Component {
           ref='scrollview'
           id='property-rows'
           className='no-select'
-          style={{
+          style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+            position: 'absolute',
+            top: 35,
+            left: 0,
+            width: '500vw',
+            pointerEvents: 'auto',
+            WebkitUserSelect: 'auto',
+            bottom: 0,
+          } : {
             position: 'absolute',
             top: 35,
             left: 0,
@@ -1310,7 +1345,7 @@ class Timeline extends React.Component {
             bottom: 0,
             overflowY: 'auto',
             overflowX: 'hidden'
-          }}
+          })}
           onMouseDown={(mouseEvent) => {
             if (
               !Globals.isShiftKeyDown &&

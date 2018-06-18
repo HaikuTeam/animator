@@ -1,4 +1,5 @@
 import React from 'react'
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import formatSeconds from 'haiku-ui-common/lib/helpers/formatSeconds'
 import Palette from 'haiku-ui-common/lib/Palette'
 import Timeline from 'haiku-serialization/src/bll/Timeline'
@@ -29,12 +30,18 @@ export default class Gauge extends React.Component {
 
   handleUpdate (what) {
     if (!this.mounted) return false
-    if (
-      what === 'timeline-frame-range' ||
-      what === 'timeline-frame-hovered' ||
-      what === 'time-display-mode-change'
-    ) {
-      this.forceUpdate()
+    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+      if (what === 'time-display-mode-change') {
+        this.forceUpdate()
+      }
+    } else {
+      if (
+        what === 'timeline-frame-range' ||
+        what === 'timeline-frame-hovered' ||
+        what === 'time-display-mode-change'
+      ) {
+        this.forceUpdate()
+      }
     }
   }
 

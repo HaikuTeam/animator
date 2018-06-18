@@ -1,6 +1,7 @@
 import React from 'react'
 import lodash from 'lodash'
 import Palette from 'haiku-ui-common/lib/Palette'
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import formatSeconds from 'haiku-ui-common/lib/helpers/formatSeconds'
 import Timeline from 'haiku-serialization/src/bll/Timeline'
 
@@ -135,7 +136,7 @@ class FpsReadout extends React.Component {
     if (!this.mounted) return null
     if (what === 'timeline-frame') {
       this.throttledForceUpdate()
-    } else if (what === 'timeline-frame-range') {
+    } else if (what === 'timeline-frame-range' && !experimentIsEnabled(Experiment.NativeTimelineScroll)) {
       this.forceUpdate()
     }
   }
@@ -173,7 +174,7 @@ class TimeReadout extends React.Component {
     if (!this.mounted) return null
     if (what === 'timeline-frame') {
       this.throttledForceUpdate()
-    } else if (what === 'timeline-frame-range') {
+    } else if (what === 'timeline-frame-range' && !experimentIsEnabled(Experiment.NativeTimelineScroll)) {
       this.forceUpdate()
     }
   }

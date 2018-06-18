@@ -1,6 +1,7 @@
 import React from 'react'
 import lodash from 'lodash'
 import Palette from 'haiku-ui-common/lib/Palette'
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 
 export default class ScrubberInterior extends React.Component {
   constructor (props) {
@@ -29,9 +30,10 @@ export default class ScrubberInterior extends React.Component {
 
   handleUpdate (what) {
     if (!this.mounted) return null
+
     if (what === 'timeline-frame') {
       this.forceUpdate()
-    } else if (what === 'timeline-frame-range') {
+    } else if (what === 'timeline-frame-range' && !experimentIsEnabled(Experiment.NativeTimelineScroll)) {
       this.forceUpdate()
     } else if (what === 'time-display-mode-change') {
       this.forceUpdate()
@@ -41,16 +43,17 @@ export default class ScrubberInterior extends React.Component {
   render () {
     const frameInfo = this.props.timeline.getFrameInfo()
 
-    if (this.props.timeline.getCurrentFrame() < frameInfo.friA) {
-      return <span />
-    }
+    if (!experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+      if (this.props.timeline.getCurrentFrame() < frameInfo.friA) {
+        return <span />
+      }
 
-    if (this.props.timeline.getCurrentFrame() > frameInfo.friB) {
-      return <span />
+      if (this.props.timeline.getCurrentFrame() > frameInfo.friB) {
+        return <span />
+      }
     }
 
     const currFrame = this.props.timeline.getCurrentFrame()
-
     const frameOffset = currFrame - frameInfo.friA
     const pxOffset = frameOffset * frameInfo.pxpf
 
@@ -108,9 +111,9 @@ export default class ScrubberInterior extends React.Component {
         <div
           style={{
             position: 'absolute',
-            zIndex: 2006,
+            zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 999999999 : 2006,
             backgroundColor: Palette.SUNSTONE,
-            height: 9999,
+            height: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'calc(100vh - 95px)' : 9999,
             width: 1,
             top: 35,
             left: pxOffset,

@@ -10,6 +10,7 @@ import Globals from 'haiku-ui-common/lib/Globals'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
 import PropertyTimelineSegments from './PropertyTimelineSegments'
 import PropertyRowHeading from './PropertyRowHeading'
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 
 export default class PropertyRow extends React.Component {
   constructor (props) {
@@ -70,82 +71,84 @@ export default class PropertyRow extends React.Component {
         onMouseLeave={this.throttledHandleRowUnhovered}
         style={{
           height: this.props.rowHeight,
-          width: this.props.timeline.getPropertiesPixelWidth() + this.props.timeline.getTimelinePixelWidth(),
+          width: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : this.props.timeline.getPropertiesPixelWidth() + this.props.timeline.getTimelinePixelWidth(),
           left: 0,
           opacity: (this.props.row.isHidden()) ? 0.5 : 1.0,
           position: 'relative'
         }}>
-        <div
-          onClick={(clickEvent) => {
-            // Allow clicking the subproperty of a cluster to collapse the parent row,
-            // which 'contains' the rows of the cluster as children
-            if (this.props.row.isCluster()) {
-              this.props.row.parent.collapse()
-            }
-          }}>
-          {(this.props.row.isFirstRowOfPropertyCluster()) &&
-            <div
-              style={{
-                position: 'absolute',
-                width: 14,
-                left: 136,
-                top: -2,
-                zIndex: 1006,
-                textAlign: 'right',
-                height: 'inherit'
-              }}>
-              <span className='utf-icon' style={{ top: -4, left: -3 }}><DownCarrotSVG /></span>
-            </div>}
-          {this.maybeRenderFamilySvg()}
+        <div style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? { position: 'sticky', top: 0, left: 0, width: this.props.timeline.getPropertiesPixelWidth(), zIndex: 99999, backgroundColor: Palette.GRAY } : {})}>
           <div
-            className='property-row-label no-select'
-            style={{
-              right: 0,
-              width: this.props.timeline.getPropertiesPixelWidth() - 120,
-              height: this.props.rowHeight,
-              textAlign: 'right',
-              borderTop: (this.props.row.isFirstRowOfSubElementSet()) ? `1px solid ${Palette.GRAY}` : 'none',
-              backgroundColor: (this.props.row.doesTargetHostElement()) ? Palette.GRAY : 'rgb(46, 59, 62)',
-              borderTopLeftRadius: (this.props.row.isFirstRowOfSubElementSet()) ? 4 : 0,
-              borderBottomLeftRadius: (this.props.row.isLastRowOfSubElementSet()) ? 4 : 0,
-              zIndex: 1004,
-              position: 'relative',
-              paddingTop: 6,
-              paddingRight: 10,
-              marginLeft: 40
+            onClick={(clickEvent) => {
+              // Allow clicking the subproperty of a cluster to collapse the parent row,
+              // which 'contains' the rows of the cluster as children
+              if (this.props.row.isCluster()) {
+                this.props.row.parent.collapse()
+              }
             }}>
+            {(this.props.row.isFirstRowOfPropertyCluster()) &&
+              <div
+                style={{
+                  position: 'absolute',
+                  width: 14,
+                  left: 136,
+                  top: -2,
+                  zIndex: 1006,
+                  textAlign: 'right',
+                  height: 'inherit'
+                }}>
+                <span className='utf-icon' style={{ top: -4, left: -3 }}><DownCarrotSVG /></span>
+              </div>}
+            {this.maybeRenderFamilySvg()}
             <div
-              className='hacky-property-row-coverup'
+              className='property-row-label no-select'
               style={{
-                position: 'absolute',
-                left: -40,
-                height: '100%',
-                width: 40,
-                backgroundColor: Palette.GRAY
-              }} />
-            <PropertyRowHeading
-              row={this.props.row}
-              humanName={humanName} />
+                right: 0,
+                width: this.props.timeline.getPropertiesPixelWidth() - 120,
+                height: this.props.rowHeight,
+                textAlign: 'right',
+                borderTop: (this.props.row.isFirstRowOfSubElementSet()) ? `1px solid ${Palette.GRAY}` : 'none',
+                backgroundColor: (this.props.row.doesTargetHostElement()) ? Palette.GRAY : 'rgb(46, 59, 62)',
+                borderTopLeftRadius: (this.props.row.isFirstRowOfSubElementSet()) ? 4 : 0,
+                borderBottomLeftRadius: (this.props.row.isLastRowOfSubElementSet()) ? 4 : 0,
+                zIndex: 1004,
+                position: 'relative',
+                paddingTop: 6,
+                paddingRight: 10,
+                marginLeft: 40
+              }}>
+              <div
+                className='hacky-property-row-coverup'
+                style={{
+                  position: 'absolute',
+                  left: -40,
+                  height: '100%',
+                  width: 40,
+                  backgroundColor: Palette.GRAY
+                }} />
+              <PropertyRowHeading
+                row={this.props.row}
+                humanName={humanName} />
+            </div>
           </div>
-        </div>
-        <div className='property-input-field-row'
-          style={{
-            position: 'absolute',
-            left: this.props.timeline.getPropertiesPixelWidth() - 82,
-            width: 82,
-            top: 0,
-            height: this.props.rowHeight - 1,
-            textAlign: 'left'
-          }}>
-          <PropertyInputField
-            parent={this}
-            row={this.props.row}
-            index={this.props.row.getAddress()}
-            height={this.props.rowHeight}
-            component={this.component}
-            timeline={this.props.timeline}
-            timelineName={this.props.timeline.getName()}
-            rowHeight={this.props.rowHeight} />
+          <div className='property-input-field-row'
+            style={{
+              position: 'absolute',
+              left: this.props.timeline.getPropertiesPixelWidth() - 82,
+              width: 82,
+              top: 0,
+              height: this.props.rowHeight - 1,
+              textAlign: 'left'
+            }}>
+            <PropertyInputField
+              parent={this}
+              row={this.props.row}
+              index={this.props.row.getAddress()}
+              height={this.props.rowHeight}
+              component={this.component}
+              timeline={this.props.timeline}
+              timelineName={this.props.timeline.getName()}
+              rowHeight={this.props.rowHeight} />
+          </div>
         </div>
         <div
           onContextMenu={(ctxMenuEvent) => {
@@ -167,7 +170,7 @@ export default class PropertyRow extends React.Component {
           }}
           style={{
             position: 'absolute',
-            width: this.props.timeline.getTimelinePixelWidth(),
+            width: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : this.props.timeline.getTimelinePixelWidth(),
             left: this.props.timeline.getPropertiesPixelWidth() - 4, // offset half of lone keyframe width so it lines up with the pole
             top: 0,
             height: 'inherit'

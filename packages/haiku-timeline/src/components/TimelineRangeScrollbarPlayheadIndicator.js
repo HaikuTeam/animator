@@ -1,5 +1,6 @@
 import React from 'react'
 import Palette from 'haiku-ui-common/lib/Palette'
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import lodash from 'lodash'
 
 const KNOB_RADIUS = 5
@@ -50,7 +51,7 @@ export default class TimelineRangeScrollbarPlayheadIndicator extends React.Compo
       <div
         id='timeline-playhead-indicator-container'
         style={{
-          width: this.props.timeline.getPropertiesPixelWidth() + this.props.timeline.getTimelinePixelWidth() - 35,
+          width: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : this.props.timeline.getPropertiesPixelWidth() + this.props.timeline.getTimelinePixelWidth() - 35,
           left: 10,
           position: 'relative'
         }}>

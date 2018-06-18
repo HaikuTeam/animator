@@ -1,0 +1,213 @@
+class Marquee {
+  constructor({area, callback}) {
+    this.initialCursorPos = {x: 0, y: 0}
+    this.autoScrollSpeed = 1
+    this.callback = callback || function() {}
+    this.area = area
+    this.initialScroll
+    this._startUp = this._startUp.bind(this)
+    this._handleMove = this._handleMove.bind(this)
+    this.reset = this.reset.bind(this)
+
+    this.selector = this._createSelector()
+    this.start()
+  }
+
+  start() {
+    this.area.addEventListener('mousedown', this._startUp)
+  }
+
+  _startUp(event) {
+    // return if is right click
+    if (event.which === 3) {
+      return
+    }
+
+    this.mouseInteraction = true
+    this.selector.style.display = 'block'
+    this._getStartingPositions(event)
+    this.selector.style.display = 'none'
+    this.area.removeEventListener('mousedown', this._startUp)
+    this.area.addEventListener('mousemove', this._handleMove)
+    document.addEventListener('mouseup', this.reset)
+  }
+
+  _getStartingPositions(event) {
+    this.initialCursorPos = this._getCursorPos(event, this.area)
+    this.initialScroll = this.getScroll(this.area)
+
+    const selectorPos = {}
+    selectorPos.x = this.initialCursorPos.x + this.initialScroll.x
+    selectorPos.y = this.initialCursorPos.y + this.initialScroll.y
+    selectorPos.w = 0
+    selectorPos.h = 0
+    this.updatePos(this.selector, selectorPos)
+  }
+
+  _handleMove(event) {
+    const selectorPos = this.getPosition(event)
+    this.selector.style.display = 'block'
+    this.updatePos(this.selector, selectorPos)
+  }
+
+  _createSelector() {
+    const selector = document.createElement('div')
+    selector.style.position = 'absolute'
+    selector.style.background = 'rgba(0, 0, 255, 0.1)'
+    selector.style.border = '1px solid rgba(0, 0, 255, 0.45)'
+    selector.style.display = 'none'
+    selector.style.pointerEvents = 'none'
+    this.area.appendChild(selector)
+    return selector
+  }
+
+  getPosition(event) {
+    const cursorPosNew = this._getCursorPos(event, this.area)
+    const scrollNew = this.getScroll(this.area)
+
+    // if area or document is scrolled those values have to be included aswell
+    const scrollAmount = {
+      x: scrollNew.x - this.initialScroll.x,
+      y: scrollNew.y - this.initialScroll.y
+    }
+
+    /** check for direction
+     *
+     * This is quite complicated math, so also quite complicated to explain. Lemme’ try:
+     *
+     * Problem #1:
+     * Sadly in HTML we can not have negative sizes.
+     * so if we want to scale our element 10px to the right then it is easy,
+     * we just have to add +10px to the width. But if we want to scale the element
+     * -10px to the left then things become more complicated, we have to move
+     * the element -10px to the left on the x axis and also scale the element
+     * by +10px width to fake a negative sizing.
+     *
+     * One solution to this problem is using css-transforms scale() with
+     * transform-origin of top left. BUT we can’t use this since it will size
+     * everything, then when your element has a border for example, the border will
+     * get inanely huge. Also transforms are not widely supported in IE.
+     *
+     * Example #1:
+     * Unfortunately, things get even more complicated when we are inside a scrollable
+     * DIV. Then, let’s say we scoll to the right by 10px and move the cursor right by 5px in our
+     * checks we have to substract 10px from the initialcursor position in our check
+     * (since the inital position is moved to the left by 10px) so in our example:
+     * 1. cursorPosNew.x (5) > initialCursorPos.x (0) - scrollAmount.x (10) === 5 > -10 === true
+     * then reset the x position to its initial position (since we might have changed that
+     * position when scrolling to the left before going right) in our example:
+     * 2. selectorPos.x = initialCursorPos.x (0) + initialScroll.x (0) === 0;
+     * then we cann calculate the elements width, which is
+     * the new cursor position minus the initial one plus the scroll amount, so in our example:
+     * 3. selectorPos.w = cursorPosNew.x (5) - initialCursorPos.x (0) + scrollAmount.x (10) === 15;
+     *
+     * let’s say after that movement we now scroll 20px to the left and move our cursor by 30px to the left:
+     * 1b. cursorPosNew.x (-30) > initialCursorPos.x (0) - scrollAmount.x (-20) === -30 > -20 === false;
+     * 2b. selectorPos.x = cursorPosNew.x (-30) + scrollNew.x (-20)
+     *                   === -50;  // move left position to cursor (for more info see Problem #1)
+     * 3b. selectorPos.w = initialCursorPos.x (0) - cursorPosNew.x (-30) - scrollAmount.x (-20)
+     *                   === 0--30--20 === 0+30+20 === 50;  // scale width to original left position (for more info see Problem #1)
+     *
+     * same thing has to be done for top/bottom
+     *
+     * I hope that makes sence, try stuff out and play around with variables to get a hang of it.
+     */
+    var selectorPos = {}
+
+    // right
+    if (cursorPosNew.x > this.initialCursorPos.x - scrollAmount.x) {
+      // 1.
+      selectorPos.x = this.initialCursorPos.x + this.initialScroll.x // 2.
+      selectorPos.w = cursorPosNew.x - this.initialCursorPos.x + scrollAmount.x // 3.
+      // left
+    } else {
+      // 1b.
+      selectorPos.x = cursorPosNew.x + scrollNew.x // 2b.
+      selectorPos.w = this.initialCursorPos.x - cursorPosNew.x - scrollAmount.x // 3b.
+    }
+
+    // bottom
+    if (cursorPosNew.y > this.initialCursorPos.y - scrollAmount.y) {
+      selectorPos.y = this.initialCursorPos.y + this.initialScroll.y
+      selectorPos.h = cursorPosNew.y - this.initialCursorPos.y + scrollAmount.y
+      // top
+    } else {
+      selectorPos.y = cursorPosNew.y + scrollNew.y
+      selectorPos.h = this.initialCursorPos.y - cursorPosNew.y - scrollAmount.y
+    }
+
+    return selectorPos
+  }
+
+  reset(event) {
+    document.removeEventListener('mouseup', this.reset)
+    this.area.removeEventListener('mousemove', this._handleMove)
+    this.area.addEventListener('mousedown', this._startUp)
+
+    this.callback(event, this.selector.getBoundingClientRect())
+
+    this.selector.style.width = '0'
+    this.selector.style.height = '0'
+    this.selector.style.display = 'none'
+
+    setTimeout(
+      function() {
+        // debounce in order "onClick" to work
+        this.mouseInteraction = false
+      }.bind(this),
+      100
+    )
+  }
+
+  stop() {
+    this.reset()
+    this.area.removeEventListener('mousedown', this._startUp)
+    document.removeEventListener('mouseup', this.reset)
+  }
+
+  getCursorPos(event, _area, ignoreScroll) {
+    if (!event) {
+      return false
+    }
+
+    const area = _area || (_area !== false && this.area)
+    const pos = this._getCursorPos(event, area)
+    const scroll = this.getScroll(area)
+
+    return {
+      x: pos.x + scroll.x,
+      y: pos.y + scroll.y
+    }
+  }
+
+  _getCursorPos(event, area) {
+    if (!event) {
+      return {x: 0, y: 0}
+    }
+
+    const areaRect = area.getBoundingClientRect()
+
+    return {
+      // if it’s constrained in an area the area should be substracted calculate
+      x: event.clientX - areaRect.left,
+      y: event.clientY - areaRect.top
+    }
+  }
+
+  getScroll(area) {
+    return {
+      y: area.scrollTop,
+      x: area.scrollLeft
+    }
+  }
+
+  updatePos(node, pos) {
+    node.style.left = pos.x + 'px'
+    node.style.top = pos.y + 'px'
+    node.style.width = pos.w + 'px'
+    node.style.height = pos.h + 'px'
+    return node
+  }
+}
+
+export default Marquee

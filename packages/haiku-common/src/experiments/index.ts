@@ -30,6 +30,8 @@ export enum Experiment {
   OrderedActionStack = 'OrderedActionStack',
   CodeEditorInCreator = 'CodeEditorInCreator',
   WarnOnUndefinedStateVariables = 'WarnOnUndefinedStateVariables',
+  NativeTimelineScroll = 'NativeTimelineScroll',
+  TimelineMarqueeSelection = 'TimelineMarqueeSelection',
 }
 
 /**

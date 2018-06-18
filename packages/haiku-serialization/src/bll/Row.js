@@ -456,9 +456,13 @@ class Row extends BaseModel {
     }
 
     const keyframes = this.getKeyframes()
-    const frameInfo = this.timeline.getFrameInfo()
 
-    return keyframes.filter((keyframe) => keyframe.isVisible(frameInfo.msA, frameInfo.msB)).map(iteratee)
+    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+      return keyframes.map(iteratee)
+    } else {
+      const frameInfo = this.timeline.getFrameInfo()
+      return keyframes.filter((keyframe) => keyframe.isVisible(frameInfo.msA, frameInfo.msB)).map(iteratee)
+    }
   }
 
   isState () {

@@ -1,6 +1,7 @@
 import React from 'react'
 import Color from 'color'
 import Palette from 'haiku-ui-common/lib/Palette'
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import FrameAction from './FrameAction'
 
 export default class FrameGrid extends React.Component {
@@ -41,8 +42,7 @@ export default class FrameGrid extends React.Component {
 
   handleUpdate (what) {
     if (!this.mounted) return null
-
-    if (what === 'timeline-frame-range' || what === 'timeline-frame-hovered') {
+    if (what === 'timeline-frame-hovered') {
       this.forceUpdate()
     }
 
@@ -89,7 +89,7 @@ export default class FrameGrid extends React.Component {
                 id={`frame-${frameNumber}`}
                 key={`frame-${frameNumber}`}
                 style={{
-                  height: 9999,
+                  height: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'calc(100vh - 95px)' : 9999,
                   borderLeft:
                     hoveredFrame === frameNumber
                       ? borderLeftHighlighted

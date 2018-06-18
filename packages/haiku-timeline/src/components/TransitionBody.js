@@ -6,6 +6,7 @@ import TimelineDraggable from './TimelineDraggable'
 import KeyframeSVG from 'haiku-ui-common/lib/react/icons/KeyframeSVG'
 import Globals from 'haiku-ui-common/lib/Globals'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 
 import {
   EaseInBackSVG,
@@ -80,6 +81,7 @@ const THROTTLE_TIME = 17 // ms
 export default class TransitionBody extends React.Component {
   constructor (props) {
     super(props)
+    this.handleUpdate = this.handleUpdate.bind(this)
     this.handleProps(props)
   }
 
@@ -103,15 +105,37 @@ export default class TransitionBody extends React.Component {
 
   componentDidMount () {
     this.mounted = true
+    if (experimentIsEnabled(Experiment.TimelineMarqueeSelection)) {
+      this.props.timeline.on('update', this.handleUpdate)
+    }
   }
 
   componentWillUnmount () {
     this.mounted = false
     this.teardownKeyframeUpdateReceiver()
+    if (experimentIsEnabled(Experiment.TimelineMarqueeSelection)) {
+      this.props.timeline.removeListener('update', this.handleUpdate)
+    }
   }
 
-  handleUpdate (what) {
+  handleUpdate (what, ...args) {
     if (!this.mounted) return null
+    if (experimentIsEnabled(Experiment.TimelineMarqueeSelection)) {
+      if (what === 'marquee-selection') {
+        const containerRect = this.position
+        const elementRect = args[0]
+        if (
+          containerRect.x < elementRect.x + elementRect.width &&
+          containerRect.x + containerRect.width > elementRect.x &&
+          containerRect.y < elementRect.y + elementRect.height &&
+          containerRect.height + containerRect.y > elementRect.y
+        ) {
+          this.props.keyframe.select()
+          this.props.keyframe.activate()
+          this.props.keyframe.setBodySelected()
+        }
+      }
+    }
     if (
       what === 'keyframe-activated' ||
       what === 'keyframe-deactivated' ||
@@ -171,6 +195,9 @@ export default class TransitionBody extends React.Component {
           key={uniqueKey}
           ref={(domElement) => {
             this[uniqueKey] = domElement
+            if (experimentIsEnabled(Experiment.TimelineMarqueeSelection) && domElement) {
+              this.position = domElement.getBoundingClientRect()
+            }
           }}
           onContextMenu={(ctxMenuEvent) => {
             ctxMenuEvent.stopPropagation()
