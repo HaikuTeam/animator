@@ -65,11 +65,7 @@ class ComponentTab extends React.Component {
         logger.error(err);
       }
 
-      this.props.projectModel.setCurrentActiveComponent(this.props.tab.scenename, {from: 'creator'}, (acErr) => {
-        if (acErr) {
-          logger.error(acErr);
-        }
-      });
+      this.props.tryToChangeCurrentActiveComponent(this.props.tab.scenename);
     });
   }
 
@@ -80,9 +76,17 @@ class ComponentTab extends React.Component {
         {this.props.tab && <div
           onClick={this.changeComponent}
           style={[STYLES.tab, (this.props.forceActive || this.props.tab.active) && STYLES.tab.active]}>
-          <span style={STYLES.label} className="no-select">
-            {toTitleCase(this.props.tab.scenename)}
-          </span>
+          <div style={{display: 'inline-block', width: '70%'}}>
+            <span style={STYLES.label} className="no-select">
+              {toTitleCase(this.props.tab.scenename)}
+            </span>
+          </div>
+          {(this.props.forceActive || this.props.tab.active) && this.props.nonSavedContentOnCodeEditor &&
+          <div style={{position: 'absolute', display: 'inline-block', width: '30%', height: '12px'}}>
+            <svg height="12" width="12">
+              <circle cx="6" cy="6" r="4" fill="#f24082" />
+            </svg>
+          </div>}
         </div>}
       </div>
     );

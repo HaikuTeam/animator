@@ -1,7 +1,7 @@
+import * as Radium from 'radium';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import {shell, ipcRenderer} from 'electron';
-import * as Radium from 'radium';
+import {ipcRenderer, shell} from 'electron';
 import * as assign from 'lodash.assign';
 import Palette from 'haiku-ui-common/lib/Palette';
 import * as Color from 'color';
@@ -9,17 +9,13 @@ import {BTN_STYLES} from '../styles/btnShared';
 import Toggle from './Toggle';
 import {ShareModal} from 'haiku-ui-common/lib/react/ShareModal';
 import {
-  PublishSnapshotSVG,
-  ConnectionIconSVG,
-  WarningIconSVG,
-  DangerIconSVG,
-  ComponentIconSVG,
-  EventsBoltIcon,
+  ComponentIconSVG, ConnectionIconSVG, DangerIconSVG, EventsBoltIcon, PublishSnapshotSVG, WarningIconSVG,
 } from 'haiku-ui-common/lib/react/OtherIcons';
 import {ExporterFormat} from 'haiku-sdk-creator/lib/exporter';
 import * as Element from 'haiku-serialization/src/bll/Element';
 import * as ElementSelectionProxy from 'haiku-serialization/src/bll/ElementSelectionProxy';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
+import CannotSwitchToDesignPopup from './CodeEditor/CannotSwitchToDesignPopup';
 
 const mixpanel = require('haiku-serialization/src/utils/Mixpanel');
 
@@ -148,6 +144,8 @@ class StageTitleBar extends React.Component {
     this.handleConglomerateComponent = this.handleConglomerateComponent.bind(this);
     this.handleShowProjectLocationToast = this.handleShowProjectLocationToast.bind(this);
     this.handleGlobalMenuSave = this.handleGlobalMenuSave.bind(this);
+    this.handleSaveOnRawCodeEditor = this.handleSaveOnRawCodeEditor.bind(this);
+    this.handleSaveOnGlass = this.handleSaveOnGlass.bind(this);
 
     this._isMounted = false;
 
@@ -166,6 +164,26 @@ class StageTitleBar extends React.Component {
       snapshotSyndicated: true,
       snapshotPublished: true,
     };
+
+    ipcRenderer.on('global-menu:save', () => {
+      if (!this._isMounted) {
+        return;
+      }
+
+      if (this.props.showGlass) {
+        this.handleSaveOnGlass();
+      } else {
+        this.handleSaveOnRawCodeEditor();
+      }
+    });
+
+    ipcRenderer.on('global-menu:publish', () => {
+      if (!this._isMounted) {
+        return;
+      }
+
+      this.handleSaveSnapshotClick();
+    });
   }
 
   componentDidMount () {
@@ -278,6 +296,33 @@ class StageTitleBar extends React.Component {
       saveStrategy: SNAPSHOT_SAVE_RESOLUTION_STRATEGIES[this.state.snapshotSaveResolutionStrategyName],
       exporterFormats: [ExporterFormat.Bodymovin, ExporterFormat.HaikuStatic],
     };
+  }
+
+  handleSaveOnRawCodeEditor () {
+    this.props.saveCodeFromEditorToDisk();
+  }
+
+  handleSaveOnGlass () {
+    const noticeNotice = this.props.createNotice({
+      type: 'info',
+      title: 'Snapshot saved',
+      message: (
+        <p>
+          <span
+            style={STYLES.link2}
+            onClick={() => {
+              shell.showItemInFolder(this.props.folder);
+            }}
+          >
+            View in Finder
+          </span>
+        </p>
+      ),
+    });
+
+    window.setTimeout(() => {
+      this.props.removeNotice(undefined, noticeNotice.id);
+    }, 2500);
   }
 
   handleSaveSnapshotClick () {
@@ -593,8 +638,8 @@ class StageTitleBar extends React.Component {
 
     return (
       <div style={STYLES.frame} className="frame">
-        {this.isConglomerateComponentAvailable()
-          ? <button
+        {this.isConglomerateComponentAvailable() &&
+          <button
             key="conglomerate-component-button"
             id="conglomerate-component-button"
             onClick={this.handleConglomerateComponent}
@@ -604,10 +649,10 @@ class StageTitleBar extends React.Component {
             ]}>
             <ComponentIconSVG color={this.getConglomerateComponentButtonColor()} />
           </button>
-          : ''}
+        }
 
-        {this.isEventHandlersEditorAvailable()
-          ? <button
+        {this.isEventHandlersEditorAvailable() &&
+          <button
             key="show-event-handlers-editor-button"
             id="show-event-handlers-editor-button"
             onClick={this.handleShowEventHandlersEditor}
@@ -617,7 +662,47 @@ class StageTitleBar extends React.Component {
             ]}>
             <EventsBoltIcon color={this.getEventHandlersEditorButtonColor()} />
           </button>
-          : ''}
+        }
+        {this.props.showPopupCannotSwitchToDesign &&
+          <CannotSwitchToDesignPopup
+            closePopupCannotSwitchToDesign={this.props.closePopupCannotSwitchToDesign}
+          />
+        }
+        <div style={[{display: 'inline-block'}]} >
+          <button
+            key="toggle-design"
+            id="toggle-design"
+            onClick={this.props.onSwitchToDesignMode}
+            style={[
+              BTN_STYLES.btnText,
+              BTN_STYLES.centerBtns,
+              this.props.showGlass && {boxShadow: '0 4px 2px -2px #f24082'},
+              {
+                display: 'inline-block',
+                marginRight: '0px',
+              },
+            ]}
+          >
+            <span style={{marginLeft: 7}}>DESIGN</span>
+          </button>
+
+          <button
+            key="toggle-code"
+            id="toogle-code"
+            onClick={this.props.onSwitchToCodeMode}
+            style={[
+              BTN_STYLES.btnText,
+              BTN_STYLES.centerBtns,
+              !this.props.showGlass && {boxShadow: '0 4px 2px -2px #f24082'},
+              {
+                display: 'inline-block',
+                marginRight: '0px',
+              },
+            ]}
+          >
+            <span style={{marginLeft: 7}}>CODE</span>
+          </button>
+        </div>
 
         <button
           key="save"

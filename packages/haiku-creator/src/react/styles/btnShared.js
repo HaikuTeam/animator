@@ -52,6 +52,9 @@ export const BTN_STYLES = {
   leftBtns: {
     float: 'left',
   },
+  centerBtns: {
+    float: 'center',
+  },
   rightBtns: {
     float: 'right',
   },
