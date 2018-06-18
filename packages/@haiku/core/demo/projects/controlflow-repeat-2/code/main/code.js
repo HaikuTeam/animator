@@ -46,6 +46,20 @@ module.exports = {
               }
               return out
             }),
+            curve: 'linear',
+            edited: true
+          },
+          "1000": {
+            value: Haiku.inject(function() {
+              const out = []
+              for (var i = 0; i < 6; i++) {
+                out.push({
+                  x: (i * 50) + 100,
+                  y: i * 50
+                })
+              }
+              return out
+            }),
             edited: true
           }
         },
@@ -165,6 +179,22 @@ module.exports = {
                 out.push({
                   x: n,
                   y: n + 200,
+                  color: 'rgb('+n+','+n+','+n+')'
+                })
+              }
+              return out
+            }),
+            curve: 'linear',
+            edited: true
+          },
+          "1000": {
+            value: Haiku.inject(function() {
+              const out = []
+              for (var i = 0; i < 5; i++) {
+                var n = i * 50
+                out.push({
+                  x: n,
+                  y: n + 400,
                   color: 'rgb('+n+','+n+','+n+')'
                 })
               }

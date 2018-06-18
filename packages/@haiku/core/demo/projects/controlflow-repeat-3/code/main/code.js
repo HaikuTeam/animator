@@ -54,6 +54,13 @@ module.exports = {
             value: Haiku.inject(function($flow) {
               return $flow.repeat.payload.x
             }, '$flow'),
+            curve: 'linear',
+            edited: true
+          },
+          "1000": {
+            value: Haiku.inject(function($flow) {
+              return $flow.repeat.payload.x + 100
+            }, '$flow'),
             edited: true
           }
         },
@@ -185,6 +192,13 @@ module.exports = {
           "0": {
             value: Haiku.inject(function($flow) {
               return $flow.repeat.payload.y
+            }, '$flow'),
+            curve: 'linear',
+            edited: true
+          },
+          "1000": {
+            value: Haiku.inject(function($flow) {
+              return $flow.repeat.payload.y + 200
             }, '$flow'),
             edited: true
           }

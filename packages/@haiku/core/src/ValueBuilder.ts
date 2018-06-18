@@ -507,32 +507,22 @@ INJECTABLES.$user = {
 INJECTABLES.$flow = {
   schema: {
     repeat: {
-      list: ['any'],
+      group: 'object',
+      payload: 'any',
       index: 'number',
-      value: 'any',
-      data: 'any', // alias for value
-      payload: 'any', // alias for payload
+      collection: ['any'],
     },
     placeholder: {
       node: 'any', // The injected element?
     },
   },
   summon (injectees, summonSpec, hostInstance, matchingElement) {
-    // if (!injectees.$flow) injectees.$flow = {}
-    // var out = injectees.$flow
+    if (!injectees.$flow) {
+      injectees.$flow = {};
+    }
+
+    injectees.$flow.repeat = matchingElement.__repeat;
   },
-};
-
-INJECTABLES.$flow.schema.if = {
-  value: 'any',
-  data: 'any', // alias for value
-  payload: 'any', // alias for payload
-};
-
-INJECTABLES.$flow.schema.yield = {
-  value: 'any',
-  data: 'any', // alias for value
-  payload: 'any', // alias for payload
 };
 
 INJECTABLES.$helpers = {

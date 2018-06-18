@@ -891,7 +891,7 @@ export default class HaikuComponent extends HaikuElement {
     options: any = {},
     skipCache = false,
   ) {
-    // This is what we're going to return: a dictionary of ids to elements
+    // This is what we're going to return: a dictionary of composite ids (flexId-repeatIndex) to elements
     const deltas = {};
 
     Layout3D.initializeTreeAttributes(template, true);
@@ -914,8 +914,8 @@ export default class HaikuComponent extends HaikuElement {
 
     // TODO: Calculating the tree layout should be skipped for already visited node
     // that we have already calculated among the descendants of the changed one
-    for (const flexId in deltas) {
-      const changedNode = deltas[flexId];
+    for (const compositeId in deltas) {
+      const changedNode = deltas[compositeId];
 
       computeAndApplyTreeLayouts(
         changedNode,
@@ -1014,6 +1014,10 @@ export default class HaikuComponent extends HaikuElement {
 
             const flexId = haikuId || domId;
 
+            const compositeId = (matchingElement.__repeat)
+              ? `${flexId}'${matchingElement.__repeat.index}`
+              : flexId;
+
             for (const propertyName in propertyGroup) {
               const propertyValue = propertyGroup[propertyName];
 
@@ -1039,7 +1043,7 @@ export default class HaikuComponent extends HaikuElement {
 
                 // If even one change has been applied, the element must be patched
                 if (deltas) {
-                  deltas[flexId] = matchingElement;
+                  deltas[compositeId] = matchingElement;
                 }
               }
             }
@@ -2145,6 +2149,11 @@ export const VANITIES = {
       receiver,
       sender,
     ) => {
+      // For MVP's sake, structural behaviors not rendered during hot editing.
+      if (sender.config.hotEditingMode) {
+        return;
+      }
+
       if (value === null || value === undefined) {
         return;
       }
@@ -2199,7 +2208,175 @@ export const VANITIES = {
         controlFlowPlaceholderImpl(element, surrogate, receiver);
       }
     },
+
+    'controlFlow.repeat': (
+      name: string,
+      element,
+      value,
+      context: HaikuContext,
+      timeline: HaikuTimeline,
+      receiver: HaikuComponent,
+      sender: HaikuComponent,
+    ) => {
+      // For MVP's sake, structural behaviors not rendered during hot editing.
+      if (sender.config.hotEditingMode) {
+        return;
+      }
+
+      let behavior;
+
+      if (Array.isArray(value)) {
+        behavior = value;
+      } else if (isNumeric(value)) {
+        const arr = [];
+
+        for (let i = 0; i < value; i++) {
+          arr.push({}); // Empty repeat payload spec
+        }
+
+        behavior = arr;
+      } else {
+        return;
+      }
+
+      if (element.__repeat && element.__repeat.group) {
+        // Save CPU by avoiding recomputing a repeat when we've already done so.
+        // Although upstream HaikuComponent#applyBehaviors does do diff comparisons,
+        // it intentionally skips this comparison for complex properties i.e. arrays
+        // and objects due to the intractability of smartly comparing for all cases.
+        // We do a comparison that is fairly sensible in the repeat-exclusive case.
+        if (isSameRepeatBehavior(element.__repeat.group.behavior, behavior)) {
+          return;
+        }
+      }
+
+      const parent = element && element.__parent;
+
+      // We can't proceed if there's no parent in which to host the repeated children
+      if (!parent || !parent.children) {
+        return;
+      }
+
+      // Store a snapshot of the children in their initial state before repeating
+      if (!parent.__children) {
+        parent.__children = parent.children.slice(0);
+      }
+
+      const groups = parent.__children.map((source, index) => {
+        const group = {
+          index,
+          source,
+          behavior,
+          elements: [],
+        };
+
+        for (let i = 0; i < parent.children.length; i++) {
+          const child = parent.children[i];
+
+          if (child === source) {
+            group.elements.push(child);
+            continue;
+          }
+
+          if (child.__repeat && child.__repeat.group.source === source) {
+            group.elements.push(child);
+            continue;
+          }
+        }
+
+        return group;
+      });
+
+      // Clear the existing children which we're going to repopulate with elements
+      parent.children.splice(0);
+
+      for (let i = 0; i < groups.length; i++) {
+        const group = groups[i];
+
+        // If not our element, just place the groups back in the children
+        if (group.source !== element) {
+          parent.children.push.apply(parent.children, group.elements);
+          continue;
+        }
+
+        // If our element, create the appropriate repetitions and then push.
+        for (let j = 0; j < behavior.length; j++) {
+          const payload = behavior[j];
+
+          // Reuse the original element at this index if we already have one,
+          // otherwise clone the source element, and initialize a component if necessary
+          if (!group.elements[j]) {
+            group.elements[j] = clone(group.source, sender);
+
+            // We have to initialize the element's __instance, etc.
+            expandTreeNode(
+              group.elements[j],
+              parent,
+              sender, // component
+              sender.context, // context
+              sender, // host
+              sender.config, // options
+              false, // doConnectInstanceToNode
+            );
+          }
+
+          // The repeat information is exposed downstream for programmatic control
+          group.elements[j].__repeat = {
+            group,
+            payload,
+            index: j,
+            collection: group.elements,
+          };
+
+          // Apply the repeat payload to the element as if it were a normal timeline output
+          for (const propertyName in payload) {
+            sender.applyPropertyToNode(
+              group.elements[j], // matchingElement
+              propertyName,
+              payload[propertyName], // finalValue
+              timeline,
+            );
+          }
+
+          parent.children.push(group.elements[j]);
+        }
+      }
+    },
   },
+};
+
+const isSameRepeatBehavior = (prevs, nexts): boolean => {
+  if (prevs === nexts) {
+    return true;
+  }
+
+  if (prevs.length !== nexts.length) {
+    return false;
+  }
+
+  let answer = true;
+
+  for (let i = 0; i < prevs.length; i++) {
+    if (!answer) {
+      break;
+    }
+
+    const prev = prevs[i];
+    const next = nexts[i];
+
+    if (prev === next) {
+      continue;
+    }
+
+    for (const key in next) {
+      if (next[key] !== prev[key]) {
+        answer = false;
+        break;
+      }
+    }
+  }
+
+  return answer;
 };
 
 export const getFallback = (elementName: string, propertyName: string) => {

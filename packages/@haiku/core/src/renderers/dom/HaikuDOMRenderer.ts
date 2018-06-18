@@ -99,14 +99,14 @@ export default class HaikuDOMRenderer extends HaikuBase {
     );
   }
 
-  patch (component, patches) {
+  patch (component, deltas) {
     // The component upstream may use an empty value to indicate a no-op
-    if (!patches || Object.keys(patches).length < 1) {
+    if (!deltas || Object.keys(deltas).length < 1) {
       return;
     }
 
-    for (const flexId in patches) {
-      const virtualElement = patches[flexId];
+    for (const compositeId in deltas) {
+      const virtualElement = deltas[compositeId];
 
       if (virtualElement.__targets) {
         for (let i = 0; i < virtualElement.__targets.length; i++) {
