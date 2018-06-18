@@ -28,7 +28,12 @@ class CodeEditor extends React.Component {
   onProjectModelUpdate (what, ...args) {
     switch (what) {
       case 'reloaded':
-        const newComponentCode = this.props.projectModel.getCurrentActiveComponent().fetchActiveBytecodeFile().getCode();
+        const ac = this.props.projectModel.getCurrentActiveComponent();
+        if (!ac) {
+          break;
+        }
+
+        const newComponentCode = ac.fetchActiveBytecodeFile().getCode();
 
         // If component code changed, update it on Editor
         // TODO: this logic could be migrated in the future to Monaco Editor
