@@ -1,4 +1,3 @@
-import {EnvironmentType, getEnvironmentType} from '../environments';
 import {getExperimentConfig} from './config';
 
 /**
@@ -29,6 +28,7 @@ export enum Experiment {
   CrashOnIpcIntegrityCheckFailure = 'CrashOnIpcIntegrityCheckFailure',
   IncludeSourceInIntegrityHash = 'IncludeSourceInIntegrityHash',
   OrderedActionStack = 'OrderedActionStack',
+  CodeEditorInCreator = 'CodeEditorInCreator',
 }
 
 /**
@@ -44,7 +44,7 @@ export enum Experiment {
  *
  * We'll lazily read the config from experiments.json when it is requested for the first time.
  */
-type ExperimentConfig = {[key in Experiment]: {[key in EnvironmentType]: boolean}};
+type ExperimentConfig = {[key in Experiment]: boolean};
 let experimentConfig: ExperimentConfig;
 
 /**
@@ -76,5 +76,5 @@ export const experimentIsEnabled = (experiment: Experiment): boolean => {
     return experimentCache[experiment];
   }
 
-  return experimentCache[experiment] = experimentConfig[experiment][getEnvironmentType()] || false;
+  return experimentCache[experiment] = experimentConfig[experiment] || false;
 };
