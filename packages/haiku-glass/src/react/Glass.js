@@ -1307,13 +1307,34 @@ export class Glass extends React.Component {
               elementTargeted.getHaikuElement().visit((descendant) => {
                 if (descendant.isComponent()) return
                 if (descendant.isChildOfDefs) return
+                
+                let hasFill = false
+                {
+                  let d = descendant
+                  while(!hasFill && d) {
+                    hasFill = (d.attributes.fill !== undefined && d.attributes.fill !== 'none')
+                    d = d.parent
+                  }
+                }
+                
+                let hasStroke = false
+                {
+                  let d = descendant
+                  while(!hasStroke && d) {
+                    hasStroke = (d.attributes.stroke !== undefined &&
+                      d.attributes.stroke !== 'none' &&
+                      d.attributes.strokeWidth !== '0' &&
+                      d.attributes.strokeWidth !== 0 &&
+                      d.attributes.strokeWidth !== 'none')
+                    d = d.parent
+                  }
+                }
+                
                 if (
                   (
-                    descendant.attributes.fill &&
-                    isPointInsidePrimitive(descendant, mouseDownPosition)
+                    hasFill && isPointInsidePrimitive(descendant, mouseDownPosition)
                   ) || (
-                    descendant.attributes.stroke &&
-                    isPointAlongStroke(descendant, mouseDownPosition, Number(descendant.attributes['stroke-width']))
+                    hasStroke && isPointAlongStroke(descendant, mouseDownPosition, Number(descendant.attributes['stroke-width']))
                   )) {
                   clickedItemFound = descendant
                   if (isDoubleClick) Element.directlySelected = descendant
