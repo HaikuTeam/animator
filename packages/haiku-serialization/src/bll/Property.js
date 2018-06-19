@@ -150,6 +150,8 @@ Property.BUILTIN_DOM_SCHEMAS = {
     'sizeAbsolute.y': 'number',
     'playback': 'any',
     'controlFlow.placeholder': 'any',
+    'controlFlow.repeat': 'any',
+    'controlFlow.if': 'any',
     opacity: 'number',
     'translation.x': 'number',
     'translation.y': 'number',
@@ -189,6 +191,8 @@ Property.BUILTIN_DOM_SCHEMAS = {
   },
   svg: {
     'controlFlow.placeholder': 'any',
+    'controlFlow.repeat': 'any',
+    'controlFlow.if': 'any',
     opacity: 'number',
     'translation.x': 'number',
     'translation.y': 'number',
