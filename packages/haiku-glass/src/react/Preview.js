@@ -20,7 +20,8 @@ export default class Preview extends React.Component {
         loop: true,
         interactionMode: InteractionMode.LIVE,
         autoplay: true,
-        mixpanel: false
+        mixpanel: false,
+        contextMenu: 'disabled'
       }
     )
 
