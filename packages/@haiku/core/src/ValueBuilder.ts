@@ -8,6 +8,7 @@ import HaikuHelpers from './HaikuHelpers';
 import BasicUtils from './helpers/BasicUtils';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
 import {isPreviewMode} from './helpers/interactionModes';
+import Layout3D from './Layout3D';
 import fallbacks from './properties/dom/fallbacks';
 import parsers from './properties/dom/parsers';
 import schema from './properties/dom/schema';
@@ -347,6 +348,9 @@ const assignElementInjectables = (obj, key, summonSpec, hostInstance, element) =
   if (element.layout.computed) {
     out.properties.matrix = element.layout.computed.matrix;
     out.properties.size = element.layout.computed.size;
+  } else {
+    out.properties.matrix = Layout3D.createMatrix();
+    out.properties.size = {x: 0, y: 0, z: 0};
   }
 
   out.properties.align = element.layout.align;
