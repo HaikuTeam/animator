@@ -4410,21 +4410,20 @@ class ActiveComponent extends BaseModel {
   }
 
   replaceBytecode (currentEditorContents, metadata, cb) {
-    // Validates bytecode before saving it, helping users avoid shooting their feet with an invalid bytecode
-    try {
-      const absPath = this.fetchActiveBytecodeFile().getAbspath()
-      // TODO: in the future, change it to a bytecode validator instead a simple require
-      const loadedBytecode = ModuleWrapper.testLoadBytecode(currentEditorContents, absPath)
-
-      return this.project.updateHook('replaceBytecode', this.getRelpath(), metadata, (fire) => {
-        this.handleUpdatedBytecode(loadedBytecode)
+    const absPath = this.fetchActiveBytecodeFile().getAbspath()
+    return Lock.request(Lock.LOCKS.FileReadWrite(absPath), false, (release) => {
+      return this.project.updateHook('replaceBytecode', this.getRelpath(), currentEditorContents, metadata, (fire) => {
+        try {
+          this.handleUpdatedBytecode(ModuleWrapper.testLoadBytecode(currentEditorContents, absPath))
+          cb(null)
+        } catch (requireError) {
+          // If we cannot validate it, return an error.
+          cb(requireError)
+        }
+        release()
         fire()
-        return cb()
       })
-    } catch (error) {
-      // If we cannot validate it, return an error.
-      return cb(error)
-    }
+    })
   }
 }
 

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as Radium from 'radium';
-import {ModalWrapper, ModalHeader, ModalFooter} from 'haiku-ui-common/lib/react/Modal';
+import {ModalFooter, ModalHeader, ModalWrapper} from 'haiku-ui-common/lib/react/Modal';
 import {BTN_STYLES} from '../../styles/btnShared';
 import Palette from 'haiku-ui-common/lib/Palette';
 
@@ -23,6 +23,26 @@ const STYLES = {
 };
 
 class BytecodeErrorPopup extends React.Component {
+  renderError () {
+    const error = this.props.currentBytecodeError;
+    if (!error) {
+      return;
+    }
+
+    const message = error.toString();
+    const relevantStack = error.stack.slice(
+      error.stack.indexOf(':') + 1,
+      error.stack.indexOf(message) + message.length,
+    );
+    return relevantStack.split('\n').map((errorLine, index) => {
+      if (index === 0) {
+        return <div key={`bep-${index}`}>Please fix syntax errors on line {errorLine} and try again.</div>;
+      }
+
+      return <pre key={`bep-${index}`}>{errorLine}</pre>;
+    });
+  }
+
   render () {
     return (
       <div style={STYLES.wrapper}>
@@ -31,8 +51,7 @@ class BytecodeErrorPopup extends React.Component {
             <h2>Cannot save file</h2>
           </ModalHeader>
           <div style={STYLES.modalBody}>
-            Can't save inconsistent changes. Error message: {this.props.currentBytecodeErrorString}.
-            Fix it and try again.
+            {this.renderError()}
           </div>
           <br />
           <br />

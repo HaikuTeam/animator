@@ -7,7 +7,6 @@ import * as Radium from 'radium';
 import MonacoEditor from './MonacoEditor';
 import SaveContentsPopup from './SaveContentsPopup';
 import BytecodeErrorPopup from './BytecodeErrorPopup';
-import * as ModuleWrapper from 'haiku-serialization/src/bll/ModuleWrapper';
 
 class CodeEditor extends React.Component {
   constructor (props) {
@@ -17,15 +16,21 @@ class CodeEditor extends React.Component {
     this.saveCodeFromEditorToDisk = this.saveCodeFromEditorToDisk.bind(this);
     this.onProjectModelUpdate = this.onProjectModelUpdate.bind(this);
 
+    this.hideBytecodeErrorPopup = () => {
+      this.setState({
+        showBytecodeErrorPopup: false,
+      });
+    };
+
     this.state = {
       currentComponentCode: '',
       currentEditorContents: '',
-      currentBytecodeErrorString: '',
+      currentBytecodeError: null,
       showBytecodeErrorPopup: false,
     };
   }
 
-  onProjectModelUpdate (what, ...args) {
+  onProjectModelUpdate (what) {
     switch (what) {
       case 'reloaded':
         const ac = this.props.projectModel.getCurrentActiveComponent();
@@ -35,17 +40,9 @@ class CodeEditor extends React.Component {
 
         const newComponentCode = ac.fetchActiveBytecodeFile().getCode();
 
-        // If component code changed, update it on Editor
-        // TODO: this logic could be migrated in the future to Monaco Editor
-        // getDerivedStateFromProps on react 16+
-        if (newComponentCode !== this.state.currentComponentCode) {
-          // This probably is portable to getDerivedStateFromProps
-          this.setState({currentComponentCode: newComponentCode, currentEditorContents: newComponentCode}, () => {
-            this.onMonacoEditorChange(newComponentCode, null);
-          });
-        } else {
-          this.setState({currentComponentCode: newComponentCode});
-        }
+        this.setState({currentComponentCode: newComponentCode}, () => {
+          this.onMonacoEditorChange(newComponentCode);
+        });
         break;
     }
   }
@@ -64,12 +61,13 @@ class CodeEditor extends React.Component {
   }
 
   /**
-   * Keep monaco component synced with states from CodeEditor(currentEditorContents) and
-   * Stage(nonSavedContentOnCodeEditor)
+   * Keep monaco component synced with states from CodeEditor (currentEditorContents) and
+   * Stage (nonSavedContentOnCodeEditor).
    */
-  onMonacoEditorChange (newContent, e) {
-    this.setState({currentEditorContents: newContent});
-    this.props.setNonSavedContentOnCodeEditor(this.state.currentComponentCode !== this.state.currentEditorContents);
+  onMonacoEditorChange (newContent) {
+    this.setState({currentEditorContents: newContent}, () => {
+      this.props.setNonSavedContentOnCodeEditor(this.state.currentComponentCode !== this.state.currentEditorContents);
+    });
   }
 
   saveCodeFromEditorToDisk () {
@@ -79,10 +77,14 @@ class CodeEditor extends React.Component {
     }
 
     activeComponent.replaceBytecode(this.state.currentEditorContents, {from: 'creator'}, (error) => {
-      if (error) {
-        this.setState({
-          showBytecodeErrorPopup: true,
-          currentBytecodeErrorString: `${error.name}: ${error.message}`,
+      this.setState({
+        currentBytecodeError: error,
+        showBytecodeErrorPopup: !!error,
+      });
+
+      if (!error) {
+        this.setState({currentComponentCode: this.state.currentEditorContents}, () => {
+          this.onMonacoEditorChange(this.state.currentEditorContents);
         });
       }
     });
@@ -114,10 +116,8 @@ class CodeEditor extends React.Component {
           />}
         {this.state.showBytecodeErrorPopup &&
           <BytecodeErrorPopup
-            currentBytecodeErrorString={this.state.currentBytecodeErrorString}
-            closeBytecodeErrorPopup={() => {
-              this.setState({showBytecodeErrorPopup: false});
-            }}
+            currentBytecodeError={this.state.currentBytecodeError}
+            closeBytecodeErrorPopup={this.hideBytecodeErrorPopup}
           />}
         <MonacoEditor
           language="javascript"
