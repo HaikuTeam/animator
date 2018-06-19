@@ -5,8 +5,6 @@ import {createDOM} from '../TestHelpers';
 tape(
   'component.getInjectables',
   (t) => {
-    t.plan(14);
-
     const bytecode = {
       // Checking that the bytecode itself can define options
       options: {
@@ -73,10 +71,7 @@ tape(
       t.ok(injectables.$core);
       t.ok(injectables.$component);
       t.ok(injectables.$root);
-
       t.ok(injectables.$element);
-      t.ok(injectables.$element.properties);
-
       t.ok(injectables.$tree);
       t.ok(injectables.$flow);
       t.ok(injectables.$user);
@@ -84,6 +79,8 @@ tape(
       t.ok(injectables.$helpers);
 
       component.context.clock.GLOBAL_ANIMATION_HARNESS.cancel();
+
+      t.end();
     });
   },
 );

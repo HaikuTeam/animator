@@ -1,11 +1,11 @@
 import * as tape from 'tape';
 
-import vanities from '@core/properties/dom/vanities';
+import {getVanity} from '@core/HaikuComponent';
 
 tape(
   'dom.vanities',
   (t) => {
     t.plan(1);
-    t.ok(typeof vanities.div['rotation.x'] === 'function');
+    t.ok(typeof getVanity(null, 'rotation.x') === 'function');
   },
 );
