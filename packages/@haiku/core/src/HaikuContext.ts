@@ -448,7 +448,7 @@ export default class HaikuContext extends HaikuBase {
 
   info (tag, message, attachedObject) {
     if (this.logger) {
-      attachedObject.sceneName = this.component.bytecode.metadata.title;
+      attachedObject.sceneName = this.component.title;
       this.logger.traceInfo(tag, message, attachedObject);
     }
   }

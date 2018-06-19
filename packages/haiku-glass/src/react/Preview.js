@@ -1,6 +1,7 @@
 import React from 'react'
 import HaikuDOMAdapter from '@haiku/core/dom'
 import {InteractionMode} from '@haiku/core/lib/helpers/interactionModes'
+import logger from 'haiku-serialization/src/utils/LoggerInstance'
 
 export default class Preview extends React.Component {
   mountHaikuComponent () {
@@ -24,6 +25,9 @@ export default class Preview extends React.Component {
         contextMenu: 'disabled'
       }
     )
+
+    // Set logger to enable context info when logging
+    this.component.context.setLogger(logger)
 
     this.component.render(this.component.config)
   }

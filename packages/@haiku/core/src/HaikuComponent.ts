@@ -1345,6 +1345,12 @@ export default class HaikuComponent extends HaikuElement {
 
     return this;
   }
+  $console = {
+    log: (params) => { this.context.info('CONSOLE', params, {}); },
+    info: (params) => { this.context.info('CONSOLE', params, {}); },
+    warn: (params) => { this.context.info('CONSOLE', params, {}); },
+    error: (params) => { this.context.info('CONSOLE', params, {}); },
+  };
 
   static __name__ = 'HaikuComponent';
 
@@ -1862,7 +1868,9 @@ const clone = (value, binding) => {
   }
 
   if (typeof value === 'function') {
-    const fn: ClonedFunction = (...args: any[]) => value.call(binding, ...args);
+    const fn: ClonedFunction = (...args: any[]) => {
+      value.call(binding, ...args);
+    };
     // Core decorates injectee functions with metadata properties
     for (const key in value) {
       if (value.hasOwnProperty(key)) {

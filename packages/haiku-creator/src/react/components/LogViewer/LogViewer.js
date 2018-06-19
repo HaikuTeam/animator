@@ -9,31 +9,24 @@ import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 
 class LogViewer extends React.Component {
   constructor (props) {
-    super(props);
-    this.toggleTagDisplay = this.toggleTag.bind(this);
-    this.displayMessageFilter = this.displayMessageFilter.bind(this);
-    this.renderLogLine = this.renderLogLine.bind(this);
+    super(props)
+    this.toggleTagDisplay = this.toggleTag.bind(this)
+    this.displayMessageFilter = this.displayMessageFilter.bind(this)
+    this.renderLogLine = this.renderLogLine.bind(this)
+    this.renderLogFromJsonLog = this.renderLogFromJsonLog.bind(this)
+    this.toggleEnableAll = this.toggleEnableAll.bind(this)
 
     this.allLogMessages = [];
 
     this.state = {
       logMessages: [],
+      enableAll: false,
       displayTags: {
-        ACTIONS_FIRED: {color: '#a4d36f', label: 'ACTIONS FIRED', display: true},
-        STATE_CHANGES: {color: '#eba139', label: 'STATE CHANGES', display: true},
-        LOOP_COUNTER: {color: '#9d34ed', label: 'LOOP COUNT', display: true},
-        PREVIEW_ERROR: {color: '#cd4d5b', label: 'ERRORS', display: true},
-      },
-    };
-
-    this.logHandler = (message) => {
-      message.key = this.currentMessageKey;
-      this.currentMessageKey++;
-      this.allLogMessages.push(message);
-      if (this.displayMessageFilter(message)) {
-        this.setState((prevState) => ({
-          logMessages: [...prevState.logMessages, message],
-        }));
+        'ACTIONS_FIRED': { color: '#a4d36f', label: 'ACTIONS FIRED', display: true },
+        'STATE_CHANGES': { color: '#eba139', label: 'STATE CHANGES', display: true },
+        'LOOP_COUNTER': { color: '#9d34ed', label: 'LOOP COUNT', display: true },
+        'PREVIEW_ERROR': { color: '#cd4d5b', label: 'ERRORS', display: true },
+        'CONSOLE': { color: '#aaaaaa', label: 'ERRORS', display: true },
       }
     };
 
@@ -50,9 +43,20 @@ class LogViewer extends React.Component {
     });
   }
 
+
+  toggleEnableAll () {
+    const enableAll = !this.state.enableAll
+    this.setState({enableAll}, () => {
+      this.setState({logMessages: this.allLogMessages.filter((message) => { return this.displayMessageFilter(message) })})
+    })
+  }
+
   displayMessageFilter (message) {
-    return message.tag in this.state.displayTags &&
-          this.state.displayTags[message.tag].display;
+    return this.state.enableAll || 
+          (
+            message.tag in this.state.displayTags &&
+            this.state.displayTags[message.tag].display
+          )
   }
 
   componentDidMount () {
@@ -63,6 +67,7 @@ class LogViewer extends React.Component {
         message.key = this.currentMessageKey
         this.currentMessageKey++
         this.allLogMessages.push(message)
+        // Update state if incoming log should be displayed
         if (this.displayMessageFilter(message)) {
           this.setState(prevState => ({
             logMessages: [...prevState.logMessages, message]
@@ -76,18 +81,21 @@ class LogViewer extends React.Component {
     logger.removeListener('log', this.logHandler);
   }
 
+  renderLogFromJsonLog (message) {
+    if (message.tag in this.state.displayTags){
+      return `${message.timestamp}|${message.attachedObject.sceneName}|${message.tag}|${message.message}`;
+    }
+    else{
+      return `${message.timestamp}|${message.view}|${message.level}|${message.tag}|${message.attachedObject && message.attachedObject.sceneName}|${message.message}`;
+    }
+  }
+
   renderLogLine (index, key) {
-    const message = this.state.logMessages[index];
-    return (
-      <div>
-        <span
-          key={key}
-          style={(message.tag in this.state.displayTags) && {color: this.state.displayTags[message.tag].color}}
-        >
-          {`${message.timestamp}|${message.view}|${message.level}|${message.tag}|${message.attachedObject.sceneName}|${message.message}`}
-	      </span>
-      </div>
-    );
+    const message = this.state.logMessages[index]
+    return <div><span key={key}
+      style={(message.tag in this.state.displayTags) && {color: this.state.displayTags[message.tag].color}}>
+      {this.renderLogFromJsonLog(message)}
+    </span></div>
   }
 
   // Possible performance improvements
@@ -119,22 +127,34 @@ class LogViewer extends React.Component {
           >
 
             {Object.keys(this.state.displayTags).map((tag, i) => {
-              return <div key={'tag' + tag} >
-                <button key={'tag' + tag}
+                return <div key={'tag' + tag} >
+                  <button key={'tag' + tag}
+                    style={[
+                                            [BTN_STYLES.btnIcon],
+                                            [BTN_STYLES.btnIconHover],
+                                            [BTN_STYLES.btnText],
+                                            {width: 'auto', border: `2px solid ${this.state.displayTags[tag].color}`},
+                                            [this.state.displayTags[tag].display && {backgroundColor: Palette.DARKER_GRAY}]
+                    ]}
+                    onClick={(e) => { this.toggleTag(tag) }} >
+                    {`${this.state.displayTags[tag].label}`}
+                  </button>
+                </div>
+              })
+            }
+            <div key='enableAll' >
+                <button key='enableAll'
                   style={[
-                                          [BTN_STYLES.btnIcon],
-                                          [BTN_STYLES.btnIconHover],
-                                          [BTN_STYLES.btnText],
-                                          {width: 'auto', border: `2px solid ${this.state.displayTags[tag].color}`},
-                                          [this.state.displayTags[tag].display && {backgroundColor: Palette.DARKER_GRAY}],
+                      [BTN_STYLES.btnIcon],
+                      [BTN_STYLES.btnIconHover],
+                      [BTN_STYLES.btnText],
+                      {width: 'auto', border: `2px solid red`},
+                      [this.state.enableAll && {backgroundColor: Palette.DARKER_GRAY}]
                   ]}
-                  onClick={(e) => {
-                    this.toggleTag(tag);
-                  }} >
-                  {`${this.state.displayTags[tag].label}`}
+                  onClick={(e) => { this.toggleEnableAll() }} >
+                  Enable All
                 </button>
-              </div>;
-            })}
+                </div>
           </div>
           <div id="logview-right-panel" style={{position: 'relative', overflow: 'auto', width: '100%', height: '100%', backgroundColor: Palette.COAL}} >
             <ReactList
