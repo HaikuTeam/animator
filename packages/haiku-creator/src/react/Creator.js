@@ -1216,7 +1216,7 @@ export default class Creator extends React.Component {
           this.identifiersNotFoundNotice = this.createNotice({
             title: 'Uh oh',
             type: 'warning',
-            message: `Expressions are missing identifier(s): ${currentIdentifiersNotFound}.`,
+            message: `One or more of your layer property's expressions refers to an undefined state variable(s): ${currentIdentifiersNotFound}. Please edit your expressions to remove references to ${currentIdentifiersNotFound}.`,
           });
         }
 
