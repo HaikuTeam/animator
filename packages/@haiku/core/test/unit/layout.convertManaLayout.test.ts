@@ -1,4 +1,4 @@
-import xmlToMana from '@core/helpers/xmlToMana';
+import {xmlToMana} from '@core/HaikuNode';
 import convertManaLayout from '@core/layout/convertManaLayout';
 import * as tape from 'tape';
 

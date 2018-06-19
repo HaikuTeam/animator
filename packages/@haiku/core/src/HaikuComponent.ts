@@ -9,15 +9,11 @@ import HaikuBase, {GLOBAL_LISTENER_KEY} from './HaikuBase';
 import HaikuClock from './HaikuClock';
 import HaikuContext from './HaikuContext';
 import HaikuElement from './HaikuElement';
+import {cssMatchOne, cssQueryList, manaFlattenTree, scopifyElements, xmlToMana} from './HaikuNode';
 import HaikuTimeline, {PlaybackSetting} from './HaikuTimeline';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
-import cssMatchOne from './helpers/cssMatchOne';
-import cssQueryList from './helpers/cssQueryList';
 import {isPreviewMode} from './helpers/interactionModes';
 import isMutableProperty from './helpers/isMutableProperty';
-import manaFlattenTree from './helpers/manaFlattenTree';
-import scopifyElements from './helpers/scopifyElements';
-import xmlToMana from './helpers/xmlToMana';
 import Layout3D from './Layout3D';
 import {runMigrations} from './Migration';
 import functionToRFO, {RFO} from './reflection/functionToRFO';
@@ -397,6 +393,7 @@ export default class HaikuComponent extends HaikuElement {
 
     this._flatManaTree = manaFlattenTree(this.getTemplate(), CSS_QUERY_MAPPING);
     this._matchedElementCache = {};
+
     this.builder.clearCaches(options);
     this._hydrateMutableTimelines();
 
@@ -987,11 +984,7 @@ export default class HaikuComponent extends HaikuElement {
         for (let i = 0; i < propertyOperations.length; i++) {
           const propertyGroup = propertyOperations[i];
 
-          const matchingElementsForBehavior = findMatchingElementsByCssSelector(
-            behaviorSelector,
-            this._flatManaTree,
-            this._matchedElementCache,
-          );
+          const matchingElementsForBehavior = this.findMatchingElementsByCssSelector(behaviorSelector);
 
           if (!matchingElementsForBehavior || matchingElementsForBehavior.length < 1) {
             continue;
@@ -1093,11 +1086,15 @@ export default class HaikuComponent extends HaikuElement {
   }
 
   findElementsByHaikuId (componentId) {
-    return findMatchingElementsByCssSelector(
-      'haiku:' + componentId,
-      this._flatManaTree,
-      this._matchedElementCache,
-    );
+    return this.findMatchingElementsByCssSelector(`haiku:${componentId}`);
+  }
+
+  findMatchingElementsByCssSelector (selector: string) {
+    if (this._matchedElementCache[selector]) {
+      return this._matchedElementCache[selector];
+    }
+
+    return this._matchedElementCache[selector] = cssQueryList(this._flatManaTree, selector, CSS_QUERY_MAPPING);
   }
 
   _hydrateMutableTimelines () {
@@ -1570,14 +1567,6 @@ function expandTreeNode (
   // In case we got a __reference node or other unknown
   console.warn('[haiku core] cannot expand node');
   return node;
-}
-
-function findMatchingElementsByCssSelector (selector, flatManaTree, cache) {
-  if (cache[selector]) {
-    return cache[selector];
-  }
-
-  return cache[selector] = cssQueryList(flatManaTree, selector, CSS_QUERY_MAPPING);
 }
 
 function computeAndApplyTreeLayouts (tree, container, options, context) {

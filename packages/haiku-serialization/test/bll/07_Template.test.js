@@ -1,7 +1,7 @@
 const test = require('tape')
 const path = require('path')
 const Template = require('./../../src/bll/Template')
-const xmlToMana = require('@haiku/core/lib/helpers/xmlToMana').default
+const {xmlToMana} = require('@haiku/core/lib/HaikuNode')
 
 test('Template.normalize', (t) => {
   t.plan(1)

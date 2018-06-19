@@ -4,11 +4,9 @@ const merge = require('lodash.merge')
 const pascalcase = require('pascalcase')
 const SVGPoints = require('@haiku/core/lib/helpers/SVGPoints').default
 const convertManaLayout = require('@haiku/core/lib/layout/convertManaLayout').default
-const visitManaTree = require('@haiku/core/lib/helpers/visitManaTree').default
-const manaToXml = require('@haiku/core/lib/helpers/manaToXml').default
+const {manaToXml, visitManaTree} = require('@haiku/core/lib/HaikuNode')
 const assign = require('lodash.assign')
 const defaults = require('lodash.defaults')
-const BasicUtils = require('@haiku/core/lib/helpers/BasicUtils').default
 const BaseModel = require('./BaseModel')
 const CryptoUtils = require('./../utils/CryptoUtils')
 const logger = require('haiku-serialization/src/utils/LoggerInstance')
@@ -977,8 +975,12 @@ Template.mergeOne = (timelineGroup, attributeName, attributeValue, timelineTime,
   Template.mergeAppliedValue(attributeName, timelineGroup[attributeName][timelineTime], attributeValue, mergeStrategy)
 }
 
+const isObject = (value) => {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
+}
+
 Template.mergeAppliedValue = (name, valueDescriptor, incomingValue, mergeStrategy) => {
-  if (BasicUtils.isObject(valueDescriptor.value) && BasicUtils.isObject(incomingValue) && !isSerializedFunction(valueDescriptor.value) && !isSerializedFunction(incomingValue)) {
+  if (isObject(valueDescriptor.value) && isObject(incomingValue) && !isSerializedFunction(valueDescriptor.value) && !isSerializedFunction(incomingValue)) {
     switch (mergeStrategy) {
       case MERGE_STRATEGIES.assign: assign(valueDescriptor.value, incomingValue); break
       case MERGE_STRATEGIES.defaults: defaults(valueDescriptor.value, incomingValue); break
