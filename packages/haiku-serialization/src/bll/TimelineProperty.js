@@ -1,5 +1,4 @@
-const DOMSchema = require('@haiku/core/lib/properties/dom/schema').default
-const DOMFallbacks = require('@haiku/core/lib/properties/dom/fallbacks').default
+const {getFallback} = require('@haiku/core/lib/HaikuComponent')
 const logger = require('haiku-serialization/src/utils/LoggerInstance')
 require('@haiku/core/lib/ValueBuilder') // Implicit dependency; do not remove
 
@@ -54,28 +53,20 @@ TimelineProperty.getFallbackValue = (
   valueAssignedInThisOperation
 ) => {
   if (typeof elementName === 'object') {
-    if (outputName in elementName.states) return elementName.states[outputName].value
+    if (outputName in elementName.states) {
+      return elementName.states[outputName].value
+    }
+
     elementName = 'div' // otherwise try to fallback
   }
 
-  const schema = DOMSchema[elementName]
+  const fallback = getFallback(elementName, outputName)
 
-  if (!schema) {
-    // If we don't have a value at 0, and if we are lacking an element spec, use whatever value
-    // is assigned for the next keyframe (i.e. a constant segment)
-    logger.warn('[timeline property] schema for ' + elementName + ' not found; using assignment value')
-    return valueAssignedInThisOperation
+  if (fallback !== undefined) {
+    return fallback
   }
 
-  const fallback = DOMFallbacks[elementName]
-
-  // If no property by this name, no choice but undefined
-  if (!fallback) {
-    logger.warn('[timeline property] fallback for ' + elementName + ' not found; using undefined')
-    return
-  }
-
-  return fallback[outputName]
+  return valueAssignedInThisOperation
 }
 
 // The purpose of this is to get the value BEFORE the current keyframe.
@@ -186,11 +177,12 @@ TimelineProperty.getPropertyValueAtTime = (
           componentId,
           hostInstance.findElementsByHaikuId(componentId)[0],
           outputName, // propertyName
-          propertiesGroup,
+          propertiesGroup[outputName], // propertyValue
           time,
           hostInstance, // haikuComponent
           !hostInstance.shouldPerformFullFlush(), // isPatchOperation
-          true // skipCache
+          true, // skipCache
+          false // clearSortedKeyframesCache
         )
 
         if (computedValue !== undefined && computedValue !== null) {

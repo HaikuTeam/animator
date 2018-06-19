@@ -1,6 +1,6 @@
 const decamelize = require('decamelize')
 const titlecase = require('titlecase')
-const DOMFallbacks = require('@haiku/core/lib/properties/dom/fallbacks').default
+const {getFallback} = require('@haiku/core/lib/HaikuComponent')
 const BaseModel = require('./BaseModel')
 
 function decam (s) {
@@ -22,8 +22,6 @@ BaseModel.extend(Property)
 
 Property.assignDOMSchemaProperties = (out, element) => {
   const schema = Property.BUILTIN_DOM_SCHEMAS[element.getSafeDomFriendlyName()] || {}
-
-  const fallbacks = DOMFallbacks[element.getSafeDomFriendlyName()]
 
   for (const name in schema) {
     if (name === 'content') {
@@ -48,12 +46,14 @@ Property.assignDOMSchemaProperties = (out, element) => {
 
     let nameParts = name.split('.')
 
+    const fallback = getFallback(element.getSafeDomFriendlyName(), name)
+
     propertyGroup = {
       type: 'native', // As opposed to a 'state' property like myStateFoo
       name: name,
       prefix: nameParts[0],
       suffix: nameParts[1],
-      fallback: fallbacks[name],
+      fallback,
       typedef: schema[name],
       mock: void (0),
       target: element, // For internal filtering convenience; do not remove
