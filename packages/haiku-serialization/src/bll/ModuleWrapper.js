@@ -422,10 +422,9 @@ ModuleWrapper.requireFromFile = (filename) => {
  * Test load bytecode by requiring it. Used to check if currently editing file can be required.
  */
 ModuleWrapper.testLoadBytecode = (contents, absPath) => {
-  var loadedBytecode = null
+  let loadedBytecode = null
   overrideModulesLoaded(
     (stop) => {
-      console.log('Test if file content is requirable', absPath)
       loadedBytecode = ModuleWrapper.requireFromString(contents, absPath)
       stop()
     },
