@@ -1,7 +1,7 @@
 import React from 'react'
 import lodash from 'lodash'
 import Palette from 'haiku-ui-common/lib/Palette'
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 import formatSeconds from 'haiku-ui-common/lib/helpers/formatSeconds'
 import Timeline from 'haiku-serialization/src/bll/Timeline'
 

@@ -1,23 +1,22 @@
 class Marquee {
-  constructor({area, callback}) {
+  constructor ({area, callback}) {
     this.initialCursorPos = {x: 0, y: 0}
     this.autoScrollSpeed = 1
-    this.callback = callback || function() {}
+    this.callback = callback || function () {}
     this.area = area
-    this.initialScroll
+    this.initialScroll = null
     this._startUp = this._startUp.bind(this)
     this._handleMove = this._handleMove.bind(this)
     this.reset = this.reset.bind(this)
 
     this.selector = this._createSelector()
-    this.start()
   }
 
-  start() {
+  start () {
     this.area.addEventListener('mousedown', this._startUp)
   }
 
-  _startUp(event) {
+  _startUp (event) {
     // return if is right click
     if (event.which === 3) {
       return
@@ -32,7 +31,7 @@ class Marquee {
     document.addEventListener('mouseup', this.reset)
   }
 
-  _getStartingPositions(event) {
+  _getStartingPositions (event) {
     this.initialCursorPos = this._getCursorPos(event, this.area)
     this.initialScroll = this.getScroll(this.area)
 
@@ -44,13 +43,13 @@ class Marquee {
     this.updatePos(this.selector, selectorPos)
   }
 
-  _handleMove(event) {
+  _handleMove (event) {
     const selectorPos = this.getPosition(event)
     this.selector.style.display = 'block'
     this.updatePos(this.selector, selectorPos)
   }
 
-  _createSelector() {
+  _createSelector () {
     const selector = document.createElement('div')
     selector.style.position = 'absolute'
     selector.style.background = 'rgba(0, 0, 255, 0.1)'
@@ -61,7 +60,7 @@ class Marquee {
     return selector
   }
 
-  getPosition(event) {
+  getPosition (event) {
     const cursorPosNew = this._getCursorPos(event, this.area)
     const scrollNew = this.getScroll(this.area)
 
@@ -139,7 +138,7 @@ class Marquee {
     return selectorPos
   }
 
-  reset(event) {
+  reset (event) {
     document.removeEventListener('mouseup', this.reset)
     this.area.removeEventListener('mousemove', this._handleMove)
     this.area.addEventListener('mousedown', this._startUp)
@@ -151,7 +150,7 @@ class Marquee {
     this.selector.style.display = 'none'
 
     setTimeout(
-      function() {
+      function () {
         // debounce in order "onClick" to work
         this.mouseInteraction = false
       }.bind(this),
@@ -159,13 +158,13 @@ class Marquee {
     )
   }
 
-  stop() {
+  stop () {
     this.reset()
     this.area.removeEventListener('mousedown', this._startUp)
     document.removeEventListener('mouseup', this.reset)
   }
 
-  getCursorPos(event, _area, ignoreScroll) {
+  getCursorPos (event, _area, ignoreScroll) {
     if (!event) {
       return false
     }
@@ -180,7 +179,7 @@ class Marquee {
     }
   }
 
-  _getCursorPos(event, area) {
+  _getCursorPos (event, area) {
     if (!event) {
       return {x: 0, y: 0}
     }
@@ -194,14 +193,14 @@ class Marquee {
     }
   }
 
-  getScroll(area) {
+  getScroll (area) {
     return {
       y: area.scrollTop,
       x: area.scrollLeft
     }
   }
 
-  updatePos(node, pos) {
+  updatePos (node, pos) {
     node.style.left = pos.x + 'px'
     node.style.top = pos.y + 'px'
     node.style.width = pos.w + 'px'

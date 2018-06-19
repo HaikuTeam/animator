@@ -1,6 +1,6 @@
 import React from 'react'
 import Palette from 'haiku-ui-common/lib/Palette'
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 import {ComponentIconSVG} from 'haiku-ui-common/lib/react/OtherIcons'
 import Color from 'color'
 
@@ -135,7 +135,7 @@ export default class ComponentHeadingRowHeading extends React.Component {
             className='component-heading-row-heading-child-icon-box'
             style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
               display: 'inline-block',
-              height: 20,
+              height: 20
             } : {
               position: 'absolute',
               display: 'inline-block',

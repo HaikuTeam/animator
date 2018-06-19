@@ -1,7 +1,7 @@
 import React from 'react'
 import lodash from 'lodash'
 import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 import TransitionBody from './TransitionBody'
 import ConstantBody from './ConstantBody'
 import SoloKeyframe from './SoloKeyframe'
@@ -57,7 +57,6 @@ export default class RowSegments extends React.Component {
         return
       }
     }
-
 
     if (
       what === 'keyframe-create' ||

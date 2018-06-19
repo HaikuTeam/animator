@@ -2,7 +2,7 @@ import React from 'react'
 import CirclePlusSVG from 'haiku-ui-common/lib/react/icons/CirclePlusSVG'
 import Palette from 'haiku-ui-common/lib/Palette'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 
 export default class PropertyManager extends React.Component {
   constructor (props) {
@@ -37,7 +37,7 @@ export default class PropertyManager extends React.Component {
           onClick={this.launchMenu}
           className='menu-trigger'
           style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
-            transform: 'scale(0.75)',
+            transform: 'scale(0.75)'
           } : {
             position: 'absolute',
             transform: 'scale(0.75)',

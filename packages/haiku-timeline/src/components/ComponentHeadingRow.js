@@ -1,6 +1,6 @@
 import React from 'react'
 import lodash from 'lodash'
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 import DownCarrotSVG from 'haiku-ui-common/lib/react/icons/DownCarrotSVG'
 import RightCarrotSVG from 'haiku-ui-common/lib/react/icons/RightCarrotSVG'
 import DragGrip from 'haiku-ui-common/lib/react/icons/DragGrip'
@@ -104,7 +104,7 @@ export default class ComponentHeadingRow extends React.Component {
           position: 'sticky',
           top: 0,
           left: 0,
-          paddingLeft: this.props.isExpanded ? 0: (this.props.row.isRootRow() ? 7 : 20),
+          paddingLeft: this.props.isExpanded ? 0 : (this.props.row.isRootRow() ? 7 : 20),
           width: propertiesPixelWidth,
           backgroundColor: this.props.isExpanded ? 'transparent' : Palette.LIGHT_GRAY,
           zIndex: 1006
@@ -112,7 +112,7 @@ export default class ComponentHeadingRow extends React.Component {
           {!this.props.row.isRootRow() &&
             <div
               style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
-                marginTop: 1,
+                marginTop: 1
               } : {
                 position: 'absolute',
                 top: 3,
@@ -189,7 +189,7 @@ export default class ComponentHeadingRow extends React.Component {
                 {this.props.isExpanded
                     ? <span className={experimentIsEnabled(Experiment.NativeTimelineScroll) ? '' : 'utf-icon'}
                       style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
-                        pointerEvents: 'none',
+                        pointerEvents: 'none'
                       } : {
                         top: 1,
                         pointerEvents: 'none',
@@ -223,9 +223,9 @@ export default class ComponentHeadingRow extends React.Component {
             <div
               className='component-heading-row-inner-r2'
               style={(
-                experimentIsEnabled(Experiment.NativeTimelineScroll) ?
-                  {
-                    display: this.props.isExpanded ? 'flex': 'none',
+                experimentIsEnabled(Experiment.NativeTimelineScroll)
+                  ? {
+                    display: this.props.isExpanded ? 'flex' : 'none',
                     alignItems: 'center'
                   } : (
                     this.props.isExpanded
@@ -295,8 +295,8 @@ export default class ComponentHeadingRow extends React.Component {
             width: this.props.timeline.getTimelinePixelWidth(),
             height: 'inherit'
           })}>
-          {(!this.props.isExpanded) ?
-            <CollapsedPropertyTimelineSegments
+          {(!this.props.isExpanded)
+            ? <CollapsedPropertyTimelineSegments
               component={this.props.component}
               timeline={this.props.timeline}
               rowHeight={this.props.rowHeight}

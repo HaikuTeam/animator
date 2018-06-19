@@ -27,7 +27,7 @@ import Marquee from './Marquee'
 import {InteractionMode, isPreviewMode} from '@haiku/core/lib/helpers/interactionModes'
 import { USER_CHANNEL, UserSettings } from 'haiku-sdk-creator/lib/bll/User'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 
 const Globals = require('haiku-ui-common/lib/Globals').default // Sorry, hack
 
@@ -150,9 +150,12 @@ class Timeline extends React.Component {
     this.mounted = true
 
     if (experimentIsEnabled(Experiment.TimelineMarqueeSelection)) {
-      new Marquee({area: document.querySelector('#timeline'), callback: (event, area) => {
-        this.getActiveComponent().getCurrentTimeline().notifyMarqueeSelection(area)
-      }})
+      const marquee = new Marquee({area: document.querySelector('#timeline'),
+        callback: (event, area) => {
+          this.getActiveComponent().getCurrentTimeline().notifyMarqueeSelection(area)
+        }})
+
+      marquee.start()
     }
 
     const resetKeyStates = () => {
@@ -1049,7 +1052,7 @@ class Timeline extends React.Component {
         })}>
         <div
           className='gauge-timekeeping-wrapper'
-          style={( experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+          style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
             position: 'fixed',
             top: 0,
             left: 0,
@@ -1334,7 +1337,7 @@ class Timeline extends React.Component {
             width: '500vw',
             pointerEvents: 'auto',
             WebkitUserSelect: 'auto',
-            bottom: 0,
+            bottom: 0
           } : {
             position: 'absolute',
             top: 35,

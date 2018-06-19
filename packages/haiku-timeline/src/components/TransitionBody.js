@@ -6,7 +6,7 @@ import TimelineDraggable from './TimelineDraggable'
 import KeyframeSVG from 'haiku-ui-common/lib/react/icons/KeyframeSVG'
 import Globals from 'haiku-ui-common/lib/Globals'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 
 import {
   EaseInBackSVG,

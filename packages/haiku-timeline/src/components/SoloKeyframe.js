@@ -1,7 +1,7 @@
 import React from 'react'
 import Palette from 'haiku-ui-common/lib/Palette'
 import KeyframeSVG from 'haiku-ui-common/lib/react/icons/KeyframeSVG'
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 
 export default class SoloKeyframe extends React.Component {
   constructor (props) {

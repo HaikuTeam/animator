@@ -1,5 +1,5 @@
 import React from 'react'
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 import Palette from 'haiku-ui-common/lib/Palette'
 import truncate from 'haiku-ui-common/lib/helpers/truncate'
 import RightCarrotSVG from 'haiku-ui-common/lib/react/icons/RightCarrotSVG'
@@ -74,13 +74,13 @@ export default class ClusterRow extends React.Component {
           cursor: 'pointer'
         }}>
         <div style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
-            position: 'sticky',
-            top: 0,
-            left: 0,
-            width: this.props.timeline.getPropertiesPixelWidth(),
-            zIndex: 99999,
-            backgroundColor: Palette.GRAY
-          } : {})}>
+          position: 'sticky',
+          top: 0,
+          left: 0,
+          width: this.props.timeline.getPropertiesPixelWidth(),
+          zIndex: 99999,
+          backgroundColor: Palette.GRAY
+        } : {})}>
           <div>
             <div
               style={{
