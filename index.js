@@ -1,6 +1,6 @@
 const path = require('path');
 const cp = require('child_process');
-const os = require('os')
+const os = require('os');
 
 if (!global.process.env.NODE_ENV || global.process.env.NODE_ENV === 'production') {
   process.env.HAIKU_GLASS_URL_MODE = 'distro';
@@ -31,10 +31,7 @@ if (process.env.HAIKU_APP_LAUNCH_CLI === '1') {
   if (global.process.env.HAIKU_DEBUG) {
     haikuHelperArgs.execArgv = ['--inspect=9221'];
   }
-  const haikuHelper = cp.fork(
-    path.join(__dirname, 'HaikuHelper'),
-    haikuHelperArgs
-  );
+  const haikuHelper = cp.fork(path.join(__dirname, 'HaikuHelper'), haikuHelperArgs);
 
   haikuHelper.on('message', (data) => {
     if (!data || typeof data !== 'object' || !data.message) {

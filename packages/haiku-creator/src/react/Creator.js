@@ -42,7 +42,7 @@ import * as requestElementCoordinates from 'haiku-serialization/src/utils/reques
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import {buildProxyUrl, describeProxyFromUrl} from 'haiku-common/lib/proxies';
 import * as isOnline from 'is-online';
-import * as CreatorIntro from '@haiku/zack4-creatorintro/react';
+import * as CreatorIntro from '@haiku/taylor-creatorintro/react';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import * as opn from 'opn';
 

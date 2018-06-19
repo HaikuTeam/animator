@@ -71,6 +71,12 @@
   version "3.0.4"
   resolved "https://reservoir.haiku.ai:8910/@haiku%2fplayer/-/player-3.0.4.tgz#dd0bb8fbdea4751c8825adbd6b8ec528a781abaa"
 
+"@haiku/taylor-creatorintro@^0.0.5":
+  version "0.0.5"
+  resolved "https://reservoir.haiku.ai:8910/@haiku%2ftaylor-creatorintro/-/taylor-creatorintro-0.0.5.tgz#03d7ad1241b2be9d1bfb7fe292597746f96fe6eb"
+  dependencies:
+    "@haiku/core" "^3.4.6"
+
 "@haiku/taylor-hai@^0.0.7":
   version "0.0.7"
   resolved "https://reservoir.haiku.ai:8910/@haiku%2ftaylor-hai/-/taylor-hai-0.0.7.tgz#313a06f7bf8307de4edb1fec4eed130b59dde761"
@@ -82,12 +88,6 @@
   resolved "https://reservoir.haiku.ai:8910/@haiku%2ftaylor-ipreview2/-/taylor-ipreview2-0.0.2.tgz#d46e790046082107bb2dc624fd72132e8ba9dd6a"
   dependencies:
     "@haiku/core" "^3.1.32"
-
-"@haiku/zack4-creatorintro@^0.0.6":
-  version "0.0.6"
-  resolved "https://reservoir.haiku.ai:8910/@haiku%2fzack4-creatorintro/-/zack4-creatorintro-0.0.6.tgz#56262dfd64dd54a42609883359c539f812953581"
-  dependencies:
-    "@haiku/core" "^3.1.10"
 
 "@sindresorhus/is@^0.7.0":
   version "0.7.0"
@@ -315,6 +315,12 @@
 "@types/dedent@^0.7.0":
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/@types/dedent/-/dedent-0.7.0.tgz#155f339ca404e6dd90b9ce46a3f78fd69ca9b050"
+
+"@types/es6-promise@^3.3.0":
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/@types/es6-promise/-/es6-promise-3.3.0.tgz#61b55e554fd807b563f158a7986ee53d3a5a5a9d"
+  dependencies:
+    es6-promise "*"
 
 "@types/form-data@*":
   version "2.2.1"
@@ -4025,9 +4031,9 @@ electron-builder@20.15.1:
     update-notifier "^2.5.0"
     yargs "^11.0.0"
 
-electron-chromedriver@~1.7.1:
-  version "1.7.1"
-  resolved "https://registry.yarnpkg.com/electron-chromedriver/-/electron-chromedriver-1.7.1.tgz#008c97976007aa4eb18491ee095e94d17ee47610"
+electron-chromedriver@~1.8.0:
+  version "1.8.0"
+  resolved "https://registry.yarnpkg.com/electron-chromedriver/-/electron-chromedriver-1.8.0.tgz#901714133cf6f6093d365e1f44a52d99624d8241"
   dependencies:
     electron-download "^4.1.0"
     extract-zip "^1.6.5"
@@ -4328,6 +4334,10 @@ es6-map@^0.1.3:
     es6-set "~0.1.5"
     es6-symbol "~3.1.1"
     event-emitter "~0.3.5"
+
+es6-promise@*:
+  version "4.2.4"
+  resolved "https://registry.yarnpkg.com/es6-promise/-/es6-promise-4.2.4.tgz#dc4221c2b16518760bd8c39a52d8f356fc00ed29"
 
 es6-promise@^3.0.2:
   version "3.3.1"
@@ -10692,12 +10702,12 @@ spdx-license-ids@^1.0.2:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/spdx-license-ids/-/spdx-license-ids-1.2.2.tgz#c9df7a3424594ade6bd11900d596696dc06bac57"
 
-spectron@^3.7.2:
-  version "3.7.2"
-  resolved "https://registry.yarnpkg.com/spectron/-/spectron-3.7.2.tgz#86f41306a9b70ed6ee1500f7f7d3adc389afb446"
+spectron@^3.7.2, spectron@^3.8.0:
+  version "3.8.0"
+  resolved "https://registry.yarnpkg.com/spectron/-/spectron-3.8.0.tgz#122c3562fd7e92b7cdf6f94094aa495b150dfa51"
   dependencies:
     dev-null "^0.1.1"
-    electron-chromedriver "~1.7.1"
+    electron-chromedriver "~1.8.0"
     request "^2.81.0"
     split "^1.0.0"
     webdriverio "^4.8.0"
