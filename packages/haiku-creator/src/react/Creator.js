@@ -1216,7 +1216,7 @@ export default class Creator extends React.Component {
           this.identifiersNotFoundNotice = this.createNotice({
             title: 'Uh oh',
             type: 'warning',
-            message: `One or more of your expressions refers to an undefined state variable(s): ${currentIdentifiersNotFound}. Please edit your expressions to remove these references.`,
+            message: `One or more of your expressions refers to an undefined state variable(s): ${currentIdentifiersNotFound.join(', ')}. Please edit your expressions to remove these references.`,
           });
         }
 
