@@ -4408,6 +4408,25 @@ class ActiveComponent extends BaseModel {
   checkSustainedWarnings () {
     this.sustainedWarningsChecker.checkAndGetAllSustainedWarnings()
   }
+
+  replaceBytecode (currentEditorContents, metadata, cb) {
+
+    // Validates bytecode before saving it, helping users avoid shooting their feet with an invalid bytecode
+    try {
+      const absPath = this.fetchActiveBytecodeFile().getAbspath();
+      // TODO: in the future, change it to a bytecode validator instead a simple require
+      const loadedBytecode = ModuleWrapper.testLoadBytecode(currentEditorContents, absPath);
+
+      return this.project.updateHook('replaceBytecode', this.getRelpath(), metadata, (fire) => {
+        this.handleUpdatedBytecode(loadedBytecode);
+        fire()
+        cb()
+      })
+    } catch (error) {
+      // If cannot valide it, display to user
+      return cb(error);
+    }
+  }
 }
 
 ActiveComponent.DEFAULT_OPTIONS = {

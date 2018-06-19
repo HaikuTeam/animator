@@ -73,27 +73,17 @@ class CodeEditor extends React.Component {
   }
 
   saveCodeFromEditorToDisk () {
-    const currentEditorContents = this.state.currentEditorContents;
     const activeComponent = this.props.projectModel.getCurrentActiveComponent();
-
-    // Validates bytecode before saving it, helping users avoid shooting their feet
-    try {
-      const absPath = activeComponent.fetchActiveBytecodeFile().getAbspath();
-      // TODO: in the future, change it to a bytecode validator instead a simple require
-      ModuleWrapper.testLoadBytecode(currentEditorContents, absPath);
-    } catch (error) {
-      this.setState({showBytecodeErrorPopup: true,
-        currentBytecodeErrorString: `${error.name}: ${error.message}`});
-      // If cannot valide it, display to user
+    if (!activeComponent) {
       return;
     }
 
-    // Save contents to file
-    activeComponent.fetchActiveBytecodeFile().flushContentFromString(currentEditorContents);
-    // This module reload is necessary because when switching active component (eg. component
-    // tab clicking), the file is saved in the disk but contents aren't loaded into memory. By forcing
-    // a module reload, we guarantee that the file is synced with memory
-    activeComponent.moduleReplace(() => {});
+    activeComponent.replaceBytecode(this.state.currentEditorContents, {from: 'creator'}, (error) => {
+      if (error) {
+        this.setState({showBytecodeErrorPopup: true,
+          currentBytecodeErrorString: `${error.name}: ${error.message}`});
+      }
+    });
   }
 
   render () {
