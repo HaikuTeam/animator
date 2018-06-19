@@ -2124,7 +2124,9 @@ class ActiveComponent extends BaseModel {
 
     // Check sustained warnings should be done after cache clear
     // We use emit so only creator will perform sustained warning check
-    this.emitDebouncedCheckSustainedWarning()
+    if (experimentIsEnabled(Experiment.WarnOnUndefinedStateVariables)) {
+      this.emitDebouncedCheckSustainedWarning()
+    }
 
     // If we were passed a "hot component" or asked to request a full flush render, forward this to our underlying
     // instances to ensure correct rendering. This can be skipped if softReload() was called in the

@@ -20,5 +20,6 @@
   "CrashOnIpcIntegrityCheckFailure": true,
   "IncludeSourceInIntegrityHash": false,
   "OrderedActionStack": false,
-  "CodeEditorInCreator": true
+  "CodeEditorInCreator": true,
+  "WarnOnUndefinedStateVariables": true
 }
