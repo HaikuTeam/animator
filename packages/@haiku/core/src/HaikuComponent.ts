@@ -55,7 +55,6 @@ export interface ClearCacheOptions {
 export default class HaikuComponent extends HaikuElement {
   builder;
   _flatManaTree;
-  _horizonElements;
   isDeactivated;
   isSleeping;
   _matchedElementCache;
@@ -177,11 +176,6 @@ export default class HaikuComponent extends HaikuElement {
     // As a performance optimization, keep track of elements we've located as key/value (selector/element) pairs
     this._matchedElementCache = {};
 
-    // Dictionary of ids-to-elements, representing elements that we
-    // do not want to render past in the tree (i.e. cede control to some
-    // other rendering context)
-    this._horizonElements = {};
-
     // Flag to determine whether this component should continue doing any work
     this.isDeactivated = false;
 
@@ -223,17 +217,17 @@ export default class HaikuComponent extends HaikuElement {
    */
   markHorizonElement (virtualElement) {
     if (virtualElement && virtualElement.attributes) {
-      const flexId = virtualElement.attributes[HAIKU_ID_ATTRIBUTE] || virtualElement.attributes.id;
-      if (flexId) {
-        this._horizonElements[flexId] = virtualElement;
-      }
+      virtualElement.__horizon = true;
     }
   }
 
-  isHorizonElement (virtualElement) {
+  /**
+   * @description Returns true/false whether this element is one that we don't want to make any
+   *  updates further down its tree.
+   */
+  isHorizonElement (virtualElement): boolean {
     if (virtualElement && virtualElement.attributes) {
-      const flexId = virtualElement.attributes[HAIKU_ID_ATTRIBUTE] || virtualElement.attributes.id;
-      return !!this._horizonElements[flexId];
+      return virtualElement.__horizon;
     }
     return false;
   }
