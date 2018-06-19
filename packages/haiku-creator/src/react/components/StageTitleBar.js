@@ -177,14 +177,6 @@ class StageTitleBar extends React.Component {
         this.handleSaveOnRawCodeEditor();
       }
     });
-
-    ipcRenderer.on('global-menu:publish', () => {
-      if (!this._isMounted) {
-        return;
-      }
-
-      this.handleSaveSnapshotClick();
-    });
   }
 
   componentDidMount () {
@@ -240,15 +232,13 @@ class StageTitleBar extends React.Component {
       }
     });
 
-    ipcRenderer.on('global-menu:show-project-location-toast', this.handleShowProjectLocationToast);
-    ipcRenderer.on('global-menu:save', this.handleGlobalMenuSave);
+    ipcRenderer.on('global-menu:publish', this.handleGlobalMenuSave);
   }
 
   componentWillUnmount () {
     this._isMounted = false;
     clearInterval(this._fetchMasterStateInterval);
-    ipcRenderer.removeListener('global-menu:show-project-location-toast', this.handleShowProjectLocationToast);
-    ipcRenderer.removeListener('global-menu:save', this.handleGlobalMenuSave);
+    ipcRenderer.removeListener('global-menu:publish', this.handleGlobalMenuSave);
     this.clearSyndicationChecks();
   }
 
