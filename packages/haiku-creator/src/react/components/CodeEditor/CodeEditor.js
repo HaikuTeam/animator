@@ -80,8 +80,10 @@ class CodeEditor extends React.Component {
 
     activeComponent.replaceBytecode(this.state.currentEditorContents, {from: 'creator'}, (error) => {
       if (error) {
-        this.setState({showBytecodeErrorPopup: true,
-          currentBytecodeErrorString: `${error.name}: ${error.message}`});
+        this.setState({
+          showBytecodeErrorPopup: true,
+          currentBytecodeErrorString: `${error.name}: ${error.message}`,
+        });
       }
     });
   }
