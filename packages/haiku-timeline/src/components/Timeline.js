@@ -482,7 +482,8 @@ class Timeline extends React.Component {
   getPopoverMenuItems ({ event, type, model, offset, curve }) {
     const items = []
 
-    const numSelectedKeyframes = this.getActiveComponent().getSelectedKeyframes().length
+    const selectedKeyframes = this.getActiveComponent().getSelectedKeyframes()
+    const numSelectedKeyframes = selectedKeyframes.length
 
     items.push({
       label: 'Create Keyframe',
@@ -511,6 +512,17 @@ class Timeline extends React.Component {
       enabled: type === 'keyframe',
       onClick: (event) => {
         this.getActiveComponent().deleteSelectedKeyframes({ from: 'timeline' })
+      }
+    })
+
+    items.push({ type: 'separator' })
+
+    items.push({
+      label: 'Send to t0',
+      enabled: this.getActiveComponent().checkIfSelectedKeyframesAreMovableToZero(),
+      onClick: (event) => {
+        selectedKeyframes.forEach((keyframe) => { keyframe.moveTo(0, 0) })
+        this.getActiveComponent().commitAccumulatedKeyframeMovesDebounced()
       }
     })
 

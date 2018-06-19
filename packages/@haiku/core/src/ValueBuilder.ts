@@ -8,6 +8,7 @@ import HaikuHelpers from './HaikuHelpers';
 import ColorUtils from './helpers/ColorUtils';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
 import {isPreviewMode} from './helpers/interactionModes';
+import Layout3D from './Layout3D';
 import SVGPoints from './helpers/SVGPoints';
 import enhance from './reflection/enhance';
 import Transitions from './Transitions';
@@ -335,6 +336,9 @@ const assignElementInjectables = (obj, key, summonSpec, hostInstance, element) =
   if (element.layout.computed) {
     out.properties.matrix = element.layout.computed.matrix;
     out.properties.size = element.layout.computed.size;
+  } else {
+    out.properties.matrix = Layout3D.createMatrix();
+    out.properties.size = {x: 0, y: 0, z: 0};
   }
 
   out.properties.align = element.layout.align;

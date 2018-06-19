@@ -60,7 +60,8 @@ class StateInspector extends React.Component {
     this.deleteStateValue = this.deleteStateValue.bind(this);
     this.openNewStateForm = this.openNewStateForm.bind(this);
     this.closeNewStateForm = this.closeNewStateForm.bind(this);
-    this.isPopulatingStateData = false;
+    this.onProjectModelUpdate = this.onProjectModelUpdate.bind(this);
+
     this.state = {
       sceneName: 'State Inspector',
       statesData: null,
@@ -68,18 +69,20 @@ class StateInspector extends React.Component {
     };
   }
 
-  populateStatesData () {
-    this.isPopulatingStateData = true;
+  loadStatesDataFromActiveComponent () {
+    const activeComponent = this.props.projectModel.getCurrentActiveComponent();
 
-    this.props.projectModel.readAllStateValues(
+    if (!activeComponent) {
+      return;
+    }
+
+    activeComponent.readAllStateValues(null,
       (err, statesData) => {
-        this.isPopulatingStateData = false;
-
         if (err) {
           // Don't rapidly re-request state 1000s of times if we got an error
           return this.setState({
             statesData: {},
-            sceneName: this.getActiveSceneName(this.props),
+            sceneName: activeComponent.getSceneName(),
           }, () => {
             this.props.createNotice({
               title: 'Uh oh',
@@ -89,10 +92,13 @@ class StateInspector extends React.Component {
           });
         }
 
-        this.setState({
-          sceneName: this.getActiveSceneName(this.props),
-          statesData,
-        });
+        /* To avoid unnecessary component repaint, only setState if states are different */
+        if (!lodash.isEqual(this.state.statesData, statesData) || this.state.statesData !== activeComponent.getSceneName()) {
+          this.setState({
+            statesData,
+            sceneName: activeComponent.getSceneName(),
+          });
+        }
       },
     );
   }
@@ -105,14 +111,23 @@ class StateInspector extends React.Component {
     );
   }
 
-  componentWillReceiveProps (nextProps) {
-    if (
-      (nextProps.visible && !this.state.statesData) || // If we haven't populated yet
-      this.state.sceneName !== this.getActiveSceneName(nextProps) // If we have context-switched
-    ) {
-      if (!this.isPopulatingStateData) {
-        this.populateStatesData();
-      }
+  onProjectModelUpdate (what, ...args) {
+    // We only reload states on a hard reload (eg when a component is loaded from disk)
+    // Editing states on state inspector only triggers soft reload
+    if (what === 'reloaded' && args[0] === 'hard') {
+      this.loadStatesDataFromActiveComponent();
+    }
+  }
+
+  componentDidMount () {
+    if (this.props.projectModel) {
+      this.props.projectModel.on('update', this.onProjectModelUpdate);
+    }
+  }
+
+  componentWillUnmount () {
+    if (this.props.projectModel) {
+      this.props.projectModel.removeListener('update', this.onProjectModelUpdate);
     }
   }
 

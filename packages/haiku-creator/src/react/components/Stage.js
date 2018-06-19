@@ -1,9 +1,11 @@
+import * as Radium from 'radium';
 import * as React from 'react';
 import * as qs from 'qs';
 import * as assign from 'lodash.assign';
 import * as path from 'path';
 import StageTitleBar from './StageTitleBar';
 import ComponentMenu from './ComponentMenu/ComponentMenu';
+import CodeEditor from './CodeEditor/CodeEditor';
 import Palette from 'haiku-ui-common/lib/Palette';
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import {TOUR_CHANNEL} from 'haiku-sdk-creator/lib/tour';
@@ -17,16 +19,62 @@ const STAGE_BOX_STYLE = {
   outline: 'none',
 };
 
+const STAGE_FADE_OUT = {
+  transform: 'scale(0.8)',
+  transition: 'visibility 0s linear 240ms, opacity 240ms, transform 240ms',
+};
+
+const STAGE_FADE_IN = {
+  transform: 'scale(1)',
+  transition: 'visibility 0s linear 0s, opacity 240ms, transform 240ms',
+};
+
 // This may not be precisely correct; please test the UI if you enable this experiment
 const STAGE_MOUNT_HEIGHT_OFFSET = (experimentIsEnabled(Experiment.MultiComponentFeatures))
   ? 68
   : 38;
 
-export default class Stage extends React.Component {
+class Stage extends React.Component {
   constructor (props) {
     super(props);
     this.webview = null;
     this.onRequestWebviewCoordinates = this.onRequestWebviewCoordinates.bind(this);
+    this.tryToChangeCurrentActiveComponent = this.tryToChangeCurrentActiveComponent.bind(this);
+    this.tryToSwitchToDesign = this.tryToSwitchToDesign.bind(this);
+    this.closePopupCannotSwitchToDesign = this.closePopupCannotSwitchToDesign.bind(this);
+    this.saveCodeFromEditorToDisk = this.saveCodeFromEditorToDisk.bind(this);
+
+    this.state = {
+      nonSavedContentOnCodeEditor: false,
+      targetComponentToChange: '',
+      showPopupToSaveRawEditorContents: false,
+      showPopupCannotSwitchToDesign: false,
+    };
+  }
+
+  // Check if currently edited file is open
+  tryToChangeCurrentActiveComponent (scenename) {
+    if (this.state.nonSavedContentOnCodeEditor) {
+      this.setState({
+        targetComponentToChange: scenename,
+        showPopupToSaveRawEditorContents: true,
+      },
+      );
+    } else {
+      this.props.projectModel.setCurrentActiveComponent(scenename, {from: 'creator'}, () => {});
+    }
+  }
+
+  tryToSwitchToDesign () {
+    if (this.state.nonSavedContentOnCodeEditor) {
+      this.setState({showPopupCannotSwitchToDesign: true});
+    } else {
+      this.props.onSwitchToDesignMode();
+    }
+  }
+
+  closePopupCannotSwitchToDesign () {
+    this.setState({showPopupCannotSwitchToDesign: false});
   }
 
   componentDidMount () {
@@ -161,6 +209,10 @@ export default class Stage extends React.Component {
     }
   }
 
+  saveCodeFromEditorToDisk () {
+    this.refs.codeeditor.saveCodeFromEditorToDisk();
+  }
+
   render () {
     const interactionModeColor = this.props.isPreviewMode
       ? Palette.LIGHTEST_PINK
@@ -191,18 +243,27 @@ export default class Stage extends React.Component {
             isTimelineReady={this.props.isTimelineReady}
             envoyClient={this.props.envoyClient}
             onProjectPublicChange={this.props.onProjectPublicChange}
+            onSwitchToCodeMode={this.props.onSwitchToCodeMode}
+            onSwitchToDesignMode={this.tryToSwitchToDesign}
+            showGlass={this.props.showGlass}
+            closePopupCannotSwitchToDesign={this.closePopupCannotSwitchToDesign}
+            showPopupCannotSwitchToDesign={this.state.showPopupCannotSwitchToDesign}
+            saveCodeFromEditorToDisk={this.saveCodeFromEditorToDisk}
           />
-          {(experimentIsEnabled(Experiment.MultiComponentFeatures))
-            ? <ComponentMenu
+          {(experimentIsEnabled(Experiment.MultiComponentFeatures)) &&
+            <ComponentMenu
               ref="component-menu"
-              projectModel={this.props.projectModel} />
-            : ''}
+              projectModel={this.props.projectModel}
+              nonSavedContentOnCodeEditor={this.state.nonSavedContentOnCodeEditor}
+              tryToChangeCurrentActiveComponent={this.props.tryToChangeCurrentActiveComponent}
+            />
+          }
           <div
             id="stage-mount"
             ref={(element) => {
               this.mount = element;
             }}
-            style={{
+            style={[{
               position: 'absolute',
               overflow: 'auto',
               width: 'calc(100% - 5px)',
@@ -211,7 +272,40 @@ export default class Stage extends React.Component {
               left: 3,
               backgroundColor: Palette.STAGE_GRAY,
               outline: '2px solid ' + interactionModeColor,
-            }} />
+              visibility: this.props.showGlass ? 'visible' : 'hidden',
+              opacity: this.props.showGlass ? 1 : 0},
+              [this.props.showGlass && STAGE_FADE_IN], [!this.props.showGlass && STAGE_FADE_OUT],
+            ]}
+          />
+          <div
+            id="editor-mount"
+            style={[{
+              position: 'absolute',
+              width: 'calc(100% - 5px)',
+              height: `calc(100% - ${STAGE_MOUNT_HEIGHT_OFFSET + 3}px)`,
+              top: STAGE_MOUNT_HEIGHT_OFFSET,
+              left: 3,
+              backgroundColor: Palette.STAGE_GRAY,
+              outline: '2px solid ' + interactionModeColor,
+              visibility: this.props.showGlass ? 'hidden' : 'visible',
+              opacity: this.props.showGlass ? 0 : 1},
+              [!this.props.showGlass && STAGE_FADE_IN], [this.props.showGlass && STAGE_FADE_OUT],
+            ]}>
+            <CodeEditor
+              ref="codeeditor"
+              showGlass={this.props.showGlass}
+              projectModel={this.props.projectModel}
+              setNonSavedContentOnCodeEditor={(nonSaved) => {
+                this.setState({nonSavedContentOnCodeEditor: nonSaved});
+              }}
+              nonSavedContentOnCodeEditor={this.state.nonSavedContentOnCodeEditor}
+              showPopupToSaveRawEditorContents={this.state.showPopupToSaveRawEditorContents}
+              setShowPopupToSaveRawEditorContents={(showPopup) => {
+                this.setState({showPopupToSaveRawEditorContents: showPopup});
+              }}
+              targetComponentToChange={this.state.targetComponentToChange}
+              />
+          </div>
         </div>
       </div>
     );
@@ -232,3 +326,5 @@ Stage.propTypes = {
   username: React.PropTypes.string,
   password: React.PropTypes.string,
 };
+
+export default Radium(Stage);

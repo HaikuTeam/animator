@@ -681,6 +681,12 @@ class Project extends BaseModel {
         })
 
         return Lock.awaitAllLocksFreeExcept([Lock.LOCKS.SetCurrentActiveComponent, Lock.LOCKS.ProjectMethodHandler], () => {
+          // Useful to stop haiku-creator listeners when deactivating ActiveComponent
+          const currentActiveComponent = this.getCurrentActiveComponent()
+          if (currentActiveComponent) {
+            currentActiveComponent.emit('update', 'componentDeactivating')
+          }
+
           this._activeComponentSceneName = scenename
 
           this.updateHook('setCurrentActiveComponent', scenename, metadata || this.getMetadata(), (fire) => {

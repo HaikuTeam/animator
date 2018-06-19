@@ -1,5 +1,4 @@
 import React from 'react'
-import Radium from 'radium'
 import lodash from 'lodash'
 import Palette from 'haiku-ui-common/lib/Palette'
 import SkipBackIconSVG from 'haiku-ui-common/lib/react/icons/SkipBackIconSVG'
@@ -84,7 +83,7 @@ class PlaybackButtons extends React.Component {
         <button
           disabled={currentFrame < 1}
           key='skipback'
-          style={[STYLES.btn, currentFrame < 1 && STYLES.disabled]}
+          css={[STYLES.btn, currentFrame < 1 && STYLES.disabled]}
           onClick={playbackSkipBack}
         >
           <SkipBackIconSVG />
@@ -92,7 +91,7 @@ class PlaybackButtons extends React.Component {
         <button
           key='pause'
           onClick={playbackPlayPause}
-          style={[
+          css={[
             STYLES.btn,
             STYLES.btnPlayPause
           ]}
@@ -108,7 +107,7 @@ class PlaybackButtons extends React.Component {
         <button
           disabled={currentFrame >= lastFrame}
           key='skipforward'
-          style={[STYLES.btn, currentFrame >= lastFrame && STYLES.disabled]}
+          css={[STYLES.btn, currentFrame >= lastFrame && STYLES.disabled]}
           onClick={playbackSkipForward}
         >
           <SkipForwardIconSVG />
@@ -116,7 +115,7 @@ class PlaybackButtons extends React.Component {
 
         <button
           key='repeat'
-          style={[STYLES.btn, STYLES.btnRepeat, !isRepeat && {opacity: 0.5}]}
+          css={[STYLES.btn, STYLES.btnRepeat, !isRepeat && {opacity: 0.5}]}
           onClick={toggleRepeat}
         >
           <RepeatIconSVG
@@ -132,4 +131,4 @@ PlaybackButtons.propTypes = {
   timeline: React.PropTypes.object.isRequired
 }
 
-export default Radium(PlaybackButtons)
+export default PlaybackButtons

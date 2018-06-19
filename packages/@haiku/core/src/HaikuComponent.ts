@@ -511,10 +511,10 @@ export default class HaikuComponent extends HaikuElement {
     return this.bytecode.timelines[timelineName];
   }
 
-  getInjectables (element?): any {
+  getInjectables (): any {
     const injectables = {};
 
-    assign(injectables, this.builder.getSummonablesSchema(element));
+    assign(injectables, this.builder.getSummonablesSchema());
 
     // Local states get precedence over global summonables, so assign them last
     for (const key in this._states) {
