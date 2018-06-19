@@ -1313,6 +1313,7 @@ export class Glass extends React.Component {
                   let d = descendant
                   while(!hasFill && d) {
                     hasFill = (d.attributes.fill !== undefined && d.attributes.fill !== 'none')
+                    if(hasFill) break
                     d = d.parent
                   }
                 }
@@ -1326,6 +1327,7 @@ export class Glass extends React.Component {
                       d.attributes.strokeWidth !== '0' &&
                       d.attributes.strokeWidth !== 0 &&
                       d.attributes.strokeWidth !== 'none')
+                    if(hasStroke) break
                     d = d.parent
                   }
                 }
@@ -1352,7 +1354,9 @@ export class Glass extends React.Component {
               // --- Insert new vertex when the selected item is unchanged ---
               if (Element.directlySelected && Element.directlySelected === prevDirectlySelected && (isDoubleClick || Globals.isSpecialKeyDown())) {
                 const transformedLocalMouse = transform2DPoint(mouseDownPosition, Element.directlySelected.layoutAncestryMatrices.reverse())
-
+                
+                Element.directlySelected.shapeModified = true
+                console.log(this.getActiveComponent())
                 switch (Element.directlySelected.type) {
                   case 'rect': {
                     const r = Element.directlySelected.attributes
