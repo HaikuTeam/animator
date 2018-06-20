@@ -248,9 +248,6 @@ class Timeline extends React.Component {
         case 'setInteractionMode':
           this.handleInteractionModeChange(...args)
           break
-        case 'replaceBytecode':
-          this.forceUpdate()
-          break
       }
     })
 

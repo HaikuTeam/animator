@@ -305,18 +305,6 @@ export class Glass extends React.Component {
         case 'setInteractionMode':
           this.handleInteractionModeChange()
           break
-        case 'replaceBytecode':
-          if (this.getActiveComponent()) {
-            this.getActiveComponent().moduleSync((err) => {
-              if (err) {
-                logger.error(err)
-                return
-              }
-
-              this.getActiveComponent().getArtboard().updateMountSize(this.refs.container)
-            })
-          }
-          break
       }
     })
 

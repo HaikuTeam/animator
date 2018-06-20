@@ -4417,13 +4417,13 @@ class ActiveComponent extends BaseModel {
       return this.project.updateHook('replaceBytecode', this.getRelpath(), currentEditorContents, metadata, (fire) => {
         try {
           this.handleUpdatedBytecode(ModuleWrapper.testLoadBytecode(currentEditorContents, absPath))
-          cb(null)
         } catch (requireError) {
           // If we cannot validate it, return an error.
           cb(requireError)
         }
         release()
         fire()
+        return this.moduleSync(cb)
       })
     })
   }
