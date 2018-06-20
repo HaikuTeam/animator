@@ -41,7 +41,7 @@ function fixNode (obj) {
   };
 }
 
-export default function xmlToMana (xml) {
+export default function xmlToMana (xml: string) {
   const obj = xmlParser(xml).root;
   return fixNode(obj);
 }
