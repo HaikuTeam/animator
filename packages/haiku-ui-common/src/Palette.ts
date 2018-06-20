@@ -1,5 +1,5 @@
 export default {
-  COAL: 'rgb(33,45,49)',
+  COAL: '#212d31',
   DARK_BLUE: 'rgb(19,106,136)',
   DARK_GRAY: 'rgb(47, 57, 60)',
   DARK_ROCK_MUTED2: 'rgba(180, 180, 180, .1)',

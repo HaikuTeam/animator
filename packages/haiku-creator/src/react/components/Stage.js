@@ -20,13 +20,13 @@ const STAGE_BOX_STYLE = {
 };
 
 const STAGE_FADE_OUT = {
-  transform: 'scale(0.8)',
-  transition: 'visibility 0s linear 240ms, opacity 240ms, transform 240ms',
+  transform: 'scale(0.95)',
+  transition: 'visibility 0s linear 240ms, opacity 240ms, transform ease 240ms',
 };
 
 const STAGE_FADE_IN = {
   transform: 'scale(1)',
-  transition: 'visibility 0s linear 0s, opacity 240ms, transform 240ms',
+  transition: 'visibility 0s linear 0s, opacity 240ms, transform ease 240ms',
 };
 
 // This may not be precisely correct; please test the UI if you enable this experiment
@@ -216,7 +216,9 @@ class Stage extends React.Component {
   render () {
     const interactionModeColor = this.props.isPreviewMode
       ? Palette.LIGHTEST_PINK
-      : Palette.STAGE_GRAY;
+      : this.props.showGlass
+        ? Palette.STAGE_GRAY
+        : Palette.COAL;
 
     return (
       <div className="layout-box"
@@ -253,6 +255,7 @@ class Stage extends React.Component {
           {(experimentIsEnabled(Experiment.MultiComponentFeatures)) &&
             <ComponentMenu
               ref="component-menu"
+              showGlass={this.props.showGlass}
               projectModel={this.props.projectModel}
               nonSavedContentOnCodeEditor={this.state.nonSavedContentOnCodeEditor}
               tryToChangeCurrentActiveComponent={this.props.tryToChangeCurrentActiveComponent}
@@ -285,7 +288,7 @@ class Stage extends React.Component {
               height: `calc(100% - ${STAGE_MOUNT_HEIGHT_OFFSET + 3}px)`,
               top: STAGE_MOUNT_HEIGHT_OFFSET,
               left: 3,
-              backgroundColor: Palette.STAGE_GRAY,
+              backgroundColor: Palette.COAL,
               outline: '2px solid ' + interactionModeColor,
               visibility: this.props.showGlass ? 'hidden' : 'visible',
               opacity: this.props.showGlass ? 0 : 1},
