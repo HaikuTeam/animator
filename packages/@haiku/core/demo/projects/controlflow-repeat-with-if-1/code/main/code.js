@@ -51,6 +51,9 @@ module.exports = {
         },
         "controlFlow.if": {
           "0": {
+            value: true
+          },
+          "200": {
             value: false
           },
           "500": {
@@ -60,9 +63,6 @@ module.exports = {
         "translation.x": {
           "0": {
             value: Haiku.inject(function($flow) {
-              if(!$flow.repeat){
-                return 0;
-              }
               return $flow.repeat.payload.x
             }, '$flow'),
             curve: 'linear',
@@ -70,9 +70,6 @@ module.exports = {
           },
           "1000": {
             value: Haiku.inject(function($flow) {
-              if(!$flow.repeat){
-                return 0;
-              }
               return $flow.repeat.payload.x + 100
             }, '$flow'),
             edited: true
@@ -81,9 +78,6 @@ module.exports = {
         "translation.y": {
           "0": {
             value: Haiku.inject(function($flow) {
-              if(!$flow.repeat){
-                return 0;
-              }
               return $flow.repeat.payload.y
             }, '$flow'),
             edited: true
@@ -197,11 +191,26 @@ module.exports = {
             edited: true
           }
         },
+        "controlFlow.if": {
+          "0": {
+            value: false
+          },
+          "100": {
+            value: true
+          },
+          "300": {
+            value: false
+          },
+          "500": {
+            value: true
+          }
+        },
         "translation.x": {
           "0": {
             value: Haiku.inject(function($flow) {
               return $flow.repeat.payload.x
             }, '$flow'),
+            curve: 'easeInOutElastic',
             edited: true
           }
         },
@@ -210,7 +219,7 @@ module.exports = {
             value: Haiku.inject(function($flow) {
               return $flow.repeat.payload.y
             }, '$flow'),
-            curve: 'linear',
+            curve: 'easeInOutElastic',
             edited: true
           },
           "1000": {
@@ -247,16 +256,16 @@ module.exports = {
     elementName: "div",
     attributes: { "haiku-id": "e4a9e4d8baa7", "haiku-title": "Main" },
     children: [
-      // {
-      //   elementName: _code_block_code,
-      //   attributes: {
-      //     "haiku-id": "e8ae8dd20591",
-      //     "haiku-var": "_code_block_code",
-      //     "haiku-title": "Block",
-      //     "haiku-source": "./code/block/code.js"
-      //   },
-      //   children: []
-      // },
+      {
+        elementName: _code_block_code,
+        attributes: {
+          "haiku-id": "e8ae8dd20591",
+          "haiku-var": "_code_block_code",
+          "haiku-title": "Block",
+          "haiku-source": "./code/block/code.js"
+        },
+        children: []
+      },
       {
         elementName: "svg",
         attributes: {

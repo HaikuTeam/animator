@@ -8,8 +8,8 @@ import HaikuHelpers from './HaikuHelpers';
 import ColorUtils from './helpers/ColorUtils';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
 import {isPreviewMode} from './helpers/interactionModes';
-import Layout3D from './Layout3D';
 import SVGPoints from './helpers/SVGPoints';
+import Layout3D from './Layout3D';
 import enhance from './reflection/enhance';
 import Transitions from './Transitions';
 import assign from './vendor/assign';
@@ -521,8 +521,51 @@ INJECTABLES.$flow = {
       injectees.$flow = {};
     }
 
-    injectees.$flow.repeat = matchingElement.__repeat;
+    const repeatNode = getRepeatHostNode(matchingElement);
+
+    injectees.$flow.repeat = (repeatNode && repeatNode.__repeat) || {
+      instructions: [],
+      payload: {},
+      source: repeatNode,
+      index: 0,
+      collection: [repeatNode],
+    };
+
+    const ifNode = getIfHostNode(matchingElement);
+
+    injectees.$flow.if = (ifNode && ifNode.__if) || {
+      answer: null,
+    };
+
+    injectees.$flow.placeholder = matchingElement.__placeholder || {
+      value: null,
+      surrogate: null,
+    };
   },
+};
+
+const getRepeatHostNode = (node) => {
+  if (!node) {
+    return;
+  }
+
+  if (node.__repeat) {
+    return node;
+  }
+
+  return getRepeatHostNode(node.__parent);
+};
+
+const getIfHostNode = (node) => {
+  if (!node) {
+    return;
+  }
+
+  if (node.__if) {
+    return node;
+  }
+
+  return getIfHostNode(node.__parent);
 };
 
 INJECTABLES.$helpers = {

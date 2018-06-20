@@ -636,9 +636,22 @@ export default class HaikuDOMRenderer extends HaikuBase {
       // For performance, we don't render children during a patch operation, except in the case
       // that we have some text content, which we (hack) need to always assume needs an update.
       // TODO: Fix this hack and make smarter
-      const doSkipChildren = isPatchOperation && (typeof virtualElement.children[0] !== 'string');
+      const doSkipChildren = (
+        isPatchOperation &&
+        (typeof virtualElement.children[0] !== 'string') &&
+        // Flush is a per-node signal to perform a full subtree update, used in controlFlow.*
+        !virtualElement.__flush
+      );
+
+      // console.log('r',doSkipChildren,virtualElement);
       HaikuDOMRenderer.renderTree(
-        domElement, virtualElement, virtualElement.children, instance, isPatchOperation, doSkipChildren);
+        domElement,
+        virtualElement,
+        virtualElement.children,
+        instance,
+        isPatchOperation,
+        doSkipChildren,
+      );
     } else if (!virtualElement.children) {
       // In case of falsy virtual children, we still need to remove elements that were already there
       HaikuDOMRenderer.renderTree(domElement, virtualElement, [], instance, isPatchOperation, null);

@@ -55,18 +55,18 @@
     const domMount = document.getElementById('dom-mount');
     dom.mount ? dom.mount(domMount) : dom(domMount);
 
-    // const reactDomMount = document.getElementById('react-dom-mount');
-    // reactDom.mount
-    //   ? reactDom.mount(reactDomMount, reactDom.React, reactDom.ReactDOM)
-    //   : reactDom.ReactDOM.render(reactDom.React.createElement(reactDom), reactDomMount);
+    const reactDomMount = document.getElementById('react-dom-mount');
+    reactDom.mount
+      ? reactDom.mount(reactDomMount, reactDom.React, reactDom.ReactDOM)
+      : reactDom.ReactDOM.render(reactDom.React.createElement(reactDom), reactDomMount);
 
-    // new Vue({
-    //   el: '#vue-dom-mount',
-    //   template: `<{{demo}}></{{demo}}>`,
-    //   components: {
-    //     '{{demo}}': vueDom
-    //   }
-    // });
+    new Vue({
+      el: '#vue-dom-mount',
+      template: `<{{demo}}></{{demo}}>`,
+      components: {
+        '{{demo}}': vueDom
+      }
+    });
   </script>
 </body>
 </html>

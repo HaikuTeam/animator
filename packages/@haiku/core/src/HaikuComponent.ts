@@ -164,6 +164,9 @@ export default class HaikuComponent extends HaikuElement {
     // The full version of the template gets mutated in-place by the rendering algorithm
     this._flatManaTree = [];
 
+    // As a performance optimization, keep track of elements we've located as key/value (selector/element) pairs
+    this._matchedElementCache = {};
+
     // Flag used internally to determine whether we need to re-render the full tree or can survive by just patching
     this.doesNeedFullFlush = false;
 
@@ -172,9 +175,6 @@ export default class HaikuComponent extends HaikuElement {
 
     // Dictionary of event handler names to handler functions; used to efficiently manage multiple subscriptions
     this.registeredEventHandlers = {};
-
-    // As a performance optimization, keep track of elements we've located as key/value (selector/element) pairs
-    this._matchedElementCache = {};
 
     // Flag to determine whether this component should continue doing any work
     this.isDeactivated = false;
@@ -385,8 +385,7 @@ export default class HaikuComponent extends HaikuElement {
       this.bindStates();
     }
 
-    this._flatManaTree = manaFlattenTree(this.getTemplate(), CSS_QUERY_MAPPING);
-    this._matchedElementCache = {};
+    this.clearNodeCaches();
 
     this.builder.clearCaches(options);
     this._hydrateMutableTimelines();
@@ -397,6 +396,11 @@ export default class HaikuComponent extends HaikuElement {
         delete this.bytecode.timelines[timelineName].__max;
       }
     }
+  }
+
+  clearNodeCaches () {
+    this._flatManaTree = manaFlattenTree(this.getTemplate(), CSS_QUERY_MAPPING);
+    this._matchedElementCache = {};
   }
 
   getClock (): HaikuClock {
@@ -774,8 +778,7 @@ export default class HaikuComponent extends HaikuElement {
       return;
     }
 
-    this._flatManaTree = manaFlattenTree(this.getTemplate(), CSS_QUERY_MAPPING);
-    this._matchedElementCache = {};
+    this.clearNodeCaches();
 
     const expansion = expandTreeNode(
       this.getTemplate(), // node
@@ -808,6 +811,14 @@ export default class HaikuComponent extends HaikuElement {
       this,
       patches,
     );
+
+    // If any node was set to full flush before this update, we unset it to avoid
+    // unnecessary re-rendering on subsequent patches
+    for (const flexId in patches) {
+      if (patches[flexId].__flush) {
+        patches[flexId].__flush = false;
+      }
+    }
 
     for (const $id in this.guests) {
       this.guests[$id].performPatchRenderWithRenderer(
@@ -987,23 +998,8 @@ export default class HaikuComponent extends HaikuElement {
           for (let j = 0; j < matchingElementsForBehavior.length; j++) {
             const matchingElement = matchingElementsForBehavior[j];
 
-            const domId = (
-              matchingElement &&
-              matchingElement.attributes &&
-              matchingElement.attributes.id
-            );
-
-            const haikuId = (
-              matchingElement &&
-              matchingElement.attributes &&
-              matchingElement.attributes[HAIKU_ID_ATTRIBUTE]
-            );
-
-            const flexId = haikuId || domId;
-
-            const compositeId = (matchingElement.__repeat)
-              ? `${flexId}'${matchingElement.__repeat.index}`
-              : flexId;
+            const flexId = getNodeFlexId(matchingElement);
+            const compositeId = getNodeCompositeId(matchingElement);
 
             for (const propertyName in propertyGroup) {
               const propertyValue = propertyGroup[propertyName];
@@ -1030,7 +1026,15 @@ export default class HaikuComponent extends HaikuElement {
 
                 // If even one change has been applied, the element must be patched
                 if (deltas) {
-                  deltas[compositeId] = matchingElement;
+                  const parentElement = matchingElement.__parent;
+
+                  // Some behaviors require that we flush the parent, i.e. for structure changes.
+                  if (parentElement && parentElement.__flush) {
+                    deltas[getNodeCompositeId(parentElement)] = parentElement;
+                  } else {
+                    // The parent's flush should flush the child so we only do this if no parent flush.
+                    deltas[compositeId] = matchingElement;
+                  }
                 }
               }
             }
@@ -1282,6 +1286,30 @@ export default class HaikuComponent extends HaikuElement {
 
   static all = (): HaikuComponent[] => HaikuBase.getRegistryForClass(HaikuComponent);
 }
+
+const getNodeFlexId = (node): string => {
+  const domId = (
+    node &&
+    node.attributes &&
+    node.attributes.id
+  );
+
+  const haikuId = (
+    node &&
+    node.attributes &&
+    node.attributes[HAIKU_ID_ATTRIBUTE]
+  );
+
+  return haikuId || domId;
+};
+
+const getNodeCompositeId = (node): string => {
+  const flexId = getNodeFlexId(node);
+
+  return (node.__repeat)
+    ? `${flexId}'${node.__repeat.index}`
+    : flexId;
+};
 
 const collatePropertyGroup = (propertiesGroup) => {
   const collation = [
@@ -1920,25 +1948,6 @@ const getCanonicalPlaybackValue = (value) => {
   return value;
 };
 
-const controlFlowPlaceholderImpl = (element, surrogate, receiver) => {
-  if (element.__surrogate !== surrogate) {
-    element.elementName = surrogate.elementName;
-    element.children = surrogate.children || [];
-    if (surrogate.attributes) {
-      if (!element.attributes) {
-        element.attributes = {};
-      }
-      for (const key in surrogate.attributes) {
-        if (key === 'haiku-id') {
-          continue;
-        }
-        element.attributes[key] = surrogate.attributes[key];
-      }
-    }
-    element.__surrogate = surrogate;
-  }
-};
-
 /**
  * 'Vanities' are functions that provide special handling for applied properties.
  * So for example, if a component wants to apply 'foo.bar'=3 to a <div> in its template,
@@ -2183,6 +2192,12 @@ export const VANITIES = {
       // see a flash of the default content before the injected content flows in lazily
       element.children = [];
 
+      if (!element.__placeholder) {
+        element.__placeholder = {};
+      }
+
+      element.__placeholder.value = value;
+
       // If we are running via a framework adapter, allow that framework to provide its own placeholder mechanism.
       // This is necessary e.g. in React where their element format needs to be converted into our 'mana' format
       if (context.config.vanities['controlFlow.placeholder']) {
@@ -2196,7 +2211,25 @@ export const VANITIES = {
           sender,
         );
       } else {
-        controlFlowPlaceholderImpl(element, surrogate, receiver);
+        if (element.placeholder.__surrogate !== surrogate) {
+          element.elementName = surrogate.elementName;
+          element.children = surrogate.children || [];
+
+          if (surrogate.attributes) {
+            if (!element.attributes) {
+              element.attributes = {};
+            }
+
+            for (const key in surrogate.attributes) {
+              if (key === 'haiku-id') {
+                continue;
+              }
+              element.attributes[key] = surrogate.attributes[key];
+            }
+          }
+
+          element.placeholder.__surrogate = surrogate;
+        }
       }
     },
 
@@ -2230,27 +2263,6 @@ export const VANITIES = {
         return;
       }
 
-      let doFlush = false;
-
-      if (element.__repeat) {
-        if (element.__repeat.changed) {
-          element.__repeat.changed = false;
-          doFlush = true;
-        } else {
-          // Save CPU by avoiding recomputing a repeat when we've already done so.
-          // Although upstream HaikuComponent#applyBehaviors does do diff comparisons,
-          // it intentionally skips this comparison for complex properties i.e. arrays
-          // and objects due to the intractability of smartly comparing for all cases.
-          // We do a comparison that is fairly sensible in the repeat-exclusive case.
-          if (isSameRepeatBehavior(element.__repeat.instructions, instructions)) {
-            if (element.__repeat.instructions.length !== instructions.length) {
-              doFlush = true;
-            }
-            return;
-          }
-        }
-      }
-
       const parent = element && element.__parent;
 
       // We can't proceed if there is...:
@@ -2259,6 +2271,25 @@ export const VANITIES = {
       //   - no snapshot of the original children from which to derive repeats
       if (!parent || !parent.children || !parent.__children) {
         return;
+      }
+
+      if (element.__repeat) {
+        if (element.__repeat.changed) {
+          element.__repeat.changed = false;
+          parent.__flush = true;
+        } else {
+          // Save CPU by avoiding recomputing a repeat when we've already done so.
+          // Although upstream HaikuComponent#applyBehaviors does do diff comparisons,
+          // it intentionally skips this comparison for complex properties i.e. arrays
+          // and objects due to the intractability of smartly comparing for all cases.
+          // We do a comparison that is fairly sensible in the repeat-exclusive case.
+          if (isSameRepeatBehavior(element.__repeat.instructions, instructions)) {
+            if (element.__repeat.instructions.length !== instructions.length) {
+              parent.__flush = true;
+            }
+            return;
+          }
+        }
       }
 
       const groups = getGroupedChildren(parent);
@@ -2302,9 +2333,9 @@ export const VANITIES = {
 
           // The repeat information is exposed downstream for programmatic control
           group.elements[j].__repeat = {
-            source: element,
             instructions,
             payload,
+            source: element,
             index: j,
             collection: group.elements,
           };
@@ -2325,6 +2356,8 @@ export const VANITIES = {
           }
         }
       }
+
+      sender.clearNodeCaches();
     },
 
     'controlFlow.if': (
@@ -2370,6 +2403,8 @@ export const VANITIES = {
         element.__repeat.changed = true;
       }
 
+      parent.__flush = true;
+
       const groups = getGroupedChildren(parent);
 
       // Clear the existing children which we're going to repopulate with elements
@@ -2381,18 +2416,17 @@ export const VANITIES = {
         // Don't reinsert an element if the if-answer says it should be transcluded
         if (isGroupIfBehaviorTrue(group)) {
           parent.children.push.apply(parent.children, group.elements);
+
+          // Ensure we can go from n=0 to n>=1 elements in the list
+          if (parent.children.length < 1) {
+            parent.children.push(element);
+          }
         }
       }
+
+      sender.clearNodeCaches();
     },
   },
-};
-
-const didIfBehaviorChange = (element): boolean => {
-  if (!element.__if) {
-    return false;
-  }
-
-  return !!element.__if.changed;
 };
 
 const isGroupIfBehaviorTrue = (group): boolean => {
