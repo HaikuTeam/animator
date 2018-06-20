@@ -18,7 +18,7 @@ const STYLES = {
     top: 240,
     margin: 0,
     left: 'calc(50% + 150px)',
-    transform: 'translateY(-50%)',
+    transform: 'translate(-50%, -50%)',
   },
   modalBody: {
     minHeight: 90
@@ -50,9 +50,10 @@ class CannotSwitchToDesignPopup extends React.Component {
                 style={[
                   BTN_STYLES.btnText,
                   BTN_STYLES.centerBtns,
+                  BTN_STYLES.btnPrimary,
                   {
                     display: 'inline-block',
-                    marginRight: '10px',
+                    marginRight: '10px'
                   },
                 ]}
               >

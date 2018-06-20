@@ -82,9 +82,10 @@ class SaveContentsPopup extends React.Component {
                 style={[
                   BTN_STYLES.btnText,
                   BTN_STYLES.centerBtns,
+                  BTN_STYLES.btnPrimary,
                   {
                     display: 'inline-block',
-                    marginRight: '10px',
+                    marginRight: '10px'
                   },
                 ]}
               >
