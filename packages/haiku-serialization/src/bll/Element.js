@@ -725,6 +725,15 @@ class Element extends BaseModel {
     return !!GROUPING_ELEMENTS[Element.safeElementName(this.getStaticTemplateNode())]
   }
 
+  isRepeater () {
+    const rkfs = this.getRepeaterKeyframes()
+    return !!(rkfs && Object.keys(rkfs).length > 0)
+  }
+
+  getRepeaterKeyframes () {
+    return this.getPropertyKeyframesObject('controlFlow.repeat')
+  }
+
   isTextNode () {
     return typeof this.getStaticTemplateNode() === 'string'
   }

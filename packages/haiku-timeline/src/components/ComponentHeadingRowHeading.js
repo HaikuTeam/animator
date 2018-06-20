@@ -1,6 +1,6 @@
 import React from 'react'
 import Palette from 'haiku-ui-common/lib/Palette'
-import {ComponentIconSVG} from 'haiku-ui-common/lib/react/OtherIcons'
+import {ComponentIconSVG, RepeaterIconSVG} from 'haiku-ui-common/lib/react/OtherIcons'
 import Color from 'color'
 
 const DOUBLE_CLICK_WAIT_DELAY_MS = 100
@@ -70,6 +70,16 @@ export default class ComponentHeadingRowHeading extends React.Component {
     })
   }
 
+  getIcon () {
+    if (this.props.row.element.isRepeater()) {
+      console.log('isR')
+      return <RepeaterIconSVG />
+    } else if (this.props.row.element.isComponent()) {
+      return <ComponentIconSVG />
+    }
+    return ''
+  }
+
   render () {
     let color = Palette.ROCK_MUTED
 
@@ -123,20 +133,21 @@ export default class ComponentHeadingRowHeading extends React.Component {
               left: 2,
               top: 8
             }}>
-            {(this.props.row.element.isComponent()) &&
-            <ComponentIconSVG />}
+            {this.getIcon()}
           </span>
           <span
             style={{
               position: 'absolute',
               display: 'inline-block',
               height: 20,
-              left: (this.props.row.element.isComponent())
+              left: (this.props.row.element.isComponent() || this.props.row.element.isRepeater())
                   ? 21
                   : 5,
               top: 7,
               overflowX: 'hidden',
-              width: 160
+              width: (this.props.row.element.isComponent() || this.props.row.element.isRepeater())
+                ? 80
+                : 100
             }}
             onClick={(clickEvent) => {
               if (!this.onExpandTimeout) {
