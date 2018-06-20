@@ -122,6 +122,22 @@ const STYLES = {
     color: Palette.LIGHT_BLUE,
     cursor: 'pointer',
   },
+  toggleHolster: {
+    position: 'absolute',
+    left: '50%',
+    top: '50%',
+    transform: 'translate(-50%, -50%)',
+    borderRadius: 3,
+    overflow: 'hidden'
+  },
+  activeIndicator: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    width: '100%',
+    height: 3,
+    backgroundColor: Palette.LIGHTEST_PINK
+  }
 };
 
 const SNAPSHOT_SAVE_RESOLUTION_STRATEGIES = {
@@ -659,41 +675,49 @@ class StageTitleBar extends React.Component {
             closePopupCannotSwitchToDesign={this.props.closePopupCannotSwitchToDesign}
           />
         }
-        {experimentIsEnabled(Experiment.CodeEditorInCreator) && <div style={[{display: 'inline-block'}]} >
-          <button
-            key="toggle-design"
-            id="toggle-design"
-            onClick={this.props.onSwitchToDesignMode}
-            style={[
-              BTN_STYLES.btnText,
-              BTN_STYLES.centerBtns,
-              this.props.showGlass && {boxShadow: '0 4px 2px -2px #f24082'},
-              {
-                display: 'inline-block',
-                marginRight: '0px',
-              },
-            ]}
-          >
-            <span style={{marginLeft: 7}}>DESIGN</span>
-          </button>
+        {experimentIsEnabled(Experiment.CodeEditorInCreator) && 
+          <div style={STYLES.toggleHolster}>
+            <button
+              key="toggle-design"
+              id="toggle-design"
+              onClick={this.props.onSwitchToDesignMode}
+              style={[
+                BTN_STYLES.btnText,
+                BTN_STYLES.centerBtns,
+                {
+                  display: 'inline-block',
+                  marginRight: '0px',
+                  borderBottomRightRadius: 0,
+                  borderTopRightRadius: 0,
+                  ':hover': {
+                    backgroundColor: Color(Palette.DARKEST_COAL).darken(.3),
+                  },
+                }]}>
+              <span style={{marginLeft: 7}}>DESIGN</span>
+              {this.props.showGlass && <span style={STYLES.activeIndicator}/>}
+            </button>
 
-          <button
-            key="toggle-code"
-            id="toogle-code"
-            onClick={this.props.onSwitchToCodeMode}
-            style={[
-              BTN_STYLES.btnText,
-              BTN_STYLES.centerBtns,
-              !this.props.showGlass && {boxShadow: '0 4px 2px -2px #f24082'},
-              {
-                display: 'inline-block',
-                marginRight: '0px',
-              },
-            ]}
-          >
-            <span style={{marginLeft: 7}}>CODE</span>
-          </button>
-        </div>}
+            <button
+              key="toggle-code"
+              id="toggle-code"
+              onClick={this.props.onSwitchToCodeMode}
+              style={[
+                BTN_STYLES.btnText,
+                BTN_STYLES.centerBtns,
+                {
+                  display: 'inline-block',
+                  marginRight: '0px',
+                  borderBottomLeftRadius: 0,
+                  borderTopLeftRadius: 0,
+                  ':hover': {
+                    backgroundColor: Color(Palette.DARKEST_COAL).darken(.3),
+                  },
+                }]}>
+              <span style={{marginLeft: 7}}>CODE</span>
+              {!this.props.showGlass && <span style={STYLES.activeIndicator} />}
+            </button>
+          </div>
+        }
 
         <button
           key="save"
