@@ -583,6 +583,54 @@ tape(
         // tslint:enable:max-line-length
       ],
 
+      // DOCTYPE declaration should not crash
+      [
+        // tslint:disable:max-line-length
+        xmlToMana(`
+          <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+          <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+          <svg width="100%" height="100%" viewBox="0 0 400 400" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:1.41421;">
+              <ellipse cx="192.864" cy="190.365" rx="71.408" ry="58.444" style="fill:rgb(235,235,235);"/>
+          </svg>
+      `),
+        // tslint:enable:max-line-length
+        {elementName: 'svg',
+          attributes: {
+            viewBox: '0 0 400 400',
+            version: '1.1',
+            xmlns: 'http://www.w3.org/2000/svg',
+            'xmlns:xlink': 'http://www.w3.org/1999/xlink',
+            'xml:space': 'preserve',
+            'xmlns:serif': 'http://www.serif.com/',
+            style: {
+              'fill-rule': 'evenodd',
+              'clip-rule': 'evenodd',
+              'stroke-linejoin': 'round',
+              'stroke-miterlimit': '1.41421',
+            },
+            'sizeProportional.x': 1,
+            'sizeMode.x': 0,
+            'sizeProportional.y': 1,
+            'sizeMode.y': 0,
+            'sizeAbsolute.x': 400,
+            'sizeAbsolute.y': 400,
+          },
+          children: [
+            {
+              elementName: 'ellipse',
+              attributes: {
+                cx: '192.864',
+                cy: '190.365',
+                rx: '71.408',
+                ry: '58.444',
+                style: {fill: 'rgb(235,235,235)'},
+              },
+              children: [],
+            },
+          ],
+        },
+      ],
+
       // Generic elements should see their x and y attributes stripped off.
       [
         {
@@ -785,11 +833,12 @@ tape(
 
     t.plan(data.length);
 
-    data.forEach(([input, output]) => {
+    data.forEach(([input, output], index) => {
       const result = convertManaLayout(input);
       t.deepEqual(
         result,
         output,
+        `mana layout was correctly converted (${index})`,
       );
     });
   },
