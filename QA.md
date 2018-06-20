@@ -827,4 +827,12 @@ Code editor
   - Move to a subcomponent:
     8. repeat steps 1., 2., 3., 4., 5., 6. and 7.
 
+State transitions
+
+- Create a state transition on a click event using action editor helper ( the plus signal)
+- Create a state transition on a click event using action editor auto completer
+- Create a state transition with duration=1000 and a state transition with duration=1000 queue=true. The queued state transition should be started after first end
+- Create a state transition with duration=1000 and a state transition with duration=1000. The second state transition should discard the first
+- A boolean state tranisiton should change its value only on duration end
+
 
