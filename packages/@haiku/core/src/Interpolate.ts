@@ -8,7 +8,6 @@ import justCurves from './vendor/just-curves';
 const CENT = 1.0;
 const OBJECT = 'object';
 const NUMBER = 'number';
-const BOOLEAN = 'boolean';
 
 function percentOfTime (t0: number, t1: number, tnow: number) {
   const span = t1 - t0;

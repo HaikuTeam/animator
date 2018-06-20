@@ -306,9 +306,8 @@ export class Glass extends React.Component {
           this.handleInteractionModeChange()
           break
         case 'replaceBytecode':
-          if (this.getActiveComponent()){ 
+          if (this.getActiveComponent()) {
             this.getActiveComponent().moduleSync((err) => {
-
               if (err) {
                 logger.error(err)
                 return
@@ -317,7 +316,7 @@ export class Glass extends React.Component {
               this.getActiveComponent().getArtboard().updateMountSize(this.refs.container)
             })
           }
-          break;
+          break
       }
     })
 
