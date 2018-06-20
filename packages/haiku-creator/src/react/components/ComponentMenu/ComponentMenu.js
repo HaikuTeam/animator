@@ -14,7 +14,7 @@ const STYLES = {
     paddingTop: '6px',
     overflow: 'hidden',
     verticalAlign: 'top',
-  }
+  },
 };
 
 class ComponentMenu extends React.Component {

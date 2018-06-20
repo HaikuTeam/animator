@@ -10,7 +10,7 @@ const STYLES = {
     width: '100%',
     height: '100%',
     position: 'absolute',
-    backgroundColor: Palette.GRAY
+    backgroundColor: Palette.GRAY,
   },
   modalWrapper: {
     maxWidth: '400px',
@@ -19,7 +19,7 @@ const STYLES = {
     transform: 'translateY(-50%)',
   },
   modalBody: {
-    minHeight: 90
+    minHeight: 90,
   },
   title: {
     textTransform: 'uppercase',
@@ -85,7 +85,7 @@ class SaveContentsPopup extends React.Component {
                   BTN_STYLES.btnPrimary,
                   {
                     display: 'inline-block',
-                    marginRight: '10px'
+                    marginRight: '10px',
                   },
                 ]}
               >

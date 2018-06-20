@@ -86,7 +86,7 @@ class MonacoEditor extends React.Component {
       // `rules` requires colors without the leading '#' ¯\_(ツ)_/¯
       rules: [{backgroundColor: Palette.SPECIAL_COAL.replace('#', '')}],
       // and apparently only rgba strings don't work here; so these need to be hex and start with a "#"
-      colors: { 
+      colors: {
         'editor.foreground': Palette.PALE_GRAY,
         'editor.background': Palette.COAL,
         'editorCursor.foreground': Palette.LIGHTEST_PINK,

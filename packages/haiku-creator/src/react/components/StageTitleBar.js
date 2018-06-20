@@ -128,7 +128,7 @@ const STYLES = {
     top: '50%',
     transform: 'translate(-50%, -50%)',
     borderRadius: 3,
-    overflow: 'hidden'
+    overflow: 'hidden',
   },
   activeIndicator: {
     position: 'absolute',
@@ -136,8 +136,8 @@ const STYLES = {
     left: 0,
     width: '100%',
     height: 3,
-    backgroundColor: Palette.LIGHTEST_PINK
-  }
+    backgroundColor: Palette.LIGHTEST_PINK,
+  },
 };
 
 const SNAPSHOT_SAVE_RESOLUTION_STRATEGIES = {
@@ -675,7 +675,7 @@ class StageTitleBar extends React.Component {
             closePopupCannotSwitchToDesign={this.props.closePopupCannotSwitchToDesign}
           />
         }
-        {experimentIsEnabled(Experiment.CodeEditorInCreator) && 
+        {experimentIsEnabled(Experiment.CodeEditorInCreator) &&
           <div style={STYLES.toggleHolster}>
             <button
               key="toggle-design"
