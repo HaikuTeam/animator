@@ -6,19 +6,29 @@ import Palette from 'haiku-ui-common/lib/Palette';
 
 const STYLES = {
   wrapper: {
-    fontSize: '14px',
+    fontSize: 14,
     width: '100%',
     height: '100%',
     position: 'absolute',
-    backgroundColor: Palette.GRAY,
+    backgroundColor: Palette.GRAY
   },
   modalWrapper: {
-    maxWidth: '600px',
-    top: '50%',
+    maxWidth: '400px',
+    padding: 20,
+    top: 240,
+    margin: 0,
+    left: 'calc(50% + 150px)',
     transform: 'translateY(-50%)',
   },
   modalBody: {
-    padding: '20px',
+    minHeight: 90
+  },
+  title: {
+    textTransform: 'uppercase',
+    fontWeight: 'normal',
+    fontSize: 15,
+    textAlign: 'left',
+    marginBottom: 7,
   },
 };
 
@@ -27,15 +37,10 @@ class CannotSwitchToDesignPopup extends React.Component {
     return (
       <div style={STYLES.wrapper}>
         <ModalWrapper style={STYLES.modalWrapper}>
-          <ModalHeader>
-            <h2>Cannot switch to Design</h2>
-          </ModalHeader>
+          <div style={STYLES.title}>Cannot switch to Design</div>
           <div style={STYLES.modalBody}>
             Cannot switch to design with unsaved changes. Save contents and try again.
           </div>
-          <br />
-          <br />
-          <br />
           <ModalFooter>
             <div style={[{display: 'inline-block'}]} >
               <button

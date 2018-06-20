@@ -6,19 +6,27 @@ import Palette from 'haiku-ui-common/lib/Palette';
 
 const STYLES = {
   wrapper: {
-    fontSize: '14px',
+    fontSize: 14,
     width: '100%',
     height: '100%',
     position: 'absolute',
-    backgroundColor: Palette.GRAY,
+    backgroundColor: Palette.GRAY
   },
   modalWrapper: {
-    maxWidth: '600px',
+    maxWidth: '400px',
+    padding: 20,
     top: '50%',
     transform: 'translateY(-50%)',
   },
   modalBody: {
-    padding: '20px',
+    minHeight: 90
+  },
+  title: {
+    textTransform: 'uppercase',
+    fontWeight: 'normal',
+    fontSize: 15,
+    textAlign: 'left',
+    marginBottom: 7,
   },
 };
 
@@ -44,15 +52,10 @@ class SaveContentsPopup extends React.Component {
     return (
       <div style={STYLES.wrapper}>
         <ModalWrapper style={STYLES.modalWrapper}>
-          <ModalHeader>
-            <h2>Do you want to save changes?</h2>
-          </ModalHeader>
+          <div style={STYLES.title}>Save your changes?</div>
           <div style={STYLES.modalBody}>
             Current opened file has unsaved changes. Do you want to save or discard changes?
           </div>
-          <br />
-          <br />
-          <br />
           <ModalFooter>
             <div style={[{display: 'inline-block'}]} >
               <button
