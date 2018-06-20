@@ -385,7 +385,7 @@ class Project extends BaseModel {
       metadata,
       (handleActionResolution) => tx((err, out) => {
         // Should only called if there is *not* an error, but sticking with err-first convention anyway.
-        if (experimentIsEnabled(Experiment.IpcIntegrityCheck)) {
+        if (experimentIsEnabled(Experiment.IpcIntegrityCheck) && metadata.integrity !== false) {
           const integrity = this.describeIntegrity()
 
           if (metadata.integrity && this.isRemoteRequest(metadata)) {

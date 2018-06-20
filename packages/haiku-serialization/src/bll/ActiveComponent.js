@@ -479,6 +479,7 @@ class ActiveComponent extends BaseModel {
    * Note: This gets called automatically by element.select()
    */
   handleElementSelected (componentId, metadata) {
+    metadata.integrity = false
     this.project.updateHook('selectElement', this.getRelpath(), componentId, metadata, (fire) => fire())
   }
 
@@ -490,14 +491,17 @@ class ActiveComponent extends BaseModel {
    * Note: This gets called automatically by element.unselect()
    */
   handleElementUnselected (componentId, metadata) {
+    metadata.integrity = false
     this.project.updateHook('unselectElement', this.getRelpath(), componentId, metadata, (fire) => fire())
   }
 
   handleElementHovered (componentId, metadata) {
+    metadata.integrity = false
     this.project.updateHook('hoverElement', this.getRelpath(), componentId, metadata, (fire) => fire())
   }
 
   handleElementUnhovered (componentId, metadata) {
+    metadata.integrity = false
     this.project.updateHook('unhoverElement', this.getRelpath(), componentId, metadata, (fire) => fire())
   }
 
