@@ -4418,8 +4418,9 @@ class ActiveComponent extends BaseModel {
         try {
           this.handleUpdatedBytecode(ModuleWrapper.testLoadBytecode(currentEditorContents, absPath))
         } catch (requireError) {
+          release()
           // If we cannot validate it, return an error.
-          cb(requireError)
+          return cb(requireError)
         }
         release()
         fire()
