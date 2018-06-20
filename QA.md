@@ -812,3 +812,17 @@ CLI
 I can use Haiku CLI to login and logout
 Haiku CLI invalidates bad logins
 I can clone a project in my org with `$ haiku clone`
+
+
+Code editor
+
+- On a multi component project, select main component tab:
+  - Change to CODE mode
+    1. Change opacity (or any other property) value. A red circle should appear on tab name left side indicating it is not saved yet.
+    2. Save it using "CmdOrCtrl+S". The circle should disappear. Go back to DESIGN mode and verify that opacity has changed on timeline and also on glass.
+    3. Repeat 1. and 2. for a state, but check state inspector instead
+    4. Change a value, and try to change tab without saving. It should ask to save it before changing tab
+  - Move to a different component:
+    5. repeat steps 1., 2., 3. and 4. for a different component
+
+

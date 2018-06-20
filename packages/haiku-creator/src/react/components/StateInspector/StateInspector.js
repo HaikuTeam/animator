@@ -114,7 +114,7 @@ class StateInspector extends React.Component {
   onProjectModelUpdate (what, ...args) {
     // We only reload states on a hard reload (eg when a component is loaded from disk)
     // Editing states on state inspector only triggers soft reload
-    if (what === 'reloaded' && args[0] === 'hard') {
+    if ((what === 'reloaded' && args[0] === 'hard') || (what === 'replaceBytecode')) {
       this.loadStatesDataFromActiveComponent();
     }
   }
