@@ -1,5 +1,10 @@
 #!/usr/bin/env python2.7
 import subprocess
+from os import environ
+
+if environ.get('SKIP_HAIKU_HOOKS', '0') == '1':
+  # We have been expliticly asked to do nothing.
+  sys.exit(0)
 
 print 'Syncing dependencies....'
 subprocess.call(['yarn', 'install'])
