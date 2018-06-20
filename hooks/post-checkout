@@ -1,12 +1,13 @@
 #!/usr/bin/env python2.7
 import sys
+from os import environ
 from os import path
 import json
 import subprocess
 
 is_branch_checkout = sys.argv[3]
-if is_branch_checkout == '0':
-  # This is a file checkout. Nothing to do!
+if is_branch_checkout == '0' or environ.get('SKIP_HAIKU_HOOKS', '0') == '1':
+  # This is a file checkout or we have been expliticly asked to do nothing.
   sys.exit(0)
 
 current_branch = subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD']).strip()
