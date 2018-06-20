@@ -1283,25 +1283,27 @@ export default class HaikuComponent extends HaikuElement {
   static all = (): HaikuComponent[] => HaikuBase.getRegistryForClass(HaikuComponent);
 }
 
-const STRUCTURE_PROPERTIES = {
-  'controlFlow.repeat': true,
-  'controlFlow.if': true,
-  'controlFlow.placeholder': true,
-};
-
 const collatePropertyGroup = (propertiesGroup) => {
-  const structuralOps = {};
-  const presentationalOps = {};
+  const collation = [
+    {}, // "if" ops
+    {}, // "repeat" ops
+    {}, // "placeholder" ops
+    {}, // all other presentational ops
+  ];
 
   for (const propertyName in propertiesGroup) {
-    if (STRUCTURE_PROPERTIES[propertyName]) {
-      structuralOps[propertyName] = propertiesGroup[propertyName];
+    if (propertyName === 'controlFlow.if') {
+      collation[0][propertyName] = propertiesGroup[propertyName];
+    } else if (propertyName === 'controlFlow.repeat') {
+      collation[1][propertyName] = propertiesGroup[propertyName];
+    } else if (propertyName === 'controlFlow.placeholder') {
+      collation[2][propertyName] = propertiesGroup[propertyName];
     } else {
-      presentationalOps[propertyName] = propertiesGroup[propertyName];
+      collation[3][propertyName] = propertiesGroup[propertyName];
     }
   }
 
-  return [structuralOps, presentationalOps];
+  return collation;
 };
 
 function isBytecode (thing) {
@@ -1505,6 +1507,12 @@ function expandTreeNode (
           options,
           false,
         );
+      }
+
+      if (!node.__children) {
+        // Store a snapshot of the children such that we can make structural changes,
+        // i.e. controlFlow.repeat, and still compare/restore to the original copy
+        node.__children = node.children.slice(0);
       }
     }
 
@@ -2206,10 +2214,10 @@ export const VANITIES = {
         return;
       }
 
-      let behavior;
+      let instructions;
 
       if (Array.isArray(value)) {
-        behavior = value;
+        instructions = value;
       } else if (isNumeric(value)) {
         const arr = [];
 
@@ -2217,58 +2225,43 @@ export const VANITIES = {
           arr.push({}); // Empty repeat payload spec
         }
 
-        behavior = arr;
+        instructions = arr;
       } else {
         return;
       }
 
-      if (element.__repeat && element.__repeat.group) {
-        // Save CPU by avoiding recomputing a repeat when we've already done so.
-        // Although upstream HaikuComponent#applyBehaviors does do diff comparisons,
-        // it intentionally skips this comparison for complex properties i.e. arrays
-        // and objects due to the intractability of smartly comparing for all cases.
-        // We do a comparison that is fairly sensible in the repeat-exclusive case.
-        if (isSameRepeatBehavior(element.__repeat.group.behavior, behavior)) {
-          return;
+      let doFlush = false;
+
+      if (element.__repeat) {
+        if (element.__repeat.changed) {
+          element.__repeat.changed = false;
+          doFlush = true;
+        } else {
+          // Save CPU by avoiding recomputing a repeat when we've already done so.
+          // Although upstream HaikuComponent#applyBehaviors does do diff comparisons,
+          // it intentionally skips this comparison for complex properties i.e. arrays
+          // and objects due to the intractability of smartly comparing for all cases.
+          // We do a comparison that is fairly sensible in the repeat-exclusive case.
+          if (isSameRepeatBehavior(element.__repeat.instructions, instructions)) {
+            if (element.__repeat.instructions.length !== instructions.length) {
+              doFlush = true;
+            }
+            return;
+          }
         }
       }
 
       const parent = element && element.__parent;
 
-      // We can't proceed if there's no parent in which to host the repeated children
-      if (!parent || !parent.children) {
+      // We can't proceed if there is...:
+      //   - no parent in which to host the repeated children
+      //   - no children array in which to place the repeats
+      //   - no snapshot of the original children from which to derive repeats
+      if (!parent || !parent.children || !parent.__children) {
         return;
       }
 
-      // Store a snapshot of the children in their initial state before repeating
-      if (!parent.__children) {
-        parent.__children = parent.children.slice(0);
-      }
-
-      const groups = parent.__children.map((source, index) => {
-        const group = {
-          index,
-          source,
-          behavior,
-          elements: [],
-        };
-
-        for (let i = 0; i < parent.children.length; i++) {
-          const child = parent.children[i];
-
-          if (child === source) {
-            group.elements.push(child);
-            continue;
-          }
-
-          if (child.__repeat && child.__repeat.group.source === source) {
-            group.elements.push(child);
-            continue;
-          }
-        }
-
-        return group;
-      });
+      const groups = getGroupedChildren(parent);
 
       // Clear the existing children which we're going to repopulate with elements
       parent.children.splice(0);
@@ -2278,13 +2271,17 @@ export const VANITIES = {
 
         // If not our element, just place the groups back in the children
         if (group.source !== element) {
-          parent.children.push.apply(parent.children, group.elements);
+          // Don't reinsert an element if the if-answer says it should be transcluded
+          if (isGroupIfBehaviorTrue(group)) {
+            parent.children.push.apply(parent.children, group.elements);
+          }
+
           continue;
         }
 
         // If our element, create the appropriate repetitions and then push.
-        for (let j = 0; j < behavior.length; j++) {
-          const payload = behavior[j];
+        for (let j = 0; j < instructions.length; j++) {
+          const payload = instructions[j];
 
           // Reuse the original element at this index if we already have one,
           // otherwise clone the source element, and initialize a component if necessary
@@ -2305,7 +2302,8 @@ export const VANITIES = {
 
           // The repeat information is exposed downstream for programmatic control
           group.elements[j].__repeat = {
-            group,
+            source: element,
+            instructions,
             payload,
             index: j,
             collection: group.elements,
@@ -2321,11 +2319,126 @@ export const VANITIES = {
             );
           }
 
-          parent.children.push(group.elements[j]);
+          // Don't reinsert an element if the if-answer says it should be transcluded
+          if (isGroupIfBehaviorTrue(group)) {
+            parent.children.push(group.elements[j]);
+          }
+        }
+      }
+    },
+
+    'controlFlow.if': (
+      name: string,
+      element,
+      value,
+      context: HaikuContext,
+      timeline: HaikuTimeline,
+      receiver: HaikuComponent,
+      sender: HaikuComponent,
+    ) => {
+      // For MVP's sake, structural behaviors not rendered during hot editing.
+      if (sender.config.hotEditingMode) {
+        return;
+      }
+
+      // Assume our if-answer is only false if we got an explicit false value
+      const answer = (value === false) ? false : true;
+
+      if (element.__if) {
+        // Save CPU by avoiding recomputing an if when we've already done so.
+        if (isSameIfBehavior(element.__if.answer, answer)) {
+          return;
+        }
+      }
+
+      const parent = element && element.__parent;
+
+      // We can't proceed if there is...:
+      //   - no parent in which to host the repeated children
+      //   - no children array in which to place the element
+      //   - no snapshot of the original children from which to derive the element
+      if (!parent || !parent.children || !parent.__children) {
+        return;
+      }
+
+      element.__if = {
+        answer,
+      };
+
+      // Ensure that a change in repeat will trigger the necessary re-repeat
+      if (element.__repeat) {
+        element.__repeat.changed = true;
+      }
+
+      const groups = getGroupedChildren(parent);
+
+      // Clear the existing children which we're going to repopulate with elements
+      parent.children.splice(0);
+
+      for (let i = 0; i < groups.length; i++) {
+        const group = groups[i];
+
+        // Don't reinsert an element if the if-answer says it should be transcluded
+        if (isGroupIfBehaviorTrue(group)) {
+          parent.children.push.apply(parent.children, group.elements);
         }
       }
     },
   },
+};
+
+const didIfBehaviorChange = (element): boolean => {
+  if (!element.__if) {
+    return false;
+  }
+
+  return !!element.__if.changed;
+};
+
+const isGroupIfBehaviorTrue = (group): boolean => {
+  if (!group.source) {
+    return true;
+  }
+
+  if (!group.source.__if) {
+    return true;
+  }
+
+  return group.source.__if.answer !== false;
+};
+
+const getGroupedChildren = (parent) => {
+  return parent.__children.map((source, index) => {
+    const group = {
+      index,
+      source,
+      elements: [],
+    };
+
+    for (let i = 0; i < parent.children.length; i++) {
+      const child = parent.children[i];
+
+      if (child === source) {
+        if (group.elements.indexOf(child) === -1) {
+          group.elements.push(child);
+        }
+        continue;
+      }
+
+      if (child.__repeat && child.__repeat.source === source) {
+        if (group.elements.indexOf(child) === -1) {
+          group.elements.push(child);
+        }
+        continue;
+      }
+    }
+
+    return group;
+  });
+};
+
+const isSameIfBehavior = (prev, next): boolean => {
+  return prev === next;
 };
 
 const isSameRepeatBehavior = (prevs, nexts): boolean => {

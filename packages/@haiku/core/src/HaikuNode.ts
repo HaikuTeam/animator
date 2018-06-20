@@ -271,11 +271,21 @@ export const manaFlattenTree = (node, options, unique = true, list = [], depth =
   if (depth < 1 || typeof node[options.name] === 'string') {
     const children = node[options.children];
 
-    if (!children || children.length < 1 || typeof children === 'string') {
+    if (!children || typeof children === 'string') {
       return list;
     }
 
     if (Array.isArray(children)) {
+      // Ensure snapshotted children are included such that transcluded nodes are still subject
+      // to property application, e.g. going from repeat=0 to repeat=1
+      if (node.__children) {
+        children.push.apply(children, node.__children);
+      }
+
+      // Without this, we'll have an infinite loop since the source child appears in both the
+      // original children and the snapshotted children arrays.
+      uniq(children);
+
       for (let i = 0; i < children.length; i++) {
         manaFlattenTree(children[i], options, false, list, depth + 1, i);
       }

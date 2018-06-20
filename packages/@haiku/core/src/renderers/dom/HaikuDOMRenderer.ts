@@ -399,7 +399,6 @@ export default class HaikuDOMRenderer extends HaikuBase {
     const mount = this.decideMountElement(component, selector, name);
 
     mount.addEventListener(rewritten, (domEvent) => {
-
       // If no explicit selector/target for the event, just fire the listener
       if (
         !selector || selector === GLOBAL_LISTENER_KEY ||
