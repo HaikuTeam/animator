@@ -29,6 +29,7 @@ export enum Experiment {
   IncludeSourceInIntegrityHash = 'IncludeSourceInIntegrityHash',
   OrderedActionStack = 'OrderedActionStack',
   CodeEditorInCreator = 'CodeEditorInCreator',
+  WarnOnUndefinedStateVariables = 'WarnOnUndefinedStateVariables',
 }
 
 /**

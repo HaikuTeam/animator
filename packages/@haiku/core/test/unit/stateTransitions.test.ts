@@ -259,6 +259,8 @@ tape(
       'Set transitionEnd directly on non interpolable objects',
     );
 
+    // State transitions for boolean are not defined. The state transition with
+    // boolean will directly update to target value upon completion
     stateTransitionManager.setState(
       {varBool: false},
       {
@@ -286,7 +288,7 @@ tape(
     stateTransitionManager.tickStateTransitions();
     t.is(
       states.varBool,
-      false,
+      true,
       'State transition boolean',
     );
 

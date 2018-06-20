@@ -40,9 +40,18 @@ class CodeEditor extends React.Component {
 
         const newComponentCode = ac.fetchActiveBytecodeFile().getCode();
 
-        this.setState({currentComponentCode: newComponentCode}, () => {
-          this.onMonacoEditorChange(newComponentCode);
-        });
+        // If component code changed, update it on Editor
+        // TODO: this logic could be migrated in the future to Monaco Editor
+        // getDerivedStateFromProps on react 16+
+        if (newComponentCode !== this.state.currentComponentCode) {
+          // This probably is portable to getDerivedStateFromProps
+          this.setState({currentComponentCode: newComponentCode, currentEditorContents: newComponentCode}, () => {
+            this.onMonacoEditorChange(newComponentCode, null);
+          });
+        } else {
+          this.setState({currentComponentCode: newComponentCode});
+        }
+
         break;
     }
   }

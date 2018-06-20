@@ -15,6 +15,11 @@ export const AUTOCOMPLETION_ITEMS = [
     insertText: 'this.setState({stateName: value})'
   },
   {
+    detail: 'Change State (Transition)',
+    label: 'setState (Using transition)',
+    insertText: 'this.setState({stateName: value}, {duration: 1000, curve: "linear", queued: false})'
+  },
+  {
     detail: 'Seek and play from a specific frame.',
     label: 'gotoAndPlay',
     insertText: 'this.getDefaultTimeline().gotoAndPlay(frame)'
