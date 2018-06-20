@@ -25,6 +25,7 @@ const DEFAULT_INTERACTION_MODE = InteractionMode.EDIT
 const DEFAULT_TIMELINE_NAME = 'Default'
 const DEFAULT_TIMELINE_TIME = 0
 const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source'
+const LOCKED_ID_SUFFIX = '#lock'
 const SELECTION_WAIT_TIME = 0
 const SELECTION_PING_TIME = 100
 
@@ -1711,7 +1712,8 @@ class ActiveComponent extends BaseModel {
 
       Bytecode.mergeTimelines(existingBytecode.timelines, timelinesObject)
 
-      this.mergeRemovedOutputs(existingBytecode, existingNode, removedOutputs)
+      // NOTE: Removing this forcibly clobbers everything when new updates come in, ignoring edited: true attributes
+      //this.mergeRemovedOutputs(existingBytecode, existingNode, removedOutputs)
     })
   }
 
@@ -3402,18 +3404,27 @@ class ActiveComponent extends BaseModel {
   /**
    * @method moveKeyframes
    */
-  updateKeyframes (keyframeUpdatesSerial, metadata, cb) {
+  updateKeyframes (keyframeUpdatesSerial, options, metadata, cb) {
     const keyframeUpdates = Bytecode.unserializeValue(keyframeUpdatesSerial, (ref) => {
       return this.evaluateReference(ref)
     })
 
-    return this.project.updateHook('updateKeyframes', this.getRelpath(), Bytecode.serializeValue(keyframeUpdates), metadata, (fire) => {
+    return this.project.updateHook('updateKeyframes', this.getRelpath(), Bytecode.serializeValue(keyframeUpdates), options, metadata, (fire) => {
       for (const timelineName in keyframeUpdates) {
         for (const componentId in keyframeUpdates[timelineName]) {
           this.clearCachedClusters(timelineName, componentId)
         }
       }
-
+      
+      if (options && options.setElementLockStatus) {
+        for(let elID in options.setElementLockStatus) {
+          const node = this.findTemplateNodeByComponentId(elID)
+          const lockStatus = options.setElementLockStatus[elID]
+          if (!lockStatus && node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(LOCKED_ID_SUFFIX)) node.attributes[HAIKU_SOURCE_ATTRIBUTE] = node.attributes[HAIKU_SOURCE_ATTRIBUTE].replace(LOCKED_ID_SUFFIX, '')
+          else if (lockStatus && !node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(LOCKED_ID_SUFFIX)) node.attributes[HAIKU_SOURCE_ATTRIBUTE] = node.attributes[HAIKU_SOURCE_ATTRIBUTE] + LOCKED_ID_SUFFIX
+        }
+      }
+      
       return this.updateKeyframesActual(keyframeUpdates, metadata, (err) => {
         if (err) {
           logger.error(`[active component (${this.project.getAlias()})]`, err)
@@ -3504,18 +3515,27 @@ class ActiveComponent extends BaseModel {
     }, cb)
   }
 
-  updateKeyframesAndTypes (keyframeUpdatesSerial, typeUpdates, metadata, cb) {
+  updateKeyframesAndTypes (keyframeUpdatesSerial, typeUpdates, options, metadata, cb) {
     const keyframeUpdates = Bytecode.unserializeValue(keyframeUpdatesSerial, (ref) => {
       return this.evaluateReference(ref)
     })
 
-    return this.project.updateHook('updateKeyframes', this.getRelpath(), Bytecode.serializeValue(keyframeUpdates), metadata, (fire) => {
+    return this.project.updateHook('updateKeyframes', this.getRelpath(), Bytecode.serializeValue(keyframeUpdates), options, metadata, (fire) => {
       for (const timelineName in keyframeUpdates) {
         for (const componentId in keyframeUpdates[timelineName]) {
           this.clearCachedClusters(timelineName, componentId)
         }
       }
-
+      
+      if (options && options.setElementLockStatus) {
+        for(let elID in options.setElementLockStatus) {
+          const node = this.findTemplateNodeByComponentId(elID)
+          const lockStatus = options.setElementLockStatus[elID]
+          if (!lockStatus && node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(LOCKED_ID_SUFFIX)) node.attributes[HAIKU_SOURCE_ATTRIBUTE] = node.attributes[HAIKU_SOURCE_ATTRIBUTE].replace(LOCKED_ID_SUFFIX, '')
+          else if (lockStatus && !node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(LOCKED_ID_SUFFIX)) node.attributes[HAIKU_SOURCE_ATTRIBUTE] = node.attributes[HAIKU_SOURCE_ATTRIBUTE] + LOCKED_ID_SUFFIX
+        }
+      }
+      
       return this.updateKeyframesActual(keyframeUpdates, metadata, (err) => {
         if (err) {
           logger.error(`[active component (${this.project.getAlias()})]`, err)

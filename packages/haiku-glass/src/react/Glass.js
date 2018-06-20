@@ -1170,6 +1170,10 @@ export class Glass extends React.Component {
                 }
               }
             }
+          }, {
+            setElementLockStatus: {
+              [Element.directlySelected.rootSVG.attributes[HAIKU_ID_ATTRIBUTE]]: true
+            }
           }, {from: 'glass'}, () => {})
         }
 
@@ -1355,8 +1359,12 @@ export class Glass extends React.Component {
               if (Element.directlySelected && Element.directlySelected === prevDirectlySelected && (isDoubleClick || Globals.isSpecialKeyDown())) {
                 const transformedLocalMouse = transform2DPoint(mouseDownPosition, Element.directlySelected.layoutAncestryMatrices.reverse())
                 
-                Element.directlySelected.shapeModified = true
-                console.log(this.getActiveComponent())
+                const keyframeOptions = {
+                  setElementLockStatus: {
+                    [Element.directlySelected.rootSVG.attributes[HAIKU_ID_ATTRIBUTE]]: true
+                  }
+                }
+                
                 switch (Element.directlySelected.type) {
                   case 'rect': {
                     const r = Element.directlySelected.attributes
@@ -1390,9 +1398,9 @@ export class Glass extends React.Component {
                         }
                       }
                     },
-                      {
-                        [Element.directlySelected.attributes['haiku-id']]: 'path'
-                      }, {from: 'glass'}, () => {})
+                    {
+                      [Element.directlySelected.attributes['haiku-id']]: 'path'
+                    }, keyframeOptions, {from: 'glass'}, () => {})
 
                     break
                   }
@@ -1419,9 +1427,9 @@ export class Glass extends React.Component {
                         }
                       }
                     },
-                      {
-                        [Element.directlySelected.attributes['haiku-id']]: 'path'
-                      }, {from: 'glass'}, () => {})
+                    {
+                      [Element.directlySelected.attributes['haiku-id']]: 'path'
+                    }, keyframeOptions, {from: 'glass'}, () => {})
 
                     break
                   }
@@ -1451,9 +1459,9 @@ export class Glass extends React.Component {
                         }
                       }
                     },
-                      {
-                        [Element.directlySelected.attributes['haiku-id']]: 'path'
-                      }, {from: 'glass'}, () => {})
+                    {
+                      [Element.directlySelected.attributes['haiku-id']]: 'path'
+                    }, keyframeOptions, {from: 'glass'}, () => {})
                     break
                   }
                   case 'line': {
@@ -1482,9 +1490,9 @@ export class Glass extends React.Component {
                         }
                       }
                     },
-                      {
-                        [Element.directlySelected.attributes['haiku-id']]: 'path'
-                      }, {from: 'glass'}, () => {})
+                    {
+                      [Element.directlySelected.attributes['haiku-id']]: 'path'
+                    }, keyframeOptions, {from: 'glass'}, () => {})
                     break
                   }
                   case 'polygon':
@@ -1537,7 +1545,7 @@ export class Glass extends React.Component {
                           }
                         }
                       }
-                    }, {from: 'glass'}, () => {})
+                    }, keyframeOptions, {from: 'glass'}, () => {})
                     break
                   }
                   case 'path': {
@@ -1573,7 +1581,7 @@ export class Glass extends React.Component {
                           }
                         }
                       }
-                    }, {from: 'glass'}, () => {})
+                    }, keyframeOptions, {from: 'glass'}, () => {})
                     break
                   }
                 }
@@ -1995,13 +2003,20 @@ export class Glass extends React.Component {
             x: transformedCurrent.x - transformedLastDown.x,
             y: transformedCurrent.y - transformedLastDown.y
           }
-
+          
+          const a = Element.directlySelected
+          const keyframeOptions = {
+            setElementLockStatus: {
+              [Element.directlySelected.rootSVG.attributes[HAIKU_ID_ATTRIBUTE]]: true
+            }
+          }
+            
           if (this.state.directSelectionAnchorActivation != null) {
             // Moving a selection of control points
 
             const indices = this.state.directSelectionAnchorActivation.indices[Element.directlySelected.attributes['haiku-id']]
             const lastIndex = indices[indices.length - 1]
-
+            
             switch (Element.directlySelected.type) {
               case 'circle': {
                 this.getActiveComponent().updateKeyframes({
@@ -2014,7 +2029,7 @@ export class Glass extends React.Component {
                       }
                     }
                   }
-                }, {from: 'glass'}, () => {})
+                }, keyframeOptions, {from: 'glass'}, () => {})
                 break
               }
               case 'ellipse': {
@@ -2039,7 +2054,7 @@ export class Glass extends React.Component {
                       }
                     }
                   }
-                }, {from: 'glass'}, () => {})
+                }, keyframeOptions, {from: 'glass'}, () => {})
                 break
               }
               case 'rect': {
@@ -2102,7 +2117,7 @@ export class Glass extends React.Component {
                       }
                     }
                   }
-                }, {from: 'glass'}, () => {})
+                }, keyframeOptions, {from: 'glass'}, () => {})
                 break
               }
               case 'polyline':
@@ -2122,7 +2137,7 @@ export class Glass extends React.Component {
                       }
                     }
                   }
-                }, {from: 'glass'}, () => {})
+                }, keyframeOptions, {from: 'glass'}, () => {})
                 break
               }
 
@@ -2140,7 +2155,7 @@ export class Glass extends React.Component {
                   [this.getActiveComponent().getCurrentTimelineName()]: {
                     [Element.directlySelected.attributes['haiku-id']]: attrUpdate
                   }
-                })
+                }, keyframeOptions, {from: 'glass'}, () => {})
                 break
               }
 
@@ -2204,7 +2219,7 @@ export class Glass extends React.Component {
                       }
                     }
                   }
-                }, {from: 'glass'}, () => {})
+                }, keyframeOptions, {from: 'glass'}, () => {})
                 break
               }
             }
@@ -2229,7 +2244,7 @@ export class Glass extends React.Component {
                       }
                     }
                   }
-                }, {from: 'glass'}, () => {})
+                }, keyframeOptions, {from: 'glass'}, () => {})
                 break
               }
               case 'rect': {
@@ -2248,7 +2263,7 @@ export class Glass extends React.Component {
                       }
                     }
                   }
-                }, {from: 'glass'}, () => {})
+                }, keyframeOptions, {from: 'glass'}, () => {})
                 break
               }
               case 'polyline':
@@ -2268,7 +2283,7 @@ export class Glass extends React.Component {
                       }
                     }
                   }
-                }, {from: 'glass'}, () => {})
+                }, keyframeOptions, {from: 'glass'}, () => {})
                 break
               }
 
@@ -2298,7 +2313,7 @@ export class Glass extends React.Component {
                       }
                     }
                   }
-                })
+                }, keyframeOptions, {from: 'glass'}, () => {})
                 break
               }
 
@@ -2324,7 +2339,7 @@ export class Glass extends React.Component {
                       }
                     }
                   }
-                }, {from: 'glass'}, () => {})
+                }, keyframeOptions, {from: 'glass'}, () => {})
                 break
               }
             }

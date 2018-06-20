@@ -59,7 +59,7 @@ const INVERTER_ACCUMULATORS = {
   }
 }
 
-const shouldAccumulate = (method, params) => ACCUMULATORS[method] && !params[3].cursor
+const shouldAccumulate = (method, params) => ACCUMULATORS[method] && !params[4].cursor
 
 /**
  * @class ActionStack
