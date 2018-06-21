@@ -2,6 +2,7 @@ const path = require('path')
 const find = require('lodash.find')
 const merge = require('lodash.merge')
 const pascalcase = require('pascalcase')
+const {ATTRS_HYPH_TO_CAMEL} = require('@haiku/core/lib/HaikuComponent')
 const SVGPoints = require('@haiku/core/lib/helpers/SVGPoints').default
 const convertManaLayout = require('@haiku/core/lib/layout/convertManaLayout').default
 const {manaToXml, visitManaTree} = require('@haiku/core/lib/HaikuNode')
@@ -969,10 +970,28 @@ Template.insertAttributesIntoTimelineGroup = (timelineGroup, timelineTime, given
   }
 }
 
-Template.mergeOne = (timelineGroup, attributeName, attributeValue, timelineTime, mergeStrategy) => {
-  if (!timelineGroup[attributeName]) timelineGroup[attributeName] = {}
-  if (!timelineGroup[attributeName][timelineTime]) timelineGroup[attributeName][timelineTime] = {}
-  Template.mergeAppliedValue(attributeName, timelineGroup[attributeName][timelineTime], attributeValue, mergeStrategy)
+Template.mergeOne = (timelineGroup, nameOrig, attributeValue, timelineTime, mergeStrategy) => {
+  const nameFinal = ATTRS_HYPH_TO_CAMEL[nameOrig] || nameOrig
+
+  if (!timelineGroup[nameFinal]) {
+    timelineGroup[nameFinal] = timelineGroup[nameOrig] || {}
+
+    // Clear off any legacy hyphen-case properties if we swapped for camel-case
+    if (nameOrig !== nameFinal) {
+      delete timelineGroup[nameOrig]
+    }
+  }
+
+  if (!timelineGroup[nameFinal][timelineTime]) {
+    timelineGroup[nameFinal][timelineTime] = {}
+  }
+
+  Template.mergeAppliedValue(
+    nameFinal,
+    timelineGroup[nameFinal][timelineTime],
+    attributeValue,
+    mergeStrategy
+  )
 }
 
 const isObject = (value) => {
