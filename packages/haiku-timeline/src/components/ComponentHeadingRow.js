@@ -10,7 +10,6 @@ import ComponentHeadingRowHeading from './ComponentHeadingRowHeading'
 import CollapsedPropertyTimelineSegments from './CollapsedPropertyTimelineSegments'
 import EventHandlerTriggerer from './EventHandlerTriggerer'
 import PropertyManager from './PropertyManager'
-import TooltipBasic from 'haiku-ui-common/lib/react/TooltipBasic'
 import { HAIKU_SOURCE_ATTRIBUTE } from '@haiku/core/lib/HaikuElement';
 
 export default class ComponentHeadingRow extends React.Component {
@@ -19,27 +18,34 @@ export default class ComponentHeadingRow extends React.Component {
     this.handleUpdate = this.handleUpdate.bind(this)
     this.throttledHandleRowHoverUnhover = lodash.debounce(this.handleRowHoverUnhover, 100)
   }
+  
+  state = {
+    showSyncTooltip: true
+  }
 
   componentWillUnmount () {
     this.mounted = false
     this.props.row.host.removeListener('update', this.handleUpdate)
+    this.props.row.removeListener('update', this.handleUpdate)
   }
 
   componentDidMount () {
     this.mounted = true
     this.props.row.host.on('update', this.handleUpdate)
+    this.props.row.on('update', this.handleUpdate)
   }
 
   handleUpdate (what) {
     if (!this.mounted) return null
     if (
       what === 'drag-group-start' ||
-      what === 'drag-group-end'
+      what === 'drag-group-end' ||
+      what === 'row-rehydrated'
     ) {
       this.forceUpdate()
     }
   }
-
+  
   shouldComponentUpdate (nextProps) {
     return (
       (this.props.isExpanded ^ nextProps.isExpanded) ||
@@ -58,7 +64,16 @@ export default class ComponentHeadingRow extends React.Component {
   }
   
   toggleSync () {
-    this.props.component.updateKeyframes({}, {setElementLockStatus: {[this.props.row.element.getComponentId()]: !this.props.row.element.isLocked()}}, {}, () => {})
+    const locked = !this.props.row.element.isLocked()
+    this.props.component.updateKeyframes({}, {setElementLockStatus: {[this.props.row.element.getComponentId()]: locked}}, {from: 'timeline'}, () => {
+      if (!locked) {
+        const designs = {
+          [this.props.row.element.getStaticTemplateNode().attributes[HAIKU_SOURCE_ATTRIBUTE]]: true,
+        }
+        this.props.component.project.mergeDesigns(designs, {from: 'timeline'}, () => {})
+      }
+      this.forceUpdate();
+    })
   }
 
   render () {
@@ -207,16 +222,13 @@ export default class ComponentHeadingRow extends React.Component {
                 position: 'absolute',
                 left: 0,
                 top: 0
-              }} onClick={this.toggleSync.bind(this)}>
+              }}
+              onClick={this.toggleSync.bind(this)}
+              title={this.props.row.element.isLocked() ?
+                'Syncing is disabled for this element. Click to revert your changes and reenable syncing.' :
+                'Syncing is enabled. Changes to the source will be mirrored here.'
+              }>
                 {SyncIconSVG({color: this.props.row.element.isLocked() ? Palette.RED_DARKER : Palette.DARK_ROCK})}
-                
-                {/* <TooltipBasic>
-                  {this.props.row.element.isLocked() ? 
-                    <span>Syncing is disabled for this element. Click to revert your changes and reenable syncing.</span>
-                  :
-                    <span>Syncing is enabled. Changes to the source will be mirrored here.</span>
-                  }
-                </TooltipBasic> */}
             </div>
             <div
               className='event-handler-triggerer-button'

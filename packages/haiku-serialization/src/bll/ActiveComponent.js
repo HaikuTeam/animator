@@ -3457,6 +3457,15 @@ class ActiveComponent extends BaseModel {
                 }
               }
             }
+            
+            if (options && options.setElementLockStatus) {
+              for (let elID in options.setElementLockStatus) {
+                const element = this.findElementByComponentId(elID)
+                Row.where({ component: this, element }).forEach((row) => {
+                  row.rehydrate()
+                })
+              }
+            }
           }
         }, null, () => {
           fire()
@@ -3572,6 +3581,15 @@ class ActiveComponent extends BaseModel {
                       row.rehydrate()
                     })
                   }
+                }
+              }
+              
+              if (options && options.setElementLockStatus) {
+                for (let elID in options.setElementLockStatus) {
+                  const element = this.findElementByComponentId(elID)
+                  Row.where({ component: this, element }).forEach((row) => {
+                    row.rehydrate()
+                  })
                 }
               }
             }
