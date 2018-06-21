@@ -498,7 +498,7 @@ ActionStack.METHOD_INVERTERS = {
       const previousUpdates = ac.snapshotKeyframeUpdates(keyframeUpdates)
       return {
         method: ac.updateKeyframes.name,
-        params: [previousUpdates]
+        params: [previousUpdates, {}]
       }
     }
   },
