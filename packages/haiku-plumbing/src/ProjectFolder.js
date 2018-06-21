@@ -418,14 +418,13 @@ export function duplicateProject (destinationProject, sourceProject, cb) {
     // Create a haiku config file.
     fse.mkdirpSync(destinationProject.projectPath);
 
-    const sourcePrimaryAssetPath = Project.getPrimaryAssetPath(sourceProject.projectName);
-    const sourceAssetBasename = path.basename(sourcePrimaryAssetPath);
-    const sourceAssetPathPattern = new RegExp(escapeRegExp(sourceAssetBasename), 'g');
+    // Use the project name as the folder basename
+    const sourceBaseName = sourceProject.projectName;
+    const sourcePathPattern = new RegExp(escapeRegExp(sourceBaseName), 'g');
+    const destinationBasename = destinationProject.projectName;
+    logger.info(`using ${sourceBaseName}, ${destinationBasename}, ${sourcePathPattern}`);
 
-    const destinationPrimaryAssetPath = Project.getPrimaryAssetPath(destinationProject.projectName);
-    const destinationAssetBasename = path.basename(destinationPrimaryAssetPath);
-    logger.info(`using ${sourceAssetBasename}, ${destinationAssetBasename}, ${sourceAssetPathPattern}`);
-
+    // Replace paths in each scene bytecode
     const scenes = fse.readdirSync(path.join(sourceProject.projectPath, 'code'));
     scenes.forEach((sceneName) => {
       const destinationScenePath = path.join(destinationProject.projectPath, 'code', sceneName);
@@ -433,14 +432,16 @@ export function duplicateProject (destinationProject, sourceProject, cb) {
 
       const bytecode = fse.readFileSync(path.join(sourceProject.projectPath, 'code', sceneName, 'code.js'))
         .toString()
-        .replace(sourceAssetPathPattern, destinationAssetBasename);
+        .replace(sourcePathPattern, destinationBasename);
       fse.outputFileSync(path.join(destinationScenePath, 'code.js'), bytecode);
     });
 
+    // Move design assets, if the asset starts with `sourceProject.projectName`, rename
+    // it to `destinationProject.projectName`
     const designAssets = fse.readdirSync(path.join(sourceProject.projectPath, 'designs'));
     designAssets.forEach((designAssetName) => {
-      const destinationDesignAsset = designAssetName.startsWith(sourceAssetBasename)
-        ? designAssetName.replace(sourceAssetBasename, destinationAssetBasename)
+      const destinationDesignAsset = designAssetName.startsWith(sourceBaseName)
+        ? designAssetName.replace(sourceBaseName, destinationBasename)
         : designAssetName;
       fse.copySync(
         path.join(sourceProject.projectPath, 'designs', designAssetName),
