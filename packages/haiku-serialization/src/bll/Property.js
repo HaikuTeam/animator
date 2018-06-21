@@ -150,6 +150,8 @@ Property.BUILTIN_DOM_SCHEMAS = {
     'sizeAbsolute.y': 'number',
     'playback': 'any',
     'controlFlow.placeholder': 'any',
+    'controlFlow.repeat': 'any',
+    'controlFlow.if': 'any',
     opacity: 'number',
     'translation.x': 'number',
     'translation.y': 'number',
@@ -189,6 +191,8 @@ Property.BUILTIN_DOM_SCHEMAS = {
   },
   svg: {
     'controlFlow.placeholder': 'any',
+    'controlFlow.repeat': 'any',
+    'controlFlow.if': 'any',
     opacity: 'number',
     'translation.x': 'number',
     'translation.y': 'number',
@@ -495,6 +499,10 @@ const COMPONENT_ONLY = (name, element) => {
   return element.isComponent()
 }
 
+const IF_EXPLICIT = (name, element, property, keyframes) => {
+  return keyframes && Object.keys(keyframes).length > 0
+}
+
 const IF_CHANGED_FROM_PREPOPULATED_VALUE = (name, element, property, keyframes) => {
   const fallback = Property.PREPOPULATED_VALUES[name]
   if (fallback === undefined) {
@@ -518,10 +526,9 @@ Property.DISPLAY_RULES = {
   'align.y': {jit: [NEVER], add: [NEVER]},
   'align.z': {jit: [NEVER], add: [NEVER]},
   'content': {jit: [NON_ROOT_ONLY], add: [NON_ROOT_ONLY]},
-  'controlFlow.if': {jit: [NEVER], add: [NEVER]},
-  'controlFlow.placeholder': {jit: [NON_ROOT_ONLY, NON_COMPONENT_ONLY], add: [NEVER]},
-  'controlFlow.repeat': {jit: [NEVER], add: [NEVER]},
-  'controlFlow.yield': {jit: [NEVER], add: [NEVER]},
+  'controlFlow.if': {jit: [NON_ROOT_ONLY], add: [IF_EXPLICIT]},
+  'controlFlow.placeholder': {jit: [NON_ROOT_ONLY, NON_COMPONENT_ONLY], add: [IF_EXPLICIT]},
+  'controlFlow.repeat': {jit: [NON_ROOT_ONLY], add: [IF_EXPLICIT]},
   'haiku-id': {jit: [NEVER], add: [NEVER]},
   'haiku-source': {jit: [NEVER], add: [NEVER]},
   'haiku-title': {jit: [NEVER], add: [NEVER]},

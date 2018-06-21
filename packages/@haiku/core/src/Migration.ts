@@ -3,10 +3,9 @@
  */
 
 import HaikuComponent from './HaikuComponent';
+import {visitManaTree, xmlToMana} from './HaikuNode';
 import addLegacyOriginSupport from './helpers/addLegacyOriginSupport';
 import compareSemver from './helpers/compareSemver';
-import visitManaTree from './helpers/visitManaTree';
-import xmlToMana from './helpers/xmlToMana';
 import functionToRFO from './reflection/functionToRFO';
 import reifyRFO from './reflection/reifyRFO';
 

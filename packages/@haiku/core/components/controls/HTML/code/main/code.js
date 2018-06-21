@@ -1,5 +1,5 @@
 var Haiku = require('@haiku/core')
-var xmlToMana = require('@haiku/core/lib/helpers/xmlToMana').default
+var xmlToMana = require('@haiku/core/lib/HaikuNode').xmlToMana
 
 module.exports = {
   metadata: {

@@ -79,7 +79,7 @@ export default function HaikuReactDOMAdapter (haikuComponentFactory, optionalRaw
             visit(this.mount, (node) => {
               const flexId = flexIdIfSame(element, node);
               if (flexId) {
-                if (element.__surrogate !== surrogate) {
+                if (element.__placeholder.surrogate !== surrogate) {
                   if (
                     typeof surrogate.type === 'string' ||
                     (typeof surrogate.type === 'function' && surrogate.type.isHaikuAdapter)) {
@@ -98,7 +98,7 @@ export default function HaikuReactDOMAdapter (haikuComponentFactory, optionalRaw
                   node.style.visibility = 'hidden';
                   ReactDOM.render(surrogate, node);
                   window.requestAnimationFrame(() => {
-                    element.__surrogate = surrogate;
+                    element.__placeholder.surrogate = surrogate;
                     node.style.visibility = 'visible';
                   });
                   sender.markHorizonElement(element);

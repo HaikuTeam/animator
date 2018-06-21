@@ -52,16 +52,16 @@ module.exports = {
         "translation.x": {
           "0": {
             value: Haiku.inject(function($flow) {
-              return $flow.repeat.datum.x
-            }, '$datum'),
+              return $flow.repeat.payload.x
+            }, '$flow'),
             edited: true
           }
         },
         "translation.y": {
           "0": {
             value: Haiku.inject(function($flow) {
-              return $flow.repeat.datum.y
-            }, '$datum'),
+              return $flow.repeat.payload.y
+            }, '$flow'),
             edited: true
           }
         },
@@ -164,7 +164,7 @@ module.exports = {
                 var n = i * 50
                 out.push({
                   x: n,
-                  y: n,
+                  y: n + 200,
                   color: 'rgb('+n+','+n+','+n+')'
                 })
               }
@@ -176,24 +176,24 @@ module.exports = {
         "translation.x": {
           "0": {
             value: Haiku.inject(function($flow) {
-              return $flow.repeat.datum.x
-            }, '$datum'),
+              return $flow.repeat.payload.x
+            }, '$flow'),
             edited: true
           }
         },
         "translation.y": {
           "0": {
             value: Haiku.inject(function($flow) {
-              return $flow.repeat.datum.y
-            }, '$datum'),
+              return $flow.repeat.payload.y
+            }, '$flow'),
             edited: true
           }
         },
         "bgcolor": {
           "0": {
             value: Haiku.inject(function($flow) {
-              return $flow.repeat.datum.color
-            }, '$datum'),
+              return $flow.repeat.payload.color
+            }, '$flow'),
             edited: true
           }
         },

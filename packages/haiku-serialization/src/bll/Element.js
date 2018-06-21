@@ -1,7 +1,7 @@
 const lodash = require('lodash')
 const HaikuElement = require('@haiku/core/lib/HaikuElement').default
 const Layout3D = require('@haiku/core/lib/Layout3D').default
-const cssQueryTree = require('@haiku/core/lib/helpers/cssQueryTree').default
+const {cssQueryTree} = require('@haiku/core/lib/HaikuNode')
 const composedTransformsToTimelineProperties = require('@haiku/core/lib/helpers/composedTransformsToTimelineProperties').default
 const {LAYOUT_3D_SCHEMA} = require('@haiku/core/lib/HaikuComponent')
 const KnownDOMEvents = require('@haiku/core/lib/renderers/dom/Events').default
@@ -723,6 +723,15 @@ class Element extends BaseModel {
 
   isGroupingType () {
     return !!GROUPING_ELEMENTS[Element.safeElementName(this.getStaticTemplateNode())]
+  }
+
+  isRepeater () {
+    const rkfs = this.getRepeaterKeyframes()
+    return !!(rkfs && Object.keys(rkfs).length > 0)
+  }
+
+  getRepeaterKeyframes () {
+    return this.getPropertyKeyframesObject('controlFlow.repeat')
   }
 
   isTextNode () {
