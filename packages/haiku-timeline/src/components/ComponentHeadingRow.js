@@ -10,7 +10,6 @@ import ComponentHeadingRowHeading from './ComponentHeadingRowHeading'
 import CollapsedPropertyTimelineSegments from './CollapsedPropertyTimelineSegments'
 import EventHandlerTriggerer from './EventHandlerTriggerer'
 import PropertyManager from './PropertyManager'
-import { HAIKU_SOURCE_ATTRIBUTE } from '@haiku/core/lib/HaikuElement'
 
 export default class ComponentHeadingRow extends React.Component {
   constructor (props) {
