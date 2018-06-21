@@ -1717,50 +1717,14 @@ class ActiveComponent extends BaseModel {
       // this.mergeRemovedOutputs(existingBytecode, existingNode, removedOutputs)
     })
   }
-  
-  mergeDesigns (designs, metadata, cb) {
-    // Since several designs are merged, and that process occurs async, we can get into a situation
-    // where individual fragments are inserted but their parent layouts have not been appropriately
-    // populated. To fix this, we wait to do any rendering until this whole process has finished
-    this.codeReloadingOn()
 
-    return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
-      return this.project.updateHook('mergeDesigns', designs, metadata || this.getMetadata(), (fire) => {
-        return this.moduleFindOrCreate('basicReload', {}, (err) => {
-          if (err) {
-            this.codeReloadingOff()
-            release()
-            logger.error(`[active component (${this.project.getAlias()})]`, err)
-            return cb(err)
-          }
-
-          return this.mergeDesignsActual(designs, (err) => {
-            if (err) {
-              this.codeReloadingOff()
-              release()
-              logger.error(`[active component (${this.project.getAlias()})]`, err)
-              return cb(err)
-            }
-            
-            return this.reload({
-              hardReload: true,
-              clearCacheOptions: {
-                doClearEntityCaches: true
-              }
-            }, null, () => {
-              this.codeReloadingOff()
-              release()
-              fire()
-              return cb()
-            })
-            
-          })
-        })
-      })
-    })
+  mergeDesignFiles (designs, cb) {
+    return this.performComponentWork((bytecode, template, done) => {
+      return this.mergeDesignFilesImpl(designs, bytecode, done)
+    }, cb)
   }
-  
-  mergeDesignsImpl (designs, bytecode, cb) {
+
+  mergeDesignFilesImpl (designs, bytecode, cb) {
     // Ensure order is the same across processes otherwise we'll end up with different insertion point hashes
     const designsAsArray = Object.keys(designs).sort((a, b) => {
       if (a < b) return -1
@@ -1768,7 +1732,7 @@ class ActiveComponent extends BaseModel {
       return 0
     })
     if (!designsAsArray.length) return cb()
-    
+
     // Each series is important so we don't inadvertently create a race and thus unstable insertion point hashes
     return async.eachSeries(designsAsArray, (relpath, next) => {
       if (ModuleWrapper.doesRelpathLookLikeSVGDesign(relpath)) {
@@ -1801,19 +1765,9 @@ class ActiveComponent extends BaseModel {
             return next()
           }
         })
+      } else {
+        return next(new Error(`Problem merging ${relpath}`))
       }
-
-      return next(new Error(`Problem merging ${relpath}`))
-    }, (err) => {
-      if (err) return cb(err)
-      this.project.emit('remote-update', 'mergeDesigns')
-      return cb()
-    })
-  }
-  
-  mergeDesignsActual (designs, cb) {
-    return this.performComponentWork((bytecode, template, done) => {
-      this.mergeDesignsImpl(designs, bytecode, template, done)
     }, cb)
   }
 
@@ -3464,7 +3418,7 @@ class ActiveComponent extends BaseModel {
           this.clearCachedClusters(timelineName, componentId)
         }
       }
-      
+
       const unlockedDesigns = {}
       if (options.setElementLockStatus) {
         for (const elID in options.setElementLockStatus) {
@@ -3559,11 +3513,11 @@ class ActiveComponent extends BaseModel {
           }
         }
       }
-      
+
       // Clear timeline caches; the max frame might have changed.
       Timeline.clearCaches()
-      
-      this.mergeDesignsImpl(unlockedDesigns, bytecode, done)
+
+      this.mergeDesignFilesImpl(unlockedDesigns, bytecode, done)
     }, cb)
   }
 
