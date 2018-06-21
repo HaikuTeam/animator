@@ -62,12 +62,6 @@ export default class ComponentHeadingRow extends React.Component {
   toggleSync () {
     const locked = !this.props.row.element.isLocked()
     this.props.component.updateKeyframes({}, {setElementLockStatus: {[this.props.row.element.getComponentId()]: locked}}, {from: 'timeline'}, () => {
-      if (!locked) {
-        const designs = {
-          [this.props.row.element.getStaticTemplateNode().attributes[HAIKU_SOURCE_ATTRIBUTE]]: true
-        }
-        this.props.component.project.mergeDesigns(designs, {from: 'timeline'}, () => {})
-      }
       this.forceUpdate()
     })
   }

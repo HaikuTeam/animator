@@ -545,55 +545,6 @@ class Project extends BaseModel {
     )
   }
 
-  mergeDesigns (designs, metadata, cb) {
-    const ac = this.getCurrentActiveComponent()
-
-    if (!ac) {
-      logger.warn(`[project] skipping design merge since no component is active`)
-      return cb()
-    }
-
-    // Since several designs are merged, and that process occurs async, we can get into a situation
-    // where individual fragments are inserted but their parent layouts have not been appropriately
-    // populated. To fix this, we wait to do any rendering until this whole process has finished
-    ac.codeReloadingOn()
-
-    return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
-      return this.updateHook('mergeDesigns', designs, metadata || this.getMetadata(), (fire) => {
-        const components = ActiveComponent.where({project: this})
-
-        return async.eachSeries(components, (component, next) => {
-          return component.moduleFindOrCreate('basicReload', {}, (err) => {
-            if (err) {
-              return next(err)
-            }
-
-            return component.mergeDesignFiles(designs, next)
-          })
-        }, (err) => {
-          if (err) {
-            ac.codeReloadingOff()
-            release()
-            logger.error(`[project (${this.getAlias()})]`, err)
-            return cb(err)
-          }
-
-          return ac.reload({
-            hardReload: true,
-            clearCacheOptions: {
-              doClearEntityCaches: true
-            }
-          }, null, () => {
-            ac.codeReloadingOff()
-            release()
-            fire()
-            return cb()
-          })
-        })
-      })
-    })
-  }
-
   addActiveComponentToRegistry (activeComponent) {
     const activeComponentKey = path.join(
       this.getFolder(),
