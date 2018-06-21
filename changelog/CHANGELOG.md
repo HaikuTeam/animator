@@ -1,6 +1,54 @@
 # Changelog
 
 
+## 3.4.6
+
+### Bug Fixes
+
+ * Prevent crash and don't log non-error as error
+ * Register key event listeners at window when expected
+ * add a carriage return after the content to prepend on init (#553)
+ * Don't try to migrate an event handler whose handler isn't present (708807567728468)
+ * Don't let remount unset an explicitly paused state
+ * avoid call stack exceeded on frame event listeners.
+ * simplify Preview bytecode
+ * Ensure 'playback' is applied even when no keyframe diff
+
+## 3.4.5
+
+### Bug Fixes
+
+ * support lazy discovery of ACs for instantiation
+ * give yarnInstallUnixLike the opportunity to skip if possible.
+ * Crash caused by array access returning undefined
+ * make reloadBytecodeFromDisk work again.
+ * Register key event listeners at window when expected
+ * Ensure rehydration of subcomponents to fix integ issue
+ * add a carriage return after the content to prepend on init (#553)
+ * Make sure creating component from artboard works (706492034868017)
+ * Don't try to migrate an event handler whose handler isn't present (708807567728468)
+ * Stop emitter memory leak (708807567728471)
+ * linting error. 😑
+ * Overwriting __reference was causing many issues (708807567728474, 709220553259039))
+ * Do integ check only on remote requests
+ * Fix component size calc when just one element is selected
+ * Don't let remount unset an explicitly paused state
+ * avoid call stack exceeded on frame event listeners.
+ * simplify Preview bytecode
+ * send missing parameters to the event handler editor via timeline
+ * update the stage title bar on batchUpsertEventHandlers
+ * only display the events bolt as blue if the element has visible actions
+ * Ensure design changes propagate to guest components in-context (687727218674223)
+ * Let create component from component (704910095489688)
+ * Prevent crash on create component
+ * Fix a litany of issues and simplify code by mounting preview on a separate node with pristine bytecode
+ * Ensure 'playback' is applied even when no keyframe diff
+ * support subgroups in Figma import. (#544)
+
+### Features
+
+ * Create Component from menus in the library (699191670798674)
+
 ## 3.4.4
 
 ### Bug Fixes

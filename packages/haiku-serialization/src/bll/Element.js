@@ -3,9 +3,8 @@ const HaikuElement = require('@haiku/core/lib/HaikuElement').default
 const Layout3D = require('@haiku/core/lib/Layout3D').default
 const cssQueryTree = require('@haiku/core/lib/helpers/cssQueryTree').default
 const composedTransformsToTimelineProperties = require('@haiku/core/lib/helpers/composedTransformsToTimelineProperties').default
-const {LAYOUT_3D_SCHEMA} = require('@haiku/core/lib/properties/dom/schema')
+const {LAYOUT_3D_SCHEMA} = require('@haiku/core/lib/HaikuComponent')
 const KnownDOMEvents = require('@haiku/core/lib/renderers/dom/Events').default
-const DOMSchema = require('@haiku/core/lib/properties/dom/schema').default
 const titlecase = require('titlecase')
 const decamelize = require('decamelize')
 const polygonOverlap = require('polygon-overlap')
@@ -240,6 +239,10 @@ class Element extends BaseModel {
 
   hasEventHandlers () {
     return !lodash.isEmpty(this.getReifiedEventHandlers())
+  }
+
+  hasVisibleEventHandlers () {
+    return !lodash.isEmpty(this.getVisibleEvents())
   }
 
   getReifiedEventHandlers () {
@@ -527,19 +530,20 @@ class Element extends BaseModel {
       bytecode.timelines,
       timelineName,
       componentId
-    )
+    ) || {}
 
     const grabValue = (outputName) => {
-      const computedValue = hostInstance._builder.grabValue(
+      const computedValue = hostInstance.builder.grabValue(
         timelineName,
         componentId,
         elementNode,
         outputName,
-        propertiesBase,
+        propertiesBase[outputName],
         timelineTime,
         hostInstance,
-        !hostInstance.shouldPerformFullFlush(),
-        true
+        !hostInstance.shouldPerformFullFlush(), // isPatchOperation
+        true, // skipCache
+        false // clearSortedKeyframesCache
       )
 
       if (computedValue === undefined || computedValue === null) {
@@ -706,11 +710,7 @@ class Element extends BaseModel {
     return propertyGroupValue
   }
 
-  remove (metadata) {
-    this.unselectSoftly(metadata)
-    this.hoverOffSoftly(metadata)
-
-    // Destroy after the above so we retain our UID for the necessary actions
+  remove () {
     this.destroy()
 
     const row = this.getHeadingRow()
@@ -1091,11 +1091,8 @@ class Element extends BaseModel {
   getBuiltinAddressables () {
     const builtinAddressables = {}
 
-    // Start with the basic hardcoded DOM schema; we'll add component-specifics if necessary
-    if (DOMSchema[this.getSafeDomFriendlyName()]) {
-      // This assigns so-called 'cluster' properties if any are deemed such
-      Property.assignDOMSchemaProperties(builtinAddressables, this)
-    }
+    // This assigns so-called 'cluster' properties if any are deemed such
+    Property.assignDOMSchemaProperties(builtinAddressables, this)
 
     return builtinAddressables
   }
@@ -1517,11 +1514,7 @@ class Element extends BaseModel {
     // Note the difference from the target instance
     const instance = this.getCoreHostComponentInstance()
     // FIXME: Handle race when component instance isn't present
-    if (!instance) {
-      return null
-    }
-    const element = instance.findElementsByHaikuId(this.getComponentId())[0]
-    return element
+    return instance ? instance.findElementsByHaikuId(this.getComponentId())[0] : null
   }
 
   getHaikuElement () {

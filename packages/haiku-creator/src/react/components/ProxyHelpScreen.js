@@ -1,6 +1,6 @@
-import React from 'react'
-import Palette from 'haiku-ui-common/lib/Palette'
-import {ModalWrapper, ModalHeader} from 'haiku-ui-common/lib/react/Modal'
+import * as React from 'react';
+import Palette from 'haiku-ui-common/lib/Palette';
+import {ModalWrapper, ModalHeader} from 'haiku-ui-common/lib/react/Modal';
 
 const STYLES = {
   wrapper: {
@@ -8,20 +8,20 @@ const STYLES = {
     width: '100%',
     height: '100%',
     position: 'absolute',
-    backgroundColor: Palette.GRAY
+    backgroundColor: Palette.GRAY,
   },
   modalWrapper: {
     maxWidth: '600px',
     top: '50%',
-    transform: 'translateY(-50%)'
+    transform: 'translateY(-50%)',
   },
   modalBody: {
-    padding: '20px'
+    padding: '20px',
   },
   listItem: {
-    marginBottom: '8px'
-  }
-}
+    marginBottom: '8px',
+  },
+};
 
 const HELP_STEPS = [
   `Whitelist (allow) *.haiku.ai`,
@@ -30,8 +30,8 @@ const HELP_STEPS = [
   *.haiku.ai from SSL decryption.`,
   `If you’re running Haiku on a Mac, head to your computer’s System
   Preferences, then Network, Advanced, and under Proxies, check that
-  Auto Proxy Discovery is disabled.`
-]
+  Auto Proxy Discovery is disabled.`,
+];
 
 class ProxyHelpScreen extends React.PureComponent {
   render () {
@@ -50,7 +50,7 @@ class ProxyHelpScreen extends React.PureComponent {
                 <li key={idx} style={STYLES.listItem}>
                   {step}
                 </li>
-              )
+              );
             })}
           </ul>
           If you did not configure your network security, this might sound a bit
@@ -59,8 +59,8 @@ class ProxyHelpScreen extends React.PureComponent {
         </div>
         </ModalWrapper>
       </div>
-    )
+    );
   }
 }
 
-export default ProxyHelpScreen
+export default ProxyHelpScreen;

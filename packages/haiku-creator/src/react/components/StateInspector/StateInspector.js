@@ -1,21 +1,21 @@
-import React from 'react'
-import Radium from 'radium'
-import lodash from 'lodash'
-import Color from 'color'
-import StateRow from './StateRow'
-import Loader from './Loader'
-import Palette from 'haiku-ui-common/lib/Palette'
+import * as React from 'react';
+import * as Radium from 'radium';
+import * as lodash from 'lodash';
+import * as Color from 'color';
+import StateRow from './StateRow';
+import Loader from './Loader';
+import Palette from 'haiku-ui-common/lib/Palette';
 
 const STYLES = {
   container: {
     position: 'relative',
     backgroundColor: Palette.GRAY,
     WebkitUserSelect: 'none',
-    height: '100%'
+    height: '100%',
   },
   statesContainer: {
     overflow: 'auto',
-    height: 'calc(100% - 50px)'
+    height: 'calc(100% - 50px)',
   },
   sectionHeader: {
     cursor: 'default',
@@ -26,7 +26,7 @@ const STYLES = {
     display: 'flex',
     alignItems: 'center',
     fontSize: 15,
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
   },
   button: {
     padding: '3px 9px',
@@ -40,61 +40,67 @@ const STYLES = {
     transform: 'scale(1)',
     transition: 'transform 200ms ease',
     ':hover': {
-      backgroundColor: Color(Palette.DARKER_GRAY).darken(0.2)
+      backgroundColor: Color(Palette.DARKER_GRAY).darken(0.2),
     },
     ':active': {
-      transform: 'scale(.8)'
-    }
+      transform: 'scale(.8)',
+    },
   },
   emptyMessage: {
     lineHeight: '16px',
     color: Palette.DARKER_ROCK2,
-    padding: '0 14px'
-  }
-}
+    padding: '0 14px',
+  },
+};
 
 class StateInspector extends React.Component {
   constructor (props) {
-    super(props)
-    this.upsertStateValue = this.upsertStateValue.bind(this)
-    this.deleteStateValue = this.deleteStateValue.bind(this)
-    this.openNewStateForm = this.openNewStateForm.bind(this)
-    this.closeNewStateForm = this.closeNewStateForm.bind(this)
-    this.isPopulatingStateData = false
+    super(props);
+    this.upsertStateValue = this.upsertStateValue.bind(this);
+    this.deleteStateValue = this.deleteStateValue.bind(this);
+    this.openNewStateForm = this.openNewStateForm.bind(this);
+    this.closeNewStateForm = this.closeNewStateForm.bind(this);
+    this.onProjectModelUpdate = this.onProjectModelUpdate.bind(this);
+
     this.state = {
       sceneName: 'State Inspector',
       statesData: null,
-      addingNew: false
-    }
+      addingNew: false,
+    };
   }
 
-  populateStatesData () {
-    this.isPopulatingStateData = true
+  loadStatesDataFromActiveComponent () {
+    const activeComponent = this.props.projectModel.getCurrentActiveComponent();
 
-    this.props.projectModel.readAllStateValues(
+    if (!activeComponent) {
+      return;
+    }
+
+    activeComponent.readAllStateValues(null,
       (err, statesData) => {
-        this.isPopulatingStateData = false
-
         if (err) {
           // Don't rapidly re-request state 1000s of times if we got an error
           return this.setState({
             statesData: {},
-            sceneName: this.getActiveSceneName(this.props)
+            sceneName: activeComponent.getSceneName(),
           }, () => {
             this.props.createNotice({
               title: 'Uh oh',
               type: 'error',
-              message: 'There was a problem loading the states data for this project'
-            })
-          })
+              message: 'There was a problem loading the states data for this project',
+            });
+          });
         }
 
-        this.setState({
-          sceneName: this.getActiveSceneName(this.props),
-          statesData
-        })
-      }
-    )
+        /* To avoid unnecessary component repaint, only setState if states are different */
+        if (!lodash.isEqual(this.state.statesData, statesData) || this.state.statesData !== activeComponent.getSceneName()) {
+          this.setState({
+            statesData,
+            sceneName: activeComponent.getSceneName(),
+          });
+        }
+      },
+    );
   }
 
   getActiveSceneName (props) {
@@ -102,17 +108,26 @@ class StateInspector extends React.Component {
       props.projectModel &&
       props.projectModel.getCurrentActiveComponent() &&
       props.projectModel.getCurrentActiveComponent().getSceneName()
-    )
+    );
   }
 
-  componentWillReceiveProps (nextProps) {
-    if (
-      (nextProps.visible && !this.state.statesData) || // If we haven't populated yet
-      this.state.sceneName !== this.getActiveSceneName(nextProps) // If we have context-switched
-    ) {
-      if (!this.isPopulatingStateData) {
-        this.populateStatesData()
-      }
+  onProjectModelUpdate (what, ...args) {
+    // We only reload states on a hard reload (eg when a component is loaded from disk)
+    // Editing states on state inspector only triggers soft reload
+    if (what === 'reloaded' && args[0] === 'hard') {
+      this.loadStatesDataFromActiveComponent();
+    }
+  }
+
+  componentDidMount () {
+    if (this.props.projectModel) {
+      this.props.projectModel.on('update', this.onProjectModelUpdate);
+    }
+  }
+
+  componentWillUnmount () {
+    if (this.props.projectModel) {
+      this.props.projectModel.removeListener('update', this.onProjectModelUpdate);
     }
   }
 
@@ -126,22 +141,22 @@ class StateInspector extends React.Component {
           return this.props.createNotice({
             title: 'Uh oh',
             type: 'error',
-            message: 'There was a problem editing that state value'
-          })
+            message: 'There was a problem editing that state value',
+          });
         }
 
-        const statesData = this.state.statesData
-        statesData[stateName] = stateDescriptor
+        const statesData = this.state.statesData;
+        statesData[stateName] = stateDescriptor;
         this.setState({
           sceneName: this.getActiveSceneName(this.props),
-          statesData
-        })
+          statesData,
+        });
 
         if (maybeCb) {
-          return maybeCb()
+          return maybeCb();
         }
-      }
-    )
+      },
+    );
   }
 
   deleteStateValue (stateName, maybeCb) {
@@ -153,36 +168,36 @@ class StateInspector extends React.Component {
           return this.props.createNotice({
             title: 'Uh oh',
             type: 'error',
-            message: 'There was a problem deleting that state value'
-          })
+            message: 'There was a problem deleting that state value',
+          });
         }
 
-        const statesData = this.state.statesData
-        delete statesData[stateName]
+        const statesData = this.state.statesData;
+        delete statesData[stateName];
         this.setState({
           sceneName: this.getActiveSceneName(this.props),
-          statesData
-        })
+          statesData,
+        });
 
         if (maybeCb) {
-          return maybeCb()
+          return maybeCb();
         }
-      }
-    )
+      },
+    );
   }
 
   openNewStateForm () {
     if (!this.state.addingNew) {
-      this.setState({addingNew: true})
+      this.setState({addingNew: true});
     }
   }
 
   closeNewStateForm () {
-    this.setState({addingNew: false})
+    this.setState({addingNew: false});
   }
 
   getHeadingText () {
-    return `State Inspector (${this.state.sceneName})`
+    return `State Inspector (${this.state.sceneName})`;
   }
 
   shouldDisplayEmptyMessage () {
@@ -190,18 +205,18 @@ class StateInspector extends React.Component {
       this.state.statesData &&
       Object.keys(this.state.statesData).length === 0 &&
       !this.state.addingNew
-    )
+    );
   }
 
   render () {
     return (
       <div style={{
         ...STYLES.container,
-        display: this.props.visible ? 'initial' : 'none'
+        display: this.props.visible ? 'initial' : 'none',
       }}>
         <div style={STYLES.sectionHeader}>
           {this.getHeadingText()}
-          <button id='add-state-button' style={STYLES.button}
+          <button id="add-state-button" style={STYLES.button}
             onClick={this.openNewStateForm}>
             +
           </button>
@@ -212,7 +227,7 @@ class StateInspector extends React.Component {
               key={`new-row`}
               stateDescriptor={{value: ''}}
               stateName={''}
-              isNew
+              isNew={true}
               createNotice={this.props.createNotice}
               removeNotice={this.props.removeNotice}
               closeNewStateForm={this.closeNewStateForm}
@@ -230,7 +245,7 @@ class StateInspector extends React.Component {
                   removeNotice={this.props.removeNotice}
                   upsertStateValue={this.upsertStateValue}
                   deleteStateValue={this.deleteStateValue} />
-              )
+              );
             }).reverse()
             : <Loader />
           }
@@ -242,8 +257,8 @@ class StateInspector extends React.Component {
           }
         </div>
       </div>
-    )
+    );
   }
 }
 
-export default Radium(StateInspector)
+export default Radium(StateInspector);

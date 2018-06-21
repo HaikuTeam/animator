@@ -15,6 +15,7 @@ const plugins = [
   'removeEmptyContainers',
   'removeEmptyText',
   'removeViewBox',
+  'convertStyleToAttrs',
   customPlugins
 ]
 

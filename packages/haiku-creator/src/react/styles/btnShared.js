@@ -1,5 +1,5 @@
-import Palette from 'haiku-ui-common/lib/Palette'
-import Color from 'color'
+import Palette from 'haiku-ui-common/lib/Palette';
+import * as Color from 'color';
 
 export const BTN_STYLES = {
   btnIcon: {
@@ -18,13 +18,13 @@ export const BTN_STYLES = {
     transition: 'transform 200ms ease',
     backgroundColor: Palette.FATHER_COAL,
     ':active': {
-      transform: 'scale(.8)'
-    }
+      transform: 'scale(.8)',
+    },
   },
   btnIconHover: {
     ':hover': {
-      color: Palette.ROCK
-    }
+      color: Palette.ROCK,
+    },
   },
   btnText: {
     height: '25px',
@@ -36,61 +36,63 @@ export const BTN_STYLES = {
     display: 'flex',
     alignItems: 'center',
     float: 'right',
-    borderRadius: '3px',
-    color: Palette.ROCK,
+    borderBottomLeftRadius: 3,
+    borderBottomRightRadius: 3,
+    borderTopLeftRadius: 3,
+    borderTopRightRadius: 3,
+    color: Palette.SUNSTONE,
     transform: 'scale(1)',
     cursor: 'pointer',
     transition: 'transform 200ms ease, border-color 200ms ease',
     backgroundColor: Palette.FATHER_COAL,
     ':active': {
-      transform: 'scale(.9)'
+      transform: 'scale(.9)',
     },
-    ':hover': {
-      color: Palette.ROCK
-    }
   },
   leftBtns: {
-    float: 'left'
+    float: 'left',
+  },
+  centerBtns: {
+    float: 'center',
   },
   rightBtns: {
-    float: 'right'
+    float: 'right',
   },
   btnPrimary: {
     backgroundColor: Palette.LIGHTEST_PINK,
-    color: Palette.SUNSTONE
   },
   btnPrimaryAlt: {
-    backgroundColor: Color(Palette.FATHER_COAL).darken(0.2)
+    backgroundColor: Color(Palette.FATHER_COAL).darken(0.2),
   },
   btnCancel: {
     letterSpacing: '1.3px',
     marginTop: 4,
     marginRight: 20,
-    cursor: 'pointer'
+    cursor: 'pointer',
   },
   btnDisabled: {
-    cursor: 'not-allowed'
+    cursor: 'not-allowed',
   },
   btnBlack: {
     backgroundColor: Palette.BLACK,
     color: Palette.PALE_GRAY,
-    padding: '5px 25px'
+    padding: '5px 25px',
   },
   /* Legacy: many UI dialogs are using this button
    * (autoupdater, tour, sketch downloader) so we keep it until we unify
    * the styles in the whole app
    */
   pinkButton: {
-    backgroundColor: Palette.LIGHT_PINK,
+    backgroundColor: Palette.LIGHTEST_PINK,
     borderRadius: 2,
-    color: 'white',
+    color: Palette.SUNSTONE,
     transform: 'scale(1)',
     textTransform: 'uppercase',
     transition: 'transform 200ms ease',
     ':active': {
-      transform: 'scale(.8)'
+      transform: 'scale(.8)',
     },
     padding: '10px 15px',
-    fontSize: 16
-  }
-}
+    fontSize: 16,
+  },
+};

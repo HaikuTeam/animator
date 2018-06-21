@@ -1,8 +1,8 @@
-import React from 'react'
-import Radium from 'radium'
-import Palette from 'haiku-ui-common/lib/Palette'
-import toTitleCase from '../../helpers/toTitleCase'
-import logger from 'haiku-serialization/src/utils/LoggerInstance'
+import * as React from 'react';
+import * as Radium from 'radium';
+import Palette from 'haiku-ui-common/lib/Palette';
+import toTitleCase from '../../helpers/toTitleCase';
+import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 
 const STYLES = {
   container: {
@@ -12,7 +12,7 @@ const STYLES = {
     minWidth: '80px',
     height: '100%',
     margin: '0 auto',
-    verticalAlign: 'top'
+    verticalAlign: 'top',
   },
   tab: {
     position: 'relative',
@@ -22,32 +22,38 @@ const STYLES = {
     borderTopRightRadius: '5px',
     color: Palette.LIGHTEST_GRAY,
     padding: '4px 20px',
+    textAlign: 'center',
     height: '100%',
     width: '100%',
     cursor: 'default',
     ':hover': {
-      color: Palette.GRAY
+      color: Palette.GRAY,
     },
     active: {
       backgroundColor: Palette.STAGE_GRAY,
       color: Palette.FATHER_COAL,
-      cursor: 'default'
-    }
+      cursor: 'default',
+    },
+    activeDark: {
+      backgroundColor: Palette.COAL,
+      color: Palette.ROCK,
+      cursor: 'default',
+    },
   },
   label: {
     position: 'relative',
     width: '100%',
     display: 'inline-block',
     textAlign: 'center',
-    whiteSpace: 'no-wrap'
-  }
-}
+    whiteSpace: 'no-wrap',
+  },
+};
 
 class ComponentTab extends React.Component {
   constructor (props) {
-    super(props)
-    this.state = {}
-    this.changeComponent = this.changeComponent.bind(this)
+    super(props);
+    this.state = {};
+    this.changeComponent = this.changeComponent.bind(this);
   }
 
   changeComponent () {
@@ -56,42 +62,52 @@ class ComponentTab extends React.Component {
       this.props.tab.active ||
       this.props.projectModel.getCurrentActiveComponentSceneName() === this.props.tab.scenename
     ) {
-      return
+      return;
     }
 
     // Stop preview mode if it happens to be active when we switch contexts
     this.props.projectModel.setInteractionMode(0, {from: 'creator'}, (err) => {
       if (err) {
-        logger.error(err)
+        logger.error(err);
       }
 
-      this.props.projectModel.setCurrentActiveComponent(this.props.tab.scenename, { from: 'creator' }, (err) => {
-        if (err) {
-          logger.error(err)
-        }
-      })
-    })
+      this.props.tryToChangeCurrentActiveComponent(this.props.tab.scenename);
+    });
   }
 
   render () {
+    const activeTabStyle = this.props.showGlass ? STYLES.tab.active : STYLES.tab.activeDark;
+
     return (
       <div
         style={STYLES.container}>
-        <div
+        {this.props.tab && <div
           onClick={this.changeComponent}
-          style={[STYLES.tab, (this.props.forceActive || this.props.tab.active) && STYLES.tab.active]}>
-          <span style={STYLES.label} className='no-select'>
-            {toTitleCase(this.props.tab.scenename)}
-          </span>
-        </div>
+          style={[
+            STYLES.tab,
+            !this.props.showGlass && {color: Palette.ROCK, ':hover': {color: Palette.SUNSTONE}},
+            (this.props.forceActive || this.props.tab.active) && activeTabStyle,
+          ]}>
+          <div style={{display: 'inline-block', width: '70%'}}>
+            <span style={STYLES.label} className="no-select">
+              {toTitleCase(this.props.tab.scenename)}
+            </span>
+          </div>
+          {(this.props.forceActive || this.props.tab.active) && this.props.nonSavedContentOnCodeEditor &&
+          <div style={{position: 'absolute', display: 'inline-block', width: '30%', height: '12px'}}>
+            <svg height="12" width="12">
+              <circle cx="6" cy="6" r="4" fill="#f24082" />
+            </svg>
+          </div>}
+        </div>}
       </div>
-    )
+    );
   }
 }
 
 ComponentTab.propTypes = {
   projectModel: React.PropTypes.object.isRequired,
-  tab: React.PropTypes.object.isRequired
-}
+  tab: React.PropTypes.object.isRequired,
+};
 
-export default Radium(ComponentTab)
+export default Radium(ComponentTab);

@@ -1,48 +1,52 @@
-import React from 'react'
-import Popover from 'react-popover'
-import FigmaForm from './FigmaForm'
+import * as React from 'react';
+import * as Popover from 'react-popover';
+import FigmaForm from './FigmaForm';
 
 class FigmaPopover extends React.PureComponent {
   constructor (props) {
-    super(props)
+    super(props);
 
     this.state = {
-      isPopoverOpen: false
-    }
+      isPopoverOpen: false,
+    };
   }
 
   showPopover () {
-    this.setState({ isPopoverOpen: true })
+    this.setState({isPopoverOpen: true});
   }
 
   hidePopover () {
-    this.setState({ isPopoverOpen: false })
+    this.setState({isPopoverOpen: false});
   }
 
   render () {
     return (
       <Popover
         onOuterAction={() => {
-          this.hidePopover()
+          this.hidePopover();
         }}
         isOpen={this.state.isPopoverOpen}
-        place='below'
+        place="below"
         tipSize={0.01}
         body={
           <FigmaForm
             figma={this.props.figma}
             onAskForFigmaAuth={this.props.onAskForFigmaAuth}
             onImportFigmaAsset={this.props.onImportFigmaAsset}
-            onPopoverHide={() => { this.hidePopover() }}
+            onPopoverHide={() => {
+              this.hidePopover();
+            }}
           />
         }
       >
-        <span onDoubleClick={() => { this.showPopover() }}>
+        <span onDoubleClick={() => {
+          this.showPopover();
+        }}>
           {this.props.children}
         </span>
       </Popover>
-    )
+    );
   }
 }
 
-export default FigmaPopover
+export default FigmaPopover;

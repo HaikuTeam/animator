@@ -1,10 +1,12 @@
 const lodash = require('lodash')
+
+const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
+
 const BaseModel = require('./BaseModel')
 const Lock = require('./Lock')
 const logger = require('./../utils/LoggerInstance')
 
 // No-op callback for arbitrary fire-and-forget actions
-const NOOP_CB = () => {}
 const TIMER_TIMEOUT = 64
 const PROPERTY_GROUP_ACCUMULATION_TIME = 500
 const MAX_UNDOABLES_LEN = 50
@@ -98,6 +100,16 @@ class ActionStack extends BaseModel {
     this.actions = []
     this.accumulatorTimeouts = {}
     this.accumulatedInverters = {}
+    // A hashmap from aliases to action stack indices, used to implement remote request ordering. Remote updates may be
+    // received out of order, so Project#updateHook attaches an action stack index to each request sent out to other
+    // processes. This ensures that even if requests per remote process are received out of order, we process them in
+    // order.
+    this.actionStackIndices = {
+      glass: 0,
+      timeline: 0,
+      creator: 0,
+      master: 0
+    }
   }
 
   stop () {
@@ -121,7 +133,7 @@ class ActionStack extends BaseModel {
         action.timestamp &&
         (Date.now() - action.timestamp) < PROPERTY_GROUP_ACCUMULATION_TIME
       ) {
-        // Early return is important here so we don't transmit the action yet
+        // Early return is important here so we don't transmit the action yet.
         this.accumulatorTimeouts[action.method] = setTimeout(() => this.processActions(), TIMER_TIMEOUT)
         return
       }
@@ -153,7 +165,6 @@ class ActionStack extends BaseModel {
     const {
       method,
       params,
-      callback,
       before
     } = action
 
@@ -162,26 +173,12 @@ class ActionStack extends BaseModel {
       before()
     }
 
-    return this.emit('next', method, params, (err, out) => {
-      callback(err, out)
-
-      // Now that we've finished handling the action, resume the queue
-      return this.processActions()
-    })
+    // Resume the queue after we've finished handling the action.
+    return this.emit('next', method, params, () => this.processActions())
   }
 
-  fireAction (method, params, callback, before) {
-    this.enqueueAction(
-      method,
-      params,
-      callback || NOOP_CB,
-      before
-    )
-  }
-
-  enqueueAction (method, params, callback, before) {
+  enqueueAction (method, params, before) {
     if (shouldAccumulate(method, params)) {
-      // Find the most recent action that meets our criteria, and merge our payload with it
       for (let i = this.actions.length - 1; i >= 0; i--) {
         // Find the most recent action that meets our criteria, and merge our payload with it
         const action = this.actions[i]
@@ -203,7 +200,6 @@ class ActionStack extends BaseModel {
       timestamp: Date.now(),
       method,
       params,
-      callback,
       before
     })
 
@@ -293,7 +289,6 @@ class ActionStack extends BaseModel {
 
       if (inversion) {
         const [relpath] = params
-
         inversion.params.unshift(relpath)
         inversion.params.push(metadata)
 
@@ -312,6 +307,33 @@ class ActionStack extends BaseModel {
     return null
   }
 
+  shouldOrderRemoteUpdate (metadata) {
+    return experimentIsEnabled(Experiment.OrderedActionStack) &&
+      metadata.hasOwnProperty('actionStackIndex') &&
+      this.project.isRemoteRequest(metadata)
+  }
+
+  advanceActionStackIndexForMetadata (metadata) {
+    this.actionStackIndices[metadata.from]++
+  }
+
+  orderedAction (method, metadata, cb) {
+    if (this.shouldOrderRemoteUpdate(metadata)) {
+      if (this.actionStackIndices[metadata.from] !== metadata.actionStackIndex) {
+        logger.info(`[action stack] received out-of-order ${method}; deferring until other actions complete`)
+        logger.info(`[action stack] requested index: ${metadata.actionStackIndex}`)
+        logger.info(`[action stack] current index: ${this.actionStackIndices[metadata.from]}`)
+        return setTimeout(() => {
+          this.orderedAction(method, metadata, cb)
+        }, TIMER_TIMEOUT)
+      }
+      this.advanceActionStackIndexForMetadata(metadata)
+      return cb()
+    }
+
+    return cb()
+  }
+
   handleActionInitiation (method, params, metadata, continuation) {
     if (this.project.isRemoteRequest(metadata)) {
       // If we're receiving an action whose originator (not us) modified its
@@ -325,51 +347,49 @@ class ActionStack extends BaseModel {
 
     // No component needed nor available if the method called is in the Project scope
     const ac = (typeof params[0] === 'string')
-      ? this.project.findActiveComponentBySource(params[0]) // relpath
+      ? this.project.findActiveComponentBySourceIfPresent(params[0]) // relpath
       : null
 
-    const finish = (inverter) => {
-      // The callback will fire immediately before the action is transmitted
-      // This callback is named handleActionResolution
-      return continuation((err, out) => {
-        if (err) {
-          return
-        }
+    // The callback will fire immediately before the action is transmitted
+    // This callback is named handleActionResolution
+    const finish = (inverter) => this.orderedAction(method, metadata, () => continuation((err, out) => {
+      if (err) {
+        return
+      }
 
-        if (!inverter) {
-          inverter = this.buildMethodInverterAction(ac, method, params, metadata, 'after', out)
-        } else {
-          delete this.accumulatedInverters[method]
-        }
+      if (!inverter) {
+        inverter = this.buildMethodInverterAction(ac, method, params, metadata, 'after', out)
+      } else {
+        delete this.accumulatedInverters[method]
+      }
 
-        let did = false
+      let did = false
 
-        if (inverter) {
-          // Note that we use the cursor mode we snapshotted when the method was initiated
-          if (
-            // No cursor mode is equivalent to the default cursor mode
+      if (inverter) {
+        // Note that we use the cursor mode we snapshotted when the method was initiated
+        if (
+          // No cursor mode is equivalent to the default cursor mode
           !metadata.cursor ||
           metadata.cursor === ActionStack.CURSOR_MODES.undo
-          ) {
-            did = true
-            this.addUndoable(inverter, ac)
-          } else if (metadata.cursor === ActionStack.CURSOR_MODES.redo) {
-            did = true
-            this.addRedoable(inverter, ac)
-          }
-
-          if (did) {
-            logger.info(
-              `[action stack] inversion :::`,
-              metadata.cursor,
-              inverter.method,
-              inverter.params,
-              this.getUndoables().length, '<~u|r~>', this.getRedoables().length
-            )
-          }
+        ) {
+          did = true
+          this.addUndoable(inverter, ac)
+        } else if (metadata.cursor === ActionStack.CURSOR_MODES.redo) {
+          did = true
+          this.addRedoable(inverter, ac)
         }
-      })
-    }
+
+        if (did) {
+          logger.info(
+            `[action stack] inversion :::`,
+            metadata.cursor,
+            inverter.method,
+            inverter.params,
+            this.getUndoables().length, '<~u|r~>', this.getRedoables().length
+          )
+        }
+      }
+    }))
 
     if (SNAPSHOTTED_UNDOABLES[method]) {
       return ac.pushBytecodeSnapshot(() => finish({
@@ -412,10 +432,10 @@ class ActionStack extends BaseModel {
       params.push(metadata)
 
       // We need to slice off the 'relpath' parameter (sorry)
-      return ac[method].apply(ac, params.slice(1).concat((err, out) => {
+      return ac[method](...params.slice(1), (err, out) => {
         release()
         return cb(err, out)
-      }))
+      })
     })
   }
 
@@ -447,10 +467,10 @@ class ActionStack extends BaseModel {
       params.push(metadata)
 
       // We need to slice off the 'relpath' parameter (sorry)
-      return ac[method].apply(ac, params.slice(1).concat((err, out) => {
+      return ac[method](...params.slice(1), (err, out) => {
         release()
         return cb(err, out)
-      }))
+      })
     })
   }
 }

@@ -51,12 +51,14 @@ tape('Figma.findInstantiableElements', (t) => {
   const elements = figma.findInstantiableElements(JSON.stringify(SampleFileFixture))
 
   t.ok(Array.isArray(elements), 'returns an array of elements')
-  t.equal(elements.length, 4, 'returns an array that includes all elements required to be found')
+  t.equal(elements.length, 6, 'returns an array that includes all elements required to be found')
   t.equal(elements[0].id, groupKey, 'includes elements of type GROUP')
   t.equal(elements[1].id, subgroupKey, 'includes subgroup elements of type GROUP')
   t.equal(elements[2].id, sliceKey, 'includes elements of type SLICE')
   t.equal(elements[2].name, 'Slice', 'passes through first unique instances of element names')
   t.equal(elements[3].name, 'Slice Copy 1', 'renames duplicately named slices to allow async fetch/write')
+  t.equal(elements[4].name, 'Frame', 'includes frame elements')
+  t.equal(elements[5].name, 'Component', 'includes component elements')
   t.end()
 })
 

@@ -63,3 +63,5 @@ openSourcePackages.forEach((pack) => {
   cp.execSync(`node ./scripts/git-subtree-push.js --package=${pack.name}`, processOptions)
 })
 cp.execSync(`node ./scripts/git-subtree-push.js --package=changelog`, processOptions)
+// Pull standalone remotes.
+cp.execSync(`node ./scripts/git-subtree-pull.js --package=all`, processOptions)

@@ -438,6 +438,11 @@ Bytecode.snapshot = (bytecode) => {
 Bytecode.decycle = (reified, { cleanManaOptions = {}, doCleanMana }) => {
   const decycled = {}
 
+  if (!reified) {
+    logger.warn(`Decycle received falsy bytecode`)
+    return decycled
+  }
+
   if (reified.metadata) decycled.metadata = reified.metadata
   if (reified.options) decycled.options = reified.options
   if (reified.settings) decycled.settings = reified.settings

@@ -1,8 +1,8 @@
-import React from 'react'
-import Radium from 'radium'
-import Color from 'color'
-import Palette from 'haiku-ui-common/lib/Palette'
-import { SuccessIconSVG, InfoIconSVG, WarningIconSVG, DangerIconSVG } from 'haiku-ui-common/lib/react/OtherIcons'
+import * as React from 'react';
+import * as Radium from 'radium';
+import * as Color from 'color';
+import Palette from 'haiku-ui-common/lib/Palette';
+import {SuccessIconSVG, InfoIconSVG, WarningIconSVG, DangerIconSVG} from 'haiku-ui-common/lib/react/OtherIcons';
 
 const STYLES = {
   cap: {
@@ -15,22 +15,22 @@ const STYLES = {
     borderBottomLeftRadius: '3px',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   success: {
-    backgroundColor: Palette.GREEN
+    backgroundColor: Palette.GREEN,
   },
   info: {
-    backgroundColor: Palette.BLUE
+    backgroundColor: Palette.BLUE,
   },
   warning: {
-    backgroundColor: Palette.ORANGE
+    backgroundColor: Palette.ORANGE,
   },
   danger: {
-    backgroundColor: Palette.RED
+    backgroundColor: Palette.RED,
   },
   error: {
-    backgroundColor: Palette.RED
+    backgroundColor: Palette.RED,
   },
   closer: {
     backgroundColor: Palette.GRAY,
@@ -43,11 +43,11 @@ const STYLES = {
     top: '8px',
     right: '8px',
     cursor: 'pointer',
-    WebkitUserSelect: 'none'
+    WebkitUserSelect: 'none',
   },
   lightCloser: {
     backgroundColor: Palette.FATHER_COAL,
-    color: Palette.SUNSTONE
+    color: Palette.SUNSTONE,
   },
   container: {
     WebkitUserSelect: 'none',
@@ -62,56 +62,56 @@ const STYLES = {
     borderRadius: '3px',
     color: Palette.SUNSTONE,
     overflow: 'hidden',
-    boxShadow: '0 4px 18px 0 rgba(1,28,33,0.38)'
+    boxShadow: '0 4px 18px 0 rgba(1,28,33,0.38)',
   },
   title: {
     fontSize: '14.5px',
     fontStyle: 'italic',
     lineHeight: 1.3,
     color: Palette.SUNSTONE,
-    pointerEvents: 'none'
+    pointerEvents: 'none',
   },
   body: {
     fontSize: '12px',
     marginTop: '8px',
     color: Palette.ROCK,
-    width: '190px'
-  }
-}
+    width: '190px',
+  },
+};
 
 class Toast extends React.Component {
   constructor () {
-    super()
+    super();
 
-    this.closeNotice = this.closeNotice.bind(this)
+    this.closeNotice = this.closeNotice.bind(this);
   }
 
   closeNotice () {
-    this.props.removeNotice(this.props.myKey)
+    this.props.removeNotice(this.props.myKey);
   }
 
   render () {
-    const {toastType, toastTitle, toastMessage, closeText, lightScheme, toastCount} = this.props
-    let icon
+    const {toastType, toastTitle, toastMessage, closeText, lightScheme, toastCount} = this.props;
+    let icon;
 
     if (toastType === 'info') {
-      icon = <InfoIconSVG />
+      icon = <InfoIconSVG />;
     } else if (toastType === 'success') {
-      icon = <SuccessIconSVG />
+      icon = <SuccessIconSVG />;
     } else if (toastType === 'warning') {
-      icon = <WarningIconSVG />
+      icon = <WarningIconSVG />;
     } else if (toastType === 'danger' || toastType === 'error') {
-      icon = <DangerIconSVG />
+      icon = <DangerIconSVG />;
     }
 
     return (
       <div style={STYLES.container}
-        id='toast'
-        className='toast'>
+        id="toast"
+        className="toast">
         <div style={[
           STYLES.cap,
           STYLES[toastType],
-          lightScheme && {backgroundColor: Color(STYLES[toastType].backgroundColor).fade(0.27)}
+          lightScheme && {backgroundColor: Color(STYLES[toastType].backgroundColor).fade(0.27)},
         ]}
           onClick={this.closeNotice}>{icon}
         </div>
@@ -122,8 +122,8 @@ class Toast extends React.Component {
           onClick={this.closeNotice}>{closeText || 'Got it'}
         </span>
       </div>
-    )
+    );
   }
 }
 
-export default Radium(Toast)
+export default Radium(Toast);

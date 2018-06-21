@@ -1,70 +1,25 @@
 {
-  "MultiComponentFeatures": {
-    "development": true,
-    "production": true
-  },
-  "MultiComponentControlsLibrary": {
-    "development": false,
-    "production": false
-  },
-  "ShowSubElementsInJitMenu": {
-    "development": false,
-    "production": false
-  },
-  "InstantiationOfPrimitivesAsComponents": {
-    "development": false,
-    "production": false
-  },
-  "HideInstantiatedElementUntilTimeInstantiated": {
-    "development": false,
-    "production": false
-  },
-  "MergeDesignChangesAtCurrentTime": {
-    "development": false,
-    "production": false
-  },
-  "CommentsOnStage": {
-    "development": false,
-    "production": false
-  },
-  "AsyncClientActions": {
-    "development": false,
-    "production": false
-  },
-  "NormalizeSvgContent": {
-    "development": false,
-    "production": false
-  },
-  "BasicOfflineMode": {
-    "development": true,
-    "production": false
-  },
-  "GroupUngroup": {
-    "development": true,
-    "production": true
-  },
-  "BaseModelQueryCache": {
-    "development": false,
-    "production": false
-  },
-  "ComponentInfoInspector": {
-    "development": false,
-    "production": false
-  },
-  "AdvancedMultiTransform": {
-    "development": true,
-    "production": true
-  },
-  "OutliningElementsOnStage": {
-    "development": true,
-    "production": true
-  },
-  "OutliningElementsOnStageFromStage": {
-    "development": false,
-    "production": false
-  },
-  "DirectSelectionOfPrimitives": {
-    "development": false,
-    "production": false
-  }
+  "MultiComponentFeatures": true,
+  "MultiComponentControlsLibrary": false,
+  "ShowSubElementsInJitMenu": false,
+  "InstantiationOfPrimitivesAsComponents": false,
+  "HideInstantiatedElementUntilTimeInstantiated": false,
+  "MergeDesignChangesAtCurrentTime": false,
+  "CommentsOnStage": false,
+  "AsyncClientActions": false,
+  "NormalizeSvgContent": false,
+  "BasicOfflineMode": false,
+  "GroupUngroup": true,
+  "BaseModelQueryCache": false,
+  "ComponentInfoInspector": false,
+  "AdvancedMultiTransform": true,
+  "OutliningElementsOnStage": true,
+  "OutliningElementsOnStageFromStage": false,
+  "DirectSelectionOfPrimitives": false,
+  "IpcIntegrityCheck": true,
+  "CrashOnIpcIntegrityCheckFailure": true,
+  "IncludeSourceInIntegrityHash": false,
+  "OrderedActionStack": false,
+  "CodeEditorInCreator": true,
+  "WarnOnUndefinedStateVariables": true
 }

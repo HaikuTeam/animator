@@ -45,6 +45,7 @@ class File extends BaseModel {
 
     this.component = ActiveComponent.upsert({
       uid,
+      file: this,
       relpath: this.relpath,
       project: this.project,
       scenename // This string is important for fs lookups to work
@@ -122,12 +123,16 @@ class File extends BaseModel {
   }
 
   flushContent () {
+    return this.flushContentFromString(this.getCode())
+  }
+
+  flushContentFromString (content) {
     // We're about to flush content for all requests received up to this point
     // If more occur during async, that's fine; we'll just get called again,
     // but those who need to wait can read the list to know what's still pending
     this._pendingContentFlushes.splice(0)
 
-    const incoming = this.getCode()
+    const incoming = content
 
     this.assertContents(incoming)
 
@@ -269,17 +274,6 @@ class File extends BaseModel {
     const serialized = objectToRO(reified) // This returns a *new* object
     return serialized
   }
-
-  /**
-   * @method read
-   * @description Reads a file's filesystem contents into memory. Useful if you have a reference but need its content.
-   */
-  read (cb) {
-    return File.ingestOne(this.project, this.folder, this.relpath, (err) => {
-      if (err) return cb(err)
-      return cb(null, this)
-    })
-  }
 }
 
 BaseModel.extend(File)
@@ -324,54 +318,6 @@ File.read = (folder, relpath, cb) => {
 
 File.isPathCode = (relpath) => {
   return _isFileCode(relpath)
-}
-
-File.ingestOne = (project, folder, relpath, cb) => {
-  // This can be used to determine if an in-memory-only update occurred after or before a filesystem update.
-  // Track it here so we get an accurate picture of when the ingestion routine actually began, including before
-  // we actually talked to the real filesystem, which can take some time
-  const dtLastReadStart = Date.now()
-
-  return File.ingestContents(project, folder, relpath, { dtLastReadStart }, cb)
-}
-
-File.ingestContents = (project, folder, relpath, { dtLastReadStart }, cb) => {
-  // Note: The only properties that should be in the object at this point should be relpath and folder,
-  // otherwise the upsert won't work correctly since it uses these props as a comparison
-  const fileAttrs = {
-    uid: path.normalize(path.join(folder, relpath)),
-    relpath,
-    folder,
-    project
-  }
-
-  const file = File.upsert(fileAttrs)
-
-  // Let what's happening in-memory have higher precedence than on-disk changes
-  // since it's more likely that we'll be loading in stale content during fast updates,
-  // which leads to races such as with copy/paste, undo/redo, etc
-  return file.awaitNoFurtherContentFlushes(() => {
-    // See the note under ingestOne to understand why this gets set here
-    file.dtLastReadStart = dtLastReadStart || Date.now()
-
-    if (File.isPathCode(relpath)) {
-      file.type = FILE_TYPES.code
-    } else {
-      file.type = 'other'
-    }
-
-    return file.mod.isolatedForceReload((err, bytecode) => {
-      if (err) return cb(err)
-
-      file.updateInMemoryHotModule(bytecode, () => {
-        // This can be used to determine if an in-memory-only update occurred
-        // after or before a filesystem update. Use to decid whether to code reload
-        file.dtLastReadEnd = Date.now()
-
-        return cb(null, file)
-      })
-    })
-  })
 }
 
 File.expelOne = (folder, relpath, cb) => {

@@ -1,7 +1,7 @@
-import React from 'react'
-import EmbeddedVideo from '../EmbeddedVideo'
+import * as React from 'react';
+import EmbeddedVideo from '../EmbeddedVideo';
 
-export default function ({ styles }) {
+export default function ({styles}) {
   return (
     <div>
       <h2 style={styles.heading}>Tweens</h2>
@@ -12,5 +12,5 @@ export default function ({ styles }) {
         <p>That’ll give the animation a spring in its step— you’ll be able to experiment with the entire tween library later!</p>
       </div>
     </div>
-  )
+  );
 }

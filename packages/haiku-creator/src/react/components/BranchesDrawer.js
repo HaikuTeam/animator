@@ -1,8 +1,8 @@
-import React from 'react'
-import lodash from 'lodash'
-import Radium from 'radium'
-import Palette from 'haiku-ui-common/lib/Palette'
-import { BranchIconSVG, CommentsIconSVG, EditsIconSVG, TeammatesIconSVG } from 'haiku-ui-common/lib/react/OtherIcons'
+import * as React from 'react';
+import * as lodash from 'lodash';
+import * as Radium from 'radium';
+import Palette from 'haiku-ui-common/lib/Palette';
+import {BranchIconSVG, CommentsIconSVG, EditsIconSVG, TeammatesIconSVG} from 'haiku-ui-common/lib/react/OtherIcons';
 
 const fauxBranchState = [
   [false, false, true],
@@ -21,8 +21,8 @@ const fauxBranchState = [
   [false, true, true],
   [false, false, false],
   [true, false, false],
-  [true, true, false]
-]
+  [true, true, false],
+];
 
 const STYLES = {
   container: {
@@ -34,7 +34,7 @@ const STYLES = {
     userSelect: 'none',
     MozUserSelect: 'none',
     WebkitUserSelect: 'none',
-    msUserSelect: 'none'
+    msUserSelect: 'none',
   },
   bar: { // This bar is for grabbing and moving around the application via its 'frame' class
     position: 'absolute',
@@ -44,14 +44,14 @@ const STYLES = {
     padding: '6px',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'flex-end'
+    justifyContent: 'flex-end',
   },
   branchCurrent: {
     fontWeight: '400',
     color: Palette.ROCK,
     padding: '6px 4px 6px 12px',
     backgroundColor: Palette.COAL,
-    borderLeft: `4px solid ${Palette.MEDIUM_PINK}`
+    borderLeft: `4px solid ${Palette.MEDIUM_PINK}`,
   },
   branchBase: {
     width: '100%',
@@ -61,13 +61,13 @@ const STYLES = {
     position: 'relative',
     cursor: 'pointer',
     ':hover': {
-      backgroundColor: Palette.COAL
-    }
+      backgroundColor: Palette.COAL,
+    },
   },
   header: {
     textTransform: 'uppercase',
     margin: '40px 0 10px 0',
-    textAlign: 'center'
+    textAlign: 'center',
   },
   branchStateHolster: {
     position: 'absolute',
@@ -76,42 +76,41 @@ const STYLES = {
     bottom: 0,
     display: 'flex',
     justifyContent: 'flex-end',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   branchStateBtns: {
-    marginRight: '5px'
+    marginRight: '5px',
   },
   icon: {
-    marginRight: '7px'
+    marginRight: '7px',
   },
   flex: {
     display: 'flex',
     justifyContent: 'center',
-    marginTop: '15px'
-  }
-}
+    marginTop: '15px',
+  },
+};
 
 class BranchesDrawer extends React.Component {
   constructor (props) {
-    super(props)
+    super(props);
     this.state = {
-      branches: []
-    }
+      branches: [],
+    };
   }
 
   branchesList () {
-    let currentBranches = this.state.branches
+    const currentBranches = this.state.branches;
     if (!currentBranches || currentBranches.length < 1) {
       return (
-        <div style={STYLES.flex}>
-          //TODO: @taylor Add replacement loader
-        </div>
-      )
+        // TODO: @taylor Add replacement loader
+        <div style={STYLES.flex} />
+      );
     }
     return (
       <div>
         {lodash.map(currentBranches, (branch, index) => {
-          const show = fauxBranchState[index]
+          const show = fauxBranchState[index];
           return (
             <div
               style={[STYLES.branchBase, branch.isCurrent() && STYLES.branchCurrent]}
@@ -119,30 +118,30 @@ class BranchesDrawer extends React.Component {
               <span style={STYLES.icon}><BranchIconSVG /></span>
               {branch.getName()}
               <span style={STYLES.branchStateHolster}>
-                { show[0] ? <span style={STYLES.branchStateBtns}><EditsIconSVG /></span> : null }
-                { show[1] ? <span style={STYLES.branchStateBtns}><TeammatesIconSVG /></span> : null }
-                { show[2] ? <span style={STYLES.branchStateBtns}><CommentsIconSVG /></span> : null }
+                {show[0] ? <span style={STYLES.branchStateBtns}><EditsIconSVG /></span> : null}
+                {show[1] ? <span style={STYLES.branchStateBtns}><TeammatesIconSVG /></span> : null}
+                {show[2] ? <span style={STYLES.branchStateBtns}><CommentsIconSVG /></span> : null}
               </span>
             </div>
-          )
+          );
         })}
       </div>
-    )
+    );
   }
 
   branchesLoaded (branches) {
-    this.setState({ branches })
+    this.setState({branches});
   }
 
   render () {
     return (
-      <div style={STYLES.container} className='layout-box'>
-        <div style={STYLES.bar} className='frame' />
+      <div style={STYLES.container} className="layout-box">
+        <div style={STYLES.bar} className="frame" />
         <h3 style={STYLES.header}>Branches</h3>
         {this.branchesList()}
       </div>
-    )
+    );
   }
 }
 
-export default Radium(BranchesDrawer)
+export default Radium(BranchesDrawer);

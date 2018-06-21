@@ -40,11 +40,8 @@ async.each(allPackages, (pack, done) => {
   }
 
   switch (shortname) {
-    case 'websockets':
-    case 'creator':
     case 'glass':
     case 'timeline':
-    case 'plumbing':
       // Babel modules where we can skip the initial (slow) build.
       runInstruction(pack.abspath, ['watch', '--skip-initial-build'], done)
       break

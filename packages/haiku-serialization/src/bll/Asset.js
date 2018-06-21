@@ -8,6 +8,7 @@ const PAGES_REGEX = /\/pages\//
 const SLICES_REGEX = /\/slices\//
 const ARTBOARDS_REGEX = /\/artboards\//
 const GROUPS_REGEX = /\/groups\//
+const FRAMES_REGEX = /\/frames\//
 
 const MAIN_COMPONENT_NAME = 'main'
 
@@ -19,16 +20,21 @@ const MAIN_COMPONENT_NAME = 'main'
  *.  Includes static methods for common asset-related tasks.
  */
 class Asset extends BaseModel {
-  isFolder () {
-    return this.type === 'folder'
-  }
-
   getAbspath () {
     return path.join(this.project.getFolder(), this.getRelpath())
   }
 
   getRelpath () {
     return this.relpath
+  }
+
+  getSceneName () {
+    if (!this.isComponent()) {
+      return
+    }
+
+    const parts = path.normalize(this.relpath).split(path.sep)
+    return parts[1]
   }
 
   getAssetInfo () {
@@ -98,7 +104,7 @@ class Asset extends BaseModel {
   }
 
   isOrphanSvg () {
-    return (this.isVector() && !this.parent.isSketchFile() && !this.parent.isIllustratorFile())
+    return this.isVector() && this.parent.isDesignsHostFolder()
   }
 
   isComponentOtherThanMain () {
@@ -132,6 +138,9 @@ class Asset extends BaseModel {
     } else if (svgAsset.isGroup()) {
       this.groupsFolderAsset.insertChild(svgAsset)
       this.unshiftFolderAsset(this.groupsFolderAsset)
+    } else if (svgAsset.isFrame()) {
+      this.framesFolderAsset.insertChild(svgAsset)
+      this.unshiftFolderAsset(this.framesFolderAsset)
     }
   }
 
@@ -187,6 +196,8 @@ class Asset extends BaseModel {
       dtModified: (dict[relpath] && dict[relpath].dtModified) || Date.now()
     })
 
+    slicesFolderAsset.parent = artboardsFolderAsset.parent = sketchAsset
+
     this.insertChild(sketchAsset)
     return sketchAsset
   }
@@ -199,6 +210,18 @@ class Asset extends BaseModel {
       this.insertChild(result)
       return result
     }
+
+    const framesFolderAsset = Asset.upsert({
+      uid: path.join(project.getFolder(), 'designs', relpath, 'frames'),
+      type: Asset.TYPES.CONTAINER,
+      kind: Asset.KINDS.FOLDER,
+      proximity: Asset.PROXIMITIES.LOCAL,
+      project,
+      relpath: path.join('designs', relpath, 'frames'),
+      displayName: 'Frames',
+      children: [],
+      dtModified: Date.now()
+    })
 
     const groupsFolderAsset = Asset.upsert({
       uid: path.join(project.getFolder(), 'designs', relpath, 'groups'),
@@ -236,8 +259,11 @@ class Asset extends BaseModel {
       children: [],
       slicesFolderAsset, // Hacky, but avoids extra 'upsert' logic
       groupsFolderAsset,
+      framesFolderAsset,
       dtModified: Date.now()
     })
+
+    slicesFolderAsset.parent = groupsFolderAsset.parent = figmaAsset
 
     this.insertChild(figmaAsset)
 
@@ -278,6 +304,8 @@ class Asset extends BaseModel {
       artboardsFolderAsset,
       dtModified: (dict[relpath] && dict[relpath].dtModified) || Date.now()
     })
+
+    artboardsFolderAsset.parent = illustratorAsset
 
     this.insertChild(illustratorAsset)
     return illustratorAsset
@@ -416,6 +444,10 @@ class Asset extends BaseModel {
     return !!this.relpath.match(GROUPS_REGEX)
   }
 
+  isFrame () {
+    return !!this.relpath.match(FRAMES_REGEX)
+  }
+
   unshiftFolderAsset (folderAsset) {
     const foundAmongChildren = this.children.indexOf(folderAsset) !== -1
     if (folderAsset && !foundAmongChildren) {
@@ -487,9 +519,7 @@ Every artboard will be synced here when you save.
 `
 
 Asset.ingestAssets = (project, dict) => {
-  Asset.all().forEach((asset) => {
-    asset.destroy()
-  })
+  Asset.purge()
 
   const componentFolderAsset = Asset.upsert({
     uid: path.join(project.getFolder(), 'code'),
@@ -622,6 +652,9 @@ function controlComponentAsset (project, displayName, partial) {
 
 const shouldDisplayPrimaryAssetMessage = (childrenOfDesignFolder) => {
   if (childrenOfDesignFolder.length < 1) {
+    return false
+  }
+  if (!childrenOfDesignFolder[1]) {
     return false
   }
   if (childrenOfDesignFolder[1].isPrimaryAsset() && childrenOfDesignFolder[1].children.length < 1) {

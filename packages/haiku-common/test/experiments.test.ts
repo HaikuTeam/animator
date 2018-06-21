@@ -16,9 +16,7 @@ tape('experimentIsEnabled', (suite: tape.Test) => {
   suite.test('reads enabled status from configuration', (test: tape.Test) => {
     const [getExperimentConfig, unstub] = stubProperties(config, 'getExperimentConfig');
     getExperimentConfig.returns({
-      FooExperiment: {
-        development: true,
-      },
+      FooExperiment: true,
     });
 
     clearExperimentCache();
@@ -28,9 +26,9 @@ tape('experimentIsEnabled', (suite: tape.Test) => {
     test.end();
   });
 
-  suite.test('defaults to disabled if nothing is configured for the environment', (test: tape.Test) => {
+  suite.test('defaults to disabled if nothing is configured', (test: tape.Test) => {
     const [getExperimentConfig, unstub] = stubProperties(config, 'getExperimentConfig');
-    getExperimentConfig.returns({FooExperiment: {}});
+    getExperimentConfig.returns({FooExperiment: null});
 
     clearExperimentCache();
     // @ts-ignore
@@ -41,7 +39,7 @@ tape('experimentIsEnabled', (suite: tape.Test) => {
 
   suite.test('caches the result of getExperimentConfig()', (test: tape.Test) => {
     const [getExperimentConfig, unstub] = stubProperties(config, 'getExperimentConfig');
-    getExperimentConfig.returns({FooExperiment: {}});
+    getExperimentConfig.returns({FooExperiment: null});
 
     clearExperimentCache();
     // @ts-ignore

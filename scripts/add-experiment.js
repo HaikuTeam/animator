@@ -27,10 +27,7 @@ if (Object.prototype.hasOwnProperty.call(experimentJson, experimentName)) {
   global.process.exit(1)
 }
 
-experimentJson[experimentName] = {
-  development: true,
-  production: false
-}
+experimentJson[experimentName] = true
 
 fs.writeFileSync(experimentJsonPath, JSON.stringify(experimentJson, null, 2) + '\n')
 

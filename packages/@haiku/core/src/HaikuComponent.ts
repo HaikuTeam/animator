@@ -3,14 +3,15 @@
  */
 
 import {Curve} from './api/Curve';
-import {BytecodeOptions, HaikuBytecode} from './api/HaikuBytecode';
+import {BytecodeNode, BytecodeOptions, HaikuBytecode} from './api/HaikuBytecode';
 import Config from './Config';
 import HaikuBase, {GLOBAL_LISTENER_KEY} from './HaikuBase';
 import HaikuClock from './HaikuClock';
 import HaikuContext from './HaikuContext';
 import HaikuElement from './HaikuElement';
-import HaikuTimeline from './HaikuTimeline';
+import HaikuTimeline, {PlaybackSetting} from './HaikuTimeline';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
+import cssMatchOne from './helpers/cssMatchOne';
 import cssQueryList from './helpers/cssQueryList';
 import {isPreviewMode} from './helpers/interactionModes';
 import isMutableProperty from './helpers/isMutableProperty';
@@ -19,7 +20,6 @@ import scopifyElements from './helpers/scopifyElements';
 import xmlToMana from './helpers/xmlToMana';
 import Layout3D from './Layout3D';
 import {runMigrations} from './Migration';
-import vanities, {PLAYBACK_SETTINGS} from './properties/dom/vanities';
 import functionToRFO, {RFO} from './reflection/functionToRFO';
 import StateTransitionManager, {StateTransitionParameters, StateValues} from './StateTransitionManager';
 import ValueBuilder from './ValueBuilder';
@@ -55,9 +55,13 @@ export interface ClearCacheOptions {
   clearStates?: boolean;
 }
 
+const templateIsString = (
+  template: BytecodeNode|string,
+): template is string => typeof template === STRING_TYPE;
+
 // tslint:disable:variable-name function-name
 export default class HaikuComponent extends HaikuElement {
-  _builder;
+  builder;
   _flatManaTree;
   _horizonElements;
   isDeactivated;
@@ -95,7 +99,7 @@ export default class HaikuComponent extends HaikuElement {
     super();
 
     // We provide rudimentary support for passing the `template` as an XML string.
-    if (typeof bytecode.template === STRING_TYPE) {
+    if (templateIsString(bytecode.template)) {
       console.warn('[haiku core] converting template xml string to object');
       bytecode.template = xmlToMana(bytecode.template);
     }
@@ -151,7 +155,7 @@ export default class HaikuComponent extends HaikuElement {
       }
     }
 
-    this._builder = new ValueBuilder(this);
+    this.builder = new ValueBuilder(this);
 
     this._states = {}; // Storage for getter/setter actions in userland logic
     this.state = {}; // Public accessor object, e.g. this.state.foo = 1
@@ -283,7 +287,9 @@ export default class HaikuComponent extends HaikuElement {
           // from the get-go. However, in case of a callRemount, we might not want to do that since it can be kind of
           // like running the first frame twice. So we pass the option into play so it can conditionally skip the
           // markForFullFlush step.
-          timelineInstance.play({skipMarkForFullFlush});
+          if (!timelineInstance.isExplicitlyPaused()) {
+            timelineInstance.play({skipMarkForFullFlush});
+          }
         }
       } else {
         timelineInstance.pause();
@@ -395,7 +401,7 @@ export default class HaikuComponent extends HaikuElement {
 
     this._flatManaTree = manaFlattenTree(this.getTemplate(), CSS_QUERY_MAPPING);
     this._matchedElementCache = {};
-    this._builder.clearCaches(options);
+    this.builder.clearCaches(options);
     this._hydrateMutableTimelines();
 
     // These may have been set for caching purposes
@@ -454,11 +460,11 @@ export default class HaikuComponent extends HaikuElement {
     return out;
   }
 
-  getTimeline (name) {
+  getTimeline (name): HaikuTimeline {
     return this.getTimelines()[name];
   }
 
-  fetchTimeline (name, descriptor) {
+  fetchTimeline (name, descriptor): HaikuTimeline {
     const found = this.getTimeline(name);
 
     if (found) {
@@ -468,7 +474,7 @@ export default class HaikuComponent extends HaikuElement {
     return HaikuTimeline.create(this, name, descriptor, this.config);
   }
 
-  getDefaultTimeline () {
+  getDefaultTimeline (): HaikuTimeline {
     const timelines = this.getTimelines();
     return timelines[DEFAULT_TIMELINE_NAME];
   }
@@ -509,10 +515,10 @@ export default class HaikuComponent extends HaikuElement {
     return this.bytecode.timelines[timelineName];
   }
 
-  getInjectables (element?): any {
+  getInjectables (): any {
     const injectables = {};
 
-    assign(injectables, this._builder.getSummonablesSchema(element));
+    assign(injectables, this.builder.getSummonablesSchema());
 
     // Local states get precedence over global summonables, so assign them last
     for (const key in this._states) {
@@ -673,10 +679,16 @@ export default class HaikuComponent extends HaikuElement {
 
     for (const eventSelector in eventHandlers) {
       for (const eventName in eventHandlers[eventSelector]) {
+        const descriptor = eventHandlers[eventSelector][eventName];
+
+        if (!descriptor || !descriptor.handler) {
+          continue;
+        }
+
         iteratee(
           eventSelector,
           eventName,
-          eventHandlers[eventSelector][eventName],
+          descriptor,
         );
       }
     }
@@ -973,67 +985,111 @@ export default class HaikuComponent extends HaikuElement {
           continue;
         }
 
-        const matchingElementsForBehavior = findMatchingElementsByCssSelector(
-          behaviorSelector,
-          this._flatManaTree,
-          this._matchedElementCache,
-        );
+        // This is our opportunity to group property operations that need to be in order
+        const propertyOperations = collatePropertyGroup(propertiesGroup);
 
-        if (!matchingElementsForBehavior || matchingElementsForBehavior.length < 1) {
-          continue;
-        }
+        for (let i = 0; i < propertyOperations.length; i++) {
+          const propertyGroup = propertyOperations[i];
 
-        for (let j = 0; j < matchingElementsForBehavior.length; j++) {
-          const matchingElement = matchingElementsForBehavior[j];
-
-          const domId = (
-            matchingElement &&
-            matchingElement.attributes &&
-            matchingElement.attributes.id
+          const matchingElementsForBehavior = findMatchingElementsByCssSelector(
+            behaviorSelector,
+            this._flatManaTree,
+            this._matchedElementCache,
           );
 
-          const haikuId = (
-            matchingElement &&
-            matchingElement.attributes &&
-            matchingElement.attributes[HAIKU_ID_ATTRIBUTE]
-          );
+          if (!matchingElementsForBehavior || matchingElementsForBehavior.length < 1) {
+            continue;
+          }
 
-          const flexId = haikuId || domId;
+          for (let j = 0; j < matchingElementsForBehavior.length; j++) {
+            const matchingElement = matchingElementsForBehavior[j];
 
-          const assembledOutputs = this._builder.build(
-            {}, // We provide an object onto which outputs are placed
-            timelineName,
-            timelineTime,
-            flexId,
-            matchingElement,
-            propertiesGroup,
-            isPatchOperation,
-            this,
-            skipCache,
-          );
+            const domId = (
+              matchingElement &&
+              matchingElement.attributes &&
+              matchingElement.attributes.id
+            );
 
-          if (assembledOutputs) {
-            // If assembledOutputs is empty, that signals that nothing has changed
-            if (deltas && flexId) {
-              deltas[flexId] = matchingElement;
-            }
+            const haikuId = (
+              matchingElement &&
+              matchingElement.attributes &&
+              matchingElement.attributes[HAIKU_ID_ATTRIBUTE]
+            );
 
-            for (const behaviorKey in assembledOutputs) {
-              const behaviorValue = assembledOutputs[behaviorKey];
+            const flexId = haikuId || domId;
 
-              applyPropertyToNode(
+            for (const propertyName in propertyGroup) {
+              const propertyValue = propertyGroup[propertyName];
+
+              const finalValue = this.builder.build(
+                timelineName,
+                timelineTime,
+                flexId,
                 matchingElement,
-                behaviorKey,
-                behaviorValue,
-                this.context,
-                timelineInstance,
+                propertyName,
+                propertyValue,
+                isPatchOperation,
                 this,
+                skipCache,
               );
+
+              if (finalValue !== undefined) {
+                this.applyPropertyToNode(
+                  matchingElement,
+                  propertyName,
+                  finalValue,
+                  timelineInstance,
+                );
+
+                // If even one change has been applied, the element must be patched
+                if (deltas) {
+                  deltas[flexId] = matchingElement;
+                }
+              }
             }
           }
         }
       }
     }
+  }
+
+  applyPropertyToNode (
+    node,
+    name: string,
+    value,
+    timeline: HaikuTimeline,
+  ) {
+    const sender = (node.__instance) ? node.__instance : this; // Who sent the command
+    const receiver = node.__subcomponent || node.__receiver;
+    const type = (receiver && receiver.tagName) || node.elementName;
+    const addressables = receiver && receiver.getAddressableProperties();
+    const addressee = addressables && addressables[name] !== undefined && receiver;
+
+    if (addressee) {
+      addressee.set(name, value);
+    }
+
+    const vanity = getVanity(type, name);
+
+    if (vanity) {
+      return vanity(
+        name,
+        node,
+        value,
+        this.context,
+        timeline,
+        receiver,
+        sender,
+      );
+    }
+
+    const parts = name.split('.');
+
+    if (parts[0] === 'style' && parts[1]) {
+      return setStyle(parts[1], node, value);
+    }
+
+    return setAttribute(name, node, value);
   }
 
   findElementsByHaikuId (componentId) {
@@ -1152,13 +1208,13 @@ export default class HaikuComponent extends HaikuElement {
 
     const guestTimeline = guest.getTimeline(timelineName);
 
-    if (playbackValue === PLAYBACK_SETTINGS.CEDE) {
+    if (playbackValue === PlaybackSetting.CEDE) {
       return guestTimeline.getTime();
     }
 
     // If time is controlled and we're set to 'loop', use a modulus of the guest's max time
     // which will give the effect of looping the guest to its 0 if its max has been reached
-    if (playbackValue === PLAYBACK_SETTINGS.LOOP) {
+    if (playbackValue === PlaybackSetting.LOOP) {
       if (guestTimeline) {
         const guestMax = guestTimeline.getMaxTime();
         const finalTime = timelineTime % guestMax; // TODO: What if final frame has a change?
@@ -1168,7 +1224,7 @@ export default class HaikuComponent extends HaikuElement {
       return timelineTime;
     }
 
-    if (playbackValue === PLAYBACK_SETTINGS.STOP) {
+    if (playbackValue === PlaybackSetting.STOP) {
       if (guestTimeline) {
         return guestTimeline.getControlledTime() || 0;
       }
@@ -1194,7 +1250,7 @@ export default class HaikuComponent extends HaikuElement {
     flexId: string,
     propertyName: string,
   ): any {
-    return this._builder.grabValue(
+    return this.builder.grabValue(
       timelineName,
       flexId,
       null, // matchingElement - not needed?
@@ -1235,6 +1291,27 @@ export default class HaikuComponent extends HaikuElement {
 
   static all = (): HaikuComponent[] => HaikuBase.getRegistryForClass(HaikuComponent);
 }
+
+const STRUCTURE_PROPERTIES = {
+  'controlFlow.repeat': true,
+  'controlFlow.if': true,
+  'controlFlow.placeholder': true,
+};
+
+const collatePropertyGroup = (propertiesGroup) => {
+  const structuralOps = {};
+  const presentationalOps = {};
+
+  for (const propertyName in propertiesGroup) {
+    if (STRUCTURE_PROPERTIES[propertyName]) {
+      structuralOps[propertyName] = propertiesGroup[propertyName];
+    } else {
+      presentationalOps[propertyName] = propertiesGroup[propertyName];
+    }
+  }
+
+  return [structuralOps, presentationalOps];
+};
 
 function isBytecode (thing) {
   return thing && typeof thing === OBJECT_TYPE && thing.template;
@@ -1366,33 +1443,6 @@ const propertyGroupNeedsExpressionEvaluated = (
 
   return foundExpressionForTime;
 };
-
-function applyPropertyToNode (
-  node,
-  name,
-  value,
-  context,
-  timeline: HaikuTimeline,
-  component: HaikuComponent,
-) {
-  const sender = (node.__instance) ? node.__instance : component; // Who sent the command
-  const receiver = node.__subcomponent || node.__receiver;
-  const type = (receiver && receiver.tagName) || node.elementName;
-  const vanity = vanities[type] && vanities[type][name];
-  const addressables = receiver && receiver.getAddressableProperties();
-  const addressee = addressables && addressables[name] !== undefined && receiver;
-
-  if (addressee && vanity) {
-    addressee.set(name, value);
-    vanity(name, node, value, context, timeline, receiver, sender);
-  } else if (addressee) {
-    addressee.set(name, value);
-  } else if (vanity) {
-    vanity(name, node, value, context, timeline, receiver, sender);
-  } else {
-    node.attributes[name] = value;
-  }
-}
 
 function connectInstanceNodeWithHostComponent (node, host) {
   const flexId = (
@@ -1772,4 +1822,511 @@ const clone = (value, binding) => {
   }
 
   return value;
+};
+
+const setStyle = (subkey, element, value) => {
+  element.attributes.style[subkey] = value;
+};
+
+const setAttribute = (key, element, value) => {
+  element.attributes[key] = value;
+};
+
+const isNumeric = (n) => {
+  return !isNaN(parseFloat(n)) && isFinite(n);
+};
+
+const isInteger = (x) => {
+  return x % 1 === 0;
+};
+
+const REACT_MATCHING_OPTIONS = {
+  name: 'type',
+  attributes: 'props',
+};
+
+const HAIKU_MATCHING_OPTIONS = {
+  name: 'elementName',
+  attributes: 'attributes',
+};
+
+const querySelectSubtree = (surrogate: any, value) => {
+  // First try the Haiku format
+  if (cssMatchOne(surrogate, value, HAIKU_MATCHING_OPTIONS)) {
+    return surrogate;
+  }
+
+  // If no match yet, try the React format (TODO: Does this belong here?)
+  if (cssMatchOne(surrogate, value, REACT_MATCHING_OPTIONS)) {
+    return surrogate;
+  }
+
+  // Visit the descendants (if any) and see if we have a match there
+  const children = (
+    surrogate.children || // Haiku's format
+    (surrogate.props && surrogate.props.children) // React's format
+  );
+
+  // If no children, we definitely don't have a match in this subtree
+  if (!children) {
+    return null;
+  }
+
+  // Check for arrays first since arrays pass the typeof object check
+  if (Array.isArray(children)) {
+    for (let i = 0; i < children.length; i++) {
+      const found = querySelectSubtree(children[i], value);
+
+      // First time a match is found, break the loop and return it
+      if (found) {
+        return found;
+      }
+    }
+  }
+
+  // React may store 'children' as a single object
+  if (typeof children === 'object') {
+    return querySelectSubtree(children, value);
+  }
+};
+
+const querySelectSurrogates = (surrogates: any, value: string): any => {
+  if (Array.isArray(surrogates)) {
+    // Return the first match we locate in the collection
+    return surrogates.map((surrogate) => querySelectSurrogates(surrogate, value))[0];
+  }
+
+  if (surrogates && typeof surrogates === 'object') {
+    return querySelectSubtree(surrogates, value);
+  }
+};
+
+const selectSurrogate = (surrogates: any, value: any): any => {
+  // If the placeholder value is intended as an array index
+  if (Array.isArray(surrogates) && isNumeric(value) && isInteger(value)) {
+    if (surrogates[value]) {
+      return surrogates[value];
+    }
+  }
+
+  // If the placeholder value is intended as a key
+  if (surrogates && typeof surrogates === 'object' && typeof value === 'string') {
+    if (surrogates[value]) {
+      return surrogates[value];
+    }
+  }
+
+  return querySelectSurrogates(surrogates, value + '');
+};
+
+const getCanonicalPlaybackValue = (value) => {
+  if (typeof value !== 'object') {
+    return {
+      Default: value,
+    };
+  }
+
+  return value;
+};
+
+const controlFlowPlaceholderImpl = (element, surrogate, receiver) => {
+  if (element.__surrogate !== surrogate) {
+    element.elementName = surrogate.elementName;
+    element.children = surrogate.children || [];
+    if (surrogate.attributes) {
+      if (!element.attributes) {
+        element.attributes = {};
+      }
+      for (const key in surrogate.attributes) {
+        if (key === 'haiku-id') {
+          continue;
+        }
+        element.attributes[key] = surrogate.attributes[key];
+      }
+    }
+    element.__surrogate = surrogate;
+  }
+};
+
+/**
+ * 'Vanities' are functions that provide special handling for applied properties.
+ * So for example, if a component wants to apply 'foo.bar'=3 to a <div> in its template,
+ * the renderer will look in the vanities dictionary to see if there is a
+ * vanity 'foo.bar' available, and if so, pass the value 3 into that function.
+ * The function, in turn, knows how to apply that value to the virtual element passed into
+ * it. In the future these will be defined by components themselves as inputs; for now,
+ * we are keeping a whitelist of possible vanity handlers which the renderer directly
+ * loads and calls.
+ */
+
+export const getVanity = (elementName: string, propertyName: string) => {
+  if (elementName) {
+    if (VANITIES[elementName] && VANITIES[elementName][propertyName]) {
+      return VANITIES[elementName][propertyName];
+    }
+  }
+
+  return VANITIES['*'][propertyName];
+};
+
+export const LAYOUT_3D_VANITIES = {
+  // Layout has a couple of special values that relate to display
+  // but not to position:
+  shown: (_, element, value) => {
+    element.layout.shown = value;
+  },
+  // Opacity needs to have its opacity *layout* property set
+  // as opposed to its element attribute so the renderer can make a decision about
+  // where to put it based on the rendering medium's rules
+  opacity: (_, element, value) => {
+    element.layout.opacity = value;
+  },
+
+  // Rotation is a special snowflake since it needs to account for
+  // the w-component of the quaternion and carry it
+  'rotation.x': (name, element, value) => {
+    element.layout.rotation.x = value;
+  },
+  'rotation.y': (name, element, value) => {
+    element.layout.rotation.y = value;
+  },
+  'rotation.z': (name, element, value) => {
+    element.layout.rotation.z = value;
+  },
+
+  // If you really want to set what we call 'position' then
+  // we do so on the element's attributes; this is mainly to
+  // enable the x/y positioning system for SVG elements.
+  'position.x': (name, element, value) => {
+    element.attributes.x = value;
+  },
+  'position.y': (name, element, value) => {
+    element.attributes.y = value;
+  },
+
+  // Everything that follows is a standard 3-coord component
+  // relating to the element's position in space
+  'align.x': (name, element, value) => {
+    element.layout.align.x = value;
+  },
+  'align.y': (name, element, value) => {
+    element.layout.align.y = value;
+  },
+  'align.z': (name, element, value) => {
+    element.layout.align.z = value;
+  },
+  'mount.x': (name, element, value) => {
+    element.layout.mount.x = value;
+  },
+  'mount.y': (name, element, value) => {
+    element.layout.mount.y = value;
+  },
+  'mount.z': (name, element, value) => {
+    element.layout.mount.z = value;
+  },
+  'origin.x': (name, element, value) => {
+    element.layout.origin.x = value;
+  },
+  'origin.y': (name, element, value) => {
+    element.layout.origin.y = value;
+  },
+  'origin.z': (name, element, value) => {
+    element.layout.origin.z = value;
+  },
+  'scale.x': (name, element, value) => {
+    element.layout.scale.x = value;
+  },
+  'scale.y': (name, element, value) => {
+    element.layout.scale.y = value;
+  },
+  'scale.z': (name, element, value) => {
+    element.layout.scale.z = value;
+  },
+  'sizeAbsolute.x': (name, element, value) => {
+    element.layout.sizeAbsolute.x = value;
+  },
+  'sizeAbsolute.y': (name, element, value) => {
+    element.layout.sizeAbsolute.y = value;
+  },
+  'sizeAbsolute.z': (name, element, value) => {
+    element.layout.sizeAbsolute.z = value;
+  },
+  'sizeDifferential.x': (name, element, value) => {
+    element.layout.sizeDifferential.x = value;
+  },
+  'sizeDifferential.y': (name, element, value) => {
+    element.layout.sizeDifferential.y = value;
+  },
+  'sizeDifferential.z': (name, element, value) => {
+    element.layout.sizeDifferential.z = value;
+  },
+  'sizeMode.x': (name, element, value) => {
+    element.layout.sizeMode.x = value;
+  },
+  'sizeMode.y': (name, element, value) => {
+    element.layout.sizeMode.y = value;
+  },
+  'sizeMode.z': (name, element, value) => {
+    element.layout.sizeMode.z = value;
+  },
+  'sizeProportional.x': (name, element, value) => {
+    element.layout.sizeProportional.x = value;
+  },
+  'sizeProportional.y': (name, element, value) => {
+    element.layout.sizeProportional.y = value;
+  },
+  'sizeProportional.z': (name, element, value) => {
+    element.layout.sizeProportional.z = value;
+  },
+  'shear.xy': (name, element, value) => {
+    element.layout.shear.xy = value;
+  },
+  'shear.xz': (name, element, value) => {
+    element.layout.shear.xz = value;
+  },
+  'shear.yz': (name, element, value) => {
+    element.layout.shear.yz = value;
+  },
+  'translation.x': (name, element, value) => {
+    element.layout.translation.x = value;
+  },
+  'translation.y': (name, element, value) => {
+    element.layout.translation.y = value;
+  },
+  'translation.z': (name, element, value) => {
+    element.layout.translation.z = value;
+  },
+};
+
+export const VANITIES = {
+  '*': {
+    ...LAYOUT_3D_VANITIES,
+
+    // CSS style properties that need special handling
+    'style.WebkitTapHighlightColor': (_, element, value) => {
+      element.attributes.style.webkitTapHighlightColor = value;
+    },
+
+    // Text and other inner-content related vanities
+    content: (_, element, value) => {
+      element.children = [value + ''];
+    },
+    children: (_, element, value) => {
+      element.children = value;
+    },
+    insert: (_, element, value) => {
+      element.children = [value];
+    },
+
+    // Playback-related vanities that involve controlling timeline or clock time
+    playback: (
+      name,
+      element,
+      value: any,
+      context: HaikuContext,
+      timeline: HaikuTimeline,
+      receiver: HaikuComponent,
+      sender: HaikuComponent,
+    ) => {
+      const canonicalValue = getCanonicalPlaybackValue(value);
+
+      for (const timelineName in canonicalValue) {
+        const timelineInstance = receiver && receiver.getTimeline(timelineName);
+
+        if (timelineInstance) {
+          timelineInstance.setPlaybackStatus(canonicalValue[timelineName]);
+        }
+      }
+    },
+
+    // Control-flow vanities that alter the output structure of the component
+    'controlFlow.placeholder': (
+      name,
+      element,
+      value,
+      context,
+      timeline,
+      receiver,
+      sender,
+    ) => {
+      if (value === null || value === undefined) {
+        return;
+      }
+
+      if (typeof value !== 'number' && typeof value !== 'string') {
+        return;
+      }
+
+      let surrogates;
+
+      // Surrogates can be passed in as:
+      //   - React children (an array)
+      //   - A React subtree (we'll use query selectors to match)
+      //   - A Haiku subtree (we'll use query selectors to match)
+      //   - Key/value pairs
+      if (context.config.children) {
+        surrogates = context.config.children;
+        if (!Array.isArray(surrogates)) {
+          surrogates = [surrogates];
+        }
+      } else if (context.config.placeholder) {
+        surrogates = context.config.placeholder;
+      }
+
+      if (!surrogates) {
+        return;
+      }
+
+      const surrogate = selectSurrogate(surrogates, value);
+
+      if (surrogate === null || surrogate === undefined) {
+        return;
+      }
+
+      // If we have a surrogate, then we must clear the children, otherwise we will often
+      // see a flash of the default content before the injected content flows in lazily
+      element.children = [];
+
+      // If we are running via a framework adapter, allow that framework to provide its own placeholder mechanism.
+      // This is necessary e.g. in React where their element format needs to be converted into our 'mana' format
+      if (context.config.vanities['controlFlow.placeholder']) {
+        context.config.vanities['controlFlow.placeholder'](
+          element,
+          surrogate,
+          value,
+          context,
+          timeline,
+          receiver,
+          sender,
+        );
+      } else {
+        controlFlowPlaceholderImpl(element, surrogate, receiver);
+      }
+    },
+  },
+};
+
+export const getFallback = (elementName: string, propertyName: string) => {
+  if (elementName) {
+    if (
+      LAYOUT_COORDINATE_SYSTEM_FALLBACKS[elementName] &&
+      LAYOUT_COORDINATE_SYSTEM_FALLBACKS[elementName][propertyName] !== undefined) {
+      return LAYOUT_COORDINATE_SYSTEM_FALLBACKS[elementName][propertyName];
+    }
+
+    if (FALLBACKS[elementName] && FALLBACKS[elementName][propertyName] !== undefined) {
+      return FALLBACKS[elementName][propertyName];
+    }
+  }
+
+  return FALLBACKS['*'][propertyName];
+};
+
+const LAYOUT_COORDINATE_SYSTEM_FALLBACKS = {
+  svg: {
+    'origin.x': 0.5,
+    'origin.y': 0.5,
+    'origin.z': 0.5,
+  },
+};
+
+const LAYOUT_DEFAULTS = Layout3D.createLayoutSpec();
+
+export const FALLBACKS = {
+  '*': {
+    shown: LAYOUT_DEFAULTS.shown,
+    opacity: LAYOUT_DEFAULTS.opacity,
+    content: null,
+    'mount.x': LAYOUT_DEFAULTS.mount.x,
+    'mount.y': LAYOUT_DEFAULTS.mount.y,
+    'mount.z': LAYOUT_DEFAULTS.mount.z,
+    'align.x': LAYOUT_DEFAULTS.align.x,
+    'align.y': LAYOUT_DEFAULTS.align.y,
+    'align.z': LAYOUT_DEFAULTS.align.z,
+    'origin.x': LAYOUT_DEFAULTS.origin.x,
+    'origin.y': LAYOUT_DEFAULTS.origin.y,
+    'origin.z': LAYOUT_DEFAULTS.origin.z,
+    'translation.x': LAYOUT_DEFAULTS.translation.x,
+    'translation.y': LAYOUT_DEFAULTS.translation.y,
+    'translation.z': LAYOUT_DEFAULTS.translation.z,
+    'rotation.x': LAYOUT_DEFAULTS.rotation.x,
+    'rotation.y': LAYOUT_DEFAULTS.rotation.y,
+    'rotation.z': LAYOUT_DEFAULTS.rotation.z,
+    'scale.x': LAYOUT_DEFAULTS.scale.x,
+    'scale.y': LAYOUT_DEFAULTS.scale.y,
+    'scale.z': LAYOUT_DEFAULTS.scale.z,
+    'shear.xy': LAYOUT_DEFAULTS.shear.xy,
+    'shear.xz': LAYOUT_DEFAULTS.shear.xz,
+    'shear.yz': LAYOUT_DEFAULTS.shear.yz,
+    'sizeAbsolute.x': LAYOUT_DEFAULTS.sizeAbsolute.x,
+    'sizeAbsolute.y': LAYOUT_DEFAULTS.sizeAbsolute.y,
+    'sizeAbsolute.z': LAYOUT_DEFAULTS.sizeAbsolute.z,
+    'sizeProportional.x': LAYOUT_DEFAULTS.sizeProportional.x,
+    'sizeProportional.y': LAYOUT_DEFAULTS.sizeProportional.y,
+    'sizeProportional.z': LAYOUT_DEFAULTS.sizeProportional.z,
+    'sizeDifferential.x': LAYOUT_DEFAULTS.sizeDifferential.x,
+    'sizeDifferential.y': LAYOUT_DEFAULTS.sizeDifferential.y,
+    'sizeDifferential.z': LAYOUT_DEFAULTS.sizeDifferential.z,
+    'sizeMode.x': LAYOUT_DEFAULTS.sizeMode.x,
+    'sizeMode.y': LAYOUT_DEFAULTS.sizeMode.y,
+    'sizeMode.z': LAYOUT_DEFAULTS.sizeMode.z,
+    'style.overflowX': 'hidden',
+    'style.overflowY': 'hidden',
+    'style.zIndex': 1,
+    'style.WebkitTapHighlightColor': 'rgba(0,0,0,0)',
+    width: 0,
+    height: 0,
+    x: 0,
+    y: 0,
+    r: 0,
+    cx: 0,
+    cy: 0,
+    rx: 0,
+    ry: 0,
+    x1: 0,
+    y1: 0,
+    x2: 0,
+    y2: 0,
+    playback: PlaybackSetting.LOOP,
+    'controlFlow.repeat': null,
+    'controlFlow.placeholder': null,
+  },
+};
+
+export const LAYOUT_3D_SCHEMA = {
+  shown: 'boolean',
+  opacity: 'number',
+  'mount.x': 'number',
+  'mount.y': 'number',
+  'mount.z': 'number',
+  'align.x': 'number',
+  'align.y': 'number',
+  'align.z': 'number',
+  'origin.x': 'number',
+  'origin.y': 'number',
+  'origin.z': 'number',
+  'translation.x': 'number',
+  'translation.y': 'number',
+  'translation.z': 'number',
+  'rotation.x': 'number',
+  'rotation.y': 'number',
+  'rotation.z': 'number',
+  'scale.x': 'number',
+  'scale.y': 'number',
+  'scale.z': 'number',
+  'shear.xy': 'number',
+  'shear.xz': 'number',
+  'shear.yz': 'number',
+  'sizeAbsolute.x': 'number',
+  'sizeAbsolute.y': 'number',
+  'sizeAbsolute.z': 'number',
+  'sizeProportional.x': 'number',
+  'sizeProportional.y': 'number',
+  'sizeProportional.z': 'number',
+  'sizeDifferential.x': 'number',
+  'sizeDifferential.y': 'number',
+  'sizeDifferential.z': 'number',
+  'sizeMode.x': 'number',
+  'sizeMode.y': 'number',
+  'sizeMode.z': 'number',
 };

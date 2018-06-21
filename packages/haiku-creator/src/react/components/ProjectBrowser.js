@@ -1,36 +1,36 @@
-import lodash from 'lodash'
-import React from 'react'
-import Radium from 'radium'
-import Popover from 'react-popover'
-import { CSSTransition, TransitionGroup } from 'react-transition-group'
-import { FadingCircle } from 'better-react-spinkit'
-import Palette from 'haiku-ui-common/lib/Palette'
-import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
-import Toast from './notifications/Toast'
-import NotificationExplorer from './notifications/NotificationExplorer'
-import ProjectThumbnail from './ProjectThumbnail'
-import { TOUR_CHANNEL } from 'haiku-sdk-creator/lib/tour'
-import { UserIconSVG, LogOutSVG, LogoMicroSVG, PresentIconSVG } from 'haiku-ui-common/lib/react/OtherIcons'
-import { DASH_STYLES } from '../styles/dashShared'
-import { BTN_STYLES } from '../styles/btnShared'
-import { ExternalLink } from 'haiku-ui-common/lib/react/ExternalLink'
+import * as lodash from 'lodash';
+import * as React from 'react';
+import * as Radium from 'radium';
+import * as Popover from 'react-popover';
+import {CSSTransition, TransitionGroup} from 'react-transition-group';
+import {FadingCircle} from 'better-react-spinkit';
+import Palette from 'haiku-ui-common/lib/Palette';
+import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
+import Toast from './notifications/Toast';
+import NotificationExplorer from './notifications/NotificationExplorer';
+import ProjectThumbnail from './ProjectThumbnail';
+import {TOUR_CHANNEL} from 'haiku-sdk-creator/lib/tour';
+import {UserIconSVG, LogOutSVG, LogoMicroSVG, PresentIconSVG} from 'haiku-ui-common/lib/react/OtherIcons';
+import {DASH_STYLES} from '../styles/dashShared';
+import {BTN_STYLES} from '../styles/btnShared';
+import {ExternalLink} from 'haiku-ui-common/lib/react/ExternalLink';
 
-const HARDCODED_PROJECTS_LIMIT = 50
+const HARDCODED_PROJECTS_LIMIT = 50;
 
 const STYLES = {
   adminButton: {
     // TODO: make this a bit more not subdued?
-    background: 'linear-gradient(180deg, rgb(247,183,89), rgb(229,116,89) 50%, rgb(213,53,89))'
-  }
-}
+    background: 'linear-gradient(180deg, rgb(247,183,89), rgb(229,116,89) 50%, rgb(213,53,89))',
+  },
+};
 
 class ProjectBrowser extends React.Component {
   constructor (props) {
-    super(props)
-    this.renderNotice = this.renderNotice.bind(this)
-    this.openPopover = this.openPopover.bind(this)
-    this.closePopover = this.closePopover.bind(this)
-    this.handleProjectLaunch = this.handleProjectLaunch.bind(this)
+    super(props);
+    this.renderNotice = this.renderNotice.bind(this);
+    this.openPopover = this.openPopover.bind(this);
+    this.closePopover = this.closePopover.bind(this);
+    this.handleProjectLaunch = this.handleProjectLaunch.bind(this);
     this.state = {
       username: null,
       error: null,
@@ -45,42 +45,42 @@ class ProjectBrowser extends React.Component {
       confirmDeleteMatches: false,
       atProjectMax: false,
       newProjectError: null,
-      newProjectIsPublic: true
-    }
+      newProjectIsPublic: true,
+    };
   }
 
   componentDidMount () {
-    this.loadProjects()
+    this.loadProjects();
 
     this.props.envoyClient.get(TOUR_CHANNEL).then((tourChannel) => {
-      this.tourChannel = tourChannel
+      this.tourChannel = tourChannel;
 
       // FIXME | HACK: since the project browser now supports scrolling, we
       // must ensure the tour project is in viewport when displaying
       // the OpenProject step in the tour.
       this.tourChannel.on('tour:requestShowStep', ({component, selector}) => {
         if (component === 'OpenProject') {
-          const target = document.querySelector(selector)
+          const target = document.querySelector(selector);
           // HACK: Unsure why, but sometimes this isn't present
           if (target && target.parentNode) {
-            target.parentNode.scrollTop = target.offsetTop - 350
+            target.parentNode.scrollTop = target.offsetTop - 350;
           }
         }
-      })
-    })
+      });
+    });
   }
 
   openPopover (evt) {
-    evt.stopPropagation()
-    this.setState({ isPopoverOpen: true })
+    evt.stopPropagation();
+    this.setState({isPopoverOpen: true});
 
-    mixpanel.haikuTrack('creator:project-browser:user-menu-opened')
+    mixpanel.haikuTrack('creator:project-browser:user-menu-opened');
   }
 
   closePopover () {
-    this.setState({ isPopoverOpen: false })
+    this.setState({isPopoverOpen: false});
 
-    mixpanel.haikuTrack('creator:project-browser:user-menu-closed')
+    mixpanel.haikuTrack('creator:project-browser:user-menu-closed');
   }
 
   loadProjects () {
@@ -91,59 +91,59 @@ class ProjectBrowser extends React.Component {
           title: 'Oh no!',
           message: 'We couldn\'t load your team\'s projects. 😢 Please ensure that your computer is connected to the Internet. If you\'re connected and you still see this message our servers might be having problems. Please try again in a few moments. If you still see this message, contact Haiku for support.',
           closeText: 'Okay',
-          lightScheme: true
-        })
-        this.setState({ error, areProjectsLoading: false })
-        return
+          lightScheme: true,
+        });
+        this.setState({error, areProjectsLoading: false});
+        return;
       }
       this.setState({
         projectsList,
         areProjectsLoading: false,
-        atProjectMax: !this.props.isAdmin && projectsList.length >= HARDCODED_PROJECTS_LIMIT
-      })
-    })
+        atProjectMax: !this.props.isAdmin && projectsList.length >= HARDCODED_PROJECTS_LIMIT,
+      });
+    });
   }
 
   hideDeleteModal () {
-    this.deleteInput.value = ''
-    this.closeModals()
-    this.setState({projToDelete: ''})
+    this.deleteInput.value = '';
+    this.closeModals();
+    this.setState({projToDelete: ''});
   }
 
   handleDeleteInputKeyDown (e) {
     if (e.keyCode === 13 && this.state.confirmDeleteMatches) {
-      this.performDeleteProject()
-      this.hideDeleteModal()
-      return
+      this.performDeleteProject();
+      this.hideDeleteModal();
+      return;
     }
 
-    this.closeModalsOnEscKey(e)
+    this.closeModalsOnEscKey(e);
   }
 
   handleDeleteInputChange (e) {
     this.setState({
       recordedDelete: e.target.value,
-      confirmDeleteMatches: e.target.value === this.state.projToDelete
-    })
+      confirmDeleteMatches: e.target.value === this.state.projToDelete,
+    });
   }
 
   showDeleteModal (name) {
     if (this.deleteInput) {
-      this.deleteInput.value = ''
+      this.deleteInput.value = '';
     }
 
     this.setState({
       showDeleteModal: true,
-      projToDelete: name
-    })
+      projToDelete: name,
+    });
   }
 
   performDeleteProject () {
-    const projectsList = this.state.projectsList
-    const projectToDelete = projectsList.find(project => project.projectName === this.state.projToDelete)
-    const deleteStart = Date.now()
-    projectToDelete.isDeleted = true
-    this.setState({ projectsList }, () => {
+    const projectsList = this.state.projectsList;
+    const projectToDelete = projectsList.find((project) => project.projectName === this.state.projToDelete);
+    const deleteStart = Date.now();
+    projectToDelete.isDeleted = true;
+    this.setState({projectsList}, () => {
       this.requestDeleteProject(projectToDelete.projectName, projectToDelete.projectPath, (deleteError) => {
         if (deleteError) {
           this.props.createNotice({
@@ -151,90 +151,91 @@ class ProjectBrowser extends React.Component {
             title: 'Oh no!',
             message: 'We couldn\'t delete this project. 😩 Please try again in a few moments. If you still see this error, contact Haiku for support.',
             closeText: 'Okay',
-            lightScheme: true
-          })
+            lightScheme: true,
+          });
           // Oops, we actually didn't delete this project. Let's put it back.
-          projectToDelete.isDeleted = false
-          this.setState({ projectsList })
-          return
+          projectToDelete.isDeleted = false;
+          this.setState({projectsList});
+          return;
         }
 
         mixpanel.haikuTrack('creator:project:deleted', {
           username: this.props.username,
           project: projectToDelete.projectName,
-          organization: this.props.organizationName
-        })
+          organization: this.props.organizationName,
+        });
 
         // Make sure at least 200ms (the duration of the "delete" transition) have passed before actually removing
         // the project.
         setTimeout(() => {
           this.setState({
-            projectsList: projectsList.filter(project => project.projectName !== projectToDelete.projectName),
-            atProjectMax: !this.props.isAdmin && projectsList.length >= HARDCODED_PROJECTS_LIMIT
-          })
-        }, Math.min(200, Date.now() - deleteStart))
-      })
-    })
+            projectsList: projectsList.filter((project) => project.projectName !== projectToDelete.projectName),
+            atProjectMax: !this.props.isAdmin && projectsList.length >= HARDCODED_PROJECTS_LIMIT,
+          });
+        }, Math.min(200, Date.now() - deleteStart));
+      });
+    });
   }
 
   requestDeleteProject (name, path, cb) {
-    return this.props.websocket.request({ method: 'deleteProject', params: [name, path] }, cb)
+    return this.props.websocket.request({method: 'deleteProject', params: [name, path]}, cb);
   }
 
   showNewProjectModal () {
-    this.props.onShowNewProjectModal()
+    this.props.onShowNewProjectModal();
   }
 
   doesProjectNameExist (projectName) {
-    const equivalentNameMatcher = new RegExp(`^${projectName}$`, 'i')
-    return this.state.projectsList.find((project) => equivalentNameMatcher.test(project.projectName)) !== undefined
+    const equivalentNameMatcher = new RegExp(`^${projectName}$`, 'i');
+    return this.state.projectsList.find((project) => equivalentNameMatcher.test(project.projectName)) !== undefined;
   }
 
   trimAndSuffix (base, suffix) {
-    const remainingChars = 32 - (base.length + suffix.length)
+    const remainingChars = 32 - (base.length + suffix.length);
 
     if (remainingChars < 0) {
-      base = base.slice(0, remainingChars)
+      // tslint:disable-next-line:no-parameter-reassignment
+      base = base.slice(0, remainingChars);
     }
 
-    return `${base}${suffix}`
+    return `${base}${suffix}`;
   }
 
   showDuplicateProjectModal (projToDuplicateIndex) {
-    const duplicateNameBase = this.state.projectsList[projToDuplicateIndex].projectName
-    const suffixBase = 'Copy'
-    let suffix = suffixBase
-    let iteration = 1
-    let potentialName = this.trimAndSuffix(duplicateNameBase, suffix)
+    const duplicateNameBase = this.state.projectsList[projToDuplicateIndex].projectName;
+    const suffixBase = 'Copy';
+    let suffix = suffixBase;
+    let iteration = 1;
+    let potentialName = this.trimAndSuffix(duplicateNameBase, suffix);
 
     while (this.doesProjectNameExist(potentialName)) {
-      suffix = `${suffixBase}${iteration}`
-      potentialName = this.trimAndSuffix(duplicateNameBase, suffix)
-      iteration++
+      suffix = `${suffixBase}${iteration}`;
+      potentialName = this.trimAndSuffix(duplicateNameBase, suffix);
+      iteration++;
     }
 
-    this.props.onShowNewProjectModal(true, potentialName, projToDuplicateIndex)
+    this.props.onShowNewProjectModal(true, potentialName, projToDuplicateIndex);
   }
 
   projectsListElement () {
-    const { showDeleteModal, showNewProjectModal, showChangelogModal } = this.state
-    const { launchingProject } = this.props
+    const {showDeleteModal, showNewProjectModal, showChangelogModal} = this.state;
+    const {launchingProject} = this.props;
     if (this.state.areProjectsLoading) {
       return (
         <span style={DASH_STYLES.loadingWrap}>
           <FadingCircle size={52} color={Palette.ROCK_MUTED} />
         </span>
-      )
+      );
     }
 
     return (
       <div
         style={[
           DASH_STYLES.projectsWrapper,
-          (showDeleteModal || showNewProjectModal || launchingProject || showChangelogModal) && {filter: 'blur(2px)'}
+          (showDeleteModal || showNewProjectModal || launchingProject || showChangelogModal) && {filter: 'blur(2px)'},
         ]}
         onScroll={lodash.throttle(() => {
-          this.tourChannel.updateLayout()
+          this.tourChannel.updateLayout();
         }, 50)}
       >
         {this.state.projectsList.map((projectObject, index) => (
@@ -253,27 +254,27 @@ class ProjectBrowser extends React.Component {
         ))}
         {/* the following abomination is needed for the nifty flexbox resizing.
             They are extra invisible spacers for the final row */}
-        <div style={[DASH_STYLES.card, DASH_STYLES.dontAtMe]} key='123' />
-        <div style={[DASH_STYLES.card, DASH_STYLES.dontAtMe]} key='252' />
-        <div style={[DASH_STYLES.card, DASH_STYLES.dontAtMe]} key='332' />
-        <div style={[DASH_STYLES.card, DASH_STYLES.dontAtMe]} key='423' />
-        <div style={[DASH_STYLES.card, DASH_STYLES.dontAtMe]} key='532' />
-        <div style={[DASH_STYLES.card, DASH_STYLES.dontAtMe]} key='623' />
+        <div style={[DASH_STYLES.card, DASH_STYLES.dontAtMe]} key="123" />
+        <div style={[DASH_STYLES.card, DASH_STYLES.dontAtMe]} key="252" />
+        <div style={[DASH_STYLES.card, DASH_STYLES.dontAtMe]} key="332" />
+        <div style={[DASH_STYLES.card, DASH_STYLES.dontAtMe]} key="423" />
+        <div style={[DASH_STYLES.card, DASH_STYLES.dontAtMe]} key="532" />
+        <div style={[DASH_STYLES.card, DASH_STYLES.dontAtMe]} key="623" />
       </div>
-    )
+    );
   }
 
   handleProjectLaunch (projectObject) {
     if (this.tourChannel) {
-      this.tourChannel.hide()
+      this.tourChannel.hide();
     }
 
-    this.props.launchProject(projectObject.projectName, projectObject)
+    this.props.launchProject(projectObject.projectName, projectObject);
   }
 
   renderNotice (content, i) {
     return (
-      <CSSTransition timeout={400} classNames='toast' key={i + content.title}>
+      <CSSTransition timeout={400} classNames="toast" key={i + content.title}>
         <Toast
           toastType={content.type}
           toastTitle={content.title}
@@ -283,20 +284,20 @@ class ProjectBrowser extends React.Component {
           removeNotice={this.props.removeNotice}
           lightScheme={content.lightScheme} />
       </CSSTransition>
-    )
+    );
   }
 
   closeModals () {
     this.setState({
       showDeleteModal: false,
       recordedDelete: '',
-      newProjectIsPublic: true
-    })
+      newProjectIsPublic: true,
+    });
   }
 
   closeModalsOnEscKey (e) {
     if (e.keyCode === 27) {
-      this.closeModals()
+      this.closeModals();
     }
   }
 
@@ -314,9 +315,9 @@ class ProjectBrowser extends React.Component {
                   width: '100%',
                   textOverflow: 'ellipsis',
                   display: 'inline-block',
-                  overflow: 'hidden'
+                  overflow: 'hidden',
                 },
-                DASH_STYLES.noSelect
+                DASH_STYLES.noSelect,
               ]}
             >
               {this.props.username}
@@ -326,7 +327,7 @@ class ProjectBrowser extends React.Component {
 
         <div style={[DASH_STYLES.popover.item, DASH_STYLES.popover.pointer]}>
           <ExternalLink
-            key='user-profile'
+            key="user-profile"
             href={`https://share.haiku.ai/u/${this.props.username}`}>
             <span style={[DASH_STYLES.popover.icon, {transform: 'translateY(3px)'}]}>
               <UserIconSVG />
@@ -335,7 +336,7 @@ class ProjectBrowser extends React.Component {
           </ExternalLink>
         </div>
         <div
-          id='haiku-button-logout'
+          id="haiku-button-logout"
           style={[DASH_STYLES.popover.item, DASH_STYLES.popover.pointer]}
           onClick={this.props.logOut}>
           <span style={DASH_STYLES.popover.icon}>
@@ -346,11 +347,11 @@ class ProjectBrowser extends React.Component {
         <div
           style={[DASH_STYLES.popover.item, DASH_STYLES.popover.pointer]}
           onClick={() => {
-            this.props.onShowChangelogModal()
+            this.props.onShowChangelogModal();
 
             mixpanel.haikuTrack('creator:project-browser:user-menu-option-selected', {
-              option: 'show-changelog'
-            })
+              option: 'show-changelog',
+            });
           }}>
           <span style={DASH_STYLES.popover.icon}>
             <PresentIconSVG />
@@ -364,54 +365,62 @@ class ProjectBrowser extends React.Component {
           <span style={[DASH_STYLES.popover.text, DASH_STYLES.noSelect]}>{this.props.softwareVersion}</span>
         </div>
       </div>
-    )
+    );
   }
 
   renderDeleteModal () {
     return (
       <div style={DASH_STYLES.overlay}
-        onClick={() => { this.hideDeleteModal() }}>
+        onClick={() => {
+          this.hideDeleteModal();
+        }}>
         <div style={DASH_STYLES.modal} onClick={(e) => e.stopPropagation()}>
           <div style={DASH_STYLES.modalTitle}>
             Type "<span style={DASH_STYLES.projToDelete}>{this.state.projToDelete}</span>" to confirm project deletion
           </div>
           <div style={[DASH_STYLES.inputTitle, DASH_STYLES.upcase]}>Delete Project</div>
-          <input key='delete-project'
+          <input key="delete-project"
             ref={(input) => {
-              this.deleteInput = input
+              this.deleteInput = input;
             }}
-            onKeyDown={(e) => { this.handleDeleteInputKeyDown(e) }}
+            onKeyDown={(e) => {
+              this.handleDeleteInputKeyDown(e);
+            }}
             style={[DASH_STYLES.newProjectInput]}
-            onChange={(e) => { this.handleDeleteInputChange(e) }}
-            placeholder='Type Project Name To Delete'
-            autoFocus />
-          <span key='new-project-error' style={DASH_STYLES.newProjectError}>{this.state.newProjectError}</span>
+            onChange={(e) => {
+              this.handleDeleteInputChange(e);
+            }}
+            placeholder="Type Project Name To Delete"
+            autoFocus={true} />
+          <span key="new-project-error" style={DASH_STYLES.newProjectError}>{this.state.newProjectError}</span>
           <button
-            id='delete-go-button'
-            key='delete-go-button'
+            id="delete-go-button"
+            key="delete-go-button"
             disabled={!this.state.confirmDeleteMatches}
             onClick={() => {
-              this.performDeleteProject()
-              this.hideDeleteModal()
+              this.performDeleteProject();
+              this.hideDeleteModal();
             }}
             style={[
               BTN_STYLES.btnText,
               BTN_STYLES.rightBtns,
-              BTN_STYLES.btnPrimaryAlt,
+              BTN_STYLES.btnPrimary,
               DASH_STYLES.upcase,
               !this.state.confirmDeleteMatches && BTN_STYLES.btnDisabled,
-              {marginRight: 0}
+              {marginRight: 0},
             ]}
           >
             Delete Project
           </button>
           <span style={[BTN_STYLES.btnCancel, BTN_STYLES.rightBtns, DASH_STYLES.upcase]}
-            onClick={() => { this.hideDeleteModal() }}>
+            onClick={() => {
+              this.hideDeleteModal();
+            }}>
             Cancel
           </span>
         </div>
       </div>
-    )
+    );
   }
 
   render () {
@@ -428,7 +437,7 @@ class ProjectBrowser extends React.Component {
 
         {this.state.showDeleteModal && this.renderDeleteModal()}
 
-        <div style={DASH_STYLES.frame} className='frame'>
+        <div style={DASH_STYLES.frame} className="frame">
           {this.state.atProjectMax && (
             <span style={DASH_STYLES.bannerNotice}>
               You've reached the project maximum. Contact support@haiku.ai to add more
@@ -442,8 +451,8 @@ class ProjectBrowser extends React.Component {
 
           {!this.state.atProjectMax && (
             <button
-              id='haiku-button-show-new-project-modal'
-              key='new_proj'
+              id="haiku-button-show-new-project-modal"
+              key="new_proj"
               onClick={() => this.showNewProjectModal()}
               style={[BTN_STYLES.btnIcon, BTN_STYLES.btnIconHovered]}
             >
@@ -455,18 +464,18 @@ class ProjectBrowser extends React.Component {
           <Popover
             onOuterAction={this.closePopover}
             isOpen={this.state.isPopoverOpen}
-            place='below'
-            className='three-dot-popover'
+            place="below"
+            className="three-dot-popover"
             body={this.renderUserMenuItems()}
           >
             <button
-              id='haiku-button-show-account-popover'
-              key='user'
+              id="haiku-button-show-account-popover"
+              key="user"
               onClick={this.openPopover}
               style={[
                 BTN_STYLES.btnIcon,
                 BTN_STYLES.btnIconHovered,
-                this.props.isAdmin && STYLES.adminButton
+                this.props.isAdmin && STYLES.adminButton,
               ]}
             >
               <UserIconSVG color={Palette.SUNSTONE} />
@@ -476,7 +485,7 @@ class ProjectBrowser extends React.Component {
 
         {this.projectsListElement()}
       </div>
-    )
+    );
   }
 }
 
@@ -488,7 +497,7 @@ ProjectBrowser.propTypes = {
   launchingProject: React.PropTypes.bool.isRequired,
   lastViewedChangelog: React.PropTypes.string,
   onShowChangelogModal: React.PropTypes.func.isRequired,
-  showChangelogModal: React.PropTypes.bool.isRequired
-}
+  showChangelogModal: React.PropTypes.bool.isRequired,
+};
 
-export default Radium(ProjectBrowser)
+export default Radium(ProjectBrowser);

@@ -61,13 +61,19 @@ export default class HaikuElement extends HaikuBase {
   }
 
   get tagName (): any {
-    if (this.isTextNode()) { return TEXT_PSEUDO_TAG_NAME; }
-    if (this.isComponent()) { return COMPONENT_PSEUDO_TAG_NAME; }
+    if (this.isTextNode()) {
+      return TEXT_PSEUDO_TAG_NAME;
+    }
+    if (this.isComponent()) {
+      return COMPONENT_PSEUDO_TAG_NAME;
+    }
     return this.type || DEFAULT_TAG_NAME;
   }
 
   get nodeType (): any {
-    if (this.isTextNode()) { return 3; }
+    if (this.isTextNode()) {
+      return 3;
+    }
     return 1;
   }
 
@@ -155,7 +161,9 @@ export default class HaikuElement extends HaikuBase {
   }
 
   getTranscludedElement (): HaikuElement|undefined {
-    if (this.type !== 'use') { return this; }
+    if (this.type !== 'use') {
+      return this;
+    }
 
     const href = this.attributes['xlink:href'] || this.attributes.href;
 
@@ -443,7 +451,9 @@ export default class HaikuElement extends HaikuBase {
 
   static findOrCreateByNode = (node) => {
     const found = HaikuElement.findByNode(node);
-    if (found) { return found; }
+    if (found) {
+      return found;
+    }
     return HaikuElement.createByNode(node);
   };
 }

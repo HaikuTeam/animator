@@ -7,7 +7,6 @@ import addLegacyOriginSupport from './helpers/addLegacyOriginSupport';
 import compareSemver from './helpers/compareSemver';
 import visitManaTree from './helpers/visitManaTree';
 import xmlToMana from './helpers/xmlToMana';
-import schema from './properties/dom/schema';
 import functionToRFO from './reflection/functionToRFO';
 import reifyRFO from './reflection/reifyRFO';
 
@@ -20,6 +19,12 @@ const enum UpgradeVersionRequirement {
 
 const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source';
 const HAIKU_VAR_ATTRIBUTE = 'haiku-var';
+
+const ELEMENTS_THAT_SUPPORT_ORIGIN = {
+  div: true,
+  svg: true,
+  g: true,
+};
 
 const requiresUpgrade = (coreVersion: string, requiredVersion: UpgradeVersionRequirement) => !coreVersion ||
   compareSemver(
@@ -179,8 +184,8 @@ export const runMigrations = (component: HaikuComponent, options: any, version: 
 
   if (requiresUpgrade(coreVersion, UpgradeVersionRequirement.OriginSupport)) {
     component.visit((element) => {
-      if (schema[element.tagName] && schema[element.tagName]['origin.x']) {
-        // We only need to upgrade elements whose schemas support origin.
+      // We only need to upgrade elements whose schemas support origin.
+      if (ELEMENTS_THAT_SUPPORT_ORIGIN[element.tagName]) {
         addLegacyOriginSupport(
           element.tagName === 'svg',
           element.rawLayout,
@@ -199,6 +204,11 @@ export const runMigrations = (component: HaikuComponent, options: any, version: 
 
   if (requiresUpgrade(coreVersion, UpgradeVersionRequirement.TimelineDefaultFrames)) {
     component.eachEventHandler((eventSelector, eventName, {handler}) => {
+      if (!handler) {
+        console.warn(`Unable to migrate event handler for ${eventSelector} ${eventName} in ${component.$id}`);
+        return;
+      }
+
       const rfo = handler.__rfo || functionToRFO(handler).__function;
       let body: string = rfo.body;
       let changed = false;

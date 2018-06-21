@@ -1,13 +1,14 @@
 {
-  "date": "June 6, 2018",
+  "date": "June 20, 2018",
   "sections": {
+    "What's new": [
+      "Added a raw code editor for editing components.",
+      "Git commit history is now more descriptive.",
+      "Figma frames are now synced to Haiku.",
+      "Added support for SVGs generated with Affinity."
+    ],
     "Fixes": [
-      "Fixed bug preventing correct rendering of certain polygon and polyline shapes.",
-      "Fixed bug preventing some Haiku from playing back on the share page.",
-      "Fixed an issue preventing boolean states from being applied.",
-      "Fixed a rendering issue with certain Figma shadows.",
-      "Fixed rendering issues with certain filter effects.",
-      "Fixed various issues related to multi-component functionality."
+      "Fixed several UX issues related to new project creation."
     ]
   }
 }

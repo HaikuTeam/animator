@@ -1,16 +1,17 @@
-import React from 'react'
-import marked from 'marked'
-import {shell} from 'electron'
+import * as React from 'react';
+import * as marked from 'marked';
+import {shell} from 'electron';
 import {
   ModalWrapper,
-  ModalHeader
-} from 'haiku-ui-common/lib/react/Modal'
-import {LogoMicroSVG} from 'haiku-ui-common/lib/react/OtherIcons'
-import {BTN_STYLES} from '../styles/btnShared'
-import {DASH_STYLES} from '../styles/dashShared'
-import Palette from 'haiku-ui-common/lib/Palette'
-import {PrettyScroll} from 'haiku-ui-common/lib/react/PrettyScroll'
-import Changelog from 'haiku-serialization/src/bll/Changelog'
+  ModalHeader,
+} from 'haiku-ui-common/lib/react/Modal';
+import {LogoMicroSVG} from 'haiku-ui-common/lib/react/OtherIcons';
+import ExternalLinkIconSVG from 'haiku-ui-common/lib/react/icons/ExternalLinkIconSVG';
+import {BTN_STYLES} from '../styles/btnShared';
+import {DASH_STYLES} from '../styles/dashShared';
+import Palette from 'haiku-ui-common/lib/Palette';
+import {PrettyScroll} from 'haiku-ui-common/lib/react/PrettyScroll';
+import * as Changelog from 'haiku-serialization/src/bll/Changelog';
 
 const STYLES = {
   modalWrapper: {
@@ -18,57 +19,64 @@ const STYLES = {
     zIndex: '9002',
     position: 'absolute',
     top: '50%',
-    transform: 'translateY(-50%)'
+    transform: 'translateY(-50%)',
   },
   modalContent: {
-    padding: '20px 40px 60px'
+    padding: '20px 40px 60px',
   },
   iconStyle: {
-    marginRight: '8px'
+    marginRight: '8px',
   },
   button: {
     ...BTN_STYLES.btnText,
-    ...BTN_STYLES.btnBlack
+    ...BTN_STYLES.btnBlack,
   },
   version: {
-    fontSize: '30px'
+    fontSize: '30px',
   },
   date: {
-    fontSize: '11px'
+    fontSize: '11px',
   },
   logoAndVersion: {
     display: 'flex',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   sectionTitle: {
     textTransform: 'uppercase',
     fontWeight: 'normal',
-    fontSize: '15px'
+    fontSize: '15px',
   },
   list: {
     paddingLeft: '30px',
-    fontSize: '13px'
-  }
-}
+    fontSize: '13px',
+  },
+  link: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    color: Palette.LIGHT_BLUE,
+    cursor: 'pointer',
+  },
+};
 
 class ChangelogModal extends React.PureComponent {
   constructor (props) {
-    super()
-    this.changelogManager = new Changelog(props.lastViewedChangelog)
+    super();
+    this.changelogManager = new Changelog(props.lastViewedChangelog);
     this.state = {
-      changelog: null
-    }
+      changelog: null,
+    };
   }
 
   componentDidMount () {
     this.changelogManager.getChangelog().then((changelog) => {
-      this.setState({changelog})
-    })
+      this.setState({changelog});
+    });
   }
 
   renderSections (changelog) {
-    const result = []
-    for (let section in changelog.sections) {
+    const result = [];
+    for (const section in changelog.sections) {
       result.push(
         <div key={section}>
           <h3 style={STYLES.sectionTitle}>{section}</h3>
@@ -79,27 +87,36 @@ class ChangelogModal extends React.PureComponent {
                   key={idx}
                   dangerouslySetInnerHTML={{__html: marked(entry)}}
                 />
-              )
+              );
             })}
           </ul>
-        </div>
-      )
+        </div>,
+      );
     }
-    return result
+    return result;
   }
 
   render () {
-    const changelog = this.state.changelog
+    const changelog = this.state.changelog;
     if (!changelog) {
-      return null
+      return null;
     }
     return (
-      <div id='changelogwrap' style={DASH_STYLES.overlay} onClick={this.props.onClose}>
+      <div id="changelogwrap" style={DASH_STYLES.overlay} onClick={this.props.onClose}>
         <ModalWrapper style={STYLES.modalWrapper}>
           <ModalHeader>
-            <h2>
-              <i>Release Notes</i>
-            </h2>
+            <span><h2><i>Release Notes</i></h2></span>
+            <span
+              style={STYLES.link}
+              onClick={() => {
+                shell.openExternal('https://www.haiku.ai/release-notes');
+              }}
+            >
+              Full Changelog
+              <span style={{marginLeft: 6}}>
+                <ExternalLinkIconSVG color={Palette.LIGHT_BLUE} />
+              </span>
+            </span>
           </ModalHeader>
 
           <div style={STYLES.modalContent}>
@@ -132,11 +149,11 @@ class ChangelogModal extends React.PureComponent {
 
             <PrettyScroll>
               <div
-                className='changelog'
+                className="changelog"
                 onClick={(e) => {
                   if (e.target.href) {
-                    e.preventDefault()
-                    shell.openExternal(e.target.href)
+                    e.preventDefault();
+                    shell.openExternal(e.target.href);
                   }
                 }}
               >
@@ -146,13 +163,13 @@ class ChangelogModal extends React.PureComponent {
           </div>
         </ModalWrapper>
       </div>
-    )
+    );
   }
 }
 
 ChangelogModal.propTypes = {
   onClose: React.PropTypes.func.isRequired,
-  lastViewedChangelog: React.PropTypes.string
-}
+  lastViewedChangelog: React.PropTypes.string,
+};
 
-export default ChangelogModal
+export default ChangelogModal;

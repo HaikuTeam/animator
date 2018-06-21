@@ -90,7 +90,6 @@ class Timeline extends React.Component {
     )
 
     this.handleRequestElementCoordinates = this.handleRequestElementCoordinates.bind(this)
-    this.showEventHandlersEditor = this.showEventHandlersEditor.bind(this)
     this.showFrameActionsEditor = this.showFrameActionsEditor.bind(this)
     this.mouseMoveListener = this.mouseMoveListener.bind(this)
     this.mouseUpListener = this.mouseUpListener.bind(this)
@@ -230,9 +229,6 @@ class Timeline extends React.Component {
       switch (what) {
         case 'setCurrentActiveComponent':
           this.handleActiveComponentReady()
-          break
-        case 'application-mounted':
-          this.handleHaikuComponentMounted()
           break
         case 'reloaded':
           if (arg === 'hard' && this.mounted) {
@@ -452,16 +448,7 @@ class Timeline extends React.Component {
     ipcRenderer.send('topmenu:update', {
       subComponents: this.project.describeSubComponents()
     })
-  }
 
-  mountHaikuComponent () {
-    // The Timeline UI doesn't display the component, so we don't bother giving it a ref
-    this.getActiveComponent().mountApplication(null, {
-      freeze: true // No display means no need for overflow settings, etc
-    })
-  }
-
-  handleHaikuComponentMounted () {
     this.loadUserSettings()
     this.getActiveComponent().getCurrentTimeline().setTimelinePixelWidth(document.body.clientWidth - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() + 20)
 
@@ -473,6 +460,13 @@ class Timeline extends React.Component {
       name: 'project-state-change',
       what: 'component:mounted',
       scenename: this.getActiveComponent().getSceneName()
+    })
+  }
+
+  mountHaikuComponent () {
+    // The Timeline UI doesn't display the component, so we don't bother giving it a ref
+    this.getActiveComponent().mountApplication(null, {
+      freeze: true // No display means no need for overflow settings, etc
     })
   }
 
@@ -488,7 +482,8 @@ class Timeline extends React.Component {
   getPopoverMenuItems ({ event, type, model, offset, curve }) {
     const items = []
 
-    const numSelectedKeyframes = this.getActiveComponent().getSelectedKeyframes().length
+    const selectedKeyframes = this.getActiveComponent().getSelectedKeyframes()
+    const numSelectedKeyframes = selectedKeyframes.length
 
     items.push({
       label: 'Create Keyframe',
@@ -517,6 +512,17 @@ class Timeline extends React.Component {
       enabled: type === 'keyframe',
       onClick: (event) => {
         this.getActiveComponent().deleteSelectedKeyframes({ from: 'timeline' })
+      }
+    })
+
+    items.push({ type: 'separator' })
+
+    items.push({
+      label: 'Move to Frame 0',
+      enabled: this.getActiveComponent().checkIfSelectedKeyframesAreMovableToZero(),
+      onClick: (event) => {
+        selectedKeyframes.forEach((keyframe) => { keyframe.moveTo(0, 0) })
+        this.getActiveComponent().commitAccumulatedKeyframeMovesDebounced()
       }
     })
 
@@ -1207,8 +1213,8 @@ class Timeline extends React.Component {
                                 getActiveComponent={() => {
                                   return this.getActiveComponent()
                                 }}
-                                showEventHandlersEditor={() => {
-                                  this.showEventHandlersEditor()
+                                showEventHandlersEditor={(...args) => {
+                                  this.showEventHandlersEditor(...args)
                                 }}
                                 />
                             </div>

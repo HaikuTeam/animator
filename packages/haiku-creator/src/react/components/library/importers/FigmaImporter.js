@@ -1,5 +1,5 @@
-import React from 'react'
-import FigmaForm from './FigmaForm'
+import * as React from 'react';
+import FigmaForm from './FigmaForm';
 
 const STYLES = {
   button: {
@@ -8,21 +8,21 @@ const STYLES = {
     width: '100%',
     display: 'inline-block',
     textAlign: 'left',
-    fontFamily: 'inherit'
-  }
-}
+    fontFamily: 'inherit',
+  },
+};
 
 class FigmaImporter extends React.PureComponent {
   constructor (props) {
-    super(props)
+    super(props);
 
     this.state = {
-      isFormVisible: false
-    }
+      isFormVisible: false,
+    };
   }
 
   renderForm () {
-    this.setState({ isFormVisible: true })
+    this.setState({isFormVisible: true});
   }
 
   render () {
@@ -31,7 +31,7 @@ class FigmaImporter extends React.PureComponent {
         <button
           style={STYLES.button}
           onClick={() => {
-            this.renderForm()
+            this.renderForm();
           }}
         >
           Connect Figma Project
@@ -46,14 +46,14 @@ class FigmaImporter extends React.PureComponent {
           />
         )}
       </div>
-    )
+    );
   }
 }
 
 FigmaImporter.propTypes = {
   onPopoverHide: React.PropTypes.func.isRequired,
   onImportFigmaAsset: React.PropTypes.func.isRequired,
-  figma: React.PropTypes.object
-}
+  figma: React.PropTypes.object,
+};
 
-export default FigmaImporter
+export default FigmaImporter;

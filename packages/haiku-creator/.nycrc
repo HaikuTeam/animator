@@ -1,0 +1,13 @@
+{
+  "extension": [
+    ".ts"
+  ],
+  "include": [
+    "src/**/*.ts"
+  ],
+  "reporter": [
+    "istanbul-reporter-cobertura-haiku",
+    "html"
+  ],
+  "all": true
+}

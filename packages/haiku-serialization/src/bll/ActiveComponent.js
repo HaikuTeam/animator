@@ -4,11 +4,11 @@ const pretty = require('pretty')
 const async = require('async')
 const jss = require('json-stable-stringify')
 const pascalcase = require('pascalcase')
-const {LAYOUT_3D_SCHEMA} = require('@haiku/core/lib/properties/dom/schema')
-const {PLAYBACK_SETTINGS} = require('@haiku/core/lib/properties/dom/vanities')
+const {PlaybackSetting} = require('@haiku/core/lib/HaikuTimeline')
 const {HAIKU_ID_ATTRIBUTE, HAIKU_TITLE_ATTRIBUTE, HAIKU_VAR_ATTRIBUTE} = require('@haiku/core/lib/HaikuElement')
 const {sortedKeyframes} = require('@haiku/core/lib/Transitions').default
 const HaikuComponent = require('@haiku/core/lib/HaikuComponent').default
+const {LAYOUT_3D_SCHEMA} = require('@haiku/core/lib/HaikuComponent')
 const HaikuDOMAdapter = require('@haiku/core/lib/adapters/dom').default
 const {InteractionMode, isPreviewMode} = require('@haiku/core/lib/helpers/interactionModes')
 const Layout3D = require('@haiku/core/lib/Layout3D').default
@@ -18,8 +18,10 @@ const CryptoUtils = require('./../utils/CryptoUtils')
 const toTitleCase = require('./helpers/toTitleCase')
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 const Lock = require('./Lock')
+const SustainedWarningChecker = require('haiku-common/lib/sustained-checker/SustainedWarningChecker').default
 
 const KEYFRAME_MOVE_DEBOUNCE_TIME = 100
+const CHECK_SUSTAINED_WARNINGS_DEBOUNCE_TIME = 1000
 const DEFAULT_SCENE_NAME = 'main' // e.g. code/main/*
 const DEFAULT_INTERACTION_MODE = InteractionMode.EDIT
 const DEFAULT_TIMELINE_NAME = 'Default'
@@ -128,12 +130,7 @@ class ActiveComponent extends BaseModel {
     this.project.addActiveComponentToRegistry(this)
 
     // Used to control how we render in an editing environment, e.g. preview mode
-    this._interactionMode = DEFAULT_INTERACTION_MODE
-
-    this.project.upsertFile({
-      relpath: this.getRelpath(),
-      type: File.TYPES.code
-    })
+    this.interactionMode = DEFAULT_INTERACTION_MODE
 
     Element.on('update', (element, what, metadata) => {
       if (element.component === this) {
@@ -344,25 +341,7 @@ class ActiveComponent extends BaseModel {
   }
 
   fetchActiveBytecodeFile () {
-    const folder = this.project.getFolder()
-    const relpath = this.getRelpath()
-    const uid = path.join(folder, relpath)
-
-    let file = File.findById(uid)
-
-    // There is a race where the file might not be ready, so we upsert
-    if (!file) {
-      logger.warn(`[active component (${folder})] fetchActiveBytecodeFile called before file was upserted`)
-      file = this.project.upsertFile({
-        relpath,
-        type: File.TYPES.code
-      })
-
-      // This calls require, which might introduce its own race ¯\_(ツ)_/¯
-      file.mod.load()
-    }
-
-    return file
+    return this.file
   }
 
   forceFlush () {
@@ -384,7 +363,7 @@ class ActiveComponent extends BaseModel {
   }
 
   clearCaches (options = {}) {
-    this.$instance.clearCaches(options) // Also clears instance._builder sub-caches
+    this.$instance.clearCaches(options) // Also clears instance.builder sub-caches
     this.fetchRootElement().cache.clear()
     if (options.doClearEntityCaches) {
       this.fetchRootElement().clearEntityCaches()
@@ -392,7 +371,7 @@ class ActiveComponent extends BaseModel {
   }
 
   clearCachedClusters (timelineName, componentId) {
-    this.$instance._builder.clearCachedClusters(timelineName, componentId)
+    this.$instance.builder.clearCachedClusters(timelineName, componentId)
   }
 
   updateTimelineMaxes (timelineName) {
@@ -503,6 +482,7 @@ class ActiveComponent extends BaseModel {
    * Note: This gets called automatically by element.select()
    */
   handleElementSelected (componentId, metadata) {
+    metadata.integrity = false
     this.project.updateHook('selectElement', this.getRelpath(), componentId, metadata, (fire) => fire())
   }
 
@@ -514,14 +494,17 @@ class ActiveComponent extends BaseModel {
    * Note: This gets called automatically by element.unselect()
    */
   handleElementUnselected (componentId, metadata) {
+    metadata.integrity = false
     this.project.updateHook('unselectElement', this.getRelpath(), componentId, metadata, (fire) => fire())
   }
 
   handleElementHovered (componentId, metadata) {
+    metadata.integrity = false
     this.project.updateHook('hoverElement', this.getRelpath(), componentId, metadata, (fire) => fire())
   }
 
   handleElementUnhovered (componentId, metadata) {
+    metadata.integrity = false
     this.project.updateHook('unhoverElement', this.getRelpath(), componentId, metadata, (fire) => fire())
   }
 
@@ -616,7 +599,7 @@ class ActiveComponent extends BaseModel {
   }
 
   isPreviewModeActive () {
-    return isPreviewMode(this._interactionMode)
+    return isPreviewMode(this.interactionMode)
   }
 
   /**
@@ -624,53 +607,7 @@ class ActiveComponent extends BaseModel {
   * @description Changes the current interaction mode and flushes all cachés
   */
   setInteractionMode (interactionMode, cb) {
-    this._interactionMode = interactionMode
-
-    this.$instance.visitGuestHierarchy((instance) => {
-      instance.assignConfig({
-        interactionMode: interactionMode,
-        // Disable hot editing mode during preview mode for smooth playback.
-        hotEditingMode: !this.isPreviewModeActive()
-      })
-    })
-
-    const mainTimeline = this.$instance.getTimeline(this.getCurrentTimelineName())
-
-    if (this.isPreviewModeActive()) {
-      // In preview mode, the animation loops endlessly until the user stops it
-      mainTimeline.setRepeat(true)
-
-      // Need to reset the timelines of the component an all of its guests
-      this.$instance.visitGuestHierarchy((instance) => {
-        const otherTimeline = instance.getTimeline(this.getCurrentTimelineName())
-        otherTimeline.gotoAndPlay(0)
-        otherTimeline.unfreeze()
-      })
-    } else {
-      // Unset the endless looping that we began when entering preview mode
-      mainTimeline.setRepeat(false)
-
-      const entity = this.getCurrentTimeline()
-      if (entity) { // May be called before hydrated
-        entity.seek(entity.getCurrentFrame())
-      }
-
-      this.$instance.visitGuestHierarchy((instance) => {
-        const otherTimeline = instance.getTimeline(this.getCurrentTimelineName())
-
-        if (otherTimeline === mainTimeline) {
-          if (entity) {
-            // The main timeline gets set to whatever it had been before entering preview mode
-            otherTimeline.seek(entity.getCurrentFrame())
-          }
-        } else {
-          // Bring all sub-timelines back to 0
-          otherTimeline.seek(0)
-        }
-
-        otherTimeline.freeze()
-      })
-    }
+    this.interactionMode = interactionMode
 
     return this.reload({
       clearCacheOptions: {
@@ -679,13 +616,37 @@ class ActiveComponent extends BaseModel {
     }, null, cb)
   }
 
+  /**
+  * @method setHotEditingMode
+  * @description Changes the current hot-editing mode setting.
+  * Used by Glass when playing the component using the "play" button.
+  */
   setHotEditingMode (hotEditingMode) {
     this.$instance.assignConfig({hotEditingMode})
   }
 
+  getInsertionPointInfo (nonce = 0) {
+    const bytecode = this.getReifiedBytecode()
+
+    const mana = bytecode && bytecode.template
+
+    const index = (mana && mana.children && mana.children.length) || 0
+
+    const template = mana && Template.manaWithOnlyMinimalProps(mana, () => ({}))
+
+    const source = jss(template) + '-' + index + '-' + nonce
+
+    const hash = Template.getHash(source, /* len= */ 6)
+
+    return {
+      template,
+      source,
+      hash
+    }
+  }
+
   getInsertionPointHash () {
-    const template = this.getReifiedBytecode().template
-    return Template.getInsertionPointInfo(template, 0, 0).hash
+    return this.getInsertionPointInfo().hash
   }
 
   /**
@@ -837,11 +798,7 @@ class ActiveComponent extends BaseModel {
   instantiateManaInBytecode (mana, bytecode, overrides, coords) {
     const {
       hash
-    } = Template.getInsertionPointInfo(
-      bytecode.template,
-      bytecode.template.children.length,
-      0
-    )
+    } = this.getInsertionPointInfo(0)
 
     const timelineName = this.getInstantiationTimelineName()
     const timelineTime = this.getInstantiationTimelineTime()
@@ -1142,118 +1099,128 @@ class ActiveComponent extends BaseModel {
           const element = this.findElementByComponentId(id)
 
           // If we can't find this element, we are out of sync and need to crash
-          if (element) {
-            // Grab the bytecode that will represent the element in the sub-component.
-            // We have to do this before deleting the original element or we won't
-            // be able to find the node in the current host template
-            const elementBytecode = element.getQualifiedBytecode()
-
-            // The size of the group selection is used to determine the size of the artboard
-            // of the new component, which means we also have to offset the translations of all
-            // children in accordance with their offset within their original artboard
-            const elementOffset = {
-              'translation.x': translation.x,
-              'translation.y': translation.y
-            }
-
-            const timelineName = this.getCurrentTimelineName()
-
-            const selector = Template.buildHaikuIdSelector(elementBytecode.template.attributes[HAIKU_ID_ATTRIBUTE])
-
-            if (!elementBytecode.timelines[timelineName][selector]) {
-              elementBytecode.timelines[timelineName][selector] = {}
-            }
-
-            for (const propertyName in elementOffset) {
-              const offsetValue = elementOffset[propertyName]
-
-              if (!elementBytecode.timelines[timelineName][selector][propertyName]) {
-                elementBytecode.timelines[timelineName][selector][propertyName] = {}
-              }
-
-              if (!elementBytecode.timelines[timelineName][selector][propertyName][0]) {
-                elementBytecode.timelines[timelineName][selector][propertyName][0] = {}
-              }
-
-              for (const keyframeMs in elementBytecode.timelines[timelineName][selector][propertyName]) {
-                const existingValue = elementBytecode.timelines[timelineName][selector][propertyName][keyframeMs].value || 0
-                const existingCurve = elementBytecode.timelines[timelineName][selector][propertyName][keyframeMs].curve
-
-                if (typeof existingValue === 'function') {
-                  continue
-                }
-
-                const updatedValue = (isNumeric(existingValue))
-                  ? existingValue - offsetValue
-                  : offsetValue
-
-                elementBytecode.timelines[timelineName][selector][propertyName][keyframeMs] = {
-                  value: updatedValue
-                }
-
-                if (existingCurve) {
-                  elementBytecode.timelines[timelineName][selector][propertyName][keyframeMs].curve = existingCurve
-                }
-              }
-            }
-
-            // Insert an identical element into the newly created component
-            newActiveComponent.instantiateBytecode(elementBytecode)
-
-            // Delete all elements that are going to be replaced by the new component
-            this.deleteElementImpl(hostTemplate, id)
-          } else {
-            logger.warn(`[active component] missing element ${id} cannot be deleted`)
+          if (!element) {
+            throw new Error(`Cannot relocate element ${id}`)
           }
+
+          // Grab the bytecode that will represent the element in the sub-component.
+          // We have to do this before deleting the original element or we won't
+          // be able to find the node in the current host template
+          const elementBytecode = element.getQualifiedBytecode()
+
+          // The size of the group selection is used to determine the size of the artboard
+          // of the new component, which means we also have to offset the translations of all
+          // children in accordance with their offset within their original artboard
+          const elementOffset = {
+            'translation.x': translation.x,
+            'translation.y': translation.y
+          }
+
+          const timelineName = this.getCurrentTimelineName()
+
+          const selector = Template.buildHaikuIdSelector(elementBytecode.template.attributes[HAIKU_ID_ATTRIBUTE])
+
+          if (!elementBytecode.timelines[timelineName][selector]) {
+            elementBytecode.timelines[timelineName][selector] = {}
+          }
+
+          for (const propertyName in elementOffset) {
+            const offsetValue = elementOffset[propertyName]
+
+            if (!elementBytecode.timelines[timelineName][selector][propertyName]) {
+              elementBytecode.timelines[timelineName][selector][propertyName] = {}
+            }
+
+            if (!elementBytecode.timelines[timelineName][selector][propertyName][0]) {
+              elementBytecode.timelines[timelineName][selector][propertyName][0] = {}
+            }
+
+            for (const keyframeMs in elementBytecode.timelines[timelineName][selector][propertyName]) {
+              const existingValue = elementBytecode.timelines[timelineName][selector][propertyName][keyframeMs].value || 0
+              const existingCurve = elementBytecode.timelines[timelineName][selector][propertyName][keyframeMs].curve
+
+              if (typeof existingValue === 'function') {
+                continue
+              }
+
+              const updatedValue = (isNumeric(existingValue))
+                ? existingValue - offsetValue
+                : offsetValue
+
+              elementBytecode.timelines[timelineName][selector][propertyName][keyframeMs] = {
+                value: updatedValue
+              }
+
+              if (existingCurve) {
+                elementBytecode.timelines[timelineName][selector][propertyName][keyframeMs].curve = existingCurve
+              }
+            }
+          }
+
+          // Insert an identical element into the newly created component
+          newActiveComponent.instantiateBytecode(elementBytecode)
+
+          // Delete all elements that are going to be replaced by the new component
+          this.deleteElementImpl(hostTemplate, id)
         })
 
-        // Need to ensure we make the requisite updates to disk
-        newActiveComponent.handleUpdatedBytecode(newBytecode)
-
-        const relpath = `./${newActiveComponent.getRelpath()}`
-        const identifier = ModuleWrapper.modulePathToIdentifierName(relpath)
-
-        // Finally we instantiate the created component on our own stage
-        return this.instantiateReference(
-          newActiveComponent, // subcomponent
-          identifier,
-          relpath,
-          coords, // "coords"/"maybeCoords"
-          properties, // properties
-          metadata,
-          (err) => {
-            if (err) {
-              return done(err)
-            }
-
-            // Now set up 'playback' settings on the same keyframes defined for the child.
-            // This makes it clear that keyframes must be defined on the parent in order for
-            // playback to work as expected in the child.
-            const insertion = this.getReifiedBytecode().template.children[0]
-
-            // Places on the host timeline that we're going to create 'playback' keyframes
-            const bookends = [
-              0,
-              Timeline.getMaximumMs(
-                newActiveComponent.getReifiedBytecode(),
-                this.getInstantiationTimelineName()
-              )
-            ]
-
-            bookends.forEach((ms) => {
-              this.upsertProperties(
-                this.getReifiedBytecode(),
-                insertion.attributes[HAIKU_ID_ATTRIBUTE],
-                this.getInstantiationTimelineName(),
-                ms,
-                {'playback': PLAYBACK_SETTINGS.LOOP},
-                'merge'
-              )
-            })
-
-            return done()
+        // We must hard reload the new active component to ensure its own models have
+        // been hydrated, or else element removals on subsequent conglomerations will
+        // fail, i.e. template integrity will mismatch between processes and crash.
+        return newActiveComponent.reload({
+          hardReload: true,
+          clearCacheOptions: {
+            doClearEntityCaches: true
           }
-        )
+        }, {}, () => {
+          // Need to ensure we make the requisite updates to disk
+          newActiveComponent.handleUpdatedBytecode(newBytecode)
+
+          const relpath = `./${newActiveComponent.getRelpath()}`
+          const identifier = ModuleWrapper.modulePathToIdentifierName(relpath)
+
+          // Finally we instantiate the created component on our own stage
+          return this.instantiateReference(
+            newActiveComponent, // subcomponent
+            identifier,
+            relpath,
+            coords, // "coords"/"maybeCoords"
+            properties, // properties
+            metadata,
+            (err) => {
+              if (err) {
+                return done(err)
+              }
+
+              // Now set up 'playback' settings on the same keyframes defined for the child.
+              // This makes it clear that keyframes must be defined on the parent in order for
+              // playback to work as expected in the child.
+              const insertion = this.getReifiedBytecode().template.children[0]
+
+              // Places on the host timeline that we're going to create 'playback' keyframes
+              const bookends = [
+                0,
+                Timeline.getMaximumMs(
+                  newActiveComponent.getReifiedBytecode(),
+                  this.getInstantiationTimelineName()
+                )
+              ]
+
+              bookends.forEach((ms) => {
+                this.upsertProperties(
+                  this.getReifiedBytecode(),
+                  insertion.attributes[HAIKU_ID_ATTRIBUTE],
+                  this.getInstantiationTimelineName(),
+                  ms,
+                  {'playback': PlaybackSetting.LOOP},
+                  'merge'
+                )
+              })
+
+              return done()
+            }
+          )
+        })
       })
     }, (err) => {
       if (err) return cb(err)
@@ -1273,11 +1240,7 @@ class ActiveComponent extends BaseModel {
 
     const {
       hash
-    } = Template.getInsertionPointInfo(
-      existingTemplate,
-      existingTemplate.children.length,
-      0
-    )
+    } = this.getInsertionPointInfo(0)
 
     Bytecode.padIds(incomingBytecode, (oldId) => {
       return Template.getHash(`${oldId}-${hash}`, 12)
@@ -1337,10 +1300,10 @@ class ActiveComponent extends BaseModel {
               release()
               fire(null, manaForWrapperElement)
 
-              // Immediately select the element after it is placed on stage
-              this.selectElement(manaForWrapperElement.attributes[HAIKU_ID_ATTRIBUTE], metadata, () => {})
+              cb(null, manaForWrapperElement)
 
-              return cb(null, manaForWrapperElement)
+              // Immediately select the element after it is placed on stage
+              return this.selectElement(manaForWrapperElement.attributes[HAIKU_ID_ATTRIBUTE], metadata, () => {})
             })
           }
 
@@ -1365,27 +1328,27 @@ class ActiveComponent extends BaseModel {
 
             // For local modules, the only caveat is that the component must be known in memory already
             if (ModuleWrapper.doesRelpathLookLikeLocalComponent(relpath)) {
-              const subcomponent = this.project.findActiveComponentBySource(relpath)
+              return this.project.findActiveComponentBySource(relpath, (err, subcomponent) => {
+                if (!err && subcomponent) {
+                  // We can't go further unless we actually have the reified bytecode
+                  return subcomponent.moduleReload('basicReload', () => {
+                    // This identifier is going to be something like foo_svg_blah
+                    const localComponentIdentifier = ModuleWrapper.modulePathToIdentifierName(relpath)
 
-              if (subcomponent) {
-                // We can't go further unless we actually have the reified bytecode
-                return subcomponent.moduleReload('basicReload', () => {
-                  // This identifier is going to be something like foo_svg_blah
-                  const localComponentIdentifier = ModuleWrapper.modulePathToIdentifierName(relpath)
+                    return this.instantiateReference(
+                      subcomponent,
+                      localComponentIdentifier,
+                      relpath,
+                      coords,
+                      {'origin.x': 0.5, 'origin.y': 0.5},
+                      metadata,
+                      done
+                    )
+                  })
+                }
 
-                  return this.instantiateReference(
-                    subcomponent,
-                    localComponentIdentifier,
-                    relpath,
-                    coords,
-                    {'origin.x': 0.5, 'origin.y': 0.5},
-                    metadata,
-                    done
-                  )
-                })
-              } else {
                 return done(new Error(`Cannot find component ${relpath}`))
-              }
+              })
             }
 
             if (ModuleWrapper.doesRelpathLookLikeSVGDesign(relpath)) {
@@ -1432,7 +1395,7 @@ class ActiveComponent extends BaseModel {
             componentIds.forEach((componentId) => {
               const element = this.findElementByComponentId(componentId)
               if (element) {
-                element.remove(metadata)
+                element.remove()
               }
               this.deleteElementImpl(mana, componentId)
             })
@@ -1683,11 +1646,7 @@ class ActiveComponent extends BaseModel {
 
       const {
         hash
-      } = Template.getInsertionPointInfo(
-        existingBytecode.template,
-        existingBytecode.template.children.length,
-        numMatchingNodes++
-      )
+      } = this.getInsertionPointInfo(numMatchingNodes++)
 
       const timelinesObject = Template.prepareManaAndBuildTimelinesObject(
         safeIncoming,
@@ -1768,7 +1727,30 @@ class ActiveComponent extends BaseModel {
       } else {
         return next(new Error(`Problem merging ${relpath}`))
       }
-    }, cb)
+    }, (err, out) => {
+      if (err) return cb(err)
+
+      const bytecode = this.getReifiedBytecode()
+
+      // Make sure all components that host a copy of us now have updated bytecode for us
+      this.project.getAllActiveComponents().forEach((ac) => {
+        if (!ac.$instance) {
+          return
+        }
+
+        ac.$instance.visitGuestHierarchy((instance) => {
+          if (this.doesManageCoreInstance(instance)) {
+            if (instance.node.__parent) {
+              Object.assign(instance.node.__parent.elementName, bytecode)
+            }
+
+            Object.assign(instance.bytecode, bytecode)
+          }
+        })
+      })
+
+      return cb(null, out)
+    })
   }
 
   /**
@@ -1866,11 +1848,7 @@ class ActiveComponent extends BaseModel {
       // As usual, we use a hash rather than randomness because of multithreading
       const {
         hash
-      } = Template.getInsertionPointInfo(
-        ourBytecode.template,
-        ourBytecode.template.children.length,
-        0
-      )
+      } = this.getInsertionPointInfo(0)
 
       // Pasting bytecode is implemented as a bytecode merge, so we pad all of the
       // ids inside the bytecode and then merge it, so we end up with a new element
@@ -1894,7 +1872,7 @@ class ActiveComponent extends BaseModel {
     const modref = ModuleWrapper.parseReference(__reference)
 
     if (modref && modref.type && modref.type === ModuleWrapper.REF_TYPES.COMPONENT) {
-      const ac = this.project.findActiveComponentBySource(modref.source)
+      const ac = this.project.findActiveComponentBySourceIfPresent(modref.source)
 
       if (ac) {
         const bytecode = ac.getReifiedBytecode()
@@ -2153,6 +2131,12 @@ class ActiveComponent extends BaseModel {
 
     this.clearCaches(reloadOptions.clearCacheOptions)
 
+    // Check sustained warnings should be done after cache clear
+    // We use emit so only creator will perform sustained warning check
+    if (experimentIsEnabled(Experiment.WarnOnUndefinedStateVariables)) {
+      this.emitDebouncedCheckSustainedWarning()
+    }
+
     // If we were passed a "hot component" or asked to request a full flush render, forward this to our underlying
     // instances to ensure correct rendering. This can be skipped if softReload() was called in the
     // context of a hard reload, because hardReload() calls forceFlush() after soft reloading.
@@ -2268,7 +2252,11 @@ class ActiveComponent extends BaseModel {
               instance.deactivate()
 
               if (this.doesManageCoreInstance(instance)) {
-                instance.bytecode = bytecode
+                if (instance.node.__parent) {
+                  Object.assign(instance.node.__parent.elementName, bytecode)
+                }
+
+                Object.assign(instance.bytecode, bytecode)
               }
 
               instance.clearCaches({
@@ -2288,6 +2276,15 @@ class ActiveComponent extends BaseModel {
 
       const timelineTime = this.getCurrentTimelineTime()
       this.$instance = this.createInstance(bytecode, instanceConfig)
+
+      // Sustained warnings checker (eg. injected function identifier not found, etc)
+      this.sustainedWarningsChecker = new SustainedWarningChecker(this.$instance)
+
+      // Use debounce to emit event to trigger sustained warnings check on haiku-creator
+      this.emitDebouncedCheckSustainedWarning = lodash.debounce(() => {
+        this.emit('sustained-check:start')
+      }, CHECK_SUSTAINED_WARNINGS_DEBOUNCE_TIME, {leading: false, trailing: true})
+
       this.setTimelineTimeValue(timelineTime, /* forceSeek= */true)
 
       return cb()
@@ -2314,7 +2311,7 @@ class ActiveComponent extends BaseModel {
       overflowX: 'visible',
       overflowY: 'visible',
       mixpanel: false, // Don't track events in mixpanel while the component is being built
-      interactionMode: this._interactionMode,
+      interactionMode: this.interactionMode,
       hotEditingMode: true // Don't clone the bytecode/template so we can mutate it in-place
     }, config))
 
@@ -2369,7 +2366,7 @@ class ActiveComponent extends BaseModel {
   * own purposes, e.g. during export to another format.
   */
   reloadBytecodeFromDisk (cb) {
-    return this.fetchActiveBytecodeFile().read(cb)
+    this.fetchActiveBytecodeFile().mod.isolatedForceReload(cb)
   }
 
   sleepComponentsOn () {
@@ -2795,6 +2792,20 @@ class ActiveComponent extends BaseModel {
 
   getSelectedKeyframes () {
     return Keyframe.where({ component: this, _selected: true })
+  }
+
+  /**
+   * Returns a boolean indicating if *all* of the selected keyframes
+   * are the first non-zero keyframe in their row.
+   *
+   * @returns Boolean
+   */
+  checkIfSelectedKeyframesAreMovableToZero () {
+    const selectedKeyframes = this.getSelectedKeyframes()
+    const notMovable = selectedKeyframes.findIndex(
+      (keyframe) => !(keyframe.prev() && keyframe.prev().origMs === 0)
+    )
+    return notMovable === -1
   }
 
   getCurrentKeyframes (criteria) {
@@ -4447,13 +4458,37 @@ class ActiveComponent extends BaseModel {
   dump () {
     const relpath = this.getRelpath()
     const aid = this.getArtboard().getElementHaikuId()
-    return `${relpath}(${this.getMount().getRenderId()})@${aid}/${this._interactionMode}`
+    return `${relpath}(${this.getMount().getRenderId()})@${aid}/${this.interactionMode}`
+  }
+
+  // Check sustained warnings (eg identifier not found on expression)
+  checkSustainedWarnings () {
+    this.sustainedWarningsChecker.checkAndGetAllSustainedWarnings()
+  }
+
+  replaceBytecode (currentEditorContents, metadata, cb) {
+    const absPath = this.fetchActiveBytecodeFile().getAbspath()
+    return Lock.request(Lock.LOCKS.FileReadWrite(absPath), false, (release) => {
+      return this.project.updateHook('replaceBytecode', this.getRelpath(), currentEditorContents, metadata, (fire) => {
+        try {
+          this.handleUpdatedBytecode(ModuleWrapper.testLoadBytecode(currentEditorContents, absPath))
+        } catch (requireError) {
+          release()
+          // If we cannot validate it, return an error.
+          return cb(requireError)
+        }
+        release()
+        fire()
+        return this.moduleSync(cb)
+      })
+    })
   }
 }
 
 ActiveComponent.DEFAULT_OPTIONS = {
   required: {
     uid: true,
+    file: true,
     project: true,
     relpath: true,
     scenename: true

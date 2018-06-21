@@ -37,6 +37,10 @@ class Snippets extends React.PureComponent {
         onClick: () => { this.insertSnippet('this.setState({stateName: value})') }
       },
       {
+        label: 'Change State (Transition)',
+        onClick: () => { this.insertSnippet('this.setState({stateName: value}, {duration: 1000, curve: "linear", queued: false})') }
+      },
+      {
         label: 'Go To And Play',
         onClick: () => { this.insertSnippet('this.getDefaultTimeline().gotoAndPlay(frame)') }
       },
@@ -51,6 +55,10 @@ class Snippets extends React.PureComponent {
       {
         label: 'Stop',
         onClick: () => { this.insertSnippet('this.getDefaultTimeline().stop()') }
+      },
+      {
+        label: 'Open Link',
+        onClick: () => { this.insertSnippet('window.open("https://www.haiku.ai", "_self", "location=yes")') }
       },
       {
         label: 'Docs ↗',

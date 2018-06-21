@@ -33,23 +33,51 @@ window.addEventListener('mousemove', (mouseMoveEvent) => {
 });
 
 window.addEventListener('keyup', (keyupEvent) => {
-  if (keyupEvent.which === 16) { Globals.isShiftKeyDown = false; }
-  if (keyupEvent.which === 17) { Globals.isControlKeyDown = false; }
-  if (keyupEvent.which === 18) { Globals.isAltKeyDown = false; }
-  if (keyupEvent.which === 224) { Globals.isCommandKeyDown = false; }
-  if (keyupEvent.which === 91) { Globals.isCommandKeyDown = false; }
-  if (keyupEvent.which === 93) { Globals.isCommandKeyDown = false; }
-  if (keyupEvent.which === 32) { Globals.isSpaceKeyDown = false; }
+  if (keyupEvent.which === 16) {
+    Globals.isShiftKeyDown = false;
+  }
+  if (keyupEvent.which === 17) {
+    Globals.isControlKeyDown = false;
+  }
+  if (keyupEvent.which === 18) {
+    Globals.isAltKeyDown = false;
+  }
+  if (keyupEvent.which === 224) {
+    Globals.isCommandKeyDown = false;
+  }
+  if (keyupEvent.which === 91) {
+    Globals.isCommandKeyDown = false;
+  }
+  if (keyupEvent.which === 93) {
+    Globals.isCommandKeyDown = false;
+  }
+  if (keyupEvent.which === 32) {
+    Globals.isSpaceKeyDown = false;
+  }
 });
 
 window.addEventListener('keydown', (keydownEvent) => {
-  if (keydownEvent.which === 16) { Globals.isShiftKeyDown = true; }
-  if (keydownEvent.which === 17) { Globals.isControlKeyDown = true; }
-  if (keydownEvent.which === 18) { Globals.isAltKeyDown = true; }
-  if (keydownEvent.which === 224) { Globals.isCommandKeyDown = true; }
-  if (keydownEvent.which === 91) { Globals.isCommandKeyDown = true; }
-  if (keydownEvent.which === 93) { Globals.isCommandKeyDown = true; }
-  if (keydownEvent.which === 32) { Globals.isSpaceKeyDown = true; }
+  if (keydownEvent.which === 16) {
+    Globals.isShiftKeyDown = true;
+  }
+  if (keydownEvent.which === 17) {
+    Globals.isControlKeyDown = true;
+  }
+  if (keydownEvent.which === 18) {
+    Globals.isAltKeyDown = true;
+  }
+  if (keydownEvent.which === 224) {
+    Globals.isCommandKeyDown = true;
+  }
+  if (keydownEvent.which === 91) {
+    Globals.isCommandKeyDown = true;
+  }
+  if (keydownEvent.which === 93) {
+    Globals.isCommandKeyDown = true;
+  }
+  if (keydownEvent.which === 32) {
+    Globals.isSpaceKeyDown = true;
+  }
 });
 
 window.addEventListener('click', (clickEvent) => {
