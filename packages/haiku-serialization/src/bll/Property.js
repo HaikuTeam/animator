@@ -24,24 +24,6 @@ Property.assignDOMSchemaProperties = (out, element) => {
   const schema = Property.BUILTIN_DOM_SCHEMAS[element.getSafeDomFriendlyName()] || {}
 
   for (const name in schema) {
-    if (name === 'content') {
-      // Don't make 'content' part of the schema if we have children that don't
-      // look like what we typically expect for text content
-      if (element.children && element.children.length > 1) {
-        continue
-      }
-
-      if (
-        element.children && (
-          element.children.length !== 1 ||
-          !element.children[0] ||
-          !element.children[0].isTextNode()
-        )
-      ) {
-        continue
-      }
-    }
-
     let propertyGroup = null
 
     let nameParts = name.split('.')
@@ -289,6 +271,8 @@ Property.BUILTIN_DOM_SCHEMAS = {
     fillOpacity: 'string'
   },
   text: {
+    x: 'string',
+    y: 'string',
     stroke: 'string',
     strokeWidth: 'string',
     strokeOpacity: 'string',
@@ -308,6 +292,8 @@ Property.BUILTIN_DOM_SCHEMAS = {
     content: 'string'
   },
   tspan: {
+    x: 'string',
+    y: 'string',
     stroke: 'string',
     strokeWidth: 'string',
     strokeOpacity: 'string',
@@ -523,6 +509,21 @@ const IF_IN_SCHEMA = (name, element) => {
   return hasInSchema(elementName, name)
 }
 
+const IF_TEXT_CONTENT_ENABLED = (name, element, property, keyframes) => {
+  if (element.children.length < 1) {
+    return true
+  }
+
+  // Sketch-produced SVGs often have <text><tspan>content, but since <text>
+  // can also have raw content inside it, we do this check to exclude it if
+  // it happens to contain an inner <tspan>
+  if (typeof element.children[0] !== 'string') {
+    return false
+  }
+
+  return true
+}
+
 const wasChangedFromPrepopValue = (name, keyframes) => {
   const fallback = Property.PREPOPULATED_VALUES[name]
 
@@ -571,7 +572,7 @@ Property.DISPLAY_RULES = {
   'align.x': {jit: [NEVER], add: [NEVER]},
   'align.y': {jit: [NEVER], add: [NEVER]},
   'align.z': {jit: [NEVER], add: [NEVER]},
-  'content': {jit: [NON_ROOT_ONLY], add: [NON_ROOT_ONLY]},
+  'content': {jit: [NON_ROOT_ONLY, IF_IN_SCHEMA, IF_TEXT_CONTENT_ENABLED], add: [NON_ROOT_ONLY, IF_IN_SCHEMA, IF_TEXT_CONTENT_ENABLED]},
   'controlFlow.if': {jit: [NON_ROOT_ONLY], add: [IF_EXPLICIT_OR_DEFINED]},
   'controlFlow.placeholder': {jit: [NON_ROOT_ONLY, NON_COMPONENT_ONLY], add: [IF_EXPLICIT_OR_DEFINED]},
   'controlFlow.repeat': {jit: [NON_ROOT_ONLY], add: [IF_EXPLICIT_OR_DEFINED]},
@@ -673,6 +674,8 @@ Property.DISPLAY_RULES = {
   'strokeWidth': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
   'textAnchor': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
   'wordSpacing': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'x': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'y': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
   'x1': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
   'x2': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
   'y1': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},

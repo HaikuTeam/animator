@@ -23,7 +23,9 @@ const ELEMENT_TYPES_TO_SHOW_IN_TREE_VIEW = {
   line: true,
   polyline: true,
   polygon: true,
-  path: true
+  path: true,
+  tspan: true,
+  text: true
 }
 
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
@@ -1398,11 +1400,16 @@ class Element extends BaseModel {
     const node = this.getStaticTemplateNode()
 
     const id = node && node.attributes && node.attributes.id
+
     const title = node && node.attributes && node.attributes[HAIKU_TITLE_ATTRIBUTE]
 
     let name = (typeof node.elementName === 'string' && node.elementName) ? node.elementName : 'div'
     if (Element.FRIENDLY_NAME_SUBSTITUTES[name]) {
       name = Element.FRIENDLY_NAME_SUBSTITUTES[name]
+    }
+
+    if (id && !title) {
+      return `#${id}`
     }
 
     let out = ''
@@ -2098,7 +2105,8 @@ Element.querySelectorAll = (selector, mana) => {
 }
 
 Element.FRIENDLY_NAME_SUBSTITUTES = {
-  g: 'group'
+  g: 'group',
+  tspan: 'Text Span'
 }
 
 // If elementName is bytecode (i.e. a nested component) return a fallback name

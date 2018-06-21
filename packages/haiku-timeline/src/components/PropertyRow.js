@@ -27,12 +27,13 @@ export default class PropertyRow extends React.Component {
     this.props.row.unhover({ from: 'timeline' })
   }
 
-  maybeRenderFamilySvg () {
+  maybeRenderFamilyLabel () {
     if (!this.props.prev) return false
     if (this.props.row.doesTargetHostElement()) return false
     if (!this.props.row.isFirstRowOfSubElementSet()) return false
     return (
       <div
+        className='family-label-for-property'
         style={{
           position: 'absolute',
           top: 4,
@@ -76,6 +77,7 @@ export default class PropertyRow extends React.Component {
           position: 'relative'
         }}>
         <div
+          className='property-row-inner'
           onClick={(clickEvent) => {
             // Allow clicking the subproperty of a cluster to collapse the parent row,
             // which 'contains' the rows of the cluster as children
@@ -96,7 +98,7 @@ export default class PropertyRow extends React.Component {
               }}>
               <span className='utf-icon' style={{ top: -4, left: -3 }}><DownCarrotSVG /></span>
             </div>}
-          {this.maybeRenderFamilySvg()}
+          {this.maybeRenderFamilyLabel()}
           <div
             className='property-row-label no-select'
             style={{

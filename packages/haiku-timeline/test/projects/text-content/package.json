@@ -1,0 +1,18 @@
+{
+  "haiku": {
+    "folder": "/Users/matthew/Code/HaikuTeam/mono/packages/haiku-plumbing/test/fixtures/projects/blank-project/",
+    "uuid": "HAIKU_SHARE_UUID",
+    "core": "3.5.0",
+    "player": "3.5.0",
+    "username": "matthew+2@haiku.ai",
+    "organization": "matthew2",
+    "project": "UsersMatthewHaikuProjects",
+    "branch": "master",
+    "version": "0.0.0"
+  },
+  "version": "0.0.0",
+  "name": "@haiku/matthew2-usersmatthewhaikuprojects",
+  "dependencies": {
+    "@haiku/core": "^3.5.0"
+  }
+}

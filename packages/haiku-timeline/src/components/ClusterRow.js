@@ -10,12 +10,13 @@ import Globals from 'haiku-ui-common/lib/Globals'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
 
 export default class ClusterRow extends React.Component {
-  maybeRenderFamilySvg () {
+  maybeRenderFamilyLabel () {
     if (!this.props.prev) return false
     if (this.props.row.doesTargetHostElement()) return false
     if (!this.props.row.isFirstRowOfSubElementSet()) return false
     return (
       <div
+        className='family-label-for-cluster'
         style={{
           position: 'absolute',
           top: 4,
@@ -86,7 +87,7 @@ export default class ClusterRow extends React.Component {
             }}>
             <span className='utf-icon' style={{ top: -2, left: -3 }}><RightCarrotSVG /></span>
           </div>
-          {this.maybeRenderFamilySvg()}
+          {this.maybeRenderFamilyLabel()}
           <div
             className='property-cluster-row-label no-select'
             style={{

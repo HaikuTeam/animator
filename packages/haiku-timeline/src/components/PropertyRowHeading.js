@@ -55,7 +55,9 @@ export default class PropertyRowHeading extends React.Component {
     }
 
     return (
-      <div style={{
+      <div
+        className='property-row-label-box'
+        style={{
         position: 'relative',
         textTransform: 'uppercase',
         fontSize,
@@ -70,6 +72,7 @@ export default class PropertyRowHeading extends React.Component {
       }}>
         {this.renderIcon()}
         <span
+          className='property-row-label-text'
           style={{
             display: 'inline-block',
             width: 55,
