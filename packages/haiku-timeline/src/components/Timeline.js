@@ -518,7 +518,7 @@ class Timeline extends React.Component {
     items.push({ type: 'separator' })
 
     items.push({
-      label: 'Send to t0',
+      label: 'Move to Frame 0',
       enabled: this.getActiveComponent().checkIfSelectedKeyframesAreMovableToZero(),
       onClick: (event) => {
         selectedKeyframes.forEach((keyframe) => { keyframe.moveTo(0, 0) })
