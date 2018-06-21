@@ -1678,7 +1678,8 @@ class ActiveComponent extends BaseModel {
 
       const safeIncoming = Template.clone({}, manaIncoming)
 
-      const removedOutputs = this.removeChildContentFromBytecode(existingBytecode, existingNode)
+      // NOTE: See note below about merging these removed outputs
+      // const removedOutputs = this.removeChildContentFromBytecode(existingBytecode, existingNode)
 
       const {
         hash

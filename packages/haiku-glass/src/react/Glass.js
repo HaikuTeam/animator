@@ -2007,7 +2007,6 @@ export class Glass extends React.Component {
             y: transformedCurrent.y - transformedLastDown.y
           }
 
-          const a = Element.directlySelected
           const keyframeOptions = {
             setElementLockStatus: {
               [Element.directlySelected.rootSVG.attributes[HAIKU_ID_ATTRIBUTE]]: true

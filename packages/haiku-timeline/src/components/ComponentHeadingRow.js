@@ -10,17 +10,13 @@ import ComponentHeadingRowHeading from './ComponentHeadingRowHeading'
 import CollapsedPropertyTimelineSegments from './CollapsedPropertyTimelineSegments'
 import EventHandlerTriggerer from './EventHandlerTriggerer'
 import PropertyManager from './PropertyManager'
-import { HAIKU_SOURCE_ATTRIBUTE } from '@haiku/core/lib/HaikuElement';
+import { HAIKU_SOURCE_ATTRIBUTE } from '@haiku/core/lib/HaikuElement'
 
 export default class ComponentHeadingRow extends React.Component {
   constructor (props) {
     super(props)
     this.handleUpdate = this.handleUpdate.bind(this)
     this.throttledHandleRowHoverUnhover = lodash.debounce(this.handleRowHoverUnhover, 100)
-  }
-  
-  state = {
-    showSyncTooltip: true
   }
 
   componentWillUnmount () {
@@ -45,7 +41,7 @@ export default class ComponentHeadingRow extends React.Component {
       this.forceUpdate()
     }
   }
-  
+
   shouldComponentUpdate (nextProps) {
     return (
       (this.props.isExpanded ^ nextProps.isExpanded) ||
@@ -62,17 +58,17 @@ export default class ComponentHeadingRow extends React.Component {
       this.props.row.unhover({ from: 'timeline' })
     }
   }
-  
+
   toggleSync () {
     const locked = !this.props.row.element.isLocked()
     this.props.component.updateKeyframes({}, {setElementLockStatus: {[this.props.row.element.getComponentId()]: locked}}, {from: 'timeline'}, () => {
       if (!locked) {
         const designs = {
-          [this.props.row.element.getStaticTemplateNode().attributes[HAIKU_SOURCE_ATTRIBUTE]]: true,
+          [this.props.row.element.getStaticTemplateNode().attributes[HAIKU_SOURCE_ATTRIBUTE]]: true
         }
         this.props.component.project.mergeDesigns(designs, {from: 'timeline'}, () => {})
       }
-      this.forceUpdate();
+      this.forceUpdate()
     })
   }
 
@@ -225,11 +221,11 @@ export default class ComponentHeadingRow extends React.Component {
                 display: this.props.row.element.getSource() ? 'block' : 'none'
               }}
               onClick={this.toggleSync.bind(this)}
-              title={this.props.row.element.isLocked() ?
-                'Syncing is disabled for this element. Click to revert your changes and reenable syncing.' :
-                'Syncing is enabled. Changes to the source will be mirrored here.'
+              title={this.props.row.element.isLocked()
+                ? 'Syncing is disabled for this element. Click to revert your changes and reenable syncing.'
+                : 'Syncing is enabled. Changes to the source will be mirrored here.'
               }>
-                {SyncIconSVG({color: this.props.row.element.isLocked() ? Palette.RED_DARKER : Palette.DARK_ROCK})}
+              {SyncIconSVG({color: this.props.row.element.isLocked() ? Palette.RED_DARKER : Palette.DARK_ROCK})}
             </div>
             <div
               className='event-handler-triggerer-button'
