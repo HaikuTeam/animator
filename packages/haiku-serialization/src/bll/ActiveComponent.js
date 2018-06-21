@@ -3417,8 +3417,8 @@ class ActiveComponent extends BaseModel {
         }
       }
 
-      if (options && options.setElementLockStatus) {
-        for (let elID in options.setElementLockStatus) {
+      if (options.setElementLockStatus) {
+        for (const elID in options.setElementLockStatus) {
           const node = this.findTemplateNodeByComponentId(elID)
           const lockStatus = options.setElementLockStatus[elID]
           if (!lockStatus && node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(LOCKED_ID_SUFFIX)) node.attributes[HAIKU_SOURCE_ATTRIBUTE] = node.attributes[HAIKU_SOURCE_ATTRIBUTE].replace(LOCKED_ID_SUFFIX, '')
@@ -3459,8 +3459,8 @@ class ActiveComponent extends BaseModel {
               }
             }
 
-            if (options && options.setElementLockStatus) {
-              for (let elID in options.setElementLockStatus) {
+            if (options.setElementLockStatus) {
+              for (const elID in options.setElementLockStatus) {
                 const element = this.findElementByComponentId(elID)
                 Row.where({ component: this, element }).forEach((row) => {
                   row.rehydrate()
@@ -3537,8 +3537,8 @@ class ActiveComponent extends BaseModel {
         }
       }
 
-      if (options && options.setElementLockStatus) {
-        for (let elID in options.setElementLockStatus) {
+      if (options.setElementLockStatus) {
+        for (const elID in options.setElementLockStatus) {
           const node = this.findTemplateNodeByComponentId(elID)
           const lockStatus = options.setElementLockStatus[elID]
           if (!lockStatus && node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(LOCKED_ID_SUFFIX)) node.attributes[HAIKU_SOURCE_ATTRIBUTE] = node.attributes[HAIKU_SOURCE_ATTRIBUTE].replace(LOCKED_ID_SUFFIX, '')
@@ -3585,8 +3585,8 @@ class ActiveComponent extends BaseModel {
                 }
               }
 
-              if (options && options.setElementLockStatus) {
-                for (let elID in options.setElementLockStatus) {
+              if (options.setElementLockStatus) {
+                for (const elID in options.setElementLockStatus) {
                   const element = this.findElementByComponentId(elID)
                   Row.where({ component: this, element }).forEach((row) => {
                     row.rehydrate()

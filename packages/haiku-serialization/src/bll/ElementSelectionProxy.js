@@ -749,7 +749,7 @@ class ElementSelectionProxy extends BaseModel {
     )
     targetElement.component.updateKeyframes(
       accumulatedUpdates,
-      null,
+      {},
       this.component.project.getMetadata(),
       () => {
         this.clearAllRelatedCaches()
@@ -793,7 +793,7 @@ class ElementSelectionProxy extends BaseModel {
 
     this.component.updateKeyframes(
       accumulatedUpdates,
-      null,
+      {},
       this.component.project.getMetadata(),
       () => {} // no-op
     )
@@ -839,7 +839,7 @@ class ElementSelectionProxy extends BaseModel {
 
     this.component.updateKeyframes(
       accumulatedUpdates,
-      null,
+      {},
       this.component.project.getMetadata(),
       () => {} // no-op
     )
@@ -983,7 +983,7 @@ class ElementSelectionProxy extends BaseModel {
 
     this.component.updateKeyframes(
       accumulatedUpdates,
-      null,
+      {},
       this.component.project.getMetadata(),
       () => {
         this.clearAllRelatedCaches()
@@ -1110,7 +1110,7 @@ class ElementSelectionProxy extends BaseModel {
 
     this.component.updateKeyframes(
       accumulatedUpdates,
-      null,
+      {},
       this.component.project.getMetadata(),
       () => {
         this.clearAllRelatedCaches()
@@ -1169,7 +1169,7 @@ class ElementSelectionProxy extends BaseModel {
 
     this.component.updateKeyframes(
       accumulatedUpdates,
-      null,
+      {},
       this.component.project.getMetadata(),
       () => {
         this.clearAllRelatedCaches()

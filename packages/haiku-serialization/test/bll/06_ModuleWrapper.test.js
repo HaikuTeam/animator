@@ -49,7 +49,7 @@ tape('ModuleWrapper', (t) => {
             try {
               ac0.updateKeyframes(
                 keyframeUpdates,
-                null,
+                {},
                 {from: 'test'},
                 () => {
                   fse.outputFileSync(corePath, coreCode)
