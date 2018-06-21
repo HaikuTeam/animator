@@ -1,4 +1,5 @@
 import EnvoyClient from '@sdk-creator/envoy/EnvoyClient';
+import EnvoyHandler from '@sdk-creator/envoy/EnvoyHandler';
 import EnvoyLogger from '@sdk-creator/envoy/EnvoyLogger';
 import EnvoyServer from '@sdk-creator/envoy/EnvoyServer';
 import * as tape from 'tape';
@@ -7,7 +8,7 @@ import * as ws from 'ws';
 tape('envoy:index:basic', async (t) => {
   t.plan(1);
 
-  class TestHandler {
+  class TestHandler extends EnvoyHandler {
     doFoo (arg) {
       return 'foo, ' + arg + '!';
     }
@@ -15,7 +16,7 @@ tape('envoy:index:basic', async (t) => {
 
   let server: any = new EnvoyServer({logger: new EnvoyLogger('error')});
   server = await server.ready();
-  server.bindHandler('foo', TestHandler, new TestHandler());
+  server.bindHandler('foo', TestHandler, new TestHandler(server));
 
   const client = new EnvoyClient<TestHandler>({
     port: server.port,
@@ -32,7 +33,7 @@ tape('envoy:index:basic', async (t) => {
 tape('envoy:index:schema', async (t) => {
   t.plan(3);
 
-  class TestHandler {
+  class TestHandler extends EnvoyHandler {
     doFoo (arg) {
       return 'foo, ' + arg + '!';
     }
@@ -40,7 +41,7 @@ tape('envoy:index:schema', async (t) => {
 
   let server: any = new EnvoyServer({logger: new EnvoyLogger('info')});
   server = await server.ready();
-  server.bindHandler('foo', TestHandler, new TestHandler());
+  server.bindHandler('foo', TestHandler, new TestHandler(server));
 
   const client = new EnvoyClient<TestHandler>({
     port: server.port,
@@ -60,13 +61,7 @@ tape('envoy:index:schema', async (t) => {
 });
 
 tape('envoy:index:events', async (t) => {
-  class TestEventHandler {
-    private server: EnvoyServer;
-
-    constructor (serverIn: EnvoyServer) {
-      this.server = serverIn;
-    }
-
+  class TestEventHandler extends EnvoyHandler {
     doFoo (arg) {
       this.server.emit(
         'foo-event', {

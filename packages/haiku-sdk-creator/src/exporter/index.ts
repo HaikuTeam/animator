@@ -4,6 +4,8 @@ export enum ExporterFormat {
   Unknown = 'Unknown',
   Bodymovin = 'Bodymovin',
   HaikuStatic = 'HaikuStatic',
+  AnimatedGif = 'AnimatedGif',
+  Video = 'Video',
 }
 
 export interface ExporterRequest {
