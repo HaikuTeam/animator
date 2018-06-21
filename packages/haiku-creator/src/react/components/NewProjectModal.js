@@ -145,7 +145,7 @@ class NewProjectModal extends React.PureComponent {
             style={[
               BTN_STYLES.btnText,
               BTN_STYLES.rightBtns,
-              BTN_STYLES.btnPrimaryAlt,
+              BTN_STYLES.btnPrimary,
               DASH_STYLES.upcase,
               (!this.state.recordedNewProjectName || this.state.newProjectError) && BTN_STYLES.btnDisabled,
               {marginRight: 0},

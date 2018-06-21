@@ -42,11 +42,12 @@ class ComponentMenu extends React.Component {
       <div
         id="component-menu"
         className="no-select"
-        style={[STYLES.container]}>
+        style={[STYLES.container, !this.props.showGlass && {backgroundColor: Palette.GRAY}]}>
         <ComponentTab
           forceActive={this.getAllTabs().length === 1}
           projectModel={this.props.projectModel}
           tab={this.getMainComponentTab()}
+          showGlass={this.props.showGlass}
           nonSavedContentOnCodeEditor={this.props.nonSavedContentOnCodeEditor}
           tryToChangeCurrentActiveComponent={this.props.tryToChangeCurrentActiveComponent} />
         {(this.getOtherComponentTabs().map((tab, index) => {
@@ -55,6 +56,7 @@ class ComponentMenu extends React.Component {
               projectModel={this.props.projectModel}
               key={index}
               tab={tab}
+              showGlass={this.props.showGlass}
               nonSavedContentOnCodeEditor={this.props.nonSavedContentOnCodeEditor}
               tryToChangeCurrentActiveComponent={this.props.tryToChangeCurrentActiveComponent} />
           );

@@ -78,12 +78,13 @@ const reticulations = [
 ];
 
 const tips = [
-  'Did you know? Every change you make in Haiku is tracked as a Git commit',
+  'Did you know? Every change you make in Haiku is tracked as a Git commit.',
+  'Hold down the ⌘ key to drag and change an element\'s origin point.',
   'For a bouncy animation effect, try Make Tween > Ease In Out > Elastic',
-  'Try using different easing curves for Position X and Position Y. You\'ll be surprised at what you can create',
-  'Import any Sketch file, then drag and drop design elements on stage to animate',
+  'Try using different easing curves for Position X and Position Y. You\'ll be surprised at what you can create.',
+  'Import any Sketch, Figma or Ai file, then drag and drop design elements on stage to animate',
   'While you\'re designing in Sketch, remember to make slices of all the pieces you want to animate',
-  'Did you know? Haiku is for engineers too. Your animation is plain ol\' JavaScript code',
+  'Did you know? Haiku is for engineers too. Your animation is plain ol\' JavaScript code.',
   'When your animation is ready, click “Publish” to get code snippets to embed',
 ];
 

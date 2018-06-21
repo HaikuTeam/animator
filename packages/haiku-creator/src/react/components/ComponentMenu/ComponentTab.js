@@ -22,6 +22,7 @@ const STYLES = {
     borderTopRightRadius: '5px',
     color: Palette.LIGHTEST_GRAY,
     padding: '4px 20px',
+    textAlign: 'center',
     height: '100%',
     width: '100%',
     cursor: 'default',
@@ -31,6 +32,11 @@ const STYLES = {
     active: {
       backgroundColor: Palette.STAGE_GRAY,
       color: Palette.FATHER_COAL,
+      cursor: 'default',
+    },
+    activeDark: {
+      backgroundColor: Palette.COAL,
+      color: Palette.ROCK,
       cursor: 'default',
     },
   },
@@ -70,12 +76,18 @@ class ComponentTab extends React.Component {
   }
 
   render () {
+    const activeTabStyle = this.props.showGlass ? STYLES.tab.active : STYLES.tab.activeDark;
+
     return (
       <div
         style={STYLES.container}>
         {this.props.tab && <div
           onClick={this.changeComponent}
-          style={[STYLES.tab, (this.props.forceActive || this.props.tab.active) && STYLES.tab.active]}>
+          style={[
+            STYLES.tab,
+            !this.props.showGlass && {color: Palette.ROCK, ':hover': {color: Palette.SUNSTONE}},
+            (this.props.forceActive || this.props.tab.active) && activeTabStyle,
+          ]}>
           <div style={{display: 'inline-block', width: '70%'}}>
             <span style={STYLES.label} className="no-select">
               {toTitleCase(this.props.tab.scenename)}

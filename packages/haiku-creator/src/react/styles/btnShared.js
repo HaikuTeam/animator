@@ -36,17 +36,17 @@ export const BTN_STYLES = {
     display: 'flex',
     alignItems: 'center',
     float: 'right',
-    borderRadius: '3px',
-    color: Palette.ROCK,
+    borderBottomLeftRadius: 3,
+    borderBottomRightRadius: 3,
+    borderTopLeftRadius: 3,
+    borderTopRightRadius: 3,
+    color: Palette.SUNSTONE,
     transform: 'scale(1)',
     cursor: 'pointer',
     transition: 'transform 200ms ease, border-color 200ms ease',
     backgroundColor: Palette.FATHER_COAL,
     ':active': {
       transform: 'scale(.9)',
-    },
-    ':hover': {
-      color: Palette.ROCK,
     },
   },
   leftBtns: {
@@ -60,7 +60,6 @@ export const BTN_STYLES = {
   },
   btnPrimary: {
     backgroundColor: Palette.LIGHTEST_PINK,
-    color: Palette.SUNSTONE,
   },
   btnPrimaryAlt: {
     backgroundColor: Color(Palette.FATHER_COAL).darken(0.2),
@@ -84,9 +83,9 @@ export const BTN_STYLES = {
    * the styles in the whole app
    */
   pinkButton: {
-    backgroundColor: Palette.LIGHT_PINK,
+    backgroundColor: Palette.LIGHTEST_PINK,
     borderRadius: 2,
-    color: 'white',
+    color: Palette.SUNSTONE,
     transform: 'scale(1)',
     textTransform: 'uppercase',
     transition: 'transform 200ms ease',

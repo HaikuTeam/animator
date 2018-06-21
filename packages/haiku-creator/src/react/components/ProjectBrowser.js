@@ -404,7 +404,7 @@ class ProjectBrowser extends React.Component {
             style={[
               BTN_STYLES.btnText,
               BTN_STYLES.rightBtns,
-              BTN_STYLES.btnPrimaryAlt,
+              BTN_STYLES.btnPrimary,
               DASH_STYLES.upcase,
               !this.state.confirmDeleteMatches && BTN_STYLES.btnDisabled,
               {marginRight: 0},
