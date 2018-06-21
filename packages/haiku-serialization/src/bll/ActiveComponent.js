@@ -1713,7 +1713,7 @@ class ActiveComponent extends BaseModel {
       Bytecode.mergeTimelines(existingBytecode.timelines, timelinesObject)
 
       // NOTE: Removing this forcibly clobbers everything when new updates come in, ignoring edited: true attributes
-      //this.mergeRemovedOutputs(existingBytecode, existingNode, removedOutputs)
+      // this.mergeRemovedOutputs(existingBytecode, existingNode, removedOutputs)
     })
   }
 
@@ -3415,16 +3415,16 @@ class ActiveComponent extends BaseModel {
           this.clearCachedClusters(timelineName, componentId)
         }
       }
-      
+
       if (options && options.setElementLockStatus) {
-        for(let elID in options.setElementLockStatus) {
+        for (let elID in options.setElementLockStatus) {
           const node = this.findTemplateNodeByComponentId(elID)
           const lockStatus = options.setElementLockStatus[elID]
           if (!lockStatus && node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(LOCKED_ID_SUFFIX)) node.attributes[HAIKU_SOURCE_ATTRIBUTE] = node.attributes[HAIKU_SOURCE_ATTRIBUTE].replace(LOCKED_ID_SUFFIX, '')
           else if (lockStatus && !node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(LOCKED_ID_SUFFIX)) node.attributes[HAIKU_SOURCE_ATTRIBUTE] = node.attributes[HAIKU_SOURCE_ATTRIBUTE] + LOCKED_ID_SUFFIX
         }
       }
-      
+
       return this.updateKeyframesActual(keyframeUpdates, metadata, (err) => {
         if (err) {
           logger.error(`[active component (${this.project.getAlias()})]`, err)
@@ -3457,7 +3457,7 @@ class ActiveComponent extends BaseModel {
                 }
               }
             }
-            
+
             if (options && options.setElementLockStatus) {
               for (let elID in options.setElementLockStatus) {
                 const element = this.findElementByComponentId(elID)
@@ -3535,16 +3535,16 @@ class ActiveComponent extends BaseModel {
           this.clearCachedClusters(timelineName, componentId)
         }
       }
-      
+
       if (options && options.setElementLockStatus) {
-        for(let elID in options.setElementLockStatus) {
+        for (let elID in options.setElementLockStatus) {
           const node = this.findTemplateNodeByComponentId(elID)
           const lockStatus = options.setElementLockStatus[elID]
           if (!lockStatus && node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(LOCKED_ID_SUFFIX)) node.attributes[HAIKU_SOURCE_ATTRIBUTE] = node.attributes[HAIKU_SOURCE_ATTRIBUTE].replace(LOCKED_ID_SUFFIX, '')
           else if (lockStatus && !node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(LOCKED_ID_SUFFIX)) node.attributes[HAIKU_SOURCE_ATTRIBUTE] = node.attributes[HAIKU_SOURCE_ATTRIBUTE] + LOCKED_ID_SUFFIX
         }
       }
-      
+
       return this.updateKeyframesActual(keyframeUpdates, metadata, (err) => {
         if (err) {
           logger.error(`[active component (${this.project.getAlias()})]`, err)
@@ -3583,7 +3583,7 @@ class ActiveComponent extends BaseModel {
                   }
                 }
               }
-              
+
               if (options && options.setElementLockStatus) {
                 for (let elID in options.setElementLockStatus) {
                   const element = this.findElementByComponentId(elID)

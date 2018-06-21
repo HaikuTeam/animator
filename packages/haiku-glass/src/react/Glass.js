@@ -1314,31 +1314,31 @@ export class Glass extends React.Component {
               elementTargeted.getHaikuElement().visit((descendant) => {
                 if (descendant.isComponent()) return
                 if (descendant.isChildOfDefs) return
-                
+
                 let hasFill = false
                 {
                   let d = descendant
-                  while(!hasFill && d) {
+                  while (!hasFill && d) {
                     hasFill = (d.attributes.fill !== undefined && d.attributes.fill !== 'none')
-                    if(hasFill) break
+                    if (hasFill) break
                     d = d.parent
                   }
                 }
-                
+
                 let hasStroke = false
                 {
                   let d = descendant
-                  while(!hasStroke && d) {
+                  while (!hasStroke && d) {
                     hasStroke = (d.attributes.stroke !== undefined &&
                       d.attributes.stroke !== 'none' &&
                       d.attributes.strokeWidth !== '0' &&
                       d.attributes.strokeWidth !== 0 &&
                       d.attributes.strokeWidth !== 'none')
-                    if(hasStroke) break
+                    if (hasStroke) break
                     d = d.parent
                   }
                 }
-                
+
                 if (
                   (
                     hasFill && isPointInsidePrimitive(descendant, mouseDownPosition)
@@ -1361,13 +1361,13 @@ export class Glass extends React.Component {
               // --- Insert new vertex when the selected item is unchanged ---
               if (Element.directlySelected && Element.directlySelected === prevDirectlySelected && (isDoubleClick || Globals.isSpecialKeyDown())) {
                 const transformedLocalMouse = transform2DPoint(mouseDownPosition, Element.directlySelected.layoutAncestryMatrices.reverse())
-                
+
                 const keyframeOptions = {
                   setElementLockStatus: {
                     [Element.directlySelected.rootSVG.attributes[HAIKU_ID_ATTRIBUTE]]: true
                   }
                 }
-                
+
                 switch (Element.directlySelected.type) {
                   case 'rect': {
                     const r = Element.directlySelected.attributes
@@ -1401,9 +1401,9 @@ export class Glass extends React.Component {
                         }
                       }
                     },
-                    {
-                      [Element.directlySelected.attributes['haiku-id']]: 'path'
-                    }, keyframeOptions, {from: 'glass'}, () => {})
+                      {
+                        [Element.directlySelected.attributes['haiku-id']]: 'path'
+                      }, keyframeOptions, {from: 'glass'}, () => {})
 
                     break
                   }
@@ -1430,9 +1430,9 @@ export class Glass extends React.Component {
                         }
                       }
                     },
-                    {
-                      [Element.directlySelected.attributes['haiku-id']]: 'path'
-                    }, keyframeOptions, {from: 'glass'}, () => {})
+                      {
+                        [Element.directlySelected.attributes['haiku-id']]: 'path'
+                      }, keyframeOptions, {from: 'glass'}, () => {})
 
                     break
                   }
@@ -1462,9 +1462,9 @@ export class Glass extends React.Component {
                         }
                       }
                     },
-                    {
-                      [Element.directlySelected.attributes['haiku-id']]: 'path'
-                    }, keyframeOptions, {from: 'glass'}, () => {})
+                      {
+                        [Element.directlySelected.attributes['haiku-id']]: 'path'
+                      }, keyframeOptions, {from: 'glass'}, () => {})
                     break
                   }
                   case 'line': {
@@ -1493,9 +1493,9 @@ export class Glass extends React.Component {
                         }
                       }
                     },
-                    {
-                      [Element.directlySelected.attributes['haiku-id']]: 'path'
-                    }, keyframeOptions, {from: 'glass'}, () => {})
+                      {
+                        [Element.directlySelected.attributes['haiku-id']]: 'path'
+                      }, keyframeOptions, {from: 'glass'}, () => {})
                     break
                   }
                   case 'polygon':
@@ -2006,20 +2006,20 @@ export class Glass extends React.Component {
             x: transformedCurrent.x - transformedLastDown.x,
             y: transformedCurrent.y - transformedLastDown.y
           }
-          
+
           const a = Element.directlySelected
           const keyframeOptions = {
             setElementLockStatus: {
               [Element.directlySelected.rootSVG.attributes[HAIKU_ID_ATTRIBUTE]]: true
             }
           }
-            
+
           if (this.state.directSelectionAnchorActivation != null) {
             // Moving a selection of control points
 
             const indices = this.state.directSelectionAnchorActivation.indices[Element.directlySelected.attributes['haiku-id']]
             const lastIndex = indices[indices.length - 1]
-            
+
             switch (Element.directlySelected.type) {
               case 'circle': {
                 this.getActiveComponent().updateKeyframes({
