@@ -42,7 +42,8 @@ export default class Watcher extends EventEmitter {
     this.watcher = chokidar.watch(entry, {
       // - Avoid any git blobs (there are tons of these)
       // - Avoid any sketch tempfiles (these are ephemeral and not needed)
-      ignored: /(node_modules|bower_components|jspm_modules|\.git|~\.sketch)/,
+      // - Avoid files which we explicitly .gitignore
+      ignored: /(node_modules|bower_components|jspm_modules|\.git|~\.sketch|png\/*)/,
       ignoreInitial: true,
       persistent: true,
       usePolling: true,

@@ -32,6 +32,7 @@ export enum Experiment {
   WarnOnUndefinedStateVariables = 'WarnOnUndefinedStateVariables',
   NativeTimelineScroll = 'NativeTimelineScroll',
   TimelineMarqueeSelection = 'TimelineMarqueeSelection',
+  LocalAssetExport = 'LocalAssetExport',
 }
 
 /**

@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+<head>
+  <style>
+    body {
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="mount"></div>
+  <script>
+    /**
+     * This file is bootstrapped by Electron for the purpose of collecting a PNG sequence for export.
+     */
+    const {ipcRenderer} = require('electron');
+
+    try {
+      const abspath = window.location.hash.slice(1);
+      const {requireFromFile} = require('haiku-serialization/src/bll/ModuleWrapper');
+      const {default: HaikuDOMAdapter} = require('@haiku/core/lib/adapters/dom/HaikuDOMAdapter');
+      const bytecode = requireFromFile(abspath);
+      let position = 0;
+      let frameDuration;
+
+      const component = HaikuDOMAdapter(bytecode)(
+        document.getElementById('mount'),
+        {freeze: true}
+      );
+      let duration = component.getDefaultTimeline().duration();
+      component.visitGuestHierarchy((subcomponent) => {
+        duration = Math.max(duration, subcomponent.getDefaultTimeline().duration());
+      });
+
+      const tick = () => {
+        if (!frameDuration) {
+          throw new Error('Attempted to tick before framerate was set.');
+        }
+        component.controlTime('Default', position);
+        component.context.tick(true);
+        ipcRenderer.send('bakery', {type: 'snap', last: position >= duration});
+        position = Math.round(Math.min(duration, position + frameDuration));
+      };
+
+      const bakeryHandler = (_, payload) => {
+        switch (payload.type) {
+          case 'init':
+            frameDuration = 1000 / payload.framerate;
+            tick();
+            break;
+          case 'tick':
+            tick();
+            break;
+        }
+      };
+      ipcRenderer.on('bakery', bakeryHandler);
+    } catch (error) {
+      ipcRenderer.send('bakery', {type: 'closeShop'});
+    }
+  </script>
+</body>
+</html>

@@ -281,6 +281,7 @@ export function buildProjectContent (
       // Should we try to merge these if the user made any changes?
       fse.outputFileSync(dir(projectPath, '.gitignore'), dedent`
         .DS_Store
+        code/*/png-*/
         *.log
         *.*.log
         node_modules

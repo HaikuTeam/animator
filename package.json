@@ -163,6 +163,8 @@
       "!node_modules/proxyquire",
       "!node_modules/sinon",
       "!node_modules/table",
+      "!node_modules/ffmpeg-static/bin",
+      "node_modules/ffmpeg-static/bin/${os}/${arch}/ffmpeg",
       "!node_modules/nodegit/vendor",
       "!node_modules/haiku-plumbing/dev${/*}",
       "!node_modules/haiku-plumbing/docs${/*}",

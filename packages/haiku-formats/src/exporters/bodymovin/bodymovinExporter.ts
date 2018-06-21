@@ -6,10 +6,10 @@ import {
   BytecodeSummonable,
   BytecodeTimelineProperties,
   BytecodeTimelineProperty,
-  HaikuBytecode,
 } from '@haiku/core/lib/api/HaikuBytecode';
 import {CurveSpec} from '@haiku/core/lib/vendor/svg-points/types';
-import {ContextualSize, Maybe} from 'haiku-common/lib/types';
+import {writeFile} from 'fs-extra';
+import {ContextualSize} from 'haiku-common/lib/types';
 // @ts-ignore
 import * as Template from 'haiku-serialization/src/bll/Template';
 // @ts-ignore
@@ -87,7 +87,7 @@ import {
   timelineValuesAreEquivalent,
 } from './bodymovinUtils';
 
-let bodymovinVersion: Maybe<string>;
+const bodymovinVersion = getBodymovinVersion();
 
 type MutatorType = (param: any) => any;
 
@@ -164,6 +164,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     // Frame rate: always 60.
     // TODO: Make this a constant available everywhere.
     fr: 60,
+    v: bodymovinVersion,
   };
 
   /**
@@ -1205,7 +1206,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
   }
 
   /**
-   * Interface method to provide binary output.
+   * Method to provide binary output.
    * @returns {{}}
    */
   binaryOutput () {
@@ -1213,19 +1214,16 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
   }
 
   /**
-   * Interface method to provide failsafe binary output.
-   * @returns {{}}
+   * Interface method to write binary output out to a file.
+   * @returns {Promise<void>}
    */
-  failsafeBinaryOutput () {
-    return '{}';
-  }
-
-  constructor (protected bytecode: HaikuBytecode) {
-    super(bytecode);
-    // If not already known, get the Bodymovin version.
-    if (!bodymovinVersion) {
-      bodymovinVersion = getBodymovinVersion();
+  writeToFile (filename: string|Buffer) {
+    try {
+      return writeFile(filename, this.binaryOutput());
+    } catch (e) {
+      LoggerInstance.error(`[formats] caught exception during bodymovin export: ${e.toString()}`);
     }
-    this.setCoreVersion(bodymovinVersion);
+
+    return writeFile(filename, '{}');
   }
 }

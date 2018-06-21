@@ -26,6 +26,9 @@
   "dependencies": {
     "@haiku/core": "3.5.1",
     "bezier-easing": "^2.0.3",
+    "ffmpeg-static": "^2.3.0",
+    "fluent-ffmpeg": "^2.1.2",
+    "fs-extra": "^4.0.2",
     "haiku-common": "3.5.1",
     "haiku-sdk-creator": "3.5.1",
     "haiku-serialization": "3.5.1",
@@ -34,9 +37,11 @@
   "devDependencies": {
     "@types/async": "^2.0.49",
     "@types/bezier-easing": "^2.0.0",
+    "@types/ffmpeg-static": "^2.0.0",
+    "@types/fluent-ffmpeg": "^2.1.6",
+    "@types/fs-extra": "^4.0.8",
     "@types/lodash": "^4.14.108",
     "async": "^2.5.0",
-    "haiku-fs-extra": "3.5.1",
     "haiku-testing": "3.5.1",
     "lottie-web": "5.1.7",
     "nodemon": "1.11.0",

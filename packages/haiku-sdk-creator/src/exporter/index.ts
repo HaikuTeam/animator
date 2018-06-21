@@ -10,7 +10,8 @@ export enum ExporterFormat {
 
 export interface ExporterRequest {
   format: ExporterFormat;
-  filename: string;
+  filename: string|Buffer;
+  framerate: number;
 }
 
 export interface Exporter {

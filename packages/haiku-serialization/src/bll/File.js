@@ -226,6 +226,10 @@ class File extends BaseModel {
     return path.join(this.folder, this.relpath)
   }
 
+  getFolder () {
+    return path.dirname(this.getAbspath())
+  }
+
   isCode () {
     return this.type === FILE_TYPES.code
   }

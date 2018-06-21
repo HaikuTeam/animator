@@ -26,14 +26,15 @@
   },
   "dependencies": {
     "@haiku/core": "3.5.1",
+    "@haiku/taylor-creatorintro": "^0.0.5",
     "@haiku/taylor-hai": "^0.0.7",
     "@haiku/taylor-ipreview2": "^0.0.2",
-    "@haiku/taylor-creatorintro": "^0.0.5",
     "async": "^2.5.0",
     "better-react-spinkit": "2.0.0-4",
     "color": "^2.0.1",
     "electron-proxy-agent": "^1.0.2",
     "event-emitter": "^0.3.5",
+    "fs-extra": "^4.0.2",
     "haiku-common": "3.5.1",
     "haiku-glass": "3.5.1",
     "haiku-sdk-creator": "3.5.1",
@@ -66,6 +67,7 @@
     "react-transition-group": "^2.2.1"
   },
   "devDependencies": {
+    "@types/fs-extra": "^4.0.8",
     "@types/node-fetch": "^2.1.1",
     "@types/qs": "^6.5.1",
     "electron": "2.0.2",

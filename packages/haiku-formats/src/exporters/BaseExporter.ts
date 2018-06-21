@@ -3,7 +3,7 @@ import {BytecodeTimelineProperties,
 } from '@haiku/core/lib/api/HaikuBytecode';
 
 export default class BaseExporter {
-  constructor (protected bytecode: HaikuBytecode) {}
+  constructor (protected bytecode: HaikuBytecode, protected readonly componentFolder: string) {}
 
   /**
    * Internal method for visiting every timeline and applying a callback to it.

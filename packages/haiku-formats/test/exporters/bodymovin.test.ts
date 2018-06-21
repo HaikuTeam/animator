@@ -7,7 +7,7 @@ import {BodymovinExporter} from '@formats/exporters/bodymovin/bodymovinExporter'
 import baseBytecode from './baseBytecode';
 
 const {pathToPoints, polyPointsStringToPoints} = SVGPoints;
-const rawOutput = (bytecode: HaikuBytecode) => (new BodymovinExporter(bytecode).rawOutput());
+const rawOutput = (bytecode: HaikuBytecode) => (new BodymovinExporter(bytecode, '/tmp').rawOutput());
 
 const overrideShapeAttributes = (bytecode: HaikuBytecode, attributes: BytecodeTimelineProperties) => {
   bytecode.timelines.Default['haiku:shape'] = attributes;

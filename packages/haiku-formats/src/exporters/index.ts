@@ -2,40 +2,32 @@ import {HaikuBytecode} from '@haiku/core/lib/api/HaikuBytecode';
 import {ExporterFormat, ExporterRequest} from 'haiku-sdk-creator/lib/exporter';
 
 import {BodymovinExporter} from './bodymovin/bodymovinExporter';
+import {GifExporter} from './gif/gifExporter';
 import {HaikuStaticExporter} from './haikuStatic/haikuStaticExporter';
-
-// @ts-ignore
-import * as LoggerInstance from 'haiku-serialization/src/utils/LoggerInstance';
+import {VideoExporter} from './video/videoExporter';
 
 export interface ExporterInterface {
-  rawOutput (): any;
-  binaryOutput (): string;
-  failsafeBinaryOutput (): string;
+  writeToFile (filename: string|Buffer, framerate?: number): Promise<void>;
 }
 
-const getExporter = (format: ExporterFormat, bytecode: HaikuBytecode): ExporterInterface => {
-  switch (format) {
+const getExporter = (request: ExporterRequest, bytecode: HaikuBytecode, componentFolder: string): ExporterInterface => {
+  switch (request.format) {
     case ExporterFormat.Bodymovin:
-      return new BodymovinExporter(bytecode);
+      return new BodymovinExporter(bytecode, componentFolder);
     case ExporterFormat.HaikuStatic:
-      return new HaikuStaticExporter(bytecode);
+      return new HaikuStaticExporter(bytecode, componentFolder);
+    case ExporterFormat.AnimatedGif:
+      return new GifExporter(bytecode, componentFolder);
+    case ExporterFormat.Video:
+      return new VideoExporter(bytecode, componentFolder);
     default:
-      throw new Error(`Unsupported format: ${format}`);
+      throw new Error(`Unsupported format: ${request.format}`);
   }
 };
 
-export const handleExporterSaveRequest = (request: ExporterRequest, bytecode: HaikuBytecode): Promise<string> => {
-  return new Promise<string>((resolve) => {
-    let binaryOutput = '';
-    try {
-      const exporter: ExporterInterface = getExporter(request.format, bytecode);
-      binaryOutput = exporter.binaryOutput();
-    } catch (e) {
-      LoggerInstance.error(`[formats] caught exception during export: ${e.toString()}`);
-      const exporter: ExporterInterface = getExporter(request.format, bytecode);
-      binaryOutput = exporter.failsafeBinaryOutput();
-    } finally {
-      resolve(binaryOutput);
-    }
-  });
+export const handleExporterSaveRequest = async (
+  request: ExporterRequest, bytecode: HaikuBytecode, componentFolder: string,
+): Promise<void> => {
+  const exporter = getExporter(request, bytecode, componentFolder);
+  return exporter.writeToFile(request.filename, request.framerate);
 };
