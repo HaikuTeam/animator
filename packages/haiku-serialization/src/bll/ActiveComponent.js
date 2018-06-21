@@ -1620,7 +1620,7 @@ class ActiveComponent extends BaseModel {
     }
   }
 
-  mergeMana (existingBytecode, manaIncoming) {
+  mergeMana (existingBytecode, manaIncoming, {mergeRemovedOutputs = true}) {
     let numMatchingNodes = 0
 
     const timelineName = this.getMergeDesignTimelineName()
@@ -1671,17 +1671,19 @@ class ActiveComponent extends BaseModel {
 
       Bytecode.mergeTimelines(existingBytecode.timelines, timelinesObject)
 
-      this.mergeRemovedOutputs(existingBytecode, existingNode, removedOutputs)
+      if (mergeRemovedOutputs) {
+        this.mergeRemovedOutputs(existingBytecode, existingNode, removedOutputs)
+      }
     })
   }
 
   mergeDesignFiles (designs, cb) {
     return this.performComponentWork((bytecode, template, done) => {
-      return this.mergeDesignFilesImpl(designs, bytecode, done)
+      return this.mergeDesignFilesImpl(designs, bytecode, {}, done)
     }, cb)
   }
 
-  mergeDesignFilesImpl (designs, bytecode, cb) {
+  mergeDesignFilesImpl (designs, bytecode, {mergeRemovedOutputs = true}, cb) {
     // Ensure order is the same across processes otherwise we'll end up with different insertion point hashes
     const designsAsArray = Object.keys(designs).sort((a, b) => {
       if (a < b) return -1
@@ -1714,11 +1716,11 @@ class ActiveComponent extends BaseModel {
                 return this.mergePrimitiveWithOverrides(primitive, overrides, next)
               }
 
-              this.mergeMana(bytecode, mana)
+              this.mergeMana(bytecode, mana, {mergeRemovedOutputs})
               return next()
             })
           } else {
-            this.mergeMana(bytecode, mana)
+            this.mergeMana(bytecode, mana, {mergeRemovedOutputs})
             return next()
           }
         })
@@ -3526,7 +3528,7 @@ class ActiveComponent extends BaseModel {
       // Clear timeline caches; the max frame might have changed.
       Timeline.clearCaches()
 
-      this.mergeDesignFilesImpl(unlockedDesigns, bytecode, done)
+      this.mergeDesignFilesImpl(unlockedDesigns, bytecode, {mergeRemovedOutputs: false}, done)
     }, cb)
   }
 
