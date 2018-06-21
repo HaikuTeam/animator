@@ -3,7 +3,7 @@
  */
 
 import {Curve} from './api/Curve';
-import {BytecodeOptions, HaikuBytecode} from './api/HaikuBytecode';
+import {BytecodeNode, BytecodeOptions, HaikuBytecode} from './api/HaikuBytecode';
 import Config from './Config';
 import HaikuBase, {GLOBAL_LISTENER_KEY} from './HaikuBase';
 import HaikuClock from './HaikuClock';
@@ -55,6 +55,10 @@ export interface ClearCacheOptions {
   clearStates?: boolean;
 }
 
+const templateIsString = (
+  template: BytecodeNode|string,
+): template is string => typeof template === STRING_TYPE;
+
 // tslint:disable:variable-name function-name
 export default class HaikuComponent extends HaikuElement {
   builder;
@@ -95,7 +99,7 @@ export default class HaikuComponent extends HaikuElement {
     super();
 
     // We provide rudimentary support for passing the `template` as an XML string.
-    if (typeof bytecode.template === STRING_TYPE) {
+    if (templateIsString(bytecode.template)) {
       console.warn('[haiku core] converting template xml string to object');
       bytecode.template = xmlToMana(bytecode.template);
     }

@@ -522,7 +522,7 @@ class Element extends BaseModel {
       bytecode.timelines,
       timelineName,
       componentId
-    )
+    ) || {}
 
     const grabValue = (outputName) => {
       const computedValue = hostInstance.builder.grabValue(
