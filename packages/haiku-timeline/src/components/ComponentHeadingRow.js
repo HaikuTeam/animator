@@ -221,7 +221,8 @@ export default class ComponentHeadingRow extends React.Component {
                 width: 10,
                 position: 'absolute',
                 left: 0,
-                top: 0
+                top: 0,
+                display: this.props.row.element.getSource() ? 'block' : 'none'
               }}
               onClick={this.toggleSync.bind(this)}
               title={this.props.row.element.isLocked() ?

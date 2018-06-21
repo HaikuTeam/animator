@@ -300,6 +300,9 @@ export class Glass extends React.Component {
         case 'setInteractionMode':
           this.handleInteractionModeChange()
           break
+        case 'mergeDesigns':
+          Element.directlySelected = null
+          break
       }
     })
 
