@@ -1641,8 +1641,7 @@ class ActiveComponent extends BaseModel {
 
       const safeIncoming = Template.clone({}, manaIncoming)
 
-      // NOTE: See note below about merging these removed outputs
-      // const removedOutputs = this.removeChildContentFromBytecode(existingBytecode, existingNode)
+      const removedOutputs = this.removeChildContentFromBytecode(existingBytecode, existingNode)
 
       const {
         hash
@@ -1672,8 +1671,7 @@ class ActiveComponent extends BaseModel {
 
       Bytecode.mergeTimelines(existingBytecode.timelines, timelinesObject)
 
-      // NOTE: Removing this forcibly clobbers everything when new updates come in, ignoring edited: true attributes
-      // this.mergeRemovedOutputs(existingBytecode, existingNode, removedOutputs)
+      this.mergeRemovedOutputs(existingBytecode, existingNode, removedOutputs)
     })
   }
 
@@ -3444,7 +3442,7 @@ class ActiveComponent extends BaseModel {
         }
       }
 
-      return this.updateKeyframesActual(keyframeUpdates, unlockedDesigns, metadata, (err) => {
+      return this.updateKeyframesActual(keyframeUpdates, {unlockedDesigns}, metadata, (err) => {
         if (err) {
           logger.error(`[active component (${this.project.getAlias()})]`, err)
           return cb(err)
@@ -3494,7 +3492,7 @@ class ActiveComponent extends BaseModel {
     })
   }
 
-  updateKeyframesActual (keyframeUpdates, unlockedDesigns, metadata, cb) {
+  updateKeyframesActual (keyframeUpdates, {unlockedDesigns}, metadata, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
       for (const timelineName in keyframeUpdates) {
         if (!bytecode.timelines[timelineName]) bytecode.timelines[timelineName] = {}
@@ -3548,7 +3546,7 @@ class ActiveComponent extends BaseModel {
       return this.evaluateReference(ref)
     })
 
-    return this.project.updateHook('updateKeyframes', this.getRelpath(), Bytecode.serializeValue(keyframeUpdates), options, metadata, (fire) => {
+    return this.project.updateHook('updateKeyframesAndTypes', this.getRelpath(), Bytecode.serializeValue(keyframeUpdates), typeUpdates, options, metadata, (fire) => {
       for (const timelineName in keyframeUpdates) {
         for (const componentId in keyframeUpdates[timelineName]) {
           this.clearCachedClusters(timelineName, componentId)
@@ -3569,7 +3567,7 @@ class ActiveComponent extends BaseModel {
         }
       }
 
-      return this.updateKeyframesActual(keyframeUpdates, unlockedDesigns, metadata, (err) => {
+      return this.updateKeyframesActual(keyframeUpdates, {unlockedDesigns}, metadata, (err) => {
         if (err) {
           logger.error(`[active component (${this.project.getAlias()})]`, err)
           return cb(err)
