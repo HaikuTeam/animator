@@ -1,7 +1,7 @@
 {
   "MultiComponentFeatures": true,
   "MultiComponentControlsLibrary": false,
-  "ShowSubElementsInJitMenu": false,
+  "ShowSubElementsInJitMenu": true,
   "InstantiationOfPrimitivesAsComponents": false,
   "HideInstantiatedElementUntilTimeInstantiated": false,
   "MergeDesignChangesAtCurrentTime": false,

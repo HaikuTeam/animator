@@ -92,7 +92,10 @@ class RowManager extends React.PureComponent {
       .filter((row) => !row.isWithinCollapsedRow())
       .map((row, indexOfRowWithinGroup) => {
         let prevRow = group.rows[indexOfRowWithinGroup - 1]
-        if (!prevRow && prevGroup) { prevRow = prevGroup.rows[prevGroup.length - 1] }
+
+        if (!prevRow && prevGroup) {
+          prevRow = prevGroup.rows[prevGroup.length - 1]
+        }
 
         return this.renderComponentRow(row, Boolean(prevRow))
       })

@@ -499,20 +499,66 @@ const COMPONENT_ONLY = (name, element) => {
   return element.isComponent()
 }
 
+const IF_EXPLICIT_OR_DEFINED = (name, element, property, keyframes) => {
+  return (
+    IF_EXPLICIT(name, element, property, keyframes) ||
+    IF_DEFINED(name, element, property, keyframes)
+  )
+}
+
 const IF_EXPLICIT = (name, element, property, keyframes) => {
+  return !!element._visibleProperties[name]
+}
+
+const IF_DEFINED = (name, element, property, keyframes) => {
   return keyframes && Object.keys(keyframes).length > 0
 }
 
 const IF_CHANGED_FROM_PREPOPULATED_VALUE = (name, element, property, keyframes) => {
+  return wasChangedFromPrepopValue(name, keyframes)
+}
+
+const IF_IN_SCHEMA = (name, element) => {
+  const elementName = element.getSafeDomFriendlyName()
+  return hasInSchema(elementName, name)
+}
+
+const wasChangedFromPrepopValue = (name, keyframes) => {
   const fallback = Property.PREPOPULATED_VALUES[name]
+
   if (fallback === undefined) {
     return true
   }
+
   const value = keyframes && keyframes[0] && keyframes[0].value
+
   return (
     value !== undefined &&
     value !== fallback
   )
+}
+
+const hasInSchema = (elementName, propertyName) => {
+  return (
+    Property.BUILTIN_DOM_SCHEMAS[elementName] &&
+    Property.BUILTIN_DOM_SCHEMAS[elementName][propertyName]
+  )
+}
+
+Property.areAnyKeyframesDefined = (elementName, propertyName, keyframesObject) => {
+  const mss = Object.keys(keyframesObject)
+
+  // More than one keyframes always implies a keyframe has been set by the user
+  if (mss.length > 1) {
+    return true
+  }
+
+  // If the first keyframe isn't 0, that also implies a keyframe was set
+  if (Number(mss[0]) !== 0) {
+    return true
+  }
+
+  return wasChangedFromPrepopValue(propertyName, keyframesObject)
 }
 
 /**
@@ -526,9 +572,9 @@ Property.DISPLAY_RULES = {
   'align.y': {jit: [NEVER], add: [NEVER]},
   'align.z': {jit: [NEVER], add: [NEVER]},
   'content': {jit: [NON_ROOT_ONLY], add: [NON_ROOT_ONLY]},
-  'controlFlow.if': {jit: [NON_ROOT_ONLY], add: [IF_EXPLICIT]},
-  'controlFlow.placeholder': {jit: [NON_ROOT_ONLY, NON_COMPONENT_ONLY], add: [IF_EXPLICIT]},
-  'controlFlow.repeat': {jit: [NON_ROOT_ONLY], add: [IF_EXPLICIT]},
+  'controlFlow.if': {jit: [NON_ROOT_ONLY], add: [IF_EXPLICIT_OR_DEFINED]},
+  'controlFlow.placeholder': {jit: [NON_ROOT_ONLY, NON_COMPONENT_ONLY], add: [IF_EXPLICIT_OR_DEFINED]},
+  'controlFlow.repeat': {jit: [NON_ROOT_ONLY], add: [IF_EXPLICIT_OR_DEFINED]},
   'haiku-id': {jit: [NEVER], add: [NEVER]},
   'haiku-source': {jit: [NEVER], add: [NEVER]},
   'haiku-title': {jit: [NEVER], add: [NEVER]},
@@ -599,7 +645,38 @@ Property.DISPLAY_RULES = {
   'translation.x': {jit: [NEVER], add: [ALWAYS]},
   'translation.y': {jit: [NEVER], add: [ALWAYS]},
   'translation.z': {jit: [NEVER], add: [ALWAYS]},
-  'width': {jit: [NEVER], add: [NEVER]}
+  'width': {jit: [NEVER], add: [NEVER]},
+  // Primitives
+  'alignmentBaseline': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'cx': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'cy': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'd': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'fill': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'fillOpacity': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'fillRule': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'fontFamily': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'fontSize': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'fontStyle': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'fontVariant': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'fontWeight': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'href': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'kerning': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'letterSpacing': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'offset': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'points': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'r': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'rx': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'ry': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'stopColor': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'stroke': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'strokeOpacity': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'strokeWidth': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'textAnchor': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'wordSpacing': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'x1': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'x2': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'y1': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'y2': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]}
 }
 
 Property.includeInJIT = (name, element, property, keyframes) => {
