@@ -74,13 +74,17 @@ export default class FrameGrid extends React.Component {
     const borderLeftNormal = '1px solid ' + Color(Palette.COAL).fade(0.65)
     const borderLeftHighlighted = '1px solid ' + Color(Palette.ROCK).fade(0.8)
     const hoveredFrame = this.props.timeline.getHoveredFrame()
+    const propertiesWidth = this.props.timeline.getPropertiesPixelWidth()
 
     return (
       <div
         id='frame-grid'
-        style={{
+        style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+          position: 'sticky',
+          top: 0
+        } : {
           overflow: 'hidden'
-        }}
+        })}
       >
         {this.props.timeline.mapVisibleFrames(
           (frameNumber, pixelOffsetLeft, pixelsPerFrame, frameModulus) => {
@@ -89,13 +93,13 @@ export default class FrameGrid extends React.Component {
                 id={`frame-${frameNumber}`}
                 key={`frame-${frameNumber}`}
                 style={{
-                  height: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'calc(100vh - 95px)' : 9999,
+                  height: experimentIsEnabled(Experiment.NativeTimelineScroll) ? '100vh' : 9999,
                   borderLeft:
                     hoveredFrame === frameNumber
                       ? borderLeftHighlighted
                       : borderLeftNormal,
                   position: 'absolute',
-                  left: pixelOffsetLeft,
+                  left: pixelOffsetLeft + propertiesWidth,
                   top: 34
                 }}
               >

@@ -1026,83 +1026,143 @@ class Timeline extends React.Component {
   }
 
   renderTopControls () {
-    return (
-      <div
-        className='top-controls no-select'
-        style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
-          position: 'sticky',
-          top: 0,
-          height: this.state.rowHeight + 10,
-          width: '500vw',
-          verticalAlign: 'top',
-          fontSize: 10,
-          borderBottom: '1px solid ' + Palette.FATHER_COAL,
-          backgroundColor: Palette.COAL,
-          zIndex: 9999999999999
-        } : {
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          height: this.state.rowHeight + 10,
-          width: this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() + this.getActiveComponent().getCurrentTimeline().getTimelinePixelWidth(),
-          verticalAlign: 'top',
-          fontSize: 10,
-          borderBottom: '1px solid ' + Palette.FATHER_COAL,
-          backgroundColor: Palette.COAL
-        })}>
+    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+      return [
         <div
+          key='gauge-timekeeping-wrapper'
           className='gauge-timekeeping-wrapper'
-          style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+          style={{
             position: 'fixed',
             top: 0,
             left: 0,
-            height: 'inherit',
-            width: this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth(),
+            height: 35,
+            width: this.getActiveComponent()
+              .getCurrentTimeline()
+              .getPropertiesPixelWidth(),
             backgroundColor: Palette.COAL,
-            zIndex: 99999999
-          } : {
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            height: 'inherit',
-            width: this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()
-          })}>
-          <GaugeTimeReadout
-            reactParent={this}
-            timeline={this.getActiveComponent().getCurrentTimeline()} />
-        </div>
-        <div
-          id='gauge-box'
-          className='gauge-box'
+            zIndex: 999999999,
+            fontSize: 10
+          }}
+        >
+          <GaugeTimeReadout reactParent={this} timeline={this.getActiveComponent().getCurrentTimeline()} />
+        </div>,
+        <FrameGrid
+          key='frame-grid'
+          timeline={this.getActiveComponent().getCurrentTimeline()}
+          onShowFrameActionsEditor={this.showFrameActionsEditor}
+        />,
+        <div key='gauge' style={{
+          height: 35,
+          backgroundColor: Palette.COAL,
+          paddingTop: 12,
+          position: 'sticky',
+          top: 0,
+          marginLeft: this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth(),
+          width: '500vw',
+          zIndex: '9999',
+          fontSize: 10,
+          borderBottom: '1px solid ' + Palette.FATHER_COAL,
+          color: Palette.ROCK_MUTED
+        }}
           onMouseDown={(event) => {
             event.persist()
 
             this._doHandleMouseMovesInGauge = true
             this.disableTimelinePointerEvents()
             this.mouseMoveListener(event)
-          }}
+          }}>
+          <Gauge timeline={this.getActiveComponent().getCurrentTimeline()} />
+        </div>,
+        <ScrubberInterior
+          key='scrubber'
+          reactParent={this}
+          isScrubbing={this.getActiveComponent().getCurrentTimeline().isScrubberDragging()}
+          timeline={this.getActiveComponent().getCurrentTimeline()}
+        />,
+        <div key='durationModifier'>
+          {this.renderDurationModifier()}
+        </div>
+      ]
+    } else {
+      return (
+        <div
+          className='top-controls no-select'
           style={{
             position: 'absolute',
             top: 0,
-            left: this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth(),
-            width: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : this.getActiveComponent().getCurrentTimeline().getTimelinePixelWidth(),
-            height: 'inherit',
+            left: 0,
+            height: this.state.rowHeight + 10,
+            width:
+              this.getActiveComponent()
+                .getCurrentTimeline()
+                .getPropertiesPixelWidth() +
+              this.getActiveComponent()
+                .getCurrentTimeline()
+                .getTimelinePixelWidth(),
             verticalAlign: 'top',
-            paddingTop: 12,
-            color: Palette.ROCK_MUTED }}>
-          <FrameGrid
-            timeline={this.getActiveComponent().getCurrentTimeline()}
-            onShowFrameActionsEditor={this.showFrameActionsEditor} />
-          <Gauge
-            timeline={this.getActiveComponent().getCurrentTimeline()} />
-          <ScrubberInterior
-            reactParent={this}
-            isScrubbing={this.getActiveComponent().getCurrentTimeline().isScrubberDragging()}
-            timeline={this.getActiveComponent().getCurrentTimeline()} />
+            fontSize: 10,
+            borderBottom: '1px solid ' + Palette.FATHER_COAL,
+            backgroundColor: Palette.COAL
+          }}
+        >
+          <div
+            className='gauge-timekeeping-wrapper'
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              height: 'inherit',
+              width: this.getActiveComponent()
+                .getCurrentTimeline()
+                .getPropertiesPixelWidth()
+            }}
+          >
+            <GaugeTimeReadout reactParent={this} timeline={this.getActiveComponent().getCurrentTimeline()} />
+          </div>
+          <div>
+            <div
+              id='gauge-box'
+              className='gauge-box'
+              onMouseDown={(event) => {
+                event.persist()
+
+                this._doHandleMouseMovesInGauge = true
+                this.disableTimelinePointerEvents()
+                this.mouseMoveListener(event)
+              }}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: this.getActiveComponent()
+                  .getCurrentTimeline()
+                  .getPropertiesPixelWidth(),
+                width: this.getActiveComponent()
+                  .getCurrentTimeline()
+                  .getTimelinePixelWidth(),
+                height: 'inherit',
+                verticalAlign: 'top',
+                paddingTop: 12,
+                color: Palette.ROCK_MUTED
+              }}
+            >
+              <FrameGrid
+                timeline={this.getActiveComponent().getCurrentTimeline()}
+                onShowFrameActionsEditor={this.showFrameActionsEditor}
+              />
+              <Gauge timeline={this.getActiveComponent().getCurrentTimeline()} />
+              <ScrubberInterior
+                reactParent={this}
+                isScrubbing={this.getActiveComponent()
+                  .getCurrentTimeline()
+                  .isScrubberDragging()}
+                timeline={this.getActiveComponent().getCurrentTimeline()}
+              />
+            </div>
+          </div>
+          {this.renderDurationModifier()}
         </div>
-        {this.renderDurationModifier()}
-      </div>
-    )
+      )
+    }
   }
 
   mouseMoveListener (evt) {
@@ -1300,7 +1360,7 @@ class Timeline extends React.Component {
           color: Palette.ROCK,
           top: 0,
           left: 0,
-          height: 'calc(100% - 45px)',
+          height: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'calc(100% - 25px)' : 'calc(100% - 45px)',
           width: '100%',
           overflow: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'auto' : 'hidden'
         }}>

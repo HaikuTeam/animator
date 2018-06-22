@@ -56,12 +56,18 @@ export default class ScrubberInterior extends React.Component {
     const currFrame = this.props.timeline.getCurrentFrame()
     const frameOffset = currFrame - frameInfo.friA
     const pxOffset = frameOffset * frameInfo.pxpf
+    const propertiesWidth = this.props.timeline.getPropertiesPixelWidth()
 
     return (
       <div
-        style={{
+        style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+          position: 'sticky',
+          top: 0,
+          marginTop: -45,
+          zIndex: 99999
+        } : {
           overflow: 'hidden'
-        }}>
+        })}>
         <div
           style={{
             position: 'absolute',
@@ -71,11 +77,11 @@ export default class ScrubberInterior extends React.Component {
             height: 19,
             width: 19,
             top: 13,
-            left: pxOffset - 9,
+            left: propertiesWidth + pxOffset - 9,
             borderRadius: '50%',
             cursor: 'move',
             boxShadow: '0 0 2px 0 rgba(0, 0, 0, .9)',
-            zIndex: 2006
+            zIndex: 999999
           }}>
           <span style={{
             position: 'absolute',
@@ -87,7 +93,7 @@ export default class ScrubberInterior extends React.Component {
           </span>
           <span style={{
             position: 'absolute',
-            zIndex: 2006,
+            zIndex: 999999,
             width: 0,
             height: 0,
             top: 15,
@@ -98,7 +104,7 @@ export default class ScrubberInterior extends React.Component {
           }} />
           <span style={{
             position: 'absolute',
-            zIndex: 2006,
+            zIndex: 999999,
             width: 0,
             height: 0,
             left: 2,
@@ -113,10 +119,10 @@ export default class ScrubberInterior extends React.Component {
             position: 'absolute',
             zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 999999999 : 2006,
             backgroundColor: Palette.SUNSTONE,
-            height: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'calc(100vh - 95px)' : 9999,
+            height: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'calc(100vh - 80px)' : 9999,
             width: 1,
             top: 35,
-            left: pxOffset,
+            left: pxOffset + propertiesWidth,
             pointerEvents: 'none'
           }} />
       </div>
