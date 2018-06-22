@@ -1,3 +1,6 @@
+import Palette from 'haiku-ui-common/lib/Palette'
+import Color from 'color'
+
 class Marquee {
   constructor ({area, callback}) {
     this.initialCursorPos = {x: 0, y: 0}
@@ -52,8 +55,8 @@ class Marquee {
   _createSelector () {
     const selector = document.createElement('div')
     selector.style.position = 'absolute'
-    selector.style.background = 'rgba(0, 0, 255, 0.1)'
-    selector.style.border = '1px solid rgba(0, 0, 255, 0.45)'
+    selector.style.background = Color(Palette.LIGHTEST_PINK).alpha(0.1)
+    selector.style.border = `1px solid ${Palette.LIGHT_PINK}`
     selector.style.display = 'none'
     selector.style.pointerEvents = 'none'
     this.area.appendChild(selector)

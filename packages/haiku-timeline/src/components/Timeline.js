@@ -150,7 +150,7 @@ class Timeline extends React.Component {
     this.mounted = true
 
     if (experimentIsEnabled(Experiment.TimelineMarqueeSelection)) {
-      const marquee = new Marquee({area: document.querySelector('#timeline'),
+      const marquee = new Marquee({area: document.querySelector('#property-rows'),
         callback: (event, area) => {
           this.getActiveComponent().getCurrentTimeline().notifyMarqueeSelection(area)
         }})
