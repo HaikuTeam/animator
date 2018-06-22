@@ -37,7 +37,7 @@ export default class HorzScrollShadow extends React.PureComponent {
       return (
         <span className='no-select' style={{
           position: 'fixed',
-          height: '100%',
+          height: 'calc(100% - 45px)',
           width: 3,
           left: 297,
           zIndex: 99999999999,
@@ -55,7 +55,7 @@ export default class HorzScrollShadow extends React.PureComponent {
       return (
         <span className='no-select' style={{
           position: 'absolute',
-          height: '100%',
+          height: 'calc(100% - 45px)',
           width: 3,
           left: 297,
           zIndex: 2003,
