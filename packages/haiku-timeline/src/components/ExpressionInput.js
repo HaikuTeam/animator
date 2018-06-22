@@ -1011,14 +1011,14 @@ export default class ExpressionInput extends React.Component {
       top: 0,
       visibility: 'hidden',
       width: this.props.reactParent.state.inputCellWidth,
-      zIndex: 5000
+      zIndex: 9999999999999
     })
 
     if (this.props.component.getFocusedRow()) {
       style.visibility = 'visible'
       let rect = this.getRootRect()
       style.left = rect.left
-      style.top = rect.top
+      style.top = rect.top + 10
     }
 
     return style
