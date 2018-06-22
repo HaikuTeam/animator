@@ -2,11 +2,10 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import HaikuComponent from './HaikuComponent';
+import HaikuComponent, {ATTRS_HYPH_TO_CAMEL} from './HaikuComponent';
+import {visitManaTree, xmlToMana} from './HaikuNode';
 import addLegacyOriginSupport from './helpers/addLegacyOriginSupport';
 import compareSemver from './helpers/compareSemver';
-import visitManaTree from './helpers/visitManaTree';
-import xmlToMana from './helpers/xmlToMana';
 import functionToRFO from './reflection/functionToRFO';
 import reifyRFO from './reflection/reifyRFO';
 
@@ -15,6 +14,7 @@ const STRING_TYPE = 'string';
 const enum UpgradeVersionRequirement {
   OriginSupport = '3.2.0',
   TimelineDefaultFrames = '3.2.23',
+  CamelCasePropertyNames = '3.5.1',
 }
 
 const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source';
@@ -139,9 +139,24 @@ export const runMigrations = (component: HaikuComponent, options: any, version: 
     );
   }
 
+  const coreVersion = bytecode.metadata.core || bytecode.metadata.player;
+
   if (bytecode.timelines) {
     for (const timelineName in bytecode.timelines) {
       for (const selector in bytecode.timelines[timelineName]) {
+        if (requiresUpgrade(coreVersion, UpgradeVersionRequirement.CamelCasePropertyNames)) {
+          for (const propertyName in bytecode.timelines[timelineName][selector]) {
+            const camelVariant = ATTRS_HYPH_TO_CAMEL[propertyName];
+
+            if (camelVariant) {
+              bytecode.timelines[timelineName][selector][camelVariant] =
+                bytecode.timelines[timelineName][selector][propertyName];
+
+              delete bytecode.timelines[timelineName][selector][propertyName];
+            }
+          }
+        }
+
         // Legacy backgroundColor was a root prop; in newer versions it's style.backgroundColor.
         // We only want to update this if the user *hasn't* explicitly set style.backroundColor.
         if (
@@ -179,8 +194,6 @@ export const runMigrations = (component: HaikuComponent, options: any, version: 
       }
     }
   }
-
-  const coreVersion = bytecode.metadata.core || bytecode.metadata.player;
 
   if (requiresUpgrade(coreVersion, UpgradeVersionRequirement.OriginSupport)) {
     component.visit((element) => {

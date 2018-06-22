@@ -507,32 +507,65 @@ INJECTABLES.$user = {
 INJECTABLES.$flow = {
   schema: {
     repeat: {
-      list: ['any'],
+      group: 'object',
+      payload: 'any',
       index: 'number',
-      value: 'any',
-      data: 'any', // alias for value
-      payload: 'any', // alias for payload
+      collection: ['any'],
     },
     placeholder: {
       node: 'any', // The injected element?
     },
   },
   summon (injectees, summonSpec, hostInstance, matchingElement) {
-    // if (!injectees.$flow) injectees.$flow = {}
-    // var out = injectees.$flow
+    if (!injectees.$flow) {
+      injectees.$flow = {};
+    }
+
+    const repeatNode = getRepeatHostNode(matchingElement);
+
+    injectees.$flow.repeat = (repeatNode && repeatNode.__repeat) || {
+      instructions: [],
+      payload: {},
+      source: repeatNode,
+      index: 0,
+      collection: [repeatNode],
+    };
+
+    const ifNode = getIfHostNode(matchingElement);
+
+    injectees.$flow.if = (ifNode && ifNode.__if) || {
+      answer: null,
+    };
+
+    injectees.$flow.placeholder = matchingElement.__placeholder || {
+      value: null,
+      surrogate: null,
+    };
   },
 };
 
-INJECTABLES.$flow.schema.if = {
-  value: 'any',
-  data: 'any', // alias for value
-  payload: 'any', // alias for payload
+const getRepeatHostNode = (node) => {
+  if (!node) {
+    return;
+  }
+
+  if (node.__repeat) {
+    return node;
+  }
+
+  return getRepeatHostNode(node.__parent);
 };
 
-INJECTABLES.$flow.schema.yield = {
-  value: 'any',
-  data: 'any', // alias for value
-  payload: 'any', // alias for payload
+const getIfHostNode = (node) => {
+  if (!node) {
+    return;
+  }
+
+  if (node.__if) {
+    return node;
+  }
+
+  return getIfHostNode(node.__parent);
 };
 
 INJECTABLES.$helpers = {
@@ -1352,6 +1385,13 @@ export default class ValueBuilder {
         parsedValueCluster,
         timelineTime,
       );
+
+      // When expressions and other dynamic functionality is in play, data may be missing resulting in
+      // properties lacking defined values; in this case we try to do the right thing and fallback
+      // to a known usable value for the field. Especially needed with controlFlow.repeat.
+      if (computedValueForTime === undefined) {
+        computedValueForTime = getFallback(matchingElement.elementName, propertyName);
+      }
     }
 
     if (computedValueForTime === undefined) {

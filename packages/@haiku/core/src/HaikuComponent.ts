@@ -9,15 +9,11 @@ import HaikuBase, {GLOBAL_LISTENER_KEY} from './HaikuBase';
 import HaikuClock from './HaikuClock';
 import HaikuContext from './HaikuContext';
 import HaikuElement from './HaikuElement';
-import HaikuTimeline, {PlaybackSetting} from './HaikuTimeline';
+import {cssMatchOne, cssQueryList, manaFlattenTree, scopifyElements, xmlToMana} from './HaikuNode';
+import HaikuTimeline, {PlaybackSetting, TimeUnit} from './HaikuTimeline';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
-import cssMatchOne from './helpers/cssMatchOne';
-import cssQueryList from './helpers/cssQueryList';
 import {isPreviewMode} from './helpers/interactionModes';
 import isMutableProperty from './helpers/isMutableProperty';
-import manaFlattenTree from './helpers/manaFlattenTree';
-import scopifyElements from './helpers/scopifyElements';
-import xmlToMana from './helpers/xmlToMana';
 import Layout3D from './Layout3D';
 import {runMigrations} from './Migration';
 import functionToRFO, {RFO} from './reflection/functionToRFO';
@@ -63,7 +59,6 @@ const templateIsString = (
 export default class HaikuComponent extends HaikuElement {
   builder;
   _flatManaTree;
-  _horizonElements;
   isDeactivated;
   isSleeping;
   _matchedElementCache;
@@ -173,6 +168,9 @@ export default class HaikuComponent extends HaikuElement {
     // The full version of the template gets mutated in-place by the rendering algorithm
     this._flatManaTree = [];
 
+    // As a performance optimization, keep track of elements we've located as key/value (selector/element) pairs
+    this._matchedElementCache = {};
+
     // Flag used internally to determine whether we need to re-render the full tree or can survive by just patching
     this.doesNeedFullFlush = false;
 
@@ -181,14 +179,6 @@ export default class HaikuComponent extends HaikuElement {
 
     // Dictionary of event handler names to handler functions; used to efficiently manage multiple subscriptions
     this.registeredEventHandlers = {};
-
-    // As a performance optimization, keep track of elements we've located as key/value (selector/element) pairs
-    this._matchedElementCache = {};
-
-    // Dictionary of ids-to-elements, representing elements that we
-    // do not want to render past in the tree (i.e. cede control to some
-    // other rendering context)
-    this._horizonElements = {};
 
     // Flag to determine whether this component should continue doing any work
     this.isDeactivated = false;
@@ -231,17 +221,17 @@ export default class HaikuComponent extends HaikuElement {
    */
   markHorizonElement (virtualElement) {
     if (virtualElement && virtualElement.attributes) {
-      const flexId = virtualElement.attributes[HAIKU_ID_ATTRIBUTE] || virtualElement.attributes.id;
-      if (flexId) {
-        this._horizonElements[flexId] = virtualElement;
-      }
+      virtualElement.__horizon = true;
     }
   }
 
-  isHorizonElement (virtualElement) {
+  /**
+   * @description Returns true/false whether this element is one that we don't want to make any
+   *  updates further down its tree.
+   */
+  isHorizonElement (virtualElement): boolean {
     if (virtualElement && virtualElement.attributes) {
-      const flexId = virtualElement.attributes[HAIKU_ID_ATTRIBUTE] || virtualElement.attributes.id;
-      return !!this._horizonElements[flexId];
+      return virtualElement.__horizon;
     }
     return false;
   }
@@ -399,8 +389,8 @@ export default class HaikuComponent extends HaikuElement {
       this.bindStates();
     }
 
-    this._flatManaTree = manaFlattenTree(this.getTemplate(), CSS_QUERY_MAPPING);
-    this._matchedElementCache = {};
+    this.clearNodeCaches();
+
     this.builder.clearCaches(options);
     this._hydrateMutableTimelines();
 
@@ -410,6 +400,11 @@ export default class HaikuComponent extends HaikuElement {
         delete this.bytecode.timelines[timelineName].__max;
       }
     }
+  }
+
+  clearNodeCaches () {
+    this._flatManaTree = manaFlattenTree(this.getTemplate(), CSS_QUERY_MAPPING);
+    this._matchedElementCache = {};
   }
 
   getClock (): HaikuClock {
@@ -509,6 +504,55 @@ export default class HaikuComponent extends HaikuElement {
     if (existing) {
       existing.stop(time, descriptor);
     }
+  }
+
+  /**
+   * @description Convenience alias for HaikuTimeline#gotoAndPlay
+   */
+  gotoAndPlay (amount: number, unit: TimeUnit = TimeUnit.Frame) {
+    this.getDefaultTimeline().gotoAndPlay(amount, unit);
+  }
+
+  /**
+   * @description Convenience alias for HaikuTimeline#gotoAndStop
+   */
+  gotoAndStop (amount: number, unit: TimeUnit = TimeUnit.Frame) {
+    this.getDefaultTimeline().gotoAndStop(amount, unit);
+  }
+
+  /**
+   * @description Convenience alias for HaikuTimeline#pause
+   */
+  pause () {
+    this.getDefaultTimeline().pause();
+  }
+
+  /**
+   * @description Convenience alias for HaikuTimeline#stop
+   */
+  stop (maybeGlobalClockTime: number, descriptor) {
+    this.getDefaultTimeline().stop(maybeGlobalClockTime, descriptor);
+  }
+
+  /**
+   * @description Convenience alias for HaikuTimeline#seek
+   */
+  seek (amount: number, unit: TimeUnit = TimeUnit.Frame) {
+    this.getDefaultTimeline().seek(amount, unit);
+  }
+
+  /**
+   * @description Convenience alias for HaikuTimeline#start
+   */
+  start (maybeGlobalClockTime: number, descriptor) {
+    this.getDefaultTimeline().start(maybeGlobalClockTime, descriptor);
+  }
+
+  /**
+   * @description Convenience alias for HaikuTimeline#play
+   */
+  play (options: any = {}) {
+    this.getDefaultTimeline().play();
   }
 
   getTimelineDescriptor (timelineName) {
@@ -787,8 +831,7 @@ export default class HaikuComponent extends HaikuElement {
       return;
     }
 
-    this._flatManaTree = manaFlattenTree(this.getTemplate(), CSS_QUERY_MAPPING);
-    this._matchedElementCache = {};
+    this.clearNodeCaches();
 
     const expansion = expandTreeNode(
       this.getTemplate(), // node
@@ -821,6 +864,14 @@ export default class HaikuComponent extends HaikuElement {
       this,
       patches,
     );
+
+    // If any node was set to full flush before this update, we unset it to avoid
+    // unnecessary re-rendering on subsequent patches
+    for (const flexId in patches) {
+      if (patches[flexId].__flush) {
+        patches[flexId].__flush = false;
+      }
+    }
 
     for (const $id in this.guests) {
       this.guests[$id].performPatchRenderWithRenderer(
@@ -895,7 +946,7 @@ export default class HaikuComponent extends HaikuElement {
     options: any = {},
     skipCache = false,
   ) {
-    // This is what we're going to return: a dictionary of ids to elements
+    // This is what we're going to return: a dictionary of composite ids (flexId-repeatIndex) to elements
     const deltas = {};
 
     Layout3D.initializeTreeAttributes(template, true);
@@ -918,8 +969,8 @@ export default class HaikuComponent extends HaikuElement {
 
     // TODO: Calculating the tree layout should be skipped for already visited node
     // that we have already calculated among the descendants of the changed one
-    for (const flexId in deltas) {
-      const changedNode = deltas[flexId];
+    for (const compositeId in deltas) {
+      const changedNode = deltas[compositeId];
 
       computeAndApplyTreeLayouts(
         changedNode,
@@ -991,11 +1042,7 @@ export default class HaikuComponent extends HaikuElement {
         for (let i = 0; i < propertyOperations.length; i++) {
           const propertyGroup = propertyOperations[i];
 
-          const matchingElementsForBehavior = findMatchingElementsByCssSelector(
-            behaviorSelector,
-            this._flatManaTree,
-            this._matchedElementCache,
-          );
+          const matchingElementsForBehavior = this.findMatchingElementsByCssSelector(behaviorSelector);
 
           if (!matchingElementsForBehavior || matchingElementsForBehavior.length < 1) {
             continue;
@@ -1004,19 +1051,8 @@ export default class HaikuComponent extends HaikuElement {
           for (let j = 0; j < matchingElementsForBehavior.length; j++) {
             const matchingElement = matchingElementsForBehavior[j];
 
-            const domId = (
-              matchingElement &&
-              matchingElement.attributes &&
-              matchingElement.attributes.id
-            );
-
-            const haikuId = (
-              matchingElement &&
-              matchingElement.attributes &&
-              matchingElement.attributes[HAIKU_ID_ATTRIBUTE]
-            );
-
-            const flexId = haikuId || domId;
+            const flexId = getNodeFlexId(matchingElement);
+            const compositeId = getNodeCompositeId(matchingElement);
 
             for (const propertyName in propertyGroup) {
               const propertyValue = propertyGroup[propertyName];
@@ -1043,7 +1079,15 @@ export default class HaikuComponent extends HaikuElement {
 
                 // If even one change has been applied, the element must be patched
                 if (deltas) {
-                  deltas[flexId] = matchingElement;
+                  const parentElement = matchingElement.__parent;
+
+                  // Some behaviors require that we flush the parent, i.e. for structure changes.
+                  if (parentElement && parentElement.__flush) {
+                    deltas[getNodeCompositeId(parentElement)] = parentElement;
+                  } else {
+                    // The parent's flush should flush the child so we only do this if no parent flush.
+                    deltas[compositeId] = matchingElement;
+                  }
                 }
               }
             }
@@ -1093,11 +1137,15 @@ export default class HaikuComponent extends HaikuElement {
   }
 
   findElementsByHaikuId (componentId) {
-    return findMatchingElementsByCssSelector(
-      'haiku:' + componentId,
-      this._flatManaTree,
-      this._matchedElementCache,
-    );
+    return this.findMatchingElementsByCssSelector(`haiku:${componentId}`);
+  }
+
+  findMatchingElementsByCssSelector (selector: string) {
+    if (this._matchedElementCache[selector]) {
+      return this._matchedElementCache[selector];
+    }
+
+    return this._matchedElementCache[selector] = cssQueryList(this._flatManaTree, selector, CSS_QUERY_MAPPING);
   }
 
   _hydrateMutableTimelines () {
@@ -1292,25 +1340,51 @@ export default class HaikuComponent extends HaikuElement {
   static all = (): HaikuComponent[] => HaikuBase.getRegistryForClass(HaikuComponent);
 }
 
-const STRUCTURE_PROPERTIES = {
-  'controlFlow.repeat': true,
-  'controlFlow.if': true,
-  'controlFlow.placeholder': true,
+const getNodeFlexId = (node): string => {
+  const domId = (
+    node &&
+    node.attributes &&
+    node.attributes.id
+  );
+
+  const haikuId = (
+    node &&
+    node.attributes &&
+    node.attributes[HAIKU_ID_ATTRIBUTE]
+  );
+
+  return haikuId || domId;
+};
+
+const getNodeCompositeId = (node): string => {
+  const flexId = getNodeFlexId(node);
+
+  return (node.__repeat)
+    ? `${flexId}'${node.__repeat.index}`
+    : flexId;
 };
 
 const collatePropertyGroup = (propertiesGroup) => {
-  const structuralOps = {};
-  const presentationalOps = {};
+  const collation = [
+    {}, // "if" ops
+    {}, // "repeat" ops
+    {}, // "placeholder" ops
+    {}, // all other presentational ops
+  ];
 
   for (const propertyName in propertiesGroup) {
-    if (STRUCTURE_PROPERTIES[propertyName]) {
-      structuralOps[propertyName] = propertiesGroup[propertyName];
+    if (propertyName === 'controlFlow.if') {
+      collation[0][propertyName] = propertiesGroup[propertyName];
+    } else if (propertyName === 'controlFlow.repeat') {
+      collation[1][propertyName] = propertiesGroup[propertyName];
+    } else if (propertyName === 'controlFlow.placeholder') {
+      collation[2][propertyName] = propertiesGroup[propertyName];
     } else {
-      presentationalOps[propertyName] = propertiesGroup[propertyName];
+      collation[3][propertyName] = propertiesGroup[propertyName];
     }
   }
 
-  return [structuralOps, presentationalOps];
+  return collation;
 };
 
 function isBytecode (thing) {
@@ -1444,30 +1518,6 @@ const propertyGroupNeedsExpressionEvaluated = (
   return foundExpressionForTime;
 };
 
-function connectInstanceNodeWithHostComponent (node, host) {
-  const flexId = (
-    node &&
-    node.attributes &&
-    (node.attributes[HAIKU_ID_ATTRIBUTE] || node.attributes.id)
-  );
-
-  // Clear the previous listener (avoid multiple subscriptions to the same event)
-  if (node.__listener) {
-    node.__instance.off('*', node.__listener);
-  }
-
-  node.__listener = (key, ...args) => {
-    host.routeEventToHandler(
-      `haiku:${flexId}`,
-      key,
-      [node.__instance].concat(args),
-    );
-  };
-
-  // Bubble emitted events to the host component so it can subscribe declaratively
-  node.__instance.on('*', node.__listener);
-}
-
 function expandTreeNode (
   node,
   parent,
@@ -1494,11 +1544,29 @@ function expandTreeNode (
 
     HaikuElement.connectNodeWithElement(node, node.__instance);
 
+    // The host component should hear events emitted by the guest component
     if (host) {
-      connectInstanceNodeWithHostComponent(
-        node,
-        host,
+      const flexIdOfHostComponentsWrapperDivForGuest = (
+        parent &&
+        parent.attributes &&
+        (parent.attributes[HAIKU_ID_ATTRIBUTE] || parent.attributes.id)
       );
+
+      // Clear the previous listener (avoid multiple subscriptions to the same event)
+      if (node.__listener) {
+        node.__instance.off('*', node.__listener);
+      }
+
+      node.__listener = (key, ...args) => {
+        host.routeEventToHandler(
+          `haiku:${flexIdOfHostComponentsWrapperDivForGuest}`,
+          key,
+          [node.__instance].concat(args),
+        );
+      };
+
+      // Bubble emitted events to the host component so it can subscribe declaratively
+      node.__instance.on('*', node.__listener);
     }
   }
 
@@ -1514,6 +1582,12 @@ function expandTreeNode (
           options,
           false,
         );
+      }
+
+      if (!node.__children) {
+        // Store a snapshot of the children such that we can make structural changes,
+        // i.e. controlFlow.repeat, and still compare/restore to the original copy
+        node.__children = node.children.slice(0);
       }
     }
 
@@ -1570,14 +1644,6 @@ function expandTreeNode (
   // In case we got a __reference node or other unknown
   console.warn('[haiku core] cannot expand node');
   return node;
-}
-
-function findMatchingElementsByCssSelector (selector, flatManaTree, cache) {
-  if (cache[selector]) {
-    return cache[selector];
-  }
-
-  return cache[selector] = cssQueryList(flatManaTree, selector, CSS_QUERY_MAPPING);
 }
 
 function computeAndApplyTreeLayouts (tree, container, options, context) {
@@ -1829,7 +1895,8 @@ const setStyle = (subkey, element, value) => {
 };
 
 const setAttribute = (key, element, value) => {
-  element.attributes[key] = value;
+  const final = ATTRS_CAMEL_TO_HYPH[key] || key;
+  element.attributes[final] = value;
 };
 
 const isNumeric = (n) => {
@@ -1927,25 +1994,6 @@ const getCanonicalPlaybackValue = (value) => {
   }
 
   return value;
-};
-
-const controlFlowPlaceholderImpl = (element, surrogate, receiver) => {
-  if (element.__surrogate !== surrogate) {
-    element.elementName = surrogate.elementName;
-    element.children = surrogate.children || [];
-    if (surrogate.attributes) {
-      if (!element.attributes) {
-        element.attributes = {};
-      }
-      for (const key in surrogate.attributes) {
-        if (key === 'haiku-id') {
-          continue;
-        }
-        element.attributes[key] = surrogate.attributes[key];
-      }
-    }
-    element.__surrogate = surrogate;
-  }
 };
 
 /**
@@ -2149,6 +2197,11 @@ export const VANITIES = {
       receiver,
       sender,
     ) => {
+      // For MVP's sake, structural behaviors not rendered during hot editing.
+      if (sender.config.hotEditingMode) {
+        return;
+      }
+
       if (value === null || value === undefined) {
         return;
       }
@@ -2187,6 +2240,12 @@ export const VANITIES = {
       // see a flash of the default content before the injected content flows in lazily
       element.children = [];
 
+      if (!element.__placeholder) {
+        element.__placeholder = {};
+      }
+
+      element.__placeholder.value = value;
+
       // If we are running via a framework adapter, allow that framework to provide its own placeholder mechanism.
       // This is necessary e.g. in React where their element format needs to be converted into our 'mana' format
       if (context.config.vanities['controlFlow.placeholder']) {
@@ -2200,10 +2259,302 @@ export const VANITIES = {
           sender,
         );
       } else {
-        controlFlowPlaceholderImpl(element, surrogate, receiver);
+        if (element.placeholder.__surrogate !== surrogate) {
+          element.elementName = surrogate.elementName;
+          element.children = surrogate.children || [];
+
+          if (surrogate.attributes) {
+            if (!element.attributes) {
+              element.attributes = {};
+            }
+
+            for (const key in surrogate.attributes) {
+              if (key === 'haiku-id') {
+                continue;
+              }
+              element.attributes[key] = surrogate.attributes[key];
+            }
+          }
+
+          element.placeholder.__surrogate = surrogate;
+        }
       }
     },
+
+    'controlFlow.repeat': (
+      name: string,
+      element,
+      value,
+      context: HaikuContext,
+      timeline: HaikuTimeline,
+      receiver: HaikuComponent,
+      sender: HaikuComponent,
+    ) => {
+      // For MVP's sake, structural behaviors not rendered during hot editing.
+      if (sender.config.hotEditingMode) {
+        return;
+      }
+
+      let instructions;
+
+      if (Array.isArray(value)) {
+        instructions = value;
+      } else if (isNumeric(value)) {
+        const arr = [];
+
+        for (let i = 0; i < value; i++) {
+          arr.push({}); // Empty repeat payload spec
+        }
+
+        instructions = arr;
+      } else {
+        return;
+      }
+
+      const parent = element && element.__parent;
+
+      // We can't proceed if there is...:
+      //   - no parent in which to host the repeated children
+      //   - no children array in which to place the repeats
+      //   - no snapshot of the original children from which to derive repeats
+      if (!parent || !parent.children || !parent.__children) {
+        return;
+      }
+
+      if (element.__repeat) {
+        if (element.__repeat.changed) {
+          element.__repeat.changed = false;
+          parent.__flush = true;
+        } else {
+          // Save CPU by avoiding recomputing a repeat when we've already done so.
+          // Although upstream HaikuComponent#applyBehaviors does do diff comparisons,
+          // it intentionally skips this comparison for complex properties i.e. arrays
+          // and objects due to the intractability of smartly comparing for all cases.
+          // We do a comparison that is fairly sensible in the repeat-exclusive case.
+          if (isSameRepeatBehavior(element.__repeat.instructions, instructions)) {
+            if (element.__repeat.instructions.length !== instructions.length) {
+              parent.__flush = true;
+            }
+            return;
+          }
+        }
+      }
+
+      const groups = getGroupedChildren(parent);
+
+      // Clear the existing children which we're going to repopulate with elements
+      parent.children.splice(0);
+
+      for (let i = 0; i < groups.length; i++) {
+        const group = groups[i];
+
+        // If not our element, just place the groups back in the children
+        if (group.source !== element) {
+          // Don't reinsert an element if the if-answer says it should be transcluded
+          if (isGroupIfBehaviorTrue(group)) {
+            parent.children.push.apply(parent.children, group.elements);
+          }
+
+          continue;
+        }
+
+        // If our element, create the appropriate repetitions and then push.
+        for (let j = 0; j < instructions.length; j++) {
+          const payload = instructions[j];
+
+          // Reuse the original element at this index if we already have one,
+          // otherwise clone the source element, and initialize a component if necessary
+          if (!group.elements[j]) {
+            group.elements[j] = clone(group.source, sender);
+
+            // We have to initialize the element's __instance, etc.
+            expandTreeNode(
+              group.elements[j],
+              parent,
+              sender, // component
+              sender.context, // context
+              sender, // host
+              sender.config, // options
+              false, // doConnectInstanceToNode
+            );
+          }
+
+          // The repeat information is exposed downstream for programmatic control
+          group.elements[j].__repeat = {
+            instructions,
+            payload,
+            source: element,
+            index: j,
+            collection: group.elements,
+          };
+
+          // Apply the repeat payload to the element as if it were a normal timeline output
+          for (const propertyName in payload) {
+            sender.applyPropertyToNode(
+              group.elements[j], // matchingElement
+              propertyName,
+              payload[propertyName], // finalValue
+              timeline,
+            );
+          }
+
+          // Don't reinsert an element if the if-answer says it should be transcluded
+          if (isGroupIfBehaviorTrue(group)) {
+            parent.children.push(group.elements[j]);
+          }
+        }
+      }
+
+      sender.clearNodeCaches();
+    },
+
+    'controlFlow.if': (
+      name: string,
+      element,
+      value,
+      context: HaikuContext,
+      timeline: HaikuTimeline,
+      receiver: HaikuComponent,
+      sender: HaikuComponent,
+    ) => {
+      // For MVP's sake, structural behaviors not rendered during hot editing.
+      if (sender.config.hotEditingMode) {
+        return;
+      }
+
+      // Assume our if-answer is only false if we got an explicit false value
+      const answer = (value === false) ? false : true;
+
+      if (element.__if) {
+        // Save CPU by avoiding recomputing an if when we've already done so.
+        if (isSameIfBehavior(element.__if.answer, answer)) {
+          return;
+        }
+      }
+
+      const parent = element && element.__parent;
+
+      // We can't proceed if there is...:
+      //   - no parent in which to host the repeated children
+      //   - no children array in which to place the element
+      //   - no snapshot of the original children from which to derive the element
+      if (!parent || !parent.children || !parent.__children) {
+        return;
+      }
+
+      element.__if = {
+        answer,
+      };
+
+      // Ensure that a change in repeat will trigger the necessary re-repeat
+      if (element.__repeat) {
+        element.__repeat.changed = true;
+      }
+
+      parent.__flush = true;
+
+      const groups = getGroupedChildren(parent);
+
+      // Clear the existing children which we're going to repopulate with elements
+      parent.children.splice(0);
+
+      for (let i = 0; i < groups.length; i++) {
+        const group = groups[i];
+
+        // Don't reinsert an element if the if-answer says it should be transcluded
+        if (isGroupIfBehaviorTrue(group)) {
+          parent.children.push.apply(parent.children, group.elements);
+
+          // Ensure we can go from n=0 to n>=1 elements in the list
+          if (parent.children.length < 1) {
+            parent.children.push(element);
+          }
+        }
+      }
+
+      sender.clearNodeCaches();
+    },
   },
+};
+
+const isGroupIfBehaviorTrue = (group): boolean => {
+  if (!group.source) {
+    return true;
+  }
+
+  if (!group.source.__if) {
+    return true;
+  }
+
+  return group.source.__if.answer !== false;
+};
+
+const getGroupedChildren = (parent) => {
+  return parent.__children.map((source, index) => {
+    const group = {
+      index,
+      source,
+      elements: [],
+    };
+
+    for (let i = 0; i < parent.children.length; i++) {
+      const child = parent.children[i];
+
+      if (child === source) {
+        if (group.elements.indexOf(child) === -1) {
+          group.elements.push(child);
+        }
+        continue;
+      }
+
+      if (child.__repeat && child.__repeat.source === source) {
+        if (group.elements.indexOf(child) === -1) {
+          group.elements.push(child);
+        }
+        continue;
+      }
+    }
+
+    return group;
+  });
+};
+
+const isSameIfBehavior = (prev, next): boolean => {
+  return prev === next;
+};
+
+const isSameRepeatBehavior = (prevs, nexts): boolean => {
+  if (prevs === nexts) {
+    return true;
+  }
+
+  if (prevs.length !== nexts.length) {
+    return false;
+  }
+
+  let answer = true;
+
+  for (let i = 0; i < prevs.length; i++) {
+    if (!answer) {
+      break;
+    }
+
+    const prev = prevs[i];
+    const next = nexts[i];
+
+    if (prev === next) {
+      continue;
+    }
+
+    for (const key in next) {
+      if (next[key] !== prev[key]) {
+        answer = false;
+        break;
+      }
+    }
+  }
+
+  return answer;
 };
 
 export const getFallback = (elementName: string, propertyName: string) => {
@@ -2236,7 +2587,7 @@ export const FALLBACKS = {
   '*': {
     shown: LAYOUT_DEFAULTS.shown,
     opacity: LAYOUT_DEFAULTS.opacity,
-    content: null,
+    content: '',
     'mount.x': LAYOUT_DEFAULTS.mount.x,
     'mount.y': LAYOUT_DEFAULTS.mount.y,
     'mount.z': LAYOUT_DEFAULTS.mount.z,
@@ -2330,3 +2681,84 @@ export const LAYOUT_3D_SCHEMA = {
   'sizeMode.y': 'number',
   'sizeMode.z': 'number',
 };
+
+export const ATTRS_CAMEL_TO_HYPH = {
+  accentHeight: 'accent-height',
+  alignmentBaseline: 'alignment-baseline',
+  arabicForm: 'arabic-form',
+  baselineShift: 'baseline-shift',
+  capHeight: 'cap-height',
+  clipPath: 'clip-path',
+  clipRule: 'clip-rule',
+  colorInterpolation: 'color-interpolation',
+  colorInterpolationFilters: 'color-interpolation-filters',
+  colorProfile: 'color-profile',
+  colorRendering: 'color-rendering',
+  dominantBaseline: 'dominant-baseline',
+  enableBackground: 'enable-background',
+  fillOpacity: 'fill-opacity',
+  fillRule: 'fill-rule',
+  floodColor: 'flood-color',
+  floodOpacity: 'flood-opacity',
+  fontFamily: 'font-family',
+  fontSize: 'font-size',
+  fontSizeAdjust: 'font-size-adjust',
+  fontStretch: 'font-stretch',
+  fontStyle: 'font-style',
+  fontVariant: 'font-variant',
+  fontWeight: 'font-weight',
+  glyphName: 'glyph-name',
+  glyphOrientationHorizontal: 'glyph-orientation-horizontal',
+  glyphOrientationVertical: 'glyph-orientation-vertical',
+  horizAdvX: 'horiz-adv-x',
+  horizOriginX: 'horiz-origin-x',
+  imageRendering: 'image-rendering',
+  letterSpacing: 'letter-spacing',
+  lightingColor: 'lighting-color',
+  markerEnd: 'marker-end',
+  markerMid: 'marker-mid',
+  markerStart: 'marker-start',
+  overlinePosition: 'overline-position',
+  overlineThickness: 'overline-thickness',
+  panose1: 'panose-1',
+  paintOrder: 'paint-order',
+  pointerEvents: 'pointer-events',
+  renderingIntent: 'rendering-intent',
+  shapeRendering: 'shape-rendering',
+  stopColor: 'stop-color',
+  stopOpacity: 'stop-opacity',
+  strikethroughPosition: 'strikethrough-position',
+  strikethroughThickness: 'strikethrough-thickness',
+  strokeDasharray: 'stroke-dasharray',
+  strokeDashoffset: 'stroke-dashoffset',
+  strokeLinecap: 'stroke-linecap',
+  strokeLinejoin: 'stroke-linejoin',
+  strokeMiterlimit: 'stroke-miterlimit',
+  strokeOpacity: 'stroke-opacity',
+  strokeWidth: 'stroke-width',
+  textAnchor: 'text-anchor',
+  textDecoration: 'text-decoration',
+  textRendering: 'text-rendering',
+  underlinePosition: 'underline-position',
+  underlineThickness: 'underline-thickness',
+  unicodeBidi: 'unicode-bidi',
+  unicodeRange: 'unicode-range',
+  unitsPerEm: 'units-per-em',
+  vAlphabetic: 'v-alphabetic',
+  vHanging: 'v-hanging',
+  vIdeographic: 'v-ideographic',
+  vMathematical: 'v-mathematical',
+  vectorEffect: 'vector-effect',
+  vertAdvY: 'vert-adv-y',
+  vertOriginX: 'vert-origin-x',
+  vertOriginY: 'vert-origin-y',
+  wordSpacing: 'word-spacing',
+  writingMode: 'writing-mode',
+  xHeight: 'x-height',
+};
+
+export const ATTRS_HYPH_TO_CAMEL = {};
+
+for (const camel in ATTRS_CAMEL_TO_HYPH) {
+  ATTRS_HYPH_TO_CAMEL[ATTRS_CAMEL_TO_HYPH[camel]] = camel;
+}

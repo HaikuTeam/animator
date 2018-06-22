@@ -79,9 +79,21 @@ class ClusterInputFieldValueDisplay extends React.Component {
 
 function remapPrettyValue (prettyValue) {
   if (prettyValue && prettyValue.render === 'react') {
-    return <span style={prettyValue.style}>{prettyValue.text}</span>
+    return <span style={prettyValue.style}>{safeText(prettyValue.text)}</span>
   }
-  return prettyValue
+  return safeText(prettyValue)
+}
+
+function safeText (textOrObj) {
+  if (typeof textOrObj === 'string') {
+    return textOrObj
+  }
+
+  try {
+    return JSON.stringify(textOrObj)
+  } catch (exception) {
+    return '?'
+  }
 }
 
 ClusterInputField.propTypes = {

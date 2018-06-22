@@ -1,5 +1,5 @@
 import HaikuBase from './HaikuBase';
-import cssMatchOne from './helpers/cssMatchOne';
+import {cssMatchOne} from './HaikuNode';
 import Layout3D from './Layout3D';
 
 export const HAIKU_ID_ATTRIBUTE = 'haiku-id';

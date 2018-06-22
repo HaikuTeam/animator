@@ -1,0 +1,1 @@
+This multi-component project is primarily a perf test. The wings of the main butterfly should flap smoothly, and it should follow the mouse without jank.

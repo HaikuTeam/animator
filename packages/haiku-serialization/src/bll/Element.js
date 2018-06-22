@@ -1,7 +1,7 @@
 const lodash = require('lodash')
 const HaikuElement = require('@haiku/core/lib/HaikuElement').default
 const Layout3D = require('@haiku/core/lib/Layout3D').default
-const cssQueryTree = require('@haiku/core/lib/helpers/cssQueryTree').default
+const {cssQueryTree} = require('@haiku/core/lib/HaikuNode')
 const composedTransformsToTimelineProperties = require('@haiku/core/lib/helpers/composedTransformsToTimelineProperties').default
 const {LAYOUT_3D_SCHEMA} = require('@haiku/core/lib/HaikuComponent')
 const KnownDOMEvents = require('@haiku/core/lib/renderers/dom/Events').default
@@ -11,10 +11,22 @@ const polygonOverlap = require('polygon-overlap')
 const logger = require('./../utils/LoggerInstance')
 const BaseModel = require('./BaseModel')
 const TransformCache = require('./TransformCache')
-const RENDERABLE_ELEMENTS = require('./svg/RenderableElements')
-const TOP_LEVEL_GROUP_ELEMENTS = require('./svg/TopLevelGroupElements')
-const GROUPING_ELEMENTS = require('./svg/GroupingElements')
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
+
+const ELEMENT_TYPES_TO_SHOW_IN_TREE_VIEW = {
+  div: true,
+  svg: true,
+  g: true,
+  rect: true,
+  circle: true,
+  ellipse: true,
+  line: true,
+  polyline: true,
+  polygon: true,
+  path: true,
+  tspan: true,
+  text: true
+}
 
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const HAIKU_TITLE_ATTRIBUTE = 'haiku-title'
@@ -58,10 +70,10 @@ class Element extends BaseModel {
 
     this._isHovered = false
     this._isSelected = false
-    this.transformCache = new TransformCache(this)
-
     this._clusterAndPropertyRows = []
     this._headingRow = null
+
+    this.transformCache = new TransformCache(this)
   }
 
   $el () {
@@ -194,10 +206,6 @@ class Element extends BaseModel {
 
   isSelected () {
     return this._isSelected
-  }
-
-  canRotate () {
-    return this.isSelectableType() && this.isGroupingType() && !!this.parent
   }
 
   getStaticTemplateNode () {
@@ -713,16 +721,17 @@ class Element extends BaseModel {
     this.emit('update', 'element-removed')
   }
 
-  isRenderableType () {
-    return !!RENDERABLE_ELEMENTS[Element.safeElementName(this.getStaticTemplateNode())]
+  isTreeViewableType () {
+    return !!ELEMENT_TYPES_TO_SHOW_IN_TREE_VIEW[Element.safeElementName(this.getStaticTemplateNode())]
   }
 
-  isSelectableType () {
-    return !!TOP_LEVEL_GROUP_ELEMENTS[Element.safeElementName(this.getStaticTemplateNode())]
+  isRepeater () {
+    const rkfs = this.getRepeaterKeyframes()
+    return !!(rkfs && Object.keys(rkfs).length > 0)
   }
 
-  isGroupingType () {
-    return !!GROUPING_ELEMENTS[Element.safeElementName(this.getStaticTemplateNode())]
+  getRepeaterKeyframes () {
+    return this.getPropertyKeyframesObject('controlFlow.repeat')
   }
 
   isTextNode () {
@@ -795,31 +804,31 @@ class Element extends BaseModel {
   }
 
   updateTargetingRows (updateEventName) {
-    this.getTargetingRows().forEach((row) => {
+    this.getAllRows().forEach((row) => {
       row.emit('update', updateEventName)
     })
   }
 
   getAllRows () {
-    return lodash.uniq([].concat(this.getHostedRows(), this.getTargetingRows()))
+    return Row.where({component: this.component, element: this})
   }
 
-  getHostedPropertyRows () {
+  getHostedPropertyRows (doRecurse = false) {
     const rows = []
 
-    const heading = this.getHeadingRow()
+    const headingRow = this.getHeadingRow()
 
-    if (heading) {
-      rows.push(heading)
+    if (headingRow) {
+      rows.push(headingRow)
 
-      if (heading.children) {
-        heading.children.forEach((child) => {
-          if (child.isClusterHeading() || child.isProperty()) {
-            rows.push(child)
+      if (headingRow.children) {
+        headingRow.children.forEach((childRow) => {
+          if (childRow.isClusterHeading() || childRow.isProperty()) {
+            rows.push(childRow)
 
-            if (child.children) {
-              child.children.forEach((grandchild) => {
-                rows.push(grandchild)
+            if (childRow.children) {
+              childRow.children.forEach((grandchildRow) => {
+                rows.push(grandchildRow)
               })
             }
           }
@@ -827,15 +836,42 @@ class Element extends BaseModel {
       }
     }
 
+    if (doRecurse && experimentIsEnabled(Experiment.ShowSubElementsInJitMenu)) {
+      this.visitDescendants((descendantElement) => {
+        if (descendantElement.isTextNode() || !descendantElement.isTreeViewableType()) {
+          return
+        }
+
+        const subrows = descendantElement.getHostedPropertyRows(false).filter((row) => {
+          return (
+            (row.isProperty() || row.isClusterHeading()) &&
+            Property.includeInAddressables(
+              row.getPropertyNameString(),
+              descendantElement,
+              row.property,
+              row.getKeyframesDescriptor()
+            )
+          )
+        })
+
+        // Hack: This ensures that the row displays according to its psuedo-parent's
+        // expand/collapse setting by ensuring that Row#isWithinCollapsedPropertyRows
+        // evaluates to true
+        subrows.forEach((subrow) => {
+          subrow.parent = headingRow
+        })
+
+        rows.push.apply(rows, subrows)
+      })
+    }
+
+    // Hack: Assign the host so that the timeline can identify elements that are listed
+    // underneath a specific element even though they target a different one
+    rows.forEach((row) => {
+      row.host = this
+    })
+
     return rows
-  }
-
-  getHostedRows () {
-    return Row.where({ component: this.component, host: this })
-  }
-
-  getTargetingRows () {
-    return Row.where({ component: this.component, element: this })
   }
 
   clearEntityCaches () {
@@ -846,12 +882,7 @@ class Element extends BaseModel {
       })
     }
 
-    this.getHostedRows().forEach((row) => {
-      row.cache.clear()
-      row.clearEntityCaches()
-    })
-
-    this.getTargetingRows().forEach((row) => {
+    this.getAllRows().forEach((row) => {
       row.cache.clear()
       row.clearEntityCaches()
     })
@@ -861,17 +892,16 @@ class Element extends BaseModel {
     const existingRows = this.getAllRows()
     existingRows.forEach((row) => row.mark())
 
-    const hostElement = this
+    const element = this
     const component = this.component
     const timeline = this.component.getCurrentTimeline()
 
     const parentElementHeadingRow = this.parent && this.parent.getHeadingRow()
 
     const currentElementHeadingRow = Row.upsert({
-      uid: Row.buildHeadingUid(component, hostElement),
+      uid: Row.buildHeadingUid(component, element),
       parent: parentElementHeadingRow,
-      host: hostElement,
-      element: hostElement,
+      element,
       component,
       timeline,
       children: [],
@@ -890,15 +920,13 @@ class Element extends BaseModel {
 
     this.eachAddressableProperty((
       propertyGroupDescriptor,
-      addressableName,
-      targetElement
+      addressableName
     ) => {
       if (propertyGroupDescriptor.cluster) {
         // Properties that are 'clustered', like rotation.x,y,z
         const clusterId = Row.buildClusterUid(
           this,
-          hostElement,
-          targetElement,
+          element,
           propertyGroupDescriptor
         )
 
@@ -909,8 +937,7 @@ class Element extends BaseModel {
         } else {
           clusterRow = Row.upsert({
             uid: clusterId,
-            host: hostElement,
-            element: targetElement,
+            element,
             component,
             timeline,
             parent: currentElementHeadingRow,
@@ -925,9 +952,8 @@ class Element extends BaseModel {
         }
 
         const clusterMember = Row.upsert({
-          uid: Row.buildClusterMemberUid(this, hostElement, targetElement, propertyGroupDescriptor, addressableName),
-          host: hostElement,
-          element: targetElement,
+          uid: Row.buildClusterMemberUid(this, element, propertyGroupDescriptor, addressableName),
+          element,
           component,
           timeline,
           parent: clusterRow,
@@ -942,9 +968,8 @@ class Element extends BaseModel {
       } else {
         // Properties represented as a single row, like 'opacity'
         const propertyRow = Row.upsert({
-          uid: Row.buildPropertyUid(this, hostElement, targetElement, addressableName),
-          host: hostElement,
-          element: targetElement,
+          uid: Row.buildPropertyUid(this, element, addressableName),
+          element,
           component,
           timeline,
           parent: currentElementHeadingRow,
@@ -974,8 +999,12 @@ class Element extends BaseModel {
     return this.children || []
   }
 
-  rehydrateChildren () {
+  rehydrateChildren ({maxRehydrationDepth}) {
     const node = this.getStaticTemplateNode()
+
+    if (typeof node.elementName === 'object') {
+      return
+    }
 
     if (node && node.children) {
       for (let i = 0; i < node.children.length; i++) {
@@ -983,7 +1012,7 @@ class Element extends BaseModel {
 
         const element = Element.upsertElementFromVirtualElement(
           this.component, // component
-          child, // static template node
+          child, // staticTemplateNode
           this, // parent element
           i, // index in parent
           `${this.getGraphAddress()}.${i}` // graph address
@@ -1006,15 +1035,81 @@ class Element extends BaseModel {
           delete child.__replacee
         }
 
-        element.rehydrate()
+        element.rehydrate({maxRehydrationDepth})
       }
     }
   }
 
-  rehydrate () {
-    if (this.getDepthAmongElements() < 2) {
-      this.rehydrateChildren()
+  rehydrate ({maxRehydrationDepth}) {
+    if (
+      this.getDepthAmongElements() <= maxRehydrationDepth ||
+      (
+        experimentIsEnabled(Experiment.ShowSubElementsInJitMenu) &&
+        this.hasInternalPropertiesDefinedCached()
+      )
+    ) {
+      this.rehydrateChildren({maxRehydrationDepth})
     }
+  }
+
+  /**
+   * @description Returns true/false whether this element contains any elements
+   * that have any keyframes defined, without relying on the presence of hydrated
+   * models for any of those elements (it uses the raw template).
+   */
+  hasInternalPropertiesDefined () {
+    const selectors = {}
+
+    const node = this.getStaticTemplateNode()
+
+    Template.visitWithoutDescendingIntoSubcomponents(node, (subnode) => {
+      if (node === subnode) {
+        return
+      }
+
+      const selector = TimelineProperty.getSelectorForComponentId(
+        subnode.attributes[HAIKU_ID_ATTRIBUTE]
+      )
+
+      selectors[selector] = subnode
+    })
+
+    if (Object.keys(selectors).length < 1) {
+      return false
+    }
+
+    const bytecode = this.component.getReifiedBytecode()
+
+    if (!bytecode || !bytecode.timelines) {
+      return false
+    }
+
+    for (const timelineName in bytecode.timelines) {
+      for (const selector in bytecode.timelines[timelineName]) {
+        const subnode = selectors[selector]
+
+        if (!subnode) {
+          continue
+        }
+
+        for (const propertyName in bytecode.timelines[timelineName][selector]) {
+          const keyframesObject = bytecode.timelines[timelineName][selector][propertyName]
+
+          if (Property.areAnyKeyframesDefined(subnode.elementName, propertyName, keyframesObject)) {
+            return true
+          }
+        }
+      }
+    }
+
+    // If we got this far, we've found no evidence that any internal node has a property
+    return false
+  }
+
+  hasInternalPropertiesDefinedCached () {
+    return this.cache.fetch('hasInternalPropertiesDefinedCached', () => {
+      return this.hasInternalPropertiesDefined()
+    })
   }
 
   getDepthAmongElements () {
@@ -1200,7 +1295,7 @@ class Element extends BaseModel {
 
     if (experimentIsEnabled(Experiment.ShowSubElementsInJitMenu)) {
       // Expose properties of our sub-element in the timeline
-      if (!this.isRootElement()) {
+      if (!this.isRootElement() && !this.isComponent()) {
         if (this.children && this.children.length > 0) {
           this.children.forEach((child) => {
             const name = child.getSafeDomFriendlyName()
@@ -1273,35 +1368,11 @@ class Element extends BaseModel {
     const addressableProperties = this.getDisplayedAddressableProperties(/* includeSubElements= */ true)
 
     for (const propertyName in addressableProperties) {
-      if (propertyName !== '__subElementProperties' && addressableProperties[propertyName]) {
+      if (addressableProperties[propertyName]) {
         iteratee(
           addressableProperties[propertyName],
-          propertyName,
-          this // targetElement
+          propertyName
         )
-      }
-    }
-
-    if (experimentIsEnabled(Experiment.ShowSubElementsInJitMenu)) {
-      // Only allow this behavior among the top-level children of the root element
-      // Without this condition, stuff goes wrong in a bad way
-      if (this.getDepthAmongElements() === 1) {
-        // Expose sub-element properties as rows in the timeline
-        // Note that the target element is not the host element here
-        if (addressableProperties.__subElementProperties) {
-          for (const subElementId in addressableProperties.__subElementProperties) {
-            const targetElement = Element.findById(subElementId) // targetElement
-            if (targetElement) {
-              for (const subElementPropertyName in addressableProperties.__subElementProperties[subElementId]) {
-                iteratee(
-                  addressableProperties.__subElementProperties[subElementId][subElementPropertyName],
-                  subElementPropertyName,
-                  targetElement
-                )
-              }
-            }
-          }
-        }
       }
     }
   }
@@ -1329,11 +1400,16 @@ class Element extends BaseModel {
     const node = this.getStaticTemplateNode()
 
     const id = node && node.attributes && node.attributes.id
+
     const title = node && node.attributes && node.attributes[HAIKU_TITLE_ATTRIBUTE]
 
     let name = (typeof node.elementName === 'string' && node.elementName) ? node.elementName : 'div'
     if (Element.FRIENDLY_NAME_SUBSTITUTES[name]) {
       name = Element.FRIENDLY_NAME_SUBSTITUTES[name]
+    }
+
+    if (id && !title) {
+      return `#${id}`
     }
 
     let out = ''
@@ -1380,29 +1456,8 @@ class Element extends BaseModel {
     return this.getCollatedAddressableProperties().excluded
   }
 
-  getDisplayedAddressableProperties (includeSubElements) {
+  getDisplayedAddressableProperties () {
     const ours = this.getCollatedAddressableProperties().filtered
-
-    if (experimentIsEnabled(Experiment.ShowSubElementsInJitMenu)) {
-      if (includeSubElements) {
-        // The Timeline UI will handle this property specially; the double
-        // underscore is so not to collide with real named properties
-        if (!ours.__subElementProperties) {
-          ours.__subElementProperties = {}
-        }
-
-        // This assumes that our descendants have been populated already,
-        // which happens on-demand when the JIT options are requested
-        Element.visitDescendants(this, (child) => {
-          // I don't know why, but in some scenarios, this is undefined
-          if (child.getPrimaryKey()) {
-            const subs = child.getExplicitlyVisibleAddressableProperties()
-            ours.__subElementProperties[child.getPrimaryKey()] = subs
-          }
-        })
-      }
-    }
-
     return ours
   }
 
@@ -2050,7 +2105,8 @@ Element.querySelectorAll = (selector, mana) => {
 }
 
 Element.FRIENDLY_NAME_SUBSTITUTES = {
-  g: 'group'
+  g: 'group',
+  tspan: 'Text Span'
 }
 
 // If elementName is bytecode (i.e. a nested component) return a fallback name
