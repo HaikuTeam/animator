@@ -5548,25 +5548,6 @@ growl@1.9.2:
   version "1.9.2"
   resolved "https://registry.yarnpkg.com/growl/-/growl-1.9.2.tgz#0ea7743715db8d8de2c5ede1775e1b45ac85c02f"
 
-haiku-testing@3.4.5:
-  version "3.4.5"
-  resolved "https://registry.yarnpkg.com/haiku-testing/-/haiku-testing-3.4.5.tgz#4942a4d5066c3d2746104986c877323c8bb984c5"
-  dependencies:
-    "@types/node" "8.9.4"
-    "@types/tape" "^4.2.32"
-    cross-env "^5.1.6"
-    istanbul-reporter-cobertura-haiku "^1.0.1"
-    nyc "^11.8.0"
-    sinon "^5.0.10"
-    tap-spec "^4.1.2"
-    tape "^4.9.0"
-    ts-node "^6.1.0"
-    tsconfig-paths "^3.3.2"
-    tslint "^5.10.0"
-    tslint-config-haiku "^1.0.3"
-    typescript "^2.9.1"
-    xml-js "^1.6.4"
-
 handlebars@^4.0.1, handlebars@^4.0.3:
   version "4.0.11"
   resolved "https://registry.yarnpkg.com/handlebars/-/handlebars-4.0.11.tgz#630a35dfe0294bc281edae6ffc5d329fc7982dcc"
@@ -11469,7 +11450,7 @@ tslint-config-airbnb@^5.8.0:
     tslint-eslint-rules "^5.3.1"
     tslint-microsoft-contrib "~5.0.1"
 
-tslint-config-haiku@^1.0.15, tslint-config-haiku@^1.0.3:
+tslint-config-haiku@^1.0.15:
   version "1.0.15"
   resolved "https://registry.yarnpkg.com/tslint-config-haiku/-/tslint-config-haiku-1.0.15.tgz#a5800936e6a99f8f62d0a0a84b28d1edd6cc33a4"
   dependencies:
