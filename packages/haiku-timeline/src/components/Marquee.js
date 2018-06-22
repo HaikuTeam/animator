@@ -2,10 +2,11 @@ import Palette from 'haiku-ui-common/lib/Palette'
 import Color from 'color'
 
 class Marquee {
-  constructor ({area, callback}) {
+  constructor ({area, onStart, onFinish}) {
     this.initialCursorPos = {x: 0, y: 0}
     this.autoScrollSpeed = 1
-    this.callback = callback || function () {}
+    this.onStart = onStart || function () {}
+    this.onFinish = onFinish || function () {}
     this.area = area
     this.initialScroll = null
     this._startUp = this._startUp.bind(this)
@@ -32,6 +33,7 @@ class Marquee {
     this.area.removeEventListener('mousedown', this._startUp)
     this.area.addEventListener('mousemove', this._handleMove)
     document.addEventListener('mouseup', this.reset)
+    this.onStart(event)
   }
 
   _getStartingPositions (event) {
@@ -146,7 +148,7 @@ class Marquee {
     this.area.removeEventListener('mousemove', this._handleMove)
     this.area.addEventListener('mousedown', this._startUp)
 
-    this.callback(event, this.selector.getBoundingClientRect())
+    this.onFinish(event, this.selector.getBoundingClientRect())
 
     this.selector.style.width = '0'
     this.selector.style.height = '0'

@@ -3,6 +3,7 @@ import Color from 'color'
 import Palette from 'haiku-ui-common/lib/Palette'
 import Globals from 'haiku-ui-common/lib/Globals'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 
 export default class ConstantBody extends React.Component {
   constructor (props) {
@@ -64,6 +65,9 @@ export default class ConstantBody extends React.Component {
       <span
         ref={(domElement) => {
           this[uniqueKey] = domElement
+          if (experimentIsEnabled(Experiment.TimelineMarqueeSelection) && domElement) {
+            this.props.keyframe.storeViewPosition(domElement.getBoundingClientRect())
+          }
         }}
         id={`constant-body-${uniqueKey}`}
         className='constant-body'

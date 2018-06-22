@@ -105,37 +105,15 @@ export default class TransitionBody extends React.Component {
 
   componentDidMount () {
     this.mounted = true
-    if (experimentIsEnabled(Experiment.TimelineMarqueeSelection)) {
-      this.props.timeline.on('update', this.handleUpdate)
-    }
   }
 
   componentWillUnmount () {
     this.mounted = false
     this.teardownKeyframeUpdateReceiver()
-    if (experimentIsEnabled(Experiment.TimelineMarqueeSelection)) {
-      this.props.timeline.removeListener('update', this.handleUpdate)
-    }
   }
 
   handleUpdate (what, ...args) {
     if (!this.mounted) return null
-    if (experimentIsEnabled(Experiment.TimelineMarqueeSelection)) {
-      if (what === 'marquee-selection') {
-        const containerRect = this.position
-        const elementRect = args[0]
-        if (
-          containerRect.x < elementRect.x + elementRect.width &&
-          containerRect.x + containerRect.width > elementRect.x &&
-          containerRect.y < elementRect.y + elementRect.height &&
-          containerRect.height + containerRect.y > elementRect.y
-        ) {
-          this.props.keyframe.select()
-          this.props.keyframe.activate()
-          this.props.keyframe.setBodySelected()
-        }
-      }
-    }
     if (
       what === 'keyframe-activated' ||
       what === 'keyframe-deactivated' ||
@@ -196,7 +174,7 @@ export default class TransitionBody extends React.Component {
           ref={(domElement) => {
             this[uniqueKey] = domElement
             if (experimentIsEnabled(Experiment.TimelineMarqueeSelection) && domElement) {
-              this.position = domElement.getBoundingClientRect()
+              this.props.keyframe.storeViewPosition(domElement.getBoundingClientRect())
             }
           }}
           onContextMenu={(ctxMenuEvent) => {

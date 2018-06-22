@@ -151,10 +151,29 @@ class Timeline extends React.Component {
     this.mounted = true
 
     if (experimentIsEnabled(Experiment.TimelineMarqueeSelection)) {
-      const marquee = new Marquee({area: document.querySelector('#property-rows'),
-        callback: (event, area) => {
-          this.getActiveComponent().getCurrentTimeline().notifyMarqueeSelection(area)
-        }})
+      const marquee = new Marquee({
+        area: document.querySelector('#property-rows'),
+        onStart: event => {
+          // this.onGaugeMouseDown(event)
+        },
+        onFinish: (event, area) => {
+          Keyframe.all().forEach(keyframe => {
+            const keyframeView = keyframe._viewPosition
+
+            if (
+              keyframeView.x < area.x + area.width &&
+              keyframeView.x + keyframeView.width > area.x &&
+              keyframeView.y < area.y + area.height &&
+              keyframeView.height + keyframeView.y > area.y
+            ) {
+              keyframe.select()
+              keyframe.activate()
+              keyframe.setBodySelected()
+              keyframe.row.expand({from: 'timeline'})
+            }
+          })
+        }
+      })
 
       marquee.start()
     }
@@ -1313,7 +1332,7 @@ class Timeline extends React.Component {
                                 showEventHandlersEditor={(...args) => {
                                   this.showEventHandlersEditor(...args)
                                 }}
-                                />
+                              />
                             </div>
                             {provided.placeholder}
                           </div>

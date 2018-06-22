@@ -28,6 +28,7 @@ class Keyframe extends BaseModel {
     this._didHandleContextMenu = false
     this._mouseDownState = {}
     this._updateReceivers = {}
+    this._viewPosition = {}
   }
 
   activate () {
@@ -395,6 +396,10 @@ class Keyframe extends BaseModel {
       throw new Error(`keyframe pixel offset left params missing`)
     }
     return (this.getFrame(mspf) - base) * pxpf
+  }
+
+  storeViewPosition (rect) {
+    this._viewPosition = rect
   }
 
   isWithinCollapsedClusterHeadingRow () {
