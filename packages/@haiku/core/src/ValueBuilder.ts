@@ -1390,7 +1390,7 @@ export default class ValueBuilder {
       // properties lacking defined values; in this case we try to do the right thing and fallback
       // to a known usable value for the field. Especially needed with controlFlow.repeat.
       if (computedValueForTime === undefined) {
-        computedValueForTime = getFallback(matchingElement.elementName, propertyName);
+        computedValueForTime = getFallback(matchingElement && matchingElement.elementName, propertyName);
       }
     }
 

@@ -28,6 +28,8 @@ const ELEMENTS_2D = {
   use: true,
 };
 
+export const AUTO_SIZING_TOKEN = 'auto';
+
 // Coordinate (0, 0, 0) is the top left of the screen
 
 const SIZE_PROPORTIONAL = 0; // A percentage of the parent

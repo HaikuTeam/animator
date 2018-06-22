@@ -26,9 +26,21 @@
  * THE SOFTWARE.
  */
 
+import {AUTO_SIZING_TOKEN} from '../Layout3D';
+
 const SIZE_PROPORTIONAL = 0; // A percentage of the parent
 const SIZE_ABSOLUTE = 1; // A fixed size in screen pixels
 const SIZING_COMPONENTS = ['x', 'y', 'z'];
+
+const useAutoSizing = (givenValue): boolean => {
+  return (
+    givenValue === AUTO_SIZING_TOKEN ||
+    // Legacy. Because HaikuComponent#render gets called before Migration.runMigrations,
+    // the legacy value won't be correctly migrated to 'auto' by the time this gets called
+    // for the very first time, so we keep it around for backwards compat. Jun 22, 2018.
+    givenValue === true
+  );
+};
 
 export default function computeSize (
   layoutSpec,
@@ -55,7 +67,7 @@ export default function computeSize (
         const givenValue = layoutSpec.sizeAbsolute[component];
 
         // Implements 'true sizing': Use content size if available, otherwise fallback to parent
-        if (givenValue === true || givenValue === 'true') {
+        if (useAutoSizing(givenValue)) {
           if (contentSizeValue) {
             outputSize[component] = contentSizeValue;
           } else {

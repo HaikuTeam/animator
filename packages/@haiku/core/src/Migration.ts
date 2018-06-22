@@ -6,6 +6,7 @@ import HaikuComponent, {ATTRS_HYPH_TO_CAMEL} from './HaikuComponent';
 import {visitManaTree, xmlToMana} from './HaikuNode';
 import addLegacyOriginSupport from './helpers/addLegacyOriginSupport';
 import compareSemver from './helpers/compareSemver';
+import migrateAutoSizing from './helpers/migrateAutoSizing';
 import functionToRFO from './reflection/functionToRFO';
 import reifyRFO from './reflection/reifyRFO';
 
@@ -15,6 +16,7 @@ const enum UpgradeVersionRequirement {
   OriginSupport = '3.2.0',
   TimelineDefaultFrames = '3.2.23',
   CamelCasePropertyNames = '3.5.1',
+  AutoStringForAutoSizing = '3.5.1',
 }
 
 const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source';
@@ -144,6 +146,11 @@ export const runMigrations = (component: HaikuComponent, options: any, version: 
   if (bytecode.timelines) {
     for (const timelineName in bytecode.timelines) {
       for (const selector in bytecode.timelines[timelineName]) {
+
+        if (requiresUpgrade(coreVersion, UpgradeVersionRequirement.AutoStringForAutoSizing)) {
+          migrateAutoSizing(bytecode.timelines[timelineName][selector]);
+        }
+
         if (requiresUpgrade(coreVersion, UpgradeVersionRequirement.CamelCasePropertyNames)) {
           for (const propertyName in bytecode.timelines[timelineName][selector]) {
             const camelVariant = ATTRS_HYPH_TO_CAMEL[propertyName];

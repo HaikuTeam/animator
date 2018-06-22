@@ -11,7 +11,7 @@ const HaikuComponent = require('@haiku/core/lib/HaikuComponent').default
 const {LAYOUT_3D_SCHEMA} = require('@haiku/core/lib/HaikuComponent')
 const HaikuDOMAdapter = require('@haiku/core/lib/adapters/dom').default
 const {InteractionMode, isPreviewMode} = require('@haiku/core/lib/helpers/interactionModes')
-const Layout3D = require('@haiku/core/lib/Layout3D').default
+const Layout3D = require('@haiku/core/lib/Layout3D')
 const BaseModel = require('./BaseModel')
 const logger = require('./../utils/LoggerInstance')
 const CryptoUtils = require('./../utils/CryptoUtils')
@@ -950,7 +950,7 @@ class ActiveComponent extends BaseModel {
       if (sizeAbsoluteX) {
         if (!insertedTimeline['sizeAbsolute.x']) insertedTimeline['sizeAbsolute.x'] = {}
         if (!insertedTimeline['sizeAbsolute.x'][timelineTime]) insertedTimeline['sizeAbsolute.x'][timelineTime] = {}
-        insertedTimeline['sizeAbsolute.x'][timelineTime].value = true // 'true sizing' - use the content's size
+        insertedTimeline['sizeAbsolute.x'][timelineTime].value = Layout3D.AUTO_SIZING_TOKEN
 
         // The default size mode is proportional, so if we received an absolute size, we have to override the mode
         if (!insertedTimeline['sizeMode.x']) insertedTimeline['sizeMode.x'] = {}
@@ -963,7 +963,7 @@ class ActiveComponent extends BaseModel {
       if (sizeAbsoluteY) {
         if (!insertedTimeline['sizeAbsolute.y']) insertedTimeline['sizeAbsolute.y'] = {}
         if (!insertedTimeline['sizeAbsolute.y'][timelineTime]) insertedTimeline['sizeAbsolute.y'][timelineTime] = {}
-        insertedTimeline['sizeAbsolute.y'][timelineTime].value = true // 'true sizing' - use the content's size
+        insertedTimeline['sizeAbsolute.y'][timelineTime].value = Layout3D.AUTO_SIZING_TOKEN
 
         // The default size mode is proportional, so if we received an absolute size, we have to override the mode
         if (!insertedTimeline['sizeMode.y']) insertedTimeline['sizeMode.y'] = {}
