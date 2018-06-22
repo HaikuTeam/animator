@@ -76,13 +76,14 @@ export default class HaikuComponent extends HaikuElement {
   CORE_VERSION;
   doAlwaysFlush;
   doesNeedFullFlush;
-  guests;
-  host;
+  guests: {[haikuId: string]: HaikuComponent};
+  host: HaikuComponent;
   playback;
   PLAYER_VERSION;
   registeredEventHandlers;
   state;
   stateTransitionManager: StateTransitionManager;
+  logger;
 
   constructor (
     bytecode: HaikuBytecode,
@@ -156,7 +157,7 @@ export default class HaikuComponent extends HaikuElement {
     this.state = {}; // Public accessor object, e.g. this.state.foo = 1
 
     // Instantiate StateTransitions. Responsible to store and execute any state transition.
-    this.stateTransitionManager = new StateTransitionManager(this.state, this.getClock(),  this.context);
+    this.stateTransitionManager = new StateTransitionManager(this.state, this.getClock(),  this);
 
     // `assignConfig` calls bindStates because our incoming config, which
     // could occur at any point during runtime, e.g. in React, may need to update internal states, etc.
@@ -353,7 +354,7 @@ export default class HaikuComponent extends HaikuElement {
   }
 
   set (key, value) {
-    this.context.info('STATE_CHANGES', `State ${key} changed from ${this.state[key]} to ${value}`,
+    this.traceInfo('STATE_CHANGES', `State ${key} changed from ${this.state[key]} to ${value}`,
                       {state: key,
                       from: this.state[key],
                       to: value});
@@ -773,7 +774,7 @@ export default class HaikuComponent extends HaikuElement {
     }
 
     try {
-      this.context.info('ACTIONS_FIRED', `Action ${eventName} on element ${eventsSelector}`, {});
+      this.traceInfo('ACTIONS_FIRED', `Action ${eventName} fired on element ${eventsSelector}`, {});
       return handler.apply(this, eventArgs);
     } catch (exception) {
       consoleErrorOnce(exception);
@@ -1346,11 +1347,33 @@ export default class HaikuComponent extends HaikuElement {
     return this;
   }
   $console = {
-    log: (params) => { this.context.info('CONSOLE', params, {}); },
-    info: (params) => { this.context.info('CONSOLE', params, {}); },
-    warn: (params) => { this.context.info('CONSOLE', params, {}); },
-    error: (params) => { this.context.info('CONSOLE', params, {}); },
+    log: (params) => { this.traceInfo('CONSOLE', params, {}); },
+    info: (params) => { this.traceInfo('CONSOLE', params, {}); },
+    warn: (params) => { this.traceInfo('CONSOLE', params, {}); },
+    error: (params) => { this.traceInfo('CONSOLE', params, {}); },
   };
+
+  // Set logger to add context info when logging while avoiding runtime overhead
+  setLogger (logger: any) {
+    this.logger = logger;
+  }
+
+  getRootComponent () {
+    if (this.host) {
+      return this.host.getRootComponent();
+    }
+
+    return this;
+  }
+
+  traceInfo (tag: string, message: string, attachedObject: any) {
+    const haikuRootComponent = this.getRootComponent();
+
+    if (haikuRootComponent.logger) {
+      attachedObject.sceneName = this.title;
+      haikuRootComponent.logger.traceInfo(tag, message, attachedObject);
+    }
+  }
 
   static __name__ = 'HaikuComponent';
 
