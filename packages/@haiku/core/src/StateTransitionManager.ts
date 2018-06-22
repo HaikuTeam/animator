@@ -1,7 +1,7 @@
 import {Curve, CurveDefinition} from './api/Curve';
 import {BytecodeStateType} from './api/HaikuBytecode';
 import HaikuClock from './HaikuClock';
-import HaikuContext from './HaikuContext';
+import HaikuComponent from './HaikuComponent';
 import Interpolate from './Interpolate';
 
 export interface StateTransitionParameters {
@@ -30,7 +30,7 @@ export default class StateTransitionManager {
 
   constructor (private readonly states: StateValues,
     private readonly clock: HaikuClock,
-    private readonly context: HaikuContext) {}
+    private readonly component: HaikuComponent) {}
 
   /**
    * Create a new state transition.
@@ -43,7 +43,7 @@ export default class StateTransitionManager {
         delete this.transitions[key];
       }
       for (const key in transitionEnd) {
-        this.context.info('STATE_CHANGES', `State ${key} changed from ${this.states[key]} to ${transitionEnd[key]}`,
+        this.component.traceInfo('STATE_CHANGES', `State ${key} changed from ${this.states[key]} to ${transitionEnd[key]}`,
                           {state: key,
                           from: this.states[key],
                           to: transitionEnd[key]});
@@ -70,7 +70,7 @@ export default class StateTransitionManager {
         // If parameter.queue is true, it is a queued setState
         // If state transition for key is not created, process like a queued SetState
         if (transitionParameter.queue && this.transitions[key]) {
-          this.context.info('STATE_CHANGES', `State transition ${key} to target ${transitionEnd[key]} with\
+          this.component.traceInfo('STATE_CHANGES', `State transition ${key} to target ${transitionEnd[key]} with\
                             duration ${transitionParameter.duration} queued`,
                             {});
 
@@ -84,7 +84,7 @@ export default class StateTransitionManager {
           });
         // non queued transitions are overwrite transition queue
         } else {
-          this.context.info('STATE_CHANGES', `State transition ${key} to target ${transitionEnd[key]} with\
+          this.component.traceInfo('STATE_CHANGES', `State transition ${key} to target ${transitionEnd[key]} with\
                             duration ${transitionParameter.duration} started`,
                             {});
 
@@ -135,7 +135,7 @@ export default class StateTransitionManager {
 
         if (this.isExpired(transition, currentTime)) {
 
-          this.context.info('STATE_CHANGES', `State transition ${stateName} to ${transition.transitionEnd[stateName]} finished`,
+          this.component.traceInfo('STATE_CHANGES', `State transition ${stateName} to ${transition.transitionEnd[stateName]} finished`,
                             {});
 
           // If expired, assign transitionEnd.
@@ -149,7 +149,7 @@ export default class StateTransitionManager {
 
           // Update next queued state transition or delete empty transition vector for performance reasons
           if (this.transitions[stateName].length > 0) {
-            this.context.info('STATE_CHANGES', `State transition ${stateName} to \
+            this.component.traceInfo('STATE_CHANGES', `State transition ${stateName} to \
                               ${this.transitions[stateName][0].transitionEnd[stateName]} started`,
                               {});
             this.transitions[stateName][0].transitionStart = {[stateName]: interpolatedStates[stateName]};

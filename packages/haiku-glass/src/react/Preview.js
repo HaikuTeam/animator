@@ -27,7 +27,7 @@ export default class Preview extends React.Component {
     )
 
     // Set logger to enable context info when logging
-    this.component.context.setLogger(logger)
+    this.component.setLogger(logger)
 
     this.component.render(this.component.config)
   }

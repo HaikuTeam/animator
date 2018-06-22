@@ -20,6 +20,7 @@ class LogViewer extends React.Component {
 
     this.state = {
       logMessages: [],
+      // Enables displaying all Haiku console messages in addition to preview messages
       enableAll: false,
       displayTags: {
         'ACTIONS_FIRED': { color: '#a4d36f', label: 'ACTIONS FIRED', display: true },
@@ -83,7 +84,7 @@ class LogViewer extends React.Component {
 
   renderLogFromJsonLog (message) {
     if (message.tag in this.state.displayTags){
-      return `${message.timestamp}|${message.attachedObject.sceneName}|${message.tag}|${message.message}`;
+      return `${message.timestamp}<<${message.attachedObject.sceneName}>> ${message.message}`;
     }
     else{
       return `${message.timestamp}|${message.view}|${message.level}|${message.tag? '|' + message.tag : '' }|${message.attachedObject?'|'+ message.attachedObject.sceneName: ''}|${message.message}`;
@@ -142,7 +143,7 @@ class LogViewer extends React.Component {
                 </div>
               })
             }
-            <div >
+            {(process.env.NODE_ENV === 'development') && <div >
                 <button key='enableAll'
                   style={[
                       [BTN_STYLES.btnIcon],
@@ -154,7 +155,7 @@ class LogViewer extends React.Component {
                   onClick={(e) => { this.toggleEnableAll() }} >
                   Enable All
                 </button>
-                </div>
+              </div>}
           </div>
           <div id='logview-right-panel' style={{ fontWeight: 'bold', fontFamily: 'Courier New', position: 'relative', overflow: 'auto', width: '100%', height: '100%', backgroundColor: Palette.COAL }} >
             <ReactList
