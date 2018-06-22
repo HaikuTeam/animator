@@ -95,6 +95,7 @@ class Timeline extends React.Component {
     this.showFrameActionsEditor = this.showFrameActionsEditor.bind(this)
     this.mouseMoveListener = this.mouseMoveListener.bind(this)
     this.mouseUpListener = this.mouseUpListener.bind(this)
+    this.onGaugeMouseDown = this.onGaugeMouseDown.bind(this)
 
     this.handleCutDebounced = lodash.debounce(this.handleCut.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
     this.handleCopyDebounced = lodash.debounce(this.handleCopy.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
@@ -1051,33 +1052,30 @@ class Timeline extends React.Component {
           timeline={this.getActiveComponent().getCurrentTimeline()}
           onShowFrameActionsEditor={this.showFrameActionsEditor}
         />,
-        <div key='gauge' style={{
-          height: 35,
-          backgroundColor: Palette.COAL,
-          paddingTop: 12,
-          position: 'sticky',
-          top: 0,
-          marginLeft: this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth(),
-          width: '500vw',
-          zIndex: '9999',
-          fontSize: 10,
-          borderBottom: '1px solid ' + Palette.FATHER_COAL,
-          color: Palette.ROCK_MUTED
-        }}
-          onMouseDown={(event) => {
-            event.persist()
-
-            this._doHandleMouseMovesInGauge = true
-            this.disableTimelinePointerEvents()
-            this.mouseMoveListener(event)
-          }}>
+        <div
+          key='gauge'
+          style={{
+            height: 35,
+            backgroundColor: Palette.COAL,
+            paddingTop: 12,
+            position: 'sticky',
+            top: 0,
+            marginLeft: this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth(),
+            width: '500vw',
+            zIndex: '9999',
+            fontSize: 10,
+            borderBottom: '1px solid ' + Palette.FATHER_COAL,
+            color: Palette.ROCK_MUTED
+          }}
+          onMouseDown={this.onGaugeMouseDown}
+        >
           <Gauge timeline={this.getActiveComponent().getCurrentTimeline()} />
         </div>,
         <ScrubberInterior
           key='scrubber'
-          reactParent={this}
           isScrubbing={this.getActiveComponent().getCurrentTimeline().isScrubberDragging()}
           timeline={this.getActiveComponent().getCurrentTimeline()}
+          onMouseDown={this.onGaugeMouseDown}
         />,
         <div key='durationModifier'>
           {this.renderDurationModifier()}
@@ -1163,6 +1161,14 @@ class Timeline extends React.Component {
         </div>
       )
     }
+  }
+
+  onGaugeMouseDown (event) {
+    event.persist()
+
+    this._doHandleMouseMovesInGauge = true
+    this.disableTimelinePointerEvents()
+    this.mouseMoveListener(event)
   }
 
   mouseMoveListener (evt) {

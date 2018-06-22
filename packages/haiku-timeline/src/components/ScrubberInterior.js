@@ -60,6 +60,7 @@ export default class ScrubberInterior extends React.Component {
 
     return (
       <div
+        onMouseDown={this.props.onMouseDown}
         style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
           position: 'sticky',
           top: 0,
@@ -132,5 +133,6 @@ export default class ScrubberInterior extends React.Component {
 
 ScrubberInterior.propTypes = {
   isScrubbing: React.PropTypes.bool.isRequired,
-  timeline: React.PropTypes.object.isRequired
+  timeline: React.PropTypes.object.isRequired,
+  onMouseDown: React.PropTypes.func.isRequired,
 }
