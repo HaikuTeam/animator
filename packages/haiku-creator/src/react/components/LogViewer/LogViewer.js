@@ -26,7 +26,7 @@ class LogViewer extends React.Component {
         'STATE_CHANGES': { color: '#eba139', label: 'STATE CHANGES', display: true },
         'LOOP_COUNTER': { color: '#9d34ed', label: 'LOOP COUNT', display: true },
         'PREVIEW_ERROR': { color: '#cd4d5b', label: 'ERRORS', display: true },
-        'CONSOLE': { color: '#aaaaaa', label: 'ERRORS', display: true },
+        'CONSOLE': { color: '#aaaaaa', label: 'CONSOLE', display: true },
       }
     };
 
@@ -86,14 +86,14 @@ class LogViewer extends React.Component {
       return `${message.timestamp}|${message.attachedObject.sceneName}|${message.tag}|${message.message}`;
     }
     else{
-      return `${message.timestamp}|${message.view}|${message.level}|${message.tag}|${message.attachedObject && message.attachedObject.sceneName}|${message.message}`;
+      return `${message.timestamp}|${message.view}|${message.level}|${message.tag? '|' + message.tag : '' }|${message.attachedObject?'|'+ message.attachedObject.sceneName: ''}|${message.message}`;
     }
   }
 
   renderLogLine (index, key) {
     const message = this.state.logMessages[index]
-    return <div><span key={key}
-      style={(message.tag in this.state.displayTags) && {color: this.state.displayTags[message.tag].color}}>
+    return <div><span key={message.key}
+      style={ message.tag && (message.tag in this.state.displayTags) && {color: this.state.displayTags[message.tag].color}}>
       {this.renderLogFromJsonLog(message)}
     </span></div>
   }
@@ -142,7 +142,7 @@ class LogViewer extends React.Component {
                 </div>
               })
             }
-            <div key='enableAll' >
+            <div >
                 <button key='enableAll'
                   style={[
                       [BTN_STYLES.btnIcon],
@@ -156,7 +156,7 @@ class LogViewer extends React.Component {
                 </button>
                 </div>
           </div>
-          <div id="logview-right-panel" style={{position: 'relative', overflow: 'auto', width: '100%', height: '100%', backgroundColor: Palette.COAL}} >
+          <div id='logview-right-panel' style={{ fontWeight: 'bold', fontFamily: 'Courier New', position: 'relative', overflow: 'auto', width: '100%', height: '100%', backgroundColor: Palette.COAL }} >
             <ReactList
               itemRenderer={this.renderLogLine}
               length={this.state.logMessages.length}

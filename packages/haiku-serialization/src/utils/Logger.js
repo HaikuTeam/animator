@@ -28,6 +28,14 @@ const haikuFormat = winston.format.printf((info, opts) => {
   return `${info.timestamp}|${info.view.padEnd(8)}|${info.level}${info.tag ? '|' + info.tag : ''}|${info.message}`
 })
 
+
+// Ignore log messages if they have { doNotLogOnFile: true }
+// Its needed to avoid double writing to log file on plumbing
+const ignoreDoNotWriteToFile = winston.format((info, opts) => {
+  if (info.doNotLogOnFile) { return false; }
+  return info;
+});
+
 const DEFAULTS = {
   maxsize: 1000000,
   maxFiles: 1,
@@ -44,13 +52,13 @@ class LogForwarderTransport extends Transport {
   }
 
   log (message, callback) {
-    setImmediate(() => {
-      this.emit('log', message)
-    })
+    // Avoid double logging
+    message.doNotLogOnFile = true;
     this.sendToPlumbing(message);
     callback()
   }
 
+  // We send to pumbling so we can log to pumbing console in a nice way
   sendToPlumbing (message){
     if (this.websocket){
       this.websocket.send({
@@ -66,6 +74,8 @@ class LogForwarderTransport extends Transport {
   }
 
 };
+
+
 
 class Logger extends EventEmitter {
   constructor (folder, relpath, options = {}) {
@@ -88,6 +98,7 @@ class Logger extends EventEmitter {
         level: 'info',
         json: false,
         format: winston.format.combine(
+          ignoreDoNotWriteToFile(),
           haikuFormat
         )
       }))
@@ -101,9 +112,6 @@ class Logger extends EventEmitter {
 
     // In the future this logForwarder will also send log to plumbing
     this.logForwarderTransport = new LogForwarderTransport()
-    this.logForwarderTransport.on('log', (info) => {
-      this.emit('log', info)
-    })
     transports.push(this.logForwarderTransport)
 
     this.logger = winston.createLogger({
