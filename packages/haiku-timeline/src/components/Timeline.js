@@ -545,7 +545,7 @@ class Timeline extends React.Component {
 
     items.push({
       label: (numSelectedKeyframes < 3) ? 'Make Tween' : 'Make Tweens',
-      enabled: type === 'keyframe-segment',
+      enabled: type === 'keyframe-segment' && (model && model.isTweenable()),
       submenu: (type === 'keyframe-segment') && this.curvesMenu(curve, (event, curveName) => {
         this.getActiveComponent().joinSelectedKeyframes(curveName, { from: 'timeline' })
       })
