@@ -55,21 +55,24 @@ export default class PropertyRowHeading extends React.Component {
     }
 
     return (
-      <div style={{
-        position: 'relative',
-        textTransform: 'uppercase',
-        fontSize,
-        lineHeight: 1,
-        right: 0,
-        color: (this.props.row.isHovered())
+      <div
+        className='property-row-label-box'
+        style={{
+          position: 'relative',
+          textTransform: 'uppercase',
+          fontSize,
+          lineHeight: 1,
+          right: 0,
+          color: (this.props.row.isHovered())
           ? Palette.SUNSTONE
           : Palette.ROCK,
-        transform: this.props.humanName === 'background color'
+          transform: this.props.humanName === 'background color'
           ? 'translateY(-2px)'
           : 'translateY(3px)'
-      }}>
+        }}>
         {this.renderIcon()}
         <span
+          className='property-row-label-text'
           style={{
             display: 'inline-block',
             width: 55,

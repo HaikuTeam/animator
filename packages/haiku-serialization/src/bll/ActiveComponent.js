@@ -11,7 +11,7 @@ const HaikuComponent = require('@haiku/core/lib/HaikuComponent').default
 const {LAYOUT_3D_SCHEMA} = require('@haiku/core/lib/HaikuComponent')
 const HaikuDOMAdapter = require('@haiku/core/lib/adapters/dom').default
 const {InteractionMode, isPreviewMode} = require('@haiku/core/lib/helpers/interactionModes')
-const Layout3D = require('@haiku/core/lib/Layout3D').default
+const Layout3D = require('@haiku/core/lib/Layout3D')
 const BaseModel = require('./BaseModel')
 const logger = require('./../utils/LoggerInstance')
 const CryptoUtils = require('./../utils/CryptoUtils')
@@ -950,7 +950,7 @@ class ActiveComponent extends BaseModel {
       if (sizeAbsoluteX) {
         if (!insertedTimeline['sizeAbsolute.x']) insertedTimeline['sizeAbsolute.x'] = {}
         if (!insertedTimeline['sizeAbsolute.x'][timelineTime]) insertedTimeline['sizeAbsolute.x'][timelineTime] = {}
-        insertedTimeline['sizeAbsolute.x'][timelineTime].value = true // 'true sizing' - use the content's size
+        insertedTimeline['sizeAbsolute.x'][timelineTime].value = Layout3D.AUTO_SIZING_TOKEN
 
         // The default size mode is proportional, so if we received an absolute size, we have to override the mode
         if (!insertedTimeline['sizeMode.x']) insertedTimeline['sizeMode.x'] = {}
@@ -963,7 +963,7 @@ class ActiveComponent extends BaseModel {
       if (sizeAbsoluteY) {
         if (!insertedTimeline['sizeAbsolute.y']) insertedTimeline['sizeAbsolute.y'] = {}
         if (!insertedTimeline['sizeAbsolute.y'][timelineTime]) insertedTimeline['sizeAbsolute.y'][timelineTime] = {}
-        insertedTimeline['sizeAbsolute.y'][timelineTime].value = true // 'true sizing' - use the content's size
+        insertedTimeline['sizeAbsolute.y'][timelineTime].value = Layout3D.AUTO_SIZING_TOKEN
 
         // The default size mode is proportional, so if we received an absolute size, we have to override the mode
         if (!insertedTimeline['sizeMode.y']) insertedTimeline['sizeMode.y'] = {}
@@ -2532,7 +2532,7 @@ class ActiveComponent extends BaseModel {
     // We *must* unset this or else stale elements will be left, messing up rehydration
     root.children = []
 
-    root.rehydrate()
+    root.rehydrate({maxRehydrationDepth: 1})
 
     // Note that visitAll also visits self, so all elements' rows get rehydrated here
     root.visitAll((element) => {
@@ -2548,7 +2548,7 @@ class ActiveComponent extends BaseModel {
     Row.where({ component: this }).forEach((row) => row.sweep())
     Keyframe.where({ component: this }).forEach((keyframe) => keyframe.sweep())
 
-    const row = root.getHostedRows()[0]
+    const row = root.getAllRows()[0]
     if (row) {
       // Expand the first (topmost) row by default, only if this is the first run
       if (!row._wasInitiallyExpanded) {
@@ -2747,21 +2747,21 @@ class ActiveComponent extends BaseModel {
 
     const root = this.fetchRootElement()
 
-    const rows = root.getHostedPropertyRows()
+    const rows = root.getHostedPropertyRows(false)
     const all = [].concat(rows)
 
     const groups = [{
       host: root,
       id: root.getComponentId(),
-      rows: rows
+      rows
     }].concat(stack.map(({haikuId}) => {
       const child = this.findElementByComponentId(haikuId)
-      const rows = child.getHostedPropertyRows()
+      const rows = child.getHostedPropertyRows(true)
       all.push.apply(all, rows)
       return {
         host: child,
         id: child.getComponentId(),
-        rows: rows
+        rows
       }
     }))
 
@@ -3520,7 +3520,7 @@ class ActiveComponent extends BaseModel {
       return this.evaluateReference(ref)
     })
 
-    return this.project.updateHook('updateKeyframes', this.getRelpath(), Bytecode.serializeValue(keyframeUpdates), metadata, (fire) => {
+    return this.project.updateHook('updateKeyframesAndTypes', this.getRelpath(), Bytecode.serializeValue(keyframeUpdates), metadata, (fire) => {
       for (const timelineName in keyframeUpdates) {
         for (const componentId in keyframeUpdates[timelineName]) {
           this.clearCachedClusters(timelineName, componentId)

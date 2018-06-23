@@ -38,23 +38,23 @@ class Snippets extends React.PureComponent {
       },
       {
         label: 'Change State (Transition)',
-        onClick: () => { this.insertSnippet('this.setState({stateName: value}, {duration: 1000, curve: "linear", queued: false})') }
+        onClick: () => { this.insertSnippet('this.setState({stateName: value}, {duration: 1000, curve: "linear"})') }
       },
       {
         label: 'Go To And Play',
-        onClick: () => { this.insertSnippet('this.getDefaultTimeline().gotoAndPlay(frame)') }
+        onClick: () => { this.insertSnippet('this.gotoAndPlay(frame)') }
       },
       {
         label: 'Go To And Stop',
-        onClick: () => { this.insertSnippet('this.getDefaultTimeline().gotoAndStop(frame)') }
+        onClick: () => { this.insertSnippet('this.gotoAndStop(frame)') }
       },
       {
         label: 'Pause',
-        onClick: () => { this.insertSnippet('this.getDefaultTimeline().pause()') }
+        onClick: () => { this.insertSnippet('this.pause()') }
       },
       {
         label: 'Stop',
-        onClick: () => { this.insertSnippet('this.getDefaultTimeline().stop()') }
+        onClick: () => { this.insertSnippet('this.stop()') }
       },
       {
         label: 'Open Link',

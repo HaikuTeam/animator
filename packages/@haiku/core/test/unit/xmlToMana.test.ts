@@ -1,6 +1,6 @@
 import * as tape from 'tape';
 
-import xmlToMana from '@core/helpers/xmlToMana';
+import {xmlToMana} from '@core/HaikuNode';
 
 tape(
   'xmlToMana',

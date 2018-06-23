@@ -4,15 +4,14 @@
 
 import {AdaptedWindow} from './adapters/dom/HaikuDOMAdapter';
 import HaikuComponent, {getFallback} from './HaikuComponent';
+import HaikuElement from './HaikuElement';
 import HaikuHelpers from './HaikuHelpers';
 import ColorUtils from './helpers/ColorUtils';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
 import {isPreviewMode} from './helpers/interactionModes';
 import SVGPoints from './helpers/SVGPoints';
-import Layout3D from './Layout3D';
 import enhance from './reflection/enhance';
 import Transitions from './Transitions';
-import assign from './vendor/assign';
 
 const FUNCTION = 'function';
 const KEYFRAME_ZERO = 0;
@@ -26,464 +25,95 @@ const INJECTABLES: any = {};
 
 declare var window: AdaptedWindow;
 
-if (typeof window !== 'undefined') {
-  INJECTABLES.$window = {
-    schema: {
-      width: 'number',
-      height: 'number',
-      screen: {
-        availHeight: 'number',
-        availLeft: 'number',
-        availWidth: 'number',
-        colorDepth: 'number',
-        height: 'number',
-        pixelDepth: 'number',
-        width: 'number',
-        orientation: {
-          angle: 'number',
-          type: 'string',
-        },
-      },
-      navigator: {
-        userAgent: 'string',
-        appCodeName: 'string',
-        appName: 'string',
-        appVersion: 'string',
-        cookieEnabled: 'boolean',
-        doNotTrack: 'boolean',
-        language: 'string',
-        maxTouchPoints: 'number',
-        onLine: 'boolean',
-        platform: 'string',
-        product: 'string',
-        vendor: 'string',
-      },
-      document: {
-        charset: 'string',
-        compatMode: 'string',
-        contentType: 'string',
-        cookie: 'string',
-        documentURI: 'string',
-        fullscreen: 'boolean',
-        readyState: 'number',
-        referrer: 'string',
-        title: 'string',
-      },
-      location: {
-        hash: 'string',
-        host: 'string',
-        hostname: 'string',
-        href: 'string',
-        pathname: 'string',
-        protocol: 'string',
-        search: 'string',
-      },
-    },
-    summon (injectees, summonSpec) {
-      if (!injectees.$window) {
-        injectees.$window = {};
-      }
-      const out = injectees.$window;
+INJECTABLES.$window = {
+  summon: (injectees) => {
+    injectees.$window = (typeof window !== 'undefined') ? window : {};
+  },
+};
 
-      out.width = window.innerWidth;
-      out.height = window.innerHeight;
-      if (window.screen) {
-        if (!out.screen) {
-          out.screen = {};
-        }
-        out.screen.availHeight = window.screen.availHeight;
-        out.screen.availLeft = window.screen.availLeft;
-        out.screen.availWidth = window.screen.availWidth;
-        out.screen.colorDepth = window.screen.colorDepth;
-        out.screen.height = window.screen.height;
-        out.screen.pixelDepth = window.screen.pixelDepth;
-        out.screen.width = window.screen.width;
-        if (window.screen.orientation) {
-          if (!out.screen.orientation) {
-            out.screen.orientation = {};
-          }
-          out.screen.orientation.angle = window.screen.orientation.angle;
-          out.screen.orientation.type = window.screen.orientation.type;
-        }
-      }
-      if (typeof navigator !== 'undefined') {
-        if (!out.navigator) {
-          out.navigator = {};
-        }
-        out.navigator.userAgent = navigator.userAgent;
-        out.navigator.appCodeName = navigator.appCodeName;
-        out.navigator.appName = navigator.appName;
-        out.navigator.appVersion = navigator.appVersion;
-        out.navigator.cookieEnabled = navigator.cookieEnabled;
-        out.navigator.doNotTrack = navigator.doNotTrack;
-        out.navigator.language = navigator.language;
-        out.navigator.maxTouchPoints = navigator.maxTouchPoints;
-        out.navigator.onLine = navigator.onLine;
-        out.navigator.platform = navigator.platform;
-        out.navigator.product = navigator.product;
-        out.navigator.userAgent = navigator.userAgent;
-        out.navigator.vendor = navigator.vendor;
-      }
-      if (window.document) {
-        if (!out.document) {
-          out.document = {};
-        }
-        out.document.charset = window.document.charset;
-        out.document.compatMode = window.document.compatMode;
-        out.document.contenttype = window.document.contentType;
-        out.document.cookie = window.document.cookie;
-        out.document.documentURI = window.document.documentURI;
-        out.document.fullscreen = window.document.fullscreen;
-        out.document.readyState = window.document.readyState;
-        out.document.referrer = window.document.referrer;
-        out.document.title = window.document.title;
-      }
-      if (window.location) {
-        if (!out.location) {
-          out.location = {};
-        }
-        out.location.hash = window.location.hash;
-        out.location.host = window.location.host;
-        out.location.hostname = window.location.hostname;
-        out.location.href = window.location.href;
-        out.location.pathname = window.location.pathname;
-        out.location.protocol = window.location.protocol;
-        out.location.search = window.location.search;
-      }
-    },
-  };
-}
-
-if (typeof global !== 'undefined') {
-  INJECTABLES.$global = {
-    schema: {
-      process: {
-        pid: 'number',
-        arch: 'string',
-        platform: 'string',
-        argv: ['string'],
-        title: 'string',
-        version: 'string',
-        env: {}, // Worth explicitly numerating these? #QUESTION
-      },
-    },
-    summon (injectees, summonSpec) {
-      if (!injectees.$global) {
-        injectees.$global = {};
-      }
-      const out = injectees.$global;
-
-      if (typeof process !== 'undefined') {
-        if (!out.process) {
-          out.process = {};
-        }
-        out.process.pid = process.pid;
-        out.process.arch = process.arch;
-        out.process.platform = process.platform;
-        out.process.argv = process.argv;
-        out.process.title = process.title;
-        out.process.version = process.version;
-        out.process.env = process.env;
-      }
-    },
-  };
-}
+INJECTABLES.$mount = {
+  summon (injectees, component: HaikuComponent) {
+    injectees.$mount = component.context.renderer.mount;
+  },
+};
 
 INJECTABLES.$core = {
-  schema: {
-    version: 'string',
-    options: {
-      seed: 'string',
-      loop: 'boolean',
-      sizing: 'string',
-      preserve3d: 'boolean',
-      position: 'string',
-      overflowX: 'string',
-      overflowY: 'string',
-    },
-    timeline: {
-      name: 'string',
-      duration: 'number',
-      repeat: 'boolean',
-      time: {
-        apparent: 'number',
-        elapsed: 'number',
-        max: 'number',
-      },
-      frame: {
-        apparent: 'number',
-        elapsed: 'number',
-      },
-    },
-    clock: {
-      frameDuration: 'number',
-      frameDelay: 'number',
-      time: {
-        apparent: 'number',
-        elapsed: 'number',
-      },
-    },
-  },
-  summon (injectees, summonSpec, hostInstance, matchingElement, timelineName) {
-    if (!injectees.$core) {
-      injectees.$core = {};
-    }
-    const out = injectees.$core;
-
-    out.version = hostInstance.context.CORE_VERSION || hostInstance.context.PLAYER_VERSION; // Fallback to #LEGACY
-
-    const options = hostInstance.context.config;
-    if (options) {
-      if (!out.options) {
-        out.options = {};
-      }
-      out.options.seed = options.seed;
-      out.options.sizing = options.sizing;
-      out.options.preserve3d = options.preserve3d;
-      out.options.position = options.position;
-      out.options.overflowX = options.overflowX;
-      out.options.overflowY = options.overflowY;
-    }
-    const timelineInstance = hostInstance.getTimeline(timelineName);
-    if (timelineInstance) {
-      if (!out.timeline) {
-        out.timeline = {};
-      }
-      out.timeline.name = timelineName;
-      out.timeline.duration = timelineInstance.getDuration();
-      out.timeline.repeat = timelineInstance.getRepeat();
-      if (!out.timeline.time) {
-        out.timeline.time = {};
-      }
-      out.timeline.time.apparent = timelineInstance.getTime();
-      out.timeline.time.elapsed =
-        isPreviewMode(hostInstance.config.interactionMode)
-        ? timelineInstance.getElapsedTime()
-        : out.timeline.time.apparent;
-      out.timeline.time.max = timelineInstance.getMaxTime();
-      if (!out.timeline.frame) {
-        out.timeline.frame = {};
-      }
-      out.timeline.frame.apparent = timelineInstance.getFrame();
-      out.timeline.frame.elapsed =
-      isPreviewMode(hostInstance.config.interactionMode)
-        ? timelineInstance.getUnboundedFrame()
-        : out.timeline.frame.apparent;
-    }
-    const clockInstance = hostInstance.getClock();
-    if (clockInstance) {
-      if (!out.clock) {
-        out.clock = {};
-      }
-      out.clock.frameDuration = clockInstance.options.frameDuration;
-      out.clock.frameDelay = clockInstance.options.frameDelay;
-      if (!out.clock.time) {
-        out.clock.time = {};
-      }
-      out.clock.time.apparent = clockInstance.getExplicitTime();
-      out.clock.time.elapsed =
-        isPreviewMode(hostInstance.config.interactionMode)
-        ? clockInstance.getRunningTime()
-        : out.clock.time.apparent;
-    }
+  summon (injectees, component: HaikuComponent, node, timelineName: string) {
+    injectees.$core = {
+      component,
+      context: component.context,
+      options: component.config,
+      timeline: component.getTimeline(timelineName),
+      clock: component.getClock(),
+    };
   },
 };
 
-const EVENT_SCHEMA = {
-  mouse: {
-    x: 'number',
-    y: 'number',
-    isDown: 'boolean',
-  },
-  touches: [{
-    x: 'number',
-    y: 'number',
-  }],
-  mouches: [{
-    x: 'number',
-    y: 'number',
-  }],
-  keys: [{
-    which: 'number',
-    code: 'number', // alias for 'which'
-  }],
-};
-
-const ELEMENT_SCHEMA = {};
-
-const assignElementInjectables = (obj, key, summonSpec, hostInstance, element) => {
-  // If for some reason no element, nothing to do
-  if (!element) {
-    return {};
-  }
-
-  // For some reason we get string elements here #FIXME
-  if (typeof element === 'string') {
-    return {};
-  }
-
-  obj[key] = {};
-  const out = obj[key];
-
-  out.properties = {
-    name: null,
-    attributes: null,
-  };
-
-  out.properties.name = element.elementName;
-  out.properties.attributes = element.attributes;
-
-  if (element.layout.computed) {
-    out.properties.matrix = element.layout.computed.matrix;
-    out.properties.size = element.layout.computed.size;
-  } else {
-    out.properties.matrix = Layout3D.createMatrix();
-    out.properties.size = {x: 0, y: 0, z: 0};
-  }
-
-  out.properties.align = element.layout.align;
-  out.properties.mount = element.layout.mount;
-  out.properties.opacity = element.layout.opacity;
-  out.properties.origin = element.layout.origin;
-  out.properties.rotation = element.layout.rotation;
-  out.properties.scale = element.layout.scale;
-  out.properties.shown = element.layout.shown;
-  out.properties.sizeAbsolute = element.layout.sizeAbsolute;
-  out.properties.sizeDifferential = element.layout.sizeDifferential;
-  out.properties.sizeMode = element.layout.sizeMode;
-  out.properties.sizeProportional = element.layout.sizeProportional;
-  out.properties.translation = element.layout.translation;
-
-  // TODO
-  // defineProperty so that the calc happens lazily
-  // Object.defineProperty(out, 'bbox', {
-  //   get: function _get () {
-  //     return hostInstance.context._getElementBBox(element)
-  //   }
-  // })
-
-  // TODO
-  // out.events = hostInstance.context.getElementEvents(element)
-};
-
-INJECTABLES.$tree = {
-  schema: {
-    // Unique to $tree
-    parent: ELEMENT_SCHEMA,
-    children: [ELEMENT_SCHEMA],
-    siblings: [ELEMENT_SCHEMA],
-    // Aliases for convenience
-    component: ELEMENT_SCHEMA,
-    root: ELEMENT_SCHEMA, // root at runtime
-    element: ELEMENT_SCHEMA, // same as $element
-  },
-  summon (injectees, summonSpec, hostInstance, matchingElement) {
-    if (!injectees.$tree) {
-      injectees.$tree = {};
-    }
-
-    injectees.$tree.siblings = []; // Provide an array even if no siblings in case user tries to access
-
-    injectees.$tree.parent = null;
-
-    if (matchingElement && matchingElement.__parent) {
-      const subspec0 = (typeof summonSpec === 'string') ? summonSpec : (summonSpec.$tree && summonSpec.$tree.parent);
-      assignElementInjectables(injectees.$tree, 'parent', subspec0, hostInstance, matchingElement.__parent);
-
-      for (let i = 0; i < matchingElement.__parent.children.length; i++) {
-        const sibling = matchingElement.__parent.children[i];
-        const subspec1 = (typeof summonSpec === 'string')
-          ? summonSpec
-          : summonSpec.$tree && summonSpec.$tree.siblings && summonSpec.$tree.siblings[i];
-        assignElementInjectables(injectees.$tree.siblings, i, subspec1, hostInstance, sibling);
-      }
-    }
-
-    injectees.$tree.children = []; // Provide an array even if no children in case user tries to access
-
-    if (matchingElement && matchingElement.children) {
-      for (let j = 0; j < matchingElement.children.length; j++) {
-        const child = matchingElement.children[j];
-        const subspec2 = (typeof summonSpec === 'string')
-          ? summonSpec
-          : summonSpec.$tree && summonSpec.$tree.children && summonSpec.$tree.children[j];
-        assignElementInjectables(injectees.$tree.children, j, subspec2, hostInstance, child);
-      }
-    }
-
-    // May as well make use of the implementation we have for the aliases,
-    // and avoid recalc if it's already been added:
-
-    if (!injectees.$component) {
-      INJECTABLES.$component.summon(injectees, summonSpec, hostInstance, matchingElement);
-    }
-
-    injectees.$tree.component = injectees.$component;
-
-    if (!injectees.$root) {
-      INJECTABLES.$root.summon(injectees, summonSpec, hostInstance, matchingElement);
-    }
-
-    injectees.$tree.root = injectees.$root;
-
-    if (!injectees.$element) {
-      INJECTABLES.$element.summon(injectees, summonSpec, hostInstance, matchingElement);
-    }
-
-    injectees.$tree.element = injectees.$element;
+INJECTABLES.$context = {
+  summon (injectees, component: HaikuComponent) {
+    injectees.$context = component.context;
   },
 };
 
-// (top-level Element of a given component, (i.e. tranverse tree upward past groups but
-// stop at first component definition))
 INJECTABLES.$component = {
-  schema: ELEMENT_SCHEMA,
-  summon (injectees, summonSpec, hostInstance) {
-    // Don't double-recalc this if it's already shown to be present in $tree
-    if (injectees.$tree && injectees.$tree.component) {
-      injectees.$component = injectees.$tree.component;
-    } else {
-      const subspec = (typeof summonSpec === 'string') ? summonSpec : summonSpec.$component;
-      assignElementInjectables(injectees, '$component', subspec, hostInstance, hostInstance.getTemplate());
-    }
+  summon (injectees, component: HaikuComponent) {
+    injectees.$component = component;
   },
 };
 
-// absolute root of component tree (but does not traverse host codebase DOM)
-// i.e. if Haiku components are nested. Until we support nested components,
-// $root will be the same as $component
-INJECTABLES.$root = {
-  schema: ELEMENT_SCHEMA,
-  summon (injectees, summonSpec, hostInstance) {
-    // Don't double-recalc this if it's already shown to be present in $tree
-    if (injectees.$tree && injectees.$tree.root) {
-      injectees.$root = injectees.$tree.root;
-    } else {
-      // Until we support nested components, $root resolves to $component
-      const subspec = (typeof summonSpec === 'string') ? summonSpec : summonSpec.$root;
-      assignElementInjectables(injectees, '$root', subspec, hostInstance, hostInstance.getTemplate());
-    }
+INJECTABLES.$host = {
+  summon (injectees, component: HaikuComponent) {
+    injectees.$host = component.host;
+  },
+};
+
+INJECTABLES.$top = {
+  summon (injectees, component: HaikuComponent) {
+    injectees.$host = component.top;
+  },
+};
+
+INJECTABLES.$clock = {
+  summon (injectees, component: HaikuComponent) {
+    injectees.$timeline = component.getClock();
+  },
+};
+
+INJECTABLES.$state = {
+  summon (injectees, component: HaikuComponent) {
+    injectees.$state = component.state;
+  },
+};
+
+INJECTABLES.$timeline = {
+  summon (injectees, component: HaikuComponent, node, timelineName: string) {
+    injectees.$timeline = component.getTimeline(timelineName);
   },
 };
 
 INJECTABLES.$element = {
-  schema: ELEMENT_SCHEMA,
-  summon (injectees, summonSpec, hostInstance, matchingElement) {
-    // Don't double-recalc this if it's already shown to be present in $tree
-    if (injectees.$tree && injectees.$tree.element) {
-      injectees.$element = injectees.$tree.element;
-    } else {
-      const subspec = (typeof summonSpec === 'string') ? summonSpec : summonSpec.$element;
-      assignElementInjectables(injectees, '$element', subspec, hostInstance, matchingElement);
-    }
+  summon (injectees, component: HaikuComponent, node) {
+    injectees.$element = HaikuElement.findOrCreateByNode(node);
+  },
+};
+
+INJECTABLES.$parent = {
+  summon (injectees, component: HaikuComponent, node) {
+    injectees.$parent = HaikuElement.findOrCreateByNode(node).parent;
+  },
+};
+
+INJECTABLES.$container = {
+  summon (injectees, component: HaikuComponent, node) {
+    const element = HaikuElement.findOrCreateByNode(node);
+    injectees.$container = element.owner;
   },
 };
 
 INJECTABLES.$user = {
-  schema: assign({}, EVENT_SCHEMA),
-  summon (injectees, summonSpec, hostInstance, matchingElement) {
-    if (isPreviewMode(hostInstance.config.interactionMode)) {
-      injectees.$user = hostInstance.context.getGlobalUserState();
+  summon (injectees, component: HaikuComponent, node) {
+    if (isPreviewMode(component.config.interactionMode)) {
+      injectees.$user = component.context.getGlobalUserState();
     } else {
       injectees.$user = {
         mouse: {
@@ -505,40 +135,61 @@ INJECTABLES.$user = {
 };
 
 INJECTABLES.$flow = {
-  schema: {
-    repeat: {
-      list: ['any'],
-      index: 'number',
-      value: 'any',
-      data: 'any', // alias for value
-      payload: 'any', // alias for payload
-    },
-    placeholder: {
-      node: 'any', // The injected element?
-    },
-  },
-  summon (injectees, summonSpec, hostInstance, matchingElement) {
-    // if (!injectees.$flow) injectees.$flow = {}
-    // var out = injectees.$flow
+  summon (injectees, component: HaikuComponent, node) {
+    if (!injectees.$flow) {
+      injectees.$flow = {};
+    }
+
+    const repeatNode = getRepeatHostNode(node);
+
+    injectees.$flow.repeat = (repeatNode && repeatNode.__repeat) || {
+      instructions: [],
+      payload: {},
+      source: repeatNode,
+      index: 0,
+      collection: [repeatNode],
+    };
+
+    const ifNode = getIfHostNode(node);
+
+    injectees.$flow.if = (ifNode && ifNode.__if) || {
+      answer: null,
+    };
+
+    injectees.$flow.placeholder = node.__placeholder || {
+      value: null,
+      surrogate: null,
+    };
   },
 };
 
-INJECTABLES.$flow.schema.if = {
-  value: 'any',
-  data: 'any', // alias for value
-  payload: 'any', // alias for payload
+const getRepeatHostNode = (node) => {
+  if (!node) {
+    return;
+  }
+
+  if (node.__repeat) {
+    return node;
+  }
+
+  return getRepeatHostNode(node.__parent);
 };
 
-INJECTABLES.$flow.schema.yield = {
-  value: 'any',
-  data: 'any', // alias for value
-  payload: 'any', // alias for payload
+const getIfHostNode = (node) => {
+  if (!node) {
+    return;
+  }
+
+  if (node.__if) {
+    return node;
+  }
+
+  return getIfHostNode(node.__parent);
 };
 
 INJECTABLES.$helpers = {
-  schema: {},
-  summon (injectees, summonSpec, hostInstance, matchingElement) {
-    injectees.$helpers = hostInstance.builder.helpers;
+  summon (injectees, component: HaikuComponent) {
+    injectees.$helpers = component.builder.helpers;
   },
 };
 
@@ -609,8 +260,6 @@ const BUILTIN_INJECTABLES = {
 
 for (const builtinInjectableKey in BUILTIN_INJECTABLES) {
   INJECTABLES[builtinInjectableKey] = {
-    builtin: true,
-    schema: '*',
     summon (injectees) {
       injectees[builtinInjectableKey] = BUILTIN_INJECTABLES[builtinInjectableKey];
     },
@@ -786,14 +435,23 @@ const areSummoneesDifferent = (previous: any, incoming: any): boolean => {
     // Do a shallow comparison of elements. We don't go deep because:
     //   - It easily becomes too expensive to do this while rendering
     //   - We can avoid needing to check for recursion
-
     for (let i = 0; i < previous.length; i++) {
+      // Assume that objects are different since we don't want to do a deep comparison
+      if (previous[i] && typeof previous[i] === 'object') {
+        return true;
+      }
+
       if (previous[i] !== incoming[i]) {
         return true;
       }
     }
 
     for (let j = 0; j < previous.length; j++) {
+      // Assume that objects are different since we don't want to do a deep comparison
+      if (incoming[j] && typeof incoming[j] === 'object') {
+        return true;
+      }
+
       if (incoming[j] !== previous[j]) {
         return true;
       }
@@ -1063,11 +721,7 @@ export default class ValueBuilder {
         if (INJECTABLES[summonsEntry]) {
           summonStorage[summonsEntry] = undefined; // Clear out the old value before populating with the new one
           INJECTABLES[summonsEntry].summon(
-            // This arg is populated with the data; it is the var 'out' in the summon function; they summonsKey must be
-            // added.
             summonStorage,
-            // The summon function should know how to handle a string and what it signifies.
-            summonsEntry,
             hostInstance,
             matchingElement,
             timelineName,
@@ -1075,39 +729,6 @@ export default class ValueBuilder {
           summonsOutput = summonStorage[summonsEntry];
         } else {
           summonsOutput = hostInstance.state[summonsEntry];
-        }
-      } else if (summonsEntry && typeof summonsEntry === 'object') {
-        // If dealing with a summon that is an object, the output will be an object.
-        summonsOutput = {};
-
-        for (const summonsKey in summonsEntry) {
-          // If the summons structure has a falsy, just skip it;
-          // I don't see why how this could happen, but just in case.
-          if (!summonsEntry[summonsKey]) {
-            continue;
-          }
-
-          // If a special summonable has been defined, then call its summoner function
-          if (INJECTABLES[summonsKey]) {
-            INJECTABLES[summonsKey].summon(
-              // This arg is populated with the data; it is the var 'out' in the summon function;
-              // they summonsKey must be added.
-              summonsOutput,
-              // The object specifies the specific fields we want to extract.
-              summonsEntry[summonsKey],
-              hostInstance,
-              matchingElement,
-              timelineName,
-            );
-
-            continue;
-          }
-
-          // Otherwise, assume the user wants to access one of the states of the component instance
-          // Note that the 'states' defined in the component's bytecode should have been set up upstream by the
-          // core's initialization process. hostInstance is a HaikuCore instance which has a state prop which has
-          // getter/setter props set up corresponding to whatever the 'states' were set to
-          summonsOutput[summonsKey] = hostInstance.state[summonsKey];
         }
       }
 
@@ -1352,6 +973,13 @@ export default class ValueBuilder {
         parsedValueCluster,
         timelineTime,
       );
+
+      // When expressions and other dynamic functionality is in play, data may be missing resulting in
+      // properties lacking defined values; in this case we try to do the right thing and fallback
+      // to a known usable value for the field. Especially needed with controlFlow.repeat.
+      if (computedValueForTime === undefined) {
+        computedValueForTime = getFallback(matchingElement && matchingElement.elementName, propertyName);
+      }
     }
 
     if (computedValueForTime === undefined) {

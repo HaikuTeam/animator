@@ -300,12 +300,8 @@ export default class HaikuTimeline extends HaikuBase {
     return !this.isFinished();
   }
 
-  duration () {
-    return this.getMaxTime() || 0;
-  }
-
   getDuration () {
-    return this.duration();
+    return this.getMaxTime() || 0;
   }
 
   setRepeat (bool) {
@@ -498,6 +494,26 @@ export default class HaikuTimeline extends HaikuBase {
         this.seek(numericSpec.value, numericSpec.units as TimeUnit);
       }
     }
+  }
+
+  get duration (): number {
+    return this.getDuration();
+  }
+
+  get repeat (): boolean {
+    return this.getRepeat();
+  }
+
+  get time (): number {
+    return this.getTime();
+  }
+
+  get max(): number {
+    return this.getMaxTime();
+  }
+
+  get frame(): number {
+    return this.getFrame();
   }
 
   static __name__ = 'HaikuTimeline';

@@ -24,24 +24,6 @@ Property.assignDOMSchemaProperties = (out, element) => {
   const schema = Property.BUILTIN_DOM_SCHEMAS[element.getSafeDomFriendlyName()] || {}
 
   for (const name in schema) {
-    if (name === 'content') {
-      // Don't make 'content' part of the schema if we have children that don't
-      // look like what we typically expect for text content
-      if (element.children && element.children.length > 1) {
-        continue
-      }
-
-      if (
-        element.children && (
-          element.children.length !== 1 ||
-          !element.children[0] ||
-          !element.children[0].isTextNode()
-        )
-      ) {
-        continue
-      }
-    }
-
     let propertyGroup = null
 
     let nameParts = name.split('.')
@@ -150,6 +132,8 @@ Property.BUILTIN_DOM_SCHEMAS = {
     'sizeAbsolute.y': 'number',
     'playback': 'any',
     'controlFlow.placeholder': 'any',
+    'controlFlow.repeat': 'any',
+    'controlFlow.if': 'any',
     opacity: 'number',
     'translation.x': 'number',
     'translation.y': 'number',
@@ -189,6 +173,8 @@ Property.BUILTIN_DOM_SCHEMAS = {
   },
   svg: {
     'controlFlow.placeholder': 'any',
+    'controlFlow.repeat': 'any',
+    'controlFlow.if': 'any',
     opacity: 'number',
     'translation.x': 'number',
     'translation.y': 'number',
@@ -285,6 +271,8 @@ Property.BUILTIN_DOM_SCHEMAS = {
     fillOpacity: 'string'
   },
   text: {
+    x: 'string',
+    y: 'string',
     stroke: 'string',
     strokeWidth: 'string',
     strokeOpacity: 'string',
@@ -304,6 +292,8 @@ Property.BUILTIN_DOM_SCHEMAS = {
     content: 'string'
   },
   tspan: {
+    x: 'string',
+    y: 'string',
     stroke: 'string',
     strokeWidth: 'string',
     strokeOpacity: 'string',
@@ -495,16 +485,81 @@ const COMPONENT_ONLY = (name, element) => {
   return element.isComponent()
 }
 
+const IF_EXPLICIT_OR_DEFINED = (name, element, property, keyframes) => {
+  return (
+    IF_EXPLICIT(name, element, property, keyframes) ||
+    IF_DEFINED(name, element, property, keyframes)
+  )
+}
+
+const IF_EXPLICIT = (name, element, property, keyframes) => {
+  return !!element._visibleProperties[name]
+}
+
+const IF_DEFINED = (name, element, property, keyframes) => {
+  return keyframes && Object.keys(keyframes).length > 0
+}
+
 const IF_CHANGED_FROM_PREPOPULATED_VALUE = (name, element, property, keyframes) => {
+  return wasChangedFromPrepopValue(name, keyframes)
+}
+
+const IF_IN_SCHEMA = (name, element) => {
+  const elementName = element.getSafeDomFriendlyName()
+  return hasInSchema(elementName, name)
+}
+
+const IF_TEXT_CONTENT_ENABLED = (name, element, property, keyframes) => {
+  if (element.children.length < 1) {
+    return true
+  }
+
+  // Sketch-produced SVGs often have <text><tspan>content, but since <text>
+  // can also have raw content inside it, we do this check to exclude it if
+  // it happens to contain an inner <tspan>
+  if (typeof element.children[0] !== 'string') {
+    return false
+  }
+
+  return true
+}
+
+const wasChangedFromPrepopValue = (name, keyframes) => {
   const fallback = Property.PREPOPULATED_VALUES[name]
+
   if (fallback === undefined) {
     return true
   }
+
   const value = keyframes && keyframes[0] && keyframes[0].value
+
   return (
     value !== undefined &&
     value !== fallback
   )
+}
+
+const hasInSchema = (elementName, propertyName) => {
+  return (
+    Property.BUILTIN_DOM_SCHEMAS[elementName] &&
+    Property.BUILTIN_DOM_SCHEMAS[elementName][propertyName]
+  )
+}
+
+Property.areAnyKeyframesDefined = (elementName, propertyName, keyframesObject) => {
+  const mss = Object.keys(keyframesObject)
+
+  // More than one keyframes always implies a keyframe has been set by the user
+  if (mss.length > 1) {
+    return true
+  }
+
+  // If the first keyframe isn't 0, that also implies a keyframe was set
+  if (Number(mss[0]) !== 0) {
+    return true
+  }
+
+  return wasChangedFromPrepopValue(propertyName, keyframesObject)
 }
 
 /**
@@ -517,11 +572,10 @@ Property.DISPLAY_RULES = {
   'align.x': {jit: [NEVER], add: [NEVER]},
   'align.y': {jit: [NEVER], add: [NEVER]},
   'align.z': {jit: [NEVER], add: [NEVER]},
-  'content': {jit: [NON_ROOT_ONLY], add: [NON_ROOT_ONLY]},
-  'controlFlow.if': {jit: [NEVER], add: [NEVER]},
-  'controlFlow.placeholder': {jit: [NON_ROOT_ONLY, NON_COMPONENT_ONLY], add: [NEVER]},
-  'controlFlow.repeat': {jit: [NEVER], add: [NEVER]},
-  'controlFlow.yield': {jit: [NEVER], add: [NEVER]},
+  'content': {jit: [NON_ROOT_ONLY, IF_IN_SCHEMA, IF_TEXT_CONTENT_ENABLED], add: [NON_ROOT_ONLY, IF_IN_SCHEMA, IF_TEXT_CONTENT_ENABLED]},
+  'controlFlow.if': {jit: [NON_ROOT_ONLY], add: [IF_EXPLICIT_OR_DEFINED]},
+  'controlFlow.placeholder': {jit: [NON_ROOT_ONLY, NON_COMPONENT_ONLY], add: [IF_EXPLICIT_OR_DEFINED]},
+  'controlFlow.repeat': {jit: [NON_ROOT_ONLY], add: [IF_EXPLICIT_OR_DEFINED]},
   'haiku-id': {jit: [NEVER], add: [NEVER]},
   'haiku-source': {jit: [NEVER], add: [NEVER]},
   'haiku-title': {jit: [NEVER], add: [NEVER]},
@@ -592,7 +646,40 @@ Property.DISPLAY_RULES = {
   'translation.x': {jit: [NEVER], add: [ALWAYS]},
   'translation.y': {jit: [NEVER], add: [ALWAYS]},
   'translation.z': {jit: [NEVER], add: [ALWAYS]},
-  'width': {jit: [NEVER], add: [NEVER]}
+  'width': {jit: [NEVER], add: [NEVER]},
+  // Primitives
+  'alignmentBaseline': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'cx': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'cy': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'd': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'fill': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'fillOpacity': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'fillRule': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'fontFamily': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'fontSize': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'fontStyle': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'fontVariant': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'fontWeight': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'href': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'kerning': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'letterSpacing': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'offset': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'points': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'r': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'rx': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'ry': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'stopColor': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'stroke': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'strokeOpacity': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'strokeWidth': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'textAnchor': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'wordSpacing': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'x': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'y': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'x1': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'x2': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'y1': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
+  'y2': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]}
 }
 
 Property.includeInJIT = (name, element, property, keyframes) => {

@@ -1,6 +1,6 @@
 import React from 'react'
 import Palette from 'haiku-ui-common/lib/Palette'
-import {ComponentIconSVG} from 'haiku-ui-common/lib/react/OtherIcons'
+import {ComponentIconSVG, RepeaterIconSVG} from 'haiku-ui-common/lib/react/OtherIcons'
 import Color from 'color'
 
 const DOUBLE_CLICK_WAIT_DELAY_MS = 100
@@ -19,13 +19,13 @@ export default class ComponentHeadingRowHeading extends React.Component {
   componentWillUnmount () {
     this.mounted = false
     this.props.row.removeListener('update', this.handleUpdate)
-    this.props.row.host.removeListener('update', this.handleUpdate)
+    this.props.row.element.removeListener('update', this.handleUpdate)
   }
 
   componentDidMount () {
     this.mounted = true
     this.props.row.on('update', this.handleUpdate)
-    this.props.row.host.on('update', this.handleUpdate)
+    this.props.row.element.on('update', this.handleUpdate)
   }
 
   handleUpdate (what) {
@@ -68,6 +68,15 @@ export default class ComponentHeadingRowHeading extends React.Component {
         isEditingRowTitle: false
       })
     })
+  }
+
+  getIcon () {
+    if (this.props.row.element.isRepeater()) {
+      return <RepeaterIconSVG />
+    } else if (this.props.row.element.isComponent()) {
+      return <ComponentIconSVG />
+    }
+    return ''
   }
 
   render () {
@@ -123,20 +132,21 @@ export default class ComponentHeadingRowHeading extends React.Component {
               left: 2,
               top: 8
             }}>
-            {(this.props.row.element.isComponent()) &&
-            <ComponentIconSVG />}
+            {this.getIcon()}
           </span>
           <span
             style={{
               position: 'absolute',
               display: 'inline-block',
               height: 20,
-              left: (this.props.row.element.isComponent())
+              left: (this.props.row.element.isComponent() || this.props.row.element.isRepeater())
                   ? 21
                   : 5,
               top: 7,
               overflowX: 'hidden',
-              width: 160
+              width: (this.props.row.element.isComponent() || this.props.row.element.isRepeater())
+                ? 80
+                : 100
             }}
             onClick={(clickEvent) => {
               if (!this.onExpandTimeout) {
