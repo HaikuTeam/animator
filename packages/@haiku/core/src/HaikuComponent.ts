@@ -1332,6 +1332,14 @@ export default class HaikuComponent extends HaikuElement {
     this.stateTransitionManager.setState(initialStates, {curve, duration});
   }
 
+  get top (): HaikuComponent {
+    if (this.host) {
+      return this.host.top;
+    }
+
+    return this;
+  }
+
   static __name__ = 'HaikuComponent';
 
   static PLAYER_VERSION = VERSION; // #LEGACY

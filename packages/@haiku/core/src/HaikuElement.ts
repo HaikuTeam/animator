@@ -1,4 +1,5 @@
 import HaikuBase from './HaikuBase';
+import HaikuComponent from './HaikuComponent';
 import {cssMatchOne} from './HaikuNode';
 import Layout3D from './Layout3D';
 
@@ -16,6 +17,8 @@ const CSS_QUERY_MAPPING = {
   attributes: 'attributes',
   children: 'children',
 };
+
+const LAYOUT_DEFAULTS = Layout3D.createLayoutSpec();
 
 export default class HaikuElement extends HaikuBase {
   node;
@@ -82,17 +85,25 @@ export default class HaikuElement extends HaikuBase {
    * @description Returns the HaikuComponent instance that manages nodes below this one.
    * This node is considered the 'wrapper' node and its child is considered the 'root'.
    */
-  get subcomponent (): any {
+  get subcomponent (): HaikuComponent {
     return this.node && this.node.__subcomponent;
   }
 
   /**
-   * @method subcomponent
+   * @method instance
    * @description Returns the HaikuComponent instance that manages this node and those beneath.
    * This node is considered the 'root' node of the instance.
    */
-  get instance (): any {
+  get instance (): HaikuComponent {
     return this.node && this.node.__instance;
+  }
+
+  get owner (): HaikuComponent {
+    if (this.instance) {
+      return this.instance;
+    }
+
+    return this.parent && this.parent.owner;
   }
 
   get instanceContext (): any {
@@ -104,7 +115,7 @@ export default class HaikuElement extends HaikuBase {
   }
 
   get parent (): any {
-    return this.parentNode && this.parentNode.__element;
+    return this.parentNode && HaikuElement.findOrCreateByNode(this.parentNode);
   }
 
   get layout (): any {
@@ -193,31 +204,31 @@ export default class HaikuElement extends HaikuBase {
   }
 
   get translation (): any {
-    return this.layout && this.layout.translation;
+    return (this.layout && this.layout.translation) || LAYOUT_DEFAULTS.translation;
   }
 
   get rotation (): any {
-    return this.layout && this.layout.rotation;
+    return (this.layout && this.layout.rotation) || LAYOUT_DEFAULTS.rotation;
   }
 
   get scale (): any {
-    return this.layout && this.layout.scale;
+    return (this.layout && this.layout.scale) || LAYOUT_DEFAULTS.scale;
   }
 
   get origin (): any {
-    return this.layout && this.layout.origin;
+    return (this.layout && this.layout.origin) || LAYOUT_DEFAULTS.origin;
   }
 
   get mount (): any {
-    return this.layout && this.layout.mount;
+    return (this.layout && this.layout.mount) || LAYOUT_DEFAULTS.mount;
   }
 
   get align (): any {
-    return this.layout && this.layout.align;
+    return (this.layout && this.layout.align) || LAYOUT_DEFAULTS.align;
   }
 
   get size (): any {
-    return this.layout && this.layout.size;
+    return (this.layout && this.layout.size) || LAYOUT_DEFAULTS.sizeAbsolute;
   }
 
   get targets (): any[] {
@@ -450,6 +461,9 @@ export default class HaikuElement extends HaikuBase {
   };
 
   static findOrCreateByNode = (node) => {
+    if (node.__element) {
+      return node.__element;
+    }
     const found = HaikuElement.findByNode(node);
     if (found) {
       return found;
