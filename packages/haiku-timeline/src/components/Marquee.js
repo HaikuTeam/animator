@@ -22,7 +22,7 @@ class Marquee {
 
   _startUp (event) {
     // return if is right click
-    if (event.which === 3) {
+    if (event.which === 3 || this.onStart(event) === false) {
       return
     }
 
@@ -33,7 +33,6 @@ class Marquee {
     this.area.removeEventListener('mousedown', this._startUp)
     this.area.addEventListener('mousemove', this._handleMove)
     document.addEventListener('mouseup', this.reset)
-    this.onStart(event)
   }
 
   _getStartingPositions (event) {

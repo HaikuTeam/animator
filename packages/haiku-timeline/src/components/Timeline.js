@@ -153,8 +153,18 @@ class Timeline extends React.Component {
     if (experimentIsEnabled(Experiment.TimelineMarqueeSelection)) {
       const marquee = new Marquee({
         area: document.querySelector('#property-rows'),
-        onStart: event => {
-          // this.onGaugeMouseDown(event)
+        onStart: (event) => {
+          // This event triggers on `mousedown`, we make the assumption that a
+          // mousedown + mouse movement on one of the elements below is a drag,
+          // therefore we stop the marquee selection by returning `false`.
+          return (
+            // Keyframe
+            !event.target.id.includes('keyframe-dragger') ||
+            // Constant Body
+            !event.target.id.includes('constant-body') ||
+            // Tween
+            !event.target.className.includes('pill')
+          )
         },
         onFinish: (event, area) => {
           Keyframe.all().forEach(keyframe => {

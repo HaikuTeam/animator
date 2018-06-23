@@ -249,7 +249,8 @@ export default class TransitionBody extends React.Component {
             height: '100%',
             borderRadius: 5,
             paddingTop: 6,
-            overflow: breakingBounds ? 'visible' : 'hidden'
+            overflow: breakingBounds ? 'visible' : 'hidden',
+            pointerEvents: 'none'
           }}>
             <CurveSVG
               id={uniqueKey}
