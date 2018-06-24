@@ -7,6 +7,7 @@ import FamilySVG from 'haiku-ui-common/lib/react/icons/FamilySVG'
 import ClusterInputField from './ClusterInputField'
 import RowSegments from './RowSegments'
 import ClusterRowHeading from './ClusterRowHeading'
+import zIndex from './styles/zIndex'
 import Globals from 'haiku-ui-common/lib/Globals'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
 
@@ -78,7 +79,7 @@ export default class ClusterRow extends React.Component {
           top: 0,
           left: 0,
           width: this.props.timeline.getPropertiesPixelWidth(),
-          zIndex: 99999,
+          zIndex: zIndex.clusterRowHeading.base,
           backgroundColor: Palette.GRAY
         } : {})}>
           <div>
@@ -143,7 +144,8 @@ export default class ClusterRow extends React.Component {
             width: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : this.props.timeline.getTimelinePixelWidth(),
             left: this.props.timeline.getPropertiesPixelWidth() - 4, // offset half of lone keyframe width so it lines up with the pole
             top: 0,
-            height: 'inherit'
+            height: 'inherit',
+            zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? zIndex.clusterRow.base : undefined
           }}>
           <RowSegments
             scope='ClusterRow'

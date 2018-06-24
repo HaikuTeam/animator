@@ -10,6 +10,7 @@ import ComponentHeadingRowHeading from './ComponentHeadingRowHeading'
 import CollapsedPropertyTimelineSegments from './CollapsedPropertyTimelineSegments'
 import EventHandlerTriggerer from './EventHandlerTriggerer'
 import PropertyManager from './PropertyManager'
+import zIndex from './styles/zIndex'
 
 export default class ComponentHeadingRow extends React.Component {
   constructor (props) {
@@ -76,7 +77,7 @@ export default class ComponentHeadingRow extends React.Component {
           width: this.props.isExpanded ? 100 : undefined,
           top: this.props.isExpanded ? 0 : undefined,
           left: this.props.isExpanded ? 20 : undefined,
-          zIndex: 99999999,
+          zIndex: zIndex.headingRow.base,
           backgroundColor: this.props.isExpanded ? 'transparent' : Palette.LIGHT_GRAY,
           opacity: this.props.isHidden ? 0.75 : 1.0
         } : {
@@ -140,7 +141,7 @@ export default class ComponentHeadingRow extends React.Component {
               width: (this.props.row.isExpanded()) ? propertiesPixelWidth - 140 : propertiesPixelWidth,
               height: 'inherit',
               cursor: 'pointer',
-              zIndex: 9999999999999,
+              // zIndex: 9999999999999,
               backgroundColor: this.props.isExpanded ? 'transparent' : Palette.LIGHT_GRAY,
               display: 'flex',
               flexDirection: 'column'

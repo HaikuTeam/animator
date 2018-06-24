@@ -28,6 +28,7 @@ import {InteractionMode, isPreviewMode} from '@haiku/core/lib/helpers/interactio
 import { USER_CHANNEL, UserSettings } from 'haiku-sdk-creator/lib/bll/User'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
+import zIndex from './styles/zIndex'
 
 const Globals = require('haiku-ui-common/lib/Globals').default // Sorry, hack
 
@@ -1070,7 +1071,7 @@ class Timeline extends React.Component {
               .getCurrentTimeline()
               .getPropertiesPixelWidth(),
             backgroundColor: Palette.COAL,
-            zIndex: 999999999,
+            zIndex: zIndex.timekeepingWrapper.base,
             fontSize: 10
           }}
         >
@@ -1091,7 +1092,7 @@ class Timeline extends React.Component {
             top: 0,
             marginLeft: this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth(),
             width: '500vw',
-            zIndex: '9999',
+            zIndex: zIndex.gauge.base,
             fontSize: 10,
             borderBottom: '1px solid ' + Palette.FATHER_COAL,
             color: Palette.ROCK_MUTED
@@ -1409,7 +1410,7 @@ class Timeline extends React.Component {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                zIndex: 999999,
+                zIndex: zIndex.previewModeBlocker.base,
                 backgroundColor: Palette.COAL
               }}
               onClick={() => {

@@ -2,6 +2,7 @@ import React from 'react'
 import lodash from 'lodash'
 import Palette from 'haiku-ui-common/lib/Palette'
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
+import zIndex from './styles/zIndex'
 
 export default class ScrubberInterior extends React.Component {
   constructor (props) {
@@ -65,7 +66,7 @@ export default class ScrubberInterior extends React.Component {
           position: 'sticky',
           top: 0,
           marginTop: -45,
-          zIndex: 99999
+          zIndex: zIndex.scrubber.base
         } : {
           overflow: 'hidden'
         })}>
@@ -82,7 +83,7 @@ export default class ScrubberInterior extends React.Component {
             borderRadius: '50%',
             cursor: 'move',
             boxShadow: '0 0 2px 0 rgba(0, 0, 0, .9)',
-            zIndex: 999999
+            // zIndex: 999999
           }}>
           <span style={{
             position: 'absolute',
@@ -94,7 +95,7 @@ export default class ScrubberInterior extends React.Component {
           </span>
           <span style={{
             position: 'absolute',
-            zIndex: 999999,
+            // zIndex: 999999,
             width: 0,
             height: 0,
             top: 15,
@@ -105,7 +106,7 @@ export default class ScrubberInterior extends React.Component {
           }} />
           <span style={{
             position: 'absolute',
-            zIndex: 999999,
+            // zIndex: 999999,
             width: 0,
             height: 0,
             left: 2,
@@ -118,7 +119,7 @@ export default class ScrubberInterior extends React.Component {
         <div
           style={{
             position: 'absolute',
-            zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 999999999 : 2006,
+            zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 1 : 2006,
             backgroundColor: Palette.SUNSTONE,
             height: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'calc(100vh - 80px)' : 9999,
             width: 1,

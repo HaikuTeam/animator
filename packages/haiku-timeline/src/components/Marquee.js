@@ -1,5 +1,6 @@
 import Palette from 'haiku-ui-common/lib/Palette'
 import Color from 'color'
+import zIndex from './styles/zIndex'
 
 class Marquee {
   constructor ({area, onStart, onFinish}) {
@@ -60,6 +61,7 @@ class Marquee {
     selector.style.border = `1px solid ${Palette.LIGHT_PINK}`
     selector.style.display = 'none'
     selector.style.pointerEvents = 'none'
+    selector.style.zIndex = zIndex.marquee.base
     this.area.appendChild(selector)
     return selector
   }
@@ -147,6 +149,8 @@ class Marquee {
     this.area.removeEventListener('mousemove', this._handleMove)
     this.area.addEventListener('mousedown', this._startUp)
 
+    console.log('this.getPosition', this.getPosition())
+    console.log('getBoundingClientRect', this.selector.getBoundingClientRect())
     this.onFinish(event, this.selector.getBoundingClientRect())
 
     this.selector.style.width = '0'

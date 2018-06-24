@@ -16,6 +16,7 @@ import ensureEq from 'haiku-ui-common/lib/helpers/ensureEq'
 import doesValueImplyExpression from 'haiku-ui-common/lib/helpers/doesValueImplyExpression'
 import humanizePropertyName from 'haiku-ui-common/lib/helpers/humanizePropertyName'
 import AutoCompleter from './AutoCompleter'
+import zIndex from './styles/zIndex'
 
 const HaikuMode = require('./modes/haiku')
 
@@ -1011,7 +1012,7 @@ export default class ExpressionInput extends React.Component {
       top: 0,
       visibility: 'hidden',
       width: this.props.reactParent.state.inputCellWidth,
-      zIndex: 9999999999999
+      zIndex: zIndex.expressionInput.base
     })
 
     if (this.props.component.getFocusedRow()) {

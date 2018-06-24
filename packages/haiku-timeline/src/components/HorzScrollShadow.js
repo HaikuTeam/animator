@@ -1,5 +1,6 @@
 import React from 'react'
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
+import zIndex from './styles/zIndex'
 
 export default class HorzScrollShadow extends React.PureComponent {
   constructor (props) {
@@ -40,7 +41,7 @@ export default class HorzScrollShadow extends React.PureComponent {
           height: 'calc(100% - 45px)',
           width: 3,
           left: 297,
-          zIndex: 99999999999,
+          zIndex: zIndex.scrollShadow.base,
           top: 0,
           boxShadow: '3px 0 6px 0 rgba(0,0,0,.22)'
         }} />

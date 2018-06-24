@@ -11,6 +11,7 @@ import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
 import PropertyTimelineSegments from './PropertyTimelineSegments'
 import PropertyRowHeading from './PropertyRowHeading'
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
+import zIndex from './styles/zIndex'
 
 export default class PropertyRow extends React.Component {
   constructor (props) {
@@ -76,7 +77,7 @@ export default class PropertyRow extends React.Component {
           opacity: (this.props.row.isHidden()) ? 0.5 : 1.0,
           position: 'relative'
         }}>
-        <div style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? { position: 'sticky', top: 0, left: 0, width: this.props.timeline.getPropertiesPixelWidth(), zIndex: 99999, backgroundColor: Palette.GRAY } : {})}>
+        <div style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? { position: 'sticky', top: 0, left: 0, width: this.props.timeline.getPropertiesPixelWidth(), zIndex: zIndex.propertyRowHeading.base, backgroundColor: Palette.GRAY } : {})}>
           <div
             onClick={(clickEvent) => {
               // Allow clicking the subproperty of a cluster to collapse the parent row,
@@ -173,7 +174,8 @@ export default class PropertyRow extends React.Component {
             width: experimentIsEnabled(Experiment.NativeTimelineScroll) ? '100%' : this.props.timeline.getTimelinePixelWidth(),
             left: this.props.timeline.getPropertiesPixelWidth() - 4, // offset half of lone keyframe width so it lines up with the pole
             top: 0,
-            height: 'inherit'
+            height: 'inherit',
+            zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? zIndex.propertyRow.base : undefined
           }}>
           <PropertyTimelineSegments
             component={this.props.component}
