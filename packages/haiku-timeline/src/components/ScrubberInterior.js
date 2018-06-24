@@ -82,7 +82,7 @@ export default class ScrubberInterior extends React.Component {
             left: propertiesWidth + pxOffset - 9,
             borderRadius: '50%',
             cursor: 'move',
-            boxShadow: '0 0 2px 0 rgba(0, 0, 0, .9)',
+            boxShadow: '0 0 2px 0 rgba(0, 0, 0, .9)'
             // zIndex: 999999
           }}>
           <span style={{
