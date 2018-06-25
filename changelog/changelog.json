@@ -7334,5 +7334,57 @@
       "label": "fix",
       "message": "Ensure 'playback' is applied even when no keyframe diff"
     }
+  },
+  "3.5.0": {
+    "6e43cec5a501944ed349826a3f445c4a11c7f9ae": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "do not do integrity checks on select/hover Element"
+    },
+    "acb0b063b809eec1a7001331bd17d7f337875a97": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "Support SVGs from Affinity (712608611077997)"
+    },
+    "a155562e769416e95f27216c4ffa897ea19eede3": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for RCM should not show in preview mode (716078944817648)"
+    },
+    "9fe9d75a8d8e1a069609f86d005eb9586517b512": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "clean up/finish code editor for release."
+    },
+    "9146ce3b9a3ec48a360e860c7f0a5704fe3b14e5": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure saves do not accidentally publish"
+    },
+    "fd2d1fffc2556b9e9742f76ab6f95689e76563fc": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "for Projects with an element property set to =$tree.root.properties.size.x show a toast error on loading project. (714878366023077)"
+    },
+    "9e1730178b6b4610a1bfc3e8db0502f36e49675d": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "case-sensitive import path for <ExternalLinkIconSVG />"
+    },
+    "39a4cd9cb2d98d47874822c91f1e9974a36a6844": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "ensure an ActiveComponent is present before loading code."
+    },
+    "b325028123b737a2ace1cfaee72532b82cca92af": {
+      "project": "haiku-testing",
+      "label": "fix",
+      "message": "include figma components, and include ids on all imported SVGs (#551)"
+    },
+    "eeef19ce4ed91abee2c78cd2cf59ab468b30f4c0": {
+      "project": "haiku-testing",
+      "label": "feat",
+      "message": "include Figma frames in the import (#550)"
+    }
   }
 }

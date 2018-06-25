@@ -1,6 +1,24 @@
 # Changelog
 
 
+## 3.5.0
+
+### Bug Fixes
+
+ * do not do integrity checks on select/hover Element
+ * for RCM should not show in preview mode (716078944817648)
+ * clean up/finish code editor for release.
+ * ensure saves do not accidentally publish
+ * for Projects with an element property set to =$tree.root.properties.size.x show a toast error on loading project. (714878366023077)
+ * case-sensitive import path for <ExternalLinkIconSVG />
+ * ensure an ActiveComponent is present before loading code.
+ * include figma components, and include ids on all imported SVGs (#551)
+
+### Features
+
+ * Support SVGs from Affinity (712608611077997)
+ * include Figma frames in the import (#550)
+
 ## 3.4.6
 
 ### Bug Fixes
