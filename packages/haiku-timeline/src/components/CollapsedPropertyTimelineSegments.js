@@ -18,7 +18,7 @@ export default class CollapsedPropertyTimelineSegments extends React.Component {
           width: '100%',
           overflow: 'hidden',
           zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? zIndex.collapsedSegments.base : undefined,
-          backgroundColor: experimentIsEnabled(Experiment.NativeTimelineScroll) ? Palette.LIGHT_GRAY : undefined,
+          backgroundColor: experimentIsEnabled(Experiment.NativeTimelineScroll) ? Palette.LIGHT_GRAY : undefined
         }}>
         <RowSegments
           scope='CollapsedPropertyTimelineSegments'
