@@ -175,8 +175,6 @@ class Timeline extends React.Component {
           )
         },
         onFinish: (event, area) => {
-          const timelineEl = document.getElementById('timeline')
-
           Keyframe.all().forEach((keyframe) => {
             const keyframeView = keyframe._viewPosition
 
@@ -809,7 +807,7 @@ class Timeline extends React.Component {
       // case 32: //space
       case 37: // left
         if (this.state.isCommandKeyDown || (experimentIsEnabled(Experiment.NativeTimelineScroll) && this.isCommandKeyDown)) {
-          if (this.state.isShiftKeyDown || (experimentIsEnabled(Experiment.NativeTimelineScroll) && this.isShiftKeyDown))
+          if (this.state.isShiftKeyDown || (experimentIsEnabled(Experiment.NativeTimelineScroll) && this.isShiftKeyDown)) {
             this.getActiveComponent().getCurrentTimeline().setVisibleFrameRange(0, this.getActiveComponent().getCurrentTimeline().getRightFrameEndpoint())
             this.getActiveComponent().getCurrentTimeline().updateCurrentFrame(0)
           } else {
@@ -865,8 +863,8 @@ class Timeline extends React.Component {
 
   updateKeyboardState (updates) {
     if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-      for (var key in updates) {
-        this.[key] = updates[key]
+      for (const key in updates) {
+        this[key] = updates[key]
       }
     } else {
       // If the input is focused, don't allow keyboard state changes to cause a re-render, otherwise
@@ -874,7 +872,7 @@ class Timeline extends React.Component {
       if (!this.getActiveComponent().getFocusedRow()) {
         return this.setState(updates)
       } else {
-        for (var key in updates) {
+        for (const key in updates) {
           this.state[key] = updates[key]
         }
       }
@@ -1485,7 +1483,7 @@ class Timeline extends React.Component {
             width: this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth(),
             backgroundColor: Palette.GRAY,
             zIndex: zIndex.backgroundHelper.base
-          }}></div>
+          }} />
         }
         {this.renderBottomControls()}
         <ExpressionInput
