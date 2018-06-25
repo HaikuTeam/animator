@@ -1,3 +1,22 @@
+/*
+ * This object tries to be a canonical source for z-index management
+ * in the timeline.
+ *
+  * Since z-index tends to be a mess because we can have different
+  * [stacking contexts][1], the idea is to add a new key for every stacking context,
+  * with a `base` z-index. Elements contained inside of a stacking context should
+  * keys of a nested object, for example:
+  *
+  * ```
+  * stackingContext: {
+  *   base: 1,
+  *   elementInsideStackingContext: 11,
+  *   nestedStackingContext: {
+  *     base: 12
+  *   }
+  * }
+ */
+
 const zIndex = {
   // Top controls
   gauge: {
@@ -7,12 +26,15 @@ const zIndex = {
     base: 4
   },
   timekeepingWrapper: {
-    base: 6
+    base: 11
   },
 
   // Heading row (name of the row, drag handler, etc)
   headingRow: {
     base: 10
+  },
+  headingRowExpanded: {
+    base: 10,
   },
 
   // Cluster row (a row with sub-items that is collapsed)

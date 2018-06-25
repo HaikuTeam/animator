@@ -78,7 +78,8 @@ export default class ComponentHeadingRow extends React.Component {
           top: this.props.isExpanded ? 0 : undefined,
           left: this.props.isExpanded ? 20 : undefined,
           backgroundColor: this.props.isExpanded ? 'transparent' : Palette.LIGHT_GRAY,
-          opacity: this.props.isHidden ? 0.75 : 1.0
+          opacity: this.props.isHidden ? 0.75 : 1.0,
+          zIndex: this.props.isExpanded ? zIndex.headingRowExpanded.base : undefined
         } : {
           display: 'table',
           tableLayout: 'fixed',
@@ -141,7 +142,7 @@ export default class ComponentHeadingRow extends React.Component {
               height: 'inherit',
               cursor: 'pointer',
               // zIndex: 9999999999999,
-              backgroundColor: this.props.isExpanded ? 'transparent' : Palette.LIGHT_GRAY,
+              backgroundColor: 'transparent',
               display: 'flex',
               flexDirection: 'column'
             } : {

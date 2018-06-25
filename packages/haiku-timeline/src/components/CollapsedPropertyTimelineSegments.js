@@ -1,5 +1,8 @@
 import React from 'react'
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
+import Palette from 'haiku-ui-common/lib/Palette'
 import RowSegments from './RowSegments'
+import zIndex from './styles/zIndex'
 
 export default class CollapsedPropertyTimelineSegments extends React.Component {
   render () {
@@ -14,7 +17,8 @@ export default class CollapsedPropertyTimelineSegments extends React.Component {
           height: this.props.rowHeight,
           width: '100%',
           overflow: 'hidden',
-          zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? zIndex.collapsedSegments.base : undefined
+          zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? zIndex.collapsedSegments.base : undefined,
+          backgroundColor: experimentIsEnabled(Experiment.NativeTimelineScroll) ? Palette.LIGHT_GRAY : undefined,
         }}>
         <RowSegments
           scope='CollapsedPropertyTimelineSegments'
