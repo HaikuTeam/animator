@@ -854,10 +854,6 @@ class Timeline extends BaseModel {
     return this
   }
 
-  notifyMarqueeSelection (area) {
-    this.emit('update', 'marquee-selection', area)
-  }
-
   updateScrubberPositionByDelta (delta) {
     let currentFrame = this.getCurrentFrame() + delta
     if (currentFrame <= 0) currentFrame = 0
