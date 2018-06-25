@@ -4,8 +4,8 @@ import * as ReactList from 'react-list';
 import Palette from 'haiku-ui-common/lib/Palette';
 import SplitPanel from '../SplitPanel';
 import {BTN_STYLES} from '../../styles/btnShared';
-import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
+import {formatJsonLogToString} from 'haiku-serialization/src/utils/Logger';
 
 class LogViewer extends React.Component {
   constructor (props) {
@@ -15,13 +15,18 @@ class LogViewer extends React.Component {
     this.renderLogLine = this.renderLogLine.bind(this)
     this.renderLogFromJsonLog = this.renderLogFromJsonLog.bind(this)
     this.toggleEnableAll = this.toggleEnableAll.bind(this)
-
-    this.allLogMessages = [];
+    this.clearAllLogs = this.clearAllLogs.bind(this)
+    this.isScrollAtBottom = this.isScrollAtBottom.bind(this)
+    this.toggleKeepScrollAtEnd = this.toggleKeepScrollAtEnd.bind(this)
+    
+    
+    this.allLogMessages = []
 
     this.state = {
       logMessages: [],
       // Enables displaying all Haiku console messages in addition to preview messages
       enableAll: false,
+      keepScrollAtEnd: true,
       displayTags: {
         'ACTIONS_FIRED': { color: '#a4d36f', label: 'ACTIONS FIRED', display: true },
         'STATE_CHANGES': { color: '#eba139', label: 'STATE CHANGES', display: true },
@@ -52,12 +57,30 @@ class LogViewer extends React.Component {
     })
   }
 
+  toggleKeepScrollAtEnd () {
+    const keepScrollAtEnd = !this.state.keepScrollAtEnd
+    this.setState({keepScrollAtEnd});
+  }
+
+  clearAllLogs () {
+    this.allLogMessages = [];
+    // Set logMessages to refresh component
+    this.setState( { logMessages: [] } );
+  }
+
   displayMessageFilter (message) {
     return this.state.enableAll || 
           (
             message.tag in this.state.displayTags &&
             this.state.displayTags[message.tag].display
           )
+  }
+
+
+  
+  isScrollAtBottom () {
+    //console.log('isScrollAtBottom scroll',this.refs.loglist.getVisibleRange()[1] ,'length-1',this.state.logMessages.length-1)
+    return this.refs.loglist.getVisibleRange()[1] === this.state.logMessages.length-1;
   }
 
   componentDidMount () {
@@ -68,11 +91,16 @@ class LogViewer extends React.Component {
         message.key = this.currentMessageKey
         this.currentMessageKey++
         this.allLogMessages.push(message)
+        console.log('BEF isScrollAt end', this.isScrollAtBottom());
         // Update state if incoming log should be displayed
         if (this.displayMessageFilter(message)) {
           this.setState(prevState => ({
             logMessages: [...prevState.logMessages, message]
-          }))
+          }), () => {
+            if (this.state.keepScrollAtEnd) {
+              this.refs.loglist.scrollTo(this.state.logMessages.length-1);
+            }
+          })
         }
       })
     }
@@ -87,7 +115,7 @@ class LogViewer extends React.Component {
       return `${message.timestamp}<<${message.attachedObject.sceneName}>> ${message.message}`;
     }
     else{
-      return `${message.timestamp}|${message.view}|${message.level}|${message.tag? '|' + message.tag : '' }|${message.attachedObject?'|'+ message.attachedObject.sceneName: ''}|${message.message}`;
+      return formatJsonLogToString(message)
     }
   }
 
@@ -157,15 +185,24 @@ class LogViewer extends React.Component {
                 </button>
               </div>}
           </div>
-          <div id='logview-right-panel' style={{ fontWeight: 'bold', fontFamily: 'Courier New', position: 'relative', overflow: 'auto', width: '100%', height: '100%', backgroundColor: Palette.COAL }} >
-            <ReactList
-              itemRenderer={this.renderLogLine}
-              length={this.state.logMessages.length}
-              type="uniform"
-              useStaticSize={true}
-              useTranslate3d={true}
-              threshold={500}
-            />
+          <div id='logview-right-panel' style={{position: 'relative', overflow: 'auto', width: '100%', height: '100%', backgroundColor: Palette.COAL }} >
+            <div style={{position: 'relative', overflow: 'auto', width: '100%', height: '30px', backgroundColor: Palette.DARKEST_COAL }} >
+              <div style={{margin:'8px 20px'}} >
+                <input type="checkbox" defaultChecked={this.state.keepScrollAtEnd} onChange={this.toggleKeepScrollAtEnd} />
+                 Scroll to Bottom 
+              </div>
+            </div>
+            <div style={{ fontWeight: 'bold', fontFamily: 'Courier New', position: 'relative', overflow: 'auto',  width: '100%', height: 'calc(100% - 30px)', backgroundColor: Palette.COAL }} >
+              <ReactList
+                ref='loglist'
+                itemRenderer={this.renderLogLine}
+                length={this.state.logMessages.length}
+                type='uniform'
+                useStaticSize
+                useTranslate3d
+                threshold={500}
+                  />
+            </div>
           </div>
         </SplitPanel>
       </div>

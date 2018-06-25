@@ -880,6 +880,11 @@ export default class Creator extends React.Component {
   handleInteractionModeChange (interactionMode) {
     this.setState({interactionMode});
     this.mixpanelReportPreviewMode(interactionMode);
+    // Clear all logs before starting preview on production. For development it might be useful to not clean them
+    if (this.state.interactionMode === InteractionMode.LIVE && interactionMode === InteractionMode.EDIT && 
+        process.env.NODE_ENV === 'production') {
+      this.refs.logviewer.clearAllLogs();
+    }
   }
 
   setPreviewMode (interactionMode) {

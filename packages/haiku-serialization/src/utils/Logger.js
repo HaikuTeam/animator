@@ -7,16 +7,14 @@ const EventEmitter = require('events')
 
 require('colors') // TODO: use non-string-extending module
 
-/**
- * Control log message format output
- */
-const haikuFormat = winston.format.printf((info, opts) => {
-  if (info.noFormat) {
-    return info.message
+
+const formatJsonLogToString = (message) => {
+  if (message.noFormat) {
+    return message.message
   }
 
-  if (Array.isArray(info.message)) {
-    info.message = info.message.map((message) => {
+  if (Array.isArray(message.message)) {
+    message.message = message.message.map((message) => {
       if (typeof message === 'string') {
         return message
       }
@@ -24,8 +22,15 @@ const haikuFormat = winston.format.printf((info, opts) => {
     }).join(' ')
   }
 
-  // Padding is done to visually align on file
-  return `${info.timestamp}|${info.view.padEnd(8)}|${info.level}${info.tag ? '|' + info.tag : ''}|${info.message}`
+  // Pading is done to visually align on file
+  return `${message.timestamp}|${message.view.padEnd(8)}|${message.level}${message.tag ? '|' + message.tag : ''}|${message.message}`
+}
+
+/**
+ * Control log message format output
+ */
+const haikuFormat = winston.format.printf((info, opts) => {
+  return formatJsonLogToString(info)
 })
 
 
@@ -237,4 +242,4 @@ class Logger extends EventEmitter {
   }
 }
 
-module.exports = Logger
+module.exports = {Logger, formatJsonLogToString}
