@@ -1404,7 +1404,7 @@ class Timeline extends React.Component {
           color: Palette.ROCK,
           top: 0,
           left: 0,
-          height: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'calc(100% - 25px)' : 'calc(100% - 45px)',
+          height: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'calc(100% - 30px)' : 'calc(100% - 45px)',
           width: '100%',
           overflow: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'auto' : 'hidden'
         }}>

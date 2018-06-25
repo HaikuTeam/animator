@@ -4,17 +4,20 @@ const zIndex = {
     base: 2
   },
   scrubber: {
-    base: 1
+    base: 4
+  },
+  timekeepingWrapper: {
+    base: 6
   },
 
   // Heading row (name of the row, drag handler, etc)
   headingRow: {
-    base: 3
+    base: 10
   },
 
   // Cluster row (a row with sub-items that is collapsed)
   clusterRowHeading: {
-    base: 2
+    base: 5
   },
   clusterRow: {
     base: 1
@@ -22,7 +25,7 @@ const zIndex = {
 
   // Property row
   propertyRowHeading: {
-    base: 2
+    base: 4
   },
   propertyRow: {
     base: 1
@@ -32,10 +35,8 @@ const zIndex = {
   segmentsBox: {
     base: 1
   },
-
-  // Frames/seconds switcher block
-  timekeepingWrapper: {
-    base: 4
+  collapsedSegments: {
+    base: 1
   },
 
   // Vertial line simulating a shadow between the properties and the tweens

@@ -13,7 +13,8 @@ export default class CollapsedPropertyTimelineSegments extends React.Component {
           left: this.props.timeline.getPropertiesPixelWidth() - 4,
           height: this.props.rowHeight,
           width: '100%',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? zIndex.collapsedSegments.base : undefined
         }}>
         <RowSegments
           scope='CollapsedPropertyTimelineSegments'
