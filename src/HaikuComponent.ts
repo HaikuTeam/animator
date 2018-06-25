@@ -355,9 +355,9 @@ export default class HaikuComponent extends HaikuElement {
 
   set (key, value) {
     this.traceInfo('STATE_CHANGES', `State ${key} changed from ${this.state[key]} to ${value}`,
-                      {state: key,
-                      from: this.state[key],
-                      to: value});
+      {state: key,
+        from: this.state[key],
+        to: value});
 
     this.state[key] = value;
     return this;
@@ -1347,10 +1347,18 @@ export default class HaikuComponent extends HaikuElement {
     return this;
   }
   $console = {
-    log: (params) => { this.traceInfo('CONSOLE', params, {}); },
-    info: (params) => { this.traceInfo('CONSOLE', params, {}); },
-    warn: (params) => { this.traceInfo('CONSOLE', params, {}); },
-    error: (params) => { this.traceInfo('CONSOLE', params, {}); },
+    log: (params) => {
+      this.traceInfo('CONSOLE', params, {});
+    },
+    info: (params) => {
+      this.traceInfo('CONSOLE', params, {});
+    },
+    warn: (params) => {
+      this.traceInfo('CONSOLE', params, {});
+    },
+    error: (params) => {
+      this.traceInfo('CONSOLE', params, {});
+    },
   };
 
   // Set logger to add context info when logging while avoiding runtime overhead

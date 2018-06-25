@@ -43,13 +43,13 @@ export default class StateTransitionManager {
         delete this.transitions[key];
       }
       for (const key in transitionEnd) {
-        this.component.traceInfo('STATE_CHANGES', `State ${key} changed from ${this.states[key]} to ${transitionEnd[key]}`,
-                          {state: key,
-                          from: this.states[key],
-                          to: transitionEnd[key]});
+        this.component.traceInfo('STATE_CHANGES', `State ${key} changed from ${this.states[key]} to\
+                                 ${transitionEnd[key]}`,
+          {state: key,
+            from: this.states[key],
+            to: transitionEnd[key]});
         this.states[key] = transitionEnd[key];
       }
-
 
       this.setStates(transitionEnd);
       return;
@@ -84,9 +84,8 @@ export default class StateTransitionManager {
           });
         // non queued transitions are overwrite transition queue
         } else {
-          this.component.traceInfo('STATE_CHANGES', `State transition ${key} to target ${transitionEnd[key]} with\
-                            duration ${transitionParameter.duration} started`,
-                            {});
+          this.component.traceInfo('STATE_CHANGES', `State transition ${key} to target ${transitionEnd[key]} with` +
+                                   `duration ${transitionParameter.duration} started`, {});
 
           this.transitions[key] = [{
             transitionParameter,
@@ -135,8 +134,8 @@ export default class StateTransitionManager {
 
         if (this.isExpired(transition, currentTime)) {
 
-          this.component.traceInfo('STATE_CHANGES', `State transition ${stateName} to ${transition.transitionEnd[stateName]} finished`,
-                            {});
+          this.component.traceInfo('STATE_CHANGES', `State transition ${stateName} to` +
+                                   `${transition.transitionEnd[stateName]} finished`, {});
 
           // If expired, assign transitionEnd.
           // NOTE: In the future, with custom transition function implemented calculating
