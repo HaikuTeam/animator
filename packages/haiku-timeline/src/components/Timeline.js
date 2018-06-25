@@ -168,19 +168,27 @@ class Timeline extends React.Component {
           )
         },
         onFinish: (event, area) => {
-          Keyframe.all().forEach(keyframe => {
+          const timelineEl = document.getElementById('timeline')
+
+          Keyframe.all().forEach((keyframe) => {
             const keyframeView = keyframe._viewPosition
 
             if (
               keyframeView.x < area.x + area.width &&
-              keyframeView.x + keyframeView.width > area.x &&
-              keyframeView.y < area.y + area.height &&
-              keyframeView.height + keyframeView.y > area.y
+              keyframeView.x + keyframeView.width > area.x
             ) {
-              keyframe.select()
-              keyframe.activate()
-              keyframe.setBodySelected()
-              keyframe.row.expand({from: 'timeline'})
+              const keyframeViewEl = document.getElementById(`keyframe-container-${keyframe.getUniqueKey()}`)
+              const {y, height} = keyframeViewEl.getBoundingClientRect()
+
+              if (
+                y < area.y + area.height &&
+                height + y > area.y
+              ) {
+                keyframe.select()
+                keyframe.activate()
+                keyframe.setBodySelected()
+                keyframe.row.expand({from: 'timeline'})
+              }
             }
           })
         }
