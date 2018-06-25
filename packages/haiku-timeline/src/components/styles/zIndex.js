@@ -28,6 +28,9 @@ const zIndex = {
   timekeepingWrapper: {
     base: 11
   },
+  backgroundHelper: {
+    base: 4
+  },
 
   // Heading row (name of the row, drag handler, etc)
   headingRow: {
@@ -47,7 +50,7 @@ const zIndex = {
 
   // Property row
   propertyRowHeading: {
-    base: 4
+    base: 5
   },
   propertyRow: {
     base: 1
