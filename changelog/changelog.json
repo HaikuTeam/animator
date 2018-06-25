@@ -7386,5 +7386,6 @@
       "label": "feat",
       "message": "include Figma frames in the import (#550)"
     }
-  }
+  },
+  "3.5.1": {}
 }
