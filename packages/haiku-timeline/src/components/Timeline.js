@@ -78,6 +78,13 @@ class Timeline extends React.Component {
 
     this.state = lodash.assign({}, DEFAULTS)
 
+    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+      this.isShiftKeyDown = false
+      this.isCommandKeyDown = false
+      this.isControlKeyDown = false
+      this.isAltKeyDown = false
+    }
+
     Project.setup(
       this.props.folder,
       'timeline',
@@ -200,7 +207,7 @@ class Timeline extends React.Component {
     const resetKeyStates = () => {
       Globals.allKeysUp()
 
-      this.setState({
+      this.updateKeyboardState({
         isShiftKeyDown: false,
         isCommandKeyDown: false,
         isControlKeyDown: false,
@@ -801,8 +808,8 @@ class Timeline extends React.Component {
       // case 27: //escape
       // case 32: //space
       case 37: // left
-        if (this.state.isCommandKeyDown) {
-          if (this.state.isShiftKeyDown) {
+        if (this.state.isCommandKeyDown || (experimentIsEnabled(Experiment.NativeTimelineScroll) && this.isCommandKeyDown)) {
+          if (this.state.isShiftKeyDown || (experimentIsEnabled(Experiment.NativeTimelineScroll) && this.isShiftKeyDown))
             this.getActiveComponent().getCurrentTimeline().setVisibleFrameRange(0, this.getActiveComponent().getCurrentTimeline().getRightFrameEndpoint())
             this.getActiveComponent().getCurrentTimeline().updateCurrentFrame(0)
           } else {
@@ -814,7 +821,7 @@ class Timeline extends React.Component {
         break
 
       case 39: // right
-        if (this.state.isCommandKeyDown) {
+        if (this.state.isCommandKeyDown || (experimentIsEnabled(Experiment.NativeTimelineScroll) && this.isCommandKeyDown)) {
           this.getActiveComponent().getCurrentTimeline().updateScrubberPositionByDelta(1)
         } else {
           this.getActiveComponent().getCurrentTimeline().updateVisibleFrameRangeByDelta(1)
@@ -857,13 +864,19 @@ class Timeline extends React.Component {
   }
 
   updateKeyboardState (updates) {
-    // If the input is focused, don't allow keyboard state changes to cause a re-render, otherwise
-    // the input field will switch back to its previous contents (e.g. when holding down 'shift')
-    if (!this.getActiveComponent().getFocusedRow()) {
-      return this.setState(updates)
-    } else {
+    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
       for (var key in updates) {
-        this.state[key] = updates[key]
+        this.[key] = updates[key]
+      }
+    } else {
+      // If the input is focused, don't allow keyboard state changes to cause a re-render, otherwise
+      // the input field will switch back to its previous contents (e.g. when holding down 'shift')
+      if (!this.getActiveComponent().getFocusedRow()) {
+        return this.setState(updates)
+      } else {
+        for (var key in updates) {
+          this.state[key] = updates[key]
+        }
       }
     }
   }
