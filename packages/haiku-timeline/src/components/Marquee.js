@@ -148,10 +148,11 @@ class Marquee {
     document.removeEventListener('mouseup', this.reset)
     this.area.removeEventListener('mousemove', this._handleMove)
     this.area.addEventListener('mousedown', this._startUp)
+    const selection = this.selector.getBoundingClientRect()
 
-    console.log('this.getPosition', this.getPosition())
-    console.log('getBoundingClientRect', this.selector.getBoundingClientRect())
-    this.onFinish(event, this.selector.getBoundingClientRect())
+    if (selection.x > 20 && selection.y && 20) {
+      this.onFinish(event, selection)
+    }
 
     this.selector.style.width = '0'
     this.selector.style.height = '0'
