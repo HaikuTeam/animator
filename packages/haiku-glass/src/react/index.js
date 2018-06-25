@@ -70,7 +70,6 @@ function go () {
       ? new Websocket(_fixPlumbingUrl(config.plumbing), config.folder, 'controllee', 'glass', null, config.socket.token)
       : new MockWebsocket(ipcRenderer)
 
-
     websocket.on('open', () => {
       logger.setWebsocket(websocket)
     })

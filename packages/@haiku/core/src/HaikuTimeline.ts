@@ -288,7 +288,7 @@ export default class HaikuTimeline extends HaikuBase {
    * the falsy state timelines have when first constructed.
    */
   isExplicitlyPaused () {
-    return this._isPlaying === false;
+    return !this._isPlaying;
   }
 
   /**

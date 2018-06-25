@@ -7,7 +7,6 @@ const EventEmitter = require('events')
 
 require('colors') // TODO: use non-string-extending module
 
-
 const formatJsonLogToString = (message) => {
   if (message.noFormat) {
     return message.message
@@ -33,13 +32,12 @@ const haikuFormat = winston.format.printf((info, opts) => {
   return formatJsonLogToString(info)
 })
 
-
 // Ignore log messages if they have { doNotLogOnFile: true }
 // Its needed to avoid double writing to log file on plumbing
 const ignoreDoNotWriteToFile = winston.format((info, opts) => {
-  if (info.doNotLogOnFile) { return false; }
-  return info;
-});
+  if (info.doNotLogOnFile) { return false }
+  return info
+})
 
 const DEFAULTS = {
   maxsize: 1000000,
@@ -50,37 +48,34 @@ const DEFAULTS = {
 const MAX_DIFF_LOG_LEN = 10000
 
 class LogForwarderTransport extends Transport {
-  constructor(opts) {
-    super(opts);
+  constructor (opts) {
+    super(opts)
     // If defined, it will forward logs to websocket
-    this.websocket = null;
+    this.websocket = null
   }
 
   log (message, callback) {
     // Avoid double logging
-    message.doNotLogOnFile = true;
-    this.sendToPlumbing(message);
+    message.doNotLogOnFile = true
+    this.sendToPlumbing(message)
     callback()
   }
 
   // We send to pumbling so we can log to pumbing console in a nice way
-  sendToPlumbing (message){
-    if (this.websocket){
+  sendToPlumbing (message) {
+    if (this.websocket) {
       this.websocket.send({
         type: 'log',
         from: message.view,
-        message,
+        message
       })
     }
   }
 
-  setWebsocket (websocket){
-    this.websocket = websocket;
+  setWebsocket (websocket) {
+    this.websocket = websocket
   }
-
 };
-
-
 
 class Logger extends EventEmitter {
   constructor (folder, relpath, options = {}) {
@@ -120,19 +115,18 @@ class Logger extends EventEmitter {
     transports.push(this.logForwarderTransport)
 
     this.logger = winston.createLogger({
-      transports,
       format: winston.format.combine(
         winston.format.timestamp()
-      )
+      ),
+      transports
     })
 
     // Hook to allow Monkey.js to configure the view prefix from which we log
     this.view = '?'
   }
 
-
-  setWebsocket (websocket){
-    this.logForwarderTransport.setWebsocket(websocket);
+  setWebsocket (websocket) {
+    this.logForwarderTransport.setWebsocket(websocket)
   }
 
   raw (jsonMessage) {

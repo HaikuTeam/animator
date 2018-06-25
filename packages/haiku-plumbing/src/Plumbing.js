@@ -445,10 +445,10 @@ export default class Plumbing extends EventEmitter {
     }
 
     if (message.type === 'log') {
-      logger.raw(message.message)
+      logger.raw(message.message);
 
       // We want logs on creator, lets send it there
-      return this.sendMessageToCreator(message, folder, alias)
+      return this.sendMessageToCreator(message, folder, alias);
     }
 
     if (message.id && this.requests[message.id]) {
@@ -584,13 +584,13 @@ export default class Plumbing extends EventEmitter {
 
       // Don't send if we know the socket isn't open
       if (client.readyState !== WebSocket.OPEN || client.params.alias !== 'creator') {
-        return
+        return;
       }
 
-      delete message.id // Don't confuse this as a request/response
+      delete message.id; // Don't confuse this as a request/response
 
-      sendMessageToClient(client, merge(message, { folder, alias }))
-    })
+      sendMessageToClient(client, merge(message, {folder, alias}));
+    });
   }
 
   sentryError (method, error, extras) {

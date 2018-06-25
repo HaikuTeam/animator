@@ -73,11 +73,11 @@ function go () {
       : new MockWebsocket(ipcRenderer)
 
     websocket.on('open', () => {
-        logger.setWebsocket(websocket)
+      logger.setWebsocket(websocket)
     })
-    
+
     websocket.on('close', () => {
-        logger.setWebsocket(null)
+      logger.setWebsocket(null)
     })
 
     // Add extra context to Sentry reports, this info is also used by carbonite.
