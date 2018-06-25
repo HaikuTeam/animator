@@ -7,8 +7,8 @@
 import HaikuComponent from '@haiku/core/lib/HaikuComponent';
 
 export enum SustainedWarningKind {
-    IdentifierNotFound,
-  }
+  IdentifierNotFound,
+}
 
 export interface SustainedWarning {
   // Bytecode location should have all nodes from Bytecode
