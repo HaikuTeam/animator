@@ -15,6 +15,7 @@ import ensureRet from 'haiku-ui-common/lib/helpers/ensureRet'
 import ensureEq from 'haiku-ui-common/lib/helpers/ensureEq'
 import doesValueImplyExpression from 'haiku-ui-common/lib/helpers/doesValueImplyExpression'
 import humanizePropertyName from 'haiku-ui-common/lib/helpers/humanizePropertyName'
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 import AutoCompleter from './AutoCompleter'
 import zIndex from './styles/zIndex'
 
@@ -1054,7 +1055,7 @@ export default class ExpressionInput extends React.Component {
       position: 'absolute',
       textAlign: 'center',
       textTransform: 'uppercase',
-      width: 83
+      width: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 82 : 83
     }
     lodash.assign(style, this.props.component.getFocusedRow() && {
       fontSize,
