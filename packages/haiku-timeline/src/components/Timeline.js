@@ -464,14 +464,27 @@ class Timeline extends React.Component {
       }
 
       const timeline = this.getActiveComponent().getCurrentTimeline()
+      let pxInTimeline
+      let frameForPx
 
       if (timeline) {
         const frameInfo = timeline.getFrameInfo()
-        let pxInTimeline = mouseMoveEvent.clientX - timeline.getPropertiesPixelWidth()
+        if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+          pxInTimeline = mouseMoveEvent.layerX - timeline.getPropertiesPixelWidth()
+        } else {
+          pxInTimeline = mouseMoveEvent.clientX - timeline.getPropertiesPixelWidth()
+        }
+
         if (pxInTimeline < 0) {
           pxInTimeline = 0
         }
-        const frameForPx = frameInfo.friA + Math.round(pxInTimeline / frameInfo.pxpf)
+
+        if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+          frameForPx = Math.round(pxInTimeline / frameInfo.pxpf)
+        } else {
+          frameForPx = frameInfo.friA + Math.round(pxInTimeline / frameInfo.pxpf)
+        }
+
         timeline.hoverFrame(frameForPx)
       }
     })
