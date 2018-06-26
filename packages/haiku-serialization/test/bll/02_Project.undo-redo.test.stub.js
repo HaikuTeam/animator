@@ -527,7 +527,7 @@ tape('Project.undo-redo[4]', (t) => {
                     }
                   }
                 }
-              }, {from: 'test'}, cb)
+              }, {}, {from: 'test'}, cb)
             },
             (cb) => {
               snaps.push(ac.getBytecodeJSON()) // 1

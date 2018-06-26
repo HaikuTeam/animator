@@ -27,6 +27,7 @@ const DEFAULT_INTERACTION_MODE = InteractionMode.EDIT
 const DEFAULT_TIMELINE_NAME = 'Default'
 const DEFAULT_TIMELINE_TIME = 0
 const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source'
+const LOCKED_ID_SUFFIX = '#lock'
 const SELECTION_WAIT_TIME = 0
 const SELECTION_PING_TIME = 100
 
@@ -1619,7 +1620,7 @@ class ActiveComponent extends BaseModel {
     }
   }
 
-  mergeMana (existingBytecode, manaIncoming) {
+  mergeMana (existingBytecode, manaIncoming, {mergeRemovedOutputs = true}) {
     let numMatchingNodes = 0
 
     const timelineName = this.getMergeDesignTimelineName()
@@ -1670,58 +1671,62 @@ class ActiveComponent extends BaseModel {
 
       Bytecode.mergeTimelines(existingBytecode.timelines, timelinesObject)
 
-      this.mergeRemovedOutputs(existingBytecode, existingNode, removedOutputs)
+      if (mergeRemovedOutputs) {
+        this.mergeRemovedOutputs(existingBytecode, existingNode, removedOutputs)
+      }
     })
   }
 
   mergeDesignFiles (designs, cb) {
     return this.performComponentWork((bytecode, template, done) => {
-      // Ensure order is the same across processes otherwise we'll end up with different insertion point hashes
-      const designsAsArray = Object.keys(designs).sort((a, b) => {
-        if (a < b) return -1
-        if (a > b) return 1
-        return 0
-      })
+      return this.mergeDesignFilesImpl(designs, bytecode, {}, done)
+    }, cb)
+  }
 
-      // Each series is important so we don't inadvertently create a race and thus unstable insertion point hashes
-      return async.eachSeries(designsAsArray, (relpath, next) => {
-        if (ModuleWrapper.doesRelpathLookLikeSVGDesign(relpath)) {
-          return File.readMana(this.project.getFolder(), relpath, (err, mana) => {
-            // There may be a race where a file is removed before this gets called;
-            // and in that case we need to skip this whole subroutine (simply don't
-            // touch whatever designs may have been instantiated
-            if (err || !mana) {
+  mergeDesignFilesImpl (designs, bytecode, {mergeRemovedOutputs = true}, cb) {
+    // Ensure order is the same across processes otherwise we'll end up with different insertion point hashes
+    const designsAsArray = Object.keys(designs).sort((a, b) => {
+      if (a < b) return -1
+      if (a > b) return 1
+      return 0
+    })
+    if (!designsAsArray.length) return cb()
+
+    // Each series is important so we don't inadvertently create a race and thus unstable insertion point hashes
+    return async.eachSeries(designsAsArray, (relpath, next) => {
+      if (ModuleWrapper.doesRelpathLookLikeSVGDesign(relpath)) {
+        return File.readMana(this.project.getFolder(), relpath, (err, mana) => {
+          // There may be a race where a file is removed before this gets called;
+          // and in that case we need to skip this whole subroutine (simply don't
+          // touch whatever designs may have been instantiated
+          if (err || !mana) {
+            return next()
+          }
+
+          Template.fixManaSourceAttribute(mana, relpath) // Adds haiku-source="relpath_to_file_from_project_root"
+
+          if (experimentIsEnabled(Experiment.InstantiationOfPrimitivesAsComponents)) {
+            return Design.manaAsCode(relpath, Template.clone({}, mana), {}, (err, identifier, modpath, bytecode) => {
+              if (err) return next(err)
+
+              const primitive = Primitive.inferPrimitiveFromBytecode(bytecode)
+
+              if (primitive) {
+                const overrides = Bytecode.extractOverrides(bytecode)
+                return this.mergePrimitiveWithOverrides(primitive, overrides, next)
+              }
+
+              this.mergeMana(bytecode, mana, {mergeRemovedOutputs})
               return next()
-            }
-
-            Template.fixManaSourceAttribute(mana, relpath) // Adds haiku-source="relpath_to_file_from_project_root"
-
-            if (experimentIsEnabled(Experiment.InstantiationOfPrimitivesAsComponents)) {
-              return Design.manaAsCode(relpath, Template.clone({}, mana), {}, (err, identifier, modpath, bytecode) => {
-                if (err) return next(err)
-
-                const primitive = Primitive.inferPrimitiveFromBytecode(bytecode)
-
-                if (primitive) {
-                  const overrides = Bytecode.extractOverrides(bytecode)
-                  return this.mergePrimitiveWithOverrides(primitive, overrides, next)
-                }
-
-                this.mergeMana(bytecode, mana)
-                return next()
-              })
-            } else {
-              this.mergeMana(bytecode, mana)
-              return next()
-            }
-          })
-        }
-
+            })
+          } else {
+            this.mergeMana(bytecode, mana, {mergeRemovedOutputs})
+            return next()
+          }
+        })
+      } else {
         return next(new Error(`Problem merging ${relpath}`))
-      }, (err) => {
-        if (err) return cb(err)
-        return done()
-      })
+      }
     }, (err, out) => {
       if (err) return cb(err)
 
@@ -3413,19 +3418,33 @@ class ActiveComponent extends BaseModel {
   /**
    * @method moveKeyframes
    */
-  updateKeyframes (keyframeUpdatesSerial, metadata, cb) {
+  updateKeyframes (keyframeUpdatesSerial, options, metadata, cb) {
     const keyframeUpdates = Bytecode.unserializeValue(keyframeUpdatesSerial, (ref) => {
       return this.evaluateReference(ref)
     })
 
-    return this.project.updateHook('updateKeyframes', this.getRelpath(), Bytecode.serializeValue(keyframeUpdates), metadata, (fire) => {
+    return this.project.updateHook('updateKeyframes', this.getRelpath(), Bytecode.serializeValue(keyframeUpdates), options, metadata, (fire) => {
       for (const timelineName in keyframeUpdates) {
         for (const componentId in keyframeUpdates[timelineName]) {
           this.clearCachedClusters(timelineName, componentId)
         }
       }
 
-      return this.updateKeyframesActual(keyframeUpdates, metadata, (err) => {
+      const unlockedDesigns = {}
+      if (options.setElementLockStatus) {
+        for (const elID in options.setElementLockStatus) {
+          const node = this.findTemplateNodeByComponentId(elID)
+          const lockStatus = options.setElementLockStatus[elID]
+          if (!lockStatus && node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(LOCKED_ID_SUFFIX)) {
+            node.attributes[HAIKU_SOURCE_ATTRIBUTE] = node.attributes[HAIKU_SOURCE_ATTRIBUTE].replace(LOCKED_ID_SUFFIX, '')
+            unlockedDesigns[node.attributes[HAIKU_SOURCE_ATTRIBUTE]] = true
+          } else if (lockStatus && !node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(LOCKED_ID_SUFFIX)) {
+            node.attributes[HAIKU_SOURCE_ATTRIBUTE] = node.attributes[HAIKU_SOURCE_ATTRIBUTE] + LOCKED_ID_SUFFIX
+          }
+        }
+      }
+
+      return this.updateKeyframesActual(keyframeUpdates, {unlockedDesigns}, metadata, (err) => {
         if (err) {
           logger.error(`[active component (${this.project.getAlias()})]`, err)
           return cb(err)
@@ -3457,6 +3476,15 @@ class ActiveComponent extends BaseModel {
                 }
               }
             }
+
+            if (options.setElementLockStatus) {
+              for (const elID in options.setElementLockStatus) {
+                const element = this.findElementByComponentId(elID)
+                Row.where({ component: this, element }).forEach((row) => {
+                  row.rehydrate()
+                })
+              }
+            }
           }
         }, null, () => {
           fire()
@@ -3466,7 +3494,7 @@ class ActiveComponent extends BaseModel {
     })
   }
 
-  updateKeyframesActual (keyframeUpdates, metadata, cb) {
+  updateKeyframesActual (keyframeUpdates, {unlockedDesigns}, metadata, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
       for (const timelineName in keyframeUpdates) {
         if (!bytecode.timelines[timelineName]) bytecode.timelines[timelineName] = {}
@@ -3500,7 +3528,7 @@ class ActiveComponent extends BaseModel {
       // Clear timeline caches; the max frame might have changed.
       Timeline.clearCaches()
 
-      done()
+      this.mergeDesignFilesImpl(unlockedDesigns, bytecode, {mergeRemovedOutputs: false}, done)
     }, cb)
   }
 
@@ -3515,19 +3543,33 @@ class ActiveComponent extends BaseModel {
     }, cb)
   }
 
-  updateKeyframesAndTypes (keyframeUpdatesSerial, typeUpdates, metadata, cb) {
+  updateKeyframesAndTypes (keyframeUpdatesSerial, typeUpdates, options, metadata, cb) {
     const keyframeUpdates = Bytecode.unserializeValue(keyframeUpdatesSerial, (ref) => {
       return this.evaluateReference(ref)
     })
 
-    return this.project.updateHook('updateKeyframes', this.getRelpath(), Bytecode.serializeValue(keyframeUpdates), metadata, (fire) => {
+    return this.project.updateHook('updateKeyframesAndTypes', this.getRelpath(), Bytecode.serializeValue(keyframeUpdates), typeUpdates, options, metadata, (fire) => {
       for (const timelineName in keyframeUpdates) {
         for (const componentId in keyframeUpdates[timelineName]) {
           this.clearCachedClusters(timelineName, componentId)
         }
       }
 
-      return this.updateKeyframesActual(keyframeUpdates, metadata, (err) => {
+      const unlockedDesigns = {}
+      if (options.setElementLockStatus) {
+        for (const elID in options.setElementLockStatus) {
+          const node = this.findTemplateNodeByComponentId(elID)
+          const lockStatus = options.setElementLockStatus[elID]
+          if (!lockStatus && node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(LOCKED_ID_SUFFIX)) {
+            node.attributes[HAIKU_SOURCE_ATTRIBUTE] = node.attributes[HAIKU_SOURCE_ATTRIBUTE].replace(LOCKED_ID_SUFFIX, '')
+            unlockedDesigns[node.attributes[HAIKU_SOURCE_ATTRIBUTE]] = true
+          } else if (lockStatus && !node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(LOCKED_ID_SUFFIX)) {
+            node.attributes[HAIKU_SOURCE_ATTRIBUTE] = node.attributes[HAIKU_SOURCE_ATTRIBUTE] + LOCKED_ID_SUFFIX
+          }
+        }
+      }
+
+      return this.updateKeyframesActual(keyframeUpdates, {unlockedDesigns}, metadata, (err) => {
         if (err) {
           logger.error(`[active component (${this.project.getAlias()})]`, err)
           return cb(err)
@@ -3563,6 +3605,15 @@ class ActiveComponent extends BaseModel {
                       row.rehydrate()
                     })
                   }
+                }
+              }
+
+              if (options.setElementLockStatus) {
+                for (const elID in options.setElementLockStatus) {
+                  const element = this.findElementByComponentId(elID)
+                  Row.where({ component: this, element }).forEach((row) => {
+                    row.rehydrate()
+                  })
                 }
               }
             }

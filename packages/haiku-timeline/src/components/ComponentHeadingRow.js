@@ -3,6 +3,7 @@ import lodash from 'lodash'
 import DownCarrotSVG from 'haiku-ui-common/lib/react/icons/DownCarrotSVG'
 import RightCarrotSVG from 'haiku-ui-common/lib/react/icons/RightCarrotSVG'
 import DragGrip from 'haiku-ui-common/lib/react/icons/DragGrip'
+import {SyncIconSVG} from 'haiku-ui-common/lib/react/OtherIcons'
 import Palette from 'haiku-ui-common/lib/Palette'
 import Element from 'haiku-serialization/src/bll/Element'
 import ComponentHeadingRowHeading from './ComponentHeadingRowHeading'
@@ -20,18 +21,21 @@ export default class ComponentHeadingRow extends React.Component {
   componentWillUnmount () {
     this.mounted = false
     this.props.row.host.removeListener('update', this.handleUpdate)
+    this.props.row.removeListener('update', this.handleUpdate)
   }
 
   componentDidMount () {
     this.mounted = true
     this.props.row.host.on('update', this.handleUpdate)
+    this.props.row.on('update', this.handleUpdate)
   }
 
   handleUpdate (what) {
     if (!this.mounted) return null
     if (
       what === 'drag-group-start' ||
-      what === 'drag-group-end'
+      what === 'drag-group-end' ||
+      what === 'row-rehydrated'
     ) {
       this.forceUpdate()
     }
@@ -52,6 +56,13 @@ export default class ComponentHeadingRow extends React.Component {
     } else {
       this.props.row.unhover({ from: 'timeline' })
     }
+  }
+
+  toggleSync () {
+    const locked = !this.props.row.element.isLocked()
+    this.props.component.updateKeyframes({}, {setElementLockStatus: {[this.props.row.element.getComponentId()]: locked}}, {from: 'timeline'}, () => {
+      this.forceUpdate()
+    })
   }
 
   render () {
@@ -194,11 +205,27 @@ export default class ComponentHeadingRow extends React.Component {
             }
           >
             <div
-              className='event-handler-triggerer-button'
+              className=''
               style={{
                 width: 10,
                 position: 'absolute',
                 left: 0,
+                top: 0,
+                display: this.props.row.element.getSource() ? 'block' : 'none'
+              }}
+              onClick={this.toggleSync.bind(this)}
+              title={this.props.row.element.isLocked()
+                ? 'Syncing is disabled for this element. Click to revert your changes and reenable syncing.'
+                : 'Syncing is enabled. Changes to the source will be mirrored here.'
+              }>
+              {SyncIconSVG({color: this.props.row.element.isLocked() ? Palette.RED_DARKER : Palette.DARK_ROCK})}
+            </div>
+            <div
+              className='event-handler-triggerer-button'
+              style={{
+                width: 10,
+                position: 'absolute',
+                left: 16,
                 top: 0
               }}>
               {(this.props.isExpanded || this.props.hasAttachedActions)
@@ -216,7 +243,7 @@ export default class ComponentHeadingRow extends React.Component {
               style={{
                 width: 10,
                 position: 'absolute',
-                left: 16,
+                left: 32,
                 top: -1
               }}>
               {(this.props.isExpanded)

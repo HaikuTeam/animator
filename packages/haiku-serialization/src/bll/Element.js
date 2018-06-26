@@ -19,7 +19,7 @@ const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments'
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const HAIKU_TITLE_ATTRIBUTE = 'haiku-title'
 const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source'
-
+const LOCKED_ID_SUFFIX = '#lock'
 const TIMELINE_EVENT_PREFIX = 'timeline:'
 
 const EMPTY_ELEMENT = {elementName: 'div', attributes: {}, children: []}
@@ -384,6 +384,14 @@ class Element extends BaseModel {
       eventHandlers,
       template
     }
+  }
+
+  isLocked () {
+    const node = this.getStaticTemplateNode()
+    if (node && node.attributes && node.attributes[HAIKU_SOURCE_ATTRIBUTE]) {
+      return node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(LOCKED_ID_SUFFIX)
+    }
+    return false
   }
 
   getStackingInfo () {
