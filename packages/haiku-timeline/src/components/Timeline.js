@@ -165,13 +165,13 @@ class Timeline extends React.Component {
           // This event triggers on `mousedown`, we make the assumption that a
           // mousedown + mouse movement on one of the elements below is a drag,
           // therefore we stop the marquee selection by returning `false`.
-          return (
+          return !(
             // Keyframe
-            !event.target.id.includes('keyframe-dragger') ||
+            event.target.id.includes('keyframe-dragger') ||
             // Constant Body
-            !event.target.id.includes('constant-body') ||
+            event.target.id.includes('constant-body') ||
             // Tween
-            !event.target.className.includes('pill')
+            event.target.className.includes('pill')
           )
         },
         onFinish: (event, area) => {
