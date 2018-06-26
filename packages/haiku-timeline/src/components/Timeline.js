@@ -1245,11 +1245,17 @@ class Timeline extends React.Component {
     }
 
     const frameInfo = this.getActiveComponent().getCurrentTimeline().getFrameInfo()
-    const leftX = evt.clientX - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()
+    const leftX = experimentIsEnabled(Experiment.NativeTimelineScroll)
+      ? (evt.layerX || evt.nativeEvent.layerX)
+      : evt.clientX - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()
+
     const frameX = Math.round(leftX / frameInfo.pxpf)
 
     // Allow the scrubber to be dragged past 0 in order to reach 0
-    let newFrame = frameInfo.friA + frameX
+    let newFrame = experimentIsEnabled(Experiment.NativeTimelineScroll)
+      ? frameX
+      : frameInfo.friA + frameX
+
     if (newFrame < 0) {
       newFrame = 0
     }
@@ -1259,14 +1265,16 @@ class Timeline extends React.Component {
       return
     }
 
-    const pageFrameLength = this.getActiveComponent().getCurrentTimeline().getVisibleFrameRangeLength()
+    if (!experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+      const pageFrameLength = this.getActiveComponent().getCurrentTimeline().getVisibleFrameRangeLength()
 
-    // If the frame clicked exceeds the virtual or explicit max, allocate additional
-    // virtual frames in the view and jump the user to the new page
-    if (newFrame > frameInfo.friB) {
-      const newMaxFrame = newFrame + pageFrameLength
-      this.getActiveComponent().getCurrentTimeline().setMaxFrame(newMaxFrame)
-      this.getActiveComponent().getCurrentTimeline().setVisibleFrameRange(newFrame, newMaxFrame)
+      // If the frame clicked exceeds the virtual or explicit max, allocate additional
+      // virtual frames in the view and jump the user to the new page
+      if (newFrame > frameInfo.friB) {
+        const newMaxFrame = newFrame + pageFrameLength
+        this.getActiveComponent().getCurrentTimeline().setMaxFrame(newMaxFrame)
+        this.getActiveComponent().getCurrentTimeline().setVisibleFrameRange(newFrame, newMaxFrame)
+      }
     }
 
     this.getActiveComponent().getCurrentTimeline().seek(newFrame)
