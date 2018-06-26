@@ -100,6 +100,9 @@ export default class TransitionBody extends React.Component {
       this.teardownKeyframeUpdateReceiver = keyframe.registerUpdateReceiver(this.props.id, (what) => {
         this.handleUpdate(what)
       })
+      this.teardownNextKeyframeUpdateReceiver = keyframe.next().registerUpdateReceiver(this.props.id, (what) => {
+        this.handleUpdate(what)
+      })
     }
   }
 
@@ -110,6 +113,7 @@ export default class TransitionBody extends React.Component {
   componentWillUnmount () {
     this.mounted = false
     this.teardownKeyframeUpdateReceiver()
+    this.teardownNextKeyframeUpdateReceiver()
   }
 
   handleUpdate (what, ...args) {
