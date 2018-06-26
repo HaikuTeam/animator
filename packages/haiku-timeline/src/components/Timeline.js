@@ -530,6 +530,7 @@ class Timeline extends React.Component {
   }
 
   handleActiveComponentReady () {
+    const timeline = this.getActiveComponent().getCurrentTimeline()
     this.mountHaikuComponent()
 
     ipcRenderer.send('topmenu:update', {
@@ -537,10 +538,18 @@ class Timeline extends React.Component {
     })
 
     this.loadUserSettings()
-    this.getActiveComponent().getCurrentTimeline().setTimelinePixelWidth(document.body.clientWidth - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() + 20)
+    timeline.setTimelinePixelWidth(document.body.clientWidth - timeline.getPropertiesPixelWidth() + 20)
 
     if (this.mounted) {
       this.forceUpdate()
+    }
+
+    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+      this.addEmitterListenerIfNotAlreadyRegistered(timeline, 'update', (what, ...args) => {
+        if (what === 'timeline-scroll') {
+          this.refs.container.scrollLeft = timeline.getScrollLeft()
+        }
+      })
     }
 
     this.project.broadcastPayload({

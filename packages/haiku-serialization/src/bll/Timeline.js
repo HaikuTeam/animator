@@ -54,6 +54,7 @@ class Timeline extends BaseModel {
     this._scrollbarEnd = 0
     this._hoveredFrame = 0
     this._timeDisplayMode = Timeline.TIME_DISPLAY_MODE.FRAMES
+    this._scrollLeft = 0
 
     this.raf = null // Store raf so it can be cancelled
     this.update = this.update.bind(this)
@@ -761,6 +762,15 @@ class Timeline extends BaseModel {
       this._durationDragStart = null
       this._durationTrim = 0
     }, DURATION_MOD_TIMEOUT)
+  }
+
+  setScrollLeft (x) {
+    this._scrollLeft = x
+    this.emit('update', 'timeline-scroll')
+  }
+
+  getScrollLeft () {
+    return this._scrollLeft
   }
 
   changeVisibleFrameRange (xl, xr) {
