@@ -155,12 +155,15 @@ class Timeline extends React.Component {
     this.project.getEnvoyClient().closeConnection()
   }
 
-  componentDidMount () {
-    this.mounted = true
-
+  instantiateMarquee () {
     if (experimentIsEnabled(Experiment.TimelineMarqueeSelection)) {
+      const area = document.querySelector('#property-rows')
+      if (!area) {
+        return setTimeout(this.instantiateMarquee.bind(this), 100)
+      }
+
       const marquee = new Marquee({
-        area: document.querySelector('#property-rows'),
+        area,
         onStart: (event) => {
           // This event triggers on `mousedown`, we make the assumption that a
           // mousedown + mouse movement on one of the elements below is a drag,
@@ -207,6 +210,12 @@ class Timeline extends React.Component {
 
       marquee.start()
     }
+  }
+
+  componentDidMount () {
+    this.mounted = true
+
+    this.instantiateMarquee()
 
     const resetKeyStates = () => {
       Globals.allKeysUp()
