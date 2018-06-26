@@ -55,7 +55,9 @@ export default class ScrubberInterior extends React.Component {
     }
 
     const currFrame = this.props.timeline.getCurrentFrame()
-    const frameOffset = currFrame - frameInfo.friA
+    const frameOffset = experimentIsEnabled(Experiment.NativeTimelineScroll)
+      ? currFrame
+      : currFrame - frameInfo.friA
     const pxOffset = frameOffset * frameInfo.pxpf
     const propertiesWidth = this.props.timeline.getPropertiesPixelWidth()
 

@@ -3,6 +3,7 @@ import lodash from 'lodash'
 import TimelineDraggable from './TimelineDraggable'
 import Globals from 'haiku-ui-common/lib/Globals'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 
 const THROTTLE_TIME = 17 // ms
 
@@ -57,7 +58,9 @@ export default class InvisibleKeyframeDragger extends React.Component {
 
   render () {
     const frameInfo = this.props.timeline.getFrameInfo()
-    const pxOffsetLeft = this.props.keyframe.getPixelOffsetLeft(frameInfo.friA, frameInfo.pxpf, frameInfo.mspf)
+    const pxOffsetLeft = experimentIsEnabled(Experiment.NativeTimelineScroll)
+      ? this.props.keyframe.getPixelOffsetLeft(0, frameInfo.pxpf, frameInfo.mspf)
+      : this.props.keyframe.getPixelOffsetLeft(frameInfo.friA, frameInfo.pxpf, frameInfo.mspf)
 
     return (
       <TimelineDraggable
@@ -98,7 +101,7 @@ export default class InvisibleKeyframeDragger extends React.Component {
             // borderRight: '1px solid white',
             // opacity: '0.2',
             top: 1,
-            left: this.props.offset + this.props.keyframe.getPixelOffsetLeft(frameInfo.friA, frameInfo.pxpf, frameInfo.mspf),
+            left: this.props.offset + pxOffsetLeft,
             width: 10,
             height: 24,
             zIndex: 1003,
