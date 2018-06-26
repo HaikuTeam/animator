@@ -675,7 +675,7 @@ class StageTitleBar extends React.Component {
             closePopupCannotSwitchToDesign={this.props.closePopupCannotSwitchToDesign}
           />
         }
-        {experimentIsEnabled(Experiment.CodeEditorInCreator) &&
+        {experimentIsEnabled(Experiment.CodeEditor) &&
           <div style={STYLES.toggleHolster}>
             <button
               key="toggle-design"

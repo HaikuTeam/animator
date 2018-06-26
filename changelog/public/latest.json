@@ -2,7 +2,6 @@
   "date": "June 25, 2018",
   "sections": {
     "What's new": [
-      "Added a raw code editor for editing components.",
       "Git commit history is now more descriptive.",
       "Figma frames are now synced to Haiku.",
       "Added support for SVGs generated with Affinity.",

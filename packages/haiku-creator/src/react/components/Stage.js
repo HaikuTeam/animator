@@ -280,7 +280,7 @@ class Stage extends React.Component {
               [this.props.showGlass && STAGE_FADE_IN], [!this.props.showGlass && STAGE_FADE_OUT],
             ]}
           />
-          <div
+          {experimentIsEnabled(Experiment.CodeEditor) && <div
             id="editor-mount"
             style={[{
               position: 'absolute',
@@ -307,8 +307,8 @@ class Stage extends React.Component {
                 this.setState({showPopupToSaveRawEditorContents: showPopup});
               }}
               targetComponentToChange={this.state.targetComponentToChange}
-              />
-          </div>
+            />
+          </div>}
         </div>
       </div>
     );
