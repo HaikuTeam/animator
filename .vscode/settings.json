@@ -1,4 +1,7 @@
 {
+    "editor.detectIndentation": false,
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2,
     "search.exclude": {
         "packages/**/lib/**/*": true,
         "packages/@haiku/core/demo/**": true,
