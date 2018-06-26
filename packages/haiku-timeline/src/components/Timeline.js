@@ -798,8 +798,8 @@ class Timeline extends React.Component {
   }
 
   handleHorizontalScroll (origDelta) {
-    const motionDelta = Math.round((origDelta ? origDelta < 0 ? -1 : 1 : 0) * (Math.log(Math.abs(origDelta) + 1) * 2))
-    this.getActiveComponent().getCurrentTimeline().updateVisibleFrameRangeByDelta(motionDelta)
+    // const motionDelta = Math.round((origDelta ? origDelta < 0 ? -1 : 1 : 0) * (Math.log(Math.abs(origDelta) + 1) * 2))
+    // this.getActiveComponent().getCurrentTimeline().updateVisibleFrameRangeByDelta(motionDelta)
   }
 
   handleRequestElementCoordinates ({ selector, webview }) {

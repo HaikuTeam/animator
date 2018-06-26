@@ -1,7 +1,6 @@
 import React from 'react'
 import lodash from 'lodash'
 import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 import TransitionBody from './TransitionBody'
 import ConstantBody from './ConstantBody'
 import SoloKeyframe from './SoloKeyframe'
@@ -43,19 +42,12 @@ export default class RowSegments extends React.Component {
       return
     }
 
-    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-      if (what === 'timeline-timeline-pixel-width') {
-        this.forceUpdate()
-        return
-      }
-    } else {
-      if (
+    if (
         what === 'timeline-frame-range' ||
         what === 'timeline-timeline-pixel-width'
       ) {
-        this.forceUpdate()
-        return
-      }
+      this.forceUpdate()
+      return
     }
 
     if (

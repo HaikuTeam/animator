@@ -34,7 +34,7 @@ export default class ScrubberInterior extends React.Component {
 
     if (what === 'timeline-frame') {
       this.forceUpdate()
-    } else if (what === 'timeline-frame-range' && !experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+    } else if (what === 'timeline-frame-range') {
       this.forceUpdate()
     } else if (what === 'time-display-mode-change') {
       this.forceUpdate()
