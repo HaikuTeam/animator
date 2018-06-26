@@ -46,6 +46,14 @@ function createWindow () {
 
   if (process.env.DEV === '1') {
     mainWindow.webContents.openDevTools()
+    // const { default: installExtension, REACT_DEVELOPER_TOOLS } = require('electron-devtools-installer')
+    // installExtension(REACT_DEVELOPER_TOOLS)
+    //     .then((name) => console.log(`Added Extension:  ${name}`))
+    //     .catch((err) => console.log('An error occurred: ', err))
+
+    // installExtension('jigamimbjojkdgnlldajknogfgncplbh')
+    //     .then((name) => console.log(`Added Extension:  ${name}`))
+    //     .catch((err) => console.log('An error occurred: ', err))
   }
 
   mainWindow.on('closed', () => { mainWindow = null })

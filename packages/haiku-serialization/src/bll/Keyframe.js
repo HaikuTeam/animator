@@ -28,6 +28,7 @@ class Keyframe extends BaseModel {
     this._didHandleContextMenu = false
     this._mouseDownState = {}
     this._updateReceivers = {}
+    this._viewPosition = {}
   }
 
   activate () {
@@ -362,6 +363,11 @@ class Keyframe extends BaseModel {
     return !next || this.getMs() >= a || next.getMs() >= a
   }
 
+  isTweenable () {
+    const value = this.getValue()
+    return typeof (value) !== 'boolean' && (typeof value === 'string' || value instanceof String)
+  }
+
   next () {
     return this._next
   }
@@ -390,6 +396,10 @@ class Keyframe extends BaseModel {
       throw new Error(`keyframe pixel offset left params missing`)
     }
     return (this.getFrame(mspf) - base) * pxpf
+  }
+
+  storeViewPosition (rect) {
+    this._viewPosition = rect
   }
 
   isWithinCollapsedClusterHeadingRow () {

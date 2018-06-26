@@ -6,6 +6,7 @@ import TimelineDraggable from './TimelineDraggable'
 import KeyframeSVG from 'haiku-ui-common/lib/react/icons/KeyframeSVG'
 import Globals from 'haiku-ui-common/lib/Globals'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 
 import {
   EaseInBackSVG,
@@ -80,6 +81,7 @@ const THROTTLE_TIME = 17 // ms
 export default class TransitionBody extends React.Component {
   constructor (props) {
     super(props)
+    this.handleUpdate = this.handleUpdate.bind(this)
     this.handleProps(props)
   }
 
@@ -98,6 +100,9 @@ export default class TransitionBody extends React.Component {
       this.teardownKeyframeUpdateReceiver = keyframe.registerUpdateReceiver(this.props.id, (what) => {
         this.handleUpdate(what)
       })
+      this.teardownNextKeyframeUpdateReceiver = keyframe.next().registerUpdateReceiver(this.props.id, (what) => {
+        this.handleUpdate(what)
+      })
     }
   }
 
@@ -108,9 +113,10 @@ export default class TransitionBody extends React.Component {
   componentWillUnmount () {
     this.mounted = false
     this.teardownKeyframeUpdateReceiver()
+    this.teardownNextKeyframeUpdateReceiver()
   }
 
-  handleUpdate (what) {
+  handleUpdate (what, ...args) {
     if (!this.mounted) return null
     if (
       what === 'keyframe-activated' ||
@@ -130,8 +136,12 @@ export default class TransitionBody extends React.Component {
     const frameInfo = this.props.timeline.getFrameInfo()
 
     const uniqueKey = this.props.keyframe.getUniqueKey()
-    const pxOffsetLeft = this.props.keyframe.getPixelOffsetLeft(frameInfo.friA, frameInfo.pxpf, frameInfo.mspf)
-    const pxOffsetRight = this.props.keyframe.getPixelOffsetRight(frameInfo.friA, frameInfo.pxpf, frameInfo.mspf)
+    const pxOffsetLeft = experimentIsEnabled(Experiment.NativeTimelineScroll)
+      ? this.props.keyframe.getPixelOffsetLeft(0, frameInfo.pxpf, frameInfo.mspf)
+      : this.props.keyframe.getPixelOffsetLeft(frameInfo.friA, frameInfo.pxpf, frameInfo.mspf)
+    const pxOffsetRight = experimentIsEnabled(Experiment.NativeTimelineScroll)
+      ? this.props.keyframe.getPixelOffsetRight(0, frameInfo.pxpf, frameInfo.mspf)
+      : this.props.keyframe.getPixelOffsetRight(frameInfo.friA, frameInfo.pxpf, frameInfo.mspf)
 
     const curve = this.props.keyframe.getCurveCapitalized()
 
@@ -171,6 +181,9 @@ export default class TransitionBody extends React.Component {
           key={uniqueKey}
           ref={(domElement) => {
             this[uniqueKey] = domElement
+            if (experimentIsEnabled(Experiment.TimelineMarqueeSelection) && domElement) {
+              this.props.keyframe.storeViewPosition(domElement.getBoundingClientRect())
+            }
           }}
           onContextMenu={(ctxMenuEvent) => {
             ctxMenuEvent.stopPropagation()
@@ -244,7 +257,8 @@ export default class TransitionBody extends React.Component {
             height: '100%',
             borderRadius: 5,
             paddingTop: 6,
-            overflow: breakingBounds ? 'visible' : 'hidden'
+            overflow: breakingBounds ? 'visible' : 'hidden',
+            pointerEvents: 'none'
           }}>
             <CurveSVG
               id={uniqueKey}

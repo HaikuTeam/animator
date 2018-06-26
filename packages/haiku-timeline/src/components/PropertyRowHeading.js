@@ -1,6 +1,7 @@
 import React from 'react'
 import Palette from 'haiku-ui-common/lib/Palette'
 import StatesSVG from 'haiku-ui-common/lib/react/icons/StatesSVG'
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 
 export default class PropertyRowHeading extends React.Component {
   constructor (props) {
@@ -72,7 +73,7 @@ export default class PropertyRowHeading extends React.Component {
         <span
           style={{
             display: 'inline-block',
-            width: 55,
+            width: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : 55,
             textAlign: 'right',
             marginTop
           }}>

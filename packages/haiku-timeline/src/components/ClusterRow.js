@@ -1,4 +1,5 @@
 import React from 'react'
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 import Palette from 'haiku-ui-common/lib/Palette'
 import truncate from 'haiku-ui-common/lib/helpers/truncate'
 import RightCarrotSVG from 'haiku-ui-common/lib/react/icons/RightCarrotSVG'
@@ -6,6 +7,7 @@ import FamilySVG from 'haiku-ui-common/lib/react/icons/FamilySVG'
 import ClusterInputField from './ClusterInputField'
 import RowSegments from './RowSegments'
 import ClusterRowHeading from './ClusterRowHeading'
+import zIndex from './styles/zIndex'
 import Globals from 'haiku-ui-common/lib/Globals'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
 
@@ -46,9 +48,6 @@ export default class ClusterRow extends React.Component {
 
     return (
       <div
-        ref={(ref) => {
-          this.ref = ref
-        }}
         id={`property-cluster-row-${this.props.row.getAddress()}-${componentId}-${clusterName}`}
         className='property-cluster-row'
         onClick={() => {
@@ -69,74 +68,84 @@ export default class ClusterRow extends React.Component {
         }}
         style={{
           height: this.props.rowHeight,
-          width: this.props.timeline.getPropertiesPixelWidth() + this.props.timeline.getTimelinePixelWidth(),
+          width: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : this.props.timeline.getPropertiesPixelWidth() + this.props.timeline.getTimelinePixelWidth(),
           left: 0,
           opacity: (this.props.row.isHidden()) ? 0.5 : 1.0,
           position: 'relative',
           cursor: 'pointer'
         }}>
-        <div>
-          <div
+        <div style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+          position: 'sticky',
+          top: 0,
+          left: 0,
+          width: this.props.timeline.getPropertiesPixelWidth(),
+          zIndex: zIndex.clusterRowHeading.base,
+          backgroundColor: Palette.GRAY
+        } : {})}>
+          <div>
+            <div
+              style={{
+                position: 'absolute',
+                left: 145,
+                width: 10,
+                height: 'inherit',
+                zIndex: 1005
+              }}>
+              <span className='utf-icon' style={{ top: -2, left: -3 }}><RightCarrotSVG /></span>
+            </div>
+            {this.maybeRenderFamilySvg()}
+            <div
+              className='property-cluster-row-label no-select'
+              style={{
+                position: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'absolute' : 'relative',
+                right: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : 0,
+                width: this.props.timeline.getPropertiesPixelWidth() - (experimentIsEnabled(Experiment.NativeTimelineScroll) ? 80 : 120),
+                marginLeft: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : 40,
+                height: this.props.rowHeight,
+                paddingTop: 3,
+                paddingRight: 10,
+                borderTop: (this.props.row.isFirstRowOfSubElementSet()) ? `1px solid ${Palette.GRAY}` : 'none',
+                backgroundColor: (this.props.row.doesTargetHostElement()) ? Palette.GRAY : 'rgb(46, 59, 62)',
+                borderTopLeftRadius: (this.props.row.isFirstRowOfSubElementSet()) ? 4 : 0,
+                borderBottomLeftRadius: (this.props.row.isLastRowOfSubElementSet()) ? 4 : 0,
+                zIndex: 1004,
+                textAlign: 'right'
+              }}>
+              <ClusterRowHeading
+                clusterName={clusterName}
+                row={this.props.row}
+                />
+            </div>
+          </div>
+          <div className='property-cluster-input-field'
             style={{
               position: 'absolute',
-              left: 145,
-              width: 10,
-              height: 'inherit',
-              zIndex: 1005
+              left: this.props.timeline.getPropertiesPixelWidth() - 82,
+              width: 82,
+              top: 0,
+              height: 24,
+              textAlign: 'left'
             }}>
-            <span className='utf-icon' style={{ top: -2, left: -3 }}><RightCarrotSVG /></span>
-          </div>
-          {this.maybeRenderFamilySvg()}
-          <div
-            className='property-cluster-row-label no-select'
-            style={{
-              position: 'relative',
-              right: 0,
-              width: this.props.timeline.getPropertiesPixelWidth() - 120,
-              height: this.props.rowHeight,
-              paddingTop: 3,
-              paddingRight: 10,
-              borderTop: (this.props.row.isFirstRowOfSubElementSet()) ? `1px solid ${Palette.GRAY}` : 'none',
-              backgroundColor: (this.props.row.doesTargetHostElement()) ? Palette.GRAY : 'rgb(46, 59, 62)',
-              borderTopLeftRadius: (this.props.row.isFirstRowOfSubElementSet()) ? 4 : 0,
-              borderBottomLeftRadius: (this.props.row.isLastRowOfSubElementSet()) ? 4 : 0,
-              zIndex: 1004,
-              textAlign: 'right',
-              marginLeft: 40
-            }}>
-            <ClusterRowHeading
-              clusterName={clusterName}
+            <ClusterInputField
+              parent={this}
               row={this.props.row}
-              />
+              index={this.props.row.getAddress()}
+              height={this.props.rowHeight}
+              component={this.props.component}
+              timeline={this.props.timeline}
+              rowHeight={this.props.rowHeight} />
           </div>
-        </div>
-        <div className='property-cluster-input-field'
-          style={{
-            position: 'absolute',
-            left: this.props.timeline.getPropertiesPixelWidth() - 82,
-            width: 82,
-            top: 0,
-            height: 24,
-            textAlign: 'left'
-          }}>
-          <ClusterInputField
-            parent={this}
-            row={this.props.row}
-            index={this.props.row.getAddress()}
-            height={this.props.rowHeight}
-            component={this.props.component}
-            timeline={this.props.timeline}
-            rowHeight={this.props.rowHeight} />
         </div>
         <div
           className='property-cluster-timeline-segments-box'
           style={{
-            overflow: 'hidden',
+            overflow: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : 'hidden',
             position: 'absolute',
-            width: this.props.timeline.getTimelinePixelWidth(),
+            width: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : this.props.timeline.getTimelinePixelWidth(),
             left: this.props.timeline.getPropertiesPixelWidth() - 4, // offset half of lone keyframe width so it lines up with the pole
             top: 0,
-            height: 'inherit'
+            height: 'inherit',
+            zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? zIndex.clusterRow.base : undefined
           }}>
           <RowSegments
             scope='ClusterRow'

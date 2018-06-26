@@ -43,9 +43,9 @@ export default class RowSegments extends React.Component {
     }
 
     if (
-      what === 'timeline-frame-range' ||
-      what === 'timeline-timeline-pixel-width'
-    ) {
+        what === 'timeline-frame-range' ||
+        what === 'timeline-timeline-pixel-width'
+      ) {
       this.forceUpdate()
       return
     }

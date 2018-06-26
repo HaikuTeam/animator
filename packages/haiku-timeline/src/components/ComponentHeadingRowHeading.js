@@ -1,5 +1,6 @@
 import React from 'react'
 import Palette from 'haiku-ui-common/lib/Palette'
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 import {ComponentIconSVG} from 'haiku-ui-common/lib/react/OtherIcons'
 import Color from 'color'
 
@@ -88,16 +89,26 @@ export default class ComponentHeadingRowHeading extends React.Component {
         ? (<div
           className='component-heading-row-heading-root-box'
           title={this.state.rowTitle}
-          style={{
+          style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+            height: 27,
+            display: 'inline-block'
+          } : {
             height: 27,
             display: 'inline-block',
-            transform: 'translateY(1px)'}}>
+            transform: 'translateY(1px)'
+          })}>
           <span
             className='component-heading-row-heading-root-icon-box'
-            style={{
+            style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+              marginLeft: 7,
+              marginRight: 7,
+              display: 'inline-block',
+              transform: 'translateY(4px)'
+            } : {
               marginRight: 4,
               display: 'inline-block',
-              transform: 'translateY(4px)'}}>
+              transform: 'translateY(4px)'
+            })}>
             <ComponentIconSVG />
           </span>
           {trunc(this.state.rowTitle, 12)}
@@ -105,7 +116,13 @@ export default class ComponentHeadingRowHeading extends React.Component {
         : (<span
           className='component-heading-row-heading-child-box'
           title={this.state.rowTitle}
-          style={{
+          style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+            color,
+            display: 'flex',
+            alignItems: 'center',
+            height: 25,
+            marginLeft: 5
+          } : {
             color,
             position: 'relative',
             zIndex: 1005,
@@ -113,21 +130,32 @@ export default class ComponentHeadingRowHeading extends React.Component {
             display: 'inline-block',
             width: 100,
             height: 20
-          }}>
+          })}>
           <span
             className='component-heading-row-heading-child-icon-box'
-            style={{
+            style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+              display: 'inline-block',
+              height: 20
+            } : {
               position: 'absolute',
               display: 'inline-block',
               height: 20,
               left: 2,
               top: 8
-            }}>
+            })}>
             {(this.props.row.element.isComponent()) &&
             <ComponentIconSVG />}
           </span>
           <span
-            style={{
+            style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+              display: 'inline-block',
+              height: 20,
+              marginLeft: (this.props.row.element.isComponent())
+                  ? 5
+                  : 0,
+              overflowX: 'hidden',
+              width: 160
+            } : {
               position: 'absolute',
               display: 'inline-block',
               height: 20,
@@ -137,7 +165,7 @@ export default class ComponentHeadingRowHeading extends React.Component {
               top: 7,
               overflowX: 'hidden',
               width: 160
-            }}
+            })}
             onClick={(clickEvent) => {
               if (!this.onExpandTimeout) {
                 this.onExpandTimeout = setTimeout(this.props.onExpand, DOUBLE_CLICK_WAIT_DELAY_MS)

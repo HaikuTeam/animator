@@ -5,6 +5,7 @@ const BaseModel = require('./BaseModel')
 const MathUtils = require('./MathUtils')
 const formatSeconds = require('haiku-ui-common/lib/helpers/formatSeconds').default
 const logger = require('haiku-serialization/src/utils/LoggerInstance')
+const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 
 const DURATION_DRAG_INCREASE = 20 // Increase by this much per each duration increase
 const DURATION_DRAG_TIMEOUT = 300 // Wait this long before increasing the duration
@@ -53,6 +54,7 @@ class Timeline extends BaseModel {
     this._scrollbarEnd = 0
     this._hoveredFrame = 0
     this._timeDisplayMode = Timeline.TIME_DISPLAY_MODE.FRAMES
+    this._scrollLeft = 0
 
     this.raf = null // Store raf so it can be cancelled
     this.update = this.update.bind(this)
@@ -600,8 +602,8 @@ class Timeline extends BaseModel {
     const frameInfo = this.getFrameInfo()
     const visiblePixelWidth = this.getTimelinePixelWidth()
 
-    const leftFrame = frameInfo.friA
-    const rightFrame = frameInfo.friB
+    const leftFrame = experimentIsEnabled(Experiment.NativeTimelineScroll) ? 0 : frameInfo.friA
+    const rightFrame = experimentIsEnabled(Experiment.NativeTimelineScroll) ? 999 : frameInfo.friB
 
     const leftMostAbsolutePixel = Math.round(leftFrame * frameInfo.pxpf)
 
@@ -610,7 +612,7 @@ class Timeline extends BaseModel {
     for (let i = leftFrame; i <= rightFrame; i++) {
       let pixelOffsetLeft = Math.round(i * frameInfo.pxpf)
 
-      if (pixelOffsetLeft >= leftMostAbsolutePixel && pixelOffsetLeft <= (leftMostAbsolutePixel + visiblePixelWidth)) {
+      if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
         visibleFrames.push({
           pixelOffsetLeft,
           frameModulus,
@@ -618,6 +620,16 @@ class Timeline extends BaseModel {
           leftMostAbsolutePixel,
           pixelsPerFrame: frameInfo.pxpf
         })
+      } else {
+        if (pixelOffsetLeft >= leftMostAbsolutePixel && pixelOffsetLeft <= (leftMostAbsolutePixel + visiblePixelWidth)) {
+          visibleFrames.push({
+            pixelOffsetLeft,
+            frameModulus,
+            frameNumber: i,
+            leftMostAbsolutePixel,
+            pixelsPerFrame: frameInfo.pxpf
+          })
+        }
       }
     }
 
@@ -645,8 +657,8 @@ class Timeline extends BaseModel {
     const frameInfo = this.getFrameInfo()
 
     const leftFrame = frameInfo.friA
-    const leftMs = frameInfo.friA * frameInfo.mspf
-    const rightMs = frameInfo.friB * frameInfo.mspf
+    const leftMs = experimentIsEnabled(Experiment.NativeTimelineScroll) ? 0 : frameInfo.friA * frameInfo.mspf
+    const rightMs = experimentIsEnabled(Experiment.NativeTimelineScroll) ? 999 : frameInfo.friB * frameInfo.mspf
     const totalMs = rightMs - leftMs
 
     const msModulus = Timeline.getMillisecondModulus(frameInfo.pxpf)
@@ -750,6 +762,15 @@ class Timeline extends BaseModel {
       this._durationDragStart = null
       this._durationTrim = 0
     }, DURATION_MOD_TIMEOUT)
+  }
+
+  setScrollLeft (x) {
+    this._scrollLeft = x
+    this.emit('update', 'timeline-scroll')
+  }
+
+  getScrollLeft () {
+    return this._scrollLeft
   }
 
   changeVisibleFrameRange (xl, xr) {

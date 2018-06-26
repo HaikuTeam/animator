@@ -3,6 +3,7 @@ import Color from 'color'
 import Palette from 'haiku-ui-common/lib/Palette'
 import Globals from 'haiku-ui-common/lib/Globals'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 
 export default class ConstantBody extends React.Component {
   constructor (props) {
@@ -57,13 +58,20 @@ export default class ConstantBody extends React.Component {
     const frameInfo = this.props.timeline.getFrameInfo()
 
     const uniqueKey = this.props.keyframe.getUniqueKey()
-    const pxOffsetLeft = this.props.keyframe.getPixelOffsetLeft(frameInfo.friA, frameInfo.pxpf, frameInfo.mspf)
-    const pxOffsetRight = this.props.keyframe.getPixelOffsetRight(frameInfo.friA, frameInfo.pxpf, frameInfo.mspf)
+    const pxOffsetLeft = experimentIsEnabled(Experiment.NativeTimelineScroll)
+      ? this.props.keyframe.getPixelOffsetLeft(0, frameInfo.pxpf, frameInfo.mspf)
+      : this.props.keyframe.getPixelOffsetLeft(frameInfo.friA, frameInfo.pxpf, frameInfo.mspf)
+    const pxOffsetRight = experimentIsEnabled(Experiment.NativeTimelineScroll)
+      ? this.props.keyframe.getPixelOffsetRight(0, frameInfo.pxpf, frameInfo.mspf)
+      : this.props.keyframe.getPixelOffsetRight(frameInfo.friA, frameInfo.pxpf, frameInfo.mspf)
 
     return (
       <span
         ref={(domElement) => {
           this[uniqueKey] = domElement
+          if (experimentIsEnabled(Experiment.TimelineMarqueeSelection) && domElement) {
+            this.props.keyframe.storeViewPosition(domElement.getBoundingClientRect())
+          }
         }}
         id={`constant-body-${uniqueKey}`}
         className='constant-body'
