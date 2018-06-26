@@ -93,7 +93,7 @@ export default class FrameGrid extends React.Component {
                 id={`frame-${frameNumber}`}
                 key={`frame-${frameNumber}`}
                 style={{
-                  height: experimentIsEnabled(Experiment.NativeTimelineScroll) ? '100vh' : 9999,
+                  height: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'calc(100vh - 80px)' : 9999,
                   borderLeft:
                     hoveredFrame === frameNumber
                       ? borderLeftHighlighted
