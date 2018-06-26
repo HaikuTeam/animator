@@ -5,15 +5,13 @@ import zIndex from './styles/zIndex'
 class Marquee {
   constructor ({area, onStart, onFinish}) {
     this.initialCursorPos = {x: 0, y: 0}
-    this.autoScrollSpeed = 1
     this.onStart = onStart || function () {}
     this.onFinish = onFinish || function () {}
     this.area = area
     this.initialScroll = null
     this._startUp = this._startUp.bind(this)
     this._handleMove = this._handleMove.bind(this)
-    this.reset = this.reset.bind(this)
-
+    this._reset = this._reset.bind(this)
     this.selector = this._createSelector()
   }
 
@@ -22,7 +20,6 @@ class Marquee {
   }
 
   _startUp (event) {
-    // return if is right click
     if (event.which === 3 || this.onStart(event) === false) {
       return
     }
@@ -33,25 +30,25 @@ class Marquee {
     this.selector.style.display = 'none'
     this.area.removeEventListener('mousedown', this._startUp)
     this.area.addEventListener('mousemove', this._handleMove)
-    document.addEventListener('mouseup', this.reset)
+    document.addEventListener('mouseup', this._reset)
   }
 
   _getStartingPositions (event) {
     this.initialCursorPos = this._getCursorPos(event, this.area)
-    this.initialScroll = this.getScroll(this.area)
+    this.initialScroll = this._getScroll(this.area)
 
     const selectorPos = {}
     selectorPos.x = this.initialCursorPos.x + this.initialScroll.x
     selectorPos.y = this.initialCursorPos.y + this.initialScroll.y
     selectorPos.w = 0
     selectorPos.h = 0
-    this.updatePos(this.selector, selectorPos)
+    this._updatePos(this.selector, selectorPos)
   }
 
   _handleMove (event) {
     const selectorPos = this.getPosition(event)
     this.selector.style.display = 'block'
-    this.updatePos(this.selector, selectorPos)
+    this._updatePos(this.selector, selectorPos)
   }
 
   _createSelector () {
@@ -68,7 +65,7 @@ class Marquee {
 
   getPosition (event) {
     const cursorPosNew = this._getCursorPos(event, this.area)
-    const scrollNew = this.getScroll(this.area)
+    const scrollNew = this._getScroll(this.area)
 
     // if area or document is scrolled those values have to be included aswell
     const scrollAmount = {
@@ -144,8 +141,8 @@ class Marquee {
     return selectorPos
   }
 
-  reset (event) {
-    document.removeEventListener('mouseup', this.reset)
+  _reset (event) {
+    document.removeEventListener('mouseup', this._reset)
     this.area.removeEventListener('mousemove', this._handleMove)
     this.area.addEventListener('mousedown', this._startUp)
     const selection = this.selector.getBoundingClientRect()
@@ -168,24 +165,9 @@ class Marquee {
   }
 
   stop () {
-    this.reset()
+    this._reset()
     this.area.removeEventListener('mousedown', this._startUp)
-    document.removeEventListener('mouseup', this.reset)
-  }
-
-  getCursorPos (event, _area, ignoreScroll) {
-    if (!event) {
-      return false
-    }
-
-    const area = _area || (_area !== false && this.area)
-    const pos = this._getCursorPos(event, area)
-    const scroll = this.getScroll(area)
-
-    return {
-      x: pos.x + scroll.x,
-      y: pos.y + scroll.y
-    }
+    document.removeEventListener('mouseup', this._reset)
   }
 
   _getCursorPos (event, area) {
@@ -202,14 +184,14 @@ class Marquee {
     }
   }
 
-  getScroll (area) {
+  _getScroll (area) {
     return {
       y: area.scrollTop,
       x: area.scrollLeft
     }
   }
 
-  updatePos (node, pos) {
+  _updatePos (node, pos) {
     node.style.left = pos.x + 'px'
     node.style.top = pos.y + 'px'
     node.style.width = pos.w + 'px'
