@@ -6,6 +6,7 @@
             "request":"attach",
             "port": 9222,
             "sourceMaps": true,
+            "webRoot": "${workspaceFolder}",
             "name": "attach-renderer"
         },
         {
@@ -13,6 +14,10 @@
             "request": "attach",
             "sourceMaps": true,
             "port": 9221,
+            "outFiles": [
+              "${workspaceFolder}/packages/**/lib/**/*.js",
+              "${workspaceFolder}/packages/**/lib/*.js"
+            ],
             "name": "attach-main"
         }
     ]
