@@ -1,0 +1,17 @@
+{
+  "date": "June 12, 2018",
+  "sections": {
+    "What's new": [
+      "You can now preview your component using the keyboard shortcut Cmd+Enter.",
+      "You can now create components using the menus in the library panel.",
+      "Double clicking assets in your library now opens them instead of placing them on stage.",
+      "The app now automatically takes you to the definition of a component when you create one."
+    ],
+    "Fixes": [
+      "Fixed rendering inconsistencies when switching back and forth between components.",
+      "Fixed several bugs causing events and actions from behaving correctly in preview mode.",
+      "Fixed several bugs with the \"playback\" property's behavior for controlling nested timelines.",
+      "Fixed several minor UI bugs."
+    ]
+  }
+}
