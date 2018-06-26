@@ -666,6 +666,7 @@ class Project extends BaseModel {
   }
 
   setCurrentActiveComponent (scenename, metadata, cb) {
+    metadata.integrity = false
     return Lock.request(Lock.LOCKS.SetCurrentActiveComponent, false, (release) => {
       // If not in read only mode, create the component entity for the scene in question
       this.findOrCreateActiveComponent(scenename, (err, ac) => {
