@@ -175,9 +175,14 @@ class Timeline extends React.Component {
           )
         },
         onFinish: (event, area) => {
-          Keyframe.all().forEach((keyframe) => {
+          const selected = Keyframe.all().filter((keyframe) => {
             const keyframeView = keyframe._viewPosition
 
+            // First, check if the keyframe is contained in the marquee horizontally,
+            // we perform this check first because we can't rely on the cached `y` value due
+            // to the rows expanding/collapsing. Since we don't have a similar behavior that
+            // modifies the `x` position of a keyframe post-render this is a safe filter to
+            // avoid performing the expensive `getBoundingClientRect` calculation on all keyframes
             if (
               keyframeView.x < area.x + area.width &&
               keyframeView.x + keyframeView.width > area.x
@@ -185,16 +190,17 @@ class Timeline extends React.Component {
               const keyframeViewEl = document.getElementById(`keyframe-container-${keyframe.getUniqueKey()}`)
               const {y, height} = keyframeViewEl.getBoundingClientRect()
 
-              if (
-                y < area.y + area.height &&
-                height + y > area.y
-              ) {
-                keyframe.select()
-                keyframe.activate()
-                keyframe.setBodySelected()
-                keyframe.row.expand({from: 'timeline'})
-              }
+              return (y < area.y + area.height && height + y > area.y)
             }
+          })
+
+          // We perform this logic once we determined the selection, because
+          // expanding a row modifies its coordinates.
+          selected.forEach((keyframe) => {
+            keyframe.select()
+            keyframe.activate()
+            keyframe.setBodySelected()
+            keyframe.row.expand({from: 'timeline'})
           })
         }
       })
