@@ -512,7 +512,11 @@ class Timeline extends React.Component {
         const rowElement = document.getElementById(`component-heading-row-${row.element.getComponentId()}-${row.getAddress()}`)
 
         if (rowElement) {
-          rowElement.scrollIntoView({behavior: 'smooth', block: 'center', inline: 'start'})
+          this.refs.container.scroll({
+            top: rowElement.offsetTop,
+            left: this.refs.container.scrollLeft,
+            behavior: 'smooth'
+          })
         }
       }
     })

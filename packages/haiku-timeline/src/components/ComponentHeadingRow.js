@@ -86,7 +86,6 @@ export default class ComponentHeadingRow extends React.Component {
           position: this.props.isExpanded ? 'sticky' : 'relative',
           float: this.props.isExpanded ? 'left' : undefined,
           width: this.props.isExpanded ? 100 : undefined,
-          top: this.props.isExpanded ? 0 : undefined,
           left: this.props.isExpanded ? 20 : undefined,
           backgroundColor: this.props.isExpanded ? 'transparent' : Palette.LIGHT_GRAY,
           opacity: this.props.isHidden ? 0.75 : 1.0,
