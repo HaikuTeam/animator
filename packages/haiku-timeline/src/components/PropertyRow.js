@@ -17,8 +17,29 @@ export default class PropertyRow extends React.Component {
   constructor (props) {
     super(props)
 
+    this.handleUpdate = this.handleUpdate.bind(this)
     this.throttledHandleRowHovered = lodash.throttle(this.handleRowHovered, 20).bind(this)
     this.throttledHandleRowUnhovered = lodash.throttle(this.handleRowUnhovered, 20).bind(this)
+  }
+
+  componentWillUnmount () {
+    this.mounted = false
+    this.props.row.removeListener('update', this.handleUpdate)
+  }
+
+  componentDidMount () {
+    this.mounted = true
+    this.props.row.on('update', this.handleUpdate)
+  }
+
+  handleUpdate (what) {
+    if (!this.mounted) return null
+    if (
+      what === 'row-selected' ||
+      what === 'row-deselected'
+     ) {
+      this.forceUpdate()
+    }
   }
 
   handleRowHovered (event) {
@@ -78,7 +99,17 @@ export default class PropertyRow extends React.Component {
           opacity: (this.props.row.isHidden()) ? 0.5 : 1.0,
           position: 'relative'
         }}>
-        <div style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? { position: 'sticky', top: 0, left: 0, width: this.props.timeline.getPropertiesPixelWidth(), zIndex: zIndex.propertyRowHeading.base, backgroundColor: Palette.GRAY } : {})}>
+        <div style={(experimentIsEnabled(Experiment.NativeTimelineScroll)
+            ? {
+              position: 'sticky',
+              top: 0,
+              left: 0,
+              width: this.props.timeline.getPropertiesPixelWidth(),
+              // Increase the z-index over the other rows to show the pink border around the selected field,
+              // we need to do this here because we are defining a new stacking context with `position: sticky`
+              zIndex: this.props.row === this.props.row.component.getSelectedRow() ? (zIndex.propertyRowHeading.base + 1) : zIndex.propertyRowHeading.base,
+              backgroundColor: Palette.GRAY
+            } : {})}>
           <div
             onClick={(clickEvent) => {
               // Allow clicking the subproperty of a cluster to collapse the parent row,
@@ -142,7 +173,6 @@ export default class PropertyRow extends React.Component {
               textAlign: 'left'
             }}>
             <PropertyInputField
-              parent={this}
               row={this.props.row}
               index={this.props.row.getAddress()}
               height={this.props.rowHeight}
