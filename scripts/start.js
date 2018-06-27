@@ -64,11 +64,14 @@ const FOLDER_CHOICES = {
   'mc4-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/mc4'),
   'mc-anim1-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/mc-anim1'),
   'Bricks-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/Bricks'),
+  'repeat-1-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/repeat-1'),
+  'repeat-2-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/repeat-2'),
   'complex-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/complex'),
   'SuperComplex-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/SuperComplex'),
   'AliensRepro-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/AliensRepro'),
   'Move-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/Move'),
-  'metapoem2-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/metapoem2')
+  'metapoem2-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/metapoem2'),
+  'text-content-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/text-content')
 }
 
 // Support:
@@ -82,7 +85,7 @@ if (argv.default === true) {
 }
 
 const availablePresets = {
-  glass: 'Bricks-glass',
+  glass: 'percy-glass',
   timeline: 'complex-timeline',
   blank: 'blank',
   'blank-noclean': 'blank-noclean'
