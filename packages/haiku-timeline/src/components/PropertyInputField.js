@@ -72,7 +72,7 @@ export default class PropertyInputField extends React.Component {
             color: 'transparent',
             textShadow: '0 0 0 ' + Color(Palette.ROCK).fade(0.3), // darkmagic
             width: CELL_WIDTH,
-            height: this.props.rowHeight + 1,
+            height: experimentIsEnabled(Experiment.NativeTimelineScroll) ? this.props.rowHeight : this.props.rowHeight + 1,
             paddingLeft: 7,
             paddingTop: 3,
             zIndex: 1004,
