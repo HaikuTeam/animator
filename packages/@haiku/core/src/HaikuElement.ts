@@ -42,7 +42,7 @@ export default class HaikuElement extends HaikuBase {
     return (this.node && this.node.children) || [];
   }
 
-  get children (): any {
+  get children (): HaikuElement[] {
     return this.childNodes.map((childNode) => {
       // To avoid unnecessary up-front work, we create HaikuElement instances
       // on demand rather than hydrating the collection on load
@@ -542,20 +542,29 @@ export default class HaikuElement extends HaikuBase {
     );
   }
 
-  visit (iteratee: Function, filter?: Function) {
-    if (iteratee(this) !== false) {
+  visit (iteratee: Function, filter?: (value: HaikuElement, index: number, array: HaikuElement[]) => boolean) {
+    const result = iteratee(this);
+    if (result !== false) {
       return this.visitDescendants(iteratee, filter);
     }
+    return result;
   }
 
-  visitDescendants (iteratee: Function, filter?: Function) {
+  visitDescendants (
+    iteratee: Function,
+    filter?: (value: HaikuElement, index: number, array: HaikuElement[]) => boolean,
+  ) {
     const children = filter ? this.children.filter(filter) : this.children;
 
     for (let i = 0; i < children.length; i++) {
-      if (children[i].visit(iteratee, filter) === false) {
-        break;
+      const result = children[i].visit(iteratee, filter);
+
+      if (result === false) {
+        return result;
       }
     }
+
+    return true;
   }
 
   querySelector (selector: string): any {
