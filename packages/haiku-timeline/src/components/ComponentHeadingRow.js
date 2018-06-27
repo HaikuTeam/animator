@@ -238,7 +238,8 @@ export default class ComponentHeadingRow extends React.Component {
                 experimentIsEnabled(Experiment.NativeTimelineScroll)
                   ? {
                     display: this.props.isExpanded ? 'flex' : 'none',
-                    alignItems: 'center'
+                    alignItems: 'center',
+                    marginLeft: this.props.isExpanded ? 35 : undefined,
                   } : (
                     this.props.isExpanded
                       ? {
@@ -254,13 +255,16 @@ export default class ComponentHeadingRow extends React.Component {
             >
               <div
                 className='design-sync-button'
-                style={{
+                style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+                  display: this.props.row.element.getSource() ? 'block' : 'none',
+                  width: 16
+                } : {
                   width: 10,
                   position: 'absolute',
                   left: 0,
                   top: 0,
                   display: this.props.row.element.getSource() ? 'block' : 'none'
-                }}
+                })}
                 onClick={this.toggleSync.bind(this)}
                 title={this.props.row.element.isLocked()
                   ? 'Syncing is disabled for this element. Click to revert your changes and reenable syncing.'
