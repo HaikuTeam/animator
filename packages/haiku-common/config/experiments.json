@@ -20,7 +20,7 @@
   "CrashOnIpcIntegrityCheckFailure": true,
   "IncludeSourceInIntegrityHash": false,
   "OrderedActionStack": false,
-  "CodeEditorInCreator": true,
+  "CodeEditor": true,
   "WarnOnUndefinedStateVariables": true,
   "NativeTimelineScroll": true,
   "TimelineMarqueeSelection": true
