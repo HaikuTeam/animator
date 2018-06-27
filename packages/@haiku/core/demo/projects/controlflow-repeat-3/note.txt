@@ -1,0 +1,1 @@
+Behavior should be the exact same as controlflow-repeat-2, even though the implementation in bytecode is different.
