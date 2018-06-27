@@ -49,10 +49,28 @@ module.exports = {
             edited: true
           }
         },
+        "controlFlow.if": {
+          "0": {
+            value: true
+          },
+          "200": {
+            value: false
+          },
+          "500": {
+            value: true
+          }
+        },
         "translation.x": {
           "0": {
             value: Haiku.inject(function($flow) {
               return $flow.repeat.payload.x
+            }, '$flow'),
+            curve: 'linear',
+            edited: true
+          },
+          "1000": {
+            value: Haiku.inject(function($flow) {
+              return $flow.repeat.payload.x + 100
             }, '$flow'),
             edited: true
           }
@@ -173,11 +191,26 @@ module.exports = {
             edited: true
           }
         },
+        "controlFlow.if": {
+          "0": {
+            value: false
+          },
+          "100": {
+            value: true
+          },
+          "300": {
+            value: false
+          },
+          "500": {
+            value: true
+          }
+        },
         "translation.x": {
           "0": {
             value: Haiku.inject(function($flow) {
               return $flow.repeat.payload.x
             }, '$flow'),
+            curve: 'easeInOutElastic',
             edited: true
           }
         },
@@ -185,6 +218,13 @@ module.exports = {
           "0": {
             value: Haiku.inject(function($flow) {
               return $flow.repeat.payload.y
+            }, '$flow'),
+            curve: 'easeInOutElastic',
+            edited: true
+          },
+          "1000": {
+            value: Haiku.inject(function($flow) {
+              return $flow.repeat.payload.y + 200
             }, '$flow'),
             edited: true
           }
