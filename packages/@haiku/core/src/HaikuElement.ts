@@ -1,7 +1,18 @@
+import {
+  ComputedLayoutSpec,
+  LayoutSpec,
+} from './api/Layout';
 import HaikuBase from './HaikuBase';
 import HaikuComponent from './HaikuComponent';
 import {cssMatchOne} from './HaikuNode';
-import Layout3D from './Layout3D';
+import Layout3D, {
+  BoundsSpec,
+  BoundsSpecX,
+  BoundsSpecY,
+  BoundsSpecZ,
+  RotationVector3DSpec,
+  Vector3DSpec,
+} from './Layout3D';
 
 export const HAIKU_ID_ATTRIBUTE = 'haiku-id';
 export const HAIKU_TITLE_ATTRIBUTE = 'haiku-title';
@@ -118,7 +129,7 @@ export default class HaikuElement extends HaikuBase {
     return this.parentNode && HaikuElement.findOrCreateByNode(this.parentNode);
   }
 
-  get layout (): any {
+  get layout (): ComputedLayoutSpec {
     return this.node && this.node.layout && this.node.layout.computed;
   }
 
@@ -146,7 +157,7 @@ export default class HaikuElement extends HaikuBase {
   }
 
   get layoutAncestryMatrices (): number[][] {
-    return this.layoutAncestry.map((layout) => layout.matrix);
+    return this.layoutAncestry.filter((layout) => !!layout.matrix).map((layout) => layout.matrix);
   }
 
   get rootSVG (): HaikuElement {
@@ -199,43 +210,39 @@ export default class HaikuElement extends HaikuBase {
     return out;
   }
 
-  get rawLayout (): any {
+  get rawLayout (): LayoutSpec {
     return this.node && this.node.layout;
   }
 
-  get translation (): any {
+  get translation (): Vector3DSpec {
     return (this.layout && this.layout.translation) || {...LAYOUT_DEFAULTS.translation};
   }
 
-  get rotation (): any {
+  get rotation (): RotationVector3DSpec {
     return (this.layout && this.layout.rotation) || {...LAYOUT_DEFAULTS.rotation};
   }
 
-  get scale (): any {
+  get scale (): Vector3DSpec {
     return (this.layout && this.layout.scale) || {...LAYOUT_DEFAULTS.scale};
   }
 
-  get origin (): any {
+  get origin (): Vector3DSpec {
     return (this.layout && this.layout.origin) || {...LAYOUT_DEFAULTS.origin};
   }
 
-  get mount (): any {
+  get mount (): Vector3DSpec {
     return (this.layout && this.layout.mount) || {...LAYOUT_DEFAULTS.mount};
   }
 
-  get align (): any {
+  get align (): Vector3DSpec {
     return (this.layout && this.layout.align) || {...LAYOUT_DEFAULTS.align};
-  }
-
-  get size (): any {
-    return (this.layout && this.layout.size) || {...LAYOUT_DEFAULTS.sizeAbsolute};
   }
 
   get targets (): any[] {
     return (this.node && this.node.__targets) || [];
   }
 
-  get target (): any {
+  get target () {
     // Assume the most recently added target is the canonical target due to an implementation
     // detail in the Haiku editing environment; FIXME. On 3 Jun 2018 was changed from the first
     // added to the last added one to fix a bug related to ungrouping
@@ -290,18 +297,6 @@ export default class HaikuElement extends HaikuBase {
     return this.translation && this.translation.z;
   }
 
-  get sizeX (): number {
-    return this.size && this.size.x;
-  }
-
-  get sizeY (): number {
-    return this.size && this.size.y;
-  }
-
-  get sizeZ (): number {
-    return this.size && this.size.z;
-  }
-
   get originX (): number {
     return this.origin && this.origin.x;
   }
@@ -336,6 +331,173 @@ export default class HaikuElement extends HaikuBase {
 
   get alignZ (): number {
     return this.align && this.align.z;
+  }
+
+  /**
+   * @description Returns the size as computed when the layout was last rendered.
+   */
+  get sizePrecomputed (): Vector3DSpec {
+    return this.layout && this.layout.size;
+  }
+
+  get sizePrecomputedX (): number {
+    return this.sizePrecomputed && this.sizePrecomputed.x;
+  }
+
+  get sizePrecomputedY (): number {
+    return this.sizePrecomputed && this.sizePrecomputed.y;
+  }
+
+  get sizePrecomputedZ (): number {
+    return this.sizePrecomputed && this.sizePrecomputed.z;
+  }
+
+  get size (): Vector3DSpec {
+    return {
+      x: this.sizeX,
+      y: this.sizeY,
+      z: this.sizeZ,
+    };
+  }
+
+  get sizeX (): number {
+    return this.computeSizeX();
+  }
+
+  get sizeY (): number {
+    return this.computeSizeY();
+  }
+
+  get sizeZ (): number {
+    return this.computeSizeZ();
+  }
+
+  get sizeAbsolute (): Vector3DSpec {
+    return (this.rawLayout && this.rawLayout.sizeAbsolute) || {...LAYOUT_DEFAULTS.sizeAbsolute};
+  }
+
+  get sizeAbsoluteX (): number {
+    return this.sizeAbsolute && this.sizeAbsolute.x;
+  }
+
+  get sizeAbsoluteY (): number {
+    return this.sizeAbsolute && this.sizeAbsolute.y;
+  }
+
+  get sizeAbsoluteZ (): number {
+    return this.sizeAbsolute && this.sizeAbsolute.z;
+  }
+
+  computeSize (): Vector3DSpec {
+    return {
+      x: this.computeSizeX(),
+      y: this.computeSizeY(),
+      z: this.computeSizeZ(),
+    };
+  }
+
+  computeContentBounds (): BoundsSpec {
+    return {
+      ...this.computeContentBoundsX(),
+      ...this.computeContentBoundsY(),
+      ...this.computeContentBoundsZ(),
+    };
+  }
+
+  computeContentBoundsX (): BoundsSpecX {
+    const lefts = [];
+    const rights = [];
+
+    const children = this.children;
+
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
+
+      // These fields should account for the child's translation, rotation, scale, etc.
+      const {
+        left,
+        right,
+      } = child.getBoundingClientRectUsingOnlyLocalTransform();
+
+      lefts.push(left);
+      rights.push(right);
+    }
+
+    return {
+      left: Math.min.apply(Math, lefts),
+      right: Math.max.apply(Math, rights),
+    };
+  }
+
+  computeContentBoundsY (): BoundsSpecY {
+    const tops = [];
+    const bottoms = [];
+
+    const children = this.children;
+
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
+
+      // These fields should account for the child's translation, rotation, scale, etc.
+      const {
+        top,
+        bottom,
+      } = child.getBoundingClientRectUsingOnlyLocalTransform();
+
+      tops.push(top);
+      bottoms.push(bottom);
+    }
+
+    return {
+      top: Math.min.apply(Math, tops),
+      bottom: Math.max.apply(Math, bottoms),
+    };
+  }
+
+  computeContentBoundsZ (): BoundsSpecZ {
+    return {
+      front: 0,
+      back: 0,
+    };
+  }
+
+  computeSizeX (): number {
+    const x = numberOrNull(this.sizeAbsolute.x);
+
+    // If explicitly and numerically defined, we simply return the size
+    if (typeof x === 'number') {
+      return x;
+    }
+
+    const {left, right} = this.computeContentBoundsX();
+
+    return right - left;
+  }
+
+  computeSizeY (): number {
+    const y = numberOrNull(this.sizeAbsolute.y);
+
+    // If explicitly and numerically defined, we simply return the size
+    if (typeof y === 'number') {
+      return y;
+    }
+
+    const {top, bottom} = this.computeContentBoundsY();
+
+    return bottom - top;
+  }
+
+  computeSizeZ (): number {
+    const z = numberOrNull(this.sizeAbsolute.z);
+
+    // If explicitly and numerically defined, we simply return the size
+    if (typeof z === 'number') {
+      return z;
+    }
+
+    const {front, back} = this.computeContentBoundsZ();
+
+    return back - front;
   }
 
   getComponentId (): string {
@@ -551,3 +713,7 @@ export default class HaikuElement extends HaikuBase {
     return HaikuElement.createByNode(node);
   };
 }
+
+const numberOrNull = (n): number|null => {
+  return typeof n === 'number' ? n : null;
+};

@@ -42,8 +42,10 @@ export interface LayoutSpec {
     yz: number;
   };
 
-  computed?: LayoutSpec & {
-    matrix: Mat4;
-    size: ThreeDimensionalLayoutProperty;
-  };
+  computed?: ComputedLayoutSpec;
+}
+
+export interface ComputedLayoutSpec extends LayoutSpec {
+  matrix: Mat4;
+  size: ThreeDimensionalLayoutProperty;
 }
