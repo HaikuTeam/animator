@@ -1142,9 +1142,8 @@ class Timeline extends React.Component {
         <div
           key='gauge'
           style={{
-            height: 35,
+            height: 24,
             backgroundColor: Palette.COAL,
-            paddingTop: 12,
             position: 'sticky',
             top: 0,
             marginLeft: this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth(),

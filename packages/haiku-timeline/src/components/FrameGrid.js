@@ -81,7 +81,9 @@ export default class FrameGrid extends React.Component {
         id='frame-grid'
         style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
           position: 'sticky',
-          top: 0
+          top: 0,
+          height: 12,
+          backgroundColor: Palette.COAL
         } : {
           overflow: 'hidden'
         })}
