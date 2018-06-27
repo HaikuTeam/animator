@@ -487,7 +487,6 @@ class Timeline extends React.Component {
         if (pxInTimeline < 0) {
           pxInTimeline = 0
         }
-
         if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
           frameForPx = Math.round(pxInTimeline / frameInfo.pxpf)
         } else {
@@ -1188,6 +1187,7 @@ class Timeline extends React.Component {
             borderBottom: '1px solid ' + Palette.FATHER_COAL,
             backgroundColor: Palette.COAL
           }}
+          onMouseDown={this.onGaugeMouseDown}
         >
           <div
             className='gauge-timekeeping-wrapper'
@@ -1207,22 +1207,12 @@ class Timeline extends React.Component {
             <div
               id='gauge-box'
               className='gauge-box'
-              onMouseDown={(event) => {
-                event.persist()
-
-                this._doHandleMouseMovesInGauge = true
-                this.disableTimelinePointerEvents()
-                this.mouseMoveListener(event)
-              }}
+              onMouseDown={this.onGaugeMouseDown}
               style={{
                 position: 'absolute',
                 top: 0,
-                left: this.getActiveComponent()
-                  .getCurrentTimeline()
-                  .getPropertiesPixelWidth(),
-                width: this.getActiveComponent()
-                  .getCurrentTimeline()
-                  .getTimelinePixelWidth(),
+                left: this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth(),
+                width: this.getActiveComponent().getCurrentTimeline().getTimelinePixelWidth(),
                 height: 'inherit',
                 verticalAlign: 'top',
                 paddingTop: 12,

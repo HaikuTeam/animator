@@ -99,7 +99,7 @@ export default class FrameGrid extends React.Component {
                       ? borderLeftHighlighted
                       : borderLeftNormal,
                   position: 'absolute',
-                  left: pixelOffsetLeft + propertiesWidth,
+                  left: experimentIsEnabled(Experiment.NativeTimelineScroll) ? (pixelOffsetLeft + propertiesWidth) : pixelOffsetLeft,
                   top: 34
                 }}
               >

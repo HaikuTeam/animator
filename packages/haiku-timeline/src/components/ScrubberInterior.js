@@ -81,11 +81,11 @@ export default class ScrubberInterior extends React.Component {
             height: 19,
             width: 19,
             top: 13,
-            left: propertiesWidth + pxOffset - 9,
+            left: experimentIsEnabled(Experiment.NativeTimelineScroll) ? (propertiesWidth + pxOffset - 9) : pxOffset - 9,
             borderRadius: '50%',
             cursor: 'move',
-            boxShadow: '0 0 2px 0 rgba(0, 0, 0, .9)'
-            // zIndex: 999999
+            boxShadow: '0 0 2px 0 rgba(0, 0, 0, .9)',
+            zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : 2006
           }}>
           <span style={{
             position: 'absolute',
@@ -97,7 +97,7 @@ export default class ScrubberInterior extends React.Component {
           </span>
           <span style={{
             position: 'absolute',
-            // zIndex: 999999,
+            zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : 2006,
             width: 0,
             height: 0,
             top: 15,
@@ -108,7 +108,7 @@ export default class ScrubberInterior extends React.Component {
           }} />
           <span style={{
             position: 'absolute',
-            // zIndex: 999999,
+            zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : 2006,
             width: 0,
             height: 0,
             left: 2,
@@ -126,7 +126,7 @@ export default class ScrubberInterior extends React.Component {
             height: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'calc(100vh - 80px)' : 9999,
             width: 1,
             top: 35,
-            left: pxOffset + propertiesWidth,
+            left: experimentIsEnabled(Experiment.NativeTimelineScroll) ? (pxOffset + propertiesWidth) : pxOffset,
             pointerEvents: 'none'
           }} />
       </div>
@@ -137,5 +137,5 @@ export default class ScrubberInterior extends React.Component {
 ScrubberInterior.propTypes = {
   isScrubbing: React.PropTypes.bool.isRequired,
   timeline: React.PropTypes.object.isRequired,
-  onMouseDown: React.PropTypes.func.isRequired
+  onMouseDown: React.PropTypes.func
 }
