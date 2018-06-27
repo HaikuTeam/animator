@@ -219,5 +219,17 @@ export default class HaikuClock extends HaikuBase {
     }
   }
 
+  get frameDuration (): number {
+    return this.options.frameDuration;
+  }
+
+  get frameDelay (): number {
+    return this.options.frameDelay;
+  }
+
+  get time (): number {
+    return this.getExplicitTime();
+  }
+
   static __name__ = 'HaikuClock';
 }

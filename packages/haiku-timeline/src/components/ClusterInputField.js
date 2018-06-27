@@ -1,6 +1,7 @@
 import React from 'react'
 import lodash from 'lodash'
 import Palette from 'haiku-ui-common/lib/Palette'
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 
 export default class ClusterInputField extends React.Component {
   render () {
@@ -8,7 +9,7 @@ export default class ClusterInputField extends React.Component {
       <div
         className='property-cluster-input-field no-select'
         style={{
-          width: 83,
+          width: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 82 : 83,
           margin: 0,
           color: 'transparent',
           textShadow: '0 0 0 ' + Palette.DARK_ROCK,
@@ -79,9 +80,21 @@ class ClusterInputFieldValueDisplay extends React.Component {
 
 function remapPrettyValue (prettyValue) {
   if (prettyValue && prettyValue.render === 'react') {
-    return <span style={prettyValue.style}>{prettyValue.text}</span>
+    return <span style={prettyValue.style}>{safeText(prettyValue.text)}</span>
   }
-  return prettyValue
+  return safeText(prettyValue)
+}
+
+function safeText (textOrObj) {
+  if (typeof textOrObj === 'string') {
+    return textOrObj
+  }
+
+  try {
+    return JSON.stringify(textOrObj)
+  } catch (exception) {
+    return '?'
+  }
 }
 
 ClusterInputField.propTypes = {

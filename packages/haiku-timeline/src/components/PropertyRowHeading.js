@@ -1,6 +1,7 @@
 import React from 'react'
 import Palette from 'haiku-ui-common/lib/Palette'
 import StatesSVG from 'haiku-ui-common/lib/react/icons/StatesSVG'
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 
 export default class PropertyRowHeading extends React.Component {
   constructor (props) {
@@ -55,24 +56,27 @@ export default class PropertyRowHeading extends React.Component {
     }
 
     return (
-      <div style={{
-        position: 'relative',
-        textTransform: 'uppercase',
-        fontSize,
-        lineHeight: 1,
-        right: 0,
-        color: (this.props.row.isHovered())
+      <div
+        className='property-row-label-box'
+        style={{
+          position: 'relative',
+          textTransform: 'uppercase',
+          fontSize,
+          lineHeight: 1,
+          right: 0,
+          color: (this.props.row.isHovered())
           ? Palette.SUNSTONE
           : Palette.ROCK,
-        transform: this.props.humanName === 'background color'
+          transform: this.props.humanName === 'background color'
           ? 'translateY(-2px)'
           : 'translateY(3px)'
-      }}>
+        }}>
         {this.renderIcon()}
         <span
+          className='property-row-label-text'
           style={{
             display: 'inline-block',
-            width: 55,
+            width: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : 55,
             textAlign: 'right',
             marginTop
           }}>

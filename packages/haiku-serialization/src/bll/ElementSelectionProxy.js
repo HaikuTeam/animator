@@ -5,6 +5,7 @@ const {rounded, transformFourVectorByMatrix} = require('./MathUtils')
 const TransformCache = require('./TransformCache')
 const {default: computeMatrix} = require('@haiku/core/lib/layout/computeMatrix')
 const {default: Layout3D} = require('@haiku/core/lib/Layout3D')
+const {default: HaikuElement} = require('@haiku/core/lib/HaikuElement')
 const {default: composedTransformsToTimelineProperties} = require('@haiku/core/lib/helpers/composedTransformsToTimelineProperties')
 const {default: invertMatrix} = require('@haiku/core/lib/vendor/gl-mat4/invert')
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
@@ -54,8 +55,15 @@ class ElementSelectionProxy extends BaseModel {
       return
     }
 
-    const boxPoints = Element.getBoundingBoxPoints(
-      this.selection.map((element) => element.getBoxPointsTransformed()).reduce((accumulator, boxPoints) => {
+    // After ungrouping, the live rendered node of the <group> won't be available,
+    // thus no boinding points to compute, thus we should early return.
+    const elements = this.selection.filter((element) => !!element.getLiveRenderedNode())
+    if (elements.length < 1) {
+      return
+    }
+
+    const boxPoints = HaikuElement.getBoundingBoxPoints(
+      elements.map((element) => element.getBoxPointsTransformed()).reduce((accumulator, boxPoints) => {
         accumulator.push(...boxPoints)
         return accumulator
       }, [])
@@ -346,7 +354,7 @@ class ElementSelectionProxy extends BaseModel {
     shimLayout.rotation.z = -computedLayout.rotation.z
     shimLayout.origin = computedLayout.origin
     const ignoredSize = {x: 0, y: 0, z: 0}
-    const shimMatrix = computeMatrix(shimLayout, Layout3D.createMatrix(), computedLayout.size, ignoredSize)
+    const shimMatrix = Layout3D.computeMatrix(shimLayout, Layout3D.createMatrix(), computedLayout.size, ignoredSize)
     shimMatrix[12] = -(boxPoint.x * shimMatrix[0] + boxPoint.y * shimMatrix[4])
     shimMatrix[13] = -(boxPoint.x * shimMatrix[1] + boxPoint.y * shimMatrix[5])
     const groupMana = {
@@ -439,7 +447,7 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   getBoundingBoxPoints () {
-    return Element.getBoundingBoxPoints(
+    return HaikuElement.getBoundingBoxPoints(
       this.selection.map((element) => element.getBoxPointsTransformed()).reduce((accumulator, boxPoints) => {
         accumulator.push(...boxPoints)
         return accumulator
@@ -455,7 +463,7 @@ class ElementSelectionProxy extends BaseModel {
       }
 
       const layout = this.getComputedLayout()
-      return Element.transformPointInPlace(
+      return HaikuElement.transformPointInPlace(
         {
           x: layout.size.x * layout.origin.x,
           y: layout.size.y * layout.origin.y,
@@ -533,7 +541,7 @@ class ElementSelectionProxy extends BaseModel {
         return this.selection[0].getBoxPointsTransformed()
       }
 
-      return Element.transformPointsInPlace(
+      return HaikuElement.transformPointsInPlace(
         this.getBoxPointsNotTransformed(),
         this.getComputedLayout().matrix
       )
@@ -549,7 +557,7 @@ class ElementSelectionProxy extends BaseModel {
         y: yOffset * Math.sign(layout.scale.y),
         z: 0
       }
-      Element.transformPointInPlace(offset, orthonormalBasisMatrix)
+      HaikuElement.transformPointInPlace(offset, orthonormalBasisMatrix)
       const basisPoint = this.getBoxPointsTransformed()[basisPointIndex]
 
       return {
@@ -562,24 +570,7 @@ class ElementSelectionProxy extends BaseModel {
 
   getBoundingClientRect () {
     const points = this.getBoxPointsTransformed()
-
-    const left = Math.min(points[0].x, points[2].x, points[6].x, points[8].x)
-    const right = Math.max(points[0].x, points[2].x, points[6].x, points[8].x)
-    const top = Math.min(points[0].y, points[2].y, points[6].y, points[8].y)
-    const bottom = Math.max(points[0].y, points[2].y, points[6].y, points[8].y)
-    const width = Math.abs(left - right)
-    const height = Math.abs(bottom - top)
-
-    const proxyRect = {
-      left,
-      right,
-      top,
-      bottom,
-      width,
-      height
-    }
-
-    return proxyRect
+    return HaikuElement.getRectFromPoints(points)
   }
 
   getElementOrProxyPropertyValue (key) {
@@ -749,6 +740,7 @@ class ElementSelectionProxy extends BaseModel {
     )
     targetElement.component.updateKeyframes(
       accumulatedUpdates,
+      {},
       this.component.project.getMetadata(),
       () => {
         this.clearAllRelatedCaches()
@@ -792,6 +784,7 @@ class ElementSelectionProxy extends BaseModel {
 
     this.component.updateKeyframes(
       accumulatedUpdates,
+      {},
       this.component.project.getMetadata(),
       () => {} // no-op
     )
@@ -837,6 +830,7 @@ class ElementSelectionProxy extends BaseModel {
 
     this.component.updateKeyframes(
       accumulatedUpdates,
+      {},
       this.component.project.getMetadata(),
       () => {} // no-op
     )
@@ -980,6 +974,7 @@ class ElementSelectionProxy extends BaseModel {
 
     this.component.updateKeyframes(
       accumulatedUpdates,
+      {},
       this.component.project.getMetadata(),
       () => {
         this.clearAllRelatedCaches()
@@ -1106,6 +1101,7 @@ class ElementSelectionProxy extends BaseModel {
 
     this.component.updateKeyframes(
       accumulatedUpdates,
+      {},
       this.component.project.getMetadata(),
       () => {
         this.clearAllRelatedCaches()
@@ -1164,6 +1160,7 @@ class ElementSelectionProxy extends BaseModel {
 
     this.component.updateKeyframes(
       accumulatedUpdates,
+      {},
       this.component.project.getMetadata(),
       () => {
         this.clearAllRelatedCaches()
@@ -1395,7 +1392,7 @@ ElementSelectionProxy.computeScalePropertyGroup = (
     const scaledBasisMatrix = Layout3D.computeScaledBasisMatrix(targetLayout.rotation, targetLayout.scale, targetLayout.shear)
     const scaledBasisMatrixInverted = new Float32Array(16)
     invertMatrix(scaledBasisMatrixInverted, scaledBasisMatrix)
-    Element.transformPointInPlace(delta, scaledBasisMatrixInverted)
+    HaikuElement.transformPointInPlace(delta, scaledBasisMatrixInverted)
     const activeAxes = ElementSelectionProxy.activeAxesFromActivationPoint(activationPoint)
 
     delta.x *= activeAxes[0]
@@ -1425,14 +1422,14 @@ ElementSelectionProxy.computeScalePropertyGroup = (
       }
     }
 
-    Element.transformPointInPlace(delta, scaledBasisMatrix)
+    HaikuElement.transformPointInPlace(delta, scaledBasisMatrix)
   }
 
   const layoutMatrix = targetLayout.matrix
   const layoutMatrixInverted = new Float32Array(16)
   invertMatrix(layoutMatrixInverted, layoutMatrix)
-  Element.transformPointInPlace(fixedPoint, layoutMatrixInverted)
-  Element.transformPointInPlace(translatedPoint, layoutMatrixInverted)
+  HaikuElement.transformPointInPlace(fixedPoint, layoutMatrixInverted)
+  HaikuElement.transformPointInPlace(translatedPoint, layoutMatrixInverted)
 
   // To save CPU cycles and rounding errors, armed with the knowledge that a set of four unique deltas in scale.x,
   // scale.y, translation.x, and translation.y will fix our "fixed point" and translate our "translated point" exactly
@@ -1535,7 +1532,7 @@ ElementSelectionProxy.computeRotationPropertyGroup = (element, rotationZDelta, f
     y: targetOrigin.y - fixedPoint.y,
     z: targetOrigin.z - fixedPoint.z
   }
-  Element.transformPointInPlace(ray, matrix)
+  HaikuElement.transformPointInPlace(ray, matrix)
 
   const layoutSpec = element.getLayoutSpec()
   const originalRotationMatrix = Layout3D.computeOrthonormalBasisMatrix(layoutSpec.rotation, layoutSpec.shear)

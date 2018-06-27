@@ -112,6 +112,10 @@
   -webkit-app-region: drag;
 }
 
+#timeline::-webkit-scrollbar {
+  width: 0;
+}
+
 button {
   -webkit-app-region: no-drag;
   cursor: pointer;

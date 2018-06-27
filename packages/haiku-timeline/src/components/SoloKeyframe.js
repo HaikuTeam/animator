@@ -1,6 +1,7 @@
 import React from 'react'
 import Palette from 'haiku-ui-common/lib/Palette'
 import KeyframeSVG from 'haiku-ui-common/lib/react/icons/KeyframeSVG'
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 
 export default class SoloKeyframe extends React.Component {
   constructor (props) {
@@ -35,8 +36,9 @@ export default class SoloKeyframe extends React.Component {
     this.teardownKeyframeUpdateReceiver()
   }
 
-  handleUpdate (what) {
+  handleUpdate (what, ...args) {
     if (!this.mounted) return null
+
     if (
       what === 'keyframe-activated' ||
       what === 'keyframe-deactivated' ||
@@ -51,9 +53,17 @@ export default class SoloKeyframe extends React.Component {
 
   render () {
     const frameInfo = this.props.timeline.getFrameInfo()
-    const leftPx = this.props.keyframe.getPixelOffsetLeft(frameInfo.friA, frameInfo.pxpf, frameInfo.mspf)
+    const leftPx = experimentIsEnabled(Experiment.TimelineMarqueeSelection)
+      ? this.props.keyframe.getPixelOffsetLeft(0, frameInfo.pxpf, frameInfo.mspf)
+      : this.props.keyframe.getPixelOffsetLeft(frameInfo.friA, frameInfo.pxpf, frameInfo.mspf)
+
     return (
       <span
+        ref={(el) => {
+          if (el && experimentIsEnabled(Experiment.TimelineMarqueeSelection)) {
+            this.props.keyframe.storeViewPosition(el.getBoundingClientRect())
+          }
+        }}
         id={`solo-keyframe-${this.props.keyframe.getUniqueKey()}`}
         style={{
           position: 'absolute',

@@ -2,10 +2,10 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import manaToXml from '../../helpers/manaToXml';
 import HaikuDOMRenderer, {MountLayout} from '../dom/HaikuDOMRenderer';
 import HaikuBase from './../../HaikuBase';
 import HaikuComponent from './../../HaikuComponent';
+import {manaToXml} from './../../HaikuNode';
 import VirtualNode, {VirtualDoc} from './VirtualNode';
 
 export default class HaikuHTMLRenderer extends HaikuBase {

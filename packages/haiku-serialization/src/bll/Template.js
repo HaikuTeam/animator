@@ -2,13 +2,12 @@ const path = require('path')
 const find = require('lodash.find')
 const merge = require('lodash.merge')
 const pascalcase = require('pascalcase')
+const {ATTRS_HYPH_TO_CAMEL} = require('@haiku/core/lib/HaikuComponent')
 const SVGPoints = require('@haiku/core/lib/helpers/SVGPoints').default
 const convertManaLayout = require('@haiku/core/lib/layout/convertManaLayout').default
-const visitManaTree = require('@haiku/core/lib/helpers/visitManaTree').default
-const manaToXml = require('@haiku/core/lib/helpers/manaToXml').default
+const {manaToXml, visitManaTree} = require('@haiku/core/lib/HaikuNode')
 const assign = require('lodash.assign')
 const defaults = require('lodash.defaults')
-const BasicUtils = require('@haiku/core/lib/helpers/BasicUtils').default
 const BaseModel = require('./BaseModel')
 const CryptoUtils = require('./../utils/CryptoUtils')
 const logger = require('haiku-serialization/src/utils/LoggerInstance')
@@ -971,14 +970,36 @@ Template.insertAttributesIntoTimelineGroup = (timelineGroup, timelineTime, given
   }
 }
 
-Template.mergeOne = (timelineGroup, attributeName, attributeValue, timelineTime, mergeStrategy) => {
-  if (!timelineGroup[attributeName]) timelineGroup[attributeName] = {}
-  if (!timelineGroup[attributeName][timelineTime]) timelineGroup[attributeName][timelineTime] = {}
-  Template.mergeAppliedValue(attributeName, timelineGroup[attributeName][timelineTime], attributeValue, mergeStrategy)
+Template.mergeOne = (timelineGroup, nameOrig, attributeValue, timelineTime, mergeStrategy) => {
+  const nameFinal = ATTRS_HYPH_TO_CAMEL[nameOrig] || nameOrig
+
+  if (!timelineGroup[nameFinal]) {
+    timelineGroup[nameFinal] = timelineGroup[nameOrig] || {}
+
+    // Clear off any legacy hyphen-case properties if we swapped for camel-case
+    if (nameOrig !== nameFinal) {
+      delete timelineGroup[nameOrig]
+    }
+  }
+
+  if (!timelineGroup[nameFinal][timelineTime]) {
+    timelineGroup[nameFinal][timelineTime] = {}
+  }
+
+  Template.mergeAppliedValue(
+    nameFinal,
+    timelineGroup[nameFinal][timelineTime],
+    attributeValue,
+    mergeStrategy
+  )
+}
+
+const isObject = (value) => {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
 }
 
 Template.mergeAppliedValue = (name, valueDescriptor, incomingValue, mergeStrategy) => {
-  if (BasicUtils.isObject(valueDescriptor.value) && BasicUtils.isObject(incomingValue) && !isSerializedFunction(valueDescriptor.value) && !isSerializedFunction(incomingValue)) {
+  if (isObject(valueDescriptor.value) && isObject(incomingValue) && !isSerializedFunction(valueDescriptor.value) && !isSerializedFunction(incomingValue)) {
     switch (mergeStrategy) {
       case MERGE_STRATEGIES.assign: assign(valueDescriptor.value, incomingValue); break
       case MERGE_STRATEGIES.defaults: defaults(valueDescriptor.value, incomingValue); break

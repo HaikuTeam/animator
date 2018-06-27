@@ -93,7 +93,7 @@ export default function applyLayout (
     const computedLayout = virtualElement.layout.computed;
 
     // No computed layout means the el is not shown
-    if (!computedLayout || computedLayout.invisible) {
+    if (!computedLayout) {
       if (domElement.style.display !== 'none') {
         domElement.style.display = 'none';
       }

@@ -31,28 +31,25 @@ class CodeEditor extends React.Component {
   }
 
   onProjectModelUpdate (what) {
+    // Updates can take up a lot of CPU, especially for reloads which ultimately result in
+    // a call to File#getCode, which is very heavy, so we don't listen unless we are
+    // actually open, otherwise we get very bad UI jank when these updates happen.
+    if (this.props.showGlass) {
+      return;
+    }
+
     switch (what) {
       case 'reloaded':
-        const ac = this.props.projectModel.getCurrentActiveComponent();
-        if (!ac) {
-          break;
-        }
-
-        const newComponentCode = ac.fetchActiveBytecodeFile().getCode();
-
-        // If component code changed, update it on Editor
-        // TODO: this logic could be migrated in the future to Monaco Editor
-        // getDerivedStateFromProps on react 16+
-        if (newComponentCode !== this.state.currentComponentCode) {
-          // This probably is portable to getDerivedStateFromProps
-          this.setState({currentComponentCode: newComponentCode, currentEditorContents: newComponentCode}, () => {
-            this.onMonacoEditorChange(newComponentCode, null);
-          });
-        } else {
-          this.setState({currentComponentCode: newComponentCode});
-        }
-
+        this.performCodeReload();
         break;
+    }
+  }
+
+  componentWillReceiveProps (nextProps) {
+    // If we were made visible, we may need to force reload code in case we skipped
+    // any updates while we weren't visible
+    if (nextProps.showGlass && this.props.showGlass !== nextProps.showGlass) {
+      this.performCodeReload();
     }
   }
 
@@ -77,6 +74,28 @@ class CodeEditor extends React.Component {
     this.setState({currentEditorContents: newContent}, () => {
       this.props.setNonSavedContentOnCodeEditor(this.state.currentComponentCode !== this.state.currentEditorContents);
     });
+  }
+
+  performCodeReload () {
+    const ac = this.props.projectModel.getCurrentActiveComponent();
+
+    if (!ac) {
+      return;
+    }
+
+    const newComponentCode = ac.fetchActiveBytecodeFile().getCode();
+
+    // If component code changed, update it on Editor
+    // TODO: this logic could be migrated in the future to Monaco Editor
+    // getDerivedStateFromProps on react 16+
+    if (newComponentCode !== this.state.currentComponentCode) {
+      // This probably is portable to getDerivedStateFromProps
+      this.setState({currentComponentCode: newComponentCode, currentEditorContents: newComponentCode}, () => {
+        this.onMonacoEditorChange(newComponentCode, null);
+      });
+    } else {
+      this.setState({currentComponentCode: newComponentCode});
+    }
   }
 
   saveCodeFromEditorToDisk () {

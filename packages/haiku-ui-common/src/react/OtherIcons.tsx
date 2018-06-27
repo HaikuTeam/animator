@@ -506,6 +506,16 @@ export const ComponentIconSVG = ({color = '#94999A'}) => (
   </svg>
 );
 
+export const RepeaterIconSVG = ({color = '#94999A'}) => (
+  <svg width="14" height="14">
+    <g transform="translate(1)" fill="none" fillRule="evenodd">
+      <path d="M9.645.102a.37.37 0 0 0-.511 0 .343.343 0 0 0 0 .495l1.55 1.502h-8.6C1.485 2.1 1 2.57 1 3.15v2.873c0 .018.178-.15.361-.15.178 0 .361.168.361.15V3.15c0-.193.162-.35.361-.35h8.6l-1.55 1.502a.343.343 0 0 0 0 .495.369.369 0 0 0 .511 0l2.168-2.1a.343.343 0 0 0 0-.495L9.645.102zM10.556 8.12v2.73c0 .193-.162.35-.362.35h-8.6l1.55-1.502a.343.343 0 0 0 0-.495.37.37 0 0 0-.51 0l-2.167 2.1a.343.343 0 0 0 0 .495l2.166 2.1a.369.369 0 0 0 .511 0 .343.343 0 0 0 0-.495L1.595 11.9h8.601c.597 0 1.083-.471 1.083-1.05V8.084c0-.084-.722 0-.722.035z" fill="#7DA1A2" fillRule="nonzero"/>
+      <circle stroke="#7DA1A2" strokeWidth=".7" cx="1.35" cy="7" r="1.35"/>
+      <circle stroke="#7DA1A2" strokeWidth=".7" cx="10.9" cy="7" r="1.35"/>
+    </g>
+  </svg>
+);
+
 export const CloseIconSVG = ({color = '#D8D8D8'}) => (
   <svg width="16px" height="16px" viewBox="0 0 16 16">
     <g id="Page-1" stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
