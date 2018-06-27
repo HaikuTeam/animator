@@ -481,7 +481,7 @@ class Timeline extends React.Component {
       if (timeline) {
         const frameInfo = timeline.getFrameInfo()
         if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-          pxInTimeline = mouseMoveEvent.layerX - timeline.getPropertiesPixelWidth()
+          pxInTimeline = mouseMoveEvent.clientX + (this.refs.container.scrollLeft || 0) - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()
         } else {
           pxInTimeline = mouseMoveEvent.clientX - timeline.getPropertiesPixelWidth()
         }
@@ -1256,7 +1256,7 @@ class Timeline extends React.Component {
 
     const frameInfo = this.getActiveComponent().getCurrentTimeline().getFrameInfo()
     const leftX = experimentIsEnabled(Experiment.NativeTimelineScroll)
-      ? (evt.layerX || evt.nativeEvent.layerX)
+      ? evt.clientX + (this.refs.container.scrollLeft || 0) - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()
       : evt.clientX - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()
 
     const frameX = Math.round(leftX / frameInfo.pxpf)
