@@ -50,6 +50,18 @@ export interface ComputedLayoutSpec extends LayoutSpec {
   size: ThreeDimensionalLayoutProperty;
 }
 
+export interface StringableThreeDimensionalLayoutProperty {
+  x: number|string;
+  y: number|string;
+  z: number|string;
+}
+
+export interface TwoPointFiveDimensionalLayoutProperty {
+  x: number;
+  y: number;
+  z?: number;
+}
+
 export interface ClientRect {
   left: number;
   top: number;
@@ -58,3 +70,20 @@ export interface ClientRect {
   width: number;
   height: number;
 }
+
+export interface BoundsSpecX {
+  left: number;
+  right: number;
+}
+
+export interface BoundsSpecY {
+  top: number;
+  bottom: number;
+}
+
+export interface BoundsSpecZ {
+  front: number;
+  back: number;
+}
+
+export interface BoundsSpec extends BoundsSpecX, BoundsSpecY, BoundsSpecZ {}

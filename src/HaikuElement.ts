@@ -1,20 +1,19 @@
 import {
-  ClientRect,
-  ComputedLayoutSpec,
-  LayoutSpec,
-} from './api/Layout';
-import HaikuBase from './HaikuBase';
-import HaikuComponent from './HaikuComponent';
-import {cloneNodeShallow, cssMatchOne} from './HaikuNode';
-import Layout3D, {
   BoundsSpec,
   BoundsSpecX,
   BoundsSpecY,
   BoundsSpecZ,
-  RotationVector3DSpec,
-  Vector2Point5DSpec,
-  Vector3DSpec,
-} from './Layout3D';
+  ClientRect,
+  ComputedLayoutSpec,
+  LayoutSpec,
+  StringableThreeDimensionalLayoutProperty,
+  ThreeDimensionalLayoutProperty,
+  TwoPointFiveDimensionalLayoutProperty,
+} from './api/Layout';
+import HaikuBase from './HaikuBase';
+import HaikuComponent from './HaikuComponent';
+import {cloneNodeShallow, cssMatchOne} from './HaikuNode';
+import Layout3D from './Layout3D';
 
 export const HAIKU_ID_ATTRIBUTE = 'haiku-id';
 export const HAIKU_TITLE_ATTRIBUTE = 'haiku-title';
@@ -216,27 +215,27 @@ export default class HaikuElement extends HaikuBase {
     return this.node && this.node.layout;
   }
 
-  get translation (): Vector3DSpec {
+  get translation (): ThreeDimensionalLayoutProperty {
     return (this.layout && this.layout.translation) || {...LAYOUT_DEFAULTS.translation};
   }
 
-  get rotation (): RotationVector3DSpec {
+  get rotation (): ThreeDimensionalLayoutProperty {
     return (this.layout && this.layout.rotation) || {...LAYOUT_DEFAULTS.rotation};
   }
 
-  get scale (): Vector3DSpec {
+  get scale (): ThreeDimensionalLayoutProperty {
     return (this.layout && this.layout.scale) || {...LAYOUT_DEFAULTS.scale};
   }
 
-  get origin (): Vector3DSpec {
+  get origin (): ThreeDimensionalLayoutProperty {
     return (this.layout && this.layout.origin) || {...LAYOUT_DEFAULTS.origin};
   }
 
-  get mount (): Vector3DSpec {
+  get mount (): ThreeDimensionalLayoutProperty {
     return (this.layout && this.layout.mount) || {...LAYOUT_DEFAULTS.mount};
   }
 
-  get align (): Vector3DSpec {
+  get align (): ThreeDimensionalLayoutProperty {
     return (this.layout && this.layout.align) || {...LAYOUT_DEFAULTS.align};
   }
 
@@ -338,7 +337,7 @@ export default class HaikuElement extends HaikuBase {
   /**
    * @description Returns the size as computed when the layout was last rendered.
    */
-  get sizePrecomputed (): Vector3DSpec {
+  get sizePrecomputed (): ThreeDimensionalLayoutProperty {
     return this.layout && this.layout.size;
   }
 
@@ -354,7 +353,7 @@ export default class HaikuElement extends HaikuBase {
     return this.sizePrecomputed && this.sizePrecomputed.z;
   }
 
-  get size (): Vector3DSpec {
+  get size (): ThreeDimensionalLayoutProperty {
     return {
       x: this.sizeX,
       y: this.sizeY,
@@ -374,23 +373,23 @@ export default class HaikuElement extends HaikuBase {
     return this.computeSizeZ();
   }
 
-  get sizeAbsolute (): Vector3DSpec {
+  get sizeAbsolute (): StringableThreeDimensionalLayoutProperty {
     return (this.rawLayout && this.rawLayout.sizeAbsolute) || {...LAYOUT_DEFAULTS.sizeAbsolute};
   }
 
-  get sizeAbsoluteX (): number {
+  get sizeAbsoluteX (): number|string {
     return this.sizeAbsolute && this.sizeAbsolute.x;
   }
 
-  get sizeAbsoluteY (): number {
+  get sizeAbsoluteY (): number|string {
     return this.sizeAbsolute && this.sizeAbsolute.y;
   }
 
-  get sizeAbsoluteZ (): number {
+  get sizeAbsoluteZ (): number|string {
     return this.sizeAbsolute && this.sizeAbsolute.z;
   }
 
-  computeSize (): Vector3DSpec {
+  computeSize (): ThreeDimensionalLayoutProperty {
     return {
       x: this.computeSizeX(),
       y: this.computeSizeY(),
@@ -464,11 +463,8 @@ export default class HaikuElement extends HaikuBase {
   }
 
   computeSizeX (): number {
-    const x = numberOrNull(this.sizeAbsolute.x);
-
-    // If explicitly and numerically defined, we simply return the size
-    if (typeof x === 'number') {
-      return x;
+    if (typeof this.sizeAbsolute.x === 'number') {
+      return this.sizeAbsolute.x;
     }
 
     const {left, right} = this.computeContentBoundsX();
@@ -477,11 +473,8 @@ export default class HaikuElement extends HaikuBase {
   }
 
   computeSizeY (): number {
-    const y = numberOrNull(this.sizeAbsolute.y);
-
-    // If explicitly and numerically defined, we simply return the size
-    if (typeof y === 'number') {
-      return y;
+    if (typeof this.sizeAbsolute.y === 'number') {
+      return this.sizeAbsolute.y;
     }
 
     const {top, bottom} = this.computeContentBoundsY();
@@ -490,11 +483,8 @@ export default class HaikuElement extends HaikuBase {
   }
 
   computeSizeZ (): number {
-    const z = numberOrNull(this.sizeAbsolute.z);
-
-    // If explicitly and numerically defined, we simply return the size
-    if (typeof z === 'number') {
-      return z;
+    if (typeof this.sizeAbsolute.z === 'number') {
+      return this.sizeAbsolute.z;
     }
 
     const {front, back} = this.computeContentBoundsZ();
@@ -600,7 +590,7 @@ export default class HaikuElement extends HaikuBase {
     });
   }
 
-  getRawBoundingBoxPoints (): Vector3DSpec[] {
+  getRawBoundingBoxPoints (): ThreeDimensionalLayoutProperty[] {
     const {
       x,
       y,
@@ -613,7 +603,7 @@ export default class HaikuElement extends HaikuBase {
     ];
   }
 
-  getLocallyTransformedBoundingBoxPoints (): Vector3DSpec[] {
+  getLocallyTransformedBoundingBoxPoints (): ThreeDimensionalLayoutProperty[] {
     return HaikuElement.transformPointsInPlace(
       this.getRawBoundingBoxPoints(),
       Layout3D.computeLayout(
@@ -637,7 +627,9 @@ export default class HaikuElement extends HaikuBase {
     return out;
   };
 
-  static getRectFromPoints = (points: Vector3DSpec[]|Vector2Point5DSpec[]): ClientRect => {
+  static getRectFromPoints = (
+    points: ThreeDimensionalLayoutProperty[]|TwoPointFiveDimensionalLayoutProperty[],
+  ): ClientRect => {
     const top = Math.min(points[0].y, points[2].y, points[6].y, points[8].y);
     const bottom = Math.max(points[0].y, points[2].y, points[6].y, points[8].y);
     const left = Math.min(points[0].x, points[2].x, points[6].x, points[8].x);
@@ -754,7 +746,3 @@ export default class HaikuElement extends HaikuBase {
     return HaikuElement.createByNode(node);
   };
 }
-
-const numberOrNull = (n): number|null => {
-  return typeof n === 'number' ? n : null;
-};
