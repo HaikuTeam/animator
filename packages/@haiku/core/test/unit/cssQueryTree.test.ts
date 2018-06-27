@@ -2,7 +2,7 @@
 
 import * as tape from 'tape';
 
-import cssQueryTree from '@core/helpers/cssQueryTree';
+import {cssQueryTree} from '@core/HaikuNode';
 
 tape(
   'cssQueryTree',
