@@ -1,5 +1,6 @@
 import HaikuBase from './HaikuBase';
-import cssMatchOne from './helpers/cssMatchOne';
+import HaikuComponent from './HaikuComponent';
+import {cssMatchOne} from './HaikuNode';
 import Layout3D from './Layout3D';
 
 export const HAIKU_ID_ATTRIBUTE = 'haiku-id';
@@ -16,6 +17,8 @@ const CSS_QUERY_MAPPING = {
   attributes: 'attributes',
   children: 'children',
 };
+
+const LAYOUT_DEFAULTS = Layout3D.createLayoutSpec();
 
 export default class HaikuElement extends HaikuBase {
   node;
@@ -82,17 +85,25 @@ export default class HaikuElement extends HaikuBase {
    * @description Returns the HaikuComponent instance that manages nodes below this one.
    * This node is considered the 'wrapper' node and its child is considered the 'root'.
    */
-  get subcomponent (): any {
+  get subcomponent (): HaikuComponent {
     return this.node && this.node.__subcomponent;
   }
 
   /**
-   * @method subcomponent
+   * @method instance
    * @description Returns the HaikuComponent instance that manages this node and those beneath.
    * This node is considered the 'root' node of the instance.
    */
-  get instance (): any {
+  get instance (): HaikuComponent {
     return this.node && this.node.__instance;
+  }
+
+  get owner (): HaikuComponent {
+    if (this.instance) {
+      return this.instance;
+    }
+
+    return this.parent && this.parent.owner;
   }
 
   get instanceContext (): any {
@@ -104,7 +115,7 @@ export default class HaikuElement extends HaikuBase {
   }
 
   get parent (): any {
-    return this.parentNode && this.parentNode.__element;
+    return this.parentNode && HaikuElement.findOrCreateByNode(this.parentNode);
   }
 
   get layout (): any {
@@ -193,31 +204,31 @@ export default class HaikuElement extends HaikuBase {
   }
 
   get translation (): any {
-    return this.layout && this.layout.translation;
+    return (this.layout && this.layout.translation) || {...LAYOUT_DEFAULTS.translation};
   }
 
   get rotation (): any {
-    return this.layout && this.layout.rotation;
+    return (this.layout && this.layout.rotation) || {...LAYOUT_DEFAULTS.rotation};
   }
 
   get scale (): any {
-    return this.layout && this.layout.scale;
+    return (this.layout && this.layout.scale) || {...LAYOUT_DEFAULTS.scale};
   }
 
   get origin (): any {
-    return this.layout && this.layout.origin;
+    return (this.layout && this.layout.origin) || {...LAYOUT_DEFAULTS.origin};
   }
 
   get mount (): any {
-    return this.layout && this.layout.mount;
+    return (this.layout && this.layout.mount) || {...LAYOUT_DEFAULTS.mount};
   }
 
   get align (): any {
-    return this.layout && this.layout.align;
+    return (this.layout && this.layout.align) || {...LAYOUT_DEFAULTS.align};
   }
 
   get size (): any {
-    return this.layout && this.layout.size;
+    return (this.layout && this.layout.size) || {...LAYOUT_DEFAULTS.sizeAbsolute};
   }
 
   get targets (): any[] {
@@ -416,6 +427,86 @@ export default class HaikuElement extends HaikuBase {
     });
   }
 
+  static transformVectorByMatrix = (out, v, m) => {
+    out[0] = m[0] * v[0] + m[4] * v[1] + m[8] * v[2] + m[12];
+    out[1] = m[1] * v[0] + m[5] * v[1] + m[9] * v[2] + m[13];
+    out[2] = m[2] * v[0] + m[6] * v[1] + m[10] * v[2] + m[14];
+    return out;
+  };
+
+  static getRectFromPoints = (points) => {
+    const top = Math.min(points[0].y, points[2].y, points[6].y, points[8].y);
+    const bottom = Math.max(points[0].y, points[2].y, points[6].y, points[8].y);
+    const left = Math.min(points[0].x, points[2].x, points[6].x, points[8].x);
+    const right = Math.max(points[0].x, points[2].x, points[6].x, points[8].x);
+    const width = Math.abs(bottom - top);
+    const height = Math.abs(right - left);
+
+    return {
+      top,
+      right,
+      bottom,
+      left,
+      width,
+      height,
+    };
+  };
+
+  static getBoundingBoxPoints = (points) => {
+    let x1 = points[0].x;
+    let y1 = points[0].y;
+    let x2 = points[0].x;
+    let y2 = points[0].y;
+
+    points.forEach((point) => {
+      if (point.x < x1) {
+        x1 = point.x;
+      } else if (point.x > x2) {
+        x2 = point.x;
+      }
+
+      if (point.y < y1) {
+        y1 = point.y;
+      } else if (point.y > y2) {
+        y2 = point.y;
+      }
+    });
+
+    const w = x2 - x1;
+    const h = y2 - y1;
+
+    return [
+      {x: x1, y: y1, z: 0}, {x: x1 + w / 2, y: y1, z: 0}, {x: x2, y: y1, z: 0},
+      {x: x1, y: y1 + h / 2, z: 0}, {x: x1 + w / 2, y: y1 + h / 2, z: 0}, {x: x2, y: y1 + h / 2, z: 0},
+      {x: x1, y: y2, z: 0}, {x: x1 + w / 2, y: y2, z: 0}, {x: x2, y: y2, z: 0},
+    ];
+  };
+
+  static transformPointsInPlace = (points, matrix) => {
+    for (let i = 0; i < points.length; i++) {
+      HaikuElement.transformPointInPlace(points[i], matrix);
+    }
+    return points;
+  };
+
+  static transformPointInPlace = (point, matrix) => {
+    const offset = HaikuElement.transformVectorByMatrix([], [point.x, point.y, point.z], matrix);
+    point.x = offset[0];
+    point.y = offset[1];
+    point.z = offset[2];
+    return point;
+  };
+
+  static getAncestry = (ancestors: HaikuElement[], element: HaikuElement): HaikuElement[] => {
+    ancestors.unshift(element);
+
+    if (element.parent) {
+      HaikuElement.getAncestry(ancestors, element.parent);
+    }
+
+    return ancestors;
+  };
+
   // tslint:disable-next-line:variable-name
   static __name__ = 'HaikuElement';
 
@@ -450,6 +541,9 @@ export default class HaikuElement extends HaikuBase {
   };
 
   static findOrCreateByNode = (node) => {
+    if (node.__element) {
+      return node.__element;
+    }
     const found = HaikuElement.findByNode(node);
     if (found) {
       return found;

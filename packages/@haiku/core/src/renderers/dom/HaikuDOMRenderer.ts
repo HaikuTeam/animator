@@ -2,7 +2,6 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import allSvgElementNames from '../../helpers/allSvgElementNames';
 import HaikuBase, {GLOBAL_LISTENER_KEY} from './../../HaikuBase';
 import HaikuComponent from './../../HaikuComponent';
 import applyLayout from './applyLayout';
@@ -99,14 +98,14 @@ export default class HaikuDOMRenderer extends HaikuBase {
     );
   }
 
-  patch (component, patches) {
+  patch (component, deltas) {
     // The component upstream may use an empty value to indicate a no-op
-    if (!patches || Object.keys(patches).length < 1) {
+    if (!deltas || Object.keys(deltas).length < 1) {
       return;
     }
 
-    for (const flexId in patches) {
-      const virtualElement = patches[flexId];
+    for (const compositeId in deltas) {
+      const virtualElement = deltas[compositeId];
 
       if (virtualElement.__targets) {
         for (let i = 0; i < virtualElement.__targets.length; i++) {
@@ -400,7 +399,6 @@ export default class HaikuDOMRenderer extends HaikuBase {
     const mount = this.decideMountElement(component, selector, name);
 
     mount.addEventListener(rewritten, (domEvent) => {
-
       // If no explicit selector/target for the event, just fire the listener
       if (
         !selector || selector === GLOBAL_LISTENER_KEY ||
@@ -500,7 +498,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
     const flexId = getFlexId(virtualElement);
 
     let newDomElement;
-    if (allSvgElementNames[tagName]) {
+    if (SVG_ELEMENT_NAMES[tagName]) {
       // SVG
       newDomElement = createSvgElement(domElement, tagName);
     } else {
@@ -638,9 +636,21 @@ export default class HaikuDOMRenderer extends HaikuBase {
       // For performance, we don't render children during a patch operation, except in the case
       // that we have some text content, which we (hack) need to always assume needs an update.
       // TODO: Fix this hack and make smarter
-      const doSkipChildren = isPatchOperation && (typeof virtualElement.children[0] !== 'string');
+      const doSkipChildren = (
+        isPatchOperation &&
+        (typeof virtualElement.children[0] !== 'string') &&
+        // Flush is a per-node signal to perform a full subtree update, used in controlFlow.*
+        !virtualElement.__flush
+      );
+
       HaikuDOMRenderer.renderTree(
-        domElement, virtualElement, virtualElement.children, instance, isPatchOperation, doSkipChildren);
+        domElement,
+        virtualElement,
+        virtualElement.children,
+        instance,
+        isPatchOperation,
+        doSkipChildren,
+      );
     } else if (!virtualElement.children) {
       // In case of falsy virtual children, we still need to remove elements that were already there
       HaikuDOMRenderer.renderTree(domElement, virtualElement, [], instance, isPatchOperation, null);
@@ -750,3 +760,87 @@ export default class HaikuDOMRenderer extends HaikuBase {
 
   static __name__ = 'HaikuDOMRenderer';
 }
+
+const SVG_ELEMENT_NAMES = {
+  a: true,
+  altGlyph: true,
+  altGlyphDef: true,
+  altGlyphItem: true,
+  animate: true,
+  animateColor: true,
+  animateMotion: true,
+  animateTransform: true,
+  circle: true,
+  clipPath: true,
+  'color-profile': true,
+  cursor: true,
+  defs: true,
+  desc: true,
+  discard: true,
+  ellipse: true,
+  feBlend: true,
+  feColorMatrix: true,
+  feComponentTransfer: true,
+  feComposite: true,
+  feConvolveMatrix: true,
+  feDiffuseLighting: true,
+  feDisplacementMap: true,
+  feDistantLight: true,
+  feFlood: true,
+  feFuncA: true,
+  feFuncB: true,
+  feFuncG: true,
+  feFuncR: true,
+  feGaussianBlur: true,
+  feImage: true,
+  feMerge: true,
+  feMergeNode: true,
+  feMorphology: true,
+  feOffset: true,
+  fePointLight: true,
+  feSpecularLighting: true,
+  feSpotLight: true,
+  feTile: true,
+  feTurbulence: true,
+  filter: true,
+  font: true,
+  'font-face': true,
+  'font-face-format': true,
+  'font-face-name': true,
+  'font-face-src': true,
+  'font-face-uri': true,
+  foreignObject: true,
+  g: true,
+  glyph: true,
+  glyphRef: true,
+  hkern: true,
+  image: true,
+  line: true,
+  linearGradient: true,
+  marker: true,
+  mask: true,
+  metadata: true,
+  'missing-glyph': true,
+  mpath: true,
+  path: true,
+  pattern: true,
+  polygon: true,
+  polyline: true,
+  radialGradient: true,
+  rect: true,
+  script: true,
+  set: true,
+  stop: true,
+  style: true,
+  svg: true,
+  switch: true,
+  symbol: true,
+  text: true,
+  textPath: true,
+  title: true,
+  tref: true,
+  tspan: true,
+  use: true,
+  view: true,
+  vkern: true,
+};

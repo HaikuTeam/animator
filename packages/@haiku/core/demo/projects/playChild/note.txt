@@ -1,0 +1,1 @@
+Click the play button. The child should grow. When it reaches full size (frame 41), or when clicked, it should pause. This checks that the host component receives an event emitted by the guest.

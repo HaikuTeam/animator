@@ -42,6 +42,32 @@ module.exports = {
         playback: { "0": { value: "loop" } },
       },
 
+      "haiku:bubtonkillingsworth2": {
+        "controlFlow.repeat": {
+          "0": {
+            value: 2
+          }
+        },
+
+        opacity: {
+          "0": {
+            value: 0
+          }
+        },
+
+        bazzzleDeeBoopla: {
+          "0": {
+            value: [{ x: 0.5, y: 0.5, moveTo: true }, { x: 71.5, y: 58.5 }]
+          },
+
+          "100": {
+            value: [{ x: 0.5, y: 0.5, moveTo: true }, { x: 71.5, y: 58.5 }]
+          }
+        },
+
+        playback: { "0": { value: "loop" } },
+      },
+
       "haiku:f203a65f49c0": {
         shown: {
           "0": { value: false, curve: "linear" },
@@ -300,6 +326,11 @@ module.exports = {
       },
 
       "haiku:f4a5c879f6d5": {
+        "controlFlow.repeat": {
+          "0": {
+            value: [{x: 0, y: 0}]
+          }
+        },
         "translation.x": { "0": { value: 135.5, edited: true } },
         "translation.y": { "0": { value: 100.5, edited: true } },
         "sizeAbsolute.x": { "0": { value: 172 } },
@@ -511,6 +542,16 @@ module.exports = {
         attributes: {
           "haiku-title": "bubtonkillingsworth",
           "haiku-id": "bubtonkillingsworth"
+        },
+
+        children: []
+      },
+
+      {
+        elementName: bubtonkillingsworth,
+        attributes: {
+          "haiku-title": "bubtonkillingsworth2",
+          "haiku-id": "bubtonkillingsworth2"
         },
 
         children: []

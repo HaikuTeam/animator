@@ -2,6 +2,7 @@ import React from 'react'
 import lodash from 'lodash'
 import { DraggableCore } from 'react-draggable'
 import Palette from 'haiku-ui-common/lib/Palette'
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 import TimelineRangeScrollbarPlayheadIndicator from './TimelineRangeScrollbarPlayheadIndicator'
 
 const THROTTLE_TIME = 17 // ms
@@ -46,7 +47,10 @@ export default class TimelineRangeScrollbar extends React.Component {
 
   handleUpdate (what) {
     if (!this.mounted) return null
-    if (what === 'timeline-frame-range') {
+    if (
+      what === 'timeline-frame-range' ||
+      what === 'timeline-scroll'
+    ) {
       this.forceUpdate()
     }
   }
@@ -64,7 +68,11 @@ export default class TimelineRangeScrollbar extends React.Component {
   onDragContainer (dragEvent, dragData) {
     // Don't drag on the body if we're already dragging on the ends
     if (!this.props.timeline.getScrollerLeftDragStart() && !this.props.timeline.getScrollerRightDragStart()) {
-      this.props.timeline.changeVisibleFrameRange(dragData.x, dragData.x)
+      if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+        this.props.timeline.setScrollLeft(dragData.x)
+      } else {
+        this.props.timeline.changeVisibleFrameRange(dragData.x, dragData.x)
+      }
     }
   }
 
@@ -117,7 +125,7 @@ export default class TimelineRangeScrollbar extends React.Component {
               position: 'absolute',
               backgroundColor: Palette.LIGHTEST_GRAY,
               height: KNOB_RADIUS * 2,
-              left: this.frameInfo.scA,
+              left: experimentIsEnabled(Experiment.NativeTimelineScroll) ? this.props.timeline.getScrollLeft() : this.frameInfo.scA,
               width: this.frameInfo.scB - this.frameInfo.scA,
               borderRadius: KNOB_RADIUS,
               cursor: 'move'

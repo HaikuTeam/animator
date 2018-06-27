@@ -2,7 +2,6 @@ import {BytecodeTimelineProperties} from '@haiku/core/lib/api/HaikuBytecode';
 import {LayoutSpec} from '@haiku/core/lib/api/Layout';
 import {LAYOUT_3D_VANITIES} from '@haiku/core/lib/HaikuComponent';
 import composedTransformsToTimelineProperties from '@haiku/core/lib/helpers/composedTransformsToTimelineProperties';
-import computeMatrix from '@haiku/core/lib/layout/computeMatrix';
 import Layout3D from '@haiku/core/lib/Layout3D';
 import {ContextualSize} from 'haiku-common/lib/types';
 import {initialValueOr} from './timelineUtils';
@@ -137,8 +136,18 @@ export const composeTimelines = (
   const parentPseudoElement = {layout: createLayoutSpec()};
   shimLayoutForPseudoElement(childTimeline, childPseudoElement);
   shimLayoutForPseudoElement(parentTimeline, parentPseudoElement);
-  const childMatrix = computeMatrix(childPseudoElement.layout, createMatrix(), shapeLayerSize, animationSize);
-  const parentMatrix = computeMatrix(parentPseudoElement.layout, createMatrix(), shapeLayerSize, animationSize);
+  const childMatrix = Layout3D.computeMatrix(
+    childPseudoElement.layout,
+    createMatrix(),
+    shapeLayerSize,
+    animationSize,
+  );
+  const parentMatrix = Layout3D.computeMatrix(
+    parentPseudoElement.layout,
+    createMatrix(),
+    shapeLayerSize,
+    animationSize,
+  );
   const composition = composedTransformsToTimelineProperties({}, [parentMatrix, childMatrix]);
 
   return {

@@ -31,13 +31,6 @@ const roundUp = (numToRound, multiple) => {
   return numToRound + multiple - remainder
 }
 
-const transformVectorByMatrix = (out, v, m) => {
-  out[0] = m[0] * v[0] + m[4] * v[1] + m[8] * v[2] + m[12]
-  out[1] = m[1] * v[0] + m[5] * v[1] + m[9] * v[2] + m[13]
-  out[2] = m[2] * v[0] + m[6] * v[1] + m[10] * v[2] + m[14]
-  return out
-}
-
 const transformFourVectorByMatrix = (out, v, m) => {
   out[0] = m[0] * v[0] + m[4] * v[1] + m[8] * v[2] + m[12] * v[3]
   out[1] = m[1] * v[0] + m[5] * v[1] + m[9] * v[2] + m[13] * v[3]
@@ -52,6 +45,5 @@ module.exports = {
   isCoordInsideBoxPoints,
   modOfIndex,
   roundUp,
-  transformVectorByMatrix,
   transformFourVectorByMatrix
 }

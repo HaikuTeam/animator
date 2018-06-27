@@ -1,6 +1,8 @@
 import React from 'react'
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
+import zIndex from './styles/zIndex'
 
-export default class HorzScrollShadow extends React.Component {
+export default class HorzScrollShadow extends React.PureComponent {
   constructor (props) {
     super(props)
     this.handleUpdate = this.handleUpdate.bind(this)
@@ -26,27 +28,43 @@ export default class HorzScrollShadow extends React.Component {
 
   handleUpdate (what) {
     if (!this.mounted) return null
-    if (what === 'timeline-frame-range') this.forceUpdate()
+    if (what === 'timeline-frame-range') {
+      this.forceUpdate()
+    }
   }
 
   render () {
-    const frameInfo = this.props.timeline.getFrameInfo()
+    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+      return (
+        <span className='no-select' style={{
+          position: 'fixed',
+          height: 'calc(100% - 45px)',
+          width: 3,
+          left: 297,
+          zIndex: zIndex.scrollShadow.base,
+          top: 0,
+          boxShadow: '3px 0 6px 0 rgba(0,0,0,.22)'
+        }} />
+      )
+    } else {
+      const frameInfo = this.props.timeline.getFrameInfo()
 
-    if (frameInfo.scA < 1) {
-      return <span />
+      if (frameInfo.scA < 1) {
+        return <span />
+      }
+
+      return (
+        <span className='no-select' style={{
+          position: 'absolute',
+          height: 'calc(100% - 45px)',
+          width: 3,
+          left: 297,
+          zIndex: 2003,
+          top: 0,
+          boxShadow: '3px 0 6px 0 rgba(0,0,0,.22)'
+        }} />
+      )
     }
-
-    return (
-      <span className='no-select' style={{
-        position: 'absolute',
-        height: '100%',
-        width: 3,
-        left: 297,
-        zIndex: 2003,
-        top: 0,
-        boxShadow: '3px 0 6px 0 rgba(0,0,0,.22)'
-      }} />
-    )
   }
 }
 

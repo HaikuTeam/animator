@@ -1,5 +1,6 @@
 import React from 'react'
 import Palette from 'haiku-ui-common/lib/Palette'
+import Radium from 'radium'
 import Intercom from 'react-intercom'
 
 const STYLES = {
@@ -44,7 +45,7 @@ class IntercomWidget extends React.Component {
 
     return (
       <span id='launch-intercom'
-        css={STYLES.btn}>
+        style={STYLES.btn}>
         <Intercom
           appID='xlfy6shk'
           hide_default_launcher
@@ -62,7 +63,7 @@ class IntercomWidget extends React.Component {
   }
 }
 
-export default IntercomWidget
+export default Radium(IntercomWidget)
 
 IntercomWidget.propTypes = {
   user: React.PropTypes.string

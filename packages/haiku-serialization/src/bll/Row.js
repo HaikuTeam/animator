@@ -42,7 +42,7 @@ class Row extends BaseModel {
   }
 
   getUniqueKey () {
-    return `${this.element.getComponentId()}+${this.host.getComponentId()}-${this.getType()}-${this.getClusterNameString()}-${this.getPropertyNameString()}`
+    return `${this.element.getComponentId()}+${this.element.getComponentId()}-${this.getType()}-${this.getClusterNameString()}-${this.getPropertyNameString()}`
   }
 
   deselectOthers (metadata, skipSelectElements = false) {
@@ -292,13 +292,17 @@ class Row extends BaseModel {
     }
   }
 
-  rehydrateKeyframes () {
-    const valueGroup = TimelineProperty.getValueGroup(
+  getKeyframesDescriptor () {
+    return TimelineProperty.getValueGroup(
       this.element.getComponentId(),
       this.component.getCurrentTimelineName(),
       this.getPropertyNameString(),
       this.component.getReifiedBytecode()
     )
+  }
+
+  rehydrateKeyframes () {
+    const valueGroup = this.getKeyframesDescriptor()
 
     if (!valueGroup) {
       return []
@@ -456,9 +460,13 @@ class Row extends BaseModel {
     }
 
     const keyframes = this.getKeyframes()
-    const frameInfo = this.timeline.getFrameInfo()
 
-    return keyframes.filter((keyframe) => keyframe.isVisible(frameInfo.msA, frameInfo.msB)).map(iteratee)
+    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+      return keyframes.map(iteratee)
+    } else {
+      const frameInfo = this.timeline.getFrameInfo()
+      return keyframes.filter((keyframe) => keyframe.isVisible(frameInfo.msA, frameInfo.msB)).map(iteratee)
+    }
   }
 
   isState () {
@@ -625,16 +633,11 @@ class Row extends BaseModel {
     return 0
   }
 
-  getIndexWithinHostElement () {
-    const rows = this.host.getHostedRows()
-    for (let i = 0; i < rows.length; i++) {
-      if (rows[i] === this) return i
-    }
-    return 0
-  }
-
   doesTargetHostElement () {
-    return this.host === this.element
+    return (
+      this.host &&
+      this.host === this.element
+    )
   }
 
   next () {
@@ -650,7 +653,7 @@ class Row extends BaseModel {
    * @description When debugging, use this to log a concise shorthand of this entity.
    */
   dump () {
-    let str = `${this.getType()}.${this.element.getComponentId()}<${this.element.getSafeDomFriendlyName()}>|${this.getDepthAmongRows()}.${this.getIndexWithinParentRow()}.${this.getIndexWithinHostElement()}`
+    let str = `${this.getType()}.${this.element.getComponentId()}<${this.element.getSafeDomFriendlyName()}>|${this.getDepthAmongRows()}.${this.getIndexWithinParentRow()}`
     if (this.isCluster()) str += `.${this.cluster.prefix}[]`
     if (this.isProperty()) str += `.${this.getPropertyName()}`
     return str
@@ -660,7 +663,6 @@ class Row extends BaseModel {
 Row.DEFAULT_OPTIONS = {
   required: {
     timeline: true, // Timeline
-    host: true, // Element
     element: true, // Element
     component: true // Component
   }
@@ -795,31 +797,23 @@ Row.dumpHierarchyInfo = (criteria) => {
   })
 }
 
-// The id-generators below accept a "host element" and a "target element";
-// the host element is the element in the timeline under which a row displays;
-// the target element is the element to which the row's property value applies.
-// The host and target can be different (consider the way rows display in the timeline):
-// An element in the timeline can display rows for properties applied to its descendant
-// element, not just its own properties. In that case, the host element is not the target element,
-// and so we need to pass both in so we create non-colliding Row objects.
-
-Row.buildPropertyUid = (component, hostElement, targetElement, addressableName) => {
-  const elementId = `${hostElement.getComponentId()}+${targetElement.getComponentId()}`
+Row.buildPropertyUid = (component, targetElement, addressableName) => {
+  const elementId = `${targetElement.getComponentId()}`
   return `${component.getPrimaryKey()}::${elementId}-property-${addressableName}`
 }
 
-Row.buildClusterUid = (component, hostElement, targetElement, propertyGroupDescriptor) => {
-  const elementId = `${hostElement.getComponentId()}+${targetElement.getComponentId()}`
+Row.buildClusterUid = (component, targetElement, propertyGroupDescriptor) => {
+  const elementId = `${targetElement.getComponentId()}`
   return `${component.getPrimaryKey()}::${elementId}-cluster-${propertyGroupDescriptor.cluster.prefix}`
 }
 
-Row.buildClusterMemberUid = (component, hostElement, targetElement, propertyGroupDescriptor, addressableName) => {
-  const elementId = `${hostElement.getComponentId()}+${targetElement.getComponentId()}`
+Row.buildClusterMemberUid = (component, targetElement, propertyGroupDescriptor, addressableName) => {
+  const elementId = `${targetElement.getComponentId()}`
   return `${component.getPrimaryKey()}::${elementId}-cluster-${propertyGroupDescriptor.cluster.prefix}-property-${addressableName}`
 }
 
-Row.buildHeadingUid = (component, hostElement) => {
-  return `${component.getPrimaryKey()}::${hostElement.getComponentId()}-heading`
+Row.buildHeadingUid = (component, targetElement) => {
+  return `${component.getPrimaryKey()}::${targetElement.getComponentId()}-heading`
 }
 
 module.exports = Row

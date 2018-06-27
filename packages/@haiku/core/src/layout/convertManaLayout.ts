@@ -2,8 +2,8 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
+import {visitManaTree} from './../HaikuNode';
 import parseCssTransformString from './../helpers/parseCssTransformString';
-import visitManaTree from './../helpers/visitManaTree';
 import Layout3D from './../Layout3D';
 import cssValue from './../vendor/css-value';
 

@@ -1,0 +1,1 @@
+There should be two elements, the first repeated 6 times and the second repeated 5 times. The top one is just an SVG square. The bottom one is a component which internally has four squares, and exposes a 'bgcolor' property which should fade from black to light gray on each repeat step.

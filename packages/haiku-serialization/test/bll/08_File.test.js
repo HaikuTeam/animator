@@ -27,9 +27,9 @@ tape('File.readMana', (t) => {
           .getReifiedBytecode()
           .timelines.Default[`haiku:${mana.children[0].attributes['haiku-id']}`]
         t.deepEqual(timelineProperties.content, {0: {value: 'Hello friend.'}}, 'svg text content is transcluded')
-        t.deepEqual(timelineProperties['font-size'], {0: {value: '12'}}, 'most svg text attributes are parsed')
+        t.deepEqual(timelineProperties['fontSize'], {0: {value: '12'}}, 'most svg text attributes are parsed')
         t.deepEqual(
-          timelineProperties['font-family'],
+          timelineProperties['fontFamily'],
           {0: {value: 'Helvetica, Arial, sans-serif'}},
           'svg font-family is clobbered with a default sans-serif chain'
         )

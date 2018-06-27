@@ -15,7 +15,8 @@ const MAX_UNDOABLES_LEN = 50
 const SNAPSHOTTED_UNDOABLES = {
   groupElements: true,
   ungroupElements: true,
-  popBytecodeSnapshot: true
+  popBytecodeSnapshot: true,
+  updateKeyframesAndTypes: true
 }
 
 const ACCUMULATORS = {
@@ -61,7 +62,7 @@ const INVERTER_ACCUMULATORS = {
   }
 }
 
-const shouldAccumulate = (method, params) => ACCUMULATORS[method] && !params[3].cursor
+const shouldAccumulate = (method, params) => ACCUMULATORS[method] && !params[params.length - 2].cursor
 
 /**
  * @class ActionStack
@@ -498,7 +499,7 @@ ActionStack.METHOD_INVERTERS = {
       const previousUpdates = ac.snapshotKeyframeUpdates(keyframeUpdates)
       return {
         method: ac.updateKeyframes.name,
-        params: [previousUpdates]
+        params: [previousUpdates, {}]
       }
     }
   },

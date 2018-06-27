@@ -2,8 +2,9 @@ import React from 'react'
 import lodash from 'lodash'
 import Color from 'color'
 import Palette from 'haiku-ui-common/lib/Palette'
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 
-const CELL_WIDTH = 83
+const CELL_WIDTH = experimentIsEnabled(Experiment.NativeTimelineScroll) ? 82 : 83
 
 export default class PropertyInputField extends React.Component {
   constructor (props) {

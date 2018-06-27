@@ -15,7 +15,9 @@ import ensureRet from 'haiku-ui-common/lib/helpers/ensureRet'
 import ensureEq from 'haiku-ui-common/lib/helpers/ensureEq'
 import doesValueImplyExpression from 'haiku-ui-common/lib/helpers/doesValueImplyExpression'
 import humanizePropertyName from 'haiku-ui-common/lib/helpers/humanizePropertyName'
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 import AutoCompleter from './AutoCompleter'
+import zIndex from './styles/zIndex'
 
 const HaikuMode = require('./modes/haiku')
 
@@ -1011,14 +1013,14 @@ export default class ExpressionInput extends React.Component {
       top: 0,
       visibility: 'hidden',
       width: this.props.reactParent.state.inputCellWidth,
-      zIndex: 5000
+      zIndex: zIndex.expressionInput.base
     })
 
     if (this.props.component.getFocusedRow()) {
       style.visibility = 'visible'
       let rect = this.getRootRect()
       style.left = rect.left
-      style.top = rect.top
+      style.top = rect.top + 10
     }
 
     return style
@@ -1053,7 +1055,7 @@ export default class ExpressionInput extends React.Component {
       position: 'absolute',
       textAlign: 'center',
       textTransform: 'uppercase',
-      width: 83
+      width: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 82 : 83
     }
     lodash.assign(style, this.props.component.getFocusedRow() && {
       fontSize,

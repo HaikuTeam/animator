@@ -4,7 +4,7 @@
 
 import {BytecodeNode} from '../api/HaikuBytecode';
 import svgPoints from '../vendor/svg-points';
-import {LineSpec, PathSpec, RectSpec, ShapeSpec} from '../vendor/svg-points/types';
+import {LineSpec, PathSpec, ShapeSpec} from '../vendor/svg-points/types';
 import parseCssValueString from './parseCssValueString';
 
 // In leiu of good math, this gives pretty good results for converting arcs to cubic beziers
@@ -148,6 +148,7 @@ function rectToPoints (x: number, y: number, width: number, height: number, rxIn
       {
         y,
         x: x + rx,
+        closed: true,
         curve: {
           type: 'cubic',
           x1: x,
@@ -160,8 +161,30 @@ function rectToPoints (x: number, y: number, width: number, height: number, rxIn
   }
 
   // Non-rounded rect
-  const shape = {x, y, width, height, rx, ry, type: 'rect'};
-  return svgPoints.toPoints(shape as RectSpec);
+  return [
+    {
+      x,
+      y,
+      moveTo: true,
+    },
+    {
+      y,
+      x: x + width,
+    },
+    {
+      x: x + width,
+      y: y + height,
+    },
+    {
+      x,
+      y: y + height,
+      closed: true,
+    },
+    {
+      x,
+      y,
+    }, // appease the SVG points library
+  ];
 }
 
 function circleToPoints (cx: number, cy: number, r: number) {
@@ -211,6 +234,7 @@ function ellipseToPoints (cx: number, cy: number, rx: number, ry: number) {
     {
       x: cx,
       y: cy - ry,
+      closed: true,
       curve: {
         type: 'cubic',
         x1: cx - rx,
