@@ -173,6 +173,8 @@ class Timeline extends React.Component {
             event.target.id.includes('keyframe-dragger') ||
             // Constant Body
             event.target.id.includes('constant-body') ||
+            // SVG elements
+            typeof event.target.className !== 'string' ||
             // Tween
             event.target.className.includes('pill')
           )
