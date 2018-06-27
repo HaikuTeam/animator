@@ -49,3 +49,12 @@ export interface ComputedLayoutSpec extends LayoutSpec {
   matrix: Mat4;
   size: ThreeDimensionalLayoutProperty;
 }
+
+export interface ClientRect {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+  width: number;
+  height: number;
+}

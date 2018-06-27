@@ -34,6 +34,12 @@ export interface Vector3DSpec {
   z: number;
 }
 
+export interface Vector2Point5DSpec {
+  x: number;
+  y: number;
+  z?: number;
+}
+
 export interface RotationVector3DSpec {
   x: number;
   y: number;
@@ -433,8 +439,48 @@ const computeSize = (
   return outputSize;
 };
 
+const clone = (layout) => {
+  if (!layout) {
+    return layout;
+  }
+
+  const out = {
+    shown: layout.shown,
+    opacity: layout.opacity,
+    mount: Object.assign({}, layout.mount),
+    align: Object.assign({}, layout.align),
+    origin: Object.assign({}, layout.origin),
+    translation: Object.assign({}, layout.translation),
+    rotation: Object.assign({}, layout.rotation),
+    scale: Object.assign({}, layout.scale),
+    shear: Object.assign({}, layout.shear),
+    sizeMode: Object.assign({}, layout.sizeMode),
+    sizeProportional: Object.assign({}, layout.sizeProportional),
+    sizeDifferential: Object.assign({}, layout.sizeDifferential),
+    sizeAbsolute: Object.assign({}, layout.sizeAbsolute),
+    size: null,
+    matrix: null,
+    computed: null,
+  };
+
+  if (layout.computed) {
+    out.computed = clone(layout.computed);
+  }
+
+  // Handle either a raw layout (no size or matrix) or a computed one (has size and matrix)
+  if (layout.matrix) {
+    out.matrix = layout.matrix.map((n) => n);
+  }
+  if (layout.size) {
+    out.size = Object.assign({}, layout.size);
+  }
+
+  return out;
+};
+
 export default {
   multiplyArrayOfMatrices,
+  clone,
   computeLayout,
   computeMatrix,
   computeSize,
