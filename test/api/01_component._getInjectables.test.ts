@@ -67,17 +67,6 @@ tape(
         'number',
       );
 
-      t.ok(injectables.$global);
-      t.ok(injectables.$core);
-      t.ok(injectables.$component);
-      t.ok(injectables.$root);
-      t.ok(injectables.$element);
-      t.ok(injectables.$tree);
-      t.ok(injectables.$flow);
-      t.ok(injectables.$user);
-
-      t.ok(injectables.$helpers);
-
       component.context.clock.GLOBAL_ANIMATION_HARNESS.cancel();
 
       t.end();
