@@ -28,42 +28,6 @@ const ELEMENTS_2D = {
 
 export const AUTO_SIZING_TOKEN = 'auto';
 
-export interface Vector3DSpec {
-  x: number;
-  y: number;
-  z: number;
-}
-
-export interface Vector2Point5DSpec {
-  x: number;
-  y: number;
-  z?: number;
-}
-
-export interface RotationVector3DSpec {
-  x: number;
-  y: number;
-  z: number;
-  w?: number;
-}
-
-export interface BoundsSpecX {
-  left: number;
-  right: number;
-}
-
-export interface BoundsSpecY {
-  top: number;
-  bottom: number;
-}
-
-export interface BoundsSpecZ {
-  front: number;
-  back: number;
-}
-
-export interface BoundsSpec extends BoundsSpecX, BoundsSpecY, BoundsSpecZ {}
-
 // Coordinate (0, 0, 0) is the top left of the screen
 
 const SIZE_PROPORTIONAL = 0; // A percentage of the parent
