@@ -1,16 +1,18 @@
 import {
+  ClientRect,
   ComputedLayoutSpec,
   LayoutSpec,
 } from './api/Layout';
 import HaikuBase from './HaikuBase';
 import HaikuComponent from './HaikuComponent';
-import {cssMatchOne} from './HaikuNode';
+import {cloneNodeShallow, cssMatchOne} from './HaikuNode';
 import Layout3D, {
   BoundsSpec,
   BoundsSpecX,
   BoundsSpecY,
   BoundsSpecZ,
   RotationVector3DSpec,
+  Vector2Point5DSpec,
   Vector3DSpec,
 } from './Layout3D';
 
@@ -417,7 +419,7 @@ export default class HaikuElement extends HaikuBase {
       const {
         left,
         right,
-      } = child.getBoundingClientRectUsingOnlyLocalTransform();
+      } = child.getLocallyTransformedBoundingClientRect();
 
       lefts.push(left);
       rights.push(right);
@@ -442,7 +444,7 @@ export default class HaikuElement extends HaikuBase {
       const {
         top,
         bottom,
-      } = child.getBoundingClientRectUsingOnlyLocalTransform();
+      } = child.getLocallyTransformedBoundingClientRect();
 
       tops.push(top);
       bottoms.push(bottom);
@@ -598,14 +600,44 @@ export default class HaikuElement extends HaikuBase {
     });
   }
 
-  static transformVectorByMatrix = (out, v, m) => {
+  getRawBoundingBoxPoints (): Vector3DSpec[] {
+    const {
+      x,
+      y,
+    } = this.computeSize();
+
+    return [
+      {x: 0, y: 0, z: 0}, {x: x / 2, y: 0, z: 0}, {x, y: 0, z: 0},
+      {x: 0, y: y / 2, z: 0}, {x: x / 2, y: y / 2, z: 0}, {x, y: y / 2, z: 0},
+      {y, x: 0, z: 0}, {y, x: x / 2, z: 0}, {y, x, z: 0},
+    ];
+  }
+
+  getLocallyTransformedBoundingBoxPoints (): Vector3DSpec[] {
+    return HaikuElement.transformPointsInPlace(
+      this.getRawBoundingBoxPoints(),
+      Layout3D.computeLayout(
+        cloneNodeShallow(this.node),
+        Layout3D.clone(this.rawLayout),
+        Layout3D.createMatrix(),
+        null, // parentSize; none available here
+      ).matrix,
+    );
+  }
+
+  getLocallyTransformedBoundingClientRect (): ClientRect {
+    const points = this.getLocallyTransformedBoundingBoxPoints();
+    return HaikuElement.getRectFromPoints(points);
+  }
+
+  static transformVectorByMatrix = (out, v, m): number[] => {
     out[0] = m[0] * v[0] + m[4] * v[1] + m[8] * v[2] + m[12];
     out[1] = m[1] * v[0] + m[5] * v[1] + m[9] * v[2] + m[13];
     out[2] = m[2] * v[0] + m[6] * v[1] + m[10] * v[2] + m[14];
     return out;
   };
 
-  static getRectFromPoints = (points) => {
+  static getRectFromPoints = (points: Vector3DSpec[]|Vector2Point5DSpec[]): ClientRect => {
     const top = Math.min(points[0].y, points[2].y, points[6].y, points[8].y);
     const bottom = Math.max(points[0].y, points[2].y, points[6].y, points[8].y);
     const left = Math.min(points[0].x, points[2].x, points[6].x, points[8].x);
