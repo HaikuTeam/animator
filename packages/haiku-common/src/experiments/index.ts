@@ -28,7 +28,7 @@ export enum Experiment {
   CrashOnIpcIntegrityCheckFailure = 'CrashOnIpcIntegrityCheckFailure',
   IncludeSourceInIntegrityHash = 'IncludeSourceInIntegrityHash',
   OrderedActionStack = 'OrderedActionStack',
-  CodeEditorInCreator = 'CodeEditorInCreator',
+  CodeEditor = 'CodeEditor',
   WarnOnUndefinedStateVariables = 'WarnOnUndefinedStateVariables',
   NativeTimelineScroll = 'NativeTimelineScroll',
   TimelineMarqueeSelection = 'TimelineMarqueeSelection',
