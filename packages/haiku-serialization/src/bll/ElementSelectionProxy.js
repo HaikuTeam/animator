@@ -3,7 +3,6 @@ const logger = require('./../utils/LoggerInstance')
 const BaseModel = require('./BaseModel')
 const {rounded, transformFourVectorByMatrix} = require('./MathUtils')
 const TransformCache = require('./TransformCache')
-const {default: computeMatrix} = require('@haiku/core/lib/layout/computeMatrix')
 const {default: Layout3D} = require('@haiku/core/lib/Layout3D')
 const {default: HaikuElement} = require('@haiku/core/lib/HaikuElement')
 const {default: composedTransformsToTimelineProperties} = require('@haiku/core/lib/helpers/composedTransformsToTimelineProperties')
@@ -1523,7 +1522,7 @@ ElementSelectionProxy.computeRotationPropertyGroup = (element, rotationZDelta, f
   const layout = Layout3D.createLayoutSpec()
   layout.rotation.z = rotationZDelta
   const ignoredSize = {x: 0, y: 0, z: 0}
-  const matrix = computeMatrix(layout, Layout3D.createMatrix(), ignoredSize, ignoredSize)
+  const matrix = Layout3D.computeMatrix(layout, Layout3D.createMatrix(), ignoredSize, ignoredSize)
 
   // Next build the vector from `fixedPoint` to `targetOrigin` and rotate it.
   const targetOrigin = element.getOriginTransformed()
