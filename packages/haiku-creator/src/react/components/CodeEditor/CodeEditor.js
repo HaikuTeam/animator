@@ -48,7 +48,7 @@ class CodeEditor extends React.Component {
   componentWillReceiveProps (nextProps) {
     // If we were made visible, we may need to force reload code in case we skipped
     // any updates while we weren't visible
-    if (nextProps.showGlass && this.props.showGlass !== nextProps.showGlass) {
+    if (!nextProps.showGlass && this.props.showGlass !== nextProps.showGlass) {
       this.performCodeReload();
     }
   }
