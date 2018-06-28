@@ -135,7 +135,6 @@ export default class ScrubberInterior extends React.Component {
 }
 
 ScrubberInterior.propTypes = {
-  isScrubbing: React.PropTypes.bool.isRequired,
   timeline: React.PropTypes.object.isRequired,
   onMouseDown: React.PropTypes.func
 }

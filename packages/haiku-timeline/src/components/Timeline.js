@@ -18,6 +18,8 @@ import ExpressionInput from './ExpressionInput'
 import ScrubberInterior from './ScrubberInterior'
 import RowManager from './RowManager'
 import FrameGrid from './FrameGrid'
+import SimplifiedFrameGrid from './SimplifiedFrameGrid'
+import FrameActionsGrid from './FrameActionsGrid'
 import IntercomWidget from './IntercomWidget'
 import Gauge from './Gauge'
 import GaugeTimeReadout from './GaugeTimeReadout'
@@ -173,6 +175,8 @@ class Timeline extends React.Component {
             event.target.id.includes('keyframe-dragger') ||
             // Constant Body
             event.target.id.includes('constant-body') ||
+            // SVG elements
+            typeof event.target.className !== 'string' ||
             // Tween
             event.target.className.includes('pill')
           )
@@ -479,7 +483,7 @@ class Timeline extends React.Component {
       if (timeline) {
         const frameInfo = timeline.getFrameInfo()
         if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-          pxInTimeline = mouseMoveEvent.layerX - timeline.getPropertiesPixelWidth()
+          pxInTimeline = mouseMoveEvent.clientX + (this.refs.container.scrollLeft || 0) - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()
         } else {
           pxInTimeline = mouseMoveEvent.clientX - timeline.getPropertiesPixelWidth()
         }
@@ -510,7 +514,11 @@ class Timeline extends React.Component {
         const rowElement = document.getElementById(`component-heading-row-${row.element.getComponentId()}-${row.getAddress()}`)
 
         if (rowElement) {
-          rowElement.scrollIntoView({behavior: 'smooth', block: 'center', inline: 'start'})
+          this.refs.container.scroll({
+            top: rowElement.offsetTop,
+            left: this.refs.container.scrollLeft,
+            behavior: 'smooth'
+          })
         }
       }
     })
@@ -545,7 +553,7 @@ class Timeline extends React.Component {
 
     if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
       this.addEmitterListenerIfNotAlreadyRegistered(timeline, 'update', (what, ...args) => {
-        if (what === 'timeline-scroll') {
+        if (what === 'timeline-scroll' || what === 'timeline-frame') {
           this.refs.container.scrollLeft = timeline.getScrollLeft()
         }
       })
@@ -801,13 +809,25 @@ class Timeline extends React.Component {
     }
 
     if (scrollEvent.deltaX >= 1 || scrollEvent.deltaX <= -1) {
+      // debugger
       return this.handleHorizontalScroll(scrollEvent.deltaX)
     }
   }
 
   handleHorizontalScroll (origDelta) {
-    // const motionDelta = Math.round((origDelta ? origDelta < 0 ? -1 : 1 : 0) * (Math.log(Math.abs(origDelta) + 1) * 2))
-    // this.getActiveComponent().getCurrentTimeline().updateVisibleFrameRangeByDelta(motionDelta)
+    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+      const timeline = this.getActiveComponent().getCurrentTimeline()
+      let scrollDelta = timeline.getScrollLeft() + origDelta
+
+      if (scrollDelta < 0) {
+        scrollDelta = 0
+      }
+
+      timeline.setScrollLeft(scrollDelta)
+    } else {
+      const motionDelta = Math.round((origDelta ? origDelta < 0 ? -1 : 1 : 0) * (Math.log(Math.abs(origDelta) + 1) * 2))
+      this.getActiveComponent().getCurrentTimeline().updateVisibleFrameRangeByDelta(motionDelta)
+    }
   }
 
   handleRequestElementCoordinates ({ selector, webview }) {
@@ -1113,6 +1133,8 @@ class Timeline extends React.Component {
 
   renderTopControls () {
     if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+      const timeline = this.getActiveComponent().getCurrentTimeline()
+
       return [
         <div
           key='gauge-timekeeping-wrapper'
@@ -1122,31 +1144,30 @@ class Timeline extends React.Component {
             top: 0,
             left: 0,
             height: 35,
-            width: this.getActiveComponent()
-              .getCurrentTimeline()
-              .getPropertiesPixelWidth(),
+            width: timeline.getPropertiesPixelWidth(),
             backgroundColor: Palette.COAL,
             zIndex: zIndex.timekeepingWrapper.base,
             fontSize: 10
           }}
         >
-          <GaugeTimeReadout reactParent={this} timeline={this.getActiveComponent().getCurrentTimeline()} />
+          <GaugeTimeReadout reactParent={this} timeline={timeline} />
         </div>,
-        <FrameGrid
-          key='frame-grid'
-          timeline={this.getActiveComponent().getCurrentTimeline()}
+        <SimplifiedFrameGrid key='frame-grid' timeline={timeline} />,
+        <FrameActionsGrid
+          key='frame-actions-grid'
+          timeline={timeline}
           onShowFrameActionsEditor={this.showFrameActionsEditor}
         />,
         <div
           key='gauge'
+          id='gauge-wrapper'
           style={{
-            height: 35,
+            height: 24,
             backgroundColor: Palette.COAL,
-            paddingTop: 12,
             position: 'sticky',
-            top: 0,
-            marginLeft: this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth(),
-            width: '500vw',
+            top: 12,
+            marginLeft: timeline.getPropertiesPixelWidth(),
+            width: timeline.calculateFullTimelineWidth(),
             zIndex: zIndex.gauge.base,
             fontSize: 10,
             borderBottom: '1px solid ' + Palette.FATHER_COAL,
@@ -1154,12 +1175,11 @@ class Timeline extends React.Component {
           }}
           onMouseDown={this.onGaugeMouseDown}
         >
-          <Gauge timeline={this.getActiveComponent().getCurrentTimeline()} />
+          <Gauge timeline={timeline} />
         </div>,
         <ScrubberInterior
           key='scrubber'
-          isScrubbing={this.getActiveComponent().getCurrentTimeline().isScrubberDragging()}
-          timeline={this.getActiveComponent().getCurrentTimeline()}
+          timeline={timeline}
           onMouseDown={this.onGaugeMouseDown}
         />,
         <div key='durationModifier'>
@@ -1225,10 +1245,6 @@ class Timeline extends React.Component {
               />
               <Gauge timeline={this.getActiveComponent().getCurrentTimeline()} />
               <ScrubberInterior
-                reactParent={this}
-                isScrubbing={this.getActiveComponent()
-                  .getCurrentTimeline()
-                  .isScrubberDragging()}
                 timeline={this.getActiveComponent().getCurrentTimeline()}
               />
             </div>
@@ -1254,7 +1270,7 @@ class Timeline extends React.Component {
 
     const frameInfo = this.getActiveComponent().getCurrentTimeline().getFrameInfo()
     const leftX = experimentIsEnabled(Experiment.NativeTimelineScroll)
-      ? (evt.layerX || evt.nativeEvent.layerX)
+      ? evt.clientX + (this.refs.container.scrollLeft || 0) - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()
       : evt.clientX - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()
 
     const frameX = Math.round(leftX / frameInfo.pxpf)
@@ -1294,13 +1310,17 @@ class Timeline extends React.Component {
   }
 
   disableTimelinePointerEvents () {
-    this.refs.scrollview.style.pointerEvents = 'none'
-    this.refs.scrollview.style.WebkitUserSelect = 'none'
+    if (this.refs.scrollview) {
+      this.refs.scrollview.style.pointerEvents = 'none'
+      this.refs.scrollview.style.WebkitUserSelect = 'none'
+    }
   }
 
   enableTimelinePointerEvents () {
-    this.refs.scrollview.style.pointerEvents = 'auto'
-    this.refs.scrollview.style.WebkitUserSelect = 'auto'
+    if (this.refs.scrollview) {
+      this.refs.scrollview.style.pointerEvents = 'auto'
+      this.refs.scrollview.style.WebkitUserSelect = 'auto'
+    }
   }
 
   disablePreviewMode () {
@@ -1484,7 +1504,7 @@ class Timeline extends React.Component {
             position: 'absolute',
             top: 35,
             left: 0,
-            width: '500vw',
+            width: this.getActiveComponent().getCurrentTimeline().calculateFullTimelineWidth(),
             pointerEvents: 'auto',
             WebkitUserSelect: 'auto',
             bottom: 0

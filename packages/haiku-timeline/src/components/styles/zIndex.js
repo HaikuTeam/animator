@@ -26,10 +26,13 @@ const zIndex = {
     base: 4
   },
   timekeepingWrapper: {
-    base: 11
+    base: 12
   },
   backgroundHelper: {
     base: 4
+  },
+  frameActions: {
+    base: 11
   },
 
   // Heading row (name of the row, drag handler, etc)

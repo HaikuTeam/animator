@@ -57,6 +57,8 @@ class FrameAction extends React.Component {
   }
 
   unsetTimeout () {
+    this.setState({achievedHover: false})
+
     if (this.timeout) {
       clearTimeout(this.timeout)
       this.timeout = null

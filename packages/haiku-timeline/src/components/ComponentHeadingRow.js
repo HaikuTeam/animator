@@ -86,7 +86,6 @@ export default class ComponentHeadingRow extends React.Component {
           position: this.props.isExpanded ? 'sticky' : 'relative',
           float: this.props.isExpanded ? 'left' : undefined,
           width: this.props.isExpanded ? 100 : undefined,
-          top: this.props.isExpanded ? 0 : undefined,
           left: this.props.isExpanded ? 20 : undefined,
           backgroundColor: this.props.isExpanded ? 'transparent' : Palette.LIGHT_GRAY,
           opacity: this.props.isHidden ? 0.75 : 1.0,
@@ -149,7 +148,7 @@ export default class ComponentHeadingRow extends React.Component {
               this.props.row.expandAndSelect({from: 'timeline'})
             }}
             style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
-              width: (this.props.row.isExpanded()) ? propertiesPixelWidth - 140 : propertiesPixelWidth,
+              width: (this.props.row.isExpanded()) ? propertiesPixelWidth - 180 : propertiesPixelWidth,
               height: 'inherit',
               cursor: 'pointer',
               // zIndex: 9999999999999,
@@ -238,7 +237,8 @@ export default class ComponentHeadingRow extends React.Component {
                 experimentIsEnabled(Experiment.NativeTimelineScroll)
                   ? {
                     display: this.props.isExpanded ? 'flex' : 'none',
-                    alignItems: 'center'
+                    alignItems: 'center',
+                    marginLeft: this.props.isExpanded ? 35 : undefined
                   } : (
                     this.props.isExpanded
                       ? {
@@ -254,13 +254,16 @@ export default class ComponentHeadingRow extends React.Component {
             >
               <div
                 className='design-sync-button'
-                style={{
+                style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+                  display: this.props.row.element.getSource() ? 'block' : 'none',
+                  width: 16
+                } : {
                   width: 10,
                   position: 'absolute',
                   left: 0,
                   top: 0,
                   display: this.props.row.element.getSource() ? 'block' : 'none'
-                }}
+                })}
                 onClick={this.toggleSync.bind(this)}
                 title={this.props.row.element.isLocked()
                   ? 'Syncing is disabled for this element. Click to revert your changes and reenable syncing.'

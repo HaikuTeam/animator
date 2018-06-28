@@ -40,7 +40,6 @@ class Timeline extends BaseModel {
     this._visibleFrameRange = [0, 60]
     this._timelinePixelWidth = 870
     this._propertiesPixelWidth = 300
-    this._scrubberDragStart = null
     this._maxFrame = this._visibleFrameRange[1] * 2
     this._frameBaseline = 0
     this._durationDragStart = 0
@@ -181,9 +180,7 @@ class Timeline extends BaseModel {
         channel.pause(this.getPrimaryKey()).then((finalFrame) => {
           this.setCurrentFrame(finalFrame)
           this.setAuthoritativeFrame(finalFrame)
-          if (!this.isScrubberDragging()) {
-            this.tryToLeftAlignTickerInVisibleFrameRange(finalFrame)
-          }
+          this.tryToLeftAlignTickerInVisibleFrameRange(finalFrame)
         })
       }
     }
@@ -224,20 +221,6 @@ class Timeline extends BaseModel {
     }
   }
 
-  changeScrubberPosition (dragX) {
-    const frameInfo = this.getFrameInfo()
-    const dragStart = this._scrubberDragStart
-    const frameBaseline = this._frameBaseline
-    const dragDelta = dragX - dragStart
-    const frameDelta = Math.round(dragDelta / frameInfo.pxpf)
-
-    let currentFrame = frameBaseline + frameDelta
-    if (currentFrame < frameInfo.friA) currentFrame = frameInfo.friA
-    if (currentFrame > frameInfo.friB) currentFrame = frameInfo.friB
-
-    return this.seek(currentFrame)
-  }
-
   seekAndPause (newFrame) {
     this.setCurrentFrame(newFrame)
     this._playing = false
@@ -249,9 +232,7 @@ class Timeline extends BaseModel {
         timelineChannel.seekToFrameAndPause(this.getPrimaryKey(), newFrame).then((finalFrame) => {
           this.setCurrentFrame(finalFrame)
           this.setAuthoritativeFrame(finalFrame)
-          if (!this.isScrubberDragging()) {
-            this.tryToLeftAlignTickerInVisibleFrameRange(finalFrame)
-          }
+          this.tryToLeftAlignTickerInVisibleFrameRange(finalFrame)
         })
       } else {
         logger.warn(`[timeline] envoy timeline channel not open (seekToFrameAndPause ${this.getPrimaryKey()}, ${newFrame})`)
@@ -286,10 +267,7 @@ class Timeline extends BaseModel {
         }
       }
 
-      if (!this.isScrubberDragging()) {
-        // This method itself determines if the left alignment is necessary
-        this.tryToLeftAlignTickerInVisibleFrameRange(this.getCurrentFrame())
-      }
+      this.tryToLeftAlignTickerInVisibleFrameRange(this.getCurrentFrame())
 
       this.raf = window.requestAnimationFrame(this.update)
     }
@@ -398,20 +376,6 @@ class Timeline extends BaseModel {
 
   getRightFrameEndpoint () {
     return this._visibleFrameRange[1]
-  }
-
-  getScrubberDragStart () {
-    return this._scrubberDragStart
-  }
-
-  isScrubberDragging () {
-    return typeof this._scrubberDragStart === 'number'
-  }
-
-  setScrubberDragStart (scrubberDragStart) {
-    this._scrubberDragStart = scrubberDragStart
-    this.emit('update', 'timeline-scrubber-drag-start')
-    return this
   }
 
   getFrameBaseline () {
@@ -603,7 +567,7 @@ class Timeline extends BaseModel {
     const visiblePixelWidth = this.getTimelinePixelWidth()
 
     const leftFrame = experimentIsEnabled(Experiment.NativeTimelineScroll) ? 0 : frameInfo.friA
-    const rightFrame = experimentIsEnabled(Experiment.NativeTimelineScroll) ? 999 : frameInfo.friB
+    const rightFrame = experimentIsEnabled(Experiment.NativeTimelineScroll) ? frameInfo.friMax : frameInfo.friB
 
     const leftMostAbsolutePixel = Math.round(leftFrame * frameInfo.pxpf)
 
@@ -658,7 +622,7 @@ class Timeline extends BaseModel {
 
     const leftFrame = frameInfo.friA
     const leftMs = experimentIsEnabled(Experiment.NativeTimelineScroll) ? 0 : frameInfo.friA * frameInfo.mspf
-    const rightMs = experimentIsEnabled(Experiment.NativeTimelineScroll) ? 999 : frameInfo.friB * frameInfo.mspf
+    const rightMs = experimentIsEnabled(Experiment.NativeTimelineScroll) ? frameInfo.friMax * frameInfo.mspf : frameInfo.friB * frameInfo.mspf
     const totalMs = rightMs - leftMs
 
     const msModulus = Timeline.getMillisecondModulus(frameInfo.pxpf)
@@ -687,23 +651,6 @@ class Timeline extends BaseModel {
     }
 
     return mappedOutput
-  }
-
-  dragScrubberPosition (dragX) {
-    const frameInfo = this.getFrameInfo()
-
-    const dragStart = this.getScrubberDragStart()
-    const frameBaseline = this.getFrameBaseline()
-
-    const dragDelta = dragX - dragStart
-    const frameDelta = Math.round(dragDelta / frameInfo.pxpf)
-
-    let currentFrame = frameBaseline + frameDelta
-
-    if (currentFrame < frameInfo.friA) currentFrame = frameInfo.friA
-    if (currentFrame > frameInfo.friB) currentFrame = frameInfo.friB
-
-    this.component.getCurrentTimeline().seek(currentFrame)
   }
 
   dragDurationModifierPosition (dragX) {
@@ -832,23 +779,30 @@ class Timeline extends BaseModel {
    * @description will left-align the current timeline window (maintaining zoom)
    */
   tryToLeftAlignTickerInVisibleFrameRange (frame) {
-    const frameInfo = this.getFrameInfo()
-
-    // If a frame was passed, only do this if we detect we've gone outside of the range
-    if (frame !== undefined && (frame > frameInfo.friB || frame < frameInfo.friA)) {
-      const l = this.getLeftFrameEndpoint()
-      const r = this.getRightFrameEndpoint()
-      const span = r - l
-
-      let newL = this.getCurrentFrame()
-      let newR = newL + span
-
-      if (newR > frameInfo.friMax) {
-        newL -= (newR - frameInfo.friMax)
-        newR = frameInfo.friMax
+    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+      const frameInfo = this.getFrameInfo()
+      const pxOffsetLeft = frame * frameInfo.pxpf
+      if (frame !== undefined && (pxOffsetLeft > this._scrollLeft + this._timelinePixelWidth || pxOffsetLeft < this._scrollLeft)) {
+        this.setScrollLeft(pxOffsetLeft)
       }
+    } else {
+      const frameInfo = this.getFrameInfo()
+      // If a frame was passed, only do this if we detect we've gone outside of the range
+      if (frame !== undefined && (frame > frameInfo.friB || frame < frameInfo.friA)) {
+        const l = this.getLeftFrameEndpoint()
+        const r = this.getRightFrameEndpoint()
+        const span = r - l
 
-      this.setVisibleFrameRange(newL, newR)
+        let newL = this.getCurrentFrame()
+        let newR = newL + span
+
+        if (newR > frameInfo.friMax) {
+          newL -= (newR - frameInfo.friMax)
+          newR = frameInfo.friMax
+        }
+
+        this.setVisibleFrameRange(newL, newR)
+      }
     }
 
     return this
@@ -862,6 +816,11 @@ class Timeline extends BaseModel {
     this.cache.unset('frameInfo')
     this.emit('update', 'timeline-frame-range')
     return this
+  }
+
+  calculateFullTimelineWidth () {
+    const frameInfo = this.getFrameInfo()
+    return frameInfo.pxMax + 20
   }
 
   updateScrubberPositionByDelta (delta) {
