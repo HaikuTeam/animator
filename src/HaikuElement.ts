@@ -216,6 +216,22 @@ export default class HaikuElement extends HaikuBase {
     return this.node && this.node.layout;
   }
 
+  get shown (): boolean {
+    return this.layout && this.layout.shown;
+  }
+
+  get opacity (): number {
+    return this.layout && this.layout.opacity;
+  }
+
+  get shear () {
+    return this.layout && this.layout.shear;
+  }
+
+  get matrix (): number[] {
+    return this.layout && this.layout.matrix;
+  }
+
   get translation (): ThreeDimensionalLayoutProperty {
     return (this.layout && this.layout.translation) || {...LAYOUT_DEFAULTS.translation};
   }
@@ -388,6 +404,74 @@ export default class HaikuElement extends HaikuBase {
 
   get sizeAbsoluteZ (): number|string {
     return this.sizeAbsolute && this.sizeAbsolute.z;
+  }
+
+  get sizeMode (): ThreeDimensionalLayoutProperty {
+    return this.rawLayout && this.rawLayout.sizeMode;
+  }
+
+  get sizeModeX (): number {
+    return this.sizeMode && this.sizeMode.x;
+  }
+
+  get sizeModeY (): number {
+    return this.sizeMode && this.sizeMode.y;
+  }
+
+  get sizeModeZ (): number {
+    return this.sizeMode && this.sizeMode.z;
+  }
+
+  get sizeProportional (): ThreeDimensionalLayoutProperty {
+    return (this.rawLayout && this.rawLayout.sizeProportional) || {...LAYOUT_DEFAULTS.sizeProportional};
+  }
+
+  get sizeProportionalX (): number {
+    return this.sizeProportional && this.sizeProportional.x;
+  }
+
+  get sizeProportionalY (): number {
+    return this.sizeProportional && this.sizeProportional.y;
+  }
+
+  get sizeProportionalZ (): number {
+    return this.sizeProportional && this.sizeProportional.z;
+  }
+
+  get sizeDifferential (): ThreeDimensionalLayoutProperty {
+    return (this.rawLayout && this.rawLayout.sizeDifferential) || {...LAYOUT_DEFAULTS.sizeDifferential};
+  }
+
+  get sizeDifferentialX (): number {
+    return this.sizeDifferential && this.sizeDifferential.x;
+  }
+
+  get sizeDifferentialY (): number {
+    return this.sizeDifferential && this.sizeDifferential.y;
+  }
+
+  get sizeDifferentialZ (): number {
+    return this.sizeDifferential && this.sizeDifferential.z;
+  }
+
+  get properties () {
+    return {
+      shown: this.shown,
+      opacity: this.opacity,
+      mount: this.mount,
+      align: this.align,
+      origin: this.origin,
+      translation: this.translation,
+      rotation: this.rotation,
+      scale: this.scale,
+      shear: this.shear,
+      sizeMode: this.sizeMode,
+      sizeProportional: this.sizeProportional,
+      sizeDifferential: this.sizeDifferential,
+      sizeAbsolute: this.sizeAbsolute,
+      size: this.size,
+      matrix: this.matrix,
+    };
   }
 
   computeSize (): ThreeDimensionalLayoutProperty {
