@@ -268,7 +268,7 @@ const computeLayout = (
   for (let i = 0; i < SIZING_AXES.length; i++) {
     const sizeAxis = SIZING_AXES[i];
 
-    const parentSizeValue = parentsizeAbsoluteIn[sizeAxis];
+    const parentSizeValue = parentsizeAbsolute[sizeAxis];
 
     switch (layoutSpec.sizeMode[sizeAxis]) {
       case SIZE_PROPORTIONAL:
