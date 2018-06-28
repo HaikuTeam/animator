@@ -2,7 +2,14 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import {LayoutSpec} from './api/Layout';
+import {
+  ComputedLayoutSpec,
+  LayoutNode,
+  LayoutSpec,
+  ThreeDimensionalLayoutProperty,
+} from './api/Layout';
+
+import HaikuElement from './HaikuElement';
 
 const ELEMENTS_2D = {
   circle: true,
@@ -34,6 +41,7 @@ const SIZE_PROPORTIONAL = 0; // A percentage of the parent
 const SIZE_ABSOLUTE = 1; // A fixed size in screen pixels
 const DEFAULT_DEPTH = 0;
 const IDENTITY = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+const SIZING_AXES = ['x', 'y', 'z'];
 
 // Used for rendering downstream
 const FORMATS = {
@@ -44,6 +52,7 @@ const FORMATS = {
 const DIV = 'div';
 const SVG = 'svg';
 const TYPE_STRING = 'string';
+
 const virtualElementIsLayoutContainer = (virtualElement) => {
   // A virtual element is a layout container if the element is a component…
   return typeof virtualElement.elementName !== TYPE_STRING ||
@@ -85,40 +94,6 @@ const initializeTreeAttributes = (tree, isRootNode: boolean) => {
   }
 };
 
-// The layout specification naming in createLayoutSpec is derived in part from:
-// https://github.com/Famous/engine/blob/master/core/Transform.js which is MIT licensed.
-// The MIT License (MIT)
-// Copyright (c) 2015 Famous Industries Inc.
-// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-// documentation files (the "Software"), to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
-// to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-// The above copyright notice and this permission notice shall be included in all copies or substantial portions of
-// the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
-// NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO
-// EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-// ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-const createLayoutSpec = (createCoordinateSystem?: boolean): LayoutSpec => ({
-  shown: true,
-  opacity: 1.0,
-  mount: {x: 0, y: 0, z: 0}, // anchor in self
-  align: {x: 0, y: 0, z: 0}, // anchor in context
-  origin: createCoordinateSystem ? {x: 0.5, y: 0.5, z: 0.5} : {x: 0, y: 0, z: 0}, // transform origin
-  translation: {x: 0, y: 0, z: 0},
-  rotation: {x: 0, y: 0, z: 0},
-  scale: {x: 1, y: 1, z: 1},
-  shear: {xy: 0, xz: 0, yz: 0},
-  sizeMode: {
-    x: SIZE_PROPORTIONAL,
-    y: SIZE_PROPORTIONAL,
-    z: SIZE_PROPORTIONAL,
-  },
-  sizeProportional: {x: 1, y: 1, z: 1},
-  sizeDifferential: {x: 0, y: 0, z: 0},
-  sizeAbsolute: {x: 0, y: 0, z: 0},
-});
-
 const createMatrix = () => copyMatrix(IDENTITY);
 
 const copyMatrix = (m: number[]) => [...m];
@@ -150,52 +125,6 @@ const multiplyArrayOfMatrices = (arrayOfMatrices: number[][]): number[] => {
   return product;
 };
 
-const computeSizeOfNodeContent = (node) => {
-  // We can't compute a content size for missing or text nodes
-  if (!node || typeof node !== 'object') {
-    return null;
-  }
-
-  // For subcomponents, we should be able to read the size property directly
-  if (typeof node.elementName === 'object') {
-    const subroot = node.children && node.children[0];
-
-    if (subroot && typeof subroot === 'object') {
-      return {
-        x: subroot.layout.sizeAbsolute.x,
-        y: subroot.layout.sizeAbsolute.y,
-        z: subroot.layout.sizeAbsolute.z,
-      };
-    }
-
-    // We got an invalid format; nothing to compute
-    return null;
-  }
-
-  // TODO: Read the union of inner primitives' bounding boxes
-  return null;
-};
-
-const computeLayout = (layoutSpec, currentMatrix, parentsizeAbsoluteIn, contentSizeAbsolute) => {
-  // Clean out the existing computed layout from the layout spec, if it exists.
-  // This prevents a severe memory leak.
-  delete layoutSpec.computed;
-
-  const parentsizeAbsolute = parentsizeAbsoluteIn || {x: 0, y: 0, z: 0};
-
-  if (parentsizeAbsolute.z === undefined || parentsizeAbsolute.z === null) {
-    parentsizeAbsolute.z = DEFAULT_DEPTH;
-  }
-
-  const size = computeSize(layoutSpec, layoutSpec.sizeMode, parentsizeAbsolute, contentSizeAbsolute);
-
-  return {
-    ...layoutSpec,
-    size,
-    matrix: computeMatrix(layoutSpec, currentMatrix, size, parentsizeAbsolute),
-  };
-};
-
 const computeOrthonormalBasisMatrix = (rotation, shear) => {
   const orthonormalBasisLayout = {
     ...createLayoutSpec(),
@@ -203,7 +132,7 @@ const computeOrthonormalBasisMatrix = (rotation, shear) => {
     shear,
   };
   const ignoredSize = {x: 0, y: 0, z: 0};
-  return computeMatrix(orthonormalBasisLayout, createMatrix(), ignoredSize, ignoredSize);
+  return computeMatrix(orthonormalBasisLayout, ignoredSize, ignoredSize);
 };
 
 const computeScaledBasisMatrix = (rotation, scale, shear) => {
@@ -214,11 +143,60 @@ const computeScaledBasisMatrix = (rotation, scale, shear) => {
     shear,
   };
   const ignoredSize = {x: 0, y: 0, z: 0};
-  return computeMatrix(scaledBasisLayout, createMatrix(), ignoredSize, ignoredSize);
+  return computeMatrix(scaledBasisLayout, ignoredSize, ignoredSize);
+};
+
+const useAutoSizing = (givenValue): boolean => {
+  return (
+    givenValue === AUTO_SIZING_TOKEN ||
+    // Legacy. Because HaikuComponent#render gets called before Migration.runMigrations,
+    // the legacy value won't be correctly migrated to 'auto' by the time this gets called
+    // for the very first time, so we keep it around for backwards compat. Jun 22, 2018.
+    givenValue === true
+  );
+};
+
+const clone = (layout) => {
+  if (!layout) {
+    return layout;
+  }
+
+  const out = {
+    shown: layout.shown,
+    opacity: layout.opacity,
+    mount: Object.assign({}, layout.mount),
+    align: Object.assign({}, layout.align),
+    origin: Object.assign({}, layout.origin),
+    translation: Object.assign({}, layout.translation),
+    rotation: Object.assign({}, layout.rotation),
+    scale: Object.assign({}, layout.scale),
+    shear: Object.assign({}, layout.shear),
+    sizeMode: Object.assign({}, layout.sizeMode),
+    sizeProportional: Object.assign({}, layout.sizeProportional),
+    sizeDifferential: Object.assign({}, layout.sizeDifferential),
+    sizeAbsolute: Object.assign({}, layout.sizeAbsolute),
+    size: null,
+    matrix: null,
+    computed: null,
+  };
+
+  if (layout.computed) {
+    out.computed = clone(layout.computed);
+  }
+
+  // Handle either a raw layout (no size or matrix) or a computed one (has size and matrix)
+  if (layout.matrix) {
+    out.matrix = layout.matrix.map((n) => n);
+  }
+  if (layout.size) {
+    out.size = Object.assign({}, layout.size);
+  }
+
+  return out;
 };
 
 /**
- * This code below includes modified code from https://github.com/famous/engine
+ * The code below includes modified code from https://github.com/famous/engine
  *
  * The original code was released under the MIT license.
  *
@@ -245,16 +223,113 @@ const computeScaledBasisMatrix = (rotation, scale, shear) => {
  * THE SOFTWARE.
  */
 
-const computeMatrix = (layoutSpec, currentMatrix, currentsizeAbsolute, parentsizeAbsolute) => {
-  const alignX = layoutSpec.align.x * parentsizeAbsolute.x;
-  const alignY = layoutSpec.align.y * parentsizeAbsolute.y;
-  const alignZ = layoutSpec.align.z * parentsizeAbsolute.z;
-  const mountPointX = layoutSpec.mount.x * currentsizeAbsolute.x;
-  const mountPointY = layoutSpec.mount.y * currentsizeAbsolute.y;
-  const mountPointZ = layoutSpec.mount.z * currentsizeAbsolute.z;
-  const originX = layoutSpec.origin.x * currentsizeAbsolute.x;
-  const originY = layoutSpec.origin.y * currentsizeAbsolute.y;
-  const originZ = layoutSpec.origin.z * currentsizeAbsolute.z;
+const createLayoutSpec = (createCoordinateSystem?: boolean): LayoutSpec => ({
+  shown: true,
+  opacity: 1.0,
+  mount: {x: 0, y: 0, z: 0}, // anchor in self
+  align: {x: 0, y: 0, z: 0}, // anchor in context
+  origin: createCoordinateSystem ? {x: 0.5, y: 0.5, z: 0.5} : {x: 0, y: 0, z: 0}, // transform origin
+  translation: {x: 0, y: 0, z: 0},
+  rotation: {x: 0, y: 0, z: 0},
+  scale: {x: 1, y: 1, z: 1},
+  shear: {xy: 0, xz: 0, yz: 0},
+  sizeMode: {
+    x: SIZE_PROPORTIONAL,
+    y: SIZE_PROPORTIONAL,
+    z: SIZE_PROPORTIONAL,
+  },
+  sizeProportional: {x: 1, y: 1, z: 1},
+  sizeDifferential: {x: 0, y: 0, z: 0},
+  sizeAbsolute: {x: 0, y: 0, z: 0},
+});
+
+const computeLayout = (
+  targetNode: LayoutNode,
+  parentsizeAbsoluteIn: ThreeDimensionalLayoutProperty,
+): ComputedLayoutSpec => {
+  const layoutSpec = targetNode.layout;
+
+  const parentsizeAbsolute = parentsizeAbsoluteIn || {x: 0, y: 0, z: 0};
+
+  if (parentsizeAbsolute.z === undefined || parentsizeAbsolute.z === null) {
+    parentsizeAbsolute.z = DEFAULT_DEPTH;
+  }
+
+  const targetSize = {
+    x: null,
+    y: null,
+    z: null,
+  };
+
+  // We don't want to hydrate a HaikuElement unnecessarily. It's only required if
+  // we are doing "auto"-sizing, so we construct one on demand below.
+  let targetElement;
+
+  for (let i = 0; i < SIZING_AXES.length; i++) {
+    const sizeAxis = SIZING_AXES[i];
+
+    const parentSizeValue = parentsizeAbsoluteIn[sizeAxis];
+
+    switch (layoutSpec.sizeMode[sizeAxis]) {
+      case SIZE_PROPORTIONAL:
+        const sizeProportional = layoutSpec.sizeProportional[sizeAxis];
+        const sizeDifferential = layoutSpec.sizeDifferential[sizeAxis];
+        targetSize[sizeAxis] = parentSizeValue * sizeProportional + sizeDifferential;
+        break;
+
+      case SIZE_ABSOLUTE:
+        const givenValue = layoutSpec.sizeAbsolute[sizeAxis];
+
+        // Implements "auto"-sizing: Use content size if available, otherwise fallback to parent
+        if (useAutoSizing(givenValue)) {
+          if (!targetElement) {
+            // Note that HaikuElement.findOrCreateByNode will use a cached instance if found
+            targetElement = HaikuElement.findOrCreateByNode(targetNode);
+          }
+
+          targetSize[sizeAxis] = targetElement.computeSizeForAxis(sizeAxis);
+        } else {
+          targetSize[sizeAxis] = givenValue; // Assume the given value is numeric
+        }
+
+        break;
+    }
+  }
+
+  return {
+    shown: layoutSpec.shown,
+    opacity: layoutSpec.opacity,
+    mount: layoutSpec.mount,
+    align: layoutSpec.align,
+    origin: layoutSpec.origin,
+    translation: layoutSpec.translation,
+    rotation: layoutSpec.rotation,
+    orientation: layoutSpec.orientation,
+    scale: layoutSpec.scale,
+    shear: layoutSpec.shear,
+    sizeMode: layoutSpec.sizeMode,
+    sizeProportional: layoutSpec.sizeProportional,
+    sizeDifferential: layoutSpec.sizeDifferential,
+    sizeAbsolute: layoutSpec.sizeAbsolute,
+    size: targetSize,
+    matrix: computeMatrix(layoutSpec, targetSize, parentsizeAbsolute),
+  };
+};
+
+const computeMatrix = (
+  layoutSpec: LayoutSpec,
+  targetSize: ThreeDimensionalLayoutProperty,
+  parentSize: ThreeDimensionalLayoutProperty,
+) => {
+  const alignX = layoutSpec.align.x * parentSize.x;
+  const alignY = layoutSpec.align.y * parentSize.y;
+  const alignZ = layoutSpec.align.z * parentSize.z;
+  const mountPointX = layoutSpec.mount.x * targetSize.x;
+  const mountPointY = layoutSpec.mount.y * targetSize.y;
+  const mountPointZ = layoutSpec.mount.z * targetSize.z;
+  const originX = layoutSpec.origin.x * targetSize.x;
+  const originY = layoutSpec.origin.y * targetSize.y;
+  const originZ = layoutSpec.origin.z * targetSize.z;
 
   layoutSpec.orientation = computeOrientationFlexibly(
     layoutSpec.rotation.x,
@@ -350,65 +425,11 @@ const computeOrientationFlexibly = (x: number, y: number, z: number) => {
   };
 };
 
-const SIZING_AXES = ['x', 'y', 'z'];
-
-const useAutoSizing = (givenValue): boolean => {
-  return (
-    givenValue === AUTO_SIZING_TOKEN ||
-    // Legacy. Because HaikuComponent#render gets called before Migration.runMigrations,
-    // the legacy value won't be correctly migrated to 'auto' by the time this gets called
-    // for the very first time, so we keep it around for backwards compat. Jun 22, 2018.
-    givenValue === true
-  );
-};
-
-const computeSize = (
-  layoutSpec,
-  sizeModeArray,
-  parentSize,
-  contentSize,
-) => {
-  const outputSize = {};
-
-  for (let i = 0; i < SIZING_AXES.length; i++) {
-    const sizeAxis = SIZING_AXES[i];
-    const contentSizeValue = contentSize && contentSize[sizeAxis];
-    const parentSizeValue = parentSize[sizeAxis];
-
-    switch (sizeModeArray[sizeAxis]) {
-      case SIZE_PROPORTIONAL:
-        const sizeProportional = layoutSpec.sizeProportional[sizeAxis];
-        const sizeDifferential = layoutSpec.sizeDifferential[sizeAxis];
-        outputSize[sizeAxis] = parentSizeValue * sizeProportional + sizeDifferential;
-        break;
-
-      case SIZE_ABSOLUTE:
-        const givenValue = layoutSpec.sizeAbsolute[sizeAxis];
-
-        // Implements "auto"-sizing: Use content size if available, otherwise fallback to parent
-        if (useAutoSizing(givenValue)) {
-          if (contentSizeValue) {
-            outputSize[sizeAxis] = contentSizeValue;
-          } else {
-            outputSize[sizeAxis] = parentSizeValue;
-          }
-        } else {
-          outputSize[sizeAxis] = givenValue; // Assume the given value is numeric
-        }
-
-        break;
-    }
-  }
-
-  return outputSize;
-};
-
 export default {
   multiplyArrayOfMatrices,
+  clone,
   computeLayout,
   computeMatrix,
-  computeSize,
-  computeSizeOfNodeContent,
   computeOrientationFlexibly,
   computeOrthonormalBasisMatrix,
   computeScaledBasisMatrix,

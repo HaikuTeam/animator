@@ -1,3 +1,5 @@
+import {BytecodeNodeAttributes} from './HaikuBytecode';
+
 export type Mat4 = number[];
 
 export interface ThreeDimensionalLayoutProperty {
@@ -42,8 +44,61 @@ export interface LayoutSpec {
     yz: number;
   };
 
-  computed?: LayoutSpec & {
-    matrix: Mat4;
-    size: ThreeDimensionalLayoutProperty;
-  };
+  computed?: ComputedLayoutSpec;
 }
+
+export interface ComputedLayoutSpec extends LayoutSpec {
+  matrix: Mat4;
+  size: ThreeDimensionalLayoutProperty;
+}
+
+export interface StringableThreeDimensionalLayoutProperty {
+  x: number|string;
+  y: number|string;
+  z: number|string;
+}
+
+export interface TwoPointFiveDimensionalLayoutProperty {
+  x: number;
+  y: number;
+  z?: number;
+}
+
+export interface ClientRect {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+  width: number;
+  height: number;
+}
+
+export interface BoundsSpecX {
+  left: number;
+  right: number;
+}
+
+export interface BoundsSpecY {
+  top: number;
+  bottom: number;
+}
+
+export interface BoundsSpecZ {
+  front: number;
+  back: number;
+}
+
+export interface BoundsSpec extends BoundsSpecX, BoundsSpecY, BoundsSpecZ {}
+
+/**
+ * @description A LayoutNode may be a proper BytecodeNode, but for convenience
+ * we allow an object that only has a layout property declared.
+ */
+export interface LayoutNode {
+  elementName?: string;
+  attributes?: BytecodeNodeAttributes;
+  children?: (LayoutNode|string)[];
+  layout: LayoutSpec;
+}
+
+export type AxisString = 'x'|'y'|'z';

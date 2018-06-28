@@ -5,7 +5,7 @@ module.exports = HaikuCreation(require('./code.js'), {
   },
   onHaikuComponentDidMount: function (instance) {
     var tl = instance.getDefaultTimeline()
-    console.log(tl.duration)
+    console.log(tl.duration())
     setTimeout(function () {
       tl.gotoAndStop(500, 'ms')
       setTimeout(function () {

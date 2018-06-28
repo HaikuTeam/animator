@@ -1,3 +1,16 @@
+import {
+  AxisString,
+  BoundsSpec,
+  BoundsSpecX,
+  BoundsSpecY,
+  BoundsSpecZ,
+  ClientRect,
+  ComputedLayoutSpec,
+  LayoutSpec,
+  StringableThreeDimensionalLayoutProperty,
+  ThreeDimensionalLayoutProperty,
+  TwoPointFiveDimensionalLayoutProperty,
+} from './api/Layout';
 import HaikuBase from './HaikuBase';
 import HaikuComponent from './HaikuComponent';
 import {cssMatchOne} from './HaikuNode';
@@ -31,7 +44,7 @@ export default class HaikuElement extends HaikuBase {
     return (this.node && this.node.children) || [];
   }
 
-  get children (): any {
+  get children (): HaikuElement[] {
     return this.childNodes.map((childNode) => {
       // To avoid unnecessary up-front work, we create HaikuElement instances
       // on demand rather than hydrating the collection on load
@@ -118,7 +131,7 @@ export default class HaikuElement extends HaikuBase {
     return this.parentNode && HaikuElement.findOrCreateByNode(this.parentNode);
   }
 
-  get layout (): any {
+  get layout (): ComputedLayoutSpec {
     return this.node && this.node.layout && this.node.layout.computed;
   }
 
@@ -146,7 +159,7 @@ export default class HaikuElement extends HaikuBase {
   }
 
   get layoutAncestryMatrices (): number[][] {
-    return this.layoutAncestry.map((layout) => layout.matrix);
+    return this.layoutAncestry.filter((layout) => !!layout.matrix).map((layout) => layout.matrix);
   }
 
   get rootSVG (): HaikuElement {
@@ -199,43 +212,55 @@ export default class HaikuElement extends HaikuBase {
     return out;
   }
 
-  get rawLayout (): any {
+  get rawLayout (): LayoutSpec {
     return this.node && this.node.layout;
   }
 
-  get translation (): any {
+  get shown (): boolean {
+    return this.layout && this.layout.shown;
+  }
+
+  get opacity (): number {
+    return this.layout && this.layout.opacity;
+  }
+
+  get shear () {
+    return this.layout && this.layout.shear;
+  }
+
+  get matrix (): number[] {
+    return this.layout && this.layout.matrix;
+  }
+
+  get translation (): ThreeDimensionalLayoutProperty {
     return (this.layout && this.layout.translation) || {...LAYOUT_DEFAULTS.translation};
   }
 
-  get rotation (): any {
+  get rotation (): ThreeDimensionalLayoutProperty {
     return (this.layout && this.layout.rotation) || {...LAYOUT_DEFAULTS.rotation};
   }
 
-  get scale (): any {
+  get scale (): ThreeDimensionalLayoutProperty {
     return (this.layout && this.layout.scale) || {...LAYOUT_DEFAULTS.scale};
   }
 
-  get origin (): any {
+  get origin (): ThreeDimensionalLayoutProperty {
     return (this.layout && this.layout.origin) || {...LAYOUT_DEFAULTS.origin};
   }
 
-  get mount (): any {
+  get mount (): ThreeDimensionalLayoutProperty {
     return (this.layout && this.layout.mount) || {...LAYOUT_DEFAULTS.mount};
   }
 
-  get align (): any {
+  get align (): ThreeDimensionalLayoutProperty {
     return (this.layout && this.layout.align) || {...LAYOUT_DEFAULTS.align};
-  }
-
-  get size (): any {
-    return (this.layout && this.layout.size) || {...LAYOUT_DEFAULTS.sizeAbsolute};
   }
 
   get targets (): any[] {
     return (this.node && this.node.__targets) || [];
   }
 
-  get target (): any {
+  get target () {
     // Assume the most recently added target is the canonical target due to an implementation
     // detail in the Haiku editing environment; FIXME. On 3 Jun 2018 was changed from the first
     // added to the last added one to fix a bug related to ungrouping
@@ -290,18 +315,6 @@ export default class HaikuElement extends HaikuBase {
     return this.translation && this.translation.z;
   }
 
-  get sizeX (): number {
-    return this.size && this.size.x;
-  }
-
-  get sizeY (): number {
-    return this.size && this.size.y;
-  }
-
-  get sizeZ (): number {
-    return this.size && this.size.z;
-  }
-
   get originX (): number {
     return this.origin && this.origin.x;
   }
@@ -336,6 +349,281 @@ export default class HaikuElement extends HaikuBase {
 
   get alignZ (): number {
     return this.align && this.align.z;
+  }
+
+  /**
+   * @description Returns the size as computed when the layout was last rendered.
+   */
+  get sizePrecomputed (): ThreeDimensionalLayoutProperty {
+    return this.layout && this.layout.size;
+  }
+
+  get sizePrecomputedX (): number {
+    return this.sizePrecomputed && this.sizePrecomputed.x;
+  }
+
+  get sizePrecomputedY (): number {
+    return this.sizePrecomputed && this.sizePrecomputed.y;
+  }
+
+  get sizePrecomputedZ (): number {
+    return this.sizePrecomputed && this.sizePrecomputed.z;
+  }
+
+  get size (): ThreeDimensionalLayoutProperty {
+    return {
+      x: this.sizeX,
+      y: this.sizeY,
+      z: this.sizeZ,
+    };
+  }
+
+  get sizeX (): number {
+    return this.computeSizeX();
+  }
+
+  get sizeY (): number {
+    return this.computeSizeY();
+  }
+
+  get sizeZ (): number {
+    return this.computeSizeZ();
+  }
+
+  get sizeAbsolute (): StringableThreeDimensionalLayoutProperty {
+    return (this.rawLayout && this.rawLayout.sizeAbsolute) || {...LAYOUT_DEFAULTS.sizeAbsolute};
+  }
+
+  get sizeAbsoluteX (): number|string {
+    return this.sizeAbsolute && this.sizeAbsolute.x;
+  }
+
+  get sizeAbsoluteY (): number|string {
+    return this.sizeAbsolute && this.sizeAbsolute.y;
+  }
+
+  get sizeAbsoluteZ (): number|string {
+    return this.sizeAbsolute && this.sizeAbsolute.z;
+  }
+
+  get sizeMode (): ThreeDimensionalLayoutProperty {
+    return this.rawLayout && this.rawLayout.sizeMode;
+  }
+
+  get sizeModeX (): number {
+    return this.sizeMode && this.sizeMode.x;
+  }
+
+  get sizeModeY (): number {
+    return this.sizeMode && this.sizeMode.y;
+  }
+
+  get sizeModeZ (): number {
+    return this.sizeMode && this.sizeMode.z;
+  }
+
+  get sizeProportional (): ThreeDimensionalLayoutProperty {
+    return (this.rawLayout && this.rawLayout.sizeProportional) || {...LAYOUT_DEFAULTS.sizeProportional};
+  }
+
+  get sizeProportionalX (): number {
+    return this.sizeProportional && this.sizeProportional.x;
+  }
+
+  get sizeProportionalY (): number {
+    return this.sizeProportional && this.sizeProportional.y;
+  }
+
+  get sizeProportionalZ (): number {
+    return this.sizeProportional && this.sizeProportional.z;
+  }
+
+  get sizeDifferential (): ThreeDimensionalLayoutProperty {
+    return (this.rawLayout && this.rawLayout.sizeDifferential) || {...LAYOUT_DEFAULTS.sizeDifferential};
+  }
+
+  get sizeDifferentialX (): number {
+    return this.sizeDifferential && this.sizeDifferential.x;
+  }
+
+  get sizeDifferentialY (): number {
+    return this.sizeDifferential && this.sizeDifferential.y;
+  }
+
+  get sizeDifferentialZ (): number {
+    return this.sizeDifferential && this.sizeDifferential.z;
+  }
+
+  get properties () {
+    return {
+      shown: this.shown,
+      opacity: this.opacity,
+      mount: this.mount,
+      align: this.align,
+      origin: this.origin,
+      translation: this.translation,
+      rotation: this.rotation,
+      scale: this.scale,
+      shear: this.shear,
+      sizeMode: this.sizeMode,
+      sizeProportional: this.sizeProportional,
+      sizeDifferential: this.sizeDifferential,
+      sizeAbsolute: this.sizeAbsolute,
+      size: this.size,
+      matrix: this.matrix,
+    };
+  }
+
+  computeSize (): ThreeDimensionalLayoutProperty {
+    return {
+      x: this.computeSizeX(),
+      y: this.computeSizeY(),
+      z: this.computeSizeZ(),
+    };
+  }
+
+  computeContentBounds (): BoundsSpec {
+    return {
+      ...this.computeContentBoundsX(),
+      ...this.computeContentBoundsY(),
+      ...this.computeContentBoundsZ(),
+    };
+  }
+
+  computeContentBoundsX (): BoundsSpecX {
+    const lefts = [];
+    const rights = [];
+
+    const children = this.children;
+
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
+
+      // These fields should account for the child's translation, rotation, scale, etc.
+      const {
+        left,
+        right,
+      } = child.getLocallyTransformedBoundingClientRect();
+
+      lefts.push(left);
+      rights.push(right);
+    }
+
+    return {
+      left: Math.min.apply(Math, lefts),
+      right: Math.max.apply(Math, rights),
+    };
+  }
+
+  computeContentBoundsY (): BoundsSpecY {
+    const tops = [];
+    const bottoms = [];
+
+    const children = this.children;
+
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
+
+      // These fields should account for the child's translation, rotation, scale, etc.
+      const {
+        top,
+        bottom,
+      } = child.getLocallyTransformedBoundingClientRect();
+
+      tops.push(top);
+      bottoms.push(bottom);
+    }
+
+    return {
+      top: Math.min.apply(Math, tops),
+      bottom: Math.max.apply(Math, bottoms),
+    };
+  }
+
+  computeContentBoundsZ (): BoundsSpecZ {
+    return {
+      front: 0,
+      back: 0,
+    };
+  }
+
+  computeSizeForAxis (axis: AxisString): number {
+    if (axis === 'x') {
+      return this.computeSizeX();
+    }
+    if (axis === 'y') {
+      return this.computeSizeY();
+    }
+    if (axis === 'z') {
+      return this.computeSizeZ();
+    }
+  }
+
+  /**
+   * @description For elements that only have a single child, we can save some computation
+   * by looking up their defined absolute size instead of computing their bounding box.
+   * In particular this is useful in the case of the component wrapper div and its one child.
+   */
+  getOnlyChildSize (axis: AxisString): number {
+    const children = this.children;
+
+    if (children.length !== 1) {
+      return;
+    }
+
+    const child = children[0];
+
+    if (!child || typeof child !== 'object') {
+      return;
+    }
+
+    if (typeof child.sizeAbsolute[axis] === 'number') {
+      return child.sizeAbsolute[axis] as number;
+    }
+
+    return child.getOnlyChildSize(axis);
+  }
+
+  computeSizeX (): number {
+    if (typeof this.sizeAbsolute.x === 'number') {
+      return this.sizeAbsolute.x;
+    }
+
+    const onlyChildSize = this.getOnlyChildSize('x');
+    if (typeof onlyChildSize === 'number') {
+      return onlyChildSize;
+    }
+
+    const {left, right} = this.computeContentBoundsX();
+    return right - left;
+  }
+
+  computeSizeY (): number {
+    if (typeof this.sizeAbsolute.y === 'number') {
+      return this.sizeAbsolute.y;
+    }
+
+    const onlyChildSize = this.getOnlyChildSize('y');
+    if (typeof onlyChildSize === 'number') {
+      return onlyChildSize;
+    }
+
+    const {top, bottom} = this.computeContentBoundsY();
+    return bottom - top;
+  }
+
+  computeSizeZ (): number {
+    if (typeof this.sizeAbsolute.z === 'number') {
+      return this.sizeAbsolute.z;
+    }
+
+    const onlyChildSize = this.getOnlyChildSize('z');
+    if (typeof onlyChildSize === 'number') {
+      return onlyChildSize;
+    }
+
+    const {front, back} = this.computeContentBoundsZ();
+    return back - front;
   }
 
   getComponentId (): string {
@@ -380,20 +668,29 @@ export default class HaikuElement extends HaikuBase {
     );
   }
 
-  visit (iteratee: Function, filter?: Function) {
-    if (iteratee(this) !== false) {
+  visit (iteratee: Function, filter?: (value: HaikuElement, index: number, array: HaikuElement[]) => boolean) {
+    const result = iteratee(this);
+    if (result !== false) {
       return this.visitDescendants(iteratee, filter);
     }
+    return result;
   }
 
-  visitDescendants (iteratee: Function, filter?: Function) {
+  visitDescendants (
+    iteratee: Function,
+    filter?: (value: HaikuElement, index: number, array: HaikuElement[]) => boolean,
+  ) {
     const children = filter ? this.children.filter(filter) : this.children;
 
     for (let i = 0; i < children.length; i++) {
-      if (children[i].visit(iteratee, filter) === false) {
-        break;
+      const result = children[i].visit(iteratee, filter);
+
+      if (result === false) {
+        return result;
       }
     }
+
+    return true;
   }
 
   querySelector (selector: string): any {
@@ -427,14 +724,44 @@ export default class HaikuElement extends HaikuBase {
     });
   }
 
-  static transformVectorByMatrix = (out, v, m) => {
+  getRawBoundingBoxPoints (): ThreeDimensionalLayoutProperty[] {
+    const {
+      x,
+      y,
+    } = this.computeSize();
+
+    return [
+      {x: 0, y: 0, z: 0}, {x: x / 2, y: 0, z: 0}, {x, y: 0, z: 0},
+      {x: 0, y: y / 2, z: 0}, {x: x / 2, y: y / 2, z: 0}, {x, y: y / 2, z: 0},
+      {y, x: 0, z: 0}, {y, x: x / 2, z: 0}, {y, x, z: 0},
+    ];
+  }
+
+  getLocallyTransformedBoundingBoxPoints (): ThreeDimensionalLayoutProperty[] {
+    return HaikuElement.transformPointsInPlace(
+      this.getRawBoundingBoxPoints(),
+      Layout3D.computeLayout(
+        this.node,
+        null, // parentSize; none available here
+      ).matrix,
+    );
+  }
+
+  getLocallyTransformedBoundingClientRect (): ClientRect {
+    const points = this.getLocallyTransformedBoundingBoxPoints();
+    return HaikuElement.getRectFromPoints(points);
+  }
+
+  static transformVectorByMatrix = (out, v, m): number[] => {
     out[0] = m[0] * v[0] + m[4] * v[1] + m[8] * v[2] + m[12];
     out[1] = m[1] * v[0] + m[5] * v[1] + m[9] * v[2] + m[13];
     out[2] = m[2] * v[0] + m[6] * v[1] + m[10] * v[2] + m[14];
     return out;
   };
 
-  static getRectFromPoints = (points) => {
+  static getRectFromPoints = (
+    points: ThreeDimensionalLayoutProperty[]|TwoPointFiveDimensionalLayoutProperty[],
+  ): ClientRect => {
     const top = Math.min(points[0].y, points[2].y, points[6].y, points[8].y);
     const bottom = Math.max(points[0].y, points[2].y, points[6].y, points[8].y);
     const left = Math.min(points[0].x, points[2].x, points[6].x, points[8].x);
@@ -510,7 +837,7 @@ export default class HaikuElement extends HaikuBase {
   // tslint:disable-next-line:variable-name
   static __name__ = 'HaikuElement';
 
-  static findByNode = (node) => {
+  static findByNode = (node): HaikuElement => {
     const registry = HaikuBase.getRegistryForClass(HaikuElement);
 
     for (let i = 0; i < registry.length; i++) {
@@ -534,13 +861,13 @@ export default class HaikuElement extends HaikuBase {
     }
   };
 
-  static createByNode = (node) => {
+  static createByNode = (node): HaikuElement => {
     const element = new HaikuElement();
     HaikuElement.connectNodeWithElement(node, element);
     return element;
   };
 
-  static findOrCreateByNode = (node) => {
+  static findOrCreateByNode = (node): HaikuElement => {
     if (node.__element) {
       return node.__element;
     }

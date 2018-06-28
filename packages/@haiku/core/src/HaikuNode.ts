@@ -2,6 +2,7 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
+import Layout3D from './Layout3D';
 import arrayUnique from './vendor/array-unique';
 import toStyle from './vendor/to-style';
 import xmlParser from './vendor/xml-parser';
@@ -566,6 +567,37 @@ export const manaToXml = (accumulator: string, object, mapping, options): string
     if (SELF_CLOSING_TAG_NAMES.indexOf(name) === -1) {
       out += OPEN_TAG + SLASH + name + CLOSE_TAG;
     }
+  }
+
+  return out;
+};
+
+export const cloneNodeShallow = (node) => {
+  if (!node) {
+    return node;
+  }
+
+  return {
+    // We want to keep __parent, __repeat, etc.,
+    // as well as elementName, which could be byteocde,
+    // unchanged.
+    ...node,
+    attributes: cloneAttributes(node.attributes),
+    layout: Layout3D.clone(node.layout),
+  };
+};
+
+export const cloneAttributes = (attributes) => {
+  if (!attributes) {
+    return attributes;
+  }
+
+  const out = {
+    ...attributes,
+  };
+
+  if (attributes.style) {
+    out.style = Object.assign({}, attributes.style);
   }
 
   return out;

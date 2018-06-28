@@ -496,7 +496,11 @@ export default class HaikuTimeline extends HaikuBase {
     }
   }
 
-  get duration (): number {
+  /**
+   * @deprecated
+   * TODO: Please change this to a getter.
+   */
+  duration (): number {
     return this.getDuration();
   }
 

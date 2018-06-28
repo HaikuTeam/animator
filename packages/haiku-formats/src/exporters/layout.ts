@@ -6,7 +6,7 @@ import Layout3D from '@haiku/core/lib/Layout3D';
 import {ContextualSize} from 'haiku-common/lib/types';
 import {initialValueOr} from './timelineUtils';
 
-const {createLayoutSpec, createMatrix} = Layout3D;
+const {createLayoutSpec} = Layout3D;
 
 export const enum LayoutPropertyType {
   Unknown = 0,
@@ -138,13 +138,11 @@ export const composeTimelines = (
   shimLayoutForPseudoElement(parentTimeline, parentPseudoElement);
   const childMatrix = Layout3D.computeMatrix(
     childPseudoElement.layout,
-    createMatrix(),
     shapeLayerSize,
     animationSize,
   );
   const parentMatrix = Layout3D.computeMatrix(
     parentPseudoElement.layout,
-    createMatrix(),
     shapeLayerSize,
     animationSize,
   );
