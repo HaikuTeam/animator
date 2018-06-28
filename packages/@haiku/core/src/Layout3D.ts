@@ -3,6 +3,7 @@
  */
 
 import {
+  ComputedLayoutSpec,
   LayoutSpec,
   ThreeDimensionalLayoutProperty,
 } from './api/Layout';
@@ -243,11 +244,7 @@ const computeLayout = (
   layoutSpec: LayoutSpec,
   currentMatrix: number[],
   parentsizeAbsoluteIn: ThreeDimensionalLayoutProperty,
-) => {
-  // Clean out the existing computed layout from the layout spec, if it exists.
-  // This prevents a severe memory leak.
-  delete layoutSpec.computed;
-
+): ComputedLayoutSpec => {
   const parentsizeAbsolute = parentsizeAbsoluteIn || {x: 0, y: 0, z: 0};
 
   if (parentsizeAbsolute.z === undefined || parentsizeAbsolute.z === null) {
@@ -287,7 +284,20 @@ const computeLayout = (
   }
 
   return {
-    ...layoutSpec,
+    shown: layoutSpec.shown,
+    opacity: layoutSpec.opacity,
+    mount: layoutSpec.mount,
+    align: layoutSpec.align,
+    origin: layoutSpec.origin,
+    translation: layoutSpec.translation,
+    rotation: layoutSpec.rotation,
+    orientation: layoutSpec.orientation,
+    scale: layoutSpec.scale,
+    shear: layoutSpec.shear,
+    sizeMode: layoutSpec.sizeMode,
+    sizeProportional: layoutSpec.sizeProportional,
+    sizeDifferential: layoutSpec.sizeDifferential,
+    sizeAbsolute: layoutSpec.sizeAbsolute,
     size: targetSize,
     matrix: computeMatrix(layoutSpec, targetSize, parentsizeAbsolute),
   };
