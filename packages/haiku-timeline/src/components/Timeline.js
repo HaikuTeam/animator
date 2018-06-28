@@ -1146,6 +1146,7 @@ class Timeline extends React.Component {
             height: 35,
             width: timeline.getPropertiesPixelWidth(),
             backgroundColor: Palette.COAL,
+            borderBottom: `1px solid ${Palette.FATHER_COAL}`,
             zIndex: zIndex.timekeepingWrapper.base,
             fontSize: 10
           }}

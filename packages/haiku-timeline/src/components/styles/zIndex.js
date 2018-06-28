@@ -69,7 +69,7 @@ const zIndex = {
 
   // Vertial line simulating a shadow between the properties and the tweens
   scrollShadow: {
-    base: 1
+    base: 11
   },
 
   // Box with the expression input

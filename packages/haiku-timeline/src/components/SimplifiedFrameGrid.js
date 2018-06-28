@@ -48,6 +48,12 @@ export default class SimplifiedFrameGrid extends React.PureComponent {
     if (!this.mounted) return null
     if (what === 'timeline-frame-hovered') {
       this.toggleFrameHover()
+    } else if (
+      what === 'timeline-frame-range' ||
+      what === 'timeline-timeline-pixel-width' ||
+      what === 'time-display-mode-change'
+    ) {
+      this.forceUpdate()
     }
   }
 

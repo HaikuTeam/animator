@@ -8,6 +8,7 @@ export default class ScrubberInterior extends React.Component {
   constructor (props) {
     super(props)
     this.handleUpdate = this.handleUpdate.bind(this)
+    this.off = true
     this.throttledForceUpdate = lodash.throttle(this.forceUpdate.bind(this), 64)
   }
 
@@ -33,7 +34,9 @@ export default class ScrubberInterior extends React.Component {
     if (!this.mounted) return null
 
     if (what === 'timeline-frame') {
-      this.forceUpdate()
+      if (!this.props.timeline.isPlaying()) {
+        this.forceUpdate()
+      }
     } else if (what === 'timeline-frame-range') {
       this.forceUpdate()
     } else if (what === 'time-display-mode-change') {
@@ -41,8 +44,50 @@ export default class ScrubberInterior extends React.Component {
     }
   }
 
+  teste () {
+    const frameInfo = this.props.timeline.getFrameInfo()
+    const propertiesWidth = this.props.timeline.getPropertiesPixelWidth()
+    const currentFrame = this.props.timeline.getCurrentFrame()
+
+    if (this.props.timeline.isPlaying()) {
+      if (currentFrame < frameInfo.maxf) {
+        if (this.off) {
+          const pxOffset = frameInfo.maxf * frameInfo.pxpf
+          this.off = false
+          this.head.style.transform = `translateX(${propertiesWidth + pxOffset - 9}px)`
+          this.tail.style.transform = `translateX(${propertiesWidth + pxOffset}px)`
+          this.head.style.transition = `transform ${frameInfo.mspf * (frameInfo.maxf - currentFrame)}ms linear`
+          this.tail.style.transition = `transform ${frameInfo.mspf * (frameInfo.maxf - currentFrame)}ms linear`
+        }
+      } else {
+        this.off = true
+        this.head.style.transition = ''
+        this.tail.style.transition = ''
+        this.head.style.transform = 'translateX(0)'
+        this.tail.style.transform = 'translateX(0)'
+      }
+    } else {
+      this.off = true
+      const frameOffset = experimentIsEnabled(Experiment.NativeTimelineScroll)
+        ? currentFrame
+        : currentFrame - frameInfo.friA
+      const pxOffset = frameOffset * frameInfo.pxpf
+      if (this.head && this.tail) {
+        this.head.style.transition = ''
+        this.tail.style.transition = ''
+        this.head.style.transform = `translateX(${propertiesWidth + pxOffset - 9}px)`
+        this.tail.style.transform = `translateX(${propertiesWidth + pxOffset}px)`
+      }
+    }
+
+    window.requestAnimationFrame(() => {
+      this.teste()
+    })
+  }
+
   render () {
     const frameInfo = this.props.timeline.getFrameInfo()
+    this.teste()
 
     if (!experimentIsEnabled(Experiment.NativeTimelineScroll)) {
       if (this.props.timeline.getCurrentFrame() < frameInfo.friA) {
@@ -73,6 +118,7 @@ export default class ScrubberInterior extends React.Component {
           overflow: 'hidden'
         })}>
         <div
+          ref={(head) => { this.head = head }}
           style={{
             position: 'absolute',
             backgroundColor: Palette.SUNSTONE,
@@ -81,7 +127,8 @@ export default class ScrubberInterior extends React.Component {
             height: 19,
             width: 19,
             top: 13,
-            left: experimentIsEnabled(Experiment.NativeTimelineScroll) ? (propertiesWidth + pxOffset - 9) : pxOffset - 9,
+            // left: experimentIsEnabled(Experiment.NativeTimelineScroll) ? (propertiesWidth + pxOffset - 9) : pxOffset - 9,
+            transform: `translateX(${propertiesWidth + pxOffset - 9}px)`,
             borderRadius: '50%',
             cursor: 'move',
             boxShadow: '0 0 2px 0 rgba(0, 0, 0, .9)',
@@ -119,6 +166,7 @@ export default class ScrubberInterior extends React.Component {
           }} />
         </div>
         <div
+          ref={(tail) => { this.tail = tail }}
           style={{
             position: 'absolute',
             zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 1 : 2006,
@@ -126,7 +174,8 @@ export default class ScrubberInterior extends React.Component {
             height: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'calc(100vh - 80px)' : 9999,
             width: 1,
             top: 35,
-            left: experimentIsEnabled(Experiment.NativeTimelineScroll) ? (pxOffset + propertiesWidth) : pxOffset,
+            transform: `translateX(${propertiesWidth + pxOffset}px)`,
+            // left: experimentIsEnabled(Experiment.NativeTimelineScroll) ? (pxOffset + propertiesWidth) : pxOffset,
             pointerEvents: 'none'
           }} />
       </div>
