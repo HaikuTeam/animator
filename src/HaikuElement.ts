@@ -607,8 +607,7 @@ export default class HaikuElement extends HaikuBase {
     return HaikuElement.transformPointsInPlace(
       this.getRawBoundingBoxPoints(),
       Layout3D.computeLayout(
-        Layout3D.clone(this.rawLayout),
-        Layout3D.createMatrix(),
+        this.node,
         null, // parentSize; none available here
       ).matrix,
     );

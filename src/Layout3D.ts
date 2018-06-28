@@ -4,6 +4,7 @@
 
 import {
   ComputedLayoutSpec,
+  LayoutNode,
   LayoutSpec,
   ThreeDimensionalLayoutProperty,
 } from './api/Layout';
@@ -241,10 +242,11 @@ const createLayoutSpec = (createCoordinateSystem?: boolean): LayoutSpec => ({
 });
 
 const computeLayout = (
-  layoutSpec: LayoutSpec,
-  currentMatrix: number[],
+  targetNode: LayoutNode,
   parentsizeAbsoluteIn: ThreeDimensionalLayoutProperty,
 ): ComputedLayoutSpec => {
+  const layoutSpec = targetNode.layout;
+
   const parentsizeAbsolute = parentsizeAbsoluteIn || {x: 0, y: 0, z: 0};
 
   if (parentsizeAbsolute.z === undefined || parentsizeAbsolute.z === null) {
