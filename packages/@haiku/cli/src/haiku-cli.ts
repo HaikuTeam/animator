@@ -204,17 +204,7 @@ function doClone (context: IContext) {
         process.exit(1);
       }
 
-      let gitEndpoint;
-
-      if (projectAndCredentials.Project.RepositoryUrl) {
-        gitEndpoint = projectAndCredentials.Project.RepositoryUrl;
-      } else {
-        gitEndpoint = projectAndCredentials.Project.GitRemoteUrl;
-        // TODO: store credentials more securely than this
-        gitEndpoint = gitEndpoint.replace('https://', 'https://' +
-          encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsUsername) + ':' +
-          encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsPassword) + '@');
-      }
+      const gitEndpoint = projectAndCredentials.Project.RepositoryUrl;
 
       client.git.cloneRepo(gitEndpoint, destination, (cloneErr) => {
         if (cloneErr) {

@@ -164,7 +164,6 @@ export function removeUntrackedFiles (pwd, cb) {
   });
 }
 
-// Deprecates upsertRemote() for GitLab, which uses credential-embedded remote URLs.
 export function upsertRemoteDirectly (pwd, name, url, cb) {
   return open(pwd, (err, repository) => {
     if (err) {
@@ -184,24 +183,6 @@ export function upsertRemoteDirectly (pwd, name, url, cb) {
           }
           return cb(null, found);
         });
-      }
-      return Remote.create(repository, name, url).then((remote) => {
-        return cb(null, remote);
-      }, cb);
-    }, cb);
-  });
-}
-
-// DEPRECATED: only required for non-GitLab projects.
-export function upsertRemote (pwd, name, url, cb) {
-  return open(pwd, (err, repository) => {
-    if (err) {
-      return cb(err);
-    }
-    return Remote.list(repository).then(function (remotes) {
-      const found = findExistingRemote(remotes, name);
-      if (found) {
-        return cb(null, found);
       }
       return Remote.create(repository, name, url).then((remote) => {
         return cb(null, remote);
@@ -387,21 +368,12 @@ export function getCurrentBranchName (pwd, cb) {
   });
 }
 
-// Deprecates cloneRepo() for GitLab using global options.
 export function cloneRepoDirectly (gitRemoteUrl, abspath, cb) {
   return Clone.clone(gitRemoteUrl, abspath, globalCloneOpts).then((repository) => {
     return cb(null, repository, abspath);
   }, cb);
 }
 
-// DEPRECATED: only required for non-GitLab projects.
-export function cloneRepo (gitRemoteUrl, gitRemoteUsername, gitRemotePassword, abspath, cb) {
-  return Clone.clone(gitRemoteUrl, abspath, {fetchOpts: buildRemoteOptions(gitRemoteUsername, gitRemotePassword)}).then((repository) => {
-    return cb(null, repository, abspath);
-  }, cb);
-}
-
-// Deprecates pushToRemote() for Gitlab.
 export function pushToRemoteDirectly (pwd, remoteName, fullBranchName, doForcePush, cb) {
   return open(pwd, (err, repository) => {
     if (err) {
@@ -420,37 +392,6 @@ export function pushToRemoteDirectly (pwd, remoteName, fullBranchName, doForcePu
         }, (err) => {
           logger.info('[git] error pushing content to remote', err.stack);
           return cb(err);
-        });
-      }, cb);
-    }, cb);
-  });
-}
-
-// DEPRECATED: only required for non-GitLab projects.
-export function pushToRemote (pwd, remoteName, fullBranchName, gitRemoteUsername, gitRemotePassword, doForcePush, cb) {
-  return open(pwd, (err, repository) => {
-    if (err) {
-      return cb(err);
-    }
-    const refSpecs = [`${(doForcePush) ? FORCE_PUSH_REFSPEC_PREFIX : ''}${fullBranchName}:${fullBranchName}`];
-    return Remote.list(repository).then((remotes) => {
-      const found = findExistingRemote(remotes, remoteName);
-      if (!found) {
-        return cb(new Error(`Remote with name '${remoteName}' not found`));
-      }
-      return Remote.lookup(repository, remoteName).then((remote) => {
-        return fixRemoteHttpsUrl(repository, remote, gitRemoteUsername, gitRemotePassword, (err) => {
-          if (err) {
-            return cb(err);
-          }
-          const remoteOptions = buildRemoteOptions(gitRemoteUsername, gitRemotePassword);
-          logger.info('[git] pushing content to remote', refSpecs);
-          return remote.push(refSpecs, remoteOptions).then(() => {
-            return cb();
-          }, (err) => {
-            logger.info('[git] error pushing content to remote', err.stack);
-            return cb(err);
-          });
         });
       }, cb);
     }, cb);
@@ -535,7 +476,6 @@ export function hardResetFromSHA (pwd, sha, cb) {
   });
 }
 
-// Deprecates fetchFromRemote() for GitLab.
 export function fetchFromRemoteDirectly (pwd, remoteName, cb) {
   return open(pwd, (err, repository) => {
     if (err) {
@@ -545,29 +485,6 @@ export function fetchFromRemoteDirectly (pwd, remoteName, cb) {
       logger.info('[git] fetching remote', remoteName);
       logger.info('[git] remote info:', remote.name(), remote.url());
       return repository.fetch(remote, globalFetchOpts).then(() => {
-        return cb();
-      }, cb);
-    }, cb);
-  });
-}
-
-// DEPRECATED: only required for non-GitLab projects.
-export function fetchFromRemote (pwd, remoteName, gitRemoteUsername, gitRemotePassword, cb) {
-  return open(pwd, (err, repository) => {
-    if (err) {
-      return cb(err);
-    }
-    return Remote.lookup(repository, remoteName).then((remote) => {
-      const fetchOpts = buildRemoteOptions(gitRemoteUsername, gitRemotePassword);
-
-      // Need to set this otherwise the fetch won't also download tags.
-      // Without tags, we can't detect what the next tag to bump to is
-      fetchOpts.downloadTags = 3;
-
-      logger.info('[git] fetching remote', remoteName);
-      logger.info('[git] remote info:', remote.name(), remote.url());
-
-      return repository.fetch(remote, fetchOpts).then(() => {
         return cb();
       }, cb);
     }, cb);
@@ -781,7 +698,6 @@ export function createTag (pwd, tagNameProbablySemver, commitId, tagMessage, cb)
   });
 }
 
-// Deprecates pushTagToRemote() for GitLab.
 export function pushTagToRemoteDirectly (pwd, remoteName, tagName, cb) {
   return open(pwd, (err, repository) => {
     if (err) {
@@ -800,37 +716,6 @@ export function pushTagToRemoteDirectly (pwd, remoteName, tagName, cb) {
         }, (err) => {
           logger.info('[git] error pushing tags to remote', err.stack);
           return cb(err);
-        });
-      }, cb);
-    }, cb);
-  });
-}
-
-// DEPRECATED: only required for non-GitLab projects.
-export function pushTagToRemote (pwd, remoteName, tagName, gitRemoteUsername, gitRemotePassword, cb) {
-  return open(pwd, (err, repository) => {
-    if (err) {
-      return cb(err);
-    }
-    return Remote.list(repository).then((remotes) => {
-      const found = findExistingRemote(remotes, remoteName);
-      if (!found) {
-        return cb(new Error(`Remote with name '${remoteName}' not found`));
-      }
-      return Remote.lookup(repository, remoteName).then((remote) => {
-        return fixRemoteHttpsUrl(repository, remote, gitRemoteUsername, gitRemotePassword, (err) => {
-          if (err) {
-            return cb(err);
-          }
-          const refSpecs = [`refs/tags/${tagName}`];
-          const remoteOptions = buildRemoteOptions(gitRemoteUsername, gitRemotePassword);
-          logger.info('[git] pushing tags to remote', refSpecs, remoteOptions);
-          return remote.push(refSpecs, remoteOptions).then(() => {
-            return cb();
-          }, (err) => {
-            logger.info('[git] error pushing tags to remote', err.stack);
-            return cb(err);
-          });
         });
       }, cb);
     }, cb);
@@ -938,25 +823,6 @@ export function fetchProjectDirectly (folder, projectName, repositoryUrl, cb) {
   });
 }
 
-export function fetchProject (folder, projectName, projectGitRemoteUrl, gitRemoteUsername, gitRemotePassword, cb) {
-  return upsertRemote(folder, projectName, projectGitRemoteUrl, (err, remote) => {
-    if (err) {
-      return cb(err);
-    }
-
-    logger.info(`[git] fetching ${projectName} from remote ${projectGitRemoteUrl}`);
-
-    return fetchFromRemote(folder, projectName, gitRemoteUsername, gitRemotePassword, (err) => {
-      if (err) {
-        return cb(err);
-      }
-      logger.info('[git] fetch done');
-      return cb();
-    });
-  });
-}
-
-// Deprecates pushProject() for GitLab.
 export function pushProjectDirectly (folder, projectName, cb) {
   return getCurrentBranchName(folder, (err, partialBranchName, fullBranchName) => {
     if (err) {
@@ -968,27 +834,6 @@ export function pushProjectDirectly (folder, projectName, cb) {
     const doForcePush = true;
 
     return pushToRemoteDirectly(folder, projectName, fullBranchName, doForcePush, (err) => {
-      if (err) {
-        return cb(err);
-      }
-      logger.info('[git] push done');
-      return cb();
-    });
-  });
-}
-
-// DEPRECATED: only required for non-GitLab projects.
-export function pushProject (folder, projectName, projectGitRemoteUrl, gitRemoteUsername, gitRemotePassword, cb) {
-  return getCurrentBranchName(folder, (err, partialBranchName, fullBranchName) => {
-    if (err) {
-      return cb(err);
-    }
-
-    logger.info(`[git] pushing ${fullBranchName} to remote (${projectName}) ${projectGitRemoteUrl}`);
-
-    const doForcePush = true;
-
-    return pushToRemote(folder, projectName, fullBranchName, gitRemoteUsername, gitRemotePassword, doForcePush, (err) => {
       if (err) {
         return cb(err);
       }
