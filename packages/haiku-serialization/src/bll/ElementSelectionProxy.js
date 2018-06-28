@@ -1023,8 +1023,22 @@ class ElementSelectionProxy extends BaseModel {
       activationPoint
     )
 
-    const sizeX = element.computePropertyValue('sizeAbsolute.x')
-    const sizeY = element.computePropertyValue('sizeAbsolute.y')
+    let sizeX = element.computePropertyValue('sizeAbsolute.x')
+    let sizeY = element.computePropertyValue('sizeAbsolute.y')
+
+    // If the artboard has "auto"-size designated, then resizing it has the effect of
+    // switching it to numeric sizing. But in order for that to work, we first need to
+    // compute the numeric size and then switch to it.
+    if (typeof sizeX !== 'number' || typeof sizeY !== 'number') {
+      const computedSize = element.getComputedSize()
+      if (typeof sizeX !== 'number') {
+        sizeX = computedSize.x
+      }
+      if (typeof sizeY !== 'number') {
+        sizeY = computedSize.y
+      }
+    }
+
     const finalSize = {
       'sizeAbsolute.x': {
         value: rounded(scaleX * sizeX)
