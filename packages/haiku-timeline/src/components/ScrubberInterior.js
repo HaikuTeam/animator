@@ -73,74 +73,62 @@ export default class ScrubberInterior extends React.Component {
           overflow: 'hidden'
         })}>
         <div
-          ref={(el) => {this.head = el}}
           style={{
-              position: 'absolute',
-              transform: experimentIsEnabled(Experiment.NativeTimelineScroll) ? `translateX(${(propertiesWidth + pxOffset - 9)}px)` : undefined,
-
-          }}
-        >
-          <div
-            style={{
-              position: 'relative',
-              left: '-9px',
-              backgroundColor: Palette.SUNSTONE,
-              color: Palette.FATHER_COAL,
-              textAlign: 'center',
-              height: 19,
-              width: 19,
-              top: 13,
-              // left: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : pxOffset - 9,
-              borderRadius: '50%',
-              cursor: 'move',
-              boxShadow: '0 0 2px 0 rgba(0, 0, 0, .9)',
-              zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : 2006
-            }}>
-            <span style={{
-              position: 'absolute',
-              top: 2,
-              left: 0,
-              width: '100%'
-            }}>
-              {this.props.timeline.getDisplayTime()}
-            </span>
-            <span style={{
-              position: 'absolute',
-              zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : 2006,
-              width: 0,
-              height: 0,
-              top: 15,
-              left: 3,
-              borderLeft: '7px solid transparent',
-              borderRight: '7px solid transparent',
-              borderTop: '9px solid ' + Palette.SUNSTONE
-            }} />
-            <span style={{
-              position: 'absolute',
-              zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : 2006,
-              width: 0,
-              height: 0,
-              left: 2,
-              top: 15,
-              borderLeft: '7px solid transparent',
-              borderRight: '7px solid transparent',
-              borderTop: '9px solid ' + Palette.SUNSTONE
-            }} />
-          </div>
-          <div
+            position: 'absolute',
+            backgroundColor: Palette.SUNSTONE,
+            color: Palette.FATHER_COAL,
+            textAlign: 'center',
+            height: 19,
+            width: 19,
+            top: 13,
+            left: experimentIsEnabled(Experiment.NativeTimelineScroll) ? (propertiesWidth + pxOffset - 9) : pxOffset - 9,
+            borderRadius: '50%',
+            cursor: 'move',
+            boxShadow: '0 0 2px 0 rgba(0, 0, 0, .9)',
+            zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : 2006
+          }}>
+          <span style={{
+            position: 'absolute',
+            top: 2,
+            left: 0,
+            width: '100%'
+          }}>
+            {this.props.timeline.getDisplayTime()}
+          </span>
+          <span style={{
+            position: 'absolute',
+            zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : 2006,
+            width: 0,
+            height: 0,
+            top: 15,
+            left: 3,
+            borderLeft: '7px solid transparent',
+            borderRight: '7px solid transparent',
+            borderTop: '9px solid ' + Palette.SUNSTONE
+          }} />
+          <span style={{
+            position: 'absolute',
+            zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : 2006,
+            width: 0,
+            height: 0,
+            left: 2,
+            top: 15,
+            borderLeft: '7px solid transparent',
+            borderRight: '7px solid transparent',
+            borderTop: '9px solid ' + Palette.SUNSTONE
+          }} />
+        </div>
+        <div
           style={{
-            // position: 'absolute',
-            position: 'relative',
+            position: 'absolute',
             zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 1 : 2006,
             backgroundColor: Palette.SUNSTONE,
             height: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'calc(100vh - 80px)' : 9999,
             width: 1,
-            top: 18,
-            left: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : pxOffset,
-            // transform: experimentIsEnabled(Experiment.NativeTimelineScroll) ? `translateX(${(propertiesWidth + pxOffset)}px)` : undefined,
+            top: 35,
+            left: experimentIsEnabled(Experiment.NativeTimelineScroll) ? (pxOffset + propertiesWidth) : pxOffset,
             pointerEvents: 'none'
           }} />
-        </div>
       </div>
     )
   }
