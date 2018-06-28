@@ -2,7 +2,10 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import {LayoutSpec} from './api/Layout';
+import {
+  LayoutSpec,
+  ThreeDimensionalLayoutProperty,
+} from './api/Layout';
 
 const ELEMENTS_2D = {
   circle: true,
@@ -150,7 +153,11 @@ const multiplyArrayOfMatrices = (arrayOfMatrices: number[][]): number[] => {
   return product;
 };
 
-const computeLayout = (layoutSpec, currentMatrix, parentsizeAbsoluteIn) => {
+const computeLayout = (
+  layoutSpec: LayoutSpec,
+  currentMatrix: number[],
+  parentsizeAbsoluteIn: ThreeDimensionalLayoutProperty,
+) => {
   // Clean out the existing computed layout from the layout spec, if it exists.
   // This prevents a severe memory leak.
   delete layoutSpec.computed;
@@ -161,12 +168,42 @@ const computeLayout = (layoutSpec, currentMatrix, parentsizeAbsoluteIn) => {
     parentsizeAbsolute.z = DEFAULT_DEPTH;
   }
 
-  const size = computeSize(layoutSpec, layoutSpec.sizeMode, parentsizeAbsolute);
+  const targetSize = {
+    x: null,
+    y: null,
+    z: null,
+  };
+
+  for (let i = 0; i < SIZING_AXES.length; i++) {
+    const sizeAxis = SIZING_AXES[i];
+
+    const parentSizeValue = parentsizeAbsoluteIn[sizeAxis];
+
+    switch (layoutSpec.sizeMode[sizeAxis]) {
+      case SIZE_PROPORTIONAL:
+        const sizeProportional = layoutSpec.sizeProportional[sizeAxis];
+        const sizeDifferential = layoutSpec.sizeDifferential[sizeAxis];
+        targetSize[sizeAxis] = parentSizeValue * sizeProportional + sizeDifferential;
+        break;
+
+      case SIZE_ABSOLUTE:
+        const givenValue = layoutSpec.sizeAbsolute[sizeAxis];
+
+        // Implements "auto"-sizing: Use content size if available, otherwise fallback to parent
+        if (useAutoSizing(givenValue)) {
+          throw new Error('Auto sizing not yet implemented');
+        } else {
+          targetSize[sizeAxis] = givenValue; // Assume the given value is numeric
+        }
+
+        break;
+    }
+  }
 
   return {
     ...layoutSpec,
-    size,
-    matrix: computeMatrix(layoutSpec, currentMatrix, size, parentsizeAbsolute),
+    size: targetSize,
+    matrix: computeMatrix(layoutSpec, currentMatrix, targetSize, parentsizeAbsolute),
   };
 };
 
@@ -336,42 +373,6 @@ const useAutoSizing = (givenValue): boolean => {
   );
 };
 
-const computeSize = (
-  layoutSpec,
-  sizeModeArray,
-  parentSize,
-) => {
-  const outputSize = {};
-
-  for (let i = 0; i < SIZING_AXES.length; i++) {
-    const sizeAxis = SIZING_AXES[i];
-
-    const parentSizeValue = parentSize[sizeAxis];
-
-    switch (sizeModeArray[sizeAxis]) {
-      case SIZE_PROPORTIONAL:
-        const sizeProportional = layoutSpec.sizeProportional[sizeAxis];
-        const sizeDifferential = layoutSpec.sizeDifferential[sizeAxis];
-        outputSize[sizeAxis] = parentSizeValue * sizeProportional + sizeDifferential;
-        break;
-
-      case SIZE_ABSOLUTE:
-        const givenValue = layoutSpec.sizeAbsolute[sizeAxis];
-
-        // Implements "auto"-sizing: Use content size if available, otherwise fallback to parent
-        if (useAutoSizing(givenValue)) {
-          throw new Error('Auto sizing not yet implemented');
-        } else {
-          outputSize[sizeAxis] = givenValue; // Assume the given value is numeric
-        }
-
-        break;
-    }
-  }
-
-  return outputSize;
-};
-
 const clone = (layout) => {
   if (!layout) {
     return layout;
@@ -416,7 +417,6 @@ export default {
   clone,
   computeLayout,
   computeMatrix,
-  computeSize,
   computeOrientationFlexibly,
   computeOrthonormalBasisMatrix,
   computeScaledBasisMatrix,
