@@ -1009,7 +1009,7 @@ export default class ExpressionInput extends React.Component {
       height: this.getEditorHeight() + 1,
       left: 0,
       outline: 'none',
-      position: 'relative',
+      position: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'absolute' : 'relative',
       top: 0,
       visibility: 'hidden',
       width: this.props.reactParent.state.inputCellWidth,
@@ -1020,7 +1020,7 @@ export default class ExpressionInput extends React.Component {
       style.visibility = 'visible'
       let rect = this.getRootRect()
       style.left = rect.left
-      style.top = rect.top + 10
+      style.top = experimentIsEnabled(Experiment.NativeTimelineScroll) ? rect.top + this.props.reactParent.refs.container.scrollTop : rect.top + 10
     }
 
     return style
