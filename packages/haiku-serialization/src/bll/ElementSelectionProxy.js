@@ -524,6 +524,22 @@ class ElementSelectionProxy extends BaseModel {
     }
   }
 
+  isAutoSizeX () {
+    if (this.hasNothingInSelection() || this.hasMultipleInSelection()) {
+      return false
+    }
+
+    return this.selection[0].isAutoSizeX()
+  }
+
+  isAutoSizeY () {
+    if (this.hasNothingInSelection() || this.hasMultipleInSelection()) {
+      return false
+    }
+
+    return this.selection[0].isAutoSizeY()
+  }
+
   getComputedLayout () {
     return this.cache.fetch('getComputedLayout', () => Layout3D.computeLayout(
       {layout: this.getLayoutSpec()}, // targetNode
@@ -1039,17 +1055,32 @@ class ElementSelectionProxy extends BaseModel {
       }
     }
 
-    const finalSize = {
-      'sizeAbsolute.x': {
+    const didSizeX = scaleX > 1.000001 || scaleX < 0.999999
+    const didSizeY = scaleY > 1.000001 || scaleY < 0.999999
+
+    if (!didSizeX && !didSizeY) {
+      return
+    }
+
+    const finalSize = {}
+
+    // We don't want to overwrite "auto"-size unless the axis was actually changed numerically
+    if (didSizeX) {
+      finalSize['sizeAbsolute.x'] = {
         value: rounded(scaleX * sizeX)
-      },
-      'sizeAbsolute.y': {
+      }
+    }
+    if (didSizeY) {
+      finalSize['sizeAbsolute.y'] = {
         value: rounded(scaleY * sizeY)
       }
     }
 
     // Don't allow the user to reduce the artboard's scale to nothing
-    if (finalSize['sizeAbsolute.x'].value < 5 || finalSize['sizeAbsolute.y'].value < 5) {
+    if (
+      (finalSize['sizeAbsolute.x'] && finalSize['sizeAbsolute.x'].value < 5) ||
+      (finalSize['sizeAbsolute.y'] && finalSize['sizeAbsolute.y'].value < 5)
+    ) {
       return
     }
 
@@ -1061,9 +1092,14 @@ class ElementSelectionProxy extends BaseModel {
       finalSize
     )
 
-    const elementOffset = {
-      'translation.x': translationX,
-      'translation.y': translationY
+    const elementOffset = {}
+
+    // We shouldn't bother translating elements if there was no offet along the given axis
+    if (didSizeX) {
+      elementOffset['translation.x'] = translationX
+    }
+    if (didSizeY) {
+      elementOffset['translation.y'] = translationY
     }
 
     // Translate all elements on stage by the offset so the stage can be resized

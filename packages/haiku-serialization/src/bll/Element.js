@@ -483,6 +483,16 @@ class Element extends BaseModel {
     ))
   }
 
+  isAutoSizeX () {
+    const layout = this.getLayoutSpec()
+    return typeof layout.sizeAbsolute.x !== 'number'
+  }
+
+  isAutoSizeY () {
+    const layout = this.getLayoutSpec()
+    return typeof layout.sizeAbsolute.y !== 'number'
+  }
+
   getComputedSize () {
     if (this.isTextNode()) {
       return this.parent.getComputedSize()
