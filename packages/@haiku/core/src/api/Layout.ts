@@ -1,3 +1,5 @@
+import {BytecodeNodeAttributes} from './HaikuBytecode';
+
 export type Mat4 = number[];
 
 export interface ThreeDimensionalLayoutProperty {
@@ -87,3 +89,14 @@ export interface BoundsSpecZ {
 }
 
 export interface BoundsSpec extends BoundsSpecX, BoundsSpecY, BoundsSpecZ {}
+
+/**
+ * @description A LayoutNode may be a proper BytecodeNode, but for convenience
+ * we allow an object that only has a layout property declared.
+ */
+export interface LayoutNode {
+  elementName?: string;
+  attributes?: BytecodeNodeAttributes;
+  children?: (LayoutNode|string)[];
+  layout: LayoutSpec;
+}

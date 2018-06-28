@@ -526,8 +526,7 @@ class ElementSelectionProxy extends BaseModel {
 
   getComputedLayout () {
     return this.cache.fetch('getComputedLayout', () => Layout3D.computeLayout(
-      this.getLayoutSpec(),
-      Layout3D.createMatrix(),
+      {layout: this.getLayoutSpec()}, // targetNode
       this.getParentComputedSize()
     ))
   }
