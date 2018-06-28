@@ -1,4 +1,5 @@
 import {
+  AxisString,
   BoundsSpec,
   BoundsSpecX,
   BoundsSpecY,
@@ -462,6 +463,18 @@ export default class HaikuElement extends HaikuBase {
     };
   }
 
+  computeSizeForAxis (axis: AxisString): number {
+    if (axis === 'x') {
+      return this.computeSizeX();
+    }
+    if (axis === 'y') {
+      return this.computeSizeY();
+    }
+    if (axis === 'z') {
+      return this.computeSizeZ();
+    }
+  }
+
   computeSizeX (): number {
     if (typeof this.sizeAbsolute.x === 'number') {
       return this.sizeAbsolute.x;
@@ -703,7 +716,7 @@ export default class HaikuElement extends HaikuBase {
   // tslint:disable-next-line:variable-name
   static __name__ = 'HaikuElement';
 
-  static findByNode = (node) => {
+  static findByNode = (node): HaikuElement => {
     const registry = HaikuBase.getRegistryForClass(HaikuElement);
 
     for (let i = 0; i < registry.length; i++) {
@@ -727,13 +740,13 @@ export default class HaikuElement extends HaikuBase {
     }
   };
 
-  static createByNode = (node) => {
+  static createByNode = (node): HaikuElement => {
     const element = new HaikuElement();
     HaikuElement.connectNodeWithElement(node, element);
     return element;
   };
 
-  static findOrCreateByNode = (node) => {
+  static findOrCreateByNode = (node): HaikuElement => {
     if (node.__element) {
       return node.__element;
     }
