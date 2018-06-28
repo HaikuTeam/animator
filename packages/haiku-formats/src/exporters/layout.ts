@@ -138,13 +138,11 @@ export const composeTimelines = (
   shimLayoutForPseudoElement(parentTimeline, parentPseudoElement);
   const childMatrix = Layout3D.computeMatrix(
     childPseudoElement.layout,
-    createMatrix(),
     shapeLayerSize,
     animationSize,
   );
   const parentMatrix = Layout3D.computeMatrix(
     parentPseudoElement.layout,
-    createMatrix(),
     shapeLayerSize,
     animationSize,
   );

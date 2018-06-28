@@ -353,7 +353,7 @@ class ElementSelectionProxy extends BaseModel {
     shimLayout.rotation.z = -computedLayout.rotation.z
     shimLayout.origin = computedLayout.origin
     const ignoredSize = {x: 0, y: 0, z: 0}
-    const shimMatrix = Layout3D.computeMatrix(shimLayout, Layout3D.createMatrix(), computedLayout.size, ignoredSize)
+    const shimMatrix = Layout3D.computeMatrix(shimLayout, computedLayout.size, ignoredSize)
     shimMatrix[12] = -(boxPoint.x * shimMatrix[0] + boxPoint.y * shimMatrix[4])
     shimMatrix[13] = -(boxPoint.x * shimMatrix[1] + boxPoint.y * shimMatrix[5])
     const groupMana = {
@@ -1521,7 +1521,7 @@ ElementSelectionProxy.computeRotationPropertyGroup = (element, rotationZDelta, f
   const layout = Layout3D.createLayoutSpec()
   layout.rotation.z = rotationZDelta
   const ignoredSize = {x: 0, y: 0, z: 0}
-  const matrix = Layout3D.computeMatrix(layout, Layout3D.createMatrix(), ignoredSize, ignoredSize)
+  const matrix = Layout3D.computeMatrix(layout, ignoredSize, ignoredSize)
 
   // Next build the vector from `fixedPoint` to `targetOrigin` and rotate it.
   const targetOrigin = element.getOriginTransformed()

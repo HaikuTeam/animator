@@ -128,7 +128,7 @@ const computeOrthonormalBasisMatrix = (rotation, shear) => {
     shear,
   };
   const ignoredSize = {x: 0, y: 0, z: 0};
-  return computeMatrix(orthonormalBasisLayout, createMatrix(), ignoredSize, ignoredSize);
+  return computeMatrix(orthonormalBasisLayout, ignoredSize, ignoredSize);
 };
 
 const computeScaledBasisMatrix = (rotation, scale, shear) => {
@@ -139,7 +139,7 @@ const computeScaledBasisMatrix = (rotation, scale, shear) => {
     shear,
   };
   const ignoredSize = {x: 0, y: 0, z: 0};
-  return computeMatrix(scaledBasisLayout, createMatrix(), ignoredSize, ignoredSize);
+  return computeMatrix(scaledBasisLayout, ignoredSize, ignoredSize);
 };
 
 const useAutoSizing = (givenValue): boolean => {
@@ -289,25 +289,24 @@ const computeLayout = (
   return {
     ...layoutSpec,
     size: targetSize,
-    matrix: computeMatrix(layoutSpec, currentMatrix, targetSize, parentsizeAbsolute),
+    matrix: computeMatrix(layoutSpec, targetSize, parentsizeAbsolute),
   };
 };
 
 const computeMatrix = (
   layoutSpec: LayoutSpec,
-  currentMatrix: number[],
-  currentsizeAbsolute: ThreeDimensionalLayoutProperty,
-  parentsizeAbsolute: ThreeDimensionalLayoutProperty,
+  targetSize: ThreeDimensionalLayoutProperty,
+  parentSize: ThreeDimensionalLayoutProperty,
 ) => {
-  const alignX = layoutSpec.align.x * parentsizeAbsolute.x;
-  const alignY = layoutSpec.align.y * parentsizeAbsolute.y;
-  const alignZ = layoutSpec.align.z * parentsizeAbsolute.z;
-  const mountPointX = layoutSpec.mount.x * currentsizeAbsolute.x;
-  const mountPointY = layoutSpec.mount.y * currentsizeAbsolute.y;
-  const mountPointZ = layoutSpec.mount.z * currentsizeAbsolute.z;
-  const originX = layoutSpec.origin.x * currentsizeAbsolute.x;
-  const originY = layoutSpec.origin.y * currentsizeAbsolute.y;
-  const originZ = layoutSpec.origin.z * currentsizeAbsolute.z;
+  const alignX = layoutSpec.align.x * parentSize.x;
+  const alignY = layoutSpec.align.y * parentSize.y;
+  const alignZ = layoutSpec.align.z * parentSize.z;
+  const mountPointX = layoutSpec.mount.x * targetSize.x;
+  const mountPointY = layoutSpec.mount.y * targetSize.y;
+  const mountPointZ = layoutSpec.mount.z * targetSize.z;
+  const originX = layoutSpec.origin.x * targetSize.x;
+  const originY = layoutSpec.origin.y * targetSize.y;
+  const originZ = layoutSpec.origin.z * targetSize.z;
 
   layoutSpec.orientation = computeOrientationFlexibly(
     layoutSpec.rotation.x,
