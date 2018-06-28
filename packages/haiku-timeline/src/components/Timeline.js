@@ -807,13 +807,25 @@ class Timeline extends React.Component {
     }
 
     if (scrollEvent.deltaX >= 1 || scrollEvent.deltaX <= -1) {
+      // debugger
       return this.handleHorizontalScroll(scrollEvent.deltaX)
     }
   }
 
   handleHorizontalScroll (origDelta) {
-    // const motionDelta = Math.round((origDelta ? origDelta < 0 ? -1 : 1 : 0) * (Math.log(Math.abs(origDelta) + 1) * 2))
-    // this.getActiveComponent().getCurrentTimeline().updateVisibleFrameRangeByDelta(motionDelta)
+    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+      const timeline = this.getActiveComponent().getCurrentTimeline()
+      let scrollDelta = timeline.getScrollLeft() + origDelta
+
+      if (scrollDelta < 0) {
+        scrollDelta = 0
+      }
+
+      timeline.setScrollLeft(scrollDelta)
+    } else {
+      const motionDelta = Math.round((origDelta ? origDelta < 0 ? -1 : 1 : 0) * (Math.log(Math.abs(origDelta) + 1) * 2))
+      this.getActiveComponent().getCurrentTimeline().updateVisibleFrameRangeByDelta(motionDelta)
+    }
   }
 
   handleRequestElementCoordinates ({ selector, webview }) {
