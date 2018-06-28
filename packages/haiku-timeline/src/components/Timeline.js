@@ -551,7 +551,7 @@ class Timeline extends React.Component {
 
     if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
       this.addEmitterListenerIfNotAlreadyRegistered(timeline, 'update', (what, ...args) => {
-        if (what === 'timeline-scroll') {
+        if (what === 'timeline-scroll' || what === 'timeline-frame') {
           this.refs.container.scrollLeft = timeline.getScrollLeft()
         }
       })

@@ -832,23 +832,28 @@ class Timeline extends BaseModel {
    * @description will left-align the current timeline window (maintaining zoom)
    */
   tryToLeftAlignTickerInVisibleFrameRange (frame) {
-    const frameInfo = this.getFrameInfo()
+    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+      const frameInfo = this.getFrameInfo()
+      const pxOffsetLeft = frame * frameInfo.pxpf
+      this.setScrollLeft(pxOffsetLeft)
+    } else {
+      const frameInfo = this.getFrameInfo()
+      // If a frame was passed, only do this if we detect we've gone outside of the range
+      if (frame !== undefined && (frame > frameInfo.friB || frame < frameInfo.friA)) {
+        const l = this.getLeftFrameEndpoint()
+        const r = this.getRightFrameEndpoint()
+        const span = r - l
 
-    // If a frame was passed, only do this if we detect we've gone outside of the range
-    if (frame !== undefined && (frame > frameInfo.friB || frame < frameInfo.friA)) {
-      const l = this.getLeftFrameEndpoint()
-      const r = this.getRightFrameEndpoint()
-      const span = r - l
+        let newL = this.getCurrentFrame()
+        let newR = newL + span
 
-      let newL = this.getCurrentFrame()
-      let newR = newL + span
+        if (newR > frameInfo.friMax) {
+          newL -= (newR - frameInfo.friMax)
+          newR = frameInfo.friMax
+        }
 
-      if (newR > frameInfo.friMax) {
-        newL -= (newR - frameInfo.friMax)
-        newR = frameInfo.friMax
+        this.setVisibleFrameRange(newL, newR)
       }
-
-      this.setVisibleFrameRange(newL, newR)
     }
 
     return this
