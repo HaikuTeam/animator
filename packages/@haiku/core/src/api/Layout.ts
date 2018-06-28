@@ -100,3 +100,5 @@ export interface LayoutNode {
   children?: (LayoutNode|string)[];
   layout: LayoutSpec;
 }
+
+export type AxisString = 'x'|'y'|'z';
