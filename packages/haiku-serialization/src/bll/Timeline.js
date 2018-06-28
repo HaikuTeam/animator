@@ -782,7 +782,9 @@ class Timeline extends BaseModel {
     if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
       const frameInfo = this.getFrameInfo()
       const pxOffsetLeft = frame * frameInfo.pxpf
-      this.setScrollLeft(pxOffsetLeft)
+      if (frame !== undefined && (pxOffsetLeft > this._scrollLeft + this._timelinePixelWidth || pxOffsetLeft < this._scrollLeft)) {
+        this.setScrollLeft(pxOffsetLeft)
+      }
     } else {
       const frameInfo = this.getFrameInfo()
       // If a frame was passed, only do this if we detect we've gone outside of the range
