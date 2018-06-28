@@ -37,6 +37,7 @@ const SIZE_PROPORTIONAL = 0; // A percentage of the parent
 const SIZE_ABSOLUTE = 1; // A fixed size in screen pixels
 const DEFAULT_DEPTH = 0;
 const IDENTITY = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+const SIZING_AXES = ['x', 'y', 'z'];
 
 // Used for rendering downstream
 const FORMATS = {
@@ -47,6 +48,7 @@ const FORMATS = {
 const DIV = 'div';
 const SVG = 'svg';
 const TYPE_STRING = 'string';
+
 const virtualElementIsLayoutContainer = (virtualElement) => {
   // A virtual element is a layout container if the element is a component…
   return typeof virtualElement.elementName !== TYPE_STRING ||
@@ -88,40 +90,6 @@ const initializeTreeAttributes = (tree, isRootNode: boolean) => {
   }
 };
 
-// The layout specification naming in createLayoutSpec is derived in part from:
-// https://github.com/Famous/engine/blob/master/core/Transform.js which is MIT licensed.
-// The MIT License (MIT)
-// Copyright (c) 2015 Famous Industries Inc.
-// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-// documentation files (the "Software"), to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
-// to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-// The above copyright notice and this permission notice shall be included in all copies or substantial portions of
-// the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
-// NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO
-// EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-// ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-const createLayoutSpec = (createCoordinateSystem?: boolean): LayoutSpec => ({
-  shown: true,
-  opacity: 1.0,
-  mount: {x: 0, y: 0, z: 0}, // anchor in self
-  align: {x: 0, y: 0, z: 0}, // anchor in context
-  origin: createCoordinateSystem ? {x: 0.5, y: 0.5, z: 0.5} : {x: 0, y: 0, z: 0}, // transform origin
-  translation: {x: 0, y: 0, z: 0},
-  rotation: {x: 0, y: 0, z: 0},
-  scale: {x: 1, y: 1, z: 1},
-  shear: {xy: 0, xz: 0, yz: 0},
-  sizeMode: {
-    x: SIZE_PROPORTIONAL,
-    y: SIZE_PROPORTIONAL,
-    z: SIZE_PROPORTIONAL,
-  },
-  sizeProportional: {x: 1, y: 1, z: 1},
-  sizeDifferential: {x: 0, y: 0, z: 0},
-  sizeAbsolute: {x: 0, y: 0, z: 0},
-});
-
 const createMatrix = () => copyMatrix(IDENTITY);
 
 const copyMatrix = (m: number[]) => [...m];
@@ -152,6 +120,124 @@ const multiplyArrayOfMatrices = (arrayOfMatrices: number[][]): number[] => {
   }
   return product;
 };
+
+const computeOrthonormalBasisMatrix = (rotation, shear) => {
+  const orthonormalBasisLayout = {
+    ...createLayoutSpec(),
+    rotation,
+    shear,
+  };
+  const ignoredSize = {x: 0, y: 0, z: 0};
+  return computeMatrix(orthonormalBasisLayout, createMatrix(), ignoredSize, ignoredSize);
+};
+
+const computeScaledBasisMatrix = (rotation, scale, shear) => {
+  const scaledBasisLayout = {
+    ...createLayoutSpec(),
+    rotation,
+    scale,
+    shear,
+  };
+  const ignoredSize = {x: 0, y: 0, z: 0};
+  return computeMatrix(scaledBasisLayout, createMatrix(), ignoredSize, ignoredSize);
+};
+
+const useAutoSizing = (givenValue): boolean => {
+  return (
+    givenValue === AUTO_SIZING_TOKEN ||
+    // Legacy. Because HaikuComponent#render gets called before Migration.runMigrations,
+    // the legacy value won't be correctly migrated to 'auto' by the time this gets called
+    // for the very first time, so we keep it around for backwards compat. Jun 22, 2018.
+    givenValue === true
+  );
+};
+
+const clone = (layout) => {
+  if (!layout) {
+    return layout;
+  }
+
+  const out = {
+    shown: layout.shown,
+    opacity: layout.opacity,
+    mount: Object.assign({}, layout.mount),
+    align: Object.assign({}, layout.align),
+    origin: Object.assign({}, layout.origin),
+    translation: Object.assign({}, layout.translation),
+    rotation: Object.assign({}, layout.rotation),
+    scale: Object.assign({}, layout.scale),
+    shear: Object.assign({}, layout.shear),
+    sizeMode: Object.assign({}, layout.sizeMode),
+    sizeProportional: Object.assign({}, layout.sizeProportional),
+    sizeDifferential: Object.assign({}, layout.sizeDifferential),
+    sizeAbsolute: Object.assign({}, layout.sizeAbsolute),
+    size: null,
+    matrix: null,
+    computed: null,
+  };
+
+  if (layout.computed) {
+    out.computed = clone(layout.computed);
+  }
+
+  // Handle either a raw layout (no size or matrix) or a computed one (has size and matrix)
+  if (layout.matrix) {
+    out.matrix = layout.matrix.map((n) => n);
+  }
+  if (layout.size) {
+    out.size = Object.assign({}, layout.size);
+  }
+
+  return out;
+};
+
+/**
+ * The code below includes modified code from https://github.com/famous/engine
+ *
+ * The original code was released under the MIT license.
+ *
+ * MIT License (MIT)
+ *
+ * Copyright (c) 2015 Famous Industries Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+const createLayoutSpec = (createCoordinateSystem?: boolean): LayoutSpec => ({
+  shown: true,
+  opacity: 1.0,
+  mount: {x: 0, y: 0, z: 0}, // anchor in self
+  align: {x: 0, y: 0, z: 0}, // anchor in context
+  origin: createCoordinateSystem ? {x: 0.5, y: 0.5, z: 0.5} : {x: 0, y: 0, z: 0}, // transform origin
+  translation: {x: 0, y: 0, z: 0},
+  rotation: {x: 0, y: 0, z: 0},
+  scale: {x: 1, y: 1, z: 1},
+  shear: {xy: 0, xz: 0, yz: 0},
+  sizeMode: {
+    x: SIZE_PROPORTIONAL,
+    y: SIZE_PROPORTIONAL,
+    z: SIZE_PROPORTIONAL,
+  },
+  sizeProportional: {x: 1, y: 1, z: 1},
+  sizeDifferential: {x: 0, y: 0, z: 0},
+  sizeAbsolute: {x: 0, y: 0, z: 0},
+});
 
 const computeLayout = (
   layoutSpec: LayoutSpec,
@@ -207,56 +293,12 @@ const computeLayout = (
   };
 };
 
-const computeOrthonormalBasisMatrix = (rotation, shear) => {
-  const orthonormalBasisLayout = {
-    ...createLayoutSpec(),
-    rotation,
-    shear,
-  };
-  const ignoredSize = {x: 0, y: 0, z: 0};
-  return computeMatrix(orthonormalBasisLayout, createMatrix(), ignoredSize, ignoredSize);
-};
-
-const computeScaledBasisMatrix = (rotation, scale, shear) => {
-  const scaledBasisLayout = {
-    ...createLayoutSpec(),
-    rotation,
-    scale,
-    shear,
-  };
-  const ignoredSize = {x: 0, y: 0, z: 0};
-  return computeMatrix(scaledBasisLayout, createMatrix(), ignoredSize, ignoredSize);
-};
-
-/**
- * This code below includes modified code from https://github.com/famous/engine
- *
- * The original code was released under the MIT license.
- *
- * MIT License (MIT)
- *
- * Copyright (c) 2015 Famous Industries Inc.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
-
-const computeMatrix = (layoutSpec, currentMatrix, currentsizeAbsolute, parentsizeAbsolute) => {
+const computeMatrix = (
+  layoutSpec: LayoutSpec,
+  currentMatrix: number[],
+  currentsizeAbsolute: ThreeDimensionalLayoutProperty,
+  parentsizeAbsolute: ThreeDimensionalLayoutProperty,
+) => {
   const alignX = layoutSpec.align.x * parentsizeAbsolute.x;
   const alignY = layoutSpec.align.y * parentsizeAbsolute.y;
   const alignZ = layoutSpec.align.z * parentsizeAbsolute.z;
@@ -359,57 +401,6 @@ const computeOrientationFlexibly = (x: number, y: number, z: number) => {
     z: cx * cysz + sx * sycz,
     w: cx * cycz - sx * sysz,
   };
-};
-
-const SIZING_AXES = ['x', 'y', 'z'];
-
-const useAutoSizing = (givenValue): boolean => {
-  return (
-    givenValue === AUTO_SIZING_TOKEN ||
-    // Legacy. Because HaikuComponent#render gets called before Migration.runMigrations,
-    // the legacy value won't be correctly migrated to 'auto' by the time this gets called
-    // for the very first time, so we keep it around for backwards compat. Jun 22, 2018.
-    givenValue === true
-  );
-};
-
-const clone = (layout) => {
-  if (!layout) {
-    return layout;
-  }
-
-  const out = {
-    shown: layout.shown,
-    opacity: layout.opacity,
-    mount: Object.assign({}, layout.mount),
-    align: Object.assign({}, layout.align),
-    origin: Object.assign({}, layout.origin),
-    translation: Object.assign({}, layout.translation),
-    rotation: Object.assign({}, layout.rotation),
-    scale: Object.assign({}, layout.scale),
-    shear: Object.assign({}, layout.shear),
-    sizeMode: Object.assign({}, layout.sizeMode),
-    sizeProportional: Object.assign({}, layout.sizeProportional),
-    sizeDifferential: Object.assign({}, layout.sizeDifferential),
-    sizeAbsolute: Object.assign({}, layout.sizeAbsolute),
-    size: null,
-    matrix: null,
-    computed: null,
-  };
-
-  if (layout.computed) {
-    out.computed = clone(layout.computed);
-  }
-
-  // Handle either a raw layout (no size or matrix) or a computed one (has size and matrix)
-  if (layout.matrix) {
-    out.matrix = layout.matrix.map((n) => n);
-  }
-  if (layout.size) {
-    out.size = Object.assign({}, layout.size);
-  }
-
-  return out;
 };
 
 export default {
