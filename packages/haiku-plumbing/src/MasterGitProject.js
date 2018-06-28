@@ -237,39 +237,9 @@ export default class MasterGitProject extends EventEmitter {
       return cb(null);
     }
 
-    if (this._projectInfo.repositoryUrl) {
-      return cb({ // eslint-disable-line
-        projectName: this._projectInfo.projectName,
-        repositoryUrl: this._projectInfo.repositoryUrl,
-      });
-    }
-
-    // DEPRECATED: only for CodeCommit-backed projects.
-    const authToken = sdkClient.config.getAuthToken();
-
-    return Inkstone.project.getByName(authToken, this._projectInfo.projectName, (err, projectAndCredentials, httpResp) => {
-      // Note the inversion of the typical error-first continuation
-      // This is a legacy implementation; I'm not sure why #TODO
-      if (err) {
-        return cb(null, err);
-      }
-
-      if (!httpResp) {
-        return cb(null, new Error('No HTTP response'));
-      }
-      if (httpResp.statusCode === 404) {
-        return cb(null, new Error('Got 404 status code'));
-      }
-      if (!projectAndCredentials.Project) {
-        return cb(null, new Error('No project returned'));
-      }
-
-      return cb({ // eslint-disable-line
-        projectName: this._projectInfo.projectName,
-        GitRemoteUrl: projectAndCredentials.Project.GitRemoteUrl,
-        CodeCommitHttpsUsername: projectAndCredentials.Credentials.CodeCommitHttpsUsername,
-        CodeCommitHttpsPassword: projectAndCredentials.Credentials.CodeCommitHttpsPassword,
-      });
+    return cb({
+      projectName: this._projectInfo.projectName,
+      repositoryUrl: this._projectInfo.repositoryUrl,
     });
   }
 
@@ -464,41 +434,16 @@ export default class MasterGitProject extends EventEmitter {
     }
 
     const {repositoryUrl} = this._folderState.remoteProjectDescriptor;
-    if (repositoryUrl) {
-      return Git.pushProjectDirectly(
-        this.folder,
-        this._folderState.projectName,
-        (err) => {
-          if (err) {
-            cb(err);
-            return;
-          }
-
-          this.pushTagDirectly(cb);
-        },
-      );
-    }
-
-    // DEPRECATED: only required for non-GitLab projects.
-    const {
-      GitRemoteUrl,
-      CodeCommitHttpsUsername,
-      CodeCommitHttpsPassword,
-    } = this._folderState.remoteProjectDescriptor;
-
-    Git.pushProject(
+    return Git.pushProjectDirectly(
       this.folder,
       this._folderState.projectName,
-      GitRemoteUrl,
-      CodeCommitHttpsUsername,
-      CodeCommitHttpsPassword,
       (err) => {
         if (err) {
           cb(err);
           return;
         }
 
-        this.pushTag(GitRemoteUrl, CodeCommitHttpsUsername, CodeCommitHttpsPassword, cb);
+        this.pushTagDirectly(cb);
       },
     );
   }
@@ -564,38 +509,8 @@ export default class MasterGitProject extends EventEmitter {
     this._folderState.cloneAttempts++;
 
     const {repositoryUrl} = this._folderState.remoteProjectDescriptor;
-    if (repositoryUrl) {
-      logger.info(`[master-git] directly cloning from remote ${repositoryUrl}`);
-      return Git.cloneRepoDirectly(repositoryUrl, this.folder, (err) => {
-        if (err) {
-          logger.info(`[master-git] clone error:`, err);
-
-          if (this._folderState.cloneAttempts < MAX_CLONE_ATTEMPTS) {
-            logger.info(`[master-git] retrying clone after a brief delay...`);
-
-            return setTimeout(() => {
-              return this.cloneRemoteIntoFolder(cb);
-            }, CLONE_RETRY_DELAY);
-          }
-
-          return cb(err);
-        }
-
-        logger.info('[master-git] clone complete');
-        return cb();
-      });
-    }
-
-    // DEPRECATED: only required for non-GitLab projects.
-    const {
-      GitRemoteUrl,
-      CodeCommitHttpsUsername,
-      CodeCommitHttpsPassword,
-    } = this._folderState.remoteProjectDescriptor;
-
-    logger.info(`[master-git] cloning from remote ${GitRemoteUrl} (attempt ${this._folderState.cloneAttempts})`);
-
-    return Git.cloneRepo(GitRemoteUrl, CodeCommitHttpsUsername, CodeCommitHttpsPassword, this.folder, (err) => {
+    logger.info(`[master-git] directly cloning from remote ${repositoryUrl}`);
+    return Git.cloneRepoDirectly(repositoryUrl, this.folder, (err) => {
       if (err) {
         logger.info(`[master-git] clone error:`, err);
 
@@ -611,7 +526,6 @@ export default class MasterGitProject extends EventEmitter {
       }
 
       logger.info('[master-git] clone complete');
-
       return cb();
     });
   }
@@ -631,19 +545,13 @@ export default class MasterGitProject extends EventEmitter {
   }
 
   ensureLocalRemote (cb) {
-    // Object access to .GitRemoteUrl would throw an exception in some cases if we didn't check this
+    // Object access to .repositoryUrl would throw an exception in some cases if we didn't check this
     if (!this._folderState.remoteProjectDescriptor) {
       return cb(new Error('Cannot find remote project descriptor'));
     }
-    const {repositoryUrl, GitRemoteUrl} = this._folderState.remoteProjectDescriptor;
-    if (repositoryUrl) {
-      logger.info('[master-git] upserting remote', repositoryUrl);
-      return Git.upsertRemoteDirectly(this.folder, this._folderState.projectName, repositoryUrl, cb);
-    }
-
-    // DEPRECATED: only required for non-GitLab projects.
-    logger.info('[master-git] upserting remote', GitRemoteUrl);
-    return Git.upsertRemote(this.folder, this._folderState.projectName, GitRemoteUrl, cb);
+    const {repositoryUrl} = this._folderState.remoteProjectDescriptor;
+    logger.info('[master-git] upserting remote', repositoryUrl);
+    return Git.upsertRemoteDirectly(this.folder, this._folderState.projectName, repositoryUrl, cb);
   }
 
   ensureBranch (cb) {
@@ -712,16 +620,10 @@ export default class MasterGitProject extends EventEmitter {
                 }
 
                 const remoteRefspecs = [refSpecToPush];
-                const pushOpts = this._folderState.remoteProjectDescriptor.repositoryUrl
-                  ? Git.globalPushOpts
-                  : Git.buildRemoteOptions(
-                    this._folderState.remoteProjectDescriptor.CodeCommitHttpsUsername,
-                    this._folderState.remoteProjectDescriptor.CodeCommitHttpsPassword,
-                  );
 
                 logger.info('[master-git] remote refs: pushing refspecs', remoteRefspecs, 'over https');
 
-                return mainRemote.push(remoteRefspecs, pushOpts).then(() => {
+                return mainRemote.push(remoteRefspecs, Git.globalPushOpts).then(() => {
                   return cb();
                 }, cb);
               });
@@ -814,32 +716,7 @@ export default class MasterGitProject extends EventEmitter {
 
     const {repositoryUrl} = this._folderState.remoteProjectDescriptor;
 
-    if (repositoryUrl) {
-      return Git.fetchProjectDirectly(this.folder, this._folderState.projectName, repositoryUrl, (err) => {
-        if (err) {
-          // Ignore the error for now since the remote might not actually exist yet
-          logger.info(`[master-git] unable to fetch because ${err}; ignoring this`);
-
-          // Just for the sake of logging the current git status
-          return this.safeGitStatus({log: true}, () => {
-            this._folderState.didHaveConflicts = false;
-            this._folderState.mergeCommitId = null;
-            return cb();
-          });
-        }
-
-        return this.pullRemotePostFetch(cb);
-      });
-    }
-
-    // DEPRECATED: only required for non-GitLab projects.
-    const {
-      GitRemoteUrl,
-      CodeCommitHttpsUsername,
-      CodeCommitHttpsPassword,
-    } = this._folderState.remoteProjectDescriptor;
-
-    return Git.fetchProject(this.folder, this._folderState.projectName, GitRemoteUrl, CodeCommitHttpsUsername, CodeCommitHttpsPassword, (err) => {
+    return Git.fetchProjectDirectly(this.folder, this._folderState.projectName, repositoryUrl, (err) => {
       if (err) {
         // Ignore the error for now since the remote might not actually exist yet
         logger.info(`[master-git] unable to fetch because ${err}; ignoring this`);
@@ -944,16 +821,9 @@ export default class MasterGitProject extends EventEmitter {
     return Inkstone.getCurrentShareInfo(this.folder, this._shareInfoPayloads, this._folderState, cb);
   }
 
-  // Deprecates pushTag() for GitLab.
   pushTagDirectly (cb) {
     logger.info(`[master-git] pushing tag ${this._folderState.semverVersion} to remote (${this._folderState.projectName})`);
     return Git.pushTagToRemoteDirectly(this.folder, this._folderState.projectName, this._folderState.semverVersion, cb);
-  }
-
-  // DEPRECATED: only required for non-GitLab projects.
-  pushTag (gitRemoteUrl, codeCommitHttpsUsername, codeCommitHttpsPassword, cb) {
-    logger.info(`[master-git] pushing tag ${this._folderState.semverVersion} to remote (${this._folderState.projectName}) ${gitRemoteUrl}`);
-    return Git.pushTagToRemote(this.folder, this._folderState.projectName, this._folderState.semverVersion, codeCommitHttpsUsername, codeCommitHttpsPassword, cb);
   }
 
   safeGitStatus (options, cb) {

@@ -890,26 +890,14 @@ export namespace inkstone {
   export namespace project {
     export interface Project {
       Name: string;
-      // Deprecated: IAM-specific fields.
-      GitRemoteUrl: string;
-      GitRemoteName: string;
-      GitRemoteArn: string;
       IsPublic: boolean;
       ForkComplete: boolean;
-
-      // Current: GitLab-specific fields.
       RepositoryUrl: string;
     }
-    export interface Credentials {
-      Username: string;
-      // AccessKeyId: string
-      // SecretAccessKey: string
-      CodeCommitHttpsUsername: string;
-      CodeCommitHttpsPassword: string;
-    }
+
     export interface ProjectAndCredentials {
       Project: Project;
-      Credentials: Credentials;
+      Credentials: {};
     }
 
     export interface ProjectCreateParams {
@@ -920,8 +908,6 @@ export namespace inkstone {
     export interface ProjectUpdateParams {
       ID?: number;
       UniqueId?: string;
-      // Name: string; // for renaming
-      // GitRemoteUrl: // for user-specified git remotes
       MakePublic?: boolean;
       MakePrivate?: boolean;
     }

@@ -20,7 +20,7 @@ if (process.env.HAIKU_APP_LAUNCH_CLI === '1') {
   if (process.env.NODE_ENV === 'production' && os.platform() === 'darwin' && !app.isInApplicationsFolder()) {
     dialog.showErrorBox(
       'Move to Applications folder',
-      'You cannot run Haiku for Mac from the current folder. Please move Haiku for Mac to the Applications folder and try again.'
+      'You cannot run Haiku for Mac from the current folder. Please move Haiku for Mac to the Applications folder and try again.',
     );
     global.process.exit(0);
   }
