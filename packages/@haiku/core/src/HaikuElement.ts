@@ -475,13 +475,42 @@ export default class HaikuElement extends HaikuBase {
     }
   }
 
+  /**
+   * @description For elements that only have a single child, we can save some computation
+   * by looking up their defined absolute size instead of computing their bounding box.
+   * In particular this is useful in the case of the component wrapper div and its one child.
+   */
+  getOnlyChildSize (axis: AxisString): number {
+    const children = this.children;
+
+    if (children.length !== 1) {
+      return;
+    }
+
+    const child = children[0];
+
+    if (!child || typeof child !== 'object') {
+      return;
+    }
+
+    if (typeof child.sizeAbsolute[axis] === 'number') {
+      return child.sizeAbsolute[axis] as number;
+    }
+
+    return child.getOnlyChildSize(axis);
+  }
+
   computeSizeX (): number {
     if (typeof this.sizeAbsolute.x === 'number') {
       return this.sizeAbsolute.x;
     }
 
-    const {left, right} = this.computeContentBoundsX();
+    const onlyChildSize = this.getOnlyChildSize('x');
+    if (typeof onlyChildSize === 'number') {
+      return onlyChildSize;
+    }
 
+    const {left, right} = this.computeContentBoundsX();
     return right - left;
   }
 
@@ -490,8 +519,12 @@ export default class HaikuElement extends HaikuBase {
       return this.sizeAbsolute.y;
     }
 
-    const {top, bottom} = this.computeContentBoundsY();
+    const onlyChildSize = this.getOnlyChildSize('y');
+    if (typeof onlyChildSize === 'number') {
+      return onlyChildSize;
+    }
 
+    const {top, bottom} = this.computeContentBoundsY();
     return bottom - top;
   }
 
@@ -500,8 +533,12 @@ export default class HaikuElement extends HaikuBase {
       return this.sizeAbsolute.z;
     }
 
-    const {front, back} = this.computeContentBoundsZ();
+    const onlyChildSize = this.getOnlyChildSize('z');
+    if (typeof onlyChildSize === 'number') {
+      return onlyChildSize;
+    }
 
+    const {front, back} = this.computeContentBoundsZ();
     return back - front;
   }
 
