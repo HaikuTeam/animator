@@ -1119,6 +1119,9 @@ class Timeline extends React.Component {
 
   renderTopControls () {
     if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+      const timeline = this.getActiveComponent().getCurrentTimeline()
+      // const frameInfo = timeline.getFrameInfo()
+
       return [
         <div
           key='gauge-timekeeping-wrapper'
@@ -1128,19 +1131,17 @@ class Timeline extends React.Component {
             top: 0,
             left: 0,
             height: 35,
-            width: this.getActiveComponent()
-              .getCurrentTimeline()
-              .getPropertiesPixelWidth(),
+            width: timeline.getPropertiesPixelWidth(),
             backgroundColor: Palette.COAL,
             zIndex: zIndex.timekeepingWrapper.base,
             fontSize: 10
           }}
         >
-          <GaugeTimeReadout reactParent={this} timeline={this.getActiveComponent().getCurrentTimeline()} />
+          <GaugeTimeReadout reactParent={this} timeline={timeline} />
         </div>,
         <FrameGrid
           key='frame-grid'
-          timeline={this.getActiveComponent().getCurrentTimeline()}
+          timeline={timeline}
           onShowFrameActionsEditor={this.showFrameActionsEditor}
         />,
         <div
@@ -1150,7 +1151,7 @@ class Timeline extends React.Component {
             backgroundColor: Palette.COAL,
             position: 'sticky',
             top: 0,
-            marginLeft: this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth(),
+            marginLeft: timeline.getPropertiesPixelWidth(),
             width: '500vw',
             zIndex: zIndex.gauge.base,
             fontSize: 10,
@@ -1159,12 +1160,12 @@ class Timeline extends React.Component {
           }}
           onMouseDown={this.onGaugeMouseDown}
         >
-          <Gauge timeline={this.getActiveComponent().getCurrentTimeline()} />
+          <Gauge timeline={timeline} />
         </div>,
         <ScrubberInterior
           key='scrubber'
-          isScrubbing={this.getActiveComponent().getCurrentTimeline().isScrubberDragging()}
-          timeline={this.getActiveComponent().getCurrentTimeline()}
+          isScrubbing={timeline.isScrubberDragging()}
+          timeline={timeline}
           onMouseDown={this.onGaugeMouseDown}
         />,
         <div key='durationModifier'>
