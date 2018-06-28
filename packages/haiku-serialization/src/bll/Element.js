@@ -484,17 +484,13 @@ class Element extends BaseModel {
   }
 
   getComputedSize () {
-    if (this.isTextNode()) {
-      return this.parent.getComputedSize()
-    }
-    return this.getComputedLayout().size
+    return this.getHaikuElement().size
   }
 
   getParentComputedSize () {
-    if (!this.parent) {
-      return this.getLayoutSpec().sizeAbsolute
-    }
-    return this.parent.getComputedSize()
+    return (this.parent)
+      ? this.parent.getComputedSize()
+      : this.getComputedSize()
   }
 
   getComputedLayout () {
