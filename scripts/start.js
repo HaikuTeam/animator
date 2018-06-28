@@ -66,6 +66,7 @@ const FOLDER_CHOICES = {
   'Bricks-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/Bricks'),
   'repeat-1-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/repeat-1'),
   'repeat-2-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/repeat-2'),
+  'repeat-2-auto-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/repeat-2-auto'),
   'complex-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/complex'),
   'SuperComplex-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/SuperComplex'),
   'AliensRepro-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/AliensRepro'),
