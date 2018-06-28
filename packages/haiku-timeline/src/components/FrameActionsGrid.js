@@ -1,9 +1,9 @@
 import React from 'react'
-import Color from 'color'
 import Palette from 'haiku-ui-common/lib/Palette'
+import zIndex from './styles/zIndex'
 import FrameAction from './FrameAction'
 
-export default class FrameGrid extends React.Component {
+class FrameActionsGrid extends React.PureComponent {
   constructor (props) {
     super(props)
     this.handleUpdate = this.handleUpdate.bind(this)
@@ -70,44 +70,32 @@ export default class FrameGrid extends React.Component {
   }
 
   render () {
-    const borderLeftNormal = '1px solid ' + Color(Palette.COAL).fade(0.65)
-    const borderLeftHighlighted = '1px solid ' + Color(Palette.ROCK).fade(0.8)
-    const hoveredFrame = this.props.timeline.getHoveredFrame()
+    const timeline = this.props.timeline
+    const propertiesWidth = timeline.getPropertiesPixelWidth()
+    const fullTimelineWidth = timeline.calculateFullTimelineWidth()
+    const frameInfo = timeline.getFrameInfo()
+    const hoveredFrame = timeline.getHoveredFrame()
+    const pixelOffsetLeft = hoveredFrame * frameInfo.pxpf
 
     return (
-      <div
-        id='frame-grid'
-        style={{
-          overflow: 'hidden'
-        }}
-      >
-        {this.props.timeline.mapVisibleFrames(
-          (frameNumber, pixelOffsetLeft, pixelsPerFrame, frameModulus) => {
-            return (
-              <span
-                id={`frame-${frameNumber}`}
-                key={`frame-${frameNumber}`}
-                style={{
-                  height: 9999,
-                  borderLeft:
-                    hoveredFrame === frameNumber
-                      ? borderLeftHighlighted
-                      : borderLeftNormal,
-                  position: 'absolute',
-                  left: pixelOffsetLeft,
-                  top: 34
-                }}
-              >
-                {this.renderFrameActions(frameNumber, hoveredFrame)}
-              </span>
-            )
-          }
-        )}
+      <div style={{
+        position: 'sticky',
+        top: 0,
+        height: 12,
+        backgroundColor: Palette.COAL,
+        width: propertiesWidth + fullTimelineWidth,
+        zIndex: zIndex.frameActions.base
+      }}>
+        <div style={{
+          position: 'absolute',
+          left: pixelOffsetLeft + propertiesWidth,
+          top: 34
+        }}>
+          {this.renderFrameActions()}
+        </div>
       </div>
     )
   }
 }
 
-FrameGrid.propTypes = {
-  timeline: React.PropTypes.object.isRequired
-}
+export default FrameActionsGrid

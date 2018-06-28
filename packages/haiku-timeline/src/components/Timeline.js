@@ -18,6 +18,8 @@ import ExpressionInput from './ExpressionInput'
 import ScrubberInterior from './ScrubberInterior'
 import RowManager from './RowManager'
 import FrameGrid from './FrameGrid'
+import SimplifiedFrameGrid from './SimplifiedFrameGrid'
+import FrameActionsGrid from './FrameActionsGrid'
 import IntercomWidget from './IntercomWidget'
 import Gauge from './Gauge'
 import GaugeTimeReadout from './GaugeTimeReadout'
@@ -1150,18 +1152,20 @@ class Timeline extends React.Component {
         >
           <GaugeTimeReadout reactParent={this} timeline={timeline} />
         </div>,
-        <FrameGrid
-          key='frame-grid'
+        <SimplifiedFrameGrid key='frame-grid' timeline={timeline} />,
+        <FrameActionsGrid
+          key='frame-actions-grid'
           timeline={timeline}
           onShowFrameActionsEditor={this.showFrameActionsEditor}
         />,
         <div
           key='gauge'
+          id='gauge-wrapper'
           style={{
             height: 24,
             backgroundColor: Palette.COAL,
             position: 'sticky',
-            top: 0,
+            top: 12,
             marginLeft: timeline.getPropertiesPixelWidth(),
             width: timeline.calculateFullTimelineWidth(),
             zIndex: zIndex.gauge.base,
