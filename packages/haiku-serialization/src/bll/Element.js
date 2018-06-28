@@ -501,8 +501,7 @@ class Element extends BaseModel {
     return this.cache.fetch('getComputedLayout', () => Layout3D.computeLayout(
       this.getLayoutSpec(),
       Layout3D.createMatrix(),
-      this.getParentComputedSize(),
-      Layout3D.computeSizeOfNodeContent(this.getLiveRenderedNode())
+      this.getParentComputedSize()
     ))
   }
 

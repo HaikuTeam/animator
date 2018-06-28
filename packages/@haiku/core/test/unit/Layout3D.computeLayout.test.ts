@@ -95,7 +95,6 @@ tape(
         y: 839,
         z: 0,
       },
-      null,
     );
 
     t.deepEqual(

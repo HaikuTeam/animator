@@ -12,7 +12,7 @@ import {
 } from './api/Layout';
 import HaikuBase from './HaikuBase';
 import HaikuComponent from './HaikuComponent';
-import {cloneNodeShallow, cssMatchOne} from './HaikuNode';
+import {cssMatchOne} from './HaikuNode';
 import Layout3D from './Layout3D';
 
 export const HAIKU_ID_ATTRIBUTE = 'haiku-id';
@@ -607,7 +607,6 @@ export default class HaikuElement extends HaikuBase {
     return HaikuElement.transformPointsInPlace(
       this.getRawBoundingBoxPoints(),
       Layout3D.computeLayout(
-        cloneNodeShallow(this.node),
         Layout3D.clone(this.rawLayout),
         Layout3D.createMatrix(),
         null, // parentSize; none available here
