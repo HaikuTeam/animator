@@ -1175,7 +1175,6 @@ class Timeline extends React.Component {
         </div>,
         <ScrubberInterior
           key='scrubber'
-          isScrubbing={timeline.isScrubberDragging()}
           timeline={timeline}
           onMouseDown={this.onGaugeMouseDown}
         />,
@@ -1242,10 +1241,6 @@ class Timeline extends React.Component {
               />
               <Gauge timeline={this.getActiveComponent().getCurrentTimeline()} />
               <ScrubberInterior
-                reactParent={this}
-                isScrubbing={this.getActiveComponent()
-                  .getCurrentTimeline()
-                  .isScrubberDragging()}
                 timeline={this.getActiveComponent().getCurrentTimeline()}
               />
             </div>
@@ -1311,13 +1306,17 @@ class Timeline extends React.Component {
   }
 
   disableTimelinePointerEvents () {
-    this.refs.scrollview.style.pointerEvents = 'none'
-    this.refs.scrollview.style.WebkitUserSelect = 'none'
+    if (this.refs.scrollview) {
+      this.refs.scrollview.style.pointerEvents = 'none'
+      this.refs.scrollview.style.WebkitUserSelect = 'none'
+    }
   }
 
   enableTimelinePointerEvents () {
-    this.refs.scrollview.style.pointerEvents = 'auto'
-    this.refs.scrollview.style.WebkitUserSelect = 'auto'
+    if (this.refs.scrollview) {
+      this.refs.scrollview.style.pointerEvents = 'auto'
+      this.refs.scrollview.style.WebkitUserSelect = 'auto'
+    }
   }
 
   disablePreviewMode () {

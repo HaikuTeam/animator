@@ -871,7 +871,7 @@ class Timeline extends BaseModel {
 
   calculateFullTimelineWidth () {
     const frameInfo = this.getFrameInfo()
-    return frameInfo.friMax * frameInfo.pxpf + 20
+    return frameInfo.pxMax + 20
   }
 
   updateScrubberPositionByDelta (delta) {
