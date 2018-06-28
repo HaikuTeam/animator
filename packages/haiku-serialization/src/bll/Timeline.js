@@ -603,7 +603,7 @@ class Timeline extends BaseModel {
     const visiblePixelWidth = this.getTimelinePixelWidth()
 
     const leftFrame = experimentIsEnabled(Experiment.NativeTimelineScroll) ? 0 : frameInfo.friA
-    const rightFrame = experimentIsEnabled(Experiment.NativeTimelineScroll) ? 999 : frameInfo.friB
+    const rightFrame = experimentIsEnabled(Experiment.NativeTimelineScroll) ? frameInfo.friMax : frameInfo.friB
 
     const leftMostAbsolutePixel = Math.round(leftFrame * frameInfo.pxpf)
 
@@ -658,7 +658,7 @@ class Timeline extends BaseModel {
 
     const leftFrame = frameInfo.friA
     const leftMs = experimentIsEnabled(Experiment.NativeTimelineScroll) ? 0 : frameInfo.friA * frameInfo.mspf
-    const rightMs = experimentIsEnabled(Experiment.NativeTimelineScroll) ? 999 : frameInfo.friB * frameInfo.mspf
+    const rightMs = experimentIsEnabled(Experiment.NativeTimelineScroll) ? frameInfo.friMax * frameInfo.mspf : frameInfo.friB * frameInfo.mspf
     const totalMs = rightMs - leftMs
 
     const msModulus = Timeline.getMillisecondModulus(frameInfo.pxpf)
@@ -867,6 +867,11 @@ class Timeline extends BaseModel {
     this.cache.unset('frameInfo')
     this.emit('update', 'timeline-frame-range')
     return this
+  }
+
+  calculateFullTimelineWidth () {
+    const frameInfo = this.getFrameInfo()
+    return frameInfo.friMax * frameInfo.pxpf + 20
   }
 
   updateScrubberPositionByDelta (delta) {

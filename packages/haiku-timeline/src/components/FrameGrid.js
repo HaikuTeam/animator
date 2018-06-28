@@ -83,7 +83,8 @@ export default class FrameGrid extends React.Component {
           position: 'sticky',
           top: 0,
           height: 12,
-          backgroundColor: Palette.COAL
+          backgroundColor: Palette.COAL,
+          width: propertiesWidth + this.props.timeline.calculateFullTimelineWidth()
         } : {
           overflow: 'hidden'
         })}

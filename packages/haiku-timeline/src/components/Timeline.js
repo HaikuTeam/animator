@@ -1120,7 +1120,6 @@ class Timeline extends React.Component {
   renderTopControls () {
     if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
       const timeline = this.getActiveComponent().getCurrentTimeline()
-      // const frameInfo = timeline.getFrameInfo()
 
       return [
         <div
@@ -1152,7 +1151,7 @@ class Timeline extends React.Component {
             position: 'sticky',
             top: 0,
             marginLeft: timeline.getPropertiesPixelWidth(),
-            width: '500vw',
+            width: timeline.calculateFullTimelineWidth(),
             zIndex: zIndex.gauge.base,
             fontSize: 10,
             borderBottom: '1px solid ' + Palette.FATHER_COAL,
@@ -1490,7 +1489,7 @@ class Timeline extends React.Component {
             position: 'absolute',
             top: 35,
             left: 0,
-            width: '500vw',
+            width: this.getActiveComponent().getCurrentTimeline().calculateFullTimelineWidth(),
             pointerEvents: 'auto',
             WebkitUserSelect: 'auto',
             bottom: 0
