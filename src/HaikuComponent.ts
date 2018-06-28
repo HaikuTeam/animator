@@ -1681,7 +1681,6 @@ function computeAndApplyNodeLayout (node, parent) {
         node.layout,
         node.layout.matrix,
         parentSize,
-        Layout3D.computeSizeOfNodeContent(node),
       );
     }
   }

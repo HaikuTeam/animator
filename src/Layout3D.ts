@@ -150,33 +150,7 @@ const multiplyArrayOfMatrices = (arrayOfMatrices: number[][]): number[] => {
   return product;
 };
 
-const computeSizeOfNodeContent = (node) => {
-  // We can't compute a content size for missing or text nodes
-  if (!node || typeof node !== 'object') {
-    return null;
-  }
-
-  // For subcomponents, we should be able to read the size property directly
-  if (typeof node.elementName === 'object') {
-    const subroot = node.children && node.children[0];
-
-    if (subroot && typeof subroot === 'object') {
-      return {
-        x: subroot.layout.sizeAbsolute.x,
-        y: subroot.layout.sizeAbsolute.y,
-        z: subroot.layout.sizeAbsolute.z,
-      };
-    }
-
-    // We got an invalid format; nothing to compute
-    return null;
-  }
-
-  // TODO: Read the union of inner primitives' bounding boxes
-  return null;
-};
-
-const computeLayout = (layoutSpec, currentMatrix, parentsizeAbsoluteIn, contentSizeAbsolute) => {
+const computeLayout = (layoutSpec, currentMatrix, parentsizeAbsoluteIn) => {
   // Clean out the existing computed layout from the layout spec, if it exists.
   // This prevents a severe memory leak.
   delete layoutSpec.computed;
@@ -187,7 +161,7 @@ const computeLayout = (layoutSpec, currentMatrix, parentsizeAbsoluteIn, contentS
     parentsizeAbsolute.z = DEFAULT_DEPTH;
   }
 
-  const size = computeSize(layoutSpec, layoutSpec.sizeMode, parentsizeAbsolute, contentSizeAbsolute);
+  const size = computeSize(layoutSpec, layoutSpec.sizeMode, parentsizeAbsolute);
 
   return {
     ...layoutSpec,
@@ -366,13 +340,12 @@ const computeSize = (
   layoutSpec,
   sizeModeArray,
   parentSize,
-  contentSize,
 ) => {
   const outputSize = {};
 
   for (let i = 0; i < SIZING_AXES.length; i++) {
     const sizeAxis = SIZING_AXES[i];
-    const contentSizeValue = contentSize && contentSize[sizeAxis];
+
     const parentSizeValue = parentSize[sizeAxis];
 
     switch (sizeModeArray[sizeAxis]) {
@@ -387,11 +360,7 @@ const computeSize = (
 
         // Implements "auto"-sizing: Use content size if available, otherwise fallback to parent
         if (useAutoSizing(givenValue)) {
-          if (contentSizeValue) {
-            outputSize[sizeAxis] = contentSizeValue;
-          } else {
-            outputSize[sizeAxis] = parentSizeValue;
-          }
+          throw new Error('Auto sizing not yet implemented');
         } else {
           outputSize[sizeAxis] = givenValue; // Assume the given value is numeric
         }
@@ -448,7 +417,6 @@ export default {
   computeLayout,
   computeMatrix,
   computeSize,
-  computeSizeOfNodeContent,
   computeOrientationFlexibly,
   computeOrthonormalBasisMatrix,
   computeScaledBasisMatrix,
