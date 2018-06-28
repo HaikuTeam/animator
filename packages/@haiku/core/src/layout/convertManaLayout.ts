@@ -4,7 +4,7 @@
 
 import {visitManaTree} from './../HaikuNode';
 import parseCssTransformString from './../helpers/parseCssTransformString';
-import Layout3D from './../Layout3D';
+import Layout3D, {AUTO_SIZING_TOKEN} from './../Layout3D';
 import cssValue from './../vendor/css-value';
 
 const ROOT_LOCATOR = '0';
@@ -182,10 +182,10 @@ export default function convertManaLayout(mana) {
 
       // Assign an absolute size no matter what, since this is the most common case,
       // even if somehow the element still ends up in proportional size mode, these should be set
-      if (!isNumericDefined(attributes['sizeAbsolute.x']) && attributes['sizeAbsolute.x'] !== true) {
+      if (!isNumericDefined(attributes['sizeAbsolute.x']) && attributes['sizeAbsolute.x'] !== AUTO_SIZING_TOKEN) {
         attributes['sizeAbsolute.x'] = fallbackSizeAbsolute(node, 'x');
       }
-      if (!isNumericDefined(attributes['sizeAbsolute.y']) && attributes['sizeAbsolute.y'] !== true) {
+      if (!isNumericDefined(attributes['sizeAbsolute.y']) && attributes['sizeAbsolute.y'] !== AUTO_SIZING_TOKEN) {
         attributes['sizeAbsolute.y'] = fallbackSizeAbsolute(node, 'y');
       }
 
