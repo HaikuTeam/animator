@@ -25,6 +25,7 @@ import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 import originMana from '../overlays/originMana'
 import controlPointMana from '../overlays/controlPointMana'
 import boxMana from '../overlays/boxMana'
+import lineMana from '../overlays/lineMana'
 import defsMana from '../overlays/defsMana'
 import rotationCursorMana from '../overlays/rotationCursorMana'
 import scaleCursorMana from '../overlays/scaleCursorMana'
@@ -2584,7 +2585,9 @@ export class Glass extends React.Component {
     }
 
     this.renderSelectionMarquee(overlays)
-    this.renderOutline(overlays)
+
+    this.renderHoverOutline(overlays)
+
     return overlays
   }
 
@@ -2619,7 +2622,7 @@ export class Glass extends React.Component {
     }
   }
 
-  renderOutline (overlays) {
+  renderHoverOutline (overlays) {
     if (
       !experimentIsEnabled(Experiment.OutliningElementsOnStage) ||
       this.isPreviewMode() ||
@@ -2734,7 +2737,13 @@ export class Glass extends React.Component {
     const origin = proxy.getOriginTransformed()
 
     if (pointDisplayMode !== POINT_DISPLAY_MODES.NONE) {
-      overlays.push(boxMana([points[0], points[2], points[8], points[6]].map((point) => [point.x, point.y])))
+      const vecs = points.map((point) => [point.x, point.y])
+
+      // We make the line dashed to represent axes which are auto-sized
+      overlays.push(lineMana(vecs[0], vecs[2], undefined, proxy.isAutoSizeX())) // top
+      overlays.push(lineMana(vecs[2], vecs[8], undefined, proxy.isAutoSizeY())) // right
+      overlays.push(lineMana(vecs[8], vecs[6], undefined, proxy.isAutoSizeX())) // bottom
+      overlays.push(lineMana(vecs[6], vecs[0], undefined, proxy.isAutoSizeY())) // left
     }
 
     points.forEach((point, index) => {

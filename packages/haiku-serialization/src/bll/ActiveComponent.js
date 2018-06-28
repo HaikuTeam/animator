@@ -2663,17 +2663,75 @@ class ActiveComponent extends BaseModel {
   }
 
   getContextSizeActual (timelineName, timelineTime) {
-    const defaults = { width: 1, height: 1 } // In case of race where collateral isn't ready yet
+    const defaults = {width: 1, height: 1} // In case of race where collateral isn't ready yet
+
     const bytecode = this.getReifiedBytecode()
-    if (!bytecode || !bytecode.template || !bytecode.template.attributes) return defaults
+
+    if (!bytecode || !bytecode.template || !bytecode.template.attributes) {
+      return defaults
+    }
+
     const contextHaikuId = bytecode.template.attributes[HAIKU_ID_ATTRIBUTE]
-    if (!contextHaikuId) return defaults
+
+    if (!contextHaikuId) {
+      return defaults
+    }
+
     const contextElementName = Element.safeElementName(bytecode.template)
-    if (!contextElementName) return defaults
+
+    if (!contextElementName) {
+      return defaults
+    }
+
+    const modelElement = this.findElementByComponentId(contextHaikuId)
+
+    // We can't get the HaikuElement nor compute a size if the live node is missing.
+    // This guard is to ensure we don't crash in case of races or in a headless test context.
+    if (!modelElement || !modelElement.getLiveRenderedNode()) {
+      return defaults
+    }
+
+    const haikuElement = modelElement.getHaikuElement()
+
+    if (!haikuElement) {
+      return defaults
+    }
+
     const host = this.$instance
     const states = (host && host.getStates()) || {}
-    const contextWidth = TimelineProperty.getComputedValue(contextHaikuId, contextElementName, 'sizeAbsolute.x', timelineName || DEFAULT_TIMELINE_NAME, timelineTime || DEFAULT_TIMELINE_TIME, 0, bytecode, host, states)
-    const contextHeight = TimelineProperty.getComputedValue(contextHaikuId, contextElementName, 'sizeAbsolute.y', timelineName || DEFAULT_TIMELINE_NAME, timelineTime || DEFAULT_TIMELINE_TIME, 0, bytecode, host, states)
+
+    let contextWidth = TimelineProperty.getComputedValue(
+      contextHaikuId,
+      contextElementName,
+      'sizeAbsolute.x',
+      timelineName || DEFAULT_TIMELINE_NAME,
+      timelineTime || DEFAULT_TIMELINE_TIME,
+      0,
+      bytecode,
+      host,
+      states
+    )
+
+    let contextHeight = TimelineProperty.getComputedValue(
+      contextHaikuId,
+      contextElementName,
+      'sizeAbsolute.y',
+      timelineName || DEFAULT_TIMELINE_NAME,
+      timelineTime || DEFAULT_TIMELINE_TIME,
+      0,
+      bytecode,
+      host,
+      states
+    )
+
+    if (typeof contextWidth !== 'number') {
+      contextWidth = haikuElement.computeSizeX()
+    }
+
+    if (typeof contextHeight !== 'number') {
+      contextHeight = haikuElement.computeSizeY()
+    }
+
     return {
       width: contextWidth,
       height: contextHeight

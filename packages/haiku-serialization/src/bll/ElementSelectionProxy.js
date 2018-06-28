@@ -524,6 +524,22 @@ class ElementSelectionProxy extends BaseModel {
     }
   }
 
+  isAutoSizeX () {
+    if (this.hasNothingInSelection() || this.hasMultipleInSelection()) {
+      return false
+    }
+
+    return this.selection[0].isAutoSizeX()
+  }
+
+  isAutoSizeY () {
+    if (this.hasNothingInSelection() || this.hasMultipleInSelection()) {
+      return false
+    }
+
+    return this.selection[0].isAutoSizeY()
+  }
+
   getComputedLayout () {
     return this.cache.fetch('getComputedLayout', () => Layout3D.computeLayout(
       {layout: this.getLayoutSpec()}, // targetNode
@@ -1023,19 +1039,48 @@ class ElementSelectionProxy extends BaseModel {
       activationPoint
     )
 
-    const sizeX = element.computePropertyValue('sizeAbsolute.x')
-    const sizeY = element.computePropertyValue('sizeAbsolute.y')
-    const finalSize = {
-      'sizeAbsolute.x': {
+    let sizeX = element.computePropertyValue('sizeAbsolute.x')
+    let sizeY = element.computePropertyValue('sizeAbsolute.y')
+
+    // If the artboard has "auto"-size designated, then resizing it has the effect of
+    // switching it to numeric sizing. But in order for that to work, we first need to
+    // compute the numeric size and then switch to it.
+    if (typeof sizeX !== 'number' || typeof sizeY !== 'number') {
+      const computedSize = element.getComputedSize()
+      if (typeof sizeX !== 'number') {
+        sizeX = computedSize.x
+      }
+      if (typeof sizeY !== 'number') {
+        sizeY = computedSize.y
+      }
+    }
+
+    const didSizeX = scaleX > 1.000001 || scaleX < 0.999999
+    const didSizeY = scaleY > 1.000001 || scaleY < 0.999999
+
+    if (!didSizeX && !didSizeY) {
+      return
+    }
+
+    const finalSize = {}
+
+    // We don't want to overwrite "auto"-size unless the axis was actually changed numerically
+    if (didSizeX) {
+      finalSize['sizeAbsolute.x'] = {
         value: rounded(scaleX * sizeX)
-      },
-      'sizeAbsolute.y': {
+      }
+    }
+    if (didSizeY) {
+      finalSize['sizeAbsolute.y'] = {
         value: rounded(scaleY * sizeY)
       }
     }
 
     // Don't allow the user to reduce the artboard's scale to nothing
-    if (finalSize['sizeAbsolute.x'].value < 5 || finalSize['sizeAbsolute.y'].value < 5) {
+    if (
+      (finalSize['sizeAbsolute.x'] && finalSize['sizeAbsolute.x'].value < 5) ||
+      (finalSize['sizeAbsolute.y'] && finalSize['sizeAbsolute.y'].value < 5)
+    ) {
       return
     }
 
@@ -1047,9 +1092,14 @@ class ElementSelectionProxy extends BaseModel {
       finalSize
     )
 
-    const elementOffset = {
-      'translation.x': translationX,
-      'translation.y': translationY
+    const elementOffset = {}
+
+    // We shouldn't bother translating elements if there was no offet along the given axis
+    if (didSizeX) {
+      elementOffset['translation.x'] = translationX
+    }
+    if (didSizeY) {
+      elementOffset['translation.y'] = translationY
     }
 
     // Translate all elements on stage by the offset so the stage can be resized

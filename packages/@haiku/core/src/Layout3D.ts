@@ -268,7 +268,7 @@ const computeLayout = (
   for (let i = 0; i < SIZING_AXES.length; i++) {
     const sizeAxis = SIZING_AXES[i];
 
-    const parentSizeValue = parentsizeAbsoluteIn[sizeAxis];
+    const parentSizeValue = parentsizeAbsolute[sizeAxis];
 
     switch (layoutSpec.sizeMode[sizeAxis]) {
       case SIZE_PROPORTIONAL:
@@ -296,6 +296,8 @@ const computeLayout = (
     }
   }
 
+  const targetMatrix = computeMatrix(layoutSpec, targetSize, parentsizeAbsolute);
+
   return {
     shown: layoutSpec.shown,
     opacity: layoutSpec.opacity,
@@ -312,7 +314,7 @@ const computeLayout = (
     sizeDifferential: layoutSpec.sizeDifferential,
     sizeAbsolute: layoutSpec.sizeAbsolute,
     size: targetSize,
-    matrix: computeMatrix(layoutSpec, targetSize, parentsizeAbsolute),
+    matrix: targetMatrix,
   };
 };
 
