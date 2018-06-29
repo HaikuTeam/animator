@@ -19,8 +19,8 @@ export default (exporterChannel: ExporterHandler, activeComponent: ActiveCompone
         break;
       case ExporterFormat.AnimatedGif:
       case ExporterFormat.Video:
-        if (typeof process.send === 'function') {
-          process.send({
+        if (typeof global.process.send === 'function') {
+          global.process.send({
             message: 'bakePngSequence',
             abspath: activeComponent.fetchActiveBytecodeFile().getAbspath(),
             framerate: request.framerate,
@@ -28,7 +28,7 @@ export default (exporterChannel: ExporterHandler, activeComponent: ActiveCompone
 
           const oneTimeHandler = (message: {type?: string}) => {
             if (typeof message === 'object' && message.type === 'bakePngSequenceComplete') {
-              process.removeListener('message', oneTimeHandler);
+              global.process.removeListener('message', oneTimeHandler);
               saveExport(request, activeComponent, (err) => {
                 if (err) {
                   throw err;
@@ -39,7 +39,7 @@ export default (exporterChannel: ExporterHandler, activeComponent: ActiveCompone
             }
           };
 
-          process.on('message', oneTimeHandler);
+          global.process.on('message', oneTimeHandler);
         }
     }
   });
