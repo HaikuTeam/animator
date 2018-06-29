@@ -21,7 +21,6 @@ pipeline {
                     nvm install 8.9.3
                     nvm use 8.9.3
                     curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.7.0'''
-                yarnInstallUnixLike()
             }
         }
         stage('Test') {
