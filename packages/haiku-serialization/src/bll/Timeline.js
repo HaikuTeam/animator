@@ -722,9 +722,31 @@ class Timeline extends BaseModel {
     return this._scrollLeft
   }
 
+  mapXCoordToFrame (coord) {
+    const frameInfo = this.getFrameInfo()
+    return Math.round((coord / frameInfo.pxpf) * frameInfo.scRatio)
+  }
+
+  zoomBy (left, right) {
+    const frameInfo = this.getFrameInfo()
+    let leftTotal = left || this.getLeftFrameEndpoint()
+    let rightTotal = right || this.getRightFrameEndpoint()
+
+    if (leftTotal < frameInfo.fri0) {
+      leftTotal = frameInfo.fri0
+    }
+
+    // Stop the scroller at the right side and lock the size
+    if (rightTotal > frameInfo.friMax) {
+      rightTotal = frameInfo.friMax
+    }
+
+    this.setVisibleFrameRange(leftTotal, rightTotal)
+    this.setScrollLeft(leftTotal * this.getFrameInfo().pxpf)
+  }
+
   changeVisibleFrameRange (xl, xr) {
     const frameInfo = this.getFrameInfo()
-
     let absL = null
     let absR = null
 
