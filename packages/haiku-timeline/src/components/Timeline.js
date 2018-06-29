@@ -553,7 +553,7 @@ class Timeline extends React.Component {
 
     if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
       this.addEmitterListenerIfNotAlreadyRegistered(timeline, 'update', (what, ...args) => {
-        if (what === 'timeline-scroll' || what === 'timeline-frame') {
+        if (what === 'timeline-scroll') {
           this.refs.container.scrollLeft = timeline.getScrollLeft()
         }
       })
@@ -809,7 +809,6 @@ class Timeline extends React.Component {
     }
 
     if (scrollEvent.deltaX >= 1 || scrollEvent.deltaX <= -1) {
-      // debugger
       return this.handleHorizontalScroll(scrollEvent.deltaX)
     }
   }
