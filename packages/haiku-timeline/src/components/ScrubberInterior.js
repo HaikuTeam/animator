@@ -122,7 +122,6 @@ export default class ScrubberInterior extends React.Component {
       ? currFrame
       : currFrame - frameInfo.friA
     const pxOffset = frameOffset * frameInfo.pxpf
-    const propertiesWidth = this.props.timeline.getPropertiesPixelWidth()
 
     return (
       <div

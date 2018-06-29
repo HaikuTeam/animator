@@ -16,7 +16,12 @@ export default class TimelineRangeScrollbar extends React.Component {
 
     this.onStartDragContainer = this.onStartDragContainer.bind(this)
     this.onStopDragContainer = this.onStopDragContainer.bind(this)
-    this.onDragContainer = lodash.throttle(this.onDragContainer.bind(this), THROTTLE_TIME)
+
+    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+      this.onDragContainer = this.onDragContainer.bind(this)
+    } else {
+      this.onDragContainer = lodash.throttle(this.onDragContainer.bind(this), THROTTLE_TIME)
+    }
 
     this.onStartDragLeft = this.onStartDragLeft.bind(this)
     this.onStopDragLeft = this.onStopDragLeft.bind(this)
@@ -66,12 +71,13 @@ export default class TimelineRangeScrollbar extends React.Component {
   }
 
   onDragContainer (dragEvent, dragData) {
+    const {timeline} = this.props
     // Don't drag on the body if we're already dragging on the ends
-    if (!this.props.timeline.getScrollerLeftDragStart() && !this.props.timeline.getScrollerRightDragStart()) {
+    if (!timeline.getScrollerLeftDragStart() && !timeline.getScrollerRightDragStart()) {
       if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-        this.props.timeline.setScrollLeft(dragData.x)
+        timeline.setScrollLeft(timeline.getScrollLeft() + dragData.deltaX)
       } else {
-        this.props.timeline.changeVisibleFrameRange(dragData.x, dragData.x)
+        timeline.changeVisibleFrameRange(dragData.x, dragData.x)
       }
     }
   }
