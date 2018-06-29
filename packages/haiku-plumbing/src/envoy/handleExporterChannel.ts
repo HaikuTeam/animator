@@ -28,6 +28,7 @@ export default (exporterChannel: ExporterHandler, activeComponent: ActiveCompone
 
           const oneTimeHandler = (message: {type?: string}) => {
             if (typeof message === 'object' && message.type === 'bakePngSequenceComplete') {
+              // @ts-ignore: some obscure typing issues prevent tests from running here.
               global.process.removeListener('message', oneTimeHandler);
               saveExport(request, activeComponent, (err) => {
                 if (err) {
