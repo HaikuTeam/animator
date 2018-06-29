@@ -17,6 +17,7 @@ tape('handleExporterSaveRequest', (suite: tape.Test) => {
     const request: ExporterRequest = {
       format: ExporterFormat.Bodymovin,
       filename: '',
+      framerate: 60,
     };
 
     const bytecode: any = {};
@@ -43,6 +44,7 @@ tape('handleExporterSaveRequest', (suite: tape.Test) => {
     const request: ExporterRequest = {
       format: ExporterFormat.Bodymovin,
       filename: '/blah',
+      framerate: 60,
     };
 
     binaryOutputStub.throws();
