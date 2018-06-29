@@ -510,7 +510,7 @@ class Element extends BaseModel {
     return this.cache.fetch('getComputedLayout', () => {
       const node = this.getLiveRenderedNode() || {} // Fallback in case of render race
 
-      return Layout3D.computeLayout(
+      return HaikuElement.computeLayout(
         { // targetNode
           // We need the layout spec which is *produced by this module* as opposed to the
           // layout spec mutated on the node during rendering/property application, because

@@ -1,10 +1,10 @@
-import Layout3D from '@core/Layout3D';
+import HaikuElement from '@core/HaikuElement';
 import * as tape from 'tape';
 
 tape(
-  'Layout3D.computeLayout',
+  'HaikuElement.computeLayout',
   (t) => {
-    const {align, matrix, mount, opacity, origin, shown, size, computed} = Layout3D.computeLayout(
+    const {align, matrix, mount, opacity, origin, shown, size, computed} = HaikuElement.computeLayout(
       { // targetNode
         layout: {
           shown: true,
