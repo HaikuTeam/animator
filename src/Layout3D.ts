@@ -3,13 +3,9 @@
  */
 
 import {
-  ComputedLayoutSpec,
-  LayoutNode,
   LayoutSpec,
   ThreeDimensionalLayoutProperty,
 } from './api/Layout';
-
-import HaikuElement from './HaikuElement';
 
 const ELEMENTS_2D = {
   circle: true,
@@ -37,11 +33,9 @@ export const AUTO_SIZING_TOKEN = 'auto';
 
 // Coordinate (0, 0, 0) is the top left of the screen
 
-const SIZE_PROPORTIONAL = 0; // A percentage of the parent
-const SIZE_ABSOLUTE = 1; // A fixed size in screen pixels
-const DEFAULT_DEPTH = 0;
+export const SIZE_PROPORTIONAL = 0; // A percentage of the parent
+export const SIZE_ABSOLUTE = 1; // A fixed size in screen pixels
 const IDENTITY = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
-const SIZING_AXES = ['x', 'y', 'z'];
 
 // Used for rendering downstream
 const FORMATS = {
@@ -146,16 +140,6 @@ const computeScaledBasisMatrix = (rotation, scale, shear) => {
   return computeMatrix(scaledBasisLayout, ignoredSize, ignoredSize);
 };
 
-const useAutoSizing = (givenValue): boolean => {
-  return (
-    givenValue === AUTO_SIZING_TOKEN ||
-    // Legacy. Because HaikuComponent#render gets called before Migration.runMigrations,
-    // the legacy value won't be correctly migrated to 'auto' by the time this gets called
-    // for the very first time, so we keep it around for backwards compat. Jun 22, 2018.
-    givenValue === true
-  );
-};
-
 const clone = (layout) => {
   if (!layout) {
     return layout;
@@ -242,81 +226,6 @@ const createLayoutSpec = (createCoordinateSystem?: boolean): LayoutSpec => ({
   sizeDifferential: {x: 0, y: 0, z: 0},
   sizeAbsolute: {x: 0, y: 0, z: 0},
 });
-
-const computeLayout = (
-  targetNode: LayoutNode,
-  parentsizeAbsoluteIn: ThreeDimensionalLayoutProperty,
-): ComputedLayoutSpec => {
-  const layoutSpec = targetNode.layout;
-
-  const parentsizeAbsolute = parentsizeAbsoluteIn || {x: 0, y: 0, z: 0};
-
-  if (parentsizeAbsolute.z === undefined || parentsizeAbsolute.z === null) {
-    parentsizeAbsolute.z = DEFAULT_DEPTH;
-  }
-
-  const targetSize = {
-    x: null,
-    y: null,
-    z: null,
-  };
-
-  // We don't want to hydrate a HaikuElement unnecessarily. It's only required if
-  // we are doing "auto"-sizing, so we construct one on demand below.
-  let targetElement;
-
-  for (let i = 0; i < SIZING_AXES.length; i++) {
-    const sizeAxis = SIZING_AXES[i];
-
-    const parentSizeValue = parentsizeAbsolute[sizeAxis];
-
-    switch (layoutSpec.sizeMode[sizeAxis]) {
-      case SIZE_PROPORTIONAL:
-        const sizeProportional = layoutSpec.sizeProportional[sizeAxis];
-        const sizeDifferential = layoutSpec.sizeDifferential[sizeAxis];
-        targetSize[sizeAxis] = parentSizeValue * sizeProportional + sizeDifferential;
-        break;
-
-      case SIZE_ABSOLUTE:
-        const givenValue = layoutSpec.sizeAbsolute[sizeAxis];
-
-        // Implements "auto"-sizing: Use content size if available, otherwise fallback to parent
-        if (useAutoSizing(givenValue)) {
-          if (!targetElement) {
-            // Note that HaikuElement.findOrCreateByNode will use a cached instance if found
-            targetElement = HaikuElement.findOrCreateByNode(targetNode);
-          }
-
-          targetSize[sizeAxis] = targetElement.computeSizeForAxis(sizeAxis);
-        } else {
-          targetSize[sizeAxis] = givenValue; // Assume the given value is numeric
-        }
-
-        break;
-    }
-  }
-
-  const targetMatrix = computeMatrix(layoutSpec, targetSize, parentsizeAbsolute);
-
-  return {
-    shown: layoutSpec.shown,
-    opacity: layoutSpec.opacity,
-    mount: layoutSpec.mount,
-    align: layoutSpec.align,
-    origin: layoutSpec.origin,
-    translation: layoutSpec.translation,
-    rotation: layoutSpec.rotation,
-    orientation: layoutSpec.orientation,
-    scale: layoutSpec.scale,
-    shear: layoutSpec.shear,
-    sizeMode: layoutSpec.sizeMode,
-    sizeProportional: layoutSpec.sizeProportional,
-    sizeDifferential: layoutSpec.sizeDifferential,
-    sizeAbsolute: layoutSpec.sizeAbsolute,
-    size: targetSize,
-    matrix: targetMatrix,
-  };
-};
 
 const computeMatrix = (
   layoutSpec: LayoutSpec,
@@ -430,7 +339,6 @@ const computeOrientationFlexibly = (x: number, y: number, z: number) => {
 export default {
   multiplyArrayOfMatrices,
   clone,
-  computeLayout,
   computeMatrix,
   computeOrientationFlexibly,
   computeOrthonormalBasisMatrix,
