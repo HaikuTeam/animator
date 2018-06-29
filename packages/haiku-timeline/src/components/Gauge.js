@@ -30,22 +30,13 @@ export default class Gauge extends React.Component {
 
   handleUpdate (what) {
     if (!this.mounted) return false
-    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-      if (
-        what === 'timeline-frame-hovered' ||
-        what === 'timeline-frame-range' ||
-        what === 'time-display-mode-change'
-      ) {
-        this.forceUpdate()
-      }
-    } else {
-      if (
-        what === 'timeline-frame-range' ||
-        what === 'timeline-frame-hovered' ||
-        what === 'time-display-mode-change'
-      ) {
-        this.forceUpdate()
-      }
+
+    if (
+      what === 'timeline-frame-range' ||
+      what === 'timeline-frame-hovered' ||
+      what === 'time-display-mode-change'
+    ) {
+      this.forceUpdate()
     }
   }
 
