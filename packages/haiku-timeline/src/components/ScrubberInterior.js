@@ -43,6 +43,8 @@ export default class ScrubberInterior extends React.Component {
       this.forceUpdate()
     } else if (what === 'time-display-mode-change') {
       this.forceUpdate()
+    } else if (what === 'timeline-scroll') {
+      this.forceUpdate()
     }
   }
 
@@ -129,7 +131,7 @@ export default class ScrubberInterior extends React.Component {
           position: 'sticky',
           top: 0,
           marginTop: -45,
-          zIndex: zIndex.scrubber.base
+          zIndex: this.props.timeline.getScrollLeft() < 5 ? 999 : zIndex.scrubber.base
         } : {
           overflow: 'hidden'
         })}>
