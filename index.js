@@ -45,7 +45,7 @@ if (process.env.HAIKU_APP_LAUNCH_CLI === '1') {
         require('haiku-creator/lib/electron');
         break;
       case 'bakePngSequence':
-        require('haiku-creator/lib/bakery/electron').default(data.abspath, data.framerate, () => {
+        require('haiku-creator/lib/bakery/electron').default(data.abspath, data.framerate, data.width, data.height, () => {
           global.haikuHelper.send({type: 'bakePngSequenceComplete'});
         });
         break;

@@ -8,14 +8,9 @@ import * as path from 'path';
 
 /**
  * Point of entry for request a PNG sequence from a bytecode file from the PNG bakery.
- * @param {string} abspath
- * @param {(outputDirectory: string) => void} cb
  */
-export default (abspath: string, framerate: number, cb: () => void) => {
+export default (abspath: string, framerate: number, width: number, height: number, cb: () => void) => {
   const bytecode = requireFromFile(abspath);
-  const haikuId = bytecode.template.attributes['haiku-id'];
-  const width = bytecode.timelines.Default['haiku:' + haikuId]['sizeAbsolute.x'][0].value;
-  const height = bytecode.timelines.Default['haiku:' + haikuId]['sizeAbsolute.y'][0].value;
 
   const browserWindow = new BrowserWindow({
     width,

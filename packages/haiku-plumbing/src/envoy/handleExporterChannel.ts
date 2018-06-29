@@ -24,6 +24,7 @@ export default (exporterChannel: ExporterHandler, activeComponent: ActiveCompone
             message: 'bakePngSequence',
             abspath: activeComponent.fetchActiveBytecodeFile().getAbspath(),
             framerate: request.framerate,
+            ...activeComponent.getContextSize(),
           });
 
           const oneTimeHandler = (message: {type?: string}) => {
