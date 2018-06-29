@@ -7,8 +7,10 @@ import zIndex from './styles/zIndex'
 export default class ScrubberInterior extends React.Component {
   constructor (props) {
     super(props)
+    this.off = false
+    this.propertiesWidth = props.timeline.getPropertiesPixelWidth()
     this.handleUpdate = this.handleUpdate.bind(this)
-    this.off = true
+    this.moveGaugeIfNeccesary = this.moveGaugeIfNeccesary.bind(this)
     this.throttledForceUpdate = lodash.throttle(this.forceUpdate.bind(this), 64)
   }
 
@@ -44,50 +46,64 @@ export default class ScrubberInterior extends React.Component {
     }
   }
 
-  teste () {
+  translateToMaxFrame ({currentFrame, frameInfo}) {
+    const pxOffset = frameInfo.maxf * frameInfo.pxpf
+    const translation = this.propertiesWidth + pxOffset
+    const duration = frameInfo.mspf * (frameInfo.maxf - currentFrame)
+
+    this.head.style.transform = `translateX(${translation}px)`
+    this.tail.style.transform = `translateX(${translation}px)`
+    this.head.style.transition = `transform ${duration}ms linear`
+    this.tail.style.transition = `transform ${duration}ms linear`
+  }
+
+  translateToFrameZero () {
+    this.head.style.transition = ''
+    this.tail.style.transition = ''
+    this.head.style.transform = 'translateX(0)'
+    this.tail.style.transform = 'translateX(0)'
+  }
+
+  translateToCurrentFrame ({currentFrame, frameInfo}) {
+    if (this.head && this.tail) {
+      const pxOffset = currentFrame * frameInfo.pxpf
+      const translation = this.propertiesWidth + pxOffset
+
+      this.head.style.transition = ''
+      this.tail.style.transition = ''
+      this.head.style.transform = `translateX(${translation}px)`
+      this.tail.style.transform = `translateX(${translation}px)`
+    }
+  }
+
+  moveGaugeIfNeccesary () {
     const frameInfo = this.props.timeline.getFrameInfo()
-    const propertiesWidth = this.props.timeline.getPropertiesPixelWidth()
     const currentFrame = this.props.timeline.getCurrentFrame()
 
     if (this.props.timeline.isPlaying()) {
       if (currentFrame < frameInfo.maxf) {
-        if (this.off) {
-          const pxOffset = frameInfo.maxf * frameInfo.pxpf
-          this.off = false
-          this.head.style.transform = `translateX(${propertiesWidth + pxOffset - 9}px)`
-          this.tail.style.transform = `translateX(${propertiesWidth + pxOffset}px)`
-          this.head.style.transition = `transform ${frameInfo.mspf * (frameInfo.maxf - currentFrame)}ms linear`
-          this.tail.style.transition = `transform ${frameInfo.mspf * (frameInfo.maxf - currentFrame)}ms linear`
+        if (!this.isMoving) {
+          this.translateToMaxFrame({currentFrame, frameInfo})
+          this.isMoving = true
         }
       } else {
-        this.off = true
-        this.head.style.transition = ''
-        this.tail.style.transition = ''
-        this.head.style.transform = 'translateX(0)'
-        this.tail.style.transform = 'translateX(0)'
+        this.translateToFrameZero()
+        this.isMoving = false
       }
     } else {
-      this.off = true
-      const frameOffset = experimentIsEnabled(Experiment.NativeTimelineScroll)
-        ? currentFrame
-        : currentFrame - frameInfo.friA
-      const pxOffset = frameOffset * frameInfo.pxpf
-      if (this.head && this.tail) {
-        this.head.style.transition = ''
-        this.tail.style.transition = ''
-        this.head.style.transform = `translateX(${propertiesWidth + pxOffset - 9}px)`
-        this.tail.style.transform = `translateX(${propertiesWidth + pxOffset}px)`
-      }
+      this.translateToCurrentFrame({currentFrame, frameInfo})
+      this.isMoving = false
     }
 
-    window.requestAnimationFrame(() => {
-      this.teste()
-    })
+    window.requestAnimationFrame(this.moveGaugeIfNeccesary)
   }
 
   render () {
     const frameInfo = this.props.timeline.getFrameInfo()
-    this.teste()
+
+    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+      this.moveGaugeIfNeccesary()
+    }
 
     if (!experimentIsEnabled(Experiment.NativeTimelineScroll)) {
       if (this.props.timeline.getCurrentFrame() < frameInfo.friA) {
@@ -127,8 +143,7 @@ export default class ScrubberInterior extends React.Component {
             height: 19,
             width: 19,
             top: 13,
-            // left: experimentIsEnabled(Experiment.NativeTimelineScroll) ? (propertiesWidth + pxOffset - 9) : pxOffset - 9,
-            transform: `translateX(${propertiesWidth + pxOffset - 9}px)`,
+            left: experimentIsEnabled(Experiment.NativeTimelineScroll) ? -9 : pxOffset - 9,
             borderRadius: '50%',
             cursor: 'move',
             boxShadow: '0 0 2px 0 rgba(0, 0, 0, .9)',
@@ -174,8 +189,7 @@ export default class ScrubberInterior extends React.Component {
             height: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'calc(100vh - 80px)' : 9999,
             width: 1,
             top: 35,
-            transform: `translateX(${propertiesWidth + pxOffset}px)`,
-            // left: experimentIsEnabled(Experiment.NativeTimelineScroll) ? (pxOffset + propertiesWidth) : pxOffset,
+            left: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : pxOffset,
             pointerEvents: 'none'
           }} />
       </div>
