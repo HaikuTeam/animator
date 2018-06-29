@@ -14,7 +14,7 @@
     "develop": "tsc --watch"
   },
   "bin": {
-    "haiku": "./bin/haiku"
+    "haiku": "./bin/basmala"
   },
   "authors": [
     "Zack Brown <zack@haiku.ai>"
