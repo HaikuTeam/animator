@@ -1,8 +1,15 @@
 import * as chokidar from 'chokidar';
 import {EventEmitter} from 'events';
+import {sep} from 'path';
 import {LOCKS, emitter} from 'haiku-serialization/src/bll/Lock';
 
 const WRITE_WAIT_DELAY = 1000;
+
+const SEPARATOR = sep === '\\' ? '\\\\' : sep;
+
+const IGNORE_PATTERN = new RegExp(
+  `(node_modules|bower_components|jspm_modules|\\.git|~\\.sketch|code${SEPARATOR}.+${SEPARATOR}png-\\d+${SEPARATOR})`,
+);
 
 export default class Watcher extends EventEmitter {
   constructor () {
@@ -43,7 +50,7 @@ export default class Watcher extends EventEmitter {
       // - Avoid any git blobs (there are tons of these)
       // - Avoid any sketch tempfiles (these are ephemeral and not needed)
       // - Avoid files which we explicitly .gitignore
-      ignored: /(node_modules|bower_components|jspm_modules|\.git|~\.sketch|png\/*)/,
+      ignored: IGNORE_PATTERN,
       ignoreInitial: true,
       persistent: true,
       usePolling: true,
