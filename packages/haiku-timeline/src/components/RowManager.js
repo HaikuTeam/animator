@@ -52,6 +52,7 @@ class RowManager extends React.PureComponent {
     if (row.isProperty()) {
       return (
         <PropertyRow
+          onDoubleClickToMoveGauge={this.props.onDoubleClickToMoveGauge}
           key={row.getUniqueKey()}
           rowHeight={this.props.rowHeight}
           timeline={activeComponent.getCurrentTimeline()}

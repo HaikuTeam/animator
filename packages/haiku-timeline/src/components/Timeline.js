@@ -106,6 +106,7 @@ class Timeline extends React.Component {
     this.mouseMoveListener = this.mouseMoveListener.bind(this)
     this.mouseUpListener = this.mouseUpListener.bind(this)
     this.onGaugeMouseDown = this.onGaugeMouseDown.bind(this)
+    this.moveGaugeOnDoubleClick = this.moveGaugeOnDoubleClick.bind(this)
 
     this.handleCutDebounced = lodash.debounce(this.handleCut.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
     this.handleCopyDebounced = lodash.debounce(this.handleCopy.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
@@ -1354,6 +1355,12 @@ class Timeline extends React.Component {
     )
   }
 
+  moveGaugeOnDoubleClick (dblClickEvent) {
+    this._doHandleMouseMovesInGauge = true
+    this.mouseMoveListener(dblClickEvent)
+    this._doHandleMouseMovesInGauge = false
+  }
+
   renderComponentRows () {
     const groups = this.getActiveComponent().getDisplayableRowsGroupedByElementInZOrder()
 
@@ -1417,6 +1424,7 @@ class Timeline extends React.Component {
                                 showEventHandlersEditor={(...args) => {
                                   this.showEventHandlersEditor(...args)
                                 }}
+                                onDoubleClickToMoveGauge={this.moveGaugeOnDoubleClick}
                               />
                             </div>
                             {provided.placeholder}
