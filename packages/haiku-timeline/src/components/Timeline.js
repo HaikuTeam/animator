@@ -605,6 +605,7 @@ class Timeline extends React.Component {
         const timeline = this.getActiveComponent().getCurrentTimeline()
         const frameInfo = timeline.getFrameInfo()
         const ms = Math.round(timeline.getHoveredFrame() * frameInfo.mspf)
+        Keyframe.deselectAndDeactivateAllKeyframes()
         model.createKeyframe(undefined, ms, { from: 'timeline' })
       }
     })
