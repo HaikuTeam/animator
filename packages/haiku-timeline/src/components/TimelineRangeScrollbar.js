@@ -16,7 +16,12 @@ export default class TimelineRangeScrollbar extends React.Component {
 
     this.onStartDragContainer = this.onStartDragContainer.bind(this)
     this.onStopDragContainer = this.onStopDragContainer.bind(this)
-    this.onDragContainer = lodash.throttle(this.onDragContainer.bind(this), THROTTLE_TIME)
+
+    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+      this.onDragContainer = this.onDragContainer.bind(this)
+    } else {
+      this.onDragContainer = lodash.throttle(this.onDragContainer.bind(this), THROTTLE_TIME)
+    }
 
     this.onStartDragLeft = this.onStartDragLeft.bind(this)
     this.onStopDragLeft = this.onStopDragLeft.bind(this)
@@ -66,12 +71,17 @@ export default class TimelineRangeScrollbar extends React.Component {
   }
 
   onDragContainer (dragEvent, dragData) {
+    const {timeline} = this.props
     // Don't drag on the body if we're already dragging on the ends
-    if (!this.props.timeline.getScrollerLeftDragStart() && !this.props.timeline.getScrollerRightDragStart()) {
+    if (!timeline.getScrollerLeftDragStart() && !timeline.getScrollerRightDragStart()) {
       if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-        this.props.timeline.setScrollLeft(dragData.x)
+        const barWidth = this.frameInfo.scB - this.frameInfo.scA
+        const relativeScroll = dragEvent.clientX - barWidth / 2
+        const absoluteScroll = relativeScroll * this.frameInfo.scRatio
+
+        timeline.setScrollLeft(absoluteScroll)
       } else {
-        this.props.timeline.changeVisibleFrameRange(dragData.x, dragData.x)
+        timeline.changeVisibleFrameRange(dragData.x, dragData.x)
       }
     }
   }
@@ -84,8 +94,22 @@ export default class TimelineRangeScrollbar extends React.Component {
     this.props.timeline.scrollbarLeftStop(dragData)
   }
 
+  calculateFrameAndOffset (clientX) {
+    const timeline = this.props.timeline
+    const frame = timeline.mapXCoordToFrame(clientX)
+    const scrollLeft = timeline.getScrollLeft()
+    const offsetCoord = (scrollLeft + timeline._timelinePixelWidth) / this.frameInfo.scRatio
+    const offset = timeline.mapXCoordToFrame(offsetCoord)
+    return {frame, offset}
+  }
+
   onDragLeft (dragEvent, dragData) {
-    this.props.timeline.changeVisibleFrameRange(dragData.x + this.frameInfo.scA, 0)
+    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+      const {frame, offset} = this.calculateFrameAndOffset(dragEvent.clientX)
+      this.props.timeline.zoomBy(frame, offset)
+    } else {
+      this.props.timeline.changeVisibleFrameRange(dragData.x + this.frameInfo.scA, 0)
+    }
   }
 
   onStartDragRight (dragEvent, dragData) {
@@ -97,7 +121,12 @@ export default class TimelineRangeScrollbar extends React.Component {
   }
 
   onDragRight (dragEvent, dragData) {
-    this.props.timeline.changeVisibleFrameRange(0, dragData.x + this.frameInfo.scA)
+    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+      const {frame} = this.calculateFrameAndOffset(dragEvent.clientX)
+      this.props.timeline.zoomBy(null, frame)
+    } else {
+      this.props.timeline.changeVisibleFrameRange(0, dragData.x + this.frameInfo.scA)
+    }
   }
 
   render () {
@@ -125,7 +154,7 @@ export default class TimelineRangeScrollbar extends React.Component {
               position: 'absolute',
               backgroundColor: Palette.LIGHTEST_GRAY,
               height: KNOB_RADIUS * 2,
-              left: experimentIsEnabled(Experiment.NativeTimelineScroll) ? this.props.timeline.getScrollLeft() : this.frameInfo.scA,
+              left: experimentIsEnabled(Experiment.NativeTimelineScroll) ? (this.props.timeline.getScrollLeft() / this.frameInfo.scRatio) : this.frameInfo.scA,
               width: this.frameInfo.scB - this.frameInfo.scA,
               borderRadius: KNOB_RADIUS,
               cursor: 'move'

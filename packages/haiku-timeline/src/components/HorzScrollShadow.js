@@ -27,6 +27,10 @@ export default class HorzScrollShadow extends React.PureComponent {
   }
 
   handleUpdate (what) {
+    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+      return
+    }
+
     if (!this.mounted) return null
     if (what === 'timeline-frame-range') {
       this.forceUpdate()

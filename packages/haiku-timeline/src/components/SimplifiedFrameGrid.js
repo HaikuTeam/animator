@@ -39,15 +39,23 @@ export default class SimplifiedFrameGrid extends React.PureComponent {
     const hoveredFrameEl = document.getElementById(`frame-${hoveredFrame}`)
     const lastHoveredFrameEl = document.getElementById(`frame-${this.lastHoveredFrame}`)
 
-    hoveredFrameEl.style.borderLeft = this.activeFrameBorder
-    lastHoveredFrameEl.style.borderLeft = this.defaultFrameBorder
-    this.lastHoveredFrame = hoveredFrame
+    if (hoveredFrameEl && lastHoveredFrameEl) {
+      hoveredFrameEl.style.borderLeft = this.activeFrameBorder
+      lastHoveredFrameEl.style.borderLeft = this.defaultFrameBorder
+      this.lastHoveredFrame = hoveredFrame
+    }
   }
 
   handleUpdate (what) {
     if (!this.mounted) return null
     if (what === 'timeline-frame-hovered') {
       this.toggleFrameHover()
+    } else if (
+      what === 'timeline-frame-range' ||
+      what === 'timeline-timeline-pixel-width' ||
+      what === 'time-display-mode-change'
+    ) {
+      this.forceUpdate()
     }
   }
 
