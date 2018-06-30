@@ -223,6 +223,22 @@ export default class TopMenu {
           this.sender.send('global-menu:save');
         },
       },
+    );
+
+    if (experimentIsEnabled(Experiment.LocalAssetExport)) {
+      projectSubmenu.push(
+        {
+          label: 'Save As…',
+          enabled: this.options.isProjectOpen,
+          accelerator: 'CmdOrCtrl+Shift+S',
+          click: () => {
+            this.sender.send('global-menu:save-as');
+          },
+        },
+      );
+    }
+
+    projectSubmenu.push(
       {type: 'separator'},
       {
         label: 'Components',

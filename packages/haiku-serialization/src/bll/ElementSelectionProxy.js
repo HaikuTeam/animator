@@ -541,7 +541,7 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   getComputedLayout () {
-    return this.cache.fetch('getComputedLayout', () => Layout3D.computeLayout(
+    return this.cache.fetch('getComputedLayout', () => HaikuElement.computeLayout(
       {layout: this.getLayoutSpec()}, // targetNode
       this.getParentComputedSize()
     ))

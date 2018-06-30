@@ -1677,7 +1677,7 @@ function computeAndApplyNodeLayout (node, parent) {
 
     // Don't assume the node has/needs a layout, for example, control-flow injectees
     if (node.layout) {
-      node.layout.computed = Layout3D.computeLayout(
+      node.layout.computed = HaikuElement.computeLayout(
         node,
         parentSize,
       );

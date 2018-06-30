@@ -646,26 +646,33 @@ export default class Creator extends React.Component {
     this.envoyClient = new EnvoyClient(this.envoyOptions);
 
     this.envoyClient.get(EXPORTER_CHANNEL).then((exporterChannel) => {
-      ipcRenderer.on('global-menu:export', (event, [format]) => {
-        let extension;
-        switch (format) {
-          case ExporterFormat.Bodymovin:
-          case ExporterFormat.HaikuStatic:
-            extension = 'json';
-            break;
-          default:
-            throw new Error(`Unsupported format: ${format}`);
-        }
-
+      ipcRenderer.on('global-menu:save-as', () => {
         dialog.showSaveDialog(undefined, {
           defaultPath: `*/${this.state.projectName}`,
           filters: [{
-            name: format,
-            extensions: [extension],
+            name: 'Animated GIF', extensions: ['gif'],
+          }, {
+            name: 'Video', extensions: ['mp4'],
+          }, {
+            name: 'Lottie', extensions: ['json'],
           }],
         },
           (filename) => {
-            exporterChannel.save({format, filename});
+            if (!filename) {
+              return;
+            }
+
+            switch (path.extname(filename)) {
+              case '.gif':
+                exporterChannel.save({filename, format: ExporterFormat.AnimatedGif, framerate: 30});
+                break;
+              case '.mp4':
+                exporterChannel.save({filename, format: ExporterFormat.Video, framerate: 30});
+                break;
+              case '.json':
+                exporterChannel.save({filename, format: ExporterFormat.Bodymovin, framerate: 60});
+                break;
+            }
           });
       });
     });

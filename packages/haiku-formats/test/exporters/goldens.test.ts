@@ -19,7 +19,7 @@ tape('haiku-formats goldens', (suite: tape.Test) => {
         (filename: string, next) => {
           const name = basename(filename, '.js');
           const bytecodeFilename = join(goldensRoot, 'bytecode', filename);
-          const exporter = new BodymovinExporter(require(bytecodeFilename));
+          const exporter = new BodymovinExporter(require(bytecodeFilename), '/tmp');
           // Clear require cache.
           delete require.cache[require.resolve(bytecodeFilename)];
           readFile(
@@ -48,7 +48,7 @@ tape('haiku-formats goldens', (suite: tape.Test) => {
         (filename: string, next) => {
           const name = basename(filename, '.js');
           const bytecodeFilename = join(goldensRoot, 'bytecode', filename);
-          const exporter = new HaikuStaticExporter(require(bytecodeFilename));
+          const exporter = new HaikuStaticExporter(require(bytecodeFilename), '/tmp');
           readFile(
             join(goldensRoot, 'haikuStatic', `${name}.json`),
             (__: any, contents: Buffer) => {

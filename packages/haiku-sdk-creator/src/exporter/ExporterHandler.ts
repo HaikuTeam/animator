@@ -1,12 +1,10 @@
 import {Exporter, ExporterRequest} from '.';
 import {EnvoyEvent, MaybeAsync} from '../envoy';
-import EnvoyServer from '../envoy/EnvoyServer';
+import EnvoyHandler from '../envoy/EnvoyHandler';
 
 export const EXPORTER_CHANNEL = 'exporter';
 
-export class ExporterHandler implements Exporter {
-  constructor (private readonly server: EnvoyServer) {}
-
+export class ExporterHandler extends EnvoyHandler implements Exporter {
   save (request: ExporterRequest): MaybeAsync<void> {
     this.server.emit(EXPORTER_CHANNEL, {
       payload: request,

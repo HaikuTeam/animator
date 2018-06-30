@@ -23,5 +23,6 @@
   "CodeEditor": true,
   "WarnOnUndefinedStateVariables": true,
   "NativeTimelineScroll": true,
-  "TimelineMarqueeSelection": true
+  "TimelineMarqueeSelection": true,
+  "LocalAssetExport": false
 }

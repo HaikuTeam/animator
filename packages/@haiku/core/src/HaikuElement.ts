@@ -6,6 +6,7 @@ import {
   BoundsSpecZ,
   ClientRect,
   ComputedLayoutSpec,
+  LayoutNode,
   LayoutSpec,
   StringableThreeDimensionalLayoutProperty,
   ThreeDimensionalLayoutProperty,
@@ -14,15 +15,17 @@ import {
 import HaikuBase from './HaikuBase';
 import HaikuComponent from './HaikuComponent';
 import {cssMatchOne} from './HaikuNode';
-import Layout3D from './Layout3D';
+import Layout3D, {AUTO_SIZING_TOKEN, SIZE_ABSOLUTE, SIZE_PROPORTIONAL} from './Layout3D';
 
 export const HAIKU_ID_ATTRIBUTE = 'haiku-id';
 export const HAIKU_TITLE_ATTRIBUTE = 'haiku-title';
 export const HAIKU_VAR_ATTRIBUTE = 'haiku-var';
 export const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source';
 
+const DEFAULT_DEPTH = 0;
 const DEFAULT_TAG_NAME = 'div';
 const COMPONENT_PSEUDO_TAG_NAME = DEFAULT_TAG_NAME;
+const SIZING_AXES = ['x', 'y', 'z'];
 const TEXT_PSEUDO_TAG_NAME = '__text__';
 
 const CSS_QUERY_MAPPING = {
@@ -740,7 +743,7 @@ export default class HaikuElement extends HaikuBase {
   getLocallyTransformedBoundingBoxPoints (): ThreeDimensionalLayoutProperty[] {
     return HaikuElement.transformPointsInPlace(
       this.getRawBoundingBoxPoints(),
-      Layout3D.computeLayout(
+      HaikuElement.computeLayout(
         this.node,
         null, // parentSize; none available here
       ).matrix,
@@ -876,5 +879,90 @@ export default class HaikuElement extends HaikuBase {
       return found;
     }
     return HaikuElement.createByNode(node);
+  };
+
+  static useAutoSizing = (givenValue): boolean => {
+    return (
+      givenValue === AUTO_SIZING_TOKEN ||
+      // Legacy. Because HaikuComponent#render gets called before Migration.runMigrations,
+      // the legacy value won't be correctly migrated to 'auto' by the time this gets called
+      // for the very first time, so we keep it around for backwards compat. Jun 22, 2018.
+      givenValue === true
+    );
+  };
+
+  static computeLayout = (
+    targetNode: LayoutNode,
+    parentsizeAbsoluteIn: ThreeDimensionalLayoutProperty,
+  ): ComputedLayoutSpec => {
+    const layoutSpec = targetNode.layout;
+
+    const parentsizeAbsolute = parentsizeAbsoluteIn || {x: 0, y: 0, z: 0};
+
+    if (parentsizeAbsolute.z === undefined || parentsizeAbsolute.z === null) {
+      parentsizeAbsolute.z = DEFAULT_DEPTH;
+    }
+
+    const targetSize = {
+      x: null,
+      y: null,
+      z: null,
+    };
+
+    // We don't want to hydrate a HaikuElement unnecessarily. It's only required if
+    // we are doing "auto"-sizing, so we construct one on demand below.
+    let targetElement;
+
+    for (let i = 0; i < SIZING_AXES.length; i++) {
+      const sizeAxis = SIZING_AXES[i];
+
+      const parentSizeValue = parentsizeAbsolute[sizeAxis];
+
+      switch (layoutSpec.sizeMode[sizeAxis]) {
+        case SIZE_PROPORTIONAL:
+          const sizeProportional = layoutSpec.sizeProportional[sizeAxis];
+          const sizeDifferential = layoutSpec.sizeDifferential[sizeAxis];
+          targetSize[sizeAxis] = parentSizeValue * sizeProportional + sizeDifferential;
+          break;
+
+        case SIZE_ABSOLUTE:
+          const givenValue = layoutSpec.sizeAbsolute[sizeAxis];
+
+          // Implements "auto"-sizing: Use content size if available, otherwise fallback to parent
+          if (HaikuElement.useAutoSizing(givenValue)) {
+            if (!targetElement) {
+              // Note that HaikuElement.findOrCreateByNode will use a cached instance if found
+              targetElement = HaikuElement.findOrCreateByNode(targetNode);
+            }
+
+            targetSize[sizeAxis] = targetElement.computeSizeForAxis(sizeAxis);
+          } else {
+            targetSize[sizeAxis] = givenValue; // Assume the given value is numeric
+          }
+
+          break;
+      }
+    }
+
+    const targetMatrix = Layout3D.computeMatrix(layoutSpec, targetSize, parentsizeAbsolute);
+
+    return {
+      shown: layoutSpec.shown,
+      opacity: layoutSpec.opacity,
+      mount: layoutSpec.mount,
+      align: layoutSpec.align,
+      origin: layoutSpec.origin,
+      translation: layoutSpec.translation,
+      rotation: layoutSpec.rotation,
+      orientation: layoutSpec.orientation,
+      scale: layoutSpec.scale,
+      shear: layoutSpec.shear,
+      sizeMode: layoutSpec.sizeMode,
+      sizeProportional: layoutSpec.sizeProportional,
+      sizeDifferential: layoutSpec.sizeDifferential,
+      sizeAbsolute: layoutSpec.sizeAbsolute,
+      size: targetSize,
+      matrix: targetMatrix,
+    };
   };
 }

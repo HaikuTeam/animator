@@ -1,3 +1,6 @@
+import {writeFile} from 'fs-extra';
+// @ts-ignore
+import * as LoggerInstance from 'haiku-serialization/src/utils/LoggerInstance';
 import {ExporterInterface} from '..';
 import BaseExporter from '../BaseExporter';
 import {evaluateInjectedFunctionInExportContext} from '../injectables';
@@ -31,7 +34,7 @@ export class HaikuStaticExporter extends BaseExporter implements ExporterInterfa
   }
 
   /**
-   * Interface method to provide raw output.
+   * Method to provide raw output.
    * @returns {{}}
    */
   rawOutput () {
@@ -44,7 +47,7 @@ export class HaikuStaticExporter extends BaseExporter implements ExporterInterfa
   }
 
   /**
-   * Interface method to provide binary output.
+   * Method to provide binary output.
    * @returns {{}}
    */
   binaryOutput () {
@@ -56,10 +59,16 @@ export class HaikuStaticExporter extends BaseExporter implements ExporterInterfa
   }
 
   /**
-   * Interface method to provide failsafe binary output.
-   * @returns {{}}
+   * Interface method to write binary output out to a file.
+   * @returns {Promise<void>}
    */
-  failsafeBinaryOutput () {
-    return '{}';
+  writeToFile (filename: string|Buffer) {
+    try {
+      return writeFile(filename, this.binaryOutput());
+    } catch (e) {
+      LoggerInstance.error(`[formats] caught exception during static export: ${e.toString()}`);
+    }
+
+    return writeFile(filename, '{}');
   }
 }

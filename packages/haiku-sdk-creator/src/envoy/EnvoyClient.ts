@@ -9,6 +9,7 @@ import {
   EnvoySerializable,
   RequestOptions,
 } from '.';
+import EnvoyHandler from './EnvoyHandler';
 
 import EnvoyLogger from './EnvoyLogger';
 
@@ -18,7 +19,7 @@ const AWAIT_READY_TIMEOUT = 100;
 
 export type EnvoyClientEventHandler = (...args: any[]) => void;
 
-export default class EnvoyClient<T> {
+export default class EnvoyClient<T extends EnvoyHandler> {
 
   private options: EnvoyOptions;
   private datagramQueue: Datagram[] = [];
@@ -118,14 +119,12 @@ export default class EnvoyClient<T> {
    * @param subject
    */
   private addEventLogic (subject: T): T {
-    // @ts-ignore
     subject.on = (eventName: string, handler: EnvoyClientEventHandler) => {
       const handlers = this.eventHandlers.get(eventName) || [];
       handlers.push(handler);
       this.eventHandlers.set(eventName, handlers);
     };
 
-    // @ts-ignore
     subject.off = (eventName: string, handler: EnvoyClientEventHandler) => {
       const handlers = this.eventHandlers.get(eventName) || [];
       const idx = handlers.indexOf(handler);

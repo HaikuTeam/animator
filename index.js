@@ -31,21 +31,28 @@ if (process.env.HAIKU_APP_LAUNCH_CLI === '1') {
   if (global.process.env.HAIKU_DEBUG) {
     haikuHelperArgs.execArgv = ['--inspect=9221'];
   }
-  const haikuHelper = cp.fork(path.join(__dirname, 'HaikuHelper'), haikuHelperArgs);
 
-  haikuHelper.on('message', (data) => {
+  global.haikuHelper = cp.fork(path.join(__dirname, 'HaikuHelper'), haikuHelperArgs);
+  global.haikuHelper.on('message', (data) => {
     if (!data || typeof data !== 'object' || !data.message) {
       return;
     }
 
-    const {message, haiku} = data;
-    if (message === 'launchCreator') {
-      global.process.env.HAIKU_ENV = JSON.stringify(haiku);
-      require('haiku-creator/lib/electron');
+    const {message} = data;
+    switch (message) {
+      case 'launchCreator':
+        global.process.env.HAIKU_ENV = JSON.stringify(data.haiku);
+        require('haiku-creator/lib/electron');
+        break;
+      case 'bakePngSequence':
+        require('haiku-creator/lib/bakery/electron').default(data.abspath, data.framerate, data.width, data.height, () => {
+          global.haikuHelper.send({type: 'bakePngSequenceComplete'});
+        });
+        break;
     }
   });
 
-  haikuHelper.on('exit', global.process.exit);
+  global.haikuHelper.on('exit', global.process.exit);
   global.process.on('exit', () => {
     haikuHelper.kill('SIGKILL');
   });
