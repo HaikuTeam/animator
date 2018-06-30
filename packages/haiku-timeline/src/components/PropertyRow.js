@@ -197,6 +197,7 @@ export default class PropertyRow extends React.Component {
             })
           }}
           className='property-timeline-segments-box'
+          onDoubleClick={this.props.onDoubleClickToMoveGauge}
           onMouseDown={() => {
             this.props.row.activate()
           }}
