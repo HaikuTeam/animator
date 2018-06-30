@@ -22,11 +22,20 @@
   "dependencies": {
     "lodash": "^4.17.4",
     "mkdirp": "^0.5.1",
-    "request": "^2.83.0"
+    "request": "^2.83.0",
+    "semver": "^5.5.0",
+    "fs-extra": "^5.0.0",
+    "dedent": "^0.7.0",
+    "async": "^2.5.0",
+    "moment": "2.18.1",
+    "pascalcase": "0.1.1"
   },
   "devDependencies": {
     "@types/mkdirp": "^0.3.29",
     "@types/request": "^2.0.0",
+    "@types/semver": "^5.5.0",
+    "@types/node": "^8.9.4",
+    "@types/dedent": "^0.7.0",
     "haiku-testing": "3.5.1",
     "leaked-handles": "^5.2.0"
   }
