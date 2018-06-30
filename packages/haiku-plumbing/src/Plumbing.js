@@ -28,7 +28,6 @@ import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import * as serializeError from 'haiku-serialization/src/utils/serializeError';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
-import * as ProjectFolder from './ProjectFolder';
 import {crashReport} from 'haiku-serialization/src/utils/carbonite';
 import * as BaseModel from 'haiku-serialization/src/bll/BaseModel';
 import * as HaikuHomeDir from 'haiku-serialization/src/utils/HaikuHomeDir';
@@ -36,6 +35,8 @@ import * as Project from 'haiku-serialization/src/bll/Project';
 import {awaitAllLocksFree} from 'haiku-serialization/src/bll/Lock';
 import functionToRFO from '@haiku/core/lib/reflection/functionToRFO';
 import Master from './Master';
+import {createProjectFiles} from '@haiku/sdk-client/lib/createProjectFiles';
+import {duplicateProject} from '@haiku/sdk-client/lib/duplicateProject';
 
 const {HOMEDIR_PATH} = HaikuHomeDir;
 
@@ -885,11 +886,9 @@ export default class Plumbing extends EventEmitter {
             return cb();
           }
 
-          return ProjectFolder.buildProjectContent(
-            null,
+          return createProjectFiles(
             projectPath,
             projectName,
-            null,
             projectOptions,
             cb,
           );
@@ -1183,7 +1182,7 @@ export default class Plumbing extends EventEmitter {
     }
 
     // Duplicate project folder content from source to destination.
-    ProjectFolder.duplicateProject(destinationProject, sourceProject, (err) => {
+    duplicateProject(destinationProject, sourceProject, (err) => {
       // Note: we don't pass errors forward to Creator here. It wouldn't know what to do with it.
       if (err) {
         logger.warn(`[plumbing] error during project duplication: ${err}`);

@@ -6,12 +6,11 @@ import {EventEmitter} from 'events';
 import * as semver from 'semver';
 import * as tmp from 'tmp';
 import * as lodash from 'lodash';
-import {client as sdkClient} from '@haiku/sdk-client';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import * as Git from './Git';
-import * as ProjectFolder from './ProjectFolder';
 import * as Inkstone from './Inkstone';
 import * as Lock from 'haiku-serialization/src/bll/Lock';
+import {semverBumpPackageJson} from '@haiku/sdk-client/lib/semverBumpPackageJson';
 
 const PLUMBING_PKG_PATH = path.join(__dirname, '..');
 const PLUMBING_PKG_JSON_PATH = path.join(PLUMBING_PKG_PATH, 'package.json');
@@ -333,7 +332,7 @@ export default class MasterGitProject extends EventEmitter {
       logger.info('[master-git] next tag to set is', nextTag);
 
       // 3. Set the package.json number to the new version
-      return ProjectFolder.semverBumpPackageJson(this.folder, nextTag, (err) => {
+      return semverBumpPackageJson(this.folder, nextTag, (err) => {
         if (err) {
           return cb(err);
         }

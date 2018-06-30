@@ -18,12 +18,13 @@ import * as MockWebsocket from 'haiku-serialization/src/ws/MockWebsocket';
 import {EventEmitter} from 'events';
 import * as EmitterManager from 'haiku-serialization/src/utils/EmitterManager';
 import Watcher from './Watcher';
-import * as ProjectFolder from './ProjectFolder';
 import MasterGitProject from './MasterGitProject';
 import MasterModuleProject from './MasterModuleProject';
 import attachListeners from './envoy/attachListeners';
 import saveExport from './publish-hooks/saveExport';
 import Raven from './Raven';
+import {createProjectFiles} from '@haiku/sdk-client/lib/createProjectFiles';
+import {getHaikuCoreVersion} from '@haiku/sdk-client/lib/ProjectDefinitions';
 
 Sketch.findAndUpdateInstallPath();
 
@@ -346,7 +347,7 @@ export default class Master extends EventEmitter {
   }
 
   normalizeCommitMessage (message) {
-    return `${message} (via Haiku ${ProjectFolder.getHaikuCoreVersion()} ${os.platform()})`;
+    return `${message} (via Haiku ${getHaikuCoreVersion()} ${os.platform()})`;
   }
 
   /**
@@ -677,7 +678,7 @@ export default class Master extends EventEmitter {
       // the cloned content. Which means we have to be sparing with what we create on the first run, but also need
       // to create any missing remainders on the second run.
       (cb) => {
-        return ProjectFolder.buildProjectContent(null, this.folder, projectName, 'haiku', {
+        return createProjectFiles(this.folder, projectName, {
           // Important: Must set this here or the package.name will be wrong
           organizationName: projectOptions.organizationName,
           skipContentCreation: false,
@@ -909,7 +910,7 @@ export default class Master extends EventEmitter {
         logger.info('[master] project save: populating content');
 
         const {projectName} = this._git.getFolderState();
-        ProjectFolder.buildProjectContent(null, this.folder, projectName, 'haiku', {
+        createProjectFiles(this.folder, projectName, {
           projectName,
           haikuUsername,
           authorName: saveOptions.authorName,

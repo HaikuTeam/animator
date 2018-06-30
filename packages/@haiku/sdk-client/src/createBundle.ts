@@ -1,12 +1,19 @@
-import * as commonjs from 'rollup-plugin-commonjs';
-import * as json from 'rollup-plugin-json';
+// @ts-ignore
 import * as rollup from 'rollup';
-import * as nodeResolve from 'rollup-plugin-node-resolve';
-import * as uglify from 'rollup-plugin-uglify-es';
+// @ts-ignore
+import * as commonjs from 'rollup-plugin-commonjs';
+// @ts-ignore
 import * as includePaths from 'rollup-plugin-includepaths';
-import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
+// @ts-ignore
+import * as json from 'rollup-plugin-json';
+// @ts-ignore
+import * as nodeResolve from 'rollup-plugin-node-resolve';
+// @ts-ignore
+import * as uglify from 'rollup-plugin-uglify-es';
 
-export const createBundle = (moduleDirectory, input, name, cb) => {
+const logger = console;
+
+export const createBundle = (moduleDirectory: string, input: string, name: string, cb: any) => {
   logger.info('[bundler] beginning in basedir', moduleDirectory);
 
   rollup.rollup({
@@ -32,18 +39,18 @@ export const createBundle = (moduleDirectory, input, name, cb) => {
       json(),
       uglify(),
     ],
-  }).then((bundle) => {
+  }).then((bundle: any) => {
     bundle.generate({
       name,
       // Although this is not ideal, we can't force our users to write strict code.
       strict: false,
       format: 'iife',
-    }).then(({code}) => {
+    }).then(({code}: any) => {
       cb(null, code);
-    }).catch((err) => {
+    }).catch((err: any) => {
       cb(err);
     });
-  }).catch((err) => {
+  }).catch((err: any) => {
     cb(err);
   });
 };
