@@ -7,6 +7,38 @@ import {BTN_STYLES} from '../../styles/btnShared';
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import {formatJsonLogToString} from 'haiku-serialization/src/utils/Logger';
 
+const STYLES = {
+  bar: {
+    backgroundColor: Palette.FATHER_COAL,
+    height: 35,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+  },
+  container: {
+    display: 'flex',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    flexDirection: 'column',
+    position: 'relative',
+    overflow: 'auto',
+    width: '100%',
+    height: '100%',
+    paddingTop: 40,
+  },
+  btn: {
+    opacity: 1,
+    fontWeight: 'bold',
+  },
+  btnDisabled: {
+    width: 190,
+    fontWeight: 'normal',
+    opacity: .43,
+    marginTop: 15,
+  },
+};
+
 class LogViewer extends React.Component {
   constructor (props) {
     super(props);
@@ -26,11 +58,11 @@ class LogViewer extends React.Component {
       enableAll: false,
       keepScrollAtEnd: true,
       displayTags: {
-        ACTIONS_FIRED: {color: '#a4d36f', label: 'ACTIONS FIRED', display: true},
-        STATE_CHANGES: {color: '#eba139', label: 'STATE CHANGES', display: true},
-        LOOP_COUNTER: {color: '#9d34ed', label: 'LOOP COUNT', display: true},
-        PREVIEW_ERROR: {color: '#cd4d5b', label: 'ERRORS', display: true},
-        CONSOLE: {color: '#aaaaaa', label: 'CONSOLE', display: true},
+        ACTIONS_FIRED: {color: Palette.GREEN, label: 'ACTIONS FIRED', display: true},
+        STATE_CHANGES: {color: Palette.ORANGE, label: 'STATE CHANGES', display: true},
+        LOOP_COUNTER: {color: Palette.PURPLE, label: 'LOOP COUNT', display: true},
+        PREVIEW_ERROR: {color: Palette.RED, label: 'ERRORS', display: true},
+        CONSOLE: {color: Palette.ROCK, label: 'CONSOLE', display: true},
       },
     };
 
@@ -136,27 +168,18 @@ class LogViewer extends React.Component {
         }}
         style={{position: 'absolute', overflow: 'auto', width: '100%', height: '100%', backgroundColor: Palette.COAL}}>
         <SplitPanel split="vertical" minSize={150} defaultSize={300}>
-          <div id="logview-left-panel"
-            style={{
-              display: 'flex',
-              justifyContent: 'space-around',
-              alignItems: 'center',
-              flexDirection: 'column',
-              position: 'relative',
-              overflow: 'auto',
-              width: '100%',
-              height: '100%',
-            }} >
-
+          <div id="logview-left-panel" style={STYLES.container}>
+            <div style={STYLES.bar} />
             {Object.keys(this.state.displayTags).map((tag, i) => {
               return <div key={'tag' + tag} >
                   <button key={'tag' + tag}
                     style={[
-                                            [BTN_STYLES.btnIcon],
-                                            [BTN_STYLES.btnIconHover],
-                                            [BTN_STYLES.btnText],
-                                            {width: 'auto', border: `2px solid ${this.state.displayTags[tag].color}`},
-                                            [this.state.displayTags[tag].display && {backgroundColor: Palette.DARKER_GRAY}],
+                      [BTN_STYLES.btnIcon],
+                      [BTN_STYLES.btnIconHover],
+                      [BTN_STYLES.btnText],
+                      [STYLES.btnDisabled],
+                      {border: `1px solid ${this.state.displayTags[tag].color}`},
+                      [this.state.displayTags[tag].display && STYLES.btn],
                     ]}
                     onClick={(e) => {
                       this.toggleTag(tag);
@@ -169,11 +192,12 @@ class LogViewer extends React.Component {
             {(process.env.NODE_ENV === 'development') && <div >
                 <button key="enableAll"
                   style={[
-                      [BTN_STYLES.btnIcon],
-                      [BTN_STYLES.btnIconHover],
-                      [BTN_STYLES.btnText],
-                      {width: 'auto', border: `2px solid red`},
-                      [this.state.enableAll && {backgroundColor: Palette.DARKER_GRAY}],
+                    [BTN_STYLES.btnIcon],
+                    [BTN_STYLES.btnIconHover],
+                    [BTN_STYLES.btnText],
+                    [STYLES.btnDisabled],
+                    {border: `1px solid ${Palette.DARK_ROCK}`},
+                    [this.state.enableAll && STYLES.btn],
                   ]}
                   onClick={(e) => {
                     this.toggleEnableAll();
@@ -183,13 +207,13 @@ class LogViewer extends React.Component {
               </div>}
           </div>
           <div id="logview-right-panel" style={{position: 'relative', overflow: 'auto', width: '100%', height: '100%', backgroundColor: Palette.COAL}} >
-            <div style={{position: 'relative', overflow: 'auto', width: '100%', height: '30px', backgroundColor: Palette.DARKEST_COAL}} >
+            <div style={{position: 'relative', overflow: 'auto', width: '100%', height: '35px', backgroundColor: Palette.FATHER_COAL}} >
               <div style={{margin:'8px 20px'}} >
                 <input type="checkbox" defaultChecked={this.state.keepScrollAtEnd} onChange={this.toggleKeepScrollAtEnd} />
-                 Scroll to Bottom
+                 <span style={{marginLeft: 5}}>Scroll to Bottom</span>
               </div>
             </div>
-            <div style={{fontWeight: 'bold', fontFamily: 'Courier New', position: 'relative', overflow: 'auto', width: '100%', height: 'calc(100% - 30px)', backgroundColor: Palette.COAL}} >
+            <div style={{fontWeight: 'bold', fontFamily: 'Fira Mono', paddingLeft: 20, position: 'relative', overflow: 'auto', width: '100%', height: 'calc(100% - 30px)', backgroundColor: Palette.COAL}} >
               <ReactList
                 ref="loglist"
                 itemRenderer={this.renderLogLine}

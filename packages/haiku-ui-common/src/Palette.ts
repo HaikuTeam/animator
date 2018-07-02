@@ -21,6 +21,7 @@ export default {
   ORANGE: 'rgb(242, 148, 29)',
   ORANGE_SUBDUED: 'rgb(192, 128, 19)',
   PINK: 'rgb(167,22,73)',
+  PURPLE: '#9241BE',
   RED: 'rgb(242, 29, 29)',
   RED_DARKER: 'rgb(182, 29, 29)',
   SHADY: 'rgba(21, 32, 34, .3)',
