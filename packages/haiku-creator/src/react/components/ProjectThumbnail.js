@@ -110,6 +110,7 @@ class ProjectThumbnail extends React.Component {
             {this.props.projectName}
           </span>
           <span
+            title="Show Project options"
             style={[DASH_STYLES.titleOptions, {transform: 'translateY(1px)'}]}
             onClick={() => {
               this.setState({

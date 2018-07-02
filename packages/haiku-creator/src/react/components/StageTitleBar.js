@@ -662,6 +662,7 @@ class StageTitleBar extends React.Component {
           <button
             key="show-event-handlers-editor-button"
             id="show-event-handlers-editor-button"
+            title="Edit Element Actions"
             onClick={this.handleShowEventHandlersEditor}
             style={[
               BTN_STYLES.btnIcon,
@@ -722,6 +723,7 @@ class StageTitleBar extends React.Component {
         <button
           key="save"
           id="publish"
+          title="Publish project"
           onClick={this.handleSaveSnapshotClick}
           disabled={!this.props.isTimelineReady && this.state.snapshotSyndicated === false}
           style={[
