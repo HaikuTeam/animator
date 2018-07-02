@@ -89,7 +89,7 @@ class Logger extends EventEmitter {
       transports,
       format: winston.format.combine(
         winston.format.timestamp()
-      ),
+      )
     })
 
     // Hook to allow Monkey.js to configure the view prefix from which we log

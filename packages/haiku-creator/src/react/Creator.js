@@ -18,7 +18,7 @@ import StateInspector from './components/StateInspector/StateInspector';
 import SplitPanel from './components/SplitPanel';
 import Stage from './components/Stage';
 import Timeline from './components/Timeline';
-import LogViewer from './components/LogViewer/LogViewer'
+import LogViewer from './components/LogViewer/LogViewer';
 import Toast from './components/notifications/Toast';
 import Tour from './components/Tour/Tour';
 import AutoUpdater from './components/AutoUpdater';
@@ -1696,6 +1696,10 @@ export default class Creator extends React.Component {
     );
   }
 
+  get shouldShowUserConsole () {
+    return experimentIsEnabled(Experiment.UserConsole) && this.state.interactionMode === InteractionMode.LIVE;
+  }
+
   render () {
     if (this.state.showProxySettings) {
       return (
@@ -1995,7 +1999,7 @@ export default class Creator extends React.Component {
               <div style={{
                 position: 'relative',
                 width: '100%',
-                height: '100%'
+                height: '100%',
               }}>
                 <div style={{
                   position: 'absolute',
@@ -2003,10 +2007,10 @@ export default class Creator extends React.Component {
                   height: '100%',
                   top: '0px',
                   overflow: 'auto',
-                  visibility: experimentIsEnabled(Experiment.UserConsole) && this.state.interactionMode ? 'hidden' : 'visible'
+                  visibility: this.shouldShowUserConsole ? 'hidden' : 'visible',
                 }}>
                   <Timeline
-                    ref='timeline'
+                    ref="timeline"
                     folder={this.state.projectFolder}
                     envoyClient={this.envoyClient}
                     haiku={this.props.haiku}
@@ -2016,16 +2020,15 @@ export default class Creator extends React.Component {
                     removeNotice={this.removeNotice}
                     onReady={this.onTimelineMounted} />
                 </div>
-                <div style={{
+                {this.shouldShowUserConsole && <div style={{
                   position: 'absolute',
                   width: '100%',
                   height: '100%',
                   top: '0px',
                   overflow: 'auto',
-                  visibility: experimentIsEnabled(Experiment.UserConsole) && this.state.interactionMode ? 'visible' : 'hidden'
                 }}>
                   <LogViewer
-                    ref='logviewer'
+                    ref="logviewer"
                     folder={this.state.projectFolder}
                     haiku={this.props.haiku}
                     username={this.state.username}
@@ -2034,8 +2037,8 @@ export default class Creator extends React.Component {
                     removeNotice={this.removeNotice}
                     onReady={this.onTimelineMounted}
                     websocket={this.props.websocket}
-                    />
-                </div>
+                  />
+                </div>}
               </div>
             </SplitPanel>
           </div>

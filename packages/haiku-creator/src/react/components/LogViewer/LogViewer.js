@@ -1,73 +1,83 @@
 import * as React from 'react';
 import * as Radium from 'radium';
-import * as ReactList from 'react-list'
-import Palette from 'haiku-ui-common/lib/Palette'
-import SplitPanel from '../SplitPanel'
-import {BTN_STYLES} from '../../styles/btnShared'
+import * as ReactList from 'react-list';
+import Palette from 'haiku-ui-common/lib/Palette';
+import SplitPanel from '../SplitPanel';
+import {BTN_STYLES} from '../../styles/btnShared';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 
 class LogViewer extends React.Component {
   constructor (props) {
-    super(props)
-    this.toggleTagDisplay = this.toggleTag.bind(this)
-    this.displayMessageFilter = this.displayMessageFilter.bind(this)
-    this.renderLogLine = this.renderLogLine.bind(this)
+    super(props);
+    this.toggleTagDisplay = this.toggleTag.bind(this);
+    this.displayMessageFilter = this.displayMessageFilter.bind(this);
+    this.renderLogLine = this.renderLogLine.bind(this);
 
-    this.allLogMessages = []
+    this.allLogMessages = [];
 
     this.state = {
       logMessages: [],
       displayTags: {
-        'ACTIONS_FIRED': { color: '#a4d36f', label: 'ACTIONS FIRED', display: true },
-        'STATE_CHANGES': { color: '#eba139', label: 'STATE CHANGES', display: true },
-        'LOOP_COUNTER': { color: '#9d34ed', label: 'LOOP COUNT', display: true },
-        'PREVIEW_ERROR': { color: '#cd4d5b', label: 'ERRORS', display: true }
-      }
-    }
+        ACTIONS_FIRED: {color: '#a4d36f', label: 'ACTIONS FIRED', display: true},
+        STATE_CHANGES: {color: '#eba139', label: 'STATE CHANGES', display: true},
+        LOOP_COUNTER: {color: '#9d34ed', label: 'LOOP COUNT', display: true},
+        PREVIEW_ERROR: {color: '#cd4d5b', label: 'ERRORS', display: true},
+      },
+    };
 
-    this.currentMessageKey = 0
+    this.logHandler = (message) => {
+      message.key = this.currentMessageKey;
+      this.currentMessageKey++;
+      this.allLogMessages.push(message);
+      if (this.displayMessageFilter(message)) {
+        this.setState((prevState) => ({
+          logMessages: [...prevState.logMessages, message],
+        }));
+      }
+    };
+
+    this.currentMessageKey = 0;
   }
 
   toggleTag (tagName) {
-    const displayTags = this.state.displayTags
-    displayTags[tagName].display = !displayTags[tagName].display
+    const displayTags = this.state.displayTags;
+    displayTags[tagName].display = !displayTags[tagName].display;
     this.setState({displayTags}, () => {
-      this.setState({logMessages: this.allLogMessages.filter((message) => { return this.displayMessageFilter(message) })})
-    })
+      this.setState({logMessages: this.allLogMessages.filter((message) => {
+        return this.displayMessageFilter(message);
+      })});
+    });
   }
 
   displayMessageFilter (message) {
     return message.tag in this.state.displayTags &&
-          this.state.displayTags[message.tag].display
+          this.state.displayTags[message.tag].display;
   }
 
   componentDidMount () {
-    // In the future messages will also arive from websocket
+    // In the future messages will also arrive from websocket.
     if (experimentIsEnabled(Experiment.UserConsole)) {
-      logger.on('log', (message) => {
-        message.key = this.currentMessageKey
-        this.currentMessageKey++
-        this.allLogMessages.push(message)
-        if (this.displayMessageFilter(message)) {
-          this.setState(prevState => ({
-            logMessages: [...prevState.logMessages, message]
-          }))
-        }
-      })
+      logger.on('log', this.logHandler);
     }
   }
 
   componentWillUnmount () {
-
+    logger.removeListener('log', this.logHandler);
   }
 
   renderLogLine (index, key) {
-    const message = this.state.logMessages[index]
-    return <div><span key={key}
-      style={(message.tag in this.state.displayTags) && {color: this.state.displayTags[message.tag].color}}>
-      {`${message.timestamp}|${message.view}|${message.level}|${message.tag}|${message.attachedObject.sceneName}|${message.message}`}
-    </span></div>
+    const message = this.state.logMessages[index];
+    return (
+      <div>
+        <span
+          key={key}
+          style={(message.tag in this.state.displayTags) && {color: this.state.displayTags[message.tag].color}}
+        >
+          {`${message.timestamp}|${message.view}|${message.level}|${message.tag}|${message.attachedObject.sceneName}|${message.message}`}
+	      </span>
+      </div>
+    );
   }
 
   // Possible performance improvements
@@ -77,13 +87,15 @@ class LogViewer extends React.Component {
   render () {
     return (
       <div
-        id='logviewer-mount'
+        id="logviewer-mount"
         onMouseOver={() => this.mount.focus()}
         onMouseOut={() => this.mount.blur()}
-        ref={(element) => { this.mount = element }}
-        style={{ position: 'absolute', overflow: 'auto', width: '100%', height: '100%', backgroundColor: Palette.COAL }}>
-        <SplitPanel split='vertical' minSize={150} defaultSize={300}>
-          <div id='logview-left-panel'
+        ref={(element) => {
+          this.mount = element;
+        }}
+        style={{position: 'absolute', overflow: 'auto', width: '100%', height: '100%', backgroundColor: Palette.COAL}}>
+        <SplitPanel split="vertical" minSize={150} defaultSize={300}>
+          <div id="logview-left-panel"
             style={{
               display: 'flex',
               justifyContent: 'space-around',
@@ -92,8 +104,9 @@ class LogViewer extends React.Component {
               position: 'relative',
               overflow: 'auto',
               width: '100%',
-              height: '100%'
-            }} >
+              height: '100%',
+            }}
+          >
 
             {Object.keys(this.state.displayTags).map((tag, i) => {
               return <div key={'tag' + tag} >
@@ -103,35 +116,36 @@ class LogViewer extends React.Component {
                                           [BTN_STYLES.btnIconHover],
                                           [BTN_STYLES.btnText],
                                           {width: 'auto', border: `2px solid ${this.state.displayTags[tag].color}`},
-                                          [this.state.displayTags[tag].display && {backgroundColor: Palette.DARKER_GRAY}]
+                                          [this.state.displayTags[tag].display && {backgroundColor: Palette.DARKER_GRAY}],
                   ]}
-                  onClick={(e) => { this.toggleTag(tag) }} >
+                  onClick={(e) => {
+                    this.toggleTag(tag);
+                  }} >
                   {`${this.state.displayTags[tag].label}`}
                 </button>
-              </div>
-            })
-                  }
+              </div>;
+            })}
           </div>
-          <div id='logview-right-panel' style={{ position: 'relative', overflow: 'auto', width: '100%', height: '100%', backgroundColor: Palette.COAL }} >
+          <div id="logview-right-panel" style={{position: 'relative', overflow: 'auto', width: '100%', height: '100%', backgroundColor: Palette.COAL}} >
             <ReactList
               itemRenderer={this.renderLogLine}
               length={this.state.logMessages.length}
-              type='uniform'
-              useStaticSize
-              useTranslate3d
+              type="uniform"
+              useStaticSize={true}
+              useTranslate3d={true}
               threshold={500}
-                />
+            />
           </div>
         </SplitPanel>
       </div>
-    )
+    );
   }
 }
 
 LogViewer.propTypes = {
   folder: React.PropTypes.string.isRequired,
   haiku: React.PropTypes.object.isRequired,
-  onReady: React.PropTypes.func
-}
+  onReady: React.PropTypes.func,
+};
 
-export default Radium(LogViewer)
+export default Radium(LogViewer);

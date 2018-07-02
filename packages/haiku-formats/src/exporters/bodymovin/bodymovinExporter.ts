@@ -176,14 +176,6 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
   }
 
   /**
-   * Sets the core version.
-   * @param {string} version
-   */
-  private setCoreVersion (version: string) {
-    this.core.v = version;
-  }
-
-  /**
    * Retrieves the timeline for a specific haikuId.
    * @param {string} haikuId
    * @param {string?} parentHaikuId
