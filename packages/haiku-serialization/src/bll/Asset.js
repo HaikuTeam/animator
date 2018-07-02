@@ -312,6 +312,10 @@ class Asset extends BaseModel {
   }
 
   getChildAssets () {
+    if (experimentIsEnabled(Experiment.CleanInitialLibraryState)) {
+      return this.children
+    }
+
     // Super hacky - this logic probably belongs in the view instead of here.
     // We conditionally display a helpful message in the assets list if we detect that
     // the user has never imported a file before. Otherwise just return our own children
