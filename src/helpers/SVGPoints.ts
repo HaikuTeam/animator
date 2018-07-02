@@ -4,7 +4,7 @@
 
 import {BytecodeNode} from '../api/HaikuBytecode';
 import svgPoints from '../vendor/svg-points';
-import {LineSpec, PathSpec, ShapeSpec} from '../vendor/svg-points/types';
+import {CurveSpec, LineSpec, PathSpec, ShapeSpec} from '../vendor/svg-points/types';
 import parseCssValueString from './parseCssValueString';
 
 // In leiu of good math, this gives pretty good results for converting arcs to cubic beziers
@@ -251,7 +251,7 @@ function lineToPoints (x1: number, y1: number, x2: number, y2: number) {
   return svgPoints.toPoints(shape);
 }
 
-function pathToPoints (pathString: string) {
+function pathToPoints (pathString: string): CurveSpec[] {
   const shape = {type: 'path', d: pathString} as PathSpec;
   return svgPoints.toPoints(shape);
 }
