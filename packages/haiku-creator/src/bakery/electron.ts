@@ -10,8 +10,6 @@ import * as path from 'path';
  * Point of entry for request a PNG sequence from a bytecode file from the PNG bakery.
  */
 export default (abspath: string, framerate: number, width: number, height: number, cb: () => void) => {
-  const bytecode = requireFromFile(abspath);
-
   const browserWindow = new BrowserWindow({
     width,
     height,
