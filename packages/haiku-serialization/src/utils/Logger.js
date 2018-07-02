@@ -1,7 +1,29 @@
 const path = require('path')
 const winston = require('winston')
+const jsonStringify = require('fast-safe-stringify')
 const Differ = require('./Differ')
 require('colors') // TODO: use non-string-extending module
+
+/**
+ * Control log message format output
+ */
+const haikuFormat = winston.format.printf((info, opts) => {
+  if (info.noFormat) {
+    return info.message
+  }
+
+  if (Array.isArray(info.message)) {
+    info.message = info.message.map((message) => {
+      if (typeof message === 'string') {
+        return message
+      }
+      return jsonStringify(message)
+    }).join(' ')
+  }
+
+  // Pading is done to visually aling on file
+  return `${info.timestamp}|${info.view.padEnd(8)}|${info.level}${info.tag ? '|' + info.tag : ''}|${info.message}`
+})
 
 const DEFAULTS = {
   maxsize: 1000000,
@@ -10,8 +32,6 @@ const DEFAULTS = {
 }
 
 const MAX_DIFF_LOG_LEN = 10000
-const IS_WEBVIEW = typeof window !== 'undefined'
-const NO_FORMAT = '__NO_FORMAT__'
 
 class Logger {
   constructor (folder, relpath, options = {}) {
@@ -21,28 +41,9 @@ class Logger {
 
     const transports = []
 
-    const env = process.env.NODE_ENV
-    const version = process.env.HAIKU_RELEASE_VERSION
-
-    const formatter = ({level, message}) => {
-      if (message.slice(0, 13) === NO_FORMAT) {
-        return message.slice(13)
-      }
-
-      const timestamp = new Date().toISOString()
-      return `${timestamp} [${env}|${version}|${this.view}] [${level}] ${message}`
-    }
-
-    transports.push(new (winston.transports.Console)({
-      colorize: config.colorize,
-      level: 'info',
-      formatter
-    }))
-
     if (folder && relpath) {
       const filename = path.join(folder, relpath)
-
-      transports.push(new (winston.transports.File)({
+      transports.push(new winston.transports.File({
         filename: filename,
         tailable: true,
         maxsize: config.maxsize,
@@ -50,11 +51,22 @@ class Logger {
         colorize: config.colorize,
         level: 'info',
         json: false,
-        formatter
+        format: winston.format.combine(
+          haikuFormat
+        )
       }))
     }
 
-    this.logger = new (winston.Logger)({
+    transports.push(new winston.transports.Console({
+      format: winston.format.combine(
+        haikuFormat
+      )
+    }))
+
+    this.logger = winston.createLogger({
+      format: winston.format.combine(
+        winston.format.timestamp()
+      ),
       transports: transports
     })
 
@@ -62,33 +74,20 @@ class Logger {
     this.view = '?'
   }
 
-  raw (...args) {
-    console.log(...args)
-  }
-
-  log (...args) {
-    if (IS_WEBVIEW) console.log(...args)
-    this.logger.log(...args)
-  }
-
   info (...args) {
-    if (IS_WEBVIEW) console.info(...args)
-    this.logger.info(...args)
+    this.logger.info(args, {view: this.view})
   }
 
   debug (...args) {
-    if (IS_WEBVIEW) console.debug(...args)
-    this.logger.debug(...args)
+    this.logger.debug(args, {view: this.view})
   }
 
   warn (...args) {
-    if (IS_WEBVIEW) console.warn(...args)
-    this.logger.warn(...args)
+    this.logger.warn(args, {view: this.view})
   }
 
   error (...args) {
-    if (IS_WEBVIEW) console.error(...args)
-    this.logger.error(...args)
+    this.logger.error(args, {view: this.view})
   }
 
   diff (previous, current, options = {}) {
@@ -105,7 +104,7 @@ class Logger {
       deltas.forEach((delta) => {
         if (delta.value.length <= MAX_DIFF_LOG_LEN) {
           let color = (delta.added) ? 'green' : ((delta.removed) ? 'red' : 'grey')
-          if (color !== 'grey') this.info(NO_FORMAT, delta.value[color])
+          if (color !== 'grey') this.logger.info(delta.value[color], {view: this.view, noFormat: true})
         } else {
           this.info(`[differ] delta too long`.grey)
         }

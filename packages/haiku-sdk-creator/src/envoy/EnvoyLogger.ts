@@ -22,7 +22,7 @@ export default class EnvoyLogger implements Console {
 
   log (...args: any[]) {
     if (this.logLevel === 'info' || this.logLevel === 'log') {
-      return this.logger.log(...args);
+      return this.logger.info(...args);
     }
   }
 
