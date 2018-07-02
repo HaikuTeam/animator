@@ -272,7 +272,7 @@ export default class ComponentHeadingRow extends React.Component {
                 {SyncIconSVG({color: this.props.row.element.isLocked() ? Palette.RED_DARKER : Palette.DARK_ROCK})}
               </div>
               <div
-                title="Edit element Actions"
+                title='Edit element Actions'
                 className='event-handler-triggerer-button'
                 style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {} : {
                   width: 10,
@@ -290,7 +290,7 @@ export default class ComponentHeadingRow extends React.Component {
                   : ''}
               </div>
               <div
-                title="Add property"
+                title='Add property'
                 className='property-manager-button'
                 style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {} : {
                   width: 10,
