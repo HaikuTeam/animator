@@ -2,11 +2,11 @@ import {
   distributeTotalVertices,
   ensurePathClockwise,
   normalizePointCurves,
+  polygonArea,
   rotatePathForSmallestDistance,
 } from '@core/helpers/PathUtil';
 import SVGPoints from '@core/helpers/SVGPoints';
-import {polygonArea} from '@haiku/core/lib/helpers/PathUtil';
-import {CurveSpec} from '@haiku/core/lib/vendor/svg-points/types';
+import {CurveSpec} from '@core/vendor/svg-points/types';
 import * as tape from 'tape';
 
 tape('PathUtil.polygonArea', (t) => {
