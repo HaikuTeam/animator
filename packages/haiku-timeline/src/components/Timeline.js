@@ -178,8 +178,13 @@ class Timeline extends React.Component {
             event.target.id.includes('constant-body') ||
             // SVG elements
             typeof event.target.className !== 'string' ||
-            // Tween
-            event.target.className.includes('pill')
+            // Undesired elements
+            [
+              'drag-grip-wrapper',
+              'component-heading-row-drag-handle',
+              'pill',
+              'component-heading-chevron-box'
+            ].includes(event.target.className)
           )
         },
         onFinish: (event, area) => {

@@ -133,6 +133,7 @@ export default class ComponentHeadingRow extends React.Component {
               className='component-heading-row-drag-handle'
               {...this.props.dragHandleProps}>
               <span
+                className='drag-grip-wrapper'
                 style={{transform: 'scale(0.5)', display: 'block'}}>
                 <DragGrip />
               </span>
