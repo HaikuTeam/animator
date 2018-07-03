@@ -711,9 +711,9 @@ class Timeline extends BaseModel {
     }, DURATION_MOD_TIMEOUT)
   }
 
-  setScrollLeft (x) {
-    if (x >= 0 && x <= this.calculateFullTimelineWidth()) {
-      this._scrollLeft = x
+  setScrollLeft (scrollValue) {
+    if (scrollValue >= 0 && scrollValue <= (this.calculateFullTimelineWidth() - this._timelinePixelWidth)) {
+      this._scrollLeft = scrollValue
       this.emit('update', 'timeline-scroll')
     }
   }
