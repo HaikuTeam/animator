@@ -46,6 +46,7 @@ import * as isOnline from 'is-online';
 import * as CreatorIntro from '@haiku/taylor-creatorintro/react';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import * as opn from 'opn';
+import {isProduction} from 'haiku-common/lib/environments';
 
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'creator';
@@ -881,8 +882,7 @@ export default class Creator extends React.Component {
     this.setState({interactionMode});
     this.mixpanelReportPreviewMode(interactionMode);
     // Clear all logs before starting preview on production. For development it might be useful to not clean them
-    if (this.state.interactionMode === InteractionMode.LIVE && interactionMode === InteractionMode.EDIT &&
-        process.env.NODE_ENV === 'production') {
+    if (this.state.interactionMode === InteractionMode.LIVE && interactionMode === InteractionMode.EDIT && isProduction()) {
       this.refs.logviewer.clearAllLogs();
     }
   }

@@ -130,12 +130,11 @@ class LogViewer extends React.Component {
   }
 
   componentWillUnmount () {
-    logger.removeListener('log', this.logHandler);
   }
 
   renderLogFromJsonLog (message) {
     if (message.tag in this.state.displayTags) {
-      return `${message.timestamp}<<${message.attachedObject.sceneName}>> ${message.message}`;
+      return `${message.timestamp}<<${message.attachedObject.componentTitle}>> ${message.message}`;
     }
 
     // Use the same as log

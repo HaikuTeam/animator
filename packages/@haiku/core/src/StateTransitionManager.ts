@@ -43,11 +43,11 @@ export default class StateTransitionManager {
         delete this.transitions[key];
       }
       for (const key in transitionEnd) {
-        this.component.traceInfo('STATE_CHANGES', `State ${key} changed from ${this.states[key]} to\
-                                 ${transitionEnd[key]}`,
+        this.component.emitFromRootComponent('STATE_CHANGES',
           {state: key,
             from: this.states[key],
-            to: transitionEnd[key]});
+            to: transitionEnd[key]},
+        );
         this.states[key] = transitionEnd[key];
       }
 
@@ -70,9 +70,11 @@ export default class StateTransitionManager {
         // If parameter.queue is true, it is a queued setState
         // If state transition for key is not created, process like a queued SetState
         if (transitionParameter.queue && this.transitions[key]) {
-          this.component.traceInfo('STATE_CHANGES', `State transition ${key} to target ${transitionEnd[key]} with\
-                            duration ${transitionParameter.duration} queued`,
-                            {});
+          this.component.emitFromRootComponent('STATE_CHANGES', { queued: true,
+            state: key,
+            from: this.states[key],
+            to: transitionEnd[key],
+            duration: transitionParameter.duration});
 
           this.transitions[key].push({
             transitionParameter,
@@ -84,8 +86,10 @@ export default class StateTransitionManager {
           });
         // non queued transitions are overwrite transition queue
         } else {
-          this.component.traceInfo('STATE_CHANGES', `State transition ${key} to target ${transitionEnd[key]} with` +
-                                   `duration ${transitionParameter.duration} started`, {});
+          this.component.emitFromRootComponent('STATE_CHANGES', { started: true,
+            state: key,
+            from: this.states[key],
+            to: transitionEnd[key]});
 
           this.transitions[key] = [{
             transitionParameter,
@@ -134,8 +138,9 @@ export default class StateTransitionManager {
 
         if (this.isExpired(transition, currentTime)) {
 
-          this.component.traceInfo('STATE_CHANGES', `State transition ${stateName} to` +
-                                   `${transition.transitionEnd[stateName]} finished`, {});
+          this.component.emitFromRootComponent('STATE_CHANGES', { finished: true,
+            state: stateName,
+            to: transition.transitionEnd[stateName]});
 
           // If expired, assign transitionEnd.
           // NOTE: In the future, with custom transition function implemented calculating
@@ -148,9 +153,9 @@ export default class StateTransitionManager {
 
           // Update next queued state transition or delete empty transition vector for performance reasons
           if (this.transitions[stateName].length > 0) {
-            this.component.traceInfo('STATE_CHANGES', `State transition ${stateName} to \
-                              ${this.transitions[stateName][0].transitionEnd[stateName]} started`,
-                              {});
+            this.component.emitFromRootComponent('STATE_CHANGES', { started: true,
+              state: stateName,
+              to: this.transitions[stateName][0].transitionEnd[stateName]});
             this.transitions[stateName][0].transitionStart = {[stateName]: interpolatedStates[stateName]};
             this.transitions[stateName][0].startTime = currentTime;
             this.transitions[stateName][0].endTime = currentTime + this.transitions[stateName][0].duration;

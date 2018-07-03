@@ -25,5 +25,5 @@
   "NativeTimelineScroll": true,
   "TimelineMarqueeSelection": true,
   "LocalAssetExport": false,
-  "UserConsole": false
+  "UserConsole": true
 }
