@@ -2,6 +2,8 @@ import React from 'react'
 import formatSeconds from 'haiku-ui-common/lib/helpers/formatSeconds'
 import Palette from 'haiku-ui-common/lib/Palette'
 import Timeline from 'haiku-serialization/src/bll/Timeline'
+import zIndex from './styles/zIndex'
+import { experimentIsEnabled, Experiment } from 'haiku-common/lib/experiments'
 
 export default class Gauge extends React.Component {
   constructor (props) {
@@ -33,15 +35,45 @@ export default class Gauge extends React.Component {
     if (
       what === 'timeline-frame-range' ||
       what === 'timeline-frame-hovered' ||
-      what === 'time-display-mode-change'
+      what === 'time-display-mode-change' ||
+      what === 'max-frame-changed'
     ) {
       this.forceUpdate()
     }
   }
 
-  render () {
-    if (this.props.timeline.getTimeDisplayMode() === Timeline.TIME_DISPLAY_MODE.FRAMES) {
+  wrapIfNativeScrollIsEnabled (children) {
+    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
       return (
+        <div
+          id='gauge-wrapper'
+          style={{
+            height: 24,
+            backgroundColor: Palette.COAL,
+            position: 'sticky',
+            top: 12,
+            marginLeft: this.props.timeline.getPropertiesPixelWidth(),
+            width: this.props.timeline.calculateFullTimelineWidth(),
+            zIndex: zIndex.gauge.base,
+            fontSize: 10,
+            borderBottom: '1px solid ' + Palette.FATHER_COAL,
+            color: Palette.ROCK_MUTED
+          }}
+          onMouseDown={this.props.onGaugeMouseDown}
+        >
+          {children}
+        </div>
+      )
+    } else {
+      return children
+    }
+  }
+
+  render () {
+    let out
+
+    if (this.props.timeline.getTimeDisplayMode() === Timeline.TIME_DISPLAY_MODE.FRAMES) {
+      out = (
         <div
           className='gauge'>
           {this.props.timeline.mapVisibleFrames((frameNumber, pixelOffsetLeft, pixelsPerFrame, frameModulus) => {
@@ -63,7 +95,7 @@ export default class Gauge extends React.Component {
         </div>
       )
     } else if (this.props.timeline.getTimeDisplayMode() === Timeline.TIME_DISPLAY_MODE.SECONDS) { // aka time elapsed, not frames
-      return (
+      out = (
         <div
           className='gauge'>
           {this.props.timeline.mapVisibleTimes((millisecondsNumber, pixelOffsetLeft, totalMilliseconds) => {
@@ -84,6 +116,8 @@ export default class Gauge extends React.Component {
         </div>
       )
     }
+
+    return this.wrapIfNativeScrollIsEnabled(out)
   }
 }
 

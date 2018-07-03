@@ -41,7 +41,7 @@ class FrameActionsGrid extends React.PureComponent {
 
   handleUpdate (what) {
     if (!this.mounted) return null
-    if (what === 'timeline-frame-hovered') {
+    if (what === 'timeline-frame-hovered' || 'max-frame-changed') {
       this.forceUpdate()
     }
 
