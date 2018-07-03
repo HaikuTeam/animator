@@ -42,7 +42,7 @@ export default class HaikuTimeline extends HaikuBase {
   _localExplicitlySetTime: number;
   _maxExplicitlyDefinedTime: number;
   _isPlaying: boolean;
-  _loopCounter: number;
+  private loopCounter: number;
 
   constructor (component: HaikuComponent, name, descriptor, options) {
     super();
@@ -61,7 +61,7 @@ export default class HaikuTimeline extends HaikuBase {
 
     this._isPlaying = null;
 
-    this._loopCounter = 0;
+    this.loopCounter = 0;
   }
 
   private getMs (amount: number, unit: TimeUnit): number {
@@ -111,15 +111,15 @@ export default class HaikuTimeline extends HaikuBase {
         this._localElapsedTime > this._maxExplicitlyDefinedTime
       ) {
 
-        this._loopCounter++;
+        this.loopCounter++;
         // Avoid log DoS for too short timelines
         if (this._maxExplicitlyDefinedTime > 200) {
           this.component.emitFromRootComponent('LOOP_COUNTER', {
-            _localElapsedTime: this._localElapsedTime,
-            _maxExplicitlyDefinedTime: this._maxExplicitlyDefinedTime,
-            _globalClockTime: this._globalClockTime,
+            localElapsedTime: this._localElapsedTime,
+            maxExplicitlyDefinedTime: this._maxExplicitlyDefinedTime,
+            globalClockTime: this._globalClockTime,
             boundedFrame: this.getBoundedFrame(),
-            _loopCounter: this._loopCounter});
+            loopCounter: this.loopCounter});
         }
 
         this._localElapsedTime =
@@ -288,7 +288,7 @@ export default class HaikuTimeline extends HaikuBase {
    * the falsy state timelines have when first constructed.
    */
   isExplicitlyPaused () {
-    return !this._isPlaying;
+    return this._isPlaying === false;
   }
 
   /**

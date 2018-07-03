@@ -27,10 +27,13 @@ export default class StateTransitionManager {
 
   // Store running state transitions
   private transitions: {[key in string]: RunningStateTransition[]} = {};
+  private clock: HaikuClock;
+  private states: StateValues;
 
-  constructor (private readonly states: StateValues,
-    private readonly clock: HaikuClock,
-    private readonly component: HaikuComponent) {}
+  constructor (private readonly component: HaikuComponent) {
+    this.clock = this.component.getClock();
+    this.states = this.component.state;
+  }
 
   /**
    * Create a new state transition.
@@ -46,9 +49,7 @@ export default class StateTransitionManager {
         this.component.emitFromRootComponent('STATE_CHANGES',
           {state: key,
             from: this.states[key],
-            to: transitionEnd[key]},
-        );
-        this.states[key] = transitionEnd[key];
+            to: transitionEnd[key]});
       }
 
       this.setStates(transitionEnd);
@@ -89,7 +90,8 @@ export default class StateTransitionManager {
           this.component.emitFromRootComponent('STATE_CHANGES', { started: true,
             state: key,
             from: this.states[key],
-            to: transitionEnd[key]});
+            to: transitionEnd[key],
+            duration: transitionParameter.duration});
 
           this.transitions[key] = [{
             transitionParameter,
@@ -140,7 +142,8 @@ export default class StateTransitionManager {
 
           this.component.emitFromRootComponent('STATE_CHANGES', { finished: true,
             state: stateName,
-            to: transition.transitionEnd[stateName]});
+            to: transition.transitionEnd[stateName],
+            duration: transition.duration});
 
           // If expired, assign transitionEnd.
           // NOTE: In the future, with custom transition function implemented calculating

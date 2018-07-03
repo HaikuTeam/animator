@@ -28,33 +28,27 @@ export default class Preview extends React.Component {
 
     this.component.on('STATE_CHANGES', (attachedObject) => {
       let message = ''
-      if (attachedObject.queued){
+      if (attachedObject.queued) {
         message = `State transition ${attachedObject.state} to target ${attachedObject.to} with duration ${attachedObject.duration} queued`
-      }
-      else if (attachedObject.started){
+      } else if (attachedObject.started) {
         message = `State transition ${attachedObject.state} to target ${attachedObject.to} with duration ${attachedObject.duration} started`
-      }
-      else if (attachedObject.finished){
+      } else if (attachedObject.finished) {
         message = `State transition ${attachedObject.state} to target ${attachedObject.to} with duration ${attachedObject.duration} finished`
+      } else {
+        message = `State ${attachedObject.state} changed from ${attachedObject.from} to ${attachedObject.to}`
       }
-      else{
-        message = `State ${attachedObject.state} changed from ${attachedObject.from} to ${attachedObject.to}`;
-      }
-      logger.traceInfo('STATE_CHANGES', message, attachedObject);
-    });
+      logger.traceInfo('STATE_CHANGES', message, attachedObject)
+    })
 
     this.component.on('ACTIONS_FIRED', (attachedObject) => {
       const message = `Action ${attachedObject.action} fired on element ${attachedObject.element}`
-      logger.traceInfo('ACTIONS_FIRED', message, attachedObject);
-    });
+      logger.traceInfo('ACTIONS_FIRED', message, attachedObject)
+    })
 
     this.component.on('LOOP_COUNTER', (attachedObject) => {
-      const message = `Loop count ${attachedObject._loopCounter}`
-      logger.traceInfo('LOOP_COUNTER', message, attachedObject);
-    });
-
-    
-
+      const message = `Loop count ${attachedObject.loopCounter}`
+      logger.traceInfo('LOOP_COUNTER', message, attachedObject)
+    })
 
     this.component.render(this.component.config)
   }

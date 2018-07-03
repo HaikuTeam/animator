@@ -83,7 +83,6 @@ export default class HaikuComponent extends HaikuElement {
   registeredEventHandlers;
   state;
   stateTransitionManager: StateTransitionManager;
-  logger;
 
   constructor (
     bytecode: HaikuBytecode,
@@ -157,7 +156,7 @@ export default class HaikuComponent extends HaikuElement {
     this.state = {}; // Public accessor object, e.g. this.state.foo = 1
 
     // Instantiate StateTransitions. Responsible to store and execute any state transition.
-    this.stateTransitionManager = new StateTransitionManager(this.state, this.getClock(),  this);
+    this.stateTransitionManager = new StateTransitionManager(this);
 
     // `assignConfig` calls bindStates because our incoming config, which
     // could occur at any point during runtime, e.g. in React, may need to update internal states, etc.
@@ -1873,9 +1872,7 @@ const clone = (value, binding) => {
   }
 
   if (typeof value === 'function') {
-    const fn: ClonedFunction = (...args: any[]) => {
-      value.call(binding, ...args);
-    };
+    const fn: ClonedFunction = (...args: any[]) => value.call(binding, ...args);
     // Core decorates injectee functions with metadata properties
     for (const key in value) {
       if (value.hasOwnProperty(key)) {
