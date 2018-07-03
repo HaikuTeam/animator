@@ -46,7 +46,7 @@ export default class StateTransitionManager {
         delete this.transitions[key];
       }
       for (const key in transitionEnd) {
-        this.component.emitFromRootComponent('STATE_CHANGES',
+        this.component.emitFromRootComponent('state:change',
           {state: key,
             from: this.states[key],
             to: transitionEnd[key]});
@@ -71,7 +71,7 @@ export default class StateTransitionManager {
         // If parameter.queue is true, it is a queued setState
         // If state transition for key is not created, process like a queued SetState
         if (transitionParameter.queue && this.transitions[key]) {
-          this.component.emitFromRootComponent('STATE_CHANGES', { queued: true,
+          this.component.emitFromRootComponent('state:change', { queued: true,
             state: key,
             from: this.states[key],
             to: transitionEnd[key],
@@ -87,7 +87,7 @@ export default class StateTransitionManager {
           });
         // non queued transitions are overwrite transition queue
         } else {
-          this.component.emitFromRootComponent('STATE_CHANGES', { started: true,
+          this.component.emitFromRootComponent('state:change', { started: true,
             state: key,
             from: this.states[key],
             to: transitionEnd[key],
@@ -140,7 +140,7 @@ export default class StateTransitionManager {
 
         if (this.isExpired(transition, currentTime)) {
 
-          this.component.emitFromRootComponent('STATE_CHANGES', { finished: true,
+          this.component.emitFromRootComponent('state:change', { finished: true,
             state: stateName,
             to: transition.transitionEnd[stateName],
             duration: transition.duration});
@@ -156,7 +156,7 @@ export default class StateTransitionManager {
 
           // Update next queued state transition or delete empty transition vector for performance reasons
           if (this.transitions[stateName].length > 0) {
-            this.component.emitFromRootComponent('STATE_CHANGES', { started: true,
+            this.component.emitFromRootComponent('state:change', { started: true,
               state: stateName,
               to: this.transitions[stateName][0].transitionEnd[stateName]});
             this.transitions[stateName][0].transitionStart = {[stateName]: interpolatedStates[stateName]};

@@ -353,7 +353,7 @@ export default class HaikuComponent extends HaikuElement {
   }
 
   set (key, value) {
-    this.emitFromRootComponent('STATE_CHANGES', {state: key, from: this.state[key], to: value});
+    this.emitFromRootComponent('state:change', {state: key, from: this.state[key], to: value});
 
     this.state[key] = value;
     return this;
@@ -770,7 +770,7 @@ export default class HaikuComponent extends HaikuElement {
     }
 
     try {
-      this.emitFromRootComponent('ACTIONS_FIRED', {action: eventName, element: eventsSelector});
+      this.emitFromRootComponent('action:fired', {action: eventName, element: eventsSelector});
       return handler.apply(this, eventArgs);
     } catch (exception) {
       consoleErrorOnce(exception);
