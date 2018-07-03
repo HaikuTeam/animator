@@ -354,10 +354,7 @@ export default class HaikuComponent extends HaikuElement {
   }
 
   set (key, value) {
-    this.traceInfo('STATE_CHANGES', `State ${key} changed from ${this.state[key]} to ${value}`,
-      {state: key,
-        from: this.state[key],
-        to: value});
+    this.emitFromRootComponent('STATE_CHANGES', {state: key, from: this.state[key], to: value});
 
     this.state[key] = value;
     return this;
@@ -774,7 +771,7 @@ export default class HaikuComponent extends HaikuElement {
     }
 
     try {
-      this.traceInfo('ACTIONS_FIRED', `Action ${eventName} fired on element ${eventsSelector}`, {});
+      this.emitFromRootComponent('ACTIONS_FIRED', {action: eventName, element: eventsSelector});
       return handler.apply(this, eventArgs);
     } catch (exception) {
       consoleErrorOnce(exception);
@@ -1346,25 +1343,6 @@ export default class HaikuComponent extends HaikuElement {
 
     return this;
   }
-  $console = {
-    log: (params) => {
-      this.traceInfo('CONSOLE', params, {});
-    },
-    info: (params) => {
-      this.traceInfo('CONSOLE', params, {});
-    },
-    warn: (params) => {
-      this.traceInfo('CONSOLE', params, {});
-    },
-    error: (params) => {
-      this.traceInfo('CONSOLE', params, {});
-    },
-  };
-
-  // Set logger to add context info when logging while avoiding runtime overhead
-  setLogger (logger: any) {
-    this.logger = logger;
-  }
 
   getRootComponent () {
     if (this.host) {
@@ -1374,13 +1352,9 @@ export default class HaikuComponent extends HaikuElement {
     return this;
   }
 
-  traceInfo (tag: string, message: string, attachedObject: any) {
-    const haikuRootComponent = this.getRootComponent();
-
-    if (haikuRootComponent.logger) {
-      attachedObject.sceneName = this.title;
-      haikuRootComponent.logger.traceInfo(tag, message, attachedObject);
-    }
+  emitFromRootComponent (eventName: string, attachedObject: any) {
+    attachedObject.componentTitle = this.title;
+    this.getRootComponent().emit(eventName, attachedObject);
   }
 
   static __name__ = 'HaikuComponent';

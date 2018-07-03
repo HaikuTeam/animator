@@ -114,12 +114,12 @@ export default class HaikuTimeline extends HaikuBase {
         this._loopCounter++;
         // Avoid log DoS for too short timelines
         if (this._maxExplicitlyDefinedTime > 200) {
-          this.component.traceInfo('LOOP_COUNTER', `Loop count ${this._loopCounter}`,
-            {_localElapsedTime: this._localElapsedTime,
-              _maxExplicitlyDefinedTime: this._maxExplicitlyDefinedTime,
-              _globalClockTime: this._globalClockTime,
-              boundedFrame: this.getBoundedFrame(),
-              _loopCounter: this._loopCounter});
+          this.component.emitFromRootComponent('LOOP_COUNTER', {
+            _localElapsedTime: this._localElapsedTime,
+            _maxExplicitlyDefinedTime: this._maxExplicitlyDefinedTime,
+            _globalClockTime: this._globalClockTime,
+            boundedFrame: this.getBoundedFrame(),
+            _loopCounter: this._loopCounter});
         }
 
         this._localElapsedTime =
