@@ -144,7 +144,7 @@ export default class ComponentHeadingRowHeading extends React.Component {
             className='component-heading-row-heading-child-icon-box'
             style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
               display: 'inline-block',
-              height: 20
+              marginTop: 5
             } : {
               position: 'absolute',
               display: 'inline-block',

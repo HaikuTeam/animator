@@ -123,7 +123,7 @@ export default class ComponentHeadingRow extends React.Component {
           {!this.props.row.isRootRow() &&
             <div
               style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
-                marginTop: 1
+                marginTop: 3
               } : {
                 position: 'absolute',
                 top: 3,
@@ -185,7 +185,10 @@ export default class ComponentHeadingRow extends React.Component {
             >
               <span
                 className='component-heading-chevron-box'
-                style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {} : {
+                style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+                  width: 9,
+                  marginTop: 3
+                } : {
                   display: 'inline-block',
                   transform: this.props.row.isRootRow() ? 'translate(0, -1px)' : 'translate(30px, -1px)'
                 })}
@@ -238,7 +241,9 @@ export default class ComponentHeadingRow extends React.Component {
                   ? {
                     display: this.props.isExpanded ? 'flex' : 'none',
                     alignItems: 'center',
-                    marginLeft: this.props.isExpanded ? 35 : undefined
+                    marginLeft: this.props.row.isRootRow()
+                      ? (this.props.isExpanded ? 34 : undefined)
+                      : (this.props.isExpanded ? 12 : undefined)
                   } : (
                     this.props.isExpanded
                       ? {
