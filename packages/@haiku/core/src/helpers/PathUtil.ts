@@ -17,8 +17,10 @@ export interface Vec4 {
 }
 
 export const splitSegmentInSVGPoints = (points: CurveSpec[], pt1Index: number, pt2Index: number, t: number): void => {
-  // tslint:disable-next-line
-  if (pt2Index === points.length) { pt2Index = 0; }
+  if (pt2Index === points.length) {
+    // tslint:disable-next-line
+    pt2Index = 0;
+  }
 
   let h1: Vec2;
   let h2: Vec2;
@@ -314,11 +316,4 @@ export const synchronizePathStructure = (...paths: CurveSpec[][]) => {
   for (let i = 0; i < paths.length - 1; i++) {
     rotatePathForSmallestDistance(paths[i], paths[i + 1]);
   }
-};
-
-export default {
-  ensurePathClockwise,
-  distributeTotalVertices,
-  rotatePathForSmallestDistance,
-  normalizePointCurves,
 };

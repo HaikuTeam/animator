@@ -39,11 +39,10 @@ import {
   distance,
   transform2DPoint,
   closestNormalPointOnLineSegment,
-  splitSegmentInSVGPoints,
   buildPathLUT
 } from 'haiku-common/lib/math/geometryUtils'
 import SVGPoints from '@haiku/core/lib/helpers/SVGPoints'
-import PathUtil from '@haiku/core/lib/helpers/PathUtil'
+import {splitSegmentInSVGPoints} from '@haiku/core/lib/helpers/PathUtil'
 
 const mixpanel = require('haiku-serialization/src/utils/Mixpanel')
 const Globals = require('haiku-ui-common/lib/Globals').default
@@ -1618,7 +1617,7 @@ export class Glass extends React.Component {
                         [Element.directlySelected.attributes['haiku-id']]: {
                           d: {
                             0: {
-                              value: SVGPoints.pointsToPath(PathUtil.splitSegmentInSVGPoints(points, Math.floor(minIdx / approximationResolution), Math.ceil(minIdx / approximationResolution), t))
+                              value: SVGPoints.pointsToPath(splitSegmentInSVGPoints(points, Math.floor(minIdx / approximationResolution), Math.ceil(minIdx / approximationResolution), t))
                             }
                           }
                         }

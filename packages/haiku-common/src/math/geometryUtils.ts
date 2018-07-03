@@ -59,60 +59,6 @@ export const buildPathLUT = (
   return [out, points[points.length - 1].closed || points[points.length - 2].closed];
 };
 
-export const splitSegmentInSVGPoints = (
-  points: CurveSpec[],
-  pt1Index: number,
-  pt2Index: number,
-  t: number,
-): CurveSpec[] => {
-  // tslint:disable-next-line
-  if (pt2Index === points.length) { pt2Index = 0; }
-
-  let h1: Vec2;
-  let h2: Vec2;
-  if (points[pt2Index].curve) {
-    h1 = {x: points[pt2Index].curve.x1, y: points[pt2Index].curve.y1};
-    h2 = {x: points[pt2Index].curve.x2, y: points[pt2Index].curve.y2};
-  } else {
-    h1 = points[pt1Index];
-    h2 = points[pt2Index];
-  }
-
-  const newPts = cubicBezierSplit(
-    t,
-    points[pt1Index],
-    h1,
-    h2,
-    points[pt2Index],
-  );
-
-  if (points[pt2Index].curve) {
-    points[pt2Index].curve.x1 = newPts[1][1].x;
-    points[pt2Index].curve.y1 = newPts[1][1].y;
-    points[pt2Index].curve.x2 = newPts[1][2].x;
-    points[pt2Index].curve.y2 = newPts[1][2].y;
-  }
-
-  let newCurve = null;
-  if (points[pt2Index].curve) {
-    newCurve = {
-      type: 'cubic',
-      x1: newPts[0][1].x,
-      y1: newPts[0][1].y,
-      x2: newPts[0][2].x,
-      y2: newPts[0][2].y,
-    };
-  }
-  const newPoint = {
-    x: newPts[0][3].x,
-    y: newPts[0][3].y,
-    curve: newCurve,
-  };
-
-  points.splice(pt2Index, 0, newPoint);
-  return points;
-};
-
 export const pointInsideRect = (pt: Vec2, corner1: Vec2, corner2: Vec2): boolean => {
   const c1 = {x: 0, y: 0};
   const c2 = {x: 0, y: 0};
