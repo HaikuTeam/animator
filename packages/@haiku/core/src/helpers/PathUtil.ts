@@ -303,6 +303,19 @@ export const normalizePointCurves = (path: CurveSpec[]): void => {
   }
 };
 
+export const synchronizePathStructure = (...paths: CurveSpec[][]) => {
+  const maxVerts = Math.max(...paths.map((path) => path.length));
+  paths.forEach((path) => {
+    ensurePathClockwise(path);
+    distributeTotalVertices(path, maxVerts);
+    normalizePointCurves(path);
+  });
+
+  for (let i = 0; i < paths.length - 1; i++) {
+    rotatePathForSmallestDistance(paths[i], paths[i + 1]);
+  }
+};
+
 export default {
   ensurePathClockwise,
   distributeTotalVertices,
