@@ -20,7 +20,7 @@
 const zIndex = {
   // Top controls
   gauge: {
-    base: 7
+    base: 4
   },
   scrubber: {
     base: 4
@@ -33,9 +33,6 @@ const zIndex = {
   },
   frameActions: {
     base: 11
-  },
-  rowsWrapper: {
-    base: 5
   },
 
   // Heading row (name of the row, drag handler, etc)
@@ -77,7 +74,7 @@ const zIndex = {
 
   // Box with the expression input
   expressionInput: {
-    base: 6
+    base: 8
   },
 
   // Box with the marquee

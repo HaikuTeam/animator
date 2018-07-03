@@ -1515,7 +1515,7 @@ class Timeline extends React.Component {
         {experimentIsEnabled(Experiment.NativeTimelineScroll) &&
           <div style={{
             position: 'fixed',
-            top: 0,
+            top: this.state.rowHeight * this.getActiveComponent().getRows().length,
             bottom: 0,
             width: this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth(),
             backgroundColor: Palette.GRAY,
