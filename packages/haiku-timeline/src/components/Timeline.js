@@ -1522,7 +1522,7 @@ class Timeline extends React.Component {
             pointerEvents: 'auto',
             WebkitUserSelect: 'auto',
             bottom: 0,
-            zIndex: zIndex.propertyRow.base
+            zIndex: zIndex.rowsWrapper.base
           } : {
             position: 'absolute',
             top: 35,

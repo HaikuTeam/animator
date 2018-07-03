@@ -34,6 +34,9 @@ const zIndex = {
   frameActions: {
     base: 11
   },
+  rowsWrapper: {
+    base: 5
+  },
 
   // Heading row (name of the row, drag handler, etc)
   headingRow: {
@@ -56,7 +59,7 @@ const zIndex = {
     base: 5
   },
   propertyRow: {
-    base: 4
+    base: 1
   },
 
   //
