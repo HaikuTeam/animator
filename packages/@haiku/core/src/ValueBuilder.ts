@@ -2,6 +2,7 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
+import {CurveSpec} from '@haiku/core/src/vendor/svg-points/types';
 import {AdaptedWindow} from './adapters/dom/HaikuDOMAdapter';
 import HaikuComponent, {getFallback} from './HaikuComponent';
 import HaikuElement from './HaikuElement';
@@ -9,6 +10,7 @@ import HaikuHelpers from './HaikuHelpers';
 import ColorUtils from './helpers/ColorUtils';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
 import {isPreviewMode} from './helpers/interactionModes';
+import PathUtil, {distributeTotalVertices, ensurePathClockwise} from './helpers/PathUtil';
 import SVGPoints from './helpers/SVGPoints';
 import enhance from './reflection/enhance';
 import Transitions from './Transitions';
@@ -349,10 +351,10 @@ const FORBIDDEN_EXPRESSION_TOKENS = {
   defineProperty: true, // Object.
 };
 
-const parseD = (value) => {
+const parseD = (value: string|CurveSpec[]): CurveSpec[] => {
   // in case of d="" for any reason, don't try to expand this otherwise this will choke
   // #TODO: arguably we should preprocess SVGs before things get this far; try svgo?
-  if (!value) {
+  if (!value || value.length === 0) {
     return [];
   }
   // Allow points to return an array for convenience, and let downstream marshal it
@@ -362,7 +364,7 @@ const parseD = (value) => {
   return SVGPoints.pathToPoints(value);
 };
 
-const generateD = (value) => {
+const generateD = (value: string|CurveSpec[]): string => {
   if (typeof value === 'string') {
     return value;
   }
@@ -791,6 +793,11 @@ export default class ValueBuilder {
 
     const parsee = this._parsees[timelineName][flexId][outputName];
 
+    if (!cluster) {
+      return parsee;
+    }
+
+    const needsTween = Object.keys(cluster).length > 1;
     for (const ms in cluster) {
       const descriptor = cluster[ms];
 
@@ -826,7 +833,7 @@ export default class ValueBuilder {
 
         // The function's return value is expected to be in the *raw* format - we parse to allow for interpolation
         const parser1 = this.getParser(outputName);
-        if (parser1) {
+        if (parser1 && needsTween) {
           parsee[ms].value = parser1(functionReturnValue);
         } else {
           parsee[ms].value = functionReturnValue;
@@ -844,13 +851,30 @@ export default class ValueBuilder {
         }
 
         const parser2 = this.getParser(outputName);
-        if (parser2) {
+        if (parser2 && needsTween) {
           parsee[ms].value = parser2(descriptor.value);
         } else {
           parsee[ms].value = descriptor.value;
         }
       }
     }
+
+    // --- Path Morphing ---
+    if (outputName === 'd' && needsTween) {
+      const keys = Object.keys(cluster);
+      const maxVerts = Math.max(...keys.map((ms) => (parsee[ms].value.length)));
+
+      for (let i = 0; i < keys.length; i++) {
+        PathUtil.ensurePathClockwise(parsee[keys[i]].value);
+        PathUtil.distributeTotalVertices(parsee[keys[i]].value, maxVerts);
+        PathUtil.normalizePointCurves(parsee[keys[i]].value);
+      }
+
+      for (let i = 0; i < keys.length - 1; i++) {
+        PathUtil.rotatePathForSmallestDistance(parsee[keys[i]].value, parsee[keys[i + 1]].value);
+      }
+    }
+    // -----------------
 
     // Return the entire cached object - interpolation is done downstream
     return parsee;
