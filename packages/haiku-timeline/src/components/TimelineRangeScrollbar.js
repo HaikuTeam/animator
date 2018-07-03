@@ -91,18 +91,19 @@ export default class TimelineRangeScrollbar extends React.Component {
     this.props.timeline.scrollbarLeftStop(dragData)
   }
 
-  calculateFrameAndOffset (clientX) {
+  calculateScrollbarFromMouse ({mousePosition, considerBarWidth}) {
     const timeline = this.props.timeline
-    const frame = timeline.mapXCoordToFrame(clientX)
-    const scrollLeft = timeline.getScrollLeft()
-    const offsetCoord = (scrollLeft + timeline._timelinePixelWidth) / this.frameInfo.scRatio
-    const offset = timeline.mapXCoordToFrame(offsetCoord)
-    return {frame, offset}
+    const maybeBarWidth = considerBarWidth ? this.frameInfo.scB - this.frameInfo.scA : 0
+
+    return {
+      frame: timeline.mapXCoordToFrame(mousePosition),
+      offset: timeline.mapXCoordToFrame(timeline.getScrollLeft() / this.frameInfo.scRatio + maybeBarWidth)
+    }
   }
 
   onDragLeft (dragEvent, dragData) {
     if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-      const {frame, offset} = this.calculateFrameAndOffset(dragEvent.clientX)
+      const {frame, offset} = this.calculateScrollbarFromMouse({mousePosition: dragEvent.clientX, considerBarWidth: true})
       this.props.timeline.zoomBy(frame, offset)
     } else {
       this.props.timeline.changeVisibleFrameRange(dragData.x + this.frameInfo.scA, 0)
@@ -119,8 +120,8 @@ export default class TimelineRangeScrollbar extends React.Component {
 
   onDragRight (dragEvent, dragData) {
     if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-      const {frame} = this.calculateFrameAndOffset(dragEvent.clientX)
-      this.props.timeline.zoomBy(null, frame)
+      const {frame, offset} = this.calculateScrollbarFromMouse({mousePosition: dragEvent.clientX, considerBarWidth: false})
+      this.props.timeline.zoomBy(offset, frame)
     } else {
       this.props.timeline.changeVisibleFrameRange(0, dragData.x + this.frameInfo.scA)
     }
