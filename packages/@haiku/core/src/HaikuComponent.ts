@@ -76,8 +76,8 @@ export default class HaikuComponent extends HaikuElement {
   CORE_VERSION;
   doAlwaysFlush;
   doesNeedFullFlush;
-  guests;
-  host;
+  guests: {[haikuId: string]: HaikuComponent};
+  host: HaikuComponent;
   playback;
   PLAYER_VERSION;
   registeredEventHandlers;
@@ -156,7 +156,7 @@ export default class HaikuComponent extends HaikuElement {
     this.state = {}; // Public accessor object, e.g. this.state.foo = 1
 
     // Instantiate StateTransitions. Responsible to store and execute any state transition.
-    this.stateTransitionManager = new StateTransitionManager(this.state, this.getClock());
+    this.stateTransitionManager = new StateTransitionManager(this);
 
     // `assignConfig` calls bindStates because our incoming config, which
     // could occur at any point during runtime, e.g. in React, may need to update internal states, etc.
@@ -353,6 +353,8 @@ export default class HaikuComponent extends HaikuElement {
   }
 
   set (key, value) {
+    this.emitFromRootComponent('state:change', {state: key, from: this.state[key], to: value});
+
     this.state[key] = value;
     return this;
   }
@@ -768,6 +770,7 @@ export default class HaikuComponent extends HaikuElement {
     }
 
     try {
+      this.emitFromRootComponent('action:fired', {action: eventName, element: eventsSelector});
       return handler.apply(this, eventArgs);
     } catch (exception) {
       consoleErrorOnce(exception);
@@ -1338,6 +1341,19 @@ export default class HaikuComponent extends HaikuElement {
     }
 
     return this;
+  }
+
+  getRootComponent () {
+    if (this.host) {
+      return this.host.getRootComponent();
+    }
+
+    return this;
+  }
+
+  emitFromRootComponent (eventName: string, attachedObject: any) {
+    attachedObject.componentTitle = this.title;
+    this.getRootComponent().emit(eventName, attachedObject);
   }
 
   static __name__ = 'HaikuComponent';

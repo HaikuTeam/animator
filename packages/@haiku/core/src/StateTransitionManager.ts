@@ -1,6 +1,7 @@
 import {Curve, CurveDefinition} from './api/Curve';
 import {BytecodeStateType} from './api/HaikuBytecode';
 import HaikuClock from './HaikuClock';
+import HaikuComponent from './HaikuComponent';
 import Interpolate from './Interpolate';
 
 export interface StateTransitionParameters {
@@ -26,8 +27,13 @@ export default class StateTransitionManager {
 
   // Store running state transitions
   private transitions: {[key in string]: RunningStateTransition[]} = {};
+  private clock: HaikuClock;
+  private states: StateValues;
 
-  constructor (private readonly states: StateValues, private readonly clock: HaikuClock) {}
+  constructor (private readonly component: HaikuComponent) {
+    this.clock = this.component.getClock();
+    this.states = this.component.state;
+  }
 
   /**
    * Create a new state transition.
@@ -39,6 +45,13 @@ export default class StateTransitionManager {
       for (const key in transitionEnd) {
         delete this.transitions[key];
       }
+      for (const key in transitionEnd) {
+        this.component.emitFromRootComponent('state:change',
+          {state: key,
+            from: this.states[key],
+            to: transitionEnd[key]});
+      }
+
       this.setStates(transitionEnd);
       return;
     }
@@ -58,6 +71,12 @@ export default class StateTransitionManager {
         // If parameter.queue is true, it is a queued setState
         // If state transition for key is not created, process like a queued SetState
         if (transitionParameter.queue && this.transitions[key]) {
+          this.component.emitFromRootComponent('state:change', { queued: true,
+            state: key,
+            from: this.states[key],
+            to: transitionEnd[key],
+            duration: transitionParameter.duration});
+
           this.transitions[key].push({
             transitionParameter,
             transitionEnd: {[key]: transitionEnd[key]},
@@ -68,6 +87,12 @@ export default class StateTransitionManager {
           });
         // non queued transitions are overwrite transition queue
         } else {
+          this.component.emitFromRootComponent('state:change', { started: true,
+            state: key,
+            from: this.states[key],
+            to: transitionEnd[key],
+            duration: transitionParameter.duration});
+
           this.transitions[key] = [{
             transitionParameter,
             transitionEnd: {[key]: transitionEnd[key]},
@@ -115,6 +140,11 @@ export default class StateTransitionManager {
 
         if (this.isExpired(transition, currentTime)) {
 
+          this.component.emitFromRootComponent('state:change', { finished: true,
+            state: stateName,
+            to: transition.transitionEnd[stateName],
+            duration: transition.duration});
+
           // If expired, assign transitionEnd.
           // NOTE: In the future, with custom transition function implemented calculating
           // interpolation at endTime will be necessary (eg. a user defined curve that at
@@ -126,6 +156,9 @@ export default class StateTransitionManager {
 
           // Update next queued state transition or delete empty transition vector for performance reasons
           if (this.transitions[stateName].length > 0) {
+            this.component.emitFromRootComponent('state:change', { started: true,
+              state: stateName,
+              to: this.transitions[stateName][0].transitionEnd[stateName]});
             this.transitions[stateName][0].transitionStart = {[stateName]: interpolatedStates[stateName]};
             this.transitions[stateName][0].startTime = currentTime;
             this.transitions[stateName][0].endTime = currentTime + this.transitions[stateName][0].duration;

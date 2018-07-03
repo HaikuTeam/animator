@@ -118,6 +118,8 @@ Websocket.prototype.setupSocket = function setupSocket () {
       return this.emit('signal', message)
     } else if (message.type === 'relay') {
       return this.emit('relay', message)
+    } else if (message.type === 'log') {
+      return this.emit('log', message)
     }
 
     // Assume the message is a reply if the incoming has an id that matches one of our outgoing

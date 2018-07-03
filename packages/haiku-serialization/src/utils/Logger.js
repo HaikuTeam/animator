@@ -7,16 +7,13 @@ const EventEmitter = require('events')
 
 require('colors') // TODO: use non-string-extending module
 
-/**
- * Control log message format output
- */
-const haikuFormat = winston.format.printf((info, opts) => {
-  if (info.noFormat) {
-    return info.message
+const formatJsonLogToString = (message) => {
+  if (message.noFormat) {
+    return message.message
   }
 
-  if (Array.isArray(info.message)) {
-    info.message = info.message.map((message) => {
+  if (Array.isArray(message.message)) {
+    message.message = message.message.map((message) => {
       if (typeof message === 'string') {
         return message
       }
@@ -24,8 +21,22 @@ const haikuFormat = winston.format.printf((info, opts) => {
     }).join(' ')
   }
 
-  // Padding is done to visually align on file
-  return `${info.timestamp}|${info.view.padEnd(8)}|${info.level}${info.tag ? '|' + info.tag : ''}|${info.message}`
+  // Pading is done to visually align on file
+  return `${message.timestamp}|${message.view.padEnd(8)}|${message.level}${message.tag ? '|' + message.tag : ''}|${message.message}`
+}
+
+/**
+ * Control log message format output
+ */
+const haikuFormat = winston.format.printf((info, opts) => {
+  return formatJsonLogToString(info)
+})
+
+// Ignore log messages if they have { doNotLogOnFile: true }
+// Its needed to avoid double writing to log file on plumbing
+const ignoreDoNotWriteToFile = winston.format((info, opts) => {
+  if (info.doNotLogOnFile) { return false }
+  return info
 })
 
 const DEFAULTS = {
@@ -37,12 +48,32 @@ const DEFAULTS = {
 const MAX_DIFF_LOG_LEN = 10000
 
 class LogForwarderTransport extends Transport {
-  log (info, callback) {
-    setImmediate(() => {
-      this.emit('log', info)
-    })
+  constructor (opts) {
+    super(opts)
+    // If defined, it will forward logs to websocket
+    this.websocket = null
+  }
 
+  log (message, callback) {
+    // Avoid double logging
+    message.doNotLogOnFile = true
+    this.sendToPlumbing(message)
     callback()
+  }
+
+  // We send to pumbling so we can log to pumbing console in a nice way
+  sendToPlumbing (message) {
+    if (this.websocket) {
+      this.websocket.send({
+        type: 'log',
+        from: message.view,
+        message
+      })
+    }
+  }
+
+  setWebsocket (websocket) {
+    this.websocket = websocket
   }
 };
 
@@ -67,6 +98,7 @@ class Logger extends EventEmitter {
         level: 'info',
         json: false,
         format: winston.format.combine(
+          ignoreDoNotWriteToFile(),
           haikuFormat
         )
       }))
@@ -79,21 +111,26 @@ class Logger extends EventEmitter {
     }))
 
     // In the future this logForwarder will also send log to plumbing
-    const logForwarder = new LogForwarderTransport()
-    logForwarder.on('log', (info) => {
-      this.emit('log', info)
-    })
-    transports.push(logForwarder)
+    this.logForwarderTransport = new LogForwarderTransport()
+    transports.push(this.logForwarderTransport)
 
     this.logger = winston.createLogger({
-      transports,
       format: winston.format.combine(
         winston.format.timestamp()
-      )
+      ),
+      transports
     })
 
     // Hook to allow Monkey.js to configure the view prefix from which we log
     this.view = '?'
+  }
+
+  setWebsocket (websocket) {
+    this.logForwarderTransport.setWebsocket(websocket)
+  }
+
+  raw (jsonMessage) {
+    this.logger.log(jsonMessage)
   }
 
   info (...args) {
@@ -199,4 +236,4 @@ class Logger extends EventEmitter {
   }
 }
 
-module.exports = Logger
+module.exports = {Logger, formatJsonLogToString}

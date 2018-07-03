@@ -32,18 +32,19 @@ export type PlaybackStatus = PlaybackSetting | number | string;
 // tslint:disable:variable-name
 export default class HaikuTimeline extends HaikuBase {
   options;
-  component;
+  component: HaikuComponent;
   name;
   descriptor;
   status: PlaybackStatus;
 
-  _globalClockTime;
-  _localElapsedTime;
-  _localExplicitlySetTime;
-  _maxExplicitlyDefinedTime;
-  _isPlaying;
+  _globalClockTime: number;
+  _localElapsedTime: number;
+  _localExplicitlySetTime: number;
+  _maxExplicitlyDefinedTime: number;
+  _isPlaying: boolean;
+  private loopCounter: number;
 
-  constructor (component, name, descriptor, options) {
+  constructor (component: HaikuComponent, name, descriptor, options) {
     super();
 
     this.component = component;
@@ -59,6 +60,8 @@ export default class HaikuTimeline extends HaikuBase {
     this._maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
 
     this._isPlaying = null;
+
+    this.loopCounter = 0;
   }
 
   private getMs (amount: number, unit: TimeUnit): number {
@@ -107,6 +110,18 @@ export default class HaikuTimeline extends HaikuBase {
         this.isLooping() &&
         this._localElapsedTime > this._maxExplicitlyDefinedTime
       ) {
+
+        this.loopCounter++;
+        // Avoid log DoS for too short timelines
+        if (this._maxExplicitlyDefinedTime > 200) {
+          this.component.emitFromRootComponent('loop', {
+            localElapsedTime: this._localElapsedTime,
+            maxExplicitlyDefinedTime: this._maxExplicitlyDefinedTime,
+            globalClockTime: this._globalClockTime,
+            boundedFrame: this.getBoundedFrame(),
+            loopCounter: this.loopCounter});
+        }
+
         this._localElapsedTime =
           0 + this._maxExplicitlyDefinedTime - this._localElapsedTime;
       }
