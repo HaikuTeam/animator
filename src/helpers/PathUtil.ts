@@ -1,7 +1,7 @@
 /* tslint:disable:max-line-length */
 
 import {CurveSpec} from '@haiku/core/src/vendor/svg-points/types';
-import {normalizePath, reverseNormalizedPath} from './SVGPathReversal';
+import {normalizePath, reverseNormalizedPath} from '../vendor/svg-path-reversal/SVGPathReversal';
 import SVGPoints from './SVGPoints';
 
 export interface Vec2 {
@@ -65,7 +65,7 @@ export const splitSegmentInSVGPoints = (points: CurveSpec[], pt1Index: number, p
 };
 
 // NOTE: See Bezier curve splitting here: https://pomax.github.io/bezierinfo/#matrixsplit
-const cubicBezierSplit = (t: number, anchor1: Vec2, handle1: Vec2, handle2: Vec2, anchor2: Vec2): [[Vec2, Vec2, Vec2, Vec2], [Vec2, Vec2, Vec2, Vec2]] => {
+export const cubicBezierSplit = (t: number, anchor1: Vec2, handle1: Vec2, handle2: Vec2, anchor2: Vec2): [[Vec2, Vec2, Vec2, Vec2], [Vec2, Vec2, Vec2, Vec2]] => {
   const cubicSegmentMatrix1 = [
     1,
     0,
@@ -274,90 +274,26 @@ export const ensurePathClockwise = (path: CurveSpec[]): void => {
   }
 };
 
-export const normalizeCongruentPointCurves = (a: CurveSpec[], b: CurveSpec[]): void => {
-  if (a.length !== b.length) {
-    throw new Error('Mismatched source and destination length.');
-  }
-
-  for (let i = 0; i < a.length; i++) {
-    if ((!a[i].curve && !b[i].curve) || (a[i].curve && b[i].curve)) {
+export const normalizePointCurves = (path: CurveSpec[]): void => {
+  for (let i = 1; i < path.length; i++) {
+    if (path[i].curve) {
+      // TODO: Convert A and Q curves to cubic bezier
       continue;
     }
-    const prevIdx = i > 0 ? i - 1 : a.length - 1;
-    if (!a[i].curve) {
-      a[i].curve = {
-        type: b[i].curve.type,
-        x1: a[prevIdx].x,
-        y1: a[prevIdx].y,
-        x2: a[i].x,
-        y2: a[i].y,
-      };
-    } else if (!b[i].curve) {
-      b[i].curve = {
-        type: a[i].curve.type,
-        x1: b[prevIdx].x,
-        y1: b[prevIdx].y,
-        x2: b[i].x,
-        y2: b[i].y,
-      };
-    }
-  }
-};
 
-export const interpolatePoints = (a: CurveSpec, b: CurveSpec, t: number): CurveSpec => {
-  if (t < 0.0001) {
-    return a;
-  }
-  if (t > 0.9999) {
-    return b;
-  }
-  const out: CurveSpec = {
-    x: (1 - t) * a.x + t * b.x,
-    y: (1 - t) * a.y + t * b.y,
-    moveTo: a.moveTo,
-    closed: a.closed,
-  };
-
-  if (a.curve && b.curve) {
-    out.curve = {
+    path[i].curve = {
       type: 'cubic',
-      x1: (1 - t) * a.curve.x1 + t * b.curve.x1,
-      y1: (1 - t) * a.curve.y1 + t * b.curve.y1,
-      x2: (1 - t) * a.curve.x2 + t * b.curve.x2,
-      y2: (1 - t) * a.curve.y2 + t * b.curve.y2,
+      x1: path[i - 1].x,
+      y1: path[i - 1].y,
+      x2: path[i].x,
+      y2: path[i].y,
     };
   }
-
-  return out;
 };
 
-export class PathInterpolator {
-  readonly maxVertices: number;
-
-  constructor (readonly source: CurveSpec[], readonly dest: CurveSpec[]) {
-    ensurePathClockwise(this.source);
-    ensurePathClockwise(this.dest);
-
-    this.maxVertices = Math.max(this.source.length, this.dest.length);
-    distributeTotalVertices(this.source, this.maxVertices);
-    distributeTotalVertices(this.dest, this.maxVertices);
-
-    rotatePathForSmallestDistance(this.source, this.dest);
-    normalizeCongruentPointCurves(this.source, this.dest);
-  }
-
-  interpolate (t: number): CurveSpec[] {
-    if (t < 0.0001) {
-      return this.source;
-    }
-    if (t > 0.9999) {
-      return this.dest;
-    }
-
-    const out: CurveSpec[] = [];
-    for (let i = 0; i < this.source.length; i++) {
-      out.push(interpolatePoints(this.source[i], this.dest[i], t));
-    }
-    return out;
-  }
-}
+export default {
+  ensurePathClockwise,
+  distributeTotalVertices,
+  rotatePathForSmallestDistance,
+  normalizePointCurves,
+};
