@@ -791,11 +791,13 @@ export default class ValueBuilder {
       this._parsees[timelineName][flexId][outputName] = {};
     }
 
-    return this._parsees[timelineName][flexId][outputName] = {};
+    return this._parsees[timelineName][flexId][outputName];
   }
 
   private clusterParseeIsStable (keysMs, timelineName, flexId, outputName): boolean {
-    return keysMs.every(((ms) => this._parsees[timelineName][flexId][outputName][ms] && !this._parsees[timelineName][flexId][outputName][ms].expression));
+    return keysMs.every(
+      (ms) => this._parsees[timelineName][flexId][outputName][ms] && !this._parsees[timelineName][flexId][outputName][ms].expression,
+    );
   }
 
   private fetchParsedValueCluster (
@@ -820,8 +822,6 @@ export default class ValueBuilder {
     if (skipStableParsees && this.clusterParseeIsStable(keys, timelineName, flexId, outputName)) {
       return parsee;
     }
-
-    const needsTween = keys.length > 1;
 
     keys.forEach((ms) => {
       if (skipStableParsees && parsee[ms] && !parsee[ms].expression) {
@@ -855,7 +855,7 @@ export default class ValueBuilder {
       }
     });
 
-    if (needsTween) {
+    if (keys.length > 1) {
       const parser = this.getParser(outputName);
       if (!parser) {
         return parsee;
@@ -866,7 +866,7 @@ export default class ValueBuilder {
       });
 
       if (outputName === 'd') {
-        synchronizePathStructure(keys.map((ms) => parsee[ms].value));
+        synchronizePathStructure(...keys.map((ms) => parsee[ms].value));
       }
     }
 
