@@ -20,7 +20,7 @@
 const zIndex = {
   // Top controls
   gauge: {
-    base: 2
+    base: 7
   },
   scrubber: {
     base: 4
@@ -77,7 +77,7 @@ const zIndex = {
 
   // Box with the expression input
   expressionInput: {
-    base: 10
+    base: 6
   },
 
   // Box with the marquee

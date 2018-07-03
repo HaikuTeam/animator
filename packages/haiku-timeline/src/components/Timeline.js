@@ -1150,7 +1150,7 @@ class Timeline extends React.Component {
             position: 'fixed',
             top: 0,
             left: 0,
-            height: 35,
+            height: 36,
             width: timeline.getPropertiesPixelWidth(),
             backgroundColor: Palette.COAL,
             borderBottom: `1px solid ${Palette.FATHER_COAL}`,
