@@ -75,11 +75,8 @@ export default class TimelineRangeScrollbar extends React.Component {
     // Don't drag on the body if we're already dragging on the ends
     if (!timeline.getScrollerLeftDragStart() && !timeline.getScrollerRightDragStart()) {
       if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-        const barWidth = this.frameInfo.scB - this.frameInfo.scA
-        const relativeScroll = dragEvent.clientX - barWidth / 2
-        const absoluteScroll = relativeScroll * this.frameInfo.scRatio
-
-        timeline.setScrollLeft(absoluteScroll)
+        const scrollDelta = dragData.deltaX * this.frameInfo.scRatio
+        timeline.setScrollLeft(scrollDelta + timeline.getScrollLeft())
       } else {
         timeline.changeVisibleFrameRange(dragData.x, dragData.x)
       }
