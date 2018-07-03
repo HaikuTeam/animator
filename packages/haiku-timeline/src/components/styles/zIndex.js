@@ -56,7 +56,7 @@ const zIndex = {
     base: 5
   },
   propertyRow: {
-    base: 1
+    base: 4
   },
 
   //

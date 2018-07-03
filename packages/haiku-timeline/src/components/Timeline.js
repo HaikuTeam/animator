@@ -1521,7 +1521,8 @@ class Timeline extends React.Component {
             width: this.getActiveComponent().getCurrentTimeline().calculateFullTimelineWidth(),
             pointerEvents: 'auto',
             WebkitUserSelect: 'auto',
-            bottom: 0
+            bottom: 0,
+            zIndex: zIndex.propertyRow.base
           } : {
             position: 'absolute',
             top: 35,
