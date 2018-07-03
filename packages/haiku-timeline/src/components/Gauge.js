@@ -36,7 +36,7 @@ export default class Gauge extends React.Component {
       what === 'timeline-frame-range' ||
       what === 'timeline-frame-hovered' ||
       what === 'time-display-mode-change' ||
-      what === 'max-frame-changed'
+      what === 'timeline-max-frame-changed'
     ) {
       this.forceUpdate()
     }

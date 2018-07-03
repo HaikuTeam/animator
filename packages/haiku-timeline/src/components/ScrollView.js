@@ -29,7 +29,8 @@ class ScrollView extends React.PureComponent {
   handleUpdate (what) {
     if (!this.mounted) return null
     if (
-      what === 'max-frame-changed'
+      what === 'timeline-frame-range' ||
+      what === 'timeline-max-frame-changed'
     ) {
       this.forceUpdate()
     }

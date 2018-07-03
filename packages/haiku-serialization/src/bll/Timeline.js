@@ -286,7 +286,7 @@ class Timeline extends BaseModel {
   setMaxFrame (maxFrame) {
     this._maxFrame = maxFrame
     this.cache.unset('frameInfo')
-    this.emit('update', 'max-frame-changed')
+    this.emit('update', 'timeline-max-frame-changed')
     return this
   }
 
