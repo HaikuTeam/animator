@@ -765,6 +765,86 @@ class ElementSelectionProxy extends BaseModel {
   }
 
 
+  getBboxValueFromEdgeValue (
+    bbox,
+    xEdge,
+    yEdge
+  ) {
+    if(xEdge !== undefined){
+      if(xEdge === 0){
+        return bbox.left
+      }else if(xEdge === .5){
+        return bbox.left + (bbox.width / 2)
+      }else if(xEdge === 1){
+        return bbox.right
+      }else {
+        throw new Error("Unknown edge value", xEdge)
+      }
+    }else{
+      if(yEdge === 0){
+        return bbox.top
+      }else if(yEdge === .5){
+        return bbox.top + (bbox.height / 2)
+      }else if(yEdge === 1){
+        return bbox.bottom
+      }else {
+        throw new Error("Unknown edge value", yEdge)
+      }
+    }
+  }
+  //xEdge ∈ {undefined, 0, .5, .1} 
+  //yEdge ∈ {undefined, 0, .5, .1}
+  //toStage ∈ {true, falsy}
+  align (
+    xEdge,
+    yEdge,
+    toStage
+  ) {
+    if(!this.selection || !this.selection.length) {
+      return
+    }
+
+    let alignBbox = {}
+    if(toStage){
+      let artboard = Artboard.all()[0]
+      alignBbox = {
+        top: 0,
+        left: 0,
+        right: artboard._mountWidth,
+        bottom: artboard._mountHeight,
+        width: artboard._mountWidth,
+        height: artboard._mountHeight
+      }
+    }else{
+      alignBbox = this.getBoundingClientRect()
+    }
+
+    let edge = (xEdge !== undefined) ? xEdge : yEdge
+    let axis = (xEdge !== undefined) ? 'x' : 'y'
+    let targetValue = (axis === 'x' ? this.getBboxValueFromEdgeValue(alignBbox, edge, undefined) : this.getBboxValueFromEdgeValue(alignBbox, undefined, edge))
+    let origins = this.selection.map((elem) => {
+      return elem.getOriginTransformed()
+    })
+    let overrides = []
+    
+    for(var i = 0; i < this.selection.length; i++){
+      let bbox = this.selection[i].getBoundingClientRect()
+      let bboxEdgePosition = (axis === 'x' ? this.getBboxValueFromEdgeValue(bbox, edge, undefined) : this.getBboxValueFromEdgeValue(bbox, undefined, edge))
+      overrides[i] = overrides[i] || {}
+      overrides[i][axis] = targetValue - (bboxEdgePosition - origins[i][axis])
+    }
+    this.move(0, 0, overrides)
+    this.reinitializeLayout()
+    
+  }
+
+  // distribute (
+  //   xEdge,
+  //   yEdge,
+  //   toStage
+  // )
+
+
   /**
    * @method drag
    * @description Scale, rotate, or translate the elements in the selection
@@ -903,7 +983,7 @@ class ElementSelectionProxy extends BaseModel {
         //  y : number }
       let overrides = []
 
-      let origin = _applyOffset(this._lastOrigin, totalDragDelta)//this.getOriginTransformed();        
+      let origin = _applyOffset(this._lastOrigin, totalDragDelta)
       let origins = this._lastOrigins.map((o) => {
         return _applyOffset(o, totalDragDelta)
       })
@@ -1100,7 +1180,7 @@ class ElementSelectionProxy extends BaseModel {
       accumulatedUpdates,
       {},
       this.component.project.getMetadata(),
-      () => {} // no-op
+      () => {} //no-op
     )
     if(overrides && overrides.groupOrigin && overrides.groupOrigin.x){
       this.applyPropertyValue('translation.x', overrides.groupOrigin.x)
