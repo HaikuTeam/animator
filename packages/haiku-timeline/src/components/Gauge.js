@@ -59,8 +59,8 @@ export default class Gauge extends React.Component {
             borderBottom: '1px solid ' + Palette.FATHER_COAL,
             color: Palette.ROCK_MUTED
           }}
-          onMouseDown={this.props.onGaugeMouseDown}
-        >
+          onMouseDown={this.props.onMouseDown}
+          >
           {children}
         </div>
       )
