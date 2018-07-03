@@ -230,6 +230,18 @@ export const rotatePathForSmallestDistance = (source: CurveSpec[], dest: CurveSp
   }
 
   if (smallestOffset === 0) {
+    if (moveToPopped) {
+      source.unshift({
+        x: source[source.length - 1].x,
+        y: source[source.length - 1].y,
+        moveTo: true,
+      });
+      dest.unshift({
+        x: dest[dest.length - 1].x,
+        y: dest[dest.length - 1].y,
+        moveTo: true,
+      });
+    }
     return;
   }
 

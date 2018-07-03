@@ -1,14 +1,13 @@
 import {
   distributeTotalVertices,
   ensurePathClockwise,
-  normalizeCongruentPointCurves,
+  normalizePointCurves,
   rotatePathForSmallestDistance,
 } from '@core/helpers/PathUtil';
 import SVGPoints from '@core/helpers/SVGPoints';
 import {polygonArea} from '@haiku/core/lib/helpers/PathUtil';
 import {CurveSpec} from '@haiku/core/lib/vendor/svg-points/types';
 import * as tape from 'tape';
-import {interpolatePoints} from '../../src/helpers/PathUtil';
 
 tape('PathUtil.polygonArea', (t) => {
   // Clockwise
@@ -43,7 +42,7 @@ tape('PathUtil.distributeTotalVertices', (t) => {
   t.end();
 });
 
-tape('PathUtil.normalizeCongruentPointCurves', (t) => {
+tape('PathUtil.normalizePointCurves', (t) => {
   const a1: CurveSpec[] = [{
     x: 10,
     y: 10,
@@ -52,83 +51,10 @@ tape('PathUtil.normalizeCongruentPointCurves', (t) => {
     x: 50,
     y: 50,
   }];
-  const b1: CurveSpec[] = [{
-    x: 20,
-    y: 20,
-    moveTo: true,
-  }, {
-    x: 40,
-    y: 40,
-    curve: {
-      type: 'cubic',
-      x1: 25,
-      y1: 25,
-      x2: 35,
-      y2: 35,
-    },
-  }];
 
-  normalizeCongruentPointCurves(a1, b1);
+  normalizePointCurves(a1);
   t.assert(a1[1].curve);
-
-  const b2: CurveSpec[] = [{
-    x: 10,
-    y: 10,
-    moveTo: true,
-  }, {
-    x: 50,
-    y: 50,
-  }];
-  const a2: CurveSpec[] = [{
-    x: 20,
-    y: 20,
-    moveTo: true,
-  }, {
-    x: 40,
-    y: 40,
-    curve: {
-      type: 'cubic',
-      x1: 25,
-      y1: 25,
-      x2: 35,
-      y2: 35,
-    },
-  }];
-  normalizeCongruentPointCurves(a2, b2);
-  t.assert(b2[1].curve);
-
-  t.end();
-});
-
-tape('PathUtil.interpolatePoints', (t) => {
-  const interpolated = interpolatePoints({
-    x: 0,
-    y: 0,
-    curve: {
-      type: 'cubic',
-      x1: 0,
-      y1: 0,
-      x2: 0,
-      y2: 0,
-    },
-  }, {
-    x: 10,
-    y: 10,
-    curve: {
-      type: 'cubic',
-      x1: 10,
-      y1: 10,
-      x2: 10,
-      y2: 10,
-    },
-  }, 0.5);
-
-  t.equal(interpolated.x, 5);
-  t.equal(interpolated.y, 5);
-  t.equal(interpolated.curve.x1, 5);
-  t.equal(interpolated.curve.y1, 5);
-  t.equal(interpolated.curve.x2, 5);
-  t.equal(interpolated.curve.y2, 5);
+  t.equal(a1[1].curve.x1, a1[0].x);
 
   t.end();
 });
@@ -139,10 +65,13 @@ tape('PathUtil.rotatePathForSmallestDistance', (t) => {
   // tslint:disable-next-line:max-line-length
   const p2 = SVGPoints.pathToPoints('M75,150C116.421356,150,150,116.421356,150,75C150,50.6351365,85.4010181,99.8794331,67.4023438,86.1796875C54.8024678,76.5892537,92.0564927,0,75,0C57.4345173,0,58.391417,48.6316069,45.609375,58.7460938C28.2499444,72.4826886,0,51.1441265,0,75C0,104.023279,95.9795746,98.4059298,120.097656,110.875C130.400346,116.2015,62.6019226,150,75,150Z');
 
+  const originalLength = p1.length;
   t.equal(p1.length, p2.length);
 
   rotatePathForSmallestDistance(p1, p2);
 
+  t.equal(p1.length, originalLength);
+  t.equal(p2.length, originalLength);
   t.equal(p1.length, p2.length);
   t.true(p2[p2.length - 1].closed);
   for (let i = 1; i < p2.length; i++) {
