@@ -13,7 +13,7 @@ import * as uglify from 'rollup-plugin-uglify-es';
 
 import * as async from 'async';
 import * as path from 'path';
-const FALLBACK_ORG_NAME = 'Unknown';
+
 // @ts-ignore
 import * as fse from 'fs-extra';
 
@@ -23,6 +23,7 @@ import {
   getCopyrightNotice,
   getCurrentHumanTimestamp,
   getEmbedName,
+  getOrganizationNameOrFallback,
   getStandaloneName,
 } from './ProjectDefinitions';
 
@@ -74,7 +75,7 @@ export const createCDNBundles = (
   projectOptions: any,
   finish: any) => {
 
-  const organizationName = projectOptions.organizationName || FALLBACK_ORG_NAME;
+  const organizationName = getOrganizationNameOrFallback(projectOptions.organizationName);
   const embedName = getEmbedName(organizationName, projectPath, projectName);
   const standaloneName = getStandaloneName(organizationName, projectPath, projectName);
 
