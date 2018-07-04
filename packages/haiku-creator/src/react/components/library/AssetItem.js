@@ -292,6 +292,10 @@ class AssetItem extends React.Component {
   }
 
   isFigmaAndCanBeOpened () {
+    if (experimentIsEnabled(Experiment.CleanInitialLibraryState)) {
+      return this.props.asset.isFigmaFile();
+    }
+
     return this.props.asset.isFigmaFile() && this.props.asset.relpath !== 'hacky-figma-file[1]';
   }
 

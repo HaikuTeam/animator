@@ -19,6 +19,10 @@ class AssetList extends React.PureComponent {
         <DesignFileCreator
           projectModel={this.props.projectModel}
           websocket={this.props.websocket}
+          figma={this.props.figma}
+          onAskForFigmaAuth={this.props.onAskForFigmaAuth}
+          onImportFigmaAsset={this.props.onImportFigmaAsset}
+          onRefreshFigmaAsset={this.props.onRefreshFigmaAsset}
         />
       );
     }
