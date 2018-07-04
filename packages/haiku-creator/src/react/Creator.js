@@ -160,7 +160,7 @@ export default class Creator extends React.Component {
 
     const win = remote.getCurrentWindow();
 
-    if (process.env.DEV === '1') {
+    if (process.env.DEV === '1' || process.env.DEV === 'creator') {
       win.openDevTools();
     }
 

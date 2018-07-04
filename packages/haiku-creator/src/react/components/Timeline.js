@@ -89,7 +89,7 @@ export default class Timeline extends React.Component {
     });
 
     this.webview.addEventListener('dom-ready', () => {
-      if (process.env.DEV === '1') {
+      if (process.env.DEV === '1' || process.env.DEV === 'timeline') {
         this.webview.openDevTools();
       }
       if (typeof this.props.onReady === 'function') {
