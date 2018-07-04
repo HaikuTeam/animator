@@ -7,8 +7,8 @@ module.exports = {
   },
 
   states: {
-    'sizeAbsolute.x': { type: 'number', value: 200 },
-    'sizeAbsolute.y': { type: 'number', value: 100 },
+    width: { type: 'number', value: 200 },
+    height: { type: 'number', value: 100 },
     text: { type: 'string', value: 'Add text here' },
     color: { type: 'string', value: 'black' },
     fontFamily: { type: 'string', value: 'Helvetica, Arial, sans-serif' },
@@ -36,14 +36,14 @@ module.exports = {
         'sizeMode.y': { '0': { value: 1 } },
         'sizeMode.z': { '0': { value: 1 } },
         'sizeAbsolute.x': { '0': {
-          value: Haiku.inject(function (sizeAbsoluteX) {
-            return sizeAbsoluteX
-          }, 'sizeAbsolute.x')
+          value: Haiku.inject(function (width) {
+            return width
+          }, 'width')
         } },
         'sizeAbsolute.y': { '0': {
-          value: Haiku.inject(function (sizeAbsoluteY) {
-            return sizeAbsoluteY
-          }, 'sizeAbsolute.y')
+          value: Haiku.inject(function (height) {
+            return height
+          }, 'height')
         } }
       },
       'haiku:HaikuControlsTextSVGContext': {
@@ -51,14 +51,14 @@ module.exports = {
         'sizeMode.y': { '0': { value: 1 } },
         'sizeMode.z': { '0': { value: 1 } },
         'sizeAbsolute.x': { '0': {
-          value: Haiku.inject(function (sizeAbsoluteX) {
-            return sizeAbsoluteX
-          }, 'sizeAbsolute.x')
+          value: Haiku.inject(function (width) {
+            return width
+          }, 'width')
         } },
         'sizeAbsolute.y': { '0': {
-          value: Haiku.inject(function (sizeAbsoluteY) {
-            return sizeAbsoluteY
-          }, 'sizeAbsolute.y')
+          value: Haiku.inject(function (height) {
+            return height
+          }, 'height')
         } }
       },
       'haiku:HaikuControlsSvgTextElement': {
@@ -66,14 +66,14 @@ module.exports = {
         'sizeMode.y': { '0': { value: 1 } },
         'sizeMode.z': { '0': { value: 1 } },
         'sizeAbsolute.x': { '0': {
-          value: Haiku.inject(function (sizeAbsoluteX) {
-            return sizeAbsoluteX
-          }, 'sizeAbsolute.x')
+          value: Haiku.inject(function (width) {
+            return width
+          }, 'width')
         } },
         'sizeAbsolute.y': { '0': {
-          value: Haiku.inject(function (sizeAbsoluteY) {
-            return sizeAbsoluteY
-          }, 'sizeAbsolute.y')
+          value: Haiku.inject(function (height) {
+            return height
+          }, 'height')
         } },
         'color': {
           '0': {
