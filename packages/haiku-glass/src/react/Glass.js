@@ -97,8 +97,6 @@ const niceTimestamp = () => {
   return moment().format('YYYY-MM-DD-HHmmss')
 }
 
-
-
 const writeHtmlSnapshot = (html, react) => {
   fse.mkdirpSync(path.join(HOMEDIR_PATH, 'snapshots'))
   const filename = (react.props.projectName || 'Unknown') + '-' + niceTimestamp() + '.html'
@@ -478,7 +476,7 @@ export class Glass extends React.Component {
     window.requestAnimationFrame(this.drawLoop.bind(this))
   }
 
-  handleSnapsUpdated (newSnaps){
+  handleSnapsUpdated (newSnaps) {
     this.setState({'snapLines': newSnaps})
   }
 
@@ -787,25 +785,24 @@ export class Glass extends React.Component {
   }
 
   renderSnapLines () {
-    //Don't do anything until a project is initialized
-    if(!this.getActiveComponent()){
+    // Don't do anything until a project is initialized
+    if (!this.getActiveComponent()) {
       return []
     }
 
     const MAX_SNAPS_PER_AXIS = 3
 
-    let getLineElements = () =>{
+    let getLineElements = () => {
       let horizSnaps = []
       let vertSnaps = []
 
-      if (this.state.isMouseDown
-        && this.state.snapLines
-        && this.state.snapLines.length
-        && !Globals.isSpecialKeyDown()
-        && !this.isMarqueeActive()) {
-
+      if (this.state.isMouseDown &&
+        this.state.snapLines &&
+        this.state.snapLines.length &&
+        !Globals.isSpecialKeyDown() &&
+        !this.isMarqueeActive()) {
         lodash.forEach(this.state.snapLines, (snapLine, index) => {
-          if(snapLine.direction === 'HORIZONTAL') horizSnaps.push(snapLine)
+          if (snapLine.direction === 'HORIZONTAL') horizSnaps.push(snapLine)
           else vertSnaps.push(snapLine)
         })
       }
@@ -816,13 +813,13 @@ export class Glass extends React.Component {
         lines.push(<line key={'h-' + i} x1='-5000' x2='5000' y1={snap.positionWorld} y2={snap.positionWorld} strokeWidth='1.25' stroke={'hsl(' + this.modColor(this._renderCount) + ', 100%, 50%)'} />)
       })
       vertSnaps.forEach((snap, i) => {
-        lines.push(<line key={'v-' + i}  x1={snap.positionWorld} x2={snap.positionWorld} y1='-5000' y2='5000' strokeWidth='1.25' stroke={'hsl(' + this.modColor(this._renderCount) + ', 100%, 50%)'} />)
+        lines.push(<line key={'v-' + i} x1={snap.positionWorld} x2={snap.positionWorld} y1='-5000' y2='5000' strokeWidth='1.25' stroke={'hsl(' + this.modColor(this._renderCount) + ', 100%, 50%)'} />)
       })
       this._renderCount++
 
       return lines
     }
-    
+
     let artboard = this.getActiveComponent().getArtboard()
 
     let SNAP_LINE_OVERLAY_STYLE = {
@@ -2037,19 +2034,19 @@ export class Glass extends React.Component {
       case 46: this.handleDelete(); break
       case 8: this.handleDelete(); break
       case 13: this.handleKeyEnter(); break
-      case 91: this.handleKeyCommand(true); break //left cmd
-      case 93: this.handleKeyCommand(true); break //left cmd
+      case 91: this.handleKeyCommand(true); break // left cmd
+      case 93: this.handleKeyCommand(true); break // left cmd
       case 76: this.handleAlignRequest(undefined, 1, false); break // l key
-      case 75: this.handleDistributeRequest(undefined, .5, true); break // k key
+      case 75: this.handleDistributeRequest(undefined, 0.5, true); break // k key
     }
   }
 
-  handleAlignRequest(xEdge, yEdge, toStage) {
+  handleAlignRequest (xEdge, yEdge, toStage) {
     const proxy = this.fetchProxyElementForSelection()
     proxy.align(xEdge, yEdge, toStage)
   }
 
-  handleDistributeRequest(xEdge, yEdge, toStage) {
+  handleDistributeRequest (xEdge, yEdge, toStage) {
     const proxy = this.fetchProxyElementForSelection()
     proxy.distribute(xEdge, yEdge, toStage)
   }

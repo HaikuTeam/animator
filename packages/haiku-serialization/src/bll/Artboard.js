@@ -256,7 +256,6 @@ class Artboard extends BaseModel {
     return screenSpace
   }
 
-
   getZoom () {
     return this._zoomXY
   }
@@ -327,7 +326,7 @@ class Artboard extends BaseModel {
 
       let marginX = (this._containerWidth - this._mountWidth) / 2
       let marginY = (this._containerHeight - this._mountHeight) / 2
-      let bbox = elem.getBoundingClientRect(- marginX, - marginY)
+      let bbox = elem.getBoundingClientRect(-marginX, -marginY)
 
       snapLines.push({
         direction: 'HORIZONTAL',

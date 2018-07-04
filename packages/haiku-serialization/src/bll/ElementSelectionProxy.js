@@ -24,9 +24,7 @@ const forceNumeric = (n) => (isNaN(n) || !isFinite(n)) ? 0 : n
 const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source'
 const HAIKU_TITLE_ATTRIBUTE = 'haiku-title'
 const SNAP_THRESHOLD = 10 // px, world-space (i.e. will get bigger/smaller with zoom)
-const SNAP_EPSILON = .025
-
-
+const SNAP_EPSILON = 0.025
 
 /**
  * @class ElementSelectionProxy
@@ -45,7 +43,6 @@ class ElementSelectionProxy extends BaseModel {
 
     // When representing multiple elements, we apply changes to our proxy properties
     this.reinitializeLayout()
-
 
     // Allows transforms to be recalled on demand, e.g. during Alt+drag
     this.transformCache = new TransformCache(this)
@@ -154,8 +151,8 @@ class ElementSelectionProxy extends BaseModel {
     })
   }
 
-  //very similar to pushCachedTransform, but does it for all selected elements,
-  //doesn't keep a stack, and only tracks origins rather than full transforms
+  // very similar to pushCachedTransform, but does it for all selected elements,
+  // doesn't keep a stack, and only tracks origins rather than full transforms
   cacheOrigins () {
     this._originCache = this.selection.map((elem) => {
       return elem.getOriginTransformed()
@@ -495,8 +492,8 @@ class ElementSelectionProxy extends BaseModel {
     return this._proxyBoxPoints.map((point) => Object.assign({}, point))
   }
 
-  //returns the box points of the base element, without transform applied
-  getBoxPointsCompletelyNotTransformed() {
+  // returns the box points of the base element, without transform applied
+  getBoxPointsCompletelyNotTransformed () {
     const layout = this.getComputedLayout()
     const w = layout.size.x
     const h = layout.size.y
@@ -614,18 +611,18 @@ class ElementSelectionProxy extends BaseModel {
     const points = this.getBoxPointsTransformed()
 
     let left, right, top, bottom, width, height
-    if(!points || !points.length){
-      //It seems that sometimes proxy is given an empty set of elements to drag (?)
-      //so `getBoxPointsTransformed` sensibly returns an empty array.
-      //Unfortunately, that crashes the UI.
-      //This provides a stub, non-UI-breaking bbox.
+    if (!points || !points.length) {
+      // It seems that sometimes proxy is given an empty set of elements to drag (?)
+      // so `getBoxPointsTransformed` sensibly returns an empty array.
+      // Unfortunately, that crashes the UI.
+      // This provides a stub, non-UI-breaking bbox.
       left = -21
       right = -20
       top = -21
       bottom = -20
       width = 1
       height = 1
-    }else{
+    } else {
       left = Math.min(points[0].x, points[2].x, points[6].x, points[8].x)
       right = Math.max(points[0].x, points[2].x, points[6].x, points[8].x)
       top = Math.min(points[0].y, points[2].y, points[6].y, points[8].y)
@@ -687,127 +684,122 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   handleMouseUp (mousePosition) {
-    //no-op for now; 'lifecycle' event stub
+    // no-op for now; 'lifecycle' event stub
   }
 
-  //this is used specifically for the CMD key (though it is not explicitly filtered here.)
-  //if we don't "recapture" mouse position when CMD is released, the element will unexpectedly
-  //jolt back to its original position pre-drag.
+  // this is used specifically for the CMD key (though it is not explicitly filtered here.)
+  // if we don't "recapture" mouse position when CMD is released, the element will unexpectedly
+  // jolt back to its original position pre-drag.
   handleKeyUp () {
     this._shouldCaptureMousePosition = true
   }
 
-  //snapDefinitions are the element-side 'snap points' (lines)
-  //snapLines are the stage-side 'snap points' (lines)
-  //note that snapLines will generally include snapDefinitions, so there's a filter step at the beginning
-  findSnapsMatchesAndBreakTies(snapDefinitions, snapLines) {
-
+  // snapDefinitions are the element-side 'snap points' (lines)
+  // snapLines are the stage-side 'snap points' (lines)
+  // note that snapLines will generally include snapDefinitions, so there's a filter step at the beginning
+  findSnapsMatchesAndBreakTies (snapDefinitions, snapLines) {
     let horizWinners = []
     let vertWinners = []
-    let winningDeltaHoriz = undefined
-    let winningDeltaVert = undefined
+    let winningDeltaHoriz
+    let winningDeltaVert
     snapLines.forEach((snap) => {
-
       // don't snap to this element's own bounding snaplines
       let ids = this.getComponentIds()
-      if(ids.indexOf(snap.elementId) !== -1){
+      if (ids.indexOf(snap.elementId) !== -1) {
         return
       }
 
       snapDefinitions.forEach((def) => {
-        if (snap.direction === def.direction
-          && def.bboxEdgePosition > snap.positionWorld - SNAP_THRESHOLD
-          && def.bboxEdgePosition < snap.positionWorld + SNAP_THRESHOLD) {
-
+        if (snap.direction === def.direction &&
+          def.bboxEdgePosition > snap.positionWorld - SNAP_THRESHOLD &&
+          def.bboxEdgePosition < snap.positionWorld + SNAP_THRESHOLD) {
           let delta = Math.abs(def.bboxEdgePosition - snap.positionWorld)
 
-            if(snap.direction === 'HORIZONTAL' && (winningDeltaHoriz === undefined || delta < winningDeltaHoriz + SNAP_EPSILON)){
-              winningDeltaHoriz = Math.min(delta, winningDeltaHoriz) || delta
-              
-              let newWinner = {
-                direction: def.direction,
-                positionWorld: snap.positionWorld,
-                bboxEdgePosition: def.bboxEdgePosition,
-                metadata: Object.assign({}, def.metadata, snap.metadata)
-              }
-              for(var i = 0; i < horizWinners.length; i++){
-                let oldWinner = horizWinners[i]
-                let oldWinningDelta = Math.abs(oldWinner.bboxEdgePosition - oldWinner.positionWorld)
-                if(winningDeltaHoriz + SNAP_EPSILON < oldWinningDelta){
-                  horizWinners.splice(i, 1)
-                  i--
-                }
-              }
-              horizWinners.push(newWinner)
-              
-            }else if(snap.direction === 'VERTICAL' && (winningDeltaVert === undefined || delta < winningDeltaVert + SNAP_EPSILON)){
-              winningDeltaVert = Math.min(delta, winningDeltaVert) || delta
-              let newWinner = {
-                direction: def.direction,
-                positionWorld: snap.positionWorld,
-                bboxEdgePosition: def.bboxEdgePosition,
-                metadata: Object.assign({}, def.metadata, snap.metadata)
-              }
-              for(var i = 0; i < vertWinners.length; i++){
-                let oldWinner = vertWinners[i]
-                let oldWinningDelta = Math.abs(oldWinner.bboxEdgePosition - oldWinner.positionWorld)
-                if(winningDeltaVert + SNAP_EPSILON < oldWinningDelta){
-                  vertWinners.splice(i, 1)
-                  i--
-                }
-              }
-              vertWinners.push(newWinner)
+          if (snap.direction === 'HORIZONTAL' && (winningDeltaHoriz === undefined || delta < winningDeltaHoriz + SNAP_EPSILON)) {
+            winningDeltaHoriz = Math.min(delta, winningDeltaHoriz) || delta
+
+            let newWinner = {
+              direction: def.direction,
+              positionWorld: snap.positionWorld,
+              bboxEdgePosition: def.bboxEdgePosition,
+              metadata: Object.assign({}, def.metadata, snap.metadata)
             }
+            for (var i = 0; i < horizWinners.length; i++) {
+              let oldWinner = horizWinners[i]
+              let oldWinningDelta = Math.abs(oldWinner.bboxEdgePosition - oldWinner.positionWorld)
+              if (winningDeltaHoriz + SNAP_EPSILON < oldWinningDelta) {
+                horizWinners.splice(i, 1)
+                i--
+              }
+            }
+            horizWinners.push(newWinner)
+          } else if (snap.direction === 'VERTICAL' && (winningDeltaVert === undefined || delta < winningDeltaVert + SNAP_EPSILON)) {
+            winningDeltaVert = Math.min(delta, winningDeltaVert) || delta
+            let newWinner = {
+              direction: def.direction,
+              positionWorld: snap.positionWorld,
+              bboxEdgePosition: def.bboxEdgePosition,
+              metadata: Object.assign({}, def.metadata, snap.metadata)
+            }
+            for (var i = 0; i < vertWinners.length; i++) {
+              let oldWinner = vertWinners[i]
+              let oldWinningDelta = Math.abs(oldWinner.bboxEdgePosition - oldWinner.positionWorld)
+              if (winningDeltaVert + SNAP_EPSILON < oldWinningDelta) {
+                vertWinners.splice(i, 1)
+                i--
+              }
+            }
+            vertWinners.push(newWinner)
           }
+        }
       })
     })
     return [].concat(horizWinners, vertWinners)
   }
-
 
   getBboxValueFromEdgeValue (
     bbox,
     xEdge,
     yEdge
   ) {
-    if(xEdge !== undefined){
-      if(xEdge === 0){
+    if (xEdge !== undefined) {
+      if (xEdge === 0) {
         return bbox.left
-      }else if(xEdge === .5){
+      } else if (xEdge === 0.5) {
         return bbox.left + (bbox.width / 2)
-      }else if(xEdge === 1){
+      } else if (xEdge === 1) {
         return bbox.right
-      }else {
-        throw new Error("Unknown edge value", xEdge)
+      } else {
+        throw new Error('Unknown edge value', xEdge)
       }
-    }else{
-      if(yEdge === 0){
+    } else {
+      if (yEdge === 0) {
         return bbox.top
-      }else if(yEdge === .5){
+      } else if (yEdge === 0.5) {
         return bbox.top + (bbox.height / 2)
-      }else if(yEdge === 1){
+      } else if (yEdge === 1) {
         return bbox.bottom
-      }else {
-        throw new Error("Unknown edge value", yEdge)
+      } else {
+        throw new Error('Unknown edge value', yEdge)
       }
     }
   }
 
-  //Aligns selected elements along the x or y axis, either to selection bbox or to stage bbox
-  //xEdge ∈ {undefined, 0, .5, .1} 
-  //yEdge ∈ {undefined, 0, .5, .1}
-  //toStage ∈ {true, falsy}
+  // Aligns selected elements along the x or y axis, either to selection bbox or to stage bbox
+  // xEdge ∈ {undefined, 0, .5, .1}
+  // yEdge ∈ {undefined, 0, .5, .1}
+  // toStage ∈ {true, falsy}
   align (
     xEdge,
     yEdge,
     toStage
   ) {
-    if(!this.selection || !this.selection.length) {
+    if (!this.selection || !this.selection.length) {
       return
     }
 
     let alignBbox = {}
-    if(toStage){
+    if (toStage) {
       let artboard = Artboard.all()[0]
       alignBbox = {
         top: 0,
@@ -817,7 +809,7 @@ class ElementSelectionProxy extends BaseModel {
         width: artboard._mountWidth,
         height: artboard._mountHeight
       }
-    }else{
+    } else {
       alignBbox = this.getBoundingClientRect()
     }
 
@@ -828,8 +820,8 @@ class ElementSelectionProxy extends BaseModel {
       return elem.getOriginTransformed()
     })
     let overrides = []
-    
-    for(var i = 0; i < this.selection.length; i++){
+
+    for (var i = 0; i < this.selection.length; i++) {
       let bbox = this.selection[i].getBoundingClientRect()
       let bboxEdgePosition = (axis === 'x' ? this.getBboxValueFromEdgeValue(bbox, edge, undefined) : this.getBboxValueFromEdgeValue(bbox, undefined, edge))
       overrides[i] = overrides[i] || {}
@@ -839,50 +831,49 @@ class ElementSelectionProxy extends BaseModel {
     this.reinitializeLayout()
   }
 
-
-  //Distributes selected elements over the x or y axis, either to selection bbox or to stage bbox
-  //xEdge ∈ {undefined, 0, .5, .1} 
-  //yEdge ∈ {undefined, 0, .5, .1}
-  //toStage ∈ {true, falsy}
+  // Distributes selected elements over the x or y axis, either to selection bbox or to stage bbox
+  // xEdge ∈ {undefined, 0, .5, .1}
+  // yEdge ∈ {undefined, 0, .5, .1}
+  // toStage ∈ {true, falsy}
   distribute (
     xEdge,
     yEdge,
     toStage
   ) {
-    if(!this.selection) {
+    if (!this.selection) {
       return
     }
 
-    if(!toStage && this.selection.length < 2){
+    if (!toStage && this.selection.length < 2) {
       return
     }
 
     let axis = (xEdge !== undefined) ? 'x' : 'y'
 
-    //First, we'll sort the elements by the appropriate bounding edge, tracking
-    //relevant data along the way
-    this.selection.forEach((elem, i)=>{
+    // First, we'll sort the elements by the appropriate bounding edge, tracking
+    // relevant data along the way
+    this.selection.forEach((elem, i) => {
       let points = elem.getBoxPointsTransformed()
       let bbox = {
-        top: Math.min.apply(this, points.map((p) => {return p.y})),
-        right: Math.max.apply(this, points.map((p) => {return p.x})),
-        bottom: Math.max.apply(this, points.map((p) => {return p.y})),
-        left: Math.min.apply(this, points.map((p) => {return p.x})),
+        top: Math.min.apply(this, points.map((p) => { return p.y })),
+        right: Math.max.apply(this, points.map((p) => { return p.x })),
+        bottom: Math.max.apply(this, points.map((p) => { return p.y })),
+        left: Math.min.apply(this, points.map((p) => { return p.x }))
       }
       bbox.width = bbox.right - bbox.left
       bbox.height = bbox.bottom - bbox.top
-      
+
       elem._distributeBbox = bbox
       elem._distributeOriginalIndex = i
       elem._distributeBoundingEdge = (axis === 'x' ? this.getBboxValueFromEdgeValue(elem._distributeBbox, xEdge, undefined) : this.getBboxValueFromEdgeValue(elem._distributeBbox, undefined, yEdge))
     })
 
-    //Execute the sort
+    // Execute the sort
     const elementsSortedByBoundingEdge = _.cloneDeep(this.selection).sort((elemA, elemB) => {
       return elemA._distributeBoundingEdge - elemB._distributeBoundingEdge
     })
 
-    //Calculate & populate overrides
+    // Calculate & populate overrides
     let overrides = []
     let count = elementsSortedByBoundingEdge.length
     let origins = this.selection.map((elem) => {
@@ -891,14 +882,14 @@ class ElementSelectionProxy extends BaseModel {
 
     let min = elementsSortedByBoundingEdge[0]._distributeBoundingEdge
     let max = elementsSortedByBoundingEdge[count - 1]._distributeBoundingEdge
-    
-    //Stage has special boundaries
-    if(toStage){
+
+    // Stage has special boundaries
+    if (toStage) {
       let artboard = Artboard.all()[0]
-      if(axis === 'x'){
-        min = (this.getBboxValueFromEdgeValue(elementsSortedByBoundingEdge[0]._distributeBbox, xEdge, undefined) - elementsSortedByBoundingEdge[0]._distributeBbox.left)//origins[elementsSortedByBoundingEdge[0]._distributeOriginalIndex][axis] - elementsSortedByBoundingEdge[0]._distributeBbox.left
+      if (axis === 'x') {
+        min = (this.getBboxValueFromEdgeValue(elementsSortedByBoundingEdge[0]._distributeBbox, xEdge, undefined) - elementsSortedByBoundingEdge[0]._distributeBbox.left)// origins[elementsSortedByBoundingEdge[0]._distributeOriginalIndex][axis] - elementsSortedByBoundingEdge[0]._distributeBbox.left
         max = artboard._mountWidth - (elementsSortedByBoundingEdge[count - 1]._distributeBbox.right - this.getBboxValueFromEdgeValue(elementsSortedByBoundingEdge[count - 1]._distributeBbox, xEdge, undefined))
-      }else{
+      } else {
         min = (this.getBboxValueFromEdgeValue(elementsSortedByBoundingEdge[0]._distributeBbox, undefined, yEdge) - elementsSortedByBoundingEdge[0]._distributeBbox.top)
         max = artboard._mountHeight - (elementsSortedByBoundingEdge[count - 1]._distributeBbox.bottom - this.getBboxValueFromEdgeValue(elementsSortedByBoundingEdge[count - 1]._distributeBbox, undefined, yEdge))
       }
@@ -934,10 +925,8 @@ class ElementSelectionProxy extends BaseModel {
     viewportTransform,
     globals
   ) {
-
-
-    //'mousetrap' for snapping 
-    if(this._shouldCaptureMousePosition || this._lastMouseDownPosition === undefined){
+    // 'mousetrap' for snapping
+    if (this._shouldCaptureMousePosition || this._lastMouseDownPosition === undefined) {
       this._lastMouseDownPosition = mouseCoordsCurrent
       this._lastBbox = this.getBoundingClientRect()
       this._lastProxyBox = this.getBoxPointsTransformed()
@@ -950,7 +939,7 @@ class ElementSelectionProxy extends BaseModel {
       this._shouldCaptureMousePosition = false
     }
 
-    //track mouse positions, offsets, and original bounding boxes for snapping
+    // track mouse positions, offsets, and original bounding boxes for snapping
     let totalDragDelta = {
       x: mouseCoordsCurrent.x - this._lastMouseDownPosition.x,
       y: mouseCoordsCurrent.y - this._lastMouseDownPosition.y
@@ -963,7 +952,7 @@ class ElementSelectionProxy extends BaseModel {
     if (this.canControlHandles()) {
       if (isAnythingScaling) {
         if (!controlActivation.cmd) {
-          //TODO: add snapping
+          // TODO: add snapping
           return this.scale(
             dx,
             dy,
@@ -1006,8 +995,8 @@ class ElementSelectionProxy extends BaseModel {
       const targetElement = this.shouldUseChildLayout() ? this.selection[0] : this
 
       let bbox
-      if(this._lastBbox !== undefined){
-          bbox = ((bbox, delta) => { 
+      if (this._lastBbox !== undefined) {
+        bbox = ((bbox, delta) => {
           let ret = {}
           ret.top = bbox.top + delta.y
           ret.right = bbox.right + delta.x
@@ -1017,16 +1006,16 @@ class ElementSelectionProxy extends BaseModel {
           ret.width = ret.right - ret.left
           return ret
         })(this._lastBbox, totalDragDelta)
-      }else{
+      } else {
         bbox = this.getBoundingClientRect()
       }
 
-      //TODO:  
+      // TODO:
       //  - handle snapping for origin
       //  - perf pass on snapping?
-      //     - perf could filter only snaps within viewport     
+      //     - perf could filter only snaps within viewport
       //     - perf could check snap lines and bounding box edges using bounding volumes,
-      //       instead of checking every element linearly+        
+      //       instead of checking every element linearly+
 
       // Snapline {
       //  direction : "HORIZONTAL"|"VERTICAL"
@@ -1043,8 +1032,8 @@ class ElementSelectionProxy extends BaseModel {
         }
       }
 
-      //index corresponds with selected elements' indicies        
-        //{ x : number
+      // index corresponds with selected elements' indicies
+        // { x : number
         //  y : number }
       let overrides = []
 
@@ -1054,28 +1043,28 @@ class ElementSelectionProxy extends BaseModel {
       })
 
       origins.groupOrigin = origin
-      
-      //note that 'name' is really only used for readability & debugging
+
+      // note that 'name' is really only used for readability & debugging
       const SNAP_DEFINITIONS = [
         {
           name: 'TOP',
           direction: 'HORIZONTAL',
-          bboxEdgePosition: bbox.top,
+          bboxEdgePosition: bbox.top
         },
         {
           name: 'RIGHT',
           direction: 'VERTICAL',
-          bboxEdgePosition: bbox.right,
+          bboxEdgePosition: bbox.right
         },
         {
           name: 'BOTTOM',
           direction: 'HORIZONTAL',
-          bboxEdgePosition: bbox.bottom,
+          bboxEdgePosition: bbox.bottom
         },
         {
           name: 'LEFT',
           direction: 'VERTICAL',
-          bboxEdgePosition: bbox.left,
+          bboxEdgePosition: bbox.left
         },
         {
           name: 'VERTICAL_MID',
@@ -1090,24 +1079,24 @@ class ElementSelectionProxy extends BaseModel {
       ]
       let foundSnaps = this.findSnapsMatchesAndBreakTies(SNAP_DEFINITIONS, snapLines)
 
-      //Shift-dragging affects which axis we want to snap on
-      //and can use the same `overrides` mechanism
+      // Shift-dragging affects which axis we want to snap on
+      // and can use the same `overrides` mechanism
       if (globals.isShiftKeyDown) {
         const isXAxis = Math.abs(mouseCoordsCurrent.x - this._originCache.groupOrigin.x) >
           Math.abs(mouseCoordsCurrent.y - this._originCache.groupOrigin.y)
 
-        //only snap to the relevant axis
-        if(isXAxis){
-          foundSnaps = foundSnaps.filter((snap)=>{return snap.direction === 'VERTICAL'})
-          for(var i = 0; i < this.selection.length; i++){
+        // only snap to the relevant axis
+        if (isXAxis) {
+          foundSnaps = foundSnaps.filter((snap) => { return snap.direction === 'VERTICAL' })
+          for (var i = 0; i < this.selection.length; i++) {
             overrides[i] = overrides[i] || {}
             overrides[i].y = this._originCache[i].y
             overrides.groupOrigin = overrides.groupOrigin || {}
             overrides.groupOrigin.y = this._originCache.groupOrigin.y
           }
-        }else{
-          foundSnaps = foundSnaps.filter((snap)=>{return snap.direction === 'HORIZONTAL'})
-          for(var i = 0; i < this.selection.length; i++){
+        } else {
+          foundSnaps = foundSnaps.filter((snap) => { return snap.direction === 'HORIZONTAL' })
+          for (var i = 0; i < this.selection.length; i++) {
             overrides[i] = overrides[i] || {}
             overrides[i].x = this._originCache[i].x
             overrides.groupOrigin = overrides.groupOrigin || {}
@@ -1123,14 +1112,14 @@ class ElementSelectionProxy extends BaseModel {
           overrides[i] = overrides[i] || {}
           overrides[i][whichAxis] = desiredPosition - (snap.bboxEdgePosition - origins[i][whichAxis])
         })
-        overrides.groupOrigin = overrides.groupOrigin || {} 
+        overrides.groupOrigin = overrides.groupOrigin || {}
         overrides.groupOrigin[whichAxis] = desiredPosition - (snap.bboxEdgePosition - origins.groupOrigin[whichAxis])
       })
 
       SingletonSnapEmitter.getInstance().emit('snaps-updated', foundSnaps)
       return this.move(dx, dy, overrides)
     }
-   
+
     return this.move(dx, dy)
   }
 
@@ -1210,7 +1199,7 @@ class ElementSelectionProxy extends BaseModel {
     }
   }
 
-  //overrides allow per-element absolute position overrides, useful for snapping
+  // overrides allow per-element absolute position overrides, useful for snapping
   move (dx, dy, overrides) {
     const propertyGroupDelta = {
       'translation.x': {
@@ -1225,10 +1214,10 @@ class ElementSelectionProxy extends BaseModel {
 
     this.selection.forEach((element, i) => {
       let propertyGroup = element.computePropertyGroupValueFromGroupDelta(propertyGroupDelta)
-      if(overrides && overrides[i] && overrides[i].x !== undefined){
+      if (overrides && overrides[i] && overrides[i].x !== undefined) {
         propertyGroup['translation.x'] = {value: overrides[i].x}
       }
-      if(overrides && overrides[i] && overrides[i].y !== undefined){
+      if (overrides && overrides[i] && overrides[i].y !== undefined) {
         propertyGroup['translation.y'] = {value: overrides[i].y}
       }
 
@@ -1245,23 +1234,23 @@ class ElementSelectionProxy extends BaseModel {
       accumulatedUpdates,
       {},
       this.component.project.getMetadata(),
-      () => {} //no-op
+      () => {} // no-op
     )
-    if(overrides && overrides.groupOrigin && overrides.groupOrigin.x){
+    if (overrides && overrides.groupOrigin && overrides.groupOrigin.x) {
       this.applyPropertyValue('translation.x', overrides.groupOrigin.x)
-    }else{
+    } else {
       this.applyPropertyDelta('translation.x', dx)
     }
 
-    if(overrides && overrides.groupOrigin && overrides.groupOrigin.y){
+    if (overrides && overrides.groupOrigin && overrides.groupOrigin.y) {
       this.applyPropertyValue('translation.y', overrides.groupOrigin.y)
-    }else{
+    } else {
       this.applyPropertyDelta('translation.y', dy)
     }
   }
 
-  getActivationPointInRadians(index){
-    switch(index){
+  getActivationPointInRadians (index) {
+    switch (index) {
       case 5: return Math.PI * 2
       case 8: return Math.PI / 4
       case 7: return Math.PI / 2
@@ -1270,7 +1259,7 @@ class ElementSelectionProxy extends BaseModel {
       case 0: return 5 * Math.PI / 4
       case 1: return 3 * Math.PI / 2
       case 2: return 7 * Math.PI / 4
-      throw new Error("Cannot retrieve radian value for provided activation point: " + index)
+        throw new Error('Cannot retrieve radian value for provided activation point: ' + index)
     }
   }
 
@@ -1300,8 +1289,8 @@ class ElementSelectionProxy extends BaseModel {
     )
   }
 
-  translateBoxPointsManual(boxPoints, delta){
-    return boxPoints.map((point) =>{
+  translateBoxPointsManual (boxPoints, delta) {
+    return boxPoints.map((point) => {
       return {
         x: point.x + delta.x,
         y: point.y + delta.y
@@ -1310,13 +1299,12 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   scaleElements (mouseCoordsCurrent, mouseCoordsPrevious, activationPoint, globals) {
-
     let foundSnaps = []
     const accumulatedUpdates = {}
 
     const baseProxyBox = Object.assign({}, this._lastProxyBox)
 
-    //note an Object.assign({}, ...) doesn't suffice here because computeScalePropertyGroup mutates properties deeply
+    // note an Object.assign({}, ...) doesn't suffice here because computeScalePropertyGroup mutates properties deeply
     let baseTransform = _.cloneDeep(this.transformCache.peek('CONTROL_ACTIVATION'))
 
     const fixedPoint = activationPoint.alt
@@ -1337,7 +1325,7 @@ class ElementSelectionProxy extends BaseModel {
       translatedPoint,
       totalMouseDelta,
       activationPoint,
-      true,
+      true
     )
 
     let updatedLayout = _.cloneDeep(baseTransform)
@@ -1347,12 +1335,12 @@ class ElementSelectionProxy extends BaseModel {
     updatedLayout.translation.y = scalePropertyGroup['translation.y'].value
     let transformedPoints = _.cloneDeep(this._baseBoxPointsNotTransformed)
     ElementSelectionProxy.transformPointsByLayoutInPlace(transformedPoints, updatedLayout)
-    //find axis-aligned bounding box; add each edge
+    // find axis-aligned bounding box; add each edge
     let axisAlignedBbox = [
-      {name: "TOP", value: Math.min.apply(this, transformedPoints.map((p) => {return p.y}))},
-      {name: "RIGHT", value: Math.max.apply(this, transformedPoints.map((p) => {return p.x}))},
-      {name: "BOTTOM", value: Math.max.apply(this, transformedPoints.map((p) => {return p.y}))},
-      {name: "LEFT", value: Math.min.apply(this, transformedPoints.map((p) => {return p.x}))},
+      {name: 'TOP', value: Math.min.apply(this, transformedPoints.map((p) => { return p.y }))},
+      {name: 'RIGHT', value: Math.max.apply(this, transformedPoints.map((p) => { return p.x }))},
+      {name: 'BOTTOM', value: Math.max.apply(this, transformedPoints.map((p) => { return p.y }))},
+      {name: 'LEFT', value: Math.min.apply(this, transformedPoints.map((p) => { return p.x }))}
     ]
 
     const transformedTranslatedPoint = transformedPoints[activationPoint.index]
@@ -1363,49 +1351,48 @@ class ElementSelectionProxy extends BaseModel {
       return (v0 < v1 + (override || SNAP_EPSILON)) && (v0 > v1 - (override || SNAP_EPSILON))
     }
 
-    //When scaling, we want to snap to the axis-aligned bounding box of the control points, a.k.a. the "super-bounding box."
-    //To complicate things though, the user expects only some of the edges of the bounding box to snap, depending on
-    //which control point is being dragged and the rotation of the element.  The logic below simplifies this 'lookup'
-    //based on observations of how the translated point and fixed point intersect with the axis-aligned bbox.
+    // When scaling, we want to snap to the axis-aligned bounding box of the control points, a.k.a. the "super-bounding box."
+    // To complicate things though, the user expects only some of the edges of the bounding box to snap, depending on
+    // which control point is being dragged and the rotation of the element.  The logic below simplifies this 'lookup'
+    // based on observations of how the translated point and fixed point intersect with the axis-aligned bbox.
     let isDraggingEdge = false
 
-    if(activationPoint.alt){
-      //TODO:  when alt is held, we care about all bounding edges
-      //BUT, the 'unusual' edges need to give a proper offset
-      //for now, disable snapping when alt-scaling
+    if (activationPoint.alt) {
+      // TODO:  when alt is held, we care about all bounding edges
+      // BUT, the 'unusual' edges need to give a proper offset
+      // for now, disable snapping when alt-scaling
       filteredEdges = []
-    }else if(activationPoint.shift){
-      //TODO:  when shift is held, break ties between horiz & vert (could refactor findSnapsMatchesAndBreakTies to handle based on flag, or could do a post-pass manually)
-      //for now, disable snapping when shift-scaling
+    } else if (activationPoint.shift) {
+      // TODO:  when shift is held, break ties between horiz & vert (could refactor findSnapsMatchesAndBreakTies to handle based on flag, or could do a post-pass manually)
+      // for now, disable snapping when shift-scaling
       filteredEdges = []
-    }else if([1,3,5,7].indexOf(activationPoint.index) > -1){
-      //When dragging an edge, check if the translated point is touching a bbox edge.  if it is,
-      //we care ONLY about that edge.  If it's not, we care about the bbox edges that its two neighbor (corners) are touching.
-      let onlyEdge = undefined
+    } else if ([1, 3, 5, 7].indexOf(activationPoint.index) > -1) {
+      // When dragging an edge, check if the translated point is touching a bbox edge.  if it is,
+      // we care ONLY about that edge.  If it's not, we care about the bbox edges that its two neighbor (corners) are touching.
+      let onlyEdge
       axisAlignedBbox.forEach((edge) => {
         const isHoriz = (edge.name === 'TOP' || edge.name === 'BOTTOM')
-        if(isHoriz && isWithinEpsilon(transformedTranslatedPoint.y, edge.value, 10)) {
+        if (isHoriz && isWithinEpsilon(transformedTranslatedPoint.y, edge.value, 10)) {
           onlyEdge = edge
-        }else if(!isHoriz && isWithinEpsilon(transformedTranslatedPoint.x, edge.value, 10)) {
+        } else if (!isHoriz && isWithinEpsilon(transformedTranslatedPoint.x, edge.value, 10)) {
           onlyEdge = edge
         }
       })
-      if(onlyEdge !== undefined){
+      if (onlyEdge !== undefined) {
         filteredEdges = [onlyEdge]
-      }else{
-        //get neighbor points and find the edges they're touching
+      } else {
+        // get neighbor points and find the edges they're touching
         isDraggingEdge = true
         const transformedNeighborPoints = ElementSelectionProxy.getNeighborPointsForScaleSnapping(transformedPoints, activationPoint)
         filteredEdges = axisAlignedBbox.filter((edge) => {
           const isHoriz = (edge.name === 'TOP' || edge.name === 'BOTTOM')
-          if(isHoriz && (isWithinEpsilon(transformedNeighborPoints[0].y, edge.value) || isWithinEpsilon(transformedNeighborPoints[1].y, edge.value))) return true
-          if(!isHoriz && (isWithinEpsilon(transformedNeighborPoints[0].x, edge.value) || isWithinEpsilon(transformedNeighborPoints[1].x, edge.value))) return true
+          if (isHoriz && (isWithinEpsilon(transformedNeighborPoints[0].y, edge.value) || isWithinEpsilon(transformedNeighborPoints[1].y, edge.value))) return true
+          if (!isHoriz && (isWithinEpsilon(transformedNeighborPoints[0].x, edge.value) || isWithinEpsilon(transformedNeighborPoints[1].x, edge.value))) return true
           return false
         })
       }
-      
-    }else{
-      //TODO: Level up; when dragging a corner, we can handle adjacent corners by the following:
+    } else {
+      // TODO: Level up; when dragging a corner, we can handle adjacent corners by the following:
       // - We don't want to snap to any edges that the fixed point is touching
       // - Non 'active' corners (the ones that can still snap) have to provide an offset to the final
       //   delta-x and delta-y, as there's a trig relationship between active point's positionX and non-active-point's positionY
@@ -1421,16 +1408,16 @@ class ElementSelectionProxy extends BaseModel {
       //   return true
       // })
 
-      //Instead of the above, when dragging a corner, we only want to snap to the edge(s) that the translatedPoint is touching
+      // Instead of the above, when dragging a corner, we only want to snap to the edge(s) that the translatedPoint is touching
       filteredEdges = axisAlignedBbox.filter((edge) => {
         const isHoriz = (edge.name === 'TOP' || edge.name === 'BOTTOM')
-        if(isHoriz && isWithinEpsilon(transformedTranslatedPoint.y, edge.value, 1)) return true
-        if(!isHoriz && isWithinEpsilon(transformedTranslatedPoint.x, edge.value, 1)) return true
+        if (isHoriz && isWithinEpsilon(transformedTranslatedPoint.y, edge.value, 1)) return true
+        if (!isHoriz && isWithinEpsilon(transformedTranslatedPoint.x, edge.value, 1)) return true
         return false
       })
     }
 
-    let snapDefinitions = filteredEdges.map((edge)=>{
+    let snapDefinitions = filteredEdges.map((edge) => {
       const isHoriz = (edge.name === 'TOP' || edge.name === 'BOTTOM')
       return {
         name: edge.name,
@@ -1445,28 +1432,28 @@ class ElementSelectionProxy extends BaseModel {
 
     let artboard = Artboard.all()[0]
     foundSnaps = this.findSnapsMatchesAndBreakTies(snapDefinitions, artboard.getSnapLinesInScreenCoords())
-    foundSnaps.forEach((snap)=>{
-      if(snap.direction === 'HORIZONTAL'){        
+    foundSnaps.forEach((snap) => {
+      if (snap.direction === 'HORIZONTAL') {
         totalMouseDelta.y = (snap.positionWorld - (snap.metadata.offset || 0)) - (this._lastProxyBox[activationPoint.index].y)
-        if(snap.metadata && snap.metadata.isDraggingEdge){
-          //we know one of the deltas but must solve for the other based on our knowledge of the current
-          //rotation & the transform controls' absolute rotations.
+        if (snap.metadata && snap.metadata.isDraggingEdge) {
+          // we know one of the deltas but must solve for the other based on our knowledge of the current
+          // rotation & the transform controls' absolute rotations.
           let offsetRotation = this.getActivationPointInRadians(activationPoint.index)
           let transformRotation = updatedLayout.rotation.z
-          let theta = (((offsetRotation + transformRotation) * 10000) % 62832) / 10000 //'mod' by 2*pi
-          totalMouseDelta.x = (totalMouseDelta.y / Math.tan(theta)) || 0 
+          let theta = (((offsetRotation + transformRotation) * 10000) % 62832) / 10000 // 'mod' by 2*pi
+          totalMouseDelta.x = (totalMouseDelta.y / Math.tan(theta)) || 0
         }
-      }else{
+      } else {
         totalMouseDelta.x = (snap.positionWorld - (snap.metadata.offset || 0)) - (this._lastProxyBox[activationPoint.index].x)
-        if(snap.metadata && snap.metadata.isDraggingEdge){
+        if (snap.metadata && snap.metadata.isDraggingEdge) {
           let offsetRotation = this.getActivationPointInRadians(activationPoint.index)
           let transformRotation = updatedLayout.rotation.z
-          let theta = (((offsetRotation + transformRotation) * 10000) % 62832) / 10000 //'mod' by 2*pi
+          let theta = (((offsetRotation + transformRotation) * 10000) % 62832) / 10000 // 'mod' by 2*pi
           totalMouseDelta.y = (totalMouseDelta.x * Math.tan(theta)) || 0
         }
       }
     })
-    if(foundSnaps.length){
+    if (foundSnaps.length) {
       baseTransform = _.cloneDeep(this.transformCache.peek('CONTROL_ACTIVATION'))
       scalePropertyGroup = ElementSelectionProxy.computeScalePropertyGroup(
         baseTransform,
@@ -1474,7 +1461,7 @@ class ElementSelectionProxy extends BaseModel {
         translatedPoint,
         totalMouseDelta,
         activationPoint,
-        true,
+        true
       )
     }
 
@@ -1563,7 +1550,6 @@ class ElementSelectionProxy extends BaseModel {
     )
 
     SingletonSnapEmitter.getInstance().emit('snaps-updated', foundSnaps)
-
   }
 
   scaleArtboard (
@@ -1965,22 +1951,21 @@ ElementSelectionProxy.getFixedPointForScale = (proxyBoxPoints, activationPoint) 
   }
 }
 
-//For a given activation point, we're also interested in the snaps of its neighbors, for e.g.  
+// For a given activation point, we're also interested in the snaps of its neighbors, for e.g.
 ElementSelectionProxy.getNeighborPointsForScaleSnapping = (proxyBoxPoints, activationPoint) => {
   switch (activationPoint.index) {
     case 1:
       return [proxyBoxPoints[0], proxyBoxPoints[2]]
     case 3:
-      return [proxyBoxPoints[0], proxyBoxPoints[6]] 
+      return [proxyBoxPoints[0], proxyBoxPoints[6]]
     case 5:
-      return [proxyBoxPoints[2], proxyBoxPoints[8]] 
+      return [proxyBoxPoints[2], proxyBoxPoints[8]]
     case 7:
-      return [proxyBoxPoints[6], proxyBoxPoints[8]] 
-    default: //4 or other
+      return [proxyBoxPoints[6], proxyBoxPoints[8]]
+    default: // 4 or other
       throw new Error("Snapping behavior for 'center point' scaling is undefined")
   }
 }
-
 
 ElementSelectionProxy.getTranslatedPointForScale = (proxyBoxPoints, activationPoint) => {
   switch (activationPoint.index) {
@@ -2002,8 +1987,8 @@ ElementSelectionProxy.computeScalePropertyGroup = (
   translatedPointIn,
   deltaIn,
   activationPoint,
-  applyConstraints,
-  
+  applyConstraints
+
 ) => {
   // Make a copy of inbound points so we can transform them in place.
   const fixedPoint = Object.assign({}, fixedPointIn)
@@ -2145,7 +2130,7 @@ ElementSelectionProxy.computeScalePropertyGroup = (
 ElementSelectionProxy.transformPointsByLayoutInPlace = (points, layout) => {
   const ignoredSize = {x: 0, y: 0, z: 0}
   const matrix = Layout3D.computeMatrix(layout, layout.size, layout.size)
-  return points.map((point)=>{
+  return points.map((point) => {
     HaikuElement.transformPointInPlace(point, matrix)
     return point
   })
