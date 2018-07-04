@@ -1,5 +1,17 @@
 import {client} from '@haiku/sdk-client';
 import {inkstone} from '@haiku/sdk-inkstone';
+
+import {
+  fetchProjectConfigInfo,
+  getDefaultBranchName,
+  getHaikuCoreVersion,
+  storeConfigValues,
+} from '@haiku/sdk-client/lib/ProjectDefinitions';
+
+import {bootstrapSceneFilesSync} from '@haiku/sdk-client/lib/bootstrapSceneFilesSync';
+import {createProjectFiles} from '@haiku/sdk-client/lib/createProjectFiles';
+import {getCurrentOrganizationName} from '@haiku/sdk-client/lib/getOrganizationName';
+
 import * as chalk from 'chalk';
 import {execSync} from 'child_process';
 import * as dedent from 'dedent';
@@ -8,6 +20,7 @@ import * as fs from 'fs';
 import * as hasbin from 'hasbin';
 import * as inquirer from 'inquirer';
 import * as _ from 'lodash';
+import * as path from 'path';
 // @ts-ignore
 import * as prependFile from 'prepend-file';
 
@@ -122,6 +135,24 @@ const cli = new Nib({
       ],
       action: doUpdate,
       description: 'Updates dependencies',
+    },
+    {
+      name: 'generate',
+      aliases: ['g'],
+      args: [
+        {
+          name: 'component-name',
+          required: true,
+          usage: 'Specifies the name of new component to be generated.  Case-sensitive and must be unique.',
+        },
+        {
+          name: 'isPublic',
+          required: false,
+          usage: 'Specifies if project to be created is public (\'true\') or private (\'false\'). Default: \'false\'.',
+        },
+      ],
+      action: generateComponent,
+      description: 'Generate new component',
     },
   ],
 });
@@ -464,6 +495,100 @@ function doUpdate (context: IContext) {
         ' We recommend installing it with nvm: https://github.com/creationix/nvm');
       process.exit(1);
     }
+  });
+}
+
+function generateComponent (context: IContext) {
+  const componentName = context.args['component-name'];
+  const isPublicString = context.args.isPublic;
+  let isPublic: boolean = false;
+  switch (isPublicString) {
+    case undefined:
+      isPublic = false;
+      break;
+    case 'false':
+      isPublic = false;
+      break;
+    case 'true':
+      isPublic = true;
+      break;
+    default:
+      context.writeLine('isPublic should be \'true\' or \'false\'. Fix it and try again');
+      process.exit(1);
+      break;
+  }
+
+  ensureAuth(context, (token) => {
+    context.writeLine('Trying to create component...');
+
+    inkstone.project.create(token, {Name: componentName, IsPublic: isPublic},
+      (projectCreateErr, projectPayload: any) => {
+        if (projectCreateErr) {
+        // this.sentryError('createProject', projectCreateErr);
+          console.log('projectCreateErr', projectCreateErr);
+          context.writeLine('Cannot create project: ' + projectCreateErr);
+          process.exit(1);
+        }
+        console.log('Project payload', projectPayload);
+
+        const projectPath = path.join(process.cwd(), componentName);
+        const projectName = componentName;
+
+        const version = getHaikuCoreVersion();
+        const branch = getDefaultBranchName();
+        let username: string = null;
+        inkstone.user.getDetails(token, (err: string, user: inkstone.user.User) => {
+          username = user.Username;
+        });
+        const skipContentCreation = false;
+        let organizationName: string = null;
+        getCurrentOrganizationName((err: Error, org: string) => {
+          organizationName = org;
+        });
+        // const projectsHome = HOMEDIR_PROJECTS_PATH;
+        const repositoryUrl = projectPayload.repositoryUrl;
+        const authorName = username;
+
+        storeConfigValues(projectPath, {
+          username,
+          branch,
+          version,
+          organization: organizationName,
+          project: projectName,
+        });
+
+        const projectOptions = {
+          skipContentCreation,
+          // projectsHome,
+          organizationName,
+          projectName,
+          projectPath,
+          repositoryUrl,
+          authorName,
+        };
+
+        createProjectFiles(projectPath, projectName, projectOptions, () => {
+          console.log('Created files');
+        });
+
+        fetchProjectConfigInfo(projectPath, (err: Error|null, userconfig: any) => {
+          if (err) {
+            throw err;
+          }
+
+          bootstrapSceneFilesSync(projectPath, 'main', userconfig);
+        });
+
+      // const master = new Master('/home/jonaias/.haiku/');
+      // master.initializeFolder();
+
+        context.writeLine('Project created: ' + projectPayload);
+
+        console.log('Project created: ', projectPayload);
+        process.exit(0);
+      // const remoteProjectObject = remapProjectObjectToExpectedFormat(projectPayload, this.get('organizationName'));
+      // return cb(null, remoteProjectObject);
+      });
   });
 }
 
