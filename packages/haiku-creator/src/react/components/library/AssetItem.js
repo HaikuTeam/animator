@@ -507,9 +507,12 @@ class AssetItem extends React.Component {
   }
 
   renderSubLevel () {
+    if (!this.props.isOpened) {
+      return <div />;
+    }
+
     return (
-      <Collapse
-        isOpened={this.state.isOpened}>
+      <div>
         <AssetList
           projectModel={this.props.projectModel}
           onDragStart={this.props.onDragStart}
@@ -521,8 +524,9 @@ class AssetItem extends React.Component {
           onImportFigmaAsset={this.props.onImportFigmaAsset}
           onAskForFigmaAuth={this.props.onAskForFigmaAuth}
           figma={this.props.figma}
-          indent={this.props.indent + 1} />
-      </Collapse>
+          indent={this.props.indent + 1}
+        />
+      </div>
     );
   }
 
@@ -593,18 +597,6 @@ class AssetItem extends React.Component {
           {this.renderSubLevel()}
         </div>
       </div>
-    );
-  }
-}
-
-class Collapse extends React.Component {
-  render () {
-    if (!this.props.isOpened) {
-      return <div />;
-    }
-
-    return (
-      <div>{this.props.children}</div>
     );
   }
 }
