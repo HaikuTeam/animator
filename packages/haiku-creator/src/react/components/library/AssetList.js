@@ -6,23 +6,15 @@ import DesignFileCreator from './DesignFileCreator';
 
 class AssetList extends React.PureComponent {
   shouldDisplayAssetCreator (assets) {
-    const assetsAreDefaultWithoutContent = assets.every((asset) => {
-
-      if (asset.isDesignsHostFolder() || asset.isComponentsHostFolder()) {
-        return this.shouldDisplayAssetCreator(asset.getChildAssets());
-      }
-
-      return (
-        asset.displayName.includes(this.props.projectModel.getName()) &&
-        asset.getChildAssets().length === 0
-      );
-    });
-
-    return assetsAreDefaultWithoutContent && this.props.assets.length > 0;
+    const designsFolder = assets.find((asset) => asset.isDesignsHostFolder());
+    return designsFolder && designsFolder.getChildAssets().length === 0;
   }
 
   render () {
-    if (experimentIsEnabled(Experiment.CleanInitialLibraryState) && this.shouldDisplayAssetCreator(this.props.assets)) {
+    if (
+      experimentIsEnabled(Experiment.CleanInitialLibraryState) &&
+      this.shouldDisplayAssetCreator(this.props.assets)
+    ) {
       return <DesignFileCreator />;
     }
 

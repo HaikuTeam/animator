@@ -507,7 +507,7 @@ class AssetItem extends React.Component {
   }
 
   renderSubLevel () {
-    if (!this.props.isOpened) {
+    if (!this.state.isOpened) {
       return <div />;
     }
 
