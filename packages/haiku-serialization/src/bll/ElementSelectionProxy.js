@@ -792,6 +792,8 @@ class ElementSelectionProxy extends BaseModel {
       }
     }
   }
+
+  //Aligns selected elements along the x or y axis, either to selection bbox or to stage bbox
   //xEdge ∈ {undefined, 0, .5, .1} 
   //yEdge ∈ {undefined, 0, .5, .1}
   //toStage ∈ {true, falsy}
@@ -835,15 +837,81 @@ class ElementSelectionProxy extends BaseModel {
     }
     this.move(0, 0, overrides)
     this.reinitializeLayout()
-    
   }
 
-  // distribute (
-  //   xEdge,
-  //   yEdge,
-  //   toStage
-  // )
 
+  //Distributes selected elements over the x or y axis, either to selection bbox or to stage bbox
+  //xEdge ∈ {undefined, 0, .5, .1} 
+  //yEdge ∈ {undefined, 0, .5, .1}
+  //toStage ∈ {true, falsy}
+  distribute (
+    xEdge,
+    yEdge,
+    toStage
+  ) {
+    if(!this.selection || !this.selection.length) {
+      return
+    }
+
+    let axis = (xEdge !== undefined) ? 'x' : 'y'
+
+    //First, we'll sort the elements by the appropriate bounding edge, tracking
+    //relevant data along the way
+    this.selection.forEach((elem, i)=>{
+      let points = elem.getBoxPointsTransformed()
+      let bbox = {
+        top: Math.min.apply(this, points.map((p) => {return p.y})),
+        right: Math.max.apply(this, points.map((p) => {return p.x})),
+        bottom: Math.max.apply(this, points.map((p) => {return p.y})),
+        left: Math.min.apply(this, points.map((p) => {return p.x})),
+      }
+      bbox.width = bbox.right - bbox.left
+      bbox.height = bbox.bottom - bbox.top
+      
+      elem._distributeBbox = bbox
+      elem._distributeOriginalIndex = i
+      elem._distributeBoundingEdge = (axis === 'x' ? this.getBboxValueFromEdgeValue(elem._distributeBbox, xEdge, undefined) : this.getBboxValueFromEdgeValue(elem._distributeBbox, undefined, yEdge))
+    })
+
+    //Execute the sort
+    const elementsSortedByBoundingEdge = _.cloneDeep(this.selection).sort((elemA, elemB) => {
+      return elemA._distributeBoundingEdge - elemB._distributeBoundingEdge
+    })
+
+    //Calculate & populate overrides
+    let overrides = []
+    let count = elementsSortedByBoundingEdge.length
+    let origins = this.selection.map((elem) => {
+      return elem.getOriginTransformed()
+    })
+
+    let min = elementsSortedByBoundingEdge[0]._distributeBoundingEdge
+    let max = elementsSortedByBoundingEdge[count - 1]._distributeBoundingEdge
+    
+    //Stage has special boundaries
+    if(toStage){
+      let artboard = Artboard.all()[0]
+      if(axis === 'x'){
+        min = origins[elementsSortedByBoundingEdge[0]._distributeOriginalIndex][axis] - elementsSortedByBoundingEdge[0]._distributeBbox.left
+        max = artboard._mountWidth// + (origins[elementsSortedByBoundingEdge[count - 1]._distributeOriginalIndex][axis] - elementsSortedByBoundingEdge[count - 1]._distributeBbox.right)
+      }else{
+        min = (this.getBboxValueFromEdgeValue(elementsSortedByBoundingEdge[0]._distributeBbox, undefined, yEdge) - elementsSortedByBoundingEdge[0]._distributeBbox.top)
+        max = artboard._mountHeight + (elementsSortedByBoundingEdge[0]._distributeBbox.top - this.getBboxValueFromEdgeValue(elementsSortedByBoundingEdge[0]._distributeBbox, undefined, yEdge))
+      }
+    }
+
+    let interval = (max - min) / (count - 1)
+
+    elementsSortedByBoundingEdge.forEach((elem, i) => {
+      let origIndex = elem._distributeOriginalIndex
+      let targetValue = min + (interval * i)
+      overrides[origIndex] = overrides[origIndex] || {}
+      overrides[origIndex][axis] = targetValue - (elem._distributeBoundingEdge - origins[origIndex][axis])
+    })
+
+    this.move(0, 0, overrides)
+    this.reinitializeLayout()
+  }
 
   /**
    * @method drag

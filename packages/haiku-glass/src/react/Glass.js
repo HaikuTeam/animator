@@ -2040,12 +2040,18 @@ export class Glass extends React.Component {
       case 91: this.handleKeyCommand(true); break //left cmd
       case 93: this.handleKeyCommand(true); break //left cmd
       case 76: this.handleAlignRequest(undefined, 1, false); break // l key
+      case 75: this.handleDistributeRequest(undefined, .5, true); break // k key
     }
   }
 
   handleAlignRequest(xEdge, yEdge, toStage) {
     const proxy = this.fetchProxyElementForSelection()
     proxy.align(xEdge, yEdge, toStage)
+  }
+
+  handleDistributeRequest(xEdge, yEdge, toStage) {
+    const proxy = this.fetchProxyElementForSelection()
+    proxy.distribute(xEdge, yEdge, toStage)
   }
 
   handleKeyCommand (isDown) {
