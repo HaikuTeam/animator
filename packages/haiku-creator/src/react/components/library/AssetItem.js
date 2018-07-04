@@ -506,9 +506,56 @@ class AssetItem extends React.Component {
     return displayName;
   }
 
+  get messageForAsset () {
+    if (this.props.asset.isIllustratorFile()) {
+      return `
+        ⇧ Double click to open this file in Illustrator.
+        Every artboard will be synced here when you save.
+      `;
+    }
+
+    if (this.props.asset.isSketchFile()) {
+      return `
+        ⇧ Double click to open this file in Sketch.
+        Every slice and artboard will be synced here when you save.
+      `;
+    }
+
+    if (this.props.asset.isFigmaFile()) {
+      return `
+        ⇧ Double click to import a file from Figma.
+        Every slice and group will be imported here.
+      `;
+    }
+
+    if (this.props.asset.isComponentsHostFolder()) {
+      return `
+        To create a component, select elements on stage and choose
+        "Create Component" from the element menu
+      `;
+    }
+
+    return null;
+  }
+
   renderSubLevel () {
     if (!this.state.isOpened) {
       return <div />;
+    }
+
+    if (this.props.asset.getChildAssets().length === 0) {
+      const message = this.messageForAsset;
+
+      return message && (
+        <div
+          className="asset-item-container"
+          style={[STYLES.container, STYLES.message]}>
+          <span
+            className="asset-message-container">
+            {message}
+          </span>
+        </div>
+      );
     }
 
     return (
