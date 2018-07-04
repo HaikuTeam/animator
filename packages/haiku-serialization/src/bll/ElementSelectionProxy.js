@@ -849,7 +849,11 @@ class ElementSelectionProxy extends BaseModel {
     yEdge,
     toStage
   ) {
-    if(!this.selection || !this.selection.length) {
+    if(!this.selection) {
+      return
+    }
+
+    if(!toStage && this.selection.length < 2){
       return
     }
 
@@ -892,11 +896,11 @@ class ElementSelectionProxy extends BaseModel {
     if(toStage){
       let artboard = Artboard.all()[0]
       if(axis === 'x'){
-        min = origins[elementsSortedByBoundingEdge[0]._distributeOriginalIndex][axis] - elementsSortedByBoundingEdge[0]._distributeBbox.left
-        max = artboard._mountWidth// + (origins[elementsSortedByBoundingEdge[count - 1]._distributeOriginalIndex][axis] - elementsSortedByBoundingEdge[count - 1]._distributeBbox.right)
+        min = (this.getBboxValueFromEdgeValue(elementsSortedByBoundingEdge[0]._distributeBbox, xEdge, undefined) - elementsSortedByBoundingEdge[0]._distributeBbox.left)//origins[elementsSortedByBoundingEdge[0]._distributeOriginalIndex][axis] - elementsSortedByBoundingEdge[0]._distributeBbox.left
+        max = artboard._mountWidth - (elementsSortedByBoundingEdge[count - 1]._distributeBbox.right - this.getBboxValueFromEdgeValue(elementsSortedByBoundingEdge[count - 1]._distributeBbox, xEdge, undefined))
       }else{
         min = (this.getBboxValueFromEdgeValue(elementsSortedByBoundingEdge[0]._distributeBbox, undefined, yEdge) - elementsSortedByBoundingEdge[0]._distributeBbox.top)
-        max = artboard._mountHeight + (elementsSortedByBoundingEdge[0]._distributeBbox.top - this.getBboxValueFromEdgeValue(elementsSortedByBoundingEdge[0]._distributeBbox, undefined, yEdge))
+        max = artboard._mountHeight - (elementsSortedByBoundingEdge[count - 1]._distributeBbox.bottom - this.getBboxValueFromEdgeValue(elementsSortedByBoundingEdge[count - 1]._distributeBbox, undefined, yEdge))
       }
     }
 
@@ -1017,19 +1021,12 @@ class ElementSelectionProxy extends BaseModel {
         bbox = this.getBoundingClientRect()
       }
 
-      //SNAPPING:
-      //========
-
       //TODO:  
-      //       - handle snapping for origin
-      //       - simple align + distribute passes, since much logic is related
-      //         ^ bonus points for supporting "to stage," a la Flash
-      //       - clean-up pass:
-      //           - "screen space" from v0 may not be necessary; maybe can remove many matrix ops
-      //       - perf pass?
-      //           - perf could filter only snaps within viewport     
-      //           - perf could check snap lines and bounding box edges using bounding volumes,
-      //             instead of checking every element linearly+        
+      //  - handle snapping for origin
+      //  - perf pass on snapping?
+      //     - perf could filter only snaps within viewport     
+      //     - perf could check snap lines and bounding box edges using bounding volumes,
+      //       instead of checking every element linearly+        
 
       // Snapline {
       //  direction : "HORIZONTAL"|"VERTICAL"

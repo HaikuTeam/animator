@@ -535,3 +535,96 @@ export const SyncIconSVG = ({color = '#93999A'}) => (
     <path d="M19.854 8.646a.5.5 0 0 0-.707 0l-1.149 1.149a7.94 7.94 0 0 0-2.341-5.452A7.948 7.948 0 0 0 10 2a7.988 7.988 0 0 0-7.077 4.266.5.5 0 0 0 .884.468A6.99 6.99 0 0 1 10 3c3.789 0 6.885 3.027 6.997 6.789l-1.143-1.143a.5.5 0 0 0-.707.707l2 2a.498.498 0 0 0 .708 0l2-2a.5.5 0 0 0 0-.707zM16.869 13.058a.5.5 0 0 0-.676.208A6.99 6.99 0 0 1 10 17c-3.789 0-6.885-3.027-6.997-6.789l1.143 1.143a.498.498 0 0 0 .708 0 .5.5 0 0 0 0-.707l-2-2a.5.5 0 0 0-.707 0l-2 2a.5.5 0 0 0 .707.707l1.149-1.149a7.94 7.94 0 0 0 2.341 5.452A7.948 7.948 0 0 0 10.001 18a7.988 7.988 0 0 0 7.077-4.266.5.5 0 0 0-.208-.676z" fill={color}/>
   </svg>
 );
+
+export const AlignDistributeIcons = {
+  AlignVLeft: ({color = '#636E71'}) => (
+    React.createElement('svg', {xmlns:'http://www.w3.org/2000/svg', width: '32', height: '32', viewBox: '0 0 32 32'},
+      React.createElement('line', {x1: '4.48', y1:'3.04', x2: '4.48', y2: '28.96', style: {fill: 'none', stroke: color, strokeMiterlimit: '10', strokeWidth: '2px'}}),
+      React.createElement('rect', {x: '7.36', y:'5.92', width:'11.52', height: '8.64', style: {fill: color}}),
+      React.createElement('rect', {x: '7.36', y:'17.44', width:'20.15', height: '8.64', style: {fill: color}}),
+    )
+  ),
+  AlignVMid: ({color = '#636E71'}) => (
+    React.createElement('svg', {xmlns:'http://www.w3.org/2000/svg', width: '32', height: '32', viewBox: '0 0 32 32'},
+      React.createElement('line', {x1: '16', y1:'3.04', x2: '16', y2: '28.96', style: {fill: 'none', stroke: color, strokeMiterlimit: '10', strokeWidth: '2px'}}),
+      React.createElement('rect', {x: '10.24', y:'5.92', width:'11.52', height: '8.64', style: {fill: color}}),
+      React.createElement('rect', {x: '5.92', y:'17.44', width:'20.15', height: '8.64', style: {fill: color}}),
+    )
+  ),
+  AlignVRight: ({color = '#636E71'}) => (
+    React.createElement('svg', {xmlns:'http://www.w3.org/2000/svg', width: '32', height: '32', viewBox: '0 0 32 32'},
+      React.createElement('line', {x1: '27.16', y1:'3.04', x2: '27.16', y2: '28.96', style: {fill: 'none', stroke: color, strokeMiterlimit: '10', strokeWidth: '2px'}}),
+      React.createElement('rect', {x: '13.48', y:'5.92', width:'11.52', height: '8.64', style: {fill: color}}),
+      React.createElement('rect', {x: '4.84', y:'17.44', width:'20.15', height: '8.64', style: {fill: color}}),
+    )
+  ),
+  AlignHTop: ({color = '#636E71'}) => (
+    React.createElement('svg', {xmlns:'http://www.w3.org/2000/svg', width: '32', height: '32', viewBox: '0 0 32 32'},
+      React.createElement('line', {x1:'3.04', y1:'4.84', x2:'28.96', y2:'4.84', style: {fill: 'none', stroke: color, strokeMiterlimit: '10', strokeWidth: '2px'}}),
+      React.createElement('rect', {x:'4.48', y:'8.44', width:'11.52', height:'8.64', transform:'translate(-2.52 23) rotate(-90)', style: {fill: color}}),
+      React.createElement('rect', {x:'11.68', y:'12.76', width:'20.15', height:'8.64', transform:'translate(4.68 38.84) rotate(-90)', style: {fill: color}}),
+    )
+  ),
+  AlignHMid: ({color = '#636E71'}) => (
+    React.createElement('svg', {xmlns:'http://www.w3.org/2000/svg', width: '32', height: '32', viewBox: '0 0 32 32'},
+      React.createElement('line', {x1:'3.04', y1:'16', x2:'28.96', y2:'16', style: {fill: 'none', stroke: color, strokeMiterlimit: '10', strokeWidth: '2px'}}),
+      React.createElement('rect', {x:'4.48', y:'11.68', width:'11.52', height:'8.64', transform:'translate(-5.76 26.24) rotate(-90)', style: {fill: color}}),
+      React.createElement('rect', {x:'11.68', y:'11.68', width:'20.15', height:'8.64', transform:'translate(5.76 37.76) rotate(-90)', style: {fill: color}}),
+    )
+  ),
+  AlignHBottom: ({color = '#636E71'}) => (
+    React.createElement('svg', {xmlns:'http://www.w3.org/2000/svg', width: '32', height: '32', viewBox: '0 0 32 32'},
+      React.createElement('line', {x1:'3.04', y1:'27.16', x2:'28.96', y2:'27.16', style: {fill: 'none', stroke: color, strokeMiterlimit: '10', strokeWidth: '2px'}}),
+      React.createElement('rect', {x:'4.48', y:'14.92', width:'11.52', height:'8.64', transform:'translate(-9 29.48) rotate(-90)', style: {fill: color}}),
+      React.createElement('rect', {x:'11.68', y:'10.6', width:'20.15', height:'8.64', transform:'translate(6.84 36.68) rotate(-90)', style: {fill: color}}),
+    )
+  ),
+  DistributeHTop: ({color = '#636E71'}) => (
+    React.createElement('svg', {xmlns:'http://www.w3.org/2000/svg', width: '32', height: '32', viewBox: '0 0 32 32'},
+      React.createElement('line', {x1:'28.96', y1:'5.85', x2:'3.04', y2:'5.85', style: {fill: 'none', stroke: color, strokeMiterlimit: '10', strokeWidth: '2px'}}),
+      React.createElement('line', {x1:'28.96', y1:'17.85', x2:'3.04', y2:'17.85', style: {fill: 'none', stroke: color, strokeMiterlimit: '10', strokeWidth: '2px'}}),
+      React.createElement('rect', {x:'10.24', y:'7.85', width:'11.52', height:'6', style: {fill: color}}),
+      React.createElement('rect', {x:'6.85', y:'19.85', width:'17.99', height:'7', transform:'translate(31.69 46.7) rotate(180)', style: {fill: color}}),
+    )
+  ),
+  DistributeHMid: ({color = '#636E71'}) => (
+    React.createElement('svg', {xmlns:'http://www.w3.org/2000/svg', width: '32', height: '32', viewBox: '0 0 32 32'},
+      React.createElement('line', {x1:'28.96', y1:'9.54', x2:'3.04', y2:'9.54', style: {fill: 'none', stroke: color, strokeMiterlimit: '10', strokeWidth: '2px'}}),
+      React.createElement('line', {x1:'28.96', y1:'21.96', x2:'3.04', y2:'21.96', style: {fill: 'none', stroke: color, strokeMiterlimit: '10', strokeWidth: '2px'}}),
+      React.createElement('rect', {x:'10.24', y:'6.54', width:'11.52', height:'6', style: {fill: color}}),
+      React.createElement('rect', {x:'7', y:'18.46', width:'17.99', height:'7', transform:'translate(32 43.92) rotate(180)', style: {fill: color}}),
+    )
+  ),
+  DistributeHBottom: ({color = '#636E71'}) => (
+    React.createElement('svg', {xmlns:'http://www.w3.org/2000/svg', width: '32', height: '32', viewBox: '0 0 32 32'},
+      React.createElement('line', {x1:'28.96', y1:'13.33', x2:'3.04', y2:'13.33', style: {fill: 'none', stroke: color, strokeMiterlimit: '10', strokeWidth: '2px'}}),
+      React.createElement('line', {x1:'28.96', y1:'26.31', x2:'3.04', y2:'26.31', style: {fill: 'none', stroke: color, strokeMiterlimit: '10', strokeWidth: '2px'}}),
+      React.createElement('rect', {x:'10.24', y:'5.69', width:'11.52', height:'6', style: {fill: color}}),
+      React.createElement('rect', {x:'7', y:'17.78', width:'17.99', height:'7', transform:'translate(32 42.57) rotate(180)', style: {fill: color}}),
+    )
+  ),
+  DistributeVLeft: ({color = '#636E71'}) => (
+    React.createElement('svg', {xmlns:'http://www.w3.org/2000/svg', width: '32', height: '32', viewBox: '0 0 32 32'},
+      React.createElement('line', {x1:'5.5', y1:'3.04', x2:'5.5', y2:'28.96', style: {fill: 'none', stroke: color, strokeMiterlimit: '10', strokeWidth: '2px'}}),
+      React.createElement('line', {x1:'17.5', y1:'3.04', x2:'17.5', y2:'28.96', style: {fill: 'none', stroke: color, strokeMiterlimit: '10', strokeWidth: '2px'}}),
+      React.createElement('rect', {x:'4.74', y:'13', width:'11.52', height:'6', transform:'translate(-5.5 26.5) rotate(-90)', style: {fill: color}}),
+      React.createElement('rect', {x:'14', y:'12.65', width:'17.99', height:'7', transform:'translate(39.15 -6.85) rotate(90)', style: {fill: color}}),
+    )
+  ),
+  DistributeVMid: ({color = '#636E71'}) => (
+    React.createElement('svg', {xmlns:'http://www.w3.org/2000/svg', width: '32', height: '32', viewBox: '0 0 32 32'},
+      React.createElement('line', {x1:'9.62', y1:'3.04', x2:'9.62', y2:'28.96', style: {fill: 'none', stroke: color, strokeMiterlimit: '10', strokeWidth: '2px'}}),
+      React.createElement('line', {x1:'22.04', y1:'3.04', x2:'22.04', y2:'28.96', style: {fill: 'none', stroke: color, strokeMiterlimit: '10', strokeWidth: '2px'}}),
+      React.createElement('rect', {x:'3.87', y:'13.12', width:'11.52', height:'5.76', transform:'translate(-6.38 25.62) rotate(-90)', style: {fill: color}}),
+      React.createElement('rect', {x:'13.04', y:'12.79', width:'17.99', height:'6.43', transform:'translate(38.04 -6.04) rotate(90)', style: {fill: color}}),
+    )
+  ),
+  DistributeVRight: ({color = '#636E71'}) => (
+    React.createElement('svg', {xmlns:'http://www.w3.org/2000/svg', width: '32', height: '32', viewBox: '0 0 32 32'},
+      React.createElement('line', {x1:'13.27', y1:'3.04', x2:'13.27', y2:'28.96', style: {fill: 'none', stroke: color, strokeMiterlimit: '10', strokeWidth: '2px'}}),
+      React.createElement('line', {x1:'26.25', y1:'3.04', x2:'26.25', y2:'28.96', style: {fill: 'none', stroke: color, strokeMiterlimit: '10', strokeWidth: '2px'}}),
+      React.createElement('rect', {x:'2.87', y:'13.12', width:'11.52', height:'5.76', transform:'translate(-7.37 24.63) rotate(-90)', style: {fill: color}}),
+      React.createElement('rect', {x:'12.23', y:'12.79', width:'17.99', height:'6.43', transform:'translate(37.22 -5.22) rotate(90)', style: {fill: color}}),
+    )
+  ),
+};
