@@ -48,6 +48,7 @@ const FOLDER_CHOICES = {
   'blank-noclean': blankProject,
   'MattsPrimitives-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/MattsPrimitives'),
   'primitives-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/primitives'),
+  'primitives-misc-1-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/primitives-misc-1'),
   'percy-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/percybanking'),
   'statetransitions-core': path.join(ROOT, 'packages/@haiku/core/demo/projects/statetransitions'),
   'simple-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/simple'),
@@ -86,7 +87,7 @@ if (argv.default === true) {
 }
 
 const availablePresets = {
-  glass: 'percy-glass',
+  glass: 'primitives-misc-1-glass',
   timeline: 'complex-timeline',
   blank: 'blank',
   'blank-noclean': 'blank-noclean'
