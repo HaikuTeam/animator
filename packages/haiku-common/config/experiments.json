@@ -2,7 +2,6 @@
   "MultiComponentFeatures": true,
   "MultiComponentControlsLibrary": false,
   "ShowSubElementsInJitMenu": true,
-  "InstantiationOfPrimitivesAsComponents": false,
   "HideInstantiatedElementUntilTimeInstantiated": false,
   "MergeDesignChangesAtCurrentTime": false,
   "CommentsOnStage": false,
@@ -25,5 +24,7 @@
   "NativeTimelineScroll": true,
   "TimelineMarqueeSelection": true,
   "LocalAssetExport": false,
+  "AllowBitmapImages": false,
+  "SizeInsteadOfScaleWhenPossible": true,
   "UserConsole": true
 }
