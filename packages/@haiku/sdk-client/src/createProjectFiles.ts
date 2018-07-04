@@ -10,18 +10,17 @@ const PLUMBING_DIR = path.join(__dirname, '../../../haiku-plumbing');
 
 import {
     fetchProjectConfigInfo,
+    getAuthorNameOrFallback,
     getCopyrightNotice,
     getDefaultIllustratorAssetPath,
     getHaikuCoreVersion,
+    getOrganizationNameOrFallback,
     getPrimaryAssetPath,
     getProjectNameLowerCase,
     getProjectNameSafeShort,
     getReactProjectName,
     getStandaloneName,
 } from './ProjectDefinitions';
-
-const FALLBACK_ORG_NAME = 'Unknown';
-const FALLBACK_AUTHOR_NAME = 'Haiku User';
 
 export function createProjectFiles (
   projectPath: string,
@@ -38,10 +37,10 @@ export function createProjectFiles (
     const primaryAssetPath = getPrimaryAssetPath(projectPath, projectName);
     const defaultIllustratorAssetPath = getDefaultIllustratorAssetPath(projectPath, projectName);
 
-    const organizationName = projectOptions.organizationName || FALLBACK_ORG_NAME;
+    const organizationName = getOrganizationNameOrFallback(projectOptions.organizationName);
     const organizationNameLowerCase = organizationName.toLowerCase();
 
-    const authorName = projectOptions.authorName || FALLBACK_AUTHOR_NAME;
+    const authorName = getAuthorNameOrFallback(projectOptions.authorName);
 
     const haikuCoreVersion = getHaikuCoreVersion(); // This json object should be loaded at the top
     const npmPackageName = `@haiku/${organizationNameLowerCase}-${projectNameLowerCase}`;

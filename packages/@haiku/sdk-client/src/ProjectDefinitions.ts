@@ -11,6 +11,7 @@ const WHITESPACE_REGEX = /\s+/;
 const UNDERSCORE = '_';
 const FALLBACK_SEMVER_VERSION = '0.0.0';
 const FALLBACK_ORG_NAME = 'Unknown';
+const FALLBACK_AUTHOR_NAME = 'Haiku User';
 const DEFAULT_BRANCH_NAME = 'master';
 
 const getHaikuCoreVersion = () => {
@@ -74,6 +75,14 @@ const getCopyrightNotice = (organizationName: string) => {
   return dedent`
   ${`Copyright (c) ${(new Date()).getFullYear()} ${organizationName}. All rights reserved.`}
   `;
+};
+
+const getOrganizationNameOrFallback = (organizationName: string) => {
+  return organizationName || FALLBACK_ORG_NAME;
+};
+
+const getAuthorNameOrFallback = (authorName: string) => {
+  return authorName || FALLBACK_AUTHOR_NAME;
 };
 
 const getCurrentHumanTimestamp = () => {
@@ -147,4 +156,6 @@ export {
     getEmbedName,
     getStandaloneName,
     getCopyrightNotice,
+    getOrganizationNameOrFallback,
+    getAuthorNameOrFallback,
 };

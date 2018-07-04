@@ -24,7 +24,7 @@ import attachListeners from './envoy/attachListeners';
 import saveExport from './publish-hooks/saveExport';
 import Raven from './Raven';
 import {createProjectFiles} from '@haiku/sdk-client/lib/createProjectFiles';
-import {createCDNBundles} from '@haiku/sdk-client/lib/createCDNBundles';
+import {createCDNBundles} from '@haiku/sdk-client/lib/createCDNBundle';
 import {getHaikuCoreVersion} from '@haiku/sdk-client/lib/ProjectDefinitions';
 
 Sketch.findAndUpdateInstallPath();
