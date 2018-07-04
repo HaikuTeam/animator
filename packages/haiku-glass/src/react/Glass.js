@@ -1,6 +1,5 @@
 import React from 'react'
 import lodash from 'lodash'
-import Radium from 'radium'
 import path from 'path'
 import HaikuDOMRenderer from '@haiku/core/lib/renderers/dom'
 import HaikuContext from '@haiku/core/lib/HaikuContext'
@@ -790,8 +789,6 @@ export class Glass extends React.Component {
       return []
     }
 
-    const MAX_SNAPS_PER_AXIS = 3
-
     let getLineElements = () => {
       let horizSnaps = []
       let vertSnaps = []
@@ -826,7 +823,6 @@ export class Glass extends React.Component {
       position: 'fixed',
       width: '100%',
       height: '100%',
-      pointerEvents: 'none',
       bottom: 0,
       right: 0,
       pointerEvents: 'none',

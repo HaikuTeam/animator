@@ -11,7 +11,6 @@ const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments'
 const Figma = require('./Figma')
 const Sketch = require('./Sketch')
 const Illustrator = require('./Illustrator')
-const EventEmitter = require('event-emitter')
 const SingletonSnapEmitter = require('./SingletonSnapEmitter')
 const _ = require('lodash')
 
@@ -724,7 +723,7 @@ class ElementSelectionProxy extends BaseModel {
               bboxEdgePosition: def.bboxEdgePosition,
               metadata: Object.assign({}, def.metadata, snap.metadata)
             }
-            for (var i = 0; i < horizWinners.length; i++) {
+            for (let i = 0; i < horizWinners.length; i++) {
               let oldWinner = horizWinners[i]
               let oldWinningDelta = Math.abs(oldWinner.bboxEdgePosition - oldWinner.positionWorld)
               if (winningDeltaHoriz + SNAP_EPSILON < oldWinningDelta) {
@@ -741,12 +740,12 @@ class ElementSelectionProxy extends BaseModel {
               bboxEdgePosition: def.bboxEdgePosition,
               metadata: Object.assign({}, def.metadata, snap.metadata)
             }
-            for (var i = 0; i < vertWinners.length; i++) {
-              let oldWinner = vertWinners[i]
+            for (let j = 0; j < vertWinners.length; j++) {
+              let oldWinner = vertWinners[j]
               let oldWinningDelta = Math.abs(oldWinner.bboxEdgePosition - oldWinner.positionWorld)
               if (winningDeltaVert + SNAP_EPSILON < oldWinningDelta) {
-                vertWinners.splice(i, 1)
-                i--
+                vertWinners.splice(j, 1)
+                j--
               }
             }
             vertWinners.push(newWinner)
@@ -992,8 +991,6 @@ class ElementSelectionProxy extends BaseModel {
     // handle snapping
     // don't snap if user is holding cmd key (like Sketch)
     if (!globals.isCommandKeyDown) {
-      const targetElement = this.shouldUseChildLayout() ? this.selection[0] : this
-
       let bbox
       if (this._lastBbox !== undefined) {
         bbox = ((bbox, delta) => {
@@ -1088,7 +1085,7 @@ class ElementSelectionProxy extends BaseModel {
         // only snap to the relevant axis
         if (isXAxis) {
           foundSnaps = foundSnaps.filter((snap) => { return snap.direction === 'VERTICAL' })
-          for (var i = 0; i < this.selection.length; i++) {
+          for (let i = 0; i < this.selection.length; i++) {
             overrides[i] = overrides[i] || {}
             overrides[i].y = this._originCache[i].y
             overrides.groupOrigin = overrides.groupOrigin || {}
@@ -1096,9 +1093,9 @@ class ElementSelectionProxy extends BaseModel {
           }
         } else {
           foundSnaps = foundSnaps.filter((snap) => { return snap.direction === 'HORIZONTAL' })
-          for (var i = 0; i < this.selection.length; i++) {
-            overrides[i] = overrides[i] || {}
-            overrides[i].x = this._originCache[i].x
+          for (let j = 0; j < this.selection.length; j++) {
+            overrides[j] = overrides[j] || {}
+            overrides[j].x = this._originCache[j].x
             overrides.groupOrigin = overrides.groupOrigin || {}
             overrides.groupOrigin.x = this._originCache.groupOrigin.x
           }
@@ -1259,6 +1256,7 @@ class ElementSelectionProxy extends BaseModel {
       case 0: return 5 * Math.PI / 4
       case 1: return 3 * Math.PI / 2
       case 2: return 7 * Math.PI / 4
+      default:
         throw new Error('Cannot retrieve radian value for provided activation point: ' + index)
     }
   }
@@ -1922,7 +1920,6 @@ ElementSelectionProxy.computeScaleInfoForArtboard = (
   // Disable origin scaling, which does not really make sense in this context.
   activationPoint.alt = false
   const boxPoints = targetElement.getBoxPointsTransformed()
-  targetElement.getTransf
   return ElementSelectionProxy.computeScalePropertyGroup(
     targetElement,
     ElementSelectionProxy.getFixedPointForScale(boxPoints, activationPoint),
@@ -1988,7 +1985,6 @@ ElementSelectionProxy.computeScalePropertyGroup = (
   deltaIn,
   activationPoint,
   applyConstraints
-
 ) => {
   // Make a copy of inbound points so we can transform them in place.
   const fixedPoint = Object.assign({}, fixedPointIn)
@@ -2128,7 +2124,6 @@ ElementSelectionProxy.computeScalePropertyGroup = (
 
 // This is used for a side-effect-free 'dry run' calculation of points through a layout spec
 ElementSelectionProxy.transformPointsByLayoutInPlace = (points, layout) => {
-  const ignoredSize = {x: 0, y: 0, z: 0}
   const matrix = Layout3D.computeMatrix(layout, layout.size, layout.size)
   return points.map((point) => {
     HaikuElement.transformPointInPlace(point, matrix)
