@@ -507,28 +507,27 @@ class Element extends BaseModel {
   }
 
   getComputedLayout () {
-    return this.cache.fetch('getComputedLayout', () => {
-      const node = this.getLiveRenderedNode() || {} // Fallback in case of render race
+    const node = this.getLiveRenderedNode() || {} // Fallback in case of render race
 
-      return HaikuElement.computeLayout(
-        { // targetNode
-          // We need the layout spec which is *produced by this module* as opposed to the
-          // layout spec mutated on the node during rendering/property application, because
-          // this module's layout spec represents a "snapshot in time" that we can safely
-          // transform without resulting in exponentially-accumulating value-updates.
-          // (If we pass the actual live rendered node, resizing the stage goes crazy.)
-          layout: this.getLayoutSpec(),
-          // But we still need the live node's actual properties in case we need to compute
-          // auto sizing, which will require that we hydrate a HaikuElement and recurse
-          // into its children and compute their sizes, and so-on.
-          elementName: node.elementName,
-          attributes: node.attributes,
-          children: node.children,
-          __parent: node.__parent
-        },
-        this.getParentComputedSize()
-      )
-    })
+    return HaikuElement.computeLayout(
+      { // targetNode
+        // We need the layout spec which is *produced by this module* as opposed to the
+        // layout spec mutated on the node during rendering/property application, because
+        // this module's layout spec represents a "snapshot in time" that we can safely
+        // transform without resulting in exponentially-accumulating value-updates.
+        // (If we pass the actual live rendered node, resizing the stage goes crazy.)
+        layout: this.getLayoutSpec(),
+        // But we still need the live node's actual properties in case we need to compute
+        // auto sizing, which will require that we hydrate a HaikuElement and recurse
+        // into its children and compute their sizes, and so-on.
+        elementName: node.elementName,
+        attributes: node.attributes,
+        children: node.children,
+        __parent: node.__parent,
+        __element: node.__element // Preserve cache result of findOrCreateElement
+      },
+      this.getParentComputedSize()
+    )
   }
 
   getLayoutSpec () {

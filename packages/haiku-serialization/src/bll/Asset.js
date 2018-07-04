@@ -2,7 +2,9 @@ const path = require('path')
 const toTitleCase = require('./helpers/toTitleCase')
 const BaseModel = require('./BaseModel')
 const Figma = require('./Figma')
-const { Experiment, experimentIsEnabled } = require('haiku-common/lib/experiments')
+const Sketch = require('./Sketch')
+const Illustrator = require('./Illustrator')
+const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 
 const PAGES_REGEX = /\/pages\//
 const SLICES_REGEX = /\/slices\//
@@ -62,7 +64,8 @@ class Asset extends BaseModel {
   isDraggable () {
     return (
       (this.isComponent() && this.isComponentOtherThanMain()) ||
-      this.isVector()
+      this.isVector() ||
+      this.isImage()
     )
   }
 
@@ -72,6 +75,10 @@ class Asset extends BaseModel {
 
   isVector () {
     return this.kind === Asset.KINDS.VECTOR
+  }
+
+  isImage () {
+    return this.kind === Asset.KINDS.IMAGE
   }
 
   isSketchFile () {
@@ -99,6 +106,14 @@ class Asset extends BaseModel {
   }
 
   getLocalizedRelpath () {
+    // In case of builtin/installed components, we don't want to prefix with the dot :/
+    // See also Template#normalizePathOfPossiblyExternalModule
+    // e.g. @haiku/core/components/controls/HTML
+    // TODO: e.g. some-other-haiku-proj/moocow
+    if (this.getRelpath()[0] === '@') {
+      return this.getRelpath()
+    }
+
     // ActiveComponent#instantiateComponent depends on us correctly indicating a local component
     return Template.normalizePath(`./${this.getRelpath()}`)
   }
@@ -491,7 +506,7 @@ Asset.KINDS = {
   SKETCH: 'sketch',
   FIGMA: 'figma',
   ILLUSTRATOR: 'ai',
-  BITMAP: 'bitmap',
+  IMAGE: 'image',
   VECTOR: 'vector',
   COMPONENT: 'component',
   OTHER: 'other',
@@ -554,7 +569,7 @@ Asset.ingestAssets = (project, dict) => {
   }
 
   for (const relpath in dict) {
-    const extname = path.extname(relpath)
+    const extname = path.extname(relpath).toLowerCase()
 
     if (extname === '.sketch') {
       designFolderAsset.addSketchAsset(relpath, dict)
@@ -627,6 +642,23 @@ Asset.ingestAssets = (project, dict) => {
       }
 
       componentFolderAsset.children = sortedChildrenOfComponentFolderAsset(componentFolderAsset)
+    } else if (
+      IMAGE_ASSET_EXTNAMES[extname] &&
+      experimentIsEnabled(Experiment.AllowBitmapImages)
+    ) {
+      const imageAsset = Asset.upsert({
+        uid: path.join(project.getFolder(), relpath),
+        type: Asset.TYPES.FILE,
+        kind: Asset.KINDS.IMAGE,
+        proximity: Asset.PROXIMITIES.LOCAL,
+        project,
+        relpath,
+        displayName: path.basename(relpath, extname),
+        children: [],
+        dtModified: dict[relpath].dtModified
+      })
+
+      designFolderAsset.insertChild(imageAsset)
     }
   }
 
@@ -738,12 +770,40 @@ Asset.isSketchFile = (fileFromDropEvent) => {
 }
 
 Asset.isValidFile = (fileFromDropEvent) => {
-  return fileFromDropEvent.type === 'image/svg+xml' || Asset.isSketchFile(fileFromDropEvent)
+  const abspath = fileFromDropEvent.getAsFile().name
+  return (
+    fileFromDropEvent.type === 'image/svg+xml' ||
+    Asset.isSketchFile(fileFromDropEvent) ||
+    Asset.isDesignAsset(abspath)
+  )
 }
 
 Asset.preventDefaultDrag = (dropEvent) => {
   if (Asset.isInternalDrop(dropEvent)) return null
   return dropEvent.preventDefault()
+}
+
+const IMAGE_ASSET_EXTNAMES = {
+  '.png': true,
+  '.jpg': true,
+  '.jpeg': true,
+  '.gif': true
+}
+
+Asset.isImage = (filepath) => {
+  const extname = path.extname(filepath).toLowerCase()
+  return IMAGE_ASSET_EXTNAMES[extname]
+}
+
+Asset.isDesignAsset = (abspath) => {
+  const extname = path.extname(abspath).toLowerCase()
+
+  return (
+    Sketch.isSketchFile(abspath) ||
+    Illustrator.isIllustratorFile(abspath) ||
+    extname === '.svg' ||
+    Asset.isImage(abspath)
+  )
 }
 
 module.exports = Asset

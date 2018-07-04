@@ -26,18 +26,21 @@ const INJECTABLES: any = {};
 declare var window: AdaptedWindow;
 
 INJECTABLES.$window = {
-  summon: (injectees) => {
+  schema: {},
+  summon (injectees) {
     injectees.$window = (typeof window !== 'undefined') ? window : {};
   },
 };
 
 INJECTABLES.$mount = {
+  schema: {},
   summon (injectees, component: HaikuComponent) {
     injectees.$mount = component.context.renderer.mount;
   },
 };
 
 INJECTABLES.$core = {
+  schema: {},
   summon (injectees, component: HaikuComponent, node, timelineName: string) {
     injectees.$core = {
       component,
@@ -50,60 +53,70 @@ INJECTABLES.$core = {
 };
 
 INJECTABLES.$context = {
+  schema: {},
   summon (injectees, component: HaikuComponent) {
     injectees.$context = component.context;
   },
 };
 
 INJECTABLES.$component = {
+  schema: {},
   summon (injectees, component: HaikuComponent) {
     injectees.$component = component;
   },
 };
 
 INJECTABLES.$host = {
+  schema: {},
   summon (injectees, component: HaikuComponent) {
     injectees.$host = component.host;
   },
 };
 
 INJECTABLES.$top = {
+  schema: {},
   summon (injectees, component: HaikuComponent) {
     injectees.$host = component.top;
   },
 };
 
 INJECTABLES.$clock = {
+  schema: {},
   summon (injectees, component: HaikuComponent) {
     injectees.$timeline = component.getClock();
   },
 };
 
 INJECTABLES.$state = {
+  schema: {},
   summon (injectees, component: HaikuComponent) {
     injectees.$state = component.state;
   },
 };
 
 INJECTABLES.$timeline = {
+  schema: {},
   summon (injectees, component: HaikuComponent, node, timelineName: string) {
     injectees.$timeline = component.getTimeline(timelineName);
   },
 };
 
 INJECTABLES.$element = {
+  schema: {},
   summon (injectees, component: HaikuComponent, node) {
     injectees.$element = HaikuElement.findOrCreateByNode(node);
   },
 };
 
 INJECTABLES.$parent = {
+  schema: {},
   summon (injectees, component: HaikuComponent, node) {
     injectees.$parent = HaikuElement.findOrCreateByNode(node).parent;
   },
 };
 
 INJECTABLES.$container = {
+  schema: {},
   summon (injectees, component: HaikuComponent, node) {
     const element = HaikuElement.findOrCreateByNode(node);
     injectees.$container = element.owner;
@@ -111,12 +124,14 @@ INJECTABLES.$container = {
 };
 
 INJECTABLES.$children = {
+  schema: {},
   summon (injectees, component: HaikuComponent, node) {
     injectees.$children = HaikuElement.findOrCreateByNode(node).children;
   },
 };
 
 INJECTABLES.$tree = {
+  schema: {},
   summon (injectees, component: HaikuComponent, node) {
     const element = HaikuElement.findOrCreateByNode(node);
     injectees.$tree = {
@@ -130,6 +145,7 @@ INJECTABLES.$tree = {
 };
 
 INJECTABLES.$user = {
+  schema: {},
   summon (injectees, component: HaikuComponent, node) {
     if (isPreviewMode(component.config.interactionMode)) {
       injectees.$user = component.context.getGlobalUserState();
@@ -154,6 +170,7 @@ INJECTABLES.$user = {
 };
 
 INJECTABLES.$flow = {
+  schema: {},
   summon (injectees, component: HaikuComponent, node) {
     if (!injectees.$flow) {
       injectees.$flow = {};

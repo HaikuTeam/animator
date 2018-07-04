@@ -757,25 +757,6 @@ class ActiveComponent extends BaseModel {
     return path.join(this.project.getFolder(), this.getRelpath())
   }
 
-  /**
-   * @method instantiatePrimitive
-   * @description Given an identifier and the bytecode of some primitive, instantiate
-   * it as a reference to that primitive instead of the whole primitive bytecode
-   */
-  instantiatePrimitive (primitive, coords, overrides, metadata, cb) {
-    return this.instantiateReference(
-      PrimitiveComponent.upsert({
-        primitive
-      }),
-      primitive.getClassName(),
-      primitive.getRequirePath(),
-      coords,
-      overrides,
-      metadata,
-      cb
-    )
-  }
-
   fetchTimelinePropertyFromComponentElement (mana, propertyName) {
     if (!mana.elementName) return
     if (!mana.elementName.template) return
@@ -1310,14 +1291,13 @@ class ActiveComponent extends BaseModel {
           return this.performComponentWork((bytecode, mana, done) => {
             // We'll treat an installed module path strictly as a reference and not copy it into our folder
             if (ModuleWrapper.doesRelpathLookLikeInstalledComponent(relpath)) {
-              // This identifier is going to be something like HaikuLine or MyOrg_MyName
-              const installedComponentIdentifier = ModuleWrapper.modulePathToIdentifierName(relpath)
+              const installedComponent = InstalledComponent.upsert({
+                modpath: relpath
+              })
 
               return this.instantiateReference(
-                InstalledComponent.upsert({
-                  modpath: relpath
-                }),
-                installedComponentIdentifier,
+                installedComponent,
+                installedComponent.getIdentifier(),
                 relpath,
                 coords,
                 {'origin.x': 0.5, 'origin.y': 0.5},
@@ -1357,22 +1337,38 @@ class ActiveComponent extends BaseModel {
 
                 Template.fixManaSourceAttribute(mana, relpath) // Adds haiku-source="relpath_to_file_from_project_root"
 
-                if (experimentIsEnabled(Experiment.InstantiationOfPrimitivesAsComponents)) {
-                  return Design.manaAsCode(relpath, Template.clone({}, mana), {}, (err, identifier, modpath, bytecode) => {
-                    if (err) return done(err)
+                return this.instantiateMana(mana, bytecode, coords, metadata, done)
+              })
+            }
 
-                    const primitive = Primitive.inferPrimitiveFromBytecode(bytecode)
+            if (Asset.isImage(relpath)) {
+              const imageComponent = ImageComponent.upsert({
+                project: this.project,
+                relpath
+              })
 
-                    if (primitive) {
-                      const overrides = Bytecode.extractOverrides(bytecode)
-                      return this.instantiatePrimitive(primitive, coords, overrides, metadata, done)
-                    }
-
-                    return this.instantiateMana(mana, bytecode, coords, metadata, done)
-                  })
-                } else {
-                  return this.instantiateMana(mana, bytecode, coords, metadata, done)
+              return imageComponent.queryImageSize((err, size) => {
+                if (err) {
+                  return done(err)
                 }
+
+                const {width, height} = size
+
+                return this.instantiateReference(
+                  imageComponent, // subcomponent
+                  imageComponent.identifier, // identifier
+                  imageComponent.modpath, // modpath
+                  coords, // coords
+                  { // overrides
+                    'origin.x': 0.5,
+                    'origin.y': 0.5,
+                    href: imageComponent.getLocalHref(),
+                    width,
+                    height
+                  },
+                  metadata,
+                  done
+                )
               })
             }
 
@@ -1705,24 +1701,8 @@ class ActiveComponent extends BaseModel {
 
           Template.fixManaSourceAttribute(mana, relpath) // Adds haiku-source="relpath_to_file_from_project_root"
 
-          if (experimentIsEnabled(Experiment.InstantiationOfPrimitivesAsComponents)) {
-            return Design.manaAsCode(relpath, Template.clone({}, mana), {}, (err, identifier, modpath, bytecode) => {
-              if (err) return next(err)
-
-              const primitive = Primitive.inferPrimitiveFromBytecode(bytecode)
-
-              if (primitive) {
-                const overrides = Bytecode.extractOverrides(bytecode)
-                return this.mergePrimitiveWithOverrides(primitive, overrides, next)
-              }
-
-              this.mergeMana(bytecode, mana, {mergeRemovedOutputs})
-              return next()
-            })
-          } else {
-            this.mergeMana(bytecode, mana, {mergeRemovedOutputs})
-            return next()
-          }
+          this.mergeMana(bytecode, mana, {mergeRemovedOutputs})
+          return next()
         })
       } else {
         return next(new Error(`Problem merging ${relpath}`))
@@ -1789,7 +1769,7 @@ class ActiveComponent extends BaseModel {
                 nested.__reference = ModuleWrapper.buildReference(
                   ModuleWrapper.REF_TYPES.COMPONENT, // type
                   Template.normalizePath(`./${this.getRelpath()}`), // host
-                  Template.normalizePath(`./${source}`),
+                  Template.normalizePathOfPossiblyExternalModule(source),
                   identifier
                 )
 
@@ -2230,6 +2210,11 @@ class ActiveComponent extends BaseModel {
   }
 
   doesManageCoreInstance (instance) {
+    // In case an installed or builtin component doesn't declare its relpath
+    if (!instance.getBytecodeRelpath()) {
+      return false
+    }
+
     return (
       path.normalize(instance.getBytecodeRelpath()) ===
       path.normalize(this.getRelpath())
@@ -4569,19 +4554,18 @@ module.exports = ActiveComponent
 
 // Down here to avoid Node circular dependency stub objects. #FIXME
 const Artboard = require('./Artboard')
+const Asset = require('./Asset')
 const AST = require('./AST')
 const Bytecode = require('./Bytecode')
-const Design = require('./Design')
 const DevConsole = require('./DevConsole')
 const Element = require('./Element')
 const ElementSelectionProxy = require('./ElementSelectionProxy')
 const File = require('./File')
+const ImageComponent = require('./ImageComponent')
 const InstalledComponent = require('./InstalledComponent')
 const Keyframe = require('./Keyframe')
 const ModuleWrapper = require('./ModuleWrapper')
 const MountElement = require('./MountElement')
-const Primitive = require('./Primitive')
-const PrimitiveComponent = require('./PrimitiveComponent')
 const PseudoFile = require('./PseudoFile')
 const Row = require('./Row')
 const SelectionMarquee = require('./SelectionMarquee')

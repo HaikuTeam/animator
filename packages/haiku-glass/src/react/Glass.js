@@ -530,18 +530,6 @@ export class Glass extends React.Component {
       this.performPan(evt.wheelDeltaX * SCROLL_PAN_COEFFICIENT, evt.wheelDeltaY * SCROLL_PAN_COEFFICIENT)
     }, false)
 
-    this.addEmitterListener(
-      window,
-      'drop',
-      (event) => {
-        this.project.linkExternalAssetOnDrop(event, (error) => {
-          if (error) this.setState({ error })
-          this.forceUpdate()
-        })
-      },
-      false
-    )
-
     this.addEmitterListener(this.props.websocket, 'method', (method, params, message, cb) => {
       // Harness to enable cross-subview integration testing
       if (method === 'executeFunctionSpecification') {

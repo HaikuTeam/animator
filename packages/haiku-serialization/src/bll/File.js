@@ -239,6 +239,14 @@ class File extends BaseModel {
   }
 
   getImportPathTo (source) {
+    // In case of builtin/installed components, we don't want to prefix with the dot :/
+    // See also Asset#getLocalizedRelpath, Template#normalizePathOfPossiblyExternalModule
+    // e.g. @haiku/core/components/controls/HTML
+    // TODO: e.g. some-other-haiku-proj/moocow
+    if (source[0] === '@') {
+      return source
+    }
+
     return Template.normalizePath(path.relative(path.dirname(this.relpath), source))
   }
 

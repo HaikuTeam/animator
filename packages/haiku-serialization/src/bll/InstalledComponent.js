@@ -20,8 +20,13 @@ class InstalledComponent extends BaseModel {
     return null
   }
 
-  doesMatchOrHostComponent (other, seen = {}, cb) {
+  doesMatchOrHostComponent (other, cb) {
     return cb(null, false)
+  }
+
+  getIdentifier () {
+    // This identifier is going to be something like HaikuLine or MyOrg_MyName
+    return ModuleWrapper.modulePathToIdentifierName(this.modpath)
   }
 }
 
@@ -34,3 +39,5 @@ InstalledComponent.DEFAULT_OPTIONS = {
 BaseModel.extend(InstalledComponent)
 
 module.exports = InstalledComponent
+
+const ModuleWrapper = require('./ModuleWrapper')

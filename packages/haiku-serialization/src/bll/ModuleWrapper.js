@@ -166,6 +166,7 @@ class ModuleWrapper extends BaseModel {
 
         return this.update(this.exp, () => {
           if (!this.isExternalModule) {
+            logger.warn(`[module wrapper] ***forcing flush content of ${this.getAbspath()}***`)
             this.file.maybeFlushContentForceSync()
           }
           release()
@@ -194,7 +195,7 @@ class ModuleWrapper extends BaseModel {
       exp.__reference = ModuleWrapper.buildReference(
         ModuleWrapper.REF_TYPES.COMPONENT, // type
         Template.normalizePath(`./${hostComponentRelpath}`), // host
-        Template.normalizePath(`./${source}`),
+        Template.normalizePathOfPossiblyExternalModule(source),
         identifier
       )
 

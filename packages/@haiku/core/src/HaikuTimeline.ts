@@ -288,6 +288,8 @@ export default class HaikuTimeline extends HaikuBase {
    * the falsy state timelines have when first constructed.
    */
   isExplicitlyPaused () {
+    // The comparison to `false` is intentional and important. See doc above.
+    // tslint:disable:no-boolean-literal-compare
     return this._isPlaying === false;
   }
 

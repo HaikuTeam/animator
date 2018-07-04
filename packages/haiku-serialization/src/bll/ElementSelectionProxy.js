@@ -894,6 +894,7 @@ class ElementSelectionProxy extends BaseModel {
       if (!cachedTransform) {
         return
       }
+
       const matrixBeforeInverted = new Float32Array(16)
       invertMatrix(matrixBeforeInverted, cachedTransform.matrix)
 
@@ -919,24 +920,40 @@ class ElementSelectionProxy extends BaseModel {
         true
       )
 
+      const scaleXFactor = scaleX / this.computePropertyValue('scale.x')
+      const scaleYFactor = scaleY / this.computePropertyValue('scale.y')
+
       this.applyPropertyValue('scale.x', scaleX)
       this.applyPropertyValue('scale.y', scaleY)
       this.applyPropertyValue('translation.x', translationX)
       this.applyPropertyValue('translation.y', translationY)
+
       const matrixAfter = this.getComputedLayout().matrix
+
       this.selection.forEach((element) => {
         // Use our cached transform to mitigate the possibility of rounding errors at small/weird scales.
         const layoutSpec = element.transformCache.peek('CONTROL_ACTIVATION')
         if (!layoutSpec) {
           return
         }
+
+        // We're going to populate this object with all the necessary property values
+        // to represent the scale transform.
         const propertyGroup = {}
+
+        // This matrix represents all transformations that have occurred to the element,
+        // treating the selection box as a container element.
         const finalMatrix = Layout3D.multiplyArrayOfMatrices([
           layoutSpec.originOffsetComposedMatrix,
           matrixBeforeInverted,
           matrixAfter
         ])
+
+        // This converts a composition of matrices like [[1,0,0,...],...] into our own
+        // transform properties like scale.x, rotation.z, and merges them into the
+        // given property group object.
         composedTransformsToTimelineProperties(propertyGroup, [finalMatrix], true)
+
         const alignX = layoutSpec.align.x * layoutSpec.size.x
         const alignY = layoutSpec.align.y * layoutSpec.size.y
         const alignZ = layoutSpec.align.z * layoutSpec.size.z
@@ -946,25 +963,52 @@ class ElementSelectionProxy extends BaseModel {
         const originX = layoutSpec.origin.x * layoutSpec.size.x
         const originY = layoutSpec.origin.y * layoutSpec.size.y
         const originZ = layoutSpec.origin.z * layoutSpec.size.z
+
         propertyGroup['translation.x'] +=
           finalMatrix[0] * originX + finalMatrix[4] * originY + finalMatrix[8] * originZ + mountPointX - alignX
         propertyGroup['translation.y'] +=
           finalMatrix[1] * originX + finalMatrix[5] * originY + finalMatrix[9] * originZ + mountPointY - alignY
         propertyGroup['translation.z'] +=
           finalMatrix[2] * originX + finalMatrix[6] * originY + finalMatrix[10] * originZ + mountPointZ - alignZ
+
+        const propertyGroupNorm = Object.keys(propertyGroup).reduce((accumulator, property) => {
+          accumulator[property] = { value: propertyGroup[property] }
+          return accumulator
+        }, {})
+
+        if (experimentIsEnabled(Experiment.SizeInsteadOfScaleWhenPossible)) {
+          if (element.isComponent()) {
+            const addressables = element.getComponentAddressables()
+
+            if (addressables.width && addressables.width.typedef === 'number' && propertyGroupNorm['scale.x']) {
+              const width = addressables.width.value() * scaleXFactor
+              if (width > 0) {
+                propertyGroupNorm.width = {value: width}
+              }
+              delete propertyGroupNorm['scale.x']
+            }
+
+            if (addressables.height && addressables.height.typedef === 'number' && propertyGroupNorm['scale.y']) {
+              const height = addressables.height.value() * scaleYFactor
+              if (height > 0) {
+                propertyGroupNorm.height = {value: height}
+              }
+              delete propertyGroupNorm['scale.y']
+            }
+          }
+        }
+
         ElementSelectionProxy.accumulateKeyframeUpdates(
           accumulatedUpdates,
           element.getComponentId(),
           element.component.getCurrentTimelineName(),
           element.component.getCurrentTimelineTime(),
-          Object.keys(propertyGroup).reduce((accumulator, property) => {
-            accumulator[property] = { value: propertyGroup[property] }
-            return accumulator
-          }, {})
+          propertyGroupNorm
         )
       })
     } else {
       const element = this.selection[0]
+
       const propertyGroup = ElementSelectionProxy.computeScalePropertyGroup(
         element,
         fixedPoint,
@@ -973,8 +1017,30 @@ class ElementSelectionProxy extends BaseModel {
         activationPoint,
         // If we manage a single element, we _should_ apply the shift/alt constraints in this pass (because we _didn't_
         // do so above).
-        true
+        true // applyConstraints
       )
+
+      if (experimentIsEnabled(Experiment.SizeInsteadOfScaleWhenPossible)) {
+        if (element.isComponent()) {
+          const addressables = element.getComponentAddressables()
+
+          if (addressables.width && addressables.width.typedef === 'number' && propertyGroup['scale.x']) {
+            const width = addressables.width.value() * propertyGroup['scale.x'].value
+            if (width > 0) {
+              propertyGroup.width = {value: width}
+            }
+            delete propertyGroup['scale.x']
+          }
+
+          if (addressables.height && addressables.height.typedef === 'number' && propertyGroup['scale.y']) {
+            const height = addressables.height.value() * propertyGroup['scale.y'].value
+            if (height > 0) {
+              propertyGroup.height = {value: height}
+            }
+            delete propertyGroup['scale.y']
+          }
+        }
+      }
 
       ElementSelectionProxy.accumulateKeyframeUpdates(
         accumulatedUpdates,
@@ -993,6 +1059,36 @@ class ElementSelectionProxy extends BaseModel {
         this.clearAllRelatedCaches()
       }
     )
+  }
+
+  mutatePropertyGroupScaleToSizeIfNecessary (
+    element,
+    propertyGroup, // {'scale.x': {value: 1.2}, ...}
+    givenScaleX, // If provided, this is used instead of the propertyGroup's scale.x
+    givenScaleY  // If provided, this is used instead of the propertyGroup's scale.y
+  ) {
+    // For now, we only choose size for components...
+    if (!element.isComponent()) {
+      return
+    }
+
+    const addressables = element.getComponentAddressables()
+
+    // If the child exposes a numeric width property, we change scale.x to width
+    if (addressables.width && addressables.width.typedef === 'number' && propertyGroup['scale.x']) {
+
+    }
+
+    // If the child exposes a numeric height property, we change scale.y to height
+    if (addressables.height && addressables.height.typedef === 'number' && propertyGroup['scale.y']) {
+      const scaleY = givenScaleY || propertyGroup['scale.y'].value || 1
+      const heightOld = addressables.height.value() || addressables.height.fallback || 0
+      const heightNew = scaleY * heightOld
+      if (heightNew >= 0) {
+        propertyGroup.height = { value: heightNew }
+      }
+      delete propertyGroup['scale.y']
+    }
   }
 
   scaleArtboard (

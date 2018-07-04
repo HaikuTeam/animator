@@ -117,6 +117,14 @@ Template.normalizePath = (str) => {
   return path.normalize(str)
 }
 
+Template.normalizePathOfPossiblyExternalModule = (str) => {
+  if (str[0] === '@') {
+    return path.normalize(str)
+  }
+
+  return Template.normalizePath(`./${str}`)
+}
+
 Template.mirrorHaikuUids = (fromNode, toNode) => {
   if (!toNode.attributes) toNode.attributes = {}
 

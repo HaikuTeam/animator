@@ -6,6 +6,7 @@ import { DraggableCore } from 'react-draggable'
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
 import BaseModel from 'haiku-serialization/src/bll/BaseModel'
 import Project from 'haiku-serialization/src/bll/Project'
+import Asset from 'haiku-serialization/src/bll/Asset'
 import Row from 'haiku-serialization/src/bll/Row'
 import File from 'haiku-serialization/src/bll/File'
 import Keyframe from 'haiku-serialization/src/bll/Keyframe'
@@ -268,6 +269,17 @@ class Timeline extends React.Component {
         )
       }
     })
+
+    this.addEmitterListener(window, 'dragover', Asset.preventDefaultDrag, false)
+
+    this.addEmitterListener(
+      window,
+      'drop',
+      (event) => {
+        this.project.linkExternalAssetOnDrop(event, () => {})
+      },
+      false
+    )
   }
 
   getActiveComponent () {

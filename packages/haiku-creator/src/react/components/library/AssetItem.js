@@ -439,7 +439,10 @@ class AssetItem extends React.Component {
       );
     }
 
-    if (this.props.asset.kind === Asset.KINDS.VECTOR) {
+    if (
+      this.props.asset.kind === Asset.KINDS.VECTOR ||
+      this.props.asset.kind === Asset.KINDS.IMAGE
+    ) {
       let imageSrc;
       // Windows platform paths needs transformation to display correct icon and preview
       // eg. C:\test\a.svg -> /C:/test/a.svg

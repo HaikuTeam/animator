@@ -99,7 +99,7 @@ AST.findImportsFromTemplate = (hostfile, template) => {
         node.elementName.__reference = ModuleWrapper.buildReference(
           ModuleWrapper.REF_TYPES.COMPONENT, // type
           Template.normalizePath(`./${hostfile.relpath}`), // host
-          Template.normalizePath(`./${source}`),
+          Template.normalizePathOfPossiblyExternalModule(source),
           identifier
         )
 

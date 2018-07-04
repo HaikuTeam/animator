@@ -806,6 +806,7 @@ export default class HaikuComponent extends HaikuElement {
 
   performFullFlushRenderWithRenderer (renderer, options: any = {}) {
     this.context.getContainer(true); // Force recalc of container
+
     const tree = this.render(options);
 
     // Since we just produced a full tree, we don't need a further full flush.
@@ -817,6 +818,35 @@ export default class HaikuComponent extends HaikuElement {
         this.container,
         tree,
         this,
+      );
+    }
+  }
+
+  performPatchRenderWithRenderer (renderer, options: any = {}, skipCache: boolean) {
+    if (renderer.shouldCreateContainer) {
+      this.context.getContainer(true); // Force recalc of container
+    }
+
+    const deltas = this.patch(options, skipCache);
+
+    renderer.patch(
+      this,
+      deltas,
+    );
+
+    // If any node was set to full flush before this update, we unset it to avoid
+    // unnecessary re-rendering on subsequent deltas
+    for (const flexId in deltas) {
+      if (deltas[flexId].__flush) {
+        deltas[flexId].__flush = false;
+      }
+    }
+
+    for (const $id in this.guests) {
+      this.guests[$id].performPatchRenderWithRenderer(
+        renderer,
+        options,
+        skipCache,
       );
     }
   }
@@ -836,7 +866,7 @@ export default class HaikuComponent extends HaikuElement {
 
     this.clearNodeCaches();
 
-    const expansion = expandTreeNode(
+    expandTreeNode(
       this.getTemplate(), // node
       this.container, // parent
       this, // instance (component)
@@ -846,63 +876,10 @@ export default class HaikuComponent extends HaikuElement {
       true, // doConnectInstanceToNode
     );
 
-    scopifyElements(expansion, null, null);
+    // TODO: Can we roll this work into expandTreeNode instead of doing it after?
+    scopifyElements(this.getTemplate(), null, null);
 
-    this.applyContextChanges(
-      expansion,
-      options,
-    );
-
-    return expansion;
-  }
-
-  performPatchRenderWithRenderer (renderer, options: any = {}, skipCache: boolean) {
-    if (renderer.shouldCreateContainer) {
-      this.context.getContainer(true); // Force recalc of container
-    }
-
-    const patches = this.patch(options, skipCache);
-
-    renderer.patch(
-      this,
-      patches,
-    );
-
-    // If any node was set to full flush before this update, we unset it to avoid
-    // unnecessary re-rendering on subsequent patches
-    for (const flexId in patches) {
-      if (patches[flexId].__flush) {
-        patches[flexId].__flush = false;
-      }
-    }
-
-    for (const $id in this.guests) {
-      this.guests[$id].performPatchRenderWithRenderer(
-        renderer,
-        options,
-        skipCache,
-      );
-    }
-  }
-
-  patch (options = {}, skipCache = false) {
-    if (this.isDeactivated) {
-      // If deactivated, pretend like there is nothing to render
-      return {};
-    }
-
-    return this.gatherDeltaPatches(
-      this.getTemplate(),
-      options,
-      skipCache,
-    );
-  }
-
-  applyContextChanges (
-    template,
-    options: any = {},
-  ) {
-    Layout3D.initializeTreeAttributes(template, true);
+    Layout3D.initializeTreeAttributes(this.getTemplate(), true);
 
     this.applyBehaviors(
       null,
@@ -910,6 +887,20 @@ export default class HaikuComponent extends HaikuElement {
       false, // isPatchOperation
       false, // skipCache
     );
+
+    // Note that we render *after* having called HaikuComponent#applyBehaviors.
+    // applyBehaviors calls applyPropertyToNode calls component.set(...).
+    // We need the parent-to-child states to be set prior to the render call
+    // otherwise the changes they produce won't be available for this render frame.
+    // This is important especially for "auto"-sizing since the parent may need
+    // to read the size from the child, who in turn may have state-bound expressions
+    // which dictate its size.
+    for (const $id in this.guests) {
+      this.guests[$id].render({
+        ...this.guests[$id].config,
+        ...Config.buildChildSafeConfig(options),
+      });
+    }
 
     if (this.context.renderer.mount) {
       this.eachEventHandler((eventSelector, eventName) => {
@@ -929,7 +920,7 @@ export default class HaikuComponent extends HaikuElement {
 
     if (!this.host && options.sizing) {
       computeAndApplyPresetSizing(
-        template,
+        this.getTemplate(),
         this.container,
         options.sizing,
         null,
@@ -937,22 +928,25 @@ export default class HaikuComponent extends HaikuElement {
     }
 
     computeAndApplyTreeLayouts(
-      template,
+      this.getTemplate(),
       this.container,
       options,
       this.context,
     );
+
+    return this.getTemplate();
   }
 
-  gatherDeltaPatches (
-    template,
-    options: any = {},
-    skipCache = false,
-  ) {
+  patch (options: any = {}, skipCache = false) {
+    if (this.isDeactivated) {
+      // If deactivated, pretend like there is nothing to render
+      return {};
+    }
+
+    Layout3D.initializeTreeAttributes(this.getTemplate(), true);
+
     // This is what we're going to return: a dictionary of composite ids (flexId-repeatIndex) to elements
     const deltas = {};
-
-    Layout3D.initializeTreeAttributes(template, true);
 
     this.applyBehaviors(
       deltas,
@@ -963,7 +957,7 @@ export default class HaikuComponent extends HaikuElement {
 
     if (!this.host && options.sizing) {
       computeAndApplyPresetSizing(
-        template,
+        this.getTemplate(),
         this.container,
         options.sizing,
         deltas,
@@ -1113,6 +1107,10 @@ export default class HaikuComponent extends HaikuElement {
     const addressee = addressables && addressables[name] !== undefined && receiver;
 
     if (addressee) {
+      // Note: Even though we apply the value to addressables of the subcomponent,
+      // we still proceed with application of properties directly to the wrapper.
+      // This is as a convenience, so that if a subcomponent wants to handle any property
+      // applied to its wrapper than it can do so, e.g. sizeAbsolute.x/sizeAbsolute.y.
       addressee.set(name, value);
     }
 
@@ -1553,7 +1551,7 @@ function expandTreeNode (
 ) {
   // Nothing to expand if the node happens to be text or unexpected type
   if (!node || typeof node !== 'object') {
-    return node;
+    return;
   }
 
   // Give it a pointer back to the host context; used by HaikuElement
@@ -1597,7 +1595,7 @@ function expandTreeNode (
   if (typeof node.elementName === STRING_TYPE) {
     if (node.children) {
       for (let i = 0; i < node.children.length; i++) {
-        node.children[i] = expandTreeNode(
+        expandTreeNode(
           node.children[i], // node
           node, // parent
           component, // instance (component)
@@ -1615,12 +1613,10 @@ function expandTreeNode (
       }
     }
 
-    return node;
+    return;
   }
 
   if (isBytecode(node.elementName)) {
-    let subtree;
-
     // Example structure showing how nodes and instances are related:
     // <div root> instance id=1
     //   <div>
@@ -1639,7 +1635,8 @@ function expandTreeNode (
         node, // container
       );
 
-      subtree = node.__subcomponent.getTemplate();
+      // Very important, as the guests collection is used in rendering/patching
+      component.registerGuest(node.__subcomponent);
     } else {
       // Reassigning is necessary since these objects may have changed between
       // renders in the editing environment
@@ -1647,10 +1644,8 @@ function expandTreeNode (
       node.__subcomponent.host = component; // host
       node.__subcomponent.container = node; // container
 
-      subtree = node.__subcomponent.render({
-        ...node.__subcomponent.config,
-        ...Config.buildChildSafeConfig(options),
-      });
+      // Very important, as the guests collection is used in rendering/patching
+      component.registerGuest(node.__subcomponent);
 
       // Don't re-start any nested timelines that have been explicitly paused
       if (!node.__subcomponent.getDefaultTimeline().isExplicitlyPaused()) {
@@ -1658,16 +1653,18 @@ function expandTreeNode (
       }
     }
 
+    // Note that render gets called after expandTreeNode (see HaikuComponent#render).
+    // Since render mutates the template in place, it's safe to use it as a subtree here.
+    const subtree = node.__subcomponent.getTemplate();
     if (subtree) {
       node.children = [subtree];
     }
 
-    return node;
+    return;
   }
 
   // In case we got a __reference node or other unknown
   console.warn('[haiku core] cannot expand node');
-  return node;
 }
 
 function computeAndApplyTreeLayouts (tree, container, options, context) {

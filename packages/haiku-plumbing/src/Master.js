@@ -11,6 +11,7 @@ import * as BaseModel from 'haiku-serialization/src/bll/BaseModel';
 import * as File from 'haiku-serialization/src/bll/File';
 import * as Project from 'haiku-serialization/src/bll/Project';
 import * as Sketch from 'haiku-serialization/src/bll/Sketch';
+import * as Asset from 'haiku-serialization/src/bll/Asset';
 import * as Figma from 'haiku-serialization/src/bll/Figma';
 import * as Illustrator from 'haiku-serialization/src/bll/Illustrator';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
@@ -84,7 +85,7 @@ function _isFileSignificant (relpath) {
   if (UNWATCHABLE_BASENAMES[path.basename(relpath)]) {
     return false;
   }
-  if (!WATCHABLE_EXTNAMES[path.extname(relpath)]) {
+  if (!WATCHABLE_EXTNAMES[path.extname(relpath).toLowerCase()]) {
     return false;
   }
   return true;
@@ -367,7 +368,7 @@ export default class Master extends EventEmitter {
     const extname = path.extname(relpath);
     const basename = path.basename(relpath, extname);
 
-    if (Sketch.isSketchFile(abspath) || Illustrator.isIllustratorFile(abspath) || extname === '.svg') {
+    if (Asset.isDesignAsset(abspath)) {
       this._knownLibraryAssets[relpath] = {relpath, abspath, dtModified: Date.now()};
       this.emitDesignChange(relpath);
     } else if (path.basename(relpath) === 'code.js') { // Local component file
@@ -410,7 +411,7 @@ export default class Master extends EventEmitter {
     const relpath = path.relative(this.folder, abspath);
     const extname = path.extname(relpath);
 
-    if (Sketch.isSketchFile(abspath) || Illustrator.isIllustratorFile(abspath) || extname === '.svg') {
+    if (Asset.isDesignAsset(abspath)) {
       this._knownLibraryAssets[relpath] = {relpath, abspath, dtModified: Date.now()};
       this.emitDesignChange(relpath);
     } else if (path.basename(relpath) === 'code.js') { // Local component file
