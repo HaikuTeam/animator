@@ -393,6 +393,18 @@ export default class HaikuElement extends HaikuBase {
     return this.computeSizeZ();
   }
 
+  get width (): number {
+    return this.sizeX;
+  }
+
+  get height (): number {
+    return this.sizeY;
+  }
+
+  get depth (): number {
+    return this.sizeZ;
+  }
+
   get sizeAbsolute (): StringableThreeDimensionalLayoutProperty {
     return (this.rawLayout && this.rawLayout.sizeAbsolute) || {...LAYOUT_DEFAULTS.sizeAbsolute};
   }
