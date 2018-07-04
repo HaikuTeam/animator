@@ -24,6 +24,7 @@ import attachListeners from './envoy/attachListeners';
 import saveExport from './publish-hooks/saveExport';
 import Raven from './Raven';
 import {createProjectFiles} from '@haiku/sdk-client/lib/createProjectFiles';
+import {createCDNBundles} from '@haiku/sdk-client/lib/createCDNBundles';
 import {getHaikuCoreVersion} from '@haiku/sdk-client/lib/ProjectDefinitions';
 
 Sketch.findAndUpdateInstallPath();
@@ -682,7 +683,6 @@ export default class Master extends EventEmitter {
           // Important: Must set this here or the package.name will be wrong
           organizationName: projectOptions.organizationName,
           skipContentCreation: false,
-          skipCDNBundles: true,
           isPublic: projectOptions.isPublic,
         }, cb);
       },
@@ -905,12 +905,25 @@ export default class Master extends EventEmitter {
         });
       },
 
-      // Build the rest of the content of the folder, including any bundles that belong on the cdn
+      // Build the rest of the content of the folder,
       (cb) => {
         logger.info('[master] project save: populating content');
 
         const {projectName} = this._git.getFolderState();
         createProjectFiles(this.folder, projectName, {
+          projectName,
+          haikuUsername,
+          authorName: saveOptions.authorName,
+          organizationName: saveOptions.organizationName,
+        }, cb);
+      },
+
+      // Build CDN bundles
+      (cb) => {
+        logger.info('[master] project save: creating cdn bundle');
+
+        const {projectName} = this._git.getFolderState();
+        createCDNBundles(this.folder, projectName, {
           projectName,
           haikuUsername,
           authorName: saveOptions.authorName,

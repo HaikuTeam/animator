@@ -874,7 +874,6 @@ export default class Plumbing extends EventEmitter {
         authorName,
         username,
         password,
-        skipCDNBundles: true, // Don't waste time making these bundles before we need them
       };
 
       return async.series([

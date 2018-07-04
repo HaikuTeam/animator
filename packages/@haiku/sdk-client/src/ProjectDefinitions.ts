@@ -1,3 +1,4 @@
+import * as dedent from 'dedent';
 // @ts-ignore
 import * as fse from 'fs-extra';
 import {assign} from 'lodash';
@@ -59,6 +60,20 @@ const getAngularSelectorName = (maybePath: string, maybeName: string) => {
 
 const getDefaultIllustratorAssetPath = (maybePath: string, maybeName: string) => {
   return `designs/${getProjectNameSafeShort(maybePath, maybeName)}.ai`;
+};
+
+const getEmbedName = (organizationName: string, projectPath: string, projectName: string) => {
+  return `HaikuComponentEmbed_${organizationName}_${getProjectNameSafeShort(projectPath, projectName)}`;
+};
+
+const getStandaloneName = (organizationName: string, projectPath: string, projectName: string) => {
+  return `HaikuComponent_${organizationName}_${getProjectNameSafeShort(projectPath, projectName)}`;
+};
+
+const getCopyrightNotice = (organizationName: string) => {
+  return dedent`
+  ${`Copyright (c) ${(new Date()).getFullYear()} ${organizationName}. All rights reserved.`}
+  `;
 };
 
 const getCurrentHumanTimestamp = () => {
@@ -129,4 +144,7 @@ export {
     storeConfigValues,
     readPackageJson,
     getDefaultBranchName,
+    getEmbedName,
+    getStandaloneName,
+    getCopyrightNotice,
 };
