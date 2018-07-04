@@ -15,7 +15,12 @@ class AssetList extends React.PureComponent {
       experimentIsEnabled(Experiment.CleanInitialLibraryState) &&
       this.shouldDisplayAssetCreator(this.props.assets)
     ) {
-      return <DesignFileCreator />;
+      return (
+        <DesignFileCreator
+          projectModel={this.props.projectModel}
+          websocket={this.props.websocket}
+        />
+      );
     }
 
     return (

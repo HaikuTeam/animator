@@ -27,6 +27,7 @@ import ControlText from 'haiku-ui-common/lib/react/icons/ControlText';
 import ControlHTML from 'haiku-ui-common/lib/react/icons/ControlHTML';
 // import ControlInput from 'haiku-ui-common/lib/react/icons/ControlInput'
 import FigmaPopover from './importers/FigmaPopover';
+import {experimentIsEnabled, Experiment} from 'haiku-common/lib/experiments';
 
 const ASSET_ICONS = {
   ControlImage: () => {
@@ -578,7 +579,10 @@ class AssetItem extends React.Component {
   }
 
   render () {
-    if (this.props.asset.kind === Asset.KINDS.HACKY_MESSAGE) {
+    if (
+      !experimentIsEnabled(Experiment.CleanInitialLibraryState) &&
+      this.props.asset.kind === Asset.KINDS.HACKY_MESSAGE
+    ) {
       return (
         <div
           className="asset-item-container"

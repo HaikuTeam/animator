@@ -29,39 +29,64 @@ const STYLES: React.CSSProperties = {
 export interface ImportOption {
   name: string;
   icon: React.ReactType;
+  importAction: React.MouseEventHandler<HTMLButtonElement>;
 }
 
-const IMPORT_OPTIONS: ImportOption[] = [
-  {
-    name: 'Sketch',
-    icon: SketchIconSVG,
-  },
-  {
-    name: 'Figma',
-    icon: FigmaIconSVG,
-  },
-  {
-    name: 'Illustrator',
-    icon: IllustratorIconSVG,
-  },
-];
+class DesignFileCreator extends React.PureComponent<any, any> {
+  importOptions: ImportOption[] = [
+    {
+      name: 'Sketch',
+      icon: SketchIconSVG,
+      importAction: (event) => {
+        const {primaryAssetPath} = this.props.projectModel.getNameVariations();
+        const projectPath = this.props.projectModel.getFolder();
 
-class DesignFileCreator extends React.PureComponent {
+        return this.props.websocket.request(
+          {method: 'copyDefaultSketchFile', params: [projectPath, primaryAssetPath]},
+          (err: any) => {},
+        );
+      },
+    },
+    {
+      name: 'Figma',
+      icon: FigmaIconSVG,
+      importAction: (event) => {},
+    },
+    {
+      name: 'Illustrator',
+      icon: IllustratorIconSVG,
+      importAction: (event) => {
+        const {defaultIllustratorAssetPath} = this.props.projectModel.getNameVariations();
+        const projectPath = this.props.projectModel.getFolder();
+
+        return this.props.websocket.request(
+          {method: 'copyDefaultIllustratorFile', params: [projectPath, defaultIllustratorAssetPath]},
+          (err: any) => {},
+        );
+      },
+    },
+  ];
+
   render () {
     return (
-      <div style={STYLES.container}>
-        <p><i>Create a design file to start</i></p>
-        <div>
-          {IMPORT_OPTIONS.map(({name, icon}) => (
-            <button style={STYLES.btn} key={name} className="button-css-transform">
-              {React.createElement(icon)}
-              <span style={STYLES.btnText}>
-                {name}
-              </span>
-            </button>
-          ))}
+        <div style={STYLES.container}>
+          <p><i>Create a design file to start</i></p>
+          <div>
+            {this.importOptions.map(({name, icon, importAction}) => (
+              <button
+                style={STYLES.btn}
+                key={name}
+                className="button-css-transform"
+                onClick={importAction}
+              >
+                {React.createElement(icon)}
+                <span style={STYLES.btnText}>
+                  {name}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
     );
   }
 }
