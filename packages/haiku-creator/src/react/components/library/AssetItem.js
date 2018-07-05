@@ -526,13 +526,6 @@ class AssetItem extends React.Component {
       `;
     }
 
-    if (this.props.asset.isFigmaFile()) {
-      return `
-        ⇧ Double click to import a file from Figma.
-        Every slice and group will be imported here.
-      `;
-    }
-
     if (this.props.asset.isComponentsHostFolder()) {
       return `
         To create a component, select elements on stage and choose
