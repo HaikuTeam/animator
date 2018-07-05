@@ -49,7 +49,7 @@ export const getReactProjectName = (maybePath: string, maybeName: string) => {
   return `React_${getSafeProjectName(maybePath, maybeName)}`;
 };
 
-export const getPrimaryAssetPath = (maybePath: string, maybeName: string) => {
+export const getDefaultSketchAssetPath = (maybePath: string, maybeName: string) => {
   return `designs/${getProjectNameSafeShort(maybePath, maybeName)}.sketch`;
 };
 
