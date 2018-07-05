@@ -771,7 +771,7 @@ class ElementSelectionProxy extends BaseModel {
 
     let alignBbox = {}
     if (toStage) {
-      let artboard = Artboard.all()[0]
+      let artboard = this.component.getArtboard()
       alignBbox = {
         top: 0,
         left: 0,
@@ -856,7 +856,7 @@ class ElementSelectionProxy extends BaseModel {
 
     // Stage has special boundaries
     if (toStage) {
-      let artboard = Artboard.all()[0]
+      let artboard = this.component.getArtboard()
       if (axis === 'x') {
         min = (this.getBboxValueFromEdgeValue(elementsSortedByBoundingEdge[0]._distributeBbox, xEdge, undefined) - elementsSortedByBoundingEdge[0]._distributeBbox.left)// origins[elementsSortedByBoundingEdge[0]._distributeOriginalIndex][axis] - elementsSortedByBoundingEdge[0]._distributeBbox.left
         max = artboard._mountWidth - (elementsSortedByBoundingEdge[count - 1]._distributeBbox.right - this.getBboxValueFromEdgeValue(elementsSortedByBoundingEdge[count - 1]._distributeBbox, xEdge, undefined))
@@ -958,7 +958,7 @@ class ElementSelectionProxy extends BaseModel {
       return
     }
 
-    let artboard = Artboard.all()[0]
+    let artboard = this.component.getArtboard()
 
     // handle snapping
     // don't snap if user is holding cmd key (like Sketch)
@@ -1400,7 +1400,7 @@ class ElementSelectionProxy extends BaseModel {
       }
     })
 
-    let artboard = Artboard.all()[0]
+    let artboard = this.component.getArtboard()
     foundSnaps = this.findSnapsMatchesAndBreakTies(snapDefinitions, artboard.getSnapLinesInScreenCoords())
     foundSnaps.forEach((snap) => {
       if (snap.direction === 'HORIZONTAL') {
