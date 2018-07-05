@@ -2016,7 +2016,7 @@ ElementSelectionProxy.computeScaleInfoForArtboard = (
   activationPoint.alt = false
   const boxPoints = targetElement.getBoxPointsTransformed()
   return ElementSelectionProxy.computeScalePropertyGroup(
-    targetElement,
+    targetElement.getComputedLayout(),
     ElementSelectionProxy.getFixedPointForScale(boxPoints, activationPoint),
     ElementSelectionProxy.getTranslatedPointForScale(boxPoints, activationPoint),
     {
