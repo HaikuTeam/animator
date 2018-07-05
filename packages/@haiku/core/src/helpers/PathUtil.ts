@@ -1,6 +1,6 @@
 /* tslint:disable:max-line-length */
 
-import {CurveSpec} from '@haiku/core/src/vendor/svg-points/types';
+import {CurveDef, CurveSpec} from '@haiku/core/src/vendor/svg-points/types';
 import {normalizePath, reverseNormalizedPath} from '../vendor/svg-path-reversal/SVGPathReversal';
 import SVGPoints from './SVGPoints';
 
@@ -291,7 +291,22 @@ export const ensurePathClockwise = (path: CurveSpec[]): void => {
 export const normalizePointCurves = (path: CurveSpec[]): void => {
   for (let i = 1; i < path.length; i++) {
     if (path[i].curve) {
-      // TODO: Convert A and Q curves to cubic bezier
+      // Convert quadratic to cubic bezier
+      if (path[i].curve.type === 'quadratic') {
+        const newCurve: CurveDef = {
+          type: 'cubic',
+        };
+
+        newCurve.x1 = path[i - 1].x + 2 / 3 * (path[i].curve.x1 - path[i - 1].x);
+        newCurve.y1 = path[i - 1].y + 2 / 3 * (path[i].curve.y1 - path[i - 1].y);
+        newCurve.x2 = path[i].x + 2 / 3 * (path[i].curve.x1 - path[i].x);
+        newCurve.y2 = path[i].y + 2 / 3 * (path[i].curve.y2 - path[i].y);
+        path[i].curve = newCurve;
+
+      } else if (path[i].curve.type === 'arc') {
+        console.warn('Paths with arcs are not yet supported.');
+      }
+
       continue;
     }
 
