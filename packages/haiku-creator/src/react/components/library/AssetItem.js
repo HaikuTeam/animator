@@ -3,7 +3,7 @@ import * as Radium from 'radium';
 import * as Color from 'color';
 import * as lodash from 'lodash';
 import * as Asset from 'haiku-serialization/src/bll/Asset';
-import * as Figma from 'haiku-serialization/src/bll/Figma';
+import {Figma} from 'haiku-serialization/src/bll/Figma';
 import {Draggable} from 'react-drag-and-drop';
 import AssetList from './AssetList';
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu';

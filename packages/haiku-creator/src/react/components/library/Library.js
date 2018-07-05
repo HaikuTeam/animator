@@ -9,7 +9,7 @@ import {isMac} from 'haiku-common/lib/environments/os';
 import Palette from 'haiku-ui-common/lib/Palette';
 import {didAskedForSketch} from 'haiku-serialization/src/utils/HaikuHomeDir';
 import * as Asset from 'haiku-serialization/src/bll/Asset';
-import * as Figma from 'haiku-serialization/src/bll/Figma';
+import {Figma} from 'haiku-serialization/src/bll/Figma';
 import * as sketchUtils from 'haiku-serialization/src/utils/sketchUtils';
 import SketchDownloader from '../SketchDownloader';
 import AssetList from './AssetList';

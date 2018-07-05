@@ -1,5 +1,5 @@
 // @ts-ignore
-import * as Figma from 'haiku-serialization/src/bll/Figma';
+import {Figma} from 'haiku-serialization/src/bll/Figma';
 import {ImportSpec, MaybeAsync, TokenExchange} from '.';
 
 export interface Services {

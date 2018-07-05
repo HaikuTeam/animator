@@ -17,16 +17,18 @@ const VALID_TYPES = {
   SLICE: 'SLICE',
   GROUP: 'GROUP',
   FRAME: 'FRAME',
-  COMPONENT: 'COMPONENT'
+  COMPONENT: 'COMPONENT',
 }
 const FOLDERS = {
   [VALID_TYPES.SLICE]: 'slices/',
   [VALID_TYPES.GROUP]: 'groups/',
   [VALID_TYPES.COMPONENT]: 'groups/',
-  [VALID_TYPES.FRAME]: 'frames/'
+  [VALID_TYPES.FRAME]: 'frames/',
 }
 
 const uniqueNameResolver = {}
+
+const PHONY_FIGMA_FILE = 'phony-haiku-helper-file.svg'
 
 /**
  * @class Figma
@@ -339,4 +341,4 @@ class Figma {
   }
 }
 
-module.exports = Figma
+module.exports = {Figma, PHONY_FIGMA_FILE}

@@ -1,7 +1,7 @@
 const path = require('path')
 const toTitleCase = require('./helpers/toTitleCase')
 const BaseModel = require('./BaseModel')
-const Figma = require('./Figma')
+const {Figma, PHONY_FIGMA_FILE} = require('./Figma')
 const { Experiment, experimentIsEnabled } = require('haiku-common/lib/experiments')
 
 const PAGES_REGEX = /\/pages\//
