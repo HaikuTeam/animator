@@ -328,7 +328,7 @@ class AssetItem extends React.Component {
               backgroundColor: Palette.DARK_GRAY,
               color: Palette.ROCK,
             }}>
-            <SyncIconSVG />
+            <SyncIconSVG className={this.props.asset.getChildAssets().every((asset) => asset.isPhonyOrHasOnlyPhonyChildrens()) ? 'animation-rotating' : ''} />
           </button>
         </span>
       );
@@ -583,6 +583,10 @@ class AssetItem extends React.Component {
   }
 
   render () {
+    if (experimentIsEnabled(Experiment.CleanInitialLibraryState) && this.props.asset.isPhonyOrHasOnlyPhonyChildrens()) {
+      return null;
+    }
+
     if (
       !experimentIsEnabled(Experiment.CleanInitialLibraryState) &&
       this.props.asset.kind === Asset.KINDS.HACKY_MESSAGE

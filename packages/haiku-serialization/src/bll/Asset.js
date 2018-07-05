@@ -452,6 +452,15 @@ class Asset extends BaseModel {
     return !!this.relpath.match(FRAMES_REGEX)
   }
 
+  isPhony () {
+    return this.relpath.includes(PHONY_FIGMA_FILE)
+  }
+
+  isPhonyOrHasOnlyPhonyChildrens () {
+    const children = this.getChildAssets()
+    return this.isPhony() || children.length === 1 && children[0].isPhony()
+  }
+
   unshiftFolderAsset (folderAsset) {
     const foundAmongChildren = this.children.indexOf(folderAsset) !== -1
     if (folderAsset && !foundAmongChildren) {

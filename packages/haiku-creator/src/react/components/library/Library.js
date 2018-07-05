@@ -190,8 +190,8 @@ class Library extends React.Component {
       return;
     }
 
-    const path = this.props.projectModel.folder;
-    return this.props.servicesEnvoyClient.figmaImportSVG({url, path}, this.state.figma.token)
+    const projectFolder = this.props.projectModel.folder;
+    return this.props.servicesEnvoyClient.figmaImportSVG({url, projectFolder}, this.state.figma.token)
       .catch((error = {}) => {
         const message = error.err || 'We had a problem connecting with Figma. Please check your internet connection and try again.';
         const reportData = {url, message};
