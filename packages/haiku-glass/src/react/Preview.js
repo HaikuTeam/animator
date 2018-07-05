@@ -1,6 +1,7 @@
 import React from 'react'
 import HaikuDOMAdapter from '@haiku/core/dom'
 import {InteractionMode} from '@haiku/core/lib/helpers/interactionModes'
+import logger from 'haiku-serialization/src/utils/LoggerInstance'
 
 export default class Preview extends React.Component {
   mountHaikuComponent () {
@@ -24,6 +25,30 @@ export default class Preview extends React.Component {
         contextMenu: 'disabled'
       }
     )
+
+    this.component.on('state:change', (attachedObject) => {
+      let message = ''
+      if (attachedObject.queued) {
+        message = `State transition ${attachedObject.state} to target ${attachedObject.to} with duration ${attachedObject.duration} queued`
+      } else if (attachedObject.started) {
+        message = `State transition ${attachedObject.state} to target ${attachedObject.to} with duration ${attachedObject.duration} started`
+      } else if (attachedObject.finished) {
+        message = `State transition ${attachedObject.state} to target ${attachedObject.to} with duration ${attachedObject.duration} finished`
+      } else {
+        message = `State ${attachedObject.state} changed from ${attachedObject.from} to ${attachedObject.to}`
+      }
+      logger.traceInfo('state:change', message, attachedObject)
+    })
+
+    this.component.on('action:fired', (attachedObject) => {
+      const message = `Action ${attachedObject.action} fired on element ${attachedObject.element}`
+      logger.traceInfo('action:fired', message, attachedObject)
+    })
+
+    this.component.on('loop', (attachedObject) => {
+      const message = `Loop count ${attachedObject.loopCounter}`
+      logger.traceInfo('loop', message, attachedObject)
+    })
 
     this.component.render(this.component.config)
   }

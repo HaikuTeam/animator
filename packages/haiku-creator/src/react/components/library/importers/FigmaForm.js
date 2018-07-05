@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Palette from 'haiku-ui-common/lib/Palette';
-import * as Figma from 'haiku-serialization/src/bll/Figma';
+import {Figma} from 'haiku-serialization/src/bll/Figma';
 import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 import {DASH_STYLES} from '../../../styles/dashShared';
 import {BTN_STYLES} from '../../../styles/btnShared';

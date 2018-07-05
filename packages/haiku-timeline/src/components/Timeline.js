@@ -25,6 +25,7 @@ import Gauge from './Gauge'
 import GaugeTimeReadout from './GaugeTimeReadout'
 import TimelineRangeScrollbar from './TimelineRangeScrollbar'
 import HorzScrollShadow from './HorzScrollShadow'
+import ScrollView from './ScrollView'
 import Marquee from './Marquee'
 import {InteractionMode, isPreviewMode} from '@haiku/core/lib/helpers/interactionModes'
 import { USER_CHANNEL, UserSettings } from 'haiku-sdk-creator/lib/bll/User'
@@ -178,8 +179,13 @@ class Timeline extends React.Component {
             event.target.id.includes('constant-body') ||
             // SVG elements
             typeof event.target.className !== 'string' ||
-            // Tween
-            event.target.className.includes('pill')
+            // Undesired elements
+            [
+              'drag-grip-wrapper',
+              'component-heading-row-drag-handle',
+              'pill',
+              'component-heading-chevron-box'
+            ].includes(event.target.className)
           )
         },
         onFinish: (event, area) => {
@@ -1144,7 +1150,7 @@ class Timeline extends React.Component {
             position: 'fixed',
             top: 0,
             left: 0,
-            height: 35,
+            height: 36,
             width: timeline.getPropertiesPixelWidth(),
             backgroundColor: Palette.COAL,
             borderBottom: `1px solid ${Palette.FATHER_COAL}`,
@@ -1160,25 +1166,11 @@ class Timeline extends React.Component {
           timeline={timeline}
           onShowFrameActionsEditor={this.showFrameActionsEditor}
         />,
-        <div
+        <Gauge
           key='gauge'
-          id='gauge-wrapper'
-          style={{
-            height: 24,
-            backgroundColor: Palette.COAL,
-            position: 'sticky',
-            top: 12,
-            marginLeft: timeline.getPropertiesPixelWidth(),
-            width: timeline.calculateFullTimelineWidth(),
-            zIndex: zIndex.gauge.base,
-            fontSize: 10,
-            borderBottom: '1px solid ' + Palette.FATHER_COAL,
-            color: Palette.ROCK_MUTED
-          }}
+          timeline={timeline}
           onMouseDown={this.onGaugeMouseDown}
-        >
-          <Gauge timeline={timeline} />
-        </div>,
+        />,
         <ScrubberInterior
           key='scrubber'
           timeline={timeline}
@@ -1502,47 +1494,28 @@ class Timeline extends React.Component {
             />
           )
         }
-        <HorzScrollShadow
-          timeline={this.getActiveComponent().getCurrentTimeline()} />
+        <HorzScrollShadow timeline={this.getActiveComponent().getCurrentTimeline()} />
         {this.renderTopControls()}
-        <div
-          ref='scrollview'
-          id='property-rows'
-          className='no-select'
-          style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
-            position: 'absolute',
-            top: 35,
-            left: 0,
-            width: this.getActiveComponent().getCurrentTimeline().calculateFullTimelineWidth(),
-            pointerEvents: 'auto',
-            WebkitUserSelect: 'auto',
-            bottom: 0
-          } : {
-            position: 'absolute',
-            top: 35,
-            left: 0,
-            width: '100%',
-            pointerEvents: 'auto',
-            WebkitUserSelect: 'auto',
-            bottom: 0,
-            overflowY: 'auto',
-            overflowX: 'hidden'
-          })}
-          onMouseDown={(mouseEvent) => {
+        <ScrollView
+          timeline={this.getActiveComponent().getCurrentTimeline()}
+          onMouseDown={mouseEvent => {
             if (
               !Globals.isShiftKeyDown &&
               !Globals.isControlKeyDown &&
               mouseEvent.nativeEvent.which !== 3
             ) {
-              Keyframe.deselectAndDeactivateAllKeyframes({ component: this.getActiveComponent() })
+              Keyframe.deselectAndDeactivateAllKeyframes({
+                component: this.getActiveComponent()
+              })
             }
-          }}>
+          }}
+        >
           {this.renderComponentRows()}
-        </div>
+        </ScrollView>
         {experimentIsEnabled(Experiment.NativeTimelineScroll) &&
           <div style={{
             position: 'fixed',
-            top: 0,
+            top: this.state.rowHeight * this.getActiveComponent().getRows().length,
             bottom: 0,
             width: this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth(),
             backgroundColor: Palette.GRAY,

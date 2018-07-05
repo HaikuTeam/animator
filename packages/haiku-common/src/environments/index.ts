@@ -34,3 +34,6 @@ export const getEnvironmentType = () => {
     ? EnvironmentType.Production
     : EnvironmentType.Development;
 };
+
+export const isProduction = () => getEnvironmentType() === EnvironmentType.Production;
+export const isDevelopment = () => getEnvironmentType() === EnvironmentType.Development;

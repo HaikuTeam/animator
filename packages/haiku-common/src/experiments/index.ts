@@ -33,6 +33,8 @@ export enum Experiment {
   NativeTimelineScroll = 'NativeTimelineScroll',
   TimelineMarqueeSelection = 'TimelineMarqueeSelection',
   LocalAssetExport = 'LocalAssetExport',
+  UserConsole = 'UserConsole',
+  CleanInitialLibraryState = 'CleanInitialLibraryState',
 }
 
 /**

@@ -261,7 +261,7 @@ function go () {
   switch (inputs.devChoice) {
     case 'everything':
       global.process.env.HAIKU_DEBUG = '1'
-      args.push('electron', '--enable-logging', '--remote-debugging-port=9222', '.')
+      args.push('electron', '--remote-debugging-port=9222', '.')
       break
     case 'glass':
       cwd = groups.glass.abspath

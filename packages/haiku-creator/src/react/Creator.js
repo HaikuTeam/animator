@@ -18,6 +18,7 @@ import StateInspector from './components/StateInspector/StateInspector';
 import SplitPanel from './components/SplitPanel';
 import Stage from './components/Stage';
 import Timeline from './components/Timeline';
+import LogViewer from './components/LogViewer/LogViewer';
 import Toast from './components/notifications/Toast';
 import Tour from './components/Tour/Tour';
 import AutoUpdater from './components/AutoUpdater';
@@ -45,6 +46,7 @@ import * as isOnline from 'is-online';
 import * as CreatorIntro from '@haiku/taylor-creatorintro/react';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import * as opn from 'opn';
+import {isProduction} from 'haiku-common/lib/environments';
 
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'creator';
@@ -879,6 +881,10 @@ export default class Creator extends React.Component {
   handleInteractionModeChange (interactionMode) {
     this.setState({interactionMode});
     this.mixpanelReportPreviewMode(interactionMode);
+    // Clear all logs before starting preview on production. For development it might be useful to not clean them
+    if (this.state.interactionMode === InteractionMode.LIVE && interactionMode === InteractionMode.EDIT && isProduction()) {
+      this.refs.logviewer.clearAllLogs();
+    }
   }
 
   setPreviewMode (interactionMode) {
@@ -1695,6 +1701,10 @@ export default class Creator extends React.Component {
     );
   }
 
+  get shouldShowUserConsole () {
+    return experimentIsEnabled(Experiment.UserConsole) && this.state.interactionMode === InteractionMode.LIVE;
+  }
+
   render () {
     if (this.state.showProxySettings) {
       return (
@@ -1991,22 +2001,54 @@ export default class Creator extends React.Component {
                     : ''}
                 </div>
               </SplitPanel>
-              <Timeline
-                ref="timeline"
-                folder={this.state.projectFolder}
-                envoyClient={this.envoyClient}
-                haiku={this.props.haiku}
-                username={this.state.username}
-                organizationName={this.state.organizationName}
-                createNotice={this.createNotice}
-                removeNotice={this.removeNotice}
-                onReady={this.onTimelineMounted} />
+              <div style={{
+                position: 'relative',
+                width: '100%',
+                height: '100%',
+              }}>
+                <div style={{
+                  position: 'absolute',
+                  width: '100%',
+                  height: '100%',
+                  top: '0px',
+                  overflow: 'auto',
+                  visibility: this.shouldShowUserConsole ? 'hidden' : 'visible',
+                }}>
+                  <Timeline
+                    ref="timeline"
+                    folder={this.state.projectFolder}
+                    envoyClient={this.envoyClient}
+                    haiku={this.props.haiku}
+                    username={this.state.username}
+                    organizationName={this.state.organizationName}
+                    createNotice={this.createNotice}
+                    removeNotice={this.removeNotice}
+                    onReady={this.onTimelineMounted} />
+                </div>
+                {this.shouldShowUserConsole && <div style={{
+                  position: 'absolute',
+                  width: '100%',
+                  height: '100%',
+                  top: '0px',
+                  overflow: 'auto',
+                }}>
+                  <LogViewer
+                    ref="logviewer"
+                    folder={this.state.projectFolder}
+                    haiku={this.props.haiku}
+                    username={this.state.username}
+                    organizationName={this.state.organizationName}
+                    createNotice={this.createNotice}
+                    removeNotice={this.removeNotice}
+                    onReady={this.onTimelineMounted}
+                    websocket={this.props.websocket}
+                  />
+                </div>}
+              </div>
             </SplitPanel>
           </div>
         </div>
-        {(this.state.doShowProjectLoader)
-          ? <ProjectLoader />
-          : ''}
+        {this.state.doShowProjectLoader && <ProjectLoader />}
       </div>
     );
   }

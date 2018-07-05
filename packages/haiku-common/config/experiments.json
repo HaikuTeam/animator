@@ -24,5 +24,7 @@
   "WarnOnUndefinedStateVariables": true,
   "NativeTimelineScroll": true,
   "TimelineMarqueeSelection": true,
-  "LocalAssetExport": false
+  "LocalAssetExport": false,
+  "UserConsole": true,
+  "CleanInitialLibraryState": true
 }

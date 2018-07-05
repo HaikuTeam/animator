@@ -444,6 +444,13 @@ export default class Plumbing extends EventEmitter {
       return this.sendBroadcastMessage(message, folder, alias);
     }
 
+    if (message.type === 'log') {
+      logger.raw(message.message);
+
+      // We want logs on creator, lets send it there
+      return this.sendMessageToCreator(message, folder, alias);
+    }
+
     if (message.id && this.requests[message.id]) {
       // If we have an entry in this.requests, that means this is a reply
       const {callback} = this.requests[message.id];
@@ -563,6 +570,20 @@ export default class Plumbing extends EventEmitter {
 
       // Don't send if we know the socket isn't open
       if (client.readyState !== WebSocket.OPEN) {
+        return;
+      }
+
+      delete message.id; // Don't confuse this as a request/response
+
+      sendMessageToClient(client, merge(message, {folder, alias}));
+    });
+  }
+
+  sendMessageToCreator (message, folder, alias) {
+    this.clients.forEach((client) => {
+
+      // Don't send if we know the socket isn't open
+      if (client.readyState !== WebSocket.OPEN || client.params.alias !== 'creator') {
         return;
       }
 
@@ -776,6 +797,22 @@ export default class Plumbing extends EventEmitter {
 
   masterHeartbeat (folder, cb) {
     return this.awaitMasterAndCallMethod(folder, 'masterHeartbeat', [{from: 'master'}], cb);
+  }
+
+  /**
+   * @method copyDefaultSketchFile
+   * @description copy the default Sketch file to the given project
+   */
+  copyDefaultSketchFile (projectName, assetPath, cb) {
+    return cb(ProjectFolder.copyDefaultSketchFile(projectName, assetPath));
+  }
+
+  /**
+   * @method copyDefaultIllustratorFile
+   * @description copy the default Illustrator file to the given project
+   */
+  copyDefaultIllustratorFile (projectName, assetPath, cb) {
+    return cb(ProjectFolder.copyDefaultIllustratorFile(projectName, assetPath));
   }
 
   /**

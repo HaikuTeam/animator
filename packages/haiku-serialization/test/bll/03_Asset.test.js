@@ -2,6 +2,7 @@ const test = require('tape')
 const path = require('path')
 const {Experiment,experimentIsEnabled} = require('haiku-common/lib/experiments')
 const Asset = require('./../../src/bll/Asset')
+const {PHONY_FIGMA_FILE} = require('./../../src/bll/Figma')
 
 const PROJECT_MODEL_STUB = {
   getFolder: () => {
@@ -65,8 +66,6 @@ const mockAssets = () =>{
 }
 
 test('Asset.assetsToDirectoryStructure', (t) => {
-  t.plan(7)
-
   const assets = mockAssets()
 
   t.ok(assets[0],'asset exists')
@@ -81,11 +80,10 @@ test('Asset.assetsToDirectoryStructure', (t) => {
   t.equal(assets[idx].children[0].kind, 'component', 'first child asset is component')
   t.equal(assets[idx].children[0].type, 'file', 'child asset is file')
   t.equal(assets[idx].dump(), 'code\n  code/foo_svg/code.js','tree looks ok')
+  t.end()
 })
 
 test('Asset.assetsToDirectoryStructure detects sketch assets without exported SVG files', (t) => {
-  t.plan(2)
-
   const assets = Asset.ingestAssets(PROJECT_MODEL_STUB, {
     'designs/TEST.sketch': {
       relpath: 'designs/TEST.sketch',
@@ -96,11 +94,10 @@ test('Asset.assetsToDirectoryStructure detects sketch assets without exported SV
 
   t.equal(assets[1].children.length, 1, 'base asset has a child')
   t.equal(assets[1].children[0].kind, 'sketch', 'child asset is sketch')
+  t.end()
 })
 
 test('Asset.getAssetInfo', (t) => {
-  t.plan(4)
-
   const assets = mockAssets()
   const sketchAsset = assets[1].children[0].children[0].children[0]
   const figmaAsset = assets[1].children[1].children[0].children[0]
@@ -111,26 +108,57 @@ test('Asset.getAssetInfo', (t) => {
   t.equal(sketchAssetInfo.generatorRelpath, 'designs/TEST.sketch')
   t.equal(figmaAssetInfo.generator, 'figma')
   t.equal(figmaAssetInfo.generatorRelpath, 'designs/ID-TEST.figma')
+  t.end()
 })
 
 test('Asset.isSketchFile', (t) => {
-  t.plan(2)
-
   const assets = mockAssets()
   const sketchAsset = assets[1].children[0]
   const figmaAsset = assets[1].children[1]
 
   t.ok(sketchAsset.isSketchFile())
   t.notOk(sketchAsset.isFigmaFile())
+  t.end()
 })
 
 test('Asset.isFigmaFile', (t) => {
-  t.plan(2)
-
   const assets = mockAssets()
   const sketchAsset = assets[1].children[0]
   const figmaAsset = assets[1].children[1]
 
   t.ok(figmaAsset.isFigmaFile())
   t.notOk(figmaAsset.isSketchFile())
+  t.end()
+})
+
+test('Asset.isPhony', (t) => {
+  const assets = mockAssets()
+  const figmaAsset = assets[1].children[1]
+
+  t.notOk(figmaAsset.isPhony(), 'assets without the value of PHONY_FIGMA_FILE should not be considered phony')
+  figmaAsset.relpath = PHONY_FIGMA_FILE
+  t.ok(figmaAsset.isPhony(), 'assets with the value of PHONY_FIGMA_FILE should be considered phony')
+  t.end()
+})
+
+test('Assset.isPhonyOrOnlyHasPhonyChildrens', (t) => {
+  const assets = mockAssets()
+  const parentAsset = assets[1]
+  const childAsset = assets[1].children[1]
+
+
+  t.notOk(parentAsset.isPhonyOrOnlyHasPhonyChildrens(), 'if neither the parent of the children are phony returns false')
+  parentAsset.relpath = PHONY_FIGMA_FILE
+  t.ok(parentAsset.isPhonyOrOnlyHasPhonyChildrens(), 'if the parent is phony returns true')
+
+  parentAsset.relpath = path.join('some', 'path')
+  t.notOk(parentAsset.isPhonyOrOnlyHasPhonyChildrens(), 'if neither the parent of the children are phony returns false')
+
+  childAsset.relpath = PHONY_FIGMA_FILE
+  t.notOk(parentAsset.isPhonyOrOnlyHasPhonyChildrens(), 'if not every children is phony returns false')
+
+  parentAsset.children = [childAsset]
+  t.ok(parentAsset.isPhonyOrOnlyHasPhonyChildrens(), 'if all of the childrens are phony returns true')
+
+  t.end()
 })
