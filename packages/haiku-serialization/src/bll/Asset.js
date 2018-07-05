@@ -458,7 +458,7 @@ class Asset extends BaseModel {
 
   isPhonyOrHasOnlyPhonyChildrens () {
     const children = this.getChildAssets()
-    return this.isPhony() || children.length === 1 && children[0].isPhony()
+    return this.isPhony() || (children.length === 1 && children[0].isPhony())
   }
 
   unshiftFolderAsset (folderAsset) {

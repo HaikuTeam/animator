@@ -1,3 +1,4 @@
+// @ts-ignore
 import Mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 import Palette from 'haiku-ui-common/lib/Palette';
 import {
