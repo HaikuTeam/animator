@@ -1576,20 +1576,20 @@ class ElementSelectionProxy extends BaseModel {
         if (element.isComponent()) {
           const addressables = element.getComponentAddressables()
 
-          if (addressables.width && addressables.width.typedef === 'number' && propertyGroup['scale.x']) {
-            const width = addressables.width.value() * propertyGroup['scale.x'].value
+          if (addressables.width && addressables.width.typedef === 'number' && scalePropertyGroup['scale.x']) {
+            const width = addressables.width.value() * scalePropertyGroup['scale.x'].value
             if (width > 0) {
-              propertyGroup.width = {value: width}
+              scalePropertyGroup.width = {value: width}
             }
-            delete propertyGroup['scale.x']
+            delete scalePropertyGroup['scale.x']
           }
 
-          if (addressables.height && addressables.height.typedef === 'number' && propertyGroup['scale.y']) {
-            const height = addressables.height.value() * propertyGroup['scale.y'].value
+          if (addressables.height && addressables.height.typedef === 'number' && scalePropertyGroup['scale.y']) {
+            const height = addressables.height.value() * scalePropertyGroup['scale.y'].value
             if (height > 0) {
-              propertyGroup.height = {value: height}
+              scalePropertyGroup.height = {value: height}
             }
-            delete propertyGroup['scale.y']
+            delete scalePropertyGroup['scale.y']
           }
         }
       }
@@ -1599,7 +1599,7 @@ class ElementSelectionProxy extends BaseModel {
         element.getComponentId(),
         element.component.getCurrentTimelineName(),
         element.component.getCurrentTimelineTime(),
-        propertyGroup
+        scalePropertyGroup
       )
     }
 
