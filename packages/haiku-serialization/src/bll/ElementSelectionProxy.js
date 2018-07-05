@@ -11,7 +11,6 @@ const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments'
 const {Figma} = require('./Figma')
 const Sketch = require('./Sketch')
 const Illustrator = require('./Illustrator')
-const SingletonSnapEmitter = require('./SingletonSnapEmitter')
 const _ = require('lodash')
 
 const PI_OVER_12 = Math.PI / 12
@@ -1085,7 +1084,7 @@ class ElementSelectionProxy extends BaseModel {
         overrides.groupOrigin[whichAxis] = desiredPosition - (snap.bboxEdgePosition - origins.groupOrigin[whichAxis])
       })
 
-      SingletonSnapEmitter.getInstance().emit('snaps-updated', foundSnaps)
+      this.emit('snaps-updated', foundSnaps)
       return this.move(dx, dy, overrides)
     }
 
@@ -1551,7 +1550,7 @@ class ElementSelectionProxy extends BaseModel {
       }
     )
 
-    SingletonSnapEmitter.getInstance().emit('snaps-updated', foundSnaps)
+    this.emit('snaps-updated', foundSnaps)
   }
 
   mutatePropertyGroupScaleToSizeIfNecessary (

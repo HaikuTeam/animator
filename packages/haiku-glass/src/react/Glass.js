@@ -48,7 +48,6 @@ const Globals = require('haiku-ui-common/lib/Globals').default
 const {clipboard, shell, remote, ipcRenderer} = require('electron')
 const fse = require('haiku-fs-extra')
 const moment = require('moment')
-const SingletonSnapEmitter = require('haiku-serialization/src/bll/SingletonSnapEmitter')
 const {HOMEDIR_PATH} = require('haiku-serialization/src/utils/HaikuHomeDir')
 
 fse.mkdirpSync(HOMEDIR_PATH)
@@ -496,7 +495,9 @@ export class Glass extends React.Component {
       })
     }
 
-    SingletonSnapEmitter.getInstance().on('snaps-updated', this.handleSnapsUpdated.bind(this))
+    this.addEmitterListener(ElementSelectionProxy, 'snaps-updated', (proxy, snaps) => {
+      this.handleSnapsUpdated(snaps)
+    })
 
     // If the user e.g. Cmd+tabs away from the window
     this.addEmitterListener(window, 'blur', () => {
