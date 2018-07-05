@@ -26,5 +26,6 @@
   "LocalAssetExport": false,
   "AllowBitmapImages": false,
   "SizeInsteadOfScaleWhenPossible": true,
-  "UserConsole": true
+  "UserConsole": true,
+  "CleanInitialLibraryState": true
 }

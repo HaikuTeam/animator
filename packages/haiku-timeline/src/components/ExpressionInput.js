@@ -1009,7 +1009,7 @@ export default class ExpressionInput extends React.Component {
       height: this.getEditorHeight() + 1,
       left: 0,
       outline: 'none',
-      position: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'absolute' : 'relative',
+      position: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'sticky' : 'relative',
       top: 0,
       visibility: 'hidden',
       width: this.props.reactParent.state.inputCellWidth,
@@ -1019,8 +1019,9 @@ export default class ExpressionInput extends React.Component {
     if (this.props.component.getFocusedRow()) {
       style.visibility = 'visible'
       let rect = this.getRootRect()
-      style.left = rect.left
-      style.top = experimentIsEnabled(Experiment.NativeTimelineScroll) ? rect.top + this.props.reactParent.refs.container.scrollTop : rect.top + 10
+      style.left = experimentIsEnabled(Experiment.NativeTimelineScroll) ? rect.left + this.props.reactParent.refs.container.scrollLeft : rect.left
+      style.top = experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : rect.top + 10
+      style.marginTop = experimentIsEnabled(Experiment.NativeTimelineScroll) ? rect.top + this.props.reactParent.refs.container.scrollTop + 9 : undefined
     }
 
     return style

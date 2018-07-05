@@ -2,7 +2,7 @@ export const SERVICES_CHANNEL = 'services';
 
 export interface ImportSpec {
   url: string;
-  path: string;
+  projectFolder: string;
 }
 
 export interface TokenExchange {

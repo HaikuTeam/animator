@@ -12,7 +12,7 @@ import * as File from 'haiku-serialization/src/bll/File';
 import * as Project from 'haiku-serialization/src/bll/Project';
 import * as Sketch from 'haiku-serialization/src/bll/Sketch';
 import * as Asset from 'haiku-serialization/src/bll/Asset';
-import * as Figma from 'haiku-serialization/src/bll/Figma';
+import {Figma} from 'haiku-serialization/src/bll/Figma';
 import * as Illustrator from 'haiku-serialization/src/bll/Illustrator';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import * as MockWebsocket from 'haiku-serialization/src/ws/MockWebsocket';

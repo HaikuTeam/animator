@@ -503,3 +503,12 @@ input[type=file]::-webkit-file-upload-button { /* chromes and blink button */
   }
 }
 
+.button-css-transform {
+  transition: transform 200ms ease;
+  transform: scale(1);
+}
+
+.button-css-transform:active {
+  transform: scale(0.9);
+}
+

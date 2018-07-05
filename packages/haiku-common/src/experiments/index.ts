@@ -35,6 +35,7 @@ export enum Experiment {
   UserConsole = 'UserConsole',
   AllowBitmapImages = 'AllowBitmapImages',
   SizeInsteadOfScaleWhenPossible = 'SizeInsteadOfScaleWhenPossible',
+  CleanInitialLibraryState = 'CleanInitialLibraryState',
 }
 
 /**

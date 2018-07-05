@@ -286,6 +286,7 @@ class Timeline extends BaseModel {
   setMaxFrame (maxFrame) {
     this._maxFrame = maxFrame
     this.cache.unset('frameInfo')
+    this.emit('update', 'timeline-max-frame-changed')
     return this
   }
 
@@ -711,10 +712,14 @@ class Timeline extends BaseModel {
     }, DURATION_MOD_TIMEOUT)
   }
 
-  setScrollLeft (x) {
-    if (x >= 0 && x <= this.calculateFullTimelineWidth()) {
-      this._scrollLeft = x
-      this.emit('update', 'timeline-scroll')
+  setScrollLeft (scrollValue) {
+    if (scrollValue >= 0) {
+      if (scrollValue >= (this.calculateFullTimelineWidth() - this._timelinePixelWidth)) {
+        this.setMaxFrame(this.getMaxFrame() + 50)
+      } else {
+        this._scrollLeft = scrollValue
+        this.emit('update', 'timeline-scroll')
+      }
     }
   }
 

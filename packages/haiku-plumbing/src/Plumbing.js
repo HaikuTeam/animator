@@ -800,6 +800,22 @@ export default class Plumbing extends EventEmitter {
   }
 
   /**
+   * @method copyDefaultSketchFile
+   * @description copy the default Sketch file to the given project
+   */
+  copyDefaultSketchFile (projectName, assetPath, cb) {
+    return cb(ProjectFolder.copyDefaultSketchFile(projectName, assetPath));
+  }
+
+  /**
+   * @method copyDefaultIllustratorFile
+   * @description copy the default Illustrator file to the given project
+   */
+  copyDefaultIllustratorFile (projectName, assetPath, cb) {
+    return cb(ProjectFolder.copyDefaultIllustratorFile(projectName, assetPath));
+  }
+
+  /**
    * @method bootstrapProject
    * @description Flexible method for setting up a project based on an unknown file system state and possibly missing inputs.
    * We make a decision here as to where + whether to generate a new folder.
