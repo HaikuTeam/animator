@@ -7,6 +7,7 @@ const {LAYOUT_3D_SCHEMA} = require('@haiku/core/lib/HaikuComponent')
 const KnownDOMEvents = require('@haiku/core/lib/renderers/dom/Events').default
 const titlecase = require('titlecase')
 const decamelize = require('decamelize')
+const Matrix = require('gl-matrix')
 const polygonOverlap = require('polygon-overlap')
 const logger = require('./../utils/LoggerInstance')
 const BaseModel = require('./BaseModel')
@@ -456,13 +457,46 @@ class Element extends BaseModel {
     this.emit('update', 'element-send-backward')
   }
 
-  getBoundingClientRect () {
-    // TODO:
-    //   This doesn't quite work yet.
-    //   Stubbing out possible behavior while cleaning out DOM/render dependencies/races
-    //
+  // marginX and marginY represent the distance from the container
+  // boundary to the stage boundary, i.e. the margin that centers the
+  // stage.
+  // since this is dependent on artboard + window dimensions,
+  // this needs to be passed in from the artboard.
+  getBoundingClientRect (marginX, marginY) {
     const points = this.getBoxPointsTransformed()
-    return HaikuElement.getRectFromPoints(points)
+
+    // account for stage margin to provide a screen-space bbox
+    if (marginX !== undefined && marginY !== undefined) {
+      let mat = Matrix.mat2d.create()
+      let margin = Matrix.vec2.create()
+
+      Matrix.vec2.set(margin, -marginX, -marginY)
+      Matrix.mat2d.translate(mat, mat, margin)
+
+      for (let i = 0; i < points.length; i++) {
+        let pointInput = Matrix.vec2.create()
+        let pointOutput = Matrix.vec2.create()
+        Matrix.vec2.set(pointInput, points[i].x, points[i].y)
+        Matrix.vec2.transformMat2d(pointOutput, pointInput, mat)
+        points[i] = {x: pointOutput[0], y: pointOutput[1]}
+      }
+    }
+
+    const top = Math.min(points[0].y, points[2].y, points[6].y, points[8].y)
+    const bottom = Math.max(points[0].y, points[2].y, points[6].y, points[8].y)
+    const left = Math.min(points[0].x, points[2].x, points[6].x, points[8].x)
+    const right = Math.max(points[0].x, points[2].x, points[6].x, points[8].x)
+    const height = Math.abs(bottom - top)
+    const width = Math.abs(right - left)
+
+    return {
+      top,
+      right,
+      bottom,
+      left,
+      width,
+      height
+    }
   }
 
   getAncestry () {
