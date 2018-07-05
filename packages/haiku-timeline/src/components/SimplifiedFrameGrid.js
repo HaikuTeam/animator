@@ -53,7 +53,8 @@ export default class SimplifiedFrameGrid extends React.PureComponent {
     } else if (
       what === 'timeline-frame-range' ||
       what === 'timeline-timeline-pixel-width' ||
-      what === 'time-display-mode-change'
+      what === 'time-display-mode-change' ||
+      what === 'timeline-max-frame-changed'
     ) {
       this.forceUpdate()
     }
