@@ -8,7 +8,7 @@ const {default: HaikuElement} = require('@haiku/core/lib/HaikuElement')
 const {default: composedTransformsToTimelineProperties} = require('@haiku/core/lib/helpers/composedTransformsToTimelineProperties')
 const {default: invertMatrix} = require('@haiku/core/lib/vendor/gl-mat4/invert')
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
-const Figma = require('./Figma')
+const {Figma} = require('./Figma')
 const Sketch = require('./Sketch')
 const Illustrator = require('./Illustrator')
 

@@ -28,6 +28,8 @@ const FOLDERS = {
 
 const uniqueNameResolver = {}
 
+const PHONY_FIGMA_FILE = 'phony-haiku-helper-file.svg'
+
 /**
  * @class Figma
  * @description
@@ -51,20 +53,23 @@ class Figma {
    * Imports SVGs from a Figma url in the given path
    * @param {Object} params
    * @param {string} params.url
-   * @param {string} params.path
+   * @param {string} params.projectFolder
    * @returns {Promise}
    */
-  importSVG ({url, path}) {
+  importSVG ({url, projectFolder}) {
     const {id, name} = Figma.parseProjectURL(url)
+    const abspath = path.join(projectFolder, 'designs', `${id}-${name}.figma`)
+    const assetBaseFolder = `${abspath}.contents`
 
     logger.info('[figma] about to import document with id ' + id)
     mixpanel.haikuTrack('creator:figma:fileImport:start')
 
-    return this.fetchDocument(id)
+    return this.createFolders(assetBaseFolder)
+      .then(() => this.fetchDocument(id))
       .then((document) => this.findInstantiableElements(document, id))
       .then((elements) => this.getSVGLinks(elements, id))
       .then((elements) => this.getSVGContents(elements))
-      .then((elements) => this.writeSVGInDisk(elements, id, name, path))
+      .then((elements) => this.writeSVGInDisk(elements, assetBaseFolder))
       .then(() => { mixpanel.haikuTrack('creator:figma:fileImport:success') })
   }
 
@@ -79,32 +84,40 @@ class Figma {
   }
 
   /**
+   * Create necessary folders
+   * @param {string} assetBaseFolder
+   */
+  createFolders (assetBaseFolder) {
+    return new Promise((resolve, reject) => {
+      try {
+        fse.emptyDirSync(assetBaseFolder)
+
+        const sliceFolder = path.join(assetBaseFolder, FOLDERS[VALID_TYPES.SLICE])
+        fse.mkdirpSync(sliceFolder)
+
+        const groupFolder = path.join(assetBaseFolder, FOLDERS[VALID_TYPES.GROUP])
+        fse.mkdirpSync(groupFolder)
+
+        const frameFolder = path.join(assetBaseFolder, FOLDERS[VALID_TYPES.FRAME])
+        fse.mkdirpSync(frameFolder)
+
+        fse.ensureFileSync(path.join(sliceFolder, PHONY_FIGMA_FILE))
+
+        resolve(true)
+      } catch (error) {
+        reject(error)
+      }
+    })
+  }
+
+  /**
    * Write an array of elements containing SVG info into disk
    * @param {Array} elements
-   * @param {string} id
-   * @param {string} name
-   * @param {string} path
+   * @param {String} assetBaseFolder
    * @returns {Promise}
    */
-  writeSVGInDisk (elements, id, name, path) {
+  writeSVGInDisk (elements, assetBaseFolder) {
     logger.info('[figma] writing SVGs in disk')
-
-    const abspath = `${path}/designs/${id}-${name}.figma`
-
-    const assetBaseFolder = abspath + '.contents/'
-    fse.emptyDirSync(assetBaseFolder)
-
-    const sliceFolder = assetBaseFolder + FOLDERS[VALID_TYPES.SLICE]
-    fse.mkdirpSync(sliceFolder)
-
-    const groupFolder = assetBaseFolder + FOLDERS[VALID_TYPES.GROUP]
-    fse.mkdirpSync(groupFolder)
-
-    const frameFolder = assetBaseFolder + FOLDERS[VALID_TYPES.FRAME]
-    fse.mkdirpSync(frameFolder)
-
-    const otherFolder = assetBaseFolder + FOLDERS.OTHER
-    fse.mkdirpSync(otherFolder)
 
     return Promise.all(
       elements.map((element) => {
@@ -112,8 +125,8 @@ class Figma {
           // Mimic the behaior of our Sketch importer: move to the slices folder
           // everything that is marked for export
           const folder = FOLDERS[element.type] || FOLDERS.SLICE
-          const path = assetBaseFolder + folder + element.name + '.svg'
-          return fse.writeFile(path, element.svg || '<svg version="1.1" xmlns="http://www.w3.org/2000/svg"></svg>')
+          const svgPath = path.join(assetBaseFolder, folder, `${element.name}.svg`)
+          return fse.writeFile(svgPath, element.svg || '<svg version="1.1" xmlns="http://www.w3.org/2000/svg"></svg>')
         }
       })
     )
@@ -339,4 +352,4 @@ class Figma {
   }
 }
 
-module.exports = Figma
+module.exports = {Figma, PHONY_FIGMA_FILE}

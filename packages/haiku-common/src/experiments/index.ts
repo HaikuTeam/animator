@@ -34,6 +34,7 @@ export enum Experiment {
   TimelineMarqueeSelection = 'TimelineMarqueeSelection',
   LocalAssetExport = 'LocalAssetExport',
   UserConsole = 'UserConsole',
+  CleanInitialLibraryState = 'CleanInitialLibraryState',
 }
 
 /**

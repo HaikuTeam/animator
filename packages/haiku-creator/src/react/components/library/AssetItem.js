@@ -3,7 +3,7 @@ import * as Radium from 'radium';
 import * as Color from 'color';
 import * as lodash from 'lodash';
 import * as Asset from 'haiku-serialization/src/bll/Asset';
-import * as Figma from 'haiku-serialization/src/bll/Figma';
+import {Figma} from 'haiku-serialization/src/bll/Figma';
 import {Draggable} from 'react-drag-and-drop';
 import AssetList from './AssetList';
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu';
@@ -27,6 +27,7 @@ import ControlText from 'haiku-ui-common/lib/react/icons/ControlText';
 import ControlHTML from 'haiku-ui-common/lib/react/icons/ControlHTML';
 // import ControlInput from 'haiku-ui-common/lib/react/icons/ControlInput'
 import FigmaPopover from './importers/FigmaPopover';
+import {experimentIsEnabled, Experiment} from 'haiku-common/lib/experiments';
 
 const ASSET_ICONS = {
   ControlImage: () => {
@@ -291,6 +292,10 @@ class AssetItem extends React.Component {
   }
 
   isFigmaAndCanBeOpened () {
+    if (experimentIsEnabled(Experiment.CleanInitialLibraryState)) {
+      return this.props.asset.isFigmaFile();
+    }
+
     return this.props.asset.isFigmaFile() && this.props.asset.relpath !== 'hacky-figma-file[1]';
   }
 
@@ -323,7 +328,7 @@ class AssetItem extends React.Component {
               backgroundColor: Palette.DARK_GRAY,
               color: Palette.ROCK,
             }}>
-            <SyncIconSVG />
+            <SyncIconSVG className={this.props.asset.getChildAssets().every((asset) => asset.isPhonyOrOnlyHasPhonyChildrens()) ? 'animation-rotating' : ''} />
           </button>
         </span>
       );
@@ -506,10 +511,53 @@ class AssetItem extends React.Component {
     return displayName;
   }
 
+  get messageForAsset () {
+    if (this.props.asset.isIllustratorFile()) {
+      return `
+        ⇧ Double click to open this file in Illustrator.
+        Every artboard will be synced here when you save.
+      `;
+    }
+
+    if (this.props.asset.isSketchFile()) {
+      return `
+        ⇧ Double click to open this file in Sketch.
+        Every slice and artboard will be synced here when you save.
+      `;
+    }
+
+    if (this.props.asset.isComponentsHostFolder()) {
+      return `
+        To create a component, select elements on stage and choose
+        "Create Component" from the element menu
+      `;
+    }
+
+    return null;
+  }
+
   renderSubLevel () {
+    if (!this.state.isOpened) {
+      return <div />;
+    }
+
+    if (this.props.asset.getChildAssets().length === 0) {
+      const message = this.messageForAsset;
+
+      return message && (
+        <div
+          className="asset-item-container"
+          style={[STYLES.container, STYLES.message]}>
+          <span
+            className="asset-message-container">
+            {message}
+          </span>
+        </div>
+      );
+    }
+
     return (
-      <Collapse
-        isOpened={this.state.isOpened}>
+      <div>
         <AssetList
           projectModel={this.props.projectModel}
           onDragStart={this.props.onDragStart}
@@ -521,13 +569,21 @@ class AssetItem extends React.Component {
           onImportFigmaAsset={this.props.onImportFigmaAsset}
           onAskForFigmaAuth={this.props.onAskForFigmaAuth}
           figma={this.props.figma}
-          indent={this.props.indent + 1} />
-      </Collapse>
+          indent={this.props.indent + 1}
+        />
+      </div>
     );
   }
 
   render () {
-    if (this.props.asset.kind === Asset.KINDS.HACKY_MESSAGE) {
+    if (experimentIsEnabled(Experiment.CleanInitialLibraryState) && this.props.asset.isPhonyOrOnlyHasPhonyChildrens()) {
+      return null;
+    }
+
+    if (
+      !experimentIsEnabled(Experiment.CleanInitialLibraryState) &&
+      this.props.asset.kind === Asset.KINDS.HACKY_MESSAGE
+    ) {
       return (
         <div
           className="asset-item-container"
@@ -593,18 +649,6 @@ class AssetItem extends React.Component {
           {this.renderSubLevel()}
         </div>
       </div>
-    );
-  }
-}
-
-class Collapse extends React.Component {
-  render () {
-    if (!this.props.isOpened) {
-      return <div />;
-    }
-
-    return (
-      <div>{this.props.children}</div>
     );
   }
 }

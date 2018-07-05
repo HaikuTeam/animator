@@ -8,6 +8,7 @@ import * as moment from 'moment';
 import {createBundle} from './Bundler';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import * as Project from 'haiku-serialization/src/bll/Project';
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 
 const PLUMBING_DIR = path.join(__dirname, '..');
 
@@ -33,6 +34,26 @@ function dir () {
 
 export const getHaikuCoreVersion = () => {
   return CORE_PACKAGE_JSON.version;
+};
+
+export const copyAssetFile = (projectPath, assetPath, bin) => {
+  try {
+    const assetDir = dir(projectPath, assetPath);
+
+    if (!fse.existsSync(assetDir)) {
+      fse.copySync(bin, assetDir);
+    }
+  } catch (error) {
+    return error;
+  }
+};
+
+export const copyDefaultSketchFile = (projectPath, assetPath) => {
+  return copyAssetFile(projectPath, assetPath, path.join(PLUMBING_DIR, 'bins', 'sketch-42.sketch'));
+};
+
+export const copyDefaultIllustratorFile = (projectPath, assetPath) => {
+  return copyAssetFile(projectPath, assetPath, path.join(PLUMBING_DIR, 'bins', 'illustrator-default.ai'));
 };
 
 export function buildProjectContent (
@@ -182,14 +203,12 @@ export function buildProjectContent (
         `);
       }
 
-      // If it isn't already a part of the project, add the 'blank' sketch file to users' projects
-      if (!fse.existsSync(dir(projectPath, primaryAssetPath))) {
-        fse.copySync(path.join(PLUMBING_DIR, 'bins', 'sketch-42.sketch'), dir(projectPath, primaryAssetPath));
-      }
+      if (!experimentIsEnabled(Experiment.CleanInitialLibraryState)) {
+        // If it isn't already a part of the project, add the 'blank' sketch file to users' projects
+        copyDefaultSketchFile(projectPath, primaryAssetPath);
 
-      // If it isn't already a part of the project, add the 'blank' sketch file to users' projects
-      if (!fse.existsSync(dir(projectPath, defaultIllustratorAssetPath))) {
-        fse.copySync(path.join(PLUMBING_DIR, 'bins', 'illustrator-default.ai'), dir(projectPath, defaultIllustratorAssetPath));
+        // If it isn't already a part of the project, add the 'blank' illustrator file to users' projects
+        copyDefaultIllustratorFile(projectPath, defaultIllustratorAssetPath);
       }
 
       fse.outputFileSync(dir(projectPath, 'README.md'), dedent`
