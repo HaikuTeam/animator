@@ -24,7 +24,7 @@ import attachListeners from './envoy/attachListeners';
 import saveExport from './publish-hooks/saveExport';
 import Raven from './Raven';
 import {createProjectFiles} from '@haiku/sdk-client/lib/createProjectFiles';
-import {createCDNBundles} from '@haiku/sdk-client/lib/createCDNBundle';
+import {createCDNBundles} from './project-folder/createCDNBundle';
 import {getHaikuCoreVersion} from '@haiku/sdk-client/lib/ProjectDefinitions';
 
 Sketch.findAndUpdateInstallPath();
@@ -679,6 +679,7 @@ export default class Master extends EventEmitter {
       // the cloned content. Which means we have to be sparing with what we create on the first run, but also need
       // to create any missing remainders on the second run.
       (cb) => {
+        // TODO: create example files
         return createProjectFiles(this.folder, projectName, {
           // Important: Must set this here or the package.name will be wrong
           organizationName: projectOptions.organizationName,
@@ -909,6 +910,7 @@ export default class Master extends EventEmitter {
       (cb) => {
         logger.info('[master] project save: populating content');
 
+        // TODO: create example files
         const {projectName} = this._git.getFolderState();
         createProjectFiles(this.folder, projectName, {
           projectName,

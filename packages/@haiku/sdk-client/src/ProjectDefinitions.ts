@@ -14,7 +14,7 @@ const FALLBACK_ORG_NAME = 'Unknown';
 const FALLBACK_AUTHOR_NAME = 'Haiku User';
 const DEFAULT_BRANCH_NAME = 'master';
 
-const getHaikuCoreVersion = () => {
+export const getHaikuCoreVersion = () => {
   const CORE_PACKAGE_JSON = fse.readJsonSync(
     require.resolve(path.join('@haiku/core', 'package.json')),
     {throws: false},
@@ -27,7 +27,7 @@ const getHaikuCoreVersion = () => {
   return FALLBACK_SEMVER_VERSION;
 };
 
-const getSafeProjectName = (maybePath: string, maybeName: string) => {
+export const getSafeProjectName = (maybePath: string, maybeName: string) => {
   if (maybeName) {
     return maybeName.replace(WHITESPACE_REGEX, UNDERSCORE);
   }
@@ -37,59 +37,59 @@ const getSafeProjectName = (maybePath: string, maybeName: string) => {
   throw new Error('Unable to infer a project name!');
 };
 
-const getProjectNameSafeShort = (maybePath: string, maybeName: string) => {
+export const getProjectNameSafeShort = (maybePath: string, maybeName: string) => {
   return getSafeProjectName(maybePath, maybeName).slice(0, 20);
 };
 
-const getProjectNameLowerCase = (maybePath: string, maybeName: string) => {
+export const getProjectNameLowerCase = (maybePath: string, maybeName: string) => {
   return getSafeProjectName(maybePath, maybeName).toLowerCase();
 };
 
-const getReactProjectName = (maybePath: string, maybeName: string) => {
+export const getReactProjectName = (maybePath: string, maybeName: string) => {
   return `React_${getSafeProjectName(maybePath, maybeName)}`;
 };
 
-const getPrimaryAssetPath = (maybePath: string, maybeName: string) => {
+export const getPrimaryAssetPath = (maybePath: string, maybeName: string) => {
   return `designs/${getProjectNameSafeShort(maybePath, maybeName)}.sketch`;
 };
 
-const getAngularSelectorName = (maybePath: string, maybeName: string) => {
+export const getAngularSelectorName = (maybePath: string, maybeName: string) => {
   return getSafeProjectName(maybePath, maybeName)
     .replace(/([A-Z])/g, (char: string) => `-${char.toLowerCase()}`)
     .replace(/^-/, '');
 };
 
-const getDefaultIllustratorAssetPath = (maybePath: string, maybeName: string) => {
+export const getDefaultIllustratorAssetPath = (maybePath: string, maybeName: string) => {
   return `designs/${getProjectNameSafeShort(maybePath, maybeName)}.ai`;
 };
 
-const getEmbedName = (organizationName: string, projectPath: string, projectName: string) => {
+export const getEmbedName = (organizationName: string, projectPath: string, projectName: string) => {
   return `HaikuComponentEmbed_${organizationName}_${getProjectNameSafeShort(projectPath, projectName)}`;
 };
 
-const getStandaloneName = (organizationName: string, projectPath: string, projectName: string) => {
+export const getStandaloneName = (organizationName: string, projectPath: string, projectName: string) => {
   return `HaikuComponent_${organizationName}_${getProjectNameSafeShort(projectPath, projectName)}`;
 };
 
-const getCopyrightNotice = (organizationName: string) => {
+export const getCopyrightNotice = (organizationName: string) => {
   return dedent`
   ${`Copyright (c) ${(new Date()).getFullYear()} ${organizationName}. All rights reserved.`}
   `;
 };
 
-const getOrganizationNameOrFallback = (organizationName: string) => {
+export const getOrganizationNameOrFallback = (organizationName: string) => {
   return organizationName || FALLBACK_ORG_NAME;
 };
 
-const getAuthorNameOrFallback = (authorName: string) => {
+export const getAuthorNameOrFallback = (authorName: string) => {
   return authorName || FALLBACK_AUTHOR_NAME;
 };
 
-const getCurrentHumanTimestamp = () => {
+export const getCurrentHumanTimestamp = () => {
   return moment().format('YYYYMMDDHHmmss');
 };
 
-const readPackageJson = (folder: string) => {
+export const readPackageJson = (folder: string) => {
   console.log('Reading package from folder', folder);
   let pkgjson: {haiku?: any, version?: any} = {};
   try {
@@ -106,7 +106,7 @@ const readPackageJson = (folder: string) => {
   return pkgjson;
 };
 
-const fetchProjectConfigInfo = (folder: string, cb: any) => {
+export const fetchProjectConfigInfo = (folder: string, cb: any) => {
   const pkgjson = readPackageJson(folder);
   const config = (pkgjson && pkgjson.haiku) || {};
   return cb(null, assign({
@@ -118,7 +118,7 @@ const fetchProjectConfigInfo = (folder: string, cb: any) => {
   }, config));
 };
 
-const getSafeOrganizationName = (maybeOrgName: string) => {
+export const getSafeOrganizationName = (maybeOrgName: string) => {
   let orgName = maybeOrgName;
   if (!maybeOrgName || typeof maybeOrgName !== 'string') {
     orgName = FALLBACK_ORG_NAME;
@@ -126,7 +126,7 @@ const getSafeOrganizationName = (maybeOrgName: string) => {
   return orgName.replace(WHITESPACE_REGEX, UNDERSCORE);
 };
 
-const storeConfigValues = (folder: string, incoming: any) => {
+export const storeConfigValues = (folder: string, incoming: any) => {
   fse.mkdirpSync(folder);
   const pkgjson = readPackageJson(folder);
   assign(pkgjson.haiku, incoming);
@@ -134,28 +134,6 @@ const storeConfigValues = (folder: string, incoming: any) => {
   return pkgjson.haiku;
 };
 
-const getDefaultBranchName = () => {
+export const getDefaultBranchName = () => {
   return DEFAULT_BRANCH_NAME;
-};
-
-export {
-    getSafeProjectName,
-    getProjectNameSafeShort,
-    getProjectNameLowerCase,
-    getReactProjectName,
-    getPrimaryAssetPath,
-    getAngularSelectorName,
-    getDefaultIllustratorAssetPath,
-    getCurrentHumanTimestamp,
-    getHaikuCoreVersion,
-    fetchProjectConfigInfo,
-    getSafeOrganizationName,
-    storeConfigValues,
-    readPackageJson,
-    getDefaultBranchName,
-    getEmbedName,
-    getStandaloneName,
-    getCopyrightNotice,
-    getOrganizationNameOrFallback,
-    getAuthorNameOrFallback,
 };

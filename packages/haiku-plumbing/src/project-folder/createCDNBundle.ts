@@ -25,9 +25,9 @@ import {
   getEmbedName,
   getOrganizationNameOrFallback,
   getStandaloneName,
-} from './ProjectDefinitions';
+} from '@haiku/sdk-client/lib/ProjectDefinitions';
 
-export const createBundle = (moduleDirectory: string, input: string, name: string, cb: any) => {
+const createBundle = (moduleDirectory: string, input: string, name: string, cb: any) => {
   logger.info('[bundler] beginning in basedir', moduleDirectory);
 
   rollup.rollup({
