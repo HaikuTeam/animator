@@ -1,6 +1,5 @@
 import React from 'react'
 import lodash from 'lodash'
-import Radium from 'radium'
 import path from 'path'
 import HaikuDOMRenderer from '@haiku/core/lib/renderers/dom'
 import HaikuContext from '@haiku/core/lib/HaikuContext'
@@ -49,6 +48,7 @@ const Globals = require('haiku-ui-common/lib/Globals').default
 const {clipboard, shell, remote, ipcRenderer} = require('electron')
 const fse = require('haiku-fs-extra')
 const moment = require('moment')
+const SingletonSnapEmitter = require('haiku-serialization/src/bll/SingletonSnapEmitter')
 const {HOMEDIR_PATH} = require('haiku-serialization/src/utils/HaikuHomeDir')
 
 fse.mkdirpSync(HOMEDIR_PATH)
@@ -475,11 +475,16 @@ export class Glass extends React.Component {
     window.requestAnimationFrame(this.drawLoop.bind(this))
   }
 
+  handleSnapsUpdated (newSnaps) {
+    this.setState({'snapLines': newSnaps})
+  }
+
   componentDidMount () {
     const resetKeyStates = () => {
       Globals.allKeysUp()
 
       this.setState({
+        snapLines: [],
         controlActivation: null,
         isAnythingScaling: false,
         isAnythingRotating: false,
@@ -490,6 +495,8 @@ export class Glass extends React.Component {
         isMouseDragging: false
       })
     }
+
+    SingletonSnapEmitter.getInstance().on('snaps-updated', this.handleSnapsUpdated.bind(this))
 
     // If the user e.g. Cmd+tabs away from the window
     this.addEmitterListener(window, 'blur', () => {
@@ -770,6 +777,65 @@ export class Glass extends React.Component {
     this.removeEmitterListeners()
     this.tourClient.off('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
     this.project.getEnvoyClient().closeConnection()
+  }
+
+  modColor (i) {
+    return ((i || 0) * 8) % 360
+  }
+
+  renderSnapLines () {
+    // Don't do anything until a project is initialized
+    if (!this.getActiveComponent()) {
+      return []
+    }
+
+    let getLineElements = () => {
+      let horizSnaps = []
+      let vertSnaps = []
+
+      if (this.state.isMouseDown &&
+        this.state.snapLines &&
+        this.state.snapLines.length &&
+        !Globals.isSpecialKeyDown() &&
+        !this.isMarqueeActive()) {
+        lodash.forEach(this.state.snapLines, (snapLine, index) => {
+          if (snapLine.direction === 'HORIZONTAL') horizSnaps.push(snapLine)
+          else vertSnaps.push(snapLine)
+        })
+      }
+
+      let lines = []
+      this._renderCount = this._renderCount || 0
+      horizSnaps.forEach((snap, i) => {
+        lines.push(<line key={'h-' + i} x1='-5000' x2='5000' y1={snap.positionWorld} y2={snap.positionWorld} strokeWidth='1.25' stroke={'hsl(' + this.modColor(this._renderCount) + ', 100%, 50%)'} />)
+      })
+      vertSnaps.forEach((snap, i) => {
+        lines.push(<line key={'v-' + i} x1={snap.positionWorld} x2={snap.positionWorld} y1='-5000' y2='5000' strokeWidth='1.25' stroke={'hsl(' + this.modColor(this._renderCount) + ', 100%, 50%)'} />)
+      })
+      this._renderCount++
+
+      return lines
+    }
+
+    let artboard = this.getActiveComponent().getArtboard()
+
+    let SNAP_LINE_OVERLAY_STYLE = {
+      position: 'fixed',
+      width: '100%',
+      height: '100%',
+      bottom: 0,
+      right: 0,
+      pointerEvents: 'none',
+      zIndex: MAX_Z_INDEX - 2,
+      overflow: 'visible',
+      top: artboard.getMountY(),
+      left: artboard.getMountX()
+    }
+    return (
+      <svg id='snap-overlay' style={SNAP_LINE_OVERLAY_STYLE}>
+        {getLineElements()}
+      </svg>
+    )
   }
 
   handleUndo (payload) {
@@ -1154,6 +1220,8 @@ export class Glass extends React.Component {
 
     this.state.isMouseDown = true
     const mouseDownPosition = this.storeAndReturnMousePosition(mousedownEvent, 'lastMouseDownPosition')
+    const proxy = this.fetchProxyElementForSelection()
+    proxy.handleMouseDown(mouseDownPosition)
 
     switch (mousedownEvent.nativeEvent.target.getAttribute('class')) {
       case 'direct-selection-anchor': {
@@ -1277,7 +1345,7 @@ export class Glass extends React.Component {
         }
 
         const finish = () => {
-          this.fetchProxyElementForSelection().pushCachedTransform('CONSTRAINED_DRAG') // wishlist: enum
+          this.fetchProxyElementForSelection().cacheOrigins()
         }
 
         if (this.getActiveComponent().getArtboard().getActiveDrawingTool() !== 'pointer') {
@@ -1824,7 +1892,10 @@ export class Glass extends React.Component {
       this.getActiveComponent().getSelectionMarquee().endSelection()
     }
 
-    this.storeAndReturnMousePosition(mouseupEvent, 'lastMouseUpPosition')
+    let mousePosition = this.storeAndReturnMousePosition(mouseupEvent, 'lastMouseUpPosition')
+
+    const proxy = this.fetchProxyElementForSelection()
+    proxy.handleMouseUp(mousePosition)
     this.state.isMouseDown = false
     this.state.lastMouseUpTime = Date.now()
     this.handleDragStop()
@@ -1905,7 +1976,7 @@ export class Glass extends React.Component {
     const delta = keyEvent.shiftKey ? 5 : 1
     const proxy = this.fetchProxyElementForSelection()
     if (proxy.hasAnythingInSelection()) {
-      proxy.move(-delta, 0)
+      proxy.move(-delta, 0, Globals)
     }
   }
 
@@ -1914,7 +1985,7 @@ export class Glass extends React.Component {
     const delta = keyEvent.shiftKey ? 5 : 1
     const proxy = this.fetchProxyElementForSelection()
     if (proxy.hasAnythingInSelection()) {
-      proxy.move(0, -delta)
+      proxy.move(0, -delta, Globals)
     }
   }
 
@@ -1923,7 +1994,7 @@ export class Glass extends React.Component {
     const delta = keyEvent.shiftKey ? 5 : 1
     const proxy = this.fetchProxyElementForSelection()
     if (proxy.hasAnythingInSelection()) {
-      proxy.move(delta, 0)
+      proxy.move(delta, 0, Globals)
     }
   }
 
@@ -1932,7 +2003,7 @@ export class Glass extends React.Component {
     const delta = keyEvent.shiftKey ? 5 : 1
     const proxy = this.fetchProxyElementForSelection()
     if (proxy.hasAnythingInSelection()) {
-      proxy.move(0, delta)
+      proxy.move(0, delta, Globals)
     }
   }
 
@@ -1959,13 +2030,39 @@ export class Glass extends React.Component {
       case 46: this.handleDelete(); break
       case 8: this.handleDelete(); break
       case 13: this.handleKeyEnter(); break
+      case 91: this.handleKeyCommand(true); break // left cmd
+      case 93: this.handleKeyCommand(true); break // left cmd
+      case 76: this.handleAlignRequest(undefined, 1, false); break // l key
+      case 75: this.handleDistributeRequest(undefined, 0.5, true); break // k key
     }
   }
 
-  handleKeyUp () {
+  handleAlignRequest (xEdge, yEdge, toStage) {
+    const proxy = this.fetchProxyElementForSelection()
+    proxy.align(xEdge, yEdge, toStage)
+  }
+
+  handleDistributeRequest (xEdge, yEdge, toStage) {
+    const proxy = this.fetchProxyElementForSelection()
+    proxy.distribute(xEdge, yEdge, toStage)
+  }
+
+  handleKeyCommand (isDown) {
+    this.setState({isCommandKeyDown: isDown})
+  }
+
+  handleKeyUp (keyEvent) {
     if (this.state.isEventHandlerEditorOpen) {
       return
     }
+
+    switch (keyEvent.nativeEvent.which) {
+      case 91: this.handleKeyCommand(false); break
+      case 93: this.handleKeyCommand(false); break
+    }
+
+    const proxy = this.fetchProxyElementForSelection()
+    proxy.handleKeyUp()
 
     if (this.getActiveComponent()) {
       this.getActiveComponent().getSelectionMarquee().endSelection()
@@ -3188,7 +3285,7 @@ export class Glass extends React.Component {
               position: 'fixed',
               top: 5,
               right: 10,
-              zIndex: MAX_Z_INDEX - 1,
+              zIndex: MAX_Z_INDEX - 8,
               color: '#ccc',
               fontSize: 14
             }}>
@@ -3363,7 +3460,7 @@ export class Glass extends React.Component {
                   'opacity': 0.5,
                   'pointerEvents': 'none'
                 }} />
-              {/* draw the red border around the stage when selected */}
+              {/* draw the border around the stage when selected */}
               <rect
                 x={mount.x - 1}
                 y={mount.y - 1}
@@ -3372,8 +3469,8 @@ export class Glass extends React.Component {
                 style={{
                   strokeWidth: 1.5,
                   fill: 'none',
-                  stroke: Palette.LIGHTEST_PINK,
-                  opacity: this.state.isStageNameHovering && !this.state.isStageSelected ? 0.75 : 0,
+                  stroke: 'hsl(' + this.modColor(this._renderCount) + ', 100%, 50%)',
+                  opacity: this.state.isStageNameHovering && !this.state.isStageSelected ? 1 : 0,
                   overflow: 'visible'
                 }}
                 />
@@ -3426,7 +3523,7 @@ export class Glass extends React.Component {
             : ''}
 
           {this.renderHotComponentMount(mount, drawingClassName)}
-
+          {this.renderSnapLines()}
           {(!this.isPreviewMode())
             ? <div
               ref='outline'
@@ -3454,7 +3551,7 @@ export class Glass extends React.Component {
                 width: '100%',
                 height: '100%',
                 overflow: 'hidden',
-                zIndex: MAX_Z_INDEX,
+                zIndex: MAX_Z_INDEX - 4,
                 backgroundColor: 'white'
               }}>
               <Preview
@@ -3487,4 +3584,4 @@ Glass.propTypes = {
   folder: React.PropTypes.string
 }
 
-export default Radium(Glass)
+export default Glass
