@@ -129,10 +129,6 @@ class ElementSelectionProxy extends BaseModel {
     return this.selection.length === 1
   }
 
-  shouldUseChildLayout () {
-    return this.doesManageSingleElement() && !this.selection[0].isRootElement()
-  }
-
   canRotate () {
     return !this.doesSelectionContainArtboard()
   }
@@ -469,12 +465,8 @@ class ElementSelectionProxy extends BaseModel {
 
   getOriginTransformed () {
     return this.cache.fetch('getOriginTransformed', () => {
-      // If managing only one element, use its own box points
-      if (this.shouldUseChildLayout()) {
-        return this.selection[0].getOriginTransformed()
-      }
-
       const layout = this.getComputedLayout()
+
       return HaikuElement.transformPointInPlace(
         {
           x: layout.size.x * layout.origin.x,
@@ -504,10 +496,6 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   getLayoutSpec () {
-    if (this.shouldUseChildLayout()) {
-      return this.selection[0].getLayoutSpec()
-    }
-
     return {
       shown: true,
       opacity: 1.0,
@@ -574,11 +562,6 @@ class ElementSelectionProxy extends BaseModel {
 
   getBoxPointsTransformed () {
     return this.cache.fetch('getBoxPointsTransformed', () => {
-      // If managing only one element, use its own box points
-      if (this.doesManageSingleElement()) {
-        return this.selection[0].getBoxPointsTransformed()
-      }
-
       return HaikuElement.transformPointsInPlace(
         this.getBoxPointsNotTransformed(),
         this.getComputedLayout().matrix
@@ -640,17 +623,6 @@ class ElementSelectionProxy extends BaseModel {
     }
 
     return proxyRect
-  }
-
-  getElementOrProxyPropertyValue (key) {
-    const fallback = ElementSelectionProxy.DEFAULT_PROPERTY_VALUES[key]
-
-    // If managing only one element, use its own property values
-    if (this.doesManageSingleElement()) {
-      return this.selection[0].computePropertyValue(key, fallback)
-    }
-
-    return this.computePropertyValue(key)
   }
 
   getElement () {
@@ -1133,7 +1105,7 @@ class ElementSelectionProxy extends BaseModel {
     //   [ S[0] S[4] ] [ deltaX ] = [ dx ]
     //   [ S[1] S[5] ] [ deltaY ]   [ dy ]
     // We can solve this directly.
-    const targetElement = this.shouldUseChildLayout() ? this.selection[0] : this
+    const targetElement = this
     const computedLayout = targetElement.getComputedLayout()
     const scaledBasisMatrix = Layout3D.computeScaledBasisMatrix(computedLayout.rotation, computedLayout.scale, computedLayout.shear)
     const determinant = scaledBasisMatrix[0] * scaledBasisMatrix[5] - scaledBasisMatrix[1] * scaledBasisMatrix[4]
@@ -1464,132 +1436,99 @@ class ElementSelectionProxy extends BaseModel {
       )
     }
 
-    if (this.hasMultipleInSelection()) {
-      const matrixBeforeInverted = new Float32Array(16)
-      invertMatrix(matrixBeforeInverted, baseTransform.matrix)
+    const matrixBeforeInverted = new Float32Array(16)
 
-      const {
-        'scale.x': {
-          value: scaleX
-        },
-        'scale.y': {
-          value: scaleY
-        },
-        'translation.x': {
-          value: translationX
-        },
-        'translation.y': {
-          value: translationY
-        }
-      } = scalePropertyGroup
+    invertMatrix(matrixBeforeInverted, baseTransform.matrix)
 
-      const scaleXFactor = scaleX / this.computePropertyValue('scale.x')
-      const scaleYFactor = scaleY / this.computePropertyValue('scale.y')
+    const {
+      'scale.x': {
+        value: scaleX
+      },
+      'scale.y': {
+        value: scaleY
+      },
+      'translation.x': {
+        value: translationX
+      },
+      'translation.y': {
+        value: translationY
+      }
+    } = scalePropertyGroup
 
-      this.applyPropertyValue('scale.x', scaleX)
-      this.applyPropertyValue('scale.y', scaleY)
-      this.applyPropertyValue('translation.x', translationX)
-      this.applyPropertyValue('translation.y', translationY)
+    const scaleXFactor = scaleX / this.computePropertyValue('scale.x')
+    const scaleYFactor = scaleY / this.computePropertyValue('scale.y')
 
-      const matrixAfter = this.getComputedLayout().matrix
+    this.applyPropertyValue('scale.x', scaleX)
+    this.applyPropertyValue('scale.y', scaleY)
+    this.applyPropertyValue('translation.x', translationX)
+    this.applyPropertyValue('translation.y', translationY)
 
-      this.selection.forEach((element) => {
-        // Use our cached transform to mitigate the possibility of rounding errors at small/weird scales.
-        const layoutSpec = element.transformCache.peek('CONTROL_ACTIVATION')
-        if (!layoutSpec) {
-          return
-        }
+    const matrixAfter = this.getComputedLayout().matrix
 
-        // We're going to populate this object with all the necessary property values
-        // to represent the scale transform.
-        const propertyGroup = {}
+    this.selection.forEach((element) => {
+      // Use our cached transform to mitigate the possibility of rounding errors at small/weird scales.
+      const layoutSpec = element.transformCache.peek('CONTROL_ACTIVATION')
+      if (!layoutSpec) {
+        return
+      }
 
-        // This matrix represents all transformations that have occurred to the element,
-        // treating the selection box as a container element.
-        const finalMatrix = Layout3D.multiplyArrayOfMatrices([
-          layoutSpec.originOffsetComposedMatrix,
-          matrixBeforeInverted,
-          matrixAfter
-        ])
+      // We're going to populate this object with all the necessary property values
+      // to represent the scale transform.
+      const propertyGroup = {}
 
-        // This converts a composition of matrices like [[1,0,0,...],...] into our own
-        // transform properties like scale.x, rotation.z, and merges them into the
-        // given property group object.
-        composedTransformsToTimelineProperties(propertyGroup, [finalMatrix], true)
+      // This matrix represents all transformations that have occurred to the element,
+      // treating the selection box as a container element.
+      const finalMatrix = Layout3D.multiplyArrayOfMatrices([
+        layoutSpec.originOffsetComposedMatrix,
+        matrixBeforeInverted,
+        matrixAfter
+      ])
 
-        const alignX = layoutSpec.align.x * layoutSpec.size.x
-        const alignY = layoutSpec.align.y * layoutSpec.size.y
-        const alignZ = layoutSpec.align.z * layoutSpec.size.z
-        const mountPointX = layoutSpec.mount.x * layoutSpec.size.x
-        const mountPointY = layoutSpec.mount.y * layoutSpec.size.y
-        const mountPointZ = layoutSpec.mount.z * layoutSpec.size.z
-        const originX = layoutSpec.origin.x * layoutSpec.size.x
-        const originY = layoutSpec.origin.y * layoutSpec.size.y
-        const originZ = layoutSpec.origin.z * layoutSpec.size.z
+      // This converts a composition of matrices like [[1,0,0,...],...] into our own
+      // transform properties like scale.x, rotation.z, and merges them into the
+      // given property group object.
+      composedTransformsToTimelineProperties(propertyGroup, [finalMatrix], true)
 
-        propertyGroup['translation.x'] +=
-          finalMatrix[0] * originX + finalMatrix[4] * originY + finalMatrix[8] * originZ + mountPointX - alignX
-        propertyGroup['translation.y'] +=
-          finalMatrix[1] * originX + finalMatrix[5] * originY + finalMatrix[9] * originZ + mountPointY - alignY
-        propertyGroup['translation.z'] +=
-          finalMatrix[2] * originX + finalMatrix[6] * originY + finalMatrix[10] * originZ + mountPointZ - alignZ
+      const alignX = layoutSpec.align.x * layoutSpec.size.x
+      const alignY = layoutSpec.align.y * layoutSpec.size.y
+      const alignZ = layoutSpec.align.z * layoutSpec.size.z
+      const mountPointX = layoutSpec.mount.x * layoutSpec.size.x
+      const mountPointY = layoutSpec.mount.y * layoutSpec.size.y
+      const mountPointZ = layoutSpec.mount.z * layoutSpec.size.z
+      const originX = layoutSpec.origin.x * layoutSpec.size.x
+      const originY = layoutSpec.origin.y * layoutSpec.size.y
+      const originZ = layoutSpec.origin.z * layoutSpec.size.z
 
-        const propertyGroupNorm = Object.keys(propertyGroup).reduce((accumulator, property) => {
-          accumulator[property] = { value: propertyGroup[property] }
-          return accumulator
-        }, {})
+      propertyGroup['translation.x'] +=
+        finalMatrix[0] * originX + finalMatrix[4] * originY + finalMatrix[8] * originZ + mountPointX - alignX
+      propertyGroup['translation.y'] +=
+        finalMatrix[1] * originX + finalMatrix[5] * originY + finalMatrix[9] * originZ + mountPointY - alignY
+      propertyGroup['translation.z'] +=
+        finalMatrix[2] * originX + finalMatrix[6] * originY + finalMatrix[10] * originZ + mountPointZ - alignZ
 
-        if (experimentIsEnabled(Experiment.SizeInsteadOfScaleWhenPossible)) {
-          if (element.isComponent()) {
-            const addressables = element.getComponentAddressables()
-
-            if (addressables.width && addressables.width.typedef === 'number' && propertyGroupNorm['scale.x']) {
-              const width = addressables.width.value() * scaleXFactor
-              if (width > 0) {
-                propertyGroupNorm.width = {value: width}
-              }
-              delete propertyGroupNorm['scale.x']
-            }
-
-            if (addressables.height && addressables.height.typedef === 'number' && propertyGroupNorm['scale.y']) {
-              const height = addressables.height.value() * scaleYFactor
-              if (height > 0) {
-                propertyGroupNorm.height = {value: height}
-              }
-              delete propertyGroupNorm['scale.y']
-            }
-          }
-        }
-
-        ElementSelectionProxy.accumulateKeyframeUpdates(
-          accumulatedUpdates,
-          element.getComponentId(),
-          element.component.getCurrentTimelineName(),
-          element.component.getCurrentTimelineTime(),
-          propertyGroupNorm
-        )
-      })
-    } else {
-      const element = this.selection[0]
+      const propertyGroupNorm = Object.keys(propertyGroup).reduce((accumulator, property) => {
+        accumulator[property] = { value: propertyGroup[property] }
+        return accumulator
+      }, {})
 
       if (experimentIsEnabled(Experiment.SizeInsteadOfScaleWhenPossible)) {
         if (element.isComponent()) {
           const addressables = element.getComponentAddressables()
 
-          if (addressables.width && addressables.width.typedef === 'number' && scalePropertyGroup['scale.x']) {
-            const width = addressables.width.value() * scalePropertyGroup['scale.x'].value
+          if (addressables.width && addressables.width.typedef === 'number' && propertyGroupNorm['scale.x']) {
+            const width = addressables.width.value() * scaleXFactor
             if (width > 0) {
-              scalePropertyGroup.width = {value: width}
+              propertyGroupNorm.width = {value: width}
             }
-            delete scalePropertyGroup['scale.x']
+            delete propertyGroupNorm['scale.x']
           }
 
-          if (addressables.height && addressables.height.typedef === 'number' && scalePropertyGroup['scale.y']) {
-            const height = addressables.height.value() * scalePropertyGroup['scale.y'].value
+          if (addressables.height && addressables.height.typedef === 'number' && propertyGroupNorm['scale.y']) {
+            const height = addressables.height.value() * scaleYFactor
             if (height > 0) {
-              scalePropertyGroup.height = {value: height}
+              propertyGroupNorm.height = {value: height}
             }
-            delete scalePropertyGroup['scale.y']
+            delete propertyGroupNorm['scale.y']
           }
         }
       }
@@ -1599,9 +1538,9 @@ class ElementSelectionProxy extends BaseModel {
         element.getComponentId(),
         element.component.getCurrentTimelineName(),
         element.component.getCurrentTimelineTime(),
-        scalePropertyGroup
+        propertyGroupNorm
       )
-    }
+    })
 
     this.component.updateKeyframes(
       accumulatedUpdates,
@@ -1809,53 +1748,34 @@ class ElementSelectionProxy extends BaseModel {
   rotate (dx, dy, coordsCurrent, coordsPrevious, activationPoint, globals) {
     const accumulatedUpdates = {}
 
-    if (this.hasMultipleInSelection()) {
-      const fixedPoint = this.getOriginTransformed()
-      const {
-        'rotation.z': {
-          value: rotationZ
-        }
-      } = ElementSelectionProxy.computeRotationPropertyGroupDelta(
-        this,
-        this,
-        coordsCurrent,
-        coordsPrevious,
-        activationPoint,
-        globals
-      )
+    const fixedPoint = this.getOriginTransformed()
+    const {
+      'rotation.z': {
+        value: rotationZ
+      }
+    } = ElementSelectionProxy.computeRotationPropertyGroupDelta(
+      this,
+      this,
+      coordsCurrent,
+      coordsPrevious,
+      activationPoint,
+      globals
+    )
 
-      this.applyPropertyDelta('rotation.z', rotationZ)
-      this.selection.forEach((element) => {
-        ElementSelectionProxy.accumulateKeyframeUpdates(
-          accumulatedUpdates,
-          element.getComponentId(),
-          element.component.getCurrentTimelineName(),
-          element.component.getCurrentTimelineTime(),
-          ElementSelectionProxy.computeRotationPropertyGroup(
-            element,
-            rotationZ,
-            fixedPoint
-          )
-        )
-      })
-    } else {
-      const element = this.selection[0]
-      const propertyGroupDelta = ElementSelectionProxy.computeRotationPropertyGroupDelta(
-        element,
-        this,
-        coordsCurrent,
-        coordsPrevious,
-        activationPoint,
-        globals
-      )
+    this.applyPropertyDelta('rotation.z', rotationZ)
+    this.selection.forEach((element) => {
       ElementSelectionProxy.accumulateKeyframeUpdates(
         accumulatedUpdates,
         element.getComponentId(),
         element.component.getCurrentTimelineName(),
         element.component.getCurrentTimelineTime(),
-        element.computePropertyGroupValueFromGroupDelta(propertyGroupDelta)
+        ElementSelectionProxy.computeRotationPropertyGroup(
+          element,
+          rotationZ,
+          fixedPoint
+        )
       )
-    }
+    })
 
     this.component.updateKeyframes(
       accumulatedUpdates,
