@@ -51,8 +51,7 @@ class ScrollView extends React.PureComponent {
               width: this.props.timeline.calculateFullTimelineWidth(),
               pointerEvents: 'auto',
               WebkitUserSelect: 'auto',
-              bottom: 0,
-              zIndex: zIndex.rowsWrapper.base
+              bottom: 0
             }
             : {
               position: 'absolute',
