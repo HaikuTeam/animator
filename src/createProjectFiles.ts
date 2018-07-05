@@ -6,8 +6,6 @@ import * as path from 'path';
 
 const logger = console;
 
-const PLUMBING_DIR = path.join(__dirname, '../../../haiku-plumbing');
-
 import {
     fetchProjectConfigInfo,
     getAuthorNameOrFallback,
@@ -34,8 +32,6 @@ export function createProjectFiles (
     const projectNameSafe = getProjectNameSafeShort(projectPath, projectName);
     const projectNameLowerCase = getProjectNameLowerCase(projectPath, projectName);
     const reactProjectName = getReactProjectName(projectPath, projectName);
-    const primaryAssetPath = getPrimaryAssetPath(projectPath, projectName);
-    const defaultIllustratorAssetPath = getDefaultIllustratorAssetPath(projectPath, projectName);
 
     const organizationName = getOrganizationNameOrFallback(projectOptions.organizationName);
     const organizationNameLowerCase = organizationName.toLowerCase();
@@ -159,16 +155,7 @@ export function createProjectFiles (
           `);
       }
 
-        // If it isn't already a part of the project, add the 'blank' sketch file to users' projects
-      if (!fse.existsSync(path.join(projectPath, primaryAssetPath))) {
-        fse.copySync(path.join(PLUMBING_DIR, 'bins', 'sketch-42.sketch'), path.join(projectPath, primaryAssetPath));
-      }
-
-        // If it isn't already a part of the project, add the 'blank' sketch file to users' projects
-      if (!fse.existsSync(path.join(projectPath, defaultIllustratorAssetPath))) {
-        fse.copySync(path.join(PLUMBING_DIR, 'bins', 'illustrator-default.ai'),
-          path.join(projectPath, defaultIllustratorAssetPath));
-      }
+      copyExternalExampleFilesToProject(projectPath, projectName);
 
       fse.outputFileSync(path.join(projectPath, 'README.md'), dedent`
           # ${projectNameSafe}
@@ -310,3 +297,20 @@ export function createProjectFiles (
     return finish(exception);
   }
 }
+
+export const copyExternalExampleFilesToProject = (projectPath: string, projectName: string) => {
+  const PLUMBING_DIR = path.join(__dirname, '../../../haiku-plumbing');
+  const primaryAssetPath = getPrimaryAssetPath(projectPath, projectName);
+  const defaultIllustratorAssetPath = getDefaultIllustratorAssetPath(projectPath, projectName);
+
+  // If it isn't already a part of the project, add the 'blank' sketch file to users' projects
+  if (!fse.existsSync(path.join(projectPath, primaryAssetPath))) {
+    fse.copySync(path.join(PLUMBING_DIR, 'bins', 'sketch-42.sketch'), path.join(projectPath, primaryAssetPath));
+  }
+
+  // If it isn't already a part of the project, add the 'blank' sketch file to users' projects
+  if (!fse.existsSync(path.join(projectPath, defaultIllustratorAssetPath))) {
+    fse.copySync(path.join(PLUMBING_DIR, 'bins', 'illustrator-default.ai'),
+      path.join(projectPath, defaultIllustratorAssetPath));
+  }
+};
