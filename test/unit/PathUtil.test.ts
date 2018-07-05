@@ -56,6 +56,23 @@ tape('PathUtil.normalizePointCurves', (t) => {
   t.assert(a1[1].curve);
   t.equal(a1[1].curve.x1, a1[0].x);
 
+  const a2: CurveSpec[] = [{
+    x: 10,
+    y: 10,
+    moveTo: true,
+  }, {
+    x: 50,
+    y: 50,
+    curve: {
+      type: 'quadratic',
+      x1: 100,
+      y1: 100,
+    },
+  }];
+
+  normalizePointCurves(a2);
+  t.equal(a2[1].curve.type, 'cubic');
+
   t.end();
 });
 
