@@ -37,7 +37,7 @@ import functionToRFO from '@haiku/core/lib/reflection/functionToRFO';
 import Master from './Master';
 import {createProjectFiles} from '@haiku/sdk-client/lib/createProjectFiles';
 import {copyExternalExampleFilesToProject} from './project-folder/copyExternalExampleFilesToProject';
-import {duplicateProject} from '@haiku/sdk-client/lib/duplicateProject';
+import {duplicateProject} from './project-folder/duplicateProject';
 
 const {HOMEDIR_PATH} = HaikuHomeDir;
 

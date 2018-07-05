@@ -10,7 +10,7 @@ import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import * as Git from './Git';
 import * as Inkstone from './Inkstone';
 import * as Lock from 'haiku-serialization/src/bll/Lock';
-import {semverBumpPackageJson} from '@haiku/sdk-client/lib/semverBumpPackageJson';
+import {semverBumpPackageJson} from './project-folder/semverBumpPackageJson';
 
 const PLUMBING_PKG_PATH = path.join(__dirname, '..');
 const PLUMBING_PKG_JSON_PATH = path.join(PLUMBING_PKG_PATH, 'package.json');

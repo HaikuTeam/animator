@@ -545,7 +545,7 @@ function generateComponent (context: IContext) {
         getCurrentOrganizationName((err: Error, org: string) => {
           organizationName = org;
         });
-        // const projectsHome = HOMEDIR_PROJECTS_PATH;
+
         const repositoryUrl = projectPayload.repositoryUrl;
         const authorName = username;
 
@@ -559,7 +559,6 @@ function generateComponent (context: IContext) {
 
         const projectOptions = {
           skipContentCreation,
-          // projectsHome,
           organizationName,
           projectName,
           projectPath,
@@ -568,24 +567,22 @@ function generateComponent (context: IContext) {
         };
 
         createProjectFiles(projectPath, projectName, projectOptions, () => {
-          console.log('Created files');
+          console.log('Created project files');
+          fetchProjectConfigInfo(projectPath, (err: Error|null, userconfig: any) => {
+            if (err) {
+              throw err;
+            }
+            bootstrapSceneFilesSync(projectPath, 'main', userconfig);
+            console.log('Created main component');
+          });
         });
-
-        fetchProjectConfigInfo(projectPath, (err: Error|null, userconfig: any) => {
-          if (err) {
-            throw err;
-          }
-
-          bootstrapSceneFilesSync(projectPath, 'main', userconfig);
-        });
-
-      // const master = new Master('/home/jonaias/.haiku/');
-      // master.initializeFolder();
 
         context.writeLine('Project created: ' + projectPayload);
 
         console.log('Project created: ', projectPayload);
         process.exit(0);
+      // const master = new Master('/home/jonaias/.haiku/');
+      // master.initializeFolder();
       // const remoteProjectObject = remapProjectObjectToExpectedFormat(projectPayload, this.get('organizationName'));
       // return cb(null, remoteProjectObject);
       });
