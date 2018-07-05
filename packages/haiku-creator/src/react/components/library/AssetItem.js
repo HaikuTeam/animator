@@ -328,7 +328,7 @@ class AssetItem extends React.Component {
               backgroundColor: Palette.DARK_GRAY,
               color: Palette.ROCK,
             }}>
-            <SyncIconSVG className={this.props.asset.getChildAssets().every((asset) => asset.isPhonyOrHasOnlyPhonyChildrens()) ? 'animation-rotating' : ''} />
+            <SyncIconSVG className={this.props.asset.getChildAssets().every((asset) => asset.isPhonyOrOnlyHasPhonyChildrens()) ? 'animation-rotating' : ''} />
           </button>
         </span>
       );
@@ -583,7 +583,7 @@ class AssetItem extends React.Component {
   }
 
   render () {
-    if (experimentIsEnabled(Experiment.CleanInitialLibraryState) && this.props.asset.isPhonyOrHasOnlyPhonyChildrens()) {
+    if (experimentIsEnabled(Experiment.CleanInitialLibraryState) && this.props.asset.isPhonyOrOnlyHasPhonyChildrens()) {
       return null;
     }
 

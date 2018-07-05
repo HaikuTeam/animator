@@ -1,6 +1,6 @@
-const { URL } = require('url')
+const {URL} = require('url')
 const tape = require('tape')
-const Figma = require('./../../src/bll/Figma')
+const {Figma} = require('./../../src/bll/Figma')
 const SampleFileFixture = require('../fixtures/figma/sample-file.json')
 const SampleImageResponseFixture = require('../fixtures/figma/images.json')
 

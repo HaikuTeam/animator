@@ -456,7 +456,7 @@ class Asset extends BaseModel {
     return this.relpath.includes(PHONY_FIGMA_FILE)
   }
 
-  isPhonyOrHasOnlyPhonyChildrens () {
+  isPhonyOrOnlyHasPhonyChildrens () {
     const children = this.getChildAssets()
     return this.isPhony() || (children.length === 1 && children[0].isPhony())
   }
