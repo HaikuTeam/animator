@@ -700,12 +700,19 @@ export class Glass extends React.Component {
           break
 
         case 'edit-component':
-          const proxy = this.fetchProxyElementForSelection()
-          this.editComponent(proxy.getSingleComponentElementRelpath())
+          this.editComponent(this.fetchProxyElementForSelection().getSingleComponentElementRelpath())
           break
 
         case 'conglomerate-component':
           this.launchComponentNameModal()
+          break
+
+        case 'perform-align':
+          this.fetchProxyElementForSelection().align(message.xEdge, message.yEdge, message.toStage)
+          break
+
+        case 'perform-distribute':
+          this.fetchProxyElementForSelection().distribute(message.xEdge, message.yEdge, message.toStage)
           break
 
         case 'assets-changed':

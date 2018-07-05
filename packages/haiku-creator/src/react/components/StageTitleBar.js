@@ -400,14 +400,28 @@ class StageTitleBar extends React.Component {
 
   performAlign (xEdge, yEdge) {
     const toStage = this.refs.to_stage_toggle && this.refs.to_stage_toggle.checked; // TODO:  get selection value of checkbox
-    const proxy = this.fetchProxyElementForSelection();
-    proxy.align(xEdge, yEdge, toStage);
+    this.props.websocket.send({
+      type: 'broadcast',
+      from: 'creator',
+      folder: this.props.projectModel.getFolder(), // required when sent via Creator
+      name: 'perform-align',
+      xEdge,
+      yEdge,
+      toStage,
+    });
   }
 
   performDistribute (xEdge, yEdge) {
     const toStage = this.refs.to_stage_toggle && this.refs.to_stage_toggle.checked;
-    const proxy = this.fetchProxyElementForSelection();
-    proxy.distribute(xEdge, yEdge, toStage);
+    this.props.websocket.send({
+      type: 'broadcast',
+      from: 'creator',
+      folder: this.props.projectModel.getFolder(), // required when sent via Creator
+      name: 'perform-distribute',
+      xEdge,
+      yEdge,
+      toStage,
+    });
   }
 
   performSyndicationCheck () {
