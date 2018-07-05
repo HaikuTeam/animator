@@ -2348,4 +2348,3 @@ module.exports = ElementSelectionProxy
 // Down here to avoid Node circular dependency stub objects. #FIXME
 const Element = require('./Element')
 const Template = require('./Template')
-const Artboard = require('./Artboard')

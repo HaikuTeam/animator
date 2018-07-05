@@ -1,5 +1,4 @@
 import React from 'react'
-import zIndex from './styles/zIndex'
 import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
 
 class ScrollView extends React.PureComponent {
