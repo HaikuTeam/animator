@@ -36,6 +36,7 @@ import {awaitAllLocksFree} from 'haiku-serialization/src/bll/Lock';
 import functionToRFO from '@haiku/core/lib/reflection/functionToRFO';
 import Master from './Master';
 import {createProjectFiles} from '@haiku/sdk-client/lib/createProjectFiles';
+import {copyExternalExampleFilesToProject} from './project-folder/copyExternalExampleFilesToProject';
 import {duplicateProject} from '@haiku/sdk-client/lib/duplicateProject';
 
 const {HOMEDIR_PATH} = HaikuHomeDir;
@@ -889,8 +890,13 @@ export default class Plumbing extends EventEmitter {
             projectPath,
             projectName,
             projectOptions,
-            cb,
-          );
+            (err) => {
+              if (!err && !projectOptions.skipContentCreation) {
+                // Copy sketch and illustrator example files
+                copyExternalExampleFilesToProject(this.folder, projectName);
+              }
+              cb();
+            });
         },
 
         (cb) => {

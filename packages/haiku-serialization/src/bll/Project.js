@@ -800,36 +800,6 @@ class Project extends BaseModel {
     return ActiveComponent.findById(ActiveComponent.buildPrimaryKey(this.getFolder(), scenename))
   }
 
-  bootstrapSceneFilesSync (scenename, userconfig) {
-    const rootComponentId = getCodeJs(
-      experimentIsEnabled(Experiment.MultiComponentFeatures)
-        ? scenename
-        : path.basename(this.getFolder()),
-      userconfig
-    )
-
-    // Only write these files if they don't exist yet; don't overwrite the user's own content
-    if (!fse.existsSync(path.join(this.getFolder(), `code/${scenename}/code.js`))) {
-      fse.outputFileSync(path.join(this.getFolder(), `code/${scenename}/code.js`), rootComponentId)
-    }
-
-    const nameVariations = this.getNameVariations()
-    fse.outputFileSync(path.join(this.getFolder(), `code/${scenename}/dom.js`), DOM_JS)
-    fse.outputFileSync(path.join(this.getFolder(), `code/${scenename}/dom-embed.js`), DOM_EMBED_JS)
-    fse.outputFileSync(path.join(this.getFolder(), `code/${scenename}/react-dom.js`), REACT_DOM_JS)
-    fse.outputFileSync(
-      path.join(this.getFolder(), `code/${scenename}/angular-dom.js`),
-      ANGULAR_DOM_JS(nameVariations.angularSelectorName, scenename)
-    )
-    fse.outputFileSync(path.join(this.getFolder(), `code/${scenename}/vue-dom.js`), VUE_DOM_JS)
-
-    if (!fse.existsSync(path.join(this.getFolder(), `code/${scenename}/dom-standalone.js`))) {
-      fse.outputFileSync(path.join(this.getFolder(), `code/${scenename}/dom-standalone.js`), DOM_STANDALONE_JS)
-    }
-
-    return rootComponentId
-  }
-
   getPackageJsonPath () {
     return path.join(this.getFolder(), 'package.json')
   }
@@ -1017,7 +987,7 @@ Project.getAngularSelectorName = (name) => name
   .replace(/([A-Z])/g, (char) => `-${char.toLowerCase()}`)
   .replace(/^-/, '')
 
-Project.getPrimaryAssetPath = (name) => `designs/${name}.sketch`
+Project.getDefaultSketchAssetPath = (name) => `designs/${name}.sketch`
 
 Project.getDefaultIllustratorAssetPath = (name) => `designs/${name}.ai`
 
@@ -1028,7 +998,7 @@ Project.getProjectNameVariations = (folder) => {
   const projectNameLowerCase = projectNameSafe.toLowerCase()
   const reactProjectName = `React_${projectNameSafe}`
   const angularSelectorName = Project.getAngularSelectorName(projectNameSafe)
-  const primaryAssetPath = Project.getPrimaryAssetPath(projectNameSafeShort)
+  const primaryAssetPath = Project.getDefaultSketchAssetPath(projectNameSafeShort)
   const defaultIllustratorAssetPath = Project.getDefaultIllustratorAssetPath(projectNameSafeShort)
 
   return {

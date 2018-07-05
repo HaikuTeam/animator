@@ -9,6 +9,7 @@ const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments'
 const getSvgOptimizer = require('./../svg/getSvgOptimizer')
 const Lock = require('./Lock')
 const Cache = require('./Cache')
+const {bootstrapSceneFilesSync} = require('@haiku/sdk-client/lib/bootstrapSceneFilesSync');
 
 // This file also depends on '@haiku/core/lib/HaikuComponent'
 // in the sense that one of those instances is assigned as .hostInstance here.
@@ -40,7 +41,7 @@ class File extends BaseModel {
 
     // Timeline/Glass/Creator should not write to the file system
     if (this.project.getAlias() === 'master' || this.project.getAlias() === 'test') {
-      this.project.bootstrapSceneFilesSync(scenename, this.project.userconfig)
+      bootstrapSceneFilesSync(this.project.getFolder(), scenename, this.project.userconfig)
     }
 
     this.component = ActiveComponent.upsert({
