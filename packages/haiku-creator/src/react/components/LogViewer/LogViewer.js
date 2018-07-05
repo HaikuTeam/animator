@@ -212,7 +212,7 @@ class LogViewer extends React.Component {
                  <span style={{marginLeft: 5}}>Scroll to Bottom</span>
               </div>
             </div>
-            <div style={{fontWeight: 'bold', fontFamily: 'Fira Mono', paddingLeft: 20, position: 'relative', overflow: 'auto', width: '100%', height: 'calc(100% - 30px)', backgroundColor: Palette.COAL}} >
+            <div style={{fontWeight: 'bold', fontFamily: 'Courier New', paddingLeft: 20, position: 'relative', overflow: 'auto', width: '100%', height: 'calc(100% - 35px)', backgroundColor: Palette.COAL}} >
               <ReactList
                 ref="loglist"
                 itemRenderer={this.renderLogLine}
