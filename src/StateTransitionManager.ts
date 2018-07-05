@@ -71,11 +71,13 @@ export default class StateTransitionManager {
         // If parameter.queue is true, it is a queued setState
         // If state transition for key is not created, process like a queued SetState
         if (transitionParameter.queue && this.transitions[key]) {
-          this.component.emitFromRootComponent('state:change', { queued: true,
+          this.component.emitFromRootComponent('state:change', {
+            queued: true,
             state: key,
             from: this.states[key],
             to: transitionEnd[key],
-            duration: transitionParameter.duration});
+            duration: transitionParameter.duration,
+          });
 
           this.transitions[key].push({
             transitionParameter,
@@ -87,11 +89,13 @@ export default class StateTransitionManager {
           });
         // non queued transitions are overwrite transition queue
         } else {
-          this.component.emitFromRootComponent('state:change', { started: true,
+          this.component.emitFromRootComponent('state:change', {
+            started: true,
             state: key,
             from: this.states[key],
             to: transitionEnd[key],
-            duration: transitionParameter.duration});
+            duration: transitionParameter.duration,
+          });
 
           this.transitions[key] = [{
             transitionParameter,
