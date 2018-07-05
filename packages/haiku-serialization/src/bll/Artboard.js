@@ -1,6 +1,5 @@
 const BaseModel = require('./BaseModel')
 const Matrix = require('gl-matrix')
-const _ = require('lodash')
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 
 /**
@@ -318,7 +317,7 @@ class Artboard extends BaseModel {
     const rootElement = this.getElement()
     const topLevelElements = rootElement.children
 
-    _.forEach(topLevelElements, (elem) => {
+    topLevelElements.forEach((elem) => {
       // deleted elements will show up as null entries in this array
       if (!elem) {
         return
