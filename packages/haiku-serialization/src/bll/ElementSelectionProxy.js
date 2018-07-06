@@ -58,9 +58,10 @@ class ElementSelectionProxy extends BaseModel {
       return
     }
 
-    // After ungrouping, the live rendered node of the <group> won't be available,
-    // thus no boinding points to compute, thus we should early return.
     const elements = this.selection.filter((element) => !!element.getLiveRenderedNode())
+
+    // After ungrouping, the live rendered node of the <group> won't be available,
+    // thus no bounding points to compute, thus we should early return.
     if (elements.length < 1) {
       return
     }
