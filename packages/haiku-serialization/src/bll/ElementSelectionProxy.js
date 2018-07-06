@@ -1556,36 +1556,6 @@ class ElementSelectionProxy extends BaseModel {
     this.emit('snaps-updated', foundSnaps)
   }
 
-  mutatePropertyGroupScaleToSizeIfNecessary (
-    element,
-    propertyGroup, // {'scale.x': {value: 1.2}, ...}
-    givenScaleX, // If provided, this is used instead of the propertyGroup's scale.x
-    givenScaleY  // If provided, this is used instead of the propertyGroup's scale.y
-  ) {
-    // For now, we only choose size for components...
-    if (!element.isComponent()) {
-      return
-    }
-
-    const addressables = element.getComponentAddressables()
-
-    // If the child exposes a numeric width property, we change scale.x to width
-    if (addressables.width && addressables.width.typedef === 'number' && propertyGroup['scale.x']) {
-
-    }
-
-    // If the child exposes a numeric height property, we change scale.y to height
-    if (addressables.height && addressables.height.typedef === 'number' && propertyGroup['scale.y']) {
-      const scaleY = givenScaleY || propertyGroup['scale.y'].value || 1
-      const heightOld = addressables.height.value() || addressables.height.fallback || 0
-      const heightNew = scaleY * heightOld
-      if (heightNew >= 0) {
-        propertyGroup.height = { value: heightNew }
-      }
-      delete propertyGroup['scale.y']
-    }
-  }
-
   scaleArtboard (
     mouseCoordsCurrent,
     mouseCoordsPrevious,
