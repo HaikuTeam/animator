@@ -51,6 +51,7 @@ class ElementSelectionProxy extends BaseModel {
   reinitializeLayout () {
     this._proxyBoxPoints = []
     this._proxyProperties = {}
+
     Object.assign(this._proxyProperties, ElementSelectionProxy.DEFAULT_PROPERTY_VALUES)
 
     if (!this.hasAnythingInSelection()) {
@@ -553,10 +554,12 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   getComputedLayout () {
-    return this.cache.fetch('getComputedLayout', () => HaikuElement.computeLayout(
-      {layout: this.getLayoutSpec()}, // targetNode
-      this.getParentComputedSize()
-    ))
+    return this.cache.fetch('getComputedLayout', () => {
+      return HaikuElement.computeLayout(
+        {layout: this.getLayoutSpec()}, // targetNode
+        this.getParentComputedSize()
+      )
+    })
   }
 
   getBoxPointsTransformed () {
