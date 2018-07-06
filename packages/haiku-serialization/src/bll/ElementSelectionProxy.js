@@ -1743,6 +1743,7 @@ class ElementSelectionProxy extends BaseModel {
       this.component.project.getMetadata(),
       () => {
         this.clearAllRelatedCaches()
+        this.reinitializeLayout()
       }
     )
   }
