@@ -192,6 +192,32 @@ tape('Keyframe.04', (t) => {
   })
 })
 
+tape('Keyframe.05', (t) => {
+  t.plan(2)
+  return setupTest('keyframe-05', (err, ac, rows, done) => {
+    if (err) throw err
+    const kfs = rows[0].getKeyframes()
+    const fallbackValue = 0
+    const cachedValue = kfs[0].value
+
+    kfs[0].moveTo(50, 16.666)
+    ac.commitAccumulatedKeyframeMovesDebounced()
+
+    let once = false
+    ac.on('update', (what, row) => {
+      if (what !== 'reloaded') return
+      if (once) return
+      once = true
+      const kfs2 = rows[0].getKeyframes()
+
+      t.equal(kfs2[0].value, fallbackValue, 'newly created keyframe at zero has fallback value by default')
+      t.equal(kfs2[1].value, cachedValue, 'moved keyframe keeps its value')
+
+      done()
+    })
+  })
+})
+
 // Please implement the rest of these as unit tests:
 // I am able to create a tween between two keyframes
 // I am able to select a single tween by clicking on it
