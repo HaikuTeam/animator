@@ -16,7 +16,7 @@ import {
   BodymovinProperty,
 } from './bodymovinTypes';
 
-const {pathToPoints, polyPointsStringToPoints} = SVGPoints;
+const {polyPointsStringToPoints} = SVGPoints;
 
 /**
  * Reducer for an animated timeline property.
@@ -193,12 +193,16 @@ export const getShapeDimensions = (shape: any): [number, number] => {
  * @param {(any) => any} mutator
  * @returns {any}
  */
-export const maybeApplyMutatorToProperty = (property: any, mutator: (param: any) => any) => {
+export const maybeApplyMutatorToProperty = (
+  property: any,
+  mutator: (param: any) => any,
+  disableRecursion: boolean = false,
+) => {
   if (mutator === undefined) {
     return property;
   }
 
-  if (Array.isArray(property)) {
+  if (Array.isArray(property) && !disableRecursion) {
     return property.map(mutator);
   }
 
@@ -221,9 +225,8 @@ const translateInterpolationPoints = (points: BodymovinPathComponent, vertices: 
  * Translates an SVG path to a Bodymovin interpolation trace.
  * @returns {[key in PathKey]: BodymovinPathComponent}
  * @param points
- * @param closed
  */
-export const pathToInterpolationTrace = (points: CurveSpec[], closed: boolean) => {
+export const pathToInterpolationTrace = (points: CurveSpec[]) => {
   const vertices: BodymovinPathComponent = [];
   const interpolationInPoints: BodymovinPathComponent = [];
   const interpolationOutPoints: BodymovinPathComponent = [];
@@ -236,7 +239,11 @@ export const pathToInterpolationTrace = (points: CurveSpec[], closed: boolean) =
   }
 
   let lastVertex: BodymovinCoordinates;
+  let closed: boolean = false;
   points.forEach((point, index) => {
+    if (point.closed) {
+      closed = true;
+    }
     if (index === 0) {
       // We are at a moveto. This pushes a new vertex onto our trace.
       vertices.push(lastVertex = [point.x, point.y]);
@@ -299,14 +306,6 @@ export const pointsToInterpolationTrace = (svgPoints: string|[number, number][])
     [PathKey.InterpolationIn]: dummyCurve,
     [PathKey.InterpolationOut]: dummyCurve,
   };
-};
-
-export const getPath = (path: string|CurveSpec[]): CurveSpec[] => {
-  if (!Array.isArray(path)) {
-    return pathToPoints(path);
-  }
-
-  return path;
 };
 
 /**

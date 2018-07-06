@@ -1,6 +1,7 @@
 {
     "version": "3.5.1",
     "configurations": [
+      
         {
             "type": "chrome",
             "request":"attach",
@@ -19,6 +20,24 @@
               "${workspaceFolder}/packages/**/lib/*.js"
             ],
             "name": "attach-main"
-        }
+        },
+        {
+          "type": "node",
+          "request": "launch",
+          "cwd": "${workspaceFolder}/packages/haiku-formats",
+          "env": {
+            "TS_NODE_PROJECT": "./tsconfig.all.json"
+          },
+          "runtimeArgs": [
+            "-r",
+            "ts-node/register",
+            "-r",
+            "tsconfig-paths/register"
+          ],
+          "args": [
+            "./scripts/regenerate-goldens.ts"
+          ],
+          "name": "debug-regenerate-goldens"
+      }
     ]
 }
