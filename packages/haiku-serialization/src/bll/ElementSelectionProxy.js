@@ -1801,7 +1801,6 @@ class ElementSelectionProxy extends BaseModel {
     this.component.pasteThings(clips, {}, metadata, (err, {haikuIds}) => {
       if (err) return cb(err)
       Element.unselectAllElements({component: this.component}, metadata)
-      console.log(haikuIds)
       haikuIds.map(
         (haikuId) => this.component.findElementByComponentId(haikuId)
       ).forEach((element) => {
