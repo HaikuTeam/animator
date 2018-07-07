@@ -80,6 +80,46 @@ Property.humanizePropertyNamePart = (propertyNamePart) => {
   return titlecase(decam(propertyNamePart))
 }
 
+Property.layoutSpecAsProperties = (spec) => {
+  return {
+    'shown': spec.shown,
+    'opacity': spec.opacity,
+    'mount.x': spec.mount.x,
+    'mount.y': spec.mount.y,
+    'mount.z': spec.mount.z,
+    'align.x': spec.align.x,
+    'align.y': spec.align.y,
+    'align.z': spec.align.z,
+    'origin.x': spec.origin.x,
+    'origin.y': spec.origin.y,
+    'origin.z': spec.origin.z,
+    'translation.x': spec.translation.x,
+    'translation.y': spec.translation.y,
+    'translation.z': spec.translation.z,
+    'rotation.x': spec.rotation.x,
+    'rotation.y': spec.rotation.y,
+    'rotation.z': spec.rotation.z,
+    'scale.x': spec.scale.x,
+    'scale.y': spec.scale.y,
+    'scale.z': spec.scale.z,
+    'shear.xy': spec.shear.xy,
+    'shear.xz': spec.shear.xz,
+    'shear.yz': spec.shear.yz,
+    'sizeMode.x': spec.sizeMode.x,
+    'sizeMode.y': spec.sizeMode.y,
+    'sizeMode.z': spec.sizeMode.z,
+    'sizeProportional.x': spec.sizeProportional.x,
+    'sizeProportional.y': spec.sizeProportional.y,
+    'sizeProportional.z': spec.sizeProportional.z,
+    'sizeDifferential.x': spec.sizeDifferential.x,
+    'sizeDifferential.y': spec.sizeDifferential.y,
+    'sizeDifferential.z': spec.sizeDifferential.z,
+    'sizeAbsolute.x': spec.sizeAbsolute.x,
+    'sizeAbsolute.y': spec.sizeAbsolute.y,
+    'sizeAbsolute.z': spec.sizeAbsolute.z
+  }
+}
+
 /**
  * Used for rendering human-friendly cluster property headings in the Timeline UI
  */

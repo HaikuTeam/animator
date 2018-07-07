@@ -682,9 +682,7 @@ class Element extends BaseModel {
   }
 
   getBoxPointsNotTransformed () {
-    return HaikuElement.getBoundingBoxPoints(
-      this.getBoundingBoxPoints()
-    )
+    return this.getBoundingBoxPoints()
   }
 
   getBoxPointsTransformed () {

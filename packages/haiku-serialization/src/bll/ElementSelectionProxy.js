@@ -66,6 +66,23 @@ class ElementSelectionProxy extends BaseModel {
       return
     }
 
+    // If we're dealing with just a single element, we need to to use its points and
+    // layout spec directly so that the transform control box fits to its actual shape
+    if (elements.length === 1) {
+      this._proxyBoxPoints = elements[0].getBoxPointsNotTransformed().map((p) => p)
+
+      Object.assign(
+        this._proxyProperties,
+        Property.layoutSpecAsProperties(elements[0].getLayoutSpec()),
+        {
+          'sizeAbsolute.x': Math.abs(this._proxyBoxPoints[0].x - this._proxyBoxPoints[8].x),
+          'sizeAbsolute.y': Math.abs(this._proxyBoxPoints[0].y - this._proxyBoxPoints[8].y)
+        }
+      )
+
+      return
+    }
+
     const boxPoints = HaikuElement.getBoundingBoxPoints(
       elements.map((element) => element.getBoxPointsTransformed()).reduce((accumulator, boxPoints) => {
         accumulator.push(...boxPoints)
@@ -2321,4 +2338,5 @@ module.exports = ElementSelectionProxy
 
 // Down here to avoid Node circular dependency stub objects. #FIXME
 const Element = require('./Element')
+const Property = require('./Property')
 const Template = require('./Template')
