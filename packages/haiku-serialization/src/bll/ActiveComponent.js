@@ -2804,12 +2804,16 @@ class ActiveComponent extends BaseModel {
       rows
     }].concat(stack.map(({haikuId}) => {
       const child = this.findElementByComponentId(haikuId)
-      const rows = child.getHostedPropertyRows(true)
-      all.push.apply(all, rows)
-      return {
-        host: child,
-        id: child.getComponentId(),
-        rows
+
+      // Race condition when undoing multi-delete
+      if (child) {
+        const rows = child.getHostedPropertyRows(true)
+        all.push.apply(all, rows)
+        return {
+          host: child,
+          id: child.getComponentId(),
+          rows
+        }
       }
     }))
 
