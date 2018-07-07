@@ -560,12 +560,30 @@ class ElementSelectionProxy extends BaseModel {
       return false
     }
 
+    // When displaying transform control lines, indicate the mode of the wrapee not wrapper
+    if (this.selection[0].isComponent()) {
+      const wrapper = this.selection[0].getHaikuElement()
+      const component = wrapper && wrapper.children && wrapper.children[0]
+      if (component) {
+        return typeof component.sizeAbsolute.x !== 'number'
+      }
+    }
+
     return this.selection[0].isAutoSizeX()
   }
 
   isAutoSizeY () {
     if (this.hasNothingInSelection() || this.hasMultipleInSelection()) {
       return false
+    }
+
+    // When displaying transform control lines, indicate the mode of the wrapee not wrapper
+    if (this.selection[0].isComponent()) {
+      const wrapper = this.selection[0].getHaikuElement()
+      const component = wrapper && wrapper.children && wrapper.children[0]
+      if (component) {
+        return typeof component.sizeAbsolute.y !== 'number'
+      }
     }
 
     return this.selection[0].isAutoSizeY()
