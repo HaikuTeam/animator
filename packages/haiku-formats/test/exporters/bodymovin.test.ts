@@ -1,5 +1,5 @@
 /* tslint:disable:no-shadowed-variable */
-import {BytecodeNode, BytecodeTimelineProperties, HaikuBytecode} from '@haiku/core/lib/api/HaikuBytecode';
+import {BytecodeNode, BytecodeTimelineProperties, HaikuBytecode} from '@haiku/core/lib/api';
 import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
 import tape = require('tape');
 

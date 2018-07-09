@@ -1,6 +1,6 @@
 const prettier = require('prettier')
 const BaseModel = require('./BaseModel')
-const objectToRO = require('@haiku/core/lib/reflection/objectToRO').default
+const expressionToRO = require('@haiku/core/lib/reflection/expressionToRO').default
 const bytecodeObjectToAST = require('./../ast/bytecodeObjectToAST')
 const normalizeBytecodeAST = require('./../ast/normalizeBytecodeAST')
 const parseCode = require('./../ast/parseCode')
@@ -67,7 +67,7 @@ AST.normalizeBytecode = (bytecode) => {
   Bytecode.cleanBytecode(decycled)
   Template.cleanTemplate(decycled.template)
 
-  return objectToRO(decycled)
+  return expressionToRO(decycled)
 }
 
 AST.findImportsFromTemplate = (hostfile, template) => {

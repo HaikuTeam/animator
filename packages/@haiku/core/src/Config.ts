@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import {BytecodeOptions} from './api/HaikuBytecode';
+import {BytecodeOptions} from './api';
 import {InteractionMode} from './helpers/interactionModes';
 
 export const DEFAULTS: BytecodeOptions = {

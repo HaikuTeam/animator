@@ -5,7 +5,7 @@
 import {
   LayoutSpec,
   ThreeDimensionalLayoutProperty,
-} from './api/Layout';
+} from './api';
 
 const ELEMENTS_2D = {
   circle: true,

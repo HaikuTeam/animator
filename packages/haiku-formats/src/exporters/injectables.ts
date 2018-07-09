@@ -5,7 +5,7 @@ import {
   BytecodeStates,
   BytecodeStateType,
   BytecodeSummonable,
-} from '@haiku/core/lib/api/HaikuBytecode';
+} from '@haiku/core/lib/api';
 
 /**
  * A class we can instantiate to act as a stub for injectables that can't be evaluated sensibly during export.

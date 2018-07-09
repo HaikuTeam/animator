@@ -2,12 +2,16 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import {Curve} from './api/Curve';
-import {BytecodeNode, BytecodeOptions, HaikuBytecode} from './api/HaikuBytecode';
+import {
+  BytecodeNode,
+  BytecodeOptions,
+  Curve,
+  HaikuBytecode,
+  IHaikuContext,
+} from './api';
 import Config from './Config';
 import HaikuBase, {GLOBAL_LISTENER_KEY} from './HaikuBase';
 import HaikuClock from './HaikuClock';
-import HaikuContext from './HaikuContext';
 import HaikuElement from './HaikuElement';
 import {cssMatchOne, cssQueryTree, scopifyElements, xmlToMana} from './HaikuNode';
 import HaikuTimeline, {PlaybackSetting, TimeUnit} from './HaikuTimeline';
@@ -70,7 +74,7 @@ export default class HaikuComponent extends HaikuElement {
   _bytecode;
   config;
   container;
-  context: HaikuContext;
+  context: IHaikuContext;
   CORE_VERSION;
   doAlwaysFlush;
   doesNeedFullFlush;
@@ -84,7 +88,7 @@ export default class HaikuComponent extends HaikuElement {
 
   constructor (
     bytecode: HaikuBytecode,
-    context: HaikuContext,
+    context: IHaikuContext,
     host: HaikuComponent,
     config: BytecodeOptions,
     container,
@@ -186,6 +190,7 @@ export default class HaikuComponent extends HaikuElement {
       runMigrations(
         this,
         {
+          attrsHyphToCamel: ATTRS_HYPH_TO_CAMEL,
           // Random seed for adding instance uniqueness to ids at runtime.
           referenceUniqueness: (config.hotEditingMode)
             ? undefined // During editing, Haiku.app pads ids unless this is undefined
@@ -1555,22 +1560,11 @@ const reconnectSnapshotChildrenAndRenderedChildren = (node) => {
   node.__children = children;
 };
 
-const areNodesSame = (a, b): boolean => {
-  if (a === b) {
-    return true;
-  }
-
-  const aid = getNodeFlexId(a);
-  const bid = getNodeFlexId(b);
-
-  return aid === bid;
-};
-
 function expandTreeNode (
   node,
   parent,
   component: HaikuComponent,
-  context: HaikuContext,
+  context: IHaikuContext,
   host: HaikuComponent,
   options: any = {},
   doConnectInstanceToNode: boolean,
@@ -2221,7 +2215,7 @@ export const VANITIES = {
       name,
       element,
       value: any,
-      context: HaikuContext,
+      context: IHaikuContext,
       timeline: HaikuTimeline,
       receiver: HaikuComponent,
       sender: HaikuComponent,
@@ -2335,7 +2329,7 @@ export const VANITIES = {
       name: string,
       element,
       value,
-      context: HaikuContext,
+      context: IHaikuContext,
       timeline: HaikuTimeline,
       receiver: HaikuComponent,
       sender: HaikuComponent,
@@ -2465,7 +2459,7 @@ export const VANITIES = {
       name: string,
       element,
       value,
-      context: HaikuContext,
+      context: IHaikuContext,
       timeline: HaikuTimeline,
       receiver: HaikuComponent,
       sender: HaikuComponent,

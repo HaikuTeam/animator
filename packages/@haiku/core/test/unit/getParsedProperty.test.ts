@@ -2,7 +2,7 @@
 
 import * as tape from 'tape';
 
-import {BytecodeOptions} from '@core/api/HaikuBytecode';
+import {BytecodeOptions} from '@core/api';
 import getParsedProperty from '@core/helpers/getParsedProperty';
 
 tape(

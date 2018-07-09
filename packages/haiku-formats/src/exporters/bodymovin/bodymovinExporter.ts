@@ -1,12 +1,10 @@
-import {difference, flatten, mapKeys} from 'lodash';
-
-import {Curve} from '@haiku/core/lib/api/Curve';
 import {
   BytecodeNode,
   BytecodeSummonable,
   BytecodeTimelineProperties,
   BytecodeTimelineProperty,
-} from '@haiku/core/lib/api/HaikuBytecode';
+  Curve,
+} from '@haiku/core/lib/api';
 import {CurveSpec} from '@haiku/core/lib/vendor/svg-points/types';
 import {writeFile} from 'fs-extra';
 import {ContextualSize} from 'haiku-common/lib/types';
@@ -14,6 +12,7 @@ import {ContextualSize} from 'haiku-common/lib/types';
 import * as Template from 'haiku-serialization/src/bll/Template';
 // @ts-ignore
 import * as LoggerInstance from 'haiku-serialization/src/utils/LoggerInstance';
+import {difference, flatten, mapKeys} from 'lodash';
 
 import {ExporterInterface} from '..';
 

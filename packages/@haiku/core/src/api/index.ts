@@ -1,6 +1,10 @@
-import HaikuComponent from '../HaikuComponent';
-import {CurveDefinition} from './Curve';
-import {DomRect, LayoutSpec} from './Layout';
+/**
+ * TODO
+ */
+export type IHaikuComponent = any;
+export type IHaikuContext = any;
+export type IValueBuilder = any;
+export type IStateTransitionManager = any;
 
 export type PrimitiveType = string|number|object|boolean|null;
 
@@ -142,7 +146,7 @@ export interface BytecodeMetadata {
   title?: string;
 }
 
-export type ComponentEventHandler = (component: HaikuComponent) => void;
+export type ComponentEventHandler = (component: IHaikuComponent) => void;
 
 /**
  * Bytecode options.
@@ -274,3 +278,152 @@ export interface HaikuBytecode {
   properties?: any[];
   options?: BytecodeOptions;
 }
+
+export type Mat4 = number[];
+
+export interface ThreeDimensionalLayoutProperty {
+  x: number;
+  y: number;
+  z: number;
+}
+
+export interface DomRect {
+  width: number;
+  height: number;
+  left: number;
+  top: number;
+}
+
+// The layout specification naming in createLayoutSpec is derived in part from:
+// https://github.com/Famous/engine/blob/master/core/Transform.js which is MIT licensed.
+export interface LayoutSpec {
+  shown: boolean;
+  opacity: number;
+  mount: ThreeDimensionalLayoutProperty;
+  align: ThreeDimensionalLayoutProperty;
+  origin: ThreeDimensionalLayoutProperty;
+  translation: ThreeDimensionalLayoutProperty;
+  rotation: ThreeDimensionalLayoutProperty;
+  scale: ThreeDimensionalLayoutProperty;
+  sizeMode: ThreeDimensionalLayoutProperty;
+  sizeProportional: ThreeDimensionalLayoutProperty;
+  sizeDifferential: ThreeDimensionalLayoutProperty;
+  sizeAbsolute: ThreeDimensionalLayoutProperty;
+
+  orientation?: {
+    x: number;
+    y: number;
+    z: number;
+    w: number;
+  };
+
+  shear: {
+    xy: number;
+    xz: number;
+    yz: number;
+  };
+
+  computed?: ComputedLayoutSpec;
+}
+
+export interface ComputedLayoutSpec extends LayoutSpec {
+  matrix: Mat4;
+  size: ThreeDimensionalLayoutProperty;
+}
+
+export interface StringableThreeDimensionalLayoutProperty {
+  x: number|string;
+  y: number|string;
+  z: number|string;
+}
+
+export interface TwoPointFiveDimensionalLayoutProperty {
+  x: number;
+  y: number;
+  z?: number;
+}
+
+export interface ClientRect {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+  width: number;
+  height: number;
+}
+
+export interface BoundsSpecX {
+  left: number;
+  right: number;
+}
+
+export interface BoundsSpecY {
+  top: number;
+  bottom: number;
+}
+
+export interface BoundsSpecZ {
+  front: number;
+  back: number;
+}
+
+export interface BoundsSpec extends BoundsSpecX, BoundsSpecY, BoundsSpecZ {}
+
+/**
+ * @description A LayoutNode may be a proper BytecodeNode, but for convenience
+ * we allow an object that only has a layout property declared.
+ */
+export interface LayoutNode {
+  elementName?: string;
+  attributes?: BytecodeNodeAttributes;
+  children?: (LayoutNode|string)[];
+  layout: LayoutSpec;
+}
+
+export type AxisString = 'x'|'y'|'z';
+
+export enum Curve {
+    EaseInBack = 'easeInBack',
+    EaseInCirc = 'easeInCirc',
+    EaseInCubic = 'easeInCubic',
+    EaseInExpo = 'easeInExpo',
+    EaseInQuad = 'easeInQuad',
+    EaseInQuart = 'easeInQuart',
+    EaseInBounce = 'easeInBounce',
+    EaseInElastic = 'easeInElastic',
+    EaseInQuint = 'easeInQuint',
+    EaseInSine = 'easeInSine',
+    EaseOutBack = 'easeOutBack',
+    EaseOutCirc = 'easeOutCirc',
+    EaseOutCubic = 'easeOutCubic',
+    EaseOutExpo = 'easeOutExpo',
+    EaseOutQuad = 'easeOutQuad',
+    EaseOutQuart = 'easeOutQuart',
+    EaseOutBounce = 'easeOutBounce',
+    EaseOutElastic = 'easeOutElastic',
+    EaseOutQuint = 'easeOutQuint',
+    EaseOutSine = 'easeOutSine',
+    EaseInOutBack = 'easeInOutBack',
+    EaseInOutCirc = 'easeInOutCirc',
+    EaseInOutCubic = 'easeInOutCubic',
+    EaseInOutExpo = 'easeInOutExpo',
+    EaseInOutQuad = 'easeInOutQuad',
+    EaseInOutQuart = 'easeInOutQuart',
+    EaseInOutBounce = 'easeInOutBounce',
+    EaseInOutElastic = 'easeInOutElastic',
+    EaseInOutQuint = 'easeInOutQuint',
+    EaseInOutSine = 'easeInOutSine',
+    Linear = 'linear',
+  }
+
+/**
+ * Defines a normalized curve, to be used in BytecodeTimelineValue and also in
+ * state transition
+ */
+export type CurveFunction = ((offset: number) => number);
+
+/**
+ * Can be a function or a string from just-curves. The string is
+ * converted into CuverFunction inside Interpolate
+ */
+export type CurveDefinition = Curve|CurveFunction|number[];

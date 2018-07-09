@@ -2,7 +2,7 @@ const fse = require('fs-extra')
 const {debounce} = require('lodash')
 const path = require('path')
 const {xmlToMana} = require('@haiku/core/lib/HaikuNode')
-const objectToRO = require('@haiku/core/lib/reflection/objectToRO').default
+const expressionToRO = require('@haiku/core/lib/reflection/expressionToRO').default
 const BaseModel = require('./BaseModel')
 const logger = require('./../utils/LoggerInstance')
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
@@ -283,7 +283,7 @@ class File extends BaseModel {
   getSerializedBytecode () {
     const reified = this.getReifiedDecycledBytecode()
     Bytecode.cleanBytecode(reified)
-    const serialized = objectToRO(reified) // This returns a *new* object
+    const serialized = expressionToRO(reified) // This returns a *new* object
     return serialized
   }
 }

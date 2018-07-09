@@ -1,5 +1,4 @@
-import {BytecodeTimelineProperties} from '@haiku/core/lib/api/HaikuBytecode';
-import {LayoutSpec} from '@haiku/core/lib/api/Layout';
+import {BytecodeTimelineProperties, LayoutSpec} from '@haiku/core/lib/api';
 import {LAYOUT_3D_VANITIES} from '@haiku/core/lib/HaikuComponent';
 import composedTransformsToTimelineProperties from '@haiku/core/lib/helpers/composedTransformsToTimelineProperties';
 import Layout3D from '@haiku/core/lib/Layout3D';

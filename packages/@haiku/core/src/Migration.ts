@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import HaikuComponent, {ATTRS_HYPH_TO_CAMEL} from './HaikuComponent';
+import {IHaikuComponent} from './api';
 import {visitManaTree, xmlToMana} from './HaikuNode';
 import addLegacyOriginSupport from './helpers/addLegacyOriginSupport';
 import compareSemver from './helpers/compareSemver';
@@ -40,7 +40,7 @@ const requiresUpgrade = (coreVersion: string, requiredVersion: UpgradeVersionReq
  * Think of this like a migration that always runs in production components just in case we
  * get something that happens to be legacy.
  */
-export const runMigrations = (component: HaikuComponent, options: any, version: string) => {
+export const runMigrations = (component: IHaikuComponent, options: any, version: string) => {
   const bytecode = component.bytecode;
   if (!bytecode.states) {
     bytecode.states = {};
@@ -153,7 +153,7 @@ export const runMigrations = (component: HaikuComponent, options: any, version: 
 
         if (requiresUpgrade(coreVersion, UpgradeVersionRequirement.CamelCasePropertyNames)) {
           for (const propertyName in bytecode.timelines[timelineName][selector]) {
-            const camelVariant = ATTRS_HYPH_TO_CAMEL[propertyName];
+            const camelVariant = options.attrsHyphToCamel[propertyName];
 
             if (camelVariant) {
               bytecode.timelines[timelineName][selector][camelVariant] =

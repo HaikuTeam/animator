@@ -8,7 +8,7 @@
 //   (t) => {
 //     // Load bytecode type definition from disk
 //     const haikuBytecodeTypeString = fs.readFileSync(
-//       'src/api/HaikuBytecode.ts',
+//       'src/api/index.ts',
 //       {encoding: 'utf8'},
 //     );
 //

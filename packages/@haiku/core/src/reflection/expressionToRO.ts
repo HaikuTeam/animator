@@ -2,10 +2,8 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import arrayToRO from './arrayToRO';
 import functionToRFO from './functionToRFO';
 import isSerializableScalar from './isSerializableScalar';
-import objectToRO from './objectToRO';
 
 const FUNCTION = 'function';
 const OBJECT = 'object';
@@ -52,4 +50,23 @@ export default function expressionToRO (exp, options?) {
   }
 
   return exp;
+}
+
+function arrayToRO (arr) {
+  const out = [];
+  for (let i = 0; i < arr.length; i++) {
+    out[i] = expressionToRO(arr[i], null);
+  }
+  return out;
+}
+
+function objectToRO (obj, options) {
+  const out = {};
+  for (const key in obj) {
+    if (options && options.ignore && options.ignore.test(key)) {
+      continue;
+    }
+    out[key] = expressionToRO(obj[key], options);
+  }
+  return out;
 }

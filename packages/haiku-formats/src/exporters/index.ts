@@ -1,4 +1,4 @@
-import {HaikuBytecode} from '@haiku/core/lib/api/HaikuBytecode';
+import {HaikuBytecode} from '@haiku/core/lib/api';
 import {ExporterFormat, ExporterRequest} from 'haiku-sdk-creator/lib/exporter';
 
 import {BodymovinExporter} from './bodymovin/bodymovinExporter';

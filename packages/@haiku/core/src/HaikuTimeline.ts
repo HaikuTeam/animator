@@ -2,8 +2,8 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
+import {IHaikuComponent} from './api';
 import HaikuBase, {GLOBAL_LISTENER_KEY} from './HaikuBase';
-import HaikuComponent from './HaikuComponent';
 import getTimelineMaxTime from './helpers/getTimelineMaxTime';
 import assign from './vendor/assign';
 
@@ -32,7 +32,7 @@ export type PlaybackStatus = PlaybackSetting | number | string;
 // tslint:disable:variable-name
 export default class HaikuTimeline extends HaikuBase {
   options;
-  component: HaikuComponent;
+  component: IHaikuComponent;
   name;
   descriptor;
   status: PlaybackStatus;
@@ -44,7 +44,7 @@ export default class HaikuTimeline extends HaikuBase {
   _isPlaying: boolean;
   private loopCounter: number;
 
-  constructor (component: HaikuComponent, name, descriptor, options) {
+  constructor (component: IHaikuComponent, name, descriptor, options) {
     super();
 
     this.component = component;
@@ -548,7 +548,7 @@ export default class HaikuTimeline extends HaikuBase {
     });
   };
 
-  static create = (component: HaikuComponent, name, descriptor, config): HaikuTimeline => {
+  static create = (component: IHaikuComponent, name, descriptor, config): HaikuTimeline => {
     return new HaikuTimeline(
       component,
       name,
