@@ -1928,6 +1928,12 @@ class ActiveComponent extends BaseModel {
     })
   }
 
+  getFirstSelectedCurve () {
+    const keyframes = this.getSelectedKeyframes()
+    const selectedKeyframeWithCurve = keyframes.first((keyframe) => keyframe.isSelectedBody())
+    return selectedKeyframeWithCurve ? selectedKeyframeWithCurve.getCurve() : null
+  }
+
   dragStartSelectedKeyframes (dragData) {
     const keyframes = this.getSelectedKeyframes()
     keyframes.forEach((keyframe) => keyframe.dragStart(dragData))

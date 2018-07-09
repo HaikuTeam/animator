@@ -364,7 +364,7 @@ class Keyframe extends BaseModel {
   }
 
   isTweenable () {
-    return  typeof (this.value) !== 'boolean' && !(typeof this.value === 'string' || this.value instanceof String)
+    return typeof (this.value) !== 'boolean' && !(typeof this.value === 'string' || this.value instanceof String)
   }
 
   next () {
