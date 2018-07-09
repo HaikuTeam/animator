@@ -108,6 +108,9 @@ class MonacoEditor extends React.Component {
       if (theme) {
         monaco.editor.setTheme(theme);
       }
+
+      this.editor.getModel().updateOptions({tabSize: 2});
+
       // After initializing monaco editor
       this.editorDidMount(this.editor);
     }
