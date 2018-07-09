@@ -236,6 +236,10 @@ Find formatting problems with:
 
     $ yarn lint
 
+Run demos in your browser:
+
+    $ yarn demos
+
 <br>
 
 ## License / Copyright
