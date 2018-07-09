@@ -5,13 +5,11 @@ import {
   fetchProjectConfigInfo,
   getDefaultBranchName,
   getHaikuComponentInitialVersion,
-  getHaikuCoreVersion,
   storeConfigValues,
 } from '@haiku/sdk-client/lib/ProjectDefinitions';
 
 import {bootstrapSceneFilesSync} from '@haiku/sdk-client/lib/bootstrapSceneFilesSync';
 import {createProjectFiles} from '@haiku/sdk-client/lib/createProjectFiles';
-import {getCurrentOrganizationName} from '@haiku/sdk-client/lib/getOrganizationName';
 
 import * as chalk from 'chalk';
 import {execSync} from 'child_process';
@@ -145,11 +143,6 @@ const cli = new Nib({
           name: 'component-name',
           required: true,
           usage: 'Specifies the name of new component to be generated.  Case-sensitive and must be unique.',
-        },
-        {
-          name: 'isPublic',
-          required: false,
-          usage: 'Specifies if project to be created is public (\'true\') or private (\'false\'). Default: \'false\'.',
         },
       ],
       action: generateComponent,
@@ -501,102 +494,45 @@ function doUpdate (context: IContext) {
 
 function generateComponent (context: IContext) {
   const componentName = context.args['component-name'];
-  const isPublicString = context.args.isPublic;
-  let isPublic: boolean = false;
-  switch (isPublicString) {
-    case undefined:
-      isPublic = false;
-      break;
-    case 'false':
-      isPublic = false;
-      break;
-    case 'true':
-      isPublic = true;
-      break;
-    default:
-      context.writeLine('isPublic should be \'true\' or \'false\'. Fix it and try again');
-      process.exit(1);
-      break;
-  }
 
-  ensureAuth(context, (token) => {
-    context.writeLine('Trying to create component...');
+  context.writeLine('Creating component...');
 
-    // inkstone.project.create(token, {Name: componentName, IsPublic: isPublic},
-    //   (projectCreateErr, projectPayload: any) => {
-    //     if (projectCreateErr) {
-    //     // this.sentryError('createProject', projectCreateErr);
-    //       console.log('projectCreateErr', projectCreateErr);
-    //       context.writeLine('Cannot create project: ' + projectCreateErr);
-    //       process.exit(1);
-    //     }
-    //     console.log('Project payload', projectPayload);
+  const projectPath = path.join(process.cwd(), componentName);
+  const projectName = componentName;
 
-    const projectPath = path.join(process.cwd(), componentName);
-    const projectName = componentName;
+  const authorName: string = null;
+  const organizationName: string = null;
 
-    inkstone.user.getDetails(token, (err1: string, user: inkstone.user.User) => {
-      if (err1) {
-        context.writeLine('Cannot get user name' + err1);
-        process.exit(1);
-      }
-
-      console.log('Returned user', user);
-
-      getCurrentOrganizationName((err2: Error, org: string) => {
-        if (err2) {
-          context.writeLine('Cannot get organization name' + err2);
-          process.exit(1);
-        }
-
-        const authorName = JSON.parse(user as any).Username;
-        const organizationName = org;
-
-        console.log('Returned user', user, ' authorName', authorName);
-        console.dir(user);
-
-        storeConfigValues(projectPath, {
-          isPublic,
-          username: authorName,
-          branch: getDefaultBranchName(),
-          version: getHaikuComponentInitialVersion(),
-          organization: organizationName,
-          project: projectName,
-        });
-
-        const projectOptions = {
-          organizationName,
-          projectName,
-          projectPath,
-          authorName,
-          skipContentCreation: false,
-        };
-
-        createProjectFiles(projectPath, projectName, projectOptions, () => {
-          console.log('Created project files');
-          fetchProjectConfigInfo(projectPath, (err: Error|null, userconfig: any) => {
-            if (err) {
-              throw err;
-            }
-            bootstrapSceneFilesSync(projectPath, 'main', userconfig);
-            console.log('Created main component');
-          });
-        });
-
-        context.writeLine('Project created');
-
-        // console.log('Project created: ', projectPayload);
-        process.exit(0);
-        // const master = new Master('/home/jonaias/.haiku/');
-        // master.initializeFolder();
-        // const remoteProjectObject = remapProjectObjectToExpectedFormat(projectPayload, this.get('organizationName'));
-        // return cb(null, remoteProjectObject);
-
-      });
-
-    });
-
+  storeConfigValues(projectPath, {
+    username: authorName,
+    branch: getDefaultBranchName(),
+    version: getHaikuComponentInitialVersion(),
+    organization: organizationName,
+    project: projectName,
   });
+
+  const projectOptions = {
+    organizationName,
+    projectName,
+    projectPath,
+    authorName,
+    skipContentCreation: false,
+  };
+
+  createProjectFiles(projectPath, projectName, projectOptions, () => {
+    console.log('Created initial project files');
+    fetchProjectConfigInfo(projectPath, (err: Error|null, userconfig: any) => {
+      if (err) {
+        throw err;
+      }
+      bootstrapSceneFilesSync(projectPath, 'main', userconfig);
+      console.log('Created main component');
+    });
+  });
+
+  context.writeLine('Project created');
+  process.exit(0);
+
 }
 
 // see ./unimplemented.txt for incomplete player upgrade logic

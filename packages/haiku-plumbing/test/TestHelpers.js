@@ -4,6 +4,8 @@ import * as tmp from 'tmp';
 import * as fse from 'haiku-fs-extra';
 import * as randomAlphabetical from 'haiku-serialization/src/utils/randomAlphabetical';
 import Plumbing, {HAIKU_WS_SECURITY_TOKEN} from '@plumbing/Plumbing';
+import {getCurrentOrganizationName} from '@plumbing/project-folder/getOrganizationName';
+
 
 function websocket (host, port, folder, alias, type) {
   const websocket = new Websocket(
@@ -103,7 +105,7 @@ function setup (ready) {
           plumbing.teardown(cb);
         }
         creator.on('open', () => {
-          plumbing.getCurrentOrganizationName((err, organizationName) => {
+          getCurrentOrganizationName((err, organizationName) => {
             if (err) {
               throw err;
             }

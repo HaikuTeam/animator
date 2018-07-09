@@ -1,11 +1,11 @@
+import {client as sdkClient} from '@haiku/sdk-client';
 import {inkstone} from '@haiku/sdk-inkstone';
-import {client as sdkClient} from './index';
-
-const logger = console;
+// @ts-ignore
+import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 
 let organizationName: string = null;
 
-const getCurrentOrganizationName = (cb: (error: Error|null, organizationName?: string) => void) => {
+export const getCurrentOrganizationName = (cb: (error: Error|null, organizationName?: string) => void) => {
   if (organizationName) {
     return cb(null, organizationName);
   }
@@ -36,8 +36,4 @@ const getCurrentOrganizationName = (cb: (error: Error|null, organizationName?: s
     logger.error(exception);
     return cb(new Error('Unable to find organization name from Haiku Cloud'));
   }
-};
-
-export {
-  getCurrentOrganizationName,
 };

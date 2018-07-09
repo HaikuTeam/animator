@@ -1,7 +1,6 @@
 import * as dedent from 'dedent';
 import * as fse from 'fs-extra';
 import {assign} from 'lodash';
-import * as moment from 'moment';
 // @ts-ignore
 import * as pascalcase from 'pascalcase';
 import * as path from 'path';
@@ -58,10 +57,6 @@ export const getAngularSelectorName = (maybePath: string, maybeName: string) => 
     .replace(/^-/, '');
 };
 
-export const getEmbedName = (organizationName: string, projectPath: string, projectName: string) => {
-  return `HaikuComponentEmbed_${organizationName}_${getProjectNameSafeShort(projectPath, projectName)}`;
-};
-
 export const getStandaloneName = (organizationName: string, projectPath: string, projectName: string) => {
   return `HaikuComponent_${organizationName}_${getProjectNameSafeShort(projectPath, projectName)}`;
 };
@@ -78,10 +73,6 @@ export const getOrganizationNameOrFallback = (organizationName: string) => {
 
 export const getAuthorNameOrFallback = (authorName: string) => {
   return authorName || FALLBACK_AUTHOR_NAME;
-};
-
-export const getCurrentHumanTimestamp = () => {
-  return moment().format('YYYYMMDDHHmmss');
 };
 
 export const readPackageJson = (folder: string) => {
