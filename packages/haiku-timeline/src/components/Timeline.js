@@ -589,17 +589,21 @@ class Timeline extends React.Component {
     this.setState({isPreviewModeActive: isPreviewMode(interactionMode)})
   }
 
+
+
   getPopoverMenuItems ({ event, type, model, offset, curve }) {
     const items = []
 
     const selectedKeyframes = this.getActiveComponent().getSelectedKeyframes()
     const numSelectedKeyframes = selectedKeyframes.length
+    const isTweenableTransitionSegment = type === 'keyframe-segment' && (model && model.isTweenable())
+    const useSingular = numSelectedKeyframes < 3
 
     items.push({
       label: 'Create Keyframe',
       enabled: (
         // During multi-select it's weird to show "Create Keyframe" in the menu
-        (numSelectedKeyframes < 3) &&
+        useSingular &&
         (
           type === 'keyframe-segment' ||
           type === 'keyframe-transition' ||
@@ -640,15 +644,15 @@ class Timeline extends React.Component {
     items.push({ type: 'separator' })
 
     items.push({
-      label: (numSelectedKeyframes < 3) ? 'Make Tween' : 'Make Tweens',
-      enabled: type === 'keyframe-segment' && (model && model.isTweenable()),
-      submenu: (type === 'keyframe-segment') && this.curvesMenu(curve, (event, curveName) => {
+      label: useSingular ? 'Make Tween' : 'Make Tweens',
+      enabled: isTweenableTransitionSegment,
+      submenu: isTweenableTransitionSegment && this.curvesMenu(curve, (event, curveName) => {
         this.getActiveComponent().joinSelectedKeyframes(curveName, { from: 'timeline' })
       })
     })
 
     items.push({
-      label: (numSelectedKeyframes < 3) ? 'Change Tween' : 'Change Tweens',
+      label: useSingular ? 'Change Tween' : 'Change Tweens',
       enabled: type === 'keyframe-transition',
       submenu: (type === 'keyframe-transition') && this.curvesMenu(curve, (event, curveName) => {
         this.getActiveComponent().changeCurveOnSelectedKeyframes(curveName, { from: 'timeline' })
@@ -656,7 +660,7 @@ class Timeline extends React.Component {
     })
 
     items.push({
-      label: (numSelectedKeyframes < 3) ? 'Remove Tween' : 'Remove Tweens',
+      label: useSingular ? 'Remove Tween' : 'Remove Tweens',
       enabled: type === 'keyframe-transition',
       onClick: (event) => {
         this.getActiveComponent().splitSelectedKeyframes({ from: 'timeline' })
