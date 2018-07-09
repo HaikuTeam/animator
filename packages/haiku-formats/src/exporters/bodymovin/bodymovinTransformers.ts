@@ -64,7 +64,7 @@ export const colorTransformer = (color: string) => {
 export const rotationTransformer = (radians: number) => radians * 180 / Math.PI;
 
 /**
- * Transforms a CSS stroke-linecap into an After Effects Line Cap.
+ * Transforms a CSS strokeLinecap into an After Effects Line Cap.
  * @param {string} linecap
  * @returns {StrokeLinecap}
  */
@@ -80,7 +80,7 @@ export const linecapTransformer = (linecap: string) => {
 };
 
 /**
- * Transforms a CSS stroke-linejoin into an After Effects Line Join.
+ * Transforms a CSS strokeLinejoin into an After Effects Line Join.
  * @param {string} linejoin
  * @returns {StrokeLinejoin}
  */
@@ -96,7 +96,7 @@ export const linejoinTransformer = (linejoin: string) => {
 };
 
 /**
- * Transforms a CSS stroke-linejoin into an After Effects Fill Rule.
+ * Transforms a CSS strokeLinejoin into an After Effects Fill Rule.
  * @param {string} fillrule
  * @returns {FillRule}
  */
@@ -117,7 +117,7 @@ export const fillruleTransformer = (fillrule: string) => {
 const dasharrayRoles = [DasharrayRole.Dash, DasharrayRole.Gap];
 
 /**
- * Transforms a CSS stroke-dasharray into After Effects Dashes.
+ * Transforms a CSS strokeDasharray into After Effects Dashes.
  * @param {string} dasharray
  * @returns {{[key in DasharrayKey]: any}[]}
  */

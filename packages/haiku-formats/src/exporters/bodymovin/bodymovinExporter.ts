@@ -544,14 +544,14 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     // TODO: Verify these hyphenated attributes
     const stroke = {
       [ShapeKey.Type]: ShapeType.Stroke,
-      [TransformKey.Opacity]: this.getValueOrDefaultFromTimeline(timeline, 'stroke-opacity', 100, opacityTransformer),
+      [TransformKey.Opacity]: this.getValueOrDefaultFromTimeline(timeline, 'strokeOpacity', 100, opacityTransformer),
       [TransformKey.StrokeWidth]: this.getValue(timeline.strokeWidth, parseInt),
       [TransformKey.Color]: this.getValue(timeline.stroke, colorTransformer),
-      [TransformKey.StrokeLinecap]: linecapTransformer(initialValueOrNull(timeline, 'stroke-linecap')),
-      [TransformKey.StrokeLinejoin]: linejoinTransformer(initialValueOrNull(timeline, 'stroke-linejoin')),
+      [TransformKey.StrokeLinecap]: linecapTransformer(initialValueOrNull(timeline, 'strokeLinecap')),
+      [TransformKey.StrokeLinejoin]: linejoinTransformer(initialValueOrNull(timeline, 'strokeLinejoin')),
     };
 
-    const dasharray = initialValueOrNull(timeline, 'stroke-dasharray');
+    const dasharray = initialValueOrNull(timeline, 'strokeDasharray');
     if (dasharray) {
       stroke[TransformKey.StrokeDasharray] = dasharrayTransformer(dasharray);
     }
@@ -572,11 +572,11 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
       }
 
       const timeline = this.timelineForNode(node);
-      if (!timelineHasProperties(timeline, 'stop-color', 'offset')) {
+      if (!timelineHasProperties(timeline, 'stopColor', 'offset')) {
         return;
       }
 
-      const color = colorTransformer(initialValue(timeline, 'stop-color'));
+      const color = colorTransformer(initialValue(timeline, 'stopColor'));
       const offset = initialValue(timeline, 'offset');
       // Bodymovin smushes together stop offsets and alpha-ignored colors using the notation:
       // <normalizedOffset, normalizedR, normalizedG, normalizedB>
@@ -672,8 +672,8 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     }
 
     const fill = {
-      [TransformKey.Opacity]: this.getValueOrDefaultFromTimeline(timeline, 'fill-opacity', 100, opacityTransformer),
-      [TransformKey.FillRule]: fillruleTransformer(initialValueOrNull(timeline, 'fill-rule')),
+      [TransformKey.Opacity]: this.getValueOrDefaultFromTimeline(timeline, 'fillOpacity', 100, opacityTransformer),
+      [TransformKey.FillRule]: fillruleTransformer(initialValueOrNull(timeline, 'fillRule')),
       // Important: we will fill the unknown fill type later, so ensure the resulting fill object is lottie-android
       // safe.
       toJSON: lottieAndroidStreamSafeToJson,
