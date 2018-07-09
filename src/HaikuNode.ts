@@ -228,10 +228,6 @@ export const cssMatchOne = (node, piece, options) => {
 export const cssQueryList = (list, query, options) => {
   const matches = [];
 
-  const maxdepth = options.maxdepth !== undefined
-    ? parseInt(options.maxdepth, 10)
-    : Infinity;
-
   const pieces = query.split(PIECE_SEPARATOR);
 
   for (let i = 0; i < pieces.length; i++) {
@@ -240,10 +236,8 @@ export const cssQueryList = (list, query, options) => {
     for (let j = 0; j < list.length; j++) {
       const node = list[j];
 
-      if (node.__depth <= maxdepth) {
-        if (cssMatchOne(node, piece, options)) {
-          matches.push(node);
-        }
+      if (cssMatchOne(node, piece, options)) {
+        matches.push(node);
       }
     }
   }
@@ -261,11 +255,6 @@ export const cssQueryTree = (node, query, options) => {
 
 export const manaFlattenTree = (node, options, unique = true, list = [], depth = 0, index = 0) => {
   list.push(node);
-
-  if (typeof node !== 'string') {
-    node.__depth = depth;
-    node.__index = index;
-  }
 
   // Don't recurse down into the children of nested components, which should be 'invisible' to us.
   // Nested components are indicated when their name is not a string, e.g. a component descriptor.
@@ -292,12 +281,7 @@ export const manaFlattenTree = (node, options, unique = true, list = [], depth =
       for (let i = 0; i < copies.length; i++) {
         manaFlattenTree(copies[i], options, false, list, depth + 1, i);
       }
-
-      // list.push.apply(list, copies);
     } else if (typeof children === 'object') {
-      children.__depth = depth + 1;
-      children.__index = 0;
-
       list.push(children);
       return list;
     }

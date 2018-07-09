@@ -19,6 +19,14 @@ export namespace InteractionMode {
  * mode is 'preview' mode.
  * @returns boolean
  */
-export function isPreviewMode (mode) {
+export function isPreviewMode (mode): boolean {
   return mode === InteractionMode.LIVE;
+}
+
+/**
+ * @method isPreviewMode
+ * Alias for isPreviewMode more befitting of @haiku/core usage outside of the Haiku app.
+ */
+export function isLiveMode (mode): boolean {
+  return isPreviewMode(mode);
 }
