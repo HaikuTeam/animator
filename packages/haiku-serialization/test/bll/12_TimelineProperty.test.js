@@ -1,9 +1,27 @@
 const tape = require('tape')
-const ValueBuilder = require('@haiku/core/lib/ValueBuilder').default
 const TimelineProperty = require('./../../src/bll/TimelineProperty')
+const HaikuComponent = require('@haiku/core/lib/HaikuComponent').default
 
-function findElementsByHaikuId () {
+const findElementsByHaikuId = () => {
   return { elementName: 'svg', attributes: {}, children: [] }
+}
+
+const getClock = () => {
+  return {
+    getExplicitTime: () => {
+      return 1
+    }
+  }
+}
+
+const renderer = {
+  mount: null
+}
+
+const context = {
+  clock: getClock(),
+  getClock,
+  renderer
 }
 
 tape('TimelineProperty.addProperty', function(t) {
@@ -150,8 +168,7 @@ tape('TimelineProperty.getBaselineValue', function(t) {
   let inputValues
   let bv
 
-  hostInstance = {}
-  hostInstance.builder = new ValueBuilder(hostInstance)
+  hostInstance = new HaikuComponent({}, context, null, {seed:'0'}, {})
   hostInstance.findElementsByHaikuId = findElementsByHaikuId
   hostInstance.shouldPerformFullFlush = () => {}
   inputValues = {}
@@ -173,8 +190,7 @@ tape('TimelineProperty.getBaselineValue', function(t) {
   }, hostInstance, inputValues)
   t.equal(bv, 1, 'first is correct')
 
-  hostInstance = {}
-  hostInstance.builder = new ValueBuilder(hostInstance)
+  hostInstance = new HaikuComponent({}, context, null, {seed:'0'}, {})
   hostInstance.findElementsByHaikuId = findElementsByHaikuId
   hostInstance.shouldPerformFullFlush = () => {}
   inputValues = {}
@@ -197,8 +213,7 @@ tape('TimelineProperty.getBaselineValue', function(t) {
   t.equal(bv, 0, 'second is correct')
 
   // This is the important test - ensuring we load the PREVIOUS keyframe when we have an exact fit!
-  hostInstance = {}
-  hostInstance.builder = new ValueBuilder(hostInstance)
+  hostInstance = new HaikuComponent({}, context, null, {seed:'0'}, {})
   hostInstance.findElementsByHaikuId = findElementsByHaikuId
   hostInstance.shouldPerformFullFlush = () => {}
   inputValues = {}
@@ -220,8 +235,7 @@ tape('TimelineProperty.getBaselineValue', function(t) {
   }, hostInstance, inputValues)
   t.equal(bv, 0, 'third is correct - got previous keyframe')
 
-  hostInstance = {}
-  hostInstance.builder = new ValueBuilder(hostInstance)
+  hostInstance = new HaikuComponent({}, context, null, {seed:'0'}, {})
   hostInstance.findElementsByHaikuId = findElementsByHaikuId
   hostInstance.shouldPerformFullFlush = () => {}
   inputValues = {}
@@ -244,8 +258,7 @@ tape('TimelineProperty.getBaselineValue', function(t) {
   t.equal(bv, 4, 'fourth is correct')
 
   // Another important one: Ensure we use the dom.properties-defined fallback if there is no previous
-  hostInstance = {}
-  hostInstance.builder = new ValueBuilder(hostInstance)
+  hostInstance = new HaikuComponent({}, context, null, {seed:'0'}, {})
   hostInstance.findElementsByHaikuId = findElementsByHaikuId
   hostInstance.shouldPerformFullFlush = () => {}
   inputValues = {}
@@ -268,8 +281,7 @@ tape('TimelineProperty.getBaselineValue', function(t) {
   t.equal(bv, 1, 'fifth correct - prop defined fallback ok')
 
   // Another important one: Ensure we use the dom.properties-defined fallback if there is no previous
-  hostInstance = {}
-  hostInstance.builder = new ValueBuilder(hostInstance)
+  hostInstance = new HaikuComponent({}, context, null, {seed:'0'}, {})
   hostInstance.findElementsByHaikuId = findElementsByHaikuId
   hostInstance.shouldPerformFullFlush = () => {}
   inputValues = {}

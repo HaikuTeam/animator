@@ -3,7 +3,6 @@
  */
 export type IHaikuComponent = any;
 export type IHaikuContext = any;
-export type IValueBuilder = any;
 export type IStateTransitionManager = any;
 
 export type PrimitiveType = string|number|object|boolean|null;
@@ -427,3 +426,12 @@ export type CurveFunction = ((offset: number) => number);
  * converted into CuverFunction inside Interpolate
  */
 export type CurveDefinition = Curve|CurveFunction|number[];
+
+export interface ParsedValueCluster {
+  __sorted?: boolean;
+  [ms: number]: {
+    expression?: boolean;
+    value?: any;
+    curve?: CurveDefinition;
+  };
+}

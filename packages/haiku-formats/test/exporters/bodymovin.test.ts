@@ -341,10 +341,10 @@ tape('BodymovinExporter', (suite: tape.Test) => {
     const bytecode = baseBytecodeCopy();
     overrideShapeAttributes(bytecode, {
       stroke: {0: {value: '#000'}},
-      'strokeWidth': {0: {value: 10}},
-      'strokeLinecap': {0: {value: 'butt'}},
-      'strokeLinejoin': {0: {value: 'bevel'}},
-      'strokeDasharray': {0: {value: '1'}},
+      strokeWidth: {0: {value: 10}},
+      strokeLinecap: {0: {value: 'butt'}},
+      strokeLinejoin: {0: {value: 'bevel'}},
+      strokeDasharray: {0: {value: '1'}},
     });
 
     const {
@@ -386,7 +386,7 @@ tape('BodymovinExporter', (suite: tape.Test) => {
     const bytecode = baseBytecodeCopy();
     overrideShapeAttributes(bytecode, {
       fill: {0: {value: '#000'}},
-      'fillRule': {0: {value: 'evenodd'}},
+      fillRule: {0: {value: 'evenodd'}},
     });
 
     const {
@@ -407,12 +407,12 @@ tape('BodymovinExporter', (suite: tape.Test) => {
 
     bytecode.timelines.Default['haiku:stop1'] = {
       offset: {0: {value: '0%'}},
-      'stopColor': {0: {value: '#000'}},
+      stopColor: {0: {value: '#000'}},
     };
 
     bytecode.timelines.Default['haiku:stop2'] = {
       offset: {0: {value: '100%'}},
-      'stopColor': {0: {value: '#FFF'}},
+      stopColor: {0: {value: '#FFF'}},
     };
 
     // Scope for testing linear gradients.
@@ -522,7 +522,7 @@ tape('BodymovinExporter', (suite: tape.Test) => {
 
     // Shim in a group to wrap our shape.
     bytecode.timelines.Default['haiku:group'] = {
-      'strokeWidth': {0: {value: 5}},
+      strokeWidth: {0: {value: 5}},
       'translation.x': {0: {value: 10}},
       'translation.y': {0: {value: 10}},
     };
@@ -545,7 +545,7 @@ tape('BodymovinExporter', (suite: tape.Test) => {
     }
 
     {
-      delete bytecode.timelines.Default['haiku:shape']['strokeWidth'];
+      delete bytecode.timelines.Default['haiku:shape'].strokeWidth;
       const {
         layers: [{
           shapes: [{it: [_, stroke, __]}],
@@ -593,7 +593,7 @@ tape('BodymovinExporter', (suite: tape.Test) => {
 
     // Shim in <defs>, and replace our shape element with a <use>.
     bytecode.timelines.Default['haiku:def'] = {
-      'strokeWidth': {0: {value: 5}},
+      strokeWidth: {0: {value: 5}},
     };
     overrideShapeElement(bytecode, 'use');
     bytecode.template.children[0].children.unshift({
@@ -606,7 +606,7 @@ tape('BodymovinExporter', (suite: tape.Test) => {
       }],
     });
     overrideShapeAttributes(
-      bytecode, {stroke: {0: {value: '#FF0000'}}, 'strokeWidth': {0: {value: 10}}, href: {0: {value: '#my-circle'}}});
+      bytecode, {stroke: {0: {value: '#FF0000'}}, strokeWidth: {0: {value: 10}}, href: {0: {value: '#my-circle'}}});
 
     {
       const {
@@ -619,7 +619,7 @@ tape('BodymovinExporter', (suite: tape.Test) => {
     }
 
     {
-      delete bytecode.timelines.Default['haiku:shape']['strokeWidth'];
+      delete bytecode.timelines.Default['haiku:shape'].strokeWidth;
       const {
         layers: [{
           shapes: [{it: [_, stroke]}],

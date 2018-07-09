@@ -2,7 +2,7 @@ const Parser = require('cst').Parser
 const walk = require('estree-walker').walk
 const fsm = require('fuzzy-string-matching')
 const uniq = require('lodash').uniq
-const FORBIDDEN_EXPRESSION_TOKENS = require('@haiku/core/lib/ValueBuilder').default.FORBIDDEN_EXPRESSION_TOKENS
+const FORBIDDEN_EXPRESSION_TOKENS = require('@haiku/core/lib/HaikuComponent').default.FORBIDDEN_EXPRESSION_TOKENS
 const logger = require('./../utils/LoggerInstance')
 
 const PARSER = new Parser({

@@ -581,14 +581,13 @@ class Element extends BaseModel {
     ) || {}
 
     const grabValue = (outputName) => {
-      const computedValue = hostInstance.builder.grabValue(
+      const computedValue = hostInstance.grabValue(
         timelineName,
         componentId,
         elementNode,
         outputName,
         propertiesBase[outputName],
         timelineTime,
-        hostInstance,
         !hostInstance.shouldPerformFullFlush(), // isPatchOperation
         true, // skipCache
         false // clearSortedKeyframesCache

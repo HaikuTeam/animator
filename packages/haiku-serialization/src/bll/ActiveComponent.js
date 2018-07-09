@@ -363,15 +363,11 @@ class ActiveComponent extends BaseModel {
   }
 
   clearCaches (options = {}) {
-    this.$instance.clearCaches(options) // Also clears instance.builder sub-caches
+    this.$instance.clearCaches(options)
     this.fetchRootElement().cache.clear()
     if (options.doClearEntityCaches) {
       this.fetchRootElement().clearEntityCaches()
     }
-  }
-
-  clearCachedClusters (timelineName, componentId) {
-    this.$instance.builder.clearCachedClusters(timelineName, componentId)
   }
 
   updateTimelineMaxes (timelineName) {
@@ -3144,8 +3140,6 @@ class ActiveComponent extends BaseModel {
     })
 
     return this.project.updateHook('changeKeyframeValue', this.getRelpath(), componentId, timelineName, propertyName, keyframeMs, Bytecode.serializeValue(newValue), metadata, (fire) => {
-      this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
-
       return this.changeKeyframeValueActual(componentId, timelineName, propertyName, keyframeMs, newValue, metadata, (err) => {
         if (err) {
           logger.error(`[active component (${this.project.getAlias()})]`, err)
@@ -3182,8 +3176,6 @@ class ActiveComponent extends BaseModel {
     })
 
     return this.project.updateHook('changeSegmentCurve', this.getRelpath(), componentId, timelineName, propertyName, keyframeMs, Bytecode.serializeValue(newCurve), metadata, (fire) => {
-      this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
-
       return this.changeSegmentCurveActual(componentId, timelineName, propertyName, keyframeMs, newCurve, metadata, (err) => {
         if (err) {
           logger.error(`[active component (${this.project.getAlias()})]`, err)
@@ -3220,8 +3212,6 @@ class ActiveComponent extends BaseModel {
     })
 
     return this.project.updateHook('joinKeyframes', this.getRelpath(), componentId, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, Bytecode.serializeValue(newCurve), metadata, (fire) => {
-      this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
-
       return this.joinKeyframesActual(componentId, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, newCurve, metadata, (err) => {
         if (err) {
           logger.error(`[active component (${this.project.getAlias()})]`, err)
@@ -3268,8 +3258,6 @@ class ActiveComponent extends BaseModel {
    */
   splitSegment (componentId, timelineName, elementName, propertyName, keyframeMs, metadata, cb) {
     return this.project.updateHook('splitSegment', this.getRelpath(), componentId, timelineName, elementName, propertyName, keyframeMs, metadata, (fire) => {
-      this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
-
       return this.splitSegmentActual(componentId, timelineName, elementName, propertyName, keyframeMs, metadata, (err) => {
         if (err) {
           logger.error(`[active component (${this.project.getAlias()})]`, err)
@@ -3384,12 +3372,6 @@ class ActiveComponent extends BaseModel {
     })
 
     return this.project.updateHook('moveKeyframes', this.getRelpath(), Bytecode.serializeValue(keyframeMoves), metadata, (fire) => {
-      for (const timelineName in keyframeMoves) {
-        for (const componentId in keyframeMoves[timelineName]) {
-          this.clearCachedClusters(timelineName, componentId)
-        }
-      }
-
       return this.moveKeyframesActual(keyframeMoves, metadata, (err) => {
         if (err) {
           logger.error(`[active component (${this.project.getAlias()})]`, err)
@@ -3472,12 +3454,6 @@ class ActiveComponent extends BaseModel {
     })
 
     return this.project.updateHook('updateKeyframes', this.getRelpath(), Bytecode.serializeValue(keyframeUpdates), options, metadata, (fire) => {
-      for (const timelineName in keyframeUpdates) {
-        for (const componentId in keyframeUpdates[timelineName]) {
-          this.clearCachedClusters(timelineName, componentId)
-        }
-      }
-
       const unlockedDesigns = {}
       if (options.setElementLockStatus) {
         for (const elID in options.setElementLockStatus) {
@@ -3597,12 +3573,6 @@ class ActiveComponent extends BaseModel {
     })
 
     return this.project.updateHook('updateKeyframesAndTypes', this.getRelpath(), Bytecode.serializeValue(keyframeUpdates), typeUpdates, options, metadata, (fire) => {
-      for (const timelineName in keyframeUpdates) {
-        for (const componentId in keyframeUpdates[timelineName]) {
-          this.clearCachedClusters(timelineName, componentId)
-        }
-      }
-
       const unlockedDesigns = {}
       if (options.setElementLockStatus) {
         for (const elID in options.setElementLockStatus) {
@@ -3714,8 +3684,6 @@ class ActiveComponent extends BaseModel {
       Bytecode.serializeValue(keyframeEndValue),
       metadata,
       (fire) => {
-        this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
-
         return this.createKeyframeActual(componentId, timelineName, elementName, propertyName, keyframeStartMs, keyframeValue, keyframeCurve, keyframeEndMs, keyframeEndValue, metadata, (err) => {
           if (err) {
             logger.error(`[active component (${this.project.getAlias()})]`, err)
@@ -3790,8 +3758,6 @@ class ActiveComponent extends BaseModel {
    */
   deleteKeyframe (componentId, timelineName, propertyName, keyframeMs, metadata, cb) {
     return this.project.updateHook('deleteKeyframe', this.getRelpath(), componentId, timelineName, propertyName, keyframeMs, metadata, (fire) => {
-      this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
-
       return this.deleteKeyframeActual(componentId, timelineName, propertyName, keyframeMs, metadata, (err) => {
         if (err) {
           logger.error(`[active component (${this.project.getAlias()})]`, err)
