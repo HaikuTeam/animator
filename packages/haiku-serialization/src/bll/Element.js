@@ -222,12 +222,7 @@ class Element extends BaseModel {
   }
 
   clip () {
-    this._clip = this.buildClipboardPayload()
-    return this._clip
-  }
-
-  getLastClip () {
-    return this._clip
+    return this.buildClipboardPayload()
   }
 
   getVisibleEvents () {

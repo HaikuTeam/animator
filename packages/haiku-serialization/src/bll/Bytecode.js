@@ -73,7 +73,7 @@ Bytecode.cleanBytecode = (bytecode) => {
         const hid = Template.haikuSelectorToHaikuId(timelineSelector)
         if (!elementsByHaikuId[hid]) delete timelineObject[timelineSelector]
       } else {
-        // Any property like __max or __depth is runtime-only and needs to be stripped
+        // Any property like __max is runtime-only and needs to be stripped
         if (timelineSelector[0] === '_' && timelineSelector[1] === '_') {
           delete timelineObject[timelineSelector]
         }

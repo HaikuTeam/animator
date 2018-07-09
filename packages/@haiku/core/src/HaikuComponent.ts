@@ -9,10 +9,10 @@ import HaikuBase, {GLOBAL_LISTENER_KEY} from './HaikuBase';
 import HaikuClock from './HaikuClock';
 import HaikuContext from './HaikuContext';
 import HaikuElement from './HaikuElement';
-import {cssMatchOne, cssQueryList, manaFlattenTree, scopifyElements, xmlToMana} from './HaikuNode';
+import {cssMatchOne, cssQueryTree, scopifyElements, xmlToMana} from './HaikuNode';
 import HaikuTimeline, {PlaybackSetting, TimeUnit} from './HaikuTimeline';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
-import {isPreviewMode} from './helpers/interactionModes';
+import {isLiveMode} from './helpers/interactionModes';
 import isMutableProperty from './helpers/isMutableProperty';
 import Layout3D from './Layout3D';
 import {runMigrations} from './Migration';
@@ -58,10 +58,8 @@ const templateIsString = (
 // tslint:disable:variable-name function-name
 export default class HaikuComponent extends HaikuElement {
   builder;
-  _flatManaTree;
   isDeactivated;
   isSleeping;
-  _matchedElementCache;
   _mutableTimelines;
   _states;
 
@@ -164,12 +162,6 @@ export default class HaikuComponent extends HaikuElement {
 
     this._mutableTimelines = undefined;
     this._hydrateMutableTimelines();
-
-    // The full version of the template gets mutated in-place by the rendering algorithm
-    this._flatManaTree = [];
-
-    // As a performance optimization, keep track of elements we've located as key/value (selector/element) pairs
-    this._matchedElementCache = {};
 
     // Flag used internally to determine whether we need to re-render the full tree or can survive by just patching
     this.doesNeedFullFlush = false;
@@ -382,21 +374,18 @@ export default class HaikuComponent extends HaikuElement {
   }
 
   clearCaches (options: ClearCacheOptions = {}) {
+    // HaikuBase implements a general-purpose caching mechanism which we also call here
     this.cacheClear();
 
-    // Don't forget to repopulate the states with originals when we cc otherwise folks
-    // who depend on initial states being set will be SAD!
+    // Don't forget to repopulate the states with originals when we clear cache
     if (options.clearStates) {
-      this._states = {};
-      this.bindStates();
+      this.clearStates();
     }
 
-    this.clearNodeCaches();
-
     this.builder.clearCaches(options);
+
     this._hydrateMutableTimelines();
 
-    // These may have been set for caching purposes
     if (this.bytecode.timelines) {
       for (const timelineName in this.bytecode.timelines) {
         delete this.bytecode.timelines[timelineName].__max;
@@ -404,9 +393,9 @@ export default class HaikuComponent extends HaikuElement {
     }
   }
 
-  clearNodeCaches () {
-    this._flatManaTree = manaFlattenTree(this.getTemplate(), CSS_QUERY_MAPPING);
-    this._matchedElementCache = {};
+  clearStates () {
+    this._states = {};
+    this.bindStates();
   }
 
   getClock (): HaikuClock {
@@ -765,7 +754,7 @@ export default class HaikuComponent extends HaikuElement {
   callEventHandler (eventsSelector: string, eventName: string, handler: Function, eventArgs: any): any {
     // Only fire the event listeners if the component is in 'live' interaction mode,
     // i.e., not currently being edited inside the Haiku authoring environment
-    if (!isPreviewMode(this.config.interactionMode)) {
+    if (!isLiveMode(this.config.interactionMode)) {
       return;
     }
 
@@ -864,7 +853,7 @@ export default class HaikuComponent extends HaikuElement {
       return;
     }
 
-    this.clearNodeCaches();
+    this.clearCaches();
 
     expandTreeNode(
       this.getTemplate(), // node
@@ -1142,11 +1131,13 @@ export default class HaikuComponent extends HaikuElement {
   }
 
   findMatchingElementsByCssSelector (selector: string) {
-    if (this._matchedElementCache[selector]) {
-      return this._matchedElementCache[selector];
-    }
-
-    return this._matchedElementCache[selector] = cssQueryList(this._flatManaTree, selector, CSS_QUERY_MAPPING);
+    return this.cacheFetch(`findMatchingElementsByCssSelector:${selector}`, () => {
+      return cssQueryTree(
+        this.getTemplate(),
+        selector,
+        CSS_QUERY_MAPPING,
+      );
+    });
   }
 
   _hydrateMutableTimelines () {
@@ -1540,6 +1531,41 @@ const propertyGroupNeedsExpressionEvaluated = (
   return foundExpressionForTime;
 };
 
+const reconnectSnapshotChildrenAndRenderedChildren = (node) => {
+  if (!node.__children || !node.children) {
+    return;
+  }
+
+  const children = [];
+
+  for (let i = 0; i < node.children.length; i++) {
+    const rendered = node.children[i];
+
+    // Only the first node in the repeat collection is the original one
+    if (rendered.__repeat && rendered.__repeat.index > 0) {
+      continue;
+    }
+
+    // At this point we should only have a node which is either the original node,
+    // without any repeat characteristics, or a repeat node which is the first in
+    // the repeat collection.
+    children.push(rendered);
+  }
+
+  node.__children = children;
+};
+
+const areNodesSame = (a, b): boolean => {
+  if (a === b) {
+    return true;
+  }
+
+  const aid = getNodeFlexId(a);
+  const bid = getNodeFlexId(b);
+
+  return aid === bid;
+};
+
 function expandTreeNode (
   node,
   parent,
@@ -1606,7 +1632,12 @@ function expandTreeNode (
         );
       }
 
-      if (!node.__children) {
+      if (node.__children) {
+        // If we already have a snapshot of the children, we need to ensure that the
+        // nodes contained therein are still pointers to live rendered nodes as opposed
+        // to nodes that may have been deallocated through editing in Haiku app.
+        reconnectSnapshotChildrenAndRenderedChildren(node);
+      } else {
         // Store a snapshot of the children such that we can make structural changes,
         // i.e. controlFlow.repeat, and still compare/restore to the original copy
         node.__children = node.children.slice(0);
@@ -2427,7 +2458,7 @@ export const VANITIES = {
         }
       }
 
-      sender.clearNodeCaches();
+      sender.clearCaches();
     },
 
     'controlFlow.if': (
@@ -2494,7 +2525,7 @@ export const VANITIES = {
         }
       }
 
-      sender.clearNodeCaches();
+      sender.clearCaches();
     },
   },
 };

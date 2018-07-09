@@ -436,12 +436,6 @@ class ElementSelectionProxy extends BaseModel {
     return true
   }
 
-  getLastClipboardPayload () {
-    return this.selection.map((element) => {
-      return element.getLastClip()
-    })
-  }
-
   getSingleComponentElement () {
     return this.selection[0]
   }

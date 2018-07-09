@@ -793,11 +793,7 @@ Template.ensureRootDisplayAttributes = (mana) => {
 }
 
 Template.cleanTemplate = (mana) => {
-  visitManaTree(ROOT_LOCATOR, mana, (elementName, attributes, children, node) => {
-    // Clean these in-memory only properties that get added (don't want to write these to the file)
-    delete node.__depth
-    delete node.__index
-  })
+  // no-op (TODO)
 }
 
 /**
