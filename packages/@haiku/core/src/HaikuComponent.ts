@@ -595,6 +595,15 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     return this.context.clock;
   }
 
+  getTemplate (): any {
+    return this.bytecode.template;
+  }
+
+  getHelpers (): any {
+    console.log('GETTING HELPERS', this.bytecode);
+    return this.bytecode.helpers;
+  }
+
   getTimelines () {
     return this.cacheFetch('getTimelines', () => {
       return this.fetchTimelines();

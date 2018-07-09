@@ -1540,6 +1540,7 @@ class ActiveComponent extends BaseModel {
     // Remove our own children, whose content we just purged
     mana.children.splice(0)
 
+    console.log("REMOVED OUTPUTS", removedOutputs)
     return removedOutputs
   }
 

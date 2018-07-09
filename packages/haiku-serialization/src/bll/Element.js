@@ -433,9 +433,11 @@ class Element extends BaseModel {
       Template.manaWithOnlyStandardProps(this.getStaticTemplateNode(), false)
     )
     const states = Bytecode.getAppliedStatesForNode({}, bytecode, template)
+    const helpers = Bytecode.getAppliedHelpersForNode({}, bytecode, template)
     const timelines = Bytecode.getAppliedTimelinesForNode({}, bytecode, template)
     const eventHandlers = Bytecode.getAppliedEventHandlersForNode({}, bytecode, template)
     return {
+      helpers,
       states,
       timelines,
       eventHandlers,

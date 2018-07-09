@@ -79,6 +79,7 @@ const CONFIG_KEYS_TO_MERGE = {
   states: true,
   eventHandlers: true,
   timelines: true,
+  helpers: true,
   vanities: true,
   initialStates: true,
 };

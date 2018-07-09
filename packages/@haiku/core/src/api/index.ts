@@ -212,6 +212,13 @@ export interface BytecodeEventHandlers {
 }
 
 /**
+ * Tuples of `elementName` and `BytecodeEventHandler`.
+ */
+export interface BytecodeHelpers {
+  [helperName: string]: (...inputs: any[]) => any;
+}
+
+/**
  * Value of an element property in a given frame.
  */
 export interface BytecodeTimelineValue {
@@ -400,6 +407,7 @@ export interface HaikuBytecode {
   template: BytecodeNode;
   states?: BytecodeStates;
   eventHandlers?: BytecodeEventHandlers;
+  helpers?: BytecodeHelpers;
   timelines: BytecodeTimelines;
   metadata?: BytecodeMetadata;
   methods?: {

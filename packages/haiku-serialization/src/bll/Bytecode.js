@@ -105,6 +105,19 @@ Bytecode.getAppliedStatesForNode = (out, bytecode, element) => {
   return out
 }
 
+
+Bytecode.getAppliedHelpersForNode = (out, bytecode, element) => {
+  Template.visit(element, (node) => {
+    for (const helperName in bytecode.helpers) {
+      // Is it possible for us to detect which states are actually in use by this node?
+      // If so, TODO: perhaps only include those applicable states
+      const helperFunction = bytecode.helpers[helperName]
+      out[helperName] = helperFunction
+    }
+  })
+  return out
+}
+
 Bytecode.getAppliedTimelinesForNode = (out, bytecode, element) => {
   Template.visit(element, (node) => {
     for (const timelineName in bytecode.timelines) {
@@ -246,6 +259,9 @@ Bytecode.mergeBytecode = (b1, b2) => {
 
   if (!b1.options) b1.options = {}
   Object.assign(b1.options, b2.options || {})
+
+  if (!b1.helpers) b1.helpers = {}
+  Object.assign(b1.helpers, b2.helpers || {})
 
   Bytecode.mergeBytecodeControlStructures(b1, b2)
 
@@ -448,6 +464,7 @@ Bytecode.decycle = (reified, { cleanManaOptions = {}, doCleanMana }) => {
   if (reified.settings) decycled.settings = reified.settings
   if (reified.properties) decycled.properties = reified.properties
   if (reified.states) decycled.states = reified.states
+  if (reified.helpers) decycled.helpers = reified.helpers
 
   if (reified.eventHandlers) {
     decycled.eventHandlers = {}
