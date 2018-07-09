@@ -1,5 +1,4 @@
 import * as dedent from 'dedent';
-// @ts-ignore
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import {getAngularSelectorName, getHaikuCoreVersion} from './ProjectDefinitions';

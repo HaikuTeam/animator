@@ -1,5 +1,4 @@
 import * as dedent from 'dedent';
-// @ts-ignore
 import * as fse from 'fs-extra';
 import {assign} from 'lodash';
 import * as moment from 'moment';
@@ -27,6 +26,10 @@ export const getHaikuCoreVersion = () => {
   return FALLBACK_SEMVER_VERSION;
 };
 
+export const getHaikuComponentInitialVersion = () => {
+  return FALLBACK_SEMVER_VERSION;
+};
+
 export const getSafeProjectName = (maybePath: string, maybeName: string) => {
   if (maybeName) {
     return maybeName.replace(WHITESPACE_REGEX, UNDERSCORE);
@@ -49,18 +52,10 @@ export const getReactProjectName = (maybePath: string, maybeName: string) => {
   return `React_${getSafeProjectName(maybePath, maybeName)}`;
 };
 
-export const getDefaultSketchAssetPath = (maybePath: string, maybeName: string) => {
-  return `designs/${getProjectNameSafeShort(maybePath, maybeName)}.sketch`;
-};
-
 export const getAngularSelectorName = (maybePath: string, maybeName: string) => {
   return getSafeProjectName(maybePath, maybeName)
     .replace(/([A-Z])/g, (char: string) => `-${char.toLowerCase()}`)
     .replace(/^-/, '');
-};
-
-export const getDefaultIllustratorAssetPath = (maybePath: string, maybeName: string) => {
-  return `designs/${getProjectNameSafeShort(maybePath, maybeName)}.ai`;
 };
 
 export const getEmbedName = (organizationName: string, projectPath: string, projectName: string) => {

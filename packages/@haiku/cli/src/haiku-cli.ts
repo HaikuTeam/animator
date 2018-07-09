@@ -4,6 +4,7 @@ import {inkstone} from '@haiku/sdk-inkstone';
 import {
   fetchProjectConfigInfo,
   getDefaultBranchName,
+  getHaikuComponentInitialVersion,
   getHaikuCoreVersion,
   storeConfigValues,
 } from '@haiku/sdk-client/lib/ProjectDefinitions';
@@ -521,49 +522,54 @@ function generateComponent (context: IContext) {
   ensureAuth(context, (token) => {
     context.writeLine('Trying to create component...');
 
-    inkstone.project.create(token, {Name: componentName, IsPublic: isPublic},
-      (projectCreateErr, projectPayload: any) => {
-        if (projectCreateErr) {
-        // this.sentryError('createProject', projectCreateErr);
-          console.log('projectCreateErr', projectCreateErr);
-          context.writeLine('Cannot create project: ' + projectCreateErr);
+    // inkstone.project.create(token, {Name: componentName, IsPublic: isPublic},
+    //   (projectCreateErr, projectPayload: any) => {
+    //     if (projectCreateErr) {
+    //     // this.sentryError('createProject', projectCreateErr);
+    //       console.log('projectCreateErr', projectCreateErr);
+    //       context.writeLine('Cannot create project: ' + projectCreateErr);
+    //       process.exit(1);
+    //     }
+    //     console.log('Project payload', projectPayload);
+
+    const projectPath = path.join(process.cwd(), componentName);
+    const projectName = componentName;
+
+    inkstone.user.getDetails(token, (err1: string, user: inkstone.user.User) => {
+      if (err1) {
+        context.writeLine('Cannot get user name' + err1);
+        process.exit(1);
+      }
+
+      console.log('Returned user', user);
+
+      getCurrentOrganizationName((err2: Error, org: string) => {
+        if (err2) {
+          context.writeLine('Cannot get organization name' + err2);
           process.exit(1);
         }
-        console.log('Project payload', projectPayload);
 
-        const projectPath = path.join(process.cwd(), componentName);
-        const projectName = componentName;
+        const authorName = JSON.parse(user as any).Username;
+        const organizationName = org;
 
-        const version = getHaikuCoreVersion();
-        const branch = getDefaultBranchName();
-        let username: string = null;
-        inkstone.user.getDetails(token, (err: string, user: inkstone.user.User) => {
-          username = user.Username;
-        });
-        const skipContentCreation = false;
-        let organizationName: string = null;
-        getCurrentOrganizationName((err: Error, org: string) => {
-          organizationName = org;
-        });
-
-        const repositoryUrl = projectPayload.repositoryUrl;
-        const authorName = username;
+        console.log('Returned user', user, ' authorName', authorName);
+        console.dir(user);
 
         storeConfigValues(projectPath, {
-          username,
-          branch,
-          version,
+          isPublic,
+          username: authorName,
+          branch: getDefaultBranchName(),
+          version: getHaikuComponentInitialVersion(),
           organization: organizationName,
           project: projectName,
         });
 
         const projectOptions = {
-          skipContentCreation,
           organizationName,
           projectName,
           projectPath,
-          repositoryUrl,
           authorName,
+          skipContentCreation: false,
         };
 
         createProjectFiles(projectPath, projectName, projectOptions, () => {
@@ -577,15 +583,19 @@ function generateComponent (context: IContext) {
           });
         });
 
-        context.writeLine('Project created: ' + projectPayload);
+        context.writeLine('Project created');
 
-        console.log('Project created: ', projectPayload);
+        // console.log('Project created: ', projectPayload);
         process.exit(0);
-      // const master = new Master('/home/jonaias/.haiku/');
-      // master.initializeFolder();
-      // const remoteProjectObject = remapProjectObjectToExpectedFormat(projectPayload, this.get('organizationName'));
-      // return cb(null, remoteProjectObject);
+        // const master = new Master('/home/jonaias/.haiku/');
+        // master.initializeFolder();
+        // const remoteProjectObject = remapProjectObjectToExpectedFormat(projectPayload, this.get('organizationName'));
+        // return cb(null, remoteProjectObject);
+
       });
+
+    });
+
   });
 }
 
