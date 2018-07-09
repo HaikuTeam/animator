@@ -597,13 +597,13 @@ class Timeline extends React.Component {
     const selectedKeyframes = this.getActiveComponent().getSelectedKeyframes()
     const numSelectedKeyframes = selectedKeyframes.length
     const isTweenableTransitionSegment = type === 'keyframe-segment' && (model && model.isTweenable())
-    const useSingular = numSelectedKeyframes < 3
+    const isSingular = numSelectedKeyframes < 3
 
     items.push({
       label: 'Create Keyframe',
       enabled: (
         // During multi-select it's weird to show "Create Keyframe" in the menu
-        useSingular &&
+        isSingular &&
         (
           type === 'keyframe-segment' ||
           type === 'keyframe-transition' ||
@@ -644,7 +644,7 @@ class Timeline extends React.Component {
     items.push({ type: 'separator' })
 
     items.push({
-      label: useSingular ? 'Make Tween' : 'Make Tweens',
+      label: isSingular ? 'Make Tween' : 'Make Tweens',
       enabled: isTweenableTransitionSegment,
       submenu: isTweenableTransitionSegment && this.curvesMenu(curve, (event, curveName) => {
         this.getActiveComponent().joinSelectedKeyframes(curveName, { from: 'timeline' })
@@ -652,7 +652,7 @@ class Timeline extends React.Component {
     })
 
     items.push({
-      label: useSingular ? 'Change Tween' : 'Change Tweens',
+      label: isSingular ? 'Change Tween' : 'Change Tweens',
       enabled: type === 'keyframe-transition',
       submenu: (type === 'keyframe-transition') && this.curvesMenu(curve, (event, curveName) => {
         this.getActiveComponent().changeCurveOnSelectedKeyframes(curveName, { from: 'timeline' })
@@ -660,7 +660,23 @@ class Timeline extends React.Component {
     })
 
     items.push({
-      label: useSingular ? 'Remove Tween' : 'Remove Tweens',
+      label: 'Copy Tween',
+      enabled: type === 'keyframe-transition' && isSingular,
+      onClick: (event) => {
+        this._lastCopiedCurve = curve
+      }
+    })
+
+    items.push({
+      label: 'Paste Tween',
+      enabled: isTweenableTransitionSegment && this._lastCopiedCurve,
+      onClick: (event) => {
+        this.getActiveComponent().changeCurveOnSelectedKeyframes(this._lastCopiedCurve, { from: 'timeline' })
+      }
+    })
+
+    items.push({
+      label: isSingular ? 'Remove Tween' : 'Remove Tweens',
       enabled: type === 'keyframe-transition',
       onClick: (event) => {
         this.getActiveComponent().splitSelectedKeyframes({ from: 'timeline' })
