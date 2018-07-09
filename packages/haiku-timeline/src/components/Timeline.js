@@ -110,6 +110,8 @@ class Timeline extends React.Component {
     this.mouseUpListener = this.mouseUpListener.bind(this)
     this.onGaugeMouseDown = this.onGaugeMouseDown.bind(this)
     this.moveGaugeOnDoubleClick = this.moveGaugeOnDoubleClick.bind(this)
+    this.copySelectedCurve = this.copySelectedCurve.bind(this)
+    this.pasteSelectedCurve = this.pasteSelectedCurve.bind(this)
 
     this.handleCutDebounced = lodash.debounce(this.handleCut.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
     this.handleCopyDebounced = lodash.debounce(this.handleCopy.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
@@ -678,7 +680,7 @@ class Timeline extends React.Component {
 
       items.push({
         label: 'Paste Tween',
-        enabled: isTweenableTransitionSegment && this._lastCopiedCurve,
+        enabled: isTweenableTransitionSegment && Boolean(this._lastCopiedCurve),
         onClick: this.pasteSelectedCurve
       })
     }

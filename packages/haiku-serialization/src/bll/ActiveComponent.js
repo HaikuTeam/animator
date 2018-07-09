@@ -1930,7 +1930,7 @@ class ActiveComponent extends BaseModel {
 
   getFirstSelectedCurve () {
     const keyframes = this.getSelectedKeyframes()
-    const selectedKeyframeWithCurve = keyframes.first((keyframe) => keyframe.isSelectedBody())
+    const selectedKeyframeWithCurve = keyframes.find((keyframe) => keyframe.isSelectedBody())
     return selectedKeyframeWithCurve ? selectedKeyframeWithCurve.getCurve() : null
   }
 
