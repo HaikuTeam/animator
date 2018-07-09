@@ -1,6 +1,5 @@
 
 import * as dedent from 'dedent';
-// @ts-ignore
 import * as fse from 'fs-extra';
 import * as path from 'path';
 
@@ -21,7 +20,9 @@ import {
 export function createProjectFiles (
   projectPath: string,
   projectName: string,
-  projectOptions: any,
+  projectOptions: {organizationName: string,
+    authorName: string,
+    skipContentCreation: boolean},
   finish: any,
 ) {
   try {
