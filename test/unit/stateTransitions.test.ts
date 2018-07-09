@@ -1,4 +1,4 @@
-import {Curve} from '@core/api/Curve';
+import {Curve} from '@core/api';
 import StateTransitionManager from '@core/StateTransitionManager';
 import * as tape from 'tape';
 import * as TestHelpers from '../TestHelpers';

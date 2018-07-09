@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import {BytecodeOptions, HaikuBytecode} from './api/HaikuBytecode';
+import {BytecodeOptions, HaikuBytecode} from './api';
 import Config from './Config';
 import HaikuBase from './HaikuBase';
 import HaikuClock from './HaikuClock';

@@ -12,7 +12,7 @@ import {
   BytecodeNodeAttributes,
   HaikuBytecode,
   MaybeBytecodeNode,
-} from './api/HaikuBytecode';
+} from './api';
 
 const styleStringToObject = toStyle.object;
 const uniq = arrayUnique.uniq;

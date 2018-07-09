@@ -1,8 +1,7 @@
 /**
  * @file Interpolate functions. Used by StateTransitions and Transitions
  */
-import {CurveDefinition, CurveFunction} from './api/Curve';
-import {BytecodeStateType} from './api/HaikuBytecode';
+import {BytecodeStateType, CurveDefinition, CurveFunction} from './api';
 import justCurves from './vendor/just-curves';
 
 const CENT = 1.0;
