@@ -38,10 +38,10 @@ import {
   distance,
   transform2DPoint,
   closestNormalPointOnLineSegment,
-  splitSegmentInSVGPoints,
   buildPathLUT
 } from 'haiku-common/lib/math/geometryUtils'
 import SVGPoints from '@haiku/core/lib/helpers/SVGPoints'
+import {splitSegmentInSVGPoints} from '@haiku/core/lib/helpers/PathUtil'
 
 const mixpanel = require('haiku-serialization/src/utils/Mixpanel')
 const Globals = require('haiku-ui-common/lib/Globals').default

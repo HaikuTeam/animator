@@ -5,6 +5,8 @@ import {
   BytecodeTimelineProperty,
   Curve,
 } from '@haiku/core/lib/api';
+import {synchronizePathStructure} from '@haiku/core/lib/helpers/PathUtil';
+import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
 import {CurveSpec} from '@haiku/core/lib/vendor/svg-points/types';
 import {writeFile} from 'fs-extra';
 import {ContextualSize} from 'haiku-common/lib/types';
@@ -76,7 +78,6 @@ import {
   decomposePath,
   getBodymovinVersion,
   getFixedPropertyValue,
-  getPath,
   getShapeDimensions,
   keyframesFromTimelineProperty,
   lottieAndroidStreamSafeToJson,
@@ -219,13 +220,17 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    */
   private getValueAnimation (
     timelineProperty: BytecodeTimelineProperty, startKeyframe: number, endKeyframe: number,
-    mutator?: MutatorType,
+    mutator?: MutatorType, disableRecursion: boolean = false,
   ) {
     // (Lottie assumes linear if not provided.)
     const animation = {
       [AnimationKey.Time]: startKeyframe,
-      [AnimationKey.Start]: alwaysArray(maybeApplyMutatorToProperty(timelineProperty[startKeyframe].value, mutator)),
-      [AnimationKey.End]: alwaysArray(maybeApplyMutatorToProperty(timelineProperty[endKeyframe].value, mutator)),
+      [AnimationKey.Start]: alwaysArray(
+        maybeApplyMutatorToProperty(timelineProperty[startKeyframe].value, mutator, disableRecursion),
+      ),
+      [AnimationKey.End]: alwaysArray(
+        maybeApplyMutatorToProperty(timelineProperty[endKeyframe].value, mutator, disableRecursion),
+      ),
     };
 
     // Note: curve is guaranteed to exist due to the work done in normalizeCurves(), which is always called before
@@ -249,26 +254,33 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    */
   private getValue (
     timelineProperty: (BytecodeTimelineProperty|BytecodeTimelineProperty[]), mutator?: MutatorType,
+    disableRecursion: boolean = false,
   ): object {
-    if (Array.isArray(timelineProperty)) {
+    if (Array.isArray(timelineProperty) && !disableRecursion) {
       return timelineProperty
         .map((scalarTimelineProperty) => this.getValue(scalarTimelineProperty, mutator))
         .reduce(compoundTimelineReducer, {});
     }
 
-    const keyframes: number[] = keyframesFromTimelineProperty(timelineProperty);
+    const keyframes: number[] = keyframesFromTimelineProperty(timelineProperty as BytecodeTimelineProperty);
     if (keyframes.length === 1) {
       const property = timelineProperty[keyframes[0]].value;
       return {
         [PropertyKey.Animated]: 0,
-        [PropertyKey.Value]: maybeApplyMutatorToProperty(property, mutator),
+        [PropertyKey.Value]: maybeApplyMutatorToProperty(property, mutator, disableRecursion),
       };
     }
 
     // With multiple keyframes, we must produce an animated value.
     const values: any[] = [];
     for (let t = 0; t < keyframes.length - 1; ++t) {
-      values.push(this.getValueAnimation(timelineProperty, keyframes[t], keyframes[t + 1], mutator));
+      values.push(
+        this.getValueAnimation(
+          timelineProperty as BytecodeTimelineProperty,
+          keyframes[t],
+          keyframes[t + 1], mutator, disableRecursion,
+        ),
+      );
     }
 
     // Add the final keyframe without transformations applied.
@@ -517,7 +529,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    */
   private strokeShapeFromTimeline (timeline: BytecodeTimelineProperties) {
     // Return early if there is nothing to render.
-    if (!timelineHasProperties(timeline, 'stroke', 'stroke-width') || initialValue(timeline, 'stroke') === 'none') {
+    if (!timelineHasProperties(timeline, 'stroke', 'strokeWidth') || initialValue(timeline, 'stroke') === 'none') {
       return {
         [ShapeKey.Type]: ShapeType.Stroke,
         [TransformKey.Opacity]: getFixedPropertyValue(0),
@@ -528,16 +540,17 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
       };
     }
 
+    // TODO: Verify these hyphenated attributes
     const stroke = {
       [ShapeKey.Type]: ShapeType.Stroke,
-      [TransformKey.Opacity]: this.getValueOrDefaultFromTimeline(timeline, 'stroke-opacity', 100, opacityTransformer),
-      [TransformKey.StrokeWidth]: this.getValue(timeline['stroke-width'], parseInt),
+      [TransformKey.Opacity]: this.getValueOrDefaultFromTimeline(timeline, 'strokeOpacity', 100, opacityTransformer),
+      [TransformKey.StrokeWidth]: this.getValue(timeline.strokeWidth, parseInt),
       [TransformKey.Color]: this.getValue(timeline.stroke, colorTransformer),
-      [TransformKey.StrokeLinecap]: linecapTransformer(initialValueOrNull(timeline, 'stroke-linecap')),
-      [TransformKey.StrokeLinejoin]: linejoinTransformer(initialValueOrNull(timeline, 'stroke-linejoin')),
+      [TransformKey.StrokeLinecap]: linecapTransformer(initialValueOrNull(timeline, 'strokeLinecap')),
+      [TransformKey.StrokeLinejoin]: linejoinTransformer(initialValueOrNull(timeline, 'strokeLinejoin')),
     };
 
-    const dasharray = initialValueOrNull(timeline, 'stroke-dasharray');
+    const dasharray = initialValueOrNull(timeline, 'strokeDasharray');
     if (dasharray) {
       stroke[TransformKey.StrokeDasharray] = dasharrayTransformer(dasharray);
     }
@@ -558,11 +571,11 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
       }
 
       const timeline = this.timelineForNode(node);
-      if (!timelineHasProperties(timeline, 'stop-color', 'offset')) {
+      if (!timelineHasProperties(timeline, 'stopColor', 'offset')) {
         return;
       }
 
-      const color = colorTransformer(initialValue(timeline, 'stop-color'));
+      const color = colorTransformer(initialValue(timeline, 'stopColor'));
       const offset = initialValue(timeline, 'offset');
       // Bodymovin smushes together stop offsets and alpha-ignored colors using the notation:
       // <normalizedOffset, normalizedR, normalizedG, normalizedB>
@@ -658,8 +671,8 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     }
 
     const fill = {
-      [TransformKey.Opacity]: this.getValueOrDefaultFromTimeline(timeline, 'fill-opacity', 100, opacityTransformer),
-      [TransformKey.FillRule]: fillruleTransformer(initialValueOrNull(timeline, 'fill-rule')),
+      [TransformKey.Opacity]: this.getValueOrDefaultFromTimeline(timeline, 'fillOpacity', 100, opacityTransformer),
+      [TransformKey.FillRule]: fillruleTransformer(initialValueOrNull(timeline, 'fillRule')),
       // Important: we will fill the unknown fill type later, so ensure the resulting fill object is lottie-android
       // safe.
       toJSON: lottieAndroidStreamSafeToJson,
@@ -762,15 +775,10 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @param pathSegment
    * @param shape
    */
-  private decorateShape (pathSegment: CurveSpec[], closed: boolean, shape: any) {
+  // private decorateShape (pathSegment: CurveSpec[], closed: boolean, shape: any) {
+  private decorateShape (timeline: BytecodeTimelineProperties, shape: BodymovinShape) {
     shape[ShapeKey.Type] = ShapeType.Shape;
-
-    shape[ShapeKey.Vertices] = {
-      [PropertyKey.Animated]: 0,
-      [PropertyKey.Value]: {
-        ...pathToInterpolationTrace(pathSegment, closed),
-      },
-    };
+    shape[ShapeKey.Vertices] = this.getValue(timeline.d, pathToInterpolationTrace, true);
   }
 
   /**
@@ -815,15 +823,30 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
           return;
         }
 
-        const path = getPath(initialValue(timeline, 'd'));
-        const pathSegments = decomposePath(path);
-        pathSegments.forEach((shapeDescriptor) => {
-          const shapeSegment = {...shape};
-          this.decorateShape(shapeDescriptor.points, shapeDescriptor.closed, shapeSegment);
-          groupItems.push(shapeSegment);
-        });
-        // Decorate the original shape in case we need to manage a complex fill (e.g. gradient stops).
-        this.decorateShape(path, true, shape);
+        if (Object.keys(timeline.d).length > 1) {
+          // Handle animated paths
+          this.decorateShape(timeline, shape);
+          groupItems.push(shape);
+        } else {
+          // Handle single shape with potentially multiple polygons
+          const path = initialValue(timeline, 'd');
+          const pathSegments = decomposePath(path);
+          pathSegments.forEach((shapeDescriptor) => {
+            const shapeSegment = {...shape};
+            const segmentTimeline: BytecodeTimelineProperties = {
+              d: {
+                0: {
+                  value: shapeDescriptor.points,
+                },
+              },
+            };
+            this.decorateShape(segmentTimeline, shapeSegment);
+            groupItems.push(shapeSegment);
+          });
+          // Decorate the original shape in case we need to manage a complex fill (e.g. gradient stops).
+          // this.decorateShape(path, true, shape);
+        }
+
         break;
       default:
         throw new Error(`Unable to handle shape: ${node.elementName}`);
@@ -1014,6 +1037,39 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
   }
 
   /**
+   * Normalizes tweened curves to suppot path morphing.
+   */
+  private preprocessTweenedCurves () {
+    this.visitAllTimelineProperties((timeline, property) => {
+      if (property !== 'd') {
+        return;
+      }
+      const timelineProperty = timeline[property];
+
+      const keyframes = keyframesFromTimelineProperty(timelineProperty);
+
+      const paths = keyframes.map((keyframe): CurveSpec[] => {
+        return SVGPoints.pathToPoints(timelineProperty[keyframe].value as string);
+      });
+
+      let totalTweens = 0;
+      keyframes.forEach((keyframe) => {
+        if (timelineProperty[keyframe].curve) {
+          totalTweens++;
+        }
+      });
+
+      if (totalTweens > 0) {
+        synchronizePathStructure(...paths);
+      }
+
+      keyframes.forEach((keyframe, index) => {
+        timelineProperty[keyframe].value = paths[index];
+      });
+    });
+  }
+
+  /**
    * Identifies and decomposes all ...Bounce and ...Elastic curves into a chain of beziers.
    *
    * ...Bounce and ...Elastic curves can be decomposed into a sequence of continuous beziers using some shoddy
@@ -1131,6 +1187,9 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
 
     // Preprocess curves that are incompatible with Bodymovin rendering.
     this.alignCurveKeyframes();
+
+    // Preprocess tweened curves so that they are normalized and ready for tweening
+    this.preprocessTweenedCurves();
 
     // Handle the wrapper as a special case.
     this.handleWrapper();

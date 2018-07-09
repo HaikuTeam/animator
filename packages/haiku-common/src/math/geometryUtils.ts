@@ -3,6 +3,7 @@
  */
 
 import HaikuElement from '@haiku/core/lib/HaikuElement';
+import {cubicBezierSplit, distance, Vec2} from '@haiku/core/lib/helpers/PathUtil';
 import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
 import Layout3D from '@haiku/core/lib/Layout3D';
 import create from '@haiku/core/lib/vendor/gl-mat4/create';
@@ -13,18 +14,6 @@ import {CurveSpec} from '@haiku/core/lib/vendor/svg-points/types';
 export const DEFAULT_LINE_SELECTION_THRESHOLD = 5;
 // Number of segments to create when approximating a cubic bezier segment
 export const CUBIC_BEZIER_APPROXIMATION_RESOLUTION = 80;
-
-export interface Vec2 {
-  x: number;
-  y: number;
-}
-
-export interface Vec4 {
-  x: number;
-  y: number;
-  z: number;
-  w: number;
-}
 
 export const bezierCubic = (a: Vec2, h1: Vec2, h2: Vec2, b: Vec2, t: number): Vec2 => {
   const t2 = t * t;
@@ -70,60 +59,6 @@ export const buildPathLUT = (
   return [out, points[points.length - 1].closed || points[points.length - 2].closed];
 };
 
-export const splitSegmentInSVGPoints = (
-  points: CurveSpec[],
-  pt1Index: number,
-  pt2Index: number,
-  t: number,
-): CurveSpec[] => {
-  // tslint:disable-next-line
-  if (pt2Index === points.length) { pt2Index = 0; }
-
-  let h1: Vec2;
-  let h2: Vec2;
-  if (points[pt2Index].curve) {
-    h1 = {x: points[pt2Index].curve.x1, y: points[pt2Index].curve.y1};
-    h2 = {x: points[pt2Index].curve.x2, y: points[pt2Index].curve.y2};
-  } else {
-    h1 = points[pt1Index];
-    h2 = points[pt2Index];
-  }
-
-  const newPts = cubicBezierSplit(
-    t,
-    points[pt1Index],
-    h1,
-    h2,
-    points[pt2Index],
-  );
-
-  if (points[pt2Index].curve) {
-    points[pt2Index].curve.x1 = newPts[1][1].x;
-    points[pt2Index].curve.y1 = newPts[1][1].y;
-    points[pt2Index].curve.x2 = newPts[1][2].x;
-    points[pt2Index].curve.y2 = newPts[1][2].y;
-  }
-
-  let newCurve = null;
-  if (points[pt2Index].curve) {
-    newCurve = {
-      type: 'cubic',
-      x1: newPts[0][1].x,
-      y1: newPts[0][1].y,
-      x2: newPts[0][2].x,
-      y2: newPts[0][2].y,
-    };
-  }
-  const newPoint = {
-    x: newPts[0][3].x,
-    y: newPts[0][3].y,
-    curve: newCurve,
-  };
-
-  points.splice(pt2Index, 0, newPoint);
-  return points;
-};
-
 export const pointInsideRect = (pt: Vec2, corner1: Vec2, corner2: Vec2): boolean => {
   const c1 = {x: 0, y: 0};
   const c2 = {x: 0, y: 0};
@@ -132,10 +67,6 @@ export const pointInsideRect = (pt: Vec2, corner1: Vec2, corner2: Vec2): boolean
   c2.x = Math.max(corner1.x, corner2.x);
   c2.y = Math.max(corner1.y, corner2.y);
   return pt.x >= c1.x && pt.x <= c2.x && pt.y >= c1.y && pt.y <= c2.y;
-};
-
-export const distance = (a: Vec2, b: Vec2): number => {
-  return Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2));
 };
 
 const evenOddRaycastPointInPolygon = (points: Vec2[], test: Vec2): boolean => {
@@ -347,65 +278,4 @@ export const isPointInsidePrimitive = (element: HaikuElement, point: Vec2): bool
     default:
       return false;
   }
-};
-
-function mat4_multiply_vec4 (m: number[], v: Vec4): Vec4 {
-  return {
-    x: v.x * m[0] + v.y * m[1] + v.z * m[2] + v.w * m[3],
-    y: v.x * m[4] + v.y * m[5] + v.z * m[6] + v.w * m[7],
-    z: v.x * m[8] + v.y * m[9] + v.z * m[10] + v.w * m[11],
-    w: v.x * m[12] + v.y * m[13] + v.z * m[14] + v.w * m[15],
-  };
-}
-
-// NOTE: See Bezier curve splitting here: https://pomax.github.io/bezierinfo/#matrixsplit
-export const cubicBezierSplit = (
-  t: number, anchor1: Vec2, handle1: Vec2, handle2: Vec2, anchor2: Vec2,
-): [[Vec2, Vec2, Vec2, Vec2], [Vec2, Vec2, Vec2, Vec2]] => {
-  const cubicSegmentMatrix1 = [
-    1,
-    0,
-    0,
-    0,
-    -(t - 1),
-    t,
-    0,
-    0,
-    Math.pow(t - 1, 2),
-    -2 * t * (t - 1),
-    t * t,
-    0,
-    -Math.pow(t - 1, 3),
-    3 * t * Math.pow(t - 1, 2),
-    -3 * t * t * (t - 1),
-    t * t * t,
-  ];
-  const x1 = mat4_multiply_vec4(cubicSegmentMatrix1, {x: anchor1.x, y: handle1.x, z: handle2.x, w: anchor2.x});
-  const y1 = mat4_multiply_vec4(cubicSegmentMatrix1, {x: anchor1.y, y: handle1.y, z: handle2.y, w: anchor2.y});
-
-  const cubicSegmentMatrix2 = [
-    -Math.pow(t - 1, 3),
-    3 * t * Math.pow(t - 1, 2),
-    -3 * t * t * (t - 1),
-    t * t * t,
-    0,
-    Math.pow(t - 1, 2),
-    -2 * t * (t - 1),
-    t * t,
-    0,
-    0,
-    -(t - 1),
-    t,
-    0,
-    0,
-    0,
-    1,
-  ];
-  const x2 = mat4_multiply_vec4(cubicSegmentMatrix2, {x: anchor1.x, y: handle1.x, z: handle2.x, w: anchor2.x});
-  const y2 = mat4_multiply_vec4(cubicSegmentMatrix2, {x: anchor1.y, y: handle1.y, z: handle2.y, w: anchor2.y});
-
-  return [
-    [{x: x1.x, y: y1.x}, {x: x1.y, y: y1.y}, {x: x1.z, y: y1.z}, {x: x1.w, y: y1.w}],
-    [{x: x2.x, y: y2.x}, {x: x2.y, y: y2.y}, {x: x2.z, y: y2.z}, {x: x2.w, y: y2.w}],
-  ];
 };

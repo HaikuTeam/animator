@@ -2,13 +2,16 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
+import {CurveSpec} from '@haiku/core/src/vendor/svg-points/types';
 import {AdaptedWindow} from './adapters/dom/HaikuDOMAdapter';
+import {CurveDefinition} from './api/Curve';
 import HaikuComponent, {getFallback} from './HaikuComponent';
 import HaikuElement from './HaikuElement';
 import HaikuHelpers from './HaikuHelpers';
 import ColorUtils from './helpers/ColorUtils';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
 import {isPreviewMode} from './helpers/interactionModes';
+import {synchronizePathStructure} from './helpers/PathUtil';
 import SVGPoints from './helpers/SVGPoints';
 import enhance from './reflection/enhance';
 import Transitions from './Transitions';
@@ -366,10 +369,10 @@ const FORBIDDEN_EXPRESSION_TOKENS = {
   defineProperty: true, // Object.
 };
 
-const parseD = (value) => {
+const parseD = (value: string|CurveSpec[]): CurveSpec[] => {
   // in case of d="" for any reason, don't try to expand this otherwise this will choke
   // #TODO: arguably we should preprocess SVGs before things get this far; try svgo?
-  if (!value) {
+  if (!value || value.length === 0) {
     return [];
   }
   // Allow points to return an array for convenience, and let downstream marshal it
@@ -379,7 +382,7 @@ const parseD = (value) => {
   return SVGPoints.pathToPoints(value);
 };
 
-const generateD = (value) => {
+const generateD = (value: string|CurveSpec[]): string => {
   if (typeof value === 'string') {
     return value;
   }
@@ -541,6 +544,15 @@ const stringToInt = (str) => {
 };
 
 const MAX_INT = 2147483646;
+
+export interface ParsedValueCluster {
+  __sorted?: boolean;
+  [ms: number]: {
+    expression?: boolean;
+    value?: any;
+    curve?: CurveDefinition;
+  };
+}
 
 /* tslint:disable:variable-name */
 export default class ValueBuilder {
@@ -785,17 +797,7 @@ export default class ValueBuilder {
     return summonablesSchema;
   }
 
-  fetchParsedValueCluster (
-    timelineName: string,
-    flexId: string,
-    matchingElement,
-    outputName: string,
-    cluster,
-    hostInstance: HaikuComponent,
-    isPatchOperation: boolean,
-    skipCache: boolean,
-  ) {
-    // Establish the cache objects for this properties group within this timeline
+  private getParsee (timelineName, flexId, outputName): ParsedValueCluster {
     if (!this._parsees[timelineName]) {
       this._parsees[timelineName] = {};
     }
@@ -806,70 +808,85 @@ export default class ValueBuilder {
       this._parsees[timelineName][flexId][outputName] = {};
     }
 
-    const parsee = this._parsees[timelineName][flexId][outputName];
+    return this._parsees[timelineName][flexId][outputName];
+  }
 
-    for (const ms in cluster) {
-      const descriptor = cluster[ms];
+  private clusterParseeIsStable (keysMs, timelineName, flexId, outputName): boolean {
+    return keysMs.every(
+      (ms) => this._parsees[timelineName][flexId][outputName][ms] && !this._parsees[timelineName][flexId][outputName][ms].expression,
+    );
+  }
 
-      // Important: The ActiveComponent depends on the ability to be able to get fresh values via this option
-      if (skipCache) {
-        // Easiest way to skip the cache is just to make the destination object falsy
-        parsee[ms] = null;
+  private fetchParsedValueCluster (
+    timelineName: string,
+    flexId: string,
+    matchingElement,
+    outputName: string,
+    cluster,
+    hostInstance: HaikuComponent,
+    isPatchOperation: boolean,
+    skipCache: boolean,
+  ) {
+    const parsee = this.getParsee(timelineName, flexId, outputName);
+
+    if (!cluster) {
+      return parsee;
+    }
+
+    const keys = Object.keys(cluster).map(Number).sort();
+    const skipStableParsees = isPatchOperation && !skipCache;
+
+    if (skipStableParsees && this.clusterParseeIsStable(keys, timelineName, flexId, outputName)) {
+      return parsee;
+    }
+
+    keys.forEach((ms) => {
+      if (skipStableParsees && parsee[ms] && !parsee[ms].expression) {
+        return;
       }
 
-      // In case of a function, we can't cache - we have to recalc, and thus re-parse also
+      const descriptor = cluster[ms];
       if (isFunction(descriptor.value)) {
-        // We have to recreate this cache object every time due to the need for function recalc
-        parsee[ms] = {};
-        if (descriptor.curve) {
-          parsee[ms].curve = descriptor.curve;
-        }
-
-        // Indicate to the downstream transition cache that this value came from a function and cannot be cached there.
-        // See Transitions.js for info on how this gets handled
-        parsee[ms].expression = true;
-
-        // Note that evaluate doesn't necessarily call the function - it may itself return a cached value
-        const functionReturnValue = this.evaluate(
-          descriptor.value,
-          timelineName,
-          flexId,
-          matchingElement,
-          outputName,
-          ms,
-          cluster,
-          hostInstance,
-        );
-
-        // The function's return value is expected to be in the *raw* format - we parse to allow for interpolation
-        const parser1 = this.getParser(outputName);
-        if (parser1) {
-          parsee[ms].value = parser1(functionReturnValue);
-        } else {
-          parsee[ms].value = functionReturnValue;
-        }
+        parsee[ms] = {
+          expression: true,
+          value: this.evaluate(
+            descriptor.value,
+            timelineName,
+            flexId,
+            matchingElement,
+            outputName,
+            ms,
+            cluster,
+            hostInstance,
+          ),
+        };
       } else {
-        // In case of static values, we can cache - no need to re-parse static values if we already parsed them
-        if (parsee[ms]) {
-          continue;
-        }
+        parsee[ms] = {
+          expression: false,
+          value: descriptor.value,
+        };
+      }
 
-        // If nothing in the cache, create the base cache object...
-        parsee[ms] = {};
-        if (descriptor.curve) {
-          parsee[ms].curve = descriptor.curve;
-        }
+      if (descriptor.curve) {
+        parsee[ms].curve = descriptor.curve;
+      }
+    });
 
-        const parser2 = this.getParser(outputName);
-        if (parser2) {
-          parsee[ms].value = parser2(descriptor.value);
-        } else {
-          parsee[ms].value = descriptor.value;
-        }
+    if (keys.length > 1) {
+      const parser = this.getParser(outputName);
+      if (!parser) {
+        return parsee;
+      }
+
+      keys.forEach((ms) => {
+        parsee[ms].value = parser(parsee[ms].value);
+      });
+
+      if (outputName === 'd') {
+        synchronizePathStructure(...keys.map((ms) => parsee[ms].value));
       }
     }
 
-    // Return the entire cached object - interpolation is done downstream
     return parsee;
   }
 
