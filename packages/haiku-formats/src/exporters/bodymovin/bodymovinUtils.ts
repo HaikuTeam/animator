@@ -320,7 +320,7 @@ export const pointsToInterpolationTrace = (svgPoints: string|[number, number][])
  */
 export const decomposePath = (path: string|CurveSpec[]): {points: CurveSpec[], closed: boolean}[] => {
   if (!Array.isArray(path)) {
-    return decomposePath(getPath(path));
+    return decomposePath(SVGPoints.pathToPoints(path));
   }
 
   const allClosedPaths: {

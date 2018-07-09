@@ -530,7 +530,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    */
   private strokeShapeFromTimeline (timeline: BytecodeTimelineProperties) {
     // Return early if there is nothing to render.
-    if (!timelineHasProperties(timeline, 'stroke', 'stroke-width') || initialValue(timeline, 'stroke') === 'none') {
+    if (!timelineHasProperties(timeline, 'stroke', 'strokeWidth') || initialValue(timeline, 'stroke') === 'none') {
       return {
         [ShapeKey.Type]: ShapeType.Stroke,
         [TransformKey.Opacity]: getFixedPropertyValue(0),
@@ -541,10 +541,11 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
       };
     }
 
+    // TODO: Verify these hyphenated attributes
     const stroke = {
       [ShapeKey.Type]: ShapeType.Stroke,
       [TransformKey.Opacity]: this.getValueOrDefaultFromTimeline(timeline, 'stroke-opacity', 100, opacityTransformer),
-      [TransformKey.StrokeWidth]: this.getValue(timeline['stroke-width'], parseInt),
+      [TransformKey.StrokeWidth]: this.getValue(timeline.strokeWidth, parseInt),
       [TransformKey.Color]: this.getValue(timeline.stroke, colorTransformer),
       [TransformKey.StrokeLinecap]: linecapTransformer(initialValueOrNull(timeline, 'stroke-linecap')),
       [TransformKey.StrokeLinejoin]: linejoinTransformer(initialValueOrNull(timeline, 'stroke-linejoin')),
@@ -829,12 +830,18 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
           groupItems.push(shape);
         } else {
           // Handle single shape with potentially multiple polygons
-          // TODO: Matt come back to this
           const path = initialValue(timeline, 'd');
           const pathSegments = decomposePath(path);
           pathSegments.forEach((shapeDescriptor) => {
             const shapeSegment = {...shape};
-            // this.decorateShape(shapeDescriptor.points, shapeDescriptor.closed, shapeSegment);
+            const segmentTimeline: BytecodeTimelineProperties = {
+              d: {
+                0: {
+                  value: shapeDescriptor.points,
+                },
+              },
+            };
+            this.decorateShape(segmentTimeline, shapeSegment);
             groupItems.push(shapeSegment);
           });
           // Decorate the original shape in case we need to manage a complex fill (e.g. gradient stops).
