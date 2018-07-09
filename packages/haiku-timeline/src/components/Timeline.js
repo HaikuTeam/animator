@@ -89,6 +89,8 @@ class Timeline extends React.Component {
       this.isAltKeyDown = false
     }
 
+    this._lastCopiedCurve = null
+
     Project.setup(
       this.props.folder,
       'timeline',
@@ -109,6 +111,8 @@ class Timeline extends React.Component {
     this.mouseUpListener = this.mouseUpListener.bind(this)
     this.onGaugeMouseDown = this.onGaugeMouseDown.bind(this)
     this.moveGaugeOnDoubleClick = this.moveGaugeOnDoubleClick.bind(this)
+    this.copySelectedCurve = this.copySelectedCurve.bind(this)
+    this.pasteSelectedCurve = this.pasteSelectedCurve.bind(this)
 
     this.handleCutDebounced = lodash.debounce(this.handleCut.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
     this.handleCopyDebounced = lodash.debounce(this.handleCopy.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
@@ -406,20 +410,28 @@ class Timeline extends React.Component {
           break
 
         case 'global-menu:copy':
-          // Delegate copy only if the user is not editing something here
-          if (!document.hasFocus() || !this.isTextSelected()) {
-            this.props.websocket.send(relayable)
+          if (experimentIsEnabled(Experiment.CopyPasteTweensWithAccelerators)) {
+            this.handleCopyDebounced(relayable)
+          } else {
+            // Delegate copy only if the user is not editing something here
+            if (!document.hasFocus() || !this.isTextSelected()) {
+              this.props.websocket.send(relayable)
+            }
           }
           break
 
         case 'global-menu:paste':
-          // Delegate paste only if the user is not editing something here
-          if (document.hasFocus()) {
-            if (!this.isTextInputFocused()) {
+          if (experimentIsEnabled(Experiment.CopyPasteTweensWithAccelerators)) {
+            this.handlePasteDebounced(relayable)
+          } else {
+            // Delegate paste only if the user is not editing something here
+            if (document.hasFocus()) {
+              if (!this.isTextInputFocused()) {
+                this.props.websocket.send(relayable)
+              }
+            } else {
               this.props.websocket.send(relayable)
             }
-          } else {
-            this.props.websocket.send(relayable)
           }
           break
 
@@ -606,12 +618,14 @@ class Timeline extends React.Component {
 
     const selectedKeyframes = this.getActiveComponent().getSelectedKeyframes()
     const numSelectedKeyframes = selectedKeyframes.length
+    const isTweenableTransitionSegment = type === 'keyframe-segment' && (model && model.isTweenable())
+    const isSingular = numSelectedKeyframes < 3
 
     items.push({
       label: 'Create Keyframe',
       enabled: (
         // During multi-select it's weird to show "Create Keyframe" in the menu
-        (numSelectedKeyframes < 3) &&
+        isSingular &&
         (
           type === 'keyframe-segment' ||
           type === 'keyframe-transition' ||
@@ -652,23 +666,37 @@ class Timeline extends React.Component {
     items.push({ type: 'separator' })
 
     items.push({
-      label: (numSelectedKeyframes < 3) ? 'Make Tween' : 'Make Tweens',
-      enabled: type === 'keyframe-segment' && (model && model.isTweenable()),
-      submenu: (type === 'keyframe-segment') && this.curvesMenu(curve, (event, curveName) => {
+      label: isSingular ? 'Make Tween' : 'Make Tweens',
+      enabled: isTweenableTransitionSegment,
+      submenu: isTweenableTransitionSegment && this.curvesMenu(curve, (event, curveName) => {
         this.getActiveComponent().joinSelectedKeyframes(curveName, { from: 'timeline' })
       })
     })
 
     items.push({
-      label: (numSelectedKeyframes < 3) ? 'Change Tween' : 'Change Tweens',
+      label: isSingular ? 'Change Tween' : 'Change Tweens',
       enabled: type === 'keyframe-transition',
       submenu: (type === 'keyframe-transition') && this.curvesMenu(curve, (event, curveName) => {
         this.getActiveComponent().changeCurveOnSelectedKeyframes(curveName, { from: 'timeline' })
       })
     })
 
+    if (experimentIsEnabled(Experiment.CopyPasteTweens)) {
+      items.push({
+        label: 'Copy Tween',
+        enabled: type === 'keyframe-transition' && isSingular,
+        onClick: this.copySelectedCurve
+      })
+
+      items.push({
+        label: 'Paste Tween',
+        enabled: isTweenableTransitionSegment && Boolean(this._lastCopiedCurve),
+        onClick: this.pasteSelectedCurve
+      })
+    }
+
     items.push({
-      label: (numSelectedKeyframes < 3) ? 'Remove Tween' : 'Remove Tweens',
+      label: isSingular ? 'Remove Tween' : 'Remove Tweens',
       enabled: type === 'keyframe-transition',
       onClick: (event) => {
         this.getActiveComponent().splitSelectedKeyframes({ from: 'timeline' })
@@ -972,12 +1000,38 @@ class Timeline extends React.Component {
     // Not yet implemented
   }
 
-  handleCopy () {
-    // Not yet implemented
+  handleCopy (relayable) {
+    if (experimentIsEnabled(Experiment.CopyPasteTweensWithAccelerators)) {
+      // Delegate copy only if the user is not editing something here
+      if (document.hasFocus()) {
+        if (this.isTextSelected()) {
+          // let electron handle
+        } else if (this.getActiveComponent().getFirstSelectedCurve()) {
+          this.copySelectedCurve()
+        } else {
+          this.props.websocket.send(relayable)
+        }
+      } else {
+        this.props.websocket.send(relayable)
+      }
+    }
   }
 
-  handlePaste () {
-    // Not yet implemented
+  handlePaste (relayable) {
+    if (experimentIsEnabled(Experiment.CopyPasteTweensWithAccelerators)) {
+      // Delegate paste only if the user is not editing something here
+      if (document.hasFocus()) {
+        if (this.isTextInputFocused()) {
+          // let electron handle
+        } else if (this._lastCopiedCurve) {
+          this.handlePasteDebounced()
+        } else {
+          this.props.websocket.send(relayable)
+        }
+      } else {
+        this.props.websocket.send(relayable)
+      }
+    }
   }
 
   handleDelete () {
@@ -1003,6 +1057,21 @@ class Timeline extends React.Component {
           )
           this.user.setConfig(UserSettings.defaultTimeDisplayMode, mode)
         }
+      )
+    }
+  }
+
+  copySelectedCurve () {
+    this.props.mixpanel.haikuTrack('creator:timeline:copy-curve')
+    this._lastCopiedCurve = this.getActiveComponent().getFirstSelectedCurve()
+  }
+
+  pasteSelectedCurve () {
+    if (this._lastCopiedCurve) {
+      this.props.mixpanel.haikuTrack('creator:timeline:paste-curve')
+      this.getActiveComponent().changeCurveOnSelectedKeyframes(
+        this._lastCopiedCurve,
+        { from: 'timeline' }
       )
     }
   }

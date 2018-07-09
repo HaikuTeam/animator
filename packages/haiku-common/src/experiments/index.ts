@@ -36,6 +36,8 @@ export enum Experiment {
   AllowBitmapImages = 'AllowBitmapImages',
   SizeInsteadOfScaleWhenPossible = 'SizeInsteadOfScaleWhenPossible',
   CleanInitialLibraryState = 'CleanInitialLibraryState',
+  CopyPasteTweens = 'CopyPasteTweens',
+  CopyPasteTweensWithAccelerators = 'CopyPasteTweensWithAccelerators',
 }
 
 /**
