@@ -1,5 +1,5 @@
 // @ts-ignore
-import Mixpanel from 'haiku-serialization/src/utils/Mixpanel';
+import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 import Palette from 'haiku-ui-common/lib/Palette';
 import {
   FigmaIconSVG,
@@ -34,7 +34,7 @@ class DesignFileCreator extends React.PureComponent<any, any> {
   sketchImport = () => {
     const {primaryAssetPath} = this.props.projectModel.getNameVariations();
     const projectPath = this.props.projectModel.getFolder();
-    Mixpanel.haikuTrack('creator:library:import:sketch');
+    mixpanel.haikuTrack('creator:library:import:sketch');
 
     return this.props.websocket.request(
       {method: 'copyDefaultSketchFile', params: [projectPath, primaryAssetPath]},
@@ -45,7 +45,7 @@ class DesignFileCreator extends React.PureComponent<any, any> {
   illustratorImport = () => {
     const {defaultIllustratorAssetPath} = this.props.projectModel.getNameVariations();
     const projectPath = this.props.projectModel.getFolder();
-    Mixpanel.haikuTrack('creator:library:import:illustrator');
+    mixpanel.haikuTrack('creator:library:import:illustrator');
 
     return this.props.websocket.request(
       {method: 'copyDefaultIllustratorFile', params: [projectPath, defaultIllustratorAssetPath]},
