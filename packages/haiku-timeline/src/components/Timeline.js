@@ -601,8 +601,6 @@ class Timeline extends React.Component {
     this.setState({isPreviewModeActive: isPreviewMode(interactionMode)})
   }
 
-
-
   getPopoverMenuItems ({ event, type, model, offset, curve }) {
     const items = []
 
