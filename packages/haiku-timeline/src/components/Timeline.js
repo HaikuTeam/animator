@@ -1050,11 +1050,13 @@ class Timeline extends React.Component {
   }
 
   copySelectedCurve () {
+    this.props.mixpanel.haikuTrack('creator:timeline:copy-curve')
     this._lastCopiedCurve = this.getActiveComponent().getFirstSelectedCurve()
   }
 
   pasteSelectedCurve () {
     if (this._lastCopiedCurve) {
+      this.props.mixpanel.haikuTrack('creator:timeline:paste-curve')
       this.getActiveComponent().changeCurveOnSelectedKeyframes(
         this._lastCopiedCurve,
         { from: 'timeline' }
