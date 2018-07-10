@@ -1,4 +1,5 @@
 /* tslint:disable:no-shadowed-variable */
+import {Curve} from '@haiku/core/lib/api/Curve';
 import {BytecodeNode, BytecodeTimelineProperties, HaikuBytecode} from '@haiku/core/lib/api/HaikuBytecode';
 import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
 import tape = require('tape');
@@ -826,6 +827,61 @@ tape('BodymovinExporter', (suite: tape.Test) => {
       test.deepEqual(v, [[0, 0], [5, 6]], 'gets coordinates from bezier curve endpoints');
       test.deepEqual(i, [[0, 0], [-2, -2]], 'translates lines in relative to vertices');
       test.deepEqual(o, [[1, 2], [0, 0]], 'translates lines out relative to vertices');
+    }
+
+    test.end();
+  });
+
+  suite.test('supports animated paths', (test: tape.Test) => {
+    const bytecode = baseBytecodeCopy();
+    overrideShapeElement(bytecode, 'path');
+
+    // Scope for testing closed shape support.
+    {
+      overrideShapeAttributes(bytecode, {
+        d: {
+          0: {
+            value: 'M113.851902,81.9487687 L276.284717,98.7229697 C159.751026,244.854192 101.938088,314.781547 102.845904,308.505034 C103.753721,302.228522 99.8249502,261.080983 91.0595929,185.062419 C160.771044,158.694946 180.683501,141.012929 150.796965,132.016367 C120.910429,123.019806 108.595408,106.330606 113.851902,81.9487687 Z',
+            curve: Curve.EaseInOutQuad,
+          },
+          500: {
+            value: 'M73.1209598,0.709340706C72.0329361,0.710849001,69.3390684,2.6089011,63.2812764,17.8221784C51.4049794,47.6477979,31.9271691,70.6628301,19.1849709,118.577353C5.5648934,167.601059,-0.546324874,193.121178,0.851316015,195.13771C2.94777735,198.162509,64.2363087,196.72594,92.4927984,196.699674C120.749288,196.673409,146.0604,197.047968,149,195C151.9396,192.952032,96.6229367,47.7168354,84.7419418,17.8744979C78.6700603,2.62332241,74.2103728,0.707830485,73.1209598,0.709340706Z',
+            curve: Curve.EaseInOutQuad,
+          },
+          1000: {
+            value: 'M75,150C116.421356,150,150,116.421356,150,75C150,50.6351365,85.4010181,99.8794331,67.4023438,86.1796875C54.8024678,76.5892537,92.0564927,0,75,0C57.4345173,0,58.391417,48.6316069,45.609375,58.7460938C28.2499444,72.4826886,0,51.1441265,0,75C0,104.023279,95.9795746,98.4059298,120.097656,110.875C130.400346,116.2015,62.6019226,150,75,150Z',
+          },
+        },
+      });
+
+      const {
+        layers: [{
+          shapes: [{it: tweenedShapes}],
+        }],
+      } = rawOutput(bytecode);
+
+      for (const shape of tweenedShapes) {
+        if (!shape.ks) {
+          continue;
+        }
+        const {ty, ks: {a, k}} = shape;
+        test.equal(ty, 'sh', 'translates paths as shapes');
+        test.equal(a, 1, 'creates an animated shape');
+        let vertexLength = 0;
+        for (const keyframe of k) {
+          if (!keyframe.s) {
+            continue;
+          }
+          const {s: [{c, v, i, o}]} = keyframe;
+          test.equal(c, true, 'creates a closed shape');
+          if (vertexLength === 0) {
+            vertexLength = v.length;
+          }
+          test.equal(v.length, vertexLength, 'tweened shapes have equal number of vertices');
+          test.equal(i.length, vertexLength, 'tweened shapes have equal number of vertices');
+          test.equal(o.length, vertexLength, 'tweened shapes have equal number of vertices');
+        }
+      }
     }
 
     test.end();
