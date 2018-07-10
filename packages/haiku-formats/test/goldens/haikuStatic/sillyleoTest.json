@@ -425,7 +425,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -435,7 +435,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -447,7 +447,7 @@
             "value": "#000000"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -466,7 +466,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -476,7 +476,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -544,7 +544,7 @@
             "value": "#EB5757"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -556,7 +556,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -566,7 +566,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -578,7 +578,7 @@
             "value": "#FFFFFF"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -609,7 +609,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -619,7 +619,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -631,7 +631,7 @@
             "value": "#000000"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -753,7 +753,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -763,7 +763,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -912,7 +912,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -922,14 +922,14 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
         }
       },
       "haiku:3f94ee3f3f17": {
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }

@@ -808,7 +808,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -818,22 +818,22 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
         },
-        "stroke-dasharray": {
+        "strokeDasharray": {
           "0": {
             "value": "5.217391304347826,5.217391304347826"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
         },
-        "stroke-linejoin": {
+        "strokeLinejoin": {
           "0": {
             "value": "round"
           }
@@ -855,7 +855,7 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
@@ -918,7 +918,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -928,7 +928,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -969,7 +969,7 @@
             "value": "#FFFFFF"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -986,7 +986,7 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
@@ -1003,7 +1003,7 @@
             "value": "#FFFFFF"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1020,7 +1020,7 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
@@ -1052,17 +1052,17 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
         },
-        "stroke-linejoin": {
+        "strokeLinejoin": {
           "0": {
             "value": "round"
           }
@@ -1079,17 +1079,17 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
         },
-        "stroke-linejoin": {
+        "strokeLinejoin": {
           "0": {
             "value": "round"
           }
@@ -1106,7 +1106,7 @@
             "value": "#AAAAAA"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -1123,7 +1123,7 @@
             "value": "#AAAAAA"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -1140,7 +1140,7 @@
             "value": "#AAAAAA"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -1152,7 +1152,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1162,22 +1162,22 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
         },
-        "stroke-dasharray": {
+        "strokeDasharray": {
           "0": {
             "value": "6,6"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
         },
-        "stroke-linejoin": {
+        "strokeLinejoin": {
           "0": {
             "value": "round"
           }
@@ -1199,7 +1199,7 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
@@ -1282,7 +1282,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1292,7 +1292,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1314,7 +1314,7 @@
             "value": -1
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -1355,7 +1355,7 @@
             "value": "#FFFFFF"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1372,7 +1372,7 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
@@ -1414,7 +1414,7 @@
         }
       },
       "haiku:1fe3455ae78e": {
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -1426,7 +1426,7 @@
             "value": "#FFFFFF"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1443,7 +1443,7 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
@@ -1465,7 +1465,7 @@
             "value": "#2FC992"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
@@ -1475,12 +1475,12 @@
             "value": "#FFFFFF"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
         },
-        "stroke-linejoin": {
+        "strokeLinejoin": {
           "0": {
             "value": "round"
           }
@@ -1492,7 +1492,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1502,22 +1502,22 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
         },
-        "stroke-dasharray": {
+        "strokeDasharray": {
           "0": {
             "value": "6,6"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
         },
-        "stroke-linejoin": {
+        "strokeLinejoin": {
           "0": {
             "value": "round"
           }
@@ -1539,7 +1539,7 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
@@ -1607,7 +1607,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1617,7 +1617,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1639,7 +1639,7 @@
             "value": -1
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -1663,7 +1663,7 @@
             "value": "#FFFFFF"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1680,7 +1680,7 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
@@ -1702,7 +1702,7 @@
             "value": "#AAAAAA"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -1719,7 +1719,7 @@
             "value": "#AAAAAA"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -1736,7 +1736,7 @@
             "value": "#AAAAAA"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -1753,7 +1753,7 @@
             "value": "#AAAAAA"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -1770,7 +1770,7 @@
             "value": "#AAAAAA"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -1787,7 +1787,7 @@
             "value": "#AAAAAA"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -1804,12 +1804,12 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1.77777778"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -1821,7 +1821,7 @@
             "value": "#FFFFFF"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1838,7 +1838,7 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
@@ -1875,7 +1875,7 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "0.5"
           }
@@ -1885,17 +1885,17 @@
             "value": "#AAAAAA"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
         },
-        "stroke-linejoin": {
+        "strokeLinejoin": {
           "0": {
             "value": "round"
           }
@@ -1912,7 +1912,7 @@
             "value": "#AAAAAA"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -1929,7 +1929,7 @@
             "value": "#AAAAAA"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -1955,7 +1955,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1965,7 +1965,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1982,14 +1982,14 @@
             "value": -1
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
         }
       },
       "haiku:8eac97e00a07": {
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -2011,7 +2011,7 @@
             "value": "#FFFFFF"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -2028,7 +2028,7 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
@@ -2081,7 +2081,7 @@
         }
       },
       "haiku:131b8a680402": {
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -2093,7 +2093,7 @@
             "value": "#fff"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -2110,7 +2110,7 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
@@ -2156,7 +2156,7 @@
             "value": "#AAAAAA"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -2173,7 +2173,7 @@
             "value": "#AAAAAA"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -2190,7 +2190,7 @@
             "value": "#AAAAAA"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -2207,7 +2207,7 @@
             "value": "#AAAAAA"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -2224,7 +2224,7 @@
             "value": "#AAAAAA"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -2241,36 +2241,36 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
         },
-        "stroke-linejoin": {
+        "strokeLinejoin": {
           "0": {
             "value": "round"
           }
         }
       },
       "haiku:fc216eb54e64": {
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
         }
       },
       "haiku:31260e2d1f9d": {
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }

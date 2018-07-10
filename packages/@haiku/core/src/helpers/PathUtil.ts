@@ -1,7 +1,7 @@
 /* tslint:disable:max-line-length */
 
-import {CurveDef, CurveSpec} from '@haiku/core/src/vendor/svg-points/types';
 import {normalizePath, reverseNormalizedPath} from '../vendor/svg-path-reversal/SVGPathReversal';
+import {CurveDef, CurveSpec} from '../vendor/svg-points/types';
 import SVGPoints from './SVGPoints';
 
 export interface Vec2 {
