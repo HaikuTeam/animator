@@ -38,6 +38,25 @@
             "./scripts/regenerate-goldens.ts"
           ],
           "name": "debug-regenerate-goldens"
+        },
+        {
+          "type": "node",
+          "request": "launch",
+          "cwd": "${workspaceFolder}/packages/haiku-formats",
+          "env": {
+            "TS_NODE_PROJECT": "./tsconfig.all.json"
+          },
+          "runtimeArgs": [
+            "-r",
+            "ts-node/register",
+            "-r",
+            "tsconfig-paths/register"
+          ],
+          "args": [
+            "./node_modules/.bin/tape",
+            "test/**/*.test.ts"
+          ],
+          "name": "debug-haiku-formats-tests"
       }
     ]
 }

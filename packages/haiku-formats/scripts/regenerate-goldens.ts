@@ -1,9 +1,9 @@
-import {BodymovinExporter} from '@/exporters/bodymovin/bodymovinExporter';
-import {HaikuStaticExporter} from '@/exporters/haikuStatic/haikuStaticExporter';
 import {each} from 'async';
 // @ts-ignore
 import {readdir, writeFile} from 'fs-extra';
 import {basename, join} from 'path';
+import {BodymovinExporter} from '../src/exporters/bodymovin/bodymovinExporter';
+import {HaikuStaticExporter} from '../src/exporters/haikuStatic/haikuStaticExporter';
 
 const goldensRoot = join(global.process.cwd(), 'test/goldens');
 
