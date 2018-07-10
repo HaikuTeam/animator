@@ -767,6 +767,10 @@ export default class HaikuElement extends HaikuBase {
     return HaikuElement.getRectFromPoints(points);
   }
 
+  dump (): string {
+    return `${this.$id}:<${this.tagName}>(${this.getComponentId()})`
+  }
+
   static transformVectorByMatrix = (out, v, m): number[] => {
     out[0] = m[0] * v[0] + m[4] * v[1] + m[8] * v[2] + m[12];
     out[1] = m[1] * v[0] + m[5] * v[1] + m[9] * v[2] + m[13];
