@@ -5,12 +5,12 @@ import {assign} from 'lodash';
 import * as pascalcase from 'pascalcase';
 import * as path from 'path';
 
-const WHITESPACE_REGEX = /\s+/;
-const UNDERSCORE = '_';
-const FALLBACK_SEMVER_VERSION = '0.0.0';
-const FALLBACK_ORG_NAME = 'Unknown';
-const FALLBACK_AUTHOR_NAME = 'Haiku User';
-const DEFAULT_BRANCH_NAME = 'master';
+export const WHITESPACE_REGEX = /\s+/;
+export const UNDERSCORE = '_';
+export const FALLBACK_SEMVER_VERSION = '0.0.0';
+export const FALLBACK_ORG_NAME = 'Unknown';
+export const FALLBACK_AUTHOR_NAME = 'Haiku User';
+export const DEFAULT_BRANCH_NAME = 'master';
 
 export const getHaikuCoreVersion = () => {
   const CORE_PACKAGE_JSON = fse.readJsonSync(
@@ -102,14 +102,6 @@ export const fetchProjectConfigInfo = (folder: string, cb: any) => {
     player: getHaikuCoreVersion(), // legacy alias for 'core'
       // config: name, project, username, organization, branch, version, commit
   }, config));
-};
-
-export const getSafeOrganizationName = (maybeOrgName: string) => {
-  let orgName = maybeOrgName;
-  if (!maybeOrgName || typeof maybeOrgName !== 'string') {
-    orgName = FALLBACK_ORG_NAME;
-  }
-  return orgName.replace(WHITESPACE_REGEX, UNDERSCORE);
 };
 
 export const storeConfigValues = (folder: string, incoming: any) => {
