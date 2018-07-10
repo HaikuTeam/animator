@@ -841,10 +841,15 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
               },
             };
             this.decorateShape(segmentTimeline, shapeSegment);
+            if (shapeDescriptor.closed) {
+              // Force closed if specified on the shape segment
+              shapeSegment[ShapeKey.Vertices][PropertyKey.Value][PathKey.Closed] = true;
+            }
             groupItems.push(shapeSegment);
           });
           // Decorate the original shape in case we need to manage a complex fill (e.g. gradient stops).
           this.decorateShape(timeline, shape);
+          shape[ShapeKey.Vertices][PropertyKey.Value][PathKey.Closed] = true; // Force closed
         }
 
         break;

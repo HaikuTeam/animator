@@ -79,9 +79,9 @@ module.exports = {
       },
       "haiku:585e59e0d857": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
+        "fillRule": { "0": { value: "evenodd" } },
         "translation.y": { "0": { value: -540 } }
       },
       "haiku:547431671b82": {
@@ -235,9 +235,9 @@ module.exports = {
       },
       "haiku:48d276a27b44": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
+        "fillRule": { "0": { value: "evenodd" } },
         "translation.x": { "0": { value: -76 } },
         "translation.y": { "0": { value: -379 } }
       },
@@ -255,18 +255,18 @@ module.exports = {
       },
       "haiku:3baf3e7406b7": {
         fill: { "0": { value: "black" } },
-        "fill-opacity": { "0": { value: "1" } },
+        "fillOpacity": { "0": { value: "1" } },
         filter: { "0": { value: "url(#filter-2-efce77-uwftbdh51xs)" } }
       },
       "haiku:5ae54c475808": {
         fill: { "0": { value: "#FFFFFF" } },
-        "fill-rule": { "0": { value: "evenodd" } }
+        "fillRule": { "0": { value: "evenodd" } }
       },
       "haiku:a17d56c742ec": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
+        "fillRule": { "0": { value: "evenodd" } },
         "translation.x": { "0": { value: -97 } },
         "translation.y": { "0": { value: -416 } }
       },
@@ -292,9 +292,9 @@ module.exports = {
       },
       "haiku:75c6ae1e00c4": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
+        "fillRule": { "0": { value: "evenodd" } },
         "translation.x": { "0": { value: -248 } },
         "translation.y": { "0": { value: -422 } }
       },
@@ -349,9 +349,9 @@ module.exports = {
       },
       "haiku:90591070d02b": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
+        "fillRule": { "0": { value: "evenodd" } },
         "translation.x": { "0": { value: -219 } },
         "translation.y": { "0": { value: -436 } }
       },
@@ -361,21 +361,21 @@ module.exports = {
       },
       "haiku:3773a0ca6bcd": {
         fill: { "0": { value: "black" } },
-        "fill-opacity": { "0": { value: "1" } },
+        "fillOpacity": { "0": { value: "1" } },
         filter: { "0": { value: "url(#filter-2-021e2a-uwftbdh51xs)" } }
       },
       "haiku:4e8ab94299f2": {
         fill: { "0": { value: "#FFFFFF" } },
-        "fill-rule": { "0": { value: "evenodd" } }
+        "fillRule": { "0": { value: "evenodd" } }
       },
       "haiku:c38e930ff35a": { opacity: { "0": { value: "0" } } },
       "haiku:ec8fab44f787": {
         fill: { "0": { value: "#D8D8D8" } },
-        "fill-rule": { "0": { value: "evenodd" } }
+        "fillRule": { "0": { value: "evenodd" } }
       },
       "haiku:a5a477b57b84": {
         stroke: { "0": { value: "#979797" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         x: { "0": { value: "0.5" } },
         y: { "0": { value: "0.5" } },
         "sizeAbsolute.x": { "0": { value: 140 } },
@@ -385,9 +385,9 @@ module.exports = {
       },
       "haiku:dbfa557f0709": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
+        "fillRule": { "0": { value: "evenodd" } },
         "translation.y": { "0": { value: -530 } }
       },
       "haiku:8af748650572": {
@@ -435,9 +435,9 @@ module.exports = {
       },
       "haiku:25938da2add1": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
+        "fillRule": { "0": { value: "evenodd" } },
         "translation.x": { "0": { value: -267 } },
         "translation.y": { "0": { value: -30 } }
       },
@@ -455,12 +455,12 @@ module.exports = {
       },
       "haiku:073055e27e3e": {
         fill: { "0": { value: "black" } },
-        "fill-opacity": { "0": { value: "1" } },
+        "fillOpacity": { "0": { value: "1" } },
         filter: { "0": { value: "url(#filter-2-139f12-uwftbdh51xs)" } }
       },
       "haiku:0d4bae79141f": {
         fill: { "0": { value: "#FFFFFF" } },
-        "fill-rule": { "0": { value: "evenodd" } }
+        "fillRule": { "0": { value: "evenodd" } }
       },
       "haiku:fc4ea2a8f760": {
         viewBox: { "0": { value: "0 0 80 166" } },
@@ -493,9 +493,9 @@ module.exports = {
       },
       "haiku:4c0c93b91c0f": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
+        "fillRule": { "0": { value: "evenodd" } },
         "translation.x": { "0": { value: -30 } },
         "translation.y": { "0": { value: -471 } }
       },
@@ -649,9 +649,9 @@ module.exports = {
       },
       "haiku:c64cf8b8f60a": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
+        "fillRule": { "0": { value: "evenodd" } },
         "translation.x": { "0": { value: -30 } },
         "translation.y": { "0": { value: -532 } }
       },
