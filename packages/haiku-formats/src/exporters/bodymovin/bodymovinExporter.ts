@@ -843,7 +843,8 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
             };
             this.decorateShape(segmentTimeline, shapeSegment);
             if (shapeDescriptor.closed) {
-              shapeSegment[ShapeKey.Vertices][PropertyKey.Value][PathKey.Closed] = true; // Force closed if specified on the shape segment
+              // Force closed if specified on the shape segment
+              shapeSegment[ShapeKey.Vertices][PropertyKey.Value][PathKey.Closed] = true;
             }
             groupItems.push(shapeSegment);
           });
