@@ -1852,8 +1852,6 @@ class Element extends BaseModel {
         // Important: hold onto the original ID references of our defs (i.e. do NOT reset IDs here).
         node.children.unshift(...defs.map((def) => Template.cleanMana(def)))
         nodes.push(node)
-
-        return false
       })
     })
   }
