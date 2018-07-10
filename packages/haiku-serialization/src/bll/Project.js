@@ -2,8 +2,6 @@ const fse = require('haiku-fs-extra')
 const path = require('path')
 const async = require('async')
 const WebSocket = require('ws')
-const dedent = require('dedent')
-const pascalcase = require('pascalcase')
 const lodash = require('lodash')
 const jss = require('json-stable-stringify')
 const { Experiment, experimentIsEnabled } = require('haiku-common/lib/experiments')
@@ -17,15 +15,17 @@ const {InteractionMode} = require('@haiku/core/lib/helpers/interactionModes')
 const toTitleCase = require('./helpers/toTitleCase')
 const Lock = require('./Lock')
 const ActionStack = require('./ActionStack')
-const { 
+const {
   getSafeProjectName,
+  getProjectNameSafeShort,
+  getDefaultIllustratorAssetPath,
+  getDefaultSketchAssetPath,
   getReactProjectName,
   getProjectNameLowerCase,
-  readPackageJson
+  readPackageJson,
+  getAngularSelectorName
 } = require('@haiku/sdk-client/lib/ProjectDefinitions')
 
-
-const FALLBACK_SEMVER_VERSION = '0.0.0'
 const ALWAYS_IGNORED_METHODS = {
   // Handled upstream, by Creator, Glass, Timeline, etc.
   executeFunctionSpecification: true

@@ -5,11 +5,10 @@ import lodash from 'lodash'
 import qs from 'qs'
 import Websocket from 'haiku-serialization/src/ws/Websocket'
 import MockWebsocket from 'haiku-serialization/src/ws/MockWebsocket'
-import Project from 'haiku-serialization/src/bll/Project'
 import Timeline from './components/Timeline'
 import {sentryCallback} from 'haiku-serialization/src/utils/carbonite'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
-import {fetchProjectConfigInfo} from '@haiku/sdk-client/lib/ProjectDefinitions';
+import {fetchProjectConfigInfo} from '@haiku/sdk-client/lib/ProjectDefinitions'
 
 const mixpanel = require('haiku-serialization/src/utils/Mixpanel')
 

@@ -3,6 +3,9 @@ import * as async from 'async';
 import * as cp from 'child_process';
 import * as path from 'path';
 import TestHelpers from '../TestHelpers';
+import {
+  getCachedOrganizationName,
+} from '@plumbing/project-folder/getCurrentOrganizationName';
 
 const DEF_SVG_1 = path.join(__dirname, '..', 'fixtures', 'files', 'designs', 'bef', 'Default.svg');
 tape('Plumbing', (t) => {
@@ -15,7 +18,7 @@ tape('Plumbing', (t) => {
           t.ok(resp.username, 'username present');
           t.ok(resp.authToken, 'auth token present');
           t.ok(resp.organizationName, 'org name present');
-          t.ok(plumbing.get('organizationName'), 'state org name present');
+          t.ok(getCachedOrganizationName(), 'state org name present');
           t.ok(plumbing.get('username'), 'state username present');
           t.ok(plumbing.get('password'), 'state password present');
           t.ok(plumbing.get('inkstoneAuthToken'), 'state auth token present');

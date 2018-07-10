@@ -8,7 +8,7 @@ import MockWebsocket from 'haiku-serialization/src/ws/MockWebsocket'
 import Glass from './Glass'
 import {sentryCallback} from 'haiku-serialization/src/utils/carbonite'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
-import {fetchProjectConfigInfo} from '@haiku/sdk-client/lib/ProjectDefinitions';
+import {fetchProjectConfigInfo} from '@haiku/sdk-client/lib/ProjectDefinitions'
 const mixpanel = require('haiku-serialization/src/utils/Mixpanel')
 
 if (process.env.NODE_ENV === 'production') {
