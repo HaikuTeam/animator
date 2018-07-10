@@ -17,10 +17,13 @@ const {InteractionMode} = require('@haiku/core/lib/helpers/interactionModes')
 const toTitleCase = require('./helpers/toTitleCase')
 const Lock = require('./Lock')
 const ActionStack = require('./ActionStack')
+const { 
+  getSafeProjectName,
+  getReactProjectName,
+  getProjectNameLowerCase 
+} = require('@haiku/sdk-client/lib/ProjectDefinitions')
 
-const WHITESPACE_REGEX = /\s+/
-const UNDERSCORE = '_'
-const FALLBACK_ORG_NAME = 'Unknown'
+
 const FALLBACK_SEMVER_VERSION = '0.0.0'
 const ALWAYS_IGNORED_METHODS = {
   // Handled upstream, by Creator, Glass, Timeline, etc.
@@ -983,23 +986,16 @@ Project.fetchProjectConfigInfo = (folder, cb) => {
   }, config))
 }
 
-Project.getAngularSelectorName = (name) => name
-  .replace(/([A-Z])/g, (char) => `-${char.toLowerCase()}`)
-  .replace(/^-/, '')
-
-Project.getDefaultSketchAssetPath = (name) => `designs/${name}.sketch`
-
-Project.getDefaultIllustratorAssetPath = (name) => `designs/${name}.ai`
 
 Project.getProjectNameVariations = (folder) => {
   const projectHaikuConfig = Project.readPackageJson(folder).haiku
-  const projectNameSafe = Project.getSafeProjectName(folder, projectHaikuConfig.project)
-  const projectNameSafeShort = projectNameSafe.slice(0, 20)
-  const projectNameLowerCase = projectNameSafe.toLowerCase()
-  const reactProjectName = `React_${projectNameSafe}`
-  const angularSelectorName = Project.getAngularSelectorName(projectNameSafe)
-  const primaryAssetPath = Project.getDefaultSketchAssetPath(projectNameSafeShort)
-  const defaultIllustratorAssetPath = Project.getDefaultIllustratorAssetPath(projectNameSafeShort)
+  const projectNameSafe = getSafeProjectName(folder, projectHaikuConfig.project)
+  const projectNameSafeShort = getProjectNameSafeShort(folder, projectHaikuConfig.project)
+  const projectNameLowerCase = getProjectNameLowerCase(folder, projectHaikuConfig.project)
+  const reactProjectName = getReactProjectName(folder, projectHaikuConfig.project)
+  const angularSelectorName = getAngularSelectorName(folder, projectHaikuConfig.project)
+  const primaryAssetPath = getDefaultSketchAssetPath(folder, projectHaikuConfig.project)
+  const defaultIllustratorAssetPath = getDefaultIllustratorAssetPath(folder, projectHaikuConfig.project)
 
   return {
     projectNameSafe,
@@ -1010,17 +1006,6 @@ Project.getProjectNameVariations = (folder) => {
     primaryAssetPath,
     defaultIllustratorAssetPath
   }
-}
-
-Project.getSafeProjectName = (maybeProjectPath, maybeProjectName) => {
-  if (maybeProjectName) return maybeProjectName.replace(WHITESPACE_REGEX, UNDERSCORE)
-  if (maybeProjectPath) return pascalcase(maybeProjectPath.split(path.sep).join(UNDERSCORE))
-  throw new Error('Unable to infer a project name!')
-}
-
-Project.getSafeOrgName = (maybeOrgName) => {
-  if (!maybeOrgName || typeof maybeOrgName !== 'string') maybeOrgName = FALLBACK_ORG_NAME
-  return maybeOrgName.replace(WHITESPACE_REGEX, UNDERSCORE)
 }
 
 Project.executeFunctionSpecification = (binding, alias, payload, cb) => {
@@ -1062,77 +1047,3 @@ const ActiveComponent = require('./ActiveComponent')
 const Asset = require('./Asset')
 const File = require('./File')
 const ModuleWrapper = require('./ModuleWrapper')
-
-function getCodeJs (haikuComponentName, metadata = {}) {
-  return dedent`
-    var Haiku = require("@haiku/core");
-    module.exports = {
-      metadata: ${JSON.stringify(metadata, null, 2)},
-      options: {},
-      states: {},
-      eventHandlers: {},
-      timelines: {
-        Default: {}
-      },
-      template: {
-        elementName: "div",
-        attributes: {
-          "haiku-title": "${haikuComponentName}"
-        },
-        children: []
-      }
-    };
-  `.trim()
-}
-
-const DOM_JS = dedent`
-  var HaikuDOMAdapter = require('@haiku/core/dom')
-  module.exports = HaikuDOMAdapter(require('./code'))
-`.trim()
-
-const DOM_EMBED_JS = dedent`
-  var code = require('./code')
-  var adapter = window.HaikuResolve && window.HaikuResolve('${ModuleWrapper.CORE_VERSION}')
-  if (adapter) {
-    module.exports = adapter(code)
-  } else  {
-    function safety () {
-      console.error(
-        '[haiku core] core version ${ModuleWrapper.CORE_VERSION} seems to be missing. ' +
-        'index.embed.js expects it at window.HaikuCore["${ModuleWrapper.CORE_VERSION}"], but we cannot find it. ' +
-        'you may need to add a <script src="path/to/HaikuCore.js"></script> to fix this.'
-      )
-      return code
-    }
-    for (var key in code) {
-      safety[key] = code[key]
-    }
-    module.exports = safety
-  }
-`.trim()
-
-const DOM_STANDALONE_JS = dedent`
-  module.exports = require('./dom')
-`.trim()
-
-const REACT_DOM_JS = dedent`
-  var React = require('react') // Installed as a peer dependency of '@haiku/core'
-  var ReactDOM = require('react-dom') // Installed as a peer dependency of '@haiku/core'
-  var HaikuReactAdapter = require('@haiku/core/dom/react')
-  var HaikuReactComponent = HaikuReactAdapter(require('./dom'))
-  if (HaikuReactComponent.default) HaikuReactComponent = HaikuReactComponent.default
-  module.exports = HaikuReactComponent
-`.trim()
-
-const ANGULAR_DOM_JS = (selector, scenename) => dedent`
-  var HaikuAngularAdapter = require('@haiku/core/dom/angular')
-  var HaikuAngularModule = HaikuAngularAdapter('${selector}${scenename !== 'main' ? `-${scenename}` : ''}', require('./dom'))
-  module.exports = HaikuAngularModule
-`.trim()
-
-const VUE_DOM_JS = dedent`
-  var HaikuVueAdapter = require('@haiku/core/dom/vue')
-  var HaikuVueComponent = HaikuVueAdapter(require('./dom'))
-  if (HaikuVueComponent.default) HaikuVueComponent = HaikuVueComponent.default
-  module.exports = HaikuVueComponent
-`.trim()

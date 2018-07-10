@@ -39,6 +39,7 @@ import {createProjectFiles} from '@haiku/sdk-client/lib/createProjectFiles';
 import {copyExternalExampleFilesToProject} from './project-folder/copyExternalExampleFilesToProject';
 import {duplicateProject} from './project-folder/duplicateProject';
 import {getCurrentOrganizationName} from './project-folder/getOrganizationName';
+import {getSafeProjectName, getSafeOrganizationName} from '@haiku/sdk-client/lib/ProjectDefinitions';
 
 const {HOMEDIR_PATH} = HaikuHomeDir;
 
@@ -849,9 +850,9 @@ export default class Plumbing extends EventEmitter {
         }
       }
 
-      organizationName = Project.getSafeOrgName(organizationName);
+      organizationName = getSafeOrganizationName(organizationName);
       projectsHome = projectsHome || HaikuHomeDir.HOMEDIR_PROJECTS_PATH;
-      projectName = Project.getSafeProjectName(projectsHome, projectName);
+      projectName = getSafeProjectName(projectsHome, projectName);
       projectPath = projectPath || path.join(projectsHome, organizationName, projectName);
       username = username || this.get('username');
       password = password || this.get('password');

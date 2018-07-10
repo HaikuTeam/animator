@@ -26,7 +26,11 @@ import Raven from './Raven';
 import {createProjectFiles} from '@haiku/sdk-client/lib/createProjectFiles';
 import {createCDNBundles} from './project-folder/createCDNBundle';
 import {copyExternalExampleFilesToProject} from './project-folder/copyExternalExampleFilesToProject';
-import {getHaikuCoreVersion} from '@haiku/sdk-client/lib/ProjectDefinitions';
+import {
+  getHaikuCoreVersion,
+  getSafeProjectName,
+  getSafeOrganizationName,
+} from './project-folder/ProjectDefinitions';
 
 Sketch.findAndUpdateInstallPath();
 
@@ -660,9 +664,9 @@ export default class Master extends EventEmitter {
     const ravenContext = {
       user: {email: haikuUsername},
       extra: {
-        projectName: Project.getSafeProjectName(this.folder, projectName),
+        projectName: getSafeProjectName(this.folder, projectName),
         projectPath: this.folder,
-        organizationName: Project.getSafeOrgName(projectOptions.organizationName),
+        organizationName: getSafeOrganizationName(projectOptions.organizationName),
       },
     };
     Raven.setContext(ravenContext);
