@@ -27,6 +27,8 @@ export const enum PlaybackSetting {
   CEDE = 'cede',
 }
 
+const MINIMUM_LOCAL_TIME = 0.000001;
+
 export type PlaybackStatus = PlaybackSetting | number | string;
 
 // tslint:disable:variable-name
@@ -112,6 +114,7 @@ export default class HaikuTimeline extends HaikuBase {
       ) {
 
         this.loopCounter++;
+
         // Avoid log DoS for too short timelines
         if (this._maxExplicitlyDefinedTime > 200) {
           this.component.emitFromRootComponent('loop', {
@@ -119,13 +122,18 @@ export default class HaikuTimeline extends HaikuBase {
             maxExplicitlyDefinedTime: this._maxExplicitlyDefinedTime,
             globalClockTime: this._globalClockTime,
             boundedFrame: this.getBoundedFrame(),
-            loopCounter: this.loopCounter});
+            loopCounter: this.loopCounter,
+          });
         }
 
-        this._localElapsedTime =
-          0 + this._maxExplicitlyDefinedTime - this._localElapsedTime;
+        this._localElapsedTime = this._maxExplicitlyDefinedTime - this._localElapsedTime;
       }
+
       this._localElapsedTime += deltaGlobalClockTime;
+
+      if (this._localElapsedTime < MINIMUM_LOCAL_TIME) {
+        this._localElapsedTime = 0;
+      }
     }
 
     if (this.isFinished()) {
