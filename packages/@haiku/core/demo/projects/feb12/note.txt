@@ -1,0 +1,1 @@
+Behind the scenes, this component gets frozen/played twice, then paused. There should be no visible effect of this, however, since the animation only has keyframes defined at 0. If this component appears to change at all, there is a bug.

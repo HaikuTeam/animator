@@ -768,7 +768,7 @@ export default class HaikuElement extends HaikuBase {
   }
 
   dump (): string {
-    return `${this.$id}:<${this.tagName}>(${this.getComponentId()})`
+    return `${this.$id}:<${this.tagName}>(${this.getComponentId()})`;
   }
 
   static transformVectorByMatrix = (out, v, m): number[] => {
