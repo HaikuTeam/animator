@@ -1547,21 +1547,31 @@ class ElementSelectionProxy extends BaseModel {
         if (element.isComponent()) {
           const addressables = element.getComponentAddressables()
 
-          if (addressables.width && addressables.width.typedef === 'number' && propertyGroupNorm['scale.x']) {
+          if (
+            scaleX > 0 &&
+            addressables.width &&
+            addressables.width.typedef === 'number' &&
+            propertyGroupNorm['scale.x']
+          ) {
             const width = addressables.width.value() * scaleXFactor
             if (width > 0) {
               propertyGroupNorm.width = {value: width}
             }
-            delete propertyGroupNorm['scale.x']
           }
+          propertyGroupNorm['scale.x'] = {value: 1}
 
-          if (addressables.height && addressables.height.typedef === 'number' && propertyGroupNorm['scale.y']) {
+          if (
+            scaleY > 0 &&
+            addressables.height &&
+            addressables.height.typedef === 'number' &&
+            propertyGroupNorm['scale.y']
+          ) {
             const height = addressables.height.value() * scaleYFactor
             if (height > 0) {
               propertyGroupNorm.height = {value: height}
             }
-            delete propertyGroupNorm['scale.y']
           }
+          propertyGroupNorm['scale.y'] = {value: 1}
         }
       }
 
