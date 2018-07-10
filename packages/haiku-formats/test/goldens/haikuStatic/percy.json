@@ -200,7 +200,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -210,7 +210,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -251,12 +251,12 @@
             "value": "#81AFBE"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -273,12 +273,12 @@
             "value": "#81AFBE"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -364,7 +364,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -374,7 +374,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -511,7 +511,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -521,7 +521,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -748,7 +748,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -758,7 +758,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1219,7 +1219,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1229,7 +1229,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1458,7 +1458,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1468,7 +1468,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1492,7 +1492,7 @@
             "value": "#FFFFFF"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1509,7 +1509,7 @@
             "value": "#81AFBE"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "4"
           }
@@ -1741,7 +1741,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1751,7 +1751,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1775,7 +1775,7 @@
             "value": "#FFFFFF"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1792,7 +1792,7 @@
             "value": "#81AFBE"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "4"
           }
@@ -2028,7 +2028,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -2038,7 +2038,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -2062,7 +2062,7 @@
             "value": "#FFFFFF"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -2079,7 +2079,7 @@
             "value": "#81AFBE"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "4"
           }
@@ -2286,7 +2286,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -2296,7 +2296,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -2509,7 +2509,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -2519,7 +2519,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -2732,7 +2732,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -2742,7 +2742,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -2957,7 +2957,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -2967,7 +2967,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -3200,7 +3200,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -3210,7 +3210,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -3234,7 +3234,7 @@
             "value": "#D7EFF7"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -3251,7 +3251,7 @@
             "value": "#81AFBE"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "3.5"
           }
@@ -3290,7 +3290,7 @@
             "value": "#FF5E87"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "3.5"
           }
@@ -3300,7 +3300,7 @@
             "value": "#FEDFE6"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -3317,7 +3317,7 @@
             "value": "#FF5E87"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "3.5"
           }
@@ -3327,7 +3327,7 @@
             "value": "#FEDFE6"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -3344,7 +3344,7 @@
             "value": "url(#mask-2-50b89c)"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "7"
           }
@@ -3354,12 +3354,12 @@
             "value": "#FEDFE6"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
         },
-        "stroke-dasharray": {
+        "strokeDasharray": {
           "0": {
             "value": "0.6299999833106994"
           }
@@ -3447,7 +3447,7 @@
             "value": "#FF5E87"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "3.5999999"
           }
@@ -3535,17 +3535,17 @@
             "value": "url(#mask-6-50b89c)"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "7"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
         },
-        "stroke-dasharray": {
+        "strokeDasharray": {
           "0": {
             "value": "0.7"
           }
@@ -3569,7 +3569,7 @@
             "value": "#FF5E87"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "3.5"
           }
@@ -3591,7 +3591,7 @@
             "value": "M0.313643355,23.0927526 C6.53483006,19.8718795 11.5928296,15.786979 15.4876419,10.8380511"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -3625,7 +3625,7 @@
             "value": "M10.1389619,12.9020559 C13.5734747,13.2770154 18.4222664,11.912808 24.6853368,8.80943363"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -3642,12 +3642,12 @@
             "value": "#FF5E87"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "3.91999977"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -3679,12 +3679,12 @@
             "value": "#FF5E87"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "3.91999977"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -3772,7 +3772,7 @@
             "value": "#FF5E87"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "3.5"
           }
@@ -3902,12 +3902,12 @@
             "value": "#FF5E87"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "3.91999977"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -4203,7 +4203,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -4213,7 +4213,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -4261,7 +4261,7 @@
             "value": "#FF5E87"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "3.5"
           }
@@ -4271,7 +4271,7 @@
             "value": "#FEDFE6"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -4288,7 +4288,7 @@
             "value": "#FF5E87"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "3.5"
           }
@@ -4298,7 +4298,7 @@
             "value": "#FEDFE6"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -4315,7 +4315,7 @@
             "value": "url(#mask-2-a981d5)"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "7"
           }
@@ -4325,12 +4325,12 @@
             "value": "#FEDFE6"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
         },
-        "stroke-dasharray": {
+        "strokeDasharray": {
           "0": {
             "value": "0.6299999833106994"
           }
@@ -4418,7 +4418,7 @@
             "value": "#FF5E87"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "3.5999999"
           }
@@ -4506,17 +4506,17 @@
             "value": "url(#mask-6-a981d5)"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "7"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
         },
-        "stroke-dasharray": {
+        "strokeDasharray": {
           "0": {
             "value": "0.7"
           }
@@ -4540,7 +4540,7 @@
             "value": "#FF5E87"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "3.5"
           }
@@ -4562,7 +4562,7 @@
             "value": "M0.313643355,23.0927526 C6.53483006,19.8718795 11.5928296,15.786979 15.4876419,10.8380511"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -4596,7 +4596,7 @@
             "value": "M10.1389619,12.9020559 C13.5734747,13.2770154 18.4222664,11.912808 24.6853368,8.80943363"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -4723,7 +4723,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -4733,7 +4733,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -4830,7 +4830,7 @@
             "value": "#FF5E87"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "3.5"
           }
@@ -5112,7 +5112,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -5122,12 +5122,12 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -5139,7 +5139,7 @@
             "value": "#FF5E87"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "3.91999977"
           }
@@ -5375,7 +5375,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -5385,12 +5385,12 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -5402,7 +5402,7 @@
             "value": "#FF5E87"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "3.91999977"
           }
@@ -5562,7 +5562,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -5572,7 +5572,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -5637,12 +5637,12 @@
             "value": "#FF5E87"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "3.91999977"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -5754,7 +5754,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -5764,7 +5764,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -5829,12 +5829,12 @@
             "value": "#FF5E87"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "3.91999977"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -5945,7 +5945,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -5955,7 +5955,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -6102,7 +6102,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -6112,7 +6112,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -6348,7 +6348,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -6358,7 +6358,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -6394,7 +6394,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -6404,7 +6404,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -6614,7 +6614,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -6624,7 +6624,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -6660,7 +6660,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -6670,7 +6670,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }

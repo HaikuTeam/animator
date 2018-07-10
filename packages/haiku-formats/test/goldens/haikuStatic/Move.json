@@ -285,7 +285,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -295,7 +295,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -479,7 +479,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -489,7 +489,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -673,7 +673,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -683,7 +683,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -867,7 +867,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -877,7 +877,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1059,7 +1059,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1069,7 +1069,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1319,7 +1319,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1329,14 +1329,14 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
         }
       },
       "haiku:6c868f89d96c": {
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2.5"
           }
@@ -1553,7 +1553,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1563,14 +1563,14 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
         }
       },
       "haiku:3a151b485792": {
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2.5"
           }
@@ -1756,7 +1756,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1766,7 +1766,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1963,7 +1963,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1973,7 +1973,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -2130,7 +2130,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -2140,14 +2140,14 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
         }
       },
       "haiku:15d2afcedf22": {
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2.5"
           }
@@ -2337,7 +2337,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -2347,7 +2347,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
