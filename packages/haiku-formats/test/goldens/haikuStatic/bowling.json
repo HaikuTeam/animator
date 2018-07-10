@@ -1369,7 +1369,7 @@
         }
       },
       "haiku:6b9708294c63": {
-        "stop-color": {
+        "stopColor": {
           "0": {
             "value": "#F23780"
           }
@@ -1381,7 +1381,7 @@
         }
       },
       "haiku:56519616c08b": {
-        "stop-color": {
+        "stopColor": {
           "0": {
             "value": "#F765E5"
           }
@@ -1398,7 +1398,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1408,7 +1408,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1447,7 +1447,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1457,7 +1457,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1501,7 +1501,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1511,7 +1511,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1560,7 +1560,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1570,7 +1570,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1611,7 +1611,7 @@
         }
       },
       "haiku:6473a74bc711": {
-        "stop-color": {
+        "stopColor": {
           "0": {
             "value": "#FAFAFA"
           }
@@ -1623,7 +1623,7 @@
         }
       },
       "haiku:ab0f359be607": {
-        "stop-color": {
+        "stopColor": {
           "0": {
             "value": "#FCE9DB"
           }
@@ -1647,7 +1647,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1657,7 +1657,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1715,7 +1715,7 @@
         }
       },
       "haiku:d915d8d3cd62": {
-        "stop-color": {
+        "stopColor": {
           "0": {
             "value": "#FAFAFA"
           }
@@ -1727,7 +1727,7 @@
         }
       },
       "haiku:8254e1b98946": {
-        "stop-color": {
+        "stopColor": {
           "0": {
             "value": "#FCE9DB"
           }
@@ -1751,7 +1751,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1761,7 +1761,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1819,7 +1819,7 @@
         }
       },
       "haiku:1cba9cb2741c": {
-        "stop-color": {
+        "stopColor": {
           "0": {
             "value": "#FAFAFA"
           }
@@ -1831,7 +1831,7 @@
         }
       },
       "haiku:b544957b58aa": {
-        "stop-color": {
+        "stopColor": {
           "0": {
             "value": "#FCE9DB"
           }
@@ -1855,7 +1855,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1865,7 +1865,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1923,7 +1923,7 @@
         }
       },
       "haiku:062c67621cab": {
-        "stop-color": {
+        "stopColor": {
           "0": {
             "value": "#FAFAFA"
           }
@@ -1935,7 +1935,7 @@
         }
       },
       "haiku:c455f2fc9b63": {
-        "stop-color": {
+        "stopColor": {
           "0": {
             "value": "#FCE9DB"
           }
@@ -1959,7 +1959,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1969,7 +1969,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -2027,7 +2027,7 @@
         }
       },
       "haiku:43c43455b238": {
-        "stop-color": {
+        "stopColor": {
           "0": {
             "value": "#FAFAFA"
           }
@@ -2039,7 +2039,7 @@
         }
       },
       "haiku:743df916760c": {
-        "stop-color": {
+        "stopColor": {
           "0": {
             "value": "#FCE9DB"
           }
@@ -2063,7 +2063,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -2073,7 +2073,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -2131,7 +2131,7 @@
         }
       },
       "haiku:f7ee63401d08": {
-        "stop-color": {
+        "stopColor": {
           "0": {
             "value": "#FAFAFA"
           }
@@ -2143,7 +2143,7 @@
         }
       },
       "haiku:c2efb2bb2b01": {
-        "stop-color": {
+        "stopColor": {
           "0": {
             "value": "#FCE9DB"
           }
@@ -2167,7 +2167,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -2177,7 +2177,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }

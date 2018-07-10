@@ -186,14 +186,14 @@ module.exports = {
       },
       "haiku:19975ae2b57d": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
+        "fillRule": { "0": { value: "evenodd" } },
         "translation.x": { "0": { value: -43 } }
       },
       "haiku:518b1cf8605e": {
         stroke: { "0": { value: "#AAAAAA" } },
-        "stroke-width": { "0": { value: "2" } },
+        "strokeWidth": { "0": { value: "2" } },
         "translation.x": { "0": { value: 43 } }
       },
       "haiku:b17e6da92d68": {
@@ -209,48 +209,48 @@ module.exports = {
             value: "M30.5052757,1.87713428 C30.5052757,1.87713428 30.5054197,2.32724943 30.5055966,2.88020914 L30.5141204,29.5299204 C30.5142976,30.0839034 30.0743144,30.5329953 29.5171955,30.5329953 L2.49446801,30.5329946"
           }
         },
-        "stroke-linecap": { "0": { value: "round" } },
-        "stroke-linejoin": { "0": { value: "round" } }
+        "strokeLinecap": { "0": { value: "round" } },
+        "strokeLinejoin": { "0": { value: "round" } }
       },
       "haiku:ec5b0952134c": {
         d: { "0": { value: "M19,96.2036025 L27,96.2036025" } },
-        "stroke-linecap": { "0": { value: "round" } }
+        "strokeLinecap": { "0": { value: "round" } }
       },
       "haiku:b30b47b202d0": {
         d: { "0": { value: "M34,96.2036025 L46,96.2036025" } },
-        "stroke-linecap": { "0": { value: "round" } }
+        "strokeLinecap": { "0": { value: "round" } }
       },
       "haiku:999480d4488c": {
         d: { "0": { value: "M19,111 L27,111" } },
-        "stroke-linecap": { "0": { value: "round" } }
+        "strokeLinecap": { "0": { value: "round" } }
       },
       "haiku:79ac5d03bca8": {
         d: { "0": { value: "M34,111 L44,111" } },
-        "stroke-linecap": { "0": { value: "round" } }
+        "strokeLinecap": { "0": { value: "round" } }
       },
       "haiku:cecd1dc4a325": {
         d: { "0": { value: "M91,165 L99,165" } },
-        "stroke-linecap": { "0": { value: "round" } }
+        "strokeLinecap": { "0": { value: "round" } }
       },
       "haiku:6939043ac787": {
         d: { "0": { value: "M106,165 L116,165" } },
-        "stroke-linecap": { "0": { value: "round" } }
+        "strokeLinecap": { "0": { value: "round" } }
       },
       "haiku:ae08bbd31714": {
         d: { "0": { value: "M104,111 L112,111" } },
-        "stroke-linecap": { "0": { value: "round" } }
+        "strokeLinecap": { "0": { value: "round" } }
       },
       "haiku:288a95f6520d": {
         d: { "0": { value: "M119,111 L131,111" } },
-        "stroke-linecap": { "0": { value: "round" } }
+        "strokeLinecap": { "0": { value: "round" } }
       },
       "haiku:1f65fd84eb20": {
         d: { "0": { value: "M116,96.2036025 L131,96.2036025" } },
-        "stroke-linecap": { "0": { value: "round" } }
+        "strokeLinecap": { "0": { value: "round" } }
       },
       "haiku:d014e74425a9": {
         d: { "0": { value: "M91,140 L131,140" } },
-        "stroke-linecap": { "0": { value: "round" } }
+        "strokeLinecap": { "0": { value: "round" } }
       },
       "haiku:401b03ead958": {
         "translation.x": { "0": { value: 18 } },
@@ -262,7 +262,7 @@ module.exports = {
             value: "M7.04545455,13.535 C10.3822829,13.535 13.0909091,10.8740556 13.0909091,7.61357143 C13.0909091,4.35308725 10.3822829,1.69214286 7.04545455,1.69214286 C3.7086262,1.69214286 1,4.35308725 1,7.61357143 C1,10.8740556 3.7086262,13.535 7.04545455,13.535 Z"
           }
         },
-        "fill-rule": { "0": { value: "nonzero" } }
+        "fillRule": { "0": { value: "nonzero" } }
       },
       "haiku:0ae42cfadea4": {
         d: {
@@ -270,26 +270,26 @@ module.exports = {
             value: "M23.9545455,32.915 C27.2913738,32.915 30,30.2540556 30,26.9935714 C30,23.7330873 27.2913738,21.0721429 23.9545455,21.0721429 C20.6177171,21.0721429 17.9090909,23.7330873 17.9090909,26.9935714 C17.9090909,30.2540556 20.6177171,32.915 23.9545455,32.915 Z"
           }
         },
-        "fill-rule": { "0": { value: "nonzero" } }
+        "fillRule": { "0": { value: "nonzero" } }
       },
       "haiku:8a06570a178f": {
         d: { "0": { value: "M5.81256156,32.7449171 L26.3337021,0.482344571" } },
-        "stroke-linecap": { "0": { value: "round" } }
+        "strokeLinecap": { "0": { value: "round" } }
       },
       "haiku:a83127a8eef8": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
-        "stroke-linecap": { "0": { value: "round" } },
-        "stroke-linejoin": { "0": { value: "round" } },
+        "fillRule": { "0": { value: "evenodd" } },
+        "strokeLinecap": { "0": { value: "round" } },
+        "strokeLinejoin": { "0": { value: "round" } },
         "translation.x": { "0": { value: -104 } },
         "translation.y": { "0": { value: -81 } }
       },
       "haiku:0ed6d77cabdb": {
-        "fill-rule": { "0": { value: "nonzero" } },
+        "fillRule": { "0": { value: "nonzero" } },
         stroke: { "0": { value: "#2FC992" } },
-        "stroke-width": { "0": { value: "2" } },
+        "strokeWidth": { "0": { value: "2" } },
         "translation.x": { "0": { value: 83 } },
         "translation.y": { "0": { value: 57 } }
       },
@@ -302,15 +302,15 @@ module.exports = {
       },
       "haiku:1f9213c1e779": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
+        "fillRule": { "0": { value: "evenodd" } },
         "translation.x": { "0": { value: -83 } },
         "translation.y": { "0": { value: -57 } }
       },
       "haiku:a2f78d615593": {
         stroke: { "0": { value: "#AAAAAA" } },
-        "stroke-width": { "0": { value: "2" } },
+        "strokeWidth": { "0": { value: "2" } },
         "translation.x": { "0": { value: 83 } },
         "translation.y": { "0": { value: 57 } }
       },
@@ -323,15 +323,15 @@ module.exports = {
       },
       "haiku:898a5773e5ea": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
+        "fillRule": { "0": { value: "evenodd" } },
         "translation.x": { "0": { value: -83 } },
         "translation.y": { "0": { value: -57 } }
       },
       "haiku:e4a7b244c8da": {
         stroke: { "0": { value: "#AAAAAA" } },
-        "stroke-width": { "0": { value: "2" } },
+        "strokeWidth": { "0": { value: "2" } },
         "translation.x": { "0": { value: 83 } },
         "translation.y": { "0": { value: 57 } }
       },
@@ -344,15 +344,15 @@ module.exports = {
       },
       "haiku:a7822444e811": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
+        "fillRule": { "0": { value: "evenodd" } },
         "translation.x": { "0": { value: -83 } },
         "translation.y": { "0": { value: -57 } }
       },
       "haiku:a6eccbd600e5": {
         stroke: { "0": { value: "#AAAAAA" } },
-        "stroke-width": { "0": { value: "2" } },
+        "strokeWidth": { "0": { value: "2" } },
         "translation.x": { "0": { value: 83 } },
         "translation.y": { "0": { value: 57 } }
       },
@@ -365,7 +365,7 @@ module.exports = {
       },
       "haiku:f00da3f17051": {
         d: { "0": { value: "M91,152.203602 L124.16827,152.203602" } },
-        "stroke-linecap": { "0": { value: "round" } }
+        "strokeLinecap": { "0": { value: "round" } }
       }
     }
   },

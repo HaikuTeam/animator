@@ -657,7 +657,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -667,7 +667,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -689,7 +689,7 @@
             "value": "#AAAAAA"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -750,7 +750,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -760,7 +760,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -806,7 +806,7 @@
             "value": "#FFFFFF"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -823,7 +823,7 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
@@ -914,7 +914,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -924,7 +924,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -946,7 +946,7 @@
             "value": "#AAAAAA"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -1014,7 +1014,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1024,7 +1024,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1055,7 +1055,7 @@
             "value": "#FFFFFF"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1072,7 +1072,7 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
@@ -1094,17 +1094,17 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
         },
-        "stroke-linejoin": {
+        "strokeLinejoin": {
           "0": {
             "value": "round"
           }
@@ -1123,7 +1123,7 @@
         }
       },
       "haiku:4f3378345dde": {
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -1135,7 +1135,7 @@
             "value": "#FFFFFF"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1152,7 +1152,7 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
@@ -1174,7 +1174,7 @@
             "value": "#2FC992"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
@@ -1184,12 +1184,12 @@
             "value": "#FFFFFF"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
         },
-        "stroke-linejoin": {
+        "strokeLinejoin": {
           "0": {
             "value": "round"
           }
@@ -1201,7 +1201,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1211,7 +1211,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1233,7 +1233,7 @@
             "value": "#AAAAAA"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -1403,7 +1403,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1413,22 +1413,22 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
         },
-        "stroke-dasharray": {
+        "strokeDasharray": {
           "0": {
             "value": "6,6"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
         },
-        "stroke-linejoin": {
+        "strokeLinejoin": {
           "0": {
             "value": "round"
           }
@@ -1455,7 +1455,7 @@
             "value": "#979797"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
@@ -1610,7 +1610,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1620,7 +1620,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1654,7 +1654,7 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
@@ -1706,12 +1706,12 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -1728,12 +1728,12 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -1750,12 +1750,12 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -1772,12 +1772,12 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -1789,7 +1789,7 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
@@ -1811,7 +1811,7 @@
             "value": "M4.94318182,9.26 C7.11938789,9.26 8.88636364,7.51356644 8.88636364,5.37428571 C8.88636364,3.23500499 7.11938789,1.48857143 4.94318182,1.48857143 C2.76697574,1.48857143 1,3.23500499 1,5.37428571 C1,7.51356644 2.76697574,9.26 4.94318182,9.26 Z"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -1823,7 +1823,7 @@
             "value": "M16.8068182,22.94 C18.9830243,22.94 20.75,21.1935664 20.75,19.0542857 C20.75,16.915005 18.9830243,15.1685714 16.8068182,15.1685714 C14.6306121,15.1685714 12.8636364,16.915005 12.8636364,19.0542857 C12.8636364,21.1935664 14.6306121,22.94 16.8068182,22.94 Z"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -1835,7 +1835,7 @@
             "value": "M4.07816819,23.1140591 L18.4760651,0.340478521"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -1958,7 +1958,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1968,22 +1968,22 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
         },
-        "stroke-dasharray": {
+        "strokeDasharray": {
           "0": {
             "value": "6,6"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
         },
-        "stroke-linejoin": {
+        "strokeLinejoin": {
           "0": {
             "value": "round"
           }
@@ -2010,7 +2010,7 @@
             "value": "#979797"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
@@ -2129,7 +2129,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -2139,22 +2139,22 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
         },
-        "stroke-dasharray": {
+        "strokeDasharray": {
           "0": {
             "value": "6,6"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
         },
-        "stroke-linejoin": {
+        "strokeLinejoin": {
           "0": {
             "value": "round"
           }
@@ -2181,7 +2181,7 @@
             "value": "#979797"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
@@ -2353,7 +2353,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -2363,7 +2363,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -2397,7 +2397,7 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
@@ -2449,12 +2449,12 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -2471,12 +2471,12 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -2493,12 +2493,12 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -2515,12 +2515,12 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -2532,7 +2532,7 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
@@ -2554,7 +2554,7 @@
             "value": "M4.94318182,9.26 C7.11938789,9.26 8.88636364,7.51356644 8.88636364,5.37428571 C8.88636364,3.23500499 7.11938789,1.48857143 4.94318182,1.48857143 C2.76697574,1.48857143 1,3.23500499 1,5.37428571 C1,7.51356644 2.76697574,9.26 4.94318182,9.26 Z"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -2566,7 +2566,7 @@
             "value": "M16.8068182,22.94 C18.9830243,22.94 20.75,21.1935664 20.75,19.0542857 C20.75,16.915005 18.9830243,15.1685714 16.8068182,15.1685714 C14.6306121,15.1685714 12.8636364,16.915005 12.8636364,19.0542857 C12.8636364,21.1935664 14.6306121,22.94 16.8068182,22.94 Z"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -2578,7 +2578,7 @@
             "value": "M4.07816819,23.1140591 L18.4760651,0.340478521"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -2746,7 +2746,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -2756,7 +2756,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -2790,7 +2790,7 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
@@ -2842,12 +2842,12 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -2864,12 +2864,12 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -2886,12 +2886,12 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -2908,12 +2908,12 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -2925,7 +2925,7 @@
             "value": "#AAAAAA"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
@@ -2947,7 +2947,7 @@
             "value": "M4.94318182,9.26 C7.11938789,9.26 8.88636364,7.51356644 8.88636364,5.37428571 C8.88636364,3.23500499 7.11938789,1.48857143 4.94318182,1.48857143 C2.76697574,1.48857143 1,3.23500499 1,5.37428571 C1,7.51356644 2.76697574,9.26 4.94318182,9.26 Z"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -2959,7 +2959,7 @@
             "value": "M16.8068182,22.94 C18.9830243,22.94 20.75,21.1935664 20.75,19.0542857 C20.75,16.915005 18.9830243,15.1685714 16.8068182,15.1685714 C14.6306121,15.1685714 12.8636364,16.915005 12.8636364,19.0542857 C12.8636364,21.1935664 14.6306121,22.94 16.8068182,22.94 Z"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -2971,7 +2971,7 @@
             "value": "M4.07816819,23.1140591 L18.4760651,0.340478521"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }

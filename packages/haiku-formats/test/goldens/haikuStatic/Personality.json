@@ -954,7 +954,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -964,7 +964,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1110,12 +1110,12 @@
             "value": "#A9B9C2"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "3"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -1148,7 +1148,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1158,7 +1158,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1215,7 +1215,7 @@
             "value": "#F2CEA5"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1237,7 +1237,7 @@
             "value": "#FFFFFF"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1269,7 +1269,7 @@
             "value": "#D4B08C"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1342,7 +1342,7 @@
             "value": "#703741"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1374,12 +1374,12 @@
             "value": "#49A1FA"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "3"
           }
@@ -1445,7 +1445,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1455,7 +1455,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1486,7 +1486,7 @@
             "value": "#703741"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "3"
           }
@@ -1575,7 +1575,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1585,7 +1585,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1650,12 +1650,12 @@
             "value": "#49A1FA"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "3"
           }
@@ -1707,7 +1707,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1717,7 +1717,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -1877,12 +1877,12 @@
             "value": "#8EBF1D"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
         },
-        "stroke-linejoin": {
+        "strokeLinejoin": {
           "0": {
             "value": "round"
           }
@@ -1928,7 +1928,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1938,7 +1938,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -2000,7 +2000,7 @@
             "value": "#2284E6"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -2022,7 +2022,7 @@
             "value": "#8EBF1D"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }

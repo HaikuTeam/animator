@@ -479,7 +479,7 @@
         }
       },
       "haiku:79248f0f561d": {
-        "stop-color": {
+        "stopColor": {
           "0": {
             "value": "#05D8DD"
           }
@@ -491,7 +491,7 @@
         }
       },
       "haiku:a8cc19bbcb35": {
-        "stop-color": {
+        "stopColor": {
           "0": {
             "value": "#6972D3"
           }
@@ -508,7 +508,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -518,7 +518,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -530,7 +530,7 @@
             "value": "url(#linearGradient-1-84619d)"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -578,7 +578,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -588,12 +588,12 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -605,7 +605,7 @@
             "value": "#FF0D5F"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
@@ -670,7 +670,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -680,12 +680,12 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -697,7 +697,7 @@
             "value": "#FF0D5F"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
@@ -762,7 +762,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -772,12 +772,12 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -789,7 +789,7 @@
             "value": "#FF0D5F"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
@@ -871,7 +871,7 @@
         }
       },
       "haiku:dea5524e7053": {
-        "stop-color": {
+        "stopColor": {
           "0": {
             "value": "#05D8DD"
           }
@@ -883,7 +883,7 @@
         }
       },
       "haiku:3b144291fbcd": {
-        "stop-color": {
+        "stopColor": {
           "0": {
             "value": "#6972D3"
           }
@@ -900,7 +900,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -910,7 +910,7 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
@@ -922,7 +922,7 @@
             "value": "url(#linearGradient-1-828aa3)"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "nonzero"
           }
@@ -1069,7 +1069,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1079,12 +1079,12 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -1096,7 +1096,7 @@
             "value": "#FF0D5F"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
@@ -1250,7 +1250,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1260,12 +1260,12 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -1277,7 +1277,7 @@
             "value": "#FF0D5F"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
@@ -1446,7 +1446,7 @@
             "value": "none"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "1"
           }
@@ -1456,12 +1456,12 @@
             "value": "none"
           }
         },
-        "fill-rule": {
+        "fillRule": {
           "0": {
             "value": "evenodd"
           }
         },
-        "stroke-linecap": {
+        "strokeLinecap": {
           "0": {
             "value": "round"
           }
@@ -1473,7 +1473,7 @@
             "value": "#FF0D5F"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": "2"
           }
