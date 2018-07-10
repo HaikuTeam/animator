@@ -1,5 +1,4 @@
 
-// @ts-ignore
 import * as fse from 'fs-extra';
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import * as path from 'path';

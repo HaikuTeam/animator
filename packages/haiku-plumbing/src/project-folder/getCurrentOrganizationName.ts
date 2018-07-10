@@ -37,3 +37,7 @@ export const getCurrentOrganizationName = (cb: (error: Error|null, organizationN
     return cb(new Error('Unable to find organization name from Haiku Cloud'));
   }
 };
+
+export const getCachedOrganizationName = () => {
+  return organizationName;
+};

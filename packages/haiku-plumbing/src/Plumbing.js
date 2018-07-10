@@ -38,8 +38,8 @@ import Master from './Master';
 import {createProjectFiles} from '@haiku/sdk-client/lib/createProjectFiles';
 import {copyExternalExampleFilesToProject} from './project-folder/copyExternalExampleFilesToProject';
 import {duplicateProject} from './project-folder/duplicateProject';
-import {getCurrentOrganizationName} from './project-folder/getOrganizationName';
-import {getSafeProjectName, getSafeOrganizationName} from '@haiku/sdk-client/lib/ProjectDefinitions';
+import {getCurrentOrganizationName, getCachedOrganizationName} from './project-folder/getCurrentOrganizationName';
+import {getSafeProjectName, getSafeOrganizationName} from './project-folder/ProjectDefinitions';
 
 const {HOMEDIR_PATH} = HaikuHomeDir;
 
@@ -620,7 +620,7 @@ export default class Plumbing extends EventEmitter {
       }
       crashReport(
         error,
-        this.get('organizationName'),
+        getCachedOrganizationName(),
         this.get('lastOpenedProjectName'),
         this.get('lastOpenedProjectPath'),
       );
@@ -1073,6 +1073,7 @@ export default class Plumbing extends EventEmitter {
         return cb(new Error('Auth response was empty'));
       }
 
+      // TODO: Should be cached just like on getCurrentOrganizationName
       this.set('username', username);
       this.set('password', password);
       this.set('inkstoneAuthToken', authResponse.Token);
@@ -1115,7 +1116,7 @@ export default class Plumbing extends EventEmitter {
 
         const finalList = new Array(projectsList.length);
         async.eachOf(projectsList, (project, index, done) => {
-          finalList[index] = remapProjectObjectToExpectedFormat(project, this.get('organizationName'));
+          finalList[index] = remapProjectObjectToExpectedFormat(project, getCachedOrganizationName());
           done();
         }, () => {
           logger.info('[plumbing] fetched project list', JSON.stringify(finalList));
@@ -1136,7 +1137,7 @@ export default class Plumbing extends EventEmitter {
         this.sentryError('createProject', projectCreateErr);
         return cb(projectCreateErr);
       }
-      const remoteProjectObject = remapProjectObjectToExpectedFormat(projectPayload, this.get('organizationName'));
+      const remoteProjectObject = remapProjectObjectToExpectedFormat(projectPayload, getCachedOrganizationName());
       return cb(null, remoteProjectObject);
     });
   }
@@ -1193,7 +1194,7 @@ export default class Plumbing extends EventEmitter {
         return cb(err);
       }
 
-      cb(null, remapProjectObjectToExpectedFormat(projectAndCredentials.Project, this.get('organizationName')));
+      cb(null, remapProjectObjectToExpectedFormat(projectAndCredentials.Project, getCachedOrganizationName()));
     });
   }
 
@@ -1276,7 +1277,7 @@ export default class Plumbing extends EventEmitter {
       saveOptions.authorName = this.get('username');
     }
     if (!saveOptions.organizationName) {
-      saveOptions.organizationName = this.get('organizationName');
+      saveOptions.organizationName = getCachedOrganizationName();
     }
     logger.info('[plumbing] saving with options', saveOptions);
     return this.awaitMasterAndCallMethod(folder, 'saveProject', [projectName, maybeUsername, maybePassword, saveOptions, {from: 'master'}], cb);
