@@ -1,5 +1,5 @@
-import {BodymovinExporter} from '@/exporters/bodymovin/bodymovinExporter';
-import {HaikuStaticExporter} from '@/exporters/haikuStatic/haikuStaticExporter';
+import {BodymovinExporter} from '@formats/exporters/bodymovin/bodymovinExporter';
+import {HaikuStaticExporter} from '@formats/exporters/haikuStatic/haikuStaticExporter';
 import {each} from 'async';
 // @ts-ignore
 import {readdir, writeFile} from 'haiku-fs-extra';
