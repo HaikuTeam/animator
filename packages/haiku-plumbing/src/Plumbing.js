@@ -38,8 +38,15 @@ import Master from './Master';
 import {createProjectFiles} from '@haiku/sdk-client/lib/createProjectFiles';
 import {copyExternalExampleFilesToProject} from './project-folder/copyExternalExampleFilesToProject';
 import {duplicateProject} from './project-folder/duplicateProject';
-import {getCurrentOrganizationName, getCachedOrganizationName} from './project-folder/getCurrentOrganizationName';
-import {getSafeProjectName, getSafeOrganizationName} from './project-folder/ProjectDefinitions';
+import {
+  getCurrentOrganizationName,
+  getCachedOrganizationName,
+} from './project-folder/getCurrentOrganizationName';
+import {
+  getSafeProjectName,
+  getSafeOrganizationName,
+  storeConfigValues,
+} from './project-folder/ProjectDefinitions';
 
 const {HOMEDIR_PATH} = HaikuHomeDir;
 
@@ -859,7 +866,7 @@ export default class Plumbing extends EventEmitter {
       authorName = username;
 
       // This ensures the folder exists and sets basic values inside the package.json
-      Project.storeConfigValues(projectPath, {
+      storeConfigValues(projectPath, {
         username,
         organization: organizationName,
         project: projectName,

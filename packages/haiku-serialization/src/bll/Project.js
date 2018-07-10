@@ -20,7 +20,8 @@ const ActionStack = require('./ActionStack')
 const { 
   getSafeProjectName,
   getReactProjectName,
-  getProjectNameLowerCase 
+  getProjectNameLowerCase,
+  readPackageJson
 } = require('@haiku/sdk-client/lib/ProjectDefinitions')
 
 
@@ -954,41 +955,8 @@ Project.setup = (
   return cb(null, project)
 }
 
-Project.storeConfigValues = (folder, incoming) => {
-  fse.mkdirpSync(folder)
-  const pkgjson = Project.readPackageJson(folder)
-  lodash.assign(pkgjson.haiku, incoming)
-  fse.outputJsonSync(path.join(folder, 'package.json'), pkgjson, {spaces: 2})
-  return pkgjson.haiku
-}
-
-Project.readPackageJson = (folder) => {
-  let pkgjson = {}
-  try {
-    pkgjson = fse.readJsonSync(path.join(folder, 'package.json'), {throws: false})
-  } catch (e) {
-    pkgjson = {}
-  }
-  if (!pkgjson.haiku) pkgjson.haiku = {}
-  if (!pkgjson.version) pkgjson.version = FALLBACK_SEMVER_VERSION
-  return pkgjson
-}
-
-Project.fetchProjectConfigInfo = (folder, cb) => {
-  const pkgjson = Project.readPackageJson(folder)
-  const config = (pkgjson && pkgjson.haiku) || {}
-  return cb(null, lodash.assign({
-    folder,
-    uuid: 'HAIKU_SHARE_UUID', // Replaced on the server
-    core: ModuleWrapper.CORE_VERSION,
-    player: ModuleWrapper.CORE_VERSION // legacy alias for 'core'
-    // config: name, project, username, organization, branch, version, commit
-  }, config))
-}
-
-
 Project.getProjectNameVariations = (folder) => {
-  const projectHaikuConfig = Project.readPackageJson(folder).haiku
+  const projectHaikuConfig = readPackageJson(folder).haiku
   const projectNameSafe = getSafeProjectName(folder, projectHaikuConfig.project)
   const projectNameSafeShort = getProjectNameSafeShort(folder, projectHaikuConfig.project)
   const projectNameLowerCase = getProjectNameLowerCase(folder, projectHaikuConfig.project)

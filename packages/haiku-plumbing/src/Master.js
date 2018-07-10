@@ -30,6 +30,7 @@ import {
   getHaikuCoreVersion,
   getSafeProjectName,
   getSafeOrganizationName,
+  fetchProjectConfigInfo,
 } from './project-folder/ProjectDefinitions';
 
 Sketch.findAndUpdateInstallPath();
@@ -720,7 +721,7 @@ export default class Master extends EventEmitter {
     this._mod.restart();
     this._git.restart();
 
-    return Project.fetchProjectConfigInfo(this.folder, (err, userconfig) => {
+    return fetchProjectConfigInfo(this.folder, (err, userconfig) => {
       if (err) {
         throw err;
       }
@@ -841,7 +842,7 @@ export default class Master extends EventEmitter {
         return async.eachSeries(acs, (ac, next) => {
           logger.info(`[master] project save: assigning metadata to ${ac.getSceneName()}`);
 
-          return Project.fetchProjectConfigInfo(ac.fetchActiveBytecodeFile().folder, (err, userconfig) => {
+          return fetchProjectConfigInfo(ac.fetchActiveBytecodeFile().folder, (err, userconfig) => {
             if (err) {
               return next(err);
             }

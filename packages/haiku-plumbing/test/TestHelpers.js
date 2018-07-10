@@ -4,7 +4,7 @@ import * as tmp from 'tmp';
 import * as fse from 'haiku-fs-extra';
 import * as randomAlphabetical from 'haiku-serialization/src/utils/randomAlphabetical';
 import Plumbing, {HAIKU_WS_SECURITY_TOKEN} from '@plumbing/Plumbing';
-import {getCurrentOrganizationName} from '@plumbing/project-folder/getOrganizationName';
+import {getCurrentOrganizationName} from '@plumbing/project-folder/getCurrentOrganizationName';
 
 
 function websocket (host, port, folder, alias, type) {

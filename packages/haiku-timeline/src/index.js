@@ -9,6 +9,7 @@ import Project from 'haiku-serialization/src/bll/Project'
 import Timeline from './components/Timeline'
 import {sentryCallback} from 'haiku-serialization/src/utils/carbonite'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
+import {fetchProjectConfigInfo} from '@haiku/sdk-client/lib/ProjectDefinitions';
 
 const mixpanel = require('haiku-serialization/src/utils/Mixpanel')
 
@@ -63,7 +64,7 @@ function go () {
   if (!config.folder) throw new Error('A folder (the absolute path to the user project) is required')
   function _fixPlumbingUrl (url) { return url.replace(/^http/, 'ws') }
 
-  return Project.fetchProjectConfigInfo(config.folder, (err, userconfig) => {
+  return fetchProjectConfigInfo(config.folder, (err, userconfig) => {
     if (err) {
       throw err
     }
