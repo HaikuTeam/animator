@@ -295,11 +295,11 @@ export default class ComponentHeadingRow extends React.Component {
                 className='design-sync-button'
                 style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
                   marginLeft: '2px',
-                  display: this.props.row.element.getSource() && this.props.row.element.isLocked() ? 'block' : 'none',
+                  display: this.props.row.element.getSource() && this.props.row.element.isLocked() ? 'block' : 'none'
                 } : {
                   width: 16,
                   position: 'absolute',
-                  left: 16,
+                  left: 36,
                   top: 0,
                   display: this.props.row.element.getSource() && this.props.row.element.isLocked() ? 'block' : 'none'
                 })}
