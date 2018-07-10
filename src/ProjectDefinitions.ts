@@ -99,8 +99,6 @@ export const fetchProjectConfigInfo = (folder: string, cb: any) => {
     folder,
     uuid: 'HAIKU_SHARE_UUID', // Replaced on the server
     core: getHaikuCoreVersion(),
-    player: getHaikuCoreVersion(), // legacy alias for 'core'
-      // config: name, project, username, organization, branch, version, commit
   }, config));
 };
 
