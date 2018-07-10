@@ -65,6 +65,7 @@ const FOLDER_CHOICES = {
   'mc4-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/mc4'),
   'mc-anim1-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/mc-anim1'),
   'Bricks-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/Bricks'),
+  'groupers-1-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/groupers-1'),
   'repeat-1-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/repeat-1'),
   'repeat-2-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/repeat-2'),
   'repeat-2-auto-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/repeat-2-auto'),
@@ -87,7 +88,7 @@ if (argv.default === true) {
 }
 
 const availablePresets = {
-  glass: 'primitives-misc-1-glass',
+  glass: 'groupers-1-glass',
   timeline: 'complex-timeline',
   blank: 'blank',
   'blank-noclean': 'blank-noclean'
