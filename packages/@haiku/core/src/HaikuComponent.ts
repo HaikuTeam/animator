@@ -937,11 +937,20 @@ export default class HaikuComponent extends HaikuElement {
     }
 
     for (const $id in this.guests) {
-      this.guests[$id].performPatchRenderWithRenderer(
-        renderer,
-        options,
-        skipCache,
-      );
+      const guest = this.guests[$id];
+
+      if (guest.shouldPerformFullFlush()) {
+        guest.performFullFlushRenderWithRenderer(
+          renderer,
+          options,
+        );
+      } else {
+        guest.performPatchRenderWithRenderer(
+          renderer,
+          options,
+          skipCache,
+        );
+      }
     }
   }
 
