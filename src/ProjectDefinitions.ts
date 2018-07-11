@@ -76,7 +76,6 @@ export const getAuthorNameOrFallback = (authorName: string) => {
 };
 
 export const readPackageJson = (folder: string) => {
-  console.log('Reading package from folder', folder);
   let pkgjson: {haiku?: any, version?: any} = {};
   try {
     pkgjson = fse.readJsonSync(path.join(folder, 'package.json'), {throws: true});
