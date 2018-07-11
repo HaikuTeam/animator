@@ -251,102 +251,102 @@ module.exports = {
           }
         ]
       },
-      {
-        elementName: "svg",
-        attributes: {
-          version: "1.1",
-          xmlns: "http://www.w3.org/2000/svg",
-          "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "haiku-id": "83ff79b68192",
-          "haiku-title": "blue-circle",
-          "haiku-source": "designs/UsersMatthewHaikuPro.sketch.contents/slices/blue-circle.svg"
-        },
-        children: [
-          {
-            elementName: "g",
-            attributes: { "haiku-id": "d3127af57693", id: "Page-1" },
-            children: [
-              {
-                elementName: "g",
-                attributes: { "haiku-id": "bfd973ecb922", id: "Tutorial" },
-                children: [
-                  {
-                    elementName: "circle",
-                    attributes: {
-                      "haiku-id": "b189e84fd281",
-                      id: "blue-circle"
-                    },
-                    children: []
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        elementName: _code_dots_code,
-        attributes: {
-          "haiku-id": "cd52247eb4f9",
-          "haiku-var": "_code_dots_code",
-          "haiku-title": "Dots",
-          "haiku-source": "./code/dots/code.js"
-        },
-        children: []
-      },
-      {
-        elementName: "svg",
-        attributes: {
-          version: "1.1",
-          xmlns: "http://www.w3.org/2000/svg",
-          "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "haiku-id": "e947acc4b7b4",
-          "haiku-title": "blue-circle",
-          "haiku-source": "designs/UsersMatthewHaikuPro.sketch.contents/slices/blue-circle.svg"
-        },
-        children: [
-          {
-            elementName: "g",
-            attributes: { "haiku-id": "59df3d4aa6fc", id: "Page-1" },
-            children: [
-              {
-                elementName: "g",
-                attributes: { "haiku-id": "c533fcd5d6fb", id: "Tutorial" },
-                children: [
-                  {
-                    elementName: "circle",
-                    attributes: {
-                      "haiku-id": "f3ba7106ade7",
-                      id: "blue-circle"
-                    },
-                    children: []
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        elementName: haiku_core_components_controls_Image_code_main_code,
-        attributes: {
-          "haiku-id": "c97e7dca287c",
-          "haiku-var": "haiku_core_components_controls_Image_code_main_code",
-          "haiku-title": "Image",
-          "haiku-source": "@haiku/core/components/controls/Image/code/main/code.js"
-        },
-        children: []
-      },
-      {
-        elementName: haiku_core_components_controls_Text_code_main_code,
-        attributes: {
-          "haiku-id": "a5894f11b43e",
-          "haiku-var": "haiku_core_components_controls_Text_code_main_code",
-          "haiku-title": "Text",
-          "haiku-source": "@haiku/core/components/controls/Text/code/main/code.js"
-        },
-        children: []
-      }
+      // {
+      //   elementName: "svg",
+      //   attributes: {
+      //     version: "1.1",
+      //     xmlns: "http://www.w3.org/2000/svg",
+      //     "xmlns:xlink": "http://www.w3.org/1999/xlink",
+      //     "haiku-id": "83ff79b68192",
+      //     "haiku-title": "blue-circle",
+      //     "haiku-source": "designs/UsersMatthewHaikuPro.sketch.contents/slices/blue-circle.svg"
+      //   },
+      //   children: [
+      //     {
+      //       elementName: "g",
+      //       attributes: { "haiku-id": "d3127af57693", id: "Page-1" },
+      //       children: [
+      //         {
+      //           elementName: "g",
+      //           attributes: { "haiku-id": "bfd973ecb922", id: "Tutorial" },
+      //           children: [
+      //             {
+      //               elementName: "circle",
+      //               attributes: {
+      //                 "haiku-id": "b189e84fd281",
+      //                 id: "blue-circle"
+      //               },
+      //               children: []
+      //             }
+      //           ]
+      //         }
+      //       ]
+      //     }
+      //   ]
+      // },
+      // {
+      //   elementName: _code_dots_code,
+      //   attributes: {
+      //     "haiku-id": "cd52247eb4f9",
+      //     "haiku-var": "_code_dots_code",
+      //     "haiku-title": "Dots",
+      //     "haiku-source": "./code/dots/code.js"
+      //   },
+      //   children: []
+      // },
+      // {
+      //   elementName: "svg",
+      //   attributes: {
+      //     version: "1.1",
+      //     xmlns: "http://www.w3.org/2000/svg",
+      //     "xmlns:xlink": "http://www.w3.org/1999/xlink",
+      //     "haiku-id": "e947acc4b7b4",
+      //     "haiku-title": "blue-circle",
+      //     "haiku-source": "designs/UsersMatthewHaikuPro.sketch.contents/slices/blue-circle.svg"
+      //   },
+      //   children: [
+      //     {
+      //       elementName: "g",
+      //       attributes: { "haiku-id": "59df3d4aa6fc", id: "Page-1" },
+      //       children: [
+      //         {
+      //           elementName: "g",
+      //           attributes: { "haiku-id": "c533fcd5d6fb", id: "Tutorial" },
+      //           children: [
+      //             {
+      //               elementName: "circle",
+      //               attributes: {
+      //                 "haiku-id": "f3ba7106ade7",
+      //                 id: "blue-circle"
+      //               },
+      //               children: []
+      //             }
+      //           ]
+      //         }
+      //       ]
+      //     }
+      //   ]
+      // },
+      // {
+      //   elementName: haiku_core_components_controls_Image_code_main_code,
+      //   attributes: {
+      //     "haiku-id": "c97e7dca287c",
+      //     "haiku-var": "haiku_core_components_controls_Image_code_main_code",
+      //     "haiku-title": "Image",
+      //     "haiku-source": "@haiku/core/components/controls/Image/code/main/code.js"
+      //   },
+      //   children: []
+      // },
+      // {
+      //   elementName: haiku_core_components_controls_Text_code_main_code,
+      //   attributes: {
+      //     "haiku-id": "a5894f11b43e",
+      //     "haiku-var": "haiku_core_components_controls_Text_code_main_code",
+      //     "haiku-title": "Text",
+      //     "haiku-source": "@haiku/core/components/controls/Text/code/main/code.js"
+      //   },
+      //   children: []
+      // }
     ]
   }
 };
