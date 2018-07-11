@@ -1550,9 +1550,9 @@ class ElementSelectionProxy extends BaseModel {
             addressables.width.typedef === 'number'
           ) {
             propertyGroupNorm.width = {value: Math.abs(layoutSpec.size.x * scaleX / baseProxyTransform.scale.x)}
-            if (propertyGroupNorm['scale.x']) {
-              propertyGroupNorm['scale.x'] = {value: Math.sign(scaleX)}
-            }
+            // Note: here and below, scale.x and scale.y are guaranteed to exist as properties of propertyGroup[Norm]
+            // because composedTransformsToTimelineProperties was called with explicit = true.
+            propertyGroupNorm['scale.x'] = {value: Math.sign(propertyGroup['scale.x'])}
           }
 
           if (
@@ -1560,9 +1560,7 @@ class ElementSelectionProxy extends BaseModel {
             addressables.height.typedef === 'number'
           ) {
             propertyGroupNorm.height = {value: Math.abs(layoutSpec.size.y * scaleY / baseProxyTransform.scale.y)}
-            if (propertyGroupNorm['scale.y']) {
-              propertyGroupNorm['scale.y'] = {value: Math.sign(scaleY)}
-            }
+            propertyGroupNorm['scale.y'] = {value: Math.sign(propertyGroup['scale.y'])}
           }
         }
       }
