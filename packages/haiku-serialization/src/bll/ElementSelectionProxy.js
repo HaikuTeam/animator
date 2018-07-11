@@ -935,7 +935,6 @@ class ElementSelectionProxy extends BaseModel {
       this._lastProxyBox = this.getBoxPointsTransformed()
       this._lastOrigin = this.getOriginTransformed()
       this._baseBoxPointsNotTransformed = this.getBoxPointsCompletelyNotTransformed()
-      // this.transformCache.push('CONTROL_ACTIVATION')
       this._lastOrigins = this.selection.map((elem) => {
         return elem.getOriginTransformed()
       })
@@ -1302,6 +1301,7 @@ class ElementSelectionProxy extends BaseModel {
 
   scaleElements (mouseCoordsCurrent, mouseCoordsPrevious, activationPoint, globals) {
     let foundSnaps = []
+
     const accumulatedUpdates = {}
 
     const baseProxyBox = Object.assign({}, this._lastProxyBox)
@@ -1487,9 +1487,6 @@ class ElementSelectionProxy extends BaseModel {
       }
     } = scalePropertyGroup
 
-    const scaleXFactor = scaleX / this.computePropertyValue('scale.x')
-    const scaleYFactor = scaleY / this.computePropertyValue('scale.y')
-
     this.applyPropertyValue('scale.x', scaleX)
     this.applyPropertyValue('scale.y', scaleY)
     this.applyPropertyValue('translation.x', translationX)
@@ -1553,7 +1550,7 @@ class ElementSelectionProxy extends BaseModel {
             addressables.width.typedef === 'number' &&
             propertyGroupNorm['scale.x']
           ) {
-            const width = addressables.width.value() * scaleXFactor
+            const width = baseTransform.size.x * scaleX
             if (width > 0) {
               propertyGroupNorm.width = {value: width}
             }
@@ -1566,7 +1563,7 @@ class ElementSelectionProxy extends BaseModel {
             addressables.height.typedef === 'number' &&
             propertyGroupNorm['scale.y']
           ) {
-            const height = addressables.height.value() * scaleYFactor
+            const height = baseTransform.size.y * scaleY
             if (height > 0) {
               propertyGroupNorm.height = {value: height}
             }
