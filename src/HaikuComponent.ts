@@ -278,8 +278,14 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     // Flag to indicate whether we are sleeping, an ephemeral condition where no rendering occurs
     this.isSleeping = false;
 
-    for (const helperName in HaikuHelpers.helpers) {
-      this.helpers[helperName] = HaikuHelpers.helpers[helperName];
+    this.helpers = {
+      data: {},
+    };
+
+    const helpers =  Object.assign({}, HaikuHelpers.helpers, this.getHelpers());
+
+    for (const helperName in helpers) {
+      this.helpers[helperName] = helpers[helperName];
     }
 
     this.helpers.now = () => {
@@ -600,7 +606,6 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
   }
 
   getHelpers (): any {
-    console.log('GETTING HELPERS', this.bytecode);
     return this.bytecode.helpers;
   }
 
