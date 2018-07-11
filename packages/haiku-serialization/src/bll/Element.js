@@ -31,8 +31,9 @@ const ELEMENT_TYPES_TO_SHOW_IN_TREE_VIEW = {
 
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const HAIKU_TITLE_ATTRIBUTE = 'haiku-title'
+const HAIKU_LOCKED_ATTRIBUTE = 'haiku-locked'
 const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source'
-const LOCKED_ID_SUFFIX = '#lock'
+const SYNC_LOCKED_ID_SUFFIX = '#lock'
 const TIMELINE_EVENT_PREFIX = 'timeline:'
 
 const EMPTY_ELEMENT = {elementName: 'div', attributes: {}, children: []}
@@ -136,6 +137,8 @@ class Element extends BaseModel {
   }
 
   select (metadata, softly = false) {
+    if (this.isLocked()) return;
+    
     if (!this._isSelected) {
       this._isSelected = true
 
@@ -207,6 +210,14 @@ class Element extends BaseModel {
 
   isSelected () {
     return this._isSelected
+  }
+  
+  isLocked () {
+    return !!this.getStaticTemplateNode().attributes[HAIKU_LOCKED_ATTRIBUTE]
+  }
+  
+  toggleLocked(metadata, cb) {
+    this.component.setLockedStatusForComponent(this.getComponentId(), !this.getStaticTemplateNode().attributes[HAIKU_LOCKED_ATTRIBUTE], metadata, cb)
   }
 
   getStaticTemplateNode () {
@@ -390,10 +401,10 @@ class Element extends BaseModel {
     }
   }
 
-  isLocked () {
+  isSyncLocked () {
     const node = this.getStaticTemplateNode()
     if (node && node.attributes && node.attributes[HAIKU_SOURCE_ATTRIBUTE]) {
-      return node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(LOCKED_ID_SUFFIX)
+      return node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(SYNC_LOCKED_ID_SUFFIX)
     }
     return false
   }

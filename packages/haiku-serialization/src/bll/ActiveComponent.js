@@ -5,7 +5,7 @@ const async = require('async')
 const jss = require('json-stable-stringify')
 const pascalcase = require('pascalcase')
 const {PlaybackSetting} = require('@haiku/core/lib/HaikuTimeline')
-const {HAIKU_ID_ATTRIBUTE, HAIKU_TITLE_ATTRIBUTE, HAIKU_VAR_ATTRIBUTE} = require('@haiku/core/lib/HaikuElement')
+const {HAIKU_ID_ATTRIBUTE, HAIKU_LOCKED_ATTRIBUTE, HAIKU_TITLE_ATTRIBUTE, HAIKU_VAR_ATTRIBUTE} = require('@haiku/core/lib/HaikuElement')
 const {sortedKeyframes} = require('@haiku/core/lib/Transitions').default
 const HaikuComponent = require('@haiku/core/lib/HaikuComponent').default
 const {LAYOUT_3D_SCHEMA} = require('@haiku/core/lib/HaikuComponent')
@@ -27,7 +27,7 @@ const DEFAULT_INTERACTION_MODE = InteractionMode.EDIT
 const DEFAULT_TIMELINE_NAME = 'Default'
 const DEFAULT_TIMELINE_TIME = 0
 const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source'
-const LOCKED_ID_SUFFIX = '#lock'
+const SYNC_LOCKED_ID_SUFFIX = '#lock'
 const SELECTION_WAIT_TIME = 0
 const SELECTION_PING_TIME = 100
 
@@ -469,6 +469,31 @@ class ActiveComponent extends BaseModel {
         }
         fire(null, oldTitle)
         return cb(null, newTitle)
+      })
+    })
+  }
+  
+  setLockedStatusForComponent (componentId, locked, metadata, cb) {
+    this.project.updateHook('setLockedStatusForComponent', this.getRelpath(), componentId, locked, metadata, (fire) => {
+      return this.performComponentWork((bytecode, mana, done) => {
+        const templateNode = this.locateTemplateNodeByComponentId(componentId)
+        if (!templateNode) {
+          return done(null, '', '')
+        }
+
+        const oldStatus = templateNode.attributes[HAIKU_LOCKED_ATTRIBUTE]
+        templateNode.attributes[HAIKU_LOCKED_ATTRIBUTE] = locked
+        return done(null, locked, oldStatus)
+      }, (err, locked, oldStatus) => {
+        if (err) {
+          return cb(err)
+        }
+        const element = this.findElementByComponentId(componentId)
+        if (element) {
+          element.updateTargetingRows('row-set-title')
+        }
+        fire(null, oldStatus)
+        return cb(null, locked)
       })
     })
   }
@@ -3468,11 +3493,11 @@ class ActiveComponent extends BaseModel {
         for (const elID in options.setElementLockStatus) {
           const node = this.findTemplateNodeByComponentId(elID)
           const lockStatus = options.setElementLockStatus[elID]
-          if (!lockStatus && node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(LOCKED_ID_SUFFIX)) {
-            node.attributes[HAIKU_SOURCE_ATTRIBUTE] = node.attributes[HAIKU_SOURCE_ATTRIBUTE].replace(LOCKED_ID_SUFFIX, '')
+          if (!lockStatus && node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(SYNC_LOCKED_ID_SUFFIX)) {
+            node.attributes[HAIKU_SOURCE_ATTRIBUTE] = node.attributes[HAIKU_SOURCE_ATTRIBUTE].replace(SYNC_LOCKED_ID_SUFFIX, '')
             unlockedDesigns[node.attributes[HAIKU_SOURCE_ATTRIBUTE]] = true
-          } else if (lockStatus && !node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(LOCKED_ID_SUFFIX)) {
-            node.attributes[HAIKU_SOURCE_ATTRIBUTE] = node.attributes[HAIKU_SOURCE_ATTRIBUTE] + LOCKED_ID_SUFFIX
+          } else if (lockStatus && !node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(SYNC_LOCKED_ID_SUFFIX)) {
+            node.attributes[HAIKU_SOURCE_ATTRIBUTE] = node.attributes[HAIKU_SOURCE_ATTRIBUTE] + SYNC_LOCKED_ID_SUFFIX
           }
         }
       }
@@ -3587,11 +3612,11 @@ class ActiveComponent extends BaseModel {
         for (const elID in options.setElementLockStatus) {
           const node = this.findTemplateNodeByComponentId(elID)
           const lockStatus = options.setElementLockStatus[elID]
-          if (!lockStatus && node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(LOCKED_ID_SUFFIX)) {
-            node.attributes[HAIKU_SOURCE_ATTRIBUTE] = node.attributes[HAIKU_SOURCE_ATTRIBUTE].replace(LOCKED_ID_SUFFIX, '')
+          if (!lockStatus && node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(SYNC_LOCKED_ID_SUFFIX)) {
+            node.attributes[HAIKU_SOURCE_ATTRIBUTE] = node.attributes[HAIKU_SOURCE_ATTRIBUTE].replace(SYNC_LOCKED_ID_SUFFIX, '')
             unlockedDesigns[node.attributes[HAIKU_SOURCE_ATTRIBUTE]] = true
-          } else if (lockStatus && !node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(LOCKED_ID_SUFFIX)) {
-            node.attributes[HAIKU_SOURCE_ATTRIBUTE] = node.attributes[HAIKU_SOURCE_ATTRIBUTE] + LOCKED_ID_SUFFIX
+          } else if (lockStatus && !node.attributes[HAIKU_SOURCE_ATTRIBUTE].endsWith(SYNC_LOCKED_ID_SUFFIX)) {
+            node.attributes[HAIKU_SOURCE_ATTRIBUTE] = node.attributes[HAIKU_SOURCE_ATTRIBUTE] + SYNC_LOCKED_ID_SUFFIX
           }
         }
       }

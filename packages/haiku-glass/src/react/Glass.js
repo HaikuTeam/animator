@@ -1448,7 +1448,7 @@ export class Glass extends React.Component {
                     hasStroke && isPointAlongStroke(descendant, mouseDownPosition, Number(descendant.attributes['stroke-width']))
                   )) {
                   clickedItemFound = descendant
-                  if (isDoubleClick) Element.directlySelected = descendant
+                  if (isDoubleClick && elementTargeted.isSelected()) Element.directlySelected = descendant
                   return false // stop searching
                 }
               })

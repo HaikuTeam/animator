@@ -4,7 +4,7 @@ import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 import DownCarrotSVG from 'haiku-ui-common/lib/react/icons/DownCarrotSVG'
 import RightCarrotSVG from 'haiku-ui-common/lib/react/icons/RightCarrotSVG'
 import DragGrip from 'haiku-ui-common/lib/react/icons/DragGrip'
-import {SyncIconSVG} from 'haiku-ui-common/lib/react/OtherIcons'
+import {SyncIconSVG, LockIconSVG, UnlockIconSVG} from 'haiku-ui-common/lib/react/OtherIcons'
 import Palette from 'haiku-ui-common/lib/Palette'
 import Element from 'haiku-serialization/src/bll/Element'
 import ComponentHeadingRowHeading from './ComponentHeadingRowHeading'
@@ -61,8 +61,14 @@ export default class ComponentHeadingRow extends React.Component {
   }
 
   toggleSync () {
-    const locked = !this.props.row.element.isLocked()
+    const locked = !this.props.row.element.isSyncLocked()
     this.props.component.updateKeyframes({}, {setElementLockStatus: {[this.props.row.element.getComponentId()]: locked}}, {from: 'timeline'}, () => {
+      this.forceUpdate()
+    })
+  }
+  
+  toggleLock () {
+    this.props.row.element.toggleLocked({from: 'timeline'}, (err, locked) => {
       this.forceUpdate()
     })
   }
@@ -259,12 +265,32 @@ export default class ComponentHeadingRow extends React.Component {
               )}
             >
               <div
+                className='layer-lock-button'
+                style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+                  display: this.props.row.element.getSource() ? 'block' : 'none'
+                } : {
+                  width: 16,
+                  position: 'absolute',
+                  left: 0,
+                  top: 0,
+                  display: this.props.row.element.getSource() ? 'block' : 'none'
+                })}
+                onClick={this.toggleLock.bind(this)}
+              >
+                {
+                  this.props.row.element.isLocked() ?
+                    LockIconSVG({color: Palette.ROCK_MUTED})
+                  :
+                    UnlockIconSVG({color: Palette.DARK_ROCK})
+                }
+              </div>
+              <div
                 title='Edit element Actions'
                 className='event-handler-triggerer-button'
                 style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {} : {
                   width: 10,
                   position: 'absolute',
-                  left: 0,
+                  left: 16,
                   top: 0
                 })}>
                 {(this.props.isExpanded || this.props.hasAttachedActions)
@@ -282,7 +308,7 @@ export default class ComponentHeadingRow extends React.Component {
                 style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {} : {
                   width: 16,
                   position: 'absolute',
-                  left: 16,
+                  left: 32,
                   top: -1
                 })}>
                 {(this.props.isExpanded)
@@ -295,13 +321,13 @@ export default class ComponentHeadingRow extends React.Component {
                 className='design-sync-button'
                 style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
                   marginLeft: '2px',
-                  display: this.props.row.element.getSource() && this.props.row.element.isLocked() ? 'block' : 'none'
+                  display: this.props.row.element.getSource() && this.props.row.element.isSyncLocked() ? 'block' : 'none'
                 } : {
                   width: 16,
                   position: 'absolute',
-                  left: 36,
+                  left: 50,
                   top: 0,
-                  display: this.props.row.element.getSource() && this.props.row.element.isLocked() ? 'block' : 'none'
+                  display: this.props.row.element.getSource() && this.props.row.element.isSyncLocked() ? 'block' : 'none'
                 })}
                 onClick={this.toggleSync.bind(this)}
                 title='Syncing is disabled for this element. Click to revert your changes and reenable syncing.'
