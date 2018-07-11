@@ -26,5 +26,7 @@
   "TimelineMarqueeSelection": true,
   "LocalAssetExport": false,
   "UserConsole": true,
-  "CleanInitialLibraryState": true
+  "CleanInitialLibraryState": true,
+  "CopyPasteTweens": true,
+  "CopyPasteTweensWithAccelerators": true
 }
