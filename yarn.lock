@@ -318,6 +318,12 @@
   version "2.4.0"
   resolved "https://registry.yarnpkg.com/@types/gl-matrix/-/gl-matrix-2.4.0.tgz#a27affbaf3a849894817f648bf68ac710dedf4a3"
 
+"@types/image-size@^0.0.29":
+  version "0.0.29"
+  resolved "https://registry.yarnpkg.com/@types/image-size/-/image-size-0.0.29.tgz#0924d4ec95edc82f615b7f634cba31534b81c351"
+  dependencies:
+    "@types/node" "*"
+
 "@types/inline-style-prefixer@^3.0.0":
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/@types/inline-style-prefixer/-/inline-style-prefixer-3.0.1.tgz#8541e636b029124b747952e9a28848286d2b5bf6"
@@ -5937,6 +5943,10 @@ ignore@^3.3.5:
   version "3.3.7"
   resolved "https://registry.yarnpkg.com/ignore/-/ignore-3.3.7.tgz#612289bfb3c220e186a58118618d5be8c1bab021"
 
+image-size@^0.6.3:
+  version "0.6.3"
+  resolved "https://registry.yarnpkg.com/image-size/-/image-size-0.6.3.tgz#e7e5c65bb534bd7cdcedd6cb5166272a85f75fb2"
+
 immutable@^3.8.1:
   version "3.8.2"
   resolved "https://registry.yarnpkg.com/immutable/-/immutable-3.8.2.tgz#c2439951455bb39913daf281376f1530e104adf3"
@@ -7174,9 +7184,9 @@ loose-envify@^1.0.0, loose-envify@^1.1.0, loose-envify@^1.2.0, loose-envify@^1.3
   dependencies:
     js-tokens "^3.0.0"
 
-lottie-web@5.1.7:
-  version "5.1.7"
-  resolved "https://registry.yarnpkg.com/lottie-web/-/lottie-web-5.1.7.tgz#5a4c9163209af12333637282b02032782fbfc530"
+lottie-web@5.1.20:
+  version "5.1.20"
+  resolved "https://registry.yarnpkg.com/lottie-web/-/lottie-web-5.1.20.tgz#417d57cefff5ae3e1a322f71411e51e344d19a0f"
 
 loud-rejection@^1.0.0:
   version "1.6.0"
@@ -9327,15 +9337,9 @@ react-html-attributes@^1.3.0:
   dependencies:
     html-element-attributes "^1.0.0"
 
-react-icon-base@2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/react-icon-base/-/react-icon-base-2.1.0.tgz#a196e33fdf1e7aaa1fda3aefbb68bdad9e82a79d"
-
 react-icons@^2.2.7:
   version "2.2.7"
   resolved "https://registry.yarnpkg.com/react-icons/-/react-icons-2.2.7.tgz#d7860826b258557510dac10680abea5ca23cf650"
-  dependencies:
-    react-icon-base "2.1.0"
 
 react-inspector@^2.2.2:
   version "2.2.2"

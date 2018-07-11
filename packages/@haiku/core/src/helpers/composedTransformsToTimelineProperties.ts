@@ -4,7 +4,7 @@
 
 import Layout3D from '../Layout3D';
 import mat4Decompose, {DecomposedMat4, roundVector, ThreeTuple} from '../vendor/mat4-decompose';
-import math3d from '../vendor/math3d';
+import {doublesEqual, getEulerAngles} from '../vendor/math3d';
 
 const cleanInvalidOrOverexplicitProps = (out, explicit = false) => {
   // The reason for the conditional test is we don't want to bother assigning the attribute if it's the default/fallback
@@ -38,7 +38,21 @@ const cleanInvalidOrOverexplicitProps = (out, explicit = false) => {
   });
 };
 
-export default function composedTransformsToTimelineProperties (out, matrices, explicit = false) {
+export const simplify3dTransformations = (out, epislon = 1e-3) => {
+  // When our six degrees of freedom might allow us to remove 3D rotation entirely, opt to do so. This might prevent
+  // downstream rendering issues with layout engines that don't support 3D rotation mechanics (e.g. Lottie).
+  if (doublesEqual(Math.abs(out['rotation.x']), Math.PI, epislon)) {
+    out['rotation.x'] = 0;
+    out['scale.y'] *= -1;
+  }
+
+  if (doublesEqual(Math.abs(out['rotation.y']), Math.PI, epislon)) {
+    out['rotation.y'] = 0;
+    out['scale.x'] *= -1;
+  }
+};
+
+export default (out, matrices, explicit = false, epsilon = 1e-3) => {
   // Note the array reversal - to combine matrices we go in the opposite of the transform sequence
   // I.e. if we transform A->B->C, the multiplication order should be CxBxA
   const decomposed = mat4Decompose(Layout3D.multiplyArrayOfMatrices(matrices.reverse()));
@@ -52,7 +66,7 @@ export default function composedTransformsToTimelineProperties (out, matrices, e
     };
   }
 
-  const rotation = roundVector<ThreeTuple>(math3d.getEulerAngles.apply(undefined, quaternion));
+  const rotation = roundVector<ThreeTuple>(getEulerAngles(quaternion[0], quaternion[1], quaternion[2], quaternion[3]));
 
   out['translation.x'] = translation[0];
   out['translation.y'] = translation[1];
@@ -66,7 +80,8 @@ export default function composedTransformsToTimelineProperties (out, matrices, e
   out['shear.xy'] = shear[0];
   out['shear.xz'] = shear[1];
   out['shear.yz'] = shear[2];
+  simplify3dTransformations(out, epsilon);
   cleanInvalidOrOverexplicitProps(out, explicit);
 
   return out;
-}
+};

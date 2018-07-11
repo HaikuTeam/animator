@@ -37,7 +37,7 @@ export default {
             "value": "#FF0000"
           }
         },
-        "stroke-width": {
+        "strokeWidth": {
           "0": {
             "value": 10
           }

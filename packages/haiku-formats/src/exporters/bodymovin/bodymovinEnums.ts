@@ -20,9 +20,24 @@ export const enum LayerKey {
   Index = 'ind',
   LocalIndex = 'hix',
   Name = 'nm',
+  ReferenceId = 'refId',
+  Width = 'w',
+  Height = 'h',
+}
+
+export const enum AssetKey {
+  Id = 'id',
+  PrecompLayers = 'layers',
+  Width = 'w',
+  Height = 'h',
+  Directory = 'u',
+  Filename = 'p',
+  IsInline = 'e',
 }
 
 export const enum LayerType {
+  Precomp = 0,
+  Image = 2,
   Shape = 4,
 }
 

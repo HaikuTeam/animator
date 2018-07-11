@@ -4,6 +4,7 @@ export enum SvgTag {
   Group = 'g',
   CircleShape = 'circle',
   EllipseShape = 'ellipse',
+  Image = 'image',
   LinearGradient = 'linearGradient',
   RadialGradient = 'radialGradient',
   RectangleShape = 'rect',
@@ -12,4 +13,6 @@ export enum SvgTag {
   PolylineShape = 'polyline',
   Svg = 'svg',
   Use = 'use',
+  // Not really an SVG tag, but behaves like one in our layout semantics.
+  Div = 'div',
 }

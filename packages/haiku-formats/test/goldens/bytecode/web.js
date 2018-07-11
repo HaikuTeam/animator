@@ -536,15 +536,15 @@ module.exports = {
       },
       "haiku:d8859f1aa417": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
+        "fillRule": { "0": { value: "evenodd" } },
         "translation.x": { "0": { value: -6 } },
         "translation.y": { "0": { value: -128 } }
       },
       "haiku:b46339767712": {
         stroke: { "0": { value: "#FFEE96" } },
-        "stroke-width": { "0": { value: "2" } },
+        "strokeWidth": { "0": { value: "2" } },
         "translation.x": { "0": { value: 4 } },
         "translation.y": { "0": { value: 49 } }
       },
@@ -560,9 +560,9 @@ module.exports = {
       },
       "haiku:e399f16368ab": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
+        "fillRule": { "0": { value: "evenodd" } },
         "translation.x": { "0": { value: -148 } },
         "translation.y": { "0": { value: -96 } }
       },
@@ -581,11 +581,11 @@ module.exports = {
         y2: { "0": { value: "79.2319629%" } }
       },
       "haiku:3c243f63ff50": {
-        "stop-color": { "0": { value: "#8DD3C7" } },
+        "stopColor": { "0": { value: "#8DD3C7" } },
         offset: { "0": { value: "0%" } }
       },
       "haiku:d135bc0f29d1": {
-        "stop-color": { "0": { value: "#50A6BC" } },
+        "stopColor": { "0": { value: "#50A6BC" } },
         offset: { "0": { value: "100%" } }
       },
       "haiku:b547a7201e20": {
@@ -597,9 +597,9 @@ module.exports = {
       },
       "haiku:f36433790687": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
+        "fillRule": { "0": { value: "evenodd" } },
         "translation.x": { "0": { value: -49 } }
       },
       "haiku:0d8f7775374d": { fill: { "0": { value: "white" } } },
@@ -608,9 +608,9 @@ module.exports = {
       },
       "haiku:8bf22b762b13": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
+        "fillRule": { "0": { value: "evenodd" } },
         "translation.x": { "0": { value: -20 } },
         "translation.y": { "0": { value: -4 } }
       },
@@ -621,16 +621,16 @@ module.exports = {
           }
         },
         stroke: { "0": { value: "#11FFF1" } },
-        "stroke-width": { "0": { value: "2" } },
+        "strokeWidth": { "0": { value: "2" } },
         "translation.x": { "0": { value: -17.75 } },
         "translation.y": { "0": { value: 59.22 } },
         "rotation.z": { "0": { value: 6.06 } }
       },
       "haiku:4c22aeba9045": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
+        "fillRule": { "0": { value: "evenodd" } },
         "translation.x": { "0": { value: -294 } },
         "translation.y": { "0": { value: -103 } }
       },
@@ -657,16 +657,16 @@ module.exports = {
       },
       "haiku:d9d334ea4be2": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
+        "fillRule": { "0": { value: "evenodd" } },
         opacity: { "0": { value: "0.2" } },
         "translation.x": { "0": { value: -290 } },
         "translation.y": { "0": { value: -82 } }
       },
       "haiku:6cb74f859042": {
         fill: { "0": { value: "#FFFFFF" } },
-        "fill-rule": { "0": { value: "nonzero" } },
+        "fillRule": { "0": { value: "nonzero" } },
         filter: { "0": { value: "url(#filter-1-38ae12)" } },
         points: {
           "0": {
@@ -676,9 +676,9 @@ module.exports = {
       },
       "haiku:fd5efe154095": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
+        "fillRule": { "0": { value: "evenodd" } },
         "translation.x": { "0": { value: -242 } },
         "translation.y": { "0": { value: -140 } }
       },
@@ -692,9 +692,9 @@ module.exports = {
       },
       "haiku:3cba176f8e13": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
+        "fillRule": { "0": { value: "evenodd" } },
         "translation.x": { "0": { value: -294 } },
         "translation.y": { "0": { value: -183 } }
       },
@@ -708,9 +708,9 @@ module.exports = {
       },
       "haiku:da6cabdd0cc1": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
+        "fillRule": { "0": { value: "evenodd" } },
         "translation.x": { "0": { value: -74 } },
         "translation.y": { "0": { value: -109 } }
       },
@@ -724,9 +724,9 @@ module.exports = {
       },
       "haiku:5b4c7b91a6ad": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
+        "fillRule": { "0": { value: "evenodd" } },
         "translation.x": { "0": { value: -278 } },
         "translation.y": { "0": { value: -107 } }
       },
@@ -740,15 +740,15 @@ module.exports = {
       },
       "haiku:1fe310063819": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
+        "fillRule": { "0": { value: "evenodd" } },
         "translation.x": { "0": { value: -290 } },
         "translation.y": { "0": { value: -114 } }
       },
       "haiku:8a13bc143fa2": {
         fill: { "0": { value: "#65C1D4" } },
-        "fill-rule": { "0": { value: "nonzero" } },
+        "fillRule": { "0": { value: "nonzero" } },
         points: {
           "0": {
             value: "302.746842 114 316 121.759091 302.746842 129 290 121.240909"
@@ -757,9 +757,9 @@ module.exports = {
       },
       "haiku:fcc9a898929f": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
+        "fillRule": { "0": { value: "evenodd" } },
         "translation.x": { "0": { value: -92 } },
         "translation.y": { "0": { value: -24 } }
       },
@@ -773,9 +773,9 @@ module.exports = {
       },
       "haiku:5ebe338f3c3b": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
+        "fillRule": { "0": { value: "evenodd" } },
         "translation.x": { "0": { value: -336 } },
         "translation.y": { "0": { value: -31 } }
       },
@@ -789,9 +789,9 @@ module.exports = {
       },
       "haiku:09e38858f51c": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
+        "fillRule": { "0": { value: "evenodd" } },
         "translation.x": { "0": { value: -163 } },
         "translation.y": { "0": { value: -131 } }
       },
@@ -805,9 +805,9 @@ module.exports = {
       },
       "haiku:482087ba25ff": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
+        "fillRule": { "0": { value: "evenodd" } },
         "translation.x": { "0": { value: -85 } },
         "translation.y": { "0": { value: -165 } }
       },
@@ -821,9 +821,9 @@ module.exports = {
       },
       "haiku:0ce7b3d4df6a": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
+        "fillRule": { "0": { value: "evenodd" } },
         "translation.x": { "0": { value: -85 } },
         "translation.y": { "0": { value: -165 } }
       },
@@ -837,9 +837,9 @@ module.exports = {
       },
       "haiku:2e2515d991f5": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
+        "fillRule": { "0": { value: "evenodd" } },
         "translation.x": { "0": { value: -200 } },
         "translation.y": { "0": { value: -190 } }
       },
@@ -853,9 +853,9 @@ module.exports = {
       },
       "haiku:5bb3a0b417ac": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
+        "fillRule": { "0": { value: "evenodd" } },
         "translation.x": { "0": { value: -317 } },
         "translation.y": { "0": { value: -147 } }
       },
@@ -869,9 +869,9 @@ module.exports = {
       },
       "haiku:9c3a7e2632dd": {
         stroke: { "0": { value: "none" } },
-        "stroke-width": { "0": { value: "1" } },
+        "strokeWidth": { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fill-rule": { "0": { value: "evenodd" } },
+        "fillRule": { "0": { value: "evenodd" } },
         "translation.x": { "0": { value: -261 } },
         "translation.y": { "0": { value: -8 } }
       },
