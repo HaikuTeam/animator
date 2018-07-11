@@ -67,7 +67,7 @@ class ElementSelectionProxy extends BaseModel {
     }
 
     // If we're dealing with just a single element, we need to to use its points and
-    // layout spec directly so that the transform control box fits to its actual shape
+    // layout spec directly so that the transform control box fits to its actual shape.
     if (elements.length === 1) {
       this._proxyBoxPoints = elements[0].getBoxPointsNotTransformed().map((p) => p)
 
@@ -508,11 +508,21 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   getLayoutSpec () {
+    // Important: in the case we're we have a single element selected, we ensure correctness of the box placement
+    // by applying all the properties affecting layout.
     return {
       shown: true,
       opacity: 1.0,
-      mount: {x: 0, y: 0, z: 0},
-      align: {x: 0, y: 0, z: 0},
+      mount: {
+        x: this.computePropertyValue('mount.x'),
+        y: this.computePropertyValue('mount.y'),
+        z: this.computePropertyValue('mount.z')
+      },
+      align: {
+        x: this.computePropertyValue('align.x'),
+        y: this.computePropertyValue('align.y'),
+        z: this.computePropertyValue('align.z')
+      },
       origin: {
         x: this.computePropertyValue('origin.x'),
         y: this.computePropertyValue('origin.y'),
@@ -1900,6 +1910,12 @@ ElementSelectionProxy.DEFAULT_PROPERTY_VALUES = {
   'origin.x': 0.5,
   'origin.y': 0.5,
   'origin.z': 0.5,
+  'align.x': 0,
+  'align.y': 0,
+  'align.z': 0,
+  'mount.x': 0,
+  'mount.y': 0,
+  'mount.z': 0,
   'sizeAbsolute.x': 0,
   'sizeAbsolute.y': 0,
   'sizeAbsolute.z': 0
