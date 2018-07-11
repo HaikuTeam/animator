@@ -9,3 +9,4 @@ packages/**/.last-compile
 config.js
 !packages/**/.storybook/config.js
 .env
+.vs/
