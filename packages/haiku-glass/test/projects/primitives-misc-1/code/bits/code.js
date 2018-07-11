@@ -97,11 +97,10 @@ module.exports = {
         "translation.x": {
           "0": {
             value: Haiku.inject(
-              function($container, width) {
+              function($container) {
                 return $container.width;
               },
-              "$container",
-              "width"
+              "$container"
             ),
             edited: true
           }
