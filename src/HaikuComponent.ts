@@ -37,6 +37,48 @@ const KEYFRAME_ZERO = 0;
 const OBJECT = 'object';
 const MAX_INT = 2147483646;
 
+const parseD = (value: string|CurveSpec[]): CurveSpec[] => {
+  // in case of d="" for any reason, don't try to expand this otherwise this will choke
+  // #TODO: arguably we should preprocess SVGs before things get this far; try svgo?
+  if (!value || value.length === 0) {
+    return [];
+  }
+  // Allow points to return an array for convenience, and let downstream marshal it
+  if (Array.isArray(value)) {
+    return value;
+  }
+  return SVGPoints.pathToPoints(value);
+};
+
+const generateD = (value: string|CurveSpec[]): string => {
+  if (typeof value === 'string') {
+    return value;
+  }
+  return SVGPoints.pointsToPath(value);
+};
+
+const parseColor = (value) => {
+  return ColorUtils.parseString(value);
+};
+
+const generateColor = (value) => {
+  return ColorUtils.generateString(value);
+};
+
+const parsePoints = (value) => {
+  if (Array.isArray(value)) {
+    return value;
+  }
+  return SVGPoints.polyPointsStringToPoints(value);
+};
+
+const generatePoints = (value) => {
+  if (typeof value === 'string') {
+    return value;
+  }
+  return SVGPoints.pointsToPolyString(value);
+};
+
 const isFunction = (value) => {
   return typeof value === FUNCTION;
 };
@@ -3636,48 +3678,6 @@ for (const builtinInjectableKey in BUILTIN_INJECTABLES) {
     },
   };
 }
-
-const parseD = (value: string|CurveSpec[]): CurveSpec[] => {
-  // in case of d="" for any reason, don't try to expand this otherwise this will choke
-  // #TODO: arguably we should preprocess SVGs before things get this far; try svgo?
-  if (!value || value.length === 0) {
-    return [];
-  }
-  // Allow points to return an array for convenience, and let downstream marshal it
-  if (Array.isArray(value)) {
-    return value;
-  }
-  return SVGPoints.pathToPoints(value);
-};
-
-const generateD = (value: string|CurveSpec[]): string => {
-  if (typeof value === 'string') {
-    return value;
-  }
-  return SVGPoints.pointsToPath(value);
-};
-
-const parseColor = (value) => {
-  return ColorUtils.parseString(value);
-};
-
-const generateColor = (value) => {
-  return ColorUtils.generateString(value);
-};
-
-const parsePoints = (value) => {
-  if (Array.isArray(value)) {
-    return value;
-  }
-  return SVGPoints.polyPointsStringToPoints(value);
-};
-
-const generatePoints = (value) => {
-  if (typeof value === 'string') {
-    return value;
-  }
-  return SVGPoints.pointsToPolyString(value);
-};
 
 /**
  * When evaluating expressions written by the user, don't crash everything.
