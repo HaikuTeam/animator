@@ -1,6 +1,6 @@
 {
   "name": "haiku-glass",
-  "version": "3.4.7",
+  "version": "3.4.8",
   "private": true,
   "authors": [
     "Matthew Trost <matthew@haiku.ai>",
@@ -18,16 +18,16 @@
     ]
   },
   "dependencies": {
-    "@haiku/core": "3.4.7",
+    "@haiku/core": "3.4.8",
     "babel-register": "6.26.0",
     "bluebird": "^3.5.0",
     "capitalize": "^1.0.0",
     "color": "^2.0.1",
     "cst": "^0.4.10",
-    "haiku-common": "3.4.7",
-    "haiku-fs-extra": "3.4.7",
-    "haiku-serialization": "3.4.7",
-    "haiku-ui-common": "3.4.7",
+    "haiku-common": "3.4.8",
+    "haiku-fs-extra": "3.4.8",
+    "haiku-serialization": "3.4.8",
+    "haiku-ui-common": "3.4.8",
     "lodash": "^4.17.4",
     "moment": "2.18.1",
     "monaco-editor": "^0.12.0",

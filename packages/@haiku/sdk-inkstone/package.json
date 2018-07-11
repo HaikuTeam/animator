@@ -1,6 +1,6 @@
 {
   "name": "@haiku/sdk-inkstone",
-  "version": "3.4.7",
+  "version": "3.4.8",
   "description": "Haiku SDK for Inkstone",
   "main": "lib/index.js",
   "scripts": {
@@ -25,7 +25,7 @@
   "devDependencies": {
     "@types/mkdirp": "^0.3.29",
     "@types/request": "^2.0.0",
-    "haiku-testing": "3.4.7",
+    "haiku-testing": "3.4.8",
     "leaked-handles": "^5.2.0"
   }
 }
