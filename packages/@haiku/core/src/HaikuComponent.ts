@@ -1795,12 +1795,12 @@ export default class HaikuComponent extends HaikuElement {
   }
 
   getParser (outputName) {
-    const foundParser = PARSERS[outputName];
+    const foundParser = HaikuComponent.PARSERS[outputName];
     return foundParser && foundParser.parse;
   }
 
   getGenerator (outputName) {
-    const foundGenerator = PARSERS[outputName];
+    const foundGenerator = HaikuComponent.PARSERS[outputName];
     return foundGenerator && foundGenerator.generate;
   }
 
@@ -1872,6 +1872,37 @@ export default class HaikuComponent extends HaikuElement {
     constructor: true,
     defineProperties: true,
     defineProperty: true,
+  };
+
+  static PARSERS = {
+    'style.stroke': {parse: parseColor, generate: generateColor},
+    'style.fill': {parse: parseColor, generate: generateColor},
+    'style.backgroundColor': {parse: parseColor, generate: generateColor},
+    'style.borderBottomColor': {parse: parseColor, generate: generateColor},
+    'style.borderColor': {parse: parseColor, generate: generateColor},
+    'style.borderLeftColor': {parse: parseColor, generate: generateColor},
+    'style.borderRightColor': {parse: parseColor, generate: generateColor},
+    'style.borderTopColor': {parse: parseColor, generate: generateColor},
+    'style.floodColor': {parse: parseColor, generate: generateColor},
+    'style.lightingColor': {parse: parseColor, generate: generateColor},
+    'style.stopColor': {parse: parseColor, generate: generateColor},
+    stroke: {parse: parseColor, generate: generateColor},
+    fill: {parse: parseColor, generate: generateColor},
+    floodColor: {parse: parseColor, generate: generateColor},
+    lightingColor: {parse: parseColor, generate: generateColor},
+    stopColor: {parse: parseColor, generate: generateColor},
+    backgroundColor: {parse: parseColor, generate: generateColor},
+    animateColor: {parse: parseColor, generate: generateColor},
+    feColor: {parse: parseColor, generate: generateColor},
+    // Note the hyphenated duplicates, for convenience
+    'flood-color': {parse: parseColor, generate: generateColor},
+    'lighting-color': {parse: parseColor, generate: generateColor},
+    'stop-color': {parse: parseColor, generate: generateColor},
+    'background-color': {parse: parseColor, generate: generateColor},
+    'animate-color': {parse: parseColor, generate: generateColor},
+    'fe-color': {parse: parseColor, generate: generateColor},
+    d: {parse: parseD, generate: generateD},
+    points: {parse: parsePoints, generate: generatePoints},
   };
 
   static all = (): HaikuComponent[] => HaikuBase.getRegistryForClass(HaikuComponent);
@@ -3646,37 +3677,6 @@ const generatePoints = (value) => {
     return value;
   }
   return SVGPoints.pointsToPolyString(value);
-};
-
-const PARSERS = {
-  'style.stroke': {parse: parseColor, generate: generateColor},
-  'style.fill': {parse: parseColor, generate: generateColor},
-  'style.backgroundColor': {parse: parseColor, generate: generateColor},
-  'style.borderBottomColor': {parse: parseColor, generate: generateColor},
-  'style.borderColor': {parse: parseColor, generate: generateColor},
-  'style.borderLeftColor': {parse: parseColor, generate: generateColor},
-  'style.borderRightColor': {parse: parseColor, generate: generateColor},
-  'style.borderTopColor': {parse: parseColor, generate: generateColor},
-  'style.floodColor': {parse: parseColor, generate: generateColor},
-  'style.lightingColor': {parse: parseColor, generate: generateColor},
-  'style.stopColor': {parse: parseColor, generate: generateColor},
-  stroke: {parse: parseColor, generate: generateColor},
-  fill: {parse: parseColor, generate: generateColor},
-  floodColor: {parse: parseColor, generate: generateColor},
-  lightingColor: {parse: parseColor, generate: generateColor},
-  stopColor: {parse: parseColor, generate: generateColor},
-  backgroundColor: {parse: parseColor, generate: generateColor},
-  animateColor: {parse: parseColor, generate: generateColor},
-  feColor: {parse: parseColor, generate: generateColor},
-  // Note the hyphenated duplicates, for convenience
-  'flood-color': {parse: parseColor, generate: generateColor},
-  'lighting-color': {parse: parseColor, generate: generateColor},
-  'stop-color': {parse: parseColor, generate: generateColor},
-  'background-color': {parse: parseColor, generate: generateColor},
-  'animate-color': {parse: parseColor, generate: generateColor},
-  'fe-color': {parse: parseColor, generate: generateColor},
-  d: {parse: parseD, generate: generateD},
-  points: {parse: parsePoints, generate: generatePoints},
 };
 
 /**
