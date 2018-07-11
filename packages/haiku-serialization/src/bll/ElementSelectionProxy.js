@@ -1549,12 +1549,9 @@ class ElementSelectionProxy extends BaseModel {
             addressables.width &&
             addressables.width.typedef === 'number'
           ) {
-            if (scaleX > 0) {
-              const width = layoutSpec.size.x * scaleX / baseProxyTransform.scale.x
-              propertyGroupNorm.width = {value: width}
-            }
+            propertyGroupNorm.width = {value: Math.abs(layoutSpec.size.x * scaleX / baseProxyTransform.scale.x)}
             if (propertyGroupNorm['scale.x']) {
-              propertyGroupNorm['scale.x'] = {value: 1}
+              propertyGroupNorm['scale.x'] = {value: Math.sign(scaleX)}
             }
           }
 
@@ -1562,12 +1559,9 @@ class ElementSelectionProxy extends BaseModel {
             addressables.height &&
             addressables.height.typedef === 'number'
           ) {
-            if (scaleY > 0) {
-              const height = layoutSpec.size.y * scaleY / baseProxyTransform.scale.y
-              propertyGroupNorm.height = {value: height}
-            }
+            propertyGroupNorm.height = {value: Math.abs(layoutSpec.size.y * scaleY / baseProxyTransform.scale.y)}
             if (propertyGroupNorm['scale.y']) {
-              propertyGroupNorm['scale.y'] = {value: 1}
+              propertyGroupNorm['scale.y'] = {value: Math.sign(scaleY)}
             }
           }
         }
