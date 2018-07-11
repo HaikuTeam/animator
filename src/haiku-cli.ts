@@ -520,13 +520,13 @@ function generateComponent (context: IContext) {
   };
 
   createProjectFiles(projectPath, projectName, projectOptions, () => {
-    console.log('Created initial project files');
+    context.writeLine('Created initial project files');
     fetchProjectConfigInfo(projectPath, (err: Error|null, userconfig: any) => {
       if (err) {
         throw err;
       }
       bootstrapSceneFilesSync(projectPath, 'main', userconfig);
-      console.log('Created main component');
+      context.writeLine('Created main component');
     });
   });
 
