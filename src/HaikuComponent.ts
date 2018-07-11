@@ -886,12 +886,10 @@ export default class HaikuComponent extends HaikuElement {
 
   markForFullFlush () {
     this.doesNeedFullFlush = true;
-    return this;
   }
 
   unmarkForFullFlush () {
     this.doesNeedFullFlush = false;
-    return this;
   }
 
   shouldPerformFullFlush () {
@@ -908,6 +906,7 @@ export default class HaikuComponent extends HaikuElement {
 
     // Undefined signals there is no update to be made
     if (tree !== undefined) {
+      // Untyped code paths downstream depend on the output of this method
       return renderer.render(
         this.container,
         tree,
