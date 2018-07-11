@@ -23,16 +23,13 @@
     "lodash": "^4.17.4",
     "mkdirp": "^0.5.1",
     "request": "^2.83.0",
-    "semver": "^5.4.1",
     "fs-extra": "^4.0.2",
     "dedent": "^0.7.0",
-    "async": "^2.5.0",
     "pascalcase": "0.1.1"
   },
   "devDependencies": {
     "@types/mkdirp": "^0.3.29",
     "@types/request": "^2.0.0",
-    "@types/semver": "^5.4.1",
     "@types/node": "^8.9.4",
     "@types/dedent": "^0.7.0",
     "@types/fs-extra": "^4.0.8",
