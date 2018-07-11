@@ -1,9 +1,8 @@
-// @ts-ignore
 import * as fse from 'fs-extra';
+// @ts-ignore
+import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import * as path from 'path';
 import * as semver from 'semver';
-
-const logger = console;
 
 export function semverBumpPackageJson (projectPath: string, maybeVersionToBumpTo: string, cb: any) {
   try {

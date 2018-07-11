@@ -1,3 +1,8 @@
+import * as async from 'async';
+import * as fse from 'fs-extra';
+// @ts-ignore
+import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
+import * as path from 'path';
 // @ts-ignore
 import * as rollup from 'rollup';
 // @ts-ignore
@@ -10,14 +15,6 @@ import * as json from 'rollup-plugin-json';
 import * as nodeResolve from 'rollup-plugin-node-resolve';
 // @ts-ignore
 import * as uglify from 'rollup-plugin-uglify-es';
-
-import * as async from 'async';
-import * as path from 'path';
-
-// @ts-ignore
-import * as fse from 'fs-extra';
-
-const logger = console;
 
 import {
   getCopyrightNotice,

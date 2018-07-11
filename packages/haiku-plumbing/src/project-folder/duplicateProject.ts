@@ -1,9 +1,8 @@
-// @ts-ignore
 import * as fse from 'fs-extra';
+// @ts-ignore
+import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import {escapeRegExp} from 'lodash';
 import * as path from 'path';
-
-const logger = console;
 
 export function duplicateProject (destinationProject: any, sourceProject: any, cb: any) {
   try {

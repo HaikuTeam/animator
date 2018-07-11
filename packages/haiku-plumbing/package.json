@@ -30,6 +30,7 @@
     "chokidar": "^1.7.0",
     "dedent": "^0.7.0",
     "dotenv": "^5.0.1",
+    "fs-extra": "^4.0.2",
     "haiku-common": "3.5.1",
     "haiku-formats": "3.5.1",
     "haiku-fs-extra": "3.5.1",
@@ -63,6 +64,8 @@
   },
   "devDependencies": {
     "@types/es6-promise": "^3.3.0",
+    "@types/semver": "^5.4.1",
+    "@types/fs-extra": "^4.0.8",
     "electron": "2.0.2",
     "haiku-creator": "3.5.1",
     "haiku-testing": "3.5.1",
