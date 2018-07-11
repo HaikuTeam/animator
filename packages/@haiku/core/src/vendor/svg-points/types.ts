@@ -48,19 +48,21 @@ export type RectSpec = {
   y?: number;
 };
 
+export type CurveDef = {
+  type: string;
+  largeArcFlag?: number;
+  sweepFlag?: number;
+  xAxisRotation?: number;
+  rx?: number;
+  ry?: number;
+  x1?: number;
+  y1?: number;
+  x2?: number;
+  y2?: number;
+};
+
 export type CurveSpec = {
-  curve?: {
-    type: string;
-    largeArcFlag?: number;
-    sweepFlag?: number;
-    xAxisRotation?: number;
-    rx?: number;
-    ry?: number;
-    x1?: number;
-    y1?: number;
-    x2?: number;
-    y2?: number;
-  };
+  curve?: CurveDef;
   x: number;
   y: number;
   moveTo?: boolean;
