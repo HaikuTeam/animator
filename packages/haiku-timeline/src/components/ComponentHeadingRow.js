@@ -259,31 +259,12 @@ export default class ComponentHeadingRow extends React.Component {
               )}
             >
               <div
-                className='design-sync-button'
-                style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
-                  display: this.props.row.element.getSource() ? 'block' : 'none',
-                  width: 16
-                } : {
-                  width: 10,
-                  position: 'absolute',
-                  left: 0,
-                  top: 0,
-                  display: this.props.row.element.getSource() ? 'block' : 'none'
-                })}
-                onClick={this.toggleSync.bind(this)}
-                title={this.props.row.element.isLocked()
-                  ? 'Syncing is disabled for this element. Click to revert your changes and reenable syncing.'
-                  : 'Syncing is enabled. Changes to the source will be mirrored here.'
-                }>
-                {SyncIconSVG({color: this.props.row.element.isLocked() ? Palette.RED_DARKER : Palette.DARK_ROCK})}
-              </div>
-              <div
                 title='Edit element Actions'
                 className='event-handler-triggerer-button'
                 style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {} : {
                   width: 10,
                   position: 'absolute',
-                  left: 16,
+                  left: 0,
                   top: 0
                 })}>
                 {(this.props.isExpanded || this.props.hasAttachedActions)
@@ -299,7 +280,7 @@ export default class ComponentHeadingRow extends React.Component {
                 title='Add property'
                 className='property-manager-button'
                 style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {} : {
-                  width: 10,
+                  width: 16,
                   position: 'absolute',
                   left: 16,
                   top: -1
@@ -309,6 +290,23 @@ export default class ComponentHeadingRow extends React.Component {
                     element={this.props.row.element}
                   />
                   : ''}
+              </div>
+              <div
+                className='design-sync-button'
+                style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+                  marginLeft: '2px',
+                  display: this.props.row.element.getSource() && this.props.row.element.isLocked() ? 'block' : 'none'
+                } : {
+                  width: 16,
+                  position: 'absolute',
+                  left: 36,
+                  top: 0,
+                  display: this.props.row.element.getSource() && this.props.row.element.isLocked() ? 'block' : 'none'
+                })}
+                onClick={this.toggleSync.bind(this)}
+                title='Syncing is disabled for this element. Click to revert your changes and reenable syncing.'
+              >
+                {SyncIconSVG({color: Palette.RED_DARKER})}
               </div>
             </div>
           </div>
