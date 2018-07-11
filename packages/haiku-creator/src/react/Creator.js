@@ -141,6 +141,9 @@ export default class Creator extends React.Component {
       showProxySettings: false,
       servicesEnvoyClient: null,
       projToDuplicateIndex: null,
+      // showGlass:
+      //  true: show glass webviewer (webviewer interactionMode are InteractionMode.EDIT or InteractionMode.LIVE)
+      //  false: show creator code editor
       showGlass: true,
     };
 
@@ -879,6 +882,10 @@ export default class Creator extends React.Component {
   }
 
   handleInteractionModeChange (interactionMode) {
+    if (interactionMode === InteractionMode.LIVE) {
+      this.setState({showGlass: true});
+    }
+
     this.setState({interactionMode});
     this.mixpanelReportPreviewMode(interactionMode);
     // Clear all logs before starting preview on production. For development it might be useful to not clean them
@@ -1989,10 +1996,10 @@ export default class Creator extends React.Component {
                     }}
                     showGlass={this.state.showGlass}
                     onSwitchToCodeMode={() => {
-                      this.setState({activeNav: 'state_inspector', showGlass: false});
+                      this.setState({activeNav: 'state_inspector', showGlass: false, interactionMode: InteractionMode.EDIT});
                     }}
                     onSwitchToDesignMode={() => {
-                      this.setState({activeNav: 'library', showGlass: true});
+                      this.setState({activeNav: 'library', showGlass: true, interactionMode: InteractionMode.EDIT});
                     }}
                     tryToChangeCurrentActiveComponent={this.tryToChangeCurrentActiveComponent}
                   />
