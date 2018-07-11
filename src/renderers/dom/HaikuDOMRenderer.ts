@@ -87,9 +87,19 @@ export default class HaikuDOMRenderer extends HaikuBase {
     }
   }
 
+  getMountForComponent (component: HaikuComponent) {
+    // The component without a host is the root component, and uses this node.
+    if (!component.host) {
+      return this.mount;
+    }
+    return component.target && component.target.parentNode;
+  }
+
   render (virtualContainer, virtualTree, component) {
     return HaikuDOMRenderer.renderTree(
-      this.mount,
+      // The injected mount is for the case that the caller wants to render into a node
+      // other than the root node of the context, for example calling render on a subcomponent
+      this.getMountForComponent(component),
       virtualContainer,
       [virtualTree],
       component,
