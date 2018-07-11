@@ -41,7 +41,6 @@ export function createProjectFiles (
     const npmPackageName = `@haiku/${organizationNameLowerCase}-${projectNameLowerCase}`;
     const copyrightNotice = getCopyrightNotice(organizationName);
 
-    console.log('Reading old package.json..');
     const packageJson = fse.readJsonSync(path.join(projectPath, 'package.json'), {throws: false});
 
     return fetchProjectConfigInfo(projectPath, (err: any, userconfig: any) => {
