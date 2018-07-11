@@ -21,6 +21,7 @@ export const HAIKU_ID_ATTRIBUTE = 'haiku-id';
 export const HAIKU_TITLE_ATTRIBUTE = 'haiku-title';
 export const HAIKU_VAR_ATTRIBUTE = 'haiku-var';
 export const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source';
+export const HAIKU_LOCKED_ATTRIBUTE = 'haiku-locked';
 
 const DEFAULT_DEPTH = 0;
 const DEFAULT_TAG_NAME = 'div';
