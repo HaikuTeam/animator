@@ -5,7 +5,7 @@ import Layout3D from '@haiku/core/lib/Layout3D';
 import {ContextualSize} from 'haiku-common/lib/types';
 import {initialValueOr} from './timelineUtils';
 
-const {createLayoutSpec} = Layout3D;
+const {createLayoutSpec, computeMatrix} = Layout3D;
 
 export const enum LayoutPropertyType {
   Unknown = 0,
@@ -21,6 +21,10 @@ const supportedAdditiveLayoutProperties = [
   'translation.x',
   'translation.y',
   'rotation.z',
+
+  // Not officially supported, but may be strippable when we run `simplify3dTransformations` below.
+  'rotation.x',
+  'rotation.y',
 ];
 
 /**
@@ -86,70 +90,20 @@ export const composeTimelines = (
   childTimeline: any,
   parentTimeline: any,
 ) => {
-  // We can "cheat" if there's no way translation and rotation are being composed together (either alone, with or
-  // without scaling, is fine). Without the tricky interplay of rotation and translation, translation/rotation
-  // separately compose additively and scale composes multiplicatively.
-  if (
-    // If there are no rotations…
-    (initialValueOr(parentTimeline, 'rotation.z', 0) === 0 && initialValueOr(childTimeline, 'rotation.z', 0) === 0) ||
-    // …or there are no translations…
-    (
-      initialValueOr(parentTimeline, 'translation.x', 0) === 0 &&
-      initialValueOr(parentTimeline, 'translation.y', 0) === 0 &&
-      initialValueOr(childTimeline, 'translation.y', 0) === 0 &&
-      initialValueOr(childTimeline, 'translation.y', 0) === 0
-    )
-  ) {
-    return {
-      ...parentTimeline,
-      ...childTimeline,
-      'rotation.z': {
-        0: {
-          value: initialValueOr(parentTimeline, 'rotation.z', 0) + initialValueOr(childTimeline, 'rotation.z', 0),
-        },
-      },
-      'translation.x': {
-        0: {
-          value: initialValueOr(parentTimeline, 'translation.x', 0) + initialValueOr(childTimeline, 'translation.x', 0),
-        },
-      },
-      'translation.y': {
-        0: {
-          value: initialValueOr(parentTimeline, 'translation.y', 0) + initialValueOr(childTimeline, 'translation.y', 0),
-        },
-      },
-      'scale.x': {
-        0: {
-          value: initialValueOr(parentTimeline, 'scale.x', 1) * initialValueOr(childTimeline, 'scale.x', 1),
-        },
-      },
-      'scale.y': {
-        0: {
-          value: initialValueOr(parentTimeline, 'scale.y', 1) * initialValueOr(childTimeline, 'scale.y', 1),
-        },
-      },
-    };
-  }
+  const composedTimeline = {
+    ...parentTimeline,
+    ...childTimeline,
+  };
 
   const childPseudoElement = {layout: createLayoutSpec()};
   const parentPseudoElement = {layout: createLayoutSpec()};
   shimLayoutForPseudoElement(childTimeline, childPseudoElement);
   shimLayoutForPseudoElement(parentTimeline, parentPseudoElement);
-  const childMatrix = Layout3D.computeMatrix(
-    childPseudoElement.layout,
-    shapeLayerSize,
-    animationSize,
-  );
-  const parentMatrix = Layout3D.computeMatrix(
-    parentPseudoElement.layout,
-    shapeLayerSize,
-    animationSize,
-  );
-  const composition = composedTransformsToTimelineProperties({}, [parentMatrix, childMatrix]);
+  const childMatrix = computeMatrix(childPseudoElement.layout, shapeLayerSize, animationSize);
+  const parentMatrix = computeMatrix(parentPseudoElement.layout, shapeLayerSize, animationSize);
+  const composition = composedTransformsToTimelineProperties({}, [parentMatrix, childMatrix], false, 1e-2);
 
-  return {
-    ...parentTimeline,
-    ...childTimeline,
+  Object.assign(composedTimeline, {
     ...supportedAdditiveLayoutProperties.reduce(
       (properties, property) => {
         properties[property] = {0: {value: composition[property] || 0}};
@@ -164,5 +118,7 @@ export const composeTimelines = (
       },
       {},
     ),
-  };
+  });
+
+  return composedTimeline;
 };

@@ -4,6 +4,7 @@ import {
   BytecodeTimelineProperties,
   BytecodeTimelineProperty,
   Curve,
+  HaikuBytecode,
 } from '@haiku/core/lib/api';
 import {synchronizePathStructure} from '@haiku/core/lib/helpers/PathUtil';
 import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
@@ -14,6 +15,7 @@ import {ContextualSize} from 'haiku-common/lib/types';
 import * as Template from 'haiku-serialization/src/bll/Template';
 // @ts-ignore
 import * as LoggerInstance from 'haiku-serialization/src/utils/LoggerInstance';
+import * as imageSize from 'image-size';
 import {difference, flatten, mapKeys} from 'lodash';
 
 import {ExporterInterface} from '..';
@@ -27,20 +29,14 @@ import {
   splitBezierForTimelinePropertyAtKeyframe,
 } from '../curves';
 import {evaluateInjectedFunctionInExportContext} from '../injectables';
+import {composeTimelines, LayoutPropertyType} from '../layout';
 import {
-  composeTimelines,
-  LayoutPropertyType,
-} from '../layout';
-import {
-  initialValue,
-  initialValueOr,
-  initialValueOrNull,
-  simulateLayoutProperty,
-  timelineHasProperties,
+  initialValue, initialValueOr, initialValueOrNull, simulateLayoutProperty, timelineHasProperties,
 } from '../timelineUtils';
 
 import {
   AnimationKey,
+  AssetKey,
   FillRule,
   GradientKey,
   GradientType,
@@ -65,12 +61,7 @@ import {
   rotationTransformer,
   scaleTransformer,
 } from './bodymovinTransformers';
-import {
-  BodymovinFill,
-  BodymovinShape,
-  BodymovinTransform,
-  SvgInheritable,
-} from './bodymovinTypes';
+import {BodymovinFill, BodymovinShape, BodymovinTransform, SvgInheritable} from './bodymovinTypes';
 import {
   alwaysAbsolute,
   alwaysArray,
@@ -91,52 +82,59 @@ const bodymovinVersion = getBodymovinVersion();
 
 type MutatorType = (param: any) => any;
 
+type BodymovinLayer = any;
+
+export type BodymovinAnimation = any;
+
 export class BodymovinExporter extends BaseExporter implements ExporterInterface {
   /**
-   * The out-point (last frame) for the animation.
-   * @type {number}
+   * The out-point (last frame) for the animation. We always use a positive value—in AE, an outpoint of 0 means an item
+   * won't display.
    */
-  private outPoint = 0;
+  private outPoint = 1;
 
   /**
    * The composed layers from parsing the animation.
-   * @type {Array}
    */
-  private layers: object[] = [];
+  private rootLayers: BodymovinLayer[] = [];
+
+  /**
+   * A map of structural nodes to layers.
+   */
+  private layerStack = new Map<BytecodeNode, BodymovinLayer[]>();
+
+  /**
+   * The parsed assets.
+   */
+  private assets: any[] = [];
 
   /**
    * The group hierarchy determined during parsing.
-   * @type {[key: string]: string}
    */
   private groupHierarchy: {[key: string]: SvgInheritable} = {};
 
   /**
    * The definition transclusions we should use for ID interpolation.
-   * @type {[key: string]: {}}
    */
   private transclusions = {};
 
   /**
    * The Haiku IDs we should elide due to their association with definitions.
-   * @type {Array<string>}
    */
   private definitionHaikuIds: string[] = [];
 
   /**
    * Whether we have already parsed the bytecode passed to the object on construction.
-   * @type {boolean}
    */
   private bytecodeParsed = false;
 
   /**
    * Local layer index, for resolving z-index collisions.
-   * @type {number}
    */
   private localLayerIndex = 0;
 
   /**
    * The size of the animation.
-   * @type {ContextualSize}
    */
   private animationSize: ContextualSize = {
     x: 0,
@@ -145,10 +143,14 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
   };
 
   /**
-   * The size of the current layer.
-   * @type {ContextualSize}
+   * The structural node with which we determine the current element's position in the layout hierarchy.
    */
-  private currentLayerSize: ContextualSize = {
+  private structuralNode: BytecodeNode;
+
+  /**
+   * The size of the current layer.
+   */
+  private currentNodeSize: ContextualSize = {
     x: 0,
     y: 0,
     z: 0,
@@ -156,9 +158,8 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
 
   /**
    * Core storage for the transformed output.
-   * @type {any}
    */
-  private core: any = {
+  private core: BodymovinAnimation = {
     // In-point: always 0.
     ip: 0,
     // Frame rate: always 60.
@@ -167,9 +168,12 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     v: bodymovinVersion,
   };
 
+  private get layers (): BodymovinLayer[] {
+    return this.layerStack.get(this.structuralNode) || [];
+  }
+
   /**
    * Convenience method for retrieving the active layer.
-   * @returns {any}
    */
   private get activeLayer () {
     return this.layers.length > 0 ? this.layers[this.layers.length - 1] : null;
@@ -181,17 +185,23 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @param {string?} parentHaikuId
    * @returns {{}}
    */
-  private timelineForId (haikuId: string, parentHaikuId?: string): BytecodeTimelineProperties {
+  private timelineForId (
+    haikuId: string,
+    parentHaikuId?: string,
+  ): BytecodeTimelineProperties {
     const timelineId = `haiku:${haikuId}`;
     const timeline = this.bytecode.timelines.Default[timelineId] || {};
 
     if (parentHaikuId && this.groupHierarchy.hasOwnProperty(parentHaikuId)) {
       const inheritable = this.groupHierarchy[parentHaikuId];
       return composeTimelines(
-        this.currentLayerSize,
+        this.currentNodeSize,
         this.animationSize,
         timeline,
-        this.timelineForId(parentHaikuId, inheritable.inheritFromParent ? inheritable.parentId : undefined),
+        this.timelineForId(
+          parentHaikuId,
+          inheritable.inheritFromParent ? inheritable.parentId : undefined,
+        ),
       );
     }
 
@@ -204,8 +214,14 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @param parentNode
    * @returns {{}}
    */
-  private timelineForNode (node: BytecodeNode, parentNode?: BytecodeNode): BytecodeTimelineProperties {
-    return this.timelineForId(node.attributes['haiku-id'], parentNode ? parentNode.attributes['haiku-id'] : undefined);
+  private timelineForNode (
+    node: BytecodeNode,
+    parentNode?: BytecodeNode,
+  ): BytecodeTimelineProperties {
+    return this.timelineForId(
+      node.attributes['haiku-id'],
+      parentNode ? parentNode.attributes['haiku-id'] : undefined,
+    );
   }
 
   /**
@@ -340,12 +356,12 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @param timeline
    * @returns {[key in TransformKey]: any}
    */
-  private transformsForLayerTimeline (timeline: BytecodeTimelineProperties) {
+  private transformsForLayerTimeline (timeline: BytecodeTimelineProperties, widthOffset = 0, heightOffset = 0) {
     const transforms = {};
     transforms[TransformKey.OuterRadius] = getFixedPropertyValue([0, 0, 0]);
 
-    const sizeX = initialValueOr(timeline, 'sizeAbsolute.x', 0);
-    const sizeY = initialValueOr(timeline, 'sizeAbsolute.y', 0);
+    const sizeX = this.currentNodeSize.x;
+    const sizeY = this.currentNodeSize.y;
     const originX = sizeX * (initialValueOr(timeline, 'origin.x', 0.5));
     const originY = sizeY * (initialValueOr(timeline, 'origin.y', 0.5));
     const mountX = sizeX * initialValueOr(timeline, 'mount.x', 0);
@@ -359,16 +375,16 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
         x: this.getValue(
           timelineHasProperties(timeline, 'translation.x') ? timeline['translation.x'] : simulateLayoutProperty(
             LayoutPropertyType.Additive) as BytecodeTimelineProperty,
-          (value) => value - mountX,
+          (value) => value - mountX + widthOffset,
         ),
         y: this.getValue(
           timelineHasProperties(timeline, 'translation.y') ? timeline['translation.y'] : simulateLayoutProperty(
             LayoutPropertyType.Additive) as BytecodeTimelineProperty,
-          (value) => value - mountY,
+          (value) => value - mountY + heightOffset,
         ),
       };
     } else {
-      transforms[TransformKey.Position] = getFixedPropertyValue([0, 0, 0]);
+      transforms[TransformKey.Position] = getFixedPropertyValue([widthOffset, heightOffset, 0]);
     }
 
     transforms[TransformKey.RotationX] =
@@ -404,8 +420,13 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
   private transformsForShapeTimeline (timeline: BytecodeTimelineProperties) {
     const transforms = {
       [TransformKey.TransformOrigin]: getFixedPropertyValue([0, 0]),
-      [TransformKey.Scale]: getFixedPropertyValue([100, 100]),
     };
+
+    if (timelineHasProperties(timeline, 'scale.x', 'scale.y')) {
+      transforms[TransformKey.Scale] = this.getValue([timeline['scale.x'], timeline['scale.y']], scaleTransformer);
+    } else {
+      transforms[TransformKey.Scale] = getFixedPropertyValue([100, 100]);
+    }
 
     if (timelineHasProperties(timeline, 'translation.x', 'translation.y')) {
       transforms[TransformKey.Position] = this.getValue([
@@ -424,14 +445,95 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
 
   /**
    * Stores the group hierarchy for future use, in case we find shapes inside this group.
-   * @param node
-   * @param parentNode
    */
   private handleGroup (node: BytecodeNode, parentNode: BytecodeNode) {
+    if (this.groupHierarchy[node.attributes['haiku-id']]) {
+      return;
+    }
+
     this.groupHierarchy[node.attributes['haiku-id']] = {
       parentId: parentNode.attributes['haiku-id'],
-      inheritFromParent: parentNode.elementName === SvgTag.Group,
+      inheritFromParent: this.structuralNode.children.indexOf(parentNode) === -1,
     };
+  }
+
+  /**
+   * Handle a subcomponent as a precomp.
+   */
+  handleSubcomponent (subcomponentSpec: BodymovinAnimation, node: BytecodeNode, parentNode: BytecodeNode) {
+    const precompId = `precomp_${++this.assetUniqueId.index}`;
+    // Hack: for now, just ensure the animation can at least run for the duration of the subcomponent.
+    this.outPoint = Math.max(this.outPoint, subcomponentSpec.op);
+    // Absorb the assets provided by the subcomponent spec, if any.
+    this.assets.push(...subcomponentSpec.assets);
+    // Create a new precomp layer based on the subcomponent spec.
+    this.assets.push({
+      [AssetKey.Id]: precompId,
+      [AssetKey.PrecompLayers]: subcomponentSpec.layers,
+    });
+
+    // Get height directly from the subcomponent spec.
+    this.currentNodeSize.x = subcomponentSpec.w;
+    this.currentNodeSize.y = subcomponentSpec.h;
+
+    const timeline = this.timelineForNode(node, parentNode);
+
+    this.layers.push({
+      [LayerKey.Type]: LayerType.Precomp,
+      [LayerKey.Name]: `instance:${precompId}`,
+      [LayerKey.ReferenceId]: precompId,
+      [LayerKey.Index]: this.zIndexForNode(node),
+      [LayerKey.InPoint]: 0,
+      [LayerKey.StartTime]: 0,
+      [LayerKey.LocalIndex]: ++this.localLayerIndex,
+      [LayerKey.Transform]: {
+        ...this.standardTransformsForTimeline(timeline),
+        ...this.transformsForLayerTimeline(timeline),
+      },
+      [LayerKey.Width]: subcomponentSpec.w,
+      [LayerKey.Height]: subcomponentSpec.h,
+    });
+  }
+
+  /**
+   * Handle a group as a precomp.
+   */
+  private handlePrecompGroup (node: BytecodeNode, parentNode: BytecodeNode, layers: BodymovinLayer[]) {
+    // Special case: we want to propagate layout from our "placer" down to our grandchildren.
+    this.groupHierarchy[node.attributes['haiku-id']] = {
+      parentId: parentNode.attributes['haiku-id'],
+      inheritFromParent: false,
+    };
+    node.children.forEach((childNode: BytecodeNode) => {
+      childNode.children.forEach((grandchildNode: BytecodeNode) => {
+        this.handleGroup(grandchildNode, node);
+      });
+    });
+    const timeline = this.timelineForNode(parentNode);
+    const precompId = `precomp_${++this.assetUniqueId.index}`;
+    this.assets.push({
+      [AssetKey.Id]: precompId,
+      [AssetKey.PrecompLayers]: layers,
+    });
+    this.currentNodeSize.x = initialValueOr(timeline, 'sizeAbsolute.x', 0);
+    this.currentNodeSize.y = initialValueOr(timeline, 'sizeAbsolute.y', 0);
+    this.layers.push({
+      [LayerKey.Type]: LayerType.Precomp,
+      [LayerKey.Name]: `instance:${precompId}`,
+      [LayerKey.ReferenceId]: precompId,
+      [LayerKey.Index]: this.zIndexForNode(parentNode),
+      [LayerKey.InPoint]: 0,
+      [LayerKey.StartTime]: 0,
+      [LayerKey.LocalIndex]: ++this.localLayerIndex,
+      [LayerKey.Transform]: {
+        ...this.standardTransformsForTimeline(timeline),
+        ...this.transformsForLayerTimeline(timeline),
+      },
+      [LayerKey.Width]: initialValueOr(timeline, 'sizeAbsolute.x', 0),
+      [LayerKey.Height]: initialValueOr(timeline, 'sizeAbsolute.y', 0),
+    });
+
+    this.layerStack.set(node, layers);
   }
 
   /**
@@ -496,13 +598,124 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     );
   }
 
+  private handleImageLayer (node: BytecodeNode, parentNode?: BytecodeNode) {
+    try {
+      const timeline = this.timelineForNode(node, parentNode);
+
+      let transcludedIdField;
+
+      if (timeline.hasOwnProperty('href') || node.attributes.hasOwnProperty('href')) {
+        transcludedIdField = 'href';
+      } else if (timeline.hasOwnProperty('xlink:href') || node.attributes.hasOwnProperty('xlink:href')) {
+        transcludedIdField = 'xlink:href';
+      }
+
+      if (!transcludedIdField) {
+        return;
+      }
+
+      const rawData = timeline[transcludedIdField] || node.attributes[transcludedIdField];
+      const matches = rawData.match(/^data:image\/\w+;base64,(.+)$/);
+
+      if (!matches) {
+        return;
+      }
+
+      const [_, base64] = matches;
+
+      let width = initialValueOrNull(timeline, 'sizeAbsolute.x');
+      let height = initialValueOrNull(timeline, 'sizeAbsolute.y');
+      if (width === null || height === null) {
+        ({width, height} = imageSize(new Buffer(base64, 'base64')));
+      }
+
+      // Create local IDs we can use consistently.
+      const imageId = `image_${++this.assetUniqueId.index}`;
+      const precompId = `precomp_${++this.assetUniqueId.index}`;
+
+      // We're going to make two assets: an "image" and a "precomp".
+      this.assets.push({
+        [AssetKey.Id]: imageId,
+        [AssetKey.Width]: width,
+        [AssetKey.Height]: height,
+        [AssetKey.Directory]: '',
+        [AssetKey.Filename]: rawData,
+        [AssetKey.IsInline]: 1,
+      });
+
+      // The image is placed in SVG coordinates, so we should reset the origin to 0 to avoid confusing the layer
+      // layout.
+      timeline['origin.x'] = timeline['origin.y'] = {0: {value: 0}};
+
+      this.assets.push({
+        [AssetKey.Id]: precompId,
+        [AssetKey.PrecompLayers]: [{
+          [LayerKey.Type]: LayerType.Image,
+          [LayerKey.Name]: `precomp:${precompId}`,
+          [LayerKey.ReferenceId]: imageId,
+          [LayerKey.Index]: 0,
+          [LayerKey.InPoint]: 0,
+          [LayerKey.StartTime]: 0,
+          [LayerKey.LocalIndex]: ++this.localLayerIndex,
+          [LayerKey.Transform]: {
+            ...this.standardTransformsForTimeline(timeline),
+            ...this.transformsForLayerTimeline(timeline,
+              // Here, we provide layout offsets in x and y. Image layers are special; x and y are "positioners" in
+              // parent coordinates. We use a different hack here than with rectangles, which have the same
+              // characteristic, due to our lack of a "shape group" to mutate with images.
+              Number(initialValueOr(timeline, 'x', 0)),
+              Number(initialValueOr(timeline, 'y', 0)),
+            ),
+          },
+        }],
+      });
+
+      // Sneak a precomp layer in behind our main layer.
+      // We can't really solve complex z-collisions because we can't compose the shape layer from this SVG with the
+      // shape layer, so we just hope the image is actually supposed to be underneath any shapes that might be in here…
+      this.layers.splice(
+        this.layers.length - 1,
+        0,
+        {
+          [LayerKey.Type]: LayerType.Precomp,
+          [LayerKey.Name]: `instance:${precompId}`,
+          [LayerKey.ReferenceId]: precompId,
+          [LayerKey.Index]: this.activeLayer[LayerKey.Index],
+          [LayerKey.InPoint]: 0,
+          [LayerKey.StartTime]: 0,
+          [LayerKey.LocalIndex]: ++this.localLayerIndex,
+          [LayerKey.Transform]: this.activeLayer[LayerKey.Transform],
+          // Required here instead of transforms….
+          [LayerKey.Width]: initialValueOr(timeline, 'sizeAbsolute.x', width),
+          [LayerKey.Height]: initialValueOr(timeline, 'sizeAbsolute.y', height),
+        },
+      );
+    } catch (e) {
+      LoggerInstance.warn(`[formats] encountered error during image export: ${e}`);
+    }
+  }
+
   /**
    * Transforms a shape layer, then pushes it onto the layer stack.
    * TODO: Handle viewBox?
    * @param node
    */
-  private handleSvgLayer (node: BytecodeNode) {
+  private handleShapeLayer (node: BytecodeNode) {
     const timeline = this.timelineForNode(node);
+    // Hack: make sure defs are first so transclusion works as expected.
+    // TODO: Move this logic into mana instantiation. Defs always have to be output first.
+    // FIXME: defs are not _guaranteed_ to be a child of the root SVG node.
+    // FIXME: not all "def'ables" are guaranteed to be in a defs tag at all.
+    const maybeDefsIndex = (node.children as BytecodeNode[])
+      .findIndex((element) => element.elementName === SvgTag.Defs);
+
+    if (maybeDefsIndex > 0) {
+      node.children.unshift(...node.children.splice(maybeDefsIndex, 1));
+    }
+
+    this.currentNodeSize.x = initialValueOr(timeline, 'sizeAbsolute.x', 0);
+    this.currentNodeSize.y = initialValueOr(timeline, 'sizeAbsolute.y', 0);
+
     this.layers.push({
       [LayerKey.Type]: LayerType.Shape,
       [LayerKey.Name]: node.attributes['haiku-title'],
@@ -516,9 +729,6 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
       },
       [LayerKey.Shapes]: [],
     });
-
-    this.currentLayerSize.x = initialValueOr(timeline, 'sizeAbsolute.x', 0);
-    this.currentLayerSize.y = initialValueOr(timeline, 'sizeAbsolute.y', 0);
   }
 
   /**
@@ -681,7 +891,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     const matches = getValueReferenceMatchArray(initialValue(timeline, 'fill'));
 
     if (matches !== null) {
-      // We matched a value reference, e.g. something like `fill="url(#foobar)"`. This means we are dealing with a
+      // We matched a value reference, e.g. something like `fill ='url(#foobar)'`. This means we are dealing with a
       // paint server fill.
       this.decoratePaintServerFill(fill, shape, matches[1]);
     } else {
@@ -729,17 +939,20 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
   ) {
     shape[ShapeKey.Type] = ShapeType.Rectangle;
     if (!timelineHasProperties(timeline, 'sizeAbsolute.x', 'sizeAbsolute.y')) {
-      shape[TransformKey.Size] = getFixedPropertyValue([0, 0]);
-      shape[TransformKey.Position] = getFixedPropertyValue([0, 0]);
-      shape[TransformKey.BorderRadius] = getFixedPropertyValue(0);
-      return;
+      shape[TransformKey.Size] = getFixedPropertyValue([
+        this.currentNodeSize.x,
+        this.currentNodeSize.y,
+      ]);
+    } else {
+      shape[TransformKey.Size] = this.getValue([timeline['sizeAbsolute.x'], timeline['sizeAbsolute.y']]);
     }
 
     shape[TransformKey.BorderRadius] = this.getValueOrDefaultFromTimeline(timeline, 'rx', 0, parseInt);
-    shape[TransformKey.Size] = this.getValue([timeline['sizeAbsolute.x'], timeline['sizeAbsolute.y']]);
     shape[TransformKey.Position] = getFixedPropertyValue([
-      initialValue(timeline, 'sizeAbsolute.x') / 2 + parseFloat(initialValueOr(timeline, 'x', 0)),
-      initialValue(timeline, 'sizeAbsolute.y') / 2 + parseFloat(initialValueOr(timeline, 'y', 0)),
+      initialValueOr(timeline, 'sizeAbsolute.x', this.currentNodeSize.x) / 2 +
+        parseFloat(initialValueOr(timeline, 'x', 0)),
+      initialValueOr(timeline, 'sizeAbsolute.y', this.currentNodeSize.y) / 2 +
+        parseFloat(initialValueOr(timeline, 'y', 0)),
     ]);
 
     transform[TransformKey.Position] = getFixedPropertyValue([
@@ -874,6 +1087,16 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @param skipTranscludedElements
    */
   private handleElement (node: BytecodeNode, parentNode: BytecodeNode, skipTranscludedElements = true) {
+    // If we have landed on a subcomponent, absorb it and return.
+    if (typeof node.elementName === 'object' && node.elementName.template) {
+      this.handleSubcomponent(
+        (new BodymovinExporter(node.elementName, this.componentFolder, this.assetUniqueId)).rawOutput(),
+        node,
+        parentNode,
+      );
+      return;
+    }
+
     // If we are at a definition or a child of a definition, store it in case it's referenced later and move on.
     if (parentNode && (parentNode.elementName === SvgTag.Defs ||
         (skipTranscludedElements && this.definitionHaikuIds.indexOf(parentNode.attributes['haiku-id']) !== -1))) {
@@ -881,10 +1104,33 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
       return;
     }
 
+    if (node.attributes['haiku-source'] === '<group>') {
+      // Handled below.
+      return;
+    }
+
+    if (parentNode && parentNode.attributes['haiku-source'] === '<group>') {
+      // Time to allocate a new layer stack!
+      const layers: BodymovinLayer[] = [];
+      this.handlePrecompGroup(node, parentNode, layers);
+      return;
+    }
+
+    if (!parentNode) {
+      // Among other reasons, we might end up here if we're stubbing the wrapper rect.
+      this.handleShapeLayer(node);
+      return;
+    }
+
+    if (this.layerStack.has(parentNode)) {
+      this.structuralNode = parentNode;
+      this.handleShapeLayer(node);
+      return;
+    }
+
     switch (node.elementName) {
-      case SvgTag.Svg:
-        this.handleSvgLayer(node);
-        break;
+      case SvgTag.Image:
+        this.handleImageLayer(node, parentNode);
       case SvgTag.Use:
         this.handleTransclusion(node, parentNode);
         break;
@@ -900,7 +1146,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
         this.handleShape(node, parentNode);
         break;
       default:
-        LoggerInstance.info(`[formats] Skipping element: ${node.elementName}`);
+        // Nothing to do here.
     }
   }
 
@@ -1199,49 +1445,55 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     // Preprocess tweened curves so that they are normalized and ready for tweening
     this.preprocessTweenedCurves();
 
+    this.structuralNode = this.bytecode.template as BytecodeNode;
+    this.layerStack.set(this.structuralNode, this.rootLayers);
+
     // Handle the wrapper as a special case.
     this.handleWrapper();
 
     (this.bytecode.template as BytecodeNode).children.forEach((template: BytecodeNode) => {
-      // TODO: Remove this when it's time to support groups.
-      if (template.elementName !== SvgTag.Svg) {
-        throw new Error(`Unexpected wrapper child element: ${template.elementName}`);
-      }
-      // Hack: make sure defs are first so transclusion works as expected.
-      // TODO: Move this logic into mana instantiation. Defs always have to be output first.
-      const maybeDefsIndex = (template.children as BytecodeNode[])
-                  .findIndex((element) => element.elementName === SvgTag.Defs);
-
-      if (maybeDefsIndex > 0) {
-        template.children.unshift(...template.children.splice(maybeDefsIndex, 1));
-      }
-      Template.visitTemplate(template, null, (node: BytecodeNode, parentNode: BytecodeNode) => {
+      Template.visitTemplate(template, this.bytecode.template, (node: BytecodeNode, parentNode: BytecodeNode) => {
         this.handleElement(node, parentNode);
       });
     });
 
-    this.layers.forEach((layer) => {
+    this.fixDisplaySequencing(this.rootLayers);
+
+    this.assets.forEach((precomp) => {
+      if (!Array.isArray(precomp[AssetKey.PrecompLayers])) {
+        // Skip over image assets, which have no layers.
+        return;
+      }
+
+      this.fixDisplaySequencing(precomp[AssetKey.PrecompLayers]);
+    });
+
+    this.bytecodeParsed = true;
+  }
+
+  private fixDisplaySequencing (layerStack: BodymovinLayer[]) {
+    layerStack.forEach((layer) => {
       layer[LayerKey.OutPoint] = this.outPoint;
     });
 
     // Stack elements in order of *descending* z-index.
-    this.layers.sort((layerA, layerB) => {
+    layerStack.sort((layerA, layerB) => {
       if (layerA[LayerKey.Index] === layerB[LayerKey.Index]) {
         return layerB[LayerKey.LocalIndex] - layerA[LayerKey.LocalIndex];
       }
 
       return layerB[LayerKey.Index] - layerA[LayerKey.Index];
     });
-    this.bytecodeParsed = true;
   }
 
   /**
    * Provide the parsed animation data.
    * @returns {{layers: Array; op: number; w: number; h: number}}
    */
-  private animationData () {
+  private animationData (): BodymovinAnimation {
     return {
-      layers: this.layers,
+      assets: this.assets,
+      layers: this.rootLayers,
       op: this.outPoint,
       w: this.animationSize.x,
       h: this.animationSize.y,
@@ -1252,7 +1504,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * Interface method to provide raw output.
    * @returns {{}}
    */
-  rawOutput () {
+  rawOutput (): BodymovinAnimation {
     if (!this.bytecodeParsed) {
       this.parseBytecode();
     }
@@ -1279,9 +1531,17 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     try {
       return writeFile(filename, this.binaryOutput());
     } catch (e) {
-      LoggerInstance.error(`[formats] caught exception during bodymovin export: ${e.toString()}`);
+      LoggerInstance.error(`[formats]; caught; exception; during; bodymovin; export: $;{e.toString();}`);
     }
 
     return writeFile(filename, '{}');
+  }
+
+  constructor (
+    protected bytecode: HaikuBytecode,
+    protected readonly componentFolder: string,
+    private readonly assetUniqueId = {index: 0},
+  ) {
+    super(bytecode, componentFolder);
   }
 }

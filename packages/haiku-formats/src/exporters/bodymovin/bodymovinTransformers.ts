@@ -44,7 +44,7 @@ export const getValueReferenceMatchArray = (value: string): RegExpMatchArray =>
 export const colorTransformer = (color: string) => {
   const colorModel: {value: [number, number, number, number]} = ColorUtils.parseString(color);
   if (colorModel === null || typeof colorModel === 'string') {
-    return [0, 0, 0, 0];
+    return [1, 1, 1, 0];
   }
 
   const quotient = (2 << 7) - 1;

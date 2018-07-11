@@ -151,10 +151,8 @@ tape(
         {
           'translation.x': 61.937,
           'translation.y': -3,
-          'rotation.x': 3.142,
           'rotation.z': 6.109,
           'scale.x': -1,
-          'scale.y': -1,
           'scale.z': -1,
         },
       ],

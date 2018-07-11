@@ -46,7 +46,7 @@ tape('BodymovinExporter', (suite: tape.Test) => {
 
   suite.test('uses the specified version of Bodymovin', (test: tape.Test) => {
     const {v} = rawOutput(baseBytecodeCopy());
-    test.deepEqual({v}, {v: '5.1.7'}, 'gets the Bodymovin version from package.json');
+    test.deepEqual({v}, {v: '5.1.20'}, 'gets the Bodymovin version from package.json');
     test.end();
   });
 
@@ -511,7 +511,7 @@ tape('BodymovinExporter', (suite: tape.Test) => {
     {
       bytecode.timelines.Default['haiku:shape'].stroke = {0: {value: 'tomfoolery'}};
       const {layers: [{shapes: [{it: [_, stroke]}]}]} = rawOutput(bytecode);
-      test.deepEqual(stroke.c.k, [0, 0, 0, 0], 'nonsense colors are treated like "transparent"');
+      test.deepEqual(stroke.c.k, [1, 1, 1, 0], 'nonsense colors are treated like "transparent white"');
     }
 
     test.end();

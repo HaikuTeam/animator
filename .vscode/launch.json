@@ -1,10 +1,9 @@
 {
     "version": "3.5.1",
     "configurations": [
-      
         {
             "type": "chrome",
-            "request":"attach",
+            "request": "attach",
             "port": 9222,
             "sourceMaps": true,
             "webRoot": "${workspaceFolder}",
@@ -57,6 +56,6 @@
             "test/**/*.test.ts"
           ],
           "name": "debug-haiku-formats-tests"
-      }
+        }
     ]
 }
