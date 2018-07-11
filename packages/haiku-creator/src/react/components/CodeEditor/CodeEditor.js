@@ -125,7 +125,7 @@ class CodeEditor extends React.Component {
       links: false,
       theme: 'haiku',
       minimap: {enabled: false},
-      autoIndent: true,
+      autoIndent: false,
       contextmenu: false,
       codeLens: false,
       parameterHints: false,

@@ -1,3 +1,6 @@
+console.warn('#FIXME: for various reasons, this script is no longer functional and needs to be reworked.');
+global.process.exit(1);
+
 import {createComponent} from '@haiku/core/test/TestHelpers';
 import {each} from 'async';
 // @ts-ignore

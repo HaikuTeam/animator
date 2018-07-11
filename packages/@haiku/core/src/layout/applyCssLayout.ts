@@ -88,7 +88,7 @@ export default function applyCssLayout (domElement, virtualElement, nodeLayout, 
     }
   }
 
-  if (Layout3D.virtualElementIsLayoutContainer(virtualElement)) {
+  if (Layout3D.virtualElementIsLayoutContainer(virtualElement) && !domElement.style.transformOrigin) {
     // Reset the transform-origin so that our layout system can be self-contained.
     domElement.style.transformOrigin = '0% 0% 0px';
   }

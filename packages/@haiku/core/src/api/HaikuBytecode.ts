@@ -38,7 +38,7 @@ export interface BytecodeNodeAttributes {
  * `source` and `identifier` are rarely used.
  */
 export interface BytecodeNode {
-  elementName: string;
+  elementName: string|HaikuBytecode;
   attributes: BytecodeNodeAttributes;
   layout?: LayoutSpec;
   /**
