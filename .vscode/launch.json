@@ -16,7 +16,7 @@
     "configurations": [
         {
             "type": "chrome",
-            "request":"attach",
+            "request": "attach",
             "port": 9222,
             "name": "attach-glass",
             // "url": "file://${workspaceRoot}/packages/haiku-creator/node_modules/haiku-glass/index.html",
@@ -68,5 +68,25 @@
         //     ],
         //     "cwd": "${workspaceRoot}"
         // }
+            "name": "attach-main"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/packages/haiku-formats",
+            "env": {
+              "TS_NODE_PROJECT": "./tsconfig.all.json"
+            },
+            "runtimeArgs": [
+              "-r",
+              "ts-node/register",
+              "-r",
+              "tsconfig-paths/register"
+            ],
+            "args": [
+              "./scripts/regenerate-goldens.ts"
+            ],
+            "name": "debug-regenerate-goldens"
+        }
     ]
 }

@@ -32,7 +32,7 @@ const tmp = create();
 const row = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
 const pdum3 = [0, 0, 0];
 
-export function roundVector<T extends number[]>(vector: T): T {
+export function roundVector<T extends number[]> (vector: T): T {
   return vector.map((value) => Number(value.toFixed(3))) as T;
 }
 
@@ -46,7 +46,7 @@ export interface DecomposedMat4 {
   quaternion: FourTuple;
 }
 
-export default function decomposeMat4(matrix): DecomposedMat4 {
+export default function decomposeMat4 (matrix): DecomposedMat4 {
   // Normalize. If not possible or we have a 0 scale factor, bail out early.
   if (!normalize(tmp, matrix) || !tmp[0] || !tmp[5] || !tmp[10]) {
     return {
@@ -129,7 +129,7 @@ export default function decomposeMat4(matrix): DecomposedMat4 {
 }
 
 // gets upper-left of a 4x4 matrix into a 3x3 of vectors
-function mat3from4(out, mat4x4) {
+function mat3from4 (out, mat4x4) {
   out[0][0] = mat4x4[0];
   out[0][1] = mat4x4[1];
   out[0][2] = mat4x4[2];
@@ -143,7 +143,7 @@ function mat3from4(out, mat4x4) {
   out[2][2] = mat4x4[10];
 }
 
-function combine(out, a, b, scale1, scale2) {
+function combine (out, a, b, scale1, scale2) {
   out[0] = a[0] * scale1 + b[0] * scale2;
   out[1] = a[1] * scale1 + b[1] * scale2;
   out[2] = a[2] * scale1 + b[2] * scale2;

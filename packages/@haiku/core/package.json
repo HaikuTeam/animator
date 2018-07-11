@@ -1,6 +1,6 @@
 {
   "name": "@haiku/core",
-  "version": "3.4.7",
+  "version": "3.4.8",
   "description": "Haiku Core is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "directories": {
@@ -48,7 +48,7 @@
     "express": "4.14.1",
     "filesize": "3.5.10",
     "fs-extra": "^4.0.2",
-    "haiku-testing": "3.4.7",
+    "haiku-testing": "3.4.8",
     "handlebars": "^4.0.8",
     "jsdom": "^11.1.0",
     "leaked-handles": "^5.2.0",

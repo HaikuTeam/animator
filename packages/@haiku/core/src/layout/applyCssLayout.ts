@@ -59,7 +59,7 @@ export default function applyCssLayout (domElement, virtualElement, nodeLayout, 
   }
 
   if (!hasExplicitStyle(domElement, 'width')) {
-    if (computedLayout.size.x !== undefined) {
+    if (typeof computedLayout.size.x === 'number') {
       const sizeXString = parseFloat(computedLayout.size.x.toFixed(2)) + 'px';
       if (domElement.style.width !== sizeXString) {
         domElement.style.width = sizeXString;
@@ -74,7 +74,7 @@ export default function applyCssLayout (domElement, virtualElement, nodeLayout, 
   }
 
   if (!hasExplicitStyle(domElement, 'height')) {
-    if (computedLayout.size.y !== undefined) {
+    if (typeof computedLayout.size.y  === 'number') {
       const sizeYString = parseFloat(computedLayout.size.y.toFixed(2)) + 'px';
       if (domElement.style.height !== sizeYString) {
         domElement.style.height = sizeYString;
@@ -88,7 +88,7 @@ export default function applyCssLayout (domElement, virtualElement, nodeLayout, 
     }
   }
 
-  if (Layout3D.virtualElementIsLayoutContainer(virtualElement)) {
+  if (Layout3D.virtualElementIsLayoutContainer(virtualElement) && !domElement.style.transformOrigin) {
     // Reset the transform-origin so that our layout system can be self-contained.
     domElement.style.transformOrigin = '0% 0% 0px';
   }

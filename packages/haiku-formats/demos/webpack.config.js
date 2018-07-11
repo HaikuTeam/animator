@@ -29,15 +29,14 @@ module.exports = {
         test: /src\/.+\.ts$/,
         loader: 'ts-loader',
         options: {
-          configFile: path.join(__dirname, '..', 'tsconfig.json'),
-        }
-      }
-    ]
+	  configFile: path.join(__dirname, '..', '..', '@haiku', 'core', 'tsconfig.json'),
+        },
+      },
+    ],
   },
   plugins: [
     new ConcatPlugin({
       sourceMap: true,
-      // outputPath: path.resolve(__dirname, 'webpack'),
       fileName: 'LottieWeb.js',
       filesToConcat: [
         // What's a require()?
@@ -47,6 +46,7 @@ module.exports = {
         'utils/helpers/arrays.js',
         'utils/helpers/svg_elements.js',
         'utils/helpers/html_elements.js',
+        'utils/helpers/dynamicProperties.js',
         '3rd_party/transformation-matrix.js',
         '3rd_party/seedrandom.js',
         '3rd_party/BezierEaser.js',
@@ -66,9 +66,11 @@ module.exports = {
         'utils/shapes/ShapeCollection.js',
         'utils/shapes/DashProperty.js',
         'utils/shapes/GradientProperty.js',
+        'utils/shapes/shapePathBuilder.js',
         'utils/imagePreloader.js',
         'utils/featureSupport.js',
         'utils/filters.js',
+        'utils/asset_loader.js',
         'utils/text/TextAnimatorProperty.js',
         'utils/text/TextAnimatorDataProperty.js',
         'utils/text/LetterProps.js',
@@ -100,6 +102,8 @@ module.exports = {
         'elements/helpers/shapes/SVGGradientFillStyleData.js',
         'elements/helpers/shapes/SVGGradientStrokeStyleData.js',
         'elements/helpers/shapes/ShapeGroupData.js',
+        'elements/helpers/shapes/SVGElementsRenderer.js',
+        'elements/helpers/shapes/CVShapeData.js',
         'elements/BaseElement.js',
         'elements/NullElement.js',
         'elements/svgElements/SVGBaseElement.js',

@@ -238,6 +238,7 @@ function pointsToPath (pointsArray): string {
 
 function manaToPoints (mana: BytecodeNode) {
   if (
+    typeof mana.elementName === 'string' &&
     SVG_TYPES[mana.elementName] &&
     mana.elementName !== 'rect' &&
     mana.elementName !== 'g'
