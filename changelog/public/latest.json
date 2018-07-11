@@ -1,8 +1,8 @@
 {
-  "date": "June 25, 2018",
+  "date": "July 10, 2018",
   "sections": {
-    "Fixes": [
-      "Fixed crashes when hovering and selecting elements."
+    "What's new": [
+      "Lottie export now supports groups, nested components, and raster images!"
     ]
   }
 }
