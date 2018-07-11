@@ -1300,14 +1300,16 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   scaleElements (mouseCoordsCurrent, mouseCoordsPrevious, activationPoint, globals) {
-    let foundSnaps = []
+    const foundSnaps = []
 
     const accumulatedUpdates = {}
 
     const baseProxyBox = Object.assign({}, this._lastProxyBox)
 
     // note an Object.assign({}, ...) doesn't suffice here because computeScalePropertyGroup mutates properties deeply
-    let baseTransform = _.cloneDeep(this.transformCache.peek('CONTROL_ACTIVATION'))
+    const getBaseTransform = () => _.cloneDeep(this.transformCache.peek('CONTROL_ACTIVATION'))
+
+    const baseTransform = getBaseTransform()
 
     const fixedPoint = activationPoint.alt
       ? this._lastOrigin
@@ -1330,7 +1332,7 @@ class ElementSelectionProxy extends BaseModel {
       true
     )
 
-    let updatedLayout = _.cloneDeep(baseTransform)
+    let updatedLayout = getBaseTransform()
     updatedLayout.scale.x = scalePropertyGroup['scale.x'].value
     updatedLayout.scale.y = scalePropertyGroup['scale.y'].value
     updatedLayout.translation.x = scalePropertyGroup['translation.x'].value
@@ -1347,9 +1349,9 @@ class ElementSelectionProxy extends BaseModel {
 
     const transformedTranslatedPoint = transformedPoints[activationPoint.index]
 
-    let filteredEdges = []
+    const filteredEdges = []
 
-    let isWithinEpsilon = (v0, v1, override) => {
+    const isWithinEpsilon = (v0, v1, override) => {
       return (v0 < v1 + (override || SNAP_EPSILON)) && (v0 > v1 - (override || SNAP_EPSILON))
     }
 
@@ -1363,35 +1365,32 @@ class ElementSelectionProxy extends BaseModel {
       // TODO:  when alt is held, we care about all bounding edges
       // BUT, the 'unusual' edges need to give a proper offset
       // for now, disable snapping when alt-scaling
-      filteredEdges = []
     } else if (activationPoint.shift) {
       // TODO:  when shift is held, break ties between horiz & vert (could refactor findSnapsMatchesAndBreakTies to handle based on flag, or could do a post-pass manually)
       // for now, disable snapping when shift-scaling
-      filteredEdges = []
     } else if ([1, 3, 5, 7].indexOf(activationPoint.index) > -1) {
       // When dragging an edge, check if the translated point is touching a bbox edge.  if it is,
       // we care ONLY about that edge.  If it's not, we care about the bbox edges that its two neighbor (corners) are touching.
-      let onlyEdge
-      axisAlignedBbox.forEach((edge) => {
+      for (const edge of axisAlignedBbox) {
         const isHoriz = (edge.name === 'TOP' || edge.name === 'BOTTOM')
-        if (isHoriz && isWithinEpsilon(transformedTranslatedPoint.y, edge.value, 10)) {
-          onlyEdge = edge
-        } else if (!isHoriz && isWithinEpsilon(transformedTranslatedPoint.x, edge.value, 10)) {
-          onlyEdge = edge
+        if (
+          (isHoriz && isWithinEpsilon(transformedTranslatedPoint.y, edge.value, 10)) ||
+          (!isHoriz && isWithinEpsilon(transformedTranslatedPoint.x, edge.value, 10))
+        ) {
+          filteredEdges.push(edge)
+          break
         }
-      })
-      if (onlyEdge !== undefined) {
-        filteredEdges = [onlyEdge]
-      } else {
+      }
+      if (filteredEdges.length === 0) {
         // get neighbor points and find the edges they're touching
         isDraggingEdge = true
         const transformedNeighborPoints = ElementSelectionProxy.getNeighborPointsForScaleSnapping(transformedPoints, activationPoint)
-        filteredEdges = axisAlignedBbox.filter((edge) => {
+        filteredEdges.push(...axisAlignedBbox.filter((edge) => {
           const isHoriz = (edge.name === 'TOP' || edge.name === 'BOTTOM')
           if (isHoriz && (isWithinEpsilon(transformedNeighborPoints[0].y, edge.value) || isWithinEpsilon(transformedNeighborPoints[1].y, edge.value))) return true
           if (!isHoriz && (isWithinEpsilon(transformedNeighborPoints[0].x, edge.value) || isWithinEpsilon(transformedNeighborPoints[1].x, edge.value))) return true
           return false
-        })
+        }))
       }
     } else {
       // TODO: Level up; when dragging a corner, we can handle adjacent corners by the following:
@@ -1411,15 +1410,15 @@ class ElementSelectionProxy extends BaseModel {
       // })
 
       // Instead of the above, when dragging a corner, we only want to snap to the edge(s) that the translatedPoint is touching
-      filteredEdges = axisAlignedBbox.filter((edge) => {
+      filteredEdges.push(...axisAlignedBbox.filter((edge) => {
         const isHoriz = (edge.name === 'TOP' || edge.name === 'BOTTOM')
         if (isHoriz && isWithinEpsilon(transformedTranslatedPoint.y, edge.value, 1)) return true
         if (!isHoriz && isWithinEpsilon(transformedTranslatedPoint.x, edge.value, 1)) return true
         return false
-      })
+      }))
     }
 
-    let snapDefinitions = filteredEdges.map((edge) => {
+    const snapDefinitions = filteredEdges.map((edge) => {
       const isHoriz = (edge.name === 'TOP' || edge.name === 'BOTTOM')
       return {
         name: edge.name,
@@ -1432,8 +1431,8 @@ class ElementSelectionProxy extends BaseModel {
       }
     })
 
-    let artboard = this.component.getArtboard()
-    foundSnaps = this.findSnapsMatchesAndBreakTies(snapDefinitions, artboard.getSnapLinesInScreenCoords())
+    const artboard = this.component.getArtboard()
+    foundSnaps.push(...this.findSnapsMatchesAndBreakTies(snapDefinitions, artboard.getSnapLinesInScreenCoords()))
     foundSnaps.forEach((snap) => {
       if (snap.direction === 'HORIZONTAL') {
         totalMouseDelta.y = (snap.positionWorld - (snap.metadata.offset || 0)) - (this._lastProxyBox[activationPoint.index].y)
@@ -1457,7 +1456,8 @@ class ElementSelectionProxy extends BaseModel {
     })
 
     if (foundSnaps.length) {
-      baseTransform = _.cloneDeep(this.transformCache.peek('CONTROL_ACTIVATION'))
+      // Reset baseTransform
+      Object.assign(baseTransform, getBaseTransform())
       scalePropertyGroup = ElementSelectionProxy.computeScalePropertyGroup(
         baseTransform,
         fixedPoint,
@@ -1543,13 +1543,14 @@ class ElementSelectionProxy extends BaseModel {
       if (experimentIsEnabled(Experiment.SizeInsteadOfScaleWhenPossible)) {
         if (element.isComponent()) {
           const addressables = element.getComponentAddressables()
+          const baseProxyTransform = getBaseTransform()
 
           if (
             addressables.width &&
             addressables.width.typedef === 'number'
           ) {
             if (scaleX > 0) {
-              const width = baseTransform.size.x * scaleX
+              const width = layoutSpec.size.x * scaleX / baseProxyTransform.scale.x
               propertyGroupNorm.width = {value: width}
             }
             if (propertyGroupNorm['scale.x']) {
@@ -1562,7 +1563,7 @@ class ElementSelectionProxy extends BaseModel {
             addressables.height.typedef === 'number'
           ) {
             if (scaleY > 0) {
-              const height = baseTransform.size.y * scaleY
+              const height = layoutSpec.size.y * scaleY / baseProxyTransform.scale.y
               propertyGroupNorm.height = {value: height}
             }
             if (propertyGroupNorm['scale.y']) {
