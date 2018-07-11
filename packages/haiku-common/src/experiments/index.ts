@@ -35,6 +35,8 @@ export enum Experiment {
   LocalAssetExport = 'LocalAssetExport',
   UserConsole = 'UserConsole',
   CleanInitialLibraryState = 'CleanInitialLibraryState',
+  CopyPasteTweens = 'CopyPasteTweens',
+  CopyPasteTweensWithAccelerators = 'CopyPasteTweensWithAccelerators',
 }
 
 /**

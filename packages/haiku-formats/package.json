@@ -32,6 +32,7 @@
     "haiku-common": "3.5.1",
     "haiku-sdk-creator": "3.5.1",
     "haiku-serialization": "3.5.1",
+    "image-size": "^0.6.3",
     "lodash": "^4.17.4"
   },
   "devDependencies": {
@@ -40,10 +41,11 @@
     "@types/ffmpeg-static": "^2.0.0",
     "@types/fluent-ffmpeg": "^2.1.6",
     "@types/fs-extra": "^4.0.8",
+    "@types/image-size": "^0.0.29",
     "@types/lodash": "^4.14.108",
     "async": "^2.5.0",
     "haiku-testing": "3.5.1",
-    "lottie-web": "5.1.7",
+    "lottie-web": "5.1.20",
     "nodemon": "1.11.0",
     "walk-sync": "^0.3.2",
     "webpack": "^3.8.1",
