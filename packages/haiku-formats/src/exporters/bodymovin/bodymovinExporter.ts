@@ -849,8 +849,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
             groupItems.push(shapeSegment);
           });
           // Decorate the original shape in case we need to manage a complex fill (e.g. gradient stops).
-          this.decorateShape(timeline, shape);
-          shape[ShapeKey.Vertices][PropertyKey.Value][PathKey.Closed] = true; // Force closed
+          this.decorateShape({d: {0: {value: [].concat(...pathSegments.map((ps) => ps.points))}}}, shape);
         }
 
         break;
@@ -1053,7 +1052,9 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
       const timelineProperty = timeline[property];
 
       const keyframes = keyframesFromTimelineProperty(timelineProperty);
-
+      if (keyframes.length < 2) {
+        return;
+      }
       const paths = keyframes.map((keyframe): CurveSpec[] => {
         if (typeof timelineProperty[keyframe].value === 'string') {
           return SVGPoints.pathToPoints(timelineProperty[keyframe].value as string);
@@ -1061,16 +1062,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
         return timelineProperty[keyframe].value as CurveSpec[];
       });
 
-      let totalTweens = 0;
-      keyframes.forEach((keyframe) => {
-        if (timelineProperty[keyframe].curve) {
-          totalTweens++;
-        }
-      });
-
-      if (totalTweens > 0) {
-        synchronizePathStructure(...paths);
-      }
+      synchronizePathStructure(...paths);
 
       keyframes.forEach((keyframe, index) => {
         timelineProperty[keyframe].value = paths[index];
