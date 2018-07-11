@@ -123,7 +123,6 @@ const templateIsString = (
 
 // tslint:disable:variable-name function-name
 export default class HaikuComponent extends HaikuElement {
-  builder;
   isDeactivated;
   isSleeping;
   _mutableTimelines;

@@ -1493,6 +1493,7 @@ class ElementSelectionProxy extends BaseModel {
     this.applyPropertyValue('translation.y', translationY)
 
     const matrixAfter = this.getComputedLayout().matrix
+    let shouldTick = false
 
     this.selection.forEach((element) => {
       // Use our cached transform to mitigate the possibility of rounding errors at small/weird scales.
@@ -1553,6 +1554,7 @@ class ElementSelectionProxy extends BaseModel {
             // Note: here and below, scale.x and scale.y are guaranteed to exist as properties of propertyGroup[Norm]
             // because composedTransformsToTimelineProperties was called with explicit = true.
             propertyGroupNorm['scale.x'] = {value: Math.sign(propertyGroup['scale.x'])}
+            shouldTick = true
           }
 
           if (
@@ -1561,6 +1563,7 @@ class ElementSelectionProxy extends BaseModel {
           ) {
             propertyGroupNorm.height = {value: Math.abs(layoutSpec.size.y * scaleY / baseProxyTransform.scale.y)}
             propertyGroupNorm['scale.y'] = {value: Math.sign(propertyGroup['scale.y'])}
+            shouldTick = true
           }
         }
       }
@@ -1579,6 +1582,9 @@ class ElementSelectionProxy extends BaseModel {
       {},
       this.component.project.getMetadata(),
       () => {
+        if (shouldTick) {
+          this.component.tick()
+        }
         this.clearAllRelatedCaches()
       }
     )

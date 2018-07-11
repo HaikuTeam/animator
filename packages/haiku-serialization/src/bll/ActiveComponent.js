@@ -344,13 +344,16 @@ class ActiveComponent extends BaseModel {
     return this.file
   }
 
-  forceFlush () {
-    this.$instance.markForFullFlush(true)
-
+  tick () {
     // This guard is to allow headless mode, e.g. in Haiku's timeline application
     if (this.$instance.context && this.$instance.context.tick) {
       this.$instance.context.tick()
     }
+  }
+
+  forceFlush () {
+    this.$instance.markForFullFlush(true)
+    this.tick()
   }
 
   addHotComponents (hotComponents) {
