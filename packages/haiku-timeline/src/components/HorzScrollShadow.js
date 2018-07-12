@@ -27,20 +27,25 @@ export default class HorzScrollShadow extends React.PureComponent {
   }
 
   handleUpdate (what) {
-    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-      return
-    }
-
     if (!this.mounted) return null
-    if (what === 'timeline-frame-range') {
-      this.forceUpdate()
+
+    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+      if (what === 'timeline-scroll') {
+        this.forceUpdate()
+      }
+    } else {
+      if (what === 'timeline-frame-range') {
+        this.forceUpdate()
+      }
     }
   }
 
   render () {
     if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+      console.log('this.props.timeline.getScrollLeft()', this.props.timeline.getScrollLeft())
       return (
         <span className='no-select' style={{
+          display: this.props.timeline.getScrollLeft() === 0 ? 'none' : 'inline-block',
           position: 'fixed',
           height: 'calc(100% - 45px)',
           width: 3,
