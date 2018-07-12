@@ -2,8 +2,8 @@ import {client} from '@haiku/sdk-client';
 import {inkstone} from '@haiku/sdk-inkstone';
 
 import {
+  DEFAULT_BRANCH_NAME,
   fetchProjectConfigInfo,
-  getDefaultBranchName,
   getHaikuComponentInitialVersion,
   storeConfigValues,
 } from '@haiku/sdk-client/lib/ProjectDefinitions';
@@ -505,7 +505,7 @@ function generateComponent (context: IContext) {
 
   storeConfigValues(projectPath, {
     username: authorName,
-    branch: getDefaultBranchName(),
+    branch: DEFAULT_BRANCH_NAME,
     version: getHaikuComponentInitialVersion(),
     organization: organizationName,
     project: projectName,
