@@ -48,7 +48,7 @@ export default class Gauge extends React.Component {
         <div
           id='gauge-wrapper'
           style={{
-            height: 24,
+            height: 23,
             backgroundColor: Palette.COAL,
             position: 'sticky',
             top: 12,
