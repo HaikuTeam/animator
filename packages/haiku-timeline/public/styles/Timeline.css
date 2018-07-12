@@ -255,3 +255,11 @@ input[type=number]::-webkit-outer-spin-button {
   -webkit-user-select: none;
   cursor: default;
 }
+
+.component-heading-row .opacity-on-hover {
+  opacity: 0;
+}
+
+.component-heading-row:hover .opacity-on-hover {
+  opacity: 1;
+}
