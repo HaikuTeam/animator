@@ -8,6 +8,7 @@ import {
   ComputedLayoutSpec,
   IHaikuComponent,
   LayoutNode,
+  LayoutNodePartial,
   LayoutSpec,
   StringableThreeDimensionalLayoutProperty,
   ThreeDimensionalLayoutProperty,
@@ -757,7 +758,7 @@ export default class HaikuElement extends HaikuBase {
       this.getRawBoundingBoxPoints(),
       HaikuElement.computeLayout(
         this.node,
-        null, // parentSize; none available here
+        null, // parentNode; none available here
       ).matrix,
     );
   }
@@ -951,9 +952,16 @@ export default class HaikuElement extends HaikuBase {
 
   static computeLayout = (
     targetNode: LayoutNode,
-    parentsizeAbsoluteIn: ThreeDimensionalLayoutProperty,
+    parentNode: LayoutNode|LayoutNodePartial,
   ): ComputedLayoutSpec => {
     const layoutSpec = targetNode.layout;
+
+    const parentsizeAbsoluteIn = (
+      parentNode &&
+      parentNode.layout &&
+      parentNode.layout.computed &&
+      parentNode.layout.computed.size
+    );
 
     const parentsizeAbsolute = parentsizeAbsoluteIn || {x: 0, y: 0, z: 0};
 

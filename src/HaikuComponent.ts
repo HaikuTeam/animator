@@ -2310,13 +2310,11 @@ function computeAndApplyTreeLayouts (tree, container, options, context) {
 function computeAndApplyNodeLayout (node, parent) {
   // No point proceeding if our parent node doesn't have a computed layout
   if (parent && parent.layout && parent.layout.computed) {
-    const parentSize = parent.layout.computed.size;
-
     // Don't assume the node has/needs a layout, for example, control-flow injectees
     if (node.layout) {
       node.layout.computed = HaikuElement.computeLayout(
         node,
-        parentSize,
+        parent,
       );
     }
   }

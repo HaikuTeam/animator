@@ -73,10 +73,17 @@ tape(
           },
         },
       },
-      { // parentSize
-        x: 852,
-        y: 839,
-        z: 0,
+      { // parentNode
+        layout: {
+          computed: {
+            matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 33, 0, 0, 1],
+            size: {
+              x: 852,
+              y: 839,
+              z: 0,
+            },
+          },
+        },
       },
     );
 
