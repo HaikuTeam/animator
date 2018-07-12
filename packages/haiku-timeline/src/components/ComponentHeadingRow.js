@@ -86,7 +86,7 @@ export default class ComponentHeadingRow extends React.Component {
           position: this.props.isExpanded ? 'sticky' : 'relative',
           float: this.props.isExpanded ? 'left' : undefined,
           width: this.props.isExpanded ? 100 : undefined,
-          left: this.props.isExpanded ? 20 : undefined,
+          left: this.props.isExpanded ? 4 : undefined,
           backgroundColor: this.props.isExpanded ? 'transparent' : Palette.LIGHT_GRAY,
           opacity: this.props.isHidden ? 0.75 : 1.0,
           zIndex: this.props.isExpanded ? zIndex.headingRowExpanded.base : undefined
@@ -115,7 +115,7 @@ export default class ComponentHeadingRow extends React.Component {
           position: 'sticky',
           top: 0,
           left: 0,
-          paddingLeft: this.props.isExpanded ? 0 : (this.props.row.isRootRow() ? 7 : 20),
+          paddingLeft: this.props.row.isRootRow() ? (this.props.isExpanded ? 0 : 7) : (this.props.isExpanded ? 10 : 15),
           width: propertiesPixelWidth,
           backgroundColor: this.props.isExpanded ? 'transparent' : Palette.LIGHT_GRAY,
           zIndex: zIndex.headingRow.base
@@ -170,7 +170,7 @@ export default class ComponentHeadingRow extends React.Component {
               style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
                 height: this.props.rowHeight,
                 display: 'flex',
-                alignItems: this.props.isExpanded ? 'flex-start' : 'center'
+                alignItems: this.props.isExpanded ? 'baseline' : 'center'
               } : {
                 height: this.props.rowHeight,
                 marginTop: -6,
@@ -242,8 +242,9 @@ export default class ComponentHeadingRow extends React.Component {
                   ? {
                     display: this.props.isExpanded ? 'flex' : 'none',
                     alignItems: 'center',
+                    marginTop: -3,
                     marginLeft: this.props.row.isRootRow()
-                      ? (this.props.isExpanded ? 34 : undefined)
+                      ? (this.props.isExpanded ? 33 : undefined)
                       : (this.props.isExpanded ? 12 : undefined)
                   } : (
                     this.props.isExpanded
@@ -261,7 +262,9 @@ export default class ComponentHeadingRow extends React.Component {
               <div
                 title='Edit element Actions'
                 className='event-handler-triggerer-button'
-                style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {} : {
+                style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+                  marginRight: 3
+                } : {
                   width: 10,
                   position: 'absolute',
                   left: 0,
@@ -279,7 +282,9 @@ export default class ComponentHeadingRow extends React.Component {
               <div
                 title='Add property'
                 className='property-manager-button'
-                style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {} : {
+                style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+                  marginRight: 3
+                } : {
                   width: 16,
                   position: 'absolute',
                   left: 16,
@@ -294,7 +299,7 @@ export default class ComponentHeadingRow extends React.Component {
               <div
                 className='design-sync-button'
                 style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
-                  marginLeft: '2px',
+                  marginRight: 3,
                   display: this.props.row.element.getSource() && this.props.row.element.isLocked() ? 'block' : 'none'
                 } : {
                   width: 16,

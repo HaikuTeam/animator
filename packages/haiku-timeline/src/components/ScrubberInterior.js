@@ -130,7 +130,8 @@ export default class ScrubberInterior extends React.Component {
           position: 'sticky',
           top: 0,
           marginTop: -45,
-          zIndex: Math.abs(this.props.timeline.getScrollLeft() - pxOffset) < 3 ? 12 : zIndex.scrubber.base
+          zIndex: Math.abs(this.props.timeline.getScrollLeft() - pxOffset) < 3 ? 12 : zIndex.scrubber.base,
+          fontSize: 10
         } : {
           overflow: 'hidden'
         })}>
