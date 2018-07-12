@@ -134,7 +134,7 @@ export default class ComponentHeadingRow extends React.Component {
               {...this.props.dragHandleProps}>
               <span
                 className='drag-grip-wrapper opacity-on-hover'
-                style={{transform: 'scale(0.5)', display: 'block'}}>
+                style={{display: 'block'}}>
                 <DragGrip />
               </span>
             </div>
