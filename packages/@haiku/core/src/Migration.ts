@@ -17,10 +17,12 @@ const enum UpgradeVersionRequirement {
   TimelineDefaultFrames = '3.2.23',
   CamelCasePropertyNames = '3.5.1',
   AutoStringForAutoSizing = '3.5.1',
+  RetireAlign = '3.5.1',
 }
 
 const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source';
 const HAIKU_VAR_ATTRIBUTE = 'haiku-var';
+const HAIKU_ID_ATTRIBUTE = 'haiku-id';
 
 const ELEMENTS_THAT_SUPPORT_ORIGIN = {
   div: true,
@@ -108,11 +110,17 @@ export const runMigrations = (component: IHaikuComponent, options: any, version:
 
   let needsRerender = false;
 
+  const nodesBySelector = {};
+
   if (bytecode.template) {
     visitManaTree(
       '0',
       bytecode.template,
-      (elementName, attributes, children, node) => {
+      (elementName, attributes, children, node, locator, parent) => {
+        if (attributes[HAIKU_ID_ATTRIBUTE]) {
+          nodesBySelector[`haiku:${attributes[HAIKU_ID_ATTRIBUTE]}`] = {node, parent};
+        }
+
         if (options && options.referenceUniqueness) {
           if (elementName === 'filter' || elementName === 'filterGradient') {
             if (attributes.id && !alreadyUpdatedReferences[attributes.id]) {
@@ -220,6 +228,35 @@ export const runMigrations = (component: IHaikuComponent, options: any, version:
 
     // Bust caches; we only rendered to populate our layout stubs.
     needsRerender = true;
+  }
+
+  if (requiresUpgrade(coreVersion, UpgradeVersionRequirement.RetireAlign)) {
+    component.visit((element) => {
+      const elemSelector = `haiku:${element.getComponentId()}`;
+      const elemProps = bytecode.timelines.Default[elemSelector];
+
+      const alignXKeyframes = elemProps && elemProps['align.x'];
+      if (alignXKeyframes) {
+        const alignX = alignXKeyframes[0] && alignXKeyframes[0].value;
+        if (typeof alignX === 'number' && alignX > 0) {
+          const ancestorSizeX = element.getNearestDefinedNonZeroAncestorSizeX();
+          const offsetX = alignX * ancestorSizeX;
+          elemProps['offset.x'] = {0: {value: offsetX}};
+        }
+        delete elemProps['align.x'];
+      }
+
+      const alignYKeyframes = elemProps && elemProps['align.y'];
+      if (alignYKeyframes) {
+        const alignY = alignYKeyframes[0] && alignYKeyframes[0].value;
+        if (typeof alignY === 'number' && alignY > 0) {
+          const ancestorSizeY = element.getNearestDefinedNonZeroAncestorSizeY();
+          const offsetY = alignY * ancestorSizeY;
+          elemProps['offset.y'] = {0: {value: offsetY}};
+        }
+        delete elemProps['align.y'];
+      }
+    });
   }
 
   if (requiresUpgrade(coreVersion, UpgradeVersionRequirement.TimelineDefaultFrames)) {

@@ -611,6 +611,11 @@ class Element extends BaseModel {
         y: grabValue('mount.y'),
         z: grabValue('mount.z')
       },
+      offset: {
+        x: grabValue('offset.x'),
+        y: grabValue('offset.y'),
+        z: grabValue('offset.z')
+      },
       origin: {
         x: grabValue('origin.x'),
         y: grabValue('origin.y'),

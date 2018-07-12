@@ -380,7 +380,7 @@ class ElementSelectionProxy extends BaseModel {
     shimLayout.rotation.z = -computedLayout.rotation.z
     shimLayout.origin = computedLayout.origin
     const ignoredSize = {x: 0, y: 0, z: 0}
-    const shimMatrix = Layout3D.computeMatrix(shimLayout, computedLayout.size, ignoredSize)
+    const shimMatrix = Layout3D.computeMatrix(shimLayout, computedLayout.size)
     shimMatrix[12] = -(boxPoint.x * shimMatrix[0] + boxPoint.y * shimMatrix[4])
     shimMatrix[13] = -(boxPoint.x * shimMatrix[1] + boxPoint.y * shimMatrix[5])
     const groupMana = {
@@ -517,6 +517,11 @@ class ElementSelectionProxy extends BaseModel {
         x: this.computePropertyValue('mount.x'),
         y: this.computePropertyValue('mount.y'),
         z: this.computePropertyValue('mount.z')
+      },
+      offset: {
+        x: this.computePropertyValue('offset.x'),
+        y: this.computePropertyValue('offset.y'),
+        z: this.computePropertyValue('offset.z')
       },
       origin: {
         x: this.computePropertyValue('origin.x'),
@@ -1527,16 +1532,19 @@ class ElementSelectionProxy extends BaseModel {
       const mountPointX = layoutSpec.mount.x * layoutSpec.size.x
       const mountPointY = layoutSpec.mount.y * layoutSpec.size.y
       const mountPointZ = layoutSpec.mount.z * layoutSpec.size.z
+      const offsetX = layoutSpec.offset.x
+      const offsetY = layoutSpec.offset.y
+      const offsetZ = layoutSpec.offset.z
       const originX = layoutSpec.origin.x * layoutSpec.size.x
       const originY = layoutSpec.origin.y * layoutSpec.size.y
       const originZ = layoutSpec.origin.z * layoutSpec.size.z
 
       propertyGroup['translation.x'] +=
-        finalMatrix[0] * originX + finalMatrix[4] * originY + finalMatrix[8] * originZ + mountPointX
+        finalMatrix[0] * originX + finalMatrix[4] * originY + finalMatrix[8] * originZ + mountPointX - offsetX
       propertyGroup['translation.y'] +=
-        finalMatrix[1] * originX + finalMatrix[5] * originY + finalMatrix[9] * originZ + mountPointY
+        finalMatrix[1] * originX + finalMatrix[5] * originY + finalMatrix[9] * originZ + mountPointY - offsetY
       propertyGroup['translation.z'] +=
-        finalMatrix[2] * originX + finalMatrix[6] * originY + finalMatrix[10] * originZ + mountPointZ
+        finalMatrix[2] * originX + finalMatrix[6] * originY + finalMatrix[10] * originZ + mountPointZ - offsetZ
 
       const propertyGroupNorm = Object.keys(propertyGroup).reduce((accumulator, property) => {
         accumulator[property] = { value: propertyGroup[property] }
@@ -1890,24 +1898,27 @@ ElementSelectionProxy.DEFAULT_OPTIONS = {
 BaseModel.extend(ElementSelectionProxy)
 
 ElementSelectionProxy.DEFAULT_PROPERTY_VALUES = {
-  'translation.x': 0,
-  'translation.y': 0,
-  'translation.z': 0,
+  'mount.x': 0,
+  'mount.y': 0,
+  'mount.z': 0,
+  'offset.x': 0,
+  'offset.y': 0,
+  'offset.z': 0,
+  'origin.x': 0.5,
+  'origin.y': 0.5,
+  'origin.z': 0.5,
   'rotation.x': 0,
   'rotation.y': 0,
   'rotation.z': 0,
   'scale.x': 1,
   'scale.y': 1,
   'scale.z': 1,
-  'origin.x': 0.5,
-  'origin.y': 0.5,
-  'origin.z': 0.5,
-  'mount.x': 0,
-  'mount.y': 0,
-  'mount.z': 0,
   'sizeAbsolute.x': 0,
   'sizeAbsolute.y': 0,
-  'sizeAbsolute.z': 0
+  'sizeAbsolute.z': 0,
+  'translation.x': 0,
+  'translation.y': 0,
+  'translation.z': 0
 }
 
 ElementSelectionProxy.activeAxesFromActivationPoint = (activationPoint) => {
@@ -2152,7 +2163,7 @@ ElementSelectionProxy.computeScalePropertyGroup = (
 
 // This is used for a side-effect-free 'dry run' calculation of points through a layout spec
 ElementSelectionProxy.transformPointsByLayoutInPlace = (points, layout) => {
-  const matrix = Layout3D.computeMatrix(layout, layout.size, layout.size)
+  const matrix = Layout3D.computeMatrix(layout, layout.size)
   return points.map((point) => {
     HaikuElement.transformPointInPlace(point, matrix)
     return point
@@ -2176,7 +2187,7 @@ ElementSelectionProxy.computeRotationPropertyGroup = (element, rotationZDelta, f
   const layout = Layout3D.createLayoutSpec()
   layout.rotation.z = rotationZDelta
   const ignoredSize = {x: 0, y: 0, z: 0}
-  const matrix = Layout3D.computeMatrix(layout, ignoredSize, ignoredSize)
+  const matrix = Layout3D.computeMatrix(layout, ignoredSize)
 
   // Next build the vector from `fixedPoint` to `targetOrigin` and rotate it.
   const targetOrigin = element.getOriginTransformed()

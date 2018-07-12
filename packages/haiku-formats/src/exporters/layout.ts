@@ -99,8 +99,8 @@ export const composeTimelines = (
   const parentPseudoElement = {layout: createLayoutSpec()};
   shimLayoutForPseudoElement(childTimeline, childPseudoElement);
   shimLayoutForPseudoElement(parentTimeline, parentPseudoElement);
-  const childMatrix = computeMatrix(childPseudoElement.layout, shapeLayerSize, animationSize);
-  const parentMatrix = computeMatrix(parentPseudoElement.layout, shapeLayerSize, animationSize);
+  const childMatrix = computeMatrix(childPseudoElement.layout, shapeLayerSize);
+  const parentMatrix = computeMatrix(parentPseudoElement.layout, shapeLayerSize);
   const composition = composedTransformsToTimelineProperties({}, [parentMatrix, childMatrix], false, 1e-2);
 
   Object.assign(composedTimeline, {
