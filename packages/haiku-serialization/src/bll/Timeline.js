@@ -712,15 +712,23 @@ class Timeline extends BaseModel {
     }, DURATION_MOD_TIMEOUT)
   }
 
-  setScrollLeft (scrollValue) {
+  handleSettingScroll (scrollValue, eventName) {
     if (scrollValue >= 0) {
       if (scrollValue >= (this.calculateFullTimelineWidth() - this._timelinePixelWidth)) {
         this.setMaxFrame(this.getMaxFrame() + 50)
       } else {
         this._scrollLeft = scrollValue
-        this.emit('update', 'timeline-scroll')
+        this.emit('update', eventName)
       }
     }
+  }
+
+  setScrollLeft (scrollValue) {
+    this.handleSettingScroll(scrollValue, 'timeline-scroll')
+  }
+
+  setScrollLeftFromScrollbar (scrollValue) {
+    this.handleSettingScroll(scrollValue, 'timeline-scroll-from-scrollbar')
   }
 
   getScrollLeft () {

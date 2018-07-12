@@ -43,7 +43,7 @@ export default class ScrubberInterior extends React.Component {
       this.forceUpdate()
     } else if (what === 'time-display-mode-change') {
       this.forceUpdate()
-    } else if (what === 'timeline-scroll') {
+    } else if (what === 'timeline-scroll' || 'timeline-scroll-from-scrollbar') {
       this.forceUpdate()
     }
   }

@@ -30,7 +30,7 @@ export default class HorzScrollShadow extends React.PureComponent {
     if (!this.mounted) return null
 
     if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-      if (what === 'timeline-scroll') {
+      if (what === 'timeline-scroll' || what === 'timeline-scroll-from-scrollbar') {
         this.forceUpdate()
       }
     } else {
