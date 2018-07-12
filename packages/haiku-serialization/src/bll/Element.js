@@ -611,11 +611,6 @@ class Element extends BaseModel {
         y: grabValue('mount.y'),
         z: grabValue('mount.z')
       },
-      align: {
-        x: grabValue('align.x'),
-        y: grabValue('align.y'),
-        z: grabValue('align.z')
-      },
       origin: {
         x: grabValue('origin.x'),
         y: grabValue('origin.y'),

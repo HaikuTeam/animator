@@ -2697,15 +2697,6 @@ export const LAYOUT_3D_VANITIES = {
 
   // Everything that follows is a standard 3-coord component
   // relating to the element's position in space
-  'align.x': (name, element, value) => {
-    element.layout.align.x = value;
-  },
-  'align.y': (name, element, value) => {
-    element.layout.align.y = value;
-  },
-  'align.z': (name, element, value) => {
-    element.layout.align.z = value;
-  },
   'mount.x': (name, element, value) => {
     element.layout.mount.x = value;
   },
@@ -3237,9 +3228,6 @@ export const FALLBACKS = {
     'mount.x': LAYOUT_DEFAULTS.mount.x,
     'mount.y': LAYOUT_DEFAULTS.mount.y,
     'mount.z': LAYOUT_DEFAULTS.mount.z,
-    'align.x': LAYOUT_DEFAULTS.align.x,
-    'align.y': LAYOUT_DEFAULTS.align.y,
-    'align.z': LAYOUT_DEFAULTS.align.z,
     'origin.x': LAYOUT_DEFAULTS.origin.x,
     'origin.y': LAYOUT_DEFAULTS.origin.y,
     'origin.z': LAYOUT_DEFAULTS.origin.z,
@@ -3296,9 +3284,6 @@ export const LAYOUT_3D_SCHEMA = {
   'mount.x': 'number',
   'mount.y': 'number',
   'mount.z': 'number',
-  'align.x': 'number',
-  'align.y': 'number',
-  'align.z': 'number',
   'origin.x': 'number',
   'origin.y': 'number',
   'origin.z': 'number',

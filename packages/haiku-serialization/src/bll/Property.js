@@ -87,9 +87,6 @@ Property.layoutSpecAsProperties = (spec) => {
     'mount.x': spec.mount.x,
     'mount.y': spec.mount.y,
     'mount.z': spec.mount.z,
-    'align.x': spec.align.x,
-    'align.y': spec.align.y,
-    'align.z': spec.align.z,
     'origin.x': spec.origin.x,
     'origin.y': spec.origin.y,
     'origin.z': spec.origin.z,
@@ -125,7 +122,6 @@ Property.layoutSpecAsProperties = (spec) => {
  */
 Property.PREFIX_TO_CLUSTER_NAME = {
   'mount': 'Mount',
-  'align': 'Align',
   'origin': 'Origin',
   'translation': 'Position',
   'rotation': 'Rotation',
@@ -479,9 +475,6 @@ Property.ALWAYS_CREATE_AS_PROPERTY_NEVER_AS_STATE = {
   'mount.x': true,
   'mount.y': true,
   'mount.z': true,
-  'align.x': true,
-  'align.y': true,
-  'align.z': true,
   'origin.x': true,
   'origin.y': true,
   'origin.z': true,
@@ -609,9 +602,6 @@ Property.areAnyKeyframesDefined = (elementName, propertyName, keyframesObject) =
  * All tests must evaluate to true in order for the property to be displayed.
  */
 Property.DISPLAY_RULES = {
-  'align.x': {jit: [NEVER], add: [NEVER]},
-  'align.y': {jit: [NEVER], add: [NEVER]},
-  'align.z': {jit: [NEVER], add: [NEVER]},
   'content': {jit: [NON_ROOT_ONLY, IF_IN_SCHEMA, IF_TEXT_CONTENT_ENABLED], add: [NON_ROOT_ONLY, IF_IN_SCHEMA, IF_TEXT_CONTENT_ENABLED]},
   'controlFlow.if': {jit: [NON_ROOT_ONLY], add: [IF_EXPLICIT_OR_DEFINED]},
   'controlFlow.placeholder': {jit: [NON_ROOT_ONLY, NON_COMPONENT_ONLY], add: [IF_EXPLICIT_OR_DEFINED]},

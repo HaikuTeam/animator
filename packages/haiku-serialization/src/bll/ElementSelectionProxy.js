@@ -518,11 +518,6 @@ class ElementSelectionProxy extends BaseModel {
         y: this.computePropertyValue('mount.y'),
         z: this.computePropertyValue('mount.z')
       },
-      align: {
-        x: this.computePropertyValue('align.x'),
-        y: this.computePropertyValue('align.y'),
-        z: this.computePropertyValue('align.z')
-      },
       origin: {
         x: this.computePropertyValue('origin.x'),
         y: this.computePropertyValue('origin.y'),
@@ -1529,9 +1524,6 @@ class ElementSelectionProxy extends BaseModel {
       // given property group object.
       composedTransformsToTimelineProperties(propertyGroup, [finalMatrix], true)
 
-      const alignX = layoutSpec.align.x * layoutSpec.size.x
-      const alignY = layoutSpec.align.y * layoutSpec.size.y
-      const alignZ = layoutSpec.align.z * layoutSpec.size.z
       const mountPointX = layoutSpec.mount.x * layoutSpec.size.x
       const mountPointY = layoutSpec.mount.y * layoutSpec.size.y
       const mountPointZ = layoutSpec.mount.z * layoutSpec.size.z
@@ -1540,11 +1532,11 @@ class ElementSelectionProxy extends BaseModel {
       const originZ = layoutSpec.origin.z * layoutSpec.size.z
 
       propertyGroup['translation.x'] +=
-        finalMatrix[0] * originX + finalMatrix[4] * originY + finalMatrix[8] * originZ + mountPointX - alignX
+        finalMatrix[0] * originX + finalMatrix[4] * originY + finalMatrix[8] * originZ + mountPointX
       propertyGroup['translation.y'] +=
-        finalMatrix[1] * originX + finalMatrix[5] * originY + finalMatrix[9] * originZ + mountPointY - alignY
+        finalMatrix[1] * originX + finalMatrix[5] * originY + finalMatrix[9] * originZ + mountPointY
       propertyGroup['translation.z'] +=
-        finalMatrix[2] * originX + finalMatrix[6] * originY + finalMatrix[10] * originZ + mountPointZ - alignZ
+        finalMatrix[2] * originX + finalMatrix[6] * originY + finalMatrix[10] * originZ + mountPointZ
 
       const propertyGroupNorm = Object.keys(propertyGroup).reduce((accumulator, property) => {
         accumulator[property] = { value: propertyGroup[property] }
@@ -1910,9 +1902,6 @@ ElementSelectionProxy.DEFAULT_PROPERTY_VALUES = {
   'origin.x': 0.5,
   'origin.y': 0.5,
   'origin.z': 0.5,
-  'align.x': 0,
-  'align.y': 0,
-  'align.z': 0,
   'mount.x': 0,
   'mount.y': 0,
   'mount.z': 0,
