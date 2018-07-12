@@ -975,6 +975,9 @@ export default class HaikuElement extends HaikuBase {
       z: null,
     };
 
+    let leftOffset = 0;
+    let topOffset = 0;
+
     // We don't want to hydrate a HaikuElement unnecessarily. It's only required if
     // we are doing "auto"-sizing, so we construct one on demand below.
     let targetElement;
@@ -1010,7 +1013,17 @@ export default class HaikuElement extends HaikuBase {
       }
     }
 
-    const targetMatrix = Layout3D.computeMatrix(layoutSpec, targetSize);
+    const targetMatrix = Layout3D.computeMatrix(
+      {
+        ...layoutSpec,
+        offset: {
+          x: layoutSpec.offset.x - leftOffset,
+          y: layoutSpec.offset.y - topOffset,
+          z: layoutSpec.offset.z,
+        },
+      },
+      targetSize,
+    );
 
     return {
       shown: layoutSpec.shown,
