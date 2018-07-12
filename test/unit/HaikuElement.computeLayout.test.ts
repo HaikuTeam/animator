@@ -4,17 +4,12 @@ import * as tape from 'tape';
 tape(
   'HaikuElement.computeLayout',
   (t) => {
-    const {align, matrix, mount, opacity, origin, shown, size, computed} = HaikuElement.computeLayout(
+    const {matrix, mount, opacity, origin, shown, size, computed} = HaikuElement.computeLayout(
       { // targetNode
         layout: {
           shown: true,
           opacity: 1,
           mount: {
-            x: 0,
-            y: 0,
-            z: 0,
-          },
-          align: {
             x: 0,
             y: 0,
             z: 0,
@@ -80,14 +75,6 @@ tape(
       },
     );
 
-    t.deepEqual(
-      align,
-      {
-        x: 0,
-        y: 0,
-        z: 0,
-      },
-    );
     t.deepEqual(
       matrix,
       [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 33, 0, 0, 1],

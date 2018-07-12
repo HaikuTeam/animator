@@ -299,7 +299,6 @@ export interface LayoutSpec {
   shown: boolean;
   opacity: number;
   mount: ThreeDimensionalLayoutProperty;
-  align: ThreeDimensionalLayoutProperty;
   origin: ThreeDimensionalLayoutProperty;
   translation: ThreeDimensionalLayoutProperty;
   rotation: ThreeDimensionalLayoutProperty;

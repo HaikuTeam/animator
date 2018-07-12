@@ -255,10 +255,6 @@ export default class HaikuElement extends HaikuBase {
     return (this.layout && this.layout.mount) || {...LAYOUT_DEFAULTS.mount};
   }
 
-  get align (): ThreeDimensionalLayoutProperty {
-    return (this.layout && this.layout.align) || {...LAYOUT_DEFAULTS.align};
-  }
-
   get targets (): any[] {
     return (this.node && this.node.__targets) || [];
   }
@@ -340,18 +336,6 @@ export default class HaikuElement extends HaikuBase {
 
   get mountZ (): number {
     return this.mount && this.mount.z;
-  }
-
-  get alignX (): number {
-    return this.align && this.align.x;
-  }
-
-  get alignY (): number {
-    return this.align && this.align.y;
-  }
-
-  get alignZ (): number {
-    return this.align && this.align.z;
   }
 
   /**
@@ -474,7 +458,6 @@ export default class HaikuElement extends HaikuBase {
       shown: this.shown,
       opacity: this.opacity,
       mount: this.mount,
-      align: this.align,
       origin: this.origin,
       translation: this.translation,
       rotation: this.rotation,
@@ -966,7 +949,6 @@ export default class HaikuElement extends HaikuBase {
       shown: layoutSpec.shown,
       opacity: layoutSpec.opacity,
       mount: layoutSpec.mount,
-      align: layoutSpec.align,
       origin: layoutSpec.origin,
       translation: layoutSpec.translation,
       rotation: layoutSpec.rotation,

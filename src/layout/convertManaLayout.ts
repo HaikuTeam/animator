@@ -28,9 +28,6 @@ const TRANSFORM_COMPONENT_WHITELIST = {
   'origin.x': true,
   'origin.y': true,
   'origin.z': true,
-  'align.x': true,
-  'align.y': true,
-  'align.z': true,
 };
 
 function isNumericDefined (value): boolean {
