@@ -110,17 +110,11 @@ export const runMigrations = (component: IHaikuComponent, options: any, version:
 
   let needsRerender = false;
 
-  const nodesBySelector = {};
-
   if (bytecode.template) {
     visitManaTree(
       '0',
       bytecode.template,
       (elementName, attributes, children, node, locator, parent) => {
-        if (attributes[HAIKU_ID_ATTRIBUTE]) {
-          nodesBySelector[`haiku:${attributes[HAIKU_ID_ATTRIBUTE]}`] = {node, parent};
-        }
-
         if (options && options.referenceUniqueness) {
           if (elementName === 'filter' || elementName === 'filterGradient') {
             if (attributes.id && !alreadyUpdatedReferences[attributes.id]) {
