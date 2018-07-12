@@ -499,7 +499,6 @@ class Timeline extends React.Component {
     })
 
     if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-      console.log(this.refs.container)
       this.addEmitterListener(document.body, 'mousewheel', this.handleScroll.bind(this), { passive: true })
     } else {
       this.addEmitterListener(document.body, 'mousewheel', lodash.throttle((wheelEvent) => {
@@ -869,7 +868,13 @@ class Timeline extends React.Component {
   handleHorizontalScroll (origDelta) {
     if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
       const timeline = this.getActiveComponent().getCurrentTimeline()
-      timeline.setScrollLeft(this.refs.container.scrollLeft)
+      let scrollDelta = timeline.getScrollLeft() + origDelta
+
+      if (scrollDelta < 0) {
+        scrollDelta = 0
+      }
+
+      timeline.setScrollLeft(scrollDelta)
     } else {
       const motionDelta = Math.round((origDelta ? origDelta < 0 ? -1 : 1 : 0) * (Math.log(Math.abs(origDelta) + 1) * 2))
       this.getActiveComponent().getCurrentTimeline().updateVisibleFrameRangeByDelta(motionDelta)

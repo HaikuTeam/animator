@@ -1019,7 +1019,7 @@ export default class ExpressionInput extends React.Component {
     if (this.props.component.getFocusedRow()) {
       style.visibility = 'visible'
       let rect = this.getRootRect()
-      style.left = experimentIsEnabled(Experiment.NativeTimelineScroll) ? rect.left + this.props.reactParent.refs.container.scrollLeft : rect.left
+      style.left = rect.left
       style.top = experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : rect.top + 10
       style.marginTop = experimentIsEnabled(Experiment.NativeTimelineScroll) ? rect.top + this.props.reactParent.refs.container.scrollTop + 10 : undefined
     }
