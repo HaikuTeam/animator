@@ -82,7 +82,7 @@ export default class SimplifiedFrameGrid extends React.PureComponent {
                   height: 'calc(100vh - 80px)',
                   position: 'absolute',
                   borderLeft: this.defaultFrameBorder,
-                  left: pixelOffsetLeft + propertiesWidth,
+                  left: pixelOffsetLeft + propertiesWidth + 1,
                   top: 34
                 }}
                />

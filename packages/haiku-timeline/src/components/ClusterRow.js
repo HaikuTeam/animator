@@ -143,7 +143,7 @@ export default class ClusterRow extends React.Component {
             overflow: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : 'hidden',
             position: 'absolute',
             width: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : this.props.timeline.getTimelinePixelWidth(),
-            left: this.props.timeline.getPropertiesPixelWidth() - 4, // offset half of lone keyframe width so it lines up with the pole
+            left: experimentIsEnabled(Experiment.NativeTimelineScroll) ? this.props.timeline.getPropertiesPixelWidth() : this.props.timeline.getPropertiesPixelWidth() - 4, // offset half of lone keyframe width so it lines up with the pole
             top: 0,
             height: 'inherit',
             zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? zIndex.clusterRow.base : undefined

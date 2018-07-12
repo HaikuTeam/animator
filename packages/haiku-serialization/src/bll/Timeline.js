@@ -39,7 +39,7 @@ class Timeline extends BaseModel {
 
     this._visibleFrameRange = [0, 60]
     this._timelinePixelWidth = 870
-    this._propertiesPixelWidth = 300
+    this._propertiesPixelWidth = 293
     this._maxFrame = this._visibleFrameRange[1] * 2
     this._frameBaseline = 0
     this._durationDragStart = 0

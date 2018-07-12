@@ -73,6 +73,7 @@ const DEFAULTS = {
 
 const THROTTLE_TIME = 32 // ms
 const MENU_ACTION_DEBOUNCE_TIME = 100
+const TIMELINE_OFFSET_PADDING = 6 // px
 
 class Timeline extends React.Component {
   constructor (props) {
@@ -518,7 +519,7 @@ class Timeline extends React.Component {
       if (timeline) {
         const frameInfo = timeline.getFrameInfo()
         if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-          pxInTimeline = mouseMoveEvent.clientX + (this.refs.container.scrollLeft || 0) - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()
+          pxInTimeline = mouseMoveEvent.clientX + (this.refs.container.scrollLeft || 0) - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() - TIMELINE_OFFSET_PADDING
         } else {
           pxInTimeline = mouseMoveEvent.clientX - timeline.getPropertiesPixelWidth()
         }
@@ -1349,7 +1350,7 @@ class Timeline extends React.Component {
 
     const frameInfo = this.getActiveComponent().getCurrentTimeline().getFrameInfo()
     const leftX = experimentIsEnabled(Experiment.NativeTimelineScroll)
-      ? evt.clientX + (this.refs.container.scrollLeft || 0) - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()
+      ? evt.clientX + (this.refs.container.scrollLeft || 0) - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() - TIMELINE_OFFSET_PADDING
       : evt.clientX - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()
 
     const frameX = Math.round(leftX / frameInfo.pxpf)
@@ -1558,6 +1559,7 @@ class Timeline extends React.Component {
           left: 0,
           height: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'calc(100% - 30px)' : 'calc(100% - 45px)',
           width: '100%',
+          paddingLeft: experimentIsEnabled(Experiment.NativeTimelineScroll) ? TIMELINE_OFFSET_PADDING : undefined,
           overflow: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'auto' : 'hidden'
         }}>
         {
