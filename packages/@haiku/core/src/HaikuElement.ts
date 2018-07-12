@@ -1,6 +1,7 @@
 import {
   AxisString,
   BoundsSpec,
+  BoundsSpecPartial,
   BoundsSpecX,
   BoundsSpecY,
   BoundsSpecZ,
@@ -498,6 +499,18 @@ export default class HaikuElement extends HaikuBase {
     };
   }
 
+  computeBoundsForAxis (axis: AxisString): BoundsSpecX|BoundsSpecY|BoundsSpecZ {
+    if (axis === 'x') {
+      return this.computeContentBoundsX();
+    }
+    if (axis === 'y') {
+      return this.computeContentBoundsY();
+    }
+    if (axis === 'z') {
+      return this.computeContentBoundsZ();
+    }
+  }
+
   computeContentBounds (): BoundsSpec {
     return {
       ...this.computeContentBoundsX(),
@@ -975,8 +988,34 @@ export default class HaikuElement extends HaikuBase {
       z: null,
     };
 
+    const parentBounds = (
+      parentNode &&
+      parentNode.layout &&
+      parentNode.layout.computed &&
+      parentNode.layout.computed.bounds
+    );
+
+    const targetBounds = {
+      left: null,
+      top: null,
+      right: null,
+      bottom: null,
+      front: null,
+      back: null,
+    };
+
     let leftOffset = 0;
     let topOffset = 0;
+
+    if (parentBounds) {
+      if (typeof parentBounds.left === 'number') {
+        leftOffset += parentBounds.left;
+      }
+
+      if (typeof parentBounds.top === 'number') {
+        topOffset += parentBounds.top;
+      }
+    }
 
     // We don't want to hydrate a HaikuElement unnecessarily. It's only required if
     // we are doing "auto"-sizing, so we construct one on demand below.
@@ -1005,6 +1044,8 @@ export default class HaikuElement extends HaikuBase {
             }
 
             targetSize[sizeAxis] = targetElement.computeSizeForAxis(sizeAxis);
+
+            Object.assign(targetBounds, targetElement.computeBoundsForAxis(sizeAxis));
           } else {
             targetSize[sizeAxis] = givenValue; // Assume the given value is numeric
           }
@@ -1042,6 +1083,7 @@ export default class HaikuElement extends HaikuBase {
       sizeAbsolute: layoutSpec.sizeAbsolute,
       size: targetSize,
       matrix: targetMatrix,
+      bounds: targetBounds,
     };
   };
 }
