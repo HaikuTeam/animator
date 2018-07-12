@@ -379,7 +379,6 @@ class ElementSelectionProxy extends BaseModel {
     const shimLayout = Layout3D.createLayoutSpec()
     shimLayout.rotation.z = -computedLayout.rotation.z
     shimLayout.origin = computedLayout.origin
-    const ignoredSize = {x: 0, y: 0, z: 0}
     const shimMatrix = Layout3D.computeMatrix(shimLayout, computedLayout.size)
     shimMatrix[12] = -(boxPoint.x * shimMatrix[0] + boxPoint.y * shimMatrix[4])
     shimMatrix[13] = -(boxPoint.x * shimMatrix[1] + boxPoint.y * shimMatrix[5])
