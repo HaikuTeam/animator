@@ -251,6 +251,10 @@ export default class HaikuElement extends HaikuBase {
     return (this.layout && this.layout.origin) || {...LAYOUT_DEFAULTS.origin};
   }
 
+  get offset (): ThreeDimensionalLayoutProperty {
+    return (this.layout && this.layout.offset) || {...LAYOUT_DEFAULTS.offset};
+  }
+
   get mount (): ThreeDimensionalLayoutProperty {
     return (this.layout && this.layout.mount) || {...LAYOUT_DEFAULTS.mount};
   }
@@ -336,6 +340,18 @@ export default class HaikuElement extends HaikuBase {
 
   get mountZ (): number {
     return this.mount && this.mount.z;
+  }
+
+  get offsetX (): number {
+    return this.offset && this.offset.x;
+  }
+
+  get offsetY (): number {
+    return this.offset && this.offset.y;
+  }
+
+  get offsetZ (): number {
+    return this.offset && this.offset.z;
   }
 
   /**
@@ -458,6 +474,7 @@ export default class HaikuElement extends HaikuBase {
       shown: this.shown,
       opacity: this.opacity,
       mount: this.mount,
+      offset: this.offset,
       origin: this.origin,
       translation: this.translation,
       rotation: this.rotation,
@@ -750,6 +767,48 @@ export default class HaikuElement extends HaikuBase {
     return HaikuElement.getRectFromPoints(points);
   }
 
+  getNearestDefinedNonZeroAncestorSizeX (): number {
+    const x = this.sizeAbsolute.x;
+
+    if (typeof x === 'number' && x > 0) {
+      return x;
+    }
+
+    if (this.parent) {
+      return this.parent.getNearestDefinedNonZeroAncestorSizeX();
+    }
+
+    return 1;
+  }
+
+  getNearestDefinedNonZeroAncestorSizeY (): number {
+    const y = this.sizeAbsolute.y;
+
+    if (typeof y === 'number' && y > 0) {
+      return y;
+    }
+
+    if (this.parent) {
+      return this.parent.getNearestDefinedNonZeroAncestorSizeY();
+    }
+
+    return 1;
+  }
+
+  getNearestDefinedNonZeroAncestorSizeZ (): number {
+    const z = this.sizeAbsolute.z;
+
+    if (typeof z === 'number' && z > 0) {
+      return z;
+    }
+
+    if (this.parent) {
+      return this.parent.getNearestDefinedNonZeroAncestorSizeZ();
+    }
+
+    return 1;
+  }
+
   dump (): string {
     return `${this.$id}:<${this.tagName}>(${this.getComponentId()})`;
   }
@@ -943,12 +1002,13 @@ export default class HaikuElement extends HaikuBase {
       }
     }
 
-    const targetMatrix = Layout3D.computeMatrix(layoutSpec, targetSize, parentsizeAbsolute);
+    const targetMatrix = Layout3D.computeMatrix(layoutSpec, targetSize);
 
     return {
       shown: layoutSpec.shown,
       opacity: layoutSpec.opacity,
       mount: layoutSpec.mount,
+      offset: layoutSpec.offset,
       origin: layoutSpec.origin,
       translation: layoutSpec.translation,
       rotation: layoutSpec.rotation,

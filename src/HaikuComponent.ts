@@ -2706,6 +2706,15 @@ export const LAYOUT_3D_VANITIES = {
   'mount.z': (name, element, value) => {
     element.layout.mount.z = value;
   },
+  'offset.x': (name, element, value) => {
+    element.layout.offset.x = value;
+  },
+  'offset.y': (name, element, value) => {
+    element.layout.offset.y = value;
+  },
+  'offset.z': (name, element, value) => {
+    element.layout.offset.z = value;
+  },
   'origin.x': (name, element, value) => {
     element.layout.origin.x = value;
   },
@@ -3228,6 +3237,9 @@ export const FALLBACKS = {
     'mount.x': LAYOUT_DEFAULTS.mount.x,
     'mount.y': LAYOUT_DEFAULTS.mount.y,
     'mount.z': LAYOUT_DEFAULTS.mount.z,
+    'offset.x': LAYOUT_DEFAULTS.offset.x,
+    'offset.y': LAYOUT_DEFAULTS.offset.y,
+    'offset.z': LAYOUT_DEFAULTS.offset.z,
     'origin.x': LAYOUT_DEFAULTS.origin.x,
     'origin.y': LAYOUT_DEFAULTS.origin.y,
     'origin.z': LAYOUT_DEFAULTS.origin.z,
@@ -3284,6 +3296,9 @@ export const LAYOUT_3D_SCHEMA = {
   'mount.x': 'number',
   'mount.y': 'number',
   'mount.z': 'number',
+  'offset.x': 'number',
+  'offset.y': 'number',
+  'offset.z': 'number',
   'origin.x': 'number',
   'origin.y': 'number',
   'origin.z': 'number',
