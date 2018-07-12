@@ -1042,6 +1042,7 @@ export default class ExpressionInput extends React.Component {
 
   getInputLabelStyle () {
     const label = this.getLabelString()
+    const width = experimentIsEnabled(Experiment.NativeTimelineScroll) ? 82 : 83
     let fontSize = 10
     if (label.length > 12) fontSize = 8
     let style = {
@@ -1051,12 +1052,12 @@ export default class ExpressionInput extends React.Component {
       color: Palette.SUNSTONE,
       display: 'none',
       fontWeight: 400,
-      left: -83,
+      left: -width,
       lineHeight: 1,
       position: 'absolute',
       textAlign: 'center',
       textTransform: 'uppercase',
-      width: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 82 : 83
+      width
     }
     lodash.assign(style, this.props.component.getFocusedRow() && {
       fontSize,
