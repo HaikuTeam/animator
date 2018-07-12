@@ -114,7 +114,7 @@ export const runMigrations = (component: IHaikuComponent, options: any, version:
     visitManaTree(
       '0',
       bytecode.template,
-      (elementName, attributes, children, node, locator, parent) => {
+      (elementName, attributes, children, node) => {
         if (options && options.referenceUniqueness) {
           if (elementName === 'filter' || elementName === 'filterGradient') {
             if (attributes.id && !alreadyUpdatedReferences[attributes.id]) {
