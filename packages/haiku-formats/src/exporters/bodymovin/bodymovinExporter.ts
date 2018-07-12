@@ -1,11 +1,14 @@
-import {Curve} from '@haiku/core/lib/api/Curve';
 import {
-  BytecodeNode, BytecodeSummonable, BytecodeTimelineProperties, BytecodeTimelineProperty, HaikuBytecode,
-} from '@haiku/core/lib/api/HaikuBytecode';
+  BytecodeNode,
+  BytecodeSummonable,
+  BytecodeTimelineProperties,
+  BytecodeTimelineProperty,
+  Curve,
+  HaikuBytecode,
+} from '@haiku/core/lib/api';
 import {synchronizePathStructure} from '@haiku/core/lib/helpers/PathUtil';
 import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
 import {CurveSpec} from '@haiku/core/lib/vendor/svg-points/types';
-
 import {writeFile} from 'fs-extra';
 import {ContextualSize} from 'haiku-common/lib/types';
 // @ts-ignore

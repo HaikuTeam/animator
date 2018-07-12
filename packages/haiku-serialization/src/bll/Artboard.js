@@ -1,6 +1,5 @@
 const BaseModel = require('./BaseModel')
 const Matrix = require('gl-matrix')
-
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 
 /**
@@ -239,17 +238,21 @@ class Artboard extends BaseModel {
     this._originalPanY = this._panY
   }
 
-  // takes a point in screen space {x,y} and transforms it to 2D world space {x,y}
   transformScreenToWorld (screenCoords) {
     let mat = Matrix.mat2d.create()
-    let scale = Matrix.vec2.create()
-    Matrix.vec2.set(scale, 1 / this._zoomXY, 1 / this._zoomXY)
-    Matrix.mat2d.scale(mat, mat, scale)
+    let mount = Matrix.vec2.create()
+
+    Matrix.vec2.set(mount, -this._mountX, -this._mountY)
+
+    let mountMat = Matrix.mat2d.create()
+    Matrix.mat2d.translate(mountMat, mountMat, mount)
+    Matrix.mat2d.multiply(mat, mat, mountMat)
+
     let screenVec = Matrix.vec2.create()
     Matrix.vec2.set(screenVec, screenCoords.x, screenCoords.y)
     Matrix.vec2.transformMat2d(screenVec, screenVec, mat)
-    let ret = {x: screenVec[0], y: screenVec[1]}
-    return ret
+    let screenSpace = {x: screenVec[0], y: screenVec[1]}
+    return screenSpace
   }
 
   getZoom () {
@@ -265,6 +268,102 @@ class Artboard extends BaseModel {
 
   getActiveDrawingTool () {
     return this._activeDrawingTool
+  }
+
+  // Snapline {
+  //  direction : "HORIZONTAL"|"VERTICAL"
+  //  positionWorld: Number
+  //  elementId: String | undefined
+  // }
+
+  getSnapLinesInScreenCoords () {
+    let snapLines = []
+    let topWorld = 0
+    let rightWorld = this._mountWidth
+    let bottomWorld = this._mountHeight
+    let leftWorld = 0
+
+    snapLines.push({
+      direction: 'HORIZONTAL',
+      positionWorld: topWorld,
+      elementId: 'STAGE_TOP'
+    })
+    snapLines.push({
+      direction: 'VERTICAL',
+      positionWorld: rightWorld,
+      elementId: 'STAGE_RIGHT'
+    })
+    snapLines.push({
+      direction: 'HORIZONTAL',
+      positionWorld: bottomWorld,
+      elementId: 'STAGE_BOTTOM'
+    })
+    snapLines.push({
+      direction: 'VERTICAL',
+      positionWorld: leftWorld,
+      elementId: 'STAGE_LEFT'
+    })
+    snapLines.push({
+      direction: 'VERTICAL',
+      positionWorld: (leftWorld + rightWorld) / 2,
+      elementId: 'STAGE_VERTICAL_MID'
+    })
+    snapLines.push({
+      direction: 'HORIZONTAL',
+      positionWorld: (topWorld + bottomWorld) / 2,
+      elementId: 'STAGE_HORIZONTAL_MID'
+    })
+
+    const rootElement = this.getElement()
+    const topLevelElements = rootElement.children
+
+    topLevelElements.forEach((elem) => {
+      // deleted elements will show up as null entries in this array
+      if (!elem) {
+        return
+      }
+
+      let marginX = (this._containerWidth - this._mountWidth) / 2
+      let marginY = (this._containerHeight - this._mountHeight) / 2
+      let bbox = elem.getBoundingClientRect(-marginX, -marginY)
+
+      snapLines.push({
+        direction: 'HORIZONTAL',
+        positionWorld: this.transformScreenToWorld({x: 0, y: bbox.top}).y,
+        elementId: elem.getComponentId()
+      })
+      snapLines.push({
+        direction: 'HORIZONTAL',
+        positionWorld: this.transformScreenToWorld({x: 0, y: bbox.bottom}).y,
+        elementId: elem.getComponentId()
+      })
+      snapLines.push({
+        direction: 'HORIZONTAL',
+        positionWorld: this.transformScreenToWorld({x: 0, y: (bbox.bottom + bbox.top) / 2}).y,
+        elementId: elem.getComponentId()
+      })
+      snapLines.push({
+        direction: 'VERTICAL',
+        positionWorld: this.transformScreenToWorld({x: bbox.left, y: 0}).x,
+        elementId: elem.getComponentId()
+      })
+      snapLines.push({
+        direction: 'VERTICAL',
+        positionWorld: this.transformScreenToWorld({x: bbox.right, y: 0}).x,
+        elementId: elem.getComponentId()
+      })
+      snapLines.push({
+        direction: 'VERTICAL',
+        positionWorld: this.transformScreenToWorld({x: (bbox.right + bbox.left) / 2, y: 0}).x,
+        elementId: elem.getComponentId()
+      })
+    })
+
+    if (typeof window !== 'undefined') {
+      window.snapLines = snapLines
+    }
+
+    return snapLines
   }
 }
 

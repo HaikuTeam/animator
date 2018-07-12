@@ -2,7 +2,7 @@ const fse = require('fs-extra')
 const {debounce} = require('lodash')
 const path = require('path')
 const {xmlToMana} = require('@haiku/core/lib/HaikuNode')
-const objectToRO = require('@haiku/core/lib/reflection/objectToRO').default
+const expressionToRO = require('@haiku/core/lib/reflection/expressionToRO').default
 const BaseModel = require('./BaseModel')
 const logger = require('./../utils/LoggerInstance')
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
@@ -239,6 +239,14 @@ class File extends BaseModel {
   }
 
   getImportPathTo (source) {
+    // In case of builtin/installed components, we don't want to prefix with the dot :/
+    // See also Asset#getLocalizedRelpath, Template#normalizePathOfPossiblyExternalModule
+    // e.g. @haiku/core/components/controls/HTML
+    // TODO: e.g. some-other-haiku-proj/moocow
+    if (source[0] === '@') {
+      return source
+    }
+
     return Template.normalizePath(path.relative(path.dirname(this.relpath), source))
   }
 
@@ -257,7 +265,7 @@ class File extends BaseModel {
    * @method getReifiedDecycledBytecode
    * @description Similar to getReifiedBytecode but removes internal object pointers/annotations which either cause
    * serialization issues or which have the effect of adding too much metadata to the object. For example, the
-   * reified bytecode by itself probably has a template that contains .__depth, .__parent, .layout properties, etc.
+   * reified bytecode by itself probably has a template that contains .__parent, .layout properties, etc.
    */
   getReifiedDecycledBytecode (cleanManaOptions = {}) {
     const reified = this.getReifiedBytecode()
@@ -275,7 +283,7 @@ class File extends BaseModel {
   getSerializedBytecode () {
     const reified = this.getReifiedDecycledBytecode()
     Bytecode.cleanBytecode(reified)
-    const serialized = objectToRO(reified) // This returns a *new* object
+    const serialized = expressionToRO(reified) // This returns a *new* object
     return serialized
   }
 }

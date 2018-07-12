@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import {BytecodeNode} from '../api/HaikuBytecode';
+import {BytecodeNode} from '../api';
 import svgPoints from '../vendor/svg-points';
 import {CurveSpec, LineSpec, PathSpec, ShapeSpec} from '../vendor/svg-points/types';
 import parseCssValueString from './parseCssValueString';

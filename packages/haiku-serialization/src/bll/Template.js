@@ -117,6 +117,14 @@ Template.normalizePath = (str) => {
   return path.normalize(str)
 }
 
+Template.normalizePathOfPossiblyExternalModule = (str) => {
+  if (str[0] === '@') {
+    return path.normalize(str)
+  }
+
+  return Template.normalizePath(`./${str}`)
+}
+
 Template.mirrorHaikuUids = (fromNode, toNode) => {
   if (!toNode.attributes) toNode.attributes = {}
 
@@ -785,11 +793,7 @@ Template.ensureRootDisplayAttributes = (mana) => {
 }
 
 Template.cleanTemplate = (mana) => {
-  visitManaTree(ROOT_LOCATOR, mana, (elementName, attributes, children, node) => {
-    // Clean these in-memory only properties that get added (don't want to write these to the file)
-    delete node.__depth
-    delete node.__index
-  })
+  // no-op (TODO)
 }
 
 /**

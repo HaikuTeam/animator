@@ -585,6 +585,14 @@ class Project extends BaseModel {
     )
   }
 
+  queryImageSize (abspath, cb) {
+    return this.websocket.method(
+      'queryImageSize',
+      [abspath],
+      cb
+    )
+  }
+
   mergeDesigns (designs, metadata, cb) {
     const ac = this.getCurrentActiveComponent()
 

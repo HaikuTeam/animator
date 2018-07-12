@@ -6,14 +6,14 @@ import {
   BoundsSpecZ,
   ClientRect,
   ComputedLayoutSpec,
+  IHaikuComponent,
   LayoutNode,
   LayoutSpec,
   StringableThreeDimensionalLayoutProperty,
   ThreeDimensionalLayoutProperty,
   TwoPointFiveDimensionalLayoutProperty,
-} from './api/Layout';
+} from './api';
 import HaikuBase from './HaikuBase';
-import HaikuComponent from './HaikuComponent';
 import {cssMatchOne} from './HaikuNode';
 import Layout3D, {AUTO_SIZING_TOKEN, SIZE_ABSOLUTE, SIZE_PROPORTIONAL} from './Layout3D';
 
@@ -101,7 +101,7 @@ export default class HaikuElement extends HaikuBase {
    * @description Returns the HaikuComponent instance that manages nodes below this one.
    * This node is considered the 'wrapper' node and its child is considered the 'root'.
    */
-  get subcomponent (): HaikuComponent {
+  get subcomponent (): IHaikuComponent {
     return this.node && this.node.__subcomponent;
   }
 
@@ -110,11 +110,11 @@ export default class HaikuElement extends HaikuBase {
    * @description Returns the HaikuComponent instance that manages this node and those beneath.
    * This node is considered the 'root' node of the instance.
    */
-  get instance (): HaikuComponent {
+  get instance (): IHaikuComponent {
     return this.node && this.node.__instance;
   }
 
-  get owner (): HaikuComponent {
+  get owner (): IHaikuComponent {
     if (this.instance) {
       return this.instance;
     }
@@ -391,6 +391,18 @@ export default class HaikuElement extends HaikuBase {
 
   get sizeZ (): number {
     return this.computeSizeZ();
+  }
+
+  get width (): number {
+    return this.sizeX;
+  }
+
+  get height (): number {
+    return this.sizeY;
+  }
+
+  get depth (): number {
+    return this.sizeZ;
   }
 
   get sizeAbsolute (): StringableThreeDimensionalLayoutProperty {
@@ -753,6 +765,10 @@ export default class HaikuElement extends HaikuBase {
   getLocallyTransformedBoundingClientRect (): ClientRect {
     const points = this.getLocallyTransformedBoundingBoxPoints();
     return HaikuElement.getRectFromPoints(points);
+  }
+
+  dump (): string {
+    return `${this.$id}:<${this.tagName}>(${this.getComponentId()})`;
   }
 
   static transformVectorByMatrix = (out, v, m): number[] => {

@@ -1,6 +1,7 @@
-import {BytecodeTimelineProperties,
+import {
+  BytecodeTimelineProperties,
   HaikuBytecode,
-} from '@haiku/core/lib/api/HaikuBytecode';
+} from '@haiku/core/lib/api';
 
 export default class BaseExporter {
   constructor (protected bytecode: HaikuBytecode, protected readonly componentFolder: string) {}

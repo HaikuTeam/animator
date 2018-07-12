@@ -8,7 +8,6 @@ import {getExperimentConfig} from './config';
  */
 export enum Experiment {
   MultiComponentFeatures = 'MultiComponentFeatures',
-  InstantiationOfPrimitivesAsComponents = 'InstantiationOfPrimitivesAsComponents',
   HideInstantiatedElementUntilTimeInstantiated = 'HideInstantiatedElementUntilTimeInstantiated',
   MergeDesignChangesAtCurrentTime = 'MergeDesignChangesAtCurrentTime',
   CommentsOnStage = 'CommentsOnStage',
@@ -34,6 +33,8 @@ export enum Experiment {
   TimelineMarqueeSelection = 'TimelineMarqueeSelection',
   LocalAssetExport = 'LocalAssetExport',
   UserConsole = 'UserConsole',
+  AllowBitmapImages = 'AllowBitmapImages',
+  SizeInsteadOfScaleWhenPossible = 'SizeInsteadOfScaleWhenPossible',
   CleanInitialLibraryState = 'CleanInitialLibraryState',
   CopyPasteTweens = 'CopyPasteTweens',
   CopyPasteTweensWithAccelerators = 'CopyPasteTweensWithAccelerators',

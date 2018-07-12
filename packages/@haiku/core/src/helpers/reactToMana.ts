@@ -2,8 +2,6 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import reactChildrenToMana from './reactChildrenToMana';
-
 const STRING_TYPE = 'string';
 
 export default function reactToMana (react) {
@@ -29,4 +27,19 @@ export default function reactToMana (react) {
     attributes: props,
     children: processedChildren,
   };
+}
+
+function reactChildrenToMana (children) {
+  if (!children) {
+    return null;
+  }
+  if (children.length < 1) {
+    return null;
+  }
+  return children.map((child) => {
+    if (typeof child === 'string') {
+      return child;
+    }
+    return reactToMana(child);
+  });
 }

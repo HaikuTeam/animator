@@ -10,7 +10,7 @@ import {BTN_STYLES} from '../styles/btnShared';
 import Toggle from './Toggle';
 import {ShareModal} from 'haiku-ui-common/lib/react/ShareModal';
 import {
-  ComponentIconSVG, ConnectionIconSVG, DangerIconSVG, EventsBoltIcon, PublishSnapshotSVG, WarningIconSVG,
+  ComponentIconSVG, ConnectionIconSVG, DangerIconSVG, EventsBoltIcon, PublishSnapshotSVG, WarningIconSVG, AlignDistributeIcons,
 } from 'haiku-ui-common/lib/react/OtherIcons';
 import {ExporterFormat} from 'haiku-sdk-creator/lib/exporter';
 import * as Element from 'haiku-serialization/src/bll/Element';
@@ -138,6 +138,21 @@ const STYLES = {
     height: 3,
     backgroundColor: Palette.LIGHTEST_PINK,
   },
+  alignDistributeBtn: {
+    width: 28,
+  },
+  alignDistributeIconWrapper: {
+    transform: 'scale(0.65)',
+    display: 'block',
+    marginTop: -7,
+  },
+  alignPanel: {
+    padding: '10px 5px 10px 13px',
+    position: 'fixed',
+    zIndex: 100000,
+    backgroundColor: Palette.COAL,
+    borderRadius: 3,
+  },
 };
 
 const SNAPSHOT_SAVE_RESOLUTION_STRATEGIES = {
@@ -160,6 +175,7 @@ class StageTitleBar extends React.Component {
     this.handleShowEventHandlersEditor = this.handleShowEventHandlersEditor.bind(this);
     this.handleConglomerateComponent = this.handleConglomerateComponent.bind(this);
     this.handleShowProjectLocationToast = this.handleShowProjectLocationToast.bind(this);
+    this.handleShowAlignPanel = this.handleShowAlignPanel.bind(this);
     this.handleGlobalMenuSave = this.handleGlobalMenuSave.bind(this);
     this.handleSaveOnRawCodeEditor = this.handleSaveOnRawCodeEditor.bind(this);
     this.handleSaveOnGlass = this.handleSaveOnGlass.bind(this);
@@ -264,6 +280,15 @@ class StageTitleBar extends React.Component {
     }
 
     this.handleSaveSnapshotClick();
+  }
+
+  handleShowAlignPanel () {
+    const toggleBbox = this.refs.alignPanelButton.getBoundingClientRect();
+    const basePoint = {x: toggleBbox.left, y: toggleBbox.bottom};
+    this.setState({
+      alignPanelShown: !this.state.alignPanelShown,
+      alignPanelBasePoint: basePoint,
+    });
   }
 
   handleShowProjectLocationToast () {
@@ -371,6 +396,32 @@ class StageTitleBar extends React.Component {
 
   clearSyndicationChecks () {
     clearInterval(this._performSyndicationCheckInterval);
+  }
+
+  performAlign (xEdge, yEdge) {
+    const toStage = this.refs.to_stage_toggle && this.refs.to_stage_toggle.checked; // TODO:  get selection value of checkbox
+    this.props.websocket.send({
+      type: 'broadcast',
+      from: 'creator',
+      folder: this.props.projectModel.getFolder(), // required when sent via Creator
+      name: 'perform-align',
+      xEdge,
+      yEdge,
+      toStage,
+    });
+  }
+
+  performDistribute (xEdge, yEdge) {
+    const toStage = this.refs.to_stage_toggle && this.refs.to_stage_toggle.checked;
+    this.props.websocket.send({
+      type: 'broadcast',
+      from: 'creator',
+      folder: this.props.projectModel.getFolder(), // required when sent via Creator
+      name: 'perform-distribute',
+      xEdge,
+      yEdge,
+      toStage,
+    });
   }
 
   performSyndicationCheck () {
@@ -577,6 +628,18 @@ class StageTitleBar extends React.Component {
     return proxy && (proxy.doesManageSingleElement() || proxy.hasNothingInSelection());
   }
 
+  isAlignPanelAvailable () {
+    // This would show the align panel only when elements are selected:
+    // const proxy = this.fetchProxyElementForSelection();
+    // return proxy && !proxy.hasNothingInSelection();
+    // But it feels better (in zb's opinion at authoring time) to keep it shown at all times glass is shown
+    return this.props.showGlass;
+  }
+
+  shouldShowAlignPanel () {
+    return this.state.alignPanelShown && !this.state.showSharePopover && !this.props.isPreviewMode && this.props.showGlass;
+  }
+
   handleShowEventHandlersEditor () {
     if (this.isEventHandlersEditorAvailable()) {
       const element = this.getProxySelectionElement();
@@ -670,6 +733,194 @@ class StageTitleBar extends React.Component {
             ]}>
             <EventsBoltIcon color={this.getEventHandlersEditorButtonColor()} />
           </button>
+        }
+
+        {this.isAlignPanelAvailable() &&
+          <button
+            key="show-align-panel-button"
+            id="show-align-panel-button"
+            onClick={this.handleShowAlignPanel}
+            ref="alignPanelButton"
+            style={[
+              BTN_STYLES.btnIcon,
+              BTN_STYLES.leftBtns,
+              STYLES.alignDistributeBtn,
+            ]}>
+            <span style={[STYLES.alignDistributeIconWrapper]}>
+              <AlignDistributeIcons.AlignVLeft color={this.getEventHandlersEditorButtonColor()} />
+            </span>
+          </button>
+        }
+
+        {this.shouldShowAlignPanel() &&
+          <div
+            style={[
+              STYLES.alignPanel,
+              {
+                top: this.state.alignPanelBasePoint.y,
+                left: this.state.alignPanelBasePoint.x,
+              },
+            ]}
+          >
+            <div style={{margin: '0 3px 2px 0'}}>Align:</div>
+            <div style={{height: 27}}>
+              <button
+                onClick={this.performAlign.bind(this, 0, undefined)}
+                key="btn-align-v-left"
+                style={[
+                  BTN_STYLES.btnIcon,
+                  BTN_STYLES.leftBtns,
+                  STYLES.alignDistributeBtn,
+                ]}>
+                <span style={[STYLES.alignDistributeIconWrapper]}>
+                  <AlignDistributeIcons.AlignVLeft color={this.getEventHandlersEditorButtonColor()} />
+                </span>
+              </button>
+              <button
+                onClick={this.performAlign.bind(this, .5, undefined)}
+                key="btn-align-v-mid"
+                style={[
+                  BTN_STYLES.btnIcon,
+                  BTN_STYLES.leftBtns,
+                  STYLES.alignDistributeBtn,
+                ]}>
+                <span style={[STYLES.alignDistributeIconWrapper]}>
+                  <AlignDistributeIcons.AlignVMid color={this.getEventHandlersEditorButtonColor()} />
+                </span>
+              </button>
+              <button
+                onClick={this.performAlign.bind(this, 1, undefined)}
+                key="btn-align-v-right"
+                style={[
+                  BTN_STYLES.btnIcon,
+                  BTN_STYLES.leftBtns,
+                  STYLES.alignDistributeBtn,
+                  {marginRight: 18},
+                ]}>
+                <span style={[STYLES.alignDistributeIconWrapper]}>
+                  <AlignDistributeIcons.AlignVRight color={this.getEventHandlersEditorButtonColor()} />
+                </span>
+              </button>
+              <button
+                onClick={this.performAlign.bind(this, undefined, 0)}
+                key="btn-align-h-top"
+                style={[
+                  BTN_STYLES.btnIcon,
+                  BTN_STYLES.leftBtns,
+                  STYLES.alignDistributeBtn,
+                ]}>
+                <span style={[STYLES.alignDistributeIconWrapper]}>
+                  <AlignDistributeIcons.AlignHTop color={this.getEventHandlersEditorButtonColor()} />
+                </span>
+              </button>
+              <button
+                onClick={this.performAlign.bind(this, undefined, .5)}
+                key="btn-align-h-mid"
+                style={[
+                  BTN_STYLES.btnIcon,
+                  BTN_STYLES.leftBtns,
+                  STYLES.alignDistributeBtn,
+                ]}>
+                <span style={[STYLES.alignDistributeIconWrapper]}>
+                  <AlignDistributeIcons.AlignHMid color={this.getEventHandlersEditorButtonColor()} />
+                </span>
+              </button>
+              <button
+                onClick={this.performAlign.bind(this, undefined, 1)}
+                key="btn-align-h-bottom"
+                style={[
+                  BTN_STYLES.btnIcon,
+                  BTN_STYLES.leftBtns,
+                  STYLES.alignDistributeBtn,
+                ]}>
+                <span style={[STYLES.alignDistributeIconWrapper]}>
+                  <AlignDistributeIcons.AlignHBottom color={this.getEventHandlersEditorButtonColor()} />
+                </span>
+              </button>
+            </div>
+            <div style={{margin: '5px 3px 2px 0'}}>Distribute:</div>
+            <div style={{height: 27}}>
+              <button
+                onClick={this.performDistribute.bind(this, undefined, 0)}
+                key="btn-dist-v-left"
+                style={[
+                  BTN_STYLES.btnIcon,
+                  BTN_STYLES.leftBtns,
+                  STYLES.alignDistributeBtn,
+                ]}>
+                <span style={[STYLES.alignDistributeIconWrapper]}>
+                  <AlignDistributeIcons.DistributeHTop color={this.getEventHandlersEditorButtonColor()} />
+                </span>
+              </button>
+              <button
+                onClick={this.performDistribute.bind(this, undefined, .5)}
+                key="btn-dist-v-mid"
+                style={[
+                  BTN_STYLES.btnIcon,
+                  BTN_STYLES.leftBtns,
+                  STYLES.alignDistributeBtn,
+                ]}>
+                <span style={[STYLES.alignDistributeIconWrapper]}>
+                  <AlignDistributeIcons.DistributeHMid color={this.getEventHandlersEditorButtonColor()} />
+                </span>
+              </button>
+              <button
+                onClick={this.performDistribute.bind(this, undefined, 1)}
+                key="btn-dist-v-right"
+                style={[
+                  BTN_STYLES.btnIcon,
+                  BTN_STYLES.leftBtns,
+                  STYLES.alignDistributeBtn,
+                  {marginRight: 18},
+                ]}>
+                <span style={[STYLES.alignDistributeIconWrapper]}>
+                  <AlignDistributeIcons.DistributeHBottom color={this.getEventHandlersEditorButtonColor()} />
+                </span>
+              </button>
+              <button
+                onClick={this.performDistribute.bind(this, 0, undefined)}
+                key="btn-dist-h-top"
+                style={[
+                  BTN_STYLES.btnIcon,
+                  BTN_STYLES.leftBtns,
+                  STYLES.alignDistributeBtn,
+                ]}>
+                <span style={[STYLES.alignDistributeIconWrapper]}>
+                  <AlignDistributeIcons.DistributeVLeft color={this.getEventHandlersEditorButtonColor()} />
+                </span>
+              </button>
+              <button
+                onClick={this.performDistribute.bind(this, .5, undefined)}
+                key="btn-dist-h-mid"
+                style={[
+                  BTN_STYLES.btnIcon,
+                  BTN_STYLES.leftBtns,
+                  STYLES.alignDistributeBtn,
+                ]}>
+                <span style={[STYLES.alignDistributeIconWrapper]}>
+                  <AlignDistributeIcons.DistributeVMid color={this.getEventHandlersEditorButtonColor()} />
+                </span>
+              </button>
+              <button
+                onClick={this.performDistribute.bind(this, 1, undefined)}
+                key="btn-dist-h-bottom"
+                style={[
+                  BTN_STYLES.btnIcon,
+                  BTN_STYLES.leftBtns,
+                  STYLES.alignDistributeBtn,
+                ]}>
+                <span style={[STYLES.alignDistributeIconWrapper]}>
+                  <AlignDistributeIcons.DistributeVRight color={this.getEventHandlersEditorButtonColor()} />
+                </span>
+              </button>
+            </div>
+            <div style={{margin: '9px 3px 2px 0'}}>
+              <label>
+                <input type="checkbox" ref="to_stage_toggle" /> To Stage
+              </label>
+            </div>
+
+          </div>
         }
         {this.props.showPopupCannotSwitchToDesign &&
           <CannotSwitchToDesignPopup

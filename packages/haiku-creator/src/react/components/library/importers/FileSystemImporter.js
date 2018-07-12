@@ -1,10 +1,23 @@
 import * as React from 'react';
 import {remote} from 'electron';
 import {isMac} from 'haiku-common/lib/environments/os';
+import {experimentIsEnabled, Experiment} from 'haiku-common/lib/experiments';
 
 class FileSystemImporter extends React.PureComponent {
   showImportDialog () {
-    const validExtensions = ['svg', 'ai'];
+    const validExtensions = [
+      'svg',
+      'ai',
+    ];
+
+    if (experimentIsEnabled(Experiment.AllowBitmapImages)) {
+      validExtensions.push(
+        'jpg',
+        'jpeg',
+        'png',
+        'gif',
+      );
+    }
 
     // Only mac offers support for Sketch
     if (isMac()) {

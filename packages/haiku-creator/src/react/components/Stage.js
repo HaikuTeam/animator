@@ -150,7 +150,7 @@ class Stage extends React.Component {
     });
 
     this.webview.addEventListener('dom-ready', () => {
-      if (process.env.DEV === '1') {
+      if (process.env.DEV === '1' || process.env.DEV === 'glass') {
         this.webview.openDevTools();
       }
     });

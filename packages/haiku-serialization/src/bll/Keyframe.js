@@ -1,5 +1,6 @@
+const HaikuComponent = require('@haiku/core/lib/HaikuComponent').default
 const expressionToRO = require('@haiku/core/lib/reflection/expressionToRO').default
-const { Experiment, experimentIsEnabled } = require('haiku-common/lib/experiments')
+const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 const BaseModel = require('./BaseModel')
 
 /**
@@ -364,7 +365,19 @@ class Keyframe extends BaseModel {
   }
 
   isTweenable () {
-    return typeof (this.value) !== 'boolean' && !(typeof this.value === 'string' || this.value instanceof String)
+    if (typeof this.value === 'string' || this.value instanceof String) {
+      const ourPropertyName = this.row.getPropertyNameString()
+
+      // Some strings, such as color and path.d, are tweenable because core parses
+      // them on the fly into numeric payloads that can be tweened.
+      if (HaikuComponent.PARSERS[ourPropertyName]) {
+        return true
+      }
+
+      return false
+    }
+
+    return typeof (this.value) !== 'boolean'
   }
 
   next () {

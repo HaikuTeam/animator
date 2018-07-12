@@ -2,8 +2,8 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
+import {IHaikuComponent} from './api';
 import HaikuBase, {GLOBAL_LISTENER_KEY} from './HaikuBase';
-import HaikuComponent from './HaikuComponent';
 import getTimelineMaxTime from './helpers/getTimelineMaxTime';
 import assign from './vendor/assign';
 
@@ -27,12 +27,14 @@ export const enum PlaybackSetting {
   CEDE = 'cede',
 }
 
+const MINIMUM_LOCAL_TIME = 0.000001;
+
 export type PlaybackStatus = PlaybackSetting | number | string;
 
 // tslint:disable:variable-name
 export default class HaikuTimeline extends HaikuBase {
   options;
-  component: HaikuComponent;
+  component: IHaikuComponent;
   name;
   descriptor;
   status: PlaybackStatus;
@@ -44,7 +46,7 @@ export default class HaikuTimeline extends HaikuBase {
   _isPlaying: boolean;
   private loopCounter: number;
 
-  constructor (component: HaikuComponent, name, descriptor, options) {
+  constructor (component: IHaikuComponent, name, descriptor, options) {
     super();
 
     this.component = component;
@@ -112,6 +114,7 @@ export default class HaikuTimeline extends HaikuBase {
       ) {
 
         this.loopCounter++;
+
         // Avoid log DoS for too short timelines
         if (this._maxExplicitlyDefinedTime > 200) {
           this.component.emitFromRootComponent('loop', {
@@ -119,13 +122,18 @@ export default class HaikuTimeline extends HaikuBase {
             maxExplicitlyDefinedTime: this._maxExplicitlyDefinedTime,
             globalClockTime: this._globalClockTime,
             boundedFrame: this.getBoundedFrame(),
-            loopCounter: this.loopCounter});
+            loopCounter: this.loopCounter,
+          });
         }
 
-        this._localElapsedTime =
-          0 + this._maxExplicitlyDefinedTime - this._localElapsedTime;
+        this._localElapsedTime = this._maxExplicitlyDefinedTime - this._localElapsedTime;
       }
+
       this._localElapsedTime += deltaGlobalClockTime;
+
+      if (this._localElapsedTime < MINIMUM_LOCAL_TIME) {
+        this._localElapsedTime = 0;
+      }
     }
 
     if (this.isFinished()) {
@@ -288,7 +296,9 @@ export default class HaikuTimeline extends HaikuBase {
    * the falsy state timelines have when first constructed.
    */
   isExplicitlyPaused () {
-    return !this._isPlaying;
+    // The comparison to `false` is intentional and important. See doc above.
+    // tslint:disable:no-boolean-literal-compare
+    return this._isPlaying === false;
   }
 
   /**
@@ -546,7 +556,7 @@ export default class HaikuTimeline extends HaikuBase {
     });
   };
 
-  static create = (component: HaikuComponent, name, descriptor, config): HaikuTimeline => {
+  static create = (component: IHaikuComponent, name, descriptor, config): HaikuTimeline => {
     return new HaikuTimeline(
       component,
       name,

@@ -115,7 +115,7 @@ function createWindow () {
   browserWindow.maximize();
   browserWindow.loadURL(appUrl);
 
-  if (process.env.DEV === '1') {
+  if (process.env.DEV === '1' || process.env.DEV === 'creator') {
     browserWindow.openDevTools();
 
     const {default: installExtension, REACT_DEVELOPER_TOOLS} = require('electron-devtools-installer');

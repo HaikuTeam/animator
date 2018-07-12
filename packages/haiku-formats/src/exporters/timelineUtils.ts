@@ -1,5 +1,4 @@
-import {Curve} from '@haiku/core/lib/api/Curve';
-import {BytecodeTimelineProperties, BytecodeTimelineProperty} from '@haiku/core/lib/api/HaikuBytecode';
+import {BytecodeTimelineProperties, BytecodeTimelineProperty, Curve} from '@haiku/core/lib/api';
 import {LayoutPropertyType} from './layout';
 
 /**

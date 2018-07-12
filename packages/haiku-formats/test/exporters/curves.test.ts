@@ -1,7 +1,7 @@
 import tape = require('tape');
 
 import {decomposeCurveBetweenKeyframes, splitBezierForTimelinePropertyAtKeyframe} from '@formats/exporters/curves';
-import {Curve} from '@haiku/core/lib/api/Curve';
+import {Curve} from '@haiku/core/lib/api';
 
 tape('bezier re-interpolation', (suite: tape.Test) => {
   suite.test('keyframe injection preserves linear transitions', (test: tape.Test) => {

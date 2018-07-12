@@ -344,13 +344,16 @@ class ActiveComponent extends BaseModel {
     return this.file
   }
 
-  forceFlush () {
-    this.$instance.markForFullFlush(true)
-
+  tick () {
     // This guard is to allow headless mode, e.g. in Haiku's timeline application
     if (this.$instance.context && this.$instance.context.tick) {
       this.$instance.context.tick()
     }
+  }
+
+  forceFlush () {
+    this.$instance.markForFullFlush(true)
+    this.tick()
   }
 
   addHotComponents (hotComponents) {
@@ -363,15 +366,11 @@ class ActiveComponent extends BaseModel {
   }
 
   clearCaches (options = {}) {
-    this.$instance.clearCaches(options) // Also clears instance.builder sub-caches
+    this.$instance.clearCaches(options)
     this.fetchRootElement().cache.clear()
     if (options.doClearEntityCaches) {
       this.fetchRootElement().clearEntityCaches()
     }
-  }
-
-  clearCachedClusters (timelineName, componentId) {
-    this.$instance.builder.clearCachedClusters(timelineName, componentId)
   }
 
   updateTimelineMaxes (timelineName) {
@@ -755,25 +754,6 @@ class ActiveComponent extends BaseModel {
 
   getAbspath () {
     return path.join(this.project.getFolder(), this.getRelpath())
-  }
-
-  /**
-   * @method instantiatePrimitive
-   * @description Given an identifier and the bytecode of some primitive, instantiate
-   * it as a reference to that primitive instead of the whole primitive bytecode
-   */
-  instantiatePrimitive (primitive, coords, overrides, metadata, cb) {
-    return this.instantiateReference(
-      PrimitiveComponent.upsert({
-        primitive
-      }),
-      primitive.getClassName(),
-      primitive.getRequirePath(),
-      coords,
-      overrides,
-      metadata,
-      cb
-    )
   }
 
   fetchTimelinePropertyFromComponentElement (mana, propertyName) {
@@ -1310,14 +1290,13 @@ class ActiveComponent extends BaseModel {
           return this.performComponentWork((bytecode, mana, done) => {
             // We'll treat an installed module path strictly as a reference and not copy it into our folder
             if (ModuleWrapper.doesRelpathLookLikeInstalledComponent(relpath)) {
-              // This identifier is going to be something like HaikuLine or MyOrg_MyName
-              const installedComponentIdentifier = ModuleWrapper.modulePathToIdentifierName(relpath)
+              const installedComponent = InstalledComponent.upsert({
+                modpath: relpath
+              })
 
               return this.instantiateReference(
-                InstalledComponent.upsert({
-                  modpath: relpath
-                }),
-                installedComponentIdentifier,
+                installedComponent,
+                installedComponent.getIdentifier(),
                 relpath,
                 coords,
                 {'origin.x': 0.5, 'origin.y': 0.5},
@@ -1357,22 +1336,38 @@ class ActiveComponent extends BaseModel {
 
                 Template.fixManaSourceAttribute(mana, relpath) // Adds haiku-source="relpath_to_file_from_project_root"
 
-                if (experimentIsEnabled(Experiment.InstantiationOfPrimitivesAsComponents)) {
-                  return Design.manaAsCode(relpath, Template.clone({}, mana), {}, (err, identifier, modpath, bytecode) => {
-                    if (err) return done(err)
+                return this.instantiateMana(mana, bytecode, coords, metadata, done)
+              })
+            }
 
-                    const primitive = Primitive.inferPrimitiveFromBytecode(bytecode)
+            if (Asset.isImage(relpath)) {
+              const imageComponent = ImageComponent.upsert({
+                project: this.project,
+                relpath
+              })
 
-                    if (primitive) {
-                      const overrides = Bytecode.extractOverrides(bytecode)
-                      return this.instantiatePrimitive(primitive, coords, overrides, metadata, done)
-                    }
-
-                    return this.instantiateMana(mana, bytecode, coords, metadata, done)
-                  })
-                } else {
-                  return this.instantiateMana(mana, bytecode, coords, metadata, done)
+              return imageComponent.queryImageSize((err, size) => {
+                if (err) {
+                  return done(err)
                 }
+
+                const {width, height} = size
+
+                return this.instantiateReference(
+                  imageComponent, // subcomponent
+                  imageComponent.identifier, // identifier
+                  imageComponent.modpath, // modpath
+                  coords, // coords
+                  { // overrides
+                    'origin.x': 0.5,
+                    'origin.y': 0.5,
+                    href: imageComponent.getLocalHref(),
+                    width,
+                    height
+                  },
+                  metadata,
+                  done
+                )
               })
             }
 
@@ -1705,24 +1700,8 @@ class ActiveComponent extends BaseModel {
 
           Template.fixManaSourceAttribute(mana, relpath) // Adds haiku-source="relpath_to_file_from_project_root"
 
-          if (experimentIsEnabled(Experiment.InstantiationOfPrimitivesAsComponents)) {
-            return Design.manaAsCode(relpath, Template.clone({}, mana), {}, (err, identifier, modpath, bytecode) => {
-              if (err) return next(err)
-
-              const primitive = Primitive.inferPrimitiveFromBytecode(bytecode)
-
-              if (primitive) {
-                const overrides = Bytecode.extractOverrides(bytecode)
-                return this.mergePrimitiveWithOverrides(primitive, overrides, next)
-              }
-
-              this.mergeMana(bytecode, mana, {mergeRemovedOutputs})
-              return next()
-            })
-          } else {
-            this.mergeMana(bytecode, mana, {mergeRemovedOutputs})
-            return next()
-          }
+          this.mergeMana(bytecode, mana, {mergeRemovedOutputs})
+          return next()
         })
       } else {
         return next(new Error(`Problem merging ${relpath}`))
@@ -1789,7 +1768,7 @@ class ActiveComponent extends BaseModel {
                 nested.__reference = ModuleWrapper.buildReference(
                   ModuleWrapper.REF_TYPES.COMPONENT, // type
                   Template.normalizePath(`./${this.getRelpath()}`), // host
-                  Template.normalizePath(`./${source}`),
+                  Template.normalizePathOfPossiblyExternalModule(source),
                   identifier
                 )
 
@@ -2236,6 +2215,11 @@ class ActiveComponent extends BaseModel {
   }
 
   doesManageCoreInstance (instance) {
+    // In case an installed or builtin component doesn't declare its relpath
+    if (!instance.getBytecodeRelpath()) {
+      return false
+    }
+
     return (
       path.normalize(instance.getBytecodeRelpath()) ===
       path.normalize(this.getRelpath())
@@ -2825,12 +2809,16 @@ class ActiveComponent extends BaseModel {
       rows
     }].concat(stack.map(({haikuId}) => {
       const child = this.findElementByComponentId(haikuId)
-      const rows = child.getHostedPropertyRows(true)
-      all.push.apply(all, rows)
-      return {
-        host: child,
-        id: child.getComponentId(),
-        rows
+
+      // Race condition when undoing multi-delete
+      if (child) {
+        const rows = child.getHostedPropertyRows(true)
+        all.push.apply(all, rows)
+        return {
+          host: child,
+          id: child.getComponentId(),
+          rows
+        }
       }
     }))
 
@@ -3161,8 +3149,6 @@ class ActiveComponent extends BaseModel {
     })
 
     return this.project.updateHook('changeKeyframeValue', this.getRelpath(), componentId, timelineName, propertyName, keyframeMs, Bytecode.serializeValue(newValue), metadata, (fire) => {
-      this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
-
       return this.changeKeyframeValueActual(componentId, timelineName, propertyName, keyframeMs, newValue, metadata, (err) => {
         if (err) {
           logger.error(`[active component (${this.project.getAlias()})]`, err)
@@ -3199,8 +3185,6 @@ class ActiveComponent extends BaseModel {
     })
 
     return this.project.updateHook('changeSegmentCurve', this.getRelpath(), componentId, timelineName, propertyName, keyframeMs, Bytecode.serializeValue(newCurve), metadata, (fire) => {
-      this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
-
       return this.changeSegmentCurveActual(componentId, timelineName, propertyName, keyframeMs, newCurve, metadata, (err) => {
         if (err) {
           logger.error(`[active component (${this.project.getAlias()})]`, err)
@@ -3237,8 +3221,6 @@ class ActiveComponent extends BaseModel {
     })
 
     return this.project.updateHook('joinKeyframes', this.getRelpath(), componentId, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, Bytecode.serializeValue(newCurve), metadata, (fire) => {
-      this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
-
       return this.joinKeyframesActual(componentId, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, newCurve, metadata, (err) => {
         if (err) {
           logger.error(`[active component (${this.project.getAlias()})]`, err)
@@ -3285,8 +3267,6 @@ class ActiveComponent extends BaseModel {
    */
   splitSegment (componentId, timelineName, elementName, propertyName, keyframeMs, metadata, cb) {
     return this.project.updateHook('splitSegment', this.getRelpath(), componentId, timelineName, elementName, propertyName, keyframeMs, metadata, (fire) => {
-      this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
-
       return this.splitSegmentActual(componentId, timelineName, elementName, propertyName, keyframeMs, metadata, (err) => {
         if (err) {
           logger.error(`[active component (${this.project.getAlias()})]`, err)
@@ -3401,12 +3381,6 @@ class ActiveComponent extends BaseModel {
     })
 
     return this.project.updateHook('moveKeyframes', this.getRelpath(), Bytecode.serializeValue(keyframeMoves), metadata, (fire) => {
-      for (const timelineName in keyframeMoves) {
-        for (const componentId in keyframeMoves[timelineName]) {
-          this.clearCachedClusters(timelineName, componentId)
-        }
-      }
-
       return this.moveKeyframesActual(keyframeMoves, metadata, (err) => {
         if (err) {
           logger.error(`[active component (${this.project.getAlias()})]`, err)
@@ -3489,12 +3463,6 @@ class ActiveComponent extends BaseModel {
     })
 
     return this.project.updateHook('updateKeyframes', this.getRelpath(), Bytecode.serializeValue(keyframeUpdates), options, metadata, (fire) => {
-      for (const timelineName in keyframeUpdates) {
-        for (const componentId in keyframeUpdates[timelineName]) {
-          this.clearCachedClusters(timelineName, componentId)
-        }
-      }
-
       const unlockedDesigns = {}
       if (options.setElementLockStatus) {
         for (const elID in options.setElementLockStatus) {
@@ -3614,12 +3582,6 @@ class ActiveComponent extends BaseModel {
     })
 
     return this.project.updateHook('updateKeyframesAndTypes', this.getRelpath(), Bytecode.serializeValue(keyframeUpdates), typeUpdates, options, metadata, (fire) => {
-      for (const timelineName in keyframeUpdates) {
-        for (const componentId in keyframeUpdates[timelineName]) {
-          this.clearCachedClusters(timelineName, componentId)
-        }
-      }
-
       const unlockedDesigns = {}
       if (options.setElementLockStatus) {
         for (const elID in options.setElementLockStatus) {
@@ -3731,8 +3693,6 @@ class ActiveComponent extends BaseModel {
       Bytecode.serializeValue(keyframeEndValue),
       metadata,
       (fire) => {
-        this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
-
         return this.createKeyframeActual(componentId, timelineName, elementName, propertyName, keyframeStartMs, keyframeValue, keyframeCurve, keyframeEndMs, keyframeEndValue, metadata, (err) => {
           if (err) {
             logger.error(`[active component (${this.project.getAlias()})]`, err)
@@ -3807,8 +3767,6 @@ class ActiveComponent extends BaseModel {
    */
   deleteKeyframe (componentId, timelineName, propertyName, keyframeMs, metadata, cb) {
     return this.project.updateHook('deleteKeyframe', this.getRelpath(), componentId, timelineName, propertyName, keyframeMs, metadata, (fire) => {
-      this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
-
       return this.deleteKeyframeActual(componentId, timelineName, propertyName, keyframeMs, metadata, (err) => {
         if (err) {
           logger.error(`[active component (${this.project.getAlias()})]`, err)
@@ -4576,19 +4534,18 @@ module.exports = ActiveComponent
 
 // Down here to avoid Node circular dependency stub objects. #FIXME
 const Artboard = require('./Artboard')
+const Asset = require('./Asset')
 const AST = require('./AST')
 const Bytecode = require('./Bytecode')
-const Design = require('./Design')
 const DevConsole = require('./DevConsole')
 const Element = require('./Element')
 const ElementSelectionProxy = require('./ElementSelectionProxy')
 const File = require('./File')
+const ImageComponent = require('./ImageComponent')
 const InstalledComponent = require('./InstalledComponent')
 const Keyframe = require('./Keyframe')
 const ModuleWrapper = require('./ModuleWrapper')
 const MountElement = require('./MountElement')
-const Primitive = require('./Primitive')
-const PrimitiveComponent = require('./PrimitiveComponent')
 const PseudoFile = require('./PseudoFile')
 const Row = require('./Row')
 const SelectionMarquee = require('./SelectionMarquee')

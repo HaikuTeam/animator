@@ -1,5 +1,5 @@
 {
-  "extends": ["tslint-config-haiku"],
+  "extends": ["tslint-config-haiku", "tslint-no-circular-imports"],
   "rules": {
     "no-var-requires": false,
     "prefer-for-of": false,

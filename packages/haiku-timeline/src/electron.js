@@ -44,7 +44,7 @@ function createWindow () {
   mainWindow.maximize()
   mainWindow.loadURL(url)
 
-  if (process.env.DEV === '1') {
+  if (process.env.DEV === '1' || process.env.DEV === 'timeline') {
     mainWindow.webContents.openDevTools()
   }
 

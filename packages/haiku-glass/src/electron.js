@@ -33,7 +33,7 @@ function createWindow () {
   mainWindow = new BrowserWindow({ width: 1200, height: 800 })
   mainWindow.loadURL(url)
 
-  if (process.env.DEV === '1') {
+  if (process.env.DEV === '1' || process.env.DEV === 'glass') {
     mainWindow.webContents.openDevTools()
   }
 
