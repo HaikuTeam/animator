@@ -44,7 +44,7 @@ export default class HorzScrollShadow extends React.PureComponent {
     if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
       return (
         <span className='no-select' style={{
-          display: this.props.timeline.getScrollLeft() === 0 ? 'none' : 'inline-block',
+          display: this.props.timeline.getScrollLeft() < 5 ? 'none' : 'inline-block',
           position: 'fixed',
           height: 'calc(100% - 45px)',
           width: 3,

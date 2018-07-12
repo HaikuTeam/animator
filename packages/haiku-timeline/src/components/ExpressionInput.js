@@ -1021,7 +1021,7 @@ export default class ExpressionInput extends React.Component {
       let rect = this.getRootRect()
       style.left = experimentIsEnabled(Experiment.NativeTimelineScroll) ? rect.left + this.props.reactParent.refs.container.scrollLeft : rect.left
       style.top = experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : rect.top + 10
-      style.marginTop = experimentIsEnabled(Experiment.NativeTimelineScroll) ? rect.top + this.props.reactParent.refs.container.scrollTop + 9 : undefined
+      style.marginTop = experimentIsEnabled(Experiment.NativeTimelineScroll) ? rect.top + this.props.reactParent.refs.container.scrollTop + 10 : undefined
     }
 
     return style
