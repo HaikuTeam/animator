@@ -529,14 +529,9 @@ class Element extends BaseModel {
     return this.getHaikuElement().size
   }
 
-  getParentComputedSize () {
-    return (this.parent)
-      ? this.parent.getComputedSize()
-      : this.getComputedSize()
-  }
-
   getComputedLayout () {
-    const node = this.getLiveRenderedNode() || {} // Fallback in case of render race
+    const targetNode = this.getLiveRenderedNode() || {} // Fallback in case of render race
+    const parentNode = (this.parent && this.parent.getLiveRenderedNode()) || {} // Fallback in case of render race
 
     return HaikuElement.computeLayout(
       { // targetNode
@@ -549,13 +544,24 @@ class Element extends BaseModel {
         // But we still need the live node's actual properties in case we need to compute
         // auto sizing, which will require that we hydrate a HaikuElement and recurse
         // into its children and compute their sizes, and so-on.
-        elementName: node.elementName,
-        attributes: node.attributes,
-        children: node.children,
-        __parent: node.__parent,
-        __element: node.__element // Preserve cache result of findOrCreateElement
+        elementName: targetNode.elementName,
+        attributes: targetNode.attributes,
+        children: targetNode.children,
+        __parent: targetNode.__parent,
+        __element: targetNode.__element // Preserve cache result of findOrCreateElement
       },
-      this.getParentComputedSize()
+      { // parentNode
+        layout: {
+          computed: {
+            size: (this.parent && this.parent.getComputedSize()) || this.getComputedSize()
+          }
+        },
+        elementName: parentNode.elementName,
+        attributes: parentNode.attributes,
+        children: parentNode.children,
+        __parent: parentNode.__parent,
+        __element: parentNode.__element // Preserve cache result of findOrCreateElement
+      }
     )
   }
 

@@ -443,15 +443,6 @@ class ElementSelectionProxy extends BaseModel {
     return this.selection[0].getAttribute(HAIKU_SOURCE_ATTRIBUTE)
   }
 
-  getParentComputedSize () {
-    const { width, height } = this.component.getContextSize()
-    return {
-      x: width,
-      y: height,
-      z: 0
-    }
-  }
-
   getConglomerateTranslation () {
     const points = this.getBoundingBoxPoints()
     return points[0]
@@ -594,9 +585,23 @@ class ElementSelectionProxy extends BaseModel {
 
   getComputedLayout () {
     return this.cache.fetch('getComputedLayout', () => {
+      const {width, height} = this.component.getContextSize()
+
       return HaikuElement.computeLayout(
-        {layout: this.getLayoutSpec()}, // targetNode
-        this.getParentComputedSize()
+        { // targetNode
+          layout: this.getLayoutSpec()
+        },
+        { // parentNode
+          layout: {
+            computed: {
+              size: {
+                x: width,
+                y: height,
+                z: 0
+              }
+            }
+          }
+        }
       )
     })
   }

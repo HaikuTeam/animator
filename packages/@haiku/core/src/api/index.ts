@@ -325,7 +325,62 @@ export interface LayoutSpec {
   computed?: ComputedLayoutSpec;
 }
 
+export interface LayoutSpecPartial {
+  shown?: boolean;
+  opacity?: number;
+  mount?: ThreeDimensionalLayoutProperty;
+  offset?: ThreeDimensionalLayoutProperty;
+  origin?: ThreeDimensionalLayoutProperty;
+  translation?: ThreeDimensionalLayoutProperty;
+  rotation?: ThreeDimensionalLayoutProperty;
+  scale?: ThreeDimensionalLayoutProperty;
+  sizeMode?: ThreeDimensionalLayoutProperty;
+  sizeProportional?: ThreeDimensionalLayoutProperty;
+  sizeDifferential?: ThreeDimensionalLayoutProperty;
+  sizeAbsolute?: ThreeDimensionalLayoutProperty;
+  orientation?: {
+    x: number;
+    y: number;
+    z: number;
+    w: number;
+  };
+  shear?: {
+    xy: number;
+    xz: number;
+    yz: number;
+  };
+  computed: ComputedLayoutSpecPartial;
+}
+
 export interface ComputedLayoutSpec extends LayoutSpec {
+  matrix: Mat4;
+  size: ThreeDimensionalLayoutProperty;
+}
+
+export interface ComputedLayoutSpecPartial {
+  shown?: boolean;
+  opacity?: number;
+  mount?: ThreeDimensionalLayoutProperty;
+  offset?: ThreeDimensionalLayoutProperty;
+  origin?: ThreeDimensionalLayoutProperty;
+  translation?: ThreeDimensionalLayoutProperty;
+  rotation?: ThreeDimensionalLayoutProperty;
+  scale?: ThreeDimensionalLayoutProperty;
+  sizeMode?: ThreeDimensionalLayoutProperty;
+  sizeProportional?: ThreeDimensionalLayoutProperty;
+  sizeDifferential?: ThreeDimensionalLayoutProperty;
+  sizeAbsolute?: ThreeDimensionalLayoutProperty;
+  orientation?: {
+    x: number;
+    y: number;
+    z: number;
+    w: number;
+  };
+  shear?: {
+    xy: number;
+    xz: number;
+    yz: number;
+  };
   matrix: Mat4;
   size: ThreeDimensionalLayoutProperty;
 }
@@ -377,6 +432,13 @@ export interface LayoutNode {
   attributes?: BytecodeNodeAttributes;
   children?: (LayoutNode|string)[];
   layout: LayoutSpec;
+}
+
+export interface LayoutNodePartial {
+  elementName?: string;
+  attributes?: BytecodeNodeAttributes;
+  children?: (LayoutNodePartial|string)[];
+  layout: LayoutSpecPartial;
 }
 
 export type AxisString = 'x'|'y'|'z';
