@@ -355,6 +355,7 @@ export interface LayoutSpecPartial {
 export interface ComputedLayoutSpec extends LayoutSpec {
   matrix: Mat4;
   size: ThreeDimensionalLayoutProperty;
+  bounds: BoundsSpecPartial;
 }
 
 export interface ComputedLayoutSpecPartial {
@@ -383,6 +384,7 @@ export interface ComputedLayoutSpecPartial {
   };
   matrix: Mat4;
   size: ThreeDimensionalLayoutProperty;
+  bounds: BoundsSpecPartial;
 }
 
 export interface StringableThreeDimensionalLayoutProperty {
@@ -422,6 +424,15 @@ export interface BoundsSpecZ {
 }
 
 export interface BoundsSpec extends BoundsSpecX, BoundsSpecY, BoundsSpecZ {}
+
+export interface BoundsSpecPartial {
+  left?: number;
+  right?: number;
+  top?: number;
+  bottom?: number;
+  front?: number;
+  back?: number;
+}
 
 /**
  * @description A LayoutNode may be a proper BytecodeNode, but for convenience

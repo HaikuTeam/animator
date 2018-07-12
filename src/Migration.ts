@@ -22,7 +22,6 @@ const enum UpgradeVersionRequirement {
 
 const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source';
 const HAIKU_VAR_ATTRIBUTE = 'haiku-var';
-const HAIKU_ID_ATTRIBUTE = 'haiku-id';
 
 const ELEMENTS_THAT_SUPPORT_ORIGIN = {
   div: true,
