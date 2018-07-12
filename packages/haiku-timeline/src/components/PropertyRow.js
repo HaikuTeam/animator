@@ -180,7 +180,8 @@ export default class PropertyRow extends React.Component {
               component={this.component}
               timeline={this.props.timeline}
               timelineName={this.props.timeline.getName()}
-              rowHeight={this.props.rowHeight} />
+              rowHeight={this.props.rowHeight}
+              disabled={this.props.row.element.isLocked()} />
           </div>
         </div>
         <div
