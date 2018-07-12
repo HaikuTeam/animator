@@ -108,7 +108,3 @@ export const storeConfigValues = (folder: string, incoming: any) => {
   fse.outputJsonSync(path.join(folder, 'package.json'), pkgjson, {spaces: 2});
   return pkgjson.haiku;
 };
-
-export const getDefaultBranchName = () => {
-  return DEFAULT_BRANCH_NAME;
-};
