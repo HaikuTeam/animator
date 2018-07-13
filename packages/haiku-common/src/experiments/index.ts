@@ -38,6 +38,7 @@ export enum Experiment {
   CleanInitialLibraryState = 'CleanInitialLibraryState',
   CopyPasteTweens = 'CopyPasteTweens',
   CopyPasteTweensWithAccelerators = 'CopyPasteTweensWithAccelerators',
+  Snapping = 'Snapping',
 }
 
 /**

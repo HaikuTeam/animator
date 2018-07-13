@@ -1017,7 +1017,7 @@ class ElementSelectionProxy extends BaseModel {
 
     // handle snapping
     // don't snap if user is holding cmd key (like Sketch)
-    if (!globals.isCommandKeyDown) {
+    if (!globals.isCommandKeyDown && experimentIsEnabled(Experiment.Snapping)) {
       let bbox
       if (this._lastBbox !== undefined) {
         bbox = ((bbox, delta) => {
