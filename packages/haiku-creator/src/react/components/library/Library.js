@@ -15,6 +15,8 @@ import SketchDownloader from '../SketchDownloader';
 import AssetList from './AssetList';
 import Loader from './Loader';
 import FileImporter from './FileImporter';
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
+import DesignFileCreator from './DesignFileCreator';
 
 const openWithDefaultProgram = (asset) => {
   shell.openItem(asset.getAbspath());
@@ -87,6 +89,7 @@ class Library extends React.Component {
     this.onAssetDoubleClick = this.onAssetDoubleClick.bind(this);
     this.handleAssetDeletion = this.handleAssetDeletion.bind(this);
     this.importFigmaAsset = this.importFigmaAsset.bind(this);
+    this.askForFigmaAuth = this.askForFigmaAuth.bind(this);
 
     // Debounced to avoid 'flicker' when multiple updates are received quickly
     this.handleAssetsChanged = lodash.debounce(this.handleAssetsChanged.bind(this), 250);
@@ -370,6 +373,17 @@ class Library extends React.Component {
     );
   }
 
+  shouldDisplayAssetCreator () {
+    const designsFolder = this.state.assets.find((asset) => asset.isDesignsHostFolder());
+
+    return (
+      experimentIsEnabled(Experiment.CleanInitialLibraryState) &&
+      designsFolder &&
+      designsFolder.getChildAssets().length === 0 &&
+      !this.state.isLoading
+    );
+  }
+
   render () {
     return (
       <div
@@ -383,9 +397,7 @@ class Library extends React.Component {
             websocket={this.props.websocket}
             projectModel={this.props.projectModel}
             onImportFigmaAsset={this.importFigmaAsset}
-            onAskForFigmaAuth={() => {
-              this.askForFigmaAuth();
-            }}
+            onAskForFigmaAuth={this.askForFigmaAuth}
             figma={this.state.figma}
             onFileDrop={(filePaths) => {
               this.handleFileDrop(filePaths);
@@ -395,25 +407,33 @@ class Library extends React.Component {
         <div
           id="library-scroll-wrap"
           style={STYLES.scrollwrap}>
-          <div style={STYLES.assetsWrapper}>
-            {this.state.isLoading
-              ? <Loader />
-              : <AssetList
-                websocket={this.props.websocket}
-                projectModel={this.props.projectModel}
-                onDragStart={this.props.onDragStart}
-                onDragEnd={this.props.onDragEnd}
-                onAssetDoubleClick={this.onAssetDoubleClick}
-                figma={this.state.figma}
-                onImportFigmaAsset={this.importFigmaAsset}
-                onRefreshFigmaAsset={this.importFigmaAsset}
-                onAskForFigmaAuth={() => {
-                  this.askForFigmaAuth();
-                }}
-                deleteAsset={this.handleAssetDeletion}
-                indent={0}
-                assets={this.state.assets} />}
-          </div>
+            <div style={STYLES.assetsWrapper}>
+              {this.shouldDisplayAssetCreator() ? (
+                <DesignFileCreator
+                  projectModel={this.props.projectModel}
+                  websocket={this.props.websocket}
+                  figma={this.state.figma}
+                  onAskForFigmaAuth={this.askForFigmaAuth}
+                  onImportFigmaAsset={this.importFigmaAsset}
+                  onRefreshFigmaAsset={this.importFigmaAsset}
+                />
+              ) : (
+                <AssetList
+                  websocket={this.props.websocket}
+                  projectModel={this.props.projectModel}
+                  onDragStart={this.props.onDragStart}
+                  onDragEnd={this.props.onDragEnd}
+                  onAssetDoubleClick={this.onAssetDoubleClick}
+                  figma={this.state.figma}
+                  onImportFigmaAsset={this.importFigmaAsset}
+                  onRefreshFigmaAsset={this.importFigmaAsset}
+                  onAskForFigmaAuth={this.askForFigmaAuth}
+                  deleteAsset={this.handleAssetDeletion}
+                  indent={0}
+                  assets={this.state.assets}
+                />
+              )}
+            </div>
         </div>
         {
           this.state.sketchDownloader.isVisible &&
