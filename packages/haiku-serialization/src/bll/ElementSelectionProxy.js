@@ -69,6 +69,8 @@ class ElementSelectionProxy extends BaseModel {
     // If we're dealing with just a single element, we need to to use its points and
     // layout spec directly so that the transform control box fits to its actual shape.
     if (elements.length === 1) {
+      // It's assumed that this list of points is *not* transformed here but downstream
+      // as the return value of this.getBoxPointsTransformed
       this._proxyBoxPoints = elements[0].getBoundingBoxPoints().map((p) => p)
 
       Object.assign(
@@ -480,11 +482,6 @@ class ElementSelectionProxy extends BaseModel {
     })
   }
 
-  getBoxPointsNotTransformed () {
-    // Return a fresh copy each time.
-    return this._proxyBoxPoints.map((point) => Object.assign({}, point))
-  }
-
   // returns the box points of the base element, without transform applied
   getBoxPointsCompletelyNotTransformed () {
     const layout = this.getComputedLayout()
@@ -609,10 +606,8 @@ class ElementSelectionProxy extends BaseModel {
 
   getBoxPointsTransformed () {
     return this.cache.fetch('getBoxPointsTransformed', () => {
-      return HaikuElement.transformPointsInPlace(
-        this.getBoxPointsNotTransformed(),
-        this.getComputedLayout().matrix
-      )
+      const points = this._proxyBoxPoints.map((point) => Object.assign({}, point))
+      return HaikuElement.transformPointsInPlace(points, this.getComputedLayout().matrix)
     })
   }
 
