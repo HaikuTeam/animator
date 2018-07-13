@@ -13,7 +13,7 @@ export default class CollapsedPropertyTimelineSegments extends React.Component {
         className='collapsed-segments-box'
         style={{
           position: 'absolute',
-          left: experimentIsEnabled(Experiment.NativeTimelineScroll) ? this.props.timeline.getPropertiesPixelWidth() : this.props.timeline.getPropertiesPixelWidth() - 4,
+          left: experimentIsEnabled(Experiment.NativeTimelineScroll) ? this.props.timeline.getPropertiesPixelWidth() + 1 : this.props.timeline.getPropertiesPixelWidth() - 4,
           height: this.props.rowHeight,
           width: '100%',
           overflow: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : 'hidden',

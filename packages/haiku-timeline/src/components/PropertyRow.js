@@ -206,7 +206,7 @@ export default class PropertyRow extends React.Component {
             width: experimentIsEnabled(Experiment.NativeTimelineScroll) ? '100%' : this.props.timeline.getTimelinePixelWidth(),
             left:
               experimentIsEnabled(Experiment.NativeTimelineScroll)
-                ? this.props.timeline.getPropertiesPixelWidth() : this.props.timeline.getPropertiesPixelWidth() - 4, // offset half of lone keyframe width so it lines up with the pole
+                ? this.props.timeline.getPropertiesPixelWidth() + 1 : this.props.timeline.getPropertiesPixelWidth() - 4, // offset half of lone keyframe width so it lines up with the pole
             top: 0,
             height: 'inherit',
             zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? zIndex.propertyRow.base : undefined

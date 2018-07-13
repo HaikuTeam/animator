@@ -73,7 +73,7 @@ const DEFAULTS = {
 
 const THROTTLE_TIME = 32 // ms
 const MENU_ACTION_DEBOUNCE_TIME = 100
-const TIMELINE_OFFSET_PADDING = 6 // px
+const TIMELINE_OFFSET_PADDING = 7 // px
 
 class Timeline extends React.Component {
   constructor (props) {
