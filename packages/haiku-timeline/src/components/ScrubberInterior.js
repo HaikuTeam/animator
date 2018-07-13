@@ -77,7 +77,6 @@ export default class ScrubberInterior extends React.Component {
           overflow: 'hidden'
         })}>
         <div
-          ref={(head) => { this.head = head }}
           style={experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
             position: 'absolute',
             backgroundColor: Palette.SUNSTONE,
@@ -157,7 +156,6 @@ export default class ScrubberInterior extends React.Component {
           }} />
         </div>
         <div
-          ref={(tail) => { this.tail = tail }}
           style={{
             position: 'absolute',
             zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 1 : 2006,

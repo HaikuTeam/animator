@@ -820,7 +820,7 @@ class Timeline extends BaseModel {
       const frameInfo = this.getFrameInfo()
       const pxOffsetLeft = frame * frameInfo.pxpf
       if (frame !== undefined && (pxOffsetLeft > this._scrollLeft + this._timelinePixelWidth || pxOffsetLeft < this._scrollLeft)) {
-        this.setScrollLeft(pxOffsetLeft)
+        this.setScrollLeftFromScrollbar(pxOffsetLeft)
       }
     } else {
       const frameInfo = this.getFrameInfo()
