@@ -121,6 +121,7 @@ class Timeline extends React.Component {
     this.handleSelectAllDebounced = lodash.debounce(this.handleSelectAll.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
     this.handleUndoDebounced = lodash.debounce(this.handleUndo.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
     this.handleRedoDebounced = lodash.debounce(this.handleRedo.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
+    this.handleZoomThrottled = lodash.throttle(this.handleZoom.bind(this), THROTTLE_TIME)
 
     if (process.env.NODE_ENV !== 'production') {
       // For debugging
@@ -500,7 +501,13 @@ class Timeline extends React.Component {
     })
 
     if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-      this.addEmitterListener(document.body, 'mousewheel', this.handleScroll.bind(this), { passive: true })
+      this.addEmitterListener(window, 'wheel', (wheelEvent) => {
+        if (wheelEvent.ctrlKey) {
+          this.handleZoomThrottled(wheelEvent)
+        } else {
+          this.handleScroll(wheelEvent)
+        }
+      }, {passive: true})
     } else {
       this.addEmitterListener(document.body, 'mousewheel', lodash.throttle((wheelEvent) => {
         this.handleScroll(wheelEvent)
@@ -853,6 +860,10 @@ class Timeline extends React.Component {
     })
 
     return items
+  }
+
+  handleZoom (wheelEvent) {
+    this.getActiveComponent().getCurrentTimeline().zoomBy(wheelEvent.deltaY * 0.01)
   }
 
   handleScroll (scrollEvent) {

@@ -740,7 +740,17 @@ class Timeline extends BaseModel {
     return Math.round((coord / frameInfo.pxpf) * frameInfo.scRatio)
   }
 
-  zoomBy (left, right) {
+  zoomBy (scale) {
+    const left = this.getLeftFrameEndpoint()
+    const right = this.getRightFrameEndpoint()
+
+    this.zoomByLeftAndRightEndpoints(
+      (left * scale) + left,
+      (right * scale) + right
+    )
+  }
+
+  zoomByLeftAndRightEndpoints (left, right) {
     const frameInfo = this.getFrameInfo()
     let leftTotal = left || this.getLeftFrameEndpoint()
     let rightTotal = right || this.getRightFrameEndpoint()
