@@ -1,10 +1,13 @@
 /* tslint:disable:no-namespace */
-import * as requestLib from 'request';
+import * as request from 'request';
+import {InkstoneConfig, inkstoneConfig} from './config';
+import {Endpoints, MaybeAuthToken, newDeleteRequest, newGetRequest, newPutRequest} from './services';
+import {requestInstance} from './transport';
 
 // tslint:disable-next-line:no-var-requires
 const packageJson = require('../package.json');
 
-// TODO: make file paths cross-platform friendly
+// TODO: refactor endpoints using these to the new factory pattern.
 const ENDPOINTS = {
   PROJECT_CREATE: 'v0/project',
   LOGIN: 'v0/user/auth',
@@ -43,49 +46,6 @@ const ENDPOINTS = {
   CANNY_ACCCESS_TOKEN_GET: 'v0/integrations/canny/token',
 };
 
-export interface RequestInstance {
-  get: (options: requestLib.OptionsWithUrl, cb: requestLib.RequestCallback) => void;
-  post: (options: requestLib.OptionsWithUrl, cb: requestLib.RequestCallback) => void;
-  put: (options: requestLib.OptionsWithUrl, cb: requestLib.RequestCallback) => void;
-  delete: (options: requestLib.OptionsWithUrl, cb: requestLib.RequestCallback) => void;
-}
-
-let request: RequestInstance;
-
-const getInstanceWithDefaults = (defaults: requestLib.CoreOptions): RequestInstance => {
-  if (typeof requestLib.defaults === 'function') {
-    return requestLib.defaults(defaults);
-  }
-
-  return {
-    get: (options: requestLib.OptionsWithUrl, cb: requestLib.RequestCallback) => requestLib.get(
-      {...defaults, ...options},
-      cb,
-    ),
-    post: (options: requestLib.OptionsWithUrl, cb: requestLib.RequestCallback) => requestLib.post(
-      {...defaults, ...options},
-      cb,
-    ),
-    put: (options: requestLib.OptionsWithUrl, cb: requestLib.RequestCallback) => requestLib.put(
-      {...defaults, ...options},
-      cb,
-    ),
-    delete: (options: requestLib.OptionsWithUrl, cb: requestLib.RequestCallback) => requestLib.del(
-      {...defaults, ...options},
-      cb,
-    ),
-  };
-};
-
-request = getInstanceWithDefaults({
-  // Delegate to the browser to handle "strictSSL" if we're in a browser context. We have seen some false
-  // negatives with the 'request' Node dependency in certain contextx, and every modern browser has its own,
-  // battle-hardened strict SSL behavior which will stop requests in preflight regardless of this setting.
-  // There isn't an unspoofable way to prove we're in a browser and not Node, but the check here is perfectly valid.
-  strictSSL: typeof window === 'undefined' || Object.prototype.toString.call(window) !== '[object Window]',
-  withCredentials: true,
-});
-
 /**
  * @function safeError
  * @description Flexibly return an error in cases where we might not have
@@ -99,7 +59,7 @@ function safeError (err: any): any {
   return new Error('Uncategorized error');
 }
 
-const maybeAuthorizationHeaders = (authToken: string|undefined): {Authorization: string}|undefined => {
+const maybeAuthorizationHeaders = (authToken: MaybeAuthToken): {Authorization: string}|undefined => {
   if (authToken) {
     return {
       Authorization: `INKSTONE auth_token="${authToken}"`,
@@ -122,28 +82,8 @@ export namespace inkstone {
     Collection: T[];
   }
 
-  export interface InkstoneConfig {
-    baseUrl?: string;
-    baseShareUrl?: string;
-    haikuBinaryPath?: string;
-  }
-
-  let inkstoneConfig: InkstoneConfig = {
-    baseUrl: 'https://inkstone.haiku.ai/',
-    baseShareUrl: 'https://share.haiku.ai/',
-    haikuBinaryPath: '/Applications/Haiku.app/Contents/MacOS/Haiku',
-  };
-
   export function setConfig (newVals: InkstoneConfig) {
-    inkstoneConfig = {...inkstoneConfig, ...newVals};
-
-    // ease SSL restrictions for dev
-    if (newVals.baseUrl && newVals.baseUrl.indexOf('https://localhost') === 0) {
-      request = getInstanceWithDefaults({
-        strictSSL: false,
-        withCredentials: true,
-      });
-    }
+    Object.assign(inkstoneConfig, newVals);
   }
 
   const baseHeaders = {
@@ -151,12 +91,12 @@ export namespace inkstone {
     'Content-Type': 'application/json',
   };
 
-  export type Callback<T> = (err: string, data: T, response: requestLib.RequestResponse) => void;
+  export type Callback<T> = (err: string, data: T, response: request.RequestResponse) => void;
 
   export namespace support {
-    export function getPresignedUrl (authToken: string|undefined, uuid: string, cb: inkstone.Callback<string>) {
+    export function getPresignedUrl (authToken: MaybeAuthToken, uuid: string, cb: inkstone.Callback<string>) {
 
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.SUPPORT_UPLOAD_GET_PRESIGNED_URL.replace(':UUID', uuid),
         headers: {
           ...baseHeaders,
@@ -164,7 +104,7 @@ export namespace inkstone {
         },
       };
 
-      request.get(options, (err, httpResponse, body) => {
+      requestInstance.get(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           const url = body as string;
           cb(undefined, url, httpResponse);
@@ -199,13 +139,13 @@ export namespace inkstone {
         password,
       };
 
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.LOGIN,
         json: formData,
         headers: baseHeaders,
       };
 
-      request.post(options, (err, httpResponse, body) => {
+      requestInstance.post(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           const auth = body as Authentication;
           cb(undefined, auth, httpResponse);
@@ -215,8 +155,8 @@ export namespace inkstone {
       });
     }
 
-    export function unauthenticate (authToken: string|undefined, cb: inkstone.Callback<boolean>) {
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+    export function unauthenticate (authToken: MaybeAuthToken, cb: inkstone.Callback<boolean>) {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.LOGOUT,
         headers: {
           ...baseHeaders,
@@ -224,13 +164,13 @@ export namespace inkstone {
         },
       };
 
-      request.delete(options, (err, httpResponse) => {
+      requestInstance.delete(options, (err, httpResponse) => {
         cb(undefined, true, httpResponse);
       });
     }
 
-    export function getDetails (authToken: string|undefined, cb: inkstone.Callback<User>) {
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+    export function getDetails (authToken: MaybeAuthToken, cb: inkstone.Callback<User>) {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.USER_DETAIL,
         headers: {
           ...baseHeaders,
@@ -238,7 +178,7 @@ export namespace inkstone {
         },
       };
 
-      request.get(options, (err, httpResponse, body) => {
+      requestInstance.get(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           const response = body as User;
           cb(undefined, response, httpResponse);
@@ -249,11 +189,11 @@ export namespace inkstone {
     }
 
     export function changePassword (
-      authToken: string | undefined,
+      authToken: MaybeAuthToken,
       params: ChangePasswordParams,
       cb: inkstone.Callback<string>,
     ) {
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.CHANGE_PASSWORD,
         headers: {
           ...baseHeaders,
@@ -262,7 +202,7 @@ export namespace inkstone {
         json: params,
       };
 
-      request.post(options, (err, httpResponse, body) => {
+      requestInstance.post(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           const response = body as string;
           cb(undefined, response, httpResponse);
@@ -273,11 +213,11 @@ export namespace inkstone {
     }
 
     export function confirm (token: string, cb: inkstone.Callback<Authentication>) {
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.USER_CONFIRM.replace(':token', token),
       };
 
-      request.post(options, (err, httpResponse, body) => {
+      requestInstance.post(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, body, httpResponse);
         } else {
@@ -301,13 +241,13 @@ export namespace inkstone {
         body.continue_url = params.ContinueUrl;
       }
 
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.RESET_PASSWORD,
         headers: baseHeaders,
         body: JSON.stringify(body),
       };
 
-      request.post(options, (err, httpResponse) => {
+      requestInstance.post(options, (err, httpResponse) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, true, httpResponse);
         } else {
@@ -324,7 +264,7 @@ export namespace inkstone {
     export function requestConfirmEmail (
       params: string|RequestConfirmEmailParams, cb: inkstone.Callback<Authentication>) {
       const email = typeof params === 'string' ? params : params.Email;
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.USER_REQUEST_CONFIRM.replace(':email', email),
         headers: baseHeaders,
       };
@@ -333,7 +273,7 @@ export namespace inkstone {
         options.url += `?continue_url=${encodeURIComponent(params.ContinueUrl)}`;
       }
 
-      request.post(options, (err, httpResponse, body) => {
+      requestInstance.post(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, body, httpResponse);
         } else {
@@ -345,13 +285,13 @@ export namespace inkstone {
     export function claimResetPassword (
       resetPasswordUUID: string, password: string, cb: inkstone.Callback<boolean>) {
 
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.RESET_PASSWORD_CLAIM.replace(':UUID', resetPasswordUUID),
         headers: baseHeaders,
         body: JSON.stringify({password}),
       };
 
-      request.post(options, (err, httpResponse, body) => {
+      requestInstance.post(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, true, httpResponse);
         } else {
@@ -369,13 +309,13 @@ export namespace inkstone {
     }
 
     export function create (params: UserCreateParams, cb: inkstone.Callback<boolean>) {
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.USER_CREATE,
         json: params,
         headers: baseHeaders,
       };
 
-      request.post(options, (err, httpResponse, body) => {
+      requestInstance.post(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, true, httpResponse);
         } else {
@@ -417,13 +357,13 @@ export namespace inkstone {
     }
 
     export function getInviteFromPrefineryCode (params: PrefineryCheckParams, cb: inkstone.Callback<Invite>) {
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.INVITE_PREFINERY_CHECK,
         headers: baseHeaders,
         json: params,
       };
 
-      request.post(options, (err, httpResponse, body) => {
+      requestInstance.post(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, JSON.parse(body) as Invite, httpResponse);
         } else {
@@ -433,12 +373,12 @@ export namespace inkstone {
     }
 
     export function checkValidity (code: string, cb: inkstone.Callback<InvitePresetDetails>) {
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.INVITE_CHECK.replace(':CODE', code),
         headers: baseHeaders,
       };
 
-      request.get(options, (err, httpResponse, body) => {
+      requestInstance.get(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           const invitePreset = JSON.parse(body) as InvitePresetDetails;
           invitePreset.Valid = Validity.VALID;
@@ -456,13 +396,13 @@ export namespace inkstone {
     }
 
     export function claimInvite (claim: InviteClaim, cb: inkstone.Callback<boolean>) {
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.INVITE_CLAIM,
         json: claim,
         headers: baseHeaders,
       };
 
-      request.post(options, (err, httpResponse, body) => {
+      requestInstance.post(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, true, httpResponse);
         } else {
@@ -478,8 +418,8 @@ export namespace inkstone {
       Name: string;
     }
 
-    export function list (authToken: string|undefined, cb: inkstone.Callback<Organization[]>) {
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+    export function list (authToken: MaybeAuthToken, cb: inkstone.Callback<Organization[]>) {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.ORGANIZATION_LIST,
         headers: {
           ...baseHeaders,
@@ -487,7 +427,7 @@ export namespace inkstone {
         },
       };
 
-      request.get(options, (err, httpResponse, body) => {
+      requestInstance.get(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           const projects = JSON.parse(body) as Organization[];
           cb(undefined, projects, httpResponse);
@@ -535,12 +475,12 @@ export namespace inkstone {
     // UUID lookups [not for SHA lookups]
     export function getSnapshotAndProject (id: string, cb: inkstone.Callback<SnapshotAndProjectAndOrganization>) {
       const url = inkstoneConfig.baseUrl + ENDPOINTS.SNAPSHOT_GET_BY_ID.replace(':ID', encodeURIComponent(id));
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+      const options: request.OptionsWithUrl = {
         url,
         headers: baseHeaders,
       };
 
-      request.get(options, (err, httpResponse, body) => {
+      requestInstance.get(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           const snapshotAndProject = JSON.parse(body) as SnapshotAndProjectAndOrganization;
           cb(undefined, snapshotAndProject, httpResponse);
@@ -553,13 +493,13 @@ export namespace inkstone {
     // Notifies Inkstone that a snapshot has been syndicated.
     export function registerSyndication (id: string, secretToken: string, cb: inkstone.Callback<string>) {
       const url = inkstoneConfig.baseUrl + ENDPOINTS.SNAPSHOT_SYNDICATED_BY_ID.replace(':ID', encodeURIComponent(id));
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+      const options: request.OptionsWithUrl = {
         url,
         headers: baseHeaders,
         body: JSON.stringify({secret_token: secretToken}),
       };
 
-      request.post(options, (err, httpResponse, body) => {
+      requestInstance.post(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, JSON.parse(body) as string, httpResponse);
         } else {
@@ -572,8 +512,8 @@ export namespace inkstone {
       return `${inkstoneConfig.baseShareUrl}${snapshotIn.UniqueId}/latest`;
     }
 
-    export function feature (authToken: string|undefined, uniqueId: string, cb: inkstone.Callback<boolean>) {
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+    export function feature (authToken: MaybeAuthToken, uniqueId: string, cb: inkstone.Callback<boolean>) {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.SNAPSHOT_FEATURE_BY_ID.replace(
           ':ID', uniqueId),
         headers: {
@@ -582,7 +522,7 @@ export namespace inkstone {
         },
       };
 
-      request.put(options, (err, httpResponse) => {
+      requestInstance.put(options, (err, httpResponse) => {
         if (httpResponse && httpResponse.statusCode === 204) {
           cb(undefined, true, httpResponse);
         } else {
@@ -591,8 +531,8 @@ export namespace inkstone {
       });
     }
 
-    export function unfeature (authToken: string|undefined, uniqueId: string, cb: inkstone.Callback<boolean>) {
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+    export function unfeature (authToken: MaybeAuthToken, uniqueId: string, cb: inkstone.Callback<boolean>) {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.SNAPSHOT_UNFEATURE_BY_ID.replace(
           ':ID', uniqueId),
         headers: {
@@ -601,7 +541,7 @@ export namespace inkstone {
         },
       };
 
-      request.delete(options, (err, httpResponse) => {
+      requestInstance.delete(options, (err, httpResponse) => {
         if (httpResponse && httpResponse.statusCode === 204) {
           cb(undefined, true, httpResponse);
         } else {
@@ -628,12 +568,12 @@ export namespace inkstone {
      * @param {inkstone.Callback<inkstone.integrations.OAuthAccessTokenResponse>} cb
      */
     export function getFigmaAccessToken (code: string, cb: inkstone.Callback<OAuthAccessTokenResponse>) {
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.FIGMA_ACCCESS_TOKEN_GET + '?Code=' + encodeURIComponent(code),
         headers: baseHeaders,
       };
 
-      request.get(options, (err, httpResponse, body) => {
+      requestInstance.get(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, JSON.parse(body) as OAuthAccessTokenResponse, httpResponse);
         } else {
@@ -647,8 +587,8 @@ export namespace inkstone {
      * @param {string} code
      * @param {inkstone.Callback<inkstone.integrations.OAuthAccessTokenResponse>} cb
      */
-    export function getCannyAccessToken (authToken: string|undefined, cb: inkstone.Callback<JSONWebTokenResponse>) {
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+    export function getCannyAccessToken (authToken: MaybeAuthToken, cb: inkstone.Callback<JSONWebTokenResponse>) {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.CANNY_ACCCESS_TOKEN_GET,
         headers: {
           ...baseHeaders,
@@ -656,7 +596,7 @@ export namespace inkstone {
         },
       };
 
-      request.get(options, (err, httpResponse, body) => {
+      requestInstance.get(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, JSON.parse(body) as JSONWebTokenResponse, httpResponse);
         } else {
@@ -718,7 +658,7 @@ export namespace inkstone {
      * @param {inkstone.Callback<inkstone.PaginatedResponse<CommunityProject>[]>} cb
      */
     export function projectList (
-      authToken: string | undefined,
+      authToken: MaybeAuthToken,
       query: CommunityProjectsQuery,
       cb: inkstone.Callback<inkstone.PaginatedResponse<CommunityProject>>,
     ) {
@@ -728,7 +668,7 @@ export namespace inkstone {
       queryString += `&per_page=${query.Pagination.PerPage}`;
       queryString += `&filters.is_featured=${query.Filters.IsFeatured}`;
 
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.COMMUNITY_PROJECT_LIST + queryString,
         headers: {
           ...baseHeaders,
@@ -736,7 +676,7 @@ export namespace inkstone {
         },
       };
 
-      request.get(options, (err, httpResponse, body) => {
+      requestInstance.get(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           const paginatedResult = {
             Collection: JSON.parse(body) as CommunityProject[],
@@ -760,8 +700,8 @@ export namespace inkstone {
      * @param {inkstone.Callback<inkstone.project.Project>} cb
      */
     export function forkCommunityProject (
-      authToken: string|undefined, projectIn: CommunityProject, cb: inkstone.Callback<project.Project>) {
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+      authToken: MaybeAuthToken, projectIn: CommunityProject, cb: inkstone.Callback<project.Project>) {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.FORK_COMMUNITY_PROJECT
           .replace(':ORGANIZATION_NAME', projectIn.Organization.Name)
           .replace(':PROJECT_NAME', projectIn.Project.Name),
@@ -771,7 +711,7 @@ export namespace inkstone {
         },
       };
 
-      request.post(options, (err, httpResponse, body) => {
+      requestInstance.post(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 201) {
           cb(undefined, JSON.parse(body) as project.Project, httpResponse);
         } else {
@@ -799,11 +739,11 @@ export namespace inkstone {
      * @param {inkstone.Callback<boolean>} cb
      */
     export function setHaiKudos (
-      authToken: string | undefined,
+      authToken: MaybeAuthToken,
       params: SetHaiKudosParams,
       cb: inkstone.Callback<boolean>,
     ) {
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.SET_COMMUNITY_HAIKUDOS
           .replace(':ORGANIZATION_NAME', params.OrganizationName)
           .replace(':PROJECT_NAME', params.ProjectName),
@@ -816,7 +756,7 @@ export namespace inkstone {
         },
       };
 
-      request.put(options, (err, httpResponse) => {
+      requestInstance.put(options, (err, httpResponse) => {
         if (httpResponse && httpResponse.statusCode === 204) {
           cb(undefined, true, httpResponse);
         } else {
@@ -837,8 +777,8 @@ export namespace inkstone {
      * @param {inkstone.Callback<inkstone.community.OrganizationAndCommunityProjects>} cb
      */
     export function getProfile (
-      authToken: string|undefined, organizationName: string, cb: inkstone.Callback<OrganizationAndCommunityProjects>) {
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+      authToken: MaybeAuthToken, organizationName: string, cb: inkstone.Callback<OrganizationAndCommunityProjects>) {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.COMMUNITY_PROFILE
           .replace(':ORGANIZATION_NAME', organizationName),
         headers: {
@@ -847,7 +787,7 @@ export namespace inkstone {
         },
       };
 
-      request.get(options, (err, httpResponse, body) => {
+      requestInstance.get(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, JSON.parse(body) as OrganizationAndCommunityProjects, httpResponse);
         } else {
@@ -865,9 +805,9 @@ export namespace inkstone {
      * @param {inkstone.Callback<inkstone.community.CommunityProject>} cb
      */
     export function getProject (
-      authToken: string|undefined, organizationName: string, projectName: string,
+      authToken: MaybeAuthToken, organizationName: string, projectName: string,
       cb: inkstone.Callback<CommunityProject>) {
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.GET_COMMUNITY_PROJECT
           .replace(':ORGANIZATION_NAME', organizationName)
           .replace(':PROJECT_NAME', projectName),
@@ -877,7 +817,7 @@ export namespace inkstone {
         },
       };
 
-      request.get(options, (err, httpResponse, body) => {
+      requestInstance.get(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, JSON.parse(body) as CommunityProject, httpResponse);
         } else {
@@ -912,8 +852,8 @@ export namespace inkstone {
       MakePrivate?: boolean;
     }
 
-    export function create (authToken: string|undefined, params: ProjectCreateParams, cb: inkstone.Callback<Project>) {
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+    export function create (authToken: MaybeAuthToken, params: ProjectCreateParams, cb: inkstone.Callback<Project>) {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_CREATE,
         headers: {
           ...baseHeaders,
@@ -922,7 +862,7 @@ export namespace inkstone {
         json: params,
       };
 
-      request.post(options, (err, httpResponse, body) => {
+      requestInstance.post(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, body as Project, httpResponse);
         } else {
@@ -931,8 +871,8 @@ export namespace inkstone {
       });
     }
 
-    export function update (authToken: string|undefined, params: ProjectUpdateParams, cb: inkstone.Callback<Project>) {
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+    export function update (authToken: MaybeAuthToken, params: ProjectUpdateParams, cb: inkstone.Callback<Project>) {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_UPDATE,
         headers: {
           ...baseHeaders,
@@ -941,7 +881,7 @@ export namespace inkstone {
         json: params,
       };
 
-      request.put(options, (err, httpResponse, body) => {
+      requestInstance.put(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, body as Project, httpResponse);
         } else {
@@ -950,8 +890,8 @@ export namespace inkstone {
       });
     }
 
-    export function makePublic (authToken: string|undefined, nameOrUniqueId: string, cb: inkstone.Callback<boolean>) {
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+    export function makePublic (authToken: MaybeAuthToken, nameOrUniqueId: string, cb: inkstone.Callback<boolean>) {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_MAKE_PUBLIC_BY_NAME_OR_UNIQUE_ID.replace(
           ':NAME_OR_UNIQUE_ID', nameOrUniqueId),
         headers: {
@@ -960,7 +900,7 @@ export namespace inkstone {
         },
       };
 
-      request.put(options, (err, httpResponse) => {
+      requestInstance.put(options, (err, httpResponse) => {
         if (httpResponse && httpResponse.statusCode === 204) {
           cb(undefined, true, httpResponse);
         } else {
@@ -969,8 +909,8 @@ export namespace inkstone {
       });
     }
 
-    export function makePrivate (authToken: string|undefined, nameOrUniqueId: string, cb: inkstone.Callback<boolean>) {
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+    export function makePrivate (authToken: MaybeAuthToken, nameOrUniqueId: string, cb: inkstone.Callback<boolean>) {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_MAKE_PRIVATE_BY_NAME_OR_UNIQUE_ID.replace(
           ':NAME_OR_UNIQUE_ID', nameOrUniqueId),
         headers: {
@@ -979,7 +919,7 @@ export namespace inkstone {
         },
       };
 
-      request.delete(options, (err, httpResponse) => {
+      requestInstance.delete(options, (err, httpResponse) => {
         if (httpResponse && httpResponse.statusCode === 204) {
           cb(undefined, true, httpResponse);
         } else {
@@ -988,8 +928,8 @@ export namespace inkstone {
       });
     }
 
-    export function list (authToken: string|undefined, cb: inkstone.Callback<Project[]>) {
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+    export function list (authToken: MaybeAuthToken, cb: inkstone.Callback<Project[]>) {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_LIST,
         headers: {
           ...baseHeaders,
@@ -997,7 +937,7 @@ export namespace inkstone {
         },
       };
 
-      request.get(options, (err, httpResponse, body) => {
+      requestInstance.get(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           const projects = JSON.parse(body) as Project[];
           cb(undefined, projects, httpResponse);
@@ -1008,9 +948,9 @@ export namespace inkstone {
     }
 
     export function getByName (
-      authToken: string|undefined, name: string, cb: inkstone.Callback<ProjectAndCredentials>,
+      authToken: MaybeAuthToken, name: string, cb: inkstone.Callback<ProjectAndCredentials>,
     ) {
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_GET_BY_NAME.replace(':NAME', encodeURIComponent(name)),
         headers: {
           ...baseHeaders,
@@ -1018,7 +958,7 @@ export namespace inkstone {
         },
       };
 
-      request.get(options, (err, httpResponse, body) => {
+      requestInstance.get(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, JSON.parse(body) as ProjectAndCredentials, httpResponse);
         } else {
@@ -1028,11 +968,11 @@ export namespace inkstone {
     }
 
     export function getByUniqueId (
-      authToken: string | undefined,
+      authToken: MaybeAuthToken,
       uniqueId: string,
       cb: inkstone.Callback<ProjectAndCredentials>,
     ) {
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl +
           ENDPOINTS.PROJECT_GET_BY_UNIQUE_ID.replace(':UNIQUE_ID', encodeURIComponent(uniqueId)),
         headers: {
@@ -1041,7 +981,7 @@ export namespace inkstone {
         },
       };
 
-      request.get(options, (err, httpResponse, body) => {
+      requestInstance.get(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, JSON.parse(body) as ProjectAndCredentials, httpResponse);
         } else {
@@ -1050,9 +990,9 @@ export namespace inkstone {
       });
     }
 
-    export function deleteByName (authToken: string|undefined, name: string, cb: inkstone.Callback<boolean>) {
+    export function deleteByName (authToken: MaybeAuthToken, name: string, cb: inkstone.Callback<boolean>) {
 
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_DELETE_BY_NAME.replace(':NAME', encodeURIComponent(name)),
         headers: {
           ...baseHeaders,
@@ -1060,7 +1000,7 @@ export namespace inkstone {
         },
       };
 
-      request.delete(options, (err, httpResponse, body) => {
+      requestInstance.delete(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, true, httpResponse);
         } else {
@@ -1070,8 +1010,8 @@ export namespace inkstone {
     }
 
     export function createProjectSnapshotByNameAndSha (
-      authToken: string|undefined, name: string, sha: string, cb: inkstone.Callback<snapshot.Snapshot>) {
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+      authToken: MaybeAuthToken, name: string, sha: string, cb: inkstone.Callback<snapshot.Snapshot>) {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_SNAPSHOT_BY_NAME_AND_SHA
           .replace(':NAME', encodeURIComponent(name))
           .replace(':SHA', encodeURIComponent(sha)),
@@ -1081,7 +1021,7 @@ export namespace inkstone {
         },
       };
 
-      request.put(options, (err, httpResponse, body) => {
+      requestInstance.put(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           return cb(undefined, JSON.parse(body) as snapshot.Snapshot, httpResponse);
         }
@@ -1092,9 +1032,9 @@ export namespace inkstone {
   }
 
   export namespace updates {
-    export function check (authToken: string|undefined, query: string, cb: inkstone.Callback<boolean>) {
+    export function check (authToken: MaybeAuthToken, query: string, cb: inkstone.Callback<boolean>) {
 
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+      const options: request.OptionsWithUrl = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.UPDATES + query,
         headers: {
           ...baseHeaders,
@@ -1102,7 +1042,7 @@ export namespace inkstone {
         },
       };
 
-      request.get(options, (err, httpResponse, body) => {
+      requestInstance.get(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, true, httpResponse);
         } else {
@@ -1110,5 +1050,156 @@ export namespace inkstone {
         }
       });
     }
+  }
+
+  export namespace billing {
+    export interface Customer {
+      BillingName: string;
+      BillingEmail: string;
+    }
+
+    export interface Card {
+      ID: string;
+      // Provided as a string to avoid having formatting a four-digit number that begins with 0(s).
+      LastFourDigits: string;
+      ExpirationMonth: number;
+      ExpirationYear: number;
+      IsDefault: boolean;
+    }
+
+    export interface Profile {
+      Customer: Customer;
+      Cards: Card[];
+    }
+
+    export interface Plan {
+      ID: string;
+      Currency: 'usd'; // For now!
+      Interval: 'year'|'month';
+      Price: number;
+    }
+
+    export interface Product {
+      Name: string;
+      Plans: Plan[];
+    }
+
+    export interface PlanOverview {
+      // CurrentPeriodStart and CurrentPeriodEnd are provided as UNIX timestamps.
+      CurrentPeriodStart: number;
+      CurrentPeriodEnd: number;
+      // DaysUntilDue is typically 0 when this object is loaded—indicating the user has purchased a plan
+      // which is due today.
+      DaysUntilDue: number;
+    }
+
+    /**
+     * Describes the available products. This endpoint is the source of valid values of PlanID which can be used to
+     * call setPlan() below. Authentication is optional.
+     */
+    export const listProducts = (cb: inkstone.Callback<Product[]>) => {
+      newGetRequest()
+        .withEndpoint(Endpoints.BillingListProducts)
+        .callWithCallback<Product[]>(cb);
+    };
+
+    /**
+     * @authentication-required
+     * Describes the customer billing profile.
+     */
+    export const describe = (cb: inkstone.Callback<Profile>) => {
+      newGetRequest()
+        .withEndpoint(Endpoints.BillingDescribe)
+        .callWithCallback<Profile>(cb);
+    };
+
+    /**
+     * @authentication-required
+     * Sets up the customer profile. A customer profile must be provided before calling any of the methods below.
+     */
+    export const setCustomer = (customer: Customer, cb: inkstone.Callback<void>) => {
+      newPutRequest()
+        .withEndpoint(Endpoints.BillingSetCustomer)
+        .withJson(customer)
+        .callWithCallback<void>(cb, 204);
+    };
+
+    export interface AddCardRequestParams {
+      Token: string;
+    }
+
+    /**
+     * @authentication-required
+     * Adds a card using a Stripe token, which must be generated on the client side. A customer profile is required
+     * (see setCustomer() for details). The first card added will automatically be set as the default. The default can
+     * be changed using setCardAsDefaultById() below.
+     * @see {@link https://stripe.com/docs/stripe-js/reference#stripe-create-token}
+     */
+    export const addCard = (card: AddCardRequestParams, cb: inkstone.Callback<void>) => {
+      newPutRequest()
+        .withEndpoint(Endpoints.BillingAddCard)
+        .withJson(card)
+        .callWithCallback<void>(cb, 204);
+    };
+
+    /**
+     * @authentication-required
+     * Sets a card as default. The card ID here is available from the Profile object, obtained by calling describe()
+     * above. A customer profile is required (see setCustomer() for details).
+     */
+    export const setCardAsDefaultById = (cardId: string, cb: inkstone.Callback<void>) => {
+      newPutRequest()
+        .withEndpoint(Endpoints.BillingSetCardAsDefaultById)
+        .withUrlParameters({':card_id': cardId})
+        .callWithCallback<void>(cb, 204);
+    };
+
+    /**
+     * @authentication-required
+     * Deletes a card. This request will fail if the user attempts to delete the default card without first specifying
+     * a new default card. Same as setCardAsDefaultById(), the card ID here is available from the Profile object,
+     * obtained by calling describe() above. A customer profile is required (see setCustomer() for details).
+     */
+    export const deleteCardById = (cardId: string, cb: inkstone.Callback<void>) => {
+      newDeleteRequest()
+        .withEndpoint(Endpoints.BillingDeleteCardById)
+        .withUrlParameters({':card_id': cardId})
+        .callWithCallback<void>(cb, 204);
+    };
+
+    export interface SetPlanRequestParams {
+      PlanID: string;
+      Coupon?: string;
+    }
+
+    /**
+     * @authentication-required
+     * Sets a billing plan for the user. Prior to calling this method, both a customer profile (see setCustomer()) and
+     * a default payment source (see addCard()/setCardAsDefaultById() must be specified). As noted above, the PlanID
+     * string is available via the listProducts() endpoint above…or via hardcoding, since for now we only sell one
+     * plan!
+     */
+    export const setPlan = (
+      plan: SetPlanRequestParams,
+      cb: inkstone.Callback<PlanOverview>,
+    ) => {
+      newPutRequest()
+        .withEndpoint(Endpoints.BillingSetPlan)
+        .withJson(plan)
+        .callWithCallback<PlanOverview>(cb);
+    };
+
+    /**
+     * @authentication-required
+     * Cancels the user's active plan at the end of the billing period. And active plan is required (see setPlan()
+     * above).
+     */
+    export const cancelPlan = (
+      cb: inkstone.Callback<void>,
+    ) => {
+      newDeleteRequest()
+        .withEndpoint(Endpoints.BillingCancelPlan)
+        .callWithCallback<void>(cb, 204);
+    };
   }
 }
