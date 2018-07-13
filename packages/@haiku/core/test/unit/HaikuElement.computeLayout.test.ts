@@ -76,6 +76,14 @@ tape(
       { // parentNode
         layout: {
           computed: {
+            bounds: {
+              left: null,
+              right: null,
+              bottom: null,
+              top: null,
+              back: null,
+              front: null,
+            },
             matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 33, 0, 0, 1],
             size: {
               x: 852,
