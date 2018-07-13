@@ -69,7 +69,7 @@ class ElementSelectionProxy extends BaseModel {
     // If we're dealing with just a single element, we need to to use its points and
     // layout spec directly so that the transform control box fits to its actual shape.
     if (elements.length === 1) {
-      this._proxyBoxPoints = elements[0].getBoxPointsNotTransformed().map((p) => p)
+      this._proxyBoxPoints = elements[0].getBoundingBoxPoints().map((p) => p)
 
       Object.assign(
         this._proxyProperties,

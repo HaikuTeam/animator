@@ -681,13 +681,9 @@ class Element extends BaseModel {
     ]
   }
 
-  getBoxPointsNotTransformed () {
-    return this.getBoundingBoxPoints()
-  }
-
   getBoxPointsTransformed () {
     return HaikuElement.transformPointsInPlace(
-      this.getBoxPointsNotTransformed(),
+      this.getBoundingBoxPoints(),
       this.getOriginOffsetComposedMatrix()
     )
   }
