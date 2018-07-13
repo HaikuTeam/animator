@@ -1354,8 +1354,15 @@ export class Glass extends React.Component {
             return
           }
 
+          let targetLocked = false
+          if (target && target.getAttribute) {
+            const el = Element.findByComponentAndHaikuId(this.getActiveComponent(), target.getAttribute('haiku-id'))
+            if (el) {
+              targetLocked = el.isLockedViaParents()
+            }
+          }
           // True if the user has clicked on the stage, but not on any on-stage element
-          if (!target || !target.hasAttribute) {
+          if (targetLocked || !target || !target.hasAttribute) {
             const proxy = this.fetchProxyElementForSelection()
             if (proxy.hasAnythingInSelection() &&
               isCoordInsideBoxPoints(mouseDownPosition.x, mouseDownPosition.y, proxy.getBoxPointsTransformed())) {
