@@ -2500,16 +2500,6 @@ export class Glass extends React.Component {
               viewportTransform,
               Globals
             )
-
-            // If our artboard is auto-sized, we need to resize according to contents
-            // whenever the user moves them around the stage, as they are used to
-            // compute the container size
-            if (
-              this.getActiveComponent().isAutoSizeX() ||
-              this.getActiveComponent().isAutoSizeY()
-            ) {
-              this.getActiveComponent().getArtboard().updateMountSize()
-            }
           }
         }
       }
