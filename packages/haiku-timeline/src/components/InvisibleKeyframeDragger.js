@@ -66,15 +66,19 @@ export default class InvisibleKeyframeDragger extends React.Component {
       <TimelineDraggable
         axis='x'
         onMouseDown={(mouseEvent) => {
+          if (this.props.preventDragging) return
           this.props.keyframe.handleMouseDown(mouseEvent, {...Globals}, {isViaKeyframeDraggerView: true})
         }}
         onStart={(dragEvent, dragData) => {
+          if (this.props.preventDragging) return
           this.props.component.dragStartSelectedKeyframes(dragData)
         }}
         onStop={(dragEvent, dragData, wasDrag, lastMouseButtonPressed) => {
+          if (this.props.preventDragging) return
           this.props.keyframe.handleDragStop(dragData, {wasDrag, lastMouseButtonPressed, ...Globals}, {isViaKeyframeDraggerView: true})
         }}
         onDrag={lodash.throttle((dragEvent, dragData) => {
+          if (this.props.preventDragging) return
           this.props.component.dragSelectedKeyframes(frameInfo.pxpf, frameInfo.mspf, dragData, { alias: 'timeline' })
         }, THROTTLE_TIME)}>
         <span
@@ -91,6 +95,7 @@ export default class InvisibleKeyframeDragger extends React.Component {
           }}
           onMouseUp={(mouseEvent) => {
             mouseEvent.stopPropagation()
+            if (this.props.preventDragging) return
             this.props.keyframe.handleMouseUp(mouseEvent, {...Globals}, {isViaKeyframeDraggerView: true})
           }}
           style={{
@@ -105,7 +110,7 @@ export default class InvisibleKeyframeDragger extends React.Component {
             width: 10,
             height: 24,
             zIndex: 1003,
-            cursor: 'col-resize'
+            cursor: this.props.preventDragging ? 'not-allowed' : 'col-resize'
           }} />
       </TimelineDraggable>
     )
@@ -118,5 +123,6 @@ InvisibleKeyframeDragger.propTypes = {
   keyframe: React.PropTypes.object.isRequired,
   rowHeight: React.PropTypes.number.isRequired,
   timeline: React.PropTypes.object.isRequired,
-  component: React.PropTypes.object.isRequired
+  component: React.PropTypes.object.isRequired,
+  preventDragging: React.PropTypes.bool
 }

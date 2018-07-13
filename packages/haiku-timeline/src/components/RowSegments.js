@@ -118,7 +118,8 @@ export default class RowSegments extends React.Component {
                   component={this.props.component}
                   timeline={this.props.timeline}
                   rowHeight={this.props.rowHeight}
-                  keyframe={keyframe} />
+                  keyframe={keyframe}
+                  preventDragging={this.props.preventDragging} />
               )
             }
             segmentPieces.push(
@@ -129,7 +130,8 @@ export default class RowSegments extends React.Component {
                 component={this.props.component}
                 timeline={this.props.timeline}
                 rowHeight={this.props.rowHeight}
-                keyframe={keyframe} />
+                keyframe={keyframe}
+                preventDragging={this.props.preventDragging} />
             )
             if (keyframe.hasNextKeyframe()) {
               segmentPieces.push(
@@ -140,7 +142,8 @@ export default class RowSegments extends React.Component {
                   component={this.props.component}
                   timeline={this.props.timeline}
                   rowHeight={this.props.rowHeight}
-                  keyframe={keyframe} />
+                  keyframe={keyframe}
+                  preventDragging={this.props.preventDragging} />
               )
             }
           }

@@ -1354,8 +1354,15 @@ export class Glass extends React.Component {
             return
           }
 
+          let targetLocked = false
+          if (target && target.getAttribute) {
+            const el = Element.findByComponentAndHaikuId(this.getActiveComponent(), target.getAttribute('haiku-id'))
+            if (el) {
+              targetLocked = el.isLockedViaParents()
+            }
+          }
           // True if the user has clicked on the stage, but not on any on-stage element
-          if (!target || !target.hasAttribute) {
+          if (targetLocked || !target || !target.hasAttribute) {
             const proxy = this.fetchProxyElementForSelection()
             if (proxy.hasAnythingInSelection() &&
               isCoordInsideBoxPoints(mouseDownPosition.x, mouseDownPosition.y, proxy.getBoxPointsTransformed())) {
@@ -1448,7 +1455,7 @@ export class Glass extends React.Component {
                     hasStroke && isPointAlongStroke(descendant, mouseDownPosition, Number(descendant.attributes['stroke-width']))
                   )) {
                   clickedItemFound = descendant
-                  if (isDoubleClick) Element.directlySelected = descendant
+                  if (isDoubleClick && elementTargeted.isSelected()) Element.directlySelected = descendant
                   return false // stop searching
                 }
               })
@@ -2663,6 +2670,13 @@ export class Glass extends React.Component {
     }
 
     if (Element.directlySelected) {
+      // Make sure it's not locked
+      const originalEl = Element.findByComponentAndHaikuId(this.getActiveComponent(), Element.directlySelected.attributes['haiku-id'])
+      if (originalEl && originalEl.isLockedViaParents()) {
+        Element.directlySelected = null
+        return overlays
+      }
+
       this.renderDirectSelection(Element.directlySelected, this.state.directSelectionAnchorActivation ? this.state.directSelectionAnchorActivation.indices[Element.directlySelected.attributes['haiku-id']] : undefined, overlays)
       return overlays
     }

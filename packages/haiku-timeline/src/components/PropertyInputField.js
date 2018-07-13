@@ -34,6 +34,8 @@ export default class PropertyInputField extends React.Component {
       this.forceUpdate()
     } else if (what === 'keyframe-create') {
       this.forceUpdate()
+    } else if (what === 'row-set-locked') {
+      this.forceUpdate()
     }
   }
 
@@ -44,10 +46,14 @@ export default class PropertyInputField extends React.Component {
   }
 
   handleDoubleClick (clickEvent) {
+    clickEvent.stopPropagation()
     this.props.row.blurOthers({ from: 'timeline' }) // Otherwise previously blurred remains open
+    if (this.props.disabled) {
+      return
+    }
+
     this.props.row.focus({ from: 'timeline' })
     this.props.row.select({ from: 'timeline' })
-    clickEvent.stopPropagation()
   }
 
   render () {
@@ -156,7 +162,8 @@ function remapPrettyValue (prettyValue) {
 PropertyInputField.propTypes = {
   row: React.PropTypes.object.isRequired,
   timeline: React.PropTypes.object.isRequired,
-  rowHeight: React.PropTypes.number.isRequired
+  rowHeight: React.PropTypes.number.isRequired,
+  disabled: React.PropTypes.bool
 }
 
 PropertyInputFieldValueDisplay.propTypes = {

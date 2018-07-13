@@ -195,6 +195,9 @@ class Timeline extends React.Component {
         },
         onFinish: (event, area) => {
           const selected = Keyframe.all().filter((keyframe) => {
+            if (keyframe.element.isLocked()) {
+              return false
+            }
             const keyframeView = keyframe._viewPosition
 
             // First, check if the keyframe is contained in the marquee horizontally,

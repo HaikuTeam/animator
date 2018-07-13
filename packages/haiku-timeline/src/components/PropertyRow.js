@@ -36,7 +36,8 @@ export default class PropertyRow extends React.Component {
     if (!this.mounted) return null
     if (
       what === 'row-selected' ||
-      what === 'row-deselected'
+      what === 'row-deselected' ||
+      what === 'row-set-title'
      ) {
       this.forceUpdate()
     }
@@ -179,7 +180,8 @@ export default class PropertyRow extends React.Component {
               component={this.component}
               timeline={this.props.timeline}
               timelineName={this.props.timeline.getName()}
-              rowHeight={this.props.rowHeight} />
+              rowHeight={this.props.rowHeight}
+              disabled={this.props.row.element.isLocked()} />
           </div>
         </div>
         <div
@@ -213,7 +215,8 @@ export default class PropertyRow extends React.Component {
             component={this.props.component}
             timeline={this.props.timeline}
             rowHeight={this.props.rowHeight}
-            row={this.props.row} />
+            row={this.props.row}
+            preventDragging={this.props.row.element.isLocked()} />
         </div>
       </div>
     )
