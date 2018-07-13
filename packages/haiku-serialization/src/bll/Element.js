@@ -535,6 +535,8 @@ class Element extends BaseModel {
       { // parentNode
         layout: {
           computed: {
+            matrix: Layout3D.createMatrix(),
+            bounds: (this.parent && this.parent.getHaikuElement().computeContentBounds()) || {},
             size: (this.parent && this.parent.getComputedSize()) || this.getComputedSize()
           }
         },
