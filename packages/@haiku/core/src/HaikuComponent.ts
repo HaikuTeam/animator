@@ -2173,6 +2173,10 @@ function expandTreeNode (
     return;
   }
 
+  // Hydrate a HaikuElement representation of all nodes in the tree.
+  // The instance is cached as node.__element for performance purposes.
+  HaikuElement.findOrCreateByNode(node);
+
   // Give it a pointer back to the host context; used by HaikuElement
   node.__context = context;
 
