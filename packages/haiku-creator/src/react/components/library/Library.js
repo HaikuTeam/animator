@@ -7,13 +7,13 @@ import {UserSettings} from 'haiku-sdk-creator/lib/bll/User';
 import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 import {isMac} from 'haiku-common/lib/environments/os';
 import Palette from 'haiku-ui-common/lib/Palette';
+import {LoadingTopBar} from 'haiku-ui-common/lib/LoadingTopBar';
 import {didAskedForSketch} from 'haiku-serialization/src/utils/HaikuHomeDir';
 import * as Asset from 'haiku-serialization/src/bll/Asset';
 import {Figma} from 'haiku-serialization/src/bll/Figma';
 import * as sketchUtils from 'haiku-serialization/src/utils/sketchUtils';
 import SketchDownloader from '../SketchDownloader';
 import AssetList from './AssetList';
-import Loader from './Loader';
 import FileImporter from './FileImporter';
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import DesignFileCreator from './DesignFileCreator';
@@ -65,6 +65,11 @@ const STYLES = {
     textDecoration: 'underline',
     cursor: 'pointer',
     display: 'inline-block',
+  },
+  loadingWrapper: {
+    position: 'relative',
+    width: '100%',
+    height: 2,
   },
 };
 
@@ -382,7 +387,10 @@ class Library extends React.Component {
     return (
       <div
         id="library-wrapper"
-        style={{height: '100%', display: this.props.visible ? 'initial' : 'none'}}>
+        style={{display: this.props.visible ? 'initial' : 'none'}}>
+        <div style={STYLES.loadingWrapper}>
+          <LoadingTopBar progress={100} done={!this.state.isLoading} speed="0.5s" />
+        </div>
         <div
           id="library-scroll-wrap"
           style={STYLES.sectionHeader}>
