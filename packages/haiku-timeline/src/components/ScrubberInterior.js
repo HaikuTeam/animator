@@ -7,12 +7,8 @@ import zIndex from './styles/zIndex'
 export default class ScrubberInterior extends React.Component {
   constructor (props) {
     super(props)
-    this.ruleSet = document.createElement('style')
-    document.head.appendChild(this.ruleSet)
-    this.off = false
     this.propertiesWidth = props.timeline.getPropertiesPixelWidth()
     this.handleUpdate = this.handleUpdate.bind(this)
-    this.moveGaugeIfNecessary = this.moveGaugeIfNecessary.bind(this)
     this.throttledForceUpdate = lodash.throttle(this.forceUpdate.bind(this), 64)
   }
 
@@ -36,14 +32,9 @@ export default class ScrubberInterior extends React.Component {
 
   handleUpdate (what) {
     if (!this.mounted) return null
+
     if (what === 'timeline-frame') {
-      if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-        if (this.props.timeline.isPlaying()) {
-          this.moveGaugeIfNecessary()
-        } else {
-          this.forceUpdate()
-        }
-      }
+      this.forceUpdate()
     } else if (what === 'timeline-frame-range') {
       this.forceUpdate()
     } else if (what === 'time-display-mode-change') {
@@ -53,86 +44,8 @@ export default class ScrubberInterior extends React.Component {
     }
   }
 
-  translateToMaxFrame ({currentFrame, frameInfo}) {
-    const frameOffset = (frameInfo.maxf - currentFrame)
-    const positionOffset = this.propertiesWidth + (currentFrame * frameInfo.pxpf)
-    const translation = this.propertiesWidth + (frameInfo.maxf * frameInfo.pxpf)
-    const duration = frameInfo.mspf * frameOffset
-
-    console.log({
-      frameOffset,
-      translation,
-      duration,
-      max: frameInfo.maxf,
-      current: currentFrame
-    })
-
-    const rule = `
-      .scrubbing-thing {
-        animation-duration: ${duration}ms;
-        animation-name: scrub;
-        animation-iteration-count: infinite;
-        animation-timing-function: linear;
-      }
-    `
-
-    const animation = `
-      @keyframes scrub {
-        from {
-          transform: translateX(${positionOffset}px);
-        }
-
-        to {
-          transform: translateX(${translation}px);
-        }
-      }
-    `
-
-    this.ruleSet.sheet.insertRule(rule, 0)
-    this.ruleSet.sheet.insertRule(animation, 0)
-    this.tail.classList.add('scrubbing-thing')
-    this.head.classList.add('scrubbing-thing')
-
-    if (currentFrame !== 0) {
-      setTimeout(() => this.translateToMaxFrame({currentFrame: 0, frameInfo}), duration)
-    }
-  }
-
-  translateToCurrentFrame ({currentFrame, frameInfo}) {
-    if (this.head && this.tail) {
-      const pxOffset = currentFrame * frameInfo.pxpf
-      const translation = this.propertiesWidth + pxOffset
-
-      this.head.classList.remove('scrubbing-thing')
-      this.tail.classList.remove('scrubbing-thing')
-      this.head.style.transform = `translateX(${translation}px)`
-      this.tail.style.transform = `translateX(${translation}px)`
-    }
-  }
-
-  moveGaugeIfNecessary () {
-    const frameInfo = this.props.timeline.getFrameInfo()
-    const currentFrame = this.props.timeline.getCurrentFrame()
-
-    if (this.props.timeline.isPlaying()) {
-      if (currentFrame < frameInfo.maxf) {
-        if (!this.isMoving) {
-          this.translateToMaxFrame({currentFrame, frameInfo})
-          this.isMoving = true
-        }
-      }
-    } else {
-      this.translateToCurrentFrame({currentFrame, frameInfo})
-      this.isMoving = false
-    }
-  }
-
   render () {
     const frameInfo = this.props.timeline.getFrameInfo()
-
-    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-      this.moveGaugeIfNecessary()
-    }
 
     if (!experimentIsEnabled(Experiment.NativeTimelineScroll)) {
       if (this.props.timeline.getCurrentFrame() < frameInfo.friA) {
@@ -149,6 +62,7 @@ export default class ScrubberInterior extends React.Component {
       ? currFrame
       : currFrame - frameInfo.friA
     const pxOffset = frameOffset * frameInfo.pxpf
+    const translation = this.propertiesWidth + pxOffset
 
     return (
       <div
@@ -176,7 +90,8 @@ export default class ScrubberInterior extends React.Component {
             borderRadius: '50%',
             cursor: 'move',
             boxShadow: '0 0 2px 0 rgba(0, 0, 0, .9)',
-            willChange: 'transform'
+            willChange: 'transform',
+            transform: `translate3D(${translation}px, 0, 0)`
           } : {
             position: 'absolute',
             backgroundColor: Palette.SUNSTONE,
@@ -252,7 +167,8 @@ export default class ScrubberInterior extends React.Component {
             top: 35,
             left: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : pxOffset,
             pointerEvents: 'none',
-            willChange: 'transform'
+            willChange: 'transform',
+            transform: `translate3D(${translation}px, 0, 0)`
           }} />
       </div>
     )
