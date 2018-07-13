@@ -967,7 +967,12 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
   callEventHandler (eventsSelector: string, eventName: string, handler: Function, eventArgs: any): any {
     // Only fire the event listeners if the component is in 'live' interaction mode,
     // i.e., not currently being edited inside the Haiku authoring environment
-    if (!isLiveMode(this.config.interactionMode)) {
+    // However, some components rely on specific event hooks firing in Edit mode, too — they can
+    // whitelist their "edit mode" event names through `options`
+    if (!isLiveMode(this.config.interactionMode) &&
+      !(this.bytecode.options &&
+          this.bytecode.options.editModeEvents &&
+          this.bytecode.options.editModeEvents[eventName])) {
       return;
     }
 
