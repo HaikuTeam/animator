@@ -2187,6 +2187,8 @@ function expandTreeNode (
   if (doConnectInstanceToNode) {
     node.__instance = component;
 
+    // In the case that the node represents the root of an instance, treat the instance as the element;
+    // connect their references and override the equivalent action in findOrCreateByNode.
     HaikuElement.connectNodeWithElement(node, node.__instance);
 
     // The host component should hear events emitted by the guest component
