@@ -520,10 +520,24 @@ export default class HaikuElement extends HaikuBase {
   }
 
   computeContentBoundsX (): BoundsSpecX {
+    if (typeof this.sizeAbsolute.x === 'number') {
+      return {
+        left: null,
+        right: null,
+      };
+    }
+
     const lefts = [];
     const rights = [];
 
     const children = this.children;
+
+    if (children.length < 1) {
+      return {
+        left: null,
+        right: null,
+      };
+    }
 
     for (let i = 0; i < children.length; i++) {
       const child = children[i];
@@ -545,10 +559,24 @@ export default class HaikuElement extends HaikuBase {
   }
 
   computeContentBoundsY (): BoundsSpecY {
+    if (typeof this.sizeAbsolute.y === 'number') {
+      return {
+        top: null,
+        bottom: null,
+      };
+    }
+
     const tops = [];
     const bottoms = [];
 
     const children = this.children;
+
+    if (children.length < 1) {
+      return {
+        top: null,
+        bottom: null,
+      };
+    }
 
     for (let i = 0; i < children.length; i++) {
       const child = children[i];
@@ -571,8 +599,8 @@ export default class HaikuElement extends HaikuBase {
 
   computeContentBoundsZ (): BoundsSpecZ {
     return {
-      front: 0,
-      back: 0,
+      front: null,
+      back: null,
     };
   }
 
