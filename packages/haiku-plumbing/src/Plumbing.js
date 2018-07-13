@@ -28,7 +28,6 @@ import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import * as serializeError from 'haiku-serialization/src/utils/serializeError';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
-import * as ProjectFolder from './ProjectFolder';
 import {crashReport} from 'haiku-serialization/src/utils/carbonite';
 import * as BaseModel from 'haiku-serialization/src/bll/BaseModel';
 import * as HaikuHomeDir from 'haiku-serialization/src/utils/HaikuHomeDir';
@@ -36,6 +35,22 @@ import * as Project from 'haiku-serialization/src/bll/Project';
 import {awaitAllLocksFree} from 'haiku-serialization/src/bll/Lock';
 import functionToRFO from '@haiku/core/lib/reflection/functionToRFO';
 import Master from './Master';
+import {createProjectFiles} from '@haiku/sdk-client/lib/createProjectFiles';
+import {
+  copyExternalExampleFilesToProject,
+  copyDefaultSketchFile,
+  copyDefaultIllustratorFile,
+} from './project-folder/copyExternalExampleFilesToProject';
+import {duplicateProject} from './project-folder/duplicateProject';
+import {
+  getCurrentOrganizationName,
+  getCachedOrganizationName,
+} from './project-folder/getCurrentOrganizationName';
+import {
+  getSafeProjectName,
+  getSafeOrganizationName,
+  storeConfigValues,
+} from './project-folder/ProjectDefinitions';
 
 const {HOMEDIR_PATH} = HaikuHomeDir;
 
@@ -616,7 +631,7 @@ export default class Plumbing extends EventEmitter {
       }
       crashReport(
         error,
-        this.get('organizationName'),
+        getCachedOrganizationName(),
         this.get('lastOpenedProjectName'),
         this.get('lastOpenedProjectPath'),
       );
@@ -804,7 +819,7 @@ export default class Plumbing extends EventEmitter {
    * @description copy the default Sketch file to the given project
    */
   copyDefaultSketchFile (projectName, assetPath, cb) {
-    return cb(ProjectFolder.copyDefaultSketchFile(projectName, assetPath));
+    return cb(copyDefaultSketchFile(projectName, assetPath));
   }
 
   /**
@@ -812,7 +827,7 @@ export default class Plumbing extends EventEmitter {
    * @description copy the default Illustrator file to the given project
    */
   copyDefaultIllustratorFile (projectName, assetPath, cb) {
-    return cb(ProjectFolder.copyDefaultIllustratorFile(projectName, assetPath));
+    return cb(copyDefaultIllustratorFile(projectName, assetPath));
   }
 
   /**
@@ -837,7 +852,7 @@ export default class Plumbing extends EventEmitter {
     password,
     finish,
   ) {
-    return this.getCurrentOrganizationName((err, organizationName) => {
+    return getCurrentOrganizationName((err, organizationName) => {
       if (err) {
         if (experimentIsEnabled(Experiment.BasicOfflineMode)) {
           logger.error(err);
@@ -846,16 +861,16 @@ export default class Plumbing extends EventEmitter {
         }
       }
 
-      organizationName = Project.getSafeOrgName(organizationName);
+      organizationName = getSafeOrganizationName(organizationName);
       projectsHome = projectsHome || HaikuHomeDir.HOMEDIR_PROJECTS_PATH;
-      projectName = Project.getSafeProjectName(projectsHome, projectName);
+      projectName = getSafeProjectName(projectsHome, projectName);
       projectPath = projectPath || path.join(projectsHome, organizationName, projectName);
       username = username || this.get('username');
       password = password || this.get('password');
       authorName = username;
 
       // This ensures the folder exists and sets basic values inside the package.json
-      Project.storeConfigValues(projectPath, {
+      storeConfigValues(projectPath, {
         username,
         organization: organizationName,
         project: projectName,
@@ -873,7 +888,6 @@ export default class Plumbing extends EventEmitter {
         authorName,
         username,
         password,
-        skipCDNBundles: true, // Don't waste time making these bundles before we need them
       };
 
       return async.series([
@@ -885,14 +899,17 @@ export default class Plumbing extends EventEmitter {
             return cb();
           }
 
-          return ProjectFolder.buildProjectContent(
-            null,
+          return createProjectFiles(
             projectPath,
             projectName,
-            null,
             projectOptions,
-            cb,
-          );
+            (err) => {
+              if (!err && !projectOptions.skipContentCreation) {
+                // Copy sketch and illustrator example files
+                copyExternalExampleFilesToProject(this.folder, projectName);
+              }
+              cb();
+            });
         },
 
         (cb) => {
@@ -969,7 +986,7 @@ export default class Plumbing extends EventEmitter {
       return cb(null, {isAuthed: false});
     }
 
-    return this.getCurrentOrganizationName((err, organizationName) => {
+    return getCurrentOrganizationName((err, organizationName) => {
       if (err) {
         return cb(err);
       }
@@ -1067,6 +1084,7 @@ export default class Plumbing extends EventEmitter {
         return cb(new Error('Auth response was empty'));
       }
 
+      // TODO: Should be cached just like on getCurrentOrganizationName
       this.set('username', username);
       this.set('password', password);
       this.set('inkstoneAuthToken', authResponse.Token);
@@ -1082,7 +1100,7 @@ export default class Plumbing extends EventEmitter {
         });
       }
 
-      return this.getCurrentOrganizationName((err, organizationName) => {
+      return getCurrentOrganizationName((err, organizationName) => {
         if (err) {
           return cb(err);
         }
@@ -1097,40 +1115,6 @@ export default class Plumbing extends EventEmitter {
     });
   }
 
-  getCurrentOrganizationName (cb) {
-    if (this.get('organizationName')) {
-      return cb(null, this.get('organizationName'));
-    }
-
-    logger.info('[plumbing] fetching organization name for current user');
-
-    try {
-      const authToken = sdkClient.config.getAuthToken();
-      return inkstone.organization.list(authToken, (orgErr, orgsArray, orgHttpResp) => {
-        if (orgErr) {
-          return cb(new Error('Organization error'));
-        }
-        if (orgHttpResp.statusCode === 401) {
-          return cb(new Error('Unauthorized organization'));
-        }
-        if (orgHttpResp.statusCode > 299) {
-          return cb(new Error(`Error status code: ${orgHttpResp.statusCode}`));
-        }
-        if (!orgsArray || orgsArray.length < 1) {
-          return cb(new Error('No organization found'));
-        }
-        // Cache this since it's used to write/manage some project files
-        const organizationName = orgsArray[0].Name;
-        logger.info('[plumbing] organization name:', organizationName);
-        this.set('organizationName', organizationName);
-        return cb(null, this.get('organizationName'));
-      });
-    } catch (exception) {
-      logger.error(exception);
-      return cb(new Error('Unable to find organization name from Haiku Cloud'));
-    }
-  }
-
   listProjects (cb) {
     logger.info('[plumbing] listing projects');
     try {
@@ -1143,7 +1127,7 @@ export default class Plumbing extends EventEmitter {
 
         const finalList = new Array(projectsList.length);
         async.eachOf(projectsList, (project, index, done) => {
-          finalList[index] = remapProjectObjectToExpectedFormat(project, this.get('organizationName'));
+          finalList[index] = remapProjectObjectToExpectedFormat(project, getCachedOrganizationName());
           done();
         }, () => {
           logger.info('[plumbing] fetched project list', JSON.stringify(finalList));
@@ -1164,7 +1148,7 @@ export default class Plumbing extends EventEmitter {
         this.sentryError('createProject', projectCreateErr);
         return cb(projectCreateErr);
       }
-      const remoteProjectObject = remapProjectObjectToExpectedFormat(projectPayload, this.get('organizationName'));
+      const remoteProjectObject = remapProjectObjectToExpectedFormat(projectPayload, getCachedOrganizationName());
       return cb(null, remoteProjectObject);
     });
   }
@@ -1183,7 +1167,7 @@ export default class Plumbing extends EventEmitter {
     }
 
     // Duplicate project folder content from source to destination.
-    ProjectFolder.duplicateProject(destinationProject, sourceProject, (err) => {
+    duplicateProject(destinationProject, sourceProject, (err) => {
       // Note: we don't pass errors forward to Creator here. It wouldn't know what to do with it.
       if (err) {
         logger.warn(`[plumbing] error during project duplication: ${err}`);
@@ -1221,7 +1205,7 @@ export default class Plumbing extends EventEmitter {
         return cb(err);
       }
 
-      cb(null, remapProjectObjectToExpectedFormat(projectAndCredentials.Project, this.get('organizationName')));
+      cb(null, remapProjectObjectToExpectedFormat(projectAndCredentials.Project, getCachedOrganizationName()));
     });
   }
 
@@ -1304,7 +1288,7 @@ export default class Plumbing extends EventEmitter {
       saveOptions.authorName = this.get('username');
     }
     if (!saveOptions.organizationName) {
-      saveOptions.organizationName = this.get('organizationName');
+      saveOptions.organizationName = getCachedOrganizationName();
     }
     logger.info('[plumbing] saving with options', saveOptions);
     return this.awaitMasterAndCallMethod(folder, 'saveProject', [projectName, maybeUsername, maybePassword, saveOptions, {from: 'master'}], cb);

@@ -19,12 +19,20 @@ import * as MockWebsocket from 'haiku-serialization/src/ws/MockWebsocket';
 import {EventEmitter} from 'events';
 import * as EmitterManager from 'haiku-serialization/src/utils/EmitterManager';
 import Watcher from './Watcher';
-import * as ProjectFolder from './ProjectFolder';
 import MasterGitProject from './MasterGitProject';
 import MasterModuleProject from './MasterModuleProject';
 import attachListeners from './envoy/attachListeners';
 import saveExport from './publish-hooks/saveExport';
 import Raven from './Raven';
+import {createProjectFiles} from '@haiku/sdk-client/lib/createProjectFiles';
+import {createCDNBundles} from './project-folder/createCDNBundle';
+import {copyExternalExampleFilesToProject} from './project-folder/copyExternalExampleFilesToProject';
+import {
+  getHaikuCoreVersion,
+  getSafeProjectName,
+  getSafeOrganizationName,
+  fetchProjectConfigInfo,
+} from './project-folder/ProjectDefinitions';
 
 Sketch.findAndUpdateInstallPath();
 
@@ -347,7 +355,7 @@ export default class Master extends EventEmitter {
   }
 
   normalizeCommitMessage (message) {
-    return `${message} (via Haiku ${ProjectFolder.getHaikuCoreVersion()} ${os.platform()})`;
+    return `${message} (via Haiku ${getHaikuCoreVersion()} ${os.platform()})`;
   }
 
   /**
@@ -658,9 +666,9 @@ export default class Master extends EventEmitter {
     const ravenContext = {
       user: {email: haikuUsername},
       extra: {
-        projectName: Project.getSafeProjectName(this.folder, projectName),
+        projectName: getSafeProjectName(this.folder, projectName),
         projectPath: this.folder,
-        organizationName: Project.getSafeOrgName(projectOptions.organizationName),
+        organizationName: getSafeOrganizationName(projectOptions.organizationName),
       },
     };
     Raven.setContext(ravenContext);
@@ -678,13 +686,18 @@ export default class Master extends EventEmitter {
       // the cloned content. Which means we have to be sparing with what we create on the first run, but also need
       // to create any missing remainders on the second run.
       (cb) => {
-        return ProjectFolder.buildProjectContent(null, this.folder, projectName, 'haiku', {
+        return createProjectFiles(this.folder, projectName, {
           // Important: Must set this here or the package.name will be wrong
           organizationName: projectOptions.organizationName,
           skipContentCreation: false,
-          skipCDNBundles: true,
           isPublic: projectOptions.isPublic,
-        }, cb);
+        }, (err) => {
+          if (!err) {
+            // Copy sketch and illustrator example files
+            copyExternalExampleFilesToProject(this.folder, projectName);
+          }
+          cb();
+        });
       },
 
       (cb) => {
@@ -709,7 +722,7 @@ export default class Master extends EventEmitter {
     this._mod.restart();
     this._git.restart();
 
-    return Project.fetchProjectConfigInfo(this.folder, (err, userconfig) => {
+    return fetchProjectConfigInfo(this.folder, (err, userconfig) => {
       if (err) {
         throw err;
       }
@@ -830,7 +843,7 @@ export default class Master extends EventEmitter {
         return async.eachSeries(acs, (ac, next) => {
           logger.info(`[master] project save: assigning metadata to ${ac.getSceneName()}`);
 
-          return Project.fetchProjectConfigInfo(ac.fetchActiveBytecodeFile().folder, (err, userconfig) => {
+          return fetchProjectConfigInfo(ac.fetchActiveBytecodeFile().folder, (err, userconfig) => {
             if (err) {
               return next(err);
             }
@@ -905,12 +918,31 @@ export default class Master extends EventEmitter {
         });
       },
 
-      // Build the rest of the content of the folder, including any bundles that belong on the cdn
+      // Build the rest of the content of the folder,
       (cb) => {
         logger.info('[master] project save: populating content');
 
         const {projectName} = this._git.getFolderState();
-        ProjectFolder.buildProjectContent(null, this.folder, projectName, 'haiku', {
+        createProjectFiles(this.folder, projectName, {
+          projectName,
+          haikuUsername,
+          authorName: saveOptions.authorName,
+          organizationName: saveOptions.organizationName,
+        }, (err) => {
+          if (!err) {
+            // Copy sketch and illustrator example files
+            copyExternalExampleFilesToProject(this.folder, projectName);
+          }
+          cb();
+        });
+      },
+
+      // Build CDN bundles
+      (cb) => {
+        logger.info('[master] project save: creating cdn bundle');
+
+        const {projectName} = this._git.getFolderState();
+        createCDNBundles(this.folder, projectName, {
           projectName,
           haikuUsername,
           authorName: saveOptions.authorName,

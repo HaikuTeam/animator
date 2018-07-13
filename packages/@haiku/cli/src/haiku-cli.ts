@@ -1,5 +1,16 @@
 import {client} from '@haiku/sdk-client';
 import {inkstone} from '@haiku/sdk-inkstone';
+
+import {
+  DEFAULT_BRANCH_NAME,
+  fetchProjectConfigInfo,
+  getHaikuComponentInitialVersion,
+  storeConfigValues,
+} from '@haiku/sdk-client/lib/ProjectDefinitions';
+
+import {bootstrapSceneFilesSync} from '@haiku/sdk-client/lib/bootstrapSceneFilesSync';
+import {createProjectFiles} from '@haiku/sdk-client/lib/createProjectFiles';
+
 import * as chalk from 'chalk';
 import {execSync} from 'child_process';
 import * as dedent from 'dedent';
@@ -8,6 +19,7 @@ import * as fs from 'fs';
 import * as hasbin from 'hasbin';
 import * as inquirer from 'inquirer';
 import * as _ from 'lodash';
+import * as path from 'path';
 // @ts-ignore
 import * as prependFile from 'prepend-file';
 
@@ -122,6 +134,19 @@ const cli = new Nib({
       ],
       action: doUpdate,
       description: 'Updates dependencies',
+    },
+    {
+      name: 'generate',
+      aliases: ['g'],
+      args: [
+        {
+          name: 'component-name',
+          required: true,
+          usage: 'Specifies the name of new component to be generated.  Case-sensitive and must be unique.',
+        },
+      ],
+      action: generateComponent,
+      description: 'Generate new component',
     },
   ],
 });
@@ -465,6 +490,49 @@ function doUpdate (context: IContext) {
       process.exit(1);
     }
   });
+}
+
+function generateComponent (context: IContext) {
+  const componentName = context.args['component-name'];
+
+  context.writeLine('Creating component...');
+
+  const projectPath = path.join(process.cwd(), componentName);
+  const projectName = componentName;
+
+  const authorName: string = null;
+  const organizationName: string = null;
+
+  storeConfigValues(projectPath, {
+    username: authorName,
+    branch: DEFAULT_BRANCH_NAME,
+    version: getHaikuComponentInitialVersion(),
+    organization: organizationName,
+    project: projectName,
+  });
+
+  const projectOptions = {
+    organizationName,
+    projectName,
+    projectPath,
+    authorName,
+    skipContentCreation: false,
+  };
+
+  createProjectFiles(projectPath, projectName, projectOptions, () => {
+    context.writeLine('Created initial project files');
+    fetchProjectConfigInfo(projectPath, (err: Error|null, userconfig: any) => {
+      if (err) {
+        throw err;
+      }
+      bootstrapSceneFilesSync(projectPath, 'main', userconfig);
+      context.writeLine('Created main component');
+    });
+  });
+
+  context.writeLine('Project created');
+  process.exit(0);
+
 }
 
 // see ./unimplemented.txt for incomplete player upgrade logic

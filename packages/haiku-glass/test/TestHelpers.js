@@ -6,7 +6,7 @@ const path = require('path')
 const JSDOM = require('jsdom').JSDOM
 const React = require('react')
 const ReactDOM = require('react-dom')
-const Project = require('haiku-serialization/src/bll/Project')
+const {fetchProjectConfigInfo} = require ('@haiku/sdk-client/lib/ProjectDefinitions');
 
 const TestHelpers = {}
 
@@ -51,7 +51,7 @@ function createApp (folder, cb) {
   return createDOM(folder, function (err, win, _teardown) {
     if (err) throw err
     const Glass = require('./../lib/react/Glass').Glass
-    return Project.fetchProjectConfigInfo(folder, (err, userconfig) => {
+    return fetchProjectConfigInfo(folder, (err, userconfig) => {
       if (err) throw err
       const websocket = { on: () => {}, send: () => {}, method: () => {}, request: () => {}, action: () => {}, connect: () => {} }
       ReactDOM.render(
