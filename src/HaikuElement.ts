@@ -1017,12 +1017,10 @@ export default class HaikuElement extends HaikuBase {
       }
     }
 
-    // We don't want to hydrate a HaikuElement unnecessarily. It's only required if
-    // we are doing "auto"-sizing, so we construct one on demand below.
-    let targetElement;
+    const targetElement = HaikuElement.findOrCreateByNode(targetNode);
 
     for (let i = 0; i < SIZING_AXES.length; i++) {
-      const sizeAxis = SIZING_AXES[i];
+      const sizeAxis = SIZING_AXES[i] as AxisString;
 
       const parentSizeValue = parentsizeAbsolute[sizeAxis];
 
@@ -1038,13 +1036,7 @@ export default class HaikuElement extends HaikuBase {
 
           // Implements "auto"-sizing: Use content size if available, otherwise fallback to parent
           if (HaikuElement.useAutoSizing(givenValue)) {
-            if (!targetElement) {
-              // Note that HaikuElement.findOrCreateByNode will use a cached instance if found
-              targetElement = HaikuElement.findOrCreateByNode(targetNode);
-            }
-
             targetSize[sizeAxis] = targetElement.computeSizeForAxis(sizeAxis);
-
             Object.assign(targetBounds, targetElement.computeBoundsForAxis(sizeAxis));
           } else {
             targetSize[sizeAxis] = givenValue; // Assume the given value is numeric
