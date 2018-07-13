@@ -359,12 +359,10 @@ class Library extends React.Component {
 
     this.props.projectModel.bulkLinkAssets(
       filePaths,
-      (error, assets) => {
+      (error) => {
         if (error) {
           return this.setState({error, isLoading: false});
         }
-
-        this.handleAssetsChanged(assets, {isLoading: false});
       },
     );
   }
