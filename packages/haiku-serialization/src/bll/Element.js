@@ -494,24 +494,6 @@ class Element extends BaseModel {
     }
   }
 
-  getAncestry () {
-    const ancestors = [] // We'll build a list with the original ancestor first and our node last
-    getAncestry(ancestors, this)
-    return ancestors
-  }
-
-  getComputedLayoutAncestry () {
-    return this.getAncestry().map((ancestor) => {
-      return ancestor.getComputedLayout()
-    })
-  }
-
-  getOriginOffsetComposedMatrix () {
-    return Layout3D.multiplyArrayOfMatrices(this.getComputedLayoutAncestry().reverse().map(
-      (layout) => layout.matrix
-    ))
-  }
-
   isAutoSizeX () {
     const layout = this.getLayoutSpec()
     return typeof layout.sizeAbsolute.x !== 'number'
@@ -702,6 +684,24 @@ class Element extends BaseModel {
       this.getOriginNotTransformed(),
       this.getOriginOffsetComposedMatrix()
     )
+  }
+
+  getOriginOffsetComposedMatrix () {
+    return Layout3D.multiplyArrayOfMatrices(this.getComputedLayoutAncestry().reverse().map(
+      (layout) => layout.matrix
+    ))
+  }
+
+  getAncestry () {
+    const ancestors = [] // We'll build a list with the original ancestor first and our node last
+    getAncestry(ancestors, this)
+    return ancestors
+  }
+
+  getComputedLayoutAncestry () {
+    return this.getAncestry().map((ancestor) => {
+      return ancestor.getComputedLayout()
+    })
   }
 
   getPropertyKeyframesObject (propertyName) {
