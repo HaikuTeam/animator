@@ -8,11 +8,12 @@ const STYLES = {
   container: {
     position: 'relative',
     display: 'inline-block',
-    maxWidth: '200px',
+    maxWidth: '400px',
     minWidth: '80px',
     height: '100%',
     margin: '0 auto',
     verticalAlign: 'top',
+    marginRight: '1px',
   },
   tab: {
     position: 'relative',
@@ -21,23 +22,29 @@ const STYLES = {
     borderTopLeftRadius: '5px',
     borderTopRightRadius: '5px',
     color: Palette.LIGHTEST_GRAY,
-    padding: '4px 20px',
-    textAlign: 'center',
+    paddingTop: '4px',
+    paddingBottom: '4px',
+    paddingLeft: '15px',
+    paddingRight: '15px',
     height: '100%',
     width: '100%',
-    cursor: 'default',
+    cursor: 'pointer',
     ':hover': {
       color: Palette.GRAY,
     },
     active: {
       backgroundColor: Palette.STAGE_GRAY,
       color: Palette.FATHER_COAL,
-      cursor: 'default',
+    },
+    nonActive: {
+      backgroundColor: Palette.ROCK_MUTED,
     },
     activeDark: {
       backgroundColor: Palette.COAL,
       color: Palette.ROCK,
-      cursor: 'default',
+    },
+    nonActiveDark: {
+      backgroundColor: Palette.FATHER_COAL,
     },
   },
   label: {
@@ -77,6 +84,7 @@ class ComponentTab extends React.Component {
 
   render () {
     const activeTabStyle = this.props.showGlass ? STYLES.tab.active : STYLES.tab.activeDark;
+    const nonActiveTabStyle = this.props.showGlass ? STYLES.tab.nonActive : STYLES.tab.nonActiveDark;
 
     return (
       <div
@@ -86,9 +94,9 @@ class ComponentTab extends React.Component {
           style={[
             STYLES.tab,
             !this.props.showGlass && {color: Palette.ROCK, ':hover': {color: Palette.SUNSTONE}},
-            (this.props.forceActive || this.props.tab.active) && activeTabStyle,
+            (this.props.forceActive || this.props.tab.active) ? activeTabStyle : nonActiveTabStyle,
           ]}>
-          <div style={{display: 'inline-block', width: '70%'}}>
+          <div style={{display: 'inline-block', width: '100%'}}>
             <span style={STYLES.label} className="no-select">
               {toTitleCase(this.props.tab.scenename)}
             </span>
