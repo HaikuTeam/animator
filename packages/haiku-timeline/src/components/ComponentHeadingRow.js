@@ -12,6 +12,7 @@ import CollapsedPropertyTimelineSegments from './CollapsedPropertyTimelineSegmen
 import EventHandlerTriggerer from './EventHandlerTriggerer'
 import PropertyManager from './PropertyManager'
 import zIndex from './styles/zIndex'
+import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 
 export default class ComponentHeadingRow extends React.Component {
   constructor (props) {
@@ -68,7 +69,8 @@ export default class ComponentHeadingRow extends React.Component {
   }
 
   toggleLock () {
-    this.props.row.element.toggleLocked({from: 'timeline'}, (err, locked) => {
+    this.props.row.element.toggleLocked({from: 'timeline'}, () => {
+      mixpanel.haikuTrack('creator:timeline:layer:lock-toggled')
       this.forceUpdate()
     })
   }

@@ -13,10 +13,6 @@ export default class PropertyInputField extends React.Component {
     this.handleClick = this.handleClick.bind(this)
     this.handleDoubleClick = this.handleDoubleClick.bind(this)
   }
-  
-  static defaultProps = {
-    disabled: false
-  }
 
   componentWillUnmount () {
     this.mounted = false
@@ -52,10 +48,10 @@ export default class PropertyInputField extends React.Component {
   handleDoubleClick (clickEvent) {
     clickEvent.stopPropagation()
     this.props.row.blurOthers({ from: 'timeline' }) // Otherwise previously blurred remains open
-    if(this.props.disabled) {
+    if (this.props.disabled) {
       return
     }
-    
+
     this.props.row.focus({ from: 'timeline' })
     this.props.row.select({ from: 'timeline' })
   }

@@ -13,10 +13,6 @@ export default class InvisibleKeyframeDragger extends React.Component {
     this.handleProps(props)
   }
 
-  static defaultProps = {
-    preventDragging: false
-  }
-
   componentWillReceiveProps (nextProps) {
     this.handleProps(nextProps)
   }
@@ -70,19 +66,19 @@ export default class InvisibleKeyframeDragger extends React.Component {
       <TimelineDraggable
         axis='x'
         onMouseDown={(mouseEvent) => {
-          if (this.props.preventDragging) return;
+          if (this.props.preventDragging) return
           this.props.keyframe.handleMouseDown(mouseEvent, {...Globals}, {isViaKeyframeDraggerView: true})
         }}
         onStart={(dragEvent, dragData) => {
-          if (this.props.preventDragging) return;
+          if (this.props.preventDragging) return
           this.props.component.dragStartSelectedKeyframes(dragData)
         }}
         onStop={(dragEvent, dragData, wasDrag, lastMouseButtonPressed) => {
-          if (this.props.preventDragging) return;
+          if (this.props.preventDragging) return
           this.props.keyframe.handleDragStop(dragData, {wasDrag, lastMouseButtonPressed, ...Globals}, {isViaKeyframeDraggerView: true})
         }}
         onDrag={lodash.throttle((dragEvent, dragData) => {
-          if (this.props.preventDragging) return;
+          if (this.props.preventDragging) return
           this.props.component.dragSelectedKeyframes(frameInfo.pxpf, frameInfo.mspf, dragData, { alias: 'timeline' })
         }, THROTTLE_TIME)}>
         <span
@@ -99,7 +95,7 @@ export default class InvisibleKeyframeDragger extends React.Component {
           }}
           onMouseUp={(mouseEvent) => {
             mouseEvent.stopPropagation()
-            if (this.props.preventDragging) return;
+            if (this.props.preventDragging) return
             this.props.keyframe.handleMouseUp(mouseEvent, {...Globals}, {isViaKeyframeDraggerView: true})
           }}
           style={{
