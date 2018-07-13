@@ -36,7 +36,11 @@ import {awaitAllLocksFree} from 'haiku-serialization/src/bll/Lock';
 import functionToRFO from '@haiku/core/lib/reflection/functionToRFO';
 import Master from './Master';
 import {createProjectFiles} from '@haiku/sdk-client/lib/createProjectFiles';
-import {copyExternalExampleFilesToProject} from './project-folder/copyExternalExampleFilesToProject';
+import {
+  copyExternalExampleFilesToProject,
+  copyDefaultSketchFile,
+  copyDefaultIllustratorFile,
+} from './project-folder/copyExternalExampleFilesToProject';
 import {duplicateProject} from './project-folder/duplicateProject';
 import {
   getCurrentOrganizationName,
@@ -815,7 +819,7 @@ export default class Plumbing extends EventEmitter {
    * @description copy the default Sketch file to the given project
    */
   copyDefaultSketchFile (projectName, assetPath, cb) {
-    return cb(ProjectFolder.copyDefaultSketchFile(projectName, assetPath));
+    return cb(copyDefaultSketchFile(projectName, assetPath));
   }
 
   /**
@@ -823,7 +827,7 @@ export default class Plumbing extends EventEmitter {
    * @description copy the default Illustrator file to the given project
    */
   copyDefaultIllustratorFile (projectName, assetPath, cb) {
-    return cb(ProjectFolder.copyDefaultIllustratorFile(projectName, assetPath));
+    return cb(copyDefaultIllustratorFile(projectName, assetPath));
   }
 
   /**

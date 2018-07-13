@@ -108,3 +108,11 @@ export const storeConfigValues = (folder: string, incoming: any) => {
   fse.outputJsonSync(path.join(folder, 'package.json'), pkgjson, {spaces: 2});
   return pkgjson.haiku;
 };
+
+export const getDefaultIllustratorAssetPath = (maybePath: string, maybeName: string) => {
+  return `designs/${getProjectNameSafeShort(maybePath, maybeName)}.ai`;
+};
+
+export const getDefaultSketchAssetPath = (maybePath: string, maybeName: string) => {
+  return `designs/${getProjectNameSafeShort(maybePath, maybeName)}.sketch`;
+};
