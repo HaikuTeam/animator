@@ -3,7 +3,7 @@ import * as fse from 'fs-extra';
 import * as path from 'path';
 import {getAngularSelectorName, getHaikuCoreVersion} from './ProjectDefinitions';
 
-const bootstrapSceneFilesSync = (componentFolder: string, scenename: string, userconfig: any) => {
+export const bootstrapSceneFilesSync = (componentFolder: string, scenename: string, userconfig: any) => {
   const rootComponentId = getCodeJs(scenename, userconfig);
 
     // Only write these files if they don't exist yet; don't overwrite the user's own content
@@ -101,7 +101,3 @@ const VUE_DOM_JS = dedent`
   if (HaikuVueComponent.default) HaikuVueComponent = HaikuVueComponent.default
   module.exports = HaikuVueComponent
 `.trim();
-
-export {
-  bootstrapSceneFilesSync,
-};
