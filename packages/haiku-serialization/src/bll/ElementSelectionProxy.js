@@ -503,6 +503,9 @@ class ElementSelectionProxy extends BaseModel {
     return {
       shown: true,
       opacity: 1.0,
+      sizeMode: {x: 1, y: 1, z: 1},
+      sizeProportional: {x: 1, y: 1, z: 1},
+      sizeDifferential: {x: 0, y: 0, z: 0},
       mount: {
         x: this.computePropertyValue('mount.x'),
         y: this.computePropertyValue('mount.y'),
@@ -521,16 +524,16 @@ class ElementSelectionProxy extends BaseModel {
       translation: {
         x: this.computePropertyValue('translation.x'),
         y: this.computePropertyValue('translation.y'),
-        z: 0
+        z: this.computePropertyValue('translation.z')
       },
       shear: {
-        xy: 0,
-        xz: 0,
-        yz: 0
+        xy: this.computePropertyValue('shear.xy'),
+        xz: this.computePropertyValue('shear.xz'),
+        yz: this.computePropertyValue('shear.yz')
       },
       rotation: {
-        x: 0,
-        y: 0,
+        x: this.computePropertyValue('rotation.x'),
+        y: this.computePropertyValue('rotation.y'),
         z: this.computePropertyValue('rotation.z')
       },
       scale: {
@@ -538,13 +541,10 @@ class ElementSelectionProxy extends BaseModel {
         y: this.computePropertyValue('scale.y'),
         z: 1
       },
-      sizeMode: {x: 1, y: 1, z: 1},
-      sizeProportional: {x: 1, y: 1, z: 1},
-      sizeDifferential: {x: 0, y: 0, z: 0},
       sizeAbsolute: {
         x: this.computePropertyValue('sizeAbsolute.x'),
         y: this.computePropertyValue('sizeAbsolute.y'),
-        z: 0
+        z: this.computePropertyValue('sizeAbsolute.z')
       }
     }
   }
@@ -593,6 +593,7 @@ class ElementSelectionProxy extends BaseModel {
         },
         { // parentNode
           layout: {
+            matrix: Layout3D.createMatrix(),
             computed: {
               size: {
                 x: width,

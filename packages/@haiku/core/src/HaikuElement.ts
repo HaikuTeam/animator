@@ -1082,17 +1082,16 @@ export default class HaikuElement extends HaikuBase {
       }
     }
 
-    const targetMatrix = Layout3D.computeMatrix(
-      {
-        ...layoutSpec,
-        offset: {
-          x: layoutSpec.offset.x - leftOffset,
-          y: layoutSpec.offset.y - topOffset,
-          z: layoutSpec.offset.z,
-        },
+    const virtualSpec = {
+      ...layoutSpec,
+      offset: {
+        x: layoutSpec.offset.x - leftOffset,
+        y: layoutSpec.offset.y - topOffset,
+        z: layoutSpec.offset.z,
       },
-      targetSize,
-    );
+    };
+
+    const targetMatrix = Layout3D.computeMatrix(virtualSpec, targetSize);
 
     return {
       shown: layoutSpec.shown,
