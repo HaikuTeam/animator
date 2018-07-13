@@ -472,7 +472,7 @@ class ActiveComponent extends BaseModel {
       })
     })
   }
-  
+
   setLockedStatusForComponent (componentId, locked, metadata, cb) {
     this.project.updateHook('setLockedStatusForComponent', this.getRelpath(), componentId, locked, metadata, (fire) => {
       return this.performComponentWork((bytecode, mana, done) => {
@@ -566,7 +566,7 @@ class ActiveComponent extends BaseModel {
   selectAll (options, metadata, cb) {
     return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
       this.getArtboard().getElement().children.forEach((element) => {
-        if(element.isLocked()) return;
+        if (element.isLocked()) return
         element.selectSoftly(metadata)
       })
 

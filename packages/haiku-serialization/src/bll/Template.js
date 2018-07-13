@@ -44,7 +44,7 @@ const TEMPLATE_METADATA_ATTRIBUTES = {
   'haiku-title': true,
   'haiku-source': true,
   'haiku-transclude': true,
-  'haiku-locked': true,
+  'haiku-locked': true
 }
 
 const SELECTOR_ATTRIBUTES = {

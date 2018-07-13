@@ -196,7 +196,7 @@ class Timeline extends React.Component {
         onFinish: (event, area) => {
           const selected = Keyframe.all().filter((keyframe) => {
             if (keyframe.element.isLocked()) {
-              return false;
+              return false
             }
             const keyframeView = keyframe._viewPosition
 

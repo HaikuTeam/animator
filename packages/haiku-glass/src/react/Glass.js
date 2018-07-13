@@ -2665,7 +2665,7 @@ export class Glass extends React.Component {
     if (Element.directlySelected) {
       // Make sure it's not locked
       const originalEl = Element.findByComponentAndHaikuId(this.getActiveComponent(), Element.directlySelected.attributes['haiku-id'])
-      if(originalEl && originalEl.isLockedViaParents()) {
+      if (originalEl && originalEl.isLockedViaParents()) {
         Element.directlySelected = null
         return overlays
       }

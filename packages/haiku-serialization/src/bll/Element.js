@@ -137,8 +137,8 @@ class Element extends BaseModel {
   }
 
   select (metadata, softly = false) {
-    if (this.isLocked()) return;
-    
+    if (this.isLocked()) return
+
     if (!this._isSelected) {
       this._isSelected = true
 
@@ -211,12 +211,12 @@ class Element extends BaseModel {
   isSelected () {
     return this._isSelected
   }
-  
+
   isLocked () {
     return !!this.getStaticTemplateNode().attributes[HAIKU_LOCKED_ATTRIBUTE]
   }
 
-  isLockedViaParents() {
+  isLockedViaParents () {
     let p = this
     while (p) {
       if (p.isLocked()) return true
@@ -225,7 +225,7 @@ class Element extends BaseModel {
     return false
   }
 
-  toggleLocked(metadata, cb) {
+  toggleLocked (metadata, cb) {
     this.component.setLockedStatusForComponent(this.getComponentId(), !this.getStaticTemplateNode().attributes[HAIKU_LOCKED_ATTRIBUTE], metadata, cb)
   }
 

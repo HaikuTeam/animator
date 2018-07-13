@@ -66,7 +66,7 @@ export default class ComponentHeadingRow extends React.Component {
       this.forceUpdate()
     })
   }
-  
+
   toggleLock () {
     this.props.row.element.toggleLocked({from: 'timeline'}, (err, locked) => {
       this.forceUpdate()
@@ -278,10 +278,9 @@ export default class ComponentHeadingRow extends React.Component {
                 onClick={this.toggleLock.bind(this)}
               >
                 {
-                  this.props.row.element.isLocked() ?
-                    LockIconSVG({color: Palette.ROCK_MUTED})
-                  :
-                    UnlockIconSVG({color: Palette.DARK_ROCK})
+                  this.props.row.element.isLocked()
+                    ? LockIconSVG({color: Palette.ROCK_MUTED})
+                  : UnlockIconSVG({color: Palette.DARK_ROCK})
                 }
               </div>
               <div

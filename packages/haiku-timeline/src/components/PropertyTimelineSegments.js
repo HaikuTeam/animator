@@ -24,5 +24,5 @@ PropertyTimelineSegments.propTypes = {
   component: React.PropTypes.object.isRequired,
   timeline: React.PropTypes.object.isRequired,
   rowHeight: React.PropTypes.number.isRequired,
-  preventDragging: React.PropTypes.bool.isRequired,
+  preventDragging: React.PropTypes.bool.isRequired
 }
