@@ -107,11 +107,7 @@ class Library extends React.Component {
 
   handleAssetsChanged (assetsDictionary, otherStates) {
     const assets = Asset.ingestAssets(this.props.projectModel, assetsDictionary);
-    const statesToSet = {assets};
-    if (otherStates) {
-      lodash.assign(statesToSet, otherStates);
-    }
-    this.setState(statesToSet);
+    this.setState({assets, ...otherStates});
   }
 
   componentDidMount () {
