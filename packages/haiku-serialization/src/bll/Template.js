@@ -43,7 +43,8 @@ const TEMPLATE_METADATA_ATTRIBUTES = {
   'haiku-var': true,
   'haiku-title': true,
   'haiku-source': true,
-  'haiku-transclude': true
+  'haiku-transclude': true,
+  'haiku-locked': true,
 }
 
 const SELECTOR_ATTRIBUTES = {

@@ -490,7 +490,7 @@ class ActiveComponent extends BaseModel {
         }
         const element = this.findElementByComponentId(componentId)
         if (element) {
-          element.updateTargetingRows('row-set-title')
+          element.updateTargetingRows('row-set-locked')
         }
         fire(null, oldStatus)
         return cb(null, locked)
@@ -566,6 +566,7 @@ class ActiveComponent extends BaseModel {
   selectAll (options, metadata, cb) {
     return Lock.request(Lock.LOCKS.ActiveComponentWork, false, (release) => {
       this.getArtboard().getElement().children.forEach((element) => {
+        if(element.isLocked()) return;
         element.selectSoftly(metadata)
       })
 

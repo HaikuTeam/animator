@@ -38,7 +38,7 @@ export default class PropertyInputField extends React.Component {
       this.forceUpdate()
     } else if (what === 'keyframe-create') {
       this.forceUpdate()
-    } else if (what === 'row-set-title') {
+    } else if (what === 'row-set-locked') {
       this.forceUpdate()
     }
   }

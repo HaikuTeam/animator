@@ -215,7 +215,16 @@ class Element extends BaseModel {
   isLocked () {
     return !!this.getStaticTemplateNode().attributes[HAIKU_LOCKED_ATTRIBUTE]
   }
-  
+
+  isLockedViaParents() {
+    let p = this
+    while (p) {
+      if (p.isLocked()) return true
+      p = p.parent
+    }
+    return false
+  }
+
   toggleLocked(metadata, cb) {
     this.component.setLockedStatusForComponent(this.getComponentId(), !this.getStaticTemplateNode().attributes[HAIKU_LOCKED_ATTRIBUTE], metadata, cb)
   }
