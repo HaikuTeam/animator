@@ -584,14 +584,28 @@ class ElementSelectionProxy extends BaseModel {
     return this.cache.fetch('getComputedLayout', () => {
       const {width, height} = this.component.getContextSize()
 
+      let bounds = {
+        left: null,
+        top: null,
+        right: null,
+        bottom: null,
+        front: null,
+        back: null
+      }
+
+      if (this.doesManageSingleElement() && !this.doesSelectionContainArtboard()) {
+        bounds = this.selection[0].parent.getHaikuElement().computeContentBounds()
+      }
+
       return HaikuElement.computeLayout(
         { // targetNode
           layout: this.getLayoutSpec()
         },
         { // parentNode
           layout: {
-            matrix: Layout3D.createMatrix(),
             computed: {
+              bounds,
+              matrix: Layout3D.createMatrix(),
               size: {
                 x: width,
                 y: height,
