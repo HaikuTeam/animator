@@ -7,14 +7,16 @@ import {UserSettings} from 'haiku-sdk-creator/lib/bll/User';
 import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 import {isMac} from 'haiku-common/lib/environments/os';
 import Palette from 'haiku-ui-common/lib/Palette';
+import {LoadingTopBar} from 'haiku-ui-common/lib/LoadingTopBar';
 import {didAskedForSketch} from 'haiku-serialization/src/utils/HaikuHomeDir';
 import * as Asset from 'haiku-serialization/src/bll/Asset';
 import {Figma} from 'haiku-serialization/src/bll/Figma';
 import * as sketchUtils from 'haiku-serialization/src/utils/sketchUtils';
 import SketchDownloader from '../SketchDownloader';
 import AssetList from './AssetList';
-import Loader from './Loader';
 import FileImporter from './FileImporter';
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
+import DesignFileCreator from './DesignFileCreator';
 
 const openWithDefaultProgram = (asset) => {
   shell.openItem(asset.getAbspath());
@@ -64,6 +66,11 @@ const STYLES = {
     cursor: 'pointer',
     display: 'inline-block',
   },
+  loadingWrapper: {
+    position: 'relative',
+    width: '100%',
+    height: 2,
+  },
 };
 
 class Library extends React.Component {
@@ -87,6 +94,7 @@ class Library extends React.Component {
     this.onAssetDoubleClick = this.onAssetDoubleClick.bind(this);
     this.handleAssetDeletion = this.handleAssetDeletion.bind(this);
     this.importFigmaAsset = this.importFigmaAsset.bind(this);
+    this.askForFigmaAuth = this.askForFigmaAuth.bind(this);
 
     // Debounced to avoid 'flicker' when multiple updates are received quickly
     this.handleAssetsChanged = lodash.debounce(this.handleAssetsChanged.bind(this), 250);
@@ -104,11 +112,7 @@ class Library extends React.Component {
 
   handleAssetsChanged (assetsDictionary, otherStates) {
     const assets = Asset.ingestAssets(this.props.projectModel, assetsDictionary);
-    const statesToSet = {assets};
-    if (otherStates) {
-      lodash.assign(statesToSet, otherStates);
-    }
-    this.setState(statesToSet);
+    this.setState({assets, ...otherStates});
   }
 
   componentDidMount () {
@@ -360,13 +364,22 @@ class Library extends React.Component {
 
     this.props.projectModel.bulkLinkAssets(
       filePaths,
-      (error, assets) => {
+      (error) => {
         if (error) {
           return this.setState({error, isLoading: false});
         }
-
-        this.handleAssetsChanged(assets, {isLoading: false});
       },
+    );
+  }
+
+  shouldDisplayAssetCreator () {
+    const designsFolder = this.state.assets.find((asset) => asset.isDesignsHostFolder());
+
+    return (
+      experimentIsEnabled(Experiment.CleanInitialLibraryState) &&
+      designsFolder &&
+      designsFolder.getChildAssets().length === 0 &&
+      !this.state.isLoading
     );
   }
 
@@ -374,7 +387,10 @@ class Library extends React.Component {
     return (
       <div
         id="library-wrapper"
-        style={{height: '100%', display: this.props.visible ? 'initial' : 'none'}}>
+        style={{display: this.props.visible ? 'initial' : 'none'}}>
+        <div style={STYLES.loadingWrapper}>
+          <LoadingTopBar progress={100} done={!this.state.isLoading} speed="0.5s" />
+        </div>
         <div
           id="library-scroll-wrap"
           style={STYLES.sectionHeader}>
@@ -383,9 +399,7 @@ class Library extends React.Component {
             websocket={this.props.websocket}
             projectModel={this.props.projectModel}
             onImportFigmaAsset={this.importFigmaAsset}
-            onAskForFigmaAuth={() => {
-              this.askForFigmaAuth();
-            }}
+            onAskForFigmaAuth={this.askForFigmaAuth}
             figma={this.state.figma}
             onFileDrop={(filePaths) => {
               this.handleFileDrop(filePaths);
@@ -395,25 +409,33 @@ class Library extends React.Component {
         <div
           id="library-scroll-wrap"
           style={STYLES.scrollwrap}>
-          <div style={STYLES.assetsWrapper}>
-            {this.state.isLoading
-              ? <Loader />
-              : <AssetList
-                websocket={this.props.websocket}
-                projectModel={this.props.projectModel}
-                onDragStart={this.props.onDragStart}
-                onDragEnd={this.props.onDragEnd}
-                onAssetDoubleClick={this.onAssetDoubleClick}
-                figma={this.state.figma}
-                onImportFigmaAsset={this.importFigmaAsset}
-                onRefreshFigmaAsset={this.importFigmaAsset}
-                onAskForFigmaAuth={() => {
-                  this.askForFigmaAuth();
-                }}
-                deleteAsset={this.handleAssetDeletion}
-                indent={0}
-                assets={this.state.assets} />}
-          </div>
+            <div style={STYLES.assetsWrapper}>
+              {this.shouldDisplayAssetCreator() ? (
+                <DesignFileCreator
+                  projectModel={this.props.projectModel}
+                  websocket={this.props.websocket}
+                  figma={this.state.figma}
+                  onAskForFigmaAuth={this.askForFigmaAuth}
+                  onImportFigmaAsset={this.importFigmaAsset}
+                  onRefreshFigmaAsset={this.importFigmaAsset}
+                />
+              ) : (
+                <AssetList
+                  websocket={this.props.websocket}
+                  projectModel={this.props.projectModel}
+                  onDragStart={this.props.onDragStart}
+                  onDragEnd={this.props.onDragEnd}
+                  onAssetDoubleClick={this.onAssetDoubleClick}
+                  figma={this.state.figma}
+                  onImportFigmaAsset={this.importFigmaAsset}
+                  onRefreshFigmaAsset={this.importFigmaAsset}
+                  onAskForFigmaAuth={this.askForFigmaAuth}
+                  deleteAsset={this.handleAssetDeletion}
+                  indent={0}
+                  assets={this.state.assets}
+                />
+              )}
+            </div>
         </div>
         {
           this.state.sketchDownloader.isVisible &&

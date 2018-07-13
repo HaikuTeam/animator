@@ -1,32 +1,9 @@
 import * as React from 'react';
 import * as Radium from 'radium';
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import AssetItem from './AssetItem';
-import DesignFileCreator from './DesignFileCreator';
 
 class AssetList extends React.PureComponent {
-  shouldDisplayAssetCreator (assets) {
-    const designsFolder = assets.find((asset) => asset.isDesignsHostFolder());
-    return designsFolder && designsFolder.getChildAssets().length === 0;
-  }
-
   render () {
-    if (
-      experimentIsEnabled(Experiment.CleanInitialLibraryState) &&
-      this.shouldDisplayAssetCreator(this.props.assets)
-    ) {
-      return (
-        <DesignFileCreator
-          projectModel={this.props.projectModel}
-          websocket={this.props.websocket}
-          figma={this.props.figma}
-          onAskForFigmaAuth={this.props.onAskForFigmaAuth}
-          onImportFigmaAsset={this.props.onImportFigmaAsset}
-          onRefreshFigmaAsset={this.props.onRefreshFigmaAsset}
-        />
-      );
-    }
-
     return (
       <div
         className="assets-list">
