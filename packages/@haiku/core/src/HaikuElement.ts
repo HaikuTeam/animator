@@ -491,6 +491,10 @@ export default class HaikuElement extends HaikuBase {
     };
   }
 
+  get componentId (): string {
+    return this.getComponentId();
+  }
+
   computeSize (): ThreeDimensionalLayoutProperty {
     return {
       x: this.computeSizeX(),
