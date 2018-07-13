@@ -943,13 +943,17 @@ export default class HaikuElement extends HaikuBase {
   };
 
   static findOrCreateByNode = (node): HaikuElement => {
-    if (node.__element) {
-      return node.__element;
+    let found = node.__element;
+
+    if (!found) {
+      found = HaikuElement.findByNode(node);
     }
-    const found = HaikuElement.findByNode(node);
+
     if (found) {
+      HaikuElement.connectNodeWithElement(node, found);
       return found;
     }
+
     return HaikuElement.createByNode(node);
   };
 
