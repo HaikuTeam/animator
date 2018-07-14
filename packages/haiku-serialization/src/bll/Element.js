@@ -514,24 +514,6 @@ class Element extends BaseModel {
     }
   }
 
-  getAncestry () {
-    const ancestors = [] // We'll build a list with the original ancestor first and our node last
-    getAncestry(ancestors, this)
-    return ancestors
-  }
-
-  getComputedLayoutAncestry () {
-    return this.getAncestry().map((ancestor) => {
-      return ancestor.getComputedLayout()
-    })
-  }
-
-  getOriginOffsetComposedMatrix () {
-    return Layout3D.multiplyArrayOfMatrices(this.getComputedLayoutAncestry().reverse().map(
-      (layout) => layout.matrix
-    ))
-  }
-
   isAutoSizeX () {
     const layout = this.getLayoutSpec()
     return typeof layout.sizeAbsolute.x !== 'number'
@@ -549,14 +531,9 @@ class Element extends BaseModel {
     return this.getHaikuElement().size
   }
 
-  getParentComputedSize () {
-    return (this.parent)
-      ? this.parent.getComputedSize()
-      : this.getComputedSize()
-  }
-
   getComputedLayout () {
-    const node = this.getLiveRenderedNode() || {} // Fallback in case of render race
+    const targetNode = this.getLiveRenderedNode() || {} // Fallback in case of render race
+    const parentNode = (this.parent && this.parent.getLiveRenderedNode()) || {} // Fallback in case of render race
 
     return HaikuElement.computeLayout(
       { // targetNode
@@ -569,13 +546,26 @@ class Element extends BaseModel {
         // But we still need the live node's actual properties in case we need to compute
         // auto sizing, which will require that we hydrate a HaikuElement and recurse
         // into its children and compute their sizes, and so-on.
-        elementName: node.elementName,
-        attributes: node.attributes,
-        children: node.children,
-        __parent: node.__parent,
-        __element: node.__element // Preserve cache result of findOrCreateElement
+        elementName: targetNode.elementName,
+        attributes: targetNode.attributes,
+        children: targetNode.children,
+        __parent: targetNode.__parent,
+        __element: targetNode.__element // Preserve cache result of findOrCreateElement
       },
-      this.getParentComputedSize()
+      { // parentNode
+        layout: {
+          computed: {
+            matrix: Layout3D.createMatrix(),
+            bounds: (this.parent && this.parent.getHaikuElement().computeContentBounds()) || {},
+            size: (this.parent && this.parent.getComputedSize()) || this.getComputedSize()
+          }
+        },
+        elementName: parentNode.elementName,
+        attributes: parentNode.attributes,
+        children: parentNode.children,
+        __parent: parentNode.__parent,
+        __element: parentNode.__element // Preserve cache result of findOrCreateElement
+      }
     )
   }
 
@@ -631,10 +621,10 @@ class Element extends BaseModel {
         y: grabValue('mount.y'),
         z: grabValue('mount.z')
       },
-      align: {
-        x: grabValue('align.x'),
-        y: grabValue('align.y'),
-        z: grabValue('align.z')
+      offset: {
+        x: grabValue('offset.x'),
+        y: grabValue('offset.y'),
+        z: grabValue('offset.z')
       },
       origin: {
         x: grabValue('origin.x'),
@@ -695,13 +685,9 @@ class Element extends BaseModel {
     ]
   }
 
-  getBoxPointsNotTransformed () {
-    return this.getBoundingBoxPoints()
-  }
-
   getBoxPointsTransformed () {
     return HaikuElement.transformPointsInPlace(
-      this.getBoxPointsNotTransformed(),
+      this.getBoundingBoxPoints(),
       this.getOriginOffsetComposedMatrix()
     )
   }
@@ -720,6 +706,24 @@ class Element extends BaseModel {
       this.getOriginNotTransformed(),
       this.getOriginOffsetComposedMatrix()
     )
+  }
+
+  getOriginOffsetComposedMatrix () {
+    return Layout3D.multiplyArrayOfMatrices(this.getComputedLayoutAncestry().reverse().map(
+      (layout) => layout.matrix
+    ))
+  }
+
+  getAncestry () {
+    const ancestors = [] // We'll build a list with the original ancestor first and our node last
+    getAncestry(ancestors, this)
+    return ancestors
+  }
+
+  getComputedLayoutAncestry () {
+    return this.getAncestry().map((ancestor) => {
+      return ancestor.getComputedLayout()
+    })
   }
 
   getPropertyKeyframesObject (propertyName) {

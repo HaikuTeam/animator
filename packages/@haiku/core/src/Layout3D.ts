@@ -126,7 +126,7 @@ const computeOrthonormalBasisMatrix = (rotation, shear) => {
     shear,
   };
   const ignoredSize = {x: 0, y: 0, z: 0};
-  return computeMatrix(orthonormalBasisLayout, ignoredSize, ignoredSize);
+  return computeMatrix(orthonormalBasisLayout, ignoredSize);
 };
 
 const computeScaledBasisMatrix = (rotation, scale, shear) => {
@@ -137,7 +137,7 @@ const computeScaledBasisMatrix = (rotation, scale, shear) => {
     shear,
   };
   const ignoredSize = {x: 0, y: 0, z: 0};
-  return computeMatrix(scaledBasisLayout, ignoredSize, ignoredSize);
+  return computeMatrix(scaledBasisLayout, ignoredSize);
 };
 
 const clone = (layout) => {
@@ -149,7 +149,7 @@ const clone = (layout) => {
     shown: layout.shown,
     opacity: layout.opacity,
     mount: Object.assign({}, layout.mount),
-    align: Object.assign({}, layout.align),
+    offset: Object.assign({}, layout.offset),
     origin: Object.assign({}, layout.origin),
     translation: Object.assign({}, layout.translation),
     rotation: Object.assign({}, layout.rotation),
@@ -211,7 +211,7 @@ const createLayoutSpec = (createCoordinateSystem?: boolean): LayoutSpec => ({
   shown: true,
   opacity: 1.0,
   mount: {x: 0, y: 0, z: 0}, // anchor in self
-  align: {x: 0, y: 0, z: 0}, // anchor in context
+  offset: {x: 0, y: 0, z: 0},
   origin: createCoordinateSystem ? {x: 0.5, y: 0.5, z: 0.5} : {x: 0, y: 0, z: 0}, // transform origin
   translation: {x: 0, y: 0, z: 0},
   rotation: {x: 0, y: 0, z: 0},
@@ -230,14 +230,11 @@ const createLayoutSpec = (createCoordinateSystem?: boolean): LayoutSpec => ({
 const computeMatrix = (
   layoutSpec: LayoutSpec,
   targetSize: ThreeDimensionalLayoutProperty,
-  parentSize: ThreeDimensionalLayoutProperty,
 ) => {
-  const alignX = layoutSpec.align.x * parentSize.x;
-  const alignY = layoutSpec.align.y * parentSize.y;
-  const alignZ = layoutSpec.align.z * parentSize.z;
   const mountPointX = layoutSpec.mount.x * targetSize.x;
   const mountPointY = layoutSpec.mount.y * targetSize.y;
   const mountPointZ = layoutSpec.mount.z * targetSize.z;
+
   const originX = layoutSpec.origin.x * targetSize.x;
   const originY = layoutSpec.origin.y * targetSize.y;
   const originZ = layoutSpec.origin.z * targetSize.z;
@@ -289,17 +286,17 @@ const computeMatrix = (
   rs8 *= layoutSpec.scale.z;
 
   const tx =
-    alignX +
+    layoutSpec.offset.x +
     layoutSpec.translation.x -
     mountPointX -
     (rs0 * originX + rs3 * originY + rs6 * originZ);
   const ty =
-    alignY +
+    layoutSpec.offset.y +
     layoutSpec.translation.y -
     mountPointY -
     (rs1 * originX + rs4 * originY + rs7 * originZ);
   const tz =
-    alignZ +
+    layoutSpec.offset.z +
     layoutSpec.translation.z -
     mountPointZ -
     (rs2 * originX + rs5 * originY + rs8 * originZ);

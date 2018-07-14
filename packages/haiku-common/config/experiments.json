@@ -29,5 +29,6 @@
   "UserConsole": true,
   "CleanInitialLibraryState": true,
   "CopyPasteTweens": true,
-  "CopyPasteTweensWithAccelerators": true
+  "CopyPasteTweensWithAccelerators": true,
+  "Snapping": true
 }

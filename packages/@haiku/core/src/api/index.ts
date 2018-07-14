@@ -299,7 +299,7 @@ export interface LayoutSpec {
   shown: boolean;
   opacity: number;
   mount: ThreeDimensionalLayoutProperty;
-  align: ThreeDimensionalLayoutProperty;
+  offset: ThreeDimensionalLayoutProperty;
   origin: ThreeDimensionalLayoutProperty;
   translation: ThreeDimensionalLayoutProperty;
   rotation: ThreeDimensionalLayoutProperty;
@@ -325,9 +325,66 @@ export interface LayoutSpec {
   computed?: ComputedLayoutSpec;
 }
 
+export interface LayoutSpecPartial {
+  shown?: boolean;
+  opacity?: number;
+  mount?: ThreeDimensionalLayoutProperty;
+  offset?: ThreeDimensionalLayoutProperty;
+  origin?: ThreeDimensionalLayoutProperty;
+  translation?: ThreeDimensionalLayoutProperty;
+  rotation?: ThreeDimensionalLayoutProperty;
+  scale?: ThreeDimensionalLayoutProperty;
+  sizeMode?: ThreeDimensionalLayoutProperty;
+  sizeProportional?: ThreeDimensionalLayoutProperty;
+  sizeDifferential?: ThreeDimensionalLayoutProperty;
+  sizeAbsolute?: ThreeDimensionalLayoutProperty;
+  orientation?: {
+    x: number;
+    y: number;
+    z: number;
+    w: number;
+  };
+  shear?: {
+    xy: number;
+    xz: number;
+    yz: number;
+  };
+  computed: ComputedLayoutSpecPartial;
+}
+
 export interface ComputedLayoutSpec extends LayoutSpec {
   matrix: Mat4;
   size: ThreeDimensionalLayoutProperty;
+  bounds: BoundsSpecPartial;
+}
+
+export interface ComputedLayoutSpecPartial {
+  shown?: boolean;
+  opacity?: number;
+  mount?: ThreeDimensionalLayoutProperty;
+  offset?: ThreeDimensionalLayoutProperty;
+  origin?: ThreeDimensionalLayoutProperty;
+  translation?: ThreeDimensionalLayoutProperty;
+  rotation?: ThreeDimensionalLayoutProperty;
+  scale?: ThreeDimensionalLayoutProperty;
+  sizeMode?: ThreeDimensionalLayoutProperty;
+  sizeProportional?: ThreeDimensionalLayoutProperty;
+  sizeDifferential?: ThreeDimensionalLayoutProperty;
+  sizeAbsolute?: ThreeDimensionalLayoutProperty;
+  orientation?: {
+    x: number;
+    y: number;
+    z: number;
+    w: number;
+  };
+  shear?: {
+    xy: number;
+    xz: number;
+    yz: number;
+  };
+  matrix: Mat4;
+  size: ThreeDimensionalLayoutProperty;
+  bounds: BoundsSpecPartial;
 }
 
 export interface StringableThreeDimensionalLayoutProperty {
@@ -368,6 +425,15 @@ export interface BoundsSpecZ {
 
 export interface BoundsSpec extends BoundsSpecX, BoundsSpecY, BoundsSpecZ {}
 
+export interface BoundsSpecPartial {
+  left?: number;
+  right?: number;
+  top?: number;
+  bottom?: number;
+  front?: number;
+  back?: number;
+}
+
 /**
  * @description A LayoutNode may be a proper BytecodeNode, but for convenience
  * we allow an object that only has a layout property declared.
@@ -377,6 +443,13 @@ export interface LayoutNode {
   attributes?: BytecodeNodeAttributes;
   children?: (LayoutNode|string)[];
   layout: LayoutSpec;
+}
+
+export interface LayoutNodePartial {
+  elementName?: string;
+  attributes?: BytecodeNodeAttributes;
+  children?: (LayoutNodePartial|string)[];
+  layout: LayoutSpecPartial;
 }
 
 export type AxisString = 'x'|'y'|'z';

@@ -69,7 +69,9 @@ class ElementSelectionProxy extends BaseModel {
     // If we're dealing with just a single element, we need to to use its points and
     // layout spec directly so that the transform control box fits to its actual shape.
     if (elements.length === 1) {
-      this._proxyBoxPoints = elements[0].getBoxPointsNotTransformed().map((p) => p)
+      // It's assumed that this list of points is *not* transformed here but downstream
+      // as the return value of this.getBoxPointsTransformed
+      this._proxyBoxPoints = elements[0].getBoundingBoxPoints().map((p) => p)
 
       Object.assign(
         this._proxyProperties,
@@ -379,8 +381,7 @@ class ElementSelectionProxy extends BaseModel {
     const shimLayout = Layout3D.createLayoutSpec()
     shimLayout.rotation.z = -computedLayout.rotation.z
     shimLayout.origin = computedLayout.origin
-    const ignoredSize = {x: 0, y: 0, z: 0}
-    const shimMatrix = Layout3D.computeMatrix(shimLayout, computedLayout.size, ignoredSize)
+    const shimMatrix = Layout3D.computeMatrix(shimLayout, computedLayout.size)
     shimMatrix[12] = -(boxPoint.x * shimMatrix[0] + boxPoint.y * shimMatrix[4])
     shimMatrix[13] = -(boxPoint.x * shimMatrix[1] + boxPoint.y * shimMatrix[5])
     const groupMana = {
@@ -444,15 +445,6 @@ class ElementSelectionProxy extends BaseModel {
     return this.selection[0].getAttribute(HAIKU_SOURCE_ATTRIBUTE)
   }
 
-  getParentComputedSize () {
-    const { width, height } = this.component.getContextSize()
-    return {
-      x: width,
-      y: height,
-      z: 0
-    }
-  }
-
   getConglomerateTranslation () {
     const points = this.getBoundingBoxPoints()
     return points[0]
@@ -490,11 +482,6 @@ class ElementSelectionProxy extends BaseModel {
     })
   }
 
-  getBoxPointsNotTransformed () {
-    // Return a fresh copy each time.
-    return this._proxyBoxPoints.map((point) => Object.assign({}, point))
-  }
-
   // returns the box points of the base element, without transform applied
   getBoxPointsCompletelyNotTransformed () {
     const layout = this.getComputedLayout()
@@ -513,15 +500,18 @@ class ElementSelectionProxy extends BaseModel {
     return {
       shown: true,
       opacity: 1.0,
+      sizeMode: {x: 1, y: 1, z: 1},
+      sizeProportional: {x: 1, y: 1, z: 1},
+      sizeDifferential: {x: 0, y: 0, z: 0},
       mount: {
         x: this.computePropertyValue('mount.x'),
         y: this.computePropertyValue('mount.y'),
         z: this.computePropertyValue('mount.z')
       },
-      align: {
-        x: this.computePropertyValue('align.x'),
-        y: this.computePropertyValue('align.y'),
-        z: this.computePropertyValue('align.z')
+      offset: {
+        x: this.computePropertyValue('offset.x'),
+        y: this.computePropertyValue('offset.y'),
+        z: this.computePropertyValue('offset.z')
       },
       origin: {
         x: this.computePropertyValue('origin.x'),
@@ -531,16 +521,16 @@ class ElementSelectionProxy extends BaseModel {
       translation: {
         x: this.computePropertyValue('translation.x'),
         y: this.computePropertyValue('translation.y'),
-        z: 0
+        z: this.computePropertyValue('translation.z')
       },
       shear: {
-        xy: 0,
-        xz: 0,
-        yz: 0
+        xy: this.computePropertyValue('shear.xy'),
+        xz: this.computePropertyValue('shear.xz'),
+        yz: this.computePropertyValue('shear.yz')
       },
       rotation: {
-        x: 0,
-        y: 0,
+        x: this.computePropertyValue('rotation.x'),
+        y: this.computePropertyValue('rotation.y'),
         z: this.computePropertyValue('rotation.z')
       },
       scale: {
@@ -548,13 +538,10 @@ class ElementSelectionProxy extends BaseModel {
         y: this.computePropertyValue('scale.y'),
         z: 1
       },
-      sizeMode: {x: 1, y: 1, z: 1},
-      sizeProportional: {x: 1, y: 1, z: 1},
-      sizeDifferential: {x: 0, y: 0, z: 0},
       sizeAbsolute: {
         x: this.computePropertyValue('sizeAbsolute.x'),
         y: this.computePropertyValue('sizeAbsolute.y'),
-        z: 0
+        z: this.computePropertyValue('sizeAbsolute.z')
       }
     }
   }
@@ -595,19 +582,46 @@ class ElementSelectionProxy extends BaseModel {
 
   getComputedLayout () {
     return this.cache.fetch('getComputedLayout', () => {
+      const {width, height} = this.component.getContextSize()
+
+      let bounds = {
+        left: null,
+        top: null,
+        right: null,
+        bottom: null,
+        front: null,
+        back: null
+      }
+
+      if (this.doesManageSingleElement() && !this.doesSelectionContainArtboard()) {
+        bounds = this.selection[0].parent.getHaikuElement().computeContentBounds()
+      }
+
       return HaikuElement.computeLayout(
-        {layout: this.getLayoutSpec()}, // targetNode
-        this.getParentComputedSize()
+        { // targetNode
+          layout: this.getLayoutSpec()
+        },
+        { // parentNode
+          layout: {
+            computed: {
+              bounds,
+              matrix: Layout3D.createMatrix(),
+              size: {
+                x: width,
+                y: height,
+                z: 0
+              }
+            }
+          }
+        }
       )
     })
   }
 
   getBoxPointsTransformed () {
     return this.cache.fetch('getBoxPointsTransformed', () => {
-      return HaikuElement.transformPointsInPlace(
-        this.getBoxPointsNotTransformed(),
-        this.getComputedLayout().matrix
-      )
+      const points = this._proxyBoxPoints.map((point) => Object.assign({}, point))
+      return HaikuElement.transformPointsInPlace(points, this.getComputedLayout().matrix)
     })
   }
 
@@ -1003,7 +1017,7 @@ class ElementSelectionProxy extends BaseModel {
 
     // handle snapping
     // don't snap if user is holding cmd key (like Sketch)
-    if (!globals.isCommandKeyDown) {
+    if (!globals.isCommandKeyDown && experimentIsEnabled(Experiment.Snapping)) {
       let bbox
       if (this._lastBbox !== undefined) {
         bbox = ((bbox, delta) => {
@@ -1529,22 +1543,22 @@ class ElementSelectionProxy extends BaseModel {
       // given property group object.
       composedTransformsToTimelineProperties(propertyGroup, [finalMatrix], true)
 
-      const alignX = layoutSpec.align.x * layoutSpec.size.x
-      const alignY = layoutSpec.align.y * layoutSpec.size.y
-      const alignZ = layoutSpec.align.z * layoutSpec.size.z
       const mountPointX = layoutSpec.mount.x * layoutSpec.size.x
       const mountPointY = layoutSpec.mount.y * layoutSpec.size.y
       const mountPointZ = layoutSpec.mount.z * layoutSpec.size.z
+      const offsetX = layoutSpec.offset.x
+      const offsetY = layoutSpec.offset.y
+      const offsetZ = layoutSpec.offset.z
       const originX = layoutSpec.origin.x * layoutSpec.size.x
       const originY = layoutSpec.origin.y * layoutSpec.size.y
       const originZ = layoutSpec.origin.z * layoutSpec.size.z
 
       propertyGroup['translation.x'] +=
-        finalMatrix[0] * originX + finalMatrix[4] * originY + finalMatrix[8] * originZ + mountPointX - alignX
+        finalMatrix[0] * originX + finalMatrix[4] * originY + finalMatrix[8] * originZ + mountPointX - offsetX
       propertyGroup['translation.y'] +=
-        finalMatrix[1] * originX + finalMatrix[5] * originY + finalMatrix[9] * originZ + mountPointY - alignY
+        finalMatrix[1] * originX + finalMatrix[5] * originY + finalMatrix[9] * originZ + mountPointY - offsetY
       propertyGroup['translation.z'] +=
-        finalMatrix[2] * originX + finalMatrix[6] * originY + finalMatrix[10] * originZ + mountPointZ - alignZ
+        finalMatrix[2] * originX + finalMatrix[6] * originY + finalMatrix[10] * originZ + mountPointZ - offsetZ
 
       const propertyGroupNorm = Object.keys(propertyGroup).reduce((accumulator, property) => {
         accumulator[property] = { value: propertyGroup[property] }
@@ -1898,27 +1912,27 @@ ElementSelectionProxy.DEFAULT_OPTIONS = {
 BaseModel.extend(ElementSelectionProxy)
 
 ElementSelectionProxy.DEFAULT_PROPERTY_VALUES = {
-  'translation.x': 0,
-  'translation.y': 0,
-  'translation.z': 0,
+  'mount.x': 0,
+  'mount.y': 0,
+  'mount.z': 0,
+  'offset.x': 0,
+  'offset.y': 0,
+  'offset.z': 0,
+  'origin.x': 0.5,
+  'origin.y': 0.5,
+  'origin.z': 0.5,
   'rotation.x': 0,
   'rotation.y': 0,
   'rotation.z': 0,
   'scale.x': 1,
   'scale.y': 1,
   'scale.z': 1,
-  'origin.x': 0.5,
-  'origin.y': 0.5,
-  'origin.z': 0.5,
-  'align.x': 0,
-  'align.y': 0,
-  'align.z': 0,
-  'mount.x': 0,
-  'mount.y': 0,
-  'mount.z': 0,
   'sizeAbsolute.x': 0,
   'sizeAbsolute.y': 0,
-  'sizeAbsolute.z': 0
+  'sizeAbsolute.z': 0,
+  'translation.x': 0,
+  'translation.y': 0,
+  'translation.z': 0
 }
 
 ElementSelectionProxy.activeAxesFromActivationPoint = (activationPoint) => {
@@ -2163,7 +2177,7 @@ ElementSelectionProxy.computeScalePropertyGroup = (
 
 // This is used for a side-effect-free 'dry run' calculation of points through a layout spec
 ElementSelectionProxy.transformPointsByLayoutInPlace = (points, layout) => {
-  const matrix = Layout3D.computeMatrix(layout, layout.size, layout.size)
+  const matrix = Layout3D.computeMatrix(layout, layout.size)
   return points.map((point) => {
     HaikuElement.transformPointInPlace(point, matrix)
     return point
@@ -2187,7 +2201,7 @@ ElementSelectionProxy.computeRotationPropertyGroup = (element, rotationZDelta, f
   const layout = Layout3D.createLayoutSpec()
   layout.rotation.z = rotationZDelta
   const ignoredSize = {x: 0, y: 0, z: 0}
-  const matrix = Layout3D.computeMatrix(layout, ignoredSize, ignoredSize)
+  const matrix = Layout3D.computeMatrix(layout, ignoredSize)
 
   // Next build the vector from `fixedPoint` to `targetOrigin` and rotate it.
   const targetOrigin = element.getOriginTransformed()

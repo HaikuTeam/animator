@@ -2617,6 +2617,28 @@ class ActiveComponent extends BaseModel {
     )
   }
 
+  getComponentId () {
+    return this.getArtboard().getElementHaikuId()
+  }
+
+  isAutoSizeX () {
+    return this.getDeclaredPropertyValue(
+      this.getComponentId(),
+      this.getCurrentTimelineName(),
+      this.getCurrentTimelineTime(),
+      'sizeAbsolute.x'
+    ) === 'auto'
+  }
+
+  isAutoSizeY () {
+    return this.getDeclaredPropertyValue(
+      this.getComponentId(),
+      this.getCurrentTimelineName(),
+      this.getCurrentTimelineTime(),
+      'sizeAbsolute.y'
+    ) === 'auto'
+  }
+
   getDeclaredPropertyValue (componentId, timelineName, timelineTime, propertyName) {
     const bytecode = this.getReifiedBytecode()
 
