@@ -39,6 +39,9 @@ refreshenv
 
 # Install windows build tools (to compile native electron modules, e.g. nodegit)
 yarn global add windows-build-tools@2.3.0
+
+# Be sure to clone this repository with support for symlinks:
+git clone -c core.symlinks=true git@github.com:HaikuTeam/mono.git
 ```
 
 ### Linux
