@@ -32,13 +32,13 @@ choco install git python2 -y
 choco install nodejs-lts -y --version 8.9.3
 
 # Ignore dependencies to force using specified node version 
-choco install yarn -y --version 1.3.2  --ignore-dependencies
+choco install yarn -y --version 1.7.0  --ignore-dependencies
 
 # Update PowerShell environment vars
 refreshenv
 
-# Install windows build tools ( to compile native electron modules eg. nodegit)
-npm install windows-build-tools@2.3.0 -g
+# Install windows build tools (to compile native electron modules, e.g. nodegit)
+yarn global add windows-build-tools@2.3.0
 ```
 
 ### Linux
