@@ -1,6 +1,7 @@
 import {
   AxisString,
   BoundsSpec,
+  BoundsSpecPartial,
   BoundsSpecX,
   BoundsSpecY,
   BoundsSpecZ,
@@ -8,6 +9,7 @@ import {
   ComputedLayoutSpec,
   IHaikuComponent,
   LayoutNode,
+  LayoutNodePartial,
   LayoutSpec,
   StringableThreeDimensionalLayoutProperty,
   ThreeDimensionalLayoutProperty,
@@ -252,12 +254,12 @@ export default class HaikuElement extends HaikuBase {
     return (this.layout && this.layout.origin) || {...LAYOUT_DEFAULTS.origin};
   }
 
-  get mount (): ThreeDimensionalLayoutProperty {
-    return (this.layout && this.layout.mount) || {...LAYOUT_DEFAULTS.mount};
+  get offset (): ThreeDimensionalLayoutProperty {
+    return (this.layout && this.layout.offset) || {...LAYOUT_DEFAULTS.offset};
   }
 
-  get align (): ThreeDimensionalLayoutProperty {
-    return (this.layout && this.layout.align) || {...LAYOUT_DEFAULTS.align};
+  get mount (): ThreeDimensionalLayoutProperty {
+    return (this.layout && this.layout.mount) || {...LAYOUT_DEFAULTS.mount};
   }
 
   get targets (): any[] {
@@ -343,16 +345,16 @@ export default class HaikuElement extends HaikuBase {
     return this.mount && this.mount.z;
   }
 
-  get alignX (): number {
-    return this.align && this.align.x;
+  get offsetX (): number {
+    return this.offset && this.offset.x;
   }
 
-  get alignY (): number {
-    return this.align && this.align.y;
+  get offsetY (): number {
+    return this.offset && this.offset.y;
   }
 
-  get alignZ (): number {
-    return this.align && this.align.z;
+  get offsetZ (): number {
+    return this.offset && this.offset.z;
   }
 
   /**
@@ -475,7 +477,7 @@ export default class HaikuElement extends HaikuBase {
       shown: this.shown,
       opacity: this.opacity,
       mount: this.mount,
-      align: this.align,
+      offset: this.offset,
       origin: this.origin,
       translation: this.translation,
       rotation: this.rotation,
@@ -490,12 +492,28 @@ export default class HaikuElement extends HaikuBase {
     };
   }
 
+  get componentId (): string {
+    return this.getComponentId();
+  }
+
   computeSize (): ThreeDimensionalLayoutProperty {
     return {
       x: this.computeSizeX(),
       y: this.computeSizeY(),
       z: this.computeSizeZ(),
     };
+  }
+
+  computeBoundsForAxis (axis: AxisString): BoundsSpecX|BoundsSpecY|BoundsSpecZ {
+    if (axis === 'x') {
+      return this.computeContentBoundsX();
+    }
+    if (axis === 'y') {
+      return this.computeContentBoundsY();
+    }
+    if (axis === 'z') {
+      return this.computeContentBoundsZ();
+    }
   }
 
   computeContentBounds (): BoundsSpec {
@@ -507,10 +525,24 @@ export default class HaikuElement extends HaikuBase {
   }
 
   computeContentBoundsX (): BoundsSpecX {
+    if (typeof this.sizeAbsolute.x === 'number') {
+      return {
+        left: null,
+        right: null,
+      };
+    }
+
     const lefts = [];
     const rights = [];
 
     const children = this.children;
+
+    if (children.length < 1) {
+      return {
+        left: null,
+        right: null,
+      };
+    }
 
     for (let i = 0; i < children.length; i++) {
       const child = children[i];
@@ -532,10 +564,24 @@ export default class HaikuElement extends HaikuBase {
   }
 
   computeContentBoundsY (): BoundsSpecY {
+    if (typeof this.sizeAbsolute.y === 'number') {
+      return {
+        top: null,
+        bottom: null,
+      };
+    }
+
     const tops = [];
     const bottoms = [];
 
     const children = this.children;
+
+    if (children.length < 1) {
+      return {
+        top: null,
+        bottom: null,
+      };
+    }
 
     for (let i = 0; i < children.length; i++) {
       const child = children[i];
@@ -558,8 +604,8 @@ export default class HaikuElement extends HaikuBase {
 
   computeContentBoundsZ (): BoundsSpecZ {
     return {
-      front: 0,
-      back: 0,
+      front: null,
+      back: null,
     };
   }
 
@@ -758,7 +804,7 @@ export default class HaikuElement extends HaikuBase {
       this.getRawBoundingBoxPoints(),
       HaikuElement.computeLayout(
         this.node,
-        null, // parentSize; none available here
+        null, // parentNode; none available here
       ).matrix,
     );
   }
@@ -766,6 +812,48 @@ export default class HaikuElement extends HaikuBase {
   getLocallyTransformedBoundingClientRect (): ClientRect {
     const points = this.getLocallyTransformedBoundingBoxPoints();
     return HaikuElement.getRectFromPoints(points);
+  }
+
+  getNearestDefinedNonZeroAncestorSizeX (): number {
+    const x = this.sizeAbsolute.x;
+
+    if (typeof x === 'number' && x > 0) {
+      return x;
+    }
+
+    if (this.parent) {
+      return this.parent.getNearestDefinedNonZeroAncestorSizeX();
+    }
+
+    return 1;
+  }
+
+  getNearestDefinedNonZeroAncestorSizeY (): number {
+    const y = this.sizeAbsolute.y;
+
+    if (typeof y === 'number' && y > 0) {
+      return y;
+    }
+
+    if (this.parent) {
+      return this.parent.getNearestDefinedNonZeroAncestorSizeY();
+    }
+
+    return 1;
+  }
+
+  getNearestDefinedNonZeroAncestorSizeZ (): number {
+    const z = this.sizeAbsolute.z;
+
+    if (typeof z === 'number' && z > 0) {
+      return z;
+    }
+
+    if (this.parent) {
+      return this.parent.getNearestDefinedNonZeroAncestorSizeZ();
+    }
+
+    return 1;
   }
 
   dump (): string {
@@ -888,13 +976,17 @@ export default class HaikuElement extends HaikuBase {
   };
 
   static findOrCreateByNode = (node): HaikuElement => {
-    if (node.__element) {
-      return node.__element;
+    let found = node.__element;
+
+    if (!found) {
+      found = HaikuElement.findByNode(node);
     }
-    const found = HaikuElement.findByNode(node);
+
     if (found) {
+      HaikuElement.connectNodeWithElement(node, found);
       return found;
     }
+
     return HaikuElement.createByNode(node);
   };
 
@@ -910,9 +1002,16 @@ export default class HaikuElement extends HaikuBase {
 
   static computeLayout = (
     targetNode: LayoutNode,
-    parentsizeAbsoluteIn: ThreeDimensionalLayoutProperty,
+    parentNode: LayoutNode|LayoutNodePartial,
   ): ComputedLayoutSpec => {
     const layoutSpec = targetNode.layout;
+
+    const parentsizeAbsoluteIn = (
+      parentNode &&
+      parentNode.layout &&
+      parentNode.layout.computed &&
+      parentNode.layout.computed.size
+    );
 
     const parentsizeAbsolute = parentsizeAbsoluteIn || {x: 0, y: 0, z: 0};
 
@@ -926,12 +1025,39 @@ export default class HaikuElement extends HaikuBase {
       z: null,
     };
 
-    // We don't want to hydrate a HaikuElement unnecessarily. It's only required if
-    // we are doing "auto"-sizing, so we construct one on demand below.
-    let targetElement;
+    const parentBounds = (
+      parentNode &&
+      parentNode.layout &&
+      parentNode.layout.computed &&
+      parentNode.layout.computed.bounds
+    );
+
+    const targetBounds = {
+      left: null,
+      top: null,
+      right: null,
+      bottom: null,
+      front: null,
+      back: null,
+    };
+
+    let leftOffset = 0;
+    let topOffset = 0;
+
+    if (parentBounds) {
+      if (typeof parentBounds.left === 'number') {
+        leftOffset += parentBounds.left;
+      }
+
+      if (typeof parentBounds.top === 'number') {
+        topOffset += parentBounds.top;
+      }
+    }
+
+    const targetElement = HaikuElement.findOrCreateByNode(targetNode);
 
     for (let i = 0; i < SIZING_AXES.length; i++) {
-      const sizeAxis = SIZING_AXES[i];
+      const sizeAxis = SIZING_AXES[i] as AxisString;
 
       const parentSizeValue = parentsizeAbsolute[sizeAxis];
 
@@ -947,12 +1073,8 @@ export default class HaikuElement extends HaikuBase {
 
           // Implements "auto"-sizing: Use content size if available, otherwise fallback to parent
           if (HaikuElement.useAutoSizing(givenValue)) {
-            if (!targetElement) {
-              // Note that HaikuElement.findOrCreateByNode will use a cached instance if found
-              targetElement = HaikuElement.findOrCreateByNode(targetNode);
-            }
-
             targetSize[sizeAxis] = targetElement.computeSizeForAxis(sizeAxis);
+            Object.assign(targetBounds, targetElement.computeBoundsForAxis(sizeAxis));
           } else {
             targetSize[sizeAxis] = givenValue; // Assume the given value is numeric
           }
@@ -961,13 +1083,22 @@ export default class HaikuElement extends HaikuBase {
       }
     }
 
-    const targetMatrix = Layout3D.computeMatrix(layoutSpec, targetSize, parentsizeAbsolute);
+    const virtualSpec = {
+      ...layoutSpec,
+      offset: {
+        x: layoutSpec.offset.x - leftOffset,
+        y: layoutSpec.offset.y - topOffset,
+        z: layoutSpec.offset.z,
+      },
+    };
+
+    const targetMatrix = Layout3D.computeMatrix(virtualSpec, targetSize);
 
     return {
       shown: layoutSpec.shown,
       opacity: layoutSpec.opacity,
       mount: layoutSpec.mount,
-      align: layoutSpec.align,
+      offset: layoutSpec.offset,
       origin: layoutSpec.origin,
       translation: layoutSpec.translation,
       rotation: layoutSpec.rotation,
@@ -980,6 +1111,7 @@ export default class HaikuElement extends HaikuBase {
       sizeAbsolute: layoutSpec.sizeAbsolute,
       size: targetSize,
       matrix: targetMatrix,
+      bounds: targetBounds,
     };
   };
 }

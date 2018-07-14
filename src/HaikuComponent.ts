@@ -2173,6 +2173,10 @@ function expandTreeNode (
     return;
   }
 
+  // Hydrate a HaikuElement representation of all nodes in the tree.
+  // The instance is cached as node.__element for performance purposes.
+  HaikuElement.findOrCreateByNode(node);
+
   // Give it a pointer back to the host context; used by HaikuElement
   node.__context = context;
 
@@ -2183,6 +2187,8 @@ function expandTreeNode (
   if (doConnectInstanceToNode) {
     node.__instance = component;
 
+    // In the case that the node represents the root of an instance, treat the instance as the element;
+    // connect their references and override the equivalent action in findOrCreateByNode.
     HaikuElement.connectNodeWithElement(node, node.__instance);
 
     // The host component should hear events emitted by the guest component
@@ -2310,13 +2316,11 @@ function computeAndApplyTreeLayouts (tree, container, options, context) {
 function computeAndApplyNodeLayout (node, parent) {
   // No point proceeding if our parent node doesn't have a computed layout
   if (parent && parent.layout && parent.layout.computed) {
-    const parentSize = parent.layout.computed.size;
-
     // Don't assume the node has/needs a layout, for example, control-flow injectees
     if (node.layout) {
       node.layout.computed = HaikuElement.computeLayout(
         node,
-        parentSize,
+        parent,
       );
     }
   }
@@ -2697,15 +2701,6 @@ export const LAYOUT_3D_VANITIES = {
 
   // Everything that follows is a standard 3-coord component
   // relating to the element's position in space
-  'align.x': (name, element, value) => {
-    element.layout.align.x = value;
-  },
-  'align.y': (name, element, value) => {
-    element.layout.align.y = value;
-  },
-  'align.z': (name, element, value) => {
-    element.layout.align.z = value;
-  },
   'mount.x': (name, element, value) => {
     element.layout.mount.x = value;
   },
@@ -2714,6 +2709,15 @@ export const LAYOUT_3D_VANITIES = {
   },
   'mount.z': (name, element, value) => {
     element.layout.mount.z = value;
+  },
+  'offset.x': (name, element, value) => {
+    element.layout.offset.x = value;
+  },
+  'offset.y': (name, element, value) => {
+    element.layout.offset.y = value;
+  },
+  'offset.z': (name, element, value) => {
+    element.layout.offset.z = value;
   },
   'origin.x': (name, element, value) => {
     element.layout.origin.x = value;
@@ -3237,9 +3241,9 @@ export const FALLBACKS = {
     'mount.x': LAYOUT_DEFAULTS.mount.x,
     'mount.y': LAYOUT_DEFAULTS.mount.y,
     'mount.z': LAYOUT_DEFAULTS.mount.z,
-    'align.x': LAYOUT_DEFAULTS.align.x,
-    'align.y': LAYOUT_DEFAULTS.align.y,
-    'align.z': LAYOUT_DEFAULTS.align.z,
+    'offset.x': LAYOUT_DEFAULTS.offset.x,
+    'offset.y': LAYOUT_DEFAULTS.offset.y,
+    'offset.z': LAYOUT_DEFAULTS.offset.z,
     'origin.x': LAYOUT_DEFAULTS.origin.x,
     'origin.y': LAYOUT_DEFAULTS.origin.y,
     'origin.z': LAYOUT_DEFAULTS.origin.z,
@@ -3296,9 +3300,9 @@ export const LAYOUT_3D_SCHEMA = {
   'mount.x': 'number',
   'mount.y': 'number',
   'mount.z': 'number',
-  'align.x': 'number',
-  'align.y': 'number',
-  'align.z': 'number',
+  'offset.x': 'number',
+  'offset.y': 'number',
+  'offset.z': 'number',
   'origin.x': 'number',
   'origin.y': 'number',
   'origin.z': 'number',

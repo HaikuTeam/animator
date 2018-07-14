@@ -4,7 +4,7 @@ import * as tape from 'tape';
 tape(
   'HaikuElement.computeLayout',
   (t) => {
-    const {align, matrix, mount, opacity, origin, shown, size, computed} = HaikuElement.computeLayout(
+    const {offset, matrix, mount, opacity, origin, shown, size, computed} = HaikuElement.computeLayout(
       { // targetNode
         layout: {
           shown: true,
@@ -14,7 +14,7 @@ tape(
             y: 0,
             z: 0,
           },
-          align: {
+          offset: {
             x: 0,
             y: 0,
             z: 0,
@@ -73,15 +73,34 @@ tape(
           },
         },
       },
-      { // parentSize
-        x: 852,
-        y: 839,
-        z: 0,
+      { // parentNode
+        layout: {
+          computed: {
+            bounds: {
+              left: null,
+              right: null,
+              bottom: null,
+              top: null,
+              back: null,
+              front: null,
+            },
+            matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 33, 0, 0, 1],
+            size: {
+              x: 852,
+              y: 839,
+              z: 0,
+            },
+          },
+        },
       },
     );
 
     t.deepEqual(
-      align,
+      matrix,
+      [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 33, 0, 0, 1],
+    );
+    t.deepEqual(
+      mount,
       {
         x: 0,
         y: 0,
@@ -89,11 +108,7 @@ tape(
       },
     );
     t.deepEqual(
-      matrix,
-      [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 33, 0, 0, 1],
-    );
-    t.deepEqual(
-      mount,
+      offset,
       {
         x: 0,
         y: 0,
