@@ -1,0 +1,1 @@
+Demonstrates this.broadcast(...) API for sending arbitrarily named events to descendant components.
