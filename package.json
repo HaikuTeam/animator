@@ -87,6 +87,7 @@
     "tape": "^4.9.0",
     "typescript": "^2.9.1",
     "uglify-es": "^3.3.2",
+    "webpack": "^4.16.0",
     "yargs": "^6.6.0"
   },
   "standard": {
