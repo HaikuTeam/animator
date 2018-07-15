@@ -1,8 +1,8 @@
-import * as prettier from 'prettier'
-import functionToRFO from '@haiku/core/lib/reflection/functionToRFO'
-import * as logger from 'haiku-serialization/src/utils/LoggerInstance'
+import * as prettier from 'prettier';
+import functionToRFO from '@haiku/core/lib/reflection/functionToRFO';
+import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 
-const ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
+const ALPHABET = 'abcdefghijklmnopqrstuvwxyz';
 
 /*
  * The purpose of this clas is to abstract all the logic related to
@@ -10,10 +10,10 @@ const ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
  */
 class HandlerManager {
   constructor (element) {
-    this.element = element
-    this.applicableEventHandlers = element.getApplicableEventHandlerOptionsList()
-    this.appliedEventHandlers = this._getParsedAppliedHandlers(element)
-    this.applicableEventHandlersList = this._applicableEventHandlersToList()
+    this.element = element;
+    this.applicableEventHandlers = element.getApplicableEventHandlerOptionsList();
+    this.appliedEventHandlers = this._getParsedAppliedHandlers(element);
+    this.applicableEventHandlersList = this._applicableEventHandlersToList();
   }
 
   /**
@@ -24,7 +24,7 @@ class HandlerManager {
    */
 
   static frameToEvent (frame) {
-    return `timeline:Default:${frame}`
+    return `timeline:Default:${frame}`;
   }
 
   /*
@@ -35,21 +35,21 @@ class HandlerManager {
    * @returns {Object} { [event]: serializedHandler }
    */
   serialize () {
-    const result = {}
+    const result = {};
 
     /* eslint-disable no-unused-vars */
     for (const [event, {id, handler}] of this.appliedEventHandlers) {
       // Only save events with a handler length, in this way we support
       // deletion of events by empty body funcitons
       if (handler.body.length) {
-        result[event] = {handler: {__function: handler}}
+        result[event] = {handler: {__function: handler}};
       }
 
-      this.element.setEventHandlerSaveStatus(event, true)
+      this.element.setEventHandlerSaveStatus(event, true);
     }
     /* eslint-enable no-unused-vars */
 
-    return result
+    return result;
   }
 
   /**
@@ -61,7 +61,7 @@ class HandlerManager {
   getOrGenerateEventHandler (event) {
     return this.appliedEventHandlers.has(event)
       ? this.appliedEventHandlers.get(event)
-      : this._addEventHandler(event).get(event)
+      : this._addEventHandler(event).get(event);
   }
 
   /**
@@ -69,8 +69,8 @@ class HandlerManager {
    * listener to it.
    */
   addNextAvailableEventHandler () {
-    const event = this.getNextAvailableDOMEvent()
-    this._addEventHandler(event)
+    const event = this.getNextAvailableDOMEvent();
+    this._addEventHandler(event);
   }
 
   /**
@@ -80,7 +80,7 @@ class HandlerManager {
    * @param {String} oldEventName
    */
   replaceEvent ({id, event, handler, evaluator}, oldEventName) {
-    this.appliedEventHandlers.set(event, {id, handler, evaluator})
+    this.appliedEventHandlers.set(event, {id, handler, evaluator});
   }
 
   /**
@@ -89,7 +89,7 @@ class HandlerManager {
    * @param {String} event
    */
   delete (event) {
-    this.appliedEventHandlers.delete(event)
+    this.appliedEventHandlers.delete(event);
   }
 
   /**
@@ -98,29 +98,29 @@ class HandlerManager {
    * @returns {String[]}
    */
   userVisibleEvents () {
-    const result = []
+    const result = [];
 
     for (const [event, {id, handler}] of this.appliedEventHandlers) {
       if (!this._isTimelineEvent(event)) {
-        result.push({id, event, handler})
+        result.push({id, event, handler});
       }
     }
 
-    return result
+    return result;
   }
 
   /**
    * @returns {Boolean} indicating where the element has DOM events attached
    */
   hasUserVisibleEvents () {
-    return Boolean(this.userVisibleEvents().length)
+    return Boolean(this.userVisibleEvents().length);
   }
 
   /**
    * @returns {Number} how many events the element has attached
    */
   size () {
-    return this.appliedEventHandlers.size
+    return this.appliedEventHandlers.size;
   }
 
   /**
@@ -130,14 +130,14 @@ class HandlerManager {
    * @returns {Boolean}
    */
   has (event) {
-    return this.appliedEventHandlers.has(event)
+    return this.appliedEventHandlers.has(event);
   }
 
   /**
    * Simple getter for the in-memory applicableEventHandlers list
    */
   getApplicableEventHandlers () {
-    return this.applicableEventHandlers
+    return this.applicableEventHandlers;
   }
 
   /**
@@ -146,7 +146,7 @@ class HandlerManager {
   getNextAvailableDOMEvent () {
     for (const event of this.applicableEventHandlersList) {
       if (!this.appliedEventHandlers.has(event)) {
-        return event
+        return event;
       }
     }
   }
@@ -157,24 +157,24 @@ class HandlerManager {
    * @param {String} event
    */
   _addEventHandler (event) {
-    const {handler} = this._buildEventHandler(event)
+    const {handler} = this._buildEventHandler(event);
 
     return this.appliedEventHandlers.set(event, {
       id: this._generateID(),
-      handler
-    })
+      handler,
+    });
   }
 
   _applicableEventHandlersToList () {
-    const result = []
+    const result = [];
 
     for (const handlerGroup of this.applicableEventHandlers) {
       for (const {value} of handlerGroup.options) {
-        result.push(value)
+        result.push(value);
       }
     }
 
-    return result
+    return result;
   }
 
   /**
@@ -184,7 +184,7 @@ class HandlerManager {
    * @returns {Boolean}
    */
   _isTimelineEvent (event) {
-    return this.element.isTimelineEvent(event)
+    return this.element.isTimelineEvent(event);
   }
 
   /**
@@ -198,19 +198,19 @@ class HandlerManager {
    * @returns {Map}
    */
   _getParsedAppliedHandlers (element) {
-    const result = new Map()
-    const appliedEventHandlers = element.getReifiedEventHandlers()
+    const result = new Map();
+    const appliedEventHandlers = element.getReifiedEventHandlers();
 
     for (const [event, rawHandler] of Object.entries(appliedEventHandlers)) {
-      const wrappedHandler = rawHandler.handler
-      const handler = functionToRFO(wrappedHandler).__function
-      const id = this._generateID()
+      const wrappedHandler = rawHandler.handler;
+      const handler = functionToRFO(wrappedHandler).__function;
+      const id = this._generateID();
 
       // #FIXME: our pipeline to save and retrieve bytecode modifies the code
       // wrote by the user causing two issues:
       // 1. If the code only contains comments, the comments are deleted
       // 2. The format is not respected.
-      let prettierHandlerBody = null
+      let prettierHandlerBody = null;
       if (handler.body) {
         try {
           // We need to evaluate the handler body as a function body. If we wrap the contents of the function in
@@ -219,30 +219,30 @@ class HandlerManager {
           //     <original content indented two spaces>
           //   };
           // To restore the formatted function body, we have to strip off the terminal lines and outdent the remainder.
-          const prettierHandlerBodyLines = prettier.format(`()=>{${handler.body}}`).trim().split('\n')
+          const prettierHandlerBodyLines = prettier.format(`()=>{${handler.body}}`).trim().split('\n');
           // Strip terminal lines. Bail if we somehow encounter an unexpected format.
           if (prettierHandlerBodyLines.shift() === '() => {' && prettierHandlerBodyLines.pop() === '};') {
             // Outdent by two spaces.
-            prettierHandlerBody = `${prettierHandlerBodyLines.map((s) => s.slice(2)).join('\n')}\n`
+            prettierHandlerBody = `${prettierHandlerBodyLines.map((s) => s.slice(2)).join('\n')}\n`;
             // If we somehow got nothing back, just restore the original body (e.g. for only comments).
             if (prettierHandlerBody.length === 0) {
-              prettierHandlerBody = handler.body
+              prettierHandlerBody = handler.body;
             }
           }
         } catch (e) {
           // noop. User likely was permitted to save invalid JS.
-          logger.warn(`[glass] caught exception prettying handler body: ${e.toString()}`)
+          logger.warn(`[glass] caught exception prettying handler body: ${e.toString()}`);
         }
       }
-      handler.body = prettierHandlerBody || this._buildEventHandler().handler.body
+      handler.body = prettierHandlerBody || this._buildEventHandler().handler.body;
 
       result.set(event, {
         id,
-        handler
-      })
+        handler,
+      });
     }
 
-    return result
+    return result;
   }
 
   /**
@@ -256,9 +256,9 @@ class HandlerManager {
       event,
       handler: {
         body: ``,
-        params: ['target', 'event']
-      }
-    }
+        params: ['target', 'event'],
+      },
+    };
   }
 
   /**
@@ -272,12 +272,12 @@ class HandlerManager {
    */
 
   _generateID (len = 3) {
-    let str = ''
+    let str = '';
     while (str.length < len) {
-      str += ALPHABET[Math.floor(Math.random() * ALPHABET.length)]
+      str += ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
     }
-    return str
+    return str;
   }
 }
 
-export default HandlerManager
+export default HandlerManager;

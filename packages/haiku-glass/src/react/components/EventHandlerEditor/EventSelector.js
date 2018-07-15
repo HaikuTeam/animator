@@ -1,27 +1,27 @@
-import * as React from 'react'
-import {SimpleSelect} from 'react-selectize'
-import Palette from 'haiku-ui-common/lib/Palette'
+import * as React from 'react';
+import {SimpleSelect} from 'react-selectize';
+import Palette from 'haiku-ui-common/lib/Palette';
 
 const STYLES = {
   selectWrapper: {
     cursor: 'default',
     margin: '0 0 15px',
     display: 'inline-block',
-    width: '100%'
-  }
-}
+    width: '100%',
+  },
+};
 
 class EventSelector extends React.Component {
   render () {
-    const groups = []
-    const select = []
+    const groups = [];
+    const select = [];
 
     this.props.options.forEach(({label, options}) => {
-      groups.push({groupId: label, title: label})
+      groups.push({groupId: label, title: label});
       options.forEach((option) => {
-        select.push({groupId: label, ...option})
-      })
-    })
+        select.push({groupId: label, ...option});
+      });
+    });
 
     return (
       <div style={STYLES.selectWrapper}>
@@ -75,21 +75,21 @@ class EventSelector extends React.Component {
         <SimpleSelect
           groups={groups}
           options={select}
-          hideResetButton
+          hideResetButton={true}
           placeholder={'Add a new Action'}
-          tether
+          tether={true}
           createFromSearch={(options, search) => {
-            return {label: search, value: search, groupId: 'Custom Events'}
+            return {label: search, value: search, groupId: 'Custom Events'};
           }}
           value={null}
           onValueChange={(selected) => {
             if (selected) {
-              this.props.onChange(selected.value)
+              this.props.onChange(selected.value);
             }
           }}
         />
       </div>
-    )
+    );
   }
 }
 
@@ -97,7 +97,7 @@ EventSelector.propTypes = {
   onChange: React.PropTypes.func.isRequired,
   defaultEventName: React.PropTypes.string,
   options: React.PropTypes.array.isRequired,
-  disabledOptions: React.PropTypes.object.isRequired
-}
+  disabledOptions: React.PropTypes.object.isRequired,
+};
 
-export default EventSelector
+export default EventSelector;

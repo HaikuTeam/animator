@@ -1,44 +1,44 @@
 /* global monaco */
-import * as React from 'react'
-import Palette from 'haiku-ui-common/lib/Palette'
-import ElementTitle from './ElementTitle'
-import Editor from './Editor'
-import EditorActions from './EditorActions'
-import EventSelector from './EventSelector'
-import HandlerManager from './HandlerManager'
+import * as React from 'react';
+import Palette from 'haiku-ui-common/lib/Palette';
+import ElementTitle from './ElementTitle';
+import Editor from './Editor';
+import EditorActions from './EditorActions';
+import EventSelector from './EventSelector';
+import HandlerManager from './HandlerManager';
 import {
   ModalWrapper,
   ModalHeader,
-  ModalFooter
-} from 'haiku-ui-common/lib/react/Modal'
-import { RevealPanel } from 'haiku-ui-common/lib/react/RevealPanel'
+  ModalFooter,
+} from 'haiku-ui-common/lib/react/Modal';
+import {RevealPanel} from 'haiku-ui-common/lib/react/RevealPanel';
 import {
   EDITOR_WIDTH,
   EVALUATOR_STATES,
-  AUTOCOMPLETION_ITEMS
-} from './constants'
+  AUTOCOMPLETION_ITEMS,
+} from './constants';
 
 const STYLES = {
   container: {
     width: EDITOR_WIDTH,
     minHeight: '230px',
-    paddingRight: 0
+    paddingRight: 0,
   },
   outer: {
     position: 'relative',
-    overflow: 'hidden'
+    overflow: 'hidden',
   },
   editorsWrapper: {
     width: '100%',
-    padding: '23px 0 23px 18px'
+    padding: '23px 0 23px 18px',
   },
   frameEditorWrapper: {
-    padding: '23px 23px 45px 18px'
+    padding: '23px 23px 45px 18px',
   },
   tagWrapper: {
     display: 'flex',
     flexWrap: 'wrap',
-    paddingRight: '25px'
+    paddingRight: '25px',
   },
   tag: {
     padding: '2px 15px',
@@ -50,32 +50,32 @@ const STYLES = {
     textTransform: 'uppercase',
     color: Palette.SUNSTONE,
     cursor: 'pointer',
-    userSelect: 'none'
+    userSelect: 'none',
   },
   allOptions: {
     cursor: 'pointer',
     userSelect: 'none',
     display: 'inline-block',
-    marginBottom: '15px'
-  }
-}
+    marginBottom: '15px',
+  },
+};
 
 function isNumeric (n) {
-  return !isNaN(parseFloat(n)) && isFinite(n)
+  return !isNaN(parseFloat(n)) && isFinite(n);
 }
 
 class EventHandlerEditor extends React.PureComponent {
   constructor (props) {
-    super(props)
+    super(props);
 
-    this.handlerManager = null
+    this.handlerManager = null;
 
-    this.setupMonaco()
+    this.setupMonaco();
 
     this.state = {
       editorWithErrors: false,
-      currentEvent: null
-    }
+      currentEvent: null,
+    };
   }
 
   setupMonaco () {
@@ -84,15 +84,15 @@ class EventHandlerEditor extends React.PureComponent {
     // be already available, hence this weird logic.
     if (typeof monaco === 'undefined') {
       return setTimeout(() => {
-        this.setupMonaco()
-      }, 100)
+        this.setupMonaco();
+      }, 100);
     }
 
     monaco.editor.defineTheme('haiku', {
       base: 'vs-dark',
       inherit: true,
       // `rules` requires colors without the leading '#' ¯\_(ツ)_/¯
-      rules: [{ backgroundColor: Palette.SPECIAL_COAL.replace('#', '') }],
+      rules: [{backgroundColor: Palette.SPECIAL_COAL.replace('#', '')}],
       colors: {
         'editor.foreground': Palette.PALE_GRAY,
         'editor.background': Palette.DARKEST_COAL,
@@ -100,11 +100,11 @@ class EventHandlerEditor extends React.PureComponent {
         'list.focusBackground': Palette.BLACK,
         focusBorder: Palette.BLACK,
         'editorWidget.background': Palette.DARKEST_COAL,
-        'editor.lineHighlightBorder': Palette.DARKEST_COAL
-      }
-    })
+        'editor.lineHighlightBorder': Palette.DARKEST_COAL,
+      },
+    });
 
-    monaco.editor.setTheme('haiku')
+    monaco.editor.setTheme('haiku');
 
     // Remove the default autocompletion options (console, window, GeoLocation, etc)
     // due to a [bug][1] in monaco this removes most of the stuff, but leaves
@@ -114,19 +114,19 @@ class EventHandlerEditor extends React.PureComponent {
     // [1]: https://github.com/Microsoft/monaco-editor/issues/596
     monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
       noLib: true,
-      allowNonTsExtensions: true
-    })
+      allowNonTsExtensions: true,
+    });
 
     // Define our own autocompletion items
     monaco.languages.registerCompletionItemProvider('javascript', {
-      provideCompletionItems: function (model, position) {
+      provideCompletionItems (model, position) {
         return AUTOCOMPLETION_ITEMS.map((option) =>
           Object.assign(option, {
-            kind: monaco.languages.CompletionItemKind.Function
-          })
-        )
-      }
-    })
+            kind: monaco.languages.CompletionItemKind.Function,
+          }),
+        );
+      },
+    });
   }
 
   /**
@@ -139,15 +139,15 @@ class EventHandlerEditor extends React.PureComponent {
    * 2- Instantiating a HandlerManager
    */
   shouldComponentUpdate (
-    { element, visible, options },
-    { editorWithErrors, currentEvent }
+    {element, visible, options},
+    {editorWithErrors, currentEvent},
   ) {
-    const pkey1 = element && element.getPrimaryKey()
-    const pkey2 = this.props.element && this.props.element.getPrimaryKey()
+    const pkey1 = element && element.getPrimaryKey();
+    const pkey2 = this.props.element && this.props.element.getPrimaryKey();
 
     if (element && (pkey1 !== pkey2 || !this.handlerManager)) {
-      this.handlerManager = new HandlerManager(element)
-      return true
+      this.handlerManager = new HandlerManager(element);
+      return true;
     }
 
     if (
@@ -156,102 +156,102 @@ class EventHandlerEditor extends React.PureComponent {
       editorWithErrors !== this.state.editorWithErrors ||
       currentEvent !== this.state.currentEvent
     ) {
-      return true
+      return true;
     }
-    return false
+    return false;
   }
 
   componentWillReceiveProps (nextProps) {
     if (isNumeric(nextProps.options.frame)) {
-      const event = HandlerManager.frameToEvent(nextProps.options.frame)
-      this.setState({ currentEvent: event })
+      const event = HandlerManager.frameToEvent(nextProps.options.frame);
+      this.setState({currentEvent: event});
     }
   }
 
   canBeClosedExternally () {
-    return !this.state.currentEvent
+    return !this.state.currentEvent;
   }
 
   doPersist () {
-    const result = this.handlerManager.serialize()
-    this.props.save(this.props.element, result)
+    const result = this.handlerManager.serialize();
+    this.props.save(this.props.element, result);
   }
 
   doClose () {
     this.hideEditor(() => {
-      this.props.close()
-    })
+      this.props.close();
+    });
   }
 
   doSave () {
     if (!this.state.editorWithErrors) {
       this.handlerManager.replaceEvent(
         this.editor.serialize(),
-        this.state.currentEvent
-      )
-      this.doPersist()
+        this.state.currentEvent,
+      );
+      this.doPersist();
     }
   }
 
   doRemove () {
     const eventToDelete = isNumeric(this.props.options.frame)
       ? HandlerManager.frameToEvent(this.props.options.frame)
-      : this.state.currentEvent
+      : this.state.currentEvent;
 
-    this.handlerManager.delete(eventToDelete)
-    this.doPersist()
+    this.handlerManager.delete(eventToDelete);
+    this.doPersist();
   }
 
   showEditor (event) {
-    this.setState({ currentEvent: event })
+    this.setState({currentEvent: event});
   }
 
   hideEditor (callback) {
     if (!this.state.editorWithErrors) {
-      this.setState({ currentEvent: null }, callback)
+      this.setState({currentEvent: null}, callback);
     }
   }
 
-  onEditorContentChange ({ evaluator }) {
+  onEditorContentChange ({evaluator}) {
     this.setState({
-      editorWithErrors: evaluator && evaluator.state === EVALUATOR_STATES.ERROR
-    })
+      editorWithErrors: evaluator && evaluator.state === EVALUATOR_STATES.ERROR,
+    });
   }
 
   renderEditor () {
-    const event = this.state.currentEvent
-    const { id, handler } = this.handlerManager.getOrGenerateEventHandler(event)
+    const event = this.state.currentEvent;
+    const {id, handler} = this.handlerManager.getOrGenerateEventHandler(event);
 
     return (
       <Editor
         onContentChange={(serializedEvent, oldEvent) => {
-          this.onEditorContentChange(serializedEvent, oldEvent)
+          this.onEditorContentChange(serializedEvent, oldEvent);
         }}
         selectedEventName={event}
         params={handler.params}
         contents={handler.body}
         key={id}
         ref={(editor) => {
-          this.editor = editor
+          this.editor = editor;
         }}
       />
-    )
+    );
   }
 
   render () {
     if (!this.handlerManager) {
-      return null
+      return null;
     }
 
-    const visibilityStyles = this.props.visible ? {} : { visibility: 'hidden' }
-    const applicableEventHandlers = this.handlerManager.getApplicableEventHandlers()
+    const visibilityStyles = this.props.visible ? {} : {visibility: 'hidden'};
+    const applicableEventHandlers = this.handlerManager.getApplicableEventHandlers();
 
     return (
-      <ModalWrapper style={{ ...visibilityStyles, ...STYLES.container }}>
+      <ModalWrapper style={{...visibilityStyles, ...STYLES.container}}>
         <div
           onMouseDown={(mouseEvent) => {
             // Prevent outer view from closing us
-            mouseEvent.stopPropagation()
+            mouseEvent.stopPropagation();
           }}
         >
           <ModalHeader>
@@ -263,11 +263,11 @@ class EventHandlerEditor extends React.PureComponent {
                   : null
               }
               onEditorRemoved={() => {
-                this.doRemove()
+                this.doRemove();
                 if (isNumeric(this.props.options.frame)) {
-                  this.doClose()
+                  this.doClose();
                 } else {
-                  this.hideEditor()
+                  this.hideEditor();
                 }
               }}
               breadcrumb={
@@ -284,7 +284,7 @@ class EventHandlerEditor extends React.PureComponent {
               <div
                 style={{
                   ...STYLES.editorsWrapper,
-                  ...STYLES.frameEditorWrapper
+                  ...STYLES.frameEditorWrapper,
                 }}
               >
                 {this.renderEditor()}
@@ -293,51 +293,49 @@ class EventHandlerEditor extends React.PureComponent {
               <RevealPanel
                 showDetail={!!this.state.currentEvent}
                 leftPanel={
-                  <div style={{ paddingTop: '35px' }}>
+                  <div style={{paddingTop: '35px'}}>
                     <EventSelector
                       options={applicableEventHandlers}
                       disabledOptions={this.handlerManager}
                       onChange={(event) => {
-                        this.showEditor(event)
+                        this.showEditor(event);
                       }}
                     />
 
                     <div style={STYLES.tagWrapper}>
                       {this.handlerManager
                         .userVisibleEvents()
-                        .map(({ id, event, handler }) => {
+                        .map(({id, event, handler}) => {
                           return (
                             <span
                               key={event}
                               onClick={() => {
-                                this.showEditor(event)
+                                this.showEditor(event);
                               }}
                               style={STYLES.tag}
                             >
                               {event}
                             </span>
-                          )
+                          );
                         })}
                     </div>
-                  </div>
-                }
+                  </div>}
                 rightPanel={
                   <div style={STYLES.editorsWrapper}>
                     <span
                       onClick={() => {
-                        this.doSave()
-                        this.hideEditor()
+                        this.doSave();
+                        this.hideEditor();
                       }}
                       style={{
                         ...STYLES.allOptions,
-                        opacity: this.state.editorWithErrors ? '0.5' : '1'
+                        opacity: this.state.editorWithErrors ? '0.5' : '1',
                       }}
                     >
                       &lt; All Actions
                     </span>
                     {this.state.currentEvent && this.renderEditor()}
-                  </div>
-                }
+                  </div>}
               />
             )}
           </div>
@@ -345,11 +343,11 @@ class EventHandlerEditor extends React.PureComponent {
             <ModalFooter>
               <EditorActions
                 onCancel={() => {
-                  this.doClose()
+                  this.doClose();
                 }}
                 onSave={() => {
-                  this.doSave()
-                  this.doClose()
+                  this.doSave();
+                  this.doClose();
                 }}
                 title={
                   this.state.editorWithErrors
@@ -362,12 +360,12 @@ class EventHandlerEditor extends React.PureComponent {
           )}
         </div>
       </ModalWrapper>
-    )
+    );
   }
 }
 
 EventHandlerEditor.defaultProps = {
-  options: {}
-}
+  options: {},
+};
 
-export default EventHandlerEditor
+export default EventHandlerEditor;

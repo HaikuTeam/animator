@@ -1,6 +1,6 @@
-const tape = require('tape')
+const tape = require('tape');
 
 tape('Exit', (t) => {
-  t.end()
-  global.process.exit()
-})
+  t.end();
+  global.process.exit();
+});

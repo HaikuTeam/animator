@@ -13,10 +13,10 @@ export default (scale, {x, y}, index, cursor) => ({
     style: {
       cursor,
       pointerEvents: 'all',
-      transformOrigin: `${x}px ${y}px 0px`
+      transformOrigin: `${x}px ${y}px 0px`,
     },
     onmouseenter: `hoverControlPoint(${index})`,
-    onmouseleave: 'unhoverControlPoint()'
+    onmouseleave: 'unhoverControlPoint()',
   },
   children: [
     {
@@ -26,8 +26,8 @@ export default (scale, {x, y}, index, cursor) => ({
         cy: 12.5,
         r: 3.5,
         fill: '#000',
-        filter: 'url(#a)'
-      }
+        filter: 'url(#a)',
+      },
     },
     {
       elementName: 'circle',
@@ -36,8 +36,8 @@ export default (scale, {x, y}, index, cursor) => ({
         cy: 12.5,
         r: 3.5,
         fill: '#fff',
-        stroke: '#3f4a4d'
-      }
+        stroke: '#3f4a4d',
+      },
     },
     {
       elementName: 'circle',
@@ -47,8 +47,8 @@ export default (scale, {x, y}, index, cursor) => ({
         r: 12.5,
         fill: 'none',
         class: 'control-point',
-        'data-index': index
-      }
-    }
-  ]
-})
+        'data-index': index,
+      },
+    },
+  ],
+});

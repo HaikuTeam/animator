@@ -1,36 +1,36 @@
-import * as React from 'react'
-import * as lodash from 'lodash'
-import * as path from 'path'
-import HaikuDOMRenderer from '@haiku/core/lib/renderers/dom'
-import HaikuContext from '@haiku/core/lib/HaikuContext'
-import * as BaseModel from 'haiku-serialization/src/bll/BaseModel'
-import * as Project from 'haiku-serialization/src/bll/Project'
-import Config from '@haiku/core/lib/Config'
-import * as Element from 'haiku-serialization/src/bll/Element'
-import * as File from 'haiku-serialization/src/bll/File'
-import * as ElementSelectionProxy from 'haiku-serialization/src/bll/ElementSelectionProxy'
-import * as Asset from 'haiku-serialization/src/bll/Asset'
-import * as EmitterManager from 'haiku-serialization/src/utils/EmitterManager'
-import {isCoordInsideBoxPoints} from 'haiku-serialization/src/bll/MathUtils'
-import Palette from 'haiku-ui-common/lib/Palette'
-import Comment from './Comment'
-import EventHandlerEditor from './components/EventHandlerEditor'
-import Preview from './Preview'
-import CreateComponentModal from './modals/CreateComponentModal'
-import * as Comments from './Comments'
-import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
-import * as requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates'
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
-import originMana from '../overlays/originMana'
-import controlPointMana from '../overlays/controlPointMana'
-import boxMana from '../overlays/boxMana'
-import lineMana from '../overlays/lineMana'
-import defsMana from '../overlays/defsMana'
-import rotationCursorMana from '../overlays/rotationCursorMana'
-import scaleCursorMana from '../overlays/scaleCursorMana'
-import * as logger from 'haiku-serialization/src/utils/LoggerInstance'
-import {isMac} from 'haiku-common/lib/environments/os'
-import directSelectionMana from '../overlays/directSelectionMana'
+import * as React from 'react';
+import * as lodash from 'lodash';
+import * as path from 'path';
+import HaikuDOMRenderer from '@haiku/core/lib/renderers/dom';
+import HaikuContext from '@haiku/core/lib/HaikuContext';
+import * as BaseModel from 'haiku-serialization/src/bll/BaseModel';
+import * as Project from 'haiku-serialization/src/bll/Project';
+import Config from '@haiku/core/lib/Config';
+import * as Element from 'haiku-serialization/src/bll/Element';
+import * as File from 'haiku-serialization/src/bll/File';
+import * as ElementSelectionProxy from 'haiku-serialization/src/bll/ElementSelectionProxy';
+import * as Asset from 'haiku-serialization/src/bll/Asset';
+import * as EmitterManager from 'haiku-serialization/src/utils/EmitterManager';
+import {isCoordInsideBoxPoints} from 'haiku-serialization/src/bll/MathUtils';
+import Palette from 'haiku-ui-common/lib/Palette';
+import Comment from './Comment';
+import EventHandlerEditor from './components/EventHandlerEditor';
+import Preview from './Preview';
+import CreateComponentModal from './modals/CreateComponentModal';
+import * as Comments from './Comments';
+import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu';
+import * as requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates';
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
+import originMana from '../overlays/originMana';
+import controlPointMana from '../overlays/controlPointMana';
+import boxMana from '../overlays/boxMana';
+import lineMana from '../overlays/lineMana';
+import defsMana from '../overlays/defsMana';
+import rotationCursorMana from '../overlays/rotationCursorMana';
+import scaleCursorMana from '../overlays/scaleCursorMana';
+import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
+import {isMac} from 'haiku-common/lib/environments/os';
+import directSelectionMana from '../overlays/directSelectionMana';
 import {
   DEFAULT_LINE_SELECTION_THRESHOLD,
   isPointInsidePrimitive,
@@ -38,79 +38,81 @@ import {
   distance,
   transform2DPoint,
   closestNormalPointOnLineSegment,
-  buildPathLUT
-} from 'haiku-common/lib/math/geometryUtils'
-import SVGPoints from '@haiku/core/lib/helpers/SVGPoints'
-import {splitSegmentInSVGPoints} from '@haiku/core/lib/helpers/PathUtil'
+  buildPathLUT,
+} from 'haiku-common/lib/math/geometryUtils';
+import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
+import {splitSegmentInSVGPoints} from '@haiku/core/lib/helpers/PathUtil';
 
-const mixpanel = require('haiku-serialization/src/utils/Mixpanel')
-const Globals = require('haiku-ui-common/lib/Globals').default
-const {clipboard, shell, remote, ipcRenderer} = require('electron')
-const fse = require('haiku-fs-extra')
-const moment = require('moment')
-const {HOMEDIR_PATH} = require('haiku-serialization/src/utils/HaikuHomeDir')
+const mixpanel = require('haiku-serialization/src/utils/Mixpanel');
+const Globals = require('haiku-ui-common/lib/Globals').default;
+const {clipboard, shell, remote, ipcRenderer} = require('electron');
+const fse = require('haiku-fs-extra');
+const moment = require('moment');
+const {HOMEDIR_PATH} = require('haiku-serialization/src/utils/HaikuHomeDir');
 
-fse.mkdirpSync(HOMEDIR_PATH)
+fse.mkdirpSync(HOMEDIR_PATH);
 
 // Useful debugging originator of calls in shared model code
-process.env.HAIKU_SUBPROCESS = 'glass'
+process.env.HAIKU_SUBPROCESS = 'glass';
 
-const MAX_Z_INDEX = 1000000
+const MAX_Z_INDEX = 1000000;
 
-const POINTS_THRESHOLD_REDUCED = 20 // Display only the corner control points
-const POINTS_THRESHOLD_NONE = 8 // Display no control points nor line
+const POINTS_THRESHOLD_REDUCED = 20; // Display only the corner control points
+const POINTS_THRESHOLD_NONE = 8; // Display no control points nor line
 
 const POINT_DISPLAY_MODES = {
   NORMAL: [1, 1, 1, 1, 1, 1, 1, 1, 1],
   REDUCED_ON_TOP_BOTTOM: [1, 0, 1, 1, 0, 1, 1, 0, 1],
   REDUCED_ON_LEFT_RIGHT: [1, 1, 1, 0, 0, 0, 1, 1, 1],
   REDUCED_ON_BOTH: [1, 0, 1, 0, 0, 0, 1, 0, 1],
-  NONE: [0, 0, 0, 0, 0, 0, 0, 0, 0]
-}
+  NONE: [0, 0, 0, 0, 0, 0, 0, 0, 0],
+};
 
 const SELECTION_TYPES = {
-  ON_STAGE_CONTROL: 'on_stage_control'
-}
+  ON_STAGE_CONTROL: 'on_stage_control',
+};
 
-const MENU_ACTION_DEBOUNCE_TIME = 100
-const DIMENSIONS_RESET_DEBOUNCE_TIME = 100
-const BIG_NUMBER = 99999
-const HAIKU_ID_ATTRIBUTE = 'haiku-id'
-const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source'
+const MENU_ACTION_DEBOUNCE_TIME = 100;
+const DIMENSIONS_RESET_DEBOUNCE_TIME = 100;
+const BIG_NUMBER = 99999;
+const HAIKU_ID_ATTRIBUTE = 'haiku-id';
+const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source';
 
-const DOUBLE_CLICK_THRESHOLD_MS = 250
+const DOUBLE_CLICK_THRESHOLD_MS = 250;
 
 const DIRECT_SELECTION_MULTIPLE_SELECTION_ALLOWED = {
-  'line': true,
-  'polyline': true,
-  'polygon': true,
-  'path': true
-}
+  line: true,
+  polyline: true,
+  polygon: true,
+  path: true,
+};
 
 const isNumeric = (n) => {
-  return !isNaN(parseFloat(n)) && isFinite(n)
-}
+  return !isNaN(parseFloat(n)) && isFinite(n);
+};
 
 const niceTimestamp = () => {
-  return moment().format('YYYY-MM-DD-HHmmss')
-}
+  return moment().format('YYYY-MM-DD-HHmmss');
+};
 
 const writeHtmlSnapshot = (html, react) => {
-  fse.mkdirpSync(path.join(HOMEDIR_PATH, 'snapshots'))
-  const filename = (react.props.projectName || 'Unknown') + '-' + niceTimestamp() + '.html'
-  const filepath = path.join(HOMEDIR_PATH, 'snapshots', filename)
+  fse.mkdirpSync(path.join(HOMEDIR_PATH, 'snapshots'));
+  const filename = (react.props.projectName || 'Unknown') + '-' + niceTimestamp() + '.html';
+  const filepath = path.join(HOMEDIR_PATH, 'snapshots', filename);
   fse.outputFile(filepath, html, (err) => {
-    if (err) return void (0)
-    shell.openItem(filepath)
-  })
-}
+    if (err) {
+      return void (0);
+    }
+    shell.openItem(filepath);
+  });
+};
 
 // The class is exported also _without_ the radium wrapper to allow jsdom testing
 export class Glass extends React.Component {
   constructor (props) {
-    super(props)
+    super(props);
 
-    EmitterManager.extend(this)
+    EmitterManager.extend(this);
 
     this.state = {
       controlActivation: null,
@@ -135,8 +137,8 @@ export class Glass extends React.Component {
       targetElement: null,
       isEventHandlerEditorOpen: false,
       isCreateComponentModalOpen: false,
-      eventHandlerEditorOptions: {}
-    }
+      eventHandlerEditorOptions: {},
+    };
 
     Project.setup(
       this.props.folder,
@@ -147,17 +149,19 @@ export class Glass extends React.Component {
       {}, // fileOptions
       this.props.envoy,
       (err, project) => {
-        if (err) throw err
-        this.handleProjectReady(project)
-      }
-    )
+        if (err) {
+          throw err;
+        }
+        this.handleProjectReady(project);
+      },
+    );
 
-    this.handleRequestElementCoordinates = this.handleRequestElementCoordinates.bind(this)
+    this.handleRequestElementCoordinates = this.handleRequestElementCoordinates.bind(this);
 
     this.handleDimensionsReset = lodash.debounce(() => {
       // Need to notify creator of viewport change so instantiation position is correct;
       // this event is also called whenever the window is resized
-      const artboard = this.getActiveComponent().getArtboard()
+      const artboard = this.getActiveComponent().getArtboard();
 
       this.props.websocket.send({
         type: 'broadcast',
@@ -165,64 +169,66 @@ export class Glass extends React.Component {
         from: 'glass',
         data: {
           zoom: artboard.getZoom(),
-          rect: artboard.getRect()
-        }
-      })
-    }, DIMENSIONS_RESET_DEBOUNCE_TIME)
+          rect: artboard.getRect(),
+        },
+      });
+    }, DIMENSIONS_RESET_DEBOUNCE_TIME);
 
-    this._comments = new Comments(this.props.folder)
+    this._comments = new Comments(this.props.folder);
 
-    this._playing = false
-    this._stopwatch = null
-    this._lastAuthoritativeFrame = 0
+    this._playing = false;
+    this._stopwatch = null;
+    this._lastAuthoritativeFrame = 0;
 
-    this.didDragSinceLastMouseDown = false
+    this.didDragSinceLastMouseDown = false;
 
-    this.drawLoop = this.drawLoop.bind(this)
-    this.draw = this.draw.bind(this)
+    this.drawLoop = this.drawLoop.bind(this);
+    this.draw = this.draw.bind(this);
 
-    this.handleGroupDebounced = lodash.debounce(() => this.handleGroup(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
-    this.handleUngroupDebounced = lodash.debounce(() => this.handleUngroup(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
-    this.handleCutDebounced = lodash.debounce(() => this.handleCut(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
-    this.handleCopyDebounced = lodash.debounce(() => this.handleCopy(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
-    this.handlePasteDebounced = lodash.debounce(() => this.handlePaste(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
-    this.handleSelectAllDebounced = lodash.debounce(() => this.handleSelectAll(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
-    this.handleUndoDebounced = lodash.debounce((payload) => this.handleUndo(payload), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
-    this.handleRedoDebounced = lodash.debounce((payload) => this.handleRedo(payload), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
+    this.handleGroupDebounced = lodash.debounce(() => this.handleGroup(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false});
+    this.handleUngroupDebounced = lodash.debounce(() => this.handleUngroup(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false});
+    this.handleCutDebounced = lodash.debounce(() => this.handleCut(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false});
+    this.handleCopyDebounced = lodash.debounce(() => this.handleCopy(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false});
+    this.handlePasteDebounced = lodash.debounce(() => this.handlePaste(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false});
+    this.handleSelectAllDebounced = lodash.debounce(() => this.handleSelectAll(), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false});
+    this.handleUndoDebounced = lodash.debounce((payload) => this.handleUndo(payload), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false});
+    this.handleRedoDebounced = lodash.debounce((payload) => this.handleRedo(payload), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false});
 
     if (process.env.NODE_ENV !== 'production') {
       // For debugging
-      window.glass = this
-      window.view = this // Easy to run same instruction in different tools
+      window.glass = this;
+      window.view = this; // Easy to run same instruction in different tools
     }
 
     // TODO: Is there any race condition with kicking this off immediately?
-    this.drawLoop()
+    this.drawLoop();
 
     // Leaky abstraction: we bind control point hover behaviors to superglobals because we use @haiku/core to render
     // control points as complex SVGs without a timeline. Ideally we would represent the entire box points overlay as a
     // single Haiku component and subscribe to regular events.
     window.hoverControlPoint = (hoveredControlPointIndex) => {
       this.setState({
-        hoveredControlPointIndex
-      })
-    }
+        hoveredControlPointIndex,
+      });
+    };
     window.unhoverControlPoint = () => {
       this.setState({
-        hoveredControlPointIndex: null
-      })
-    }
+        hoveredControlPointIndex: null,
+      });
+    };
     window.hoverDirectSelectionPoint = (hoveredDirectSelectionPointIndex) => {
       this.setState({
-        hoveredDirectSelectionPointIndex
-      })
-    }
+        hoveredDirectSelectionPointIndex,
+      });
+    };
     window.unhoverDirectSelectionPoint = () => {
-      if (this.state.isMouseDragging) return
+      if (this.state.isMouseDragging) {
+        return;
+      }
       this.setState({
-        hoveredDirectSelectionPointIndex: null
-      })
-    }
+        hoveredDirectSelectionPointIndex: null,
+      });
+    };
   }
 
   isTextInputFocused () {
@@ -230,110 +236,110 @@ export class Glass extends React.Component {
       document.activeElement &&
       document.activeElement.tagName &&
       document.activeElement.tagName.toLowerCase()
-    )
+    );
 
     return (
       tagName && (
         tagName === 'input' ||
         tagName === 'textarea'
       )
-    )
+    );
   }
 
   isTextSelected () {
-    return window.getSelection().type === 'Range'
+    return window.getSelection().type === 'Range';
   }
 
   awaitRef (name, cb) {
     if (this.refs[name]) {
-      return cb(this.refs[name])
+      return cb(this.refs[name]);
     }
     return setTimeout(() => {
-      this.awaitRef(name, cb)
-    }, 100)
+      this.awaitRef(name, cb);
+    }, 100);
   }
 
   getActiveComponent () {
-    return this.project && this.project.getCurrentActiveComponent()
+    return this.project && this.project.getCurrentActiveComponent();
   }
 
   handleProjectReady (project) {
-    this.project = project
+    this.project = project;
 
     this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'envoy:timelineClientReady', (timelineChannel) => {
-      timelineChannel.on('didPlay', this.handleTimelineDidPlay.bind(this))
-      timelineChannel.on('didPause', this.handleTimelineDidPause.bind(this))
-      timelineChannel.on('didSeek', this.handleTimelineDidSeek.bind(this))
-    })
+      timelineChannel.on('didPlay', this.handleTimelineDidPlay.bind(this));
+      timelineChannel.on('didPause', this.handleTimelineDidPause.bind(this));
+      timelineChannel.on('didSeek', this.handleTimelineDidSeek.bind(this));
+    });
 
     this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'envoy:tourClientReady', (client) => {
-      this.tourClient = client
-      this.tourClient.on('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
-    })
+      this.tourClient = client;
+      this.tourClient.on('tour:requestElementCoordinates', this.handleRequestElementCoordinates);
+    });
 
     this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'update', (what, ...args) => {
       if (!this.getActiveComponent()) {
-        return
+        return;
       }
 
       // logger.info(`[glass] local update ${what}`)
 
       switch (what) {
         case 'setCurrentActiveComponent':
-          this.handleActiveComponentReady()
-          break
+          this.handleActiveComponentReady();
+          break;
         case 'application-mounted':
-          this.handleHaikuComponentMounted()
-          break
+          this.handleHaikuComponentMounted();
+          break;
         case 'dimensions-changed':
-          this.resetContainerDimensions()
-          this.forceUpdate()
-          break
+          this.resetContainerDimensions();
+          this.forceUpdate();
+          break;
         case 'dimensions-reset':
-          this.handleDimensionsReset()
-          break
+          this.handleDimensionsReset();
+          break;
       }
-    })
+    });
 
     this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'remote-update', (what, ...args) => {
       // logger.info(`[glass] remote update ${what}`)
 
       switch (what) {
         case 'setCurrentActiveComponent':
-          this.handleActiveComponentReady()
-          break
+          this.handleActiveComponentReady();
+          break;
         case 'setInteractionMode':
-          this.handleInteractionModeChange()
-          break
+          this.handleInteractionModeChange();
+          break;
         case 'mergeDesigns':
-          Element.directlySelected = null
-          break
+          Element.directlySelected = null;
+          break;
       }
-    })
+    });
 
     this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'change-authoritative-frame', (frame) => {
-      this.handleTimelineDidSeek({frame})
-    })
+      this.handleTimelineDidSeek({frame});
+    });
 
     // When all views send this, we know it's ok to initialize the 'main' component
     this.project.broadcastPayload({
       name: 'project-state-change',
-      what: 'project:ready'
-    })
+      what: 'project:ready',
+    });
 
     // When developing Glass in standalone, this env var directs it to automatically
     // set the current active component, which is normally initiated by Creator
     if (process.env.AUTOSTART) {
-      this.project.setCurrentActiveComponent(process.env.AUTOSTART, { from: 'glass' }, () => {})
+      this.project.setCurrentActiveComponent(process.env.AUTOSTART, {from: 'glass'}, () => {});
     }
   }
 
   handleActiveComponentReady () {
-    this.mountHaikuComponent()
+    this.mountHaikuComponent();
 
     ipcRenderer.send('topmenu:update', {
-      subComponents: this.project.describeSubComponents()
-    })
+      subComponents: this.project.describeSubComponents(),
+    });
   }
 
   mountHaikuComponent () {
@@ -342,17 +348,17 @@ export class Glass extends React.Component {
         freeze: true,
         overflowX: 'visible',
         overflowY: 'visible',
-        contextMenu: 'disabled'
-      })
-    })
+        contextMenu: 'disabled',
+      });
+    });
   }
 
   handleHaikuComponentMounted () {
     this.project.broadcastPayload({
       name: 'project-state-change',
       what: 'component:mounted',
-      scenename: this.getActiveComponent().getSceneName()
-    })
+      scenename: this.getActiveComponent().getSceneName(),
+    });
   }
 
   handleInteractionModeChange () {
@@ -360,24 +366,24 @@ export class Glass extends React.Component {
     // TODO: IMO (Roberto) would be nice if we can bring the editor back once
     // turning preview mode off, but needs discussion with the team.
     if (this.isPreviewMode()) {
-      this.hideEventHandlersEditor()
-      this._playing = false
+      this.hideEventHandlersEditor();
+      this._playing = false;
     }
 
-    this.forceUpdate()
+    this.forceUpdate();
   }
 
   handleShowEventHandlersEditor (elementUID, options, frame) {
     // The EventHandlerEditor uses this field to know whether to launch in frame mode vs event mode
     if (isNumeric(frame)) {
-      options.frame = frame
+      options.frame = frame;
     }
 
     this.showEventHandlersEditor(
       null,
       this.getActiveComponent().findElementByUid(elementUID),
-      options
-    )
+      options,
+    );
   }
 
   handleRequestElementCoordinates ({selector, webview}) {
@@ -389,38 +395,38 @@ export class Glass extends React.Component {
         this.tourClient &&
         this.project.getEnvoyClient() &&
         !this.project.getEnvoyClient().isInMockMode(),
-      tourClient: this.tourClient
-    })
+      tourClient: this.tourClient,
+    });
   }
 
   handleTimelineDidPlay () {
-    const ac = this.getActiveComponent()
+    const ac = this.getActiveComponent();
     if (ac) {
-      ac.setHotEditingMode(false)
+      ac.setHotEditingMode(false);
     }
-    this._playing = true
-    this._stopwatch = Date.now()
+    this._playing = true;
+    this._stopwatch = Date.now();
   }
 
   handleTimelineDidPause (frameData) {
     if (!this._playing) {
       // If we have already been paused by a higher level event (e.g. toggling preview mode), do nothing.
-      return
+      return;
     }
-    const ac = this.getActiveComponent()
+    const ac = this.getActiveComponent();
     // Ensure preview mode is inactive before activating hot editing mode. If we toggle preview mode on during timeline
     // playback, we will typically receive the pause *after* the interaction mode change.
     if (ac && !ac.isPreviewModeActive()) {
-      ac.setHotEditingMode(true)
+      ac.setHotEditingMode(true);
     }
-    this._playing = false
-    this._lastAuthoritativeFrame = frameData.frame
-    this._stopwatch = Date.now()
+    this._playing = false;
+    this._lastAuthoritativeFrame = frameData.frame;
+    this._stopwatch = Date.now();
   }
 
   handleTimelineDidSeek (frameData) {
-    this._lastAuthoritativeFrame = frameData.frame
-    this._stopwatch = Date.now()
+    this._lastAuthoritativeFrame = frameData.frame;
+    this._stopwatch = Date.now();
   }
 
   /**
@@ -435,7 +441,7 @@ export class Glass extends React.Component {
    * overridden by this loop.
    */
   handleFrameChange () {
-    let seekMs = 0
+    let seekMs = 0;
 
     // this._stopwatch is null unless we've received an action from the timeline.
     // If we're developing the glass solo, i.e. without a connection to envoy which
@@ -443,7 +449,7 @@ export class Glass extends React.Component {
     // TODO: Would be nice to allow full-fledged solo development of glass...
     if (this._stopwatch !== null) {
       // TODO: support variable fps
-      seekMs = (this._lastAuthoritativeFrame * 1000 / 60) + (this._playing ? Date.now() - this._stopwatch : 0)
+      seekMs = (this._lastAuthoritativeFrame * 1000 / 60) + (this._playing ? Date.now() - this._stopwatch : 0);
     }
 
     // This rounding is required otherwise we'll see bizarre behavior on stage.
@@ -451,16 +457,16 @@ export class Glass extends React.Component {
     // which wants things to be round numbers. If we don't round this, i.e. convert
     // 16.666 -> 17 and 33.333 -> 33, then the player won't render those frames,
     // which means the user will have trouble moving things on stage at those times.
-    seekMs = Math.round(seekMs)
+    seekMs = Math.round(seekMs);
 
     if (this.getActiveComponent()) {
-      this.getActiveComponent().setTimelineTimeValue(seekMs)
+      this.getActiveComponent().setTimelineTimeValue(seekMs);
     }
   }
 
   draw () {
     if (this.refs.overlay) {
-      this.drawOverlays()
+      this.drawOverlays();
     }
   }
 
@@ -468,19 +474,19 @@ export class Glass extends React.Component {
     if (this.getActiveComponent()) {
       // We handle a frame change here since authoritative frame updates
       // are received async and we need to update according to the delta
-      this.handleFrameChange()
-      this.draw()
+      this.handleFrameChange();
+      this.draw();
     }
-    window.requestAnimationFrame(this.drawLoop.bind(this))
+    window.requestAnimationFrame(this.drawLoop.bind(this));
   }
 
   handleSnapsUpdated (newSnaps) {
-    this.setState({'snapLines': newSnaps})
+    this.setState({snapLines: newSnaps});
   }
 
   componentDidMount () {
     const resetKeyStates = () => {
-      Globals.allKeysUp()
+      Globals.allKeysUp();
 
       this.setState({
         snapLines: [],
@@ -491,156 +497,158 @@ export class Glass extends React.Component {
         isStageSelected: false,
         isStageNameHovering: false,
         isMouseDown: false,
-        isMouseDragging: false
-      })
-    }
+        isMouseDragging: false,
+      });
+    };
 
     this.addEmitterListener(ElementSelectionProxy, 'snaps-updated', (proxy, snaps) => {
-      this.handleSnapsUpdated(snaps)
-    })
+      this.handleSnapsUpdated(snaps);
+    });
 
     // If the user e.g. Cmd+tabs away from the window
     this.addEmitterListener(window, 'blur', () => {
-      resetKeyStates()
-    })
+      resetKeyStates();
+    });
 
     this.addEmitterListener(window, 'focus', () => {
-      resetKeyStates()
-    })
+      resetKeyStates();
+    });
 
-    this.addEmitterListener(window, 'dragover', Asset.preventDefaultDrag, false)
+    this.addEmitterListener(window, 'dragover', Asset.preventDefaultDrag, false);
 
     this.addEmitterListener(
       window,
       'drop',
       (event) => {
         this.project.linkExternalAssetOnDrop(event, (error) => {
-          if (error) this.setState({ error })
-          this.forceUpdate()
-        })
+          if (error) {
+            this.setState({error});
+          }
+          this.forceUpdate();
+        });
       },
-      false
-    )
+      false,
+    );
 
     this.addEmitterListener(document, 'mousewheel', (evt) => {
       if (
         !this.getActiveComponent() || // on mac, this is triggered by a two-finger pan
         this.state.isEventHandlerEditorOpen
       ) {
-        return
+        return;
       }
 
-      const artboard = this.getActiveComponent().getArtboard()
+      const artboard = this.getActiveComponent().getArtboard();
       // The 0.4 coefficient here adjusts the pan speed down, and can be adjusted if desired. Larger numbers result in
       // faster panning.
-      const SCROLL_PAN_COEFFICIENT = 0.4 * artboard.getZoom()
-      artboard.snapshotOriginalPan()
-      this.performPan(evt.wheelDeltaX * SCROLL_PAN_COEFFICIENT, evt.wheelDeltaY * SCROLL_PAN_COEFFICIENT)
-    }, false)
+      const SCROLL_PAN_COEFFICIENT = 0.4 * artboard.getZoom();
+      artboard.snapshotOriginalPan();
+      this.performPan(evt.wheelDeltaX * SCROLL_PAN_COEFFICIENT, evt.wheelDeltaY * SCROLL_PAN_COEFFICIENT);
+    }, false);
 
     this.addEmitterListener(this.props.websocket, 'method', (method, params, message, cb) => {
       // Harness to enable cross-subview integration testing
       if (method === 'executeFunctionSpecification') {
         return Project.executeFunctionSpecification(
-          { glass: this },
+          {glass: this},
           'glass',
           lodash.assign(
             {
               glass: this,
-              project: this.project
+              project: this.project,
             },
-            params[0]
+            params[0],
           ),
-          cb
-        )
+          cb,
+        );
       }
-    })
+    });
 
     this.addEmitterListener(this.props.websocket, 'relay', (message) => {
-      logger.info('relay received', message.name, 'from', message.from)
+      logger.info('relay received', message.name, 'from', message.from);
 
       switch (message.name) {
         case 'global-menu:open-dev-tools':
-          remote.getCurrentWebContents().openDevTools()
-          break
+          remote.getCurrentWebContents().openDevTools();
+          break;
 
         case 'global-menu:close-dev-tools':
           if (remote.getCurrentWebContents().isDevToolsFocused()) {
-            remote.getCurrentWebContents().closeDevTools()
+            remote.getCurrentWebContents().closeDevTools();
           }
-          break
+          break;
 
         case 'global-menu:zoom-in':
-          mixpanel.haikuTrack('creator:glass:zoom-in')
-          this.getActiveComponent().getArtboard().zoomIn(1.25)
-          break
+          mixpanel.haikuTrack('creator:glass:zoom-in');
+          this.getActiveComponent().getArtboard().zoomIn(1.25);
+          break;
 
         case 'global-menu:zoom-out':
-          mixpanel.haikuTrack('creator:glass:zoom-out')
-          this.getActiveComponent().getArtboard().zoomOut(1.25)
-          break
+          mixpanel.haikuTrack('creator:glass:zoom-out');
+          this.getActiveComponent().getArtboard().zoomOut(1.25);
+          break;
 
         case 'global-menu:set-active-component':
-          this.project.setCurrentActiveComponent(message.data, {from: 'glass'}, () => {})
-          break
+          this.project.setCurrentActiveComponent(message.data, {from: 'glass'}, () => {});
+          break;
 
         case 'global-menu:group':
           if (experimentIsEnabled(Experiment.GroupUngroup)) {
-            this.handleGroupDebounced()
+            this.handleGroupDebounced();
           }
-          break
+          break;
 
         case 'global-menu:ungroup':
           if (experimentIsEnabled(Experiment.GroupUngroup)) {
-            this.handleUngroupDebounced()
+            this.handleUngroupDebounced();
           }
-          break
+          break;
 
         case 'global-menu:cut':
           if (this.fetchProxyElementForSelection().hasAnythingInSelectionButNotArtboard()) {
-            this.handleCutDebounced()
+            this.handleCutDebounced();
           }
-          break
+          break;
 
         case 'global-menu:copy':
           if (this.fetchProxyElementForSelection().hasAnythingInSelectionButNotArtboard()) {
-            this.handleCopyDebounced()
+            this.handleCopyDebounced();
           }
-          break
+          break;
 
         case 'global-menu:paste':
-          this.handlePasteDebounced()
-          break
+          this.handlePasteDebounced();
+          break;
 
         case 'global-menu:selectAll':
-          this.handleSelectAllDebounced()
-          break
+          this.handleSelectAllDebounced();
+          break;
 
         case 'global-menu:undo':
-          this.handleUndoDebounced(message)
-          break
+          this.handleUndoDebounced(message);
+          break;
 
         case 'global-menu:redo':
-          this.handleRedoDebounced(message)
-          break
+          this.handleRedoDebounced(message);
+          break;
 
         case 'global-menu:preview':
           // This hook is only used for internal development
           if (this.project) {
             this.project.toggleInteractionMode({from: 'glass'}, () => {
               // Ensure Glass UI reflects the mode-switch
-              this.forceUpdate()
-            })
+              this.forceUpdate();
+            });
           }
-          break
+          break;
       }
-    })
+    });
 
     this.addEmitterListener(this.props.websocket, 'broadcast', (message) => {
       switch (message.name) {
         case 'remote-model:receive-sync':
-          BaseModel.receiveSync(message)
-          break
+          BaseModel.receiveSync(message);
+          break;
 
         case 'component:reload':
           // Race condition where Master emits this event during initial load of assets in
@@ -652,36 +660,36 @@ export class Glass extends React.Component {
               this.props.websocket.send({
                 type: 'broadcast',
                 name: 'component:reload:complete',
-                from: 'glass'
-              })
+                from: 'glass',
+              });
 
               if (err) {
-                logger.error(err)
-                return
+                logger.error(err);
+                return;
               }
 
-              this.getActiveComponent().getArtboard().updateMountSize(this.refs.container)
-            })
+              this.getActiveComponent().getArtboard().updateMountSize(this.refs.container);
+            });
           } else {
-            logger.warn('active component not initialized; cannot reload')
-            return
+            logger.warn('active component not initialized; cannot reload');
+            return;
           }
 
         case 'show-event-handlers-editor':
           this.handleShowEventHandlersEditor(
             message.elid,
             message.opts,
-            message.frame
-          )
-          break
+            message.frame,
+          );
+          break;
 
         case 'instantiate-component':
-          const component = this.getActiveComponent()
+          const component = this.getActiveComponent();
 
           if (component) {
             Element.where({component, _isSelected: true}).forEach((element) => {
-              element.unselectSoftly({from: 'glass'})
-            })
+              element.unselectSoftly({from: 'glass'});
+            });
 
             component.instantiateComponent(
               message.relpath,
@@ -690,73 +698,73 @@ export class Glass extends React.Component {
               (err) => {
                 if (err) {
                   if (err.code === 'ENOENT') {
-                    console.error('We couldn\'t find that component. 😩 Please try again in a few moments. If you still see this error, contact Haiku for support.')
+                    console.error('We couldn\'t find that component. 😩 Please try again in a few moments. If you still see this error, contact Haiku for support.');
                   } else {
-                    console.error(err.message)
+                    console.error(err.message);
                   }
                 }
-              }
-            )
+              },
+            );
           }
-          break
+          break;
 
         case 'edit-component':
-          this.editComponent(this.fetchProxyElementForSelection().getSingleComponentElementRelpath())
-          break
+          this.editComponent(this.fetchProxyElementForSelection().getSingleComponentElementRelpath());
+          break;
 
         case 'conglomerate-component':
-          this.launchComponentNameModal()
-          break
+          this.launchComponentNameModal();
+          break;
 
         case 'perform-align':
-          this.fetchProxyElementForSelection().align(message.xEdge, message.yEdge, message.toStage)
-          break
+          this.fetchProxyElementForSelection().align(message.xEdge, message.yEdge, message.toStage);
+          break;
 
         case 'perform-distribute':
-          this.fetchProxyElementForSelection().distribute(message.xEdge, message.yEdge, message.toStage)
-          break
+          this.fetchProxyElementForSelection().distribute(message.xEdge, message.yEdge, message.toStage);
+          break;
 
         case 'assets-changed':
-          File.cache.clear()
-          break
+          File.cache.clear();
+          break;
       }
-    })
+    });
 
     this._comments.load((err) => {
       if (err) {
-        return
+        return;
       }
 
-      this.setState({ comments: this._comments.comments })
-    })
+      this.setState({comments: this._comments.comments});
+    });
 
     this.addEmitterListener(window, 'resize', lodash.throttle(() => {
-      this.handleWindowResize()
-    }), 64)
+      this.handleWindowResize();
+    }), 64);
 
-    this.addEmitterListener(window, 'mouseup', this.windowMouseUpHandler.bind(this))
+    this.addEmitterListener(window, 'mouseup', this.windowMouseUpHandler.bind(this));
 
     this.addEmitterListener(window, 'mousemove', lodash.throttle((mouseMoveEvent) => {
-      this.windowMouseMoveHandler(mouseMoveEvent)
-    }, 32))
+      this.windowMouseMoveHandler(mouseMoveEvent);
+    }, 32));
 
-    this.addEmitterListener(window, 'dblclick', this.windowDblClickHandler.bind(this))
-    this.addEmitterListener(window, 'keydown', this.windowKeyDownHandler.bind(this))
-    this.addEmitterListener(window, 'keyup', this.windowKeyUpHandler.bind(this))
+    this.addEmitterListener(window, 'dblclick', this.windowDblClickHandler.bind(this));
+    this.addEmitterListener(window, 'keydown', this.windowKeyDownHandler.bind(this));
+    this.addEmitterListener(window, 'keyup', this.windowKeyUpHandler.bind(this));
     if (experimentIsEnabled(Experiment.OutliningElementsOnStageFromStage)) {
-      this.addEmitterListener(window, 'mouseover', this.windowMouseOverHandler.bind(this))
+      this.addEmitterListener(window, 'mouseover', this.windowMouseOverHandler.bind(this));
     }
     // When the mouse is clicked, below is the order that events fire
-    this.addEmitterListener(window, 'mousedown', this.windowMouseDownHandler.bind(this))
-    this.addEmitterListener(window, 'mouseup', this.windowMouseUpHandler.bind(this))
-    this.addEmitterListener(window, 'click', this.windowClickHandler.bind(this))
+    this.addEmitterListener(window, 'mousedown', this.windowMouseDownHandler.bind(this));
+    this.addEmitterListener(window, 'mouseup', this.windowMouseUpHandler.bind(this));
+    this.addEmitterListener(window, 'click', this.windowClickHandler.bind(this));
     this.addEmitterListener(window, 'contextmenu', (contextmenuEvent) => {
       // Don't show the context menu if our editor is open
       if (this.isPreviewMode() || this.state.isEventHandlerEditorOpen) {
-        return
+        return;
       }
 
-      contextmenuEvent.preventDefault()
+      contextmenuEvent.preventDefault();
 
       this.setState({
         isAnythingScaling: false,
@@ -764,30 +772,30 @@ export class Glass extends React.Component {
         isStageSelected: false,
         isStageNameHovering: false,
         isMouseDown: false,
-        isMouseDragging: false
-      })
-    }, false)
+        isMouseDragging: false,
+      });
+    }, false);
   }
 
   componentWillUnmount () {
-    this.removeEmitterListeners()
-    this.tourClient.off('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
-    this.project.getEnvoyClient().closeConnection()
+    this.removeEmitterListeners();
+    this.tourClient.off('tour:requestElementCoordinates', this.handleRequestElementCoordinates);
+    this.project.getEnvoyClient().closeConnection();
   }
 
   modColor (i) {
-    return ((i || 0) * 8) % 360
+    return ((i || 0) * 8) % 360;
   }
 
   renderSnapLines () {
     // Don't do anything until a project is initialized
     if (!this.getActiveComponent()) {
-      return []
+      return [];
     }
 
-    let getLineElements = () => {
-      let horizSnaps = []
-      let vertSnaps = []
+    const getLineElements = () => {
+      const horizSnaps = [];
+      const vertSnaps = [];
 
       if (this.state.isMouseDown &&
         this.state.snapLines &&
@@ -795,27 +803,30 @@ export class Glass extends React.Component {
         !Globals.isSpecialKeyDown() &&
         !this.isMarqueeActive()) {
         lodash.forEach(this.state.snapLines, (snapLine, index) => {
-          if (snapLine.direction === 'HORIZONTAL') horizSnaps.push(snapLine)
-          else vertSnaps.push(snapLine)
-        })
+          if (snapLine.direction === 'HORIZONTAL') {
+            horizSnaps.push(snapLine);
+          } else {
+            vertSnaps.push(snapLine);
+          }
+        });
       }
 
-      let lines = []
-      this._renderCount = this._renderCount || 0
+      const lines = [];
+      this._renderCount = this._renderCount || 0;
       horizSnaps.forEach((snap, i) => {
-        lines.push(<line key={'h-' + i} x1='-5000' x2='5000' y1={snap.positionWorld} y2={snap.positionWorld} strokeWidth='1.25' stroke={'hsl(' + this.modColor(this._renderCount) + ', 100%, 50%)'} />)
-      })
+        lines.push(<line key={'h-' + i} x1="-5000" x2="5000" y1={snap.positionWorld} y2={snap.positionWorld} strokeWidth="1.25" stroke={'hsl(' + this.modColor(this._renderCount) + ', 100%, 50%)'} />);
+      });
       vertSnaps.forEach((snap, i) => {
-        lines.push(<line key={'v-' + i} x1={snap.positionWorld} x2={snap.positionWorld} y1='-5000' y2='5000' strokeWidth='1.25' stroke={'hsl(' + this.modColor(this._renderCount) + ', 100%, 50%)'} />)
-      })
-      this._renderCount++
+        lines.push(<line key={'v-' + i} x1={snap.positionWorld} x2={snap.positionWorld} y1="-5000" y2="5000" strokeWidth="1.25" stroke={'hsl(' + this.modColor(this._renderCount) + ', 100%, 50%)'} />);
+      });
+      this._renderCount++;
 
-      return lines
-    }
+      return lines;
+    };
 
-    let artboard = this.getActiveComponent().getArtboard()
+    const artboard = this.getActiveComponent().getArtboard();
 
-    let SNAP_LINE_OVERLAY_STYLE = {
+    const SNAP_LINE_OVERLAY_STYLE = {
       position: 'fixed',
       width: '100%',
       height: '100%',
@@ -825,131 +836,131 @@ export class Glass extends React.Component {
       zIndex: MAX_Z_INDEX - 2,
       overflow: 'visible',
       top: artboard.getMountY(),
-      left: artboard.getMountX()
-    }
+      left: artboard.getMountX(),
+    };
     return (
-      <svg id='snap-overlay' style={SNAP_LINE_OVERLAY_STYLE}>
+      <svg id="snap-overlay" style={SNAP_LINE_OVERLAY_STYLE}>
         {getLineElements()}
       </svg>
-    )
+    );
   }
 
   handleUndo (payload) {
     if (this.project) {
-      mixpanel.haikuTrack('creator:glass:undo')
-      Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'})
-      this.project.undo({}, {from: 'glass'}, () => {})
+      mixpanel.haikuTrack('creator:glass:undo');
+      Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'});
+      this.project.undo({}, {from: 'glass'}, () => {});
     }
   }
 
   handleRedo (payload) {
     if (this.project) {
-      mixpanel.haikuTrack('creator:glass:redo')
-      Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'})
-      this.project.redo({}, {from: 'glass'}, () => {})
+      mixpanel.haikuTrack('creator:glass:redo');
+      Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'});
+      this.project.redo({}, {from: 'glass'}, () => {});
     }
   }
 
   handleCut () {
-    mixpanel.haikuTrack('creator:glass:cut')
-    this.fetchProxyElementForSelection().cut({from: 'glass'})
+    mixpanel.haikuTrack('creator:glass:cut');
+    this.fetchProxyElementForSelection().cut({from: 'glass'});
   }
 
   handleCopy () {
-    mixpanel.haikuTrack('creator:glass:copy')
-    this.fetchProxyElementForSelection().copy({from: 'glass'})
+    mixpanel.haikuTrack('creator:glass:copy');
+    this.fetchProxyElementForSelection().copy({from: 'glass'});
   }
 
   handlePaste () {
-    mixpanel.haikuTrack('creator:glass:paste')
-    const pasteables = ElementSelectionProxy.getPasteables()
+    mixpanel.haikuTrack('creator:glass:paste');
+    const pasteables = ElementSelectionProxy.getPasteables();
     return this.fetchProxyElementForSelection().pasteClipsAndSelect(
       pasteables,
       {from: 'glass'},
-      () => {}
-    )
+      () => {},
+    );
   }
 
   handleDelete () {
     if (this.isPreviewMode()) {
-      return
+      return;
     }
 
     if (this.getActiveComponent()) {
-      mixpanel.haikuTrack('creator:glass:delete-element')
-      const proxy = this.fetchProxyElementForSelection()
-      proxy.remove(this.getActiveComponent().project.getMetadata())
+      mixpanel.haikuTrack('creator:glass:delete-element');
+      const proxy = this.fetchProxyElementForSelection();
+      proxy.remove(this.getActiveComponent().project.getMetadata());
     }
   }
 
   handleSelectAll () {
     if (this.getActiveComponent()) {
-      mixpanel.haikuTrack('creator:glass:select-all')
-      this.getActiveComponent().selectAll({}, {from: 'glass'}, () => {})
+      mixpanel.haikuTrack('creator:glass:select-all');
+      this.getActiveComponent().selectAll({}, {from: 'glass'}, () => {});
     }
   }
 
   handleGroup () {
-    const proxy = this.fetchProxyElementForSelection()
+    const proxy = this.fetchProxyElementForSelection();
     if (proxy.canGroup()) {
-      mixpanel.haikuTrack('creator:glass:group')
+      mixpanel.haikuTrack('creator:glass:group');
 
       // We need to unselect the group members otherwise dragging the group
       // will also drag the inner elements, resulting in undesired offsets
       proxy.selection.forEach((element) => {
-        element.unselectSoftly({from: 'glass'})
-      })
+        element.unselectSoftly({from: 'glass'});
+      });
 
-      proxy.group({from: 'glass'})
+      proxy.group({from: 'glass'});
     }
   }
 
   handleUngroup () {
-    const proxy = this.fetchProxyElementForSelection()
+    const proxy = this.fetchProxyElementForSelection();
     if (proxy.canUngroup()) {
-      mixpanel.haikuTrack('creator:glass:ungroup')
-      proxy.ungroup({from: 'glass'})
+      mixpanel.haikuTrack('creator:glass:ungroup');
+      proxy.ungroup({from: 'glass'});
     }
   }
 
   launchComponentNameModal () {
     this.setState({
-      isCreateComponentModalOpen: true
-    })
+      isCreateComponentModalOpen: true,
+    });
   }
 
   conglomerateComponentFromSelectedElementsWithTitle (title) {
-    const proxy = this.fetchProxyElementForSelection()
+    const proxy = this.fetchProxyElementForSelection();
 
     // Our selection becomes invalid as soon as we call this since we're changing
     // the elements that are currently on stage (including our current selection)
     Element.unselectAllElements({
-      component: this.getActiveComponent()
-    }, { from: 'glass' })
+      component: this.getActiveComponent(),
+    }, {from: 'glass'});
 
     mixpanel.haikuTrack('creator:glass:create-component', {
-      title
-    })
+      title,
+    });
 
-    let translation
+    let translation;
     if (proxy.hasAnythingInSelectionButNotArtboard()) {
-      translation = proxy.getConglomerateTranslation()
+      translation = proxy.getConglomerateTranslation();
     } else {
-      translation = {x: 0, y: 0}
+      translation = {x: 0, y: 0};
     }
 
-    let size
+    let size;
     if (proxy.hasAnythingInSelectionButNotArtboard()) {
-      size = proxy.getConglomerateSize()
+      size = proxy.getConglomerateSize();
     } else {
-      size = this.getActiveComponent().getArtboard().getSize()
+      size = this.getActiveComponent().getArtboard().getSize();
     }
 
-    let componentIds
+    let componentIds;
     if (proxy.hasAnythingInSelectionButNotArtboard()) {
-      componentIds = proxy.selection.map((element) => element.getComponentId())
+      componentIds = proxy.selection.map((element) => element.getComponentId());
     } else {
-      componentIds = this.getActiveComponent().getTopLevelElementHaikuIds()
+      componentIds = this.getActiveComponent().getTopLevelElementHaikuIds();
     }
 
     this.getActiveComponent().conglomerateComponent(
@@ -959,7 +970,7 @@ export class Glass extends React.Component {
       translation,
       { // "coords"
         x: translation.x + size.x / 2, // assume center origin
-        y: translation.y + size.y / 2  // assume center origin
+        y: translation.y + size.y / 2,  // assume center origin
       },
       {
         // "properties"
@@ -969,121 +980,121 @@ export class Glass extends React.Component {
         'sizeMode.y': 1,
         'sizeMode.z': 1,
         'origin.x': 0.5,
-        'origin.y': 0.5
+        'origin.y': 0.5,
       },
       {from: 'glass'},
       (err, mana) => {
         if (err) {
-          logger.error(err)
-          return
+          logger.error(err);
+          return;
         }
 
-        this.editComponent(mana.attributes[HAIKU_SOURCE_ATTRIBUTE])
-      }
-    )
+        this.editComponent(mana.attributes[HAIKU_SOURCE_ATTRIBUTE]);
+      },
+    );
   }
 
   editComponent (relpath) {
     // Stop preview mode if it happens to be active when we switch contexts
     this.project.setInteractionMode(0, {from: 'glass'}, (err) => {
       if (err) {
-        logger.error(err)
+        logger.error(err);
       }
 
       this.project.findActiveComponentBySource(relpath, (err, ac) => {
         if (!err && ac && ac !== this.getActiveComponent()) {
           mixpanel.haikuTrack('creator:glass:edit-component', {
-            title: ac.getTitle()
-          })
+            title: ac.getTitle(),
+          });
 
           ac.setAsCurrentActiveComponent({from: 'glass'}, (err) => {
             if (err) {
-              logger.error(err)
+              logger.error(err);
             }
-          })
+          });
         }
-      })
-    })
+      });
+    });
   }
 
   handleWindowResize () {
     if (!this.getActiveComponent()) {
-      return
+      return;
     }
 
-    this.resetContainerDimensions()
-    this.forceUpdate()
+    this.resetContainerDimensions();
+    this.forceUpdate();
   }
 
   resetContainerDimensions () {
-    this.getActiveComponent().getArtboard().resetContainerDimensions(this.refs.container)
+    this.getActiveComponent().getArtboard().resetContainerDimensions(this.refs.container);
   }
 
   showEventHandlersEditor (clickEvent, targetElement, options) {
     if (this.isPreviewMode() || !targetElement) {
-      return
+      return;
     }
 
-    mixpanel.haikuTrack('creator:glass:show-event-handlers-editor')
-    logger.info(`showing action editor`, options)
+    mixpanel.haikuTrack('creator:glass:show-event-handlers-editor');
+    logger.info(`showing action editor`, options);
 
     this.setState({
       targetElement,
       isEventHandlerEditorOpen: true,
-      eventHandlerEditorOptions: options
-    })
+      eventHandlerEditorOptions: options,
+    });
   }
 
   hideEventHandlersEditor () {
     if (this.editor && this.editor.canBeClosedExternally()) {
-      mixpanel.haikuTrack('creator:glass:hide-event-handlers-editor')
+      mixpanel.haikuTrack('creator:glass:hide-event-handlers-editor');
       this.setState({
         targetElement: null,
         isEventHandlerEditorOpen: false,
-        eventHandlerEditorOptions: {}
-      })
+        eventHandlerEditorOptions: {},
+      });
     }
   }
 
   saveEventHandlers (targetElement, serializedEvents) {
-    const selectorName = 'haiku:' + targetElement.getComponentId()
-    this.getActiveComponent().batchUpsertEventHandlers(selectorName, serializedEvents, { from: 'glass' }, () => {})
+    const selectorName = 'haiku:' + targetElement.getComponentId();
+    this.getActiveComponent().batchUpsertEventHandlers(selectorName, serializedEvents, {from: 'glass'}, () => {});
   }
 
   performPan (dx, dy) {
     if (!this.getActiveComponent()) {
-      return
+      return;
     }
 
-    this.getActiveComponent().getArtboard().performPan(dx, dy)
+    this.getActiveComponent().getArtboard().performPan(dx, dy);
   }
 
   findElementAssociatedToMouseEvent (mouseEvent) {
-    let target = this.findNearestDomSelectionTarget(mouseEvent.target)
+    let target = this.findNearestDomSelectionTarget(mouseEvent.target);
 
     // True if the action was performed on the transform control for a selected element
     if (target === SELECTION_TYPES.ON_STAGE_CONTROL) {
-      return
+      return;
     }
 
     // True if the action was performed on the stage, but not on any on-stage element
     if (!target || !target.hasAttribute) {
-      return
+      return;
     }
 
-    target = this.validTargetOrNull(target)
+    target = this.validTargetOrNull(target);
 
     // Truthy if we found a valid, selectable element target
     if (target) {
       // First make sure we are grabbing the correct element based on the context.
       // If we've landed on a component sub-element, we need to go up and select the wrapper.
-      let haikuId = target.getAttribute('haiku-id')
+      let haikuId = target.getAttribute('haiku-id');
 
       if (this.isDomNodeChildOfComponentWrapperDomNode(target)) {
-        haikuId = target.parentNode.getAttribute('haiku-id')
+        haikuId = target.parentNode.getAttribute('haiku-id');
       }
 
-      return this.getActiveComponent().findElementByComponentId(haikuId)
+      return this.getActiveComponent().findElementByComponentId(haikuId);
     }
   }
 
@@ -1092,144 +1103,144 @@ export class Glass extends React.Component {
       this.state.isMouseDown ||
       this.isPreviewMode()
     ) {
-      return
+      return;
     }
 
-    const element = this.findElementAssociatedToMouseEvent(mouseoverEvent)
+    const element = this.findElementAssociatedToMouseEvent(mouseoverEvent);
 
     if (!element || element.isHovered() || element.isSelected()) {
-      return
+      return;
     }
 
-    Element.hoverOffAllElements({component: this.getActiveComponent(), _isHovered: true}, {from: 'glass'})
+    Element.hoverOffAllElements({component: this.getActiveComponent(), _isHovered: true}, {from: 'glass'});
 
-    element.hoverOn({from: 'glass'})
-    const boxPoints = element.getBoxPointsTransformed()
+    element.hoverOn({from: 'glass'});
+    const boxPoints = element.getBoxPointsTransformed();
 
     const mousemoveHandler = (mousemoveEvent) => {
-      const artboard = this.getActiveComponent().getArtboard()
-      const rect = artboard.getRect()
-      const zoom = artboard.getZoom()
+      const artboard = this.getActiveComponent().getArtboard();
+      const rect = artboard.getRect();
+      const zoom = artboard.getZoom();
 
       if (isCoordInsideBoxPoints(
         (mousemoveEvent.clientX - rect.left) / zoom,
         (mousemoveEvent.clientY - rect.top) / zoom,
-        boxPoints
+        boxPoints,
       )) {
-        return
+        return;
       }
 
-      element.hoverOff({from: 'glass'})
-      window.removeEventListener('mousemove', mousemoveHandler)
-    }
+      element.hoverOff({from: 'glass'});
+      window.removeEventListener('mousemove', mousemoveHandler);
+    };
 
     element.on('update', (event) => {
       if (event === 'element-selected' || event === 'element-selected-softly' || event === 'element-removed') {
-        window.removeEventListener('mousemove', mousemoveHandler)
+        window.removeEventListener('mousemove', mousemoveHandler);
       }
-    })
+    });
 
-    window.addEventListener('mousemove', mousemoveHandler)
+    window.addEventListener('mousemove', mousemoveHandler);
   }
 
   get areAnyModalsOpen () {
-    return this.state.isEventHandlerEditorOpen || this.state.isCreateComponentModalOpen
+    return this.state.isEventHandlerEditorOpen || this.state.isCreateComponentModalOpen;
   }
 
   get shouldNotHandldKeyboardEvents () {
-    return this.isPreviewMode() || this.areAnyModalsOpen
+    return this.isPreviewMode() || this.areAnyModalsOpen;
   }
 
   windowMouseMoveHandler (nativeEvent) {
     if (this.areAnyModalsOpen) {
-      return
+      return;
     }
 
-    nativeEvent.preventDefault()
-    this.handleMouseMove({ nativeEvent })
+    nativeEvent.preventDefault();
+    this.handleMouseMove({nativeEvent});
   }
 
   windowMouseUpHandler (nativeEvent) {
     if (this.areAnyModalsOpen) {
-      return
+      return;
     }
 
-    nativeEvent.preventDefault()
-    this.handleMouseUp({ nativeEvent })
+    nativeEvent.preventDefault();
+    this.handleMouseUp({nativeEvent});
   }
 
   windowMouseDownHandler (nativeEvent) {
     if (this.areAnyModalsOpen) {
-      return
+      return;
     }
 
-    nativeEvent.preventDefault()
-    this.handleMouseDown({ nativeEvent })
+    nativeEvent.preventDefault();
+    this.handleMouseDown({nativeEvent});
   }
 
   windowClickHandler (nativeEvent) {
     if (this.shouldNotHandldKeyboardEvents) {
-      return
+      return;
     }
 
-    nativeEvent.preventDefault()
-    this.handleClick({ nativeEvent })
+    nativeEvent.preventDefault();
+    this.handleClick({nativeEvent});
   }
 
   windowDblClickHandler (nativeEvent) {
     if (this.shouldNotHandldKeyboardEvents) {
-      return
+      return;
     }
 
-    nativeEvent.preventDefault()
-    this.handleDoubleClick({ nativeEvent })
+    nativeEvent.preventDefault();
+    this.handleDoubleClick({nativeEvent});
   }
 
   windowKeyDownHandler (nativeEvent) {
     if (this.shouldNotHandldKeyboardEvents) {
-      return
+      return;
     }
 
-    this.handleKeyDown({ nativeEvent })
+    this.handleKeyDown({nativeEvent});
   }
 
   windowKeyUpHandler (nativeEvent) {
     if (this.shouldNotHandldKeyboardEvents) {
-      return
+      return;
     }
 
-    this.handleKeyUp({ nativeEvent })
+    this.handleKeyUp({nativeEvent});
   }
 
   handleMouseDown (mousedownEvent) {
-    this.didDragSinceLastMouseDown = false
+    this.didDragSinceLastMouseDown = false;
 
     // Only count left clicks
     if (!this.getActiveComponent() || this.areAnyModalsOpen || mousedownEvent.nativeEvent.button !== 0) {
-      return
+      return;
     }
 
     if (belongsToMenuIcon(mousedownEvent.nativeEvent.target)) {
-      this.openContextMenu(mousedownEvent.nativeEvent)
-      return
+      this.openContextMenu(mousedownEvent.nativeEvent);
+      return;
     }
 
-    this.state.isMouseDown = true
-    const mouseDownPosition = this.storeAndReturnMousePosition(mousedownEvent, 'lastMouseDownPosition')
-    const proxy = this.fetchProxyElementForSelection()
-    proxy.handleMouseDown(mouseDownPosition)
+    this.state.isMouseDown = true;
+    const mouseDownPosition = this.storeAndReturnMousePosition(mousedownEvent, 'lastMouseDownPosition');
+    const proxy = this.fetchProxyElementForSelection();
+    proxy.handleMouseDown(mouseDownPosition);
 
     switch (mousedownEvent.nativeEvent.target.getAttribute('class')) {
       case 'direct-selection-anchor': {
-        let dataIndex = parseInt(mousedownEvent.nativeEvent.target.getAttribute('data-index'), 10)
+        const dataIndex = parseInt(mousedownEvent.nativeEvent.target.getAttribute('data-index'), 10);
         // NOTE: meta used to determine if anchor or handle for <path> (see directSelectionMana.js)
-        const meta = mousedownEvent.nativeEvent.target.getAttribute('data-meta') && mousedownEvent.nativeEvent.target.getAttribute('data-meta').length ? parseInt(mousedownEvent.nativeEvent.target.getAttribute('data-meta'), 10) : null
+        const meta = mousedownEvent.nativeEvent.target.getAttribute('data-meta') && mousedownEvent.nativeEvent.target.getAttribute('data-meta').length ? parseInt(mousedownEvent.nativeEvent.target.getAttribute('data-meta'), 10) : null;
 
         // NOTE: go select the previous vertex when a RHS handle is selected
 
         // Convert between corners and curves
         if (Globals.isSpecialKeyDown() && Element.directlySelected.type === 'path' && meta == null) {
-          const points = SVGPoints.pathToPoints(Element.directlySelected.attributes.d)
+          const points = SVGPoints.pathToPoints(Element.directlySelected.attributes.d);
          // If the control handles share the same coordinates, then it's already a corner. Otherwise, it's a curve.
           const convertToCorner = (
             (dataIndex === 0 && points[dataIndex + 1].curve &&
@@ -1238,31 +1249,39 @@ export class Glass extends React.Component {
             (points[dataIndex].curve &&
               (points[dataIndex].curve.x2 !== points[dataIndex].x || points[dataIndex].curve.y2 !== points[dataIndex].y)
             )
-          )
+          );
 
           if (convertToCorner) {
             if (dataIndex > 0) {
-              if (!points[dataIndex].curve) points[dataIndex].curve = {type: 'cubic', x1: points[dataIndex - 1].x, y1: points[dataIndex - 1].y}
-              points[dataIndex].curve.x2 = points[dataIndex].x
-              points[dataIndex].curve.y2 = points[dataIndex].y
+              if (!points[dataIndex].curve) {
+                points[dataIndex].curve = {type: 'cubic', x1: points[dataIndex - 1].x, y1: points[dataIndex - 1].y};
+              }
+              points[dataIndex].curve.x2 = points[dataIndex].x;
+              points[dataIndex].curve.y2 = points[dataIndex].y;
             }
 
             if (dataIndex < points.length - 1) {
-              if (!points[dataIndex + 1].curve) points[dataIndex + 1].curve = {type: 'cubic', x2: points[dataIndex + 1].x, y2: points[dataIndex + 1].y}
-              points[dataIndex + 1].curve.x1 = points[dataIndex].x
-              points[dataIndex + 1].curve.y1 = points[dataIndex].y
+              if (!points[dataIndex + 1].curve) {
+                points[dataIndex + 1].curve = {type: 'cubic', x2: points[dataIndex + 1].x, y2: points[dataIndex + 1].y};
+              }
+              points[dataIndex + 1].curve.x1 = points[dataIndex].x;
+              points[dataIndex + 1].curve.y1 = points[dataIndex].y;
             }
           } else {
             if (dataIndex > 0) {
-              if (!points[dataIndex].curve) points[dataIndex].curve = {type: 'cubic', x1: points[dataIndex - 1].x, y1: points[dataIndex - 1].y}
-              points[dataIndex].curve.x2 = points[dataIndex].x - 20
-              points[dataIndex].curve.y2 = points[dataIndex].y
+              if (!points[dataIndex].curve) {
+                points[dataIndex].curve = {type: 'cubic', x1: points[dataIndex - 1].x, y1: points[dataIndex - 1].y};
+              }
+              points[dataIndex].curve.x2 = points[dataIndex].x - 20;
+              points[dataIndex].curve.y2 = points[dataIndex].y;
             }
 
             if (dataIndex < points.length - 1) {
-              if (!points[dataIndex + 1].curve) points[dataIndex + 1].curve = {type: 'cubic', x2: points[dataIndex + 1].x, y2: points[dataIndex + 1].y}
-              points[dataIndex + 1].curve.x1 = points[dataIndex].x + 20
-              points[dataIndex + 1].curve.y1 = points[dataIndex].y
+              if (!points[dataIndex + 1].curve) {
+                points[dataIndex + 1].curve = {type: 'cubic', x2: points[dataIndex + 1].x, y2: points[dataIndex + 1].y};
+              }
+              points[dataIndex + 1].curve.x1 = points[dataIndex].x + 20;
+              points[dataIndex + 1].curve.y1 = points[dataIndex].y;
             }
           }
           this.getActiveComponent().updateKeyframes({
@@ -1270,181 +1289,191 @@ export class Glass extends React.Component {
               [Element.directlySelected.attributes['haiku-id']]: {
                 d: {
                   0: {
-                    value: SVGPoints.pointsToPath(points)
-                  }
-                }
-              }
-            }
+                    value: SVGPoints.pointsToPath(points),
+                  },
+                },
+              },
+            },
           }, {
             setElementLockStatus: {
-              [Element.directlySelected.rootSVG.attributes[HAIKU_ID_ATTRIBUTE]]: true
-            }
-          }, {from: 'glass'}, () => {})
+              [Element.directlySelected.rootSVG.attributes[HAIKU_ID_ATTRIBUTE]]: true,
+            },
+          }, {from: 'glass'}, () => {});
         }
 
         // Add to the selection
-        let indices
+        let indices;
         const alreadySelected =
           this.state.directSelectionAnchorActivation &&
           this.state.directSelectionAnchorActivation.indices &&
           this.state.directSelectionAnchorActivation.indices[Element.directlySelected.attributes['haiku-id']] &&
-          this.state.directSelectionAnchorActivation.indices[Element.directlySelected.attributes['haiku-id']].includes(dataIndex)
+          this.state.directSelectionAnchorActivation.indices[Element.directlySelected.attributes['haiku-id']].includes(dataIndex);
 
         if (DIRECT_SELECTION_MULTIPLE_SELECTION_ALLOWED[Element.directlySelected.type] && (Globals.isShiftKeyDown || alreadySelected)) {
           if (this.state.directSelectionAnchorActivation) {
             indices = {
-              ...this.state.directSelectionAnchorActivation.indices
-            }
+              ...this.state.directSelectionAnchorActivation.indices,
+            };
           } else {
             indices = {
-              [Element.directlySelected.attributes['haiku-id']]: [dataIndex]
-            }
+              [Element.directlySelected.attributes['haiku-id']]: [dataIndex],
+            };
           }
 
           if (Globals.isShiftKeyDown && alreadySelected) {
             // Remove if already selected
-            indices[Element.directlySelected.attributes['haiku-id']] = lodash.pull(indices[Element.directlySelected.attributes['haiku-id']], dataIndex)
+            indices[Element.directlySelected.attributes['haiku-id']] = lodash.pull(indices[Element.directlySelected.attributes['haiku-id']], dataIndex);
           } else {
             // Add otherwise
-            if (!indices[Element.directlySelected.attributes['haiku-id']]) indices[Element.directlySelected.attributes['haiku-id']] = []
-            indices[Element.directlySelected.attributes['haiku-id']].push(dataIndex)
-            indices[Element.directlySelected.attributes['haiku-id']] = lodash.uniq(indices[Element.directlySelected.attributes['haiku-id']])
+            if (!indices[Element.directlySelected.attributes['haiku-id']]) {
+              indices[Element.directlySelected.attributes['haiku-id']] = [];
+            }
+            indices[Element.directlySelected.attributes['haiku-id']].push(dataIndex);
+            indices[Element.directlySelected.attributes['haiku-id']] = lodash.uniq(indices[Element.directlySelected.attributes['haiku-id']]);
           }
         } else {
           indices = {
-            [Element.directlySelected.attributes['haiku-id']]: [dataIndex]
-          }
+            [Element.directlySelected.attributes['haiku-id']]: [dataIndex],
+          };
         }
         this.directSelectionAnchorActivation({
           indices,
           meta,
-          event: mousedownEvent.nativeEvent
-        })
-        break
+          event: mousedownEvent.nativeEvent,
+        });
+        break;
       }
       case 'control-point': {
-        const dataIndex = parseInt(mousedownEvent.nativeEvent.target.getAttribute('data-index'), 10)
+        const dataIndex = parseInt(mousedownEvent.nativeEvent.target.getAttribute('data-index'), 10);
 
         this.controlActivation({
           index: dataIndex,
-          event: mousedownEvent.nativeEvent
-        })
-        break
+          event: mousedownEvent.nativeEvent,
+        });
+        break;
       }
       case 'origin':
-        this.originActivation({event: mousedownEvent.nativeEvent})
-        break
+        this.originActivation({event: mousedownEvent.nativeEvent});
+        break;
       default:
         // We are panning now, so don't un/select anything
         if (Globals.isSpaceKeyDown) {
-          return
+          return;
         }
 
         const finish = () => {
-          this.fetchProxyElementForSelection().cacheOrigins()
-        }
+          this.fetchProxyElementForSelection().cacheOrigins();
+        };
 
         if (this.getActiveComponent().getArtboard().getActiveDrawingTool() !== 'pointer') {
           // TODO: Drawing tools
         } else if (!this.isPreviewMode()) {
-          let target = this.findNearestDomSelectionTarget(mousedownEvent.nativeEvent.target)
+          let target = this.findNearestDomSelectionTarget(mousedownEvent.nativeEvent.target);
 
           // True if the user has clicked the transform control for a selected element
           if (target === SELECTION_TYPES.ON_STAGE_CONTROL) {
-            return
+            return;
           }
 
-          let targetLocked = false
+          let targetLocked = false;
           if (target && target.getAttribute) {
-            const el = Element.findByComponentAndHaikuId(this.getActiveComponent(), target.getAttribute('haiku-id'))
+            const el = Element.findByComponentAndHaikuId(this.getActiveComponent(), target.getAttribute('haiku-id'));
             if (el) {
-              targetLocked = el.isLockedViaParents()
+              targetLocked = el.isLockedViaParents();
             }
           }
           // True if the user has clicked on the stage, but not on any on-stage element
           if (targetLocked || !target || !target.hasAttribute) {
-            const proxy = this.fetchProxyElementForSelection()
+            const proxy = this.fetchProxyElementForSelection();
             if (proxy.hasAnythingInSelection() &&
               isCoordInsideBoxPoints(mouseDownPosition.x, mouseDownPosition.y, proxy.getBoxPointsTransformed())) {
-              return
+              return;
             }
 
             // Unselect all the elements unless the user is doing a meta-operation, as indicated by these keys
             if (!Globals.isShiftKeyDown && !Globals.isSpecialKeyDown() && !Globals.isAltKeyDown) {
-              Element.unselectAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
+              Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'});
             }
             if (!Globals.isSpecialKeyDown() && !Globals.isAltKeyDown) {
               if (this.getActiveComponent()) {
-                this.getActiveComponent().getSelectionMarquee().startSelection(mouseDownPosition)
+                this.getActiveComponent().getSelectionMarquee().startSelection(mouseDownPosition);
               }
             }
 
-            return
+            return;
           }
 
-          target = this.validTargetOrNull(target)
+          target = this.validTargetOrNull(target);
 
           if (!target) {
             // TODO: In what situations can we ever get here?
-            break
+            break;
           }
 
           // First make sure we are grabbing the correct element based on the context.
           // If we've landed on a component sub-element, we need to go up and select the wrapper.
-          let haikuId = target.getAttribute(HAIKU_ID_ATTRIBUTE)
+          let haikuId = target.getAttribute(HAIKU_ID_ATTRIBUTE);
 
           if (this.isDomNodeChildOfComponentWrapperDomNode(target)) {
-            haikuId = target.parentNode.getAttribute(HAIKU_ID_ATTRIBUTE)
+            haikuId = target.parentNode.getAttribute(HAIKU_ID_ATTRIBUTE);
           }
 
-          const elementTargeted = this.getActiveComponent().findElementByComponentId(haikuId)
+          const elementTargeted = this.getActiveComponent().findElementByComponentId(haikuId);
 
           if (elementTargeted.isRootElement()) { // The artboard can only be selected alone
-            Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'})
-            this.ensureElementIsSelected(elementTargeted, finish)
+            Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'});
+            this.ensureElementIsSelected(elementTargeted, finish);
           } else if (Globals.isControlKeyDown) {
             this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
-              this.ensureElementIsSelected(elementTargeted, finish)
-            })
+              this.ensureElementIsSelected(elementTargeted, finish);
+            });
           } else if (!Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // none
             this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
-              this.ensureElementIsSelected(elementTargeted, finish)
+              this.ensureElementIsSelected(elementTargeted, finish);
 
               if (!experimentIsEnabled(Experiment.DirectSelectionOfPrimitives)) {
-                return
+                return;
               }
 
-              this.setState({directSelectionAnchorActivation: null})
+              this.setState({directSelectionAnchorActivation: null});
 
-              const mouseDownTimeDiff = this.state.lastMouseDownTime ? Date.now() - this.state.lastMouseDownTime : null
-              const isDoubleClick = mouseDownTimeDiff ? mouseDownTimeDiff <= DOUBLE_CLICK_THRESHOLD_MS : false
-              const prevDirectlySelected = Element.directlySelected
-              let clickedItemFound = null
+              const mouseDownTimeDiff = this.state.lastMouseDownTime ? Date.now() - this.state.lastMouseDownTime : null;
+              const isDoubleClick = mouseDownTimeDiff ? mouseDownTimeDiff <= DOUBLE_CLICK_THRESHOLD_MS : false;
+              const prevDirectlySelected = Element.directlySelected;
+              let clickedItemFound = null;
               elementTargeted.getHaikuElement().visit((descendant) => {
-                if (descendant.isComponent()) return
-                if (descendant.isChildOfDefs) return
+                if (descendant.isComponent()) {
+                  return;
+                }
+                if (descendant.isChildOfDefs) {
+                  return;
+                }
 
-                let hasFill = false
+                let hasFill = false;
                 {
-                  let d = descendant
+                  let d = descendant;
                   while (!hasFill && d) {
-                    hasFill = (d.attributes.fill !== undefined && d.attributes.fill !== 'none')
-                    if (hasFill) break
-                    d = d.parent
+                    hasFill = (d.attributes.fill !== undefined && d.attributes.fill !== 'none');
+                    if (hasFill) {
+                      break;
+                    }
+                    d = d.parent;
                   }
                 }
 
-                let hasStroke = false
+                let hasStroke = false;
                 {
-                  let d = descendant
+                  let d = descendant;
                   while (!hasStroke && d) {
                     hasStroke = (d.attributes.stroke !== undefined &&
                       d.attributes.stroke !== 'none' &&
                       d.attributes.strokeWidth !== '0' &&
                       d.attributes.strokeWidth !== 0 &&
-                      d.attributes.strokeWidth !== 'none')
-                    if (hasStroke) break
-                    d = d.parent
+                      d.attributes.strokeWidth !== 'none');
+                    if (hasStroke) {
+                      break;
+                    }
+                    d = d.parent;
                   }
                 }
 
@@ -1454,266 +1483,278 @@ export class Glass extends React.Component {
                   ) || (
                     hasStroke && isPointAlongStroke(descendant, mouseDownPosition, Number(descendant.attributes['stroke-width']))
                   )) {
-                  clickedItemFound = descendant
-                  if (isDoubleClick && elementTargeted.isSelected()) Element.directlySelected = descendant
-                  return false // stop searching
+                  clickedItemFound = descendant;
+                  if (isDoubleClick && elementTargeted.isSelected()) {
+                    Element.directlySelected = descendant;
+                  }
+                  return false; // stop searching
                 }
-              })
+              });
 
               if (
                 !clickedItemFound ||
                 (Element.directlySelected !== null && clickedItemFound !== Element.directlySelected)
               ) {
-                Element.directlySelected = null
+                Element.directlySelected = null;
               }
 
               // --- Insert new vertex when the selected item is unchanged ---
               if (Element.directlySelected && Element.directlySelected === prevDirectlySelected && (isDoubleClick || Globals.isSpecialKeyDown())) {
-                const transformedLocalMouse = transform2DPoint(mouseDownPosition, Element.directlySelected.layoutAncestryMatrices.reverse())
+                const transformedLocalMouse = transform2DPoint(mouseDownPosition, Element.directlySelected.layoutAncestryMatrices.reverse());
 
                 const keyframeOptions = {
                   setElementLockStatus: {
-                    [Element.directlySelected.rootSVG.attributes[HAIKU_ID_ATTRIBUTE]]: true
-                  }
-                }
+                    [Element.directlySelected.rootSVG.attributes[HAIKU_ID_ATTRIBUTE]]: true,
+                  },
+                };
 
                 switch (Element.directlySelected.type) {
                   case 'rect': {
-                    const r = Element.directlySelected.attributes
+                    const r = Element.directlySelected.attributes;
                     const points = SVGPoints.rectToPoints(
                       Number(r.x), Number(r.y),
                       Element.directlySelected.layout.sizeAbsolute.x,
                       Element.directlySelected.layout.sizeAbsolute.y,
-                      Number(r.rx), Number(r.ry)
-                    )
+                      Number(r.rx), Number(r.ry),
+                    );
 
                     this.getActiveComponent().updateKeyframesAndTypes({
                       [this.getActiveComponent().getCurrentTimelineName()]: {
                         [Element.directlySelected.attributes['haiku-id']]: {
                           d: {
                             0: {
-                              value: SVGPoints.pointsToPath(points)
-                            }
+                              value: SVGPoints.pointsToPath(points),
+                            },
                           },
                           x: {
-                            0: null
+                            0: null,
                           },
                           y: {
-                            0: null
+                            0: null,
                           },
                           rx: {
-                            0: null
+                            0: null,
                           },
                           ry: {
-                            0: null
-                          }
-                        }
-                      }
+                            0: null,
+                          },
+                        },
+                      },
                     },
                       {
-                        [Element.directlySelected.attributes['haiku-id']]: 'path'
-                      }, keyframeOptions, {from: 'glass'}, () => {})
+                        [Element.directlySelected.attributes['haiku-id']]: 'path',
+                      }, keyframeOptions, {from: 'glass'}, () => {});
 
-                    break
+                    break;
                   }
                   case 'circle': {
-                    const r = Element.directlySelected.attributes
-                    const points = SVGPoints.circleToPoints(Number(r.cx), Number(r.cy), Number(r.r))
+                    const r = Element.directlySelected.attributes;
+                    const points = SVGPoints.circleToPoints(Number(r.cx), Number(r.cy), Number(r.r));
                     this.getActiveComponent().updateKeyframesAndTypes({
                       [this.getActiveComponent().getCurrentTimelineName()]: {
                         [Element.directlySelected.attributes['haiku-id']]: {
                           d: {
                             0: {
-                              value: SVGPoints.pointsToPath(points)
-                            }
+                              value: SVGPoints.pointsToPath(points),
+                            },
                           },
                           cx: {
-                            0: null
+                            0: null,
                           },
                           cy: {
-                            0: null
+                            0: null,
                           },
                           r: {
-                            0: null
-                          }
-                        }
-                      }
+                            0: null,
+                          },
+                        },
+                      },
                     },
                       {
-                        [Element.directlySelected.attributes['haiku-id']]: 'path'
-                      }, keyframeOptions, {from: 'glass'}, () => {})
+                        [Element.directlySelected.attributes['haiku-id']]: 'path',
+                      }, keyframeOptions, {from: 'glass'}, () => {});
 
-                    break
+                    break;
                   }
                   case 'ellipse': {
-                    const r = Element.directlySelected.attributes
-                    const points = SVGPoints.ellipseToPoints(Number(r.cx), Number(r.cy), Number(r.rx), Number(r.ry))
+                    const r = Element.directlySelected.attributes;
+                    const points = SVGPoints.ellipseToPoints(Number(r.cx), Number(r.cy), Number(r.rx), Number(r.ry));
                     this.getActiveComponent().updateKeyframesAndTypes({
                       [this.getActiveComponent().getCurrentTimelineName()]: {
                         [Element.directlySelected.attributes['haiku-id']]: {
                           d: {
                             0: {
-                              value: SVGPoints.pointsToPath(points)
-                            }
+                              value: SVGPoints.pointsToPath(points),
+                            },
                           },
                           cx: {
-                            0: null
+                            0: null,
                           },
                           cy: {
-                            0: null
+                            0: null,
                           },
                           rx: {
-                            0: null
+                            0: null,
                           },
                           ry: {
-                            0: null
-                          }
-                        }
-                      }
+                            0: null,
+                          },
+                        },
+                      },
                     },
                       {
-                        [Element.directlySelected.attributes['haiku-id']]: 'path'
-                      }, keyframeOptions, {from: 'glass'}, () => {})
-                    break
+                        [Element.directlySelected.attributes['haiku-id']]: 'path',
+                      }, keyframeOptions, {from: 'glass'}, () => {});
+                    break;
                   }
                   case 'line': {
-                    const r = Element.directlySelected.attributes
-                    const points = SVGPoints.lineToPoints(Number(r.x1), Number(r.y1), Number(r.x2), Number(r.y2))
+                    const r = Element.directlySelected.attributes;
+                    const points = SVGPoints.lineToPoints(Number(r.x1), Number(r.y1), Number(r.x2), Number(r.y2));
                     this.getActiveComponent().updateKeyframesAndTypes({
                       [this.getActiveComponent().getCurrentTimelineName()]: {
                         [Element.directlySelected.attributes['haiku-id']]: {
                           d: {
                             0: {
-                              value: SVGPoints.pointsToPath(points)
-                            }
+                              value: SVGPoints.pointsToPath(points),
+                            },
                           },
                           x1: {
-                            0: null
+                            0: null,
                           },
                           y1: {
-                            0: null
+                            0: null,
                           },
                           x2: {
-                            0: null
+                            0: null,
                           },
                           y2: {
-                            0: null
-                          }
-                        }
-                      }
+                            0: null,
+                          },
+                        },
+                      },
                     },
                       {
-                        [Element.directlySelected.attributes['haiku-id']]: 'path'
-                      }, keyframeOptions, {from: 'glass'}, () => {})
-                    break
+                        [Element.directlySelected.attributes['haiku-id']]: 'path',
+                      }, keyframeOptions, {from: 'glass'}, () => {});
+                    break;
                   }
                   case 'polygon':
                   case 'polyline': {
-                    const normalPoints = []
-                    const originalPoints = SVGPoints.polyPointsStringToPoints(Element.directlySelected.attributes.points).map((pt) => ({x: pt[0], y: pt[1]}))
+                    const normalPoints = [];
+                    const originalPoints = SVGPoints.polyPointsStringToPoints(Element.directlySelected.attributes.points).map((pt) => ({x: pt[0], y: pt[1]}));
 
                     // Insert an extra point at the end for a polygon because it's a closed shape
-                    if (Element.directlySelected.type === 'polygon') originalPoints.push(originalPoints[0])
+                    if (Element.directlySelected.type === 'polygon') {
+                      originalPoints.push(originalPoints[0]);
+                    }
 
                     // Calculate the normal points and their distances for each segment
                     for (let i = 0; i < originalPoints.length - 1; i++) {
-                      normalPoints.push(closestNormalPointOnLineSegment(originalPoints[i], originalPoints[i + 1], transformedLocalMouse))
+                      normalPoints.push(closestNormalPointOnLineSegment(originalPoints[i], originalPoints[i + 1], transformedLocalMouse));
                     }
-                    const normalDistances = normalPoints.map((pt) => (distance(transformedLocalMouse, pt)))
+                    const normalDistances = normalPoints.map((pt) => (distance(transformedLocalMouse, pt)));
 
                     // Find the smallest distance
-                    let min = Infinity
-                    let minIdx = -1
+                    let min = Infinity;
+                    let minIdx = -1;
                     for (let i = 0; i < normalDistances.length; i++) {
                       if (normalDistances[i] < min) {
-                        min = normalDistances[i]
-                        minIdx = i
+                        min = normalDistances[i];
+                        minIdx = i;
                       }
                     }
 
                     // Exit if it's too far away
-                    if (min > DEFAULT_LINE_SELECTION_THRESHOLD) break
+                    if (min > DEFAULT_LINE_SELECTION_THRESHOLD) {
+                      break;
+                    }
 
                     // Insert a new point at the normal
-                    originalPoints.splice(minIdx + 1, 0, normalPoints[minIdx])
+                    originalPoints.splice(minIdx + 1, 0, normalPoints[minIdx]);
 
                     // Adjust the selection state
                     this.directSelectionAnchorActivation({
                       indices: {
-                        [Element.directlySelected.attributes['haiku-id']]: [minIdx + 1]
-                      }
-                    })
+                        [Element.directlySelected.attributes['haiku-id']]: [minIdx + 1],
+                      },
+                    });
 
                     // Remove the last extra vertex if a polygon (added above)
-                    if (Element.directlySelected.type === 'polygon') originalPoints.pop()
+                    if (Element.directlySelected.type === 'polygon') {
+                      originalPoints.pop();
+                    }
 
                     this.getActiveComponent().updateKeyframes({
                       [this.getActiveComponent().getCurrentTimelineName()]: {
                         [Element.directlySelected.attributes['haiku-id']]: {
                           points: {
                             0: {
-                              value: SVGPoints.pointsToPolyString(originalPoints.map((pt) => ([pt.x, pt.y])))
-                            }
-                          }
-                        }
-                      }
-                    }, keyframeOptions, {from: 'glass'}, () => {})
-                    break
+                              value: SVGPoints.pointsToPolyString(originalPoints.map((pt) => ([pt.x, pt.y]))),
+                            },
+                          },
+                        },
+                      },
+                    }, keyframeOptions, {from: 'glass'}, () => {});
+                    break;
                   }
                   case 'path': {
-                    const points = SVGPoints.pathToPoints(Element.directlySelected.attributes.d)
-                    const approximationResolution = 80
-                    const [lutPoints] = buildPathLUT(points, approximationResolution)
+                    const points = SVGPoints.pathToPoints(Element.directlySelected.attributes.d);
+                    const approximationResolution = 80;
+                    const [lutPoints] = buildPathLUT(points, approximationResolution);
 
                     // Find the smallest distance
-                    let min = Infinity
-                    let minIdx = -1
+                    let min = Infinity;
+                    let minIdx = -1;
 
-                    const approxDistances = lutPoints.map((pt) => { return distance(pt, transformedLocalMouse) })
+                    const approxDistances = lutPoints.map((pt) => {
+                      return distance(pt, transformedLocalMouse);
+                    });
                     for (let i = 0; i < approxDistances.length; i++) {
                       if (approxDistances[i] < min) {
-                        min = approxDistances[i]
-                        minIdx = i
+                        min = approxDistances[i];
+                        minIdx = i;
                       }
                     }
 
                     // Exit if too far away
-                    if (min > DEFAULT_LINE_SELECTION_THRESHOLD) break
+                    if (min > DEFAULT_LINE_SELECTION_THRESHOLD) {
+                      break;
+                    }
 
                     // Calculate t value and surrounding points, and split
-                    const t = minIdx % approximationResolution / approximationResolution
+                    const t = minIdx % approximationResolution / approximationResolution;
 
                     this.getActiveComponent().updateKeyframes({
                       [this.getActiveComponent().getCurrentTimelineName()]: {
                         [Element.directlySelected.attributes['haiku-id']]: {
                           d: {
                             0: {
-                              value: SVGPoints.pointsToPath(splitSegmentInSVGPoints(points, Math.floor(minIdx / approximationResolution), Math.ceil(minIdx / approximationResolution), t))
-                            }
-                          }
-                        }
-                      }
-                    }, keyframeOptions, {from: 'glass'}, () => {})
-                    break
+                              value: SVGPoints.pointsToPath(splitSegmentInSVGPoints(points, Math.floor(minIdx / approximationResolution), Math.ceil(minIdx / approximationResolution), t)),
+                            },
+                          },
+                        },
+                      },
+                    }, keyframeOptions, {from: 'glass'}, () => {});
+                    break;
                   }
                 }
               }
-            })
+            });
           } else if (!Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Alt
             this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
               this.ensureElementIsSelected(elementTargeted, () => {
-                this.duplicateSelectedElementsThenSelectDuplicates(finish)
-              })
-            })
+                this.duplicateSelectedElementsThenSelectDuplicates(finish);
+              });
+            });
           } else if (Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // Shift
-            this.toggleMultiElementSelection(elementTargeted, finish)
+            this.toggleMultiElementSelection(elementTargeted, finish);
           } else if (Globals.isShiftKeyDown && Globals.isAltKeyDown) { // Shift+Alt
             this.toggleMultiElementSelection(elementTargeted, () => {
-              this.duplicateSelectedElementsThenSelectDuplicates(finish)
-            })
+              this.duplicateSelectedElementsThenSelectDuplicates(finish);
+            });
           }
         }
-        break
+        break;
     }
 
     // Save the original state of this element for applying the total drag deltas (in handleMouseMove)
@@ -1721,11 +1762,11 @@ export class Glass extends React.Component {
       this.selectedOriginalClickState = {
         attributes: JSON.parse(JSON.stringify(Element.directlySelected.attributes)),
         sizeX: Element.directlySelected.sizeX,
-        sizeY: Element.directlySelected.sizeY
-      }
+        sizeY: Element.directlySelected.sizeY,
+      };
     }
 
-    this.state.lastMouseDownTime = Date.now()
+    this.state.lastMouseDownTime = Date.now();
   }
 
   validTargetOrNull (target) {
@@ -1734,7 +1775,7 @@ export class Glass extends React.Component {
       !target ||
       !target.hasAttribute
     ) {
-      return null
+      return null;
     }
 
     // If no parent node, we must be too far; no valid target
@@ -1742,22 +1783,22 @@ export class Glass extends React.Component {
       !target.parentNode ||
       !target.parentNode.hasAttribute
     ) {
-      return null
+      return null;
     }
 
     // If our parent is the mount, we're at the target - the top level
     if (this.targetIsMount(target.parentNode)) {
-      return target
+      return target;
     }
 
     // Special case; don't jump to parent if we're in a component wrapper
     if (this.isDomNodeChildOfComponentWrapperDomNode(target)) {
-      return target
+      return target;
     }
 
     // If we don't have selectable metadata, try our parent
     if (!target.hasAttribute(HAIKU_ID_ATTRIBUTE)) {
-      return this.validTargetOrNull(target.parentNode)
+      return this.validTargetOrNull(target.parentNode);
     }
 
     // If the parent is valid, we may want to jump up to it;
@@ -1767,77 +1808,83 @@ export class Glass extends React.Component {
       target.parentNode.hasAttribute(HAIKU_ID_ATTRIBUTE) &&
       !this.targetIsMount(target.parentNode.parentNode)
     ) {
-      return this.validTargetOrNull(target.parentNode)
+      return this.validTargetOrNull(target.parentNode);
     }
 
     // If we got here, we should be the topmost valid target
-    return target
+    return target;
   }
 
   targetIsMount (target) {
     return (
       target === this.refs.mount ||
       target === this.getActiveComponent().getMount().$el()
-    )
+    );
   }
 
   deselectAllOtherElementsIfTargetNotAmongThem (target, cb) {
-    const selecteds = Element.where({ component: this.getActiveComponent(), _isSelected: true })
-    const isAmongSelection = selecteds.indexOf(target) !== -1
+    const selecteds = Element.where({component: this.getActiveComponent(), _isSelected: true});
+    const isAmongSelection = selecteds.indexOf(target) !== -1;
     if (!isAmongSelection) {
       selecteds.forEach((element) => {
-        if (element !== target) element.unselectSoftly({from: 'glass'})
-      })
+        if (element !== target) {
+          element.unselectSoftly({from: 'glass'});
+        }
+      });
     }
-    return cb()
+    return cb();
   }
 
   deselectAllOtherElements (target, cb) {
-    const selecteds = Element.where({ component: this.getActiveComponent(), _isSelected: true })
+    const selecteds = Element.where({component: this.getActiveComponent(), _isSelected: true});
     selecteds.forEach((element) => {
-      if (element !== target) element.unselectSoftly({from: 'glass'})
-    })
-    return cb()
+      if (element !== target) {
+        element.unselectSoftly({from: 'glass'});
+      }
+    });
+    return cb();
   }
 
   ensureElementIsSelected (target, cb) {
-    target.selectSoftly({from: 'glass'})
-    return cb()
+    target.selectSoftly({from: 'glass'});
+    return cb();
   }
 
   duplicateSelectedElementsThenSelectDuplicates (cb) {
-    const proxy = this.fetchProxyElementForSelection()
+    const proxy = this.fetchProxyElementForSelection();
     proxy.duplicateAllAndSelectDuplicates({from: 'glass'}, (err) => {
-      if (err) return cb(err)
-      return cb()
-    })
+      if (err) {
+        return cb(err);
+      }
+      return cb();
+    });
   }
 
   toggleMultiElementSelection (target, cb) {
     if (target.isSelected() && this.fetchProxyElementForSelection().hasMultipleInSelection()) {
-      target.unselectSoftly({from: 'glass'})
+      target.unselectSoftly({from: 'glass'});
     } else {
-      target.selectSoftly({from: 'glass'})
+      target.selectSoftly({from: 'glass'});
     }
-    return cb()
+    return cb();
   }
 
   toggleSelectionStateWithRespectToBox (box) {
     const elements = Element.where({component: this.getActiveComponent()})
-      .filter((element) => !element.isRootElement())
+      .filter((element) => !element.isRootElement());
 
     // Note: We don't allow the artboard to be selected as part of multi-selection
     elements.forEach((element) => {
       // We don't want to select elements deeper than the top level
       if (element.getDepthAmongElements() < 2) {
-        const overlaps = element.doesOverlapWithBox(box)
+        const overlaps = element.doesOverlapWithBox(box);
         if (overlaps) {
-          element.selectSoftly({from: 'glass'})
+          element.selectSoftly({from: 'glass'});
         } else {
-          element.unselectSoftly({from: 'glass'})
+          element.unselectSoftly({from: 'glass'});
         }
       }
-    })
+    });
   }
 
   isDomNodeChildOfComponentWrapperDomNode (target) {
@@ -1848,9 +1895,9 @@ export class Glass extends React.Component {
       target.parentNode.getAttribute(HAIKU_ID_ATTRIBUTE) &&
       target.parentNode.getAttribute(HAIKU_SOURCE_ATTRIBUTE)
     ) {
-      return true
+      return true;
     }
-    return false
+    return false;
   }
 
   findNearestDomSelectionTarget (target) {
@@ -1863,7 +1910,7 @@ export class Glass extends React.Component {
         target.className === 'hit-area'
       )
     ) {
-      return SELECTION_TYPES.ON_STAGE_CONTROL
+      return SELECTION_TYPES.ON_STAGE_CONTROL;
     }
 
     // Climb the target path to find if a haiku Element has been selected
@@ -1874,201 +1921,209 @@ export class Glass extends React.Component {
         !target.hasAttribute(HAIKU_SOURCE_ATTRIBUTE) || // Only root elements of an instantiated component have this attribute
         !target.hasAttribute(HAIKU_ID_ATTRIBUTE) || // Only haiku elements have this
         !Element.findById(
-          Element.buildUidFromComponentAndDomElement(this.getActiveComponent(), target)
+          Element.buildUidFromComponentAndDomElement(this.getActiveComponent(), target),
         )
       )
     ) {
       if (target.parentNode) {
-        target = target.parentNode
+        target = target.parentNode;
       }
     }
 
-    return target
+    return target;
   }
 
   handleMouseUp (mouseupEvent) {
     if (this.state.isEventHandlerEditorOpen) {
-      return
+      return;
     }
 
     if (this.getActiveComponent()) {
-      this.getActiveComponent().getSelectionMarquee().endSelection()
+      this.getActiveComponent().getSelectionMarquee().endSelection();
     }
 
-    let mousePosition = this.storeAndReturnMousePosition(mouseupEvent, 'lastMouseUpPosition')
+    const mousePosition = this.storeAndReturnMousePosition(mouseupEvent, 'lastMouseUpPosition');
 
-    const proxy = this.fetchProxyElementForSelection()
-    proxy.handleMouseUp(mousePosition)
-    this.state.isMouseDown = false
-    this.state.lastMouseUpTime = Date.now()
-    this.handleDragStop()
+    const proxy = this.fetchProxyElementForSelection();
+    proxy.handleMouseUp(mousePosition);
+    this.state.isMouseDown = false;
+    this.state.lastMouseUpTime = Date.now();
+    this.handleDragStop();
     this.setState({
       isAnythingScaling: false,
       isAnythingRotating: false,
       isOriginPanning: false,
       globalControlPointHandleClass: '',
-      controlActivation: null
-    })
+      controlActivation: null,
+    });
 
-    this.fetchProxyElementForSelection().initializeRotationSnap()
+    this.fetchProxyElementForSelection().initializeRotationSnap();
   }
 
   handleClick (clickEvent) {
     if (this.isPreviewMode()) {
-      return
+      return;
     }
 
     if (this.getActiveComponent()) {
-      this.getActiveComponent().getSelectionMarquee().endSelection()
+      this.getActiveComponent().getSelectionMarquee().endSelection();
     }
 
-    this.storeAndReturnMousePosition(clickEvent)
+    this.storeAndReturnMousePosition(clickEvent);
   }
 
   handleDoubleClick (doubleClickEvent) {
     if (!this.getActiveComponent()) {
-      return
+      return;
     }
 
     if (this.isPreviewMode()) {
-      return
+      return;
     }
 
     if (this.getActiveComponent()) {
-      this.getActiveComponent().getSelectionMarquee().endSelection()
+      this.getActiveComponent().getSelectionMarquee().endSelection();
     }
 
-    this.storeAndReturnMousePosition(doubleClickEvent)
+    this.storeAndReturnMousePosition(doubleClickEvent);
 
     // Only count left clicks or natural trackpad clicks
     if (doubleClickEvent.nativeEvent.button !== 0 || Globals.isControlKeyDown) {
-      return
+      return;
     }
 
-    const target = this.findNearestDomSelectionTarget(doubleClickEvent.nativeEvent.target)
-    const source = target && target.getAttribute && target.getAttribute(HAIKU_SOURCE_ATTRIBUTE)
+    const target = this.findNearestDomSelectionTarget(doubleClickEvent.nativeEvent.target);
+    const source = target && target.getAttribute && target.getAttribute(HAIKU_SOURCE_ATTRIBUTE);
 
     if (source && source[0] === '.') {
       // Prevent accidentally launching the subcomponent editor when the user didn't intend a double click
       if (!this.didDragSinceLastMouseDown) {
-        this.editComponent(source)
+        this.editComponent(source);
       }
     }
   }
 
   handleDragStart (cb) {
-    this.state.isMouseDragging = true
-    this.setState({ isMouseDragging: true }, cb)
+    this.state.isMouseDragging = true;
+    this.setState({isMouseDragging: true}, cb);
   }
 
   handleDragStop (cb) {
-    this.state.isMouseDragging = false
-    this.setState({ isMouseDragging: false }, cb)
+    this.state.isMouseDragging = false;
+    this.setState({isMouseDragging: false}, cb);
   }
 
   handleKeyEscape () {
     if (!this.getActiveComponent()) {
-      return
+      return;
     }
 
-    Element.unselectAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
+    Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'});
   }
 
   handleKeyLeftArrow (keyEvent) {
-    if (!this.getActiveComponent()) return
-    const delta = keyEvent.shiftKey ? 5 : 1
-    const proxy = this.fetchProxyElementForSelection()
+    if (!this.getActiveComponent()) {
+      return;
+    }
+    const delta = keyEvent.shiftKey ? 5 : 1;
+    const proxy = this.fetchProxyElementForSelection();
     if (proxy.hasAnythingInSelection()) {
-      proxy.move(-delta, 0, Globals)
+      proxy.move(-delta, 0, Globals);
     }
   }
 
   handleKeyUpArrow (keyEvent) {
-    if (!this.getActiveComponent()) return
-    const delta = keyEvent.shiftKey ? 5 : 1
-    const proxy = this.fetchProxyElementForSelection()
+    if (!this.getActiveComponent()) {
+      return;
+    }
+    const delta = keyEvent.shiftKey ? 5 : 1;
+    const proxy = this.fetchProxyElementForSelection();
     if (proxy.hasAnythingInSelection()) {
-      proxy.move(0, -delta, Globals)
+      proxy.move(0, -delta, Globals);
     }
   }
 
   handleKeyRightArrow (keyEvent) {
-    if (!this.getActiveComponent()) return
-    const delta = keyEvent.shiftKey ? 5 : 1
-    const proxy = this.fetchProxyElementForSelection()
+    if (!this.getActiveComponent()) {
+      return;
+    }
+    const delta = keyEvent.shiftKey ? 5 : 1;
+    const proxy = this.fetchProxyElementForSelection();
     if (proxy.hasAnythingInSelection()) {
-      proxy.move(delta, 0, Globals)
+      proxy.move(delta, 0, Globals);
     }
   }
 
   handleKeyDownArrow (keyEvent) {
-    if (!this.getActiveComponent()) return
-    const delta = keyEvent.shiftKey ? 5 : 1
-    const proxy = this.fetchProxyElementForSelection()
+    if (!this.getActiveComponent()) {
+      return;
+    }
+    const delta = keyEvent.shiftKey ? 5 : 1;
+    const proxy = this.fetchProxyElementForSelection();
     if (proxy.hasAnythingInSelection()) {
-      proxy.move(0, delta, Globals)
+      proxy.move(0, delta, Globals);
     }
   }
 
   handleKeyDown (keyEvent) {
     if (this.state.isEventHandlerEditorOpen) {
-      return
+      return;
     }
 
     // Cmd + 0 centers & resets zoom
     if (Globals.isSpecialKeyDown() && keyEvent.nativeEvent.which === 48) {
-      this.getActiveComponent().getArtboard().resetZoomPan()
+      this.getActiveComponent().getArtboard().resetZoomPan();
     }
 
     if (this.getActiveComponent()) {
-      this.getActiveComponent().getSelectionMarquee().endSelection()
+      this.getActiveComponent().getSelectionMarquee().endSelection();
     }
 
     switch (keyEvent.nativeEvent.which) {
-      case 27: this.handleKeyEscape(); break
-      case 37: this.handleKeyLeftArrow(keyEvent.nativeEvent); break
-      case 38: this.handleKeyUpArrow(keyEvent.nativeEvent); break
-      case 39: this.handleKeyRightArrow(keyEvent.nativeEvent); break
-      case 40: this.handleKeyDownArrow(keyEvent.nativeEvent); break
-      case 46: this.handleDelete(); break
-      case 8: this.handleDelete(); break
-      case 13: this.handleKeyEnter(); break
-      case 91: this.handleKeyCommand(true); break // left cmd
-      case 93: this.handleKeyCommand(true); break // left cmd
-      case 76: this.handleAlignRequest(undefined, 1, false); break // l key
-      case 75: this.handleDistributeRequest(undefined, 0.5, true); break // k key
+      case 27: this.handleKeyEscape(); break;
+      case 37: this.handleKeyLeftArrow(keyEvent.nativeEvent); break;
+      case 38: this.handleKeyUpArrow(keyEvent.nativeEvent); break;
+      case 39: this.handleKeyRightArrow(keyEvent.nativeEvent); break;
+      case 40: this.handleKeyDownArrow(keyEvent.nativeEvent); break;
+      case 46: this.handleDelete(); break;
+      case 8: this.handleDelete(); break;
+      case 13: this.handleKeyEnter(); break;
+      case 91: this.handleKeyCommand(true); break; // left cmd
+      case 93: this.handleKeyCommand(true); break; // left cmd
+      case 76: this.handleAlignRequest(undefined, 1, false); break; // l key
+      case 75: this.handleDistributeRequest(undefined, 0.5, true); break; // k key
     }
   }
 
   handleAlignRequest (xEdge, yEdge, toStage) {
-    const proxy = this.fetchProxyElementForSelection()
-    proxy.align(xEdge, yEdge, toStage)
+    const proxy = this.fetchProxyElementForSelection();
+    proxy.align(xEdge, yEdge, toStage);
   }
 
   handleDistributeRequest (xEdge, yEdge, toStage) {
-    const proxy = this.fetchProxyElementForSelection()
-    proxy.distribute(xEdge, yEdge, toStage)
+    const proxy = this.fetchProxyElementForSelection();
+    proxy.distribute(xEdge, yEdge, toStage);
   }
 
   handleKeyCommand (isDown) {
-    this.setState({isCommandKeyDown: isDown})
+    this.setState({isCommandKeyDown: isDown});
   }
 
   handleKeyUp (keyEvent) {
     if (this.state.isEventHandlerEditorOpen) {
-      return
+      return;
     }
 
     switch (keyEvent.nativeEvent.which) {
-      case 91: this.handleKeyCommand(false); break
-      case 93: this.handleKeyCommand(false); break
+      case 91: this.handleKeyCommand(false); break;
+      case 93: this.handleKeyCommand(false); break;
     }
 
-    const proxy = this.fetchProxyElementForSelection()
-    proxy.handleKeyUp()
+    const proxy = this.fetchProxyElementForSelection();
+    proxy.handleKeyUp();
 
     if (this.getActiveComponent()) {
-      this.getActiveComponent().getSelectionMarquee().endSelection()
+      this.getActiveComponent().getSelectionMarquee().endSelection();
     }
   }
 
@@ -2078,87 +2133,89 @@ export class Glass extends React.Component {
 
   handleClickStageName () {
     if (!this.getActiveComponent()) {
-      return
+      return;
     }
 
     // Multi-select is not allowed when selecting the stage name
-    Element.unselectAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
-    const artboard = Element.findRoots({ component: this.getActiveComponent() })[0]
-    artboard.select({ from: 'glass' })
+    Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'});
+    const artboard = Element.findRoots({component: this.getActiveComponent()})[0];
+    artboard.select({from: 'glass'});
   }
 
   handleMouseOverStageName () {
     // Don't highlight the stage name/artboard boundary if the selection marquee is active
     if (this.isMarqueeActive()) {
-      return
+      return;
     }
 
-    this.setState({ isStageNameHovering: true })
+    this.setState({isStageNameHovering: true});
   }
 
   handleMouseOutStageName () {
-    this.setState({ isStageNameHovering: false })
+    this.setState({isStageNameHovering: false});
   }
 
   handleMouseMove (mousemoveEvent) {
     if (!this.getActiveComponent()) {
-      return
+      return;
     }
 
     if (mousemoveEvent.nativeEvent.target.getAttribute('class') !== 'control-point') {
-      this.state.hoveredControlPointIndex = null
+      this.state.hoveredControlPointIndex = null;
     }
 
-    const zoom = this.getActiveComponent().getArtboard().getZoom() || 1
-    const pan = this.getActiveComponent().getArtboard().getPan() || {x: 0, y: 0}
-    const viewportTransform = {zoom, pan}
+    const zoom = this.getActiveComponent().getArtboard().getZoom() || 1;
+    const pan = this.getActiveComponent().getArtboard().getPan() || {x: 0, y: 0};
+    const viewportTransform = {zoom, pan};
 
-    const lastMouseDownPosition = this.state.lastMouseDownPosition
-    const mousePositionCurrent = this.storeAndReturnMousePosition(mousemoveEvent)
-    const mousePositionPrevious = this.state.mousePositionPrevious || mousePositionCurrent
+    const lastMouseDownPosition = this.state.lastMouseDownPosition;
+    const mousePositionCurrent = this.storeAndReturnMousePosition(mousemoveEvent);
+    const mousePositionPrevious = this.state.mousePositionPrevious || mousePositionCurrent;
 
-    const marquee = this.getActiveComponent().getSelectionMarquee()
+    const marquee = this.getActiveComponent().getSelectionMarquee();
     if (marquee.isActive()) {
-      marquee.moveSelection(mousePositionCurrent)
-      const marqueeBox = marquee.getBox()
-      this.toggleSelectionStateWithRespectToBox(marqueeBox)
+      marquee.moveSelection(mousePositionCurrent);
+      const marqueeBox = marquee.getBox();
+      this.toggleSelectionStateWithRespectToBox(marqueeBox);
     }
 
-    const dx = mousePositionCurrent.x - mousePositionPrevious.x
-    const dy = mousePositionCurrent.y - mousePositionPrevious.y
-    if (dx === 0 && dy === 0) return mousePositionCurrent
+    const dx = mousePositionCurrent.x - mousePositionPrevious.x;
+    const dy = mousePositionCurrent.y - mousePositionPrevious.y;
+    if (dx === 0 && dy === 0) {
+      return mousePositionCurrent;
+    }
 
     // If we got this far, the mouse has changed its position from the most recent mousedown
     if (this.state.isMouseDown) {
-      this.handleDragStart()
+      this.handleDragStart();
     }
 
     if (this.state.isMouseDragging && this.state.isMouseDown) {
       if (Globals.isSpaceKeyDown && this.state.stageMouseDown) {
         this.performPan(
           (mousemoveEvent.nativeEvent.clientX - this.state.stageMouseDown.x) * viewportTransform.zoom,
-          (mousemoveEvent.nativeEvent.clientY - this.state.stageMouseDown.y) * viewportTransform.zoom
-        )
+          (mousemoveEvent.nativeEvent.clientY - this.state.stageMouseDown.y) * viewportTransform.zoom,
+        );
       } else if (!this.isPreviewMode()) {
         if (experimentIsEnabled(Experiment.DirectSelectionOfPrimitives) && Element.directlySelected) {
-          const transformedCurrent = transform2DPoint(mousePositionCurrent, Element.directlySelected.layoutAncestryMatrices.reverse())
-          const transformedLastDown = transform2DPoint(lastMouseDownPosition, Element.directlySelected.layoutAncestryMatrices.reverse())
+          const transformedCurrent = transform2DPoint(mousePositionCurrent, Element.directlySelected.layoutAncestryMatrices.reverse());
+          const transformedLastDown = transform2DPoint(lastMouseDownPosition, Element.directlySelected.layoutAncestryMatrices.reverse());
           const transformedTotalDelta = {
             x: transformedCurrent.x - transformedLastDown.x,
-            y: transformedCurrent.y - transformedLastDown.y
-          }
+            y: transformedCurrent.y - transformedLastDown.y,
+          };
 
           const keyframeOptions = {
             setElementLockStatus: {
-              [Element.directlySelected.rootSVG.attributes[HAIKU_ID_ATTRIBUTE]]: true
-            }
-          }
+              [Element.directlySelected.rootSVG.attributes[HAIKU_ID_ATTRIBUTE]]: true,
+            },
+          };
 
           if (this.state.directSelectionAnchorActivation != null) {
             // Moving a selection of control points
 
-            const indices = this.state.directSelectionAnchorActivation.indices[Element.directlySelected.attributes['haiku-id']]
-            const lastIndex = indices[indices.length - 1]
+            const indices = this.state.directSelectionAnchorActivation.indices[Element.directlySelected.attributes['haiku-id']];
+            const lastIndex = indices[indices.length - 1];
 
             switch (Element.directlySelected.type) {
               case 'circle': {
@@ -2167,24 +2224,24 @@ export class Glass extends React.Component {
                     [Element.directlySelected.attributes['haiku-id']]: {
                       r: {
                         0: {
-                          value: distance(transformedCurrent, {x: Number(Element.directlySelected.attributes.cx), y: Number(Element.directlySelected.attributes.cy)})
-                        }
-                      }
-                    }
-                  }
-                }, keyframeOptions, {from: 'glass'}, () => {})
-                break
+                          value: distance(transformedCurrent, {x: Number(Element.directlySelected.attributes.cx), y: Number(Element.directlySelected.attributes.cy)}),
+                        },
+                      },
+                    },
+                  },
+                }, keyframeOptions, {from: 'glass'}, () => {});
+                break;
               }
               case 'ellipse': {
-                let property
-                let value
+                let property;
+                let value;
 
                 if (lastIndex === 0 || lastIndex === 1) {
-                  property = 'rx'
-                  value = Math.abs(transformedCurrent.x - Number(Element.directlySelected.attributes.cx))
+                  property = 'rx';
+                  value = Math.abs(transformedCurrent.x - Number(Element.directlySelected.attributes.cx));
                 } else if (lastIndex === 2 || lastIndex === 3) {
-                  property = 'ry'
-                  value = Math.abs(transformedCurrent.y - Number(Element.directlySelected.attributes.cy))
+                  property = 'ry';
+                  value = Math.abs(transformedCurrent.y - Number(Element.directlySelected.attributes.cy));
                 }
 
                 this.getActiveComponent().updateKeyframes({
@@ -2192,161 +2249,175 @@ export class Glass extends React.Component {
                     [Element.directlySelected.attributes['haiku-id']]: {
                       [property]: {
                         0: {
-                          value
-                        }
-                      }
-                    }
-                  }
-                }, keyframeOptions, {from: 'glass'}, () => {})
-                break
+                          value,
+                        },
+                      },
+                    },
+                  },
+                }, keyframeOptions, {from: 'glass'}, () => {});
+                break;
               }
               case 'rect': {
-                let x = Number(this.selectedOriginalClickState.attributes.x)
-                let y = Number(this.selectedOriginalClickState.attributes.y)
-                let width = this.selectedOriginalClickState.sizeX
-                let height = this.selectedOriginalClickState.sizeY
+                let x = Number(this.selectedOriginalClickState.attributes.x);
+                let y = Number(this.selectedOriginalClickState.attributes.y);
+                let width = this.selectedOriginalClickState.sizeX;
+                let height = this.selectedOriginalClickState.sizeY;
 
                 switch (lastIndex) {
                   case 0:
-                    x += transformedTotalDelta.x
-                    y += transformedTotalDelta.y
-                    width -= transformedTotalDelta.x
-                    height -= transformedTotalDelta.y
-                    break
+                    x += transformedTotalDelta.x;
+                    y += transformedTotalDelta.y;
+                    width -= transformedTotalDelta.x;
+                    height -= transformedTotalDelta.y;
+                    break;
                   case 1:
-                    y += transformedTotalDelta.y
-                    width += transformedTotalDelta.x
-                    height -= transformedTotalDelta.y
-                    break
+                    y += transformedTotalDelta.y;
+                    width += transformedTotalDelta.x;
+                    height -= transformedTotalDelta.y;
+                    break;
                   case 2:
-                    x += transformedTotalDelta.x
-                    width -= transformedTotalDelta.x
-                    height += transformedTotalDelta.y
-                    break
+                    x += transformedTotalDelta.x;
+                    width -= transformedTotalDelta.x;
+                    height += transformedTotalDelta.y;
+                    break;
                   case 3:
-                    width += transformedTotalDelta.x
-                    height += transformedTotalDelta.y
-                    break
+                    width += transformedTotalDelta.x;
+                    height += transformedTotalDelta.y;
+                    break;
                 }
 
                 // Prevent negative
-                width = Math.max(width, 0)
-                height = Math.max(height, 0)
-                if (width === 0) x = Number(this.selectedOriginalClickState.attributes.x)
-                if (height === 0) y = Number(this.selectedOriginalClickState.attributes.y)
+                width = Math.max(width, 0);
+                height = Math.max(height, 0);
+                if (width === 0) {
+                  x = Number(this.selectedOriginalClickState.attributes.x);
+                }
+                if (height === 0) {
+                  y = Number(this.selectedOriginalClickState.attributes.y);
+                }
 
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
                     [Element.directlySelected.attributes['haiku-id']]: {
                       x: {
                         0: {
-                          value: x
-                        }
+                          value: x,
+                        },
                       },
                       y: {
                         0: {
-                          value: y
-                        }
+                          value: y,
+                        },
                       },
                       'sizeAbsolute.x': {
                         0: {
-                          value: width
-                        }
+                          value: width,
+                        },
                       },
                       'sizeAbsolute.y': {
                         0: {
-                          value: height
-                        }
-                      }
-                    }
-                  }
-                }, keyframeOptions, {from: 'glass'}, () => {})
-                break
+                          value: height,
+                        },
+                      },
+                    },
+                  },
+                }, keyframeOptions, {from: 'glass'}, () => {});
+                break;
               }
               case 'polyline':
               case 'polygon': {
-                let points = SVGPoints.polyPointsStringToPoints(this.selectedOriginalClickState.attributes.points)
+                const points = SVGPoints.polyPointsStringToPoints(this.selectedOriginalClickState.attributes.points);
                 for (let i = 0; i < indices.length; i++) {
-                  points[indices[i]][0] += transformedTotalDelta.x
-                  points[indices[i]][1] += transformedTotalDelta.y
+                  points[indices[i]][0] += transformedTotalDelta.x;
+                  points[indices[i]][1] += transformedTotalDelta.y;
                 }
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
                     [Element.directlySelected.attributes['haiku-id']]: {
                       points: {
                         0: {
-                          value: SVGPoints.pointsToPolyString(points)
-                        }
-                      }
-                    }
-                  }
-                }, keyframeOptions, {from: 'glass'}, () => {})
-                break
+                          value: SVGPoints.pointsToPolyString(points),
+                        },
+                      },
+                    },
+                  },
+                }, keyframeOptions, {from: 'glass'}, () => {});
+                break;
               }
 
               case 'line': {
-                const attrUpdate = {}
+                const attrUpdate = {};
                 if (indices.includes(0)) {
-                  attrUpdate.x1 = Number(this.selectedOriginalClickState.attributes.x1) + transformedTotalDelta.x
-                  attrUpdate.y1 = Number(this.selectedOriginalClickState.attributes.y1) + transformedTotalDelta.y
+                  attrUpdate.x1 = Number(this.selectedOriginalClickState.attributes.x1) + transformedTotalDelta.x;
+                  attrUpdate.y1 = Number(this.selectedOriginalClickState.attributes.y1) + transformedTotalDelta.y;
                 }
                 if (indices.includes(1)) {
-                  attrUpdate.x2 = Number(this.selectedOriginalClickState.attributes.x2) + transformedTotalDelta.x
-                  attrUpdate.y2 = Number(this.selectedOriginalClickState.attributes.y2) + transformedTotalDelta.y
+                  attrUpdate.x2 = Number(this.selectedOriginalClickState.attributes.x2) + transformedTotalDelta.x;
+                  attrUpdate.y2 = Number(this.selectedOriginalClickState.attributes.y2) + transformedTotalDelta.y;
                 }
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
-                    [Element.directlySelected.attributes['haiku-id']]: attrUpdate
-                  }
-                }, keyframeOptions, {from: 'glass'}, () => {})
-                break
+                    [Element.directlySelected.attributes['haiku-id']]: attrUpdate,
+                  },
+                }, keyframeOptions, {from: 'glass'}, () => {});
+                break;
               }
 
               case 'path': {
-                const points = SVGPoints.pathToPoints(this.selectedOriginalClickState.attributes.d)
-                const closed = points[points.length - 1].closed || points[points.length - 2].closed
+                const points = SVGPoints.pathToPoints(this.selectedOriginalClickState.attributes.d);
+                const closed = points[points.length - 1].closed || points[points.length - 2].closed;
 
-                if (closed && indices.includes(0) && !indices.includes(points.length - 1)) indices.push(points.length - 1) // Handle the last duplicate point from the SVG path parsing library
+                if (closed && indices.includes(0) && !indices.includes(points.length - 1)) {
+                  indices.push(points.length - 1);
+                } // Handle the last duplicate point from the SVG path parsing library
 
                 if (this.state.directSelectionAnchorActivation.meta !== null) {
                   // Modify a handle
-                  points[lastIndex].curve['x' + (this.state.directSelectionAnchorActivation.meta + 1)] += transformedTotalDelta.x
-                  points[lastIndex].curve['y' + (this.state.directSelectionAnchorActivation.meta + 1)] += transformedTotalDelta.y
+                  points[lastIndex].curve['x' + (this.state.directSelectionAnchorActivation.meta + 1)] += transformedTotalDelta.x;
+                  points[lastIndex].curve['y' + (this.state.directSelectionAnchorActivation.meta + 1)] += transformedTotalDelta.y;
                   if (!Globals.isAltKeyDown) {
                     // Mirror the opposite handle if it exists
-                    let oppositeIndex = null
-                    let oppositeHandle = null
+                    let oppositeIndex = null;
+                    let oppositeHandle = null;
                     if (this.state.directSelectionAnchorActivation.meta === 0) {
                       // look backwards
-                      oppositeHandle = '2'
-                      if (lastIndex > 1) oppositeIndex = lastIndex - 1  // lastIndex > 1 (instead of 0) because 0 is typically a `moveTo` (SVG is wrong for this application)
-                      else if (closed) oppositeIndex = points.length - 1
+                      oppositeHandle = '2';
+                      if (lastIndex > 1) {
+                        oppositeIndex = lastIndex - 1;
+                      } else if (closed) {
+                        oppositeIndex = points.length - 1;
+                      }
                     } else if (this.state.directSelectionAnchorActivation.meta === 1) {
                       // look forwards
-                      oppositeHandle = '1'
-                      if (lastIndex < points.length - 1) oppositeIndex = lastIndex + 1
-                      else if (closed) oppositeIndex = 1 // 1 (instead of 0) because 0 is typically a `moveTo` (SVG is wrong for this application)
+                      oppositeHandle = '1';
+                      if (lastIndex < points.length - 1) {
+                        oppositeIndex = lastIndex + 1;
+                      } else if (closed) {
+                        oppositeIndex = 1;
+                      } // 1 (instead of 0) because 0 is typically a `moveTo` (SVG is wrong for this application)
                     }
-                    if (oppositeIndex && !points[oppositeIndex].curve) oppositeIndex = null
+                    if (oppositeIndex && !points[oppositeIndex].curve) {
+                      oppositeIndex = null;
+                    }
                     if (oppositeIndex) {
-                      points[oppositeIndex].curve[`x${oppositeHandle}`] -= transformedTotalDelta.x
-                      points[oppositeIndex].curve[`y${oppositeHandle}`] -= transformedTotalDelta.y
+                      points[oppositeIndex].curve[`x${oppositeHandle}`] -= transformedTotalDelta.x;
+                      points[oppositeIndex].curve[`y${oppositeHandle}`] -= transformedTotalDelta.y;
                     }
                   }
                 } else {
                   // Modify anchors
                   for (let i = 0; i < indices.length; i++) {
-                    points[indices[i]].x += transformedTotalDelta.x
-                    points[indices[i]].y += transformedTotalDelta.y
+                    points[indices[i]].x += transformedTotalDelta.x;
+                    points[indices[i]].y += transformedTotalDelta.y;
                     if (!Globals.isAltKeyDown) {
                       // Move the handles with it
                       if (points[indices[i]].curve) {
-                        points[indices[i]].curve.x2 += transformedTotalDelta.x
-                        points[indices[i]].curve.y2 += transformedTotalDelta.y
+                        points[indices[i]].curve.x2 += transformedTotalDelta.x;
+                        points[indices[i]].curve.y2 += transformedTotalDelta.y;
                       }
                       if (indices[i] < points.length - 1 && points[indices[i] + 1].curve) {
-                        points[indices[i] + 1].curve.x1 += transformedTotalDelta.x
-                        points[indices[i] + 1].curve.y1 += transformedTotalDelta.y
+                        points[indices[i] + 1].curve.x1 += transformedTotalDelta.x;
+                        points[indices[i] + 1].curve.y1 += transformedTotalDelta.y;
                       }
                     }
                   }
@@ -2357,13 +2428,13 @@ export class Glass extends React.Component {
                     [Element.directlySelected.attributes['haiku-id']]: {
                       d: {
                         0: {
-                          value: SVGPoints.pointsToPath(points)
-                        }
-                      }
-                    }
-                  }
-                }, keyframeOptions, {from: 'glass'}, () => {})
-                break
+                          value: SVGPoints.pointsToPath(points),
+                        },
+                      },
+                    },
+                  },
+                }, keyframeOptions, {from: 'glass'}, () => {});
+                break;
               }
             }
           } else {
@@ -2377,18 +2448,18 @@ export class Glass extends React.Component {
                     [Element.directlySelected.attributes['haiku-id']]: {
                       cx: {
                         0: {
-                          value: Number(this.selectedOriginalClickState.attributes.cx) + transformedTotalDelta.x
-                        }
+                          value: Number(this.selectedOriginalClickState.attributes.cx) + transformedTotalDelta.x,
+                        },
                       },
                       cy: {
                         0: {
-                          value: Number(this.selectedOriginalClickState.attributes.cy) + transformedTotalDelta.y
-                        }
-                      }
-                    }
-                  }
-                }, keyframeOptions, {from: 'glass'}, () => {})
-                break
+                          value: Number(this.selectedOriginalClickState.attributes.cy) + transformedTotalDelta.y,
+                        },
+                      },
+                    },
+                  },
+                }, keyframeOptions, {from: 'glass'}, () => {});
+                break;
               }
               case 'rect': {
                 this.getActiveComponent().updateKeyframes({
@@ -2396,38 +2467,38 @@ export class Glass extends React.Component {
                     [Element.directlySelected.attributes['haiku-id']]: {
                       x: {
                         0: {
-                          value: Number(this.selectedOriginalClickState.attributes.x) + transformedTotalDelta.x
-                        }
+                          value: Number(this.selectedOriginalClickState.attributes.x) + transformedTotalDelta.x,
+                        },
                       },
                       y: {
                         0: {
-                          value: Number(this.selectedOriginalClickState.attributes.y) + transformedTotalDelta.y
-                        }
-                      }
-                    }
-                  }
-                }, keyframeOptions, {from: 'glass'}, () => {})
-                break
+                          value: Number(this.selectedOriginalClickState.attributes.y) + transformedTotalDelta.y,
+                        },
+                      },
+                    },
+                  },
+                }, keyframeOptions, {from: 'glass'}, () => {});
+                break;
               }
               case 'polyline':
               case 'polygon': {
-                let points = SVGPoints.polyPointsStringToPoints(this.selectedOriginalClickState.attributes.points)
+                const points = SVGPoints.polyPointsStringToPoints(this.selectedOriginalClickState.attributes.points);
                 for (let i = 0; i < points.length; i++) {
-                  points[i][0] += transformedTotalDelta.x
-                  points[i][1] += transformedTotalDelta.y
+                  points[i][0] += transformedTotalDelta.x;
+                  points[i][1] += transformedTotalDelta.y;
                 }
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
                     [Element.directlySelected.attributes['haiku-id']]: {
                       points: {
                         0: {
-                          value: SVGPoints.pointsToPolyString(points)
-                        }
-                      }
-                    }
-                  }
-                }, keyframeOptions, {from: 'glass'}, () => {})
-                break
+                          value: SVGPoints.pointsToPolyString(points),
+                        },
+                      },
+                    },
+                  },
+                }, keyframeOptions, {from: 'glass'}, () => {});
+                break;
               }
 
               case 'line': {
@@ -2436,40 +2507,40 @@ export class Glass extends React.Component {
                     [Element.directlySelected.attributes['haiku-id']]: {
                       x1: {
                         0: {
-                          value: Number(this.selectedOriginalClickState.attributes.x1) + transformedTotalDelta.x
-                        }
+                          value: Number(this.selectedOriginalClickState.attributes.x1) + transformedTotalDelta.x,
+                        },
                       },
                       y1: {
                         0: {
-                          value: Number(this.selectedOriginalClickState.attributes.y1) + transformedTotalDelta.y
-                        }
+                          value: Number(this.selectedOriginalClickState.attributes.y1) + transformedTotalDelta.y,
+                        },
                       },
                       x2: {
                         0: {
-                          value: Number(this.selectedOriginalClickState.attributes.x2) + transformedTotalDelta.x
-                        }
+                          value: Number(this.selectedOriginalClickState.attributes.x2) + transformedTotalDelta.x,
+                        },
                       },
                       y2: {
                         0: {
-                          value: Number(this.selectedOriginalClickState.attributes.y2) + transformedTotalDelta.y
-                        }
-                      }
-                    }
-                  }
-                }, keyframeOptions, {from: 'glass'}, () => {})
-                break
+                          value: Number(this.selectedOriginalClickState.attributes.y2) + transformedTotalDelta.y,
+                        },
+                      },
+                    },
+                  },
+                }, keyframeOptions, {from: 'glass'}, () => {});
+                break;
               }
 
               case 'path': {
-                const points = SVGPoints.pathToPoints(this.selectedOriginalClickState.attributes.d)
+                const points = SVGPoints.pathToPoints(this.selectedOriginalClickState.attributes.d);
                 for (let i = 0; i < points.length; i++) {
-                  points[i].x += transformedTotalDelta.x
-                  points[i].y += transformedTotalDelta.y
+                  points[i].x += transformedTotalDelta.x;
+                  points[i].y += transformedTotalDelta.y;
                   if (points[i].curve) {
-                    points[i].curve.x1 += transformedTotalDelta.x
-                    points[i].curve.y1 += transformedTotalDelta.y
-                    points[i].curve.x2 += transformedTotalDelta.x
-                    points[i].curve.y2 += transformedTotalDelta.y
+                    points[i].curve.x1 += transformedTotalDelta.x;
+                    points[i].curve.y1 += transformedTotalDelta.y;
+                    points[i].curve.x2 += transformedTotalDelta.x;
+                    points[i].curve.y2 += transformedTotalDelta.y;
                   }
                 }
                 this.getActiveComponent().updateKeyframes({
@@ -2477,22 +2548,22 @@ export class Glass extends React.Component {
                     [Element.directlySelected.attributes['haiku-id']]: {
                       d: {
                         0: {
-                          value: SVGPoints.pointsToPath(points)
-                        }
-                      }
-                    }
-                  }
-                }, keyframeOptions, {from: 'glass'}, () => {})
-                break
+                          value: SVGPoints.pointsToPath(points),
+                        },
+                      },
+                    },
+                  },
+                }, keyframeOptions, {from: 'glass'}, () => {});
+                break;
               }
             }
           }
         } else {
-          const proxy = this.fetchProxyElementForSelection()
+          const proxy = this.fetchProxyElementForSelection();
 
           // Do not drag elements if the user is actively selecting them
           if (!marquee.isActive()) {
-            this.didDragSinceLastMouseDown = true
+            this.didDragSinceLastMouseDown = true;
 
             proxy.drag(
               dx,
@@ -2505,21 +2576,21 @@ export class Glass extends React.Component {
               this.state.isOriginPanning,
               this.state.controlActivation,
               viewportTransform,
-              Globals
-            )
+              Globals,
+            );
           }
         }
       }
     }
 
-    return mousePositionCurrent
+    return mousePositionCurrent;
   }
 
   originActivation ({event}) {
     // TODO: support more modes (and make them discoverable).
     this.setState({
-      isOriginPanning: Globals.isSpecialKeyDown()
-    })
+      isOriginPanning: Globals.isSpecialKeyDown(),
+    });
   }
 
   controlActivation (activationInfo) {
@@ -2535,57 +2606,59 @@ export class Glass extends React.Component {
         alt: Globals.isAltKeyDown,
         index: activationInfo.index,
         x: this.state.mousePositionCurrent.x,
-        y: this.state.mousePositionCurrent.y
-      }
-    })
+        y: this.state.mousePositionCurrent.y,
+      },
+    });
 
-    this.fetchProxyElementForSelection().pushCachedTransform('CONTROL_ACTIVATION')
+    this.fetchProxyElementForSelection().pushCachedTransform('CONTROL_ACTIVATION');
   }
 
   directSelectionAnchorActivation (activationInfo) {
     this.setState({
-      directSelectionAnchorActivation: activationInfo
-    })
+      directSelectionAnchorActivation: activationInfo,
+    });
   }
 
   storeAndReturnMousePosition (mouseEvent, additionalPositionTrackingState) {
     if (!this.getActiveComponent()) {
-      return
+      return;
     }
 
     if (!this.refs.container) {
-      return // We haven't mounted yet, no size available
+      return; // We haven't mounted yet, no size available
     }
 
-    this.state.mousePositionPrevious = this.state.mousePositionCurrent
-    const artboard = this.getActiveComponent().getArtboard()
-    const rect = artboard.getRect()
-    const zoom = artboard.getZoom()
+    this.state.mousePositionPrevious = this.state.mousePositionCurrent;
+    const artboard = this.getActiveComponent().getArtboard();
+    const rect = artboard.getRect();
+    const zoom = artboard.getZoom();
     this.state.mousePositionCurrent = {
       clientX: mouseEvent.nativeEvent.clientX,
       clientY: mouseEvent.nativeEvent.clientY,
       x: (mouseEvent.nativeEvent.clientX - rect.left) / zoom,
-      y: (mouseEvent.nativeEvent.clientY - rect.top) / zoom
+      y: (mouseEvent.nativeEvent.clientY - rect.top) / zoom,
+    };
+    if (additionalPositionTrackingState) {
+      this.state[additionalPositionTrackingState] = this.state.mousePositionCurrent;
     }
-    if (additionalPositionTrackingState) this.state[additionalPositionTrackingState] = this.state.mousePositionCurrent
-    return this.state.mousePositionCurrent
+    return this.state.mousePositionCurrent;
   }
 
   drawOverlays () {
     if (!this.getActiveComponent()) {
-      return
+      return;
     }
 
     if (!this._haikuRenderer) {
       const haikuConfig = Config.build({
         seed: Config.seed(),
-        cache: {}
-      })
+        cache: {},
+      });
 
       this._haikuRenderer = new HaikuDOMRenderer(
         this.refs.overlay,
-        haikuConfig
-      )
+        haikuConfig,
+      );
 
       this._haikuContext = new HaikuContext(
         null,
@@ -2595,11 +2668,11 @@ export class Glass extends React.Component {
           template: {
             elementName: 'div',
             attributes: {},
-            children: []
-          }
+            children: [],
+          },
         },
-        haikuConfig
-      )
+        haikuConfig,
+      );
     }
 
     // When we enter preview mode, this ref element is not rendered, i.e.
@@ -2607,15 +2680,15 @@ export class Glass extends React.Component {
     // created, meaning that our original mount element has been detached.
     // We need to reassign the new, attached DOM node so the transform
     // controls render again after we exit preview mode.
-    this._haikuRenderer.mount = this.refs.overlay
+    this._haikuRenderer.mount = this.refs.overlay;
 
     const container = {
       layout: {
-        computed: {x: 1, y: 1}
-      }
-    }
+        computed: {x: 1, y: 1},
+      },
+    };
 
-    const artboard = this.getActiveComponent().getArtboard()
+    const artboard = this.getActiveComponent().getArtboard();
 
     const overlay = {
       elementName: 'div',
@@ -2627,12 +2700,12 @@ export class Glass extends React.Component {
           left: artboard.getMountX() + 'px',
           top: artboard.getMountY() + 'px',
           width: artboard.getMountWidth() + 'px',
-          height: artboard.getMountHeight() + 'px'
-        }
+          height: artboard.getMountHeight() + 'px',
+        },
       },
       children: [
         {
-          'elementName': 'svg',
+          elementName: 'svg',
           attributes: {
             style: {
               position: 'absolute',
@@ -2640,19 +2713,19 @@ export class Glass extends React.Component {
               left: 0,
               width: '100%',
               height: '100%',
-              overflow: 'visible'
-            }
+              overflow: 'visible',
+            },
           },
-          children: this.buildDrawnOverlays()
-        }
-      ]
-    }
+          children: this.buildDrawnOverlays(),
+        },
+      ],
+    };
 
     this._haikuRenderer.render(
       container,
       overlay,
-      this._haikuContext.component
-    )
+      this._haikuContext.component,
+    );
   }
 
   // This method creates objects which represent Haiku Core rendering instructions for displaying all of
@@ -2662,68 +2735,68 @@ export class Glass extends React.Component {
   // these get passed into a Haiku Core render method (see above). LONG STORY SHORT: This creates a flat list of
   // nodes that get rendered to the DOM by the Haiku Core.
   buildDrawnOverlays () {
-    const overlays = []
+    const overlays = [];
 
     // Don't show any overlays if we're in preview (aka 'live') interactionMode
     if (this.isPreviewMode()) {
-      return overlays
+      return overlays;
     }
 
     if (Element.directlySelected) {
       // Make sure it's not locked
-      const originalEl = Element.findByComponentAndHaikuId(this.getActiveComponent(), Element.directlySelected.attributes['haiku-id'])
+      const originalEl = Element.findByComponentAndHaikuId(this.getActiveComponent(), Element.directlySelected.attributes['haiku-id']);
       if (originalEl && originalEl.isLockedViaParents()) {
-        Element.directlySelected = null
-        return overlays
+        Element.directlySelected = null;
+        return overlays;
       }
 
-      this.renderDirectSelection(Element.directlySelected, this.state.directSelectionAnchorActivation ? this.state.directSelectionAnchorActivation.indices[Element.directlySelected.attributes['haiku-id']] : undefined, overlays)
-      return overlays
+      this.renderDirectSelection(Element.directlySelected, this.state.directSelectionAnchorActivation ? this.state.directSelectionAnchorActivation.indices[Element.directlySelected.attributes['haiku-id']] : undefined, overlays);
+      return overlays;
     }
 
-    const proxy = this.fetchProxyElementForSelection()
+    const proxy = this.fetchProxyElementForSelection();
 
     if (proxy.hasAnythingInSelection()) {
       this.renderTransformBoxOverlay(
         proxy,
         overlays,
-        !this.state.isOriginPanning && Globals.isSpecialKeyDown()
-      )
+        !this.state.isOriginPanning && Globals.isSpecialKeyDown(),
+      );
     }
 
-    this.renderSelectionMarquee(overlays)
+    this.renderSelectionMarquee(overlays);
 
-    this.renderHoverOutline(overlays)
+    this.renderHoverOutline(overlays);
 
-    return overlays
+    return overlays;
   }
 
   fetchProxyElementForSelection () {
-    const selection = Element.where({ component: this.getActiveComponent(), _isSelected: true })
-    return ElementSelectionProxy.fromSelection(selection, { component: this.getActiveComponent() })
+    const selection = Element.where({component: this.getActiveComponent(), _isSelected: true});
+    return ElementSelectionProxy.fromSelection(selection, {component: this.getActiveComponent()});
   }
 
   renderDirectSelection (element, selectedAnchorIndices, overlays) {
-    const original = element
+    const original = element;
     if (element.type === 'use') {
-      element = element.getTranscludedElement()
+      element = element.getTranscludedElement();
     }
 
-    const zoom = this.getActiveComponent().getArtboard().getZoom()
-    const scale = 1 / (zoom || 1)
+    const zoom = this.getActiveComponent().getArtboard().getZoom();
+    const scale = 1 / (zoom || 1);
 
     switch (element.type) {
       case 'rect':
-        overlays.push(directSelectionMana[element.type](element.id, {...element.attributes, width: element.sizeX, height: element.sizeY}, original.layoutAncestryMatrices, scale, selectedAnchorIndices || []))
-        break
+        overlays.push(directSelectionMana[element.type](element.id, {...element.attributes, width: element.sizeX, height: element.sizeY}, original.layoutAncestryMatrices, scale, selectedAnchorIndices || []));
+        break;
       case 'circle':
       case 'ellipse':
       case 'line':
       case 'polyline':
       case 'path':
       case 'polygon':
-        overlays.push(directSelectionMana[element.type](element.id, element.attributes, original.layoutAncestryMatrices, scale, selectedAnchorIndices || []))
-        break
+        overlays.push(directSelectionMana[element.type](element.id, element.attributes, original.layoutAncestryMatrices, scale, selectedAnchorIndices || []));
+        break;
       default:
         // ...noop.
     }
@@ -2735,42 +2808,42 @@ export class Glass extends React.Component {
       this.isPreviewMode() ||
       this.isMarqueeActive()
     ) {
-      return
+      return;
     }
 
-    const activeComponent = this.getActiveComponent()
+    const activeComponent = this.getActiveComponent();
     if (activeComponent) {
-      const hoveredElement = Element.findHoveredElement(activeComponent)
+      const hoveredElement = Element.findHoveredElement(activeComponent);
 
       if (hoveredElement && !hoveredElement.isSelected()) {
-        const points = hoveredElement.getBoxPointsTransformed()
+        const points = hoveredElement.getBoxPointsTransformed();
         overlays.push(
           boxMana(
             [points[0], points[2], points[8], points[6]].map(point => [
               point.x,
-              point.y
+              point.y,
             ]),
-            Palette.LIGHTEST_PINK
-          )
-        )
+            Palette.LIGHTEST_PINK,
+          ),
+        );
       }
     }
   }
 
   renderSelectionMarquee (overlays) {
     if (this.getActiveComponent()) {
-      const marquee = this.getActiveComponent().getSelectionMarquee()
+      const marquee = this.getActiveComponent().getSelectionMarquee();
 
       if (marquee.isActive()) {
         const {
           x,
           y,
           width,
-          height
-        } = marquee.getBox()
+          height,
+        } = marquee.getBox();
 
         if (width < 2 && height < 2) {
-          return
+          return;
         }
 
         overlays.push({
@@ -2789,73 +2862,73 @@ export class Glass extends React.Component {
             rx: 1,
             ry: 1,
             style: {
-              pointerEvents: 'none'
-            }
-          }
-        })
+              pointerEvents: 'none',
+            },
+          },
+        });
       }
     }
   }
 
   openContextMenu (event) {
     if (this.isPreviewMode()) {
-      return
+      return;
     }
 
-    event.preventDefault()
-    event.stopPropagation()
+    event.preventDefault();
+    event.stopPropagation();
 
     PopoverMenu.launch({
       event,
-      items: this.getContextMenuItems()
-    })
+      items: this.getContextMenuItems(),
+    });
   }
 
   renderTransformBoxOverlay (proxy, overlays, isRotationModeOn) {
     if (!this.getActiveComponent()) {
-      return
+      return;
     }
 
-    overlays.push(defsMana)
+    overlays.push(defsMana);
 
-    const zoom = this.getActiveComponent().getArtboard().getZoom()
-    const points = proxy.getBoxPointsTransformed()
+    const zoom = this.getActiveComponent().getArtboard().getZoom();
+    const points = proxy.getBoxPointsTransformed();
 
     // If the size is smaller than a threshold, only display the corners.
     // And if it is smaller even than that, don't display the points at all
-    const dx = Element.distanceBetweenPoints(points[0], points[2], zoom)
-    const dy = Element.distanceBetweenPoints(points[0], points[6], zoom)
+    const dx = Element.distanceBetweenPoints(points[0], points[2], zoom);
+    const dy = Element.distanceBetweenPoints(points[0], points[6], zoom);
 
-    let pointDisplayMode = POINT_DISPLAY_MODES.NORMAL
+    let pointDisplayMode = POINT_DISPLAY_MODES.NORMAL;
 
     if (dx < POINTS_THRESHOLD_NONE || dy < POINTS_THRESHOLD_NONE) {
-      pointDisplayMode = POINT_DISPLAY_MODES.NONE
+      pointDisplayMode = POINT_DISPLAY_MODES.NONE;
     } else if (dx < POINTS_THRESHOLD_REDUCED && dy < POINTS_THRESHOLD_REDUCED) {
-      pointDisplayMode = POINT_DISPLAY_MODES.REDUCED_ON_BOTH
+      pointDisplayMode = POINT_DISPLAY_MODES.REDUCED_ON_BOTH;
     } else if (dx < POINTS_THRESHOLD_REDUCED && dy >= POINTS_THRESHOLD_REDUCED) {
-      pointDisplayMode = POINT_DISPLAY_MODES.REDUCED_ON_TOP_BOTTOM
+      pointDisplayMode = POINT_DISPLAY_MODES.REDUCED_ON_TOP_BOTTOM;
     } else if (dx >= POINTS_THRESHOLD_REDUCED && dy < POINTS_THRESHOLD_REDUCED) {
-      pointDisplayMode = POINT_DISPLAY_MODES.REDUCED_ON_LEFT_RIGHT
+      pointDisplayMode = POINT_DISPLAY_MODES.REDUCED_ON_LEFT_RIGHT;
     }
 
-    const scale = 1 / (zoom || 1)
-    const canRotate = proxy.canRotate()
-    const canControlHandles = proxy.canControlHandles()
-    const origin = proxy.getOriginTransformed()
+    const scale = 1 / (zoom || 1);
+    const canRotate = proxy.canRotate();
+    const canControlHandles = proxy.canControlHandles();
+    const origin = proxy.getOriginTransformed();
 
     if (pointDisplayMode !== POINT_DISPLAY_MODES.NONE) {
-      const vecs = points.map((point) => [point.x, point.y])
+      const vecs = points.map((point) => [point.x, point.y]);
 
       // We make the line dashed to represent axes which are auto-sized
-      overlays.push(lineMana(vecs[0], vecs[2], undefined, proxy.isAutoSizeX())) // top
-      overlays.push(lineMana(vecs[2], vecs[8], undefined, proxy.isAutoSizeY())) // right
-      overlays.push(lineMana(vecs[8], vecs[6], undefined, proxy.isAutoSizeX())) // bottom
-      overlays.push(lineMana(vecs[6], vecs[0], undefined, proxy.isAutoSizeY())) // left
+      overlays.push(lineMana(vecs[0], vecs[2], undefined, proxy.isAutoSizeX())); // top
+      overlays.push(lineMana(vecs[2], vecs[8], undefined, proxy.isAutoSizeY())); // right
+      overlays.push(lineMana(vecs[8], vecs[6], undefined, proxy.isAutoSizeX())); // bottom
+      overlays.push(lineMana(vecs[6], vecs[0], undefined, proxy.isAutoSizeY())); // left
     }
 
     points.forEach((point, index) => {
       if (!pointDisplayMode[index]) {
-        return
+        return;
       }
 
       if (index !== 4) {
@@ -2863,25 +2936,25 @@ export class Glass extends React.Component {
           scale,
           point,
           index,
-          canControlHandles ? 'none' : this.getCursorCssRule()
-        ))
+          canControlHandles ? 'none' : this.getCursorCssRule(),
+        ));
       }
-    })
+    });
 
     if (canRotate && pointDisplayMode !== POINT_DISPLAY_MODES.NONE) {
-      overlays.push(originMana(scale, origin.x, origin.y, Globals.isSpecialKeyDown()))
+      overlays.push(originMana(scale, origin.x, origin.y, Globals.isSpecialKeyDown()));
     }
 
     // Everything below requires controllable handles.
     if (!canControlHandles || this.state.isOriginPanning) {
-      return
+      return;
     }
 
     if (!this.state.isAnythingScaling && canRotate && (
       (this.state.hoveredControlPointIndex !== null && isRotationModeOn) ||
       this.state.isAnythingRotating
     )) {
-      overlays.push(rotationCursorMana(scale, this.state.mousePositionCurrent, origin))
+      overlays.push(rotationCursorMana(scale, this.state.mousePositionCurrent, origin));
     } else if (this.state.isAnythingScaling ||
       (this.state.hoveredControlPointIndex !== null && !this.state.isMouseDown)
     ) {
@@ -2891,8 +2964,8 @@ export class Glass extends React.Component {
         points,
         origin,
         this.state.controlActivation ? this.state.controlActivation.index : this.state.hoveredControlPointIndex,
-        Globals.isAltKeyDown
-      ))
+        Globals.isAltKeyDown,
+      ));
     }
   }
 
@@ -2901,32 +2974,36 @@ export class Glass extends React.Component {
       [zoom.x, 0, 0, 0,
         0, zoom.y, 0, 0,
         0, 0, 1, 0,
-        pan.x / zoom.x, pan.y / zoom.x, 0, 1].join(',') + ')'
+        pan.x / zoom.x, pan.y / zoom.x, 0, 1].join(',') + ')';
   }
 
   isPreviewMode () {
     if (!this.getActiveComponent()) {
-      return false
+      return false;
     }
-    return this.getActiveComponent().isPreviewModeActive()
+    return this.getActiveComponent().isPreviewModeActive();
   }
 
   isMarqueeActive () {
-    return this.getActiveComponent() && this.getActiveComponent().getSelectionMarquee().isActive()
+    return this.getActiveComponent() && this.getActiveComponent().getSelectionMarquee().isActive();
   }
 
   getCursorCssRule () {
-    if (this.isPreviewMode()) return 'default'
-    if (this.state.isAnythingRotating || this.state.isAnythingScaling) return 'none'
-    return (this.state.stageMouseDown) ? '-webkit-grabbing' : 'default'
+    if (this.isPreviewMode()) {
+      return 'default';
+    }
+    if (this.state.isAnythingRotating || this.state.isAnythingScaling) {
+      return 'none';
+    }
+    return (this.state.stageMouseDown) ? '-webkit-grabbing' : 'default';
   }
 
   renderHotComponentMount (mount, drawingClassName) {
     return (
       <div
-        ref='mount'
-        key='haiku-mount-container'
-        id='haiku-mount-container'
+        ref="mount"
+        key="haiku-mount-container"
+        id="haiku-mount-container"
         className={`${drawingClassName} no-select`}
         style={{
           position: 'absolute',
@@ -2936,14 +3013,16 @@ export class Glass extends React.Component {
           height: mount.h,
           overflow: this.isPreviewMode() ? 'hidden' : 'visible',
           zIndex: 60,
-          opacity: (this.state.isEventHandlerEditorOpen) ? 0.5 : 1.0
+          opacity: (this.state.isEventHandlerEditorOpen) ? 0.5 : 1.0,
         }} />
-    )
+    );
   }
 
   getContainerHeight () {
-    if (!this.getActiveComponent()) return 1
-    return this.getActiveComponent().getArtboard().getContainerHeight()
+    if (!this.getActiveComponent()) {
+      return 1;
+    }
+    return this.getActiveComponent().getArtboard().getContainerHeight();
   }
 
   getArtboardRenderInfo () {
@@ -2953,20 +3032,20 @@ export class Glass extends React.Component {
       // TODO: Make glass more accepting of situations where there is no component
       return {
         drawingClassName: '',
-        pan: { x: 0, y: 0 },
-        zoom: { x: 1, y: 1 },
-        container: { x: 1, y: 1, w: 1, h: 1 },
-        mount: { x: 1, y: 1, w: 1, h: 1 }
-      }
+        pan: {x: 0, y: 0},
+        zoom: {x: 1, y: 1},
+        container: {x: 1, y: 1, w: 1, h: 1},
+        mount: {x: 1, y: 1, w: 1, h: 1},
+      };
     }
 
-    return this.getActiveComponent().getArtboard().getArtboardRenderInfo()
+    return this.getActiveComponent().getArtboard().getArtboardRenderInfo();
   }
 
   getContextMenuItems () {
-    const items = []
+    const items = [];
 
-    const proxy = this.fetchProxyElementForSelection()
+    const proxy = this.fetchProxyElementForSelection();
 
     if (experimentIsEnabled(Experiment.CommentsOnStage)) {
       items.push({
@@ -2975,23 +3054,23 @@ export class Glass extends React.Component {
           : 'Show Comments',
         enabled: this.state.comments && this.state.comments.length > 0,
         onClick: () => {
-          this.setState({ doShowComments: !this.state.doShowComments })
-        }
-      })
+          this.setState({doShowComments: !this.state.doShowComments});
+        },
+      });
 
       items.push({
         label: 'Add Comment',
         onClick: () => {
           this._comments.build({
             x: this.state.mousePositionCurrent.x,
-            y: this.state.mousePositionCurrent.y
-          })
+            y: this.state.mousePositionCurrent.y,
+          });
 
-          this.setState({ comments: this._comments.comments, doShowComments: true })
-        }
-      })
+          this.setState({comments: this._comments.comments, doShowComments: true});
+        },
+      });
 
-      items.push({ type: 'separator' })
+      items.push({type: 'separator'});
     }
 
     if (experimentIsEnabled(Experiment.MultiComponentFeatures)) {
@@ -3000,20 +3079,20 @@ export class Glass extends React.Component {
         // If a single element is already a component, we don't let it be created as one
         enabled: proxy.canCreateComponentFromSelection(),
         onClick: () => {
-          mixpanel.haikuTrack('creator:glass:launch-create-component-modal')
-          this.launchComponentNameModal()
-        }
-      })
+          mixpanel.haikuTrack('creator:glass:launch-create-component-modal');
+          this.launchComponentNameModal();
+        },
+      });
 
       items.push({
         label: 'Edit Component',
         enabled: proxy.canEditComponentFromSelection(),
         onClick: () => {
-          this.editComponent(proxy.getSingleComponentElementRelpath())
-        }
-      })
+          this.editComponent(proxy.getSingleComponentElementRelpath());
+        },
+      });
 
-      items.push({ type: 'separator' })
+      items.push({type: 'separator'});
     }
 
     items.push({
@@ -3022,20 +3101,20 @@ export class Glass extends React.Component {
       enabled: proxy.doesManageSingleElement() || proxy.hasNothingInSelection(),
       onClick: (event) => {
         // Fallback to the artboard if there is nothing in the current selection
-        this.showEventHandlersEditor(event, proxy.selection[0] || this.getActiveComponent().getArtboard().getElement())
-      }
-    })
+        this.showEventHandlersEditor(event, proxy.selection[0] || this.getActiveComponent().getArtboard().getElement());
+      },
+    });
 
-    items.push({ type: 'separator' })
+    items.push({type: 'separator'});
 
     items.push({
       label: 'Open in Finder',
       enabled: proxy.isSelectionFinderOpenable(),
       onClick: () => {
-        mixpanel.haikuTrack('creator:glass:open-in-finder')
-        shell.openItem(proxy.getAbspath())
-      }
-    })
+        mixpanel.haikuTrack('creator:glass:open-in-finder');
+        shell.openItem(proxy.getAbspath());
+      },
+    });
 
     // Only display Edit In Sketch on mac
     if (isMac()) {
@@ -3043,188 +3122,188 @@ export class Glass extends React.Component {
         label: 'Edit in Sketch',
         enabled: proxy.isSelectionSketchEditable(),
         onClick: () => {
-          mixpanel.haikuTrack('creator:glass:edit-in-sketch')
-          shell.openItem(path.join(this.props.folder, proxy.getSketchAssetPath()))
-        }
-      })
+          mixpanel.haikuTrack('creator:glass:edit-in-sketch');
+          shell.openItem(path.join(this.props.folder, proxy.getSketchAssetPath()));
+        },
+      });
     }
 
     items.push({
       label: 'Edit in Figma',
       enabled: proxy.isSelectionFigmaEditable(),
       onClick: () => {
-        mixpanel.haikuTrack('creator:glass:edit-in-figma')
-        shell.openExternal(proxy.getFigmaAssetLink())
-      }
-    })
+        mixpanel.haikuTrack('creator:glass:edit-in-figma');
+        shell.openExternal(proxy.getFigmaAssetLink());
+      },
+    });
 
     items.push({
       label: 'Edit in Illustrator',
       enabled: proxy.isSelectionIllustratorEditable(),
       onClick: () => {
-        mixpanel.haikuTrack('creator:glass:edit-in-illustrator')
-        shell.openItem(path.join(this.props.folder, proxy.getIllustratorAssetPath()))
-      }
-    })
+        mixpanel.haikuTrack('creator:glass:edit-in-illustrator');
+        shell.openItem(path.join(this.props.folder, proxy.getIllustratorAssetPath()));
+      },
+    });
 
-    items.push({ type: 'separator' })
+    items.push({type: 'separator'});
 
     items.push({
       label: 'Cut',
       enabled: proxy.canCut(),
       onClick: () => {
-        this.handleCut()
-      }
-    })
+        this.handleCut();
+      },
+    });
 
     items.push({
       label: 'Copy',
       enabled: proxy.canCopy(),
       onClick: () => {
-        this.handleCopy()
-      }
-    })
+        this.handleCopy();
+      },
+    });
 
     items.push({
       label: 'Paste',
       enabled: proxy.canPaste(),
       onClick: (event) => {
-        this.handlePaste()
-      }
-    })
+        this.handlePaste();
+      },
+    });
 
-    items.push({ type: 'separator' })
+    items.push({type: 'separator'});
 
     if (experimentIsEnabled(Experiment.GroupUngroup)) {
       items.push({
         label: 'Group',
         enabled: proxy.canGroup(),
         onClick: () => {
-          mixpanel.haikuTrack('creator:glass:create-group')
-          this.handleGroupDebounced()
-        }
-      })
+          mixpanel.haikuTrack('creator:glass:create-group');
+          this.handleGroupDebounced();
+        },
+      });
 
       items.push({
         label: 'Ungroup',
         enabled: proxy.canUngroup(),
         onClick: () => {
-          this.handleUngroupDebounced()
-        }
-      })
+          this.handleUngroupDebounced();
+        },
+      });
 
-      items.push({ type: 'separator' })
+      items.push({type: 'separator'});
     }
 
     items.push({
       label: 'Delete',
       enabled: proxy.canDelete(),
       onClick: () => {
-        this.handleDelete()
-      }
-    })
+        this.handleDelete();
+      },
+    });
 
-    items.push({ type: 'separator' })
+    items.push({type: 'separator'});
 
     items.push({
       label: 'Forward',
       enabled: proxy.canBringForward(),
       onClick: () => {
-        mixpanel.haikuTrack('creator:glass:bring-forward')
-        proxy.bringForward()
-      }
-    })
+        mixpanel.haikuTrack('creator:glass:bring-forward');
+        proxy.bringForward();
+      },
+    });
 
     items.push({
       label: 'Backward',
       enabled: proxy.canSendBackward(),
       onClick: () => {
-        mixpanel.haikuTrack('creator:glass:send-backward')
-        proxy.sendBackward()
-      }
-    })
+        mixpanel.haikuTrack('creator:glass:send-backward');
+        proxy.sendBackward();
+      },
+    });
 
     items.push({
       label: 'Bring to Front',
       enabled: proxy.canBringToFront(),
       onClick: () => {
-        mixpanel.haikuTrack('creator:glass:bring-to-front')
-        proxy.bringToFront()
-      }
-    })
+        mixpanel.haikuTrack('creator:glass:bring-to-front');
+        proxy.bringToFront();
+      },
+    });
 
     items.push({
       label: 'Send to Back',
       enabled: proxy.canSendToBack(),
       onClick: () => {
-        mixpanel.haikuTrack('creator:glass:send-to-back')
-        proxy.sendToBack()
-      }
-    })
+        mixpanel.haikuTrack('creator:glass:send-to-back');
+        proxy.sendToBack();
+      },
+    });
 
-    items.push({ type: 'separator' })
+    items.push({type: 'separator'});
 
     items.push({
       label: 'Copy SVG',
       enabled: proxy.canCopySVG(),
       onClick: (event) => {
-        mixpanel.haikuTrack('creator:glass:copy-svg')
-        clipboard.writeText(proxy.copySVG())
-      }
-    })
+        mixpanel.haikuTrack('creator:glass:copy-svg');
+        clipboard.writeText(proxy.copySVG());
+      },
+    });
 
     items.push({
       label: 'HTML Snapshot',
       enabled: proxy.canHTMLSnapshot(),
       onClick: (event) => {
-        mixpanel.haikuTrack('creator:glass:html-snapshot')
+        mixpanel.haikuTrack('creator:glass:html-snapshot');
         this.getActiveComponent().htmlSnapshot((err, html) => {
           if (err) {
-            return
+            return;
           }
 
-          clipboard.writeText(html)
-          writeHtmlSnapshot(html, this)
-        })
-      }
-    })
+          clipboard.writeText(html);
+          writeHtmlSnapshot(html, this);
+        });
+      },
+    });
 
     if (process.env.NODE_ENV !== 'production') {
-      items.push({ type: 'separator' })
+      items.push({type: 'separator'});
 
       items.push({
         label: 'Inspect Element',
         enabled: proxy.doesManageSingleElement(),
         onClick: (event) => {
           if (remote) {
-            remote.getCurrentWindow().openDevTools()
+            remote.getCurrentWindow().openDevTools();
 
-            this.getActiveComponent().devConsole.logBanner()
+            this.getActiveComponent().devConsole.logBanner();
 
-            const publicComponentModel = this.getActiveComponent().$instance
-            const internalElementModel = proxy.getElement()
+            const publicComponentModel = this.getActiveComponent().$instance;
+            const internalElementModel = proxy.getElement();
 
             if (publicComponentModel && internalElementModel) {
-              const publicElementModel = publicComponentModel.querySelector(`haiku:${internalElementModel.getComponentId()}`)
-              window.element = publicElementModel
-              console.log('element', publicElementModel)
-              console.log('element.target', publicElementModel.target)
+              const publicElementModel = publicComponentModel.querySelector(`haiku:${internalElementModel.getComponentId()}`);
+              window.element = publicElementModel;
+              console.log('element', publicElementModel);
+              console.log('element.target', publicElementModel.target);
             }
           }
-        }
-      })
+        },
+      });
 
       items.push({
         label: 'Preview in Browser',
         enabled: proxy.hasNothingInSelection(),
         onClick: () => {
-          const assetPath = this.project.getPreviewAssetPath()
-          shell.openItem(assetPath)
-        }
-      })
+          const assetPath = this.project.getPreviewAssetPath();
+          shell.openItem(assetPath);
+        },
+      });
     }
 
-    return items
+    return items;
   }
 
   render () {
@@ -3233,22 +3312,22 @@ export class Glass extends React.Component {
       pan,
       zoom,
       container,
-      mount
-    } = this.getArtboardRenderInfo()
+      mount,
+    } = this.getArtboardRenderInfo();
 
     return (
       <div
-        id='stage-root'
+        id="stage-root"
         style={{
           width: '100%',
           height: '100%',
           visibility: (this.getActiveComponent()) ? 'visible' : 'hidden',
           cursor: this.getCursorCssRule(),
-          backgroundColor: (this.isPreviewMode()) ? 'white' : 'inherit'
+          backgroundColor: (this.isPreviewMode()) ? 'white' : 'inherit',
         }}
 
         onMouseDown={(mouseDown) => {
-          const targetId = mouseDown.nativeEvent.target && mouseDown.nativeEvent.target.id
+          const targetId = mouseDown.nativeEvent.target && mouseDown.nativeEvent.target.id;
 
           if (
               targetId === 'stage-root' ||
@@ -3259,45 +3338,45 @@ export class Glass extends React.Component {
               targetId === 'haiku-glass-stage-background-preview-border'
             ) {
             // If unselecting anything except an actual element, assume we want to deselect all
-            Element.unselectAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
+            Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'});
           }
 
           if (this.state.isEventHandlerEditorOpen) {
-            this.hideEventHandlersEditor()
+            this.hideEventHandlersEditor();
           }
 
           if (this.getActiveComponent() && !this.isPreviewMode()) {
-            this.getActiveComponent().getArtboard().snapshotOriginalPan()
+            this.getActiveComponent().getArtboard().snapshotOriginalPan();
           }
 
           this.setState({
             stageMouseDown: {
               x: mouseDown.nativeEvent.clientX,
-              y: mouseDown.nativeEvent.clientY
-            }
-          })
+              y: mouseDown.nativeEvent.clientY,
+            },
+          });
         }}
         onContextMenu={(event) => {
-          this.openContextMenu(event)
+          this.openContextMenu(event);
         }}
         onMouseUp={() => {
-          this.setState({ stageMouseDown: null })
+          this.setState({stageMouseDown: null});
         }}
         onMouseLeave={() => {
-          this.setState({ stageMouseDown: null })
+          this.setState({stageMouseDown: null});
         }}>
 
         {(!this.isPreviewMode())
           ? <div
-            id='zoom-indicator'
-            className='no-select'
+            id="zoom-indicator"
+            className="no-select"
             style={{
               position: 'fixed',
               top: 5,
               right: 10,
               zIndex: MAX_Z_INDEX - 8,
               color: '#ccc',
-              fontSize: 14
+              fontSize: 14,
             }}>
             {Math.round(zoom.x / 1 * 100)}%
             </div>
@@ -3307,12 +3386,16 @@ export class Glass extends React.Component {
           <EventHandlerEditor
             element={this.state.targetElement}
             save={(targetElement, serializedEvent) => {
-              this.saveEventHandlers(targetElement, serializedEvent)
+              this.saveEventHandlers(targetElement, serializedEvent);
             }}
-            close={() => { this.hideEventHandlersEditor() }}
+            close={() => {
+              this.hideEventHandlersEditor();
+            }}
             visible={this.state.isEventHandlerEditorOpen}
             options={this.state.eventHandlerEditorOptions}
-            ref={(editor) => { this.editor = editor }}
+            ref={(editor) => {
+              this.editor = editor;
+            }}
           />
         }
 
@@ -3322,22 +3405,22 @@ export class Glass extends React.Component {
             existingComponentNames={this.project.getExistingComponentNames()}
             onSubmit={(componentName) => {
               this.setState({
-                isCreateComponentModalOpen: false
+                isCreateComponentModalOpen: false,
               }, () => {
-                this.conglomerateComponentFromSelectedElementsWithTitle(componentName)
-              })
+                this.conglomerateComponentFromSelectedElementsWithTitle(componentName);
+              });
             }}
             onCancel={() => {
               this.setState({
-                isCreateComponentModalOpen: false
-              })
+                isCreateComponentModalOpen: false,
+              });
             }}
           />
         }
 
         <div
-          ref='container'
-          id='haiku-glass-stage-container'
+          ref="container"
+          id="haiku-glass-stage-container"
           style={{
             width: '100%',
             height: '100%',
@@ -3346,37 +3429,37 @@ export class Glass extends React.Component {
             top: 0,
             left: 0,
             transform: this.getCSSTransform(zoom, pan),
-            backgroundColor: 'inherit'
+            backgroundColor: 'inherit',
           }}>
 
           {(!this.isPreviewMode())
             ? <svg
-              id='haiku-glass-stage-background-live'
+              id="haiku-glass-stage-background-live"
               style={{
                 position: 'absolute',
                 top: container.y,
                 left: container.x,
                 width: container.w,
                 height: container.h,
-                overflow: 'visible'
+                overflow: 'visible',
               }}>
               <defs>
-                <filter id='background-blur' x='-50%' y='-50%' width='200%' height='200%'>
-                  <feGaussianBlur in='SourceAlpha' stdDeviation='2' result='blur' />
-                  <feFlood floodColor='rgba(33, 45, 49, .5)' floodOpacity='0.8' result='offsetColor' />
-                  <feComposite in='offsetColor' in2='blur' operator='in' result='totalBlur' />
-                  <feBlend in='SourceGraphic' in2='totalBlur' mode='normal' />
+                <filter id="background-blur" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur" />
+                  <feFlood floodColor="rgba(33, 45, 49, .5)" floodOpacity="0.8" result="offsetColor" />
+                  <feComposite in="offsetColor" in2="blur" operator="in" result="totalBlur" />
+                  <feBlend in="SourceGraphic" in2="totalBlur" mode="normal" />
                 </filter>
               </defs>
-              <rect id='full-background' x={container.x} y={container.y} width={container.w} height={container.w} fill='transparent' />
-              <rect id='mount-background-blur' filter='url(#background-blur)' x={mount.x} y={mount.y} width={mount.w} height={mount.h} fill='white' />
-              <rect id='mount-background' x={mount.x} y={mount.y} width={mount.w} height={mount.h} fill='white' />
+              <rect id="full-background" x={container.x} y={container.y} width={container.w} height={container.w} fill="transparent" />
+              <rect id="mount-background-blur" filter="url(#background-blur)" x={mount.x} y={mount.y} width={mount.w} height={mount.h} fill="white" />
+              <rect id="mount-background" x={mount.x} y={mount.y} width={mount.w} height={mount.h} fill="white" />
             </svg>
             : ''}
 
           {(!this.isPreviewMode())
             ? <svg
-              id='haiku-glass-stage-title-text-container'
+              id="haiku-glass-stage-title-text-container"
               style={{
                 position: 'absolute',
                 zIndex: 10,
@@ -3385,18 +3468,18 @@ export class Glass extends React.Component {
                 height: 20,
                 width: mount.w,
                 userSelect: 'none',
-                cursor: 'default'
+                cursor: 'default',
               }}
               onClick={this.handleClickStageName.bind(this)}
               onMouseOver={this.handleMouseOverStageName.bind(this)}
               onMouseOut={this.handleMouseOutStageName.bind(this)}>
               <text
-                y='13'
-                id='project-name'
+                y="13"
+                id="project-name"
                 fill={Palette.FATHER_COAL}
-                fontWeight='lighter'
-                fontFamily='Fira Sans'
-                fontSize='13'>
+                fontWeight="lighter"
+                fontFamily="Fira Sans"
+                fontSize="13">
                 {`${this.props.userconfig.project || '[n/a]'} (${(this.getActiveComponent() && this.getActiveComponent().getTitle()) || '…'})`}
               </text>
             </svg>
@@ -3404,7 +3487,7 @@ export class Glass extends React.Component {
 
           {(!this.isPreviewMode())
             ? <svg
-              id='haiku-glass-opacitator'
+              id="haiku-glass-opacitator"
               style={{
                 position: 'absolute',
                 top: container.y,
@@ -3413,7 +3496,7 @@ export class Glass extends React.Component {
                 width: container.w,
                 height: container.h,
                 pointerEvents: 'none',
-                overflow: 'visible'
+                overflow: 'visible',
               }}>
               {/* draw a semiopaque rect with a transparent cutout */}
               <path
@@ -3433,14 +3516,14 @@ export class Glass extends React.Component {
                   fill: '#111',
                   opacity: 0.1,
                   pointerEvents: 'none',
-                  overflow: 'visible'
+                  overflow: 'visible',
                 }} />
             </svg>
             : ''}
 
           {(!this.isPreviewMode())
             ? <svg
-              id='haiku-glass-stage-border'
+              id="haiku-glass-stage-border"
               style={{
                 position: 'absolute',
                 top: container.y,
@@ -3449,7 +3532,7 @@ export class Glass extends React.Component {
                 width: container.w,
                 height: container.h,
                 pointerEvents: 'none',
-                overflow: 'visible'
+                overflow: 'visible',
               }}>
               {/* draw a semiopaque rect with a transparent cutout */}
               <path
@@ -3466,9 +3549,9 @@ export class Glass extends React.Component {
                   Z
                 `.split('\n').join('')}
                 style={{
-                  'fill': '#FFF',
-                  'opacity': 0.5,
-                  'pointerEvents': 'none'
+                  fill: '#FFF',
+                  opacity: 0.5,
+                  pointerEvents: 'none',
                 }} />
               {/* draw the border around the stage when selected */}
               <rect
@@ -3481,7 +3564,7 @@ export class Glass extends React.Component {
                   fill: 'none',
                   stroke: 'hsl(' + this.modColor(this._renderCount) + ', 100%, 50%)',
                   opacity: this.state.isStageNameHovering && !this.state.isStageSelected ? 1 : 0,
-                  overflow: 'visible'
+                  overflow: 'visible',
                 }}
                 />
             </svg>
@@ -3489,7 +3572,7 @@ export class Glass extends React.Component {
 
           {(!this.isPreviewMode() && this.state.doShowComments && this.state.comments.length > 0)
             ? <div
-              id='haiku-glass-comments-container'
+              id="haiku-glass-comments-container"
               style={{
                 position: 'absolute',
                 pointerEvents: 'none',
@@ -3509,15 +3592,15 @@ export class Glass extends React.Component {
                     y={comment.y + this.getActiveComponent().getArtboard().getMountY()}
                     key={`comment-${comment.id}`}
                     model={this._comments} />
-                )
+                );
               })}
             </div>
             : ''}
 
           {(!this.isPreviewMode())
             ? <div
-              ref='overlay'
-              id='haiku-glass-overlay-mount'
+              ref="overlay"
+              id="haiku-glass-overlay-mount"
               style={{
                 transform: 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)',
                 pointerEvents: 'none', // This needs to be un-set for surface elements that take mouse interaction
@@ -3528,7 +3611,7 @@ export class Glass extends React.Component {
                 top: container.y,
                 left: container.x,
                 zIndex: 1999,
-                opacity: (this.state.isEventHandlerEditorOpen) ? 0.5 : 1.0
+                opacity: (this.state.isEventHandlerEditorOpen) ? 0.5 : 1.0,
               }} />
             : ''}
 
@@ -3536,8 +3619,8 @@ export class Glass extends React.Component {
           {this.renderSnapLines()}
           {(!this.isPreviewMode())
             ? <div
-              ref='outline'
-              id='haiku-glass-outline-mount'
+              ref="outline"
+              id="haiku-glass-outline-mount"
               style={{
                 position: 'absolute',
                 pointerEvents: 'none',
@@ -3547,13 +3630,13 @@ export class Glass extends React.Component {
                 height: mount.h,
                 overflow: this.isPreviewMode() ? 'hidden' : 'visible',
                 zIndex: 60,
-                opacity: (this.state.isEventHandlerEditorOpen) ? 0.5 : 1.0
+                opacity: (this.state.isEventHandlerEditorOpen) ? 0.5 : 1.0,
               }} />
             : ''}
 
           {(this.isPreviewMode())
             ? <div
-              id='preview-container'
+              id="preview-container"
               style={{
                 position: 'absolute',
                 left: 0,
@@ -3562,7 +3645,7 @@ export class Glass extends React.Component {
                 height: '100%',
                 overflow: 'hidden',
                 zIndex: MAX_Z_INDEX - 4,
-                backgroundColor: 'white'
+                backgroundColor: 'white',
               }}>
               <Preview
                 container={container}
@@ -3572,26 +3655,26 @@ export class Glass extends React.Component {
             : ''}
         </div>
       </div>
-    )
+    );
   }
 }
 
 function belongsToMenuIcon (target) {
   if (!target || !target.getAttribute) {
-    return false
+    return false;
   }
 
   if (target.getAttribute('id') === 'element-menu-icon-wrapper') {
-    return true
+    return true;
   }
 
-  return belongsToMenuIcon(target.parentNode)
+  return belongsToMenuIcon(target.parentNode);
 }
 
 Glass.propTypes = {
   userconfig: React.PropTypes.object,
   websocket: React.PropTypes.object,
-  folder: React.PropTypes.string
-}
+  folder: React.PropTypes.string,
+};
 
-export default Glass
+export default Glass;

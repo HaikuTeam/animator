@@ -1,101 +1,109 @@
-import {ipcRenderer} from 'electron'
-import * as React from 'react'
-import * as ReactDOM from 'react-dom'
-import * as lodash from 'lodash'
-import * as qs from 'qs'
-import * as Websocket from 'haiku-serialization/src/ws/Websocket'
-import * as MockWebsocket from 'haiku-serialization/src/ws/MockWebsocket'
-import Glass from './Glass'
-import {sentryCallback} from 'haiku-serialization/src/utils/carbonite'
-import * as logger from 'haiku-serialization/src/utils/LoggerInstance'
-import {fetchProjectConfigInfo} from '@haiku/sdk-client/lib/ProjectDefinitions'
-const mixpanel = require('haiku-serialization/src/utils/Mixpanel')
+import {ipcRenderer} from 'electron';
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
+import * as lodash from 'lodash';
+import * as qs from 'qs';
+import * as Websocket from 'haiku-serialization/src/ws/Websocket';
+import * as MockWebsocket from 'haiku-serialization/src/ws/MockWebsocket';
+import Glass from './Glass';
+import {sentryCallback} from 'haiku-serialization/src/utils/carbonite';
+import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
+import {fetchProjectConfigInfo} from '@haiku/sdk-client/lib/ProjectDefinitions';
+const mixpanel = require('haiku-serialization/src/utils/Mixpanel');
 
 if (process.env.NODE_ENV === 'production') {
   window.Raven.config('https://287e52df9cfd48aab7f6091ec17a5921@sentry.io/226362', {
     environment: process.env.NODE_ENV || 'development',
     release: process.env.HAIKU_RELEASE_VERSION,
-    dataCallback: sentryCallback
-  })
+    dataCallback: sentryCallback,
+  });
   window.Raven.context(() => {
-    go()
-  })
+    go();
+  });
 } else {
-  go()
+  go();
 }
 
 function _traceKitFormatErrorStack (error) {
-  if (!error) return null
-  if (typeof error.stack !== 'string') return null
+  if (!error) {
+    return null;
+  }
+  if (typeof error.stack !== 'string') {
+    return null;
+  }
   error.stack = error.stack.split('\n').map((line) => {
-    return line.split(/ at\s+\//).join(' at (/')
-  }).join('\n')
-  return error
+    return line.split(/ at\s+\//).join(' at (/');
+  }).join('\n');
+  return error;
 }
 
-const heardErrors = {}
+const heardErrors = {};
 
 window.onerror = function (msg, url, line, col, error) {
   if (heardErrors[msg]) {
-    return false
+    return false;
   }
 
-  heardErrors[msg] = true
+  heardErrors[msg] = true;
 
   if (process.env.NODE_ENV === 'production') {
-    _traceKitFormatErrorStack(error)
-    window.Raven.captureException(error)
+    _traceKitFormatErrorStack(error);
+    window.Raven.captureException(error);
   }
 
   // Give Raven some time to transmit an error report before we crash
   setTimeout(() => {
-    throw error
-  }, 500)
-}
+    throw error;
+  }, 500);
+};
 
 function go () {
   // We are in a webview; use query string parameters for boot-up configuration
-  const search = (window.location.search || '').split('?')[1] || ''
-  const params = qs.parse(search, { plainObjects: true })
-  const config = lodash.assign({}, params)
-  if (!config.folder) throw new Error('A folder (the absolute path to the user project) is required')
-  function _fixPlumbingUrl (url) { return url.replace(/^http/, 'ws') }
+  const search = (window.location.search || '').split('?')[1] || '';
+  const params = qs.parse(search, {plainObjects: true});
+  const config = lodash.assign({}, params);
+  if (!config.folder) {
+    throw new Error('A folder (the absolute path to the user project) is required');
+  }
+  function _fixPlumbingUrl (url) {
+    return url.replace(/^http/, 'ws');
+  }
 
   return fetchProjectConfigInfo(config.folder, (err, userconfig) => {
     if (err) {
-      throw err
+      throw err;
     }
 
     const websocket = (config.plumbing)
       ? new Websocket(_fixPlumbingUrl(config.plumbing), config.folder, 'controllee', 'glass', null, config.socket.token)
-      : new MockWebsocket(ipcRenderer)
+      : new MockWebsocket(ipcRenderer);
 
     websocket.on('open', () => {
-      logger.setWebsocket(websocket)
-    })
+      logger.setWebsocket(websocket);
+    });
 
     websocket.on('close', () => {
-      logger.setWebsocket(null)
-    })
+      logger.setWebsocket(null);
+    });
 
     // Add extra context to Sentry reports, this info is also used by carbonite.
-    const folderHelper = config.folder.split('/').reverse()
+    const folderHelper = config.folder.split('/').reverse();
 
     window.Raven.setExtraContext({
       organizationName: folderHelper[1] || 'unknown',
       projectName: folderHelper[0] || 'unknown',
-      projectPath: config.folder
-    })
+      projectPath: config.folder,
+    });
 
     window.Raven.setUserContext({
-      email: config.email
-    })
+      email: config.email,
+    });
 
     mixpanel.mergeToPayload({
-      distinct_id: config.email
-    })
+      distinct_id: config.email,
+    });
 
-    window.isWebview = config.webview
+    window.isWebview = config.webview;
 
     ReactDOM.render(
       <Glass
@@ -106,7 +114,7 @@ function go () {
         folder={config.folder}
         projectName={userconfig.project || 'untitled'}
         />,
-      document.getElementById('root')
-    )
-  })
+      document.getElementById('root'),
+    );
+  });
 }
