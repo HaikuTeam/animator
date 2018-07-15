@@ -1,61 +1,63 @@
-import * as React from 'react'
-import Palette from 'haiku-ui-common/lib/Palette'
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
-import {ComponentIconSVG, RepeaterIconSVG} from 'haiku-ui-common/lib/react/OtherIcons'
-import * as Color from 'color'
+import * as React from 'react';
+import Palette from 'haiku-ui-common/lib/Palette';
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
+import {ComponentIconSVG, RepeaterIconSVG} from 'haiku-ui-common/lib/react/OtherIcons';
+import * as Color from 'color';
 
-const DOUBLE_CLICK_WAIT_DELAY_MS = 100
+const DOUBLE_CLICK_WAIT_DELAY_MS = 100;
 
 export default class ComponentHeadingRowHeading extends React.Component {
   constructor (props) {
-    super(props)
-    this.handleUpdate = this.handleUpdate.bind(this)
-    this.onExpandTimeout = null
+    super(props);
+    this.handleUpdate = this.handleUpdate.bind(this);
+    this.onExpandTimeout = null;
     this.state = {
       isEditingRowTitle: false,
-      rowTitle: props.row.element.getTitle()
-    }
+      rowTitle: props.row.element.getTitle(),
+    };
   }
 
   componentWillUnmount () {
-    this.mounted = false
-    this.props.row.removeListener('update', this.handleUpdate)
-    this.props.row.element.removeListener('update', this.handleUpdate)
+    this.mounted = false;
+    this.props.row.removeListener('update', this.handleUpdate);
+    this.props.row.element.removeListener('update', this.handleUpdate);
   }
 
   componentDidMount () {
-    this.mounted = true
-    this.props.row.on('update', this.handleUpdate)
-    this.props.row.element.on('update', this.handleUpdate)
+    this.mounted = true;
+    this.props.row.on('update', this.handleUpdate);
+    this.props.row.element.on('update', this.handleUpdate);
   }
 
   handleUpdate (what) {
-    if (!this.mounted) return null
+    if (!this.mounted) {
+      return null;
+    }
     if (
       what === 'row-hovered' ||
       what === 'row-unhovered' ||
       what === 'element-selected' ||
       what === 'element-unselected'
     ) {
-      this.forceUpdate()
+      this.forceUpdate();
     } else if (what === 'row-set-title') {
       this.setState({
-        rowTitle: this.props.row.element.getTitle()
-      })
+        rowTitle: this.props.row.element.getTitle(),
+      });
     }
   }
 
   handleRowTitleChange (event) {
     this.setState({
-      rowTitle: event.target.value
-    })
+      rowTitle: event.target.value,
+    });
   }
 
   handleRowTitleKeyDown (event) {
-    event.stopPropagation()
+    event.stopPropagation();
     // Submit on Enter
     if (event.which === 13) {
-      this.persistRowTitle()
+      this.persistRowTitle();
     }
   }
 
@@ -66,71 +68,71 @@ export default class ComponentHeadingRowHeading extends React.Component {
       }
       this.setState({
         rowTitle,
-        isEditingRowTitle: false
-      })
-    })
+        isEditingRowTitle: false,
+      });
+    });
   }
 
   getIcon () {
     if (this.props.row.element.isRepeater()) {
-      return <RepeaterIconSVG />
+      return <RepeaterIconSVG />;
     } else if (this.props.row.element.isComponent()) {
-      return <ComponentIconSVG />
+      return <ComponentIconSVG />;
     }
-    return ''
+    return '';
   }
 
   render () {
-    let color = Palette.ROCK_MUTED
+    let color = Palette.ROCK_MUTED;
 
     if (this.props.row.isSelected()) {
-      color = Palette.SUNSTONE
+      color = Palette.SUNSTONE;
     } else if (this.props.row.isExpanded()) {
-      color = Palette.ROCK
+      color = Palette.ROCK;
     }
 
     if (this.props.row.isHovered()) {
-      color = Color(color).lighten(0.25)
+      color = Color(color).lighten(0.25);
     }
 
     return (
       (this.props.row.isRootRow())
         ? (<div
-          className='component-heading-row-heading-root-box'
+          className="component-heading-row-heading-root-box"
           title={this.state.rowTitle}
           style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
             display: 'inline-block',
-            transform: 'translateY(1px)'
+            transform: 'translateY(1px)',
           } : {
             height: 27,
             display: 'inline-block',
-            transform: 'translateY(1px)'
+            transform: 'translateY(1px)',
           })}>
           <span
-            className='component-heading-row-heading-root-icon-box'
+            className="component-heading-row-heading-root-icon-box"
             style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
               marginLeft: 8,
               marginRight: 4,
               display: 'inline-block',
-              transform: 'translateY(4px)'
+              transform: 'translateY(4px)',
             } : {
               marginRight: 4,
               display: 'inline-block',
-              transform: 'translateY(4px)'
+              transform: 'translateY(4px)',
             })}>
             <ComponentIconSVG />
           </span>
           {trunc(this.state.rowTitle, 12)}
         </div>)
         : (<span
-          className='component-heading-row-heading-child-box'
+          className="component-heading-row-heading-child-box"
           title={this.state.rowTitle}
           style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
             color,
             display: 'flex',
             alignItems: 'center',
             height: 25,
-            marginLeft: 5
+            marginLeft: 5,
           } : {
             color,
             position: 'relative',
@@ -138,19 +140,19 @@ export default class ComponentHeadingRowHeading extends React.Component {
             marginLeft: 25,
             display: 'inline-block',
             width: 100,
-            height: 20
+            height: 20,
           })}>
           <span
-            className='component-heading-row-heading-child-icon-box'
+            className="component-heading-row-heading-child-icon-box"
             style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
               display: 'inline-block',
-              marginTop: 5
+              marginTop: 5,
             } : {
               position: 'absolute',
               display: 'inline-block',
               height: 20,
               left: 2,
-              top: 8
+              top: 8,
             })}>
             {this.getIcon()}
           </span>
@@ -162,7 +164,7 @@ export default class ComponentHeadingRowHeading extends React.Component {
                   ? 5
                   : 0,
               overflowX: 'hidden',
-              width: 160
+              width: 160,
             } : {
               position: 'absolute',
               display: 'inline-block',
@@ -174,21 +176,21 @@ export default class ComponentHeadingRowHeading extends React.Component {
               overflowX: 'hidden',
               width: (this.props.row.element.isComponent() || this.props.row.element.isRepeater())
                 ? 80
-                : 100
+                : 100,
             })}
             onClick={(clickEvent) => {
               if (!this.onExpandTimeout) {
-                this.onExpandTimeout = setTimeout(this.props.onExpand, DOUBLE_CLICK_WAIT_DELAY_MS)
+                this.onExpandTimeout = setTimeout(this.props.onExpand, DOUBLE_CLICK_WAIT_DELAY_MS);
               }
             }}
             onDoubleClick={(clickEvent) => {
-              clickEvent.stopPropagation()
-              clearTimeout(this.onExpandTimeout)
-              this.onExpandTimeout = null
+              clickEvent.stopPropagation();
+              clearTimeout(this.onExpandTimeout);
+              this.onExpandTimeout = null;
               if (!this.state.isEditingRowTitle) {
                 this.setState({isEditingRowTitle: true}, () => {
-                  this.refs.rowTitleInput && this.refs.rowTitleInput.select()
-                })
+                  this.refs.rowTitleInput && this.refs.rowTitleInput.select();
+                });
               }
             }}
           >
@@ -197,34 +199,34 @@ export default class ComponentHeadingRowHeading extends React.Component {
                 style={{
                   color,
                   fontSize: 12,
-                  fontFamily: 'Fira Sans'
+                  fontFamily: 'Fira Sans',
                 }}
-                ref='rowTitleInput'
-                type='text'
+                ref="rowTitleInput"
+                type="text"
                 value={this.state.rowTitle}
                 onChange={(e) => this.handleRowTitleChange(e)}
                 onKeyDown={(e) => this.handleRowTitleKeyDown(e)}
                 onBlur={() => {
-                  this.persistRowTitle()
+                  this.persistRowTitle();
                 }}
               />
               : trunc(this.state.rowTitle, 8)
             }
           </span>
         </span>)
-    )
+    );
   }
 }
 
 const trunc = (str, len) => {
   if (str.length <= len) {
-    return str
+    return str;
   }
 
-  return `${str.slice(0, len)}…`
-}
+  return `${str.slice(0, len)}…`;
+};
 
 ComponentHeadingRowHeading.propTypes = {
   row: React.PropTypes.object.isRequired,
-  onExpand: React.PropTypes.func.isRequired
-}
+  onExpand: React.PropTypes.func.isRequired,
+};

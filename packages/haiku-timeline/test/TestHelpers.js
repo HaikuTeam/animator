@@ -1,12 +1,7 @@
-process.env.NODE_ENV = 'test'
-require('babel-register')({
-  presets: ['babel-preset-react-app'].map(require.resolve)
-})
-const path = require('path')
-const JSDOM = require('jsdom').JSDOM
+const {JSDOM} = require('jsdom')
 const React = require('react')
 const ReactDOM = require('react-dom')
-const {fetchProjectConfigInfo} = require ('@haiku/sdk-client/lib/ProjectDefinitions');
+const {fetchProjectConfigInfo} = require ('@haiku/sdk-client/lib/ProjectDefinitions')
 
 const TestHelpers = {}
 
@@ -50,7 +45,7 @@ function createDOM (folder, cb) {
 function createApp (folder, cb) {
   return createDOM(folder, function (err, win, _teardown) {
     if (err) throw err
-    const Timeline = require('./../lib/components/Timeline').default
+    const Timeline = require('@timeline/components/Timeline').default
     return fetchProjectConfigInfo(folder, (err, userconfig) => {
       if (err) throw err
       const websocket = { on: () => {}, send: () => {}, method: () => {}, request: () => {}, action: () => {}, connect: () => {} }

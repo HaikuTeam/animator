@@ -1,68 +1,70 @@
-import * as React from 'react'
-import * as lodash from 'lodash'
-import Palette from 'haiku-ui-common/lib/Palette'
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
-import zIndex from './styles/zIndex'
+import * as React from 'react';
+import * as lodash from 'lodash';
+import Palette from 'haiku-ui-common/lib/Palette';
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
+import zIndex from './styles/zIndex';
 
 export default class ScrubberInterior extends React.Component {
   constructor (props) {
-    super(props)
-    this.propertiesWidth = props.timeline.getPropertiesPixelWidth()
-    this.handleUpdate = this.handleUpdate.bind(this)
-    this.throttledForceUpdate = lodash.throttle(this.forceUpdate.bind(this), 64)
+    super(props);
+    this.propertiesWidth = props.timeline.getPropertiesPixelWidth();
+    this.handleUpdate = this.handleUpdate.bind(this);
+    this.throttledForceUpdate = lodash.throttle(this.forceUpdate.bind(this), 64);
   }
 
   componentWillUnmount () {
-    this.mounted = false
-    this.props.timeline.removeListener('update', this.handleUpdate)
+    this.mounted = false;
+    this.props.timeline.removeListener('update', this.handleUpdate);
   }
 
   componentDidMount () {
-    this.mounted = true
-    this.props.timeline.on('update', this.handleUpdate)
+    this.mounted = true;
+    this.props.timeline.on('update', this.handleUpdate);
   }
 
   componentWillReceiveProps (nextProps) {
     // When switching the active component, we also get a new timeline instance
     if (nextProps.timeline !== this.props.timeline) {
-      this.props.timeline.removeListener('update', this.handleUpdate)
-      nextProps.timeline.on('update', this.handleUpdate)
+      this.props.timeline.removeListener('update', this.handleUpdate);
+      nextProps.timeline.on('update', this.handleUpdate);
     }
   }
 
   handleUpdate (what) {
-    if (!this.mounted) return null
+    if (!this.mounted) {
+      return null;
+    }
 
     if (what === 'timeline-frame') {
-      this.forceUpdate()
+      this.forceUpdate();
     } else if (what === 'timeline-frame-range') {
-      this.forceUpdate()
+      this.forceUpdate();
     } else if (what === 'time-display-mode-change') {
-      this.forceUpdate()
+      this.forceUpdate();
     } else if (what === 'timeline-scroll' || 'timeline-scroll-from-scrollbar') {
-      this.forceUpdate()
+      this.forceUpdate();
     }
   }
 
   render () {
-    const frameInfo = this.props.timeline.getFrameInfo()
+    const frameInfo = this.props.timeline.getFrameInfo();
 
     if (!experimentIsEnabled(Experiment.NativeTimelineScroll)) {
       if (this.props.timeline.getCurrentFrame() < frameInfo.friA) {
-        return <span />
+        return <span />;
       }
 
       if (this.props.timeline.getCurrentFrame() > frameInfo.friB) {
-        return <span />
+        return <span />;
       }
     }
 
-    const currFrame = this.props.timeline.getCurrentFrame()
+    const currFrame = this.props.timeline.getCurrentFrame();
     const frameOffset = experimentIsEnabled(Experiment.NativeTimelineScroll)
       ? currFrame
-      : currFrame - frameInfo.friA
-    const pxOffset = frameOffset * frameInfo.pxpf
-    const translation = this.propertiesWidth + pxOffset
+      : currFrame - frameInfo.friA;
+    const pxOffset = frameOffset * frameInfo.pxpf;
+    const translation = this.propertiesWidth + pxOffset;
 
     return (
       <div
@@ -72,9 +74,9 @@ export default class ScrubberInterior extends React.Component {
           top: 0,
           marginTop: -45,
           zIndex: zIndex.scrubber.base,
-          fontSize: 10
+          fontSize: 10,
         } : {
-          overflow: 'hidden'
+          overflow: 'hidden',
         })}>
         <div
           style={experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
@@ -90,7 +92,7 @@ export default class ScrubberInterior extends React.Component {
             cursor: 'move',
             boxShadow: '0 0 2px 0 rgba(0, 0, 0, .9)',
             willChange: 'transform',
-            transform: `translate3D(${translation}px, 0, 0)`
+            transform: `translate3D(${translation}px, 0, 0)`,
           } : {
             position: 'absolute',
             backgroundColor: Palette.SUNSTONE,
@@ -103,13 +105,13 @@ export default class ScrubberInterior extends React.Component {
             borderRadius: '50%',
             cursor: 'move',
             boxShadow: '0 0 2px 0 rgba(0, 0, 0, .9)',
-            zIndex: 2006
+            zIndex: 2006,
           }}>
           <span style={{
             position: 'absolute',
             top: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 1 : 2,
             left: 0,
-            width: '100%'
+            width: '100%',
           }}>
             {this.props.timeline.getDisplayTime()}
           </span>
@@ -121,7 +123,7 @@ export default class ScrubberInterior extends React.Component {
             left: 1,
             borderLeft: '6px solid transparent',
             borderRight: '6px solid transparent',
-            borderTop: '9px solid rgb(254, 254, 254)'
+            borderTop: '9px solid rgb(254, 254, 254)',
           } : {
             position: 'absolute',
             zIndex: 2006,
@@ -131,7 +133,7 @@ export default class ScrubberInterior extends React.Component {
             left: 1,
             borderLeft: '7px solid transparent',
             borderRight: '7px solid transparent',
-            borderTop: '9px solid ' + Palette.SUNSTONE
+            borderTop: '9px solid ' + Palette.SUNSTONE,
           }} />
           <span style={experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
             position: 'absolute',
@@ -141,7 +143,7 @@ export default class ScrubberInterior extends React.Component {
             left: 2,
             borderLeft: '6px solid transparent',
             borderRight: '6px solid transparent',
-            borderTop: '8px solid rgb(254, 254, 254)'
+            borderTop: '8px solid rgb(254, 254, 254)',
           } : {
             display: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'none' : 'inline-block',
             position: 'absolute',
@@ -152,7 +154,7 @@ export default class ScrubberInterior extends React.Component {
             top: 15,
             borderLeft: '7px solid transparent',
             borderRight: '7px solid transparent',
-            borderTop: '9px solid ' + Palette.SUNSTONE
+            borderTop: '9px solid ' + Palette.SUNSTONE,
           }} />
         </div>
         <div
@@ -166,14 +168,14 @@ export default class ScrubberInterior extends React.Component {
             left: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : pxOffset,
             pointerEvents: 'none',
             willChange: 'transform',
-            transform: `translate3D(${translation}px, 0, 0)`
+            transform: `translate3D(${translation}px, 0, 0)`,
           }} />
       </div>
-    )
+    );
   }
 }
 
 ScrubberInterior.propTypes = {
   timeline: React.PropTypes.object.isRequired,
-  onMouseDown: React.PropTypes.func
-}
+  onMouseDown: React.PropTypes.func,
+};

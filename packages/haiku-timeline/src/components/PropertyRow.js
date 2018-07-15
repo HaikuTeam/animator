@@ -1,68 +1,76 @@
-import * as React from 'react'
-import * as lodash from 'lodash'
-import humanizePropertyName from 'haiku-ui-common/lib/helpers/humanizePropertyName'
-import truncate from 'haiku-ui-common/lib/helpers/truncate'
-import DownCarrotSVG from 'haiku-ui-common/lib/react/icons/DownCarrotSVG'
-import FamilySVG from 'haiku-ui-common/lib/react/icons/FamilySVG'
-import PropertyInputField from './PropertyInputField'
-import Palette from 'haiku-ui-common/lib/Palette'
-import Globals from 'haiku-ui-common/lib/Globals'
-import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
-import PropertyTimelineSegments from './PropertyTimelineSegments'
-import PropertyRowHeading from './PropertyRowHeading'
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
-import zIndex from './styles/zIndex'
+import * as React from 'react';
+import * as lodash from 'lodash';
+import humanizePropertyName from 'haiku-ui-common/lib/helpers/humanizePropertyName';
+import truncate from 'haiku-ui-common/lib/helpers/truncate';
+import DownCarrotSVG from 'haiku-ui-common/lib/react/icons/DownCarrotSVG';
+import FamilySVG from 'haiku-ui-common/lib/react/icons/FamilySVG';
+import PropertyInputField from './PropertyInputField';
+import Palette from 'haiku-ui-common/lib/Palette';
+import Globals from 'haiku-ui-common/lib/Globals';
+import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu';
+import PropertyTimelineSegments from './PropertyTimelineSegments';
+import PropertyRowHeading from './PropertyRowHeading';
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
+import zIndex from './styles/zIndex';
 
 export default class PropertyRow extends React.Component {
   constructor (props) {
-    super(props)
+    super(props);
 
-    this.handleUpdate = this.handleUpdate.bind(this)
-    this.throttledHandleRowHovered = lodash.throttle(this.handleRowHovered, 20).bind(this)
-    this.throttledHandleRowUnhovered = lodash.throttle(this.handleRowUnhovered, 20).bind(this)
+    this.handleUpdate = this.handleUpdate.bind(this);
+    this.throttledHandleRowHovered = lodash.throttle(this.handleRowHovered, 20).bind(this);
+    this.throttledHandleRowUnhovered = lodash.throttle(this.handleRowUnhovered, 20).bind(this);
   }
 
   componentWillUnmount () {
-    this.mounted = false
-    this.props.row.removeListener('update', this.handleUpdate)
+    this.mounted = false;
+    this.props.row.removeListener('update', this.handleUpdate);
   }
 
   componentDidMount () {
-    this.mounted = true
-    this.props.row.on('update', this.handleUpdate)
+    this.mounted = true;
+    this.props.row.on('update', this.handleUpdate);
   }
 
   handleUpdate (what) {
-    if (!this.mounted) return null
+    if (!this.mounted) {
+      return null;
+    }
     if (
       what === 'row-selected' ||
       what === 'row-deselected' ||
       what === 'row-set-title'
      ) {
-      this.forceUpdate()
+      this.forceUpdate();
     }
   }
 
   handleRowHovered (event) {
-    this.props.row.hoverAndUnhoverOthers({ from: 'timeline' })
+    this.props.row.hoverAndUnhoverOthers({from: 'timeline'});
   }
 
   handleRowUnhovered (event) {
-    this.props.row.unhover({ from: 'timeline' })
+    this.props.row.unhover({from: 'timeline'});
   }
 
   maybeRenderFamilyLabel () {
-    if (!this.props.prev) return false
-    if (this.props.row.doesTargetHostElement()) return false
-    if (!this.props.row.isFirstRowOfSubElementSet()) return false
+    if (!this.props.prev) {
+      return false;
+    }
+    if (this.props.row.doesTargetHostElement()) {
+      return false;
+    }
+    if (!this.props.row.isFirstRowOfSubElementSet()) {
+      return false;
+    }
     return (
       <div
-        className='family-label-for-property'
+        className="family-label-for-property"
         style={{
           position: 'absolute',
           top: 4,
           left: 50,
-          zIndex: 10000
+          zIndex: 10000,
         }}>
         <FamilySVG color={Palette.BLUE} />
         <span
@@ -72,25 +80,25 @@ export default class PropertyRow extends React.Component {
             marginLeft: 6,
             color: Palette.BLUE,
             top: 4,
-            whiteSpace: 'nowrap'
+            whiteSpace: 'nowrap',
           }}>
           {truncate(this.props.row.element.getFriendlyLabel(), 7)}
         </span>
       </div>
-    )
+    );
   }
 
   render () {
-    const frameInfo = this.props.timeline.getFrameInfo()
+    const frameInfo = this.props.timeline.getFrameInfo();
 
-    const componentId = this.props.row.element.getComponentId()
-    const propertyName = this.props.row.getPropertyNameString()
-    const humanName = humanizePropertyName(propertyName)
+    const componentId = this.props.row.element.getComponentId();
+    const propertyName = this.props.row.getPropertyNameString();
+    const humanName = humanizePropertyName(propertyName);
 
     return (
       <div
         id={`property-row-${this.props.row.getAddress()}-${componentId}-${propertyName}`}
-        className='property-row'
+        className="property-row"
         onMouseEnter={this.throttledHandleRowHovered}
         onMouseLeave={this.throttledHandleRowUnhovered}
         style={{
@@ -98,7 +106,7 @@ export default class PropertyRow extends React.Component {
           width: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : this.props.timeline.getPropertiesPixelWidth() + this.props.timeline.getTimelinePixelWidth(),
           left: 0,
           opacity: (this.props.row.isHidden()) ? 0.5 : 1.0,
-          position: 'relative'
+          position: 'relative',
         }}>
         <div style={(experimentIsEnabled(Experiment.NativeTimelineScroll)
             ? {
@@ -109,14 +117,14 @@ export default class PropertyRow extends React.Component {
               // Increase the z-index over the other rows to show the pink border around the selected field,
               // we need to do this here because we are defining a new stacking context with `position: sticky`
               zIndex: this.props.row === this.props.row.component.getSelectedRow() ? (zIndex.propertyRowHeading.base + 1) : zIndex.propertyRowHeading.base,
-              backgroundColor: Palette.GRAY
+              backgroundColor: Palette.GRAY,
             } : {})}>
           <div
             onClick={(clickEvent) => {
               // Allow clicking the subproperty of a cluster to collapse the parent row,
               // which 'contains' the rows of the cluster as children
               if (this.props.row.isCluster()) {
-                this.props.row.parent.collapse()
+                this.props.row.parent.collapse();
               }
             }}>
             {(this.props.row.isFirstRowOfPropertyCluster()) &&
@@ -128,13 +136,13 @@ export default class PropertyRow extends React.Component {
                   top: -2,
                   zIndex: 1006,
                   textAlign: 'right',
-                  height: 'inherit'
+                  height: 'inherit',
                 }}>
-                <span className='utf-icon' style={{ top: -4, left: -3 }}><DownCarrotSVG /></span>
+                <span className="utf-icon" style={{top: -4, left: -3}}><DownCarrotSVG /></span>
               </div>}
             {this.maybeRenderFamilyLabel()}
             <div
-              className='property-row-label no-select'
+              className="property-row-label no-select"
               style={{
                 right: 0,
                 width: this.props.timeline.getPropertiesPixelWidth() - 120,
@@ -148,30 +156,30 @@ export default class PropertyRow extends React.Component {
                 position: 'relative',
                 paddingTop: 6,
                 paddingRight: 10,
-                marginLeft: 40
+                marginLeft: 40,
               }}>
               <div
-                className='hacky-property-row-coverup'
+                className="hacky-property-row-coverup"
                 style={{
                   position: 'absolute',
                   left: -40,
                   height: '100%',
                   width: 40,
-                  backgroundColor: Palette.GRAY
+                  backgroundColor: Palette.GRAY,
                 }} />
               <PropertyRowHeading
                 row={this.props.row}
                 humanName={humanName} />
             </div>
           </div>
-          <div className='property-input-field-row'
+          <div className="property-input-field-row"
             style={{
               position: 'absolute',
               left: this.props.timeline.getPropertiesPixelWidth() - 82,
               width: 82,
               top: 0,
               height: this.props.rowHeight - 1,
-              textAlign: 'left'
+              textAlign: 'left',
             }}>
             <PropertyInputField
               row={this.props.row}
@@ -186,22 +194,22 @@ export default class PropertyRow extends React.Component {
         </div>
         <div
           onContextMenu={(ctxMenuEvent) => {
-            ctxMenuEvent.stopPropagation()
+            ctxMenuEvent.stopPropagation();
 
-            const tlOffset = Globals.mouse.x - this.props.timeline.getPropertiesPixelWidth()
-            const pxOffsetLeft = tlOffset + this.props.timeline.getLeftFrameEndpoint() * frameInfo.pxpf
+            const tlOffset = Globals.mouse.x - this.props.timeline.getPropertiesPixelWidth();
+            const pxOffsetLeft = tlOffset + this.props.timeline.getLeftFrameEndpoint() * frameInfo.pxpf;
 
             PopoverMenu.emit('show', {
               type: 'property-row',
-              event: { offsetX: 0 },
+              event: {offsetX: 0},
               model: this.props.row,
-              offset: pxOffsetLeft
-            })
+              offset: pxOffsetLeft,
+            });
           }}
-          className='property-timeline-segments-box'
+          className="property-timeline-segments-box"
           onDoubleClick={this.props.onDoubleClickToMoveGauge}
           onMouseDown={() => {
-            this.props.row.activate()
+            this.props.row.activate();
           }}
           style={{
             position: 'absolute',
@@ -211,7 +219,7 @@ export default class PropertyRow extends React.Component {
                 ? this.props.timeline.getPropertiesPixelWidth() + 1 : this.props.timeline.getPropertiesPixelWidth() - 4, // offset half of lone keyframe width so it lines up with the pole
             top: 0,
             height: 'inherit',
-            zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? zIndex.propertyRow.base : undefined
+            zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? zIndex.propertyRow.base : undefined,
           }}>
           <PropertyTimelineSegments
             component={this.props.component}
@@ -221,7 +229,7 @@ export default class PropertyRow extends React.Component {
             preventDragging={this.props.row.element.isLocked()} />
         </div>
       </div>
-    )
+    );
   }
 }
 
@@ -229,5 +237,5 @@ PropertyRow.propTypes = {
   row: React.PropTypes.object.isRequired,
   timeline: React.PropTypes.object.isRequired,
   component: React.PropTypes.object.isRequired,
-  rowHeight: React.PropTypes.number.isRequired
-}
+  rowHeight: React.PropTypes.number.isRequired,
+};

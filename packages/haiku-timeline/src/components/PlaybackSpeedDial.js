@@ -1,6 +1,6 @@
-import * as React from 'react'
-import * as Radium from 'radium'
-import Palette from 'haiku-ui-common/lib/Palette'
+import * as React from 'react';
+import * as Radium from 'radium';
+import Palette from 'haiku-ui-common/lib/Palette';
 
 const STYLES = {
   // Note this holster is rotated 90deg counter-clockwise
@@ -11,7 +11,7 @@ const STYLES = {
     top: 'calc(-100% - 5px)',
     height: 19,
     left: 53,
-    borderRadius: 4
+    borderRadius: 4,
   },
   speed: {
     transform: 'rotate(90deg)',
@@ -26,37 +26,37 @@ const STYLES = {
     fontSize: 13,
     fontWeight: 600,
     WebkitUserSelect: 'none',
-    cursor: 'pointer'
+    cursor: 'pointer',
   },
   input: {
     opacity: 0,
     width: 70,
     margin: '0 7px',
-    pointerEvents: 'none'
+    pointerEvents: 'none',
   },
   show: {
     opacity: 1,
     pointerEvents: 'auto',
-    backgroundColor: Palette.COAL
-  }
-}
+    backgroundColor: Palette.COAL,
+  },
+};
 
 class PlaybackSpeedDial extends React.Component {
   constructor (props) {
-    super(props)
-    this.state = { isOpen: false }
+    super(props);
+    this.state = {isOpen: false};
   }
 
   handleToggle () {
-    this.setState({ isOpen: !this.state.isOpen })
+    this.setState({isOpen: !this.state.isOpen});
   }
 
   handleMouseLeave () {
-    this.setState({ isOpen: false })
+    this.setState({isOpen: false});
   }
 
   playbackSpeedChange (changeEvent) {
-    this.props.changePlaybackSpeed(changeEvent)
+    this.props.changePlaybackSpeed(changeEvent);
   }
 
   render () {
@@ -66,10 +66,10 @@ class PlaybackSpeedDial extends React.Component {
         <div style={STYLES.speed}
           onClick={this.handleToggle.bind(this)}>
           {this.props.playbackSpeed}
-          <span style={{ fontWeight: 300, marginLeft: 1 }}>x</span>
+          <span style={{fontWeight: 300, marginLeft: 1}}>x</span>
         </div>
         <input
-          type='range'
+          type="range"
           style={[STYLES.input, this.state.isOpen && STYLES.show]}
           min={0.1}
           max={1}
@@ -77,8 +77,8 @@ class PlaybackSpeedDial extends React.Component {
           value={this.props.playbackSpeed}
           onChange={this.playbackSpeedChange.bind(this)} />
       </span>
-    )
+    );
   }
 }
 
-export default Radium(PlaybackSpeedDial)
+export default Radium(PlaybackSpeedDial);

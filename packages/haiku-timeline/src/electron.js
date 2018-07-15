@@ -49,8 +49,8 @@ function createWindow () {
   }
 
   mainWindow.on('closed', () => {
- mainWindow = null;
-});
+    mainWindow = null;
+  });
 
   const topmenu = new TopMenu({
     send: (name, data) => {

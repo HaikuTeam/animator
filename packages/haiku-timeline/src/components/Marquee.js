@@ -1,77 +1,77 @@
-import Palette from 'haiku-ui-common/lib/Palette'
-import * as Color from 'color'
-import zIndex from './styles/zIndex'
+import Palette from 'haiku-ui-common/lib/Palette';
+import * as Color from 'color';
+import zIndex from './styles/zIndex';
 
 class Marquee {
   constructor ({area, onStart, onFinish}) {
-    this.initialCursorPos = {x: 0, y: 0}
-    this.onStart = onStart || function () {}
-    this.onFinish = onFinish || function () {}
-    this.area = area
-    this.initialScroll = null
-    this._startUp = this._startUp.bind(this)
-    this._handleMove = this._handleMove.bind(this)
-    this._reset = this._reset.bind(this)
-    this.selector = this._createSelector()
+    this.initialCursorPos = {x: 0, y: 0};
+    this.onStart = onStart || function () {};
+    this.onFinish = onFinish || function () {};
+    this.area = area;
+    this.initialScroll = null;
+    this._startUp = this._startUp.bind(this);
+    this._handleMove = this._handleMove.bind(this);
+    this._reset = this._reset.bind(this);
+    this.selector = this._createSelector();
   }
 
   start () {
-    this.area.addEventListener('mousedown', this._startUp)
+    this.area.addEventListener('mousedown', this._startUp);
   }
 
   _startUp (event) {
     if (event.which === 3 || this.onStart(event) === false) {
-      return
+      return;
     }
 
-    this.mouseInteraction = true
-    this.selector.style.display = 'block'
-    this._getStartingPositions(event)
-    this.selector.style.display = 'none'
-    this.area.removeEventListener('mousedown', this._startUp)
-    this.area.addEventListener('mousemove', this._handleMove)
-    document.addEventListener('mouseup', this._reset)
+    this.mouseInteraction = true;
+    this.selector.style.display = 'block';
+    this._getStartingPositions(event);
+    this.selector.style.display = 'none';
+    this.area.removeEventListener('mousedown', this._startUp);
+    this.area.addEventListener('mousemove', this._handleMove);
+    document.addEventListener('mouseup', this._reset);
   }
 
   _getStartingPositions (event) {
-    this.initialCursorPos = this._getCursorPos(event, this.area)
-    this.initialScroll = this._getScroll(this.area)
+    this.initialCursorPos = this._getCursorPos(event, this.area);
+    this.initialScroll = this._getScroll(this.area);
 
-    const selectorPos = {}
-    selectorPos.x = this.initialCursorPos.x + this.initialScroll.x
-    selectorPos.y = this.initialCursorPos.y + this.initialScroll.y
-    selectorPos.w = 0
-    selectorPos.h = 0
-    this._updatePos(this.selector, selectorPos)
+    const selectorPos = {};
+    selectorPos.x = this.initialCursorPos.x + this.initialScroll.x;
+    selectorPos.y = this.initialCursorPos.y + this.initialScroll.y;
+    selectorPos.w = 0;
+    selectorPos.h = 0;
+    this._updatePos(this.selector, selectorPos);
   }
 
   _handleMove (event) {
-    const selectorPos = this.getPosition(event)
-    this.selector.style.display = 'block'
-    this._updatePos(this.selector, selectorPos)
+    const selectorPos = this.getPosition(event);
+    this.selector.style.display = 'block';
+    this._updatePos(this.selector, selectorPos);
   }
 
   _createSelector () {
-    const selector = document.createElement('div')
-    selector.style.position = 'absolute'
-    selector.style.background = Color(Palette.LIGHTEST_PINK).alpha(0.1)
-    selector.style.border = `1px solid ${Palette.LIGHT_PINK}`
-    selector.style.display = 'none'
-    selector.style.pointerEvents = 'none'
-    selector.style.zIndex = zIndex.marquee.base
-    this.area.appendChild(selector)
-    return selector
+    const selector = document.createElement('div');
+    selector.style.position = 'absolute';
+    selector.style.background = Color(Palette.LIGHTEST_PINK).alpha(0.1);
+    selector.style.border = `1px solid ${Palette.LIGHT_PINK}`;
+    selector.style.display = 'none';
+    selector.style.pointerEvents = 'none';
+    selector.style.zIndex = zIndex.marquee.base;
+    this.area.appendChild(selector);
+    return selector;
   }
 
   getPosition (event) {
-    const cursorPosNew = this._getCursorPos(event, this.area)
-    const scrollNew = this._getScroll(this.area)
+    const cursorPosNew = this._getCursorPos(event, this.area);
+    const scrollNew = this._getScroll(this.area);
 
     // if area or document is scrolled those values have to be included aswell
     const scrollAmount = {
       x: scrollNew.x - this.initialScroll.x,
-      y: scrollNew.y - this.initialScroll.y
-    }
+      y: scrollNew.y - this.initialScroll.y,
+    };
 
     /** check for direction
      *
@@ -114,90 +114,90 @@ class Marquee {
      *
      * I hope that makes sence, try stuff out and play around with variables to get a hang of it.
      */
-    var selectorPos = {}
+    const selectorPos = {};
 
     // right
     if (cursorPosNew.x > this.initialCursorPos.x - scrollAmount.x) {
       // 1.
-      selectorPos.x = this.initialCursorPos.x + this.initialScroll.x // 2.
-      selectorPos.w = cursorPosNew.x - this.initialCursorPos.x + scrollAmount.x // 3.
+      selectorPos.x = this.initialCursorPos.x + this.initialScroll.x; // 2.
+      selectorPos.w = cursorPosNew.x - this.initialCursorPos.x + scrollAmount.x; // 3.
       // left
     } else {
       // 1b.
-      selectorPos.x = cursorPosNew.x + scrollNew.x // 2b.
-      selectorPos.w = this.initialCursorPos.x - cursorPosNew.x - scrollAmount.x // 3b.
+      selectorPos.x = cursorPosNew.x + scrollNew.x; // 2b.
+      selectorPos.w = this.initialCursorPos.x - cursorPosNew.x - scrollAmount.x; // 3b.
     }
 
     // bottom
     if (cursorPosNew.y > this.initialCursorPos.y - scrollAmount.y) {
-      selectorPos.y = this.initialCursorPos.y + this.initialScroll.y
-      selectorPos.h = cursorPosNew.y - this.initialCursorPos.y + scrollAmount.y
+      selectorPos.y = this.initialCursorPos.y + this.initialScroll.y;
+      selectorPos.h = cursorPosNew.y - this.initialCursorPos.y + scrollAmount.y;
       // top
     } else {
-      selectorPos.y = cursorPosNew.y + scrollNew.y
-      selectorPos.h = this.initialCursorPos.y - cursorPosNew.y - scrollAmount.y
+      selectorPos.y = cursorPosNew.y + scrollNew.y;
+      selectorPos.h = this.initialCursorPos.y - cursorPosNew.y - scrollAmount.y;
     }
 
-    return selectorPos
+    return selectorPos;
   }
 
   _reset (event) {
-    document.removeEventListener('mouseup', this._reset)
-    this.area.removeEventListener('mousemove', this._handleMove)
-    this.area.addEventListener('mousedown', this._startUp)
-    const selection = this.selector.getBoundingClientRect()
+    document.removeEventListener('mouseup', this._reset);
+    this.area.removeEventListener('mousemove', this._handleMove);
+    this.area.addEventListener('mousedown', this._startUp);
+    const selection = this.selector.getBoundingClientRect();
 
     if (selection.x > 20 && selection.y && 20) {
-      this.onFinish(event, selection)
+      this.onFinish(event, selection);
     }
 
-    this.selector.style.width = '0'
-    this.selector.style.height = '0'
-    this.selector.style.display = 'none'
+    this.selector.style.width = '0';
+    this.selector.style.height = '0';
+    this.selector.style.display = 'none';
 
     setTimeout(
       function () {
         // debounce in order "onClick" to work
-        this.mouseInteraction = false
+        this.mouseInteraction = false;
       }.bind(this),
-      100
-    )
+      100,
+    );
   }
 
   stop () {
-    this._reset()
-    this.area.removeEventListener('mousedown', this._startUp)
-    document.removeEventListener('mouseup', this._reset)
+    this._reset();
+    this.area.removeEventListener('mousedown', this._startUp);
+    document.removeEventListener('mouseup', this._reset);
   }
 
   _getCursorPos (event, area) {
     if (!event) {
-      return {x: 0, y: 0}
+      return {x: 0, y: 0};
     }
 
-    const areaRect = area.getBoundingClientRect()
+    const areaRect = area.getBoundingClientRect();
 
     return {
       // if it’s constrained in an area the area should be substracted calculate
       x: event.clientX - areaRect.left,
-      y: event.clientY - areaRect.top
-    }
+      y: event.clientY - areaRect.top,
+    };
   }
 
   _getScroll (area) {
     return {
       y: area.scrollTop,
-      x: area.scrollLeft
-    }
+      x: area.scrollLeft,
+    };
   }
 
   _updatePos (node, pos) {
-    node.style.left = pos.x + 'px'
-    node.style.top = pos.y + 'px'
-    node.style.width = pos.w + 'px'
-    node.style.height = pos.h + 'px'
-    return node
+    node.style.left = pos.x + 'px';
+    node.style.top = pos.y + 'px';
+    node.style.width = pos.w + 'px';
+    node.style.height = pos.h + 'px';
+    return node;
   }
 }
 
-export default Marquee
+export default Marquee;
