@@ -19,7 +19,7 @@ import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import AutoCompleter from './AutoCompleter';
 import zIndex from './styles/zIndex';
 
-const HaikuMode = require('./modes/haiku');
+const haikuMode = require('./modes/haiku');
 
 const MAX_AUTOCOMPLETION_ENTRIES = 8;
 
@@ -85,6 +85,7 @@ function toValueDescriptor ({bookendValue, computedValue}) {
 
   // Don't show a literal 'null' string inside the input field
   if (computedValue === null || computedValue === undefined) {
+    // tslint:disable-next-line:no-parameter-reassignment
     computedValue = '';
   }
 
@@ -125,14 +126,13 @@ function getRenderableValueMultiline (valueDescriptor, skipFormatting) {
     return `function (${params}) {
 ${valueDescriptor.body}
 }`;
-  } else {
-    // We don't 'ensureRet' because in case of a multiline function, we can't be assured that
-    // the user didn't return on a later line. However, we do a sanity check for the initial equal
-    // sign in case the current case is converting from single to multi.
-    return `function (${params}) {
+  }
+  // We don't 'ensureRet' because in case of a multiline function, we can't be assured that
+  // the user didn't return on a later line. However, we do a sanity check for the initial equal
+  // sign in case the current case is converting from single to multi.
+  return `function (${params}) {
   ${eqToRet(valueDescriptor.body)}
 }`;
-  }
 }
 
 export default class ExpressionInput extends React.Component {
@@ -238,35 +238,35 @@ export default class ExpressionInput extends React.Component {
     if (committable.__function) {
       // Assume that we already stored warnings about this function in the evaluator state from a change action
       return false;
+    }
+
+    let observedType;
+    if (Array.isArray(committable)) {
+      observedType = 'array';
     } else {
-      let observedType;
-      if (Array.isArray(committable)) {
-        observedType = 'array';
-      } else {
-        observedType = typeof committable;
+      observedType = typeof committable;
+    }
+
+    const expectedType = original.valueType;
+
+    if (!ANY_TYPES[expectedType]) {
+      if (observedType !== expectedType) {
+        return {
+          reason: `${original.valueLabel} must have type "${expectedType}"`,
+        };
       }
 
-      const expectedType = original.valueType;
-
-      if (!ANY_TYPES[expectedType]) {
-        if (observedType !== expectedType) {
+      if (expectedType === 'number') {
+        if (Math.abs(committable) === Infinity) {
           return {
-            reason: `${original.valueLabel} must have type "${expectedType}"`,
+            reason: 'Number cannot be infinity',
           };
         }
 
-        if (expectedType === 'number') {
-          if (Math.abs(committable) === Infinity) {
-            return {
-              reason: 'Number cannot be infinity',
-            };
-          }
-
-          if (isNaN(committable)) {
-            return {
-              reason: 'Not a number!',
-            };
-          }
+        if (isNaN(committable)) {
+          return {
+            reason: 'Not a number!',
+          };
         }
       }
     }
@@ -409,7 +409,7 @@ export default class ExpressionInput extends React.Component {
       const wrapped = parseExpression.wrap(officialValue.body);
       const cursor1 = this.codemirror.getCursor();
 
-      const parse = parseExpression(wrapped, injectables, HaikuMode.keywords, this.state, {
+      const parse = parseExpression(wrapped, injectables, haikuMode.keywords, this.state, {
         line: this.getCursorOffsetLine(cursor1),
         ch: this.getCursorOffsetChar(cursor1),
       });
@@ -498,32 +498,32 @@ export default class ExpressionInput extends React.Component {
   getCursorOffsetLine (curs, src) {
     if (this.state.editingMode === EDITOR_MODES.MULTI_LINE) {
       return curs.line + 1;
-    } else {
-      return curs.line + 2; // Offset to account for 1-based index and initial function signature line
     }
+
+    return curs.line + 2; // Offset to account for 1-based index and initial function signature line
   }
 
   getCursorOffsetChar (curs, src) {
     if (this.state.editingMode === EDITOR_MODES.MULTI_LINE) {
       return curs.ch;
-    } else {
-      return curs.ch + 5; // Offset to account for replacing = with 'return'
     }
+
+    return curs.ch + 5; // Offset to account for replacing = with 'return'
   }
 
   resetSyntaxInjectables (injectables) {
     // Remove all former entries in the keywords list
     for (const key in this._injectables) {
       if (!injectables[key]) { // No point deleting if it will be in the new list
-        delete HaikuMode.keywords[key];
+        delete haikuMode.keywords[key];
       }
     }
 
     // Add new entries in the list
     this._injectables = injectables;
     for (const key in this._injectables) {
-      if (!HaikuMode.keywords[key]) { // No point adding if it is already in the list
-        HaikuMode.keywords[key] = {
+      if (!haikuMode.keywords[key]) { // No point adding if it is already in the list
+        haikuMode.keywords[key] = {
           type: 'keyword a',
           style: 'keyword',
         };
@@ -545,14 +545,16 @@ export default class ExpressionInput extends React.Component {
           params: [], // To populate later
           body: clean,
         };
-      } else {
-        return {
-          kind: EXPR_KINDS.VALUE,
-          params: [], // To populate later
-          body: raw, // Just use the raw body, no machine no trimming (allow spaces!)
-        };
       }
-    } else if (this.state.editingMode === EDITOR_MODES.MULTI_LINE) {
+
+      return {
+        kind: EXPR_KINDS.VALUE,
+        params: [], // To populate later
+        body: raw, // Just use the raw body, no machine no trimming (allow spaces!)
+      };
+    }
+
+    if (this.state.editingMode === EDITOR_MODES.MULTI_LINE) {
       // The body will determine the params, so we can safely discard the function prefix/suffix
       const lines = raw.split('\n');
       let body = lines.slice(1, lines.length - 1).join('\n');
@@ -569,9 +571,9 @@ export default class ExpressionInput extends React.Component {
         params: [], // To populate later
         body,
       };
-    } else {
-      throw new Error('[timeline] Expression input saw unexpexcted editing mode');
     }
+
+    throw new Error('[timeline] Expression input saw unexpexcted editing mode');
   }
 
   changeCurrentValueIfNumericBy (number) {
@@ -596,19 +598,27 @@ export default class ExpressionInput extends React.Component {
       if (keydownEvent.which === 40) { // ArrowDown
         keydownEvent.preventDefault();
         return this.navigateAutoCompletion(NAVIGATION_DIRECTIONS.NEXT);
-      } else if (keydownEvent.which === 38) { // ArrowUp
+      }
+
+      if (keydownEvent.which === 38) { // ArrowUp
         keydownEvent.preventDefault();
         return this.navigateAutoCompletion(NAVIGATION_DIRECTIONS.PREV);
-      } else if (keydownEvent.which === 37) { // ArrowLeft
+      }
+
+      if (keydownEvent.which === 9) { // Tab
+        keydownEvent.preventDefault();
+        return this.chooseHighlightedAutoCompletion();
+      }
+
+      if (keydownEvent.which === 27) { // Escape
+        keydownEvent.preventDefault();
+        return this.setState({autoCompletions: []});
+      }
+
+      if (keydownEvent.which === 37) { // ArrowLeft
         this.setState({autoCompletions: []});
       } else if (keydownEvent.which === 39) { // ArrowRight
         this.setState({autoCompletions: []});
-      } else if (keydownEvent.which === 9) { // Tab
-        keydownEvent.preventDefault();
-        return this.chooseHighlightedAutoCompletion();
-      } else if (keydownEvent.which === 27) { // Escape
-        keydownEvent.preventDefault();
-        return this.setState({autoCompletions: []});
       }
     }
 
@@ -702,8 +712,8 @@ export default class ExpressionInput extends React.Component {
   }
 
   chooseHighlightedAutoCompletion () {
-    const completion = this.state.autoCompletions.filter((completion) => {
-      return !!completion.highlighted;
+    const completion = this.state.autoCompletions.filter((autocompletion) => {
+      return !!autocompletion.highlighted;
     })[0];
 
     // Not sure why we'd get here, but in case...
@@ -750,7 +760,9 @@ export default class ExpressionInput extends React.Component {
       // When focused, assume we *always* handle keyboard events, no exceptions.
       // If you want to handle an input when focused, used handleEditorKeydown
       return 2;
-    } else if (selectedRow && selectedRow.isProperty()) {
+    }
+
+    if (selectedRow && selectedRow.isProperty()) {
       if (keydownEvent.metaKey) {
         // Don't focus/nav if the user is doing e.g. Cmd+Z
         return 1;
@@ -760,7 +772,9 @@ export default class ExpressionInput extends React.Component {
       if (keydownEvent.which === 38) { // Up arrow
         this.requestNavigate(NAVIGATION_DIRECTIONS.PREV, false);
         return 3;
-      } else if (keydownEvent.which === 40) { // Down arrow
+      }
+
+      if (keydownEvent.which === 40) { // Down arrow
         this.requestNavigate(NAVIGATION_DIRECTIONS.NEXT, false);
         return 4;
       }
@@ -805,9 +819,9 @@ export default class ExpressionInput extends React.Component {
       }
 
       return false;
-    } else {
-      return false;
     }
+
+    return false;
   }
 
   launchMultilineMode () {

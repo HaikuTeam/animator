@@ -18,9 +18,7 @@ if (process.env.NODE_ENV === 'production') {
     release: process.env.HAIKU_RELEASE_VERSION,
     dataCallback: sentryCallback,
   }).install();
-  window.Raven.context(function () {
-    go();
-  });
+  window.Raven.context(go);
 } else {
   go();
 }
@@ -40,7 +38,7 @@ function _traceKitFormatErrorStack (error) {
 
 const heardErrors = {};
 
-window.onerror = function (msg, url, line, col, error) {
+window.onerror = (msg, url, line, col, error) => {
   if (heardErrors[msg]) {
     return false;
   }

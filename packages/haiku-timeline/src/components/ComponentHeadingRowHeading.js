@@ -76,9 +76,12 @@ export default class ComponentHeadingRowHeading extends React.Component {
   getIcon () {
     if (this.props.row.element.isRepeater()) {
       return <RepeaterIconSVG />;
-    } else if (this.props.row.element.isComponent()) {
+    }
+
+    if (this.props.row.element.isComponent()) {
       return <ComponentIconSVG />;
     }
+
     return '';
   }
 
@@ -96,104 +99,112 @@ export default class ComponentHeadingRowHeading extends React.Component {
     }
 
     return (
-      (this.props.row.isRootRow())
-        ? (<div
-          className="component-heading-row-heading-root-box"
-          title={this.state.rowTitle}
-          style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
-            display: 'inline-block',
-            transform: 'translateY(1px)',
-          } : {
-            height: 27,
-            display: 'inline-block',
-            transform: 'translateY(1px)',
-          })}>
-          <span
-            className="component-heading-row-heading-root-icon-box"
-            style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
-              marginLeft: 8,
-              marginRight: 4,
-              display: 'inline-block',
-              transform: 'translateY(4px)',
-            } : {
-              marginRight: 4,
-              display: 'inline-block',
-              transform: 'translateY(4px)',
-            })}>
-            <ComponentIconSVG />
-          </span>
-          {trunc(this.state.rowTitle, 12)}
-        </div>)
-        : (<span
-          className="component-heading-row-heading-child-box"
-          title={this.state.rowTitle}
-          style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
-            color,
-            display: 'flex',
-            alignItems: 'center',
-            height: 25,
-            marginLeft: 5,
-          } : {
-            color,
-            position: 'relative',
-            zIndex: 1005,
-            marginLeft: 25,
-            display: 'inline-block',
-            width: 100,
-            height: 20,
-          })}>
-          <span
-            className="component-heading-row-heading-child-icon-box"
+      (
+        this.props.row.isRootRow())
+        ? (
+          <div
+            className="component-heading-row-heading-root-box"
+            title={this.state.rowTitle}
             style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
               display: 'inline-block',
-              marginTop: 5,
+              transform: 'translateY(1px)',
             } : {
-              position: 'absolute',
+              height: 27,
               display: 'inline-block',
-              height: 20,
-              left: 2,
-              top: 8,
-            })}>
-            {this.getIcon()}
-          </span>
-          <span
-            style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
-              display: 'inline-block',
-              height: 20,
-              marginLeft: (this.props.row.element.isComponent())
-                  ? 5
-                  : 0,
-              overflowX: 'hidden',
-              width: 160,
-            } : {
-              position: 'absolute',
-              display: 'inline-block',
-              height: 20,
-              left: (this.props.row.element.isComponent() || this.props.row.element.isRepeater())
-                  ? 21
-                  : 5,
-              top: 7,
-              overflowX: 'hidden',
-              width: (this.props.row.element.isComponent() || this.props.row.element.isRepeater())
-                ? 80
-                : 100,
+              transform: 'translateY(1px)',
             })}
-            onClick={(clickEvent) => {
-              if (!this.onExpandTimeout) {
-                this.onExpandTimeout = setTimeout(this.props.onExpand, DOUBLE_CLICK_WAIT_DELAY_MS);
-              }
-            }}
-            onDoubleClick={(clickEvent) => {
-              clickEvent.stopPropagation();
-              clearTimeout(this.onExpandTimeout);
-              this.onExpandTimeout = null;
-              if (!this.state.isEditingRowTitle) {
-                this.setState({isEditingRowTitle: true}, () => {
-                  this.refs.rowTitleInput && this.refs.rowTitleInput.select();
-                });
-              }
-            }}
           >
+            <span
+              className="component-heading-row-heading-root-icon-box"
+              style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+                marginLeft: 8,
+                marginRight: 4,
+                display: 'inline-block',
+                transform: 'translateY(4px)',
+              } : {
+                marginRight: 4,
+                display: 'inline-block',
+                transform: 'translateY(4px)',
+              })}
+            >
+              <ComponentIconSVG />
+            </span>
+            {trunc(this.state.rowTitle, 12)}
+          </div>
+        ) : (
+          <span
+            className="component-heading-row-heading-child-box"
+            title={this.state.rowTitle}
+            style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+              color,
+              display: 'flex',
+              alignItems: 'center',
+              height: 25,
+              marginLeft: 5,
+            } : {
+              color,
+              position: 'relative',
+              zIndex: 1005,
+              marginLeft: 25,
+              display: 'inline-block',
+              width: 100,
+              height: 20,
+            })}
+          >
+            <span
+              className="component-heading-row-heading-child-icon-box"
+              style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+                display: 'inline-block',
+                marginTop: 5,
+              } : {
+                position: 'absolute',
+                display: 'inline-block',
+                height: 20,
+                left: 2,
+                top: 8,
+              })}>
+              {this.getIcon()}
+            </span>
+            <span
+              style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+                display: 'inline-block',
+                height: 20,
+                marginLeft: (this.props.row.element.isComponent())
+                    ? 5
+                    : 0,
+                overflowX: 'hidden',
+                width: 160,
+              } : {
+                position: 'absolute',
+                display: 'inline-block',
+                height: 20,
+                left: (this.props.row.element.isComponent() || this.props.row.element.isRepeater())
+                    ? 21
+                    : 5,
+                top: 7,
+                overflowX: 'hidden',
+                width: (this.props.row.element.isComponent() || this.props.row.element.isRepeater())
+                  ? 80
+                  : 100,
+              })}
+              onClick={(clickEvent) => {
+                if (!this.onExpandTimeout) {
+                  this.onExpandTimeout = setTimeout(this.props.onExpand, DOUBLE_CLICK_WAIT_DELAY_MS);
+                }
+              }}
+              onDoubleClick={(clickEvent) => {
+                clickEvent.stopPropagation();
+                clearTimeout(this.onExpandTimeout);
+                this.onExpandTimeout = null;
+                if (!this.state.isEditingRowTitle) {
+                  this.setState({isEditingRowTitle: true}, () => {
+                    if (this.refs.rowTitleInput) {
+                      this.refs.rowTitleInput.select();
+                    }
+                  });
+                }
+              }}
+            >
             {this.state.isEditingRowTitle
               ? <input
                 style={{
@@ -213,7 +224,8 @@ export default class ComponentHeadingRowHeading extends React.Component {
               : trunc(this.state.rowTitle, 8)
             }
           </span>
-        </span>)
+        </span>
+      )
     );
   }
 }

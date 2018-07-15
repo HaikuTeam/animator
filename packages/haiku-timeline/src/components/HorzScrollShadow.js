@@ -56,25 +56,25 @@ export default class HorzScrollShadow extends React.PureComponent {
           boxShadow: '3px 0 6px 0 rgba(0,0,0,.22)',
         }} />
       );
-    } else {
-      const frameInfo = this.props.timeline.getFrameInfo();
-
-      if (frameInfo.scA < 1) {
-        return <span />;
-      }
-
-      return (
-        <span className="no-select" style={{
-          position: 'absolute',
-          height: 'calc(100% - 45px)',
-          width: 3,
-          left: 297,
-          zIndex: 2003,
-          top: 0,
-          boxShadow: '3px 0 6px 0 rgba(0,0,0,.22)',
-        }} />
-      );
     }
+
+    const frameInfo = this.props.timeline.getFrameInfo();
+
+    if (frameInfo.scA < 1) {
+      return <span />;
+    }
+
+    return (
+      <span className="no-select" style={{
+        position: 'absolute',
+        height: 'calc(100% - 45px)',
+        width: 3,
+        left: 297,
+        zIndex: 2003,
+        top: 0,
+        boxShadow: '3px 0 6px 0 rgba(0,0,0,.22)',
+      }} />
+    );
   }
 }
 

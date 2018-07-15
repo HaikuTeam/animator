@@ -5,8 +5,8 @@ import zIndex from './styles/zIndex';
 class Marquee {
   constructor ({area, onStart, onFinish}) {
     this.initialCursorPos = {x: 0, y: 0};
-    this.onStart = onStart || function () {};
-    this.onFinish = onFinish || function () {};
+    this.onStart = onStart || (() => {});
+    this.onFinish = onFinish || (() => {});
     this.area = area;
     this.initialScroll = null;
     this._startUp = this._startUp.bind(this);
@@ -156,10 +156,10 @@ class Marquee {
     this.selector.style.display = 'none';
 
     setTimeout(
-      function () {
+      () => {
         // debounce in order "onClick" to work
         this.mouseInteraction = false;
-      }.bind(this),
+      },
       100,
     );
   }

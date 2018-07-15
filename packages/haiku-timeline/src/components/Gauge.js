@@ -78,9 +78,9 @@ export default class Gauge extends React.Component {
           {children}
         </div>
       );
-    } else {
-      return children;
     }
+
+    return children;
   }
 
   render () {
@@ -119,13 +119,13 @@ export default class Gauge extends React.Component {
                   <span style={{fontWeight: 'bold'}}>{millisecondsNumber}ms</span>
                 </span>
               );
-            } else {
-              return (
-                <span key={`time-${millisecondsNumber}`} style={{pointerEvents: 'none', display: 'inline-block', position: 'absolute', left: pixelOffsetLeft, transform: 'translateX(-50%)'}}>
-                  <span style={{fontWeight: 'bold'}}>{formatSeconds(millisecondsNumber / 1000)}s</span>
-                </span>
-              );
             }
+
+            return (
+              <span key={`time-${millisecondsNumber}`} style={{pointerEvents: 'none', display: 'inline-block', position: 'absolute', left: pixelOffsetLeft, transform: 'translateX(-50%)'}}>
+                <span style={{fontWeight: 'bold'}}>{formatSeconds(millisecondsNumber / 1000)}s</span>
+              </span>
+            );
           })}
         </div>
       );

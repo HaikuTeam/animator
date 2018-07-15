@@ -36,7 +36,7 @@ export default class FrameGrid extends React.Component {
   upsertTimelineEvents () {
     this.timelineEvents = this.rootElement
       .getTimelineEvents()
-      .map(handler => Number(handler.split(':')[2]));
+      .map((handler) => Number(handler.split(':')[2]));
   }
 
   handleUpdate (what) {
@@ -57,17 +57,23 @@ export default class FrameGrid extends React.Component {
 
   renderFrameActions (frameNumber, hoveredFrame) {
     if (this.timelineEvents.includes(frameNumber)) {
-      return <FrameAction
-        hasActions={true}
-        frame={frameNumber}
-        onShowFrameActionsEditor={this.props.onShowFrameActionsEditor}
-      />;
-    } else if (hoveredFrame === frameNumber) {
-      return <FrameAction
-        hasActions={false}
-        frame={frameNumber}
-        onShowFrameActionsEditor={this.props.onShowFrameActionsEditor}
-      />;
+      return (
+        <FrameAction
+          hasActions={true}
+          frame={frameNumber}
+          onShowFrameActionsEditor={this.props.onShowFrameActionsEditor}
+        />
+      );
+    }
+
+    if (hoveredFrame === frameNumber) {
+      return (
+        <FrameAction
+          hasActions={false}
+          frame={frameNumber}
+          onShowFrameActionsEditor={this.props.onShowFrameActionsEditor}
+        />
+      );
     }
   }
 

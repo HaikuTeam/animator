@@ -14,7 +14,6 @@
     "tslint.alwaysShowRuleFailuresAsWarnings": true,
     "tslint.exclude": [
         "**/packages/haiku-glass/**",
-        "**/packages/haiku-timeline/**",
         "**/packages/haiku-serialization/**"
     ]
 }

@@ -148,6 +148,7 @@ export default class TransitionBody extends React.Component {
     const curve = this.props.keyframe.getCurveCapitalized();
 
     const breakingBounds = curve.includes('Back') || curve.includes('Bounce') || curve.includes('Elastic');
+    // tslint:disable-next-line:variable-name
     const CurveSVG = CURVESVGS[curve + 'SVG'];
 
     return (

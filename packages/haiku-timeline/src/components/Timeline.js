@@ -33,8 +33,7 @@ import {USER_CHANNEL, UserSettings} from 'haiku-sdk-creator/lib/bll/User';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import zIndex from './styles/zIndex';
-
-const Globals = require('haiku-ui-common/lib/Globals').default; // Sorry, hack
+import Globals from 'haiku-ui-common/lib/Globals';
 
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'timeline';
@@ -201,7 +200,7 @@ class Timeline extends React.Component {
             ].includes(event.target.className)
           );
         },
-        onFinish: (event, area) => {
+        onFinish: (event, finalArea) => {
           const selected = Keyframe.all().filter((keyframe) => {
             if (keyframe.element.isLocked()) {
               return false;
@@ -214,13 +213,13 @@ class Timeline extends React.Component {
             // modifies the `x` position of a keyframe post-render this is a safe filter to
             // avoid performing the expensive `getBoundingClientRect` calculation on all keyframes
             if (
-              keyframeView.x < area.x + area.width &&
-              keyframeView.x + keyframeView.width > area.x
+              keyframeView.x < finalArea.x + finalArea.width &&
+              keyframeView.x + keyframeView.width > finalArea.x
             ) {
               const keyframeViewEl = document.getElementById(`keyframe-container-${keyframe.getUniqueKey()}`);
               const {y, height} = keyframeViewEl.getBoundingClientRect();
 
-              return (y < area.y + area.height && height + y > area.y);
+              return (y < finalArea.y + finalArea.height && height + y > finalArea.y);
             }
           });
 
@@ -654,7 +653,7 @@ class Timeline extends React.Component {
           type === 'cluster-row'
         )
       ),
-      onClick: (event) => {
+      onClick: (clickEvent) => {
         const timeline = this.getActiveComponent().getCurrentTimeline();
         const frameInfo = timeline.getFrameInfo();
         const ms = Math.round(timeline.getHoveredFrame() * frameInfo.mspf);
@@ -668,7 +667,7 @@ class Timeline extends React.Component {
     items.push({
       label: (numSelectedKeyframes < 2) ? 'Delete Keyframe' : 'Delete Keyframes',
       enabled: type === 'keyframe',
-      onClick: (event) => {
+      onClick: () => {
         this.getActiveComponent().deleteSelectedKeyframes({from: 'timeline'});
       },
     });
@@ -678,7 +677,7 @@ class Timeline extends React.Component {
     items.push({
       label: 'Move to Frame 0',
       enabled: this.getActiveComponent().checkIfSelectedKeyframesAreMovableToZero(),
-      onClick: (event) => {
+      onClick: () => {
         selectedKeyframes.forEach((keyframe) => {
           keyframe.moveTo(0, 0);
         });
@@ -691,7 +690,7 @@ class Timeline extends React.Component {
     items.push({
       label: isSingular ? 'Make Tween' : 'Make Tweens',
       enabled: isTweenableTransitionSegment,
-      submenu: isTweenableTransitionSegment && this.curvesMenu(curve, (event, curveName) => {
+      submenu: isTweenableTransitionSegment && this.curvesMenu(curve, (_, curveName) => {
         this.getActiveComponent().joinSelectedKeyframes(curveName, {from: 'timeline'});
       }),
     });
@@ -699,7 +698,7 @@ class Timeline extends React.Component {
     items.push({
       label: isSingular ? 'Change Tween' : 'Change Tweens',
       enabled: type === 'keyframe-transition',
-      submenu: (type === 'keyframe-transition') && this.curvesMenu(curve, (event, curveName) => {
+      submenu: (type === 'keyframe-transition') && this.curvesMenu(curve, (_, curveName) => {
         this.getActiveComponent().changeCurveOnSelectedKeyframes(curveName, {from: 'timeline'});
       }),
     });
@@ -721,7 +720,7 @@ class Timeline extends React.Component {
     items.push({
       label: isSingular ? 'Remove Tween' : 'Remove Tweens',
       enabled: type === 'keyframe-transition',
-      onClick: (event) => {
+      onClick: (_) => {
         this.getActiveComponent().splitSelectedKeyframes({from: 'timeline'});
       },
     });
@@ -740,7 +739,9 @@ class Timeline extends React.Component {
                 this.getActiveComponent().getCurrentTimeline().setTimeDisplayMode(timeDisplayModes[this.project.getFolder()]);
               } else {
                 user.getConfig(UserSettings.defaultTimeDisplayMode).then((defaultTimeDisplayMode) => {
-                  defaultTimeDisplayMode && this.getActiveComponent().getCurrentTimeline().setTimeDisplayMode(defaultTimeDisplayMode);
+                  if (defaultTimeDisplayMode) {
+                    this.getActiveComponent().getCurrentTimeline().setTimeDisplayMode(defaultTimeDisplayMode);
+                  }
                 });
               }
             },
@@ -1001,10 +1002,10 @@ class Timeline extends React.Component {
       // the input field will switch back to its previous contents (e.g. when holding down 'shift')
       if (!this.getActiveComponent().getFocusedRow()) {
         return this.setState(updates);
-      } else {
-        for (const key in updates) {
-          this.state[key] = updates[key];
-        }
+      }
+
+      for (const key in updates) {
+        this.state[key] = updates[key];
       }
     }
   }
@@ -1241,9 +1242,9 @@ class Timeline extends React.Component {
           </div>
         </DraggableCore>
       );
-    } else {
-      return <span />;
     }
+
+    return <span />;
   }
 
   renderTopControls () {
@@ -1251,110 +1252,120 @@ class Timeline extends React.Component {
       const timeline = this.getActiveComponent().getCurrentTimeline();
 
       return [
-        <div
-          key="gauge-timekeeping-wrapper"
-          className="gauge-timekeeping-wrapper"
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            height: 35,
-            width: timeline.getPropertiesPixelWidth(),
-            backgroundColor: Palette.COAL,
-            borderBottom: `1px solid ${Palette.FATHER_COAL}`,
-            zIndex: zIndex.timekeepingWrapper.base,
-            fontSize: 10,
-          }}
-        >
-          <GaugeTimeReadout reactParent={this} timeline={timeline} />
-        </div>,
+        (
+          <div
+            key="gauge-timekeeping-wrapper"
+            className="gauge-timekeeping-wrapper"
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              height: 35,
+              width: timeline.getPropertiesPixelWidth(),
+              backgroundColor: Palette.COAL,
+              borderBottom: `1px solid ${Palette.FATHER_COAL}`,
+              zIndex: zIndex.timekeepingWrapper.base,
+              fontSize: 10,
+            }}
+          >
+            <GaugeTimeReadout reactParent={this} timeline={timeline} />
+          </div>
+        ),
         <SimplifiedFrameGrid key="frame-grid" timeline={timeline} />,
-        <FrameActionsGrid
-          key="frame-actions-grid"
-          timeline={timeline}
-          onShowFrameActionsEditor={this.showFrameActionsEditor}
-        />,
-        <Gauge
-          key="gauge"
-          timeline={timeline}
-          onMouseDown={this.onGaugeMouseDown}
-        />,
-        <ScrubberInterior
-          key="scrubber"
-          timeline={timeline}
-          onMouseDown={this.onGaugeMouseDown}
-        />,
-        <div key="durationModifier">
-          {this.renderDurationModifier()}
-        </div>,
+        (
+          <FrameActionsGrid
+            key="frame-actions-grid"
+            timeline={timeline}
+            onShowFrameActionsEditor={this.showFrameActionsEditor}
+          />
+        ),
+        (
+          <Gauge
+            key="gauge"
+            timeline={timeline}
+            onMouseDown={this.onGaugeMouseDown}
+          />
+        ),
+        (
+          <ScrubberInterior
+            key="scrubber"
+            timeline={timeline}
+            onMouseDown={this.onGaugeMouseDown}
+          />
+        ),
+        (
+          <div key="durationModifier">
+            {this.renderDurationModifier()}
+          </div>
+        ),
       ];
-    } else {
-      return (
+    }
+
+    return (
+      <div
+        className="top-controls no-select"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          height: this.state.rowHeight + 10,
+          width:
+            this.getActiveComponent()
+              .getCurrentTimeline()
+              .getPropertiesPixelWidth() +
+            this.getActiveComponent()
+              .getCurrentTimeline()
+              .getTimelinePixelWidth(),
+          verticalAlign: 'top',
+          fontSize: 10,
+          borderBottom: '1px solid ' + Palette.FATHER_COAL,
+          backgroundColor: Palette.COAL,
+        }}
+        onMouseDown={this.onGaugeMouseDown}
+      >
         <div
-          className="top-controls no-select"
+          className="gauge-timekeeping-wrapper"
           style={{
             position: 'absolute',
             top: 0,
             left: 0,
-            height: this.state.rowHeight + 10,
-            width:
-              this.getActiveComponent()
-                .getCurrentTimeline()
-                .getPropertiesPixelWidth() +
-              this.getActiveComponent()
-                .getCurrentTimeline()
-                .getTimelinePixelWidth(),
-            verticalAlign: 'top',
-            fontSize: 10,
-            borderBottom: '1px solid ' + Palette.FATHER_COAL,
-            backgroundColor: Palette.COAL,
+            height: 'inherit',
+            width: this.getActiveComponent()
+              .getCurrentTimeline()
+              .getPropertiesPixelWidth(),
           }}
-          onMouseDown={this.onGaugeMouseDown}
         >
+          <GaugeTimeReadout reactParent={this} timeline={this.getActiveComponent().getCurrentTimeline()} />
+        </div>
+        <div>
           <div
-            className="gauge-timekeeping-wrapper"
+            id="gauge-box"
+            className="gauge-box"
+            onMouseDown={this.onGaugeMouseDown}
             style={{
               position: 'absolute',
               top: 0,
-              left: 0,
+              left: this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth(),
+              width: this.getActiveComponent().getCurrentTimeline().getTimelinePixelWidth(),
               height: 'inherit',
-              width: this.getActiveComponent()
-                .getCurrentTimeline()
-                .getPropertiesPixelWidth(),
+              verticalAlign: 'top',
+              paddingTop: 12,
+              color: Palette.ROCK_MUTED,
             }}
           >
-            <GaugeTimeReadout reactParent={this} timeline={this.getActiveComponent().getCurrentTimeline()} />
+            <FrameGrid
+              timeline={this.getActiveComponent().getCurrentTimeline()}
+              onShowFrameActionsEditor={this.showFrameActionsEditor}
+            />
+            <Gauge timeline={this.getActiveComponent().getCurrentTimeline()} />
+            <ScrubberInterior
+              timeline={this.getActiveComponent().getCurrentTimeline()}
+            />
           </div>
-          <div>
-            <div
-              id="gauge-box"
-              className="gauge-box"
-              onMouseDown={this.onGaugeMouseDown}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth(),
-                width: this.getActiveComponent().getCurrentTimeline().getTimelinePixelWidth(),
-                height: 'inherit',
-                verticalAlign: 'top',
-                paddingTop: 12,
-                color: Palette.ROCK_MUTED,
-              }}
-            >
-              <FrameGrid
-                timeline={this.getActiveComponent().getCurrentTimeline()}
-                onShowFrameActionsEditor={this.showFrameActionsEditor}
-              />
-              <Gauge timeline={this.getActiveComponent().getCurrentTimeline()} />
-              <ScrubberInterior
-                timeline={this.getActiveComponent().getCurrentTimeline()}
-              />
-            </div>
-          </div>
-          {this.renderDurationModifier()}
         </div>
-      );
-    }
+        {this.renderDurationModifier()}
+      </div>
+    );
   }
 
   onGaugeMouseDown (event) {
@@ -1508,20 +1519,20 @@ class Timeline extends React.Component {
                       key={`property-row-group-${group.id}-${indexOfGroup}`}
                       draggableId={group.id}
                       index={indexOfGroup}>
-                      {(provided, snapshot) => {
+                      {(providedDraggable) => {
                         return (
                           <div style={experimentIsEnabled(Experiment.NativeTimelineScroll) ? {} : {minWidth}}>
                             <div
                               className="droppable-wrapper"
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
+                              ref={providedDraggable.innerRef}
+                              {...providedDraggable.draggableProps}
                               style={{
-                                ...provided.draggableProps.style,
+                                ...providedDraggable.draggableProps.style,
                               }}>
                               <RowManager
                                 group={group}
                                 prevGroup={prevGroup}
-                                dragHandleProps={provided.dragHandleProps}
+                                dragHandleProps={providedDraggable.dragHandleProps}
                                 rowHeight={this.state.rowHeight}
                                 getActiveComponent={() => {
                                   return this.getActiveComponent();
@@ -1532,7 +1543,7 @@ class Timeline extends React.Component {
                                 onDoubleClickToMoveGauge={this.moveGaugeOnDoubleClick}
                               />
                             </div>
-                            {provided.placeholder}
+                            {providedDraggable.placeholder}
                           </div>
                         );
                       }}
@@ -1611,7 +1622,7 @@ class Timeline extends React.Component {
         {this.renderTopControls()}
         <ScrollView
           timeline={this.getActiveComponent().getCurrentTimeline()}
-          onMouseDown={mouseEvent => {
+          onMouseDown={(mouseEvent) => {
             if (
               !Globals.isShiftKeyDown &&
               !Globals.isControlKeyDown &&

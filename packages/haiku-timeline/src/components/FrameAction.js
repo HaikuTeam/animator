@@ -81,26 +81,26 @@ class FrameAction extends React.Component {
           <Bolt color={Palette.LIGHT_BLUE} />
         </div>
       );
-    } else {
-      return (
-        <div
-          className="frame-action-box"
-          onMouseOver={() => this.setHover()}
-          onMouseLeave={() => this.unsetTimeout()}
-          onMouseDown={(event) => {
-            if (this.state.achievedHover) {
-              this.openFrameActionsEditor(event);
-            }
-          }
-          }
-          style={[STYLE.base, STYLE.addAction, this.state.achievedHover && STYLE.show]}>
-          <div
-            style={STYLE.plus}>
-            +
-          </div>
-        </div>
-      );
     }
+
+    return (
+      <div
+        className="frame-action-box"
+        onMouseOver={() => this.setHover()}
+        onMouseLeave={() => this.unsetTimeout()}
+        onMouseDown={(event) => {
+          if (this.state.achievedHover) {
+            this.openFrameActionsEditor(event);
+          }
+        }
+        }
+        style={[STYLE.base, STYLE.addAction, this.state.achievedHover && STYLE.show]}>
+        <div
+          style={STYLE.plus}>
+          +
+        </div>
+      </div>
+    );
   }
 }
 
