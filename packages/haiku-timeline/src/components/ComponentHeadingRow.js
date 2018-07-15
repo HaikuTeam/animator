@@ -1,18 +1,18 @@
-import React from 'react'
-import lodash from 'lodash'
+import * as React from 'react'
+import * as lodash from 'lodash'
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 import DownCarrotSVG from 'haiku-ui-common/lib/react/icons/DownCarrotSVG'
 import RightCarrotSVG from 'haiku-ui-common/lib/react/icons/RightCarrotSVG'
 import DragGrip from 'haiku-ui-common/lib/react/icons/DragGrip'
 import {SyncIconSVG, LockIconSVG, UnlockIconSVG} from 'haiku-ui-common/lib/react/OtherIcons'
 import Palette from 'haiku-ui-common/lib/Palette'
-import Element from 'haiku-serialization/src/bll/Element'
+import * as Element from 'haiku-serialization/src/bll/Element'
 import ComponentHeadingRowHeading from './ComponentHeadingRowHeading'
 import CollapsedPropertyTimelineSegments from './CollapsedPropertyTimelineSegments'
 import EventHandlerTriggerer from './EventHandlerTriggerer'
 import PropertyManager from './PropertyManager'
 import zIndex from './styles/zIndex'
-import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
+import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 
 export default class ComponentHeadingRow extends React.Component {
   constructor (props) {

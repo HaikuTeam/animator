@@ -1,5 +1,5 @@
-import React from 'react'
-import lodash from 'lodash'
+import * as React from 'react'
+import * as lodash from 'lodash'
 import TimelineDraggable from './TimelineDraggable'
 import Globals from 'haiku-ui-common/lib/Globals'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'

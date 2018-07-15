@@ -1,5 +1,5 @@
 import * as React from 'react'
-import Radium from 'radium'
+import * as Radium from 'radium'
 import DuplicateIconSVG from 'haiku-ui-common/lib/react/icons/DuplicateIconSVG'
 import EditsIconSVG from 'haiku-ui-common/lib/react/icons/EditsIconSVG'
 import DeleteIconSVG from 'haiku-ui-common/lib/react/icons/DeleteIconSVG'

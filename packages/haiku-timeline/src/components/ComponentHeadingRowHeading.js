@@ -1,8 +1,8 @@
-import React from 'react'
+import * as React from 'react'
 import Palette from 'haiku-ui-common/lib/Palette'
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 import {ComponentIconSVG, RepeaterIconSVG} from 'haiku-ui-common/lib/react/OtherIcons'
-import Color from 'color'
+import * as Color from 'color'
 
 const DOUBLE_CLICK_WAIT_DELAY_MS = 100
 

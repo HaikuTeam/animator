@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import Palette from 'haiku-ui-common/lib/Palette'
 import ActiveComponentIndicator from './ActiveComponentIndicator'
 // import CurrentTimelineSelectMenu from './CurrentTimelineSelectMenu'

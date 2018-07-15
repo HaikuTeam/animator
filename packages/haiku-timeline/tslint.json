@@ -1,0 +1,6 @@
+{
+  "extends": ["tslint-config-haiku"],
+  "linterOptions": {
+    "exclude": ["test/**/*.js", "src/react/bytecode-fixtures/*.js"]
+  }
+}

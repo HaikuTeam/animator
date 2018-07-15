@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 import Palette from 'haiku-ui-common/lib/Palette'
 import RowSegments from './RowSegments'

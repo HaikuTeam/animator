@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 import zIndex from './styles/zIndex'
 

@@ -1,7 +1,7 @@
-import React from 'react'
+import * as React from 'react'
 import Palette from 'haiku-ui-common/lib/Palette'
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
-import lodash from 'lodash'
+import * as lodash from 'lodash'
 
 const KNOB_RADIUS = 5
 

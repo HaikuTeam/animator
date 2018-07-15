@@ -1,6 +1,6 @@
-import React from 'react'
-import Radium from 'radium'
-import lodash from 'lodash'
+import * as React from 'react'
+import * as Radium from 'radium'
+import * as lodash from 'lodash'
 import Palette from 'haiku-ui-common/lib/Palette'
 import SkipBackIconSVG from 'haiku-ui-common/lib/react/icons/SkipBackIconSVG'
 import SkipForwardIconSVG from 'haiku-ui-common/lib/react/icons/SkipForwardIconSVG'
@@ -60,7 +60,7 @@ class PlaybackButtons extends React.Component {
   }
 
   handleUpdate (what) {
-    if (!this.mounted) return null
+    if (!this.mounted) { return null }
     if (what === 'timeline-frame') {
       this.throttledForceUpdate()
     }

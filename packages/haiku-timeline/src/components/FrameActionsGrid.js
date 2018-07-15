@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import Palette from 'haiku-ui-common/lib/Palette'
 import zIndex from './styles/zIndex'
 import FrameAction from './FrameAction'

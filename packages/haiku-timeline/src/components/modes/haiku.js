@@ -3,7 +3,7 @@
 // CodeMirror, copyright (c) by Marijn Haverbeke and others
 // Distributed under an MIT license: http://codemirror.net/LICENSE
 
-import CodeMirror from 'codemirror'
+import * as CodeMirror from 'codemirror'
 
 function expressionAllowed (stream, state, backUp) {
   return /^(?:operator|sof|keyword c|case|new|export|default|[\[{}\(,;:]|=>)$/.test(state.lastType) ||

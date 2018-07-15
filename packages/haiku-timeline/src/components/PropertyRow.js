@@ -1,5 +1,5 @@
-import React from 'react'
-import lodash from 'lodash'
+import * as React from 'react'
+import * as lodash from 'lodash'
 import humanizePropertyName from 'haiku-ui-common/lib/helpers/humanizePropertyName'
 import truncate from 'haiku-ui-common/lib/helpers/truncate'
 import DownCarrotSVG from 'haiku-ui-common/lib/react/icons/DownCarrotSVG'

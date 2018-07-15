@@ -1,5 +1,5 @@
 import Palette from 'haiku-ui-common/lib/Palette'
-import Color from 'color'
+import * as Color from 'color'
 import zIndex from './styles/zIndex'
 
 class Marquee {

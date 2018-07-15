@@ -1,5 +1,5 @@
-import React from 'react'
-import Radium from 'radium'
+import * as React from 'react'
+import * as Radium from 'radium'
 import Bolt from 'haiku-ui-common/lib/react/icons/Bolt'
 import Palette from 'haiku-ui-common/lib/Palette'
 

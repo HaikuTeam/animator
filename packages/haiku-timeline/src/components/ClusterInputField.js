@@ -1,5 +1,5 @@
-import React from 'react'
-import lodash from 'lodash'
+import * as React from 'react'
+import * as lodash from 'lodash'
 import Palette from 'haiku-ui-common/lib/Palette'
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
 

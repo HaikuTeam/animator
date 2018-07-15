@@ -1,8 +1,8 @@
-import React from 'react'
-import lodash from 'lodash'
+import * as React from 'react'
+import * as lodash from 'lodash'
 import Palette from 'haiku-ui-common/lib/Palette'
 import formatSeconds from 'haiku-ui-common/lib/helpers/formatSeconds'
-import Timeline from 'haiku-serialization/src/bll/Timeline'
+import * as Timeline from 'haiku-serialization/src/bll/Timeline'
 
 export default class GaugeTimeReadout extends React.Component {
   constructor (props) {

@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import CirclePlusSVG from 'haiku-ui-common/lib/react/icons/CirclePlusSVG'
 import Palette from 'haiku-ui-common/lib/Palette'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'

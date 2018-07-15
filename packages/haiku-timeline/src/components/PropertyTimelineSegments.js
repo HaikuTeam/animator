@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import RowSegments from './RowSegments'
 
 export default class PropertyTimelineSegments extends React.Component {

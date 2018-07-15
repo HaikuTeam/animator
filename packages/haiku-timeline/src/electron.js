@@ -1,9 +1,9 @@
-import path from 'path'
+import * as path from 'path';
 
-import qs from 'qs'
-import {app, BrowserWindow, ipcMain} from 'electron'
+import * as qs from 'qs';
+import {app, BrowserWindow, ipcMain} from 'electron';
 
-import TopMenu from 'haiku-common/lib/electron/TopMenu'
+import TopMenu from 'haiku-common/lib/electron/TopMenu';
 
 /**
  * This file is bypassed when loaded in the full app.
@@ -11,61 +11,63 @@ import TopMenu from 'haiku-common/lib/electron/TopMenu'
  */
 
 if (!app) {
-  throw new Error('You can only run electron.js from an electron process')
+  throw new Error('You can only run electron.js from an electron process');
 }
 
 const params = {
   email: 'matthew+SENTRY-TESTING-USER@haiku.ai',
   folder: process.env.HAIKU_PROJECT_FOLDER,
-  plumbing: process.env.HAIKU_PLUMBING_URL
-}
+  plumbing: process.env.HAIKU_PLUMBING_URL,
+};
 
 if (process.env.MOCK_ENVOY) {
-  params.envoy = { mock: true }
+  params.envoy = {mock: true};
 }
 
-const query = qs.stringify(params)
+const query = qs.stringify(params);
 
-const url = `file://${path.join(__dirname, '..', 'index.html')}?${query}`
+const url = `file://${path.join(__dirname, '..', 'index.html')}?${query}`;
 
-let mainWindow = null
+let mainWindow = null;
 
 app.on('window-all-closed', () => {
-  app.quit()
-})
+  app.quit();
+});
 
 function createWindow () {
   mainWindow = new BrowserWindow({
     webPreferences: {
-      webSecurity: false
-    }
-  })
+      webSecurity: false,
+    },
+  });
 
-  mainWindow.maximize()
-  mainWindow.loadURL(url)
+  mainWindow.maximize();
+  mainWindow.loadURL(url);
 
   if (process.env.DEV === '1' || process.env.DEV === 'timeline') {
-    mainWindow.webContents.openDevTools()
+    mainWindow.webContents.openDevTools();
   }
 
-  mainWindow.on('closed', () => { mainWindow = null })
+  mainWindow.on('closed', () => {
+ mainWindow = null;
+});
 
   const topmenu = new TopMenu({
     send: (name, data) => {
-      mainWindow.webContents.send('relay', {name, data, from: 'electron'})
-    }
-  })
+      mainWindow.webContents.send('relay', {name, data, from: 'electron'});
+    },
+  });
 
   topmenu.create({
     projectList: [],
     isSaving: false,
     isProjectOpen: true,
-    subComponents: []
-  })
+    subComponents: [],
+  });
 
   ipcMain.on('topmenu:update', (ipcEvent, nextTopmenuOptions) => {
-    topmenu.update(nextTopmenuOptions)
-  })
+    topmenu.update(nextTopmenuOptions);
+  });
 }
 
-app.on('ready', createWindow)
+app.on('ready', createWindow);

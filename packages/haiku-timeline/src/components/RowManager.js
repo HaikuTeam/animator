@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import ClusterRow from './ClusterRow'
 import PropertyRow from './PropertyRow'
 import ComponentHeadingRow from './ComponentHeadingRow'

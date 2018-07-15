@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import Bolt from 'haiku-ui-common/lib/react/icons/Bolt'
 
 const STYLES = {
