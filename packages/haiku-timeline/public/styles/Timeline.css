@@ -255,3 +255,15 @@ input[type=number]::-webkit-outer-spin-button {
   -webkit-user-select: none;
   cursor: default;
 }
+
+.component-heading-row .opacity-on-hover {
+  --wait-and-ease: 220ms ease 150ms;
+  opacity: 0;
+  transform: scale(0.3);
+  transition: transform var(--wait-and-ease), opacity var(--wait-and-ease);
+}
+
+.component-heading-row:hover .opacity-on-hover {
+  opacity: 1;
+  transform: scale(0.5);
+}

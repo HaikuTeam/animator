@@ -7,21 +7,8 @@
     "Zack Brown <zack@haiku.ai>",
     "Taylor Poe <taylor@haiku.ai>"
   ],
-  "babel": {
-    "presets": [
-      "react-app"
-    ]
-  },
-  "standard": {
-    "ignore": [
-      "./src/react/modes/haiku.js"
-    ]
-  },
   "dependencies": {
     "@haiku/core": "3.5.1",
-    "babel-register": "6.26.0",
-    "bluebird": "^3.5.0",
-    "capitalize": "^1.0.0",
     "color": "^2.0.1",
     "cst": "^0.4.10",
     "haiku-common": "3.5.1",
@@ -32,39 +19,31 @@
     "moment": "2.18.1",
     "monaco-editor": "^0.13.1",
     "prettier": "^0.22.0",
-    "pretty": "^2.0.0",
     "qs": "6.4.0",
     "radium": "0.18.1",
     "raven-js": "^3.18.1",
     "react": "15.6.2",
     "react-dom": "15.6.2",
     "react-selectize": "^3.0.1",
-    "react-transition-group": "^1.1.2",
-    "strip-indent": "^2.0.0"
+    "react-transition-group": "^1.1.2"
   },
   "devDependencies": {
     "async": "^2.5.0",
-    "babel-cli": "^6.26.0",
-    "babel-preset-react-app": "^2.2.0",
-    "cross-env": "^5.1.6",
     "electron": "2.0.2",
-    "eslint": "^3.19.0",
-    "eslint-config-standard-jsx": "^4.0.2",
+    "haiku-testing": "3.5.1",
     "jsdom": "^11.1.0",
-    "prop-types": "^15.6.0",
-    "snazzy": "^7.0.0",
-    "standard": "^10.0.2",
-    "tap-spec": "^4.1.2",
-    "tape": "^4.9.0"
+    "prop-types": "^15.6.0"
   },
   "scripts": {
-    "start": "cross-env AUTOSTART=main electron --enable-logging --remote-debugging-port=9222 ./lib/electron.js",
-    "watch": "babel --watch src --out-dir lib --source-maps inline",
-    "compile": "cross-env NODE_ENV=development babel src --out-dir lib --source-maps inline",
-    "lint": "eslint \"src/**/*.js\"",
+    "lint": "tslint -p tsconfig.all.json -t stylish",
+    "lint-report": "yarn lint -t checkstyle -o checkstyle-result.xml",
     "fix": "yarn lint --fix",
-    "lint-report": "yarn lint -f checkstyle -o checkstyle-result.xml",
-    "test": "cross-env NODE_ENV=development yarn compile && tape \"test/**/*.test.js\" | tap-spec || true",
-    "test-report": "tape \"test/**/*.test.js\" > test-result.tap"
+    "ts": "cross-env NODE_ENV=test ts-node -r tsconfig-paths/register -P tsconfig.all.json",
+    "test": "yarn ts ./node_modules/.bin/tape 'test/**/*.test.ts' 'test/**/*.test.js' | tap-spec",
+    "test-report": "nyc yarn ts ./node_modules/.bin/tape 'test/**/*.test.ts' 'test/**/*.test.js' > test-result.tap",
+    "compile": "tsc",
+    "compile-declarations": "tsc -p tsconfig.declarations.json",
+    "develop": "tsc --watch",
+    "start": "cross-env AUTOSTART=main electron --enable-logging --remote-debugging-port=9222 ./lib/electron.js"
   }
 }

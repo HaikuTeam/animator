@@ -30,12 +30,11 @@
     "babel-preset-es2015": "^6.24.0",
     "babel-traverse": "6.26.0",
     "babylon": "6.18.0",
-    "bluebird": "^3.5.0",
     "camelcase": "^4.1.0",
-    "capitalize": "^1.0.0",
     "colors": "1.1.2",
     "crypto-js": "3.1.9-1",
     "cst": "^0.4.10",
+    "decamelize": "^1.2.0",
     "dedent": "^0.7.0",
     "diff": "3.2.0",
     "es-strip-semicolons": "1.0.9",
@@ -75,6 +74,7 @@
     "titlecase": "^1.1.2",
     "to-style": "^1.3.3",
     "unique-selector": "^0.3.6",
+    "uuid": "^3.2.1",
     "winston": "^3.0.0"
   },
   "devDependencies": {

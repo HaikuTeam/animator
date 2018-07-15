@@ -47,8 +47,10 @@
     "haiku-testing": "3.5.1",
     "lottie-web": "5.1.20",
     "nodemon": "1.11.0",
+    "ts-loader": "^4.4.2",
     "walk-sync": "^0.3.2",
-    "webpack": "^3.8.1",
-    "webpack-concat-plugin": "^2.4.2"
+    "webpack": "^4.16.0",
+    "webpack-cli": "^3.0.8",
+    "webpack-concat-plugin": "^3.0.0"
   }
 }

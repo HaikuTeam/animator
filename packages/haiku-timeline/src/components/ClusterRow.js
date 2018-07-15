@@ -1,29 +1,35 @@
-import React from 'react'
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
-import Palette from 'haiku-ui-common/lib/Palette'
-import truncate from 'haiku-ui-common/lib/helpers/truncate'
-import RightCarrotSVG from 'haiku-ui-common/lib/react/icons/RightCarrotSVG'
-import FamilySVG from 'haiku-ui-common/lib/react/icons/FamilySVG'
-import ClusterInputField from './ClusterInputField'
-import RowSegments from './RowSegments'
-import ClusterRowHeading from './ClusterRowHeading'
-import zIndex from './styles/zIndex'
-import Globals from 'haiku-ui-common/lib/Globals'
-import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
+import * as React from 'react';
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
+import Palette from 'haiku-ui-common/lib/Palette';
+import truncate from 'haiku-ui-common/lib/helpers/truncate';
+import RightCarrotSVG from 'haiku-ui-common/lib/react/icons/RightCarrotSVG';
+import FamilySVG from 'haiku-ui-common/lib/react/icons/FamilySVG';
+import ClusterInputField from './ClusterInputField';
+import RowSegments from './RowSegments';
+import ClusterRowHeading from './ClusterRowHeading';
+import zIndex from './styles/zIndex';
+import Globals from 'haiku-ui-common/lib/Globals';
+import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu';
 
 export default class ClusterRow extends React.Component {
   maybeRenderFamilyLabel () {
-    if (!this.props.prev) return false
-    if (this.props.row.doesTargetHostElement()) return false
-    if (!this.props.row.isFirstRowOfSubElementSet()) return false
+    if (!this.props.prev) {
+      return false;
+    }
+    if (this.props.row.doesTargetHostElement()) {
+      return false;
+    }
+    if (!this.props.row.isFirstRowOfSubElementSet()) {
+      return false;
+    }
     return (
       <div
-        className='family-label-for-cluster'
+        className="family-label-for-cluster"
         style={{
           position: 'absolute',
           top: 4,
           left: 50,
-          zIndex: 10000
+          zIndex: 10000,
         }}>
         <FamilySVG color={Palette.BLUE} />
         <span
@@ -33,39 +39,39 @@ export default class ClusterRow extends React.Component {
             marginLeft: 6,
             color: Palette.BLUE,
             top: 4,
-            whiteSpace: 'nowrap'
+            whiteSpace: 'nowrap',
           }}>
           {truncate(this.props.row.element.getFriendlyLabel(), 7)}
         </span>
       </div>
-    )
+    );
   }
 
   render () {
-    const frameInfo = this.props.timeline.getFrameInfo()
+    const frameInfo = this.props.timeline.getFrameInfo();
 
-    const componentId = this.props.row.element.getComponentId()
-    const clusterName = this.props.row.getClusterNameString()
+    const componentId = this.props.row.element.getComponentId();
+    const clusterName = this.props.row.getClusterNameString();
 
     return (
       <div
         id={`property-cluster-row-${this.props.row.getAddress()}-${componentId}-${clusterName}`}
-        className='property-cluster-row'
+        className="property-cluster-row"
         onClick={() => {
-          this.props.row.expandAndSelect({ from: 'timeline' })
+          this.props.row.expandAndSelect({from: 'timeline'});
         }}
         onContextMenu={(ctxMenuEvent) => {
-          ctxMenuEvent.stopPropagation()
+          ctxMenuEvent.stopPropagation();
 
-          const tlOffset = Globals.mouse.x - this.props.timeline.getPropertiesPixelWidth()
-          const pxOffsetLeft = (tlOffset) + this.props.timeline.getLeftFrameEndpoint() * frameInfo.pxpf
+          const tlOffset = Globals.mouse.x - this.props.timeline.getPropertiesPixelWidth();
+          const pxOffsetLeft = (tlOffset) + this.props.timeline.getLeftFrameEndpoint() * frameInfo.pxpf;
 
           PopoverMenu.emit('show', {
             type: 'cluster-row',
-            event: { offsetX: 0 },
+            event: {offsetX: 0},
             model: this.props.row,
-            offset: pxOffsetLeft
-          })
+            offset: pxOffsetLeft,
+          });
         }}
         style={{
           height: this.props.rowHeight,
@@ -73,7 +79,7 @@ export default class ClusterRow extends React.Component {
           left: 0,
           opacity: (this.props.row.isHidden()) ? 0.5 : 1.0,
           position: 'relative',
-          cursor: 'pointer'
+          cursor: 'pointer',
         }}>
         <div style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
           position: 'sticky',
@@ -81,7 +87,7 @@ export default class ClusterRow extends React.Component {
           left: 0,
           width: this.props.timeline.getPropertiesPixelWidth(),
           zIndex: zIndex.clusterRowHeading.base,
-          backgroundColor: Palette.GRAY
+          backgroundColor: Palette.GRAY,
         } : {})}>
           <div>
             <div
@@ -90,13 +96,13 @@ export default class ClusterRow extends React.Component {
                 left: 145,
                 width: 10,
                 height: 'inherit',
-                zIndex: 1005
+                zIndex: 1005,
               }}>
-              <span className='utf-icon' style={{ top: -2, left: -3 }}><RightCarrotSVG /></span>
+              <span className="utf-icon" style={{top: -2, left: -3}}><RightCarrotSVG /></span>
             </div>
             {this.maybeRenderFamilyLabel()}
             <div
-              className='property-cluster-row-label no-select'
+              className="property-cluster-row-label no-select"
               style={{
                 position: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'absolute' : 'relative',
                 right: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : 0,
@@ -110,7 +116,7 @@ export default class ClusterRow extends React.Component {
                 borderTopLeftRadius: (this.props.row.isFirstRowOfSubElementSet()) ? 4 : 0,
                 borderBottomLeftRadius: (this.props.row.isLastRowOfSubElementSet()) ? 4 : 0,
                 zIndex: 1004,
-                textAlign: 'right'
+                textAlign: 'right',
               }}>
               <ClusterRowHeading
                 clusterName={clusterName}
@@ -118,14 +124,14 @@ export default class ClusterRow extends React.Component {
                 />
             </div>
           </div>
-          <div className='property-cluster-input-field'
+          <div className="property-cluster-input-field"
             style={{
               position: 'absolute',
               left: this.props.timeline.getPropertiesPixelWidth() - 82,
               width: 82,
               top: 0,
               height: 24,
-              textAlign: 'left'
+              textAlign: 'left',
             }}>
             <ClusterInputField
               parent={this}
@@ -138,27 +144,27 @@ export default class ClusterRow extends React.Component {
           </div>
         </div>
         <div
-          className='property-cluster-timeline-segments-box'
+          className="property-cluster-timeline-segments-box"
           style={{
             overflow: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : 'hidden',
             position: 'absolute',
             width: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : this.props.timeline.getTimelinePixelWidth(),
-            left: this.props.timeline.getPropertiesPixelWidth() - 4, // offset half of lone keyframe width so it lines up with the pole
+            left: experimentIsEnabled(Experiment.NativeTimelineScroll) ? this.props.timeline.getPropertiesPixelWidth() + 1 : this.props.timeline.getPropertiesPixelWidth() - 4, // offset half of lone keyframe width so it lines up with the pole
             top: 0,
             height: 'inherit',
-            zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? zIndex.clusterRow.base : undefined
+            zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? zIndex.clusterRow.base : undefined,
           }}>
           <RowSegments
-            scope='ClusterRow'
+            scope="ClusterRow"
             includeDraggables={false}
-            preventDragging
+            preventDragging={true}
             row={this.props.row}
             component={this.props.component}
             timeline={this.props.timeline}
             rowHeight={this.props.rowHeight} />
         </div>
       </div>
-    )
+    );
   }
 }
 
@@ -166,5 +172,5 @@ ClusterRow.propTypes = {
   row: React.PropTypes.object.isRequired,
   timeline: React.PropTypes.object.isRequired,
   component: React.PropTypes.object.isRequired,
-  rowHeight: React.PropTypes.number.isRequired
-}
+  rowHeight: React.PropTypes.number.isRequired,
+};

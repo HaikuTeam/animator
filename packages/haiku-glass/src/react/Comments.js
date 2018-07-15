@@ -1,3 +1,4 @@
+/* tslint:disable */
 var fse = require('haiku-fs-extra')
 var path = require('path')
 var lodash = require('lodash')

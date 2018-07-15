@@ -1,20 +1,20 @@
-var async = require('async')
-var cp = require('child_process')
-var argv = require('yargs').argv
-var log = require('./helpers/log')
-var allPackages = require('./helpers/packages')()
+const async = require('async');
+const cp = require('child_process');
+const argv = require('yargs').argv;
+const log = require('./helpers/log');
+const allPackages = require('./helpers/packages')();
 
-var args = argv._
-var cmd = args[0]
+let args = argv._;
+let cmd = args[0];
 
-async.eachSeries(allPackages, function (pack, next) {
-  log.log('running command ' + cmd + ' in ' + pack.abspath)
-  cp.exec(cmd, { cwd: pack.abspath }, function (err, out) {
+async.eachSeries(allPackages, (pack, next) => {
+  log.log('running command ' + cmd + ' in ' + pack.abspath);
+  cp.exec(cmd, {cwd: pack.abspath}, (err, out) => {
     if (err) {
-      log.err(err)
-      return next(err)
+      log.err(err);
+      return next(err);
     }
-    log.log(out)
-    return next()
-  })
-})
+    log.log(out);
+    return next();
+  });
+});

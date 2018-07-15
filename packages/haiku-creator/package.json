@@ -7,11 +7,6 @@
   "main": "index.js",
   "author": "Matthew Trost <matthew@haiku.ai>",
   "license": "PROPRIETARY",
-  "babel": {
-    "presets": [
-      "react-app"
-    ]
-  },
   "scripts": {
     "lint": "tslint -p tsconfig.all.json -t stylish",
     "lint-report": "yarn lint -t checkstyle -o checkstyle-result.xml",

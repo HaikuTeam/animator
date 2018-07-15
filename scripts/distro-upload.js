@@ -1,36 +1,38 @@
-var log = require('./helpers/log')
-var slackShout = require('./helpers/slackShout')
-var uploadRelease = require('./helpers/uploadRelease')
-var forceNodeEnvProduction = require('./helpers/forceNodeEnvProduction')
+const log = require('./helpers/log');
+const slackShout = require('./helpers/slackShout');
+const uploadRelease = require('./helpers/uploadRelease');
+const forceNodeEnvProduction = require('./helpers/forceNodeEnvProduction');
 
-var config = require('./../config')
-forceNodeEnvProduction()
+const config = require('./../config');
+forceNodeEnvProduction();
 
-var deploy = require('./deploy')
+const deploy = require('./deploy');
 
-var platform = process.env.HAIKU_RELEASE_PLATFORM
-var branch = process.env.HAIKU_RELEASE_BRANCH
-var version = process.env.HAIKU_RELEASE_VERSION
-var environment = process.env.HAIKU_RELEASE_ENVIRONMENT
+let platform = process.env.HAIKU_RELEASE_PLATFORM;
+let branch = process.env.HAIKU_RELEASE_BRANCH;
+let version = process.env.HAIKU_RELEASE_VERSION;
+let environment = process.env.HAIKU_RELEASE_ENVIRONMENT;
 
-var region = deploy.deployer[environment].region
-var objkey = deploy.deployer[environment].key
-var secret = deploy.deployer[environment].secret
-var bucket = deploy.deployer[environment].bucket
+let region = deploy.deployer[environment].region;
+let objkey = deploy.deployer[environment].key;
+let secret = deploy.deployer[environment].secret;
+let bucket = deploy.deployer[environment].bucket;
 
-var RELEASES_FOLDER = 'releases'
+let RELEASES_FOLDER = 'releases';
 
-uploadRelease(region, objkey, secret, bucket, RELEASES_FOLDER, platform, environment, branch, version, (err, { environment, version, urls }) => {
-  if (err) throw err
+uploadRelease(region, objkey, secret, bucket, RELEASES_FOLDER, platform, environment, branch, version, (err, {urls}) => {
+  if (err) {
+    throw err;
+  }
 
-  var slackMessage = `
+  const slackMessage = `
 Distro ready (${version} ${environment})
 Patch link: ${urls.patch}
 Download link: ${urls.download}
 _Syndicate with :jenkins:._
-  `.trim()
+  `.trim();
 
-  slackShout({ shout: config.shout }, slackMessage, () => {
-    log.hat('success! built and uploaded \n' + urls.download + '\n' + urls.latest)
-  })
-})
+  slackShout({shout: config.shout}, slackMessage, () => {
+    log.hat('success! built and uploaded \n' + urls.download + '\n' + urls.latest);
+  });
+});

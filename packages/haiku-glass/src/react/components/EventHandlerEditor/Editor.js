@@ -1,20 +1,20 @@
 /* global monaco */
-import React from 'react'
-import Radium from 'radium'
-import Palette from 'haiku-ui-common/lib/Palette'
-import SyntaxEvaluator from './SyntaxEvaluator'
-import Snippets from './Snippets'
+import * as React from 'react';
+import * as Radium from 'radium';
+import Palette from 'haiku-ui-common/lib/Palette';
+import SyntaxEvaluator from './SyntaxEvaluator';
+import Snippets from './Snippets';
 
 const STYLES = {
   amble: {
     backgroundColor: Palette.SPECIAL_COAL,
     fontFamily: 'Fira Mono',
     fontSize: '11px',
-    padding: '3px 13px'
+    padding: '3px 13px',
   },
   preamble: {
     borderTopLeftRadius: 7,
-    borderTopRightRadius: 7
+    borderTopRightRadius: 7,
   },
   postamble: {
     borderBottomLeftRadius: 7,
@@ -22,8 +22,8 @@ const STYLES = {
     marginBottom: '25px',
     errors: {
       float: 'right',
-      fontFamily: 'Fira Sans'
-    }
+      fontFamily: 'Fira Sans',
+    },
   },
   editorContext: {
     fontFamily: 'Fira Mono',
@@ -31,26 +31,26 @@ const STYLES = {
     width: '100%',
     padding: '6px 0 6px 22px',
     backgroundColor: Palette.DARKEST_COAL,
-    overflow: 'hidden'
+    overflow: 'hidden',
   },
   editorWrapper: {
     width: '100%',
     height: '100%',
-    overflow: 'hidden'
-  }
-}
+    overflow: 'hidden',
+  },
+};
 
 class Editor extends React.Component {
   constructor (props) {
-    super(props)
+    super(props);
 
-    this.handleEditorChange = this.handleEditorChange.bind(this)
-    this.remove = this.remove.bind(this)
-    this.evaluator = null
+    this.handleEditorChange = this.handleEditorChange.bind(this);
+    this.remove = this.remove.bind(this);
+    this.evaluator = null;
 
     this.state = {
-      contents: props.contents
-    }
+      contents: props.contents,
+    };
   }
 
   componentDidMount () {
@@ -67,24 +67,24 @@ class Editor extends React.Component {
       parameterHints: false,
       scrollbar: {
         vertical: 'hidden',
-        verticalScrollbarSize: '0'
+        verticalScrollbarSize: '0',
       },
       cursorBlinking: 'blink',
-      scrollBeyondLastLine: false
-    })
+      scrollBeyondLastLine: false,
+    });
 
-    this.editor.onDidChangeModelContent(this.handleEditorChange)
-    this.editor.focus()
+    this.editor.onDidChangeModelContent(this.handleEditorChange);
+    this.editor.focus();
     // this.editor.onMouseMove listener declared in Snippets.js
 
-    this.forceUpdate()
+    this.forceUpdate();
   }
 
   handleEditorChange () {
     setTimeout(() => {
-      this.setState({contents: this.editor.getValue()})
-      this.props.onContentChange(this.serialize())
-    })
+      this.setState({contents: this.editor.getValue()});
+      this.props.onContentChange(this.serialize());
+    });
   }
 
   serialize (eventName = this.props.selectedEventName) {
@@ -95,14 +95,14 @@ class Editor extends React.Component {
         params: this.props.params,
         body: this.state.contents,
         type: 'FunctionExpression',
-        name: null
+        name: null,
       },
-      evaluator: this.evaluator
-    }
+      evaluator: this.evaluator,
+    };
   }
 
   remove () {
-    this.props.onRemove(this.serialize())
+    this.props.onRemove(this.serialize());
   }
 
   render () {
@@ -115,12 +115,12 @@ class Editor extends React.Component {
         </div>
         <div
           style={STYLES.editorContext}
-          className='haiku-multiline haiku-dynamic'
+          className="haiku-multiline haiku-dynamic"
         >
           <div
             style={STYLES.editorWrapper}
-            ref={element => {
-              this._context = element
+            ref={(element) => {
+              this._context = element;
             }}
           >
             <Snippets editor={this.editor} />
@@ -129,13 +129,15 @@ class Editor extends React.Component {
         <div style={{...STYLES.amble, ...STYLES.postamble}}>
           {'}'}
           <SyntaxEvaluator
-            onChange={(evaluator) => { this.evaluator = evaluator }}
+            onChange={(evaluator) => {
+              this.evaluator = evaluator;
+            }}
             evaluate={this.state.contents}
             style={STYLES.postamble.errors}
           />
         </div>
       </div>
-    )
+    );
   }
 }
 
@@ -143,7 +145,7 @@ Editor.propTypes = {
   onContentChange: React.PropTypes.func.isRequired,
   selectedEventName: React.PropTypes.string.isRequired,
   contents: React.PropTypes.string,
-  params: React.PropTypes.array.isRequired
-}
+  params: React.PropTypes.array.isRequired,
+};
 
-export default Radium(Editor)
+export default Radium(Editor);

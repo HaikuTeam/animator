@@ -1,11 +1,8 @@
 node_modules
 .DS_Store
-*.log*
+*.log
 lib/
+.nyc_output/
+coverage/
 checkstyle-result.xml
 test-result.tap
-
-test/projects/*
-!test/projects/index.js
-!test/projects/code/*
-!test/projects/designs/*

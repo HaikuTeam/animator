@@ -712,15 +712,23 @@ class Timeline extends BaseModel {
     }, DURATION_MOD_TIMEOUT)
   }
 
-  setScrollLeft (scrollValue) {
+  handleSettingScroll (scrollValue, eventName) {
     if (scrollValue >= 0) {
       if (scrollValue >= (this.calculateFullTimelineWidth() - this._timelinePixelWidth)) {
         this.setMaxFrame(this.getMaxFrame() + 50)
       } else {
         this._scrollLeft = scrollValue
-        this.emit('update', 'timeline-scroll')
+        this.emit('update', eventName)
       }
     }
+  }
+
+  setScrollLeft (scrollValue) {
+    this.handleSettingScroll(scrollValue, 'timeline-scroll')
+  }
+
+  setScrollLeftFromScrollbar (scrollValue) {
+    this.handleSettingScroll(scrollValue, 'timeline-scroll-from-scrollbar')
   }
 
   getScrollLeft () {
@@ -732,7 +740,17 @@ class Timeline extends BaseModel {
     return Math.round((coord / frameInfo.pxpf) * frameInfo.scRatio)
   }
 
-  zoomBy (left, right) {
+  zoomBy (scale) {
+    const left = this.getLeftFrameEndpoint()
+    const right = this.getRightFrameEndpoint()
+
+    this.zoomByLeftAndRightEndpoints(
+      (left * scale) + left,
+      (right * scale) + right
+    )
+  }
+
+  zoomByLeftAndRightEndpoints (left, right) {
     const frameInfo = this.getFrameInfo()
     let leftTotal = left || this.getLeftFrameEndpoint()
     let rightTotal = right || this.getRightFrameEndpoint()
@@ -812,7 +830,7 @@ class Timeline extends BaseModel {
       const frameInfo = this.getFrameInfo()
       const pxOffsetLeft = frame * frameInfo.pxpf
       if (frame !== undefined && (pxOffsetLeft > this._scrollLeft + this._timelinePixelWidth || pxOffsetLeft < this._scrollLeft)) {
-        this.setScrollLeft(pxOffsetLeft)
+        this.setScrollLeftFromScrollbar(pxOffsetLeft)
       }
     } else {
       const frameInfo = this.getFrameInfo()

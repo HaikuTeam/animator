@@ -9,40 +9,27 @@
     "Zack Brown <zack@haiku.ai>"
   ],
   "scripts": {
-    "start": "cross-env AUTOSTART=main electron --enable-logging --remote-debugging-port=9222 ./lib/electron.js",
-    "watch": "cross-env NODE_ENV=development babel --watch src --out-dir lib --source-maps inline",
-    "compile": "cross-env NODE_ENV=development babel src --out-dir lib --source-maps inline",
-    "test": "cross-env NODE_ENV=development yarn compile && tape \"test/**/*.test.js\" | tap-spec",
-    "test-report": "tape \"test/**/*.test.js\" > test-result.tap",
-    "lint": "eslint \"src/**/*.js\"",
+    "lint": "tslint -p tsconfig.all.json -t stylish",
+    "lint-report": "yarn lint -t checkstyle -o checkstyle-result.xml",
     "fix": "yarn lint --fix",
-    "lint-report": "yarn lint -f checkstyle -o checkstyle-result.xml"
-  },
-  "standard": {
-    "ignore": [
-      "./src/components/modes/haiku.js",
-      "./src/components/modes/haiku-hint.js"
-    ]
-  },
-  "babel": {
-    "presets": [
-      "react-app"
-    ]
+    "ts": "cross-env NODE_ENV=test ts-node -r tsconfig-paths/register -P tsconfig.all.json",
+    "test": "yarn ts ./node_modules/.bin/tape 'test/**/*.test.ts' 'test/**/*.test.js' | tap-spec",
+    "test-report": "nyc yarn ts ./node_modules/.bin/tape 'test/**/*.test.ts' 'test/**/*.test.js' > test-result.tap",
+    "compile": "tsc",
+    "compile-declarations": "tsc -p tsconfig.declarations.json",
+    "develop": "tsc --watch",
+    "start": "cross-env AUTOSTART=main electron --enable-logging --remote-debugging-port=9222 ./lib/electron.js"
   },
   "dependencies": {
     "@haiku/core": "3.5.1",
-    "archy": "^1.0.0",
     "classnames": "2.2.5",
     "codemirror": "^5.28.0",
     "color": "^2.0.1",
-    "decamelize": "^1.2.0",
     "haiku-common": "3.5.1",
     "haiku-fs-extra": "3.5.1",
     "haiku-serialization": "3.5.1",
     "haiku-ui-common": "3.5.1",
-    "jsdom": "^11.1.0",
     "lodash": "^4.17.4",
-    "numeral": "^2.0.6",
     "qs": "6.4.0",
     "radium": "0.18.1",
     "raven-js": "^3.18.1",
@@ -52,20 +39,11 @@
     "react-draggable": "2.2.3",
     "react-intercom": "^1.0.14",
     "react-popover": "^0.4.18",
-    "react-scroll-to-component": "^1.0.1",
-    "strip-indent": "^2.0.0",
-    "uuid": "^3.2.1"
+    "strip-indent": "^2.0.0"
   },
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-preset-react-app": "^2.2.0",
-    "cross-env": "^5.1.6",
     "electron": "2.0.2",
-    "eslint": "^3.19.0",
-    "eslint-config-standard-jsx": "^4.0.2",
-    "snazzy": "^7.0.0",
-    "standard": "^10.0.2",
-    "tap-spec": "^4.1.2",
-    "tape": "^4.9.0"
+    "haiku-testing": "3.5.1",
+    "jsdom": "^11.1.0"
   }
 }
