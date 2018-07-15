@@ -1,35 +1,39 @@
-import React from 'react'
-import Palette from 'haiku-ui-common/lib/Palette'
+import * as React from 'react';
+import Palette from 'haiku-ui-common/lib/Palette';
 
 export default class ClusterRowHeading extends React.Component {
   constructor (props) {
-    super(props)
-    this.handleUpdate = this.handleUpdate.bind(this)
+    super(props);
+    this.handleUpdate = this.handleUpdate.bind(this);
   }
 
   componentWillUnmount () {
-    this.mounted = false
-    this.props.row.removeListener('update', this.handleUpdate)
+    this.mounted = false;
+    this.props.row.removeListener('update', this.handleUpdate);
   }
 
   componentDidMount () {
-    this.mounted = true
-    this.props.row.on('update', this.handleUpdate)
+    this.mounted = true;
+    this.props.row.on('update', this.handleUpdate);
   }
 
   handleUpdate (what) {
-    if (!this.mounted) return null
+    if (!this.mounted) {
+      return null;
+    }
     if (
       what === 'row-hovered' ||
       what === 'row-unhovered'
     ) {
-      this.forceUpdate()
+      this.forceUpdate();
     }
   }
 
   render () {
-    let fontSize = 10
-    if (this.props.clusterName.length > 9) fontSize = 8
+    let fontSize = 10;
+    if (this.props.clusterName.length > 9) {
+      fontSize = 8;
+    }
 
     return (
       <span style={{
@@ -37,15 +41,15 @@ export default class ClusterRowHeading extends React.Component {
         fontSize,
         color: (this.props.row.isHovered())
           ? Palette.ROCK
-          : Palette.DARK_ROCK
+          : Palette.DARK_ROCK,
       }}>
         {this.props.clusterName}
       </span>
-    )
+    );
   }
 }
 
 ClusterRowHeading.propTypes = {
   row: React.PropTypes.object.isRequired,
-  clusterName: React.PropTypes.string.isRequired
-}
+  clusterName: React.PropTypes.string.isRequired,
+};

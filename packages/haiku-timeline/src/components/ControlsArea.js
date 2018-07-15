@@ -1,21 +1,21 @@
-import React from 'react'
-import Palette from 'haiku-ui-common/lib/Palette'
-import ActiveComponentIndicator from './ActiveComponentIndicator'
+import * as React from 'react';
+import Palette from 'haiku-ui-common/lib/Palette';
+import ActiveComponentIndicator from './ActiveComponentIndicator';
 // import CurrentTimelineSelectMenu from './CurrentTimelineSelectMenu'
-import PlaybackButtons from './PlaybackButtons'
+import PlaybackButtons from './PlaybackButtons';
 // import PlaybackSpeedDial from './PlaybackSpeedDial'
 
 const STYLES = {
   wrapper: {
     backgroundColor: Palette.FATHER_COAL,
-    position: 'relative'
+    position: 'relative',
   },
   leftWrapper: {
     position: 'absolute',
     left: 14,
     height: '100%',
     display: 'flex',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   centerWrapper: {
     position: 'absolute',
@@ -23,9 +23,9 @@ const STYLES = {
     transform: 'translateX(-50%)',
     height: '100%',
     display: 'flex',
-    alignItems: 'center'
-  }
-}
+    alignItems: 'center',
+  },
+};
 
 export default class ControlsArea extends React.Component {
   render () {
@@ -54,7 +54,7 @@ export default class ControlsArea extends React.Component {
             isRepeat={this.props.isRepeat} />
           <div style={{
             position: 'absolute',
-            top: -63
+            top: -63,
           }}>
             {/* zb: removing for now because
                       1. it interferes with ability to drag horiz scrollbar (even when hidden, vertical track steals events)
@@ -65,10 +65,10 @@ export default class ControlsArea extends React.Component {
           </div>
         </span>
       </div>
-    )
+    );
   }
 }
 
 ControlsArea.propTypes = {
-  timeline: React.PropTypes.object.isRequired
-}
+  timeline: React.PropTypes.object.isRequired,
+};

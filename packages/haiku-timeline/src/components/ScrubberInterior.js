@@ -1,127 +1,70 @@
-import React from 'react'
-import lodash from 'lodash'
-import Palette from 'haiku-ui-common/lib/Palette'
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
-import zIndex from './styles/zIndex'
+import * as React from 'react';
+import * as lodash from 'lodash';
+import Palette from 'haiku-ui-common/lib/Palette';
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
+import zIndex from './styles/zIndex';
 
 export default class ScrubberInterior extends React.Component {
   constructor (props) {
-    super(props)
-    this.off = false
-    this.propertiesWidth = props.timeline.getPropertiesPixelWidth()
-    this.handleUpdate = this.handleUpdate.bind(this)
-    this.moveGaugeIfNeccesary = this.moveGaugeIfNeccesary.bind(this)
-    this.throttledForceUpdate = lodash.throttle(this.forceUpdate.bind(this), 64)
+    super(props);
+    this.propertiesWidth = props.timeline.getPropertiesPixelWidth();
+    this.handleUpdate = this.handleUpdate.bind(this);
+    this.throttledForceUpdate = lodash.throttle(this.forceUpdate.bind(this), 64);
   }
 
   componentWillUnmount () {
-    this.mounted = false
-    this.props.timeline.removeListener('update', this.handleUpdate)
+    this.mounted = false;
+    this.props.timeline.removeListener('update', this.handleUpdate);
   }
 
   componentDidMount () {
-    this.mounted = true
-    this.props.timeline.on('update', this.handleUpdate)
+    this.mounted = true;
+    this.props.timeline.on('update', this.handleUpdate);
   }
 
   componentWillReceiveProps (nextProps) {
     // When switching the active component, we also get a new timeline instance
     if (nextProps.timeline !== this.props.timeline) {
-      this.props.timeline.removeListener('update', this.handleUpdate)
-      nextProps.timeline.on('update', this.handleUpdate)
+      this.props.timeline.removeListener('update', this.handleUpdate);
+      nextProps.timeline.on('update', this.handleUpdate);
     }
   }
 
   handleUpdate (what) {
-    if (!this.mounted) return null
+    if (!this.mounted) {
+      return null;
+    }
 
     if (what === 'timeline-frame') {
-      if (!this.props.timeline.isPlaying()) {
-        this.forceUpdate()
-      }
+      this.forceUpdate();
     } else if (what === 'timeline-frame-range') {
-      this.forceUpdate()
+      this.forceUpdate();
     } else if (what === 'time-display-mode-change') {
-      this.forceUpdate()
-    } else if (what === 'timeline-scroll') {
-      this.forceUpdate()
+      this.forceUpdate();
+    } else if (what === 'timeline-scroll' || 'timeline-scroll-from-scrollbar') {
+      this.forceUpdate();
     }
-  }
-
-  translateToMaxFrame ({currentFrame, frameInfo}) {
-    const pxOffset = frameInfo.maxf * frameInfo.pxpf
-    const translation = this.propertiesWidth + pxOffset
-    const duration = frameInfo.mspf * (frameInfo.maxf - currentFrame)
-
-    this.head.style.transform = `translateX(${translation}px)`
-    this.tail.style.transform = `translateX(${translation}px)`
-    this.head.style.transition = `transform ${duration}ms linear`
-    this.tail.style.transition = `transform ${duration}ms linear`
-  }
-
-  translateToFrameZero () {
-    this.head.style.transition = ''
-    this.tail.style.transition = ''
-    this.head.style.transform = 'translateX(0)'
-    this.tail.style.transform = 'translateX(0)'
-  }
-
-  translateToCurrentFrame ({currentFrame, frameInfo}) {
-    if (this.head && this.tail) {
-      const pxOffset = currentFrame * frameInfo.pxpf
-      const translation = this.propertiesWidth + pxOffset
-
-      this.head.style.transition = ''
-      this.tail.style.transition = ''
-      this.head.style.transform = `translateX(${translation}px)`
-      this.tail.style.transform = `translateX(${translation}px)`
-    }
-  }
-
-  moveGaugeIfNeccesary () {
-    const frameInfo = this.props.timeline.getFrameInfo()
-    const currentFrame = this.props.timeline.getCurrentFrame()
-
-    if (this.props.timeline.isPlaying()) {
-      if (currentFrame < frameInfo.maxf) {
-        if (!this.isMoving) {
-          this.translateToMaxFrame({currentFrame, frameInfo})
-          this.isMoving = true
-        }
-      } else {
-        this.translateToFrameZero()
-        this.isMoving = false
-      }
-    } else {
-      this.translateToCurrentFrame({currentFrame, frameInfo})
-      this.isMoving = false
-    }
-
-    window.requestAnimationFrame(this.moveGaugeIfNeccesary)
   }
 
   render () {
-    const frameInfo = this.props.timeline.getFrameInfo()
-
-    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-      this.moveGaugeIfNeccesary()
-    }
+    const frameInfo = this.props.timeline.getFrameInfo();
 
     if (!experimentIsEnabled(Experiment.NativeTimelineScroll)) {
       if (this.props.timeline.getCurrentFrame() < frameInfo.friA) {
-        return <span />
+        return <span />;
       }
 
       if (this.props.timeline.getCurrentFrame() > frameInfo.friB) {
-        return <span />
+        return <span />;
       }
     }
 
-    const currFrame = this.props.timeline.getCurrentFrame()
+    const currFrame = this.props.timeline.getCurrentFrame();
     const frameOffset = experimentIsEnabled(Experiment.NativeTimelineScroll)
       ? currFrame
-      : currFrame - frameInfo.friA
-    const pxOffset = frameOffset * frameInfo.pxpf
+      : currFrame - frameInfo.friA;
+    const pxOffset = frameOffset * frameInfo.pxpf;
+    const translation = this.propertiesWidth + pxOffset;
 
     return (
       <div
@@ -130,13 +73,27 @@ export default class ScrubberInterior extends React.Component {
           position: 'sticky',
           top: 0,
           marginTop: -45,
-          zIndex: Math.abs(this.props.timeline.getScrollLeft() - pxOffset) < 3 ? 12 : zIndex.scrubber.base
+          zIndex: zIndex.scrubber.base,
+          fontSize: 10,
         } : {
-          overflow: 'hidden'
+          overflow: 'hidden',
         })}>
         <div
-          ref={(head) => { this.head = head }}
-          style={{
+          style={experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+            position: 'absolute',
+            backgroundColor: Palette.SUNSTONE,
+            color: Palette.FATHER_COAL,
+            textAlign: 'center',
+            height: 18,
+            width: 16,
+            top: 13,
+            left: -7,
+            borderRadius: '50%',
+            cursor: 'move',
+            boxShadow: '0 0 2px 0 rgba(0, 0, 0, .9)',
+            willChange: 'transform',
+            transform: `translate3D(${translation}px, 0, 0)`,
+          } : {
             position: 'absolute',
             backgroundColor: Palette.SUNSTONE,
             color: Palette.FATHER_COAL,
@@ -144,45 +101,63 @@ export default class ScrubberInterior extends React.Component {
             height: 19,
             width: 19,
             top: 13,
-            left: experimentIsEnabled(Experiment.NativeTimelineScroll) ? -9 : pxOffset - 9,
+            left: pxOffset - 9,
             borderRadius: '50%',
             cursor: 'move',
             boxShadow: '0 0 2px 0 rgba(0, 0, 0, .9)',
-            zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : 2006
+            zIndex: 2006,
           }}>
           <span style={{
             position: 'absolute',
-            top: 2,
+            top: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 1 : 2,
             left: 0,
-            width: '100%'
+            width: '100%',
           }}>
             {this.props.timeline.getDisplayTime()}
           </span>
-          <span style={{
+          <span style={experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
             position: 'absolute',
-            zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : 2006,
+            width: 0,
+            height: 0,
+            top: 13,
+            left: 1,
+            borderLeft: '6px solid transparent',
+            borderRight: '6px solid transparent',
+            borderTop: '9px solid rgb(254, 254, 254)',
+          } : {
+            position: 'absolute',
+            zIndex: 2006,
             width: 0,
             height: 0,
             top: 15,
-            left: 3,
+            left: 1,
             borderLeft: '7px solid transparent',
             borderRight: '7px solid transparent',
-            borderTop: '9px solid ' + Palette.SUNSTONE
+            borderTop: '9px solid ' + Palette.SUNSTONE,
           }} />
-          <span style={{
+          <span style={experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
             position: 'absolute',
-            zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : 2006,
+            width: 0,
+            height: 0,
+            top: 15,
+            left: 2,
+            borderLeft: '6px solid transparent',
+            borderRight: '6px solid transparent',
+            borderTop: '8px solid rgb(254, 254, 254)',
+          } : {
+            display: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'none' : 'inline-block',
+            position: 'absolute',
+            zIndex: 2006,
             width: 0,
             height: 0,
             left: 2,
             top: 15,
             borderLeft: '7px solid transparent',
             borderRight: '7px solid transparent',
-            borderTop: '9px solid ' + Palette.SUNSTONE
+            borderTop: '9px solid ' + Palette.SUNSTONE,
           }} />
         </div>
         <div
-          ref={(tail) => { this.tail = tail }}
           style={{
             position: 'absolute',
             zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 1 : 2006,
@@ -191,14 +166,16 @@ export default class ScrubberInterior extends React.Component {
             width: 1,
             top: 35,
             left: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : pxOffset,
-            pointerEvents: 'none'
+            pointerEvents: 'none',
+            willChange: 'transform',
+            transform: `translate3D(${translation}px, 0, 0)`,
           }} />
       </div>
-    )
+    );
   }
 }
 
 ScrubberInterior.propTypes = {
   timeline: React.PropTypes.object.isRequired,
-  onMouseDown: React.PropTypes.func
-}
+  onMouseDown: React.PropTypes.func,
+};

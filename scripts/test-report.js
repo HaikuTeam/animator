@@ -5,7 +5,7 @@ const allPackages = require('./helpers/packages')();
 const unbuildables = require('./helpers/unbuildables');
 
 let hadError = false;
-async.each(allPackages, function (pack, next) {
+async.each(allPackages, (pack, next) => {
   if (unbuildables.includes(pack.name) || !pack.pkg.scripts || !pack.pkg.scripts['test-report']) {
     next();
     return;

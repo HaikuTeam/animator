@@ -1,43 +1,42 @@
-import {remote, ipcRenderer} from 'electron'
-import React from 'react'
-import Color from 'color'
-import lodash from 'lodash'
-import { DraggableCore } from 'react-draggable'
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
-import BaseModel from 'haiku-serialization/src/bll/BaseModel'
-import Project from 'haiku-serialization/src/bll/Project'
-import Asset from 'haiku-serialization/src/bll/Asset'
-import Row from 'haiku-serialization/src/bll/Row'
-import File from 'haiku-serialization/src/bll/File'
-import Keyframe from 'haiku-serialization/src/bll/Keyframe'
-import requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates'
-import EmitterManager from 'haiku-serialization/src/utils/EmitterManager'
-import Palette from 'haiku-ui-common/lib/Palette'
-import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
-import ControlsArea from './ControlsArea'
-import ExpressionInput from './ExpressionInput'
-import ScrubberInterior from './ScrubberInterior'
-import RowManager from './RowManager'
-import FrameGrid from './FrameGrid'
-import SimplifiedFrameGrid from './SimplifiedFrameGrid'
-import FrameActionsGrid from './FrameActionsGrid'
-import IntercomWidget from './IntercomWidget'
-import Gauge from './Gauge'
-import GaugeTimeReadout from './GaugeTimeReadout'
-import TimelineRangeScrollbar from './TimelineRangeScrollbar'
-import HorzScrollShadow from './HorzScrollShadow'
-import ScrollView from './ScrollView'
-import Marquee from './Marquee'
-import {InteractionMode, isPreviewMode} from '@haiku/core/lib/helpers/interactionModes'
-import { USER_CHANNEL, UserSettings } from 'haiku-sdk-creator/lib/bll/User'
-import logger from 'haiku-serialization/src/utils/LoggerInstance'
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
-import zIndex from './styles/zIndex'
-
-const Globals = require('haiku-ui-common/lib/Globals').default // Sorry, hack
+import {remote, ipcRenderer} from 'electron';
+import * as React from 'react';
+import * as Color from 'color';
+import * as lodash from 'lodash';
+import {DraggableCore} from 'react-draggable';
+import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd';
+import * as BaseModel from 'haiku-serialization/src/bll/BaseModel';
+import * as Project from 'haiku-serialization/src/bll/Project';
+import * as Asset from 'haiku-serialization/src/bll/Asset';
+import * as Row from 'haiku-serialization/src/bll/Row';
+import * as File from 'haiku-serialization/src/bll/File';
+import * as Keyframe from 'haiku-serialization/src/bll/Keyframe';
+import * as requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates';
+import * as EmitterManager from 'haiku-serialization/src/utils/EmitterManager';
+import Palette from 'haiku-ui-common/lib/Palette';
+import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu';
+import ControlsArea from './ControlsArea';
+import ExpressionInput from './ExpressionInput';
+import ScrubberInterior from './ScrubberInterior';
+import RowManager from './RowManager';
+import FrameGrid from './FrameGrid';
+import SimplifiedFrameGrid from './SimplifiedFrameGrid';
+import FrameActionsGrid from './FrameActionsGrid';
+import IntercomWidget from './IntercomWidget';
+import Gauge from './Gauge';
+import GaugeTimeReadout from './GaugeTimeReadout';
+import TimelineRangeScrollbar from './TimelineRangeScrollbar';
+import HorzScrollShadow from './HorzScrollShadow';
+import ScrollView from './ScrollView';
+import Marquee from './Marquee';
+import {InteractionMode, isPreviewMode} from '@haiku/core/lib/helpers/interactionModes';
+import {USER_CHANNEL, UserSettings} from 'haiku-sdk-creator/lib/bll/User';
+import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
+import zIndex from './styles/zIndex';
+import Globals from 'haiku-ui-common/lib/Globals';
 
 // Useful debugging originator of calls in shared model code
-process.env.HAIKU_SUBPROCESS = 'timeline'
+process.env.HAIKU_SUBPROCESS = 'timeline';
 
 /* z-index guide
   keyframe: 1002
@@ -49,10 +48,14 @@ process.env.HAIKU_SUBPROCESS = 'timeline'
   bottom controls: 10000 <- ka-boom!
 */
 
-const { webFrame } = require('electron')
+const {webFrame} = require('electron');
 if (webFrame) {
-  if (webFrame.setZoomLevelLimits) webFrame.setZoomLevelLimits(1, 1)
-  if (webFrame.setLayoutZoomLevelLimits) webFrame.setLayoutZoomLevelLimits(0, 0)
+  if (webFrame.setZoomLevelLimits) {
+    webFrame.setZoomLevelLimits(1, 1);
+  }
+  if (webFrame.setLayoutZoomLevelLimits) {
+    webFrame.setLayoutZoomLevelLimits(0, 0);
+  }
 }
 
 const DEFAULTS = {
@@ -68,28 +71,29 @@ const DEFAULTS = {
   isPreviewModeActive: false,
   isRepeat: true,
   flush: false,
-  userDetails: null
-}
+  userDetails: null,
+};
 
-const THROTTLE_TIME = 32 // ms
-const MENU_ACTION_DEBOUNCE_TIME = 100
+const THROTTLE_TIME = 32; // ms
+const MENU_ACTION_DEBOUNCE_TIME = 100;
+const TIMELINE_OFFSET_PADDING = 7; // px
 
 class Timeline extends React.Component {
   constructor (props) {
-    super(props)
+    super(props);
 
-    EmitterManager.extend(this)
+    EmitterManager.extend(this);
 
-    this.state = lodash.assign({}, DEFAULTS)
+    this.state = lodash.assign({}, DEFAULTS);
 
     if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-      this.isShiftKeyDown = false
-      this.isCommandKeyDown = false
-      this.isControlKeyDown = false
-      this.isAltKeyDown = false
+      this.isShiftKeyDown = false;
+      this.isCommandKeyDown = false;
+      this.isControlKeyDown = false;
+      this.isAltKeyDown = false;
     }
 
-    this._lastCopiedCurve = null
+    this._lastCopiedCurve = null;
 
     Project.setup(
       this.props.folder,
@@ -100,31 +104,34 @@ class Timeline extends React.Component {
       {}, // fileOptions
       this.props.envoy,
       (err, project) => {
-        if (err) throw err
-        this.handleProjectReady(project)
-      }
-    )
+        if (err) {
+          throw err;
+        }
+        this.handleProjectReady(project);
+      },
+    );
 
-    this.handleRequestElementCoordinates = this.handleRequestElementCoordinates.bind(this)
-    this.showFrameActionsEditor = this.showFrameActionsEditor.bind(this)
-    this.mouseMoveListener = this.mouseMoveListener.bind(this)
-    this.mouseUpListener = this.mouseUpListener.bind(this)
-    this.onGaugeMouseDown = this.onGaugeMouseDown.bind(this)
-    this.moveGaugeOnDoubleClick = this.moveGaugeOnDoubleClick.bind(this)
-    this.copySelectedCurve = this.copySelectedCurve.bind(this)
-    this.pasteSelectedCurve = this.pasteSelectedCurve.bind(this)
+    this.handleRequestElementCoordinates = this.handleRequestElementCoordinates.bind(this);
+    this.showFrameActionsEditor = this.showFrameActionsEditor.bind(this);
+    this.mouseMoveListener = this.mouseMoveListener.bind(this);
+    this.mouseUpListener = this.mouseUpListener.bind(this);
+    this.onGaugeMouseDown = this.onGaugeMouseDown.bind(this);
+    this.moveGaugeOnDoubleClick = this.moveGaugeOnDoubleClick.bind(this);
+    this.copySelectedCurve = this.copySelectedCurve.bind(this);
+    this.pasteSelectedCurve = this.pasteSelectedCurve.bind(this);
 
-    this.handleCutDebounced = lodash.debounce(this.handleCut.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
-    this.handleCopyDebounced = lodash.debounce(this.handleCopy.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
-    this.handlePasteDebounced = lodash.debounce(this.handlePaste.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
-    this.handleSelectAllDebounced = lodash.debounce(this.handleSelectAll.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
-    this.handleUndoDebounced = lodash.debounce(this.handleUndo.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
-    this.handleRedoDebounced = lodash.debounce(this.handleRedo.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
+    this.handleCutDebounced = lodash.debounce(this.handleCut.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false});
+    this.handleCopyDebounced = lodash.debounce(this.handleCopy.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false});
+    this.handlePasteDebounced = lodash.debounce(this.handlePaste.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false});
+    this.handleSelectAllDebounced = lodash.debounce(this.handleSelectAll.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false});
+    this.handleUndoDebounced = lodash.debounce(this.handleUndo.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false});
+    this.handleRedoDebounced = lodash.debounce(this.handleRedo.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false});
+    this.handleZoomThrottled = lodash.throttle(this.handleZoom.bind(this), THROTTLE_TIME);
 
     if (process.env.NODE_ENV !== 'production') {
       // For debugging
-      window.timeline = this
-      window.view = this // Easy to run same instruction in different tools
+      window.timeline = this;
+      window.view = this; // Easy to run same instruction in different tools
     }
   }
 
@@ -133,18 +140,18 @@ class Timeline extends React.Component {
       document.activeElement &&
       document.activeElement.tagName &&
       document.activeElement.tagName.toLowerCase()
-    )
+    );
 
     return (
       tagName && (
         tagName === 'input' ||
         tagName === 'textarea'
       )
-    )
+    );
   }
 
   isTextSelected () {
-    return window.getSelection().type === 'Range'
+    return window.getSelection().type === 'Range';
   }
 
   /*
@@ -152,23 +159,23 @@ class Timeline extends React.Component {
    * --------- */
 
   componentWillUnmount () {
-    this.mounted = false
+    this.mounted = false;
 
     // Clean up subscriptions to prevent memory leaks and react warnings
-    this.removeEmitterListeners()
+    this.removeEmitterListeners();
 
     if (this.tourClient) {
-      this.tourClient.off('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
+      this.tourClient.off('tour:requestElementCoordinates', this.handleRequestElementCoordinates);
     }
 
-    this.project.getEnvoyClient().closeConnection()
+    this.project.getEnvoyClient().closeConnection();
   }
 
   instantiateMarquee () {
     if (experimentIsEnabled(Experiment.TimelineMarqueeSelection)) {
-      const area = document.querySelector('#property-rows')
+      const area = document.querySelector('#property-rows');
       if (!area) {
-        return setTimeout(this.instantiateMarquee.bind(this), 100)
+        return setTimeout(this.instantiateMarquee.bind(this), 100);
       }
 
       const marquee = new Marquee({
@@ -189,16 +196,16 @@ class Timeline extends React.Component {
               'drag-grip-wrapper',
               'component-heading-row-drag-handle',
               'pill',
-              'component-heading-chevron-box'
+              'component-heading-chevron-box',
             ].includes(event.target.className)
-          )
+          );
         },
-        onFinish: (event, area) => {
+        onFinish: (event, finalArea) => {
           const selected = Keyframe.all().filter((keyframe) => {
             if (keyframe.element.isLocked()) {
-              return false
+              return false;
             }
-            const keyframeView = keyframe._viewPosition
+            const keyframeView = keyframe._viewPosition;
 
             // First, check if the keyframe is contained in the marquee horizontally,
             // we perform this check first because we can't rely on the cached `y` value due
@@ -206,423 +213,433 @@ class Timeline extends React.Component {
             // modifies the `x` position of a keyframe post-render this is a safe filter to
             // avoid performing the expensive `getBoundingClientRect` calculation on all keyframes
             if (
-              keyframeView.x < area.x + area.width &&
-              keyframeView.x + keyframeView.width > area.x
+              keyframeView.x < finalArea.x + finalArea.width &&
+              keyframeView.x + keyframeView.width > finalArea.x
             ) {
-              const keyframeViewEl = document.getElementById(`keyframe-container-${keyframe.getUniqueKey()}`)
-              const {y, height} = keyframeViewEl.getBoundingClientRect()
+              const keyframeViewEl = document.getElementById(`keyframe-container-${keyframe.getUniqueKey()}`);
+              const {y, height} = keyframeViewEl.getBoundingClientRect();
 
-              return (y < area.y + area.height && height + y > area.y)
+              return (y < finalArea.y + finalArea.height && height + y > finalArea.y);
             }
-          })
+          });
 
           // We perform this logic once we determined the selection, because
           // expanding a row modifies its coordinates.
           selected.forEach((keyframe) => {
-            keyframe.select()
-            keyframe.activate()
-            keyframe.setBodySelected()
-            keyframe.row.expand({from: 'timeline'})
-          })
-        }
-      })
+            keyframe.select();
+            keyframe.activate();
+            keyframe.setBodySelected();
+            keyframe.row.expand({from: 'timeline'});
+          });
+        },
+      });
 
-      marquee.start()
+      marquee.start();
     }
   }
 
   componentDidMount () {
-    this.mounted = true
+    this.mounted = true;
 
-    this.instantiateMarquee()
+    this.instantiateMarquee();
 
     const resetKeyStates = () => {
-      Globals.allKeysUp()
+      Globals.allKeysUp();
 
       this.updateKeyboardState({
         isShiftKeyDown: false,
         isCommandKeyDown: false,
         isControlKeyDown: false,
-        isAltKeyDown: false
-      })
+        isAltKeyDown: false,
+      });
 
-      this.enableTimelinePointerEvents()
-    }
+      this.enableTimelinePointerEvents();
+    };
 
     // If the user e.g. Cmd+tabs away from the window
     this.addEmitterListener(window, 'blur', () => {
-      resetKeyStates()
+      resetKeyStates();
 
       // If an expression input is focused when we leave this webview, close it
       if (this.getActiveComponent()) {
         this.getActiveComponent().getRows().forEach((row) => {
-          row.blur({ from: 'timeline' })
-        })
+          row.blur({from: 'timeline'});
+        });
       }
-    })
+    });
 
     this.addEmitterListener(window, 'focus', () => {
-      resetKeyStates()
-    })
+      resetKeyStates();
+    });
 
     this.addEmitterListener(this.props.websocket, 'method', (method, params, message, cb) => {
       // Harness to enable cross-subview integration testing
       if (method === 'executeFunctionSpecification') {
         return Project.executeFunctionSpecification(
-          { timeline: this },
+          {timeline: this},
           'timeline',
           lodash.assign(
             {
               timeline: this,
-              project: this.state.projectModel
+              project: this.state.projectModel,
             },
-            params[0]
+            params[0],
           ),
-          cb
-        )
+          cb,
+        );
       }
-    })
+    });
 
-    this.addEmitterListener(window, 'dragover', Asset.preventDefaultDrag, false)
+    this.addEmitterListener(window, 'dragover', Asset.preventDefaultDrag, false);
 
     this.addEmitterListener(
       window,
       'drop',
       (event) => {
-        this.project.linkExternalAssetOnDrop(event, () => {})
+        this.project.linkExternalAssetOnDrop(event, () => {});
       },
-      false
-    )
+      false,
+    );
   }
 
   getActiveComponent () {
-    return this.project && this.project.getCurrentActiveComponent()
+    return this.project && this.project.getCurrentActiveComponent();
   }
 
   awaitRef (name, cb) {
     if (this.refs[name]) {
-      return cb(this.refs[name])
+      return cb(this.refs[name]);
     }
     return setTimeout(() => {
-      this.awaitRef(name, cb)
-    }, 100)
+      this.awaitRef(name, cb);
+    }, 100);
   }
 
   handleProjectReady (project) {
-    this.project = project
+    this.project = project;
 
     this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'envoy:tourClientReady', (tourClient) => {
-      this.tourClient = tourClient
-      this.tourClient.on('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
+      this.tourClient = tourClient;
+      this.tourClient.on('tour:requestElementCoordinates', this.handleRequestElementCoordinates);
       // When the timeline loads, that is the indication to move from the first tour step
       // to the next step that shows how to create animations
       setTimeout(() => {
         if (!this.project.getEnvoyClient().isInMockMode() && this.tourClient) {
-          this.tourClient.next()
+          this.tourClient.next();
         }
-      })
-    })
+      });
+    });
 
     this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'update', (what, arg) => {
       // logger.info(`[timeline] local update ${what}`)
 
       switch (what) {
         case 'setCurrentActiveComponent':
-          this.handleActiveComponentReady()
-          break
+          this.handleActiveComponentReady();
+          break;
         case 'reloaded':
           if (arg === 'hard' && this.mounted) {
-            this.forceUpdate()
+            this.forceUpdate();
           }
-          break
+          break;
       }
-    })
+    });
 
     this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'remote-update', (what, ...args) => {
       // logger.info(`[timeline] remote update ${what}`)
 
       switch (what) {
         case 'setCurrentActiveComponent':
-          this.handleActiveComponentReady()
-          break
+          this.handleActiveComponentReady();
+          break;
         case 'setInteractionMode':
-          this.handleInteractionModeChange(...args)
-          break
+          this.handleInteractionModeChange(...args);
+          break;
       }
-    })
+    });
 
     this.addEmitterListener(window, 'resize', lodash.throttle(() => {
       if (this.mounted && this.getActiveComponent()) {
-        const pxWidth = document.body.clientWidth - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()
-        this.getActiveComponent().getCurrentTimeline().setTimelinePixelWidth(pxWidth + 20)
-        this.forceUpdate()
+        const pxWidth = document.body.clientWidth - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth();
+        this.getActiveComponent().getCurrentTimeline().setTimelinePixelWidth(pxWidth + 20);
+        this.forceUpdate();
       }
-    }, THROTTLE_TIME))
+    }, THROTTLE_TIME));
 
     // The this-binding here is required; I am not sure why since we also do this in the constructor.
     // If you remove the this-binding, you'll see exceptions when you move your mouse initially.
-    this.addEmitterListener(window, 'mousemove', this.mouseMoveListener.bind(this))
-    this.addEmitterListener(window, 'mouseup', this.mouseUpListener.bind(this))
+    this.addEmitterListener(window, 'mousemove', this.mouseMoveListener.bind(this));
+    this.addEmitterListener(window, 'mouseup', this.mouseUpListener.bind(this));
 
     this.addEmitterListener(this.props.websocket, 'relay', (message) => {
-      logger.info('relay received', message.name, 'from', message.from)
+      logger.info('relay received', message.name, 'from', message.from);
 
       // The next relay destination in the sequence is always glass
-      const relayable = lodash.assign(message, {view: 'glass'})
+      const relayable = lodash.assign(message, {view: 'glass'});
 
       switch (message.name) {
         case 'global-menu:open-dev-tools':
-          remote.getCurrentWebContents().openDevTools()
-          break
+          remote.getCurrentWebContents().openDevTools();
+          break;
 
         case 'global-menu:close-dev-tools':
           if (remote.getCurrentWebContents().isDevToolsFocused()) {
-            remote.getCurrentWebContents().closeDevTools()
+            remote.getCurrentWebContents().closeDevTools();
           }
-          break
+          break;
 
         case 'global-menu:set-active-component':
-          this.project.setCurrentActiveComponent(message.data, {from: 'timeline'}, () => {})
-          break
+          this.project.setCurrentActiveComponent(message.data, {from: 'timeline'}, () => {});
+          break;
 
         case 'global-menu:zoom-in':
           // For now, zoom controls only affect the stage
-          this.props.websocket.send(relayable)
-          break
+          this.props.websocket.send(relayable);
+          break;
 
         case 'global-menu:zoom-out':
           // For now, zoom controls only affect the stage
-          this.props.websocket.send(relayable)
-          break
+          this.props.websocket.send(relayable);
+          break;
 
         case 'global-menu:group':
           // For now, grouping is only possible via the stage
-          this.props.websocket.send(relayable)
-          break
+          this.props.websocket.send(relayable);
+          break;
 
         case 'global-menu:ungroup':
           // For now, grouping is only possible via the stage
-          this.props.websocket.send(relayable)
-          break
+          this.props.websocket.send(relayable);
+          break;
 
         case 'global-menu:cut':
           // Delegate cut only if the user is not editing something here
           if (!document.hasFocus() || !this.isTextSelected()) {
-            this.props.websocket.send(relayable)
+            this.props.websocket.send(relayable);
           }
-          break
+          break;
 
         case 'global-menu:copy':
           if (experimentIsEnabled(Experiment.CopyPasteTweensWithAccelerators)) {
-            this.handleCopyDebounced(relayable)
+            this.handleCopyDebounced(relayable);
           } else {
             // Delegate copy only if the user is not editing something here
             if (!document.hasFocus() || !this.isTextSelected()) {
-              this.props.websocket.send(relayable)
+              this.props.websocket.send(relayable);
             }
           }
-          break
+          break;
 
         case 'global-menu:paste':
           if (experimentIsEnabled(Experiment.CopyPasteTweensWithAccelerators)) {
-            this.handlePasteDebounced(relayable)
+            this.handlePasteDebounced(relayable);
           } else {
             // Delegate paste only if the user is not editing something here
             if (document.hasFocus()) {
               if (!this.isTextInputFocused()) {
-                this.props.websocket.send(relayable)
+                this.props.websocket.send(relayable);
               }
             } else {
-              this.props.websocket.send(relayable)
+              this.props.websocket.send(relayable);
             }
           }
-          break
+          break;
 
         case 'global-menu:selectAll':
           // Delegate selectall only if the user is not editing something here
           if (!document.hasFocus()) {
             if (!this.isTextInputFocused()) {
-              this.props.websocket.send(relayable)
+              this.props.websocket.send(relayable);
             }
           } else {
-            this.props.websocket.send(relayable)
+            this.props.websocket.send(relayable);
           }
-          break
+          break;
 
         case 'global-menu:undo':
           if (window.isWebview) { // Let work in standalone dev mode
-            this.props.websocket.send(relayable) // For consistency, let glass initiate undo/redo
+            this.props.websocket.send(relayable); // For consistency, let glass initiate undo/redo
           } else {
-            this.handleUndoDebounced()
+            this.handleUndoDebounced();
           }
-          break
+          break;
 
         case 'global-menu:redo':
           if (window.isWebview) { // Let work in standalone dev mode
-            this.props.websocket.send(relayable) // For consistency, let glass initiate undo/redo
+            this.props.websocket.send(relayable); // For consistency, let glass initiate undo/redo
           } else {
-            this.handleRedoDebounced()
+            this.handleRedoDebounced();
           }
-          break
+          break;
       }
-    })
+    });
 
     this.addEmitterListener(this.props.websocket, 'broadcast', (message) => {
       if (message.folder !== this.props.folder) {
-        return
+        return;
       }
 
       switch (message.name) {
         case 'remote-model:receive-sync':
-          BaseModel.receiveSync(message)
-          break
+          BaseModel.receiveSync(message);
+          break;
 
         case 'component:reload':
           if (this.getActiveComponent()) {
-            this.getActiveComponent().moduleReplace(() => {})
+            this.getActiveComponent().moduleReplace(() => {});
           }
-          break
+          break;
 
         case 'event-handlers-updated':
           if (this.getActiveComponent()) {
-            this.getActiveComponent().getCurrentTimeline().notifyFrameActionChange()
+            this.getActiveComponent().getCurrentTimeline().notifyFrameActionChange();
           }
-          break
+          break;
 
         case 'assets-changed':
-          File.cache.clear()
-          break
+          File.cache.clear();
+          break;
       }
-    })
+    });
 
-    this.addEmitterListener(document.body, 'keydown', this.handleKeyDown.bind(this))
+    this.addEmitterListener(document.body, 'keydown', this.handleKeyDown.bind(this));
 
     this.addEmitterListener(document.body, 'keyup', (keyupEvent) => {
-      this.handleKeyUp(keyupEvent)
-    })
+      this.handleKeyUp(keyupEvent);
+    });
 
-    this.addEmitterListener(document.body, 'mousewheel', lodash.throttle((wheelEvent) => {
-      this.handleScroll(wheelEvent)
-    }, 16), { passive: true })
+    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+      this.addEmitterListener(window, 'wheel', (wheelEvent) => {
+        if (wheelEvent.ctrlKey) {
+          this.handleZoomThrottled(wheelEvent);
+        } else {
+          this.handleScroll(wheelEvent);
+        }
+      }, {passive: true});
+    } else {
+      this.addEmitterListener(document.body, 'mousewheel', lodash.throttle((wheelEvent) => {
+        this.handleScroll(wheelEvent);
+      }, 16), {passive: true});
+    }
 
     this.addEmitterListener(document, 'mousemove', (mouseMoveEvent) => {
       if (!this.getActiveComponent()) {
-        return
+        return;
       }
 
-      const timeline = this.getActiveComponent().getCurrentTimeline()
-      let pxInTimeline
-      let frameForPx
+      const timeline = this.getActiveComponent().getCurrentTimeline();
+      let pxInTimeline;
+      let frameForPx;
 
       if (timeline) {
-        const frameInfo = timeline.getFrameInfo()
+        const frameInfo = timeline.getFrameInfo();
         if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-          pxInTimeline = mouseMoveEvent.clientX + (this.refs.container.scrollLeft || 0) - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()
+          pxInTimeline = mouseMoveEvent.clientX + (this.refs.container.scrollLeft || 0) - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() - TIMELINE_OFFSET_PADDING;
         } else {
-          pxInTimeline = mouseMoveEvent.clientX - timeline.getPropertiesPixelWidth()
+          pxInTimeline = mouseMoveEvent.clientX - timeline.getPropertiesPixelWidth();
         }
 
         if (pxInTimeline < 0) {
-          pxInTimeline = 0
+          pxInTimeline = 0;
         }
         if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-          frameForPx = Math.round(pxInTimeline / frameInfo.pxpf)
+          frameForPx = Math.round(pxInTimeline / frameInfo.pxpf);
         } else {
-          frameForPx = frameInfo.friA + Math.round(pxInTimeline / frameInfo.pxpf)
+          frameForPx = frameInfo.friA + Math.round(pxInTimeline / frameInfo.pxpf);
         }
 
-        timeline.hoverFrame(frameForPx)
+        timeline.hoverFrame(frameForPx);
       }
-    })
+    });
 
     this.addEmitterListener(PopoverMenu, 'show', (payload) => {
-      const items = this.getPopoverMenuItems(payload)
+      const items = this.getPopoverMenuItems(payload);
       PopoverMenu.launch({
         event: payload.event,
-        items
-      })
-    })
+        items,
+      });
+    });
 
     this.addEmitterListener(Row, 'update', (row, what, metadata) => {
       if (experimentIsEnabled(Experiment.NativeTimelineScroll) && what === 'row-selected' && metadata.from !== 'timeline') {
-        const rowElement = document.getElementById(`component-heading-row-${row.element.getComponentId()}-${row.getAddress()}`)
+        const rowElement = document.getElementById(`component-heading-row-${row.element.getComponentId()}-${row.getAddress()}`);
 
         if (rowElement) {
           this.refs.container.scroll({
             top: rowElement.offsetTop,
             left: this.refs.container.scrollLeft,
-            behavior: 'smooth'
-          })
+            behavior: 'smooth',
+          });
         }
       }
-    })
+    });
 
     // When all views send this, we know it's ok to initialize the 'main' component
     this.project.broadcastPayload({
       name: 'project-state-change',
-      what: 'project:ready'
-    })
+      what: 'project:ready',
+    });
 
     // When developing Timeline in standalone, this env var directs it to automatically
     // set the current active component, which is normally initiated by Creator
     if (process.env.AUTOSTART) {
-      this.project.setCurrentActiveComponent(process.env.AUTOSTART, { from: 'timeline' }, () => {})
+      this.project.setCurrentActiveComponent(process.env.AUTOSTART, {from: 'timeline'}, () => {});
     }
   }
 
   handleActiveComponentReady () {
-    const timeline = this.getActiveComponent().getCurrentTimeline()
-    this.mountHaikuComponent()
+    const timeline = this.getActiveComponent().getCurrentTimeline();
+    this.mountHaikuComponent();
 
     ipcRenderer.send('topmenu:update', {
-      subComponents: this.project.describeSubComponents()
-    })
+      subComponents: this.project.describeSubComponents(),
+    });
 
-    this.loadUserSettings()
-    timeline.setTimelinePixelWidth(document.body.clientWidth - timeline.getPropertiesPixelWidth() + 20)
+    this.loadUserSettings();
+    timeline.setTimelinePixelWidth(document.body.clientWidth - timeline.getPropertiesPixelWidth() + 20);
 
     if (this.mounted) {
-      this.forceUpdate()
+      this.forceUpdate();
     }
 
     if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
       this.addEmitterListenerIfNotAlreadyRegistered(timeline, 'update', (what, ...args) => {
-        if (what === 'timeline-scroll') {
-          this.refs.container.scrollLeft = timeline.getScrollLeft()
+        if (what === 'timeline-scroll-from-scrollbar') {
+          this.refs.container.scrollLeft = timeline.getScrollLeft();
         }
-      })
+      });
     }
 
     this.project.broadcastPayload({
       name: 'project-state-change',
       what: 'component:mounted',
-      scenename: this.getActiveComponent().getSceneName()
-    })
+      scenename: this.getActiveComponent().getSceneName(),
+    });
   }
 
   mountHaikuComponent () {
     // The Timeline UI doesn't display the component, so we don't bother giving it a ref
     this.getActiveComponent().mountApplication(null, {
-      freeze: true // No display means no need for overflow settings, etc
-    })
+      freeze: true, // No display means no need for overflow settings, etc
+    });
   }
 
   handleInteractionModeChange (interactionMode) {
-    const timeline = this.getActiveComponent().getCurrentTimeline()
+    const timeline = this.getActiveComponent().getCurrentTimeline();
     if (timeline.isPlaying()) {
-      timeline.pause()
+      timeline.pause();
     }
 
-    this.setState({isPreviewModeActive: isPreviewMode(interactionMode)})
+    this.setState({isPreviewModeActive: isPreviewMode(interactionMode)});
   }
 
-  getPopoverMenuItems ({ event, type, model, offset, curve }) {
-    const items = []
+  getPopoverMenuItems ({event, type, model, offset, curve}) {
+    const items = [];
 
-    const selectedKeyframes = this.getActiveComponent().getSelectedKeyframes()
-    const numSelectedKeyframes = selectedKeyframes.length
-    const isTweenableTransitionSegment = type === 'keyframe-segment' && (model && model.isTweenable())
-    const isSingular = numSelectedKeyframes < 3
+    const selectedKeyframes = this.getActiveComponent().getSelectedKeyframes();
+    const numSelectedKeyframes = selectedKeyframes.length;
+    const isTweenableTransitionSegment = type === 'keyframe-segment' && (model && model.isTweenable());
+    const isSingular = numSelectedKeyframes < 3;
 
     items.push({
       label: 'Create Keyframe',
@@ -636,107 +653,111 @@ class Timeline extends React.Component {
           type === 'cluster-row'
         )
       ),
-      onClick: (event) => {
-        const timeline = this.getActiveComponent().getCurrentTimeline()
-        const frameInfo = timeline.getFrameInfo()
-        const ms = Math.round(timeline.getHoveredFrame() * frameInfo.mspf)
-        Keyframe.deselectAndDeactivateAllKeyframes()
-        model.createKeyframe(undefined, ms, { from: 'timeline' })
-      }
-    })
+      onClick: (clickEvent) => {
+        const timeline = this.getActiveComponent().getCurrentTimeline();
+        const frameInfo = timeline.getFrameInfo();
+        const ms = Math.round(timeline.getHoveredFrame() * frameInfo.mspf);
+        Keyframe.deselectAndDeactivateAllKeyframes();
+        model.createKeyframe(undefined, ms, {from: 'timeline'});
+      },
+    });
 
-    items.push({ type: 'separator' })
+    items.push({type: 'separator'});
 
     items.push({
       label: (numSelectedKeyframes < 2) ? 'Delete Keyframe' : 'Delete Keyframes',
       enabled: type === 'keyframe',
-      onClick: (event) => {
-        this.getActiveComponent().deleteSelectedKeyframes({ from: 'timeline' })
-      }
-    })
+      onClick: () => {
+        this.getActiveComponent().deleteSelectedKeyframes({from: 'timeline'});
+      },
+    });
 
-    items.push({ type: 'separator' })
+    items.push({type: 'separator'});
 
     items.push({
       label: 'Move to Frame 0',
       enabled: this.getActiveComponent().checkIfSelectedKeyframesAreMovableToZero(),
-      onClick: (event) => {
-        selectedKeyframes.forEach((keyframe) => { keyframe.moveTo(0, 0) })
-        this.getActiveComponent().commitAccumulatedKeyframeMovesDebounced()
-      }
-    })
+      onClick: () => {
+        selectedKeyframes.forEach((keyframe) => {
+          keyframe.moveTo(0, 0);
+        });
+        this.getActiveComponent().commitAccumulatedKeyframeMovesDebounced();
+      },
+    });
 
-    items.push({ type: 'separator' })
+    items.push({type: 'separator'});
 
     items.push({
       label: isSingular ? 'Make Tween' : 'Make Tweens',
       enabled: isTweenableTransitionSegment,
-      submenu: isTweenableTransitionSegment && this.curvesMenu(curve, (event, curveName) => {
-        this.getActiveComponent().joinSelectedKeyframes(curveName, { from: 'timeline' })
-      })
-    })
+      submenu: isTweenableTransitionSegment && this.curvesMenu(curve, (_, curveName) => {
+        this.getActiveComponent().joinSelectedKeyframes(curveName, {from: 'timeline'});
+      }),
+    });
 
     items.push({
       label: isSingular ? 'Change Tween' : 'Change Tweens',
       enabled: type === 'keyframe-transition',
-      submenu: (type === 'keyframe-transition') && this.curvesMenu(curve, (event, curveName) => {
-        this.getActiveComponent().changeCurveOnSelectedKeyframes(curveName, { from: 'timeline' })
-      })
-    })
+      submenu: (type === 'keyframe-transition') && this.curvesMenu(curve, (_, curveName) => {
+        this.getActiveComponent().changeCurveOnSelectedKeyframes(curveName, {from: 'timeline'});
+      }),
+    });
 
     if (experimentIsEnabled(Experiment.CopyPasteTweens)) {
       items.push({
         label: 'Copy Tween',
         enabled: type === 'keyframe-transition' && isSingular,
-        onClick: this.copySelectedCurve
-      })
+        onClick: this.copySelectedCurve,
+      });
 
       items.push({
         label: 'Paste Tween',
         enabled: isTweenableTransitionSegment && Boolean(this._lastCopiedCurve),
-        onClick: this.pasteSelectedCurve
-      })
+        onClick: this.pasteSelectedCurve,
+      });
     }
 
     items.push({
       label: isSingular ? 'Remove Tween' : 'Remove Tweens',
       enabled: type === 'keyframe-transition',
-      onClick: (event) => {
-        this.getActiveComponent().splitSelectedKeyframes({ from: 'timeline' })
-      }
-    })
+      onClick: (_) => {
+        this.getActiveComponent().splitSelectedKeyframes({from: 'timeline'});
+      },
+    });
 
-    return items
+    return items;
   }
 
   loadUserSettings () {
     if (!this.project.getEnvoyClient().isInMockMode()) {
       this.project.getEnvoyClient().get(USER_CHANNEL).then(
         (user) => {
-          this.user = user
+          this.user = user;
           user.getConfig(UserSettings.timeDisplayModes).then(
             (timeDisplayModes) => {
               if (timeDisplayModes && timeDisplayModes[this.project.getFolder()]) {
-                this.getActiveComponent().getCurrentTimeline().setTimeDisplayMode(timeDisplayModes[this.project.getFolder()])
+                this.getActiveComponent().getCurrentTimeline().setTimeDisplayMode(timeDisplayModes[this.project.getFolder()]);
               } else {
                 user.getConfig(UserSettings.defaultTimeDisplayMode).then((defaultTimeDisplayMode) => {
-                  defaultTimeDisplayMode && this.getActiveComponent().getCurrentTimeline().setTimeDisplayMode(defaultTimeDisplayMode)
-                })
+                  if (defaultTimeDisplayMode) {
+                    this.getActiveComponent().getCurrentTimeline().setTimeDisplayMode(defaultTimeDisplayMode);
+                  }
+                });
               }
-            }
-          )
+            },
+          );
           user.getUserDetails().then(
             (userDetails) => {
-              this.setState({userDetails})
-            }
-          )
-        }
-      )
+              this.setState({userDetails});
+            },
+          );
+        },
+      );
     }
   }
 
   curvesMenu (maybeCurve, cb) {
-    const items = []
+    const items = [];
 
     items.push({
       label: 'Linear',
@@ -745,142 +766,146 @@ class Timeline extends React.Component {
         maybeCurve !== 'Linear'
       ),
       onClick: (event) => {
-        return cb(event, 'linear')
-      }
-    })
+        return cb(event, 'linear');
+      },
+    });
 
     items.push({
       label: 'Ease In',
-      submenu: this.curveTypeMenu('easeIn', maybeCurve, cb)
-    })
+      submenu: this.curveTypeMenu('easeIn', maybeCurve, cb),
+    });
 
     items.push({
       label: 'Ease Out',
-      submenu: this.curveTypeMenu('easeOut', maybeCurve, cb)
-    })
+      submenu: this.curveTypeMenu('easeOut', maybeCurve, cb),
+    });
 
     items.push({
       label: 'Ease In Out',
-      submenu: this.curveTypeMenu('easeInOut', maybeCurve, cb)
-    })
+      submenu: this.curveTypeMenu('easeInOut', maybeCurve, cb),
+    });
 
-    return items
+    return items;
   }
 
   curveTypeMenu (baseCurve, maybeCurve, cb) {
-    const items = []
+    const items = [];
 
     items.push({
       label: 'Back',
       enabled: maybeCurve !== baseCurve + 'Back',
       onClick: (event) => {
-        return cb(event, baseCurve + 'Back')
-      }
-    })
+        return cb(event, baseCurve + 'Back');
+      },
+    });
 
     items.push({
       label: 'Bounce',
       enabled: maybeCurve !== baseCurve + 'Bounce',
       onClick: (event) => {
-        return cb(event, baseCurve + 'Bounce')
-      }
-    })
+        return cb(event, baseCurve + 'Bounce');
+      },
+    });
 
     items.push({
       label: 'Circ',
       enabled: maybeCurve !== baseCurve + 'Circ',
       onClick: (event) => {
-        return cb(event, baseCurve + 'Circ')
-      }
-    })
+        return cb(event, baseCurve + 'Circ');
+      },
+    });
 
     items.push({
       label: 'Cubic',
       enabled: maybeCurve !== baseCurve + 'Cubic',
       onClick: (event) => {
-        return cb(event, baseCurve + 'Cubic')
-      }
-    })
+        return cb(event, baseCurve + 'Cubic');
+      },
+    });
 
     items.push({
       label: 'Elastic',
       enabled: maybeCurve !== baseCurve + 'Elastic',
       onClick: (event) => {
-        return cb(event, baseCurve + 'Elastic')
-      }
-    })
+        return cb(event, baseCurve + 'Elastic');
+      },
+    });
 
     items.push({
       label: 'Expo',
       enabled: maybeCurve !== baseCurve + 'Expo',
       onClick: (event) => {
-        return cb(event, baseCurve + 'Expo')
-      }
-    })
+        return cb(event, baseCurve + 'Expo');
+      },
+    });
 
     items.push({
       label: 'Quad',
       enabled: maybeCurve !== baseCurve + 'Quad',
       onClick: (event) => {
-        return cb(event, baseCurve + 'Quad')
-      }
-    })
+        return cb(event, baseCurve + 'Quad');
+      },
+    });
 
     items.push({
       label: 'Quart',
       enabled: maybeCurve !== baseCurve + 'Quart',
       onClick: (event) => {
-        return cb(event, baseCurve + 'Quart')
-      }
-    })
+        return cb(event, baseCurve + 'Quart');
+      },
+    });
 
     items.push({
       label: 'Quint',
       enabled: maybeCurve !== baseCurve + 'Quint',
       onClick: (event) => {
-        return cb(event, baseCurve + 'Quint')
-      }
-    })
+        return cb(event, baseCurve + 'Quint');
+      },
+    });
 
     items.push({
       label: 'Sine',
       enabled: maybeCurve !== baseCurve + 'Sine',
       onClick: (event) => {
-        return cb(event, baseCurve + 'Sine')
-      }
-    })
+        return cb(event, baseCurve + 'Sine');
+      },
+    });
 
-    return items
+    return items;
+  }
+
+  handleZoom (wheelEvent) {
+    this.getActiveComponent().getCurrentTimeline().zoomBy(wheelEvent.deltaY * 0.01);
   }
 
   handleScroll (scrollEvent) {
     if (scrollEvent.deltaY >= 1 || scrollEvent.deltaY <= -1) {
       // Don't horizontally scroll if we are vertically scrolling
-      return void (0)
+      return void (0);
     }
 
     if (scrollEvent.deltaX >= 1 || scrollEvent.deltaX <= -1) {
-      return this.handleHorizontalScroll(scrollEvent.deltaX)
+      return this.handleHorizontalScroll(scrollEvent.deltaX);
     }
   }
 
   handleHorizontalScroll (origDelta) {
     if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-      const timeline = this.getActiveComponent().getCurrentTimeline()
-      let scrollDelta = timeline.getScrollLeft() + origDelta
+      const timeline = this.getActiveComponent().getCurrentTimeline();
+      let scrollDelta = timeline.getScrollLeft() + origDelta;
 
       if (scrollDelta < 0) {
-        scrollDelta = 0
+        scrollDelta = 0;
       }
 
-      timeline.setScrollLeft(scrollDelta)
+      timeline.setScrollLeft(scrollDelta);
     } else {
-      const motionDelta = Math.round((origDelta ? origDelta < 0 ? -1 : 1 : 0) * (Math.log(Math.abs(origDelta) + 1) * 2))
-      this.getActiveComponent().getCurrentTimeline().updateVisibleFrameRangeByDelta(motionDelta)
+      const motionDelta = Math.round((origDelta ? origDelta < 0 ? -1 : 1 : 0) * (Math.log(Math.abs(origDelta) + 1) * 2));
+      this.getActiveComponent().getCurrentTimeline().updateVisibleFrameRangeByDelta(motionDelta);
     }
   }
 
-  handleRequestElementCoordinates ({ selector, webview }) {
+  handleRequestElementCoordinates ({selector, webview}) {
     requestElementCoordinates({
       currentWebview: 'timeline',
       requestedWebview: webview,
@@ -889,23 +914,23 @@ class Timeline extends React.Component {
         this.tourClient &&
         this.project.getEnvoyClient() &&
         !this.project.getEnvoyClient().isInMockMode(),
-      tourClient: this.tourClient
-    })
+      tourClient: this.tourClient,
+    });
   }
 
   handleKeyDown (nativeEvent) {
     // Give the currently active expression input a chance to capture this event and short circuit us if so
-    const willExprInputHandle = this.refs.expressionInput.willHandleExternalKeydownEvent(nativeEvent)
+    const willExprInputHandle = this.refs.expressionInput.willHandleExternalKeydownEvent(nativeEvent);
 
     if (willExprInputHandle || this.state.isPreviewModeActive) {
-      return void (0)
+      return void (0);
     }
 
     // If the user hit the spacebar _and_ we aren't inside an input field, treat that like a playback trigger
     if (nativeEvent.keyCode === 32 && !document.querySelector('input:focus')) {
-      this.togglePlayback()
-      nativeEvent.preventDefault()
-      return void (0)
+      this.togglePlayback();
+      nativeEvent.preventDefault();
+      return void (0);
     }
 
     switch (nativeEvent.which) {
@@ -914,23 +939,23 @@ class Timeline extends React.Component {
       case 37: // left
         if (this.state.isCommandKeyDown || (experimentIsEnabled(Experiment.NativeTimelineScroll) && this.isCommandKeyDown)) {
           if (this.state.isShiftKeyDown || (experimentIsEnabled(Experiment.NativeTimelineScroll) && this.isShiftKeyDown)) {
-            this.getActiveComponent().getCurrentTimeline().setVisibleFrameRange(0, this.getActiveComponent().getCurrentTimeline().getRightFrameEndpoint())
-            this.getActiveComponent().getCurrentTimeline().updateCurrentFrame(0)
+            this.getActiveComponent().getCurrentTimeline().setVisibleFrameRange(0, this.getActiveComponent().getCurrentTimeline().getRightFrameEndpoint());
+            this.getActiveComponent().getCurrentTimeline().updateCurrentFrame(0);
           } else {
-            this.getActiveComponent().getCurrentTimeline().updateScrubberPositionByDelta(-1)
+            this.getActiveComponent().getCurrentTimeline().updateScrubberPositionByDelta(-1);
           }
         } else {
-          this.getActiveComponent().getCurrentTimeline().updateVisibleFrameRangeByDelta(-1)
+          this.getActiveComponent().getCurrentTimeline().updateVisibleFrameRangeByDelta(-1);
         }
-        break
+        break;
 
       case 39: // right
         if (this.state.isCommandKeyDown || (experimentIsEnabled(Experiment.NativeTimelineScroll) && this.isCommandKeyDown)) {
-          this.getActiveComponent().getCurrentTimeline().updateScrubberPositionByDelta(1)
+          this.getActiveComponent().getCurrentTimeline().updateScrubberPositionByDelta(1);
         } else {
-          this.getActiveComponent().getCurrentTimeline().updateVisibleFrameRangeByDelta(1)
+          this.getActiveComponent().getCurrentTimeline().updateVisibleFrameRangeByDelta(1);
         }
-        break
+        break;
 
       // case 38: // up
       // case 40: // down
@@ -938,12 +963,12 @@ class Timeline extends React.Component {
       // delete
       // case 46: //delete
       // case 8: //delete
-      case 16: this.updateKeyboardState({ isShiftKeyDown: true }); break
-      case 17: this.updateKeyboardState({ isControlKeyDown: true }); break
-      case 18: this.updateKeyboardState({ isAltKeyDown: true }); break
-      case 224: this.updateKeyboardState({ isCommandKeyDown: true }); break
-      case 91: this.updateKeyboardState({ isCommandKeyDown: true }); break
-      case 93: this.updateKeyboardState({ isCommandKeyDown: true }); break
+      case 16: this.updateKeyboardState({isShiftKeyDown: true}); break;
+      case 17: this.updateKeyboardState({isControlKeyDown: true}); break;
+      case 18: this.updateKeyboardState({isAltKeyDown: true}); break;
+      case 224: this.updateKeyboardState({isCommandKeyDown: true}); break;
+      case 91: this.updateKeyboardState({isCommandKeyDown: true}); break;
+      case 93: this.updateKeyboardState({isCommandKeyDown: true}); break;
     }
   }
 
@@ -956,46 +981,46 @@ class Timeline extends React.Component {
       // case 38: // up
       // case 40: // down
       // case 13: //enter
-      case 46: this.getActiveComponent().deleteSelectedKeyframes({ from: 'timeline' }); break // Only if there are any
-      case 8: this.getActiveComponent().deleteSelectedKeyframes({ from: 'timeline' }); break // Only if there are any
-      case 16: this.updateKeyboardState({ isShiftKeyDown: false }); break
-      case 17: this.updateKeyboardState({ isControlKeyDown: false }); break
-      case 18: this.updateKeyboardState({ isAltKeyDown: false }); break
-      case 224: this.updateKeyboardState({ isCommandKeyDown: false }); break
-      case 91: this.updateKeyboardState({ isCommandKeyDown: false }); break
-      case 93: this.updateKeyboardState({ isCommandKeyDown: false }); break
+      case 46: this.getActiveComponent().deleteSelectedKeyframes({from: 'timeline'}); break; // Only if there are any
+      case 8: this.getActiveComponent().deleteSelectedKeyframes({from: 'timeline'}); break; // Only if there are any
+      case 16: this.updateKeyboardState({isShiftKeyDown: false}); break;
+      case 17: this.updateKeyboardState({isControlKeyDown: false}); break;
+      case 18: this.updateKeyboardState({isAltKeyDown: false}); break;
+      case 224: this.updateKeyboardState({isCommandKeyDown: false}); break;
+      case 91: this.updateKeyboardState({isCommandKeyDown: false}); break;
+      case 93: this.updateKeyboardState({isCommandKeyDown: false}); break;
     }
   }
 
   updateKeyboardState (updates) {
     if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
       for (const key in updates) {
-        this[key] = updates[key]
+        this[key] = updates[key];
       }
     } else {
       // If the input is focused, don't allow keyboard state changes to cause a re-render, otherwise
       // the input field will switch back to its previous contents (e.g. when holding down 'shift')
       if (!this.getActiveComponent().getFocusedRow()) {
-        return this.setState(updates)
-      } else {
-        for (const key in updates) {
-          this.state[key] = updates[key]
-        }
+        return this.setState(updates);
+      }
+
+      for (const key in updates) {
+        this.state[key] = updates[key];
       }
     }
   }
 
   handleUndo () {
     if (this.project) {
-      Keyframe.deselectAndDeactivateAllKeyframes({component: this.getActiveComponent()})
-      this.project.undo({}, {from: 'timeline'}, () => {})
+      Keyframe.deselectAndDeactivateAllKeyframes({component: this.getActiveComponent()});
+      this.project.undo({}, {from: 'timeline'}, () => {});
     }
   }
 
   handleRedo () {
     if (this.project) {
-      Keyframe.deselectAndDeactivateAllKeyframes({component: this.getActiveComponent()})
-      this.project.redo({}, {from: 'timeline'}, () => {})
+      Keyframe.deselectAndDeactivateAllKeyframes({component: this.getActiveComponent()});
+      this.project.redo({}, {from: 'timeline'}, () => {});
     }
   }
 
@@ -1010,12 +1035,12 @@ class Timeline extends React.Component {
         if (this.isTextSelected()) {
           // let electron handle
         } else if (this.getActiveComponent().getFirstSelectedCurve()) {
-          this.copySelectedCurve()
+          this.copySelectedCurve();
         } else {
-          this.props.websocket.send(relayable)
+          this.props.websocket.send(relayable);
         }
       } else {
-        this.props.websocket.send(relayable)
+        this.props.websocket.send(relayable);
       }
     }
   }
@@ -1027,12 +1052,12 @@ class Timeline extends React.Component {
         if (this.isTextInputFocused()) {
           // let electron handle
         } else if (this._lastCopiedCurve) {
-          this.handlePasteDebounced()
+          this.handlePasteDebounced();
         } else {
-          this.props.websocket.send(relayable)
+          this.props.websocket.send(relayable);
         }
       } else {
-        this.props.websocket.send(relayable)
+        this.props.websocket.send(relayable);
       }
     }
   }
@@ -1046,7 +1071,7 @@ class Timeline extends React.Component {
   }
 
   saveTimeDisplayModeSetting () {
-    const mode = this.getActiveComponent().getCurrentTimeline().getTimeDisplayMode()
+    const mode = this.getActiveComponent().getCurrentTimeline().getTimeDisplayMode();
 
     if (!this.project.getEnvoyClient().isInMockMode()) {
       this.user.getConfig(UserSettings.timeDisplayModes).then(
@@ -1055,40 +1080,40 @@ class Timeline extends React.Component {
             UserSettings.timeDisplayModes,
             {
               ...timeDisplayModes,
-              [this.project.getFolder()]: mode
-            }
-          )
-          this.user.setConfig(UserSettings.defaultTimeDisplayMode, mode)
-        }
-      )
+              [this.project.getFolder()]: mode,
+            },
+          );
+          this.user.setConfig(UserSettings.defaultTimeDisplayMode, mode);
+        },
+      );
     }
   }
 
   copySelectedCurve () {
-    this.props.mixpanel.haikuTrack('creator:timeline:copy-curve')
-    this._lastCopiedCurve = this.getActiveComponent().getFirstSelectedCurve()
+    this.props.mixpanel.haikuTrack('creator:timeline:copy-curve');
+    this._lastCopiedCurve = this.getActiveComponent().getFirstSelectedCurve();
   }
 
   pasteSelectedCurve () {
     if (this._lastCopiedCurve) {
-      this.props.mixpanel.haikuTrack('creator:timeline:paste-curve')
+      this.props.mixpanel.haikuTrack('creator:timeline:paste-curve');
       this.getActiveComponent().changeCurveOnSelectedKeyframes(
         this._lastCopiedCurve,
-        { from: 'timeline' }
-      )
+        {from: 'timeline'},
+      );
     }
   }
 
   playbackSkipBack () {
-    this.getActiveComponent().getCurrentTimeline().playbackSkipBack()
+    this.getActiveComponent().getCurrentTimeline().playbackSkipBack();
   }
 
   playbackSkipForward () {
-    this.getActiveComponent().getCurrentTimeline().playbackSkipForward()
+    this.getActiveComponent().getCurrentTimeline().playbackSkipForward();
   }
 
   togglePlayback () {
-    this.getActiveComponent().getCurrentTimeline().togglePlayback()
+    this.getActiveComponent().getCurrentTimeline().togglePlayback();
   }
 
   renderTimelinePlaybackControls () {
@@ -1097,7 +1122,7 @@ class Timeline extends React.Component {
         style={{
           position: 'relative',
           top: 17,
-          width: '100%'
+          width: '100%',
         }}>
         <ControlsArea
           timeline={this.getActiveComponent().getCurrentTimeline()}
@@ -1105,55 +1130,55 @@ class Timeline extends React.Component {
           selectedTimelineName={this.getActiveComponent().getCurrentTimeline().getName()}
           playbackSpeed={this.state.playerPlaybackSpeed}
           changeTimelineName={(oldTimelineName, newTimelineName) => {
-            this.getActiveComponent().renameTimeline(oldTimelineName, newTimelineName, { from: 'timeline' }, () => {})
+            this.getActiveComponent().renameTimeline(oldTimelineName, newTimelineName, {from: 'timeline'}, () => {});
           }}
           createTimeline={(timelineName) => {
-            this.getActiveComponent().createTimeline(timelineName, {}, { from: 'timeline' }, () => {})
+            this.getActiveComponent().createTimeline(timelineName, {}, {from: 'timeline'}, () => {});
           }}
           duplicateTimeline={(timelineName) => {
-            this.getActiveComponent().duplicateTimeline(timelineName, { from: 'timeline' }, () => {})
+            this.getActiveComponent().duplicateTimeline(timelineName, {from: 'timeline'}, () => {});
           }}
           deleteTimeline={(timelineName) => {
-            this.getActiveComponent().deleteTimeline(timelineName, { from: 'timeline' }, () => {})
+            this.getActiveComponent().deleteTimeline(timelineName, {from: 'timeline'}, () => {});
           }}
           selectTimeline={(currentTimelineName) => {
             // Not yet implemented
           }}
           playbackSkipBack={() => {
-            this.playbackSkipBack()
+            this.playbackSkipBack();
           }}
           playbackSkipForward={() => {
-            this.playbackSkipForward()
+            this.playbackSkipForward();
           }}
           playbackPlayPause={() => {
-            this.togglePlayback()
+            this.togglePlayback();
           }}
           changePlaybackSpeed={(inputEvent) => {
-            let playerPlaybackSpeed = Number(inputEvent.target.value || 1)
-            this.setState({ playerPlaybackSpeed })
+            const playerPlaybackSpeed = Number(inputEvent.target.value || 1);
+            this.setState({playerPlaybackSpeed});
           }}
           toggleRepeat={() => {
-            const timeline = this.getActiveComponent().getCurrentTimeline()
-            timeline.toggleRepeat()
-            this.setState({ isRepeat: timeline.getRepeat() })
+            const timeline = this.getActiveComponent().getCurrentTimeline();
+            timeline.toggleRepeat();
+            this.setState({isRepeat: timeline.getRepeat()});
           }}
           isRepeat={this.state.isRepeat}
           />
         <IntercomWidget user={this.state.userDetails} />
       </div>
-    )
+    );
   }
 
   getCurrentTimelineTime (frameInfo) {
-    return Math.round(this.getActiveComponent().getCurrentTimeline().getCurrentFrame() * frameInfo.mspf)
+    return Math.round(this.getActiveComponent().getCurrentTimeline().getCurrentFrame() * frameInfo.mspf);
   }
 
   showFrameActionsEditor (frame) {
-    const elementPrimaryKey = this.getActiveComponent().findElementRoot().getPrimaryKey()
+    const elementPrimaryKey = this.getActiveComponent().findElementRoot().getPrimaryKey();
     this.showEventHandlersEditor(
       elementPrimaryKey,
-      frame
-    )
+      frame,
+    );
   }
 
   showEventHandlersEditor (elementPrimaryKey, frame) {
@@ -1161,35 +1186,35 @@ class Timeline extends React.Component {
       name: 'show-event-handlers-editor',
       elid: elementPrimaryKey,
       opts: {
-        isSimplified: Boolean(frame)
+        isSimplified: Boolean(frame),
       },
-      frame
-    })
+      frame,
+    });
   }
 
   renderDurationModifier () {
-    var frameInfo = this.getActiveComponent().getCurrentTimeline().getFrameInfo()
+    const frameInfo = this.getActiveComponent().getCurrentTimeline().getFrameInfo();
 
-    var pxOffset = this.getActiveComponent().getCurrentTimeline().getDragIsAdding() ? 0 : -this.getActiveComponent().getCurrentTimeline().getDurationTrim() * frameInfo.pxpf
+    const pxOffset = this.getActiveComponent().getCurrentTimeline().getDragIsAdding() ? 0 : -this.getActiveComponent().getCurrentTimeline().getDurationTrim() * frameInfo.pxpf;
 
     if (frameInfo.friB >= frameInfo.friMax || this.getActiveComponent().getCurrentTimeline().getDragIsAdding()) {
       return (
         <DraggableCore
-          axis='x'
+          axis="x"
           onStart={(dragEvent, dragData) => {
-            this.getActiveComponent().getCurrentTimeline().setDurationTrim(0)
+            this.getActiveComponent().getCurrentTimeline().setDurationTrim(0);
           }}
           onStop={(dragEvent, dragData) => {
-            this.getActiveComponent().getCurrentTimeline().handleDurationModifierStop(dragData)
+            this.getActiveComponent().getCurrentTimeline().handleDurationModifierStop(dragData);
           }}
           onDrag={(dragEvent, dragData) => {
-            this.getActiveComponent().getCurrentTimeline().dragDurationModifierPosition(dragData.x)
+            this.getActiveComponent().getCurrentTimeline().dragDurationModifierPosition(dragData.x);
           }}>
           <div style={{
             position: 'absolute',
             right: pxOffset,
             top: 0,
-            zIndex: 1006
+            zIndex: 1006,
           }}>
             <div
               style={{
@@ -1202,9 +1227,9 @@ class Timeline extends React.Component {
                 right: 0,
                 borderTopRightRadius: 5,
                 borderBottomRightRadius: 5,
-                cursor: 'move'
+                cursor: 'move',
               }} />
-            <div className='trim-area' style={{
+            <div className="trim-area" style={{
               position: 'absolute',
               top: 0,
               mouseEvents: 'none',
@@ -1212,207 +1237,217 @@ class Timeline extends React.Component {
               width: 26 + pxOffset,
               height: (this.refs.scrollview && this.refs.scrollview.clientHeight + 35) || 0,
               borderLeft: '1px solid ' + Palette.FATHER_COAL,
-              backgroundColor: Color(Palette.FATHER_COAL).fade(0.6)
+              backgroundColor: Color(Palette.FATHER_COAL).fade(0.6),
             }} />
           </div>
         </DraggableCore>
-      )
-    } else {
-      return <span />
+      );
     }
+
+    return <span />;
   }
 
   renderTopControls () {
     if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-      const timeline = this.getActiveComponent().getCurrentTimeline()
+      const timeline = this.getActiveComponent().getCurrentTimeline();
 
       return [
+        (
+          <div
+            key="gauge-timekeeping-wrapper"
+            className="gauge-timekeeping-wrapper"
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              height: 35,
+              width: timeline.getPropertiesPixelWidth(),
+              backgroundColor: Palette.COAL,
+              borderBottom: `1px solid ${Palette.FATHER_COAL}`,
+              zIndex: zIndex.timekeepingWrapper.base,
+              fontSize: 10,
+            }}
+          >
+            <GaugeTimeReadout reactParent={this} timeline={timeline} />
+          </div>
+        ),
+        <SimplifiedFrameGrid key="frame-grid" timeline={timeline} />,
+        (
+          <FrameActionsGrid
+            key="frame-actions-grid"
+            timeline={timeline}
+            onShowFrameActionsEditor={this.showFrameActionsEditor}
+          />
+        ),
+        (
+          <Gauge
+            key="gauge"
+            timeline={timeline}
+            onMouseDown={this.onGaugeMouseDown}
+          />
+        ),
+        (
+          <ScrubberInterior
+            key="scrubber"
+            timeline={timeline}
+            onMouseDown={this.onGaugeMouseDown}
+          />
+        ),
+        (
+          <div key="durationModifier">
+            {this.renderDurationModifier()}
+          </div>
+        ),
+      ];
+    }
+
+    return (
+      <div
+        className="top-controls no-select"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          height: this.state.rowHeight + 10,
+          width:
+            this.getActiveComponent()
+              .getCurrentTimeline()
+              .getPropertiesPixelWidth() +
+            this.getActiveComponent()
+              .getCurrentTimeline()
+              .getTimelinePixelWidth(),
+          verticalAlign: 'top',
+          fontSize: 10,
+          borderBottom: '1px solid ' + Palette.FATHER_COAL,
+          backgroundColor: Palette.COAL,
+        }}
+        onMouseDown={this.onGaugeMouseDown}
+      >
         <div
-          key='gauge-timekeeping-wrapper'
-          className='gauge-timekeeping-wrapper'
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            height: 36,
-            width: timeline.getPropertiesPixelWidth(),
-            backgroundColor: Palette.COAL,
-            borderBottom: `1px solid ${Palette.FATHER_COAL}`,
-            zIndex: zIndex.timekeepingWrapper.base,
-            fontSize: 10
-          }}
-        >
-          <GaugeTimeReadout reactParent={this} timeline={timeline} />
-        </div>,
-        <SimplifiedFrameGrid key='frame-grid' timeline={timeline} />,
-        <FrameActionsGrid
-          key='frame-actions-grid'
-          timeline={timeline}
-          onShowFrameActionsEditor={this.showFrameActionsEditor}
-        />,
-        <Gauge
-          key='gauge'
-          timeline={timeline}
-          onMouseDown={this.onGaugeMouseDown}
-        />,
-        <ScrubberInterior
-          key='scrubber'
-          timeline={timeline}
-          onMouseDown={this.onGaugeMouseDown}
-        />,
-        <div key='durationModifier'>
-          {this.renderDurationModifier()}
-        </div>
-      ]
-    } else {
-      return (
-        <div
-          className='top-controls no-select'
+          className="gauge-timekeeping-wrapper"
           style={{
             position: 'absolute',
             top: 0,
             left: 0,
-            height: this.state.rowHeight + 10,
-            width:
-              this.getActiveComponent()
-                .getCurrentTimeline()
-                .getPropertiesPixelWidth() +
-              this.getActiveComponent()
-                .getCurrentTimeline()
-                .getTimelinePixelWidth(),
-            verticalAlign: 'top',
-            fontSize: 10,
-            borderBottom: '1px solid ' + Palette.FATHER_COAL,
-            backgroundColor: Palette.COAL
+            height: 'inherit',
+            width: this.getActiveComponent()
+              .getCurrentTimeline()
+              .getPropertiesPixelWidth(),
           }}
-          onMouseDown={this.onGaugeMouseDown}
         >
+          <GaugeTimeReadout reactParent={this} timeline={this.getActiveComponent().getCurrentTimeline()} />
+        </div>
+        <div>
           <div
-            className='gauge-timekeeping-wrapper'
+            id="gauge-box"
+            className="gauge-box"
+            onMouseDown={this.onGaugeMouseDown}
             style={{
               position: 'absolute',
               top: 0,
-              left: 0,
+              left: this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth(),
+              width: this.getActiveComponent().getCurrentTimeline().getTimelinePixelWidth(),
               height: 'inherit',
-              width: this.getActiveComponent()
-                .getCurrentTimeline()
-                .getPropertiesPixelWidth()
+              verticalAlign: 'top',
+              paddingTop: 12,
+              color: Palette.ROCK_MUTED,
             }}
           >
-            <GaugeTimeReadout reactParent={this} timeline={this.getActiveComponent().getCurrentTimeline()} />
+            <FrameGrid
+              timeline={this.getActiveComponent().getCurrentTimeline()}
+              onShowFrameActionsEditor={this.showFrameActionsEditor}
+            />
+            <Gauge timeline={this.getActiveComponent().getCurrentTimeline()} />
+            <ScrubberInterior
+              timeline={this.getActiveComponent().getCurrentTimeline()}
+            />
           </div>
-          <div>
-            <div
-              id='gauge-box'
-              className='gauge-box'
-              onMouseDown={this.onGaugeMouseDown}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth(),
-                width: this.getActiveComponent().getCurrentTimeline().getTimelinePixelWidth(),
-                height: 'inherit',
-                verticalAlign: 'top',
-                paddingTop: 12,
-                color: Palette.ROCK_MUTED
-              }}
-            >
-              <FrameGrid
-                timeline={this.getActiveComponent().getCurrentTimeline()}
-                onShowFrameActionsEditor={this.showFrameActionsEditor}
-              />
-              <Gauge timeline={this.getActiveComponent().getCurrentTimeline()} />
-              <ScrubberInterior
-                timeline={this.getActiveComponent().getCurrentTimeline()}
-              />
-            </div>
-          </div>
-          {this.renderDurationModifier()}
         </div>
-      )
-    }
+        {this.renderDurationModifier()}
+      </div>
+    );
   }
 
   onGaugeMouseDown (event) {
-    event.persist()
+    event.persist();
 
-    this._doHandleMouseMovesInGauge = true
-    this.disableTimelinePointerEvents()
-    this.mouseMoveListener(event)
+    this._doHandleMouseMovesInGauge = true;
+    this.disableTimelinePointerEvents();
+    this.mouseMoveListener(event);
   }
 
   mouseMoveListener (evt) {
     if (!this._doHandleMouseMovesInGauge) {
-      return
+      return;
     }
 
-    const frameInfo = this.getActiveComponent().getCurrentTimeline().getFrameInfo()
+    const frameInfo = this.getActiveComponent().getCurrentTimeline().getFrameInfo();
     const leftX = experimentIsEnabled(Experiment.NativeTimelineScroll)
-      ? evt.clientX + (this.refs.container.scrollLeft || 0) - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()
-      : evt.clientX - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()
+      ? evt.clientX + (this.refs.container.scrollLeft || 0) - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() - TIMELINE_OFFSET_PADDING
+      : evt.clientX - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth();
 
-    const frameX = Math.round(leftX / frameInfo.pxpf)
+    const frameX = Math.round(leftX / frameInfo.pxpf);
 
     // Allow the scrubber to be dragged past 0 in order to reach 0
     let newFrame = experimentIsEnabled(Experiment.NativeTimelineScroll)
       ? frameX
-      : frameInfo.friA + frameX
+      : frameInfo.friA + frameX;
 
     if (newFrame < 0) {
-      newFrame = 0
+      newFrame = 0;
     }
 
     // Avoid expensive redundant updates
     if (newFrame === this.getActiveComponent().getCurrentTimeline().getCurrentFrame()) {
-      return
+      return;
     }
 
     if (!experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-      const pageFrameLength = this.getActiveComponent().getCurrentTimeline().getVisibleFrameRangeLength()
+      const pageFrameLength = this.getActiveComponent().getCurrentTimeline().getVisibleFrameRangeLength();
 
       // If the frame clicked exceeds the virtual or explicit max, allocate additional
       // virtual frames in the view and jump the user to the new page
       if (newFrame > frameInfo.friB) {
-        const newMaxFrame = newFrame + pageFrameLength
-        this.getActiveComponent().getCurrentTimeline().setMaxFrame(newMaxFrame)
-        this.getActiveComponent().getCurrentTimeline().setVisibleFrameRange(newFrame, newMaxFrame)
+        const newMaxFrame = newFrame + pageFrameLength;
+        this.getActiveComponent().getCurrentTimeline().setMaxFrame(newMaxFrame);
+        this.getActiveComponent().getCurrentTimeline().setVisibleFrameRange(newFrame, newMaxFrame);
       }
     }
 
-    this.getActiveComponent().getCurrentTimeline().seek(newFrame)
+    this.getActiveComponent().getCurrentTimeline().seek(newFrame);
   }
 
   mouseUpListener () {
-    this._doHandleMouseMovesInGauge = false
-    this.enableTimelinePointerEvents()
+    this._doHandleMouseMovesInGauge = false;
+    this.enableTimelinePointerEvents();
   }
 
   disableTimelinePointerEvents () {
     if (this.refs.scrollview) {
-      this.refs.scrollview.style.pointerEvents = 'none'
-      this.refs.scrollview.style.WebkitUserSelect = 'none'
+      this.refs.scrollview.style.pointerEvents = 'none';
+      this.refs.scrollview.style.WebkitUserSelect = 'none';
     }
   }
 
   enableTimelinePointerEvents () {
     if (this.refs.scrollview) {
-      this.refs.scrollview.style.pointerEvents = 'auto'
-      this.refs.scrollview.style.WebkitUserSelect = 'auto'
+      this.refs.scrollview.style.pointerEvents = 'auto';
+      this.refs.scrollview.style.WebkitUserSelect = 'auto';
     }
   }
 
   disablePreviewMode () {
     if (this.state.isPreviewModeActive) {
       this.project.setInteractionMode(InteractionMode.EDIT, {from: 'timeline'}, () => {
-        this.setState({isPreviewModeActive: false})
-      })
+        this.setState({isPreviewModeActive: false});
+      });
     }
   }
 
   renderBottomControls () {
     return (
       <div
-        className='no-select'
+        className="no-select"
         style={{
           width: '100%',
           height: 45,
@@ -1421,39 +1456,43 @@ class Timeline extends React.Component {
           position: 'fixed',
           bottom: 0,
           left: 0,
-          zIndex: 10000
+          zIndex: 10000,
         }}>
         <TimelineRangeScrollbar
-          disableTimelinePointerEvents={() => { this.disableTimelinePointerEvents() }}
-          enableTimelinePointerEvents={() => { this.enableTimelinePointerEvents() }}
+          disableTimelinePointerEvents={() => {
+            this.disableTimelinePointerEvents();
+          }}
+          enableTimelinePointerEvents={() => {
+            this.enableTimelinePointerEvents();
+          }}
           timeline={this.getActiveComponent().getCurrentTimeline()} />
         {this.renderTimelinePlaybackControls()}
       </div>
-    )
+    );
   }
 
   moveGaugeOnDoubleClick (dblClickEvent) {
-    this._doHandleMouseMovesInGauge = true
-    this.mouseMoveListener(dblClickEvent)
-    this._doHandleMouseMovesInGauge = false
+    this._doHandleMouseMovesInGauge = true;
+    this.mouseMoveListener(dblClickEvent);
+    this._doHandleMouseMovesInGauge = false;
   }
 
   renderComponentRows () {
-    const groups = this.getActiveComponent().getDisplayableRowsGroupedByElementInZOrder()
+    const groups = this.getActiveComponent().getDisplayableRowsGroupedByElementInZOrder();
 
     return (
       <DragDropContext
         onDragEnd={(result) => {
           // No destination means no change
           if (!result.destination) {
-            return
+            return;
           }
 
-          const idx = result.destination.index
-          const reflection = groups.length - idx
-          logger.info(`z-drop ${result.draggableId} at`, reflection)
+          const idx = result.destination.index;
+          const reflection = groups.length - idx;
+          logger.info(`z-drop ${result.draggableId} at`, reflection);
 
-          this.props.mixpanel.haikuTrack('creator:timeline:z-shift')
+          this.props.mixpanel.haikuTrack('creator:timeline:z-shift');
 
           this.getActiveComponent().zShiftIndices(
             result.draggableId,
@@ -1462,70 +1501,70 @@ class Timeline extends React.Component {
             reflection - 1,
             {from: 'timeline'},
             () => {
-              this.forceUpdate()
-            }
-          )
+              this.forceUpdate();
+            },
+          );
         }}>
-        <Droppable droppableId='componentRowsDroppable'>
+        <Droppable droppableId="componentRowsDroppable">
           {(provided, snapshot) => {
             return (
               <div
-                className='droppable-wrapper'
+                className="droppable-wrapper"
                 ref={provided.innerRef}>
                 {groups.map((group, indexOfGroup) => {
-                  const minWidth = this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() + this.getActiveComponent().getCurrentTimeline().getTimelinePixelWidth()
-                  const prevGroup = groups[indexOfGroup - 1]
+                  const minWidth = this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() + this.getActiveComponent().getCurrentTimeline().getTimelinePixelWidth();
+                  const prevGroup = groups[indexOfGroup - 1];
                   return (
                     <Draggable
                       key={`property-row-group-${group.id}-${indexOfGroup}`}
                       draggableId={group.id}
                       index={indexOfGroup}>
-                      {(provided, snapshot) => {
+                      {(providedDraggable) => {
                         return (
                           <div style={experimentIsEnabled(Experiment.NativeTimelineScroll) ? {} : {minWidth}}>
                             <div
-                              className='droppable-wrapper'
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
+                              className="droppable-wrapper"
+                              ref={providedDraggable.innerRef}
+                              {...providedDraggable.draggableProps}
                               style={{
-                                ...provided.draggableProps.style
+                                ...providedDraggable.draggableProps.style,
                               }}>
                               <RowManager
                                 group={group}
                                 prevGroup={prevGroup}
-                                dragHandleProps={provided.dragHandleProps}
+                                dragHandleProps={providedDraggable.dragHandleProps}
                                 rowHeight={this.state.rowHeight}
                                 getActiveComponent={() => {
-                                  return this.getActiveComponent()
+                                  return this.getActiveComponent();
                                 }}
                                 showEventHandlersEditor={(...args) => {
-                                  this.showEventHandlersEditor(...args)
+                                  this.showEventHandlersEditor(...args);
                                 }}
                                 onDoubleClickToMoveGauge={this.moveGaugeOnDoubleClick}
                               />
                             </div>
-                            {provided.placeholder}
+                            {providedDraggable.placeholder}
                           </div>
-                        )
+                        );
                       }}
                     </Draggable>
-                  )
+                  );
                 })}
                 {provided.placeholder}
               </div>
-            )
+            );
           }}
         </Droppable>
       </DragDropContext>
-    )
+    );
   }
 
   render () {
     if (!this.getActiveComponent() || !this.getActiveComponent().getCurrentTimeline()) {
       return (
         <div
-          id='timeline'
-          className='no-select'
+          id="timeline"
+          className="no-select"
           style={{
             position: 'absolute',
             backgroundColor: Palette.GRAY,
@@ -1533,21 +1572,21 @@ class Timeline extends React.Component {
             top: 0,
             left: 0,
             height: '100%',
-            width: '100%'
+            width: '100%',
           }} />
-      )
+      );
     }
 
     return (
       <div
-        ref='container'
-        id='timeline'
-        className='no-select'
+        ref="container"
+        id="timeline"
+        className="no-select"
         onClick={(clickEvent) => {
           this.getActiveComponent().getRows().forEach((row) => {
-            row.blur({ from: 'timeline' })
-            row.deselect({ from: 'timeline' })
-          })
+            row.blur({from: 'timeline'});
+            row.deselect({from: 'timeline'});
+          });
         }}
         style={{
           position: 'absolute',
@@ -1557,7 +1596,8 @@ class Timeline extends React.Component {
           left: 0,
           height: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'calc(100% - 30px)' : 'calc(100% - 45px)',
           width: '100%',
-          overflow: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'auto' : 'hidden'
+          paddingLeft: experimentIsEnabled(Experiment.NativeTimelineScroll) ? TIMELINE_OFFSET_PADDING : undefined,
+          overflow: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'auto' : 'hidden',
         }}>
         {
           this.state.isPreviewModeActive && (
@@ -1570,10 +1610,10 @@ class Timeline extends React.Component {
                 right: 0,
                 bottom: 0,
                 zIndex: zIndex.previewModeBlocker.base,
-                backgroundColor: Palette.COAL
+                backgroundColor: Palette.COAL,
               }}
               onClick={() => {
-                this.disablePreviewMode()
+                this.disablePreviewMode();
               }}
             />
           )
@@ -1582,15 +1622,15 @@ class Timeline extends React.Component {
         {this.renderTopControls()}
         <ScrollView
           timeline={this.getActiveComponent().getCurrentTimeline()}
-          onMouseDown={mouseEvent => {
+          onMouseDown={(mouseEvent) => {
             if (
               !Globals.isShiftKeyDown &&
               !Globals.isControlKeyDown &&
               mouseEvent.nativeEvent.which !== 3
             ) {
               Keyframe.deselectAndDeactivateAllKeyframes({
-                component: this.getActiveComponent()
-              })
+                component: this.getActiveComponent(),
+              });
             }
           }}
         >
@@ -1603,34 +1643,34 @@ class Timeline extends React.Component {
             bottom: 0,
             width: this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth(),
             backgroundColor: Palette.GRAY,
-            zIndex: zIndex.backgroundHelper.base
+            zIndex: zIndex.backgroundHelper.base,
           }} />
         }
         {this.renderBottomControls()}
         <ExpressionInput
-          ref='expressionInput'
+          ref="expressionInput"
           reactParent={this}
           component={this.getActiveComponent()}
           timeline={this.getActiveComponent().getCurrentTimeline()}
           onCommitValue={(committedValue) => {
-            const row = this.getActiveComponent().getFocusedRow()
-            const ms = this.getActiveComponent().getCurrentTimeline().getCurrentMs()
-            logger.info('commit', JSON.stringify(committedValue), 'at', ms, 'on', row.dump())
-            this.props.mixpanel.haikuTrack('creator:timeline:create-keyframe')
-            row.createKeyframe(committedValue, ms, { from: 'timeline' })
+            const row = this.getActiveComponent().getFocusedRow();
+            const ms = this.getActiveComponent().getCurrentTimeline().getCurrentMs();
+            logger.info('commit', JSON.stringify(committedValue), 'at', ms, 'on', row.dump());
+            this.props.mixpanel.haikuTrack('creator:timeline:create-keyframe');
+            row.createKeyframe(committedValue, ms, {from: 'timeline'});
           }}
           onFocusRequested={() => {
-            const selected = this.getActiveComponent().getSelectedRows()[0]
+            const selected = this.getActiveComponent().getSelectedRows()[0];
             if (selected.isProperty()) {
-              selected.focus({ from: 'timeline' })
+              selected.focus({from: 'timeline'});
             }
           }}
           onNavigateRequested={(navDir, doFocus) => {
-            this.getActiveComponent().focusSelectNext(navDir, doFocus, { from: 'timeline' })
+            this.getActiveComponent().focusSelectNext(navDir, doFocus, {from: 'timeline'});
           }} />
       </div>
-    )
+    );
   }
 }
 
-export default Timeline
+export default Timeline;

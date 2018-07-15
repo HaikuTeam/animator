@@ -9,7 +9,7 @@ export default {
         width: '171.4%',
         height: '171.4%',
         filterUnits: 'objectBoundingBox',
-        id: 'a'
+        id: 'a',
       },
       children: [
         {
@@ -18,35 +18,35 @@ export default {
             radius: 0.5,
             operator: 'dilate',
             in: 'SourceAlpha',
-            result: 'shadowSpreadOuter1'
-          }
+            result: 'shadowSpreadOuter1',
+          },
         },
         {
           elementName: 'feOffset',
           attributes: {
-            dy: '1', in: 'shadowSpreadOuter1', result: 'shadowOffsetOuter1'
-          }
+            dy: '1', in: 'shadowSpreadOuter1', result: 'shadowOffsetOuter1',
+          },
         },
         {
           elementName: 'feGaussianBlur',
           attributes: {
-            stdDeviation: '.5', in: 'shadowOffsetOuter1', result: 'shadowBlurOuter1'
-          }
+            stdDeviation: '.5', in: 'shadowOffsetOuter1', result: 'shadowBlurOuter1',
+          },
         },
         {
           elementName: 'feComposite',
           attributes: {
-            in: 'shadowBlurOuter1', in2: 'SourceAlpha', operator: 'out', result: 'shadowBlurOuter1'
-          }
+            in: 'shadowBlurOuter1', in2: 'SourceAlpha', operator: 'out', result: 'shadowBlurOuter1',
+          },
         },
         {
           elementName: 'feColorMatrix',
           attributes: {
             values: '0 0 0 0 0.0572963765 0 0 0 0 0.0587644961 0 0 0 0 0.059204932 0 0 0 0.307631341 0',
-            in: 'shadowBlurOuter1'
-          }
-        }
-      ]
+            in: 'shadowBlurOuter1',
+          },
+        },
+      ],
     },
     {
       elementName: 'filter',
@@ -56,7 +56,7 @@ export default {
         width: '144.4%',
         height: '144.4%',
         filterUnits: 'objectBoundingBox',
-        id: 'b'
+        id: 'b',
       },
       children: [
         {
@@ -64,25 +64,25 @@ export default {
           attributes: {
             dy: '1',
             in: 'SourceAlpha',
-            result: 'shadowOffsetOuter1'
-          }
+            result: 'shadowOffsetOuter1',
+          },
         },
         {
           elementName: 'feGaussianBlur',
           attributes: {
             stdDeviation: '.5',
             in: 'shadowOffsetOuter1',
-            result: 'shadowBlurOuter1'
-          }
+            result: 'shadowBlurOuter1',
+          },
         },
         {
           elementName: 'feColorMatrix',
           attributes: {
             values: '0 0 0 0 0.0572963765 0 0 0 0 0.0587644961 0 0 0 0 0.059204932 0 0 0 0.307631341 0',
-            in: 'shadowBlurOuter1'
-          }
-        }
-      ]
+            in: 'shadowBlurOuter1',
+          },
+        },
+      ],
     },
     {
       elementName: 'filter',
@@ -92,7 +92,7 @@ export default {
         width: '152.4%',
         height: '151.1%',
         filterUnits: 'objectBoundingBox',
-        id: 'c'
+        id: 'c',
       },
       children: [
         {
@@ -101,8 +101,8 @@ export default {
             radius: '1',
             operator: 'dilate',
             in: 'SourceAlpha',
-            result: 'shadowSpreadOuter1'
-          }
+            result: 'shadowSpreadOuter1',
+          },
         },
         {
           elementName: 'feOffset',
@@ -110,16 +110,16 @@ export default {
             dx: -0.3,
             dy: 0.3,
             in: 'shadowSpreadOuter1',
-            result: 'shadowOffsetOuter1'
-          }
+            result: 'shadowOffsetOuter1',
+          },
         },
         {
           elementName: 'feGaussianBlur',
           attributes: {
             stdDeviation: 0.5,
             in: 'shadowOffsetOuter1',
-            result: 'shadowBlurOuter1'
-          }
+            result: 'shadowBlurOuter1',
+          },
         },
         {
           elementName: 'feComposite',
@@ -127,17 +127,17 @@ export default {
             in: 'shadowBlurOuter1',
             in2: 'SourceAlpha',
             operator: 'out',
-            result: 'shadowBlurOuter1'
-          }
+            result: 'shadowBlurOuter1',
+          },
         },
         {
           elementName: 'feColorMatrix',
           attributes: {
-            'values': '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.134227808 0',
-            'in': 'shadowBlurOuter1'
-          }
-        }
-      ]
+            values: '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.134227808 0',
+            in: 'shadowBlurOuter1',
+          },
+        },
+      ],
     },
     {
       elementName: 'filter',
@@ -147,7 +147,7 @@ export default {
         width: '134.9%',
         height: '191.9%',
         filterUnits: 'objectBoundingBox',
-        id: 'd'
+        id: 'd',
       },
       children: [{
         elementName: 'feMorphology',
@@ -155,38 +155,38 @@ export default {
           radius: '1',
           operator: 'dilate',
           in: 'SourceAlpha',
-          result: 'shadowSpreadOuter1'
-        }
+          result: 'shadowSpreadOuter1',
+        },
       }, {
         elementName: 'feOffset',
         attributes: {
           dx: -0.3,
           dy: 0.3,
           in: 'shadowSpreadOuter1',
-          result: 'shadowOffsetOuter1'
-        }
+          result: 'shadowOffsetOuter1',
+        },
       }, {
         elementName: 'feGaussianBlur',
         attributes: {
           stdDeviation: 0.5,
           in: 'shadowOffsetOuter1',
-          result: 'shadowBlurOuter1'
-        }
+          result: 'shadowBlurOuter1',
+        },
       }, {
         elementName: 'feComposite',
         attributes: {
           in: 'shadowBlurOuter1',
           in2: 'SourceAlpha',
           operator: 'out',
-          result: 'shadowBlurOuter1'
-        }
+          result: 'shadowBlurOuter1',
+        },
       }, {
         elementName: 'feColorMatrix',
         attributes: {
           values: '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.134227808 0',
-          in: 'shadowBlurOuter1'
-        }
-      }]
+          in: 'shadowBlurOuter1',
+        },
+      }],
     },
     {
       elementName: 'filter',
@@ -196,33 +196,33 @@ export default {
         width: '126.3%',
         height: '126.3%',
         filterUnits: 'objectBoundingBox',
-        id: 'e'
+        id: 'e',
       },
-      'children': [
+      children: [
         {
           elementName: 'feMorphology',
           attributes: {
             radius: '.5',
             operator: 'dilate',
             in: 'SourceAlpha',
-            result: 'shadowSpreadOuter1'
-          }
+            result: 'shadowSpreadOuter1',
+          },
         },
         {
           elementName: 'feOffset',
           attributes: {
             dy: '1',
             in: 'shadowSpreadOuter1',
-            result: 'shadowOffsetOuter1'
-          }
+            result: 'shadowOffsetOuter1',
+          },
         },
         {
           elementName: 'feGaussianBlur',
           attributes: {
             stdDeviation: '.5',
             in: 'shadowOffsetOuter1',
-            result: 'shadowBlurOuter1'
-          }
+            result: 'shadowBlurOuter1',
+          },
         },
         {
           elementName: 'feComposite',
@@ -230,17 +230,17 @@ export default {
             in: 'shadowBlurOuter1',
             in2: 'SourceAlpha',
             operator: 'out',
-            result: 'shadowBlurOuter1'
-          }
+            result: 'shadowBlurOuter1',
+          },
         },
         {
           elementName: 'feColorMatrix',
           attributes: {
             values: '0 0 0 0 0.0572963765 0 0 0 0 0.0587644961 0 0 0 0 0.059204932 0 0 0 0.307631341 0',
-            in: 'shadowBlurOuter1'
-          }
-        }
-      ]
-    }
-  ]
-}
+            in: 'shadowBlurOuter1',
+          },
+        },
+      ],
+    },
+  ],
+};

@@ -19,12 +19,12 @@ class EmitterManager {
     this._emitters = []
   }
 
-  addEmitterListener (eventEmitter, eventName, eventHandler) {
+  addEmitterListener (eventEmitter, eventName, eventHandler, options) {
     this._emitters.push([eventEmitter, eventName, eventHandler])
     if (eventEmitter.on) {
       eventEmitter.on(eventName, eventHandler)
     } else if (eventEmitter.addEventListener) {
-      eventEmitter.addEventListener(eventName, eventHandler)
+      eventEmitter.addEventListener(eventName, eventHandler, options)
     }
   }
 

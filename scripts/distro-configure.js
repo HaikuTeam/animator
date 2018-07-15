@@ -1,36 +1,36 @@
-var argv = require('yargs').argv
-var fse = require('fs-extra')
-var os = require('os')
-var path = require('path')
-var lodash = require('lodash')
-var inquirer = require('inquirer')
-var log = require('./helpers/log')
-var writeHackyDynamicDistroConfig = require('./helpers/writeHackyDynamicDistroConfig')
-var forceNodeEnvProduction = require('./helpers/forceNodeEnvProduction')
+const argv = require('yargs').argv;
+const fse = require('fs-extra');
+const os = require('os');
+const path = require('path');
+const lodash = require('lodash');
+const inquirer = require('inquirer');
+const log = require('./helpers/log');
+const writeHackyDynamicDistroConfig = require('./helpers/writeHackyDynamicDistroConfig');
+const forceNodeEnvProduction = require('./helpers/forceNodeEnvProduction');
 
-var ROOT = path.join(__dirname, '..')
-var ENVS = { development: true, production: true }
+let ROOT = path.join(__dirname, '..');
+let ENVS = {development: true, production: true};
 
-forceNodeEnvProduction()
+forceNodeEnvProduction();
 
 function getReleasePlatform () {
   switch (os.platform()) {
     case 'darwin':
-      return 'mac'
+      return 'mac';
     case 'win32':
-      return 'windows'
+      return 'windows';
     case 'linux':
-      return 'linux'
+      return 'linux';
     default:
-      throw new Error('Unknown operating system')
+      throw new Error('Unknown operating system');
   }
 }
 
 function getReleaseArchitecture () {
-  return os.arch()
+  return os.arch();
 }
 
-var inputs = lodash.assign({
+let inputs = lodash.assign({
   branch: 'master',
   environment: 'production',
   appenv: 'production', // sets NODE_ENV in the running app and the autoupdate channel
@@ -39,11 +39,11 @@ var inputs = lodash.assign({
   shout: true,
   platform: getReleasePlatform(),
   architecture: getReleaseArchitecture(),
-  version: fse.readJsonSync(path.join(ROOT, 'package.json')).version
-}, argv)
+  version: fse.readJsonSync(path.join(ROOT, 'package.json')).version,
+}, argv);
 
-delete inputs.$0
-delete inputs._
+delete inputs.$0;
+delete inputs._;
 
 if (!argv['non-interactive']) {
   inquirer.prompt([
@@ -51,61 +51,61 @@ if (!argv['non-interactive']) {
       type: 'input',
       name: 'environment',
       message: `Environment tag:`,
-      default: inputs.environment
+      default: inputs.environment,
     },
     {
       type: 'confirm',
       name: 'uglify',
       message: 'Obfuscate source code in bundle?:',
-      default: inputs.uglify
+      default: inputs.uglify,
     },
     {
       type: 'confirm',
       name: 'upload',
       message: 'Upload to public distro server?:',
-      default: inputs.upload
+      default: inputs.upload,
     },
     {
       type: 'confirm',
       name: 'shout',
       message: 'Notify our internal Slack account about build progress?:',
-      default: inputs.shout
-    }
-  ]).then(function (answers) {
-    lodash.assign(inputs, answers)
+      default: inputs.shout,
+    },
+  ]).then((answers) => {
+    lodash.assign(inputs, answers);
 
     if (inputs.uglify === false && inputs.environment === 'production') {
-      throw new Error(`refusing to create a non-obfuscated build for 'production'`)
+      throw new Error(`refusing to create a non-obfuscated build for 'production'`);
     }
 
     if (!ENVS[inputs.environment]) {
-      throw new Error(`the 'environment' tag must be a member of ${JSON.stringify(ENVS)}`)
+      throw new Error(`the 'environment' tag must be a member of ${JSON.stringify(ENVS)}`);
     }
 
     if (!inputs.version) {
-      throw new Error(`a 'version' semver tag is required`)
+      throw new Error(`a 'version' semver tag is required`);
     }
 
-    log.log(`using these inputs: ${JSON.stringify(inputs, null, 2)}`)
+    log.log(`using these inputs: ${JSON.stringify(inputs, null, 2)}`);
     inquirer.prompt([
       {
         type: 'confirm',
         name: 'proceed',
         message: 'Go for configure?:',
-        default: true
-      }
-    ]).then(function (answers) {
-      if (answers.proceed) {
-        writeHackyDynamicDistroConfig(inputs)
+        default: true,
+      },
+    ]).then((goForConfigureAnswers) => {
+      if (goForConfigureAnswers.proceed) {
+        writeHackyDynamicDistroConfig(inputs);
       } else {
-        process.exit()
+        process.exit();
       }
-    })
-  }).catch(function (exception) {
-    log.log(exception)
-    process.exit()
-  })
+    });
+  }).catch((exception) => {
+    log.log(exception);
+    process.exit();
+  });
 } else {
-  console.log(JSON.stringify(inputs))
-  writeHackyDynamicDistroConfig(inputs)
+  console.log(JSON.stringify(inputs));
+  writeHackyDynamicDistroConfig(inputs);
 }

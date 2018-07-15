@@ -1,40 +1,40 @@
-import React from 'react'
-import ClusterRow from './ClusterRow'
-import PropertyRow from './PropertyRow'
-import ComponentHeadingRow from './ComponentHeadingRow'
+import * as React from 'react';
+import ClusterRow from './ClusterRow';
+import PropertyRow from './PropertyRow';
+import ComponentHeadingRow from './ComponentHeadingRow';
 
 class RowManager extends React.PureComponent {
   constructor (props) {
-    super(props)
+    super(props);
 
-    this.handleUpdate = this.handleUpdate.bind(this)
+    this.handleUpdate = this.handleUpdate.bind(this);
   }
 
   handleUpdate (what) {
     if (what === 'row-collapsed' || what === 'row-expanded') {
-      this.forceUpdate()
+      this.forceUpdate();
     }
   }
 
   componentDidMount () {
     this.props.group.rows.forEach((row) => {
       if (row.isHeading() || row.isClusterHeading()) {
-        row.on('update', this.handleUpdate)
+        row.on('update', this.handleUpdate);
       }
-    })
+    });
   }
 
   componentWillUnmount () {
     this.props.group.rows.forEach((row) => {
       if (row.isHeading() || row.isClusterHeading()) {
-        row.removeListener('update', this.handleUpdate)
+        row.removeListener('update', this.handleUpdate);
       }
-    })
+    });
   }
 
   renderComponentRow (row, prev) {
     // Cluster rows only display if collapsed, otherwise we show their properties
-    const activeComponent = this.props.getActiveComponent()
+    const activeComponent = this.props.getActiveComponent();
 
     if (row.isClusterHeading() && !row.isExpanded()) {
       return (
@@ -46,7 +46,7 @@ class RowManager extends React.PureComponent {
           prev={prev}
           row={row}
         />
-      )
+      );
     }
 
     if (row.isProperty()) {
@@ -60,7 +60,7 @@ class RowManager extends React.PureComponent {
           prev={prev}
           row={row}
         />
-      )
+      );
     }
 
     if (row.isHeading()) {
@@ -79,30 +79,30 @@ class RowManager extends React.PureComponent {
           hasAttachedActions={row.element.getVisibleEvents().length > 0}
           dragHandleProps={this.props.dragHandleProps}
         />
-      )
+      );
     }
 
     // If we got here, display nothing since we don't know what to render
-    return null
+    return null;
   }
 
   render () {
-    const { group, prevGroup } = this.props
+    const {group, prevGroup} = this.props;
 
     const elements = group.rows
       .filter((row) => !row.isWithinCollapsedRow())
       .map((row, indexOfRowWithinGroup) => {
-        let prevRow = group.rows[indexOfRowWithinGroup - 1]
+        let prevRow = group.rows[indexOfRowWithinGroup - 1];
 
         if (!prevRow && prevGroup) {
-          prevRow = prevGroup.rows[prevGroup.length - 1]
+          prevRow = prevGroup.rows[prevGroup.length - 1];
         }
 
-        return this.renderComponentRow(row, Boolean(prevRow))
-      })
+        return this.renderComponentRow(row, Boolean(prevRow));
+      });
 
-    return <div>{elements}</div>
+    return <div>{elements}</div>;
   }
 }
 
-export default RowManager
+export default RowManager;

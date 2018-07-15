@@ -1,19 +1,19 @@
-import React from 'react'
-import classNames from 'classnames'
-import Popover from 'react-popover'
-import ChevronDownIconSVG from 'haiku-ui-common/lib/react/icons/ChevronDownIconSVG'
-import TimelineIconSVG from 'haiku-ui-common/lib/react/icons/TimelineIconSVG'
-import DefaultPalette from './DefaultPalette'
-import CurrentTimelinePopover from './CurrentTimelinePopover'
+import * as React from 'react';
+import * as classNames from 'classnames';
+import * as Popover from 'react-popover';
+import ChevronDownIconSVG from 'haiku-ui-common/lib/react/icons/ChevronDownIconSVG';
+import TimelineIconSVG from 'haiku-ui-common/lib/react/icons/TimelineIconSVG';
+import DefaultPalette from './DefaultPalette';
+import CurrentTimelinePopover from './CurrentTimelinePopover';
 
 export default class CurrentTimelineSelectMenu extends React.Component {
   constructor (props) {
-    super(props)
-    this.state = { popoverOpen: false }
+    super(props);
+    this.state = {popoverOpen: false};
   }
 
   togglePopover () {
-    this.setState({ popoverOpen: !this.state.popoverOpen })
+    this.setState({popoverOpen: !this.state.popoverOpen});
   }
 
   render () {
@@ -22,22 +22,24 @@ export default class CurrentTimelineSelectMenu extends React.Component {
         style={{
           height: 30,
           backgroundColor: DefaultPalette.COAL,
-          borderBottom: '1px solid ' + DefaultPalette.LIGHTER_GRAY
+          borderBottom: '1px solid ' + DefaultPalette.LIGHTER_GRAY,
         }} />
-    )
+    );
 
-    if (this.props.timelineNames.length < 1) return nothing
-    const { popoverOpen } = this.state
+    if (this.props.timelineNames.length < 1) {
+      return nothing;
+    }
+    const {popoverOpen} = this.state;
 
     return (
       <Popover
-        place='above'
+        place="above"
         isOpen={popoverOpen}
-        className='timeline-pop show-top'
+        className="timeline-pop show-top"
         body={
           <div style={{
             position: 'relative',
-            top: -210
+            top: -210,
           }}>
             <CurrentTimelinePopover
               closePopover={this.togglePopover.bind(this)}
@@ -63,22 +65,22 @@ export default class CurrentTimelineSelectMenu extends React.Component {
             fontSize: 10,
             color: DefaultPalette.ROCK,
             backgroundColor: DefaultPalette.COAL,
-            cursor: 'pointer'
+            cursor: 'pointer',
           }}
-          className={classNames('target', { popoverOpen })}
+          className={classNames('target', {popoverOpen})}
           onClick={this.togglePopover.bind(this)}>
           <TimelineIconSVG />
           <span
             style={{
               marginRight: 8,
               marginLeft: 5,
-              lineHeight: 0.3
+              lineHeight: 0.3,
             }}>
             {this.props.selectedTimelineName}
           </span>
           <ChevronDownIconSVG color={DefaultPalette.ROCK} />
         </button>
       </Popover>
-    )
+    );
   }
 }

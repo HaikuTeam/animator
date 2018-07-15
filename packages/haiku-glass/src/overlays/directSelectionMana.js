@@ -1,6 +1,6 @@
-import Palette from 'haiku-ui-common/lib/Palette'
-import Layout3D from '@haiku/core/lib/Layout3D'
-import SVGPoints from '@haiku/core/lib/helpers/SVGPoints'
+import Palette from 'haiku-ui-common/lib/Palette';
+import Layout3D from '@haiku/core/lib/Layout3D';
+import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
 
 const anchorPoint = (index, meta, selected, scale, {x, y}) => ({
   elementName: 'g',
@@ -8,10 +8,10 @@ const anchorPoint = (index, meta, selected, scale, {x, y}) => ({
     transform: `scale(${scale}) translate(${x - 12.5} ${y - 12.5})`,
     style: {
       pointerEvents: 'all',
-      transformOrigin: `${x}px ${y}px 0px`
+      transformOrigin: `${x}px ${y}px 0px`,
     },
     onmouseenter: `hoverDirectSelectionPoint(${index})`,
-    onmouseleave: 'unhoverDirectSelectionPoint()'
+    onmouseleave: 'unhoverDirectSelectionPoint()',
   },
   children: [
     {
@@ -21,8 +21,8 @@ const anchorPoint = (index, meta, selected, scale, {x, y}) => ({
         cy: 12.5,
         r: 3.5,
         fill: '#000',
-        filter: 'url(#a)'
-      }
+        filter: 'url(#a)',
+      },
     },
     {
       elementName: 'circle',
@@ -32,8 +32,8 @@ const anchorPoint = (index, meta, selected, scale, {x, y}) => ({
         r: 3.5,
         fill: '#fff',
         stroke: '#3f4a4d',
-        'stroke-width': selected ? 2 : 1
-      }
+        'stroke-width': selected ? 2 : 1,
+      },
     },
     {
       elementName: 'circle',
@@ -44,19 +44,19 @@ const anchorPoint = (index, meta, selected, scale, {x, y}) => ({
         fill: 'none',
         class: 'direct-selection-anchor',
         'data-index': index,
-        'data-meta': meta
-      }
-    }
-  ]
-})
+        'data-meta': meta,
+      },
+    },
+  ],
+});
 
 // Determines if a path is closed and returns only the logical number of anchor points
 const getLogicalAnchorsFromPoints = (points) => {
   if (points.length && (points[points.length - 2].closed || points[points.length - 1].closed)) {
-    return points.slice(0, points.length - 1)
+    return points.slice(0, points.length - 1);
   }
-  return points
-}
+  return points;
+};
 
 export const rect = (id, {x, y, width, height, rx, ry}, layoutAncestry, controlPointScale, selectedAnchorIndices) => ({
   elementName: 'g',
@@ -64,8 +64,8 @@ export const rect = (id, {x, y, width, height, rx, ry}, layoutAncestry, controlP
     id,
     style: {
       transform: `matrix3d(${Layout3D.multiplyArrayOfMatrices(layoutAncestry.reverse()).join(',')})`,
-      transformOrigin: 'top left'
-    }
+      transformOrigin: 'top left',
+    },
   },
   children: [
     {
@@ -77,18 +77,18 @@ export const rect = (id, {x, y, width, height, rx, ry}, layoutAncestry, controlP
         fill: 'none',
         x,
         y,
-        width: width,
-        height: height,
+        width,
+        height,
         rx: rx || 0,
-        ry: ry || 0
-      }
+        ry: ry || 0,
+      },
     },
     anchorPoint(0, null, selectedAnchorIndices && selectedAnchorIndices.includes(0), controlPointScale, {x: Number(x), y: Number(y)}),
     anchorPoint(1, null, selectedAnchorIndices && selectedAnchorIndices.includes(1), controlPointScale, {x: Number(x) + Number(width), y: Number(y)}),
     anchorPoint(2, null, selectedAnchorIndices && selectedAnchorIndices.includes(2), controlPointScale, {x: Number(x), y: Number(y) + Number(height)}),
-    anchorPoint(3, null, selectedAnchorIndices && selectedAnchorIndices.includes(3), controlPointScale, {x: Number(x) + Number(width), y: Number(y) + Number(height)})
-  ]
-})
+    anchorPoint(3, null, selectedAnchorIndices && selectedAnchorIndices.includes(3), controlPointScale, {x: Number(x) + Number(width), y: Number(y) + Number(height)}),
+  ],
+});
 
 export const circle = (id, {cx, cy, r}, layoutAncestry, controlPointScale, selectedAnchorIndices) => ({
   elementName: 'g',
@@ -96,8 +96,8 @@ export const circle = (id, {cx, cy, r}, layoutAncestry, controlPointScale, selec
     id,
     style: {
       transform: `matrix3d(${Layout3D.multiplyArrayOfMatrices(layoutAncestry.reverse()).join(',')})`,
-      transformOrigin: 'top left'
-    }
+      transformOrigin: 'top left',
+    },
   },
   children: [
     {
@@ -109,12 +109,12 @@ export const circle = (id, {cx, cy, r}, layoutAncestry, controlPointScale, selec
         fill: 'none',
         cx,
         cy,
-        r
-      }
+        r,
+      },
     },
-    anchorPoint(0, null, selectedAnchorIndices && selectedAnchorIndices.includes(0), controlPointScale, {x: Number(cx) + Number(r), y: Number(cy)})
-  ]
-})
+    anchorPoint(0, null, selectedAnchorIndices && selectedAnchorIndices.includes(0), controlPointScale, {x: Number(cx) + Number(r), y: Number(cy)}),
+  ],
+});
 
 export const ellipse = (id, {cx, cy, rx, ry}, layoutAncestry, controlPointScale, selectedAnchorIndices) => ({
   elementName: 'g',
@@ -122,8 +122,8 @@ export const ellipse = (id, {cx, cy, rx, ry}, layoutAncestry, controlPointScale,
     id,
     style: {
       transform: `matrix3d(${Layout3D.multiplyArrayOfMatrices(layoutAncestry.reverse()).join(',')})`,
-      transformOrigin: 'top left'
-    }
+      transformOrigin: 'top left',
+    },
   },
   children: [
     {
@@ -136,15 +136,15 @@ export const ellipse = (id, {cx, cy, rx, ry}, layoutAncestry, controlPointScale,
         cx,
         cy,
         rx,
-        ry
-      }
+        ry,
+      },
     },
     anchorPoint(0, null, selectedAnchorIndices && selectedAnchorIndices.includes(0), controlPointScale, {x: Number(cx) - Number(rx), y: Number(cy)}),
     anchorPoint(1, null, selectedAnchorIndices && selectedAnchorIndices.includes(1), controlPointScale, {x: Number(cx) + Number(rx), y: Number(cy)}),
     anchorPoint(2, null, selectedAnchorIndices && selectedAnchorIndices.includes(2), controlPointScale, {x: Number(cx), y: Number(cy) + Number(ry)}),
-    anchorPoint(3, null, selectedAnchorIndices && selectedAnchorIndices.includes(3), controlPointScale, {x: Number(cx), y: Number(cy) - Number(ry)})
-  ]
-})
+    anchorPoint(3, null, selectedAnchorIndices && selectedAnchorIndices.includes(3), controlPointScale, {x: Number(cx), y: Number(cy) - Number(ry)}),
+  ],
+});
 
 export const polygon = (id, {points}, layoutAncestry, controlPointScale, selectedAnchorIndices) => ({
   elementName: 'g',
@@ -152,8 +152,8 @@ export const polygon = (id, {points}, layoutAncestry, controlPointScale, selecte
     id,
     style: {
       transform: `matrix3d(${Layout3D.multiplyArrayOfMatrices(layoutAncestry.reverse()).join(',')})`,
-      transformOrigin: 'top left'
-    }
+      transformOrigin: 'top left',
+    },
   },
   children: [
     {
@@ -163,24 +163,26 @@ export const polygon = (id, {points}, layoutAncestry, controlPointScale, selecte
         'stroke-width': `${controlPointScale}px`,
         'vector-effect': 'non-scaling-stroke',
         fill: 'none',
-        points
-      }
+        points,
+      },
     },
-    ...SVGPoints.polyPointsStringToPoints(points).map((pt, i) => { return anchorPoint(i, null, selectedAnchorIndices && selectedAnchorIndices.includes(i), controlPointScale, {x: pt[0], y: pt[1]}) })
-  ]
-})
+    ...SVGPoints.polyPointsStringToPoints(points).map((pt, i) => {
+      return anchorPoint(i, null, selectedAnchorIndices && selectedAnchorIndices.includes(i), controlPointScale, {x: pt[0], y: pt[1]});
+    }),
+  ],
+});
 
 export const path = (id, {d}, layoutAncestry, controlPointScale, selectedAnchorIndices) => {
-  const points = SVGPoints.pathToPoints(d)
-  const handles = []
+  const points = SVGPoints.pathToPoints(d);
+  const handles = [];
   for (let i = 0; i < points.length; i++) {
     if (points[i].curve) {
-      handles.push({x: points[i].curve.x1, y: points[i].curve.y1, pointIndex: i, handleIndex: 0})
-      handles.push({x: points[i].curve.x2, y: points[i].curve.y2, pointIndex: i, handleIndex: 1})
+      handles.push({x: points[i].curve.x1, y: points[i].curve.y1, pointIndex: i, handleIndex: 0});
+      handles.push({x: points[i].curve.x2, y: points[i].curve.y2, pointIndex: i, handleIndex: 1});
     }
   }
 
-  const anchors = getLogicalAnchorsFromPoints(points)
+  const anchors = getLogicalAnchorsFromPoints(points);
 
   return {
     elementName: 'g',
@@ -188,8 +190,8 @@ export const path = (id, {d}, layoutAncestry, controlPointScale, selectedAnchorI
       id,
       style: {
         transform: `matrix3d(${Layout3D.multiplyArrayOfMatrices(layoutAncestry.reverse()).join(',')})`,
-        transformOrigin: 'top left'
-      }
+        transformOrigin: 'top left',
+      },
     },
     children: [
       {
@@ -199,8 +201,8 @@ export const path = (id, {d}, layoutAncestry, controlPointScale, selectedAnchorI
           'stroke-width': `${controlPointScale}px`,
           'vector-effect': 'non-scaling-stroke',
           fill: 'none',
-          d
-        }
+          d,
+        },
       },
       ...handles.map((handle) => ({
         elementName: 'line',
@@ -212,15 +214,19 @@ export const path = (id, {d}, layoutAncestry, controlPointScale, selectedAnchorI
           x1: handle.x,
           y1: handle.y,
           x2: points[handle.handleIndex === 0 ? handle.pointIndex - 1 : handle.pointIndex].x,
-          y2: points[handle.handleIndex === 0 ? handle.pointIndex - 1 : handle.pointIndex].y
-        }
+          y2: points[handle.handleIndex === 0 ? handle.pointIndex - 1 : handle.pointIndex].y,
+        },
       })),
-      ...handles.map((handle) => { return anchorPoint(handle.pointIndex, handle.handleIndex, false, controlPointScale * 0.75, handle) }),
-      ...anchors.map((pt, i) => { return anchorPoint(i, null, selectedAnchorIndices && selectedAnchorIndices.includes(i), controlPointScale, pt) })
+      ...handles.map((handle) => {
+        return anchorPoint(handle.pointIndex, handle.handleIndex, false, controlPointScale * 0.75, handle);
+      }),
+      ...anchors.map((pt, i) => {
+        return anchorPoint(i, null, selectedAnchorIndices && selectedAnchorIndices.includes(i), controlPointScale, pt);
+      }),
 
-    ]
-  }
-}
+    ],
+  };
+};
 
 export const line = (id, {x1, y1, x2, y2}, layoutAncestry, controlPointScale, selectedAnchorIndices) => ({
   elementName: 'g',
@@ -228,8 +234,8 @@ export const line = (id, {x1, y1, x2, y2}, layoutAncestry, controlPointScale, se
     id,
     style: {
       transform: `matrix3d(${Layout3D.multiplyArrayOfMatrices(layoutAncestry.reverse()).join(',')})`,
-      transformOrigin: 'top left'
-    }
+      transformOrigin: 'top left',
+    },
   },
   children: [
     {
@@ -242,13 +248,13 @@ export const line = (id, {x1, y1, x2, y2}, layoutAncestry, controlPointScale, se
         x1,
         y1,
         x2,
-        y2
-      }
+        y2,
+      },
     },
     anchorPoint(0, null, selectedAnchorIndices && selectedAnchorIndices.includes(0), controlPointScale, {x: x1, y: y1}),
-    anchorPoint(1, null, selectedAnchorIndices && selectedAnchorIndices.includes(1), controlPointScale, {x: x2, y: y2})
-  ]
-})
+    anchorPoint(1, null, selectedAnchorIndices && selectedAnchorIndices.includes(1), controlPointScale, {x: x2, y: y2}),
+  ],
+});
 
 export const polyline = (id, {points}, layoutAncestry, controlPointScale, selectedAnchorIndices) => ({
   elementName: 'g',
@@ -256,8 +262,8 @@ export const polyline = (id, {points}, layoutAncestry, controlPointScale, select
     id,
     style: {
       transform: `matrix3d(${Layout3D.multiplyArrayOfMatrices(layoutAncestry.reverse()).join(',')})`,
-      transformOrigin: 'top left'
-    }
+      transformOrigin: 'top left',
+    },
   },
   children: [
     {
@@ -267,11 +273,13 @@ export const polyline = (id, {points}, layoutAncestry, controlPointScale, select
         'stroke-width': `${controlPointScale}px`,
         'vector-effect': 'non-scaling-stroke',
         fill: 'none',
-        points
-      }
+        points,
+      },
     },
-    ...SVGPoints.polyPointsStringToPoints(points).map((pt, i) => { return anchorPoint(i, null, selectedAnchorIndices && selectedAnchorIndices.includes(i), controlPointScale, {x: pt[0], y: pt[1]}) })
-  ]
-})
+    ...SVGPoints.polyPointsStringToPoints(points).map((pt, i) => {
+      return anchorPoint(i, null, selectedAnchorIndices && selectedAnchorIndices.includes(i), controlPointScale, {x: pt[0], y: pt[1]});
+    }),
+  ],
+});
 
-export default { ellipse, circle, polygon, rect, path, line, polyline }
+export default {ellipse, circle, polygon, rect, path, line, polyline};
