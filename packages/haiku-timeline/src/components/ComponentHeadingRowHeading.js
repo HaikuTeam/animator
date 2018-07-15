@@ -99,8 +99,8 @@ export default class ComponentHeadingRowHeading extends React.Component {
           className='component-heading-row-heading-root-box'
           title={this.state.rowTitle}
           style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
-            height: 27,
-            display: 'inline-block'
+            display: 'inline-block',
+            transform: 'translateY(1px)'
           } : {
             height: 27,
             display: 'inline-block',
@@ -109,8 +109,8 @@ export default class ComponentHeadingRowHeading extends React.Component {
           <span
             className='component-heading-row-heading-root-icon-box'
             style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
-              marginLeft: 7,
-              marginRight: 7,
+              marginLeft: 8,
+              marginRight: 4,
               display: 'inline-block',
               transform: 'translateY(4px)'
             } : {

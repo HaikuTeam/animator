@@ -73,6 +73,7 @@ const DEFAULTS = {
 
 const THROTTLE_TIME = 32 // ms
 const MENU_ACTION_DEBOUNCE_TIME = 100
+const TIMELINE_OFFSET_PADDING = 7 // px
 
 class Timeline extends React.Component {
   constructor (props) {
@@ -120,6 +121,7 @@ class Timeline extends React.Component {
     this.handleSelectAllDebounced = lodash.debounce(this.handleSelectAll.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
     this.handleUndoDebounced = lodash.debounce(this.handleUndo.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
     this.handleRedoDebounced = lodash.debounce(this.handleRedo.bind(this), MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false})
+    this.handleZoomThrottled = lodash.throttle(this.handleZoom.bind(this), THROTTLE_TIME)
 
     if (process.env.NODE_ENV !== 'production') {
       // For debugging
@@ -501,9 +503,19 @@ class Timeline extends React.Component {
       this.handleKeyUp(keyupEvent)
     })
 
-    this.addEmitterListener(document.body, 'mousewheel', lodash.throttle((wheelEvent) => {
-      this.handleScroll(wheelEvent)
-    }, 16), { passive: true })
+    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+      this.addEmitterListener(window, 'wheel', (wheelEvent) => {
+        if (wheelEvent.ctrlKey) {
+          this.handleZoomThrottled(wheelEvent)
+        } else {
+          this.handleScroll(wheelEvent)
+        }
+      }, {passive: true})
+    } else {
+      this.addEmitterListener(document.body, 'mousewheel', lodash.throttle((wheelEvent) => {
+        this.handleScroll(wheelEvent)
+      }, 16), { passive: true })
+    }
 
     this.addEmitterListener(document, 'mousemove', (mouseMoveEvent) => {
       if (!this.getActiveComponent()) {
@@ -517,7 +529,7 @@ class Timeline extends React.Component {
       if (timeline) {
         const frameInfo = timeline.getFrameInfo()
         if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-          pxInTimeline = mouseMoveEvent.clientX + (this.refs.container.scrollLeft || 0) - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()
+          pxInTimeline = mouseMoveEvent.clientX + (this.refs.container.scrollLeft || 0) - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() - TIMELINE_OFFSET_PADDING
         } else {
           pxInTimeline = mouseMoveEvent.clientX - timeline.getPropertiesPixelWidth()
         }
@@ -587,7 +599,7 @@ class Timeline extends React.Component {
 
     if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
       this.addEmitterListenerIfNotAlreadyRegistered(timeline, 'update', (what, ...args) => {
-        if (what === 'timeline-scroll') {
+        if (what === 'timeline-scroll-from-scrollbar') {
           this.refs.container.scrollLeft = timeline.getScrollLeft()
         }
       })
@@ -851,6 +863,10 @@ class Timeline extends React.Component {
     })
 
     return items
+  }
+
+  handleZoom (wheelEvent) {
+    this.getActiveComponent().getCurrentTimeline().zoomBy(wheelEvent.deltaY * 0.01)
   }
 
   handleScroll (scrollEvent) {
@@ -1234,7 +1250,7 @@ class Timeline extends React.Component {
             position: 'fixed',
             top: 0,
             left: 0,
-            height: 36,
+            height: 35,
             width: timeline.getPropertiesPixelWidth(),
             backgroundColor: Palette.COAL,
             borderBottom: `1px solid ${Palette.FATHER_COAL}`,
@@ -1348,7 +1364,7 @@ class Timeline extends React.Component {
 
     const frameInfo = this.getActiveComponent().getCurrentTimeline().getFrameInfo()
     const leftX = experimentIsEnabled(Experiment.NativeTimelineScroll)
-      ? evt.clientX + (this.refs.container.scrollLeft || 0) - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()
+      ? evt.clientX + (this.refs.container.scrollLeft || 0) - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() - TIMELINE_OFFSET_PADDING
       : evt.clientX - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()
 
     const frameX = Math.round(leftX / frameInfo.pxpf)
@@ -1557,6 +1573,7 @@ class Timeline extends React.Component {
           left: 0,
           height: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'calc(100% - 30px)' : 'calc(100% - 45px)',
           width: '100%',
+          paddingLeft: experimentIsEnabled(Experiment.NativeTimelineScroll) ? TIMELINE_OFFSET_PADDING : undefined,
           overflow: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'auto' : 'hidden'
         }}>
         {

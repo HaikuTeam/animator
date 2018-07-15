@@ -68,7 +68,7 @@ export default class SoloKeyframe extends React.Component {
         style={{
           position: 'absolute',
           left: leftPx,
-          width: 9,
+          // width: 9,
           height: 24,
           top: -3,
           transform: 'scale(1.7)',
@@ -80,7 +80,7 @@ export default class SoloKeyframe extends React.Component {
           style={{
             position: 'absolute',
             top: 5,
-            left: 1,
+            // left: 1,
             cursor: (this.props.keyframe.isWithinCollapsedRow()) ? 'pointer' : 'move'
           }}>
           <KeyframeSVG color={Palette[this.props.keyframe.getLeftKeyframeColorState()]} />

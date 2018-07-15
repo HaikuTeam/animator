@@ -73,9 +73,7 @@ class FrameActionsGrid extends React.PureComponent {
     const timeline = this.props.timeline
     const propertiesWidth = timeline.getPropertiesPixelWidth()
     const fullTimelineWidth = timeline.calculateFullTimelineWidth()
-    const frameInfo = timeline.getFrameInfo()
     const hoveredFrame = timeline.getHoveredFrame()
-    const pixelOffsetLeft = hoveredFrame * frameInfo.pxpf
 
     return (
       <div style={{
@@ -86,13 +84,22 @@ class FrameActionsGrid extends React.PureComponent {
         width: propertiesWidth + fullTimelineWidth,
         zIndex: zIndex.frameActions.base
       }}>
-        <div style={{
-          position: 'absolute',
-          left: pixelOffsetLeft + propertiesWidth,
-          top: 34
-        }}>
-          {this.renderFrameActions()}
-        </div>
+        {this.props.timeline.mapVisibleFrames(
+          (frameNumber, pixelOffsetLeft) => {
+            return (
+              <div
+                key={`frame-${frameNumber}`}
+                style={{
+                  position: 'absolute',
+                  left: pixelOffsetLeft + propertiesWidth,
+                  top: 34
+                }}
+                >
+                {this.renderFrameActions(frameNumber, hoveredFrame)}
+              </div>
+            )
+          }
+        )}
       </div>
     )
   }

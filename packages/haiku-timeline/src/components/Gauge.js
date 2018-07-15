@@ -48,7 +48,7 @@ export default class Gauge extends React.Component {
         <div
           id='gauge-wrapper'
           style={{
-            height: 24,
+            height: 23,
             backgroundColor: Palette.COAL,
             position: 'sticky',
             top: 12,
@@ -61,6 +61,18 @@ export default class Gauge extends React.Component {
           }}
           onMouseDown={this.props.onMouseDown}
           >
+          <span
+            style={{
+              display: 'inline-block',
+              width: '15px',
+              position: 'absolute',
+              left: '-8px',
+              height: 'inherit',
+              border: 'inherit',
+              backgroundColor: 'inherit'
+            }}
+           />
+
           {children}
         </div>
       )
