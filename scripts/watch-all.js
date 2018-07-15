@@ -64,7 +64,7 @@ const exit = () => {
   log.log('exiting; telling children to interrupt');
   log.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
 
-  children.forEach(function (child, index) {
+  children.forEach((child, index) => {
     log.log('$$$$$ ' + index + ' ' + JSON.stringify(child.info));
     if (child.proc.stdin) {
       child.proc.stdin.end();

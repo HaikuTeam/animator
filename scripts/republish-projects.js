@@ -1,13 +1,14 @@
-const { eachSeries } = require('async')
-const { argv } = require('yargs')
+const {eachSeries} = require('async');
+const {argv} = require('yargs');
 
-const Plumbing = require('haiku-plumbing/lib/Plumbing').default
-const haikuInfo = require('haiku-plumbing/lib/haikuInfo').default
-const { ExporterFormat } = require('haiku-sdk-creator/lib/exporter')
+// tslint:disable-next-line:variable-name
+const Plumbing = require('haiku-plumbing/lib/Plumbing').default;
+const haikuInfo = require('haiku-plumbing/lib/haikuInfo').default;
+const {ExporterFormat} = require('haiku-sdk-creator/lib/exporter');
 
-const log = require('./helpers/log')
+const log = require('./helpers/log');
 
-const plumbing = new Plumbing()
+const plumbing = new Plumbing();
 
 const saveProject = (projectObject, cb) => {
   // Give ourselves some time to cool off so our file watchers can detect any changes.
@@ -21,20 +22,20 @@ const saveProject = (projectObject, cb) => {
       undefined,
       {
         commitMessage: 'Manual version bump (via mono script republish-all)',
-        saveStrategy: { strategy: 'recursive', favor: 'ours' },
-        exporterFormats: [ExporterFormat.Bodymovin, ExporterFormat.HaikuStatic]
+        saveStrategy: {strategy: 'recursive', favor: 'ours'},
+        exporterFormats: [ExporterFormat.Bodymovin, ExporterFormat.HaikuStatic],
       },
       (err) => {
         if (err) {
-          cb(err)
-          return
+          cb(err);
+          return;
         }
 
-        plumbing.teardownMaster(projectObject.projectPath, cb)
-      }
-    )
-  }, 5000)
-}
+        plumbing.teardownMaster(projectObject.projectPath, cb);
+      },
+    );
+  }, 5000);
+};
 
 const startProject = (projectObject, cb) => {
   plumbing.startProject(
@@ -42,14 +43,14 @@ const startProject = (projectObject, cb) => {
     projectObject.projectPath,
     (err) => {
       if (err) {
-        cb(err)
-        return
+        cb(err);
+        return;
       }
 
-      saveProject(projectObject, cb)
-    }
-  )
-}
+      saveProject(projectObject, cb);
+    },
+  );
+};
 
 const republishProject = (projectObject, cb) => {
   plumbing.bootstrapProject(
@@ -59,35 +60,35 @@ const republishProject = (projectObject, cb) => {
     undefined,
     (err) => {
       if (err) {
-        cb(err)
-        return
+        cb(err);
+        return;
       }
 
-      startProject(projectObject, cb)
-    }
-  )
-}
+      startProject(projectObject, cb);
+    },
+  );
+};
 
-plumbing.launch({ ...haikuInfo(), mode: 'headless' }, (err) => {
+plumbing.launch({...haikuInfo(), mode: 'headless'}, (err) => {
   if (err) {
-    throw err
+    throw err;
   }
 
-  plumbing.getCurrentOrganizationName((err, organizationName) => {
-    if (err) {
-      throw err
+  plumbing.getCurrentOrganizationName((getCurrentOrganizationNameError, organizationName) => {
+    if (getCurrentOrganizationNameError) {
+      throw getCurrentOrganizationNameError;
     }
 
-    log.hat(`currently signed in as ${organizationName}`)
+    log.hat(`currently signed in as ${organizationName}`);
 
-    plumbing.listProjects((err, allProjects) => {
-      if (err) {
-        throw err
+    plumbing.listProjects((listProjectsError, allProjects) => {
+      if (listProjectsError) {
+        throw listProjectsError;
       }
 
       const projects = argv.onlyProjects
-        ? allProjects.filter(({ projectName }) => argv.onlyProjects.split(',').includes(projectName))
-        : allProjects
+        ? allProjects.filter(({projectName}) => argv.onlyProjects.split(',').includes(projectName))
+        : allProjects;
 
       eachSeries(
         projects,
@@ -96,22 +97,22 @@ plumbing.launch({ ...haikuInfo(), mode: 'headless' }, (err) => {
             {
               ...project,
               organizationName,
-              skipContentCreation: true
+              skipContentCreation: true,
             },
-            next
-          )
+            next,
+          );
         },
-        (err) => {
-          if (err) {
-            log.warn('caught error(s) during publish')
+        (finalError) => {
+          if (finalError) {
+            log.warn('caught error(s) during publish');
           }
 
           if (global.haiku && global.haiku.HaikuGlobalAnimationHarness) {
-            global.haiku.HaikuGlobalAnimationHarness.cancel()
+            global.haiku.HaikuGlobalAnimationHarness.cancel();
           }
-          plumbing.teardown()
-        }
-      )
-    })
-  })
-})
+          plumbing.teardown();
+        },
+      );
+    });
+  });
+});

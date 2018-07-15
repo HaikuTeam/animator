@@ -1,23 +1,23 @@
-const cp = require('child_process')
-const fse = require('fs-extra')
-const path = require('path')
+const cp = require('child_process');
+const fse = require('fs-extra');
+const path = require('path');
 
-const log = require('./helpers/log')
-const runFlakyCommand = require('./helpers/runFlakyCommand')
+const log = require('./helpers/log');
+const runFlakyCommand = require('./helpers/runFlakyCommand');
 
-const processOptions = {cwd: global.process.cwd(), stdio: 'inherit'}
+const processOptions = {cwd: global.process.cwd(), stdio: 'inherit'};
 
 runFlakyCommand(() => {
-  cp.execSync('yarn install', processOptions)
-  log.hat('installed dependencies')
-}, 'mono yarn install', 10)
+  cp.execSync('yarn install', processOptions);
+  log.hat('installed dependencies');
+}, 'mono yarn install', 10);
 
-const gitHooksPath = path.join(global.process.cwd(), '.git', 'hooks')
-const repoHooksPath = path.join(global.process.cwd(), 'hooks')
+const gitHooksPath = path.join(global.process.cwd(), '.git', 'hooks');
+const repoHooksPath = path.join(global.process.cwd(), 'hooks');
 if (fse.existsSync(gitHooksPath)) {
-  fse.removeSync(gitHooksPath)
+  fse.removeSync(gitHooksPath);
 }
 
 fse.symlink(repoHooksPath, gitHooksPath, () => {
-  log.hat('installed hooks')
-})
+  log.hat('installed hooks');
+});
