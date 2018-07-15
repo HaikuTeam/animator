@@ -1,5 +1,5 @@
 /* global monaco */
-import React from 'react'
+import * as React from 'react'
 import Palette from 'haiku-ui-common/lib/Palette'
 import ElementTitle from './ElementTitle'
 import Editor from './Editor'

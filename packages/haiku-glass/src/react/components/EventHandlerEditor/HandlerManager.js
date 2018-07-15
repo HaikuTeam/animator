@@ -1,6 +1,6 @@
-import prettier from 'prettier'
+import * as prettier from 'prettier'
 import functionToRFO from '@haiku/core/lib/reflection/functionToRFO'
-import logger from 'haiku-serialization/src/utils/LoggerInstance'
+import * as logger from 'haiku-serialization/src/utils/LoggerInstance'
 
 const ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
 

@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import Modal, { MODAL_STYLES } from '../Modal'
 
 const DEFAULT_COMPONENT_NAME = 'untitled'

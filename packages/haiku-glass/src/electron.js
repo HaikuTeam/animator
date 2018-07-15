@@ -1,8 +1,8 @@
-import qs from 'qs'
+import * as qs from 'qs'
 import {app, BrowserWindow, ipcMain} from 'electron'
-import path from 'path'
+import * as path from 'path'
 import TopMenu from 'haiku-common/lib/electron/TopMenu'
-import logger from 'haiku-serialization/src/utils/LoggerInstance'
+import * as logger from 'haiku-serialization/src/utils/LoggerInstance'
 
 /**
  * This file is bypassed when loaded in the full app.

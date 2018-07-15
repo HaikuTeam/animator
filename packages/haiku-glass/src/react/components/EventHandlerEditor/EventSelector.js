@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import {SimpleSelect} from 'react-selectize'
 import Palette from 'haiku-ui-common/lib/Palette'
 

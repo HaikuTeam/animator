@@ -1,5 +1,5 @@
 /* global monaco */
-import React from 'react'
+import * as React from 'react'
 import {shell} from 'electron'
 import Palette from 'haiku-ui-common/lib/Palette'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'

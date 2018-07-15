@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import {Parser} from 'cst'
 import {EVALUATOR_STATES} from './constants'
 import Palette from 'haiku-ui-common/lib/Palette'

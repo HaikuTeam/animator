@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import {get} from 'lodash'
 import {TrashIconSVG} from 'haiku-ui-common/lib/react/OtherIcons'
 import Palette from 'haiku-ui-common/lib/Palette'

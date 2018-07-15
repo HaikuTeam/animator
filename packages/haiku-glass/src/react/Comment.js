@@ -1,5 +1,5 @@
-import React from 'react'
-import moment from 'moment'
+import * as React from 'react'
+import * as moment from 'moment'
 
 export default class Comment extends React.Component {
   constructor (props) {

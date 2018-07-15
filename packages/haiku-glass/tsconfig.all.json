@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noImplicitAny": false,
+    "baseUrl": ".",
+    "lib": ["ES2017", "dom"],
+    "paths": {
+      "@glass/*": ["src/*"]
+    }
+  },
+  "include": [
+    "src/**/*.js",
+    "src/**/*.jsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "test/**/*.js",
+    "test/**/*.ts"
+  ],
+  "exclude": [
+    "test/projects/**"
+  ]
+}
