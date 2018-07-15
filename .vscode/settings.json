@@ -13,7 +13,6 @@
     "tslint.autoFixOnSave": true,
     "tslint.alwaysShowRuleFailuresAsWarnings": true,
     "tslint.exclude": [
-        "**/packages/haiku-glass/**",
         "**/packages/haiku-serialization/**"
     ]
 }

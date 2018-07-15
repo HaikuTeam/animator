@@ -28,12 +28,12 @@ class ElementTitle extends React.PureComponent {
   getElementTitle () {
     if (this.props.title) {
       return this.props.title;
-    } else {
-      const element = this.props.element;
-      const node = element && element.getStaticTemplateNode();
-      const title = get(node, 'attributes.haiku-title');
-      return title ? truncate(title, 16) : '(unknown)';
     }
+
+    const element = this.props.element;
+    const node = element && element.getStaticTemplateNode();
+    const title = get(node, 'attributes.haiku-title');
+    return title ? truncate(title, 16) : '(unknown)';
   }
 
   render () {

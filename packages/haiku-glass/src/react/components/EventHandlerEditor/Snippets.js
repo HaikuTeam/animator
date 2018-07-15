@@ -114,6 +114,7 @@ class Snippets extends React.PureComponent {
     } else {
       const allLines = this.props.editor.viewModel.lines.lines.length + 1;
       range = new monaco.Range(allLines, 100, allLines, 100);
+      // tslint:disable-next-line:no-parameter-reassignment
       injectable = `${injectable}`;
     }
 
@@ -131,7 +132,7 @@ class Snippets extends React.PureComponent {
 
   render () {
     return (
-      <div style={STYLES.wrapper} ref={element => (this._plus = element)}
+      <div style={STYLES.wrapper} ref={(element) => (this._plus = element)}
         onClick={(event) => {
           PopoverMenu.launch({event, items: this.snippetOptions});
         }}>

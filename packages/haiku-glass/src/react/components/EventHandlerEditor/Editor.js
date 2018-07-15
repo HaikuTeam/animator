@@ -119,7 +119,7 @@ class Editor extends React.Component {
         >
           <div
             style={STYLES.editorWrapper}
-            ref={element => {
+            ref={(element) => {
               this._context = element;
             }}
           >

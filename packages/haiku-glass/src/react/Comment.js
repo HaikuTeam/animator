@@ -56,13 +56,13 @@ export default class Comment extends React.Component {
             }} />
         </div>
       );
-    } else {
-      return (
-        <div>
-          {comment.content}
-        </div>
-      );
     }
+
+    return (
+      <div>
+        {comment.content}
+      </div>
+    );
   }
 
   metaDisplay (comment, topLevel) {
@@ -145,9 +145,9 @@ export default class Comment extends React.Component {
           })}
         </div>
       );
-    } else {
-      return '';
     }
+
+    return '';
   }
 
   render () {

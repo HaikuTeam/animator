@@ -270,7 +270,7 @@ class EventsPopover extends React.Component {
     return (
       <div>
         {this.props.availTimelines.map((timeline) => {
-          connections.forEach(connection => {
+          connections.forEach((connection) => {
             if (connection[0] === this.state.selectedEvent) {
               active = connection[1];
             }

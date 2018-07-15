@@ -39,7 +39,7 @@ function _traceKitFormatErrorStack (error) {
 
 const heardErrors = {};
 
-window.onerror = function (msg, url, line, col, error) {
+window.onerror = (msg, url, line, col, error) => {
   if (heardErrors[msg]) {
     return false;
   }

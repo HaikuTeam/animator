@@ -42,14 +42,15 @@ import {
 } from 'haiku-common/lib/math/geometryUtils';
 import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
 import {splitSegmentInSVGPoints} from '@haiku/core/lib/helpers/PathUtil';
+import Globals from 'haiku-ui-common/lib/Globals';
+import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
+import {clipboard, shell, remote, ipcRenderer} from 'electron';
 
-const mixpanel = require('haiku-serialization/src/utils/Mixpanel');
-const Globals = require('haiku-ui-common/lib/Globals').default;
-const {clipboard, shell, remote, ipcRenderer} = require('electron');
-const fse = require('haiku-fs-extra');
-const moment = require('moment');
-const {HOMEDIR_PATH} = require('haiku-serialization/src/utils/HaikuHomeDir');
+import * as fse from 'haiku-fs-extra';
+import * as moment from 'moment';
+import {HOMEDIR_PATH} from 'haiku-serialization/src/utils/HaikuHomeDir';
 
+// #FIXME: Why is this the responsibility of Glass???
 fse.mkdirpSync(HOMEDIR_PATH);
 
 // Useful debugging originator of calls in shared model code
@@ -670,10 +671,10 @@ export class Glass extends React.Component {
 
               this.getActiveComponent().getArtboard().updateMountSize(this.refs.container);
             });
-          } else {
-            logger.warn('active component not initialized; cannot reload');
-            return;
           }
+
+          logger.warn('active component not initialized; cannot reload');
+          return;
 
         case 'show-event-handlers-editor':
           this.handleShowEventHandlersEditor(
@@ -1001,15 +1002,15 @@ export class Glass extends React.Component {
         logger.error(err);
       }
 
-      this.project.findActiveComponentBySource(relpath, (err, ac) => {
-        if (!err && ac && ac !== this.getActiveComponent()) {
+      this.project.findActiveComponentBySource(relpath, (findAcError, ac) => {
+        if (!findAcError && ac && ac !== this.getActiveComponent()) {
           mixpanel.haikuTrack('creator:glass:edit-component', {
             title: ac.getTitle(),
           });
 
-          ac.setAsCurrentActiveComponent({from: 'glass'}, (err) => {
-            if (err) {
-              logger.error(err);
+          ac.setAsCurrentActiveComponent({from: 'glass'}, (setCurrentAcError) => {
+            if (setCurrentAcError) {
+              logger.error(setCurrentAcError);
             }
           });
         }
@@ -1384,7 +1385,6 @@ export class Glass extends React.Component {
           }
           // True if the user has clicked on the stage, but not on any on-stage element
           if (targetLocked || !target || !target.hasAttribute) {
-            const proxy = this.fetchProxyElementForSelection();
             if (proxy.hasAnythingInSelection() &&
               isCoordInsideBoxPoints(mouseDownPosition.x, mouseDownPosition.y, proxy.getBoxPointsTransformed())) {
               return;
@@ -1926,6 +1926,7 @@ export class Glass extends React.Component {
       )
     ) {
       if (target.parentNode) {
+        // tslint:disable-next-line:no-parameter-reassignment
         target = target.parentNode;
       }
     }
@@ -2779,6 +2780,7 @@ export class Glass extends React.Component {
   renderDirectSelection (element, selectedAnchorIndices, overlays) {
     const original = element;
     if (element.type === 'use') {
+      // tslint:disable-next-line:no-parameter-reassignment
       element = element.getTranscludedElement();
     }
 
@@ -2819,7 +2821,7 @@ export class Glass extends React.Component {
         const points = hoveredElement.getBoxPointsTransformed();
         overlays.push(
           boxMana(
-            [points[0], points[2], points[8], points[6]].map(point => [
+            [points[0], points[2], points[8], points[6]].map((point) => [
               point.x,
               point.y,
             ]),
