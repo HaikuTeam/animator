@@ -7,16 +7,6 @@
     "Zack Brown <zack@haiku.ai>",
     "Taylor Poe <taylor@haiku.ai>"
   ],
-  "babel": {
-    "presets": [
-      "react-app"
-    ]
-  },
-  "standard": {
-    "ignore": [
-      "./src/react/modes/haiku.js"
-    ]
-  },
   "dependencies": {
     "@haiku/core": "3.5.1",
     "color": "^2.0.1",
