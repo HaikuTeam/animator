@@ -1033,6 +1033,11 @@ export default class HaikuComponent extends HaikuElement {
       });
     }
 
+    if (this.doPreserve3d) {
+      ensure3dPreserved(this, this.node);
+      ensure3dPreserved(this, this.parentNode); // Wrapper
+    }
+
     if (!this.host && options.sizing) {
       computeAndApplyPresetSizing(
         this.getTemplate(),
@@ -1069,6 +1074,11 @@ export default class HaikuComponent extends HaikuElement {
       true, // isPatchOperation
       skipCache,
     );
+
+    if (this.doPreserve3d) {
+      ensure3dPreserved(this, this.node);
+      ensure3dPreserved(this, this.parentNode); // Wrapper
+    }
 
     if (!this.host && options.sizing) {
       computeAndApplyPresetSizing(
@@ -2315,6 +2325,21 @@ function computeAndApplyNodeLayout (node, parent) {
     }
   }
 }
+
+const ensure3dPreserved = (component, node) => {
+  if (!node || !node.attributes || !node.attributes.style) {
+    return;
+  }
+
+  // Only preserve 3D behavior if the node hasn't been *explicitly* defined yet
+  if (!node.attributes.style.transformStyle) {
+    node.attributes.style.transformStyle = 'preserve-3d';
+
+    if (!node.attributes.style.perspective) {
+      node.attributes.style.perspective = 'inherit';
+    }
+  }
+};
 
 function computeAndApplyPresetSizing (element, container, mode, deltas) {
   const elementWidth = element.layout.sizeAbsolute.x;

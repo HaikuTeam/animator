@@ -1,1 +1,1 @@
-If any of [rotation.x, rotation.y, translation.z, scale.z] are applied, then also automatically set [transform-style, perspective] (if unset) such that the 3D view "just works" without needing configuration.
+If any of [rotation.x, rotation.y, translation.z, scale.z] are applied, then also automatically set [transform-style, perspective] (if unset) such that the 3D view "just works" without needing configuration. Please see example.png in this folder for reference of how this demo should look.
