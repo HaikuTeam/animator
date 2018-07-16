@@ -1,7 +1,7 @@
 /* tslint:disable:no-namespace */
 import * as request from 'request';
 import {InkstoneConfig, inkstoneConfig} from './config';
-import {Endpoints, MaybeAuthToken, newDeleteRequest, newGetRequest, newPutRequest} from './services';
+import {Endpoints, MaybeAuthToken, newDeleteRequest, newGetRequest, newPostRequest, newPutRequest} from './services';
 import {requestInstance} from './transport';
 
 // tslint:disable-next-line:no-var-requires
@@ -1136,7 +1136,7 @@ export namespace inkstone {
      * @see {@link https://stripe.com/docs/stripe-js/reference#stripe-create-token}
      */
     export const addCard = (card: AddCardRequestParams, cb: inkstone.Callback<void>) => {
-      newPutRequest()
+      newPostRequest()
         .withEndpoint(Endpoints.BillingAddCard)
         .withJson(card)
         .callWithCallback<void>(cb, 204);
