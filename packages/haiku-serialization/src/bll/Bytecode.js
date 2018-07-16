@@ -552,8 +552,6 @@ Bytecode.reinitialize = (folder, relpath, bytecode = {}, config = {}) => {
 
   Bytecode.upsertDefaultProperties(bytecode, contextHaikuId, {
     'style.WebkitTapHighlightColor': 'rgba(0,0,0,0)',
-    'style.transformStyle': 'flat',
-    'style.perspective': 'none',
     'style.position': 'relative',
     // Subcomponents overflow is visible since that aligns with user expectation when editing in app.
     // But when publishing the main component, the expectation is that its overflow is hidden on share page.
