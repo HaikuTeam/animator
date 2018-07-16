@@ -24,7 +24,10 @@ import isMutableProperty from './helpers/isMutableProperty';
 import {synchronizePathStructure} from './helpers/PathUtil';
 import SVGPoints from './helpers/SVGPoints';
 import Layout3D from './Layout3D';
-import {runMigrations} from './Migration';
+import {
+  runMigrationsPostPhase,
+  runMigrationsPrePhase,
+} from './Migration';
 import enhance from './reflection/enhance';
 import functionToRFO, {RFO} from './reflection/functionToRFO';
 import StateTransitionManager, {StateTransitionParameters, StateValues} from './StateTransitionManager';
@@ -139,6 +142,7 @@ export default class HaikuComponent extends HaikuElement {
   CORE_VERSION;
   doAlwaysFlush;
   doesNeedFullFlush;
+  doPreserve3d;
   guests: {[haikuId: string]: HaikuComponent};
   helpers;
   host: HaikuComponent;
@@ -233,6 +237,10 @@ export default class HaikuComponent extends HaikuElement {
     // If true, will continually flush the entire tree until explicitly set to false again
     this.doAlwaysFlush = false;
 
+    // If true, the component will assign 3D-preservation setting if one hasn't been set explicitly.
+    // If config.preserve3d is 'auto', the migration pre-phase will try to detect whether 3d is needed.
+    this.doPreserve3d = (this.config.preserve3d === true) ? true : false;
+
     // Dictionary of event handler names to handler functions; used to efficiently manage multiple subscriptions
     this.registeredEventHandlers = {};
 
@@ -283,12 +291,18 @@ export default class HaikuComponent extends HaikuElement {
       return this.querySelectorAll(selector);
     };
 
+    try {
+      runMigrationsPrePhase(this, {/*options*/}, VERSION);
+    } catch (exception) {
+      console.warn('[haiku core] caught error during migration pre-phase', exception);
+    }
+
     // Ensure full tree is are properly set up and all render nodes are connected to their models
     this.render({...this.config, forceApplyBehaviors: true});
 
     try {
       // If the bytecode we got happens to be in an outdated format, we automatically update it to the latest.
-      runMigrations(
+      runMigrationsPostPhase(
         this,
         {
           attrsHyphToCamel: ATTRS_HYPH_TO_CAMEL,
@@ -299,8 +313,8 @@ export default class HaikuComponent extends HaikuElement {
         },
         VERSION,
       );
-    } catch (e) {
-      console.warn('[haiku core] caught error during migration', e);
+    } catch (exception) {
+      console.warn('[haiku core] caught error during migration post-phase', exception);
     }
 
     // Start the default timeline to initiate the component;
@@ -1155,15 +1169,16 @@ export default class HaikuComponent extends HaikuElement {
             for (const propertyName in propertyGroup) {
               const propertyValue = propertyGroup[propertyName];
 
-              const finalValue = this.buildValue(
+              const finalValue = this.grabValue(
                 timelineName,
-                timelineTime,
                 flexId,
                 matchingElement,
                 propertyName,
                 propertyValue,
+                timelineTime,
                 isPatchOperation,
                 skipCache,
+                null, // clearSortedKeyframesCache
               );
 
               if (finalValue !== undefined) {
@@ -1646,31 +1661,6 @@ export default class HaikuComponent extends HaikuElement {
     }
 
     return computedValue;
-  }
-
-  buildValue (
-    timelineName,
-    timelineTime,
-    flexId,
-    matchingElement,
-    propertyName,
-    propertyValue,
-    isPatchOperation,
-    skipCache = false,
-  ) {
-    const finalValue = this.grabValue(
-      timelineName,
-      flexId,
-      matchingElement,
-      propertyName,
-      propertyValue,
-      timelineTime,
-      isPatchOperation,
-      skipCache,
-      null,
-    );
-
-    return finalValue;
   }
 
   grabValue (

@@ -18,6 +18,7 @@ const enum UpgradeVersionRequirement {
   CamelCasePropertyNames = '3.5.1',
   AutoStringForAutoSizing = '3.5.1',
   RetireAlign = '3.5.1',
+  AutoPreserveThreeDee = '3.5.2',
 }
 
 const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source';
@@ -35,14 +36,23 @@ const requiresUpgrade = (coreVersion: string, requiredVersion: UpgradeVersionReq
     requiredVersion,
   ) < 0;
 
+const areKeyframesDefined = (keyframeGroup) => {
+  return (
+    keyframeGroup &&
+    Object.keys(keyframeGroup).length > 0
+  );
+};
+
 /**
- * @function run
- * @description Mechanism to modify our bytecode from legacy format to the current format.
- * Think of this like a migration that always runs in production components just in case we
- * get something that happens to be legacy.
+ * Migrations are a mechanism to modify our bytecode from legacy format to the current format.
+ * This always runs against production components' bytecode to ensure their data is a format
+ * that the current version of the engine knows how to handle. There are two phases to migration:
+ * the pre-phase, which runs before an initial .render call, and a post-phase, which runs after.
  */
-export const runMigrations = (component: IHaikuComponent, options: any, version: string) => {
+
+export const runMigrationsPrePhase = (component: IHaikuComponent, options: any, version: string) => {
   const bytecode = component.bytecode;
+
   if (!bytecode.states) {
     bytecode.states = {};
   }
@@ -51,13 +61,18 @@ export const runMigrations = (component: IHaikuComponent, options: any, version:
     bytecode.metadata = {};
   }
 
+  const coreVersion = bytecode.metadata.core || bytecode.metadata.player;
+
   // Convert the properties array to the states dictionary
   if (bytecode.properties) {
     const properties = bytecode.properties;
+
     delete bytecode.properties;
+
     for (let i = 0; i < properties.length; i++) {
       const propertySpec = properties[i];
       const updatedSpec = {} as any;
+
       if (propertySpec.value !== undefined) {
         updatedSpec.value = propertySpec.value;
       }
@@ -76,6 +91,7 @@ export const runMigrations = (component: IHaikuComponent, options: any, version:
       if (propertySpec.get !== undefined) {
         updatedSpec.get = propertySpec.get;
       }
+
       bytecode.states[propertySpec.name] = updatedSpec;
     }
   }
@@ -84,13 +100,18 @@ export const runMigrations = (component: IHaikuComponent, options: any, version:
   // [{selector:'foo',name:'onclick',handler:function}] => {'foo':{'onclick':{handler:function}}}
   if (Array.isArray(bytecode.eventHandlers)) {
     const eventHandlers = bytecode.eventHandlers;
+
     delete bytecode.eventHandlers;
+
     bytecode.eventHandlers = {};
+
     for (let j = 0; j < eventHandlers.length; j++) {
       const eventHandlerSpec = eventHandlers[j];
+
       if (!bytecode.eventHandlers[eventHandlerSpec.selector]) {
         bytecode.eventHandlers[eventHandlerSpec.selector] = {};
       }
+
       bytecode.eventHandlers[eventHandlerSpec.selector][eventHandlerSpec.name] = {
         handler: eventHandlerSpec.handler,
       };
@@ -101,6 +122,71 @@ export const runMigrations = (component: IHaikuComponent, options: any, version:
   if (typeof bytecode.template === STRING_TYPE) {
     bytecode.template = xmlToMana(bytecode.template);
   }
+
+  if (bytecode.timelines) {
+    for (const timelineName in bytecode.timelines) {
+      for (const selector in bytecode.timelines[timelineName]) {
+        // Legacy backgroundColor was a root prop; in newer versions it's style.backgroundColor.
+        // We only want to update this if the user *hasn't* explicitly set style.backroundColor.
+        if (
+          bytecode.timelines[timelineName][selector].backgroundColor &&
+          !bytecode.timelines[timelineName][selector]['style.backgroundColor']
+        ) {
+          bytecode.timelines[timelineName][selector]['style.backgroundColor'] =
+            bytecode.timelines[timelineName][selector].backgroundColor;
+
+          delete bytecode.timelines[timelineName][selector].backgroundColor;
+          continue;
+        }
+
+        if (requiresUpgrade(coreVersion, UpgradeVersionRequirement.AutoPreserveThreeDee)) {
+          const transformStyleGroup = bytecode.timelines[timelineName][selector]['style.transformStyle'];
+
+          if (
+            transformStyleGroup &&
+            Object.keys(transformStyleGroup).length === 1 &&
+            transformStyleGroup[0] &&
+            transformStyleGroup[0].value === 'flat'
+          ) {
+            delete bytecode.timelines[timelineName][selector]['style.transformStyle'][0];
+          }
+
+          const perspectiveGroup = bytecode.timelines[timelineName][selector]['style.perspective'];
+
+          if (
+            perspectiveGroup &&
+            Object.keys(perspectiveGroup).length === 1 &&
+            perspectiveGroup[0] &&
+            perspectiveGroup[0].value === 'none'
+          ) {
+            delete bytecode.timelines[timelineName][selector]['style.perspective'][0];
+          }
+
+          // If we see that any 3D transformations are applied, automatically override flat perspective
+          // if it hasn't been automatically set, so that 3D perspective "just works"
+          if (component.config.preserve3d === 'auto') {
+            if (
+              areKeyframesDefined(bytecode.timelines[timelineName][selector]['rotation.x']) ||
+              areKeyframesDefined(bytecode.timelines[timelineName][selector]['rotation.y']) ||
+              areKeyframesDefined(bytecode.timelines[timelineName][selector]['translation.z']) ||
+              areKeyframesDefined(bytecode.timelines[timelineName][selector]['scale.z'])
+            ) {
+              component.doPreserve3d = true;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Ensure the bytecode metadata core version is recent.
+  bytecode.metadata.core = version;
+};
+
+export const runMigrationsPostPhase = (component: IHaikuComponent, options: any, version: string) => {
+  const bytecode = component.bytecode;
+
+  const coreVersion = bytecode.metadata.core || bytecode.metadata.player;
 
   // If specified, make sure that internal URL references, e.g. url(#my-filter), are unique
   // per each component instance, otherwise we will get filter collisions and weirdness on the page
@@ -142,12 +228,9 @@ export const runMigrations = (component: IHaikuComponent, options: any, version:
     );
   }
 
-  const coreVersion = bytecode.metadata.core || bytecode.metadata.player;
-
   if (bytecode.timelines) {
     for (const timelineName in bytecode.timelines) {
       for (const selector in bytecode.timelines[timelineName]) {
-
         if (requiresUpgrade(coreVersion, UpgradeVersionRequirement.AutoStringForAutoSizing)) {
           migrateAutoSizing(bytecode.timelines[timelineName][selector]);
         }
@@ -163,19 +246,6 @@ export const runMigrations = (component: IHaikuComponent, options: any, version:
               delete bytecode.timelines[timelineName][selector][propertyName];
             }
           }
-        }
-
-        // Legacy backgroundColor was a root prop; in newer versions it's style.backgroundColor.
-        // We only want to update this if the user *hasn't* explicitly set style.backroundColor.
-        if (
-          bytecode.timelines[timelineName][selector].backgroundColor &&
-          !bytecode.timelines[timelineName][selector]['style.backgroundColor']
-        ) {
-          bytecode.timelines[timelineName][selector]['style.backgroundColor'] =
-            bytecode.timelines[timelineName][selector].backgroundColor;
-
-          delete bytecode.timelines[timelineName][selector].backgroundColor;
-          continue;
         }
 
         // If we're a filter attribute, update our references per those to whom uniqueness was added above.
@@ -300,7 +370,4 @@ export const runMigrations = (component: IHaikuComponent, options: any, version:
     component.clearCaches();
     component.markForFullFlush();
   }
-
-  // Ensure the bytecode metadata core version is recent.
-  bytecode.metadata.core = version;
 };
