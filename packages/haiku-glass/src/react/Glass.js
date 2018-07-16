@@ -35,13 +35,12 @@ import {
   DEFAULT_LINE_SELECTION_THRESHOLD,
   isPointInsidePrimitive,
   isPointAlongStroke,
-  distance,
   transform2DPoint,
   closestNormalPointOnLineSegment,
   buildPathLUT,
 } from 'haiku-common/lib/math/geometryUtils';
 import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
-import {splitSegmentInSVGPoints} from '@haiku/core/lib/helpers/PathUtil';
+import {splitSegmentInSVGPoints, distance} from '@haiku/core/lib/helpers/PathUtil';
 import Globals from 'haiku-ui-common/lib/Globals';
 import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 import {clipboard, shell, remote, ipcRenderer} from 'electron';
@@ -1508,6 +1507,18 @@ export class Glass extends React.Component {
                   },
                 };
 
+                const updateNewOriginalClickStateFunc = (err) => {
+                  if (err) {
+                    this.selectedOriginalClickState = null;
+                    return;
+                  }
+                  this.selectedOriginalClickState = {
+                    attributes: JSON.parse(JSON.stringify(Element.directlySelected.attributes)),
+                    sizeX: Element.directlySelected.sizeX,
+                    sizeY: Element.directlySelected.sizeY,
+                  };
+                };
+
                 switch (Element.directlySelected.type) {
                   case 'rect': {
                     const r = Element.directlySelected.attributes;
@@ -1543,7 +1554,7 @@ export class Glass extends React.Component {
                     },
                       {
                         [Element.directlySelected.attributes['haiku-id']]: 'path',
-                      }, keyframeOptions, {from: 'glass'}, () => {});
+                      }, keyframeOptions, {from: 'glass'}, updateNewOriginalClickStateFunc);
 
                     break;
                   }
@@ -1572,7 +1583,7 @@ export class Glass extends React.Component {
                     },
                       {
                         [Element.directlySelected.attributes['haiku-id']]: 'path',
-                      }, keyframeOptions, {from: 'glass'}, () => {});
+                      }, keyframeOptions, {from: 'glass'}, updateNewOriginalClickStateFunc);
 
                     break;
                   }
@@ -1604,7 +1615,7 @@ export class Glass extends React.Component {
                     },
                       {
                         [Element.directlySelected.attributes['haiku-id']]: 'path',
-                      }, keyframeOptions, {from: 'glass'}, () => {});
+                      }, keyframeOptions, {from: 'glass'}, updateNewOriginalClickStateFunc);
                     break;
                   }
                   case 'line': {
@@ -1635,7 +1646,7 @@ export class Glass extends React.Component {
                     },
                       {
                         [Element.directlySelected.attributes['haiku-id']]: 'path',
-                      }, keyframeOptions, {from: 'glass'}, () => {});
+                      }, keyframeOptions, {from: 'glass'}, updateNewOriginalClickStateFunc);
                     break;
                   }
                   case 'polygon':
@@ -1694,7 +1705,7 @@ export class Glass extends React.Component {
                           },
                         },
                       },
-                    }, keyframeOptions, {from: 'glass'}, () => {});
+                    }, keyframeOptions, {from: 'glass'}, updateNewOriginalClickStateFunc);
                     break;
                   }
                   case 'path': {
@@ -1734,7 +1745,7 @@ export class Glass extends React.Component {
                           },
                         },
                       },
-                    }, keyframeOptions, {from: 'glass'}, () => {});
+                    }, keyframeOptions, {from: 'glass'}, updateNewOriginalClickStateFunc);
                     break;
                   }
                 }
@@ -2224,7 +2235,7 @@ export class Glass extends React.Component {
                   [this.getActiveComponent().getCurrentTimelineName()]: {
                     [Element.directlySelected.attributes['haiku-id']]: {
                       r: {
-                        0: {
+                        [this.getActiveComponent().getCurrentTimelineTime()]: {
                           value: distance(transformedCurrent, {x: Number(Element.directlySelected.attributes.cx), y: Number(Element.directlySelected.attributes.cy)}),
                         },
                       },
@@ -2249,7 +2260,7 @@ export class Glass extends React.Component {
                   [this.getActiveComponent().getCurrentTimelineName()]: {
                     [Element.directlySelected.attributes['haiku-id']]: {
                       [property]: {
-                        0: {
+                        [this.getActiveComponent().getCurrentTimelineTime()]: {
                           value,
                         },
                       },
@@ -2301,22 +2312,22 @@ export class Glass extends React.Component {
                   [this.getActiveComponent().getCurrentTimelineName()]: {
                     [Element.directlySelected.attributes['haiku-id']]: {
                       x: {
-                        0: {
+                        [this.getActiveComponent().getCurrentTimelineTime()]: {
                           value: x,
                         },
                       },
                       y: {
-                        0: {
+                        [this.getActiveComponent().getCurrentTimelineTime()]: {
                           value: y,
                         },
                       },
                       'sizeAbsolute.x': {
-                        0: {
+                        [this.getActiveComponent().getCurrentTimelineTime()]: {
                           value: width,
                         },
                       },
                       'sizeAbsolute.y': {
-                        0: {
+                        [this.getActiveComponent().getCurrentTimelineTime()]: {
                           value: height,
                         },
                       },
@@ -2336,7 +2347,7 @@ export class Glass extends React.Component {
                   [this.getActiveComponent().getCurrentTimelineName()]: {
                     [Element.directlySelected.attributes['haiku-id']]: {
                       points: {
-                        0: {
+                        [this.getActiveComponent().getCurrentTimelineTime()]: {
                           value: SVGPoints.pointsToPolyString(points),
                         },
                       },
@@ -2348,13 +2359,14 @@ export class Glass extends React.Component {
 
               case 'line': {
                 const attrUpdate = {};
+                const curTime = this.getActiveComponent().getCurrentTimelineTime();
                 if (indices.includes(0)) {
-                  attrUpdate.x1 = Number(this.selectedOriginalClickState.attributes.x1) + transformedTotalDelta.x;
-                  attrUpdate.y1 = Number(this.selectedOriginalClickState.attributes.y1) + transformedTotalDelta.y;
+                  attrUpdate.x1 = {[curTime]: Number(this.selectedOriginalClickState.attributes.x1) + transformedTotalDelta.x};
+                  attrUpdate.y1 = {[curTime]: Number(this.selectedOriginalClickState.attributes.y1) + transformedTotalDelta.y};
                 }
                 if (indices.includes(1)) {
-                  attrUpdate.x2 = Number(this.selectedOriginalClickState.attributes.x2) + transformedTotalDelta.x;
-                  attrUpdate.y2 = Number(this.selectedOriginalClickState.attributes.y2) + transformedTotalDelta.y;
+                  attrUpdate.x2 = {[curTime]: Number(this.selectedOriginalClickState.attributes.x2) + transformedTotalDelta.x};
+                  attrUpdate.y2 = {[curTime]: Number(this.selectedOriginalClickState.attributes.y2) + transformedTotalDelta.y};
                 }
                 this.getActiveComponent().updateKeyframes({
                   [this.getActiveComponent().getCurrentTimelineName()]: {
@@ -2428,7 +2440,7 @@ export class Glass extends React.Component {
                   [this.getActiveComponent().getCurrentTimelineName()]: {
                     [Element.directlySelected.attributes['haiku-id']]: {
                       d: {
-                        0: {
+                        [this.getActiveComponent().getCurrentTimelineTime()]: {
                           value: SVGPoints.pointsToPath(points),
                         },
                       },
@@ -2448,12 +2460,12 @@ export class Glass extends React.Component {
                   [this.getActiveComponent().getCurrentTimelineName()]: {
                     [Element.directlySelected.attributes['haiku-id']]: {
                       cx: {
-                        0: {
+                        [this.getActiveComponent().getCurrentTimelineTime()]: {
                           value: Number(this.selectedOriginalClickState.attributes.cx) + transformedTotalDelta.x,
                         },
                       },
                       cy: {
-                        0: {
+                        [this.getActiveComponent().getCurrentTimelineTime()]: {
                           value: Number(this.selectedOriginalClickState.attributes.cy) + transformedTotalDelta.y,
                         },
                       },
@@ -2467,12 +2479,12 @@ export class Glass extends React.Component {
                   [this.getActiveComponent().getCurrentTimelineName()]: {
                     [Element.directlySelected.attributes['haiku-id']]: {
                       x: {
-                        0: {
+                        [this.getActiveComponent().getCurrentTimelineTime()]: {
                           value: Number(this.selectedOriginalClickState.attributes.x) + transformedTotalDelta.x,
                         },
                       },
                       y: {
-                        0: {
+                        [this.getActiveComponent().getCurrentTimelineTime()]: {
                           value: Number(this.selectedOriginalClickState.attributes.y) + transformedTotalDelta.y,
                         },
                       },
@@ -2492,7 +2504,7 @@ export class Glass extends React.Component {
                   [this.getActiveComponent().getCurrentTimelineName()]: {
                     [Element.directlySelected.attributes['haiku-id']]: {
                       points: {
-                        0: {
+                        [this.getActiveComponent().getCurrentTimelineTime()]: {
                           value: SVGPoints.pointsToPolyString(points),
                         },
                       },
@@ -2507,22 +2519,22 @@ export class Glass extends React.Component {
                   [this.getActiveComponent().getCurrentTimelineName()]: {
                     [Element.directlySelected.attributes['haiku-id']]: {
                       x1: {
-                        0: {
+                        [this.getActiveComponent().getCurrentTimelineTime()]: {
                           value: Number(this.selectedOriginalClickState.attributes.x1) + transformedTotalDelta.x,
                         },
                       },
                       y1: {
-                        0: {
+                        [this.getActiveComponent().getCurrentTimelineTime()]: {
                           value: Number(this.selectedOriginalClickState.attributes.y1) + transformedTotalDelta.y,
                         },
                       },
                       x2: {
-                        0: {
+                        [this.getActiveComponent().getCurrentTimelineTime()]: {
                           value: Number(this.selectedOriginalClickState.attributes.x2) + transformedTotalDelta.x,
                         },
                       },
                       y2: {
-                        0: {
+                        [this.getActiveComponent().getCurrentTimelineTime()]: {
                           value: Number(this.selectedOriginalClickState.attributes.y2) + transformedTotalDelta.y,
                         },
                       },
@@ -2548,7 +2560,7 @@ export class Glass extends React.Component {
                   [this.getActiveComponent().getCurrentTimelineName()]: {
                     [Element.directlySelected.attributes['haiku-id']]: {
                       d: {
-                        0: {
+                        [this.getActiveComponent().getCurrentTimelineTime()]: {
                           value: SVGPoints.pointsToPath(points),
                         },
                       },

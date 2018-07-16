@@ -1615,7 +1615,12 @@ export default class HaikuComponent extends HaikuElement {
     });
 
     if (keys.length > 1) {
-      const parser = this.getParser(outputName);
+      let parser = this.getParser(outputName);
+      // tslint:disable-next-line:triple-equals
+      if (!parser && parseFloat(parsee[keys[0]].value) == parsee[keys[0]].value) {
+        parser = parseFloat;
+      }
+
       if (!parser) {
         return parsee;
       }
