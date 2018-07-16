@@ -178,9 +178,6 @@ export const runMigrationsPrePhase = (component: IHaikuComponent, options: any, 
       }
     }
   }
-
-  // Ensure the bytecode metadata core version is recent.
-  bytecode.metadata.core = version;
 };
 
 export const runMigrationsPostPhase = (component: IHaikuComponent, options: any, version: string) => {
@@ -370,4 +367,7 @@ export const runMigrationsPostPhase = (component: IHaikuComponent, options: any,
     component.clearCaches();
     component.markForFullFlush();
   }
+
+  // Ensure the bytecode metadata core version is recent.
+  bytecode.metadata.core = version;
 };
