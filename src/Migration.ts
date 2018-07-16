@@ -161,18 +161,18 @@ export const runMigrationsPrePhase = (component: IHaikuComponent, options: any, 
           ) {
             delete bytecode.timelines[timelineName][selector]['style.perspective'][0];
           }
+        }
 
-          // If we see that any 3D transformations are applied, automatically override flat perspective
-          // if it hasn't been automatically set, so that 3D perspective "just works"
-          if (component.config.preserve3d === 'auto') {
-            if (
-              areKeyframesDefined(bytecode.timelines[timelineName][selector]['rotation.x']) ||
-              areKeyframesDefined(bytecode.timelines[timelineName][selector]['rotation.y']) ||
-              areKeyframesDefined(bytecode.timelines[timelineName][selector]['translation.z']) ||
-              areKeyframesDefined(bytecode.timelines[timelineName][selector]['scale.z'])
-            ) {
-              component.doPreserve3d = true;
-            }
+        // If we see that any 3D transformations are applied, automatically override flat perspective
+        // if it hasn't been automatically set, so that 3D perspective "just works"
+        if (component.config.preserve3d === 'auto') {
+          if (
+            areKeyframesDefined(bytecode.timelines[timelineName][selector]['rotation.x']) ||
+            areKeyframesDefined(bytecode.timelines[timelineName][selector]['rotation.y']) ||
+            areKeyframesDefined(bytecode.timelines[timelineName][selector]['translation.z']) ||
+            areKeyframesDefined(bytecode.timelines[timelineName][selector]['scale.z'])
+          ) {
+            component.doPreserve3d = true;
           }
         }
       }
