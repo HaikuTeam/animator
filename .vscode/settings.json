@@ -4,7 +4,6 @@
     "editor.tabSize": 2,
     "search.exclude": {
         "packages/**/lib/**/*": true,
-        "packages/@haiku/core/demo/**": true,
         "packages/haiku-formats/test/goldens/**": true
     },
     "typescript.format.enable": false,
