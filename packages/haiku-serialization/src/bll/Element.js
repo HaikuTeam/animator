@@ -599,7 +599,7 @@ class Element extends BaseModel {
         propertiesBase[outputName],
         timelineTime,
         !hostInstance.shouldPerformFullFlush(), // isPatchOperation
-        true, // skipCache
+        true // skipCache
       )
 
       if (computedValue === undefined || computedValue === null) {
