@@ -284,7 +284,6 @@ const computeMatrix = (
   rs6 *= layoutSpec.scale.z;
   rs7 *= layoutSpec.scale.z;
   rs8 *= layoutSpec.scale.z;
-
   const tx =
     layoutSpec.offset.x +
     layoutSpec.translation.x -
