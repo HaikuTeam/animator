@@ -267,36 +267,36 @@ export const runMigrationsPostPhase = (component: IHaikuComponent, options: any,
     component.visit((element) => {
       let offsetX = 0;
       let offsetY = 0;
-      const elemProps = bytecode.timelines.Default[`haiku:${element.getComponentId()}`];
-      if (!elemProps) {
+      const timelineProperties = bytecode.timelines.Default[`haiku:${element.getComponentId()}`];
+      if (!timelineProperties) {
         return;
       }
 
       // Note: the migrations below are incorrect if align properties were ever defined on an element with explicit
       // size. Since in practice this never happened, this is fine.
-      if (elemProps['align.x']) {
-        const alignX = elemProps['align.x'][0] && elemProps['align.x'][0].value;
+      if (timelineProperties['align.x']) {
+        const alignX = timelineProperties['align.x'][0] && timelineProperties['align.x'][0].value;
         if (typeof alignX === 'number') {
           offsetX += alignX * element.getNearestDefinedNonZeroAncestorSizeX();
         }
       }
 
-      if (elemProps['align.y']) {
-        const alignY = elemProps['align.y'][0] && elemProps['align.y'][0].value;
+      if (timelineProperties['align.y']) {
+        const alignY = timelineProperties['align.y'][0] && timelineProperties['align.y'][0].value;
         if (typeof alignY === 'number') {
           offsetY += alignY * element.getNearestDefinedNonZeroAncestorSizeY();
         }
       }
 
-      if (element['mount.x']) {
-        const mountX = elemProps['mount.x'][0] && elemProps['mount.x'][0].value;
+      if (timelineProperties['mount.x']) {
+        const mountX = timelineProperties['mount.x'][0] && timelineProperties['mount.x'][0].value;
         if (typeof mountX === 'number') {
           offsetX -= mountX * element.getNearestDefinedNonZeroAncestorSizeX();
         }
       }
 
-      if (element['mount.y']) {
-        const mountY = elemProps['mount.y'][0] && elemProps['mount.y'][0].value;
+      if (timelineProperties['mount.y']) {
+        const mountY = timelineProperties['mount.y'][0] && timelineProperties['mount.y'][0].value;
         if (typeof mountY === 'number') {
           offsetY -= mountY * element.getNearestDefinedNonZeroAncestorSizeY();
         }
@@ -319,19 +319,19 @@ export const runMigrationsPostPhase = (component: IHaikuComponent, options: any,
       }
 
       if (offsetX !== 0) {
-        elemProps['offset.x'] = {0: {value: offsetX}};
+        timelineProperties['offset.x'] = {0: {value: offsetX}};
         needsRerender = true;
       }
 
       if (offsetY !== 0) {
-        elemProps['offset.y'] = {0: {value: offsetY}};
+        timelineProperties['offset.y'] = {0: {value: offsetY}};
         needsRerender = true;
       }
 
-      delete elemProps['align.x'];
-      delete elemProps['align.y'];
-      delete elemProps['mount.x'];
-      delete elemProps['mount.y'];
+      delete timelineProperties['align.x'];
+      delete timelineProperties['align.y'];
+      delete timelineProperties['mount.x'];
+      delete timelineProperties['mount.y'];
     });
   }
 
