@@ -616,11 +616,6 @@ class Element extends BaseModel {
     return {
       shown: grabValue('shown'),
       opacity: grabValue('opacity'),
-      mount: {
-        x: grabValue('mount.x'),
-        y: grabValue('mount.y'),
-        z: grabValue('mount.z')
-      },
       offset: {
         x: grabValue('offset.x'),
         y: grabValue('offset.y'),

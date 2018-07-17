@@ -258,10 +258,6 @@ export default class HaikuElement extends HaikuBase {
     return (this.layout && this.layout.offset) || {...LAYOUT_DEFAULTS.offset};
   }
 
-  get mount (): ThreeDimensionalLayoutProperty {
-    return (this.layout && this.layout.mount) || {...LAYOUT_DEFAULTS.mount};
-  }
-
   get targets (): any[] {
     return (this.node && this.node.__targets) || [];
   }
@@ -331,18 +327,6 @@ export default class HaikuElement extends HaikuBase {
 
   get originZ (): number {
     return this.origin && this.origin.z;
-  }
-
-  get mountX (): number {
-    return this.mount && this.mount.x;
-  }
-
-  get mountY (): number {
-    return this.mount && this.mount.y;
-  }
-
-  get mountZ (): number {
-    return this.mount && this.mount.z;
   }
 
   get offsetX (): number {
@@ -476,7 +460,6 @@ export default class HaikuElement extends HaikuBase {
     return {
       shown: this.shown,
       opacity: this.opacity,
-      mount: this.mount,
       offset: this.offset,
       origin: this.origin,
       translation: this.translation,
@@ -1097,7 +1080,6 @@ export default class HaikuElement extends HaikuBase {
     return {
       shown: layoutSpec.shown,
       opacity: layoutSpec.opacity,
-      mount: layoutSpec.mount,
       offset: layoutSpec.offset,
       origin: layoutSpec.origin,
       translation: layoutSpec.translation,

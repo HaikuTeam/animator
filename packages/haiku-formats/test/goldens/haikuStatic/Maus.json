@@ -17,16 +17,8 @@
             "value": "rgba(0,0,0,0)"
           }
         },
-        "style.transformStyle": {
-          "0": {
-            "value": "flat"
-          }
-        },
-        "style.perspective": {
-          "0": {
-            "value": "none"
-          }
-        },
+        "style.transformStyle": {},
+        "style.perspective": {},
         "style.position": {
           "0": {
             "value": "relative"

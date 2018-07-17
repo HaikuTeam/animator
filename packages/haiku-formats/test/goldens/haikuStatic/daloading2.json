@@ -2,7 +2,7 @@
   "metadata": {
     "folder": "/Users/spiritinlife/.haiku/projects/poupanka/daloading2",
     "uuid": "d5a70e07-e44c-4b64-bd22-4d65cfb59193",
-    "core": "3.4.5",
+    "core": "3.5.1",
     "player": "3.4.5",
     "username": "george.chailazopoulos@gmail.com",
     "organization": "poupanka",
@@ -24,16 +24,8 @@
             "value": "rgba(0,0,0,0)"
           }
         },
-        "style.transformStyle": {
-          "0": {
-            "value": "flat"
-          }
-        },
-        "style.perspective": {
-          "0": {
-            "value": "none"
-          }
-        },
+        "style.transformStyle": {},
+        "style.perspective": {},
         "style.position": {
           "0": {
             "value": "relative"

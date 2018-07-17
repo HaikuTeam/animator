@@ -2643,15 +2643,6 @@ export const LAYOUT_3D_VANITIES = {
 
   // Everything that follows is a standard 3-coord component
   // relating to the element's position in space
-  'mount.x': (name, element, value) => {
-    element.layout.mount.x = value;
-  },
-  'mount.y': (name, element, value) => {
-    element.layout.mount.y = value;
-  },
-  'mount.z': (name, element, value) => {
-    element.layout.mount.z = value;
-  },
   'offset.x': (name, element, value) => {
     element.layout.offset.x = value;
   },
@@ -3068,9 +3059,6 @@ export const FALLBACKS = {
     shown: LAYOUT_DEFAULTS.shown,
     opacity: LAYOUT_DEFAULTS.opacity,
     content: '',
-    'mount.x': LAYOUT_DEFAULTS.mount.x,
-    'mount.y': LAYOUT_DEFAULTS.mount.y,
-    'mount.z': LAYOUT_DEFAULTS.mount.z,
     'offset.x': LAYOUT_DEFAULTS.offset.x,
     'offset.y': LAYOUT_DEFAULTS.offset.y,
     'offset.z': LAYOUT_DEFAULTS.offset.z,
@@ -3127,9 +3115,6 @@ export const FALLBACKS = {
 export const LAYOUT_3D_SCHEMA = {
   shown: 'boolean',
   opacity: 'number',
-  'mount.x': 'number',
-  'mount.y': 'number',
-  'mount.z': 'number',
   'offset.x': 'number',
   'offset.y': 'number',
   'offset.z': 'number',

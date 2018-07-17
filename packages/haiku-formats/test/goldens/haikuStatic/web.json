@@ -5,7 +5,7 @@
     "name": "web",
     "relpath": "code/main/code.js",
     "version": "0.0.12",
-    "core": "3.2.16",
+    "core": "3.5.1",
     "player": "3.2.16",
     "organization": "wys",
     "project": "web",
@@ -26,11 +26,7 @@
             "value": "rgba(0,0,0,0)"
           }
         },
-        "style.transformStyle": {
-          "0": {
-            "value": "flat"
-          }
-        },
+        "style.transformStyle": {},
         "style.perspective": {
           "0": {
             "value": 1,
@@ -166,14 +162,14 @@
             "value": 0.9791666666666666
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 13
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 24
           }
         }
       },
@@ -254,14 +250,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 210
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 158
           }
         }
       },
@@ -342,14 +338,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 34
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 64
           }
         }
       },
@@ -473,14 +469,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 46.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 84
           }
         }
       },
@@ -582,14 +578,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 34
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 81.5
           }
         }
       },
@@ -670,14 +666,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 178.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 103.5
           }
         }
       },
@@ -749,14 +745,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 25
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 52
           }
         }
       },
@@ -846,14 +842,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 13
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 7.5
           }
         }
       },
@@ -948,14 +944,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 9
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 9
           }
         }
       },
@@ -1038,14 +1034,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 115.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 84
           }
         }
       },
@@ -1128,14 +1124,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 25
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 53
           }
         }
       },
@@ -1218,14 +1214,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 23.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 54
           }
         }
       },
@@ -1314,14 +1310,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 15.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 30.5
           }
         }
       },
@@ -1404,14 +1400,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 16
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 31.5
           }
         }
       },
@@ -1492,14 +1488,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 19
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 39.5
           }
         }
       },
@@ -1584,14 +1580,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 12
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 28.5
           }
         }
       },
@@ -1674,14 +1670,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 12
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 28.5
           }
         }
       },
@@ -1774,14 +1770,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 250
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 45
           }
         }
       },
@@ -1874,14 +1870,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 231
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 103
           }
         }
       },
@@ -3187,9 +3183,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/1.sketch.contents/slices/Path 4.svg",
           "haiku-id": "5d3c33abc798",
-          "haiku-title": "Path 4"
+          "haiku-title": "Path 4",
+          "haiku-source": "designs/1.sketch.contents/slices/Path 4.svg"
         },
         "children": [
           {
@@ -3217,9 +3213,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/1.sketch.contents/slices/1.svg",
           "haiku-id": "313fa8829307",
-          "haiku-title": "1"
+          "haiku-title": "1",
+          "haiku-source": "designs/1.sketch.contents/slices/1.svg"
         },
         "children": [
           {
@@ -3256,9 +3252,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/1.sketch.contents/slices/装饰建筑.svg",
           "haiku-id": "cde2a292d4ee",
-          "haiku-title": "装饰建筑"
+          "haiku-title": "装饰建筑",
+          "haiku-source": "designs/1.sketch.contents/slices/装饰建筑.svg"
         },
         "children": [
           {
@@ -3287,9 +3283,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/1.sketch.contents/slices/装饰建筑.svg",
           "haiku-id": "b876b74957eb",
-          "haiku-title": "装饰建筑"
+          "haiku-title": "装饰建筑",
+          "haiku-source": "designs/1.sketch.contents/slices/装饰建筑.svg"
         },
         "children": [
           {
@@ -3318,9 +3314,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/1.sketch.contents/slices/透明建筑2.svg",
           "haiku-id": "f3dd62974045",
-          "haiku-title": "透明建筑2"
+          "haiku-title": "透明建筑2",
+          "haiku-source": "designs/1.sketch.contents/slices/透明建筑2.svg"
         },
         "children": [
           {
@@ -3349,9 +3345,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/1.sketch.contents/slices/透明建筑1.svg",
           "haiku-id": "fd580ca55d4e",
-          "haiku-title": "透明建筑1"
+          "haiku-title": "透明建筑1",
+          "haiku-source": "designs/1.sketch.contents/slices/透明建筑1.svg"
         },
         "children": [
           {
@@ -3380,9 +3376,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/1.sketch.contents/slices/小建筑.svg",
           "haiku-id": "469d431cdae7",
-          "haiku-title": "小建筑"
+          "haiku-title": "小建筑",
+          "haiku-source": "designs/1.sketch.contents/slices/小建筑.svg"
         },
         "children": [
           {
@@ -3411,9 +3407,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/1.sketch.contents/slices/医院标志建筑.svg",
           "haiku-id": "745979c99358",
-          "haiku-title": "医院标志建筑"
+          "haiku-title": "医院标志建筑",
+          "haiku-source": "designs/1.sketch.contents/slices/医院标志建筑.svg"
         },
         "children": [
           {
@@ -3442,9 +3438,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/1.sketch.contents/slices/深色建筑.svg",
           "haiku-id": "5acb678634f5",
-          "haiku-title": "深色建筑"
+          "haiku-title": "深色建筑",
+          "haiku-source": "designs/1.sketch.contents/slices/深色建筑.svg"
         },
         "children": [
           {
@@ -3473,9 +3469,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/1.sketch.contents/slices/HOSPITAL.svg",
           "haiku-id": "9c459cbb63d1",
-          "haiku-title": "HOSPITAL"
+          "haiku-title": "HOSPITAL",
+          "haiku-source": "designs/1.sketch.contents/slices/HOSPITAL.svg"
         },
         "children": [
           {
@@ -3504,9 +3500,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/1.sketch.contents/slices/logo.svg",
           "haiku-id": "5663fdd804e3",
-          "haiku-title": "logo"
+          "haiku-title": "logo",
+          "haiku-source": "designs/1.sketch.contents/slices/logo.svg"
         },
         "children": [
           {
@@ -3535,9 +3531,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/1.sketch.contents/slices/建筑底座.svg",
           "haiku-id": "2d2b0b5c1317",
-          "haiku-title": "建筑底座"
+          "haiku-title": "建筑底座",
+          "haiku-source": "designs/1.sketch.contents/slices/建筑底座.svg"
         },
         "children": [
           {
@@ -3565,9 +3561,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/1.sketch.contents/slices/建筑.svg",
           "haiku-id": "b76861377c26",
-          "haiku-title": "建筑"
+          "haiku-title": "建筑",
+          "haiku-source": "designs/1.sketch.contents/slices/建筑.svg"
         },
         "children": [
           {
@@ -3596,9 +3592,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/1.sketch.contents/slices/底座.svg",
           "haiku-id": "4c15cfa50b6b",
-          "haiku-title": "底座"
+          "haiku-title": "底座",
+          "haiku-source": "designs/1.sketch.contents/slices/底座.svg"
         },
         "children": [
           {
@@ -3627,9 +3623,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/1.sketch.contents/slices/手机.svg",
           "haiku-id": "eb6aa73e2c9b",
-          "haiku-title": "手机"
+          "haiku-title": "手机",
+          "haiku-source": "designs/1.sketch.contents/slices/手机.svg"
         },
         "children": [
           {
@@ -3658,9 +3654,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/1.sketch.contents/slices/文档.svg",
           "haiku-id": "1d03b2680188",
-          "haiku-title": "文档"
+          "haiku-title": "文档",
+          "haiku-source": "designs/1.sketch.contents/slices/文档.svg"
         },
         "children": [
           {
@@ -3689,9 +3685,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/1.sketch.contents/slices/透明文档.svg",
           "haiku-id": "2c5047a476e0",
-          "haiku-title": "透明文档"
+          "haiku-title": "透明文档",
+          "haiku-source": "designs/1.sketch.contents/slices/透明文档.svg"
         },
         "children": [
           {
@@ -3720,9 +3716,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/1.sketch.contents/slices/Mask.svg",
           "haiku-id": "15895cf670db",
-          "haiku-title": "Mask"
+          "haiku-title": "Mask",
+          "haiku-source": "designs/1.sketch.contents/slices/Mask.svg"
         },
         "children": [
           {
@@ -3807,9 +3803,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/1.sketch.contents/slices/光.svg",
           "haiku-id": "b5af412e4a8b",
-          "haiku-title": "光"
+          "haiku-title": "光",
+          "haiku-source": "designs/1.sketch.contents/slices/光.svg"
         },
         "children": [
           {

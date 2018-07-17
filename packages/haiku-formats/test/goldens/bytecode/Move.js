@@ -10,7 +10,7 @@ module.exports = {
     project: "Move",
     branch: "master",
     player: "2.0.132",
-    core: "3.2.8"
+    core: "3.5.1"
   },
   options: {},
   states: {},
@@ -76,9 +76,9 @@ module.exports = {
           "0": { value: 0, curve: "linear" },
           "267": { value: -3.14, edited: true, curve: "linear" },
           "550": {
-            value: function() {
+            value: Haiku.inject(function() {
               return -3.14 * 2;
-            },
+            }),
             edited: true,
             curve: "easeOutCubic"
           },
@@ -88,14 +88,14 @@ module.exports = {
           "1983": { value: -0.1, edited: true, curve: "easeInSine" },
           "2083": { value: 0, edited: true }
         },
-        "mount.x": { "0": { value: -0.5 } },
-        "mount.y": { "0": { value: -0.5 } }
+        "offset.x": { "0": { value: 28 } },
+        "offset.y": { "0": { value: 28 } }
       },
       "haiku:5b213ab9bbdf": {
         stroke: { "0": { value: "none" } },
-        "strokeWidth": { "0": { value: "1" } },
+        strokeWidth: { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fillRule": { "0": { value: "evenodd" } }
+        fillRule: { "0": { value: "evenodd" } }
       },
       "haiku:f381da39280d": {
         fill: { "0": { value: "#FFFFFF" } },
@@ -150,14 +150,14 @@ module.exports = {
           "2033": { value: -0.1, edited: true, curve: "easeInSine" },
           "2133": { value: 0, edited: true }
         },
-        "mount.x": { "0": { value: -0.5 } },
-        "mount.y": { "0": { value: -0.5 } }
+        "offset.x": { "0": { value: 35 } },
+        "offset.y": { "0": { value: 27.5 } }
       },
       "haiku:c2569068439f": {
         stroke: { "0": { value: "none" } },
-        "strokeWidth": { "0": { value: "1" } },
+        strokeWidth: { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fillRule": { "0": { value: "evenodd" } }
+        fillRule: { "0": { value: "evenodd" } }
       },
       "haiku:7567dd09dbf7": {
         fill: { "0": { value: "#FFFFFF" } },
@@ -212,14 +212,14 @@ module.exports = {
           "1933": { value: -0.1, edited: true, curve: "easeInSine" },
           "2033": { value: 0, edited: true }
         },
-        "mount.x": { "0": { value: -0.5 } },
-        "mount.y": { "0": { value: -0.5 } }
+        "offset.x": { "0": { value: 30 } },
+        "offset.y": { "0": { value: 27.5 } }
       },
       "haiku:129389353e52": {
         stroke: { "0": { value: "none" } },
-        "strokeWidth": { "0": { value: "1" } },
+        strokeWidth: { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fillRule": { "0": { value: "evenodd" } }
+        fillRule: { "0": { value: "evenodd" } }
       },
       "haiku:f22dc401e7ab": {
         fill: { "0": { value: "#FFFFFF" } },
@@ -274,14 +274,14 @@ module.exports = {
           "1883": { value: -0.1, edited: true, curve: "easeInSine" },
           "1983": { value: 0, edited: true }
         },
-        "mount.x": { "0": { value: -0.5 } },
-        "mount.y": { "0": { value: -0.5 } }
+        "offset.x": { "0": { value: 23.5 } },
+        "offset.y": { "0": { value: 27.5 } }
       },
       "haiku:4e5ea6d40bf2": {
         stroke: { "0": { value: "none" } },
-        "strokeWidth": { "0": { value: "1" } },
+        strokeWidth: { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fillRule": { "0": { value: "evenodd" } }
+        fillRule: { "0": { value: "evenodd" } }
       },
       "haiku:092dedd1b841": {
         fill: { "0": { value: "#FFFFFF" } },
@@ -330,14 +330,14 @@ module.exports = {
           "1100": { value: 1, edited: true, curve: "linear" },
           "1217": { value: 0, edited: true }
         },
-        "mount.x": { "0": { value: -0.5 } },
-        "mount.y": { "0": { value: -0.5 } }
+        "offset.x": { "0": { value: 4 } },
+        "offset.y": { "0": { value: 4 } }
       },
       "haiku:49141efedd32": {
         stroke: { "0": { value: "none" } },
-        "strokeWidth": { "0": { value: "1" } },
+        strokeWidth: { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fillRule": { "0": { value: "evenodd" } }
+        fillRule: { "0": { value: "evenodd" } }
       },
       "haiku:0a1b4b252759": {
         fill: { "0": { value: "#FF5883" } },
@@ -397,17 +397,17 @@ module.exports = {
           "2667": { value: 1, edited: true, curve: "linear" },
           "2833": { value: 0, edited: true }
         },
-        "mount.x": { "0": { value: -0.5 } },
-        "mount.y": { "0": { value: -0.5 } }
+        "offset.x": { "0": { value: 7 } },
+        "offset.y": { "0": { value: 7 } }
       },
       "haiku:aebe42ca1928": {
         stroke: { "0": { value: "none" } },
-        "strokeWidth": { "0": { value: "1" } },
+        strokeWidth: { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fillRule": { "0": { value: "evenodd" } }
+        fillRule: { "0": { value: "evenodd" } }
       },
       "haiku:6c868f89d96c": {
-        "strokeWidth": { "0": { value: "2.5" } },
+        strokeWidth: { "0": { value: "2.5" } },
         stroke: { "0": { value: "#00DEE2" } },
         "translation.x": { "0": { value: -182 } },
         "translation.y": { "0": { value: -279 } }
@@ -458,17 +458,17 @@ module.exports = {
           "2417": { value: 1, edited: true, curve: "linear" },
           "2583": { value: 0, edited: true }
         },
-        "mount.x": { "0": { value: -0.5 } },
-        "mount.y": { "0": { value: -0.5 } }
+        "offset.x": { "0": { value: 7 } },
+        "offset.y": { "0": { value: 7 } }
       },
       "haiku:c991cf5a0eb2": {
         stroke: { "0": { value: "none" } },
-        "strokeWidth": { "0": { value: "1" } },
+        strokeWidth: { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fillRule": { "0": { value: "evenodd" } }
+        fillRule: { "0": { value: "evenodd" } }
       },
       "haiku:3a151b485792": {
-        "strokeWidth": { "0": { value: "2.5" } },
+        strokeWidth: { "0": { value: "2.5" } },
         stroke: { "0": { value: "#FFD300" } },
         "translation.x": { "0": { value: -153 } },
         "translation.y": { "0": { value: -279 } }
@@ -520,14 +520,14 @@ module.exports = {
           "1250": { value: 1, edited: true, curve: "linear" },
           "1350": { value: 0, edited: true }
         },
-        "mount.x": { "0": { value: -0.5 } },
-        "mount.y": { "0": { value: -0.5 } }
+        "offset.x": { "0": { value: 4 } },
+        "offset.y": { "0": { value: 4 } }
       },
       "haiku:ba5c6ffbaeb0": {
         stroke: { "0": { value: "none" } },
-        "strokeWidth": { "0": { value: "1" } },
+        strokeWidth: { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fillRule": { "0": { value: "evenodd" } }
+        fillRule: { "0": { value: "evenodd" } }
       },
       "haiku:f4e03fd44100": {
         fill: { "0": { value: "#FFD300" } },
@@ -574,14 +574,14 @@ module.exports = {
           "2500": { value: 1, edited: true, curve: "linear" },
           "2650": { value: 0, edited: true }
         },
-        "mount.x": { "0": { value: -0.5 } },
-        "mount.y": { "0": { value: -0.5 } }
+        "offset.x": { "0": { value: 4 } },
+        "offset.y": { "0": { value: 4 } }
       },
       "haiku:c23b4d7fad03": {
         stroke: { "0": { value: "none" } },
-        "strokeWidth": { "0": { value: "1" } },
+        strokeWidth: { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fillRule": { "0": { value: "evenodd" } }
+        fillRule: { "0": { value: "evenodd" } }
       },
       "haiku:570a14aa6c2f": {
         fill: { "0": { value: "#00DEE2" } },
@@ -620,17 +620,17 @@ module.exports = {
           "1233": { value: 1, edited: true, curve: "linear" },
           "1350": { value: 0, edited: true }
         },
-        "mount.x": { "0": { value: -0.5 } },
-        "mount.y": { "0": { value: -0.5 } }
+        "offset.x": { "0": { value: 7 } },
+        "offset.y": { "0": { value: 7 } }
       },
       "haiku:c56cf1b3b34d": {
         stroke: { "0": { value: "none" } },
-        "strokeWidth": { "0": { value: "1" } },
+        strokeWidth: { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fillRule": { "0": { value: "evenodd" } }
+        fillRule: { "0": { value: "evenodd" } }
       },
       "haiku:15d2afcedf22": {
-        "strokeWidth": { "0": { value: "2.5" } },
+        strokeWidth: { "0": { value: "2.5" } },
         stroke: { "0": { value: "#FF5883" } },
         "translation.x": { "0": { value: -129 } },
         "translation.y": { "0": { value: -279 } }
@@ -675,14 +675,14 @@ module.exports = {
           "2617": { value: 1, edited: true, curve: "linear" },
           "2783": { value: 0, edited: true }
         },
-        "mount.x": { "0": { value: -0.5 } },
-        "mount.y": { "0": { value: -0.5 } }
+        "offset.x": { "0": { value: 4 } },
+        "offset.y": { "0": { value: 4 } }
       },
       "haiku:bb2ea33ce59b": {
         stroke: { "0": { value: "none" } },
-        "strokeWidth": { "0": { value: "1" } },
+        strokeWidth: { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fillRule": { "0": { value: "evenodd" } }
+        fillRule: { "0": { value: "evenodd" } }
       },
       "haiku:2783962bf034": {
         fill: { "0": { value: "#FF5883" } },
@@ -706,20 +706,20 @@ module.exports = {
           version: "1.1",
           xmlns: "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          source: "designs/Move.sketch.contents/slices/O.svg",
           "haiku-id": "5bfd10a365ed",
-          "haiku-title": "O"
+          "haiku-title": "O",
+          "haiku-source": "designs/Move.sketch.contents/slices/O.svg"
         },
         children: [
           {
             elementName: "title",
             attributes: { "haiku-id": "e0493b3c81f7" },
-            children: ["O"]
+            children: []
           },
           {
             elementName: "desc",
             attributes: { "haiku-id": "e459ffb0969b" },
-            children: ["Created with sketchtool."]
+            children: []
           },
           {
             elementName: "defs",
@@ -751,20 +751,20 @@ module.exports = {
           version: "1.1",
           xmlns: "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          source: "designs/Move.sketch.contents/slices/M.svg",
           "haiku-id": "676aa843ca1c",
-          "haiku-title": "M"
+          "haiku-title": "M",
+          "haiku-source": "designs/Move.sketch.contents/slices/M.svg"
         },
         children: [
           {
             elementName: "title",
             attributes: { "haiku-id": "a69b11998f09" },
-            children: ["M"]
+            children: []
           },
           {
             elementName: "desc",
             attributes: { "haiku-id": "bc3aa319e526" },
-            children: ["Created with sketchtool."]
+            children: []
           },
           {
             elementName: "defs",
@@ -796,20 +796,20 @@ module.exports = {
           version: "1.1",
           xmlns: "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          source: "designs/Move.sketch.contents/slices/V.svg",
           "haiku-id": "0802a4738af0",
-          "haiku-title": "V"
+          "haiku-title": "V",
+          "haiku-source": "designs/Move.sketch.contents/slices/V.svg"
         },
         children: [
           {
             elementName: "title",
             attributes: { "haiku-id": "5a806bdd4bca" },
-            children: ["V"]
+            children: []
           },
           {
             elementName: "desc",
             attributes: { "haiku-id": "140c3b81f64b" },
-            children: ["Created with sketchtool."]
+            children: []
           },
           {
             elementName: "defs",
@@ -841,20 +841,20 @@ module.exports = {
           version: "1.1",
           xmlns: "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          source: "designs/Move.sketch.contents/slices/E.svg",
           "haiku-id": "c8d0231b6708",
-          "haiku-title": "E"
+          "haiku-title": "E",
+          "haiku-source": "designs/Move.sketch.contents/slices/E.svg"
         },
         children: [
           {
             elementName: "title",
             attributes: { "haiku-id": "25c4eae2c83c" },
-            children: ["E"]
+            children: []
           },
           {
             elementName: "desc",
             attributes: { "haiku-id": "5902b561616e" },
-            children: ["Created with sketchtool."]
+            children: []
           },
           {
             elementName: "defs",
@@ -886,20 +886,20 @@ module.exports = {
           version: "1.1",
           xmlns: "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          source: "designs/Move.sketch.contents/slices/circle red.svg",
           "haiku-id": "45100a5481ae",
-          "haiku-title": "circle red"
+          "haiku-title": "circle red",
+          "haiku-source": "designs/Move.sketch.contents/slices/circle red.svg"
         },
         children: [
           {
             elementName: "title",
             attributes: { "haiku-id": "8d077312acdc" },
-            children: ["circle red"]
+            children: []
           },
           {
             elementName: "desc",
             attributes: { "haiku-id": "12700170fe69" },
-            children: ["Created with sketchtool."]
+            children: []
           },
           {
             elementName: "defs",
@@ -934,20 +934,20 @@ module.exports = {
           version: "1.1",
           xmlns: "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          source: "designs/Move.sketch.contents/slices/ring teal.svg",
           "haiku-id": "5fe5a8c6c68c",
-          "haiku-title": "ring teal"
+          "haiku-title": "ring teal",
+          "haiku-source": "designs/Move.sketch.contents/slices/ring teal.svg"
         },
         children: [
           {
             elementName: "title",
             attributes: { "haiku-id": "22c67952cec3" },
-            children: ["ring teal"]
+            children: []
           },
           {
             elementName: "desc",
             attributes: { "haiku-id": "5747b15d6691" },
-            children: ["Created with sketchtool."]
+            children: []
           },
           {
             elementName: "defs",
@@ -979,20 +979,20 @@ module.exports = {
           version: "1.1",
           xmlns: "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          source: "designs/Move.sketch.contents/slices/ring yellow.svg",
           "haiku-id": "1dfa2abb91b4",
-          "haiku-title": "ring yellow"
+          "haiku-title": "ring yellow",
+          "haiku-source": "designs/Move.sketch.contents/slices/ring yellow.svg"
         },
         children: [
           {
             elementName: "title",
             attributes: { "haiku-id": "95845db38809" },
-            children: ["ring yellow"]
+            children: []
           },
           {
             elementName: "desc",
             attributes: { "haiku-id": "4ee44eea0439" },
-            children: ["Created with sketchtool."]
+            children: []
           },
           {
             elementName: "defs",
@@ -1027,20 +1027,20 @@ module.exports = {
           version: "1.1",
           xmlns: "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          source: "designs/Move.sketch.contents/slices/circle yellow.svg",
           "haiku-id": "47bc0ed0fa1a",
-          "haiku-title": "circle yellow"
+          "haiku-title": "circle yellow",
+          "haiku-source": "designs/Move.sketch.contents/slices/circle yellow.svg"
         },
         children: [
           {
             elementName: "title",
             attributes: { "haiku-id": "85e03095ce89" },
-            children: ["circle yellow"]
+            children: []
           },
           {
             elementName: "desc",
             attributes: { "haiku-id": "e53fb2b46b2d" },
-            children: ["Created with sketchtool."]
+            children: []
           },
           {
             elementName: "defs",
@@ -1075,20 +1075,20 @@ module.exports = {
           version: "1.1",
           xmlns: "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          source: "designs/Move.sketch.contents/slices/circle teal.svg",
           "haiku-id": "e4bd0da8cd6d",
-          "haiku-title": "circle teal"
+          "haiku-title": "circle teal",
+          "haiku-source": "designs/Move.sketch.contents/slices/circle teal.svg"
         },
         children: [
           {
             elementName: "title",
             attributes: { "haiku-id": "fd5776bd3bd3" },
-            children: ["circle teal"]
+            children: []
           },
           {
             elementName: "desc",
             attributes: { "haiku-id": "a9a31fd01e02" },
-            children: ["Created with sketchtool."]
+            children: []
           },
           {
             elementName: "defs",
@@ -1123,20 +1123,20 @@ module.exports = {
           version: "1.1",
           xmlns: "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          source: "designs/Move.sketch.contents/slices/ring red.svg",
           "haiku-id": "3c4f0a039417",
-          "haiku-title": "ring red"
+          "haiku-title": "ring red",
+          "haiku-source": "designs/Move.sketch.contents/slices/ring red.svg"
         },
         children: [
           {
             elementName: "title",
             attributes: { "haiku-id": "0691fc2c65cb" },
-            children: ["ring red"]
+            children: []
           },
           {
             elementName: "desc",
             attributes: { "haiku-id": "13c7a3f26b52" },
-            children: ["Created with sketchtool."]
+            children: []
           },
           {
             elementName: "defs",
@@ -1168,20 +1168,20 @@ module.exports = {
           version: "1.1",
           xmlns: "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          source: "designs/Move.sketch.contents/slices/circle red.svg",
           "haiku-id": "3b978060f2d6",
-          "haiku-title": "circle red"
+          "haiku-title": "circle red",
+          "haiku-source": "designs/Move.sketch.contents/slices/circle red.svg"
         },
         children: [
           {
             elementName: "title",
             attributes: { "haiku-id": "e8a02e95413e" },
-            children: ["circle red"]
+            children: []
           },
           {
             elementName: "desc",
             attributes: { "haiku-id": "b7afecc9e845" },
-            children: ["Created with sketchtool."]
+            children: []
           },
           {
             elementName: "defs",

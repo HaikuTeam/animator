@@ -6,7 +6,7 @@ module.exports = {
     name: "CPRWelcomePages",
     relpath: "code/main/code.js",
     version: "0.0.2",
-    core: "3.2.8",
+    core: "3.5.1",
     player: "3.1.32",
     organization: "rudymatos",
     project: "CPRWelcomePages",
@@ -19,8 +19,8 @@ module.exports = {
     Default: {
       "haiku:e4a9e4d8baa7": {
         "style.WebkitTapHighlightColor": { "0": { value: "rgba(0,0,0,0)" } },
-        "style.transformStyle": { "0": { value: "flat" } },
-        "style.perspective": { "0": { value: "none" } },
+        "style.transformStyle": {},
+        "style.perspective": {},
         "style.position": { "0": { value: "relative" } },
         "style.overflowX": { "0": { value: "hidden" } },
         "style.overflowY": { "0": { value: "hidden" } },
@@ -44,8 +44,8 @@ module.exports = {
         "style.zIndex": { "0": { value: 1 } },
         "scale.x": { "0": { value: 1.1758001672108904 } },
         "scale.y": { "0": { value: 1.1758001672108904 } },
-        "mount.x": { "0": { value: -0.5 } },
-        "mount.y": { "0": { value: -0.5 } }
+        "offset.x": { "0": { value: 187 } },
+        "offset.y": { "0": { value: 169.5 } }
       },
       "haiku:8a57024e0901": {
         points: {
@@ -56,9 +56,9 @@ module.exports = {
       },
       "haiku:889d532b1e47": {
         stroke: { "0": { value: "none" } },
-        "strokeWidth": { "0": { value: "1" } },
+        strokeWidth: { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fillRule": { "0": { value: "evenodd" } }
+        fillRule: { "0": { value: "evenodd" } }
       },
       "haiku:6061656b2f79": {
         "translation.x": { "0": { value: -57 } },
@@ -217,14 +217,14 @@ module.exports = {
           "1100": { value: 1.5, edited: true, curve: "easeOutCubic" },
           "1667": { value: 1, edited: true }
         },
-        "mount.x": { "0": { value: -0.5 } },
-        "mount.y": { "0": { value: -0.5 } }
+        "offset.x": { "0": { value: 50 } },
+        "offset.y": { "0": { value: 12 } }
       },
       "haiku:bdcc32a322e7": {
         stroke: { "0": { value: "none" } },
-        "strokeWidth": { "0": { value: "1" } },
+        strokeWidth: { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fillRule": { "0": { value: "evenodd" } }
+        fillRule: { "0": { value: "evenodd" } }
       },
       "haiku:a292df8711be": {
         fill: { "0": { value: "#FAF9F7" } },
@@ -268,14 +268,14 @@ module.exports = {
           "833": { value: 1.5, edited: true, curve: "easeOutCubic" },
           "1417": { value: 1, edited: true }
         },
-        "mount.x": { "0": { value: -0.5 } },
-        "mount.y": { "0": { value: -0.5 } }
+        "offset.x": { "0": { value: 34 } },
+        "offset.y": { "0": { value: 33.5 } }
       },
       "haiku:0566a91e2156": {
         stroke: { "0": { value: "none" } },
-        "strokeWidth": { "0": { value: "1" } },
+        strokeWidth: { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fillRule": { "0": { value: "evenodd" } }
+        fillRule: { "0": { value: "evenodd" } }
       },
       "haiku:b449280a5e98": {
         fill: { "0": { value: "#FAF9F7" } },
@@ -319,14 +319,14 @@ module.exports = {
           "0": { value: 0, edited: true, curve: "easeInCubic" },
           "817": { value: 1, edited: true }
         },
-        "mount.x": { "0": { value: -0.5 } },
-        "mount.y": { "0": { value: -0.5 } }
+        "offset.x": { "0": { value: 58 } },
+        "offset.y": { "0": { value: 14.5 } }
       },
       "haiku:96355f4a9815": {
         stroke: { "0": { value: "none" } },
-        "strokeWidth": { "0": { value: "1" } },
+        strokeWidth: { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fillRule": { "0": { value: "evenodd" } }
+        fillRule: { "0": { value: "evenodd" } }
       },
       "haiku:19b116bdb12c": {
         fill: { "0": { value: "#FAF9F7" } },
@@ -359,9 +359,9 @@ module.exports = {
           version: "1.1",
           xmlns: "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          source: "designs/welcome.sketch.contents/slices/arrow_middle.svg",
           "haiku-id": "7a2aebb71efd",
-          "haiku-title": "arrow_middle"
+          "haiku-title": "arrow_middle",
+          "haiku-source": "designs/welcome.sketch.contents/slices/arrow_middle.svg"
         },
         children: [
           {
@@ -398,9 +398,9 @@ module.exports = {
           version: "1.1",
           xmlns: "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          source: "designs/welcome.sketch.contents/slices/arrow_up.svg",
           "haiku-id": "ca9a31fb5016",
-          "haiku-title": "arrow_up"
+          "haiku-title": "arrow_up",
+          "haiku-source": "designs/welcome.sketch.contents/slices/arrow_up.svg"
         },
         children: [
           {
@@ -437,9 +437,9 @@ module.exports = {
           version: "1.1",
           xmlns: "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          source: "designs/welcome.sketch.contents/slices/arrow_down.svg",
           "haiku-id": "d8589a335237",
-          "haiku-title": "arrow_down"
+          "haiku-title": "arrow_down",
+          "haiku-source": "designs/welcome.sketch.contents/slices/arrow_down.svg"
         },
         children: [
           {
@@ -476,9 +476,9 @@ module.exports = {
           version: "1.1",
           xmlns: "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          source: "designs/welcome.sketch.contents/slices/O9IY371.svg",
           "haiku-id": "0b037ddaa1c4",
-          "haiku-title": "O9IY371"
+          "haiku-title": "O9IY371",
+          "haiku-source": "designs/welcome.sketch.contents/slices/O9IY371.svg"
         },
         children: [
           {

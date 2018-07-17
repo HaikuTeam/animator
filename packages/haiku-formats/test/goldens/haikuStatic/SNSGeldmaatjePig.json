@@ -2,7 +2,7 @@
   "metadata": {
     "folder": "/Users/maikohermans/.haiku/projects/die4it/SNSGeldmaatjePig",
     "uuid": "26017e1c-68be-4dc1-ab8c-bba28c80fa7d",
-    "core": "3.4.4",
+    "core": "3.5.1",
     "player": "3.4.4",
     "username": "die4it",
     "organization": "die4it",
@@ -26,16 +26,8 @@
             "value": "rgba(0,0,0,0)"
           }
         },
-        "style.transformStyle": {
-          "0": {
-            "value": "flat"
-          }
-        },
-        "style.perspective": {
-          "0": {
-            "value": "none"
-          }
-        },
+        "style.transformStyle": {},
+        "style.perspective": {},
         "style.position": {
           "0": {
             "value": "relative"

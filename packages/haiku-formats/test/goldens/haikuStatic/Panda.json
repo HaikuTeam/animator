@@ -4,7 +4,7 @@
     "type": "haiku",
     "name": "babyphone",
     "relpath": "code/main/code.js",
-    "core": "3.2.8",
+    "core": "3.5.1",
     "player": "3.0.21",
     "version": "0.0.5",
     "organization": "thomaspetrach",
@@ -132,14 +132,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 187.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 63.5
           }
         }
       },
@@ -225,14 +225,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 68.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 51.5
           }
         }
       },
@@ -365,14 +365,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 42.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 42.5
           }
         }
       },
@@ -439,14 +439,14 @@
             "value": 4
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 139
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 120.5
           }
         }
       },
@@ -513,14 +513,14 @@
             "value": 2
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 187.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 68.5
           }
         }
       },
@@ -604,14 +604,14 @@
             "value": 12
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 52
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 43
           }
         }
       },
@@ -687,14 +687,14 @@
             "value": 1
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 50
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 41.5
           }
         }
       },
@@ -1615,14 +1615,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 40
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 83
           }
         }
       },
@@ -2065,14 +2065,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 40
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 18
           }
         }
       },
@@ -2184,9 +2184,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/babyphone.sketch.contents/slices/Rectangle 2.svg",
           "haiku-id": "904e03109c04",
-          "haiku-title": "Rectangle 2"
+          "haiku-title": "Rectangle 2",
+          "haiku-source": "designs/babyphone.sketch.contents/slices/Rectangle 2.svg"
         },
         "children": [
           {
@@ -2214,9 +2214,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/babyphone.sketch.contents/slices/cloud.svg",
           "haiku-id": "d73bd1daafad",
-          "haiku-title": "cloud"
+          "haiku-title": "cloud",
+          "haiku-source": "designs/babyphone.sketch.contents/slices/cloud.svg"
         },
         "children": [
           {
@@ -2349,9 +2349,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/babyphone.sketch.contents/slices/sun.svg",
           "haiku-id": "27892845bdb9",
-          "haiku-title": "sun"
+          "haiku-title": "sun",
+          "haiku-source": "designs/babyphone.sketch.contents/slices/sun.svg"
         },
         "children": [
           {
@@ -2379,9 +2379,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/babyphone.sketch.contents/slices/hills.svg",
           "haiku-id": "bf40e73e7fa2",
-          "haiku-title": "hills"
+          "haiku-title": "hills",
+          "haiku-source": "designs/babyphone.sketch.contents/slices/hills.svg"
         },
         "children": [
           {
@@ -2426,9 +2426,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/babyphone.sketch.contents/slices/hill-2.svg",
           "haiku-id": "40843fa0886a",
-          "haiku-title": "hill-2"
+          "haiku-title": "hill-2",
+          "haiku-source": "designs/babyphone.sketch.contents/slices/hill-2.svg"
         },
         "children": [
           {
@@ -2456,9 +2456,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/babyphone.sketch.contents/slices/cloud2.svg",
           "haiku-id": "5385aad95363",
-          "haiku-title": "cloud2"
+          "haiku-title": "cloud2",
+          "haiku-source": "designs/babyphone.sketch.contents/slices/cloud2.svg"
         },
         "children": [
           {
@@ -2567,9 +2567,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/babyphone.sketch.contents/slices/cloud3.svg",
           "haiku-id": "a267f6fd18e6",
-          "haiku-title": "cloud3"
+          "haiku-title": "cloud3",
+          "haiku-source": "designs/babyphone.sketch.contents/slices/cloud3.svg"
         },
         "children": [
           {
@@ -2678,9 +2678,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/babyphone.sketch.contents/slices/panda.svg",
           "haiku-id": "fc4ea2a8f760",
-          "haiku-title": "panda"
+          "haiku-title": "panda",
+          "haiku-source": "designs/babyphone.sketch.contents/slices/panda.svg"
         },
         "children": [
           {
@@ -2857,9 +2857,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/babyphone.sketch.contents/slices/panda--arms.svg",
           "haiku-id": "dc9e146b5195",
-          "haiku-title": "panda--arms"
+          "haiku-title": "panda--arms",
+          "haiku-source": "designs/babyphone.sketch.contents/slices/panda--arms.svg"
         },
         "children": [
           {

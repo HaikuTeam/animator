@@ -9,7 +9,7 @@
     "organization": "DVSoftware",
     "project": "CoinZeroLoader",
     "branch": "master",
-    "core": "3.2.8"
+    "core": "3.5.1"
   },
   "options": {},
   "states": {},
@@ -198,14 +198,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 26.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 11.5
           }
         }
       },
@@ -346,14 +346,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 26.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 11.5
           }
         }
       },
@@ -482,14 +482,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 26.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 11.5
           }
         }
       },
@@ -619,14 +619,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 26.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 11.5
           }
         }
       },
@@ -755,14 +755,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 26.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 11.5
           }
         }
       },
@@ -891,14 +891,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 26.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 11.5
           }
         }
       },
@@ -1027,14 +1027,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 26.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 11.5
           }
         }
       },
@@ -1163,14 +1163,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 26.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 11.5
           }
         }
       },
@@ -1299,14 +1299,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 26.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 11.5
           }
         }
       },
@@ -1435,14 +1435,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 26.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 11.5
           }
         }
       },
@@ -1571,14 +1571,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 26.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 11.5
           }
         }
       },
@@ -1707,14 +1707,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 26.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 11.5
           }
         }
       },
@@ -1843,14 +1843,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 26.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 11.5
           }
         }
       },
@@ -1979,14 +1979,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 26.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 11.5
           }
         }
       },
@@ -2115,14 +2115,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 26.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 11.5
           }
         }
       },
@@ -2251,14 +2251,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 26.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 11.5
           }
         }
       },
@@ -2387,14 +2387,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 26.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 11.5
           }
         }
       },
@@ -2523,14 +2523,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 26.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 11.5
           }
         }
       },
@@ -2659,14 +2659,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 26.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 11.5
           }
         }
       },
@@ -2795,14 +2795,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 26.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 11.5
           }
         }
       },
@@ -2931,14 +2931,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 26.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 11.5
           }
         }
       },
@@ -3067,14 +3067,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 26.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 11.5
           }
         }
       },
@@ -3178,14 +3178,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 110
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 111.5
           }
         }
       },
@@ -3240,9 +3240,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg",
           "haiku-id": "cbb10c3ccfb1",
-          "haiku-title": "Fill"
+          "haiku-title": "Fill",
+          "haiku-source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg"
         },
         "children": [
           {
@@ -3279,9 +3279,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg",
           "haiku-id": "a32af052471a",
-          "haiku-title": "Fill"
+          "haiku-title": "Fill",
+          "haiku-source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg"
         },
         "children": [
           {
@@ -3318,9 +3318,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg",
           "haiku-id": "89043b0f5daa",
-          "haiku-title": "Fill"
+          "haiku-title": "Fill",
+          "haiku-source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg"
         },
         "children": [
           {
@@ -3357,9 +3357,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg",
           "haiku-id": "331f980d9336",
-          "haiku-title": "Fill"
+          "haiku-title": "Fill",
+          "haiku-source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg"
         },
         "children": [
           {
@@ -3396,9 +3396,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg",
           "haiku-id": "9e1894c3e003",
-          "haiku-title": "Fill"
+          "haiku-title": "Fill",
+          "haiku-source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg"
         },
         "children": [
           {
@@ -3435,9 +3435,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg",
           "haiku-id": "6acdf8107d43",
-          "haiku-title": "Fill"
+          "haiku-title": "Fill",
+          "haiku-source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg"
         },
         "children": [
           {
@@ -3474,9 +3474,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg",
           "haiku-id": "380f8dec13c2",
-          "haiku-title": "Fill"
+          "haiku-title": "Fill",
+          "haiku-source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg"
         },
         "children": [
           {
@@ -3513,9 +3513,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg",
           "haiku-id": "2180baaadeac",
-          "haiku-title": "Fill"
+          "haiku-title": "Fill",
+          "haiku-source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg"
         },
         "children": [
           {
@@ -3552,9 +3552,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg",
           "haiku-id": "f9833973caa1",
-          "haiku-title": "Fill"
+          "haiku-title": "Fill",
+          "haiku-source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg"
         },
         "children": [
           {
@@ -3591,9 +3591,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg",
           "haiku-id": "48409519f860",
-          "haiku-title": "Fill"
+          "haiku-title": "Fill",
+          "haiku-source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg"
         },
         "children": [
           {
@@ -3630,9 +3630,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg",
           "haiku-id": "e489439941e2",
-          "haiku-title": "Fill"
+          "haiku-title": "Fill",
+          "haiku-source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg"
         },
         "children": [
           {
@@ -3669,9 +3669,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg",
           "haiku-id": "eb42673053c3",
-          "haiku-title": "Fill"
+          "haiku-title": "Fill",
+          "haiku-source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg"
         },
         "children": [
           {
@@ -3708,9 +3708,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg",
           "haiku-id": "d20c63fb1a73",
-          "haiku-title": "Fill"
+          "haiku-title": "Fill",
+          "haiku-source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg"
         },
         "children": [
           {
@@ -3747,9 +3747,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg",
           "haiku-id": "0fd0959a0c3b",
-          "haiku-title": "Fill"
+          "haiku-title": "Fill",
+          "haiku-source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg"
         },
         "children": [
           {
@@ -3786,9 +3786,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg",
           "haiku-id": "9f85a8ed0d86",
-          "haiku-title": "Fill"
+          "haiku-title": "Fill",
+          "haiku-source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg"
         },
         "children": [
           {
@@ -3825,9 +3825,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg",
           "haiku-id": "21dca50a3bac",
-          "haiku-title": "Fill"
+          "haiku-title": "Fill",
+          "haiku-source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg"
         },
         "children": [
           {
@@ -3864,9 +3864,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg",
           "haiku-id": "9b0d797a7af7",
-          "haiku-title": "Fill"
+          "haiku-title": "Fill",
+          "haiku-source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg"
         },
         "children": [
           {
@@ -3903,9 +3903,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg",
           "haiku-id": "ad7a9ca9e3d6",
-          "haiku-title": "Fill"
+          "haiku-title": "Fill",
+          "haiku-source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg"
         },
         "children": [
           {
@@ -3942,9 +3942,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg",
           "haiku-id": "13322f25a3d9",
-          "haiku-title": "Fill"
+          "haiku-title": "Fill",
+          "haiku-source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg"
         },
         "children": [
           {
@@ -3981,9 +3981,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg",
           "haiku-id": "3269fa7a16fd",
-          "haiku-title": "Fill"
+          "haiku-title": "Fill",
+          "haiku-source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg"
         },
         "children": [
           {
@@ -4020,9 +4020,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg",
           "haiku-id": "70332527c84b",
-          "haiku-title": "Fill"
+          "haiku-title": "Fill",
+          "haiku-source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg"
         },
         "children": [
           {
@@ -4059,9 +4059,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg",
           "haiku-id": "5ae804a93a5f",
-          "haiku-title": "Fill"
+          "haiku-title": "Fill",
+          "haiku-source": "designs/CoinZeroLoader.sketch.contents/slices/Fill.svg"
         },
         "children": [
           {
@@ -4098,9 +4098,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/CoinZeroLoader.sketch.contents/slices/Background.svg",
           "haiku-id": "a32f03c670fd",
-          "haiku-title": "Background"
+          "haiku-title": "Background",
+          "haiku-source": "designs/CoinZeroLoader.sketch.contents/slices/Background.svg"
         },
         "children": [
           {

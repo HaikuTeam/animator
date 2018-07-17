@@ -4,7 +4,7 @@
     "type": "haiku",
     "name": "AirTime",
     "relpath": "code/main/code.js",
-    "core": "3.2.16",
+    "core": "3.5.1",
     "version": "0.0.3",
     "player": "3.2.16",
     "organization": "moejoederek",
@@ -22,16 +22,8 @@
             "value": "rgba(0,0,0,0)"
           }
         },
-        "style.transformStyle": {
-          "0": {
-            "value": "flat"
-          }
-        },
-        "style.perspective": {
-          "0": {
-            "value": "none"
-          }
-        },
+        "style.transformStyle": {},
+        "style.perspective": {},
         "style.position": {
           "0": {
             "value": "relative"
@@ -1562,9 +1554,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/AirTime.sketch.contents/slices/Shape 6.svg",
           "haiku-id": "b2ce93fe7913",
-          "haiku-title": "Shape 6"
+          "haiku-title": "Shape 6",
+          "haiku-source": "designs/AirTime.sketch.contents/slices/Shape 6.svg"
         },
         "children": [
           {
@@ -1628,9 +1620,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/AirTime.sketch.contents/slices/Shape 5.svg",
           "haiku-id": "19515b3ee818",
-          "haiku-title": "Shape 5"
+          "haiku-title": "Shape 5",
+          "haiku-source": "designs/AirTime.sketch.contents/slices/Shape 5.svg"
         },
         "children": [
           {
@@ -1694,9 +1686,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/AirTime.sketch.contents/slices/Shape 4.svg",
           "haiku-id": "1c5cdb5ff687",
-          "haiku-title": "Shape 4"
+          "haiku-title": "Shape 4",
+          "haiku-source": "designs/AirTime.sketch.contents/slices/Shape 4.svg"
         },
         "children": [
           {
@@ -1760,9 +1752,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/AirTime.sketch.contents/slices/Shape 3.svg",
           "haiku-id": "67913e90b869",
-          "haiku-title": "Shape 3"
+          "haiku-title": "Shape 3",
+          "haiku-source": "designs/AirTime.sketch.contents/slices/Shape 3.svg"
         },
         "children": [
           {
@@ -1826,9 +1818,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/AirTime.sketch.contents/slices/Shape 2.svg",
           "haiku-id": "73a7b1ce4bb9",
-          "haiku-title": "Shape 2"
+          "haiku-title": "Shape 2",
+          "haiku-source": "designs/AirTime.sketch.contents/slices/Shape 2.svg"
         },
         "children": [
           {
@@ -1892,9 +1884,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/AirTime.sketch.contents/slices/Shape.svg",
           "haiku-id": "da85046f9b31",
-          "haiku-title": "Shape"
+          "haiku-title": "Shape",
+          "haiku-source": "designs/AirTime.sketch.contents/slices/Shape.svg"
         },
         "children": [
           {
@@ -1958,9 +1950,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/AirTime.sketch.contents/slices/Satellite.svg",
           "haiku-id": "4df5185dabba",
-          "haiku-title": "Satellite"
+          "haiku-title": "Satellite",
+          "haiku-source": "designs/AirTime.sketch.contents/slices/Satellite.svg"
         },
         "children": [
           {
@@ -2046,9 +2038,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/AirTime.sketch.contents/slices/if_satellite_2981831.svg",
           "haiku-id": "d084502d5d66",
-          "haiku-title": "if_satellite_2981831"
+          "haiku-title": "if_satellite_2981831",
+          "haiku-source": "designs/AirTime.sketch.contents/slices/if_satellite_2981831.svg"
         },
         "children": [
           {

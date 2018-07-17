@@ -3,7 +3,7 @@ module.exports = {
   metadata: {
     folder: "/Users/dsiegel/.haiku/projects/moejoederek/rvscam2",
     uuid: "c9af97fc-057b-4b85-81ff-25d8b01f223d",
-    core: "3.4.4",
+    core: "3.5.1",
     player: "3.4.4",
     username: "derek@mav.farm",
     organization: "moejoederek",
@@ -21,9 +21,9 @@ module.exports = {
     Default: {
       "haiku:e4a9e4d8baa7": {
         "style.WebkitTapHighlightColor": { "0": { value: "rgba(0,0,0,0)" } },
-	"style.backgroundColor": { "0": { value: "rgb(0,0,0)" } },
-        "style.transformStyle": { "0": { value: "flat" } },
-        "style.perspective": { "0": { value: "none" } },
+        "style.backgroundColor": { "0": { value: "rgb(0,0,0)" } },
+        "style.transformStyle": {},
+        "style.perspective": {},
         "style.position": { "0": { value: "relative" } },
         "style.overflowX": { "0": { value: "hidden" } },
         "style.overflowY": { "0": { value: "hidden" } },
@@ -65,15 +65,15 @@ module.exports = {
       },
       "haiku:17a5e64458ac": {
         stroke: { "0": { value: "none" } },
-        "strokeWidth": { "0": { value: "1" } },
+        strokeWidth: { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fillRule": { "0": { value: "evenodd" } },
-        "strokeLinecap": { "0": { value: "round" } },
-        "strokeLinejoin": { "0": { value: "round" } }
+        fillRule: { "0": { value: "evenodd" } },
+        strokeLinecap: { "0": { value: "round" } },
+        strokeLinejoin: { "0": { value: "round" } }
       },
       "haiku:71314da0da10": {
         stroke: { "0": { value: "#FFFFFF" } },
-        "strokeWidth": { "0": { value: "1.5" } },
+        strokeWidth: { "0": { value: "1.5" } },
         "translation.x": { "0": { value: -8 } },
         "translation.y": { "0": { value: -6 } }
       },
@@ -103,15 +103,15 @@ module.exports = {
       },
       "haiku:cf77baef819c": {
         stroke: { "0": { value: "none" } },
-        "strokeWidth": { "0": { value: "1" } },
+        strokeWidth: { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fillRule": { "0": { value: "evenodd" } },
-        "strokeLinecap": { "0": { value: "round" } },
-        "strokeLinejoin": { "0": { value: "round" } }
+        fillRule: { "0": { value: "evenodd" } },
+        strokeLinecap: { "0": { value: "round" } },
+        strokeLinejoin: { "0": { value: "round" } }
       },
       "haiku:baf58cbb335c": {
         stroke: { "0": { value: "#FFFFFF" } },
-        "strokeWidth": { "0": { value: "1.5" } },
+        strokeWidth: { "0": { value: "1.5" } },
         "translation.x": { "0": { value: 1 } },
         "translation.y": { "0": { value: 1 } }
       },

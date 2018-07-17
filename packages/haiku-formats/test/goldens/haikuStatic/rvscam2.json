@@ -2,7 +2,7 @@
   "metadata": {
     "folder": "/Users/dsiegel/.haiku/projects/moejoederek/rvscam2",
     "uuid": "c9af97fc-057b-4b85-81ff-25d8b01f223d",
-    "core": "3.4.4",
+    "core": "3.5.1",
     "player": "3.4.4",
     "username": "derek@mav.farm",
     "organization": "moejoederek",
@@ -29,16 +29,8 @@
             "value": "rgb(0,0,0)"
           }
         },
-        "style.transformStyle": {
-          "0": {
-            "value": "flat"
-          }
-        },
-        "style.perspective": {
-          "0": {
-            "value": "none"
-          }
-        },
+        "style.transformStyle": {},
+        "style.perspective": {},
         "style.position": {
           "0": {
             "value": "relative"
