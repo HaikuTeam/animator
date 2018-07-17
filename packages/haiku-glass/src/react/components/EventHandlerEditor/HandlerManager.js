@@ -37,17 +37,15 @@ class HandlerManager {
   serialize () {
     const result = {};
 
-    /* eslint-disable no-unused-vars */
-    for (const [event, {id, handler}] of this.appliedEventHandlers) {
+    this.appliedEventHandlers.forEach(({handler}, event) => {
       // Only save events with a handler length, in this way we support
-      // deletion of events by empty body funcitons
+      // deletion of events by empty body functions.
       if (handler.body.length) {
         result[event] = {handler: {__function: handler}};
       }
 
       this.element.setEventHandlerSaveStatus(event, true);
-    }
-    /* eslint-enable no-unused-vars */
+    });
 
     return result;
   }
@@ -100,11 +98,11 @@ class HandlerManager {
   userVisibleEvents () {
     const result = [];
 
-    for (const [event, {id, handler}] of this.appliedEventHandlers) {
+    this.appliedEventHandlers.forEach(({id, handler}, event) => {
       if (!this._isTimelineEvent(event)) {
         result.push({id, event, handler});
       }
-    }
+    });
 
     return result;
   }
