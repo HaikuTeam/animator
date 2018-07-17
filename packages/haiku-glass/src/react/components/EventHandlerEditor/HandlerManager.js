@@ -13,7 +13,6 @@ class HandlerManager {
     this.element = element;
     this.applicableEventHandlers = element.getApplicableEventHandlerOptionsList();
     this.appliedEventHandlers = this._getParsedAppliedHandlers(element);
-    this.applicableEventHandlersList = this._applicableEventHandlersToList();
   }
 
   /**
@@ -37,17 +36,15 @@ class HandlerManager {
   serialize () {
     const result = {};
 
-    /* eslint-disable no-unused-vars */
-    for (const [event, {id, handler}] of this.appliedEventHandlers) {
+    this.appliedEventHandlers.forEach(({handler}, event) => {
       // Only save events with a handler length, in this way we support
-      // deletion of events by empty body funcitons
+      // deletion of events by empty body functions.
       if (handler.body.length) {
         result[event] = {handler: {__function: handler}};
       }
 
       this.element.setEventHandlerSaveStatus(event, true);
-    }
-    /* eslint-enable no-unused-vars */
+    });
 
     return result;
   }
@@ -62,15 +59,6 @@ class HandlerManager {
     return this.appliedEventHandlers.has(event)
       ? this.appliedEventHandlers.get(event)
       : this._addEventHandler(event).get(event);
-  }
-
-  /**
-   * Finds an event not applied yet to the current element and adds a default
-   * listener to it.
-   */
-  addNextAvailableEventHandler () {
-    const event = this.getNextAvailableDOMEvent();
-    this._addEventHandler(event);
   }
 
   /**
@@ -100,11 +88,11 @@ class HandlerManager {
   userVisibleEvents () {
     const result = [];
 
-    for (const [event, {id, handler}] of this.appliedEventHandlers) {
+    this.appliedEventHandlers.forEach(({id, handler}, event) => {
       if (!this._isTimelineEvent(event)) {
         result.push({id, event, handler});
       }
-    }
+    });
 
     return result;
   }
@@ -141,17 +129,6 @@ class HandlerManager {
   }
 
   /**
-   * Finds an event that hasn't been applied to the element
-   */
-  getNextAvailableDOMEvent () {
-    for (const event of this.applicableEventHandlersList) {
-      if (!this.appliedEventHandlers.has(event)) {
-        return event;
-      }
-    }
-  }
-
-  /**
    * Adds an event with a default handler to an element
    *
    * @param {String} event
@@ -163,18 +140,6 @@ class HandlerManager {
       id: this._generateID(),
       handler,
     });
-  }
-
-  _applicableEventHandlersToList () {
-    const result = [];
-
-    for (const handlerGroup of this.applicableEventHandlers) {
-      for (const {value} of handlerGroup.options) {
-        result.push(value);
-      }
-    }
-
-    return result;
   }
 
   /**

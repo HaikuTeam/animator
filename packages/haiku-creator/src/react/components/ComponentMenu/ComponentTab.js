@@ -11,9 +11,8 @@ const STYLES = {
     maxWidth: '400px',
     minWidth: '80px',
     height: '100%',
-    margin: '0 auto',
+    margin: '0 1px 0 auto',
     verticalAlign: 'top',
-    marginRight: '1px',
   },
   tab: {
     position: 'relative',
