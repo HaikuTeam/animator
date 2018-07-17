@@ -85,7 +85,6 @@ class Library extends React.Component {
       isLoading: false,
       figma: null,
       sketchDownloader: {
-        asset: null,
         isVisible: false,
         shouldAskForSketch: !didAskedForSketch(),
       },
@@ -95,12 +94,18 @@ class Library extends React.Component {
     this.handleAssetDeletion = this.handleAssetDeletion.bind(this);
     this.importFigmaAsset = this.importFigmaAsset.bind(this);
     this.askForFigmaAuth = this.askForFigmaAuth.bind(this);
+    this.onSketchDialogDismiss = this.onSketchDialogDismiss.bind(this);
 
     // Debounced to avoid 'flicker' when multiple updates are received quickly
     this.handleAssetsChanged = lodash.debounce(this.handleAssetsChanged.bind(this), 250);
 
     this.broadcastListener = this.broadcastListener.bind(this);
     this.onAuthCallback = this.onAuthCallback.bind(this);
+
+    // We call this here because this is an expensive operation and we want to avoid
+    // executing it when the user tries to open a Sketch file. This first call
+    // sets a cache in the module so further calls are very quick.
+    sketchUtils.checkIfInstalled();
   }
 
   broadcastListener ({name, assets, data}) {
@@ -122,10 +127,6 @@ class Library extends React.Component {
 
     this.props.websocket.on('broadcast', this.broadcastListener);
     ipcRenderer.on('open-url:oauth', this.onAuthCallback);
-
-    sketchUtils.checkIfInstalled().then((sketchInstallationPath) => {
-      this.isSketchInstalled = Boolean(sketchInstallationPath);
-    });
 
     // TODO: perform an actual check for Illustrator
     this.isIllustratorInstalled = true;
@@ -270,14 +271,16 @@ class Library extends React.Component {
   }
 
   handleSketchLaunch (asset) {
-    if (this.isSketchInstalled) {
-      mixpanel.haikuTrack('creator:sketch:open-file');
-      openWithDefaultProgram(asset);
-    // On library Sketch asset double click, ask to download Sketch only if on mac
-    } else if (isMac()) {
-      mixpanel.haikuTrack('creator:sketch:sketch-not-installed');
-      this.setState({sketchDownloader: {...this.state.sketchDownloader, isVisible: true, asset}});
-    }
+    sketchUtils.checkIfInstalled().then((isSketchInstalled) => {
+      if (isSketchInstalled) {
+        mixpanel.haikuTrack('creator:sketch:open-file');
+        openWithDefaultProgram(asset);
+        // On library Sketch asset double click, ask to download Sketch only if on mac
+      } else if (isMac()) {
+        mixpanel.haikuTrack('creator:sketch:sketch-not-installed');
+        this.setState({sketchDownloader: {...this.state.sketchDownloader, isVisible: true}});
+      }
+    });
   }
 
   handleIllustratorLaunch (asset) {
@@ -296,14 +299,9 @@ class Library extends React.Component {
     }
   }
 
-  onSketchDownloadComplete () {
-    this.isSketchInstalled = true;
-    openWithDefaultProgram(this.state.sketchDownloader.asset);
-    this.setState({sketchDownloader: {...this.state.sketchDownloader, isVisible: false, asset: null}});
-  }
-
   onSketchDialogDismiss (shouldAskForSketch) {
-    this.setState({sketchDownloader: {...this.state.sketchDownloader, isVisible: false, shouldAskForSketch}});
+    this.setState({sketchDownloader: {isVisible: false, shouldAskForSketch}});
+    sketchUtils.unsetSketchInstalledCache();
   }
 
   handleComponent (asset) {
@@ -374,11 +372,13 @@ class Library extends React.Component {
 
   shouldDisplayAssetCreator () {
     const designsFolder = this.state.assets.find((asset) => asset.isDesignsHostFolder());
+    const componentshostFolder = this.state.assets.find((asset) => asset.isComponentsHostFolder());
 
     return (
       experimentIsEnabled(Experiment.CleanInitialLibraryState) &&
       designsFolder &&
       designsFolder.getChildAssets().length === 0 &&
+      componentshostFolder.getChildAssets().length === 0 &&
       !this.state.isLoading
     );
   }
@@ -441,8 +441,7 @@ class Library extends React.Component {
           this.state.sketchDownloader.isVisible &&
           this.state.sketchDownloader.shouldAskForSketch && (
             <SketchDownloader
-              onDownloadComplete={this.onSketchDownloadComplete.bind(this)}
-              onDismiss={this.onSketchDialogDismiss.bind(this)}
+              onDismiss={this.onSketchDialogDismiss}
             />
           )
         }
