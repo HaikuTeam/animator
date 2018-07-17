@@ -31,6 +31,7 @@ import scaleCursorMana from '../overlays/scaleCursorMana';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import {isMac} from 'haiku-common/lib/environments/os';
 import directSelectionMana from '../overlays/directSelectionMana';
+import Transitions from '@haiku/core/lib/Transitions';
 import {
   DEFAULT_LINE_SELECTION_THRESHOLD,
   isPointInsidePrimitive,
@@ -845,6 +846,28 @@ export class Glass extends React.Component {
     );
   }
 
+  interpolateAttributesAtKeyframes (el, attributes) {
+    const curKeys = {};
+    const uniqueMs = {};
+    for (const i in attributes) {
+      curKeys[attributes[i]] = el.getPropertyKeyframesObject(attributes[i]);
+      for (const ms in curKeys[attributes[i]]) {
+        uniqueMs[ms] = true;
+      }
+    }
+
+    // Find the value of every attribute at every unique ms
+    const uniqueInterpolatedKeys = {};
+    for (const i in attributes) {
+      uniqueInterpolatedKeys[attributes[i]] = {};
+      for (const ms in uniqueMs) {
+        uniqueInterpolatedKeys[attributes[i]][ms] = Transitions.calculateValue(curKeys[attributes[i]], ms);
+      }
+    }
+
+    return uniqueInterpolatedKeys;
+  }
+
   handleUndo (payload) {
     if (this.project) {
       mixpanel.haikuTrack('creator:glass:undo');
@@ -1519,6 +1542,7 @@ export class Glass extends React.Component {
                   };
                 };
 
+                const originalEl = Element.findByComponentAndHaikuId(this.getActiveComponent(), Element.directlySelected.attributes['haiku-id']);
                 switch (Element.directlySelected.type) {
                   case 'rect': {
                     const r = Element.directlySelected.attributes;
@@ -1559,26 +1583,17 @@ export class Glass extends React.Component {
                     break;
                   }
                   case 'circle': {
-                    const r = Element.directlySelected.attributes;
-                    const points = SVGPoints.circleToPoints(Number(r.cx), Number(r.cy), Number(r.r));
+                    const newKeys = this.interpolateAttributesAtKeyframes(originalEl, ['r', 'cx', 'cy']);
+                    const pathKeys = {d: {}, r: {}, cx: {}, cy: {}};
+                    for (const ms in newKeys.r) {
+                      pathKeys.d[ms] = {value: SVGPoints.circleToPoints(Number(newKeys.cx[ms]), Number(newKeys.cy[ms]), Number(newKeys.r[ms]))};
+                      pathKeys.r[ms] = null;
+                      pathKeys.cx[ms] = null;
+                      pathKeys.cy[ms] = null;
+                    }
                     this.getActiveComponent().updateKeyframesAndTypes({
                       [this.getActiveComponent().getCurrentTimelineName()]: {
-                        [Element.directlySelected.attributes['haiku-id']]: {
-                          d: {
-                            0: {
-                              value: SVGPoints.pointsToPath(points),
-                            },
-                          },
-                          cx: {
-                            0: null,
-                          },
-                          cy: {
-                            0: null,
-                          },
-                          r: {
-                            0: null,
-                          },
-                        },
+                        [Element.directlySelected.attributes['haiku-id']]: pathKeys,
                       },
                     },
                       {
