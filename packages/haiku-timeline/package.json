@@ -42,7 +42,7 @@
     "strip-indent": "^2.0.0"
   },
   "devDependencies": {
-    "electron": "2.0.2",
+    "electron": "2.0.4",
     "haiku-testing": "3.5.1",
     "jsdom": "^11.1.0"
   }
