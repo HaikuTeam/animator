@@ -501,7 +501,6 @@ export type CurveFunction = ((offset: number) => number);
 export type CurveDefinition = Curve|CurveFunction|number[];
 
 export interface ParsedValueCluster {
-  __sorted?: boolean;
   [ms: number]: {
     expression?: boolean;
     value?: any;
