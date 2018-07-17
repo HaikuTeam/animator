@@ -268,12 +268,6 @@ export const manaFlattenTree = (node, options, unique = true, list = [], depth =
     if (Array.isArray(children)) {
       const copies = children.slice(0);
 
-      // Ensure snapshotted children are included such that transcluded nodes are still subject
-      // to property application, e.g. going from repeat=0 to repeat=1
-      if (node.__children) {
-        copies.push.apply(copies, node.__children);
-      }
-
       // Without this, we'll have an infinite loop since the source child appears in both the
       // original children and the snapshotted children arrays.
       uniq(copies);
@@ -562,7 +556,7 @@ export const cloneNodeShallow = (node) => {
   }
 
   return {
-    // We want to keep __parent, __repeat, etc.,
+    // We want to keep __parent, etc.,
     // as well as elementName, which could be byteocde,
     // unchanged.
     ...node,

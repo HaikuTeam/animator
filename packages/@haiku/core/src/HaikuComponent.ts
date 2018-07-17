@@ -520,10 +520,6 @@ export default class HaikuComponent extends HaikuElement {
     return this.context.getClock();
   }
 
-  getTemplate (): any {
-    return this.bytecode.template;
-  }
-
   getTimelines () {
     return this.cacheFetch('getTimelines', () => {
       return this.fetchTimelines();
@@ -912,20 +908,15 @@ export default class HaikuComponent extends HaikuElement {
   performFullFlushRenderWithRenderer (renderer, options: any = {}) {
     this.context.getContainer(true); // Force recalc of container
 
-    const tree = this.render(options);
+    // Untyped code paths downstream depend on the output of this method
+    renderer.render(
+      this.container,
+      this.render(options),
+      this,
+    );
 
     // Since we just produced a full tree, we don't need a further full flush.
     this.unmarkForFullFlush();
-
-    // Undefined signals there is no update to be made
-    if (tree !== undefined) {
-      // Untyped code paths downstream depend on the output of this method
-      return renderer.render(
-        this.container,
-        tree,
-        this,
-      );
-    }
   }
 
   performPatchRenderWithRenderer (renderer, options: any = {}, skipCache: boolean) {
@@ -933,25 +924,15 @@ export default class HaikuComponent extends HaikuElement {
       this.context.getContainer(true); // Force recalc of container
     }
 
-    const deltas = this.patch(options, skipCache);
-
     renderer.patch(
       this,
-      deltas,
+      this.patch(options, skipCache),
     );
-
-    // If any node was set to full flush before this update, we unset it to avoid
-    // unnecessary re-rendering on subsequent deltas
-    for (const flexId in deltas) {
-      if (deltas[flexId].__flush) {
-        deltas[flexId].__flush = false;
-      }
-    }
 
     for (const $id in this.guests) {
       const guest = this.guests[$id];
 
-      if (guest.shouldPerformFullFlush()) {
+      if (guest.shouldPerformFullFlush() && guest.target) {
         guest.performFullFlushRenderWithRenderer(
           renderer,
           options,
@@ -981,8 +962,8 @@ export default class HaikuComponent extends HaikuElement {
 
     this.clearCaches();
 
-    expandTreeNode(
-      this.getTemplate(), // node
+    expandTemplate(
+      this.bytecode.template, // node
       this.container, // parent
       this, // instance (component)
       this.context,
@@ -991,10 +972,10 @@ export default class HaikuComponent extends HaikuElement {
       true, // doConnectInstanceToNode
     );
 
-    // TODO: Can we roll this work into expandTreeNode instead of doing it after?
-    scopifyElements(this.getTemplate(), null, null);
+    // TODO: Can we roll this work into expandTemplate instead of doing it after?
+    scopifyElements(this.bytecode.template, null, null);
 
-    Layout3D.initializeTreeAttributes(this.getTemplate(), true);
+    Layout3D.initializeTreeAttributes(this.bytecode.template, true);
 
     this.applyBehaviors(
       null,
@@ -1040,21 +1021,18 @@ export default class HaikuComponent extends HaikuElement {
 
     if (!this.host && options.sizing) {
       computeAndApplyPresetSizing(
-        this.getTemplate(),
+        this.bytecode.template,
         this.container,
         options.sizing,
-        null,
       );
     }
 
     computeAndApplyTreeLayouts(
-      this.getTemplate(),
+      this.bytecode.template,
       this.container,
-      options,
-      this.context,
     );
 
-    return this.getTemplate();
+    return this.bytecode.template;
   }
 
   patch (options: any = {}, skipCache = false) {
@@ -1063,13 +1041,13 @@ export default class HaikuComponent extends HaikuElement {
       return {};
     }
 
-    Layout3D.initializeTreeAttributes(this.getTemplate(), true);
+    Layout3D.initializeTreeAttributes(this.bytecode.template, true);
 
     // This is what we're going to return: a dictionary of composite ids (flexId-repeatIndex) to elements
-    const deltas = {};
+    const deltasOut = {};
 
     this.applyBehaviors(
-      deltas,
+      deltasOut,
       options,
       true, // isPatchOperation
       skipCache,
@@ -1081,28 +1059,25 @@ export default class HaikuComponent extends HaikuElement {
     }
 
     if (!this.host && options.sizing) {
-      computeAndApplyPresetSizing(
-        this.getTemplate(),
+      const didSizingChange = computeAndApplyPresetSizing(
+        this.bytecode.template,
         this.container,
         options.sizing,
-        deltas,
       );
+
+      if (didSizingChange) {
+        deltasOut[this.bytecode.template.attributes[HAIKU_ID_ATTRIBUTE]] = this.bytecode.template;
+      }
     }
 
-    // TODO: Calculating the tree layout should be skipped for already visited node
-    // that we have already calculated among the descendants of the changed one
-    for (const compositeId in deltas) {
-      const changedNode = deltas[compositeId];
-
+    for (const compositeId in deltasOut) {
       computeAndApplyTreeLayouts(
-        changedNode,
-        changedNode.__parent,
-        options,
-        this.context,
+        deltasOut[compositeId], // node
+        deltasOut[compositeId].__parent, // parent
       );
     }
 
-    return deltas;
+    return deltasOut;
   }
 
   applyBehaviors (
@@ -1201,15 +1176,7 @@ export default class HaikuComponent extends HaikuElement {
 
                 // If even one change has been applied, the element must be patched
                 if (deltas) {
-                  const parentElement = matchingElement.__parent;
-
-                  // Some behaviors require that we flush the parent, i.e. for structure changes.
-                  if (parentElement && parentElement.__flush) {
-                    deltas[getNodeCompositeId(parentElement)] = parentElement;
-                  } else {
-                    // The parent's flush should flush the child so we only do this if no parent flush.
-                    deltas[compositeId] = matchingElement;
-                  }
+                  deltas[compositeId] = matchingElement;
                 }
               }
             }
@@ -1269,7 +1236,7 @@ export default class HaikuComponent extends HaikuElement {
   findMatchingElementsByCssSelector (selector: string) {
     return this.cacheFetch(`findMatchingElementsByCssSelector:${selector}`, () => {
       return cssQueryTree(
-        this.getTemplate(),
+        this.bytecode.template,
         selector,
         CSS_QUERY_MAPPING,
       );
@@ -1976,8 +1943,8 @@ const getNodeFlexId = (node): string => {
 const getNodeCompositeId = (node): string => {
   const flexId = getNodeFlexId(node);
 
-  return (node.__repeat)
-    ? `${flexId}'${node.__repeat.index}`
+  return (node.__repeatee)
+    ? `${flexId}'${node.__repeatee.index}`
     : flexId;
 };
 
@@ -2135,31 +2102,7 @@ const propertyGroupNeedsExpressionEvaluated = (
   return foundExpressionForTime;
 };
 
-const reconnectSnapshotChildrenAndRenderedChildren = (node) => {
-  if (!node.__children || !node.children) {
-    return;
-  }
-
-  const children = [];
-
-  for (let i = 0; i < node.children.length; i++) {
-    const rendered = node.children[i];
-
-    // Only the first node in the repeat collection is the original one
-    if (rendered.__repeat && rendered.__repeat.index > 0) {
-      continue;
-    }
-
-    // At this point we should only have a node which is either the original node,
-    // without any repeat characteristics, or a repeat node which is the first in
-    // the repeat collection.
-    children.push(rendered);
-  }
-
-  node.__children = children;
-};
-
-function expandTreeNode (
+const expandTemplate = (
   node,
   parent,
   component: HaikuComponent,
@@ -2167,7 +2110,7 @@ function expandTreeNode (
   host: HaikuComponent,
   options: any = {},
   doConnectInstanceToNode: boolean,
-) {
+) => {
   // Nothing to expand if the node happens to be text or unexpected type
   if (!node || typeof node !== 'object') {
     return;
@@ -2220,7 +2163,7 @@ function expandTreeNode (
   if (typeof node.elementName === STRING_TYPE) {
     if (node.children) {
       for (let i = 0; i < node.children.length; i++) {
-        expandTreeNode(
+        expandTemplate(
           node.children[i], // node
           node, // parent
           component, // instance (component)
@@ -2229,17 +2172,6 @@ function expandTreeNode (
           options,
           false,
         );
-      }
-
-      if (node.__children) {
-        // If we already have a snapshot of the children, we need to ensure that the
-        // nodes contained therein are still pointers to live rendered nodes as opposed
-        // to nodes that may have been deallocated through editing in Haiku app.
-        reconnectSnapshotChildrenAndRenderedChildren(node);
-      } else {
-        // Store a snapshot of the children such that we can make structural changes,
-        // i.e. controlFlow.repeat, and still compare/restore to the original copy
-        node.__children = node.children.slice(0);
       }
     }
 
@@ -2255,7 +2187,7 @@ function expandTreeNode (
     //         <div root> instance id=2
     //           ...
     if (!node.__subcomponent) {
-      // Note: .render and thus .expandTree are called by the constructor,
+      // Note: .render and thus .expandTemplate are called by the constructor,
       // automatically connecting the root node to itself (see stanza above).
       node.__subcomponent = new HaikuComponent(
         node.elementName,
@@ -2283,9 +2215,9 @@ function expandTreeNode (
       }
     }
 
-    // Note that render gets called after expandTreeNode (see HaikuComponent#render).
+    // Note that render gets called after expandTemplate (see HaikuComponent#render).
     // Since render mutates the template in place, it's safe to use it as a subtree here.
-    const subtree = node.__subcomponent.getTemplate();
+    const subtree = node.__subcomponent.bytecode.template;
     if (subtree) {
       node.children = [subtree];
     }
@@ -2295,25 +2227,25 @@ function expandTreeNode (
 
   // In case we got a __reference node or other unknown
   console.warn('[haiku core] cannot expand node');
-}
+};
 
-function computeAndApplyTreeLayouts (tree, container, options, context) {
-  if (!tree || typeof tree === 'string') {
-    return void 0;
+const computeAndApplyTreeLayouts = (tree, container) => {
+  if (!tree || typeof tree !== 'object') {
+    return;
   }
 
   computeAndApplyNodeLayout(tree, container);
 
   if (!tree.children || tree.children.length < 1) {
-    return void 0;
+    return;
   }
 
   for (let i = 0; i < tree.children.length; i++) {
-    computeAndApplyTreeLayouts(tree.children[i], tree, options, context);
+    computeAndApplyTreeLayouts(tree.children[i], tree);
   }
-}
+};
 
-function computeAndApplyNodeLayout (node, parent) {
+const computeAndApplyNodeLayout = (node, parent) => {
   // No point proceeding if our parent node doesn't have a computed layout
   if (parent && parent.layout && parent.layout.computed) {
     // Don't assume the node has/needs a layout, for example, control-flow injectees
@@ -2324,7 +2256,7 @@ function computeAndApplyNodeLayout (node, parent) {
       );
     }
   }
-}
+};
 
 const ensure3dPreserved = (component, node) => {
   if (!node || !node.attributes || !node.attributes.style) {
@@ -2341,7 +2273,7 @@ const ensure3dPreserved = (component, node) => {
   }
 };
 
-function computeAndApplyPresetSizing (element, container, mode, deltas) {
+const computeAndApplyPresetSizing = (element, container, mode): boolean => {
   const elementWidth = element.layout.sizeAbsolute.x;
   const elementHeight = element.layout.sizeAbsolute.y;
 
@@ -2481,13 +2413,8 @@ function computeAndApplyPresetSizing (element, container, mode, deltas) {
       break;
   }
 
-  if (changed && deltas) {
-    // Part of the render/update system involves populating a dictionary of per-element updates,
-    // which explains why instead of returning a value here, we assign the updated element.
-    // The 'deltas' dictionary is passed to us from the render functions upstream of here.
-    deltas[element.attributes[HAIKU_ID_ATTRIBUTE]] = element;
-  }
-}
+  return changed;
+};
 
 export interface ClonedFunction {
   (...args: any[]): void;
@@ -2973,102 +2900,63 @@ export const VANITIES = {
         return;
       }
 
-      const parent = element && element.__parent;
-
-      // We can't proceed if there is...:
-      //   - no parent in which to host the repeated children
-      //   - no children array in which to place the repeats
-      //   - no snapshot of the original children from which to derive repeats
-      if (!parent || !parent.children || !parent.__children) {
-        return;
-      }
-
-      if (element.__repeat) {
-        if (element.__repeat.changed) {
-          element.__repeat.changed = false;
-          parent.__flush = true;
+      if (element.__repeater) {
+        if (element.__repeater.changed) {
+          element.__repeater.changed = false;
         } else {
           // Save CPU by avoiding recomputing a repeat when we've already done so.
           // Although upstream HaikuComponent#applyBehaviors does do diff comparisons,
           // it intentionally skips this comparison for complex properties i.e. arrays
           // and objects due to the intractability of smartly comparing for all cases.
           // We do a comparison that is fairly sensible in the repeat-exclusive case.
-          if (isSameRepeatBehavior(element.__repeat.instructions, instructions)) {
-            if (element.__repeat.instructions.length !== instructions.length) {
-              parent.__flush = true;
-            }
+          if (isSameRepeatBehavior(element.__repeater.instructions, instructions)) {
             return;
           }
         }
+      } else {
+        element.__repeater = {};
       }
 
-      const groups = getGroupedChildren(parent);
+      element.__repeater.instructions = instructions;
 
-      // Clear the existing children which we're going to repopulate with elements
-      parent.children.splice(0);
+      element.__repeater.repeatees = [];
 
-      for (let i = 0; i < groups.length; i++) {
-        const group = groups[i];
+      instructions.forEach((payload, index) => {
+        const repeatee = element.__repeater.repeatees[index] || clone(element, sender);
 
-        // If not our element, just place the groups back in the children
-        if (group.source !== element) {
-          // Don't reinsert an element if the if-answer says it should be transcluded
-          if (isGroupIfBehaviorTrue(group)) {
-            parent.children.push.apply(parent.children, group.elements);
-          }
+        // We have to initialize the element's __instance, etc.
+        expandTemplate(
+          repeatee,
+          parent,
+          sender, // component
+          sender.context, // context
+          sender, // host
+          sender.config, // options
+          false, // doConnectInstanceToNode
+        );
 
-          continue;
+        repeatee.__repeatee = {
+          index,
+          instructions,
+          payload,
+          source: element,
+        };
+
+        // Apply the repeat payload to the element as if it were a normal timeline output
+        for (const propertyName in payload) {
+          // Although we automatically apply properties from the repeat payload as a convenience,
+          // note that control-flow occurs before other behaviors, meaning that if a subsequent
+          // property of the same name is applied, it will override what the repeat payload sets here.
+          sender.applyPropertyToNode(
+            repeatee, // matchingElement
+            propertyName,
+            payload[propertyName], // finalValue
+            timeline,
+          );
         }
 
-        // If our element, create the appropriate repetitions and then push.
-        for (let j = 0; j < instructions.length; j++) {
-          const payload = instructions[j];
-
-          // Reuse the original element at this index if we already have one,
-          // otherwise clone the source element, and initialize a component if necessary
-          if (!group.elements[j]) {
-            group.elements[j] = clone(group.source, sender);
-
-            // We have to initialize the element's __instance, etc.
-            expandTreeNode(
-              group.elements[j],
-              parent,
-              sender, // component
-              sender.context, // context
-              sender, // host
-              sender.config, // options
-              false, // doConnectInstanceToNode
-            );
-          }
-
-          // The repeat information is exposed downstream for programmatic control
-          group.elements[j].__repeat = {
-            instructions,
-            payload,
-            source: element,
-            index: j,
-            collection: group.elements,
-          };
-
-          // Apply the repeat payload to the element as if it were a normal timeline output
-          for (const propertyName in payload) {
-            // Although we automatically apply properties from the repeat payload as a convenience,
-            // note that control-flow occurs before other behaviors, meaning that if a subsequent
-            // property of the same name is applied, it will override what the repeat payload sets here.
-            sender.applyPropertyToNode(
-              group.elements[j], // matchingElement
-              propertyName,
-              payload[propertyName], // finalValue
-              timeline,
-            );
-          }
-
-          // Don't reinsert an element if the if-answer says it should be transcluded
-          if (isGroupIfBehaviorTrue(group)) {
-            parent.children.push(group.elements[j]);
-          }
-        }
-      }
+        element.__repeater.repeatees[index] = repeatee;
+      });
 
       sender.clearCaches();
     },
@@ -3097,91 +2985,18 @@ export const VANITIES = {
         }
       }
 
-      const parent = element && element.__parent;
-
-      // We can't proceed if there is...:
-      //   - no parent in which to host the repeated children
-      //   - no children array in which to place the element
-      //   - no snapshot of the original children from which to derive the element
-      if (!parent || !parent.children || !parent.__children) {
-        return;
-      }
-
       element.__if = {
         answer,
       };
 
       // Ensure that a change in repeat will trigger the necessary re-repeat
-      if (element.__repeat) {
-        element.__repeat.changed = true;
-      }
-
-      parent.__flush = true;
-
-      const groups = getGroupedChildren(parent);
-
-      // Clear the existing children which we're going to repopulate with elements
-      parent.children.splice(0);
-
-      for (let i = 0; i < groups.length; i++) {
-        const group = groups[i];
-
-        // Don't reinsert an element if the if-answer says it should be transcluded
-        if (isGroupIfBehaviorTrue(group)) {
-          parent.children.push.apply(parent.children, group.elements);
-
-          // Ensure we can go from n=0 to n>=1 elements in the list
-          if (parent.children.length < 1) {
-            parent.children.push(element);
-          }
-        }
+      if (element.__repeater) {
+        element.__repeater.changed = true;
       }
 
       sender.clearCaches();
     },
   },
-};
-
-const isGroupIfBehaviorTrue = (group): boolean => {
-  if (!group.source) {
-    return true;
-  }
-
-  if (!group.source.__if) {
-    return true;
-  }
-
-  return group.source.__if.answer !== false;
-};
-
-const getGroupedChildren = (parent) => {
-  return parent.__children.map((source, index) => {
-    const group = {
-      index,
-      source,
-      elements: [],
-    };
-
-    for (let i = 0; i < parent.children.length; i++) {
-      const child = parent.children[i];
-
-      if (child === source) {
-        if (group.elements.indexOf(child) === -1) {
-          group.elements.push(child);
-        }
-        continue;
-      }
-
-      if (child.__repeat && child.__repeat.source === source) {
-        if (group.elements.indexOf(child) === -1) {
-          group.elements.push(child);
-        }
-        continue;
-      }
-    }
-
-    return group;
-  });
 };
 
 const isSameIfBehavior = (prev, next): boolean => {
@@ -3577,7 +3392,7 @@ const getRepeatHostNode = (node) => {
     return;
   }
 
-  if (node.__repeat) {
+  if (node.__repeatee) {
     return node;
   }
 
@@ -3605,12 +3420,11 @@ INJECTABLES.$flow = {
 
     const repeatNode = getRepeatHostNode(node);
 
-    injectees.$flow.repeat = (repeatNode && repeatNode.__repeat) || {
+    injectees.$flow.repeat = (repeatNode && repeatNode.__repeatee) || {
       instructions: [],
       payload: {},
       source: repeatNode,
       index: 0,
-      collection: [repeatNode],
     };
 
     const ifNode = getIfHostNode(node);

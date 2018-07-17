@@ -648,9 +648,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
       // TODO: Fix this hack and make smarter
       const doSkipChildren = (
         isPatchOperation &&
-        (typeof virtualElement.children[0] !== 'string') &&
-        // Flush is a per-node signal to perform a full subtree update, used in controlFlow.*
-        !virtualElement.__flush
+        (typeof virtualElement.children[0] !== 'string')
       );
 
       HaikuDOMRenderer.renderTree(
