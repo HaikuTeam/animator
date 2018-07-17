@@ -1682,7 +1682,7 @@ export class Glass extends React.Component {
                       [this.getActiveComponent().getCurrentTimelineName()]: {
                         [Element.directlySelected.attributes['haiku-id']]: {
                           points: {
-                            0: {
+                            [this.getActiveComponent().getCurrentTimelineTime()]: {
                               value: SVGPoints.pointsToPolyString(originalPoints.map((pt) => ([pt.x, pt.y]))),
                             },
                           },
@@ -1722,7 +1722,7 @@ export class Glass extends React.Component {
                       [this.getActiveComponent().getCurrentTimelineName()]: {
                         [Element.directlySelected.attributes['haiku-id']]: {
                           d: {
-                            0: {
+                            [this.getActiveComponent().getCurrentTimelineTime()]: {
                               value: SVGPoints.pointsToPath(splitSegmentInSVGPoints(points, Math.floor(minIdx / approximationResolution), Math.ceil(minIdx / approximationResolution), t)),
                             },
                           },
