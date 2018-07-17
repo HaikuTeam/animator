@@ -908,15 +908,15 @@ export default class HaikuComponent extends HaikuElement {
   performFullFlushRenderWithRenderer (renderer, options: any = {}) {
     this.context.getContainer(true); // Force recalc of container
 
+    // Since we will produce a full tree, we don't need a further full flush.
+    this.unmarkForFullFlush();
+
     // Untyped code paths downstream depend on the output of this method
-    renderer.render(
+    return renderer.render(
       this.container,
       this.render(options),
       this,
     );
-
-    // Since we just produced a full tree, we don't need a further full flush.
-    this.unmarkForFullFlush();
   }
 
   performPatchRenderWithRenderer (renderer, options: any = {}, skipCache: boolean) {
