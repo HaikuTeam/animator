@@ -1,30 +1,13 @@
-const os = require('os')
 const path = require('path')
-const { exec } = require('child_process')
+const {exec} = require('child_process')
 const logger = require('./LoggerInstance')
-const { download, unzip } = require('./fileManipulation')
 const {isMac} = require('haiku-common/lib/environments/os')
 
-const DOWNLOAD_URL = 'https://download.sketchapp.com/sketch.zip'
 const SKETCH_PATH_FINDER = `$(/usr/bin/find /System/Library/Frameworks -name lsregister) -dump | grep 'path:.*/Sketch\\( (\\d)\\)\\?\\.app$'`
 const PARSER_CLI_PATH = '/Contents/Resources/sketchtool/bin/sketchtool'
+let sketchInstalledCache = null
 
 module.exports = {
-  download (progressCallback, shouldCancel) {
-    return new Promise((resolve, reject) => {
-      const tempPath = os.tmpdir()
-      const zipPath = `${tempPath}/sketch.zip`
-      const installationPath = '/Applications'
-
-      download(DOWNLOAD_URL, zipPath, progressCallback, shouldCancel)
-        .then(() => {
-          return unzip(zipPath, installationPath, 'Sketch')
-        })
-        .then(resolve)
-        .catch(reject)
-    })
-  },
-
   dumpToPaths (rawDump) {
     logger.info('[sketch utils] about to parse Sketch paths', rawDump)
 
@@ -81,18 +64,31 @@ module.exports = {
     return sortedPaths[0] && sortedPaths[0].sketchPath
   },
 
+  unsetSketchInstalledCache () {
+    sketchInstalledCache = null
+  },
+
   checkIfInstalled () {
     // Only Mac has sketch support
     if (isMac()) {
       return new Promise((resolve, reject) => {
+        if (sketchInstalledCache !== null) {
+          return resolve(sketchInstalledCache)
+        }
+
         this.getDumpInfo()
           .then(this.dumpToPaths)
           .then(this.pathsToInstallationInfo)
           .then(this.findBestPath)
-          .then((bestPath) => { resolve(bestPath) })
+          .then((bestPath) => {
+            const isInstalled = Boolean(bestPath)
+            sketchInstalledCache = isInstalled
+            resolve(isInstalled)
+          })
           .catch((error) => {
             logger.info('[sketch utils] error finding Sketch: ', error)
-            resolve(null)
+            sketchInstalledCache = false
+            resolve(false)
           })
       })
     } else {
