@@ -1410,7 +1410,6 @@ export default class HaikuComponent extends HaikuElement {
       timelineTime,
       false, // isPatchOperation
       false, // skipCache
-      false, // clearSortedKeyframesCache
     );
   }
 
@@ -1672,7 +1671,6 @@ export default class HaikuComponent extends HaikuElement {
       timelineTime,
       isPatchOperation,
       skipCache,
-      null,
     );
 
     return finalValue;
@@ -1687,7 +1685,6 @@ export default class HaikuComponent extends HaikuElement {
     timelineTime: number,
     isPatchOperation: boolean,
     skipCache: boolean,
-    clearSortedKeyframesCache: boolean,
   ) {
     // Used by $helpers to calculate scope-specific values;
     this.helpers.data = {
@@ -1711,10 +1708,6 @@ export default class HaikuComponent extends HaikuElement {
     // since it expects to receive a populated cluster object
     if (!parsedValueCluster) {
       return undefined;
-    }
-
-    if (clearSortedKeyframesCache) {
-      delete parsedValueCluster.__sorted;
     }
 
     let computedValueForTime;

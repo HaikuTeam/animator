@@ -600,7 +600,6 @@ class Element extends BaseModel {
         timelineTime,
         !hostInstance.shouldPerformFullFlush(), // isPatchOperation
         true, // skipCache
-        false // clearSortedKeyframesCache
       )
 
       if (computedValue === undefined || computedValue === null) {
