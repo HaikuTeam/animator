@@ -22,6 +22,47 @@ if (!app) {
 app.setName('Haiku');
 app.setAsDefaultProtocolClient('haiku');
 
+// Haiku main window
+let browserWindow = null;
+
+const handleUrl = (url) => {
+  if (!browserWindow) {
+    logger.warn(`[creator] unable to handle custom protocol URL ${url}; browserWindow not ready`);
+    return;
+  }
+  logger.info(`[creator] handling custom protocol URL ${url}`);
+  const parsedUrl = parse(url);
+  browserWindow.webContents.send(`open-url:${parsedUrl.host}`, parsedUrl.pathname, qs.parse(parsedUrl.query));
+};
+
+// Handle haiku:// protocol on Windows and Linux
+if (!isMac()) {
+  const isSecondInstance = app.makeSingleInstance((commandLine, workingDirectory) => {
+    logger.info(`[creator] Received command line on second instance ${commandLine}`);
+
+    // Handle haiku:// protocol on second instance
+    for (const arg of commandLine) {
+      if (arg.startsWith('haiku://')) {
+        handleUrl(arg);
+        break;
+      }
+    }
+
+    // Someone tried to run a second instance, we should focus our window.
+    if (browserWindow) {
+      if (browserWindow.isMinimized()) {
+        browserWindow.restore();
+      }
+      browserWindow.focus();
+    }
+  });
+
+  // Only quit second instance if it would handle haiku:// protocol (simulate Mac OS behavior)
+  if (isSecondInstance && global.process.env.HAIKU_INITIAL_URL) {
+    app.quit();
+  }
+}
+
 // Disable "Start Dictation" and "Emoji & Symbols" menu items on MAC
 if (isMac()) {
   systemPreferences.setUserDefault('NSDisabledDictationMenuItem', 'boolean', true);
@@ -58,8 +99,6 @@ if (!haiku.folder) {
   haiku.folder = global.process.env.HAIKU_PROJECT_FOLDER;
 }
 
-let browserWindow = null;
-
 app.on('window-all-closed', () => {
   app.quit();
 });
@@ -76,16 +115,6 @@ if (!haiku.plumbing.url) {
   // tslint:disable-next-line:max-line-length
   haiku.plumbing.url = `http://${global.process.env.HAIKU_PLUMBING_HOST || '0.0.0.0'}:${global.process.env.HAIKU_PLUMBING_PORT}/?token=${process.env.HAIKU_WS_SECURITY_TOKEN}`;
 }
-
-const handleUrl = (url) => {
-  if (!browserWindow) {
-    logger.warn(`[creator] unable to handle custom protocol URL ${url}; browserWindow not ready`);
-    return;
-  }
-  logger.info(`[creator] handling custom protocol URL ${url}`);
-  const parsedUrl = parse(url);
-  browserWindow.webContents.send(`open-url:${parsedUrl.host}`, parsedUrl.pathname, qs.parse(parsedUrl.query));
-};
 
 function createWindow () {
   mixpanel.haikuTrack('app:initialize');

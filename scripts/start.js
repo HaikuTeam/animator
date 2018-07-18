@@ -89,6 +89,19 @@ if (argv.default === true) {
   argv.preset = args[0];
 }
 
+// Support:
+//   yarn start haiku://..
+//
+// We pass only first haiku:// protocol URI to creator
+// On Windows and Linux, custom protocol handler is passed as argument
+let haikuURIs = null;
+for (const arg of args) {
+  if (arg.startsWith('haiku://')) {
+    haikuURIs = arg;
+    break;
+  }
+}
+
 const availablePresets = {
   glass: 'repeat-2-auto-glass',
   timeline: 'complex-timeline',
@@ -268,6 +281,11 @@ function go () {
     case 'everything':
       global.process.env.HAIKU_DEBUG = '1';
       binaryArgs.push('electron', '--remote-debugging-port=9222', '.');
+      // On Windows and Linux, custom protocol handler is
+      // passed as argument, so here we forward it
+      if (haikuURIs) {
+        binaryArgs.push(haikuURIs);
+      }
       break;
     case 'glass':
       cwd = groups.glass.abspath;

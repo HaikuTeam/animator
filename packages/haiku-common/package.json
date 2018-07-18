@@ -11,8 +11,8 @@
     "lint-report": "yarn lint -t checkstyle -o checkstyle-result.xml",
     "fix": "yarn lint --fix",
     "ts": "cross-env NODE_ENV=test ts-node -r tsconfig-paths/register -P tsconfig.all.json",
-    "test": "yarn ts ./node_modules/.bin/tape 'test/**/*.test.ts' | tap-spec",
-    "test-report": "nyc yarn ts ./node_modules/.bin/tape 'test/**/*.test.ts' > test-result.tap",
+    "test": "yarn ts ../../node_modules/.bin/tape 'test/**/*.test.ts' | tap-spec",
+    "test-report": "nyc yarn ts ../../node_modules/.bin/tape 'test/**/*.test.ts' > test-result.tap",
     "compile": "tsc",
     "develop": "tsc --watch"
   },

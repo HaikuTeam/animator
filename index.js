@@ -12,6 +12,15 @@ if (!global.process.env.NODE_ENV || global.process.env.NODE_ENV === 'production'
   require('./config');
 }
 
+// On Windows and Linux, custom protocol handler is passed as argument
+let haikuURI = null;
+for (const arg of process.argv) {
+  if (arg.startsWith('haiku://')) {
+    haikuURI = arg;
+    break;
+  }
+}
+
 if (process.env.HAIKU_APP_LAUNCH_CLI === '1') {
   require('@haiku/cli');
 } else {
@@ -24,9 +33,15 @@ if (process.env.HAIKU_APP_LAUNCH_CLI === '1') {
     );
     global.process.exit(0);
   }
+
   app.once('open-url', (event, url) => {
     global.process.env.HAIKU_INITIAL_URL = url;
   });
+
+  if (haikuURI) {
+    global.process.env.HAIKU_INITIAL_URL = haikuURI;
+  }
+
   const haikuHelperArgs = {stdio: 'inherit'};
   if (global.process.env.HAIKU_DEBUG) {
     haikuHelperArgs.execArgv = ['--inspect=9221'];

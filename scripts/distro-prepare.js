@@ -57,7 +57,6 @@ logExec(ROOT, `yarn install ${YARN_INSTALL_FLAGS} --production`);
 // Important: if we have any modules self-linked, get rid of them with extreme prejudice.
 log.log(`Clear any self-linked module`);
 rimraf.sync('packages/*/node_modules/@haiku');
-rimraf.sync('/*/node_modules/haiku-*');
 rimraf.sync('packages/*/*/node_modules/@haiku');
 rimraf.sync('packages/*/*/node_modules/haiku-*');
 
@@ -71,9 +70,9 @@ logExec(ROOT, `yarn install ${YARN_INSTALL_FLAGS} --production=false`);
 logExec(ROOT, 'node ./scripts/distro-uglify-sources.js');
 
 // Rebuild native modules
-// Use 32bits on windows to ensure maximum compatibility
+// Use 64bits on windows to enable bigger memory ram
 if (process.env.HAIKU_RELEASE_PLATFORM === 'windows') {
-  logExec(ROOT, `yarn electron-rebuild --arch=ia32 --module-dir ${path.join(DISTRO_DIR, 'node_modules', 'nodegit')}`);
+  logExec(ROOT, `yarn electron-rebuild --arch=x64 --module-dir ${path.join(DISTRO_DIR, 'node_modules', 'nodegit')}`);
 } else {
   logExec(ROOT, `yarn electron-rebuild --module-dir ${path.join(DISTRO_DIR, 'node_modules', 'nodegit')}`);
 }
