@@ -1271,7 +1271,12 @@ class Timeline extends React.Component {
             <GaugeTimeReadout reactParent={this} timeline={timeline} />
           </div>
         ),
-        <SimplifiedFrameGrid key="frame-grid" timeline={timeline} />,
+        (  <SimplifiedFrameGrid
+            key="frame-grid"
+            timeline={timeline}
+            timelineOffsetPadding={TIMELINE_OFFSET_PADDING}
+          />
+        ),
         (
           <FrameActionsGrid
             key="frame-actions-grid"
@@ -1284,6 +1289,7 @@ class Timeline extends React.Component {
             key="gauge"
             timeline={timeline}
             onMouseDown={this.onGaugeMouseDown}
+            timelineOffsetPadding={TIMELINE_OFFSET_PADDING}
           />
         ),
         (
@@ -1291,6 +1297,7 @@ class Timeline extends React.Component {
             key="scrubber"
             timeline={timeline}
             onMouseDown={this.onGaugeMouseDown}
+            timelineOffsetPadding={TIMELINE_OFFSET_PADDING}
           />
         ),
         (
@@ -1596,7 +1603,6 @@ class Timeline extends React.Component {
           left: 0,
           height: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'calc(100% - 30px)' : 'calc(100% - 45px)',
           width: '100%',
-          paddingLeft: experimentIsEnabled(Experiment.NativeTimelineScroll) ? TIMELINE_OFFSET_PADDING : undefined,
           overflow: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'auto' : 'hidden',
         }}>
         {

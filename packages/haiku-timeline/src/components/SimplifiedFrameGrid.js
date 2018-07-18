@@ -72,6 +72,7 @@ export default class SimplifiedFrameGrid extends React.PureComponent {
           position: 'sticky',
           top: 0,
           width: propertiesWidth + this.props.timeline.calculateFullTimelineWidth(),
+          transform: `translateX(${this.props.timelineOffsetPadding}px)`,
         }}
       >
         {this.props.timeline.mapVisibleFrames(

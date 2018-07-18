@@ -64,7 +64,7 @@ export default class ScrubberInterior extends React.Component {
       ? currFrame
       : currFrame - frameInfo.friA;
     const pxOffset = frameOffset * frameInfo.pxpf;
-    const translation = this.propertiesWidth + pxOffset;
+    const translation = this.propertiesWidth + pxOffset + this.props.timelineOffsetPadding;
 
     return (
       <div
