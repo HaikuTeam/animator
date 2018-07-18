@@ -1067,24 +1067,15 @@ export namespace inkstone {
       IsDefault: boolean;
     }
 
-    export interface Profile {
-      Customer: Customer;
-      Cards: Card[];
-    }
-
     export interface Plan {
       ID: string;
       Currency: 'usd'; // For now!
       Interval: 'year'|'month';
       Price: number;
+      IsCurrentPlan: boolean;
     }
 
-    export interface Product {
-      Name: string;
-      Plans: Plan[];
-    }
-
-    export interface PlanOverview {
+    export interface Subscription {
       // CurrentPeriodStart and CurrentPeriodEnd are provided as UNIX timestamps.
       CurrentPeriodStart: number;
       CurrentPeriodEnd: number;
@@ -1093,9 +1084,24 @@ export namespace inkstone {
       DaysUntilDue: number;
     }
 
+    export interface Profile {
+      Customer: Customer;
+      Cards: Card[];
+      Plan: Plan;
+      Subscription: Subscription;
+    }
+
+    export interface Product {
+      Name: string;
+      Plans: Plan[];
+    }
+
     /**
+     * @authentication-optional
      * Describes the available products. This endpoint is the source of valid values of PlanID which can be used to
-     * call setPlan() below. Authentication is optional.
+     * call setPlan() below.
+     *
+     * If the call is authenticated, then the IsCurrentPlan property will be populated in the list of available plans.
      */
     export const listProducts = (cb: inkstone.Callback<Product[]>) => {
       newGetRequest()
@@ -1106,6 +1112,9 @@ export namespace inkstone {
     /**
      * @authentication-required
      * Describes the customer billing profile.
+     *
+     * Error codes:
+     *   E_BILLING_CUSTOMER_NOT_FOUND - when we are unable to locate customer data.
      */
     export const describe = (cb: inkstone.Callback<Profile>) => {
       newGetRequest()
@@ -1116,6 +1125,10 @@ export namespace inkstone {
     /**
      * @authentication-required
      * Sets up the customer profile. A customer profile must be provided before calling any of the methods below.
+     *
+     * Error codes:
+     *   E_BILLING_INFO_REQUIRED - when parameters are missing.
+     *   E_BILLING_UNABLE_TO_UPDATE_CUSTOMER_RECORD - when the Stripe call fails.
      */
     export const setCustomer = (customer: Customer, cb: inkstone.Callback<void>) => {
       newPutRequest()
@@ -1134,6 +1147,11 @@ export namespace inkstone {
      * (see setCustomer() for details). The first card added will automatically be set as the default. The default can
      * be changed using setCardAsDefaultById() below.
      * @see {@link https://stripe.com/docs/stripe-js/reference#stripe-create-token}
+     *
+     * Error codes:
+     *   E_BILLING_TOKEN_REQUIRED - when a billing token is not provided in the payload.
+     *   E_BILLING_CUSTOMER_NOT_FOUND - if you have failed to call setCustomer() first.
+     *   E_BILLING_CREATE_CARD_FAILED - when the Stripe call fails.
      */
     export const addCard = (card: AddCardRequestParams, cb: inkstone.Callback<void>) => {
       newPostRequest()
@@ -1146,6 +1164,10 @@ export namespace inkstone {
      * @authentication-required
      * Sets a card as default. The card ID here is available from the Profile object, obtained by calling describe()
      * above. A customer profile is required (see setCustomer() for details).
+     *
+     * Error codes:
+     *   E_BILLING_CUSTOMER_NOT_FOUND - if you have failed to call setCustomer() first.
+     *   E_BILLING_SET_DEFAULT_CARD_FAILED - when the Stripe call fails.
      */
     export const setCardAsDefaultById = (cardId: string, cb: inkstone.Callback<void>) => {
       newPutRequest()
@@ -1159,6 +1181,10 @@ export namespace inkstone {
      * Deletes a card. This request will fail if the user attempts to delete the default card without first specifying
      * a new default card. Same as setCardAsDefaultById(), the card ID here is available from the Profile object,
      * obtained by calling describe() above. A customer profile is required (see setCustomer() for details).
+     *
+     * Error codes:
+     *   E_BILLING_CUSTOMER_NOT_FOUND - if you have failed to call setCustomer() first.
+     *   E_BILLING_DELETE_CARD_FAILED - when the Stripe call fails.
      */
     export const deleteCardById = (cardId: string, cb: inkstone.Callback<void>) => {
       newDeleteRequest()
@@ -1178,21 +1204,30 @@ export namespace inkstone {
      * a default payment source (see addCard()/setCardAsDefaultById() must be specified). As noted above, the PlanID
      * string is available via the listProducts() endpoint above…or via hardcoding, since for now we only sell one
      * plan!
+     *
+     * Error codes:
+     *   E_BILLING_UNKNOWN_PLAN_ID - when an unknown plan ID is provided to the endpoint.
+     *   E_BILLING_CUSTOMER_NOT_FOUND - if you have failed to call setCustomer() first.
+     *   E_BILLING_CHARGE_FAILED - when we are unable to charge the user's card.
      */
     export const setPlan = (
       plan: SetPlanRequestParams,
-      cb: inkstone.Callback<PlanOverview>,
+      cb: inkstone.Callback<Subscription>,
     ) => {
       newPutRequest()
         .withEndpoint(Endpoints.BillingSetPlan)
         .withJson(plan)
-        .callWithCallback<PlanOverview>(cb);
+        .callWithCallback<Subscription>(cb);
     };
 
     /**
      * @authentication-required
      * Cancels the user's active plan at the end of the billing period. And active plan is required (see setPlan()
      * above).
+     *
+     * Error codes:
+     *   E_BILLING_CUSTOMER_NOT_FOUND - if you have failed to call setCustomer() first.
+     *   E_BILLING_UNABLE_TO_CANCEL_SUBSCRIPTION - when the Stripe call fails.
      */
     export const cancelPlan = (
       cb: inkstone.Callback<void>,

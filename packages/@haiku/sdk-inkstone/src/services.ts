@@ -4,6 +4,8 @@ import packageJson = require('../package.json');
 import {inkstoneConfig} from './config';
 import {requestInstance} from './transport';
 
+const INKSTONE_ERROR_HEADER = 'x-inkstone-error-code';
+
 export const enum Endpoints {
   BillingDescribe = '/billing',
   BillingListProducts = '/billing/products',
@@ -105,7 +107,12 @@ export class RequestBuilder {
         url: this.fullUrl,
       },
       (err, httpResponse, body) => {
-        cb(err || new Error('Uncategorized error'), httpResponse, body);
+        if (err) {
+          const errorCode =
+            httpResponse && httpResponse.headers && httpResponse.headers[INKSTONE_ERROR_HEADER] as string;
+          return cb(new Error(errorCode || 'E_UNCATEGORIZED'), httpResponse, body);
+        }
+        cb(null, httpResponse, body);
       },
     );
   }
@@ -113,13 +120,12 @@ export class RequestBuilder {
   callWithCallback<T> (
     cb: (err: string, data: T, response: request.RequestResponse) => void,
     successCode = 200,
-    parseJson = false,
   ) {
     this.call((err, httpResponse, body) => {
       if (httpResponse && httpResponse.statusCode === successCode) {
         cb(
           undefined,
-          ((body && parseJson) ? JSON.parse(body) : (body || null)) as T,
+          body as T,
           httpResponse,
         );
       } else {
