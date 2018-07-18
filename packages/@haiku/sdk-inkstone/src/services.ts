@@ -120,13 +120,12 @@ export class RequestBuilder {
   callWithCallback<T> (
     cb: (err: string, data: T, response: request.RequestResponse) => void,
     successCode = 200,
-    parseJson = false,
   ) {
     this.call((err, httpResponse, body) => {
       if (httpResponse && httpResponse.statusCode === successCode) {
         cb(
           undefined,
-          ((body && parseJson) ? JSON.parse(body) : (body || null)) as T,
+          body as T,
           httpResponse,
         );
       } else {
