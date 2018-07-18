@@ -1067,24 +1067,15 @@ export namespace inkstone {
       IsDefault: boolean;
     }
 
-    export interface Profile {
-      Customer: Customer;
-      Cards: Card[];
-    }
-
     export interface Plan {
       ID: string;
       Currency: 'usd'; // For now!
       Interval: 'year'|'month';
       Price: number;
+      IsCurrentPlan: boolean;
     }
 
-    export interface Product {
-      Name: string;
-      Plans: Plan[];
-    }
-
-    export interface PlanOverview {
+    export interface Subscription {
       // CurrentPeriodStart and CurrentPeriodEnd are provided as UNIX timestamps.
       CurrentPeriodStart: number;
       CurrentPeriodEnd: number;
@@ -1093,9 +1084,24 @@ export namespace inkstone {
       DaysUntilDue: number;
     }
 
+    export interface Profile {
+      Customer: Customer;
+      Cards: Card[];
+      Plan: Plan;
+      Subscription: Subscription;
+    }
+
+    export interface Product {
+      Name: string;
+      Plans: Plan[];
+    }
+
     /**
+     * @authentication-optional
      * Describes the available products. This endpoint is the source of valid values of PlanID which can be used to
-     * call setPlan() below. Authentication is optional.
+     * call setPlan() below.
+     *
+     * If the call is authenticated, then the IsCurrentPlan property will be populated in the list of available plans.
      */
     export const listProducts = (cb: inkstone.Callback<Product[]>) => {
       newGetRequest()
@@ -1206,12 +1212,12 @@ export namespace inkstone {
      */
     export const setPlan = (
       plan: SetPlanRequestParams,
-      cb: inkstone.Callback<PlanOverview>,
+      cb: inkstone.Callback<Subscription>,
     ) => {
       newPutRequest()
         .withEndpoint(Endpoints.BillingSetPlan)
         .withJson(plan)
-        .callWithCallback<PlanOverview>(cb);
+        .callWithCallback<Subscription>(cb);
     };
 
     /**
