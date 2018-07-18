@@ -311,54 +311,61 @@ export default class HaikuContext extends HaikuBase {
    * incrementing the frame number. In other words, a tick implies an update but not necessarily a change.
    */
   tick (skipCache = false) {
-    let flushed = false;
+    try {
+      let flushed = false;
 
-    // Only continue ticking and updating if our root component is still activated and awake;
-    // this is mainly a hacky internal hook used during hot editing inside Haiku Desktop
-    if (!this.component.isDeactivated && !this.component.isSleeping) {
-      // Perform any necessary updates that have to occur in all copmonents in the scene
-      this.component.visitGuestHierarchy((component) => {
-        // State transitions are bound to clock time, so we update them on every tick
-        component.tickStateTransitions();
+      // Only continue ticking and updating if our root component is still activated and awake;
+      // this is mainly a hacky internal hook used during hot editing inside Haiku Desktop
+      if (!this.component.isDeactivated && !this.component.isSleeping) {
+        // Perform any necessary updates that have to occur in all copmonents in the scene
+        this.component.visitGuestHierarchy((component) => {
+          // State transitions are bound to clock time, so we update them on every tick
+          component.tickStateTransitions();
 
-        // The top-level component isn't controlled through playback status, so we must skip it
-        // otherwise its behavior will not reflect the playback setting specified via options
-        if (component === this.component) {
-          return;
+          // The top-level component isn't controlled through playback status, so we must skip it
+          // otherwise its behavior will not reflect the playback setting specified via options
+          if (component === this.component) {
+            return;
+          }
+
+          const timelines = component.getTimelines();
+          for (const timelineName in timelines) {
+            // Although a timeline's playback status may not change over time, we still need
+            // to "apply" it, i.e. run the respective procedure to get the playback behavior
+            timelines[timelineName].applyPlaybackStatus();
+          }
+        });
+
+        // After we've hydrated the tree the first time, we can proceed with patches --
+        // unless the component indicates it wants a full flush per its internal settings.
+        if (this.component.shouldPerformFullFlush() || this.config.forceFlush || this.ticks < 1) {
+          this.performFullFlushRender();
+
+          flushed = true;
+        } else {
+          this.performPatchRender(skipCache);
         }
 
-        const timelines = component.getTimelines();
-        for (const timelineName in timelines) {
-          // Although a timeline's playback status may not change over time, we still need
-          // to "apply" it, i.e. run the respective procedure to get the playback behavior
-          timelines[timelineName].applyPlaybackStatus();
+        // We update the mount root *after* we complete the render pass because configuration
+        // from the top level should unset anything that the component set.
+        // Specifically important wrt overflow, where the component probably defines
+        // overflowX/overflowY: hidden, but our configuration might define them as visible.
+        this.updateMountRootStyles();
+
+        // Do any initialization that may need to occur if we happen to be on the very first tick
+        if (this.ticks < 1) {
+          // If this is the 0th (first) tick, notify anybody listening that we've mounted
+          // If we've already flushed, _don't_ request to trigger a re-flush (second arg)
+          this.component.callRemount(null, flushed);
         }
-      });
 
-      // After we've hydrated the tree the first time, we can proceed with patches --
-      // unless the component indicates it wants a full flush per its internal settings.
-      if (this.component.shouldPerformFullFlush() || this.config.forceFlush || this.ticks < 1) {
-        this.performFullFlushRender();
-
-        flushed = true;
-      } else {
-        this.performPatchRender(skipCache);
+        this.ticks++;
       }
-
-      // We update the mount root *after* we complete the render pass because configuration
-      // from the top level should unset anything that the component set.
-      // Specifically important wrt overflow, where the component probably defines
-      // overflowX/overflowY: hidden, but our configuration might define them as visible.
-      this.updateMountRootStyles();
-
-      // Do any initialization that may need to occur if we happen to be on the very first tick
-      if (this.ticks < 1) {
-        // If this is the 0th (first) tick, notify anybody listening that we've mounted
-        // If we've already flushed, _don't_ request to trigger a re-flush (second arg)
-        this.component.callRemount(null, flushed);
+    } catch (error) {
+      console.warn('[haiku core] caught error during tick');
+      if (this.component) {
+        this.component.deactivate();
       }
-
-      this.ticks++;
     }
   }
 
