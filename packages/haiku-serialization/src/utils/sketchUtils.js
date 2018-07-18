@@ -81,9 +81,8 @@ module.exports = {
           .then(this.pathsToInstallationInfo)
           .then(this.findBestPath)
           .then((bestPath) => {
-            const isInstalled = Boolean(bestPath)
-            sketchInstalledCache = isInstalled
-            resolve(isInstalled)
+            sketchInstalledCache = Boolean(bestPath)
+            resolve(bestPath)
           })
           .catch((error) => {
             logger.info('[sketch utils] error finding Sketch: ', error)

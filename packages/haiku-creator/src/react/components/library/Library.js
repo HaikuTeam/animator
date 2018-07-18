@@ -272,7 +272,7 @@ class Library extends React.Component {
 
   handleSketchLaunch (asset) {
     sketchUtils.checkIfInstalled().then((isSketchInstalled) => {
-      if (isSketchInstalled) {
+      if (Boolean(isSketchInstalled)) {
         mixpanel.haikuTrack('creator:sketch:open-file');
         openWithDefaultProgram(asset);
         // On library Sketch asset double click, ask to download Sketch only if on mac
