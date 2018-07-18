@@ -140,7 +140,7 @@ export default class Creator extends React.Component {
       showChangelogModal: false,
       showProxySettings: false,
       servicesEnvoyClient: null,
-      projToDuplicateIndex: null,
+      projectToDuplicate: null,
       // showGlass:
       //  true: show glass webviewer (webviewer interactionMode are InteractionMode.EDIT or InteractionMode.LIVE)
       //  false: show creator code editor
@@ -1025,11 +1025,11 @@ export default class Creator extends React.Component {
         return;
       }
 
-      if (duplicate && this.state.projToDuplicateIndex !== null) {
+      if (duplicate && this.state.projectToDuplicate !== null) {
         this.props.websocket.request(
           {
             method: 'duplicateProject',
-            params: [newProject, this.state.projectsList[this.state.projToDuplicateIndex]],
+            params: [newProject, this.state.projectToDuplicate],
           },
           () => {
             callback(err, newProject);
@@ -1624,8 +1624,8 @@ export default class Creator extends React.Component {
     ) : null;
   }
 
-  showNewProjectModal (isDuplicateProjectModal = false, duplicateProjectName = '', projToDuplicateIndex = -1) {
-    this.setState({showNewProjectModal: true, isDuplicateProjectModal, duplicateProjectName, projToDuplicateIndex});
+  showNewProjectModal (isDuplicateProjectModal = false, duplicateProjectName = '', projectToDuplicate = null) {
+    this.setState({showNewProjectModal: true, isDuplicateProjectModal, duplicateProjectName, projectToDuplicate});
     mixpanel.haikuTrack('creator:new-project:shown');
   }
 
