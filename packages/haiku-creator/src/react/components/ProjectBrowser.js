@@ -201,8 +201,8 @@ class ProjectBrowser extends React.Component {
     return `${base}${suffix}`;
   }
 
-  showDuplicateProjectModal (projToDuplicateIndex) {
-    const duplicateNameBase = this.state.projectsList[projToDuplicateIndex].projectName;
+  showDuplicateProjectModal (projectObject) {
+    const duplicateNameBase = projectObject.projectName;
     const suffixBase = 'Copy';
     let suffix = suffixBase;
     let iteration = 1;
@@ -214,7 +214,7 @@ class ProjectBrowser extends React.Component {
       iteration++;
     }
 
-    this.props.onShowNewProjectModal(true, potentialName, projToDuplicateIndex);
+    this.props.onShowNewProjectModal(true, potentialName, projectObject);
   }
 
   projectsListElement () {
@@ -238,7 +238,7 @@ class ProjectBrowser extends React.Component {
           this.tourChannel.updateLayout();
         }, 50)}
       >
-        {this.state.projectsList.map((projectObject, index) => (
+        {this.state.projectsList.map((projectObject) => (
           <ProjectThumbnail
             key={projectObject.projectName}
             organizationName={this.props.organizationName}
@@ -248,7 +248,7 @@ class ProjectBrowser extends React.Component {
             isDeleted={projectObject.isDeleted}
             launchProject={() => this.handleProjectLaunch(projectObject)}
             showDeleteModal={() => this.showDeleteModal(projectObject.projectName)}
-            showDuplicateProjectModal={() => this.showDuplicateProjectModal(index)}
+            showDuplicateProjectModal={() => this.showDuplicateProjectModal(projectObject)}
             atProjectMax={this.state.atProjectMax}
           />
         ))}
