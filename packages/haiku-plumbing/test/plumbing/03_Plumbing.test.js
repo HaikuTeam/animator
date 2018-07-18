@@ -13,7 +13,7 @@ tape('Plumbing', (t) => {
   TestHelpers.setup((folder, creator, glass, timeline, metadata, teardown, plumbing) => {
     return async.series([
       (cb) => {
-        return plumbing.authenticateUser('matthew+matthew@haiku.ai', 'supersecure', (err, resp) => {
+        return plumbing.authenticateUser('jenkins@haiku.ai', 'supersecure', (err, resp) => {
           t.error(err, 'no auth err');
           t.ok(resp.username, 'username present');
           t.ok(resp.authToken, 'auth token present');
@@ -31,7 +31,7 @@ tape('Plumbing', (t) => {
           skipContentCreation: true,
           projectPath: folder,
         };
-        return plumbing.bootstrapProject(null, projectOptions, 'matthew+matthew@haiku.ai', 'supersecure', (err, folder) => {
+        return plumbing.bootstrapProject(null, projectOptions, 'jenkins@haiku.ai', 'supersecure', (err, folder) => {
           t.error(err, 'no err initializing');
           t.ok(folder, 'folder created and path returned');
           t.equal(Object.keys(plumbing.masters).length, 1, 'only one master so far');

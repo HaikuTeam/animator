@@ -18,7 +18,7 @@
 //     const isPublic = false
 //     return async.waterfall([
 //       (cb) => {
-//         return plumbing.authenticateUser('matthew+matthew@haiku.ai', 'supersecure', (err, resp) => {
+//         return plumbing.authenticateUser('jenkins@haiku.ai', 'supersecure', (err, resp) => {
 //           t.error(err, 'no auth err')
 //           return cb()
 //         })
@@ -58,7 +58,7 @@
 //         return plumbing.bootstrapProject(
 //           projectName,
 //           projectOptions,
-//           'matthew+matthew@haiku.ai',
+//           'jenkins@haiku.ai',
 //           'supersecure',
 //           () => cb(null, project)
 //         )
@@ -69,7 +69,7 @@
 //       (project, cb) => {
 //         // First save should push it all
 //         const saveOptions = {} // ?
-//         return plumbing.saveProject(project.projectPath, projectName, 'matthew+matthew@haiku.ai', 'supersecure', saveOptions, (err, shareInfo) => {
+//         return plumbing.saveProject(project.projectPath, projectName, 'jenkins@haiku.ai', 'supersecure', saveOptions, (err, shareInfo) => {
 //           t.error(err, 'no err saving')
 //           t.ok(shareInfo, 'share info present')
 //           const localsha = cp.execSync(`git rev-parse --verify HEAD`, { cwd: project.projectPath }).toString().trim()
@@ -85,7 +85,7 @@
 //       (project, cb) => {
 //         // Second save should return right away with previous share link
 //         const saveOptions = {} // ?
-//         return plumbing.saveProject(project.projectPath, projectName, 'matthew+matthew@haiku.ai', 'supersecure', saveOptions, (err, shareInfo) => {
+//         return plumbing.saveProject(project.projectPath, projectName, 'jenkins@haiku.ai', 'supersecure', saveOptions, (err, shareInfo) => {
 //           t.error(err, 'no err saving again')
 //           t.equal(initialShareInfo && initialShareInfo.sha, shareInfo && shareInfo.sha, 'new sha same as initial save because no change')
 //           return cb(null, project)
@@ -94,7 +94,7 @@
 //       (project, cb) => {
 //         // Third save, with a change, should push it all
 //         fse.outputFileSync(path.join(project.projectPath, 'test.txt'), '123')
-//         return plumbing.saveProject(project.projectPath, projectName, 'matthew+matthew@haiku.ai', 'supersecure', {}, (err, shareInfo) => {
+//         return plumbing.saveProject(project.projectPath, projectName, 'jenkins@haiku.ai', 'supersecure', {}, (err, shareInfo) => {
 //           t.error(err, 'no err on save after file addition')
 //           t.ok(shareInfo, 'new share info present')
 //           t.ok(shareInfo && shareInfo.sha, 'share info sha present')
