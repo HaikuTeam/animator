@@ -15,6 +15,7 @@ const STYLES = {
     fontFamily: 'Fira Sans',
     fontSize: '15px',
     fontStyle: 'italic',
+    fontWeight: 500,
   },
   trashIcon: {
     backgroundColor: Palette.SPECIAL_COAL,

@@ -197,7 +197,6 @@ tape('Keyframe.05', (t) => {
   return setupTest('keyframe-05', (err, ac, rows, done) => {
     if (err) throw err
     const kfs = rows[0].getKeyframes()
-    const fallbackValue = 0
     const cachedValue = kfs[0].value
 
     kfs[0].moveTo(50, 16.666)
@@ -210,7 +209,7 @@ tape('Keyframe.05', (t) => {
       once = true
       const kfs2 = rows[0].getKeyframes()
 
-      t.equal(kfs2[0].value, fallbackValue, 'newly created keyframe at zero has fallback value by default')
+      t.equal(kfs2[0].value, cachedValue, 'newly created keyframe at zero has initial value by default')
       t.equal(kfs2[1].value, cachedValue, 'moved keyframe keeps its value')
 
       done()

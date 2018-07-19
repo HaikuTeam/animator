@@ -1,4 +1,4 @@
-import {newPutRequest} from '@sdk-inkstone/services';
+import {newGetRequest, newPutRequest} from '@sdk-inkstone/services';
 import {requestInstance} from '@sdk-inkstone/transport';
 import {stubProperties} from 'haiku-testing/lib/mock';
 import * as tape from 'tape';
@@ -28,6 +28,34 @@ tape('services', (suite: tape.Test) => {
       },
       'called with expected parameters',
     );
+
+    unstub();
+    test.end();
+  });
+
+  suite.test('RequestBuilder.errorHandling.restful', (test: tape.Test) => {
+    const [mockGet, unstub] = stubProperties(requestInstance, 'get');
+    mockGet.callsArgWith(1, new Error('ignored'), {headers: {'x-inkstone-error-code': 'E_FOOBAR'}}, null);
+    newGetRequest()
+      // @ts-ignore
+      .withEndpoint('/foo/:id')
+      .call((err: Error) => {
+        test.is(err.message, 'E_FOOBAR');
+      });
+
+    unstub();
+    test.end();
+  });
+
+  suite.test('RequestBuilder.errorHandling.default', (test: tape.Test) => {
+    const [mockGet, unstub] = stubProperties(requestInstance, 'get');
+    mockGet.callsArgWith(1, new Error('ignored'));
+    newGetRequest()
+      // @ts-ignore
+      .withEndpoint('/foo/:id')
+      .call((err: Error) => {
+        test.is(err.message, 'E_UNCATEGORIZED');
+      });
 
     unstub();
     test.end();

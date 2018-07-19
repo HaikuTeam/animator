@@ -177,8 +177,7 @@ TimelineProperty.getPropertyValueAtTime = (
           propertiesGroup[outputName], // propertyValue
           time,
           !hostInstance.shouldPerformFullFlush(), // isPatchOperation
-          true, // skipCache
-          false // clearSortedKeyframesCache
+          true // skipCache
         )
 
         if (computedValue !== undefined && computedValue !== null) {

@@ -75,6 +75,7 @@ class Editor extends React.Component {
 
     this.editor.onDidChangeModelContent(this.handleEditorChange);
     this.editor.focus();
+    monaco.editor.setTheme('haiku-actions');
     // this.editor.onMouseMove listener declared in Snippets.js
 
     this.forceUpdate();

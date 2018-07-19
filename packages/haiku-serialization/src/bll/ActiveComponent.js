@@ -3488,8 +3488,7 @@ class ActiveComponent extends BaseModel {
               bytecode,
               timelineName,
               componentId,
-              propertyName,
-              false
+              propertyName
             )
           }
         }

@@ -1,5 +1,6 @@
 import {remote, shell, ipcRenderer, clipboard, webFrame} from 'electron';
 import * as React from 'react';
+import * as ReactDOM from 'react-dom';
 import {StyleRoot} from 'radium';
 import {CSSTransition} from 'react-transition-group';
 import * as lodash from 'lodash';
@@ -9,6 +10,7 @@ import * as BaseModel from 'haiku-serialization/src/bll/BaseModel';
 import * as Project from 'haiku-serialization/src/bll/Project';
 import * as File from 'haiku-serialization/src/bll/File';
 import * as Asset from 'haiku-serialization/src/bll/Asset';
+import EventHandlerEditor from './components/EventHandlerEditor';
 import AuthenticationUI from './components/AuthenticationUI';
 import ProjectBrowser from './components/ProjectBrowser';
 import SideBar from './components/SideBar';
@@ -57,6 +59,10 @@ const mixpanel = require('haiku-serialization/src/utils/Mixpanel');
 
 const {dialog} = remote;
 
+const isNumeric = (n) => {
+  return !isNaN(parseFloat(n)) && isFinite(n);
+};
+
 if (webFrame) {
   if (webFrame.setZoomLevelLimits) {
     webFrame.setZoomLevelLimits(1, 1);
@@ -97,6 +103,8 @@ export default class Creator extends React.Component {
     this.switchActiveNav = this.switchActiveNav.bind(this);
     this.onLibraryDragEnd = this.onLibraryDragEnd.bind(this);
     this.onLibraryDragStart = this.onLibraryDragStart.bind(this);
+    this.showEventHandlersEditor = this.showEventHandlersEditor.bind(this);
+    this.handleShowEventHandlersEditor = this.handleShowEventHandlersEditor.bind(this);
     this.layout = new EventEmitter();
     this.activityMonitor = new ActivityMonitor(window, this.onActivityReport.bind(this));
     // Keep tracks of not found identifiers and notice id
@@ -140,11 +148,13 @@ export default class Creator extends React.Component {
       showChangelogModal: false,
       showProxySettings: false,
       servicesEnvoyClient: null,
-      projToDuplicateIndex: null,
+      projectToDuplicate: null,
       // showGlass:
       //  true: show glass webviewer (webviewer interactionMode are InteractionMode.EDIT or InteractionMode.LIVE)
       //  false: show creator code editor
       showGlass: true,
+      showEventHandlerEditor: false,
+      eventHandlerEditorOptions: {},
     };
 
     this.envoyOptions = {
@@ -176,6 +186,15 @@ export default class Creator extends React.Component {
       if (nativeEvent.clientX > 0 && nativeEvent.clientY > 0) {
         this._lastMouseX = nativeEvent.clientX;
         this._lastMouseY = nativeEvent.clientY;
+      }
+    });
+    document.addEventListener('mouseup', (e) => {
+      if (this.editor && this.state.showEventHandlerEditor) {
+        const node = ReactDOM.findDOMNode(this.editor);
+        const pnode = ReactDOM.findDOMNode(this.refs.stage);
+        if (!node.contains(e.target) && pnode.contains(e.target)) {
+          this.hideEventHandlersEditor();
+        }
       }
     });
 
@@ -622,6 +641,14 @@ export default class Creator extends React.Component {
           this.setState({artboardDimensions: message.data});
           break;
 
+        case 'show-event-handlers-editor':
+          this.handleShowEventHandlersEditor(
+            message.elid,
+            message.opts,
+            message.frame,
+          );
+          break;
+
         case 'assets-changed':
           File.cache.clear();
           break;
@@ -884,6 +911,7 @@ export default class Creator extends React.Component {
   handleInteractionModeChange (interactionMode) {
     if (interactionMode === InteractionMode.LIVE) {
       this.setState({showGlass: true});
+      this.hideEventHandlersEditor();
     }
 
     this.setState({interactionMode});
@@ -1025,11 +1053,11 @@ export default class Creator extends React.Component {
         return;
       }
 
-      if (duplicate && this.state.projToDuplicateIndex !== null) {
+      if (duplicate && this.state.projectToDuplicate !== null) {
         this.props.websocket.request(
           {
             method: 'duplicateProject',
-            params: [newProject, this.state.projectsList[this.state.projToDuplicateIndex]],
+            params: [newProject, this.state.projectToDuplicate],
           },
           () => {
             callback(err, newProject);
@@ -1624,8 +1652,8 @@ export default class Creator extends React.Component {
     ) : null;
   }
 
-  showNewProjectModal (isDuplicateProjectModal = false, duplicateProjectName = '', projToDuplicateIndex = -1) {
-    this.setState({showNewProjectModal: true, isDuplicateProjectModal, duplicateProjectName, projToDuplicateIndex});
+  showNewProjectModal (isDuplicateProjectModal = false, duplicateProjectName = '', projectToDuplicate = null) {
+    this.setState({showNewProjectModal: true, isDuplicateProjectModal, duplicateProjectName, projectToDuplicate});
     mixpanel.haikuTrack('creator:new-project:shown');
   }
 
@@ -1710,6 +1738,58 @@ export default class Creator extends React.Component {
 
   get shouldShowUserConsole () {
     return experimentIsEnabled(Experiment.UserConsole) && this.state.interactionMode === InteractionMode.LIVE;
+  }
+
+  saveEventHandlers (targetElement, serializedEvents) {
+    const selectorName = 'haiku:' + targetElement.getComponentId();
+    this.getActiveComponent().batchUpsertEventHandlers(selectorName, serializedEvents, {from: 'creator'}, () => {});
+  }
+
+  hideEventHandlersEditor () {
+    if (this.editor && this.editor.canBeClosedExternally()) {
+      mixpanel.haikuTrack('creator:hide-event-handlers-editor');
+      this.setState({
+        targetElement: null,
+        showEventHandlerEditor: false,
+        eventHandlerEditorOptions: {},
+      });
+
+      this.state.projectModel.broadcastPayload({
+        name: 'event-handlers-editor-closed',
+      });
+    }
+  }
+
+  showEventHandlersEditor (clickEvent, targetElement, options) {
+    if (isPreviewMode(this.state.interactionMode) || !targetElement) {
+      return;
+    }
+
+    mixpanel.haikuTrack('creator:show-event-handlers-editor');
+    logger.info(`showing actions editor`, options);
+
+    this.setState({
+      targetElement,
+      showEventHandlerEditor: true,
+      eventHandlerEditorOptions: options,
+    });
+
+    this.state.projectModel.broadcastPayload({
+      name: 'event-handlers-editor-open',
+    });
+  }
+
+  handleShowEventHandlersEditor (elementUID, options, frame) {
+    // The EventHandlerEditor uses this field to know whether to launch in frame mode vs event mode
+    if (isNumeric(frame)) {
+      options.frame = frame;
+    }
+
+    this.showEventHandlersEditor(
+      null,
+      this.getActiveComponent().findElementByUid(elementUID),
+      options,
+    );
   }
 
   render () {
@@ -1969,6 +2049,24 @@ export default class Creator extends React.Component {
                     visible={this.state.activeNav === 'component_info_inspector'} />
                 </SideBar>
                 <div style={{position: 'relative', width: '100%', height: '100%'}}>
+                    {
+                      !isPreviewMode(this.state.interactionMode) && (
+                        <EventHandlerEditor
+                          element={this.state.targetElement}
+                          save={(targetElement, serializedEvent) => {
+                            this.saveEventHandlers(targetElement, serializedEvent);
+                          }}
+                          close={() => {
+                            this.hideEventHandlersEditor();
+                          }}
+                          visible={this.state.showEventHandlerEditor}
+                          options={this.state.eventHandlerEditorOptions}
+                          ref={(editor) => {
+                            this.editor = editor;
+                          }}
+                        />
+                      )
+                    }
                   <Stage
                     ref="stage"
                     folder={this.state.projectFolder}
@@ -1987,6 +2085,7 @@ export default class Creator extends React.Component {
                     password={this.state.password}
                     isTimelineReady={this.state.isTimelineReady}
                     isPreviewMode={isPreviewMode(this.state.interactionMode)}
+                    onShowEventHandlerEditor={this.handleShowEventHandlersEditor}
                     onPreviewModeToggled={() => {
                       this.togglePreviewMode();
                     }}

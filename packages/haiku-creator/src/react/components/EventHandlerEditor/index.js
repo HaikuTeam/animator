@@ -23,6 +23,12 @@ const STYLES = {
     width: EDITOR_WIDTH,
     minHeight: '230px',
     paddingRight: 0,
+    position: 'fixed',
+    top: '110px',
+    left: 'calc(50% + 150px)',
+    transform: 'translateX(-50%)',
+    margin: 0,
+    right: 0,
   },
   outer: {
     position: 'relative',
@@ -88,7 +94,7 @@ class EventHandlerEditor extends React.PureComponent {
       }, 100);
     }
 
-    monaco.editor.defineTheme('haiku', {
+    monaco.editor.defineTheme('haiku-actions', {
       base: 'vs-dark',
       inherit: true,
       // `rules` requires colors without the leading '#' ¯\_(ツ)_/¯
@@ -104,7 +110,7 @@ class EventHandlerEditor extends React.PureComponent {
       },
     });
 
-    monaco.editor.setTheme('haiku');
+    monaco.editor.setTheme('haiku-actions');
 
     // Remove the default autocompletion options (console, window, GeoLocation, etc)
     // due to a [bug][1] in monaco this removes most of the stuff, but leaves
@@ -279,7 +285,9 @@ class EventHandlerEditor extends React.PureComponent {
             />
           </ModalHeader>
 
-          <div style={STYLES.outer}>
+          <div style={STYLES.outer} ref={(revealWrapper) => {
+            this.revealWrapper = revealWrapper;
+          }}>
             {isNumeric(this.props.options.frame) && this.state.currentEvent ? (
               <div
                 style={{
@@ -297,6 +305,12 @@ class EventHandlerEditor extends React.PureComponent {
                     <EventSelector
                       options={applicableEventHandlers}
                       disabledOptions={this.handlerManager}
+                      onFocus={() => {
+                        this.revealWrapper.style.overflow = 'visible';
+                      }}
+                      onBlur={() => {
+                        this.revealWrapper.style.overflow = 'hidden';
+                      }}
                       onChange={(event) => {
                         this.showEditor(event);
                       }}

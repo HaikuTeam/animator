@@ -532,7 +532,14 @@ class AssetItem extends React.Component {
     if (this.props.asset.isComponentsHostFolder()) {
       return `
         To create a component, select elements on stage and choose
-        "Create Component" from the element menu
+        "Create Component" from the element menu.
+      `;
+    }
+
+    if (this.props.asset.isDesignsHostFolder()) {
+      return `
+        To import a new design file, click on the + sign above and choose "Import from
+        file" from the menu options.
       `;
     }
 

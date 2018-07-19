@@ -77,7 +77,6 @@ class EventSelector extends React.Component {
           options={select}
           hideResetButton={true}
           placeholder={'Add a new Action'}
-          tether={true}
           createFromSearch={(options, search) => {
             return {label: search, value: search, groupId: 'Custom Events'};
           }}
@@ -87,6 +86,8 @@ class EventSelector extends React.Component {
               this.props.onChange(selected.value);
             }
           }}
+          onFocus={this.props.onFocus}
+          onBlur={this.props.onBlur}
         />
       </div>
     );
