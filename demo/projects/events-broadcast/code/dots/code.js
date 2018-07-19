@@ -15,7 +15,15 @@ module.exports = {
   },
   options: {},
   states: {},
-  eventHandlers: {},
+  eventHandlers: {
+    "haiku:15ead2c70f10": {
+      "foobar": {
+        handler: function () {
+          console.log(this.$id,'heard foobar!')
+        }
+      }
+    }
+  },
   timelines: {
     Default: {
       "haiku:15ead2c70f10": {
