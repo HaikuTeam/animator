@@ -24,6 +24,12 @@ import shouldElementBeReplaced from './shouldElementBeReplaced';
 
 const connectTarget = (virtualNode, domElement) => {
   if (virtualNode && typeof virtualNode === 'object') {
+    // This normally happens in HaikuComponent.hydrateNode, but we might be operating
+    // as a thin-renderer where no hydration has occurred; so do the bootstrapping here.
+    if (!virtualNode.__memory) {
+      virtualNode.__memory = {};
+    }
+
     // A virtual node can have multiple targets in the DOM due to an implementation
     // detail in the Haiku editing environment; FIXME
     if (!virtualNode.__memory.targets) {

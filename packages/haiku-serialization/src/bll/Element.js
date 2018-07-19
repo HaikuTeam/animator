@@ -534,6 +534,7 @@ class Element extends BaseModel {
   getComputedLayout () {
     const targetNode = this.getLiveRenderedNode() || {} // Fallback in case of render race
     const parentNode = (this.parent && this.parent.getLiveRenderedNode()) || {} // Fallback in case of render race
+    const targetExpansion = targetNode.__memory.expansion
 
     return HaikuElement.computeLayout(
       { // targetNode
@@ -546,10 +547,10 @@ class Element extends BaseModel {
         // But we still need the live node's actual properties in case we need to compute
         // auto sizing, which will require that we hydrate a HaikuElement and recurse
         // into its children and compute their sizes, and so-on.
-        elementName: targetNode.elementName,
-        attributes: targetNode.attributes,
-        children: targetNode.children,
-        __memory: targetNode.__memory
+        elementName: targetExpansion.elementName,
+        attributes: targetExpansion.attributes,
+        children: targetExpansion.children,
+        __memory: targetExpansion.__memory
       },
       { // parentNode
         layout: {

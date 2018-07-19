@@ -90,7 +90,7 @@ if (argv.default === true) {
 }
 
 const availablePresets = {
-  glass: 'repeat-2-auto-glass',
+  glass: 'primitives-misc-1-glass',
   timeline: 'complex-timeline',
   blank: 'blank',
   'blank-noclean': 'blank-noclean',
