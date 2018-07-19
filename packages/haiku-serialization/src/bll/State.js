@@ -16,6 +16,23 @@ function safeJsonParse (str) {
   }
 }
 
+/**
+ * @description Allow the user to enter strings like [{a: 123}] which aren't valid JSON
+ * but which the JavaScript engine is able to parse.
+ */
+const flexibleJsonParse = (str) => {
+  const body = `\nreturn ${str};\n`
+  const fn = new Function(body)
+  try {
+    const out = fn()
+    return out
+  } catch (exception) {
+    // no-op
+  }
+
+  return safeJsonParse(str)
+}
+
 function safeJsonStringify (thing) {
   try {
     return JSON.stringify(thing)
@@ -101,7 +118,7 @@ State.deduceTypeOfValue = (stateValue) => {
   if (typeof stateValue === 'string') {
     if (stateValue === 'undefined') return 'any'
     if (stateValue[0] === STR_ESC) return 'string' // Leading single-quote means use as string, no casting
-    var parsedValue = safeJsonParse(stateValue)
+    const parsedValue = flexibleJsonParse(stateValue)
     if (parsedValue === undefined) return 'string' // If we failed to parse, just assume a string
     if (typeof parsedValue === 'string') return 'string'
     return State.deduceTypeOfValue(parsedValue)
@@ -130,12 +147,12 @@ State.castValueToType = (stateValue, desiredType) => {
   switch (desiredType) {
     case 'array':
       if (Array.isArray(stateValue)) return stateValue
-      if (typeof stateValue === 'string') return State.castValueToType(safeJsonParse(stateValue), desiredType) // Recursive
+      if (typeof stateValue === 'string') return State.castValueToType(flexibleJsonParse(stateValue), desiredType) // Recursive
       return [] // Probably the best we can do if we fail
 
     case 'object':
       if (stateValue && typeof stateValue === 'object') return stateValue
-      if (typeof stateValue === 'string') return State.castValueToType(safeJsonParse(stateValue), desiredType) // Recursive
+      if (typeof stateValue === 'string') return State.castValueToType(flexibleJsonParse(stateValue), desiredType) // Recursive
       return {} // Probably the best we can do if we fail
 
     case 'number':

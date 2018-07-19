@@ -27,6 +27,7 @@ tape('State', (t) => {
     [{value:"foo",type:'number'},{"type":"number","value":0}], // Forced
     [{value:"[]",type:'string'},{"type":"string","value":"[]"}], // Forced
     [{value:{foo:1},type:'string'},{"type":"string","value":"{\"foo\":1}"}], // Forced
+    [{value:"{a: 1,b:2,c:[1,2]}"},{"value":{"a":1,"b":2,"c":[1,2]},"type":"object"}],
   ]
   t.plan(tests.length)
   tests.forEach((spec) => {
