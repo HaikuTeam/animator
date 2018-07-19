@@ -10,10 +10,10 @@ function parseString (str) {
   if (!str) {
     return null;
   }
-  if (typeof str === OBJECT || str.trim().slice(0, 3) === 'url') {
+  if (typeof str === OBJECT || (typeof str === STRING && str.trim().slice(0, 3) === 'url')) {
     return str;
   }
-  return get(str);
+  return get(String(str));
 }
 
 function generateString (desc) {
