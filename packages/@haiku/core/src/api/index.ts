@@ -4,6 +4,7 @@
 export type IHaikuComponent = any;
 export type IHaikuContext = any;
 export type IStateTransitionManager = any;
+export type IHaikuElement = any;
 
 export type PrimitiveType = string|number|object|boolean|null;
 
@@ -38,6 +39,44 @@ export interface BytecodeNodeAttributes {
 
 export type PlaceholderSurrogate = any;
 
+export interface RepeaterSpec {
+  changed: boolean;
+  instructions: any[];
+  repeatees: BytecodeNode[];
+}
+
+export interface RepeateeSpec {
+  index: number;
+  instructions: any[];
+  payload: any;
+  source: BytecodeNode;
+}
+
+export interface IfSpec {
+  answer: boolean;
+}
+
+export interface PlaceholderSpec {
+  surrogate: PlaceholderSurrogate;
+}
+
+export interface BytecodeNodeMemoryObject {
+  context?: IHaikuContext;
+  element?: IHaikuElement;
+  expansion?: BytecodeNode;
+  if?: IfSpec;
+  instance?: IHaikuComponent;
+  listener?: Function; // Bound event listener function
+  parent?: BytecodeNode;
+  patched?: boolean;
+  placeholder?: PlaceholderSpec;
+  repeatee?: RepeateeSpec;
+  repeater?: RepeaterSpec;
+  scope?: string;
+  subcomponent?: IHaikuComponent;
+  targets?: any[]; // DOM (or platform-specific) render targets
+}
+
 /**
  * Haiku bytecode element tree. eg. <div><svg>...</svg></div>.
  * `source` and `identifier` are rarely used.
@@ -47,7 +86,7 @@ export interface BytecodeNode {
   attributes: BytecodeNodeAttributes;
   layout?: LayoutSpec;
   children: (BytecodeNode|string)[];
-  __placeholder?: {surrogate: PlaceholderSurrogate};
+  __memory?: BytecodeNodeMemoryObject;
 
   /**
    * @deprecated
