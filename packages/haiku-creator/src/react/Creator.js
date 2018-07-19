@@ -154,6 +154,7 @@ export default class Creator extends React.Component {
       //  false: show creator code editor
       showGlass: true,
       showEventHandlerEditor: false,
+      eventHandlerEditorOptions: {},
     };
 
     this.envoyOptions = {
@@ -1750,6 +1751,7 @@ export default class Creator extends React.Component {
       this.setState({
         targetElement: null,
         showEventHandlerEditor: false,
+        eventHandlerEditorOptions: {},
       });
 
       this.state.projectModel.broadcastPayload({
@@ -1769,6 +1771,7 @@ export default class Creator extends React.Component {
     this.setState({
       targetElement,
       showEventHandlerEditor: true,
+      eventHandlerEditorOptions: options,
     });
 
     this.state.projectModel.broadcastPayload({
@@ -2057,6 +2060,7 @@ export default class Creator extends React.Component {
                             this.hideEventHandlersEditor();
                           }}
                           visible={this.state.showEventHandlerEditor}
+                          options={this.state.eventHandlerEditorOptions}
                           ref={(editor) => {
                             this.editor = editor;
                           }}
