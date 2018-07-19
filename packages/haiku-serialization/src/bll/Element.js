@@ -40,7 +40,7 @@ const DEFABLE_TAG_NAMES = {
   pattern: true,
   radialGradient: true,
   solidcolor: true,
-  filter: true,
+  filter: true
 }
 
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
@@ -1688,7 +1688,6 @@ class Element extends BaseModel {
         break
       default:
         logger.warn(`[element] ignoring nonsense request to ungroup ${this.getStaticTemplateNode().elementName}`)
-        // TODO: do divs as well.
     }
 
     return this.component.ungroupElements(
@@ -1804,7 +1803,7 @@ class Element extends BaseModel {
       }
     })
 
-    svgElement.children.forEach((haikuElement) => { 
+    svgElement.children.forEach((haikuElement) => {
       const mergedAttributes = {}
       haikuElement.visit((descendantHaikuElement) => {
         if (ungroupables.indexOf(descendantHaikuElement) === -1) {
@@ -1896,7 +1895,7 @@ class Element extends BaseModel {
         if (defs.length > 0) {
           node.children.unshift(Template.cleanMana({
             elementName: 'defs',
-            children: defs,
+            children: defs.map(lodash.cloneDeep)
           }))
         }
 

@@ -823,7 +823,7 @@ class ActiveComponent extends BaseModel {
     logger.info(`[active component (${this.project.getAlias()})] instantiatee (mana) ${componentId} via ${hash}`)
 
     // Used to be `.push` but it makes more sense to put at the top of the list,
-    // so that it displays on top of other elements by in the stack display
+    // so that it displays on top of other elements in the stack display
     bytecode.template.children.unshift(mana)
 
     this.mutateInstantiateeDisplaySettings(
