@@ -3,8 +3,10 @@
  */
 
 import {
+  AfterContentInit,
   AfterViewInit,
   Component,
+  ContentChildren,
   ElementRef,
   EventEmitter,
   Input,
@@ -13,9 +15,11 @@ import {
   OnChanges,
   OnDestroy,
   Output,
+  QueryList,
   SimpleChanges,
   ViewChild,
 } from '@angular/core';
+import {BytecodeNode} from '../../api';
 import HaikuComponent from '../../HaikuComponent';
 import {randomString} from '../../helpers/StringUtils';
 
@@ -24,7 +28,7 @@ export default function HaikuAngularDOMAdapter (
   selector, haikuComponentFactory, optionalRawBytecode?): ModuleWithProviders {
   @Component({
     selector,
-    template: `<div #mount class="haiku-angular-wrapper" [id]="randomId"></div>`,
+    template: `<div #mount class="haiku-angular-wrapper" [id]="randomId"><ng-content></ng-content></div>`,
     styles: [`
       div {
         position: relative;
@@ -36,7 +40,19 @@ export default function HaikuAngularDOMAdapter (
       }
     `],
   })
-  class HaikuAngularComponentInternal implements OnChanges, OnDestroy, AfterViewInit {
+  class HaikuAngularComponentInternal implements OnChanges, OnDestroy, AfterViewInit, AfterContentInit {
+    /**
+     * In Angular, selectors are required to reference children in all cases. As a result, Angular placeholder targeting
+     * requires Angular variable declarations.
+     *
+     * e.g.
+     *
+     * <my-component>
+     *   <my-placeholder-component #placeholder></my-placeholder-component>
+     * </my-component>
+     */
+    @ContentChildren('placeholder') children: QueryList<ElementRef>;
+
     @ViewChild('mount') mount: ElementRef;
 
     @Output()
@@ -95,8 +111,6 @@ export default function HaikuAngularDOMAdapter (
     @Input()
     timelines?: {[key in string]: any};
     @Input()
-    vanities?: {[key in string]: any};
-    @Input()
     placeholder?: any;
     @Input()
     haikuAdapter?: any;
@@ -104,14 +118,59 @@ export default function HaikuAngularDOMAdapter (
     haikuCode?: any;
 
     static isHaikuAdapter = true;
+
     haikuConfig: {[key in string]: any} = {
       onComponentWillInitialize: (component) => this.componentWillInitialize.emit(component),
       onComponentDidInitialize: (component) => this.componentDidInitialize.emit(component),
       onComponentDidMount: (component) => this.componentDidMount.emit(component),
       onComponentWillUnmount: (component) => this.componentWillUnmount.emit(component),
+      vanities: {
+        // #FIXME: in Angular, surrogates can currently only be selected by numeric index. To support CSS queries (which
+        // Angular provides robust utilities for), we should really move adapter-specific surrogate selection into the
+        // adapter and not ask host component to yield the correct surrogate. This is a fair amount of refactoring, so
+        // best to delay for now.
+        'controlFlow.placeholder': (
+          element: BytecodeNode,
+          surrogate: ElementRef|HaikuAngularComponentInternal,
+          value,
+          context,
+          timeline,
+          receiver,
+          sender: HaikuComponent,
+        ) => {
+          if (element.__placeholder.surrogate === surrogate) {
+            return;
+          }
+
+          const node = this.mount.nativeElement.querySelector(`[haiku-id="${element.attributes['haiku-id']}"]`);
+          if (node) {
+            const div = document.createElement('div');
+            node.parentNode.replaceChild(div, node);
+
+            node.style.visibility = 'hidden';
+            if (surrogate.nativeElement) {
+              div.appendChild(surrogate.nativeElement);
+            }
+
+            window.requestAnimationFrame(() => {
+              element.__placeholder.surrogate = surrogate;
+              node.style.visibility = 'visible';
+            });
+            sender.markHorizonElement(element);
+            sender.markForFullFlush();
+          }
+        },
+      },
     };
-    haiku;
+
+    haiku: HaikuComponent;
     randomId: string = `haiku-angularroot-${randomString(24)}`;
+
+    constructor (public element: ElementRef) {}
+
+    get nativeElement () {
+      return this.element.nativeElement;
+    }
 
     ngOnChanges (changes: SimpleChanges) {
       this.haikuConfig = Object.keys(changes).reduce(
@@ -163,9 +222,17 @@ export default function HaikuAngularDOMAdapter (
       }
     }
 
+    ngAfterContentInit () {
+      this.haikuConfig.children = this.children.toArray();
+      this.children.changes.subscribe(() => {
+        // TODO.
+      });
+    }
+
     ngOnDestroy () {
       if (this.haiku) {
         this.haiku.callUnmount();
+        this.haiku.markForFullFlush();
       }
     }
   }

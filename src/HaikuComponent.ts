@@ -362,7 +362,7 @@ export default class HaikuComponent extends HaikuElement {
   }
 
   // If the component needs to remount itself for some reason, make sure we fire the right events
-  callRemount (incomingConfig, skipMarkForFullFlush) {
+  callRemount (incomingConfig, skipMarkForFullFlush = false) {
     this.routeEventToHandlerAndEmit(GLOBAL_LISTENER_KEY, 'component:will-mount', [this]);
 
     // Note!: Only update config if we actually got incoming options!
@@ -1410,7 +1410,6 @@ export default class HaikuComponent extends HaikuElement {
       timelineTime,
       false, // isPatchOperation
       false, // skipCache
-      false, // clearSortedKeyframesCache
     );
   }
 
@@ -1615,7 +1614,12 @@ export default class HaikuComponent extends HaikuElement {
     });
 
     if (keys.length > 1) {
-      const parser = this.getParser(outputName);
+      let parser = this.getParser(outputName);
+      // tslint:disable-next-line:triple-equals
+      if (!parser && parseFloat(parsee[keys[0]].value) == parsee[keys[0]].value) {
+        parser = parseFloat;
+      }
+
       if (!parser) {
         return parsee;
       }
@@ -1657,7 +1661,6 @@ export default class HaikuComponent extends HaikuElement {
     timelineTime: number,
     isPatchOperation: boolean,
     skipCache: boolean,
-    clearSortedKeyframesCache: boolean,
   ) {
     // Used by $helpers to calculate scope-specific values;
     this.helpers.data = {
@@ -1681,10 +1684,6 @@ export default class HaikuComponent extends HaikuElement {
     // since it expects to receive a populated cluster object
     if (!parsedValueCluster) {
       return undefined;
-    }
-
-    if (clearSortedKeyframesCache) {
-      delete parsedValueCluster.__sorted;
     }
 
     let computedValueForTime;
