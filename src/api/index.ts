@@ -36,6 +36,8 @@ export interface BytecodeNodeAttributes {
   identifier?: string;
 }
 
+export type PlaceholderSurrogate = any;
+
 /**
  * Haiku bytecode element tree. eg. <div><svg>...</svg></div>.
  * `source` and `identifier` are rarely used.
@@ -44,11 +46,13 @@ export interface BytecodeNode {
   elementName: string|HaikuBytecode;
   attributes: BytecodeNodeAttributes;
   layout?: LayoutSpec;
+  children: (BytecodeNode|string)[];
+  __placeholder?: {surrogate: PlaceholderSurrogate};
+
   /**
    * @deprecated
    */
   rect?: DomRect;
-  children: (BytecodeNode|string)[];
 }
 
 export type MaybeBytecodeNode = BytecodeNode|null;
