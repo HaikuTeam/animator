@@ -29,6 +29,20 @@ const ELEMENT_TYPES_TO_SHOW_IN_TREE_VIEW = {
   text: true
 }
 
+/**
+ * Tag names with no presentational context on their own. These are usually found inside <defs>, but technically don't
+ * have to be.
+ */
+const DEFABLE_TAG_NAMES = {
+  hatch: true,
+  linearGradient: true,
+  meshGradient: true,
+  pattern: true,
+  radialGradient: true,
+  solidcolor: true,
+  filter: true,
+}
+
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const HAIKU_TITLE_ATTRIBUTE = 'haiku-title'
 const HAIKU_LOCKED_ATTRIBUTE = 'haiku-locked'
@@ -1780,12 +1794,17 @@ class Element extends BaseModel {
     const svgElement = this.getHaikuElement()
     const ungroupables = this.getUngroupables()
     const bytecode = this.component.getReifiedBytecode()
-    svgElement.children.forEach((haikuElement) => {
-      if (haikuElement.tagName === 'defs') {
-        defs.push(haikuElement.node)
-        return
+    // First isolate defs.
+    svgElement.visit((descendantHaikuElement) => {
+      if (descendantHaikuElement.tagName === 'defs') {
+        defs.push(...descendantHaikuElement.node.children)
+        return false
+      } else if (DEFABLE_TAG_NAMES[descendantHaikuElement.tagName]) {
+        defs.push(descendantHaikuElement.node)
       }
+    })
 
+    svgElement.children.forEach((haikuElement) => { 
       const mergedAttributes = {}
       haikuElement.visit((descendantHaikuElement) => {
         if (ungroupables.indexOf(descendantHaikuElement) === -1) {
@@ -1874,7 +1893,13 @@ class Element extends BaseModel {
         }, {resetIds: true})
 
         // Important: hold onto the original ID references of our defs (i.e. do NOT reset IDs here).
-        node.children.unshift(...defs.map((def) => Template.cleanMana(def)))
+        if (defs.length > 0) {
+          node.children.unshift(Template.cleanMana({
+            elementName: 'defs',
+            children: defs,
+          }))
+        }
+
         nodes.push(node)
       })
     })
