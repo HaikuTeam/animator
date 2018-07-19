@@ -33,10 +33,10 @@ function go () {
     haiku.mode = 'creator';
   }
 
-  logger.info(`Haiku plumbing ${process.env.HAIKU_RELEASE_VERSION} on ${process.env.NODE_ENV} launching`)
-  logger.info('args:', args)
-  logger.info('flags:', flags)
-  logger.info('config:', haiku)
+  logger.info(`Haiku plumbing ${process.env.HAIKU_RELEASE_VERSION} on ${process.env.NODE_ENV} launching`);
+  logger.info('args:', args);
+  logger.info('flags:', flags);
+  logger.info('config:', haiku);
 
   const plumbing = new Plumbing();
 
@@ -47,7 +47,7 @@ function go () {
       const prompt = 'haiku';
       const opts = {
         me: plumbing,
-        folder: folder
+        folder,
       };
       repl.start(prompt, opts);
     });

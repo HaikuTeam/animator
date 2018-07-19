@@ -11,7 +11,6 @@
   "author": "Matthew Trost <matthew@trost.co>",
   "license": "UNLICENSED",
   "scripts": {
-    "test-url": "node ./scripts/test-url.js",
     "add-experiment": "node ./scripts/add-experiment.js",
     "republish-projects": "node ./scripts/republish-projects.js",
     "changelog": "node ./scripts/changelog.js",
@@ -30,8 +29,7 @@
     "watch-all": "node ./scripts/watch-all.js",
     "lint-report": "node ./scripts/lint-report.js",
     "test-report": "node ./scripts/test-report.js",
-    "repl": "electron ./HaikuHelper.js --folder=./packages/haiku-glass/test/projects/primitives --mode=headless --repl",
-    "postinstall": "node ./scripts/link-binaries.js"
+    "repl": "electron ./HaikuHelper.js --folder=./packages/haiku-glass/test/projects/primitives --mode=headless --repl"
   },
   "resolutions": {
     "@types/node": "8.9.4",
@@ -116,9 +114,7 @@
       "maintainer": "Haiku Team <contact@haiku.ai>",
       "category": "Graphics;Development;VectorGraphics",
       "target": [
-        "deb",
-        "AppImage",
-        "pacman"
+        "deb"
       ]
     },
     "win": {
@@ -126,7 +122,6 @@
         {
           "target": "nsis",
           "arch": [
-            "ia32",
             "x64"
           ]
         }
