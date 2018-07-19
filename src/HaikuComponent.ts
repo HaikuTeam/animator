@@ -2191,6 +2191,10 @@ const expandNode = (original, parent, patches = {}) => {
     children,
   };
 
+  // Give every node a reference to its expansion in case we want to compute sizing downstream;
+  // this is used in Haiku.app to help calculate bounding boxes during editing
+  original.__memory.expansion = expansion;
+
   // Don't assume the node has/needs a layout, for example, control-flow injectees
   if (expansion.layout) {
     // Note that the original node and its "expansion" share a pointer to .layout
