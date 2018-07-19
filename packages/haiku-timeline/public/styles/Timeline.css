@@ -256,6 +256,10 @@ input[type=number]::-webkit-outer-spin-button {
   cursor: default;
 }
 
+:root {
+  --rock: #C0CCCD;
+}
+
 .component-heading-row .opacity-on-hover {
   --wait-and-ease: 220ms ease 150ms;
   opacity: 0;
@@ -266,4 +270,12 @@ input[type=number]::-webkit-outer-spin-button {
 .component-heading-row:hover .opacity-on-hover {
   opacity: 1;
   transform: scale(0.5);
+}
+
+.light-on-hover:hover path {
+  fill: var(--rock);
+}
+
+.light-on-hover:hover g {
+  stroke: var(--rock);
 }
