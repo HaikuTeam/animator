@@ -346,7 +346,7 @@ export default class HaikuComponent extends HaikuElement {
   }
 
   // If the component needs to remount itself for some reason, make sure we fire the right events
-  callRemount (incomingConfig, skipMarkForFullFlush) {
+  callRemount (incomingConfig, skipMarkForFullFlush = false) {
     this.routeEventToHandlerAndEmit(GLOBAL_LISTENER_KEY, 'component:will-mount', [this]);
 
     // Note!: Only update config if we actually got incoming options!
