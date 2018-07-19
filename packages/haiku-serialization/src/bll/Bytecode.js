@@ -430,7 +430,7 @@ Bytecode.clone = (bytecode) => {
 Bytecode.snapshot = (bytecode) => {
   return cloneDeepWith(bytecode, (value) => {
     if (typeof value === 'function') {
-      return value.bind({})
+      return value
     }
   })
 }
