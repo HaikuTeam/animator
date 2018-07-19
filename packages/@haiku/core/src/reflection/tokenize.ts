@@ -21,6 +21,7 @@ export default function tokenize (source: string, regexps: any): any {
     }
     // We've probably failed to parse correctly if we get here
     if (iterations++ > total) {
+      console.log(source);
       throw new Error('Unable to tokenize expression');
     }
   }

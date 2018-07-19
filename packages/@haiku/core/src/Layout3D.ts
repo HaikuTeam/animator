@@ -201,7 +201,6 @@ const clone = (layout) => {
 const createLayoutSpec = (createCoordinateSystem?: boolean): LayoutSpec => ({
   shown: true,
   opacity: 1.0,
-  mount: {x: 0, y: 0, z: 0}, // anchor in self
   offset: {x: 0, y: 0, z: 0},
   origin: createCoordinateSystem ? {x: 0.5, y: 0.5, z: 0.5} : {x: 0, y: 0, z: 0}, // transform origin
   translation: {x: 0, y: 0, z: 0},
@@ -222,10 +221,6 @@ const computeMatrix = (
   layoutSpec: LayoutSpec,
   targetSize: ThreeDimensionalLayoutProperty,
 ) => {
-  const mountPointX = layoutSpec.mount.x * targetSize.x;
-  const mountPointY = layoutSpec.mount.y * targetSize.y;
-  const mountPointZ = layoutSpec.mount.z * targetSize.z;
-
   const originX = layoutSpec.origin.x * targetSize.x;
   const originY = layoutSpec.origin.y * targetSize.y;
   const originZ = layoutSpec.origin.z * targetSize.z;
@@ -275,21 +270,17 @@ const computeMatrix = (
   rs6 *= layoutSpec.scale.z;
   rs7 *= layoutSpec.scale.z;
   rs8 *= layoutSpec.scale.z;
-
   const tx =
     layoutSpec.offset.x +
     layoutSpec.translation.x -
-    mountPointX -
     (rs0 * originX + rs3 * originY + rs6 * originZ);
   const ty =
     layoutSpec.offset.y +
     layoutSpec.translation.y -
-    mountPointY -
     (rs1 * originX + rs4 * originY + rs7 * originZ);
   const tz =
     layoutSpec.offset.z +
     layoutSpec.translation.z -
-    mountPointZ -
     (rs2 * originX + rs5 * originY + rs8 * originZ);
 
   return [rs0, rs1, rs2, 0, rs3, rs4, rs5, 0, rs6, rs7, rs8, 0, tx, ty, tz, 1];

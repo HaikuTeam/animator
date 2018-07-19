@@ -5,7 +5,7 @@ module.exports = {
     type: "haiku",
     name: "qaNow",
     relpath: "code/main/code.js",
-    core: "3.2.8",
+    core: "3.5.1",
     version: "0.0.1",
     player: "3.2.5",
     organization: "taylor",
@@ -19,8 +19,8 @@ module.exports = {
     Default: {
       "haiku:e4a9e4d8baa7": {
         "style.WebkitTapHighlightColor": { "0": { value: "rgba(0,0,0,0)" } },
-        "style.transformStyle": { "0": { value: "flat" } },
-        "style.perspective": { "0": { value: "none" } },
+        "style.transformStyle": {},
+        "style.perspective": {},
         "style.position": { "0": { value: "relative" } },
         "style.overflowX": { "0": { value: "hidden" } },
         "style.overflowY": { "0": { value: "hidden" } },
@@ -178,24 +178,24 @@ module.exports = {
       },
       "haiku:4dc3f18f3fda": {
         stroke: { "0": { value: "none" } },
-        "strokeWidth": { "0": { value: "1" } },
+        strokeWidth: { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fillRule": { "0": { value: "evenodd" } }
+        fillRule: { "0": { value: "evenodd" } }
       },
       "haiku:734b738851ff": {
-        "fillRule": { "0": { value: "nonzero" } },
+        fillRule: { "0": { value: "nonzero" } },
         "translation.x": { "0": { value: -306 } },
         "translation.y": { "0": { value: -13 } }
       },
       "haiku:3c027b439e5c": { "translation.x": { "0": { value: 116 } } },
       "haiku:25ea0e20f1bd": {
         fill: { "0": { value: "black" } },
-        "fillOpacity": { "0": { value: "1" } },
+        fillOpacity: { "0": { value: "1" } },
         filter: { "0": { value: "url(#filter-2-ce4e48-7isfl81x3gg)" } }
       },
       "haiku:9d1a45f9a8f3": {
         fill: { "0": { value: "#5DE2F9" } },
-        "fillRule": { "0": { value: "evenodd" } }
+        fillRule: { "0": { value: "evenodd" } }
       },
       "haiku:e3177331d48e": {
         d: {
@@ -234,24 +234,24 @@ module.exports = {
       },
       "haiku:b16cd433702a": {
         stroke: { "0": { value: "none" } },
-        "strokeWidth": { "0": { value: "1" } },
+        strokeWidth: { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fillRule": { "0": { value: "evenodd" } }
+        fillRule: { "0": { value: "evenodd" } }
       },
       "haiku:e5fc0d179961": {
-        "fillRule": { "0": { value: "nonzero" } },
+        fillRule: { "0": { value: "nonzero" } },
         "translation.x": { "0": { value: -306 } },
         "translation.y": { "0": { value: -13 } }
       },
       "haiku:748fcfaeb7b4": { "translation.x": { "0": { value: 116 } } },
       "haiku:9af0546f4cf6": {
         fill: { "0": { value: "black" } },
-        "fillOpacity": { "0": { value: "1" } },
+        fillOpacity: { "0": { value: "1" } },
         filter: { "0": { value: "url(#filter-2-31036f-7isfl81x3gg)" } }
       },
       "haiku:62d98a765945": {
         fill: { "0": { value: "#5DE2F9" } },
-        "fillRule": { "0": { value: "evenodd" } }
+        fillRule: { "0": { value: "evenodd" } }
       },
       "haiku:1f04aae3247c": {
         d: {
@@ -290,24 +290,24 @@ module.exports = {
       },
       "haiku:599240a32af4": {
         stroke: { "0": { value: "none" } },
-        "strokeWidth": { "0": { value: "1" } },
+        strokeWidth: { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fillRule": { "0": { value: "evenodd" } }
+        fillRule: { "0": { value: "evenodd" } }
       },
       "haiku:a257560ac495": {
-        "fillRule": { "0": { value: "nonzero" } },
+        fillRule: { "0": { value: "nonzero" } },
         "translation.x": { "0": { value: -306 } },
         "translation.y": { "0": { value: -13 } }
       },
       "haiku:0a41f5ac147b": { "translation.x": { "0": { value: 116 } } },
       "haiku:77d0d76237b7": {
         fill: { "0": { value: "black" } },
-        "fillOpacity": { "0": { value: "1" } },
+        fillOpacity: { "0": { value: "1" } },
         filter: { "0": { value: "url(#filter-2-189b3b-7isfl81x3gg)" } }
       },
       "haiku:0f71d3e00df3": {
         fill: { "0": { value: "#5DE2F9" } },
-        "fillRule": { "0": { value: "evenodd" } }
+        fillRule: { "0": { value: "evenodd" } }
       },
       "haiku:79d5b73cf258": {
         d: {
@@ -346,24 +346,24 @@ module.exports = {
       },
       "haiku:2fe21b291703": {
         stroke: { "0": { value: "none" } },
-        "strokeWidth": { "0": { value: "1" } },
+        strokeWidth: { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fillRule": { "0": { value: "evenodd" } }
+        fillRule: { "0": { value: "evenodd" } }
       },
       "haiku:62eff1744f74": {
-        "fillRule": { "0": { value: "nonzero" } },
+        fillRule: { "0": { value: "nonzero" } },
         "translation.x": { "0": { value: -306 } },
         "translation.y": { "0": { value: -13 } }
       },
       "haiku:8638057c144d": { "translation.x": { "0": { value: 116 } } },
       "haiku:be8a7490aa0a": {
         fill: { "0": { value: "black" } },
-        "fillOpacity": { "0": { value: "1" } },
+        fillOpacity: { "0": { value: "1" } },
         filter: { "0": { value: "url(#filter-2-bccfb4-7isfl81x3gg)" } }
       },
       "haiku:c97dd0283182": {
         fill: { "0": { value: "#5DE2F9" } },
-        "fillRule": { "0": { value: "evenodd" } }
+        fillRule: { "0": { value: "evenodd" } }
       }
     }
   },
@@ -377,9 +377,9 @@ module.exports = {
           version: "1.1",
           xmlns: "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          source: "designs/qaNow.sketch.contents/slices/heart icon.svg",
           "haiku-id": "75583bb31048-d0bcbb",
-          "haiku-title": "heart icon"
+          "haiku-title": "heart icon",
+          "haiku-source": "designs/qaNow.sketch.contents/slices/heart icon.svg"
         },
         children: [
           {
@@ -468,9 +468,9 @@ module.exports = {
           version: "1.1",
           xmlns: "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          source: "designs/qaNow.sketch.contents/slices/heart icon.svg",
           "haiku-id": "75583bb31048-2e67b3",
-          "haiku-title": "heart icon"
+          "haiku-title": "heart icon",
+          "haiku-source": "designs/qaNow.sketch.contents/slices/heart icon.svg"
         },
         children: [
           {
@@ -559,9 +559,9 @@ module.exports = {
           version: "1.1",
           xmlns: "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          source: "designs/qaNow.sketch.contents/slices/heart icon.svg",
           "haiku-id": "75583bb31048-23feff",
-          "haiku-title": "heart icon"
+          "haiku-title": "heart icon",
+          "haiku-source": "designs/qaNow.sketch.contents/slices/heart icon.svg"
         },
         children: [
           {
@@ -650,9 +650,9 @@ module.exports = {
           version: "1.1",
           xmlns: "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          source: "designs/qaNow.sketch.contents/slices/heart icon.svg",
           "haiku-id": "75583bb31048",
-          "haiku-title": "heart icon"
+          "haiku-title": "heart icon",
+          "haiku-source": "designs/qaNow.sketch.contents/slices/heart icon.svg"
         },
         children: [
           {

@@ -341,7 +341,6 @@ export interface DomRect {
 export interface LayoutSpec {
   shown: boolean;
   opacity: number;
-  mount: ThreeDimensionalLayoutProperty;
   offset: ThreeDimensionalLayoutProperty;
   origin: ThreeDimensionalLayoutProperty;
   translation: ThreeDimensionalLayoutProperty;

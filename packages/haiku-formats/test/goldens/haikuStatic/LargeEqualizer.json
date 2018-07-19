@@ -4,7 +4,7 @@
     "type": "haiku",
     "name": "LargeEqualizer",
     "relpath": "code/main/code.js",
-    "core": "3.2.11",
+    "core": "3.5.1",
     "player": "3.2.11",
     "version": "0.0.6",
     "organization": "rjaylward",
@@ -70,16 +70,8 @@
             "value": 1
           }
         },
-        "style.transformStyle": {
-          "0": {
-            "value": "flat"
-          }
-        },
-        "style.perspective": {
-          "0": {
-            "value": "none"
-          }
-        }
+        "style.transformStyle": {},
+        "style.perspective": {}
       },
       "haiku:36419f2559c0": {
         "viewBox": {
@@ -174,14 +166,14 @@
             "value": 1
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 95
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 500
           }
         }
       },
@@ -278,14 +270,14 @@
             "value": 2
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 95
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 500
           }
         }
       },
@@ -382,14 +374,14 @@
             "value": 3
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 95
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 500
           }
         }
       },
@@ -496,18 +488,18 @@
             "value": 4
           }
         },
-        "mount.x": {
-          "0": {
-            "value": -0.5
-          }
-        },
-        "mount.y": {
-          "0": {
-            "value": -0.5
-          }
-        },
         "scale.x": {},
-        "scale.y": {}
+        "scale.y": {},
+        "offset.x": {
+          "0": {
+            "value": 95
+          }
+        },
+        "offset.y": {
+          "0": {
+            "value": 500
+          }
+        }
       },
       "haiku:d685c3605eac": {
         "stroke": {
@@ -788,9 +780,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/LargeEqualizer.sketch.contents/slices/Rectangle.svg",
           "haiku-id": "36419f2559c0",
-          "haiku-title": "Rectangle"
+          "haiku-title": "Rectangle",
+          "haiku-source": "designs/LargeEqualizer.sketch.contents/slices/Rectangle.svg"
         },
         "children": [
           {
@@ -827,9 +819,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/LargeEqualizer.sketch.contents/slices/Rectangle.svg",
           "haiku-id": "36419f2559c0-e15349",
-          "haiku-title": "Rectangle-e15349"
+          "haiku-title": "Rectangle-e15349",
+          "haiku-source": "designs/LargeEqualizer.sketch.contents/slices/Rectangle.svg"
         },
         "children": [
           {
@@ -866,9 +858,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/LargeEqualizer.sketch.contents/slices/Rectangle.svg",
           "haiku-id": "36419f2559c0-e15349-fe156e",
-          "haiku-title": "Rectangle-e15349-fe156e"
+          "haiku-title": "Rectangle-e15349-fe156e",
+          "haiku-source": "designs/LargeEqualizer.sketch.contents/slices/Rectangle.svg"
         },
         "children": [
           {
@@ -905,9 +897,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/LargeEqualizer.sketch.contents/slices/Rectangle.svg",
           "haiku-id": "36419f2559c0-e15349-fe156e-babb1d",
-          "haiku-title": "Rectangle-e15349-fe156e-babb1d"
+          "haiku-title": "Rectangle-e15349-fe156e-babb1d",
+          "haiku-source": "designs/LargeEqualizer.sketch.contents/slices/Rectangle.svg"
         },
         "children": [
           {

@@ -5,7 +5,7 @@
     "name": "bowling",
     "relpath": "code/main/code.js",
     "version": "0.0.8",
-    "core": "3.2.17",
+    "core": "3.5.1",
     "player": "3.2.11",
     "organization": "jadenso",
     "project": "bowling",
@@ -24,16 +24,8 @@
             "value": "rgba(0,0,0,0)"
           }
         },
-        "style.transformStyle": {
-          "0": {
-            "value": "flat"
-          }
-        },
-        "style.perspective": {
-          "0": {
-            "value": "none"
-          }
-        },
+        "style.transformStyle": {},
+        "style.perspective": {},
         "style.position": {
           "0": {
             "value": "relative"
@@ -150,14 +142,14 @@
             "value": 1.305847076461768
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 187.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 333.5
           }
         }
       },
@@ -249,14 +241,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 33.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 33
           }
         }
       },
@@ -377,14 +369,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 14.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 4
           }
         }
       },
@@ -578,14 +570,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 12
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 9.5
           }
         }
       },
@@ -731,14 +723,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 32.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 98
           }
         }
       },
@@ -856,14 +848,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 32.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 98
           }
         }
       },
@@ -969,14 +961,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 32.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 98
           }
         }
       },
@@ -1081,14 +1073,14 @@
             "value": 2.390087022996659
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 32.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 98
           }
         }
       },
@@ -1213,14 +1205,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 32.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 98
           }
         }
       },
@@ -1325,14 +1317,14 @@
             "value": 3.8479264330030176
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 32.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 98
           }
         }
       },
@@ -2240,9 +2232,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/bowling.sketch.contents/slices/pin.svg",
           "haiku-id": "4be942e13847",
-          "haiku-title": "pin"
+          "haiku-title": "pin",
+          "haiku-source": "designs/bowling.sketch.contents/slices/pin.svg"
         },
         "children": [
           {
@@ -2327,9 +2319,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/bowling.sketch.contents/slices/pin.svg",
           "haiku-id": "1902afd46c79",
-          "haiku-title": "pin"
+          "haiku-title": "pin",
+          "haiku-source": "designs/bowling.sketch.contents/slices/pin.svg"
         },
         "children": [
           {
@@ -2414,9 +2406,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/bowling.sketch.contents/slices/pin.svg",
           "haiku-id": "0c23d6dc8f6d",
-          "haiku-title": "pin"
+          "haiku-title": "pin",
+          "haiku-source": "designs/bowling.sketch.contents/slices/pin.svg"
         },
         "children": [
           {
@@ -2501,9 +2493,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/bowling.sketch.contents/slices/pin.svg",
           "haiku-id": "ffb0f20b9d5c",
-          "haiku-title": "pin"
+          "haiku-title": "pin",
+          "haiku-source": "designs/bowling.sketch.contents/slices/pin.svg"
         },
         "children": [
           {
@@ -2588,9 +2580,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/bowling.sketch.contents/slices/pin.svg",
           "haiku-id": "f35ae0731a9b",
-          "haiku-title": "pin"
+          "haiku-title": "pin",
+          "haiku-source": "designs/bowling.sketch.contents/slices/pin.svg"
         },
         "children": [
           {
@@ -2675,9 +2667,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/bowling.sketch.contents/slices/pin.svg",
           "haiku-id": "fe7013933029",
-          "haiku-title": "pin"
+          "haiku-title": "pin",
+          "haiku-source": "designs/bowling.sketch.contents/slices/pin.svg"
         },
         "children": [
           {
@@ -2762,9 +2754,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/bowling.sketch.contents/slices/hole.svg",
           "haiku-id": "ef6dc53f03b0",
-          "haiku-title": "hole"
+          "haiku-title": "hole",
+          "haiku-source": "designs/bowling.sketch.contents/slices/hole.svg"
         },
         "children": [
           {
@@ -2792,9 +2784,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/bowling.sketch.contents/slices/ballshadow.svg",
           "haiku-id": "5c50fa871914",
-          "haiku-title": "ballshadow"
+          "haiku-title": "ballshadow",
+          "haiku-source": "designs/bowling.sketch.contents/slices/ballshadow.svg"
         },
         "children": [
           {
@@ -2822,9 +2814,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/bowling.sketch.contents/slices/ball.svg",
           "haiku-id": "c6dc6f364fd7",
-          "haiku-title": "ball"
+          "haiku-title": "ball",
+          "haiku-source": "designs/bowling.sketch.contents/slices/ball.svg"
         },
         "children": [
           {
@@ -2883,9 +2875,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/bowling.sketch.contents/slices/bg.svg",
           "haiku-id": "3160d2c553f1",
-          "haiku-title": "bg"
+          "haiku-title": "bg",
+          "haiku-source": "designs/bowling.sketch.contents/slices/bg.svg"
         },
         "children": [
           {

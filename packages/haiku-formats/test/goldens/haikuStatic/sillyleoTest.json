@@ -5,7 +5,7 @@
     "name": "Test",
     "relpath": "code/main/code.js",
     "version": "0.0.2",
-    "core": "3.2.8",
+    "core": "3.5.1",
     "player": "3.1.32",
     "organization": "sillyleo",
     "project": "Test",
@@ -22,17 +22,8 @@
             "value": "rgba(0,0,0,0)"
           }
         },
-        "style.transformStyle": {
-          "0": {
-            "value": "flat"
-          }
-        },
-        "style.perspective": {
-          "0": {
-            "value": "none",
-            "edited": true
-          }
-        },
+        "style.transformStyle": {},
+        "style.perspective": {},
         "style.position": {
           "0": {
             "value": "relative"
@@ -140,14 +131,14 @@
             "value": 2
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 207
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 102
           }
         }
       },
@@ -254,14 +245,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 65.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 38.5
           }
         }
       },
@@ -331,14 +322,14 @@
             "value": 3
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 207
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 123.5
           }
         }
       },
@@ -408,14 +399,14 @@
             "value": 4
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 207
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 93.5
           }
         }
       },
@@ -736,14 +727,14 @@
             "value": 6.981445312500003
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 45
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 45
           }
         }
       },
@@ -895,14 +886,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 207
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 109.5
           }
         }
       },
@@ -1046,9 +1037,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/Leo in Suite.sketch.contents/slices/face.svg",
           "haiku-id": "b8a8459fa737",
-          "haiku-title": "face"
+          "haiku-title": "face",
+          "haiku-source": "designs/Leo in Suite.sketch.contents/slices/face.svg"
         },
         "children": [
           {
@@ -1151,9 +1142,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/Leo in Suite.sketch.contents/slices/facecolor.svg",
           "haiku-id": "211dd5e09ef5",
-          "haiku-title": "facecolor"
+          "haiku-title": "facecolor",
+          "haiku-source": "designs/Leo in Suite.sketch.contents/slices/facecolor.svg"
         },
         "children": [
           {
@@ -1190,9 +1181,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/Leo in Suite.sketch.contents/slices/top suit.svg",
           "haiku-id": "641386b9d3b5",
-          "haiku-title": "top suit"
+          "haiku-title": "top suit",
+          "haiku-source": "designs/Leo in Suite.sketch.contents/slices/top suit.svg"
         },
         "children": [
           {
@@ -1238,9 +1229,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/Leo in Suite.sketch.contents/slices/shirt.svg",
           "haiku-id": "82c161f082ea",
-          "haiku-title": "shirt"
+          "haiku-title": "shirt",
+          "haiku-source": "designs/Leo in Suite.sketch.contents/slices/shirt.svg"
         },
         "children": [
           {
@@ -1286,9 +1277,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/Leo in Suite.sketch.contents/slices/juju.svg",
           "haiku-id": "b8b428f2ed07",
-          "haiku-title": "juju"
+          "haiku-title": "juju",
+          "haiku-source": "designs/Leo in Suite.sketch.contents/slices/juju.svg"
         },
         "children": [
           {
@@ -1342,9 +1333,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/Leo in Suite.sketch.contents/slices/hair.svg",
           "haiku-id": "ed9732e3df20",
-          "haiku-title": "hair"
+          "haiku-title": "hair",
+          "haiku-source": "designs/Leo in Suite.sketch.contents/slices/hair.svg"
         },
         "children": [
           {

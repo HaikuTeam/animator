@@ -68,16 +68,8 @@
             "value": 1
           }
         },
-        "style.transformStyle": {
-          "0": {
-            "value": "flat"
-          }
-        },
-        "style.perspective": {
-          "0": {
-            "value": "none"
-          }
-        }
+        "style.transformStyle": {},
+        "style.perspective": {}
       },
       "haiku:4a03c54aac79": {
         "viewBox": {
@@ -182,14 +174,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 125
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 125
           }
         }
       },
@@ -343,14 +335,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 10
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 10
           }
         }
       },
@@ -553,14 +545,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 9
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 9
           }
         }
       },
@@ -763,14 +755,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 8.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 8.5
           }
         }
       },
@@ -977,14 +969,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 10
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 10
           }
         }
       },
@@ -1142,14 +1134,14 @@
         "rotation.x": {},
         "rotation.y": {},
         "rotation.z": {},
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 66
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 92
           }
         }
       },
