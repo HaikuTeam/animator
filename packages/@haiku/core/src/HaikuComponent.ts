@@ -915,8 +915,6 @@ export default class HaikuComponent extends HaikuElement {
 
     const expansion = this.render(options);
 
-    // console.log(expansion.children);
-
     // Untyped code paths downstream depend on the output of this method
     return renderer.render(
       this.container,

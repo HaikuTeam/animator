@@ -15,7 +15,16 @@ module.exports = {
   },
   options: {},
   states: {},
-  eventHandlers: {},
+  eventHandlers: {
+    "haiku:15ead2c70f10": {
+      "component:did-initialize": {
+        handler: function (target, event) {
+          console.log(this.$id,'pause')
+          this.pause()
+        }
+      }
+    }
+  },
   timelines: {
     Default: {
       "haiku:15ead2c70f10": {
