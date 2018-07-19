@@ -6,28 +6,13 @@
   "directories": {
     "lib": "lib"
   },
-  "bin": {
-    "cross-env": "./bin/cross-env",
-    "cross-env-shell": "./bin/cross-env-shell",
-    "nyc": "./bin/nyc",
-    "tap-spec": "tap-spec",
-    "tape": "./bin/tape",
-    "ts-node": "./bin/ts-node",
-    "tsc": "./bin/tsc",
-    "tslint": "./bin/tslint",
-    "tspec": "./bin/tspec",
-    "tsserver": "./bin/tsserver"
-  },
-  "files": [
-    "bin/**/*"
-  ],
   "scripts": {
     "lint": "tslint -p tsconfig.all.json -t stylish",
     "lint-report": "yarn lint -t checkstyle -o checkstyle-result.xml",
     "fix": "yarn lint --fix",
     "ts": "cross-env NODE_ENV=test ts-node -r tsconfig-paths/register -P tsconfig.all.json",
-    "test": "yarn ts ../../node_modules/.bin/tape 'test/**/*.test.ts' | tap-spec",
-    "test-report": "nyc yarn ts ../../node_modules/.bin/tape 'test/**/*.test.ts' > test-result.tap",
+    "test": "yarn ts ./node_modules/.bin/tape 'test/**/*.test.ts' | tap-spec",
+    "test-report": "nyc yarn ts ./node_modules/.bin/tape 'test/**/*.test.ts' > test-result.tap",
     "compile": "tsc",
     "develop": "tsc --watch"
   },
@@ -38,10 +23,13 @@
   "dependencies": {
     "@types/node": "8.9.4",
     "@types/tape": "^4.2.32",
+    "sinon": "^5.0.10",
+    "xml-js": "^1.6.4"
+  },
+  "devDependencies": {
     "cross-env": "^5.1.6",
     "istanbul-reporter-cobertura-haiku": "^1.0.1",
     "nyc": "^11.8.0",
-    "sinon": "^5.0.10",
     "tap-spec": "^4.1.2",
     "tape": "^4.9.0",
     "ts-node": "^6.1.0",
@@ -49,6 +37,6 @@
     "tslint": "^5.10.0",
     "tslint-config-haiku": "^1.0.15",
     "typescript": "^2.9.1",
-    "xml-js": "^1.6.4"
+    "leaked-handles": "^5.2.0"
   }
 }
