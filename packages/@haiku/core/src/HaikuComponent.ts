@@ -1156,7 +1156,6 @@ export default class HaikuComponent extends HaikuElement {
                 timelineTime,
                 isPatchOperation,
                 skipCache,
-                null, // clearSortedKeyframesCache
               );
 
               if (finalValue !== undefined) {

@@ -138,7 +138,7 @@ export default function HaikuAngularDOMAdapter (
           receiver,
           sender: HaikuComponent,
         ) => {
-          if (element.__placeholder.surrogate === surrogate) {
+          if (element.__memory.placeholder.surrogate === surrogate) {
             return;
           }
 
@@ -153,7 +153,7 @@ export default function HaikuAngularDOMAdapter (
             }
 
             window.requestAnimationFrame(() => {
-              element.__placeholder.surrogate = surrogate;
+              element.__memory.placeholder.surrogate = surrogate;
               node.style.visibility = 'visible';
             });
             sender.markHorizonElement(element);
