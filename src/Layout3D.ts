@@ -55,37 +55,28 @@ const virtualElementIsLayoutContainer = (virtualElement) => {
   virtualElement.elementName === DIV;
 };
 
-const initializeNodeAttributes = (element, isRootNode: boolean) => {
-  if (!element.attributes) {
-    element.attributes = {};
+const initializeNodeAttributes = (node, isRootNode: boolean) => {
+  if (!node || typeof node !== 'object') {
+    return;
   }
-  if (!element.attributes.style) {
-    element.attributes.style = {};
+
+  if (!node.attributes) {
+    node.attributes = {};
   }
-  if (!element.layout) {
-    element.layout = createLayoutSpec(!isRootNode && virtualElementIsLayoutContainer(element));
-    element.layout.matrix = createMatrix();
-    element.layout.format = ELEMENTS_2D[element.elementName]
+
+  if (!node.attributes.style) {
+    node.attributes.style = {};
+  }
+
+  if (!node.layout) {
+    node.layout = createLayoutSpec(!isRootNode && virtualElementIsLayoutContainer(node));
+    node.layout.matrix = createMatrix();
+    node.layout.format = ELEMENTS_2D[node.elementName]
       ? FORMATS.TWO
       : FORMATS.THREE;
   }
-  return element;
-};
 
-const initializeTreeAttributes = (tree, isRootNode: boolean) => {
-  if (!tree || typeof tree === 'string') {
-    return;
-  }
-
-  initializeNodeAttributes(tree, isRootNode);
-
-  if (!tree.children || tree.children.length < 1) {
-    return;
-  }
-
-  for (let i = 0; i < tree.children.length; i++) {
-    initializeTreeAttributes(tree.children[i], false);
-  }
+  return node;
 };
 
 const createMatrix = () => copyMatrix(IDENTITY);
@@ -343,7 +334,7 @@ export default {
   createLayoutSpec,
   createMatrix,
   copyMatrix,
-  initializeTreeAttributes,
+  initializeNodeAttributes,
   virtualElementIsLayoutContainer,
   FORMATS,
   SIZE_ABSOLUTE,

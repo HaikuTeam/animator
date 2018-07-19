@@ -7,6 +7,7 @@ import {
   BytecodeOptions,
   Curve,
   HaikuBytecode,
+  IExpandResult,
   IHaikuContext,
   ParsedValueCluster,
 } from './api';
@@ -15,7 +16,7 @@ import HaikuBase, {GLOBAL_LISTENER_KEY} from './HaikuBase';
 import HaikuClock from './HaikuClock';
 import HaikuElement from './HaikuElement';
 import HaikuHelpers from './HaikuHelpers';
-import {cssMatchOne, cssQueryTree, scopifyElements, xmlToMana} from './HaikuNode';
+import {ascend, cssMatchOne, cssQueryTree, visit, xmlToMana} from './HaikuNode';
 import HaikuTimeline, {PlaybackSetting, TimeUnit} from './HaikuTimeline';
 import ColorUtils from './helpers/ColorUtils';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
@@ -39,6 +40,7 @@ const FUNCTION = 'function';
 const KEYFRAME_ZERO = 0;
 const OBJECT = 'object';
 const MAX_INT = 2147483646;
+const SCOPE_STRATA = {div: 'div', svg: 'svg'};
 
 const parseD = (value: string|CurveSpec[]): CurveSpec[] => {
   // in case of d="" for any reason, don't try to expand this otherwise this will choke
@@ -962,41 +964,24 @@ export default class HaikuComponent extends HaikuElement {
 
     this.clearCaches();
 
-    expandTemplate(
+    HaikuElement.findOrCreateByNode(this.container);
+
+    hydrateNode(
       this.bytecode.template, // node
       this.container, // parent
       this, // instance (component)
       this.context,
       this.host,
+      'div', // scope (the default is a div)
       options,
       true, // doConnectInstanceToNode
     );
 
-    // TODO: Can we roll this work into expandTemplate instead of doing it after?
-    scopifyElements(this.bytecode.template, null, null);
-
-    Layout3D.initializeTreeAttributes(this.bytecode.template, true);
-
-    this.applyBehaviors(
-      null,
+    this.applyLocalBehaviors(
       options,
       false, // isPatchOperation
       false, // skipCache
     );
-
-    // Note that we render *after* having called HaikuComponent#applyBehaviors.
-    // applyBehaviors calls applyPropertyToNode calls component.set(...).
-    // We need the parent-to-child states to be set prior to the render call
-    // otherwise the changes they produce won't be available for this render frame.
-    // This is important especially for "auto"-sizing since the parent may need
-    // to read the size from the child, who in turn may have state-bound expressions
-    // which dictate its size.
-    for (const $id in this.guests) {
-      this.guests[$id].render({
-        ...this.guests[$id].config,
-        ...Config.buildChildSafeConfig(options),
-      });
-    }
 
     if (this.context.renderer.mount) {
       this.eachEventHandler((eventSelector, eventName) => {
@@ -1014,25 +999,26 @@ export default class HaikuComponent extends HaikuElement {
       });
     }
 
-    if (this.doPreserve3d) {
-      ensure3dPreserved(this, this.node);
-      ensure3dPreserved(this, this.parentNode); // Wrapper
+    this.applyGlobalBehaviors(options);
+
+    // But also note we need to call subcomponent renders *after* our own behaviors,
+    // because we need the parent-to-child states to be set prior to this render call,
+    // otherwise the changes they produce won't be available for this render frame.
+    for (const $id in this.guests) {
+      this.guests[$id].render({
+        ...this.guests[$id].config,
+        ...Config.buildChildSafeConfig(options),
+        doSkipExpand: true,
+      });
     }
 
-    if (!this.host && options.sizing) {
-      computeAndApplyPresetSizing(
-        this.bytecode.template,
-        this.container,
-        options.sizing,
-      );
+    // Avoid unnecessry .expand calls when rendering subcomponents
+    if (options.doSkipExpand) {
+      return;
     }
 
-    computeAndApplyTreeLayouts(
-      this.bytecode.template,
-      this.container,
-    );
-
-    return this.bytecode.template;
+    const expansion = this.expand();
+    return expansion;
   }
 
   patch (options: any = {}, skipCache = false) {
@@ -1041,47 +1027,55 @@ export default class HaikuComponent extends HaikuElement {
       return {};
     }
 
-    Layout3D.initializeTreeAttributes(this.bytecode.template, true);
-
-    // This is what we're going to return: a dictionary of composite ids (flexId-repeatIndex) to elements
-    const deltasOut = {};
-
-    this.applyBehaviors(
-      deltasOut,
+    this.applyLocalBehaviors(
       options,
       true, // isPatchOperation
       skipCache,
     );
 
+    this.applyGlobalBehaviors(options);
+
+    const patches = {};
+    this.expand(patches);
+    return patches;
+  }
+
+  expand (patches = {}): IExpandResult {
+    // Note that expandNode calls .expand on any subcomponents in the tree
+    return expandNode(
+      this.bytecode.template, // node
+      this.container,
+      patches,
+    );
+  }
+
+  applyGlobalBehaviors (options: any = {}) {
     if (this.doPreserve3d) {
-      ensure3dPreserved(this, this.node);
-      ensure3dPreserved(this, this.parentNode); // Wrapper
+      const node = this.node;
+      if (node) {
+        ensure3dPreserved(this, node);
+        node.__memory.patched = true;
+      }
+
+      // The wrapper also needs preserve-3d set for 3d-preservation to work
+      const parent = this.parentNode; // This should be the "wrapper div" node
+      if (parent) {
+        ensure3dPreserved(this, parent);
+        parent.__memory.patched = true;
+      }
     }
 
     if (!this.host && options.sizing) {
-      const didSizingChange = computeAndApplyPresetSizing(
+      computeAndApplyPresetSizing(
         this.bytecode.template,
         this.container,
         options.sizing,
       );
-
-      if (didSizingChange) {
-        deltasOut[this.bytecode.template.attributes[HAIKU_ID_ATTRIBUTE]] = this.bytecode.template;
-      }
+      this.bytecode.template.__memory.patched = true;
     }
-
-    for (const compositeId in deltasOut) {
-      computeAndApplyTreeLayouts(
-        deltasOut[compositeId], // node
-        deltasOut[compositeId].__parent, // parent
-      );
-    }
-
-    return deltasOut;
   }
 
-  applyBehaviors (
-    deltas,
+  applyLocalBehaviors (
     options,
     isPatchOperation,
     skipCache = false,
@@ -1112,6 +1106,12 @@ export default class HaikuComponent extends HaikuElement {
       }
 
       for (const behaviorSelector in mutableTimelineDescriptor) {
+        const matchingElementsForBehavior = this.findMatchingNodesByCSSSelector(behaviorSelector);
+
+        if (!matchingElementsForBehavior || matchingElementsForBehavior.length < 1) {
+          continue;
+        }
+
         const propertiesGroup = timelineDescriptor[behaviorSelector];
 
         if (!propertiesGroup) {
@@ -1139,16 +1139,9 @@ export default class HaikuComponent extends HaikuElement {
         for (let i = 0; i < propertyOperations.length; i++) {
           const propertyGroup = propertyOperations[i];
 
-          const matchingElementsForBehavior = this.findMatchingElementsByCssSelector(behaviorSelector);
-
-          if (!matchingElementsForBehavior || matchingElementsForBehavior.length < 1) {
-            continue;
-          }
-
           for (let j = 0; j < matchingElementsForBehavior.length; j++) {
             const matchingElement = matchingElementsForBehavior[j];
 
-            const flexId = getNodeFlexId(matchingElement);
             const compositeId = getNodeCompositeId(matchingElement);
 
             for (const propertyName in propertyGroup) {
@@ -1156,7 +1149,7 @@ export default class HaikuComponent extends HaikuElement {
 
               const finalValue = this.grabValue(
                 timelineName,
-                flexId,
+                compositeId,
                 matchingElement,
                 propertyName,
                 propertyValue,
@@ -1174,10 +1167,8 @@ export default class HaikuComponent extends HaikuElement {
                   timelineInstance,
                 );
 
-                // If even one change has been applied, the element must be patched
-                if (deltas) {
-                  deltas[compositeId] = matchingElement;
-                }
+                // This is used downstream to decide whether patch updates are worthwhile
+                matchingElement.__memory.patched = true;
               }
             }
           }
@@ -1192,8 +1183,8 @@ export default class HaikuComponent extends HaikuElement {
     value,
     timeline: HaikuTimeline,
   ) {
-    const sender = (node.__instance) ? node.__instance : this; // Who sent the command
-    const receiver = node.__subcomponent || node.__receiver;
+    const sender = (node.__memory.instance) ? node.__memory.instance : this; // Who sent the command
+    const receiver = node.__memory.subcomponent;
     const type = (receiver && receiver.tagName) || node.elementName;
     const addressables = receiver && receiver.getAddressableProperties();
     const addressee = addressables && addressables[name] !== undefined && receiver;
@@ -1230,16 +1221,33 @@ export default class HaikuComponent extends HaikuElement {
   }
 
   findElementsByHaikuId (componentId) {
-    return this.findMatchingElementsByCssSelector(`haiku:${componentId}`);
+    return this.findMatchingNodesByCSSSelector(`haiku:${componentId}`);
   }
 
-  findMatchingElementsByCssSelector (selector: string) {
-    return this.cacheFetch(`findMatchingElementsByCssSelector:${selector}`, () => {
-      return cssQueryTree(
+  findMatchingNodesByCSSSelector (selector: string) {
+    return this.cacheFetch(`findMatchingNodesByCSSSelector:${selector}`, () => {
+      const out = [];
+
+      const nodes = cssQueryTree(
         this.bytecode.template,
         selector,
         CSS_QUERY_MAPPING,
       );
+
+      nodes.forEach((node) => {
+        const repeatees = findRespectiveRepeatees(node);
+
+        // If the node in question is the descendant of a repeater, we need to find all repeated
+        // copies of it inside the host repeater. If any repeatees are returned that means the
+        // element is in fact a repeater, otherwise it is not a repeater, so just use the node.
+        if (repeatees.length > 0) {
+          out.push.apply(out, repeatees);
+        } else {
+          out.push(node);
+        }
+      });
+
+      return out;
     });
   }
 
@@ -1332,7 +1340,7 @@ export default class HaikuComponent extends HaikuElement {
       return timelineTime;
     }
 
-    const wrapperId = wrapper.attributes && wrapper.attributes[HAIKU_ID_ATTRIBUTE];
+    const wrapperId = getNodeCompositeId(wrapper);
 
     if (!wrapperId) {
       return timelineTime;
@@ -1943,17 +1951,18 @@ const getNodeFlexId = (node): string => {
 const getNodeCompositeId = (node): string => {
   const flexId = getNodeFlexId(node);
 
-  return (node.__repeatee)
-    ? `${flexId}'${node.__repeatee.index}`
+  // Treat the 0th repeater as the original (source) element
+  return (node.__memory.repeatee && node.__memory.repeatee.index)
+    ? `${flexId}'${node.__memory.repeatee.index}`
     : flexId;
 };
 
 const collatePropertyGroup = (propertiesGroup) => {
   const collation = [
+    {}, // presentational ops
     {}, // "if" ops
     {}, // "repeat" ops
     {}, // "placeholder" ops
-    {}, // all other presentational ops
   ];
 
   for (const propertyName in propertiesGroup) {
@@ -2102,12 +2111,117 @@ const propertyGroupNeedsExpressionEvaluated = (
   return foundExpressionForTime;
 };
 
-const expandTemplate = (
+const expandNode = (original, parent, patches = {}) => {
+  if (!original || typeof original !== 'object') {
+    return original;
+  }
+
+  const children = [];
+
+  // eeb222bb1daa
+
+  // Note that HaikuComponent#render calls expandNode for its own tree.
+  const subtree = original.__memory.subcomponent && original.__memory.subcomponent.expand();
+
+  // Special case if our current original is the wrapper of a subcomponent.
+  if (subtree) {
+    children.push(subtree);
+  } else {
+    if (original.children) {
+      // Some components may contain elements that have not defined any .children
+      for (let i = 0; i < original.children.length; i++) {
+        const child = original.children[i];
+
+        if (!child) {
+          continue;
+        }
+
+        // Strings, numbers, etc. can be included in children as-is
+        if (typeof child !== 'object') {
+          children.push(child);
+          continue;
+        }
+
+        // Do not include any children that have been removed due to $if-logic
+        if (child.__memory.if && child.__memory.if.answer === false) {
+          continue;
+        }
+
+        // If the child is a repeater, use the $repeats instead of itself
+        if (child.__memory.repeater) {
+          for (let j = 0; j < child.__memory.repeater.repeatees.length; j++) {
+            const repeatee = child.__memory.repeater.repeatees[j];
+            children.push(repeatee);
+          }
+
+          continue;
+        }
+
+        // If we got this far, the child is structurally normal
+        children.push(child);
+      }
+    }
+  }
+
+  /**
+   * When we compute layout, we have the following chicken/egg problem:
+   * 1. Nodes which are "auto"-sized consume their children's size to calculate their own size.
+   * 2. Nodes with a SIZE_PROPORTIONAL depend on parent absolute size to compute their target size. (DEPRECATED)
+   * 3. Nodes with an "auto"-sized parent consume their parent's bounds to calculate a translation offset.
+   *
+   * Thus, we perform the layout steps in the following order:
+   * 1. Compute the current node's layout.
+   *   1.a. If the current node is "auto"-sized, compute the size of the children. For each child,
+   *        we compute its bounding rect using its *local* transform (not using its parent size).
+   *        This is sufficient to obtain a bounding box in local coordinate space with respect to
+   *        an unknown container. We then use all of the rects to determine the outermost bbox,
+   *        which in turn is used to determine the current node's size.
+   *   1.b. If the current node is numerically sized, use that size.
+   * 2. Expand all children of the current node. By now, the parent should have a numeric size.
+   *   2.a. For SIZE_PROPORTIONAL nodes, compute the layout as proportion of the parent size.
+   *   2.b. For other nodes, compute its local size.
+   *   2.c. If the parent was "auto"-sized, it should have its bounds precalculated from the
+   *        previous pass. When this is the case, use the bounds to calculate an offset value
+   *        by which translation will be offset, aligning all children to be perfectly flush
+   *        with their container, no matter what size it is.
+   */
+
+  const expansion = {
+    ...original,
+    children,
+  };
+
+  // Don't assume the node has/needs a layout, for example, control-flow injectees
+  if (expansion.layout) {
+    // Note that the original node and its "expansion" share a pointer to .layout
+    expansion.layout.computed = HaikuElement.computeLayout(
+      expansion,
+      parent,
+    );
+  }
+
+  for (let j = 0; j < children.length; j++) {
+    // Special case: The subtree of the subcomponent doesn't need to be re-expanded.
+    if (children[j] !== subtree) {
+      children[j] = expandNode(children[j], expansion, patches);
+    }
+  }
+
+  if (expansion.__memory.patched) {
+    patches[getNodeCompositeId(expansion)] = expansion;
+    expansion.__memory.patched = false;
+  }
+
+  return expansion;
+};
+
+const hydrateNode = (
   node,
   parent,
   component: HaikuComponent,
   context: IHaikuContext,
   host: HaikuComponent,
+  scope: string,
   options: any = {},
   doConnectInstanceToNode: boolean,
 ) => {
@@ -2117,58 +2231,64 @@ const expandTemplate = (
   }
 
   // Hydrate a HaikuElement representation of all nodes in the tree.
-  // The instance is cached as node.__element for performance purposes.
+  // The instance is cached as node.__memory.element for performance purposes.
   HaikuElement.findOrCreateByNode(node);
 
-  // Give it a pointer back to the host context; used by HaikuElement
-  node.__context = context;
+  // Platform-specific renderers may depend on access to the parent.
+  node.__memory.parent = parent;
 
-  // Platform renderers may depend on access to the parent
-  node.__parent = parent;
+  // So renderers can detect when different layout behavior is needed.
+  node.__memory.scope = scope || 'div';
+
+  // Give it a pointer back to the host context; used by HaikuElement
+  node.__memory.context = context;
+
+  Layout3D.initializeNodeAttributes(
+    node,
+    doConnectInstanceToNode, // a.k.a isRootNode
+  );
 
   // Give instances a pointer to their node and vice versa
   if (doConnectInstanceToNode) {
-    node.__instance = component;
+    node.__memory.instance = component;
 
     // In the case that the node represents the root of an instance, treat the instance as the element;
     // connect their references and override the equivalent action in findOrCreateByNode.
-    HaikuElement.connectNodeWithElement(node, node.__instance);
+    HaikuElement.connectNodeWithElement(node, node.__memory.instance);
 
     // The host component should hear events emitted by the guest component
     if (host) {
-      const flexIdOfHostComponentsWrapperDivForGuest = (
-        parent &&
-        parent.attributes &&
-        (parent.attributes[HAIKU_ID_ATTRIBUTE] || parent.attributes.id)
-      );
+      const flexIdOfHostComponentsWrapperDivForGuest = getNodeCompositeId(parent);
 
       // Clear the previous listener (avoid multiple subscriptions to the same event)
-      if (node.__listener) {
-        node.__instance.off('*', node.__listener);
+      if (node.__memory.listener) {
+        node.__memory.instance.off('*', node.__memory.listener);
       }
 
-      node.__listener = (key, ...args) => {
+      node.__memory.listener = (key, ...args) => {
         host.routeEventToHandler(
           `haiku:${flexIdOfHostComponentsWrapperDivForGuest}`,
           key,
-          [node.__instance].concat(args),
+          [node.__memory.instance].concat(args),
         );
       };
 
       // Bubble emitted events to the host component so it can subscribe declaratively
-      node.__instance.on('*', node.__listener);
+      node.__memory.instance.on('*', node.__memory.listener);
     }
   }
 
-  if (typeof node.elementName === STRING_TYPE) {
+  // If the element name is missing it should still be safe to hydrate the children
+  if (typeof node.elementName === STRING_TYPE || !node.elementName) {
     if (node.children) {
       for (let i = 0; i < node.children.length; i++) {
-        expandTemplate(
+        hydrateNode(
           node.children[i], // node
           node, // parent
           component, // instance (component)
           context,
           host,
+          SCOPE_STRATA[node.elementName] || scope, // scope
           options,
           false,
         );
@@ -2186,10 +2306,10 @@ const expandTemplate = (
     //       <div wrap> subcomponent (instance id=2)
     //         <div root> instance id=2
     //           ...
-    if (!node.__subcomponent) {
-      // Note: .render and thus .expandTemplate are called by the constructor,
+    if (!node.__memory.subcomponent) {
+      // Note: .render and thus .hydrateNode are called by the constructor,
       // automatically connecting the root node to itself (see stanza above).
-      node.__subcomponent = new HaikuComponent(
+      node.__memory.subcomponent = new HaikuComponent(
         node.elementName,
         context, // context
         component, // host
@@ -2198,64 +2318,28 @@ const expandTemplate = (
       );
 
       // Very important, as the guests collection is used in rendering/patching
-      component.registerGuest(node.__subcomponent);
+      component.registerGuest(node.__memory.subcomponent);
     } else {
       // Reassigning is necessary since these objects may have changed between
       // renders in the editing environment
-      node.__subcomponent.context = context; // context
-      node.__subcomponent.host = component; // host
-      node.__subcomponent.container = node; // container
+      node.__memory.subcomponent.context = context; // context
+      node.__memory.subcomponent.host = component; // host
+      node.__memory.subcomponent.container = node; // container
 
       // Very important, as the guests collection is used in rendering/patching
-      component.registerGuest(node.__subcomponent);
+      component.registerGuest(node.__memory.subcomponent);
 
       // Don't re-start any nested timelines that have been explicitly paused
-      if (!node.__subcomponent.getDefaultTimeline().isExplicitlyPaused()) {
-        node.__subcomponent.startTimeline(DEFAULT_TIMELINE_NAME);
+      if (!node.__memory.subcomponent.getDefaultTimeline().isExplicitlyPaused()) {
+        node.__memory.subcomponent.startTimeline(DEFAULT_TIMELINE_NAME);
       }
-    }
-
-    // Note that render gets called after expandTemplate (see HaikuComponent#render).
-    // Since render mutates the template in place, it's safe to use it as a subtree here.
-    const subtree = node.__subcomponent.bytecode.template;
-    if (subtree) {
-      node.children = [subtree];
     }
 
     return;
   }
 
   // In case we got a __reference node or other unknown
-  console.warn('[haiku core] cannot expand node');
-};
-
-const computeAndApplyTreeLayouts = (tree, container) => {
-  if (!tree || typeof tree !== 'object') {
-    return;
-  }
-
-  computeAndApplyNodeLayout(tree, container);
-
-  if (!tree.children || tree.children.length < 1) {
-    return;
-  }
-
-  for (let i = 0; i < tree.children.length; i++) {
-    computeAndApplyTreeLayouts(tree.children[i], tree);
-  }
-};
-
-const computeAndApplyNodeLayout = (node, parent) => {
-  // No point proceeding if our parent node doesn't have a computed layout
-  if (parent && parent.layout && parent.layout.computed) {
-    // Don't assume the node has/needs a layout, for example, control-flow injectees
-    if (node.layout) {
-      node.layout.computed = HaikuElement.computeLayout(
-        node,
-        parent,
-      );
-    }
-  }
+  console.warn('[haiku core] cannot hydrate node');
 };
 
 const ensure3dPreserved = (component, node) => {
@@ -2829,11 +2913,11 @@ export const VANITIES = {
       // see a flash of the default content before the injected content flows in lazily
       element.children = [];
 
-      if (!element.__placeholder) {
-        element.__placeholder = {};
+      if (!element.__memory.placeholder) {
+        element.__memory.placeholder = {};
       }
 
-      element.__placeholder.value = value;
+      element.__memory.placeholder.value = value;
 
       // If we are running via a framework adapter, allow that framework to provide its own placeholder mechanism.
       // This is necessary e.g. in React where their element format needs to be converted into our 'mana' format
@@ -2848,7 +2932,7 @@ export const VANITIES = {
           sender,
         );
       } else {
-        if (element.placeholder.__surrogate !== surrogate) {
+        if (element.__memory.placeholder.surrogate !== surrogate) {
           element.elementName = surrogate.elementName;
           element.children = surrogate.children || [];
 
@@ -2865,7 +2949,7 @@ export const VANITIES = {
             }
           }
 
-          element.placeholder.__surrogate = surrogate;
+          element.__memory.placeholder.surrogate = surrogate;
         }
       }
     },
@@ -2900,42 +2984,57 @@ export const VANITIES = {
         return;
       }
 
-      if (element.__repeater) {
-        if (element.__repeater.changed) {
-          element.__repeater.changed = false;
+      if (element.__memory.repeatee) {
+        // Don't repeat the repeatee of an existing repeater
+        if (element.__memory.repeatee.index > 0) {
+          return;
+        }
+      }
+
+      if (element.__memory.repeater) {
+        if (element.__memory.repeater.changed) {
+          element.__memory.repeater.changed = false;
         } else {
           // Save CPU by avoiding recomputing a repeat when we've already done so.
-          // Although upstream HaikuComponent#applyBehaviors does do diff comparisons,
+          // Although upstream HaikuComponent#applyLocalBehaviors does do diff comparisons,
           // it intentionally skips this comparison for complex properties i.e. arrays
           // and objects due to the intractability of smartly comparing for all cases.
           // We do a comparison that is fairly sensible in the repeat-exclusive case.
-          if (isSameRepeatBehavior(element.__repeater.instructions, instructions)) {
+          if (isSameRepeatBehavior(element.__memory.repeater.instructions, instructions)) {
             return;
           }
         }
       } else {
-        element.__repeater = {};
+        element.__memory.repeater = {};
       }
 
-      element.__repeater.instructions = instructions;
+      element.__memory.repeater.instructions = instructions;
 
-      element.__repeater.repeatees = [];
+      if (!element.__memory.repeater.repeatees) {
+        element.__memory.repeater.repeatees = [];
+      } else {
+        // If the instructions have decreased on this run, remove the excess repeatees
+        element.__memory.repeater.repeatees.splice(instructions.length);
+      }
 
       instructions.forEach((payload, index) => {
-        const repeatee = element.__repeater.repeatees[index] || clone(element, sender);
+        const repeatee = (index === 0)
+          ? element // The first element should be the source element
+          : element.__memory.repeater.repeatees[index] || clone(element, sender);
 
-        // We have to initialize the element's __instance, etc.
-        expandTemplate(
+        // We have to initialize the element's component instance, etc.
+        hydrateNode(
           repeatee,
-          parent,
+          element.__memory.parent, // parent
           sender, // component
           sender.context, // context
           sender, // host
+          element.__memory.scope, // scope (use same scope as source node)
           sender.config, // options
           false, // doConnectInstanceToNode
         );
 
-        repeatee.__repeatee = {
+        repeatee.__memory.repeatee = {
           index,
           instructions,
           payload,
@@ -2944,9 +3043,8 @@ export const VANITIES = {
 
         // Apply the repeat payload to the element as if it were a normal timeline output
         for (const propertyName in payload) {
-          // Although we automatically apply properties from the repeat payload as a convenience,
-          // note that control-flow occurs before other behaviors, meaning that if a subsequent
-          // property of the same name is applied, it will override what the repeat payload sets here.
+          // Control-flow occurs after presentational behaviors, meaning we are overriding
+          // whatever may have been set on the source element instance.
           sender.applyPropertyToNode(
             repeatee, // matchingElement
             propertyName,
@@ -2955,10 +3053,10 @@ export const VANITIES = {
           );
         }
 
-        element.__repeater.repeatees[index] = repeatee;
+        element.__memory.repeater.repeatees[index] = repeatee;
       });
 
-      sender.clearCaches();
+      sender.markForFullFlush();
     },
 
     'controlFlow.if': (
@@ -2978,23 +3076,23 @@ export const VANITIES = {
       // Assume our if-answer is only false if we got an explicit false value
       const answer = (value === false) ? false : true;
 
-      if (element.__if) {
+      if (element.__memory.if) {
         // Save CPU by avoiding recomputing an if when we've already done so.
-        if (isSameIfBehavior(element.__if.answer, answer)) {
+        if (isSameIfBehavior(element.__memory.if.answer, answer)) {
           return;
         }
       }
 
-      element.__if = {
+      element.__memory.if = {
         answer,
       };
 
       // Ensure that a change in repeat will trigger the necessary re-repeat
-      if (element.__repeater) {
-        element.__repeater.changed = true;
+      if (element.__memory.repeater) {
+        element.__memory.repeater.changed = true;
       }
 
-      sender.clearCaches();
+      sender.markForFullFlush();
     },
   },
 };
@@ -3035,6 +3133,57 @@ const isSameRepeatBehavior = (prevs, nexts): boolean => {
   }
 
   return answer;
+};
+
+const findRespectiveRepeatees = (target) => {
+  const repeatees = [];
+
+  // The host repeatee of the given target node, if the target is a repeater's descendant
+  let host;
+
+  if (target.__memory.repeatee) {
+    host = target;
+  } else {
+    // Note that we do not ascend beyond the nearest host component instance
+    ascend(target, (node) => {
+      if (node.__memory.repeatee) {
+        host = node;
+      }
+    });
+  }
+
+  // If we've found a host repeatee, the target is a descendant of a repeater,
+  // and we need to find its respective node within each repeatee.
+  if (host) {
+    const repeater = host.__memory.repeatee.source;
+    repeater.__memory.repeater.repeatees.forEach((repeatee) => {
+      visit(repeatee, (candidate) => {
+        if (areNodesRespective(target, candidate)) {
+          repeatees.push(candidate);
+        }
+      });
+    });
+  }
+
+  return repeatees;
+};
+
+const areNodesRespective = (n1, n2): boolean => {
+  if (n1 === n2) {
+    return true;
+  }
+
+  // We assume that all nodes within the tree of a component have unique haiku-ids, and that
+  // these haiku-ids are not directly modified within repeater groups
+  if (
+    // If the haiku-id attribute is empty, assume the comparison isn't valid
+    n1.attributes[HAIKU_ID_ATTRIBUTE] &&
+    n1.attributes[HAIKU_ID_ATTRIBUTE] === n2.attributes[HAIKU_ID_ATTRIBUTE]
+  ) {
+    return true;
+  }
+
+  return false;
 };
 
 export const getFallback = (elementName: string, propertyName: string) => {
@@ -3392,11 +3541,11 @@ const getRepeatHostNode = (node) => {
     return;
   }
 
-  if (node.__repeatee) {
+  if (node.__memory.repeatee) {
     return node;
   }
 
-  return getRepeatHostNode(node.__parent);
+  return getRepeatHostNode(node.__memory && node.__memory.parent);
 };
 
 const getIfHostNode = (node) => {
@@ -3404,11 +3553,11 @@ const getIfHostNode = (node) => {
     return;
   }
 
-  if (node.__if) {
+  if (node.__memory.if) {
     return node;
   }
 
-  return getIfHostNode(node.__parent);
+  return getIfHostNode(node.__memory && node.__memory.parent);
 };
 
 INJECTABLES.$flow = {
@@ -3420,7 +3569,7 @@ INJECTABLES.$flow = {
 
     const repeatNode = getRepeatHostNode(node);
 
-    injectees.$flow.repeat = (repeatNode && repeatNode.__repeatee) || {
+    injectees.$flow.repeat = (repeatNode && repeatNode.__memory.repeatee) || {
       instructions: [],
       payload: {},
       source: repeatNode,
@@ -3429,11 +3578,11 @@ INJECTABLES.$flow = {
 
     const ifNode = getIfHostNode(node);
 
-    injectees.$flow.if = (ifNode && ifNode.__if) || {
+    injectees.$flow.if = (ifNode && ifNode.__memory.if) || {
       answer: null,
     };
 
-    injectees.$flow.placeholder = node.__placeholder || {
+    injectees.$flow.placeholder = node.__memory.placeholder || {
       value: null,
       surrogate: null,
     };

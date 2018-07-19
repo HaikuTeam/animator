@@ -26,12 +26,12 @@ const connectTarget = (virtualNode, domElement) => {
   if (virtualNode && typeof virtualNode === 'object') {
     // A virtual node can have multiple targets in the DOM due to an implementation
     // detail in the Haiku editing environment; FIXME
-    if (!virtualNode.__targets) {
-      virtualNode.__targets = [];
+    if (!virtualNode.__memory.targets) {
+      virtualNode.__memory.targets = [];
     }
 
-    if (virtualNode.__targets.indexOf(domElement) === -1) {
-      virtualNode.__targets.push(domElement);
+    if (virtualNode.__memory.targets.indexOf(domElement) === -1) {
+      virtualNode.__memory.targets.push(domElement);
     }
   }
 };
@@ -117,20 +117,26 @@ export default class HaikuDOMRenderer extends HaikuBase {
     for (const compositeId in deltas) {
       const virtualElement = deltas[compositeId];
 
-      if (virtualElement.__targets) {
-        for (let i = 0; i < virtualElement.__targets.length; i++) {
-          const target = virtualElement.__targets[i];
+      const parentVirtualElement = virtualElement.__memory && virtualElement.__memory.parent;
 
-          if (target.parentNode) {
-            HaikuDOMRenderer.updateElement(
-              target,
-              virtualElement,
-              target.parentNode,
-              virtualElement.__parent,
-              component,
-              true,
-            );
-          }
+      const domTargets = virtualElement.__memory && virtualElement.__memory.targets;
+
+      if (!domTargets) {
+        continue;
+      }
+
+      for (let i = 0; i < domTargets.length; i++) {
+        const domTarget = domTargets[i];
+
+        if (domTarget.parentNode) {
+          HaikuDOMRenderer.updateElement(
+            domTarget, // DOM node
+            virtualElement, // mana node
+            domTarget.parentNode, // DOM node
+            parentVirtualElement, // mana node
+            component,
+            true, // isPatchOperation
+          );
         }
       }
     }
@@ -640,7 +646,11 @@ export default class HaikuDOMRenderer extends HaikuBase {
       domElement.haiku.key = incomingKey;
     }
 
-    const instance = (virtualElement && virtualElement.__instance) || component;
+    const instance = (
+      virtualElement &&
+      virtualElement.__memory &&
+      virtualElement.__memory.instance
+    ) || component;
 
     if (Array.isArray(virtualElement.children)) {
       // For performance, we don't render children during a patch operation, except in the case

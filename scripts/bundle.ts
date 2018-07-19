@@ -66,18 +66,18 @@ for (const bundleName in adapters) {
       code,
     );
   });
-  // Minified bundle.
-  createBundle(
-    input,
-    name,
-    true,
-  ).then(({code}) => {
-    fse.outputFileSync(
-      path.join(
-        DIST,
-        `${bundleName}.bundle.min.js`,
-      ),
-      code,
-    );
-  });
+  // // Minified bundle.
+  // createBundle(
+  //   input,
+  //   name,
+  //   true,
+  // ).then(({code}) => {
+  //   fse.outputFileSync(
+  //     path.join(
+  //       DIST,
+  //       `${bundleName}.bundle.min.js`,
+  //     ),
+  //     code,
+  //   );
+  // });
 }

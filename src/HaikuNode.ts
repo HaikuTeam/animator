@@ -40,14 +40,6 @@ const SLASH = '/';
 const SPACE = ' ';
 const STYLE = 'style';
 
-const DEFAULT_SCOPE = 'div';
-
-const SCOPE_STRATA = {
-  div: 'div',
-  svg: 'svg',
-  // canvas: 'canvas'
-};
-
 const SELF_CLOSING_TAG_NAMES = [
   'area',
   'base',
@@ -337,6 +329,10 @@ export type ManaTreeVisitor = (
   index: number,
 ) => void;
 
+export type BytecodeNodeVisitor = (
+  mana: BytecodeNode,
+) => void;
+
 export const visitManaTree = (
   locator: string,
   mana: string|BytecodeNode,
@@ -368,26 +364,34 @@ export const visitManaTree = (
   }
 };
 
-export const scopifyElements = (mana, parent, scope) => {
-  if (!mana) {
-    return mana;
-  }
-  if (typeof mana === 'string') {
-    return mana;
+export const visit = (
+  mana,
+  visitor,
+): void => {
+  if (!mana || typeof mana !== 'object') {
+    return;
   }
 
-  mana.__scope = scope || DEFAULT_SCOPE;
+  visitor(mana);
 
   if (mana.children) {
     for (let i = 0; i < mana.children.length; i++) {
-      const child = mana.children[i];
-      scopifyElements(
-        child,
-        mana,
-        // If the current element defines a new strata, make that a new scope
-        // and pass it down to the children.
-        SCOPE_STRATA[mana.elementName] || scope,
-      );
+      visit(mana.children[i], visitor);
+    }
+  }
+};
+
+export const ascend = (mana, ascender): void => {
+  if (!mana || typeof mana !== 'object') {
+    return;
+  }
+
+  ascender(mana);
+
+  if (mana.__memory) {
+    // Don't ascend beyond the scope of the host component instance
+    if (!mana.__memory.instance && mana.__memory.parent) {
+      ascend(mana.__memory.parent, ascender);
     }
   }
 };
@@ -556,7 +560,7 @@ export const cloneNodeShallow = (node) => {
   }
 
   return {
-    // We want to keep __parent, etc.,
+    // We want to keep attributes such as __memory, etc.,
     // as well as elementName, which could be byteocde,
     // unchanged.
     ...node,

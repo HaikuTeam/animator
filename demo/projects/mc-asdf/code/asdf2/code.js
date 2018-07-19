@@ -44,7 +44,7 @@ module.exports = {
         "sizeMode.y": { "0": { value: 1 } },
         "sizeAbsolute.x": { "0": { value: 550 } },
         "sizeAbsolute.y": { "0": { value: 400 } },
-        "translation.x": { "0": { value: 422 } },
+        "translation.x": { "0": { value: 422, curve: 'linear' }, "1000": { value: 0 } },
         "translation.y": { "0": { value: 234 } },
         "origin.x": { "0": { value: 0.5 } },
         "origin.y": { "0": { value: 0.5 } },
