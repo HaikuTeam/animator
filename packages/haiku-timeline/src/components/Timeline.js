@@ -561,15 +561,21 @@ class Timeline extends React.Component {
     });
 
     this.addEmitterListener(Row, 'update', (row, what, metadata) => {
-      if (experimentIsEnabled(Experiment.NativeTimelineScroll) && what === 'row-selected' && metadata.from !== 'timeline') {
-        const rowElement = document.getElementById(`component-heading-row-${row.element.getComponentId()}-${row.getAddress()}`);
+      if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+        if (['row-collapsed', 'row-expanded'].includes(what) && row.isRootRow()) {
+          this.forceUpdate();
+        }
 
-        if (rowElement) {
-          this.refs.container.scroll({
-            top: rowElement.offsetTop,
-            left: this.refs.container.scrollLeft,
-            behavior: 'smooth',
-          });
+        if (what === 'row-selected' && metadata.from !== 'timeline') {
+          const rowElement = document.getElementById(`component-heading-row-${row.element.getComponentId()}-${row.getAddress()}`);
+
+          if (rowElement) {
+            this.refs.container.scroll({
+              top: rowElement.offsetTop,
+              left: this.refs.container.scrollLeft,
+              behavior: 'smooth',
+            });
+          }
         }
       }
     });
@@ -1271,7 +1277,7 @@ class Timeline extends React.Component {
             <GaugeTimeReadout reactParent={this} timeline={timeline} />
           </div>
         ),
-        (  <SimplifiedFrameGrid
+        (<SimplifiedFrameGrid
             key="frame-grid"
             timeline={timeline}
             timelineOffsetPadding={TIMELINE_OFFSET_PADDING}
