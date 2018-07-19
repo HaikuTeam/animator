@@ -1463,6 +1463,68 @@ export default class HaikuComponent extends HaikuElement {
     this.getRootComponent().emit(eventName, attachedObject);
   }
 
+  evaluate (expr: string) {
+    // Make all injectables available within the scope of the function we'll create below,
+    // so users can freely evaluate an expression like this.evaluate('$user.mouse.x');
+    try {
+      // tslint:disable-next-line:no-function-constructor-with-string-args
+      const fn = new Function(
+        '$children',
+        '$clock',
+        '$component',
+        '$container',
+        '$context',
+        '$core',
+        '$element',
+        '$host',
+        '$mount',
+        '$parent',
+        '$state',
+        '$timeline',
+        '$top',
+        '$tree',
+        '$user',
+        '$window',
+        `return ${expr};\n`,
+      );
+      return fn(
+        this.summon('$children'),
+        this.summon('$clock'),
+        this.summon('$component'),
+        this.summon('$container'),
+        this.summon('$context'),
+        this.summon('$core'),
+        this.summon('$element'),
+        this.summon('$host'),
+        this.summon('$mount'),
+        this.summon('$parent'),
+        this.summon('$state'),
+        this.summon('$timeline'),
+        this.summon('$top'),
+        this.summon('$tree'),
+        this.summon('$user'),
+        this.summon('$window'),
+      );
+    } catch (exception) {
+      console.warn(`[haiku core] could not evaluate ${expr}`, exception);
+    }
+  }
+
+  summon (injectable: string) {
+    if (INJECTABLES[injectable] && INJECTABLES[injectable].summon) {
+      const out = {};
+
+      INJECTABLES[injectable].summon(
+        out, // injectees
+        this, // component
+        this.bytecode.template, // node
+        DEFAULT_TIMELINE_NAME, // timeline name
+      );
+
+      return out[injectable];
+    }
+  }
+
   evaluateExpression (
     fn,
     timelineName: string,

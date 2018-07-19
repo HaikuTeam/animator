@@ -16,7 +16,17 @@ module.exports = {
   },
   options: {},
   states: {},
-  eventHandlers: {},
+  eventHandlers: {
+    "haiku:03757d2ca102": {
+      "component:did-mount": {
+        handler: function () {
+          setInterval(() => {
+            console.log(this.evaluate('$user.mouse.x'));  
+          }, 100);
+        }
+      }
+    }
+  },
   timelines: {
     Default: {
       "haiku:03757d2ca102": {
