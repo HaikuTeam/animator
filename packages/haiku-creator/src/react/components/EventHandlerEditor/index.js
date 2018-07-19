@@ -23,6 +23,8 @@ const STYLES = {
     width: EDITOR_WIDTH,
     minHeight: '230px',
     paddingRight: 0,
+    top: '114px',
+    position: 'absolute',
   },
   outer: {
     position: 'relative',
@@ -88,7 +90,7 @@ class EventHandlerEditor extends React.PureComponent {
       }, 100);
     }
 
-    monaco.editor.defineTheme('haiku', {
+    monaco.editor.defineTheme('haiku-actions', {
       base: 'vs-dark',
       inherit: true,
       // `rules` requires colors without the leading '#' ¯\_(ツ)_/¯
@@ -104,7 +106,7 @@ class EventHandlerEditor extends React.PureComponent {
       },
     });
 
-    monaco.editor.setTheme('haiku');
+    monaco.editor.setTheme('haiku-actions');
 
     // Remove the default autocompletion options (console, window, GeoLocation, etc)
     // due to a [bug][1] in monaco this removes most of the stuff, but leaves

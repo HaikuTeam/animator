@@ -251,6 +251,7 @@ class Stage extends React.Component {
             closePopupCannotSwitchToDesign={this.closePopupCannotSwitchToDesign}
             showPopupCannotSwitchToDesign={this.state.showPopupCannotSwitchToDesign}
             saveCodeFromEditorToDisk={this.saveCodeFromEditorToDisk}
+            onShowEventHandlerEditor={this.props.onShowEventHandlerEditor}
           />
           {(experimentIsEnabled(Experiment.MultiComponentFeatures)) &&
             <ComponentMenu

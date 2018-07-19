@@ -61,6 +61,7 @@
     "react-motion": "0.4.7",
     "react-onclickoutside": "^6.4.0",
     "react-popover": "^0.4.18",
+    "react-selectize": "^3.0.1",
     "react-transition-group": "^2.2.1"
   },
   "devDependencies": {
