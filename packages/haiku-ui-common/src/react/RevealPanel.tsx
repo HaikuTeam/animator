@@ -4,12 +4,21 @@ const STYLES = {
   wrapper: {
     width: '200%',
     display: 'flex',
-    transition: 'transform 600ms cubic-bezier(0.19, 1, 0.22, 1)',
+    transition: 'transform 200ms linear',
     padding: '0 20px',
     marginBottom: '30px',
+    pointerEvents: 'none',
   },
   item: {
     width: '50%',
+  },
+  hidden: {
+    pointerEvents: 'none',
+    opacity: 0,
+  },
+  visible: {
+    pointerEvents: 'all',
+    opacity: 1,
   },
 };
 
@@ -28,8 +37,8 @@ export class RevealPanel extends React.PureComponent<RevealPanelProps> {
           transform: `translateX(${this.props.showDetail ? '-50%' : '0'})`,
         }}
       >
-        <div style={STYLES.item}>{this.props.leftPanel}</div>
-        <div style={STYLES.item}>{this.props.rightPanel}</div>
+        <div style={{...STYLES.item, ...(this.props.showDetail ? STYLES.hidden : STYLES.visible)}}>{this.props.leftPanel}</div>
+        <div style={{...STYLES.item, ...(this.props.showDetail ? STYLES.visible : STYLES.hidden)}}>{this.props.rightPanel}</div>
       </div>
     );
   }

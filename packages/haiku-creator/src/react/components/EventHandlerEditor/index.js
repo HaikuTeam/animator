@@ -281,7 +281,9 @@ class EventHandlerEditor extends React.PureComponent {
             />
           </ModalHeader>
 
-          <div style={STYLES.outer}>
+          <div style={STYLES.outer} ref={(revealWrapper) => {
+            this.revealWrapper = revealWrapper;
+          }}>
             {isNumeric(this.props.options.frame) && this.state.currentEvent ? (
               <div
                 style={{
@@ -299,6 +301,12 @@ class EventHandlerEditor extends React.PureComponent {
                     <EventSelector
                       options={applicableEventHandlers}
                       disabledOptions={this.handlerManager}
+                      onFocus={() => {
+                        this.revealWrapper.style.overflow = 'visible';
+                      }}
+                      onBlur={() => {
+                        this.revealWrapper.style.overflow = 'hidden';
+                      }}
                       onChange={(event) => {
                         this.showEditor(event);
                       }}
