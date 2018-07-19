@@ -950,15 +950,8 @@ Timeline.getMaximumMs = (reifiedBytecode, timelineName) => {
   return Timeline.getTimelineMaxTime(reifiedBytecode.timelines[timelineName])
 }
 
-// A cached version of the above that stores the max value so we
-// can avoid doing what is a rather expensive calculation every frame.
-// We also need to clear this cache; see `clearInMemoryBytecodeCaches`
 Timeline.getTimelineMaxTime = (timelineDescriptor) => {
-  if (timelineDescriptor.__max !== undefined) {
-    return timelineDescriptor.__max
-  }
-  timelineDescriptor.__max = getTimelineMaxTime(timelineDescriptor)
-  return timelineDescriptor.__max
+  return getTimelineMaxTime(timelineDescriptor)
 }
 
 Timeline.millisecondToNearestFrame = function millisecondToNearestFrame (msValue, mspf) {

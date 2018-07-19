@@ -796,8 +796,8 @@ class ActiveComponent extends BaseModel {
       this.getCurrentTimelineTime(),
       0,
       mana.elementName,
-      mana.__subcomponent, // can be undefined
-      mana.__subcomponent && mana.__subcomponent.state // can be undefined
+      mana.__memory && mana.__memory.subcomponent, // can be undefined
+      mana.__memory && mana.__memory.subcomponent && mana.__memory.subcomponent.state // can be undefined
     )
   }
 
@@ -1745,8 +1745,8 @@ class ActiveComponent extends BaseModel {
 
         ac.$instance.visitGuestHierarchy((instance) => {
           if (this.doesManageCoreInstance(instance)) {
-            if (instance.node.__parent) {
-              Object.assign(instance.node.__parent.elementName, bytecode)
+            if (instance.node.__memory && instance.node.__memory.parent) {
+              Object.assign(instance.node.__memory.parent.elementName, bytecode)
             }
 
             Object.assign(instance.bytecode, bytecode)
@@ -2268,8 +2268,8 @@ class ActiveComponent extends BaseModel {
               instance.deactivate()
 
               if (this.doesManageCoreInstance(instance)) {
-                if (instance.node.__parent) {
-                  Object.assign(instance.node.__parent.elementName, bytecode)
+                if (instance.node.__memory && instance.node.__memory.parent) {
+                  Object.assign(instance.node.__memory.parent.elementName, bytecode)
                 }
 
                 Object.assign(instance.bytecode, bytecode)

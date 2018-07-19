@@ -105,7 +105,7 @@ export default class HaikuElement extends HaikuBase {
    * This node is considered the 'wrapper' node and its child is considered the 'root'.
    */
   get subcomponent (): IHaikuComponent {
-    return this.node && this.node.__subcomponent;
+    return this.memory && this.memory.subcomponent;
   }
 
   /**
@@ -114,7 +114,7 @@ export default class HaikuElement extends HaikuBase {
    * This node is considered the 'root' node of the instance.
    */
   get instance (): IHaikuComponent {
-    return this.node && this.node.__instance;
+    return this.memory && this.memory.instance;
   }
 
   get owner (): IHaikuComponent {
@@ -126,11 +126,15 @@ export default class HaikuElement extends HaikuBase {
   }
 
   get instanceContext (): any {
-    return this.node && this.node.__context;
+    return this.memory && this.memory.context;
   }
 
   get parentNode (): any {
-    return this.node && this.node.__parent;
+    return this.memory && this.memory.parent;
+  }
+
+  get memory (): any {
+    return this.node && this.node.__memory;
   }
 
   get parent (): any {
@@ -263,7 +267,7 @@ export default class HaikuElement extends HaikuBase {
   }
 
   get targets (): any[] {
-    return (this.node && this.node.__targets) || [];
+    return (this.memory && this.memory.targets) || [];
   }
 
   get target () {
@@ -965,7 +969,17 @@ export default class HaikuElement extends HaikuBase {
 
     // In case we got a string or null node
     if (node && typeof node === 'object') {
-      node.__element = element;
+      // The purpose of the __memory object is to allow a mutable reference to be
+      // passed around even when the node's base attributes are cloned. Also
+      // to consolidate a host of __* properties which were becoming unweildy.
+      //
+      // Important: Platform-specific renderers may attach properties to this object;
+      // for example the HaikuDOMRenderer attaches list of .targets (DOM nodes).
+      if (!node.__memory) {
+        node.__memory = {};
+      }
+
+      node.__memory.element = element;
     }
   };
 
@@ -976,7 +990,11 @@ export default class HaikuElement extends HaikuBase {
   };
 
   static findOrCreateByNode = (node): HaikuElement => {
-    let found = node.__element;
+    let found;
+
+    if (node && typeof node === 'object') {
+      found = node.__memory && node.__memory.element;
+    }
 
     if (!found) {
       found = HaikuElement.findByNode(node);

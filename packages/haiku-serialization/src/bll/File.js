@@ -266,7 +266,7 @@ class File extends BaseModel {
    * @method getReifiedDecycledBytecode
    * @description Similar to getReifiedBytecode but removes internal object pointers/annotations which either cause
    * serialization issues or which have the effect of adding too much metadata to the object. For example, the
-   * reified bytecode by itself probably has a template that contains .__parent, .layout properties, etc.
+   * reified bytecode by itself probably has a template that contains .layout properties, etc.
    */
   getReifiedDecycledBytecode (cleanManaOptions = {}) {
     const reified = this.getReifiedBytecode()

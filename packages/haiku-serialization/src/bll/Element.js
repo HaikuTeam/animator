@@ -549,8 +549,7 @@ class Element extends BaseModel {
         elementName: targetNode.elementName,
         attributes: targetNode.attributes,
         children: targetNode.children,
-        __parent: targetNode.__parent,
-        __element: targetNode.__element // Preserve cache result of findOrCreateElement
+        __memory: targetNode.__memory
       },
       { // parentNode
         layout: {
@@ -563,8 +562,7 @@ class Element extends BaseModel {
         elementName: parentNode.elementName,
         attributes: parentNode.attributes,
         children: parentNode.children,
-        __parent: parentNode.__parent,
-        __element: parentNode.__element // Preserve cache result of findOrCreateElement
+        __memory: parentNode.__memory
       }
     )
   }
@@ -1884,7 +1882,8 @@ class Element extends BaseModel {
     if (!this.isComponent()) return null
     const liveRenderedNode = this.getLiveRenderedNode()
     if (!liveRenderedNode) return null
-    return liveRenderedNode.__subcomponent
+    if (!liveRenderedNode.__memory) return null
+    return liveRenderedNode.__memory.subcomponent
   }
 
   getAttribute (key) {

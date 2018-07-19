@@ -508,3 +508,12 @@ export interface ParsedValueCluster {
     curve?: CurveDefinition;
   };
 }
+
+export interface IExpandResult {
+  expansion: BytecodeNode;
+  patches: IPatchMap;
+}
+
+export interface IPatchMap {
+  [compositeId: string]: BytecodeNode;
+}

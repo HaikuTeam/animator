@@ -3,12 +3,12 @@
  */
 
 export default function scopeOfElement (mana) {
-  if (mana.__scope) {
-    return mana.__scope;
+  if (mana.__memory.scope) {
+    return mana.__memory.scope;
   }
 
-  if (mana.__parent) {
-    return scopeOfElement(mana.__parent);
+  if (mana.__memory && mana.__memory.parent) {
+    return scopeOfElement(mana.__memory.parent);
   }
 
   return null;

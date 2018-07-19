@@ -74,22 +74,6 @@ export default function applyLayout (
       return domElement;
     }
 
-    if (!parentVirtualElement) {
-      warnOnce('Cannot compute layout without parent element');
-      return domElement;
-    }
-
-    if (!parentVirtualElement.layout || !parentVirtualElement.layout.computed) {
-      warnOnce(
-        'Cannot compute layout without parent computed size (child: <' +
-        virtualElement.elementName +
-        '>; parent: <' +
-        parentVirtualElement.elementName +
-        '>)',
-      );
-      return domElement;
-    }
-
     const computedLayout = virtualElement.layout.computed;
 
     // No computed layout means the el is not shown
@@ -109,14 +93,4 @@ export default function applyLayout (
   }
 
   return domElement;
-}
-
-const warnings = {};
-
-function warnOnce (warning) {
-  if (warnings[warning]) {
-    return void 0;
-  }
-  warnings[warning] = true;
-  console.warn('[haiku core] warning:', warning);
 }
