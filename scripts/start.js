@@ -94,13 +94,7 @@ if (argv.default === true) {
 //
 // We pass only first haiku:// protocol URI to creator
 // On Windows and Linux, custom protocol handler is passed as argument
-let haikuURIs = null;
-for (const arg of args) {
-  if (arg.startsWith('haiku://')) {
-    haikuURIs = arg;
-    break;
-  }
-}
+const haikuURI = args.find((arg) => arg.startsWith('haiku://'));
 
 const availablePresets = {
   glass: 'repeat-2-auto-glass',
@@ -283,8 +277,8 @@ function go () {
       binaryArgs.push('electron', '--remote-debugging-port=9222', '.');
       // On Windows and Linux, custom protocol handler is
       // passed as argument, so here we forward it
-      if (haikuURIs) {
-        binaryArgs.push(haikuURIs);
+      if (haikuURI) {
+        binaryArgs.push(haikuURI);
       }
       break;
     case 'glass':

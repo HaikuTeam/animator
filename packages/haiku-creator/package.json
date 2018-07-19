@@ -12,8 +12,8 @@
     "lint-report": "yarn lint -t checkstyle -o checkstyle-result.xml",
     "fix": "yarn lint --fix",
     "ts": "cross-env NODE_ENV=test ts-node -r tsconfig-paths/register -P tsconfig.all.json",
-    "test": "yarn ts ../../node_modules/.bin/tape 'test/**/*.test.ts' 'test/**/*.test.js' | tap-spec",
-    "test-report": "nyc yarn ts ../../node_modules/.bin/tape 'test/**/*.test.ts' 'test/**/*.test.js' > test-result.tap",
+    "test": "yarn ts ./node_modules/.bin/tape 'test/**/*.test.ts' 'test/**/*.test.js' | tap-spec",
+    "test-report": "nyc yarn ts ./node_modules/.bin/tape 'test/**/*.test.ts' 'test/**/*.test.js' > test-result.tap",
     "compile": "tsc",
     "compile-declarations": "tsc -p tsconfig.declarations.json",
     "develop": "tsc --watch",
@@ -70,6 +70,17 @@
     "@types/qs": "^6.5.1",
     "electron": "2.0.4",
     "electron-devtools-installer": "^2.2.4",
+    "cross-env": "^5.1.6",
+    "istanbul-reporter-cobertura-haiku": "^1.0.1",
+    "nyc": "^11.8.0",
+    "tap-spec": "^4.1.2",
+    "tape": "^4.9.0",
+    "ts-node": "^6.1.0",
+    "tsconfig-paths": "^3.3.2",
+    "tslint": "^5.10.0",
+    "tslint-config-haiku": "^1.0.15",
+    "typescript": "^2.9.1",
+    "leaked-handles": "^5.2.0",
     "haiku-testing": "3.5.1"
   }
 }

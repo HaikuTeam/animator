@@ -13,13 +13,7 @@ if (!global.process.env.NODE_ENV || global.process.env.NODE_ENV === 'production'
 }
 
 // On Windows and Linux, custom protocol handler is passed as argument
-let haikuURI = null;
-for (const arg of process.argv) {
-  if (arg.startsWith('haiku://')) {
-    haikuURI = arg;
-    break;
-  }
-}
+const haikuURI = process.argv.find((arg) => arg.startsWith('haiku://'));
 
 if (process.env.HAIKU_APP_LAUNCH_CLI === '1') {
   require('@haiku/cli');
