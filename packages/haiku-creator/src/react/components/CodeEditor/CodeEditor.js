@@ -50,6 +50,7 @@ class CodeEditor extends React.Component {
     // any updates while we weren't visible
     if (!nextProps.showGlass && this.props.showGlass !== nextProps.showGlass) {
       this.performCodeReload();
+      monaco.editor.setTheme('haiku');
     }
   }
 
@@ -149,6 +150,7 @@ class CodeEditor extends React.Component {
           />}
         <MonacoEditor
           language="javascript"
+          theme="haiku"
           value={this.state.currentEditorContents}
           options={monacoOptions}
           style={{

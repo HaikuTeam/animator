@@ -17,14 +17,12 @@
     "haiku-ui-common": "3.5.1",
     "lodash": "^4.17.4",
     "moment": "2.18.1",
-    "monaco-editor": "^0.13.1",
     "prettier": "^0.22.0",
     "qs": "6.4.0",
     "radium": "0.18.1",
     "raven-js": "^3.18.1",
     "react": "15.6.2",
     "react-dom": "15.6.2",
-    "react-selectize": "^3.0.1",
     "react-transition-group": "^1.1.2"
   },
   "devDependencies": {

@@ -647,15 +647,7 @@ class StageTitleBar extends React.Component {
       if (element) {
         mixpanel.haikuTrack('creator:top-controls:show-event-handlers-editor');
 
-        this.props.websocket.send({
-          type: 'broadcast',
-          from: 'creator',
-          name: 'show-event-handlers-editor',
-          folder: this.props.projectModel.getFolder(), // required when sent via Creator
-          elid: element.getPrimaryKey(),
-          opts: {},
-          frame: null,
-        });
+        this.props.onShowEventHandlerEditor(element.getPrimaryKey(), {}, null);
       }
     }
   }

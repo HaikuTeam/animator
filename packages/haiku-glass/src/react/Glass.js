@@ -14,7 +14,6 @@ import * as EmitterManager from 'haiku-serialization/src/utils/EmitterManager';
 import {isCoordInsideBoxPoints} from 'haiku-serialization/src/bll/MathUtils';
 import Palette from 'haiku-ui-common/lib/Palette';
 import Comment from './Comment';
-import EventHandlerEditor from './components/EventHandlerEditor';
 import Preview from './Preview';
 import CreateComponentModal from './modals/CreateComponentModal';
 import * as Comments from './Comments';
@@ -88,10 +87,6 @@ const DIRECT_SELECTION_MULTIPLE_SELECTION_ALLOWED = {
   path: true,
 };
 
-const isNumeric = (n) => {
-  return !isNaN(parseFloat(n)) && isFinite(n);
-};
-
 const niceTimestamp = () => {
   return moment().format('YYYY-MM-DD-HHmmss');
 };
@@ -138,7 +133,6 @@ export class Glass extends React.Component {
       targetElement: null,
       isEventHandlerEditorOpen: false,
       isCreateComponentModalOpen: false,
-      eventHandlerEditorOptions: {},
     };
 
     Project.setup(
@@ -363,28 +357,11 @@ export class Glass extends React.Component {
   }
 
   handleInteractionModeChange () {
-    // If preview mode is active, hide the events handlers editor
-    // TODO: IMO (Roberto) would be nice if we can bring the editor back once
-    // turning preview mode off, but needs discussion with the team.
     if (this.isPreviewMode()) {
-      this.hideEventHandlersEditor();
       this._playing = false;
     }
 
     this.forceUpdate();
-  }
-
-  handleShowEventHandlersEditor (elementUID, options, frame) {
-    // The EventHandlerEditor uses this field to know whether to launch in frame mode vs event mode
-    if (isNumeric(frame)) {
-      options.frame = frame;
-    }
-
-    this.showEventHandlersEditor(
-      null,
-      this.getActiveComponent().findElementByUid(elementUID),
-      options,
-    );
   }
 
   handleRequestElementCoordinates ({selector, webview}) {
@@ -676,12 +653,12 @@ export class Glass extends React.Component {
           logger.warn('active component not initialized; cannot reload');
           return;
 
-        case 'show-event-handlers-editor':
-          this.handleShowEventHandlersEditor(
-            message.elid,
-            message.opts,
-            message.frame,
-          );
+        case 'event-handlers-editor-open':
+          this.setState({isEventHandlerEditorOpen: true});
+          break;
+
+        case 'event-handlers-editor-closed':
+          this.setState({isEventHandlerEditorOpen: false});
           break;
 
         case 'instantiate-component':
@@ -1051,37 +1028,6 @@ export class Glass extends React.Component {
 
   resetContainerDimensions () {
     this.getActiveComponent().getArtboard().resetContainerDimensions(this.refs.container);
-  }
-
-  showEventHandlersEditor (clickEvent, targetElement, options) {
-    if (this.isPreviewMode() || !targetElement) {
-      return;
-    }
-
-    mixpanel.haikuTrack('creator:glass:show-event-handlers-editor');
-    logger.info(`showing action editor`, options);
-
-    this.setState({
-      targetElement,
-      isEventHandlerEditorOpen: true,
-      eventHandlerEditorOptions: options,
-    });
-  }
-
-  hideEventHandlersEditor () {
-    if (this.editor && this.editor.canBeClosedExternally()) {
-      mixpanel.haikuTrack('creator:glass:hide-event-handlers-editor');
-      this.setState({
-        targetElement: null,
-        isEventHandlerEditorOpen: false,
-        eventHandlerEditorOptions: {},
-      });
-    }
-  }
-
-  saveEventHandlers (targetElement, serializedEvents) {
-    const selectorName = 'haiku:' + targetElement.getComponentId();
-    this.getActiveComponent().batchUpsertEventHandlers(selectorName, serializedEvents, {from: 'glass'}, () => {});
   }
 
   performPan (dx, dy) {
@@ -3098,7 +3044,16 @@ export class Glass extends React.Component {
       enabled: proxy.doesManageSingleElement() || proxy.hasNothingInSelection(),
       onClick: (event) => {
         // Fallback to the artboard if there is nothing in the current selection
-        this.showEventHandlersEditor(event, proxy.selection[0] || this.getActiveComponent().getArtboard().getElement());
+        const element = proxy.selection[0] || this.getActiveComponent().getArtboard().getElement();
+
+        this.props.websocket.send({
+          type: 'broadcast',
+          from: 'glass',
+          name: 'show-event-handlers-editor',
+          elid: element.getPrimaryKey(),
+          opts: {},
+          frame: null,
+        });
       },
     });
 
@@ -3338,10 +3293,6 @@ export class Glass extends React.Component {
             Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'});
           }
 
-          if (this.state.isEventHandlerEditorOpen) {
-            this.hideEventHandlersEditor();
-          }
-
           if (this.getActiveComponent() && !this.isPreviewMode()) {
             this.getActiveComponent().getArtboard().snapshotOriginalPan();
           }
@@ -3378,23 +3329,6 @@ export class Glass extends React.Component {
             {Math.round(zoom.x / 1 * 100)}%
             </div>
           : ''}
-
-        {!this.isPreviewMode() &&
-          <EventHandlerEditor
-            element={this.state.targetElement}
-            save={(targetElement, serializedEvent) => {
-              this.saveEventHandlers(targetElement, serializedEvent);
-            }}
-            close={() => {
-              this.hideEventHandlersEditor();
-            }}
-            visible={this.state.isEventHandlerEditorOpen}
-            options={this.state.eventHandlerEditorOptions}
-            ref={(editor) => {
-              this.editor = editor;
-            }}
-          />
-        }
 
         {!this.isPreviewMode() && this.state.isCreateComponentModalOpen &&
           <CreateComponentModal
