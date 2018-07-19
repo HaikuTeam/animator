@@ -2146,7 +2146,7 @@ const expandNode = (original, parent, patches = {}) => {
         }
 
         // If the child is a repeater, use the $repeats instead of itself
-        if (child.__memory.repeater) {
+        if (child.__memory.repeater && child.__memory.repeater.repeatees) {
           for (let j = 0; j < child.__memory.repeater.repeatees.length; j++) {
             const repeatee = child.__memory.repeater.repeatees[j];
             children.push(repeatee);
@@ -2956,11 +2956,6 @@ export const VANITIES = {
       receiver: HaikuComponent,
       sender: HaikuComponent,
     ) => {
-      // For MVP's sake, structural behaviors not rendered during hot editing.
-      if (sender.config.hotEditingMode) {
-        return;
-      }
-
       let instructions;
 
       if (Array.isArray(value)) {
@@ -2997,11 +2992,37 @@ export const VANITIES = {
             return;
           }
         }
-      } else {
+      }
+
+      if (!element.__memory.repeater) {
         element.__memory.repeater = {};
       }
 
       element.__memory.repeater.instructions = instructions;
+
+      // Structural behaviors are not rendered during hot editing.
+      if (sender.config.hotEditingMode) {
+        // If we got at least one instruction, render that by default into the repeater
+        if (instructions.length > 0) {
+          element.__memory.repeatee = {
+            instructions,
+            index: 0,
+            payload: instructions[0],
+            source: element,
+          };
+
+          applyPayloadToNode(
+            element,
+            instructions[0],
+            sender,
+            timeline,
+          );
+
+          sender.markForFullFlush();
+        }
+
+        return;
+      }
 
       if (!element.__memory.repeater.repeatees) {
         element.__memory.repeater.repeatees = [];
@@ -3034,17 +3055,12 @@ export const VANITIES = {
           source: element,
         };
 
-        // Apply the repeat payload to the element as if it were a normal timeline output
-        for (const propertyName in payload) {
-          // Control-flow occurs after presentational behaviors, meaning we are overriding
-          // whatever may have been set on the source element instance.
-          sender.applyPropertyToNode(
-            repeatee, // matchingElement
-            propertyName,
-            payload[propertyName], // finalValue
-            timeline,
-          );
-        }
+        applyPayloadToNode(
+          repeatee,
+          payload,
+          sender,
+          timeline,
+        );
 
         element.__memory.repeater.repeatees[index] = repeatee;
       });
@@ -3088,6 +3104,20 @@ export const VANITIES = {
       sender.markForFullFlush();
     },
   },
+};
+
+const applyPayloadToNode = (node, payload, sender, timeline) => {
+  // Apply the repeat payload to the element as if it were a normal timeline output
+  for (const propertyName in payload) {
+    // Control-flow occurs after presentational behaviors, meaning we are overriding
+    // whatever may have been set on the source element instance.
+    sender.applyPropertyToNode(
+      node, // matchingElement
+      propertyName,
+      payload[propertyName], // finalValue
+      timeline,
+    );
+  }
 };
 
 const isSameIfBehavior = (prev, next): boolean => {
@@ -3149,13 +3179,16 @@ const findRespectiveRepeatees = (target) => {
   // and we need to find its respective node within each repeatee.
   if (host) {
     const repeater = host.__memory.repeatee.source;
-    repeater.__memory.repeater.repeatees.forEach((repeatee) => {
-      visit(repeatee, (candidate) => {
-        if (areNodesRespective(target, candidate)) {
-          repeatees.push(candidate);
-        }
+
+    if (repeater.__memory.repeater.repeatees) {
+      repeater.__memory.repeater.repeatees.forEach((repeatee) => {
+        visit(repeatee, (candidate) => {
+          if (areNodesRespective(target, candidate)) {
+            repeatees.push(candidate);
+          }
+        });
       });
-    });
+    }
   }
 
   return repeatees;
