@@ -320,7 +320,21 @@ export const normalizePointCurves = (path: CurveSpec[]): void => {
   }
 };
 
+export const isMultiShape = (path: CurveSpec[]): boolean => {
+  for (let i = 0; i < path.length; i++) {
+    if (path[i].closed && i < path.length - 1) {
+      return true;
+    }
+  }
+  return false;
+};
+
 export const synchronizePathStructure = (...paths: CurveSpec[][]) => {
+  // Multi-shape not yet supported for magic-morph
+  if (paths.some(isMultiShape)) {
+    return;
+  }
+
   const maxVerts = Math.max(...paths.map((path) => path.length));
   paths.forEach((path) => {
     ensurePathClockwise(path);
