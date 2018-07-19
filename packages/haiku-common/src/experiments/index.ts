@@ -7,7 +7,6 @@ import {getExperimentConfig} from './config';
  * @enum {string}
  */
 export enum Experiment {
-  MultiComponentFeatures = 'MultiComponentFeatures',
   HideInstantiatedElementUntilTimeInstantiated = 'HideInstantiatedElementUntilTimeInstantiated',
   MergeDesignChangesAtCurrentTime = 'MergeDesignChangesAtCurrentTime',
   CommentsOnStage = 'CommentsOnStage',
@@ -16,7 +15,6 @@ export enum Experiment {
   BasicOfflineMode = 'BasicOfflineMode',
   MultiComponentControlsLibrary = 'MultiComponentControlsLibrary',
   ShowSubElementsInJitMenu = 'ShowSubElementsInJitMenu',
-  GroupUngroup = 'GroupUngroup',
   BaseModelQueryCache = 'BaseModelQueryCache',
   ComponentInfoInspector = 'ComponentInfoInspector',
   AdvancedMultiTransform = 'AdvancedMultiTransform',

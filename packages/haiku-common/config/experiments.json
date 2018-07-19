@@ -1,5 +1,4 @@
 {
-  "MultiComponentFeatures": true,
   "MultiComponentControlsLibrary": false,
   "ShowSubElementsInJitMenu": true,
   "HideInstantiatedElementUntilTimeInstantiated": false,
@@ -8,7 +7,6 @@
   "AsyncClientActions": false,
   "NormalizeSvgContent": false,
   "BasicOfflineMode": false,
-  "GroupUngroup": true,
   "BaseModelQueryCache": false,
   "ComponentInfoInspector": false,
   "AdvancedMultiTransform": true,

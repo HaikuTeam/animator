@@ -40,10 +40,7 @@ const clearAboutToChange = {
   aboutToChangeToPreviewMode: false,
 };
 
-// This may not be precisely correct; please test the UI if you enable this experiment
-const STAGE_MOUNT_HEIGHT_OFFSET = (experimentIsEnabled(Experiment.MultiComponentFeatures))
-  ? 68
-  : 38;
+const STAGE_MOUNT_HEIGHT_OFFSET = 68;
 
 class Stage extends React.Component {
   constructor (props) {
@@ -302,15 +299,13 @@ class Stage extends React.Component {
             saveCodeFromEditorToDisk={this.saveCodeFromEditorToDisk}
             onShowEventHandlerEditor={this.props.onShowEventHandlerEditor}
           />
-          {(experimentIsEnabled(Experiment.MultiComponentFeatures)) &&
-            <ComponentMenu
-              ref="component-menu"
-              showGlass={showGlassOnStage(this.props.interactionMode)}
-              projectModel={this.props.projectModel}
-              nonSavedContentOnCodeEditor={this.state.nonSavedContentOnCodeEditor}
-              tryToChangeCurrentActiveComponent={this.props.tryToChangeCurrentActiveComponent}
-            />
-          }
+          <ComponentMenu
+            ref="component-menu"
+            showGlass={showGlassOnStage(this.props.interactionMode)}
+            projectModel={this.props.projectModel}
+            nonSavedContentOnCodeEditor={this.state.nonSavedContentOnCodeEditor}
+            tryToChangeCurrentActiveComponent={this.props.tryToChangeCurrentActiveComponent}
+          />
           <div
             id="stage-mount"
             ref={(element) => {

@@ -577,9 +577,7 @@ Asset.ingestAssets = (project, dict) => {
 
   const rootAssets = [designFolderAsset]
 
-  if (experimentIsEnabled(Experiment.MultiComponentFeatures)) {
-    rootAssets.unshift(componentFolderAsset)
-  }
+  rootAssets.unshift(componentFolderAsset)
 
   for (const relpath in dict) {
     const extname = path.extname(relpath).toLowerCase()

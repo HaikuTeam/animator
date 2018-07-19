@@ -301,27 +301,25 @@ export default class TopMenu {
 
     editSubmenu.push({type: 'separator'});
 
-    if (experimentIsEnabled(Experiment.GroupUngroup)) {
-      editSubmenu.push({
-        label: 'Group',
-        accelerator: 'CmdOrCtrl+G',
-        enabled: this.options.isProjectOpen,
-        click: () => {
-          this.sender.send('global-menu:group');
-        },
-      });
+    editSubmenu.push({
+      label: 'Group',
+      accelerator: 'CmdOrCtrl+G',
+      enabled: this.options.isProjectOpen,
+      click: () => {
+        this.sender.send('global-menu:group');
+      },
+    });
 
-      editSubmenu.push({
-        label: 'Ungroup',
-        accelerator: 'CmdOrCtrl+Shift+G',
-        enabled: this.options.isProjectOpen,
-        click: () => {
-          this.sender.send('global-menu:ungroup');
-        },
-      });
+    editSubmenu.push({
+      label: 'Ungroup',
+      accelerator: 'CmdOrCtrl+Shift+G',
+      enabled: this.options.isProjectOpen,
+      click: () => {
+        this.sender.send('global-menu:ungroup');
+      },
+    });
 
-      editSubmenu.push({type: 'separator'});
-    }
+    editSubmenu.push({type: 'separator'});
 
     editSubmenu.push({
       label: 'Delete',
