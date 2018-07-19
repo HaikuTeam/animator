@@ -16,7 +16,16 @@ module.exports = {
   },
   options: {},
   states: {},
-  eventHandlers: {},
+  eventHandlers: {
+    "haiku:03757d2ca102": {
+      "component:did-mount": {
+        handler: function () {
+          console.log(this.$id,'sending foobar')
+          this.broadcast('foobar')
+        }
+      }
+    }
+  },
   timelines: {
     Default: {
       "haiku:03757d2ca102": {

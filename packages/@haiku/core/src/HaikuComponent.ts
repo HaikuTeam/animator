@@ -895,6 +895,14 @@ export default class HaikuComponent extends HaikuElement {
     this.emit(eventNameGiven, ...eventArgs);
   }
 
+  broadcast (eventName: string, ...eventArgs) {
+    this.visitGuestHierarchy((guest) => {
+      guest.routeEventToHandler(GLOBAL_LISTENER_KEY, eventName, eventArgs);
+      guest.emitToListeners(eventName, eventArgs);
+      guest.emitToGenericListeners(eventName, eventArgs);
+    });
+  }
+
   markForFullFlush () {
     this.doesNeedFullFlush = true;
   }

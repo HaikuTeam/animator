@@ -1,1 +1,1 @@
-Demonstrates this.broadcast(...) API for sending arbitrarily named events to descendant components.
+Demonstrates this.broadcast(...) API for sending arbitrarily named events to descendant components. Open your console, and you should see "sending foobar"/"heard foobar!" messages.
