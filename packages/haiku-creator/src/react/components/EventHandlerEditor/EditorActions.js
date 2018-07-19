@@ -7,6 +7,7 @@ const STYLES = {
     color: Palette.PALE_GRAY,
     zIndex: 10000,
     fontSize: '11px',
+    fontFamily: 'inherit',
     cursor: 'pointer',
     borderRadius: '2px',
     padding: '5px 25px',
