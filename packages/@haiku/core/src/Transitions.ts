@@ -13,19 +13,6 @@ function numberize (n) {
   return parseInt(n, 10);
 }
 
-function sortedKeyframesCached (keyframeGroup) {
-  // Cache the output of this on the object since this is very hot
-  if (keyframeGroup.__sorted) {
-    return keyframeGroup.__sorted;
-  }
-
-  const sorted = sortedKeyframes(keyframeGroup);
-
-  // Cache the sorted keys
-  keyframeGroup.__sorted = sorted;
-  return keyframeGroup.__sorted;
-}
-
 function sortedKeyframes (keyframeGroup) {
   const keys = Object.keys(keyframeGroup);
   const sorted = keys.sort(ascendingSort).map(numberize);
@@ -36,7 +23,7 @@ function sortedKeyframes (keyframeGroup) {
 // 2500: { value: { ... } }
 // 5000: { value: { ... } }
 function getKeyframesList (keyframeGroup, nowValue) {
-  const sorted = sortedKeyframesCached(keyframeGroup);
+  const sorted = sortedKeyframes(keyframeGroup);
   for (let i = 0; i < sorted.length; i++) {
     const j = i + 1;
     const current = sorted[i];
