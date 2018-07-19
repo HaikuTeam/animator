@@ -190,7 +190,8 @@ export default class Creator extends React.Component {
     document.addEventListener('mouseup', (e) => {
       if (this.editor && this.state.showEventHandlerEditor) {
         const node = ReactDOM.findDOMNode(this.editor);
-        if (!node.contains(e.target)) {
+        const pnode = ReactDOM.findDOMNode(this.refs.stage);
+        if (!node.contains(e.target) && pnode.contains(e.target)) {
           this.hideEventHandlersEditor();
         }
       }
