@@ -913,10 +913,14 @@ export default class HaikuComponent extends HaikuElement {
     // Since we will produce a full tree, we don't need a further full flush.
     this.unmarkForFullFlush();
 
+    const expansion = this.render(options);
+
+    // console.log(expansion.children);
+
     // Untyped code paths downstream depend on the output of this method
     return renderer.render(
       this.container,
-      this.render(options),
+      expansion,
       this,
     );
   }
@@ -1946,11 +1950,11 @@ const getNodeFlexId = (node): string => {
   return haikuId || domId;
 };
 
-const getNodeCompositeId = (node): string => {
+export const getNodeCompositeId = (node): string => {
   const flexId = getNodeFlexId(node);
 
   // Treat the 0th repeater as the original (source) element
-  return (node.__memory.repeatee && node.__memory.repeatee.index)
+  return (node.__memory && node.__memory.repeatee && node.__memory.repeatee.index)
     ? `${flexId}'${node.__memory.repeatee.index}`
     : flexId;
 };
