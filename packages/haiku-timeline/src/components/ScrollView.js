@@ -1,4 +1,6 @@
 import * as React from 'react';
+import Palette from 'haiku-ui-common/lib/Palette';
+import zIndex from './styles/zIndex';
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 
 class ScrollView extends React.PureComponent {
@@ -53,6 +55,8 @@ class ScrollView extends React.PureComponent {
               pointerEvents: 'auto',
               WebkitUserSelect: 'auto',
               bottom: 0,
+              display: 'flex',
+              flexDirection: 'column',
             }
             : {
               position: 'absolute',
@@ -69,6 +73,14 @@ class ScrollView extends React.PureComponent {
         onMouseDown={this.props.onMouseDown}
       >
         {this.props.children}
+        <div style={{
+          background: Palette.GRAY,
+          zIndex: zIndex.backgroundHelper.base,
+          flex: 1,
+          width: this.props.timeline.getPropertiesPixelWidth(),
+          position: 'sticky',
+          left: 0,
+        }} />
       </div>
     );
   }

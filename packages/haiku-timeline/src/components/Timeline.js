@@ -1288,6 +1288,7 @@ class Timeline extends React.Component {
             key="frame-actions-grid"
             timeline={timeline}
             onShowFrameActionsEditor={this.showFrameActionsEditor}
+            timelineOffsetPadding={TIMELINE_OFFSET_PADDING}
           />
         ),
         (
