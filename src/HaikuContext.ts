@@ -361,8 +361,8 @@ export default class HaikuContext extends HaikuBase {
 
         this.ticks++;
       }
-    } catch (error) {
-      console.warn('[haiku core] caught error during tick');
+    } catch (exception) {
+      console.warn('[haiku core] caught error during tick', exception);
       if (this.component) {
         this.component.deactivate();
       }
