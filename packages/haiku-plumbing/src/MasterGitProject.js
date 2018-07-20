@@ -50,7 +50,7 @@ export default class MasterGitProject extends EventEmitter {
     this._shareInfoPayloads = {};
 
     // Snapshot of the current folder state as of the last gderState run
-    this._folderState = {};
+    this.folderState = {};
 
     // Project info used extensively in the internal machinery, populated later
     this._projectInfo = {
@@ -151,56 +151,56 @@ export default class MasterGitProject extends EventEmitter {
   }
 
   getFolderState () {
-    return this._folderState;
+    return this.folderState;
   }
 
   fetchFolderState (who, projectOptions, doneCb) {
     logger.info(`[master-git] fetching folder state (${who})`);
 
-    const previousState = lodash.clone(this._folderState);
+    const previousState = lodash.clone(this.folderState);
 
     if (projectOptions) {
-      this._folderState.projectOptions = projectOptions;
+      this.folderState.projectOptions = projectOptions;
 
       if (projectOptions.organizationName) {
-        this._folderState.organizationName = projectOptions.organizationName;
+        this.folderState.organizationName = projectOptions.organizationName;
       }
     }
 
     return async.parallel([
       (cb) => {
         return this.safeHasAnyHeadCommitForCurrentBranch((hasHeadCommit) => {
-          this._folderState.hasHeadCommit = hasHeadCommit;
+          this.folderState.hasHeadCommit = hasHeadCommit;
           return cb();
         });
       },
       (cb) => {
         return Git.referenceNameToId(this.folder, 'HEAD', (err, headCommitId) => {
-          this._folderState.headCommitId = headCommitId;
+          this.folderState.headCommitId = headCommitId;
           return cb();
         });
       },
       (cb) => {
         return this.safeListLocallyDeclaredRemotes((gitRemotesList) => {
-          this._folderState.gitRemotesList = gitRemotesList;
+          this.folderState.gitRemotesList = gitRemotesList;
           return cb();
         });
       },
       (cb) => {
         return this.safeGitStatus({log: false}, (gitStatuses) => {
-          this._folderState.doesGitHaveChanges = !!(gitStatuses && Object.keys(gitStatuses).length > 0);
-          this._folderState.isGitInitialized = fse.existsSync(path.join(this.folder, '.git'));
+          this.folderState.doesGitHaveChanges = !!(gitStatuses && Object.keys(gitStatuses).length > 0);
+          this.folderState.isGitInitialized = fse.existsSync(path.join(this.folder, '.git'));
           return cb();
         });
       },
       (cb) => {
-        this._folderState.folder = this.folder;
-        this._folderState.projectName = this._projectInfo.projectName;
-        this._folderState.branchName = this._projectInfo.branchName;
-        this._folderState.haikuUsername = this._projectInfo.haikuUsername;
-        this._folderState.haikuPassword = this._projectInfo.haikuPassword;
+        this.folderState.folder = this.folder;
+        this.folderState.projectName = this._projectInfo.projectName;
+        this.folderState.branchName = this._projectInfo.branchName;
+        this.folderState.haikuUsername = this._projectInfo.haikuUsername;
+        this.folderState.haikuPassword = this._projectInfo.haikuPassword;
         fse.readdir(this.folder, (_, folderEntries) => {
-          this._folderState.folderEntries = folderEntries;
+          this.folderState.folderEntries = folderEntries;
           cb();
         });
       },
@@ -210,13 +210,13 @@ export default class MasterGitProject extends EventEmitter {
             return cb();
           }
 
-          this._folderState.semverVersion = packageJsonObj.version;
+          this.folderState.semverVersion = packageJsonObj.version;
 
           cb();
         });
       },
     ], () => {
-      return doneCb(null, this._folderState, previousState);
+      return doneCb(null, this.folderState, previousState);
     });
   }
 
@@ -354,30 +354,30 @@ export default class MasterGitProject extends EventEmitter {
   }
 
   makeTag (cb) {
-    logger.info(`[master-git] git tagging: ${this._folderState.semverVersion} (commit: ${this._folderState.commitId})`);
+    logger.info(`[master-git] git tagging: ${this.folderState.semverVersion} (commit: ${this.folderState.commitId})`);
 
-    if (!this._folderState.semverTagAttempts) {
-      this._folderState.semverTagAttempts = 0;
+    if (!this.folderState.semverTagAttempts) {
+      this.folderState.semverTagAttempts = 0;
     }
 
-    this._folderState.semverTagAttempts += 1;
+    this.folderState.semverTagAttempts += 1;
 
-    if (this._folderState.semverTagAttempts > MAX_SEMVER_TAG_ATTEMPTS) {
+    if (this.folderState.semverTagAttempts > MAX_SEMVER_TAG_ATTEMPTS) {
       return cb(new Error('Failed to make semver tag even after many attempts'));
     }
 
-    return Git.createTag(this.folder, this._folderState.semverVersion, this._folderState.commitId, this._folderState.semverVersion, (err) => {
+    return Git.createTag(this.folder, this.folderState.semverVersion, this.folderState.commitId, this.folderState.semverVersion, (err) => {
       if (err) {
         // If the tag already exists, we can try to correct the situation by bumping the semver until we find a good tag.
         if (err.message && err.message.match(/Tag already exists/i)) {
-          logger.info(`[master-git] git tag ${this._folderState.semverVersion} already exists; trying to bump it`);
+          logger.info(`[master-git] git tag ${this.folderState.semverVersion} already exists; trying to bump it`);
 
           return this.bumpSemverAppropriately((err, incTag) => {
             if (err) {
               return cb(err);
             }
 
-            this._folderState.semverVersion = incTag;
+            this.folderState.semverVersion = incTag;
 
             // Recursively go into this sequence again, hopefully eventually finding a good tag to use
             // If we try this too many times and fail (see above), we will quit the process
@@ -388,7 +388,7 @@ export default class MasterGitProject extends EventEmitter {
         return cb(err);
       }
 
-      logger.info(`[master-git] git tagged: ${this._folderState.semverVersion}`);
+      logger.info(`[master-git] git tagged: ${this.folderState.semverVersion}`);
 
       return cb();
     });
@@ -407,7 +407,7 @@ export default class MasterGitProject extends EventEmitter {
           return this.cloudSaveDisabled(cb);
         }
 
-        if (!this._folderState.isGitInitialized) {
+        if (!this.folderState.isGitInitialized) {
           return this.cloudSaveDisabled(cb);
         }
 
@@ -417,25 +417,25 @@ export default class MasterGitProject extends EventEmitter {
   }
 
   saveSnapshot (cb) {
-    Inkstone.createSnapshot(this.folder, this._folderState.projectName, (err, snapshot) => {
+    Inkstone.createSnapshot(this.folder, this.folderState.projectName, (err, snapshot) => {
       cb(err, snapshot);
     });
   }
 
   pushToRemote (cb) {
-    if (this._folderState.saveOptions && this._folderState.saveOptions.dontPush) {
+    if (this.folderState.saveOptions && this.folderState.saveOptions.dontPush) {
       logger.info('[master-git] skipping push to remote, per your saveOptions flag');
       return cb(); // Hack: Allow consumer to skip push (e.g. for testing)
     }
 
-    if (this._folderState.wasResetPerformed) {
+    if (this.folderState.wasResetPerformed) {
       return cb(); // Kinda hacky to put this here...
     }
 
-    const {repositoryUrl} = this._folderState.remoteProjectDescriptor;
+    const {repositoryUrl} = this.folderState.remoteProjectDescriptor;
     return Git.pushProjectDirectly(
       this.folder,
-      this._folderState.projectName,
+      this.folderState.projectName,
       (err) => {
         if (err) {
           cb(err);
@@ -459,23 +459,23 @@ export default class MasterGitProject extends EventEmitter {
         return cb(err);
       }
 
-      this._folderState.tmpDir = tmpDir;
+      this.folderState.tmpDir = tmpDir;
 
-      logger.info('[master-git] temp dir is', this._folderState.tmpDir);
+      logger.info('[master-git] temp dir is', this.folderState.tmpDir);
 
-      this._folderState.tmpDirCleanupFn = tmpDirCleanupFn;
+      this.folderState.tmpDirCleanupFn = tmpDirCleanupFn;
 
       // Whether or not we had entries, we still need the temp folder created at this point otherwise
       // methods downstream will complain
-      if (this._folderState.folderEntries.length < 1) {
+      if (this.folderState.folderEntries.length < 1) {
         logger.info('[master-git] folder had no initial content; skipping temp folder step');
 
         return cb();
       }
 
-      logger.info('[master-git] copying contents from', this.folder, 'to temp dir', this._folderState.tmpDir);
+      logger.info('[master-git] copying contents from', this.folder, 'to temp dir', this.folderState.tmpDir);
 
-      return fse.copy(this.folder, this._folderState.tmpDir, (err) => {
+      return fse.copy(this.folder, this.folderState.tmpDir, (err) => {
         if (err) {
           return cb(err);
         }
@@ -483,7 +483,7 @@ export default class MasterGitProject extends EventEmitter {
         // Don't include the git database as part of the copy since we'll be copying back into
         // a directory that is going to contain all of the remote information, etc.
         try {
-          fse.removeSync(path.join(this._folderState.tmpDir, '.git'));
+          fse.removeSync(path.join(this.folderState.tmpDir, '.git'));
         } catch (exception) {
           logger.info('[master-git] could not remove .git folder from temp dir', exception);
         }
@@ -502,18 +502,18 @@ export default class MasterGitProject extends EventEmitter {
   }
 
   cloneRemoteIntoFolder (cb) {
-    if (!this._folderState.cloneAttempts) {
-      this._folderState.cloneAttempts = 0;
+    if (!this.folderState.cloneAttempts) {
+      this.folderState.cloneAttempts = 0;
     }
-    this._folderState.cloneAttempts++;
+    this.folderState.cloneAttempts++;
 
-    const {repositoryUrl} = this._folderState.remoteProjectDescriptor;
+    const {repositoryUrl} = this.folderState.remoteProjectDescriptor;
     logger.info(`[master-git] directly cloning from remote ${repositoryUrl}`);
     return Git.cloneRepoDirectly(repositoryUrl, this.folder, (err) => {
       if (err) {
         logger.info(`[master-git] clone error:`, err);
 
-        if (this._folderState.cloneAttempts < MAX_CLONE_ATTEMPTS) {
+        if (this.folderState.cloneAttempts < MAX_CLONE_ATTEMPTS) {
           logger.info(`[master-git] retrying clone after a brief delay...`);
 
           return setTimeout(() => {
@@ -545,12 +545,12 @@ export default class MasterGitProject extends EventEmitter {
 
   ensureLocalRemote (cb) {
     // Object access to .repositoryUrl would throw an exception in some cases if we didn't check this
-    if (!this._folderState.remoteProjectDescriptor) {
+    if (!this.folderState.remoteProjectDescriptor) {
       return cb(new Error('Cannot find remote project descriptor'));
     }
-    const {repositoryUrl} = this._folderState.remoteProjectDescriptor;
+    const {repositoryUrl} = this.folderState.remoteProjectDescriptor;
     logger.info('[master-git] upserting remote', repositoryUrl);
-    return Git.upsertRemoteDirectly(this.folder, this._folderState.projectName, repositoryUrl, cb);
+    return Git.upsertRemoteDirectly(this.folder, this.folderState.projectName, repositoryUrl, cb);
   }
 
   ensureBranch (cb) {
@@ -558,7 +558,7 @@ export default class MasterGitProject extends EventEmitter {
       if (err) {
         return cb(err);
       }
-      return this.safeSetupBranch(repository, this._folderState.branchName, this._folderState.headCommitId, cb);
+      return this.safeSetupBranch(repository, this.folderState.branchName, this.folderState.headCommitId, cb);
     });
   }
 
@@ -601,19 +601,19 @@ export default class MasterGitProject extends EventEmitter {
             return cb(err);
           }
 
-          return Git.buildCommit(this.folder, this._folderState.haikuUsername, null, `Base commit (via Haiku)`, oid, null, null, (err, commitId) => {
+          return Git.buildCommit(this.folder, this.folderState.haikuUsername, null, `Base commit (via Haiku)`, oid, null, null, (err, commitId) => {
             if (err) {
               return cb(err);
             }
 
-            return this.safeSetupBranch(repository, this._folderState.branchName, commitId, (err, branchName) => {
+            return this.safeSetupBranch(repository, this.folderState.branchName, commitId, (err, branchName) => {
               if (err) {
                 return cb(err);
               } // Should only be present if error is NOT about branch already existing
 
               const refSpecToPush = `refs/heads/${branchName}`;
 
-              return Git.lookupRemote(this.folder, this._folderState.projectName, (err, mainRemote) => {
+              return Git.lookupRemote(this.folder, this.folderState.projectName, (err, mainRemote) => {
                 if (err) {
                   return cb(err);
                 }
@@ -636,25 +636,25 @@ export default class MasterGitProject extends EventEmitter {
   copyContentsFromTemp (cb) {
     logger.info('[master-git] returning original folder contents (if any)');
 
-    if (this._folderState.folderEntries.length < 1) {
+    if (this.folderState.folderEntries.length < 1) {
       logger.info('[master-git] no original folder entries present');
       return cb();
     }
 
     // TODO: Should this return an error or not?
-    if (!this._folderState.tmpDir) {
-      logger.info('[master-git] no temp dir seems to have been created at', this._folderState.tmpDir);
+    if (!this.folderState.tmpDir) {
+      logger.info('[master-git] no temp dir seems to have been created at', this.folderState.tmpDir);
       return cb();
     }
 
-    logger.info('[master-git] copying contents from', this._folderState.tmpDir, 'back to original folder', this.folder);
+    logger.info('[master-git] copying contents from', this.folderState.tmpDir, 'back to original folder', this.folder);
 
-    return fse.copy(this._folderState.tmpDir, this.folder, (err) => {
+    return fse.copy(this.folderState.tmpDir, this.folder, (err) => {
       if (err) {
         return cb(err);
       }
-      logger.info('[master-git] cleaning up temp dir', this._folderState.tmpDir);
-      this._folderState.tmpDirCleanupFn();
+      logger.info('[master-git] cleaning up temp dir', this.folderState.tmpDir);
+      this.folderState.tmpDirCleanupFn();
       return cb();
     });
   }
@@ -666,7 +666,7 @@ export default class MasterGitProject extends EventEmitter {
       }
       logger.info(`[master-git] current branch is '${partialBranchName}'`);
 
-      const remoteBranchRefName = Git.getRemoteBranchRefName(this._folderState.projectName, partialBranchName);
+      const remoteBranchRefName = Git.getRemoteBranchRefName(this.folderState.projectName, partialBranchName);
       return Git.getReference(this.folder, remoteBranchRefName, (err, ref) => {
         if (err) {
           return cb(err);
@@ -677,13 +677,13 @@ export default class MasterGitProject extends EventEmitter {
           logger.info(`[master-git] skipping merge after pull since no ref ${remoteBranchRefName} exists`);
           // Just for the sake of logging the current git status
           return this.safeGitStatus({log: true}, () => {
-            this._folderState.didHaveConflicts = false;
-            this._folderState.mergeCommitId = null;
+            this.folderState.didHaveConflicts = false;
+            this.folderState.mergeCommitId = null;
             return cb();
           });
         }
 
-        return Git.mergeProject(this.folder, this._folderState.projectName, partialBranchName, this._folderState.saveOptions, (err, didHaveConflicts, shaOrIndex) => {
+        return Git.mergeProject(this.folder, this.folderState.projectName, partialBranchName, this.folderState.saveOptions, (err, didHaveConflicts, shaOrIndex) => {
           if (err) {
             return cb(err);
           }
@@ -696,8 +696,8 @@ export default class MasterGitProject extends EventEmitter {
 
           // Just for the sake of logging the current git status
           return this.safeGitStatus({log: true}, () => {
-            this._folderState.didHaveConflicts = didHaveConflicts;
-            this._folderState.mergeCommitId = (didHaveConflicts) ? null : shaOrIndex.toString();
+            this.folderState.didHaveConflicts = didHaveConflicts;
+            this.folderState.mergeCommitId = (didHaveConflicts) ? null : shaOrIndex.toString();
             return cb();
           });
         });
@@ -709,21 +709,21 @@ export default class MasterGitProject extends EventEmitter {
     // We can't pull the remote if we don't have any remote info;
     // this can happen if there's a connection problem;
     // instead of crashing, we just silently skip this step
-    if (!this._folderState.remoteProjectDescriptor) {
+    if (!this.folderState.remoteProjectDescriptor) {
       return cb();
     }
 
-    const {repositoryUrl} = this._folderState.remoteProjectDescriptor;
+    const {repositoryUrl} = this.folderState.remoteProjectDescriptor;
 
-    return Git.fetchProjectDirectly(this.folder, this._folderState.projectName, repositoryUrl, (err) => {
+    return Git.fetchProjectDirectly(this.folder, this.folderState.projectName, repositoryUrl, (err) => {
       if (err) {
         // Ignore the error for now since the remote might not actually exist yet
         logger.info(`[master-git] unable to fetch because ${err}; ignoring this`);
 
         // Just for the sake of logging the current git status
         return this.safeGitStatus({log: true}, () => {
-          this._folderState.didHaveConflicts = false;
-          this._folderState.mergeCommitId = null;
+          this.folderState.didHaveConflicts = false;
+          this.folderState.mergeCommitId = null;
           return cb();
         });
       }
@@ -734,7 +734,7 @@ export default class MasterGitProject extends EventEmitter {
 
   conflictResetOrContinue (cb) {
     // If no conficts, this save is good; ok to push and return
-    if (!this._folderState.didHaveConflicts) {
+    if (!this.folderState.didHaveConflicts) {
       return cb();
     }
 
@@ -748,11 +748,11 @@ export default class MasterGitProject extends EventEmitter {
         if (err) {
           return cb(err);
         }
-        return Git.hardResetFromSHA(this.folder, this._folderState.commitId.toString(), (err) => {
+        return Git.hardResetFromSHA(this.folder, this.folderState.commitId.toString(), (err) => {
           if (err) {
             return cb(err);
           }
-          this._folderState.wasResetPerformed = true;
+          this.folderState.wasResetPerformed = true;
           return cb();
         });
       });
@@ -769,7 +769,7 @@ export default class MasterGitProject extends EventEmitter {
       // TODO: We may need to look closely to see if this boolean is set properly.
       // Currently the _getFolderState method just checks to see if there are git statuses,
       // but that might not be correct (although it seemed to be when I initially checked).
-      if (this._folderState.doesGitHaveChanges) {
+      if (this.folderState.doesGitHaveChanges) {
         logger.info('[master-git] looks like git has changes; must do full save');
         return cb(null, false); // falsy == you gotta save
       }
@@ -817,12 +817,12 @@ export default class MasterGitProject extends EventEmitter {
   }
 
   getCurrentShareInfo (cb) {
-    return Inkstone.getCurrentShareInfo(this.folder, this._shareInfoPayloads, this._folderState, cb);
+    return Inkstone.getCurrentShareInfo(this.folder, this._shareInfoPayloads, this.folderState, cb);
   }
 
   pushTagDirectly (cb) {
-    logger.info(`[master-git] pushing tag ${this._folderState.semverVersion} to remote (${this._folderState.projectName})`);
-    return Git.pushTagToRemoteDirectly(this.folder, this._folderState.projectName, this._folderState.semverVersion, cb);
+    logger.info(`[master-git] pushing tag ${this.folderState.semverVersion} to remote (${this.folderState.projectName})`);
+    return Git.pushTagToRemoteDirectly(this.folder, this.folderState.projectName, this.folderState.semverVersion, cb);
   }
 
   safeGitStatus (options, cb) {
@@ -937,11 +937,11 @@ export default class MasterGitProject extends EventEmitter {
     finalOptions.commitMessage = message;
 
     return this.fetchFolderState('commit-project', {}, () => {
-      return Git.commitProject(this.folder, this._folderState.haikuUsername, this._folderState.hasHeadCommit, finalOptions, addable, (err, commitId) => {
+      return Git.commitProject(this.folder, this.folderState.haikuUsername, this.folderState.hasHeadCommit, finalOptions, addable, (err, commitId) => {
         if (err) {
           return cb(err);
         }
-        this._folderState.commitId = commitId;
+        this.folderState.commitId = commitId;
         return cb(null, commitId);
       });
     });
@@ -949,7 +949,7 @@ export default class MasterGitProject extends EventEmitter {
 
   initializeFolder (initOptions, done) {
     // Empty folder state since we are going to reload it in here
-    this._folderState = {};
+    this.folderState = {};
 
     return async.series([
       (cb) => {
@@ -957,20 +957,20 @@ export default class MasterGitProject extends EventEmitter {
           if (err) {
             return cb(err);
           }
-          logger.info('[master-git] folder initialization status:', this._folderState);
+          logger.info('[master-git] folder initialization status:', this.folderState);
           return cb();
         });
       },
 
       (cb) => {
-        const {isGitInitialized} = this._folderState;
+        const {isGitInitialized} = this.folderState;
         const actionSequence = [];
 
         if (isGitInitialized) {
           actionSequence.push('fetchGitRemoteInfoState', 'pullRemote');
         } else if (
           !this._projectInfo.repositoryUrl &&
-          !['CheckTutorial', 'Move', 'Moto', 'percy'].includes(this._folderState.projectName)
+          !['CheckTutorial', 'Move', 'Moto', 'percy'].includes(this.folderState.projectName)
         ) {
           // Legacy: Except for template projects, we won't have an initial master commit on CodeCommit.
           actionSequence.push('initializeGit');
@@ -1002,14 +1002,14 @@ export default class MasterGitProject extends EventEmitter {
 
   fetchGitRemoteInfoState (cb) {
     return this.safeFetchProjectGitRemoteInfo((remoteProjectDescriptor) => {
-      this._folderState.remoteProjectDescriptor = remoteProjectDescriptor;
+      this.folderState.remoteProjectDescriptor = remoteProjectDescriptor;
       return cb();
     });
   }
 
   saveProject (saveOptions, done) {
     // Empty folder state since we are going to reload it in here
-    this._folderState = {};
+    this.folderState = {};
 
     const saveAccumulator = {
       semverVersion: null,
@@ -1025,16 +1025,16 @@ export default class MasterGitProject extends EventEmitter {
           if (err) {
             return cb(err);
           }
-          this._folderState.semverVersion = saveAccumulator.semverVersion;
-          this._folderState.saveOptions = saveOptions;
-          logger.info('[master-git] pre-save status:', this._folderState);
+          this.folderState.semverVersion = saveAccumulator.semverVersion;
+          this.folderState.saveOptions = saveOptions;
+          logger.info('[master-git] pre-save status:', this.folderState);
           return cb();
         });
       },
 
       (cb) => {
         return this.safeFetchProjectGitRemoteInfo((remoteProjectDescriptor) => {
-          this._folderState.remoteProjectDescriptor = remoteProjectDescriptor;
+          this.folderState.remoteProjectDescriptor = remoteProjectDescriptor;
           return cb();
         });
       },
@@ -1042,7 +1042,7 @@ export default class MasterGitProject extends EventEmitter {
       (cb) => {
         logger.info('[master-git] project save: preparing action sequence');
 
-        if (!(this._projectInfo.projectName && this._folderState.remoteProjectDescriptor)) {
+        if (!(this._projectInfo.projectName && this.folderState.remoteProjectDescriptor)) {
           return cb(new Error('[master-git] unable to save project'));
         }
 
@@ -1059,7 +1059,7 @@ export default class MasterGitProject extends EventEmitter {
         ];
 
         const actionSequence = [];
-        if (this._folderState.doesGitHaveChanges) {
+        if (this.folderState.doesGitHaveChanges) {
           actionSequence.push('commitEverything', ...setupSteps, 'conflictResetOrContinue', ...teardownSteps);
         } else {
           actionSequence.push(...setupSteps, ...teardownSteps);
@@ -1077,7 +1077,7 @@ export default class MasterGitProject extends EventEmitter {
 
       // If we have conflicts, we can't proceed to the share step, so return early.
       // Conflicts aren't returned as an error because the frontend expects them as part of the response payload.
-      if (this._folderState.didHaveConflicts) {
+      if (this.folderState.didHaveConflicts) {
         // A fake conflicts object for now
         // #TODO add real thing
         done(null, {conflicts: [1]});

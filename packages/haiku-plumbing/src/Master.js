@@ -1038,7 +1038,7 @@ export default class Master extends EventEmitter {
 
   handleActiveComponentReady () {
     return this.awaitActiveComponent(() => {
-      attachListeners(this.project.getEnvoyClient(), this.getActiveComponent());
+      attachListeners(this.project.getEnvoyClient(), this.getActiveComponent(), this._git);
       this.mountHaikuComponent();
     });
   }

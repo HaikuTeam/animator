@@ -6,6 +6,7 @@ export enum ExporterFormat {
   HaikuStatic = 'HaikuStatic',
   AnimatedGif = 'AnimatedGif',
   Video = 'Video',
+  Still = 'Still',
 }
 
 export interface ExporterRequest {
