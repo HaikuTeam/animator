@@ -1,10 +1,8 @@
-// @ts-ignore
-import {ThreeBounce} from 'better-react-spinkit';
 import * as React from 'react';
 // @ts-ignore
 import * as CopyToClipboard from 'react-copy-to-clipboard';
-import {LoadingTopBar} from '../../LoadingTopBar';
 import Palette from '../../Palette';
+import {LoadingTopBar} from '../LoadingTopBar';
 import {CliboardIconSVG} from '../OtherIcons';
 
 const STYLES = {

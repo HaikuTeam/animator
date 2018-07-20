@@ -1,31 +1,7 @@
 import * as React from 'react';
-import {LoadingTopBar} from '../../LoadingTopBar';
-import Palette from '../../Palette';
-import {SHARED_STYLES} from '../../SharedStyles';
-import {TooltipBasic} from '../TooltipBasic';
+import {LoadingButton} from '../LoadingButton';
 import {SelectedEntry} from './index';
 import {ShareCategory} from './ShareModalOptions';
-
-const STYLES = {
-  entry: {
-    float: 'none',
-    width: '100%',
-    marginBottom: '8px',
-    justifyContent: 'center',
-    position: 'relative',
-    overflow: 'hidden',
-    disabled: {
-      backgroundColor: 'transparent',
-      color: Palette.BLACK,
-      cursor: 'auto',
-      border: `1px solid ${Palette.DARKEST_COAL}`,
-    },
-    loading: {
-      opacity: 0.7,
-      cursor: 'wait',
-    },
-  },
-} as React.CSSProperties;
 
 export interface EmbedOptionProps {
   disabled: boolean;
@@ -162,32 +138,20 @@ export class EmbedOption extends React.PureComponent<EmbedOptionProps> {
     const {entry} = this.props;
 
     return (
-      <li style={{position: 'relative'}}>
-        <button
-          style={{
-            ...SHARED_STYLES.btn,
-            ...STYLES.entry,
-            ...(!this.state.done && STYLES.entry.loading),
-            ...(this.effectivelyDisabled && STYLES.entry.disabled),
-          }}
-          disabled={!this.state.done}
-          onMouseOver={this.onMouseOver}
-          onMouseOut={this.onMouseOut}
-          onClick={this.onClick}
-        >
-          {!this.effectivelyDisabled && (
-            <LoadingTopBar
-              progress={this.state.progress}
-              speed={this.state.speed}
-              done={this.state.done}
-            />
-          )}
-          {entry}
-        </button>
-        {this.state.showTooltip &&
-          <TooltipBasic>{this.tooltipText}</TooltipBasic>
-        }
-      </li>
+      <LoadingButton
+        disabled={!this.state.done}
+        done={this.state.done}
+        effectivelyDisabled={this.effectivelyDisabled}
+        progress={this.state.progress}
+        speed={this.state.speed}
+        onMouseOver={this.onMouseOver}
+        onMouseOut={this.onMouseOut}
+        onClick={this.onClick}
+        showTooltip={this.state.showTooltip}
+        tooltipText={this.tooltipText}
+      >
+        {entry}
+      </LoadingButton>
     );
   }
 }
