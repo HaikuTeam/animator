@@ -5,7 +5,7 @@
  * @param {mat4} a the source matrix
  * @returns {mat4} out
  */
-export default function transpose(out, a) {
+export default function transpose (out: number[], a: number[]): number[] {
   // If we are transposing ourselves we can skip a few steps but have to cache some values
   if (out === a) {
     const a01 = a[1];
