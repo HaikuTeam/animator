@@ -25,7 +25,12 @@ const EXPORTER_SCRIPT = `
     var exportOptions = new ExportOptionsSVG()
     var type = ExportType.SVG
     var dest = 'DESTINATION_PATH'
+    var sourcePath = 'SOURCE_PATH'
     var fileSpec = new File(dest)
+
+    // Try open/focus on the file to export
+    app.open(new File(sourcePath))
+
     var srcFile = app.activeDocument.fullName;
 
     // Export options can be further customized, check out the documentation.
@@ -91,7 +96,10 @@ class Illustrator {
     const tmpdir = os.tmpdir()
     const fileName = uuid.v4() + '.jsx'
     const filePath = path.join(tmpdir, fileName)
-    const exportScript = EXPORTER_SCRIPT.replace('DESTINATION_PATH', artboardFolder)
+    const exportScript =
+      EXPORTER_SCRIPT
+        .replace('DESTINATION_PATH', artboardFolder)
+        .replace('SOURCE_PATH', abspath)
 
     fse.writeFileSync(filePath, exportScript)
 
@@ -105,7 +113,6 @@ class Illustrator {
       return `open -g -b com.adobe.Illustrator ${file}`
     } else if (isWindows()) {
       // TODO: figure out the correct command in Windows
-
     }
   }
 }
