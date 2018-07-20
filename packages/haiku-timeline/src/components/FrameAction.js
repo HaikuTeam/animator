@@ -10,6 +10,7 @@ const STYLE = {
     left: '-6px',
     cursor: 'pointer',
     overflow: 'hidden',
+    height: 17,
   },
   addAction: {
     padding: '0 8px',
