@@ -761,10 +761,6 @@ export class Glass extends React.Component {
     this.project.getEnvoyClient().closeConnection();
   }
 
-  modColor (i) {
-    return ((i || 0) * 8) % 360;
-  }
-
   renderSnapLines () {
     // Don't do anything until a project is initialized
     if (!this.getActiveComponent()) {
@@ -790,14 +786,12 @@ export class Glass extends React.Component {
       }
 
       const lines = [];
-      this._renderCount = this._renderCount || 0;
       horizSnaps.forEach((snap, i) => {
-        lines.push(<line key={'h-' + i} x1="-5000" x2="5000" y1={snap.positionWorld} y2={snap.positionWorld} strokeWidth="1.25" stroke={'hsl(' + this.modColor(this._renderCount) + ', 100%, 50%)'} />);
+        lines.push(<line key={'h-' + i} x1="-5000" x2="5000" y1={snap.positionWorld} y2={snap.positionWorld} strokeWidth="1.25" stroke={Palette.LIGHT_BLUE} />);
       });
       vertSnaps.forEach((snap, i) => {
-        lines.push(<line key={'v-' + i} x1={snap.positionWorld} x2={snap.positionWorld} y1="-5000" y2="5000" strokeWidth="1.25" stroke={'hsl(' + this.modColor(this._renderCount) + ', 100%, 50%)'} />);
+        lines.push(<line key={'v-' + i} x1={snap.positionWorld} x2={snap.positionWorld} y1="-5000" y2="5000" strokeWidth="1.25" stroke={Palette.LIGHT_BLUE} />);
       });
-      this._renderCount++;
 
       return lines;
     };
@@ -3493,7 +3487,7 @@ export class Glass extends React.Component {
                 style={{
                   strokeWidth: 1.5,
                   fill: 'none',
-                  stroke: 'hsl(' + this.modColor(this._renderCount) + ', 100%, 50%)',
+                  stroke: Palette.LIGHT_BLUE,
                   opacity: this.state.isStageNameHovering && !this.state.isStageSelected ? 1 : 0,
                   overflow: 'visible',
                 }}
