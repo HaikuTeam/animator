@@ -2,9 +2,9 @@ import {MaybeAsync} from '../envoy';
 
 export enum ExporterFormat {
   Unknown = 'Unknown',
-  Bodymovin = 'Bodymovin',
+  Bodymovin = 'Lottie',
   HaikuStatic = 'HaikuStatic',
-  AnimatedGif = 'AnimatedGif',
+  AnimatedGif = 'GIF',
   Video = 'Video',
   Still = 'Still',
 }
@@ -13,11 +13,8 @@ export interface ExporterRequest {
   format: ExporterFormat;
   filename: string|Buffer;
   framerate: number;
-}
-
-export interface Exporter {
-  save (request: ExporterRequest): MaybeAsync<void>;
-  saved (request: ExporterRequest): MaybeAsync<void>;
+  outlet?: string;
+  progress?: number;
 }
 
 export * from './ExporterHandler';

@@ -5,14 +5,11 @@ import Intercom from 'react-intercom';
 
 const STYLES = {
   btn: {
-    position: 'absolute',
-    right: 5,
-    top: -12,
+    float: 'right',
     height: '25px',
     padding: '4px 9px',
     fontSize: 11,
     letterSpacing: '1.3px',
-    marginRight: '5px',
     display: 'flex',
     alignItems: 'center',
     borderRadius: '3px',

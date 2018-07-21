@@ -22,6 +22,7 @@ import FrameGrid from './FrameGrid';
 import SimplifiedFrameGrid from './SimplifiedFrameGrid';
 import FrameActionsGrid from './FrameActionsGrid';
 import IntercomWidget from './IntercomWidget';
+import {TrackedExporterRequests} from './TrackedExporterRequests';
 import Gauge from './Gauge';
 import GaugeTimeReadout from './GaugeTimeReadout';
 import TimelineRangeScrollbar from './TimelineRangeScrollbar';
@@ -30,6 +31,7 @@ import ScrollView from './ScrollView';
 import Marquee from './Marquee';
 import {InteractionMode, isPreviewMode} from 'haiku-ui-common/lib/interactionModes';
 import {USER_CHANNEL, UserSettings} from 'haiku-sdk-creator/lib/bll/User';
+import {EXPORTER_CHANNEL} from 'haiku-sdk-creator/lib/exporter';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import zIndex from './styles/zIndex';
@@ -72,6 +74,7 @@ const DEFAULTS = {
   isRepeat: true,
   flush: false,
   userDetails: null,
+  trackedExporterRequests: [],
 };
 
 const THROTTLE_TIME = 32; // ms
@@ -608,6 +611,7 @@ class Timeline extends React.Component {
     });
 
     this.loadUserSettings();
+    this.trackExportProgress();
     timeline.setTimelinePixelWidth(document.body.clientWidth - timeline.getPropertiesPixelWidth() + 20);
 
     if (this.mounted) {
@@ -738,6 +742,32 @@ class Timeline extends React.Component {
     });
 
     return items;
+  }
+
+  /**
+   * @param {ExporterRequest} request
+   */
+  handleExportProgress (exporterRequest) {
+    const trackedExporterRequests = [...this.state.trackedExporterRequests];
+    const activeRequest = trackedExporterRequests.find(
+      (trackedExporterRequest) => trackedExporterRequest.filename === exporterRequest.filename,
+    );
+    if (activeRequest) {
+      activeRequest.progress = exporterRequest.progress;
+    } else {
+      trackedExporterRequests.unshift(exporterRequest);
+    }
+    this.setState({trackedExporterRequests});
+  }
+
+  trackExportProgress () {
+    this.project.getEnvoyClient().get(EXPORTER_CHANNEL).then((exporterChannel) => {
+      exporterChannel.on(`${EXPORTER_CHANNEL}:progress`, (request) => {
+        if (request.outlet === 'timeline') {
+          this.handleExportProgress(request);
+        }
+      });
+    });
   }
 
   loadUserSettings () {
@@ -1186,8 +1216,21 @@ class Timeline extends React.Component {
             this.setState({isRepeat: timeline.getRepeat()});
           }}
           isRepeat={this.state.isRepeat}
-          />
-        <IntercomWidget user={this.state.userDetails} />
+        />
+        <div
+          style={{
+            position: 'absolute',
+            right: 5,
+            top: -12,
+            marginRight: 5,
+          }}
+        >
+          {
+            experimentIsEnabled(Experiment.LocalAssetExport) &&
+            <TrackedExporterRequests trackedExporterRequests={this.state.trackedExporterRequests} />
+          }
+          <IntercomWidget user={this.state.userDetails} />
+        </div>
       </div>
     );
   }

@@ -2,7 +2,6 @@ import * as React from 'react';
 import Palette from '../Palette';
 import {SHARED_STYLES} from '../SharedStyles';
 import {LoadingTopBar} from './LoadingTopBar';
-import {TooltipBasic} from './TooltipBasic';
 
 const STYLES = {
   entry: {
@@ -29,47 +28,37 @@ export interface LoadingButtonProps {
   disabled: boolean;
   done: boolean;
   effectivelyDisabled: boolean;
-  showTooltip: boolean;
-  tooltipText?: string;
   progress: number;
   speed?: number|string;
-  onClick: React.MouseEventHandler<HTMLButtonElement>;
-  onMouseOver: React.MouseEventHandler<HTMLButtonElement>;
-  onMouseOut: React.MouseEventHandler<HTMLButtonElement>;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
+  onMouseOver?: React.MouseEventHandler<HTMLButtonElement>;
+  onMouseOut?: React.MouseEventHandler<HTMLButtonElement>;
 }
 
 export class LoadingButton extends React.PureComponent<LoadingButtonProps> {
-  startTimeout: number;
-  updateTimeout: number;
-
   render () {
     return (
-      <li style={{position: 'relative'}}>
-        <button
-          style={{
-            ...SHARED_STYLES.btn,
-            ...STYLES.entry,
-            ...(!this.props.done && STYLES.entry.loading),
-            ...(this.props.effectivelyDisabled && STYLES.entry.disabled),
-          }}
-          disabled={!this.props.done}
-          onClick={this.props.onClick}
-          onMouseOver={this.props.onMouseOver}
-          onMouseOut={this.props.onMouseOut}
-        >
-          {!this.props.effectivelyDisabled && (
-            <LoadingTopBar
-              progress={this.props.progress}
-              speed={this.props.speed}
-              done={this.props.done}
-            />
-          )}
-          {this.props.children}
-        </button>
-        {this.props.showTooltip &&
-          <TooltipBasic>{this.props.tooltipText}</TooltipBasic>
-        }
-      </li>
+      <button
+        style={{
+          ...SHARED_STYLES.btn,
+          ...STYLES.entry,
+          ...(!this.props.done && STYLES.entry.loading),
+          ...(this.props.effectivelyDisabled && STYLES.entry.disabled),
+        }}
+        disabled={!this.props.done}
+        onClick={this.props.onClick}
+        onMouseOver={this.props.onMouseOver}
+        onMouseOut={this.props.onMouseOut}
+      >
+        {!this.props.effectivelyDisabled && (
+          <LoadingTopBar
+            progress={this.props.progress}
+            speed={this.props.speed}
+            done={this.props.done}
+          />
+        )}
+        {this.props.children}
+      </button>
     );
   }
 }

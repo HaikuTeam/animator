@@ -37,7 +37,13 @@ const bakeryQueue = queue<QueuedRecipe, Error>(
     next: ErrorCallback<Error>,
   ) => {
     const cacheValue = `${sha1}:${framerate}`;
+    let calledFinish = false;
     const finish = () => {
+      if (calledFinish) {
+        return;
+      }
+
+      calledFinish = true;
       snapshotCache.set(abspath, cacheValue);
       ipcMain.removeAllListeners('bakery');
       cb();

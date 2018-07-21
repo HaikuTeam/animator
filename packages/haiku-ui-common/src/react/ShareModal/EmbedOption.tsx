@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {LoadingButton} from '../LoadingButton';
+import {TooltipBasic} from '../TooltipBasic';
 import {SelectedEntry} from './index';
 import {ShareCategory} from './ShareModalOptions';
 
@@ -138,20 +139,21 @@ export class EmbedOption extends React.PureComponent<EmbedOptionProps> {
     const {entry} = this.props;
 
     return (
-      <LoadingButton
-        disabled={!this.state.done}
-        done={this.state.done}
-        effectivelyDisabled={this.effectivelyDisabled}
-        progress={this.state.progress}
-        speed={this.state.speed}
-        onMouseOver={this.onMouseOver}
-        onMouseOut={this.onMouseOut}
-        onClick={this.onClick}
-        showTooltip={this.state.showTooltip}
-        tooltipText={this.tooltipText}
-      >
-        {entry}
-      </LoadingButton>
+      <li style={{position: 'relative'}}>
+        <LoadingButton
+          disabled={!this.state.done}
+          done={this.state.done}
+          effectivelyDisabled={this.effectivelyDisabled}
+          progress={this.state.progress}
+          speed={this.state.speed}
+          onMouseOver={this.onMouseOver}
+          onMouseOut={this.onMouseOut}
+          onClick={this.onClick}
+        >
+          {entry}
+        </LoadingButton>
+        {this.state.showTooltip && <TooltipBasic>{this.tooltipText}</TooltipBasic>}
+      </li>
     );
   }
 }
