@@ -17,7 +17,7 @@ import HaikuClock from './HaikuClock';
 import HaikuElement from './HaikuElement';
 import HaikuHelpers from './HaikuHelpers';
 import {ascend, cssMatchOne, cssQueryTree, visit, xmlToMana} from './HaikuNode';
-import HaikuTimeline, {PlaybackSetting, TimeUnit} from './HaikuTimeline';
+import HaikuTimeline, {PlaybackFlag, TimeUnit} from './HaikuTimeline';
 import ColorUtils from './helpers/ColorUtils';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
 import {isLiveMode} from './helpers/interactionModes';
@@ -300,7 +300,7 @@ export default class HaikuComponent extends HaikuElement {
     }
 
     // Ensure full tree is are properly set up and all render nodes are connected to their models
-    this.render({...this.config, forceApplyBehaviors: true});
+    this.render({...this.config});
 
     try {
       // If the bytecode we got happens to be in an outdated format, we automatically update it to the latest.
@@ -318,10 +318,6 @@ export default class HaikuComponent extends HaikuElement {
     } catch (exception) {
       console.warn('[haiku core] caught error during migration post-phase', exception);
     }
-
-    // Start the default timeline to initiate the component;
-    // run before the did-initialize hook in case the user wants to cancel
-    this.startTimeline(DEFAULT_TIMELINE_NAME);
 
     this.routeEventToHandlerAndEmit(GLOBAL_LISTENER_KEY, 'component:did-initialize', [this]);
 
@@ -391,7 +387,7 @@ export default class HaikuComponent extends HaikuElement {
           // from the get-go. However, in case of a callRemount, we might not want to do that since it can be kind of
           // like running the first frame twice. So we pass the option into play so it can conditionally skip the
           // markForFullFlush step.
-          if (!timelineInstance.isExplicitlyPaused()) {
+          if (!timelineInstance.isPaused()) {
             timelineInstance.play({skipMarkForFullFlush});
           }
         }
@@ -596,20 +592,18 @@ export default class HaikuComponent extends HaikuElement {
   }
 
   startTimeline (timelineName) {
-    const time = this.context.clock.getExplicitTime();
     const descriptor = this.getTimelineDescriptor(timelineName);
     const existing = this.fetchTimeline(timelineName, descriptor);
     if (existing) {
-      existing.start(time, descriptor);
+      existing.start();
     }
   }
 
   stopTimeline (timelineName) {
-    const time = this.context.clock.getExplicitTime();
     const descriptor = this.getTimelineDescriptor(timelineName);
-    const existing = this.getTimeline(timelineName);
+    const existing = this.fetchTimeline(timelineName, descriptor);
     if (existing) {
-      existing.stop(time, descriptor);
+      existing.stop();
     }
   }
 
@@ -637,8 +631,8 @@ export default class HaikuComponent extends HaikuElement {
   /**
    * @description Convenience alias for HaikuTimeline#stop
    */
-  stop (maybeGlobalClockTime: number, descriptor) {
-    this.getDefaultTimeline().stop(maybeGlobalClockTime, descriptor);
+  stop () {
+    this.getDefaultTimeline().stop();
   }
 
   /**
@@ -651,8 +645,8 @@ export default class HaikuComponent extends HaikuElement {
   /**
    * @description Convenience alias for HaikuTimeline#start
    */
-  start (maybeGlobalClockTime: number, descriptor) {
-    this.getDefaultTimeline().start(maybeGlobalClockTime, descriptor);
+  start () {
+    this.getDefaultTimeline().start();
   }
 
   /**
@@ -1095,13 +1089,9 @@ export default class HaikuComponent extends HaikuElement {
     for (const timelineName in this.bytecode.timelines) {
       const timelineInstance = this.getTimeline(timelineName);
 
-      // If we update with the global clock time while a timeline is paused, the next
-      // time we resume playing it will "jump forward" to the time that has elapsed.
-      if (timelineInstance.isPlaying()) {
-        timelineInstance.doUpdateWithGlobalClockTime(globalClockTime);
-      }
+      timelineInstance.doUpdateWithGlobalClockTime(globalClockTime);
 
-      const timelineTime = timelineInstance.getBoundedTime();
+      const timelineTime = timelineInstance.getTime(); // Bounded time
 
       const timelineDescriptor = this.bytecode.timelines[timelineName];
 
@@ -1125,21 +1115,6 @@ export default class HaikuComponent extends HaikuElement {
         const propertiesGroup = timelineDescriptor[behaviorSelector];
 
         if (!propertiesGroup) {
-          continue;
-        }
-
-        const hasExpressions = propertyGroupNeedsExpressionEvaluated(
-          propertiesGroup,
-          timelineTime,
-        );
-
-        if (
-          options.forceApplyBehaviors ||
-          (timelineInstance.isPlaying() && timelineInstance.isUnfinished()) ||
-          hasExpressions
-        ) {
-          // proceed
-        } else {
           continue;
         }
 
@@ -1368,31 +1343,13 @@ export default class HaikuComponent extends HaikuElement {
 
     const guestTimeline = guest.getTimeline(timelineName);
 
-    if (playbackValue === PlaybackSetting.CEDE) {
-      return guestTimeline.getTime();
-    }
-
-    // If time is controlled and we're set to 'loop', use a modulus of the guest's max time
-    // which will give the effect of looping the guest to its 0 if its max has been reached
-    if (playbackValue === PlaybackSetting.LOOP) {
-      if (guestTimeline) {
-        const guestMax = guestTimeline.getMaxTime();
-        const finalTime = timelineTime % guestMax; // TODO: What if final frame has a change?
-        return finalTime;
-      }
-
+    if (!guestTimeline) {
       return timelineTime;
     }
 
-    if (playbackValue === PlaybackSetting.STOP) {
-      if (guestTimeline) {
-        return guestTimeline.getControlledTime() || 0;
-      }
+    guestTimeline.setPlaybackStatus(playbackValue);
 
-      return timelineTime;
-    }
-
-    return timelineTime;
+    return guestTimeline.getBoundedTime();
   }
 
   getPropertiesGroup (timelineName: string, flexId: string) {
@@ -1459,7 +1416,6 @@ export default class HaikuComponent extends HaikuElement {
   }
 
   emitFromRootComponent (eventName: string, attachedObject: any) {
-    attachedObject.componentTitle = this.title;
     this.getRootComponent().emit(eventName, attachedObject);
   }
 
@@ -2135,52 +2091,6 @@ function stateSpecValidityCheck (stateSpec: any, stateSpecName: string): boolean
   return true;
 }
 
-const msKeyToInt = (msKey: string): number => {
-  return parseInt(msKey, 10);
-};
-
-const propertyGroupNeedsExpressionEvaluated = (
-  propertyGroup,
-  timelineTime: number,
-): boolean => {
-  let foundExpressionForTime = false;
-
-  const roundedTime = Math.round(timelineTime);
-
-  for (const propertyName in propertyGroup) {
-    const propertyKeyframes = propertyGroup[propertyName];
-
-    const keyframeMss = Object.keys(propertyKeyframes).map(msKeyToInt).sort();
-
-    if (keyframeMss.length < 1) {
-      return;
-    }
-
-    let leftBookend = 0;
-    let rightBookend = keyframeMss[keyframeMss.length - 1];
-
-    for (let i = 0; i < keyframeMss.length; i++) {
-      const currMs = keyframeMss[i];
-
-      if (currMs >= leftBookend && currMs <= roundedTime) {
-        leftBookend = currMs;
-      }
-
-      if (currMs <= rightBookend && currMs >= roundedTime) {
-        rightBookend = currMs;
-      }
-    }
-
-    if (propertyKeyframes[leftBookend] && typeof propertyKeyframes[leftBookend].value === 'function') {
-      foundExpressionForTime = true;
-    } else if (propertyKeyframes[rightBookend] && typeof propertyKeyframes[rightBookend].value === 'function') {
-      foundExpressionForTime = true;
-    }
-  }
-
-  return foundExpressionForTime;
-};
-
 const expandNode = (original, parent, patches = {}) => {
   if (!original || typeof original !== 'object') {
     return original;
@@ -2387,7 +2297,13 @@ const hydrateNode = (
         node.elementName,
         context, // context
         component, // host
-        Config.buildChildSafeConfig({...context.config, ...options}),
+        {
+          loop: true, // A la Flash, subcomponents play by default
+          ...Config.buildChildSafeConfig({
+            ...context.config,
+            ...options,
+          }),
+        },
         node, // container
       );
 
@@ -2404,7 +2320,7 @@ const hydrateNode = (
       component.registerGuest(node.__memory.subcomponent);
 
       // Don't re-start any nested timelines that have been explicitly paused
-      if (!node.__memory.subcomponent.getDefaultTimeline().isExplicitlyPaused()) {
+      if (!node.__memory.subcomponent.getDefaultTimeline().isPaused()) {
         node.__memory.subcomponent.startTimeline(DEFAULT_TIMELINE_NAME);
       }
     }
@@ -3362,7 +3278,7 @@ export const FALLBACKS = {
     y1: 0,
     x2: 0,
     y2: 0,
-    playback: PlaybackSetting.LOOP,
+    playback: PlaybackFlag.LOOP,
     'controlFlow.repeat': null,
     'controlFlow.placeholder': null,
   },
