@@ -48,7 +48,7 @@ module.exports = {
         "origin.x": { "0": { value: 0.5 } },
         "origin.y": { "0": { value: 0.5 } },
         "style.zIndex": { "0": { value: 1 } },
-        playback: { "0": { value: "cede", edited: true } }
+        playback: { "0": { value: "once", edited: true } }
       }
     }
   },

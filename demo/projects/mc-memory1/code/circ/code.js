@@ -13,12 +13,13 @@ module.exports = {
     "haiku:41397f63120c": {
       "timeline:Default:0": {
         handler: function(target, event) {
+          console.log('pause')
           this.getDefaultTimeline().pause();
         }
       },
       "timeline:Default:59": {
         handler: function(target, event) {
-          console.log(59)
+          console.log('gotoAndStop', 59)
           this.getDefaultTimeline().gotoAndStop(60);
         }
       }
@@ -26,6 +27,7 @@ module.exports = {
     "haiku:f9f0bf96dffd": {
       click: {
         handler: function(target, event) {
+          console.log('gotoAndPlay', 1)
           this.getDefaultTimeline().gotoAndPlay(1);
         }
       }
