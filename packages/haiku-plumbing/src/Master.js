@@ -668,14 +668,13 @@ export default class Master extends EventEmitter {
   /**
    * @method initializeFolder
    */
-  initializeFolder (projectName, haikuUsername, haikuPassword, projectOptions, done) {
+  initializeFolder (projectName, haikuUsername, projectOptions, done) {
     // We need to clear off undos in the case that somebody made an fs-based commit between sessions;
     // if we tried to reset to a previous "known" undoable, we'd miss the missing intermediate one.
     // This has to happen in initializeFolder because it's here that we set the 'isBase' undoable.
     this._git.restart({
       projectName,
       haikuUsername,
-      haikuPassword,
       repositoryUrl: projectOptions.repositoryUrl,
       branchName: projectOptions.branchName,
     });
@@ -810,7 +809,7 @@ export default class Master extends EventEmitter {
   /**
    * @method saveProject
    */
-  saveProject (projectName, haikuUsername, haikuPassword, saveOptions, done) {
+  saveProject (projectName, haikuUsername, saveOptions, done) {
     const finish = (err, out) => {
       this._isSaving = false;
       return done(err, out);

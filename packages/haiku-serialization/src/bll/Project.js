@@ -498,7 +498,7 @@ class Project extends BaseModel {
     }, cb)
   }
 
-  saveProject (projectName, username, password, saveOptions = {}, cb) {
+  saveProject (projectName, username, saveOptions = {}, cb) {
     return this.websocket.request({
       folder: this.getFolder(),
       method: 'saveProject',
@@ -506,7 +506,6 @@ class Project extends BaseModel {
         this.getFolder(),
         projectName,
         username,
-        password,
         saveOptions
       ]
     }, cb)

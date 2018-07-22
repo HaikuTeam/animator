@@ -399,7 +399,7 @@ class StageTitleBar extends React.Component {
 
   requestSaveProject (cb) {
     if (this.props.projectModel) {
-      return this.props.projectModel.saveProject(this.props.project.projectName, this.props.username, this.props.password, this.getProjectSaveOptions(), cb);
+      return this.props.projectModel.saveProject(this.props.project.projectName, this.props.username, this.getProjectSaveOptions(), cb);
     }
   }
 
@@ -1026,7 +1026,6 @@ StageTitleBar.propTypes = {
   folder: React.PropTypes.string.isRequired,
   projectName: React.PropTypes.string,
   username: React.PropTypes.string,
-  password: React.PropTypes.string,
   organizationName: React.PropTypes.string,
   websocket: React.PropTypes.object.isRequired,
   createNotice: React.PropTypes.func.isRequired,

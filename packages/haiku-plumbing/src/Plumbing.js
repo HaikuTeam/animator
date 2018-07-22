@@ -842,14 +842,12 @@ export default class Plumbing extends EventEmitter {
       projectsHome,
       projectPath,
       skipContentCreation,
-      organizationName,
       authorName,
       repositoryUrl,
       branchName = DEFAULT_BRANCH_NAME,
       isPublic,
     },
     username,
-    password,
     finish,
   ) {
     return getCurrentOrganizationName((err, organizationName) => {
@@ -866,7 +864,6 @@ export default class Plumbing extends EventEmitter {
       projectName = getSafeProjectName(projectsHome, projectName);
       projectPath = projectPath || path.join(projectsHome, organizationName, projectName);
       username = username || this.get('username');
-      password = password || this.get('password');
       authorName = username;
 
       // This ensures the folder exists and sets basic values inside the package.json
@@ -887,7 +884,6 @@ export default class Plumbing extends EventEmitter {
         repositoryUrl,
         authorName,
         username,
-        password,
       };
 
       return async.series([
@@ -936,12 +932,10 @@ export default class Plumbing extends EventEmitter {
           projectName,
           projectPath,
           projectOptions.username,
-          projectOptions.password,
           {
             organizationName,
             repositoryUrl,
             username,
-            password,
             authorName,
             branchName,
             isPublic,
@@ -971,8 +965,8 @@ export default class Plumbing extends EventEmitter {
    * @method initializeFolder
    * @description Assuming we already have a folder created, an organization name, etc., now bootstrap the folder itself.
    */
-  initializeFolder (maybeProjectName, folder, maybeUsername, maybePassword, projectOptions, cb) {
-    return this.awaitMasterAndCallMethod(folder, 'initializeFolder', [maybeProjectName, maybeUsername, maybePassword, projectOptions, {from: 'master'}], cb);
+  initializeFolder (maybeProjectName, folder, maybeUsername, projectOptions, cb) {
+    return this.awaitMasterAndCallMethod(folder, 'initializeFolder', [maybeProjectName, maybeUsername, projectOptions, {from: 'master'}], cb);
   }
 
   startProject (maybeProjectName, folder, cb) {
@@ -1086,7 +1080,6 @@ export default class Plumbing extends EventEmitter {
 
       // TODO: Should be cached just like on getCurrentOrganizationName
       this.set('username', username);
-      this.set('password', password);
       this.set('inkstoneAuthToken', authResponse.Token);
 
       sdkClient.config.setAuthToken(authResponse.Token);
@@ -1280,7 +1273,7 @@ export default class Plumbing extends EventEmitter {
     });
   }
 
-  saveProject (folder, projectName, maybeUsername, maybePassword, saveOptions, cb) {
+  saveProject (folder, projectName, maybeUsername, saveOptions, cb) {
     if (!saveOptions) {
       saveOptions = {};
     }
@@ -1291,7 +1284,7 @@ export default class Plumbing extends EventEmitter {
       saveOptions.organizationName = getCachedOrganizationName();
     }
     logger.info('[plumbing] saving with options', saveOptions);
-    return this.awaitMasterAndCallMethod(folder, 'saveProject', [projectName, maybeUsername, maybePassword, saveOptions, {from: 'master'}], cb);
+    return this.awaitMasterAndCallMethod(folder, 'saveProject', [projectName, maybeUsername, saveOptions, {from: 'master'}], cb);
   }
 
   requestSyndicationInfo (folder, cb) {

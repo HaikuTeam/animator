@@ -287,7 +287,6 @@ class Stage extends React.Component {
             organizationName={this.props.organizationName}
             authToken={this.props.authToken}
             username={this.props.username}
-            password={this.props.password}
             receiveProjectInfo={this.props.receiveProjectInfo}
             onPreviewModeToggled={this.props.onPreviewModeToggled}
             isTimelineReady={this.props.isTimelineReady}
@@ -370,7 +369,6 @@ Stage.propTypes = {
   organizationName: React.PropTypes.string,
   authToken: React.PropTypes.string,
   username: React.PropTypes.string,
-  password: React.PropTypes.string,
 };
 
 export default Radium(Stage);

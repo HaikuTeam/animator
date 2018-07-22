@@ -53,12 +53,7 @@ export default class MasterGitProject extends EventEmitter {
     this.folderState = {};
 
     // Project info used extensively in the internal machinery, populated later
-    this._projectInfo = {
-      // projectName,
-      // haikuUsername,
-      // haikuPassword,
-      // branchName,
-    };
+    this._projectInfo = {};
   }
 
   _upWorkerInterval () {
@@ -116,7 +111,6 @@ export default class MasterGitProject extends EventEmitter {
     if (projectInfo) {
       this._projectInfo.projectName = projectInfo.projectName;
       this._projectInfo.haikuUsername = projectInfo.haikuUsername;
-      this._projectInfo.haikuPassword = projectInfo.haikuPassword;
       this._projectInfo.branchName = projectInfo.branchName;
       this._projectInfo.repositoryUrl = projectInfo.repositoryUrl;
     }
@@ -198,7 +192,6 @@ export default class MasterGitProject extends EventEmitter {
         this.folderState.projectName = this._projectInfo.projectName;
         this.folderState.branchName = this._projectInfo.branchName;
         this.folderState.haikuUsername = this._projectInfo.haikuUsername;
-        this.folderState.haikuPassword = this._projectInfo.haikuPassword;
         fse.readdir(this.folder, (_, folderEntries) => {
           this.folderState.folderEntries = folderEntries;
           cb();

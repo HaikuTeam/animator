@@ -137,7 +137,6 @@ export default class Creator extends React.Component {
       readyForAuth: false,
       isUserAuthenticated: false,
       username: null,
-      password: null,
       isAdmin: false,
       notices: [],
       softwareVersion: pkg.version,
@@ -831,7 +830,6 @@ export default class Creator extends React.Component {
             this.setState({
               isUserAuthenticated: false,
               username: null,
-              password: null,
               readyForAuth: true,
             });
           } else {
@@ -1095,7 +1093,6 @@ export default class Creator extends React.Component {
       mixpanel.haikuTrack('creator:user-authenticated', {username});
       this.setState({
         username,
-        password,
         authToken: authAnswer && authAnswer.authToken,
         organizationName: authAnswer && authAnswer.organizationName,
         isUserAuthenticated: authAnswer && authAnswer.isAuthed,
@@ -1110,8 +1107,8 @@ export default class Creator extends React.Component {
     });
   }
 
-  resendEmailConfirmation (username, password, cb) {
-    return this.props.websocket.request({method: 'resendEmailConfirmation', params: [username]}, () => { });
+  resendEmailConfirmation (username) {
+    return this.props.websocket.request({method: 'resendEmailConfirmation', params: [username]}, () => {});
   }
 
   authenticationComplete () {
@@ -1227,7 +1224,7 @@ export default class Creator extends React.Component {
       organization: this.state.organizationName,
     });
 
-    return this.props.websocket.request({method: 'bootstrapProject', params: [projectName, projectObject, this.state.username, this.state.password]}, (err, projectFolder) => {
+    return this.props.websocket.request({method: 'bootstrapProject', params: [projectName, projectObject, this.state.username]}, (err, projectFolder) => {
       if (err) {
         return this.onProjectLaunchError();
       }
@@ -2238,7 +2235,6 @@ export default class Creator extends React.Component {
                     organizationName={this.state.organizationName}
                     authToken={this.state.authToken}
                     username={this.state.username}
-                    password={this.state.password}
                     isTimelineReady={this.state.isTimelineReady}
                     interactionMode={this.state.interactionMode}
                     onShowEventHandlerEditor={this.handleShowEventHandlersEditor}

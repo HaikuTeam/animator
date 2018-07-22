@@ -9,7 +9,7 @@ import {
 
 const DEF_SVG_1 = path.join(__dirname, '..', 'fixtures', 'files', 'designs', 'bef', 'Default.svg');
 tape('Plumbing', (t) => {
-  t.plan(18);
+  t.plan(17);
   TestHelpers.setup((folder, creator, glass, timeline, metadata, teardown, plumbing) => {
     return async.series([
       (cb) => {
@@ -20,7 +20,6 @@ tape('Plumbing', (t) => {
           t.ok(resp.organizationName, 'org name present');
           t.ok(getCachedOrganizationName(), 'state org name present');
           t.ok(plumbing.get('username'), 'state username present');
-          t.ok(plumbing.get('password'), 'state password present');
           t.ok(plumbing.get('inkstoneAuthToken'), 'state auth token present');
           return cb();
         });
