@@ -235,7 +235,7 @@ export default class ExpressionInput extends React.Component {
       };
     }
 
-    if (committable.__function) {
+    if (committable && committable.__function) {
       // Assume that we already stored warnings about this function in the evaluator state from a change action
       return false;
     }
