@@ -20,7 +20,7 @@ module.exports = {
     "haiku:ecf13be9fb45": {
       click: {
         handler: function(target, event) {
-          console.log("CLICK", this.getBytecodeRelpath(), event);
+          console.log('click handler in brick called', event);
           this.getDefaultTimeline().gotoAndPlay(1);
         }
       },

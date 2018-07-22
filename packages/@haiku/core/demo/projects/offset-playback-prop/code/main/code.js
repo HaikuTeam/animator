@@ -53,7 +53,7 @@ module.exports = {
         "origin.x": { "0": { value: 0.5 } },
         "origin.y": { "0": { value: 0.5 } },
         "style.zIndex": { "0": { value: 1 } },
-        playback: { "0": { value: "loop" } }
+        playback: { "0": { value: " + 100ms" } }
       },
       "haiku:9645ad209f48": {
         "style.position": { "0": { value: "absolute" } },
@@ -68,7 +68,8 @@ module.exports = {
         "translation.y": { "0": { value: 101.5 } },
         "origin.x": { "0": { value: 0.5 } },
         "origin.y": { "0": { value: 0.5 } },
-        "style.zIndex": { "0": { value: 2 } }
+        "style.zIndex": { "0": { value: 2 } },
+        playback: { "0": { value: "once-10" } }
       }
     }
   },

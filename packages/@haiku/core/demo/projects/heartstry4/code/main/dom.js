@@ -22,7 +22,7 @@ module.exports = HaikuCreation(require('./code.js'), {
                   tl.gotoAndStop(1200, 'ms')
                   setTimeout(function () {
                     tl.seek(1735, 'ms')
-                  }, 500)
+                  }, 1500)
                 }, 500)
               }, 500)
             }, 500)

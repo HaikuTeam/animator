@@ -22,7 +22,7 @@ module.exports = {
       click: {
         handler: function(target, event) {
           /** action logic goes here */
-          console.log(1);
+          console.log('click handler in main called');
         }
       }
     }
@@ -68,7 +68,8 @@ module.exports = {
         "translation.y": { "0": { value: 130.656, edited: true } },
         "origin.x": { "0": { value: 0.5 } },
         "origin.y": { "0": { value: 0.5 } },
-        "style.zIndex": { "0": { value: 3 } }
+        "style.zIndex": { "0": { value: 3 } },
+        "playback": { "0": { value: 'once' } },
       },
       "haiku:3d286985508e": {
         "style.position": { "0": { value: "absolute" } },
@@ -83,7 +84,8 @@ module.exports = {
         "translation.y": { "0": { value: 130.656, edited: true } },
         "origin.x": { "0": { value: 0.5 } },
         "origin.y": { "0": { value: 0.5 } },
-        "style.zIndex": { "0": { value: 4 } }
+        "style.zIndex": { "0": { value: 4 } },
+        "playback": { "0": { value: 'once' } },
       },
       "haiku:362e8ca79ece": {
         "style.position": { "0": { value: "absolute" } },
@@ -98,7 +100,8 @@ module.exports = {
         "translation.y": { "0": { value: 182.656, edited: true } },
         "origin.x": { "0": { value: 0.5 } },
         "origin.y": { "0": { value: 0.5 } },
-        "style.zIndex": { "0": { value: 5 } }
+        "style.zIndex": { "0": { value: 5 } },
+        "playback": { "0": { value: 'once' } },
       },
       "haiku:ff2fe11381ca": {
         "style.position": { "0": { value: "absolute" } },
@@ -113,7 +116,8 @@ module.exports = {
         "translation.y": { "0": { value: 182.656, edited: true } },
         "origin.x": { "0": { value: 0.5 } },
         "origin.y": { "0": { value: 0.5 } },
-        "style.zIndex": { "0": { value: 6 } }
+        "style.zIndex": { "0": { value: 6 } },
+        "playback": { "0": { value: 'once' } },
       },
       "haiku:235379b74d36": {
         "style.position": { "0": { value: "absolute" } },
@@ -128,7 +132,8 @@ module.exports = {
         "translation.y": { "0": { value: 182.656, edited: true } },
         "origin.x": { "0": { value: 0.5 } },
         "origin.y": { "0": { value: 0.5 } },
-        "style.zIndex": { "0": { value: 7 } }
+        "style.zIndex": { "0": { value: 7 } },
+        "playback": { "0": { value: 'once' } },
       },
       "haiku:b4667598397b": {
         "style.position": { "0": { value: "absolute" } },
@@ -143,7 +148,8 @@ module.exports = {
         "translation.y": { "0": { value: 234.656, edited: true } },
         "origin.x": { "0": { value: 0.5 } },
         "origin.y": { "0": { value: 0.5 } },
-        "style.zIndex": { "0": { value: 8 } }
+        "style.zIndex": { "0": { value: 8 } },
+        "playback": { "0": { value: 'once' } },
       },
       "haiku:eda44a96ee8a": {
         "style.position": { "0": { value: "absolute" } },
@@ -158,7 +164,8 @@ module.exports = {
         "translation.y": { "0": { value: 234.656, edited: true } },
         "origin.x": { "0": { value: 0.5 } },
         "origin.y": { "0": { value: 0.5 } },
-        "style.zIndex": { "0": { value: 9 } }
+        "style.zIndex": { "0": { value: 9 } },
+        "playback": { "0": { value: 'once' } },
       },
       "haiku:f7db285c7b14": {
         stroke: { "0": { value: "none" } },

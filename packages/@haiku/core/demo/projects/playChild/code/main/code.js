@@ -24,6 +24,7 @@ module.exports = {
     "haiku:93e07345b919": {
       click: {
         handler: function(target, event) {
+          console.log('main got click');
           this.setState({ playIt: true });
         }
       }
