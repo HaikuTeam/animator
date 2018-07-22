@@ -43,17 +43,17 @@ module.exports = {
         "sizeAbsolute.y": { "0": { value: "auto" } },
         "translation.x": {
           "0": { value: 178, edited: true, curve: "linear" },
-          "500": { value: 391 }
+          // "500": { value: 391 }
         },
         "translation.y": {
           "0": { value: 169.5, edited: true, curve: "linear" },
-          "500": { value: 253 }
+          // "500": { value: 253 }
         },
         "sizeMode.z": { "0": { value: 1 } },
         "origin.x": { "0": { value: 0.5 } },
         "origin.y": { "0": { value: 0.5 } },
         "style.zIndex": { "0": { value: 1 } },
-        playback: { "0": { value: " + 100ms" } }
+        playback: { "0": { value: "+ 100ms" } }
       },
       "haiku:9645ad209f48": {
         "style.position": { "0": { value: "absolute" } },
@@ -69,7 +69,7 @@ module.exports = {
         "origin.x": { "0": { value: 0.5 } },
         "origin.y": { "0": { value: 0.5 } },
         "style.zIndex": { "0": { value: 2 } },
-        playback: { "0": { value: "once-10" } }
+        playback: { "0": { value: "-10" } }
       }
     }
   },
