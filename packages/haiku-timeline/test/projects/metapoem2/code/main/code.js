@@ -40,7 +40,7 @@ module.exports = {
     "haiku:e6ecbf414bf7": {
       mouseenter: {
         handler: function(event) {
-          if (this.getDefaultTimeline().getElapsedTime() > 17060) {
+          if (this.getDefaultTimeline().getTime() > 17060) {
             this.setState({ isHovered: true, hasHovered: true });
 
             this.getDefaultTimeline().gotoAndPlay(18000);

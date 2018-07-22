@@ -4,7 +4,7 @@ const pretty = require('pretty')
 const async = require('async')
 const jss = require('json-stable-stringify')
 const pascalcase = require('pascalcase')
-const {PlaybackSetting} = require('@haiku/core/lib/HaikuTimeline')
+const {PlaybackFlag} = require('@haiku/core/lib/HaikuTimeline')
 const {HAIKU_ID_ATTRIBUTE, HAIKU_LOCKED_ATTRIBUTE, HAIKU_TITLE_ATTRIBUTE, HAIKU_VAR_ATTRIBUTE} = require('@haiku/core/lib/HaikuElement')
 const {sortedKeyframes} = require('@haiku/core/lib/Transitions').default
 const HaikuComponent = require('@haiku/core/lib/HaikuComponent').default
@@ -1218,7 +1218,7 @@ class ActiveComponent extends BaseModel {
                   insertion.attributes[HAIKU_ID_ATTRIBUTE],
                   this.getInstantiationTimelineName(),
                   ms,
-                  {'playback': PlaybackSetting.LOOP},
+                  {'playback': PlaybackFlag.LOOP},
                   'merge'
                 )
               })

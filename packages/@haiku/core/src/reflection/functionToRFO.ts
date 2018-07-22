@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import tokenize from './tokenize';
+import {tokenizeParameters} from './Tokenizer';
 
 export interface RFO {
   type: string;
@@ -11,21 +11,6 @@ export interface RFO {
   body: string;
   injectee?: boolean;
 }
-
-// Order matters
-const REGEXPS = [
-  {type: 'whitespace', re: /^[\s]+/},
-  {type: 'paren_open', re: /^\(/},
-  {type: 'paren_close', re: /^\)/},
-  {type: 'square_open', re: /^\[/},
-  {type: 'square_close', re: /^]/},
-  {type: 'curly_open', re: /^\{/},
-  {type: 'curly_close', re: /^\}/},
-  {type: 'rest', re: /^\.\.\./},
-  {type: 'colon', re: /^:/},
-  {type: 'comma', re: /^,/},
-  {type: 'identifier', re: /^[a-zA-Z0-9_$]+/}, // TODO: Include unicode chars
-];
 
 function nth (n, type, arr) {
   const none = {value: null, type: 'void'};
@@ -134,7 +119,7 @@ function tokensToParams (tokens) {
 }
 
 function signatureToParams (signature) {
-  const tokens = tokenize(signature, REGEXPS);
+  const tokens = tokenizeParameters(signature);
   const clean = [];
   for (let i = 0; i < tokens.length; i++) {
     if (tokens[i].type !== 'whitespace') {
@@ -168,7 +153,7 @@ export default function functionToRFO (fn) {
   const type = suffix.match(/^\s*=>\s*{/)
     ? 'ArrowFunctionExpression'
     : 'FunctionExpression';
-  const name = nth(2, 'identifier', tokenize(prefix, REGEXPS)).value;
+  const name = nth(2, 'identifier', tokenizeParameters(prefix)).value;
   const params = signatureToParams(signature);
 
   const spec: RFO = {

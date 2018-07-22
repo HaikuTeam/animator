@@ -327,13 +327,6 @@ export default class HaikuContext extends HaikuBase {
           if (component === this.component) {
             return;
           }
-
-          const timelines = component.getTimelines();
-          for (const timelineName in timelines) {
-            // Although a timeline's playback status may not change over time, we still need
-            // to "apply" it, i.e. run the respective procedure to get the playback behavior
-            timelines[timelineName].applyPlaybackStatus();
-          }
         });
 
         // After we've hydrated the tree the first time, we can proceed with patches --

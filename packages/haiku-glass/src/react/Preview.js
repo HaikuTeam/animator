@@ -46,7 +46,7 @@ export default class Preview extends React.Component {
     });
 
     this.component.on('loop', (attachedObject) => {
-      const message = `Loop count ${attachedObject.loopCounter}`;
+      const message = `Loop count ${attachedObject.loopCount}`;
       logger.traceInfo('loop', message, attachedObject);
     });
 
