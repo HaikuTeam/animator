@@ -788,7 +788,7 @@ class Timeline extends React.Component {
               }
             },
           );
-          user.getUserDetails().then(
+          user.getUser().then(
             (userDetails) => {
               this.setState({userDetails});
             },
@@ -1229,8 +1229,8 @@ class Timeline extends React.Component {
             experimentIsEnabled(Experiment.LocalAssetExport) &&
             <TrackedExporterRequests trackedExporterRequests={this.state.trackedExporterRequests} />
           }
-          <IntercomWidget user={this.state.userDetails} />
         </div>
+          <IntercomWidget user={this.state.userDetails} />
       </div>
     );
   }

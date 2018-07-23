@@ -10,7 +10,7 @@ app.setName('Haiku');
 export interface TopMenuOptions {
   isProjectOpen: boolean;
   isSaving: boolean;
-  projectList: PlumbingProject[];
+  projectsList: PlumbingProject[];
   subComponents: SubComponent[];
 }
 
@@ -434,7 +434,7 @@ export default class TopMenu {
             },
           }, {
             label: 'Take Tour',
-            enabled: !!this.options.projectList.find((project) => project.projectName === TourUtils.ProjectName),
+            enabled: !!this.options.projectsList.find((project) => project.projectName === TourUtils.ProjectName),
             click: () => {
               this.sender.send('global-menu:start-tour');
             },

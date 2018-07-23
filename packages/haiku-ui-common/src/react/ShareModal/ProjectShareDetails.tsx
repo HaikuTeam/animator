@@ -84,9 +84,6 @@ const STYLES = {
     backgroundColor: Palette.LIGHTEST_PINK,
     transform: 'translateX(13px)',
   },
-  disabledToggle: {
-    opacity: .5,
-  },
   circle: {
     display: 'inline-block',
     position: 'relative',
@@ -116,7 +113,6 @@ export interface ProjectShareDetailsProps {
   linkAddress: string;
   isSnapshotSaveInProgress: boolean;
   isPublic: boolean;
-  isDisabled: boolean;
   togglePublic: () => void;
   mixpanel: any;
 }
@@ -131,9 +127,7 @@ export class ProjectShareDetails extends React.PureComponent<ProjectShareDetails
   };
 
   private togglePublic = () => {
-    if (!this.props.isDisabled) {
-      this.props.togglePublic();
-    }
+    this.props.togglePublic();
   };
 
   private showTooltip = () => {
@@ -195,7 +189,7 @@ export class ProjectShareDetails extends React.PureComponent<ProjectShareDetails
             >
               <span
                 id="public-private-label"
-                style={this.props.isDisabled ? STYLES.disabledToggle : STYLES.toggleLabel}
+                style={STYLES.toggleLabel}
               >
                 {this.props.isPublic ? 'Public' : 'Private'}
               </span>
@@ -227,19 +221,16 @@ export class ProjectShareDetails extends React.PureComponent<ProjectShareDetails
             onCopy={this.onCopy}
             onLinkOpen={this.onLinkOpen}
           />
-          {
-            !this.props.isDisabled &&
-            <p style={{...STYLES.info, ...STYLES.infoSpecial}}>
-              Anyone&nbsp;
-              {
-                !this.props.isPublic && <span>with the link&nbsp;</span>
-              }
-              <strong>can view and install</strong> your project&nbsp;
-              {
-                this.props.isPublic && <span><br />from your public profile</span> /*TODO: link to public profile */
-              }
-            </p>
-          }
+          <p style={{...STYLES.info, ...STYLES.infoSpecial}}>
+            Anyone&nbsp;
+            {
+              !this.props.isPublic && <span>with the link&nbsp;</span>
+            }
+            <strong>can view and install</strong> your project&nbsp;
+            {
+              this.props.isPublic && <span><br />from your public profile</span> /*TODO: link to public profile */
+            }
+          </p>
         </div>
       </div>
     );

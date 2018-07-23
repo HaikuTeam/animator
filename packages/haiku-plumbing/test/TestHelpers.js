@@ -36,8 +36,6 @@ function websocket (host, port, folder, alias, type) {
 }
 
 function before (cb) {
-  process.env.HAIKU_SKIP_NPM_INSTALL = '1';
-  // process.env.HAIKU_SKIP_NPM_LINK = '1' // enabled so that @haiku/core exists in component code.js
   return setTimeout(cb, 2500); // HACK: always wait for teardown of previous test #RC-test
 }
 

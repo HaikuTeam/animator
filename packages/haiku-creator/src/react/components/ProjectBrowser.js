@@ -269,7 +269,7 @@ class ProjectBrowser extends React.Component {
       this.tourChannel.hide();
     }
 
-    this.props.launchProject(projectObject.projectName, projectObject);
+    this.props.launchProject(projectObject);
   }
 
   renderNotice (content, i) {

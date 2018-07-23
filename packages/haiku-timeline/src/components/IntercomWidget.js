@@ -1,6 +1,6 @@
-import * as React from 'react';
 import Palette from 'haiku-ui-common/lib/Palette';
 import * as Radium from 'radium';
+import * as React from 'react';
 import Intercom from 'react-intercom';
 
 const STYLES = {
@@ -37,7 +37,7 @@ class IntercomWidget extends React.Component {
     We'll need to update this code when we allow users to
     choose usernames */
     const user = {
-      email: JSON.parse(this.props.user).Username,
+      email: this.props.user.Username,
     };
 
     return (
@@ -63,5 +63,5 @@ class IntercomWidget extends React.Component {
 export default Radium(IntercomWidget);
 
 IntercomWidget.propTypes = {
-  user: React.PropTypes.string,
+  user: React.PropTypes.object,
 };

@@ -16,11 +16,3 @@ export const getEmbedName = (organizationName: string, projectPath: string, proj
 export const getCurrentHumanTimestamp = () => {
   return moment().format('YYYYMMDDHHmmss');
 };
-
-export const getSafeOrganizationName = (maybeOrgName: string) => {
-  let orgName = maybeOrgName;
-  if (!maybeOrgName || typeof maybeOrgName !== 'string') {
-    orgName = FALLBACK_ORG_NAME;
-  }
-  return orgName.replace(WHITESPACE_REGEX, UNDERSCORE);
-};

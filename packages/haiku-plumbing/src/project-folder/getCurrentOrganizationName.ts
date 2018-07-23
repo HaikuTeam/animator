@@ -13,8 +13,7 @@ export const getCurrentOrganizationName = (cb: (error: Error|null, organizationN
   logger.info('[plumbing] fetching organization name for current user');
 
   try {
-    const authToken = sdkClient.config.getAuthToken();
-    return inkstone.organization.list(authToken, (orgErr, orgsArray, orgHttpResp) => {
+    return inkstone.organization.list((orgErr, orgsArray, orgHttpResp) => {
       if (orgErr) {
         return cb(new Error('Organization error'));
       }

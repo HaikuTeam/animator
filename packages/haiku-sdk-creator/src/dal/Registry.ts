@@ -1,26 +1,23 @@
+import {ensureHomeFolderForOrganization} from '@haiku/sdk-client';
 import * as fs from 'fs';
-import * as mkdirp from 'mkdirp';
 import * as os from 'os';
 import * as path from 'path';
 
-const REGISTRY_PATH = path.join(os.homedir(), '.haiku', 'registry.json');
+const getRegistryPath = (organizationName: string) =>
+  path.join(os.homedir(), '.haiku', organizationName, 'registry.json');
 
-const ensureHomeFolder = () => {
-  mkdirp.sync(os.homedir() + '/.haiku');
-};
-
-const getFileContents = (): any => {
-  ensureHomeFolder();
-  if (!fs.existsSync(REGISTRY_PATH)) {
-    fs.writeFileSync(REGISTRY_PATH, '{}');
+const getFileContents = (organizationName: string): any => {
+  ensureHomeFolderForOrganization(organizationName);
+  const registryPath = getRegistryPath(organizationName);
+  if (!fs.existsSync(registryPath)) {
+    fs.writeFileSync(registryPath, '{}');
   }
 
-  return JSON.parse(fs.readFileSync(REGISTRY_PATH, 'utf8'));
+  return JSON.parse(fs.readFileSync(registryPath, 'utf8'));
 };
 
-const setFileContents = (contents: any) => {
-  ensureHomeFolder();
-  return fs.writeFileSync(REGISTRY_PATH, JSON.stringify(contents));
+const setFileContents = (organizationName: string, contents: {[key in string]: any}) => {
+  return fs.writeFileSync(getRegistryPath(organizationName), JSON.stringify(contents));
 };
 
 // Purpose:  Set and retrieve locally persisted settings.
@@ -28,19 +25,18 @@ const setFileContents = (contents: any) => {
 // Use-case: Easily store and retrieve whether the user chooses to view their timeline in ms or frames —
 //           and specifically, remove friction around UI devs wanting to persist evolving data
 export class Registry {
+  constructor (private readonly organizationName: string) {}
 
   // TODO: support config if e.g. REGISTRY_PATH ever needs to change
   // TODO: cache if this ever requires hot reads/writes
-  // TODO: un-staticify if logic gets much more complex
-
-  static setConfig (key: string, value: string) {
-    const config = getFileContents();
+  setConfig (key: string, value: string) {
+    const config = getFileContents(this.organizationName);
     config[key] = value;
-    setFileContents(config);
+    setFileContents(this.organizationName, config);
   }
 
-  static getConfig (key: string): string {
-    const config = getFileContents();
+  getConfig (key: string): string {
+    const config = getFileContents(this.organizationName);
     return config[key];
   }
 }

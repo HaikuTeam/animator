@@ -23,7 +23,6 @@
   "AllowBitmapImages": true,
   "SizeInsteadOfScaleWhenPossible": true,
   "UserConsole": false,
-  "CleanInitialLibraryState": true,
   "Snapping": true,
   "PinchToZoomInGlass": true,
   "PreserveFrontMatterInCode": true,

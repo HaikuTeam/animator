@@ -49,20 +49,19 @@ export default class EnvoyClient<T extends EnvoyHandler> {
     // Since mock mode skips the connection, there's nothing to retrieve, and
     // we will just go ahead and return ourselves early instead of schema discovery
     if (this.isInMockMode()) {
-      let mockMe = {} as T;
-      mockMe = this.addEventLogic(mockMe); // Only adds an 'on' method
+      const mockMe = {} as T;
+      this.addEventLogic(mockMe); // Only adds an 'on' method
       return Promise.resolve(mockMe);
     }
 
     return this.getRemoteSchema(channel).then((schema: {}) => {
-      let returnMe = {} as T;
+      const returnMe = {} as T;
 
       for (const key in schema) {
         const property = key as string;
         // TODO:  if we want to support other topologies (vs. only-top-level-functions,) we
         // can implement deserialization/handling logic here
         if (schema[key] === 'function') {
-
           // Set the new function behavior.
           returnMe[property] = ((prop) => {
             return (...args: any[]) => {
@@ -82,7 +81,7 @@ export default class EnvoyClient<T extends EnvoyHandler> {
         }
       }
 
-      returnMe = this.addEventLogic(returnMe);
+      this.addEventLogic(returnMe);
 
       return returnMe;
     });
@@ -118,23 +117,22 @@ export default class EnvoyClient<T extends EnvoyHandler> {
    * Adds the `.on` method to a generated client, so consumers can subscribe to events
    * @param subject
    */
-  private addEventLogic (subject: T): T {
-    subject.on = (eventName: string, handler: EnvoyClientEventHandler) => {
-      const handlers = this.eventHandlers.get(eventName) || [];
+  private addEventLogic (subject: T) {
+    subject.on = (eventName, handler) => {
+      const handlers = this.eventHandlers.get(eventName as string) || [];
       handlers.push(handler);
-      this.eventHandlers.set(eventName, handlers);
+      this.eventHandlers.set(eventName as string, handlers);
+      return subject;
     };
 
-    subject.off = (eventName: string, handler: EnvoyClientEventHandler) => {
-      const handlers = this.eventHandlers.get(eventName) || [];
+    subject.off = (eventName, handler) => {
+      const handlers = this.eventHandlers.get(eventName as string) || [];
       const idx = handlers.indexOf(handler);
       if (idx !== -1) {
         handlers.splice(idx, 1);
         this.eventHandlers.set(eventName, handlers);
       }
     };
-
-    return subject;
   }
 
   /**

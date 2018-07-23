@@ -1,41 +1,11 @@
 import * as lodash from 'lodash';
 import {inkstone} from '@haiku/sdk-inkstone';
-import {client} from '@haiku/sdk-client';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import * as Git from './Git';
-
-// Configure inkstone, useful for testing off of dev (HAIKU_API=https://localhost:8080/)
-if (process.env.HAIKU_API) {
-  inkstone.setConfig({
-    baseUrl: process.env.HAIKU_API,
-  });
-}
 
 if (process.env.SHARE_URL) {
   inkstone.setConfig({
     baseShareUrl: process.env.SHARE_URL,
-  });
-}
-
-export function createSnapshot (folder, name, done) {
-  Git.referenceNameToId(folder, 'HEAD', (gitErr, id) => {
-    if (gitErr) {
-      done(gitErr);
-      return;
-    }
-
-    const sha = id.toString();
-
-    logger.info('[inkstone] git HEAD resolved:', sha, 'creating snapshot...');
-
-    inkstone.project.createProjectSnapshotByNameAndSha(
-      client.config.getAuthToken(),
-      name,
-      sha,
-      (err) => {
-        done(err);
-      },
-    );
   });
 }
 
@@ -92,7 +62,3 @@ function getSnapshotInfo (sha, done) {
     return done(null, link, snap);
   });
 }
-
-export const project = {
-  getByName: inkstone.project.getByName.bind(inkstone.project),
-};

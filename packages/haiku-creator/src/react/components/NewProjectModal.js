@@ -168,7 +168,6 @@ class NewProjectModal extends React.PureComponent {
 NewProjectModal.propTypes = {
   duplicate: React.PropTypes.bool,
   disabled: React.PropTypes.bool,
-  projectList: React.PropTypes.array,
   onCancel: React.PropTypes.func,
   setProjectLaunchStatus: React.PropTypes.func,
 };

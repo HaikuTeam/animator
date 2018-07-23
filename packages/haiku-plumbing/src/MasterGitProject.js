@@ -7,6 +7,7 @@ import * as semver from 'semver';
 import * as tmp from 'tmp';
 import * as lodash from 'lodash';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
+import {inkstone} from '@haiku/sdk-inkstone';
 import * as Git from './Git';
 import * as Inkstone from './Inkstone';
 import * as Lock from 'haiku-serialization/src/bll/Lock';
@@ -110,7 +111,7 @@ export default class MasterGitProject extends EventEmitter {
 
     if (projectInfo) {
       this._projectInfo.projectName = projectInfo.projectName;
-      this._projectInfo.haikuUsername = projectInfo.haikuUsername;
+      this._projectInfo.authorName = projectInfo.authorName;
       this._projectInfo.branchName = projectInfo.branchName;
       this._projectInfo.repositoryUrl = projectInfo.repositoryUrl;
     }
@@ -191,7 +192,7 @@ export default class MasterGitProject extends EventEmitter {
         this.folderState.folder = this.folder;
         this.folderState.projectName = this._projectInfo.projectName;
         this.folderState.branchName = this._projectInfo.branchName;
-        this.folderState.haikuUsername = this._projectInfo.haikuUsername;
+        this.folderState.authorName = this._projectInfo.authorName;
         fse.readdir(this.folder, (_, folderEntries) => {
           this.folderState.folderEntries = folderEntries;
           cb();
@@ -410,8 +411,17 @@ export default class MasterGitProject extends EventEmitter {
   }
 
   saveSnapshot (cb) {
-    Inkstone.createSnapshot(this.folder, this.folderState.projectName, (err, snapshot) => {
-      cb(err, snapshot);
+    Git.referenceNameToId(this.folder, 'HEAD', (gitErr, id) => {
+      if (gitErr) {
+        cb(gitErr);
+        return;
+      }
+
+      logger.info('[inkstone] git HEAD resolved:', id.toString(), 'creating snapshot...');
+      inkstone.project.createSnapshot({
+        Name: this.folderState.projectName,
+        Sha: id.toString(),
+      }, cb);
     });
   }
 
@@ -594,7 +604,7 @@ export default class MasterGitProject extends EventEmitter {
             return cb(err);
           }
 
-          return Git.buildCommit(this.folder, this.folderState.haikuUsername, null, `Base commit (via Haiku)`, oid, null, null, (err, commitId) => {
+          return Git.buildCommit(this.folder, this.folderState.authorName, null, `Base commit (via Haiku)`, oid, null, null, (err, commitId) => {
             if (err) {
               return cb(err);
             }
@@ -930,7 +940,7 @@ export default class MasterGitProject extends EventEmitter {
     finalOptions.commitMessage = message;
 
     return this.fetchFolderState('commit-project', {}, () => {
-      return Git.commitProject(this.folder, this.folderState.haikuUsername, this.folderState.hasHeadCommit, finalOptions, addable, (err, commitId) => {
+      return Git.commitProject(this.folder, this.folderState.authorName, this.folderState.hasHeadCommit, finalOptions, addable, (err, commitId) => {
         if (err) {
           return cb(err);
         }
@@ -961,19 +971,16 @@ export default class MasterGitProject extends EventEmitter {
 
         if (isGitInitialized) {
           actionSequence.push('fetchGitRemoteInfoState', 'pullRemote');
-        } else if (
-          !this._projectInfo.repositoryUrl &&
-          !['CheckTutorial', 'Move', 'Moto', 'percy'].includes(this.folderState.projectName)
-        ) {
-          // Legacy: Except for template projects, we won't have an initial master commit on CodeCommit.
-          actionSequence.push('initializeGit');
-        } else {
+        } else if (this._projectInfo.repositoryUrl) {
           actionSequence.push(
             'fetchGitRemoteInfoState',
             'moveContentsToTemp',
             'cloneRemoteIntoFolder',
             'copyContentsFromTemp',
           );
+
+        } else {
+          actionSequence.push('initializeGit');
         }
 
         logger.info('[master-git] action sequence:', actionSequence);

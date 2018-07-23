@@ -1012,6 +1012,7 @@ class StageTitleBar extends React.Component {
               this._shareModal = el;
             }}
             projectUid={projectInfo.uuid}
+            projectName={projectInfo.projectName}
             sha={projectInfo.sha}
             mixpanel={mixpanel}
             onProjectPublicChange={this.props.onProjectPublicChange}

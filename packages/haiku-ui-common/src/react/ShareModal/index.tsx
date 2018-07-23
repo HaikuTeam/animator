@@ -1,5 +1,5 @@
 import {inkstone} from '@haiku/sdk-inkstone';
-import {Project} from 'haiku-sdk-creator/lib/bll/Project';
+import {ProjectHandler} from 'haiku-sdk-creator/lib/bll/Project';
 import * as React from 'react';
 import {ModalHeader, ModalNotice, ModalWrapper} from '../Modal';
 import {RevealPanel} from '../RevealPanel';
@@ -19,7 +19,7 @@ const STYLES: React.CSSProperties = {
 };
 
 export interface ShareModalProps {
-  envoyProject: Project;
+  envoyProject: ProjectHandler;
   project: any;
   error: any;
   linkAddress: string;
@@ -31,6 +31,7 @@ export interface ShareModalProps {
   userName: string;
   organizationName: string;
   projectUid: string;
+  projectName: string;
   sha: string;
   mixpanel: any;
   onProjectPublicChange: (state: boolean) => void;
@@ -48,12 +49,9 @@ export interface ShareModalStates {
     entry: SelectedEntry;
   };
   showDetail: boolean;
-  isPublic: boolean;
+  isPublic?: boolean;
   showTooltip: boolean;
-  isPublicKnown: boolean;
 }
-
-const isNullOrUndefined = (term?: any) => term === null || term === undefined;
 
 export class ShareModal extends React.Component<ShareModalProps, ShareModalStates> {
   error: Error;
@@ -76,7 +74,6 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
       showDetail: false,
       isPublic: props.project && props.project.isPublic,
       showTooltip: false,
-      isPublicKnown: props.project && !isNullOrUndefined(props.project.isPublic),
     };
   }
 
@@ -89,18 +86,9 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
       this.error = null;
     }
 
-    if (nextProps.envoyProject && nextProps.projectUid && nextProps.projectUid !== this.props.projectUid && !this.state.isPublicKnown) {
-      (nextProps.envoyProject.getProjectDetail(nextProps.projectUid) as Promise<inkstone.project.Project>).then((proj: inkstone.project.Project) => {
-
-        // if IsPublic is undefined, it's never been published before. Make it private on first publish
-        if (isNullOrUndefined(proj.IsPublic)) {
-          (nextProps.envoyProject.setIsPublic(nextProps.projectUid, false) as Promise<boolean>).then(() => {
-            this.props.onProjectPublicChange(false);
-          });
-          this.setState({isPublic: false, isPublicKnown: true});
-        } else {
-          this.setState({isPublic: proj.IsPublic, isPublicKnown: true});
-        }
+    if (nextProps.envoyProject && nextProps.projectName && nextProps.projectName !== this.props.projectName) {
+      nextProps.envoyProject.getProject(nextProps.projectName).then((project) => {
+        this.setState({isPublic: project.IsPublic});
       });
     }
   }
@@ -119,17 +107,14 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
   }
 
   togglePublic () {
-    if (this.props.envoyProject) {
-      const desiredState = !this.state.isPublic;
-      const project = this.props.envoyProject;
-      (project.setIsPublic(this.props.projectUid, desiredState) as Promise<boolean>).then(() => {
-        this.props.onProjectPublicChange(desiredState);
-      });
-      this.setState({isPublic: desiredState, isPublicKnown: true});
-    } else {
-      // TODO: trigger toast.
-      console.error('Could not set project privacy settings.  Please contact support@haiku.ai');
-    }
+    const desiredState = !this.state.isPublic;
+    this.props.envoyProject.updateProject(this.props.projectName, desiredState).then(() => {
+      this.props.onProjectPublicChange(desiredState);
+    }).catch(() => {
+      console.error('Could not set project privacy settings. Please contact support@haiku.ai');
+      this.setState({isPublic: !desiredState});
+    });
+    this.setState({isPublic: desiredState});
   }
 
   render () {
@@ -154,7 +139,6 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
           <ProjectShareDetails
             semverVersion={semverVersion}
             projectName={project.projectName}
-            isDisabled={!this.state.isPublicKnown}
             linkAddress={linkAddress}
             isSnapshotSaveInProgress={isSnapshotSaveInProgress}
             isPublic={this.state.isPublic}

@@ -15,7 +15,9 @@ tape('other.01', (t) => {
     const folder = () => Object.keys(plumbing.masters)[0];
     return async.series([
       function (cb) {
-        return plumbing.authenticateUser('jenkins@haiku.ai', 'supersecure', cb);
+        plumbing.envoyUserHandler.authenticate('jenkins@haiku.ai', 'supersecure').then(() => {
+          cb();
+        });
       },
       function (cb) {
         return plumbing.createProject(projectName, isPublic, cb);

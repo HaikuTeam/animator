@@ -61,7 +61,6 @@ async function doUserLogin (context: IContext, cb?: () => void) {
       }
     } else {
       client.config.setAuthToken(authResponse.Token);
-      client.config.setUserId(username);
       context.writeLine(chalk.bold.green(`Welcome ${username}!`));
     }
     if (cb) {

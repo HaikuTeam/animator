@@ -33,7 +33,6 @@ export enum Experiment {
   UserConsole = 'UserConsole',
   AllowBitmapImages = 'AllowBitmapImages',
   SizeInsteadOfScaleWhenPossible = 'SizeInsteadOfScaleWhenPossible',
-  CleanInitialLibraryState = 'CleanInitialLibraryState',
   CopyPasteTweens = 'CopyPasteTweens',
   CopyPasteTweensWithAccelerators = 'CopyPasteTweensWithAccelerators',
   Snapping = 'Snapping',

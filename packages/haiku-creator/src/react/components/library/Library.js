@@ -375,7 +375,6 @@ class Library extends React.Component {
     const componentshostFolder = this.state.assets.find((asset) => asset.isComponentsHostFolder());
 
     return (
-      experimentIsEnabled(Experiment.CleanInitialLibraryState) &&
       designsFolder &&
       designsFolder.getChildAssets().length === 0 &&
       componentshostFolder.getChildAssets().length === 0 &&

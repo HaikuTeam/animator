@@ -285,7 +285,6 @@ class Stage extends React.Component {
             createNotice={this.props.createNotice}
             removeNotice={this.props.removeNotice}
             organizationName={this.props.organizationName}
-            authToken={this.props.authToken}
             username={this.props.username}
             receiveProjectInfo={this.props.receiveProjectInfo}
             onPreviewModeToggled={this.props.onPreviewModeToggled}
@@ -367,7 +366,6 @@ Stage.propTypes = {
   removeNotice: React.PropTypes.func.isRequired,
   receiveProjectInfo: React.PropTypes.func,
   organizationName: React.PropTypes.string,
-  authToken: React.PropTypes.string,
   username: React.PropTypes.string,
 };
 

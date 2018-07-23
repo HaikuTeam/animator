@@ -1,46 +1,112 @@
-import {client as sdkClient} from '@haiku/sdk-client';
+import {
+  DEFAULT_BRANCH_NAME,
+  FALLBACK_ORG_NAME,
+  getSafeProjectName,
+  UNDERSCORE,
+  WHITESPACE_REGEX,
+} from '@haiku/sdk-client/lib/ProjectDefinitions';
 import {inkstone} from '@haiku/sdk-inkstone';
-import {MaybeAsync} from '../envoy';
-
-export interface Project {
-  setIsPublic: (uniqueId: string, isPublic: boolean) => MaybeAsync<boolean>;
-  getProjectDetail: (uniqueId: string) => Promise<inkstone.project.Project>;
-}
+import * as fse from 'fs-extra';
+// @ts-ignore
+import {HOMEDIR_PROJECTS_PATH} from 'haiku-serialization/src/utils/HaikuHomeDir';
+import * as path from 'path';
+import EnvoyHandler from '../envoy/EnvoyHandler';
+import EnvoyServer from '../envoy/EnvoyServer';
+import {OrganizationAndUser, UserHandler} from './User';
 
 export const PROJECT_CHANNEL = 'project';
 
-export class ProjectHandler implements Project {
+export interface HaikuProject {
+  projectPath: string;
+  projectName: string;
+  projectExistsLocally: boolean;
+  isPublic: boolean;
+  branchName: string;
+  repositoryUrl?: string;
+  forkComplete?: boolean;
+  skipContentCreation?: boolean;
+  organizationName?: string;
+  authorName?: string;
+}
 
-  constructor () {
-    if (process.env.HAIKU_API) {
-      inkstone.setConfig({
-        baseUrl: process.env.HAIKU_API,
-      });
-    }
+const getSafeOrganizationName = (maybeOrgName: string) => {
+  let orgName = maybeOrgName;
+  if (!maybeOrgName || typeof maybeOrgName !== 'string') {
+    orgName = FALLBACK_ORG_NAME;
+  }
+  return orgName.replace(WHITESPACE_REGEX, UNDERSCORE);
+};
+
+const inkstoneProjectToHaikuProject = (
+  project: inkstone.project.Project, organizationName: string, authorName: string): HaikuProject => {
+  const projectPath = path.join(
+    HOMEDIR_PROJECTS_PATH,
+    organizationName,
+    project.Name,
+  );
+  return {
+    projectPath,
+    authorName,
+    organizationName: getSafeOrganizationName(organizationName),
+    projectName: getSafeProjectName(projectPath, project.Name),
+    projectExistsLocally: fse.existsSync(projectPath),
+    repositoryUrl: project.RepositoryUrl,
+    forkComplete: project.ForkComplete,
+    isPublic: project.IsPublic,
+    branchName: DEFAULT_BRANCH_NAME,
+  };
+};
+
+export class ProjectHandler extends EnvoyHandler {
+  constructor (
+    private readonly userHandler: UserHandler,
+    protected readonly server: EnvoyServer,
+  ) {
+    super(server);
   }
 
-  getProjectDetail (uniqueId: string): Promise<inkstone.project.Project> {
-    return new Promise<inkstone.project.Project>((resolve, reject) => {
-      inkstone.project.getByUniqueId(sdkClient.config.getAuthToken(), uniqueId, (error, project) => {
+  getProjectsList (): Promise<HaikuProject[]> {
+    this.server.logger.info('[haiku envoy server] listing projects');
+    return new Promise<HaikuProject[]>((resolve) => {
+      const {organization, user} = this.userHandler.getOrganizationAndUser() as OrganizationAndUser;
+
+      if (!organization || !user) {
+        return resolve([]);
+      }
+
+      inkstone.project.list((error, projects) => {
         if (!error) {
-          resolve(project.Project);
-        } else {
-          reject(error);
+          return resolve(projects.map(
+            (project) => inkstoneProjectToHaikuProject(project, organization.Name, user.Username)));
         }
+
+        this.server.logger.warn('[haiku envoy server] error while listing projects');
+        this.server.logger.warn(error);
+        return resolve([]);
       });
     });
   }
 
-  setIsPublic (uniqueId: string, isPublic: boolean): Promise<boolean> {
-    return new Promise<boolean>((resolve, reject) => {
-      const apiMethod = isPublic ? inkstone.project.makePublic : inkstone.project.makePrivate;
-
-      apiMethod(sdkClient.config.getAuthToken(), uniqueId, (error, response) => {
+  getProject (name: string): Promise<inkstone.project.Project> {
+    return new Promise<inkstone.project.Project>((resolve, reject) => {
+      inkstone.project.get({Name: name}, (error, project) => {
         if (!error) {
-          resolve(response);
-        } else {
-          reject(error);
+          return resolve(project);
         }
+
+        reject(error);
+      });
+    });
+  }
+
+  updateProject (name: string, isPublic: boolean): Promise<inkstone.project.Project> {
+    return new Promise<inkstone.project.Project>((resolve, reject) => {
+      inkstone.project.update({Name: name, IsPublic: isPublic}, (error, project) => {
+        if (!error) {
+          return resolve(project);
+        }
+
+        reject(error);
       });
     });
   }

@@ -25,16 +25,13 @@ import Toast from './components/notifications/Toast';
 import Tour from './components/Tour/Tour';
 import AutoUpdater from './components/AutoUpdater';
 import ProjectLoader from './components/ProjectLoader';
-import OfflineModePage from './components/OfflineModePage';
 import ProxyHelpScreen from './components/ProxyHelpScreen';
 import ProxySettingsScreen from './components/ProxySettingsScreen';
 import ChangelogModal from './components/ChangelogModal';
 import NewProjectModal from './components/NewProjectModal';
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/EnvoyClient';
 import {EXPORTER_CHANNEL, ExporterFormat} from 'haiku-sdk-creator/lib/exporter';
-// Note that `User` is imported below for type discovery
-// (which works even inside JS with supported editors, using jsfhandlc type annotations)
-import {USER_CHANNEL, User, UserSettings} from 'haiku-sdk-creator/lib/bll/User'; // eslint-disable-line no-unused-vars
+import {USER_CHANNEL, UserSettings} from 'haiku-sdk-creator/lib/bll/User'; // eslint-disable-line no-unused-vars
 import {PROJECT_CHANNEL} from 'haiku-sdk-creator/lib/bll/Project';
 import {TOUR_CHANNEL} from 'haiku-sdk-creator/lib/tour';
 import {SERVICES_CHANNEL} from 'haiku-sdk-creator/lib/services';
@@ -646,16 +643,50 @@ export default class Creator extends React.Component {
     // kick off initial report
     this.onActivityReport(true, true);
 
-    // check admin status
-    this.user.getUserDetails().then((stringData) => {
-      // Rough check that the string data is JSON-parseable before contining;
-      // this can be undefined if the user has no internet connection
-      if (stringData && typeof stringData === 'string') {
-        const userInfo = JSON.parse(stringData);
-        if (userInfo && userInfo.IsAdmin) {
-          this.setState({isAdmin: userInfo.IsAdmin});
-        }
+    this.user.load().then(({user, organization}) => {
+      if (!user || !organization) {
+        // TODO: Handle offline.
+        this.setState({
+          isUserAuthenticated: false,
+          username: null,
+          readyForAuth: true,
+        });
+      } else {
+        mixpanel.mergeToPayload({distinct_id: user.Username});
+        this.setState({isAdmin: user.IsAdmin});
       }
+
+      mixpanel.haikuTrack('creator:opened');
+
+      // Delay so the default startup screen doesn't just flash then go away
+      setTimeout(() => {
+        this.setState({
+          readyForAuth: true,
+          organizationName: organization && organization.Name,
+          username: user && user.Username,
+          isUserAuthenticated: user && organization,
+        }, () => {
+          if (this.state.isUserAuthenticated && typeof this._postAuthCallback === 'function') {
+            this._postAuthCallback();
+          } else if (this.props.folder) {
+            // Launch folder directly - i.e. allow a 'subl' like experience without having to go
+            // through the projects index
+            return this.launchFolder({projectPath: this.props.folder}, (launchError) => {
+              if (launchError) {
+                logger.error(launchError);
+                this.setState({folderLoadingError: launchError});
+                return this.createNotice({
+                  type: 'error',
+                  title: 'Oh no!',
+                  message: 'We were unable to open the folder. 😢 Please close and reopen the application and try again. If you still see this message, contact Haiku for support.',
+                  closeText: 'Okay',
+                  lightScheme: true,
+                });
+              }
+            });
+          }
+        });
+      }, 2500);
     });
 
     this.user.getConfig(UserSettings.lastViewedChangelog).then((changelogVersion) => {
@@ -787,8 +818,7 @@ export default class Creator extends React.Component {
     this.envoyClient.get(PROJECT_CHANNEL).then(
 
       (project) => {
-        this.setState({envoyProject: project});
-        // this.handleEnvoyProjectReady()
+        this.envoyProject = project;
       },
     );
 
@@ -821,62 +851,6 @@ export default class Creator extends React.Component {
       window.addEventListener('resize', lodash.throttle(() => {
         tourChannel.updateLayout();
       }), 300);
-    });
-
-    this.props.websocket.on('open', () => {
-      this.props.websocket.request({method: 'isUserAuthenticated', params: []}, (error, authAnswer) => {
-        if (error) {
-          if (error.message === 'Organization error') {
-            this.setState({
-              isUserAuthenticated: false,
-              username: null,
-              readyForAuth: true,
-            });
-          } else {
-            return this.createNotice({
-              type: 'error',
-              title: 'Oh no!',
-              message: 'We had a problem accessing your account. 😢 Please try closing and reopening the application. If you still see this message, contact Haiku for support.',
-              closeText: 'Okay',
-              lightScheme: true,
-            });
-          }
-        }
-
-        mixpanel.mergeToPayload({distinct_id: authAnswer && authAnswer.username});
-        mixpanel.haikuTrack('creator:opened');
-
-        // Delay so the default startup screen doesn't just flash then go away
-        setTimeout(() => {
-          this.setState({
-            readyForAuth: true,
-            authToken: authAnswer && authAnswer.authToken,
-            organizationName: authAnswer && authAnswer.organizationName,
-            username: authAnswer && authAnswer.username,
-            isUserAuthenticated: authAnswer && authAnswer.isAuthed,
-          });
-
-          if (authAnswer && authAnswer.isAuthed && typeof this._postAuthCallback === 'function') {
-            this._postAuthCallback();
-          } else if (this.props.folder) {
-            // Launch folder directly - i.e. allow a 'subl' like experience without having to go
-            // through the projects index
-            return this.launchFolder(null, this.props.folder, (launchError) => {
-              if (launchError) {
-                logger.error(launchError);
-                this.setState({folderLoadingError: launchError});
-                return this.createNotice({
-                  type: 'error',
-                  title: 'Oh no!',
-                  message: 'We were unable to open the folder. 😢 Please close and reopen the application and try again. If you still see this message, contact Haiku for support.',
-                  closeText: 'Okay',
-                  lightScheme: true,
-                });
-              }
-            });
-          }
-        }, 2500);
-      });
     });
   }
 
@@ -1085,19 +1059,23 @@ export default class Creator extends React.Component {
   }
 
   authenticateUser (username, password, cb) {
-    return this.props.websocket.request({method: 'authenticateUser', params: [username, password]}, (error, authAnswer) => {
-      if (error) {
-        return cb(error);
-      }
-      mixpanel.mergeToPayload({distinct_id: username});
-      mixpanel.haikuTrack('creator:user-authenticated', {username});
-      this.setState({
-        username,
-        authToken: authAnswer && authAnswer.authToken,
-        organizationName: authAnswer && authAnswer.organizationName,
-        isUserAuthenticated: authAnswer && authAnswer.isAuthed,
+    if (!this.user) {
+      return cb({
+        code: 500,
+        message: 'Unknown error.',
       });
-      return cb(null, authAnswer);
+    }
+
+    this.user.authenticate(username, password).then(({user, organization}) => {
+      mixpanel.mergeToPayload({distinct_id: user.Username});
+      mixpanel.haikuTrack('creator:user-authenticated', {username: user.Username});
+      this.setState({
+        username: user.Username,
+        organizationName: organization.Name,
+        isUserAuthenticated: true,
+      });
+    }).catch((error) => {
+      cb(error);
     });
   }
 
@@ -1126,22 +1104,15 @@ export default class Creator extends React.Component {
   }
 
   loadProjects (cb) {
-    return this.props.websocket.request(
-      {
-        method: 'listProjects',
-        params: [],
-        timeout: 5000,
-        retry: 5,
-      },
-      (error, projectList) => {
-        if (error) {
-          return cb(error);
-        }
-        this.setState({projectsList: projectList});
-        ipcRenderer.send('topmenu:update', {projectList, isProjectOpen: false});
-        return cb(null, projectList);
-      },
-    );
+    if (!this.envoyProject) {
+      return cb(null, []);
+    }
+
+    this.envoyProject.getProjectsList().then((projectsList) => {
+      this.setState({projectsList});
+      ipcRenderer.send('topmenu:update', {projectsList, isProjectOpen: false});
+      return cb(null, projectsList);
+    });
   }
 
   onProjectPublicChange (isPublic) {
@@ -1193,26 +1164,18 @@ export default class Creator extends React.Component {
     });
   }
 
-  launchProject (projectName, projectObject, cb) {
+  launchProject (projectObject, cb) {
+    const {projectName, projectPath} = projectObject;
     this.setProjectLaunchStatus({launchingProject: true, newProjectLoading: false});
 
-    Object.assign(
-      projectObject,
-      {
-        skipContentCreation: true, // VERY IMPORTANT - if not set to true, we can end up in a situation where we overwrite freshly cloned content from the remote!
-        projectsHome: projectObject.projectsHome,
-        projectPath: projectObject.projectPath,
-        organizationName: this.state.organizationName,
-        authorName: this.state.username,
-        projectName, // Have to set this here, because we pass this whole object to StateTitleBar, which needs this to properly call saveProject
-      },
-    );
+    // VERY IMPORTANT - if not set to true, we can end up in a situation where we overwrite freshly cloned content from the remote!
+    projectObject.skipContentCreation = true;
 
     // Add extra context to Sentry reports, this info is also used by carbonite.
     window.Raven.setExtraContext({
+      projectName,
       organizationName: this.state.organizationName,
       projectPath: projectObject.projectPath,
-      projectName,
     });
     window.Raven.setUserContext({
       email: this.state.username,
@@ -1224,24 +1187,24 @@ export default class Creator extends React.Component {
       organization: this.state.organizationName,
     });
 
-    return this.props.websocket.request({method: 'bootstrapProject', params: [projectName, projectObject, this.state.username]}, (err, projectFolder) => {
+    return this.props.websocket.request({method: 'bootstrapProject', params: [projectObject]}, (err) => {
       if (err) {
         return this.onProjectLaunchError();
       }
 
       window.Raven.setExtraContext({
         organizationName: this.state.organizationName,
-        projectPath: projectFolder, // Re-set in case it wasn't present in the above call
+        projectPath, // Re-set in case it wasn't present in the above call
         projectName,
       });
 
-      return this.props.websocket.request({method: 'startProject', params: [projectName, projectFolder]}, (startProjectError, applicationImage) => {
+      return this.props.websocket.request({method: 'startProject', params: [projectObject]}, (startProjectError, applicationImage) => {
         if (startProjectError) {
           return this.onProjectLaunchError();
         }
 
         return Project.setup(
-          projectFolder,
+          projectObject.projectPath,
           'creator', // alias
           this.props.websocket, // websocket (already initialized)
           window, // platform
@@ -1257,7 +1220,7 @@ export default class Creator extends React.Component {
             // Is it weird to put this here, or weirder to put a conditional hack over there?
             this.handleConnectedProjectModelStateChange({
               from: 'creator',
-              folder: projectFolder,
+              folder: projectPath,
               what: 'project:ready',
             });
 
@@ -1272,7 +1235,7 @@ export default class Creator extends React.Component {
 
             this.setState({
               projectModel,
-              projectFolder,
+              projectFolder: projectPath,
               applicationImage,
               projectObject,
               projectName,
@@ -1283,7 +1246,7 @@ export default class Creator extends React.Component {
               // Once the Timeline/Stage are being rendered, we await the point that their
               // own Project models have loaded before initiating a switch to the current
               // active component. This also waits for MasterProcess to be bootstrapped
-              return this.awaitAllProjectModelsState(projectFolder, 'project:ready', true, () => {
+              return this.awaitAllProjectModelsState(projectPath, 'project:ready', true, () => {
                 const ac = this.state.projectModel.getCurrentActiveComponent();
                 if (ac) {
                   // Even if we already have an active component set up and assigned in memory,
@@ -1415,14 +1378,13 @@ export default class Creator extends React.Component {
     });
   }
 
-  launchFolder (maybeProjectName, projectFolder, cb) {
+  launchFolder (projectOptions, cb) {
     mixpanel.haikuTrack('creator:folder:launching', {
       username: this.state.username,
-      project: maybeProjectName,
+      project: projectOptions.projectName,
     });
 
-    // The launchProject method handles the performFolderPointerChange
-    return this.launchProject(maybeProjectName, {projectPath: projectFolder}, cb);
+    return this.launchProject(projectOptions, cb);
   }
 
   removeNotice (index, id) {
@@ -1746,14 +1708,14 @@ export default class Creator extends React.Component {
   }
 
   logOut () {
-    return this.props.websocket.request({method: 'doLogOut'}, () => {
-      this.clearAuth();
-      this.user.setConfig(UserSettings.figmaToken, null);
-
-      mixpanel.haikuTrack('creator:project-browser:user-menu-option-selected', {
-        option: 'logout',
+    if (this.user) {
+      this.user.logOut().then(() => {
+        this.clearAuth();
+        mixpanel.haikuTrack('creator:project-browser:user-menu-option-selected', {
+          option: 'logout',
+        });
       });
-    });
+    }
   }
 
   clearAuth () {
@@ -1959,58 +1921,24 @@ export default class Creator extends React.Component {
       );
     }
 
-    if (experimentIsEnabled(Experiment.BasicOfflineMode)) {
-      if (
-        this.state.isOffline &&
-        this.state.dashboardVisible &&
-        !(this.state.launchingProject || this.state.newProjectLoading || this.state.doShowProjectLoader)
-      ) {
-        return (
-          <OfflineModePage
-            setProjectLaunchStatus={this.setProjectLaunchStatus}
-            launchFolder={this.launchFolder} />
-        );
-      }
+    if (this.state.readyForAuth && (!this.state.isUserAuthenticated || !this.state.username)) {
+      return (
+        <StyleRoot>
+          <AuthenticationUI
+            ref="AuthenticationUI"
+            onSubmit={this.authenticateUser}
+            onSubmitSuccess={this.authenticationComplete}
+            onShowProxySettings={() => {
+              this.showProxySettings();
+            }}
+            resendEmailConfirmation={this.resendEmailConfirmation}
+            {...this.props} />
+        </StyleRoot>
+      );
+    }
 
-      if (!this.state.isOffline && this.state.readyForAuth && (!this.state.isUserAuthenticated || !this.state.username)) {
-        return (
-          <StyleRoot>
-            <AuthenticationUI
-              ref="AuthenticationUI"
-              onSubmit={this.authenticateUser}
-              onSubmitSuccess={this.authenticationComplete}
-              onShowProxySettings={() => {
-                this.showProxySettings();
-              }}
-              resendEmailConfirmation={this.resendEmailConfirmation}
-              {...this.props} />
-          </StyleRoot>
-        );
-      }
-
-      if (!this.state.isOffline && (!this.state.isUserAuthenticated || !this.state.username)) {
-        return this.renderStartupDefaultScreen();
-      }
-    } else {
-      if (this.state.readyForAuth && (!this.state.isUserAuthenticated || !this.state.username)) {
-        return (
-          <StyleRoot>
-            <AuthenticationUI
-              ref="AuthenticationUI"
-              onSubmit={this.authenticateUser}
-              onSubmitSuccess={this.authenticationComplete}
-              onShowProxySettings={() => {
-                this.showProxySettings();
-              }}
-              resendEmailConfirmation={this.resendEmailConfirmation}
-              {...this.props} />
-          </StyleRoot>
-        );
-      }
-
-      if (!this.state.isUserAuthenticated || !this.state.username) {
-        return this.renderStartupDefaultScreen();
-      }
+    if (!this.state.isUserAuthenticated || !this.state.username) {
+      return this.renderStartupDefaultScreen();
     }
 
     // The ProjectLoader is managed by the ProjectBrowser, through this hack we can
@@ -2223,7 +2151,7 @@ export default class Creator extends React.Component {
                   <Stage
                     ref="stage"
                     folder={this.state.projectFolder}
-                    envoyProject={this.state.envoyProject}
+                    envoyProject={this.envoyProject}
                     projectModel={this.state.projectModel}
                     envoyClient={this.envoyClient}
                     haiku={this.props.haiku}
@@ -2233,7 +2161,6 @@ export default class Creator extends React.Component {
                     removeNotice={this.removeNotice}
                     receiveProjectInfo={this.receiveProjectInfo}
                     organizationName={this.state.organizationName}
-                    authToken={this.state.authToken}
                     username={this.state.username}
                     isTimelineReady={this.state.isTimelineReady}
                     interactionMode={this.state.interactionMode}

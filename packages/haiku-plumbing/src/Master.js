@@ -26,11 +26,9 @@ import saveExport from './publish-hooks/saveExport';
 import Raven from './Raven';
 import {createProjectFiles} from '@haiku/sdk-client/lib/createProjectFiles';
 import {createCDNBundles} from './project-folder/createCDNBundle';
-import {copyExternalExampleFilesToProject} from './project-folder/copyExternalExampleFilesToProject';
 import {
   getHaikuCoreVersion,
   getSafeProjectName,
-  getSafeOrganizationName,
   fetchProjectConfigInfo,
 } from './project-folder/ProjectDefinitions';
 
@@ -668,23 +666,18 @@ export default class Master extends EventEmitter {
   /**
    * @method initializeFolder
    */
-  initializeFolder (projectName, haikuUsername, projectOptions, done) {
+  initializeFolder (project, done) {
     // We need to clear off undos in the case that somebody made an fs-based commit between sessions;
     // if we tried to reset to a previous "known" undoable, we'd miss the missing intermediate one.
     // This has to happen in initializeFolder because it's here that we set the 'isBase' undoable.
-    this._git.restart({
-      projectName,
-      haikuUsername,
-      repositoryUrl: projectOptions.repositoryUrl,
-      branchName: projectOptions.branchName,
-    });
+    this._git.restart(project);
 
     const ravenContext = {
-      user: {email: haikuUsername},
+      user: {email: project.authorName},
       extra: {
-        projectName: getSafeProjectName(this.folder, projectName),
+        projectName: project.projectName,
         projectPath: this.folder,
-        organizationName: getSafeOrganizationName(projectOptions.organizationName),
+        organizationName: project.organizationName,
       },
     };
     Raven.setContext(ravenContext);
@@ -692,7 +685,7 @@ export default class Master extends EventEmitter {
     // Note: 'ensureProjectFolder' should already have run by this point.
     return async.series([
       (cb) => {
-        return this._git.initializeFolder(projectOptions, cb);
+        return this._git.initializeFolder(project, cb);
       },
 
       // Now that we've (maybe) cloned content, we need to create any other necessary files that _might not_ yet
@@ -702,29 +695,14 @@ export default class Master extends EventEmitter {
       // the cloned content. Which means we have to be sparing with what we create on the first run, but also need
       // to create any missing remainders on the second run.
       (cb) => {
-        return createProjectFiles(this.folder, projectName, {
-          // Important: Must set this here or the package.name will be wrong
-          organizationName: projectOptions.organizationName,
-          skipContentCreation: false,
-          isPublic: projectOptions.isPublic,
-        }, (err) => {
-          if (!err) {
-            // Copy sketch and illustrator example files
-            copyExternalExampleFilesToProject(this.folder, projectName);
-          }
-          cb();
-        });
+        project.skipContentCreation = false;
+        return createProjectFiles(project, cb);
       },
 
       (cb) => {
         return this._git.commitProjectIfChanged('Initialized folder', cb);
       },
-    ], (err, results) => {
-      if (err) {
-        return done(err);
-      }
-      return done(null, results[results.length - 1]);
-    });
+    ], done);
   }
 
   /**
@@ -809,7 +787,7 @@ export default class Master extends EventEmitter {
   /**
    * @method saveProject
    */
-  saveProject (projectName, haikuUsername, saveOptions, done) {
+  saveProject (projectName, authorName, saveOptions, done) {
     const finish = (err, out) => {
       this._isSaving = false;
       return done(err, out);
@@ -939,18 +917,12 @@ export default class Master extends EventEmitter {
         logger.info('[master] project save: populating content');
 
         const {projectName} = this._git.getFolderState();
-        createProjectFiles(this.folder, projectName, {
+        createProjectFiles({
           projectName,
-          haikuUsername,
-          authorName: saveOptions.authorName,
+          authorName,
+          projectPath: this.folder,
           organizationName: saveOptions.organizationName,
-        }, (err) => {
-          if (!err) {
-            // Copy sketch and illustrator example files
-            copyExternalExampleFilesToProject(this.folder, projectName);
-          }
-          cb();
-        });
+        }, cb);
       },
 
       // Build CDN bundles
@@ -960,7 +932,6 @@ export default class Master extends EventEmitter {
         const {projectName} = this._git.getFolderState();
         createCDNBundles(this.folder, projectName, {
           projectName,
-          haikuUsername,
           authorName: saveOptions.authorName,
           organizationName: saveOptions.organizationName,
         }, cb);

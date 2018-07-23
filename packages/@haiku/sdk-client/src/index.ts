@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import * as _ from 'lodash';
 import * as mkdirp from 'mkdirp';
 import * as os from 'os';
+import * as path from 'path';
 
 const HAIKU_ALMOST_EMPTY = 'https://github.com/HaikuTeam/almost-empty.git';
 
@@ -13,9 +14,16 @@ export const FILE_PATHS = {
   DOTENV: os.homedir() + '/.haiku/.env',
 };
 
-function ensureHomeFolder () {
-  mkdirp.sync(os.homedir() + '/.haiku');
-}
+export const ensureHomeFolder = () => {
+  mkdirp.sync(path.join(os.homedir(), '.haiku'));
+};
+
+export const getHomeFolderForOrganization = (organizationName: string) =>
+  path.join(os.homedir(), '.haiku', organizationName);
+
+export const ensureHomeFolderForOrganization = (organizationName: string) => {
+  mkdirp.sync(getHomeFolderForOrganization(organizationName));
+};
 
 export namespace client {
 
@@ -130,30 +138,9 @@ export namespace client {
       return undefined;
     }
 
-    static getUserId (): string {
-      if (fs.existsSync(FILE_PATHS.USER_ID)) {
-        return fs.readFileSync(FILE_PATHS.USER_ID).toString();
-      }
-      return undefined;
-    }
-
-    static isAuthenticated (): boolean {
-      const token = config.getAuthToken();
-      const userId = config.getUserId();
-      // TODO: can check for token expiration here
-      //       may also want to add a check with server at some point
-      //       for whether a token is valid
-      return token !== undefined && token !== '' && userId !== undefined && userId !== '';
-    }
-
     static setAuthToken (newToken: string) {
       ensureHomeFolder();
       fs.writeFileSync(FILE_PATHS.AUTH_TOKEN, newToken);
-    }
-
-    static setUserId (newUserId: string) {
-      ensureHomeFolder();
-      fs.writeFileSync(FILE_PATHS.USER_ID, newUserId);
     }
   }
 }

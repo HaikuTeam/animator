@@ -51,7 +51,7 @@ class ProjectThumbnail extends React.Component {
           ]}
           onClick={() => {
             if (!this.state.isMenuActive) {
-              this.props.launchProject(this.props.projectName);
+              this.props.launchProject();
             }
           }}
           onMouseOver={() => {

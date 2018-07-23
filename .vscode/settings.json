@@ -7,6 +7,7 @@
         "packages/**/lib/**/*": true,
         "packages/haiku-formats/test/goldens/**": true
     },
+    "javascript.implicitProjectConfig.checkJs": true,
     "typescript.format.enable": false,
     "tslint.enable": true,
     "tslint.jsEnable": true,
