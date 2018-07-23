@@ -367,16 +367,17 @@ export const visitManaTree = (
 export const visit = (
   mana,
   visitor,
+  parent?,
 ): void => {
   if (!mana || typeof mana !== 'object') {
     return;
   }
 
-  visitor(mana);
+  visitor(mana, parent);
 
   if (mana.children) {
     for (let i = 0; i < mana.children.length; i++) {
-      visit(mana.children[i], visitor);
+      visit(mana.children[i], visitor, mana);
     }
   }
 };
