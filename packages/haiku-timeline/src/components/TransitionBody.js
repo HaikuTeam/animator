@@ -1,6 +1,7 @@
 import * as React from 'react';
 import * as Color from 'color';
 import * as lodash from 'lodash';
+import zIndex from './styles/zIndex';
 import Palette from 'haiku-ui-common/lib/Palette';
 import TimelineDraggable from './TimelineDraggable';
 import KeyframeSVG from 'haiku-ui-common/lib/react/icons/KeyframeSVG';
@@ -216,10 +217,12 @@ export default class TransitionBody extends React.Component {
           style={{
             position: 'absolute',
             left: pxOffsetLeft + 4,
-            width: pxOffsetRight - pxOffsetLeft,
+            width: pxOffsetRight - pxOffsetLeft - 2,
             top: 1,
             height: 24,
             WebkitUserSelect: 'none',
+            transform: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'translateX(3px)' : undefined,
+            zIndex: experimentIsEnabled(Experiment.NativeTimelineScroll) ? zIndex.segmentsBox.pill : undefined,
             cursor: (this.props.keyframe.isWithinCollapsedRow())
               ? 'pointer'
               : 'move',
