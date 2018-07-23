@@ -1030,16 +1030,11 @@ export default class HaikuComponent extends HaikuElement {
       this.guests[$id].render({
         ...this.guests[$id].config,
         ...Config.buildChildSafeConfig(options),
-        doSkipExpand: true,
       });
     }
 
-    // Avoid unnecessry .expand calls when rendering subcomponents
-    if (options.doSkipExpand) {
-      return;
-    }
-
     const expansion = this.expand();
+    this.cacheSet('expandCached', expansion);
     return expansion;
   }
 
@@ -1057,18 +1052,33 @@ export default class HaikuComponent extends HaikuElement {
 
     this.applyGlobalBehaviors(options);
 
+    const expansion = this.expandCached();
+
     const patches = {};
-    this.expand(patches);
+
+    visit(expansion, (node, parent) => {
+      if (node.__memory.patched) {
+        computeAndApplyLayout(node, parent);
+        patches[getNodeCompositeId(node)] = node;
+        node.__memory.patched = false;
+      }
+    }, this.container);
+
     return patches;
   }
 
-  expand (patches = {}): IExpandResult {
+  expand (): IExpandResult {
     // Note that expandNode calls .expand on any subcomponents in the tree
     return expandNode(
       this.bytecode.template, // node
       this.container,
-      patches,
     );
+  }
+
+  expandCached (): IExpandResult {
+    return this.cacheFetch('expandCached', () => {
+      return this.expand();
+    });
   }
 
   applyGlobalBehaviors (options: any = {}) {
@@ -2113,17 +2123,15 @@ function stateSpecValidityCheck (stateSpec: any, stateSpecName: string): boolean
   return true;
 }
 
-const expandNode = (original, parent, patches = {}) => {
+const expandNode = (original, parent) => {
   if (!original || typeof original !== 'object') {
     return original;
   }
 
   const children = [];
 
-  // eeb222bb1daa
-
   // Note that HaikuComponent#render calls expandNode for its own tree.
-  const subtree = original.__memory.subcomponent && original.__memory.subcomponent.expand();
+  const subtree = original.__memory.subcomponent && original.__memory.subcomponent.expandCached();
 
   // Special case if our current original is the wrapper of a subcomponent.
   if (subtree) {
@@ -2188,37 +2196,34 @@ const expandNode = (original, parent, patches = {}) => {
    *        with their container, no matter what size it is.
    */
 
-  const expansion = {
-    ...original,
-    children,
-  };
+  const expansion = {...original, children};
 
   // Give every node a reference to its expansion in case we want to compute sizing downstream;
   // this is used in Haiku.app to help calculate bounding boxes during editing
   original.__memory.expansion = expansion;
+  expansion.__memory.original = original;
 
-  // Don't assume the node has/needs a layout, for example, control-flow injectees
-  if (expansion.layout) {
-    // Note that the original node and its "expansion" share a pointer to .layout
-    expansion.layout.computed = HaikuElement.computeLayout(
-      expansion,
-      parent,
-    );
-  }
+  computeAndApplyLayout(expansion, parent);
 
   for (let j = 0; j < children.length; j++) {
     // Special case: The subtree of the subcomponent doesn't need to be re-expanded.
     if (children[j] !== subtree) {
-      children[j] = expandNode(children[j], expansion, patches);
+      children[j] = expandNode(children[j], expansion);
     }
   }
 
-  if (expansion.__memory.patched) {
-    patches[getNodeCompositeId(expansion)] = expansion;
-    expansion.__memory.patched = false;
-  }
-
   return expansion;
+};
+
+const computeAndApplyLayout = (node, parent) => {
+  // Don't assume the node has/needs a layout, for example, control-flow injectees
+  if (node.layout) {
+    // Note that the original node and its "expansion" share a pointer to .layout
+    node.layout.computed = HaikuElement.computeLayout(
+      node,
+      parent,
+    );
+  }
 };
 
 const hydrateNode = (
