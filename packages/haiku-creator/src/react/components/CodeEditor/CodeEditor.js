@@ -132,6 +132,7 @@ class CodeEditor extends React.Component {
       parameterHints: false,
       cursorBlinking: 'blink',
       scrollBeyondLastLine: false,
+      fontFamily: 'Fira Mono',
     };
 
     return (
