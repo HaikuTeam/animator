@@ -10,6 +10,10 @@ const getClock = () => {
   return {
     getExplicitTime: () => {
       return 1
+    },
+
+    getFrameDuration: () => {
+      return 16.666
     }
   }
 }
