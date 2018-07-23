@@ -90,10 +90,6 @@ export default function HaikuReactDOMAdapter (haikuComponentFactory, optionalRaw
                     node.parentNode.replaceChild(div, node);
                     // tslint:disable-next-line:no-parameter-reassignment
                     node = div;
-
-                    // We have to change the element name as well here so that the correct vanity behaviors
-                    // are used when applying outputs to the placeheld element (e.g. opacity vs style.opacity).
-                    element.elementName = 'div';
                   }
                   node.style.visibility = 'hidden';
                   ReactDOM.render(surrogate, node);
