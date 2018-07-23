@@ -9,18 +9,20 @@ const VERSION = require('./../package.json').version;
 
 export interface HaikuRoot {
   haiku?: {
-    cache?: {[key in string]: any};
-    models?: {[key in string]: any[]};
-    report?: () => void;
-    enhance?: typeof enhance;
-    inject?: typeof inject;
-    idCounter?: number;
-    HaikuGlobalAnimationHarness?: {
-      queue: (() => void)[];
-      frame: () => void;
-      raf?: () => void;
-      cancel: () => void;
-    }
+    [version: string]: {
+      cache?: {[key in string]: any};
+      models?: {[key in string]: any[]};
+      report?: () => void;
+      enhance?: typeof enhance;
+      inject?: typeof inject;
+      idCounter?: number;
+      HaikuGlobalAnimationHarness?: {
+        queue: (() => void)[];
+        frame: () => void;
+        raf?: () => void;
+        cancel: () => void;
+      };
+    };
   };
 }
 
