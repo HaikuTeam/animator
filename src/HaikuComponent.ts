@@ -2136,40 +2136,38 @@ const expandNode = (original, parent) => {
   // Special case if our current original is the wrapper of a subcomponent.
   if (subtree) {
     children.push(subtree);
-  } else {
-    if (original.children) {
-      // Some components may contain elements that have not defined any .children
-      for (let i = 0; i < original.children.length; i++) {
-        const child = original.children[i];
+  } else if (original.children) {
+    // Some components may contain elements that have not defined any .children
+    for (let i = 0; i < original.children.length; i++) {
+      const child = original.children[i];
 
-        if (!child) {
-          continue;
-        }
-
-        // Strings, numbers, etc. can be included in children as-is
-        if (typeof child !== 'object') {
-          children.push(child);
-          continue;
-        }
-
-        // Do not include any children that have been removed due to $if-logic
-        if (child.__memory.if && child.__memory.if.answer === false) {
-          continue;
-        }
-
-        // If the child is a repeater, use the $repeats instead of itself
-        if (child.__memory.repeater && child.__memory.repeater.repeatees) {
-          for (let j = 0; j < child.__memory.repeater.repeatees.length; j++) {
-            const repeatee = child.__memory.repeater.repeatees[j];
-            children.push(repeatee);
-          }
-
-          continue;
-        }
-
-        // If we got this far, the child is structurally normal
-        children.push(child);
+      if (!child) {
+        continue;
       }
+
+      // Strings, numbers, etc. can be included in children as-is
+      if (typeof child !== 'object') {
+        children.push(child);
+        continue;
+      }
+
+      // Do not include any children that have been removed due to $if-logic
+      if (child.__memory.if && child.__memory.if.answer === false) {
+        continue;
+      }
+
+      // If the child is a repeater, use the $repeats instead of itself
+      if (child.__memory.repeater && child.__memory.repeater.repeatees) {
+        for (let j = 0; j < child.__memory.repeater.repeatees.length; j++) {
+          const repeatee = child.__memory.repeater.repeatees[j];
+          children.push(repeatee);
+        }
+
+        continue;
+      }
+
+      // If we got this far, the child is structurally normal
+      children.push(child);
     }
   }
 
