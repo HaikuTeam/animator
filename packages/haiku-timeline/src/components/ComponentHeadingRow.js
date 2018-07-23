@@ -14,6 +14,15 @@ import PropertyManager from './PropertyManager';
 import zIndex from './styles/zIndex';
 import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 
+const STYLES = {
+  actionButton: {
+    margin: '0 1px',
+    width: 15,
+    height: 15,
+    textAlign: 'center',
+  },
+};
+
 export default class ComponentHeadingRow extends React.Component {
   constructor (props) {
     super(props);
@@ -138,6 +147,7 @@ export default class ComponentHeadingRow extends React.Component {
             <div
               style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
                 marginTop: 3,
+                marginRight: 3,
               } : {
                 position: 'absolute',
                 top: 3,
@@ -201,8 +211,11 @@ export default class ComponentHeadingRow extends React.Component {
               <span
                 className="component-heading-chevron-box"
                 style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
-                  width: 9,
+                  width: 11,
                   marginTop: 3,
+                  marginLeft: -3,
+                  marginRight: 3,
+                  padding: '0 3px',
                 } : {
                   display: 'inline-block',
                   transform: this.props.row.isRootRow() ? 'translate(0, -1px)' : 'translate(30px, -1px)',
@@ -255,8 +268,9 @@ export default class ComponentHeadingRow extends React.Component {
                 experimentIsEnabled(Experiment.NativeTimelineScroll)
                   ? {
                     display: this.props.isExpanded ? 'flex' : 'none',
-                    alignItems: 'center',
+                    alignItems: 'baseline',
                     marginTop: -3,
+                    width: '75%',
                     marginLeft: this.props.row.isRootRow()
                       ? (this.props.isExpanded ? 33 : undefined)
                       : (this.props.isExpanded ? 12 : undefined),
@@ -274,8 +288,9 @@ export default class ComponentHeadingRow extends React.Component {
               )}
             >
               <div
-                className="layer-lock-button"
+                className="layer-lock-button light-on-hover"
                 style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+                  ...STYLES.actionButton,
                   display: this.props.row.element.getSource() ? 'block' : 'none',
                 } : {
                   width: 16,
@@ -288,15 +303,15 @@ export default class ComponentHeadingRow extends React.Component {
               >
                 {
                   this.props.row.element.isLocked()
-                    ? LockIconSVG({color: Palette.ROCK_MUTED})
-                  : UnlockIconSVG({color: Palette.DARK_ROCK})
+                    ? LockIconSVG({color: Palette.DARK_ROCK})
+                    : UnlockIconSVG({color: Palette.DARK_ROCK})
                 }
               </div>
               <div
                 title="Edit element Actions"
-                className="event-handler-triggerer-button"
+                className="event-handler-triggerer-button light-on-hover"
                 style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
-                  marginRight: 3,
+                  ...STYLES.actionButton,
                 } : {
                   width: 10,
                   position: 'absolute',
@@ -314,9 +329,9 @@ export default class ComponentHeadingRow extends React.Component {
               </div>
               <div
                 title="Add property"
-                className="property-manager-button"
+                className="property-manager-button light-on-hover"
                 style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
-                  marginRight: 3,
+                  ...STYLES.actionButton,
                 } : {
                   width: 16,
                   position: 'absolute',
@@ -332,7 +347,7 @@ export default class ComponentHeadingRow extends React.Component {
               <div
                 className="design-sync-button"
                 style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
-                  marginRight: 3,
+                  ...STYLES.actionButton,
                   display: this.props.row.element.getSource() && this.props.row.element.isLocked() ? 'block' : 'none',
                 } : {
                   width: 16,

@@ -54,7 +54,7 @@ export default class Gauge extends React.Component {
             backgroundColor: Palette.COAL,
             position: 'sticky',
             top: 12,
-            marginLeft: this.props.timeline.getPropertiesPixelWidth(),
+            marginLeft: this.props.timeline.getPropertiesPixelWidth() + this.props.timelineOffsetPadding,
             width: this.props.timeline.calculateFullTimelineWidth(),
             zIndex: zIndex.gauge.base,
             fontSize: 10,

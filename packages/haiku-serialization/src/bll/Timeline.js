@@ -103,7 +103,7 @@ class Timeline extends BaseModel {
   getDisplayTime () {
     const displayTime = this.getTimeDisplayMode() === Timeline.TIME_DISPLAY_MODE.FRAMES
       ? ~~this.getCurrentFrame()
-      : formatSeconds(this.getCurrentFrame() * 1000 / this.getFPS() / 1000).replace(/^0+/, '')
+      : formatSeconds(this.getCurrentFrame() * 1000 / this.getFPS() / 1000).replace('0.', '.')
 
     return displayTime
   }

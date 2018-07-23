@@ -18,6 +18,6 @@ if (fse.existsSync(gitHooksPath)) {
   fse.removeSync(gitHooksPath);
 }
 
-fse.symlink(repoHooksPath, gitHooksPath, () => {
+fse.link(repoHooksPath, gitHooksPath, () => {
   log.hat('installed hooks');
 });

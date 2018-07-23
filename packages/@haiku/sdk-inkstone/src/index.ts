@@ -1082,6 +1082,7 @@ export namespace inkstone {
       // DaysUntilDue is typically 0 when this object is loaded—indicating the user has purchased a plan
       // which is due today.
       DaysUntilDue: number;
+      CancelAtPeriodEnd: boolean;
     }
 
     export interface Profile {

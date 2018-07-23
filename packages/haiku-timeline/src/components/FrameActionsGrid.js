@@ -91,6 +91,7 @@ class FrameActionsGrid extends React.PureComponent {
         backgroundColor: Palette.COAL,
         width: propertiesWidth + fullTimelineWidth,
         zIndex: zIndex.frameActions.base,
+        marginLeft: this.props.timelineOffsetPadding,
       }}>
         {this.props.timeline.mapVisibleFrames(
           (frameNumber, pixelOffsetLeft) => {

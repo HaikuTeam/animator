@@ -1,6 +1,7 @@
 const fse = require('fs-extra');
 const cp = require('child_process');
 const path = require('path');
+// This line should be commented to build locally on windows
 const deploy = require('./deploy');
 const forceNodeEnvProduction = require('./helpers/forceNodeEnvProduction');
 

@@ -20,7 +20,7 @@
 const zIndex = {
   // Top controls
   gauge: {
-    base: 4,
+    base: 3,
   },
   scrubber: {
     base: 4,
@@ -32,7 +32,7 @@ const zIndex = {
     base: 4,
   },
   frameActions: {
-    base: 11,
+    base: 4,
   },
 
   // Heading row (name of the row, drag handler, etc)
