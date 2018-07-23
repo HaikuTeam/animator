@@ -134,7 +134,7 @@ class LogViewer extends React.Component {
 
   renderLogFromJsonLog (message) {
     if (message.tag in this.state.displayTags) {
-      return `${message.timestamp}<<${message.attachedObject.componentTitle}>> ${message.message}`;
+      return `<<${message.attachedObject.componentTitle}>> ${message.message}`;
     }
 
     // Use the same as log
@@ -144,7 +144,7 @@ class LogViewer extends React.Component {
   renderLogLine (index, key) {
     const message = this.state.logMessages[index];
     return (
-      <div style={{lineHeight: '12px'}}><span
+      <div style={{lineHeight: '12px'}}><span style={{color: Palette.ROCK}}>{message.timestamp}</span><span
           key={message.key}
           style={message.tag && (message.tag in this.state.displayTags) && {color: this.state.displayTags[message.tag].color}}>
             {this.renderLogFromJsonLog(message)}
@@ -212,7 +212,7 @@ class LogViewer extends React.Component {
                  <span style={{marginLeft: 5}}>Scroll to Bottom</span>
               </div>
             </div>
-            <div style={{fontWeight: 'bold', fontFamily: 'Fira Mono', paddingLeft: 20, position: 'relative', overflow: 'auto', width: '100%', height: 'calc(100% - 35px)', backgroundColor: Palette.COAL}} >
+            <div style={{fontWeight: 'bold', fontFamily: 'Fira Mono', paddingLeft: 20, paddingTop: 4, position: 'relative', overflow: 'auto', width: '100%', height: 'calc(100% - 35px)', backgroundColor: Palette.COAL}} >
               <ReactList
                 ref="loglist"
                 itemRenderer={this.renderLogLine}
