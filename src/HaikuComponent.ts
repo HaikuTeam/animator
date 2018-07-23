@@ -2128,7 +2128,11 @@ const expandNode = (original, parent) => {
     return original;
   }
 
-  const children = [];
+  let children = [];
+
+  if  (original.__memory.content) {
+    children = original.__memory.content;
+  }
 
   const expansion = {...original, children};
 
@@ -2145,6 +2149,8 @@ const expandNode = (original, parent) => {
     children.push(subtree);
   } else if (original.__memory.placeholder) {
     // Placholder-expansion is currently a no-op; it's sufficient to empty the children array (see above)
+  } else if (original.__memory.content) {
+    // Content-expansion occurs via replacement of children (see above)
   } else if (original.children) {
     // Some components may contain elements that have not defined any .children
     for (let i = 0; i < original.children.length; i++) {
@@ -2840,13 +2846,14 @@ export const VANITIES = {
 
     // Text and other inner-content related vanities
     content: (_, element, value) => {
-      element.children = [value + ''];
-    },
-    children: (_, element, value) => {
-      element.children = value;
-    },
-    insert: (_, element, value) => {
-      element.children = [value];
+      if (!element.__memory.content) {
+        element.__memory.content = [];
+      }
+
+      element.__memory.content.splice.apply(
+        element.__memory.content,
+        [0, element.__memory.content.length].concat(value),
+      );
     },
 
     // Playback-related vanities that involve controlling timeline or clock time
