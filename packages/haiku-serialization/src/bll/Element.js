@@ -1460,32 +1460,7 @@ class Element extends BaseModel {
 
   getFriendlyLabel () {
     const node = this.getStaticTemplateNode()
-
-    const id = node && node.attributes && node.attributes.id
-
-    const title = node && node.attributes && node.attributes[HAIKU_TITLE_ATTRIBUTE]
-
-    let name = (typeof node.elementName === 'string' && node.elementName) ? node.elementName : 'div'
-    if (Element.FRIENDLY_NAME_SUBSTITUTES[name]) {
-      name = Element.FRIENDLY_NAME_SUBSTITUTES[name]
-    }
-
-    if (id && !title) {
-      return `#${id}`
-    }
-
-    let out = ''
-    if (typeof id === 'string') out += `${id} `
-    if (typeof title === 'string') out += `${title} `
-
-    if (out.length === 0 && typeof name === 'string') {
-      out += `${name}`
-    }
-
-    out = out.trim()
-    out = titlecase(decamelize(out).replace(/[\W_]/g, ' '))
-
-    return out
+    return Element.getFriendlyLabel(node)
   }
 
   getJITPropertyOptionsAsMenuItems () {
@@ -2080,6 +2055,38 @@ Element.makeUid = (component, parent, index, staticTemplateNode) => {
   )
 
   return uid
+}
+
+Element.getFriendlyLabel = (node) => {
+  if (!node || typeof node !== 'object') {
+    return
+  }
+
+  const id = node.attributes && node.attributes.id
+
+  const title = node.attributes && node.attributes[HAIKU_TITLE_ATTRIBUTE]
+
+  let name = (typeof node.elementName === 'string' && node.elementName) ? node.elementName : 'div'
+  if (Element.FRIENDLY_NAME_SUBSTITUTES[name]) {
+    name = Element.FRIENDLY_NAME_SUBSTITUTES[name]
+  }
+
+  if (id && !title) {
+    return id
+  }
+
+  let out = ''
+  if (typeof id === 'string') out += `${id} `
+  if (typeof title === 'string') out += `${title} `
+
+  if (out.length === 0 && typeof name === 'string') {
+    out += `${name}`
+  }
+
+  out = out.trim()
+  out = titlecase(decamelize(out).replace(/[\W_]/g, ' '))
+
+  return out
 }
 
 Element.upsertElementFromVirtualElement = (

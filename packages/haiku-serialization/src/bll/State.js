@@ -22,7 +22,7 @@ function safeJsonParse (str) {
  */
 const flexibleJsonParse = (str) => {
   const body = `\nreturn ${str};\n`
-  const fn = new Function(body)
+  const fn = new Function(body) // eslint-disable-line no-new-func
   try {
     const out = fn()
     return out
