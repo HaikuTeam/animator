@@ -509,6 +509,24 @@ export default class HaikuComponent extends HaikuElement {
     }
   }
 
+  cacheNodeWithSelectorKey (node) {
+    if (!node || typeof node !== 'object') {
+      return;
+    }
+
+    if (node.attributes && node.attributes[HAIKU_ID_ATTRIBUTE]) {
+      const selector = `haiku:${node.attributes[HAIKU_ID_ATTRIBUTE]}`;
+      const key = this.nodesCacheKey(selector);
+      const collection = this.cacheGet(key) || [];
+
+      if (collection.indexOf(node) === -1) {
+        collection.push(node);
+      }
+
+      this.cacheSet(key, collection);
+    }
+  }
+
   clearStates () {
     this._states = {};
     this.bindStates();
@@ -1208,31 +1226,35 @@ export default class HaikuComponent extends HaikuElement {
     return this.findMatchingNodesByCSSSelector(`haiku:${componentId}`);
   }
 
-  findMatchingNodesByCSSSelector (selector: string) {
-    return this.cacheFetch(`findMatchingNodesByCSSSelector:${selector}`, () => {
-      const out = [];
+  nodesCacheKey (selector: string) {
+    return 'nodes:' + selector;
+  }
 
-      const nodes = cssQueryTree(
+  findMatchingNodesByCSSSelector (selector: string) {
+    const nodes = this.cacheFetch(this.nodesCacheKey(selector), () => {
+      return cssQueryTree(
         this.bytecode.template,
         selector,
         CSS_QUERY_MAPPING,
       );
-
-      nodes.forEach((node) => {
-        const repeatees = findRespectiveRepeatees(node);
-
-        // If the node in question is the descendant of a repeater, we need to find all repeated
-        // copies of it inside the host repeater. If any repeatees are returned that means the
-        // element is in fact a repeater, otherwise it is not a repeater, so just use the node.
-        if (repeatees.length > 0) {
-          out.push.apply(out, repeatees);
-        } else {
-          out.push(node);
-        }
-      });
-
-      return out;
     });
+
+    const out = [];
+
+    nodes.forEach((node) => {
+      const repeatees = findRespectiveRepeatees(node);
+
+      // If the node in question is the descendant of a repeater, we need to find all repeated
+      // copies of it inside the host repeater. If any repeatees are returned that means the
+      // element is in fact a repeater, otherwise it is not a repeater, so just use the node.
+      if (repeatees.length > 0) {
+        out.push.apply(out, repeatees);
+      } else {
+        out.push(node);
+      }
+    });
+
+    return out;
   }
 
   _hydrateMutableTimelines () {
@@ -2217,6 +2239,8 @@ const hydrateNode = (
   // Hydrate a HaikuElement representation of all nodes in the tree.
   // The instance is cached as node.__memory.element for performance purposes.
   HaikuElement.findOrCreateByNode(node);
+
+  component.cacheNodeWithSelectorKey(node);
 
   // Platform-specific renderers may depend on access to the parent.
   node.__memory.parent = parent;
