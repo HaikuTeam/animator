@@ -1660,16 +1660,6 @@ class Timeline extends React.Component {
         >
           {this.renderComponentRows()}
         </ScrollView>
-        {experimentIsEnabled(Experiment.NativeTimelineScroll) &&
-          <div style={{
-            position: 'fixed',
-            top: this.state.rowHeight * this.getActiveComponent().getRows().length,
-            bottom: 0,
-            width: this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth(),
-            backgroundColor: Palette.GRAY,
-            zIndex: zIndex.backgroundHelper.base,
-          }} />
-        }
         {this.renderBottomControls()}
         <ExpressionInput
           ref="expressionInput"
