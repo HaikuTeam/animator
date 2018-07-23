@@ -2130,12 +2130,21 @@ const expandNode = (original, parent) => {
 
   const children = [];
 
+  const expansion = {...original, children};
+
+  // Give every node a reference to its expansion in case we want to compute sizing downstream;
+  // this is used in Haiku.app to help calculate bounding boxes during editing
+  original.__memory.expansion = expansion;
+  expansion.__memory.original = original;
+
   // Note that HaikuComponent#render calls expandNode for its own tree.
   const subtree = original.__memory.subcomponent && original.__memory.subcomponent.expandCached();
 
   // Special case if our current original is the wrapper of a subcomponent.
   if (subtree) {
     children.push(subtree);
+  } else if (original.__memory.placeholder) {
+    // Placholder-expansion is currently a no-op; it's sufficient to empty the children array (see above)
   } else if (original.children) {
     // Some components may contain elements that have not defined any .children
     for (let i = 0; i < original.children.length; i++) {
@@ -2193,13 +2202,6 @@ const expandNode = (original, parent) => {
    *        by which translation will be offset, aligning all children to be perfectly flush
    *        with their container, no matter what size it is.
    */
-
-  const expansion = {...original, children};
-
-  // Give every node a reference to its expansion in case we want to compute sizing downstream;
-  // this is used in Haiku.app to help calculate bounding boxes during editing
-  original.__memory.expansion = expansion;
-  expansion.__memory.original = original;
 
   computeAndApplyLayout(expansion, parent);
 
@@ -2917,10 +2919,6 @@ export const VANITIES = {
         return;
       }
 
-      // If we have a surrogate, then we must clear the children, otherwise we will often
-      // see a flash of the default content before the injected content flows in lazily
-      element.children = [];
-
       if (!element.__memory.placeholder) {
         element.__memory.placeholder = {};
       }
@@ -2940,25 +2938,7 @@ export const VANITIES = {
           sender,
         );
       } else {
-        if (element.__memory.placeholder.surrogate !== surrogate) {
-          element.elementName = surrogate.elementName;
-          element.children = surrogate.children || [];
-
-          if (surrogate.attributes) {
-            if (!element.attributes) {
-              element.attributes = {};
-            }
-
-            for (const key in surrogate.attributes) {
-              if (key === 'haiku-id') {
-                continue;
-              }
-              element.attributes[key] = surrogate.attributes[key];
-            }
-          }
-
-          element.__memory.placeholder.surrogate = surrogate;
-        }
+        element.__memory.placeholder.surrogate = surrogate;
       }
     },
 
