@@ -1,5 +1,6 @@
 import {client} from '@haiku/sdk-client';
 import {inkstone} from '@haiku/sdk-inkstone';
+import {ErrorCode} from '@haiku/sdk-inkstone/lib/errors';
 
 import {
   DEFAULT_BRANCH_NAME,
@@ -34,10 +35,17 @@ const cli = new Nib({
   description: 'The Haiku CLI — developer utilities for automating Haiku actions and performing local and' +
     ' server-enabled actions without requiring the desktop app.',
   preAction (context: IContext) {
-    inkstone.setConfig({
-      baseUrl: context.flags.api || 'https://inkstone.haiku.ai/',
-      baseShareUrl: context.flags.share || 'https://share.haiku.ai/',
-    });
+    if (context.flags.api) {
+      inkstone.setConfig({
+        baseUrl: context.flags.api,
+      });
+    }
+
+    if (context.flags.share) {
+      inkstone.setConfig({
+        baseShareUrl: context.flags.share,
+      });
+    }
   },
   commands: [
     {
@@ -153,10 +161,11 @@ const cli = new Nib({
 
 export {cli};
 
-function ensureAuth (context: IContext, cb: (token: string) => void) {
-  const token: string = client.config.getAuthToken();
-  if (token) {
-    cb(token);
+function ensureAuth (context: IContext, cb: (authToken: string) => void) {
+  const authToken: string = client.config.getAuthToken();
+  if (authToken) {
+    inkstone.setConfig({authToken});
+    cb(authToken);
     return;
   }
 
@@ -164,6 +173,7 @@ function ensureAuth (context: IContext, cb: (token: string) => void) {
   doLogin(context, () => {
     const newToken: string = client.config.getAuthToken();
     if (newToken) {
+      inkstone.setConfig({authToken: newToken});
       cb(newToken);
       return;
     }
@@ -223,15 +233,20 @@ function doClone (context: IContext) {
 
   ensureAuth(context, (token) => {
     context.writeLine('Cloning project...');
-    inkstone.project.getByName(token, projectName, (getByNameErr, projectAndCredentials) => {
+    inkstone.project.get({Name: projectName}, (getByNameErr, projectAndCredentials) => {
       if (getByNameErr) {
-        context.writeLine(chalk.bold(`Project ${projectName} not found.`));
+        switch (getByNameErr.message) {
+          case ErrorCode.ErrorCodeProjectNotFound:
+            context.writeLine(chalk.bold(`Project ${projectName} not found.`));
+            break;
+          case ErrorCode.ErrorCodeProjectNameRequired:
+            context.writeLine(chalk.bold(`Project name is required.`));
+            break;
+        }
         process.exit(1);
       }
 
-      const gitEndpoint = projectAndCredentials.Project.RepositoryUrl;
-
-      client.git.cloneRepo(gitEndpoint, destination, (cloneErr) => {
+      client.git.cloneRepo(projectAndCredentials.RepositoryUrl, destination, (cloneErr) => {
         if (cloneErr) {
           context.writeLine(chalk.red('Error cloning project.  Use the --verbose flag for more information.'));
           process.exit(1);
@@ -250,7 +265,7 @@ function doDelete (context: IContext) {
     context.writeLine(chalk.red('Deleting a project cannot be undone!'));
 
     const actuallyDelete = (finalProjectName: string) => {
-      inkstone.project.deleteByName(token, finalProjectName, (err) => {
+      inkstone.project.deleteByName({Name: finalProjectName}, (err) => {
         if (err) {
           context.writeLine(chalk.red('Error deleting project.  Does this project exist?'));
           process.exit(1);
@@ -306,7 +321,7 @@ function doInit (context: IContext) {
 
 function doInstall (context: IContext) {
   const projectName = context.args['project-name'];
-  ensureAuth(context, (token) => {
+  ensureAuth(context, () => {
     // ensure that npm is installed
     hasbin('npm', (result: boolean) => {
       if (result) {
@@ -322,7 +337,7 @@ function doInstall (context: IContext) {
 
           // construct project string: @haiku/org-project#latest
           let projectString = '@haiku/';
-          inkstone.organization.list(token, (listErr, orgs) => {
+          inkstone.organization.list((listErr, orgs) => {
             if (listErr) {
               context.writeLine(
                 chalk.red('There was an error retrieving your account information.') +
@@ -336,7 +351,7 @@ function doInstall (context: IContext) {
             // TODO: for multi-org support, get the org name more intelligently than this
             projectString += orgs[0].Name.toLowerCase() + '-';
 
-            inkstone.project.getByName(token, projectName, (getByNameErr, projectAndCredentials) => {
+            inkstone.project.get({Name: projectName}, (getByNameErr, projectAndCredentials) => {
               if (getByNameErr) {
                 context.writeLine(
                   chalk.red('That project wasn\'t found.') +
@@ -347,7 +362,7 @@ function doInstall (context: IContext) {
                 process.exit(1);
               }
 
-              projectString += projectAndCredentials.Project.Name.toLowerCase();
+              projectString += projectAndCredentials.Name.toLowerCase();
 
               // now projectString should be @haiku/org-project
               packageJson.dependencies[projectString] = 'latest';
@@ -388,9 +403,9 @@ function doInstall (context: IContext) {
 
 function doList (context: IContext) {
 
-  ensureAuth(context, (token: string) => {
+  ensureAuth(context, () => {
     if (context.flags.organizations) {
-      inkstone.organization.list(token, (err, organizations, resp) => {
+      inkstone.organization.list((err, organizations, resp) => {
         if (organizations === undefined || organizations.length === 0) {
           context.writeLine('You are not a member of any organizations.');
         } else {
@@ -402,7 +417,7 @@ function doList (context: IContext) {
         process.exit(0);
       });
     } else {
-      inkstone.project.list(token, (err, projects) => {
+      inkstone.project.list((err, projects) => {
         if (!projects || projects.length === 0) {
           context.writeLine('No existing projects.  Use ' + chalk.bold('haiku generate') + ' to make a new one!');
           process.exit(0);
@@ -448,11 +463,10 @@ function doLogin (context: IContext, cb?: () => void) {
           context.writeLine(chalk.bold.red('Username or password incorrect.'));
         }
         if (context.flags.verbose) {
-          context.writeLine(err);
+          context.writeLine(err.toString());
         }
       } else {
         client.config.setAuthToken(authResponse.Token);
-        client.config.setUserId(username);
         context.writeLine(chalk.bold.green(`Welcome ${username}!`));
       }
       if (cb) {
@@ -519,7 +533,7 @@ function generateComponent (context: IContext) {
     skipContentCreation: false,
   };
 
-  createProjectFiles(projectPath, projectName, projectOptions, () => {
+  createProjectFiles(projectOptions, () => {
     context.writeLine('Created initial project files');
     fetchProjectConfigInfo(projectPath, (err: Error|null, userconfig: any) => {
       if (err) {
