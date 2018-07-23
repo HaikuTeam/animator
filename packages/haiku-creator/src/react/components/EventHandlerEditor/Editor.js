@@ -71,6 +71,7 @@ class Editor extends React.Component {
       },
       cursorBlinking: 'blink',
       scrollBeyondLastLine: false,
+      fontFamily: 'Fira Mono',
     });
 
     this.editor.onDidChangeModelContent(this.handleEditorChange);

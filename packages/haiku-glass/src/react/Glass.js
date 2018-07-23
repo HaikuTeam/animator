@@ -18,6 +18,7 @@ import Preview from './Preview';
 import CreateComponentModal from './modals/CreateComponentModal';
 import * as Comments from './Comments';
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu';
+import {ComponentIconSVG} from 'haiku-ui-common/lib/react/OtherIcons';
 import * as requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates';
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import originMana from '../overlays/originMana';
@@ -3383,7 +3384,7 @@ export class Glass extends React.Component {
             : ''}
 
           {(!this.isPreviewMode())
-            ? <svg
+            ? <div
               id="haiku-glass-stage-title-text-container"
               style={{
                 position: 'absolute',
@@ -3398,16 +3399,30 @@ export class Glass extends React.Component {
               onClick={this.handleClickStageName.bind(this)}
               onMouseOver={this.handleMouseOverStageName.bind(this)}
               onMouseOut={this.handleMouseOutStageName.bind(this)}>
-              <text
-                y="13"
+              <span
                 id="project-name"
-                fill={Palette.FATHER_COAL}
-                fontWeight="lighter"
-                fontFamily="Fira Sans"
-                fontSize="13">
-                {`${this.props.userconfig.project || '[n/a]'} (${(this.getActiveComponent() && this.getActiveComponent().getTitle()) || '…'})`}
-              </text>
-            </svg>
+                style={{
+                  color: Palette.FATHER_COAL,
+                  fontWeight: 'lighter',
+                  fontFamily: 'Fira Sans',
+                  fontSize: 13,
+                }}>
+                {`${this.props.userconfig.project || '[n/a]'} (`}
+              </span>
+              <span style={{position: 'relative', top: 3, marginLeft: 2, marginRight: 2}}>
+                <ComponentIconSVG/>
+              </span>
+              <span
+                id="component-name"
+                style={{
+                  color: Palette.FATHER_COAL,
+                  fontWeight: 'lighter',
+                  fontFamily: 'Fira Sans',
+                  fontSize: 13,
+                }}>
+                {`${(this.getActiveComponent() && this.getActiveComponent().getTitle()) || '…'})`}
+              </span>
+            </div>
             : ''}
 
           {(!this.isPreviewMode())
