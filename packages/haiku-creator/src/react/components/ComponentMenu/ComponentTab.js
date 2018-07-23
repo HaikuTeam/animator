@@ -35,15 +35,9 @@ const STYLES = {
       backgroundColor: Palette.STAGE_GRAY,
       color: Palette.FATHER_COAL,
     },
-    nonActive: {
-      backgroundColor: Palette.ROCK_MUTED,
-    },
     activeDark: {
       backgroundColor: Palette.COAL,
       color: Palette.ROCK,
-    },
-    nonActiveDark: {
-      backgroundColor: Palette.FATHER_COAL,
     },
   },
   label: {
@@ -83,7 +77,6 @@ class ComponentTab extends React.Component {
 
   render () {
     const activeTabStyle = this.props.showGlass ? STYLES.tab.active : STYLES.tab.activeDark;
-    const nonActiveTabStyle = this.props.showGlass ? STYLES.tab.nonActive : STYLES.tab.nonActiveDark;
 
     return (
       <div
@@ -93,7 +86,7 @@ class ComponentTab extends React.Component {
           style={[
             STYLES.tab,
             !this.props.showGlass && {color: Palette.ROCK, ':hover': {color: Palette.SUNSTONE}},
-            (this.props.forceActive || this.props.tab.active) ? activeTabStyle : nonActiveTabStyle,
+            (this.props.forceActive || this.props.tab.active) && activeTabStyle,
           ]}>
           <div style={{display: 'inline-block', width: '100%'}}>
             <span style={STYLES.label} className="no-select">
