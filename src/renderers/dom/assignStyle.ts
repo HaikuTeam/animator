@@ -26,9 +26,9 @@ export default function assignStyle (domElement, style, component, isPatchOperat
 
   for (const key in style) {
     const newProp = style[key];
-    const previousProp = domElement.style[key];
+    const previousProp = domElement.haiku.explicitStyles[key];
     if (previousProp !== newProp) {
-      domElement.haiku.explicitStyles[key] = true;
+      domElement.haiku.explicitStyles[key] = style[key];
       domElement.style[key] = style[key];
     }
   }

@@ -270,9 +270,6 @@ export interface BytecodeOptions {
   // string as the API token. The default token is Haiku's production token.
   mixpanel?: string;
 
-  // Whether to prepend a webkit prefix to transform properties
-  useWebkitPrefix?: boolean;
-
   // Control how this instance handles interaction, e.g. preview mode
   // TODO: create an use an enum from @haiku/core/src/helpers/interactionModes.ts
   interactionMode?: number;
