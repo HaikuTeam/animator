@@ -111,7 +111,6 @@ export default function applyCssLayout (domElement, virtualElement, nodeLayout, 
           domElement.style,
           nodeLayout.format,
           computedLayout.matrix,
-          context.config.useWebkitPrefix,
         );
       }
     } else {
@@ -126,7 +125,6 @@ export default function applyCssLayout (domElement, virtualElement, nodeLayout, 
             domElement.style,
             nodeLayout.format,
             computedLayout.matrix,
-            context.config.useWebkitPrefix,
           );
         }
       }
