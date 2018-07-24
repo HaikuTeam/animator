@@ -615,7 +615,7 @@ export default class Creator extends React.Component {
       }
     });
 
-    this.user.getConfig(UserSettings.lastViewedChangelog).then((lastViewedChangelog) => {
+    this.user.getConfig(UserSettings.lastViewedChangelog).then((lastViewedChangelog = process.env.HAIKU_RELEASE_VERSION) => {
       this.setState({lastViewedChangelog});
     });
   }
