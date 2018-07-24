@@ -517,6 +517,10 @@ export class Glass extends React.Component {
         return;
       }
 
+      if (experimentIsEnabled(Experiment.PinchToZoomInGlass) && evt.ctrlKey) {
+        return this.handlePinchToZoom(evt);
+      }
+
       const artboard = this.getActiveComponent().getArtboard();
       // The 0.4 coefficient here adjusts the pan speed down, and can be adjusted if desired. Larger numbers result in
       // faster panning.
@@ -917,6 +921,22 @@ export class Glass extends React.Component {
       proxy.ungroup({from: 'glass'});
     }
   }
+
+  calculateZoomFactorFromDelta (delta) {
+    const result = Math.abs(delta * 0.1);
+    return 1 + (result > 1 ? 1 : result);
+  }
+
+  handlePinchToZoom = (wheelEvent) => {
+    wheelEvent.preventDefault();
+    const zoomFactor = this.calculateZoomFactorFromDelta(wheelEvent.deltaY);
+
+    if (wheelEvent.deltaY > 0) {
+      this.getActiveComponent().getArtboard().zoomIn(zoomFactor);
+    } else {
+      this.getActiveComponent().getArtboard().zoomOut(zoomFactor);
+    }
+  };
 
   launchComponentNameModal () {
     this.setState({
