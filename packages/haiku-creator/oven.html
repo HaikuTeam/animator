@@ -46,6 +46,7 @@
         switch (payload.type) {
           case 'init':
             frameDuration = 1000 / payload.framerate;
+            document.body.style.backgroundColor = payload.frame ? 'transparent' : 'white';
             tick();
             break;
           case 'tick':

@@ -70,19 +70,24 @@ const bakeryQueue = queue<QueuedRecipe, Error>(
         height: Math.round(height),
         frame: false,
         show: false,
-        backgroundColor: 'white',
       });
     }
 
     let frame = 0;
-    outputDirectory = path.join(path.dirname(abspath), `png-${framerate}`);
+    // Stills should go two levels above the abspath of the component bytecode;
+    // PNG sequences should be saved in parallel.
+    outputDirectory = still
+      ? path.resolve(path.dirname(abspath), '..', '..')
+      : path.join(path.dirname(abspath), `png-${framerate}`);
     mkdirpSync(outputDirectory);
     const bakeryHandler = ({sender}: any, payload: any) => {
       switch (payload.type) {
         case 'snap':
           browserWindow.capturePage((image) => {
             writeFile(
-              path.join(outputDirectory, `frame-${frame.toString().padStart(7, '0')}.png`),
+              still
+                ? path.join(outputDirectory, 'still.png')
+                : path.join(outputDirectory, `frame-${frame.toString().padStart(7, '0')}.png`),
               image.toPNG(),
               (err) => {
                 if (err) {
@@ -91,7 +96,7 @@ const bakeryQueue = queue<QueuedRecipe, Error>(
                 }
 
                 frame++;
-                if (payload.last || browserWindow.isDestroyed()) {
+                if (payload.last || browserWindow.isDestroyed() || still) {
                   return finish();
                 }
                 sender.send('bakery', {type: 'tick'});
@@ -109,7 +114,7 @@ const bakeryQueue = queue<QueuedRecipe, Error>(
 
     browserWindow.loadURL(`file://${path.join(__dirname, '..', '..', 'oven.html')}#${abspath}`);
     browserWindow.webContents.on('did-finish-load', () => {
-      browserWindow.webContents.send('bakery', {framerate, type: 'init'});
+      browserWindow.webContents.send('bakery', {framerate, frame, type: 'init'});
     });
   },
 );

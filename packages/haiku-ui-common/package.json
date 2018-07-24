@@ -48,6 +48,7 @@
     "dedent": "^0.7.0",
     "haiku-common": "3.5.1",
     "haiku-serialization": "3.5.1",
+    "haiku-sdk-creator": "3.5.1",
     "numeral": "^2.0.6",
     "radium": "0.18.1",
     "react": "15.6.2",

@@ -122,7 +122,6 @@ export default class EnvoyClient<T extends EnvoyHandler> {
       const handlers = this.eventHandlers.get(eventName as string) || [];
       handlers.push(handler);
       this.eventHandlers.set(eventName as string, handlers);
-      return subject;
     };
 
     subject.off = (eventName, handler) => {
@@ -130,7 +129,6 @@ export default class EnvoyClient<T extends EnvoyHandler> {
       const idx = handlers.indexOf(handler);
       if (idx !== -1) {
         handlers.splice(idx, 1);
-        this.eventHandlers.set(eventName, handlers);
       }
     };
   }

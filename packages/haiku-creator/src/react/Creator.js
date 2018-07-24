@@ -92,7 +92,6 @@ export default class Creator extends React.Component {
     this.removeNotice = this.removeNotice.bind(this);
     this.createNotice = this.createNotice.bind(this);
     this.renderNotice = this.renderNotice.bind(this);
-    this.receiveProjectInfo = this.receiveProjectInfo.bind(this);
     this.handleFindElementCoordinates = this.handleFindElementCoordinates.bind(this);
     this.handleFindWebviewCoordinates = this.handleFindWebviewCoordinates.bind(this);
     this.onAutoUpdateCheckComplete = this.onAutoUpdateCheckComplete.bind(this);
@@ -1099,10 +1098,6 @@ export default class Creator extends React.Component {
     return this.setState({isUserAuthenticated: true});
   }
 
-  receiveProjectInfo (projectInfo) {
-    // NO-OP
-  }
-
   loadProjects (cb) {
     if (!this.envoyProject) {
       return cb(null, []);
@@ -1134,20 +1129,7 @@ export default class Creator extends React.Component {
   }
 
   createProject (projectName, isPublic, duplicate = false, callback) {
-    this.props.websocket.request({method: 'createProject', params: [projectName, isPublic]}, (err, newProject) => {
-      if (err) {
-        this.createNotice({
-          type: 'error',
-          title: 'Oh no!',
-          message: 'We couldn\'t create your project. 😩 If this problem occurs again, please contact Haiku support.',
-          closeText: 'Okay',
-          lightScheme: true,
-        });
-
-        callback(err);
-        return;
-      }
-
+    this.envoyProject.createProject(projectName, isPublic).then((newProject) => {
       if (duplicate && this.state.projectToDuplicate !== null) {
         this.props.websocket.request(
           {
@@ -1155,12 +1137,21 @@ export default class Creator extends React.Component {
             params: [newProject, this.state.projectToDuplicate],
           },
           () => {
-            callback(err, newProject);
+            callback(null, newProject);
           },
         );
       } else {
-        callback(err, newProject);
+        callback(null, newProject);
       }
+    }).catch((error) => {
+      this.createNotice({
+        type: 'error',
+        title: 'Oh no!',
+        message: 'We couldn\'t create your project. 😩 If this problem occurs again, please contact Haiku support.',
+        closeText: 'Okay',
+        lightScheme: true,
+      });
+      callback(error);
     });
   }
 
@@ -1786,11 +1777,11 @@ export default class Creator extends React.Component {
                 this.teardownMaster(
                   {shouldFinishTour: true, launchingProject: false},
                   () => {
-                    this.launchProject(projectObject.projectName, projectObject, callback);
+                    this.launchProject(projectObject, callback);
                   },
                 );
               } else {
-                this.launchProject(projectObject.projectName, projectObject, callback);
+                this.launchProject(projectObject, callback);
               }
             });
           }}
@@ -2159,7 +2150,6 @@ export default class Creator extends React.Component {
                     project={this.state.projectObject}
                     createNotice={this.createNotice}
                     removeNotice={this.removeNotice}
-                    receiveProjectInfo={this.receiveProjectInfo}
                     organizationName={this.state.organizationName}
                     username={this.state.username}
                     isTimelineReady={this.state.isTimelineReady}

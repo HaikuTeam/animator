@@ -12,7 +12,6 @@ export interface EmbedOptionProps {
   onClick: (option: {entry: SelectedEntry, template: string}) => void;
   isSnapshotSaveInProgress: boolean;
   snapshotSyndicated: boolean;
-  snapshotPublished: boolean;
 }
 
 export class EmbedOption extends React.PureComponent<EmbedOptionProps> {
@@ -37,7 +36,7 @@ export class EmbedOption extends React.PureComponent<EmbedOptionProps> {
     }
   }
 
-  componentWillReceiveProps ({isSnapshotSaveInProgress, snapshotSyndicated, snapshotPublished}: EmbedOptionProps) {
+  componentWillReceiveProps ({isSnapshotSaveInProgress, snapshotSyndicated}: EmbedOptionProps) {
     if (isSnapshotSaveInProgress) {
       this.start();
       return;
@@ -48,11 +47,6 @@ export class EmbedOption extends React.PureComponent<EmbedOptionProps> {
     if (this.requiresSyndication) {
       if (!snapshotSyndicated) {
         this.setState({abandoned: snapshotSyndicated === undefined});
-        return;
-      }
-    } else if (this.requiresPublished) {
-      if (!snapshotPublished) {
-        this.setState({abandoned: snapshotPublished === undefined});
         return;
       }
     }
@@ -95,19 +89,11 @@ export class EmbedOption extends React.PureComponent<EmbedOptionProps> {
       return '60s';
     }
 
-    if (this.requiresPublished) {
-      return '30s';
-    }
-
     return '15s';
   }
 
   get requiresSyndication () {
-    return this.props.category === ShareCategory.Other;
-  }
-
-  get requiresPublished () {
-    return this.props.category === ShareCategory.Mobile;
+    return this.props.category === ShareCategory.Other || this.props.category === ShareCategory.Mobile;
   }
 
   get effectivelyDisabled () {

@@ -280,13 +280,12 @@ class Stage extends React.Component {
             folder={this.props.folder}
             envoyProject={this.props.envoyProject}
             projectModel={this.props.projectModel}
-            websocket={this.props.websocket}
             project={this.props.project}
+            websocket={this.props.websocket}
             createNotice={this.props.createNotice}
             removeNotice={this.props.removeNotice}
             organizationName={this.props.organizationName}
             username={this.props.username}
-            receiveProjectInfo={this.props.receiveProjectInfo}
             onPreviewModeToggled={this.props.onPreviewModeToggled}
             isTimelineReady={this.props.isTimelineReady}
             envoyClient={this.props.envoyClient}
@@ -364,7 +363,6 @@ Stage.propTypes = {
   project: React.PropTypes.object.isRequired,
   createNotice: React.PropTypes.func.isRequired,
   removeNotice: React.PropTypes.func.isRequired,
-  receiveProjectInfo: React.PropTypes.func,
   organizationName: React.PropTypes.string,
   username: React.PropTypes.string,
 };

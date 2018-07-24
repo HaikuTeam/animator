@@ -3,7 +3,6 @@ import * as async from 'async';
 import * as path from 'path';
 import * as os from 'os';
 import {debounce} from 'lodash';
-import {ExporterFormat} from 'haiku-sdk-creator/lib/exporter';
 import * as fse from 'haiku-fs-extra';
 import HaikuComponent from '@haiku/core/lib/HaikuComponent';
 import * as walkFiles from 'haiku-serialization/src/utils/walkFiles';
@@ -21,14 +20,14 @@ import * as EmitterManager from 'haiku-serialization/src/utils/EmitterManager';
 import Watcher from './Watcher';
 import MasterGitProject from './MasterGitProject';
 import MasterModuleProject from './MasterModuleProject';
-import attachListeners from './envoy/attachListeners';
-import saveExport from './publish-hooks/saveExport';
+import getExporterListener from './envoy/getExporterListener';
 import Raven from './Raven';
+import saveExport from './publish-hooks/saveExport';
 import {createProjectFiles} from '@haiku/sdk-client/lib/createProjectFiles';
+import {ExporterFormat, EXPORTER_CHANNEL} from 'haiku-sdk-creator/lib/exporter';
 import {createCDNBundles} from './project-folder/createCDNBundle';
 import {
   getHaikuCoreVersion,
-  getSafeProjectName,
   fetchProjectConfigInfo,
 } from './project-folder/ProjectDefinitions';
 
@@ -98,12 +97,14 @@ function _isFileSignificant (relpath) {
 }
 
 export default class Master extends EventEmitter {
-  constructor (folder, fileOptions = {}, envoyOptions = {}) {
+  constructor (folder, fileOptions = {}, envoyOptions = {}, envoyHandlers) {
     super();
 
     EmitterManager.extend(this);
 
     this.folder = folder;
+
+    this.envoyHandlers = envoyHandlers;
 
     if (!this.folder) {
       throw new Error('[master] Master cannot launch without a folder defined');
@@ -205,6 +206,21 @@ export default class Master extends EventEmitter {
     if (this._watcher) {
       this._watcher.stop();
     }
+  }
+
+  halt () {
+    this.active = false;
+    this.watchOff();
+    if (this.project) {
+      this.project.getAllActiveComponents().forEach((ac) => {
+        if (ac.$instance) {
+          ac.$instance.context.destroy();
+        }
+      });
+    }
+
+    this.envoyHandlers.exporter.off(`${EXPORTER_CHANNEL}:save`, this.exporterListener);
+    this.exporterListener = undefined;
   }
 
   watchOn () {
@@ -778,16 +794,9 @@ export default class Master extends EventEmitter {
   }
 
   /**
-   * @method requestSyndicationInfo
-   */
-  requestSyndicationInfo (done) {
-    return this._git.getCurrentShareInfo(done);
-  }
-
-  /**
    * @method saveProject
    */
-  saveProject (projectName, authorName, saveOptions, done) {
+  saveProject (project, saveOptions, done) {
     const finish = (err, out) => {
       this._isSaving = false;
       return done(err, out);
@@ -802,17 +811,78 @@ export default class Master extends EventEmitter {
 
     logger.info('[master] project save');
 
+    // #FIXME: This should be already done.
+    this.envoyHandlers.project.setCurrentProject(project);
+
     return async.series([
       // Check to see if a save is even necessary, and return early if not
       (cb) => {
-        return this._git.getExistingShareDataIfSaveIsUnnecessary((err, existingShareData) => {
+        return this._git.doesGitHaveChanges((err, doesGitHaveChanges) => {
           if (err) {
             return cb(err);
           }
-          if (existingShareData) { // Presence of share data means early return
-            return cb(true, existingShareData); // eslint-disable-line
+          if (doesGitHaveChanges) { // Presence of share data means early return
+            return cb();
           }
-          return cb(); // Falsy share data means perform the save
+
+          this._git.resolveSha().then((sha) => {
+            this.envoyHandlers.project.setCurrentSha(
+              sha,
+              /*skipSaveSnapshot=*/true,
+              ).then(() => {
+                this.envoyHandlers.project.getSnapshotInfo().then((info) => {
+                  // If we have info at all, we can exit early. Yeehaw!
+                  cb(true, info);
+                }).catch(() => {
+                  // If not, no worries—just continue saving as usual.
+                  cb();
+                });
+              });
+          });
+        });
+      },
+
+      // Write out any enabled exported formats.
+      (cb) => {
+        // Just in case this ran somehow before the project was initialized
+        if (!this.project) {
+          return cb();
+        }
+
+        // Just in case we haven't initialized any active components yet
+        const acs = this.project.getAllActiveComponents();
+        if (acs.length < 1) {
+          return cb();
+        }
+
+                // Create a fault-tolerant async series to process all requested formats for all components
+        return async.eachSeries(acs, (ac, nextComponent) => {
+          logger.info(`[master] project save: writing exported formats for ${ac.getSceneName()}`);
+          return async.series([ExporterFormat.Bodymovin, ExporterFormat.HaikuStatic].map((format) => (nextFormat) => {
+                    // For now, we only support one exported format: lottie.json
+            let filename;
+            switch (format) {
+              case ExporterFormat.Bodymovin:
+                filename = ac.getAbsoluteLottieFilePath();
+                break;
+              case ExporterFormat.HaikuStatic:
+                filename = ac.getAbsoluteHaikuStaticFilePath();
+                break;
+            }
+
+            return saveExport({format, filename}, ac, (err) => {
+              if (err) {
+                logger.warn(`[master] error during export for ${ac.getSceneName()}: ${err.toString()}`);
+              }
+
+              return nextFormat();
+            });
+          }), nextComponent);
+        }, (err) => {
+          if (err) {
+            return cb(err);
+          }
+          return cb();
         });
       },
 
@@ -861,80 +931,16 @@ export default class Master extends EventEmitter {
         });
       },
 
-      // Write out any enabled exported formats.
-      (cb) => {
-        // This might be a save without any designated exports
-        const {exporterFormats} = saveOptions;
-        if (!exporterFormats) {
-          return cb();
-        }
-
-        // Just in case this ran somehow before the project was initialized
-        if (!this.project) {
-          return cb();
-        }
-
-        // Just in case we haven't initialized any active components yet
-        const acs = this.project.getAllActiveComponents();
-        if (acs.length < 1) {
-          return cb();
-        }
-
-        // Create a fault-tolerant async series to process all requested formats for all components
-        return async.eachSeries(acs, (ac, nextComponent) => {
-          logger.info(`[master] project save: writing exported formats for ${ac.getSceneName()}`);
-
-          return async.series(exporterFormats.map((format) => (nextFormat) => {
-            // For now, we only support one exported format: lottie.json
-            let filename;
-            switch (format) {
-              case ExporterFormat.Bodymovin:
-                filename = ac.getAbsoluteLottieFilePath();
-                break;
-              case ExporterFormat.HaikuStatic:
-                filename = ac.getAbsoluteHaikuStaticFilePath();
-                break;
-            }
-
-            return saveExport({format, filename}, ac, (err) => {
-              if (err) {
-                logger.warn(`[master] error during export for ${ac.getSceneName()}: ${err.toString()}`);
-              }
-
-              return nextFormat();
-            });
-          }), nextComponent);
-        }, (err) => {
-          if (err) {
-            return cb(err);
-          }
-          return cb();
-        });
-      },
-
       // Build the rest of the content of the folder,
       (cb) => {
         logger.info('[master] project save: populating content');
-
-        const {projectName} = this._git.getFolderState();
-        createProjectFiles({
-          projectName,
-          authorName,
-          projectPath: this.folder,
-          organizationName: saveOptions.organizationName,
-        }, cb);
+        createProjectFiles(project, cb);
       },
 
       // Build CDN bundles
       (cb) => {
         logger.info('[master] project save: creating cdn bundle');
-
-        const {projectName} = this._git.getFolderState();
-        createCDNBundles(this.folder, projectName, {
-          projectName,
-          authorName: saveOptions.authorName,
-          organizationName: saveOptions.organizationName,
-        }, cb);
+        createCDNBundles(project, cb);
       },
 
       (cb) => {
@@ -944,7 +950,42 @@ export default class Master extends EventEmitter {
       // Now do all of the git/share/publish/fs operations required for the real save
       (cb) => {
         logger.info('[master] project save: creating snapshot');
-        this._git.saveProject(saveOptions, cb);
+        this._git.saveProject(project, saveOptions, cb);
+      },
+
+      (cb) => {
+        this._git.resolveSha().then((sha) => {
+          this.envoyHandlers.project.setSemver(this._git.folderState.semverVersion);
+          this.envoyHandlers.project.setCurrentSha(sha).then(() => {
+            // Write out any enabled exported assets.
+            const requests = this.envoyHandlers.project.getExporterAssetRequests(project);
+            let processedRequests = 0;
+            async.eachSeries(requests, (request, next) => {
+              const listener = (finishedRequest) => {
+                if (finishedRequest === request) {
+                  this.envoyHandlers.project.syndicateExporterRequest(request).then(() => {
+                    processedRequests++;
+                    if (processedRequests === requests.length) {
+                      this.envoyHandlers.project.markSyndicated();
+                    }
+                  }).catch((err) => {
+                    logger.warning('[master] project save: asset syndication failed');
+                  });
+                  this.envoyHandlers.exporter.off(`${EXPORTER_CHANNEL}:saved`, listener);
+                }
+              };
+              this.envoyHandlers.exporter.on(`${EXPORTER_CHANNEL}:saved`, listener);
+              this.envoyHandlers.exporter.save(request);
+              next();
+            }, cb);
+          });
+        });
+      },
+
+      (cb) => {
+        this.envoyHandlers.project.getSnapshotInfo().then((info) => {
+          cb(null, info);
+        }).catch(cb);
       },
     ], (err, results) => { // async gives back _all_ results from each step
       if (err && err !== true) {
@@ -954,12 +995,14 @@ export default class Master extends EventEmitter {
 
       finish(null, results[results.length - 1]);
 
-      // Silently push results to the remote.
-      this._git.pushToRemote((err) => {
-        if (err) {
-          logger.warn('[master] silent project push failed');
-        }
-      });
+      // Silently push results to the remote, unless no push was needed.
+      if (err !== true) {
+        this._git.pushToRemote((err) => {
+          if (err) {
+            logger.warn('[master] silent project push failed');
+          }
+        });
+      }
     });
   }
 
@@ -1008,7 +1051,8 @@ export default class Master extends EventEmitter {
 
   handleActiveComponentReady () {
     return this.awaitActiveComponent(() => {
-      attachListeners(this.project.getEnvoyClient(), this.getActiveComponent(), this._git);
+      this.exporterListener = getExporterListener(this.envoyHandlers.exporter, this.getActiveComponent(), this._git);
+      this.envoyHandlers.exporter.on(`${EXPORTER_CHANNEL}:save`, this.exporterListener);
       this.mountHaikuComponent();
     });
   }

@@ -1,3 +1,4 @@
+import {HaikuShareUrls} from 'haiku-sdk-creator/lib/bll/Project';
 import * as React from 'react';
 import Palette from '../../../Palette';
 import {LinkHolster} from '../LinkHolster';
@@ -19,36 +20,19 @@ export interface GifProps {
   entry: string;
   userName: string;
   organizationName: string;
-  projectUid: string;
-  sha: string;
+  urls: HaikuShareUrls;
 }
 
-const CDN_BASE = 'https://cdn.haiku.ai/';
-
 export default class Gif extends React.PureComponent<GifProps> {
-  static propTypes = {
-    entry: React.PropTypes.string,
-    userName: React.PropTypes.string,
-    organizationName: React.PropTypes.string,
-    projectUid: React.PropTypes.string,
-    sha: React.PropTypes.string,
-  };
-
-  get cdnBase () {
-    return `${CDN_BASE + this.props.projectUid}/${this.props.sha}/`;
-  }
-
   render () {
-    const gif = `${this.cdnBase}animation.gif`;
-
     return (
       <div style={{textAlign: 'center'}}>
         <div style={STYLES.imgWrapper}>
-          <img src={gif} style={STYLES.image} />
+          <img src={this.props.urls.gif} style={STYLES.image} />
         </div>
         <div style={{width: 'calc(100% + 20px)'}}>
           <LinkHolster
-            linkAddress={gif}
+            linkAddress={this.props.urls.gif}
             showLoadingBar={false}
             dark={true}
           />

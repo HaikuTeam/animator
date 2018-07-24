@@ -7,8 +7,8 @@
         "packages/**/lib/**/*": true,
         "packages/haiku-formats/test/goldens/**": true
     },
-    "javascript.implicitProjectConfig.checkJs": true,
     "typescript.format.enable": false,
+    "typescript.tsdk": "node_modules/typescript/lib",
     "tslint.enable": true,
     "tslint.jsEnable": true,
     "tslint.autoFixOnSave": true,

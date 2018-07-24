@@ -18,8 +18,8 @@ const ENDPOINTS = {
   COMMUNITY_PROFILE: 'v0/community/:ORGANIZATION_NAME',
   GET_COMMUNITY_PROJECT: 'v0/community/:ORGANIZATION_NAME/:PROJECT_NAME',
   FORK_COMMUNITY_PROJECT: 'v0/community/:ORGANIZATION_NAME/:PROJECT_NAME/fork',
-  SNAPSHOT_GET_BY_ID: 'v0/snapshot/:ID',
   SNAPSHOT_SYNDICATED_BY_ID: 'v0/snapshot/:ID/syndicated',
+  SNAPSHOT_GET_BY_ID: 'v0/snapshot/:ID',
   SNAPSHOT_FEATURE_BY_ID: 'v0/snapshot/:ID/is_featured',
   SNAPSHOT_UNFEATURE_BY_ID: 'v0/snapshot/:ID/is_featured',
   SUPPORT_UPLOAD_GET_PRESIGNED_URL: 'v0/support/upload/:UUID',
@@ -160,7 +160,7 @@ export namespace inkstone {
     export const get = (cb: inkstone.Callback<User>) => {
       newGetRequest()
         .withEndpoint(Endpoints.OrganizationUserDetail)
-        .callWithCallback<User>(cb);
+        .callWithCallback(cb);
     };
 
     export function changePassword (
@@ -308,7 +308,7 @@ export namespace inkstone {
     export const list = (cb: inkstone.Callback<Organization[]>) => {
       newGetRequest()
         .withEndpoint(Endpoints.OrganizationResourceCollection)
-        .callWithCallback<Organization[]>(cb);
+        .callWithCallback(cb);
     };
   }
 
@@ -326,27 +326,6 @@ export namespace inkstone {
       Organization: organization.Organization;
     }
 
-    // Gets a snapshot from Inkstone for a snapshot.
-    export function getSnapshotLink (
-      id: string,
-      cb: inkstone.Callback<{ snap: SnapshotAndProjectAndOrganization, link: string }>,
-    ) {
-      getSnapshotAndProject(id, (err, snap, response) => {
-        if (err) {
-          cb(err, undefined, undefined);
-          return;
-        }
-
-        if (response && response.statusCode !== 200) {
-          cb(err, undefined, undefined);
-        } else {
-          cb(undefined, {snap, link: assembleSnapshotLinkFromSnapshot(snap.Snapshot)}, response);
-        }
-      });
-    }
-
-    // tries (once) to get a snapshot from inkstone for a given ID git SHA.  Optionally, can append '/latest' for
-    // UUID lookups [not for SHA lookups]
     export function getSnapshotAndProject (id: string, cb: inkstone.Callback<SnapshotAndProjectAndOrganization>) {
       const url = inkstoneConfig.baseUrl + ENDPOINTS.SNAPSHOT_GET_BY_ID.replace(':ID', encodeURIComponent(id));
       const options: request.OptionsWithUrl = {
@@ -380,10 +359,6 @@ export namespace inkstone {
           cb(safeError(err), undefined, httpResponse);
         }
       });
-    }
-
-    export function assembleSnapshotLinkFromSnapshot (snapshotIn: Snapshot) {
-      return `${inkstoneConfig.baseShareUrl}${snapshotIn.UniqueId}/latest`;
     }
 
     export function feature (authToken: MaybeAuthToken, uniqueId: string, cb: inkstone.Callback<boolean>) {
@@ -717,14 +692,25 @@ export namespace inkstone {
     export interface ProjectCreateParams {
       Name: string;
       IsPublic: boolean;
-      DeferCaudexBacking: boolean;
+      DeferCaudexBacking?: boolean;
+    }
+
+    export interface ProjectSnapshot {
+      PrivateURL: string;
+      AssetsSyndicated: boolean;
+      StandaloneURL: string;
+      EmbedURL: string;
+      GifURL: string;
+      VideoURL: string;
+      StillURL: string;
+      LottieURL: string;
     }
 
     export const create = (params: ProjectCreateParams, cb: inkstone.Callback<Project>) => {
       newPostRequest()
         .withEndpoint(Endpoints.ProjectResourceCollection)
         .withJson(params)
-        .callWithCallback<Project>(cb);
+        .callWithCallback(cb);
     };
 
     export interface ProjectUpdateParams {
@@ -738,13 +724,13 @@ export namespace inkstone {
         .withEndpoint(Endpoints.ProjectResource)
         .withUrlParameters({':project_name': params.Name})
         .withJson(params)
-        .callWithCallback<Project>(cb);
+        .callWithCallback(cb);
     };
 
     export const list = (cb: inkstone.Callback<Project[]>) => {
       newGetRequest()
         .withEndpoint(Endpoints.ProjectResourceCollection)
-        .callWithCallback<Project[]>(cb);
+        .callWithCallback(cb);
     };
 
     export interface ProjectGetParams {
@@ -755,7 +741,7 @@ export namespace inkstone {
       newGetRequest()
         .withEndpoint(Endpoints.ProjectResource)
         .withUrlParameters({':project_name': params.Name})
-        .callWithCallback<Project>(cb);
+        .callWithCallback(cb);
     };
 
     export interface ProjectDeleteParams {
@@ -766,7 +752,7 @@ export namespace inkstone {
       newDeleteRequest()
         .withEndpoint(Endpoints.ProjectResource)
         .withUrlParameters({':project_name': params.Name})
-        .callWithCallback<void>(cb);
+        .callWithCallback(cb);
     };
 
     export interface CreateSnapshotParams {
@@ -774,11 +760,58 @@ export namespace inkstone {
       Sha: string;
     }
 
-    export const createSnapshot = (params: CreateSnapshotParams, cb: inkstone.Callback<snapshot.Snapshot>) => {
+    export const createSnapshot = (params: CreateSnapshotParams, cb: inkstone.Callback<ProjectSnapshot>) => {
       newPutRequest()
         .withEndpoint(Endpoints.ProjectSnapshotResource)
         .withUrlParameters({':project_name': params.Name, ':sha': params.Sha})
-        .callWithCallback<snapshot.Snapshot>(cb);
+        .callWithCallback(cb);
+    };
+
+    export interface GetSnapshotParams {
+      Name: string;
+      Sha: string;
+    }
+
+    export const getSnapshot = (params: GetSnapshotParams, cb: inkstone.Callback<ProjectSnapshot>) => {
+      newGetRequest()
+        .withEndpoint(Endpoints.ProjectSnapshotResource)
+        .withUrlParameters({':project_name': params.Name, ':sha': params.Sha})
+        .callWithCallback(cb);
+    };
+
+    export interface MarkSnapshotSyndicatedParams {
+      Name: string;
+      Sha: string;
+    }
+
+    export const markSnapshotSyndicated = (
+      params: MarkSnapshotSyndicatedParams,
+      cb: inkstone.Callback<void>,
+    ) => {
+      newPutRequest()
+        .withEndpoint(Endpoints.ProjectSnapshotSyndicated)
+        .withUrlParameters({':project_name': params.Name, ':sha': params.Sha})
+        .callWithCallback(cb, 204);
+    };
+
+    export interface CreateSnapshotAssetParams {
+      Name: string;
+      Sha: string;
+      Filename: string;
+    }
+
+    export interface SnapshotPresignedURL {
+      URL: string;
+    }
+
+    export const createSnapshotAsset = (
+      params: CreateSnapshotAssetParams,
+      cb: inkstone.Callback<SnapshotPresignedURL>,
+    ) => {
+      newPutRequest()
+        .withEndpoint(Endpoints.ProjectSnapshotAssetResource)
+        .withUrlParameters({':project_name': params.Name, ':sha': params.Sha, ':filename': params.Filename})
+        .callWithCallback(cb, 201);
     };
   }
 
@@ -858,7 +891,7 @@ export namespace inkstone {
     export const listProducts = (cb: inkstone.Callback<Product[]>) => {
       newGetRequest()
         .withEndpoint(Endpoints.BillingListProducts)
-        .callWithCallback<Product[]>(cb);
+        .callWithCallback(cb);
     };
 
     /**
@@ -871,7 +904,7 @@ export namespace inkstone {
     export const describe = (cb: inkstone.Callback<Profile>) => {
       newGetRequest()
         .withEndpoint(Endpoints.BillingDescribe)
-        .callWithCallback<Profile>(cb);
+        .callWithCallback(cb);
     };
 
     /**
@@ -886,7 +919,7 @@ export namespace inkstone {
       newPutRequest()
         .withEndpoint(Endpoints.BillingSetCustomer)
         .withJson(customer)
-        .callWithCallback<void>(cb, 204);
+        .callWithCallback(cb, 204);
     };
 
     export interface AddCardRequestParams {
@@ -909,7 +942,7 @@ export namespace inkstone {
       newPostRequest()
         .withEndpoint(Endpoints.BillingAddCard)
         .withJson(card)
-        .callWithCallback<void>(cb, 204);
+        .callWithCallback(cb, 204);
     };
 
     /**
@@ -925,7 +958,7 @@ export namespace inkstone {
       newPutRequest()
         .withEndpoint(Endpoints.BillingSetCardAsDefaultById)
         .withUrlParameters({':card_id': cardId})
-        .callWithCallback<void>(cb, 204);
+        .callWithCallback(cb, 204);
     };
 
     /**
@@ -942,7 +975,7 @@ export namespace inkstone {
       newDeleteRequest()
         .withEndpoint(Endpoints.BillingDeleteCardById)
         .withUrlParameters({':card_id': cardId})
-        .callWithCallback<void>(cb, 204);
+        .callWithCallback(cb, 204);
     };
 
     export interface SetPlanRequestParams {
@@ -969,7 +1002,7 @@ export namespace inkstone {
       newPutRequest()
         .withEndpoint(Endpoints.BillingPlanResource)
         .withJson(plan)
-        .callWithCallback<Subscription>(cb);
+        .callWithCallback(cb);
     };
 
     /**
@@ -986,7 +1019,7 @@ export namespace inkstone {
     ) => {
       newDeleteRequest()
         .withEndpoint(Endpoints.BillingPlanResource)
-        .callWithCallback<void>(cb, 204);
+        .callWithCallback(cb, 204);
     };
   }
 }

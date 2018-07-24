@@ -1,5 +1,5 @@
-import {ErrorCallback, queue} from 'async';
-import {EXPORTER_CHANNEL, ExporterFormat, ExporterHandler, ExporterRequest} from 'haiku-sdk-creator/lib/exporter';
+import {queue} from 'async';
+import {ExporterFormat, ExporterHandler, ExporterRequest} from 'haiku-sdk-creator/lib/exporter';
 // @ts-ignore
 import * as ActiveComponent from 'haiku-serialization/src/bll/ActiveComponent';
 import MasterGitProject from '../MasterGitProject';
@@ -51,6 +51,10 @@ export default (
                   if (typeof message === 'object' && message.type === 'bakePngSequenceComplete') {
                     // @ts-ignore: some obscure typing issues prevent tests from running here.
                     global.process.removeListener('message', oneTimeHandler);
+                    if (request.format === ExporterFormat.Still) {
+                      exporterChannel.trackProgress(request, 1);
+                      return finish();
+                    }
                     exporterChannel.trackProgress(request, 0.5);
                     saveExport(request, activeComponent, (err) => {
                       if (err) {
@@ -70,7 +74,7 @@ export default (
     },
   );
 
-  exporterChannel.on(`${EXPORTER_CHANNEL}:save`, (request: ExporterRequest) => {
+  return (request: ExporterRequest) => {
     saveQueue.push(request);
-  });
+  };
 };

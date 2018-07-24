@@ -23,5 +23,9 @@ export class ExporterHandler extends EnvoyHandler {
 
   saved (request: ExporterRequest): MaybeAsync<void> {
     this.trackProgress(request, 1);
+    this.server.emit(EXPORTER_CHANNEL, {
+      payload: request,
+      name: `${EXPORTER_CHANNEL}:saved`,
+    } as EnvoyEvent);
   }
 }

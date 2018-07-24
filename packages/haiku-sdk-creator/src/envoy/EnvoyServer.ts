@@ -141,8 +141,8 @@ export default class EnvoyServer {
     });
 
     const handler = this.handlerRegistry.get(channel);
-    if (handler && handler.instance.emit) {
-      handler.instance.emit(event.name, event.payload);
+    if (handler && handler.instance.handleEventDirectly) {
+      handler.instance.handleEventDirectly(event);
     }
   }
 

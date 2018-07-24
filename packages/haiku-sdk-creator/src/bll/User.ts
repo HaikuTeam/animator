@@ -19,6 +19,14 @@ export interface OrganizationAndUser {
   user?: inkstone.user.User;
 }
 
+/**
+ * Deliberately eraseable list of privileges for the organization.
+ */
+export const enum OrganizationPrivileges {
+  PrivateProjectLimit = 'P0',
+  EnableOfflineFeatures = 'P1',
+}
+
 export class UserHandler extends EnvoyHandler {
   private organization: inkstone.organization.Organization;
   private user: inkstone.user.User;

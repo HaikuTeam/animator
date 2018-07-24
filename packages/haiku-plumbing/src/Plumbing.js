@@ -74,7 +74,6 @@ const WS_POLICY_VIOLATION_CODE = 1008;
 const METHODS_TO_SKIP_IN_SENTRY = {
   setTimelineTime: true,
   masterHeartbeat: true,
-  requestSyndicationInfo: true,
 };
 
 // Use for any methods whose parameters expose sensitive info in the logs, use keys
@@ -97,7 +96,6 @@ const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
   fetchProjectInfo: true,
   deleteProject: true,
   teardownMaster: true,
-  requestSyndicationInfo: true,
   hoverElement: true,
   unhoverElement: true,
 };
@@ -109,7 +107,6 @@ const METHODS_TO_AWAIT_FOREVER = {
   initializeFolder: true,
   saveProject: true,
   teardownMaster: true,
-  requestSyndicationInfo: true,
   deleteProject: true,
   forkProject: true,
 };
@@ -243,23 +240,32 @@ export default class Plumbing extends EventEmitter {
       haiku.envoy.host = this.envoyServer.host;
       haiku.envoy.token = HAIKU_WS_SECURITY_TOKEN;
 
-      this.envoyTimelineHandler = new TimelineHandler(this.envoyServer);
-      this.envoyTourHandler = new TourHandler(this.envoyServer);
-      this.envoyExporterHandler = new ExporterHandler(this.envoyServer);
-      this.envoyGlassHandler = new GlassHandler(this.envoyServer);
-      this.envoyUserHandler = new UserHandler(this.envoyServer);
-      this.envoyProjectHandler = new ProjectHandler(this.envoyUserHandler, this.envoyServer);
-      this.envoyServicesHandler = new ServicesHandler(this.envoyServer);
+      const timeline = new TimelineHandler(this.envoyServer);
+      const tour = new TourHandler(this.envoyServer);
+      const exporter = new ExporterHandler(this.envoyServer);
+      const glass = new GlassHandler(this.envoyServer);
+      const user = new UserHandler(this.envoyServer);
+      const project = new ProjectHandler(user, this.envoyServer);
+      const services = new ServicesHandler(this.envoyServer);
+      this.envoyHandlers = {
+        timeline,
+        tour,
+        exporter,
+        glass,
+        user,
+        project,
+        services,
+      };
 
-      this.envoyServer.bindHandler(TIMELINE_CHANNEL, TimelineHandler, this.envoyTimelineHandler);
-      this.envoyServer.bindHandler(TOUR_CHANNEL, TourHandler, this.envoyTourHandler);
-      this.envoyServer.bindHandler(EXPORTER_CHANNEL, ExporterHandler, this.envoyExporterHandler);
-      this.envoyServer.bindHandler(USER_CHANNEL, UserHandler, this.envoyUserHandler);
-      this.envoyServer.bindHandler(GLASS_CHANNEL, GlassHandler, this.envoyGlassHandler);
-      this.envoyServer.bindHandler(PROJECT_CHANNEL, ProjectHandler, this.envoyProjectHandler);
-      this.envoyServer.bindHandler(SERVICES_CHANNEL, ServicesHandler, this.envoyServicesHandler);
+      this.envoyServer.bindHandler(TIMELINE_CHANNEL, TimelineHandler, this.envoyHandlers.timeline);
+      this.envoyServer.bindHandler(TOUR_CHANNEL, TourHandler, this.envoyHandlers.tour);
+      this.envoyServer.bindHandler(EXPORTER_CHANNEL, ExporterHandler, this.envoyHandlers.exporter);
+      this.envoyServer.bindHandler(USER_CHANNEL, UserHandler, this.envoyHandlers.user);
+      this.envoyServer.bindHandler(GLASS_CHANNEL, GlassHandler, this.envoyHandlers.glass);
+      this.envoyServer.bindHandler(PROJECT_CHANNEL, ProjectHandler, this.envoyHandlers.project);
+      this.envoyServer.bindHandler(SERVICES_CHANNEL, ServicesHandler, this.envoyHandlers.services);
 
-      this.envoyUserHandler.on(`${USER_CHANNEL}:load`, ({Username}) => {
+      this.envoyHandlers.user.on(`${USER_CHANNEL}:load`, ({Username}) => {
         mixpanel.mergeToPayload({distinct_id: Username});
         if (Raven) {
           Raven.setContext({
@@ -872,6 +878,7 @@ export default class Plumbing extends EventEmitter {
             doWriteToDisk: true,
             skipDiffLogging: false,
           },
+          envoyHandlers: this.envoyHandlers,
         });
 
         cb();
@@ -938,19 +945,6 @@ export default class Plumbing extends EventEmitter {
         }, ''));
 
       return cb(null, fullEnvironmentVariables);
-    });
-  }
-
-  createProject (name, isPublic, cb) {
-    logger.info('[plumbing] creating project', name, isPublic);
-    const authToken = sdkClient.config.getAuthToken();
-    return inkstone.project.create({Name: name, IsPublic: isPublic}, (projectCreateErr, projectPayload) => {
-      if (projectCreateErr) {
-        this.sentryError('createProject', projectCreateErr);
-        return cb(projectCreateErr);
-      }
-      const remoteProjectObject = remapProjectObjectToExpectedFormat(projectPayload, getCachedOrganizationName());
-      return cb(null, remoteProjectObject);
     });
   }
 
@@ -1039,15 +1033,7 @@ export default class Plumbing extends EventEmitter {
     logger.info(`[plumbing] tearing down master ${folder}`);
     awaitAllLocksFree(() => {
       if (this.masters[folder]) {
-        this.masters[folder].active = false;
-        this.masters[folder].watchOff();
-        if (this.masters[folder].project) {
-          this.masters[folder].project.getAllActiveComponents().forEach((ac) => {
-            if (ac.$instance) {
-              ac.$instance.context.destroy();
-            }
-          });
-        }
+        this.masters[folder].halt();
       }
 
       // Since we're about to nav back to the dashboard, we're also about to drop the
@@ -1079,22 +1065,12 @@ export default class Plumbing extends EventEmitter {
     });
   }
 
-  saveProject (folder, projectName, maybeUsername, saveOptions, cb) {
+  saveProject (project, saveOptions, cb) {
     if (!saveOptions) {
       saveOptions = {};
     }
-    if (!saveOptions.authorName) {
-      saveOptions.authorName = this.get('username');
-    }
-    if (!saveOptions.organizationName) {
-      saveOptions.organizationName = getCachedOrganizationName();
-    }
     logger.info('[plumbing] saving with options', saveOptions);
-    return this.awaitMasterAndCallMethod(folder, 'saveProject', [projectName, maybeUsername, saveOptions, {from: 'master'}], cb);
-  }
-
-  requestSyndicationInfo (folder, cb) {
-    return this.awaitMasterAndCallMethod(folder, 'requestSyndicationInfo', [{from: 'master'}], cb);
+    return this.awaitMasterAndCallMethod(project.projectPath, 'saveProject', [project, saveOptions, {from: 'master'}], cb);
   }
 
   checkInkstoneUpdates (query = '', cb) {
@@ -1187,7 +1163,7 @@ Plumbing.prototype.findMasterByFolder = function (folder) {
   return this.masters[folder];
 };
 
-Plumbing.prototype.upsertMaster = function ({folder, fileOptions, envoyOptions}) {
+Plumbing.prototype.upsertMaster = function ({folder, fileOptions, envoyOptions, envoyHandlers}) {
   const remote = (payload, cb) => {
     return this.handleRemoteMessage(
       'controllee',
@@ -1206,6 +1182,7 @@ Plumbing.prototype.upsertMaster = function ({folder, fileOptions, envoyOptions})
       folder,
       fileOptions,
       envoyOptions,
+      envoyHandlers,
     );
 
     master.on('assets-changed', (master, assets) => {

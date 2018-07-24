@@ -108,8 +108,8 @@ export function createProjectFiles (
 
       logger.info('[project folder] moving/updating legacy files');
 
-        // Do a bunch of fix-ups that modify the folder content from legacy naming and folder structure.
-        // We need to change this subroutine any time we make a change to the project content structure
+      // Do a bunch of fix-ups that modify the folder content from legacy naming and folder structure.
+      // We need to change this subroutine any time we make a change to the project content structure
       const filesToMove = {
           // Core code files
         'bytecode.js': 'code/main/code.js',
@@ -241,9 +241,13 @@ export function createProjectFiles (
         </html>
       `);
 
-        // Should we try to merge these if the user made any changes?
+      // Should we try to merge these if the user made any changes?
       fse.outputFileSync(path.join(projectOptions.projectPath, '.gitignore'), dedent`
         .DS_Store
+        code/*/png-*/
+        still.png
+        animation.gif
+        animation.mp4
         *.log
         *.*.log
         node_modules
@@ -255,17 +259,17 @@ export function createProjectFiles (
         .env
       `);
       fse.outputFileSync(path.join(projectOptions.projectPath, '.npmignore'), dedent`
-          .DS_Store
-          .git
-          .svn
-          *.log
-          *.*.log
-          *.ai
-          *.sketch
-          *.svg
-          .env
-          .haiku
-        `);
+        .DS_Store
+        .git
+        .svn
+        *.log
+        *.*.log
+        *.ai
+        *.sketch
+        *.svg
+        .env
+        .haiku
+      `);
       fse.outputFileSync(path.join(projectOptions.projectPath, '.yarnignore'), dedent`
         .DS_Store
         .git

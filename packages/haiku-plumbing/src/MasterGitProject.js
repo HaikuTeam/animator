@@ -7,9 +7,7 @@ import * as semver from 'semver';
 import * as tmp from 'tmp';
 import * as lodash from 'lodash';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
-import {inkstone} from '@haiku/sdk-inkstone';
 import * as Git from './Git';
-import * as Inkstone from './Inkstone';
 import * as Lock from 'haiku-serialization/src/bll/Lock';
 import {semverBumpPackageJson} from './project-folder/semverBumpPackageJson';
 
@@ -46,9 +44,6 @@ export default class MasterGitProject extends EventEmitter {
 
     // Flag to prevent git status races where a prior commit request hasn't happened yet
     this._isCommittingLocked = false;
-
-    // Dictionary mapping SHA strings to share payloads, used for caching
-    this._shareInfoPayloads = {};
 
     // Snapshot of the current folder state as of the last gderState run
     this.folderState = {};
@@ -410,18 +405,17 @@ export default class MasterGitProject extends EventEmitter {
     });
   }
 
-  saveSnapshot (cb) {
-    Git.referenceNameToId(this.folder, 'HEAD', (gitErr, id) => {
-      if (gitErr) {
-        cb(gitErr);
-        return;
-      }
+  resolveSha () {
+    return new Promise((resolve, reject) => {
+      Git.referenceNameToId(this.folder, 'HEAD', (gitErr, id) => {
+        if (gitErr) {
+          return reject(gitErr);
+        }
 
-      logger.info('[inkstone] git HEAD resolved:', id.toString(), 'creating snapshot...');
-      inkstone.project.createSnapshot({
-        Name: this.folderState.projectName,
-        Sha: id.toString(),
-      }, cb);
+        logger.info('[inkstone] git HEAD resolved:', id.toString());
+
+        resolve(id.toString());
+      });
     });
   }
 
@@ -435,7 +429,6 @@ export default class MasterGitProject extends EventEmitter {
       return cb(); // Kinda hacky to put this here...
     }
 
-    const {repositoryUrl} = this.folderState.remoteProjectDescriptor;
     return Git.pushProjectDirectly(
       this.folder,
       this.folderState.projectName,
@@ -763,40 +756,19 @@ export default class MasterGitProject extends EventEmitter {
   }
 
   /**
-   * @method getExistingShareDataIfSaveIsUnnecessary
-   * @description Given the current folder state, determine if we need to save or if we can simply
-   * retrieve a pre-existing share link.
+   * @method doesGitHaveChanges
+   * @description Given the current folder state, determine if Git has changes.
    */
-  getExistingShareDataIfSaveIsUnnecessary (cb) {
-    return this.fetchFolderState('get-existing-share-data', {}, () => {
+  doesGitHaveChanges (cb) {
+    return this.fetchFolderState('does-git-have-changes', {}, () => {
       // TODO: We may need to look closely to see if this boolean is set properly.
       // Currently the _getFolderState method just checks to see if there are git statuses,
       // but that might not be correct (although it seemed to be when I initially checked).
       if (this.folderState.doesGitHaveChanges) {
         logger.info('[master-git] looks like git has changes; must do full save');
-        return cb(null, false); // falsy == you gotta save
+        return cb(null, true);
       }
-
-      // Inkstone should return info pretty fast if it has share info, so only wait 2s
-      return this.getCurrentShareInfo((err, shareInfo) => {
-        // Rather than treat the error as an error, assume it indicates that we need
-        // to do a full publish. For example, we don't want to "error" if this is just a network timeout.
-        // #FIXME?
-        if (err) {
-          logger.info('[master-git] share info was error-ish; must do full save');
-          return cb(null, false); // falsy == you gotta save
-        }
-
-        // Not sure why this would be null, but just in case...
-        if (!shareInfo) {
-          logger.info('[master-git] share info was blank; must do full save');
-          return cb(null, false); // falsy == you gotta save
-        }
-
-        // If we go this far, we already have a save for our current SHA, and can skip the expensive stuff
-        logger.info('[master-git] share info found! no need to save');
-        return cb(null, shareInfo);
-      });
+      return cb(null, false);
     });
   }
 
@@ -817,10 +789,6 @@ export default class MasterGitProject extends EventEmitter {
     }
     const obj = fse.readJsonSync(PLUMBING_PKG_JSON_PATH, {throws: false});
     return obj && obj.version;
-  }
-
-  getCurrentShareInfo (cb) {
-    return Inkstone.getCurrentShareInfo(this.folder, this._shareInfoPayloads, this.folderState, cb);
   }
 
   pushTagDirectly (cb) {
@@ -1007,7 +975,7 @@ export default class MasterGitProject extends EventEmitter {
     });
   }
 
-  saveProject (saveOptions, done) {
+  saveProject (project, saveOptions, done) {
     // Empty folder state since we are going to reload it in here
     this.folderState = {};
 
@@ -1021,7 +989,7 @@ export default class MasterGitProject extends EventEmitter {
       },
 
       (cb) => {
-        return this.fetchFolderState('save-project', saveOptions, (err) => {
+        return this.fetchFolderState('save-project', project, (err) => {
           if (err) {
             return cb(err);
           }
@@ -1055,7 +1023,6 @@ export default class MasterGitProject extends EventEmitter {
         const teardownSteps = [
           'commitEverything',
           'makeTag',
-          'saveSnapshot',
         ];
 
         const actionSequence = [];
@@ -1066,7 +1033,7 @@ export default class MasterGitProject extends EventEmitter {
         }
 
         logger.info('[master-git] project save: action sequence:', actionSequence);
-        return this.runActionSequence(actionSequence, saveOptions, cb);
+        return this.runActionSequence(actionSequence, project, cb);
       },
     ], (err) => {
       if (err) {
@@ -1079,13 +1046,11 @@ export default class MasterGitProject extends EventEmitter {
       // Conflicts aren't returned as an error because the frontend expects them as part of the response payload.
       if (this.folderState.didHaveConflicts) {
         // A fake conflicts object for now
-        // #TODO add real thing
-        done(null, {conflicts: [1]});
+        done({conflicts: [1]});
         return;
       }
 
-      // TODO: We really shouldn't need to make the extra API call since the last result returned is the whole snapshot.
-      this.getCurrentShareInfo(done);
+      done();
     });
   }
 }

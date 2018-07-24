@@ -11,6 +11,8 @@ export const enum Endpoints {
   ProjectResourceCollection = '/project',
   ProjectResource = '/project/:project_name',
   ProjectSnapshotResource = '/project/:project_name/snapshot/:sha',
+  ProjectSnapshotSyndicated = '/project/:project_name/snapshot/:sha/syndicated',
+  ProjectSnapshotAssetResource = '/project/:project_name/snapshot/:sha/asset/:filename',
 
   // Organization.
   OrganizationResourceCollection = '/organization',
@@ -118,9 +120,9 @@ export class RequestBuilder {
         url: this.fullUrl,
       },
       (err, httpResponse, body) => {
-        if (err) {
-          const errorCode =
-            httpResponse && httpResponse.headers && httpResponse.headers[INKSTONE_ERROR_HEADER] as string;
+        const errorCode =
+          httpResponse && httpResponse.headers && httpResponse.headers[INKSTONE_ERROR_HEADER] as string;
+        if (err || errorCode) {
           return cb(new Error(errorCode || 'E_UNCATEGORIZED'), httpResponse, body);
         }
         cb(null, httpResponse, body);

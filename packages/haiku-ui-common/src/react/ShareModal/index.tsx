@@ -1,5 +1,4 @@
-import {inkstone} from '@haiku/sdk-inkstone';
-import {ProjectHandler} from 'haiku-sdk-creator/lib/bll/Project';
+import {HaikuShareUrls, ProjectHandler} from 'haiku-sdk-creator/lib/bll/Project';
 import * as React from 'react';
 import {ModalHeader, ModalNotice, ModalWrapper} from '../Modal';
 import {RevealPanel} from '../RevealPanel';
@@ -26,14 +25,12 @@ export interface ShareModalProps {
   snapshotSaveConfirmed: boolean;
   isSnapshotSaveInProgress: boolean;
   snapshotSyndicated: boolean;
-  snapshotPublished: boolean;
   semverVersion: string;
   userName: string;
   organizationName: string;
-  projectUid: string;
   projectName: string;
-  sha: string;
   mixpanel: any;
+  urls: HaikuShareUrls;
   onProjectPublicChange: (state: boolean) => void;
 }
 
@@ -55,11 +52,6 @@ export interface ShareModalStates {
 
 export class ShareModal extends React.Component<ShareModalProps, ShareModalStates> {
   error: Error;
-
-  static defaultProps = {
-    projectUid: '',
-    sha: '',
-  };
 
   private boundTogglePublic = () => this.togglePublic();
   private boundHideDetails = () => this.hideDetails();
@@ -88,7 +80,7 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
 
     if (nextProps.envoyProject && nextProps.projectName && nextProps.projectName !== this.props.projectName) {
       nextProps.envoyProject.getProject(nextProps.projectName).then((project) => {
-        this.setState({isPublic: project.IsPublic});
+        this.setState({isPublic: project.isPublic});
       });
     }
   }
@@ -124,11 +116,8 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
       semverVersion,
       isSnapshotSaveInProgress,
       snapshotSyndicated,
-      snapshotPublished,
       userName,
       organizationName,
-      sha,
-      projectUid,
       mixpanel,
     } = this.props;
 
@@ -153,7 +142,6 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
             <EmbedList
               isSnapshotSaveInProgress={isSnapshotSaveInProgress}
               snapshotSyndicated={snapshotSyndicated}
-              snapshotPublished={snapshotPublished}
               mixpanel={mixpanel}
               onOptionClicked={this.boundOptionClicked}
             />
@@ -164,8 +152,7 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
               projectName={project.projectName}
               userName={userName}
               organizationName={organizationName}
-              projectUid={projectUid}
-              sha={sha}
+              urls={this.props.urls}
               mixpanel={mixpanel}
               onHide={this.boundHideDetails}
             />
