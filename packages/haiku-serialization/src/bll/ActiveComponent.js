@@ -3664,7 +3664,7 @@ class ActiveComponent extends BaseModel {
             },
             customRehydrate: () => {
               const componentIds = {}
-              
+
               for (const timelineName in keyframeUpdates) {
                 for (const componentId in keyframeUpdates[timelineName]) {
                   componentIds[componentId] = true
