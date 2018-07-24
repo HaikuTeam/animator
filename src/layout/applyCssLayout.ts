@@ -17,7 +17,7 @@ function hasExplicitStyle (domElement, key) {
   if (!domElement.haiku.explicitStyles) {
     return false;
   }
-  return !!domElement.haiku.explicitStyles[key];
+  return domElement.haiku.explicitStyles[key] !== undefined;
 }
 
 export default function applyCssLayout (domElement, virtualElement, nodeLayout, computedLayout, context) {
