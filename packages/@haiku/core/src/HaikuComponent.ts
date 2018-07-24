@@ -1088,25 +1088,32 @@ export default class HaikuComponent extends HaikuElement {
     if (this.doPreserve3d) {
       const node = this.node;
       if (node) {
-        ensure3dPreserved(this, node);
-        node.__memory.patched = true;
+        const didNodePreserve3dChange = ensure3dPreserved(this, node);
+        if (didNodePreserve3dChange) {
+          node.__memory.patched = true;
+        }
       }
 
       // The wrapper also needs preserve-3d set for 3d-preservation to work
       const parent = this.parentNode; // This should be the "wrapper div" node
       if (parent) {
-        ensure3dPreserved(this, parent);
-        parent.__memory.patched = true;
+        const didParentPreserve3dChange = ensure3dPreserved(this, parent);
+        if (didParentPreserve3dChange) {
+          parent.__memory.patched = true;
+        }
       }
     }
 
     if (!this.host && options.sizing) {
-      computeAndApplyPresetSizing(
+      const didSizingChange = computeAndApplyPresetSizing(
         this.bytecode.template,
         this.container,
         options.sizing,
       );
-      this.bytecode.template.__memory.patched = true;
+
+      if (didSizingChange) {
+        this.bytecode.template.__memory.patched = true;
+      }
     }
   }
 
@@ -2381,14 +2388,20 @@ const ensure3dPreserved = (component, node) => {
     return;
   }
 
+  let changed = false;
+
   // Only preserve 3D behavior if the node hasn't been *explicitly* defined yet
   if (!node.attributes.style.transformStyle) {
     node.attributes.style.transformStyle = 'preserve-3d';
+
+    changed = true;
 
     if (!node.attributes.style.perspective) {
       node.attributes.style.perspective = 'inherit';
     }
   }
+
+  return changed;
 };
 
 const computeAndApplyPresetSizing = (element, container, mode): boolean => {
