@@ -377,7 +377,13 @@ export const visit = (
 
   if (mana.children) {
     for (let i = 0; i < mana.children.length; i++) {
-      visit(mana.children[i], visitor, mana);
+      const child = mana.children[i];
+
+      if (child && child.__memory && child.__memory.instance) {
+        continue;
+      }
+
+      visit(child, visitor, mana);
     }
   }
 };
