@@ -644,7 +644,14 @@ export default class HaikuDOMRenderer extends HaikuBase {
       assignAttributes(domElement, virtualElement, component, isPatchOperation);
     }
 
-    applyLayout(domElement, virtualElement, parentNode, parentVirtualElement, component, isPatchOperation);
+    applyLayout(
+      domElement,
+      virtualElement,
+      parentNode,
+      parentVirtualElement,
+      component,
+      isPatchOperation
+    );
 
     if (incomingKey !== undefined && incomingKey !== null) {
       domElement.haiku.key = incomingKey;
