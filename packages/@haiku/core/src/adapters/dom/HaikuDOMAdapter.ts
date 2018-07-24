@@ -68,13 +68,6 @@ const HaikuDOMAdapter: DOMAdapter = (bytecode, config?, safeWindow?) => {
     }
   }
 
-  if (config.useWebkitPrefix === undefined) {
-    // Allow headless mode, e.g. in server-side rendering or in Node.js unit tests
-    if (safeWindow && safeWindow.document) {
-      config.useWebkitPrefix = 'WebkitAppearance' in safeWindow.document.documentElement.style;
-    }
-  }
-
   return HaikuContext.createComponentFactory(
     dom,
     bytecode,

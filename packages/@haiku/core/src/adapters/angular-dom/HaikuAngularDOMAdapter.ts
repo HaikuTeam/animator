@@ -101,8 +101,6 @@ export default function HaikuAngularDOMAdapter (
     @Input()
     mixpanel: string;
     @Input()
-    useWebkitPrefix?: boolean;
-    @Input()
     interactionMode?: string;
     @Input()
     states?: {[key in string]: any};
