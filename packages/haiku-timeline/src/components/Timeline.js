@@ -1277,7 +1277,8 @@ class Timeline extends React.Component {
             <GaugeTimeReadout reactParent={this} timeline={timeline} />
           </div>
         ),
-        (<SimplifiedFrameGrid
+        (
+          <SimplifiedFrameGrid
             key="frame-grid"
             timeline={timeline}
             timelineOffsetPadding={TIMELINE_OFFSET_PADDING}
@@ -1389,6 +1390,12 @@ class Timeline extends React.Component {
     this.disableTimelinePointerEvents();
     this.mouseMoveListener(event);
   }
+
+  onCommitValue = (committedValue, row, ms) => {
+    logger.info('commit', JSON.stringify(committedValue), 'at', ms, 'on', row.dump());
+    this.props.mixpanel.haikuTrack('creator:timeline:create-keyframe');
+    row.createKeyframe(committedValue, ms, {from: 'timeline'});
+  };
 
   mouseMoveListener (evt) {
     if (!this._doHandleMouseMovesInGauge) {
@@ -1665,11 +1672,7 @@ class Timeline extends React.Component {
           reactParent={this}
           component={this.getActiveComponent()}
           timeline={this.getActiveComponent().getCurrentTimeline()}
-          onCommitValue={(committedValue, row, ms) => {
-            logger.info('commit', JSON.stringify(committedValue), 'at', ms, 'on', row.dump());
-            this.props.mixpanel.haikuTrack('creator:timeline:create-keyframe');
-            row.createKeyframe(committedValue, ms, {from: 'timeline'});
-          }}
+          onCommitValue={this.onCommitValue}
           onFocusRequested={() => {
             const selected = this.getActiveComponent().getSelectedRows()[0];
             if (selected.isProperty()) {
