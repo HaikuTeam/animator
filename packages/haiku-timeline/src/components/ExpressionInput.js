@@ -352,10 +352,12 @@ export default class ExpressionInput extends React.Component {
         });
       }
 
-      this.props.onCommitValue(committable);
+      // Store the current selected row and ms before navigating
+      const row = this.props.component.getFocusedRow();
+      const ms = this.props.component.getCurrentTimeline().getCurrentMs();
 
-      // Once finished with a successful commit, navigate to 'select' the next cell
       this.requestNavigate(maybeNavigationDirection, doFocusSubsequentCell);
+      this.props.onCommitValue(committable, row, ms);
     }
   }
 
