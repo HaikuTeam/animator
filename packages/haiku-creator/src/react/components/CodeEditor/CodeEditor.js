@@ -8,6 +8,8 @@ import MonacoEditor from './MonacoEditor';
 import SaveContentsPopup from './SaveContentsPopup';
 import BytecodeErrorPopup from './BytecodeErrorPopup';
 
+const EDITOR_FONT = 'Fira Mono';
+
 class CodeEditor extends React.Component {
   constructor (props) {
     super(props);
@@ -23,6 +25,7 @@ class CodeEditor extends React.Component {
     };
 
     this.state = {
+      fontLoaded: false,
       currentComponentCode: '',
       currentEditorContents: '',
       currentBytecodeError: null,
@@ -59,6 +62,10 @@ class CodeEditor extends React.Component {
       // Reload monaco contents on component load (eg. changing active component, loading a new project, ..)
       this.props.projectModel.on('update', this.onProjectModelUpdate);
     }
+
+    document.fonts.load(`1em ${EDITOR_FONT}`).then(() => {
+      this.setState({fontLoaded: true});
+    });
   }
 
   componentWillUnmount () {
@@ -120,6 +127,10 @@ class CodeEditor extends React.Component {
   }
 
   render () {
+    if (!this.state.fontLoaded) {
+      return null;
+    }
+
     const monacoOptions = {
       language: 'javascript',
       lineNumbers: 'on',
@@ -132,7 +143,7 @@ class CodeEditor extends React.Component {
       parameterHints: false,
       cursorBlinking: 'blink',
       scrollBeyondLastLine: false,
-      fontFamily: 'Fira Mono',
+      fontFamily: EDITOR_FONT,
     };
 
     return (
