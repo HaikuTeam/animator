@@ -615,7 +615,17 @@ export default class Creator extends React.Component {
       }
     });
 
-    this.user.getConfig(UserSettings.lastViewedChangelog).then((lastViewedChangelog = process.env.HAIKU_RELEASE_VERSION) => {
+    this.user.getConfig(UserSettings.lastViewedChangelog).then((changelogVersion) => {
+      let lastViewedChangelog = changelogVersion;
+
+      // If the user doesn't have a lastViewedChangelog config set, set it to the
+      // current version (ie don't show the changelog). This is usually the case
+      // for brand new users.
+      if (!lastViewedChangelog) {
+        lastViewedChangelog = process.env.HAIKU_RELEASE_VERSION;
+        this.user.setConfig(UserSettings.lastViewedChangelog, lastViewedChangelog);
+      }
+
       this.setState({lastViewedChangelog});
     });
   }
