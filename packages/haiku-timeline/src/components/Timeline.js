@@ -1665,9 +1665,7 @@ class Timeline extends React.Component {
           reactParent={this}
           component={this.getActiveComponent()}
           timeline={this.getActiveComponent().getCurrentTimeline()}
-          onCommitValue={(committedValue) => {
-            const row = this.getActiveComponent().getFocusedRow();
-            const ms = this.getActiveComponent().getCurrentTimeline().getCurrentMs();
+          onCommitValue={(committedValue, row, ms) => {
             logger.info('commit', JSON.stringify(committedValue), 'at', ms, 'on', row.dump());
             this.props.mixpanel.haikuTrack('creator:timeline:create-keyframe');
             row.createKeyframe(committedValue, ms, {from: 'timeline'});
