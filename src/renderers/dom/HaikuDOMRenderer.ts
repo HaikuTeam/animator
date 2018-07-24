@@ -645,6 +645,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
     }
 
     applyLayout(domElement, virtualElement, parentNode, parentVirtualElement, component, isPatchOperation);
+
     if (incomingKey !== undefined && incomingKey !== null) {
       domElement.haiku.key = incomingKey;
     }
@@ -674,7 +675,14 @@ export default class HaikuDOMRenderer extends HaikuBase {
       );
     } else if (!virtualElement.children) {
       // In case of falsy virtual children, we still need to remove elements that were already there
-      HaikuDOMRenderer.renderTree(domElement, virtualElement, [], instance, isPatchOperation, null);
+      HaikuDOMRenderer.renderTree(
+        domElement,
+        virtualElement,
+        [],
+        instance,
+        isPatchOperation,
+        null
+      );
     }
 
     return domElement;
@@ -753,7 +761,12 @@ export default class HaikuDOMRenderer extends HaikuBase {
       } else if (virtualChild) {
         if (!domChild) {
           const insertedElement = HaikuDOMRenderer.appendChild(
-            null, virtualChild, domElement, virtualElement, component);
+            null,
+            virtualChild,
+            domElement,
+            virtualElement,
+            component
+          );
           connectTarget(virtualChild, insertedElement);
         } else {
           // Circumstances in which we want to completely *replace* the element:
@@ -763,13 +776,26 @@ export default class HaikuDOMRenderer extends HaikuBase {
           // If we now have an element that is different, we need to trigger a full re-render
           // of itself and all of its children, because e.g. url(#...) references will retain pointers to
           // old elements and this is the only way to clear the DOM to get a correct render.
-          if (HaikuDOMRenderer.shouldElementBeReplaced(domChild, virtualChild, component)) {
+          const shouldReplace = HaikuDOMRenderer.shouldElementBeReplaced(domChild, virtualChild, component);
+
+          if (shouldReplace) {
             const newElement = HaikuDOMRenderer.replaceElement(
-              domChild, virtualChild, domElement, virtualElement, component);
+              domChild,
+              virtualChild,
+              domElement,
+              virtualElement,
+              component,
+            );
             connectTarget(virtualChild, newElement);
           } else {
             HaikuDOMRenderer.updateElement(
-              domChild, virtualChild, domElement, virtualElement, component, isPatchOperation);
+              domChild,
+              virtualChild,
+              domElement,
+              virtualElement,
+              component,
+              isPatchOperation
+            );
             connectTarget(virtualChild, domChild);
           }
         }
