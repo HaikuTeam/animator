@@ -569,9 +569,12 @@ export default class HaikuComponent extends HaikuElement {
 
     const out = {};
 
-    HaikuTimeline.where({component: this}).forEach((timeline) => {
+    const timelines = HaikuTimeline.where({component: this})
+
+    for (let j = 0; j < timelines.length; j++) {
+      const timeline = timelines[j];
       out[timeline.getName()] = timeline;
-    });
+    }
 
     return out;
   }
@@ -1251,7 +1254,9 @@ export default class HaikuComponent extends HaikuElement {
 
     const out = [];
 
-    nodes.forEach((node) => {
+    for (let i = 0; i < nodes.length; i++) {
+      const node = nodes[i];
+
       const repeatees = findRespectiveRepeatees(node);
 
       // If the node in question is the descendant of a repeater, we need to find all repeated
@@ -1262,7 +1267,7 @@ export default class HaikuComponent extends HaikuElement {
       } else {
         out.push(node);
       }
-    });
+    }
 
     return out;
   }
@@ -1641,12 +1646,15 @@ export default class HaikuComponent extends HaikuElement {
       return parsee;
     }
 
-    keys.forEach((ms) => {
+    for (let i = 0; i < keys.length; i++) {
+      const ms = keys[i];
+
       if (skipStableParsees && parsee[ms] && !parsee[ms].expression) {
-        return;
+        break;
       }
 
       const descriptor = cluster[ms];
+
       if (isFunction(descriptor.value)) {
         parsee[ms] = {
           expression: true,
@@ -1670,7 +1678,7 @@ export default class HaikuComponent extends HaikuElement {
       if (descriptor.curve) {
         parsee[ms].curve = descriptor.curve;
       }
-    });
+    }
 
     if (keys.length > 1) {
       let parser = this.getParser(outputName);
@@ -1683,9 +1691,10 @@ export default class HaikuComponent extends HaikuElement {
         return parsee;
       }
 
-      keys.forEach((ms) => {
-        parsee[ms].value = parser(parsee[ms].value);
-      });
+      for (let j = 0; j < keys.length; j++) {
+        const ms2 = keys[j];
+        parsee[ms2].value = parser(parsee[ms2].value);
+      }
 
       if (outputName === 'd') {
         synchronizePathStructure(...keys.map((ms) => parsee[ms].value));
