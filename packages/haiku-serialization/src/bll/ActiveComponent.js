@@ -3664,30 +3664,27 @@ class ActiveComponent extends BaseModel {
             },
             customRehydrate: () => {
               const componentIds = {}
-
+              
               for (const timelineName in keyframeUpdates) {
                 for (const componentId in keyframeUpdates[timelineName]) {
-                  // Only run once for each component id
-                  if (componentIds[componentId]) continue
                   componentIds[componentId] = true
-
-                  const element = this.findElementByComponentId(componentId)
-
-                  // Not all views necessarily have the same collection of elements
-                  if (element) {
-                    Row.where({ component: this, element }).forEach((row) => {
-                      row.rehydrate()
-                    })
-                  }
                 }
+              }
+
+              for (const id in typeUpdates) {
+                componentIds[id] = true
               }
 
               if (options.setElementLockStatus) {
                 for (const elID in options.setElementLockStatus) {
-                  const element = this.findElementByComponentId(elID)
-                  Row.where({ component: this, element }).forEach((row) => {
-                    row.rehydrate()
-                  })
+                  componentIds[elID] = true
+                }
+              }
+
+              for (const id in componentIds) {
+                const el = this.findElementByComponentId(id)
+                if (el) {
+                  el.rehydrateRows()
                 }
               }
             }
