@@ -951,9 +951,11 @@ export default class HaikuComponent extends HaikuElement {
       this.context.getContainer(true); // Force recalc of container
     }
 
+    const patches = this.patch(options, skipCache);
+
     renderer.patch(
       this,
-      this.patch(options, skipCache),
+      patches,
     );
 
     for (const $id in this.guests) {
