@@ -899,7 +899,7 @@ class Timeline extends React.Component {
     }
   }
 
-  handleHorizontalScroll (origDelta) {
+  handleHorizontalScroll (origDelta, isNonnative) {
     if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
       const timeline = this.getActiveComponent().getCurrentTimeline();
       let scrollDelta = timeline.getScrollLeft() + origDelta;
@@ -908,7 +908,11 @@ class Timeline extends React.Component {
         scrollDelta = 0;
       }
 
-      timeline.setScrollLeft(scrollDelta);
+      if (isNonnative) {
+        timeline.setScrollLeftFromScrollbar(scrollDelta);
+      } else {
+        timeline.setScrollLeft(scrollDelta);
+      }
     } else {
       const motionDelta = Math.round((origDelta ? origDelta < 0 ? -1 : 1 : 0) * (Math.log(Math.abs(origDelta) + 1) * 2));
       this.getActiveComponent().getCurrentTimeline().updateVisibleFrameRangeByDelta(motionDelta);
@@ -955,7 +959,12 @@ class Timeline extends React.Component {
             this.getActiveComponent().getCurrentTimeline().updateScrubberPositionByDelta(-1);
           }
         } else {
-          this.getActiveComponent().getCurrentTimeline().updateVisibleFrameRangeByDelta(-1);
+          if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+            nativeEvent.preventDefault();
+            this.handleHorizontalScroll(-15, true);
+          } else {
+            this.getActiveComponent().getCurrentTimeline().updateVisibleFrameRangeByDelta(-1);
+          }
         }
         break;
 
@@ -963,7 +972,12 @@ class Timeline extends React.Component {
         if (this.state.isCommandKeyDown || (experimentIsEnabled(Experiment.NativeTimelineScroll) && this.isCommandKeyDown)) {
           this.getActiveComponent().getCurrentTimeline().updateScrubberPositionByDelta(1);
         } else {
-          this.getActiveComponent().getCurrentTimeline().updateVisibleFrameRangeByDelta(1);
+          if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+            nativeEvent.preventDefault();
+            this.handleHorizontalScroll(15, true);
+          } else {
+            this.getActiveComponent().getCurrentTimeline().updateVisibleFrameRangeByDelta(1);
+          }
         }
         break;
 
