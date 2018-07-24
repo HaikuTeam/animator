@@ -7,7 +7,7 @@ const DEFAULT_CHANGELOG_PATH = path.join(__dirname, '..', '..', '..', '..', 'cha
 
 class Changelog {
   constructor (
-    lastViewedChangelog = '0.0.0',
+    lastViewedChangelog = process.env.HAIKU_RELEASE_VERSION,
     changelogPath = DEFAULT_CHANGELOG_PATH
   ) {
     this.cachedChangelog = null

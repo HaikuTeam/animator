@@ -42,8 +42,8 @@ tape('Changelog.readChangelogs returns changelogs ordered by version', async (t)
   }
 })
 
-tape('Changelog.readChangelogs returns an aggregated changelog of all changelogs if no prior version is provided', async (t) => {
-  t.plan(4)
+tape('Changelog.readChangelogs uses the current version by default if no version is provided', async (t) => {
+  t.plan(3)
 
   try {
     const changelogManager = new Changelog(null, 'test/fixtures/changelog/')
@@ -52,7 +52,6 @@ tape('Changelog.readChangelogs returns an aggregated changelog of all changelogs
     t.equal(changelog.version, '4.3.2')
     t.ok(changelog.sections["Fixes"])
     t.ok(changelog.sections["What's new"])
-    t.ok(changelog.sections["1.2.3 Heading"])
   } catch (e) {
     t.error(e)
   }
