@@ -19,17 +19,19 @@ module.exports = {
     "haiku:Asdf-0ae0430248b19159": {
       "timeline:Default:2": {
         handler: function(target, event) {
-          console.log(this.$id,'pause');
+          console.log(this.$id,"timeline:Default:2",'pause');
           this.pause();
         }
       },
       "timeline:Default:15": {
         handler: function(target, event) {
+          console.log(this.$id,"timeline:Default:15",'pause');
           this.pause();
         }
       },
       click: {
         handler: function(target, event) {
+          console.log(this.$id,"click",'gotoAndPlay 3');
           this.gotoAndPlay(3);
         }
       }

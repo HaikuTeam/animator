@@ -24,11 +24,18 @@ module.exports = {
         "style.position": { "0": { value: "relative" } },
         "style.overflowX": { "0": { value: "hidden" } },
         "style.overflowY": { "0": { value: "hidden" } },
-        "sizeAbsolute.x": { "0": { value: 550 } },
+        "sizeAbsolute.x": { "0": { value: 550 }, "1000": { value: 550 } },
         "sizeAbsolute.y": { "0": { value: 400 } },
         "sizeMode.x": { "0": { value: 1 } },
         "sizeMode.y": { "0": { value: 1 } },
-        "sizeMode.z": { "0": { value: 1 } }
+        "sizeMode.z": { "0": { value: 1 } },
+        "style.backgroundColor": {
+          "0": {
+            value: Haiku.inject(function($timeline) {
+              return 'rgb('+($timeline.frame*2)%255+','+($timeline.frame*2)%255+','+($timeline.frame*2)%255+')'
+            }, '$timeline')
+          }
+        }
       },
       "haiku:Asdf-57bfef02bb474efa": {
         "style.position": { "0": { value: "absolute" } },
@@ -45,7 +52,7 @@ module.exports = {
         "origin.x": { "0": { value: 0.5 } },
         "origin.y": { "0": { value: 0.5 } },
         "style.zIndex": { "0": { value: 1 } },
-        playback: { "0": { value: "loop" }, "250": { value: "loop" } }
+        playback: { "0": { value: "loop" } }
       },
       "haiku:Asdf-71083cd1d52bf2c9": {
         "style.position": { "0": { value: "absolute" } },

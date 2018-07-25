@@ -4,7 +4,8 @@ module.exports = HaikuDOMAdapter(require('./code'), {
     let f = 0;
 
     const incr = () => {
-      instance.controlTime('Default', (f++) * 16.666)
+      const t = (f++) * 16.666
+      instance.controlTime('Default', t)
     };
 
     incr();
