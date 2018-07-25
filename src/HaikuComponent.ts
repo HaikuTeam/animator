@@ -1458,7 +1458,10 @@ export default class HaikuComponent extends HaikuElement {
   }
 
   emitFromRootComponent (eventName: string, attachedObject: any) {
-    this.getRootComponent().emit(eventName, attachedObject);
+    this.getRootComponent().emit(eventName, {
+      ...attachedObject,
+      componentTitle: this.title, // HaikuElement#get title
+    });
   }
 
   evaluate (expr: string) {
