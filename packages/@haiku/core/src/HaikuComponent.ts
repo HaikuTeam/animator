@@ -1485,8 +1485,13 @@ export default class HaikuComponent extends HaikuElement {
         '$core',
         '$element',
         '$host',
+        '$if',
+        '$index',
         '$mount',
         '$parent',
+        '$payload',
+        '$placeholder',
+        '$repeat',
         '$state',
         '$timeline',
         '$top',
@@ -1504,8 +1509,13 @@ export default class HaikuComponent extends HaikuElement {
         this.summon('$core'),
         this.summon('$element'),
         this.summon('$host'),
+        this.summon('$if'),
+        this.summon('$index'),
         this.summon('$mount'),
         this.summon('$parent'),
+        this.summon('$payload'),
+        this.summon('$placeholder'),
+        this.summon('$repeat'),
         this.summon('$state'),
         this.summon('$timeline'),
         this.summon('$top'),
@@ -3641,7 +3651,81 @@ INJECTABLES.$flow = {
   },
 };
 
+INJECTABLES.$repeat = {
+  schema: {},
+  summon (injectees, component: HaikuComponent, node) {
+    if (!injectees.$repeat) {
+      injectees.$repeat = {};
+    }
+
+    const repeatNode = getRepeatHostNode(node);
+
+    injectees.$repeat = (repeatNode && repeatNode.__memory.repeatee) || {
+      instructions: [],
+      payload: {},
+      source: repeatNode,
+      index: 0,
+    };
+  }
+};
+
+INJECTABLES.$if = {
+  schema: {},
+  summon (injectees, component: HaikuComponent, node) {
+    if (!injectees.$if) {
+      injectees.$if = {};
+    }
+
+    const ifNode = getIfHostNode(node);
+
+    injectees.$if = (ifNode && ifNode.__memory.if) || {
+      answer: null,
+    };
+  }
+};
+
+INJECTABLES.$placeholder = {
+  schema: {},
+  summon (injectees, component: HaikuComponent, node) {
+    if (!injectees.$placeholder) {
+      injectees.$placeholder = {};
+    }
+
+    injectees.$placeholder = node.__memory.placeholder || {
+      value: null,
+      surrogate: null,
+    };
+  },
+};
+
+INJECTABLES.$index = {
+  schema: {},
+  summon (injectees, component: HaikuComponent, node) {
+    const repeatNode = getRepeatHostNode(node);
+
+    injectees.$index = (
+      repeatNode &&
+      repeatNode.__memory.repeatee &&
+      repeatNode.__memory.repeatee.index
+    ) || 0;
+  }
+};
+
+INJECTABLES.$payload = {
+  schema: {},
+  summon (injectees, component: HaikuComponent, node) {
+    const repeatNode = getRepeatHostNode(node);
+
+    injectees.$payload = (
+      repeatNode &&
+      repeatNode.__memory.repeatee &&
+      repeatNode.__memory.repeatee.payload
+    ) || {};
+  }
+};
+
 INJECTABLES.$helpers = {
+  schema: {},
   summon (injectees, component: HaikuComponent) {
     injectees.$helpers = component.helpers;
   },
