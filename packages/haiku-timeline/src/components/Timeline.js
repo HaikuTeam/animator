@@ -513,11 +513,11 @@ class Timeline extends React.Component {
     });
 
     if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+      // If you are looking for the scroll listener event, it's attached to
+      // this.container on `attachContainerElement`
       this.addEmitterListener(window, 'wheel', (wheelEvent) => {
         if (wheelEvent.ctrlKey) {
           this.handleZoomThrottled(wheelEvent);
-        } else {
-          this.handleScroll(wheelEvent);
         }
       }, {passive: true});
     } else {
@@ -538,7 +538,7 @@ class Timeline extends React.Component {
       if (timeline) {
         const frameInfo = timeline.getFrameInfo();
         if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-          pxInTimeline = mouseMoveEvent.clientX + (this.refs.container.scrollLeft || 0) - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() - TIMELINE_OFFSET_PADDING;
+          pxInTimeline = mouseMoveEvent.clientX + (this.container.scrollLeft || 0) - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() - TIMELINE_OFFSET_PADDING;
         } else {
           pxInTimeline = mouseMoveEvent.clientX - timeline.getPropertiesPixelWidth();
         }
@@ -574,9 +574,9 @@ class Timeline extends React.Component {
           const rowElement = document.getElementById(`component-heading-row-${row.element.getComponentId()}-${row.getAddress()}`);
 
           if (rowElement) {
-            this.refs.container.scroll({
+            this.container.scroll({
               top: rowElement.offsetTop,
-              left: this.refs.container.scrollLeft,
+              left: this.container.scrollLeft,
               behavior: 'smooth',
             });
           }
@@ -615,7 +615,7 @@ class Timeline extends React.Component {
     if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
       this.addEmitterListenerIfNotAlreadyRegistered(timeline, 'update', (what, ...args) => {
         if (what === 'timeline-scroll-from-scrollbar') {
-          this.refs.container.scrollLeft = timeline.getScrollLeft();
+          this.container.scrollLeft = timeline.getScrollLeft();
         }
       });
     }
@@ -895,25 +895,26 @@ class Timeline extends React.Component {
     }
 
     if (scrollEvent.deltaX >= 1 || scrollEvent.deltaX <= -1) {
+      // FIXME: This is providing a delta to `handleHorizontalScroll` only because
+      // Experiments.NativeTimelineScroll is not retired, and we need it to calculate
+      // the scroll in the old code. Apologies about this, and please don't be confused.
       return this.handleHorizontalScroll(scrollEvent.deltaX);
     }
   }
 
-  handleHorizontalScroll (origDelta) {
+  handleHorizontalScrollByDelta = (delta) => {
+    const timeline = this.getActiveComponent().getCurrentTimeline();
+    timeline.setScrollLeftFromScrollbar(timeline.getScrollLeft() + delta);
+  };
+
+  handleHorizontalScroll = (origDelta) => {
     if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-      const timeline = this.getActiveComponent().getCurrentTimeline();
-      let scrollDelta = timeline.getScrollLeft() + origDelta;
-
-      if (scrollDelta < 0) {
-        scrollDelta = 0;
-      }
-
-      timeline.setScrollLeft(scrollDelta);
+      this.getActiveComponent().getCurrentTimeline().setScrollLeftFromScrollbar(this.container.scrollLeft);
     } else {
       const motionDelta = Math.round((origDelta ? origDelta < 0 ? -1 : 1 : 0) * (Math.log(Math.abs(origDelta) + 1) * 2));
       this.getActiveComponent().getCurrentTimeline().updateVisibleFrameRangeByDelta(motionDelta);
     }
-  }
+  };
 
   handleRequestElementCoordinates ({selector, webview}) {
     requestElementCoordinates({
@@ -955,7 +956,12 @@ class Timeline extends React.Component {
             this.getActiveComponent().getCurrentTimeline().updateScrubberPositionByDelta(-1);
           }
         } else {
-          this.getActiveComponent().getCurrentTimeline().updateVisibleFrameRangeByDelta(-1);
+          if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+            nativeEvent.preventDefault();
+            this.handleHorizontalScrollByDelta(-15);
+          } else {
+            this.getActiveComponent().getCurrentTimeline().updateVisibleFrameRangeByDelta(-1);
+          }
         }
         break;
 
@@ -963,7 +969,12 @@ class Timeline extends React.Component {
         if (this.state.isCommandKeyDown || (experimentIsEnabled(Experiment.NativeTimelineScroll) && this.isCommandKeyDown)) {
           this.getActiveComponent().getCurrentTimeline().updateScrubberPositionByDelta(1);
         } else {
-          this.getActiveComponent().getCurrentTimeline().updateVisibleFrameRangeByDelta(1);
+          if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+            nativeEvent.preventDefault();
+            this.handleHorizontalScrollByDelta(15);
+          } else {
+            this.getActiveComponent().getCurrentTimeline().updateVisibleFrameRangeByDelta(1);
+          }
         }
         break;
 
@@ -1401,6 +1412,11 @@ class Timeline extends React.Component {
     row.createKeyframe(committedValue, ms, {from: 'timeline'});
   };
 
+  attachContainerElement = (container) => {
+    this.container = container;
+    this.addEmitterListener(this.container, 'scroll', this.handleHorizontalScroll);
+  };
+
   mouseMoveListener (evt) {
     if (!this._doHandleMouseMovesInGauge) {
       return;
@@ -1408,7 +1424,7 @@ class Timeline extends React.Component {
 
     const frameInfo = this.getActiveComponent().getCurrentTimeline().getFrameInfo();
     const leftX = experimentIsEnabled(Experiment.NativeTimelineScroll)
-      ? evt.clientX + (this.refs.container.scrollLeft || 0) - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() - TIMELINE_OFFSET_PADDING
+      ? evt.clientX + (this.container.scrollLeft || 0) - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() - TIMELINE_OFFSET_PADDING
       : evt.clientX - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth();
 
     const frameX = Math.round(leftX / frameInfo.pxpf);
@@ -1604,7 +1620,7 @@ class Timeline extends React.Component {
 
     return (
       <div
-        ref="container"
+        ref={this.attachContainerElement}
         id="timeline"
         className="no-select"
         onClick={(clickEvent) => {
@@ -1660,16 +1676,6 @@ class Timeline extends React.Component {
         >
           {this.renderComponentRows()}
         </ScrollView>
-        {experimentIsEnabled(Experiment.NativeTimelineScroll) &&
-          <div style={{
-            position: 'fixed',
-            top: this.state.rowHeight * this.getActiveComponent().getRows().length,
-            bottom: 0,
-            width: this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth(),
-            backgroundColor: Palette.GRAY,
-            zIndex: zIndex.backgroundHelper.base,
-          }} />
-        }
         {this.renderBottomControls()}
         <ExpressionInput
           ref="expressionInput"

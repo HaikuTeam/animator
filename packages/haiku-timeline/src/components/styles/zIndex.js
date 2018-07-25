@@ -62,6 +62,7 @@ const zIndex = {
   //
   segmentsBox: {
     base: 1,
+    pill: 1001,
   },
   collapsedSegments: {
     base: 1,
