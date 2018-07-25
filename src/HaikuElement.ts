@@ -691,6 +691,10 @@ export default class HaikuElement extends HaikuBase {
     return !!this.instance;
   }
 
+  isWrapper (): boolean {
+    return !!this.subcomponent;
+  }
+
   componentMatches (selector: string): boolean {
     if (!this.isComponent()) {
       return false;
