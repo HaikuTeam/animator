@@ -571,6 +571,11 @@ export class Glass extends React.Component {
           this.getActiveComponent().getArtboard().zoomOut(1.25);
           break;
 
+        case 'global-menu:reset-viewport':
+          mixpanel.haikuTrack('creator:glass:reset-viewport');
+          this.getActiveComponent().getArtboard().resetZoomPan();
+          break;
+
         case 'global-menu:set-active-component':
           this.project.setCurrentActiveComponent(message.data, {from: 'glass'}, () => {});
           break;

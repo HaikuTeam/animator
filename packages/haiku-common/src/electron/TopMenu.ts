@@ -359,6 +359,13 @@ export default class TopMenu {
             click: () => {
               this.sender.send('global-menu:zoom-out');
             },
+          }, {
+            label: 'Reset Viewport',
+            accelerator: 'CmdOrCtrl+0',
+            enabled: this.options.isProjectOpen,
+            click: () => {
+              this.sender.send('global-menu:reset-viewport');
+            },
           },
         ],
       }, {
