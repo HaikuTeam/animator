@@ -6,7 +6,7 @@ import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import TimelineRangeScrollbarPlayheadIndicator from './TimelineRangeScrollbarPlayheadIndicator';
 
 const THROTTLE_TIME = 17; // ms
-const KNOB_RADIUS = 5;
+const KNOB_DIAMETER = 10;
 
 export default class TimelineRangeScrollbar extends React.Component {
   constructor (props) {
@@ -78,7 +78,9 @@ export default class TimelineRangeScrollbar extends React.Component {
     // Don't drag on the body if we're already dragging on the ends
     if (!timeline.getScrollerLeftDragStart() && !timeline.getScrollerRightDragStart()) {
       if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-        const scrollDelta = dragData.deltaX * this.frameInfo.scRatio;
+        // The extra offset makes timeline.getScrollLeft to add extra frames at the end of the timeline
+        const extraOffset = dragData.deltaX === 0 && timeline.getScrollLeft() === timeline.calculateMaxScrollValue() ? 1 : 0;
+        const scrollDelta = dragData.deltaX * this.frameInfo.scRatio + extraOffset;
         timeline.setScrollLeftFromScrollbar(scrollDelta + timeline.getScrollLeft());
       } else {
         timeline.changeVisibleFrameRange(dragData.x, dragData.x);
@@ -132,13 +134,22 @@ export default class TimelineRangeScrollbar extends React.Component {
 
   render () {
     this.frameInfo = this.props.timeline.getFrameInfo();
+    let leftPosition;
+
+    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+      const {timeline} = this.props;
+      const isNearEnd = timeline.calculateMaxScrollValue() - timeline.getScrollLeft() < 60;
+      leftPosition = (isNearEnd ? timeline.calculateMaxScrollValue() : timeline.getScrollLeft()) / this.frameInfo.scRatio;
+    } else {
+      leftPosition = this.frameInfo.scA;
+    }
 
     return (
       <div
         id="timeline-range-scrollbar-container"
         style={{
           width: this.frameInfo.scL,
-          height: KNOB_RADIUS * 2,
+          height: KNOB_DIAMETER,
           position: 'relative',
           backgroundColor: Palette.DARKER_GRAY,
           borderTop: '1px solid ' + Palette.FATHER_COAL,
@@ -154,10 +165,10 @@ export default class TimelineRangeScrollbar extends React.Component {
             style={{
               position: 'absolute',
               backgroundColor: Palette.LIGHTEST_GRAY,
-              height: KNOB_RADIUS * 2,
-              left: experimentIsEnabled(Experiment.NativeTimelineScroll) ? (this.props.timeline.getScrollLeft() / this.frameInfo.scRatio) : this.frameInfo.scA,
-              width: this.frameInfo.scB - this.frameInfo.scA,
-              borderRadius: KNOB_RADIUS,
+              height: KNOB_DIAMETER,
+              left: leftPosition,
+              width: experimentIsEnabled(Experiment.NativeTimelineScroll) ? this.frameInfo.scB - this.frameInfo.scA - KNOB_DIAMETER : this.frameInfo.scB - this.frameInfo.scA,
+              borderRadius: KNOB_DIAMETER / 2,
               cursor: 'move',
             }}>
             <DraggableCore
@@ -168,8 +179,8 @@ export default class TimelineRangeScrollbar extends React.Component {
               <div
                 id="timeline-range-knob-left"
                 style={{
-                  width: 10,
-                  height: 10,
+                  width: KNOB_DIAMETER,
+                  height: KNOB_DIAMETER,
                   position: 'absolute',
                   cursor: 'ew-resize',
                   left: 0,
@@ -185,8 +196,8 @@ export default class TimelineRangeScrollbar extends React.Component {
               <div
                 id="timeline-range-knob-right"
                 style={{
-                  width: 10,
-                  height: 10,
+                  width: KNOB_DIAMETER,
+                  height: KNOB_DIAMETER,
                   position: 'absolute',
                   cursor: 'ew-resize',
                   right: 0,

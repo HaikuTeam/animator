@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as Radium from 'radium';
 import AssetItem from './AssetItem';
 
-class AssetList extends React.PureComponent {
+class AssetList extends React.Component {
   render () {
     return (
       <div
