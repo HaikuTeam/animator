@@ -1659,7 +1659,7 @@ export default class HaikuComponent extends HaikuElement {
       const ms = keys[i];
 
       if (skipStableParsees && parsee[ms] && !parsee[ms].expression) {
-        break;
+        continue;
       }
 
       const descriptor = cluster[ms];
