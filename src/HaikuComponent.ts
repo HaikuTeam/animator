@@ -42,6 +42,15 @@ const OBJECT = 'object';
 const MAX_INT = 2147483646;
 const SCOPE_STRATA = {div: 'div', svg: 'svg'};
 
+// HACK: Required until DOM subtree-hydration race is fixed
+const ALWAYS_UPDATED_PROPERTIES = {'controlFlow.placeholder': true};
+
+export interface IComputedValue {
+  computedValue: any;
+  didValueChangeSinceLastRequest: boolean;
+  didValueOriginateFromExplicitKeyframeDefinition: boolean;
+}
+
 const parseD = (value: string|CurveSpec[]): CurveSpec[] => {
   // in case of d="" for any reason, don't try to expand this otherwise this will choke
   // #TODO: arguably we should preprocess SVGs before things get this far; try svgo?
@@ -569,7 +578,7 @@ export default class HaikuComponent extends HaikuElement {
 
     const out = {};
 
-    const timelines = HaikuTimeline.where({component: this})
+    const timelines = HaikuTimeline.where({component: this});
 
     for (let j = 0; j < timelines.length; j++) {
       const timeline = timelines[j];
@@ -1129,7 +1138,7 @@ export default class HaikuComponent extends HaikuElement {
     for (const timelineName in this.bytecode.timelines) {
       const timelineInstance = this.getTimeline(timelineName);
 
-      timelineInstance.doUpdateWithGlobalClockTime(globalClockTime);
+      timelineInstance.executePreUpdateHooks(globalClockTime);
 
       const timelineTime = timelineInstance.getTime(); // Bounded time
 
@@ -1137,12 +1146,12 @@ export default class HaikuComponent extends HaikuElement {
 
       // In hot editing mode, any timeline is fair game for mutation,
       // even if it's not actually animated (e.g. dragging an SVG at keyframe 0).
-      const mutableTimelineDescriptor = isPatchOperation
+      let mutableTimelineDescriptor = isPatchOperation
         ? this._mutableTimelines[timelineName]
         : timelineDescriptor;
 
-      if (!mutableTimelineDescriptor || typeof mutableTimelineDescriptor !== 'object') {
-        continue;
+      if (!mutableTimelineDescriptor) {
+        mutableTimelineDescriptor = {};
       }
 
       for (const behaviorSelector in mutableTimelineDescriptor) {
@@ -1170,34 +1179,82 @@ export default class HaikuComponent extends HaikuElement {
             const compositeId = getNodeCompositeId(matchingElement);
 
             for (const propertyName in propertyGroup) {
-              const propertyValue = propertyGroup[propertyName];
+              const keyframeCluster = propertyGroup[propertyName];
 
-              const finalValue = this.grabValue(
+              const {
+                computedValue,
+                didValueChangeSinceLastRequest,
+                didValueOriginateFromExplicitKeyframeDefinition,
+              } = this.grabValue(
                 timelineName,
                 compositeId,
                 matchingElement,
                 propertyName,
-                propertyValue,
+                keyframeCluster,
                 timelineTime,
                 isPatchOperation,
                 skipCache,
               );
 
-              if (finalValue !== undefined) {
-                this.applyPropertyToNode(
-                  matchingElement,
-                  propertyName,
-                  finalValue,
-                  timelineInstance,
-                );
-
-                // This is used downstream to decide whether patch updates are worthwhile
-                matchingElement.__memory.patched = true;
+              if (computedValue === undefined) {
+                continue;
               }
+
+              // We always apply the property if...
+              let doApplyProperty = false;
+
+              // - This is a full render
+              if (!isPatchOperation) {
+                doApplyProperty = true;
+              }
+
+              // - The value in question has changed
+              if (didValueChangeSinceLastRequest) {
+                doApplyProperty = true;
+              }
+
+              // - The value is in the whitelist of always-updated properties
+              if (ALWAYS_UPDATED_PROPERTIES[propertyName]) {
+                doApplyProperty = true;
+              }
+
+              // - The value was explicitly defined as a keyframe and...
+              if (didValueOriginateFromExplicitKeyframeDefinition) {
+                // - We haven't yet reached the end
+                if (timelineTime < timelineInstance.getMaxTime()) {
+                  doApplyProperty = true;
+                }
+
+                // - The timeline is looping (we won't be hanging on the final keyframe)
+                if (timelineInstance.isLooping()) {
+                  doApplyProperty = true;
+                }
+
+                // - We just reached the final keyframe (but haven't already visited it)
+                if (timelineInstance.getLastFrame() !== timelineInstance.getBoundedFrame()) {
+                  doApplyProperty = true;
+                }
+              }
+
+              if (!doApplyProperty) {
+                continue;
+              }
+
+              this.applyPropertyToNode(
+                matchingElement,
+                propertyName,
+                computedValue,
+                timelineInstance,
+              );
+
+              // This is used downstream to decide whether patch updates are worthwhile
+              matchingElement.__memory.patched = true;
             }
           }
         }
       }
+
+      timelineInstance.executePostUpdateHooks(globalClockTime);
     }
   }
 
@@ -1350,52 +1407,9 @@ export default class HaikuComponent extends HaikuElement {
     for (const $id in this.guests) {
       this.guests[$id].controlTime(
         timelineName,
-        this.getControlledTimeDefinedForGuestComponent(
-          this.guests[$id],
-          timelineName,
-          timelineTime,
-        ),
+        0, // For now: Like Flash, freeze all guests at 0 while controlling host
       );
     }
-  }
-
-  getControlledTimeDefinedForGuestComponent (
-    guest: HaikuComponent,
-    timelineName: string,
-    timelineTime: number,
-  ): number {
-    const wrapper = guest.parentNode;
-
-    if (!wrapper) {
-      return timelineTime;
-    }
-
-    const wrapperId = getNodeCompositeId(wrapper);
-
-    if (!wrapperId) {
-      return timelineTime;
-    }
-
-    const playbackValue = this.getOutputValue(
-      timelineName,
-      timelineTime,
-      wrapperId,
-      'playback',
-    );
-
-    if (typeof playbackValue === 'number') {
-      return playbackValue;
-    }
-
-    const guestTimeline = guest.getTimeline(timelineName);
-
-    if (!guestTimeline) {
-      return timelineTime;
-    }
-
-    guestTimeline.setPlaybackStatus(playbackValue);
-
-    return guestTimeline.getBoundedTime();
   }
 
   getPropertiesGroup (timelineName: string, flexId: string) {
@@ -1404,30 +1418,6 @@ export default class HaikuComponent extends HaikuElement {
       this.bytecode.timelines &&
       this.bytecode.timelines[timelineName] &&
       this.bytecode.timelines[timelineName][`haiku:${flexId}`]
-    );
-  }
-
-  getOutputValue (
-    timelineName: string,
-    timelineTime: number,
-    flexId: string,
-    propertyName: string,
-  ): any {
-    const propertiesGroup = this.getPropertiesGroup(timelineName, flexId)
-
-    if (!propertiesGroup) {
-      return
-    }
-
-    return this.grabValue(
-      timelineName,
-      flexId,
-      null, // matchingElement - not needed?
-      propertyName,
-      propertiesGroup[propertyName],
-      timelineTime,
-      false, // isPatchOperation
-      false, // skipCache
     );
   }
 
@@ -1736,6 +1726,10 @@ export default class HaikuComponent extends HaikuElement {
     outputName,
     computedValue,
   ) {
+    if (computedValue === undefined) {
+      return;
+    }
+
     const generator = this.getGenerator(outputName);
 
     if (generator) {
@@ -1750,11 +1744,11 @@ export default class HaikuComponent extends HaikuElement {
     flexId: string,
     matchingElement,
     propertyName: string,
-    propertyValue: any,
+    keyframeCluster: any,
     timelineTime: number,
     isPatchOperation: boolean,
     skipCache: boolean,
-  ) {
+  ): IComputedValue {
     // Used by $helpers to calculate scope-specific values;
     this.helpers.data = {
       lastTimelineName: timelineName,
@@ -1768,7 +1762,7 @@ export default class HaikuComponent extends HaikuElement {
       flexId,
       matchingElement,
       propertyName,
-      propertyValue,
+      keyframeCluster,
       isPatchOperation,
       skipCache,
     );
@@ -1776,7 +1770,11 @@ export default class HaikuComponent extends HaikuElement {
     // If there is no property of that name, we would have gotten nothing back, so we can't forward this to Transitions
     // since it expects to receive a populated cluster object
     if (!parsedValueCluster) {
-      return undefined;
+      return {
+        computedValue: undefined,
+        didValueChangeSinceLastRequest: false,
+        didValueOriginateFromExplicitKeyframeDefinition: false,
+      };
     }
 
     let computedValueForTime;
@@ -1787,37 +1785,34 @@ export default class HaikuComponent extends HaikuElement {
       };
     }
 
-    // Important: The ActiveComponent depends on the ability to be able to get fresh values via the skipCache option.
-    if (isPatchOperation && !skipCache) {
-      computedValueForTime = Transitions.calculateValueAndReturnUndefinedIfNotWorthwhile(
-        parsedValueCluster,
-        timelineTime,
-      );
-    } else {
-      computedValueForTime = Transitions.calculateValue(
-        parsedValueCluster,
-        timelineTime,
-      );
+    computedValueForTime = Transitions.calculateValue(
+      parsedValueCluster,
+      timelineTime,
+    );
 
-      // When expressions and other dynamic functionality is in play, data may be missing resulting in
-      // properties lacking defined values; in this case we try to do the right thing and fallback
-      // to a known usable value for the field. Especially needed with controlFlow.repeat.
-      if (computedValueForTime === undefined) {
-        computedValueForTime = getFallback(matchingElement && matchingElement.elementName, propertyName);
-      }
-    }
-
+    // When expressions and other dynamic functionality is in play, data may be missing resulting in
+    // properties lacking defined values; in this case we try to do the right thing and fallback
+    // to a known usable value for the field. Especially needed with controlFlow.repeat.
     if (computedValueForTime === undefined) {
-      return undefined;
+      computedValueForTime = getFallback(matchingElement && matchingElement.elementName, propertyName);
     }
 
-    return this.generateFinalValueFromParsedValue(
+    const computedValue = this.generateFinalValueFromParsedValue(
       timelineName,
       flexId,
       matchingElement,
       propertyName,
       computedValueForTime,
     );
+
+    const previousValue = this.cacheGet(`values:${timelineName}|${flexId}|${propertyName}`);
+    this.cacheSet(`values:${timelineName}|${flexId}|${propertyName}`, computedValue);
+
+    return {
+      computedValue,
+      didValueChangeSinceLastRequest: computedValue !== previousValue,
+      didValueOriginateFromExplicitKeyframeDefinition: keyframeCluster && !!keyframeCluster[Math.round(timelineTime)],
+    };
   }
 
   getPreviousSummonees (
@@ -3666,7 +3661,7 @@ INJECTABLES.$repeat = {
       source: repeatNode,
       index: 0,
     };
-  }
+  },
 };
 
 INJECTABLES.$if = {
@@ -3681,7 +3676,7 @@ INJECTABLES.$if = {
     injectees.$if = (ifNode && ifNode.__memory.if) || {
       answer: null,
     };
-  }
+  },
 };
 
 INJECTABLES.$placeholder = {
@@ -3708,7 +3703,7 @@ INJECTABLES.$index = {
       repeatNode.__memory.repeatee &&
       repeatNode.__memory.repeatee.index
     ) || 0;
-  }
+  },
 };
 
 INJECTABLES.$payload = {
@@ -3721,7 +3716,7 @@ INJECTABLES.$payload = {
       repeatNode.__memory.repeatee &&
       repeatNode.__memory.repeatee.payload
     ) || {};
-  }
+  },
 };
 
 INJECTABLES.$helpers = {
