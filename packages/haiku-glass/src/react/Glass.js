@@ -927,14 +927,9 @@ export class Glass extends React.Component {
     }
   }
 
-  calculateZoomFactorFromDelta (delta) {
-    const result = Math.abs(delta * 0.1);
-    return 1 + (result > 1 ? 1 : result);
-  }
-
   handlePinchToZoom = (wheelEvent) => {
     wheelEvent.preventDefault();
-    const zoomFactor = this.calculateZoomFactorFromDelta(wheelEvent.deltaY);
+    const zoomFactor = 1 + Math.min(Math.abs(wheelEvent.deltaY * 0.01), 0.5);
 
     if (wheelEvent.deltaY > 0) {
       this.getActiveComponent().getArtboard().zoomIn(zoomFactor);
