@@ -1198,30 +1198,16 @@ class ActiveComponent extends BaseModel {
                 return done(err)
               }
 
-              // Now set up 'playback' settings on the same keyframes defined for the child.
-              // This makes it clear that keyframes must be defined on the parent in order for
-              // playback to work as expected in the child.
+              // Create a 'playback' keyframe on the parent to make the feature obvious
               const insertion = this.getReifiedBytecode().template.children[0]
-
-              // Places on the host timeline that we're going to create 'playback' keyframes
-              const bookends = [
+              this.upsertProperties(
+                this.getReifiedBytecode(),
+                insertion.attributes[HAIKU_ID_ATTRIBUTE],
+                this.getInstantiationTimelineName(),
                 0,
-                Timeline.getMaximumMs(
-                  newActiveComponent.getReifiedBytecode(),
-                  this.getInstantiationTimelineName()
-                )
-              ]
-
-              bookends.forEach((ms) => {
-                this.upsertProperties(
-                  this.getReifiedBytecode(),
-                  insertion.attributes[HAIKU_ID_ATTRIBUTE],
-                  this.getInstantiationTimelineName(),
-                  ms,
-                  {'playback': PlaybackFlag.LOOP},
-                  'merge'
-                )
-              })
+                {'playback': PlaybackFlag.LOOP},
+                'merge'
+              )
 
               return done()
             }
