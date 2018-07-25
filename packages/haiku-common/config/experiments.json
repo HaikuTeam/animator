@@ -14,7 +14,7 @@
   "AdvancedMultiTransform": true,
   "OutliningElementsOnStage": true,
   "OutliningElementsOnStageFromStage": false,
-  "DirectSelectionOfPrimitives": false,
+  "DirectSelectionOfPrimitives": true,
   "IpcIntegrityCheck": true,
   "CrashOnIpcIntegrityCheckFailure": true,
   "IncludeSourceInIntegrityHash": false,
