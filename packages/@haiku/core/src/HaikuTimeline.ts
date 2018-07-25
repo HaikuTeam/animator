@@ -57,6 +57,7 @@ export default class HaikuTimeline extends HaikuBase {
   private isTimelinePlaying: boolean;
   private isTimelineLooping: boolean;
   private offsetCalculator: Function;
+  private lastFrame: number;
   private numLoops: number;
 
   constructor (component: IHaikuComponent, name, descriptor, options) {
@@ -75,6 +76,7 @@ export default class HaikuTimeline extends HaikuBase {
     this.isTimelineLooping = !!this.options.loop;
     this.isTimelinePlaying = true;
     this.offsetCalculator = null;
+    this.lastFrame = null;
     this.numLoops = 0;
   }
 
@@ -126,17 +128,6 @@ export default class HaikuTimeline extends HaikuBase {
     }
 
     this.doUpdateWithTimeDelta(deltaGlobalClockTime);
-
-    const frame = this.getUnboundedFrame();
-    const time = Math.round(this.getTime());
-
-    this.component.routeEventToHandlerAndEmit(
-      GLOBAL_LISTENER_KEY,
-      `timeline:${this.getName()}:${frame}`,
-      [frame, time],
-    );
-
-    this.emit('tick', frame, time);
   }
 
   doUpdateWithTimeDelta (
@@ -164,6 +155,33 @@ export default class HaikuTimeline extends HaikuBase {
         });
       }
     }
+  }
+
+  executePreUpdateHooks (globalClockTime: number) {
+    this.doUpdateWithGlobalClockTime(globalClockTime);
+  }
+
+  executePostUpdateHooks (globalClockTime: number) {
+    if (this.isFrozen() || this.isPaused()) {
+      return;
+    }
+
+    const frame = this.getBoundedFrame();
+    const time = Math.round(this.getBoundedTime());
+
+    this.component.routeEventToHandlerAndEmit(
+      GLOBAL_LISTENER_KEY,
+      `timeline:${this.getName()}:${frame}`,
+      [frame, time],
+    );
+
+    this.emit('tick', frame, time);
+
+    this.lastFrame = frame;
+  }
+
+  getLastFrame (): number {
+    return this.lastFrame;
   }
 
   controlTime (

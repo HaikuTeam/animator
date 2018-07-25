@@ -650,7 +650,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
       parentNode,
       parentVirtualElement,
       component,
-      isPatchOperation
+      isPatchOperation,
     );
 
     if (incomingKey !== undefined && incomingKey !== null) {
@@ -688,7 +688,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
         [],
         instance,
         isPatchOperation,
-        null
+        null,
       );
     }
 
@@ -772,7 +772,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
             virtualChild,
             domElement,
             virtualElement,
-            component
+            component,
           );
           connectTarget(virtualChild, insertedElement);
         } else {
@@ -801,7 +801,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
               domElement,
               virtualElement,
               component,
-              isPatchOperation
+              isPatchOperation,
             );
             connectTarget(virtualChild, domChild);
           }

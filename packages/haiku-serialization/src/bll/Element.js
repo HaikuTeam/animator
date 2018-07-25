@@ -604,7 +604,9 @@ class Element extends BaseModel {
     ) || {}
 
     const grabValue = (outputName) => {
-      const computedValue = hostInstance.grabValue(
+      const {
+        computedValue
+      } = hostInstance.grabValue(
         timelineName,
         componentId,
         elementNode,
