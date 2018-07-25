@@ -30,5 +30,6 @@
   "CleanInitialLibraryState": true,
   "CopyPasteTweens": true,
   "CopyPasteTweensWithAccelerators": true,
-  "Snapping": true
+  "Snapping": true,
+  "PinchToZoomInGlass": true
 }
