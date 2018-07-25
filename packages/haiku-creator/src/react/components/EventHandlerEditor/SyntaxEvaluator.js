@@ -37,6 +37,7 @@ class SyntaxEvaluator extends React.PureComponent {
     const parser = new Parser({
       sourceType: 'script',
       strictMode: true,
+      allowReturnOutsideFunction: true,
     });
 
     try {
