@@ -27,6 +27,11 @@ export default class Preview extends React.Component {
     );
 
     this.component.on('state:change', (attachedObject) => {
+      // Don't log if the values are already equivalent (unchanged)
+      if (attachedObject.to === attachedObject.from) {
+        return;
+      }
+
       let message = '';
       if (attachedObject.queued) {
         message = `State transition ${attachedObject.state} to target ${attachedObject.to} with duration ${attachedObject.duration} queued`;
