@@ -712,13 +712,18 @@ class Timeline extends BaseModel {
     }, DURATION_MOD_TIMEOUT)
   }
 
+  calculateMaxScrollValue () {
+    return this.calculateFullTimelineWidth() - this._timelinePixelWidth
+  }
+
   handleSettingScroll (scrollValue, eventName) {
     if (scrollValue >= 0) {
-      const maxScrollValue = this.calculateFullTimelineWidth() - this._timelinePixelWidth
+      const maxScrollValue = this.calculateMaxScrollValue()
 
       if (scrollValue >= maxScrollValue) {
         const frameInfo = this.getFrameInfo()
-        const framesToMove = 40 / frameInfo.pxpf
+        const pixelsToMove = 40
+        const framesToMove = pixelsToMove / frameInfo.pxpf
         this.setMaxFrame(this.getMaxFrame() + framesToMove)
         this._scrollLeft = maxScrollValue
       } else {

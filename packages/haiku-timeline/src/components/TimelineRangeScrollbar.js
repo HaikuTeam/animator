@@ -78,7 +78,9 @@ export default class TimelineRangeScrollbar extends React.Component {
     // Don't drag on the body if we're already dragging on the ends
     if (!timeline.getScrollerLeftDragStart() && !timeline.getScrollerRightDragStart()) {
       if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
-        const scrollDelta = dragData.deltaX * this.frameInfo.scRatio;
+        // The extra offset makes timeline.getScrollLeft to add extra frames at the end of the timeline
+        const extraOffset = dragData.deltaX === 0 && timeline.getScrollLeft() === timeline.calculateMaxScrollValue() ? 1 : 0;
+        const scrollDelta = dragData.deltaX * this.frameInfo.scRatio + extraOffset;
         timeline.setScrollLeftFromScrollbar(scrollDelta + timeline.getScrollLeft());
       } else {
         timeline.changeVisibleFrameRange(dragData.x, dragData.x);
@@ -132,6 +134,15 @@ export default class TimelineRangeScrollbar extends React.Component {
 
   render () {
     this.frameInfo = this.props.timeline.getFrameInfo();
+    let leftPosition;
+
+    if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
+      const {timeline} = this.props;
+      const isNearEnd = timeline.calculateMaxScrollValue() - timeline.getScrollLeft() < 60;
+      leftPosition = (isNearEnd ? timeline.calculateMaxScrollValue() : timeline.getScrollLeft()) / this.frameInfo.scRatio;
+    } else {
+      leftPosition = this.frameInfo.scA;
+    }
 
     return (
       <div
@@ -155,7 +166,7 @@ export default class TimelineRangeScrollbar extends React.Component {
               position: 'absolute',
               backgroundColor: Palette.LIGHTEST_GRAY,
               height: KNOB_DIAMETER,
-              left: experimentIsEnabled(Experiment.NativeTimelineScroll) ? (this.props.timeline.getScrollLeft() / this.frameInfo.scRatio) : this.frameInfo.scA,
+              left: leftPosition,
               width: experimentIsEnabled(Experiment.NativeTimelineScroll) ? this.frameInfo.scB - this.frameInfo.scA - KNOB_DIAMETER : this.frameInfo.scB - this.frameInfo.scA,
               borderRadius: KNOB_DIAMETER / 2,
               cursor: 'move',
