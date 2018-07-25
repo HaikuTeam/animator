@@ -29,6 +29,9 @@ export default function assignStyle (domElement, style, component, isPatchOperat
     const previousProp = domElement.haiku.explicitStyles[key];
     if (previousProp !== newProp) {
       domElement.haiku.explicitStyles[key] = style[key];
+      if (key === 'overflow') {
+        continue;
+      }
       domElement.style[key] = style[key];
     }
   }
