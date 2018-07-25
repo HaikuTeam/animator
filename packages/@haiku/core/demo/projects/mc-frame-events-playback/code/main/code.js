@@ -45,7 +45,7 @@ module.exports = {
         "origin.x": { "0": { value: 0.5 } },
         "origin.y": { "0": { value: 0.5 } },
         "style.zIndex": { "0": { value: 1 } },
-        playback: { "0": { value: "loop" }, "250": { value: "loop" } }
+        playback: { "0": { value: "loop" }, "1000": { value: "loop" } }
       },
       "haiku:Asdf-71083cd1d52bf2c9": {
         "style.position": { "0": { value: "absolute" } },

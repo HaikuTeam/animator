@@ -17,6 +17,11 @@ module.exports = {
   states: {},
   eventHandlers: {
     "haiku:Asdf-0ae0430248b19159": {
+      "timeline:Default:0": {
+        handler: function(target, event) {
+          console.log(this.$id,'zero!');
+        }
+      },
       "timeline:Default:2": {
         handler: function(target, event) {
           this.pause();

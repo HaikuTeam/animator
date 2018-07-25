@@ -13,11 +13,13 @@ module.exports = {
     "haiku:ecf13be9fb45": {
       click: {
         handler: function(target, event) {
+          console.log(this.getBytecodeRelpath(),'brick click gotoAndPlay 1')
           this.getDefaultTimeline().gotoAndPlay(1);
         }
       },
       "timeline:Default:0": {
         handler: function(target, event) {
+          console.log(this.getBytecodeRelpath(),'brick frame 0 pause')
           this.getDefaultTimeline().pause();
         }
       }
