@@ -1413,12 +1413,18 @@ export default class HaikuComponent extends HaikuElement {
     flexId: string,
     propertyName: string,
   ): any {
+    const propertiesGroup = this.getPropertiesGroup(timelineName, flexId)
+
+    if (!propertiesGroup) {
+      return
+    }
+
     return this.grabValue(
       timelineName,
       flexId,
       null, // matchingElement - not needed?
       propertyName,
-      this.getPropertiesGroup(timelineName, flexId)[propertyName],
+      propertiesGroup[propertyName],
       timelineTime,
       false, // isPatchOperation
       false, // skipCache
