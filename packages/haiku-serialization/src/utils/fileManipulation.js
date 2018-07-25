@@ -2,7 +2,14 @@ const https = require('https')
 const fs = require('fs')
 const {exec} = require('child_process')
 
+const RESERVED_CHAR_REPLACEMENT = '-'
+
 module.exports = {
+  // eslint-disable-next-line
+  filenameReservedRegex: /[<>:"\/\\|?*\x00-\x1F]/g,
+
+  windowsNamesReservedRegex: /^(con|prn|aux|nul|com[0-9]|lpt[0-9])$/i,
+
   download (url, downloadPath, onProgress, shouldCancel) {
     const file = fs.createWriteStream(downloadPath)
 
@@ -46,5 +53,15 @@ module.exports = {
         err ? reject(err) : resolve(true)
       })
     })
+  },
+
+  sanitize (name) {
+    if (typeof name !== 'string') {
+      return ''
+    }
+
+    return name
+      .replace(this.filenameReservedRegex, RESERVED_CHAR_REPLACEMENT)
+      .replace(this.windowsNamesReservedRegex, RESERVED_CHAR_REPLACEMENT)
   }
 }

@@ -7,6 +7,7 @@ const {inkstone} = require('@haiku/sdk-inkstone')
 const logger = require('../utils/LoggerInstance')
 const randomAlphabetical = require('../utils/randomAlphabetical')
 const mixpanel = require('haiku-serialization/src/utils/Mixpanel')
+const {sanitize} = require('../utils/fileManipulation')
 
 const API_BASE = 'https://api.figma.com/v1/'
 const FIGMA_URL = 'https://www.figma.com/'
@@ -125,7 +126,7 @@ class Figma {
           // Mimic the behaior of our Sketch importer: move to the slices folder
           // everything that is marked for export
           const folder = FOLDERS[element.type] || FOLDERS.SLICE
-          const svgPath = path.join(assetBaseFolder, folder, `${element.name}.svg`)
+          const svgPath = path.join(assetBaseFolder, folder, `${sanitize(element.name)}.svg`)
           return fse.writeFile(svgPath, element.svg || '<svg version="1.1" xmlns="http://www.w3.org/2000/svg"></svg>')
         }
       })
