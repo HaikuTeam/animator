@@ -2,6 +2,8 @@ const https = require('https')
 const fs = require('fs')
 const {exec} = require('child_process')
 
+const RESERVED_CHAR_REPLACEMENT = '-'
+
 module.exports = {
   // eslint-disable-next-line
   filenameReservedRegex: /[<>:"\/\\|?*\x00-\x1F]/g,
@@ -58,6 +60,8 @@ module.exports = {
       return ''
     }
 
-    return name.replace(this.filenameReservedRegex, '!').replace(this.windowsNamesReservedRegex, '!')
+    return name
+      .replace(this.filenameReservedRegex, RESERVED_CHAR_REPLACEMENT)
+      .replace(this.windowsNamesReservedRegex, RESERVED_CHAR_REPLACEMENT)
   }
 }
