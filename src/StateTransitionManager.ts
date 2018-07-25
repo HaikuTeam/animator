@@ -43,11 +43,18 @@ export default class StateTransitionManager {
       for (const key in transitionEnd) {
         delete this.transitions[key];
       }
+
       for (const key in transitionEnd) {
-        this.component.emitFromRootComponent('state:change',
-          {state: key,
-            from: this.states[key],
-            to: transitionEnd[key]});
+        const from = this.states[key];
+        const to = transitionEnd[key];
+
+        if (from !== to) {
+          this.component.emitFromRootComponent('state:change', {
+            from,
+            to,
+            state: key,
+          });
+        }
       }
 
       this.setStates(transitionEnd);
@@ -65,40 +72,47 @@ export default class StateTransitionManager {
     for (const key in transitionEnd) {
       // Ignore state if it doesn't pre exist
       if (key in this.states) {
+        const from = this.states[key];
+        const to = transitionEnd[key];
+
         // queued transitions are add into queue
         // If parameter.queue is true, it is a queued setState
         // If state transition for key is not created, process like a queued SetState
         if (transitionParameter.queue && this.transitions[key]) {
-          this.component.emitFromRootComponent('state:change', {
-            queued: true,
-            state: key,
-            from: this.states[key],
-            to: transitionEnd[key],
-            duration: transitionParameter.duration,
-          });
+          if (from !== to) {
+            this.component.emitFromRootComponent('state:change', {
+              from,
+              to,
+              queued: true,
+              state: key,
+              duration: transitionParameter.duration,
+            });
+          }
 
           this.transitions[key].push({
             transitionParameter,
-            transitionEnd: {[key]: transitionEnd[key]},
-            transitionStart: {[key]: this.states[key]},
+            transitionEnd: {[key]: to},
+            transitionStart: {[key]: from},
             startTime: currentTime,
             endTime: currentTime + transitionParameter.duration,
             duration: transitionParameter.duration,
           });
         // non queued transitions are overwrite transition queue
         } else {
-          this.component.emitFromRootComponent('state:change', {
-            started: true,
-            state: key,
-            from: this.states[key],
-            to: transitionEnd[key],
-            duration: transitionParameter.duration,
-          });
+          if (from !== to) {
+            this.component.emitFromRootComponent('state:change', {
+              from,
+              to,
+              started: true,
+              state: key,
+              duration: transitionParameter.duration,
+            });
+          }
 
           this.transitions[key] = [{
             transitionParameter,
-            transitionEnd: {[key]: transitionEnd[key]},
-            transitionStart: {[key]: this.states[key]},
+            transitionEnd: {[key]: to},
+            transitionStart: {[key]: from},
             startTime: currentTime,
             endTime: currentTime + transitionParameter.duration,
             duration: transitionParameter.duration,
@@ -141,11 +155,12 @@ export default class StateTransitionManager {
         const transition = this.transitions[stateName][0];
 
         if (this.isExpired(transition, currentTime)) {
-
-          this.component.emitFromRootComponent('state:change', { finished: true,
+          this.component.emitFromRootComponent('state:change', {
+            finished: true,
             state: stateName,
             to: transition.transitionEnd[stateName],
-            duration: transition.duration});
+            duration: transition.duration,
+          });
 
           // If expired, assign transitionEnd.
           // NOTE: In the future, with custom transition function implemented calculating
@@ -158,9 +173,12 @@ export default class StateTransitionManager {
 
           // Update next queued state transition or delete empty transition vector for performance reasons
           if (this.transitions[stateName].length > 0) {
-            this.component.emitFromRootComponent('state:change', { started: true,
+            this.component.emitFromRootComponent('state:change', {
+              started: true,
               state: stateName,
-              to: this.transitions[stateName][0].transitionEnd[stateName]});
+              to: this.transitions[stateName][0].transitionEnd[stateName],
+            });
+
             this.transitions[stateName][0].transitionStart = {[stateName]: interpolatedStates[stateName]};
             this.transitions[stateName][0].startTime = currentTime;
             this.transitions[stateName][0].endTime = currentTime + this.transitions[stateName][0].duration;
