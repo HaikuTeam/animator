@@ -932,9 +932,9 @@ export class Glass extends React.Component {
     const zoomFactor = 1 + Math.min(Math.abs(wheelEvent.deltaY * 0.01), 0.5);
 
     if (wheelEvent.deltaY > 0) {
-      this.getActiveComponent().getArtboard().zoomIn(zoomFactor);
-    } else {
       this.getActiveComponent().getArtboard().zoomOut(zoomFactor);
+    } else {
+      this.getActiveComponent().getArtboard().zoomIn(zoomFactor);
     }
   };
 
