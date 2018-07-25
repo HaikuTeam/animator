@@ -189,7 +189,7 @@ input,
 label,
 select,
 button,
-textarea {
+textarea:not(.inputarea) { /* Must not include .inputarea so as not to conflict with monaco-editor */
 	margin:0;
 	border:0;
 	padding:0;

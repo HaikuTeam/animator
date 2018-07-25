@@ -402,6 +402,10 @@ class Timeline extends React.Component {
           this.props.websocket.send(relayable);
           break;
 
+        case 'global-menu:reset-viewport':
+          this.props.websocket.send(relayable);
+          break;
+
         case 'global-menu:group':
           // For now, grouping is only possible via the stage
           this.props.websocket.send(relayable);

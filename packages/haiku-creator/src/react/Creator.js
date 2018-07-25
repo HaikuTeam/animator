@@ -290,6 +290,17 @@ export default class Creator extends React.Component {
       });
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}));
 
+    ipcRenderer.on('global-menu:reset-viewport', lodash.debounce(() => {
+      // Timeline will send to Glass if it doesn't want to zoom
+      logger.info(`[creator] global-menu:reset-viewport`);
+      this.props.websocket.send({
+        type: 'relay',
+        from: 'creator',
+        view: 'timeline',
+        name: 'global-menu:reset-viewport',
+      });
+    }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}));
+
     ipcRenderer.on('global-menu:group', lodash.debounce(() => {
       // Timeline will send to Glass if it doesn't want to group
       logger.info(`[creator] global-menu:group`);
