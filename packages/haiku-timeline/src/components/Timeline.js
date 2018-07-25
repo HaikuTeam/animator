@@ -903,7 +903,8 @@ class Timeline extends React.Component {
   }
 
   handleHorizontalScrollByDelta = (delta) => {
-    this.getActiveComponent().getCurrentTimeline().setScrollLeftFromScrollbar(timeline.getScrollLeft() + delta);
+    const timeline = this.getActiveComponent().getCurrentTimeline();
+    timeline.setScrollLeftFromScrollbar(timeline.getScrollLeft() + delta);
   };
 
   handleHorizontalScroll = (origDelta) => {
