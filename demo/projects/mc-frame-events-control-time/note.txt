@@ -1,0 +1,1 @@
+In the DOM and ReactDOM examples, time should be controlled, simulating what happens when the user manually changes the scrubber position inside Haiku.app. Time should start at 0ms and advance by 16.666ms on a 100ms interval.
