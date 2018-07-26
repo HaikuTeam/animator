@@ -816,6 +816,7 @@ export default class HaikuComponent extends HaikuElement {
     // Note: We define the getter/setter on the object itself, but the storage occurs on the pass-in statesTargetObject
     Object.defineProperty(this.state, stateSpecName, {
       configurable: true,
+      enumerable: true,
 
       get: () => {
         return this._states[stateSpecName];
