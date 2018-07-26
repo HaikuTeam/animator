@@ -517,9 +517,10 @@ class Timeline extends React.Component {
       // this.container on `attachContainerElement`
       this.addEmitterListener(window, 'wheel', (wheelEvent) => {
         if (wheelEvent.ctrlKey) {
+          wheelEvent.preventDefault();
           this.handleZoomThrottled(wheelEvent);
         }
-      }, {passive: true});
+      });
     } else {
       this.addEmitterListener(document.body, 'mousewheel', lodash.throttle((wheelEvent) => {
         this.handleScroll(wheelEvent);
