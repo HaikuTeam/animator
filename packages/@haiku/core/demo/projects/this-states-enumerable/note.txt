@@ -1,0 +1,1 @@
+Open your console. You should see a log "state keys" that lists state keys "meow", "hello", and "goodbye".

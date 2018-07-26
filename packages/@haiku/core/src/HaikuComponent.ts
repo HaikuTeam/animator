@@ -816,6 +816,7 @@ export default class HaikuComponent extends HaikuElement {
     // Note: We define the getter/setter on the object itself, but the storage occurs on the pass-in statesTargetObject
     Object.defineProperty(this.state, stateSpecName, {
       configurable: true,
+      enumerable: true,
 
       get: () => {
         return this._states[stateSpecName];
@@ -2198,19 +2199,21 @@ const expandNode = (original, parent) => {
         continue;
       }
 
-      // Do not include any children that have been removed due to $if-logic
-      if (child.__memory.if && child.__memory.if.answer === false) {
-        continue;
-      }
-
-      // If the child is a repeater, use the $repeats instead of itself
-      if (child.__memory.repeater && child.__memory.repeater.repeatees) {
-        for (let j = 0; j < child.__memory.repeater.repeatees.length; j++) {
-          const repeatee = child.__memory.repeater.repeatees[j];
-          children.push(repeatee);
+      if (child.__memory) {
+        // Do not include any children that have been removed due to $if-logic
+        if (child.__memory.if && child.__memory.if.answer === false) {
+          continue;
         }
 
-        continue;
+        // If the child is a repeater, use the $repeats instead of itself
+        if (child.__memory.repeater && child.__memory.repeater.repeatees) {
+          for (let j = 0; j < child.__memory.repeater.repeatees.length; j++) {
+            const repeatee = child.__memory.repeater.repeatees[j];
+            children.push(repeatee);
+          }
+
+          continue;
+        }
       }
 
       // If we got this far, the child is structurally normal
@@ -3200,6 +3203,11 @@ const isSameRepeatBehavior = (prevs, nexts): boolean => {
 
 const findRespectiveRepeatees = (target) => {
   const repeatees = [];
+
+  // Required to fix a race condition that can occur during copy+paste in Haiku.app
+  if (!target.__memory) {
+    return repeatees;
+  }
 
   // The host repeatee of the given target node, if the target is a repeater's descendant
   let host;

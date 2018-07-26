@@ -52,8 +52,6 @@ export default class HaikuElement extends HaikuBase {
 
   get children (): HaikuElement[] {
     return this.childNodes.map((childNode) => {
-      // To avoid unnecessary up-front work, we create HaikuElement instances
-      // on demand rather than hydrating the collection on load
       return HaikuElement.findOrCreateByNode(childNode);
     });
   }
@@ -135,6 +133,20 @@ export default class HaikuElement extends HaikuBase {
 
   get memory (): any {
     return this.node && this.node.__memory;
+  }
+
+  get expansion () {
+    // The "expansion" of an element is the node returned from the HaikuComponent#expand process,
+    // which converts the structurally static form to the structurally dynamic one.
+    return this.memory && this.memory.expansion;
+  }
+
+  get expansions (): HaikuElement[] {
+    const nodes = (this.expansion && this.expansion.children) || [];
+
+    return nodes.map((node) => {
+      return HaikuElement.findOrCreateByNode(node);
+    });
   }
 
   get parent (): any {

@@ -97,7 +97,7 @@ if (argv.default === true) {
 const haikuURI = args.find((arg) => arg.startsWith('haiku://'));
 
 const availablePresets = {
-  glass: 'repeat-1-glass',
+  glass: 'primitives-misc-1-glass',
   timeline: 'complex-timeline',
   blank: 'blank',
   'blank-noclean': 'blank-noclean',
