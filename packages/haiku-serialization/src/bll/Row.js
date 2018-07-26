@@ -410,7 +410,12 @@ class Row extends BaseModel {
     Timeline.clearCaches()
 
     this.emit('update', 'keyframe-create')
-    if (this.parent) this.parent.emit('update', 'keyframe-create')
+
+    if (this.parent) {
+      this.parent.emit('update', 'keyframe-create')
+
+      if (this.parent.parent) this.parent.parent.emit('update', 'keyframe-create')
+    }
   }
 
   deleteKeyframe (keyframe, metadata) {

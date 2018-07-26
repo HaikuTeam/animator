@@ -37,7 +37,8 @@ export default class ComponentHeadingRowHeading extends React.Component {
       what === 'row-hovered' ||
       what === 'row-unhovered' ||
       what === 'element-selected' ||
-      what === 'element-unselected'
+      what === 'element-unselected' ||
+      what === 'keyframe-create'
     ) {
       this.forceUpdate();
     } else if (what === 'row-set-title') {
@@ -185,12 +186,12 @@ export default class ComponentHeadingRowHeading extends React.Component {
                 position: 'absolute',
                 display: 'inline-block',
                 height: 20,
-                left: (this.hasIcon() || this.props.row.element.isRepeater())
+                left: (this.hasIcon())
                     ? 21
                     : 5,
                 top: 7,
                 overflowX: 'hidden',
-                width: (this.hasIcon() || this.props.row.element.isRepeater())
+                width: (this.hasIcon())
                   ? 80
                   : 100,
               })}
