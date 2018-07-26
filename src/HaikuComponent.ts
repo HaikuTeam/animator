@@ -1550,7 +1550,7 @@ export default class HaikuComponent extends HaikuElement {
 
     // We'll store the result of this evaluation in this variable
     // (so we can cache it in case unexpected subsequent calls)
-    let evaluation = void 0;
+    let evaluation;
 
     if (fn.specification === true) {
       // This function is of an unknown kind, so just evaluate it normally without magic dependency injection
@@ -1586,6 +1586,18 @@ export default class HaikuComponent extends HaikuElement {
           evaluation = this.getPreviousEvaluation(timelineName, flexId, propertyName, keyframeMs);
         }
       }
+    }
+
+    // If the output is literally `NaN`, that is almost certainly useless and not what the user
+    // intended. This can happen commonly when editing in Haiku.app and creating dynamic behavior
+    // based on state payloads whose fields may be missing, especially with controlFlow.repeat.
+    if (Number.isNaN(evaluation)) {
+      evaluation = 1;
+    }
+
+    // Same for Infinity; as it's more likely than not that this is a mistake
+    if (typeof evaluation === 'number' && !isFinite(evaluation)) {
+      evaluation = 1;
     }
 
     // Store the result so we can return it on the next run without re-eval
