@@ -94,6 +94,16 @@ class StateRow extends React.Component {
       valuePreEdit: null,
       didEscape: false,
     };
+
+    this.requestNameEdit = () => {
+      this.setState({editingTarget: 'name'});
+      this.props.requestEdit();
+    };
+
+    this.requestValueEdit = () => {
+      this.setState({editingTarget: 'value'});
+      this.props.requestEdit();
+    };
   }
 
   componentDidMount () {
@@ -282,10 +292,7 @@ class StateRow extends React.Component {
         {!this.props.isEditing && !this.props.isNew
           ? <div style={STYLES.stateWrapper}>
             <div
-              onDoubleClick={() => {
-                this.setState({editingTarget: 'name'});
-                this.props.requestEdit();
-              }}
+              onDoubleClick={this.requestNameEdit}
               style={[STYLES.col, STYLES.col1]}>
               <span key={`${this.props.stateName}-name`}
                 style={[STYLES.pill, STYLES.pillName]}>
@@ -293,10 +300,7 @@ class StateRow extends React.Component {
               </span>
             </div>
             <div
-              onDoubleClick={() => {
-                this.setState({editingTarget: 'value'});
-                this.props.requestEdit();
-              }}
+              onDoubleClick={this.requestValueEdit}
               style={[STYLES.col, STYLES.col2]}>
               <span key={`${this.props.stateName}-value`}
                 style={[STYLES.pill, STYLES.pillValue, this.generateColorCap()]}>
