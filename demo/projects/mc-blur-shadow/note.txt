@@ -1,0 +1,1 @@
+The blurs/shadow/gradients should all look the same, both within the elements in Main and within the subcomponent instances for Bits.
