@@ -85,6 +85,13 @@ export default class ComponentHeadingRowHeading extends React.Component {
     return '';
   }
 
+  hasIcon () {
+    return (
+      this.props.row.element.isRepeater() ||
+      this.props.row.element.isComponent()
+    );
+  }
+
   render () {
     let color = Palette.ROCK_MUTED;
 
@@ -169,7 +176,7 @@ export default class ComponentHeadingRowHeading extends React.Component {
               style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
                 display: 'inline-block',
                 height: 20,
-                marginLeft: (this.props.row.element.isComponent())
+                marginLeft: (this.hasIcon())
                     ? 5
                     : 0,
                 overflowX: 'hidden',
@@ -178,12 +185,12 @@ export default class ComponentHeadingRowHeading extends React.Component {
                 position: 'absolute',
                 display: 'inline-block',
                 height: 20,
-                left: (this.props.row.element.isComponent() || this.props.row.element.isRepeater())
+                left: (this.hasIcon() || this.props.row.element.isRepeater())
                     ? 21
                     : 5,
                 top: 7,
                 overflowX: 'hidden',
-                width: (this.props.row.element.isComponent() || this.props.row.element.isRepeater())
+                width: (this.hasIcon() || this.props.row.element.isRepeater())
                   ? 80
                   : 100,
               })}
