@@ -3418,6 +3418,7 @@ export class Glass extends React.Component {
                 width: mount.w,
                 userSelect: 'none',
                 cursor: 'default',
+                overflow: 'hidden', // Prevent visible wrapping to next line if component name is long
               }}
               onClick={this.handleClickStageName.bind(this)}
               onMouseOver={this.handleMouseOverStageName.bind(this)}
