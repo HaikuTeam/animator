@@ -66,6 +66,7 @@ class StateInspector extends React.Component {
       sceneName: 'State Inspector',
       statesData: null,
       addingNew: false,
+      editingStateName: null,
     };
   }
 
@@ -188,12 +189,12 @@ class StateInspector extends React.Component {
 
   openNewStateForm () {
     if (!this.state.addingNew) {
-      this.setState({addingNew: true});
+      this.setState({addingNew: true, editingStateName: 'new-row'});
     }
   }
 
   closeNewStateForm () {
-    this.setState({addingNew: false});
+    this.setState({addingNew: false, editingStateName: null});
   }
 
   getHeadingText () {
@@ -206,6 +207,16 @@ class StateInspector extends React.Component {
       Object.keys(this.state.statesData).length === 0 &&
       !this.state.addingNew
     );
+  }
+
+  requestEditValue (stateName) {
+    this.setState({editingStateName: stateName});
+  }
+
+  requestBlurValue (stateName) {
+    if (stateName === this.state.editingStateName) {
+      this.setState({editingStateName: null});
+    }
   }
 
   render () {
@@ -232,7 +243,9 @@ class StateInspector extends React.Component {
               removeNotice={this.props.removeNotice}
               closeNewStateForm={this.closeNewStateForm}
               upsertStateValue={this.upsertStateValue}
-              deleteStateValue={this.deleteStateValue} />
+              deleteStateValue={this.deleteStateValue}
+              requestBlur={this.requestBlurValue.bind(this, 'new-row')}
+              isEditing={true} />
           }
           {this.state.statesData
             ? lodash.map(this.state.statesData, (stateDescriptor, stateName) => {
@@ -244,7 +257,10 @@ class StateInspector extends React.Component {
                   createNotice={this.props.createNotice}
                   removeNotice={this.props.removeNotice}
                   upsertStateValue={this.upsertStateValue}
-                  deleteStateValue={this.deleteStateValue} />
+                  deleteStateValue={this.deleteStateValue}
+                  isEditing={this.state.editingStateName === stateName}
+                  requestEdit={this.requestEditValue.bind(this, stateName)}
+                  requestBlur={this.requestBlurValue.bind(this, stateName)} />
               );
             }).reverse()
             : <Loader />
