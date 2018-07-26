@@ -2199,19 +2199,21 @@ const expandNode = (original, parent) => {
         continue;
       }
 
-      // Do not include any children that have been removed due to $if-logic
-      if (child.__memory.if && child.__memory.if.answer === false) {
-        continue;
-      }
-
-      // If the child is a repeater, use the $repeats instead of itself
-      if (child.__memory.repeater && child.__memory.repeater.repeatees) {
-        for (let j = 0; j < child.__memory.repeater.repeatees.length; j++) {
-          const repeatee = child.__memory.repeater.repeatees[j];
-          children.push(repeatee);
+      if (child.__memory) {
+        // Do not include any children that have been removed due to $if-logic
+        if (child.__memory.if && child.__memory.if.answer === false) {
+          continue;
         }
 
-        continue;
+        // If the child is a repeater, use the $repeats instead of itself
+        if (child.__memory.repeater && child.__memory.repeater.repeatees) {
+          for (let j = 0; j < child.__memory.repeater.repeatees.length; j++) {
+            const repeatee = child.__memory.repeater.repeatees[j];
+            children.push(repeatee);
+          }
+
+          continue;
+        }
       }
 
       // If we got this far, the child is structurally normal
