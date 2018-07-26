@@ -403,7 +403,13 @@ class Project extends BaseModel {
                     ${mismatch[1]}
               `)
               if (experimentIsEnabled(Experiment.CrashOnIpcIntegrityCheckFailure)) {
-                throw new Error(`Unable to update component (${method} in ${this.getAlias()})`)
+                let message = `Unable to update component (${method} in ${this.getAlias()})`
+
+                if (process.env.NODE_ENV !== 'production') {
+                  message = `CRASH! Stop editing now and open dev tools (Cmd+Option+I). ${message}`
+                }
+
+                throw new Error(message)
               }
             }
           }
