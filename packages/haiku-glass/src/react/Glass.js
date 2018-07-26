@@ -1425,6 +1425,9 @@ export class Glass extends React.Component {
               const prevDirectlySelected = Element.directlySelected;
               let clickedItemFound = null;
               elementTargeted.getHaikuElement().visit((descendant) => {
+                if (descendant.isWrapper()) {
+                  return;
+                }
                 if (descendant.isComponent()) {
                   return;
                 }

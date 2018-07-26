@@ -5,7 +5,7 @@
     "name": "Personality",
     "relpath": "code/main/code.js",
     "version": "0.0.3",
-    "core": "3.2.8",
+    "core": "3.5.1",
     "player": "3.1.31",
     "organization": "kelyvin",
     "project": "Personality",
@@ -22,16 +22,8 @@
             "value": "rgba(0,0,0,0)"
           }
         },
-        "style.transformStyle": {
-          "0": {
-            "value": "flat"
-          }
-        },
-        "style.perspective": {
-          "0": {
-            "value": "none"
-          }
-        },
+        "style.transformStyle": {},
+        "style.perspective": {},
         "style.position": {
           "0": {
             "value": "relative"
@@ -229,14 +221,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 250
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 250
           }
         }
       },
@@ -364,14 +356,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 112
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 112.5
           }
         }
       },
@@ -523,14 +515,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 250
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 250
           }
         }
       },
@@ -656,14 +648,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 250
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 250
           }
         }
       },
@@ -794,14 +786,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 104.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 96
           }
         }
       },
@@ -937,14 +929,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 102.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 121.5
           }
         }
       },
@@ -2070,9 +2062,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/Personality.sketch.contents/slices/boat.svg",
           "haiku-id": "84e8b4a123b7",
-          "haiku-title": "boat"
+          "haiku-title": "boat",
+          "haiku-source": "designs/Personality.sketch.contents/slices/boat.svg"
         },
         "children": [
           {
@@ -2184,9 +2176,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/Personality.sketch.contents/slices/treetop.svg",
           "haiku-id": "6da557f6c4b3",
-          "haiku-title": "treetop"
+          "haiku-title": "treetop",
+          "haiku-source": "designs/Personality.sketch.contents/slices/treetop.svg"
         },
         "children": [
           {
@@ -2255,9 +2247,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/Personality.sketch.contents/slices/sea-icon.svg",
           "haiku-id": "a5ee1e240e15",
-          "haiku-title": "sea-icon"
+          "haiku-title": "sea-icon",
+          "haiku-source": "designs/Personality.sketch.contents/slices/sea-icon.svg"
         },
         "children": [
           {
@@ -2393,9 +2385,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/Personality.sketch.contents/slices/beach-icon.svg",
           "haiku-id": "6fae16b81aab",
-          "haiku-title": "beach-icon"
+          "haiku-title": "beach-icon",
+          "haiku-source": "designs/Personality.sketch.contents/slices/beach-icon.svg"
         },
         "children": [
           {
@@ -2641,9 +2633,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/Personality.sketch.contents/slices/airplane.svg",
           "haiku-id": "7607cdf180f1",
-          "haiku-title": "airplane"
+          "haiku-title": "airplane",
+          "haiku-source": "designs/Personality.sketch.contents/slices/airplane.svg"
         },
         "children": [
           {
@@ -2729,9 +2721,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/Personality.sketch.contents/slices/world-icon.svg",
           "haiku-id": "354ad02de7ff",
-          "haiku-title": "world-icon"
+          "haiku-title": "world-icon",
+          "haiku-source": "designs/Personality.sketch.contents/slices/world-icon.svg"
         },
         "children": [
           {

@@ -327,13 +327,6 @@ export default class HaikuContext extends HaikuBase {
           if (component === this.component) {
             return;
           }
-
-          const timelines = component.getTimelines();
-          for (const timelineName in timelines) {
-            // Although a timeline's playback status may not change over time, we still need
-            // to "apply" it, i.e. run the respective procedure to get the playback behavior
-            timelines[timelineName].applyPlaybackStatus();
-          }
         });
 
         // After we've hydrated the tree the first time, we can proceed with patches --
@@ -361,8 +354,8 @@ export default class HaikuContext extends HaikuBase {
 
         this.ticks++;
       }
-    } catch (error) {
-      console.warn('[haiku core] caught error during tick');
+    } catch (exception) {
+      console.warn('[haiku core] caught error during tick', exception);
       if (this.component) {
         this.component.deactivate();
       }

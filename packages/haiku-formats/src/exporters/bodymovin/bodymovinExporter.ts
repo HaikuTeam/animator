@@ -364,8 +364,8 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     const sizeY = this.currentNodeSize.y;
     const originX = sizeX * (initialValueOr(timeline, 'origin.x', 0.5));
     const originY = sizeY * (initialValueOr(timeline, 'origin.y', 0.5));
-    const mountX = sizeX * initialValueOr(timeline, 'mount.x', 0);
-    const mountY = sizeY * initialValueOr(timeline, 'mount.y', 0);
+    const offsetX = initialValueOr(timeline, 'offset.x', 0);
+    const offsetY = initialValueOr(timeline, 'offset.y', 0);
 
     transforms[TransformKey.TransformOrigin] = getFixedPropertyValue([originX, originY, 0]);
 
@@ -375,12 +375,12 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
         x: this.getValue(
           timelineHasProperties(timeline, 'translation.x') ? timeline['translation.x'] : simulateLayoutProperty(
             LayoutPropertyType.Additive) as BytecodeTimelineProperty,
-          (value) => value - mountX + widthOffset,
+          (value) => value + offsetX + widthOffset,
         ),
         y: this.getValue(
           timelineHasProperties(timeline, 'translation.y') ? timeline['translation.y'] : simulateLayoutProperty(
             LayoutPropertyType.Additive) as BytecodeTimelineProperty,
-          (value) => value - mountY + heightOffset,
+          (value) => value + offsetY + heightOffset,
         ),
       };
     } else {

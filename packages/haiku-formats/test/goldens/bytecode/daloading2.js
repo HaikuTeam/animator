@@ -3,7 +3,7 @@ module.exports = {
   metadata: {
     folder: "/Users/spiritinlife/.haiku/projects/poupanka/daloading2",
     uuid: "d5a70e07-e44c-4b64-bd22-4d65cfb59193",
-    core: "3.4.5",
+    core: "3.5.1",
     player: "3.4.5",
     username: "george.chailazopoulos@gmail.com",
     organization: "poupanka",
@@ -21,8 +21,8 @@ module.exports = {
     Default: {
       "haiku:03757d2ca102": {
         "style.WebkitTapHighlightColor": { "0": { value: "rgba(0,0,0,0)" } },
-        "style.transformStyle": { "0": { value: "flat" } },
-        "style.perspective": { "0": { value: "none" } },
+        "style.transformStyle": {},
+        "style.perspective": {},
         "style.position": { "0": { value: "relative" } },
         "style.overflowX": { "0": { value: "hidden" } },
         "style.overflowY": { "0": { value: "hidden" } },
@@ -60,13 +60,13 @@ module.exports = {
       },
       "haiku:b9edaf059e32": {
         stroke: { "0": { value: "none" } },
-        "strokeWidth": { "0": { value: "1" } },
+        strokeWidth: { "0": { value: "1" } },
         fill: { "0": { value: "none" } },
-        "fillRule": { "0": { value: "evenodd" } }
+        fillRule: { "0": { value: "evenodd" } }
       },
       "haiku:e7dd962896cf": {
         fill: { "0": { value: "#FE0034" } },
-        "fillRule": { "0": { value: "nonzero" } }
+        fillRule: { "0": { value: "nonzero" } }
       },
       "haiku:88a1a4da2f85": {
         "translation.x": { "0": { value: 0.8 } },

@@ -10,7 +10,7 @@ module.exports = factory(require('./code.js'), {
       tl.pause()
       setTimeout(() => {
         tl.play()
-      }, 500)
+      }, 2000)
     }, 500)
   }
 })

@@ -3,8 +3,8 @@
     "editor.insertSpaces": true,
     "editor.tabSize": 2,
     "search.exclude": {
+        "**/coverage/**": true,
         "packages/**/lib/**/*": true,
-        "packages/@haiku/core/demo/**": true,
         "packages/haiku-formats/test/goldens/**": true
     },
     "typescript.format.enable": false,

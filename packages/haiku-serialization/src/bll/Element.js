@@ -548,6 +548,7 @@ class Element extends BaseModel {
   getComputedLayout () {
     const targetNode = this.getLiveRenderedNode() || {} // Fallback in case of render race
     const parentNode = (this.parent && this.parent.getLiveRenderedNode()) || {} // Fallback in case of render race
+    const targetExpansion = targetNode.__memory.expansion
 
     return HaikuElement.computeLayout(
       { // targetNode
@@ -560,11 +561,10 @@ class Element extends BaseModel {
         // But we still need the live node's actual properties in case we need to compute
         // auto sizing, which will require that we hydrate a HaikuElement and recurse
         // into its children and compute their sizes, and so-on.
-        elementName: targetNode.elementName,
-        attributes: targetNode.attributes,
-        children: targetNode.children,
-        __parent: targetNode.__parent,
-        __element: targetNode.__element // Preserve cache result of findOrCreateElement
+        elementName: targetExpansion.elementName,
+        attributes: targetExpansion.attributes,
+        children: targetExpansion.children,
+        __memory: targetExpansion.__memory
       },
       { // parentNode
         layout: {
@@ -577,8 +577,7 @@ class Element extends BaseModel {
         elementName: parentNode.elementName,
         attributes: parentNode.attributes,
         children: parentNode.children,
-        __parent: parentNode.__parent,
-        __element: parentNode.__element // Preserve cache result of findOrCreateElement
+        __memory: parentNode.__memory
       }
     )
   }
@@ -605,7 +604,9 @@ class Element extends BaseModel {
     ) || {}
 
     const grabValue = (outputName) => {
-      const computedValue = hostInstance.grabValue(
+      const {
+        computedValue
+      } = hostInstance.grabValue(
         timelineName,
         componentId,
         elementNode,
@@ -629,11 +630,6 @@ class Element extends BaseModel {
     return {
       shown: grabValue('shown'),
       opacity: grabValue('opacity'),
-      mount: {
-        x: grabValue('mount.x'),
-        y: grabValue('mount.y'),
-        z: grabValue('mount.z')
-      },
       offset: {
         x: grabValue('offset.x'),
         y: grabValue('offset.y'),
@@ -1480,32 +1476,7 @@ class Element extends BaseModel {
 
   getFriendlyLabel () {
     const node = this.getStaticTemplateNode()
-
-    const id = node && node.attributes && node.attributes.id
-
-    const title = node && node.attributes && node.attributes[HAIKU_TITLE_ATTRIBUTE]
-
-    let name = (typeof node.elementName === 'string' && node.elementName) ? node.elementName : 'div'
-    if (Element.FRIENDLY_NAME_SUBSTITUTES[name]) {
-      name = Element.FRIENDLY_NAME_SUBSTITUTES[name]
-    }
-
-    if (id && !title) {
-      return `#${id}`
-    }
-
-    let out = ''
-    if (typeof id === 'string') out += `${id} `
-    if (typeof title === 'string') out += `${title} `
-
-    if (out.length === 0 && typeof name === 'string') {
-      out += `${name}`
-    }
-
-    out = out.trim()
-    out = titlecase(decamelize(out).replace(/[\W_]/g, ' '))
-
-    return out
+    return Element.getFriendlyLabel(node)
   }
 
   getJITPropertyOptionsAsMenuItems () {
@@ -1907,7 +1878,8 @@ class Element extends BaseModel {
     if (!this.isComponent()) return null
     const liveRenderedNode = this.getLiveRenderedNode()
     if (!liveRenderedNode) return null
-    return liveRenderedNode.__subcomponent
+    if (!liveRenderedNode.__memory) return null
+    return liveRenderedNode.__memory.subcomponent
   }
 
   getAttribute (key) {
@@ -1956,7 +1928,8 @@ Element.cache = {
 Element.COMPONENT_EVENTS = [
   { label: 'Will Mount', value: 'component:will-mount' },
   { label: 'Did Mount', value: 'component:did-mount' },
-  { label: 'Will Unmount', value: 'component:will-unmount' }
+  { label: 'Will Unmount', value: 'component:will-unmount' },
+  { label: 'Did Initialize', value: 'component:did-initialize' }
 ]
 
 Element.nodeIsGrouper = (node) => {
@@ -2109,6 +2082,38 @@ Element.makeUid = (component, parent, index, staticTemplateNode) => {
   )
 
   return uid
+}
+
+Element.getFriendlyLabel = (node) => {
+  if (!node || typeof node !== 'object') {
+    return
+  }
+
+  const id = node.attributes && node.attributes.id
+
+  const title = node.attributes && node.attributes[HAIKU_TITLE_ATTRIBUTE]
+
+  let name = (typeof node.elementName === 'string' && node.elementName) ? node.elementName : 'div'
+  if (Element.FRIENDLY_NAME_SUBSTITUTES[name]) {
+    name = Element.FRIENDLY_NAME_SUBSTITUTES[name]
+  }
+
+  if (id && !title) {
+    return id
+  }
+
+  let out = ''
+  if (typeof id === 'string') out += `${id} `
+  if (typeof title === 'string') out += `${title} `
+
+  if (out.length === 0 && typeof name === 'string') {
+    out += `${name}`
+  }
+
+  out = out.trim()
+  out = titlecase(decamelize(out).replace(/[\W_]/g, ' '))
+
+  return out
 }
 
 Element.upsertElementFromVirtualElement = (

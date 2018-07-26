@@ -3,16 +3,14 @@
  */
 
 import HaikuBase, {GLOBAL_LISTENER_KEY} from './../../HaikuBase';
-import HaikuComponent from './../../HaikuComponent';
+import HaikuComponent, {getNodeCompositeId} from './../../HaikuComponent';
 import assign from './../../vendor/assign';
 import applyLayout from './applyLayout';
 import assignAttributes from './assignAttributes';
-import cloneVirtualElement from './cloneVirtualElement';
 import createRightClickMenu from './createRightClickMenu';
 import createSvgElement from './createSvgElement';
 import createTextNode from './createTextNode';
 import getElementSize from './getElementSize';
-import getFlexId from './getFlexId';
 import getLocalDomEventPosition from './getLocalDomEventPosition';
 import getTypeAsString from './getTypeAsString';
 import isBlankString from './isBlankString';
@@ -20,18 +18,23 @@ import isTextNode from './isTextNode';
 import normalizeName from './normalizeName';
 import removeElement from './removeElement';
 import replaceElementWithText from './replaceElementWithText';
-import shouldElementBeReplaced from './shouldElementBeReplaced';
 
 const connectTarget = (virtualNode, domElement) => {
   if (virtualNode && typeof virtualNode === 'object') {
-    // A virtual node can have multiple targets in the DOM due to an implementation
-    // detail in the Haiku editing environment; FIXME
-    if (!virtualNode.__targets) {
-      virtualNode.__targets = [];
+    // This normally happens in HaikuComponent.hydrateNode, but we might be operating
+    // as a thin-renderer where no hydration has occurred; so do the bootstrapping here.
+    if (!virtualNode.__memory) {
+      virtualNode.__memory = {};
     }
 
-    if (virtualNode.__targets.indexOf(domElement) === -1) {
-      virtualNode.__targets.push(domElement);
+    // A virtual node can have multiple targets in the DOM due to an implementation
+    // detail in the Haiku editing environment; FIXME
+    if (!virtualNode.__memory.targets) {
+      virtualNode.__memory.targets = [];
+    }
+
+    if (virtualNode.__memory.targets.indexOf(domElement) === -1) {
+      virtualNode.__memory.targets.push(domElement);
     }
   }
 };
@@ -117,20 +120,26 @@ export default class HaikuDOMRenderer extends HaikuBase {
     for (const compositeId in deltas) {
       const virtualElement = deltas[compositeId];
 
-      if (virtualElement.__targets) {
-        for (let i = 0; i < virtualElement.__targets.length; i++) {
-          const target = virtualElement.__targets[i];
+      const parentVirtualElement = virtualElement.__memory && virtualElement.__memory.parent;
 
-          if (target.parentNode) {
-            HaikuDOMRenderer.updateElement(
-              target,
-              virtualElement,
-              target.parentNode,
-              virtualElement.__parent,
-              component,
-              true,
-            );
-          }
+      const domTargets = virtualElement.__memory && virtualElement.__memory.targets;
+
+      if (!domTargets) {
+        continue;
+      }
+
+      for (let i = 0; i < domTargets.length; i++) {
+        const domTarget = domTargets[i];
+
+        if (domTarget.parentNode) {
+          HaikuDOMRenderer.updateElement(
+            domTarget, // DOM node
+            virtualElement, // mana node
+            domTarget.parentNode, // DOM node
+            parentVirtualElement, // mana node
+            component,
+            true, // isPatchOperation
+          );
         }
       }
     }
@@ -505,7 +514,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
     component,
   ) {
     const tagName = normalizeName(getTypeAsString(virtualElement));
-    const flexId = getFlexId(virtualElement);
+    const compositeId = getNodeCompositeId(virtualElement);
 
     let newDomElement;
     if (SVG_ELEMENT_NAMES[tagName]) {
@@ -525,7 +534,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
       };
     }
 
-    component.subcacheEnsure(flexId);
+    component.subcacheEnsure(compositeId);
 
     const incomingKey =
       virtualElement.key ||
@@ -565,9 +574,9 @@ export default class HaikuDOMRenderer extends HaikuBase {
     parentVirtualElement,
     component,
   ) {
-    const flexId = getFlexId(virtualElement);
+    const compositeId = getNodeCompositeId(virtualElement);
 
-    component.subcacheClear(flexId);
+    component.subcacheClear(compositeId);
 
     const newElement = isTextNode(virtualElement)
       ? createTextNode(domElement, virtualElement)
@@ -588,7 +597,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
     component,
     isPatchOperation,
   ) {
-    const flexId = getFlexId(virtualElement);
+    const compositeId = getNodeCompositeId(virtualElement);
 
     // If a text node, go straight to 'replace' since we don't know the tag name
     if (isTextNode(virtualElement)) {
@@ -604,12 +613,12 @@ export default class HaikuDOMRenderer extends HaikuBase {
       };
     }
 
-    component.subcacheEnsure(flexId);
+    component.subcacheEnsure(compositeId);
 
     if (!domElement.haiku.element) {
       // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute
       // removals
-      domElement.haiku.element = cloneVirtualElement(virtualElement);
+      domElement.haiku.element = HaikuDOMRenderer.cloneVirtualElement(virtualElement);
     }
 
     const domTagName = domElement.tagName.toLowerCase().trim();
@@ -635,12 +644,24 @@ export default class HaikuDOMRenderer extends HaikuBase {
       assignAttributes(domElement, virtualElement, component, isPatchOperation);
     }
 
-    applyLayout(domElement, virtualElement, parentNode, parentVirtualElement, component, isPatchOperation);
+    applyLayout(
+      domElement,
+      virtualElement,
+      parentNode,
+      parentVirtualElement,
+      component,
+      isPatchOperation,
+    );
+
     if (incomingKey !== undefined && incomingKey !== null) {
       domElement.haiku.key = incomingKey;
     }
 
-    const instance = (virtualElement && virtualElement.__instance) || component;
+    const instance = (
+      virtualElement &&
+      virtualElement.__memory &&
+      virtualElement.__memory.instance
+    ) || component;
 
     if (Array.isArray(virtualElement.children)) {
       // For performance, we don't render children during a patch operation, except in the case
@@ -648,9 +669,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
       // TODO: Fix this hack and make smarter
       const doSkipChildren = (
         isPatchOperation &&
-        (typeof virtualElement.children[0] !== 'string') &&
-        // Flush is a per-node signal to perform a full subtree update, used in controlFlow.*
-        !virtualElement.__flush
+        (typeof virtualElement.children[0] !== 'string')
       );
 
       HaikuDOMRenderer.renderTree(
@@ -663,7 +682,14 @@ export default class HaikuDOMRenderer extends HaikuBase {
       );
     } else if (!virtualElement.children) {
       // In case of falsy virtual children, we still need to remove elements that were already there
-      HaikuDOMRenderer.renderTree(domElement, virtualElement, [], instance, isPatchOperation, null);
+      HaikuDOMRenderer.renderTree(
+        domElement,
+        virtualElement,
+        [],
+        instance,
+        isPatchOperation,
+        null,
+      );
     }
 
     return domElement;
@@ -680,7 +706,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
     // E.g. I might want to inspect the dom node, grab the haiku source data, etc.
     connectTarget(virtualElement, domElement);
 
-    const flexId = getFlexId(virtualElement);
+    const compositeId = getNodeCompositeId(virtualElement);
 
     if (!domElement.haiku) {
       domElement.haiku = {
@@ -694,9 +720,9 @@ export default class HaikuDOMRenderer extends HaikuBase {
 
     // Must clone so we get a correct picture of differences in attributes
     // between runs, e.g. for detecting attribute removals
-    domElement.haiku.element = cloneVirtualElement(virtualElement);
+    domElement.haiku.element = HaikuDOMRenderer.cloneVirtualElement(virtualElement);
 
-    component.subcacheEnsure(flexId);
+    component.subcacheEnsure(compositeId);
 
     if (!Array.isArray(virtualChildren)) {
       return domElement;
@@ -738,11 +764,16 @@ export default class HaikuDOMRenderer extends HaikuBase {
       if (!virtualChild && !domChild) {
         // empty
       } else if (!virtualChild && domChild) {
-        removeElement(domChild, flexId, component);
+        removeElement(domChild, compositeId, component);
       } else if (virtualChild) {
         if (!domChild) {
           const insertedElement = HaikuDOMRenderer.appendChild(
-            null, virtualChild, domElement, virtualElement, component);
+            null,
+            virtualChild,
+            domElement,
+            virtualElement,
+            component,
+          );
           connectTarget(virtualChild, insertedElement);
         } else {
           // Circumstances in which we want to completely *replace* the element:
@@ -752,13 +783,26 @@ export default class HaikuDOMRenderer extends HaikuBase {
           // If we now have an element that is different, we need to trigger a full re-render
           // of itself and all of its children, because e.g. url(#...) references will retain pointers to
           // old elements and this is the only way to clear the DOM to get a correct render.
-          if (shouldElementBeReplaced(domChild, virtualChild, component)) {
+          const shouldReplace = HaikuDOMRenderer.shouldElementBeReplaced(domChild, virtualChild, component);
+
+          if (shouldReplace) {
             const newElement = HaikuDOMRenderer.replaceElement(
-              domChild, virtualChild, domElement, virtualElement, component);
+              domChild,
+              virtualChild,
+              domElement,
+              virtualElement,
+              component,
+            );
             connectTarget(virtualChild, newElement);
           } else {
             HaikuDOMRenderer.updateElement(
-              domChild, virtualChild, domElement, virtualElement, component, isPatchOperation);
+              domChild,
+              virtualChild,
+              domElement,
+              virtualElement,
+              component,
+              isPatchOperation,
+            );
             connectTarget(virtualChild, domChild);
           }
         }
@@ -766,6 +810,48 @@ export default class HaikuDOMRenderer extends HaikuBase {
     }
 
     return domElement;
+  }
+
+  static shouldElementBeReplaced (domElement, virtualElement, component) {
+    if (domElement.haiku) {
+      const compositeIdNew = getNodeCompositeId(virtualElement);
+      const compositeIdOld = getNodeCompositeId(domElement.haiku.element);
+
+      if (compositeIdNew !== compositeIdOld) {
+        return true;
+      }
+
+      if (domElement.haiku.component) {
+        // If the element carried at this node has a different host component,
+        // we should do a full replacement, since the cache of the two instances
+        // are different and may result in different (cached) rendering output
+        if (domElement.haiku.component !== component) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  static cloneAttributes (attributes) {
+    if (!attributes) {
+      return {};
+    }
+    const clone = {};
+    for (const key in attributes) {
+      clone[key] = attributes[key];
+    }
+    return clone;
+  }
+
+  static cloneVirtualElement (virtualElement) {
+    return {
+      elementName: virtualElement.elementName,
+      attributes: HaikuDOMRenderer.cloneAttributes(virtualElement.attributes),
+      children: virtualElement.children,
+      __memory: virtualElement.__memory,
+    };
   }
 
   static __name__ = 'HaikuDOMRenderer';

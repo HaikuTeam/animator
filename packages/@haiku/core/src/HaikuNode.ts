@@ -40,14 +40,6 @@ const SLASH = '/';
 const SPACE = ' ';
 const STYLE = 'style';
 
-const DEFAULT_SCOPE = 'div';
-
-const SCOPE_STRATA = {
-  div: 'div',
-  svg: 'svg',
-  // canvas: 'canvas'
-};
-
 const SELF_CLOSING_TAG_NAMES = [
   'area',
   'base',
@@ -268,12 +260,6 @@ export const manaFlattenTree = (node, options, unique = true, list = [], depth =
     if (Array.isArray(children)) {
       const copies = children.slice(0);
 
-      // Ensure snapshotted children are included such that transcluded nodes are still subject
-      // to property application, e.g. going from repeat=0 to repeat=1
-      if (node.__children) {
-        copies.push.apply(copies, node.__children);
-      }
-
       // Without this, we'll have an infinite loop since the source child appears in both the
       // original children and the snapshotted children arrays.
       uniq(copies);
@@ -343,6 +329,10 @@ export type ManaTreeVisitor = (
   index: number,
 ) => void;
 
+export type BytecodeNodeVisitor = (
+  mana: BytecodeNode,
+) => void;
+
 export const visitManaTree = (
   locator: string,
   mana: string|BytecodeNode,
@@ -374,26 +364,41 @@ export const visitManaTree = (
   }
 };
 
-export const scopifyElements = (mana, parent, scope) => {
-  if (!mana) {
-    return mana;
-  }
-  if (typeof mana === 'string') {
-    return mana;
+export const visit = (
+  mana,
+  visitor,
+  parent?,
+): void => {
+  if (!mana || typeof mana !== 'object') {
+    return;
   }
 
-  mana.__scope = scope || DEFAULT_SCOPE;
+  visitor(mana, parent);
 
   if (mana.children) {
     for (let i = 0; i < mana.children.length; i++) {
       const child = mana.children[i];
-      scopifyElements(
-        child,
-        mana,
-        // If the current element defines a new strata, make that a new scope
-        // and pass it down to the children.
-        SCOPE_STRATA[mana.elementName] || scope,
-      );
+
+      if (child && child.__memory && child.__memory.instance) {
+        continue;
+      }
+
+      visit(child, visitor, mana);
+    }
+  }
+};
+
+export const ascend = (mana, ascender): void => {
+  if (!mana || typeof mana !== 'object') {
+    return;
+  }
+
+  ascender(mana);
+
+  if (mana.__memory) {
+    // Don't ascend beyond the scope of the host component instance
+    if (!mana.__memory.instance && mana.__memory.parent) {
+      ascend(mana.__memory.parent, ascender);
     }
   }
 };
@@ -562,7 +567,7 @@ export const cloneNodeShallow = (node) => {
   }
 
   return {
-    // We want to keep __parent, __repeat, etc.,
+    // We want to keep attributes such as __memory, etc.,
     // as well as elementName, which could be byteocde,
     // unchanged.
     ...node,

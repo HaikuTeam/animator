@@ -402,10 +402,17 @@ Template.hoistNodeAttributes = (manaNode, haikuId, timelineObj, timelineName, ti
   }
 }
 
-Template.createHaikuId = (fqa, source, context) => {
-  const baseString = `${context}|${source}|${fqa}`
-  const haikuId = CryptoUtils.sha256(baseString).slice(0, 12)
-  return haikuId
+Template.createHaikuId = (node, fqa, source, context) => {
+  const base = `${context}|${source}|${fqa}`
+  const sha = CryptoUtils.sha256(base).slice(0, 16)
+  const label = Element.getFriendlyLabel(node)
+
+  // No label could happen if the node is blank or a string
+  if (label) {
+    return `${label} ${sha}`.replace(/\s+/g, '-') // Hyphenize any whitespace
+  }
+
+  return sha
 }
 
 Template.buildHaikuIdSelector = (haikuId) => {
@@ -762,7 +769,7 @@ Template.ensureTitleAndUidifyTree = (mana, source, context, hash, options) => {
     // For cases like pasting a component, the caller might want to assign a fresh id even though
     // we may already have one assigned to the node, hence the forceAssignId option
     if (!node.attributes[HAIKU_ID_ATTRIBUTE] || options.forceAssignId) {
-      const haikuId = Template.createHaikuId(fqa, source, context)
+      const haikuId = Template.createHaikuId(node, fqa, source, context)
       node.attributes[HAIKU_ID_ATTRIBUTE] = haikuId
     }
 

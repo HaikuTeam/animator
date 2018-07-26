@@ -4,7 +4,7 @@ const pretty = require('pretty')
 const async = require('async')
 const jss = require('json-stable-stringify')
 const pascalcase = require('pascalcase')
-const {PlaybackSetting} = require('@haiku/core/lib/HaikuTimeline')
+const {PlaybackFlag} = require('@haiku/core/lib/HaikuTimeline')
 const {HAIKU_ID_ATTRIBUTE, HAIKU_LOCKED_ATTRIBUTE, HAIKU_TITLE_ATTRIBUTE, HAIKU_VAR_ATTRIBUTE} = require('@haiku/core/lib/HaikuElement')
 const {sortedKeyframes} = require('@haiku/core/lib/Transitions').default
 const HaikuComponent = require('@haiku/core/lib/HaikuComponent').default
@@ -796,8 +796,8 @@ class ActiveComponent extends BaseModel {
       this.getCurrentTimelineTime(),
       0,
       mana.elementName,
-      mana.__subcomponent, // can be undefined
-      mana.__subcomponent && mana.__subcomponent.state // can be undefined
+      mana.__memory && mana.__memory.subcomponent, // can be undefined
+      mana.__memory && mana.__memory.subcomponent && mana.__memory.subcomponent.state // can be undefined
     )
   }
 
@@ -1198,30 +1198,16 @@ class ActiveComponent extends BaseModel {
                 return done(err)
               }
 
-              // Now set up 'playback' settings on the same keyframes defined for the child.
-              // This makes it clear that keyframes must be defined on the parent in order for
-              // playback to work as expected in the child.
+              // Create a 'playback' keyframe on the parent to make the feature obvious
               const insertion = this.getReifiedBytecode().template.children[0]
-
-              // Places on the host timeline that we're going to create 'playback' keyframes
-              const bookends = [
+              this.upsertProperties(
+                this.getReifiedBytecode(),
+                insertion.attributes[HAIKU_ID_ATTRIBUTE],
+                this.getInstantiationTimelineName(),
                 0,
-                Timeline.getMaximumMs(
-                  newActiveComponent.getReifiedBytecode(),
-                  this.getInstantiationTimelineName()
-                )
-              ]
-
-              bookends.forEach((ms) => {
-                this.upsertProperties(
-                  this.getReifiedBytecode(),
-                  insertion.attributes[HAIKU_ID_ATTRIBUTE],
-                  this.getInstantiationTimelineName(),
-                  ms,
-                  {'playback': PlaybackSetting.LOOP},
-                  'merge'
-                )
-              })
+                {'playback': PlaybackFlag.LOOP},
+                'merge'
+              )
 
               return done()
             }
@@ -1745,8 +1731,8 @@ class ActiveComponent extends BaseModel {
 
         ac.$instance.visitGuestHierarchy((instance) => {
           if (this.doesManageCoreInstance(instance)) {
-            if (instance.node.__parent) {
-              Object.assign(instance.node.__parent.elementName, bytecode)
+            if (instance.node.__memory && instance.node.__memory.parent) {
+              Object.assign(instance.node.__memory.parent.elementName, bytecode)
             }
 
             Object.assign(instance.bytecode, bytecode)
@@ -2268,8 +2254,8 @@ class ActiveComponent extends BaseModel {
               instance.deactivate()
 
               if (this.doesManageCoreInstance(instance)) {
-                if (instance.node.__parent) {
-                  Object.assign(instance.node.__parent.elementName, bytecode)
+                if (instance.node.__memory && instance.node.__memory.parent) {
+                  Object.assign(instance.node.__memory.parent.elementName, bytecode)
                 }
 
                 Object.assign(instance.bytecode, bytecode)

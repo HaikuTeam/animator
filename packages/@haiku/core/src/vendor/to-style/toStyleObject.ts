@@ -38,13 +38,15 @@ function toObject(str) {
 
   const result = {};
 
-  str.forEach(function (item) {
+  for (let i = 0; i < str.length; i++) {
+    const item = str[i];
+
     const split = item.split(':');
 
     if (split.length === 2) {
       result[split[0].trim()] = split[1].trim();
     }
-  });
+  }
 
   return result;
 }

@@ -5,7 +5,7 @@
     "name": "CPRWelcomePages",
     "relpath": "code/main/code.js",
     "version": "0.0.2",
-    "core": "3.2.8",
+    "core": "3.5.1",
     "player": "3.1.32",
     "organization": "rudymatos",
     "project": "CPRWelcomePages",
@@ -22,16 +22,8 @@
             "value": "rgba(0,0,0,0)"
           }
         },
-        "style.transformStyle": {
-          "0": {
-            "value": "flat"
-          }
-        },
-        "style.perspective": {
-          "0": {
-            "value": "none"
-          }
-        },
+        "style.transformStyle": {},
+        "style.perspective": {},
         "style.position": {
           "0": {
             "value": "relative"
@@ -141,14 +133,14 @@
             "value": 1.1758001672108904
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 187
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 169.5
           }
         }
       },
@@ -515,14 +507,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 50
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 12
           }
         }
       },
@@ -685,14 +677,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 34
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 33.5
           }
         }
       },
@@ -855,14 +847,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 58
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 14.5
           }
         }
       },
@@ -939,9 +931,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/welcome.sketch.contents/slices/arrow_middle.svg",
           "haiku-id": "7a2aebb71efd",
-          "haiku-title": "arrow_middle"
+          "haiku-title": "arrow_middle",
+          "haiku-source": "designs/welcome.sketch.contents/slices/arrow_middle.svg"
         },
         "children": [
           {
@@ -987,9 +979,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/welcome.sketch.contents/slices/arrow_up.svg",
           "haiku-id": "ca9a31fb5016",
-          "haiku-title": "arrow_up"
+          "haiku-title": "arrow_up",
+          "haiku-source": "designs/welcome.sketch.contents/slices/arrow_up.svg"
         },
         "children": [
           {
@@ -1035,9 +1027,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/welcome.sketch.contents/slices/arrow_down.svg",
           "haiku-id": "d8589a335237",
-          "haiku-title": "arrow_down"
+          "haiku-title": "arrow_down",
+          "haiku-source": "designs/welcome.sketch.contents/slices/arrow_down.svg"
         },
         "children": [
           {
@@ -1083,9 +1075,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/welcome.sketch.contents/slices/O9IY371.svg",
           "haiku-id": "0b037ddaa1c4",
-          "haiku-title": "O9IY371"
+          "haiku-title": "O9IY371",
+          "haiku-source": "designs/welcome.sketch.contents/slices/O9IY371.svg"
         },
         "children": [
           {

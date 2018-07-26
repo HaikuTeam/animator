@@ -16,6 +16,7 @@ app.use(express.static(path.join(__dirname)));
 
 const getSimpleCompiler = (entry, demo) => webpack({
   entry,
+  mode: 'development',
   output: {
     path: path.resolve(__dirname, 'webpack'),
     filename: `${demo}.[name].js`,

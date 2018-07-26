@@ -5,7 +5,8 @@
     "noImplicitAny": false,
     "baseUrl": ".",
     "paths": {
-      "@formats/*": ["src/*"]
+      "@formats/*": ["src/*"],
+      "@core/*": ["../@haiku/core/src/*"]
     }
   },
   "include": [

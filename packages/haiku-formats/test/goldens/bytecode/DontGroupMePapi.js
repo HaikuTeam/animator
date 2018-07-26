@@ -26,8 +26,8 @@ module.exports = {
     Default: {
       "haiku:03757d2ca102": {
         "style.WebkitTapHighlightColor": { "0": { value: "rgba(0,0,0,0)" } },
-        "style.transformStyle": { "0": { value: "flat" } },
-        "style.perspective": { "0": { value: "none" } },
+        "style.transformStyle": {},
+        "style.perspective": {},
         "style.position": { "0": { value: "relative" } },
         "style.overflowX": { "0": { value: "hidden" } },
         "style.overflowY": { "0": { value: "hidden" } },

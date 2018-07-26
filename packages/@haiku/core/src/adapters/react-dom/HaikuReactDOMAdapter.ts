@@ -79,7 +79,7 @@ export default function HaikuReactDOMAdapter (haikuComponentFactory, optionalRaw
             visit(this.mount, (node) => {
               const flexId = flexIdIfSame(element, node);
               if (flexId) {
-                if (element.__placeholder.surrogate !== surrogate) {
+                if (element.__memory.placeholder.surrogate !== surrogate) {
                   if (
                     typeof surrogate.type === 'string' ||
                     (typeof surrogate.type === 'function' && surrogate.type.isHaikuAdapter)) {
@@ -90,15 +90,11 @@ export default function HaikuReactDOMAdapter (haikuComponentFactory, optionalRaw
                     node.parentNode.replaceChild(div, node);
                     // tslint:disable-next-line:no-parameter-reassignment
                     node = div;
-
-                    // We have to change the element name as well here so that the correct vanity behaviors
-                    // are used when applying outputs to the placeheld element (e.g. opacity vs style.opacity).
-                    element.elementName = 'div';
                   }
                   node.style.visibility = 'hidden';
                   ReactDOM.render(surrogate, node);
                   window.requestAnimationFrame(() => {
-                    element.__placeholder.surrogate = surrogate;
+                    element.__memory.placeholder.surrogate = surrogate;
                     node.style.visibility = 'visible';
                   });
                   sender.markHorizonElement(element);

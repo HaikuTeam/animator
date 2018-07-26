@@ -4,7 +4,7 @@
     "type": "haiku",
     "name": "qaNow",
     "relpath": "code/main/code.js",
-    "core": "3.2.8",
+    "core": "3.5.1",
     "version": "0.0.1",
     "player": "3.2.5",
     "organization": "taylor",
@@ -22,16 +22,8 @@
             "value": "rgba(0,0,0,0)"
           }
         },
-        "style.transformStyle": {
-          "0": {
-            "value": "flat"
-          }
-        },
-        "style.perspective": {
-          "0": {
-            "value": "none"
-          }
-        },
+        "style.transformStyle": {},
+        "style.perspective": {},
         "style.position": {
           "0": {
             "value": "relative"
@@ -1108,9 +1100,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/qaNow.sketch.contents/slices/heart icon.svg",
           "haiku-id": "75583bb31048-d0bcbb",
-          "haiku-title": "heart icon"
+          "haiku-title": "heart icon",
+          "haiku-source": "designs/qaNow.sketch.contents/slices/heart icon.svg"
         },
         "children": [
           {
@@ -1220,9 +1212,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/qaNow.sketch.contents/slices/heart icon.svg",
           "haiku-id": "75583bb31048-2e67b3",
-          "haiku-title": "heart icon"
+          "haiku-title": "heart icon",
+          "haiku-source": "designs/qaNow.sketch.contents/slices/heart icon.svg"
         },
         "children": [
           {
@@ -1332,9 +1324,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/qaNow.sketch.contents/slices/heart icon.svg",
           "haiku-id": "75583bb31048-23feff",
-          "haiku-title": "heart icon"
+          "haiku-title": "heart icon",
+          "haiku-source": "designs/qaNow.sketch.contents/slices/heart icon.svg"
         },
         "children": [
           {
@@ -1444,9 +1436,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/qaNow.sketch.contents/slices/heart icon.svg",
           "haiku-id": "75583bb31048",
-          "haiku-title": "heart icon"
+          "haiku-title": "heart icon",
+          "haiku-source": "designs/qaNow.sketch.contents/slices/heart icon.svg"
         },
         "children": [
           {

@@ -169,7 +169,9 @@ TimelineProperty.getPropertyValueAtTime = (
   if (propertiesGroup) {
     try {
       if (hostInstance) {
-        const computedValue = hostInstance.grabValue(
+        const {
+          computedValue
+        } = hostInstance.grabValue(
           timelineName,
           componentId,
           hostInstance.findElementsByHaikuId(componentId)[0],

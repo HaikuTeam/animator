@@ -503,11 +503,6 @@ class ElementSelectionProxy extends BaseModel {
       sizeMode: {x: 1, y: 1, z: 1},
       sizeProportional: {x: 1, y: 1, z: 1},
       sizeDifferential: {x: 0, y: 0, z: 0},
-      mount: {
-        x: this.computePropertyValue('mount.x'),
-        y: this.computePropertyValue('mount.y'),
-        z: this.computePropertyValue('mount.z')
-      },
       offset: {
         x: this.computePropertyValue('offset.x'),
         y: this.computePropertyValue('offset.y'),
@@ -669,7 +664,7 @@ class ElementSelectionProxy extends BaseModel {
       height = Math.abs(bottom - top)
     }
 
-    const proxyRect = {
+    return {
       left,
       right,
       top,
@@ -677,8 +672,6 @@ class ElementSelectionProxy extends BaseModel {
       width,
       height
     }
-
-    return proxyRect
   }
 
   getElement () {
@@ -1021,7 +1014,7 @@ class ElementSelectionProxy extends BaseModel {
       let bbox
       if (this._lastBbox !== undefined) {
         bbox = ((bbox, delta) => {
-          let ret = {}
+          const ret = {}
           ret.top = bbox.top + delta.y
           ret.right = bbox.right + delta.x
           ret.bottom = bbox.bottom + delta.y
@@ -1047,9 +1040,9 @@ class ElementSelectionProxy extends BaseModel {
       //  positionWorld : Number
       //  elementId : (Number | String) (?)
       // }
-      let snapLines = artboard.getSnapLinesInScreenCoords()
+      const snapLines = artboard.getSnapLinesInScreenCoords()
 
-      let _applyOffset = (v0, v1) => {
+      const addVectors = (v0, v1) => {
         return {
           x: v0.x + v1.x,
           y: v0.y + v1.y
@@ -1061,9 +1054,9 @@ class ElementSelectionProxy extends BaseModel {
         //  y : number }
       let overrides = []
 
-      let origin = _applyOffset(this._lastOrigin, totalDragDelta)
+      let origin = addVectors(this._lastOrigin, totalDragDelta)
       let origins = this._lastOrigins.map((o) => {
-        return _applyOffset(o, totalDragDelta)
+        return addVectors(o, totalDragDelta)
       })
 
       origins.groupOrigin = origin
@@ -1237,12 +1230,13 @@ class ElementSelectionProxy extends BaseModel {
     const accumulatedUpdates = {}
 
     this.selection.forEach((element, i) => {
-      let propertyGroup = element.computePropertyGroupValueFromGroupDelta(propertyGroupDelta)
+      const layoutSpec = element.getLayoutSpec()
+      const propertyGroup = element.computePropertyGroupValueFromGroupDelta(propertyGroupDelta)
       if (overrides && overrides[i] && overrides[i].x !== undefined) {
-        propertyGroup['translation.x'] = {value: overrides[i].x}
+        propertyGroup['translation.x'] = {value: overrides[i].x - layoutSpec.offset.x}
       }
       if (overrides && overrides[i] && overrides[i].y !== undefined) {
-        propertyGroup['translation.y'] = {value: overrides[i].y}
+        propertyGroup['translation.y'] = {value: overrides[i].y - layoutSpec.offset.y}
       }
 
       ElementSelectionProxy.accumulateKeyframeUpdates(
@@ -1261,13 +1255,13 @@ class ElementSelectionProxy extends BaseModel {
       () => {} // no-op
     )
     if (overrides && overrides.groupOrigin && overrides.groupOrigin.x) {
-      this.applyPropertyValue('translation.x', overrides.groupOrigin.x)
+      this.applyPropertyValue('translation.x', overrides.groupOrigin.x - this.computePropertyValue('offset.x'))
     } else {
       this.applyPropertyDelta('translation.x', dx)
     }
 
     if (overrides && overrides.groupOrigin && overrides.groupOrigin.y) {
-      this.applyPropertyValue('translation.y', overrides.groupOrigin.y)
+      this.applyPropertyValue('translation.y', overrides.groupOrigin.y - this.computePropertyValue('offset.y'))
     } else {
       this.applyPropertyDelta('translation.y', dy)
     }
@@ -1543,9 +1537,6 @@ class ElementSelectionProxy extends BaseModel {
       // given property group object.
       composedTransformsToTimelineProperties(propertyGroup, [finalMatrix], true)
 
-      const mountPointX = layoutSpec.mount.x * layoutSpec.size.x
-      const mountPointY = layoutSpec.mount.y * layoutSpec.size.y
-      const mountPointZ = layoutSpec.mount.z * layoutSpec.size.z
       const offsetX = layoutSpec.offset.x
       const offsetY = layoutSpec.offset.y
       const offsetZ = layoutSpec.offset.z
@@ -1554,11 +1545,11 @@ class ElementSelectionProxy extends BaseModel {
       const originZ = layoutSpec.origin.z * layoutSpec.size.z
 
       propertyGroup['translation.x'] +=
-        finalMatrix[0] * originX + finalMatrix[4] * originY + finalMatrix[8] * originZ + mountPointX - offsetX
+        finalMatrix[0] * originX + finalMatrix[4] * originY + finalMatrix[8] * originZ - offsetX
       propertyGroup['translation.y'] +=
-        finalMatrix[1] * originX + finalMatrix[5] * originY + finalMatrix[9] * originZ + mountPointY - offsetY
+        finalMatrix[1] * originX + finalMatrix[5] * originY + finalMatrix[9] * originZ - offsetY
       propertyGroup['translation.z'] +=
-        finalMatrix[2] * originX + finalMatrix[6] * originY + finalMatrix[10] * originZ + mountPointZ - offsetZ
+        finalMatrix[2] * originX + finalMatrix[6] * originY + finalMatrix[10] * originZ - offsetZ
 
       const propertyGroupNorm = Object.keys(propertyGroup).reduce((accumulator, property) => {
         accumulator[property] = { value: propertyGroup[property] }
@@ -1912,9 +1903,6 @@ ElementSelectionProxy.DEFAULT_OPTIONS = {
 BaseModel.extend(ElementSelectionProxy)
 
 ElementSelectionProxy.DEFAULT_PROPERTY_VALUES = {
-  'mount.x': 0,
-  'mount.y': 0,
-  'mount.z': 0,
   'offset.x': 0,
   'offset.y': 0,
   'offset.z': 0,
@@ -2214,9 +2202,9 @@ ElementSelectionProxy.computeRotationPropertyGroup = (element, rotationZDelta, f
 
   const layoutSpec = element.getLayoutSpec()
   const originalRotationMatrix = Layout3D.computeOrthonormalBasisMatrix(layoutSpec.rotation, layoutSpec.shear)
-  if (layoutSpec.mount.x !== 0 || layoutSpec.mount.y !== 0) {
-    ray.x += layoutSpec.mount.x * layoutSpec.sizeAbsolute.x
-    ray.y += layoutSpec.mount.y * layoutSpec.sizeAbsolute.y
+  if (layoutSpec.offset.x !== 0 || layoutSpec.offset.y !== 0) {
+    ray.x += layoutSpec.offset.x
+    ray.y += layoutSpec.offset.y
   }
   const attributes = {}
   composedTransformsToTimelineProperties(attributes, [matrix, originalRotationMatrix])

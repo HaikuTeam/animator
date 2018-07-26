@@ -1,0 +1,1 @@
+Each of the four dots should initially change position ever so slightly (animate until its frame 2). Clicking any of them should initiate its full animation, and it should pause of its own accord at its frame 15. The leftmost dot should automatically initiate its animation (but only once) after 1s.

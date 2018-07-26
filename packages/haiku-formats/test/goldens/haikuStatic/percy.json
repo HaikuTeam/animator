@@ -9,7 +9,7 @@
     "organization": "SashaDotCom",
     "project": "percy",
     "branch": "master",
-    "core": "3.2.8"
+    "core": "3.5.1"
   },
   "options": {},
   "states": {
@@ -183,14 +183,14 @@
             "value": 1
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 56.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 24.5
           }
         }
       },
@@ -347,14 +347,14 @@
             "value": 2
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 140.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 22
           }
         }
       },
@@ -494,14 +494,14 @@
             "value": 3
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 25.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 5.5
           }
         }
       },
@@ -731,14 +731,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 7
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 7
           }
         }
       },
@@ -1019,14 +1019,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 104
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 65
           }
         }
       },
@@ -1404,14 +1404,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 44.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 55
           }
         }
       },
@@ -1687,14 +1687,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 44.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 55
           }
         }
       },
@@ -1974,14 +1974,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 44.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 55
           }
         }
       },
@@ -2269,14 +2269,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 26.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 5.5
           }
         }
       },
@@ -2489,14 +2489,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 26.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 5.5
           }
         }
       },
@@ -2712,14 +2712,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 26.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 5.5
           }
         }
       },
@@ -2937,14 +2937,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 26.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 5.5
           }
         }
       },
@@ -3166,14 +3166,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 19
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 19
           }
         }
       },
@@ -4003,14 +4003,14 @@
             "value": 0
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 101.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 65
           }
         }
       },
@@ -4706,14 +4706,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 21
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 14
           }
         }
       },
@@ -5095,14 +5095,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 7.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 4.5
           }
         }
       },
@@ -5358,14 +5358,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 7.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 4.5
           }
         }
       },
@@ -5545,14 +5545,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 38.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 28.5
           }
         }
       },
@@ -5737,14 +5737,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 38.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 28.5
           }
         }
       },
@@ -5928,14 +5928,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 56
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 11
           }
         }
       },
@@ -6085,14 +6085,14 @@
             "edited": true
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 97.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 16.5
           }
         }
       },
@@ -6235,14 +6235,14 @@
             "value": 35
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 88
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 10
           }
         }
       },
@@ -6331,14 +6331,14 @@
             "value": 36
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 96
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 15
           }
         }
       },
@@ -6510,14 +6510,14 @@
             "value": 37
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 54
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 10.5
           }
         }
       },
@@ -6597,14 +6597,14 @@
             "value": 38
           }
         },
-        "mount.x": {
+        "offset.x": {
           "0": {
-            "value": -0.5
+            "value": 96.5
           }
         },
-        "mount.y": {
+        "offset.y": {
           "0": {
-            "value": -0.5
+            "value": 16.5
           }
         }
       },
@@ -7023,9 +7023,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/percy.sketch.contents/slices/Title 1.svg",
           "haiku-id": "5a2822e9e08e",
-          "haiku-title": "Title 1"
+          "haiku-title": "Title 1",
+          "haiku-source": "designs/percy.sketch.contents/slices/Title 1.svg"
         },
         "children": [
           {
@@ -7033,9 +7033,7 @@
             "attributes": {
               "haiku-id": "d725c1b4e945"
             },
-            "children": [
-              "Title 1"
-            ]
+            "children": []
           },
           {
             "elementName": "desc",
@@ -7095,9 +7093,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/percy.sketch.contents/slices/Desc 1.svg",
           "haiku-id": "72c6fb8758ed",
-          "haiku-title": "Desc 1"
+          "haiku-title": "Desc 1",
+          "haiku-source": "designs/percy.sketch.contents/slices/Desc 1.svg"
         },
         "children": [
           {
@@ -7105,9 +7103,7 @@
             "attributes": {
               "haiku-id": "a010078b425d"
             },
-            "children": [
-              "Desc 1"
-            ]
+            "children": []
           },
           {
             "elementName": "desc",
@@ -7167,9 +7163,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/percy.sketch.contents/slices/Title 2.svg",
           "haiku-id": "dfd8db140205",
-          "haiku-title": "Title 2"
+          "haiku-title": "Title 2",
+          "haiku-source": "designs/percy.sketch.contents/slices/Title 2.svg"
         },
         "children": [
           {
@@ -7177,9 +7173,7 @@
             "attributes": {
               "haiku-id": "4fa9cd3ef0b4"
             },
-            "children": [
-              "Title 2"
-            ]
+            "children": []
           },
           {
             "elementName": "desc",
@@ -7230,9 +7224,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/percy.sketch.contents/slices/Desc 2.svg",
           "haiku-id": "0e0c7872e0d1",
-          "haiku-title": "Desc 2"
+          "haiku-title": "Desc 2",
+          "haiku-source": "designs/percy.sketch.contents/slices/Desc 2.svg"
         },
         "children": [
           {
@@ -7240,9 +7234,7 @@
             "attributes": {
               "haiku-id": "6484f00c1877"
             },
-            "children": [
-              "Desc 2"
-            ]
+            "children": []
           },
           {
             "elementName": "desc",
@@ -7293,9 +7285,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/percy.sketch.contents/slices/Title 3.svg",
           "haiku-id": "3044af1ec2a5",
-          "haiku-title": "Title 3"
+          "haiku-title": "Title 3",
+          "haiku-source": "designs/percy.sketch.contents/slices/Title 3.svg"
         },
         "children": [
           {
@@ -7303,9 +7295,7 @@
             "attributes": {
               "haiku-id": "5d190d26f1ce"
             },
-            "children": [
-              "Title 3"
-            ]
+            "children": []
           },
           {
             "elementName": "desc",
@@ -7356,9 +7346,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/percy.sketch.contents/slices/Desc 3.svg",
           "haiku-id": "926ea1631976",
-          "haiku-title": "Desc 3"
+          "haiku-title": "Desc 3",
+          "haiku-source": "designs/percy.sketch.contents/slices/Desc 3.svg"
         },
         "children": [
           {
@@ -7366,9 +7356,7 @@
             "attributes": {
               "haiku-id": "d1e66e2b54fd"
             },
-            "children": [
-              "Desc 3"
-            ]
+            "children": []
           },
           {
             "elementName": "desc",
@@ -7419,9 +7407,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/percy.sketch.contents/slices/logo_b.svg",
           "haiku-id": "4359f1252d70",
-          "haiku-title": "logo_b"
+          "haiku-title": "logo_b",
+          "haiku-source": "designs/percy.sketch.contents/slices/logo_b.svg"
         },
         "children": [
           {
@@ -7429,9 +7417,7 @@
             "attributes": {
               "haiku-id": "92f84f968746"
             },
-            "children": [
-              "logo_b"
-            ]
+            "children": []
           },
           {
             "elementName": "desc",
@@ -7515,9 +7501,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/percy.sketch.contents/slices/next_btn.svg",
           "haiku-id": "cf0a91dca2c6",
-          "haiku-title": "next_btn"
+          "haiku-title": "next_btn",
+          "haiku-source": "designs/percy.sketch.contents/slices/next_btn.svg"
         },
         "children": [
           {
@@ -7525,9 +7511,7 @@
             "attributes": {
               "haiku-id": "7417e68dfacb"
             },
-            "children": [
-              "next_btn"
-            ]
+            "children": []
           },
           {
             "elementName": "desc",
@@ -7595,9 +7579,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/percy.sketch.contents/slices/indicator bgs.svg",
           "haiku-id": "06144fcc65bf",
-          "haiku-title": "indicator bgs"
+          "haiku-title": "indicator bgs",
+          "haiku-source": "designs/percy.sketch.contents/slices/indicator bgs.svg"
         },
         "children": [
           {
@@ -7605,9 +7589,7 @@
             "attributes": {
               "haiku-id": "04d2b3027fd8"
             },
-            "children": [
-              "indicator bgs"
-            ]
+            "children": []
           },
           {
             "elementName": "desc",
@@ -7683,9 +7665,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/percy.sketch.contents/slices/indicator.svg",
           "haiku-id": "3c062f013dd2",
-          "haiku-title": "indicator"
+          "haiku-title": "indicator",
+          "haiku-source": "designs/percy.sketch.contents/slices/indicator.svg"
         },
         "children": [
           {
@@ -7693,9 +7675,7 @@
             "attributes": {
               "haiku-id": "9f6b88a10b13"
             },
-            "children": [
-              "indicator"
-            ]
+            "children": []
           },
           {
             "elementName": "desc",
@@ -7746,9 +7726,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/percy.sketch.contents/slices/percy.svg",
           "haiku-id": "e2107692c018",
-          "haiku-title": "percy"
+          "haiku-title": "percy",
+          "haiku-source": "designs/percy.sketch.contents/slices/percy.svg"
         },
         "children": [
           {
@@ -7756,9 +7736,7 @@
             "attributes": {
               "haiku-id": "d123f900a86e"
             },
-            "children": [
-              "percy"
-            ]
+            "children": []
           },
           {
             "elementName": "desc",
@@ -8160,9 +8138,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/percy.sketch.contents/slices/page.svg",
           "haiku-id": "550f1d1bf4d2",
-          "haiku-title": "page"
+          "haiku-title": "page",
+          "haiku-source": "designs/percy.sketch.contents/slices/page.svg"
         },
         "children": [
           {
@@ -8170,9 +8148,7 @@
             "attributes": {
               "haiku-id": "df6656205379"
             },
-            "children": [
-              "page"
-            ]
+            "children": []
           },
           {
             "elementName": "desc",
@@ -8248,9 +8224,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/percy.sketch.contents/slices/page.svg",
           "haiku-id": "e0fe9ff9c991",
-          "haiku-title": "page"
+          "haiku-title": "page",
+          "haiku-source": "designs/percy.sketch.contents/slices/page.svg"
         },
         "children": [
           {
@@ -8258,9 +8234,7 @@
             "attributes": {
               "haiku-id": "ec1183644ce8"
             },
-            "children": [
-              "page"
-            ]
+            "children": []
           },
           {
             "elementName": "desc",
@@ -8336,9 +8310,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/percy.sketch.contents/slices/page.svg",
           "haiku-id": "765a09ca1a45",
-          "haiku-title": "page"
+          "haiku-title": "page",
+          "haiku-source": "designs/percy.sketch.contents/slices/page.svg"
         },
         "children": [
           {
@@ -8346,9 +8320,7 @@
             "attributes": {
               "haiku-id": "a511ea2a30e2"
             },
-            "children": [
-              "page"
-            ]
+            "children": []
           },
           {
             "elementName": "desc",
@@ -8424,9 +8396,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/percy.sketch.contents/slices/headline2.svg",
           "haiku-id": "ee5e030047e6",
-          "haiku-title": "headline2"
+          "haiku-title": "headline2",
+          "haiku-source": "designs/percy.sketch.contents/slices/headline2.svg"
         },
         "children": [
           {
@@ -8434,9 +8406,7 @@
             "attributes": {
               "haiku-id": "d0693c80ed3f"
             },
-            "children": [
-              "headline2"
-            ]
+            "children": []
           },
           {
             "elementName": "desc",
@@ -8478,9 +8448,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/percy.sketch.contents/slices/headline2.svg",
           "haiku-id": "b4141bc315b0",
-          "haiku-title": "headline2"
+          "haiku-title": "headline2",
+          "haiku-source": "designs/percy.sketch.contents/slices/headline2.svg"
         },
         "children": [
           {
@@ -8529,9 +8499,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/percy.sketch.contents/slices/headline2.svg",
           "haiku-id": "8b7b55c1730c",
-          "haiku-title": "headline2"
+          "haiku-title": "headline2",
+          "haiku-source": "designs/percy.sketch.contents/slices/headline2.svg"
         },
         "children": [
           {
@@ -8580,9 +8550,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/percy.sketch.contents/slices/headline2.svg",
           "haiku-id": "d300f3906156",
-          "haiku-title": "headline2"
+          "haiku-title": "headline2",
+          "haiku-source": "designs/percy.sketch.contents/slices/headline2.svg"
         },
         "children": [
           {
@@ -8631,9 +8601,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/percy.sketch.contents/slices/coin.svg",
           "haiku-id": "642c141595ca",
-          "haiku-title": "coin"
+          "haiku-title": "coin",
+          "haiku-source": "designs/percy.sketch.contents/slices/coin.svg"
         },
         "children": [
           {
@@ -8641,9 +8611,7 @@
             "attributes": {
               "haiku-id": "c5990328fa96"
             },
-            "children": [
-              "coin"
-            ]
+            "children": []
           },
           {
             "elementName": "desc",
@@ -8719,9 +8687,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/percy.sketch.contents/slices/remaining_ham.svg",
           "haiku-id": "266a4c737675",
-          "haiku-title": "remaining_ham"
+          "haiku-title": "remaining_ham",
+          "haiku-source": "designs/percy.sketch.contents/slices/remaining_ham.svg"
         },
         "children": [
           {
@@ -8729,9 +8697,7 @@
             "attributes": {
               "haiku-id": "067ac1a02e35"
             },
-            "children": [
-              "remaining_ham"
-            ]
+            "children": []
           },
           {
             "elementName": "desc",
@@ -9043,9 +9009,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/percy.sketch.contents/slices/nose.svg",
           "haiku-id": "24807e4c556f",
-          "haiku-title": "nose"
+          "haiku-title": "nose",
+          "haiku-source": "designs/percy.sketch.contents/slices/nose.svg"
         },
         "children": [
           {
@@ -9053,9 +9019,7 @@
             "attributes": {
               "haiku-id": "3b0c11316b6f"
             },
-            "children": [
-              "nose"
-            ]
+            "children": []
           },
           {
             "elementName": "desc",
@@ -9156,9 +9120,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/percy.sketch.contents/slices/eye.svg",
           "haiku-id": "4995dc8b328a",
-          "haiku-title": "eye"
+          "haiku-title": "eye",
+          "haiku-source": "designs/percy.sketch.contents/slices/eye.svg"
         },
         "children": [
           {
@@ -9166,9 +9130,7 @@
             "attributes": {
               "haiku-id": "10038e1f49e0"
             },
-            "children": [
-              "eye"
-            ]
+            "children": []
           },
           {
             "elementName": "desc",
@@ -9228,9 +9190,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/percy.sketch.contents/slices/eye_left.svg",
           "haiku-id": "d7e232348f2f",
-          "haiku-title": "eye_left"
+          "haiku-title": "eye_left",
+          "haiku-source": "designs/percy.sketch.contents/slices/eye_left.svg"
         },
         "children": [
           {
@@ -9238,9 +9200,7 @@
             "attributes": {
               "haiku-id": "1b24ee27f3e5"
             },
-            "children": [
-              "eye_left"
-            ]
+            "children": []
           },
           {
             "elementName": "desc",
@@ -9300,9 +9260,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/percy.sketch.contents/slices/coin pocket.svg",
           "haiku-id": "9ea8d8a2afa6",
-          "haiku-title": "coin pocket"
+          "haiku-title": "coin pocket",
+          "haiku-source": "designs/percy.sketch.contents/slices/coin pocket.svg"
         },
         "children": [
           {
@@ -9310,9 +9270,7 @@
             "attributes": {
               "haiku-id": "bb36063120da"
             },
-            "children": [
-              "coin pocket"
-            ]
+            "children": []
           },
           {
             "elementName": "desc",
@@ -9389,9 +9347,9 @@
           "version": "1.1",
           "xmlns": "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "source": "designs/percy.sketch.contents/slices/coin pocket.svg",
           "haiku-id": "7618d3f02ab2",
-          "haiku-title": "coin pocket"
+          "haiku-title": "coin pocket",
+          "haiku-source": "designs/percy.sketch.contents/slices/coin pocket.svg"
         },
         "children": [
           {
@@ -9399,9 +9357,7 @@
             "attributes": {
               "haiku-id": "820f8c262ef6"
             },
-            "children": [
-              "coin pocket"
-            ]
+            "children": []
           },
           {
             "elementName": "desc",

@@ -5,6 +5,7 @@
 import {IHaikuComponent} from './api';
 import HaikuBase, {GLOBAL_LISTENER_KEY} from './HaikuBase';
 import getTimelineMaxTime from './helpers/getTimelineMaxTime';
+import {isNumeric, tokenizeDirective} from './reflection/Tokenizer';
 import assign from './vendor/assign';
 
 const NUMBER = 'number';
@@ -20,16 +21,26 @@ export const enum TimeUnit {
   Frame = 'fr',
 }
 
-export const enum PlaybackSetting {
+export const enum PlaybackFlag {
   ONCE = 'once',
+  PLAY = 'play', // alias for 'once'
   LOOP = 'loop',
   STOP = 'stop',
-  CEDE = 'cede',
+  SEEK = 'seek',
 }
 
-const MINIMUM_LOCAL_TIME = 0.000001;
+const makePlaybackProc = (body: string): Function => {
+  // tslint:disable-next-line:no-function-constructor-with-string-args
+  return new Function('$time', body);
+};
 
-export type PlaybackStatus = PlaybackSetting | number | string;
+const PLAYBACK_FLAGS = {
+  once: true,
+  play: true, // alias for 'once'
+  loop: true,
+  stop: true,
+  seek: true,
+};
 
 // tslint:disable:variable-name
 export default class HaikuTimeline extends HaikuBase {
@@ -37,14 +48,17 @@ export default class HaikuTimeline extends HaikuBase {
   component: IHaikuComponent;
   name;
   descriptor;
-  status: PlaybackStatus;
 
-  _globalClockTime: number;
-  _localElapsedTime: number;
-  _localExplicitlySetTime: number;
-  _maxExplicitlyDefinedTime: number;
-  _isPlaying: boolean;
-  private loopCounter: number;
+  private globalClockTime: number;
+  private localElapsedTime: number;
+  private localControlledTime: number|null;
+  private maxExplicitlyDefinedTime: number;
+  private areUpdatesFrozen: boolean;
+  private isTimelinePlaying: boolean;
+  private isTimelineLooping: boolean;
+  private offsetCalculator: Function;
+  private lastFrame: number;
+  private numLoops: number;
 
   constructor (component: IHaikuComponent, name, descriptor, options) {
     super();
@@ -52,21 +66,21 @@ export default class HaikuTimeline extends HaikuBase {
     this.component = component;
     this.name = name;
     this.descriptor = descriptor;
-    this.status = null;
-
     this.assignOptions(options || {});
 
-    this._globalClockTime = 0;
-    this._localElapsedTime = 0;
-    this._localExplicitlySetTime = null; // Only set this to a number if time is 'controlled'
-    this._maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
-
-    this._isPlaying = null;
-
-    this.loopCounter = 0;
+    this.globalClockTime = 0;
+    this.localElapsedTime = 0;
+    this.localControlledTime = null; // Only set this to a number if time is 'controlled'
+    this.maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
+    this.areUpdatesFrozen = !!this.options.freeze;
+    this.isTimelineLooping = !!this.options.loop;
+    this.isTimelinePlaying = true;
+    this.offsetCalculator = null;
+    this.lastFrame = null;
+    this.numLoops = 0;
   }
 
-  private getMs (amount: number, unit: TimeUnit): number {
+  getMs (amount: number, unit: TimeUnit): number {
     switch (unit) {
       case TimeUnit.Frame:
         return ~~(this.component.getClock().getFrameDuration() * amount);
@@ -96,91 +110,97 @@ export default class HaikuTimeline extends HaikuBase {
     this.component = component;
   }
 
-  updateInternalProperties (
-    updatedGlobalClockTime,
-  ) {
-    const previousGlobalClockTime = this._globalClockTime;
-    const deltaGlobalClockTime = updatedGlobalClockTime - previousGlobalClockTime;
-
-    this._globalClockTime = updatedGlobalClockTime;
-
-    if (this.isTimeControlled()) {
-      this._localElapsedTime = this._localExplicitlySetTime;
-    } else {
-      // If we are a looping timeline, reset to zero once we've gone past our max
-      if (
-        this.isLooping() &&
-        this._localElapsedTime > this._maxExplicitlyDefinedTime
-      ) {
-
-        this.loopCounter++;
-
-        // Avoid log DoS for too short timelines
-        if (this._maxExplicitlyDefinedTime > 200) {
-          this.component.emitFromRootComponent('loop', {
-            localElapsedTime: this._localElapsedTime,
-            maxExplicitlyDefinedTime: this._maxExplicitlyDefinedTime,
-            globalClockTime: this._globalClockTime,
-            boundedFrame: this.getBoundedFrame(),
-            loopCounter: this.loopCounter,
-          });
-        }
-
-        this._localElapsedTime = this._maxExplicitlyDefinedTime - this._localElapsedTime;
-      }
-
-      this._localElapsedTime += deltaGlobalClockTime;
-
-      if (this._localElapsedTime < MINIMUM_LOCAL_TIME) {
-        this._localElapsedTime = 0;
-      }
-    }
-
-    if (this.isFinished()) {
-      this.setPlaying(false);
-    }
-  }
-
   doUpdateWithGlobalClockTime (
     globalClockTime,
   ) {
     if (this.isFrozen()) {
-      this.updateInternalProperties(this._globalClockTime);
-    } else {
-      this.updateInternalProperties(globalClockTime);
+      return;
     }
 
-    if (this.isPlaying()) {
-      const frame = this.getUnboundedFrame();
-      const time = Math.round(this.getTime());
+    const prevGlobalClockTime = this.getClockTime();
+    const deltaGlobalClockTime = globalClockTime - prevGlobalClockTime;
+    this.globalClockTime = globalClockTime;
 
-      this.component.routeEventToHandlerAndEmit(
-        GLOBAL_LISTENER_KEY,
-        `timeline:${this.getName()}:${frame}`,
-        [frame, time],
-      );
-
-      this.emit('tick', frame, time);
+    // If we update with the global clock time while a timeline is paused, the next
+    // time we resume playing it will "jump forward" to the time that has elapsed.
+    if (this.isPaused()) {
+      return;
     }
+
+    this.doUpdateWithTimeDelta(deltaGlobalClockTime);
+  }
+
+  doUpdateWithTimeDelta (
+    deltaClockTime,
+  ) {
+    const maxTime = this.getMaxTime();
+    const prevElapsedTime = this.getElapsedTime();
+    const newElapsedTime = prevElapsedTime + deltaClockTime;
+    const didLoop = didTimeLoop(prevElapsedTime, newElapsedTime, maxTime);
+
+    this.setElapsedTime(newElapsedTime);
+
+    // If we are a looping timeline, reset to zero once we've gone past our max
+    if (this.isLooping() && didLoop) {
+      this.numLoops++;
+
+      // Avoid log DoS for too-short timelines
+      if (this.getMaxTime() > 200) {
+        this.component.emitFromRootComponent('loop', {
+          localElapsedTime: newElapsedTime,
+          maxExplicitlyDefinedTime: maxTime,
+          globalClockTime: this.getClockTime(),
+          boundedFrame: this.getBoundedFrame(),
+          loopCount: this.numLoops,
+        });
+      }
+    }
+  }
+
+  executePreUpdateHooks (globalClockTime: number) {
+    this.doUpdateWithGlobalClockTime(globalClockTime);
+  }
+
+  executePostUpdateHooks (globalClockTime: number) {
+    if (this.isFrozen() || this.isPaused()) {
+      return;
+    }
+
+    const frame = this.getBoundedFrame();
+    const time = Math.round(this.getBoundedTime());
+
+    this.component.routeEventToHandlerAndEmit(
+      GLOBAL_LISTENER_KEY,
+      `timeline:${this.getName()}:${frame}`,
+      [frame, time],
+    );
+
+    this.emit('tick', frame, time);
+
+    this.lastFrame = frame;
+  }
+
+  getLastFrame (): number {
+    return this.lastFrame;
+  }
+
+  controlTime (
+    controlledTimeToSet,
+    newGlobalClockTime,
+  ) {
+    this.setControlledTime(parseInt(controlledTimeToSet || 0, 10));
+    // Need to update the properties so that accessors like .getFrame() work after this update.
+    this.doUpdateWithGlobalClockTime(newGlobalClockTime);
   }
 
   resetMaxDefinedTimeFromDescriptor (
     descriptor,
   ) {
-    this._maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
+    this.maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
   }
 
   isTimeControlled () {
     return typeof this.getControlledTime() === NUMBER;
-  }
-
-  controlTime (
-    controlledTimeToSet,
-    updatedGlobalClockTime,
-  ) {
-    this._localExplicitlySetTime = parseInt(controlledTimeToSet || 0, 10);
-    // Need to update the properties so that accessors like .getFrame() work after this update.
-    this.updateInternalProperties(updatedGlobalClockTime);
   }
 
   /**
@@ -196,40 +216,46 @@ export default class HaikuTimeline extends HaikuBase {
    * @description Return the maximum time that this timeline will reach, in ms.
    */
   getMaxTime () {
-    return this._maxExplicitlyDefinedTime;
+    return this.maxExplicitlyDefinedTime;
   }
 
   /**
    * @method getClockTime
-   * @description Return the global clock time that this timeline is at, in ms,
+   * @description fseek the global clock time that this timeline is at, in ms,
    * whether or not our local time matches it or it has exceeded our max.
    * This value is ultimately managed by the clock and passed in.
    */
   getClockTime () {
-    return this._globalClockTime;
+    return this.globalClockTime;
   }
 
   /**
    * @method getElapsedTime
    * @description Return the amount of time that has elapsed on this timeline since
    * it started updating, up to the most recent time update it received from the clock.
-   * Note that for inactive timelines, this value will cease increasing as of the last update.
+   * Note that for inactive ftimelines, this value will cease increasing as of the last update.
    */
   getElapsedTime () {
-    return this._localElapsedTime;
+    return this.localElapsedTime;
+  }
+
+  setElapsedTime (t: number) {
+    this.localElapsedTime = t;
   }
 
   /**
-   * @method getControlledTime
    * @description If time has been explicitly set here via time control, this value will
    * be the number of that setting.
    */
   getControlledTime () {
-    return this._localExplicitlySetTime;
+    return this.localControlledTime;
+  }
+
+  setControlledTime (t: number|null) {
+    this.localControlledTime = t;
   }
 
   /**
-   * @method getBoundedTime
    * @description Return the locally elapsed time, or the maximum time of this timeline,
    * whichever is smaller. Useful if you want to know what the "effective" time of this
    * timeline is, not necessarily how much has elapsed in an absolute sense. This is used
@@ -237,15 +263,28 @@ export default class HaikuTimeline extends HaikuBase {
    */
   getBoundedTime () {
     const max = this.getMaxTime();
-    const elapsed = this.getElapsedTime();
-    if (elapsed > max) {
-      return max;
+
+    let time = (this.isTimeControlled())
+      ? this.getControlledTime()
+      : this.getElapsedTime();
+
+    if (this.offsetCalculator) {
+      time = this.offsetCalculator.call(this, time);
     }
-    return elapsed;
+
+    if (this.isLooping()) {
+      return mod(time, max);
+    }
+
+    // Don't allow negative time
+    if (time < 0.000001) {
+      time = 0;
+    }
+
+    return Math.min(time, max);
   }
 
   /**
-   * @method getTime
    * @description Convenience wrapper. Currently returns the bounded time. There's an argument
    * that this should return the elapsed time, though. #TODO
    */
@@ -254,11 +293,10 @@ export default class HaikuTimeline extends HaikuBase {
   }
 
   /**
-   * @method getBoundedFrame
    * @description Return the current frame up to the maximum frame available for this timeline's duration.
    */
   getBoundedFrame () {
-    const time = this.getBoundedTime();
+    const time = this.getTime(); // Returns the bounded time
     const timeStep = this.component.getClock().getFrameDuration();
     return Math.round(time / timeStep);
   }
@@ -287,26 +325,15 @@ export default class HaikuTimeline extends HaikuBase {
    * @description Returns T/F if the timeline is playing
    */
   isPlaying () {
-    return !!this._isPlaying;
+    return this.isTimelinePlaying;
   }
 
-  /**
-   * @method isExplicitlyPaused
-   * @description Returns T/F if the timeline has actually been paused; differentiate from
-   * the falsy state timelines have when first constructed.
-   */
-  isExplicitlyPaused () {
-    // The comparison to `false` is intentional and important. See doc above.
-    // tslint:disable:no-boolean-literal-compare
-    return this._isPlaying === false;
+  setPlaying (isPlaying: boolean = true) {
+    this.isTimelinePlaying = !!isPlaying;
   }
 
-  /**
-   * @method isFrozen
-   * @description Returns T/F if the timeline is frozen
-   */
-  isFrozen () {
-    return !!this.options.freeze;
+  isPaused () {
+    return !this.isPlaying();
   }
 
   /**
@@ -318,7 +345,7 @@ export default class HaikuTimeline extends HaikuBase {
     if (this.isLooping() || this.isTimeControlled()) {
       return false;
     }
-    return ~~this.getElapsedTime() > this.getMaxTime();
+    return this.getElapsedTime() > this.getMaxTime();
   }
 
   isUnfinished () {
@@ -329,12 +356,12 @@ export default class HaikuTimeline extends HaikuBase {
     return this.getMaxTime() || 0;
   }
 
-  setRepeat (bool) {
-    this.options.loop = bool;
+  setRepeat (bool: boolean = true) {
+    this.isTimelineLooping = !!bool;
   }
 
   getRepeat (): boolean {
-    return !!this.options.loop;
+    return this.isTimelineLooping;
   }
 
   isRepeating (): boolean {
@@ -345,47 +372,43 @@ export default class HaikuTimeline extends HaikuBase {
     return this.isRepeating();
   }
 
+  /**
+   * @method isFrozen
+   * @description Returns T/F if the timeline is frozen
+   */
+  isFrozen () {
+    return this.areUpdatesFrozen;
+  }
+
   freeze () {
-    this.options.freeze = true;
+    this.areUpdatesFrozen = true;
   }
 
   unfreeze () {
-    this.options.freeze = false;
+    this.areUpdatesFrozen = false;
   }
 
-  setPlaying (isPlaying: boolean = true) {
-    this._isPlaying = isPlaying;
-  }
-
-  start (
-    maybeGlobalClockTime,
-    descriptor,
-  ) {
-    this.startSoftly(maybeGlobalClockTime, descriptor);
+  start () {
+    this.startSoftly(0);
     this.emit('start');
   }
 
   startSoftly (
-    maybeGlobalClockTime,
-    descriptor,
+    maybeElapsedTime: number,
   ) {
-    this._localElapsedTime = 0;
     this.setPlaying(true);
-    this._globalClockTime = maybeGlobalClockTime || 0;
-    this._maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
+    this.setElapsedTime(maybeElapsedTime || 0);
+    this.maxExplicitlyDefinedTime = getTimelineMaxTime(this.component.getTimelineDescriptor(this.name));
   }
 
-  stop (maybeGlobalClockTime, descriptor) {
-    this.stopSoftly(maybeGlobalClockTime, descriptor);
+  stop () {
+    this.stopSoftly();
     this.emit('stop');
   }
 
-  stopSoftly (
-    maybeGlobalClockTime,
-    descriptor,
-  ) {
+  stopSoftly () {
     this.setPlaying(false);
-    this._maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
+    this.maxExplicitlyDefinedTime = getTimelineMaxTime(this.component.getTimelineDescriptor(this.name));
   }
 
   pause () {
@@ -394,9 +417,8 @@ export default class HaikuTimeline extends HaikuBase {
   }
 
   pauseSoftly () {
-    const time = this.component.getClock().getTime();
-    const descriptor = this.component.getTimelineDescriptor(this.name);
-    this.stopSoftly(time, descriptor);
+    this.setPlaying(false);
+    this.maxExplicitlyDefinedTime = getTimelineMaxTime(this.component.getTimelineDescriptor(this.name));
   }
 
   play (options: any = {}) {
@@ -412,18 +434,17 @@ export default class HaikuTimeline extends HaikuBase {
   playSoftly () {
     this.ensureClockIsRunning();
 
-    const time = this.component.getClock().getTime();
-    const descriptor = this.component.getTimelineDescriptor(this.name);
-    const local = this._localElapsedTime;
+    this.setPlaying(true);
 
-    this.startSoftly(time, descriptor);
+    // When playing after exiting controlled-time mode, start from the last controlled time.
+    if (this.isTimeControlled()) {
+      this.setElapsedTime(this.getControlledTime());
 
-    if (this._localExplicitlySetTime !== null) {
-      this._localElapsedTime = this._localExplicitlySetTime;
-      this._localExplicitlySetTime = null;
-    } else {
-      this._localElapsedTime = local;
+      // To properly exit controlled-time mode, we need to set controlled time to null.
+      this.setControlledTime(null);
     }
+
+    this.maxExplicitlyDefinedTime = getTimelineMaxTime(this.component.getTimelineDescriptor(this.name));
   }
 
   seek (amount: number, unit: TimeUnit = TimeUnit.Frame) {
@@ -433,92 +454,159 @@ export default class HaikuTimeline extends HaikuBase {
     this.emit('seek', ms);
   }
 
-  private seekSoftly (ms: number) {
+  seekSoftly (ms: number) {
     this.ensureClockIsRunning();
-    const clockTime = this.component.getClock().getTime();
-    this.controlTime(ms, clockTime);
-    const descriptor = this.component.getTimelineDescriptor(this.name);
-    this.startSoftly(clockTime, descriptor);
+    this.controlTime(ms, this.component.getClock().getTime());
+    this.setElapsedTime(this.getControlledTime());
+    this.maxExplicitlyDefinedTime = getTimelineMaxTime(this.component.getTimelineDescriptor(this.name));
   }
 
   gotoAndPlay (amount: number, unit: TimeUnit = TimeUnit.Frame) {
-    const ms = this.getMs(amount, unit);
-    this.ensureClockIsRunning();
-    this.seekSoftly(ms);
+    this.seekSoftly(this.getMs(amount, unit));
     this.play(null);
   }
 
   gotoAndStop (amount: number, unit: TimeUnit = TimeUnit.Frame) {
-    const ms = this.getMs(amount, unit);
-    this.ensureClockIsRunning();
-    this.seekSoftly(ms);
+    this.seekSoftly(this.getMs(amount, unit));
     if (this.component && this.component.context && this.component.context.tick) {
       this.component.context.tick();
     }
     this.pause();
   }
 
-  setPlaybackStatus (status: PlaybackStatus) {
-    this.status = status;
-  }
+  setPlaybackStatus (input) {
+    const {
+      flag,
+      time,
+      proc,
+    } = this.parsePlaybackStatus(input);
 
-  applyPlaybackStatus () {
-    if (this.isFrozen()) {
-      return;
-    }
-
-    let status = this.status;
-
-    // Let the child timeline do whatever it wishes without interference
-    if (status === PlaybackSetting.CEDE) {
-      return;
-    }
-
-    if (!status) {
-      status = PlaybackSetting.LOOP;
-    }
-
-    const shouldRepeat = status === PlaybackSetting.LOOP;
-    const shouldPlay = status === PlaybackSetting.ONCE;
-    const shouldStop = status === PlaybackSetting.STOP;
-
-    // Start by unsetting the repeat statusue, which we'll re-set only if our status becomes 'loop'
-    this.setRepeat(false);
-
-    if (shouldRepeat) {
+    if (flag === PlaybackFlag.LOOP) {
       this.setRepeat(true);
     }
 
+    if (flag === PlaybackFlag.ONCE) {
+      this.setRepeat(false);
+    }
+
     // If the sending timeline is frozen, don't inadvertently unfreeze its component's guests
-    if (shouldPlay || shouldRepeat) {
+    if (
+      flag === PlaybackFlag.LOOP || // In the current API, loop also connotes play
+      flag === PlaybackFlag.ONCE ||
+      flag === PlaybackFlag.PLAY
+    ) {
       if (!this.isPlaying()) {
         this.play();
       }
-
-      return;
     }
 
-    if (shouldStop) {
+    if (flag === PlaybackFlag.STOP) {
       if (this.isPlaying()) {
-        this.stop(null, null);
-      }
-
-      return;
-    }
-
-    if (typeof status === 'number') {
-      this.seek(status); // Numbers are assumed to be frames
-      return;
-    }
-
-    // Attempt to handle strings that specify a unit, e.g. '123ms'
-    if (typeof status === 'string') {
-      const numericSpec = unitizeString(status);
-
-      if (numericSpec) {
-        this.seek(numericSpec.value, numericSpec.units as TimeUnit);
+        this.stop();
       }
     }
+
+    if (flag === PlaybackFlag.SEEK) {
+      this.seek(time || 0, TimeUnit.Millisecond);
+    }
+
+    if (typeof proc === 'function') {
+      this.offsetCalculator = proc;
+    }
+  }
+
+  parsePlaybackStatus (input) {
+    if (!input) {
+      return {
+        flag: PlaybackFlag.LOOP,
+      };
+    }
+
+    // If an object, assume it takes the format of a flag payload
+    if (typeof input === 'object') {
+      return input;
+    }
+
+    if (typeof input === 'number' && isNumeric(input)) {
+      return {
+        flag: PlaybackFlag.SEEK,
+        // Assume the input is frames and convert to our internal format, milliseconds
+        time: this.getMs(Number(input), TimeUnit.Frame),
+      };
+    }
+
+    if (typeof input === 'string') {
+      const tokens = this.cacheFetch(`getPlaybackStatusTokens:${input}`, () => {
+        return tokenizeDirective(input).map(({value}) => value);
+      });
+
+      // If no tokens, assume the default: A looping timeline
+      if (tokens.length < 1) {
+        return {
+          flag: PlaybackFlag.LOOP,
+        };
+      }
+
+      // Fast-path if we got a single playback flag string
+      if (tokens.length === 1 && PLAYBACK_FLAGS[tokens[0]]) {
+        return {
+          flag: tokens[0],
+        };
+      }
+
+      const finals = [];
+      // Convert any known number-unit tuples in the token stream into their canonical
+      // ms-based time value. For example [100,ms]->[100], or [10]->[166] (frames to ms).
+      for (let i = 0; i < tokens.length; i++) {
+        const curr = tokens[i];
+        const next = tokens[i + 1];
+        if (typeof curr === 'number') {
+          if (next === 'ms') {
+            finals.push(this.getMs(curr, TimeUnit.Millisecond));
+            i++;
+            continue;
+          }
+          if (next === 'fr') {
+            finals.push(this.getMs(curr, TimeUnit.Frame));
+            i++;
+            continue;
+          }
+          // Frames are assumed to be the default that an end-user would write
+          if (next !== 'fr') {
+            finals.push(this.getMs(curr, TimeUnit.Frame));
+            continue;
+          }
+        }
+        finals.push(curr);
+      }
+
+      if (finals.length > 1) {
+        // E.g. if we got +100, make it loop+100
+        if (!PLAYBACK_FLAGS[finals[0]]) {
+          finals.unshift(PlaybackFlag.LOOP);
+        }
+      }
+
+      const expr = finals.map((val) => {
+        if (PLAYBACK_FLAGS[val]) {
+          return '$time';
+        }
+        return val;
+      }).join(' ');
+
+      const proc = makePlaybackProc(`return ${expr};`);
+
+      const out = {
+        proc,
+        flag: finals[0],
+      };
+
+      return out;
+    }
+
+    return {
+      flag: PlaybackFlag.LOOP,
+    };
   }
 
   /**
@@ -567,18 +655,50 @@ export default class HaikuTimeline extends HaikuBase {
 }
 
 /**
- * @function unitizeString
- * @description Convert a string like '123ms' to {value: 123, units: 'ms'}
+ * @description Modulus, but returns zero if the second number is zero,
+ * and calculates an appropriate "cycle" if the number is negative.
  */
-const unitizeString = (str: string) => {
-  const match = str.match(/(\d+)(\w+)/);
-
-  if (!match || !match[1] || !match[2]) {
-    return;
+const mod = (n: number, m: number): number => {
+  if (m === 0) {
+    return 0;
   }
 
-  return {
-    value: Number(match[1]),
-    units: match[2],
-  };
+  return ((n % m) + m) % m;
+};
+
+/**
+ * @description Given a previous elapsed time (a), a new elapsed time (b), and a max
+ * time (max), determine whether the given timeline has looped between (a) and (b).
+ *
+ * E.g.:
+ *   0----------100
+ *        62        103  true
+ *
+ *   0----------100
+ *        62    100  false
+ *
+ *   0----------100
+ *        62   99  false
+ *
+ *   0----------100
+ *              100  110  true
+ *
+ *   0----------100
+ *               101  110  false
+ *
+ *   0----------100
+ *              100
+ *              100  false
+ *
+ *   0----------100
+ *   0          100  false
+ *
+ *   0----------100
+ *   0
+ *   0  false
+ */
+const didTimeLoop = (a: number, b: number, max: number): boolean => {
+  const ma = mod(a, max);
+  const mb = mod(b, max);
+  return mb < ma;
 };

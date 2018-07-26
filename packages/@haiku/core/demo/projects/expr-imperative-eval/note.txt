@@ -1,0 +1,1 @@
+Shows how to imperatively evaluate an expression value from within an event handler. Open your console and move your mouse around, you should see the mouse position logged via an evaluation of '$user.mouse.x'.

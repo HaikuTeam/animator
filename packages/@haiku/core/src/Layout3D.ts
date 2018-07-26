@@ -55,37 +55,28 @@ const virtualElementIsLayoutContainer = (virtualElement) => {
   virtualElement.elementName === DIV;
 };
 
-const initializeNodeAttributes = (element, isRootNode: boolean) => {
-  if (!element.attributes) {
-    element.attributes = {};
+const initializeNodeAttributes = (node, isRootNode: boolean) => {
+  if (!node || typeof node !== 'object') {
+    return;
   }
-  if (!element.attributes.style) {
-    element.attributes.style = {};
+
+  if (!node.attributes) {
+    node.attributes = {};
   }
-  if (!element.layout) {
-    element.layout = createLayoutSpec(!isRootNode && virtualElementIsLayoutContainer(element));
-    element.layout.matrix = createMatrix();
-    element.layout.format = ELEMENTS_2D[element.elementName]
+
+  if (!node.attributes.style) {
+    node.attributes.style = {};
+  }
+
+  if (!node.layout) {
+    node.layout = createLayoutSpec(!isRootNode && virtualElementIsLayoutContainer(node));
+    node.layout.matrix = createMatrix();
+    node.layout.format = ELEMENTS_2D[node.elementName]
       ? FORMATS.TWO
       : FORMATS.THREE;
   }
-  return element;
-};
 
-const initializeTreeAttributes = (tree, isRootNode: boolean) => {
-  if (!tree || typeof tree === 'string') {
-    return;
-  }
-
-  initializeNodeAttributes(tree, isRootNode);
-
-  if (!tree.children || tree.children.length < 1) {
-    return;
-  }
-
-  for (let i = 0; i < tree.children.length; i++) {
-    initializeTreeAttributes(tree.children[i], false);
-  }
+  return node;
 };
 
 const createMatrix = () => copyMatrix(IDENTITY);
@@ -210,7 +201,6 @@ const clone = (layout) => {
 const createLayoutSpec = (createCoordinateSystem?: boolean): LayoutSpec => ({
   shown: true,
   opacity: 1.0,
-  mount: {x: 0, y: 0, z: 0}, // anchor in self
   offset: {x: 0, y: 0, z: 0},
   origin: createCoordinateSystem ? {x: 0.5, y: 0.5, z: 0.5} : {x: 0, y: 0, z: 0}, // transform origin
   translation: {x: 0, y: 0, z: 0},
@@ -231,10 +221,6 @@ const computeMatrix = (
   layoutSpec: LayoutSpec,
   targetSize: ThreeDimensionalLayoutProperty,
 ) => {
-  const mountPointX = layoutSpec.mount.x * targetSize.x;
-  const mountPointY = layoutSpec.mount.y * targetSize.y;
-  const mountPointZ = layoutSpec.mount.z * targetSize.z;
-
   const originX = layoutSpec.origin.x * targetSize.x;
   const originY = layoutSpec.origin.y * targetSize.y;
   const originZ = layoutSpec.origin.z * targetSize.z;
@@ -284,21 +270,17 @@ const computeMatrix = (
   rs6 *= layoutSpec.scale.z;
   rs7 *= layoutSpec.scale.z;
   rs8 *= layoutSpec.scale.z;
-
   const tx =
     layoutSpec.offset.x +
     layoutSpec.translation.x -
-    mountPointX -
     (rs0 * originX + rs3 * originY + rs6 * originZ);
   const ty =
     layoutSpec.offset.y +
     layoutSpec.translation.y -
-    mountPointY -
     (rs1 * originX + rs4 * originY + rs7 * originZ);
   const tz =
     layoutSpec.offset.z +
     layoutSpec.translation.z -
-    mountPointZ -
     (rs2 * originX + rs5 * originY + rs8 * originZ);
 
   return [rs0, rs1, rs2, 0, rs3, rs4, rs5, 0, rs6, rs7, rs8, 0, tx, ty, tz, 1];
@@ -343,7 +325,7 @@ export default {
   createLayoutSpec,
   createMatrix,
   copyMatrix,
-  initializeTreeAttributes,
+  initializeNodeAttributes,
   virtualElementIsLayoutContainer,
   FORMATS,
   SIZE_ABSOLUTE,

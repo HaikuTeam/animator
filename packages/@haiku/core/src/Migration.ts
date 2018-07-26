@@ -4,7 +4,6 @@
 
 import {IHaikuComponent} from './api';
 import {visitManaTree, xmlToMana} from './HaikuNode';
-import addLegacyOriginSupport from './helpers/addLegacyOriginSupport';
 import compareSemver from './helpers/compareSemver';
 import migrateAutoSizing from './helpers/migrateAutoSizing';
 import functionToRFO from './reflection/functionToRFO';
@@ -15,19 +14,12 @@ const STRING_TYPE = 'string';
 const enum UpgradeVersionRequirement {
   OriginSupport = '3.2.0',
   TimelineDefaultFrames = '3.2.23',
-  CamelCasePropertyNames = '3.5.1',
-  AutoStringForAutoSizing = '3.5.1',
-  RetireAlign = '3.5.1',
+  CamelAutoSizingOffsetOmnibus = '3.5.1',
+  AutoPreserveThreeDee = '3.5.2',
 }
 
 const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source';
 const HAIKU_VAR_ATTRIBUTE = 'haiku-var';
-
-const ELEMENTS_THAT_SUPPORT_ORIGIN = {
-  div: true,
-  svg: true,
-  g: true,
-};
 
 const requiresUpgrade = (coreVersion: string, requiredVersion: UpgradeVersionRequirement) => !coreVersion ||
   compareSemver(
@@ -35,14 +27,23 @@ const requiresUpgrade = (coreVersion: string, requiredVersion: UpgradeVersionReq
     requiredVersion,
   ) < 0;
 
+const areKeyframesDefined = (keyframeGroup) => {
+  return (
+    keyframeGroup &&
+    Object.keys(keyframeGroup).length > 0
+  );
+};
+
 /**
- * @function run
- * @description Mechanism to modify our bytecode from legacy format to the current format.
- * Think of this like a migration that always runs in production components just in case we
- * get something that happens to be legacy.
+ * Migrations are a mechanism to modify our bytecode from legacy format to the current format.
+ * This always runs against production components' bytecode to ensure their data is a format
+ * that the current version of the engine knows how to handle. There are two phases to migration:
+ * the pre-phase, which runs before an initial .render call, and a post-phase, which runs after.
  */
-export const runMigrations = (component: IHaikuComponent, options: any, version: string) => {
+
+export const runMigrationsPrePhase = (component: IHaikuComponent, options: any, version: string) => {
   const bytecode = component.bytecode;
+
   if (!bytecode.states) {
     bytecode.states = {};
   }
@@ -51,13 +52,18 @@ export const runMigrations = (component: IHaikuComponent, options: any, version:
     bytecode.metadata = {};
   }
 
+  const coreVersion = bytecode.metadata.core || bytecode.metadata.player;
+
   // Convert the properties array to the states dictionary
   if (bytecode.properties) {
     const properties = bytecode.properties;
+
     delete bytecode.properties;
+
     for (let i = 0; i < properties.length; i++) {
       const propertySpec = properties[i];
       const updatedSpec = {} as any;
+
       if (propertySpec.value !== undefined) {
         updatedSpec.value = propertySpec.value;
       }
@@ -76,6 +82,7 @@ export const runMigrations = (component: IHaikuComponent, options: any, version:
       if (propertySpec.get !== undefined) {
         updatedSpec.get = propertySpec.get;
       }
+
       bytecode.states[propertySpec.name] = updatedSpec;
     }
   }
@@ -84,13 +91,18 @@ export const runMigrations = (component: IHaikuComponent, options: any, version:
   // [{selector:'foo',name:'onclick',handler:function}] => {'foo':{'onclick':{handler:function}}}
   if (Array.isArray(bytecode.eventHandlers)) {
     const eventHandlers = bytecode.eventHandlers;
+
     delete bytecode.eventHandlers;
+
     bytecode.eventHandlers = {};
+
     for (let j = 0; j < eventHandlers.length; j++) {
       const eventHandlerSpec = eventHandlers[j];
+
       if (!bytecode.eventHandlers[eventHandlerSpec.selector]) {
         bytecode.eventHandlers[eventHandlerSpec.selector] = {};
       }
+
       bytecode.eventHandlers[eventHandlerSpec.selector][eventHandlerSpec.name] = {
         handler: eventHandlerSpec.handler,
       };
@@ -101,6 +113,68 @@ export const runMigrations = (component: IHaikuComponent, options: any, version:
   if (typeof bytecode.template === STRING_TYPE) {
     bytecode.template = xmlToMana(bytecode.template);
   }
+
+  if (bytecode.timelines) {
+    for (const timelineName in bytecode.timelines) {
+      for (const selector in bytecode.timelines[timelineName]) {
+        // Legacy backgroundColor was a root prop; in newer versions it's style.backgroundColor.
+        // We only want to update this if the user *hasn't* explicitly set style.backroundColor.
+        if (
+          bytecode.timelines[timelineName][selector].backgroundColor &&
+          !bytecode.timelines[timelineName][selector]['style.backgroundColor']
+        ) {
+          bytecode.timelines[timelineName][selector]['style.backgroundColor'] =
+            bytecode.timelines[timelineName][selector].backgroundColor;
+
+          delete bytecode.timelines[timelineName][selector].backgroundColor;
+          continue;
+        }
+
+        if (requiresUpgrade(coreVersion, UpgradeVersionRequirement.AutoPreserveThreeDee)) {
+          const transformStyleGroup = bytecode.timelines[timelineName][selector]['style.transformStyle'];
+
+          if (
+            transformStyleGroup &&
+            Object.keys(transformStyleGroup).length === 1 &&
+            transformStyleGroup[0] &&
+            transformStyleGroup[0].value === 'flat'
+          ) {
+            delete bytecode.timelines[timelineName][selector]['style.transformStyle'][0];
+          }
+
+          const perspectiveGroup = bytecode.timelines[timelineName][selector]['style.perspective'];
+
+          if (
+            perspectiveGroup &&
+            Object.keys(perspectiveGroup).length === 1 &&
+            perspectiveGroup[0] &&
+            perspectiveGroup[0].value === 'none'
+          ) {
+            delete bytecode.timelines[timelineName][selector]['style.perspective'][0];
+          }
+        }
+
+        // If we see that any 3D transformations are applied, automatically override flat perspective
+        // if it hasn't been automatically set, so that 3D perspective "just works"
+        if (component.config.preserve3d === 'auto') {
+          if (
+            areKeyframesDefined(bytecode.timelines[timelineName][selector]['rotation.x']) ||
+            areKeyframesDefined(bytecode.timelines[timelineName][selector]['rotation.y']) ||
+            areKeyframesDefined(bytecode.timelines[timelineName][selector]['translation.z']) ||
+            areKeyframesDefined(bytecode.timelines[timelineName][selector]['scale.z'])
+          ) {
+            component.doPreserve3d = true;
+          }
+        }
+      }
+    }
+  }
+};
+
+export const runMigrationsPostPhase = (component: IHaikuComponent, options: any, version: string) => {
+  const bytecode = component.bytecode;
+
+  const coreVersion = bytecode.metadata.core || bytecode.metadata.player;
 
   // If specified, make sure that internal URL references, e.g. url(#my-filter), are unique
   // per each component instance, otherwise we will get filter collisions and weirdness on the page
@@ -142,20 +216,18 @@ export const runMigrations = (component: IHaikuComponent, options: any, version:
     );
   }
 
-  const coreVersion = bytecode.metadata.core || bytecode.metadata.player;
+  const needsCamelAutoSizingOffsetOmnibus = requiresUpgrade(
+    coreVersion, UpgradeVersionRequirement.CamelAutoSizingOffsetOmnibus);
 
   if (bytecode.timelines) {
     for (const timelineName in bytecode.timelines) {
       for (const selector in bytecode.timelines[timelineName]) {
-
-        if (requiresUpgrade(coreVersion, UpgradeVersionRequirement.AutoStringForAutoSizing)) {
+        if (needsCamelAutoSizingOffsetOmnibus) {
+          // Migrate auto-sizing.
           migrateAutoSizing(bytecode.timelines[timelineName][selector]);
-        }
-
-        if (requiresUpgrade(coreVersion, UpgradeVersionRequirement.CamelCasePropertyNames)) {
+          // Migrate camel-case property names.
           for (const propertyName in bytecode.timelines[timelineName][selector]) {
             const camelVariant = options.attrsHyphToCamel[propertyName];
-
             if (camelVariant) {
               bytecode.timelines[timelineName][selector][camelVariant] =
                 bytecode.timelines[timelineName][selector][propertyName];
@@ -163,19 +235,6 @@ export const runMigrations = (component: IHaikuComponent, options: any, version:
               delete bytecode.timelines[timelineName][selector][propertyName];
             }
           }
-        }
-
-        // Legacy backgroundColor was a root prop; in newer versions it's style.backgroundColor.
-        // We only want to update this if the user *hasn't* explicitly set style.backroundColor.
-        if (
-          bytecode.timelines[timelineName][selector].backgroundColor &&
-          !bytecode.timelines[timelineName][selector]['style.backgroundColor']
-        ) {
-          bytecode.timelines[timelineName][selector]['style.backgroundColor'] =
-            bytecode.timelines[timelineName][selector].backgroundColor;
-
-          delete bytecode.timelines[timelineName][selector].backgroundColor;
-          continue;
         }
 
         // If we're a filter attribute, update our references per those to whom uniqueness was added above.
@@ -203,52 +262,78 @@ export const runMigrations = (component: IHaikuComponent, options: any, version:
     }
   }
 
-  if (requiresUpgrade(coreVersion, UpgradeVersionRequirement.OriginSupport)) {
+  if (needsCamelAutoSizingOffsetOmnibus) {
+    const alsoMigrateOrigin = requiresUpgrade(coreVersion, UpgradeVersionRequirement.OriginSupport);
     component.visit((element) => {
-      // We only need to upgrade elements whose schemas support origin.
-      if (ELEMENTS_THAT_SUPPORT_ORIGIN[element.tagName]) {
-        addLegacyOriginSupport(
-          element.tagName === 'svg',
-          element.rawLayout,
-          (
-            (element.parent && element.parent.layout && element.parent.layout.size) ||
-            {x: 0, y: 0, z: 0}
-          ),
-          bytecode.timelines.Default[`haiku:${element.getComponentId()}`],
-        );
+      let offsetX = 0;
+      let offsetY = 0;
+      const timelineProperties = bytecode.timelines.Default[`haiku:${element.getComponentId()}`];
+      if (!timelineProperties) {
+        return;
       }
-    });
 
-    // Bust caches; we only rendered to populate our layout stubs.
-    needsRerender = true;
-  }
-
-  if (requiresUpgrade(coreVersion, UpgradeVersionRequirement.RetireAlign)) {
-    component.visit((element) => {
-      const elemSelector = `haiku:${element.getComponentId()}`;
-      const elemProps = bytecode.timelines.Default[elemSelector];
-
-      const alignXKeyframes = elemProps && elemProps['align.x'];
-      if (alignXKeyframes) {
-        const alignX = alignXKeyframes[0] && alignXKeyframes[0].value;
-        if (typeof alignX === 'number' && alignX > 0) {
-          const ancestorSizeX = element.getNearestDefinedNonZeroAncestorSizeX();
-          const offsetX = alignX * ancestorSizeX;
-          elemProps['offset.x'] = {0: {value: offsetX}};
+      // Note: the migrations below are incorrect if align properties were ever defined on an element with explicit
+      // size. Since in practice this never happened, this is fine.
+      if (timelineProperties['align.x']) {
+        const alignX = timelineProperties['align.x'][0] && timelineProperties['align.x'][0].value;
+        if (typeof alignX === 'number') {
+          offsetX += alignX * element.getNearestDefinedNonZeroAncestorSizeX();
         }
-        delete elemProps['align.x'];
       }
 
-      const alignYKeyframes = elemProps && elemProps['align.y'];
-      if (alignYKeyframes) {
-        const alignY = alignYKeyframes[0] && alignYKeyframes[0].value;
-        if (typeof alignY === 'number' && alignY > 0) {
-          const ancestorSizeY = element.getNearestDefinedNonZeroAncestorSizeY();
-          const offsetY = alignY * ancestorSizeY;
-          elemProps['offset.y'] = {0: {value: offsetY}};
+      if (timelineProperties['align.y']) {
+        const alignY = timelineProperties['align.y'][0] && timelineProperties['align.y'][0].value;
+        if (typeof alignY === 'number') {
+          offsetY += alignY * element.getNearestDefinedNonZeroAncestorSizeY();
         }
-        delete elemProps['align.y'];
       }
+
+      if (timelineProperties['mount.x']) {
+        const mountX = timelineProperties['mount.x'][0] && timelineProperties['mount.x'][0].value;
+        if (typeof mountX === 'number') {
+          offsetX -= mountX * element.getNearestDefinedNonZeroAncestorSizeX();
+        }
+      }
+
+      if (timelineProperties['mount.y']) {
+        const mountY = timelineProperties['mount.y'][0] && timelineProperties['mount.y'][0].value;
+        if (typeof mountY === 'number') {
+          offsetY -= mountY * element.getNearestDefinedNonZeroAncestorSizeY();
+        }
+      }
+
+      if (alsoMigrateOrigin) {
+        // Prior to explicit origin support, we were applying a default origin of (0, 0, 0) for all objects, then
+        // allowing the browser default for SVG elements (50%, 50%, 0px) be the effective transform-origin. This led to
+        // inaccuracies in the layout system, specifically related to addressing translation on SVG elements and
+        // addressing origin in general. Since as of the introduction of explicit origin support we had not made layout
+        // offset addressable in Haiku, we can "backport" to the old coordinate system by simply offsetting layout
+        // by its "origin error".
+        if (element.tagName === 'svg') {
+          offsetX += 0.5 * element.getNearestDefinedNonZeroAncestorSizeX();
+          offsetY += 0.5 * element.getNearestDefinedNonZeroAncestorSizeY();
+        } else {
+          offsetX += element.originX * element.getNearestDefinedNonZeroAncestorSizeX();
+          offsetY += element.originY * element.getNearestDefinedNonZeroAncestorSizeY();
+        }
+      }
+
+      if (offsetX !== 0) {
+        timelineProperties['offset.x'] = {0: {value: offsetX}};
+        needsRerender = true;
+      }
+
+      if (offsetY !== 0) {
+        timelineProperties['offset.y'] = {0: {value: offsetY}};
+        needsRerender = true;
+      }
+
+      delete timelineProperties['align.x'];
+      delete timelineProperties['align.y'];
+      delete timelineProperties['align.z'];
+      delete timelineProperties['mount.x'];
+      delete timelineProperties['mount.y'];
+      delete timelineProperties['mount.z'];
     });
   }
 

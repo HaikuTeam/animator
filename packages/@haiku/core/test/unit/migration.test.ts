@@ -63,16 +63,23 @@ tape(
           },
           timelines: {
             Default: {
-              'haiku:svg': {},
+              'haiku:wrapper': {
+                'sizeAbsolute.x': {0: {value: 500}},
+                'sizeAbsolute.y': {0: {value: 500}},
+              },
+              'haiku:svg': {
+                'sizeAbsolute.x': {0: {value: 100}},
+                'sizeAbsolute.y': {0: {value: 100}},
+              },
               'haiku:g': {
-                'origin.x': {0: {value: 0.5}},
-                'origin.y': {0: {value: 0.5}},
-                'mount.x': {0: {value: 0.5}},
-                'mount.y': {0: {value: 0.5}},
+                'align.x': {0: {value: 0.2}},
+                'align.y': {0: {value: 0.2}},
               },
             },
           },
           template: {
+            elementName: 'div',
+            attributes: {'haiku-id': 'wrapper'},
             children: [
               {
                 elementName: 'svg',
@@ -103,16 +110,21 @@ tape(
               component.bytecode.timelines,
               {
                 Default: {
+                  'haiku:wrapper': {
+                    'sizeAbsolute.x': {0: {value: 500}},
+                    'sizeAbsolute.y': {0: {value: 500}},
+                  },
                   'haiku:svg': {
-                    'mount.x': {0: {value: -0.5}},
-                    'mount.y': {0: {value: -0.5}},
+                    // Prior to OriginSupport (<3.2.0), SVG layout needs to be offset by -50% of element width.
+                    'sizeAbsolute.x': {0: {value: 100}},
+                    'sizeAbsolute.y': {0: {value: 100}},
+                    'offset.x': {0: {value: 50}},
+                    'offset.y': {0: {value: 50}},
                   },
                   'haiku:g': {
-                    'origin.x': {0: {value: 0.5}},
-                    'origin.y': {0: {value: 0.5}},
-                    'mount.x': {0: {value: 0}},
-                    'mount.y': {0: {value: 0}},
-                    'mount.z': {0: {value: 0}},
+                    // align.x = .2 => offset.x += .2 * 100 = 20 (parent size)
+                    'offset.x': {0: {value: 20}},
+                    'offset.y': {0: {value: 20}},
                   },
                 },
               },

@@ -1,0 +1,1 @@
+The item to the right should flicker for 1s. When done, the other repeated elements should remain the same. This demo is testing whether or not there is some kind of collision when iffing an element that precedes a repeated collection among a set of siblings.

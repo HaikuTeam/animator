@@ -5,20 +5,24 @@
 import enhance from './reflection/enhance';
 import inject from './reflection/inject';
 
+const VERSION = require('./../package.json').version;
+
 export interface HaikuRoot {
   haiku?: {
-    cache?: {[key in string]: any};
-    models?: {[key in string]: any[]};
-    report?: () => void;
-    enhance?: typeof enhance;
-    inject?: typeof inject;
-    idCounter?: number;
-    HaikuGlobalAnimationHarness?: {
-      queue: (() => void)[];
-      frame: () => void;
-      raf?: () => void;
-      cancel: () => void;
-    }
+    [version: string]: {
+      cache?: {[key in string]: any};
+      models?: {[key in string]: any[]};
+      report?: () => void;
+      enhance?: typeof enhance;
+      inject?: typeof inject;
+      idCounter?: number;
+      HaikuGlobalAnimationHarness?: {
+        queue: (() => void)[];
+        frame: () => void;
+        raf?: () => void;
+        cancel: () => void;
+      };
+    };
   };
 }
 
@@ -41,50 +45,46 @@ function buildRoot () {
     ROOT.haiku = {};
   }
 
-  if (!ROOT.haiku.cache) {
-    ROOT.haiku.cache = {};
+  // Avoid loading entities for incompatible versions.
+  if (!ROOT.haiku[VERSION]) {
+    ROOT.haiku[VERSION] = {};
   }
 
-  if (!ROOT.haiku.models) {
-    ROOT.haiku.models = {};
+  if (!ROOT.haiku[VERSION].cache) {
+    ROOT.haiku[VERSION].cache = {};
   }
 
-  if (!ROOT.haiku.idCounter) {
+  if (!ROOT.haiku[VERSION].models) {
+    ROOT.haiku[VERSION].models = {};
+  }
+
+  if (!ROOT.haiku[VERSION].idCounter) {
     // Legacy: we start the ID counter at 1000 to avoid edge case ID collisions when there are copies of Haiku
     // sitting on the same page.
-    ROOT.haiku.idCounter = 1000;
+    ROOT.haiku[VERSION].idCounter = 1000;
   }
 
-  if (!ROOT.haiku.report) {
-    ROOT.haiku.report = () => Object.keys(ROOT.haiku.models).forEach((modelName) => {
-      console.warn(`${modelName}:
-  count: ${ROOT.haiku.models[modelName].length}
-  ids: ${ROOT.haiku.models[modelName].map((instance) => instance.$id).join(', ')}
-`);
-    });
-  }
-
-  if (!ROOT.haiku.enhance) {
+  if (!ROOT.haiku[VERSION].enhance) {
     /**
      * @function enhance
      * @description Given a function, decorate it with a .specification property that
      * contains a descriptor of the serialized form of the function, including its params.
      * This is used by the renderer as part of its automatic dependency injection mechanism.
      */
-    ROOT.haiku.enhance = enhance;
+    ROOT.haiku[VERSION].enhance = enhance;
   }
 
-  if (!ROOT.haiku.inject) {
+  if (!ROOT.haiku[VERSION].inject) {
     /**
      * @function inject
      * @description Variadic function that takes a function as the first argument and
      * a collection of injection parameters as the remaining arguments, which are in turn
      * used to 'enhance' (see above) the function, specifying the parameters it wants injected.
      */
-    ROOT.haiku.inject = inject;
+    ROOT.haiku[VERSION].inject = inject;
   }
 
-  return ROOT.haiku;
+  return ROOT.haiku[VERSION];
 }
 
 const haiku = buildRoot();

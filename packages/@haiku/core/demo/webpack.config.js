@@ -5,6 +5,7 @@
 const path = require('path');
 
 module.exports = {
+  mode: 'development',
   devtool: 'source-map',
   watch: true,
   entry: path.join(__dirname, '..', 'src', 'adapters', 'dom'),

@@ -2,6 +2,8 @@ import * as async from 'async';
 import * as jsdom from 'jsdom';
 import * as ts from 'typescript';
 
+Error.stackTraceLimit = Infinity;
+
 import HaikuDOMAdapter from '@core/adapters/dom/HaikuDOMAdapter';
 import Config from '@core/Config';
 import HaikuContext from '@core/HaikuContext';

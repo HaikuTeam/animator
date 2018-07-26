@@ -9,7 +9,7 @@
     "organization": "nad",
     "project": "AnimatedPath",
     "branch": "master",
-    "core": "3.2.8"
+    "core": "3.5.1"
   },
   "options": {},
   "states": {},
@@ -26,16 +26,8 @@
             "value": "rgba(0,0,0,0)"
           }
         },
-        "style.transformStyle": {
-          "0": {
-            "value": "flat"
-          }
-        },
-        "style.perspective": {
-          "0": {
-            "value": "none"
-          }
-        },
+        "style.transformStyle": {},
+        "style.perspective": {},
         "style.position": {
           "0": {
             "value": "relative"

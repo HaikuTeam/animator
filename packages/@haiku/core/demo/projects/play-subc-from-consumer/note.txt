@@ -1,0 +1,1 @@
+Demonstrates how to procedurally invoke a subcomponents timelines using the query-selector API using the element title as the selector. The child animations should both play after 1 second.

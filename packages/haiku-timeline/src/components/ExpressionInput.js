@@ -235,7 +235,7 @@ export default class ExpressionInput extends React.Component {
       };
     }
 
-    if (committable.__function) {
+    if (committable && committable.__function) {
       // Assume that we already stored warnings about this function in the evaluator state from a change action
       return false;
     }
@@ -1055,7 +1055,7 @@ export default class ExpressionInput extends React.Component {
       const rect = this.getRootRect();
       style.left = rect.left;
       style.top = experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : rect.top + 10;
-      style.marginTop = experimentIsEnabled(Experiment.NativeTimelineScroll) ? rect.top + this.props.reactParent.refs.container.scrollTop + 10 : undefined;
+      style.marginTop = experimentIsEnabled(Experiment.NativeTimelineScroll) ? rect.top + this.props.reactParent.container.scrollTop + 10 : undefined;
     }
 
     return style;

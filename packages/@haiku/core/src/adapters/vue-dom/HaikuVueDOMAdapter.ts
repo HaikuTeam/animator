@@ -31,7 +31,6 @@ export default function HaikuVueDOMAdapter (haikuComponentFactory): {} {
       freeze: null,
       loop: null,
       alwaysComputeSizing: null,
-      useWebkitPrefix: null,
       seed: String,
       sizing: String,
       timestamp: Number,

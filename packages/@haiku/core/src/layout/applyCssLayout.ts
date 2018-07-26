@@ -11,10 +11,13 @@ import setStyleMatrix from './setStyleMatrix';
 const SVG = 'svg';
 
 function hasExplicitStyle (domElement, key) {
-  if (!domElement.__haikuExplicitStyles) {
+  if (!domElement.haiku) {
     return false;
   }
-  return !!domElement.__haikuExplicitStyles[key];
+  if (!domElement.haiku.explicitStyles) {
+    return false;
+  }
+  return domElement.haiku.explicitStyles[key] !== undefined;
 }
 
 export default function applyCssLayout (domElement, virtualElement, nodeLayout, computedLayout, context) {
@@ -108,7 +111,6 @@ export default function applyCssLayout (domElement, virtualElement, nodeLayout, 
           domElement.style,
           nodeLayout.format,
           computedLayout.matrix,
-          context.config.useWebkitPrefix,
         );
       }
     } else {
@@ -123,7 +125,6 @@ export default function applyCssLayout (domElement, virtualElement, nodeLayout, 
             domElement.style,
             nodeLayout.format,
             computedLayout.matrix,
-            context.config.useWebkitPrefix,
           );
         }
       }
