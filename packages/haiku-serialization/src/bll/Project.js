@@ -34,6 +34,12 @@ const SILENT_METHODS = {
   hoverElement: true,
   unhoverElement: true
 }
+const RACEY_METHODS = {
+  hoverElement: true,
+  unhoverElement: true,
+  selectElement: true,
+  unselectElement: true
+}
 
 /**
  * @class Project
@@ -230,6 +236,11 @@ class Project extends BaseModel {
       }
 
       release()
+
+      if (RACEY_METHODS[method]) {
+        logger.info(`[project ${this.getAlias()}] letting method ${method} fall through`, params[0])
+        return cb()
+      }
 
       throw new Error(`Unknown project method ${method}`)
     })
