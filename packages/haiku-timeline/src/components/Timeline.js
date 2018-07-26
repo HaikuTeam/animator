@@ -201,7 +201,7 @@ class Timeline extends React.Component {
           );
         },
         onFinish: (event, finalArea) => {
-          const selected = Keyframe.all().filter((keyframe) => {
+          const selected = Keyframe.where({component: this.getActiveComponent()}).filter((keyframe) => {
             if (keyframe.element.isLocked()) {
               return false;
             }
