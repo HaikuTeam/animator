@@ -254,8 +254,8 @@ tape('BodymovinExporter', (suite: tape.Test) => {
     bytecode.timelines.Default['haiku:svg']['origin.x'] = {0: {value: 0.25}};
     bytecode.timelines.Default['haiku:svg']['origin.y'] = {0: {value: 0.25}};
     // Simulates legacy mode for old Haiku.
-    bytecode.timelines.Default['haiku:svg']['mount.x'] = {0: {value: -0.5}};
-    bytecode.timelines.Default['haiku:svg']['mount.y'] = {0: {value: -0.5}};
+    bytecode.timelines.Default['haiku:svg']['offset.x'] = {0: {value: 50}};
+    bytecode.timelines.Default['haiku:svg']['offset.y'] = {0: {value: 100}};
     const {layers: [{ks: {a, p}}]} = rawOutput(bytecode);
     test.deepEqual(a.k, [25, 50, 0], 'places the transform-origin in self-coordinates');
     test.equal(p.x.k, 10 + 100 / 2, 'decrements translation.x by the x-mount');
