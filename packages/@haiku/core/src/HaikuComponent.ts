@@ -3204,6 +3204,11 @@ const isSameRepeatBehavior = (prevs, nexts): boolean => {
 const findRespectiveRepeatees = (target) => {
   const repeatees = [];
 
+  // Required to fix a race condition that can occur during copy+paste in Haiku.app
+  if (!target.__memory) {
+    return repeatees;
+  }
+
   // The host repeatee of the given target node, if the target is a repeater's descendant
   let host;
 
