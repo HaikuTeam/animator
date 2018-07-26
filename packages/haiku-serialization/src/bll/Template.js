@@ -18,7 +18,7 @@ const MERGE_STRATEGIES = {
   defaults: 'defaults'
 }
 
-const ROOT_LOCATOR = '0'
+const ROOT_LOCATOR = []
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source'
 const HAIKU_TITLE_ATTRIBUTE = 'haiku-title'

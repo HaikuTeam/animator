@@ -9,7 +9,7 @@ import Layout3D, {AUTO_SIZING_TOKEN} from '../Layout3D';
 import cssValue from '../vendor/css-value';
 import {SVG_SIZEABLES} from './applyCssLayout';
 
-const ROOT_LOCATOR = '0';
+const ROOT_LOCATOR = [];
 
 const TRANSFORM_COMPONENT_WHITELIST = {
   'rotation.x': true,

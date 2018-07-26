@@ -157,7 +157,7 @@ export const runMigrationsPrePhase = (component: IHaikuComponent, options: Migra
     const alreadyUpdatedReferences = {};
 
     visitManaTree(
-      '0',
+      [],
       bytecode.template,
       (elementName, attributes) => {
         if (typeof attributes !== 'object') {
