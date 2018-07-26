@@ -549,7 +549,7 @@ class ElementSelectionProxy extends BaseModel {
     // When displaying transform control lines, indicate the mode of the wrapee not wrapper
     if (this.selection[0].isComponent()) {
       const wrapper = this.selection[0].getHaikuElement()
-      const component = wrapper && wrapper.children && wrapper.children[0]
+      const component = wrapper && wrapper.expansions && wrapper.expansions[0]
       if (component) {
         return typeof component.sizeAbsolute.x !== 'number'
       }
@@ -566,7 +566,7 @@ class ElementSelectionProxy extends BaseModel {
     // When displaying transform control lines, indicate the mode of the wrapee not wrapper
     if (this.selection[0].isComponent()) {
       const wrapper = this.selection[0].getHaikuElement()
-      const component = wrapper && wrapper.children && wrapper.children[0]
+      const component = wrapper && wrapper.expansions && wrapper.expansions[0]
       if (component) {
         return typeof component.sizeAbsolute.y !== 'number'
       }
