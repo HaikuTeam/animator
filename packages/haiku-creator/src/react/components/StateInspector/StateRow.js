@@ -87,13 +87,22 @@ class StateRow extends React.Component {
     super(props);
 
     this.state = {
-      isEditing: false,
       isHovered: false,
       editingTarget: 'name',
       name: null,
       desc: null,
       valuePreEdit: null,
       didEscape: false,
+    };
+
+    this.requestNameEdit = () => {
+      this.setState({editingTarget: 'name'});
+      this.props.requestEdit();
+    };
+
+    this.requestValueEdit = () => {
+      this.setState({editingTarget: 'value'});
+      this.props.requestEdit();
     };
   }
 
@@ -133,7 +142,7 @@ class StateRow extends React.Component {
 
   handleChange (event, side) {
     if (event.keyCode === 27) { // esc key
-      return this.setState({isEditing: false, didEscape: true});
+      return this.props.requestBlur();
     }
 
     let desc = this.state.desc;
@@ -191,7 +200,7 @@ class StateRow extends React.Component {
         if (this.props.isNew) {
           this.props.closeNewStateForm();
         }
-        return this.setState({isEditing: false});
+        return this.props.requestBlur();
       });
     } else { // neither were blank
       this.setState({desc, name: this.state.name}, () => {
@@ -199,7 +208,7 @@ class StateRow extends React.Component {
         if (this.props.isNew) {
           this.props.closeNewStateForm();
         }
-        this.setState({isEditing: false});
+        this.props.requestBlur();
       });
     }
   }
@@ -207,22 +216,21 @@ class StateRow extends React.Component {
   submitChanges () {
     const didValueChange = this.state.desc.value !== this.state.valuePreEdit;
     const didNameChange = this.state.name !== this.props.stateName;
-    const voidFunc = () => {};
 
     if (didNameChange && didValueChange) {
       return this.props.deleteStateValue(this.props.stateName, () => {
-        return this.props.upsertStateValue(this.state.name, this.state.desc, voidFunc);
+        return this.props.upsertStateValue(this.state.name, this.state.desc, this.props.requestBlur);
       });
     }
 
     if (didNameChange) {
       return this.props.deleteStateValue(this.props.stateName, () => {
-        return this.props.upsertStateValue(this.state.name, this.state.desc, voidFunc);
+        return this.props.upsertStateValue(this.state.name, this.state.desc, this.props.requestBlur);
       });
     }
 
     if (didValueChange) {
-      return this.props.upsertStateValue(this.state.name, this.state.desc, voidFunc);
+      return this.props.upsertStateValue(this.state.name, this.state.desc, this.props.requestBlur);
     }
   }
 
@@ -281,10 +289,10 @@ class StateRow extends React.Component {
       <form key={`${this.props.stateName}-state`}
         onMouseOver={() => this.setState({isHovered: true})}
         onMouseOut={() => this.setState({isHovered: false})}>
-        {!this.state.isEditing && !this.props.isNew
+        {!this.props.isEditing && !this.props.isNew
           ? <div style={STYLES.stateWrapper}>
             <div
-              onDoubleClick={() => this.setState({isEditing: true, didEscape: false, editingTarget: 'name'})}
+              onDoubleClick={this.requestNameEdit}
               style={[STYLES.col, STYLES.col1]}>
               <span key={`${this.props.stateName}-name`}
                 style={[STYLES.pill, STYLES.pillName]}>
@@ -292,7 +300,7 @@ class StateRow extends React.Component {
               </span>
             </div>
             <div
-              onDoubleClick={() => this.setState({isEditing: true, didEscape: false, editingTarget: 'value'})}
+              onDoubleClick={this.requestValueEdit}
               style={[STYLES.col, STYLES.col2]}>
               <span key={`${this.props.stateName}-value`}
                 style={[STYLES.pill, STYLES.pillValue, this.generateColorCap()]}>

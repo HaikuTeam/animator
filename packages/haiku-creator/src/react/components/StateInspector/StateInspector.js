@@ -6,6 +6,8 @@ import StateRow from './StateRow';
 import Loader from './Loader';
 import Palette from 'haiku-ui-common/lib/Palette';
 
+const NEW_ROW_NAME = `new-row`;
+
 const STYLES = {
   container: {
     position: 'relative',
@@ -65,7 +67,7 @@ class StateInspector extends React.Component {
     this.state = {
       sceneName: 'State Inspector',
       statesData: null,
-      addingNew: false,
+      editingStateName: null,
     };
   }
 
@@ -187,13 +189,11 @@ class StateInspector extends React.Component {
   }
 
   openNewStateForm () {
-    if (!this.state.addingNew) {
-      this.setState({addingNew: true});
-    }
+    this.setState({editingStateName: NEW_ROW_NAME});
   }
 
   closeNewStateForm () {
-    this.setState({addingNew: false});
+    this.setState({editingStateName: null});
   }
 
   getHeadingText () {
@@ -204,8 +204,18 @@ class StateInspector extends React.Component {
     return (
       this.state.statesData &&
       Object.keys(this.state.statesData).length === 0 &&
-      !this.state.addingNew
+      !this.state.editingStateName
     );
+  }
+
+  requestEditValue (stateName) {
+    this.setState({editingStateName: stateName});
+  }
+
+  requestBlurValue (stateName) {
+    if (stateName === this.state.editingStateName) {
+      this.setState({editingStateName: null});
+    }
   }
 
   render () {
@@ -222,9 +232,9 @@ class StateInspector extends React.Component {
           </button>
         </div>
         <div style={STYLES.statesContainer}>
-          {this.state.addingNew &&
+          {this.state.editingStateName === NEW_ROW_NAME &&
             <StateRow
-              key={`new-row`}
+              key={NEW_ROW_NAME}
               stateDescriptor={{value: ''}}
               stateName={''}
               isNew={true}
@@ -232,7 +242,9 @@ class StateInspector extends React.Component {
               removeNotice={this.props.removeNotice}
               closeNewStateForm={this.closeNewStateForm}
               upsertStateValue={this.upsertStateValue}
-              deleteStateValue={this.deleteStateValue} />
+              deleteStateValue={this.deleteStateValue}
+              requestBlur={this.requestBlurValue.bind(this, NEW_ROW_NAME)}
+              isEditing={true} />
           }
           {this.state.statesData
             ? lodash.map(this.state.statesData, (stateDescriptor, stateName) => {
@@ -244,7 +256,10 @@ class StateInspector extends React.Component {
                   createNotice={this.props.createNotice}
                   removeNotice={this.props.removeNotice}
                   upsertStateValue={this.upsertStateValue}
-                  deleteStateValue={this.deleteStateValue} />
+                  deleteStateValue={this.deleteStateValue}
+                  isEditing={this.state.editingStateName === stateName}
+                  requestEdit={this.requestEditValue.bind(this, stateName)}
+                  requestBlur={this.requestBlurValue.bind(this, stateName)} />
               );
             }).reverse()
             : <Loader />
