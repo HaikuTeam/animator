@@ -330,8 +330,10 @@ export const runMigrationsPostPhase = (component: IHaikuComponent, options: any,
 
       delete timelineProperties['align.x'];
       delete timelineProperties['align.y'];
+      delete timelineProperties['align.z'];
       delete timelineProperties['mount.x'];
       delete timelineProperties['mount.y'];
+      delete timelineProperties['mount.z'];
     });
   }
 
