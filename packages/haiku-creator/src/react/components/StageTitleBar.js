@@ -738,7 +738,7 @@ class StageTitleBar extends React.Component {
               BTN_STYLES.leftBtns,
               STYLES.alignDistributeBtn,
             ]}>
-            <span style={[STYLES.alignDistributeIconWrapper]}>
+            <span style={[STYLES.alignDistributeIconWrapper, {transform: 'scale(0.5)', opacity: 0.602}]}>
               <AlignDistributeIcons.AlignVLeft color={this.getEventHandlersEditorButtonColor()} />
             </span>
           </button>

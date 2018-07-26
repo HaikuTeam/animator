@@ -173,7 +173,7 @@ export default class ComponentHeadingRow extends React.Component {
               this.props.row.expandAndSelect({from: 'timeline'});
             }}
             style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
-              width: (this.props.row.isExpanded()) ? propertiesPixelWidth - 180 : propertiesPixelWidth,
+              width: (this.props.row.isExpanded()) ? propertiesPixelWidth - 200 : propertiesPixelWidth,
               height: 'inherit',
               cursor: 'pointer',
               // zIndex: 9999999999999,
