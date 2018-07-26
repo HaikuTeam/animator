@@ -19,6 +19,11 @@ const toTitleCase = require('./helpers/toTitleCase')
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 const Lock = require('./Lock')
 const SustainedWarningChecker = require('haiku-common/lib/sustained-checker/SustainedWarningChecker').default
+const url = require('url')
+const {
+  findManaElement,
+  getChildrenFromMana
+} = require('@haiku/core/lib/HaikuNode')
 
 const KEYFRAME_MOVE_DEBOUNCE_TIME = 100
 const CHECK_SUSTAINED_WARNINGS_DEBOUNCE_TIME = 1000
@@ -1635,20 +1640,53 @@ class ActiveComponent extends BaseModel {
 
     Template.visitWithoutDescendingIntoSubcomponents(existingBytecode.template, (existingNode) => {
       // Only merge into any that match our source design path
-      if (
-        !existingNode.attributes[HAIKU_SOURCE_ATTRIBUTE] ||
-        !manaIncoming.attributes[HAIKU_SOURCE_ATTRIBUTE] ||
-        (
-          Template.normalizePath(existingNode.attributes[HAIKU_SOURCE_ATTRIBUTE]) !==
-          Template.normalizePath(manaIncoming.attributes[HAIKU_SOURCE_ATTRIBUTE])
-        )
-      ) {
+      // Do not merge mana without its source attribute
+      if (!existingNode.attributes[HAIKU_SOURCE_ATTRIBUTE] || !manaIncoming.attributes[HAIKU_SOURCE_ATTRIBUTE]) {
         return
       }
 
-      const safeIncoming = Template.clone({}, manaIncoming)
+      const existingSource = Template.normalizePath(existingNode.attributes[HAIKU_SOURCE_ATTRIBUTE])
+      // Exclude element selectors from haiku-source of ungrouped element  eg. .../slice.svg#rectangle -> .../slice.svg
+      const existingSourceSVG = unescape(url.parse(existingSource).pathname)
+      // Get complete list of element selectors from haiku-source
+      const elementSelectorCompletePath = unescape(url.parse(existingSource).hash).split('#').slice(1)
 
-      const removedOutputs = this.removeChildContentFromBytecode(existingBytecode, existingNode)
+      const incomingSource = Template.normalizePath(manaIncoming.attributes[HAIKU_SOURCE_ATTRIBUTE])
+
+      const ungroupedElement = elementSelectorCompletePath.length > 0
+
+      // Skip if haiku-source does not match between source and incoming
+      if (existingSource !== incomingSource && existingSourceSVG !== incomingSource) {
+        return
+      }
+
+      let safeIncoming = null
+      // For ungrouped element, we want to update only child element
+      if (ungroupedElement) {
+        const incomingChildLocator = findManaElement(manaIncoming, elementSelectorCompletePath)
+
+        const incomingChild = getChildrenFromMana(manaIncoming, incomingChildLocator)
+
+        safeIncoming = Template.clone({}, incomingChild)
+      } else {
+        // For grouped element, we want to update whole element
+        safeIncoming = Template.clone({}, manaIncoming)
+      }
+
+      let nodeToBeUpdated = null
+      // For ungrouped element, we want to remove only child element
+      if (ungroupedElement) {
+        // We get only last selector, because existingNode intermediary selectors might be deleted on some operations
+        const existingChildLocator = findManaElement(existingNode, elementSelectorCompletePath.slice(-1))
+        nodeToBeUpdated = getChildrenFromMana(existingNode, existingChildLocator)
+      } else {
+        // For grouped element, we want to update whole element
+        nodeToBeUpdated = existingNode
+      }
+
+      // console.log('Prepare to remove child.. existingBytecode:',existingBytecode,'nodeToBeUpdated',nodeToBeUpdated)
+      const removedOutputs = this.removeChildContentFromBytecode(existingBytecode, nodeToBeUpdated)
+      // console.log('Removed child.. removedOutputs', removedOutputs, 'existingBytecode:', existingBytecode, 'nodeToBeUpdated', nodeToBeUpdated)
 
       const {
         hash
@@ -1664,7 +1702,7 @@ class ActiveComponent extends BaseModel {
         }
       )
 
-      const existingSelector = `haiku:${existingNode.attributes[HAIKU_ID_ATTRIBUTE]}`
+      const existingSelector = `haiku:${nodeToBeUpdated.attributes[HAIKU_ID_ATTRIBUTE]}`
       const incomingSelector = `haiku:${safeIncoming.attributes[HAIKU_ID_ATTRIBUTE]}`
 
       // Ensure properties destined for the root node are applied to the correct id
@@ -1673,13 +1711,13 @@ class ActiveComponent extends BaseModel {
 
       for (let i = 0; i < safeIncoming.children.length; i++) {
         const incomingChild = safeIncoming.children[i]
-        existingNode.children.push(incomingChild)
+        nodeToBeUpdated.children.push(incomingChild)
       }
 
       Bytecode.mergeTimelines(existingBytecode.timelines, timelinesObject)
 
       if (mergeRemovedOutputs) {
-        this.mergeRemovedOutputs(existingBytecode, existingNode, removedOutputs)
+        this.mergeRemovedOutputs(existingBytecode, nodeToBeUpdated, removedOutputs)
       }
     })
   }
