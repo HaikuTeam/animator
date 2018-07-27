@@ -36,7 +36,7 @@ const STYLE = {
   },
 };
 
-const HOVER_INTENT_TIME = 150;
+const HOVER_INTENT_TIME = 190;
 
 class FrameAction extends React.Component {
   constructor () {
