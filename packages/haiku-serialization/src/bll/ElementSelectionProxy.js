@@ -868,6 +868,10 @@ class ElementSelectionProxy extends BaseModel {
       return
     }
 
+    if (toStage && !this.selection.length) {
+      return
+    }
+
     let axis = (xEdge !== undefined) ? 'x' : 'y'
 
     // First, we'll sort the elements by the appropriate bounding edge, tracking
