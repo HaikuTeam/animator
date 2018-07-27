@@ -2,7 +2,6 @@ import * as Radium from 'radium';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import {ipcRenderer, shell} from 'electron';
-import * as assign from 'lodash.assign';
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import Palette from 'haiku-ui-common/lib/Palette';
 import * as Color from 'color';
@@ -974,7 +973,6 @@ class StageTitleBar extends React.Component {
             projectName={this.props.project.projectName}
             mixpanel={mixpanel}
             urls={this.state.shareUrls}
-            onProjectPublicChange={this.props.onProjectPublicChange}
           />
         }
       </div>

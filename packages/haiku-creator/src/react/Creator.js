@@ -127,7 +127,6 @@ export default class Creator extends React.Component {
       applicationImage: null,
       projectObject: null,
       projectModel: null, // Instance of the Project model
-      projectName: null,
       dashboardVisible: !this.props.folder,
       isOffline: false,
       readyForAuth: false,
@@ -762,7 +761,7 @@ export default class Creator extends React.Component {
     this.envoyClient.get(EXPORTER_CHANNEL).then((exporterChannel) => {
       ipcRenderer.on('global-menu:save-as', () => {
         dialog.showSaveDialog(undefined, {
-          defaultPath: `*/${this.state.projectName}`,
+          defaultPath: this.state.projectObject ? `*/${this.state.projectObject.projectName}` : null,
           filters: [{
             name: 'Animated GIF', extensions: ['gif'],
           }, {
@@ -817,6 +816,11 @@ export default class Creator extends React.Component {
 
       (project) => {
         this.envoyProject = project;
+        project.on(`${PROJECT_CHANNEL}:saved`, (projectObject) => {
+          if (this.state.projectObject && this.state.projectObject.projectName === projectObject.projectName) {
+            this.setState({projectObject, projectFolder: projectObject.projectPath});
+          }
+        });
       },
     );
 
@@ -1106,10 +1110,6 @@ export default class Creator extends React.Component {
       ipcRenderer.send('topmenu:update', {projectsList, isProjectOpen: false});
       return cb(null, projectsList);
     });
-  }
-
-  onProjectPublicChange (isPublic) {
-    this.setState({projectObject: {...this.state.projectObject, isPublic}});
   }
 
   onProjectLaunchError (error) {
@@ -2154,9 +2154,6 @@ export default class Creator extends React.Component {
                     onShowEventHandlerEditor={this.handleShowEventHandlersEditor}
                     onPreviewModeToggled={this.togglePreviewMode}
                     artboardDimensions={this.state.artboardDimensions}
-                    onProjectPublicChange={(isPublic) => {
-                      this.onProjectPublicChange(isPublic);
-                    }}
                     setGlassInteractionToPreviewMode={this.setGlassInteractionToPreviewMode}
                     setGlassInteractionToEditMode={this.setGlassInteractionToEditMode}
                     setGlassInteractionToCodeEditorMode={this.setGlassInteractionToCodeEditorMode}

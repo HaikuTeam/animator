@@ -1,4 +1,4 @@
-import {HaikuShareUrls, ProjectHandler} from 'haiku-sdk-creator/lib/bll/Project';
+import {HaikuProject, HaikuShareUrls, ProjectHandler} from 'haiku-sdk-creator/lib/bll/Project';
 import * as React from 'react';
 import {ModalHeader, ModalNotice, ModalWrapper} from '../Modal';
 import {RevealPanel} from '../RevealPanel';
@@ -19,7 +19,7 @@ const STYLES: React.CSSProperties = {
 
 export interface ShareModalProps {
   envoyProject: ProjectHandler;
-  project: any;
+  project: HaikuProject;
   error: any;
   linkAddress: string;
   snapshotSaveConfirmed: boolean;
@@ -31,7 +31,6 @@ export interface ShareModalProps {
   projectName: string;
   mixpanel: any;
   urls: HaikuShareUrls;
-  onProjectPublicChange: (state: boolean) => void;
 }
 
 export interface SelectedEntry {
@@ -100,8 +99,11 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
 
   togglePublic () {
     const desiredState = !this.state.isPublic;
-    this.props.envoyProject.updateProject(this.props.projectName, desiredState).then(() => {
-      this.props.onProjectPublicChange(desiredState);
+    this.props.envoyProject.updateProject({
+      ...this.props.project,
+      isPublic: desiredState,
+    }).then(() => {
+      // ...
     }).catch(() => {
       console.error('Could not set project privacy settings. Please contact support@haiku.ai');
       this.setState({isPublic: !desiredState});
@@ -130,6 +132,7 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
             projectName={project.projectName}
             linkAddress={linkAddress}
             isSnapshotSaveInProgress={isSnapshotSaveInProgress}
+            snapshotSyndicated={snapshotSyndicated}
             isPublic={this.state.isPublic}
             mixpanel={mixpanel}
             togglePublic={this.boundTogglePublic}

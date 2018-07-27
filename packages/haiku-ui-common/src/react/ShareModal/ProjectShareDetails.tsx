@@ -112,6 +112,7 @@ export interface ProjectShareDetailsProps {
   projectName: string;
   linkAddress: string;
   isSnapshotSaveInProgress: boolean;
+  snapshotSyndicated: boolean;
   isPublic: boolean;
   togglePublic: () => void;
   mixpanel: any;
@@ -158,6 +159,7 @@ export class ProjectShareDetails extends React.PureComponent<ProjectShareDetails
       semverVersion,
       linkAddress,
       isSnapshotSaveInProgress,
+      snapshotSyndicated,
       isPublic,
     } = this.props;
 
@@ -217,6 +219,7 @@ export class ProjectShareDetails extends React.PureComponent<ProjectShareDetails
           </p>
           <LinkHolster
             isSnapshotSaveInProgress={isSnapshotSaveInProgress}
+            snapshotSyndicated={snapshotSyndicated}
             linkAddress={linkAddress}
             onCopy={this.onCopy}
             onLinkOpen={this.onLinkOpen}

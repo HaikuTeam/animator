@@ -289,7 +289,6 @@ class Stage extends React.Component {
             onPreviewModeToggled={this.props.onPreviewModeToggled}
             isTimelineReady={this.props.isTimelineReady}
             envoyClient={this.props.envoyClient}
-            onProjectPublicChange={this.props.onProjectPublicChange}
             setGlassInteractionToCodeEditorMode={this.props.setGlassInteractionToCodeEditorMode}
             tryToSwitchToEditMode={this.tryToSwitchToEditMode}
             interactionMode={this.props.interactionMode}

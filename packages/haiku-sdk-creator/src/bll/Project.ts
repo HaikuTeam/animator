@@ -217,7 +217,12 @@ export class ProjectHandler extends EnvoyHandler {
             return reject(error);
           }
 
-          resolve(Object.assign(haikuProject, this.inkstoneProjectToHaikuProject(project)));
+          Object.assign(haikuProject, this.inkstoneProjectToHaikuProject(project));
+          this.server.emit(PROJECT_CHANNEL, {
+            payload: haikuProject,
+            name: `${PROJECT_CHANNEL}:saved`,
+          });
+          resolve(haikuProject);
         },
       );
     });
@@ -265,8 +270,8 @@ export class ProjectHandler extends EnvoyHandler {
             body,
             url: presignedURL.URL,
             headers: {'x-amz-acl': 'public-read'},
-          }, (httpError) => {
-            if (httpError) {
+          }, (httpError, response) => {
+            if (httpError || response.statusCode > 299) {
               reject(httpError);
             } else {
               resolve();
