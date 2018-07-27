@@ -73,6 +73,8 @@ const UNWATCHABLE_RELPATHS = {
 };
 
 const UNWATCHABLE_BASENAMES = {
+  'animation.gif': true,
+  'still.png': true,
   'angular-dom.js': true,
   'index.standalone.js': true,
   'index.embed.js': true,
@@ -840,6 +842,21 @@ export default class Master extends EventEmitter {
               });
           });
         });
+      },
+
+      (cb) => {
+        // At this point, we cannot proceed with a remote URL.
+        if (project.repositoryUrl) {
+          return cb();
+        }
+
+        this.envoyHandlers.project.updateProject(
+          project,
+          /*ensureCaudexBacking=*/true,
+        ).then(() => {
+          this._git.reload(project);
+          cb();
+        }).catch(cb);
       },
 
       // Write out any enabled exported formats.

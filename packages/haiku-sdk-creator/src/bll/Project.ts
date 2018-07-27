@@ -192,11 +192,11 @@ export class ProjectHandler extends EnvoyHandler {
     });
   }
 
-  createProject (name: string, isPublic = false): Promise<HaikuProject> {
-    this.server.logger.info('[haiku envoy server] creating project', name, isPublic);
+  createProject (name: string): Promise<HaikuProject> {
+    this.server.logger.info('[haiku envoy server] creating project', name);
     return new Promise((resolve, reject) => {
       inkstone.project.create(
-        {Name: name, IsPublic: isPublic, DeferCaudexBacking: false},
+        {Name: name, IsPublic: true, DeferCaudexBacking: true},
         (error, project) => {
           if (error) {
             return reject(error);
@@ -208,15 +208,18 @@ export class ProjectHandler extends EnvoyHandler {
     });
   }
 
-  updateProject (name: string, isPublic: boolean): Promise<HaikuProject> {
+  updateProject (haikuProject: HaikuProject, ensureCaudexBacking = false): Promise<HaikuProject> {
     return new Promise((resolve, reject) => {
-      inkstone.project.update({Name: name, IsPublic: isPublic}, (error, project) => {
-        if (error) {
-          return reject(error);
-        }
+      inkstone.project.update(
+        {Name: haikuProject.projectName, IsPublic: haikuProject.isPublic, EnsureCaudexBacking: ensureCaudexBacking},
+        (error, project) => {
+          if (error) {
+            return reject(error);
+          }
 
-        resolve(this.inkstoneProjectToHaikuProject(project));
-      });
+          resolve(Object.assign(haikuProject, this.inkstoneProjectToHaikuProject(project)));
+        },
+      );
     });
   }
 

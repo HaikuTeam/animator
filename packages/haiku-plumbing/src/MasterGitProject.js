@@ -103,7 +103,10 @@ export default class MasterGitProject extends EventEmitter {
     Git.destroyIndexLockSync(this.folder);
 
     this._requestWorkerStopped = false;
+    this.reload(projectInfo);
+  }
 
+  reload (projectInfo) {
     if (projectInfo) {
       this._projectInfo.projectName = projectInfo.projectName;
       this._projectInfo.authorName = projectInfo.authorName;

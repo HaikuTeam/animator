@@ -889,10 +889,6 @@ class Project extends BaseModel {
     })
   }
 
-  getPreviewAssetPath () {
-    return path.join(this.getFolder(), 'preview.html')
-  }
-
   describeIntegrity () {
     const descriptor = {}
 

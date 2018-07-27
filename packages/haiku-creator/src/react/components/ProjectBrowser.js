@@ -493,7 +493,6 @@ ProjectBrowser.propTypes = {
   envoyClient: React.PropTypes.object.isRequired,
   doShowProjectLoader: React.PropTypes.bool.isRequired,
   setProjectLaunchStatus: React.PropTypes.func.isRequired,
-  newProjectLoading: React.PropTypes.bool.isRequired,
   launchingProject: React.PropTypes.bool.isRequired,
   lastViewedChangelog: React.PropTypes.string,
   onShowChangelogModal: React.PropTypes.func.isRequired,

@@ -147,7 +147,6 @@ export default class Creator extends React.Component {
       doShowBackToDashboardButton: false,
       doShowProjectLoader: false,
       launchingProject: false,
-      newProjectLoading: false,
       interactionMode: InteractionMode.GLASS_EDIT,
       artboardDimensions: null,
       showChangelogModal: false,
@@ -1045,7 +1044,6 @@ export default class Creator extends React.Component {
       dashboardVisible,
       launchingProject,
       doShowProjectLoader: false,
-      newProjectLoading: false,
     });
   }
 
@@ -1128,8 +1126,9 @@ export default class Creator extends React.Component {
     this.setProjectLaunchStatus({launchingProject: null});
   }
 
-  createProject (projectName, isPublic, duplicate = false, callback) {
-    this.envoyProject.createProject(projectName, isPublic).then((newProject) => {
+  createProject (projectName, duplicate = false, callback) {
+    this.setProjectLaunchStatus({launchingProject: true});
+    this.envoyProject.createProject(projectName).then((newProject) => {
       if (duplicate && this.state.projectToDuplicate !== null) {
         this.props.websocket.request(
           {
@@ -1144,6 +1143,8 @@ export default class Creator extends React.Component {
         callback(null, newProject);
       }
     }).catch((error) => {
+      this.setProjectLaunchStatus({launchingProject: null});
+      console.log(error);
       this.createNotice({
         type: 'error',
         title: 'Oh no!',
@@ -1157,7 +1158,6 @@ export default class Creator extends React.Component {
 
   launchProject (projectObject, cb) {
     const {projectName, projectPath} = projectObject;
-    this.setProjectLaunchStatus({launchingProject: true, newProjectLoading: false});
 
     // VERY IMPORTANT - if not set to true, we can end up in a situation where we overwrite freshly cloned content from the remote!
     projectObject.skipContentCreation = true;
@@ -1606,7 +1606,7 @@ export default class Creator extends React.Component {
           recheck();
         } else {
           setTimeout(() => {
-            this.launchProject(forkedProjectName, forkedProject, (launchError) => {
+            this.launchProject(forkedProject, (launchError) => {
               if (launchError) {
                 this.showForkingError();
               }
@@ -1718,12 +1718,9 @@ export default class Creator extends React.Component {
     this.refs.stage.tryToChangeCurrentActiveComponent(scenename);
   }
 
-  setProjectLaunchStatus ({launchingProject, newProjectLoading}) {
+  setProjectLaunchStatus ({launchingProject}) {
     if (launchingProject !== undefined) {
       this.setState({launchingProject});
-    }
-    if (newProjectLoading !== undefined) {
-      this.setState({newProjectLoading});
     }
   }
 
@@ -1757,34 +1754,33 @@ export default class Creator extends React.Component {
     this.setState({showNewProjectModal: false, isDuplicateProjectModal: false, duplicateProjectName: null});
   }
 
+  onCreateProject = (projectName, duplicate) => {
+    this.createProject(projectName, duplicate, (err, projectObject) => {
+      if (err) {
+        this.hideNewProjectModal();
+        return;
+      }
+
+      if (this.state.projectModel) {
+        this.teardownMaster(
+          {shouldFinishTour: true, launchingProject: false},
+          () => {
+            this.launchProject(projectObject, () => {});
+          },
+        );
+      } else {
+        this.launchProject(projectObject, () => {});
+      }
+    });
+  };
+
   renderNewProjectModal () {
     return (
       this.state.showNewProjectModal && (
         <NewProjectModal
           defaultProjectName={this.state.duplicateProjectName}
           duplicate={this.state.isDuplicateProjectModal}
-          disabled={this.state.newProjectLoading}
-          onCreateProject={(projectName, isPublic, duplicate, callback) => {
-            this.createProject(projectName, isPublic, duplicate, (err, projectObject) => {
-              callback(err, projectObject);
-
-              if (err) {
-                this.hideNewProjectModal();
-                return;
-              }
-
-              if (this.state.projectModel) {
-                this.teardownMaster(
-                  {shouldFinishTour: true, launchingProject: false},
-                  () => {
-                    this.launchProject(projectObject, callback);
-                  },
-                );
-              } else {
-                this.launchProject(projectObject, callback);
-              }
-            });
-          }}
+          onCreateProject={this.onCreateProject}
           onClose={() => {
             this.hideNewProjectModal();
           }}
@@ -1948,7 +1944,6 @@ export default class Creator extends React.Component {
             }}
             showChangelogModal={this.state.showChangelogModal}
             launchingProject={this.state.launchingProject}
-            newProjectLoading={this.state.newProjectLoading}
             setProjectLaunchStatus={this.setProjectLaunchStatus}
             username={this.state.username}
             softwareVersion={this.state.softwareVersion}
@@ -1977,7 +1972,7 @@ export default class Creator extends React.Component {
             skipOptIn={this.state.updater.shouldSkipOptIn}
             runOnBackground={this.state.updater.shouldRunOnBackground}
           />
-          {(this.state.launchingProject || this.state.newProjectLoading || this.state.doShowProjectLoader)
+          {(this.state.launchingProject || this.state.doShowProjectLoader)
             ? <ProjectLoader />
             : ''}
         </div>
@@ -2014,8 +2009,10 @@ export default class Creator extends React.Component {
             removeNotice={this.removeNotice}
             notices={this.state.notices}
             envoyClient={this.envoyClient}
-            {...this.props} />
-          {(this.state.launchingProject || this.state.newProjectLoading || this.state.doShowProjectLoader)
+            launchProject={this.state.launchingProject}
+            {...this.props}
+          />
+          {(this.state.launchingProject || this.state.doShowProjectLoader)
             ? <ProjectLoader />
             : ''}
         </div>

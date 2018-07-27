@@ -213,34 +213,6 @@ export function createProjectFiles (
         module.exports = ${reactProjectName}_Bare
       `);
 
-      fse.outputFileSync(path.join(projectOptions.projectPath, 'preview.html'), dedent`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>${projectNameSafe} | Preview | Haiku</title>
-          <style>
-            .container { margin: 0 auto; width: 100%; }
-            #mount { width: 100%; margin: 0 auto; }
-            body { margin: 0; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div id="mount"></div>
-          </div>
-          <script src="./index.standalone.js"></script>
-          <script>
-            ${standaloneName}(document.getElementById('mount'), {
-              sizing: 'contain',
-              loop: true
-            })
-          </script>
-        </body>
-        </html>
-      `);
-
       // Should we try to merge these if the user made any changes?
       fse.outputFileSync(path.join(projectOptions.projectPath, '.gitignore'), dedent`
         .DS_Store
