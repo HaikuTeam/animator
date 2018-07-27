@@ -67,6 +67,7 @@ export default class ComponentHeadingRowHeading extends React.Component {
       if (err) {
         // ...
       }
+      this.props.setEditingRowTitleStatus(false);
       this.setState({
         rowTitle,
         isEditingRowTitle: false,
@@ -205,6 +206,7 @@ export default class ComponentHeadingRowHeading extends React.Component {
                 clearTimeout(this.onExpandTimeout);
                 this.onExpandTimeout = null;
                 if (!this.state.isEditingRowTitle) {
+                  this.props.setEditingRowTitleStatus(true);
                   this.setState({isEditingRowTitle: true}, () => {
                     if (this.refs.rowTitleInput) {
                       this.refs.rowTitleInput.select();

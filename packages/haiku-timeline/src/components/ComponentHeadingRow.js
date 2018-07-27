@@ -251,6 +251,7 @@ export default class ComponentHeadingRow extends React.Component {
                   }
               </span>
               <ComponentHeadingRowHeading
+                setEditingRowTitleStatus={this.props.setEditingRowTitleStatus}
                 row={this.props.row}
                 isExpanded={this.props.isExpanded}
                 isSelected={this.props.isSelected}
