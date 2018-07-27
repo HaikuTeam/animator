@@ -75,6 +75,7 @@ class EventHandlerEditor extends React.PureComponent {
     super(props);
 
     this.handlerManager = null;
+    this.completionDisposer = null;
 
     this.setupMonaco();
 
@@ -124,7 +125,7 @@ class EventHandlerEditor extends React.PureComponent {
     });
 
     // Define our own autocompletion items
-    monaco.languages.registerCompletionItemProvider('javascript', {
+    this.completionDisposer = monaco.languages.registerCompletionItemProvider('javascript', {
       provideCompletionItems (model, position) {
         return AUTOCOMPLETION_ITEMS.map((option) =>
           Object.assign(option, {
@@ -171,6 +172,12 @@ class EventHandlerEditor extends React.PureComponent {
     if (isNumeric(nextProps.options.frame)) {
       const event = HandlerManager.frameToEvent(nextProps.options.frame);
       this.setState({currentEvent: event});
+    }
+  }
+
+  componentWillUnmount () {
+    if (this.completionDisposer) {
+      this.completionDisposer.dispose();
     }
   }
 
