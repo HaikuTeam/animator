@@ -83,7 +83,7 @@ Template.prepareManaAndBuildTimelinesObject = (
   hash,
   timelineName,
   timelineTime,
-  { doHashWork, title }
+  { doHashWork, title, isUngroupedElement }
 ) => {
   if (doHashWork) {
     // Each url(#whatever) needs to be unique to avoid styling collisions in the DOM
@@ -98,7 +98,10 @@ Template.prepareManaAndBuildTimelinesObject = (
     )
   }
 
-  Template.ensureTopLevelDisplayAttributes(mana)
+  // Ungrouped elements aren't top level.. Skip it
+  if (!isUngroupedElement) {
+    Template.ensureTopLevelDisplayAttributes(mana)
+  }
 
   convertManaLayout(mana)
 

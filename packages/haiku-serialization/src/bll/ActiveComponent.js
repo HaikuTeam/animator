@@ -1500,14 +1500,14 @@ class ActiveComponent extends BaseModel {
     }, cb)
   }
 
-  removeChildContentFromBytecode (bytecode, mana) {
+  removeChildContentFromBytecode (bytecode, mana, isUngroupedElement) {
     // Return the data that we removed in case we want to retain anything when designs merge
     const removedOutputs = {}
 
     Template.visit(mana, (node, parent, index, depth, address) => {
-      // Skip the topmost node; that wrapper stays
-      if (node === mana) {
-        return
+      // Skip the topmost node; that wrapper stays. Ungrouped elements might address topmost node
+      if (node === mana && !isUngroupedElement) {
+         return
       }
 
       const haikuId = node.attributes && node.attributes[HAIKU_ID_ATTRIBUTE]
@@ -1653,16 +1653,19 @@ class ActiveComponent extends BaseModel {
 
       const incomingSource = Template.normalizePath(manaIncoming.attributes[HAIKU_SOURCE_ATTRIBUTE])
 
-      const ungroupedElement = elementSelectorCompletePath.length > 0
+      const isUngroupedElement = elementSelectorCompletePath.length > 0
 
       // Skip if haiku-source does not match between source and incoming
       if (existingSource !== incomingSource && existingSourceSVG !== incomingSource) {
         return
       }
 
+      console.log('Element with existingSource',existingSource)
+      console.log('Parameters: existingBytecode',existingBytecode,'manaIncoming',manaIncoming,'existingNode',existingNode)
+
       let safeIncoming = null
       // For ungrouped element, we want to update only child element
-      if (ungroupedElement) {
+      if (isUngroupedElement) {
         const incomingChildLocator = findManaElement(manaIncoming, elementSelectorCompletePath)
 
         const incomingChild = getChildrenFromMana(manaIncoming, incomingChildLocator)
@@ -1675,7 +1678,7 @@ class ActiveComponent extends BaseModel {
 
       let nodeToBeUpdated = null
       // For ungrouped element, we want to remove only child element
-      if (ungroupedElement) {
+      if (isUngroupedElement) {
         // We get only last selector, because existingNode intermediary selectors might be deleted on some operations
         const existingChildLocator = findManaElement(existingNode, elementSelectorCompletePath.slice(-1))
         nodeToBeUpdated = getChildrenFromMana(existingNode, existingChildLocator)
@@ -1684,9 +1687,11 @@ class ActiveComponent extends BaseModel {
         nodeToBeUpdated = existingNode
       }
 
-      // console.log('Prepare to remove child.. existingBytecode:',existingBytecode,'nodeToBeUpdated',nodeToBeUpdated)
-      const removedOutputs = this.removeChildContentFromBytecode(existingBytecode, nodeToBeUpdated)
-      // console.log('Removed child.. removedOutputs', removedOutputs, 'existingBytecode:', existingBytecode, 'nodeToBeUpdated', nodeToBeUpdated)
+      console.log('nodeToBeUpdated',nodeToBeUpdated, 'safeIncoming', safeIncoming)
+
+      console.log('Prepare to remove child.. existingBytecode:',existingBytecode,'nodeToBeUpdated',nodeToBeUpdated)
+      const removedOutputs = this.removeChildContentFromBytecode(existingBytecode, nodeToBeUpdated, isUngroupedElement)
+      console.log('Removed child.. removedOutputs', removedOutputs, 'existingBytecode:', existingBytecode, 'nodeToBeUpdated', nodeToBeUpdated)
 
       const {
         hash
@@ -1698,9 +1703,12 @@ class ActiveComponent extends BaseModel {
         timelineName,
         timelineTime,
         {
+          isUngroupedElement,
           doHashWork: true
         }
       )
+
+      console.log('Timelines object', timelinesObject)
 
       const existingSelector = `haiku:${nodeToBeUpdated.attributes[HAIKU_ID_ATTRIBUTE]}`
       const incomingSelector = `haiku:${safeIncoming.attributes[HAIKU_ID_ATTRIBUTE]}`
@@ -1712,6 +1720,21 @@ class ActiveComponent extends BaseModel {
       for (let i = 0; i < safeIncoming.children.length; i++) {
         const incomingChild = safeIncoming.children[i]
         nodeToBeUpdated.children.push(incomingChild)
+      }
+
+      // If it's ungroup element, we should move size attributes back to its svg.. to simulate what is done when ungrouping
+      if (isUngroupedElement) {
+        const existingRootSvgSelector = `haiku:${existingNode.attributes[HAIKU_ID_ATTRIBUTE]}` 
+        const attributesToBeMoved = ['sizeAbsolute.x','sizeAbsolute.y','sizeRelative.x','sizeRelative.y','sizeMode.x','sizeMode.y' ]
+
+        timelinesObject[timelineName][existingRootSvgSelector] = {}
+
+        for (const attributeName in timelinesObject[timelineName][existingSelector]) {
+          if ( attributesToBeMoved.indexOf(attributeName) > -1 ){
+            timelinesObject[timelineName][existingRootSvgSelector][attributeName] = timelinesObject[timelineName][existingSelector][attributeName]
+            delete timelinesObject[timelineName][existingSelector][attributeName]
+          }
+        }
       }
 
       Bytecode.mergeTimelines(existingBytecode.timelines, timelinesObject)
