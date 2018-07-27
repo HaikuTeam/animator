@@ -1504,7 +1504,7 @@ class ActiveComponent extends BaseModel {
     Template.visit(mana, (node, parent, index, depth, address) => {
       // Skip the topmost node; that wrapper stays. Ungrouped elements might address topmost node
       if (node === mana && !isUngroupedElement) {
-         return
+        return
       }
 
       const haikuId = node.attributes && node.attributes[HAIKU_ID_ATTRIBUTE]
@@ -1657,9 +1657,8 @@ class ActiveComponent extends BaseModel {
         return
       }
 
-      console.log('Element with existingSource',existingSource)
-      console.log('Parameters: existingBytecode',existingBytecode,'manaIncoming',manaIncoming,'existingNode',existingNode)
-
+      console.log('Element with existingSource', existingSource)
+      console.log('Parameters: existingBytecode', existingBytecode, 'manaIncoming', manaIncoming, 'existingNode', existingNode)
 
       // *Prepare incoming mana*
       let safeIncoming = null
@@ -1668,6 +1667,11 @@ class ActiveComponent extends BaseModel {
         const incomingChildLocator = findManaElement(manaIncoming, elementSelectorCompletePath)
 
         const incomingChild = getChildrenFromMana(manaIncoming, incomingChildLocator)
+
+        // If ungrouped element was deleted from external svg (incomingMana), keep existingNode intact
+        if (!incomingChild) {
+          return
+        }
 
         safeIncoming = Template.clone({}, incomingChild)
       } else {
@@ -1687,9 +1691,9 @@ class ActiveComponent extends BaseModel {
         nodeToBeUpdated = existingNode
       }
 
-      console.log('nodeToBeUpdated',nodeToBeUpdated, 'safeIncoming', safeIncoming)
+      console.log('nodeToBeUpdated', nodeToBeUpdated, 'safeIncoming', safeIncoming)
 
-      console.log('Prepare to remove child.. existingBytecode:',existingBytecode,'nodeToBeUpdated',nodeToBeUpdated)
+      console.log('Prepare to remove child.. existingBytecode:', existingBytecode, 'nodeToBeUpdated', nodeToBeUpdated)
       const removedOutputs = this.removeChildContentFromBytecode(existingBytecode, nodeToBeUpdated, isUngroupedElement)
       console.log('Removed child.. removedOutputs', removedOutputs, 'existingBytecode:', existingBytecode, 'nodeToBeUpdated', nodeToBeUpdated)
 
@@ -1724,13 +1728,13 @@ class ActiveComponent extends BaseModel {
 
       // If it's ungroup element, we should move size attributes back to its svg.. to simulate what is done when ungrouping
       if (isUngroupedElement) {
-        const existingRootSvgSelector = `haiku:${existingNode.attributes[HAIKU_ID_ATTRIBUTE]}` 
-        const attributesToBeMoved = ['sizeAbsolute.x','sizeAbsolute.y','sizeRelative.x','sizeRelative.y','sizeMode.x','sizeMode.y' ]
+        const existingRootSvgSelector = `haiku:${existingNode.attributes[HAIKU_ID_ATTRIBUTE]}`
+        const attributesToBeMoved = ['sizeAbsolute.x', 'sizeAbsolute.y', 'sizeRelative.x', 'sizeRelative.y', 'sizeMode.x', 'sizeMode.y']
 
         timelinesObject[timelineName][existingRootSvgSelector] = {}
 
         for (const attributeName in timelinesObject[timelineName][existingSelector]) {
-          if ( attributesToBeMoved.indexOf(attributeName) > -1 ){
+          if (attributesToBeMoved.indexOf(attributeName) > -1) {
             timelinesObject[timelineName][existingRootSvgSelector][attributeName] = timelinesObject[timelineName][existingSelector][attributeName]
             delete timelinesObject[timelineName][existingSelector][attributeName]
           }

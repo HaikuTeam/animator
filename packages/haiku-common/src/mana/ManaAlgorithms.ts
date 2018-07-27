@@ -40,6 +40,10 @@ export const getChildrenFromMana = (
   elementLocator: ElementLocator,
 ): string|BytecodeNode => {
 
+  if (!elementLocator) {
+    return null;
+  }
+
   const nonProcessedLocator = elementLocator.slice(0);
 
   let currentMana = mana;
