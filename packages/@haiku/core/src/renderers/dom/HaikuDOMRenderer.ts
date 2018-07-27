@@ -2,8 +2,9 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
+import {IHaikuComponent, IRenderer, MountLayout} from '../../api';
 import HaikuBase, {GLOBAL_LISTENER_KEY} from './../../HaikuBase';
-import HaikuComponent, {getNodeCompositeId} from './../../HaikuComponent';
+import {getNodeCompositeId} from './../../HaikuComponent';
 import assign from './../../vendor/assign';
 import applyLayout from './applyLayout';
 import assignAttributes from './assignAttributes';
@@ -39,19 +40,8 @@ const connectTarget = (virtualNode, domElement) => {
   }
 };
 
-export interface MountLayout {
-  layout?: {
-    computed: {
-      size: {
-        x: number;
-        y: number;
-      };
-    };
-  };
-}
-
 // tslint:disable:variable-name
-export default class HaikuDOMRenderer extends HaikuBase {
+export default class HaikuDOMRenderer extends HaikuBase implements IRenderer {
   mount;
   config;
   user;
@@ -90,7 +80,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
     }
   }
 
-  getMountForComponent (component: HaikuComponent) {
+  getMountForComponent (component: IHaikuComponent) {
     // The component without a host is the root component, and uses this node.
     if (!component.host) {
       return this.mount;
@@ -168,7 +158,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
     };
   }
 
-  createContainer (out: MountLayout = {}) {
+  createContainer (out: MountLayout = {}): MountLayout {
     let size;
     if (this.mount) {
       size = getElementSize(this.mount);
@@ -389,7 +379,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
     });
   }
 
-  decideMountElement (component: HaikuComponent, selector: string, name: string) {
+  decideMountElement (component: IHaikuComponent, selector: string, name: string) {
     // For keyboard events, if subscribed to the component, and if the component is the runtime root,
     // we automatically attach its handler to window, as this is the 98%-case desired behavior
 
@@ -404,7 +394,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
     return this.mount;
   }
 
-  mountEventListener (component: HaikuComponent, selector: string, name: string, listener: Function) {
+  mountEventListener (component: IHaikuComponent, selector: string, name: string, listener: Function) {
     let rewritten = name;
 
     if (name === 'mouseenter') {
@@ -440,7 +430,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
       }
 
       // If the event originated from the element or its descendants
-      const match = component.target.parentNode.querySelector(query);
+      const match = (component.target.parentNode as Element).querySelector(query);
 
       if (match) {
         if (this.shouldListenerReceiveEvent(name, domEvent, match, mount)) {
@@ -485,7 +475,7 @@ export default class HaikuDOMRenderer extends HaikuBase {
    *   event.target - the element on which the event actually originated
    *   elementListenedTo - the element that the user is listening to the event on
    */
-  wrapEvent (eventName: string, nativeEvent, elementListenedTo, hostComponent: HaikuComponent) {
+  wrapEvent (eventName: string, nativeEvent, elementListenedTo, hostComponent: IHaikuComponent) {
     return nativeEvent;
   }
 

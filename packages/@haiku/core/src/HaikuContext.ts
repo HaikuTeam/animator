@@ -2,12 +2,11 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import {BytecodeOptions, HaikuBytecode} from './api';
+import {BytecodeOptions, HaikuBytecode, IHaikuContext, IRenderer} from './api';
 import Config from './Config';
 import HaikuBase from './HaikuBase';
 import HaikuClock from './HaikuClock';
 import HaikuComponent from './HaikuComponent';
-import HaikuDOMRenderer from './renderers/dom/HaikuDOMRenderer';
 
 const pkg = require('./../package.json');
 const VERSION = pkg.version;
@@ -15,7 +14,7 @@ const VERSION = pkg.version;
 export interface ComponentFactory {
   (mount: Element, config: BytecodeOptions): HaikuComponent;
   bytecode?: HaikuBytecode;
-  renderer?: HaikuDOMRenderer;
+  renderer?: IRenderer;
   mount?: Element;
   context?: HaikuContext;
   component?: HaikuComponent;
@@ -30,7 +29,7 @@ export interface ComponentFactory {
  * The context is where information shared by all components in the tree should go, e.g. clock time.
  */
 // tslint:disable:variable-name
-export default class HaikuContext extends HaikuBase {
+export default class HaikuContext extends HaikuBase implements IHaikuContext {
   clock: HaikuClock;
   component: HaikuComponent;
   config;
@@ -209,7 +208,7 @@ export default class HaikuContext extends HaikuBase {
    * @description Updates internal configuration options, assigning those passed in.
    * Also updates the configuration of the clock instance and managed component instance.
    */
-  assignConfig (config, options) {
+  assignConfig (config: BytecodeOptions, options?: {skipComponentAssign?: boolean}) {
     this.config = {...config};
 
     if (this.clock) { // This method may run before the clock is initialized
