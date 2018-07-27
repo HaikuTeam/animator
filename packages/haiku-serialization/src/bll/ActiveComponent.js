@@ -20,10 +20,7 @@ const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments'
 const Lock = require('./Lock')
 const SustainedWarningChecker = require('haiku-common/lib/sustained-checker/SustainedWarningChecker').default
 const url = require('url')
-const {
-  findManaElement,
-  getChildrenFromMana
-} = require('@haiku/core/lib/HaikuNode')
+const {findManaElement, getChildrenFromMana} = require('haiku-common/lib/mana/ManaAlgorithms')
 
 const KEYFRAME_MOVE_DEBOUNCE_TIME = 100
 const CHECK_SUSTAINED_WARNINGS_DEBOUNCE_TIME = 1000
@@ -1663,6 +1660,8 @@ class ActiveComponent extends BaseModel {
       console.log('Element with existingSource',existingSource)
       console.log('Parameters: existingBytecode',existingBytecode,'manaIncoming',manaIncoming,'existingNode',existingNode)
 
+
+      // *Prepare incoming mana*
       let safeIncoming = null
       // For ungrouped element, we want to update only child element
       if (isUngroupedElement) {
@@ -1676,6 +1675,7 @@ class ActiveComponent extends BaseModel {
         safeIncoming = Template.clone({}, manaIncoming)
       }
 
+      // *Prepare existing node*
       let nodeToBeUpdated = null
       // For ungrouped element, we want to remove only child element
       if (isUngroupedElement) {
