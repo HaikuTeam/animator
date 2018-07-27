@@ -195,6 +195,7 @@ export default class ComponentHeadingRow extends React.Component {
                 height: this.props.rowHeight,
                 display: 'flex',
                 alignItems: this.props.isExpanded ? 'baseline' : 'center',
+                width: '100%',
               } : {
                 height: this.props.rowHeight,
                 marginTop: -6,

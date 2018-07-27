@@ -150,6 +150,7 @@ export default class ComponentHeadingRowHeading extends React.Component {
               alignItems: 'center',
               height: 25,
               marginLeft: 5,
+              width: '88%',
             } : {
               color,
               position: 'relative',
@@ -182,7 +183,9 @@ export default class ComponentHeadingRowHeading extends React.Component {
                     ? 5
                     : 0,
                 overflowX: 'hidden',
-                width: 160,
+                width: '100%',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
               } : {
                 position: 'absolute',
                 display: 'inline-block',
@@ -231,7 +234,7 @@ export default class ComponentHeadingRowHeading extends React.Component {
                   this.persistRowTitle();
                 }}
               />
-              : trunc(this.state.rowTitle, 8)
+              : this.state.rowTitle
             }
           </span>
         </span>
