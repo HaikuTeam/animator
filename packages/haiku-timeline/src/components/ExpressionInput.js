@@ -999,9 +999,14 @@ export default class ExpressionInput extends React.Component {
   }
 
   getLabelString () {
+    const name = this.getPropertyName()
+    return humanizePropertyName(name);
+  }
+
+  getPropertyName () {
     const row = this.props.component.getFocusedRow();
     const name = (row && row.getPropertyName()) || '';
-    return humanizePropertyName(name);
+    return name;
   }
 
   getRootRect () {
