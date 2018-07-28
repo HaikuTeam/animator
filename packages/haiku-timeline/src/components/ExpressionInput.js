@@ -6,6 +6,7 @@ import * as stripindent from 'strip-indent';
 import marshalParams from '@haiku/core/lib/reflection/marshalParams';
 import * as parseExpression from 'haiku-serialization/src/ast/parseExpression';
 import * as MathUtils from 'haiku-serialization/src/bll/MathUtils';
+import * as Expression from 'haiku-serialization/src/bll/Expression';
 import Palette from 'haiku-ui-common/lib/Palette';
 import * as EXPR_SIGNS from 'haiku-ui-common/lib/helpers/ExprSigns';
 import isNumeric from 'haiku-ui-common/lib/helpers/isNumeric';
@@ -260,39 +261,7 @@ export default class ExpressionInput extends React.Component {
       };
     }
 
-    let out;
-    try {
-      out = JSON.parse(valueDescriptor.body);
-    } catch (exception) {
-      out = valueDescriptor.body + '';
-    }
-
-    // If the value type is string, stringify, and don't cast to another format
-    if (originalDescriptor.valueType === 'string') {
-      out = out + '';
-    } else {
-      if (isNumeric(out)) {
-        out = Number(out);
-      }
-
-      if (originalDescriptor.valueType === 'boolean') {
-        if (out === 'true') {
-          out = true;
-        } else if (out === 'false') {
-          out = false;
-        } else {
-          out = !!out;
-        }
-      } else if (originalDescriptor.propertyName === 'opacity') {
-        if (out > 1) {
-          out = 1;
-        } else if (out < 0) {
-          out = 0;
-        }
-      }
-    }
-
-    return out;
+    return Expression.parseValue(valueDescriptor.body, this.getPropertyName())
   }
 
   performCommit (maybeNavigationDirection, doFocusSubsequentCell) {

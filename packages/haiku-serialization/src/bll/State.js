@@ -42,7 +42,7 @@ State.safeJsonParse = (str) => {
  * but which the JavaScript engine is able to parse.
  */
 State.flexibleJsonParse = (str) => {
-  const body = `\nreturn ${str};\n`
+  const body = `\nreturn ${str.trim()};\n`
   try {
     const fn = new Function(body) // eslint-disable-line no-new-func
     const out = fn()
