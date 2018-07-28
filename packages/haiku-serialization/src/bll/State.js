@@ -4,44 +4,6 @@ const BaseModel = require('./BaseModel')
 
 const STR_ESC = '\''
 
-function isNumeric (n) {
-  return !isNaN(parseFloat(n)) && isFinite(n)
-}
-
-function safeJsonParse (str) {
-  try {
-    return JSON.parse(str)
-  } catch (exception) {
-    return undefined
-  }
-}
-
-/**
- * @description Allow the user to enter strings like [{a: 123}] which aren't valid JSON
- * but which the JavaScript engine is able to parse.
- */
-const flexibleJsonParse = (str) => {
-  const body = `\nreturn ${str};\n`
-  const fn = new Function(body) // eslint-disable-line no-new-func
-  try {
-    const out = fn()
-    return out
-  } catch (exception) {
-    // no-op
-  }
-
-  return safeJsonParse(str)
-}
-
-function safeJsonStringify (thing) {
-  try {
-    return JSON.stringify(thing)
-  } catch (exception) {
-    if (thing && thing.toString) return thing.toString()
-    return '' + thing + ''
-  }
-}
-
 /**
  * @class State
  * @description
@@ -63,7 +25,45 @@ function nextAvailableWordIfReserved (word) {
   return word
 }
 
-State.buildStateNameFromElementPropertyName = function buildStateNameFromElementPropertyName (n, states, elementNode, propertyName, originalName) {
+State.isNumeric = (n) => {
+  return !isNaN(parseFloat(n)) && isFinite(n)
+}
+
+State.safeJsonParse = (str) => {
+  try {
+    return JSON.parse(str)
+  } catch (exception) {
+    return undefined
+  }
+}
+
+/**
+ * @description Allow the user to enter strings like [{a: 123}] which aren't valid JSON
+ * but which the JavaScript engine is able to parse.
+ */
+State.flexibleJsonParse = (str) => {
+  const body = `\nreturn ${str};\n`
+  try {
+    const fn = new Function(body) // eslint-disable-line no-new-func
+    const out = fn()
+    return out
+  } catch (exception) {
+    // no-op
+  }
+
+  return State.safeJsonParse(str)
+}
+
+State.safeJsonStringify = (thing) => {
+  try {
+    return JSON.stringify(thing)
+  } catch (exception) {
+    if (thing && thing.toString) return thing.toString()
+    return '' + thing + ''
+  }
+}
+
+State.buildStateNameFromElementPropertyName = (n, states, elementNode, propertyName, originalName) => {
   let stateName = originalName
 
   const elementName = elementNode && elementNode.elementName
@@ -96,7 +96,7 @@ State.buildStateNameFromElementPropertyName = function buildStateNameFromElement
  * @description Determines whether two state objects have the same properties
  * @returns {Boolean}
  */
-State.areStatesEquivalent = function areStatesEquivalent (s1, s2) {
+State.areStatesEquivalent = (s1, s2) => {
   if (!s1 && !s2) return true
   if (s1 && !s2) return false
   if (!s1 && s2) return false
@@ -111,14 +111,14 @@ State.areStatesEquivalent = function areStatesEquivalent (s1, s2) {
 
 State.deduceTypeOfValue = (stateValue) => {
   if (Array.isArray(stateValue)) return 'array'
-  if (isNumeric(stateValue)) return 'number'
+  if (State.isNumeric(stateValue)) return 'number'
   if (stateValue && typeof stateValue === 'object') return 'object'
   if (stateValue === null || stateValue === undefined) return 'any'
   // See if the string looks like it's probably a JSON value and use that as the type
   if (typeof stateValue === 'string') {
     if (stateValue === 'undefined') return 'any'
     if (stateValue[0] === STR_ESC) return 'string' // Leading single-quote means use as string, no casting
-    const parsedValue = flexibleJsonParse(stateValue)
+    const parsedValue = State.flexibleJsonParse(stateValue)
     if (parsedValue === undefined) return 'string' // If we failed to parse, just assume a string
     if (typeof parsedValue === 'string') return 'string'
     return State.deduceTypeOfValue(parsedValue)
@@ -147,17 +147,17 @@ State.castValueToType = (stateValue, desiredType) => {
   switch (desiredType) {
     case 'array':
       if (Array.isArray(stateValue)) return stateValue
-      if (typeof stateValue === 'string') return State.castValueToType(flexibleJsonParse(stateValue), desiredType) // Recursive
+      if (typeof stateValue === 'string') return State.castValueToType(State.flexibleJsonParse(stateValue), desiredType) // Recursive
       return [] // Probably the best we can do if we fail
 
     case 'object':
       if (stateValue && typeof stateValue === 'object') return stateValue
-      if (typeof stateValue === 'string') return State.castValueToType(flexibleJsonParse(stateValue), desiredType) // Recursive
+      if (typeof stateValue === 'string') return State.castValueToType(State.flexibleJsonParse(stateValue), desiredType) // Recursive
       return {} // Probably the best we can do if we fail
 
     case 'number':
       var stateAsNumber = Number(stateValue)
-      if (isNumeric(stateAsNumber)) return stateAsNumber
+      if (State.isNumeric(stateAsNumber)) return stateAsNumber
       return 0 // Probably the best we can do if we fail
 
     case 'boolean':
@@ -169,7 +169,7 @@ State.castValueToType = (stateValue, desiredType) => {
     case 'string':
       if (typeof stateValue === 'string') return stateValue
       if (!stateValue) return ''
-      return safeJsonStringify(stateValue)
+      return State.safeJsonStringify(stateValue)
 
     default: // 'any'/'*'
       if (stateValue === 'null') return null
@@ -204,9 +204,9 @@ State.stringifyFromType = (stateValue, knownType) => {
   if (typeof stateValue === 'string') return stateValue // Use string if already a string
   switch (knownType) {
     case 'array':
-      return safeJsonStringify(stateValue)
+      return State.safeJsonStringify(stateValue)
     case 'object':
-      return safeJsonStringify(stateValue)
+      return State.safeJsonStringify(stateValue)
     default: // booleans, numbers, strings, and empty values
       if (stateValue && stateValue.toString) return stateValue.toString()
       if (stateValue === null) return ''
