@@ -995,13 +995,32 @@ export class Glass extends React.Component {
     if (proxy.canGroup()) {
       mixpanel.haikuTrack('creator:glass:group');
 
-      // We need to unselect the group members otherwise dragging the group
-      // will also drag the inner elements, resulting in undesired offsets
-      proxy.selection.forEach((element) => {
-        element.unselectSoftly({from: 'glass'});
+      const componentsWithTransitionOrExpression = proxy.selection.map((element) => {
+        return {elementId: element.getComponentId(), ...this.getActiveComponent().elementHasTransitionOrExpression(element.getComponentId())};
       });
 
-      proxy.group({from: 'glass'});
+      const willLoseTransitionOrExpression = componentsWithTransitionOrExpression.some((el) => el.hasTransition || el.hasExpression);
+
+      const executeGroup = () => {
+        // We need to unselect the group members otherwise dragging the group
+        // will also drag the inner elements, resulting in undesired offsets
+        proxy.selection.forEach((element) => {
+          element.unselectSoftly({from: 'glass'});
+        });
+
+        proxy.group({from: 'glass'});
+        mixpanel.haikuTrack('creator:glass:grouped');
+      };
+
+      if (willLoseTransitionOrExpression) {
+        console.log('Ask first here');
+        // mixpanel.haikuTrack('creator:glass:group_y');
+        // mixpanel.haikuTrack('creator:glass:group_n');
+      } else {
+        console.log('Executing group');
+        executeGroup();
+      }
+
     }
   }
 

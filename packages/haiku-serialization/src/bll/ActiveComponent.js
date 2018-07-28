@@ -1945,6 +1945,42 @@ class ActiveComponent extends BaseModel {
     keyframes.forEach((keyframe) => keyframe.drag(pxpf, mspf, dragData, metadata))
   }
 
+  // Returns a dictionary describing element timeline
+  // returns {hasTransition: <true/false>, hasExpression: <true/false>}
+  elementHasTransitionOrExpression (elementId) {
+    const bytecode = this.getReifiedBytecode()
+    const timelineName = this.getCurrentTimelineName()
+    const componentId = `haiku:${elementId}`
+
+    const result = {hasTransition: false, hasExpression: false}
+
+    if (componentId in bytecode.timelines[timelineName]) {
+      const componentTimeline = bytecode.timelines[timelineName][componentId]
+
+      for (const propertyName in componentTimeline) {
+        const propertyTimeline = componentTimeline[propertyName]
+
+        // Check if property has more than one keyFrame ( component has transition )
+        if (propertyTimeline instanceof Object) {
+          // It means it has more than one keyframe
+          if (Object.keys(propertyTimeline).length > 1) {
+            result.hasTransition = true
+          }
+        }
+
+        // Check if property has any expression ( component expression )
+        for (const frameNum in propertyTimeline) {
+          const propertyValue = propertyTimeline[frameNum].value
+          if (typeof propertyValue === 'function') {
+            result.hasExpression = true
+          }
+        }
+      }
+    }
+
+    return result
+  }
+
   snapshotKeyframeUpdates (keyframeUpdates) {
     const bytecode = this.getReifiedBytecode()
 
