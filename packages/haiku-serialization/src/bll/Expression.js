@@ -98,7 +98,7 @@ Expression.parseValue = (userInput, propertyName) => {
     return Expression.normalizeParsedValue(userInput, propertyName)
   }
 
-  const parsedInput = State.flexibleJsonParse(userInput)
+  const parsedInput = Expression.flexibleJsonParse(userInput)
 
   // Don't allow functions; instead return the literal string in case someone
   // types words that match a known JavaScript constructor like Number, etc.
@@ -136,6 +136,31 @@ Expression.parseValue = (userInput, propertyName) => {
   return userInput
 }
 
+Expression.safeJsonParse = (str) => {
+  try {
+    return JSON.parse(str)
+  } catch (exception) {
+    return undefined
+  }
+}
+
+/**
+ * @description Allow the user to enter strings like [{a: 123}] which aren't valid JSON
+ * but which the JavaScript engine is able to parse.
+ */
+Expression.flexibleJsonParse = (str) => {
+  const body = `\nreturn ${str.trim()};\n`
+  try {
+    const fn = new Function(body) // eslint-disable-line no-new-func
+    const out = fn()
+    return out
+  } catch (exception) {
+    // no-op
+  }
+
+  return Expression.safeJsonParse(str)
+}
+
 Expression.buildStateInjectorFunction = (stateName) => {
   // The AST/serialization utilities will handle:
   //  - Converting this into a proper function node
@@ -150,5 +175,3 @@ Expression.buildStateInjectorFunction = (stateName) => {
 }
 
 module.exports = Expression
-
-const State = require('./State')

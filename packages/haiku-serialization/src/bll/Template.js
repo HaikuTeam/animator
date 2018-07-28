@@ -296,7 +296,7 @@ Template.manaToDynamicBytecode = (mana, identifier, modpath, options = {}) => {
 
       const stateName = State.buildStateNameFromElementPropertyName(0, states, elementNode, propertyName)
 
-      const stateDescriptor = State.autoCastToType({
+      const stateDescriptor = State.recast({
         value: Template.fixKeyframeValue(elementNode, propertyName, keyframeDescriptor.value),
         access: Property.PRIVATE_PROPERTY_WHEN_HOISTING_TO_STATE[propertyName] ? 'private' : 'public'
       })

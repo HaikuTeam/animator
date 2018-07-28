@@ -29,31 +29,6 @@ State.isNumeric = (n) => {
   return !isNaN(parseFloat(n)) && isFinite(n)
 }
 
-State.safeJsonParse = (str) => {
-  try {
-    return JSON.parse(str)
-  } catch (exception) {
-    return undefined
-  }
-}
-
-/**
- * @description Allow the user to enter strings like [{a: 123}] which aren't valid JSON
- * but which the JavaScript engine is able to parse.
- */
-State.flexibleJsonParse = (str) => {
-  const body = `\nreturn ${str.trim()};\n`
-  try {
-    const fn = new Function(body) // eslint-disable-line no-new-func
-    const out = fn()
-    return out
-  } catch (exception) {
-    // no-op
-  }
-
-  return State.safeJsonParse(str)
-}
-
 State.safeJsonStringify = (thing) => {
   try {
     return JSON.stringify(thing)
@@ -118,7 +93,7 @@ State.deduceTypeOfValue = (stateValue) => {
   if (typeof stateValue === 'string') {
     if (stateValue === 'undefined') return 'any'
     if (stateValue[0] === STR_ESC) return 'string' // Leading single-quote means use as string, no casting
-    const parsedValue = State.flexibleJsonParse(stateValue)
+    const parsedValue = Expression.parseValue(stateValue)
     if (parsedValue === undefined) return 'string' // If we failed to parse, just assume a string
     if (typeof parsedValue === 'string') return 'string'
     return State.deduceTypeOfValue(parsedValue)
@@ -143,58 +118,6 @@ State.assignDescriptor = (out, stateValueDescriptor) => {
   return out
 }
 
-State.castValueToType = (stateValue, desiredType) => {
-  switch (desiredType) {
-    case 'array':
-      if (Array.isArray(stateValue)) return stateValue
-      if (typeof stateValue === 'string') return State.castValueToType(State.flexibleJsonParse(stateValue), desiredType) // Recursive
-      return [] // Probably the best we can do if we fail
-
-    case 'object':
-      if (stateValue && typeof stateValue === 'object') return stateValue
-      if (typeof stateValue === 'string') return State.castValueToType(State.flexibleJsonParse(stateValue), desiredType) // Recursive
-      return {} // Probably the best we can do if we fail
-
-    case 'number':
-      var stateAsNumber = Number(stateValue)
-      if (State.isNumeric(stateAsNumber)) return stateAsNumber
-      return 0 // Probably the best we can do if we fail
-
-    case 'boolean':
-      if (typeof stateValue === 'boolean') return stateValue
-      if (stateValue === 'true') return true
-      if (stateValue === 'false') return false
-      return !!stateValue
-
-    case 'string':
-      if (typeof stateValue === 'string') return stateValue
-      if (!stateValue) return ''
-      return State.safeJsonStringify(stateValue)
-
-    default: // 'any'/'*'
-      if (stateValue === 'null') return null
-      if (stateValue === 'undefined') return null
-      if (stateValue === null) return null
-      if (stateValue === undefined) return null
-      return stateValue
-  }
-}
-
-State.castToType = (stateValueDescriptor, desiredType) => {
-  const newDescriptor = State.assignDescriptor({}, stateValueDescriptor)
-  if (desiredType !== undefined) newDescriptor.type = desiredType // Lock the type by setting the type field
-  newDescriptor.value = State.castValueToType(stateValueDescriptor.value, desiredType)
-  if (stateValueDescriptor.mock !== undefined) {
-    newDescriptor.mock = State.castValueToType(stateValueDescriptor.mock, desiredType)
-  }
-  return newDescriptor
-}
-
-State.autoCastToType = (stateValueDescriptor) => {
-  const deducedType = State.deduceType(stateValueDescriptor)
-  return State.castToType(stateValueDescriptor, deducedType)
-}
-
 State.autoStringify = (stateValueDescriptor) => {
   const deducedType = State.deduceType(stateValueDescriptor)
   return State.stringifyFromType(stateValueDescriptor.value, deducedType)
@@ -216,11 +139,13 @@ State.stringifyFromType = (stateValue, knownType) => {
 }
 
 State.recast = (stateValueDescriptor) => {
-  const deducedType = State.deduceType({
-    value: stateValueDescriptor.value
-  })
-
-  return State.castToType(stateValueDescriptor, deducedType)
+  const clonedValueDescriptor = State.assignDescriptor({}, stateValueDescriptor)
+  clonedValueDescriptor.value = Expression.parseValue(clonedValueDescriptor.value)
+  clonedValueDescriptor.mock = Expression.parseValue(clonedValueDescriptor.mock)
+  clonedValueDescriptor.type = State.deduceType(clonedValueDescriptor)
+  return clonedValueDescriptor
 }
 
 module.exports = State
+
+const Expression = require('./Expression')
