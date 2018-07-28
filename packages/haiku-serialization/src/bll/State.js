@@ -215,4 +215,12 @@ State.stringifyFromType = (stateValue, knownType) => {
   }
 }
 
+State.recast = (stateValueDescriptor) => {
+  const deducedType = State.deduceType({
+    value: stateValueDescriptor.value
+  })
+
+  return State.castToType(stateValueDescriptor, deducedType)
+}
+
 module.exports = State
