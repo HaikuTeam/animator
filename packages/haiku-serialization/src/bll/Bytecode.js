@@ -19,7 +19,7 @@ const DEFAULT_CONTEXT_SIZE = { width: 550, height: 400 }
 const DO_REIFY_FUNCTIONS = true
 
 function isEmpty (val) {
-  return val === undefined || val === null
+  return val === undefined
 }
 
 // TODO: There might be cases where somebody's added a keyframe value whose intent

@@ -2173,6 +2173,12 @@ const expandNode = (original, parent) => {
     return original;
   }
 
+  if (!original.__memory) {
+    return {
+      ...original,
+    };
+  }
+
   let children = [];
 
   if  (original.__memory.content) {

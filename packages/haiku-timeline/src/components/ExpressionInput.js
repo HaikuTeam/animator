@@ -261,7 +261,7 @@ export default class ExpressionInput extends React.Component {
       };
     }
 
-    return Expression.parseValue(valueDescriptor.body, this.getPropertyName())
+    return Expression.parseValue(valueDescriptor.body, this.getPropertyName());
   }
 
   performCommit (maybeNavigationDirection, doFocusSubsequentCell) {
@@ -932,7 +932,7 @@ export default class ExpressionInput extends React.Component {
   }
 
   getLabelString () {
-    const name = this.getPropertyName()
+    const name = this.getPropertyName();
     return humanizePropertyName(name);
   }
 

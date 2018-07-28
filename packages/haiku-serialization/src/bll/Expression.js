@@ -27,6 +27,92 @@ Expression.retToEq = (str) => {
   return str
 }
 
+const textContentNormalizer = (value) => {
+  if (typeof value === 'string') {
+    return value
+  }
+
+  if (typeof value === 'number') {
+    return value
+  }
+
+  if (value === null || value === undefined) {
+    return ''
+  }
+
+  return value + ''
+}
+
+const booleanNormalizer = (value) => {
+  return !!value
+}
+
+const numericNormalizer = (value) => {
+  return Number(value)
+}
+
+Expression.VALUE_NORMALIZERS = {
+  'content': textContentNormalizer,
+  'shown': booleanNormalizer,
+  'opacity': numericNormalizer,
+  'offset.x': numericNormalizer,
+  'offset.y': numericNormalizer,
+  'offset.z': numericNormalizer,
+  'origin.x': numericNormalizer,
+  'origin.y': numericNormalizer,
+  'origin.z': numericNormalizer,
+  'translation.x': numericNormalizer,
+  'translation.y': numericNormalizer,
+  'translation.z': numericNormalizer,
+  'rotation.x': numericNormalizer,
+  'rotation.y': numericNormalizer,
+  'rotation.z': numericNormalizer,
+  'scale.x': numericNormalizer,
+  'scale.y': numericNormalizer,
+  'scale.z': numericNormalizer,
+  'shear.xy': numericNormalizer,
+  'shear.xz': numericNormalizer,
+  'shear.yz': numericNormalizer,
+  'sizeMode.x': numericNormalizer,
+  'sizeMode.y': numericNormalizer,
+  'sizeMode.z': numericNormalizer,
+  'sizeProportional.x': numericNormalizer,
+  'sizeProportional.y': numericNormalizer,
+  'sizeProportional.z': numericNormalizer,
+  'sizeDifferential.x': numericNormalizer,
+  'sizeDifferential.y': numericNormalizer,
+  'sizeDifferential.z': numericNormalizer,
+  'sizeAbsolute.x': numericNormalizer,
+  'sizeAbsolute.y': numericNormalizer,
+  'sizeAbsolute.z': numericNormalizer
+}
+
+Expression.isUnitToken = (str) => {
+  return (
+    Expression.isPxUnit(str) ||
+    Expression.isRadiansUnit(str) ||
+    Expression.isDegreesUnit(str)
+  )
+}
+
+Expression.normalizeTokensWithNumericFirstToken = (tokens, orig) => {
+  // We assume the first token is already known to be a numbers
+  if (tokens.length < 2) {
+    return tokens[0]
+  }
+
+  // Assume we have a string like '99 bottles of beer on the wall'
+  if (tokens.length > 2) {
+    return orig
+  }
+
+  if (Expression.isUnitToken(tokens[1])) {
+    return tokens[0]
+  }
+
+  return orig
+}
+
 Expression.normalizeParsedValue = (parsedValue, propertyName) => {
   if (Number.isNaN(parsedValue)) {
     return 1
@@ -36,7 +122,23 @@ Expression.normalizeParsedValue = (parsedValue, propertyName) => {
     return 1
   }
 
+  if (Expression.VALUE_NORMALIZERS[propertyName]) {
+    return Expression.VALUE_NORMALIZERS[propertyName](parsedValue)
+  }
+
   return parsedValue
+}
+
+Expression.isRadiansUnit = (unit) => {
+  return unit === 'rad' || unit === 'rads' || unit === 'radians'
+}
+
+Expression.isDegreesUnit = (unit) => {
+  return unit === 'deg' || unit === 'degs' || unit === 'degrees' || unit === '°'
+}
+
+Expression.isPxUnit = (unit) => {
+  return unit === 'px' || unit === 'pixels'
 }
 
 const rotationTokenHandler = (tokens, raw) => {
@@ -51,11 +153,11 @@ const rotationTokenHandler = (tokens, raw) => {
     return num
   }
 
-  if (unit.match(/^rad/)) {
+  if (Expression.isRadiansUnit(unit)) {
     return num
   }
 
-  if (unit.match(/^deg/) || unit.match(/^°/)) {
+  if (Expression.isDegreesUnit(unit)) {
     return num * (Math.PI / 180)
   }
 
@@ -103,16 +205,16 @@ Expression.parseValue = (userInput, propertyName) => {
   // Don't allow functions; instead return the literal string in case someone
   // types words that match a known JavaScript constructor like Number, etc.
   if (typeof parsedInput === 'function') {
-    return userInput
+    return Expression.normalizeParsedValue(userInput)
   }
 
   // Avoid inadvertently parsing known global objects like `window`, etc.
   if (parsedInput && !Array.isArray(parsedInput) && typeof parsedInput === 'object') {
     if (isPlainObject(parsedInput)) {
-      return parsedInput
+      return Expression.normalizeParsedValue(parsedInput)
     }
 
-    return userInput
+    return Expression.normalizeParsedValue(userInput)
   }
 
   if (parsedInput !== undefined) {
@@ -123,17 +225,22 @@ Expression.parseValue = (userInput, propertyName) => {
     const inputAsTokens = tokenizeDirective(userInput).map(({value}) => value)
 
     if (Expression.TOKEN_HANDLERS[propertyName]) {
-      return Expression.TOKEN_HANDLERS[propertyName](inputAsTokens, userInput)
+      return Expression.normalizeParsedValue(
+        Expression.TOKEN_HANDLERS[propertyName](inputAsTokens, userInput)
+      )
     }
 
     if (typeof inputAsTokens[0] === 'number') {
-      return Expression.normalizeParsedValue(inputAsTokens[0], propertyName)
+      return Expression.normalizeParsedValue(
+        Expression.normalizeTokensWithNumericFirstToken(inputAsTokens, userInput),
+        propertyName
+      )
     }
   } catch (exception) {
-    return userInput
+    return Expression.normalizeParsedValue(userInput)
   }
 
-  return userInput
+  return Expression.normalizeParsedValue(userInput)
 }
 
 Expression.safeJsonParse = (str) => {

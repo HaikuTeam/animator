@@ -3,5 +3,7 @@
  */
 
 export default function isTextNode (virtualElement) {
-  return typeof virtualElement === 'string';
+  return (
+    typeof virtualElement !== 'object'
+  );
 }

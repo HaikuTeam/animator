@@ -33,7 +33,8 @@ tape('Expression.parseValue', (t) => {
     ['10deg','rotation.x',0.17453292519943295],
     ['10 degrees','rotation.x',0.17453292519943295],
     ['10 degs','rotation.x',0.17453292519943295],
-    ['10°foo','rotation.x',0.17453292519943295],
+    ['10°','rotation.x',0.17453292519943295],
+    ['10°foo','rotation.x',10], // Unknown unit, return the initial number
     ['[1,2,3]',undefined,[1,2,3]],
     ['[1,2,"a"]',undefined,[1,2,'a']],
     ['[{b:123,c:[5]},2,"a"]',undefined,[{b:123,c:[5]},2,"a"]],
@@ -59,6 +60,9 @@ tape('Expression.parseValue', (t) => {
     ['return 123;',undefined,'return 123;'],
     ['\n\n\n',undefined,'\n\n\n'],
     ['simplified Chinese: 汉字; traditional Chinese: 漢字; pinyin: hànzì;',undefined,'simplified Chinese: 汉字; traditional Chinese: 漢字; pinyin: hànzì;'],
+    ['123.3 x','translation.x',123.3],
+    ['  123.3 x omg wow','translation.y',123.3],
+    ['  123.3 x omg wow','shown',true],
   ]
   t.plan(tests.length)
   tests.forEach((spec) => {

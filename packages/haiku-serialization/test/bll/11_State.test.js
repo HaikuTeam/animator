@@ -16,7 +16,7 @@ tape('State.recast', (t) => {
     [{value:null},{ value: null, mock: undefined, type: 'any' }],
     [{value:'null'},{ value: null, mock: undefined, type: 'any' }],
     [{value:undefined},{ value: undefined, mock: undefined, type: 'any' }],
-    [{value:'undefined'},{ value: 'undefined', mock: undefined, type: 'any' }],
+    [{value:'undefined'},{ value: 'undefined', mock: undefined, type: 'string' }],
     [{value:'true'},{ value: true, mock: undefined, type: 'boolean' }],
     [{value:'false'},{ value: false, mock: undefined, type: 'boolean' }],
     [{value:''},{ value: '', mock: undefined, type: 'string' }],
@@ -30,8 +30,10 @@ tape('State.recast', (t) => {
     [{value:"{a: 1,b:2,c:[1,2]}"},{ value: { a: 1, b: 2, c: [ 1, 2 ] }, mock: undefined, type: 'object' }],
     [{value:"10px"},{ value: 10, mock: undefined, type: 'number' }],
     [{value:"30 rad"},{ value: 30, mock: undefined, type: 'number' }],
-    [{value:"'1px'"},{ value: '1px', mock: undefined, type: 'number' }],
-    [{value:"\"1px\""},{ value: '1px', mock: undefined, type: 'number' }],
+    [{value:"'1px'"},{ value: '1px', mock: undefined, type: 'string' }],
+    [{value:"\"1px\""},{ value: '1px', mock: undefined, type: 'string' }],
+    [{value:"99 bottles of beer on the wall"},{ value: '99 bottles of beer on the wall', mock: undefined, type: 'string' }],
+    [{value:"   16 men and a bottle of rum"},{ value: '   16 men and a bottle of rum', mock: undefined, type: 'string' }],
   ]
   tests.forEach((spec) => {
     t.deepEqual(State.recast(spec[0]), spec[1])

@@ -2,8 +2,6 @@ const camelcase = require('camelcase')
 const ReservedWords = require('@haiku/core/lib/reflection/ReservedWords').default
 const BaseModel = require('./BaseModel')
 
-const STR_ESC = '\''
-
 /**
  * @class State
  * @description
@@ -89,15 +87,7 @@ State.deduceTypeOfValue = (stateValue) => {
   if (State.isNumeric(stateValue)) return 'number'
   if (stateValue && typeof stateValue === 'object') return 'object'
   if (stateValue === null || stateValue === undefined) return 'any'
-  // See if the string looks like it's probably a JSON value and use that as the type
-  if (typeof stateValue === 'string') {
-    if (stateValue === 'undefined') return 'any'
-    if (stateValue[0] === STR_ESC) return 'string' // Leading single-quote means use as string, no casting
-    const parsedValue = Expression.parseValue(stateValue)
-    if (parsedValue === undefined) return 'string' // If we failed to parse, just assume a string
-    if (typeof parsedValue === 'string') return 'string'
-    return State.deduceTypeOfValue(parsedValue)
-  }
+  if (typeof stateValue === 'string') return 'string'
   return typeof stateValue
 }
 
