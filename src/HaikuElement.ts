@@ -696,7 +696,7 @@ export default class HaikuElement extends HaikuBase {
   }
 
   isTextNode (): boolean {
-    return typeof this.node === 'string';
+    return typeof this.node !== 'object';
   }
 
   isComponent (): boolean {
