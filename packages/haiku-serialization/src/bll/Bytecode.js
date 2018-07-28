@@ -614,7 +614,12 @@ Bytecode.upsertDefaultProperties = (bytecode, componentId, propertiesToMerge, st
   let defaultTimeline = bytecode.timelines.Default[haikuSelector]
 
   for (let propName in propertiesToMerge) {
-    if (!defaultTimeline[propName]) defaultTimeline[propName] = {}
+    if (!defaultTimeline.hasOwnProperty(propName)) defaultTimeline[propName] = {}
+
+    if (typeof defaultTimeline[propName] !== 'object') {
+      // Handle shorthand before the component has been bootstrapped
+      defaultTimeline[propName] = {[DEFAULT_TIMELINE_TIME]: {value: defaultTimeline[propName]}}
+    }
 
     if (!defaultTimeline[propName][DEFAULT_TIMELINE_TIME]) {
       defaultTimeline[propName][DEFAULT_TIMELINE_TIME] = {}
