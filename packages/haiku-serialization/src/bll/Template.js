@@ -103,7 +103,7 @@ Template.prepareManaAndBuildTimelinesObject = (
     Template.ensureTopLevelDisplayAttributes(mana)
   }
 
-  convertManaLayout(mana)
+  convertManaLayout(mana, !isUngroupedElement)
 
   const timelinesObject = Template.hoistTreeAttributes(
     mana,

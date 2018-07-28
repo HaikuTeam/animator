@@ -77,7 +77,7 @@ const fallbackSizeAbsolute = (node: BytecodeNode, axis: string): number => {
 };
 
 /* tslint:disable */
-export default function convertManaLayout(mana) {
+export default function convertManaLayout(mana, addDefaultSizingToRoot = true) {
   visitManaTree(ROOT_LOCATOR, mana, (
     name,
     attributes,
@@ -160,7 +160,7 @@ export default function convertManaLayout(mana) {
       }
 
       // For instantiatee roots, we want to ensure some kind of sizing is defined
-      if (!parent) {
+      if (!parent && addDefaultSizingToRoot) {
         // Force absolute sizing if we haven't explicitly set any sizing mode by now
         if (!isNumericDefined(attributes['sizeMode.x'])) {
           attributes['sizeMode.x'] = Layout3D.SIZE_ABSOLUTE;

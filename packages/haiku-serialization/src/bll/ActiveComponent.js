@@ -1728,8 +1728,9 @@ class ActiveComponent extends BaseModel {
 
       // If it's ungroup element, we should move size attributes back to its svg.. to simulate what is done when ungrouping
       if (isUngroupedElement) {
+        //nodeToBeUpdated.children[0].attributes[HAIKU_ID_ATTRIBUTE]
         const existingRootSvgSelector = `haiku:${existingNode.attributes[HAIKU_ID_ATTRIBUTE]}`
-        const attributesToBeMoved = ['sizeAbsolute.x', 'sizeAbsolute.y', 'sizeRelative.x', 'sizeRelative.y', 'sizeMode.x', 'sizeMode.y']
+        const attributesToBeMoved = ['sizeAbsolute.x', 'sizeAbsolute.y', 'sizeRelative.x', 'sizeRelative.y', 'sizeMode.x', 'sizeMode.y', 'translation.x', 'translation.y']
 
         timelinesObject[timelineName][existingRootSvgSelector] = {}
 
