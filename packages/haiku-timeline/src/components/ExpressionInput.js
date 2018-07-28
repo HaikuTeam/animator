@@ -235,42 +235,6 @@ export default class ExpressionInput extends React.Component {
       };
     }
 
-    if (committable && committable.__function) {
-      // Assume that we already stored warnings about this function in the evaluator state from a change action
-      return false;
-    }
-
-    let observedType;
-    if (Array.isArray(committable)) {
-      observedType = 'array';
-    } else {
-      observedType = typeof committable;
-    }
-
-    const expectedType = original.valueType;
-
-    if (!ANY_TYPES[expectedType]) {
-      if (observedType !== expectedType) {
-        return {
-          reason: `${original.valueLabel} must have type "${expectedType}"`,
-        };
-      }
-
-      if (expectedType === 'number') {
-        if (Math.abs(committable) === Infinity) {
-          return {
-            reason: 'Number cannot be infinity',
-          };
-        }
-
-        if (isNaN(committable)) {
-          return {
-            reason: 'Not a number!',
-          };
-        }
-      }
-    }
-
     return false;
   }
 
@@ -448,11 +412,11 @@ export default class ExpressionInput extends React.Component {
             const na = a.name.toLowerCase();
             const nb = b.name.toLowerCase();
             if (na < nb) {
- return -1;
-}
+              return -1;
+            }
             if (na > nb) {
- return 1;
-}
+              return 1;
+            }
             return 0;
           }).slice(0, MAX_AUTOCOMPLETION_ENTRIES);
 

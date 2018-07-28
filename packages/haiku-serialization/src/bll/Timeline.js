@@ -1081,8 +1081,6 @@ Timeline.getPropertyValueDescriptor = function getPropertyValueDescriptor (timel
 
   const bookendValue = bookendValueObject && bookendValueObject.value
 
-  const valueType = propertyDescriptor.typedef || typeof baselineValue
-
   let prettyValue
   if (assignedValue !== undefined) {
     if (assignedValue && typeof assignedValue === 'object' && assignedValue.__function) {
@@ -1103,7 +1101,7 @@ Timeline.getPropertyValueDescriptor = function getPropertyValueDescriptor (timel
   }
 
   if (prettyValue === undefined) {
-    prettyValue = (valueType === 'number')
+    prettyValue = (typeof computedValue === 'number')
       ? numeral(computedValue || 0).format(options.numFormat || '0,0[.]0')
       : computedValue
   }
@@ -1116,7 +1114,6 @@ Timeline.getPropertyValueDescriptor = function getPropertyValueDescriptor (timel
     timelineTime: currentTimelineTime,
     timelineName: currentTimelineName,
     propertyName,
-    valueType,
     valueUnit,
     valueLabel,
     fallbackValue,
