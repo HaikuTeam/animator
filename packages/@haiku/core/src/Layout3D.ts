@@ -3,6 +3,7 @@
  */
 
 import {
+  BytecodeNode,
   LayoutSpec,
   ThreeDimensionalLayoutProperty,
 } from './api';
@@ -68,15 +69,17 @@ const initializeNodeAttributes = (node, isRootNode: boolean) => {
     node.attributes.style = {};
   }
 
-  if (!node.layout) {
-    node.layout = createLayoutSpec(!isRootNode && virtualElementIsLayoutContainer(node));
-    node.layout.matrix = createMatrix();
-    node.layout.format = ELEMENTS_2D[node.elementName]
-      ? FORMATS.TWO
-      : FORMATS.THREE;
-  }
+  node.isRootNode = isRootNode;
 
   return node;
+};
+
+const initializeNodeLayout = (node: BytecodeNode) => {
+  node.layout = createLayoutSpec(!node.isRootNode && virtualElementIsLayoutContainer(node));
+  node.layout.matrix = createMatrix();
+  node.layout.format = ELEMENTS_2D[node.elementName as string]
+    ? FORMATS.TWO
+    : FORMATS.THREE;
 };
 
 const createMatrix = () => copyMatrix(IDENTITY);
@@ -326,6 +329,7 @@ export default {
   createMatrix,
   copyMatrix,
   initializeNodeAttributes,
+  initializeNodeLayout,
   virtualElementIsLayoutContainer,
   FORMATS,
   SIZE_ABSOLUTE,

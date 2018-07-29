@@ -145,6 +145,7 @@ export interface BytecodeNodeMemoryObject {
 export interface BytecodeNode {
   elementName: string|HaikuBytecode;
   attributes: BytecodeNodeAttributes;
+  isRootNode?: boolean;
   layout?: LayoutSpec;
   children: (BytecodeNode|string)[];
   __memory?: BytecodeNodeMemoryObject;
@@ -435,6 +436,9 @@ export interface LayoutSpec {
     xz: number;
     yz: number;
   };
+
+  matrix?: Mat4;
+  format?: number;
 
   computed?: ComputedLayoutSpec;
 }
