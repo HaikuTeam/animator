@@ -6,6 +6,7 @@ import {
   BytecodeEventHandlerDescriptor,
   BytecodeNode,
   BytecodeOptions,
+  BytecodeTimelines,
   Curve,
   HaikuBytecode,
   IExpandResult,
@@ -141,7 +142,7 @@ const templateIsString = (
 export default class HaikuComponent extends HaikuElement implements IHaikuComponent {
   isDeactivated;
   isSleeping;
-  _mutableTimelines;
+  private mutableTimelines: BytecodeTimelines;
   _states;
 
   bytecode: HaikuBytecode;
@@ -241,8 +242,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     // could occur at any point during runtime, e.g. in React, may need to update internal states, etc.
     this.assignConfig(config);
 
-    this._mutableTimelines = undefined;
-    this._hydrateMutableTimelines();
+    this.hydrateMutableTimelines();
 
     // Flag used internally to determine whether we need to re-render the full tree or can survive by just patching
     this.doesNeedFullFlush = false;
@@ -511,7 +511,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
       this.clearStates();
     }
 
-    this._hydrateMutableTimelines();
+    this.hydrateMutableTimelines();
 
     if (this.bytecode.timelines) {
       for (const timelineName in this.bytecode.timelines) {
@@ -1149,10 +1149,8 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
 
       const timelineDescriptor = this.bytecode.timelines[timelineName];
 
-      // In hot editing mode, any timeline is fair game for mutation,
-      // even if it's not actually animated (e.g. dragging an SVG at keyframe 0).
       let mutableTimelineDescriptor = isPatchOperation
-        ? this._mutableTimelines[timelineName]
+        ? this.mutableTimelines[timelineName]
         : timelineDescriptor;
 
       if (!mutableTimelineDescriptor) {
@@ -1166,7 +1164,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
           continue;
         }
 
-        const propertiesGroup = timelineDescriptor[behaviorSelector];
+        const propertiesGroup = mutableTimelineDescriptor[behaviorSelector];
 
         if (!propertiesGroup) {
           continue;
@@ -1175,14 +1173,13 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
         // This is our opportunity to group property operations that need to be in order
         const propertyOperations = collatePropertyGroup(propertiesGroup);
 
-        for (let i = 0; i < propertyOperations.length; i++) {
-          const propertyGroup = propertyOperations[i];
+        for (let i = 0; i < matchingElementsForBehavior.length; i++) {
+          const matchingElement = matchingElementsForBehavior[i];
+          matchingElement.__memory.patched = false;
+          const compositeId = getNodeCompositeId(matchingElement);
 
-          for (let j = 0; j < matchingElementsForBehavior.length; j++) {
-            const matchingElement = matchingElementsForBehavior[j];
-
-            const compositeId = getNodeCompositeId(matchingElement);
-
+          for (let j = 0; j < propertyOperations.length; j++) {
+            const propertyGroup = propertyOperations[j];
             for (const propertyName in propertyGroup) {
               const keyframeCluster = propertyGroup[propertyName];
 
@@ -1206,54 +1203,35 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
               }
 
               // We always apply the property if...
-              let doApplyProperty = false;
+              if (
+                // - This is a full render
+                !isPatchOperation ||
+                // - The value in question has changed
+                didValueChangeSinceLastRequest ||
+                // - The value is in the whitelist of always-updated properties
+                ALWAYS_UPDATED_PROPERTIES[propertyName] ||
+                (
+                  // - The value was explicitly defined as a keyframe and...
+                  didValueOriginateFromExplicitKeyframeDefinition && (
+                    // - We haven't yet reached the end
+                    (timelineTime < timelineInstance.getMaxTime()) ||
+                    // - The timeline is looping (we won't be hanging on the final keyframe)
+                    timelineInstance.isLooping() ||
+                    // - We just reached the final keyframe (but haven't already visited it)
+                    timelineInstance.getLastFrame() !== timelineInstance.getBoundedFrame()
+                  )
+                )
+              ) {
+                this.applyPropertyToNode(
+                  matchingElement,
+                  propertyName,
+                  computedValue,
+                  timelineInstance,
+                );
 
-              // - This is a full render
-              if (!isPatchOperation) {
-                doApplyProperty = true;
+                // This is used downstream to decide whether patch updates are worthwhile
+                matchingElement.__memory.patched = true;
               }
-
-              // - The value in question has changed
-              if (didValueChangeSinceLastRequest) {
-                doApplyProperty = true;
-              }
-
-              // - The value is in the whitelist of always-updated properties
-              if (ALWAYS_UPDATED_PROPERTIES[propertyName]) {
-                doApplyProperty = true;
-              }
-
-              // - The value was explicitly defined as a keyframe and...
-              if (didValueOriginateFromExplicitKeyframeDefinition) {
-                // - We haven't yet reached the end
-                if (timelineTime < timelineInstance.getMaxTime()) {
-                  doApplyProperty = true;
-                }
-
-                // - The timeline is looping (we won't be hanging on the final keyframe)
-                if (timelineInstance.isLooping()) {
-                  doApplyProperty = true;
-                }
-
-                // - We just reached the final keyframe (but haven't already visited it)
-                if (timelineInstance.getLastFrame() !== timelineInstance.getBoundedFrame()) {
-                  doApplyProperty = true;
-                }
-              }
-
-              if (!doApplyProperty) {
-                continue;
-              }
-
-              this.applyPropertyToNode(
-                matchingElement,
-                propertyName,
-                computedValue,
-                timelineInstance,
-              );
-
-              // This is used downstream to decide whether patch updates are worthwhile
-              matchingElement.__memory.patched = true;
             }
           }
         }
@@ -1343,25 +1321,21 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     return out;
   }
 
-  _hydrateMutableTimelines () {
-    this._mutableTimelines = {};
+  private hydrateMutableTimelines () {
+    this.mutableTimelines = {};
     if (this.bytecode.timelines) {
       for (const timelineName in this.bytecode.timelines) {
         for (const selector in this.bytecode.timelines[timelineName]) {
           for (const propertyName in this.bytecode.timelines[timelineName][selector]) {
             if (isMutableProperty(this.bytecode.timelines[timelineName][selector][propertyName], propertyName)) {
-              const timeline = this._mutableTimelines[timelineName] || {};
-              const propertyGroup = timeline[selector] || {};
-              this._mutableTimelines = {
-                ...this._mutableTimelines,
-                [timelineName]: {
-                  ...timeline,
-                  [selector]: {
-                    ...propertyGroup,
-                    [propertyName]: this.bytecode.timelines[timelineName][selector][propertyName],
-                  },
-                },
-              };
+              if (!this.mutableTimelines[timelineName]) {
+                this.mutableTimelines[timelineName] = {};
+              }
+              if (!this.mutableTimelines[timelineName][selector]) {
+                this.mutableTimelines[timelineName][selector] = {};
+              }
+              this.mutableTimelines[timelineName][selector][propertyName] =
+                this.bytecode.timelines[timelineName][selector][propertyName];
             }
           }
         }
@@ -1380,22 +1354,21 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
 
     const propertyGroup = this.bytecode.timelines[hotComponent.timelineName][hotComponent.selector];
 
-    const timeline = this._mutableTimelines[hotComponent.timelineName] || {};
-    const mutablePropertyGroup = timeline[hotComponent.selector] || {};
+    if (!this.mutableTimelines[hotComponent.timelineName]) {
+      this.mutableTimelines[hotComponent.timelineName] = {};
+    }
 
-    this._mutableTimelines = {
-      ...this._mutableTimelines,
-      [hotComponent.timelineName]: {
-        ...timeline,
-        [hotComponent.selector]: {
-          ...mutablePropertyGroup,
-          ...hotComponent.propertyNames.reduce(
-            (hotProperties, propertyName) => (hotProperties[propertyName] = propertyGroup[propertyName], hotProperties),
-            {},
-          ),
-        },
-      },
-    };
+    if (!this.mutableTimelines[hotComponent.timelineName][hotComponent.selector]) {
+      this.mutableTimelines[hotComponent.timelineName][hotComponent.selector] = {};
+    }
+
+    Object.assign(
+      this.mutableTimelines[hotComponent.timelineName][hotComponent.selector],
+      hotComponent.propertyNames.reduce(
+        (hotProperties, propertyName) => (hotProperties[propertyName] = propertyGroup[propertyName], hotProperties),
+        {},
+      ),
+    );
   }
 
   controlTime (timelineName: string, timelineTime: number) {

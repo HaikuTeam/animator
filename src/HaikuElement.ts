@@ -4,6 +4,7 @@ import {
   BoundsSpecX,
   BoundsSpecY,
   BoundsSpecZ,
+  BytecodeNode,
   ClientRect,
   ComputedLayoutSpec,
   HaikuBytecode,
@@ -41,7 +42,7 @@ const CSS_QUERY_MAPPING = {
 const LAYOUT_DEFAULTS = Layout3D.createLayoutSpec();
 
 export default class HaikuElement extends HaikuBase implements IHaikuElement {
-  node;
+  node: BytecodeNode;
 
   constructor () {
     super();
@@ -807,7 +808,7 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
     return HaikuElement.transformPointsInPlace(
       this.getRawBoundingBoxPoints(),
       HaikuElement.computeLayout(
-        this.node,
+        this.node as LayoutNode,
         null, // parentNode; none available here
       ).matrix,
     );
