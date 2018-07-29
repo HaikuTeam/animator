@@ -1,4 +1,4 @@
-function expressionToOASTComponent (exp, key) {
+function expressionToOASTComponent (exp, key, keyChain) {
   if (exp === undefined || exp === null) {
     return {
       type: 'NullLiteral'
@@ -40,7 +40,7 @@ function expressionToOASTComponent (exp, key) {
   if (exp.__function) {
     return RFOToFunctionAST(exp.__function, key)
   }
-  if (exp.__value) return expressionToOASTComponent(exp.__value, key)
+  if (exp.__value) return expressionToOASTComponent(exp.__value, key, keyChain)
   if (exp.__reference) {
     return {
       type: 'Identifier',
@@ -49,7 +49,7 @@ function expressionToOASTComponent (exp, key) {
   }
 
   if (typeof exp === 'object') {
-    return objectToOAST(exp)
+    return objectToOAST(exp, keyChain)
   }
 
   if (typeof exp === 'function') {
