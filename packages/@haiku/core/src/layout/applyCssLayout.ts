@@ -20,6 +20,40 @@ function hasExplicitStyle (domElement, key) {
   return domElement.haiku.explicitStyles[key] !== undefined;
 }
 
+/**
+ * Tags which can receive width and height styles.
+ * @see {@link https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/width}
+ * @see {@link https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/height}
+ */
+const DOM_SIZEABLES = {
+  div: true,
+  feBlend: true,
+  feColorMatrix: true,
+  feComponentTransfer: true,
+  feComposite: true,
+  feConvolveMatrix: true,
+  feDiffuseLighting: true,
+  feDisplacementMap: true,
+  feDropShadow: true,
+  feFlood: true,
+  feGaussianBlur: true,
+  feImage: true,
+  feMerge: true,
+  feMorphology: true,
+  feOffset: true,
+  feSpecularLighting: true,
+  feTile: true,
+  feTurbulence: true,
+  filter: true,
+  foreignObject: true,
+  image: true,
+  mask: true,
+  pattern: true,
+  rect: true,
+  svg: true,
+  use: true,
+};
+
 export default function applyCssLayout (domElement, virtualElement, nodeLayout, computedLayout, context) {
   // No point continuing if there's no computedLayout contents
   if (computedLayout.opacity === undefined && !computedLayout.size && !computedLayout.matrix) {
@@ -61,31 +95,33 @@ export default function applyCssLayout (domElement, virtualElement, nodeLayout, 
     }
   }
 
-  if (!hasExplicitStyle(domElement, 'width')) {
-    if (computedLayout.size.x !== undefined) {
-      const sizeXString = parseFloat(computedLayout.size.x.toFixed(2)) + 'px';
-      if (domElement.style.width !== sizeXString) {
-        domElement.style.width = sizeXString;
-      }
-      // If we're inside an SVG, we also have to assign the width/height attributes or Firefox will complain
-      if (elementScope === SVG) {
-        if (domElement.getAttribute('width') !== sizeXString) {
-          domElement.setAttribute('width', sizeXString);
+  if (DOM_SIZEABLES[virtualElement.elementName] && computedLayout.size) {
+    if (!hasExplicitStyle(domElement, 'width')) {
+      if (computedLayout.size.x !== undefined) {
+        const sizeXString = parseFloat(computedLayout.size.x.toFixed(2)) + 'px';
+        if (domElement.style.width !== sizeXString) {
+          domElement.style.width = sizeXString;
+        }
+        // If we're inside an SVG, we also have to assign the width/height attributes or Firefox will complain
+        if (elementScope === SVG) {
+          if (domElement.getAttribute('width') !== sizeXString) {
+            domElement.setAttribute('width', sizeXString);
+          }
         }
       }
     }
-  }
 
-  if (!hasExplicitStyle(domElement, 'height')) {
-    if (computedLayout.size.y !== undefined) {
-      const sizeYString = parseFloat(computedLayout.size.y.toFixed(2)) + 'px';
-      if (domElement.style.height !== sizeYString) {
-        domElement.style.height = sizeYString;
-      }
-      // If we're inside an SVG, we also have to assign the width/height attributes or Firefox will complain
-      if (elementScope === SVG) {
-        if (domElement.getAttribute('height') !== sizeYString) {
-          domElement.setAttribute('height', sizeYString);
+    if (!hasExplicitStyle(domElement, 'height')) {
+      if (computedLayout.size.y !== undefined) {
+        const sizeYString = parseFloat(computedLayout.size.y.toFixed(2)) + 'px';
+        if (domElement.style.height !== sizeYString) {
+          domElement.style.height = sizeYString;
+        }
+        // If we're inside an SVG, we also have to assign the width/height attributes or Firefox will complain
+        if (elementScope === SVG) {
+          if (domElement.getAttribute('height') !== sizeYString) {
+            domElement.setAttribute('height', sizeYString);
+          }
         }
       }
     }
