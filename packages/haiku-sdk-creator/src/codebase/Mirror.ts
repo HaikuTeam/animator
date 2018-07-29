@@ -1,5 +1,5 @@
-import * as fs from 'fs';
-import * as path from 'path';
+
+import {FileSystem} from '../utils/FileSystem';
 
 export interface Override {
   filePath: string;
@@ -41,23 +41,13 @@ export class OverwriteOverride implements Override {
   }
 }
 
-class FolderNode {
-  files: string[];
-  folders: FolderNode[];
-  path: string;
-
-  isEmpty (): boolean {
-    return (!this.files || !this.files.length) && (!this.folders || !this.folders.length);
-  }
-}
-
 // Symlinks specified files from sourceGlob into mirrorDir
 export default class Mirror {
 
   // mounted to a source folder
   constructor (projectRoot: string, mirrorDir: string, fileMatchRegex: RegExp, overrides: Override[]) {
 
-    const allFiles = this.walkDirectoryAndMatch(projectRoot, /.*/);
+    const allFiles = FileSystem.walkDirectoryAndMatch(projectRoot, /.*/);
     // TODO: symlink all files, creating directories as needed (i.e. rather than symlinking directories)
     // TODO: while symlinking, check Overrides and replace or filter as needed
     // TODO: set up watching, updating symlinks when source files change
@@ -65,7 +55,7 @@ export default class Mirror {
 
     // TODO: author Overrides (passed in from outside, probably)
 
-    const matchedFiles = this.walkDirectoryAndMatch(projectRoot, fileMatchRegex);
+    const matchedFiles = FileSystem.walkDirectoryAndMatch(projectRoot, fileMatchRegex);
     // TODO:  generate a custom 'main.js' (or .ts) which exposes these through individual routes
     // TODO:  pass this tree of files to the UI for displaying
     if (matchedFiles.isEmpty()) {
@@ -74,27 +64,4 @@ export default class Mirror {
     console.log(JSON.stringify(matchedFiles));
   }
 
-  // Returns a tree of files matching the provided regex
-  private walkDirectoryAndMatch (dirPath: string, fileMatchRegex: RegExp): FolderNode {
-    // return tree of matched files & folders, as FolderNodes
-    const folderNode = new FolderNode();
-    folderNode.path = dirPath;
-    const files: string[] = fs.readdirSync(dirPath);
-    const fileMatches: string[] = [];
-    const folders: FolderNode[] = [];
-    for (const i in files) {
-      const name = path.join(dirPath, files[i]);
-      if (fs.statSync(name).isDirectory()) {
-        const matchedNode = this.walkDirectoryAndMatch(name, fileMatchRegex);
-        if (!matchedNode.isEmpty()) {
-          folders.push(matchedNode);
-        }
-      } else if (fileMatchRegex.test(name)) {
-        fileMatches.push(name);
-      }
-    }
-    folderNode.files = fileMatches;
-    folderNode.folders = folders;
-    return folderNode;
-  }
 }

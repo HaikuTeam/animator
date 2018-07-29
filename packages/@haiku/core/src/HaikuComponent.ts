@@ -4,6 +4,7 @@
 
 import {
   BytecodeEventHandlerDescriptor,
+  BytecodeHelpers,
   BytecodeNode,
   BytecodeOptions,
   BytecodeTimelines,
@@ -605,7 +606,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     return this.bytecode.template;
   }
 
-  getHelpers (): any {
+  getHelpers (): BytecodeHelpers {
     return this.bytecode.helpers;
   }
 

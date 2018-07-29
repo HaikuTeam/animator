@@ -293,6 +293,9 @@ export interface BytecodeOptions {
   // for deterministic timestamp production
   timestamp?: number;
 
+  // Whitelist of events that should fire during Edit Mode
+  editModeEvents?: string[];
+
   // Whether we should mount the given context to the mount
   // element automatically
   automount?: boolean;
@@ -411,9 +414,6 @@ export interface HaikuBytecode {
   timelines: BytecodeTimelines;
   metadata?: BytecodeMetadata;
   methods?: {
-    [key in string]: Function;
-  };
-  helpers?: {
     [key in string]: Function;
   };
   /**
