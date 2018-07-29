@@ -2772,123 +2772,199 @@ export const getVanity = (elementName: string, propertyName: string) => {
   return VANITIES['*'][propertyName];
 };
 
+/**
+ * Ensures layout before applying a layout vanity.
+ */
+const withLayout = (node: BytecodeNode, apply: () => void) => {
+  if (!node.layout) {
+    Layout3D.initializeNodeLayout(node);
+  }
+
+  apply();
+};
+
 export const LAYOUT_3D_VANITIES = {
   // Layout has a couple of special values that relate to display
   // but not to position:
   shown: (_, element, value) => {
-    element.layout.shown = value;
+    withLayout(element, () => {
+      element.layout.shown = value;
+    });
   },
   // Opacity needs to have its opacity *layout* property set
   // as opposed to its element attribute so the renderer can make a decision about
   // where to put it based on the rendering medium's rules
   opacity: (_, element, value) => {
-    element.layout.opacity = value;
-  },
-
-  // Rotation is a special snowflake since it needs to account for
-  // the w-component of the quaternion and carry it
-  'rotation.x': (name, element, value) => {
-    element.layout.rotation.x = value;
-  },
-  'rotation.y': (name, element, value) => {
-    element.layout.rotation.y = value;
-  },
-  'rotation.z': (name, element, value) => {
-    element.layout.rotation.z = value;
+    withLayout(element, () => {
+      element.layout.opacity = value;
+    });
   },
 
   // If you really want to set what we call 'position' then
   // we do so on the element's attributes; this is mainly to
   // enable the x/y positioning system for SVG elements.
   'position.x': (name, element, value) => {
-    element.attributes.x = value;
+    withLayout(element, () => {
+      element.attributes.x = value;
+    });
   },
   'position.y': (name, element, value) => {
-    element.attributes.y = value;
+    withLayout(element, () => {
+      element.attributes.y = value;
+    });
   },
 
   // Everything that follows is a standard 3-coord component
   // relating to the element's position in space
+  'rotation.x': (_, element, value) => {
+    withLayout(element, () => {
+      element.layout.rotation.x = value;
+    });
+  },
+  'rotation.y': (_, element, value) => {
+    withLayout(element, () => {
+      element.layout.rotation.y = value;
+    });
+  },
+  'rotation.z': (_, element, value) => {
+    withLayout(element, () => {
+      element.layout.rotation.z = value;
+    });
+  },
   'offset.x': (name, element, value) => {
-    element.layout.offset.x = value;
+    withLayout(element, () => {
+      element.layout.offset.x = value;
+    });
   },
   'offset.y': (name, element, value) => {
-    element.layout.offset.y = value;
+    withLayout(element, () => {
+      element.layout.offset.y = value;
+    });
   },
   'offset.z': (name, element, value) => {
-    element.layout.offset.z = value;
+    withLayout(element, () => {
+      element.layout.offset.z = value;
+    });
   },
   'origin.x': (name, element, value) => {
-    element.layout.origin.x = value;
+    withLayout(element, () => {
+      element.layout.origin.x = value;
+    });
   },
   'origin.y': (name, element, value) => {
-    element.layout.origin.y = value;
+    withLayout(element, () => {
+      element.layout.origin.y = value;
+    });
   },
   'origin.z': (name, element, value) => {
-    element.layout.origin.z = value;
+    withLayout(element, () => {
+      element.layout.origin.z = value;
+    });
   },
   'scale.x': (name, element, value) => {
-    element.layout.scale.x = value;
+    withLayout(element, () => {
+      element.layout.scale.x = value;
+    });
   },
   'scale.y': (name, element, value) => {
-    element.layout.scale.y = value;
+    withLayout(element, () => {
+      element.layout.scale.y = value;
+    });
   },
   'scale.z': (name, element, value) => {
-    element.layout.scale.z = value;
+    withLayout(element, () => {
+      element.layout.scale.z = value;
+    });
   },
   'sizeAbsolute.x': (name, element, value) => {
-    element.layout.sizeAbsolute.x = value;
+    withLayout(element, () => {
+      element.layout.sizeAbsolute.x = value;
+    });
   },
   'sizeAbsolute.y': (name, element, value) => {
-    element.layout.sizeAbsolute.y = value;
+    withLayout(element, () => {
+      element.layout.sizeAbsolute.y = value;
+    });
   },
   'sizeAbsolute.z': (name, element, value) => {
-    element.layout.sizeAbsolute.z = value;
+    withLayout(element, () => {
+      element.layout.sizeAbsolute.z = value;
+    });
   },
   'sizeDifferential.x': (name, element, value) => {
-    element.layout.sizeDifferential.x = value;
+    withLayout(element, () => {
+      element.layout.sizeDifferential.x = value;
+    });
   },
   'sizeDifferential.y': (name, element, value) => {
-    element.layout.sizeDifferential.y = value;
+    withLayout(element, () => {
+      element.layout.sizeDifferential.y = value;
+    });
   },
   'sizeDifferential.z': (name, element, value) => {
-    element.layout.sizeDifferential.z = value;
+    withLayout(element, () => {
+      element.layout.sizeDifferential.z = value;
+    });
   },
   'sizeMode.x': (name, element, value) => {
-    element.layout.sizeMode.x = value;
+    withLayout(element, () => {
+      element.layout.sizeMode.x = value;
+    });
   },
   'sizeMode.y': (name, element, value) => {
-    element.layout.sizeMode.y = value;
+    withLayout(element, () => {
+      element.layout.sizeMode.y = value;
+    });
   },
   'sizeMode.z': (name, element, value) => {
-    element.layout.sizeMode.z = value;
+    withLayout(element, () => {
+      element.layout.sizeMode.z = value;
+    });
   },
   'sizeProportional.x': (name, element, value) => {
-    element.layout.sizeProportional.x = value;
+    withLayout(element, () => {
+      element.layout.sizeProportional.x = value;
+    });
   },
   'sizeProportional.y': (name, element, value) => {
-    element.layout.sizeProportional.y = value;
+    withLayout(element, () => {
+      element.layout.sizeProportional.y = value;
+    });
   },
   'sizeProportional.z': (name, element, value) => {
-    element.layout.sizeProportional.z = value;
+    withLayout(element, () => {
+      element.layout.sizeProportional.z = value;
+    });
   },
   'shear.xy': (name, element, value) => {
-    element.layout.shear.xy = value;
+    withLayout(element, () => {
+      element.layout.shear.xy = value;
+    });
   },
   'shear.xz': (name, element, value) => {
-    element.layout.shear.xz = value;
+    withLayout(element, () => {
+      element.layout.shear.xz = value;
+    });
   },
   'shear.yz': (name, element, value) => {
-    element.layout.shear.yz = value;
+    withLayout(element, () => {
+      element.layout.shear.yz = value;
+    });
   },
   'translation.x': (name, element, value) => {
-    element.layout.translation.x = value;
+    withLayout(element, () => {
+      element.layout.translation.x = value;
+    });
   },
   'translation.y': (name, element, value) => {
-    element.layout.translation.y = value;
+    withLayout(element, () => {
+      element.layout.translation.y = value;
+    });
   },
   'translation.z': (name, element, value) => {
-    element.layout.translation.z = value;
+    withLayout(element, () => {
+      element.layout.translation.z = value;
+    });
   },
 };
 
