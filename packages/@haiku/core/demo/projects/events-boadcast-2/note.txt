@@ -1,0 +1,1 @@
+Another test that broadcast works. Also ensure that, when the left dot is clicked, the dot cluster to the right (a component) plays, but only once.
