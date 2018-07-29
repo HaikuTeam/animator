@@ -480,10 +480,6 @@ export class Glass extends React.Component {
       });
     };
 
-    this.addEmitterListener(ElementSelectionProxy, 'snaps-updated', (proxy, snaps) => {
-      this.handleSnapsUpdated(snaps);
-    });
-
     // If the user e.g. Cmd+tabs away from the window
     this.addEmitterListener(window, 'blur', () => {
       resetKeyStates();
@@ -771,60 +767,91 @@ export class Glass extends React.Component {
     this.project.getEnvoyClient().closeConnection();
   }
 
-  renderSnapLines () {
-    // Don't do anything until a project is initialized
-    if (!this.getActiveComponent()) {
-      return [];
+  buildSnapLineMana () {
+    if (!experimentIsEnabled(Experiment.Snapping)) {
+      return;
     }
 
-    const getLineElements = () => {
-      const horizSnaps = [];
-      const vertSnaps = [];
+    // Don't do anything until a project is initialized
+    if (!this.getActiveComponent()) {
+      return;
+    }
 
-      if (this.state.isMouseDown &&
-        this.state.snapLines &&
-        this.state.snapLines.length &&
-        !Globals.isSpecialKeyDown() &&
-        !this.isMarqueeActive()) {
-        lodash.forEach(this.state.snapLines, (snapLine, index) => {
-          if (snapLine.direction === 'HORIZONTAL') {
-            horizSnaps.push(snapLine);
-          } else {
-            vertSnaps.push(snapLine);
-          }
-        });
-      }
+    const horizSnaps = [];
+    const vertSnaps = [];
 
-      const lines = [];
-      horizSnaps.forEach((snap, i) => {
-        lines.push(<line key={'h-' + i} x1="-5000" x2="5000" y1={snap.positionWorld} y2={snap.positionWorld} strokeWidth="1.25" stroke={Palette.LIGHT_BLUE} />);
+    if (
+      this.state.isMouseDown &&
+      ElementSelectionProxy.snaps.length > 0 &&
+      !Globals.isSpecialKeyDown() &&
+      !this.isMarqueeActive()
+    ) {
+      ElementSelectionProxy.snaps.forEach((snapLine, index) => {
+        if (snapLine.direction === 'HORIZONTAL') {
+          horizSnaps.push(snapLine);
+        } else {
+          vertSnaps.push(snapLine);
+        }
       });
-      vertSnaps.forEach((snap, i) => {
-        lines.push(<line key={'v-' + i} x1={snap.positionWorld} x2={snap.positionWorld} y1="-5000" y2="5000" strokeWidth="1.25" stroke={Palette.LIGHT_BLUE} />);
-      });
+    }
 
-      return lines;
-    };
+    const children = [];
+
+    horizSnaps.forEach((snap, i) => {
+      children.push({
+        elementName: 'line',
+        attributes: {
+          key: 'h-' + i,
+          x1: '-5000',
+          x2: '5000',
+          y1: snap.positionWorld,
+          y2: snap.positionWorld,
+          strokeWidth: '1.25',
+          stroke: Palette.LIGHT_BLUE,
+        },
+      });
+    });
+
+    vertSnaps.forEach((snap, i) => {
+      children.push({
+        elementName: 'line',
+        attributes: {
+          key: 'v-' + i,
+          x1: snap.positionWorld,
+          x2: snap.positionWorld,
+          y1: '-5000',
+          y2: '5000',
+          strokeWidth: '1.25',
+          stroke: Palette.LIGHT_BLUE,
+        },
+      });
+    });
+
+    if (children.length < 1) {
+      return;
+    }
 
     const artboard = this.getActiveComponent().getArtboard();
 
-    const SNAP_LINE_OVERLAY_STYLE = {
-      position: 'fixed',
-      width: '100%',
-      height: '100%',
-      bottom: 0,
-      right: 0,
-      pointerEvents: 'none',
-      zIndex: MAX_Z_INDEX - 2,
-      overflow: 'visible',
-      top: artboard.getMountY(),
-      left: artboard.getMountX(),
-    };
-    return (
-      <svg id="snap-overlay" style={SNAP_LINE_OVERLAY_STYLE}>
-        {getLineElements()}
-      </svg>
-    );
+    return ({
+      elementName: 'svg',
+      attributes: {
+        id: 'snap-overlay',
+        style: {
+          position: 'fixed',
+          width: '100%',
+          height: '100%',
+          bottom: 0,
+          right: 0,
+          pointerEvents: 'none',
+          zIndex: MAX_Z_INDEX - 2,
+          overflow: 'visible',
+          top: artboard.getMountY(),
+          left: artboard.getMountX(),
+        },
+      },
+      children,
+    });
   }
 
   interpolateAttributesAtKeyframes (el, attributes) {
@@ -2678,6 +2705,7 @@ export class Glass extends React.Component {
           },
           children: this.buildDrawnOverlays(),
         },
+        this.buildSnapLineMana(),
       ],
     };
 
@@ -3580,7 +3608,6 @@ export class Glass extends React.Component {
             : ''}
 
           {this.renderHotComponentMount(mount, drawingClassName)}
-          {this.renderSnapLines()}
           {(!this.isPreviewMode())
             ? <div
               ref="outline"
