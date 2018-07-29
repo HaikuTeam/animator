@@ -4,7 +4,6 @@
 
 import Layout3D from '../Layout3D';
 import formatTransform from './formatTransform';
-import isEqualTransformString from './isEqualTransformString';
 import scopeOfElement from './scopeOfElement';
 import setStyleMatrix from './setStyleMatrix';
 
@@ -139,12 +138,13 @@ export default function applyCssLayout (domElement, virtualElement, nodeLayout, 
     if (context.config.platform.isIE || context.config.platform.isEdge) {
       if (elementScope === SVG) {
         const matrixString = formatTransform(computedLayout.matrix, nodeLayout.format);
-        if (!isEqualTransformString(attributeTransform, matrixString)) {
+        if (matrixString !== domElement.haiku.cachedTransform) {
+          domElement.haiku.cachedTransform = matrixString;
           domElement.setAttribute('transform', matrixString);
         }
       } else {
         setStyleMatrix(
-          domElement.style,
+          domElement,
           nodeLayout.format,
           computedLayout.matrix,
         );
@@ -158,7 +158,7 @@ export default function applyCssLayout (domElement, virtualElement, nodeLayout, 
           attributeTransform === ''
         ) {
           setStyleMatrix(
-            domElement.style,
+            domElement,
             nodeLayout.format,
             computedLayout.matrix,
           );

@@ -3,10 +3,6 @@
  */
 
 export default function assignStyle (domElement, style, component, isPatchOperation) {
-  if (!domElement.haiku.explicitStyles) {
-    domElement.haiku.explicitStyles = {};
-  }
-
   if (!isPatchOperation) {
     // If we have an element from a previous run, remove any old styles that aren't part of the new one
     if (
@@ -29,9 +25,6 @@ export default function assignStyle (domElement, style, component, isPatchOperat
     const previousProp = domElement.haiku.explicitStyles[key];
     if (previousProp !== newProp) {
       domElement.haiku.explicitStyles[key] = style[key];
-      if (key === 'overflow') {
-        continue;
-      }
       domElement.style[key] = style[key];
     }
   }
