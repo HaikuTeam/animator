@@ -31,6 +31,7 @@ module.exports = {
     "haiku:5bebb7e5b0e6": {
       click: {
         handler: function(target, event) {
+          console.log('sent skeet')
           this.emit("skeet");
           this.getDefaultTimeline().gotoAndPlay(2);
         }

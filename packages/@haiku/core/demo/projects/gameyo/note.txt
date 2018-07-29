@@ -1,0 +1,1 @@
+When you click the skeet, the page should initiate an alert. This checks that child events bubble up to the wrapper div *and* to the root of the hosting component.
