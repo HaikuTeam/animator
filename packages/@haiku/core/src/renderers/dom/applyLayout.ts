@@ -3,15 +3,12 @@
  */
 
 import applyCssLayout from './../../layout/applyCssLayout';
-import scopeOfElement from './../../layout/scopeOfElement';
 import modernizr from './../../vendor/modernizr';
 import getWindowsBrowserVersion from './getWindowsBrowserVersion';
 import isEdge from './isEdge';
 import isIE from './isIE';
 import isMobile from './isMobile';
 import isTextNode from './isTextNode';
-
-const SVG = 'svg';
 
 const safeWindow = typeof window !== 'undefined' && window;
 const PLATFORM_INFO = {
