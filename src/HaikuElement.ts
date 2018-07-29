@@ -1,13 +1,14 @@
 import {
   AxisString,
   BoundsSpec,
-  BoundsSpecPartial,
   BoundsSpecX,
   BoundsSpecY,
   BoundsSpecZ,
   ClientRect,
   ComputedLayoutSpec,
+  HaikuBytecode,
   IHaikuComponent,
+  IHaikuElement,
   LayoutNode,
   LayoutNodePartial,
   LayoutSpec,
@@ -39,7 +40,7 @@ const CSS_QUERY_MAPPING = {
 
 const LAYOUT_DEFAULTS = Layout3D.createLayoutSpec();
 
-export default class HaikuElement extends HaikuBase {
+export default class HaikuElement extends HaikuBase implements IHaikuElement {
   node;
 
   constructor () {
@@ -80,7 +81,7 @@ export default class HaikuElement extends HaikuBase {
     return this.attributes.class;
   }
 
-  get tagName (): any {
+  get tagName (): string|HaikuBytecode {
     if (this.isTextNode()) {
       return TEXT_PSEUDO_TAG_NAME;
     }
@@ -274,11 +275,11 @@ export default class HaikuElement extends HaikuBase {
     return (this.layout && this.layout.offset) || {...LAYOUT_DEFAULTS.offset};
   }
 
-  get targets (): any[] {
+  get targets (): Element[] {
     return (this.memory && this.memory.targets) || [];
   }
 
-  get target () {
+  get target (): Element {
     // Assume the most recently added target is the canonical target due to an implementation
     // detail in the Haiku editing environment; FIXME. On 3 Jun 2018 was changed from the first
     // added to the last added one to fix a bug related to ungrouping
