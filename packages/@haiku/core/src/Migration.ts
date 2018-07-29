@@ -14,7 +14,7 @@ const STRING_TYPE = 'string';
 const enum UpgradeVersionRequirement {
   OriginSupport = '3.2.0',
   TimelineDefaultFrames = '3.2.23',
-  CamelAutoSizingOffset3DOmnibus = '3.5.1',
+  CamelAutoSizingOffset3DOmnibus = '3.5.2',
 }
 
 const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source';
