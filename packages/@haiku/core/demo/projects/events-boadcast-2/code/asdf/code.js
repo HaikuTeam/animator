@@ -19,12 +19,23 @@ module.exports = {
     "haiku:Asdf-0ae0430248b19159": {
       "timeline:Default:0": {
         handler: function(target, event) {
+          console.log(this.$id,'pausing')
           this.pause();
+        }
+      },
+      "timeline:Default:1": {
+        handler: function(target, event) {
+          console.log(this.$id,"asdf hit frame 1")
+        }
+      },
+      "timeline:Default:19": {
+        handler: function(target, event) {
+          console.log(this.$id,"asdf hit frame 19 (looping back)")
         }
       },
       foobar: {
         handler: function(target, event) {
-          console.log("received foobar");
+          console.log(this.$id,"asdf received foobar broadcast");
           this.gotoAndPlay(1);
         }
       }

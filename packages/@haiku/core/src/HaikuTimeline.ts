@@ -273,7 +273,12 @@ export default class HaikuTimeline extends HaikuBase {
     }
 
     if (this.isLooping()) {
-      return mod(time, max);
+      const looped = mod(
+        Math.round(time),
+        max,
+      );
+
+      return looped;
     }
 
     // Don't allow negative time
