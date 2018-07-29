@@ -1019,7 +1019,6 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     );
 
     this.applyLocalBehaviors(
-      options,
       false, // isPatchOperation
       false, // skipCache
     );
@@ -1064,7 +1063,6 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     }
 
     this.applyLocalBehaviors(
-      options,
       true, // isPatchOperation
       skipCache,
     );
@@ -1134,7 +1132,6 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
   }
 
   applyLocalBehaviors (
-    options,
     isPatchOperation,
     skipCache = false,
   ) {
@@ -2196,11 +2193,7 @@ const expandNode = (original, parent) => {
 
         // If the child is a repeater, use the $repeats instead of itself
         if (child.__memory.repeater && child.__memory.repeater.repeatees) {
-          for (let j = 0; j < child.__memory.repeater.repeatees.length; j++) {
-            const repeatee = child.__memory.repeater.repeatees[j];
-            children.push(repeatee);
-          }
-
+          children.push(...child.__memory.repeater.repeatees);
           continue;
         }
       }
