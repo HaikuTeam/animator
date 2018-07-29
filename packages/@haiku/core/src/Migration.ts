@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import {IHaikuComponent} from './api';
+import {BytecodeNode, IHaikuComponent} from './api';
 import {visitManaTree, xmlToMana} from './HaikuNode';
 import compareSemver from './helpers/compareSemver';
 import migrateAutoSizing from './helpers/migrateAutoSizing';
@@ -14,8 +14,7 @@ const STRING_TYPE = 'string';
 const enum UpgradeVersionRequirement {
   OriginSupport = '3.2.0',
   TimelineDefaultFrames = '3.2.23',
-  CamelAutoSizingOffsetOmnibus = '3.5.1',
-  AutoPreserveThreeDee = '3.5.2',
+  CamelAutoSizingOffset3DOmnibus = '3.5.2',
 }
 
 const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source';
@@ -32,6 +31,10 @@ const areKeyframesDefined = (keyframeGroup) => {
     keyframeGroup &&
     Object.keys(keyframeGroup).length > 0
   );
+};
+
+const isStringTemplate = (template: string|BytecodeNode): template is string => {
+  return typeof template === STRING_TYPE;
 };
 
 /**
@@ -110,13 +113,25 @@ export const runMigrationsPrePhase = (component: IHaikuComponent, options: any, 
   }
 
   // Convert a string template into our internal object format
-  if (typeof bytecode.template === STRING_TYPE) {
+  if (isStringTemplate(bytecode.template)) {
     bytecode.template = xmlToMana(bytecode.template);
   }
 
   if (bytecode.timelines) {
+    const needsThreeDeeUpgrade = requiresUpgrade(coreVersion, UpgradeVersionRequirement.CamelAutoSizingOffset3DOmnibus);
     for (const timelineName in bytecode.timelines) {
       for (const selector in bytecode.timelines[timelineName]) {
+        // Expand all bytecode properties represented as shorthand.
+        for (const property in bytecode.timelines[timelineName][selector]) {
+          if (typeof bytecode.timelines[timelineName][selector][property] !== 'object') {
+            bytecode.timelines[timelineName][selector][property] = {
+              0: {
+                value: bytecode.timelines[timelineName][selector][property],
+              },
+            };
+          }
+        }
+
         // Legacy backgroundColor was a root prop; in newer versions it's style.backgroundColor.
         // We only want to update this if the user *hasn't* explicitly set style.backroundColor.
         if (
@@ -127,10 +142,9 @@ export const runMigrationsPrePhase = (component: IHaikuComponent, options: any, 
             bytecode.timelines[timelineName][selector].backgroundColor;
 
           delete bytecode.timelines[timelineName][selector].backgroundColor;
-          continue;
         }
 
-        if (requiresUpgrade(coreVersion, UpgradeVersionRequirement.AutoPreserveThreeDee)) {
+        if (needsThreeDeeUpgrade) {
           const transformStyleGroup = bytecode.timelines[timelineName][selector]['style.transformStyle'];
 
           if (
@@ -217,7 +231,7 @@ export const runMigrationsPostPhase = (component: IHaikuComponent, options: any,
   }
 
   const needsCamelAutoSizingOffsetOmnibus = requiresUpgrade(
-    coreVersion, UpgradeVersionRequirement.CamelAutoSizingOffsetOmnibus);
+    coreVersion, UpgradeVersionRequirement.CamelAutoSizingOffset3DOmnibus);
 
   if (bytecode.timelines) {
     for (const timelineName in bytecode.timelines) {
@@ -243,8 +257,8 @@ export const runMigrationsPostPhase = (component: IHaikuComponent, options: any,
         if (bytecode.timelines[timelineName][selector].filter) {
           for (const keyframeMs in bytecode.timelines[timelineName][selector].filter) {
             const keyframeDesc = bytecode.timelines[timelineName][selector].filter[keyframeMs];
-            if (keyframeDesc && referencesToUpdate[keyframeDesc.value]) {
-              keyframeDesc.value = referencesToUpdate[keyframeDesc.value];
+            if (keyframeDesc && referencesToUpdate[keyframeDesc.value as string]) {
+              keyframeDesc.value = referencesToUpdate[keyframeDesc.value as string];
             }
           }
         }
@@ -253,8 +267,8 @@ export const runMigrationsPostPhase = (component: IHaikuComponent, options: any,
         if (bytecode.timelines[timelineName][selector].fill) {
           for (const keyframeMs in bytecode.timelines[timelineName][selector].fill) {
             const keyframeDesc = bytecode.timelines[timelineName][selector].fill[keyframeMs];
-            if (keyframeDesc && referencesToUpdate[keyframeDesc.value]) {
-              keyframeDesc.value = referencesToUpdate[keyframeDesc.value];
+            if (keyframeDesc && referencesToUpdate[keyframeDesc.value as string]) {
+              keyframeDesc.value = referencesToUpdate[keyframeDesc.value as string];
             }
           }
         }

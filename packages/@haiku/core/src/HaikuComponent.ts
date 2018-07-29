@@ -3,11 +3,13 @@
  */
 
 import {
+  BytecodeEventHandlerDescriptor,
   BytecodeNode,
   BytecodeOptions,
   Curve,
   HaikuBytecode,
   IExpandResult,
+  IHaikuComponent,
   IHaikuContext,
   ParsedValueCluster,
 } from './api';
@@ -136,13 +138,13 @@ const templateIsString = (
 ): template is string => typeof template === STRING_TYPE;
 
 // tslint:disable:variable-name function-name
-export default class HaikuComponent extends HaikuElement {
+export default class HaikuComponent extends HaikuElement implements IHaikuComponent {
   isDeactivated;
   isSleeping;
   _mutableTimelines;
   _states;
 
-  bytecode;
+  bytecode: HaikuBytecode;
   /**
    * @deprecated
    */
@@ -542,7 +544,7 @@ export default class HaikuComponent extends HaikuElement {
   }
 
   getClock (): HaikuClock {
-    return this.context.getClock();
+    return this.context.clock;
   }
 
   getTimelines () {
@@ -686,7 +688,7 @@ export default class HaikuComponent extends HaikuElement {
     this.getDefaultTimeline().play();
   }
 
-  getTimelineDescriptor (timelineName) {
+  getTimelineDescriptor (timelineName: string) {
     return this.bytecode.timelines[timelineName];
   }
 
@@ -850,7 +852,9 @@ export default class HaikuComponent extends HaikuElement {
     );
   }
 
-  eachEventHandler (iteratee: Function) {
+  eachEventHandler (
+    iteratee: (eventSelector: string, eventName: string, descriptor: BytecodeEventHandlerDescriptor) => void,
+  ) {
     const eventHandlers = this.allEventHandlers();
 
     for (const eventSelector in eventHandlers) {
@@ -1124,7 +1128,7 @@ export default class HaikuComponent extends HaikuElement {
       );
 
       if (didSizingChange) {
-        this.bytecode.template.__memory.patched = true;
+        (this.bytecode.template as BytecodeNode).__memory.patched = true;
       }
     }
   }

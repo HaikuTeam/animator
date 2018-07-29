@@ -1,10 +1,68 @@
-/**
- * TODO
- */
-export type IHaikuComponent = any;
-export type IHaikuContext = any;
-export type IStateTransitionManager = any;
-export type IHaikuElement = any;
+import HaikuBase from '../HaikuBase';
+import HaikuClock from '../HaikuClock';
+import {RFO} from '../reflection/functionToRFO';
+
+export interface IHaikuElement extends HaikuBase {
+  tagName: string|HaikuBytecode;
+  target?: Element;
+  originX: number;
+  originY: number;
+  visit: (
+    iteratee: (component: IHaikuElement) => any,
+    filter?: (value: IHaikuElement, index: number, array: IHaikuElement[]) => boolean,
+  ) => any;
+  getComponentId: () => string;
+  getNearestDefinedNonZeroAncestorSizeX: () => number;
+  getNearestDefinedNonZeroAncestorSizeY: () => number;
+}
+
+export interface IHaikuComponent extends IHaikuElement {
+  bytecode: HaikuBytecode;
+  config: BytecodeOptions;
+  context: IHaikuContext;
+  doPreserve3d: boolean;
+  state: {[key in string]: any};
+  host?: IHaikuComponent;
+  eachEventHandler: (
+    iteratee: (eventSelector: string, eventName: string, descriptor: BytecodeEventHandlerDescriptor) => void,
+  ) => void;
+  clearCaches: () => void;
+  markForFullFlush: () => void;
+  getClock: () => HaikuClock;
+  emitFromRootComponent: (eventName: string, attachedObject: any) => void;
+  routeEventToHandlerAndEmit: (eventSelectorGiven: string, eventNameGiven: string, eventArgs: any) => void;
+  getTimelineDescriptor: (timelineName: string) => BytecodeTimeline;
+}
+
+export interface MountLayout {
+  layout?: {
+    computed: {
+      size: {
+        x: number;
+        y: number;
+      };
+    };
+  };
+}
+
+export interface IRenderer {
+  mount?: Element;
+  mountEventListener: (component: IHaikuComponent, selector: string, name: string, listener: Function) => void;
+}
+
+export interface IHaikuContext {
+  // #FIXME: This is not necessarily going to be the renderer.
+  renderer: IRenderer;
+  config: BytecodeOptions;
+  clock: HaikuClock;
+  getClock: () => HaikuClock;
+  getContainer: (doForceRecalc: boolean) => MountLayout;
+  getGlobalUserState: () => any;
+  contextMount: () => void;
+  contextUnmount: () => void;
+  tick: () => void;
+  assignConfig: (config: BytecodeOptions, options?: {skipComponentAssign?: boolean}) => void;
+}
 
 export type PrimitiveType = string|number|object|boolean|null;
 
@@ -18,7 +76,10 @@ export type BytecodeStateType = PrimitiveType|PrimitiveType[];
  * `BytecodeSummonable` defines functions that can be called on timeline
  * property value
  */
-export type BytecodeSummonable = ((param: any) => BytecodeStateType);
+export interface BytecodeSummonable {
+  (...params: any[]): BytecodeStateType;
+  specification: RFO;
+}
 
 /**
  * All possible types for timeline property value
@@ -104,6 +165,7 @@ export interface BytecodeState {
   type?: string;
   access?: string;
   edited?: boolean;
+  mock?: boolean;
   getter?: () => BytecodeStateType;
   setter?: (param: BytecodeStateType) => void;
 }
@@ -116,10 +178,19 @@ export interface BytecodeStates {
 }
 
 /**
- * Haiku bytecode function `handler` for an specific `eventSelectors`.
+ * Haiku bytecode function `handler` for a specific `eventSelector`.
  */
+export interface BytecodeEventHandlerCallable {
+  (target?: any, event?: any): void;
+  __rfo?: RFO;
+}
+
+export interface BytecodeEventHandlerDescriptor {
+  handler: BytecodeEventHandlerCallable;
+}
+
 export interface BytecodeEventHandler {
-  [eventSelectors: string]: {handler: (target?: any, event?: any) => void};
+  [eventSelector: string]: BytecodeEventHandlerDescriptor;
 }
 
 /**
@@ -171,14 +242,11 @@ export interface BytecodeTimelines {
  */
 export interface BytecodeMetadata {
   folder?: string;
-  uuid: string;
-  /**
-   * @deprecated as of 3.2.20
-   */
+  uuid?: string;
   player?: string;
-  type: string;
+  type?: string;
   name?: string;
-  relpath: string;
+  relpath?: string;
   core?: string;
   version?: string;
   username?: string;
@@ -186,6 +254,10 @@ export interface BytecodeMetadata {
   project?: string;
   branch?: string;
   title?: string;
+
+  /**
+   * @deprecated as of 3.2.20
+   */
 }
 
 export type ComponentEventHandler = (component: IHaikuComponent) => void;
@@ -311,6 +383,9 @@ export interface HaikuBytecode {
   eventHandlers?: BytecodeEventHandlers;
   timelines: BytecodeTimelines;
   metadata?: BytecodeMetadata;
+  methods?: {
+    [key in string]: Function;
+  };
   /**
    * @deprecated as of 3.2.20
    */

@@ -527,6 +527,23 @@ Bytecode.reinitialize = (folder, relpath, bytecode = {}, config = {}) => {
     bytecode.timelines[DEFAULT_TIMELINE_NAME] = {}
   }
 
+  // Expand shorthand. This happens during component mounting, but we may need it sooner for our static bytecode
+  // manipulation.
+  for (const timelineName in bytecode.timelines) {
+    for (const selector in bytecode.timelines[timelineName]) {
+      // Expand all bytecode properties represented as shorthand.
+      for (const property in bytecode.timelines[timelineName][selector]) {
+        if (typeof bytecode.timelines[timelineName][selector][property] !== 'object') {
+          bytecode.timelines[timelineName][selector][property] = {
+            [DEFAULT_TIMELINE_TIME]: {
+              value: bytecode.timelines[timelineName][selector][property]
+            }
+          }
+        }
+      }
+    }
+  }
+
   convertManaLayout(bytecode.template)
 
   // Make sure there is at least a baseline metadata objet
@@ -614,7 +631,7 @@ Bytecode.upsertDefaultProperties = (bytecode, componentId, propertiesToMerge, st
   let defaultTimeline = bytecode.timelines.Default[haikuSelector]
 
   for (let propName in propertiesToMerge) {
-    if (!defaultTimeline[propName]) defaultTimeline[propName] = {}
+    if (!defaultTimeline.hasOwnProperty(propName)) defaultTimeline[propName] = {}
 
     if (!defaultTimeline[propName][DEFAULT_TIMELINE_TIME]) {
       defaultTimeline[propName][DEFAULT_TIMELINE_TIME] = {}

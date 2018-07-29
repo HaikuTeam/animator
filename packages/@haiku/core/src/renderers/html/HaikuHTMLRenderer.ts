@@ -2,13 +2,14 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import HaikuDOMRenderer, {MountLayout} from '../dom/HaikuDOMRenderer';
+import {IRenderer, MountLayout} from '../../api';
+import HaikuDOMRenderer from '../dom/HaikuDOMRenderer';
 import HaikuBase from './../../HaikuBase';
 import HaikuComponent from './../../HaikuComponent';
 import {manaToXml} from './../../HaikuNode';
 import VirtualNode, {VirtualDoc} from './VirtualNode';
 
-export default class HaikuHTMLRenderer extends HaikuBase {
+export default class HaikuHTMLRenderer extends HaikuBase implements IRenderer {
   mount;
   config;
   doc;
@@ -51,7 +52,7 @@ export default class HaikuHTMLRenderer extends HaikuBase {
     return false;
   }
 
-  createContainer (out: MountLayout = {}) {
+  createContainer (out: MountLayout = {}): MountLayout {
     out.layout = {
       computed: {
         size: this.config.size,

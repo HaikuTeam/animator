@@ -13,9 +13,9 @@ Haiku monorepo. Plus command-line tools to make cross-project scripting simpler.
 
     $ nvm install 8.9.3 && nvm alias default 8.9.3
 
-3.) yarn 1.7.0:
+3.) yarn 1.9.2:
 
-    $ curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.7.0
+    $ curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.9.2
 
 ### Windows
 
@@ -32,13 +32,13 @@ choco install git python2 -y
 choco install nodejs-lts -y --version 8.9.3
 
 # Ignore dependencies to force using specified node version 
-choco install yarn -y --version 1.7.0  --ignore-dependencies
+choco install yarn -y --version 1.9.2  --ignore-dependencies
 
 # Update PowerShell environment vars
 refreshenv
 
 # Install windows build tools (to compile native electron modules, e.g. nodegit)
-yarn global add windows-build-tools@2.3.0
+npm install -g windows-build-tools@2.3.0
 ```
 
 ### Linux

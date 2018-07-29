@@ -59,7 +59,7 @@ const clearMatchingPropertiesInGlobalCache = (matcher: string) => {
 export default class HaikuBase {
   private listeners;
 
-  $id;
+  $id: number;
   config; // Implemented by subclass
   parent; // Implemented by subclass
 
