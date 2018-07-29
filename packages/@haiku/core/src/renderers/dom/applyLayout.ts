@@ -23,10 +23,7 @@ const PLATFORM_INFO = {
 export default function applyLayout (
   domElement,
   virtualElement,
-  parentDomNode,
-  parentVirtualElement,
   component,
-  isPatchOperation,
 ) {
   if (isTextNode(virtualElement)) {
     return domElement;
