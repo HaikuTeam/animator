@@ -1,0 +1,1 @@
+Test case for bug report: "For about 10 seconds, it will show only one of the frames, then it will start oscillating between 2 or three of the frames, but never all 4 (expected, it should play through each of the 4 frames in rapid succession.)"
