@@ -28,43 +28,26 @@
 import {transformValueIsEssentiallyInt} from '../helpers/transformValueIsEssentiallyInt';
 import Layout3D from '../Layout3D';
 
-const TRANSFORM_SUFFIX = ')';
 const TRANSFORM_ZERO = '0';
 const TRANSFORM_COMMA = ',';
-const TRANSFORM_ZILCH = TRANSFORM_ZERO + TRANSFORM_COMMA;
 
-export default function formatTransform (transform, format) {
-  let prefix;
-  let last;
+const simplifyTransform = (transform) => transformValueIsEssentiallyInt(transform, 0) ? TRANSFORM_ZERO : transform;
+
+export default function formatTransform (transform: number[], format): string {
   if (format === Layout3D.FORMATS.TWO) {
     // Example: matrix(1,0,0,0,0,1)
     // 2d matrix is: matrix(scaleX(),skewY(),skewX(),scaleY(),translateX(),translateY())
     // Modify via: matrix(a,b,c,d,tx,ty) <= matrix3d(a,b,0,0,c,d,0,0,0,0,1,0,tx,ty,0,1)
-
-    // Note how we set the transform far to two here!
-    // tslint:disable-next-line:no-parameter-reassignment
-    transform = [
+    return `matrix(${[
       transform[0],
       transform[1],
       transform[4],
       transform[5],
       transform[12],
       transform[13],
-    ];
-
-    prefix = 'matrix(';
-    last = 5;
-  } else {
-    // Example: matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,716,243,0,1)
-    prefix = 'matrix3d(';
-    last = 15;
+    ].map(simplifyTransform).join(TRANSFORM_COMMA)})`;
   }
 
-  for (let i = 0; i < last; i += 1) {
-    prefix += transformValueIsEssentiallyInt(transform[i], 0) ? TRANSFORM_ZILCH : transform[i] + TRANSFORM_COMMA;
-  }
-
-  prefix += transform[last] + TRANSFORM_SUFFIX;
-
-  return prefix;
+  // Example: matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,716,243,0,1)
+  return `matrix3d(${transform.map(simplifyTransform).join(TRANSFORM_COMMA)})`;
 }

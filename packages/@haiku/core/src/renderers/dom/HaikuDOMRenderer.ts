@@ -521,6 +521,7 @@ export default class HaikuDOMRenderer extends HaikuBase implements IRenderer {
         // This is used to detect whether the element's host component has changed.
         // Don't remove this without understanding the effect on Haiku.app.
         component,
+        explicitStyles: {},
       };
     }
 
@@ -600,6 +601,7 @@ export default class HaikuDOMRenderer extends HaikuBase implements IRenderer {
         // This is used to detect whether the element's host component has changed.
         // Don't remove this without understanding the effect on Haiku.app.
         component,
+        explicitStyles: {},
       };
     }
 
@@ -703,6 +705,7 @@ export default class HaikuDOMRenderer extends HaikuBase implements IRenderer {
         // This is used to detect whether the element's host component has changed.
         // Don't remove this without understanding the effect on Haiku.app.
         component,
+        explicitStyles: {},
       };
     }
 
