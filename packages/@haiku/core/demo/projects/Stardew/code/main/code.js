@@ -79,7 +79,7 @@ module.exports = {
         "origin.y": { "0": { value: 0.8, edited: true } },
         "style.zIndex": { "0": { value: 2 } },
         "controlFlow.repeat": {
-          "0": { value: [0, 1, 2, 3, 4, 5, 6, 7, 8], edited: true }
+          "0": { value: 9, edited: true }
         }
       },
       "haiku:Layer-1-Stardew-05-1267a4848949b5d9": {
