@@ -552,24 +552,6 @@ export interface BoundsSpecPartial {
   back?: number;
 }
 
-/**
- * @description A LayoutNode may be a proper BytecodeNode, but for convenience
- * we allow an object that only has a layout property declared.
- */
-export interface LayoutNode {
-  elementName?: string;
-  attributes?: BytecodeNodeAttributes;
-  children?: (LayoutNode|string)[];
-  layout: LayoutSpec;
-}
-
-export interface LayoutNodePartial {
-  elementName?: string;
-  attributes?: BytecodeNodeAttributes;
-  children?: (LayoutNodePartial|string)[];
-  layout: LayoutSpecPartial;
-}
-
 export type AxisString = 'x'|'y'|'z';
 
 export enum Curve {
