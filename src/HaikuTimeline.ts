@@ -223,7 +223,7 @@ export default class HaikuTimeline extends HaikuBase {
    * @description The millisecond value for the beginning of one frame past the max.
    */
   getCeilTime () {
-    return this.getMaxTime() + this.getMs(1, TimeUnit.Frame)
+    return this.getMaxTime() + this.getMs(1, TimeUnit.Frame);
   }
 
   /**
