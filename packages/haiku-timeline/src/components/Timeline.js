@@ -517,7 +517,7 @@ class Timeline extends React.Component {
       // If you are looking for the scroll listener event, it's attached to
       // this.container on `attachContainerElement`
       this.addEmitterListener(window, 'wheel', (wheelEvent) => {
-        if (wheelEvent.ctrlKey) {
+        if (wheelEvent.ctrlKey || wheelEvent.metaKey) {
           wheelEvent.preventDefault();
           this.handleZoomThrottled(wheelEvent);
         }

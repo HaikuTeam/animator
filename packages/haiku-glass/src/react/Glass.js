@@ -517,7 +517,7 @@ export class Glass extends React.Component {
         return;
       }
 
-      if (experimentIsEnabled(Experiment.PinchToZoomInGlass) && evt.ctrlKey) {
+      if (experimentIsEnabled(Experiment.PinchToZoomInGlass) && (evt.ctrlKey || evt.metaKey)) {
         return this.handlePinchToZoom(evt);
       }
 
