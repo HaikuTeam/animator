@@ -56,6 +56,7 @@ import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import * as opn from 'opn';
 import {isProduction} from 'haiku-common/lib/environments';
 import {crashReport} from 'haiku-serialization/src/utils/carbonite';
+import ConfirmGroupUngroupPopup from './components/Popups/ConfirmGroupUngroup';
 
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'creator';
@@ -115,6 +116,8 @@ export default class Creator extends React.Component {
     this.onLibraryDragStart = this.onLibraryDragStart.bind(this);
     this.showEventHandlersEditor = this.showEventHandlersEditor.bind(this);
     this.handleShowEventHandlersEditor = this.handleShowEventHandlersEditor.bind(this);
+    this.handleShowConfirmGroupPopup = this.handleShowConfirmGroupPopup.bind(this);
+    this.hideConfirmGroupUngroupPopup = this.hideConfirmGroupUngroupPopup.bind(this);
     this.layout = new EventEmitter();
     this.activityMonitor = new ActivityMonitor(window, this.onActivityReport.bind(this));
     // Keep tracks of not found identifiers and notice id
@@ -161,6 +164,8 @@ export default class Creator extends React.Component {
       projectToDuplicate: null,
       showEventHandlerEditor: false,
       eventHandlerEditorOptions: {},
+      showConfirmGroupUngroupPopup: false,
+      componentsLosingTransitions: {},
     };
 
     this.envoyOptions = {
@@ -701,6 +706,10 @@ export default class Creator extends React.Component {
             message.opts,
             message.frame,
           );
+          break;
+
+        case 'show-confirm-group-popup':
+          this.handleShowConfirmGroupPopup(message.components);
           break;
 
         case 'assets-changed':
@@ -1933,6 +1942,23 @@ export default class Creator extends React.Component {
     );
   }
 
+  handleShowConfirmGroupPopup (components) {
+    mixpanel.haikuTrack('creator:show-confirm-group-ungroup-popup');
+    this.setState({showConfirmGroupUngroupPopup: true, componentsLosingTransitions: components});
+    this.state.projectModel.broadcastPayload({name: 'confirm-group-ungroup-popup-open'});
+  }
+
+  hideConfirmGroupUngroupPopup (userConfirmedGroup) {
+    if (userConfirmedGroup) {
+      mixpanel.haikuTrack('creator:glass:group_upgroup_answer_y');
+    } else {
+      mixpanel.haikuTrack('creator:glass:group_upgroup_answer_n');
+    }
+
+    this.setState({showConfirmGroupUngroupPopup: false, componentsLosingTransitions: {}});
+    this.state.projectModel.broadcastPayload({name: 'confirm-group-ungroup-popup-closed', confirmed: userConfirmedGroup});
+  }
+
   render () {
     if (this.state.showProxySettings) {
       return (
@@ -2293,6 +2319,12 @@ export default class Creator extends React.Component {
           </div>
         </div>
         {this.state.doShowProjectLoader && <ProjectLoader />}
+
+        {this.state.showConfirmGroupUngroupPopup &&
+          <ConfirmGroupUngroupPopup
+            componentsLosingTransitions={this.state.componentsLosingTransitions}
+            setGroupUngroupAnswerAndClose={this.hideConfirmGroupUngroupPopup}
+          />}
       </div>
     );
   }

@@ -135,6 +135,7 @@ export class Glass extends React.Component {
       targetElement: null,
       isEventHandlerEditorOpen: false,
       isCreateComponentModalOpen: false,
+      isConfirmGroupUngroupPopupOpen: false,
     };
 
     this.didAlreadyWarnAboutTextNodes = false;
@@ -698,6 +699,15 @@ export class Glass extends React.Component {
           this.setState({isEventHandlerEditorOpen: false});
           break;
 
+        case 'confirm-group-ungroup-popup-open':
+          this.setState({isConfirmGroupUngroupPopupOpen: true});
+          break;
+
+        case 'confirm-group-ungroup-popup-closed':
+          this.setState({isConfirmGroupUngroupPopupOpen: false});
+          this.executeGroup();
+          break;
+
         case 'instantiate-component':
           const component = this.getActiveComponent();
 
@@ -990,6 +1000,21 @@ export class Glass extends React.Component {
     }
   }
 
+  executeGroup () {
+    const proxy = this.fetchProxyElementForSelection();
+    // Make sure we can group (i.e. between opening popup and executing, bytecode could be edit by an external tool)
+    if (proxy.canGroup()) {
+      // We need to unselect the group members otherwise dragging the group
+      // will also drag the inner elements, resulting in undesired offsets
+      proxy.selection.forEach((element) => {
+        element.unselectSoftly({from: 'glass'});
+      });
+
+      proxy.group({from: 'glass'});
+      mixpanel.haikuTrack('creator:glass:grouped');
+    }
+  }
+
   handleGroup () {
     const proxy = this.fetchProxyElementForSelection();
     if (proxy.canGroup()) {
@@ -1001,24 +1026,18 @@ export class Glass extends React.Component {
 
       const willLoseTransitionOrExpression = componentsWithTransitionOrExpression.some((el) => el.hasTransition || el.hasExpression);
 
-      const executeGroup = () => {
-        // We need to unselect the group members otherwise dragging the group
-        // will also drag the inner elements, resulting in undesired offsets
-        proxy.selection.forEach((element) => {
-          element.unselectSoftly({from: 'glass'});
-        });
-
-        proxy.group({from: 'glass'});
-        mixpanel.haikuTrack('creator:glass:grouped');
-      };
-
       if (willLoseTransitionOrExpression) {
         console.log('Ask first here');
-        // mixpanel.haikuTrack('creator:glass:group_y');
-        // mixpanel.haikuTrack('creator:glass:group_n');
+
+        this.props.websocket.send({
+          type: 'broadcast',
+          from: 'glass',
+          name: 'show-confirm-group-popup',
+          components: componentsWithTransitionOrExpression.filter((el) => el.hasTransition || el.hasExpression),
+        });
+
       } else {
-        console.log('Executing group');
-        executeGroup();
+        this.executeGroup();
       }
 
     }
@@ -1233,7 +1252,7 @@ export class Glass extends React.Component {
   }
 
   get areAnyModalsOpen () {
-    return this.state.isEventHandlerEditorOpen || this.state.isCreateComponentModalOpen;
+    return this.state.isEventHandlerEditorOpen || this.state.isCreateComponentModalOpen || this.state.isConfirmGroupUngroupPopupOpen;
   }
 
   get shouldNotHandldKeyboardEvents () {
