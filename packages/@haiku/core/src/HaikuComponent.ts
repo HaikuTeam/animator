@@ -6,6 +6,7 @@ import {
   BytecodeEventHandlerDescriptor,
   BytecodeNode,
   BytecodeOptions,
+  BytecodeTimelines,
   Curve,
   HaikuBytecode,
   IExpandResult,
@@ -141,7 +142,7 @@ const templateIsString = (
 export default class HaikuComponent extends HaikuElement implements IHaikuComponent {
   isDeactivated;
   isSleeping;
-  _mutableTimelines;
+  private mutableTimelines: BytecodeTimelines;
   _states;
 
   bytecode: HaikuBytecode;
@@ -241,8 +242,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     // could occur at any point during runtime, e.g. in React, may need to update internal states, etc.
     this.assignConfig(config);
 
-    this._mutableTimelines = undefined;
-    this._hydrateMutableTimelines();
+    this.hydrateMutableTimelines();
 
     // Flag used internally to determine whether we need to re-render the full tree or can survive by just patching
     this.doesNeedFullFlush = false;
@@ -511,7 +511,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
       this.clearStates();
     }
 
-    this._hydrateMutableTimelines();
+    this.hydrateMutableTimelines();
 
     if (this.bytecode.timelines) {
       for (const timelineName in this.bytecode.timelines) {
@@ -1019,7 +1019,6 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     );
 
     this.applyLocalBehaviors(
-      options,
       false, // isPatchOperation
       false, // skipCache
     );
@@ -1064,7 +1063,6 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     }
 
     this.applyLocalBehaviors(
-      options,
       true, // isPatchOperation
       skipCache,
     );
@@ -1134,7 +1132,6 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
   }
 
   applyLocalBehaviors (
-    options,
     isPatchOperation,
     skipCache = false,
   ) {
@@ -1149,10 +1146,8 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
 
       const timelineDescriptor = this.bytecode.timelines[timelineName];
 
-      // In hot editing mode, any timeline is fair game for mutation,
-      // even if it's not actually animated (e.g. dragging an SVG at keyframe 0).
       let mutableTimelineDescriptor = isPatchOperation
-        ? this._mutableTimelines[timelineName]
+        ? this.mutableTimelines[timelineName]
         : timelineDescriptor;
 
       if (!mutableTimelineDescriptor) {
@@ -1166,7 +1161,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
           continue;
         }
 
-        const propertiesGroup = timelineDescriptor[behaviorSelector];
+        const propertiesGroup = mutableTimelineDescriptor[behaviorSelector];
 
         if (!propertiesGroup) {
           continue;
@@ -1175,14 +1170,13 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
         // This is our opportunity to group property operations that need to be in order
         const propertyOperations = collatePropertyGroup(propertiesGroup);
 
-        for (let i = 0; i < propertyOperations.length; i++) {
-          const propertyGroup = propertyOperations[i];
+        for (let i = 0; i < matchingElementsForBehavior.length; i++) {
+          const matchingElement = matchingElementsForBehavior[i];
+          matchingElement.__memory.patched = false;
+          const compositeId = getNodeCompositeId(matchingElement);
 
-          for (let j = 0; j < matchingElementsForBehavior.length; j++) {
-            const matchingElement = matchingElementsForBehavior[j];
-
-            const compositeId = getNodeCompositeId(matchingElement);
-
+          for (let j = 0; j < propertyOperations.length; j++) {
+            const propertyGroup = propertyOperations[j];
             for (const propertyName in propertyGroup) {
               const keyframeCluster = propertyGroup[propertyName];
 
@@ -1206,54 +1200,35 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
               }
 
               // We always apply the property if...
-              let doApplyProperty = false;
+              if (
+                // - This is a full render
+                !isPatchOperation ||
+                // - The value in question has changed
+                didValueChangeSinceLastRequest ||
+                // - The value is in the whitelist of always-updated properties
+                ALWAYS_UPDATED_PROPERTIES[propertyName] ||
+                (
+                  // - The value was explicitly defined as a keyframe and...
+                  didValueOriginateFromExplicitKeyframeDefinition && (
+                    // - We haven't yet reached the end
+                    (timelineTime < timelineInstance.getMaxTime()) ||
+                    // - The timeline is looping (we won't be hanging on the final keyframe)
+                    timelineInstance.isLooping() ||
+                    // - We just reached the final keyframe (but haven't already visited it)
+                    timelineInstance.getLastFrame() !== timelineInstance.getBoundedFrame()
+                  )
+                )
+              ) {
+                this.applyPropertyToNode(
+                  matchingElement,
+                  propertyName,
+                  computedValue,
+                  timelineInstance,
+                );
 
-              // - This is a full render
-              if (!isPatchOperation) {
-                doApplyProperty = true;
+                // This is used downstream to decide whether patch updates are worthwhile
+                matchingElement.__memory.patched = true;
               }
-
-              // - The value in question has changed
-              if (didValueChangeSinceLastRequest) {
-                doApplyProperty = true;
-              }
-
-              // - The value is in the whitelist of always-updated properties
-              if (ALWAYS_UPDATED_PROPERTIES[propertyName]) {
-                doApplyProperty = true;
-              }
-
-              // - The value was explicitly defined as a keyframe and...
-              if (didValueOriginateFromExplicitKeyframeDefinition) {
-                // - We haven't yet reached the end
-                if (timelineTime < timelineInstance.getMaxTime()) {
-                  doApplyProperty = true;
-                }
-
-                // - The timeline is looping (we won't be hanging on the final keyframe)
-                if (timelineInstance.isLooping()) {
-                  doApplyProperty = true;
-                }
-
-                // - We just reached the final keyframe (but haven't already visited it)
-                if (timelineInstance.getLastFrame() !== timelineInstance.getBoundedFrame()) {
-                  doApplyProperty = true;
-                }
-              }
-
-              if (!doApplyProperty) {
-                continue;
-              }
-
-              this.applyPropertyToNode(
-                matchingElement,
-                propertyName,
-                computedValue,
-                timelineInstance,
-              );
-
-              // This is used downstream to decide whether patch updates are worthwhile
-              matchingElement.__memory.patched = true;
             }
           }
         }
@@ -1343,25 +1318,21 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     return out;
   }
 
-  _hydrateMutableTimelines () {
-    this._mutableTimelines = {};
+  private hydrateMutableTimelines () {
+    this.mutableTimelines = {};
     if (this.bytecode.timelines) {
       for (const timelineName in this.bytecode.timelines) {
         for (const selector in this.bytecode.timelines[timelineName]) {
           for (const propertyName in this.bytecode.timelines[timelineName][selector]) {
             if (isMutableProperty(this.bytecode.timelines[timelineName][selector][propertyName], propertyName)) {
-              const timeline = this._mutableTimelines[timelineName] || {};
-              const propertyGroup = timeline[selector] || {};
-              this._mutableTimelines = {
-                ...this._mutableTimelines,
-                [timelineName]: {
-                  ...timeline,
-                  [selector]: {
-                    ...propertyGroup,
-                    [propertyName]: this.bytecode.timelines[timelineName][selector][propertyName],
-                  },
-                },
-              };
+              if (!this.mutableTimelines[timelineName]) {
+                this.mutableTimelines[timelineName] = {};
+              }
+              if (!this.mutableTimelines[timelineName][selector]) {
+                this.mutableTimelines[timelineName][selector] = {};
+              }
+              this.mutableTimelines[timelineName][selector][propertyName] =
+                this.bytecode.timelines[timelineName][selector][propertyName];
             }
           }
         }
@@ -1380,22 +1351,21 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
 
     const propertyGroup = this.bytecode.timelines[hotComponent.timelineName][hotComponent.selector];
 
-    const timeline = this._mutableTimelines[hotComponent.timelineName] || {};
-    const mutablePropertyGroup = timeline[hotComponent.selector] || {};
+    if (!this.mutableTimelines[hotComponent.timelineName]) {
+      this.mutableTimelines[hotComponent.timelineName] = {};
+    }
 
-    this._mutableTimelines = {
-      ...this._mutableTimelines,
-      [hotComponent.timelineName]: {
-        ...timeline,
-        [hotComponent.selector]: {
-          ...mutablePropertyGroup,
-          ...hotComponent.propertyNames.reduce(
-            (hotProperties, propertyName) => (hotProperties[propertyName] = propertyGroup[propertyName], hotProperties),
-            {},
-          ),
-        },
-      },
-    };
+    if (!this.mutableTimelines[hotComponent.timelineName][hotComponent.selector]) {
+      this.mutableTimelines[hotComponent.timelineName][hotComponent.selector] = {};
+    }
+
+    Object.assign(
+      this.mutableTimelines[hotComponent.timelineName][hotComponent.selector],
+      hotComponent.propertyNames.reduce(
+        (hotProperties, propertyName) => (hotProperties[propertyName] = propertyGroup[propertyName], hotProperties),
+        {},
+      ),
+    );
   }
 
   controlTime (timelineName: string, timelineTime: number) {
@@ -2223,11 +2193,7 @@ const expandNode = (original, parent) => {
 
         // If the child is a repeater, use the $repeats instead of itself
         if (child.__memory.repeater && child.__memory.repeater.repeatees) {
-          for (let j = 0; j < child.__memory.repeater.repeatees.length; j++) {
-            const repeatee = child.__memory.repeater.repeatees[j];
-            children.push(repeatee);
-          }
-
+          children.push(...child.__memory.repeater.repeatees);
           continue;
         }
       }
@@ -2772,122 +2738,162 @@ export const getVanity = (elementName: string, propertyName: string) => {
   return VANITIES['*'][propertyName];
 };
 
+/**
+ * Ensures layout before applying a layout vanity.
+ */
+const ensureLayout = (node: BytecodeNode) => {
+  if (!node.layout) {
+    Layout3D.initializeNodeLayout(node);
+  }
+};
+
 export const LAYOUT_3D_VANITIES = {
   // Layout has a couple of special values that relate to display
   // but not to position:
   shown: (_, element, value) => {
+    ensureLayout(element);
     element.layout.shown = value;
   },
   // Opacity needs to have its opacity *layout* property set
   // as opposed to its element attribute so the renderer can make a decision about
   // where to put it based on the rendering medium's rules
   opacity: (_, element, value) => {
+    ensureLayout(element);
     element.layout.opacity = value;
-  },
-
-  // Rotation is a special snowflake since it needs to account for
-  // the w-component of the quaternion and carry it
-  'rotation.x': (name, element, value) => {
-    element.layout.rotation.x = value;
-  },
-  'rotation.y': (name, element, value) => {
-    element.layout.rotation.y = value;
-  },
-  'rotation.z': (name, element, value) => {
-    element.layout.rotation.z = value;
   },
 
   // If you really want to set what we call 'position' then
   // we do so on the element's attributes; this is mainly to
   // enable the x/y positioning system for SVG elements.
   'position.x': (name, element, value) => {
+    ensureLayout(element);
     element.attributes.x = value;
   },
   'position.y': (name, element, value) => {
+    ensureLayout(element);
     element.attributes.y = value;
   },
 
   // Everything that follows is a standard 3-coord component
   // relating to the element's position in space
+  'rotation.x': (_, element, value) => {
+    ensureLayout(element);
+    element.layout.rotation.x = value;
+  },
+  'rotation.y': (_, element, value) => {
+    ensureLayout(element);
+    element.layout.rotation.y = value;
+  },
+  'rotation.z': (_, element, value) => {
+    ensureLayout(element);
+    element.layout.rotation.z = value;
+  },
   'offset.x': (name, element, value) => {
+    ensureLayout(element);
     element.layout.offset.x = value;
   },
   'offset.y': (name, element, value) => {
+    ensureLayout(element);
     element.layout.offset.y = value;
   },
   'offset.z': (name, element, value) => {
+    ensureLayout(element);
     element.layout.offset.z = value;
   },
   'origin.x': (name, element, value) => {
+    ensureLayout(element);
     element.layout.origin.x = value;
   },
   'origin.y': (name, element, value) => {
+    ensureLayout(element);
     element.layout.origin.y = value;
   },
   'origin.z': (name, element, value) => {
+    ensureLayout(element);
     element.layout.origin.z = value;
   },
   'scale.x': (name, element, value) => {
+    ensureLayout(element);
     element.layout.scale.x = value;
   },
   'scale.y': (name, element, value) => {
+    ensureLayout(element);
     element.layout.scale.y = value;
   },
   'scale.z': (name, element, value) => {
+    ensureLayout(element);
     element.layout.scale.z = value;
   },
   'sizeAbsolute.x': (name, element, value) => {
+    ensureLayout(element);
     element.layout.sizeAbsolute.x = value;
   },
   'sizeAbsolute.y': (name, element, value) => {
+    ensureLayout(element);
     element.layout.sizeAbsolute.y = value;
   },
   'sizeAbsolute.z': (name, element, value) => {
+    ensureLayout(element);
     element.layout.sizeAbsolute.z = value;
   },
   'sizeDifferential.x': (name, element, value) => {
+    ensureLayout(element);
     element.layout.sizeDifferential.x = value;
   },
   'sizeDifferential.y': (name, element, value) => {
+    ensureLayout(element);
     element.layout.sizeDifferential.y = value;
   },
   'sizeDifferential.z': (name, element, value) => {
+    ensureLayout(element);
     element.layout.sizeDifferential.z = value;
   },
   'sizeMode.x': (name, element, value) => {
+    ensureLayout(element);
     element.layout.sizeMode.x = value;
   },
   'sizeMode.y': (name, element, value) => {
+    ensureLayout(element);
     element.layout.sizeMode.y = value;
   },
   'sizeMode.z': (name, element, value) => {
+    ensureLayout(element);
     element.layout.sizeMode.z = value;
   },
   'sizeProportional.x': (name, element, value) => {
+    ensureLayout(element);
     element.layout.sizeProportional.x = value;
   },
   'sizeProportional.y': (name, element, value) => {
+    ensureLayout(element);
     element.layout.sizeProportional.y = value;
   },
   'sizeProportional.z': (name, element, value) => {
+    ensureLayout(element);
     element.layout.sizeProportional.z = value;
   },
   'shear.xy': (name, element, value) => {
+    ensureLayout(element);
     element.layout.shear.xy = value;
   },
   'shear.xz': (name, element, value) => {
+    ensureLayout(element);
     element.layout.shear.xz = value;
   },
   'shear.yz': (name, element, value) => {
+    ensureLayout(element);
     element.layout.shear.yz = value;
   },
   'translation.x': (name, element, value) => {
+    ensureLayout(element);
     element.layout.translation.x = value;
   },
   'translation.y': (name, element, value) => {
+    ensureLayout(element);
     element.layout.translation.y = value;
   },
   'translation.z': (name, element, value) => {
+    ensureLayout(element);
     element.layout.translation.z = value;
   },
 };

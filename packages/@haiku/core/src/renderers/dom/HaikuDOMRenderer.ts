@@ -521,6 +521,7 @@ export default class HaikuDOMRenderer extends HaikuBase implements IRenderer {
         // This is used to detect whether the element's host component has changed.
         // Don't remove this without understanding the effect on Haiku.app.
         component,
+        explicitStyles: {},
       };
     }
 
@@ -551,7 +552,7 @@ export default class HaikuDOMRenderer extends HaikuBase implements IRenderer {
       ? createTextNode(parentDomElement, virtualElement)
       : HaikuDOMRenderer.createTagNode(parentDomElement, virtualElement, parentVirtualElement, component);
 
-    applyLayout(domElementToInsert, virtualElement, parentDomElement, parentVirtualElement, component, null);
+    applyLayout(domElementToInsert, virtualElement, component);
 
     parentDomElement.appendChild(domElementToInsert);
     return domElementToInsert;
@@ -572,7 +573,7 @@ export default class HaikuDOMRenderer extends HaikuBase implements IRenderer {
       ? createTextNode(domElement, virtualElement)
       : HaikuDOMRenderer.createTagNode(domElement, virtualElement, parentVirtualElement, component);
 
-    applyLayout(newElement, virtualElement, parentDomNode, parentVirtualElement, component, null);
+    applyLayout(newElement, virtualElement, component);
 
     parentDomNode.replaceChild(newElement, domElement);
 
@@ -600,6 +601,7 @@ export default class HaikuDOMRenderer extends HaikuBase implements IRenderer {
         // This is used to detect whether the element's host component has changed.
         // Don't remove this without understanding the effect on Haiku.app.
         component,
+        explicitStyles: {},
       };
     }
 
@@ -637,10 +639,7 @@ export default class HaikuDOMRenderer extends HaikuBase implements IRenderer {
     applyLayout(
       domElement,
       virtualElement,
-      parentNode,
-      parentVirtualElement,
       component,
-      isPatchOperation,
     );
 
     if (incomingKey !== undefined && incomingKey !== null) {
@@ -703,6 +702,7 @@ export default class HaikuDOMRenderer extends HaikuBase implements IRenderer {
         // This is used to detect whether the element's host component has changed.
         // Don't remove this without understanding the effect on Haiku.app.
         component,
+        explicitStyles: {},
       };
     }
 
