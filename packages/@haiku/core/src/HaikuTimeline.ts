@@ -83,7 +83,7 @@ export default class HaikuTimeline extends HaikuBase {
   getMs (amount: number, unit: TimeUnit): number {
     switch (unit) {
       case TimeUnit.Frame:
-        return ~~(this.component.getClock().getFrameDuration() * amount);
+        return Math.round(this.component.getClock().getFrameDuration() * amount);
       case TimeUnit.Millisecond:
       default:
         // The only currently valid alternative to TimeUnit.Frame is TimeUnit.Millisecond.
