@@ -145,6 +145,7 @@ export interface BytecodeNodeMemoryObject {
 export interface BytecodeNode {
   elementName: string|HaikuBytecode;
   attributes: BytecodeNodeAttributes;
+  isRootNode?: boolean;
   layout?: LayoutSpec;
   children: (BytecodeNode|string)[];
   __memory?: BytecodeNodeMemoryObject;
@@ -436,6 +437,9 @@ export interface LayoutSpec {
     yz: number;
   };
 
+  matrix?: Mat4;
+  format?: number;
+
   computed?: ComputedLayoutSpec;
 }
 
@@ -546,24 +550,6 @@ export interface BoundsSpecPartial {
   bottom?: number;
   front?: number;
   back?: number;
-}
-
-/**
- * @description A LayoutNode may be a proper BytecodeNode, but for convenience
- * we allow an object that only has a layout property declared.
- */
-export interface LayoutNode {
-  elementName?: string;
-  attributes?: BytecodeNodeAttributes;
-  children?: (LayoutNode|string)[];
-  layout: LayoutSpec;
-}
-
-export interface LayoutNodePartial {
-  elementName?: string;
-  attributes?: BytecodeNodeAttributes;
-  children?: (LayoutNodePartial|string)[];
-  layout: LayoutSpecPartial;
 }
 
 export type AxisString = 'x'|'y'|'z';
