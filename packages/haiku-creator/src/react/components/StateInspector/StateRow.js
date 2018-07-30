@@ -161,7 +161,7 @@ class StateRow extends React.Component {
     }
 
     // If we got here, Enter was pressed, meaning we want to commit the state value/name
-    desc = State.autoCastToType(desc);
+    desc = State.recast(desc);
 
     // If the name field is blank, delete the state (or just remove it if it is new)
     if (isBlank(this.state.name)) {

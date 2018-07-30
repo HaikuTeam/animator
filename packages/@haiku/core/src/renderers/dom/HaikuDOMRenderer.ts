@@ -20,6 +20,10 @@ import normalizeName from './normalizeName';
 import removeElement from './removeElement';
 import replaceElementWithText from './replaceElementWithText';
 
+const isNil = (v) => {
+  return v === undefined || v === null;
+};
+
 const connectTarget = (virtualNode, domElement) => {
   if (virtualNode && typeof virtualNode === 'object') {
     // This normally happens in HaikuComponent.hydrateNode, but we might be operating
@@ -751,11 +755,11 @@ export default class HaikuDOMRenderer extends HaikuBase implements IRenderer {
       const virtualChild = virtualChildren[i];
       const domChild = domChildNodes[i];
 
-      if (!virtualChild && !domChild) {
+      if (isNil(virtualChild) && !domChild) {
         // empty
-      } else if (!virtualChild && domChild) {
+      } else if (isNil(virtualChild) && domChild) {
         removeElement(domChild, compositeId, component);
-      } else if (virtualChild) {
+      } else {
         if (!domChild) {
           const insertedElement = HaikuDOMRenderer.appendChild(
             null,

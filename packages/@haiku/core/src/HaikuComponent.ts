@@ -2147,6 +2147,12 @@ const expandNode = (original, parent) => {
     return original;
   }
 
+  if (!original.__memory) {
+    return {
+      ...original,
+    };
+  }
+
   let children = [];
 
   if  (original.__memory.content) {
@@ -2294,16 +2300,22 @@ const hydrateNode = (
 
     // The host component should hear events emitted by the guest component
     if (host) {
-      const flexIdOfHostComponentsWrapperDivForGuest = getNodeCompositeId(parent);
-
       // Clear the previous listener (avoid multiple subscriptions to the same event)
       if (node.__memory.listener) {
         node.__memory.instance.off('*', node.__memory.listener);
       }
 
       node.__memory.listener = (key, ...args) => {
+        // 1. Emit to listeners on the "wrapper" div
         host.routeEventToHandler(
-          `haiku:${flexIdOfHostComponentsWrapperDivForGuest}`,
+          `haiku:${getNodeCompositeId(parent)}`,
+          key,
+          [node.__memory.instance].concat(args),
+        );
+
+        // 2. For convenience, emit to listeners on the root component of the hosts
+        host.routeEventToHandler(
+          `haiku:${getNodeCompositeId(host)}`,
           key,
           [node.__memory.instance].concat(args),
         );

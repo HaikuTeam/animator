@@ -83,7 +83,7 @@ export default class HaikuTimeline extends HaikuBase {
   getMs (amount: number, unit: TimeUnit): number {
     switch (unit) {
       case TimeUnit.Frame:
-        return ~~(this.component.getClock().getFrameDuration() * amount);
+        return Math.round(this.component.getClock().getFrameDuration() * amount);
       case TimeUnit.Millisecond:
       default:
         // The only currently valid alternative to TimeUnit.Frame is TimeUnit.Millisecond.
@@ -133,10 +133,10 @@ export default class HaikuTimeline extends HaikuBase {
   doUpdateWithTimeDelta (
     deltaClockTime,
   ) {
-    const maxTime = this.getMaxTime();
+    const ceilTime = this.getCeilTime();
     const prevElapsedTime = this.getElapsedTime();
     const newElapsedTime = prevElapsedTime + deltaClockTime;
-    const didLoop = didTimeLoop(prevElapsedTime, newElapsedTime, maxTime);
+    const didLoop = HaikuTimeline.didTimeLoop(prevElapsedTime, newElapsedTime, ceilTime);
 
     this.setElapsedTime(newElapsedTime);
 
@@ -148,7 +148,7 @@ export default class HaikuTimeline extends HaikuBase {
       if (this.getMaxTime() > 200) {
         this.component.emitFromRootComponent('loop', {
           localElapsedTime: newElapsedTime,
-          maxExplicitlyDefinedTime: maxTime,
+          maxExplicitlyDefinedTime: this.getMaxTime(),
           globalClockTime: this.getClockTime(),
           boundedFrame: this.getBoundedFrame(),
           loopCount: this.numLoops,
@@ -220,6 +220,13 @@ export default class HaikuTimeline extends HaikuBase {
   }
 
   /**
+   * @description The millisecond value for the beginning of one frame past the max.
+   */
+  getCeilTime () {
+    return this.getMaxTime() + this.getMs(1, TimeUnit.Frame);
+  }
+
+  /**
    * @method getClockTime
    * @description fseek the global clock time that this timeline is at, in ms,
    * whether or not our local time matches it or it has exceeded our max.
@@ -273,7 +280,12 @@ export default class HaikuTimeline extends HaikuBase {
     }
 
     if (this.isLooping()) {
-      return mod(time, max);
+      const looped = HaikuTimeline.modulo(
+        Math.round(time),
+        this.getCeilTime(),
+      );
+
+      return looped;
     }
 
     // Don't allow negative time
@@ -652,53 +664,53 @@ export default class HaikuTimeline extends HaikuBase {
       config,
     );
   };
+
+  /**
+   * @description Modulus, but returns zero if the second number is zero,
+   * and calculates an appropriate "cycle" if the number is negative.
+   */
+  static modulo = (n: number, ceil: number): number => {
+    if (ceil === 0) {
+      return 0;
+    }
+
+    return ((n % ceil) + ceil) % ceil;
+  };
+
+  /**
+   * @description Given a previous elapsed time (a), a new elapsed time (b), and a max
+   * time (max), determine whether the given timeline has looped between (a) and (b).
+   *
+   * E.g.:
+   *   0----------100
+   *        62        103  true
+   *
+   *   0----------100
+   *        62    100  true
+   *
+   *   0----------100
+   *        62   99  false
+   *
+   *   0----------100
+   *              100  110  false
+   *
+   *   0----------100
+   *               101  110  false
+   *
+   *   0----------100
+   *              100
+   *              100  false
+   *
+   *   0----------100
+   *   0          100  false
+   *
+   *   0----------100
+   *   0
+   *   0  false
+   */
+  static didTimeLoop = (a: number, b: number, ceil: number): boolean => {
+    const ma = HaikuTimeline.modulo(a, ceil);
+    const mb = HaikuTimeline.modulo(b, ceil);
+    return mb < ma;
+  };
 }
-
-/**
- * @description Modulus, but returns zero if the second number is zero,
- * and calculates an appropriate "cycle" if the number is negative.
- */
-const mod = (n: number, m: number): number => {
-  if (m === 0) {
-    return 0;
-  }
-
-  return ((n % m) + m) % m;
-};
-
-/**
- * @description Given a previous elapsed time (a), a new elapsed time (b), and a max
- * time (max), determine whether the given timeline has looped between (a) and (b).
- *
- * E.g.:
- *   0----------100
- *        62        103  true
- *
- *   0----------100
- *        62    100  false
- *
- *   0----------100
- *        62   99  false
- *
- *   0----------100
- *              100  110  true
- *
- *   0----------100
- *               101  110  false
- *
- *   0----------100
- *              100
- *              100  false
- *
- *   0----------100
- *   0          100  false
- *
- *   0----------100
- *   0
- *   0  false
- */
-const didTimeLoop = (a: number, b: number, max: number): boolean => {
-  const ma = mod(a, max);
-  const mb = mod(b, max);
-  return mb < ma;
-};

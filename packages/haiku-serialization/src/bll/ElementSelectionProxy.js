@@ -1042,13 +1042,6 @@ class ElementSelectionProxy extends BaseModel {
       // }
       const snapLines = artboard.getSnapLinesInScreenCoords()
 
-      const addVectors = (v0, v1) => {
-        return {
-          x: v0.x + v1.x,
-          y: v0.y + v1.y
-        }
-      }
-
       // index corresponds with selected elements' indicies
         // { x : number
         //  y : number }
@@ -1133,7 +1126,8 @@ class ElementSelectionProxy extends BaseModel {
         overrides.groupOrigin[whichAxis] = desiredPosition - (snap.bboxEdgePosition - origins.groupOrigin[whichAxis])
       })
 
-      this.emit('snaps-updated', foundSnaps)
+      ElementSelectionProxy.snaps = foundSnaps
+
       return this.move(dx, dy, overrides)
     }
 
@@ -1369,10 +1363,6 @@ class ElementSelectionProxy extends BaseModel {
 
     const filteredEdges = []
 
-    const isWithinEpsilon = (v0, v1, override) => {
-      return (v0 < v1 + (override || SNAP_EPSILON)) && (v0 > v1 - (override || SNAP_EPSILON))
-    }
-
     // When scaling, we want to snap to the axis-aligned bounding box of the control points, a.k.a. the "super-bounding box."
     // To complicate things though, the user expects only some of the edges of the bounding box to snap, depending on
     // which control point is being dragged and the rotation of the element.  The logic below simplifies this 'lookup'
@@ -1604,7 +1594,7 @@ class ElementSelectionProxy extends BaseModel {
       }
     )
 
-    this.emit('snaps-updated', foundSnaps)
+    ElementSelectionProxy.snaps = foundSnaps
   }
 
   scaleArtboard (
@@ -2352,6 +2342,20 @@ ElementSelectionProxy.accumulateKeyframeUpdates = (
 
   return out
 }
+
+const addVectors = (v0, v1) => {
+  return {
+    x: v0.x + v1.x,
+    y: v0.y + v1.y
+  }
+}
+
+const isWithinEpsilon = (v0, v1, override) => {
+  return (v0 < v1 + (override || SNAP_EPSILON)) && (v0 > v1 - (override || SNAP_EPSILON))
+}
+
+// Storage for snap lines data
+ElementSelectionProxy.snaps = []
 
 ElementSelectionProxy.fromSelection = (selection, query) => {
   const uid = selection.map((element) => element.getPrimaryKey()).sort().join('+') || 'none'

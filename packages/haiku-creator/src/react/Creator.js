@@ -274,10 +274,10 @@ export default class Creator extends React.Component {
       this.props.websocket.send({
         type: 'relay',
         from: 'creator',
-        view: 'timeline',
+        view: 'glass',
         name: 'global-menu:zoom-in',
       });
-    }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}));
+    }, 50, {leading: true, trailing: false}));
 
     ipcRenderer.on('global-menu:zoom-out', lodash.debounce(() => {
       // Timeline will send to Glass if it doesn't want to zoom
@@ -285,10 +285,10 @@ export default class Creator extends React.Component {
       this.props.websocket.send({
         type: 'relay',
         from: 'creator',
-        view: 'timeline',
+        view: 'glass',
         name: 'global-menu:zoom-out',
       });
-    }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}));
+    }, 50, {leading: true, trailing: false}));
 
     ipcRenderer.on('global-menu:reset-viewport', lodash.debounce(() => {
       // Timeline will send to Glass if it doesn't want to zoom
@@ -1339,30 +1339,50 @@ export default class Creator extends React.Component {
     }
   }
 
+  shouldNoticeBeSkipped (notice) {
+    // Assume that any notice without a string isn't usable, so just skip it
+    if (!notice || typeof notice.message !== 'string') {
+      return true;
+    }
+
+    // Ignore Intercom widget errors which are transient and confuse the user
+    if (notice.message.match(/intercom/)) {
+      return true;
+    }
+
+    // HACK: Skip human-unfriendly duplicate errors that originate from ActiveComponent action calls
+    if (notice.message.match(/\[active/)) {
+      return true;
+    }
+
+    // Avoid scary error messages (752175308356950)
+    if (notice.message.match(/EventEmitter/)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Expects the object:
+   *
+   * { type: string (info, success, danger (or error), warning)
+   *   title: string,
+   *   message: string,
+   *   closeText: string (optional, defaults to 'close')
+   *   lightScheme: bool (optional, defaults to dark)
+   * }
+   */
   createNotice (notice) {
-    /* Expects the object:
-    { type: string (info, success, danger (or error), warning)
-      title: string,
-      message: string,
-      closeText: string (optional, defaults to 'close')
-      lightScheme: bool (optional, defaults to dark)
-    } */
+    if (this.shouldNoticeBeSkipped(notice)) {
+      return;
+    }
 
     // 'Uncaught' indicates an unrecoverable error, so we need to crash
     if (notice.type === 'error' && notice.message.slice(0, 8) === 'Uncaught') {
       if (process.env.NODE_ENV === 'production') {
         remote.getCurrentWindow().close();
       }
-    }
-
-    // Ignore Intercom widget errors which are transient and confuse the user
-    if (notice.type === 'error' && notice.message.match(/intercom/)) {
-      return;
-    }
-
-    // HACK: Skip human-unfriendly duplicate error
-    if (typeof notice.message === 'string' && notice.message.match(/\[active/)) {
-      return;
     }
 
     notice.id = Math.random() + '';

@@ -197,7 +197,7 @@ class StateInspector extends React.Component {
   }
 
   getHeadingText () {
-    return `State Inspector (${this.state.sceneName})`;
+    return `States (${this.state.sceneName})`;
   }
 
   shouldDisplayEmptyMessage () {

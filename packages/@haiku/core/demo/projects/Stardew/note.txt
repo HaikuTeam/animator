@@ -1,0 +1,1 @@
+You should be able to click any of the sunflowers. Each click makes it grow a bit more, until the fourth click when it becomes a full sunflower.
