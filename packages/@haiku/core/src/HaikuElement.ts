@@ -4,13 +4,12 @@ import {
   BoundsSpecX,
   BoundsSpecY,
   BoundsSpecZ,
+  BytecodeNode,
   ClientRect,
   ComputedLayoutSpec,
   HaikuBytecode,
   IHaikuComponent,
   IHaikuElement,
-  LayoutNode,
-  LayoutNodePartial,
   LayoutSpec,
   StringableThreeDimensionalLayoutProperty,
   ThreeDimensionalLayoutProperty,
@@ -41,7 +40,7 @@ const CSS_QUERY_MAPPING = {
 const LAYOUT_DEFAULTS = Layout3D.createLayoutSpec();
 
 export default class HaikuElement extends HaikuBase implements IHaikuElement {
-  node;
+  node: BytecodeNode;
 
   constructor () {
     super();
@@ -807,7 +806,7 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
     return HaikuElement.transformPointsInPlace(
       this.getRawBoundingBoxPoints(),
       HaikuElement.computeLayout(
-        this.node,
+        this.node as BytecodeNode,
         null, // parentNode; none available here
       ).matrix,
     );
@@ -1019,23 +1018,10 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
   };
 
   static computeLayout = (
-    targetNode: LayoutNode,
-    parentNode: LayoutNode|LayoutNodePartial,
+    targetNode: BytecodeNode,
+    parentNode: BytecodeNode,
   ): ComputedLayoutSpec => {
     const layoutSpec = targetNode.layout;
-
-    const parentsizeAbsoluteIn = (
-      parentNode &&
-      parentNode.layout &&
-      parentNode.layout.computed &&
-      parentNode.layout.computed.size
-    );
-
-    const parentsizeAbsolute = parentsizeAbsoluteIn || {x: 0, y: 0, z: 0};
-
-    if (parentsizeAbsolute.z === undefined || parentsizeAbsolute.z === null) {
-      parentsizeAbsolute.z = DEFAULT_DEPTH;
-    }
 
     const targetSize = {
       x: null,
@@ -1074,16 +1060,39 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
 
     const targetElement = HaikuElement.findOrCreateByNode(targetNode);
 
+    // We'll define this later if any axes are requesting SIZE_PROPORTIONAL. It isn't needed for SIZE_ABSOLUTE.
+    let parentsizeAbsolute;
+
     for (let i = 0; i < SIZING_AXES.length; i++) {
       const sizeAxis = SIZING_AXES[i] as AxisString;
-
-      const parentSizeValue = parentsizeAbsolute[sizeAxis];
-
       switch (layoutSpec.sizeMode[sizeAxis]) {
         case SIZE_PROPORTIONAL:
-          const sizeProportional = layoutSpec.sizeProportional[sizeAxis];
-          const sizeDifferential = layoutSpec.sizeDifferential[sizeAxis];
-          targetSize[sizeAxis] = parentSizeValue * sizeProportional + sizeDifferential;
+          if (!parentsizeAbsolute) {
+            parentsizeAbsolute = (
+              parentNode &&
+              parentNode.layout &&
+              parentNode.layout.computed &&
+              parentNode.layout.computed.size
+            ) || {x: 0, y: 0, z: 0};
+            if (parentsizeAbsolute.z === undefined || parentsizeAbsolute.z === null) {
+              parentsizeAbsolute.z = DEFAULT_DEPTH;
+            }
+            if (parentsizeAbsolute.x === 0 && parentsizeAbsolute.y === 0 && parentsizeAbsolute.z === 0) {
+              // Size must be inherited from an ancestor above parent. Traverse upward until we find it.
+              let traversalParentNode = targetNode;
+              while (traversalParentNode) {
+                traversalParentNode = traversalParentNode.__memory && traversalParentNode.__memory.parent;
+                if (traversalParentNode && traversalParentNode.layout && traversalParentNode.layout.computed) {
+                  Object.assign(parentsizeAbsolute, traversalParentNode.layout.computed.size);
+                  break;
+                }
+              }
+            }
+          }
+
+          // Size is calculated as: parentSizeValue * sizeProportional + sizeProportional.
+          targetSize[sizeAxis] = parentsizeAbsolute[sizeAxis] * layoutSpec.sizeProportional[sizeAxis] +
+            layoutSpec.sizeDifferential[sizeAxis];
           break;
 
         case SIZE_ABSOLUTE:

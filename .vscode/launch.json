@@ -1,6 +1,42 @@
 {
   "version": "3.5.1",
+  "compounds": [
+    {
+      "name": "core-demo",
+      "configurations": [
+        "core-demo-server",
+        "core-demo-client"
+      ]
+    }
+  ],
   "configurations": [
+    {
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000/demos/butterblast/debug",
+      "webRoot": "${workspaceFolder}/packages/@haiku/core/demo",
+      "sourceMaps": true,
+      "name": "core-demo-client",
+      "sourceMapPathOverrides": {
+        "webpack://HaikuDOMAdapter/./src/*": "${workspaceFolder}/packages/@haiku/core/src/*"
+      }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/packages/@haiku/core",
+      "env": {
+        "WAIT_FOR_DEBUGGER": "1"
+      },
+      "runtimeArgs": [
+        "-r",
+        "ts-node/register"
+      ],
+      "args": [
+        "./scripts/demos.ts"
+      ],
+      "name": "core-demo-server"
+    },
     {
       "type": "chrome",
       "request": "attach",

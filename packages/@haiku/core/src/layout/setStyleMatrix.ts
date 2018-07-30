@@ -3,11 +3,10 @@
  */
 
 import formatTransform from './formatTransform';
-import isEqualTransformString from './isEqualTransformString';
 
-export default function setStyleMatrix (styleObject, format, matrix) {
+export default function setStyleMatrix (domElement, format, matrix) {
   const matrixString = formatTransform(matrix, format);
-  if (!isEqualTransformString(styleObject.transform, matrixString)) {
-    styleObject.transform = matrixString;
+  if (matrixString !== domElement.haiku.cachedTransform) {
+    domElement.haiku.cachedTransform = domElement.style.transform = matrixString;
   }
 }
