@@ -274,10 +274,10 @@ export default class Creator extends React.Component {
       this.props.websocket.send({
         type: 'relay',
         from: 'creator',
-        view: 'timeline',
+        view: 'glass',
         name: 'global-menu:zoom-in',
       });
-    }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}));
+    }, 50, {leading: true, trailing: false}));
 
     ipcRenderer.on('global-menu:zoom-out', lodash.debounce(() => {
       // Timeline will send to Glass if it doesn't want to zoom
@@ -285,10 +285,10 @@ export default class Creator extends React.Component {
       this.props.websocket.send({
         type: 'relay',
         from: 'creator',
-        view: 'timeline',
+        view: 'glass',
         name: 'global-menu:zoom-out',
       });
-    }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}));
+    }, 50, {leading: true, trailing: false}));
 
     ipcRenderer.on('global-menu:reset-viewport', lodash.debounce(() => {
       // Timeline will send to Glass if it doesn't want to zoom
