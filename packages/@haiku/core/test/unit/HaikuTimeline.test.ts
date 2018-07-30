@@ -12,7 +12,7 @@ tape(
     t.equal(HaikuTimeline.modulo(201, 100), 1);
     t.equal(HaikuTimeline.modulo(-1, 100), 99);
     t.end();
-  }
+  },
 );
 
 tape(
@@ -27,5 +27,5 @@ tape(
     t.equal(HaikuTimeline.didTimeLoop(0, 100, 100), false);
     t.equal(HaikuTimeline.didTimeLoop(0, 0, 100), false);
     t.end();
-  }
+  },
 );
