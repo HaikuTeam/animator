@@ -26,11 +26,13 @@ module.exports = {
             c = 0;
           }
           this.setState({ current: c });
+          console.log('sunflower',this.$id,'going to',c)
           this.gotoAndStop(c);
         }
       },
       "timeline:Default:0": {
         handler: function(target, event) {
+          console.log('sunflower',this.$id,'pause')
           this.pause();
         }
       }

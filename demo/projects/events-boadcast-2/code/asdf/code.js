@@ -28,9 +28,9 @@ module.exports = {
           console.log(this.$id,"asdf hit frame 1")
         }
       },
-      "timeline:Default:19": {
+      "timeline:Default:20": {
         handler: function(target, event) {
-          console.log(this.$id,"asdf hit frame 19 (looping back)")
+          console.log(this.$id,"asdf hit frame 20 (looping back)")
         }
       },
       foobar: {
