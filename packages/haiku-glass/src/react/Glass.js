@@ -704,8 +704,15 @@ export class Glass extends React.Component {
           break;
 
         case 'confirm-group-ungroup-popup-closed':
+          console.log('confirm-group-ungroup-popup-closed', message);
           this.setState({isConfirmGroupUngroupPopupOpen: false});
-          this.executeGroup();
+          if (message.confirmed) {
+            if (message.groupOrUngroup === 'group') {
+              this.executeGroup();
+            } else if (message.groupOrUngroup === 'ungroup') {
+              this.executeUngroup();
+            }
+          }
           break;
 
         case 'instantiate-component':
@@ -1027,13 +1034,13 @@ export class Glass extends React.Component {
       const willLoseTransitionOrExpression = componentsWithTransitionOrExpression.some((el) => el.hasTransition || el.hasExpression);
 
       if (willLoseTransitionOrExpression) {
-        console.log('Ask first here');
 
         this.props.websocket.send({
           type: 'broadcast',
           from: 'glass',
           name: 'show-confirm-group-popup',
           components: componentsWithTransitionOrExpression.filter((el) => el.hasTransition || el.hasExpression),
+          groupOrUngroup: 'group',
         });
 
       } else {
@@ -1043,11 +1050,38 @@ export class Glass extends React.Component {
     }
   }
 
+  executeUngroup () {
+    const proxy = this.fetchProxyElementForSelection();
+    if (proxy.canUngroup()) {
+      proxy.ungroup({from: 'glass'});
+      mixpanel.haikuTrack('creator:glass:ungrouped');
+    }
+  }
+
   handleUngroup () {
     const proxy = this.fetchProxyElementForSelection();
     if (proxy.canUngroup()) {
       mixpanel.haikuTrack('creator:glass:ungroup');
-      proxy.ungroup({from: 'glass'});
+
+      const componentsWithTransitionOrExpression = proxy.selection.map((element) => {
+        return {elementId: element.getComponentId(), ...this.getActiveComponent().elementHasTransitionOrExpression(element.getComponentId())};
+      });
+
+      const willLoseTransitionOrExpression = componentsWithTransitionOrExpression.some((el) => el.hasTransition || el.hasExpression);
+
+      if (willLoseTransitionOrExpression) {
+
+        this.props.websocket.send({
+          type: 'broadcast',
+          from: 'glass',
+          name: 'show-confirm-group-popup',
+          components: componentsWithTransitionOrExpression.filter((el) => el.hasTransition || el.hasExpression),
+          groupOrUngroup: 'ungroup',
+        });
+
+      } else {
+        this.executeUngroup();
+      }
     }
   }
 

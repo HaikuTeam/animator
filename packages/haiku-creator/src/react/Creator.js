@@ -166,6 +166,7 @@ export default class Creator extends React.Component {
       eventHandlerEditorOptions: {},
       showConfirmGroupUngroupPopup: false,
       componentsLosingTransitions: {},
+      groupOrUngroup: 'group',
     };
 
     this.envoyOptions = {
@@ -709,7 +710,7 @@ export default class Creator extends React.Component {
           break;
 
         case 'show-confirm-group-popup':
-          this.handleShowConfirmGroupPopup(message.components);
+          this.handleShowConfirmGroupPopup(message.components, message.groupOrUngroup);
           break;
 
         case 'assets-changed':
@@ -1942,13 +1943,14 @@ export default class Creator extends React.Component {
     );
   }
 
-  handleShowConfirmGroupPopup (components) {
+  handleShowConfirmGroupPopup (components, groupOrUngroup) {
     mixpanel.haikuTrack('creator:show-confirm-group-ungroup-popup');
-    this.setState({showConfirmGroupUngroupPopup: true, componentsLosingTransitions: components});
-    this.state.projectModel.broadcastPayload({name: 'confirm-group-ungroup-popup-open'});
+    this.setState({showConfirmGroupUngroupPopup: true, componentsLosingTransitions: components, groupOrUngroup});
+    this.state.projectModel.broadcastPayload({name: 'confirm-group-ungroup-popup-open', groupOrUngroup});
   }
 
-  hideConfirmGroupUngroupPopup (userConfirmedGroup) {
+  hideConfirmGroupUngroupPopup (userConfirmedGroup, groupOrUngroup) {
+    console.log('hideConfirmGroupUngroupPopup ', userConfirmedGroup, 'groupOrUngroup', groupOrUngroup);
     if (userConfirmedGroup) {
       mixpanel.haikuTrack('creator:glass:group_upgroup_answer_y');
     } else {
@@ -1956,7 +1958,7 @@ export default class Creator extends React.Component {
     }
 
     this.setState({showConfirmGroupUngroupPopup: false, componentsLosingTransitions: {}});
-    this.state.projectModel.broadcastPayload({name: 'confirm-group-ungroup-popup-closed', confirmed: userConfirmedGroup});
+    this.state.projectModel.broadcastPayload({name: 'confirm-group-ungroup-popup-closed', confirmed: userConfirmedGroup, groupOrUngroup});
   }
 
   render () {
@@ -2324,6 +2326,7 @@ export default class Creator extends React.Component {
           <ConfirmGroupUngroupPopup
             componentsLosingTransitions={this.state.componentsLosingTransitions}
             setGroupUngroupAnswerAndClose={this.hideConfirmGroupUngroupPopup}
+            groupOrUngroup={this.state.groupOrUngroup}
           />}
       </div>
     );

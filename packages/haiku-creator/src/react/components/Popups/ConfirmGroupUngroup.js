@@ -38,19 +38,18 @@ class ConfirmGroupUngroup extends React.Component {
   }
 
   cancelGroup () {
-    this.props.setGroupUngroupAnswerAndClose(false);
-    this.confirmGroup();
+    this.props.setGroupUngroupAnswerAndClose(false, this.props.groupOrUngroup);
   }
 
   confirmGroup () {
-    this.props.setGroupUngroupAnswerAndClose(true);
+    this.props.setGroupUngroupAnswerAndClose(true, this.props.groupOrUngroup);
   }
 
   render () {
     return (
       <div style={STYLES.wrapper}>
         <ModalWrapper style={STYLES.modalWrapper}>
-          <div style={STYLES.title}>Confirm group?</div>
+          <div style={STYLES.title}>Confirm {this.props.groupOrUngroup}?</div>
           <div style={STYLES.modalBody}>
             Some transition or expression from selected elements may be lost. Proceed anyway?
           </div>
