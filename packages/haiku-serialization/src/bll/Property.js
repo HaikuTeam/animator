@@ -674,9 +674,9 @@ Property.DISPLAY_RULES = {
   'style.zIndex': {jit: [NON_ROOT_ONLY], add: [NON_ROOT_ONLY]},
   'transform': {jit: [NEVER], add: [NEVER]},
   'transformOrigin': {jit: [NEVER], add: [NEVER]},
-  'translation.x': {jit: [NEVER], add: [ALWAYS]},
-  'translation.y': {jit: [NEVER], add: [ALWAYS]},
-  'translation.z': {jit: [NEVER], add: [ALWAYS]},
+  'translation.x': {jit: [NEVER], add: [NON_ROOT_ONLY]},
+  'translation.y': {jit: [NEVER], add: [NON_ROOT_ONLY]},
+  'translation.z': {jit: [NEVER], add: [NON_ROOT_ONLY]},
   'width': {jit: [NEVER], add: [NEVER]},
   // Primitives
   'alignmentBaseline': {jit: [IF_IN_SCHEMA], add: [IF_EXPLICIT_OR_DEFINED]},
