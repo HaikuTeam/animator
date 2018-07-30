@@ -3794,7 +3794,7 @@ class ActiveComponent extends BaseModel {
         timelineName,
         componentId,
         propertyName,
-        true // fallbackToInitialKeyframeIfProvided
+        false // fallbackToInitialKeyframeIfProvided
       )
 
       done()
