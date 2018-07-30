@@ -195,6 +195,7 @@ export default class ComponentHeadingRow extends React.Component {
                 height: this.props.rowHeight,
                 display: 'flex',
                 alignItems: this.props.isExpanded ? 'baseline' : 'center',
+                width: '100%',
               } : {
                 height: this.props.rowHeight,
                 marginTop: -6,
@@ -251,6 +252,7 @@ export default class ComponentHeadingRow extends React.Component {
                   }
               </span>
               <ComponentHeadingRowHeading
+                setEditingRowTitleStatus={this.props.setEditingRowTitleStatus}
                 row={this.props.row}
                 isExpanded={this.props.isExpanded}
                 isSelected={this.props.isSelected}

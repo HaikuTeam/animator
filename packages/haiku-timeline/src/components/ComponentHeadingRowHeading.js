@@ -67,6 +67,7 @@ export default class ComponentHeadingRowHeading extends React.Component {
       if (err) {
         // ...
       }
+      this.props.setEditingRowTitleStatus(false);
       this.setState({
         rowTitle,
         isEditingRowTitle: false,
@@ -149,6 +150,7 @@ export default class ComponentHeadingRowHeading extends React.Component {
               alignItems: 'center',
               height: 25,
               marginLeft: 5,
+              width: '88%',
             } : {
               color,
               position: 'relative',
@@ -181,7 +183,9 @@ export default class ComponentHeadingRowHeading extends React.Component {
                     ? 5
                     : 0,
                 overflowX: 'hidden',
-                width: 160,
+                width: '100%',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
               } : {
                 position: 'absolute',
                 display: 'inline-block',
@@ -205,6 +209,7 @@ export default class ComponentHeadingRowHeading extends React.Component {
                 clearTimeout(this.onExpandTimeout);
                 this.onExpandTimeout = null;
                 if (!this.state.isEditingRowTitle) {
+                  this.props.setEditingRowTitleStatus(true);
                   this.setState({isEditingRowTitle: true}, () => {
                     if (this.refs.rowTitleInput) {
                       this.refs.rowTitleInput.select();
@@ -229,7 +234,7 @@ export default class ComponentHeadingRowHeading extends React.Component {
                   this.persistRowTitle();
                 }}
               />
-              : trunc(this.state.rowTitle, 8)
+              : this.state.rowTitle
             }
           </span>
         </span>

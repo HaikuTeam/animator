@@ -78,6 +78,7 @@ class RowManager extends React.PureComponent {
           isSelected={row.isSelected()}
           hasAttachedActions={row.element.getVisibleEvents().length > 0}
           dragHandleProps={this.props.dragHandleProps}
+          setEditingRowTitleStatus={this.props.setEditingRowTitleStatus}
         />
       );
     }

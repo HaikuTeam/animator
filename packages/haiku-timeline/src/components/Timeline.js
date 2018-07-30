@@ -85,6 +85,7 @@ class Timeline extends React.Component {
     EmitterManager.extend(this);
 
     this.state = lodash.assign({}, DEFAULTS);
+    this.isEditingRowTitle = false;
 
     if (experimentIsEnabled(Experiment.NativeTimelineScroll)) {
       this.isShiftKeyDown = false;
@@ -516,7 +517,7 @@ class Timeline extends React.Component {
       // If you are looking for the scroll listener event, it's attached to
       // this.container on `attachContainerElement`
       this.addEmitterListener(window, 'wheel', (wheelEvent) => {
-        if (wheelEvent.ctrlKey) {
+        if (wheelEvent.ctrlKey || wheelEvent.metaKey) {
           wheelEvent.preventDefault();
           this.handleZoomThrottled(wheelEvent);
         }
@@ -934,7 +935,7 @@ class Timeline extends React.Component {
     // Give the currently active expression input a chance to capture this event and short circuit us if so
     const willExprInputHandle = this.refs.expressionInput.willHandleExternalKeydownEvent(nativeEvent);
 
-    if (willExprInputHandle || this.state.isPreviewModeActive) {
+    if (willExprInputHandle || this.state.isPreviewModeActive || this.isEditingRowTitle) {
       return void (0);
     }
 
@@ -1486,6 +1487,10 @@ class Timeline extends React.Component {
     }
   }
 
+  setEditingRowTitleStatus = (status) => {
+    this.isEditingRowTitle = status;
+  };
+
   renderBottomControls () {
     return (
       <div
@@ -1583,6 +1588,7 @@ class Timeline extends React.Component {
                                   this.showEventHandlersEditor(...args);
                                 }}
                                 onDoubleClickToMoveGauge={this.moveGaugeOnDoubleClick}
+                                setEditingRowTitleStatus={this.setEditingRowTitleStatus}
                               />
                             </div>
                             {providedDraggable.placeholder}
