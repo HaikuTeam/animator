@@ -1930,7 +1930,7 @@ Element.COMPONENT_EVENTS = [
   { label: 'Did Mount', value: 'component:did-mount' },
   { label: 'Will Unmount', value: 'component:will-unmount' },
   { label: 'Did Initialize', value: 'component:did-initialize' },
-  { label: 'Frame', value: 'frame' },
+  { label: 'Frame', value: 'frame' }
 ]
 
 Element.nodeIsGrouper = (node) => {
