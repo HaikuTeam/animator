@@ -37,7 +37,6 @@ export default class StateTransitionManager {
    * Create a new state transition.
    */
   setState (transitionEnd: StateValues, parameter?: StateTransitionParameters) {
-
     // If not a transition, execute it right away
     if (!parameter) {
       for (const key in transitionEnd) {
@@ -143,7 +142,6 @@ export default class StateTransitionManager {
    * and execute interpolation of running state transitions.
    */
   tickStateTransitions (): void {
-
     const currentTime = this.clock.getTime();
     const interpolatedStates = {};
 
