@@ -368,6 +368,12 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     }
   }
 
+  visitGuests (visitor: Function) {
+    for (const $id in this.guests) {
+      visitor(this.guests[$id], $id);
+    }
+  }
+
   // If the component needs to remount itself for some reason, make sure we fire the right events
   callRemount (incomingConfig, skipMarkForFullFlush = false) {
     this.routeEventToHandlerAndEmit(GLOBAL_LISTENER_KEY, 'component:will-mount', [this]);
@@ -475,7 +481,6 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
 
   set (key, value) {
     this.emitFromRootComponent('state:change', {state: key, from: this.state[key], to: value});
-
     this.state[key] = value;
     return this;
   }
@@ -924,12 +929,86 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     this.emit(eventNameGiven, ...eventArgs);
   }
 
-  broadcast (eventName: string, ...eventArgs) {
-    this.visitGuestHierarchy((guest) => {
-      guest.routeEventToHandler(GLOBAL_LISTENER_KEY, eventName, eventArgs);
-      guest.emitToListeners(eventName, eventArgs);
-      guest.emitToGenericListeners(eventName, eventArgs);
-    });
+  /**
+   * @description A more expressive form of `emit` that allows the user to route
+   * events to specific collections of elements/components in the tree using labels,
+   * selectors, etc. This method is provided in lieu of providing an individual method
+   * for every possible topology.
+   */
+  send (route: string, name: string, ...args) {
+    // Send to parent
+    if (
+      route === 'emit' ||
+      route === 'up' ||
+      route === 'parent' ||
+      route === '<' // Cute: '>' is the opposite of CSS children selector '<'
+    ) {
+      this.emit(name, ...args);
+      return;
+    }
+
+    // Send to children
+    if (
+      route === 'down' ||
+      route === 'children' ||
+      route === '>' // CSS children selector
+    ) {
+      this.visitGuests((guest) => {
+        guest.emitWithoutBubbling(name, ...args);
+      });
+      return;
+    }
+
+    // Send to siblings
+    if (
+      route === 'sideways' ||
+      route === 'siblings' ||
+      route === '~' // CSS sibling selector
+    ) {
+      if (this.host) {
+        this.host.visitGuests((guest) => {
+          if (guest !== this) {
+            guest.emitWithoutBubbling(name, ...args);
+          }
+        });
+      }
+      return;
+    }
+
+    // Send to everyone
+    if (
+      route === '*'
+    ) {
+      this.top.visitGuestHierarchy((guest) => {
+        if (guest !== this) {
+          guest.emitWithoutBubbling(name, ...args);
+        }
+      });
+    }
+  }
+
+  emitToAncestors (name: string, ...args) {
+    if (this.host) {
+      // 1. Emit to listeners on the "wrapper" div
+      this.host.routeEventToHandler(
+        `haiku:${getNodeCompositeId(this.parentNode)}`,
+        name,
+        [this].concat(args),
+      );
+
+      // 2. For convenience, emit to listeners on the root component of the hosts
+      this.host.routeEventToHandler(
+        `haiku:${getNodeCompositeId(this.host)}`,
+        name,
+        [this].concat(args),
+      );
+    }
+  }
+
+  emitWithoutBubbling (key: string, ...args) {
+    this.routeEventToHandler(GLOBAL_LISTENER_KEY, key, args);
+    this.emitToListeners(key, args);
+    this.emitToGenericListeners(key, args);
   }
 
   markForFullFlush () {
@@ -1416,6 +1495,9 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     this.stateTransitionManager.setState(initialStates, {curve, duration});
   }
 
+  /**
+   * @description Get the topmost component in the hierarchy.
+   */
   get top (): HaikuComponent {
     if (this.host) {
       return this.host.top;
@@ -2297,33 +2379,6 @@ const hydrateNode = (
     // In the case that the node represents the root of an instance, treat the instance as the element;
     // connect their references and override the equivalent action in findOrCreateByNode.
     HaikuElement.connectNodeWithElement(node, node.__memory.instance);
-
-    // The host component should hear events emitted by the guest component
-    if (host) {
-      // Clear the previous listener (avoid multiple subscriptions to the same event)
-      if (node.__memory.listener) {
-        node.__memory.instance.off('*', node.__memory.listener);
-      }
-
-      node.__memory.listener = (key, ...args) => {
-        // 1. Emit to listeners on the "wrapper" div
-        host.routeEventToHandler(
-          `haiku:${getNodeCompositeId(parent)}`,
-          key,
-          [node.__memory.instance].concat(args),
-        );
-
-        // 2. For convenience, emit to listeners on the root component of the hosts
-        host.routeEventToHandler(
-          `haiku:${getNodeCompositeId(host)}`,
-          key,
-          [node.__memory.instance].concat(args),
-        );
-      };
-
-      // Bubble emitted events to the host component so it can subscribe declaratively
-      node.__memory.instance.on('*', node.__memory.listener);
-    }
   }
 
   // If the element name is missing it should still be safe to hydrate the children
