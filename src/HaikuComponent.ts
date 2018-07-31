@@ -330,7 +330,11 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
       console.warn('[haiku core] caught error during migration post-phase', exception);
     }
 
-    this.routeEventToHandlerAndEmit(GLOBAL_LISTENER_KEY, 'component:did-initialize', [this]);
+    if (!this.host) {
+      this.routeEventToHandlerAndEmit(GLOBAL_LISTENER_KEY, 'component:did-initialize', [this]);
+    } else {
+      this.routeEventToHandlerAndEmitWithoutBubbling(GLOBAL_LISTENER_KEY, 'component:did-initialize', [this]);
+    }
 
     // #FIXME: some handlers may still reference `_bytecode` directly.
     this._bytecode = this.bytecode;
@@ -376,7 +380,13 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
 
   // If the component needs to remount itself for some reason, make sure we fire the right events
   callRemount (incomingConfig, skipMarkForFullFlush = false) {
-    this.routeEventToHandlerAndEmit(GLOBAL_LISTENER_KEY, 'component:will-mount', [this]);
+    this.visitGuestHierarchy((guest) => {
+      if (guest === this) {
+        guest.routeEventToHandlerAndEmit(GLOBAL_LISTENER_KEY, 'component:will-mount', [guest]);
+      } else {
+        guest.routeEventToHandlerAndEmitWithoutBubbling(GLOBAL_LISTENER_KEY, 'component:will-mount', [guest]);
+      }
+    });
 
     // Note!: Only update config if we actually got incoming options!
     if (incomingConfig) {
@@ -415,7 +425,13 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
 
     this.context.contextMount();
 
-    this.routeEventToHandlerAndEmit(GLOBAL_LISTENER_KEY, 'component:did-mount', [this]);
+    this.visitGuestHierarchy((guest) => {
+      if (guest === this) {
+        guest.routeEventToHandlerAndEmit(GLOBAL_LISTENER_KEY, 'component:did-mount', [guest]);
+      } else {
+        guest.routeEventToHandlerAndEmitWithoutBubbling(GLOBAL_LISTENER_KEY, 'component:did-mount', [guest]);
+      }
+    });
   }
 
   destroy () {
@@ -451,7 +467,13 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
 
     this.context.contextUnmount();
 
-    this.routeEventToHandlerAndEmit(GLOBAL_LISTENER_KEY, 'component:will-unmount', [this]);
+    this.visitGuestHierarchy((guest) => {
+      if (guest === this) {
+        guest.routeEventToHandlerAndEmit(GLOBAL_LISTENER_KEY, 'component:will-unmount', [guest]);
+      } else {
+        guest.routeEventToHandlerAndEmitWithoutBubbling(GLOBAL_LISTENER_KEY, 'component:will-unmount', [guest]);
+      }
+    });
   }
 
   assignConfig (incomingConfig) {
@@ -924,9 +946,20 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     if (this.isDeactivated) {
       return;
     }
-
     this.routeEventToHandler(eventSelectorGiven, eventNameGiven, eventArgs);
     this.emit(eventNameGiven, ...eventArgs);
+  }
+
+  routeEventToHandlerAndEmitWithoutBubbling (
+    eventSelectorGiven: string,
+    eventNameGiven: string,
+    eventArgs: any,
+  ) {
+    if (this.isDeactivated) {
+      return;
+    }
+    this.routeEventToHandler(eventSelectorGiven, eventNameGiven, eventArgs);
+    this.emitWithoutBubbling(eventNameGiven, ...eventArgs);
   }
 
   /**
