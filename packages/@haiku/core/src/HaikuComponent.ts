@@ -159,6 +159,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
   doPreserve3d;
   guests: {[haikuId: string]: HaikuComponent};
   helpers;
+  hooks;
   host: HaikuComponent;
   playback;
   PLAYER_VERSION;
@@ -238,8 +239,15 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     // Instantiate StateTransitions. Responsible to store and execute any state transition.
     this.stateTransitionManager = new StateTransitionManager(this);
 
+    this.hooks = {};
+
+    this.helpers = Object.assign({}, this.bytecode.helpers, {
+      data: {},
+    });
+
     // `assignConfig` calls bindStates because our incoming config, which
     // could occur at any point during runtime, e.g. in React, may need to update internal states, etc.
+    // It also may populate hooks and helpers if passed in via configuration.
     this.assignConfig(config);
 
     this.hydrateMutableTimelines();
@@ -262,10 +270,6 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
 
     // Flag to indicate whether we are sleeping, an ephemeral condition where no rendering occurs
     this.isSleeping = false;
-
-    this.helpers = {
-      data: {},
-    };
 
     for (const helperName in HaikuHelpers.helpers) {
       this.helpers[helperName] = HaikuHelpers.helpers[helperName];
@@ -496,13 +500,17 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
 
     this.bindStates();
 
+    assign(this.hooks, this.config.hooks);
+
+    assign(this.helpers, this.config.helpers);
+
     assign(this.bytecode.timelines, this.config.timelines);
 
     return this;
   }
 
   set (key, value) {
-    this.emitFromRootComponent('state:change', {state: key, from: this.state[key], to: value});
+    this.callHook('state:change', {state: key, from: this.state[key], to: value});
     this.state[key] = value;
     return this;
   }
@@ -923,6 +931,16 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     });
   }
 
+  setHook (hookName: string, hookFn: Function) {
+    this.hooks[hookName] = hookFn;
+  }
+
+  callHook (hookName: string, ...args) {
+    if (typeof this.hooks[hookName] === 'function') {
+      this.hooks[hookName](...args);
+    }
+  }
+
   callEventHandler (eventsSelector: string, eventName: string, handler: Function, eventArgs: any): any {
     // Only fire the event listeners if the component is in 'live' interaction mode,
     // i.e., not currently being edited inside the Haiku authoring environment
@@ -930,12 +948,13 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
       return;
     }
 
+    this.callHook('action:before', this, eventName, eventsSelector, eventArgs);
     try {
-      this.emitFromRootComponent('action:fired', {action: eventName, element: eventsSelector});
-      return handler.apply(this, eventArgs);
+      handler.apply(this, eventArgs);
     } catch (exception) {
       consoleErrorOnce(exception);
     }
+    this.callHook('action:after', this, eventName, eventsSelector, eventArgs);
   }
 
   routeEventToHandlerAndEmit (

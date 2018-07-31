@@ -146,7 +146,7 @@ export default class HaikuTimeline extends HaikuBase {
 
       // Avoid log DoS for too-short timelines
       if (this.getMaxTime() > 200) {
-        this.component.emitFromRootComponent('loop', {
+        this.component.callHook('timeline:loop', {
           localElapsedTime: newElapsedTime,
           maxExplicitlyDefinedTime: this.getMaxTime(),
           globalClockTime: this.getClockTime(),
