@@ -99,14 +99,14 @@ export default function applyCssLayout (domElement, virtualElement, nodeLayout, 
       if (SVG_SIZEABLES[virtualElement.elementName]) {
         if (
           computedLayout.size.x !== undefined &&
-          domElement.getAttribute('width') !== null &&
+          domElement.getAttribute('width') === null &&
           domElement.getAttribute('width') !== computedLayout.size.x
         ) {
           domElement.setAttribute('width', computedLayout.size.x);
         }
         if (
           computedLayout.size.y !== undefined &&
-          domElement.getAttribute('height') !== null &&
+          domElement.getAttribute('height') === null &&
           domElement.getAttribute('height') !== computedLayout.size.y
         ) {
           domElement.setAttribute('height', computedLayout.size.y);
