@@ -1,0 +1,7 @@
+Open your console. Click one of the "H" elements in the "double" component. You should see logs that indicate the following:
+
+"double emits bronze"
+"main heard bronze"
+"double sends bro to siblings"
+"brotherheart heard bro (registered on svg)"
+"brotherheart heard bro (registered on root)"
