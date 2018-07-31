@@ -19,7 +19,7 @@ const STYLES = {
     transform: 'translateY(-50%)',
   },
   modalBody: {
-    minHeight: 90,
+    minHeight: 40,
   },
   title: {
     textTransform: 'uppercase',
@@ -28,6 +28,13 @@ const STYLES = {
     textAlign: 'left',
     marginBottom: 7,
   },
+  table: {
+    marginBottom: '30px',
+  },
+  tableBorder: {
+    border: '1px solid black',
+    textAlign: 'center',
+  },
 };
 
 class ConfirmGroupUngroup extends React.Component {
@@ -35,6 +42,8 @@ class ConfirmGroupUngroup extends React.Component {
     super(props);
     this.cancelGroup = this.cancelGroup.bind(this);
     this.confirmGroup = this.confirmGroup.bind(this);
+    this.renderTable = this.renderTable.bind(this);
+    this.renderTableLine = this.renderTableLine.bind(this);
   }
 
   cancelGroup () {
@@ -45,14 +54,43 @@ class ConfirmGroupUngroup extends React.Component {
     this.props.setGroupUngroupAnswerAndClose(true, this.props.groupOrUngroup);
   }
 
+  renderTableLine (component) {
+    return (
+      <tr style={STYLES.tableBorder} key={component.elementId} >
+        <td style={STYLES.tableBorder}>{component.title}</td>
+        <td style={STYLES.tableBorder}>{component.hasTransition ? 'Yes' : '----'}</td>
+        <td style={STYLES.tableBorder}>{component.hasExpression ? 'Yes' : '----'}</td>
+      </tr>
+    );
+  }
+
+  renderTable () {
+    return (
+      <div style={STYLES.table}>
+        <table style={STYLES.tableBorder}>
+          <tbody>
+            <tr style={STYLES.tableBorder}>
+              <th style={STYLES.tableBorder}>Component</th>
+              <th style={STYLES.tableBorder}>Transition(s)</th>
+              <th style={STYLES.tableBorder}>Expression(s)</th>
+            </tr>
+            {this.props.componentsLosingTransitions.map((component) => this.renderTableLine(component))}
+          </tbody>
+        </table>
+      </div>
+    );
+
+  }
+
   render () {
     return (
       <div style={STYLES.wrapper}>
         <ModalWrapper style={STYLES.modalWrapper}>
-          <div style={STYLES.title}>Confirm {this.props.groupOrUngroup}?</div>
+          <div style={STYLES.title}>Confirm {this.props.groupOrUngroup}</div>
           <div style={STYLES.modalBody}>
-            Some transition or expression from selected elements may be lost. Proceed anyway?
+            The listed transition(s) and/or expression(s) will be lost on {this.props.groupOrUngroup}. Proceed anyway?
           </div>
+          {this.renderTable()}
           <ModalFooter>
             <div style={[{display: 'inline-block'}]} >
               <button

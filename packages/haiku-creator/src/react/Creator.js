@@ -1950,7 +1950,6 @@ export default class Creator extends React.Component {
   }
 
   hideConfirmGroupUngroupPopup (userConfirmedGroup, groupOrUngroup) {
-    console.log('hideConfirmGroupUngroupPopup ', userConfirmedGroup, 'groupOrUngroup', groupOrUngroup);
     if (userConfirmedGroup) {
       mixpanel.haikuTrack('creator:glass:group_upgroup_answer_y');
     } else {

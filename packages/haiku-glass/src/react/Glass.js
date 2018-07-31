@@ -704,7 +704,6 @@ export class Glass extends React.Component {
           break;
 
         case 'confirm-group-ungroup-popup-closed':
-          console.log('confirm-group-ungroup-popup-closed', message);
           this.setState({isConfirmGroupUngroupPopupOpen: false});
           if (message.confirmed) {
             if (message.groupOrUngroup === 'group') {
@@ -1028,7 +1027,7 @@ export class Glass extends React.Component {
       mixpanel.haikuTrack('creator:glass:group');
 
       const componentsWithTransitionOrExpression = proxy.selection.map((element) => {
-        return {elementId: element.getComponentId(), ...this.getActiveComponent().elementHasTransitionOrExpression(element.getComponentId())};
+        return {title: element.getTitle(), elementId: element.getComponentId(), ...this.getActiveComponent().elementHasTransitionOrExpression(element.getComponentId())};
       });
 
       const willLoseTransitionOrExpression = componentsWithTransitionOrExpression.some((el) => el.hasTransition || el.hasExpression);
@@ -1064,7 +1063,7 @@ export class Glass extends React.Component {
       mixpanel.haikuTrack('creator:glass:ungroup');
 
       const componentsWithTransitionOrExpression = proxy.selection.map((element) => {
-        return {elementId: element.getComponentId(), ...this.getActiveComponent().elementHasTransitionOrExpression(element.getComponentId())};
+        return {title: element.getTitle(), elementId: element.getComponentId(), ...this.getActiveComponent().elementHasTransitionOrExpression(element.getComponentId())};
       });
 
       const willLoseTransitionOrExpression = componentsWithTransitionOrExpression.some((el) => el.hasTransition || el.hasExpression);
