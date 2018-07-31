@@ -95,7 +95,7 @@ export default class ComponentHeadingRow extends React.Component {
       <div
         id={`component-heading-row-${componentId}-${this.props.row.getAddress()}`}
         key={`component-heading-row-${componentId}-${this.props.row.getAddress()}`}
-        className="component-heading-row no-select"
+        className="component-heading-row no-select unselectable-during-marquee"
         onMouseOver={() => {
           this.throttledHandleRowHoverUnhover(true);
         }}

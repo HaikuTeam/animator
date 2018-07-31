@@ -65,7 +65,7 @@ export default class PropertyRow extends React.Component {
     }
     return (
       <div
-        className="family-label-for-property"
+        className="family-label-for-property unselectable-during-marquee"
         style={{
           position: 'absolute',
           top: 4,
@@ -142,7 +142,7 @@ export default class PropertyRow extends React.Component {
               </div>}
             {this.maybeRenderFamilyLabel()}
             <div
-              className="property-row-label no-select"
+              className="property-row-label no-select unselectable-during-marquee"
               style={{
                 right: 0,
                 width: this.props.timeline.getPropertiesPixelWidth() - 120,

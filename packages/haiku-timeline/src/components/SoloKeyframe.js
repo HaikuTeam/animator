@@ -41,17 +41,32 @@ export default class SoloKeyframe extends React.Component {
       return null;
     }
 
+    if (what === 'keyframe-ms-set' || what === 'keyframe-neighbor-move') {
+      this.forceUpdate(() => {
+        this.storeViewPosition(this[this.props.keyframe.getUniqueKey()]);
+      });
+    }
+
     if (
       what === 'keyframe-activated' ||
       what === 'keyframe-deactivated' ||
       what === 'keyframe-selected' ||
-      what === 'keyframe-deselected' ||
-      what === 'keyframe-ms-set' ||
-      what === 'keyframe-neighbor-move'
+      what === 'keyframe-deselected'
     ) {
       this.forceUpdate();
     }
   }
+
+  storeViewPosition = (domElement) => {
+    if (domElement && experimentIsEnabled(Experiment.TimelineMarqueeSelection)) {
+      requestAnimationFrame(() => {
+        this.props.keyframe.storeViewPosition({
+          rect: domElement.getBoundingClientRect(),
+          offset: this.props.timeline.getScrollLeft(),
+        });
+      });
+    }
+  };
 
   render () {
     const frameInfo = this.props.timeline.getFrameInfo();
@@ -61,15 +76,19 @@ export default class SoloKeyframe extends React.Component {
 
     return (
       <span
-        ref={(el) => {
-          if (el && experimentIsEnabled(Experiment.TimelineMarqueeSelection)) {
-            this.props.keyframe.storeViewPosition(el.getBoundingClientRect());
-          }
-        }}
+        ref={this.storeViewPosition}
         id={`solo-keyframe-${this.props.keyframe.getUniqueKey()}`}
-        style={{
+        style={experimentIsEnabled(Experiment.TimelineMarqueeSelection) ? {
+          position: 'absolute',
+          left: leftPx + 2,
+          top: 10,
+          transform: 'scale(1.7)',
+          transition: 'opacity 130ms linear',
+          zIndex: 1002,
+        } : {
           position: 'absolute',
           left: leftPx,
+          outline: '1px solid orange',
           // width: 9,
           height: 24,
           top: -3,
@@ -79,7 +98,10 @@ export default class SoloKeyframe extends React.Component {
         }}>
         <span
           className="keyframe-diamond"
-          style={{
+          style={experimentIsEnabled(Experiment.TimelineMarqueeSelection) ? {
+            cursor: (this.props.keyframe.isWithinCollapsedRow()) ? 'pointer' : 'move',
+            display: 'flex',
+          } : {
             position: 'absolute',
             top: 5,
             // left: 1,

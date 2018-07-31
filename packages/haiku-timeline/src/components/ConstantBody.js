@@ -42,19 +42,38 @@ export default class ConstantBody extends React.Component {
     if (!this.mounted) {
       return null;
     }
+
+    if (what === 'keyframe-ms-set' || what === 'keyframe-neighbor-move') {
+      this.forceUpdate(() => {
+        this.storeViewPosition(this[this.props.keyframe.getUniqueKey()]);
+      });
+    }
+
     if (
       what === 'keyframe-activated' ||
       what === 'keyframe-deactivated' ||
       what === 'keyframe-selected' ||
       what === 'keyframe-deselected' ||
-      what === 'keyframe-ms-set' ||
-      what === 'keyframe-neighbor-move' ||
       what === 'keyframe-body-selected' ||
       what === 'keyframe-body-unselected'
     ) {
       this.forceUpdate();
     }
   }
+
+  storeViewPosition = (domElement) => {
+    const uniqueKey = this.props.keyframe.getUniqueKey();
+    this[uniqueKey] = domElement;
+
+    if (experimentIsEnabled(Experiment.TimelineMarqueeSelection) && domElement) {
+      setTimeout(() => {
+        this.props.keyframe.storeViewPosition({
+          rect: domElement.getBoundingClientRect(),
+          offset: this.props.timeline.getScrollLeft(),
+        });
+      });
+    }
+  };
 
   render () {
     const frameInfo = this.props.timeline.getFrameInfo();
@@ -69,12 +88,7 @@ export default class ConstantBody extends React.Component {
 
     return (
       <span
-        ref={(domElement) => {
-          this[uniqueKey] = domElement;
-          if (experimentIsEnabled(Experiment.TimelineMarqueeSelection) && domElement) {
-            this.props.keyframe.storeViewPosition(domElement.getBoundingClientRect());
-          }
-        }}
+        ref={this.storeViewPosition}
         id={`constant-body-${uniqueKey}`}
         className="constant-body"
         onContextMenu={(ctxMenuEvent) => {
@@ -95,7 +109,13 @@ export default class ConstantBody extends React.Component {
           mouseEvent.stopPropagation();
           this.props.keyframe.handleMouseUp(mouseEvent, {...Globals}, {isViaConstantBodyView: true});
         }}
-        style={{
+        style={experimentIsEnabled(Experiment.TimelineMarqueeSelection) ? {
+          position: 'absolute',
+          left: pxOffsetLeft + 4,
+          width: pxOffsetRight - pxOffsetLeft,
+          height: this.props.rowHeight - 10,
+          top: 5,
+        } : {
           position: 'absolute',
           left: pxOffsetLeft + 4,
           width: pxOffsetRight - pxOffsetLeft,
@@ -103,7 +123,16 @@ export default class ConstantBody extends React.Component {
         }}>
         {(this.props.keyframe.isWithinCollapsedRow())
           ? ''
-          : <span style={{
+          : <span style={experimentIsEnabled(Experiment.TimelineMarqueeSelection) ? {
+            height: 3,
+            top: 7,
+            position: 'absolute',
+            zIndex: 2,
+            width: '100%',
+            backgroundColor: (this.props.keyframe.isSelectedBody())
+                ? Color(Palette.LIGHTEST_PINK).fade(0.5)
+                : Palette.DARKER_GRAY,
+          } : {
             height: 3,
             top: 12,
             position: 'absolute',
