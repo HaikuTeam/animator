@@ -177,6 +177,16 @@ export default class Creator extends React.Component {
       win.openDevTools();
     }
 
+    window.onerror = (message) => {
+      this.createNotice({
+        message,
+        type: 'error',
+        title: 'Oh no!',
+        closeText: 'Okay',
+        lightScheme: true,
+      });
+    };
+
     document.addEventListener('mousemove', (nativeEvent) => {
       this._lastMouseX = nativeEvent.clientX;
       this._lastMouseY = nativeEvent.clientY;
