@@ -4,7 +4,7 @@ import {
   normalizePointCurves,
   polygonArea,
   rotatePathForSmallestDistance,
-} from '@core/helpers/PathUtil';
+} from '@core/helpers/PathUtils';
 import SVGPoints from '@core/helpers/SVGPoints';
 import {CurveSpec} from '@core/vendor/svg-points/types';
 import * as tape from 'tape';

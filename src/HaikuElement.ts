@@ -5,6 +5,7 @@ import {
   BoundsSpecY,
   BoundsSpecZ,
   BytecodeNode,
+  BytecodeNodeMemoryObject,
   ClientRect,
   ComputedLayoutSpec,
   HaikuBytecode,
@@ -46,8 +47,11 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
     super();
   }
 
-  get childNodes (): any {
-    return (this.node && this.node.children) || [];
+  get childNodes (): (string|BytecodeNode)[] {
+    return (
+      this.node &&
+      ((this.memory && this.memory.children) || this.node.children)
+    ) || [];
   }
 
   get children (): HaikuElement[] {
@@ -127,26 +131,12 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
     return this.memory && this.memory.context;
   }
 
-  get parentNode (): any {
+  get parentNode (): BytecodeNode {
     return this.memory && this.memory.parent;
   }
 
-  get memory (): any {
+  get memory (): BytecodeNodeMemoryObject {
     return this.node && this.node.__memory;
-  }
-
-  get expansion () {
-    // The "expansion" of an element is the node returned from the HaikuComponent#expand process,
-    // which converts the structurally static form to the structurally dynamic one.
-    return this.memory && this.memory.expansion;
-  }
-
-  get expansions (): HaikuElement[] {
-    const nodes = (this.expansion && this.expansion.children) || [];
-
-    return nodes.map((node) => {
-      return HaikuElement.findOrCreateByNode(node);
-    });
   }
 
   get parent (): any {
@@ -744,6 +734,11 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
     iteratee: Function,
     filter?: (value: HaikuElement, index: number, array: HaikuElement[]) => boolean,
   ) {
+    if (this.isWrapper()) {
+      // Avoids traversing down into a wrapper.
+      return true;
+    }
+
     const children = filter ? this.children.filter(filter) : this.children;
 
     for (let i = 0; i < children.length; i++) {

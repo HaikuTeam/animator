@@ -1,8 +1,8 @@
 import quat from './lib/quat';
-import glm4identity from './../gl-mat4/identity';
-import glm4fromRotationTranslation from './../gl-mat4/fromRotationTranslation';
-import glm4scale from './../gl-mat4/scale';
-import glm4multiply from './../gl-mat4/multiply';
+import glm4identity from '../gl-mat4/identity';
+import glm4fromRotationTranslation from '../gl-mat4/fromRotationTranslation';
+import glm4scale from '../gl-mat4/scale';
+import glm4multiply from '../gl-mat4/multiply';
 
 const mat4 = {
   identity: glm4identity,

@@ -375,9 +375,10 @@ export const visit = (
 
   visitor(mana, parent);
 
-  if (mana.children) {
-    for (let i = 0; i < mana.children.length; i++) {
-      const child = mana.children[i];
+  const children = (mana.__memory && mana.__memory.children) || mana.children;
+  if (children) {
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
 
       if (child && child.__memory && child.__memory.instance) {
         continue;
