@@ -1810,6 +1810,9 @@ class Element extends BaseModel {
         layoutMatrix[12] += (boundingBox.x + originX) * layoutMatrix[0] + (boundingBox.y + originY) * layoutMatrix[4]
         layoutMatrix[13] += (boundingBox.x + originX) * layoutMatrix[1] + (boundingBox.y + originY) * layoutMatrix[5]
         const layoutAncestryMatrices = descendantHaikuElement.layoutAncestryMatrices
+        if (layoutAncestryMatrices[layoutAncestryMatrices.length - 1] !== layoutMatrix) {
+          layoutAncestryMatrices.push(layoutMatrix)
+        }
         descendantHaikuElement.visit((subHaikuElement) => {
           // Clean out the computed layout so we can hoist it to the parent SVG element.
           delete subHaikuElement.node.layout
@@ -1853,7 +1856,8 @@ class Element extends BaseModel {
                   {
                     'haiku-transclude': descendantHaikuElement.getComponentId()
                   },
-                  descendantHaikuElement.attributes
+                  descendantHaikuElement.attributes,
+                  Property.layoutSpecAsProperties(descendantHaikuElement.expansion && descendantHaikuElement.expansion.layout)
                 ),
                 children: []
               }

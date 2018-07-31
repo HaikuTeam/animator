@@ -162,11 +162,10 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
   }
 
   get layoutAncestry (): any[] {
-    if (!this.layout) {
-      return [];
+    const ancestry = [];
+    if (this.layout) {
+      ancestry.unshift(this.layout);
     }
-
-    const ancestry = [this.layout];
     // tslint:disable-next-line:no-this-assignment
     let ancestor = this;
     while (ancestor.parent) {

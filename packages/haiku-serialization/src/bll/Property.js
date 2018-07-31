@@ -81,6 +81,10 @@ Property.humanizePropertyNamePart = (propertyNamePart) => {
 }
 
 Property.layoutSpecAsProperties = (spec) => {
+  if (!spec) {
+    return undefined
+  }
+
   return {
     'shown': spec.shown,
     'opacity': spec.opacity,
