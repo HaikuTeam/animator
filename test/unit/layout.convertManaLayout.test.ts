@@ -257,15 +257,27 @@ tape(
           children: [
             {
               elementName: 'title',
-              attributes: {'haiku-id': '99684d56ea7e'},
-              children: ['Rectangle'],
-            }, {
+              attributes: {
+                'haiku-id': '99684d56ea7e',
+              },
+              children: [
+                'Rectangle',
+              ],
+            },
+            {
               elementName: 'desc',
-              attributes: {'haiku-id': '0e6c5b97af5f'},
-              children: ['Created with sketchtool.'],
-            }, {
+              attributes: {
+                'haiku-id': '0e6c5b97af5f',
+              },
+              children: [
+                'Created with sketchtool.',
+              ],
+            },
+            {
               elementName: 'defs',
-              attributes: {'haiku-id': '2a5ec220ae44'},
+              attributes: {
+                'haiku-id': '2a5ec220ae44',
+              },
               children: [
                 {
                   elementName: 'rect',
@@ -273,16 +285,15 @@ tape(
                     id: 'path-1',
                     x: '0',
                     y: '0',
+                    width: '46',
+                    height: '50',
                     'haiku-id': '20d913d3fcf8',
-                    'sizeAbsolute.x': 46,
-                    'sizeMode.x': 1,
-                    'sizeAbsolute.y': 50,
-                    'sizeMode.y': 1,
                   },
                   children: [],
                 },
               ],
-            }, {
+            },
+            {
               elementName: 'g',
               attributes: {
                 id: 'Page-1',
@@ -309,18 +320,17 @@ tape(
                         'haiku-id': '0a31b66236b0',
                       },
                       children: [],
-                    }, {
+                    },
+                    {
                       elementName: 'rect',
                       attributes: {
                         stroke: '#979797',
                         'stroke-width': '1',
                         x: '0.5',
                         y: '0.5',
+                        width: '45',
+                        height: '49',
                         'haiku-id': '23b3ddd85804',
-                        'sizeAbsolute.x': 45,
-                        'sizeMode.x': 1,
-                        'sizeAbsolute.y': 49,
-                        'sizeMode.y': 1,
                       },
                       children: [],
                     },
@@ -356,7 +366,7 @@ tape(
           elementName: 'svg',
           attributes: {
             viewBox: '0 0 46 50',
-            version: '1.1',
+            version: 1.1,
             xmlns: 'http://www.w3.org/2000/svg',
             'xmlns:xlink': 'http://www.w3.org/1999/xlink',
             'sizeAbsolute.x': 46,
@@ -368,12 +378,18 @@ tape(
             {
               elementName: 'title',
               attributes: {},
-              children: ['Rectangle'],
-            }, {
+              children: [
+                'Rectangle',
+              ],
+            },
+            {
               elementName: 'desc',
               attributes: {},
-              children: ['Created with sketchtool.'],
-            }, {
+              children: [
+                'Created with sketchtool.',
+              ],
+            },
+            {
               elementName: 'defs',
               attributes: {},
               children: [
@@ -381,29 +397,30 @@ tape(
                   elementName: 'rect',
                   attributes: {
                     id: 'path-1',
-                    x: '0',
-                    y: '0',
-                    'sizeAbsolute.x': 46,
-                    'sizeMode.x': 1,
-                    'sizeAbsolute.y': 50,
-                    'sizeMode.y': 1,
+                    x: 0,
+                    y: 0,
+                    width: 46,
+                    height: 50,
                   },
                   children: [],
                 },
               ],
-            }, {
+            },
+            {
               elementName: 'g',
               attributes: {
                 id: 'Page-1',
                 stroke: 'none',
-                'stroke-width': '1',
+                'stroke-width': 1,
                 fill: 'none',
                 'fill-rule': 'evenodd',
               },
               children: [
                 {
                   elementName: 'g',
-                  attributes: {id: 'Rectangle'},
+                  attributes: {
+                    id: 'Rectangle',
+                  },
                   children: [
                     {
                       elementName: 'use',
@@ -413,17 +430,16 @@ tape(
                         'xlink:href': '#path-1',
                       },
                       children: [],
-                    }, {
+                    },
+                    {
                       elementName: 'rect',
                       attributes: {
                         stroke: '#979797',
-                        'stroke-width': '1',
-                        x: '0.5',
-                        y: '0.5',
-                        'sizeAbsolute.x': 45,
-                        'sizeMode.x': 1,
-                        'sizeAbsolute.y': 49,
-                        'sizeMode.y': 1,
+                        'stroke-width': 1,
+                        x: 0.5,
+                        y: 0.5,
+                        width: 45,
+                        height: 49,
                       },
                       children: [],
                     },
@@ -464,7 +480,7 @@ tape(
           elementName: 'svg',
           attributes: {
             viewBox: '0 0 91 299',
-            version: '1.1',
+            version: 1.1,
             xmlns: 'http://www.w3.org/2000/svg',
             'xmlns:xlink': 'http://www.w3.org/1999/xlink',
             'sizeAbsolute.x': 91,
@@ -476,12 +492,16 @@ tape(
             {
               elementName: 'title',
               attributes: {},
-              children: ['b-red'],
+              children: [
+                'b-red',
+              ],
             },
             {
               elementName: 'desc',
               attributes: {},
-              children: ['Created with sketchtool.'],
+              children: [
+                'Created with sketchtool.',
+              ],
             },
             {
               elementName: 'defs',
@@ -493,7 +513,7 @@ tape(
               attributes: {
                 id: 'Page-1',
                 stroke: 'none',
-                'stroke-width': '1',
+                'stroke-width': 1,
                 fill: 'none',
                 'fill-rule': 'evenodd',
               },
@@ -567,7 +587,7 @@ tape(
                             d: 'M65,123 L96,304',
                             id: 'L-1',
                             stroke: '#E3E3E3',
-                            'stroke-width': '2',
+                            'stroke-width': 2,
                             'stroke-linecap': 'square',
                           },
                           children: [],
@@ -597,7 +617,7 @@ tape(
         {elementName: 'svg',
           attributes: {
             viewBox: '0 0 400 400',
-            version: '1.1',
+            version: 1.1,
             xmlns: 'http://www.w3.org/2000/svg',
             'xmlns:xlink': 'http://www.w3.org/1999/xlink',
             'xml:space': 'preserve',
@@ -606,7 +626,7 @@ tape(
               'fill-rule': 'evenodd',
               'clip-rule': 'evenodd',
               'stroke-linejoin': 'round',
-              'stroke-miterlimit': '1.41421',
+              'stroke-miterlimit': '1.41421px',
             },
             'sizeProportional.x': 1,
             'sizeMode.x': 0,
@@ -619,10 +639,10 @@ tape(
             {
               elementName: 'ellipse',
               attributes: {
-                cx: '192.864',
-                cy: '190.365',
-                rx: '71.408',
-                ry: '58.444',
+                cx: 192.864,
+                cy: 190.365,
+                rx: 71.408,
+                ry: 58.444,
                 style: {fill: 'rgb(235,235,235)'},
               },
               children: [],
@@ -672,10 +692,6 @@ tape(
             x: '10',
             y: '20',
             'translation.x': 10,
-            'sizeMode.x': 1,
-            'sizeMode.y': 1,
-            'sizeAbsolute.x': 100,
-            'sizeAbsolute.y': 100,
           },
           children: [],
         },
@@ -815,13 +831,11 @@ tape(
         {
           elementName: 'rect',
           attributes: {
-            x: '87.826',
-            y: '164.369',
+            x: 87.826,
+            y: 164.369,
             fill: '#3FA9F5',
-            'sizeAbsolute.x': 67.002,
-            'sizeMode.x': 1,
-            'sizeAbsolute.y': 64.183,
-            'sizeMode.y': 1,
+            width: 67.002,
+            height: 64.183,
             'translation.x': -52.775,
             'translation.y': 44.785,
             'rotation.z': 5.982,
