@@ -175,6 +175,10 @@ export default class HaikuBase {
     }
   }
 
+  emitToAncestors (key: string, ...args) {
+    return; // no-op; Implemented by subclass
+  }
+
   emit (key: string, ...args) {
     // Specific direct listeners (this.on('foo:bar'))
     this.emitToListeners(key, args);
@@ -184,6 +188,9 @@ export default class HaikuBase {
 
     // Generic direct listeners (this.on('*'))
     this.emitToGenericListeners(key, args);
+
+    // Emit up the chain
+    this.emitToAncestors(key, ...args);
 
     const allArgs = [key].concat(args);
 
@@ -198,9 +205,7 @@ export default class HaikuBase {
     }
 
     // 'somebody:Did-Thing' -> 'somebodyDidThing'
-    const keyCamelCase = this.cacheFetch(key, () => {
-      return upperCaseFirstLetter(camelize(key));
-    });
+    const keyCamelCase = upperCaseFirstLetter(camelize(key));
 
     // 'somebodyDidThing' -> 'onSomebodyDidThing'
     const keyCamelCaseWithOnPrefix = `on${keyCamelCase}`;
