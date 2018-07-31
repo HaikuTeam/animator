@@ -29,51 +29,30 @@ export const getHaikuComponentInitialVersion = () => {
   return FALLBACK_SEMVER_VERSION;
 };
 
-export const getSafeProjectName = (maybePath: string, maybeName: string) => {
-  if (maybeName) {
-    return maybeName.replace(WHITESPACE_REGEX, UNDERSCORE);
-  }
-  if (maybePath) {
-    return pascalcase(maybePath.split(path.sep).join(UNDERSCORE));
-  }
-  throw new Error('Unable to infer a project name!');
-};
+export const getSafeProjectName = (name: string) => name.replace(WHITESPACE_REGEX, UNDERSCORE);
 
-export const getProjectNameSafeShort = (maybePath: string, maybeName: string) => {
-  return getSafeProjectName(maybePath, maybeName).slice(0, 20);
-};
+export const getProjectNameSafeShort = (name: string) => getSafeProjectName(name).slice(0, 20);
 
-export const getProjectNameLowerCase = (maybePath: string, maybeName: string) => {
-  return getSafeProjectName(maybePath, maybeName).toLowerCase();
-};
+export const getProjectNameLowerCase = (name: string) => getSafeProjectName(name).toLowerCase();
 
-export const getReactProjectName = (maybePath: string, maybeName: string) => {
-  return `React_${getSafeProjectName(maybePath, maybeName)}`;
-};
+export const getReactProjectName = (name: string) => `React_${getSafeProjectName(name)}`;
 
-export const getAngularSelectorName = (maybePath: string, maybeName: string) => {
-  return getSafeProjectName(maybePath, maybeName)
-    .replace(/([A-Z])/g, (char: string) => `-${char.toLowerCase()}`)
-    .replace(/^-/, '');
-};
+export const getAngularSelectorName = (name: string) => getSafeProjectName(name)
+.replace(/([A-Z])/g, (char: string) => `-${char.toLowerCase()}`)
+.replace(/^-/, '');
 
-export const getStandaloneName = (organizationName: string, projectPath: string, projectName: string) => {
-  return `HaikuComponent_${organizationName}_${getProjectNameSafeShort(projectPath, projectName)}`;
-};
+export const getStandaloneName = (organizationName: string, name: string) =>
+  `HaikuComponent_${organizationName}_${getProjectNameSafeShort(name)}`;
 
-export const getCopyrightNotice = (organizationName: string) => {
-  return dedent`
-  ${`Copyright (c) ${(new Date()).getFullYear()} ${organizationName}. All rights reserved.`}
-  `;
-};
+export const getCopyrightNotice = (organizationName: string) => dedent`
+${`Copyright (c) ${(new Date()).getFullYear()} ${organizationName}. All rights reserved.`}
+`;
 
 export const getOrganizationNameOrFallback = (organizationName: string) => {
   return organizationName || FALLBACK_ORG_NAME;
 };
 
-export const getAuthorNameOrFallback = (authorName: string) => {
-  return authorName || FALLBACK_AUTHOR_NAME;
-};
+export const getAuthorNameOrFallback = (authorName: string) => authorName || FALLBACK_AUTHOR_NAME;
 
 export const readPackageJson = (folder: string) => {
   let pkgjson: {haiku?: any, version?: any} = {};
@@ -110,10 +89,6 @@ export const storeConfigValues = (folder: string, incoming: any) => {
   return pkgjson.haiku;
 };
 
-export const getDefaultIllustratorAssetPath = (maybePath: string, maybeName: string) => {
-  return `designs/${getProjectNameSafeShort(maybePath, maybeName)}.ai`;
-};
+export const getDefaultIllustratorAssetPath = (name: string) => `designs/${getProjectNameSafeShort(name)}.ai`;
 
-export const getDefaultSketchAssetPath = (maybePath: string, maybeName: string) => {
-  return `designs/${getProjectNameSafeShort(maybePath, maybeName)}.sketch`;
-};
+export const getDefaultSketchAssetPath = (name: string) => `designs/${getProjectNameSafeShort(name)}.sketch`;
