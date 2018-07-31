@@ -175,6 +175,14 @@ export default class HaikuTimeline extends HaikuBase {
       [frame, time],
     );
 
+    // Allow users to subscribe to the 'frame' event globally
+    this.component.routeEventToHandlerAndEmit(
+      GLOBAL_LISTENER_KEY,
+      'frame',
+      [frame, time],
+    );
+
+    // Deprecated; please use the 'frame' event instead. This is used by the Haiku Share Page.
     this.emit('tick', frame, time);
 
     this.lastFrame = frame;
