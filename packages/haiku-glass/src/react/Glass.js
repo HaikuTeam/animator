@@ -31,7 +31,7 @@ import scaleCursorMana from '../overlays/scaleCursorMana';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import {isMac} from 'haiku-common/lib/environments/os';
 import directSelectionMana from '../overlays/directSelectionMana';
-import Transitions from '@haiku/core/lib/Transitions';
+import {calculateValue} from '@haiku/core/lib/Transitions';
 import {
   DEFAULT_LINE_SELECTION_THRESHOLD,
   isPointInsidePrimitive,
@@ -41,7 +41,7 @@ import {
   buildPathLUT,
 } from 'haiku-common/lib/math/geometryUtils';
 import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
-import {splitSegmentInSVGPoints, distance} from '@haiku/core/lib/helpers/PathUtil';
+import {splitSegmentInSVGPoints, distance} from '@haiku/core/lib/helpers/PathUtils';
 import Globals from 'haiku-ui-common/lib/Globals';
 import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 import {clipboard, shell, remote, ipcRenderer} from 'electron';
@@ -869,7 +869,10 @@ export class Glass extends React.Component {
     for (const i in attributes) {
       uniqueInterpolatedKeys[attributes[i]] = {};
       for (const ms in uniqueMs) {
-        uniqueInterpolatedKeys[attributes[i]][ms] = Transitions.calculateValue(curKeys[attributes[i]], ms);
+        uniqueInterpolatedKeys[attributes[i]][ms] = calculateValue(
+          curKeys[attributes[i]],
+          ms,
+        );
       }
     }
 
@@ -1452,13 +1455,7 @@ export class Glass extends React.Component {
               const prevDirectlySelected = Element.directlySelected;
               let clickedItemFound = null;
               elementTargeted.getHaikuElement().visit((descendant) => {
-                if (descendant.isWrapper()) {
-                  return;
-                }
-                if (descendant.isComponent()) {
-                  return;
-                }
-                if (descendant.isChildOfDefs) {
+                if (descendant.isWrapper() || descendant.isComponent() || descendant.isChildOfDefs) {
                   return;
                 }
 

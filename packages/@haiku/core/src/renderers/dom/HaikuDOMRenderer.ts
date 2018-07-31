@@ -3,9 +3,9 @@
  */
 
 import {IHaikuComponent, IRenderer, MountLayout} from '../../api';
-import HaikuBase, {GLOBAL_LISTENER_KEY} from './../../HaikuBase';
-import {getNodeCompositeId} from './../../HaikuComponent';
-import assign from './../../vendor/assign';
+import HaikuBase, {GLOBAL_LISTENER_KEY} from '../../HaikuBase';
+import {getNodeCompositeId} from '../../HaikuComponent';
+import assign from '../../vendor/assign';
 import applyLayout from './applyLayout';
 import assignAttributes from './assignAttributes';
 import createRightClickMenu from './createRightClickMenu';
@@ -656,24 +656,25 @@ export default class HaikuDOMRenderer extends HaikuBase implements IRenderer {
       virtualElement.__memory.instance
     ) || component;
 
-    if (Array.isArray(virtualElement.children)) {
+    const children = (virtualElement.__memory && virtualElement.__memory.children) || virtualElement.children;
+    if (Array.isArray(children)) {
       // For performance, we don't render children during a patch operation, except in the case
       // that we have some text content, which we (hack) need to always assume needs an update.
       // TODO: Fix this hack and make smarter
       const doSkipChildren = (
         isPatchOperation &&
-        (typeof virtualElement.children[0] !== 'string')
+        (typeof children[0] !== 'string')
       );
 
       HaikuDOMRenderer.renderTree(
         domElement,
         virtualElement,
-        virtualElement.children,
+        children,
         instance,
         isPatchOperation,
         doSkipChildren,
       );
-    } else if (!virtualElement.children) {
+    } else if (!children) {
       // In case of falsy virtual children, we still need to remove elements that were already there
       HaikuDOMRenderer.renderTree(
         domElement,
@@ -843,7 +844,7 @@ export default class HaikuDOMRenderer extends HaikuBase implements IRenderer {
     return {
       elementName: virtualElement.elementName,
       attributes: HaikuDOMRenderer.cloneAttributes(virtualElement.attributes),
-      children: virtualElement.children,
+      children: (virtualElement.__memory && virtualElement.__memory.children) || virtualElement.children,
       __memory: virtualElement.__memory,
     };
   }

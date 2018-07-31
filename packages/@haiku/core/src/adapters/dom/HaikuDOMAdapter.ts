@@ -3,8 +3,8 @@
  */
 
 import {BytecodeOptions, HaikuBytecode} from '../../api';
-import HaikuContext, {ComponentFactory} from './../../HaikuContext';
-import dom from './../../renderers/dom';
+import HaikuContext, {ComponentFactory} from '../../HaikuContext';
+import dom from '../../renderers/dom';
 
 const pkg = require('./../../../package.json');
 const VERSION = pkg.version;

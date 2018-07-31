@@ -548,7 +548,6 @@ class Element extends BaseModel {
   getComputedLayout () {
     const targetNode = this.getLiveRenderedNode() || {} // Fallback in case of render race
     const parentNode = (this.parent && this.parent.getLiveRenderedNode()) || {} // Fallback in case of render race
-    const targetExpansion = targetNode.__memory.expansion
 
     return HaikuElement.computeLayout(
       { // targetNode
@@ -561,10 +560,10 @@ class Element extends BaseModel {
         // But we still need the live node's actual properties in case we need to compute
         // auto sizing, which will require that we hydrate a HaikuElement and recurse
         // into its children and compute their sizes, and so-on.
-        elementName: targetExpansion.elementName,
-        attributes: targetExpansion.attributes,
-        children: targetExpansion.children,
-        __memory: targetExpansion.__memory
+        elementName: targetNode.elementName,
+        attributes: targetNode.attributes,
+        children: targetNode.__memory.children || targetNode.children,
+        __memory: targetNode.__memory
       },
       { // parentNode
         layout: {
@@ -1834,14 +1833,13 @@ class Element extends BaseModel {
 
         // The following ensures that width/height receivers we might encounter inside an SVG (rect, image, use, etc.)
         // won't lose their sizing.
-        // #FIXME: why is the layout available only on the expansion and not on the node itself?
-        if (descendantHaikuElement.expansion && descendantHaikuElement.expansion.layout) {
-          if (descendantHaikuElement.expansion.layout.sizeAbsolute.x > 0) {
-            descendantHaikuElement.attributes.width = descendantHaikuElement.expansion.layout.sizeAbsolute.x
+        if (descendantHaikuElement.layout) {
+          if (descendantHaikuElement.layout.sizeAbsolute.x > 0) {
+            descendantHaikuElement.attributes.width = descendantHaikuElement.layout.sizeAbsolute.x
           }
 
-          if (descendantHaikuElement.expansion.layout.sizeAbsolute.y) {
-            descendantHaikuElement.attributes.height = descendantHaikuElement.expansion.layout.sizeAbsolute.y
+          if (descendantHaikuElement.layout.sizeAbsolute.y) {
+            descendantHaikuElement.attributes.height = descendantHaikuElement.layout.sizeAbsolute.y
           }
         }
 
