@@ -48,7 +48,7 @@ export default class StateTransitionManager {
         const to = transitionEnd[key];
 
         if (from !== to) {
-          this.component.emitFromRootComponent('state:change', {
+          this.component.callHook('state:change', {
             from,
             to,
             state: key,
@@ -79,7 +79,7 @@ export default class StateTransitionManager {
         // If state transition for key is not created, process like a queued SetState
         if (transitionParameter.queue && this.transitions[key]) {
           if (from !== to) {
-            this.component.emitFromRootComponent('state:change', {
+            this.component.callHook('state:change', {
               from,
               to,
               queued: true,
@@ -99,7 +99,7 @@ export default class StateTransitionManager {
         // non queued transitions are overwrite transition queue
         } else {
           if (from !== to) {
-            this.component.emitFromRootComponent('state:change', {
+            this.component.callHook('state:change', {
               from,
               to,
               started: true,
@@ -153,7 +153,7 @@ export default class StateTransitionManager {
         const transition = this.transitions[stateName][0];
 
         if (this.isExpired(transition, currentTime)) {
-          this.component.emitFromRootComponent('state:change', {
+          this.component.callHook('state:change', {
             finished: true,
             state: stateName,
             to: transition.transitionEnd[stateName],
@@ -171,7 +171,7 @@ export default class StateTransitionManager {
 
           // Update next queued state transition or delete empty transition vector for performance reasons
           if (this.transitions[stateName].length > 0) {
-            this.component.emitFromRootComponent('state:change', {
+            this.component.callHook('state:change', {
               started: true,
               state: stateName,
               to: this.transitions[stateName][0].transitionEnd[stateName],
