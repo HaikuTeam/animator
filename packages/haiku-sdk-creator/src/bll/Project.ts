@@ -81,7 +81,7 @@ export class ProjectHandler extends EnvoyHandler {
       projectPath,
       authorName,
       organizationName: getSafeOrganizationName(organizationName),
-      projectName: getSafeProjectName(projectPath, project.Name),
+      projectName: getSafeProjectName(project.Name),
       projectExistsLocally: existsSync(projectPath),
       repositoryUrl: project.RepositoryUrl,
       forkComplete: project.ForkComplete,

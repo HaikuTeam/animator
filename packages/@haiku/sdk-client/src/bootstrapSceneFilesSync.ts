@@ -17,7 +17,7 @@ export const bootstrapSceneFilesSync = (componentFolder: string, scenename: stri
   );
   fse.outputFileSync(path.join(componentFolder, `code/${scenename}/react-dom.js`), REACT_DOM_JS);
   fse.outputFileSync(path.join(componentFolder, `code/${scenename}/angular-dom.js`),
-    ANGULAR_DOM_JS(getAngularSelectorName(componentFolder, scenename), scenename),
+    ANGULAR_DOM_JS(getAngularSelectorName(path.basename(componentFolder)), scenename),
   );
   fse.outputFileSync(path.join(componentFolder, `code/${scenename}/vue-dom.js`), VUE_DOM_JS);
 

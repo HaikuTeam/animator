@@ -30,9 +30,9 @@ export function createProjectFiles (
   try {
     logger.info('[project folder] building project content', projectOptions.projectPath);
 
-    const projectNameSafe = getProjectNameSafeShort(projectOptions.projectPath, projectOptions.projectName);
-    const projectNameLowerCase = getProjectNameLowerCase(projectOptions.projectPath, projectOptions.projectName);
-    const reactProjectName = getReactProjectName(projectOptions.projectPath, projectOptions.projectName);
+    const projectNameSafe = getProjectNameSafeShort(projectOptions.projectName);
+    const projectNameLowerCase = getProjectNameLowerCase(projectOptions.projectName);
+    const reactProjectName = getReactProjectName(projectOptions.projectName);
 
     const organizationName = getOrganizationNameOrFallback(projectOptions.organizationName);
     const organizationNameLowerCase = organizationName.toLowerCase();
@@ -181,9 +181,6 @@ export function createProjectFiles (
         ${copyrightNotice}
       `);
 
-      const standaloneName = getStandaloneName(
-        organizationName, projectOptions.projectPath, projectOptions.projectName);
-
         // But a bunch of ancillary files we take full control of and overwrite despite what the user did
       fse.outputFileSync(path.join(projectOptions.projectPath, 'index.js'), dedent`
         // By default, a DOM module is exported; see code/main/* for other options
@@ -195,9 +192,7 @@ export function createProjectFiles (
       `);
       fse.outputFileSync(path.join(projectOptions.projectPath, 'angular-module.js'), dedent`
         // By default, a Angular module is exported; see code/main/* for other options
-        module.exports = {
-          default: require('./code/main/angular-dom')
-        }
+        module.exports = require('./code/main/angular-dom')
       `);
       fse.outputFileSync(path.join(projectOptions.projectPath, 'vue.js'), dedent`
         // By default, a vue-dom module is exported; see code/main/* for other options
