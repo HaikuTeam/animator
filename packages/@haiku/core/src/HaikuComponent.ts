@@ -29,6 +29,7 @@ import {synchronizePathStructure} from './helpers/PathUtil';
 import SVGPoints from './helpers/SVGPoints';
 import Layout3D from './Layout3D';
 import {
+  MigrationOptions,
   runMigrationsPostPhase,
   runMigrationsPrePhase,
 } from './Migration';
@@ -304,8 +305,16 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
       return this.querySelectorAll(selector);
     };
 
+    const migrationOptions: MigrationOptions = {
+      attrsHyphToCamel: ATTRS_HYPH_TO_CAMEL,
+      // Random seed for adding instance uniqueness to ids at runtime.
+      referenceUniqueness: (config.hotEditingMode)
+        ? undefined // During editing, Haiku.app pads ids unless this is undefined
+        : Math.random().toString(36).slice(2),
+    };
+
     try {
-      runMigrationsPrePhase(this, {/*options*/}, VERSION);
+      runMigrationsPrePhase(this, migrationOptions);
     } catch (exception) {
       console.warn('[haiku core] caught error during migration pre-phase', exception);
     }
@@ -317,13 +326,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
       // If the bytecode we got happens to be in an outdated format, we automatically update it to the latest.
       runMigrationsPostPhase(
         this,
-        {
-          attrsHyphToCamel: ATTRS_HYPH_TO_CAMEL,
-          // Random seed for adding instance uniqueness to ids at runtime.
-          referenceUniqueness: (config.hotEditingMode)
-            ? undefined // During editing, Haiku.app pads ids unless this is undefined
-            : Math.random().toString(36).slice(2),
-        },
+        migrationOptions,
         VERSION,
       );
     } catch (exception) {

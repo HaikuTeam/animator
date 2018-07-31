@@ -2,10 +2,12 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
+import {BytecodeNode} from '../api';
 import {visitManaTree} from './../HaikuNode';
 import parseCssTransformString from './../helpers/parseCssTransformString';
 import Layout3D, {AUTO_SIZING_TOKEN} from './../Layout3D';
 import cssValue from './../vendor/css-value';
+import {SVG_SIZEABLES} from './applyCssLayout';
 
 const ROOT_LOCATOR = '0';
 
@@ -27,11 +29,11 @@ const TRANSFORM_COMPONENT_WHITELIST = {
   'origin.z': true,
 };
 
-function isNumericDefined (value): boolean {
+const isNumericDefined = (value: any): boolean => {
   return typeof value === 'number';
-}
+};
 
-function determineSizingProp (sizeAxis, attributeValue) {
+const determineSizingProp = (attributeValue) => {
   const parsedValues = cssValue(attributeValue + ''); // Someone may have sent a number
   const parsedValue = parsedValues[0]; // Some CSS props have multi values, but our size ones shouldn't
   switch (parsedValue.unit) {
@@ -42,11 +44,6 @@ function determineSizingProp (sizeAxis, attributeValue) {
         mode: 0,
       };
     case 'px':
-      return {
-        name: 'sizeAbsolute',
-        value: parsedValue.value,
-        mode: 1,
-      };
     case '':
       return {
         name: 'sizeAbsolute',
@@ -56,12 +53,12 @@ function determineSizingProp (sizeAxis, attributeValue) {
     default:
       return false;
   }
-}
+};
 
 const DEFAULT_SIZE_ABSOLUTE = 100;
 const DEFAULT_SIZE_PROPORTIONAL = 1.0; // 100%
 
-function fallbackSizeAbsolute (node: any, axis: string): number {
+const fallbackSizeAbsolute = (node: BytecodeNode, axis: string): number => {
   // This pathway assumes we've already tried attributes.width and attributes.style.width
   if (node && node.attributes) {
     const viewboxString = (node.attributes.viewBox || node.attributes.viewbox) + '';
@@ -77,11 +74,7 @@ function fallbackSizeAbsolute (node: any, axis: string): number {
   }
 
   return DEFAULT_SIZE_ABSOLUTE;
-}
-
-function fallbackSizeProportional (node: any, axis: string): number {
-  return DEFAULT_SIZE_PROPORTIONAL;
-}
+};
 
 /* tslint:disable */
 export default function convertManaLayout(mana) {
@@ -115,86 +108,89 @@ export default function convertManaLayout(mana) {
       }
     }
 
-    // Convert the width attribute to our layout-friendly size property
-    if (attributes.width !== undefined && attributes.width !== null) {
-      const widthProp = determineSizingProp('x', attributes.width);
-      if (widthProp) {
-        attributes[widthProp.name + '.x'] = widthProp.value;
-        attributes['sizeMode.x'] = widthProp.mode;
-        delete attributes.width; // Strip off the old value which is no longer needed
-      }
-    }
-
-    // Convert the height attribute to our layout-friendly size property
-    if (attributes.height !== undefined && attributes.height !== null) {
-      const heightProp = determineSizingProp('y', attributes.height);
-      if (heightProp) {
-        attributes[heightProp.name + '.y'] = heightProp.value;
-        attributes['sizeMode.y'] = heightProp.mode;
-        delete attributes.height; // Strip off the old value which is no longer needed
-      }
-    }
-
-    // Now do the same for any sizing attributes that may be present on the style object
-    if (attributes.style && typeof attributes.style === 'object') {
-      // Convert the style.width attribute to a layout-friendly size property
-      if (
-        attributes.style.width !== undefined &&
-        attributes.style.width !== null
-      ) {
-        const widthStyleProp = determineSizingProp('x', attributes.style.width);
-        if (widthStyleProp) {
-          attributes[widthStyleProp.name + '.x'] = widthStyleProp.value;
-          attributes['sizeMode.x'] = widthStyleProp.mode;
-          delete attributes.style.width; // Strip off the old value which is no longer needed
+    // Specifically avoid setting up layout size for SVG elements that can receive width and height as attributes.
+    if (typeof name !== 'string' || !SVG_SIZEABLES[name]) {
+      // Convert the width attribute to our layout-friendly size property
+      if (attributes.width !== undefined && attributes.width !== null) {
+        const widthProp = determineSizingProp(attributes.width);
+        if (widthProp) {
+          attributes[widthProp.name + '.x'] = widthProp.value;
+          attributes['sizeMode.x'] = widthProp.mode;
+          delete attributes.width; // Strip off the old value which is no longer needed
         }
       }
 
-      // Convert the style.height attribute to a layout-friendly size property
-      if (
-        attributes.style.height !== undefined &&
-        attributes.style.height !== null
-      ) {
-        const heightStyleProp = determineSizingProp('y', attributes.style.height);
-        if (heightStyleProp) {
-          attributes[heightStyleProp.name + '.y'] = heightStyleProp.value;
-          attributes['sizeMode.y'] = heightStyleProp.mode;
-          delete attributes.style.height; // Strip off the old value which is no longer needed
+      // Convert the height attribute to our layout-friendly size property
+      if (attributes.height !== undefined && attributes.height !== null) {
+        const heightProp = determineSizingProp(attributes.height);
+        if (heightProp) {
+          attributes[heightProp.name + '.y'] = heightProp.value;
+          attributes['sizeMode.y'] = heightProp.mode;
+          delete attributes.height; // Strip off the old value which is no longer needed
         }
       }
-    }
 
-    // For instantiatee roots, we want to ensure some kind of sizing is defined
-    if (!parent) {
-      // Force absolute sizing if we haven't explicitly set any sizing mode by now
-      if (!isNumericDefined(attributes['sizeMode.x'])) {
-        attributes['sizeMode.x'] = Layout3D.SIZE_ABSOLUTE;
-      }
-      if (!isNumericDefined(attributes['sizeMode.y'])) {
-        attributes['sizeMode.y'] = Layout3D.SIZE_ABSOLUTE;
+      // Now do the same for any sizing attributes that may be present on the style object
+      if (attributes.style && typeof attributes.style === 'object') {
+        // Convert the style.width attribute to a layout-friendly size property
+        if (
+          attributes.style.width !== undefined &&
+          attributes.style.width !== null
+        ) {
+          const widthStyleProp = determineSizingProp(attributes.style.width);
+          if (widthStyleProp) {
+            attributes[widthStyleProp.name + '.x'] = widthStyleProp.value;
+            attributes['sizeMode.x'] = widthStyleProp.mode;
+            delete attributes.style.width; // Strip off the old value which is no longer needed
+          }
+        }
+
+        // Convert the style.height attribute to a layout-friendly size property
+        if (
+          attributes.style.height !== undefined &&
+          attributes.style.height !== null
+        ) {
+          const heightStyleProp = determineSizingProp(attributes.style.height);
+          if (heightStyleProp) {
+            attributes[heightStyleProp.name + '.y'] = heightStyleProp.value;
+            attributes['sizeMode.y'] = heightStyleProp.mode;
+            delete attributes.style.height; // Strip off the old value which is no longer needed
+          }
+        }
       }
 
-      // Assign an absolute size no matter what, since this is the most common case,
-      // even if somehow the element still ends up in proportional size mode, these should be set
-      if (!isNumericDefined(attributes['sizeAbsolute.x']) && attributes['sizeAbsolute.x'] !== AUTO_SIZING_TOKEN) {
-        attributes['sizeAbsolute.x'] = fallbackSizeAbsolute(node, 'x');
-      }
-      if (!isNumericDefined(attributes['sizeAbsolute.y']) && attributes['sizeAbsolute.y'] !== AUTO_SIZING_TOKEN) {
-        attributes['sizeAbsolute.y'] = fallbackSizeAbsolute(node, 'y');
-      }
+      // For instantiatee roots, we want to ensure some kind of sizing is defined
+      if (!parent) {
+        // Force absolute sizing if we haven't explicitly set any sizing mode by now
+        if (!isNumericDefined(attributes['sizeMode.x'])) {
+          attributes['sizeMode.x'] = Layout3D.SIZE_ABSOLUTE;
+        }
+        if (!isNumericDefined(attributes['sizeMode.y'])) {
+          attributes['sizeMode.y'] = Layout3D.SIZE_ABSOLUTE;
+        }
 
-      // On the off chance we got a proportional size mode, but no proportional size, make it 100%
-      if (
-        attributes['sizeMode.x'] === Layout3D.SIZE_PROPORTIONAL &&
-        (!isNumericDefined(attributes['sizeProportional.x']))
-      ) {
-        attributes['sizeProportional.x'] = fallbackSizeProportional(node, 'x');
-      }
-      if (
-        attributes['sizeMode.y'] === Layout3D.SIZE_PROPORTIONAL &&
-        (!isNumericDefined(attributes['sizeProportional.y']))
-      ) {
-        attributes['sizeProportional.y'] = fallbackSizeProportional(node, 'y');
+        // Assign an absolute size no matter what, since this is the most common case,
+        // even if somehow the element still ends up in proportional size mode, these should be set
+        if (!isNumericDefined(attributes['sizeAbsolute.x']) && attributes['sizeAbsolute.x'] !== AUTO_SIZING_TOKEN) {
+          attributes['sizeAbsolute.x'] = fallbackSizeAbsolute(node, 'x');
+        }
+        if (!isNumericDefined(attributes['sizeAbsolute.y']) && attributes['sizeAbsolute.y'] !== AUTO_SIZING_TOKEN) {
+          attributes['sizeAbsolute.y'] = fallbackSizeAbsolute(node, 'y');
+        }
+
+        // On the off chance we got a proportional size mode, but no proportional size, make it 100%
+        if (
+          attributes['sizeMode.x'] === Layout3D.SIZE_PROPORTIONAL &&
+          (!isNumericDefined(attributes['sizeProportional.x']))
+        ) {
+          attributes['sizeProportional.x'] = DEFAULT_SIZE_PROPORTIONAL;
+        }
+        if (
+          attributes['sizeMode.y'] === Layout3D.SIZE_PROPORTIONAL &&
+          (!isNumericDefined(attributes['sizeProportional.y']))
+        ) {
+          attributes['sizeProportional.y'] = DEFAULT_SIZE_PROPORTIONAL;
+        }
       }
     }
 

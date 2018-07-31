@@ -28,7 +28,7 @@
  * @api public
  */
 
-export default function parse(xml) {
+export default function parse (xml) {
   xml = xml.trim();
 
   // strip comments
@@ -43,7 +43,7 @@ export default function parse(xml) {
    * XML document.
    */
 
-  function document() {
+  function document () {
     return {
       declaration: declaration(),
       root: tag(),
@@ -54,7 +54,7 @@ export default function parse(xml) {
    * Declaration.
    */
 
-  function declaration() {
+  function declaration () {
     const m = match(/^<\?xml\s*/);
     if (!m) {
       return;
@@ -83,7 +83,7 @@ export default function parse(xml) {
    * Tag.
    */
 
-  function tag() {
+  function tag () {
     const m = match(/^<([\w-:.]+)\s*/);
     if (!m) {
       return;
@@ -102,6 +102,10 @@ export default function parse(xml) {
       const attr = attribute();
       if (!attr) {
         return node;
+      }
+      // tslint:disable-next-line:triple-equals
+      if (parseFloat(attr.value) == attr.value) {
+        attr.value = parseFloat(attr.value);
       }
       node.attributes[attr.name] = attr.value;
     }
@@ -133,7 +137,7 @@ export default function parse(xml) {
    * Text content.
    */
 
-  function content() {
+  function content () {
     const m = match(/^([^<]*)/);
     if (m) {
       return m[1];
@@ -145,7 +149,7 @@ export default function parse(xml) {
    * Attribute.
    */
 
-  function attribute() {
+  function attribute () {
     const m = match(/([\w:-]+)\s*=\s*("[^"]*"|'[^']*'|\w+)\s*/);
     if (!m) {
       return;
@@ -160,7 +164,7 @@ export default function parse(xml) {
    * Strip quotes from `val`.
    */
 
-  function strip(val) {
+  function strip (val) {
     return val.replace(/^['"]|['"]$/g, '');
   }
 
@@ -168,7 +172,7 @@ export default function parse(xml) {
    * Match `re` and advance the string.
    */
 
-  function match(re) {
+  function match (re) {
     const m = xml.match(re);
     if (!m) {
       return;
@@ -181,7 +185,7 @@ export default function parse(xml) {
    * End-of-source.
    */
 
-  function eos() {
+  function eos () {
     return xml.length === 0;
   }
 
@@ -189,7 +193,7 @@ export default function parse(xml) {
    * Check for `prefix`.
    */
 
-  function is(prefix) {
+  function is (prefix) {
     return xml.indexOf(prefix) === 0;
   }
 }
