@@ -1832,6 +1832,19 @@ class Element extends BaseModel {
 
         composedTransformsToTimelineProperties(parentAttributes, layoutAncestryMatrices)
 
+        // The following ensures that width/height receivers we might encounter inside an SVG (rect, image, use, etc.)
+        // won't lose their sizing.
+        // #FIXME: why is the layout available only on the expansion and not on the node itself?
+        if (descendantHaikuElement.expansion && descendantHaikuElement.expansion.layout) {
+          if (descendantHaikuElement.expansion.layout.sizeAbsolute.x > 0) {
+            descendantHaikuElement.attributes.width = descendantHaikuElement.expansion.layout.sizeAbsolute.x
+          }
+
+          if (descendantHaikuElement.expansion.layout.sizeAbsolute.y) {
+            descendantHaikuElement.attributes.height = descendantHaikuElement.expansion.layout.sizeAbsolute.y
+          }
+        }
+
         // In this very special mana construct, we:
         //   - Offset the translation of the ungrouped SVG element by the render-time bounding box. This allows us
         //     to bypass otherwise necessary recomputation of things like path vertices in a new coordinate system.
@@ -1856,8 +1869,7 @@ class Element extends BaseModel {
                   {
                     'haiku-transclude': descendantHaikuElement.getComponentId()
                   },
-                  descendantHaikuElement.attributes,
-                  Property.layoutSpecAsProperties(descendantHaikuElement.expansion && descendantHaikuElement.expansion.layout)
+                  descendantHaikuElement.attributes
                 ),
                 children: []
               }
