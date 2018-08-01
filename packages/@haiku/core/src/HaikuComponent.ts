@@ -12,6 +12,7 @@ import {
   IHaikuComponent,
   IHaikuContext,
   ParsedValueCluster,
+  ParsedValueClusterCollection,
 } from './api';
 import Config from './Config';
 import HaikuBase, {GLOBAL_LISTENER_KEY} from './HaikuBase';
@@ -144,6 +145,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
   isDeactivated;
   isSleeping;
   private mutableTimelines: BytecodeTimelines;
+  private parsedValueClusters: ParsedValueClusterCollection = {};
   _states;
 
   bytecode: HaikuBytecode;
@@ -555,6 +557,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     }
 
     this.hydrateMutableTimelines();
+    this.parsedValueClusters = {};
 
     if (this.bytecode.timelines) {
       for (const timelineName in this.bytecode.timelines) {
@@ -1767,7 +1770,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
 
     const skipStableParsees = isPatchOperation && !skipCache;
 
-    if (skipStableParsees && this.clusterParseeIsStable(timelineName, flexId, outputName, cluster)) {
+    if (skipStableParsees && this.clusterParseeIsStable(parseeWithKeys)) {
       return parseeWithKeys;
     }
 
@@ -1976,20 +1979,26 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     outputName,
     cluster,
   ): ParsedValueCluster {
-    return this.cacheFetch<ParsedValueCluster>(`parsee:${timelineName}|${flexId}|${outputName}`, () => ({
-      // The parsee object is mutated in place downstream
-      parsee: {},
-      keys: cluster ? getSortedKeyframes(cluster) : [],
-    }));
+    if (!this.parsedValueClusters[timelineName]) {
+      this.parsedValueClusters[timelineName] = {};
+    }
+
+    if (!this.parsedValueClusters[timelineName][flexId]) {
+      this.parsedValueClusters[timelineName][flexId] = {};
+    }
+
+    if (!this.parsedValueClusters[timelineName][flexId][outputName]) {
+      this.parsedValueClusters[timelineName][flexId][outputName] = {
+        // The parsee object is mutated in place downstream
+        parsee: {},
+        keys: cluster ? getSortedKeyframes(cluster) : [],
+      };
+    }
+
+    return this.parsedValueClusters[timelineName][flexId][outputName];
   }
 
-  private clusterParseeIsStable (
-    timelineName,
-    flexId,
-    outputName,
-    cluster,
-  ): boolean {
-    const parsedValueCluster = this.getParseeWithKeys(timelineName, flexId, outputName, cluster);
+  private clusterParseeIsStable (parsedValueCluster: ParsedValueCluster): boolean {
     return parsedValueCluster.keys.every(
       (ms) => parsedValueCluster.parsee[ms] && !parsedValueCluster.parsee[ms].expression,
     );

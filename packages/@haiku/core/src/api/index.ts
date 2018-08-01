@@ -620,3 +620,14 @@ export interface ParsedValueCluster {
   };
   keys: number[];
 }
+
+/**
+ * Similar to BytecodeTimelines, but storing parsed value clusters instead of literal timelines.
+ */
+export interface ParsedValueClusterCollection {
+  [timelineName: string]: {
+    [selector: string]: {
+      [propertyName: string]: ParsedValueCluster;
+    };
+  };
+}
