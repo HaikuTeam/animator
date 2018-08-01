@@ -18,7 +18,7 @@ import HaikuBase, {GLOBAL_LISTENER_KEY} from './HaikuBase';
 import HaikuClock from './HaikuClock';
 import HaikuElement from './HaikuElement';
 import HaikuHelpers from './HaikuHelpers';
-import {ascend, cssMatchOne, cssQueryTree, visit, xmlToMana} from './HaikuNode';
+import {ascend, cssMatchOne, cssQueryList, manaFlattenTree, visit, xmlToMana} from './HaikuNode';
 import HaikuTimeline, {PlaybackFlag, TimeUnit} from './HaikuTimeline';
 import ColorUtils from './helpers/ColorUtils';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
@@ -1252,6 +1252,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     skipCache = false,
   ) {
     const globalClockTime = this.context.clock.getExplicitTime();
+    const manaTree = this.manaTreeCached();
 
     for (const timelineName in this.bytecode.timelines) {
       const timelineInstance = this.getTimeline(timelineName);
@@ -1271,7 +1272,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
       }
 
       for (const behaviorSelector in mutableTimelineDescriptor) {
-        const matchingElementsForBehavior = this.findMatchingNodesByCSSSelector(behaviorSelector);
+        const matchingElementsForBehavior = this.findMatchingNodesByCSSSelector(manaTree, behaviorSelector);
 
         if (!matchingElementsForBehavior || matchingElementsForBehavior.length < 1) {
           continue;
@@ -1398,21 +1399,22 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
   }
 
   findElementsByHaikuId (componentId) {
-    return this.findMatchingNodesByCSSSelector(`haiku:${componentId}`);
+    return this.findMatchingNodesByCSSSelector(this.manaTreeCached(), `haiku:${componentId}`);
   }
 
   nodesCacheKey (selector: string) {
     return 'nodes:' + selector;
   }
 
-  findMatchingNodesByCSSSelector (selector: string) {
-    const nodes = this.cacheFetch(this.nodesCacheKey(selector), () => {
-      return cssQueryTree(
-        this.bytecode.template,
-        selector,
-        CSS_QUERY_MAPPING,
-      );
-    });
+  private manaTreeCached () {
+    return this.cacheFetch('flatManaTree', () => manaFlattenTree(this.bytecode.template, CSS_QUERY_MAPPING));
+  }
+
+  findMatchingNodesByCSSSelector (manaTree, selector: string) {
+    const nodes = this.cacheFetch(
+      this.nodesCacheKey(selector),
+      () => cssQueryList(manaTree, selector, CSS_QUERY_MAPPING),
+    );
 
     const out = [];
 
@@ -1425,7 +1427,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
       // copies of it inside the host repeater. If any repeatees are returned that means the
       // element is in fact a repeater, otherwise it is not a repeater, so just use the node.
       if (repeatees.length > 0) {
-        out.push.apply(out, repeatees);
+        out.push(...repeatees);
       } else {
         out.push(node);
       }
