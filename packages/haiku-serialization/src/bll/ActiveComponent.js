@@ -1661,8 +1661,8 @@ class ActiveComponent extends BaseModel {
         return
       }
 
-      console.log('Element with existingSource', existingSource)
-      console.log('Parameters: existingBytecode', existingBytecode, 'manaIncoming', manaIncoming, 'existingNode', existingNode)
+      // console.log('Element with existingSource', existingSource)
+      // console.log('Parameters: existingBytecode', existingBytecode, 'manaIncoming', manaIncoming, 'existingNode', existingNode)
 
       // *Prepare incoming mana*
       let safeIncoming = null
@@ -1702,11 +1702,11 @@ class ActiveComponent extends BaseModel {
         nodeToBeUpdated = existingNode
       }
 
-      console.log('nodeToBeUpdated', nodeToBeUpdated, 'safeIncoming', safeIncoming)
+      // console.log('nodeToBeUpdated', nodeToBeUpdated, 'safeIncoming', safeIncoming)
 
-      console.log('Prepare to remove child.. existingBytecode:', existingBytecode, 'nodeToBeUpdated', nodeToBeUpdated)
+      // console.log('Prepare to remove child.. existingBytecode:', existingBytecode, 'nodeToBeUpdated', nodeToBeUpdated)
       const removedOutputs = this.removeChildContentFromBytecode(existingBytecode, nodeToBeUpdated, isUngroupedElement)
-      console.log('Removed child.. removedOutputs', removedOutputs, 'existingBytecode:', existingBytecode, 'nodeToBeUpdated', nodeToBeUpdated)
+      // console.log('Removed child.. removedOutputs', removedOutputs, 'existingBytecode:', existingBytecode, 'nodeToBeUpdated', nodeToBeUpdated)
 
       const {
         hash
@@ -1723,7 +1723,7 @@ class ActiveComponent extends BaseModel {
         }
       )
 
-      console.log('Timelines object', timelinesObject)
+      // console.log('Timelines object', timelinesObject)
 
       const existingSelector = `haiku:${nodeToBeUpdated.attributes[HAIKU_ID_ATTRIBUTE]}`
       const incomingSelector = `haiku:${safeIncoming.attributes[HAIKU_ID_ATTRIBUTE]}`
