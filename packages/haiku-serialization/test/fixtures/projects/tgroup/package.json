@@ -1,0 +1,17 @@
+{
+  "haiku": {
+    "folder": "/home/jonaias/.haiku/projects/jonaias/tgroup",
+    "uuid": "HAIKU_SHARE_UUID",
+    "core": "3.5.1",
+    "username": "jonas.jonaias@gmail.com",
+    "organization": "jonaias",
+    "project": "tgroup",
+    "branch": "master",
+    "version": "0.0.0"
+  },
+  "version": "0.0.2",
+  "name": "@haiku/jonaias-tgroup",
+  "dependencies": {
+    "@haiku/core": "^3.5.1"
+  }
+}
