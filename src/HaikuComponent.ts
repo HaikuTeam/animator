@@ -169,6 +169,8 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
   stateTransitionManager: StateTransitionManager;
   needsExpand = true;
 
+  patches: BytecodeNode[] = [];
+
   constructor (
     bytecode: HaikuBytecode,
     context: IHaikuContext,
@@ -1220,13 +1222,13 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     const patches = {};
 
     this.expandIfNeeded();
-    visit(this.bytecode.template, (node, parent) => {
-      if (node.__memory.patched) {
-        computeAndApplyLayout(node, parent);
-        patches[getNodeCompositeId(node)] = node;
-        node.__memory.patched = false;
-      }
-    }, this.container);
+    for (let i = 0; i < this.patches.length; i++) {
+      const node = this.patches[i];
+      computeAndApplyLayout(node, node.__memory.parent);
+      patches[getNodeCompositeId(node)] = node;
+    }
+
+    this.patches = [];
 
     return patches;
   }
@@ -1240,7 +1242,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
       );
 
       if (didSizingChange) {
-        (this.bytecode.template as BytecodeNode).__memory.patched = true;
+        this.patches.push(this.bytecode.template);
       }
     }
   }
@@ -1286,7 +1288,6 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
 
         for (let i = 0; i < matchingElementsForBehavior.length; i++) {
           const matchingElement = matchingElementsForBehavior[i];
-          matchingElement.__memory.patched = false;
           const compositeId = getNodeCompositeId(matchingElement);
 
           for (let j = 0; j < propertyOperations.length; j++) {
@@ -1340,8 +1341,9 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
                   timelineInstance,
                 );
 
-                // This is used downstream to decide whether patch updates are worthwhile
-                matchingElement.__memory.patched = true;
+                if (isPatchOperation) {
+                  this.patches.push(matchingElement);
+                }
               }
             }
           }
