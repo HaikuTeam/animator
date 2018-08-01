@@ -89,7 +89,7 @@ Expression.VALUE_NORMALIZERS = {
   'sizeAbsolute.x': numericNormalizer,
   'sizeAbsolute.y': numericNormalizer,
   'sizeAbsolute.z': numericNormalizer,
-  'style.perspective': pxUnitRequiredNormalizer,
+  'style.perspective': pxUnitRequiredNormalizer
 }
 
 Expression.isUnitToken = (str) => {
