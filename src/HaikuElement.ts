@@ -734,8 +734,8 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
     iteratee: Function,
     filter?: (value: HaikuElement, index: number, array: HaikuElement[]) => boolean,
   ) {
-    if (this.isWrapper()) {
-      // Avoids traversing down into a wrapper.
+    if (this.parent && this.parent.isWrapper()) {
+      // Avoids traversing down into a subcomponent.
       return true;
     }
 
