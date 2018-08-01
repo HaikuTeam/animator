@@ -92,7 +92,7 @@ export default class HaikuBase {
     return retrieveValueFromGlobalCache(this.buildQualifiedCacheKey(key));
   }
 
-  cacheFetch (key: string, provider: Function) {
+  cacheFetch<T> (key: string, provider: () => T): T {
     const valueExisting = this.cacheGet(key);
 
     if (valueExisting !== undefined) {

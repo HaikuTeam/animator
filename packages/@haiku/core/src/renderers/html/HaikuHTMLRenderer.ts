@@ -3,10 +3,10 @@
  */
 
 import {IRenderer, MountLayout} from '../../api';
+import HaikuBase from '../../HaikuBase';
+import HaikuComponent from '../../HaikuComponent';
+import {manaToXml} from '../../HaikuNode';
 import HaikuDOMRenderer from '../dom/HaikuDOMRenderer';
-import HaikuBase from './../../HaikuBase';
-import HaikuComponent from './../../HaikuComponent';
-import {manaToXml} from './../../HaikuNode';
 import VirtualNode, {VirtualDoc} from './VirtualNode';
 
 export default class HaikuHTMLRenderer extends HaikuBase implements IRenderer {

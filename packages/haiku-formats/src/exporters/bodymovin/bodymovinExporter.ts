@@ -6,7 +6,7 @@ import {
   Curve,
   HaikuBytecode,
 } from '@haiku/core/lib/api';
-import {synchronizePathStructure} from '@haiku/core/lib/helpers/PathUtil';
+import {synchronizePathStructure} from '@haiku/core/lib/helpers/PathUtils';
 import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
 import {CurveSpec} from '@haiku/core/lib/vendor/svg-points/types';
 import {writeFile} from 'fs-extra';

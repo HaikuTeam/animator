@@ -6,6 +6,7 @@ import {BytecodeNode, IHaikuComponent} from './api';
 import {visitManaTree, xmlToMana} from './HaikuNode';
 import compareSemver from './helpers/compareSemver';
 import migrateAutoSizing from './helpers/migrateAutoSizing';
+import {SVG_SIZEABLES} from './layout/applyCssLayout';
 import functionToRFO from './reflection/functionToRFO';
 import reifyRFO from './reflection/reifyRFO';
 
@@ -17,6 +18,7 @@ const enum UpgradeVersionRequirement {
   CamelAutoSizingOffset3DOmnibus = '3.5.2',
 }
 
+const HAIKU_ID_ATTRIBUTE = 'haiku-id';
 const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source';
 const HAIKU_VAR_ATTRIBUTE = 'haiku-var';
 
@@ -37,6 +39,13 @@ const isStringTemplate = (template: string|BytecodeNode): template is string => 
   return typeof template === STRING_TYPE;
 };
 
+export interface MigrationOptions {
+  attrsHyphToCamel: {
+    [key in string]: string;
+  };
+  referenceUniqueness?: string;
+}
+
 /**
  * Migrations are a mechanism to modify our bytecode from legacy format to the current format.
  * This always runs against production components' bytecode to ensure their data is a format
@@ -44,7 +53,7 @@ const isStringTemplate = (template: string|BytecodeNode): template is string => 
  * the pre-phase, which runs before an initial .render call, and a post-phase, which runs after.
  */
 
-export const runMigrationsPrePhase = (component: IHaikuComponent, options: any, version: string) => {
+export const runMigrationsPrePhase = (component: IHaikuComponent, options: MigrationOptions) => {
   const bytecode = component.bytecode;
 
   if (!bytecode.states) {
@@ -118,10 +127,9 @@ export const runMigrationsPrePhase = (component: IHaikuComponent, options: any, 
   }
 
   if (bytecode.timelines) {
-    const needsThreeDeeUpgrade = requiresUpgrade(coreVersion, UpgradeVersionRequirement.CamelAutoSizingOffset3DOmnibus);
+    // Expand all bytecode properties represented as shorthand.
     for (const timelineName in bytecode.timelines) {
       for (const selector in bytecode.timelines[timelineName]) {
-        // Expand all bytecode properties represented as shorthand.
         for (const property in bytecode.timelines[timelineName][selector]) {
           if (typeof bytecode.timelines[timelineName][selector][property] !== 'object') {
             bytecode.timelines[timelineName][selector][property] = {
@@ -131,77 +139,36 @@ export const runMigrationsPrePhase = (component: IHaikuComponent, options: any, 
             };
           }
         }
-
-        // Legacy backgroundColor was a root prop; in newer versions it's style.backgroundColor.
-        // We only want to update this if the user *hasn't* explicitly set style.backroundColor.
-        if (
-          bytecode.timelines[timelineName][selector].backgroundColor &&
-          !bytecode.timelines[timelineName][selector]['style.backgroundColor']
-        ) {
-          bytecode.timelines[timelineName][selector]['style.backgroundColor'] =
-            bytecode.timelines[timelineName][selector].backgroundColor;
-
-          delete bytecode.timelines[timelineName][selector].backgroundColor;
-        }
-
-        if (needsThreeDeeUpgrade) {
-          const transformStyleGroup = bytecode.timelines[timelineName][selector]['style.transformStyle'];
-
-          if (
-            transformStyleGroup &&
-            Object.keys(transformStyleGroup).length === 1 &&
-            transformStyleGroup[0] &&
-            transformStyleGroup[0].value === 'flat'
-          ) {
-            delete bytecode.timelines[timelineName][selector]['style.transformStyle'][0];
-          }
-
-          const perspectiveGroup = bytecode.timelines[timelineName][selector]['style.perspective'];
-
-          if (
-            perspectiveGroup &&
-            Object.keys(perspectiveGroup).length === 1 &&
-            perspectiveGroup[0] &&
-            perspectiveGroup[0].value === 'none'
-          ) {
-            delete bytecode.timelines[timelineName][selector]['style.perspective'][0];
-          }
-        }
-
-        // If we see that any 3D transformations are applied, automatically override flat perspective
-        // if it hasn't been automatically set, so that 3D perspective "just works"
-        if (component.config.preserve3d === 'auto') {
-          if (
-            areKeyframesDefined(bytecode.timelines[timelineName][selector]['rotation.x']) ||
-            areKeyframesDefined(bytecode.timelines[timelineName][selector]['rotation.y']) ||
-            areKeyframesDefined(bytecode.timelines[timelineName][selector]['translation.z']) ||
-            areKeyframesDefined(bytecode.timelines[timelineName][selector]['scale.z'])
-          ) {
-            component.doPreserve3d = true;
-          }
-        }
       }
     }
   }
-};
 
-export const runMigrationsPostPhase = (component: IHaikuComponent, options: any, version: string) => {
-  const bytecode = component.bytecode;
-
-  const coreVersion = bytecode.metadata.core || bytecode.metadata.player;
-
-  // If specified, make sure that internal URL references, e.g. url(#my-filter), are unique
-  // per each component instance, otherwise we will get filter collisions and weirdness on the page
+  const needsOmnibusUpgrade = requiresUpgrade(
+    coreVersion,
+    UpgradeVersionRequirement.CamelAutoSizingOffset3DOmnibus,
+  );
   const referencesToUpdate = {};
-  const alreadyUpdatedReferences = {};
-
-  let needsRerender = false;
 
   if (bytecode.template) {
+    const autoPreserve3d = component.config.preserve3d === 'auto';
+
+    // If specified, make sure that internal URL references, e.g. url(#my-filter), are unique
+    // per each component instance, otherwise we will get filter collisions and weirdness on the page
+    const alreadyUpdatedReferences = {};
+
     visitManaTree(
       '0',
       bytecode.template,
-      (elementName, attributes, children, node) => {
+      (elementName, attributes) => {
+        if (typeof attributes !== 'object') {
+          return;
+        }
+
+        const timelineProperties = bytecode.timelines.Default[`haiku:${attributes[HAIKU_ID_ATTRIBUTE]}`];
+        if (!timelineProperties) {
+          return;
+        }
+
         if (options && options.referenceUniqueness) {
           if (elementName === 'filter' || elementName === 'filterGradient') {
             if (attributes.id && !alreadyUpdatedReferences[attributes.id]) {
@@ -210,7 +177,6 @@ export const runMigrationsPostPhase = (component: IHaikuComponent, options: any,
               attributes.id = next;
               referencesToUpdate['url(#' + prev + ')'] = 'url(#' + next + ')';
               alreadyUpdatedReferences[attributes.id] = true;
-              needsRerender = true;
             }
           }
         }
@@ -224,33 +190,81 @@ export const runMigrationsPostPhase = (component: IHaikuComponent, options: any,
           attributes[HAIKU_VAR_ATTRIBUTE] = attributes.identifier;
           delete attributes.identifier;
         }
+
+        // Legacy backgroundColor was a root prop; in newer versions it's style.backgroundColor.
+        // We only want to update this if the user *hasn't* explicitly set style.backroundColor.
+        if (timelineProperties.backgroundColor && !timelineProperties['style.backgroundColor']) {
+          timelineProperties['style.backgroundColor'] = timelineProperties.backgroundColor;
+          delete timelineProperties.backgroundColor;
+        }
+
+        if (needsOmnibusUpgrade) {
+          const transformStyleGroup = timelineProperties['style.transformStyle'];
+          if (transformStyleGroup && transformStyleGroup[0] && transformStyleGroup[0].value === 'flat') {
+            delete timelineProperties['style.transformStyle'];
+          }
+
+          const perspectiveGroup = timelineProperties['style.perspective'];
+          if (perspectiveGroup && perspectiveGroup[0] && perspectiveGroup[0].value === 'none') {
+            delete timelineProperties['style.perspective'];
+          }
+
+          // Retire sizing layout from any SVG sizeable in favor of explicit properties.
+          if (typeof elementName === 'string' && SVG_SIZEABLES[elementName]) {
+            if (timelineProperties['sizeAbsolute.x']) {
+              timelineProperties.width = {0: {value: timelineProperties['sizeAbsolute.x'][0].value}};
+              delete timelineProperties['sizeAbsolute.x'];
+              delete timelineProperties['sizeMode.x'];
+            }
+
+            if (timelineProperties['sizeAbsolute.y']) {
+              timelineProperties.height = {0: {value: timelineProperties['sizeAbsolute.y'][0].value}};
+              delete timelineProperties['sizeAbsolute.y'];
+              delete timelineProperties['sizeMode.y'];
+            }
+
+            if (timelineProperties['sizeProportional.x']) {
+              timelineProperties.width = {
+                0: {value: `${Number(timelineProperties['sizeProportional.x'][0].value) * 100}%`},
+              };
+              delete timelineProperties['sizeProportional.x'];
+              delete timelineProperties['sizeMode.x'];
+            }
+
+            if (timelineProperties['sizeProportional.y']) {
+              timelineProperties.height = {
+                0: {value: `${Number(timelineProperties['sizeProportional.y'][0].value) * 100}%`},
+              };
+              delete timelineProperties['sizeProportional.y'];
+              delete timelineProperties['sizeMode.y'];
+            }
+          }
+        }
+
+        // If we see that any 3D transformations are applied, automatically override flat perspective
+        // if it hasn't been automatically set, so that 3D perspective "just works"
+        if (
+          !component.doPreserve3d &&
+          autoPreserve3d && (
+            areKeyframesDefined(timelineProperties['rotation.x']) ||
+            areKeyframesDefined(timelineProperties['rotation.y']) ||
+            areKeyframesDefined(timelineProperties['translation.z']) ||
+            areKeyframesDefined(timelineProperties['scale.z'])
+          )
+        ) {
+          component.doPreserve3d = true;
+        }
       },
       null,
       0,
     );
   }
 
-  const needsCamelAutoSizingOffsetOmnibus = requiresUpgrade(
-    coreVersion, UpgradeVersionRequirement.CamelAutoSizingOffset3DOmnibus);
-
   if (bytecode.timelines) {
+    // Although not ideal, it's likely beneficial to do another pass through the timelines to fill in
+    // reference uniqueness. This may allow us to avoid a rerender below.
     for (const timelineName in bytecode.timelines) {
       for (const selector in bytecode.timelines[timelineName]) {
-        if (needsCamelAutoSizingOffsetOmnibus) {
-          // Migrate auto-sizing.
-          migrateAutoSizing(bytecode.timelines[timelineName][selector]);
-          // Migrate camel-case property names.
-          for (const propertyName in bytecode.timelines[timelineName][selector]) {
-            const camelVariant = options.attrsHyphToCamel[propertyName];
-            if (camelVariant) {
-              bytecode.timelines[timelineName][selector][camelVariant] =
-                bytecode.timelines[timelineName][selector][propertyName];
-
-              delete bytecode.timelines[timelineName][selector][propertyName];
-            }
-          }
-        }
-
         // If we're a filter attribute, update our references per those to whom uniqueness was added above.
         // This appends a "*-abc123" string to the filter to avoid collisions when multiple same components
         // are mounted in a single web page
@@ -272,9 +286,35 @@ export const runMigrationsPostPhase = (component: IHaikuComponent, options: any,
             }
           }
         }
+
+        if (needsOmnibusUpgrade) {
+          // Migrate auto-sizing.
+          migrateAutoSizing(bytecode.timelines[timelineName][selector]);
+          // Migrate camel-case property names.
+          for (const propertyName in bytecode.timelines[timelineName][selector]) {
+            const camelVariant = options.attrsHyphToCamel[propertyName];
+            if (camelVariant) {
+              bytecode.timelines[timelineName][selector][camelVariant] =
+                bytecode.timelines[timelineName][selector][propertyName];
+
+              delete bytecode.timelines[timelineName][selector][propertyName];
+            }
+          }
+        }
       }
     }
   }
+};
+
+export const runMigrationsPostPhase = (component: IHaikuComponent, options: MigrationOptions, version: string) => {
+  const bytecode = component.bytecode;
+
+  const coreVersion = bytecode.metadata.core || bytecode.metadata.player;
+
+  let needsRerender = false;
+
+  const needsCamelAutoSizingOffsetOmnibus = requiresUpgrade(
+    coreVersion, UpgradeVersionRequirement.CamelAutoSizingOffset3DOmnibus);
 
   if (needsCamelAutoSizingOffsetOmnibus) {
     const alsoMigrateOrigin = requiresUpgrade(coreVersion, UpgradeVersionRequirement.OriginSupport);

@@ -9,7 +9,6 @@ import {
   BytecodeTimelines,
   Curve,
   HaikuBytecode,
-  IExpandResult,
   IHaikuComponent,
   IHaikuContext,
   ParsedValueCluster,
@@ -25,17 +24,19 @@ import ColorUtils from './helpers/ColorUtils';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
 import {isLiveMode} from './helpers/interactionModes';
 import isMutableProperty from './helpers/isMutableProperty';
-import {synchronizePathStructure} from './helpers/PathUtil';
+import {getSortedKeyframes} from './helpers/KeyframeUtils';
+import {synchronizePathStructure} from './helpers/PathUtils';
 import SVGPoints from './helpers/SVGPoints';
 import Layout3D from './Layout3D';
 import {
+  MigrationOptions,
   runMigrationsPostPhase,
   runMigrationsPrePhase,
 } from './Migration';
 import enhance from './reflection/enhance';
 import functionToRFO, {RFO} from './reflection/functionToRFO';
 import StateTransitionManager, {StateTransitionParameters, StateValues} from './StateTransitionManager';
-import Transitions from './Transitions';
+import {calculateValue} from './Transitions';
 import assign from './vendor/assign';
 import {CurveSpec} from './vendor/svg-points/types';
 
@@ -165,6 +166,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
   registeredEventHandlers;
   state;
   stateTransitionManager: StateTransitionManager;
+  needsExpand = true;
 
   constructor (
     bytecode: HaikuBytecode,
@@ -304,8 +306,16 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
       return this.querySelectorAll(selector);
     };
 
+    const migrationOptions: MigrationOptions = {
+      attrsHyphToCamel: ATTRS_HYPH_TO_CAMEL,
+      // Random seed for adding instance uniqueness to ids at runtime.
+      referenceUniqueness: (config.hotEditingMode)
+        ? undefined // During editing, Haiku.app pads ids unless this is undefined
+        : Math.random().toString(36).slice(2),
+    };
+
     try {
-      runMigrationsPrePhase(this, {/*options*/}, VERSION);
+      runMigrationsPrePhase(this, migrationOptions);
     } catch (exception) {
       console.warn('[haiku core] caught error during migration pre-phase', exception);
     }
@@ -317,13 +327,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
       // If the bytecode we got happens to be in an outdated format, we automatically update it to the latest.
       runMigrationsPostPhase(
         this,
-        {
-          attrsHyphToCamel: ATTRS_HYPH_TO_CAMEL,
-          // Random seed for adding instance uniqueness to ids at runtime.
-          referenceUniqueness: (config.hotEditingMode)
-            ? undefined // During editing, Haiku.app pads ids unless this is undefined
-            : Math.random().toString(36).slice(2),
-        },
+        migrationOptions,
         VERSION,
       );
     } catch (exception) {
@@ -505,6 +509,8 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
   clearCaches (options: ClearCacheOptions = {}) {
     // HaikuBase implements a general-purpose caching mechanism which we also call here
     this.cacheClear();
+
+    this.needsExpand = true;
 
     // Don't forget to repopulate the states with originals when we clear cache
     if (options.clearStates) {
@@ -944,18 +950,30 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     return this.doesNeedFullFlush || this.doAlwaysFlush;
   }
 
+  private expandIfNeeded () {
+    if (this.needsExpand) {
+      expandNode(
+        this.bytecode.template,
+        this.container,
+      );
+
+      this.needsExpand = false;
+    }
+  }
+
   performFullFlushRenderWithRenderer (renderer, options: any = {}) {
     this.context.getContainer(true); // Force recalc of container
 
     // Since we will produce a full tree, we don't need a further full flush.
     this.unmarkForFullFlush();
 
-    const expansion = this.render(options);
+    this.needsExpand = true;
+    this.render(options);
 
     // Untyped code paths downstream depend on the output of this method
     return renderer.render(
       this.container,
-      expansion,
+      this.bytecode.template,
       this,
     );
   }
@@ -1051,9 +1069,8 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
       });
     }
 
-    const expansion = this.expand();
-    this.cacheSet('expandCached', expansion);
-    return expansion;
+    this.expandIfNeeded();
+    return this.bytecode.template;
   }
 
   patch (options: any = {}, skipCache = false) {
@@ -1069,11 +1086,10 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
 
     this.applyGlobalBehaviors(options);
 
-    const expansion = this.expandCached();
-
     const patches = {};
 
-    visit(expansion, (node, parent) => {
+    this.expandIfNeeded();
+    visit(this.bytecode.template, (node, parent) => {
       if (node.__memory.patched) {
         computeAndApplyLayout(node, parent);
         patches[getNodeCompositeId(node)] = node;
@@ -1082,20 +1098,6 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     }, this.container);
 
     return patches;
-  }
-
-  expand (): IExpandResult {
-    // Note that expandNode calls .expand on any subcomponents in the tree
-    return expandNode(
-      this.bytecode.template, // node
-      this.container,
-    );
-  }
-
-  expandCached (): IExpandResult {
-    return this.cacheFetch('expandCached', () => {
-      return this.expand();
-    });
   }
 
   applyGlobalBehaviors (options: any = {}) {
@@ -1637,31 +1639,30 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     cluster,
     isPatchOperation: boolean,
     skipCache: boolean,
-  ) {
-    const parsee = this.getParsee(timelineName, flexId, outputName);
+  ): ParsedValueCluster {
+    const parseeWithKeys = this.getParseeWithKeys(timelineName, flexId, outputName, cluster);
 
     if (!cluster) {
-      return parsee;
+      return parseeWithKeys;
     }
 
-    const keys = Object.keys(cluster).map(Number).sort();
     const skipStableParsees = isPatchOperation && !skipCache;
 
-    if (skipStableParsees && this.clusterParseeIsStable(keys, timelineName, flexId, outputName)) {
-      return parsee;
+    if (skipStableParsees && this.clusterParseeIsStable(timelineName, flexId, outputName, cluster)) {
+      return parseeWithKeys;
     }
 
-    for (let i = 0; i < keys.length; i++) {
-      const ms = keys[i];
+    for (let i = 0; i < parseeWithKeys.keys.length; i++) {
+      const ms = parseeWithKeys.keys[i];
 
-      if (skipStableParsees && parsee[ms] && !parsee[ms].expression) {
+      if (skipStableParsees && parseeWithKeys.parsee[ms] && !parseeWithKeys.parsee[ms].expression) {
         continue;
       }
 
       const descriptor = cluster[ms];
 
       if (isFunction(descriptor.value)) {
-        parsee[ms] = {
+        parseeWithKeys.parsee[ms] = {
           expression: true,
           value: this.evaluateExpression(
             descriptor.value,
@@ -1674,39 +1675,43 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
           ),
         };
       } else {
-        parsee[ms] = {
+        parseeWithKeys.parsee[ms] = {
           expression: false,
           value: descriptor.value,
         };
       }
 
       if (descriptor.curve) {
-        parsee[ms].curve = descriptor.curve;
+        parseeWithKeys.parsee[ms].curve = descriptor.curve;
       }
     }
 
-    if (keys.length > 1) {
+    if (parseeWithKeys.keys.length > 1) {
       let parser = this.getParser(outputName);
-      // tslint:disable-next-line:triple-equals
-      if (!parser && parseFloat(parsee[keys[0]].value) == parsee[keys[0]].value) {
+      if (
+        !parser &&
+        // tslint:disable-next-line:triple-equals
+        parseFloat(parseeWithKeys.parsee[parseeWithKeys.keys[0]].value) ==
+          parseeWithKeys.parsee[parseeWithKeys.keys[0]].value
+      ) {
         parser = parseFloat;
       }
 
       if (!parser) {
-        return parsee;
+        return parseeWithKeys;
       }
 
-      for (let j = 0; j < keys.length; j++) {
-        const ms2 = keys[j];
-        parsee[ms2].value = parser(parsee[ms2].value);
+      for (let j = 0; j < parseeWithKeys.keys.length; j++) {
+        const ms2 = parseeWithKeys.keys[j];
+        parseeWithKeys.parsee[ms2].value = parser(parseeWithKeys.parsee[ms2].value);
       }
 
       if (outputName === 'd') {
-        synchronizePathStructure(...keys.map((ms) => parsee[ms].value));
+        synchronizePathStructure(...parseeWithKeys.keys.map((ms) => parseeWithKeys.parsee[ms].value));
       }
     }
 
-    return parsee;
+    return parseeWithKeys;
   }
 
   generateFinalValueFromParsedValue (
@@ -1769,15 +1774,16 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
 
     let computedValueForTime;
 
-    if (!parsedValueCluster[KEYFRAME_ZERO]) {
-      parsedValueCluster[KEYFRAME_ZERO] = {
+    if (!parsedValueCluster.parsee[KEYFRAME_ZERO]) {
+      parsedValueCluster.parsee[KEYFRAME_ZERO] = {
         value: getFallback(matchingElement && matchingElement.elementName, propertyName),
       };
     }
 
-    computedValueForTime = Transitions.calculateValue(
-      parsedValueCluster,
+    computedValueForTime = calculateValue(
+      parsedValueCluster.parsee,
       timelineTime,
+      parsedValueCluster.keys,
     );
 
     // When expressions and other dynamic functionality is in play, data may be missing resulting in
@@ -1845,26 +1851,28 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     return evaluation;
   }
 
-  private getParsee (
+  private getParseeWithKeys (
     timelineName,
     flexId,
     outputName,
+    cluster,
   ): ParsedValueCluster {
-    return this.cacheFetch(`parsee:${timelineName}|${flexId}|${outputName}`, () => {
+    return this.cacheFetch<ParsedValueCluster>(`parsee:${timelineName}|${flexId}|${outputName}`, () => ({
       // The parsee object is mutated in place downstream
-      return {};
-    });
+      parsee: {},
+      keys: cluster ? getSortedKeyframes(cluster) : [],
+    }));
   }
 
   private clusterParseeIsStable (
-    keysMs,
     timelineName,
     flexId,
     outputName,
+    cluster,
   ): boolean {
-    const parsee = this.getParsee(timelineName, flexId, outputName);
-    return keysMs.every(
-      (ms) => parsee[ms] && !parsee[ms].expression,
+    const parsedValueCluster = this.getParseeWithKeys(timelineName, flexId, outputName, cluster);
+    return parsedValueCluster.keys.every(
+      (ms) => parsedValueCluster.parsee[ms] && !parsedValueCluster.parsee[ms].expression,
     );
   }
 
@@ -2142,71 +2150,58 @@ function stateSpecValidityCheck (stateSpec: any, stateSpecName: string): boolean
   return true;
 }
 
-const expandNode = (original, parent) => {
-  if (!original || typeof original !== 'object') {
-    return original;
+const needsVirtualChildren = (child: BytecodeNode): boolean => typeof child === 'object' &&
+  child.__memory &&
+  (
+    (child.__memory.if && !child.__memory.if.answer) ||
+    (child.__memory.repeater && !!child.__memory.repeater.repeatees)
+  );
+
+const expandNode = (node: BytecodeNode|string, parent) => {
+  if (!node || typeof node !== 'object' || !node.__memory) {
+    return;
   }
 
-  if (!original.__memory) {
-    return {
-      ...original,
-    };
-  }
-
-  let children = [];
-
-  if  (original.__memory.content) {
-    children = original.__memory.content;
-  }
-
-  const expansion = {...original, children};
-
-  // Give every node a reference to its expansion in case we want to compute sizing downstream;
-  // this is used in Haiku.app to help calculate bounding boxes during editing
-  original.__memory.expansion = expansion;
-  expansion.__memory.original = original;
-
-  // Note that HaikuComponent#render calls expandNode for its own tree.
-  const subtree = original.__memory.subcomponent && original.__memory.subcomponent.expandCached();
+  const subtree = node.__memory.subcomponent && node.__memory.subcomponent.bytecode.template;
+  let children = node.children;
 
   // Special case if our current original is the wrapper of a subcomponent.
   if (subtree) {
-    children.push(subtree);
-  } else if (original.__memory.placeholder) {
-    // Placholder-expansion is currently a no-op; it's sufficient to empty the children array (see above)
-  } else if (original.__memory.content) {
-    // Content-expansion occurs via replacement of children (see above)
-  } else if (original.children) {
-    // Some components may contain elements that have not defined any .children
-    for (let i = 0; i < original.children.length; i++) {
-      const child = original.children[i];
+    node.__memory.children = [node.__memory.subcomponent.bytecode.template];
+  } else if (node.__memory.placeholder) {
+    node.__memory.children = [];
+  } else if (node.children) {
+    // To avoid creating garbage, only allow allocations here if we actually need virtual children.
+    if (node.children.some(needsVirtualChildren)) {
+      node.__memory.children = [];
+      for (let i = 0; i < node.children.length; i++) {
+        const child = node.children[i];
 
-      if (!child) {
-        continue;
-      }
-
-      // Strings, numbers, etc. can be included in children as-is
-      if (typeof child !== 'object') {
-        children.push(child);
-        continue;
-      }
-
-      if (child.__memory) {
-        // Do not include any children that have been removed due to $if-logic
-        if (child.__memory.if && child.__memory.if.answer === false) {
+        if (!child) {
           continue;
         }
 
-        // If the child is a repeater, use the $repeats instead of itself
-        if (child.__memory.repeater && child.__memory.repeater.repeatees) {
-          children.push(...child.__memory.repeater.repeatees);
-          continue;
-        }
-      }
+        if (typeof child === 'object' && child.__memory) {
+          // Do not include any children that have been removed due to $if-logic
+          if (child.__memory.if && !child.__memory.if.answer) {
+            continue;
+          }
 
-      // If we got this far, the child is structurally normal
-      children.push(child);
+          // If the child is a repeater, use the $repeats instead of itself
+          if (child.__memory.repeater && child.__memory.repeater.repeatees) {
+            node.__memory.children.push(...child.__memory.repeater.repeatees);
+            continue;
+          }
+        }
+
+        // If we got this far, the child is structurally normal
+        node.__memory.children.push(child);
+      }
     }
+  }
+
+  if (node.__memory.children) {
+    children = node.__memory.children;
   }
 
   /**
@@ -2232,22 +2227,21 @@ const expandNode = (original, parent) => {
    *        with their container, no matter what size it is.
    */
 
-  computeAndApplyLayout(expansion, parent);
+  computeAndApplyLayout(node, parent);
 
-  for (let j = 0; j < children.length; j++) {
-    // Special case: The subtree of the subcomponent doesn't need to be re-expanded.
-    if (children[j] !== subtree) {
-      children[j] = expandNode(children[j], expansion);
+  if (children) {
+    for (let j = 0; j < children.length; j++) {
+      // Special case: The subtree of the subcomponent doesn't need to be re-expanded.
+      if (children[j] !== subtree) {
+        expandNode(children[j], node);
+      }
     }
   }
-
-  return expansion;
 };
 
 const computeAndApplyLayout = (node, parent) => {
   // Don't assume the node has/needs a layout, for example, control-flow injectees
   if (node.layout) {
-    // Note that the original node and its "expansion" share a pointer to .layout
     node.layout.computed = HaikuElement.computeLayout(
       node,
       parent,
@@ -2921,14 +2915,7 @@ export const VANITIES = {
 
     // Text and other inner-content related vanities
     content: (_, element, value) => {
-      if (!element.__memory.content) {
-        element.__memory.content = [];
-      }
-
-      element.__memory.content.splice.apply(
-        element.__memory.content,
-        [0, element.__memory.content.length].concat(value),
-      );
+      element.__memory.children = [value];
     },
 
     // Playback-related vanities that involve controlling timeline or clock time
@@ -3160,7 +3147,7 @@ export const VANITIES = {
       }
 
       // Assume our if-answer is only false if we got an explicit false value
-      const answer = (value === false) ? false : true;
+      const answer = value !== false;
 
       if (element.__memory.if) {
         // Save CPU by avoiding recomputing an if when we've already done so.

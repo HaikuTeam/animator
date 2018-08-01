@@ -1,17 +1,17 @@
 /**
  * The MIT License
- * 
+ *
  * Copyright (c) Radu Brehar
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this
  * software and associated documentation files (the "Software"), to deal in the Software
  * without restriction, including without limitation the rights to use, copy, modify, merge,
  * publish, distribute, sublicense, and/or sell copies of the Software, and to permit
  * persons to whom the Software is furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all copies
  * or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
  * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
@@ -21,19 +21,19 @@
  */
 
 import cssPrefixFn from './cssPrefix';
-import HYPHENATE from './stringUtils/hyphenate';
-import CAMELIZE from './stringUtils/camelize';
 import HAS_OWN from './hasOwn';
-import IS_OBJECT from './isObject';
 import IS_FUNCTION from './isFunction';
+import IS_OBJECT from './isObject';
+import CAMELIZE from './stringUtils/camelize';
+import HYPHENATE from './stringUtils/hyphenate';
 
-function applyPrefix(target, property, value, normalizeFn) {
+function applyPrefix (target, property, value, normalizeFn) {
   cssPrefixFn(property, null).forEach(function (p) {
     target[normalizeFn ? normalizeFn(p) : p] = value;
   });
 }
 
-function toObject(str) {
+function toObject (str) {
   str = (str || '').split(';');
 
   const result = {};
@@ -55,7 +55,7 @@ const CONFIG = {
   cssUnitless: require('./cssUnitless'),
 };
 
-function _notUndef(thing) {
+function _notUndef (thing) {
   return thing !== null && thing !== undefined;
 }
 
@@ -73,7 +73,7 @@ function _notUndef(thing) {
  * @param  {String}  config.scope
  * @return {Object} The object, normalized with css style names
  */
-export default function toStyleObject(styles, config, prepend, result) {
+export default function toStyleObject (styles, config, prepend, result) {
   if (typeof styles === 'string') {
     styles = toObject(styles);
   }
@@ -141,6 +141,11 @@ export default function toStyleObject(styles, config, prepend, result) {
         } else {
           propValue = fnPropValue;
         }
+      }
+
+      // tslint:disable-next-line:triple-equals
+      if (parseFloat(propValue) == propValue) {
+        propValue = parseFloat(propValue);
       }
 
       propType = typeof propValue;

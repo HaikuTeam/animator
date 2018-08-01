@@ -12,7 +12,7 @@
     "rootDir": "src",
     "sourceMap": true,
     "suppressImplicitAnyIndexErrors": true,
-    "target": "ESNext",
+    "target": "ES2015",
     "types": [
       "node"
     ],
