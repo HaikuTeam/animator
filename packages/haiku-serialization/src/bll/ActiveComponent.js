@@ -9,7 +9,7 @@ const {HAIKU_ID_ATTRIBUTE, HAIKU_LOCKED_ATTRIBUTE, HAIKU_TITLE_ATTRIBUTE, HAIKU_
 const HaikuComponent = require('@haiku/core/lib/HaikuComponent').default
 const {LAYOUT_3D_SCHEMA} = require('@haiku/core/lib/HaikuComponent')
 const HaikuDOMAdapter = require('@haiku/core/lib/adapters/dom').default
-const {getSortedKeyframes} = require('@haiku/core/lib/helpers/KeyframeUtils');
+const {getSortedKeyframes} = require('@haiku/core/lib/helpers/KeyframeUtils')
 const {InteractionMode, isPreviewMode} = require('@haiku/core/lib/helpers/interactionModes')
 const Layout3D = require('@haiku/core/lib/Layout3D')
 const BaseModel = require('./BaseModel')
