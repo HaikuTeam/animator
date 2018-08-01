@@ -20,7 +20,7 @@
  * OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import ColorNames from './../color-names';
+import ColorNames from '../color-names';
 
 const reverseNames = {};
 

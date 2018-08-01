@@ -2,8 +2,8 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import Layout3D from './../Layout3D';
-import cssMat4 from './../vendor/css-mat4';
+import Layout3D from '../Layout3D';
+import cssMat4 from '../vendor/css-mat4';
 import composedTransformsToTimelineProperties from './composedTransformsToTimelineProperties';
 import parseCssValueString from './parseCssValueString';
 

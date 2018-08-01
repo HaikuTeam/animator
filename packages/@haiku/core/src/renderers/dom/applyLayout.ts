@@ -2,8 +2,8 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import applyCssLayout from './../../layout/applyCssLayout';
-import modernizr from './../../vendor/modernizr';
+import applyCssLayout from '../../layout/applyCssLayout';
+import modernizr from '../../vendor/modernizr';
 import getWindowsBrowserVersion from './getWindowsBrowserVersion';
 import isEdge from './isEdge';
 import isIE from './isIE';

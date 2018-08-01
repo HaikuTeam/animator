@@ -1,7 +1,7 @@
 /**
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
-import {get, to} from './../vendor/color-string';
+import {get, to} from '../vendor/color-string';
 
 const STRING = 'string';
 const OBJECT = 'object';

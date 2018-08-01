@@ -22,7 +22,7 @@
 
 /* eslint-disable */
 
-import now from './../performance-now';
+import now from '../performance-now';
 
 const root = typeof window === 'undefined' ? global : window;
 const vendors = ['moz', 'webkit'];

@@ -3,10 +3,10 @@
  */
 
 import {BytecodeNode} from '../api';
-import {visitManaTree} from './../HaikuNode';
-import parseCssTransformString from './../helpers/parseCssTransformString';
-import Layout3D, {AUTO_SIZING_TOKEN} from './../Layout3D';
-import cssValue from './../vendor/css-value';
+import {visitManaTree} from '../HaikuNode';
+import parseCssTransformString from '../helpers/parseCssTransformString';
+import Layout3D, {AUTO_SIZING_TOKEN} from '../Layout3D';
+import cssValue from '../vendor/css-value';
 import {SVG_SIZEABLES} from './applyCssLayout';
 
 const ROOT_LOCATOR = '0';

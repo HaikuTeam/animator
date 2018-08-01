@@ -1,0 +1,1 @@
+The root div of the component should be sized to fit perfectly with the edges of all elements contained here, including the repeated rectangles. See example.png for what it should look like.

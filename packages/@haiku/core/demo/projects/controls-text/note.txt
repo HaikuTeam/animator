@@ -1,0 +1,1 @@
+The text on stage should quickly change from "Uno" to "Dos" to "Tres" to "Meow." This verifies that (1) the <Text> component receives the 'text' behavior and (2) that the internal 'content' behavior is also correctly applied and updated for changed keyframes.

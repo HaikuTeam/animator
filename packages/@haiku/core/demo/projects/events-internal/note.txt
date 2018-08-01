@@ -1,1 +1,1 @@
-Open your JavaScript console. You should see logs about events 'will-mount', 'did-mount', and frame 22. The content of the #c box should change at 1000ms.
+Open your JavaScript console. You should see logs about events 'will-mount', 'did-mount', and frame 22. The content of the #c box should change at 1000ms. The text content "hiho" should change to "offtoworkwego" after 1 second.

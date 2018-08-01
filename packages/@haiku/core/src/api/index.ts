@@ -125,7 +125,7 @@ export interface PlaceholderSpec {
 export interface BytecodeNodeMemoryObject {
   context?: IHaikuContext;
   element?: IHaikuElement;
-  expansion?: BytecodeNode;
+  children?: (string|BytecodeNode)[];
   if?: IfSpec;
   instance?: IHaikuComponent;
   listener?: Function; // Bound event listener function
@@ -602,18 +602,12 @@ export type CurveFunction = ((offset: number) => number);
 export type CurveDefinition = Curve|CurveFunction|number[];
 
 export interface ParsedValueCluster {
-  [ms: number]: {
-    expression?: boolean;
-    value?: any;
-    curve?: CurveDefinition;
+  parsee: {
+    [ms: number]: {
+      expression?: boolean;
+      value: any;
+      curve?: CurveDefinition;
+    };
   };
-}
-
-export interface IExpandResult {
-  expansion: BytecodeNode;
-  patches: IPatchMap;
-}
-
-export interface IPatchMap {
-  [compositeId: string]: BytecodeNode;
+  keys: number[];
 }
