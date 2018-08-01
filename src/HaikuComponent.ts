@@ -2151,11 +2151,11 @@ function stateSpecValidityCheck (stateSpec: any, stateSpecName: string): boolean
 }
 
 const needsVirtualChildren = (child: BytecodeNode): boolean => typeof child === 'object' &&
-child.__memory &&
-(
-  (child.__memory.if && !child.__memory.if.answer) ||
-  (child.__memory.repeater && !!child.__memory.repeater.repeatees)
-);
+  child.__memory &&
+  (
+    (child.__memory.if && !child.__memory.if.answer) ||
+    (child.__memory.repeater && !!child.__memory.repeater.repeatees)
+  );
 
 const expandNode = (node: BytecodeNode|string, parent) => {
   if (!node || typeof node !== 'object' || !node.__memory) {
@@ -2168,8 +2168,6 @@ const expandNode = (node: BytecodeNode|string, parent) => {
   // Special case if our current original is the wrapper of a subcomponent.
   if (subtree) {
     node.__memory.children = [node.__memory.subcomponent.bytecode.template];
-  } else if (node.__memory.content) {
-    node.__memory.children = [...node.__memory.content];
   } else if (node.__memory.placeholder) {
     node.__memory.children = [];
   } else if (node.children) {
@@ -2917,14 +2915,7 @@ export const VANITIES = {
 
     // Text and other inner-content related vanities
     content: (_, element, value) => {
-      if (!element.__memory.content) {
-        element.__memory.content = [];
-      }
-
-      element.__memory.content.splice.apply(
-        element.__memory.content,
-        [0, element.__memory.content.length].concat(value),
-      );
+      element.__memory.children = [value];
     },
 
     // Playback-related vanities that involve controlling timeline or clock time

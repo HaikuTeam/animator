@@ -125,7 +125,6 @@ export interface PlaceholderSpec {
 export interface BytecodeNodeMemoryObject {
   context?: IHaikuContext;
   element?: IHaikuElement;
-  content?: string[];
   children?: (string|BytecodeNode)[];
   if?: IfSpec;
   instance?: IHaikuComponent;
