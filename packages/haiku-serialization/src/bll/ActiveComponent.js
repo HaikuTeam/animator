@@ -1648,6 +1648,10 @@ class ActiveComponent extends BaseModel {
       // Get complete list of element selectors from haiku-source
       const elementSelectorCompletePath = unescape(url.parse(existingSource).hash).split('#').slice(1)
 
+      // TODO: debug why sometimes it has wrong selector
+      // For some reason, some elements has a haiku-source with wrong selector. For example, #rec-123232 instead of #rec
+      const elementSelectorCompleteForSvg = elementSelectorCompletePath.map((selector) => selector.split('-')[0])
+
       const incomingSource = Template.normalizePath(manaIncoming.attributes[HAIKU_SOURCE_ATTRIBUTE])
 
       const isUngroupedElement = elementSelectorCompletePath.length > 0
@@ -1664,7 +1668,7 @@ class ActiveComponent extends BaseModel {
       let safeIncoming = null
       // For ungrouped element, we want to update only child element
       if (isUngroupedElement) {
-        const incomingChildLocator = findManaElement(manaIncoming, elementSelectorCompletePath)
+        const incomingChildLocator = findManaElement(manaIncoming, elementSelectorCompleteForSvg)
 
         const incomingChild = getChildrenFromMana(manaIncoming, incomingChildLocator)
 
@@ -1674,6 +1678,13 @@ class ActiveComponent extends BaseModel {
         }
 
         safeIncoming = Template.clone({}, incomingChild)
+
+        // Do no inherit transform attributes for top level elements, as user may control it inside haiku
+        for (const key of ['transform']) {
+          if (safeIncoming['attributes'] && key in safeIncoming.attributes) {
+            delete safeIncoming.attributes[key]
+          }
+        }
       } else {
         // For grouped element, we want to update whole element
         safeIncoming = Template.clone({}, manaIncoming)
@@ -1726,18 +1737,16 @@ class ActiveComponent extends BaseModel {
         nodeToBeUpdated.children.push(incomingChild)
       }
 
-      // If it's ungroup element, we should move size attributes back to its svg.. to simulate what is done when ungrouping
+      // If it's ungroup element, we should mirror size attributes back to its svg.. to simulate what is done when ungrouping
       if (isUngroupedElement) {
-        //nodeToBeUpdated.children[0].attributes[HAIKU_ID_ATTRIBUTE]
         const existingRootSvgSelector = `haiku:${existingNode.attributes[HAIKU_ID_ATTRIBUTE]}`
-        const attributesToBeMoved = ['sizeAbsolute.x', 'sizeAbsolute.y', 'sizeRelative.x', 'sizeRelative.y', 'sizeMode.x', 'sizeMode.y', 'translation.x', 'translation.y']
+        const attributesToBeMoved = ['sizeAbsolute.x', 'sizeAbsolute.y', 'sizeRelative.x', 'sizeRelative.y', 'sizeMode.x', 'sizeMode.y']
 
         timelinesObject[timelineName][existingRootSvgSelector] = {}
 
         for (const attributeName in timelinesObject[timelineName][existingSelector]) {
           if (attributesToBeMoved.indexOf(attributeName) > -1) {
             timelinesObject[timelineName][existingRootSvgSelector][attributeName] = timelinesObject[timelineName][existingSelector][attributeName]
-            delete timelinesObject[timelineName][existingSelector][attributeName]
           }
         }
       }
