@@ -365,9 +365,9 @@ export const visitManaTree = (
 };
 
 export const visit = (
-  mana,
-  visitor,
-  parent?,
+  mana: BytecodeNode,
+  visitor: (node: BytecodeNode, parent?: BytecodeNode) => void,
+  parent?: BytecodeNode,
 ): void => {
   if (!mana || typeof mana !== 'object') {
     return;
@@ -375,7 +375,7 @@ export const visit = (
 
   visitor(mana, parent);
 
-  const children = (mana.__memory && mana.__memory.children) || mana.children;
+  const children = ((mana.__memory && mana.__memory.children) || mana.children) as BytecodeNode[];
   if (children) {
     for (let i = 0; i < children.length; i++) {
       const child = children[i];

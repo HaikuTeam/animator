@@ -1155,7 +1155,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * TODO: Support animations on the wrapper color and opacity.
    */
   private handleWrapper () {
-    const wrapperTimeline = this.timelineForNode(this.bytecode.template as BytecodeNode);
+    const wrapperTimeline = this.timelineForNode(this.bytecode.template);
     if (timelineHasProperties(wrapperTimeline, 'sizeAbsolute.x', 'sizeAbsolute.y')) {
       const [width, height] = [
         initialValue(wrapperTimeline, 'sizeAbsolute.x'),
@@ -1250,7 +1250,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * where jumps occur and shimming in keyframes forcing a linear transition within a single frame.
    */
   private normalizeCurves () {
-    (this.bytecode.template as BytecodeNode).children.forEach((node: BytecodeNode) => {
+    this.bytecode.template.children.forEach((node: BytecodeNode) => {
       const timeline = this.timelineForNode(node);
       for (const property in timeline) {
         const timelineProperty = timeline[property];
@@ -1413,8 +1413,8 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * Parses class-local bytecode using internal methods.
    */
   private parseBytecode () {
-    if ((this.bytecode.template as BytecodeNode).elementName !== 'div') {
-      throw new Error(`Unexpected wrapper element: ${(this.bytecode.template as BytecodeNode).elementName}`);
+    if (this.bytecode.template.elementName !== 'div') {
+      throw new Error(`Unexpected wrapper element: ${this.bytecode.template.elementName}`);
     }
 
     // Rewrite timelines to use keyframes instead of millitimes, which is the Bodymovin way. It makes sense to do
@@ -1437,13 +1437,13 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     // Preprocess tweened curves so that they are normalized and ready for tweening
     this.preprocessTweenedCurves();
 
-    this.structuralNode = this.bytecode.template as BytecodeNode;
+    this.structuralNode = this.bytecode.template;
     this.layerStack.set(this.structuralNode, this.rootLayers);
 
     // Handle the wrapper as a special case.
     this.handleWrapper();
 
-    (this.bytecode.template as BytecodeNode).children.forEach((template: BytecodeNode) => {
+    this.bytecode.template.children.forEach((template: BytecodeNode) => {
       Template.visitTemplate(template, this.bytecode.template, (node: BytecodeNode, parentNode: BytecodeNode) => {
         this.handleElement(node, parentNode);
       });

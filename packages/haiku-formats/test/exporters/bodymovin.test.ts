@@ -16,7 +16,7 @@ const overrideShapeAttributes = (bytecode: HaikuBytecode, attributes: BytecodeTi
 
 const overrideShapeElement = (bytecode: HaikuBytecode, elementName: string) => {
   // tslint:disable-next-line:max-line-length
-  (((bytecode.template as BytecodeNode).children[0] as BytecodeNode).children[0] as BytecodeNode).elementName = elementName;
+  ((bytecode.template.children[0] as BytecodeNode).children[0] as BytecodeNode).elementName = elementName;
 };
 
 const baseBytecodeCopy = () => JSON.parse(JSON.stringify(baseBytecode));

@@ -21,6 +21,7 @@ export interface IHaikuElement extends HaikuBase {
 export interface IHaikuComponent extends IHaikuElement {
   bytecode: HaikuBytecode;
   config: BytecodeOptions;
+  patches: BytecodeNode[];
   context: IHaikuContext;
   doPreserve3d: boolean;
   state: {[key in string]: any};
@@ -132,7 +133,6 @@ export interface BytecodeNodeMemoryObject {
   instance?: IHaikuComponent;
   listener?: Function; // Bound event listener function
   parent?: BytecodeNode;
-  patched?: boolean;
   placeholder?: PlaceholderSpec;
   repeatee?: RepeateeSpec;
   repeater?: RepeaterSpec;
@@ -386,7 +386,7 @@ export interface BytecodeOptions {
  * Bytecode definition. Properties are *rarely* used.
  */
 export interface HaikuBytecode {
-  template: BytecodeNode|string;
+  template: BytecodeNode;
   states?: BytecodeStates;
   eventHandlers?: BytecodeEventHandlers;
   timelines: BytecodeTimelines;

@@ -339,7 +339,7 @@ export const runMigrationsPostPhase = (component: IHaikuComponent, options: Migr
     if (node) {
       const didNodePreserve3dChange = ensure3dPreserved(node);
       if (didNodePreserve3dChange) {
-        node.__memory.patched = true;
+        component.patches.push(node);
       }
     }
 
@@ -348,7 +348,7 @@ export const runMigrationsPostPhase = (component: IHaikuComponent, options: Migr
     if (parent) {
       const didParentPreserve3dChange = ensure3dPreserved(parent);
       if (didParentPreserve3dChange) {
-        parent.__memory.patched = true;
+        component.patches.push(parent);
       }
     }
   }
