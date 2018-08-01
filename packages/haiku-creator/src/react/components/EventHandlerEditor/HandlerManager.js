@@ -221,7 +221,7 @@ class HandlerManager {
       event,
       handler: {
         body: ``,
-        params: ['target', 'event'],
+        params: ['component', 'target', 'event'],
       },
     };
   }
