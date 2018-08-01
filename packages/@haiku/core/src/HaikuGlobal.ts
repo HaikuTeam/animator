@@ -10,7 +10,6 @@ const VERSION = require('./../package.json').version;
 export interface HaikuRoot {
   haiku?: {
     [version: string]: {
-      cache?: {[key in string]: any};
       models?: {[key in string]: any[]};
       report?: () => void;
       enhance?: typeof enhance;
@@ -48,10 +47,6 @@ function buildRoot () {
   // Avoid loading entities for incompatible versions.
   if (!ROOT.haiku[VERSION]) {
     ROOT.haiku[VERSION] = {};
-  }
-
-  if (!ROOT.haiku[VERSION].cache) {
-    ROOT.haiku[VERSION].cache = {};
   }
 
   if (!ROOT.haiku[VERSION].models) {
