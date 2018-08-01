@@ -3474,7 +3474,8 @@ class ActiveComponent extends BaseModel {
               bytecode,
               timelineName,
               componentId,
-              propertyName
+              propertyName,
+              true // fallbackToInitialKeyframeIfProvided
             )
           }
         }
@@ -3583,9 +3584,16 @@ class ActiveComponent extends BaseModel {
                 : lodash.clone(propertyObj.value)
 
               bytecode.timelines[timelineName][selector][propertyName][keyframeMs].value = keyfVal
+
               // Note: we set fallbackToInitialKeyframeIfProvided to `false` here, ensuring that we always use the
               // "implicit" value for properties whose first keyframes are created at a time after t = 0.
-              this.ensureZerothKeyframe(bytecode, timelineName, componentId, propertyName, false)
+              this.ensureZerothKeyframe(
+                bytecode,
+                timelineName,
+                componentId,
+                propertyName,
+                false // fallbackToInitialKeyframeIfProvided
+              )
             }
           }
         }
@@ -3785,7 +3793,8 @@ class ActiveComponent extends BaseModel {
         bytecode,
         timelineName,
         componentId,
-        propertyName
+        propertyName,
+        false // fallbackToInitialKeyframeIfProvided
       )
 
       done()
@@ -3845,7 +3854,8 @@ class ActiveComponent extends BaseModel {
         bytecode,
         timelineName,
         componentId,
-        propertyName
+        propertyName,
+        true // fallbackToInitialKeyframeIfProvided
       )
 
       done()

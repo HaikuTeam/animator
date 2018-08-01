@@ -27,6 +27,7 @@ export interface IHaikuComponent extends IHaikuElement {
   eachEventHandler: (
     iteratee: (eventSelector: string, eventName: string, descriptor: BytecodeEventHandlerDescriptor) => void,
   ) => void;
+  callHook: (hookName: string, ...args: any[]) => void;
   clearCaches: () => void;
   markForFullFlush: () => void;
   getClock: () => HaikuClock;
@@ -303,6 +304,10 @@ export interface BytecodeOptions {
   // for developer convenience
   frame?: (() => void);
 
+  hooks?: {[key: string]: Function};
+
+  helpers?: {[key: string]: Function};
+
   // Configuration options that will be passed to the HaikuClock instance.
   // See HaikuClock.js for info.
   clock?: object;
@@ -386,6 +391,9 @@ export interface HaikuBytecode {
   timelines: BytecodeTimelines;
   metadata?: BytecodeMetadata;
   methods?: {
+    [key in string]: Function;
+  };
+  helpers?: {
     [key in string]: Function;
   };
   /**

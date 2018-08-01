@@ -51,6 +51,10 @@ const numericNormalizer = (value) => {
   return Number(value)
 }
 
+const pxUnitRequiredNormalizer = (value) => {
+  return `${value}px`
+}
+
 Expression.VALUE_NORMALIZERS = {
   'content': textContentNormalizer,
   'shown': booleanNormalizer,
@@ -84,7 +88,8 @@ Expression.VALUE_NORMALIZERS = {
   'sizeDifferential.z': numericNormalizer,
   'sizeAbsolute.x': numericNormalizer,
   'sizeAbsolute.y': numericNormalizer,
-  'sizeAbsolute.z': numericNormalizer
+  'sizeAbsolute.z': numericNormalizer,
+  'style.perspective': pxUnitRequiredNormalizer
 }
 
 Expression.isUnitToken = (str) => {

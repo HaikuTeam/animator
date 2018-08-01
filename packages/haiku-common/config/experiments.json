@@ -26,7 +26,7 @@
   "LocalAssetExport": false,
   "AllowBitmapImages": false,
   "SizeInsteadOfScaleWhenPossible": true,
-  "UserConsole": true,
+  "UserConsole": false,
   "CleanInitialLibraryState": true,
   "CopyPasteTweens": true,
   "CopyPasteTweensWithAccelerators": true,
