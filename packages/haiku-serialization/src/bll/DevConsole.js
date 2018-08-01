@@ -65,9 +65,20 @@ class DevConsole extends BaseModel {
     }
 
     console.log([
-      'Welcome to the Haiku Dev Console!',
-      'View docs at https://docs.haiku.ai.',
-      'Type \'help\' for more info.'
+      'Welcome to the Haiku Console! 🤖',
+      '',
+      'Here we show live info about your Haiku as you preview it. 👩‍💻',
+      '',
+      'You can use this to…',
+      '  - Debug Actions 💡',
+      '  - Try out code snippets 🍀',
+      '  - Just watch the logs go by 🌇',
+      '',
+      'Want help? Type \'help\' at the prompt (at the bottom, below) and press enter.',
+      '',
+      'Have fun! 🏖',
+      '',
+      '…'
     ].join('\n'))
   }
 }
