@@ -4,51 +4,71 @@ class DevConsole extends BaseModel {
   constructor (props, opts) {
     super(props, opts)
 
-    this.didLogBanner = false
-
     if (typeof window !== 'undefined') {
       if (!window.hasOwnProperty('help')) {
         Object.defineProperty(window, 'help', {
           get: () => {
-            console.log(`
-Haiku ${process.env.HAIKU_RELEASE_VERSION} (${process.env.NODE_ENV})
-Usage:
-    help - Display this message
-            `)
+            this.showHelp()
+          }
+        })
+      }
+
+      if (!window.hasOwnProperty('component')) {
+        Object.defineProperty(window, 'component', {
+          get: () => {
+            return this.component.$instance
+          }
+        })
+      }
+
+      if (!window.hasOwnProperty('stage')) {
+        Object.defineProperty(window, 'stage', {
+          get: () => {
+            const $stage = window.document.getElementById('haiku-stage')
+            return $stage && $stage.children[0]
+          }
+        })
+      }
+
+      if (!window.hasOwnProperty('exit')) {
+        Object.defineProperty(window, 'exit', {
+          get: () => {
+            if (console.clear) {
+              console.clear()
+            }
+
+            this.component.project.setInteractionMode(
+              0,
+              this.component.project.getMetadata(),
+              () => {}
+            )
           }
         })
       }
     }
   }
 
+  showHelp () {
+    console.log([
+      `Haiku ${process.env.HAIKU_RELEASE_VERSION} (${process.env.NODE_ENV})`,
+      'Usage:',
+      '  help - Prints this message',
+      '  component - Returns your component (HaikuComponent)',
+      '  stage - Returns the stage element (HTMLElement)',
+      '  exit - Exit preview'
+    ].join('\n'))
+  }
+
   logBanner () {
-    if (!this.didLogBanner) {
-      this.didLogBanner = true
-
-      if (console.clear) {
-        console.clear()
-      }
-
-      console.log(`
-         _       _    _                    _          _         _               
-        / /\\    / /\\ / /\\                 /\\ \\       /\\_\\      /\\_\\             
-       / / /   / / // /  \\                \\ \\ \\     / / /  _  / / /         _   
-      / /_/   / / // / /\\ \\               /\\ \\_\\   / / /  /\\_\\\\ \\ \\__      /\\_\\ 
-     / /\\ \\__/ / // / /\\ \\ \\             / /\\/_/  / / /__/ / / \\ \\___\\    / / / 
-    / /\\ \\___\\/ // / /  \\ \\ \\           / / /    / /\\_____/ /   \\__  /   / / /  
-   / / /\\/___/ // / /___/ /\\ \\         / / /    / /\\_______/    / / /   / / /   
-  / / /   / / // / /_____/ /\\ \\       / / /    / / /\\ \\ \\      / / /   / / /    
- / / /   / / // /_________/\\ \\ \\  ___/ / /__  / / /  \\ \\ \\    / / /___/ / /     
-/ / /   / / // / /_       __\\ \\_\\/\\__\\/_/___\\/ / /    \\ \\ \\  / / /____\\/ /      
-\\/_/    \\/_/ \\_\\___\\     /____/_/\\/_________/\\/_/      \\_\\_\\ \\/_________/       
-
-Copyright (c) Haiku 2016-2018. All Rights Reserved.
-
-Welcome to the Haiku Dev Console!
-View docs at https://docs.haiku.ai.
-Type 'help' for available commands.
-`)
+    if (console.clear) {
+      console.clear()
     }
+
+    console.log([
+      'Welcome to the Haiku Dev Console!',
+      'View docs at https://docs.haiku.ai.',
+      'Type \'help\' for more info.'
+    ].join('\n'))
   }
 }
 

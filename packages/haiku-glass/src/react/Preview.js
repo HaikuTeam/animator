@@ -86,7 +86,7 @@ export default class Preview extends React.Component {
           ref={(mount) => {
             this.mount = mount;
           }}
-          id="haiku-glass-preview-mount"
+          id="haiku-stage"
           style={{
             position: 'absolute',
             top: this.props.mount.y,

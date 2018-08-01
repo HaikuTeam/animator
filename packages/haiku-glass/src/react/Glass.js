@@ -291,6 +291,9 @@ export class Glass extends React.Component {
           this.resetContainerDimensions();
           this.forceUpdate();
           break;
+        case 'setInteractionMode':
+          this.handleInteractionModeChange();
+          break;
         case 'dimensions-reset':
           this.handleDimensionsReset();
           break;
@@ -360,9 +363,68 @@ export class Glass extends React.Component {
   handleInteractionModeChange () {
     if (this.isPreviewMode()) {
       this._playing = false;
+      this.openUserFacingDevTools();
+    } else {
+      this.closeUserFacingDevTools();
     }
 
     this.forceUpdate();
+  }
+
+  openUserFacingDevTools () {
+    if (!experimentIsEnabled(Experiment.UserFacingDevTools)) {
+      return;
+    }
+
+    const browser = remote.getCurrentWebContents();
+
+    if (!browser) {
+      return;
+    }
+
+    browser.openDevTools({
+      mode: 'detach',
+    });
+
+    let waited = 0;
+
+    const interval = setInterval(() => {
+      waited++;
+
+      const devtool = browser.devToolsWebContents;
+
+      if (devtool) {
+        clearInterval(interval);
+
+        // Move the devtool window back to the background
+        browser.focus();
+
+        // And focus the page itself so we catch keyboard events
+        document.getElementById('preview-container').click();
+
+        if (this.getActiveComponent()) {
+          this.getActiveComponent().devConsole.logBanner();
+        }
+      }
+
+      if (waited > 1000) {
+        clearInterval(interval);
+      }
+    });
+  }
+
+  closeUserFacingDevTools () {
+    if (!experimentIsEnabled(Experiment.UserFacingDevTools)) {
+      return;
+    }
+
+    const browser = remote.getCurrentWebContents();
+
+    if (!browser) {
+      return;
+    }
+
+    browser.closeDevTools();
   }
 
   handleRequestElementCoordinates ({selector, webview}) {
@@ -546,15 +608,18 @@ export class Glass extends React.Component {
     this.addEmitterListener(this.props.websocket, 'relay', (message) => {
       logger.info('relay received', message.name, 'from', message.from);
 
+      // Don't take action if the user is within the dev tools window
+      if (remote.getCurrentWebContents().isDevToolsFocused()) {
+        return;
+      }
+
       switch (message.name) {
         case 'global-menu:open-dev-tools':
           remote.getCurrentWebContents().openDevTools();
           break;
 
         case 'global-menu:close-dev-tools':
-          if (remote.getCurrentWebContents().isDevToolsFocused()) {
-            remote.getCurrentWebContents().closeDevTools();
-          }
+          remote.getCurrentWebContents().closeDevTools();
           break;
 
         case 'global-menu:zoom-in':
@@ -620,8 +685,7 @@ export class Glass extends React.Component {
           // This hook is only used for internal development
           if (this.project) {
             this.project.toggleInteractionMode({from: 'glass'}, () => {
-              // Ensure Glass UI reflects the mode-switch
-              this.forceUpdate();
+              this.handleInteractionModeChange();
             });
           }
           break;
@@ -3271,9 +3335,7 @@ export class Glass extends React.Component {
         enabled: proxy.doesManageSingleElement(),
         onClick: (event) => {
           if (remote) {
-            remote.getCurrentWindow().openDevTools();
-
-            this.getActiveComponent().devConsole.logBanner();
+            this.openUserFacingDevTools();
 
             const publicComponentModel = this.getActiveComponent().$instance;
             const internalElementModel = proxy.getElement();
