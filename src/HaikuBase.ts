@@ -40,28 +40,13 @@ const removeInstanceFromGlobalModelRegistry = (instance: HaikuBase): number => {
   }
 };
 
-const addValueToGlobalCache = (key: string, value: any) => {
-  HaikuGlobal.cache[key] = value;
-};
-
-const retrieveValueFromGlobalCache = (key: string) => {
-  return HaikuGlobal.cache[key];
-};
-
-const clearMatchingPropertiesInGlobalCache = (matcher: string) => {
-  for (const key in HaikuGlobal.cache) {
-    if (key.indexOf(matcher) !== -1) {
-      delete HaikuGlobal.cache[key];
-    }
-  }
-};
-
 export default class HaikuBase {
   private listeners;
 
   $id: number;
   config; // Implemented by subclass
   parent; // Implemented by subclass
+  protected cache: {[key in string]: any} = {};
 
   constructor () {
     this.$id = addInstanceToGlobalModelRegistry(this);
@@ -80,16 +65,12 @@ export default class HaikuBase {
     return (this.constructor as any).__name__;
   }
 
-  buildQualifiedCacheKey (key: string) {
-    return `${this.getPrimaryKey()}:${key}`;
-  }
-
   cacheSet (key: string, value: any) {
-    addValueToGlobalCache(this.buildQualifiedCacheKey(key), value);
+    this.cache[key] = value;
   }
 
   cacheGet (key: string) {
-    return retrieveValueFromGlobalCache(this.buildQualifiedCacheKey(key));
+    return this.cache[key];
   }
 
   cacheFetch<T> (key: string, provider: () => T): T {
@@ -106,11 +87,11 @@ export default class HaikuBase {
   }
 
   cacheUnset (key: string) {
-    addValueToGlobalCache(this.buildQualifiedCacheKey(key), undefined);
+    this.cache[key] = undefined;
   }
 
   cacheClear () {
-    clearMatchingPropertiesInGlobalCache(this.getPrimaryKey());
+    this.cache = {};
   }
 
   subcacheGet (key: string) {
