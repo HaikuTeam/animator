@@ -21,7 +21,7 @@ module.exports = {
       "component:did-mount": {
         handler: function () {
           console.log(this.$id,'sending foobar')
-          this.broadcast('foobar')
+          this.send('down','foobar')
         }
       }
     }
