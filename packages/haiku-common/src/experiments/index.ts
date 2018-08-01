@@ -41,6 +41,7 @@ export enum Experiment {
   Snapping = 'Snapping',
   PinchToZoomInGlass = 'PinchToZoomInGlass',
   UserFacingDevTools = 'UserFacingDevTools',
+  SendLogMessagesToPlumbing = 'SendLogMessagesToPlumbing',
 }
 
 /**

@@ -32,5 +32,6 @@
   "CopyPasteTweensWithAccelerators": true,
   "Snapping": true,
   "PinchToZoomInGlass": true,
-  "UserFacingDevTools": true
+  "UserFacingDevTools": true,
+  "SendLogMessagesToPlumbing": false
 }
