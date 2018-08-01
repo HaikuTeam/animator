@@ -8,6 +8,7 @@ import * as Project from 'haiku-serialization/src/bll/Project';
 import Config from '@haiku/core/lib/Config';
 import * as Element from 'haiku-serialization/src/bll/Element';
 import * as File from 'haiku-serialization/src/bll/File';
+import * as Template from 'haiku-serialization/src/bll/Template';
 import * as ElementSelectionProxy from 'haiku-serialization/src/bll/ElementSelectionProxy';
 import * as Asset from 'haiku-serialization/src/bll/Asset';
 import * as EmitterManager from 'haiku-serialization/src/utils/EmitterManager';
@@ -743,13 +744,36 @@ export class Glass extends React.Component {
               message.relpath,
               message.coords || {},
               {from: 'glass'},
-              (err) => {
+              (err, mana) => {
                 if (err) {
                   if (err.code === 'ENOENT') {
                     console.error('We couldn\'t find that component. 😩 Please try again in a few moments. If you still see this error, contact Haiku for support.');
                   } else {
                     console.error(err.message);
                   }
+                  return;
+                }
+
+                let foundTextNode = false;
+
+                Template.visitWithoutDescendingIntoSubcomponents(mana, (node) => {
+                  if (
+                    node &&
+                    node.elementName === 'text' ||
+                    node.elementName === 'tspan'
+                  ) {
+                    foundTextNode = true;
+                  }
+                });
+
+                if (foundTextNode) {
+                  // The '[notice]' substring tells Creator to display a toast
+                  console.info(`
+                    [notice] ⚠️ You placed an element that contains text.
+                    Since fonts on your system may not be available everywhere,
+                    we recommend converting all text to outlines.
+                    `.trim().replace(/\s+/g, ' '),
+                  );
                 }
               },
             );

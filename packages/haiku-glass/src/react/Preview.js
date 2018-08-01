@@ -14,25 +14,14 @@ export default class Preview extends React.Component {
     // preview mode is launched, so instead we just create a pristine copy of the bytecode
     const factory = HaikuDOMAdapter(this.props.component.getReifiedBytecode());
 
-    this.component = factory(
-      this.mount,
-      {
-        alwaysComputeSizing: false,
-        loop: true,
-        interactionMode: InteractionMode.LIVE,
-        autoplay: true,
-        mixpanel: false,
-        contextMenu: 'disabled',
-      },
-    );
-
-    this.component.on('state:change', (attachedObject) => {
+    const handleStateChange = (attachedObject) => {
       // Don't log if the values are already equivalent (unchanged)
       if (attachedObject.to === attachedObject.from) {
         return;
       }
 
       let message = '';
+
       if (attachedObject.queued) {
         message = `State transition ${attachedObject.state} to target ${attachedObject.to} with duration ${attachedObject.duration} queued`;
       } else if (attachedObject.started) {
@@ -42,18 +31,66 @@ export default class Preview extends React.Component {
       } else {
         message = `State ${attachedObject.state} changed from ${attachedObject.from} to ${attachedObject.to}`;
       }
+
       logger.traceInfo('state:change', message, attachedObject);
-    });
+    };
 
-    this.component.on('action:fired', (attachedObject) => {
-      const message = `Action ${attachedObject.action} fired on element ${attachedObject.element}`;
-      logger.traceInfo('action:fired', message, attachedObject);
-    });
+    const log = window.console.log.bind(window.console);
 
-    this.component.on('loop', (attachedObject) => {
+    const handleActionBefore = (component, name, selector) => {
+      window.console.log = (...args) => {
+        // We call via the log forwarder transport directly do avoid the following infinite recursion:
+        //   console.log ->
+        //   logger.traceInfo ->
+        //   logger.info ->
+        //   [winston internals] ->
+        //   [winston Console transport internals] ->
+        //   console.log -> ∞
+        // This is the fix because logForwarderTransport.log sends the message straight to plumbing.
+        logger.logForwarderTransport.log({
+          tag: 'console:log',
+          message: args.join(' '),
+          attachedObject: {
+            componentTitle: component.title,
+          },
+        }, () => {});
+      };
+    };
+
+    const handleActionAfter = (component, name, selector) => {
+      window.console.log = log;
+
+      const message = `Action ${name} fired on element ${selector}`;
+
+      logger.traceInfo('action:fired', message, {
+        action: name,
+        element: selector,
+        componentTitle: component.title,
+      });
+    };
+
+    const handleTimelineLoop = (attachedObject) => {
       const message = `Loop count ${attachedObject.loopCount}`;
       logger.traceInfo('loop', message, attachedObject);
-    });
+    };
+
+    this.component = factory(
+      this.mount,
+      {
+        alwaysComputeSizing: false,
+        loop: true,
+        interactionMode: InteractionMode.LIVE,
+        autoplay: true,
+        mixpanel: false,
+        contextMenu: 'disabled',
+        hooks: {
+          'action:before': handleActionBefore,
+          'action:after': handleActionAfter,
+          'state:change': handleStateChange,
+          'timeline:loop': handleTimelineLoop,
+        },
+      },
+    );
 
     this.component.render(this.component.config);
   }

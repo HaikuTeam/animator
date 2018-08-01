@@ -131,10 +131,7 @@ class Stage extends React.Component {
         case 0:
           if (event.message.slice(0, 8) === '[notice]') {
             const msg = event.message.replace('[notice]', '').trim();
-            const notice = this.props.createNotice({type: 'info', title: 'Notice', message: msg});
-            window.setTimeout(() => {
-              this.props.removeNotice(undefined, notice.id);
-            }, 2500);
+            this.props.createNotice({type: 'info', title: 'Notice', message: msg});
           }
           break;
 

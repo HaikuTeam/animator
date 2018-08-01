@@ -1,0 +1,5 @@
+Demonstrates this.send(...) API for sending arbitrarily named events to descendant components. Open your console, and you should see as follows:
+
+"sending foobar"
+"heard foobar!"
+"heard foobar!"

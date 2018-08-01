@@ -69,11 +69,7 @@ export default class Timeline extends React.Component {
         case 0:
           if (event.message.slice(0, 8) === '[notice]') {
             const message = event.message.replace('[notice]', '').trim();
-            const noticeNotice = this.props.createNotice({type: 'info', title: 'Notice', message});
-            // It seems nicest to just remove the notice after it's been on display for a couple of seconds
-            window.setTimeout(() => {
-              this.props.removeNotice(undefined, noticeNotice.id);
-            }, 2500);
+            this.props.createNotice({type: 'info', title: 'Notice', message});
           }
           break;
 

@@ -60,9 +60,9 @@ class LogViewer extends React.Component {
       displayTags: {
         'action:fired': {color: Palette.GREEN, label: 'ACTIONS FIRED', display: true},
         'state:change': {color: Palette.ORANGE, label: 'STATE CHANGES', display: true},
-        loop: {color: Palette.PURPLE, label: 'LOOP COUNT', display: true},
+        'timeline:loop': {color: Palette.PURPLE, label: 'LOOP COUNT', display: true},
         'preview:error': {color: Palette.RED, label: 'ERRORS', display: true},
-        console: {color: Palette.ROCK, label: 'CONSOLE', display: true},
+        'console:log': {color: Palette.ROCK, label: 'CONSOLE', display: true},
       },
     };
 

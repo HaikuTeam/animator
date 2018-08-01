@@ -20,7 +20,7 @@ module.exports = {
     "haiku:Blue-Circle-159399bd66dee833": {
       click: {
         handler: function(target, event) {
-          this.broadcast("foobar", { wow: 1 });
+          this.send('down',"foobar", { wow: 1 });
         }
       }
     }
