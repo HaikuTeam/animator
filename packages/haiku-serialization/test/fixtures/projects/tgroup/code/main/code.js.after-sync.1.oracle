@@ -138,7 +138,7 @@ module.exports = {
         "translation.y": 173.568,
         "scale.x": 0.583,
         "scale.y": 0.545,
-        "sizeAbsolute.x": 200,
+        "sizeAbsolute.x": 246,
         "sizeMode.x": 1,
         "sizeAbsolute.y": 97,
         "sizeMode.y": 1,
@@ -154,7 +154,7 @@ module.exports = {
         "translation.y": 373.5675,
         "scale.x": 0.583,
         "scale.y": 0.545,
-        "sizeAbsolute.x": 200,
+        "sizeAbsolute.x": 246,
         "sizeMode.x": 1,
         "sizeAbsolute.y": 97,
         "sizeMode.y": 1,
@@ -170,7 +170,7 @@ module.exports = {
         "translation.y": 272.213,
         "scale.x": 0.583,
         "scale.y": 0.545,
-        "sizeAbsolute.x": 100,
+        "sizeAbsolute.x": 78,
         "sizeMode.x": 1,
         "sizeAbsolute.y": 59,
         "sizeMode.y": 1,
@@ -218,109 +218,85 @@ module.exports = {
         "translation.y": 373.5675,
         "scale.x": 0.583,
         "scale.y": 0.545,
-        "sizeAbsolute.x": 200,
+        "sizeAbsolute.x": 246,
         "sizeMode.x": 1,
         "sizeAbsolute.y": 97,
         "sizeMode.y": 1,
         "style.zIndex": 9
       },
       "haiku:Rectangle-B-2e2081-Rectangle-B-04eb4ff8d8bd6b85": {
-        rx: "22",
-        fill: "#0000FF",
-        "sizeAbsolute.x": 200,
-        "sizeMode.x": 1,
-        "sizeAbsolute.y": 97,
-        "sizeMode.y": 1
+        width: 200,
+        height: 97,
+        rx: 22,
+        fill: "#0000FF"
       },
       "haiku:Rectangle-R-0be566443074e9a8": {
-        rx: "11",
+        width: 100,
+        height: 59,
+        rx: 11,
         fill: "#FF0000",
-        "sizeAbsolute.x": 100,
-        "sizeMode.x": 1,
-        "sizeAbsolute.y": 59,
-        "sizeMode.y": 1,
         "translation.x": 333,
         "translation.y": 103
       },
       "haiku:Rectangle-G-eda142fbd947847b": {
-        fill: "#00FF00",
-        "sizeAbsolute.x": 276,
-        "sizeMode.x": 1,
-        "sizeAbsolute.y": 187,
-        "sizeMode.y": 1
+        width: 276,
+        height: 187,
+        fill: "#00FF00"
       },
       "haiku:Rectangle-G-940f5b-Rectangle-G-8b65ca33a607b760": {
-        fill: "#00FF00",
-        "sizeAbsolute.x": 276,
-        "sizeMode.x": 1,
-        "sizeAbsolute.y": 187,
-        "sizeMode.y": 1
+        width: 276,
+        height: 187,
+        fill: "#00FF00"
       },
       "haiku:Rectangle-R-940f5b-Rectangle-R-111f03acdde5a143": {
-        rx: "11",
-        fill: "#FF0000",
-        "sizeAbsolute.x": 100,
-        "sizeMode.x": 1,
-        "sizeAbsolute.y": 59,
-        "sizeMode.y": 1
+        width: 100,
+        height: 59,
+        rx: 11,
+        fill: "#FF0000"
       },
       "haiku:Rectangle-B-940f5b-Rectangle-B-2cf3f063ee9b1da5": {
-        rx: "22",
-        fill: "#0000FF",
-        "sizeAbsolute.x": 200,
-        "sizeMode.x": 1,
-        "sizeAbsolute.y": 97,
-        "sizeMode.y": 1
+        width: 200,
+        height: 97,
+        rx: 22,
+        fill: "#0000FF"
       },
       "haiku:Rectangle-B-13bfb42325459ac5": {
-        rx: "22",
-        fill: "#0000FF",
-        "sizeAbsolute.x": 200,
-        "sizeMode.x": 1,
-        "sizeAbsolute.y": 97,
-        "sizeMode.y": 1
+        width: 200,
+        height: 97,
+        rx: 22,
+        fill: "#0000FF"
       },
       "haiku:Rectangle-R-4ef056f45357e257": {
-        rx: "11",
+        width: 100,
+        height: 59,
+        rx: 11,
         fill: "#FF0000",
-        "sizeAbsolute.x": 100,
-        "sizeMode.x": 1,
-        "sizeAbsolute.y": 59,
-        "sizeMode.y": 1,
         "translation.x": 333,
         "translation.y": 103
       },
       "haiku:Rectangle-G-0a1be520b10e994d": {
-        fill: "#00FF00",
-        "sizeAbsolute.x": 276,
-        "sizeMode.x": 1,
-        "sizeAbsolute.y": 187,
-        "sizeMode.y": 1
+        width: 276,
+        height: 187,
+        fill: "#00FF00"
       },
       "haiku:Rectangle-R-faf2e536349052bf": {
-        rx: "11",
+        width: 100,
+        height: 59,
+        rx: 11,
         fill: "#FF0000",
-        "sizeAbsolute.x": 100,
-        "sizeMode.x": 1,
-        "sizeAbsolute.y": 59,
-        "sizeMode.y": 1,
         "translation.x": 333,
         "translation.y": 103
       },
       "haiku:Rectangle-G-bdf124128ecbd7ad": {
-        fill: "#00FF00",
-        "sizeAbsolute.x": 276,
-        "sizeMode.x": 1,
-        "sizeAbsolute.y": 187,
-        "sizeMode.y": 1
+        width: 276,
+        height: 187,
+        fill: "#00FF00"
       },
       "haiku:Rectangle-B-271b4ea9adc67d15": {
-        rx: "22",
+        width: 200,
+        height: 97,
+        rx: 22,
         fill: "#0000FF",
-        "sizeAbsolute.x": 200,
-        "sizeMode.x": 1,
-        "sizeAbsolute.y": 97,
-        "sizeMode.y": 1,
         "translation.x": 138,
         "translation.y": 222
       }
