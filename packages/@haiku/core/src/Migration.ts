@@ -46,6 +46,27 @@ export interface MigrationOptions {
   referenceUniqueness?: string;
 }
 
+const ensure3dPreserved = (node: BytecodeNode) => {
+  if (!node || !node.attributes || !node.attributes.style) {
+    return;
+  }
+
+  let changed = false;
+
+  // Only preserve 3D behavior if the node hasn't been *explicitly* defined yet
+  if (!node.attributes.style.transformStyle) {
+    node.attributes.style.transformStyle = 'preserve-3d';
+
+    changed = true;
+
+    if (!node.attributes.style.perspective) {
+      node.attributes.style.perspective = 'inherit';
+    }
+  }
+
+  return changed;
+};
+
 /**
  * Migrations are a mechanism to modify our bytecode from legacy format to the current format.
  * This always runs against production components' bytecode to ensure their data is a format
@@ -312,6 +333,25 @@ export const runMigrationsPostPhase = (component: IHaikuComponent, options: Migr
   const coreVersion = bytecode.metadata.core || bytecode.metadata.player;
 
   let needsRerender = false;
+
+  if (component.doPreserve3d) {
+    const node = component.node;
+    if (node) {
+      const didNodePreserve3dChange = ensure3dPreserved(node);
+      if (didNodePreserve3dChange) {
+        component.patches.push(node);
+      }
+    }
+
+    // The wrapper also needs preserve-3d set for 3d-preservation to work
+    const parent = component.parentNode; // This should be the "wrapper div" node
+    if (parent) {
+      const didParentPreserve3dChange = ensure3dPreserved(parent);
+      if (didParentPreserve3dChange) {
+        component.patches.push(parent);
+      }
+    }
+  }
 
   const needsCamelAutoSizingOffsetOmnibus = requiresUpgrade(
     coreVersion, UpgradeVersionRequirement.CamelAutoSizingOffset3DOmnibus);

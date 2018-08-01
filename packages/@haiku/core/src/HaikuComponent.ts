@@ -12,13 +12,14 @@ import {
   IHaikuComponent,
   IHaikuContext,
   ParsedValueCluster,
+  ParsedValueClusterCollection,
 } from './api';
 import Config from './Config';
 import HaikuBase, {GLOBAL_LISTENER_KEY} from './HaikuBase';
 import HaikuClock from './HaikuClock';
 import HaikuElement from './HaikuElement';
 import HaikuHelpers from './HaikuHelpers';
-import {ascend, cssMatchOne, cssQueryTree, visit, xmlToMana} from './HaikuNode';
+import {ascend, cssMatchOne, cssQueryList, manaFlattenTree, visit, xmlToMana} from './HaikuNode';
 import HaikuTimeline, {PlaybackFlag, TimeUnit} from './HaikuTimeline';
 import ColorUtils from './helpers/ColorUtils';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
@@ -144,6 +145,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
   isDeactivated;
   isSleeping;
   private mutableTimelines: BytecodeTimelines;
+  private parsedValueClusters: ParsedValueClusterCollection = {};
   _states;
 
   bytecode: HaikuBytecode;
@@ -168,6 +170,8 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
   state;
   stateTransitionManager: StateTransitionManager;
   needsExpand = true;
+
+  patches: BytecodeNode[] = [];
 
   constructor (
     bytecode: HaikuBytecode,
@@ -553,6 +557,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     }
 
     this.hydrateMutableTimelines();
+    this.parsedValueClusters = {};
 
     if (this.bytecode.timelines) {
       for (const timelineName in this.bytecode.timelines) {
@@ -1220,37 +1225,18 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     const patches = {};
 
     this.expandIfNeeded();
-    visit(this.bytecode.template, (node, parent) => {
-      if (node.__memory.patched) {
-        computeAndApplyLayout(node, parent);
-        patches[getNodeCompositeId(node)] = node;
-        node.__memory.patched = false;
-      }
-    }, this.container);
+    for (let i = 0; i < this.patches.length; i++) {
+      const node = this.patches[i];
+      computeAndApplyLayout(node, node.__memory.parent);
+      patches[getNodeCompositeId(node)] = node;
+    }
+
+    this.patches = [];
 
     return patches;
   }
 
   applyGlobalBehaviors (options: any = {}) {
-    if (this.doPreserve3d) {
-      const node = this.node;
-      if (node) {
-        const didNodePreserve3dChange = ensure3dPreserved(this, node);
-        if (didNodePreserve3dChange) {
-          node.__memory.patched = true;
-        }
-      }
-
-      // The wrapper also needs preserve-3d set for 3d-preservation to work
-      const parent = this.parentNode; // This should be the "wrapper div" node
-      if (parent) {
-        const didParentPreserve3dChange = ensure3dPreserved(this, parent);
-        if (didParentPreserve3dChange) {
-          parent.__memory.patched = true;
-        }
-      }
-    }
-
     if (!this.host && options.sizing) {
       const didSizingChange = computeAndApplyPresetSizing(
         this.bytecode.template,
@@ -1259,7 +1245,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
       );
 
       if (didSizingChange) {
-        (this.bytecode.template as BytecodeNode).__memory.patched = true;
+        this.patches.push(this.bytecode.template);
       }
     }
   }
@@ -1269,6 +1255,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     skipCache = false,
   ) {
     const globalClockTime = this.context.clock.getExplicitTime();
+    const manaTree = this.manaTreeCached();
 
     for (const timelineName in this.bytecode.timelines) {
       const timelineInstance = this.getTimeline(timelineName);
@@ -1288,7 +1275,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
       }
 
       for (const behaviorSelector in mutableTimelineDescriptor) {
-        const matchingElementsForBehavior = this.findMatchingNodesByCSSSelector(behaviorSelector);
+        const matchingElementsForBehavior = this.findMatchingNodesByCSSSelector(manaTree, behaviorSelector);
 
         if (!matchingElementsForBehavior || matchingElementsForBehavior.length < 1) {
           continue;
@@ -1305,7 +1292,6 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
 
         for (let i = 0; i < matchingElementsForBehavior.length; i++) {
           const matchingElement = matchingElementsForBehavior[i];
-          matchingElement.__memory.patched = false;
           const compositeId = getNodeCompositeId(matchingElement);
 
           for (let j = 0; j < propertyOperations.length; j++) {
@@ -1359,8 +1345,9 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
                   timelineInstance,
                 );
 
-                // This is used downstream to decide whether patch updates are worthwhile
-                matchingElement.__memory.patched = true;
+                if (isPatchOperation) {
+                  this.patches.push(matchingElement);
+                }
               }
             }
           }
@@ -1415,21 +1402,22 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
   }
 
   findElementsByHaikuId (componentId) {
-    return this.findMatchingNodesByCSSSelector(`haiku:${componentId}`);
+    return this.findMatchingNodesByCSSSelector(this.manaTreeCached(), `haiku:${componentId}`);
   }
 
   nodesCacheKey (selector: string) {
     return 'nodes:' + selector;
   }
 
-  findMatchingNodesByCSSSelector (selector: string) {
-    const nodes = this.cacheFetch(this.nodesCacheKey(selector), () => {
-      return cssQueryTree(
-        this.bytecode.template,
-        selector,
-        CSS_QUERY_MAPPING,
-      );
-    });
+  private manaTreeCached () {
+    return this.cacheFetch('flatManaTree', () => manaFlattenTree(this.bytecode.template, CSS_QUERY_MAPPING));
+  }
+
+  findMatchingNodesByCSSSelector (manaTree, selector: string) {
+    const nodes = this.cacheFetch(
+      this.nodesCacheKey(selector),
+      () => cssQueryList(manaTree, selector, CSS_QUERY_MAPPING),
+    );
 
     const out = [];
 
@@ -1442,7 +1430,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
       // copies of it inside the host repeater. If any repeatees are returned that means the
       // element is in fact a repeater, otherwise it is not a repeater, so just use the node.
       if (repeatees.length > 0) {
-        out.push.apply(out, repeatees);
+        out.push(...repeatees);
       } else {
         out.push(node);
       }
@@ -1782,7 +1770,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
 
     const skipStableParsees = isPatchOperation && !skipCache;
 
-    if (skipStableParsees && this.clusterParseeIsStable(timelineName, flexId, outputName, cluster)) {
+    if (skipStableParsees && this.clusterParseeIsStable(parseeWithKeys)) {
       return parseeWithKeys;
     }
 
@@ -1991,20 +1979,26 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     outputName,
     cluster,
   ): ParsedValueCluster {
-    return this.cacheFetch<ParsedValueCluster>(`parsee:${timelineName}|${flexId}|${outputName}`, () => ({
-      // The parsee object is mutated in place downstream
-      parsee: {},
-      keys: cluster ? getSortedKeyframes(cluster) : [],
-    }));
+    if (!this.parsedValueClusters[timelineName]) {
+      this.parsedValueClusters[timelineName] = {};
+    }
+
+    if (!this.parsedValueClusters[timelineName][flexId]) {
+      this.parsedValueClusters[timelineName][flexId] = {};
+    }
+
+    if (!this.parsedValueClusters[timelineName][flexId][outputName]) {
+      this.parsedValueClusters[timelineName][flexId][outputName] = {
+        // The parsee object is mutated in place downstream
+        parsee: {},
+        keys: cluster ? getSortedKeyframes(cluster) : [],
+      };
+    }
+
+    return this.parsedValueClusters[timelineName][flexId][outputName];
   }
 
-  private clusterParseeIsStable (
-    timelineName,
-    flexId,
-    outputName,
-    cluster,
-  ): boolean {
-    const parsedValueCluster = this.getParseeWithKeys(timelineName, flexId, outputName, cluster);
+  private clusterParseeIsStable (parsedValueCluster: ParsedValueCluster): boolean {
     return parsedValueCluster.keys.every(
       (ms) => parsedValueCluster.parsee[ms] && !parsedValueCluster.parsee[ms].expression,
     );
@@ -2495,27 +2489,6 @@ const hydrateNode = (
 
   // In case we got a __reference node or other unknown
   console.warn('[haiku core] cannot hydrate node');
-};
-
-const ensure3dPreserved = (component, node) => {
-  if (!node || !node.attributes || !node.attributes.style) {
-    return;
-  }
-
-  let changed = false;
-
-  // Only preserve 3D behavior if the node hasn't been *explicitly* defined yet
-  if (!node.attributes.style.transformStyle) {
-    node.attributes.style.transformStyle = 'preserve-3d';
-
-    changed = true;
-
-    if (!node.attributes.style.perspective) {
-      node.attributes.style.perspective = 'inherit';
-    }
-  }
-
-  return changed;
 };
 
 const computeAndApplyPresetSizing = (element, container, mode): boolean => {

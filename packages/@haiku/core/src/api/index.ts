@@ -5,6 +5,7 @@ import {RFO} from '../reflection/functionToRFO';
 export interface IHaikuElement extends HaikuBase {
   tagName: string|HaikuBytecode;
   node: BytecodeNode;
+  parentNode?: BytecodeNode;
   target?: Element;
   originX: number;
   originY: number;
@@ -20,6 +21,7 @@ export interface IHaikuElement extends HaikuBase {
 export interface IHaikuComponent extends IHaikuElement {
   bytecode: HaikuBytecode;
   config: BytecodeOptions;
+  patches: BytecodeNode[];
   context: IHaikuContext;
   doPreserve3d: boolean;
   state: {[key in string]: any};
@@ -131,7 +133,6 @@ export interface BytecodeNodeMemoryObject {
   instance?: IHaikuComponent;
   listener?: Function; // Bound event listener function
   parent?: BytecodeNode;
-  patched?: boolean;
   placeholder?: PlaceholderSpec;
   repeatee?: RepeateeSpec;
   repeater?: RepeaterSpec;
@@ -385,7 +386,7 @@ export interface BytecodeOptions {
  * Bytecode definition. Properties are *rarely* used.
  */
 export interface HaikuBytecode {
-  template: BytecodeNode|string;
+  template: BytecodeNode;
   states?: BytecodeStates;
   eventHandlers?: BytecodeEventHandlers;
   timelines: BytecodeTimelines;
@@ -618,4 +619,15 @@ export interface ParsedValueCluster {
     };
   };
   keys: number[];
+}
+
+/**
+ * Similar to BytecodeTimelines, but storing parsed value clusters instead of literal timelines.
+ */
+export interface ParsedValueClusterCollection {
+  [timelineName: string]: {
+    [selector: string]: {
+      [propertyName: string]: ParsedValueCluster;
+    };
+  };
 }
