@@ -5,6 +5,7 @@ import {RFO} from '../reflection/functionToRFO';
 export interface IHaikuElement extends HaikuBase {
   tagName: string|HaikuBytecode;
   node: BytecodeNode;
+  parentNode?: BytecodeNode;
   target?: Element;
   originX: number;
   originY: number;
