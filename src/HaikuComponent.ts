@@ -3162,7 +3162,7 @@ export const VANITIES = {
             timeline,
           );
 
-          sender.needsExpand = true;
+          sender.markForFullFlush();
         }
 
         return;
@@ -3209,7 +3209,7 @@ export const VANITIES = {
         element.__memory.repeater.repeatees[index] = repeatee;
       });
 
-      sender.needsExpand = true;
+      sender.markForFullFlush();
     },
 
     'controlFlow.if': (
@@ -3245,7 +3245,7 @@ export const VANITIES = {
         element.__memory.repeater.changed = true;
       }
 
-      sender.needsExpand = true;
+      sender.markForFullFlush();
     },
   },
 };
