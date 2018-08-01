@@ -16,7 +16,7 @@ class DevConsole extends BaseModel {
       if (!window.hasOwnProperty('component')) {
         Object.defineProperty(window, 'component', {
           get: () => {
-            return this.component.$instance
+            return this.getPreviewComponent()
           }
         })
       }
@@ -24,8 +24,7 @@ class DevConsole extends BaseModel {
       if (!window.hasOwnProperty('stage')) {
         Object.defineProperty(window, 'stage', {
           get: () => {
-            const $stage = window.document.getElementById('haiku-stage')
-            return $stage && $stage.children[0]
+            return this.getStageElement()
           }
         })
       }
@@ -48,14 +47,41 @@ class DevConsole extends BaseModel {
     }
   }
 
+  getStageElement () {
+    const $stage = window.document.getElementById('haiku-stage')
+    return $stage && $stage.children[0]
+  }
+
+  getPreviewComponent () {
+    const stage = this.getStageElement()
+    return stage && stage.haiku && stage.haiku.component
+  }
+
   showHelp () {
     console.log([
-      `Haiku ${process.env.HAIKU_RELEASE_VERSION} (${process.env.NODE_ENV})`,
-      'Usage:',
-      '  help - Prints this message',
-      '  component - Returns your component (HaikuComponent)',
-      '  stage - Returns the stage element (HTMLElement)',
-      '  exit - Exit preview'
+      'Hi there! You\'ve found the Haiku help message. 😃',
+      '',
+      'New to coding? Check out http://jsforcats.com 🐈',
+      '',
+      'Know JavaScript already? 🤸 Here are some things you can try:',
+      '',
+      '  Pause the animation:',
+      '  > component.pause();',
+      '',
+      '  Seek to a specific frame:',
+      '  > component.gotoAndStop(20);',
+      '',
+      '  Get the user\'s mouse cursor position {x,y}:',
+      '  > component.evaluate(\'$user.mouse\');',
+      '',
+      '  Get your component\'s size {x,y,z}:',
+      '  > component.size;',
+      '',
+      'For more, visit https://docs.haiku.ai 📓',
+      '',
+      'To exit the preview at any time, just type \'exit\'. 👋',
+      '',
+      '…'
     ].join('\n'))
   }
 
@@ -65,7 +91,7 @@ class DevConsole extends BaseModel {
     }
 
     console.log([
-      'Welcome to the Haiku Console! 🤖',
+      'Welcome to the Haiku Console! 🤖 ',
       '',
       'Here we show live info about your Haiku as you preview it. 👩‍💻',
       '',
@@ -74,7 +100,7 @@ class DevConsole extends BaseModel {
       '  - Try out code snippets 🍀',
       '  - Just watch the logs go by 🌇',
       '',
-      'Want help? Type \'help\' at the prompt (at the bottom, below) and press enter.',
+      'Want help? Type \'help\' at the prompt (below, at the very bottom) and press enter.',
       '',
       'Have fun! 🏖',
       '',
