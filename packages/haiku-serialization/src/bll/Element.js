@@ -102,6 +102,8 @@ class Element extends BaseModel {
   afterInitialize () {
     // Make sure we add to the appropriate collections to avoid unexpected state issues
     this.populateVisiblePropertiesFromKeyframes()
+
+    // this.recalculateSvgBBIfNeeded()
   }
 
   oneListener ($el, uid, type, fn) {
@@ -1589,6 +1591,17 @@ class Element extends BaseModel {
 
   isRootElement () {
     return !this.parent
+  }
+
+  isUngroupedSvgRootElement() {
+    const haikuElement = this.getHaikuElement();
+    if (haikuElement && haikuElement.node && haikuElement.node.elementName &&
+        haikuElement.node.elementName === 'svg' && 
+        haikuElement.attributes['haiku-source'] &&
+        haikuElement.attributes['haiku-source'].indexOf('#') > -1) {
+          return true
+    } 
+    return false
   }
 
   getBoxPolygonPointsTransformed () {

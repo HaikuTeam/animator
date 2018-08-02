@@ -243,6 +243,37 @@ export class Glass extends React.Component {
     );
   }
 
+  recalculateUngroupedSVGsBB () {
+
+    const updatesToSVGBB = {};
+
+    const elements = Element.where({component: this.getActiveComponent()})
+    .filter((element) => element.isUngroupedSvgRootElement());
+
+    for (const element of elements) {
+      const haikuElement = element.getHaikuElement();
+      const boundingBox = haikuElement.target.getBBox();
+
+      const svgRootAttributes = {
+        'style.overflow': {0: {value: 'visible'}},
+        'sizeAbsolute.x': {0: {value: boundingBox.width}},
+        'sizeAbsolute.y': {0: {value: boundingBox.height}},
+      };
+
+      updatesToSVGBB[haikuElement.attributes['haiku-id']] = svgRootAttributes;
+
+    }
+
+    if (Object.keys(updatesToSVGBB).length) {
+      this.getActiveComponent().updateKeyframes(
+        {
+          [this.getActiveComponent().getCurrentTimelineName()]: updatesToSVGBB,
+        },
+      {}, {from: 'glass'}, () => {});
+    }
+
+  }
+
   isTextSelected () {
     return window.getSelection().type === 'Range';
   }
