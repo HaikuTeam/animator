@@ -35,31 +35,11 @@ export default class Preview extends React.Component {
       logger.traceInfo('state:change', message, attachedObject);
     };
 
-    const log = window.console.log.bind(window.console);
-
     const handleActionBefore = (component, name, selector) => {
-      window.console.log = (...args) => {
-        // We call via the log forwarder transport directly do avoid the following infinite recursion:
-        //   console.log ->
-        //   logger.traceInfo ->
-        //   logger.info ->
-        //   [winston internals] ->
-        //   [winston Console transport internals] ->
-        //   console.log -> ∞
-        // This is the fix because logForwarderTransport.log sends the message straight to plumbing.
-        logger.logForwarderTransport.log({
-          tag: 'console:log',
-          message: args.join(' '),
-          attachedObject: {
-            componentTitle: component.title,
-          },
-        }, () => {});
-      };
+      // no-op for now
     };
 
     const handleActionAfter = (component, name, selector) => {
-      window.console.log = log;
-
       const message = `Action ${name} fired on element ${selector}`;
 
       logger.traceInfo('action:fired', message, {
@@ -123,7 +103,7 @@ export default class Preview extends React.Component {
           ref={(mount) => {
             this.mount = mount;
           }}
-          id="haiku-glass-preview-mount"
+          id="haiku-stage"
           style={{
             position: 'absolute',
             top: this.props.mount.y,

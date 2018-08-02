@@ -20,7 +20,22 @@ module.exports = {
   },
   options: {},
   states: {},
-  eventHandlers: {},
+  eventHandlers: {
+    "haiku:e947acc4b7b4": {
+      click: {
+        handler: function(target, event) {
+          console.log('did a click!')
+        }
+      },
+    },
+    "haiku:03757d2ca102": {
+      'timeline:Default:0': {
+        handler: function(target, event) {
+          //no-op
+        }
+      }
+    }
+  },
   timelines: {
     Default: {
       "haiku:03757d2ca102": {
@@ -45,7 +60,10 @@ module.exports = {
         "sizeMode.x": { "0": { value: 1 } },
         "sizeAbsolute.y": { "0": { value: "auto" } },
         "sizeMode.y": { "0": { value: 1 } },
-        "translation.x": { "0": { value: 127, edited: true } },
+        "translation.x": {
+          "0": { value: 127, edited: true, curve: 'linear' },
+          "1000": { value: 227, edited: true }
+        },
         "translation.y": { "0": { value: 54, edited: true } },
         "origin.x": { "0": { value: 0.5 } },
         "origin.y": { "0": { value: 0.5 } },

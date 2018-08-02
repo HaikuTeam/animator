@@ -961,7 +961,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
 
     this.callHook('action:before', this, eventName, eventsSelector, eventArgs);
     try {
-      handler.apply(this, eventArgs);
+      handler.apply(this, [this].concat(eventArgs));
     } catch (exception) {
       consoleErrorOnce(exception);
     }
