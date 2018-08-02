@@ -169,14 +169,14 @@ export default class HaikuTimeline extends HaikuBase {
     const frame = this.getBoundedFrame();
     const time = Math.round(this.getBoundedTime());
 
-    this.component.routeEventToHandlerAndEmit(
+    this.component.routeEventToHandlerAndEmitWithoutBubbling(
       GLOBAL_LISTENER_KEY,
       `timeline:${this.getName()}:${frame}`,
       [frame, time],
     );
 
     // Allow users to subscribe to the 'frame' event globally
-    this.component.routeEventToHandlerAndEmit(
+    this.component.routeEventToHandlerAndEmitWithoutBubbling(
       GLOBAL_LISTENER_KEY,
       'frame',
       [frame, time],
@@ -482,7 +482,8 @@ export default class HaikuTimeline extends HaikuBase {
   }
 
   gotoAndPlay (amount: number, unit: TimeUnit = TimeUnit.Frame) {
-    this.seekSoftly(this.getMs(amount, unit));
+    const ms = this.getMs(amount, unit);
+    this.seekSoftly(ms);
     this.play(null);
   }
 
