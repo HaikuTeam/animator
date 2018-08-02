@@ -6,6 +6,9 @@ const Project = require('./../../src/bll/Project')
 const logger = require('./../../src/utils/LoggerInstance')
 
 
+
+// This test uses an oracle project (../fixtures/projects/tgroup). The oracle project also contains
+// an updated svg to simulate svg update with external tool 
 tape('ActiveComponent.prototype.mergeDesign[1](ungrouped-sync)', (t) => {
   t.plan(1)
   const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'tgroup-tmp')

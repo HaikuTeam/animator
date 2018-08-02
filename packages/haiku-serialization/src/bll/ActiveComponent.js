@@ -1661,9 +1661,6 @@ class ActiveComponent extends BaseModel {
         return
       }
 
-      // console.log('Element with existingSource', existingSource)
-      // console.log('Parameters: existingBytecode', existingBytecode, 'manaIncoming', manaIncoming, 'existingNode', existingNode)
-
       // *Prepare incoming mana*
       let safeIncoming = null
       // For ungrouped element, we want to update only child element
@@ -1702,11 +1699,7 @@ class ActiveComponent extends BaseModel {
         nodeToBeUpdated = existingNode
       }
 
-      // console.log('nodeToBeUpdated', nodeToBeUpdated, 'safeIncoming', safeIncoming)
-
-      // console.log('Prepare to remove child.. existingBytecode:', existingBytecode, 'nodeToBeUpdated', nodeToBeUpdated)
       const removedOutputs = this.removeChildContentFromBytecode(existingBytecode, nodeToBeUpdated, isUngroupedElement)
-      // console.log('Removed child.. removedOutputs', removedOutputs, 'existingBytecode:', existingBytecode, 'nodeToBeUpdated', nodeToBeUpdated)
 
       const {
         hash
@@ -1723,8 +1716,6 @@ class ActiveComponent extends BaseModel {
         }
       )
 
-      // console.log('Timelines object', timelinesObject)
-
       const existingSelector = `haiku:${nodeToBeUpdated.attributes[HAIKU_ID_ATTRIBUTE]}`
       const incomingSelector = `haiku:${safeIncoming.attributes[HAIKU_ID_ATTRIBUTE]}`
 
@@ -1737,18 +1728,11 @@ class ActiveComponent extends BaseModel {
         nodeToBeUpdated.children.push(incomingChild)
       }
 
-      // If it's ungroup element, we should mirror size attributes back to its svg.. to simulate what is done when ungrouping
+      // If it's ungroup element, we recalculate its parent Bouding Box
       if (isUngroupedElement) {
-        const existingRootSvgSelector = `haiku:${existingNode.attributes[HAIKU_ID_ATTRIBUTE]}`
-        const attributesToBeMoved = ['sizeAbsolute.x', 'sizeAbsolute.y', 'sizeRelative.x', 'sizeRelative.y', 'sizeMode.x', 'sizeMode.y']
+        // const existingRootSvgSelector = `haiku:${existingNode.attributes[HAIKU_ID_ATTRIBUTE]}`
 
-        timelinesObject[timelineName][existingRootSvgSelector] = {}
-
-        for (const attributeName in timelinesObject[timelineName][existingSelector]) {
-          if (attributesToBeMoved.indexOf(attributeName) > -1) {
-            timelinesObject[timelineName][existingRootSvgSelector][attributeName] = timelinesObject[timelineName][existingSelector][attributeName]
-          }
-        }
+        // FIXME: Recaulculate Bounding Box of ungrouped element parent SVG dimensios
       }
 
       Bytecode.mergeTimelines(existingBytecode.timelines, timelinesObject)
