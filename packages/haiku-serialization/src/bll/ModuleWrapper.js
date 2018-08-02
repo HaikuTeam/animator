@@ -415,7 +415,6 @@ ModuleWrapper.requireFromString = (code, filename, opts) => {
  */
 ModuleWrapper.requireFromFile = (filename) => {
   const contents = fs.readFileSync(filename).toString()
-
   return ModuleWrapper.requireFromString(contents, filename)
 }
 

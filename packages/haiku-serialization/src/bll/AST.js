@@ -93,10 +93,6 @@ const grabExtraMatterFromSourceCode = (code) => {
       return out
     }
 
-    console.log('&&&=======&&&')
-
-    console.log(code)
-
     let nodesCollection = out.frontMatterNodes
 
     ast.program.body.forEach((node) => {
@@ -111,10 +107,6 @@ const grabExtraMatterFromSourceCode = (code) => {
 
       nodesCollection.push(node)
     })
-
-    console.log(out)
-
-    console.log('^^^=======^^^')
 
     return out
   } catch (exception) {
