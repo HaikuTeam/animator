@@ -35,6 +35,7 @@ export interface IHaikuComponent extends IHaikuElement {
   getClock: () => HaikuClock;
   emitFromRootComponent: (eventName: string, attachedObject: any) => void;
   routeEventToHandlerAndEmit: (eventSelectorGiven: string, eventNameGiven: string, eventArgs: any) => void;
+  routeEventToHandlerAndEmitWithoutBubbling: (eventSelectorGiven: string, eventNameGiven: string, eventArgs: any) => void;
   getTimelineDescriptor: (timelineName: string) => BytecodeTimeline;
 }
 
