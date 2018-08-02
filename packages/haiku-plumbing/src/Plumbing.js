@@ -1460,6 +1460,7 @@ Plumbing.prototype.upsertMaster = function ({folder, fileOptions, envoyOptions})
             params: [master.folder, designs, {from: 'master'}],
           },
           () => {
+            this.sendBroadcastMessage({type: 'broadcast', name: 'recalculate-ungrouped-bb'}, {folder: master.folder}, 'plumbing');
             logger.info(`[plumbing] finished merge designs`);
           },
         );

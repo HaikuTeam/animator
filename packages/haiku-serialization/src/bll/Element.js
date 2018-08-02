@@ -1593,14 +1593,14 @@ class Element extends BaseModel {
     return !this.parent
   }
 
-  isUngroupedSvgRootElement() {
-    const haikuElement = this.getHaikuElement();
+  isUngroupedSvgRootElement () {
+    const haikuElement = this.getHaikuElement()
     if (haikuElement && haikuElement.node && haikuElement.node.elementName &&
-        haikuElement.node.elementName === 'svg' && 
+        haikuElement.node.elementName === 'svg' &&
         haikuElement.attributes['haiku-source'] &&
         haikuElement.attributes['haiku-source'].indexOf('#') > -1) {
-          return true
-    } 
+      return true
+    }
     return false
   }
 

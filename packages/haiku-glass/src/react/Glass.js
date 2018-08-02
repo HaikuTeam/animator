@@ -766,6 +766,10 @@ export class Glass extends React.Component {
         case 'assets-changed':
           File.cache.clear();
           break;
+
+        case 'recalculate-ungrouped-bb':
+          this.recalculateUngroupedSVGsBB();
+          break;
       }
     });
 
