@@ -1,4 +1,5 @@
 /* tslint:disable:no-shadowed-variable */
+import {VERSION} from '@core/HaikuComponent';
 import {BytecodeNode, BytecodeTimelineProperties, Curve, HaikuBytecode} from '@haiku/core/lib/api';
 import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
 import tape = require('tape');
@@ -418,8 +419,8 @@ tape('BodymovinExporter', (suite: tape.Test) => {
     // Scope for testing linear gradients.
     {
       overrideShapeAttributes(bytecode, {
-        'sizeAbsolute.x': {0: {value: 100}},
-        'sizeAbsolute.y': {0: {value: 200}},
+        width: {0: {value: 100}},
+        height: {0: {value: 200}},
         fill: {0: {value: 'url( "#gradient" )'}},
       });
 
@@ -669,8 +670,8 @@ tape('BodymovinExporter', (suite: tape.Test) => {
     overrideShapeAttributes(bytecode, {
       x: {0: {value: 10}},
       y: {0: {value: 10}},
-      'sizeAbsolute.x': {0: {value: 10}},
-      'sizeAbsolute.y': {0: {value: 20}},
+      width: {0: {value: 10}},
+      height: {0: {value: 20}},
       rx: {0: {value: 20}},
       'translation.x': {0: {value: -60}},
       'translation.y': {0: {value: -90}},
@@ -975,5 +976,7 @@ tape('BodymovinExporter', (suite: tape.Test) => {
     test.end();
   });
 
+  // @ts-ignore
+  global.haiku[VERSION].HaikuGlobalAnimationHarness.cancel();
   suite.end();
 });

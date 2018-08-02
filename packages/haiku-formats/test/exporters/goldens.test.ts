@@ -1,3 +1,4 @@
+import {VERSION} from '@core/HaikuComponent';
 import {each} from 'async';
 import {basename, join} from 'path';
 import tape = require('tape');
@@ -25,18 +26,20 @@ tape('haiku-formats goldens', (suite: tape.Test) => {
           readFile(
             join(goldensRoot, 'bodymovin', `${name}.json`),
             (__: any, contents: Buffer) => {
-              test.equal(
-                // This aditional conversion is necessary to avoid any errors
-                // from git.autocrlf on Windows
-                JSON.stringify(JSON.parse(contents.toString()), null, 2),
-                JSON.stringify(exporter.rawOutput(), null, 2),
+              test.deepEqual(
+                JSON.parse(contents.toString()),
+                JSON.parse(JSON.stringify(exporter.rawOutput())),
                 `bodymovin goldens match: ${name}`,
               );
               next();
             },
           );
         },
-        test.end,
+        () => {
+          // @ts-ignore
+          global.haiku[VERSION].HaikuGlobalAnimationHarness.cancel();
+          test.end();
+        },
       );
     });
   });

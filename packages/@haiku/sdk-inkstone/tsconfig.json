@@ -4,6 +4,7 @@
     "allowJs": false,
     "declaration": true,
     "declarationDir": "lib",
+    "lib": ["es6", "dom"],
     "module": "commonjs",
     "moduleResolution": "node",
     "noImplicitAny": true,
@@ -12,7 +13,7 @@
     "rootDir": "src",
     "sourceMap": true,
     "suppressImplicitAnyIndexErrors": true,
-    "target": "ES2015",
+    "target": "ES5",
     "types": [
       "node"
     ],

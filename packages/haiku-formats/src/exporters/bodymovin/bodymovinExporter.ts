@@ -1,3 +1,4 @@
+import HaikuDOMAdapter from '@haiku/core/lib/adapters/dom/HaikuDOMAdapter';
 import {
   BytecodeNode,
   BytecodeSummonable,
@@ -623,8 +624,8 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
 
       const [_, base64] = matches;
 
-      let width = initialValueOrNull(timeline, 'sizeAbsolute.x');
-      let height = initialValueOrNull(timeline, 'sizeAbsolute.y');
+      let width = initialValueOrNull(timeline, 'width');
+      let height = initialValueOrNull(timeline, 'height');
       if (width === null || height === null) {
         ({width, height} = imageSize(new Buffer(base64, 'base64')));
       }
@@ -938,20 +939,20 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     timeline: BytecodeTimelineProperties, shape: BodymovinShape, transform: BodymovinTransform,
   ) {
     shape[ShapeKey.Type] = ShapeType.Rectangle;
-    if (!timelineHasProperties(timeline, 'sizeAbsolute.x', 'sizeAbsolute.y')) {
+    if (!timelineHasProperties(timeline, 'width', 'height')) {
       shape[TransformKey.Size] = getFixedPropertyValue([
         this.currentNodeSize.x,
         this.currentNodeSize.y,
       ]);
     } else {
-      shape[TransformKey.Size] = this.getValue([timeline['sizeAbsolute.x'], timeline['sizeAbsolute.y']]);
+      shape[TransformKey.Size] = this.getValue([timeline.width, timeline.height]);
     }
 
     shape[TransformKey.BorderRadius] = this.getValueOrDefaultFromTimeline(timeline, 'rx', 0, parseInt);
     shape[TransformKey.Position] = getFixedPropertyValue([
-      initialValueOr(timeline, 'sizeAbsolute.x', this.currentNodeSize.x) / 2 +
+      initialValueOr(timeline, 'width', this.currentNodeSize.x) / 2 +
         parseFloat(initialValueOr(timeline, 'x', 0)),
-      initialValueOr(timeline, 'sizeAbsolute.y', this.currentNodeSize.y) / 2 +
+      initialValueOr(timeline, 'height', this.currentNodeSize.y) / 2 +
         parseFloat(initialValueOr(timeline, 'y', 0)),
     ]);
 
@@ -1156,51 +1157,43 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    */
   private handleWrapper () {
     const wrapperTimeline = this.timelineForNode(this.bytecode.template);
-    if (timelineHasProperties(wrapperTimeline, 'sizeAbsolute.x', 'sizeAbsolute.y')) {
-      const [width, height] = [
-        initialValue(wrapperTimeline, 'sizeAbsolute.x'),
-        initialValue(wrapperTimeline, 'sizeAbsolute.y'),
-      ];
-      this.animationSize.x = width;
-      this.animationSize.y = height;
-      if (
-        timelineHasProperties(wrapperTimeline, 'style.backgroundColor') ||
-        timelineHasProperties(wrapperTimeline, 'backgroundColor')
-      ) {
-        const color = initialValueOrNull(wrapperTimeline, 'style.backgroundColor') ||
-          initialValueOrNull(wrapperTimeline, 'backgroundColor');
-        if (!color) {
-          // Nothing to do here!
-          return;
-        }
-
-        // Bodymovin won't understand background color as a directive. We will need to fake a rectangle for the
-        // equivalent effect. Start by creating a virtual node.
-        const wrapperNode: BytecodeNode = {
-          elementName: SvgTag.Svg,
-          attributes: {'haiku-id': 'wrapper'},
-          children: [{
-            elementName: SvgTag.RectangleShape,
-            attributes: {'haiku-id': 'wrapper-rectangle'},
-            children: [],
-          }],
-        };
-
-        // Next, shim in fill rule for the rectangle.
-        this.bytecode.timelines.Default['haiku:wrapper-rectangle'] = {
-          fill: {0: {value: color}},
-          x: {0: {value: 0}},
-          y: {0: {value: 0}},
-          'style.zIndex': {0: {value: 0}},
-          'sizeAbsolute.x': {0: {value: width}},
-          'sizeAbsolute.y': {0: {value: height}},
-        };
-
-        // Finally, process the node as if it were a normal shape.
-        Template.visitTemplate(wrapperNode, null, (node: BytecodeNode, parentNode: BytecodeNode) => {
-          this.handleElement(node, parentNode);
-        });
+    if (
+      timelineHasProperties(wrapperTimeline, 'style.backgroundColor') ||
+      timelineHasProperties(wrapperTimeline, 'backgroundColor')
+    ) {
+      const color = initialValueOrNull(wrapperTimeline, 'style.backgroundColor') ||
+        initialValueOrNull(wrapperTimeline, 'backgroundColor');
+      if (!color) {
+        // Nothing to do here!
+        return;
       }
+
+      // Bodymovin won't understand background color as a directive. We will need to fake a rectangle for the
+      // equivalent effect. Start by creating a virtual node.
+      const wrapperNode: BytecodeNode = {
+        elementName: SvgTag.Svg,
+        attributes: {'haiku-id': 'wrapper'},
+        children: [{
+          elementName: SvgTag.RectangleShape,
+          attributes: {'haiku-id': 'wrapper-rectangle'},
+          children: [],
+        }],
+      };
+
+      // Next, shim in fill rule for the rectangle.
+      this.bytecode.timelines.Default['haiku:wrapper-rectangle'] = {
+        fill: {0: {value: color}},
+        x: {0: {value: 0}},
+        y: {0: {value: 0}},
+        'style.zIndex': {0: {value: 0}},
+        width: {0: {value: this.animationSize.x}},
+        height: {0: {value: this.animationSize.y}},
+      };
+
+      // Finally, process the node as if it were a normal shape.
+      Template.visitTemplate(wrapperNode, null, (node: BytecodeNode, parentNode: BytecodeNode) => {
+        this.handleElement(node, parentNode);
+      });
     }
   }
 
@@ -1417,9 +1410,25 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
       throw new Error(`Unexpected wrapper element: ${this.bytecode.template.elementName}`);
     }
 
-    // Rewrite timelines to use keyframes instead of millitimes, which is the Bodymovin way. It makes sense to do
-    // this step prior to the subsequent ones, since we might end up with fewer keyframes in the later steps for a
-    // subtle runtime performance boost.
+    const factory = HaikuDOMAdapter(this.bytecode);
+    const component = factory(
+      null,
+      {
+        mixpanel: false,
+        contextMenu: 'disabled',
+        hotEditingMode: true,
+        autoplay: false,
+      },
+      );
+
+    this.animationSize.x = component.size.x;
+    this.animationSize.y = component.size.y;
+    // We only want to run migrations and perform auto-sizing. The component can go out of scope now.
+    component.context.destroy();
+
+    // Rewrite timelines to use keyframes instead of millitimes, which is the Bodymovin way. It makes sense to
+    // do this step prior to the subsequent ones, since we might end up with fewer keyframes in the later
+    // steps for a subtle runtime performance boost.
     this.normalizeKeyframes();
 
     // Normalize timeline values so that they always will provide primitives when their value is accessed.
@@ -1444,16 +1453,18 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     this.handleWrapper();
 
     this.bytecode.template.children.forEach((template: BytecodeNode) => {
-      Template.visitTemplate(template, this.bytecode.template, (node: BytecodeNode, parentNode: BytecodeNode) => {
-        this.handleElement(node, parentNode);
-      });
+      Template.visitTemplate(
+        template,
+        this.bytecode.template,
+        this.handleElement.bind(this),
+      );
     });
 
     this.fixDisplaySequencing(this.rootLayers);
 
     this.assets.forEach((precomp) => {
       if (!Array.isArray(precomp[AssetKey.PrecompLayers])) {
-        // Skip over image assets, which have no layers.
+                // Skip over image assets, which have no layers.
         return;
       }
 
@@ -1494,7 +1505,6 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
 
   /**
    * Interface method to provide raw output.
-   * @returns {{}}
    */
   rawOutput (): BodymovinAnimation {
     if (!this.bytecodeParsed) {
@@ -1509,7 +1519,6 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
 
   /**
    * Method to provide binary output.
-   * @returns {{}}
    */
   binaryOutput () {
     return JSON.stringify(this.rawOutput());
@@ -1523,7 +1532,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     try {
       return writeFile(filename, this.binaryOutput());
     } catch (e) {
-      LoggerInstance.error(`[formats]; caught; exception; during; bodymovin; export: $;{e.toString();}`);
+      LoggerInstance.error(`[formats]; caught exception during bodymovin export: ${e.toString()}`);
     }
 
     return writeFile(filename, '{}');

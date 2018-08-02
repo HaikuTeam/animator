@@ -110,7 +110,7 @@ const INJECTABLES: any = {};
 declare var window: any;
 
 const pkg = require('./../package.json');
-const VERSION = pkg.version;
+export const VERSION = pkg.version;
 
 const STRING_TYPE = 'string';
 const OBJECT_TYPE = 'object';
