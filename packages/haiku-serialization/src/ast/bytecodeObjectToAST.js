@@ -34,7 +34,12 @@ function buildRequireStatementsFromImports (imports) {
   return statements
 }
 
-module.exports = function bytecodeObjectToAST (bytecode, imports = {}) {
+module.exports = function bytecodeObjectToAST (
+  bytecode,
+  imports = {},
+  frontMatterNodes = [],
+  backMatterNodes = []
+) {
   const oast = objectToOAST(bytecode)
 
   const ast = {
@@ -43,27 +48,30 @@ module.exports = function bytecodeObjectToAST (bytecode, imports = {}) {
     program: {
       type: 'Program',
       directives: [],
-      body: buildRequireStatementsFromImports(imports).concat([
-        {
-          type: 'ExpressionStatement',
-          expression: {
-            type: 'AssignmentExpression',
-            operator: '=',
-            left: {
-              type: 'MemberExpression',
-              object: {
-                type: 'Identifier',
-                name: 'module'
+      body: buildRequireStatementsFromImports(imports)
+        .concat(frontMatterNodes)
+        .concat([
+          {
+            type: 'ExpressionStatement',
+            expression: {
+              type: 'AssignmentExpression',
+              operator: '=',
+              left: {
+                type: 'MemberExpression',
+                object: {
+                  type: 'Identifier',
+                  name: 'module'
+                },
+                property: {
+                  type: 'Identifier',
+                  name: 'exports'
+                }
               },
-              property: {
-                type: 'Identifier',
-                name: 'exports'
-              }
-            },
-            right: oast
+              right: oast
+            }
           }
-        }
-      ])
+        ])
+        .concat(backMatterNodes)
     }
   }
 

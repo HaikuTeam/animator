@@ -5,6 +5,7 @@ const bytecodeObjectToAST = require('./../ast/bytecodeObjectToAST')
 const normalizeBytecodeAST = require('./../ast/normalizeBytecodeAST')
 const parseCode = require('./../ast/parseCode')
 const generateCode = require('./../ast/generateCode')
+const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 
 const HAIKU_SOURCE_ATTRIBUTE = 'haiku-source'
 const HAIKU_VAR_ATTRIBUTE = 'haiku-var'
@@ -23,13 +24,23 @@ class AST extends BaseModel {
     this.obj = {}
   }
 
-  updateWithBytecode (bytecode) {
+  updateWithBytecode (bytecode, previousSourceCodeString) {
     // Grab imports before we strip the __reference property
     const imports = AST.findImportsFromTemplate(this.file, bytecode.template)
 
     const ro = AST.normalizeBytecode(bytecode)
 
-    const ast = bytecodeObjectToAST(ro, imports)
+    const {
+      frontMatterNodes,
+      backMatterNodes
+    } = grabExtraMatterFromSourceCode(previousSourceCodeString)
+
+    const ast = bytecodeObjectToAST(
+      ro,
+      imports,
+      frontMatterNodes,
+      backMatterNodes
+    )
 
     normalizeBytecodeAST(ast)
 
@@ -40,8 +51,8 @@ class AST extends BaseModel {
     return this.obj
   }
 
-  updateWithBytecodeAndReturnCode (bytecode) {
-    this.updateWithBytecode(bytecode)
+  updateWithBytecodeAndReturnCode (bytecode, previousSourceCodeString) {
+    this.updateWithBytecode(bytecode, previousSourceCodeString)
     return this.toCode()
   }
 
@@ -57,6 +68,105 @@ AST.DEFAULT_OPTIONS = {
 }
 
 BaseModel.extend(AST)
+
+const grabExtraMatterFromSourceCode = (code) => {
+  const out = {
+    frontMatterNodes: [],
+    backMatterNodes: []
+  }
+
+  if (
+    !experimentIsEnabled(Experiment.PreserveFrontMatterInCode) ||
+    !code
+  ) {
+    return out
+  }
+
+  try {
+    const ast = parseCode(code)
+
+    if (ast instanceof Error) {
+      return out
+    }
+
+    if (!ast || !ast.program || !ast.program.body) {
+      return out
+    }
+
+    console.log('&&&=======&&&')
+
+    console.log(code)
+
+    let nodesCollection = out.frontMatterNodes
+
+    ast.program.body.forEach((node) => {
+      if (isAutoGenImportNode(node)) {
+        return
+      }
+
+      if (isModuleExportsNode(node)) {
+        nodesCollection = out.backMatterNodes
+        return
+      }
+
+      nodesCollection.push(node)
+    })
+
+    console.log(out)
+
+    console.log('^^^=======^^^')
+
+    return out
+  } catch (exception) {
+    console.warn('[AST]', exception)
+    return out
+  }
+}
+
+const isAutoGenImportNode = (node) => {
+  // Assumes the form `var Foo = require('bar')`
+  return (
+    node.type === 'VariableDeclaration' &&
+    node.declarations &&
+    node.declarations[0] &&
+    node.declarations[0].type === 'VariableDeclarator' &&
+    node.declarations[0].init.type === 'CallExpression' &&
+    node.declarations[0].init.callee.type === 'Identifier' &&
+    node.declarations[0].init.callee.name === 'require' &&
+    node.declarations[0].init.arguments &&
+    doesRequireCalleeArgIndicateAutoGenImport(
+      node.declarations[0].init.arguments[0]
+    )
+  )
+}
+
+const doesRequireCalleeArgIndicateAutoGenImport = (node) => {
+  return (
+    node &&
+    typeof node.value === 'string' &&
+    isImportSourceViaAutoGen(node.value)
+  )
+}
+
+const isImportSourceViaAutoGen = (source) => {
+  return (
+    source === '@haiku/core' || // var Haiku = require('@haiku/core'); the core lib
+    source.match(/^@haiku\/core\/components/) || // var Text = require('@haiku/core/components/controls/Text');
+    source.match(/\/code\.js$/) // var  Foo = require("../foo/code.js"); subcomponents
+  )
+}
+
+const isModuleExportsNode = (node) => {
+  // Assumes the form `module.exports = {...}`
+  return (
+    node.type === 'ExpressionStatement' &&
+    node.expression.type === 'AssignmentExpression' &&
+    node.expression.left.type === 'MemberExpression' &&
+    node.expression.left.object.name === 'module' &&
+    node.expression.left.property.name === 'exports' &&
+    node.expression.right.type === 'ObjectExpression'
+  )
+}
 
 AST.normalizeBytecode = (bytecode) => {
   const safe = AST.safeBytecode(bytecode)

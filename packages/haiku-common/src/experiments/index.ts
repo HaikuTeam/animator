@@ -40,6 +40,7 @@ export enum Experiment {
   CopyPasteTweensWithAccelerators = 'CopyPasteTweensWithAccelerators',
   Snapping = 'Snapping',
   PinchToZoomInGlass = 'PinchToZoomInGlass',
+  PreserveFrontMatterInCode = 'PreserveFrontMatterInCode',
 }
 
 /**
