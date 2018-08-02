@@ -4,6 +4,7 @@ const jsonStringify = require('fast-safe-stringify')
 const Differ = require('./Differ')
 const Transport = require('winston-transport')
 const EventEmitter = require('events')
+const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 
 require('colors') // TODO: use non-string-extending module
 
@@ -63,7 +64,10 @@ class LogForwarderTransport extends Transport {
 
   // We send to pumbling so we can log to pumbing console in a nice way
   sendToPlumbing (message) {
-    if (this.websocket) {
+    if (
+      experimentIsEnabled(Experiment.SendLogMessagesToPlumbing) &&
+      this.websocket
+    ) {
       this.websocket.send({
         type: 'log',
         from: message.view,
