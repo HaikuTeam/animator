@@ -1403,7 +1403,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
 
     // Try to use a locally defined folder (i.e. during editing in Haiku),
     // or fallback to a local path and hope we resolve to something meaningful.
-    return this.config.folder || './';
+    return this.config.folder || (metadata && metadata.folder) || './';
   }
 
   applyPropertyToNode (
