@@ -93,8 +93,6 @@ const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
   openTerminal: true,
   saveProject: true,
   previewProject: true,
-  fetchProjectInfo: true,
-  deleteProject: true,
   teardownMaster: true,
   hoverElement: true,
   unhoverElement: true,
@@ -107,8 +105,6 @@ const METHODS_TO_AWAIT_FOREVER = {
   initializeFolder: true,
   saveProject: true,
   teardownMaster: true,
-  deleteProject: true,
-  forkProject: true,
 };
 
 const Q_GLASS = {alias: 'glass'};
@@ -240,11 +236,11 @@ export default class Plumbing extends EventEmitter {
       haiku.envoy.host = this.envoyServer.host;
       haiku.envoy.token = HAIKU_WS_SECURITY_TOKEN;
 
+      const user = new UserHandler(this.envoyServer);
       const timeline = new TimelineHandler(this.envoyServer);
       const tour = new TourHandler(this.envoyServer);
-      const exporter = new ExporterHandler(this.envoyServer);
+      const exporter = new ExporterHandler(user, this.envoyServer);
       const glass = new GlassHandler(this.envoyServer);
-      const user = new UserHandler(this.envoyServer);
       const project = new ProjectHandler(user, this.envoyServer);
       const services = new ServicesHandler(this.envoyServer);
       this.envoyHandlers = {
@@ -265,7 +261,7 @@ export default class Plumbing extends EventEmitter {
       this.envoyServer.bindHandler(PROJECT_CHANNEL, ProjectHandler, this.envoyHandlers.project);
       this.envoyServer.bindHandler(SERVICES_CHANNEL, ServicesHandler, this.envoyHandlers.services);
 
-      this.envoyHandlers.user.on(`${USER_CHANNEL}:load`, ({Username}) => {
+      this.envoyHandlers.user.on(`${USER_CHANNEL}:load`, ({user: {Username}}) => {
         mixpanel.mergeToPayload({distinct_id: Username});
         if (Raven) {
           Raven.setContext({
@@ -843,13 +839,16 @@ export default class Plumbing extends EventEmitter {
     project,
     finish,
   ) {
-    storeConfigValues(project.projectPath, {
-      username: project.authorName,
-      organization: project.organizationName,
-      project: project.projectName,
-      branch: project.branchName,
-      version: FALLBACK_SEMVER_VERSION,
-    });
+    storeConfigValues(
+      project.projectPath,
+      {
+        username: project.authorName,
+        organization: project.organizationName,
+        project: project.projectName,
+        branch: project.branchName,
+      },
+      {version: FALLBACK_SEMVER_VERSION},
+    );
 
     return async.series([
       (cb) => {
@@ -969,63 +968,6 @@ export default class Plumbing extends EventEmitter {
       }
 
       cb();
-    });
-  }
-
-  forkProject (organizationName, projectName, cb) {
-    const authToken = sdkClient.config.getAuthToken();
-    const communityProject = {
-      Organization: {
-        Name: organizationName,
-      },
-      Project: {
-        Name: projectName,
-      },
-    };
-
-    inkstone.community.forkCommunityProject(authToken, communityProject, (err, forkedProject) => {
-      if (err) {
-        this.sentryError('forkProject', err);
-        return cb(err);
-      }
-
-      cb(null, forkedProject.Name);
-    });
-  }
-
-  getProjectByName (projectName, cb) {
-    inkstone.project.get({Name: projectName}, (err, project) => {
-      if (err) {
-        return cb(err);
-      }
-
-      cb(null, remapProjectObjectToExpectedFormat(project, getCachedOrganizationName()));
-    });
-  }
-
-  deleteProject (name, path, cb) {
-    logger.info('[plumbing] deleting project', name);
-    return inkstone.project.deleteByName({Name: name}, (deleteErr) => {
-      if (deleteErr) {
-        this.sentryError('deleteProject', deleteErr);
-        if (cb) {
-          return cb(deleteErr);
-        }
-      }
-      if (fse.existsSync(path)) {
-        // Delete the project locally, but in a recoverable state.
-        let archivePath = `${path}.bak`;
-        if (fse.existsSync(archivePath)) {
-          let i = 0;
-          while (fse.existsSync(archivePath = `${path}.bak.${i++}`)) {
-
-          }
-        }
-        return fse.move(path, archivePath, cb);
-      }
-      if (cb) {
-        return cb();
-      }
     });
   }
 

@@ -1,3 +1,4 @@
+import {FILE_PATHS} from '@haiku/sdk-client';
 import {
   DEFAULT_BRANCH_NAME,
   FALLBACK_ORG_NAME,
@@ -6,18 +7,30 @@ import {
   WHITESPACE_REGEX,
 } from '@haiku/sdk-client/lib/ProjectDefinitions';
 import {inkstone} from '@haiku/sdk-inkstone';
+import {ErrorCode} from '@haiku/sdk-inkstone/lib/errors';
 import {requestInstance} from '@haiku/sdk-inkstone/lib/transport';
-import {existsSync, readFile} from 'fs-extra';
+import {existsSync, move, readFile} from 'fs-extra';
 // @ts-ignore
 import {HOMEDIR_PROJECTS_PATH} from 'haiku-serialization/src/utils/HaikuHomeDir';
 import * as path from 'path';
+import {Registry} from '../dal/Registry';
 import {MaybeAsync} from '../envoy';
 import EnvoyHandler from '../envoy/EnvoyHandler';
 import EnvoyServer from '../envoy/EnvoyServer';
 import {ExporterFormat, ExporterRequest} from '../exporter';
-import {OrganizationAndUser, OrganizationPrivileges, UserHandler} from './User';
+import {HaikuIdentity, OrganizationPrivilege, USER_CHANNEL, UserHandler} from './User';
 
 export const PROJECT_CHANNEL = 'project';
+
+export enum ProjectSettings {
+  List = 'list',
+}
+
+export enum ProjectError {
+  Offline = 0,
+  PublicOptInRequired = 1,
+  Unauthorized = 2,
+}
 
 export interface HaikuProject {
   projectPath: string;
@@ -65,10 +78,14 @@ export class ProjectHandler extends EnvoyHandler {
     protected readonly server: EnvoyServer,
   ) {
     super(server);
+
+    this.userHandler.on(`${USER_CHANNEL}:load`, ({organization}) => {
+      this.registry = new Registry(path.join(FILE_PATHS.HAIKU_HOME, 'projects', organization.Name));
+    });
   }
 
   private inkstoneProjectToHaikuProject (project: inkstone.project.Project): HaikuProject {
-    const {organization, user} = this.userHandler.getOrganizationAndUser() as OrganizationAndUser;
+    const {organization, user} = this.userHandler.getIdentity() as HaikuIdentity;
     const organizationName = getSafeOrganizationName(organization && organization.Name);
     const authorName = (user && user.Username) || 'contact@haiku.ai';
 
@@ -167,15 +184,22 @@ export class ProjectHandler extends EnvoyHandler {
 
   getProjectsList (): Promise<HaikuProject[]> {
     this.server.logger.info('[haiku envoy server] listing projects');
-    return new Promise<HaikuProject[]>((resolve) => {
+    return new Promise<HaikuProject[]>((resolve, reject) => {
       inkstone.project.list((error, projects) => {
         if (error) {
           this.server.logger.warn('[haiku envoy server] error while listing projects');
-          this.server.logger.warn(error);
-          return resolve([]);
+          if (error.message === ErrorCode.ErrorCodeAuthorizationRequired) {
+            return reject({code: ProjectError.Unauthorized});
+          }
+          if (this.userHandler.getPrivilege(OrganizationPrivilege.EnableOfflineFeatures)) {
+            return resolve(this.getConfig<HaikuProject[]>(ProjectSettings.List) || []);
+          }
+          return reject({code: ProjectError.Offline});
         }
 
-        resolve(projects.map((project) => this.inkstoneProjectToHaikuProject(project)));
+        const list = projects.map((project) => this.inkstoneProjectToHaikuProject(project));
+        this.setConfig<HaikuProject[]>(ProjectSettings.List, list);
+        resolve(list);
       });
     });
   }
@@ -187,7 +211,39 @@ export class ProjectHandler extends EnvoyHandler {
           return reject(error);
         }
 
-        resolve(this.inkstoneProjectToHaikuProject(project));
+        const haikuProject = this.inkstoneProjectToHaikuProject(project);
+        resolve(haikuProject);
+      });
+    });
+  }
+
+  deleteProject (haikuProject: HaikuProject): Promise<void> {
+    this.server.logger.info('[haiku envoy server] deleting project');
+    this.server.logger.info(haikuProject);
+    return new Promise((resolve, reject) => {
+      inkstone.project.deleteByName({Name: haikuProject.projectName}, (deleteErr) => {
+        if (deleteErr) {
+          return reject({code: ProjectError.Offline});
+        }
+
+        // Reset the registry.
+        this.getProjectsList().then(() => {
+          this.server.logger.info('[haiku envoy server] reloaded projects list');
+        });
+
+        if (existsSync(haikuProject.projectPath)) {
+          // Delete the project locally, but in a recoverable state.
+          let archivePath = `${haikuProject.projectPath}.bak`;
+          if (existsSync(archivePath)) {
+            let i = 0;
+            while (existsSync(archivePath = `${haikuProject.projectPath}.bak.${i++}`)) {
+              // ...
+            }
+          }
+          move(haikuProject.projectPath, archivePath, () => {
+            resolve();
+          });
+        }
       });
     });
   }
@@ -203,8 +259,36 @@ export class ProjectHandler extends EnvoyHandler {
           }
 
           resolve(this.inkstoneProjectToHaikuProject(project));
+          this.getProjectsList().then(() => {
+            this.server.logger.info('[haiku envoy server] reloaded projects list');
+          });
         },
       );
+    });
+  }
+
+  forkProject (organizationName: string, projectName: string): Promise<HaikuProject> {
+    this.server.logger.info('[haiku envoy server] forking project', organizationName, projectName);
+    const communityProject = {
+      Organization: {
+        Name: organizationName,
+      },
+      Project: {
+        Name: projectName,
+      },
+    };
+
+    return new Promise((resolve, reject) => {
+      inkstone.community.forkCommunityProject(communityProject, (error, forkedProject) => {
+        if (error) {
+          return reject(error);
+        }
+
+        resolve(this.inkstoneProjectToHaikuProject(forkedProject));
+        this.getProjectsList().then(() => {
+          this.server.logger.info('[haiku envoy server] reloaded projects list');
+        });
+      });
     });
   }
 
@@ -223,6 +307,9 @@ export class ProjectHandler extends EnvoyHandler {
             name: `${PROJECT_CHANNEL}:saved`,
           });
           resolve(haikuProject);
+          this.getProjectsList().then(() => {
+            this.server.logger.info('[haiku envoy server] reloaded projects list');
+          });
         },
       );
     });
@@ -292,29 +379,30 @@ export class ProjectHandler extends EnvoyHandler {
       },
     ];
 
-    const organization = this.userHandler.getOrganization();
-    switch (organization && organization[OrganizationPrivileges.EnableOfflineFeatures]) {
-      case true:
-        requests.push(
-          {
-            format: ExporterFormat.AnimatedGif,
-            filename: path.join(project.projectPath, 'animation.gif'),
-            framerate: 30,
-          },
-          {
-            format: ExporterFormat.Video,
-            filename: path.join(project.projectPath, 'animation.mp4'),
-            framerate: 30,
-          },
+    if (this.userHandler.getPrivilege(OrganizationPrivilege.EnableOfflineFeatures)) {
+      requests.push(
+        {
+          format: ExporterFormat.AnimatedGif,
+          filename: path.join(project.projectPath, 'animation.gif'),
+          framerate: 30,
+          outlet: 'cdn',
+        },
+        {
+          format: ExporterFormat.Video,
+          filename: path.join(project.projectPath, 'animation.mp4'),
+          framerate: 30,
+          outlet: 'cdn',
+        },
       );
-      default:
-        requests.push(
-          {
-            format: ExporterFormat.AnimatedGif,
-            filename: path.join(project.projectPath, 'animation.gif'),
-            framerate: 15,
-          },
-        );
+    } else {
+      requests.push(
+        {
+          format: ExporterFormat.AnimatedGif,
+          filename: path.join(project.projectPath, 'animation.gif'),
+          framerate: 15,
+          outlet: 'cdn',
+        },
+      );
     }
 
     return requests;

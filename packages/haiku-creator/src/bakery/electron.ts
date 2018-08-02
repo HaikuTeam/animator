@@ -1,6 +1,6 @@
 import {ErrorCallback, queue} from 'async';
 import {BrowserWindow, ipcMain} from 'electron';
-import {mkdirpSync, writeFile} from 'fs-extra';
+import {existsSync, mkdirpSync, removeSync, writeFile} from 'fs-extra';
 // @ts-ignore
 import LoggerInstance from 'haiku-serialization/src/utils/LoggerInstance';
 import * as path from 'path';
@@ -79,6 +79,9 @@ const bakeryQueue = queue<QueuedRecipe, Error>(
     outputDirectory = still
       ? path.resolve(path.dirname(abspath), '..', '..')
       : path.join(path.dirname(abspath), `png-${framerate}`);
+    if (!still && existsSync(outputDirectory)) {
+      removeSync(outputDirectory);
+    }
     mkdirpSync(outputDirectory);
     const bakeryHandler = ({sender}: any, payload: any) => {
       switch (payload.type) {
@@ -112,10 +115,10 @@ const bakeryQueue = queue<QueuedRecipe, Error>(
 
     ipcMain.on('bakery', bakeryHandler);
 
-    browserWindow.loadURL(`file://${path.join(__dirname, '..', '..', 'oven.html')}#${abspath}`);
-    browserWindow.webContents.on('did-finish-load', () => {
+    browserWindow.webContents.once('did-finish-load', () => {
       browserWindow.webContents.send('bakery', {framerate, frame, type: 'init'});
     });
+    browserWindow.loadURL(`file://${path.join(__dirname, '..', '..', 'oven.html')}#${abspath}`);
   },
 );
 

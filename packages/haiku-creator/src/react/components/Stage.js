@@ -277,6 +277,7 @@ class Stage extends React.Component {
           className="stage-box"
           style={STAGE_BOX_STYLE}>
           <StageTitleBar
+            explorePro={this.props.explorePro}
             folder={this.props.folder}
             envoyProject={this.props.envoyProject}
             projectModel={this.props.projectModel}
@@ -286,6 +287,8 @@ class Stage extends React.Component {
             removeNotice={this.props.removeNotice}
             organizationName={this.props.organizationName}
             username={this.props.username}
+            privateProjectLimit={this.props.privateProjectLimit}
+            updateProjectObject={this.props.updateProjectObject}
             onPreviewModeToggled={this.props.onPreviewModeToggled}
             isTimelineReady={this.props.isTimelineReady}
             envoyClient={this.props.envoyClient}

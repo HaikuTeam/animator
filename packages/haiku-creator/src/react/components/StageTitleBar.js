@@ -7,6 +7,7 @@ import Palette from 'haiku-ui-common/lib/Palette';
 import * as Color from 'color';
 import {BTN_STYLES} from '../styles/btnShared';
 import Toggle from './Toggle';
+import {PublicPrivateOptInModal} from './PublicPrivateOptInModal';
 import {ShareModal} from 'haiku-ui-common/lib/react/ShareModal';
 import {
   ComponentIconSVG, ConnectionIconSVG, DangerIconSVG, EventsBoltIcon, PublishSnapshotSVG, WarningIconSVG, AlignDistributeIcons,
@@ -14,6 +15,7 @@ import {
 import * as Element from 'haiku-serialization/src/bll/Element';
 import * as ElementSelectionProxy from 'haiku-serialization/src/bll/ElementSelectionProxy';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
+import {ProjectError} from 'haiku-sdk-creator/lib/bll/Project';
 import {
   isPreviewMode,
   isEditMode,
@@ -192,6 +194,9 @@ class StageTitleBar extends React.Component {
       snapshotSaveConfirmed: null,
       snapshotSaveError: null,
       showSharePopover: false,
+      showPublicPrivateOptInModal: false,
+      privateProjectCount: null,
+      saveProjectContinue: () => {},
       copied: false,
       linkAddress: 'Fetching Info',
       semverVersion: '0.0.0',
@@ -374,8 +379,6 @@ class StageTitleBar extends React.Component {
       return void (0);
     }
 
-    this.setState({showSharePopover: true});
-
     mixpanel.haikuTrack('install-options', {
       from: 'app',
       event: 'show-all-options',
@@ -386,7 +389,45 @@ class StageTitleBar extends React.Component {
 
   requestSaveProject (cb) {
     if (this.props.projectModel) {
-      return this.props.projectModel.saveProject(this.props.project, this.getProjectSaveOptions(), cb);
+      this.props.envoyProject.getProjectsList().then((list) => {
+        this.setState({
+          privateProjectCount: list.filter((project) => !project.isPublic).length,
+        }, () => {
+          // If the project already has a repository URL, this means the user has already confirmed their project's
+          // privacy settings. Prior to 3.5.2, we presented this field during project creation in Creator; as of 3.5.2,
+          // we explicit defer Caudex backing during project creation, ensuring there won't be a repository URL _until_
+          // the step skipped here.
+          if (this.props.project.repositoryUrl) {
+            // We can go straight to the publish modal.
+            this.setState({showSharePopover: true, isSnapshotSaveInProgress: true, snapshotSyndicated: false});
+            return this.props.projectModel.saveProject(this.props.project, this.getProjectSaveOptions(), cb);
+          }
+
+          // The user needs to set up public/private first.
+          this.setState({
+            showPublicPrivateOptInModal: true,
+            saveProjectContinue: () => {
+              this.setState(
+                {
+                  showPublicPrivateOptInModal: false,
+                  showSharePopover: true,
+                  isSnapshotSaveInProgress: true,
+                  snapshotSyndicated: false,
+                },
+                () => {
+                  this.props.projectModel.saveProject(this.props.project, this.getProjectSaveOptions(), cb);
+                },
+            );
+            },
+          });
+        });
+      }).catch(() => {
+        this.props.createNotice({
+          type: 'danger',
+          title: 'Uh oh!',
+          message: 'We were unable to publish your project. 😢 Are you online?',
+        });
+      });
     }
   }
 
@@ -457,7 +498,6 @@ class StageTitleBar extends React.Component {
       username: this.props.username,
       project: this.props.projectName,
     });
-    this.setState({isSnapshotSaveInProgress: true, snapshotSyndicated: false});
 
     return this.requestSaveProject((snapshotSaveError, snapshotData) => {
       // If we aborted early, don't start polling.
@@ -466,23 +506,34 @@ class StageTitleBar extends React.Component {
       }
 
       if (snapshotSaveError) {
-        if (snapshotSaveError.conflicts) {
-          logger.warn('[creator] merge conflicts found');
-          this.props.createNotice({
-            type: 'warning',
-            title: 'Merge conflicts!',
-            message: 'We couldn\'t merge your changes. 😢 You\'ll need to decide how to merge your changes before continuing.',
-          });
-          return this.setState({
-            snapshotMergeConflicts: snapshotData.conflicts,
-            showSharePopover: false,
-          });
-        }
+        switch (snapshotSaveError.code) {
+          case ProjectError.PublicOptInRequired:
+            // This should never happen.
+            this.setState({
+              isSnapshotSaveInProgress: false,
+            });
+            return;
+          default:
+            // #FIXME: uses legacy error handling.
+            if (snapshotSaveError.conflicts) {
+              logger.warn('[creator] merge conflicts found');
+              this.props.createNotice({
+                type: 'warning',
+                title: 'Merge conflicts!',
+                message: 'We couldn\'t merge your changes. 😢 You\'ll need to decide how to merge your changes before continuing.',
+              });
+              return this.setState({
+                snapshotMergeConflicts: snapshotData.conflicts,
+                showSharePopover: false,
+              });
+            }
 
-        logger.error(snapshotSaveError);
-        return this.setState({isSnapshotSaveInProgress: false, snapshotSaveResolutionStrategyName: 'normal', snapshotSaveError}, () => {
-          return setTimeout(() => this.setState({snapshotSaveError: null}), 2000);
-        });
+            logger.error(snapshotSaveError);
+            this.setState({isSnapshotSaveInProgress: false, snapshotSaveResolutionStrategyName: 'normal', snapshotSaveError}, () => {
+              return setTimeout(() => this.setState({snapshotSaveError: null}), 2000);
+            });
+            return;
+        }
       }
 
       this.setState({
@@ -955,6 +1006,24 @@ class StageTitleBar extends React.Component {
           <ConnectionIconSVG />
         </button>
 
+        {this.state.showPublicPrivateOptInModal && !this.props.isPreviewMode &&
+          <PublicPrivateOptInModal
+            isPublic={this.props.project.isPublic}
+            onToggle={() => {
+              this.props.updateProjectObject({
+                isPublic: !this.props.project.isPublic,
+              });
+            }}
+            onClose={() => {
+              this.setState({showPublicPrivateOptInModal: false});
+            }}
+            onContinue={this.state.saveProjectContinue}
+            privateProjectCount={this.state.privateProjectCount}
+            privateProjectLimit={this.props.privateProjectLimit}
+            explorePro={this.props.explorePro}
+          />
+        }
+
         {this.state.showSharePopover && !this.props.isPreviewMode &&
           <ShareModal
             envoyProject={this.props.envoyProject}
@@ -973,6 +1042,9 @@ class StageTitleBar extends React.Component {
             projectName={this.props.project.projectName}
             mixpanel={mixpanel}
             urls={this.state.shareUrls}
+            privateProjectCount={this.state.privateProjectCount}
+            privateProjectLimit={this.props.privateProjectLimit}
+            explorePro={this.props.explorePro}
           />
         }
       </div>

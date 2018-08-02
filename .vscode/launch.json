@@ -61,6 +61,15 @@
       "port": 9222,
       "sourceMaps": true,
       "webRoot": "${workspaceFolder}",
+      "name": "attach-oven",
+      "urlFilter": "*haiku-creator/oven.html*"
+    },
+    {
+      "type": "chrome",
+      "request": "attach",
+      "port": 9222,
+      "sourceMaps": true,
+      "webRoot": "${workspaceFolder}",
       "name": "attach-timeline",
       "urlFilter": "*haiku-timeline/index.html*"
     },

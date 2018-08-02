@@ -14,6 +14,9 @@ export const enum Endpoints {
   ProjectSnapshotSyndicated = '/project/:project_name/snapshot/:sha/syndicated',
   ProjectSnapshotAssetResource = '/project/:project_name/snapshot/:sha/asset/:filename',
 
+  // Community.
+  ForkCommunityProject = '/community/:organization_name/:project_name/fork',
+
   // Organization.
   OrganizationResourceCollection = '/organization',
 

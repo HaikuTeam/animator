@@ -20,7 +20,6 @@ import StateInspector from './components/StateInspector/StateInspector';
 import SplitPanel from './components/SplitPanel';
 import Stage from './components/Stage';
 import Timeline from './components/Timeline';
-import LogViewer from './components/LogViewer/LogViewer';
 import Toast from './components/notifications/Toast';
 import Tour from './components/Tour/Tour';
 import AutoUpdater from './components/AutoUpdater';
@@ -29,6 +28,8 @@ import ProxyHelpScreen from './components/ProxyHelpScreen';
 import ProxySettingsScreen from './components/ProxySettingsScreen';
 import ChangelogModal from './components/ChangelogModal';
 import NewProjectModal from './components/NewProjectModal';
+import {OfflineExportUpgradeModal} from './components/OfflineExportUpgradeModal';
+import {fetchProjectConfigInfo} from '@haiku/sdk-client/lib/ProjectDefinitions';
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/EnvoyClient';
 import {EXPORTER_CHANNEL, ExporterFormat} from 'haiku-sdk-creator/lib/exporter';
 import {USER_CHANNEL, UserSettings} from 'haiku-sdk-creator/lib/bll/User'; // eslint-disable-line no-unused-vars
@@ -38,20 +39,15 @@ import {SERVICES_CHANNEL} from 'haiku-sdk-creator/lib/services';
 import {
   InteractionMode,
   isPreviewMode,
-  isEditMode,
-  isCodeEditorMode,
-  showGlassOnStage,
 } from 'haiku-ui-common/lib/interactionModes';
 import Palette from 'haiku-ui-common/lib/Palette';
 import ActivityMonitor from '../utils/activityMonitor.js';
 import * as requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates';
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import {buildProxyUrl, describeProxyFromUrl} from 'haiku-common/lib/proxies';
-import * as isOnline from 'is-online';
 import * as CreatorIntro from '@haiku/taylor-creatorintro/react';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import * as opn from 'opn';
-import {isProduction} from 'haiku-common/lib/environments';
 import {crashReport} from 'haiku-serialization/src/utils/carbonite';
 
 // Useful debugging originator of calls in shared model code
@@ -128,7 +124,6 @@ export default class Creator extends React.Component {
       projectObject: null,
       projectModel: null, // Instance of the Project model
       dashboardVisible: !this.props.folder,
-      isOffline: false,
       readyForAuth: false,
       isUserAuthenticated: false,
       username: null,
@@ -149,6 +144,7 @@ export default class Creator extends React.Component {
       interactionMode: InteractionMode.GLASS_EDIT,
       artboardDimensions: null,
       showChangelogModal: false,
+      showOfflineExportUpgradeModal: false,
       showProxySettings: false,
       servicesEnvoyClient: null,
       projectToDuplicate: null,
@@ -476,30 +472,16 @@ export default class Creator extends React.Component {
     // With such an object, we can track all registrars for some known state name.
     this._projectStates = {};
 
-    if (experimentIsEnabled(Experiment.BasicOfflineMode)) {
-      try {
-        // Note that this can take a few seconds to resolve
-        isOnline().then((answer) => {
-          if (answer === false) {
-            // Only set offline mode if we haven't already loaded projects
-            if (this.state.projectsList.length < 1) {
-              this.setState({isOffline: true}, () => {
-                this.clearAuth();
-              });
-            }
-          }
-        });
-      } catch (exception) {
-        logger.warn(exception);
-      }
-    }
-
     if (process.env.NODE_ENV !== 'production') {
       // For debugging
       window.creator = this;
       window.view = this; // Easy to run same instruction in different tools
     }
   }
+
+  explorePro = () => {
+    shell.openExternal('https://www.haiku.ai/pricing/');
+  };
 
   isTextInputFocused () {
     const tagName = (
@@ -640,27 +622,29 @@ export default class Creator extends React.Component {
     // kick off initial report
     this.onActivityReport(true, true);
 
-    this.user.load().then(({user, organization}) => {
-      if (!user || !organization) {
-        // TODO: Handle offline.
-        this.setState({
-          isUserAuthenticated: false,
-          username: null,
-          readyForAuth: true,
-        });
-      } else {
-        mixpanel.mergeToPayload({distinct_id: user.Username});
-        this.setState({isAdmin: user.IsAdmin});
-      }
-
+    this.user.on(`${USER_CHANNEL}:load`, ({user, organization}) => {
+      mixpanel.mergeToPayload({distinct_id: user.Username});
       mixpanel.haikuTrack('creator:opened');
+      this.user.checkPrivateProjectLimit().then((privateProjectLimit) => {
+        this.setState({
+          privateProjectLimit,
+          username: user.Username,
+          isAdmin: user.IsAdmin,
+          organizationName: organization.Name,
+        });
 
+        // Delay so the default startup screen doesn't just flash then go away
+        setTimeout(() => {
+          this.setState({isUserAuthenticated: true});
+        }, this.state.readyForAuth ? 0 : 2500);
+      });
+    });
+
+    this.user.load().then(({user, organization}) => {
       // Delay so the default startup screen doesn't just flash then go away
       setTimeout(() => {
         this.setState({
           readyForAuth: true,
-          organizationName: organization && organization.Name,
-          username: user && user.Username,
           isUserAuthenticated: user && organization,
         }, () => {
           if (this.state.isUserAuthenticated && typeof this._postAuthCallback === 'function') {
@@ -668,7 +652,7 @@ export default class Creator extends React.Component {
           } else if (this.props.folder) {
             // Launch folder directly - i.e. allow a 'subl' like experience without having to go
             // through the projects index
-            return this.launchFolder({projectPath: this.props.folder}, (launchError) => {
+            const handleFailure = (launchError) => {
               if (launchError) {
                 logger.error(launchError);
                 this.setState({folderLoadingError: launchError});
@@ -680,13 +664,25 @@ export default class Creator extends React.Component {
                   lightScheme: true,
                 });
               }
-            });
+            };
+
+            this.launchFolder(
+              // Load up the necessary metadata in Plumbing to launch normally.
+              {
+                projectPath: this.props.folder,
+                authorName: 'user@haiku.ai',
+                organizationName: 'Haiku',
+                projectName: path.basename(this.props.folder),
+                branchName: 'master',
+              },
+              handleFailure,
+            );
           }
         });
-      }, 2500);
+      }, this.props.folder ? 0 : 2500);
     });
 
-    this.user.getConfig(UserSettings.lastViewedChangelog).then((changelogVersion) => {
+    this.user.getConfig(UserSettings.LastViewedChangelog).then((changelogVersion) => {
       let lastViewedChangelog = changelogVersion;
 
       // If the user doesn't have a lastViewedChangelog config set, set it to the
@@ -694,7 +690,7 @@ export default class Creator extends React.Component {
       // for brand new users.
       if (!lastViewedChangelog) {
         lastViewedChangelog = process.env.HAIKU_RELEASE_VERSION;
-        this.user.setConfig(UserSettings.lastViewedChangelog, lastViewedChangelog);
+        this.user.setConfig(UserSettings.LastViewedChangelog, lastViewedChangelog);
       }
 
       this.setState({lastViewedChangelog});
@@ -760,48 +756,55 @@ export default class Creator extends React.Component {
 
     this.envoyClient.get(EXPORTER_CHANNEL).then((exporterChannel) => {
       ipcRenderer.on('global-menu:save-as', () => {
-        dialog.showSaveDialog(undefined, {
-          defaultPath: this.state.projectObject ? `*/${this.state.projectObject.projectName}` : null,
-          filters: [{
-            name: 'Animated GIF', extensions: ['gif'],
-          }, {
-            name: 'Video', extensions: ['mp4'],
-          }, {
-            name: 'Lottie', extensions: ['json'],
-          }],
-        },
-          (filename) => {
-            if (!filename) {
-              return;
-            }
+        exporterChannel.checkOfflinePrivileges().then((supportOfflineExport) => {
+          if (!supportOfflineExport) {
+            this.setState({showOfflineExportUpgradeModal: true});
+            return;
+          }
 
-            switch (path.extname(filename)) {
-              case '.gif':
-                exporterChannel.save({
-                  filename,
-                  format: ExporterFormat.AnimatedGif,
-                  framerate: 30,
-                  outlet: 'timeline',
-                });
-                break;
-              case '.mp4':
-                exporterChannel.save({
-                  filename,
-                  format: ExporterFormat.Video,
-                  framerate: 30,
-                  outlet: 'timeline',
-                });
-                break;
-              case '.json':
-                exporterChannel.save({
-                  filename,
-                  format: ExporterFormat.Bodymovin,
-                  framerate: 6,
-                  outlet: 'timeline',
-                });
-                break;
-            }
-          });
+          dialog.showSaveDialog(undefined, {
+            defaultPath: this.state.projectObject ? `*/${this.state.projectObject.projectName}` : null,
+            filters: [{
+              name: 'Animated GIF', extensions: ['gif'],
+            }, {
+              name: 'Video', extensions: ['mp4'],
+            }, {
+              name: 'Lottie', extensions: ['json'],
+            }],
+          },
+            (filename) => {
+              if (!filename) {
+                return;
+              }
+
+              switch (path.extname(filename)) {
+                case '.gif':
+                  exporterChannel.save({
+                    filename,
+                    format: ExporterFormat.AnimatedGif,
+                    framerate: 30,
+                    outlet: 'timeline',
+                  });
+                  break;
+                case '.mp4':
+                  exporterChannel.save({
+                    filename,
+                    format: ExporterFormat.Video,
+                    framerate: 30,
+                    outlet: 'timeline',
+                  });
+                  break;
+                case '.json':
+                  exporterChannel.save({
+                    filename,
+                    format: ExporterFormat.Bodymovin,
+                    framerate: 6,
+                    outlet: 'timeline',
+                  });
+                  break;
+              }
+            });
+        });
       });
     });
 
@@ -812,7 +815,8 @@ export default class Creator extends React.Component {
       },
     );
 
-    this.envoyClient.get(PROJECT_CHANNEL).then(
+    // Use a lengthy timeout for project channel, which does some CRUD.
+    this.envoyClient.get(PROJECT_CHANNEL, {timeout: 60000}).then(
 
       (project) => {
         this.envoyProject = project;
@@ -1068,13 +1072,7 @@ export default class Creator extends React.Component {
     }
 
     this.user.authenticate(username, password).then(({user, organization}) => {
-      mixpanel.mergeToPayload({distinct_id: user.Username});
       mixpanel.haikuTrack('creator:user-authenticated', {username: user.Username});
-      this.setState({
-        username: user.Username,
-        organizationName: organization.Name,
-        isUserAuthenticated: true,
-      });
     }).catch((error) => {
       cb(error);
     });
@@ -1109,6 +1107,12 @@ export default class Creator extends React.Component {
       this.setState({projectsList});
       ipcRenderer.send('topmenu:update', {projectsList, isProjectOpen: false});
       return cb(null, projectsList);
+    }).catch((error) => {
+      mixpanel.haikuTrack('creator:project-list:unable-to-retrieve', {
+        username: this.state.username,
+        organization: this.state.organizationName,
+      });
+      return cb(error, []);
     });
   }
 
@@ -1560,17 +1564,15 @@ export default class Creator extends React.Component {
     mixpanel.haikuTrack('creator:fork-project', {organizationName, projectName});
     const doFork = () => {
       this.awaitAuthAndFire(() => {
-        this.props.websocket.request(
-          {method: 'forkProject', params: [organizationName, projectName]},
-          (err, forkedProjectName) => {
-            if (err) {
-              this.showForkingError();
-              return;
-            }
+        if (!this.envoyProject) {
+          return;
+        }
 
-            this.openNewlyForkedProject(forkedProjectName, 0);
-          },
-        );
+        this.envoyProject.forkProject(organizationName, projectName).then((haikuProject) => {
+          this.openNewlyForkedProject(haikuProject, 0);
+        }).catch(() => {
+          this.showForkingError();
+        });
       });
     };
 
@@ -1582,7 +1584,8 @@ export default class Creator extends React.Component {
     }
   }
 
-  openNewlyForkedProject (forkedProjectName, numAttempts) {
+  openNewlyForkedProject (haikuProject, numAttempts) {
+    const forkedProjectName = haikuProject.projectName;
     const recheck = () => {
       if (numAttempts > MAX_FORK_ATTEMPTS) {
         this.showForkingError();
@@ -1590,31 +1593,25 @@ export default class Creator extends React.Component {
       }
 
       setTimeout(() => {
-        this.openNewlyForkedProject(forkedProjectName, numAttempts + 1);
+        this.openNewlyForkedProject(haikuProject, numAttempts + 1);
       }, FORK_OPERATION_TIMEOUT);
     };
 
-    this.props.websocket.request(
-      {method: 'getProjectByName', params: [forkedProjectName]},
-      (err, forkedProject) => {
-        if (err) {
-          this.showForkingError();
-          return;
-        }
-
-        if (!forkedProject.forkComplete) {
-          recheck();
-        } else {
-          setTimeout(() => {
-            this.launchProject(forkedProject, (launchError) => {
-              if (launchError) {
-                this.showForkingError();
-              }
-            });
-          }, FORK_OPERATION_TIMEOUT);
-        }
-      },
-    );
+    this.envoyProject.getProject(forkedProjectName).then((forkedProject) => {
+      if (!forkedProject.forkComplete) {
+        recheck();
+      } else {
+        setTimeout(() => {
+          this.launchProject(forkedProject, (launchError) => {
+            if (launchError) {
+              this.showForkingError();
+            }
+          });
+        }, FORK_OPERATION_TIMEOUT);
+      }
+    }).catch(() => {
+      this.showForkingError();
+    });
   }
 
   teardownMaster ({shouldFinishTour, launchingProject = false}, cb) {
@@ -1728,7 +1725,7 @@ export default class Creator extends React.Component {
     this.setState({showChangelogModal: true}, () => {
       const lastViewedChangelog = process.env.HAIKU_RELEASE_VERSION;
       this.setState({lastViewedChangelog});
-      this.user.setConfig(UserSettings.lastViewedChangelog, lastViewedChangelog);
+      this.user.setConfig(UserSettings.LastViewedChangelog, lastViewedChangelog);
     });
 
     mixpanel.haikuTrack('creator:changelog:shown');
@@ -1741,6 +1738,20 @@ export default class Creator extends React.Component {
           this.setState({showChangelogModal: false});
         }}
         lastViewedChangelog={this.state.lastViewedChangelog}
+      />
+    ) : null;
+  }
+
+  /**
+   * #FIXME(@taylor)
+   */
+  renderOfflineExportUpgradeModal () {
+    return this.state.showOfflineExportUpgradeModal ? (
+      <OfflineExportUpgradeModal
+        onClose={() => {
+          this.setState({showOfflineExportUpgradeModal: false});
+        }}
+        explorePro={this.explorePro}
       />
     ) : null;
   }
@@ -1818,6 +1829,13 @@ export default class Creator extends React.Component {
           });
         } else {
           mixpanel.haikuTrack('creator:proxy-settings:saved');
+          this.createNotice({
+            type: 'info',
+            title: 'Proxy settings saved!',
+            message: 'If you are still unable to connect to Haiku, please exit Haiku and try again.',
+            closeText: 'Okay',
+            lightScheme: true,
+          });
           Object.assign(this.props.haiku, {dotenv});
         }
 
@@ -1894,6 +1912,10 @@ export default class Creator extends React.Component {
     );
   }
 
+  boundShowProxySettings = () => {
+    this.showProxySettings();
+  };
+
   render () {
     if (this.state.showProxySettings) {
       return (
@@ -1915,9 +1937,7 @@ export default class Creator extends React.Component {
             ref="AuthenticationUI"
             onSubmit={this.authenticateUser}
             onSubmitSuccess={this.authenticationComplete}
-            onShowProxySettings={() => {
-              this.showProxySettings();
-            }}
+            onShowProxySettings={this.boundShowProxySettings}
             resendEmailConfirmation={this.resendEmailConfirmation}
             {...this.props} />
         </StyleRoot>
@@ -1935,6 +1955,9 @@ export default class Creator extends React.Component {
         <div>
           <ProjectBrowser
             ref="ProjectBrowser"
+            explorePro={this.explorePro}
+            envoyProject={this.envoyProject}
+            onShowProxySettings={this.boundShowProxySettings}
             onShowNewProjectModal={(...args) => {
               this.showNewProjectModal(...args);
             }}
@@ -1942,6 +1965,7 @@ export default class Creator extends React.Component {
             onShowChangelogModal={() => {
               this.showChangelogModal();
             }}
+            privateProjectLimit={this.state.privateProjectLimit}
             showChangelogModal={this.state.showChangelogModal}
             launchingProject={this.state.launchingProject}
             setProjectLaunchStatus={this.setProjectLaunchStatus}
@@ -1961,6 +1985,7 @@ export default class Creator extends React.Component {
             doShowProjectLoader={this.state.doShowProjectLoader}
             {...this.props} />
           {this.renderChangelogModal()}
+          {this.renderOfflineExportUpgradeModal()}
           {this.renderNewProjectModal()}
           <Tour
             projectsList={this.state.projectsList}
@@ -1983,6 +2008,7 @@ export default class Creator extends React.Component {
       return (
         <div>
           {this.renderChangelogModal()}
+          {this.renderOfflineExportUpgradeModal()}
           {this.renderNewProjectModal()}
           <Tour
             projectsList={this.state.projectsList}
@@ -1995,6 +2021,8 @@ export default class Creator extends React.Component {
           />
           <ProjectBrowser
             ref="ProjectBrowser"
+            explorePro={this.explorePro}
+            envoyProject={this.envoyProject}
             onShowNewProjectModal={(...args) => {
               this.showNewProjectModal(...args);
             }}
@@ -2042,6 +2070,7 @@ export default class Creator extends React.Component {
     return (
       <div style={{position: 'relative', width: '100%', height: '100%'}}>
         {this.renderChangelogModal()}
+        {this.renderOfflineExportUpgradeModal()}
         {this.renderNewProjectModal()}
         <AutoUpdater
           onComplete={this.onAutoUpdateCheckComplete}
@@ -2138,6 +2167,7 @@ export default class Creator extends React.Component {
                     }
                   <Stage
                     ref="stage"
+                    explorePro={this.explorePro}
                     folder={this.state.projectFolder}
                     envoyProject={this.envoyProject}
                     projectModel={this.state.projectModel}
@@ -2153,6 +2183,12 @@ export default class Creator extends React.Component {
                     interactionMode={this.state.interactionMode}
                     onShowEventHandlerEditor={this.handleShowEventHandlersEditor}
                     onPreviewModeToggled={this.togglePreviewMode}
+                    privateProjectLimit={this.state.privateProjectLimit}
+                    updateProjectObject={(changes) => {
+                      this.setState({
+                        projectObject: Object.assign({}, this.state.projectObject, changes),
+                      });
+                    }}
                     artboardDimensions={this.state.artboardDimensions}
                     setGlassInteractionToPreviewMode={this.setGlassInteractionToPreviewMode}
                     setGlassInteractionToEditMode={this.setGlassInteractionToEditMode}

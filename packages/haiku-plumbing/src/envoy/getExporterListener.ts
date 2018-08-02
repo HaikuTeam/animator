@@ -75,6 +75,11 @@ export default (
   );
 
   return (request: ExporterRequest) => {
-    saveQueue.push(request);
+    // Only allow save requests to proceed through here if the outlet is the CDN or offline is permitted.
+    if (request.outlet === 'cdn' || exporterChannel.checkOfflinePrivileges()) {
+      saveQueue.push(request);
+    } else {
+      // TODO: report penetration attempt to intercom.
+    }
   };
 };

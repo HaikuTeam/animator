@@ -1,9 +1,13 @@
 import {EnvoyEvent} from '.';
+import {Registry} from '../dal/Registry';
+import {obfuscate, Obfuscation, unobfuscate} from '../utils/crypto';
 import {EnvoyClientEventHandler} from './EnvoyClient';
 import EnvoyServer from './EnvoyServer';
 
 export default class EnvoyHandler {
   constructor (protected readonly server: EnvoyServer) {}
+
+  protected registry?: Registry;
 
   private eventHandlers = new Map<string, EnvoyClientEventHandler[]>();
 
@@ -28,5 +32,31 @@ export default class EnvoyHandler {
     if (idx !== -1) {
       handlers.splice(idx, 1);
     }
+  }
+
+  setConfig<T> (key: string, value: T) {
+    if (this.registry) {
+      this.registry.setConfig<T>(key, value);
+    }
+  }
+
+  getConfig<T> (key: string): T {
+    if (this.registry) {
+      return this.registry.getConfig<T>(key);
+    }
+  }
+
+  deleteConfig (key: string) {
+    if (this.registry) {
+      this.registry.deleteConfig(key);
+    }
+  }
+
+  setConfigObfuscated<T> (key: string, value: T) {
+    this.setConfig<Obfuscation>(key, obfuscate(value));
+  }
+
+  getConfigObfuscated<T> (key: string): T {
+    return unobfuscate(this.getConfig<Obfuscation>(key));
   }
 }

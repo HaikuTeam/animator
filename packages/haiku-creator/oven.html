@@ -38,8 +38,8 @@
         }
         component.controlTime('Default', position);
         component.context.tick(true);
-        ipcRenderer.send('bakery', {type: 'snap', last: position >= duration});
         position = Math.round(Math.min(duration, position + frameDuration));
+        ipcRenderer.send('bakery', {type: 'snap', last: position >= duration});
       };
 
       const bakeryHandler = (_, payload) => {

@@ -31,6 +31,9 @@ export interface ShareModalProps {
   projectName: string;
   mixpanel: any;
   urls: HaikuShareUrls;
+  explorePro: () => void;
+  privateProjectCount: number;
+  privateProjectLimit: number;
 }
 
 export interface SelectedEntry {
@@ -47,6 +50,7 @@ export interface ShareModalStates {
   showDetail: boolean;
   isPublic?: boolean;
   showTooltip: boolean;
+  shouldShowPrivateWarning: boolean;
 }
 
 export class ShareModal extends React.Component<ShareModalProps, ShareModalStates> {
@@ -58,6 +62,8 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
     this.showDetails(selectedEntry);
   };
 
+  private initiallyPrivate = false;
+
   constructor (props: ShareModalProps) {
     super(props);
 
@@ -65,7 +71,16 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
       showDetail: false,
       isPublic: props.project && props.project.isPublic,
       showTooltip: false,
+      shouldShowPrivateWarning: false,
     };
+
+    this.initiallyPrivate = !this.state.isPublic;
+  }
+
+  get shouldDisablePrivate () {
+    return !this.initiallyPrivate &&
+      this.props.privateProjectLimit !== null &&
+      this.props.privateProjectCount >= this.props.privateProjectLimit;
   }
 
   componentWillReceiveProps (nextProps: ShareModalProps) {
@@ -98,6 +113,10 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
   }
 
   togglePublic () {
+    if (this.shouldDisablePrivate) {
+      this.setState({shouldShowPrivateWarning: true});
+      return;
+    }
     const desiredState = !this.state.isPublic;
     this.props.envoyProject.updateProject({
       ...this.props.project,
@@ -136,6 +155,10 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
             isPublic={this.state.isPublic}
             mixpanel={mixpanel}
             togglePublic={this.boundTogglePublic}
+            shouldShowPrivateWarning={this.state.shouldShowPrivateWarning}
+            explorePro={this.props.explorePro}
+            privateProjectCount={this.props.privateProjectCount}
+            privateProjectLimit={this.props.privateProjectLimit}
           />
         </ModalHeader>
 

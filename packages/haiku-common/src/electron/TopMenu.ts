@@ -236,9 +236,9 @@ export default class TopMenu {
     if (experimentIsEnabled(Experiment.LocalAssetExport)) {
       projectSubmenu.push(
         {
-          label: 'Save As…',
+          label: 'Export…',
           enabled: this.options.isProjectOpen,
-          accelerator: 'CmdOrCtrl+Shift+S',
+          accelerator: 'CmdOrCtrl+E',
           click: () => {
             this.sender.send('global-menu:save-as');
           },

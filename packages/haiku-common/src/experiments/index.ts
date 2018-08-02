@@ -12,7 +12,6 @@ export enum Experiment {
   CommentsOnStage = 'CommentsOnStage',
   AsyncClientActions = 'AsyncClientActions',
   NormalizeSvgContent = 'NormalizeSvgContent',
-  BasicOfflineMode = 'BasicOfflineMode',
   MultiComponentControlsLibrary = 'MultiComponentControlsLibrary',
   ShowSubElementsInJitMenu = 'ShowSubElementsInJitMenu',
   BaseModelQueryCache = 'BaseModelQueryCache',

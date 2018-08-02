@@ -1,4 +1,4 @@
-import {client as sdkClient} from '@haiku/sdk-client';
+import {client as sdkClient, FILE_PATHS} from '@haiku/sdk-client';
 import {inkstone} from '@haiku/sdk-inkstone';
 
 import {Registry} from '../dal/Registry';
@@ -8,29 +8,35 @@ import EnvoyHandler from '../envoy/EnvoyHandler';
 export const USER_CHANNEL = 'user';
 
 export enum UserSettings {
-  lastViewedChangelog = 'lastViewedChangelog',
-  defaultTimeDisplayMode = 'defaultTimeDisplayMode',
-  timeDisplayModes = 'timeDisplayModes',
-  figmaToken = 'figmaToken',
+  LastViewedChangelog = 'lastViewedChangelog',
+  DefaultTimeDisplayMode = 'defaultTimeDisplayMode',
+  TimeDisplayModes = 'timeDisplayModes',
+  FigmaToken = 'figmaToken',
+  Identity = 'id',
 }
 
-export interface OrganizationAndUser {
+export interface HaikuIdentity {
   organization?: inkstone.organization.Organization;
   user?: inkstone.user.User;
+  lastOnline?: number;
+  isOnline: boolean;
 }
 
 /**
  * Deliberately eraseable list of privileges for the organization.
  */
-export const enum OrganizationPrivileges {
+export const enum OrganizationPrivilege {
   PrivateProjectLimit = 'P0',
   EnableOfflineFeatures = 'P1',
 }
 
 export class UserHandler extends EnvoyHandler {
-  private organization: inkstone.organization.Organization;
-  private user: inkstone.user.User;
-  private registry: Registry;
+  private readonly identity: HaikuIdentity = {
+    // We'll negate this later if we find it to be the case.
+    isOnline: true,
+  };
+
+  protected registry = new Registry(FILE_PATHS.HAIKU_HOME);
 
   reportActivity () {
     const authToken = sdkClient.config.getAuthToken();
@@ -41,30 +47,45 @@ export class UserHandler extends EnvoyHandler {
   }
 
   getUser (): MaybeAsync<inkstone.user.User> {
-    return this.user;
+    return this.identity.user;
   }
 
   getOrganization (): MaybeAsync<inkstone.organization.Organization> {
-    return this.organization;
+    return this.identity.organization;
   }
 
-  getOrganizationAndUser (): MaybeAsync<OrganizationAndUser> {
-    return {
-      organization: this.organization,
-      user: this.user,
-    };
+  private recoverIdentityOffline (): MaybeAsync<void> {
+    const identity = this.getConfigObfuscated<HaikuIdentity>(UserSettings.Identity);
+    Object.assign(
+      this.identity,
+      this.getConfigObfuscated<HaikuIdentity>(UserSettings.Identity),
+      {isOnline: false},
+    );
+
+    if (this.identity.user && this.identity.organization) {
+      this.server.emit(USER_CHANNEL, {
+        payload: identity,
+        name: `${USER_CHANNEL}:load`,
+      });
+    }
+  }
+
+  getIdentity (): MaybeAsync<HaikuIdentity> {
+    return this.identity;
   }
 
   logOut (): MaybeAsync<void> {
     sdkClient.config.setAuthToken('');
-    this.setConfig(UserSettings.figmaToken, null);
-    this.organization = this.user = undefined;
+    this.deleteConfig(UserSettings.FigmaToken);
+    this.deleteConfig(UserSettings.Identity);
+    delete this.identity.organization;
+    delete this.identity.user;
     return;
   }
 
-  authenticate (username: string, password: string): Promise<OrganizationAndUser> {
+  authenticate (username: string, password: string): Promise<HaikuIdentity> {
     this.logOut();
-    return new Promise<OrganizationAndUser>((resolve, reject) => {
+    return new Promise<HaikuIdentity>((resolve, reject) => {
       inkstone.user.authenticate(username, password, (authErr, authResponse, httpResponse) => {
         // #FIXME: currently uses legacy hacky status codes forwarded to caller.
         if (!httpResponse) {
@@ -101,44 +122,50 @@ export class UserHandler extends EnvoyHandler {
     });
   }
 
-  load (): Promise<OrganizationAndUser> {
-    return new Promise<OrganizationAndUser>((resolve) => {
+  getPrivilege (privilege: OrganizationPrivilege): MaybeAsync<any> {
+    return this.identity.organization && this.identity.organization[privilege];
+  }
+
+  checkOfflinePrivileges (): MaybeAsync<boolean> {
+    return this.getPrivilege(OrganizationPrivilege.EnableOfflineFeatures);
+  }
+
+  checkPrivateProjectLimit (): MaybeAsync<number> {
+    return this.getPrivilege(OrganizationPrivilege.PrivateProjectLimit);
+  }
+
+  load (): Promise<HaikuIdentity> {
+    return new Promise<HaikuIdentity>((resolve) => {
       const authToken = sdkClient.config.getAuthToken();
       if (!authToken) {
-        return resolve({});
+        return resolve(this.identity);
       }
 
       inkstone.setConfig({authToken});
       inkstone.organization.list((err, organizations) => {
         if (err || !organizations) {
-          return resolve({});
+          this.recoverIdentityOffline();
+          return resolve(this.identity);
         }
 
-        this.organization = organizations[0];
+        this.identity.organization = organizations[0];
         inkstone.user.get((userErr, user) => {
           if (!userErr) {
-            this.user = user;
+            this.identity.user = user;
+            this.identity.lastOnline = Date.now();
+            this.setConfigObfuscated<HaikuIdentity>(
+              UserSettings.Identity,
+              this.identity,
+            );
             this.server.emit(USER_CHANNEL, {
-              payload: user,
+              payload: this.identity,
               name: `${USER_CHANNEL}:load`,
             });
           }
 
-          return resolve(this.getOrganizationAndUser());
+          return resolve(this.identity);
         });
       });
     });
-  }
-
-  setConfig (key: string, value: string) {
-    if (this.registry) {
-      this.registry.setConfig(key, value);
-    }
-  }
-
-  getConfig (key: string): string {
-    if (this.registry) {
-      return this.registry.getConfig(key);
-    }
   }
 }

@@ -26,12 +26,13 @@ export const DASH_STYLES = {
     color: Palette.ROCK,
   },
   bannerNotice: {
-    marginRight: 14,
+    margin: '0 -7px 0 7px',
     border: '1px solid' + Palette.BLUE,
     borderRadius: 3,
     padding: '0 8px',
-    fontStyle: 'italic',
+    textTransform: 'uppercase',
     color: Palette.LIGHT_BLUE,
+    cursor: 'hand',
   },
   tooltip: {
     backgroundColor: Palette.LIGHT_PINK,

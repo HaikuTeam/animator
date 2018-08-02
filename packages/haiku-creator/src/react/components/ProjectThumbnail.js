@@ -72,7 +72,7 @@ class ProjectThumbnail extends React.Component {
           >
             OPEN
           </span>
-          {this.props.projectExistsLocally && !this.props.atProjectMax && <span
+          {this.props.projectExistsLocally && <span
             key="duplicate"
             onClick={this.props.showDuplicateProjectModal}
             style={[

@@ -25,6 +25,7 @@ import Raven from './Raven';
 import saveExport from './publish-hooks/saveExport';
 import {createProjectFiles} from '@haiku/sdk-client/lib/createProjectFiles';
 import {ExporterFormat, EXPORTER_CHANNEL} from 'haiku-sdk-creator/lib/exporter';
+import {ProjectError, ProjectSettings} from 'haiku-sdk-creator/lib/bll/Project';
 import {createCDNBundles} from './project-folder/createCDNBundle';
 import {
   getHaikuCoreVersion,
@@ -826,7 +827,8 @@ export default class Master extends EventEmitter {
 
     logger.info('[master] project save');
 
-    // #FIXME: This should be already done.
+    // #FIXME: This should be already done (requires moving Master and MasterGitProject into Project handler).
+    // Note that we will need to ensure the updates from Creator#updateProjectObject are also synced down.
     this.envoyHandlers.project.setCurrentProject(project);
 
     return async.series([
@@ -900,7 +902,7 @@ export default class Master extends EventEmitter {
                 break;
             }
 
-            return saveExport({format, filename}, ac, (err) => {
+            return saveExport({format, filename, outlet: 'cdn'}, ac, (err) => {
               if (err) {
                 logger.warn(`[master] error during export for ${ac.getSceneName()}: ${err.toString()}`);
               }
@@ -1000,7 +1002,7 @@ export default class Master extends EventEmitter {
                     }
                   }).catch((err) => {
                     logger.warn('[master] project save: asset syndication failed');
-                    logger.warn(err);
+                    logger.warn(err.message);
                   });
                   this.envoyHandlers.exporter.off(`${EXPORTER_CHANNEL}:saved`, listener);
                 }

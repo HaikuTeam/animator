@@ -277,7 +277,8 @@ export default class EnvoyServer {
     const ret = {};
     const proto = handlerTuple.proto;
     const instance = handlerTuple.instance;
-    Object.getOwnPropertyNames(proto).forEach((name) => {
+    // Note how we append getConfig and setConfig from the parent.
+    Object.getOwnPropertyNames(proto).concat(['getConfig', 'setConfig']).forEach((name) => {
       // TODO: handle nested objects & non-method members?
       if (typeof instance[name] === 'function') {
         ret[name] = 'function';

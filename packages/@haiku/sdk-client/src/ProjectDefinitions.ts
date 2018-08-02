@@ -81,10 +81,10 @@ export const fetchProjectConfigInfo = (folder: string, cb: any) => {
   }, config));
 };
 
-export const storeConfigValues = (folder: string, incoming: any) => {
+export const storeConfigValues = (folder: string, incoming: any, extra = {}) => {
   fse.mkdirpSync(folder);
   const pkgjson = readPackageJson(folder);
-  assign(pkgjson.haiku, incoming);
+  Object.assign(pkgjson.haiku, extra, pkgjson.haiku, incoming);
   fse.outputJsonSync(path.join(folder, 'package.json'), pkgjson, {spaces: 2});
   return pkgjson.haiku;
 };

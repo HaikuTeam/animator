@@ -1,7 +1,9 @@
 import * as lodash from 'lodash';
 import * as React from 'react';
 import * as Radium from 'radium';
+import {shell} from 'electron';
 import * as Popover from 'react-popover';
+import {ProjectError} from 'haiku-sdk-creator/lib/bll/Project';
 import {CSSTransition, TransitionGroup} from 'react-transition-group';
 import {FadingCircle} from 'better-react-spinkit';
 import Palette from 'haiku-ui-common/lib/Palette';
@@ -14,8 +16,6 @@ import {UserIconSVG, LogOutSVG, LogoMicroSVG, PresentIconSVG} from 'haiku-ui-com
 import {DASH_STYLES} from '../styles/dashShared';
 import {BTN_STYLES} from '../styles/btnShared';
 import {ExternalLink} from 'haiku-ui-common/lib/react/ExternalLink';
-
-const HARDCODED_PROJECTS_LIMIT = 50;
 
 const STYLES = {
   adminButton: {
@@ -34,6 +34,7 @@ class ProjectBrowser extends React.Component {
     this.state = {
       username: null,
       error: null,
+      isOffline: false,
       projectsList: [],
       areProjectsLoading: true,
       isPopoverOpen: false,
@@ -43,7 +44,6 @@ class ProjectBrowser extends React.Component {
       recordedNewProjectName: '',
       projToDelete: '',
       confirmDeleteMatches: false,
-      atProjectMax: false,
       newProjectError: null,
       newProjectIsPublic: true,
     };
@@ -86,20 +86,30 @@ class ProjectBrowser extends React.Component {
   loadProjects () {
     return this.props.loadProjects((error, projectsList) => {
       if (error) {
-        this.props.createNotice({
-          type: 'error',
-          title: 'Oh no!',
-          message: 'We couldn\'t load your team\'s projects. 😢 Please ensure that your computer is connected to the Internet. If you\'re connected and you still see this message our servers might be having problems. Please try again in a few moments. If you still see this message, contact Haiku for support.',
-          closeText: 'Okay',
-          lightScheme: true,
-        });
+        switch (error.code) {
+          case ProjectError.Unauthorized:
+            this.props.logOut();
+            return;
+          case ProjectError.Offline:
+            this.setState({isOffline: true});
+            break;
+          default:
+            // "This should never happen"
+            this.props.createNotice({
+              type: 'error',
+              title: 'Oh no!',
+              message: 'We couldn\'t fetch your list of projects. 😩 Please try again in a few moments. If you still see this error, contact Haiku for support.',
+              closeText: 'Okay',
+              lightScheme: true,
+            });
+            break;
+        }
         this.setState({error, areProjectsLoading: false});
         return;
       }
       this.setState({
         projectsList,
         areProjectsLoading: false,
-        atProjectMax: !this.props.isAdmin && projectsList.length >= HARDCODED_PROJECTS_LIMIT,
       });
     });
   }
@@ -144,7 +154,7 @@ class ProjectBrowser extends React.Component {
     const deleteStart = Date.now();
     projectToDelete.isDeleted = true;
     this.setState({projectsList}, () => {
-      this.requestDeleteProject(projectToDelete.projectName, projectToDelete.projectPath, (deleteError) => {
+      this.requestDeleteProject(projectToDelete, (deleteError) => {
         if (deleteError) {
           this.props.createNotice({
             type: 'error',
@@ -170,15 +180,14 @@ class ProjectBrowser extends React.Component {
         setTimeout(() => {
           this.setState({
             projectsList: projectsList.filter((project) => project.projectName !== projectToDelete.projectName),
-            atProjectMax: !this.props.isAdmin && projectsList.length >= HARDCODED_PROJECTS_LIMIT,
           });
         }, Math.min(200, Date.now() - deleteStart));
       });
     });
   }
 
-  requestDeleteProject (name, path, cb) {
-    return this.props.websocket.request({method: 'deleteProject', params: [name, path]}, cb);
+  requestDeleteProject (projectObject, cb) {
+    this.props.envoyProject.deleteProject(projectObject).then(cb).catch(cb);
   }
 
   showNewProjectModal () {
@@ -217,7 +226,35 @@ class ProjectBrowser extends React.Component {
     this.props.onShowNewProjectModal(true, potentialName, projectObject);
   }
 
+  offlineElement () {
+    if (!this.state.isOffline) {
+      return null;
+    }
+
+    // #FIXME(@taylor)
+    // On the below, it is important to not say definitively "you are not online" to avoid enraging users who have
+    // some other problem. All we know for sure is that we couldn't connect with Haiku services.
+    return (
+      <span style={DASH_STYLES.loadingWrap}>
+        <div>
+          <div>
+            <div>Unable to contact Haikiu hosting services. Are you connected to the Internet?</div>
+            <div>Upgrade to the Indie Pro plan for offline capabilities.</div>
+            <div onClick={this.props.explorePro}>Learn more</div>
+          </div>
+          <div>
+            <div>Stuck behind a VPN?</div>
+            <div onClick={this.props.onShowProxySettings}>Change your proxy settings</div>
+          </div>
+        </div>
+      </span>
+    );
+  }
+
   projectsListElement () {
+    if (this.state.isOffline) {
+      return null;
+    }
     const {showDeleteModal, showNewProjectModal, showChangelogModal} = this.state;
     const {launchingProject} = this.props;
     if (this.state.areProjectsLoading) {
@@ -249,7 +286,6 @@ class ProjectBrowser extends React.Component {
             launchProject={() => this.handleProjectLaunch(projectObject)}
             showDeleteModal={() => this.showDeleteModal(projectObject.projectName)}
             showDuplicateProjectModal={() => this.showDuplicateProjectModal(projectObject)}
-            atProjectMax={this.state.atProjectMax}
           />
         ))}
         {/* the following abomination is needed for the nifty flexbox resizing.
@@ -430,36 +466,43 @@ class ProjectBrowser extends React.Component {
           {lodash.map(this.props.notices, this.renderNotice)}
         </TransitionGroup>
 
-        {/* This hack allows the italic variant of the font to be preloaded, avoiding FOUT */}
+        {/* This hack allows the italic and strong variants of the font to be preloaded, avoiding FOUT */}
         <span style={{visibility: 'hidden', width: 0, height: 0}}>
           <span style={DASH_STYLES.projToDelete} />
+          <span style={{fontWeight: 'bold'}} />
         </span>
 
         {this.state.showDeleteModal && this.renderDeleteModal()}
 
         <div style={DASH_STYLES.frame} className="frame">
-          {this.state.atProjectMax && (
-            <span style={DASH_STYLES.bannerNotice}>
-              You've reached the project maximum. Contact support@haiku.ai to add more
-              projects.
-            </span>
-          )}
+          {
+            /* #FIXME(@taylor) */
+            this.props.privateProjectLimit !== null && this.state.projectsList.length > 0 && (
+              <div>
+                <strong>{this.state.projectsList.filter((projectObject) => !projectObject.isPublic).length}</strong>
+                <span>/</span>
+                <strong>{this.props.privateProjectLimit}</strong>
+                <span>&nbsp; private projects in use</span>
+                <span style={DASH_STYLES.bannerNotice} onClick={this.props.explorePro}>
+                  Explore Pro
+                </span>
+              </div>
+            )
+          }
 
           <div style={{marginRight: '15px'}}>
             <NotificationExplorer lastViewedChangelog={this.props.lastViewedChangelog} onShowChangelogModal={this.props.onShowChangelogModal} />
           </div>
 
-          {!this.state.atProjectMax && (
-            <button
-              id="haiku-button-show-new-project-modal"
-              key="new_proj"
-              onClick={() => this.showNewProjectModal()}
-              style={[BTN_STYLES.btnIcon, BTN_STYLES.btnIconHovered]}
-            >
-              <span style={{fontSize: 18, marginRight: 2, transform: 'translateY(-1px)'}}>+ </span>
-              <span>New Project</span>
-            </button>
-          )}
+          <button
+            id="haiku-button-show-new-project-modal"
+            key="new_proj"
+            onClick={() => this.showNewProjectModal()}
+            style={[BTN_STYLES.btnIcon, BTN_STYLES.btnIconHovered]}
+          >
+            <span style={{fontSize: 18, marginRight: 2, transform: 'translateY(-1px)'}}>+ </span>
+            <span>New Project</span>
+          </button>
 
           <Popover
             onOuterAction={this.closePopover}
@@ -484,12 +527,14 @@ class ProjectBrowser extends React.Component {
         </div>
 
         {this.projectsListElement()}
+        {this.offlineElement()}
       </div>
     );
   }
 }
 
 ProjectBrowser.propTypes = {
+  envoyProject: React.PropTypes.object.isRequired,
   envoyClient: React.PropTypes.object.isRequired,
   doShowProjectLoader: React.PropTypes.bool.isRequired,
   setProjectLaunchStatus: React.PropTypes.func.isRequired,
@@ -497,6 +542,8 @@ ProjectBrowser.propTypes = {
   lastViewedChangelog: React.PropTypes.string,
   onShowChangelogModal: React.PropTypes.func.isRequired,
   showChangelogModal: React.PropTypes.bool.isRequired,
+  onShowProxySettings: React.PropTypes.func.isRequired,
+  privateProjectLimit: React.PropTypes.number,
 };
 
 export default Radium(ProjectBrowser);

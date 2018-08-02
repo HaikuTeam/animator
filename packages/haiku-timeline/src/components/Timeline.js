@@ -75,6 +75,7 @@ const DEFAULTS = {
   flush: false,
   userDetails: null,
   trackedExporterRequests: [],
+  canOfflineExport: false,
 };
 
 const THROTTLE_TIME = 32; // ms
@@ -775,12 +776,12 @@ class Timeline extends React.Component {
       this.project.getEnvoyClient().get(USER_CHANNEL).then(
         (user) => {
           this.user = user;
-          user.getConfig(UserSettings.timeDisplayModes).then(
+          user.getConfig(UserSettings.TimeDisplayModes).then(
             (timeDisplayModes) => {
               if (timeDisplayModes && timeDisplayModes[this.project.getFolder()]) {
                 this.getActiveComponent().getCurrentTimeline().setTimeDisplayMode(timeDisplayModes[this.project.getFolder()]);
               } else {
-                user.getConfig(UserSettings.defaultTimeDisplayMode).then((defaultTimeDisplayMode) => {
+                user.getConfig(UserSettings.DefaultTimeDisplayMode).then((defaultTimeDisplayMode) => {
                   if (defaultTimeDisplayMode) {
                     this.getActiveComponent().getCurrentTimeline().setTimeDisplayMode(defaultTimeDisplayMode);
                   }
@@ -788,6 +789,9 @@ class Timeline extends React.Component {
               }
             },
           );
+          user.checkOfflinePrivileges().then((canOfflineExport) => {
+            this.setState({canOfflineExport});
+          });
           user.getUser().then(
             (userDetails) => {
               this.setState({userDetails});
@@ -1127,16 +1131,16 @@ class Timeline extends React.Component {
     const mode = this.getActiveComponent().getCurrentTimeline().getTimeDisplayMode();
 
     if (!this.project.getEnvoyClient().isInMockMode()) {
-      this.user.getConfig(UserSettings.timeDisplayModes).then(
+      this.user.getConfig(UserSettings.TimeDisplayModes).then(
         (timeDisplayModes) => {
           this.user.setConfig(
-            UserSettings.timeDisplayModes,
+            UserSettings.TimeDisplayModes,
             {
               ...timeDisplayModes,
               [this.project.getFolder()]: mode,
             },
           );
-          this.user.setConfig(UserSettings.defaultTimeDisplayMode, mode);
+          this.user.setConfig(UserSettings.DefaultTimeDisplayMode, mode);
         },
       );
     }
@@ -1226,11 +1230,11 @@ class Timeline extends React.Component {
           }}
         >
           {
-            experimentIsEnabled(Experiment.LocalAssetExport) &&
+            this.state.canOfflineExport && experimentIsEnabled(Experiment.LocalAssetExport) &&
             <TrackedExporterRequests trackedExporterRequests={this.state.trackedExporterRequests} />
           }
-        </div>
           <IntercomWidget user={this.state.userDetails} />
+        </div>
       </div>
     );
   }

@@ -17,7 +17,6 @@ const ENDPOINTS = {
   SET_COMMUNITY_HAIKUDOS: 'v0/community/:ORGANIZATION_NAME/:PROJECT_NAME/hai-kudos',
   COMMUNITY_PROFILE: 'v0/community/:ORGANIZATION_NAME',
   GET_COMMUNITY_PROJECT: 'v0/community/:ORGANIZATION_NAME/:PROJECT_NAME',
-  FORK_COMMUNITY_PROJECT: 'v0/community/:ORGANIZATION_NAME/:PROJECT_NAME/fork',
   SNAPSHOT_SYNDICATED_BY_ID: 'v0/snapshot/:ID/syndicated',
   SNAPSHOT_GET_BY_ID: 'v0/snapshot/:ID',
   SNAPSHOT_FEATURE_BY_ID: 'v0/snapshot/:ID/is_featured',
@@ -544,30 +543,19 @@ export namespace inkstone {
      * Fork a community project.
      *
      * This endpoint requires auth.
-     * @param {string} authToken
-     * @param {inkstone.community.CommunityProject} projectIn
-     * @param {inkstone.Callback<inkstone.project.Project>} cb
      */
-    export function forkCommunityProject (
-      authToken: MaybeAuthToken, projectIn: CommunityProject, cb: inkstone.Callback<project.Project>) {
-      const options: request.OptionsWithUrl = {
-        url: inkstoneConfig.baseUrl + ENDPOINTS.FORK_COMMUNITY_PROJECT
-          .replace(':ORGANIZATION_NAME', projectIn.Organization.Name)
-          .replace(':PROJECT_NAME', projectIn.Project.Name),
-        headers: {
-          ...baseHeaders,
-          ...maybeAuthorizationHeaders(authToken),
-        },
-      };
-
-      requestInstance.post(options, (err, httpResponse, body) => {
-        if (httpResponse && httpResponse.statusCode === 201) {
-          cb(undefined, JSON.parse(body) as project.Project, httpResponse);
-        } else {
-          cb(safeError(err), undefined, httpResponse);
-        }
-      });
-    }
+    export const forkCommunityProject = (
+      params: CommunityProject,
+      cb: inkstone.Callback<project.Project>,
+    ) => {
+      newPostRequest()
+        .withEndpoint(Endpoints.ForkCommunityProject)
+        .withUrlParameters({
+          ':organization_name': params.Organization.Name,
+          ':project_name': params.Project.Name,
+        })
+        .callWithCallback<project.Project>(cb, 201);
+    };
 
     export interface SetHaiKudosParams {
       OrganizationName: string;
