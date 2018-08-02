@@ -2309,6 +2309,7 @@ class ActiveComponent extends BaseModel {
     const factory = HaikuDOMAdapter(bytecode, null, null)
 
     const createdHaikuCoreComponent = factory(this.getMount().$el(), lodash.merge({}, {
+      folder: ensureTrailingSlash(this.project.getFolder()),
       contextMenu: 'disabled', // Don't show the right-click context menu since our editing tools use right-click
       overflowX: 'visible',
       overflowY: 'visible',
@@ -4568,6 +4569,12 @@ ActiveComponent.buildPrimaryKey = (folder, scenename) => {
   // The ideal solution would be use something else to buildPrimaryKey such as
   // organizationName + projectName + scenename
   return folder.replace(/\\/g, '/') + '::' + scenename
+}
+
+const ensureTrailingSlash = (str) => {
+  return (str[str.length - 1] === '/')
+    ? str
+    : `${str}/`
 }
 
 module.exports = ActiveComponent

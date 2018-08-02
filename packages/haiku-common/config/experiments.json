@@ -24,7 +24,7 @@
   "NativeTimelineScroll": true,
   "TimelineMarqueeSelection": true,
   "LocalAssetExport": false,
-  "AllowBitmapImages": false,
+  "AllowBitmapImages": true,
   "SizeInsteadOfScaleWhenPossible": true,
   "UserConsole": false,
   "CleanInitialLibraryState": true,

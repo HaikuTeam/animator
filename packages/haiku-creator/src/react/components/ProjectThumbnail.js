@@ -38,6 +38,7 @@ class ProjectThumbnail extends React.Component {
           <ProjectPreview
             bytecodePath={this.bytecodePath}
             projectName={this.props.projectName}
+            projectPath={this.props.projectPath}
             playing={this.state.isHovered && !this.state.isMenuActive}
           />
         </div>

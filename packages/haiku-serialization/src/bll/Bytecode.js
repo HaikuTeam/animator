@@ -550,6 +550,7 @@ Bytecode.reinitialize = (folder, relpath, bytecode = {}, config = {}) => {
   Bytecode.writeMetadata(bytecode, lodash.assign({}, config, {
     // config: name, organization, project, branch, version, core
     uuid: 'HAIKU_SHARE_UUID', // This magic string is detected+replaced by our cloud services to produce a full share link
+    root: 'HAIKU_CDN_PROJECT_ROOT', // This magic string is detected+replaced by our cloud services for automagical CDN hosting
     type: 'haiku',
     relpath
   }))

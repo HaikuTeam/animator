@@ -245,6 +245,7 @@ export interface BytecodeTimelines {
  * Haiku bytecode metadata.
  */
 export interface BytecodeMetadata {
+  root?: string;
   folder?: string;
   uuid?: string;
   player?: string;
@@ -288,6 +289,9 @@ export interface BytecodeOptions {
   // If enabled (e.g. in the Haiku desktop app), bytecode is not cloned when a component is instantiated, and made be
   // live-edited.
   hotEditingMode?: boolean;
+
+  // String used for asset resolution; normally enabled in Haiku desktop.
+  folder?: string;
 
   // Whether to fully flush the component on every single frame
   // (warning: this can severely deoptimize animation)

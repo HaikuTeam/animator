@@ -27,15 +27,11 @@ class ImageComponent extends BaseModel {
   }
 
   getLocalHref () {
-    return `file://${this.getAbspath()}`
+    return `HAIKU_LOCAL_PROJECT_ROOT:${path.normalize(this.relpath)}`
   }
 
   queryImageSize (cb) {
     return imageSize(this.getAbspath(), cb)
-  }
-
-  getRemoteHref () {
-    throw new Error('not yet implemented')
   }
 
   getReifiedBytecode () {
