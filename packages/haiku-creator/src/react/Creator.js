@@ -49,6 +49,7 @@ import * as CreatorIntro from '@haiku/taylor-creatorintro/react';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import * as opn from 'opn';
 import {isProduction} from 'haiku-common/lib/environments';
+import {crashReport} from 'haiku-serialization/src/utils/carbonite';
 
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'creator';
@@ -241,6 +242,23 @@ export default class Creator extends React.Component {
         name: 'global-menu:close-dev-tools',
       });
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}));
+
+    ipcRenderer.on('global-menu:carbonite-snapshot', lodash.debounce(() => {
+      if (this.state.projectFolder) {
+        crashReport(
+          new Error('FAKE ERROR; IGNORE THIS'),
+          this.state.organizationName || 'unknown',
+          this.state.projectName || 'unknown',
+          this.state.projectFolder,
+        );
+
+        this.createNotice({
+          title: 'Done',
+          type: 'info',
+          message: `Project snapshot processing. Check your terminal logs for the upload URL.`,
+        });
+      }
+    }, 1000, {leading: true, trailing: false}));
 
     ipcRenderer.on('global-menu:open-finder', lodash.debounce(() => {
       logger.info(`[creator] global-menu:open-finder`);
