@@ -918,7 +918,7 @@ class StageTitleBar extends React.Component {
             <button
               key="toggle-design"
               id="toggle-design"
-              onClick={this.props.setGlassInteractionToEditMode}
+              onClick={this.props.tryToSwitchToEditMode}
               style={[
                 BTN_STYLES.btnText,
                 BTN_STYLES.centerBtns,

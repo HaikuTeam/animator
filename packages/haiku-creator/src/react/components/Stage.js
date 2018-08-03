@@ -35,6 +35,12 @@ const STAGE_FADE_IN = {
   transition: 'visibility 0s linear 0s, opacity 240ms, transform ease 240ms',
 };
 
+const clearAboutToChange = {
+  aboutToChangeToComponent: '',
+  aboutToChangeToEditMode: false,
+  aboutToChangeToPreviewMode: false,
+};
+
 // This may not be precisely correct; please test the UI if you enable this experiment
 const STAGE_MOUNT_HEIGHT_OFFSET = (experimentIsEnabled(Experiment.MultiComponentFeatures))
   ? 68
@@ -46,15 +52,15 @@ class Stage extends React.Component {
     this.webview = null;
     this.onRequestWebviewCoordinates = this.onRequestWebviewCoordinates.bind(this);
     this.tryToChangeCurrentActiveComponent = this.tryToChangeCurrentActiveComponent.bind(this);
-    this.tryToSwitchToDesign = this.tryToSwitchToDesign.bind(this);
+    this.tryToSwitchToEditMode = this.tryToSwitchToEditMode.bind(this);
+    this.tryToSwitchToPreviewMode = this.tryToSwitchToPreviewMode.bind(this);
     this.saveCodeFromEditorToDisk = this.saveCodeFromEditorToDisk.bind(this);
     this.exitFromCodeEditorSavePopup = this.exitFromCodeEditorSavePopup.bind(this);
 
     this.state = {
       nonSavedContentOnCodeEditor: false,
-      targetComponentToChange: '',
-      targetDesignToChange: false,
       showPopupToSaveRawEditorContents: false,
+      ...clearAboutToChange,
     };
   }
 
@@ -62,50 +68,65 @@ class Stage extends React.Component {
   tryToChangeCurrentActiveComponent (scenename) {
     if (this.state.nonSavedContentOnCodeEditor) {
       this.setState({
-        targetDesignToChange: false,
-        targetComponentToChange: scenename,
+        ...clearAboutToChange,
+        aboutToChangeToComponent: scenename,
         showPopupToSaveRawEditorContents: true,
       });
     } else {
       // If on preview mode, switch to edit mode
-      if (isPreviewMode(this.state.interactionMode)) {
+      if (isPreviewMode(this.props.interactionMode)) {
         this.props.setGlassInteractionToEditMode();
       }
+
       this.props.projectModel.setCurrentActiveComponent(scenename, {from: 'creator'}, () => {});
     }
   }
 
-  tryToSwitchToDesign () {
+  tryToSwitchToEditMode () {
     if (this.state.nonSavedContentOnCodeEditor) {
       this.setState({
-        targetDesignToChange: true,
-        targetComponentToChange: '',
+        ...clearAboutToChange,
+        aboutToChangeToEditMode: true,
         showPopupToSaveRawEditorContents: true,
       });
     } else {
       this.props.setGlassInteractionToEditMode();
+    }
+  }
+
+  tryToSwitchToPreviewMode () {
+    if (this.state.nonSavedContentOnCodeEditor) {
+      this.setState({
+        ...clearAboutToChange,
+        aboutToChangeToPreviewMode: true,
+        showPopupToSaveRawEditorContents: true,
+      });
+    } else {
+      this.props.setGlassInteractionToPreviewMode();
     }
   }
 
   exitFromCodeEditorSavePopup () {
     // Change to target
-    if (this.state.targetDesignToChange) {
+    if (this.state.aboutToChangeToEditMode) {
       this.props.setGlassInteractionToEditMode();
-    } else if (this.state.targetComponentToChange !== '') {
+    } else if (this.state.aboutToChangeToPreviewMode) {
+      this.props.setGlassInteractionToPreviewMode();
+    } else if (this.state.aboutToChangeToComponent !== '') {
       // If on preview mode, switch to edit mode
-      if (isPreviewMode(this.state.interactionMode)) {
+      if (isPreviewMode(this.props.interactionMode)) {
         this.props.setGlassInteractionToEditMode();
       }
 
-      this.props.projectModel.setCurrentActiveComponent(this.state.targetComponentToChange, {from: 'creator'}, () => {});
+      this.props.projectModel.setCurrentActiveComponent(this.state.aboutToChangeToComponent, {from: 'creator'}, () => {});
     }
 
     // Exit popup
     this.setState({
-      targetDesignToChange: false,
-      targetComponentToChange: '',
+      ...clearAboutToChange,
       showPopupToSaveRawEditorContents: false,
     });
+
   }
 
   componentDidMount () {
@@ -274,7 +295,7 @@ class Stage extends React.Component {
             envoyClient={this.props.envoyClient}
             onProjectPublicChange={this.props.onProjectPublicChange}
             setGlassInteractionToCodeEditorMode={this.props.setGlassInteractionToCodeEditorMode}
-            setGlassInteractionToEditMode={this.tryToSwitchToDesign}
+            tryToSwitchToEditMode={this.tryToSwitchToEditMode}
             showGlass={showGlassOnStage(this.props.interactionMode)}
             saveCodeFromEditorToDisk={this.saveCodeFromEditorToDisk}
             onShowEventHandlerEditor={this.props.onShowEventHandlerEditor}

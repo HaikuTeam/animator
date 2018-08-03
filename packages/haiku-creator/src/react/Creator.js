@@ -104,6 +104,7 @@ export default class Creator extends React.Component {
     this.setGlassInteractionToPreviewMode = this.setGlassInteractionToPreviewMode.bind(this);
     this.setGlassInteractionToEditMode = this.setGlassInteractionToEditMode.bind(this);
     this.setGlassInteractionToCodeEditorMode = this.setGlassInteractionToCodeEditorMode.bind(this);
+    this.togglePreviewMode = this.togglePreviewMode.bind(this);
     this.clearAuth = this.clearAuth.bind(this);
     this.tryToChangeCurrentActiveComponent = this.tryToChangeCurrentActiveComponent.bind(this);
     this.setProjectLaunchStatus = this.setProjectLaunchStatus.bind(this);
@@ -969,11 +970,16 @@ export default class Creator extends React.Component {
   }
 
   togglePreviewMode () {
-    const interactionMode = isPreviewMode(this.state.interactionMode)
-      ? InteractionMode.GLASS_EDIT
-      : InteractionMode.GLASS_LIVE;
+    // We delegate to state, so stage can check if code editor has any content
+    if (isPreviewMode(this.state.interactionMode)) {
+      this.refs.stage.tryToSwitchToEditMode();
+    } else {
+      this.refs.stage.tryToSwitchToPreviewMode();
+    }
+  }
 
-    this.setInteractionMode(interactionMode);
+  setGlassInteractionToPreviewMode () {
+    this.setInteractionMode(InteractionMode.GLASS_LIVE);
   }
 
   setGlassInteractionToEditMode () {
@@ -983,11 +989,6 @@ export default class Creator extends React.Component {
   setGlassInteractionToCodeEditorMode () {
     this.setInteractionMode(InteractionMode.CODE_EDITOR);
   }
-
-  setGlassInteractionToPreviewMode () {
-    this.setInteractionMode(InteractionMode.GLASS_LIVE);
-  }
-
 
   setDashboardVisibility (dashboardVisible, launchingProject = false) {
     this.setState({
@@ -2152,15 +2153,14 @@ export default class Creator extends React.Component {
                     isTimelineReady={this.state.isTimelineReady}
                     interactionMode={this.state.interactionMode}
                     onShowEventHandlerEditor={this.handleShowEventHandlersEditor}
-                    onPreviewModeToggled={() => {
-                      this.togglePreviewMode();
-                    }}
+                    onPreviewModeToggled={this.togglePreviewMode}
                     artboardDimensions={this.state.artboardDimensions}
                     onProjectPublicChange={(isPublic) => {
                       this.onProjectPublicChange(isPublic);
                     }}
-                    setGlassInteractionToCodeEditorMode={this.setGlassInteractionToCodeEditorMode}
+                    setGlassInteractionToPreviewMode={this.setGlassInteractionToPreviewMode}
                     setGlassInteractionToEditMode={this.setGlassInteractionToEditMode}
+                    setGlassInteractionToCodeEditorMode={this.setGlassInteractionToCodeEditorMode}
                     tryToChangeCurrentActiveComponent={this.tryToChangeCurrentActiveComponent}
                   />
                   {(this.state.assetDragging)
