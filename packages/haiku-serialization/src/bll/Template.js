@@ -310,6 +310,7 @@ Template.manaToDynamicBytecode = (mana, identifier, modpath, options = {}) => {
   const bytecode = {
     metadata: {
       uuid: 'HAIKU_SHARE_UUID',
+      root: 'HAIKU_CDN_PROJECT_ROOT',
       type: 'haiku',
       name: identifier,
       relpath: modpath

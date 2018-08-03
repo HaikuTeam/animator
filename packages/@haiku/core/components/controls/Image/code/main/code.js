@@ -14,10 +14,7 @@ module.exports = {
 
   timelines: {
     Default: {
-      'haiku:HaikuControlsImageDivWrapper': {
-        'origin.x': { '0': { value: 0 } },
-        'origin.y': { '0': { value: 0 } },
-        'origin.z': { '0': { value: 0 } },
+      'haiku:HaikuControlsDiv': {
         'style.WebkitTapHighlightColor': { '0': { value: 'rgba(0,0,0,0)' } },
         'style.position': { '0': { value: 'relative' } },
         'style.overflowX': { '0': { value: 'hidden' } },
@@ -40,48 +37,26 @@ module.exports = {
           }
         }
       },
-      'haiku:HaikuControlsImageSvgWrapper': {
-        'sizeMode.x': { '0': { value: 1 } },
-        'sizeMode.y': { '0': { value: 1 } },
-        'sizeMode.z': { '0': { value: 1 } },
-        'sizeAbsolute.x': {
-          '0': {
-            value: Haiku.inject(function (width) {
-              return width
-            }, 'width')
-          }
-        },
-        'sizeAbsolute.y': {
-          '0': {
-            value: Haiku.inject(function (height) {
-              return height
-            }, 'height')
-          }
-        }
-      },
-      'haiku:HaikuControlsImageSvgImageElement': {
-        'sizeMode.x': { '0': { value: 1 } },
-        'sizeMode.y': { '0': { value: 1 } },
-        'sizeMode.z': { '0': { value: 1 } },
-        'sizeAbsolute.x': {
-          '0': {
-            value: Haiku.inject(function (width) {
-              return width
-            }, 'width')
-          }
-        },
-        'sizeAbsolute.y': {
-          '0': {
-            value: Haiku.inject(function (height) {
-              return height
-            }, 'height')
-          }
-        },
-        'href': {
+      'haiku:HaikuControlsImg': {
+        'src': {
           '0': {
             value: Haiku.inject(function (href) {
               return href || ''
             }, 'href')
+          }
+        },
+        'width': {
+          '0': {
+            value: Haiku.inject(function (width) {
+              return width
+            }, 'width')
+          }
+        },
+        'height': {
+          '0': {
+            value: Haiku.inject(function (height) {
+              return height
+            }, 'height')
           }
         }
       }
@@ -92,27 +67,15 @@ module.exports = {
     elementName: 'div',
     attributes: {
       'haiku-title': 'HaikuControlsImage',
-      'haiku-id': 'HaikuControlsImageDivWrapper'
+      'haiku-id': 'HaikuControlsDiv'
     },
     children: [
       {
-        elementName: 'svg',
+        elementName: 'img',
         attributes: {
-          version: '1.1',
-          xmlns: 'http://www.w3.org/2000/svg',
-          'xmlns:xlink': 'http://www.w3.org/1999/xlink',
-          'haiku-title': 'HaikuControlsImageSvgWrapper',
-          'haiku-id': 'HaikuControlsImageSvgWrapper'
+          'haiku-title': 'HaikuControlsImg',
+          'haiku-id': 'HaikuControlsImg'
         },
-        children: [
-          {
-            elementName: 'image',
-            attributes: {
-              'haiku-title': 'HaikuControlsImageSvgImageElement',
-              'haiku-id': 'HaikuControlsImageSvgImageElement'
-            }
-          }
-        ]
       }
     ]
   }

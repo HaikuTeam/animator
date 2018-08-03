@@ -1,9 +1,37 @@
 import * as path from 'path';
+import * as fs from 'fs';
+import * as Module from 'module';
 import * as React from 'react';
 import HaikuDOMAdapter from '@haiku/core/lib/adapters/dom/HaikuDOMAdapter';
 import {InteractionMode} from '@haiku/core/lib/helpers/interactionModes';
 import {TourUtils} from 'haiku-common/lib/types/enums';
-import {requireFromFile} from 'haiku-serialization/src/bll/ModuleWrapper';
+
+/**
+ * This is the _original_ way we loaded component modules from a filename.
+ * Later, this code was modified so as to use ModuleWrapper.requireFromFile,
+ * but that method (apparently) has problems resolving @haiku/core modules,
+ * which may be dependencies of component bytecode, so the code was switched
+ * back. If you want to attempt to DRY up this code, make sure to test it against
+ * modules that load from @haiku/core/components/*.
+ */
+const requireModuleFromFilename = (filename) => {
+  const mod = new Module('', module.parent);
+
+  // Module._resolveLookupPaths will use this...
+  mod.paths = [].concat(
+    path.dirname(filename),
+    Module._nodeModulePaths(__dirname),
+  );
+
+  // ...if and only if both these properties have been set.
+  mod.filename = filename;
+  mod.id = filename;
+
+  const src = fs.readFileSync(filename).toString();
+  mod._compile(src, filename);
+
+  return mod.exports;
+};
 
 const renderMissingLocalProjectMessage = () => {
   // TODO: Do we want to display a message or anything else if the project isn't already present locally?
@@ -21,8 +49,9 @@ class ProjectPreview extends React.Component {
   componentWillMount () {
     try {
       // TODO: Try to get the bytecode from CDN or eager clone if not yet available.
-      this.bytecode = requireFromFile(this.props.bytecodePath);
+      this.bytecode = requireModuleFromFilename(this.props.bytecodePath);
     } catch (exception) {
+      console.warn(exception);
       if (['Move', 'Moto', TourUtils.ProjectName].indexOf(this.props.projectName) !== -1) {
         this.bytecode = require(path.join('..', 'bytecode-fixtures', this.props.projectName));
       }
@@ -41,6 +70,7 @@ class ProjectPreview extends React.Component {
       try {
         this.mountHaikuComponent();
       } catch (exception) {
+        console.warn(exception);
         // noop. Probably caught a backward-incompatible change that doesn't work with the current version of Core.
       }
     }
@@ -103,6 +133,7 @@ class ProjectPreview extends React.Component {
     this.component = factory(
       this.mount,
       {
+        folder: ensureTrailingSlash(this.props.projectPath),
         sizing: 'cover',
         alwaysComputeSizing: false,
         loop: true,
@@ -145,6 +176,12 @@ class ProjectPreview extends React.Component {
     );
   }
 }
+
+const ensureTrailingSlash = (str) => {
+  return (str[str.length - 1] === '/')
+    ? str
+    : `${str}/`;
+};
 
 ProjectPreview.propTypes = {
   bytecodePath: React.PropTypes.string.isRequired,

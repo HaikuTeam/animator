@@ -91,14 +91,17 @@ class CodeEditor extends React.Component {
       return;
     }
 
-    const newComponentCode = ac.fetchActiveBytecodeFile().getCode();
+    const newComponentCode = ac.fetchActiveBytecodeFile().trackContentsAndGetCode();
 
     // If component code changed, update it on Editor
     // TODO: this logic could be migrated in the future to Monaco Editor
     // getDerivedStateFromProps on react 16+
     if (newComponentCode !== this.state.currentComponentCode) {
       // This probably is portable to getDerivedStateFromProps
-      this.setState({currentComponentCode: newComponentCode, currentEditorContents: newComponentCode}, () => {
+      this.setState({
+        currentComponentCode: newComponentCode,
+        currentEditorContents: newComponentCode,
+      }, () => {
         this.onMonacoEditorChange(newComponentCode, null);
       });
     } else {
@@ -112,17 +115,19 @@ class CodeEditor extends React.Component {
       return;
     }
 
-    activeComponent.replaceBytecode(this.state.currentEditorContents, {from: 'creator'}, (error) => {
+    activeComponent.syncCode(this.state.currentEditorContents, {from: 'creator'}, (error) => {
       this.setState({
         currentBytecodeError: error,
         showBytecodeErrorPopup: !!error,
       });
 
-      if (!error) {
-        this.setState({currentComponentCode: this.state.currentEditorContents}, () => {
-          this.onMonacoEditorChange(this.state.currentEditorContents);
-        });
+      if (error) {
+        return;
       }
+
+      this.setState({currentComponentCode: this.state.currentEditorContents}, () => {
+        this.onMonacoEditorChange(this.state.currentEditorContents);
+      });
     });
   }
 

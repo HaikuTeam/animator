@@ -46,6 +46,7 @@ const KEYFRAME_ZERO = 0;
 const OBJECT = 'object';
 const MAX_INT = 2147483646;
 const SCOPE_STRATA = {div: 'div', svg: 'svg'};
+const CDN_ROOT_STR = 'HAIKU|CDN|PROJECT|ROOT'; // Split to avoid server-side munging
 
 // HACK: Required until DOM subtree-hydration race is fixed
 const ALWAYS_UPDATED_PROPERTIES = {'controlFlow.placeholder': true};
@@ -1299,11 +1300,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
             for (const propertyName in propertyGroup) {
               const keyframeCluster = propertyGroup[propertyName];
 
-              const {
-                computedValue,
-                didValueChangeSinceLastRequest,
-                didValueOriginateFromExplicitKeyframeDefinition,
-              } = this.grabValue(
+              const grabbedValue = this.grabValue(
                 timelineName,
                 compositeId,
                 matchingElement,
@@ -1313,6 +1310,15 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
                 isPatchOperation,
                 skipCache,
               );
+
+              let {
+                computedValue,
+              } = grabbedValue;
+
+              const {
+                didValueChangeSinceLastRequest,
+                didValueOriginateFromExplicitKeyframeDefinition,
+              } = grabbedValue;
 
               if (computedValue === undefined) {
                 continue;
@@ -1338,6 +1344,14 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
                   )
                 )
               ) {
+                if (typeof computedValue === 'string') {
+                  computedValue = this.maybeRewriteString(
+                    computedValue,
+                    propertyName,
+                    matchingElement,
+                  );
+                }
+
                 this.applyPropertyToNode(
                   matchingElement,
                   propertyName,
@@ -1356,6 +1370,40 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
 
       timelineInstance.executePostUpdateHooks(globalClockTime);
     }
+  }
+
+  maybeRewriteString (computedValue: string, propertyName: string, matchingElement): string {
+    if (
+      propertyName === 'src' ||
+      propertyName === 'xlink:href' ||
+      propertyName === 'href'
+    ) {
+      const subst = this.getProjectRootPathWithTerminatingSlash();
+      return computedValue.replace(
+        'HAIKU_LOCAL_PROJECT_ROOT:',
+        subst,
+      );
+    }
+
+    return computedValue;
+  }
+
+  getCdnRootStr (): string {
+    return CDN_ROOT_STR.split('|').join('_');
+  }
+
+  getProjectRootPathWithTerminatingSlash (): string {
+    const metadata = this.getBytecodeMetadata();
+
+    // If root is set and is not precisely this known magic string,
+    // assume the root actually defines a root path somewhere on the web we can resolve to.
+    if (metadata && metadata.root && metadata.root !== this.getCdnRootStr()) {
+      return metadata.root;
+    }
+
+    // Try to use a locally defined folder (i.e. during editing in Haiku),
+    // or fallback to a local path and hope we resolve to something meaningful.
+    return this.config.folder || (metadata && metadata.folder) || './';
   }
 
   applyPropertyToNode (

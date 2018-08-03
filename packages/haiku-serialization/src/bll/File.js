@@ -118,28 +118,33 @@ class File extends BaseModel {
     return cb()
   }
 
-  getCode () {
-    const bytecode = this.mod.fetchInMemoryExport()
-    return this.ast.updateWithBytecodeAndReturnCode(bytecode)
+  updateContents (contents) {
+    this.previous = this.contents
+    this.contents = contents
+  }
+
+  trackContentsAndGetCode () {
+    this.updateContents(
+      this.ast.updateWithBytecodeAndReturnCode(
+        this.mod.fetchInMemoryExport(), // The current bytecode
+        this.contents // The previous contents
+      )
+    )
+
+    return this.contents // The updated contents
   }
 
   flushContent () {
-    return this.flushContentFromString(this.getCode())
-  }
+    this.trackContentsAndGetCode() // <~ Populates this.contents and this.previous
 
-  flushContentFromString (content) {
     // We're about to flush content for all requests received up to this point
     // If more occur during async, that's fine; we'll just get called again,
     // but those who need to wait can read the list to know what's still pending
     this._pendingContentFlushes.splice(0)
 
-    const incoming = content
+    this.assertContents(this.contents)
 
-    this.assertContents(incoming)
-
-    this.previous = this.contents
-    this.contents = incoming
-
+    // Assumes this.trackContentsAndGetCode() set this.previous!
     this.maybeLogDiff(this.previous, this.contents)
 
     return this.write((err) => {
@@ -148,10 +153,8 @@ class File extends BaseModel {
   }
 
   flushContentForceSync () {
-    const bytecode = this.mod.fetchInMemoryExport()
-    const incoming = this.ast.updateWithBytecodeAndReturnCode(bytecode)
-    this.previous = this.contents
-    this.contents = incoming
+    this.trackContentsAndGetCode() // <~ Populates this.contents and this.previous
+
     this.writeSync()
   }
 

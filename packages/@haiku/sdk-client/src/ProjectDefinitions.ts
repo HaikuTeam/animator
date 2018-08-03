@@ -97,6 +97,7 @@ export const fetchProjectConfigInfo = (folder: string, cb: any) => {
   return cb(null, assign({
     folder,
     uuid: 'HAIKU_SHARE_UUID', // Replaced on the server
+    root: 'HAIKU_CDN_PROJECT_ROOT', // Replaced on the server
     core: getHaikuCoreVersion(),
   }, config));
 };

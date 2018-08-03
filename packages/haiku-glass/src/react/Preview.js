@@ -57,6 +57,7 @@ export default class Preview extends React.Component {
     this.component = factory(
       this.mount,
       {
+        folder: ensureTrailingSlash(this.props.component.project.getFolder()),
         alwaysComputeSizing: false,
         loop: true,
         interactionMode: InteractionMode.LIVE,
@@ -117,6 +118,12 @@ export default class Preview extends React.Component {
     );
   }
 }
+
+const ensureTrailingSlash = (str) => {
+  return (str[str.length - 1] === '/')
+    ? str
+    : `${str}/`;
+};
 
 Preview.propTypes = {
   component: React.PropTypes.object.isRequired,

@@ -558,9 +558,26 @@ export default class Master extends EventEmitter {
     return this.loadAssets(cb);
   }
 
+  getBaseFolder (abspath) {
+    const extname = path.extname(abspath).toLowerCase();
+
+    if (
+      extname === '.svg' ||
+      extname === '.ai' ||
+      extname === '.sketch' ||
+      extname === '.figma'
+    ) {
+      return 'designs';
+    }
+
+    // Bitmap images, fonts, etc.
+    return 'assets';
+  }
+
   linkAsset (abspath, cb) {
     const basename = path.basename(abspath);
-    const relpath = path.join('designs', basename);
+    const base = this.getBaseFolder(abspath);
+    const relpath = path.join(base, basename);
     const destination = path.join(this.folder, relpath);
     return fse.copy(abspath, destination, (copyErr) => {
       if (copyErr) {

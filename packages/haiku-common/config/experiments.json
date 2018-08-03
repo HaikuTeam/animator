@@ -24,7 +24,7 @@
   "NativeTimelineScroll": true,
   "TimelineMarqueeSelection": true,
   "LocalAssetExport": false,
-  "AllowBitmapImages": false,
+  "AllowBitmapImages": true,
   "SizeInsteadOfScaleWhenPossible": true,
   "UserConsole": false,
   "CleanInitialLibraryState": true,
@@ -32,6 +32,7 @@
   "CopyPasteTweensWithAccelerators": true,
   "Snapping": true,
   "PinchToZoomInGlass": true,
+  "PreserveFrontMatterInCode": true,
   "UserFacingDevTools": true,
   "SendLogMessagesToPlumbing": false
 }

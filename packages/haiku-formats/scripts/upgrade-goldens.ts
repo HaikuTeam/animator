@@ -13,7 +13,10 @@ readdir(join(goldensRoot, 'bytecode'), (_: any, bytecodeFiles: string[]) => {
   each(bytecodeFiles, (filename, next) => {
     const bytecodeFilename = join(goldensRoot, 'bytecode', filename);
     createComponent(require(bytecodeFilename), {hotEditingMode: true}, (component: any, teardown: () => void) => {
-      const contents = ast.updateWithBytecodeAndReturnCode(component.bytecode);
+      const contents = ast.updateWithBytecodeAndReturnCode(
+        component.bytecode,
+        null, // previous: string // The previous code string
+      );
       writeFile(
         bytecodeFilename,
         contents,
