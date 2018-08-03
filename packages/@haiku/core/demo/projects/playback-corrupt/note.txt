@@ -1,0 +1,1 @@
+Confirm that a corrupt playback value doesn't cause an unrecoverable exception. It should roll with the punches and use a sensible default.

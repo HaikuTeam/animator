@@ -1,0 +1,1 @@
+Confirm that imperative eval of $user.mouse.x in a subcomponent resolves to the subcomponent's bounding box, not the root/stage.

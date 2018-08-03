@@ -1,0 +1,1 @@
+Confirm that a specified state affects all repeated elements. Child has a will-mount handler that fires gotoAndStop(this.state.frame). This works as expected for the first repeated instance, but subsequent instances remain at frame 0.
