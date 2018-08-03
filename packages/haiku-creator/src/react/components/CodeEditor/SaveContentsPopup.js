@@ -38,8 +38,13 @@ class SaveContentsPopup extends React.Component {
   }
 
   saveEditorContentsToFile () {
-    this.props.saveCodeFromEditorToDisk();
-    this.props.exitFromCodeEditorSavePopup();
+    // We only exit code editor if file can be saved
+    this.props.saveCodeFromEditorToDisk((err) => {
+      if (err) {
+        return;
+      }
+      this.props.exitFromCodeEditorSavePopup();
+    });
   }
 
   discardEditorContents () {

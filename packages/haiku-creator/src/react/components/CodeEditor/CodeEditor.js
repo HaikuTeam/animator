@@ -110,7 +110,7 @@ class CodeEditor extends React.Component {
     }
   }
 
-  saveCodeFromEditorToDisk () {
+  saveCodeFromEditorToDisk (cb) {
     const activeComponent = this.props.projectModel.getCurrentActiveComponent();
     if (!activeComponent) {
       return;
@@ -123,12 +123,19 @@ class CodeEditor extends React.Component {
       });
 
       if (error) {
+        if (cb) {
+          cb(error);
+        }
         return;
       }
 
       this.setState({currentComponentCode: this.state.currentEditorContents}, () => {
         this.onMonacoEditorChange(this.state.currentEditorContents);
       });
+
+      if (cb) {
+        cb();
+      }
     });
   }
 

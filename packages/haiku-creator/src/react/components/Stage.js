@@ -88,7 +88,7 @@ class Stage extends React.Component {
     if (this.state.targetDesignToChange) {
       this.props.onSwitchToDesignMode();
     } else if (this.state.targetComponentToChange !== '') {
-      this.props.projectModel.setCurrentActiveComponent(scenename, {from: 'creator'}, () => {});
+      this.props.projectModel.setCurrentActiveComponent(this.state.targetComponentToChange, {from: 'creator'}, () => {});
     }
 
     // Exit popup
