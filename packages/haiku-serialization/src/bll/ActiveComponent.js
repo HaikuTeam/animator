@@ -1958,6 +1958,11 @@ class ActiveComponent extends BaseModel {
       const componentTimeline = bytecode.timelines[timelineName][componentId]
 
       for (const propertyName in componentTimeline) {
+        // Skip non LAYOUT_3D_SCHEMA properties. Other properties aren't lost on group
+        if (!(propertyName in LAYOUT_3D_SCHEMA)) {
+          continue
+        }
+
         const propertyTimeline = componentTimeline[propertyName]
 
         // Check if property has more than one keyFrame ( component has transition )
@@ -1970,8 +1975,7 @@ class ActiveComponent extends BaseModel {
 
         // Check if property has any expression ( component expression )
         for (const frameNum in propertyTimeline) {
-          const propertyValue = propertyTimeline[frameNum].value
-          if (typeof propertyValue === 'function') {
+          if (propertyTimeline[frameNum].value instanceof Function) {
             result.hasExpression = true
           }
         }

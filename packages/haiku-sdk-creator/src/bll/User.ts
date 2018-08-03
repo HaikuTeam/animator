@@ -19,6 +19,7 @@ export enum UserSettings {
   defaultTimeDisplayMode = 'defaultTimeDisplayMode',
   timeDisplayModes = 'timeDisplayModes',
   figmaToken = 'figmaToken',
+  doNotDisplayConfirmGroupPopoup = 'doNotDisplayConfirmGroupPopoup',
 }
 
 export class UserHandler implements User {

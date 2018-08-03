@@ -2323,6 +2323,7 @@ export default class Creator extends React.Component {
 
         {this.state.showConfirmGroupUngroupPopup &&
           <ConfirmGroupUngroupPopup
+            user={this.user}
             componentsLosingTransitions={this.state.componentsLosingTransitions}
             setGroupUngroupAnswerAndClose={this.hideConfirmGroupUngroupPopup}
             groupOrUngroup={this.state.groupOrUngroup}
