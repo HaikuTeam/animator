@@ -1,0 +1,1 @@
+Ensures that undefineds/NaNs/bad values are handled appropriately when they make it through as attributes.
