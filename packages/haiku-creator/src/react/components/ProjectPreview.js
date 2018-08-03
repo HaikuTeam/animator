@@ -137,7 +137,7 @@ class ProjectPreview extends React.Component {
         sizing: 'cover',
         alwaysComputeSizing: false,
         loop: true,
-        interactionMode: InteractionMode.EDIT,
+        interactionMode: InteractionMode.GLASS_EDIT,
         autoplay: false,
         mixpanel: false,
         contextMenu: 'disabled',

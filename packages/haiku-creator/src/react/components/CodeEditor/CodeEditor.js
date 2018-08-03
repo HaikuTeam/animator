@@ -16,6 +16,7 @@ class CodeEditor extends React.Component {
 
     this.onMonacoEditorChange = this.onMonacoEditorChange.bind(this);
     this.saveCodeFromEditorToDisk = this.saveCodeFromEditorToDisk.bind(this);
+    this.discardFromCodeEditor = this.discardFromCodeEditor.bind(this);
     this.onProjectModelUpdate = this.onProjectModelUpdate.bind(this);
 
     this.hideBytecodeErrorPopup = () => {
@@ -131,6 +132,10 @@ class CodeEditor extends React.Component {
     });
   }
 
+  discardFromCodeEditor () {
+    this.onMonacoEditorChange(this.state.currentComponentCode);
+  }
+
   render () {
     if (!this.state.fontLoaded) {
       return null;
@@ -156,9 +161,9 @@ class CodeEditor extends React.Component {
         {this.props.showPopupToSaveRawEditorContents &&
           <SaveContentsPopup
             projectModel={this.props.projectModel}
-            targetComponentToChange={this.props.targetComponentToChange}
-            setShowPopupToSaveRawEditorContents={this.props.setShowPopupToSaveRawEditorContents}
+            exitFromCodeEditorSavePopup={this.props.exitFromCodeEditorSavePopup}
             saveCodeFromEditorToDisk={this.saveCodeFromEditorToDisk}
+            discardFromCodeEditor={this.discardFromCodeEditor}
           />}
         {this.state.showBytecodeErrorPopup &&
           <BytecodeErrorPopup

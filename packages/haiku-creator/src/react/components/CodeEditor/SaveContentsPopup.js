@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as Radium from 'radium';
-import {ModalWrapper, ModalHeader, ModalFooter} from 'haiku-ui-common/lib/react/Modal';
+import {ModalWrapper, ModalFooter} from 'haiku-ui-common/lib/react/Modal';
 import {BTN_STYLES} from '../../styles/btnShared';
 import Palette from 'haiku-ui-common/lib/Palette';
 
@@ -34,18 +34,17 @@ class SaveContentsPopup extends React.Component {
   constructor (props) {
     super(props);
     this.saveEditorContentsToFile = this.saveEditorContentsToFile.bind(this);
-    this.closeSaveContentsPopupAndChangeComponent = this.closeSaveContentsPopupAndChangeComponent.bind(this);
+    this.discardEditorContents = this.discardEditorContents.bind(this);
   }
 
   saveEditorContentsToFile () {
     this.props.saveCodeFromEditorToDisk();
-    this.closeSaveContentsPopupAndChangeComponent();
+    this.props.exitFromCodeEditorSavePopup();
   }
 
-  closeSaveContentsPopupAndChangeComponent () {
-    this.props.projectModel.setCurrentActiveComponent(this.props.targetComponentToChange,
-                                                      {from: 'creator'}, () => {});
-    this.props.setShowPopupToSaveRawEditorContents(false);
+  discardEditorContents () {
+    this.props.discardFromCodeEditor();
+    this.props.exitFromCodeEditorSavePopup();
   }
 
   render () {
@@ -61,7 +60,7 @@ class SaveContentsPopup extends React.Component {
               <button
                 key="discard-code"
                 id="discard-code"
-                onClick={this.closeSaveContentsPopupAndChangeComponent}
+                onClick={this.discardEditorContents}
                 style={[
                   BTN_STYLES.btnText,
                   BTN_STYLES.centerBtns,

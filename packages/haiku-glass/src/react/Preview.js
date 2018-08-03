@@ -60,7 +60,7 @@ export default class Preview extends React.Component {
         folder: ensureTrailingSlash(this.props.component.project.getFolder()),
         alwaysComputeSizing: false,
         loop: true,
-        interactionMode: InteractionMode.LIVE,
+        interactionMode: InteractionMode.GLASS_LIVE,
         autoplay: true,
         mixpanel: false,
         contextMenu: 'disabled',

@@ -9,6 +9,12 @@ import CodeEditor from './CodeEditor/CodeEditor';
 import Palette from 'haiku-ui-common/lib/Palette';
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import {TOUR_CHANNEL} from 'haiku-sdk-creator/lib/tour';
+import {
+  isPreviewMode,
+  isEditMode,
+  isCodeEditorMode,
+  showGlassOnStage,
+} from '@haiku/core/lib/helpers/interactionModes';
 
 const STAGE_BOX_STYLE = {
   overflow: 'hidden',
@@ -41,14 +47,14 @@ class Stage extends React.Component {
     this.onRequestWebviewCoordinates = this.onRequestWebviewCoordinates.bind(this);
     this.tryToChangeCurrentActiveComponent = this.tryToChangeCurrentActiveComponent.bind(this);
     this.tryToSwitchToDesign = this.tryToSwitchToDesign.bind(this);
-    this.closePopupCannotSwitchToDesign = this.closePopupCannotSwitchToDesign.bind(this);
     this.saveCodeFromEditorToDisk = this.saveCodeFromEditorToDisk.bind(this);
+    this.exitFromCodeEditorSavePopup = this.exitFromCodeEditorSavePopup.bind(this);
 
     this.state = {
       nonSavedContentOnCodeEditor: false,
       targetComponentToChange: '',
+      targetDesignToChange: false,
       showPopupToSaveRawEditorContents: false,
-      showPopupCannotSwitchToDesign: false,
     };
   }
 
@@ -56,10 +62,10 @@ class Stage extends React.Component {
   tryToChangeCurrentActiveComponent (scenename) {
     if (this.state.nonSavedContentOnCodeEditor) {
       this.setState({
+        targetDesignToChange: false,
         targetComponentToChange: scenename,
         showPopupToSaveRawEditorContents: true,
-      },
-      );
+      });
     } else {
       this.props.projectModel.setCurrentActiveComponent(scenename, {from: 'creator'}, () => {});
     }
@@ -67,14 +73,30 @@ class Stage extends React.Component {
 
   tryToSwitchToDesign () {
     if (this.state.nonSavedContentOnCodeEditor) {
-      this.setState({showPopupCannotSwitchToDesign: true});
+      this.setState({
+        targetDesignToChange: true,
+        targetComponentToChange: '',
+        showPopupToSaveRawEditorContents: true,
+      });
     } else {
       this.props.onSwitchToDesignMode();
     }
   }
 
-  closePopupCannotSwitchToDesign () {
-    this.setState({showPopupCannotSwitchToDesign: false});
+  exitFromCodeEditorSavePopup () {
+    // Change to target
+    if (this.state.targetDesignToChange) {
+      this.props.onSwitchToDesignMode();
+    } else if (this.state.targetComponentToChange !== '') {
+      this.props.projectModel.setCurrentActiveComponent(scenename, {from: 'creator'}, () => {});
+    }
+
+    // Exit popup
+    this.setState({
+      targetDesignToChange: false,
+      targetComponentToChange: '',
+      showPopupToSaveRawEditorContents: false,
+    });
   }
 
   componentDidMount () {
@@ -211,9 +233,9 @@ class Stage extends React.Component {
   }
 
   render () {
-    const interactionModeColor = this.props.isPreviewMode
+    const interactionModeColor = isPreviewMode(this.props.interactionMode)
       ? Palette.LIGHTEST_PINK
-      : this.props.showGlass
+      : isEditMode(this.props.interactionMode)
         ? Palette.STAGE_GRAY
         : Palette.COAL;
 
@@ -238,22 +260,20 @@ class Stage extends React.Component {
             password={this.props.password}
             receiveProjectInfo={this.props.receiveProjectInfo}
             onPreviewModeToggled={this.props.onPreviewModeToggled}
-            isPreviewMode={this.props.isPreviewMode}
+            isPreviewMode={isPreviewMode(this.props.interactionMode)}
             isTimelineReady={this.props.isTimelineReady}
             envoyClient={this.props.envoyClient}
             onProjectPublicChange={this.props.onProjectPublicChange}
             onSwitchToCodeMode={this.props.onSwitchToCodeMode}
             onSwitchToDesignMode={this.tryToSwitchToDesign}
-            showGlass={this.props.showGlass}
-            closePopupCannotSwitchToDesign={this.closePopupCannotSwitchToDesign}
-            showPopupCannotSwitchToDesign={this.state.showPopupCannotSwitchToDesign}
+            showGlass={showGlassOnStage(this.props.interactionMode)}
             saveCodeFromEditorToDisk={this.saveCodeFromEditorToDisk}
             onShowEventHandlerEditor={this.props.onShowEventHandlerEditor}
           />
           {(experimentIsEnabled(Experiment.MultiComponentFeatures)) &&
             <ComponentMenu
               ref="component-menu"
-              showGlass={this.props.showGlass}
+              showGlass={showGlassOnStage(this.props.interactionMode)}
               projectModel={this.props.projectModel}
               nonSavedContentOnCodeEditor={this.state.nonSavedContentOnCodeEditor}
               tryToChangeCurrentActiveComponent={this.props.tryToChangeCurrentActiveComponent}
@@ -273,9 +293,9 @@ class Stage extends React.Component {
               left: 3,
               backgroundColor: Palette.STAGE_GRAY,
               outline: '2px solid ' + interactionModeColor,
-              visibility: this.props.showGlass ? 'visible' : 'hidden',
-              opacity: this.props.showGlass ? 1 : 0},
-              [this.props.showGlass && STAGE_FADE_IN], [!this.props.showGlass && STAGE_FADE_OUT],
+              visibility: showGlassOnStage(this.props.interactionMode) ? 'visible' : 'hidden',
+              opacity: showGlassOnStage(this.props.interactionMode) ? 1 : 0},
+              [showGlassOnStage(this.props.interactionMode) && STAGE_FADE_IN], [!showGlassOnStage(this.props.interactionMode) && STAGE_FADE_OUT],
             ]}
           />
           {experimentIsEnabled(Experiment.CodeEditor) && <div
@@ -288,23 +308,20 @@ class Stage extends React.Component {
               left: 3,
               backgroundColor: Palette.COAL,
               outline: '2px solid ' + interactionModeColor,
-              visibility: this.props.showGlass ? 'hidden' : 'visible',
-              opacity: this.props.showGlass ? 0 : 1},
-              [!this.props.showGlass && STAGE_FADE_IN], [this.props.showGlass && STAGE_FADE_OUT],
+              visibility: showGlassOnStage(this.props.interactionMode) ? 'hidden' : 'visible',
+              opacity: showGlassOnStage(this.props.interactionMode) ? 0 : 1},
+              [!showGlassOnStage(this.props.interactionMode) && STAGE_FADE_IN], [showGlassOnStage(this.props.interactionMode) && STAGE_FADE_OUT],
             ]}>
             <CodeEditor
               ref="codeeditor"
-              showGlass={this.props.showGlass}
+              showGlass={showGlassOnStage(this.props.interactionMode)}
               projectModel={this.props.projectModel}
               setNonSavedContentOnCodeEditor={(nonSaved) => {
                 this.setState({nonSavedContentOnCodeEditor: nonSaved});
               }}
               nonSavedContentOnCodeEditor={this.state.nonSavedContentOnCodeEditor}
               showPopupToSaveRawEditorContents={this.state.showPopupToSaveRawEditorContents}
-              setShowPopupToSaveRawEditorContents={(showPopup) => {
-                this.setState({showPopupToSaveRawEditorContents: showPopup});
-              }}
-              targetComponentToChange={this.state.targetComponentToChange}
+              exitFromCodeEditorSavePopup={this.exitFromCodeEditorSavePopup}
             />
           </div>}
         </div>

@@ -1479,9 +1479,9 @@ class Timeline extends React.Component {
     }
   }
 
-  disablePreviewMode () {
+  setGlassInteractionToEditMode () {
     if (this.state.isPreviewModeActive) {
-      this.project.setInteractionMode(InteractionMode.EDIT, {from: 'timeline'}, () => {
+      this.project.setInteractionMode(InteractionMode.GLASS_EDIT, {from: 'timeline'}, () => {
         this.setState({isPreviewModeActive: false});
       });
     }
@@ -1660,7 +1660,7 @@ class Timeline extends React.Component {
                 backgroundColor: Palette.COAL,
               }}
               onClick={() => {
-                this.disablePreviewMode();
+                this.setGlassInteractionToEditMode();
               }}
             />
           )

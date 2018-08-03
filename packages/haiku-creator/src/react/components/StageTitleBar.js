@@ -16,7 +16,6 @@ import {ExporterFormat} from 'haiku-sdk-creator/lib/exporter';
 import * as Element from 'haiku-serialization/src/bll/Element';
 import * as ElementSelectionProxy from 'haiku-serialization/src/bll/ElementSelectionProxy';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
-import CannotSwitchToDesignPopup from './CodeEditor/CannotSwitchToDesignPopup';
 
 const mixpanel = require('haiku-serialization/src/utils/Mixpanel');
 
@@ -913,11 +912,6 @@ class StageTitleBar extends React.Component {
             </div>
 
           </div>
-        }
-        {this.props.showPopupCannotSwitchToDesign &&
-          <CannotSwitchToDesignPopup
-            closePopupCannotSwitchToDesign={this.props.closePopupCannotSwitchToDesign}
-          />
         }
         {experimentIsEnabled(Experiment.CodeEditor) &&
           <div style={STYLES.toggleHolster}>
