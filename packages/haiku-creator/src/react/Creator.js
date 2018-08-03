@@ -101,7 +101,9 @@ export default class Creator extends React.Component {
     this.onTimelineMounted = this.onTimelineMounted.bind(this);
     this.onTimelineUnmounted = this.onTimelineUnmounted.bind(this);
     this.onNavigateToDashboard = this.onNavigateToDashboard.bind(this);
+    this.setGlassInteractionToPreviewMode = this.setGlassInteractionToPreviewMode.bind(this);
     this.setGlassInteractionToEditMode = this.setGlassInteractionToEditMode.bind(this);
+    this.setGlassInteractionToCodeEditorMode = this.setGlassInteractionToCodeEditorMode.bind(this);
     this.clearAuth = this.clearAuth.bind(this);
     this.tryToChangeCurrentActiveComponent = this.tryToChangeCurrentActiveComponent.bind(this);
     this.setProjectLaunchStatus = this.setProjectLaunchStatus.bind(this);
@@ -944,6 +946,10 @@ export default class Creator extends React.Component {
   handleInteractionModeChange (interactionMode) {
     if (interactionMode === InteractionMode.GLASS_LIVE) {
       this.hideEventHandlersEditor();
+    } else if (interactionMode === InteractionMode.GLASS_EDIT) {
+      this.setState({activeNav: 'library'});
+    } else if (interactionMode === InteractionMode.CODE_EDITOR) {
+      this.setState({activeNav: 'state_inspector'});
     }
 
     this.setState({interactionMode});
@@ -963,9 +969,9 @@ export default class Creator extends React.Component {
   }
 
   togglePreviewMode () {
-    const interactionMode = this.state.interactionMode === InteractionMode.GLASS_EDIT
-      ? InteractionMode.GLASS_LIVE
-      : InteractionMode.GLASS_EDIT;
+    const interactionMode = isPreviewMode(this.state.interactionMode)
+      ? InteractionMode.GLASS_EDIT
+      : InteractionMode.GLASS_LIVE;
 
     this.setInteractionMode(interactionMode);
   }
@@ -973,6 +979,15 @@ export default class Creator extends React.Component {
   setGlassInteractionToEditMode () {
     this.setInteractionMode(InteractionMode.GLASS_EDIT);
   }
+
+  setGlassInteractionToCodeEditorMode () {
+    this.setInteractionMode(InteractionMode.CODE_EDITOR);
+  }
+
+  setGlassInteractionToPreviewMode () {
+    this.setInteractionMode(InteractionMode.GLASS_LIVE);
+  }
+
 
   setDashboardVisibility (dashboardVisible, launchingProject = false) {
     this.setState({
@@ -1187,7 +1202,6 @@ export default class Creator extends React.Component {
               doShowProjectLoader: true,
               doShowBackToDashboardButton: false,
               dashboardVisible: false,
-              interactionMode: InteractionMode.GLASS_EDIT,
             }, () => {
               // Once the Timeline/Stage are being rendered, we await the point that their
               // own Project models have loaded before initiating a switch to the current
@@ -2145,12 +2159,8 @@ export default class Creator extends React.Component {
                     onProjectPublicChange={(isPublic) => {
                       this.onProjectPublicChange(isPublic);
                     }}
-                    onSwitchToCodeMode={() => {
-                      this.setState({activeNav: 'state_inspector', interactionMode: InteractionMode.CODE_EDITOR});
-                    }}
-                    onSwitchToDesignMode={() => {
-                      this.setState({activeNav: 'library', interactionMode: InteractionMode.GLASS_EDIT});
-                    }}
+                    setGlassInteractionToCodeEditorMode={this.setGlassInteractionToCodeEditorMode}
+                    setGlassInteractionToEditMode={this.setGlassInteractionToEditMode}
                     tryToChangeCurrentActiveComponent={this.tryToChangeCurrentActiveComponent}
                   />
                   {(this.state.assetDragging)

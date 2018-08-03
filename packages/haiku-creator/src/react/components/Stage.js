@@ -67,6 +67,10 @@ class Stage extends React.Component {
         showPopupToSaveRawEditorContents: true,
       });
     } else {
+      // If on preview mode, switch to edit mode
+      if (isPreviewMode(this.state.interactionMode)) {
+        this.props.setGlassInteractionToEditMode();
+      }
       this.props.projectModel.setCurrentActiveComponent(scenename, {from: 'creator'}, () => {});
     }
   }
@@ -79,15 +83,20 @@ class Stage extends React.Component {
         showPopupToSaveRawEditorContents: true,
       });
     } else {
-      this.props.onSwitchToDesignMode();
+      this.props.setGlassInteractionToEditMode();
     }
   }
 
   exitFromCodeEditorSavePopup () {
     // Change to target
     if (this.state.targetDesignToChange) {
-      this.props.onSwitchToDesignMode();
+      this.props.setGlassInteractionToEditMode();
     } else if (this.state.targetComponentToChange !== '') {
+      // If on preview mode, switch to edit mode
+      if (isPreviewMode(this.state.interactionMode)) {
+        this.props.setGlassInteractionToEditMode();
+      }
+
       this.props.projectModel.setCurrentActiveComponent(this.state.targetComponentToChange, {from: 'creator'}, () => {});
     }
 
@@ -264,8 +273,8 @@ class Stage extends React.Component {
             isTimelineReady={this.props.isTimelineReady}
             envoyClient={this.props.envoyClient}
             onProjectPublicChange={this.props.onProjectPublicChange}
-            onSwitchToCodeMode={this.props.onSwitchToCodeMode}
-            onSwitchToDesignMode={this.tryToSwitchToDesign}
+            setGlassInteractionToCodeEditorMode={this.props.setGlassInteractionToCodeEditorMode}
+            setGlassInteractionToEditMode={this.tryToSwitchToDesign}
             showGlass={showGlassOnStage(this.props.interactionMode)}
             saveCodeFromEditorToDisk={this.saveCodeFromEditorToDisk}
             onShowEventHandlerEditor={this.props.onShowEventHandlerEditor}
