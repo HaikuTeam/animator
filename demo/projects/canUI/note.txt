@@ -1,0 +1,1 @@
+Confirm that path morphing works, and confirm that timelines/states between multiple components don't accidentally get intertwined.

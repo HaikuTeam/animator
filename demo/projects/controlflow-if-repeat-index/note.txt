@@ -1,0 +1,1 @@
+Confirm that the $index/$repeat.index injectable works correctly when $if has been applied.
