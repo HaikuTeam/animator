@@ -16,7 +16,7 @@ const STYLES = {
 
 export interface ModalWrapperProps {
   style: React.CSSProperties;
-  onClose: () => any;
+  onClose?: () => null;
 }
 
 const stopPropagation: React.MouseEventHandler<HTMLDivElement> = (event) => event.stopPropagation();
