@@ -121,19 +121,37 @@ export default class TransitionBody extends React.Component {
     if (!this.mounted) {
       return null;
     }
+
+    if (what === 'keyframe-ms-set' || what === 'keyframe-neighbor-move') {
+      this.forceUpdate(() => {
+        this.storeViewPosition(this[this.props.keyframe.getUniqueKey()]);
+      });
+    }
+
     if (
       what === 'keyframe-activated' ||
       what === 'keyframe-deactivated' ||
       what === 'keyframe-selected' ||
       what === 'keyframe-deselected' ||
-      what === 'keyframe-ms-set' ||
-      what === 'keyframe-neighbor-move' ||
       what === 'keyframe-body-selected' ||
       what === 'keyframe-body-unselected'
     ) {
       this.forceUpdate();
     }
   }
+
+  storeViewPosition = (domElement) => {
+    const uniqueKey = this.props.keyframe.getUniqueKey();
+    this[uniqueKey] = domElement;
+    if (experimentIsEnabled(Experiment.TimelineMarqueeSelection) && domElement) {
+      requestAnimationFrame(() => {
+        this.props.keyframe.storeViewPosition({
+          rect: domElement.getBoundingClientRect(),
+          offset: this.props.timeline.getScrollLeft(),
+        });
+      });
+    }
+  };
 
   render () {
     const frameInfo = this.props.timeline.getFrameInfo();
@@ -183,12 +201,7 @@ export default class TransitionBody extends React.Component {
         <span
           className="pill-container"
           key={uniqueKey}
-          ref={(domElement) => {
-            this[uniqueKey] = domElement;
-            if (experimentIsEnabled(Experiment.TimelineMarqueeSelection) && domElement) {
-              this.props.keyframe.storeViewPosition(domElement.getBoundingClientRect());
-            }
-          }}
+          ref={this.storeViewPosition}
           onContextMenu={(ctxMenuEvent) => {
             ctxMenuEvent.stopPropagation();
             this.props.keyframe.handleContextMenu({...Globals}, {isViaTransitionBodyView: true});

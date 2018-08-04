@@ -271,6 +271,10 @@ class Keyframe extends BaseModel {
     return this.getPrimaryKey()
   }
 
+  getViewPosition () {
+    return this._viewPosition
+  }
+
   isWithinCollapsedRow () {
     return this.row.isCollapsed() || this.row.isWithinCollapsedRow()
   }
@@ -406,8 +410,11 @@ class Keyframe extends BaseModel {
     return (this.getFrame(mspf) - base) * pxpf
   }
 
-  storeViewPosition (rect) {
-    this._viewPosition = rect
+  storeViewPosition ({rect, offset}) {
+    this._viewPosition = {
+      left: rect.left + offset,
+      right: rect.right + offset
+    }
   }
 
   isWithinCollapsedClusterHeadingRow () {
@@ -455,6 +462,10 @@ class Keyframe extends BaseModel {
   }
 
   getLeftKeyframeColorState () {
+    if (this.isActive()) {
+      return 'LIGHTEST_PINK'
+    }
+
     if (this.isWithinCollapsedElementHeadingRow()) {
       return 'BLUE'
     }
@@ -463,12 +474,14 @@ class Keyframe extends BaseModel {
       return 'DARK_ROCK'
     }
 
-    return (this.isActive())
-      ? 'LIGHTEST_PINK'
-      : 'ROCK'
+    return 'ROCK'
   }
 
   getRightKeyframeColorState () {
+    if (this.next() && this.next().isActive()) {
+      return 'LIGHTEST_PINK'
+    }
+
     if (this.isWithinCollapsedElementHeadingRow()) {
       return 'BLUE'
     }
@@ -477,24 +490,20 @@ class Keyframe extends BaseModel {
       return 'DARK_ROCK'
     }
 
-    if (this.next() && this.next().isActive()) {
-      return 'LIGHTEST_PINK'
-    } else {
-      return 'ROCK'
-    }
+    return 'ROCK'
   }
 
   getCurveColorState () {
+    if (this.isSelected() && this.isActive() && this.isCurveSelected()) {
+      return 'LIGHTEST_PINK'
+    }
+
     if (this.isWithinCollapsedElementHeadingRow()) {
       return 'BLUE'
     }
 
     if (this.isWithinCollapsedClusterHeadingRow()) {
       return 'DARK_ROCK'
-    }
-
-    if (this.isSelected() && this.isActive() && this.isCurveSelected()) {
-      return 'LIGHTEST_PINK'
     }
 
     return 'ROCK'
@@ -642,6 +651,10 @@ class Keyframe extends BaseModel {
     if (isCurveTargeted) this.setBodySelected()
 
     // Loop through keyframes in this row left-to-right and update activations
+    this.updateActivationStatesInRow()
+  }
+
+  updateActivationStatesInRow () {
     this.row.getKeyframes().forEach((keyframe) => {
       keyframe.updateActivationStatesAccordingToNeighborStates()
     })
@@ -709,9 +722,7 @@ class Keyframe extends BaseModel {
     }
 
     // Loop through keyframes in this row left-to-right and update activations
-    this.row.getKeyframes().forEach((keyframe) => {
-      keyframe.updateActivationStatesAccordingToNeighborStates()
-    })
+    this.updateActivationStatesInRow()
 
     this.component.dragStopSelectedKeyframes()
   }
@@ -754,9 +765,7 @@ class Keyframe extends BaseModel {
     if (isCurveTargeted) this.setBodySelected()
 
     // Loop through keyframes in this row left-to-right and update activations
-    this.row.getKeyframes().forEach((keyframe) => {
-      keyframe.updateActivationStatesAccordingToNeighborStates()
-    })
+    this.updateActivationStatesInRow()
 
     this.component.dragStopSelectedKeyframes()
   }
@@ -870,6 +879,86 @@ Keyframe.buildKeyframeMoves = (criteria, serialized) => {
   })
 
   return moves
+}
+
+Keyframe.findIntersectingWithArea = ({
+  component,
+  area,
+  offset,
+  viewCoordinatesProvider
+}) => {
+  return Keyframe.where({component})
+    .filter((keyframe) => {
+      const keyframeView = keyframe.getViewPosition()
+
+      if (!keyframeView.left || keyframe.element.isLocked()) {
+        return false
+      }
+
+      // First, check if the keyframe is contained in the marquee horizontally,
+      // we perform this check first because we can't rely on the cached `y` value due
+      // to the rows expanding/collapsing. Since we don't have a similar behavior that
+      // modifies the `x` position of a keyframe post-render this is a safe filter to
+      // avoid performing the expensive `getBoundingClientRect` calculation on all keyframes
+      if (
+        keyframeView.left - offset.horizontal > area.right ||
+        area.left > keyframeView.right - offset.horizontal
+      ) {
+        return false
+      }
+
+      const freshBounds = viewCoordinatesProvider(keyframe)
+
+      return !(
+        freshBounds.top > area.bottom ||
+        area.top > freshBounds.bottom
+      )
+    })
+    .reduce((acc, keyframe) => {
+      return acc.set(keyframe.getUniqueKey(), keyframe)
+    }, new Map())
+}
+
+Keyframe.marqueeSelect = ({
+  component,
+  area,
+  offset,
+  viewCoordinatesProvider
+}) => {
+  const selected = Keyframe.findIntersectingWithArea({
+    component,
+    area,
+    offset,
+    viewCoordinatesProvider
+  })
+
+  Keyframe.any({
+    component,
+    _selected: true
+  }).forEach((keyframe) => {
+    if (!selected.has(keyframe.getUniqueKey())) {
+      keyframe.deselect()
+      keyframe.unsetBodySelected()
+      keyframe.updateActivationStatesInRow()
+    }
+  })
+
+  selected.forEach((keyframe) => {
+    keyframe.select()
+    keyframe.setBodySelected()
+    keyframe.updateActivationStatesInRow()
+  })
+}
+
+Keyframe.epandRowsOfSelectedKeyframes = ({component, from}) => {
+  Keyframe.any({
+    component,
+    _selected: true
+  }).forEach((keyframe) => {
+    if (!keyframe.row._isExpanded) {
+      keyframe.row.expand({ from })
+    }
+  })
 }
 
 module.exports = Keyframe

@@ -75,8 +75,10 @@ const DEFAULTS = {
 };
 
 const THROTTLE_TIME = 32; // ms
-const MENU_ACTION_DEBOUNCE_TIME = 100;
+const MARQUEE_THROTTLE_TIME = 100; // ms
+const MENU_ACTION_DEBOUNCE_TIME = 100; // ms
 const TIMELINE_OFFSET_PADDING = 7; // px
+const MARQUEE_THRESHOLD = 15; // px
 
 class Timeline extends React.Component {
   constructor (props) {
@@ -172,6 +174,11 @@ class Timeline extends React.Component {
     this.project.getEnvoyClient().closeConnection();
   }
 
+  getKeyframeCoordinates = (keyframe) => {
+    const keyframeViewEl = document.getElementById(`keyframe-container-${keyframe.getUniqueKey()}`);
+    return keyframeViewEl.firstChild.getBoundingClientRect();
+  };
+
   instantiateMarquee () {
     if (experimentIsEnabled(Experiment.TimelineMarqueeSelection)) {
       const area = document.querySelector('#property-rows');
@@ -201,36 +208,29 @@ class Timeline extends React.Component {
             ].includes(event.target.className)
           );
         },
-        onFinish: (event, finalArea) => {
-          const selected = Keyframe.where({component: this.getActiveComponent()}).filter((keyframe) => {
-            if (keyframe.element.isLocked()) {
-              return false;
-            }
-            const keyframeView = keyframe._viewPosition;
+        onChange: lodash.throttle((finalArea) => {
+          if (
+            finalArea.height < MARQUEE_THRESHOLD &&
+            finalArea.width < MARQUEE_THRESHOLD
+          ) {
+            return;
+          }
 
-            // First, check if the keyframe is contained in the marquee horizontally,
-            // we perform this check first because we can't rely on the cached `y` value due
-            // to the rows expanding/collapsing. Since we don't have a similar behavior that
-            // modifies the `x` position of a keyframe post-render this is a safe filter to
-            // avoid performing the expensive `getBoundingClientRect` calculation on all keyframes
-            if (
-              keyframeView.x < finalArea.x + finalArea.width &&
-              keyframeView.x + keyframeView.width > finalArea.x
-            ) {
-              const keyframeViewEl = document.getElementById(`keyframe-container-${keyframe.getUniqueKey()}`);
-              const {y, height} = keyframeViewEl.getBoundingClientRect();
+          const component = this.getActiveComponent();
 
-              return (y < finalArea.y + finalArea.height && height + y > finalArea.y);
-            }
+          Keyframe.marqueeSelect({
+            component,
+            area: finalArea,
+            offset: {
+              horizontal: component.getCurrentTimeline().getScrollLeft(),
+            },
+            viewCoordinatesProvider: this.getKeyframeCoordinates,
           });
-
-          // We perform this logic once we determined the selection, because
-          // expanding a row modifies its coordinates.
-          selected.forEach((keyframe) => {
-            keyframe.select();
-            keyframe.activate();
-            keyframe.setBodySelected();
-            keyframe.row.expand({from: 'timeline'});
+        }, MARQUEE_THROTTLE_TIME),
+        onFinish: () => {
+          Keyframe.epandRowsOfSelectedKeyframes({
+            component: this.getActiveComponent(),
+            from: 'timeline',
           });
         },
       });
@@ -1578,6 +1578,7 @@ class Timeline extends React.Component {
                               }}>
                               <RowManager
                                 group={group}
+                                indexOfGroup={indexOfGroup}
                                 prevGroup={prevGroup}
                                 dragHandleProps={providedDraggable.dragHandleProps}
                                 rowHeight={this.state.rowHeight}
