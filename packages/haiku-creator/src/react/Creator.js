@@ -945,7 +945,7 @@ export default class Creator extends React.Component {
   }
 
   handleInteractionModeChange (interactionMode) {
-    if (interactionMode === InteractionMode.GLASS_LIVE) {
+    if (interactionMode === InteractionMode.GLASS_PREVIEW) {
       this.hideEventHandlersEditor();
     } else if (interactionMode === InteractionMode.GLASS_EDIT) {
       this.setState({activeNav: 'library'});
@@ -979,7 +979,7 @@ export default class Creator extends React.Component {
   }
 
   setGlassInteractionToPreviewMode () {
-    this.setInteractionMode(InteractionMode.GLASS_LIVE);
+    this.setInteractionMode(InteractionMode.GLASS_PREVIEW);
   }
 
   setGlassInteractionToEditMode () {
@@ -1804,7 +1804,7 @@ export default class Creator extends React.Component {
   }
 
   get shouldShowUserConsole () {
-    return experimentIsEnabled(Experiment.UserConsole) && this.state.interactionMode === InteractionMode.GLASS_LIVE;
+    return experimentIsEnabled(Experiment.UserConsole) && this.state.interactionMode === InteractionMode.GLASS_PREVIEW;
   }
 
   saveEventHandlers (targetElement, serializedEvents) {
