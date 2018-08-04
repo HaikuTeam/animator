@@ -492,6 +492,7 @@ export default class HaikuDOMRenderer extends HaikuBase implements IRenderer {
       mouse: {
         x: (this.user.mouse.x) / zoom,
         y: (this.user.mouse.y) / zoom,
+        z: 0,
         down: this.user.mouse.down,
         buttons: [...this.user.mouse.buttons],
       },

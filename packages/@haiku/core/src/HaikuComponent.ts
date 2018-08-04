@@ -13,6 +13,7 @@ import {
   IHaikuContext,
   ParsedValueCluster,
   ParsedValueClusterCollection,
+  TwoPointFiveDimensionalLayoutProperty,
 } from './api';
 import Config from './Config';
 import HaikuBase, {GLOBAL_LISTENER_KEY} from './HaikuBase';
@@ -39,6 +40,7 @@ import functionToRFO, {RFO} from './reflection/functionToRFO';
 import StateTransitionManager, {StateTransitionParameters, StateValues} from './StateTransitionManager';
 import {calculateValue} from './Transitions';
 import assign from './vendor/assign';
+import invert from './vendor/gl-mat4/invert';
 import {CurveSpec} from './vendor/svg-points/types';
 
 const FUNCTION = 'function';
@@ -2075,6 +2077,18 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     return summonablesSchema;
   }
 
+  transformContextPointToLocalPoint (
+    point: TwoPointFiveDimensionalLayoutProperty,
+  ): TwoPointFiveDimensionalLayoutProperty {
+    if (this.layoutAncestryMatrices) {
+      const matrix = Layout3D.multiplyArrayOfMatrices(this.layoutAncestryMatrices.reverse());
+      const inverse = invert([], matrix);
+      HaikuElement.transformPointInPlace(point, inverse);
+    }
+
+    return point;
+  }
+
   getParser (outputName) {
     const foundParser = HaikuComponent.PARSERS[outputName];
     return foundParser && foundParser.parse;
@@ -3672,6 +3686,17 @@ INJECTABLES.$user = {
   summon (injectees, component: HaikuComponent, node) {
     if (isLiveMode(component.config.interactionMode)) {
       injectees.$user = component.context.getGlobalUserState();
+
+      // If we're inside another component, produce mouse coords in terms
+      // of our own coordinate space
+      if (component.host) {
+        Object.assign(
+          injectees.$user.mouse,
+          component.transformContextPointToLocalPoint(
+            Object.assign({}, injectees.$user.mouse),
+          ),
+        );
+      }
     } else {
       injectees.$user = {
         mouse: {
