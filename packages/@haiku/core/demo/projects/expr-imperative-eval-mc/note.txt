@@ -1,1 +1,1 @@
-Confirm that imperative eval of $user.mouse.x in a subcomponent resolves to the subcomponent's bounding box, not the root/stage.
+Confirm that imperative eval of $user.mouse.x in a subcomponent resolves to the subcomponent's bounding box, not the root/stage. There should be four black dots, and all of them should be at the same position, following the mouse.
