@@ -19,7 +19,7 @@ export const DEFAULTS: BytecodeOptions = {
   freeze: false,
   helpers: null,
   hooks: null,
-  interactionMode: InteractionMode.GLASS_LIVE,
+  interactionMode: InteractionMode.LIVE,
   loop: false,
   mixpanel: '6f31d4f99cf71024ce27c3e404a79a61',
   overflow: null,
