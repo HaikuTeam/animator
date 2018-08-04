@@ -1151,8 +1151,7 @@ class ElementSelectionProxy extends BaseModel {
     //   [ S[0] S[4] ] [ deltaX ] = [ dx ]
     //   [ S[1] S[5] ] [ deltaY ]   [ dy ]
     // We can solve this directly.
-    const targetElement = this
-    const computedLayout = targetElement.getComputedLayout()
+    const computedLayout = this.getComputedLayout()
     const scaledBasisMatrix = Layout3D.computeScaledBasisMatrix(computedLayout.rotation, computedLayout.scale, computedLayout.shear)
     const determinant = scaledBasisMatrix[0] * scaledBasisMatrix[5] - scaledBasisMatrix[1] * scaledBasisMatrix[4]
     const deltaX = (scaledBasisMatrix[5] * dx - scaledBasisMatrix[4] * dy) / determinant
@@ -1163,14 +1162,18 @@ class ElementSelectionProxy extends BaseModel {
     const deltaTranslationX = layoutMatrix[0] * deltaX + layoutMatrix[4] * deltaY
     const deltaTranslationY = layoutMatrix[1] * deltaX + layoutMatrix[5] * deltaY
 
-    if (targetElement === this) {
-      this.applyPropertyDelta('translation.x', deltaTranslationX)
-      this.applyPropertyDelta('translation.y', deltaTranslationY)
-      this.applyPropertyDelta('origin.x', deltaOriginX)
-      this.applyPropertyDelta('origin.y', deltaOriginY)
+    this.applyPropertyDelta('translation.x', deltaTranslationX)
+    this.applyPropertyDelta('translation.y', deltaTranslationY)
+    this.applyPropertyDelta('origin.x', deltaOriginX)
+    this.applyPropertyDelta('origin.y', deltaOriginY)
+
+    if (!this.doesManageSingleElement()) {
       return
     }
 
+    // Now push the origin down to our selected element to match the user's expectation that this change
+    // is kept.
+    const targetElement = this.selection[0]
     const propertyGroupDelta = {
       'translation.x': {
         value: deltaTranslationX
