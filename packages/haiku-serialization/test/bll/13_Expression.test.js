@@ -63,6 +63,8 @@ tape('Expression.parseValue', (t) => {
     ['123.3 x','translation.x',123.3],
     ['  123.3 x omg wow','translation.y',123.3],
     ['  123.3 x omg wow','shown',true],
+    ['undefined','shown',undefined],
+    ['null','shown',null],
   ]
   t.plan(tests.length)
   tests.forEach((spec) => {
