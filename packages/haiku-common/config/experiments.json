@@ -12,8 +12,6 @@
   "BaseModelQueryCache": false,
   "ComponentInfoInspector": false,
   "AdvancedMultiTransform": true,
-  "OutliningElementsOnStage": true,
-  "OutliningElementsOnStageFromStage": false,
   "DirectSelectionOfPrimitives": true,
   "IpcIntegrityCheck": true,
   "CrashOnIpcIntegrityCheckFailure": true,
@@ -28,11 +26,15 @@
   "SizeInsteadOfScaleWhenPossible": true,
   "UserConsole": false,
   "CleanInitialLibraryState": true,
-  "CopyPasteTweens": true,
-  "CopyPasteTweensWithAccelerators": true,
   "Snapping": true,
   "PinchToZoomInGlass": true,
   "PreserveFrontMatterInCode": true,
-  "UserFacingDevTools": true,
-  "SendLogMessagesToPlumbing": false
+  "SendLogMessagesToPlumbing": false,
+  "OutliningElementsOnStage": false,
+  "OutliningElementsOnStageFromStage": false,
+  "CopyPasteTweens": false,
+  "CopyPasteTweensWithAccelerators": false,
+  "UserFacingDevTools": false,
+  "ControlFlowIf": false,
+  "ControlFlowRepeat": false
 }

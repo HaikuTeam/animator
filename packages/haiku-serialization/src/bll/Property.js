@@ -2,6 +2,7 @@ const decamelize = require('decamelize')
 const titlecase = require('titlecase')
 const {getFallback} = require('@haiku/core/lib/HaikuComponent')
 const BaseModel = require('./BaseModel')
+const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 
 function decam (s) {
   return decamelize(s).replace(/[\W_]/g, ' ')
@@ -604,9 +605,15 @@ Property.areAnyKeyframesDefined = (elementName, propertyName, keyframesObject) =
  */
 Property.DISPLAY_RULES = {
   'content': {jit: [NON_ROOT_ONLY, IF_IN_SCHEMA, IF_TEXT_CONTENT_ENABLED], add: [NON_ROOT_ONLY, IF_IN_SCHEMA, IF_TEXT_CONTENT_ENABLED]},
-  'controlFlow.if': {jit: [NON_ROOT_ONLY], add: [IF_EXPLICIT_OR_DEFINED]},
+  'controlFlow.if': {
+    jit: [(experimentIsEnabled(Experiment.ControlFlowIf)) ? NON_ROOT_ONLY : NEVER],
+    add: [(experimentIsEnabled(Experiment.ControlFlowIf)) ? IF_EXPLICIT_OR_DEFINED : NEVER]
+  },
+  'controlFlow.repeat': {
+    jit: [(experimentIsEnabled(Experiment.ControlFlowRepeat)) ? NON_ROOT_ONLY : NEVER],
+    add: [(experimentIsEnabled(Experiment.ControlFlowRepeat)) ? IF_EXPLICIT_OR_DEFINED : NEVER]
+  },
   'controlFlow.placeholder': {jit: [NON_ROOT_ONLY, NON_COMPONENT_ONLY], add: [IF_EXPLICIT_OR_DEFINED]},
-  'controlFlow.repeat': {jit: [NON_ROOT_ONLY], add: [IF_EXPLICIT_OR_DEFINED]},
   'haiku-id': {jit: [NEVER], add: [NEVER]},
   'haiku-source': {jit: [NEVER], add: [NEVER]},
   'haiku-title': {jit: [NEVER], add: [NEVER]},

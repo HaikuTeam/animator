@@ -971,7 +971,10 @@ export default class Creator extends React.Component {
     this.setState({
       interactionMode,
     }, () => {
-      if (interactionMode !== InteractionMode.LIVE) {
+      if (
+        interactionMode !== InteractionMode.LIVE ||
+        !experimentIsEnabled(Experiment.UserFacingDevTools)
+      ) {
         return;
       }
 
