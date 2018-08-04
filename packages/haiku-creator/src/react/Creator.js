@@ -44,7 +44,7 @@ import {
   isEditMode,
   isCodeEditorMode,
   showGlassOnStage,
-} from '@haiku/core/lib/helpers/interactionModes';
+} from 'haiku-ui-common/lib/interactionModes';
 import Palette from 'haiku-ui-common/lib/Palette';
 import ActivityMonitor from '../utils/activityMonitor.js';
 import * as requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates';

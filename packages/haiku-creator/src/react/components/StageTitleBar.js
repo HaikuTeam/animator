@@ -21,7 +21,7 @@ import {
   isEditMode,
   isCodeEditorMode,
   showGlassOnStage,
-} from '@haiku/core/lib/helpers/interactionModes';
+} from 'haiku-ui-common/lib/interactionModes';
 
 const mixpanel = require('haiku-serialization/src/utils/Mixpanel');
 

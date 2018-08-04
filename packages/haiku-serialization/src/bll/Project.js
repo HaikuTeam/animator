@@ -102,7 +102,7 @@ class Project extends BaseModel {
     // Whether we should actually receive and act upon remote methods received
     this.isHandlingMethods = true
 
-    this.interactionMode = InteractionMode.GLASS_EDIT
+    this.interactionMode = InteractionMode.EDIT
 
     // An internal counter of how many updateHook requests we have dispatched.
     this.actionStackIndex = 0
@@ -547,9 +547,9 @@ class Project extends BaseModel {
   }
 
   toggleInteractionMode (metadata, cb) {
-    const interactionMode = this.interactionMode === InteractionMode.GLASS_EDIT
-      ? InteractionMode.GLASS_LIVE
-      : InteractionMode.GLASS_EDIT
+    const interactionMode = this.interactionMode === InteractionMode.EDIT
+      ? InteractionMode.LIVE
+      : InteractionMode.EDIT
 
     this.setInteractionMode(interactionMode, metadata, cb)
   }

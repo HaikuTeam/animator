@@ -7,6 +7,7 @@ import * as Radium from 'radium';
 import MonacoEditor from './MonacoEditor';
 import SaveContentsPopup from './SaveContentsPopup';
 import BytecodeErrorPopup from './BytecodeErrorPopup';
+import {isCodeEditorMode} from 'haiku-ui-common/lib/interactionModes';
 
 const EDITOR_FONT = 'Fira Mono';
 
@@ -38,7 +39,7 @@ class CodeEditor extends React.Component {
     // Updates can take up a lot of CPU, especially for reloads which ultimately result in
     // a call to File#getCode, which is very heavy, so we don't listen unless we are
     // actually open, otherwise we get very bad UI jank when these updates happen.
-    if (this.props.showGlass) {
+    if (!isCodeEditorMode(this.props.interactionMode)) {
       return;
     }
 
@@ -52,7 +53,7 @@ class CodeEditor extends React.Component {
   componentWillReceiveProps (nextProps) {
     // If we were made visible, we may need to force reload code in case we skipped
     // any updates while we weren't visible
-    if (!nextProps.showGlass && this.props.showGlass !== nextProps.showGlass) {
+    if (isCodeEditorMode(nextProps.interactionMode) && !isCodeEditorMode(this.props.interactionMode)) {
       this.performCodeReload();
       monaco.editor.setTheme('haiku');
     }

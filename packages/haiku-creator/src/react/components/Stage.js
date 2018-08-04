@@ -13,7 +13,7 @@ import {
   isPreviewMode,
   isEditMode,
   showGlassOnStage,
-} from '@haiku/core/lib/helpers/interactionModes';
+} from 'haiku-ui-common/lib/interactionModes';
 
 const STAGE_BOX_STYLE = {
   overflow: 'hidden',
@@ -346,7 +346,7 @@ class Stage extends React.Component {
             ]}>
             <CodeEditor
               ref="codeeditor"
-              showGlass={showGlassOnStage(this.props.interactionMode)}
+              interactionMode={this.props.interactionMode}
               projectModel={this.props.projectModel}
               setNonSavedContentOnCodeEditor={(nonSaved) => {
                 this.setState({nonSavedContentOnCodeEditor: nonSaved});

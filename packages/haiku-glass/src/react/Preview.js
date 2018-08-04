@@ -1,6 +1,6 @@
 import * as React from 'react';
 import HaikuDOMAdapter from '@haiku/core/lib/adapters/dom/HaikuDOMAdapter';
-import {InteractionMode} from '@haiku/core/lib/helpers/interactionModes';
+import {InteractionMode} from 'haiku-ui-common/lib/interactionModes';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 
 export default class Preview extends React.Component {
