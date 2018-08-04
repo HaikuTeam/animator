@@ -168,9 +168,10 @@ class CodeEditor extends React.Component {
         {this.props.showPopupToSaveRawEditorContents &&
           <SaveContentsPopup
             projectModel={this.props.projectModel}
-            exitFromCodeEditorSavePopup={this.props.exitFromCodeEditorSavePopup}
             saveCodeFromEditorToDisk={this.saveCodeFromEditorToDisk}
             discardFromCodeEditor={this.discardFromCodeEditor}
+            executeActionAfterCodeEditorSavePopup={this.props.executeActionAfterCodeEditorSavePopup}
+            closeCodeEditorSavePopup={this.props.closeCodeEditorSavePopup}
           />}
         {this.state.showBytecodeErrorPopup &&
           <BytecodeErrorPopup

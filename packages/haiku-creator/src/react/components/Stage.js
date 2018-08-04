@@ -55,7 +55,8 @@ class Stage extends React.Component {
     this.tryToSwitchToEditMode = this.tryToSwitchToEditMode.bind(this);
     this.tryToSwitchToPreviewMode = this.tryToSwitchToPreviewMode.bind(this);
     this.saveCodeFromEditorToDisk = this.saveCodeFromEditorToDisk.bind(this);
-    this.exitFromCodeEditorSavePopup = this.exitFromCodeEditorSavePopup.bind(this);
+    this.executeActionAfterCodeEditorSavePopup = this.executeActionAfterCodeEditorSavePopup.bind(this);
+    this.closeCodeEditorSavePopup = this.closeCodeEditorSavePopup.bind(this);
 
     this.state = {
       nonSavedContentOnCodeEditor: false,
@@ -106,7 +107,7 @@ class Stage extends React.Component {
     }
   }
 
-  exitFromCodeEditorSavePopup () {
+  executeActionAfterCodeEditorSavePopup () {
     // Change to target
     if (this.state.aboutToChangeToEditMode) {
       this.props.setGlassInteractionToEditMode();
@@ -121,12 +122,15 @@ class Stage extends React.Component {
       this.props.projectModel.setCurrentActiveComponent(this.state.aboutToChangeToComponent, {from: 'creator'}, () => {});
     }
 
+    this.closeCodeEditorSavePopup();
+  }
+
+  closeCodeEditorSavePopup () {
     // Exit popup
     this.setState({
       ...clearAboutToChange,
       showPopupToSaveRawEditorContents: false,
     });
-
   }
 
   componentDidMount () {
@@ -351,7 +355,8 @@ class Stage extends React.Component {
               }}
               nonSavedContentOnCodeEditor={this.state.nonSavedContentOnCodeEditor}
               showPopupToSaveRawEditorContents={this.state.showPopupToSaveRawEditorContents}
-              exitFromCodeEditorSavePopup={this.exitFromCodeEditorSavePopup}
+              executeActionAfterCodeEditorSavePopup={this.executeActionAfterCodeEditorSavePopup}
+              closeCodeEditorSavePopup={this.closeCodeEditorSavePopup}
             />
           </div>}
         </div>
