@@ -2101,7 +2101,7 @@ Element.makeUid = (component, parent, index, staticTemplateNode) => {
 
 Element.getFriendlyLabel = (node) => {
   if (!node || typeof node !== 'object') {
-    return
+    return ''
   }
 
   const id = node.attributes && node.attributes.id
@@ -2114,7 +2114,7 @@ Element.getFriendlyLabel = (node) => {
   }
 
   if (id && !title) {
-    return id
+    return id + '' // The id may be a number (?!) so cast it to a string
   }
 
   let out = ''
