@@ -279,3 +279,24 @@ input[type=number]::-webkit-outer-spin-button {
 .light-on-hover:hover g {
   stroke: var(--rock);
 }
+
+.marquee-selection-active .unselectable-during-marquee {
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Debugging utilities, uncomment to use */
+
+/*
+*[id*="solo-keyframe-"] {
+  outline: 1px solid orange;
+}
+
+*[id*="constant-body-"] {
+  outline: 1px solid rebeccapurple;
+}
+
+*[id*="transition-body-"], .pill-container {
+  outline: 1px solid yellowgreen;
+}
+*/

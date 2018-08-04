@@ -66,13 +66,7 @@ class ComponentTab extends React.Component {
     }
 
     // Stop preview mode if it happens to be active when we switch contexts
-    this.props.projectModel.setInteractionMode(0, {from: 'creator'}, (err) => {
-      if (err) {
-        logger.error(err);
-      }
-
-      this.props.tryToChangeCurrentActiveComponent(this.props.tab.scenename);
-    });
+    this.props.tryToChangeCurrentActiveComponent(this.props.tab.scenename);
   }
 
   render () {

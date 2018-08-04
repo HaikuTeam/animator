@@ -197,7 +197,7 @@ class EventHandlerEditor extends React.PureComponent {
   }
 
   doSave () {
-    if (!this.state.editorWithErrors) {
+    if (!this.state.editorWithErrors && this.state.currentEvent) {
       this.handlerManager.replaceEvent(
         this.editor.serialize(),
         this.state.currentEvent,
@@ -224,6 +224,13 @@ class EventHandlerEditor extends React.PureComponent {
       this.setState({currentEvent: null}, callback);
     }
   }
+
+  doCloseFromEsc = () => {
+    if (!this.state.editorWithErrors) {
+      this.doSave();
+      this.doClose();
+    }
+  };
 
   onEditorContentChange ({evaluator}) {
     this.setState({
@@ -260,7 +267,7 @@ class EventHandlerEditor extends React.PureComponent {
     const applicableEventHandlers = this.handlerManager.getApplicableEventHandlers();
 
     return (
-      <ModalWrapper style={{...visibilityStyles, ...STYLES.container}}>
+      <ModalWrapper style={{...visibilityStyles, ...STYLES.container}} onClose={this.doCloseFromEsc}>
         <div
           onMouseDown={(mouseEvent) => {
             // Prevent outer view from closing us

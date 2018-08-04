@@ -16,11 +16,30 @@ const STYLES = {
 
 export interface ModalWrapperProps {
   style: React.CSSProperties;
+  onClose?: () => null;
 }
 
 const stopPropagation: React.MouseEventHandler<HTMLDivElement> = (event) => event.stopPropagation();
 
 export class ModalWrapper extends React.PureComponent<ModalWrapperProps> {
+  constructor () {
+    super();
+
+    // FIXME: I don't belong here, move me to the global scope once we centralize
+    // the key handlers
+    document.addEventListener('keydown', this.handleKeyEvents);
+  }
+
+  componentWillUnmount () {
+    document.removeEventListener('keydown', this.handleKeyEvents);
+  }
+
+  handleKeyEvents = (keyEvent: KeyboardEvent) => {
+    if (keyEvent.keyCode === 27 && typeof this.props.onClose === 'function') {
+      this.props.onClose();
+    }
+  };
+
   render () {
     return (
       <div

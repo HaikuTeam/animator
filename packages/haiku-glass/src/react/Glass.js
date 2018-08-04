@@ -137,7 +137,7 @@ export class Glass extends React.Component {
       isCreateComponentModalOpen: false,
     };
 
-    this.didAlreadyWarnAboutTextNodes = false
+    this.didAlreadyWarnAboutTextNodes = false;
 
     Project.setup(
       this.props.folder,
@@ -733,7 +733,7 @@ export class Glass extends React.Component {
                 });
 
                 if (foundTextNode && !this.didAlreadyWarnAboutTextNodes) {
-                  this.didAlreadyWarnAboutTextNodes = true
+                  this.didAlreadyWarnAboutTextNodes = true;
 
                   // The '[notice]' substring tells Creator to display a toast
                   console.info(`

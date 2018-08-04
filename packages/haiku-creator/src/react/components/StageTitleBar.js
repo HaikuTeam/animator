@@ -16,7 +16,12 @@ import {ExporterFormat} from 'haiku-sdk-creator/lib/exporter';
 import * as Element from 'haiku-serialization/src/bll/Element';
 import * as ElementSelectionProxy from 'haiku-serialization/src/bll/ElementSelectionProxy';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
-import CannotSwitchToDesignPopup from './CodeEditor/CannotSwitchToDesignPopup';
+import {
+  isPreviewMode,
+  isEditMode,
+  isCodeEditorMode,
+  showGlassOnStage,
+} from 'haiku-ui-common/lib/interactionModes';
 
 const mixpanel = require('haiku-serialization/src/utils/Mixpanel');
 
@@ -203,7 +208,7 @@ class StageTitleBar extends React.Component {
         return;
       }
 
-      if (this.props.showGlass) {
+      if (showGlassOnStage(this.props.interactionMode)) {
         this.handleSaveOnGlass();
       } else {
         this.handleSaveOnRawCodeEditor();
@@ -633,11 +638,11 @@ class StageTitleBar extends React.Component {
     // const proxy = this.fetchProxyElementForSelection();
     // return proxy && !proxy.hasNothingInSelection();
     // But it feels better (in zb's opinion at authoring time) to keep it shown at all times glass is shown
-    return this.props.showGlass;
+    return showGlassOnStage(this.props.interactionMode);
   }
 
   shouldShowAlignPanel () {
-    return this.state.alignPanelShown && !this.state.showSharePopover && !this.props.isPreviewMode && this.props.showGlass;
+    return this.state.alignPanelShown && !this.state.showSharePopover && isEditMode(this.props.interactionMode);
   }
 
   handleShowEventHandlersEditor () {
@@ -914,17 +919,12 @@ class StageTitleBar extends React.Component {
 
           </div>
         }
-        {this.props.showPopupCannotSwitchToDesign &&
-          <CannotSwitchToDesignPopup
-            closePopupCannotSwitchToDesign={this.props.closePopupCannotSwitchToDesign}
-          />
-        }
         {experimentIsEnabled(Experiment.CodeEditor) &&
           <div style={STYLES.toggleHolster}>
             <button
               key="toggle-design"
               id="toggle-design"
-              onClick={this.props.onSwitchToDesignMode}
+              onClick={this.props.tryToSwitchToEditMode}
               style={[
                 BTN_STYLES.btnText,
                 BTN_STYLES.centerBtns,
@@ -938,13 +938,13 @@ class StageTitleBar extends React.Component {
                   },
                 }]}>
               <span style={{marginLeft: 7}}>DESIGN</span>
-              {this.props.showGlass && <span style={STYLES.activeIndicator}/>}
+              {isEditMode(this.props.interactionMode) && <span style={STYLES.activeIndicator}/>}
             </button>
 
             <button
               key="toggle-code"
               id="toggle-code"
-              onClick={this.props.onSwitchToCodeMode}
+              onClick={this.props.setGlassInteractionToCodeEditorMode}
               style={[
                 BTN_STYLES.btnText,
                 BTN_STYLES.centerBtns,
@@ -958,7 +958,7 @@ class StageTitleBar extends React.Component {
                   },
                 }]}>
               <span style={{marginLeft: 7}}>CODE</span>
-              {!this.props.showGlass && <span style={STYLES.activeIndicator} />}
+              {isCodeEditorMode(this.props.interactionMode) && <span style={STYLES.activeIndicator} />}
             </button>
           </div>
         }
@@ -983,7 +983,7 @@ class StageTitleBar extends React.Component {
           onToggle={this.props.onPreviewModeToggled}
           style={STYLES.previewToggle}
           disabled={!this.props.isTimelineReady}
-          active={this.props.isPreviewMode}
+          active={isPreviewMode(this.props.interactionMode)}
         />
 
         {this.renderMergeConflictResolutionArea()}

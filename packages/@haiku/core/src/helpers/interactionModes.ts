@@ -9,7 +9,7 @@
 // tslint:disable-next-line:no-namespace
 export namespace InteractionMode {
   export const EDIT = 0; // Default mode, all is editable
-  export const LIVE = 1; // Preview mode
+  export const LIVE = 1; // Live mode
 }
 
 /**
@@ -19,13 +19,16 @@ export namespace InteractionMode {
  * mode is 'preview' mode.
  * @returns boolean
  */
-export function isPreviewMode (mode): boolean {
+export function isPreviewMode (mode: number): boolean {
   return mode === InteractionMode.LIVE;
 }
 
 /**
- * @method isPreviewMode
- * Alias for isPreviewMode more befitting of @haiku/core usage outside of the Haiku app.
+ * @method isLiveMode
+ * @argument mode The mode to compare, must ve a valid InteractionMode type.
+ * @description Utility that returns a boolean indicating if the provided
+ * mode is 'preview' mode.
+ * @returns boolean
  */
 export function isLiveMode (mode): boolean {
   return isPreviewMode(mode);
