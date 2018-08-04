@@ -1803,6 +1803,16 @@ class Element extends BaseModel {
         // render node
         const boundingBox = descendantHaikuElement.target.getBBox()
 
+        // The fallbacks here ensure nonzero width/height by any means necessary. SVG getBBox() (and DOM cousins)
+        // all fail to account for stroke, clipping masks, etc.
+        if (boundingBox.width === 0) {
+          boundingBox.width = descendantHaikuElement.attributes['stroke-width'] || attributes['stroke-width'] || 0.01
+        }
+
+        if (boundingBox.height === 0) {
+          boundingBox.width = descendantHaikuElement.attributes['stroke-width'] || attributes['stroke-width'] || 0.01
+        }
+
         const originX = boundingBox.width / 2
         const originY = boundingBox.height / 2
         const layoutMatrix = descendantHaikuElement.layoutMatrix
