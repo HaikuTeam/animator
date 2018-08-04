@@ -131,9 +131,9 @@ module.exports = {
         stroke: "#979797",
         fill: "#D8D8D8",
         cx: 29,
-        cy: { "0": { value: "undefined", edited: true } },
+        cy: { "0": { value: undefined, edited: true } },
         rx: 28,
-        ry: { "0": { value: "undefined", edited: true } }
+        ry: { "0": { value: null, edited: true } }
       }
     }
   },

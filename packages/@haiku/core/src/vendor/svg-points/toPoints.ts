@@ -210,6 +210,11 @@ const getParams = (d: string): number[][] => {
 
 const getPointsFromPath = ({d}: PathSpec): CurveSpec[] => {
   const commands = getCommands(d);
+
+  if (!commands) {
+    return [];
+  }
+
   const params = getParams(d);
 
   const points: CurveSpec[] = [];
