@@ -848,13 +848,9 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
         continue;
       }
 
-      const isValid = stateSpecValidityCheck(stateSpec, stateSpecName);
+      this._states[stateSpecName] = stateSpec.value;
 
-      if (isValid) {
-        this._states[stateSpecName] = stateSpec.value;
-
-        this.defineSettableState(stateSpec, stateSpecName);
-      }
+      this.defineSettableState(stateSpec, stateSpecName);
     }
   }
 
@@ -2267,63 +2263,6 @@ function assertTemplate (template) {
   }
 
   throw new Error('Unknown bytecode template format');
-}
-
-function stateSpecValidityCheck (stateSpec: any, stateSpecName: string): boolean {
-  if (
-    stateSpec.type === 'any' ||
-    stateSpec.type === '*' ||
-    stateSpec.type === undefined ||
-    stateSpec.type === null
-  ) {
-    return true;
-  }
-
-  if (stateSpec.type === 'event' || stateSpec.type === 'listener') {
-    if (
-      typeof stateSpec.value !== 'function' &&
-      stateSpec.value !== null &&
-      stateSpec.value !== undefined
-    ) {
-      console.error(
-        'Property value `' +
-        stateSpecName +
-        '` must be an event listener function',
-      );
-
-      return false;
-    }
-
-    return true;
-  }
-
-  if (stateSpec.type === 'array') {
-    if (!Array.isArray(stateSpec.value)) {
-      console.error(
-        'Property value `' + stateSpecName + '` must be an array',
-      );
-
-      return false;
-    }
-  } else if (stateSpec.type === 'object') {
-    if (stateSpec.value && typeof stateSpec.value !== 'object') {
-      console.error(
-        'Property value `' + stateSpecName + '` must be an object',
-      );
-
-      return false;
-    }
-  } else {
-    if (typeof stateSpec.value !== stateSpec.type) {
-      console.error(
-        'Property value `' + stateSpecName + '` must be a `' + stateSpec.type + '`',
-      );
-
-      return false;
-    }
-  }
-
-  return true;
 }
 
 const needsVirtualChildren = (child: BytecodeNode): boolean => typeof child === 'object' &&
