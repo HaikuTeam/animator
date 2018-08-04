@@ -38,7 +38,13 @@ import {USER_CHANNEL, User, UserSettings} from 'haiku-sdk-creator/lib/bll/User';
 import {PROJECT_CHANNEL} from 'haiku-sdk-creator/lib/bll/Project';
 import {TOUR_CHANNEL} from 'haiku-sdk-creator/lib/tour';
 import {SERVICES_CHANNEL} from 'haiku-sdk-creator/lib/services';
-import {InteractionMode, isPreviewMode} from '@haiku/core/lib/helpers/interactionModes';
+import {
+  InteractionMode,
+  isPreviewMode,
+  isEditMode,
+  isCodeEditorMode,
+  showGlassOnStage,
+} from 'haiku-ui-common/lib/interactionModes';
 import Palette from 'haiku-ui-common/lib/Palette';
 import ActivityMonitor from '../utils/activityMonitor.js';
 import * as requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates';
@@ -95,7 +101,10 @@ export default class Creator extends React.Component {
     this.onTimelineMounted = this.onTimelineMounted.bind(this);
     this.onTimelineUnmounted = this.onTimelineUnmounted.bind(this);
     this.onNavigateToDashboard = this.onNavigateToDashboard.bind(this);
-    this.disablePreviewMode = this.disablePreviewMode.bind(this);
+    this.setGlassInteractionToPreviewMode = this.setGlassInteractionToPreviewMode.bind(this);
+    this.setGlassInteractionToEditMode = this.setGlassInteractionToEditMode.bind(this);
+    this.setGlassInteractionToCodeEditorMode = this.setGlassInteractionToCodeEditorMode.bind(this);
+    this.togglePreviewMode = this.togglePreviewMode.bind(this);
     this.clearAuth = this.clearAuth.bind(this);
     this.tryToChangeCurrentActiveComponent = this.tryToChangeCurrentActiveComponent.bind(this);
     this.setProjectLaunchStatus = this.setProjectLaunchStatus.bind(this);
@@ -143,16 +152,12 @@ export default class Creator extends React.Component {
       doShowProjectLoader: false,
       launchingProject: false,
       newProjectLoading: false,
-      interactionMode: InteractionMode.EDIT,
+      interactionMode: InteractionMode.GLASS_EDIT,
       artboardDimensions: null,
       showChangelogModal: false,
       showProxySettings: false,
       servicesEnvoyClient: null,
       projectToDuplicate: null,
-      // showGlass:
-      //  true: show glass webviewer (webviewer interactionMode are InteractionMode.EDIT or InteractionMode.LIVE)
-      //  false: show creator code editor
-      showGlass: true,
       showEventHandlerEditor: false,
       eventHandlerEditorOptions: {},
     };
@@ -766,7 +771,7 @@ export default class Creator extends React.Component {
 
       tourChannel.on('tour:requestWebviewCoordinates', this.handleFindWebviewCoordinates);
 
-      tourChannel.on('tour:requestShowStep', this.disablePreviewMode);
+      tourChannel.on('tour:requestShowStep', this.setGlassInteractionToEditMode);
 
       ipcRenderer.on('global-menu:start-tour', () => {
         if (this.state.projectModel) {
@@ -847,7 +852,7 @@ export default class Creator extends React.Component {
   componentWillUnmount () {
     this.tourChannel.off('tour:requestElementCoordinates', this.handleFindElementCoordinates);
     this.tourChannel.off('tour:requestWebviewCoordinates', this.handleFindWebviewCoordinates);
-    this.tourChannel.off('tour:requestShowStep', this.disablePreviewMode);
+    this.tourChannel.off('tour:requestShowStep', this.setGlassInteractionToEditMode);
     this.activityMonitor.stopWatchers();
   }
 
@@ -934,26 +939,29 @@ export default class Creator extends React.Component {
   }
 
   mixpanelReportPreviewMode (interactionMode) {
-    const report = interactionMode === InteractionMode.EDIT ? 'disabled' : 'enabled';
+    const report = interactionMode === InteractionMode.GLASS_EDIT ? 'disabled' : 'enabled';
 
     mixpanel.haikuTrack(`creator:preview-mode:${report}`);
   }
 
   handleInteractionModeChange (interactionMode) {
-    if (interactionMode === InteractionMode.LIVE) {
-      this.setState({showGlass: true});
+    if (interactionMode === InteractionMode.GLASS_PREVIEW) {
       this.hideEventHandlersEditor();
+    } else if (interactionMode === InteractionMode.GLASS_EDIT) {
+      this.setState({activeNav: 'library'});
+    } else if (interactionMode === InteractionMode.CODE_EDITOR) {
+      this.setState({activeNav: 'state_inspector'});
     }
 
     this.setState({interactionMode});
     this.mixpanelReportPreviewMode(interactionMode);
     // Clear all logs before starting preview on production. For development it might be useful to not clean them
-    if (this.state.interactionMode === InteractionMode.LIVE && interactionMode === InteractionMode.EDIT && isProduction()) {
+    if (this.state.interactionMode !== InteractionMode.GLASS_EDIT && interactionMode === InteractionMode.GLASS_EDIT && isProduction()) {
       this.refs.logviewer.clearAllLogs();
     }
   }
 
-  setPreviewMode (interactionMode) {
+  setInteractionMode (interactionMode) {
     if (this.state.projectModel) {
       this.state.projectModel.setInteractionMode(interactionMode, {from: 'creator'}, () => {
         this.handleInteractionModeChange(interactionMode);
@@ -962,15 +970,24 @@ export default class Creator extends React.Component {
   }
 
   togglePreviewMode () {
-    const interactionMode = this.state.interactionMode === InteractionMode.EDIT
-      ? InteractionMode.LIVE
-      : InteractionMode.EDIT;
-
-    this.setPreviewMode(interactionMode);
+    // We delegate to state, so stage can check if code editor has any content
+    if (isPreviewMode(this.state.interactionMode)) {
+      this.refs.stage.tryToSwitchToEditMode();
+    } else {
+      this.refs.stage.tryToSwitchToPreviewMode();
+    }
   }
 
-  disablePreviewMode () {
-    this.setPreviewMode(InteractionMode.EDIT);
+  setGlassInteractionToPreviewMode () {
+    this.setInteractionMode(InteractionMode.GLASS_PREVIEW);
+  }
+
+  setGlassInteractionToEditMode () {
+    this.setInteractionMode(InteractionMode.GLASS_EDIT);
+  }
+
+  setGlassInteractionToCodeEditorMode () {
+    this.setInteractionMode(InteractionMode.CODE_EDITOR);
   }
 
   setDashboardVisibility (dashboardVisible, launchingProject = false) {
@@ -1186,7 +1203,6 @@ export default class Creator extends React.Component {
               doShowProjectLoader: true,
               doShowBackToDashboardButton: false,
               dashboardVisible: false,
-              showGlass: true,
             }, () => {
               // Once the Timeline/Stage are being rendered, we await the point that their
               // own Project models have loaded before initiating a switch to the current
@@ -1613,7 +1629,7 @@ export default class Creator extends React.Component {
         this.setState({
           projectModel: null,
           activeNav: 'library', // Prevents race+crash loading StateInspector when switching projects
-          interactionMode: InteractionMode.EDIT, // So that the asset library will not be obscured on reentry
+          interactionMode: InteractionMode.GLASS_EDIT, // So that the asset library will not be obscured on reentry
         });
 
         if (cb) {
@@ -1788,7 +1804,7 @@ export default class Creator extends React.Component {
   }
 
   get shouldShowUserConsole () {
-    return experimentIsEnabled(Experiment.UserConsole) && this.state.interactionMode === InteractionMode.LIVE;
+    return experimentIsEnabled(Experiment.UserConsole) && this.state.interactionMode === InteractionMode.GLASS_PREVIEW;
   }
 
   saveEventHandlers (targetElement, serializedEvents) {
@@ -2066,7 +2082,7 @@ export default class Creator extends React.Component {
                           backgroundColor: Palette.COAL,
                         }}
                         onClick={() => {
-                          this.disablePreviewMode();
+                          this.setGlassInteractionToEditMode();
                         }}
                       />
                     )
@@ -2135,22 +2151,16 @@ export default class Creator extends React.Component {
                     username={this.state.username}
                     password={this.state.password}
                     isTimelineReady={this.state.isTimelineReady}
-                    isPreviewMode={isPreviewMode(this.state.interactionMode)}
+                    interactionMode={this.state.interactionMode}
                     onShowEventHandlerEditor={this.handleShowEventHandlersEditor}
-                    onPreviewModeToggled={() => {
-                      this.togglePreviewMode();
-                    }}
+                    onPreviewModeToggled={this.togglePreviewMode}
                     artboardDimensions={this.state.artboardDimensions}
                     onProjectPublicChange={(isPublic) => {
                       this.onProjectPublicChange(isPublic);
                     }}
-                    showGlass={this.state.showGlass}
-                    onSwitchToCodeMode={() => {
-                      this.setState({activeNav: 'state_inspector', showGlass: false, interactionMode: InteractionMode.EDIT});
-                    }}
-                    onSwitchToDesignMode={() => {
-                      this.setState({activeNav: 'library', showGlass: true, interactionMode: InteractionMode.EDIT});
-                    }}
+                    setGlassInteractionToPreviewMode={this.setGlassInteractionToPreviewMode}
+                    setGlassInteractionToEditMode={this.setGlassInteractionToEditMode}
+                    setGlassInteractionToCodeEditorMode={this.setGlassInteractionToCodeEditorMode}
                     tryToChangeCurrentActiveComponent={this.tryToChangeCurrentActiveComponent}
                   />
                   {(this.state.assetDragging)

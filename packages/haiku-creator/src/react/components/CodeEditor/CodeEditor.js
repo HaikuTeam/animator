@@ -7,6 +7,7 @@ import * as Radium from 'radium';
 import MonacoEditor from './MonacoEditor';
 import SaveContentsPopup from './SaveContentsPopup';
 import BytecodeErrorPopup from './BytecodeErrorPopup';
+import {isCodeEditorMode} from 'haiku-ui-common/lib/interactionModes';
 
 const EDITOR_FONT = 'Fira Mono';
 
@@ -16,6 +17,7 @@ class CodeEditor extends React.Component {
 
     this.onMonacoEditorChange = this.onMonacoEditorChange.bind(this);
     this.saveCodeFromEditorToDisk = this.saveCodeFromEditorToDisk.bind(this);
+    this.discardFromCodeEditor = this.discardFromCodeEditor.bind(this);
     this.onProjectModelUpdate = this.onProjectModelUpdate.bind(this);
 
     this.hideBytecodeErrorPopup = () => {
@@ -37,7 +39,7 @@ class CodeEditor extends React.Component {
     // Updates can take up a lot of CPU, especially for reloads which ultimately result in
     // a call to File#getCode, which is very heavy, so we don't listen unless we are
     // actually open, otherwise we get very bad UI jank when these updates happen.
-    if (this.props.showGlass) {
+    if (!isCodeEditorMode(this.props.interactionMode)) {
       return;
     }
 
@@ -51,7 +53,7 @@ class CodeEditor extends React.Component {
   componentWillReceiveProps (nextProps) {
     // If we were made visible, we may need to force reload code in case we skipped
     // any updates while we weren't visible
-    if (!nextProps.showGlass && this.props.showGlass !== nextProps.showGlass) {
+    if (isCodeEditorMode(nextProps.interactionMode) && !isCodeEditorMode(this.props.interactionMode)) {
       this.performCodeReload();
       monaco.editor.setTheme('haiku');
     }
@@ -109,7 +111,7 @@ class CodeEditor extends React.Component {
     }
   }
 
-  saveCodeFromEditorToDisk () {
+  saveCodeFromEditorToDisk (cb) {
     const activeComponent = this.props.projectModel.getCurrentActiveComponent();
     if (!activeComponent) {
       return;
@@ -122,13 +124,24 @@ class CodeEditor extends React.Component {
       });
 
       if (error) {
+        if (cb) {
+          cb(error);
+        }
         return;
       }
 
       this.setState({currentComponentCode: this.state.currentEditorContents}, () => {
         this.onMonacoEditorChange(this.state.currentEditorContents);
       });
+
+      if (cb) {
+        cb();
+      }
     });
+  }
+
+  discardFromCodeEditor () {
+    this.onMonacoEditorChange(this.state.currentComponentCode);
   }
 
   render () {
@@ -156,9 +169,10 @@ class CodeEditor extends React.Component {
         {this.props.showPopupToSaveRawEditorContents &&
           <SaveContentsPopup
             projectModel={this.props.projectModel}
-            targetComponentToChange={this.props.targetComponentToChange}
-            setShowPopupToSaveRawEditorContents={this.props.setShowPopupToSaveRawEditorContents}
             saveCodeFromEditorToDisk={this.saveCodeFromEditorToDisk}
+            discardFromCodeEditor={this.discardFromCodeEditor}
+            executeActionAfterCodeEditorSavePopup={this.props.executeActionAfterCodeEditorSavePopup}
+            closeCodeEditorSavePopup={this.props.closeCodeEditorSavePopup}
           />}
         {this.state.showBytecodeErrorPopup &&
           <BytecodeErrorPopup

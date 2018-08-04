@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as Module from 'module';
 import * as React from 'react';
 import HaikuDOMAdapter from '@haiku/core/lib/adapters/dom/HaikuDOMAdapter';
-import {InteractionMode} from '@haiku/core/lib/helpers/interactionModes';
+import {InteractionMode} from 'haiku-ui-common/lib/interactionModes';
 import {TourUtils} from 'haiku-common/lib/types/enums';
 
 /**
@@ -137,7 +137,7 @@ class ProjectPreview extends React.Component {
         sizing: 'cover',
         alwaysComputeSizing: false,
         loop: true,
-        interactionMode: InteractionMode.EDIT,
+        interactionMode: InteractionMode.GLASS_EDIT,
         autoplay: false,
         mixpanel: false,
         contextMenu: 'disabled',

@@ -28,7 +28,7 @@ import TimelineRangeScrollbar from './TimelineRangeScrollbar';
 import HorzScrollShadow from './HorzScrollShadow';
 import ScrollView from './ScrollView';
 import Marquee from './Marquee';
-import {InteractionMode, isPreviewMode} from '@haiku/core/lib/helpers/interactionModes';
+import {InteractionMode, isPreviewMode} from 'haiku-ui-common/lib/interactionModes';
 import {USER_CHANNEL, UserSettings} from 'haiku-sdk-creator/lib/bll/User';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
@@ -1479,9 +1479,9 @@ class Timeline extends React.Component {
     }
   }
 
-  disablePreviewMode () {
+  setGlassInteractionToEditMode () {
     if (this.state.isPreviewModeActive) {
-      this.project.setInteractionMode(InteractionMode.EDIT, {from: 'timeline'}, () => {
+      this.project.setInteractionMode(InteractionMode.GLASS_EDIT, {from: 'timeline'}, () => {
         this.setState({isPreviewModeActive: false});
       });
     }
@@ -1661,7 +1661,7 @@ class Timeline extends React.Component {
                 backgroundColor: Palette.COAL,
               }}
               onClick={() => {
-                this.disablePreviewMode();
+                this.setGlassInteractionToEditMode();
               }}
             />
           )
