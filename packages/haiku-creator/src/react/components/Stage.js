@@ -12,7 +12,6 @@ import {TOUR_CHANNEL} from 'haiku-sdk-creator/lib/tour';
 import {
   isPreviewMode,
   isEditMode,
-  isCodeEditorMode,
   showGlassOnStage,
 } from '@haiku/core/lib/helpers/interactionModes';
 
@@ -294,13 +293,12 @@ class Stage extends React.Component {
             password={this.props.password}
             receiveProjectInfo={this.props.receiveProjectInfo}
             onPreviewModeToggled={this.props.onPreviewModeToggled}
-            isPreviewMode={isPreviewMode(this.props.interactionMode)}
             isTimelineReady={this.props.isTimelineReady}
             envoyClient={this.props.envoyClient}
             onProjectPublicChange={this.props.onProjectPublicChange}
             setGlassInteractionToCodeEditorMode={this.props.setGlassInteractionToCodeEditorMode}
             tryToSwitchToEditMode={this.tryToSwitchToEditMode}
-            showGlass={showGlassOnStage(this.props.interactionMode)}
+            interactionMode={this.props.interactionMode}
             saveCodeFromEditorToDisk={this.saveCodeFromEditorToDisk}
             onShowEventHandlerEditor={this.props.onShowEventHandlerEditor}
           />
