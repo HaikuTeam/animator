@@ -1,5 +1,4 @@
 var Haiku = require("@haiku/core");
-var _code_rects_code = require("./../rects/code.js");
 module.exports = {
   metadata: {
     folder: "/Users/matthew/Code/HaikuTeam/mono/packages/haiku-plumbing/test/fixtures/projects/blank-project/",
@@ -11,69 +10,81 @@ module.exports = {
     project: "UsersMatthewHaikuProjects",
     branch: "master",
     version: "0.0.0",
-    title: "Dots",
+    title: "Rects",
     type: "haiku",
-    relpath: "code/dots/code.js"
+    relpath: "code/rects/code.js"
   },
   options: {},
   states: {},
   eventHandlers: {},
   timelines: {
     Default: {
-      "haiku:Dots-15ead2c70f10c1ee": {
+      "haiku:Rects-e41b15e0baa01fb3": {
         "style.WebkitTapHighlightColor": "rgba(0,0,0,0)",
         "style.position": "relative",
         "style.overflowX": "visible",
         "style.overflowY": "visible",
-        "sizeAbsolute.x": 191,
-        "sizeAbsolute.y": 197,
+        "sizeAbsolute.x": 70,
+        "sizeAbsolute.y": 78.5,
         "sizeMode.x": 1,
         "sizeMode.y": 1,
         "sizeMode.z": 1
       },
-      "haiku:946dbe7d7eb8": {
+      "haiku:b52f8a81eaa0": {
         "style.position": "absolute",
         "style.margin": "0",
         "style.padding": "0",
         "style.border": "0",
-        "sizeAbsolute.x": 115,
+        "sizeAbsolute.x": 36,
         "sizeMode.x": 1,
-        "sizeAbsolute.y": 115,
+        "sizeAbsolute.y": 39,
         "sizeMode.y": 1,
-        "translation.x": 57.5,
-        "translation.y": 57.5,
+        "translation.x": 18,
+        "translation.y": 19.5,
         "style.zIndex": 1
       },
-      "haiku:641c60115e6a": {
+      "haiku:d3b6345ab4eb": {
         stroke: "none",
         strokeWidth: 1,
         fill: "none",
         fillRule: "evenodd"
       },
-      "haiku:368740f9e7af": { "translation.x": -189, "translation.y": -622 },
-      "haiku:0820886521e9": { fill: "#5DE2F9", cx: 246.5, cy: 679.5, r: 57.5 },
-      "haiku:cebb448114b4": {
+      "haiku:fd26c5e6d0d4": {
+        stroke: "#979797",
+        fill: "#D8D8D8",
+        x: 0.5,
+        y: 0.5,
+        width: 35,
+        height: 38
+      },
+      "haiku:48a0dfaecae1": {
         "style.position": "absolute",
         "style.margin": "0",
         "style.padding": "0",
         "style.border": "0",
-        "sizeAbsolute.x": 115,
+        "sizeAbsolute.x": 36,
         "sizeMode.x": 1,
-        "sizeAbsolute.y": 115,
+        "sizeAbsolute.y": 39,
         "sizeMode.y": 1,
-        "translation.x": 133.5,
-        "translation.y": 139.5,
+        "translation.x": 52,
+        "translation.y": 59,
         "style.zIndex": 2
       },
-      "haiku:b0d1f0492642": {
+      "haiku:d860cb1750e9": {
         stroke: "none",
         strokeWidth: 1,
         fill: "none",
         fillRule: "evenodd"
       },
-      "haiku:251bebc0860c": { "translation.x": -189, "translation.y": -622 },
-      "haiku:034bb43ce56b": { fill: "#5DE2F9", cx: 246.5, cy: 679.5, r: 57.5 },
-      "haiku:Oval-593c2e323a08e6c2": {
+      "haiku:5a996092cae2": {
+        stroke: "#979797",
+        fill: "#D8D8D8",
+        x: 0.5,
+        y: 0.5,
+        width: 35,
+        height: 38
+      },
+      "haiku:Oval-b89b9deafe9a1559": {
         "style.position": "absolute",
         "style.margin": "0",
         "style.padding": "0",
@@ -106,70 +117,46 @@ module.exports = {
         },
         "style.zIndex": 3
       },
-      "haiku:Page-1-808f0e04083c524b": {
+      "haiku:Page-1-9964c758b6777214": {
         stroke: "none",
         strokeWidth: 1,
         fill: "none",
         fillRule: "evenodd"
       },
-      "haiku:Oval-85569d3cb78ae47d": {
+      "haiku:Oval-2169c0422c1adf35": {
         stroke: "#979797",
         fill: "#000000",
         cx: 7.5,
         cy: 7.5,
         r: 6.5
-      },
-      "haiku:Rects-a60014f5040f5a6e": {
-        "style.position": "absolute",
-        "style.margin": "0",
-        "style.padding": "0",
-        "style.border": "0",
-        "sizeMode.x": 1,
-        "sizeMode.y": 1,
-        "sizeAbsolute.x": "auto",
-        "sizeAbsolute.y": "auto",
-        "translation.x": 133.5,
-        "translation.y": 98.5,
-        "origin.x": 0.5,
-        "origin.y": 0.5,
-        "style.zIndex": 4,
-        "translation.z": 0,
-        "rotation.z": 0.741
       }
     }
   },
   template: {
     elementName: "div",
-    attributes: { "haiku-id": "Dots-15ead2c70f10c1ee", "haiku-title": "Dots" },
+    attributes: {
+      "haiku-id": "Rects-e41b15e0baa01fb3",
+      "haiku-title": "Rects"
+    },
     children: [
-      {
-        elementName: _code_rects_code,
-        attributes: {
-          "haiku-id": "Rects-a60014f5040f5a6e",
-          "haiku-var": "_code_rects_code",
-          "haiku-title": "Rects",
-          "haiku-source": "./code/rects/code.js"
-        },
-        children: []
-      },
       {
         elementName: "svg",
         attributes: {
           version: "1.1",
           xmlns: "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "haiku-id": "Oval-593c2e323a08e6c2",
+          "haiku-id": "Oval-b89b9deafe9a1559",
           "haiku-title": "Oval",
           "haiku-source": "designs/UsersMatthewHaikuPro.sketch.contents/slices/Oval.svg"
         },
         children: [
           {
             elementName: "g",
-            attributes: { "haiku-id": "Page-1-808f0e04083c524b", id: "Page-1" },
+            attributes: { "haiku-id": "Page-1-9964c758b6777214", id: "Page-1" },
             children: [
               {
                 elementName: "circle",
-                attributes: { "haiku-id": "Oval-85569d3cb78ae47d", id: "Oval" },
+                attributes: { "haiku-id": "Oval-2169c0422c1adf35", id: "Oval" },
                 children: []
               }
             ]
@@ -182,37 +169,27 @@ module.exports = {
           version: "1.1",
           xmlns: "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "haiku-id": "cebb448114b4",
-          "haiku-title": "blue-circle",
-          "haiku-source": "designs/UsersMatthewHaikuPro.sketch.contents/slices/blue-circle.svg"
+          "haiku-id": "48a0dfaecae1",
+          "haiku-title": "Rectangle",
+          "haiku-source": "designs/UsersMatthewHaikuPro.sketch.contents/slices/Rectangle.svg"
         },
         children: [
           {
             elementName: "g",
             attributes: {
-              "haiku-id": "b0d1f0492642",
+              "haiku-id": "d860cb1750e9",
               "haiku-title": "Page-1",
-              id: "3e72c7ff7aa3"
+              id: "ca8b3d1985e4"
             },
             children: [
               {
-                elementName: "g",
+                elementName: "rect",
                 attributes: {
-                  "haiku-id": "251bebc0860c",
-                  "haiku-title": "Tutorial",
-                  id: "e85ad6781e5d"
+                  "haiku-id": "5a996092cae2",
+                  "haiku-title": "Rectangle",
+                  id: "d32b112b3629"
                 },
-                children: [
-                  {
-                    elementName: "circle",
-                    attributes: {
-                      "haiku-id": "034bb43ce56b",
-                      "haiku-title": "blue-circle",
-                      id: "df033fc74a47"
-                    },
-                    children: []
-                  }
-                ]
+                children: []
               }
             ]
           }
@@ -224,37 +201,27 @@ module.exports = {
           version: "1.1",
           xmlns: "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          "haiku-id": "946dbe7d7eb8",
-          "haiku-title": "blue-circle",
-          "haiku-source": "designs/UsersMatthewHaikuPro.sketch.contents/slices/blue-circle.svg"
+          "haiku-id": "b52f8a81eaa0",
+          "haiku-title": "Rectangle",
+          "haiku-source": "designs/UsersMatthewHaikuPro.sketch.contents/slices/Rectangle.svg"
         },
         children: [
           {
             elementName: "g",
             attributes: {
-              "haiku-id": "641c60115e6a",
+              "haiku-id": "d3b6345ab4eb",
               "haiku-title": "Page-1",
-              id: "7abf2f616bcd"
+              id: "a02c7324fe0e"
             },
             children: [
               {
-                elementName: "g",
+                elementName: "rect",
                 attributes: {
-                  "haiku-id": "368740f9e7af",
-                  "haiku-title": "Tutorial",
-                  id: "cf4182e4dd51"
+                  "haiku-id": "fd26c5e6d0d4",
+                  "haiku-title": "Rectangle",
+                  id: "d2b5b737ed19"
                 },
-                children: [
-                  {
-                    elementName: "circle",
-                    attributes: {
-                      "haiku-id": "0820886521e9",
-                      "haiku-title": "blue-circle",
-                      id: "6e42fe5092c4"
-                    },
-                    children: []
-                  }
-                ]
+                children: []
               }
             ]
           }
