@@ -284,7 +284,11 @@ export default class HaikuTimeline extends HaikuBase {
       : this.getElapsedTime();
 
     if (this.offsetCalculator) {
-      time = this.offsetCalculator.call(this, time);
+      try {
+        time = this.offsetCalculator.call(this, time);
+      } catch (exception) {
+        // no-op
+      }
     }
 
     if (this.isLooping()) {
@@ -615,7 +619,12 @@ export default class HaikuTimeline extends HaikuBase {
         return val;
       }).join(' ');
 
-      const proc = makePlaybackProc(`return ${expr};`);
+      let proc;
+      try {
+        proc = makePlaybackProc(`return ${expr};`);
+      } catch (exception) {
+        // no-op
+      }
 
       const out = {
         proc,
