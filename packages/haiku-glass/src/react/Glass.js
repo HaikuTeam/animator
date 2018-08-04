@@ -377,41 +377,12 @@ export class Glass extends React.Component {
       return;
     }
 
-    const browser = remote.getCurrentWebContents();
+    console.clear();
 
-    if (!browser) {
-      return;
+    // Note that our dev tools window is mounted to a <webview> in Creator
+    if (this.getActiveComponent()) {
+      this.getActiveComponent().devConsole.logBanner();
     }
-
-    browser.openDevTools({
-      mode: 'detach',
-    });
-
-    let waited = 0;
-
-    const interval = setInterval(() => {
-      waited++;
-
-      const devtool = browser.devToolsWebContents;
-
-      if (devtool) {
-        clearInterval(interval);
-
-        // Move the devtool window back to the background
-        browser.focus();
-
-        // And focus the page itself so we catch keyboard events
-        document.getElementById('preview-container').click();
-
-        if (this.getActiveComponent()) {
-          this.getActiveComponent().devConsole.logBanner();
-        }
-      }
-
-      if (waited > 1000) {
-        clearInterval(interval);
-      }
-    });
   }
 
   closeUserFacingDevTools () {
@@ -419,13 +390,6 @@ export class Glass extends React.Component {
       return;
     }
 
-    const browser = remote.getCurrentWebContents();
-
-    if (!browser) {
-      return;
-    }
-
-    browser.closeDevTools();
   }
 
   handleRequestElementCoordinates ({selector, webview}) {

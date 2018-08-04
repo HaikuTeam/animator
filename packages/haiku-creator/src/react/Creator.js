@@ -958,17 +958,55 @@ export default class Creator extends React.Component {
   }
 
   handleInteractionModeChange (interactionMode) {
+    if (this.state.interactionMode === interactionMode) {
+      return;
+    }
+
+    this.mixpanelReportPreviewMode(interactionMode);
+
     if (interactionMode === InteractionMode.LIVE) {
-      this.setState({showGlass: true});
       this.hideEventHandlersEditor();
     }
 
-    this.setState({interactionMode});
-    this.mixpanelReportPreviewMode(interactionMode);
-    // Clear all logs before starting preview on production. For development it might be useful to not clean them
-    if (this.state.interactionMode === InteractionMode.LIVE && interactionMode === InteractionMode.EDIT && isProduction()) {
-      this.refs.logviewer.clearAllLogs();
-    }
+    this.setState({
+      interactionMode,
+    }, () => {
+      if (interactionMode !== InteractionMode.LIVE) {
+        return;
+      }
+
+      const glassView = document.getElementById('glass-webview');
+      const devtoolsView = document.getElementById('devtools');
+
+      if (glassView && devtoolsView) {
+        const glassBrowser = glassView.getWebContents();
+
+        let devContents = devtoolsView.getWebContents();
+
+        const devInterval = setInterval(() => {
+          devContents = devtoolsView.getWebContents();
+
+          if (devContents) {
+            clearInterval(devInterval);
+
+            glassBrowser.setDevToolsWebContents(devContents);
+
+            glassBrowser.openDevTools();
+
+            const cssInterval = setInterval(() => {
+              if (glassBrowser.devToolsWebContents) {
+                clearInterval(cssInterval);
+
+                // Uncomment to opens dev tools for the dev tools
+                // glassBrowser.devToolsWebContents.openDevTools({
+                //   mode: 'detach'
+                // });
+              }
+            });
+          }
+        });
+      }
+    });
   }
 
   setPreviewMode (interactionMode) {
@@ -1806,7 +1844,17 @@ export default class Creator extends React.Component {
   }
 
   get shouldShowUserConsole () {
-    return experimentIsEnabled(Experiment.UserConsole) && this.state.interactionMode === InteractionMode.LIVE;
+    return (
+      experimentIsEnabled(Experiment.UserConsole) &&
+      this.state.interactionMode === InteractionMode.LIVE
+    );
+  }
+
+  get shouldShowUserFacingDevTools () {
+    return (
+      experimentIsEnabled(Experiment.UserFacingDevTools) &&
+      this.state.interactionMode === InteractionMode.LIVE
+    );
   }
 
   saveEventHandlers (targetElement, serializedEvents) {
@@ -2176,19 +2224,23 @@ export default class Creator extends React.Component {
                     : ''}
                 </div>
               </SplitPanel>
-              <div style={{
-                position: 'relative',
-                width: '100%',
-                height: '100%',
-              }}>
-                <div style={{
-                  position: 'absolute',
+              <div
+                id="timeline-container"
+                style={{
+                  position: 'relative',
                   width: '100%',
                   height: '100%',
-                  top: '0px',
-                  overflow: 'auto',
-                  visibility: this.shouldShowUserConsole ? 'hidden' : 'visible',
                 }}>
+                <div
+                  id="timeline-wrapper"
+                  style={{
+                    position: 'absolute',
+                    width: '100%',
+                    height: '100%',
+                    top: '0px',
+                    overflow: 'auto',
+                    visibility: this.shouldShowUserConsole ? 'hidden' : 'visible',
+                  }}>
                   <Timeline
                     ref="timeline"
                     folder={this.state.projectFolder}
@@ -2200,24 +2252,23 @@ export default class Creator extends React.Component {
                     removeNotice={this.removeNotice}
                     onReady={this.onTimelineMounted} />
                 </div>
-                {this.shouldShowUserConsole && <div style={{
+                {this.shouldShowUserFacingDevTools && <div style={{
                   position: 'absolute',
                   width: '100%',
                   height: '100%',
                   top: '0px',
                   overflow: 'auto',
                 }}>
-                  <LogViewer
-                    ref="logviewer"
-                    folder={this.state.projectFolder}
-                    haiku={this.props.haiku}
-                    username={this.state.username}
-                    organizationName={this.state.organizationName}
-                    createNotice={this.createNotice}
-                    removeNotice={this.removeNotice}
-                    onReady={this.onTimelineMounted}
-                    websocket={this.props.websocket}
-                  />
+                  <webview
+                    id="devtools"
+                    style={{
+                      position: 'absolute',
+                      width: '100%',
+                      height: '100%',
+                      top: '0px',
+                      overflow: 'hidden',
+                      zIndex: 2,
+                    }}/>
                 </div>}
               </div>
             </SplitPanel>
