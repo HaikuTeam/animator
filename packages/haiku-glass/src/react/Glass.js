@@ -3084,6 +3084,16 @@ export class Glass extends React.Component {
     return this.getActiveComponent().getArtboard().getArtboardRenderInfo();
   }
 
+  getDirectlySelectedElementModel () {
+    if (!Element.directlySelected) {
+      return;
+    }
+
+    return this.getActiveComponent().findElementByComponentId(
+      Element.directlySelected.componentId,
+    );
+  }
+
   getContextMenuItems () {
     const items = [];
 
@@ -3142,8 +3152,11 @@ export class Glass extends React.Component {
       // Show the actions menu if there is nothing selected for editing artboard actions
       enabled: proxy.doesManageSingleElement() || proxy.hasNothingInSelection(),
       onClick: (event) => {
-        // Fallback to the artboard if there is nothing in the current selection
-        const element = proxy.selection[0] || this.getActiveComponent().getArtboard().getElement();
+        const element = (
+          this.getDirectlySelectedElementModel() || // Allow binding elements directly to sub-elements
+          proxy.selection[0] ||
+          this.getActiveComponent().getArtboard().getElement() // Fallback to the artboard if there is nothing in the current selection
+        );
 
         this.props.websocket.send({
           type: 'broadcast',
