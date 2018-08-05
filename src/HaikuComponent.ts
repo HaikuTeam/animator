@@ -1972,9 +1972,11 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     const previousValue = this.cacheGet(`values:${timelineName}|${flexId}|${propertyName}`);
     this.cacheSet(`values:${timelineName}|${flexId}|${propertyName}`, computedValue);
 
+    const didValueChangeSinceLastRequest = computedValue !== previousValue;
+
     return {
       computedValue,
-      didValueChangeSinceLastRequest: computedValue !== previousValue,
+      didValueChangeSinceLastRequest,
       didValueOriginateFromExplicitKeyframeDefinition: keyframeCluster && !!keyframeCluster[Math.round(timelineTime)],
     };
   }
@@ -2995,8 +2997,22 @@ export const VANITIES = {
     },
 
     // Text and other inner-content related vanities
-    content: (_, element, value) => {
+    content: (
+      name,
+      element,
+      value,
+      context,
+      timeline,
+      receiver,
+      sender,
+    ) => {
       element.__memory.children = [value];
+
+      // If we don't do this, then content changes resulting from setState calls
+      // don't have the effect of flushing the content, and the rendered text doesn't change.
+      // DEMO: bind-numeric-state-to-text
+      // TODO: What is the best way to make this less expensive (while still functional)?
+      sender.markForFullFlush();
     },
 
     // Playback-related vanities that involve controlling timeline or clock time
