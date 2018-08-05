@@ -206,11 +206,11 @@ Expression.parseValue = (userInput, propertyName) => {
   }
 
   if (userInput.trim() === 'undefined') {
-    return;
+    return
   }
 
   if (userInput.trim() === 'null') {
-    return null;
+    return null
   }
 
   const parsedInput = Expression.flexibleJsonParse(userInput)

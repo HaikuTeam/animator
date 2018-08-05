@@ -16,7 +16,128 @@ module.exports = {
   },
   options: {},
   states: {},
-  eventHandlers: {},
+  eventHandlers: {
+    "haiku:Reg-92da2a80ac174ae8": {
+      hover: {
+        handler: function () {
+          target.setAttribute('fill', 'black');
+        }
+      },
+      unhover: {
+        handler: function (event) {
+          target.setAttribute('fill', 'gray');
+        }
+      }
+    },
+    "haiku:Page-1-18cd9b1d52dd9508": {
+      hover: {
+        handler: function (target, event) {
+          target.setAttribute('fill', 'black');
+        }
+      },
+      unhover: {
+        handler: function (element, target, event) {
+          target.setAttribute('fill', 'gray');
+        }
+      }
+    },
+    "haiku:Rectangle-659ad97a7c9ca7fb": {
+      hover: {
+        handler: function (component, element, target, event) {
+          target.setAttribute('fill', 'black');
+        }
+      },
+      unhover: {
+        handler: function (component, element, target, event) {
+          target.setAttribute('fill', 'gray');
+        }
+      }
+    },
+    "haiku:Rectangle-2-74a732121111ea0b": {
+      hover: {
+        handler: function (component, element, target, event) {
+          target.setAttribute('fill', 'black');
+        }
+      },
+      unhover: {
+        handler: function (component, element, target, event) {
+          target.setAttribute('fill', 'gray');
+        }
+      }
+    },
+    "haiku:Rectangle-3-aaff8abd23b82d11": {
+      hover: {
+        handler: function (component, element, target, event) {
+          target.setAttribute('fill', 'black');
+        }
+      },
+      unhover: {
+        handler: function (component, element, target, event) {
+          target.setAttribute('fill', 'gray');
+        }
+      }
+    },
+    "haiku:Overlap-28476596b3c28f63": {
+      hover: {
+        handler: function (component, element, target, event) {
+          target.setAttribute('fill', 'black');
+        }
+      },
+      unhover: {
+        handler: function (component, element, target, event) {
+          target.setAttribute('fill', 'gray');
+        }
+      }
+    },
+    "haiku:Page-1-0973926fbf0cdadd": {
+      hover: {
+        handler: function (component, element, target, event) {
+          target.setAttribute('fill', 'black');
+        }
+      },
+      unhover: {
+        handler: function (component, element, target, event) {
+          target.setAttribute('fill', 'gray');
+        }
+      }
+    },
+    "haiku:Rectangle-e684a32198f32a0e": {
+      hover: {
+        handler: function (component, element, target, event) {
+          target.setAttribute('fill', 'black');
+        }
+      },
+      unhover: {
+        handler: function (component, element, target, event) {
+          target.setAttribute('fill', 'gray');
+        }
+      }
+    },
+    "haiku:Rectangle-2-8adbc1546e91688a": {
+      hover: {
+        handler: function (component, element, target, event) {
+          target.setAttribute('fill', 'black');
+        }
+      },
+      unhover: {
+        handler: function (component, element, target, event) {
+          target.setAttribute('fill', 'gray');
+        }
+      }
+    },
+    "haiku:Rectangle-3-0afd8cd657f3c6a3": {
+      hover: {
+        handler: function (component, element, target, event) {
+          target.setAttribute('fill', 'black');
+        }
+      },
+      unhover: {
+        handler: function (component, element, target, event) {
+          target.setAttribute('fill', 'gray');
+        }
+      }
+    },
+  },
   timelines: {
     Default: {
       "haiku:Main-03757d2ca1026e0a": {

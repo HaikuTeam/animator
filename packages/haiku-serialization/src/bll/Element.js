@@ -321,11 +321,21 @@ class Element extends BaseModel {
 
   getApplicableEventHandlerOptionsList () {
     const options = []
-    const handlers = this.getReifiedEventHandlers()
 
     // Track which ones we've already accounted for in the 'known events' lists so that
     // we only display those that aren't accounted for under the 'custom events' list
     const predefined = {}
+
+    Element.HIGHER_ORDER_EVENTS.forEach((spec) => {
+      predefined[spec.value] = true
+    })
+
+    options.push({
+      label: 'Favorites',
+      options: Element.HIGHER_ORDER_EVENTS
+    })
+
+    const handlers = this.getReifiedEventHandlers()
 
     for (let category in KnownDOMEvents) {
       let suboptions = []
@@ -1938,6 +1948,11 @@ Element.cache = {
   domNodes: {},
   eventListeners: {}
 }
+
+Element.HIGHER_ORDER_EVENTS = [
+  { label: 'Hover', value: 'hover' },
+  { label: 'Unhover', value: 'unhover' }
+]
 
 Element.COMPONENT_EVENTS = [
   { label: 'Will Mount', value: 'component:will-mount' },
