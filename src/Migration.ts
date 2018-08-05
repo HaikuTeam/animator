@@ -429,26 +429,29 @@ export const runMigrationsPostPhase = (component: IHaikuComponent, options: Migr
     });
   }
 
-  if (requiresUpgrade(coreVersion, UpgradeVersionRequirement.TimelineDefaultFrames)) {
-    component.eachEventHandler((eventSelector, eventName, {handler}) => {
-      if (!handler) {
-        console.warn(`Unable to migrate event handler for ${eventSelector} ${eventName} in ${component.$id}`);
-        return;
-      }
+  component.eachEventHandler((eventSelector, eventName, {handler}) => {
+    if (!handler) {
+      console.warn(`Unable to migrate event handler for ${eventSelector} ${eventName} in ${component.$id}`);
+      return;
+    }
 
-      const rfo = handler.__rfo || functionToRFO(handler).__function;
-      let body: string = rfo.body;
-      let changed = false;
-      ['.seek(', '.gotoAndPlay(', '.gotoAndStop('].forEach((methodSignature) => {
+    const rfo = handler.__rfo || functionToRFO(handler).__function;
+    let params = rfo.params;
+    let body: string = rfo.body;
+    let changed = false;
+
+    if (requiresUpgrade(coreVersion, UpgradeVersionRequirement.TimelineDefaultFrames)) {
+      (['.seek(', '.gotoAndPlay(', '.gotoAndStop(']).forEach((methodSignature) => {
         for (let cursor = 0; cursor < body.length; ++cursor) {
           if (body.substring(cursor, cursor + methodSignature.length) !== methodSignature) {
             continue;
           }
 
+          changed = true;
+
           // We have matched e.g. this.getDefaultTimeline().seek( at the string index of ".seek(".
           // Using the assumption that the method arguments do not contain string arguments with parentheses inside,
           // we can apply a simple parenthesis-balancing algorithm here.
-          changed = true;
           cursor += methodSignature.length;
           let openParens = 1;
           while (openParens > 0 && cursor < body.length) {
@@ -459,19 +462,26 @@ export const runMigrationsPostPhase = (component: IHaikuComponent, options: Migr
             }
             ++cursor;
           }
+
           // Essentially, replace .seek(foo) with .seek(foo, 'ms').
           body = `${body.slice(0, cursor - 1)}, 'ms')${body.slice(cursor)}`;
         }
       });
+    }
 
-      if (changed) {
-        bytecode.eventHandlers[eventSelector][eventName].handler = reifyRFO({
-          ...rfo,
-          body,
-        });
-      }
-    });
-  }
+    if (params.length < 4) {
+      params = ['component', 'element', 'target', 'event'];
+      changed = true;
+    }
+
+    if (changed) {
+      bytecode.eventHandlers[eventSelector][eventName].handler = reifyRFO({
+        ...rfo,
+        params,
+        body,
+      });
+    }
+  });
 
   if (needsRerender) {
     component.clearCaches();
