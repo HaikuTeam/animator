@@ -95,7 +95,7 @@ function crashReport (error, orgName = 'unknown', projectName = 'unknown', proje
   lastUploadTime = Date.now()
 
   const timestamp = generateUUIDv4.default()
-  const zipName = `${timestamp}.zip`
+  const zipName = `${projectName}-${timestamp}.zip`
   const zipPath = path.join(HOMEDIR_CRASH_REPORTS_PATH, zipName)
 
   const finalUrl = `${AWS_S3_HOST}/${orgName}/${zipName}`

@@ -238,6 +238,14 @@ class StateRow extends React.Component {
     if (this.props.isNew) {
       return this.props.closeNewStateForm();
     }
+
+    // If the name field is blank, delete the state (or just remove it if it is new)
+    if (isBlank(this.state.name)) {
+      return this.props.deleteStateValue(this.state.originalName, () => {
+        this.props.requestBlur(this.state.originalName);
+      });
+    }
+
     this.submitChanges();
   }
 

@@ -1,0 +1,1 @@
+Confirm that a playback property can be applied to repeaters. Expected: each instance of Separator has an independently running timeline, since its playback value is 'loop'

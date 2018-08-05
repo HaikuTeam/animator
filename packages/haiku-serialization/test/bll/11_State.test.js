@@ -16,7 +16,7 @@ tape('State.recast', (t) => {
     [{value:null},{ value: null, mock: undefined, type: 'any' }],
     [{value:'null'},{ value: null, mock: undefined, type: 'any' }],
     [{value:undefined},{ value: undefined, mock: undefined, type: 'any' }],
-    [{value:'undefined'},{ value: 'undefined', mock: undefined, type: 'string' }],
+    [{value:'undefined'},{ value: undefined, mock: undefined, type: 'any' }],
     [{value:'true'},{ value: true, mock: undefined, type: 'boolean' }],
     [{value:'false'},{ value: false, mock: undefined, type: 'boolean' }],
     [{value:''},{ value: '', mock: undefined, type: 'string' }],

@@ -43,6 +43,8 @@ export enum Experiment {
   PreserveFrontMatterInCode = 'PreserveFrontMatterInCode',
   UserFacingDevTools = 'UserFacingDevTools',
   SendLogMessagesToPlumbing = 'SendLogMessagesToPlumbing',
+  ControlFlowIf = 'ControlFlowIf',
+  ControlFlowRepeat = 'ControlFlowRepeat',
 }
 
 /**

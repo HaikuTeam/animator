@@ -319,7 +319,9 @@ class StageTitleBar extends React.Component {
     });
 
     window.setTimeout(() => {
-      this.props.removeNotice(undefined, noticeNotice.id);
+      if (noticeNotice) {
+        this.props.removeNotice(undefined, noticeNotice.id);
+      }
     }, 2500);
   }
 
@@ -358,7 +360,9 @@ class StageTitleBar extends React.Component {
     });
 
     window.setTimeout(() => {
-      this.props.removeNotice(undefined, noticeNotice.id);
+      if (noticeNotice) {
+        this.props.removeNotice(undefined, noticeNotice.id);
+      }
     }, 2500);
   }
 

@@ -137,6 +137,8 @@ export class Glass extends React.Component {
       isCreateComponentModalOpen: false,
     };
 
+    this.didAlreadyWarnAboutTextNodes = false;
+
     Project.setup(
       this.props.folder,
       'glass',
@@ -377,41 +379,12 @@ export class Glass extends React.Component {
       return;
     }
 
-    const browser = remote.getCurrentWebContents();
+    console.clear();
 
-    if (!browser) {
-      return;
+    // Note that our dev tools window is mounted to a <webview> in Creator
+    if (this.getActiveComponent()) {
+      this.getActiveComponent().devConsole.logBanner();
     }
-
-    browser.openDevTools({
-      mode: 'detach',
-    });
-
-    let waited = 0;
-
-    const interval = setInterval(() => {
-      waited++;
-
-      const devtool = browser.devToolsWebContents;
-
-      if (devtool) {
-        clearInterval(interval);
-
-        // Move the devtool window back to the background
-        browser.focus();
-
-        // And focus the page itself so we catch keyboard events
-        document.getElementById('preview-container').click();
-
-        if (this.getActiveComponent()) {
-          this.getActiveComponent().devConsole.logBanner();
-        }
-      }
-
-      if (waited > 1000) {
-        clearInterval(interval);
-      }
-    });
   }
 
   closeUserFacingDevTools () {
@@ -419,13 +392,6 @@ export class Glass extends React.Component {
       return;
     }
 
-    const browser = remote.getCurrentWebContents();
-
-    if (!browser) {
-      return;
-    }
-
-    browser.closeDevTools();
   }
 
   handleRequestElementCoordinates ({selector, webview}) {
@@ -766,7 +732,9 @@ export class Glass extends React.Component {
                   }
                 });
 
-                if (foundTextNode) {
+                if (foundTextNode && !this.didAlreadyWarnAboutTextNodes) {
+                  this.didAlreadyWarnAboutTextNodes = true;
+
                   // The '[notice]' substring tells Creator to display a toast
                   console.info(`
                     [notice] ⚠️ You placed an element that contains text.
@@ -3116,6 +3084,16 @@ export class Glass extends React.Component {
     return this.getActiveComponent().getArtboard().getArtboardRenderInfo();
   }
 
+  getDirectlySelectedElementModel () {
+    if (!Element.directlySelected) {
+      return;
+    }
+
+    return this.getActiveComponent().findElementByComponentId(
+      Element.directlySelected.componentId,
+    );
+  }
+
   getContextMenuItems () {
     const items = [];
 
@@ -3174,8 +3152,11 @@ export class Glass extends React.Component {
       // Show the actions menu if there is nothing selected for editing artboard actions
       enabled: proxy.doesManageSingleElement() || proxy.hasNothingInSelection(),
       onClick: (event) => {
-        // Fallback to the artboard if there is nothing in the current selection
-        const element = proxy.selection[0] || this.getActiveComponent().getArtboard().getElement();
+        const element = (
+          this.getDirectlySelectedElementModel() || // Allow binding elements directly to sub-elements
+          proxy.selection[0] ||
+          this.getActiveComponent().getArtboard().getElement() // Fallback to the artboard if there is nothing in the current selection
+        );
 
         this.props.websocket.send({
           type: 'broadcast',

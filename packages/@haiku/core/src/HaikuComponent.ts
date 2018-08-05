@@ -13,6 +13,7 @@ import {
   IHaikuContext,
   ParsedValueCluster,
   ParsedValueClusterCollection,
+  TwoPointFiveDimensionalLayoutProperty,
 } from './api';
 import Config from './Config';
 import HaikuBase, {GLOBAL_LISTENER_KEY} from './HaikuBase';
@@ -39,6 +40,7 @@ import functionToRFO, {RFO} from './reflection/functionToRFO';
 import StateTransitionManager, {StateTransitionParameters, StateValues} from './StateTransitionManager';
 import {calculateValue} from './Transitions';
 import assign from './vendor/assign';
+import invert from './vendor/gl-mat4/invert';
 import {CurveSpec} from './vendor/svg-points/types';
 
 const FUNCTION = 'function';
@@ -848,13 +850,9 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
         continue;
       }
 
-      const isValid = stateSpecValidityCheck(stateSpec, stateSpecName);
+      this._states[stateSpecName] = stateSpec.value;
 
-      if (isValid) {
-        this._states[stateSpecName] = stateSpec.value;
-
-        this.defineSettableState(stateSpec, stateSpecName);
-      }
+      this.defineSettableState(stateSpec, stateSpecName);
     }
   }
 
@@ -1974,9 +1972,11 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     const previousValue = this.cacheGet(`values:${timelineName}|${flexId}|${propertyName}`);
     this.cacheSet(`values:${timelineName}|${flexId}|${propertyName}`, computedValue);
 
+    const didValueChangeSinceLastRequest = computedValue !== previousValue;
+
     return {
       computedValue,
-      didValueChangeSinceLastRequest: computedValue !== previousValue,
+      didValueChangeSinceLastRequest,
       didValueOriginateFromExplicitKeyframeDefinition: keyframeCluster && !!keyframeCluster[Math.round(timelineTime)],
     };
   }
@@ -2077,6 +2077,18 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
       summonablesSchema[key] = INJECTABLES[key].schema;
     }
     return summonablesSchema;
+  }
+
+  transformContextPointToLocalPoint (
+    point: TwoPointFiveDimensionalLayoutProperty,
+  ): TwoPointFiveDimensionalLayoutProperty {
+    if (this.layoutAncestryMatrices) {
+      const matrix = Layout3D.multiplyArrayOfMatrices(this.layoutAncestryMatrices.reverse());
+      const inverse = invert([], matrix);
+      HaikuElement.transformPointInPlace(point, inverse);
+    }
+
+    return point;
   }
 
   getParser (outputName) {
@@ -2267,63 +2279,6 @@ function assertTemplate (template) {
   }
 
   throw new Error('Unknown bytecode template format');
-}
-
-function stateSpecValidityCheck (stateSpec: any, stateSpecName: string): boolean {
-  if (
-    stateSpec.type === 'any' ||
-    stateSpec.type === '*' ||
-    stateSpec.type === undefined ||
-    stateSpec.type === null
-  ) {
-    return true;
-  }
-
-  if (stateSpec.type === 'event' || stateSpec.type === 'listener') {
-    if (
-      typeof stateSpec.value !== 'function' &&
-      stateSpec.value !== null &&
-      stateSpec.value !== undefined
-    ) {
-      console.error(
-        'Property value `' +
-        stateSpecName +
-        '` must be an event listener function',
-      );
-
-      return false;
-    }
-
-    return true;
-  }
-
-  if (stateSpec.type === 'array') {
-    if (!Array.isArray(stateSpec.value)) {
-      console.error(
-        'Property value `' + stateSpecName + '` must be an array',
-      );
-
-      return false;
-    }
-  } else if (stateSpec.type === 'object') {
-    if (stateSpec.value && typeof stateSpec.value !== 'object') {
-      console.error(
-        'Property value `' + stateSpecName + '` must be an object',
-      );
-
-      return false;
-    }
-  } else {
-    if (typeof stateSpec.value !== stateSpec.type) {
-      console.error(
-        'Property value `' + stateSpecName + '` must be a `' + stateSpec.type + '`',
-      );
-
-      return false;
-    }
-  }
-
-  return true;
 }
 
 const needsVirtualChildren = (child: BytecodeNode): boolean => typeof child === 'object' &&
@@ -3042,8 +2997,22 @@ export const VANITIES = {
     },
 
     // Text and other inner-content related vanities
-    content: (_, element, value) => {
+    content: (
+      name,
+      element,
+      value,
+      context,
+      timeline,
+      receiver,
+      sender,
+    ) => {
       element.__memory.children = [value];
+
+      // If we don't do this, then content changes resulting from setState calls
+      // don't have the effect of flushing the content, and the rendered text doesn't change.
+      // DEMO: bind-numeric-state-to-text
+      // TODO: What is the best way to make this less expensive (while still functional)?
+      sender.markForFullFlush();
     },
 
     // Playback-related vanities that involve controlling timeline or clock time
@@ -3733,6 +3702,17 @@ INJECTABLES.$user = {
   summon (injectees, component: HaikuComponent, node) {
     if (isLiveMode(component.config.interactionMode)) {
       injectees.$user = component.context.getGlobalUserState();
+
+      // If we're inside another component, produce mouse coords in terms
+      // of our own coordinate space
+      if (component.host) {
+        Object.assign(
+          injectees.$user.mouse,
+          component.transformContextPointToLocalPoint(
+            Object.assign({}, injectees.$user.mouse),
+          ),
+        );
+      }
     } else {
       injectees.$user = {
         mouse: {

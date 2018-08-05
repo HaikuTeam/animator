@@ -401,11 +401,13 @@ export default class HaikuDOMRenderer extends HaikuBase implements IRenderer {
   mountEventListener (component: IHaikuComponent, selector: string, name: string, listener: Function) {
     let rewritten = name;
 
-    if (name === 'mouseenter') {
+    if (name === 'hover') {
       rewritten = 'mouseover';
-    }
-
-    if (name === 'mouseleave') {
+    } else if (name === 'unhover') {
+      rewritten = 'mouseout';
+    } else if (name === 'mouseenter') {
+      rewritten = 'mouseover';
+    } else if (name === 'mouseleave') {
       rewritten = 'mouseout';
     }
 
@@ -437,15 +439,34 @@ export default class HaikuDOMRenderer extends HaikuBase implements IRenderer {
       const match = (component.target.parentNode as Element).querySelector(query);
 
       if (match) {
-        if (this.shouldListenerReceiveEvent(name, domEvent, match, mount)) {
-          listener(domEvent.target, this.wrapEvent(name, domEvent, match, component));
+        if (this.shouldListenerReceiveEvent(name, rewritten, domEvent, match, mount)) {
+          listener(
+            this.getHaikuElementFromTarget(domEvent.target),
+            domEvent.target,
+            this.wrapEvent(name, domEvent, match, component),
+          );
+
           return;
         }
       }
     });
   }
 
-  shouldListenerReceiveEvent = (name: string, event, match: Element, mount): boolean => {
+  getHaikuElementFromTarget (target) {
+    return (
+      target &&
+      target.haiku &&
+      target.haiku.element &&
+      target.haiku.element.__memory &&
+      target.haiku.element.__memory.element
+    );
+  }
+
+  shouldListenerReceiveEvent = (name: string, rewritten: string, event, match: Element, mount): boolean => {
+    if (name === 'hover' || name === 'unhover') {
+      return event.target === match;
+    }
+
     if (name === 'keyup' || name === 'keydown' || name === 'keypress') {
       // See not about keyboard handling in HaikuDOMRenderer#decideMountElement
       if (mount === this.getWindow()) {
@@ -492,6 +513,7 @@ export default class HaikuDOMRenderer extends HaikuBase implements IRenderer {
       mouse: {
         x: (this.user.mouse.x) / zoom,
         y: (this.user.mouse.y) / zoom,
+        z: 0,
         down: this.user.mouse.down,
         buttons: [...this.user.mouse.buttons],
       },

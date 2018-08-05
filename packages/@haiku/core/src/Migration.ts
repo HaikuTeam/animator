@@ -168,14 +168,11 @@ export const runMigrationsPrePhase = (component: IHaikuComponent, options: Migra
     coreVersion,
     UpgradeVersionRequirement.CamelAutoSizingOffset3DOmnibus,
   );
+
   const referencesToUpdate = {};
 
   if (bytecode.template) {
     const autoPreserve3d = component.config.preserve3d === 'auto';
-
-    // If specified, make sure that internal URL references, e.g. url(#my-filter), are unique
-    // per each component instance, otherwise we will get filter collisions and weirdness on the page
-    const alreadyUpdatedReferences = {};
 
     visitManaTree(
       '0',
@@ -185,21 +182,35 @@ export const runMigrationsPrePhase = (component: IHaikuComponent, options: Migra
           return;
         }
 
-        const timelineProperties = bytecode.timelines.Default[`haiku:${attributes[HAIKU_ID_ATTRIBUTE]}`];
-        if (!timelineProperties) {
+        if (options && options.referenceUniqueness) {
+          if (attributes.id) {
+            const prev = attributes.id;
+            const next = prev + '-' + options.referenceUniqueness;
+            attributes.id = next;
+            referencesToUpdate[`#${prev}`] = `#${next}`;
+            referencesToUpdate['url(#' + prev + ')'] = 'url(#' + next + ')';
+          }
+        }
+      },
+      null,
+      0,
+    );
+
+    visitManaTree(
+      '0',
+      bytecode.template,
+      (elementName, attributes) => {
+        if (typeof attributes !== 'object') {
           return;
         }
 
-        if (options && options.referenceUniqueness) {
-          if (elementName === 'filter' || elementName === 'filterGradient') {
-            if (attributes.id && !alreadyUpdatedReferences[attributes.id]) {
-              const prev = attributes.id;
-              const next = prev + '-' + options.referenceUniqueness;
-              attributes.id = next;
-              referencesToUpdate['url(#' + prev + ')'] = 'url(#' + next + ')';
-              alreadyUpdatedReferences[attributes.id] = true;
-            }
-          }
+        if (attributes['xlink:href'] && referencesToUpdate[attributes['xlink:href']]) {
+          attributes['xlink:href'] = referencesToUpdate[attributes['xlink:href']];
+        }
+
+        const timelineProperties = bytecode.timelines.Default[`haiku:${attributes[HAIKU_ID_ATTRIBUTE]}`];
+        if (!timelineProperties) {
+          return;
         }
 
         // Switch the legacy 'source' attribute to the new 'haiku-source'
@@ -286,39 +297,26 @@ export const runMigrationsPrePhase = (component: IHaikuComponent, options: Migra
     // reference uniqueness. This may allow us to avoid a rerender below.
     for (const timelineName in bytecode.timelines) {
       for (const selector in bytecode.timelines[timelineName]) {
-        // If we're a filter attribute, update our references per those to whom uniqueness was added above.
-        // This appends a "*-abc123" string to the filter to avoid collisions when multiple same components
-        // are mounted in a single web page
-        if (bytecode.timelines[timelineName][selector].filter) {
-          for (const keyframeMs in bytecode.timelines[timelineName][selector].filter) {
-            const keyframeDesc = bytecode.timelines[timelineName][selector].filter[keyframeMs];
-            if (keyframeDesc && referencesToUpdate[keyframeDesc.value as string]) {
-              keyframeDesc.value = referencesToUpdate[keyframeDesc.value as string];
-            }
-          }
-        }
-
-        // The fill attribute may reference a <filterGradient> property; avoid collisions same as above.
-        if (bytecode.timelines[timelineName][selector].fill) {
-          for (const keyframeMs in bytecode.timelines[timelineName][selector].fill) {
-            const keyframeDesc = bytecode.timelines[timelineName][selector].fill[keyframeMs];
-            if (keyframeDesc && referencesToUpdate[keyframeDesc.value as string]) {
-              keyframeDesc.value = referencesToUpdate[keyframeDesc.value as string];
-            }
-          }
-        }
-
         if (needsOmnibusUpgrade) {
           // Migrate auto-sizing.
           migrateAutoSizing(bytecode.timelines[timelineName][selector]);
-          // Migrate camel-case property names.
-          for (const propertyName in bytecode.timelines[timelineName][selector]) {
+        }
+
+        for (const propertyName in bytecode.timelines[timelineName][selector]) {
+          if (needsOmnibusUpgrade) {
+            // Migrate camel-case property names.
             const camelVariant = options.attrsHyphToCamel[propertyName];
             if (camelVariant) {
               bytecode.timelines[timelineName][selector][camelVariant] =
                 bytecode.timelines[timelineName][selector][propertyName];
-
               delete bytecode.timelines[timelineName][selector][propertyName];
+            }
+          }
+
+          for (const keyframeMs in bytecode.timelines[timelineName][selector][propertyName]) {
+            const keyframeDesc = bytecode.timelines[timelineName][selector][propertyName][keyframeMs];
+            if (keyframeDesc && referencesToUpdate[keyframeDesc.value as string]) {
+              keyframeDesc.value = referencesToUpdate[keyframeDesc.value as string];
             }
           }
         }
@@ -431,26 +429,29 @@ export const runMigrationsPostPhase = (component: IHaikuComponent, options: Migr
     });
   }
 
-  if (requiresUpgrade(coreVersion, UpgradeVersionRequirement.TimelineDefaultFrames)) {
-    component.eachEventHandler((eventSelector, eventName, {handler}) => {
-      if (!handler) {
-        console.warn(`Unable to migrate event handler for ${eventSelector} ${eventName} in ${component.$id}`);
-        return;
-      }
+  component.eachEventHandler((eventSelector, eventName, {handler}) => {
+    if (!handler) {
+      console.warn(`Unable to migrate event handler for ${eventSelector} ${eventName} in ${component.$id}`);
+      return;
+    }
 
-      const rfo = handler.__rfo || functionToRFO(handler).__function;
-      let body: string = rfo.body;
-      let changed = false;
-      ['.seek(', '.gotoAndPlay(', '.gotoAndStop('].forEach((methodSignature) => {
+    const rfo = handler.__rfo || functionToRFO(handler).__function;
+    let params = rfo.params;
+    let body: string = rfo.body;
+    let changed = false;
+
+    if (requiresUpgrade(coreVersion, UpgradeVersionRequirement.TimelineDefaultFrames)) {
+      (['.seek(', '.gotoAndPlay(', '.gotoAndStop(']).forEach((methodSignature) => {
         for (let cursor = 0; cursor < body.length; ++cursor) {
           if (body.substring(cursor, cursor + methodSignature.length) !== methodSignature) {
             continue;
           }
 
+          changed = true;
+
           // We have matched e.g. this.getDefaultTimeline().seek( at the string index of ".seek(".
           // Using the assumption that the method arguments do not contain string arguments with parentheses inside,
           // we can apply a simple parenthesis-balancing algorithm here.
-          changed = true;
           cursor += methodSignature.length;
           let openParens = 1;
           while (openParens > 0 && cursor < body.length) {
@@ -461,19 +462,26 @@ export const runMigrationsPostPhase = (component: IHaikuComponent, options: Migr
             }
             ++cursor;
           }
+
           // Essentially, replace .seek(foo) with .seek(foo, 'ms').
           body = `${body.slice(0, cursor - 1)}, 'ms')${body.slice(cursor)}`;
         }
       });
+    }
 
-      if (changed) {
-        bytecode.eventHandlers[eventSelector][eventName].handler = reifyRFO({
-          ...rfo,
-          body,
-        });
-      }
-    });
-  }
+    if (params.length < 4) {
+      params = ['component', 'element', 'target', 'event'];
+      changed = true;
+    }
+
+    if (changed) {
+      bytecode.eventHandlers[eventSelector][eventName].handler = reifyRFO({
+        ...rfo,
+        params,
+        body,
+      });
+    }
+  });
 
   if (needsRerender) {
     component.clearCaches();

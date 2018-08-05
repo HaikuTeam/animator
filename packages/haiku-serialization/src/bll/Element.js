@@ -321,11 +321,21 @@ class Element extends BaseModel {
 
   getApplicableEventHandlerOptionsList () {
     const options = []
-    const handlers = this.getReifiedEventHandlers()
 
     // Track which ones we've already accounted for in the 'known events' lists so that
     // we only display those that aren't accounted for under the 'custom events' list
     const predefined = {}
+
+    Element.HIGHER_ORDER_EVENTS.forEach((spec) => {
+      predefined[spec.value] = true
+    })
+
+    options.push({
+      label: 'Favorites',
+      options: Element.HIGHER_ORDER_EVENTS
+    })
+
+    const handlers = this.getReifiedEventHandlers()
 
     for (let category in KnownDOMEvents) {
       let suboptions = []
@@ -1949,6 +1959,11 @@ Element.cache = {
   eventListeners: {}
 }
 
+Element.HIGHER_ORDER_EVENTS = [
+  { label: 'Hover', value: 'hover' },
+  { label: 'Unhover', value: 'unhover' }
+]
+
 Element.COMPONENT_EVENTS = [
   { label: 'Will Mount', value: 'component:will-mount' },
   { label: 'Did Mount', value: 'component:did-mount' },
@@ -2111,7 +2126,7 @@ Element.makeUid = (component, parent, index, staticTemplateNode) => {
 
 Element.getFriendlyLabel = (node) => {
   if (!node || typeof node !== 'object') {
-    return
+    return ''
   }
 
   const id = node.attributes && node.attributes.id
@@ -2124,7 +2139,7 @@ Element.getFriendlyLabel = (node) => {
   }
 
   if (id && !title) {
-    return id
+    return id + '' // The id may be a number (?!) so cast it to a string
   }
 
   let out = ''
