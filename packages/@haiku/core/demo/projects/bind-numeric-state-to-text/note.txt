@@ -1,1 +1,1 @@
-Confirms that text content can be bound to a state which is changed between different numeric values across frame event listeners. The text shoud change across several numbers.
+Confirms that text content can be bound to a state which is changed between different numeric values across frame event listeners. The text shoud change across several numbers: 1,3,"four",55.
