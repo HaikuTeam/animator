@@ -41,9 +41,6 @@ import {
 } from './project-folder/copyExternalExampleFilesToProject';
 import {duplicateProject} from './project-folder/duplicateProject';
 import {
-  getCachedOrganizationName,
-} from './project-folder/getCurrentOrganizationName';
-import {
   storeConfigValues,
 } from './project-folder/ProjectDefinitions';
 
@@ -628,9 +625,10 @@ export default class Plumbing extends EventEmitter {
       } else if (typeof error === 'string') {
         error = new Error(error); // Unfortunately no good stack trace in this case
       }
+      const organization = this.envoyHandlers.user.getOrganization();
       crashReport(
         error,
-        getCachedOrganizationName(),
+        organization && organization.Name,
         this.get('lastOpenedProjectName'),
         this.get('lastOpenedProjectPath'),
       );

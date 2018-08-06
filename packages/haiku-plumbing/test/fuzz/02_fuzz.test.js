@@ -9,16 +9,16 @@ import TestHelpers from '../TestHelpers';
 import MasterGitProject from '@plumbing/MasterGitProject';
 
 tape('other.02', (t) => {
-  t.plan(2);
   const changes = {};
-  function change (relpath) {
+  const change = (relpath) => {
     if (!changes[relpath]) {
       changes[relpath] = 0;
     }
     changes[relpath] += 1;
     return changes[relpath];
-  }
-  return TestHelpers.setup(function (folder, creator, glass, timeline, metadata, teardown) {
+  };
+
+  return TestHelpers.setup((folder, creator, glass, timeline, teardown) => {
     t.ok(true);
     fse.outputFileSync(path.join(folder, 'hello.txt'), `${change('hello.txt')}`);
     fse.outputFileSync(path.join(folder, 'goodbye.txt'), `${change('goodbye.txt')}`);
@@ -60,6 +60,7 @@ tape('other.02', (t) => {
 
     ], (err) => {
       t.error(err, 'finished without error');
+      t.end();
     });
   });
 });

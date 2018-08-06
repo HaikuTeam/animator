@@ -4,7 +4,6 @@ import * as tmp from 'tmp';
 import * as fse from 'haiku-fs-extra';
 import * as randomAlphabetical from 'haiku-serialization/src/utils/randomAlphabetical';
 import Plumbing, {HAIKU_WS_SECURITY_TOKEN} from '@plumbing/Plumbing';
-import {getCurrentOrganizationName} from '@plumbing/project-folder/getCurrentOrganizationName';
 
 
 function websocket (host, port, folder, alias, type) {
@@ -76,7 +75,7 @@ function setup (ready) {
   return before(() => {
     return tmpdir((folder, cleanup) => {
       process.env.HAIKU_PROJECT_FOLDER = folder;
-      return plumb((plumbing, host, port, envoy) => {
+      return plumb((plumbing, host, port) => {
         const creator = websocket(host, port, folder, 'creator', 'commander');
         const glass = websocket(host, port, folder, 'glass', 'controllee');
         const timeline = websocket(host, port, folder, 'timeline', 'controllee');
@@ -103,15 +102,7 @@ function setup (ready) {
           plumbing.teardown(cb);
         }
         creator.on('open', () => {
-          getCurrentOrganizationName((err, organizationName) => {
-            if (err) {
-              throw err;
-            }
-            const metadata = {
-              organizationName,
-            };
-            return ready(folder, creator, glass, timeline, metadata, teardown, plumbing);
-          });
+          ready(folder, creator, glass, timeline, teardown, plumbing);
         });
       });
     });
@@ -130,16 +121,8 @@ function tmpdir (cb) {
   });
 }
 
-const gitcfg = {
-  repoGitUrl: 'https://github.com/HaikuTeam/git-testing.git',
-  testUsername: 'haiku-test-user',
-  testPassword: 'Snappy#-Citizen156!)',
-  testEmail: 'matthew+github-haiku-test-user@haiku.ai',
-};
-
 export default {
   tmpdir,
-  gitcfg,
   setup,
   launch,
 };
