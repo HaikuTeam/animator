@@ -95,20 +95,21 @@ class Illustrator {
     // file before being executed.
     const tmpdir = os.tmpdir()
     const fileName = uuid.v4() + '.jsx'
-    const filePath = path.join(tmpdir, fileName)
+    const exportScriptPath = path.join(tmpdir, fileName)
     const exportScript =
       EXPORTER_SCRIPT
         .replace('DESTINATION_PATH', artboardFolder)
         .replace('SOURCE_PATH', abspath)
 
-    fse.writeFileSync(filePath, exportScript)
+    fse.writeFileSync(exportScriptPath, exportScript)
 
-    execSync(Illustrator.generateExporterCommand(filePath))
+    execSync(Illustrator.openIllustratorFile(abspath))
+    execSync(Illustrator.openIllustratorFile(exportScriptPath))
 
     return true
   }
 
-  static generateExporterCommand (file) {
+  static openIllustratorFile (file) {
     if (isMac()) {
       return `open -g -b com.adobe.Illustrator ${file}`
     } else if (isWindows()) {
