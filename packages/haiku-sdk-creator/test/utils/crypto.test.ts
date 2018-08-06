@@ -3,9 +3,10 @@ import * as tape from 'tape';
 
 tape('obfuscation', (test) => {
   const obfuscated = obfuscate({foo: 'bar'});
-  test.equal(obfuscated.key, 'fKc9PKZJg>', 'obfuscation returns expected key');
+  const [key, value] = obfuscated;
+  test.equal(key, 'fKc9PKZJg>', 'obfuscation returns expected key');
   test.deepEqual(unobfuscate(obfuscated), {foo: 'bar'}, 'unobfuscation returns expected original');
-  obfuscated.key = 'a'.repeat(obfuscated.key.length);
-  test.throws(() => unobfuscate(obfuscated), 'unobfuscation with a tampered object throws');
+  obfuscated[0] = 'a'.repeat(key.length);
+  test.deepEqual(unobfuscate(obfuscated), {}, 'unobfuscation with a tampered object resolves to an empty object');
   test.end();
 });
