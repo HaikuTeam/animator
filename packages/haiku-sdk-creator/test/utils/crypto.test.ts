@@ -3,7 +3,7 @@ import * as tape from 'tape';
 
 tape('obfuscation', (test) => {
   const obfuscated = obfuscate({foo: 'bar'});
-  const [key, value] = obfuscated;
+  const [key] = obfuscated;
   test.equal(key, 'fKc9PKZJg>', 'obfuscation returns expected key');
   test.deepEqual(unobfuscate(obfuscated), {foo: 'bar'}, 'unobfuscation returns expected original');
   obfuscated[0] = 'a'.repeat(key.length);
