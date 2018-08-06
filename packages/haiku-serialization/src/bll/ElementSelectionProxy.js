@@ -176,7 +176,7 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   canCreateComponentFromSelection () {
-    return this.selection.length > 0
+    return this.selection.length === 0 || !this.isSingleComponentSelected()
   }
 
   isSingleComponentSelected () {

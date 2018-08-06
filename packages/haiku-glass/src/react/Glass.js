@@ -1061,7 +1061,7 @@ export class Glass extends React.Component {
     if (proxy.hasAnythingInSelectionButNotArtboard()) {
       componentIds = proxy.selection.map((element) => element.getComponentId());
     } else {
-      componentIds = this.getActiveComponent().getTopLevelElementHaikuIds();
+      componentIds = [];
     }
 
     this.getActiveComponent().conglomerateComponent(
