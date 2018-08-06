@@ -420,21 +420,6 @@ Asset.PROXIMITIES = {
   REMOTE: 'remote'
 }
 
-const PRIMARY_ASSET_MESSAGE = `
-⇧ Double click to open this file in Sketch.
-Every slice and artboard will be synced here when you save.
-`
-
-const FIGMA_ASSET_MESSAGE = `
-⇧ Double click to import a file from Figma.
-Every slice and group will be imported here.
-`
-
-const ILLUSTRATOR_ASSET_MESSAGE = `
-⇧ Double click to open this file in Illustrator.
-Every artboard will be synced here when you save.
-`
-
 Asset.ingestAssets = (project, dict) => {
   Asset.purge()
 
@@ -580,41 +565,6 @@ function controlComponentAsset (project, displayName, partial) {
     children: [],
     dtModified: 1
   })
-}
-
-const shouldDisplayPrimaryAssetMessage = (childrenOfDesignFolder) => {
-  if (childrenOfDesignFolder.length < 1) {
-    return false
-  }
-  if (!childrenOfDesignFolder[1]) {
-    return false
-  }
-  if (childrenOfDesignFolder[1].isPrimaryAsset() && childrenOfDesignFolder[1].children.length < 1) {
-    return true
-  }
-  return false
-}
-
-const shouldDisplayIllustratorMessage = (childrenOfDesignFolder) => {
-  if (childrenOfDesignFolder.length < 1) {
-    return false
-  }
-  if (childrenOfDesignFolder[0].isDefaultIllustratorAssetPath() && childrenOfDesignFolder[0].children.length < 1) {
-    return true
-  }
-  return false
-}
-
-const getIndexOfFirstSketchChild = (childrenOfDesignFolder) => {
-  return childrenOfDesignFolder.findIndex((child) => child.isSketchFile())
-}
-
-const getIndexOfFirstFigmaChild = (childrenOfDesignFolder) => {
-  return childrenOfDesignFolder.findIndex((child) => child.isFigmaFile())
-}
-
-const getIndexOfFirstIllustratorChild = (childrenOfDesignFolder) => {
-  return childrenOfDesignFolder.findIndex((child) => child.isIllustratorFile())
 }
 
 const sortedChildrenOfComponentFolderAsset = (asset) => {

@@ -14,7 +14,6 @@ import {
     getProjectNameLowerCase,
     getProjectNameSafeShort,
     getReactProjectName,
-    getStandaloneName,
 } from './ProjectDefinitions';
 
 export function createProjectFiles (

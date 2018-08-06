@@ -1,4 +1,3 @@
-import {MaybeAsync} from '../envoy';
 
 export enum ExporterFormat {
   Unknown = 'Unknown',

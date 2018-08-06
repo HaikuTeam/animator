@@ -1,4 +1,3 @@
-import {client as sdkClient} from '@haiku/sdk-client';
 import {inkstone} from '@haiku/sdk-inkstone';
 // @ts-ignore
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';

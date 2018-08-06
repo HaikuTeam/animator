@@ -35,20 +35,20 @@ export namespace client {
   }
 
   export class npm {
-    static readPackageJson (path: string = global.process.cwd() + '/package.json'): any {
-      return JSON.parse(fs.readFileSync(path, 'utf8'));
+    static readPackageJson (pathIn: string = global.process.cwd() + '/package.json'): any {
+      return JSON.parse(fs.readFileSync(pathIn, 'utf8'));
     }
 
-    static writePackageJson (jsonObject: any, path: string = global.process.cwd() + '/package.json') {
-      fs.writeFileSync(path, JSON.stringify(jsonObject, undefined, 2));
+    static writePackageJson (jsonObject: any, pathIn: string = global.process.cwd() + '/package.json') {
+      fs.writeFileSync(pathIn, JSON.stringify(jsonObject, undefined, 2));
     }
   }
 
   export class git {
-    static cloneRepo (remote: string, path: string, cb: (error?: any) => any) {
+    static cloneRepo (remote: string, pathIn: string, cb: (error?: any) => any) {
       let err;
       try {
-        execSync(`git clone ${remote} ${path}`);
+        execSync(`git clone ${remote} ${pathIn}`);
       } catch (e) {
         err = e;
         client.verboselyLog('error cloning repository', e);

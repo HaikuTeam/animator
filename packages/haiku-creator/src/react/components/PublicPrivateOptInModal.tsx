@@ -89,7 +89,8 @@ export class PublicPrivateOptInModal extends React.PureComponent<PublicPrivateOp
             <span style={STYLES.label}>Public</span>
             <div style={STYLES.description}>
               Visible on the <ExternalLink
-                style={STYLES.link} href={`https://share.haiku.ai/`}
+                style={STYLES.link}
+                href={`https://share.haiku.ai/`}
               >
                 Haiku Community
               </ExternalLink>,
