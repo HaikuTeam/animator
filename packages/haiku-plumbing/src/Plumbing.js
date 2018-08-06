@@ -1287,21 +1287,3 @@ function createResponder (message, websocket) {
     sendMessageToClient(websocket, reply);
   };
 }
-
-function remapProjectObjectToExpectedFormat (projectObject, organizationName) {
-  const projectPath = path.join(
-    HOMEDIR_PATH,
-    'projects',
-    organizationName,
-    projectObject.Name,
-  );
-  return {
-    projectPath,
-    projectName: projectObject.Name,
-    projectExistsLocally: fse.existsSync(projectPath),
-    projectsHome: HOMEDIR_PATH,
-    repositoryUrl: projectObject.RepositoryUrl,
-    forkComplete: projectObject.ForkComplete,
-    isPublic: projectObject.IsPublic,
-  };
-}
