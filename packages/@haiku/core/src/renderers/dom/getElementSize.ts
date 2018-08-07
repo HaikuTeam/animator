@@ -3,18 +3,9 @@
  */
 
 export default function getElementSize (domElement) {
-  let x;
-  let y;
-  if (domElement.offsetWidth === undefined) {
-    const rect = domElement.getBoundingClientRect();
-    x = rect.width;
-    y = rect.height;
-  } else {
-    x = domElement.offsetWidth;
-    y = domElement.offsetHeight;
-  }
+  const rect = domElement.getBoundingClientRect();
   return {
-    x,
-    y,
+    x: rect.width,
+    y: rect.height,
   };
 }
