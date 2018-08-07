@@ -175,10 +175,6 @@ class ElementSelectionProxy extends BaseModel {
     this._originCache.groupOrigin = this.getOriginTransformed()
   }
 
-  canCreateComponentFromSelection () {
-    return this.selection.length > 0
-  }
-
   isSingleComponentSelected () {
     return this.selection.length === 1 &&
       this.selection[0] &&
