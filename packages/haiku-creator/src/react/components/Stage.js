@@ -3,6 +3,7 @@ import * as React from 'react';
 import * as qs from 'qs';
 import * as assign from 'lodash.assign';
 import * as path from 'path';
+import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import StageTitleBar from './StageTitleBar';
 import ComponentMenu from './ComponentMenu/ComponentMenu';
 import CodeEditor from './CodeEditor/CodeEditor';
@@ -26,12 +27,12 @@ const STAGE_BOX_STYLE = {
 
 const STAGE_FADE_OUT = {
   transform: 'scale(0.95)',
-  transition: 'visibility 0s linear 240ms, opacity 240ms, transform ease 240ms',
+  transition: 'visibility 0s linear 0ms, opacity 250ms, transform ease-in 250ms',
 };
 
 const STAGE_FADE_IN = {
   transform: 'scale(1)',
-  transition: 'visibility 0s linear 0s, opacity 240ms, transform ease 240ms',
+  transition: 'visibility 0s linear 0s, opacity 250ms, transform ease-in 250ms',
 };
 
 const clearAboutToChange = {
@@ -78,7 +79,10 @@ class Stage extends React.Component {
         this.props.setGlassInteractionToEditMode();
       }
 
-      this.props.projectModel.setCurrentActiveComponent(scenename, {from: 'creator'}, () => {});
+      logger.profile('[stage]projectModel.setCurrentActiveComponent');
+      this.props.projectModel.setCurrentActiveComponent(scenename, {from: 'creator'}, () => {
+        logger.profile('[stage]projectModel.setCurrentActiveComponent');
+      });
     }
   }
 
@@ -118,7 +122,10 @@ class Stage extends React.Component {
         this.props.setGlassInteractionToEditMode();
       }
 
-      this.props.projectModel.setCurrentActiveComponent(this.state.aboutToChangeToComponent, {from: 'creator'}, () => {});
+      logger.profile('[stage]projectModel.setCurrentActiveComponent');
+      this.props.projectModel.setCurrentActiveComponent(this.state.aboutToChangeToComponent, {from: 'creator'}, () => {
+        logger.profile('[stage]projectModel.setCurrentActiveComponent');
+      });
     }
 
     this.closeCodeEditorSavePopup();

@@ -22,17 +22,6 @@ const formatJsonLogToString = (message) => {
     }).join(' ')
   }
 
-  // Allows sending profiling info to mixpanel - 
-  // IMPROVE: add option to send to mixpanel any message with logToMixPanel, and depracate usage 
-  // of mixpanel.haikuTrack across code base, by using instead something along the lines of logger.info(<msg>,{logToMixPanel:true})
-  // if (message.durationMs && message.logToMixPanel){
-  //   mixpanel.haikuTrack('profiling', {
-  //     name: message.message,
-  //     process: message.view,
-  //     duration: message.durationMs,
-  //   })
-  // } 
-
   // Pading is done to visually align on file
   return `${message.timestamp}|${message.view.padEnd(8)}|${message.level}${message.tag ? '|' + message.tag : ''}${message.durationMs ? '|d=' + message.durationMs : ''}|${message.message}`
 }
@@ -168,12 +157,11 @@ class Logger extends EventEmitter {
     this.logger.error(args, {view: this.view})
   }
 
-  // Options: 
-  // - alwaysProfile: always profile
-  // TODO: logToMixPanel: send profile info to mixpanel
-  profile(arg, options = {}) {
+  // options:
+  // - forceProfile: force profile even without PROF env var
+  profile (arg, options = {}) {
     if (process.env.PROF || options.forceProfile) {
-      this.logger.profile(arg, {view: this.view, logToMixPanel: options.logToMixPanel})
+      this.logger.profile(arg, {view: this.view})
     }
   }
 
