@@ -1161,10 +1161,14 @@ export default class Creator extends React.Component {
   }
 
   launchProject (projectObject, cb) {
-    const {projectName, projectPath} = projectObject;
-
     // VERY IMPORTANT - if not set to true, we can end up in a situation where we overwrite freshly cloned content from the remote!
     projectObject.skipContentCreation = true;
+
+    if (projectObject.isFork && !projectObject.forkComplete) {
+      return this.openNewlyForkedProject(projectObject, 0, () => {});
+    }
+
+    const {projectName, projectPath} = projectObject;
 
     // Add extra context to Sentry reports, this info is also used by carbonite.
     window.Raven.setExtraContext({
@@ -1569,7 +1573,11 @@ export default class Creator extends React.Component {
         }
 
         this.envoyProject.forkProject(organizationName, projectName).then((haikuProject) => {
-          this.openNewlyForkedProject(haikuProject, 0);
+          this.launchProject(haikuProject, (launchError) => {
+            if (launchError) {
+              this.showForkingError();
+            }
+          });
         }).catch(() => {
           this.showForkingError();
         });
@@ -1584,12 +1592,11 @@ export default class Creator extends React.Component {
     }
   }
 
-  openNewlyForkedProject (haikuProject, numAttempts) {
+  openNewlyForkedProject (haikuProject, numAttempts, cb) {
     const forkedProjectName = haikuProject.projectName;
     const recheck = () => {
       if (numAttempts > MAX_FORK_ATTEMPTS) {
-        this.showForkingError();
-        return;
+        return cb(new Error('unable to open forked project'));
       }
 
       setTimeout(() => {

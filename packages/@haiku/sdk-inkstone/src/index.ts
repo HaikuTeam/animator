@@ -668,6 +668,7 @@ export namespace inkstone {
     export interface Project {
       Name: string;
       IsPublic: boolean;
+      IsFork: boolean;
       ForkComplete: boolean;
       RepositoryUrl: string;
     }

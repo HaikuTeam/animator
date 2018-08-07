@@ -39,6 +39,7 @@ export interface HaikuProject {
   isPublic: boolean;
   branchName: string;
   repositoryUrl?: string;
+  isFork?: boolean;
   forkComplete?: boolean;
   skipContentCreation?: boolean;
   organizationName?: string;
@@ -102,6 +103,7 @@ export class ProjectHandler extends EnvoyHandler {
       projectExistsLocally: existsSync(projectPath),
       repositoryUrl: project.RepositoryUrl,
       forkComplete: project.ForkComplete,
+      isFork: project.IsFork,
       isPublic: project.IsPublic,
       branchName: DEFAULT_BRANCH_NAME,
     };
