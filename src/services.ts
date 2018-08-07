@@ -125,7 +125,7 @@ export class RequestBuilder {
       (err, httpResponse, body) => {
         const errorCode =
           httpResponse && httpResponse.headers && httpResponse.headers[INKSTONE_ERROR_HEADER] as string;
-        if (err || errorCode) {
+        if (err || errorCode || httpResponse.statusCode > 399) {
           return cb(new Error(errorCode || 'E_UNCATEGORIZED'), httpResponse, body);
         }
         cb(null, httpResponse, body);
