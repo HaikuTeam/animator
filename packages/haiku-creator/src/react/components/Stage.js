@@ -304,6 +304,7 @@ class Stage extends React.Component {
             projectModel={this.props.projectModel}
             nonSavedContentOnCodeEditor={this.state.nonSavedContentOnCodeEditor}
             tryToChangeCurrentActiveComponent={this.props.tryToChangeCurrentActiveComponent}
+            websocket={this.props.websocket}
           />
           <div
             id="stage-mount"

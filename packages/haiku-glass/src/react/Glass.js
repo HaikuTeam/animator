@@ -1057,7 +1057,7 @@ export class Glass extends React.Component {
     if (proxy.hasAnythingInSelectionButNotArtboard()) {
       componentIds = proxy.selection.map((element) => element.getComponentId());
     } else {
-      componentIds = this.getActiveComponent().getTopLevelElementHaikuIds();
+      componentIds = [];
     }
 
     this.getActiveComponent().conglomerateComponent(
@@ -3124,7 +3124,6 @@ export class Glass extends React.Component {
     items.push({
       label: 'Create Component',
       // If a single element is already a component, we don't let it be created as one
-      enabled: proxy.canCreateComponentFromSelection(),
       onClick: () => {
         mixpanel.haikuTrack('creator:glass:launch-create-component-modal');
         this.launchComponentNameModal();

@@ -608,11 +608,6 @@ class StageTitleBar extends React.Component {
     }
   }
 
-  isConglomerateComponentAvailable () {
-    const proxy = this.fetchProxyElementForSelection();
-    return proxy && (proxy.canCreateComponentFromSelection() || proxy.canEditComponentFromSelection());
-  }
-
   getConglomerateComponentButtonColor () {
     const proxy = this.fetchProxyElementForSelection();
     if (proxy) {
@@ -623,24 +618,22 @@ class StageTitleBar extends React.Component {
   }
 
   handleConglomerateComponent () {
-    if (this.isConglomerateComponentAvailable()) {
-      const proxy = this.fetchProxyElementForSelection();
+    const proxy = this.fetchProxyElementForSelection();
 
-      if (proxy.canEditComponentFromSelection()) {
-        this.props.websocket.send({
-          type: 'broadcast',
-          from: 'creator',
-          name: 'edit-component',
-          folder: this.props.projectModel.getFolder(), // required when sent via Creator
-        });
-      } else if (proxy.canCreateComponentFromSelection()) {
-        this.props.websocket.send({
-          type: 'broadcast',
-          from: 'creator',
-          name: 'conglomerate-component',
-          folder: this.props.projectModel.getFolder(), // required when sent via Creator
-        });
-      }
+    if (proxy.canEditComponentFromSelection()) {
+      this.props.websocket.send({
+        type: 'broadcast',
+        from: 'creator',
+        name: 'edit-component',
+        folder: this.props.projectModel.getFolder(), // required when sent via Creator
+      });
+    } else {
+      this.props.websocket.send({
+        type: 'broadcast',
+        from: 'creator',
+        name: 'conglomerate-component',
+        folder: this.props.projectModel.getFolder(), // required when sent via Creator
+      });
     }
   }
 
@@ -720,18 +713,16 @@ class StageTitleBar extends React.Component {
 
     return (
       <div style={STYLES.frame} className="frame">
-        {this.isConglomerateComponentAvailable() &&
-          <button
-            key="conglomerate-component-button"
-            id="conglomerate-component-button"
-            onClick={this.handleConglomerateComponent}
-            style={[
-              BTN_STYLES.btnIcon,
-              BTN_STYLES.leftBtns,
-            ]}>
-            <ComponentIconSVG color={this.getConglomerateComponentButtonColor()} />
-          </button>
-        }
+        <button
+          key="conglomerate-component-button"
+          id="conglomerate-component-button"
+          onClick={this.handleConglomerateComponent}
+          style={[
+            BTN_STYLES.btnIcon,
+            BTN_STYLES.leftBtns,
+          ]}>
+          <ComponentIconSVG color={this.getConglomerateComponentButtonColor()} />
+        </button>
 
         {this.isEventHandlersEditorAvailable() &&
           <button
