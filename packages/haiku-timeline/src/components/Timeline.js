@@ -577,15 +577,7 @@ class Timeline extends React.Component {
         }
 
         if (what === 'row-selected' && metadata.from !== 'timeline') {
-          const rowElement = document.getElementById(`component-heading-row-${row.element.getComponentId()}-${row.getAddress()}`);
-
-          if (rowElement) {
-            this.container.scroll({
-              top: rowElement.offsetTop,
-              left: this.container.scrollLeft,
-              behavior: 'smooth',
-            });
-          }
+          this.scrollToRow(row);
         }
       }
     });
@@ -649,6 +641,19 @@ class Timeline extends React.Component {
 
     this.setState({isPreviewModeActive: isPreviewMode(interactionMode)});
   }
+
+  scrollToRow  = lodash.throttle((row) => {
+    const rowElement = document.getElementById(`component-heading-row-${row.element.getComponentId()}-${row.getAddress()}`);
+    const selectedElements = this.getActiveComponent().getSelectedElements();
+
+    if (rowElement && selectedElements.length === 1) {
+      this.container.scroll({
+        top: rowElement.offsetTop,
+        left: this.container.scrollLeft,
+        behavior: 'smooth',
+      });
+    }
+  }, 200);
 
   getPopoverMenuItems ({event, type, model, offset, curve}) {
     const items = [];
