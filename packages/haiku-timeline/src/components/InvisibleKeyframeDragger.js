@@ -77,7 +77,7 @@ export default class InvisibleKeyframeDragger extends React.Component {
           if (this.props.preventDragging) {
             return;
           }
-          this.props.component.dragStartSelectedKeyframes(dragData);
+          this.props.component.dragStartSelectedKeyframes(dragData, true);
         }}
         onStop={(dragEvent, dragData, wasDrag, lastMouseButtonPressed) => {
           if (this.props.preventDragging) {
@@ -89,7 +89,7 @@ export default class InvisibleKeyframeDragger extends React.Component {
           if (this.props.preventDragging) {
             return;
           }
-          this.props.component.dragSelectedKeyframes(frameInfo.pxpf, frameInfo.mspf, dragData, {alias: 'timeline'});
+          this.props.component.dragSelectedKeyframes(frameInfo.pxpf, frameInfo.mspf, dragData, {alias: 'timeline'}, true);
         }, THROTTLE_TIME)}>
         <span
           id={`keyframe-dragger-${this.props.keyframe.getUniqueKey()}`}

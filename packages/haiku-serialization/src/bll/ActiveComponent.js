@@ -1925,9 +1925,14 @@ class ActiveComponent extends BaseModel {
     return selectedKeyframeWithCurve ? selectedKeyframeWithCurve.getCurve() : null
   }
 
-  dragStartSelectedKeyframes (dragData) {
+  dragStartSelectedKeyframes (dragData, isFromSingleKeyframe) {
     const keyframes = this.getSelectedKeyframes()
-    keyframes.forEach((keyframe) => keyframe.dragStart(dragData))
+
+    if (isFromSingleKeyframe && Keyframe.groupIsSingleTween(keyframes)) {
+      keyframes[1].dragStart(dragData)
+    } else {
+      keyframes.forEach((keyframe) => keyframe.dragStart(dragData))
+    }
   }
 
   dragStopSelectedKeyframes (dragData) {
@@ -1940,9 +1945,14 @@ class ActiveComponent extends BaseModel {
     this.commitAccumulatedKeyframeMovesDebounced()
   }
 
-  dragSelectedKeyframes (pxpf, mspf, dragData, metadata) {
+  dragSelectedKeyframes (pxpf, mspf, dragData, metadata, isFromSingleKeyframe) {
     const keyframes = this.getSelectedKeyframes()
-    keyframes.forEach((keyframe) => keyframe.drag(pxpf, mspf, dragData, metadata))
+
+    if (isFromSingleKeyframe && Keyframe.groupIsSingleTween(keyframes)) {
+      keyframes[1].drag(pxpf, mspf, dragData, metadata)
+    } else {
+      keyframes.forEach((keyframe) => keyframe.drag(pxpf, mspf, dragData, metadata))
+    }
   }
 
   // Returns true iff the element has any transitions or expressions.
