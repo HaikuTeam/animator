@@ -13,6 +13,8 @@ export enum UserSettings {
   TimeDisplayModes = 'timeDisplayModes',
   FigmaToken = 'figmaToken',
   Identity = 'id',
+  // #FIXME: capitalize after conflict resolution.
+  DoNotDisplayConfirmGroupPopoup = 'doNotDisplayConfirmGroupPopoup',
 }
 
 export interface HaikuIdentity {
