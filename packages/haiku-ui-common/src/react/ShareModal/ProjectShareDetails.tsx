@@ -84,9 +84,6 @@ const STYLES = {
     backgroundColor: Palette.LIGHTEST_PINK,
     transform: 'translateX(13px)',
   },
-  disabledToggle: {
-    opacity: .5,
-  },
   circle: {
     display: 'inline-block',
     position: 'relative',
@@ -115,10 +112,14 @@ export interface ProjectShareDetailsProps {
   projectName: string;
   linkAddress: string;
   isSnapshotSaveInProgress: boolean;
+  snapshotSyndicated: boolean;
   isPublic: boolean;
-  isDisabled: boolean;
+  shouldShowPrivateWarning: boolean;
   togglePublic: () => void;
   mixpanel: any;
+  explorePro: () => void;
+  privateProjectCount: number;
+  privateProjectLimit: number;
 }
 
 export interface ProjectShareDetailsStates {
@@ -131,9 +132,7 @@ export class ProjectShareDetails extends React.PureComponent<ProjectShareDetails
   };
 
   private togglePublic = () => {
-    if (!this.props.isDisabled) {
-      this.props.togglePublic();
-    }
+    this.props.togglePublic();
   };
 
   private showTooltip = () => {
@@ -164,71 +163,72 @@ export class ProjectShareDetails extends React.PureComponent<ProjectShareDetails
       semverVersion,
       linkAddress,
       isSnapshotSaveInProgress,
+      snapshotSyndicated,
       isPublic,
     } = this.props;
 
     return (
-      <div style={STYLES.wrapper}>
-        <div style={{maxWidth: '50%'}}>
-          <h2 style={STYLES.title}>{projectName}</h2>
-          <p style={STYLES.info}>
-            <span style={STYLES.label}>ID</span> {projectName}
-          </p>
-          {!isSnapshotSaveInProgress ? (
+      <div>
+        <div style={STYLES.wrapper}>
+          <div style={{maxWidth: '50%'}}>
+            <h2 style={STYLES.title}>{projectName}</h2>
             <p style={STYLES.info}>
-              <span style={STYLES.label}>Version</span>{' '}
-              {semverVersion}
+              <span style={STYLES.label}>ID</span> {projectName}
             </p>
-          ) : (
-            <p style={{height: 16, ...STYLES.info}} />
-          )}
+            {!isSnapshotSaveInProgress ? (
+              <p style={STYLES.info}>
+                <span style={STYLES.label}>Version</span>{' '}
+                {semverVersion}
+              </p>
+            ) : (
+              <p style={{height: 16, ...STYLES.info}} />
+            )}
 
-          {<span style={{visibility: (this.props.isPublic === undefined && false) ? 'hidden' : 'visible'}}>
-            <span
-              style={{...STYLES.toggle, ...(isPublic && STYLES.toggleActive)}}
-              onClick={this.togglePublic}
-            >
-                <span style={{...STYLES.knob, ...(isPublic && STYLES.knobActive)}}/>
-            </span>
-            <span
-              style={{...STYLES.info, ...STYLES.infoSpecial2}}
-            >
+            {<span style={{visibility: (this.props.isPublic === undefined && false) ? 'hidden' : 'visible'}}>
               <span
-                id="public-private-label"
-                style={this.props.isDisabled ? STYLES.disabledToggle : STYLES.toggleLabel}
+                style={{...STYLES.toggle, ...(isPublic && STYLES.toggleActive)}}
+                onClick={this.togglePublic}
               >
-                {this.props.isPublic ? 'Public' : 'Private'}
+                  <span style={{...STYLES.knob, ...(isPublic && STYLES.knobActive)}}/>
               </span>
-            </span>
-            <span
-              style={STYLES.circle}
-              onMouseOver={this.showTooltip}
-              onMouseOut={this.hideTooltip}
-            >?
-            {this.state.showTooltip &&
-              <TooltipBasic light={true} top={16} width={170}>
-                <div style={STYLES.tiptext}>
-                  Projects set to 'Public' are visible on the Haiku Community and able to be forked.
-                  We also select our favorite haiku to showcase!
-                </div>
-              </TooltipBasic>
-            }
-            </span>
-          </span>}
-        </div>
+              <span
+                style={{...STYLES.info, ...STYLES.infoSpecial2}}
+              >
+                <span
+                  id="public-private-label"
+                  style={STYLES.toggleLabel}
+                >
+                  {this.props.isPublic ? 'Public' : 'Private'}
+                </span>
+              </span>
+              <span
+                style={STYLES.circle}
+                onMouseOver={this.showTooltip}
+                onMouseOut={this.hideTooltip}
+              >?
+              {this.state.showTooltip &&
+                <TooltipBasic light={true} top={16} width={170}>
+                  <div style={STYLES.tiptext}>
+                    Projects set to 'Public' are visible on the Haiku Community and able to be forked.
+                    We also select our favorite haiku to showcase!
+                  </div>
+                </TooltipBasic>
+              }
+              </span>
+            </span>}
+          </div>
 
-        <div style={{width: '50%'}}>
-          <p style={{...STYLES.info, ...STYLES.infoHeading}}>
-            <strong>Shareable link:</strong>
-          </p>
-          <LinkHolster
-            isSnapshotSaveInProgress={isSnapshotSaveInProgress}
-            linkAddress={linkAddress}
-            onCopy={this.onCopy}
-            onLinkOpen={this.onLinkOpen}
-          />
-          {
-            !this.props.isDisabled &&
+          <div style={{width: '50%'}}>
+            <p style={{...STYLES.info, ...STYLES.infoHeading}}>
+              <strong>Shareable link:</strong>
+            </p>
+            <LinkHolster
+              isSnapshotSaveInProgress={isSnapshotSaveInProgress}
+              snapshotSyndicated={snapshotSyndicated}
+              linkAddress={linkAddress}
+              onCopy={this.onCopy}
+              onLinkOpen={this.onLinkOpen}
+            />
             <p style={{...STYLES.info, ...STYLES.infoSpecial}}>
               Anyone&nbsp;
               {
@@ -239,8 +239,17 @@ export class ProjectShareDetails extends React.PureComponent<ProjectShareDetails
                 this.props.isPublic && <span><br />from your public profile</span> /*TODO: link to public profile */
               }
             </p>
-          }
+          </div>
         </div>
+        {/* #FIXME(@taylor) */}
+        {this.props.shouldShowPrivateWarning && (<div style={{width: '100%'}}>
+          <div>
+            This project cannot be set to private because you are at the limit
+            ({this.props.privateProjectCount}/{this.props.privateProjectLimit}).
+            Upgrade for unlimited private projects and pro features.
+          </div>
+          <div onClick={this.props.explorePro}>Learn more</div>
+        </div>)}
       </div>
     );
   }

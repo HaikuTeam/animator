@@ -40,10 +40,7 @@ const clearAboutToChange = {
   aboutToChangeToPreviewMode: false,
 };
 
-// This may not be precisely correct; please test the UI if you enable this experiment
-const STAGE_MOUNT_HEIGHT_OFFSET = (experimentIsEnabled(Experiment.MultiComponentFeatures))
-  ? 68
-  : 38;
+const STAGE_MOUNT_HEIGHT_OFFSET = 68;
 
 class Stage extends React.Component {
   constructor (props) {
@@ -280,38 +277,35 @@ class Stage extends React.Component {
           className="stage-box"
           style={STAGE_BOX_STYLE}>
           <StageTitleBar
+            explorePro={this.props.explorePro}
             folder={this.props.folder}
             envoyProject={this.props.envoyProject}
             projectModel={this.props.projectModel}
-            websocket={this.props.websocket}
             project={this.props.project}
+            websocket={this.props.websocket}
             createNotice={this.props.createNotice}
             removeNotice={this.props.removeNotice}
             organizationName={this.props.organizationName}
-            authToken={this.props.authToken}
             username={this.props.username}
-            password={this.props.password}
-            receiveProjectInfo={this.props.receiveProjectInfo}
+            privateProjectLimit={this.props.privateProjectLimit}
+            updateProjectObject={this.props.updateProjectObject}
             onPreviewModeToggled={this.props.onPreviewModeToggled}
             isTimelineReady={this.props.isTimelineReady}
             envoyClient={this.props.envoyClient}
-            onProjectPublicChange={this.props.onProjectPublicChange}
             setGlassInteractionToCodeEditorMode={this.props.setGlassInteractionToCodeEditorMode}
             tryToSwitchToEditMode={this.tryToSwitchToEditMode}
             interactionMode={this.props.interactionMode}
             saveCodeFromEditorToDisk={this.saveCodeFromEditorToDisk}
             onShowEventHandlerEditor={this.props.onShowEventHandlerEditor}
           />
-          {(experimentIsEnabled(Experiment.MultiComponentFeatures)) &&
-            <ComponentMenu
-              ref="component-menu"
-              showGlass={showGlassOnStage(this.props.interactionMode)}
-              projectModel={this.props.projectModel}
-              nonSavedContentOnCodeEditor={this.state.nonSavedContentOnCodeEditor}
-              tryToChangeCurrentActiveComponent={this.props.tryToChangeCurrentActiveComponent}
-              websocket={this.props.websocket}
-            />
-          }
+          <ComponentMenu
+            ref="component-menu"
+            showGlass={showGlassOnStage(this.props.interactionMode)}
+            projectModel={this.props.projectModel}
+            nonSavedContentOnCodeEditor={this.state.nonSavedContentOnCodeEditor}
+            tryToChangeCurrentActiveComponent={this.props.tryToChangeCurrentActiveComponent}
+            websocket={this.props.websocket}
+          />
           <div
             id="stage-mount"
             ref={(element) => {
@@ -372,11 +366,8 @@ Stage.propTypes = {
   project: React.PropTypes.object.isRequired,
   createNotice: React.PropTypes.func.isRequired,
   removeNotice: React.PropTypes.func.isRequired,
-  receiveProjectInfo: React.PropTypes.func,
   organizationName: React.PropTypes.string,
-  authToken: React.PropTypes.string,
   username: React.PropTypes.string,
-  password: React.PropTypes.string,
 };
 
 export default Radium(Stage);

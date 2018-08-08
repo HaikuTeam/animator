@@ -1,6 +1,6 @@
 {
   "name": "haiku-common",
-  "version": "3.5.1",
+  "version": "3.5.2",
   "description": "Common library for Haiku.",
   "main": "lib/index.js",
   "directories": {
@@ -33,9 +33,9 @@
     "tslint-config-haiku": "^1.0.15",
     "typescript": "^2.9.1",
     "leaked-handles": "^5.2.0",
-    "haiku-testing": "3.5.1"
+    "haiku-testing": "3.5.2"
   },
   "dependencies": {
-    "@haiku/core": "3.5.1"
+    "@haiku/core": "3.5.2"
   }
 }

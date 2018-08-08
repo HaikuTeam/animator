@@ -2,7 +2,7 @@
   "name": "haiku-creator",
   "productName": "Haiku",
   "private": true,
-  "version": "3.5.1",
+  "version": "3.5.2",
   "description": "Haiku Creator UI",
   "main": "index.js",
   "author": "Matthew Trost <matthew@haiku.ai>",
@@ -20,7 +20,7 @@
     "start": "electron ./lib/electron.js"
   },
   "dependencies": {
-    "@haiku/core": "3.5.1",
+    "@haiku/core": "3.5.2",
     "@haiku/taylor-creatorintro": "^0.0.5",
     "@haiku/taylor-hai": "^0.0.7",
     "@haiku/taylor-ipreview2": "^0.0.2",
@@ -31,14 +31,13 @@
     "event-emitter": "^0.3.5",
     "fs-extra": "^4.0.2",
     "fast-safe-stringify": "^2.0.4",
-    "haiku-common": "3.5.1",
-    "haiku-glass": "3.5.1",
-    "haiku-sdk-creator": "3.5.1",
-    "haiku-serialization": "3.5.1",
-    "haiku-timeline": "3.5.1",
-    "haiku-ui-common": "3.5.1",
+    "haiku-common": "3.5.2",
+    "haiku-glass": "3.5.2",
+    "haiku-sdk-creator": "3.5.2",
+    "haiku-serialization": "3.5.2",
+    "haiku-timeline": "3.5.2",
+    "haiku-ui-common": "3.5.2",
     "inline-style-prefixer": "2.0.5",
-    "is-online": "^7.0.0",
     "lodash": "^4.17.4",
     "lodash.assign": "^4.2.0",
     "lodash.debounce": "4.0.8",
@@ -81,6 +80,6 @@
     "tslint-config-haiku": "^1.0.15",
     "typescript": "^2.9.1",
     "leaked-handles": "^5.2.0",
-    "haiku-testing": "3.5.1"
+    "haiku-testing": "3.5.2"
   }
 }

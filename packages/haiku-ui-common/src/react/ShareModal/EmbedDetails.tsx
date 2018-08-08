@@ -1,3 +1,4 @@
+import {HaikuShareUrls} from 'haiku-sdk-creator/lib/bll/Project';
 import * as React from 'react';
 import {SHARED_STYLES} from '../../SharedStyles';
 import * as ShareTemplates from './ShareOptions';
@@ -15,9 +16,8 @@ export interface EmbedDetailsProps {
   userName?: string;
   organizationName?: string;
   onHide: (event: any) => void;
-  projectUid?: string;
-  sha?: string;
   mixpanel?: any;
+  urls: HaikuShareUrls;
 }
 
 export class EmbedDetails extends React.PureComponent<EmbedDetailsProps> {
@@ -40,8 +40,7 @@ export class EmbedDetails extends React.PureComponent<EmbedDetailsProps> {
           projectName={this.props.projectName}
           userName={this.props.userName}
           organizationName={this.props.organizationName}
-          projectUid={this.props.projectUid}
-          sha={this.props.sha}
+          urls={this.props.urls}
           mixpanel={this.props.mixpanel}
         />
       </div>

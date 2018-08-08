@@ -110,7 +110,7 @@ const INJECTABLES: any = {};
 declare var window: any;
 
 const pkg = require('./../package.json');
-const VERSION = pkg.version;
+export const VERSION = pkg.version;
 
 const STRING_TYPE = 'string';
 const OBJECT_TYPE = 'object';
@@ -259,8 +259,6 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     // It also may populate hooks and helpers if passed in via configuration.
     this.assignConfig(config);
 
-    this.hydrateMutableTimelines();
-
     // Flag used internally to determine whether we need to re-render the full tree or can survive by just patching
     this.doesNeedFullFlush = false;
 
@@ -344,6 +342,8 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     } catch (exception) {
       console.warn('[haiku core] caught error during migration post-phase', exception);
     }
+
+    this.hydrateMutableTimelines();
 
     if (!this.host) {
       this.routeEventToHandlerAndEmit(GLOBAL_LISTENER_KEY, 'component:did-initialize', [this]);

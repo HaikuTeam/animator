@@ -1,4 +1,3 @@
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import * as React from 'react';
 // @ts-ignore
 import * as Popover from 'react-popover';
@@ -17,16 +16,8 @@ class FigmaPopover extends React.PureComponent<any, any> {
     this.setState({isPopoverOpen: false});
   };
 
-  doubleClickToOpen = () => {
-    if (!experimentIsEnabled(Experiment.CleanInitialLibraryState)) {
-      this.showPopover();
-    }
-  };
-
   clickToOpen = () => {
-    if (experimentIsEnabled(Experiment.CleanInitialLibraryState)) {
-      this.showPopover();
-    }
+    this.showPopover();
   };
 
   render () {
@@ -46,7 +37,6 @@ class FigmaPopover extends React.PureComponent<any, any> {
         }
       >
         <span
-          onDoubleClick={this.doubleClickToOpen}
           onClick={this.clickToOpen}
         >
           {this.props.children}

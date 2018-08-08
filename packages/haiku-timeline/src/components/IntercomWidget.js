@@ -1,18 +1,15 @@
-import * as React from 'react';
 import Palette from 'haiku-ui-common/lib/Palette';
 import * as Radium from 'radium';
+import * as React from 'react';
 import Intercom from 'react-intercom';
 
 const STYLES = {
   btn: {
-    position: 'absolute',
-    right: 5,
-    top: -12,
+    float: 'right',
     height: '25px',
     padding: '4px 9px',
     fontSize: 11,
     letterSpacing: '1.3px',
-    marginRight: '5px',
     display: 'flex',
     alignItems: 'center',
     borderRadius: '3px',
@@ -40,7 +37,7 @@ class IntercomWidget extends React.Component {
     We'll need to update this code when we allow users to
     choose usernames */
     const user = {
-      email: JSON.parse(this.props.user).Username,
+      email: this.props.user.Username,
     };
 
     return (
@@ -66,5 +63,5 @@ class IntercomWidget extends React.Component {
 export default Radium(IntercomWidget);
 
 IntercomWidget.propTypes = {
-  user: React.PropTypes.string,
+  user: React.PropTypes.object,
 };

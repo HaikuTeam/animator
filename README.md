@@ -64,7 +64,7 @@ You can also skip the interactive prompt and start with good defaults with:
 
     $ yarn go
 
-You can also set some overriding environment variables (e.g. `HAIKU_API`, `SHARE_URL`) by making a `.env` file in the mono root. Refer to `.env.example` for an example.
+You can also set some overriding environment variables (e.g. `HAIKU_API`) by making a `.env` file in the mono root. Refer to `.env.example` for an example.
 
 ### Developing
 

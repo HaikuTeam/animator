@@ -1,10 +1,11 @@
 import * as fse from 'fs-extra';
+import {HaikuProject} from 'haiku-sdk-creator/lib/bll/Project';
 // @ts-ignore
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import {escapeRegExp} from 'lodash';
 import * as path from 'path';
 
-export function duplicateProject (destinationProject: any, sourceProject: any, cb: any) {
+export function duplicateProject (destinationProject: HaikuProject, sourceProject: HaikuProject, cb: any) {
   try {
     // Create a haiku config file.
     fse.mkdirpSync(destinationProject.projectPath);
@@ -18,10 +19,15 @@ export function duplicateProject (destinationProject: any, sourceProject: any, c
     // Replace paths in each scene bytecode
     const scenes = fse.readdirSync(path.join(sourceProject.projectPath, 'code'));
     scenes.forEach((sceneName: string) => {
+      const bytecodePath = path.join(sourceProject.projectPath, 'code', sceneName, 'code.js');
+      if (!fse.existsSync(bytecodePath)) {
+        return;
+      }
+
       const destinationScenePath = path.join(destinationProject.projectPath, 'code', sceneName);
       fse.mkdirpSync(destinationScenePath);
 
-      const bytecode = fse.readFileSync(path.join(sourceProject.projectPath, 'code', sceneName, 'code.js'))
+      const bytecode = fse.readFileSync(bytecodePath)
         .toString()
         .replace(sourcePathPattern, destinationBasename);
       fse.outputFileSync(path.join(destinationScenePath, 'code.js'), bytecode);

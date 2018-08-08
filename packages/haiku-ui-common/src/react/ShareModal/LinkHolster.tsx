@@ -1,10 +1,8 @@
-// @ts-ignore
-import {ThreeBounce} from 'better-react-spinkit';
 import * as React from 'react';
 // @ts-ignore
 import * as CopyToClipboard from 'react-copy-to-clipboard';
-import {LoadingTopBar} from '../../LoadingTopBar';
 import Palette from '../../Palette';
+import {LoadingTopBar} from '../LoadingTopBar';
 import {CliboardIconSVG} from '../OtherIcons';
 
 const STYLES = {
@@ -43,6 +41,7 @@ const STYLES = {
 
 export interface LinkHolsterProps {
   isSnapshotSaveInProgress?: boolean;
+  snapshotSyndicated?: boolean;
   linkAddress?: string;
   showLoadingBar?: boolean;
   dark?: boolean;
@@ -51,10 +50,8 @@ export interface LinkHolsterProps {
 }
 
 export interface LinkHolsterStates {
-  done: boolean;
-  progress: number;
-  speed: string;
   copied: boolean;
+  didStart: boolean;
 }
 
 export class LinkHolster extends React.PureComponent<LinkHolsterProps, LinkHolsterStates> {
@@ -64,24 +61,14 @@ export class LinkHolster extends React.PureComponent<LinkHolsterProps, LinkHolst
   };
 
   state = {
-    done: false,
-    progress: 0,
-    speed: '15s',
     copied: false,
+    didStart: false,
   };
 
   componentDidMount () {
     setTimeout(() => {
-      this.setState({done: false, progress: 80, speed: '15s'});
+      this.setState({didStart: true});
     }, 100);
-  }
-
-  componentWillReceiveProps (nextProps: LinkHolsterProps) {
-    if (nextProps.isSnapshotSaveInProgress) {
-      this.setState({done: false, progress: 80, speed: '15s'});
-    } else {
-      this.setState({done: true, progress: 0, speed: '1ms'});
-    }
   }
 
   setCopyText () {
@@ -137,6 +124,18 @@ export class LinkHolster extends React.PureComponent<LinkHolsterProps, LinkHolst
     }
   };
 
+  get isDone () {
+    return !this.props.isSnapshotSaveInProgress && this.props.snapshotSyndicated;
+  }
+
+  get speed () {
+    return (this.props.isSnapshotSaveInProgress || !this.state.didStart) ? '15s' : '1ms';
+  }
+
+  get progress () {
+    return (this.props.isSnapshotSaveInProgress && !this.state.didStart) ? 0 : 80;
+  }
+
   render () {
     const {
       showLoadingBar,
@@ -146,9 +145,9 @@ export class LinkHolster extends React.PureComponent<LinkHolsterProps, LinkHolst
     return (
       <div style={STYLES.linkHolster}>
         {showLoadingBar && <LoadingTopBar
-          progress={this.state.progress}
-          speed={this.state.speed}
-          done={this.state.done}
+          progress={this.progress}
+          speed={this.speed}
+          done={this.isDone}
         />}
           {this.text}
         <CopyToClipboard

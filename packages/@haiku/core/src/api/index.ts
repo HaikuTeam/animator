@@ -9,6 +9,7 @@ export interface IHaikuElement extends HaikuBase {
   target?: Element;
   originX: number;
   originY: number;
+  size: ThreeDimensionalLayoutProperty;
   visit: (
     iteratee: (component: IHaikuElement) => any,
     filter?: (value: IHaikuElement, index: number, array: IHaikuElement[]) => boolean,
@@ -70,6 +71,7 @@ export interface IHaikuContext {
   contextMount: () => void;
   contextUnmount: () => void;
   tick: () => void;
+  destroy: () => void;
   assignConfig: (config: BytecodeOptions, options?: {skipComponentAssign?: boolean}) => void;
 }
 
@@ -357,7 +359,7 @@ export interface BytecodeOptions {
 
   // If provided, a Mixpanel tracking instance will be created using this
   // string as the API token. The default token is Haiku's production token.
-  mixpanel?: string;
+  mixpanel?: string|false;
 
   // Control how this instance handles interaction, e.g. preview mode
   // TODO: create an use an enum from @haiku/core/src/helpers/interactionModes.ts

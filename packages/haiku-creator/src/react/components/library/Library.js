@@ -131,7 +131,7 @@ class Library extends React.Component {
     // TODO: perform an actual check for Illustrator
     this.isIllustratorInstalled = true;
 
-    this.props.user.getConfig(UserSettings.figmaToken).then((figmaToken) => {
+    this.props.user.getConfig(UserSettings.FigmaToken).then((figmaToken) => {
       const figma = new Figma({token: figmaToken});
       this.setState({figma});
     });
@@ -149,7 +149,7 @@ class Library extends React.Component {
 
     this.props.servicesEnvoyClient.figmaGetAccessToken({state, code, stateCheck: this.state.figmaState})
       .then(({AccessToken}) => {
-        this.props.user.setConfig(UserSettings.figmaToken, AccessToken);
+        this.props.user.setConfig(UserSettings.FigmaToken, AccessToken);
         this.state.figma.token = AccessToken;
         return this.props.createNotice({
           type: 'success',
@@ -375,7 +375,6 @@ class Library extends React.Component {
     const componentshostFolder = this.state.assets.find((asset) => asset.isComponentsHostFolder());
 
     return (
-      experimentIsEnabled(Experiment.CleanInitialLibraryState) &&
       designsFolder &&
       designsFolder.getChildAssets().length === 0 &&
       componentshostFolder.getChildAssets().length === 0 &&

@@ -38,7 +38,6 @@ export interface EmbedListProps {
   onOptionClicked: (option: {entry: SelectedEntry, template: string}) => void;
   isSnapshotSaveInProgress: boolean;
   snapshotSyndicated: boolean;
-  snapshotPublished: boolean;
   mixpanel: any;
 }
 
@@ -52,7 +51,6 @@ export class EmbedList extends React.PureComponent<EmbedListProps> {
         onOptionClicked={this.props.onOptionClicked}
         isSnapshotSaveInProgress={this.props.isSnapshotSaveInProgress}
         snapshotSyndicated={this.props.snapshotSyndicated}
-        snapshotPublished={this.props.snapshotPublished}
       />
     ));
   }

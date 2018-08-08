@@ -10,7 +10,7 @@ app.setName('Haiku');
 export interface TopMenuOptions {
   isProjectOpen: boolean;
   isSaving: boolean;
-  projectList: PlumbingProject[];
+  projectsList: PlumbingProject[];
   subComponents: SubComponent[];
 }
 
@@ -236,9 +236,9 @@ export default class TopMenu {
     if (experimentIsEnabled(Experiment.LocalAssetExport)) {
       projectSubmenu.push(
         {
-          label: 'Save As…',
+          label: 'Export…',
           enabled: this.options.isProjectOpen,
-          accelerator: 'CmdOrCtrl+Shift+S',
+          accelerator: 'CmdOrCtrl+E',
           click: () => {
             this.sender.send('global-menu:save-as');
           },
@@ -301,27 +301,25 @@ export default class TopMenu {
 
     editSubmenu.push({type: 'separator'});
 
-    if (experimentIsEnabled(Experiment.GroupUngroup)) {
-      editSubmenu.push({
-        label: 'Group',
-        accelerator: 'CmdOrCtrl+G',
-        enabled: this.options.isProjectOpen,
-        click: () => {
-          this.sender.send('global-menu:group');
-        },
-      });
+    editSubmenu.push({
+      label: 'Group',
+      accelerator: 'CmdOrCtrl+G',
+      enabled: this.options.isProjectOpen,
+      click: () => {
+        this.sender.send('global-menu:group');
+      },
+    });
 
-      editSubmenu.push({
-        label: 'Ungroup',
-        accelerator: 'CmdOrCtrl+Shift+G',
-        enabled: this.options.isProjectOpen,
-        click: () => {
-          this.sender.send('global-menu:ungroup');
-        },
-      });
+    editSubmenu.push({
+      label: 'Ungroup',
+      accelerator: 'CmdOrCtrl+Shift+G',
+      enabled: this.options.isProjectOpen,
+      click: () => {
+        this.sender.send('global-menu:ungroup');
+      },
+    });
 
-      editSubmenu.push({type: 'separator'});
-    }
+    editSubmenu.push({type: 'separator'});
 
     editSubmenu.push({
       label: 'Delete',
@@ -436,7 +434,7 @@ export default class TopMenu {
             },
           }, {
             label: 'Take Tour',
-            enabled: !!this.options.projectList.find((project) => project.projectName === TourUtils.ProjectName),
+            enabled: !!this.options.projectsList.find((project) => project.projectName === TourUtils.ProjectName),
             click: () => {
               this.sender.send('global-menu:start-tour');
             },

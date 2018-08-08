@@ -1,31 +1,8 @@
 import * as React from 'react';
-import {LoadingTopBar} from '../../LoadingTopBar';
-import Palette from '../../Palette';
-import {SHARED_STYLES} from '../../SharedStyles';
+import {LoadingButton} from '../LoadingButton';
 import {TooltipBasic} from '../TooltipBasic';
 import {SelectedEntry} from './index';
 import {ShareCategory} from './ShareModalOptions';
-
-const STYLES = {
-  entry: {
-    float: 'none',
-    width: '100%',
-    marginBottom: '8px',
-    justifyContent: 'center',
-    position: 'relative',
-    overflow: 'hidden',
-    disabled: {
-      backgroundColor: 'transparent',
-      color: Palette.BLACK,
-      cursor: 'auto',
-      border: `1px solid ${Palette.DARKEST_COAL}`,
-    },
-    loading: {
-      opacity: 0.7,
-      cursor: 'wait',
-    },
-  },
-} as React.CSSProperties;
 
 export interface EmbedOptionProps {
   disabled: boolean;
@@ -35,7 +12,6 @@ export interface EmbedOptionProps {
   onClick: (option: {entry: SelectedEntry, template: string}) => void;
   isSnapshotSaveInProgress: boolean;
   snapshotSyndicated: boolean;
-  snapshotPublished: boolean;
 }
 
 export class EmbedOption extends React.PureComponent<EmbedOptionProps> {
@@ -60,7 +36,7 @@ export class EmbedOption extends React.PureComponent<EmbedOptionProps> {
     }
   }
 
-  componentWillReceiveProps ({isSnapshotSaveInProgress, snapshotSyndicated, snapshotPublished}: EmbedOptionProps) {
+  componentWillReceiveProps ({isSnapshotSaveInProgress, snapshotSyndicated}: EmbedOptionProps) {
     if (isSnapshotSaveInProgress) {
       this.start();
       return;
@@ -71,11 +47,6 @@ export class EmbedOption extends React.PureComponent<EmbedOptionProps> {
     if (this.requiresSyndication) {
       if (!snapshotSyndicated) {
         this.setState({abandoned: snapshotSyndicated === undefined});
-        return;
-      }
-    } else if (this.requiresPublished) {
-      if (!snapshotPublished) {
-        this.setState({abandoned: snapshotPublished === undefined});
         return;
       }
     }
@@ -118,19 +89,11 @@ export class EmbedOption extends React.PureComponent<EmbedOptionProps> {
       return '60s';
     }
 
-    if (this.requiresPublished) {
-      return '30s';
-    }
-
     return '15s';
   }
 
   get requiresSyndication () {
-    return this.props.category === ShareCategory.Other;
-  }
-
-  get requiresPublished () {
-    return this.props.category === ShareCategory.Mobile;
+    return this.props.category === ShareCategory.Other || this.props.category === ShareCategory.Mobile;
   }
 
   get effectivelyDisabled () {
@@ -163,30 +126,19 @@ export class EmbedOption extends React.PureComponent<EmbedOptionProps> {
 
     return (
       <li style={{position: 'relative'}}>
-        <button
-          style={{
-            ...SHARED_STYLES.btn,
-            ...STYLES.entry,
-            ...(!this.state.done && STYLES.entry.loading),
-            ...(this.effectivelyDisabled && STYLES.entry.disabled),
-          }}
+        <LoadingButton
           disabled={!this.state.done}
+          done={this.state.done}
+          effectivelyDisabled={this.effectivelyDisabled}
+          progress={this.state.progress}
+          speed={this.state.speed}
           onMouseOver={this.onMouseOver}
           onMouseOut={this.onMouseOut}
           onClick={this.onClick}
         >
-          {!this.effectivelyDisabled && (
-            <LoadingTopBar
-              progress={this.state.progress}
-              speed={this.state.speed}
-              done={this.state.done}
-            />
-          )}
           {entry}
-        </button>
-        {this.state.showTooltip &&
-          <TooltipBasic>{this.tooltipText}</TooltipBasic>
-        }
+        </LoadingButton>
+        {this.state.showTooltip && <TooltipBasic>{this.tooltipText}</TooltipBasic>}
       </li>
     );
   }

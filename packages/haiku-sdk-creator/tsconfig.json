@@ -8,7 +8,7 @@
     "moduleResolution": "node",
     "noImplicitAny": true,
     "outDir": "lib",
-    "preserveConstEnums": true,
+    "preserveConstEnums": false,
     "rootDir": "src",
     "sourceMap": true,
     "suppressImplicitAnyIndexErrors": true,

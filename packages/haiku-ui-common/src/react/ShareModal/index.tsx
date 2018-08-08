@@ -1,5 +1,4 @@
-import {inkstone} from '@haiku/sdk-inkstone';
-import {Project} from 'haiku-sdk-creator/lib/bll/Project';
+import {HaikuProject, HaikuShareUrls, ProjectHandler} from 'haiku-sdk-creator/lib/bll/Project';
 import * as React from 'react';
 import {ModalHeader, ModalNotice, ModalWrapper} from '../Modal';
 import {RevealPanel} from '../RevealPanel';
@@ -19,21 +18,22 @@ const STYLES: React.CSSProperties = {
 };
 
 export interface ShareModalProps {
-  envoyProject: Project;
-  project: any;
+  envoyProject: ProjectHandler;
+  project: HaikuProject;
   error: any;
   linkAddress: string;
   snapshotSaveConfirmed: boolean;
   isSnapshotSaveInProgress: boolean;
   snapshotSyndicated: boolean;
-  snapshotPublished: boolean;
   semverVersion: string;
   userName: string;
   organizationName: string;
-  projectUid: string;
-  sha: string;
+  projectName: string;
   mixpanel: any;
-  onProjectPublicChange: (state: boolean) => void;
+  urls: HaikuShareUrls;
+  explorePro: () => void;
+  privateProjectCount: number;
+  privateProjectLimit: number;
 }
 
 export interface SelectedEntry {
@@ -48,26 +48,21 @@ export interface ShareModalStates {
     entry: SelectedEntry;
   };
   showDetail: boolean;
-  isPublic: boolean;
+  isPublic?: boolean;
   showTooltip: boolean;
-  isPublicKnown: boolean;
+  shouldShowPrivateWarning: boolean;
 }
-
-const isNullOrUndefined = (term?: any) => term === null || term === undefined;
 
 export class ShareModal extends React.Component<ShareModalProps, ShareModalStates> {
   error: Error;
-
-  static defaultProps = {
-    projectUid: '',
-    sha: '',
-  };
 
   private boundTogglePublic = () => this.togglePublic();
   private boundHideDetails = () => this.hideDetails();
   private boundOptionClicked = (selectedEntry: {entry: SelectedEntry}) => {
     this.showDetails(selectedEntry);
   };
+
+  private initiallyPrivate = false;
 
   constructor (props: ShareModalProps) {
     super(props);
@@ -76,8 +71,16 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
       showDetail: false,
       isPublic: props.project && props.project.isPublic,
       showTooltip: false,
-      isPublicKnown: props.project && !isNullOrUndefined(props.project.isPublic),
+      shouldShowPrivateWarning: false,
     };
+
+    this.initiallyPrivate = !this.state.isPublic;
+  }
+
+  get shouldDisablePrivate () {
+    return !this.initiallyPrivate &&
+      this.props.privateProjectLimit !== null &&
+      this.props.privateProjectCount >= this.props.privateProjectLimit;
   }
 
   componentWillReceiveProps (nextProps: ShareModalProps) {
@@ -89,18 +92,9 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
       this.error = null;
     }
 
-    if (nextProps.envoyProject && nextProps.projectUid && nextProps.projectUid !== this.props.projectUid && !this.state.isPublicKnown) {
-      (nextProps.envoyProject.getProjectDetail(nextProps.projectUid) as Promise<inkstone.project.Project>).then((proj: inkstone.project.Project) => {
-
-        // if IsPublic is undefined, it's never been published before. Make it private on first publish
-        if (isNullOrUndefined(proj.IsPublic)) {
-          (nextProps.envoyProject.setIsPublic(nextProps.projectUid, false) as Promise<boolean>).then(() => {
-            this.props.onProjectPublicChange(false);
-          });
-          this.setState({isPublic: false, isPublicKnown: true});
-        } else {
-          this.setState({isPublic: proj.IsPublic, isPublicKnown: true});
-        }
+    if (nextProps.envoyProject && nextProps.projectName && nextProps.projectName !== this.props.projectName) {
+      nextProps.envoyProject.getProject(nextProps.projectName).then((project) => {
+        this.setState({isPublic: project.isPublic});
       });
     }
   }
@@ -119,17 +113,21 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
   }
 
   togglePublic () {
-    if (this.props.envoyProject) {
-      const desiredState = !this.state.isPublic;
-      const project = this.props.envoyProject;
-      (project.setIsPublic(this.props.projectUid, desiredState) as Promise<boolean>).then(() => {
-        this.props.onProjectPublicChange(desiredState);
-      });
-      this.setState({isPublic: desiredState, isPublicKnown: true});
-    } else {
-      // TODO: trigger toast.
-      console.error('Could not set project privacy settings.  Please contact support@haiku.ai');
+    if (this.shouldDisablePrivate) {
+      this.setState({shouldShowPrivateWarning: true});
+      return;
     }
+    const desiredState = !this.state.isPublic;
+    this.props.envoyProject.updateProject({
+      ...this.props.project,
+      isPublic: desiredState,
+    }).then(() => {
+      // ...
+    }).catch(() => {
+      console.error('Could not set project privacy settings. Please contact support@haiku.ai');
+      this.setState({isPublic: !desiredState});
+    });
+    this.setState({isPublic: desiredState});
   }
 
   render () {
@@ -139,11 +137,8 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
       semverVersion,
       isSnapshotSaveInProgress,
       snapshotSyndicated,
-      snapshotPublished,
       userName,
       organizationName,
-      sha,
-      projectUid,
       mixpanel,
     } = this.props;
 
@@ -154,12 +149,16 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
           <ProjectShareDetails
             semverVersion={semverVersion}
             projectName={project.projectName}
-            isDisabled={!this.state.isPublicKnown}
             linkAddress={linkAddress}
             isSnapshotSaveInProgress={isSnapshotSaveInProgress}
+            snapshotSyndicated={snapshotSyndicated}
             isPublic={this.state.isPublic}
             mixpanel={mixpanel}
             togglePublic={this.boundTogglePublic}
+            shouldShowPrivateWarning={this.state.shouldShowPrivateWarning}
+            explorePro={this.props.explorePro}
+            privateProjectCount={this.props.privateProjectCount}
+            privateProjectLimit={this.props.privateProjectLimit}
           />
         </ModalHeader>
 
@@ -169,7 +168,6 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
             <EmbedList
               isSnapshotSaveInProgress={isSnapshotSaveInProgress}
               snapshotSyndicated={snapshotSyndicated}
-              snapshotPublished={snapshotPublished}
               mixpanel={mixpanel}
               onOptionClicked={this.boundOptionClicked}
             />
@@ -180,8 +178,7 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
               projectName={project.projectName}
               userName={userName}
               organizationName={organizationName}
-              projectUid={projectUid}
-              sha={sha}
+              urls={this.props.urls}
               mixpanel={mixpanel}
               onHide={this.boundHideDetails}
             />

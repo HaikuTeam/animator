@@ -490,23 +490,12 @@ class Project extends BaseModel {
     }, cb)
   }
 
-  requestSyndicationInfo (cb) {
-    return this.websocket.request({
-      folder: this.getFolder(),
-      method: 'requestSyndicationInfo',
-      params: [this.getFolder()]
-    }, cb)
-  }
-
-  saveProject (projectName, username, password, saveOptions = {}, cb) {
+  saveProject (project, saveOptions = {}, cb) {
     return this.websocket.request({
       folder: this.getFolder(),
       method: 'saveProject',
       params: [
-        this.getFolder(),
-        projectName,
-        username,
-        password,
+        project,
         saveOptions
       ]
     }, cb)
@@ -900,10 +889,6 @@ class Project extends BaseModel {
     })
   }
 
-  getPreviewAssetPath () {
-    return path.join(this.getFolder(), 'preview.html')
-  }
-
   describeIntegrity () {
     const descriptor = {}
 
@@ -982,13 +967,13 @@ Project.setup = (
 
 Project.getProjectNameVariations = (folder) => {
   const projectHaikuConfig = readPackageJson(folder).haiku
-  const projectNameSafe = getSafeProjectName(folder, projectHaikuConfig.project)
-  const projectNameSafeShort = getProjectNameSafeShort(folder, projectHaikuConfig.project)
-  const projectNameLowerCase = getProjectNameLowerCase(folder, projectHaikuConfig.project)
-  const reactProjectName = getReactProjectName(folder, projectHaikuConfig.project)
-  const angularSelectorName = getAngularSelectorName(folder, projectHaikuConfig.project)
-  const primaryAssetPath = getDefaultSketchAssetPath(folder, projectHaikuConfig.project)
-  const defaultIllustratorAssetPath = getDefaultIllustratorAssetPath(folder, projectHaikuConfig.project)
+  const projectNameSafe = getSafeProjectName(projectHaikuConfig.project)
+  const projectNameSafeShort = getProjectNameSafeShort(projectHaikuConfig.project)
+  const projectNameLowerCase = getProjectNameLowerCase(projectHaikuConfig.project)
+  const reactProjectName = getReactProjectName(projectHaikuConfig.project)
+  const angularSelectorName = getAngularSelectorName(projectHaikuConfig.project)
+  const primaryAssetPath = getDefaultSketchAssetPath(projectHaikuConfig.project)
+  const defaultIllustratorAssetPath = getDefaultIllustratorAssetPath(projectHaikuConfig.project)
 
   return {
     projectNameSafe,

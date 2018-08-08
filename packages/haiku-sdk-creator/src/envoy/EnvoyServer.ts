@@ -9,6 +9,7 @@ import {
   EnvoyEvent,
   EnvoyOptions,
 } from '.';
+import EnvoyHandler from './EnvoyHandler';
 
 import findOpenPort from './../utils/findOpenPort';
 import generateUUIDv4 from './../utils/generateUUIDv4';
@@ -20,7 +21,7 @@ type IdentifiableWebSocket = WebSocket & {
 };
 
 interface HandlerTuple {
-  instance: any;
+  instance: EnvoyHandler;
   proto: any;
 }
 
@@ -35,7 +36,7 @@ export default class EnvoyServer {
   private isServerReady: boolean;
   private handlerRegistry: Map<string, HandlerTuple>;
   private clientRegistry: Map<string, IdentifiableWebSocket>;
-  private logger: Console;
+  logger: Console;
 
   constructor (options?: EnvoyOptions) {
     const mergedOptions = Object.assign({}, DEFAULT_ENVOY_OPTIONS, options);
@@ -138,6 +139,11 @@ export default class EnvoyServer {
       id: generateUUIDv4(),
       intent: DatagramIntent.EVENT,
     });
+
+    const handler = this.handlerRegistry.get(channel);
+    if (handler && handler.instance.handleEventDirectly) {
+      handler.instance.handleEventDirectly(event);
+    }
   }
 
   /**
@@ -167,7 +173,6 @@ export default class EnvoyServer {
    * @param rawData the datagram object (request or response JSON blob)
    */
   private handleRawData (rawData: string) {
-
     const data: Datagram = JSON.parse(rawData);
     if (data.intent === DatagramIntent.REQUEST) {
       const handler = this.handlerRegistry.get(data.channel);
@@ -272,7 +277,8 @@ export default class EnvoyServer {
     const ret = {};
     const proto = handlerTuple.proto;
     const instance = handlerTuple.instance;
-    Object.getOwnPropertyNames(proto).forEach((name) => {
+    // Note how we append getConfig and setConfig from the parent.
+    Object.getOwnPropertyNames(proto).concat(['getConfig', 'setConfig']).forEach((name) => {
       // TODO: handle nested objects & non-method members?
       if (typeof instance[name] === 'function') {
         ret[name] = 'function';

@@ -7,14 +7,30 @@ import {requestInstance} from './transport';
 const INKSTONE_ERROR_HEADER = 'x-inkstone-error-code';
 
 export const enum Endpoints {
+  // Project.
+  ProjectResourceCollection = '/project',
+  ProjectResource = '/project/:project_name',
+  ProjectSnapshotResource = '/project/:project_name/snapshot/:sha',
+  ProjectSnapshotSyndicated = '/project/:project_name/snapshot/:sha/syndicated',
+  ProjectSnapshotAssetResource = '/project/:project_name/snapshot/:sha/asset/:filename',
+
+  // Community.
+  ForkCommunityProject = '/community/:organization_name/:project_name/fork',
+
+  // Organization.
+  OrganizationResourceCollection = '/organization',
+
+  // User.
+  OrganizationUserDetail = '/user/detail',
+
+  // Billing.
   BillingDescribe = '/billing',
   BillingListProducts = '/billing/products',
   BillingSetCustomer = '/billing/customer',
   BillingAddCard = '/billing/card',
   BillingSetCardAsDefaultById = '/billing/card/:card_id/is_default',
   BillingDeleteCardById = '/billing/card/:card_id',
-  BillingSetPlan = '/billing/plan',
-  BillingCancelPlan = '/billing/plan',
+  BillingPlanResource = '/billing/plan',
 }
 
 export interface UriParams {
@@ -103,13 +119,13 @@ export class RequestBuilder {
     this.method(
       {
         headers: this.fullHeaders,
-        json: this.json,
+        json: this.json || true,
         url: this.fullUrl,
       },
       (err, httpResponse, body) => {
-        if (err) {
-          const errorCode =
-            httpResponse && httpResponse.headers && httpResponse.headers[INKSTONE_ERROR_HEADER] as string;
+        const errorCode =
+          httpResponse && httpResponse.headers && httpResponse.headers[INKSTONE_ERROR_HEADER] as string;
+        if (err || errorCode || httpResponse.statusCode > 399) {
           return cb(new Error(errorCode || 'E_UNCATEGORIZED'), httpResponse, body);
         }
         cb(null, httpResponse, body);
@@ -118,7 +134,7 @@ export class RequestBuilder {
   }
 
   callWithCallback<T> (
-    cb: (err: string, data: T, response: request.RequestResponse) => void,
+    cb: (err: Error, data: T, response: request.RequestResponse) => void,
     successCode = 200,
   ) {
     this.call((err, httpResponse, body) => {

@@ -1,6 +1,6 @@
 {
   "name": "@haiku/sdk-client",
-  "version": "3.5.1",
+  "version": "3.5.2",
   "description": "Haiku SDK for Client",
   "main": "lib/index.js",
   "scripts": {
@@ -44,6 +44,6 @@
     "typescript": "^2.9.1",
     "istanbul-reporter-cobertura-haiku": "^1.0.1",
     "leaked-handles": "^5.2.0",
-    "haiku-testing": "3.5.1"
+    "haiku-testing": "3.5.2"
   }
 }

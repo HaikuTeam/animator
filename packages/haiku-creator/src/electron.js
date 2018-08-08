@@ -128,7 +128,7 @@ function createWindow () {
   const topmenu = new TopMenu(browserWindow.webContents);
 
   const topmenuOptions = {
-    projectList: [],
+    projectsList: [],
     isSaving: false,
     isProjectOpen: false,
     subComponents: [],

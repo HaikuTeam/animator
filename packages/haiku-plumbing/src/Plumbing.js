@@ -24,7 +24,6 @@ import {TOUR_CHANNEL, TourHandler} from 'haiku-sdk-creator/lib/tour';
 import {SERVICES_CHANNEL, ServicesHandler} from 'haiku-sdk-creator/lib/services';
 import {inkstone} from '@haiku/sdk-inkstone';
 import {client as sdkClient, FILE_PATHS} from '@haiku/sdk-client';
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import * as serializeError from 'haiku-serialization/src/utils/serializeError';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
@@ -37,18 +36,11 @@ import functionToRFO from '@haiku/core/lib/reflection/functionToRFO';
 import Master from './Master';
 import {createProjectFiles} from '@haiku/sdk-client/lib/createProjectFiles';
 import {
-  copyExternalExampleFilesToProject,
   copyDefaultSketchFile,
   copyDefaultIllustratorFile,
 } from './project-folder/copyExternalExampleFilesToProject';
 import {duplicateProject} from './project-folder/duplicateProject';
 import {
-  getCurrentOrganizationName,
-  getCachedOrganizationName,
-} from './project-folder/getCurrentOrganizationName';
-import {
-  getSafeProjectName,
-  getSafeOrganizationName,
   storeConfigValues,
 } from './project-folder/ProjectDefinitions';
 
@@ -79,14 +71,11 @@ const WS_POLICY_VIOLATION_CODE = 1008;
 const METHODS_TO_SKIP_IN_SENTRY = {
   setTimelineTime: true,
   masterHeartbeat: true,
-  requestSyndicationInfo: true,
 };
 
 // Use for any methods whose parameters expose sensitive info in the logs, use keys
 // for method names and values for the list of param indices you don't want to log.
-const METHODS_WITH_SENSITIVE_INFO = {
-  authenticateUser: [1],
-};
+const METHODS_WITH_SENSITIVE_INFO = {};
 
 const IGNORED_METHOD_MESSAGES = {
   setTimelineTime: true,
@@ -101,12 +90,7 @@ const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
   openTerminal: true,
   saveProject: true,
   previewProject: true,
-  listProjects: true,
-  fetchProjectInfo: true,
-  doLogOut: true,
-  deleteProject: true,
   teardownMaster: true,
-  requestSyndicationInfo: true,
   hoverElement: true,
   unhoverElement: true,
 };
@@ -116,13 +100,8 @@ const METHODS_TO_AWAIT_FOREVER = {
   bootstrapProject: true,
   startProject: true,
   initializeFolder: true,
-  isUserAuthenticated: true,
-  authenticateUser: true,
   saveProject: true,
   teardownMaster: true,
-  requestSyndicationInfo: true,
-  deleteProject: true,
-  forkProject: true,
 };
 
 const Q_GLASS = {alias: 'glass'};
@@ -140,20 +119,12 @@ const HAIKU_DEFAULTS = {
   },
 };
 
-// configure inkstone, useful for testing off of dev (HAIKU_API=https://localhost:8080/)
-if (process.env.HAIKU_API) {
-  inkstone.setConfig({
-    baseUrl: process.env.HAIKU_API,
-  });
-}
-
 const emitter = new EventEmitter();
 
 const PINFO = `${process.pid} ${path.basename(__filename)} ${path.basename(process.execPath)}`;
 
 const PLUMBING_INSTANCES = [];
 
-const DEFAULT_BRANCH_NAME = 'master';
 const FALLBACK_SEMVER_VERSION = '0.0.0';
 
 const teardownPlumbings = (cb) => {
@@ -262,21 +233,39 @@ export default class Plumbing extends EventEmitter {
       haiku.envoy.host = this.envoyServer.host;
       haiku.envoy.token = HAIKU_WS_SECURITY_TOKEN;
 
-      const envoyTimelineHandler = new TimelineHandler(this.envoyServer);
-      const envoyTourHandler = new TourHandler(this.envoyServer);
-      const envoyExporterHandler = new ExporterHandler(this.envoyServer);
-      const envoyGlassHandler = new GlassHandler(this.envoyServer);
-      const envoyUserHandler = new UserHandler(this.envoyServer);
-      const envoyProjectHandler = new ProjectHandler(this.envoyServer);
-      const envoyServicesHandler = new ServicesHandler(this.envoyServer);
+      const user = new UserHandler(this.envoyServer);
+      const timeline = new TimelineHandler(this.envoyServer);
+      const tour = new TourHandler(this.envoyServer);
+      const exporter = new ExporterHandler(user, this.envoyServer);
+      const glass = new GlassHandler(this.envoyServer);
+      const project = new ProjectHandler(user, this.envoyServer);
+      const services = new ServicesHandler(this.envoyServer);
+      this.envoyHandlers = {
+        timeline,
+        tour,
+        exporter,
+        glass,
+        user,
+        project,
+        services,
+      };
 
-      this.envoyServer.bindHandler(TIMELINE_CHANNEL, TimelineHandler, envoyTimelineHandler);
-      this.envoyServer.bindHandler(TOUR_CHANNEL, TourHandler, envoyTourHandler);
-      this.envoyServer.bindHandler(EXPORTER_CHANNEL, ExporterHandler, envoyExporterHandler);
-      this.envoyServer.bindHandler(USER_CHANNEL, UserHandler, envoyUserHandler);
-      this.envoyServer.bindHandler(GLASS_CHANNEL, GlassHandler, envoyGlassHandler);
-      this.envoyServer.bindHandler(PROJECT_CHANNEL, ProjectHandler, envoyProjectHandler);
-      this.envoyServer.bindHandler(SERVICES_CHANNEL, ServicesHandler, envoyServicesHandler);
+      this.envoyServer.bindHandler(TIMELINE_CHANNEL, TimelineHandler, this.envoyHandlers.timeline);
+      this.envoyServer.bindHandler(TOUR_CHANNEL, TourHandler, this.envoyHandlers.tour);
+      this.envoyServer.bindHandler(EXPORTER_CHANNEL, ExporterHandler, this.envoyHandlers.exporter);
+      this.envoyServer.bindHandler(USER_CHANNEL, UserHandler, this.envoyHandlers.user);
+      this.envoyServer.bindHandler(GLASS_CHANNEL, GlassHandler, this.envoyHandlers.glass);
+      this.envoyServer.bindHandler(PROJECT_CHANNEL, ProjectHandler, this.envoyHandlers.project);
+      this.envoyServer.bindHandler(SERVICES_CHANNEL, ServicesHandler, this.envoyHandlers.services);
+
+      this.envoyHandlers.user.on(`${USER_CHANNEL}:load`, ({user: {Username}}) => {
+        mixpanel.mergeToPayload({distinct_id: Username});
+        if (Raven) {
+          Raven.setContext({
+            user: {email: Username},
+          });
+        }
+      });
 
       logger.info('[plumbing] launching plumbing control server');
 
@@ -368,12 +357,19 @@ export default class Plumbing extends EventEmitter {
           });
         });
 
-        this.spawnSubgroup(haiku, (err) => {
-          if (err) {
-            return cb(err);
-          }
-          return cb(null, host, port, server, null, haiku.envoy);
-        });
+        // If we were spawned as a subprocess inside of electron main, tell our parent to launch creator.
+        if (typeof process.send === 'function') {
+          process.send({
+            haiku,
+            message: 'launchCreator',
+          });
+        } else if (process.versions && !!process.versions.electron) {
+          // We are in electron main (e.g. in a test context).
+          global.process.env.HAIKU_ENV = JSON.stringify(haiku);
+          require('haiku-creator/lib/electron');
+        }
+
+        return cb(null, host, port, server, null, haiku.envoy);
       });
     });
   }
@@ -629,9 +625,10 @@ export default class Plumbing extends EventEmitter {
       } else if (typeof error === 'string') {
         error = new Error(error); // Unfortunately no good stack trace in this case
       }
+      const organization = this.envoyHandlers.user.getOrganization();
       crashReport(
         error,
-        getCachedOrganizationName(),
+        organization && organization.Name,
         this.get('lastOpenedProjectName'),
         this.get('lastOpenedProjectPath'),
       );
@@ -837,133 +834,71 @@ export default class Plumbing extends EventEmitter {
    * When it is ready, we kick off the content initialization step with initializeFolder.
    */
   bootstrapProject (
-    projectName,
-    {
-      projectsHome,
-      projectPath,
-      skipContentCreation,
-      organizationName,
-      authorName,
-      repositoryUrl,
-      branchName = DEFAULT_BRANCH_NAME,
-      isPublic,
-    },
-    username,
-    password,
+    project,
     finish,
   ) {
-    return getCurrentOrganizationName((err, organizationName) => {
-      if (err) {
-        if (experimentIsEnabled(Experiment.BasicOfflineMode)) {
-          logger.error(err);
-        } else {
-          return finish(err);
+    storeConfigValues(
+      project.projectPath,
+      {
+        username: project.authorName,
+        organization: project.organizationName,
+        project: project.projectName,
+        branch: project.branchName,
+      },
+      {version: FALLBACK_SEMVER_VERSION},
+    );
+
+    return async.series([
+      (cb) => {
+        // This check is needed since Creator may wish to specify that we do/don't automatically create content.
+        // This is important because if we create content then pull from the remote, we'll get a weird initial state.
+        if (project.skipContentCreation) {
+          logger.info('[plumbing] skipping content creation (I)');
+          return cb();
         }
+
+        return createProjectFiles(
+          project,
+          cb,
+        );
+      },
+
+      (cb) => {
+        this.upsertMaster({
+          folder: path.normalize(project.projectPath),
+          envoyOptions: {
+            host: this.envoyServer.host,
+            port: this.envoyServer.port,
+            token: process.env.HAIKU_WS_SECURITY_TOKEN,
+          },
+          fileOptions: {
+            doWriteToDisk: true,
+            skipDiffLogging: false,
+          },
+          envoyHandlers: this.envoyHandlers,
+        });
+
+        cb();
+      },
+    ], (err) => {
+      if (err) {
+        this.sentryError('bootstrapProject', err);
+        return finish(err);
       }
 
-      organizationName = getSafeOrganizationName(organizationName);
-      projectsHome = projectsHome || HaikuHomeDir.HOMEDIR_PROJECTS_PATH;
-      projectName = getSafeProjectName(projectsHome, projectName);
-      projectPath = projectPath || path.join(projectsHome, organizationName, projectName);
-      username = username || this.get('username');
-      password = password || this.get('password');
-      authorName = username;
-
-      // This ensures the folder exists and sets basic values inside the package.json
-      storeConfigValues(projectPath, {
-        username,
-        organization: organizationName,
-        project: projectName,
-        branch: branchName,
-        version: FALLBACK_SEMVER_VERSION,
-      });
-
-      const projectOptions = {
-        skipContentCreation,
-        projectsHome,
-        organizationName,
-        projectName,
-        projectPath,
-        repositoryUrl,
-        authorName,
-        username,
-        password,
-      };
-
-      return async.series([
-        (cb) => {
-          // This check is needed since Creator may wish to specify that we do/don't automatically create content.
-          // This is important because if we create content then pull from the remote, we'll get a weird initial state.
-          if (projectOptions.skipContentCreation) {
-            logger.info('[plumbing] skipping content creation (I)');
-            return cb();
+      return this.initializeFolder(
+        project,
+        (err) => {
+          if (err) {
+            return finish(err);
           }
 
-          return createProjectFiles(
-            projectPath,
-            projectName,
-            projectOptions,
-            (err) => {
-              if (!err && !projectOptions.skipContentCreation) {
-                // Copy sketch and illustrator example files
-                copyExternalExampleFilesToProject(this.folder, projectName);
-              }
-              cb();
-            });
+          this.set('lastOpenedProjectName', project.projectName);
+          this.set('lastOpenedProjectPath', project.projectPath);
+
+          return finish(null);
         },
-
-        (cb) => {
-          return this.spawnSubgroup({
-            username,
-            organizationName,
-            projectName,
-            projectPath,
-            folder: projectPath,
-            envoy: {
-              host: this.envoyServer.host,
-              port: this.envoyServer.port,
-              token: process.env.HAIKU_WS_SECURITY_TOKEN,
-            },
-          }, cb);
-        },
-      ], (err) => {
-        if (err) {
-          this.sentryError('bootstrapProject', err);
-          return finish(err);
-        }
-
-        return this.initializeFolder(
-          projectName,
-          projectPath,
-          projectOptions.username,
-          projectOptions.password,
-          {
-            organizationName,
-            repositoryUrl,
-            username,
-            password,
-            authorName,
-            branchName,
-            isPublic,
-          },
-          (err) => {
-            if (err) {
-              return finish(err);
-            }
-
-            if (Raven) {
-              Raven.setContext({
-                user: {email: username},
-              });
-            }
-
-            this.set('lastOpenedProjectName', projectName);
-            this.set('lastOpenedProjectPath', projectPath);
-
-            return finish(null, projectPath);
-          },
-        );
-      });
+      );
     });
   }
 
@@ -971,43 +906,12 @@ export default class Plumbing extends EventEmitter {
    * @method initializeFolder
    * @description Assuming we already have a folder created, an organization name, etc., now bootstrap the folder itself.
    */
-  initializeFolder (maybeProjectName, folder, maybeUsername, maybePassword, projectOptions, cb) {
-    return this.awaitMasterAndCallMethod(folder, 'initializeFolder', [maybeProjectName, maybeUsername, maybePassword, projectOptions, {from: 'master'}], cb);
+  initializeFolder (project, cb) {
+    return this.awaitMasterAndCallMethod(project.projectPath, 'initializeFolder', [project, {from: 'master'}], cb);
   }
 
-  startProject (maybeProjectName, folder, cb) {
-    return this.awaitMasterAndCallMethod(folder, 'startProject', [{from: 'master'}], cb);
-  }
-
-  isUserAuthenticated (cb) {
-    const answer = sdkClient.config.isAuthenticated();
-
-    if (!answer) {
-      return cb(null, {isAuthed: false});
-    }
-
-    return getCurrentOrganizationName((err, organizationName) => {
-      if (err) {
-        return cb(err);
-      }
-
-      const username = sdkClient.config.getUserId();
-
-      mixpanel.mergeToPayload({distinct_id: username});
-
-      if (Raven) {
-        Raven.setContext({
-          user: {email: username},
-        });
-      }
-
-      return cb(null, {
-        organizationName,
-        username,
-        authToken: sdkClient.config.getAuthToken(),
-        isAuthed: true,
-      });
-    });
+  startProject ({projectPath}, cb) {
+    return this.awaitMasterAndCallMethod(projectPath, 'startProject', [{from: 'master'}], cb);
   }
 
   resendEmailConfirmation (username, cb) {
@@ -1041,118 +945,6 @@ export default class Plumbing extends EventEmitter {
     });
   }
 
-  // Note: param 1 (password) is excluded from logging via `METHODS_WITH_SENSITIVE_INFO`.
-  // Be sure to update `METHODS_WITH_SENSITIVE_INFO` if the sensitive parameters change.
-  authenticateUser (username, password, cb) {
-    // Unset this cache to avoid writing others folders if somebody switches accounts in the middle of a session
-    this.set('organizationName', null);
-
-    return inkstone.user.authenticate(username, password, (authErr, authResponse, httpResponse) => {
-      if (!httpResponse) {
-        this.sentryError('authenticationProxyError', authErr);
-        // eslint-disable-next-line standard/no-callback-literal
-        return cb({
-          code: 407,
-          message: 'Unable to log in. Are you behind a VPN?',
-        });
-      }
-
-      if (httpResponse.statusCode === 401 || httpResponse.statusCode === 403) {
-        // eslint-disable-next-line standard/no-callback-literal
-        return cb({
-          code: httpResponse.statusCode,
-          message: httpResponse.body || 'Unauthorized',
-        });
-      }
-
-      if (authErr) {
-        return cb(authErr);
-      }
-
-      if (httpResponse.statusCode > 499) {
-        const serverErr = new Error(`Auth HTTP Error: ${httpResponse.statusCode}`);
-        this.sentryError('authenticateUser', serverErr);
-        return cb(serverErr);
-      }
-
-      if (httpResponse.statusCode > 299) {
-        const unexpectedError = new Error(`Auth HTTP Error: ${httpResponse.statusCode}`);
-        return cb(unexpectedError);
-      }
-
-      if (!authResponse) {
-        return cb(new Error('Auth response was empty'));
-      }
-
-      // TODO: Should be cached just like on getCurrentOrganizationName
-      this.set('username', username);
-      this.set('password', password);
-      this.set('inkstoneAuthToken', authResponse.Token);
-
-      sdkClient.config.setAuthToken(authResponse.Token);
-      sdkClient.config.setUserId(username);
-
-      mixpanel.mergeToPayload({distinct_id: username});
-
-      if (Raven) {
-        Raven.setContext({
-          user: {email: username},
-        });
-      }
-
-      return getCurrentOrganizationName((err, organizationName) => {
-        if (err) {
-          return cb(err);
-        }
-
-        return cb(null, {
-          organizationName,
-          username,
-          authToken: authResponse.Token,
-          isAuthed: true,
-        });
-      });
-    });
-  }
-
-  listProjects (cb) {
-    logger.info('[plumbing] listing projects');
-    try {
-      const authToken = sdkClient.config.getAuthToken();
-      return inkstone.project.list(authToken, (projectListErr, projectsList) => {
-        if (projectListErr) {
-          this.sentryError('listProjects', projectListErr);
-          return cb(projectListErr);
-        }
-
-        const finalList = new Array(projectsList.length);
-        async.eachOf(projectsList, (project, index, done) => {
-          finalList[index] = remapProjectObjectToExpectedFormat(project, getCachedOrganizationName());
-          done();
-        }, () => {
-          logger.info('[plumbing] fetched project list', JSON.stringify(finalList));
-          cb(null, finalList);
-        });
-      });
-    } catch (exception) {
-      logger.error(exception);
-      return cb(new Error('Unable to load projects from Haiku Cloud'));
-    }
-  }
-
-  createProject (name, isPublic, cb) {
-    logger.info('[plumbing] creating project', name, isPublic);
-    const authToken = sdkClient.config.getAuthToken();
-    return inkstone.project.create(authToken, {Name: name, IsPublic: isPublic}, (projectCreateErr, projectPayload) => {
-      if (projectCreateErr) {
-        this.sentryError('createProject', projectCreateErr);
-        return cb(projectCreateErr);
-      }
-      const remoteProjectObject = remapProjectObjectToExpectedFormat(projectPayload, getCachedOrganizationName());
-      return cb(null, remoteProjectObject);
-    });
-  }
-
   duplicateProject (destinationProject, sourceProject, cb) {
     if (!sourceProject.projectExistsLocally) {
       logger.info(`[plumbing] source project did not exist during duplicate: ${sourceProject.projectName}`);
@@ -1177,78 +969,11 @@ export default class Plumbing extends EventEmitter {
     });
   }
 
-  forkProject (organizationName, projectName, cb) {
-    const authToken = sdkClient.config.getAuthToken();
-    const communityProject = {
-      Organization: {
-        Name: organizationName,
-      },
-      Project: {
-        Name: projectName,
-      },
-    };
-
-    inkstone.community.forkCommunityProject(authToken, communityProject, (err, forkedProject) => {
-      if (err) {
-        this.sentryError('forkProject', err);
-        return cb(err);
-      }
-
-      cb(null, forkedProject.Name);
-    });
-  }
-
-  getProjectByName (projectName, cb) {
-    const authToken = sdkClient.config.getAuthToken();
-    inkstone.project.getByName(authToken, projectName, (err, projectAndCredentials) => {
-      if (err) {
-        return cb(err);
-      }
-
-      cb(null, remapProjectObjectToExpectedFormat(projectAndCredentials.Project, getCachedOrganizationName()));
-    });
-  }
-
-  deleteProject (name, path, cb) {
-    logger.info('[plumbing] deleting project', name);
-    const authToken = sdkClient.config.getAuthToken();
-    return inkstone.project.deleteByName(authToken, name, (deleteErr) => {
-      if (deleteErr) {
-        this.sentryError('deleteProject', deleteErr);
-        if (cb) {
-          return cb(deleteErr);
-        }
-      }
-      if (fse.existsSync(path)) {
-        // Delete the project locally, but in a recoverable state.
-        let archivePath = `${path}.bak`;
-        if (fse.existsSync(archivePath)) {
-          let i = 0;
-          while (fse.existsSync(archivePath = `${path}.bak.${i++}`)) {
-
-          }
-        }
-        return fse.move(path, archivePath, cb);
-      }
-      if (cb) {
-        return cb();
-      }
-    });
-  }
-
   teardownMaster (folder, cb) {
     logger.info(`[plumbing] tearing down master ${folder}`);
     awaitAllLocksFree(() => {
       if (this.masters[folder]) {
-        this.masters[folder].active = false;
-        this.masters[folder].watchOff();
-        if (this.masters[folder].project) {
-          this.masters[folder].project.getAllActiveComponents().forEach((ac) => {
-            if (ac.$instance) {
-              ac.$instance.context.destroy();
-            }
-          });
-        }
+        this.masters[folder].halt();
       }
 
       // Since we're about to nav back to the dashboard, we're also about to drop the
@@ -1280,32 +1005,17 @@ export default class Plumbing extends EventEmitter {
     });
   }
 
-  saveProject (folder, projectName, maybeUsername, maybePassword, saveOptions, cb) {
+  saveProject (project, saveOptions, cb) {
     if (!saveOptions) {
       saveOptions = {};
     }
-    if (!saveOptions.authorName) {
-      saveOptions.authorName = this.get('username');
-    }
-    if (!saveOptions.organizationName) {
-      saveOptions.organizationName = getCachedOrganizationName();
-    }
     logger.info('[plumbing] saving with options', saveOptions);
-    return this.awaitMasterAndCallMethod(folder, 'saveProject', [projectName, maybeUsername, maybePassword, saveOptions, {from: 'master'}], cb);
-  }
-
-  requestSyndicationInfo (folder, cb) {
-    return this.awaitMasterAndCallMethod(folder, 'requestSyndicationInfo', [{from: 'master'}], cb);
+    return this.awaitMasterAndCallMethod(project.projectPath, 'saveProject', [project, saveOptions, {from: 'master'}], cb);
   }
 
   checkInkstoneUpdates (query = '', cb) {
     const authToken = sdkClient.config.getAuthToken();
     return inkstone.updates.check(authToken, query, cb);
-  }
-
-  doLogOut (cb) {
-    sdkClient.config.setAuthToken('');
-    return cb();
   }
 
   listAssets (folder, cb) {
@@ -1393,7 +1103,7 @@ Plumbing.prototype.findMasterByFolder = function (folder) {
   return this.masters[folder];
 };
 
-Plumbing.prototype.upsertMaster = function ({folder, fileOptions, envoyOptions}) {
+Plumbing.prototype.upsertMaster = function ({folder, fileOptions, envoyOptions, envoyHandlers}) {
   const remote = (payload, cb) => {
     return this.handleRemoteMessage(
       'controllee',
@@ -1412,6 +1122,7 @@ Plumbing.prototype.upsertMaster = function ({folder, fileOptions, envoyOptions})
       folder,
       fileOptions,
       envoyOptions,
+      envoyHandlers,
     );
 
     master.on('assets-changed', (master, assets) => {
@@ -1472,39 +1183,6 @@ Plumbing.prototype.upsertMaster = function ({folder, fileOptions, envoyOptions})
   this.masters[folder].active = true;
 
   return this.masters[folder];
-};
-
-Plumbing.prototype.spawnSubgroup = function (haiku, cb) {
-  if (haiku.folder) {
-    this.upsertMaster({
-      folder: path.normalize(haiku.folder),
-      envoyOptions: lodash.assign({
-        host: process.env.ENVOY_HOST,
-        port: process.env.ENVOY_PORT,
-        token: process.env.ENVOY_TOKEN,
-      }, haiku.envoy),
-      fileOptions: {
-        doWriteToDisk: true,
-        skipDiffLogging: false,
-      },
-    });
-  }
-
-  if (haiku.mode === 'creator') {
-    // If we were spawned as a subprocess inside of electron main, tell our parent to launch creator.
-    if (typeof process.send === 'function') {
-      process.send({
-        haiku,
-        message: 'launchCreator',
-      });
-    } else if (process.versions && !!process.versions.electron) {
-      // We are in electron main (e.g. in a test context).
-      global.process.env.HAIKU_ENV = JSON.stringify(haiku);
-      require('haiku-creator/lib/electron');
-    }
-  }
-
-  cb();
 };
 
 let portrange = 45032;
@@ -1607,23 +1285,5 @@ function createResponder (message, websocket) {
       error: (error) ? serializeError(error) : void (0),
     };
     sendMessageToClient(websocket, reply);
-  };
-}
-
-function remapProjectObjectToExpectedFormat (projectObject, organizationName) {
-  const projectPath = path.join(
-    HOMEDIR_PATH,
-    'projects',
-    organizationName,
-    projectObject.Name,
-  );
-  return {
-    projectPath,
-    projectName: projectObject.Name,
-    projectExistsLocally: fse.existsSync(projectPath),
-    projectsHome: HOMEDIR_PATH,
-    repositoryUrl: projectObject.RepositoryUrl,
-    forkComplete: projectObject.ForkComplete,
-    isPublic: projectObject.IsPublic,
   };
 }

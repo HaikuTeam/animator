@@ -38,14 +38,15 @@
         }
         component.controlTime('Default', position);
         component.context.tick(true);
-        ipcRenderer.send('bakery', {type: 'snap', last: position >= duration});
         position = Math.round(Math.min(duration, position + frameDuration));
+        ipcRenderer.send('bakery', {type: 'snap', last: position >= duration});
       };
 
       const bakeryHandler = (_, payload) => {
         switch (payload.type) {
           case 'init':
             frameDuration = 1000 / payload.framerate;
+            document.body.style.backgroundColor = payload.frame ? 'transparent' : 'white';
             tick();
             break;
           case 'tick':

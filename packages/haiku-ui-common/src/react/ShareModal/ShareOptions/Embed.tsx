@@ -1,4 +1,5 @@
 import * as dedent from 'dedent';
+import {HaikuShareUrls} from 'haiku-sdk-creator/lib/bll/Project';
 import * as React from 'react';
 import {CodeBox} from '../../CodeBox';
 import {PUBLISH_SHARED} from './PublishStyles';
@@ -7,21 +8,13 @@ export interface EmbedProps {
   projectName: string;
   userName: string;
   organizationName: string;
-  projectUid: string;
-  sha: string;
+  urls: HaikuShareUrls;
 }
 
 export default class Embed extends React.PureComponent<EmbedProps> {
-  get cdnBase () {
-    const cdnBase = 'https://cdn.haiku.ai/';
-
-    return `${cdnBase + this.props.projectUid}/${this.props.sha}/`;
-  }
-
   render () {
-    const {projectName, organizationName, sha} = this.props;
+    const {projectName, organizationName, urls} = this.props;
     const scriptPath = `https://code.haiku.ai/scripts/core/HaikuCore.${process.env.HAIKU_RELEASE_VERSION}.min.js`;
-    const embedPath = `${this.cdnBase}index.embed.js`;
 
     return (
       <div style={PUBLISH_SHARED.block}>
@@ -36,12 +29,12 @@ export default class Embed extends React.PureComponent<EmbedProps> {
           <div style={PUBLISH_SHARED.instructionsCol2}>
             <CodeBox>
               {dedent`
-                <div id="mount-${sha}"></div>
+                <div id="mount"></div>
                 <script src="${scriptPath}"></script>
-                <script src="${embedPath}"></script>
+                <script src="${urls.embed}"></script>
                 <script>
                   HaikuComponentEmbed_${organizationName}_${projectName}(
-                    document.getElementById('mount-${sha}'),
+                    document.getElementById('mount'),
                     {loop: true}
                   );
                 </script>
