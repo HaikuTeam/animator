@@ -1945,44 +1945,44 @@ class ActiveComponent extends BaseModel {
     keyframes.forEach((keyframe) => keyframe.drag(pxpf, mspf, dragData, metadata))
   }
 
-  // Returns a dictionary describing element timeline
-  // returns {hasTransition: <true/false>, hasExpression: <true/false>}
+  // Returns true iff the element has any transitions or expressions.
   elementHasTransitionOrExpression (elementId) {
     const bytecode = this.getReifiedBytecode()
     const timelineName = this.getCurrentTimelineName()
     const componentId = `haiku:${elementId}`
-
-    const result = {hasTransition: false, hasExpression: false}
-
     if (componentId in bytecode.timelines[timelineName]) {
       const componentTimeline = bytecode.timelines[timelineName][componentId]
 
       for (const propertyName in componentTimeline) {
         // Skip non LAYOUT_3D_SCHEMA properties. Other properties aren't lost on group
-        if (!(propertyName in LAYOUT_3D_SCHEMA)) {
+        if (!LAYOUT_3D_SCHEMA[propertyName]) {
           continue
         }
 
         const propertyTimeline = componentTimeline[propertyName]
 
-        // Check if property has more than one keyFrame ( component has transition )
+        // Check if property has more than one keyframe of non-equivalent values.
         if (propertyTimeline instanceof Object) {
-          // It means it has more than one keyframe
-          if (Object.keys(propertyTimeline).length > 1) {
-            result.hasTransition = true
+          const keys = Object.keys(propertyTimeline)
+          const values = keys.map((key) => propertyTimeline[key].value)
+          if (keys.length > 1) {
+            if (values.some((value) => value !== values[0])) {
+              // There is a meaningful change in the value of a layout property.
+              // We do this additional check because sometimes trivial keyframes holding the same value are defined
+              // in the normal course of editing.
+              return true
+            }
           }
-        }
 
-        // Check if property has any expression ( component expression )
-        for (const frameNum in propertyTimeline) {
-          if (propertyTimeline[frameNum].value instanceof Function) {
-            result.hasExpression = true
+          if (values.some((value) => value instanceof Function)) {
+            // There is an expression on a layout property.
+            return true
           }
         }
       }
     }
 
-    return result
+    return false
   }
 
   snapshotKeyframeUpdates (keyframeUpdates) {

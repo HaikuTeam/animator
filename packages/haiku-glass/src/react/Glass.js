@@ -1022,22 +1022,16 @@ export class Glass extends React.Component {
     if (proxy.canGroup()) {
       mixpanel.haikuTrack('creator:glass:group');
 
-      const componentsWithTransitionOrExpression = proxy.selection.map((element) => {
-        return {title: element.getTitle(), elementId: element.getComponentId(), ...this.getActiveComponent().elementHasTransitionOrExpression(element.getComponentId())};
-      });
-
-      const willLoseTransitionOrExpression = componentsWithTransitionOrExpression.some((el) => el.hasTransition || el.hasExpression);
-
-      if (willLoseTransitionOrExpression) {
-
+      const ac = this.getActiveComponent();
+      if (proxy.selection.some(
+        (element) => ac.elementHasTransitionOrExpression(element.getComponentId()),
+      )) {
         this.props.websocket.send({
           type: 'broadcast',
           from: 'glass',
           name: 'show-confirm-group-popup',
-          components: componentsWithTransitionOrExpression.filter((el) => el.hasTransition || el.hasExpression),
           groupOrUngroup: 'group',
         });
-
       } else {
         this.executeGroup();
       }
@@ -1057,23 +1051,13 @@ export class Glass extends React.Component {
     const proxy = this.fetchProxyElementForSelection();
     if (proxy.canUngroup()) {
       mixpanel.haikuTrack('creator:glass:ungroup');
-
-      const componentsWithTransitionOrExpression = proxy.selection.map((element) => {
-        return {title: element.getTitle(), elementId: element.getComponentId(), ...this.getActiveComponent().elementHasTransitionOrExpression(element.getComponentId())};
-      });
-
-      const willLoseTransitionOrExpression = componentsWithTransitionOrExpression.some((el) => el.hasTransition || el.hasExpression);
-
-      if (willLoseTransitionOrExpression) {
-
+      if (this.getActiveComponent().elementHasTransitionOrExpression(proxy.selection[0].getComponentId())) {
         this.props.websocket.send({
           type: 'broadcast',
           from: 'glass',
           name: 'show-confirm-group-popup',
-          components: componentsWithTransitionOrExpression.filter((el) => el.hasTransition || el.hasExpression),
           groupOrUngroup: 'ungroup',
         });
-
       } else {
         this.executeUngroup();
       }

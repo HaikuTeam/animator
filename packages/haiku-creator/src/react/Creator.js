@@ -154,7 +154,6 @@ export default class Creator extends React.Component {
       showEventHandlerEditor: false,
       eventHandlerEditorOptions: {},
       showConfirmGroupUngroupPopup: false,
-      componentsLosingTransitions: {},
       groupOrUngroup: 'group',
     };
 
@@ -733,7 +732,7 @@ export default class Creator extends React.Component {
           break;
 
         case 'show-confirm-group-popup':
-          this.handleShowConfirmGroupPopup(message.components, message.groupOrUngroup);
+          this.handleShowConfirmGroupPopup(message.groupOrUngroup);
           break;
 
         case 'assets-changed':
@@ -1929,9 +1928,9 @@ export default class Creator extends React.Component {
     );
   }
 
-  handleShowConfirmGroupPopup (components, groupOrUngroup) {
-    mixpanel.haikuTrack('creator:show-confirm-group-ungroup-popup');
-    this.setState({showConfirmGroupUngroupPopup: true, componentsLosingTransitions: components, groupOrUngroup});
+  handleShowConfirmGroupPopup (groupOrUngroup) {
+    mixpanel.haikuTrack(`creator:show-confirm-group-ungroup-popup:${groupOrUngroup}`);
+    this.setState({showConfirmGroupUngroupPopup: true, groupOrUngroup});
     this.state.projectModel.broadcastPayload({name: 'confirm-group-ungroup-popup-open', groupOrUngroup});
   }
 
@@ -1942,7 +1941,7 @@ export default class Creator extends React.Component {
       mixpanel.haikuTrack('creator:glass:group_upgroup_answer_n');
     }
 
-    this.setState({showConfirmGroupUngroupPopup: false, componentsLosingTransitions: {}});
+    this.setState({showConfirmGroupUngroupPopup: false});
     this.state.projectModel.broadcastPayload({name: 'confirm-group-ungroup-popup-closed', confirmed: userConfirmedGroup, groupOrUngroup});
   }
 
@@ -2289,7 +2288,6 @@ export default class Creator extends React.Component {
         {this.state.showConfirmGroupUngroupPopup &&
           <ConfirmGroupUngroupPopup
             user={this.user}
-            componentsLosingTransitions={this.state.componentsLosingTransitions}
             setGroupUngroupAnswerAndClose={this.hideConfirmGroupUngroupPopup}
             groupOrUngroup={this.state.groupOrUngroup}
           />}

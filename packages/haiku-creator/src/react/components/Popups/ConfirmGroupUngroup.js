@@ -1,5 +1,4 @@
 import * as React from 'react';
-import * as Radium from 'radium';
 import {ModalWrapper, ModalFooter} from 'haiku-ui-common/lib/react/Modal';
 import {BTN_STYLES} from '../../styles/btnShared';
 import Palette from 'haiku-ui-common/lib/Palette';
@@ -40,6 +39,20 @@ const STYLES = {
   checkInput: {
     marginRight: 10,
   },
+  no: {
+    ...BTN_STYLES.btnText,
+    ...BTN_STYLES.centerBtns,
+    display: 'inline-block',
+    backgroundColor: 'transparent',
+    marginRight: 10,
+  },
+  yes: {
+    ...BTN_STYLES.btnText,
+    ...BTN_STYLES.centerBtns,
+    ...BTN_STYLES.btnPrimary,
+    display: 'inline-block',
+    marginRight: 40,
+  },
 };
 
 class ConfirmGroupUngroup extends React.Component {
@@ -47,7 +60,6 @@ class ConfirmGroupUngroup extends React.Component {
     super(props);
     this.cancelGroup = this.cancelGroup.bind(this);
     this.confirmGroup = this.confirmGroup.bind(this);
-    this.getWarningInnerText = this.getWarningInnerText.bind(this);
     this.saveDoNotShowSetting = this.saveDoNotShowSetting.bind(this);
 
     this.state = {
@@ -82,25 +94,17 @@ class ConfirmGroupUngroup extends React.Component {
     this.props.setGroupUngroupAnswerAndClose(true, this.props.groupOrUngroup);
   }
 
-  getWarningInnerText () {
-    const losingAnimation = this.props.componentsLosingTransitions.some((component) => component.hasTransition);
-    const losingExpression = this.props.componentsLosingTransitions.some((component) => component.hasExpression);
-    const losingText = `${losingAnimation ? 'animations ' : ''}${(losingAnimation && losingExpression) ? 'and' : ''}${losingExpression ? ' expressions ' : ''}`;
-
-    return `Grouping will reset all layout ${losingText} to their current state. Proceed anyway?`;
-  }
-
   render () {
     return this.state.showPopup && (
       <div style={STYLES.wrapper}>
         <ModalWrapper style={STYLES.modalWrapper}>
           <div style={STYLES.title}>Confirm {this.props.groupOrUngroup}</div>
           <div style={STYLES.modalBody}>
-          {this.getWarningInnerText()}
+            Transitions or expressions may be lost when you {this.props.groupOrUngroup} these elements. Proceed anyway?
           </div>
           <ModalFooter style={STYLES.modalFooter} >
-            <div style={[{display: 'inline-block', width: '100%'}]} >
-              <input style={[{marginTop: 5}]}
+            <div style={{display: 'inline-block', width: '100%'}} >
+              <input style={{marginTop: 5}}
                 type="checkbox"
                 name="not-show-again"
                 id="not-show-again"
@@ -108,22 +112,14 @@ class ConfirmGroupUngroup extends React.Component {
                 ref={(input) => {
                   this.checkInput = input;
                 }} />
-              <label style={[{marginTop: 5}]} htmlFor="not-show-again">Don't show this again.</label>
+              <label style={{marginTop: 5}} htmlFor="not-show-again">Don't show this again.</label>
 
-              <div style={[{float: 'right'}]}>
+              <div style={{float: 'right'}}>
               <button
                 key="group-no"
                 id="group-no"
                 onClick={this.cancelGroup}
-                style={[
-                  BTN_STYLES.btnText,
-                  BTN_STYLES.centerBtns,
-                  {
-                    display: 'inline-block',
-                    backgroundColor: 'transparent',
-                    marginRight: '10px',
-                  },
-                ]}
+                style={STYLES.no}
               >
                 <span>No</span>
               </button>
@@ -132,15 +128,7 @@ class ConfirmGroupUngroup extends React.Component {
                 key="group-yes"
                 id="group-yes"
                 onClick={this.confirmGroup}
-                style={[
-                  BTN_STYLES.btnText,
-                  BTN_STYLES.centerBtns,
-                  BTN_STYLES.btnPrimary,
-                  {
-                    display: 'inline-block',
-                    marginRight: '40px',
-                  },
-                ]}
+                style={STYLES.yes}
               >
                 <span>Yes</span>
               </button>
@@ -153,4 +141,4 @@ class ConfirmGroupUngroup extends React.Component {
   }
 }
 
-export default Radium(ConfirmGroupUngroup);
+export default ConfirmGroupUngroup;
