@@ -157,14 +157,6 @@ class Logger extends EventEmitter {
     this.logger.error(args, {view: this.view})
   }
 
-  // options:
-  // - forceProfile: force profile even without PROF env var
-  profile (arg, options = {}) {
-    if (process.env.PROF || options.forceProfile) {
-      this.logger.profile(arg, {view: this.view})
-    }
-  }
-
   diff (previous, current, options = {}) {
     if (!previous || previous.length < 1) {
       this.info(`[differ] ${options.relpath}: no previous content`.grey)
@@ -236,11 +228,11 @@ class Logger extends EventEmitter {
   }
 
   time (...args) {
-    console.time(...args)
+    this.logger.profile(args, {view: this.view})
   }
 
   timeEnd (...args) {
-    console.timeEnd(...args)
+    this.logger.profile(args, {view: this.view})
   }
 
   trace (...args) {

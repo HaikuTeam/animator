@@ -1040,9 +1040,9 @@ export default class Creator extends React.Component {
 
   setInteractionMode (interactionMode) {
     if (this.state.projectModel) {
-      logger.profile('projectModel.setInteractionMode');
+      logger.time('projectModel.setInteractionMode');
       this.state.projectModel.setInteractionMode(interactionMode, {from: 'creator'}, () => {
-        logger.profile('projectModel.setInteractionMode');
+        logger.timeEnd('projectModel.setInteractionMode');
       });
     }
   }
@@ -1319,9 +1319,9 @@ export default class Creator extends React.Component {
                   break;
 
                 case 'setInteractionMode':
-                  logger.profile('update handleInteractionModeChange');
+                  logger.time('update handleInteractionModeChange');
                   this.handleInteractionModeChange(...args);
-                  logger.profile('update handleInteractionModeChange');
+                  logger.timeEnd('update handleInteractionModeChange');
                   break;
               }
             });
@@ -1338,9 +1338,9 @@ export default class Creator extends React.Component {
                   break;
 
                 case 'setInteractionMode':
-                  logger.profile('remote-update handleInteractionModeChange');
+                  logger.time('remote-update handleInteractionModeChange');
                   this.handleInteractionModeChange(...args);
-                  logger.profile('remote-update handleInteractionModeChange');
+                  logger.timeEnd('remote-update handleInteractionModeChange');
                   break;
               }
             });
@@ -1415,12 +1415,12 @@ export default class Creator extends React.Component {
   }
 
   mountHaikuComponent () {
-    logger.profile('mountHaikuComponent');
+    logger.time('mountHaikuComponent');
     // The Timeline UI doesn't display the component, so we don't bother giving it a ref
     this.getActiveComponent().mountApplication(null, {
       freeze: true, // No display means no need for overflow settings, etc
     });
-    logger.profile('mountHaikuComponent');
+    logger.timeEnd('mountHaikuComponent');
   }
 
   launchFolder (maybeProjectName, projectFolder, cb) {

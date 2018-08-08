@@ -102,27 +102,19 @@ In general, Plumbing can be debugged on port 9221 and Electron renderer processe
 
 ### Profiling
 
-You can see detailed profiling info by setting PROF=1 environment variable
-
-```
-PROF=1 yarn go
-```
-
 To add profile to any code, you should call 
 
 ```
-logger.profile('<user defined name>')
+logger.time('<user defined name>')
 <code to be profiled>
-logger.profile('<user defined name>')
+logger.timeEnd('<user defined name>')
 ```
 
 And it will output
 ```
 <timestamp>|<process>|info|d=149|<user defined name>
 ```
-with `d` being duration between first and second call. To do a subsequent profile with same name, you should call `logger.profile` rearm again.
-
-To force profile (overwrites PROF env var), use `logger.profile('<user defined name>',{forceProfile: true})`
+with `d` being duration between `logger.time` and `logger.timeEnd`. To do a subsequent profile with same name, you should call `logger.time` rearm again.
 
 ## Contributing
 
