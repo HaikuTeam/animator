@@ -13,13 +13,14 @@ import NotificationExplorer from './notifications/NotificationExplorer';
 import ProjectThumbnail from './ProjectThumbnail';
 import {TOUR_CHANNEL} from 'haiku-sdk-creator/lib/tour';
 import {UserIconSVG, LogOutSVG, LogoMicroSVG, PresentIconSVG} from 'haiku-ui-common/lib/react/OtherIcons';
+import ExternalLinkSVG from 'haiku-ui-common/lib/react/icons/ExternalLinkIconSVG';
 import {DASH_STYLES} from '../styles/dashShared';
 import {BTN_STYLES} from '../styles/btnShared';
 import {ExternalLink} from 'haiku-ui-common/lib/react/ExternalLink';
 
 const STYLES = {
   adminButton: {
-    // TODO: make this a bit more not subdued?
+    // TODO: make this a bit more insane?
     background: 'linear-gradient(180deg, rgb(247,183,89), rgb(229,116,89) 50%, rgb(213,53,89))',
   },
 };
@@ -231,20 +232,31 @@ class ProjectBrowser extends React.Component {
       return null;
     }
 
-    // #FIXME(@taylor)
-    // On the below, it is important to not say definitively "you are not online" to avoid enraging users who have
-    // some other problem. All we know for sure is that we couldn't connect with Haiku services.
     return (
       <span style={DASH_STYLES.loadingWrap}>
-        <div>
-          <div>
-            <div>Unable to contact Haikiu hosting services. Are you connected to the Internet?</div>
-            <div>Upgrade to the Indie Pro plan for offline capabilities.</div>
-            <div onClick={this.props.explorePro}>Learn more</div>
+        <div style={{width: 560, fontSize: 16, lineHeight: 1.3, textAlign: 'center'}}>
+          <div style={DASH_STYLES.notice}>
+            <div style={DASH_STYLES.noticeTitle}>Unable to connect to Haikiu hosting services.<br/>Are you connected to the Internet?</div>
+            <div>Upgrade to the Haiku Pro for offline capabilities.</div>
+            <div
+              style={[
+                BTN_STYLES.btnText,
+                BTN_STYLES.btnPrimary,
+                DASH_STYLES.btn,
+              ]}
+              onClick={this.props.explorePro}>Learn more
+              <span style={{width:14, height:14, transform: 'translateY(-2px)', marginLeft: 4}}>
+                <ExternalLinkSVG color={Palette.SUNSTONE}/>
+              </span>
+            </div>
           </div>
-          <div>
+          <div style={{marginTop:20}}>
             <div>Stuck behind a VPN?</div>
-            <div onClick={this.props.onShowProxySettings}>Change your proxy settings</div>
+            <div
+              style={{color: Palette.LIGHT_BLUE, cursor: 'pointer'}}
+              onClick={this.props.onShowProxySettings}>
+              Change your proxy settings
+            </div>
           </div>
         </div>
       </span>
