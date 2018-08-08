@@ -57,19 +57,18 @@ class ConfirmGroupUngroup extends React.Component {
 
     // Dismiss dialog. Technically this check could be done on glass, but it would leak implementation and
     // would have a diferent codepath when this config is set. (e.g. won't emit show-confirm-group-popup)
-    this.props.user.getConfig(UserSettings.doNotDisplayConfirmGroupPopoup).then((doNotDisplayConfirmGroupPopoup) => {
+    this.props.user.getConfig(UserSettings.DoNotDisplayConfirmGroupPopoup).then((doNotDisplayConfirmGroupPopoup) => {
       if (doNotDisplayConfirmGroupPopoup) {
         this.confirmGroup();
       } else {
         this.setState({showPopup: true});
       }
     });
-
   }
 
   saveDoNotShowSetting () {
     if (this.checkInput && this.checkInput.checked) {
-      this.props.user.setConfig(UserSettings.doNotDisplayConfirmGroupPopoup, true);
+      this.props.user.setConfig(UserSettings.DoNotDisplayConfirmGroupPopoup, true);
     }
   }
 

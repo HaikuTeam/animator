@@ -14,7 +14,7 @@ export enum UserSettings {
   FigmaToken = 'figmaToken',
   Identity = 'id',
   // #FIXME: capitalize after conflict resolution.
-  doNotDisplayConfirmGroupPopoup = 'doNotDisplayConfirmGroupPopoup',
+  DoNotDisplayConfirmGroupPopoup = 'doNotDisplayConfirmGroupPopoup',
 }
 
 export interface HaikuIdentity {
