@@ -218,7 +218,6 @@ tape('Keyframe.05', (t) => {
 })
 
 tape('Keyframe.06', (t) => {
-  t.plan(6)
   return setupTest('keyframe-06', (err, ac, rows, done) => {
     if (err) throw err
     const kfs = rows[0].getKeyframes()
@@ -233,6 +232,7 @@ tape('Keyframe.06', (t) => {
 
     t.ok(Keyframe.groupIsSingleTween(selection), 'returns true if there is a tween between the two provided keyframes')
     done()
+    t.end()
   })
 })
 
