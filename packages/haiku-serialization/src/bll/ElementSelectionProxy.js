@@ -1289,6 +1289,9 @@ class ElementSelectionProxy extends BaseModel {
     globals
   ) {
     if (this.doesSelectionContainArtboard()) {
+      //As long as we're not snapping artboard resize, we need to explicitly
+      //clear the snap storage, otherwise false snap lines will show during stage resize
+      ElementSelectionProxy.snaps = []
       return this.scaleArtboard(
         mouseCoordsCurrent,
         mouseCoordsPrevious,
