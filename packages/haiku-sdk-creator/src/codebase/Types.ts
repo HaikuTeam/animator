@@ -12,8 +12,8 @@ export abstract class CodebaseFlavor {
   // Builds this project as a library, if possible
   abstract buildLibrary (): void;
 
-  // Finds all components in the
-  abstract findComponents (): Promise<ForeignComponent[]>;
+  // Finds all components in the host codebase
+  abstract findComponents (): ForeignComponent[];
 
   abstract writeHaikuToCodebase (): void;
 }
