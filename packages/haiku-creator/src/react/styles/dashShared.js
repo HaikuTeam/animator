@@ -346,4 +346,23 @@ export const DASH_STYLES = {
     cursor: 'pointer',
     display: 'inline-block',
   },
+  notice: {
+    border: '1px solid ' + Palette.LIGHT_BLUE,
+    padding: '34px 50px 30px',
+    textAlign: 'center',
+  },
+  noticeTitle: {
+    fontSize: 22,
+    color: Palette.SUNSTONE,
+    marginBottom: 18,
+  },
+  btn: {
+    float: 'none',
+    textAlign: 'center',
+    marginTop: 20,
+    textTransform: 'uppercase',
+    fontSize: 17,
+    height: 39,
+    justifyContent: 'center',
+  },
 };
