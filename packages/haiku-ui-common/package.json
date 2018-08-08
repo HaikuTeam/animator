@@ -1,6 +1,6 @@
 {
   "name": "haiku-ui-common",
-  "version": "3.5.1",
+  "version": "3.5.2",
   "description": "Common UI components for Haiku projects.",
   "main": "lib/index.js",
   "directories": {
@@ -14,15 +14,13 @@
     "test": "yarn ts ./node_modules/.bin/tape 'test/**/*.test.ts' | tap-spec",
     "test-report": "nyc yarn ts ./node_modules/.bin/tape 'test/**/*.test.ts' > test-result.tap",
     "compile": "tsc",
-    "develop": "tsc --watch",
-    "storybook": "start-storybook -p 9001 -c .storybook"
+    "develop": "tsc --watch"
   },
   "authors": [
     "Sasha Joseph <sasha@haiku.ai>"
   ],
   "devDependencies": {
-    "@haiku/sdk-inkstone": "3.5.1",
-    "@storybook/react": "^3.3.3",
+    "@haiku/sdk-inkstone": "3.5.2",
     "@types/color": "^3.0.0",
     "@types/decamelize": "^1.2.0",
     "@types/dedent": "^0.7.0",
@@ -40,19 +38,17 @@
     "tslint-config-haiku": "^1.0.15",
     "typescript": "^2.9.1",
     "leaked-handles": "^5.2.0",
-    "haiku-testing": "3.5.1",
-    "url-loader": "^1.0.1",
-    "webpack-conditional-loader": "^1.0.12"
+    "haiku-testing": "3.5.2"
   },
   "license": "UNLICENSED",
   "dependencies": {
-    "awesome-typescript-loader": "^3.4.1",
     "better-react-spinkit": "2.0.0-4",
     "color": "^2.0.1",
     "decamelize": "^1.2.0",
     "dedent": "^0.7.0",
-    "haiku-common": "3.5.1",
-    "haiku-serialization": "3.5.1",
+    "haiku-common": "3.5.2",
+    "haiku-serialization": "3.5.2",
+    "haiku-sdk-creator": "3.5.2",
     "numeral": "^2.0.6",
     "radium": "0.18.1",
     "react": "15.6.2",

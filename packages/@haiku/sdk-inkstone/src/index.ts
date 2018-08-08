@@ -9,7 +9,6 @@ const packageJson = require('../package.json');
 
 // TODO: refactor endpoints using these to the new factory pattern.
 const ENDPOINTS = {
-  PROJECT_CREATE: 'v0/project',
   LOGIN: 'v0/user/auth',
   LOGOUT: 'v0/user/auth',
   CHANGE_PASSWORD: 'v0/user/password',
@@ -18,22 +17,10 @@ const ENDPOINTS = {
   SET_COMMUNITY_HAIKUDOS: 'v0/community/:ORGANIZATION_NAME/:PROJECT_NAME/hai-kudos',
   COMMUNITY_PROFILE: 'v0/community/:ORGANIZATION_NAME',
   GET_COMMUNITY_PROJECT: 'v0/community/:ORGANIZATION_NAME/:PROJECT_NAME',
-  FORK_COMMUNITY_PROJECT: 'v0/community/:ORGANIZATION_NAME/:PROJECT_NAME/fork',
-  PROJECT_LIST: 'v0/project',
-  PROJECT_UPDATE: 'v0/project',
-  INVITE_PREFINERY_CHECK: 'v0/invite/check',
-  INVITE_CHECK: 'v0/invite/:CODE',
-  INVITE_CLAIM: 'v0/invite/claim',
-  SNAPSHOT_GET_BY_ID: 'v0/snapshot/:ID',
   SNAPSHOT_SYNDICATED_BY_ID: 'v0/snapshot/:ID/syndicated',
+  SNAPSHOT_GET_BY_ID: 'v0/snapshot/:ID',
   SNAPSHOT_FEATURE_BY_ID: 'v0/snapshot/:ID/is_featured',
   SNAPSHOT_UNFEATURE_BY_ID: 'v0/snapshot/:ID/is_featured',
-  PROJECT_SNAPSHOT_BY_NAME_AND_SHA: 'v0/project/:NAME/snapshot/:SHA',
-  PROJECT_GET_BY_NAME: 'v0/project/:NAME',
-  PROJECT_GET_BY_UNIQUE_ID: 'v0/project/:UNIQUE_ID',
-  PROJECT_MAKE_PUBLIC_BY_NAME_OR_UNIQUE_ID: 'v0/project/:NAME_OR_UNIQUE_ID/is_public',
-  PROJECT_MAKE_PRIVATE_BY_NAME_OR_UNIQUE_ID: 'v0/project/:NAME_OR_UNIQUE_ID/is_public',
-  PROJECT_DELETE_BY_NAME: 'v0/project/:NAME',
   SUPPORT_UPLOAD_GET_PRESIGNED_URL: 'v0/support/upload/:UUID',
   UPDATES: 'v0/updates',
   USER_CREATE: 'v0/user',
@@ -91,7 +78,7 @@ export namespace inkstone {
     'Content-Type': 'application/json',
   };
 
-  export type Callback<T> = (err: string, data: T, response: request.RequestResponse) => void;
+  export type Callback<T> = (err: Error|null, data: T, response: request.RequestResponse) => void;
 
   export namespace support {
     export function getPresignedUrl (authToken: MaybeAuthToken, uuid: string, cb: inkstone.Callback<string>) {
@@ -169,24 +156,11 @@ export namespace inkstone {
       });
     }
 
-    export function getDetails (authToken: MaybeAuthToken, cb: inkstone.Callback<User>) {
-      const options: request.OptionsWithUrl = {
-        url: inkstoneConfig.baseUrl + ENDPOINTS.USER_DETAIL,
-        headers: {
-          ...baseHeaders,
-          ...maybeAuthorizationHeaders(authToken),
-        },
-      };
-
-      requestInstance.get(options, (err, httpResponse, body) => {
-        if (httpResponse && httpResponse.statusCode === 200) {
-          const response = body as User;
-          cb(undefined, response, httpResponse);
-        } else {
-          cb(safeError(err), undefined, httpResponse);
-        }
-      });
-    }
+    export const get = (cb: inkstone.Callback<User>) => {
+      newGetRequest()
+        .withEndpoint(Endpoints.OrganizationUserDetail)
+        .callWithCallback(cb);
+    };
 
     export function changePassword (
       authToken: MaybeAuthToken,
@@ -319,95 +293,7 @@ export namespace inkstone {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, true, httpResponse);
         } else {
-          const errMessage = body as string;
-          cb(errMessage, undefined, httpResponse);
-        }
-      });
-    }
-  }
-
-  export namespace invite {
-    export interface Invite {
-      Code: string;
-    }
-
-    export interface InvitePresetDetails {
-      Valid?: Validity;
-      Email?: string;
-      OrganizationName?: string;
-    }
-
-    export interface InviteClaim {
-      Code: string;
-      Email: string;
-      Password: string;
-      OrganizationName?: string;
-    }
-
-    export interface PrefineryCheckParams {
-      Code: string;
-      Email: string;
-    }
-
-    export enum Validity {
-      VALID = 0,
-      INVALID = 1,
-      ALREADY_CLAIMED = 2,
-      ERROR = 3,
-    }
-
-    export function getInviteFromPrefineryCode (params: PrefineryCheckParams, cb: inkstone.Callback<Invite>) {
-      const options: request.OptionsWithUrl = {
-        url: inkstoneConfig.baseUrl + ENDPOINTS.INVITE_PREFINERY_CHECK,
-        headers: baseHeaders,
-        json: params,
-      };
-
-      requestInstance.post(options, (err, httpResponse, body) => {
-        if (httpResponse && httpResponse.statusCode === 200) {
-          cb(undefined, JSON.parse(body) as Invite, httpResponse);
-        } else {
-          cb(safeError(err), undefined, httpResponse);
-        }
-      });
-    }
-
-    export function checkValidity (code: string, cb: inkstone.Callback<InvitePresetDetails>) {
-      const options: request.OptionsWithUrl = {
-        url: inkstoneConfig.baseUrl + ENDPOINTS.INVITE_CHECK.replace(':CODE', code),
-        headers: baseHeaders,
-      };
-
-      requestInstance.get(options, (err, httpResponse, body) => {
-        if (httpResponse && httpResponse.statusCode === 200) {
-          const invitePreset = JSON.parse(body) as InvitePresetDetails;
-          invitePreset.Valid = Validity.VALID;
-          cb(undefined, invitePreset, httpResponse);
-        } else {
-          if (httpResponse.statusCode === 404) {
-            cb('invalid code', {Valid: Validity.INVALID}, httpResponse);
-          } else if (httpResponse.statusCode === 410) {
-            cb('code already claimed', {Valid: Validity.ALREADY_CLAIMED}, httpResponse);
-          } else {
-            cb(safeError(err), {Valid: Validity.ERROR}, httpResponse);
-          }
-        }
-      });
-    }
-
-    export function claimInvite (claim: InviteClaim, cb: inkstone.Callback<boolean>) {
-      const options: request.OptionsWithUrl = {
-        url: inkstoneConfig.baseUrl + ENDPOINTS.INVITE_CLAIM,
-        json: claim,
-        headers: baseHeaders,
-      };
-
-      requestInstance.post(options, (err, httpResponse, body) => {
-        if (httpResponse && httpResponse.statusCode === 200) {
-          cb(undefined, true, httpResponse);
-        } else {
-          const errMessage = body as string;
-          cb(errMessage, undefined, httpResponse);
+          cb(new Error(body), undefined, httpResponse);
         }
       });
     }
@@ -418,24 +304,11 @@ export namespace inkstone {
       Name: string;
     }
 
-    export function list (authToken: MaybeAuthToken, cb: inkstone.Callback<Organization[]>) {
-      const options: request.OptionsWithUrl = {
-        url: inkstoneConfig.baseUrl + ENDPOINTS.ORGANIZATION_LIST,
-        headers: {
-          ...baseHeaders,
-          ...maybeAuthorizationHeaders(authToken),
-        },
-      };
-
-      requestInstance.get(options, (err, httpResponse, body) => {
-        if (httpResponse && httpResponse.statusCode === 200) {
-          const projects = JSON.parse(body) as Organization[];
-          cb(undefined, projects, httpResponse);
-        } else {
-          cb(safeError(err), undefined, httpResponse);
-        }
-      });
-    }
+    export const list = (cb: inkstone.Callback<Organization[]>) => {
+      newGetRequest()
+        .withEndpoint(Endpoints.OrganizationResourceCollection)
+        .callWithCallback(cb);
+    };
   }
 
   export namespace snapshot {
@@ -452,27 +325,6 @@ export namespace inkstone {
       Organization: organization.Organization;
     }
 
-    // Gets a snapshot from Inkstone for a snapshot.
-    export function getSnapshotLink (
-      id: string,
-      cb: inkstone.Callback<{ snap: SnapshotAndProjectAndOrganization, link: string }>,
-    ) {
-      getSnapshotAndProject(id, (err, snap, response) => {
-        if (err) {
-          cb(err, undefined, undefined);
-          return;
-        }
-
-        if (response && response.statusCode !== 200) {
-          cb(err, undefined, undefined);
-        } else {
-          cb(undefined, {snap, link: assembleSnapshotLinkFromSnapshot(snap.Snapshot)}, response);
-        }
-      });
-    }
-
-    // tries (once) to get a snapshot from inkstone for a given ID git SHA.  Optionally, can append '/latest' for
-    // UUID lookups [not for SHA lookups]
     export function getSnapshotAndProject (id: string, cb: inkstone.Callback<SnapshotAndProjectAndOrganization>) {
       const url = inkstoneConfig.baseUrl + ENDPOINTS.SNAPSHOT_GET_BY_ID.replace(':ID', encodeURIComponent(id));
       const options: request.OptionsWithUrl = {
@@ -506,10 +358,6 @@ export namespace inkstone {
           cb(safeError(err), undefined, httpResponse);
         }
       });
-    }
-
-    export function assembleSnapshotLinkFromSnapshot (snapshotIn: Snapshot) {
-      return `${inkstoneConfig.baseShareUrl}${snapshotIn.UniqueId}/latest`;
     }
 
     export function feature (authToken: MaybeAuthToken, uniqueId: string, cb: inkstone.Callback<boolean>) {
@@ -695,30 +543,19 @@ export namespace inkstone {
      * Fork a community project.
      *
      * This endpoint requires auth.
-     * @param {string} authToken
-     * @param {inkstone.community.CommunityProject} projectIn
-     * @param {inkstone.Callback<inkstone.project.Project>} cb
      */
-    export function forkCommunityProject (
-      authToken: MaybeAuthToken, projectIn: CommunityProject, cb: inkstone.Callback<project.Project>) {
-      const options: request.OptionsWithUrl = {
-        url: inkstoneConfig.baseUrl + ENDPOINTS.FORK_COMMUNITY_PROJECT
-          .replace(':ORGANIZATION_NAME', projectIn.Organization.Name)
-          .replace(':PROJECT_NAME', projectIn.Project.Name),
-        headers: {
-          ...baseHeaders,
-          ...maybeAuthorizationHeaders(authToken),
-        },
-      };
-
-      requestInstance.post(options, (err, httpResponse, body) => {
-        if (httpResponse && httpResponse.statusCode === 201) {
-          cb(undefined, JSON.parse(body) as project.Project, httpResponse);
-        } else {
-          cb(safeError(err), undefined, httpResponse);
-        }
-      });
-    }
+    export const forkCommunityProject = (
+      params: CommunityProject,
+      cb: inkstone.Callback<project.Project>,
+    ) => {
+      newPostRequest()
+        .withEndpoint(Endpoints.ForkCommunityProject)
+        .withUrlParameters({
+          ':organization_name': params.Organization.Name,
+          ':project_name': params.Project.Name,
+        })
+        .callWithCallback<project.Project>(cb, 201);
+    };
 
     export interface SetHaiKudosParams {
       OrganizationName: string;
@@ -831,6 +668,7 @@ export namespace inkstone {
     export interface Project {
       Name: string;
       IsPublic: boolean;
+      IsFork: boolean;
       ForkComplete: boolean;
       RepositoryUrl: string;
     }
@@ -843,192 +681,127 @@ export namespace inkstone {
     export interface ProjectCreateParams {
       Name: string;
       IsPublic: boolean;
+      DeferCaudexBacking?: boolean;
     }
+
+    export interface ProjectSnapshot {
+      PrivateURL: string;
+      AssetsSyndicated: boolean;
+      StandaloneURL: string;
+      EmbedURL: string;
+      GifURL: string;
+      VideoURL: string;
+      StillURL: string;
+      LottieURL: string;
+    }
+
+    export const create = (params: ProjectCreateParams, cb: inkstone.Callback<Project>) => {
+      newPostRequest()
+        .withEndpoint(Endpoints.ProjectResourceCollection)
+        .withJson(params)
+        .callWithCallback(cb);
+    };
 
     export interface ProjectUpdateParams {
-      ID?: number;
-      UniqueId?: string;
-      MakePublic?: boolean;
-      MakePrivate?: boolean;
+      Name: string;
+      EnsureCaudexBacking?: boolean;
+      IsPublic: boolean;
     }
 
-    export function create (authToken: MaybeAuthToken, params: ProjectCreateParams, cb: inkstone.Callback<Project>) {
-      const options: request.OptionsWithUrl = {
-        url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_CREATE,
-        headers: {
-          ...baseHeaders,
-          ...maybeAuthorizationHeaders(authToken),
-        },
-        json: params,
-      };
+    export const update = (params: ProjectUpdateParams, cb: inkstone.Callback<Project>) => {
+      newPutRequest()
+        .withEndpoint(Endpoints.ProjectResource)
+        .withUrlParameters({':project_name': params.Name})
+        .withJson(params)
+        .callWithCallback(cb);
+    };
 
-      requestInstance.post(options, (err, httpResponse, body) => {
-        if (httpResponse && httpResponse.statusCode === 200) {
-          cb(undefined, body as Project, httpResponse);
-        } else {
-          cb(safeError(err), undefined, httpResponse);
-        }
-      });
+    export const list = (cb: inkstone.Callback<Project[]>) => {
+      newGetRequest()
+        .withEndpoint(Endpoints.ProjectResourceCollection)
+        .callWithCallback(cb);
+    };
+
+    export interface ProjectGetParams {
+      Name: string;
     }
 
-    export function update (authToken: MaybeAuthToken, params: ProjectUpdateParams, cb: inkstone.Callback<Project>) {
-      const options: request.OptionsWithUrl = {
-        url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_UPDATE,
-        headers: {
-          ...baseHeaders,
-          ...maybeAuthorizationHeaders(authToken),
-        },
-        json: params,
-      };
+    export const get = (params: ProjectGetParams, cb: inkstone.Callback<Project>) => {
+      newGetRequest()
+        .withEndpoint(Endpoints.ProjectResource)
+        .withUrlParameters({':project_name': params.Name})
+        .callWithCallback(cb);
+    };
 
-      requestInstance.put(options, (err, httpResponse, body) => {
-        if (httpResponse && httpResponse.statusCode === 200) {
-          cb(undefined, body as Project, httpResponse);
-        } else {
-          cb(safeError(err), undefined, httpResponse);
-        }
-      });
+    export interface ProjectDeleteParams {
+      Name: string;
     }
 
-    export function makePublic (authToken: MaybeAuthToken, nameOrUniqueId: string, cb: inkstone.Callback<boolean>) {
-      const options: request.OptionsWithUrl = {
-        url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_MAKE_PUBLIC_BY_NAME_OR_UNIQUE_ID.replace(
-          ':NAME_OR_UNIQUE_ID', nameOrUniqueId),
-        headers: {
-          ...baseHeaders,
-          ...maybeAuthorizationHeaders(authToken),
-        },
-      };
+    export const deleteByName = (params: ProjectDeleteParams, cb: inkstone.Callback<void>) => {
+      newDeleteRequest()
+        .withEndpoint(Endpoints.ProjectResource)
+        .withUrlParameters({':project_name': params.Name})
+        .callWithCallback(cb);
+    };
 
-      requestInstance.put(options, (err, httpResponse) => {
-        if (httpResponse && httpResponse.statusCode === 204) {
-          cb(undefined, true, httpResponse);
-        } else {
-          cb(safeError(err), false, httpResponse);
-        }
-      });
+    export interface CreateSnapshotParams {
+      Name: string;
+      Sha: string;
     }
 
-    export function makePrivate (authToken: MaybeAuthToken, nameOrUniqueId: string, cb: inkstone.Callback<boolean>) {
-      const options: request.OptionsWithUrl = {
-        url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_MAKE_PRIVATE_BY_NAME_OR_UNIQUE_ID.replace(
-          ':NAME_OR_UNIQUE_ID', nameOrUniqueId),
-        headers: {
-          ...baseHeaders,
-          ...maybeAuthorizationHeaders(authToken),
-        },
-      };
+    export const createSnapshot = (params: CreateSnapshotParams, cb: inkstone.Callback<ProjectSnapshot>) => {
+      newPutRequest()
+        .withEndpoint(Endpoints.ProjectSnapshotResource)
+        .withUrlParameters({':project_name': params.Name, ':sha': params.Sha})
+        .callWithCallback(cb);
+    };
 
-      requestInstance.delete(options, (err, httpResponse) => {
-        if (httpResponse && httpResponse.statusCode === 204) {
-          cb(undefined, true, httpResponse);
-        } else {
-          cb(safeError(err), false, httpResponse);
-        }
-      });
+    export interface GetSnapshotParams {
+      Name: string;
+      Sha: string;
     }
 
-    export function list (authToken: MaybeAuthToken, cb: inkstone.Callback<Project[]>) {
-      const options: request.OptionsWithUrl = {
-        url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_LIST,
-        headers: {
-          ...baseHeaders,
-          ...maybeAuthorizationHeaders(authToken),
-        },
-      };
+    export const getSnapshot = (params: GetSnapshotParams, cb: inkstone.Callback<ProjectSnapshot>) => {
+      newGetRequest()
+        .withEndpoint(Endpoints.ProjectSnapshotResource)
+        .withUrlParameters({':project_name': params.Name, ':sha': params.Sha})
+        .callWithCallback(cb);
+    };
 
-      requestInstance.get(options, (err, httpResponse, body) => {
-        if (httpResponse && httpResponse.statusCode === 200) {
-          const projects = JSON.parse(body) as Project[];
-          cb(undefined, projects, httpResponse);
-        } else {
-          cb(safeError(err), undefined, httpResponse);
-        }
-      });
+    export interface MarkSnapshotSyndicatedParams {
+      Name: string;
+      Sha: string;
     }
 
-    export function getByName (
-      authToken: MaybeAuthToken, name: string, cb: inkstone.Callback<ProjectAndCredentials>,
-    ) {
-      const options: request.OptionsWithUrl = {
-        url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_GET_BY_NAME.replace(':NAME', encodeURIComponent(name)),
-        headers: {
-          ...baseHeaders,
-          ...maybeAuthorizationHeaders(authToken),
-        },
-      };
+    export const markSnapshotSyndicated = (
+      params: MarkSnapshotSyndicatedParams,
+      cb: inkstone.Callback<void>,
+    ) => {
+      newPutRequest()
+        .withEndpoint(Endpoints.ProjectSnapshotSyndicated)
+        .withUrlParameters({':project_name': params.Name, ':sha': params.Sha})
+        .callWithCallback(cb, 204);
+    };
 
-      requestInstance.get(options, (err, httpResponse, body) => {
-        if (httpResponse && httpResponse.statusCode === 200) {
-          cb(undefined, JSON.parse(body) as ProjectAndCredentials, httpResponse);
-        } else {
-          cb(safeError(err), undefined, httpResponse);
-        }
-      });
+    export interface CreateSnapshotAssetParams {
+      Name: string;
+      Sha: string;
+      Filename: string;
     }
 
-    export function getByUniqueId (
-      authToken: MaybeAuthToken,
-      uniqueId: string,
-      cb: inkstone.Callback<ProjectAndCredentials>,
-    ) {
-      const options: request.OptionsWithUrl = {
-        url: inkstoneConfig.baseUrl +
-          ENDPOINTS.PROJECT_GET_BY_UNIQUE_ID.replace(':UNIQUE_ID', encodeURIComponent(uniqueId)),
-        headers: {
-          ...baseHeaders,
-          ...maybeAuthorizationHeaders(authToken),
-        },
-      };
-
-      requestInstance.get(options, (err, httpResponse, body) => {
-        if (httpResponse && httpResponse.statusCode === 200) {
-          cb(undefined, JSON.parse(body) as ProjectAndCredentials, httpResponse);
-        } else {
-          cb(safeError(err), undefined, httpResponse);
-        }
-      });
+    export interface SnapshotPresignedURL {
+      URL: string;
     }
 
-    export function deleteByName (authToken: MaybeAuthToken, name: string, cb: inkstone.Callback<boolean>) {
-
-      const options: request.OptionsWithUrl = {
-        url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_DELETE_BY_NAME.replace(':NAME', encodeURIComponent(name)),
-        headers: {
-          ...baseHeaders,
-          ...maybeAuthorizationHeaders(authToken),
-        },
-      };
-
-      requestInstance.delete(options, (err, httpResponse, body) => {
-        if (httpResponse && httpResponse.statusCode === 200) {
-          cb(undefined, true, httpResponse);
-        } else {
-          cb(safeError(err), undefined, httpResponse);
-        }
-      });
-    }
-
-    export function createProjectSnapshotByNameAndSha (
-      authToken: MaybeAuthToken, name: string, sha: string, cb: inkstone.Callback<snapshot.Snapshot>) {
-      const options: request.OptionsWithUrl = {
-        url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_SNAPSHOT_BY_NAME_AND_SHA
-          .replace(':NAME', encodeURIComponent(name))
-          .replace(':SHA', encodeURIComponent(sha)),
-        headers: {
-          ...baseHeaders,
-          ...maybeAuthorizationHeaders(authToken),
-        },
-      };
-
-      requestInstance.put(options, (err, httpResponse, body) => {
-        if (httpResponse && httpResponse.statusCode === 200) {
-          return cb(undefined, JSON.parse(body) as snapshot.Snapshot, httpResponse);
-        }
-
-        cb(safeError(err), undefined, httpResponse);
-      });
-    }
+    export const createSnapshotAsset = (
+      params: CreateSnapshotAssetParams,
+      cb: inkstone.Callback<SnapshotPresignedURL>,
+    ) => {
+      newPutRequest()
+        .withEndpoint(Endpoints.ProjectSnapshotAssetResource)
+        .withUrlParameters({':project_name': params.Name, ':sha': params.Sha, ':filename': params.Filename})
+        .callWithCallback(cb, 201);
+    };
   }
 
   export namespace updates {
@@ -1107,7 +880,7 @@ export namespace inkstone {
     export const listProducts = (cb: inkstone.Callback<Product[]>) => {
       newGetRequest()
         .withEndpoint(Endpoints.BillingListProducts)
-        .callWithCallback<Product[]>(cb);
+        .callWithCallback(cb);
     };
 
     /**
@@ -1120,7 +893,7 @@ export namespace inkstone {
     export const describe = (cb: inkstone.Callback<Profile>) => {
       newGetRequest()
         .withEndpoint(Endpoints.BillingDescribe)
-        .callWithCallback<Profile>(cb);
+        .callWithCallback(cb);
     };
 
     /**
@@ -1135,7 +908,7 @@ export namespace inkstone {
       newPutRequest()
         .withEndpoint(Endpoints.BillingSetCustomer)
         .withJson(customer)
-        .callWithCallback<void>(cb, 204);
+        .callWithCallback(cb, 204);
     };
 
     export interface AddCardRequestParams {
@@ -1158,7 +931,7 @@ export namespace inkstone {
       newPostRequest()
         .withEndpoint(Endpoints.BillingAddCard)
         .withJson(card)
-        .callWithCallback<void>(cb, 204);
+        .callWithCallback(cb, 204);
     };
 
     /**
@@ -1174,7 +947,7 @@ export namespace inkstone {
       newPutRequest()
         .withEndpoint(Endpoints.BillingSetCardAsDefaultById)
         .withUrlParameters({':card_id': cardId})
-        .callWithCallback<void>(cb, 204);
+        .callWithCallback(cb, 204);
     };
 
     /**
@@ -1191,7 +964,7 @@ export namespace inkstone {
       newDeleteRequest()
         .withEndpoint(Endpoints.BillingDeleteCardById)
         .withUrlParameters({':card_id': cardId})
-        .callWithCallback<void>(cb, 204);
+        .callWithCallback(cb, 204);
     };
 
     export interface SetPlanRequestParams {
@@ -1216,9 +989,9 @@ export namespace inkstone {
       cb: inkstone.Callback<Subscription>,
     ) => {
       newPutRequest()
-        .withEndpoint(Endpoints.BillingSetPlan)
+        .withEndpoint(Endpoints.BillingPlanResource)
         .withJson(plan)
-        .callWithCallback<Subscription>(cb);
+        .callWithCallback(cb);
     };
 
     /**
@@ -1234,8 +1007,8 @@ export namespace inkstone {
       cb: inkstone.Callback<void>,
     ) => {
       newDeleteRequest()
-        .withEndpoint(Endpoints.BillingCancelPlan)
-        .callWithCallback<void>(cb, 204);
+        .withEndpoint(Endpoints.BillingPlanResource)
+        .callWithCallback(cb, 204);
     };
   }
 }

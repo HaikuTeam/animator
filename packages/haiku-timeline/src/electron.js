@@ -59,7 +59,7 @@ function createWindow () {
   });
 
   topmenu.create({
-    projectList: [],
+    projectsList: [],
     isSaving: false,
     isProjectOpen: true,
     subComponents: [],

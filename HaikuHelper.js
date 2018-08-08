@@ -73,7 +73,7 @@ function go () {
 
 function startEmUp (plumbing, haiku, cb) {
   delete haiku.folder;
-  plumbing.launch(haiku, function () {
+  plumbing.launch(haiku, () => {
     let folder = global.process.env.HAIKU_PROJECT_FOLDER;
     if (folder) {
       if (folder[0] !== path.sep) {

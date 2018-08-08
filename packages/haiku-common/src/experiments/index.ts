@@ -7,16 +7,13 @@ import {getExperimentConfig} from './config';
  * @enum {string}
  */
 export enum Experiment {
-  MultiComponentFeatures = 'MultiComponentFeatures',
   HideInstantiatedElementUntilTimeInstantiated = 'HideInstantiatedElementUntilTimeInstantiated',
   MergeDesignChangesAtCurrentTime = 'MergeDesignChangesAtCurrentTime',
   CommentsOnStage = 'CommentsOnStage',
   AsyncClientActions = 'AsyncClientActions',
   NormalizeSvgContent = 'NormalizeSvgContent',
-  BasicOfflineMode = 'BasicOfflineMode',
   MultiComponentControlsLibrary = 'MultiComponentControlsLibrary',
   ShowSubElementsInJitMenu = 'ShowSubElementsInJitMenu',
-  GroupUngroup = 'GroupUngroup',
   BaseModelQueryCache = 'BaseModelQueryCache',
   ComponentInfoInspector = 'ComponentInfoInspector',
   AdvancedMultiTransform = 'AdvancedMultiTransform',
@@ -35,7 +32,6 @@ export enum Experiment {
   UserConsole = 'UserConsole',
   AllowBitmapImages = 'AllowBitmapImages',
   SizeInsteadOfScaleWhenPossible = 'SizeInsteadOfScaleWhenPossible',
-  CleanInitialLibraryState = 'CleanInitialLibraryState',
   CopyPasteTweens = 'CopyPasteTweens',
   CopyPasteTweensWithAccelerators = 'CopyPasteTweensWithAccelerators',
   Snapping = 'Snapping',

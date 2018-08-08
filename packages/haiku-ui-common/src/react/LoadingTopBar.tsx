@@ -1,5 +1,5 @@
 import * as React from 'react';
-import Palette from './Palette';
+import Palette from '../Palette';
 
 const STYLES = {
   bar: {

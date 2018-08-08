@@ -292,11 +292,7 @@ class AssetItem extends React.Component {
   }
 
   isFigmaAndCanBeOpened () {
-    if (experimentIsEnabled(Experiment.CleanInitialLibraryState)) {
-      return this.props.asset.isFigmaFile();
-    }
-
-    return this.props.asset.isFigmaFile() && this.props.asset.relpath !== 'hacky-figma-file[1]';
+    return this.props.asset.isFigmaFile();
   }
 
   renderSyncMenu () {
@@ -586,24 +582,8 @@ class AssetItem extends React.Component {
   }
 
   render () {
-    if (experimentIsEnabled(Experiment.CleanInitialLibraryState) && this.props.asset.isPhonyOrOnlyHasPhonyChildrens()) {
+    if (this.props.asset.isPhonyOrOnlyHasPhonyChildrens()) {
       return null;
-    }
-
-    if (
-      !experimentIsEnabled(Experiment.CleanInitialLibraryState) &&
-      this.props.asset.kind === Asset.KINDS.HACKY_MESSAGE
-    ) {
-      return (
-        <div
-          className="asset-item-container"
-          style={[STYLES.container, STYLES.message]}>
-          <span
-            className="asset-message-container">
-            {this.props.asset.message}
-          </span>
-        </div>
-      );
     }
 
     let draggablePart = (

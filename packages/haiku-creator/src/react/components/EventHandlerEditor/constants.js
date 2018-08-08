@@ -64,5 +64,8 @@ export const AUTOCOMPLETION_ITEMS = [
     label: 'isFinished',
     insertText: 'this.getDefaultTimeline().isFinished()',
   },
-
+  {
+    detail: 'Returns default timeline.',
+    label: 'this.getDefaultTimeline()',
+  },
 ];

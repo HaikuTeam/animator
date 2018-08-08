@@ -1,3 +1,4 @@
+import {VERSION} from '@core/HaikuComponent';
 import {BodymovinExporter} from '@formats/exporters/bodymovin/bodymovinExporter';
 import {HaikuStaticExporter} from '@formats/exporters/haikuStatic/haikuStaticExporter';
 import {each} from 'async';
@@ -26,5 +27,8 @@ readdir(join(goldensRoot, 'bytecode'), (_: any, bytecodeFiles: string[]) => {
         );
       },
     );
+  }, () => {
+    // @ts-ignore
+    global.haiku[VERSION].HaikuGlobalAnimationHarness.cancel();
   });
 });

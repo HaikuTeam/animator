@@ -1,5 +1,6 @@
 import * as React from 'react';
 import * as Radium from 'radium';
+import * as Color from 'color';
 import Palette from 'haiku-ui-common/lib/Palette';
 import ComponentTab from './ComponentTab';
 
@@ -14,6 +15,26 @@ const STYLES = {
     paddingTop: '6px',
     overflow: 'hidden',
     verticalAlign: 'top',
+  },
+  newComponentButton: {
+    width: 24,
+    backgroundColor: Palette.STAGE_GRAY,
+    color: Color(Palette.LIGHTEST_GRAY).alpha(0.54),
+    verticalAlign: 'text-bottom',
+    borderRadius: 4,
+    marginLeft: 4,
+    textAlign: 'center',
+    lineHeight: '13px',
+    paddingBottom: 2,
+    cursor: 'pointer',
+    transform: 'scale(1)',
+    transition: 'transform 200ms ease, color 200ms ease',
+    ':hover': {
+      color: Palette.LIGHTEST_GRAY,
+    },
+    ':active': {
+      transform: 'scale(.8)',
+    },
   },
 };
 
@@ -36,6 +57,15 @@ class ComponentMenu extends React.Component {
     const tabs = this.getAllTabs();
     return tabs.filter((tab) => tab.scenename !== 'main');
   }
+
+  showNewComponentDialog = () => {
+    this.props.websocket.send({
+      type: 'broadcast',
+      from: 'creator',
+      folder: this.props.projectModel.getFolder(),
+      name: 'conglomerate-component',
+    });
+  };
 
   render () {
     return (
@@ -61,6 +91,9 @@ class ComponentMenu extends React.Component {
               tryToChangeCurrentActiveComponent={this.props.tryToChangeCurrentActiveComponent} />
           );
         }))}
+        <button style={STYLES.newComponentButton} onClick={this.showNewComponentDialog}>
+          +
+        </button>
       </div>
     );
   }

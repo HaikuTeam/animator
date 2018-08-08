@@ -2,20 +2,20 @@ import * as Radium from 'radium';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import {ipcRenderer, shell} from 'electron';
-import * as assign from 'lodash.assign';
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import Palette from 'haiku-ui-common/lib/Palette';
 import * as Color from 'color';
 import {BTN_STYLES} from '../styles/btnShared';
 import Toggle from './Toggle';
+import {PublicPrivateOptInModal} from './PublicPrivateOptInModal';
 import {ShareModal} from 'haiku-ui-common/lib/react/ShareModal';
 import {
   ComponentIconSVG, ConnectionIconSVG, DangerIconSVG, EventsBoltIcon, PublishSnapshotSVG, WarningIconSVG, AlignDistributeIcons,
 } from 'haiku-ui-common/lib/react/OtherIcons';
-import {ExporterFormat} from 'haiku-sdk-creator/lib/exporter';
 import * as Element from 'haiku-serialization/src/bll/Element';
 import * as ElementSelectionProxy from 'haiku-serialization/src/bll/ElementSelectionProxy';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
+import {ProjectError} from 'haiku-sdk-creator/lib/bll/Project';
 import {
   isPreviewMode,
   isEditMode,
@@ -194,13 +194,15 @@ class StageTitleBar extends React.Component {
       snapshotSaveConfirmed: null,
       snapshotSaveError: null,
       showSharePopover: false,
+      showPublicPrivateOptInModal: false,
+      privateProjectCount: null,
+      saveProjectContinue: () => {},
       copied: false,
       linkAddress: 'Fetching Info',
       semverVersion: '0.0.0',
       showCopied: false,
-      projectInfo: {},
+      shareUrls: {},
       snapshotSyndicated: true,
-      snapshotPublished: true,
     };
 
     ipcRenderer.on('global-menu:save', () => {
@@ -253,7 +255,7 @@ class StageTitleBar extends React.Component {
       }
     }, 1000);
 
-    document.addEventListener('mouseup', (e) => {
+    this.closeListener = (e) => {
       if (this._shareModal && this.state.showSharePopover) {
         const node = ReactDOM.findDOMNode(this._shareModal);
         const pnode = ReactDOM.findDOMNode(this);
@@ -262,12 +264,13 @@ class StageTitleBar extends React.Component {
             showSharePopover: false,
             isSnapshotSaveInProgress: false,
             snapshotSyndicated: true,
-            snapshotPublished: true,
           });
           this.clearSyndicationChecks();
         }
       }
-    });
+    };
+
+    document.addEventListener('mouseup', this.closeListener);
 
     ipcRenderer.on('global-menu:publish', this.handleGlobalMenuSave);
   }
@@ -276,6 +279,7 @@ class StageTitleBar extends React.Component {
     this._isMounted = false;
     clearInterval(this._fetchMasterStateInterval);
     ipcRenderer.removeListener('global-menu:publish', this.handleGlobalMenuSave);
+    document.removeEventListener('mouseup', this.closeListener);
     this.clearSyndicationChecks();
   }
 
@@ -331,9 +335,7 @@ class StageTitleBar extends React.Component {
 
   getProjectSaveOptions () {
     return {
-      commitMessage: 'Changes saved (via Haiku Desktop)',
       saveStrategy: SNAPSHOT_SAVE_RESOLUTION_STRATEGIES[this.state.snapshotSaveResolutionStrategyName],
-      exporterFormats: [ExporterFormat.Bodymovin, ExporterFormat.HaikuStatic],
     };
   }
 
@@ -377,8 +379,6 @@ class StageTitleBar extends React.Component {
       return void (0);
     }
 
-    this.setState({showSharePopover: true});
-
     mixpanel.haikuTrack('install-options', {
       from: 'app',
       event: 'show-all-options',
@@ -387,19 +387,47 @@ class StageTitleBar extends React.Component {
     return this.performProjectSave();
   }
 
-  withProjectInfo (otherObject) {
-    const proj = this.state.projectInfo || {};
-    return assign({}, otherObject, {
-      organization: proj.organizationName,
-      uuid: proj.projectUid,
-      sha: proj.sha,
-      branch: proj.branchName,
-    });
-  }
-
   requestSaveProject (cb) {
     if (this.props.projectModel) {
-      return this.props.projectModel.saveProject(this.props.project.projectName, this.props.username, this.props.password, this.getProjectSaveOptions(), cb);
+      this.props.envoyProject.getProjectsList().then((list) => {
+        this.setState({
+          privateProjectCount: list.filter((project) => !project.isPublic).length,
+        }, () => {
+          // If the project already has a repository URL, this means the user has already confirmed their project's
+          // privacy settings. Prior to 3.5.2, we presented this field during project creation in Creator; as of 3.5.2,
+          // we explicit defer Caudex backing during project creation, ensuring there won't be a repository URL _until_
+          // the step skipped here.
+          if (this.props.project.repositoryUrl) {
+            // We can go straight to the publish modal.
+            this.setState({showSharePopover: true, isSnapshotSaveInProgress: true, snapshotSyndicated: false});
+            return this.props.projectModel.saveProject(this.props.project, this.getProjectSaveOptions(), cb);
+          }
+
+          // The user needs to set up public/private first.
+          this.setState({
+            showPublicPrivateOptInModal: true,
+            saveProjectContinue: () => {
+              this.setState(
+                {
+                  showPublicPrivateOptInModal: false,
+                  showSharePopover: true,
+                  isSnapshotSaveInProgress: true,
+                  snapshotSyndicated: false,
+                },
+                () => {
+                  this.props.projectModel.saveProject(this.props.project, this.getProjectSaveOptions(), cb);
+                },
+            );
+            },
+          });
+        });
+      }).catch(() => {
+        this.props.createNotice({
+          type: 'danger',
+          title: 'Uh oh!',
+          message: 'We were unable to publish your project. 😢 Are you online?',
+        });
+      });
     }
   }
 
@@ -435,60 +463,41 @@ class StageTitleBar extends React.Component {
 
   performSyndicationCheck () {
     this.syndicationChecks++;
-    if (this.props.projectModel) {
-      return this.props.projectModel.requestSyndicationInfo((err, info) => {
-        if (err || !info || info.status.errored) {
-          this.props.createNotice({
-            type: 'danger',
-            title: 'Uh oh!',
-            message: 'We were unable to publish your project. 😢 Please try again in a bit. If you see this error again, contact Haiku for support.',
-          });
-          this.clearSyndicationChecks();
-          return this.setState({
-            showSharePopover: false,
-            isSnapshotSaveInProgress: false,
-            snapshotSyndicated: undefined,
-            snapshotPublished: undefined,
-          });
-        }
-
-        // Avoid races with button display while aborting publish by only setting values that have become true.
-        const newState = {
-          projectInfo: info,
-        };
-
-        if (info.status.syndicated) {
-          newState.snapshotSyndicated = true;
-        }
-
-        if (info.status.published) {
-          newState.snapshotPublished = true;
-        }
-
-        this.setState(newState);
-
-        if ((info.status.syndicated && info.status.published) || this.syndicationChecks >= MAX_SYNDICATION_CHECKS) {
-          this.clearSyndicationChecks();
-        }
-
-        if (this.syndicationChecks >= MAX_SYNDICATION_CHECKS && (!info.status.syndicated || !info.status.published)) {
-          // If we timed out without noting syndication or publication, set these values to `undefined` so we can lower
-          // expectations in the downstream UI.
-          this.setState({
-            snapshotSyndicated: info.status.syndicated || undefined,
-            snapshotPublished: info.status.published || undefined,
-          });
-        }
+    this.props.envoyProject.getSnapshotInfo().then(({snapshotSyndicated, urls}) => {
+      const newState = {urls};
+      // Avoid races with button display while aborting publish by only setting values that have become true.
+      // #FIXME: do we still need this?
+      if (snapshotSyndicated) {
+        newState.snapshotSyndicated = snapshotSyndicated;
+      }
+      this.setState(newState);
+      if (snapshotSyndicated) {
+        this.clearSyndicationChecks();
+      } else if (this.syndicationChecks >= MAX_SYNDICATION_CHECKS) {
+        this.setState({
+          snapshotSyndicated: undefined,
+        });
+      }
+    }).catch(() => {
+      this.props.createNotice({
+        type: 'danger',
+        title: 'Uh oh!',
+        message: 'We were unable to publish your project. 😢 Please try again in a bit. If you see this error again, contact Haiku for support.',
       });
-    }
+      this.clearSyndicationChecks();
+      return this.setState({
+        showSharePopover: false,
+        isSnapshotSaveInProgress: false,
+        snapshotSyndicated: undefined,
+      });
+    });
   }
 
   performProjectSave () {
-    mixpanel.haikuTrack('creator:project:saving', this.withProjectInfo({
+    mixpanel.haikuTrack('creator:project:saving', {
       username: this.props.username,
       project: this.props.projectName,
-    }));
-    this.setState({isSnapshotSaveInProgress: true, snapshotSyndicated: false, snapshotPublished: false});
+    });
 
     return this.requestSaveProject((snapshotSaveError, snapshotData) => {
       // If we aborted early, don't start polling.
@@ -497,63 +506,67 @@ class StageTitleBar extends React.Component {
       }
 
       if (snapshotSaveError) {
-        logger.error(snapshotSaveError);
-        return this.setState({isSnapshotSaveInProgress: false, snapshotSaveResolutionStrategyName: 'normal', snapshotSaveError}, () => {
-          return setTimeout(() => this.setState({snapshotSaveError: null}), 2000);
-        });
+        switch (snapshotSaveError.code) {
+          case ProjectError.PublicOptInRequired:
+            // This should never happen.
+            this.setState({
+              isSnapshotSaveInProgress: false,
+            });
+            return;
+          default:
+            // #FIXME: uses legacy error handling.
+            if (snapshotSaveError.conflicts) {
+              logger.warn('[creator] merge conflicts found');
+              this.props.createNotice({
+                type: 'warning',
+                title: 'Merge conflicts!',
+                message: 'We couldn\'t merge your changes. 😢 You\'ll need to decide how to merge your changes before continuing.',
+              });
+              return this.setState({
+                snapshotMergeConflicts: snapshotData.conflicts,
+                showSharePopover: false,
+              });
+            }
+
+            logger.error(snapshotSaveError);
+            this.setState({isSnapshotSaveInProgress: false, snapshotSaveResolutionStrategyName: 'normal', snapshotSaveError}, () => {
+              return setTimeout(() => this.setState({snapshotSaveError: null}), 2000);
+            });
+            return;
+        }
       }
 
       this.setState({
         isSnapshotSaveInProgress: false,
         snapshotSaveConfirmed: true,
-        projectInfo: snapshotData,
       });
 
       if (snapshotData) {
-        if (snapshotData.conflicts) {
-          logger.warn('[creator] merge conflicts found');
-          this.props.createNotice({
-            type: 'warning',
-            title: 'Merge conflicts!',
-            message: 'We couldn\'t merge your changes. 😢 You\'ll need to decide how to merge your changes before continuing.',
-          });
-          return this.setState({
-            snapshotMergeConflicts: snapshotData.conflicts,
-            showSharePopover: false,
-          });
-        }
-
         logger.info('[creator] save complete', snapshotData);
 
         // Unless we set back to normal, subsequent saves will still be set to use the strict ours/theirs strategy,
         // which will clobber updates that we might want to actually merge gracefully.
-        this.setState({snapshotSaveResolutionStrategyName: 'normal'});
+        this.setState({
+          // snapshotData should be endowed with these state variables:
+          //   - linkAddress
+          //   - semverVersion
+          //   - snapshotSyndicated
+          //   - shareUrls {}
+          ...snapshotData,
+          snapshotSaveResolutionStrategyName: 'normal',
+        });
 
-        if (snapshotData.shareLink) {
-          this.setState({linkAddress: snapshotData.shareLink});
-        }
-
-        if (snapshotData.semverVersion) {
-          this.setState({semverVersion: snapshotData.semverVersion});
-        }
-
-        if (snapshotData.status && snapshotData.status.published) {
-          this.setState({snapshotPublished: true});
-        }
-
-        if (snapshotData.status && snapshotData.status.syndicated) {
-          this.setState({snapshotSyndicated: true});
-        } else {
+        if (!snapshotData.snapshotSyndicated) {
           this.syndicationChecks = 0;
           this._performSyndicationCheckInterval = setInterval(() => {
             this.performSyndicationCheck();
           }, SYNDICATION_CHECK_INTERVAL);
         }
 
-        mixpanel.haikuTrack('creator:project:saved', this.withProjectInfo({
+        mixpanel.haikuTrack('creator:project:saved', {
           username: this.props.username,
           project: this.props.projectName,
-        }));
+        });
       }
 
       return setTimeout(() => this.setState({snapshotSaveConfirmed: false}), 2000);
@@ -595,11 +608,6 @@ class StageTitleBar extends React.Component {
     }
   }
 
-  isConglomerateComponentAvailable () {
-    const proxy = this.fetchProxyElementForSelection();
-    return proxy && (proxy.canCreateComponentFromSelection() || proxy.canEditComponentFromSelection());
-  }
-
   getConglomerateComponentButtonColor () {
     const proxy = this.fetchProxyElementForSelection();
     if (proxy) {
@@ -610,24 +618,22 @@ class StageTitleBar extends React.Component {
   }
 
   handleConglomerateComponent () {
-    if (this.isConglomerateComponentAvailable()) {
-      const proxy = this.fetchProxyElementForSelection();
+    const proxy = this.fetchProxyElementForSelection();
 
-      if (proxy.canEditComponentFromSelection()) {
-        this.props.websocket.send({
-          type: 'broadcast',
-          from: 'creator',
-          name: 'edit-component',
-          folder: this.props.projectModel.getFolder(), // required when sent via Creator
-        });
-      } else if (proxy.canCreateComponentFromSelection()) {
-        this.props.websocket.send({
-          type: 'broadcast',
-          from: 'creator',
-          name: 'conglomerate-component',
-          folder: this.props.projectModel.getFolder(), // required when sent via Creator
-        });
-      }
+    if (proxy.canEditComponentFromSelection()) {
+      this.props.websocket.send({
+        type: 'broadcast',
+        from: 'creator',
+        name: 'edit-component',
+        folder: this.props.projectModel.getFolder(), // required when sent via Creator
+      });
+    } else {
+      this.props.websocket.send({
+        type: 'broadcast',
+        from: 'creator',
+        name: 'conglomerate-component',
+        folder: this.props.projectModel.getFolder(), // required when sent via Creator
+      });
     }
   }
 
@@ -700,27 +706,23 @@ class StageTitleBar extends React.Component {
   }
 
   render () {
-    const projectInfo = this.withProjectInfo({});
-
     let btnText = 'PUBLISH';
-    if (this.state.snapshotSyndicated === false || this.state.snapshotPublished === false) {
+    if (this.state.snapshotSyndicated === false) {
       btnText = 'PUBLISHING';
     }
 
     return (
       <div style={STYLES.frame} className="frame">
-        {this.isConglomerateComponentAvailable() &&
-          <button
-            key="conglomerate-component-button"
-            id="conglomerate-component-button"
-            onClick={this.handleConglomerateComponent}
-            style={[
-              BTN_STYLES.btnIcon,
-              BTN_STYLES.leftBtns,
-            ]}>
-            <ComponentIconSVG color={this.getConglomerateComponentButtonColor()} />
-          </button>
-        }
+        <button
+          key="conglomerate-component-button"
+          id="conglomerate-component-button"
+          onClick={this.handleConglomerateComponent}
+          style={[
+            BTN_STYLES.btnIcon,
+            BTN_STYLES.leftBtns,
+          ]}>
+          <ComponentIconSVG color={this.getConglomerateComponentButtonColor()} />
+        </button>
 
         {this.isEventHandlersEditorAvailable() &&
           <button
@@ -995,6 +997,24 @@ class StageTitleBar extends React.Component {
           <ConnectionIconSVG />
         </button>
 
+        {this.state.showPublicPrivateOptInModal && !this.props.isPreviewMode &&
+          <PublicPrivateOptInModal
+            isPublic={this.props.project.isPublic}
+            onToggle={() => {
+              this.props.updateProjectObject({
+                isPublic: !this.props.project.isPublic,
+              });
+            }}
+            onClose={() => {
+              this.setState({showPublicPrivateOptInModal: false});
+            }}
+            onContinue={this.state.saveProjectContinue}
+            privateProjectCount={this.state.privateProjectCount}
+            privateProjectLimit={this.props.privateProjectLimit}
+            explorePro={this.props.explorePro}
+          />
+        }
+
         {this.state.showSharePopover && !this.props.isPreviewMode &&
           <ShareModal
             envoyProject={this.props.envoyProject}
@@ -1005,16 +1025,17 @@ class StageTitleBar extends React.Component {
             semverVersion={this.state.semverVersion}
             error={this.state.snapshotSaveError}
             snapshotSyndicated={this.state.snapshotSyndicated}
-            snapshotPublished={this.state.snapshotPublished}
             userName={this.props.username}
             organizationName={this.props.organizationName}
             ref={(el) => {
               this._shareModal = el;
             }}
-            projectUid={projectInfo.uuid}
-            sha={projectInfo.sha}
+            projectName={this.props.project.projectName}
             mixpanel={mixpanel}
-            onProjectPublicChange={this.props.onProjectPublicChange}
+            urls={this.state.shareUrls}
+            privateProjectCount={this.state.privateProjectCount}
+            privateProjectLimit={this.props.privateProjectLimit}
+            explorePro={this.props.explorePro}
           />
         }
       </div>
@@ -1026,12 +1047,10 @@ StageTitleBar.propTypes = {
   folder: React.PropTypes.string.isRequired,
   projectName: React.PropTypes.string,
   username: React.PropTypes.string,
-  password: React.PropTypes.string,
   organizationName: React.PropTypes.string,
   websocket: React.PropTypes.object.isRequired,
   createNotice: React.PropTypes.func.isRequired,
   removeNotice: React.PropTypes.func.isRequired,
-  receiveProjectInfo: React.PropTypes.func,
 };
 
 export default Radium(StageTitleBar);

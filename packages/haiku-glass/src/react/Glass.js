@@ -610,15 +610,11 @@ export class Glass extends React.Component {
           break;
 
         case 'global-menu:group':
-          if (experimentIsEnabled(Experiment.GroupUngroup)) {
-            this.handleGroupDebounced();
-          }
+          this.handleGroupDebounced();
           break;
 
         case 'global-menu:ungroup':
-          if (experimentIsEnabled(Experiment.GroupUngroup)) {
-            this.handleUngroupDebounced();
-          }
+          this.handleUngroupDebounced();
           break;
 
         case 'global-menu:cut':
@@ -1132,7 +1128,7 @@ export class Glass extends React.Component {
     if (proxy.hasAnythingInSelectionButNotArtboard()) {
       componentIds = proxy.selection.map((element) => element.getComponentId());
     } else {
-      componentIds = this.getActiveComponent().getTopLevelElementHaikuIds();
+      componentIds = [];
     }
 
     this.getActiveComponent().conglomerateComponent(
@@ -3196,27 +3192,24 @@ export class Glass extends React.Component {
       items.push({type: 'separator'});
     }
 
-    if (experimentIsEnabled(Experiment.MultiComponentFeatures)) {
-      items.push({
-        label: 'Create Component',
-        // If a single element is already a component, we don't let it be created as one
-        enabled: proxy.canCreateComponentFromSelection(),
-        onClick: () => {
-          mixpanel.haikuTrack('creator:glass:launch-create-component-modal');
-          this.launchComponentNameModal();
-        },
-      });
+    items.push({
+      label: 'Create Component',
+      // If a single element is already a component, we don't let it be created as one
+      onClick: () => {
+        mixpanel.haikuTrack('creator:glass:launch-create-component-modal');
+        this.launchComponentNameModal();
+      },
+    });
 
-      items.push({
-        label: 'Edit Component',
-        enabled: proxy.canEditComponentFromSelection(),
-        onClick: () => {
-          this.editComponent(proxy.getSingleComponentElementRelpath());
-        },
-      });
+    items.push({
+      label: 'Edit Component',
+      enabled: proxy.canEditComponentFromSelection(),
+      onClick: () => {
+        this.editComponent(proxy.getSingleComponentElementRelpath());
+      },
+    });
 
-      items.push({type: 'separator'});
-    }
+    items.push({type: 'separator'});
 
     items.push({
       label: 'Edit Element Actions',
@@ -3309,26 +3302,24 @@ export class Glass extends React.Component {
 
     items.push({type: 'separator'});
 
-    if (experimentIsEnabled(Experiment.GroupUngroup)) {
-      items.push({
-        label: 'Group',
-        enabled: proxy.canGroup(),
-        onClick: () => {
-          mixpanel.haikuTrack('creator:glass:create-group');
-          this.handleGroupDebounced();
-        },
-      });
+    items.push({
+      label: 'Group',
+      enabled: proxy.canGroup(),
+      onClick: () => {
+        mixpanel.haikuTrack('creator:glass:create-group');
+        this.handleGroupDebounced();
+      },
+    });
 
-      items.push({
-        label: 'Ungroup',
-        enabled: proxy.canUngroup(),
-        onClick: () => {
-          this.handleUngroupDebounced();
-        },
-      });
+    items.push({
+      label: 'Ungroup',
+      enabled: proxy.canUngroup(),
+      onClick: () => {
+        this.handleUngroupDebounced();
+      },
+    });
 
-      items.push({type: 'separator'});
-    }
+    items.push({type: 'separator'});
 
     items.push({
       label: 'Delete',
@@ -3423,15 +3414,6 @@ export class Glass extends React.Component {
               console.log('element.target', publicElementModel.target);
             }
           }
-        },
-      });
-
-      items.push({
-        label: 'Preview in Browser',
-        enabled: proxy.hasNothingInSelection(),
-        onClick: () => {
-          const assetPath = this.project.getPreviewAssetPath();
-          shell.openItem(assetPath);
         },
       });
     }

@@ -1,5 +1,5 @@
 /* tslint:disable:no-shadowed-variable only-arrow-functions ter-prefer-arrow-callback max-line-length no-parameter-reassignment */
-import {Repository, Reference, Signature, Reset, Remote, Clone, Cred, Commit, Merge, RevWalk, Checkout, Tag, Diff} from 'nodegit';
+import {Repository, Reference, Signature, Reset, Remote, Clone, Commit, Merge, RevWalk, Checkout, Tag, Diff} from 'nodegit';
 import * as path from 'path';
 import * as fs from 'haiku-fs-extra';
 import * as async from 'async';
@@ -420,26 +420,6 @@ export function listRemotes (pwd, cb) {
   });
 }
 
-function fixRemoteHttpsUrl (repository, remote, username, password, cb) {
-  const url = remote.url();
-  const name = remote.name();
-  const matches = url.match(/^(https?)/);
-  const scheme = matches && matches[1];
-  logger.info('[git] remote info:', url, name, scheme);
-  //
-  // HACK? It might be necessary in some cases to fix the remote URL to include HTTPS creds?
-  // We haven't needed this because we are using the certificateCheck credentials function
-  // to provide the credentials, but I'm leaving the code here, just in case it comes up somehow.
-  //
-  // if (!scheme) return cb() // This is not https
-  // // TODO: Replace the creds in the URL with new creds?
-  // if (url.indexOf('@') !== -1) return cb() // Creds are already present
-  // const fixed = url.replace(`${scheme}://`, `${scheme}://${encodeURIComponent(username)}:${encodeURIComponent(password)}@`)
-  // const result = Remote.setUrl(repository, name, fixed)
-  //
-  return cb();
-}
-
 export function doesRemoteExist (pwd, remoteName, cb) {
   return open(pwd, (err, repository) => {
     if (err) {
@@ -549,24 +529,6 @@ export function cleanAllChanges (pwd, cb) {
     }
     return removeUntrackedFiles(pwd, cb);
   });
-}
-
-export function buildRemoteOptions (gitRemoteUsername, gitRemotePassword) {
-  if (!gitRemoteUsername) {
-    throw new Error('Remote username required for credentials');
-  }
-  if (!gitRemotePassword) {
-    throw new Error('Remote password required for credentials');
-  }
-  return {
-    callbacks: {
-      certificateCheck: () => 1,
-      credentials (url) {
-        // return NodeGit.Cred.sshKeyFromAgent(username)
-        return Cred.userpassPlaintextNew(gitRemoteUsername, gitRemotePassword);
-      },
-    },
-  };
 }
 
 export function rebaseBranches (folder, upstreamName, branchName, ontoStr, cb) {
