@@ -217,6 +217,25 @@ tape('Keyframe.05', (t) => {
   })
 })
 
+tape('Keyframe.06', (t) => {
+  t.plan(6)
+  return setupTest('keyframe-06', (err, ac, rows, done) => {
+    if (err) throw err
+    const kfs = rows[0].getKeyframes()
+    const selection = [kfs[0], kfs[1]]
+
+    t.notOk(Keyframe.groupIsSingleTween([kfs[0]]), 'returns false if only one keyframe is selected')
+    t.notOk(Keyframe.groupIsSingleTween([kfs[0], kfs[1], kfs[2]]), 'returns false if more than two keyframes are selected')
+    t.notOk(Keyframe.groupIsSingleTween([kfs[0], kfs[3]]), 'returns false if the keyframes are not next to each other')
+    t.notOk(Keyframe.groupIsSingleTween(selection), 'returns false if there is not a tween between the keyframes')
+
+    selection[0].curve = 'linear'
+
+    t.ok(Keyframe.groupIsSingleTween(selection), 'returns true if there is a tween between the two provided keyframes')
+    done()
+  })
+})
+
 // Please implement the rest of these as unit tests:
 // I am able to create a tween between two keyframes
 // I am able to select a single tween by clicking on it
