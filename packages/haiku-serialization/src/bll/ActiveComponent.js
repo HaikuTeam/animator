@@ -2861,6 +2861,10 @@ class ActiveComponent extends BaseModel {
     return Row.where({ component: this, _isSelected: true })
   }
 
+  getSelectedElements () {
+    return Element.where({ component: this, _isSelected: true })
+  }
+
   getCurrentRows (criteria) {
     if (!criteria) criteria = {}
     criteria.component = this
