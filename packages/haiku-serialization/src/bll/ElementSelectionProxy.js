@@ -1541,7 +1541,7 @@ class ElementSelectionProxy extends BaseModel {
       // This is necessary when we pass explicit = false to composedTransformsToTimelineProperties like above.
       propertyGroup['translation.x'] = propertyGroup['translation.x'] || 0
       propertyGroup['translation.y'] = propertyGroup['translation.y'] || 0
-      propertyGroup['translation.z'] = propertyGroup['translation.Z'] || 0
+      propertyGroup['translation.z'] = propertyGroup['translation.z'] || 0
 
       propertyGroup['translation.x'] +=
         finalMatrix[0] * originX + finalMatrix[4] * originY + finalMatrix[8] * originZ - offsetX
