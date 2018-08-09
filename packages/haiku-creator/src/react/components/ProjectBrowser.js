@@ -490,7 +490,7 @@ class ProjectBrowser extends React.Component {
           {
             /* #FIXME(@taylor) */
             this.props.privateProjectLimit !== null && this.state.projectsList.length > 0 && (
-              <div>
+              <div style={{marginRight: 15}}>
                 <strong>{this.state.projectsList.filter((projectObject) => !projectObject.isPublic).length}</strong>
                 <span>/</span>
                 <strong>{this.props.privateProjectLimit}</strong>
@@ -502,9 +502,9 @@ class ProjectBrowser extends React.Component {
             )
           }
 
-          <div style={{marginRight: '15px'}}>
-            <NotificationExplorer lastViewedChangelog={this.props.lastViewedChangelog} onShowChangelogModal={this.props.onShowChangelogModal} />
-          </div>
+          <NotificationExplorer
+            lastViewedChangelog={this.props.lastViewedChangelog}
+            onShowChangelogModal={this.props.onShowChangelogModal} />
 
           <button
             id="haiku-button-show-new-project-modal"
