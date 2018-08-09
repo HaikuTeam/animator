@@ -29,7 +29,7 @@ class EventSelector extends React.Component {
           {`
           .react-selectize.root-node,
           .dropdown-menu.tethered {
-            width: 457px;
+            width: 568px;
           }
 
           .react-selectize.default {

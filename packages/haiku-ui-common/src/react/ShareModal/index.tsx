@@ -8,7 +8,7 @@ import {ProjectShareDetails} from './ProjectShareDetails';
 
 const STYLES: React.CSSProperties = {
   wrapper: {
-    width: 500,
+    width: 610,
     overflow: 'hidden',
     left: 'calc(50% + 150px)',
     transform: 'translateX(-50%)',
