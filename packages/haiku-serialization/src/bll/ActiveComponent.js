@@ -3544,7 +3544,7 @@ class ActiveComponent extends BaseModel {
   }
 
   /**
-   * @method moveKeyframes
+   * @method updateKeyframes
    */
   updateKeyframes (keyframeUpdatesSerial, options, metadata, cb) {
     const keyframeUpdates = Bytecode.unserializeValue(keyframeUpdatesSerial, (ref) => {
@@ -3593,6 +3593,12 @@ class ActiveComponent extends BaseModel {
                 // Not all views necessarily have the same collection of elements
                 if (element) {
                   Row.where({ component: this, element }).forEach((row) => {
+                    if (experimentIsEnabled(Experiment.ExpandTimelinePropertiesFromStageChanges)) {
+                      if (row.property && keyframeUpdates[timelineName][componentId][row.property.name]) {
+                        row.expand(metadata)
+                      }
+                    }
+
                     row.rehydrate()
                   })
                 }

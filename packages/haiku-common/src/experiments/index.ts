@@ -41,6 +41,7 @@ export enum Experiment {
   SendLogMessagesToPlumbing = 'SendLogMessagesToPlumbing',
   ControlFlowIf = 'ControlFlowIf',
   ControlFlowRepeat = 'ControlFlowRepeat',
+  ExpandTimelinePropertiesFromStageChanges = 'ExpandTimelinePropertiesFromStageChanges',
 }
 
 /**
