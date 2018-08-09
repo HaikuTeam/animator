@@ -488,7 +488,6 @@ class ProjectBrowser extends React.Component {
 
         <div style={DASH_STYLES.frame} className="frame">
           {
-            /* #FIXME(@taylor) */
             this.props.privateProjectLimit !== null && this.state.projectsList.length > 0 && (
               <div style={{marginRight: 15}}>
                 <strong>{this.state.projectsList.filter((projectObject) => !projectObject.isPublic).length}</strong>
