@@ -244,7 +244,7 @@ class ProjectBrowser extends React.Component {
                 BTN_STYLES.btnPrimary,
                 DASH_STYLES.btn,
               ]}
-              onClick={this.props.explorePro}>Learn more
+              onClick={this.props.explorePro}>Go Pro
               <span style={{width:14, height:14, transform: 'translateY(-2px)', marginLeft: 4}}>
                 <ExternalLinkSVG color={Palette.SUNSTONE}/>
               </span>
@@ -496,7 +496,10 @@ class ProjectBrowser extends React.Component {
                 <strong>{this.props.privateProjectLimit}</strong>
                 <span>&nbsp; private projects in use</span>
                 <span style={DASH_STYLES.bannerNotice} onClick={this.props.explorePro}>
-                  Explore Pro
+                  Go Pro
+                  <span style={{width: 11, height: 11, display: 'inline-block', marginLeft: 4, transform: 'translateY(1px)'}}>
+                    <ExternalLinkSVG color={Palette.LIGHT_BLUE}/>
+                  </span>
                 </span>
               </div>
             )
