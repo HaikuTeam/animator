@@ -1528,7 +1528,7 @@ class ElementSelectionProxy extends BaseModel {
       // This converts a composition of matrices like [[1,0,0,...],...] into our own
       // transform properties like scale.x, rotation.z, and merges them into the
       // given property group object.
-      composedTransformsToTimelineProperties(propertyGroup, [finalMatrix], true)
+      composedTransformsToTimelineProperties(propertyGroup, [finalMatrix], false, 1e-3, element.getLayoutSpec())
 
       const offsetX = layoutSpec.offset.x
       const offsetY = layoutSpec.offset.y
@@ -1536,6 +1536,12 @@ class ElementSelectionProxy extends BaseModel {
       const originX = layoutSpec.origin.x * layoutSpec.size.x
       const originY = layoutSpec.origin.y * layoutSpec.size.y
       const originZ = layoutSpec.origin.z * layoutSpec.size.z
+
+      // Ensure translation properties are defined so we can do #math with them below.
+      // This is necessary when we pass explicit = false to composedTransformsToTimelineProperties like above.
+      propertyGroup['translation.x'] = propertyGroup['translation.x'] || 0
+      propertyGroup['translation.y'] = propertyGroup['translation.y'] || 0
+      propertyGroup['translation.z'] = propertyGroup['translation.z'] || 0
 
       propertyGroup['translation.x'] +=
         finalMatrix[0] * originX + finalMatrix[4] * originY + finalMatrix[8] * originZ - offsetX
@@ -1561,7 +1567,7 @@ class ElementSelectionProxy extends BaseModel {
             propertyGroupNorm.width = {value: Math.abs(layoutSpec.size.x * scaleX / baseProxyTransform.scale.x)}
             // Note: here and below, scale.x and scale.y are guaranteed to exist as properties of propertyGroup[Norm]
             // because composedTransformsToTimelineProperties was called with explicit = true.
-            propertyGroupNorm['scale.x'] = {value: Math.sign(propertyGroup['scale.x'])}
+            propertyGroupNorm['scale.x'] = {value: Math.sign(propertyGroup['scale.x'] || 1)}
             shouldTick = true
           }
 
@@ -1570,7 +1576,7 @@ class ElementSelectionProxy extends BaseModel {
             addressables.height.typedef === 'number'
           ) {
             propertyGroupNorm.height = {value: Math.abs(layoutSpec.size.y * scaleY / baseProxyTransform.scale.y)}
-            propertyGroupNorm['scale.y'] = {value: Math.sign(propertyGroup['scale.y'])}
+            propertyGroupNorm['scale.y'] = {value: Math.sign(propertyGroup['scale.y'] || 1)}
             shouldTick = true
           }
         }
@@ -1775,7 +1781,6 @@ class ElementSelectionProxy extends BaseModel {
       this,
       coordsCurrent,
       coordsPrevious,
-      activationPoint,
       globals
     )
 
@@ -1786,10 +1791,16 @@ class ElementSelectionProxy extends BaseModel {
         element.getComponentId(),
         element.component.getCurrentTimelineName(),
         element.component.getCurrentTimelineTime(),
-        ElementSelectionProxy.computeRotationPropertyGroup(
-          element,
-          rotationZ,
-          fixedPoint
+        Object.assign(
+          {
+            // Ensure we always get a default out in case rotation is snapping to 0.
+            'rotation.z': {value: 0}
+          },
+          ElementSelectionProxy.computeRotationPropertyGroup(
+            element,
+            rotationZ,
+            fixedPoint
+          )
         )
       )
     })
@@ -2200,7 +2211,7 @@ ElementSelectionProxy.computeRotationPropertyGroup = (element, rotationZDelta, f
     ray.y += layoutSpec.offset.y
   }
   const attributes = {}
-  composedTransformsToTimelineProperties(attributes, [matrix, originalRotationMatrix])
+  composedTransformsToTimelineProperties(attributes, [matrix, originalRotationMatrix], false, 1e-3, layoutSpec)
 
   // Return directly after offsetting translation by the `fixedPoint`'s coordinates. Note that we are choosing _not_ to
   // change the z-translation, effectively projecting the origin of rotation from the context element onto the z = C
@@ -2239,7 +2250,6 @@ ElementSelectionProxy.computeRotationPropertyGroupDelta = (
   contextElement,
   coordsCurrent,
   coordsPrevious,
-  activationPoint,
   globals
 ) => {
   // Calculate rotation delta based on old mouse position and new
