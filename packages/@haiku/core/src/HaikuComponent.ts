@@ -541,7 +541,6 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     this.stateTransitionManager.setState(states, transitionParameter);
 
     return this;
-
   }
 
   getStates () {
@@ -3012,7 +3011,7 @@ export const VANITIES = {
       // don't have the effect of flushing the content, and the rendered text doesn't change.
       // DEMO: bind-numeric-state-to-text
       // TODO: What is the best way to make this less expensive (while still functional)?
-      sender.markForFullFlush();
+      sender.patches.push(element);
     },
 
     // Playback-related vanities that involve controlling timeline or clock time
@@ -3179,7 +3178,8 @@ export const VANITIES = {
             timeline,
           );
 
-          sender.markForFullFlush();
+          sender.patches.push(element);
+          expandNode(element, element.__memory.parent);
         }
 
         return;
@@ -3226,7 +3226,8 @@ export const VANITIES = {
         element.__memory.repeater.repeatees[index] = repeatee;
       });
 
-      sender.markForFullFlush();
+      sender.patches.push(element);
+      expandNode(element, element.__memory.parent);
     },
 
     'controlFlow.if': (
