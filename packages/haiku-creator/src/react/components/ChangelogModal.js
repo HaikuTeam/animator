@@ -113,7 +113,7 @@ class ChangelogModal extends React.PureComponent {
               }}
             >
               Full Changelog
-              <span style={{marginLeft: 6}}>
+              <span style={{marginLeft: 6, width: 11, height: 11, display: 'inline-block'}}>
                 <ExternalLinkIconSVG color={Palette.LIGHT_BLUE} />
               </span>
             </span>
