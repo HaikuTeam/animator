@@ -1,5 +1,6 @@
 import Palette from 'haiku-ui-common/lib/Palette';
 import {ExternalLink} from 'haiku-ui-common/lib/react/ExternalLink';
+import ExternalLinkIconSVG from 'haiku-ui-common/lib/react/icons/ExternalLinkIconSVG';
 import {ModalFooter, ModalHeader, ModalWrapper} from 'haiku-ui-common/lib/react/Modal';
 import * as React from 'react';
 import {BTN_STYLES} from '../styles/btnShared';
@@ -43,8 +44,24 @@ const STYLES: React.CSSProperties = {
   button: {
     ...BTN_STYLES.btnText,
     ...BTN_STYLES.centerBtns,
+    ...BTN_STYLES.btnPrimary,
     display: 'inline-block',
     marginRight: 10,
+  },
+  upgradeWrap: {
+    color: Palette.SUNSTONE,
+    border: '1px solid ' + Palette.BLUE,
+    padding: '14px 20px',
+    marginTop: 20,
+    textAlign: 'center',
+  },
+  btnSecondary: {
+    ...BTN_STYLES.btnText,
+    ...BTN_STYLES.centerBtns,
+    display: 'inline-block',
+    marginTop: 10,
+    backgroundColor: 'transparent',
+    border: '1px solid ' + Palette.LIGHT_BLUE,
   },
 };
 
@@ -73,7 +90,6 @@ export class PublicPrivateOptInModal extends React.PureComponent<PublicPrivateOp
 
   render () {
     return (
-      // #FIXME(@taylor)
       <ModalWrapper style={STYLES.wrapper} onClose={this.props.onClose}>
         <ModalHeader>Confirm privacy settings</ModalHeader>
         <form style={STYLES.inner}>
@@ -118,14 +134,19 @@ export class PublicPrivateOptInModal extends React.PureComponent<PublicPrivateOp
             </div>
           </label>
           {this.shouldDisablePrivate && (
-            // #FIXME(@taylor)
-            <div>
+            <div style={STYLES.upgradeWrap}>
               <div>
-                You've used all your private projects ({this.props.privateProjectCount}
-                /{this.props.privateProjectLimit})
+                You've used all your private projects
+                <span style={{fontWeight: 600, marginLeft: 4}}>
+                  ({this.props.privateProjectCount}/{this.props.privateProjectLimit})
+                </span>
               </div>
               <div>Upgrade for unlimited private projects and pro features.</div>
-              <div onClick={this.props.explorePro}>Learn more</div>
+              <span onClick={this.props.explorePro} style={STYLES.btnSecondary}>Go Pro
+                  <span style={{width: 11, height: 11, display: 'inline-block', marginLeft: 4, transform: 'translateY(1px)'}}>
+                    <ExternalLinkIconSVG color={Palette.LIGHT_BLUE}/>
+                  </span>
+              </span>
             </div>
           )}
         </form>
