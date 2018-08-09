@@ -1031,6 +1031,7 @@ class StageTitleBar extends React.Component {
               this._shareModal = el;
             }}
             projectName={this.props.project.projectName}
+            folder={this.props.folder}
             mixpanel={mixpanel}
             urls={this.state.shareUrls}
             privateProjectCount={this.state.privateProjectCount}

@@ -29,6 +29,7 @@ export interface ShareModalProps {
   userName: string;
   organizationName: string;
   projectName: string;
+  folder: string;
   mixpanel: any;
   urls: HaikuShareUrls;
   explorePro: () => void;
@@ -140,6 +141,7 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
       userName,
       organizationName,
       mixpanel,
+      folder,
     } = this.props;
 
     return (
@@ -149,6 +151,7 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
           <ProjectShareDetails
             semverVersion={semverVersion}
             projectName={project.projectName}
+            folder={folder}
             linkAddress={linkAddress}
             isSnapshotSaveInProgress={isSnapshotSaveInProgress}
             snapshotSyndicated={snapshotSyndicated}
