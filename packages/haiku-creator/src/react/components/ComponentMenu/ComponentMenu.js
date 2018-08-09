@@ -91,9 +91,11 @@ class ComponentMenu extends React.Component {
               tryToChangeCurrentActiveComponent={this.props.tryToChangeCurrentActiveComponent} />
           );
         }))}
-        <button style={STYLES.newComponentButton} onClick={this.showNewComponentDialog}>
-          +
-        </button>
+        {this.props.showGlass &&
+          <button style={STYLES.newComponentButton} onClick={this.showNewComponentDialog}>
+            +
+          </button>
+        }
       </div>
     );
   }
