@@ -1604,7 +1604,7 @@ class Timeline extends React.Component {
             },
           );
         }}>
-        <Droppable droppableId="componentRowsDroppable">
+        <Droppable droppableId="componentRowsDroppable" ignoreContainerClipping={true}>
           {(provided, snapshot) => {
             return (
               <div

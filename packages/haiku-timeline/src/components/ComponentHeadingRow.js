@@ -64,6 +64,14 @@ export default class ComponentHeadingRow extends React.Component {
     );
   }
 
+  hoverRow = () => {
+    this.handleRowHoverUnhover(true);
+  };
+
+  unhoverRow = () => {
+    this.handleRowHoverUnhover(false);
+  };
+
   handleRowHoverUnhover (shouldHover) {
     if (shouldHover) {
       this.props.row.hoverAndUnhoverOthers({from: 'timeline'});
@@ -96,12 +104,8 @@ export default class ComponentHeadingRow extends React.Component {
         id={`component-heading-row-${componentId}-${this.props.row.getAddress()}`}
         key={`component-heading-row-${componentId}-${this.props.row.getAddress()}`}
         className="component-heading-row no-select unselectable-during-marquee"
-        onMouseOver={() => {
-          this.throttledHandleRowHoverUnhover(true);
-        }}
-        onMouseOut={() => {
-          this.throttledHandleRowHoverUnhover(false);
-        }}
+        onMouseOver={this.hoverRow}
+        onMouseOut={this.unhoverRow}
         style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
           display: 'flex',
           alignItems: 'top',
