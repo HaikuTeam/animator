@@ -8,7 +8,7 @@ module.exports = function requestElementCoordinates (
   if (currentWebview !== requestedWebview) return
 
   // if the loading screen is present, wait 300ms and try again
-  if(document.getElementById('js-helper-project-loader')) {
+  if (document.getElementById('js-helper-project-loader')) {
     return setTimeout(() => {
       requestElementCoordinates.apply(this, [
         ...arguments,
