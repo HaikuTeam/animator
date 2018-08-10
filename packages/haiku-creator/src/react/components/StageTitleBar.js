@@ -346,17 +346,10 @@ class StageTitleBar extends React.Component {
   handleSaveOnGlass () {
     const noticeNotice = this.props.createNotice({
       type: 'info',
-      title: 'Snapshot saved',
+      title: 'No need to save!',
       message: (
         <p>
-          <span
-            style={STYLES.link2}
-            onClick={() => {
-              shell.showItemInFolder(this.props.folder);
-            }}
-          >
-            View in Finder
-          </span>
+          Haiku saves your work automatically
         </p>
       ),
     });
@@ -1031,6 +1024,7 @@ class StageTitleBar extends React.Component {
               this._shareModal = el;
             }}
             projectName={this.props.project.projectName}
+            folder={this.props.folder}
             mixpanel={mixpanel}
             urls={this.state.shareUrls}
             privateProjectCount={this.state.privateProjectCount}
