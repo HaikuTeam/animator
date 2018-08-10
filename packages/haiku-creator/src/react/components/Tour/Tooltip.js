@@ -97,6 +97,7 @@ function Tooltip (props) {
     size,
     isOverlayHideable,
     showPreviousButton,
+    modalOffset,
   } = props;
   let {top, left} = coordinates;
   const positionStyles = STYLES[display.toUpperCase()] || {};
@@ -175,7 +176,7 @@ function Tooltip (props) {
         />
       )}
 
-      <Draggable key={stepData.current}>
+      <Draggable key={stepData.current} defaultPosition={modalOffset}>
         <div
           style={{
             ...STYLES.childrenWrapper,

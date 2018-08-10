@@ -634,12 +634,15 @@ class Timeline extends React.Component {
   }
 
   handleInteractionModeChange (interactionMode) {
-    const timeline = this.getActiveComponent().getCurrentTimeline();
-    if (timeline.isPlaying()) {
-      timeline.pause();
-    }
+    const ac = this.getActiveComponent();
+    if (ac) {
+      const timeline = this.getActiveComponent().getCurrentTimeline();
+      if (timeline.isPlaying()) {
+        timeline.pause();
+      }
 
-    this.setState({isPreviewModeActive: isPreviewMode(interactionMode)});
+      this.setState({isPreviewModeActive: isPreviewMode(interactionMode)});
+    }
   }
 
   scrollToRow  = lodash.throttle((row) => {

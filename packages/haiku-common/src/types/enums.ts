@@ -1,3 +1,3 @@
 export enum TourUtils {
-  ProjectName = 'percy',
+  ProjectName = 'haikudos',
 }

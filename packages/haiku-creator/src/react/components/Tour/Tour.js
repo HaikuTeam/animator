@@ -143,6 +143,7 @@ class Tour extends React.Component {
       size,
       isOverlayHideable,
       showPreviousButton,
+      modalOffset,
     } = this.state;
 
     // tslint:disable-next-line:variable-name
@@ -161,6 +162,7 @@ class Tour extends React.Component {
         size={size}
         isOverlayHideable={isOverlayHideable}
         showPreviousButton={showPreviousButton}
+        modalOffset={modalOffset}
       >
         <Step
           styles={TOUR_STYLES}

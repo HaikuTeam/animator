@@ -30,7 +30,7 @@ const STYLES = {
 class ProjectLoader extends React.PureComponent {
   render () {
     return (
-      <div style={STYLES.fullScreenCenterWrap}>
+      <div style={STYLES.fullScreenCenterWrap} id="js-helper-project-loader">
         <div style={STYLES.loadingScreen}>
           <Hai
             loop={true}
