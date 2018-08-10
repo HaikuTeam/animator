@@ -237,7 +237,7 @@ class ProjectBrowser extends React.Component {
         <div style={{width: 560, fontSize: 16, lineHeight: 1.3, textAlign: 'center'}}>
           <div style={DASH_STYLES.notice}>
             <div style={DASH_STYLES.noticeTitle}>Unable to connect to Haikiu hosting services.<br/>Are you connected to the Internet?</div>
-            <div>Upgrade to the Haiku Pro for offline capabilities.</div>
+            <div>Upgrade to Haiku Pro for offline capabilities.</div>
             <div
               style={[
                 BTN_STYLES.btnText,

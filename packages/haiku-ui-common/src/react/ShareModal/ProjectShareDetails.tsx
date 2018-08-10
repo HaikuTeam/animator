@@ -1,8 +1,8 @@
 import * as Color from 'color';
 import {shell} from 'electron';
-import ExternalLinkIconSVG from '../icons/ExternalLinkIconSVG';
 import * as React from 'react';
 import Palette from '../../Palette';
+import ExternalLinkIconSVG from '../icons/ExternalLinkIconSVG';
 import {TooltipBasic} from '../TooltipBasic';
 import {LinkHolster} from './LinkHolster';
 
@@ -217,7 +217,8 @@ export class ProjectShareDetails extends React.PureComponent<ProjectShareDetails
             <p style={STYLES.info}>
               <span
                 style={STYLES.label}
-                onClick={this.openInFinder}>
+                onClick={this.openInFinder}
+              >
                 {folder}
               </span>
             </p>
