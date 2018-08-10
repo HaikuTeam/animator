@@ -3,6 +3,7 @@ const HaikuElement = require('@haiku/core/lib/HaikuElement').default
 const Layout3D = require('@haiku/core/lib/Layout3D').default
 const {cssQueryTree} = require('@haiku/core/lib/HaikuNode')
 const composedTransformsToTimelineProperties = require('@haiku/core/lib/helpers/composedTransformsToTimelineProperties').default
+const functionToRFO = require('@haiku/core/lib/reflection/functionToRFO').default
 const {LAYOUT_3D_SCHEMA} = require('@haiku/core/lib/HaikuComponent')
 const KnownDOMEvents = require('@haiku/core/lib/renderers/dom/Events').default
 const titlecase = require('titlecase')
@@ -405,11 +406,19 @@ class Element extends BaseModel {
       this.component.fetchActiveBytecodeFile().getReifiedDecycledBytecode()
     )
 
+    const eventHandlers = Bytecode.getAppliedEventHandlersForNode({}, clonedBytecode, clonedNode)
+
+    Object.keys(eventHandlers).forEach((element) => {
+      Object.keys(eventHandlers[element]).forEach((event) => {
+        eventHandlers[element][event].handler = functionToRFO(eventHandlers[element][event].handler)
+      })
+    })
+
     return {
       kind: 'bytecode',
       data: {
+        eventHandlers,
         timelines: Bytecode.getAppliedTimelinesForNode({}, clonedBytecode, clonedNode),
-        eventHandlers: Bytecode.getAppliedEventHandlersForNode({}, clonedBytecode, clonedNode),
         template: clonedNode
       }
     }
