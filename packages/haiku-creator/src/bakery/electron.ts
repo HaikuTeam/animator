@@ -37,6 +37,7 @@ const bakeryQueue = queue<QueuedRecipe, Error>(
     next: ErrorCallback<Error>,
   ) => {
     const cacheValue = `${sha1}:${framerate}`;
+    const cacheKey = `${abspath}:${still}`;
     let calledFinish = false;
     const finish = () => {
       if (calledFinish) {
@@ -44,18 +45,18 @@ const bakeryQueue = queue<QueuedRecipe, Error>(
       }
 
       calledFinish = true;
-      snapshotCache.set(abspath, cacheValue);
+      snapshotCache.set(cacheKey, cacheValue);
       ipcMain.removeAllListeners('bakery');
       cb();
       next();
     };
 
     let alreadyBaked = false;
-    if (snapshotCache.has(abspath)) {
+    if (snapshotCache.has(cacheKey)) {
       alreadyBaked = still
         // If only capturing a still, any match containing the sha1 will do (i.e. framerate does not matter)
-        ? (new RegExp(sha1)).test(snapshotCache.get(abspath))
-        : snapshotCache.get(abspath) === cacheValue;
+        ? (new RegExp(sha1)).test(snapshotCache.get(cacheKey))
+        : snapshotCache.get(cacheKey) === cacheValue;
     }
 
     if (alreadyBaked) {
