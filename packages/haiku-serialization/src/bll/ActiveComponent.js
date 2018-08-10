@@ -2512,7 +2512,7 @@ class ActiveComponent extends BaseModel {
   }
 
   rehydrate () {
-    logger.time('ac.rehydrate')
+    logger.time('ActiveComponent#rehydrate')
 
     // Don't allow any incoming syncs while we're in the midst of this
     BaseModel.__sync = false
@@ -2569,7 +2569,8 @@ class ActiveComponent extends BaseModel {
 
     // Now that we have all the initial models ready, we can receive syncs
     BaseModel.__sync = true
-    logger.timeEnd('ac.rehydrate')
+
+    logger.timeEnd('ActiveComponent#rehydrate')
   }
 
   getReifiedBytecode () {
