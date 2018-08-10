@@ -1251,13 +1251,13 @@ class ElementSelectionProxy extends BaseModel {
       this.component.project.getMetadata(),
       () => {} // no-op
     )
-    if (overrides && overrides.groupOrigin && overrides.groupOrigin.x) {
+    if (overrides && overrides.groupOrigin && overrides.groupOrigin.x !== undefined) {
       this.applyPropertyValue('translation.x', overrides.groupOrigin.x - this.computePropertyValue('offset.x'))
     } else {
       this.applyPropertyDelta('translation.x', dx)
     }
 
-    if (overrides && overrides.groupOrigin && overrides.groupOrigin.y) {
+    if (overrides && overrides.groupOrigin && overrides.groupOrigin.y !== undefined) {
       this.applyPropertyValue('translation.y', overrides.groupOrigin.y - this.computePropertyValue('offset.y'))
     } else {
       this.applyPropertyDelta('translation.y', dy)
