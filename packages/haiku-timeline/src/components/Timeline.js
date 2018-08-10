@@ -1609,7 +1609,7 @@ class Timeline extends React.Component {
                         return (
                           <div style={experimentIsEnabled(Experiment.NativeTimelineScroll) ? {} : {minWidth}}>
                             <div
-                              className="droppable-wrapper"
+                              className="droppable-wrapper unselectable-during-marquee"
                               ref={providedDraggable.innerRef}
                               {...providedDraggable.draggableProps}
                               style={{

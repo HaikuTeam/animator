@@ -108,7 +108,7 @@ export default class PropertyRow extends React.Component {
           opacity: (this.props.row.isHidden()) ? 0.5 : 1.0,
           position: 'relative',
         }}>
-        <div style={(experimentIsEnabled(Experiment.NativeTimelineScroll)
+        <div draggable="false" style={(experimentIsEnabled(Experiment.NativeTimelineScroll)
             ? {
               position: 'sticky',
               top: 0,
@@ -142,6 +142,7 @@ export default class PropertyRow extends React.Component {
               </div>}
             {this.maybeRenderFamilyLabel()}
             <div
+              draggable="false"
               className="property-row-label no-select unselectable-during-marquee"
               style={{
                 right: 0,

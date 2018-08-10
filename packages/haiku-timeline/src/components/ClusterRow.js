@@ -103,6 +103,7 @@ export default class ClusterRow extends React.Component {
             {this.maybeRenderFamilyLabel()}
             <div
               className="property-cluster-row-label no-select"
+              draggable="false"
               style={{
                 position: experimentIsEnabled(Experiment.NativeTimelineScroll) ? 'absolute' : 'relative',
                 right: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : 0,
