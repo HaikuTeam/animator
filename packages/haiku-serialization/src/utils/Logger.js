@@ -23,7 +23,7 @@ const formatJsonLogToString = (message) => {
   }
 
   // Pading is done to visually align on file
-  return `${message.timestamp}|${message.view.padEnd(8)}|${message.level}${message.tag ? '|' + message.tag : ''}|${message.message}`
+  return `${message.timestamp}|${message.view.padEnd(8)}|${message.level}${message.tag ? '|' + message.tag : ''}${message.durationMs ? '|d=' + message.durationMs : ''}|${message.message}`
 }
 
 /**
@@ -228,11 +228,11 @@ class Logger extends EventEmitter {
   }
 
   time (...args) {
-    console.time(...args)
+    this.logger.profile(args, {view: this.view})
   }
 
   timeEnd (...args) {
-    console.timeEnd(...args)
+    this.logger.profile(args, {view: this.view})
   }
 
   trace (...args) {

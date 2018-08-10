@@ -959,9 +959,22 @@ export default class Creator extends React.Component {
   }
 
   mixpanelReportPreviewMode (interactionMode) {
-    const report = interactionMode === InteractionMode.GLASS_EDIT ? 'disabled' : 'enabled';
+    let interactionName = '';
+    switch (interactionMode) {
+      case InteractionMode.GLASS_EDIT:
+        interactionName = 'edit';
+        break;
+      case InteractionMode.GLASS_PREVIEW:
+        interactionName = 'preview';
+        break;
+      case InteractionMode.CODE_EDITOR:
+        interactionName = 'code-editor';
+        break;
+      default:
+        break;
+    }
 
-    mixpanel.haikuTrack(`creator:preview-mode:${report}`);
+    mixpanel.haikuTrack(`creator:interaction-mode:${interactionName}`);
   }
 
   handleInteractionModeChange (interactionMode) {
@@ -1029,8 +1042,9 @@ export default class Creator extends React.Component {
 
   setInteractionMode (interactionMode) {
     if (this.state.projectModel) {
+      logger.time('projectModel.setInteractionMode');
       this.state.projectModel.setInteractionMode(interactionMode, {from: 'creator'}, () => {
-        this.handleInteractionModeChange(interactionMode);
+        logger.timeEnd('projectModel.setInteractionMode');
       });
     }
   }
@@ -1288,7 +1302,9 @@ export default class Creator extends React.Component {
                   break;
 
                 case 'setInteractionMode':
+                  logger.time('update handleInteractionModeChange');
                   this.handleInteractionModeChange(...args);
+                  logger.timeEnd('update handleInteractionModeChange');
                   break;
               }
             });
@@ -1305,7 +1321,9 @@ export default class Creator extends React.Component {
                   break;
 
                 case 'setInteractionMode':
+                  logger.time('remote-update handleInteractionModeChange');
                   this.handleInteractionModeChange(...args);
+                  logger.timeEnd('remote-update handleInteractionModeChange');
                   break;
               }
             });
@@ -1380,10 +1398,12 @@ export default class Creator extends React.Component {
   }
 
   mountHaikuComponent () {
+    logger.time('mountHaikuComponent');
     // The Timeline UI doesn't display the component, so we don't bother giving it a ref
     this.getActiveComponent().mountApplication(null, {
       freeze: true, // No display means no need for overflow settings, etc
     });
+    logger.timeEnd('mountHaikuComponent');
   }
 
   launchFolder (projectOptions, cb) {
