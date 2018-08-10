@@ -100,6 +100,22 @@ To debug, first launch mono normally (see `Starting`) — then from VS Code's le
 
 In general, Plumbing can be debugged on port 9221 and Electron renderer processes can be debugged on port 9222.
 
+### Profiling
+
+To add profile to any code, you should call 
+
+```
+logger.time('<user defined name>')
+<code to be profiled>
+logger.timeEnd('<user defined name>')
+```
+
+And it will output
+```
+<timestamp>|<process>|info|d=149|<user defined name>
+```
+with `d` being duration between `logger.time` and `logger.timeEnd`. To do a subsequent profile with same name, you should call `logger.time` rearm again.
+
 ## Contributing
 
 Script improvements are welcomed. The scripts are located in `scripts/`.

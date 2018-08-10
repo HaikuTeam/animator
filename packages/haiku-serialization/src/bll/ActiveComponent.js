@@ -1925,9 +1925,14 @@ class ActiveComponent extends BaseModel {
     return selectedKeyframeWithCurve ? selectedKeyframeWithCurve.getCurve() : null
   }
 
-  dragStartSelectedKeyframes (dragData) {
+  dragStartSelectedKeyframes (dragData, referenceKeyframe) {
     const keyframes = this.getSelectedKeyframes()
-    keyframes.forEach((keyframe) => keyframe.dragStart(dragData))
+
+    if (referenceKeyframe && Keyframe.groupIsSingleTween(keyframes)) {
+      referenceKeyframe.dragStart(dragData)
+    } else {
+      keyframes.forEach((keyframe) => keyframe.dragStart(dragData))
+    }
   }
 
   dragStopSelectedKeyframes (dragData) {
@@ -1940,9 +1945,14 @@ class ActiveComponent extends BaseModel {
     this.commitAccumulatedKeyframeMovesDebounced()
   }
 
-  dragSelectedKeyframes (pxpf, mspf, dragData, metadata) {
+  dragSelectedKeyframes (pxpf, mspf, dragData, metadata, referenceKeyframe) {
     const keyframes = this.getSelectedKeyframes()
-    keyframes.forEach((keyframe) => keyframe.drag(pxpf, mspf, dragData, metadata))
+
+    if (referenceKeyframe && Keyframe.groupIsSingleTween(keyframes)) {
+      referenceKeyframe.drag(pxpf, mspf, dragData, metadata)
+    } else {
+      keyframes.forEach((keyframe) => keyframe.drag(pxpf, mspf, dragData, metadata))
+    }
   }
 
   // Returns true iff the element has any transitions or expressions.
@@ -2552,6 +2562,8 @@ class ActiveComponent extends BaseModel {
   }
 
   rehydrate () {
+    logger.time('ActiveComponent#rehydrate')
+
     // Don't allow any incoming syncs while we're in the midst of this
     BaseModel.__sync = false
 
@@ -2607,6 +2619,8 @@ class ActiveComponent extends BaseModel {
 
     // Now that we have all the initial models ready, we can receive syncs
     BaseModel.__sync = true
+
+    logger.timeEnd('ActiveComponent#rehydrate')
   }
 
   getReifiedBytecode () {
@@ -2859,6 +2873,10 @@ class ActiveComponent extends BaseModel {
 
   getSelectedRows () {
     return Row.where({ component: this, _isSelected: true })
+  }
+
+  getSelectedElements () {
+    return Element.where({ component: this, _isSelected: true })
   }
 
   getCurrentRows (criteria) {
@@ -3530,7 +3548,7 @@ class ActiveComponent extends BaseModel {
   }
 
   /**
-   * @method moveKeyframes
+   * @method updateKeyframes
    */
   updateKeyframes (keyframeUpdatesSerial, options, metadata, cb) {
     const keyframeUpdates = Bytecode.unserializeValue(keyframeUpdatesSerial, (ref) => {
@@ -3579,6 +3597,12 @@ class ActiveComponent extends BaseModel {
                 // Not all views necessarily have the same collection of elements
                 if (element) {
                   Row.where({ component: this, element }).forEach((row) => {
+                    if (experimentIsEnabled(Experiment.ExpandTimelinePropertiesFromStageChanges)) {
+                      if (row.property && keyframeUpdates[timelineName][componentId][row.property.name]) {
+                        row.expand(metadata)
+                      }
+                    }
+
                     row.rehydrate()
                   })
                 }

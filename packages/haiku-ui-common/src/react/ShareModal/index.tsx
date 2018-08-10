@@ -8,7 +8,7 @@ import {ProjectShareDetails} from './ProjectShareDetails';
 
 const STYLES: React.CSSProperties = {
   wrapper: {
-    width: 500,
+    width: 610,
     overflow: 'hidden',
     left: 'calc(50% + 150px)',
     transform: 'translateX(-50%)',
@@ -29,6 +29,7 @@ export interface ShareModalProps {
   userName: string;
   organizationName: string;
   projectName: string;
+  folder: string;
   mixpanel: any;
   urls: HaikuShareUrls;
   explorePro: () => void;
@@ -140,6 +141,7 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
       userName,
       organizationName,
       mixpanel,
+      folder,
     } = this.props;
 
     return (
@@ -149,6 +151,7 @@ export class ShareModal extends React.Component<ShareModalProps, ShareModalState
           <ProjectShareDetails
             semverVersion={semverVersion}
             projectName={project.projectName}
+            folder={folder}
             linkAddress={linkAddress}
             isSnapshotSaveInProgress={isSnapshotSaveInProgress}
             snapshotSyndicated={snapshotSyndicated}

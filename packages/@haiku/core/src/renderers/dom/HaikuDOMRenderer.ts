@@ -685,7 +685,7 @@ export default class HaikuDOMRenderer extends HaikuBase implements IRenderer {
       // TODO: Fix this hack and make smarter
       const doSkipChildren = (
         isPatchOperation &&
-        (typeof children[0] !== 'string')
+        children[0] instanceof Object
       );
 
       HaikuDOMRenderer.renderTree(

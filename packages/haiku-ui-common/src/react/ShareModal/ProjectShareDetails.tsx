@@ -1,5 +1,6 @@
 import * as Color from 'color';
-import ExternalLinkIconSVG from 'haiku-ui-common/lib/react/icons/ExternalLinkIconSVG';
+import ExternalLinkIconSVG from '../icons/ExternalLinkIconSVG';
+import {shell} from 'electron';
 import * as React from 'react';
 import Palette from '../../Palette';
 import {TooltipBasic} from '../TooltipBasic';
@@ -25,6 +26,7 @@ const STYLES = {
     margin: '0',
     fontStyle: 'italic',
     lineHeight: '1.2em',
+    paddingRight: 20,
   },
   infoHeading: {
     float: 'left',
@@ -50,6 +52,7 @@ const STYLES = {
   label: {
     textTransform: 'uppercase',
     color: Palette.DARK_ROCK,
+    wordWrap: 'break-word',
   },
   toggle: {
     display: 'inline-block',
@@ -132,6 +135,7 @@ const STYLES = {
 export interface ProjectShareDetailsProps {
   semverVersion: string;
   projectName: string;
+  folder: string;
   linkAddress: string;
   isSnapshotSaveInProgress: boolean;
   snapshotSyndicated: boolean;
@@ -155,6 +159,10 @@ export class ProjectShareDetails extends React.PureComponent<ProjectShareDetails
 
   private togglePublic = () => {
     this.props.togglePublic();
+  };
+
+  private openInFinder = () => {
+    shell.openItem(this.props.folder);
   };
 
   private showTooltip = () => {
@@ -182,6 +190,7 @@ export class ProjectShareDetails extends React.PureComponent<ProjectShareDetails
   render () {
     const {
       projectName,
+      folder,
       semverVersion,
       linkAddress,
       isSnapshotSaveInProgress,
@@ -205,6 +214,13 @@ export class ProjectShareDetails extends React.PureComponent<ProjectShareDetails
             ) : (
               <p style={{height: 16, ...STYLES.info}} />
             )}
+            <p style={STYLES.info}>
+              <span
+                style={STYLES.label}
+                onClick={this.openInFinder}>
+                {folder}
+              </span>
+            </p>
 
             {<span style={{visibility: (this.props.isPublic === undefined && false) ? 'hidden' : 'visible'}}>
               <span

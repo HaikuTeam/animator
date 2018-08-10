@@ -6,7 +6,7 @@ export const EVALUATOR_STATES = {
   ERROR: 5,
 };
 
-export const EDITOR_WIDTH = 500;
+export const EDITOR_WIDTH = 610;
 
 export const AUTOCOMPLETION_ITEMS = [
   {

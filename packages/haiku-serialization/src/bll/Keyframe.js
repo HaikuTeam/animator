@@ -961,6 +961,10 @@ Keyframe.epandRowsOfSelectedKeyframes = ({component, from}) => {
   })
 }
 
+Keyframe.groupIsSingleTween = (keyframes) => {
+  return keyframes.length === 2 && keyframes[0].next() === keyframes[1] && keyframes[0].hasCurveBody()
+}
+
 module.exports = Keyframe
 
 // Down here to avoid Node circular dependency stub objects. #FIXME
