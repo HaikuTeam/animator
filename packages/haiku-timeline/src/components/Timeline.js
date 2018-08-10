@@ -193,24 +193,11 @@ class Timeline extends React.Component {
       const marquee = new Marquee({
         area,
         onStart: (event) => {
+          // FIXME: horrible and non-scalable hack, we should figure out a better solution
           // This event triggers on `mousedown`, we make the assumption that a
           // mousedown + mouse movement on one of the elements below is a drag,
           // therefore we stop the marquee selection by returning `false`.
-          return !(
-            // Keyframe
-            event.target.id.includes('keyframe-dragger') ||
-            // Constant Body
-            event.target.id.includes('constant-body') ||
-            // SVG elements
-            typeof event.target.className !== 'string' ||
-            // Undesired elements
-            [
-              'drag-grip-wrapper',
-              'component-heading-row-drag-handle',
-              'pill',
-              'component-heading-chevron-box',
-            ].includes(event.target.className)
-          );
+          return !(typeof event.target.className !== 'string' || event.target.className.includes('js-avoid-marquee-init'));
         },
         onChange: lodash.throttle((finalArea) => {
           if (

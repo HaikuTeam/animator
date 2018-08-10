@@ -241,7 +241,7 @@ export default class TransitionBody extends React.Component {
               : 'move',
           }}>
           <span
-            className="pill"
+            className="pill js-avoid-marquee-init"
             style={{
               position: 'absolute',
               zIndex: 1001,

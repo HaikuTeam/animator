@@ -19,7 +19,7 @@ class Marquee {
   private onFinish: MarqueeCallback;
   private area: HTMLElement;
   private selector: HTMLDivElement;
-  private areaClass: 'marquee-selection-active';
+  private areaClass = 'marquee-selection-active';
 
   constructor ({onStart, onChange, onFinish, area}: MarqueeConstructorArguments) {
     this.onStart = onStart;
