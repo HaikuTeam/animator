@@ -1,6 +1,5 @@
 /* global monaco */
 import * as React from 'react';
-import * as Radium from 'radium';
 import Palette from 'haiku-ui-common/lib/Palette';
 import SyntaxEvaluator from './SyntaxEvaluator';
 import Snippets from './Snippets';
@@ -72,6 +71,7 @@ class Editor extends React.Component {
       cursorBlinking: 'blink',
       scrollBeyondLastLine: false,
       fontFamily: 'Fira Mono',
+      hover: false,
     });
 
     this.editor.onDidChangeModelContent(this.handleEditorChange);
@@ -107,6 +107,14 @@ class Editor extends React.Component {
     this.props.onRemove(this.serialize());
   }
 
+  setContextRef = (element) => {
+    this._context = element;
+  };
+
+  setEvaluator = (evaluator) => {
+    this.evaluator = evaluator;
+  };
+
   render () {
     return (
       <div
@@ -121,9 +129,7 @@ class Editor extends React.Component {
         >
           <div
             style={STYLES.editorWrapper}
-            ref={(element) => {
-              this._context = element;
-            }}
+            ref={this.setContextRef}
           >
             <Snippets editor={this.editor} />
           </div>
@@ -131,9 +137,7 @@ class Editor extends React.Component {
         <div style={{...STYLES.amble, ...STYLES.postamble}}>
           {'}'}
           <SyntaxEvaluator
-            onChange={(evaluator) => {
-              this.evaluator = evaluator;
-            }}
+            onChange={this.setEvaluator}
             evaluate={this.state.contents}
             style={STYLES.postamble.errors}
           />
@@ -150,4 +154,4 @@ Editor.propTypes = {
   params: React.PropTypes.array.isRequired,
 };
 
-export default Radium(Editor);
+export default Editor;
