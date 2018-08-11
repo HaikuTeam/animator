@@ -2,6 +2,7 @@ import * as request from 'request';
 // @ts-ignore
 import packageJson = require('../package.json');
 import {inkstoneConfig} from './config';
+import {ErrorCode} from './errors';
 import {requestInstance} from './transport';
 
 const INKSTONE_ERROR_HEADER = 'x-inkstone-error-code';
@@ -123,10 +124,13 @@ export class RequestBuilder {
         url: this.fullUrl,
       },
       (err, httpResponse, body) => {
+        if (err) {
+          return cb(new Error(ErrorCode.ErrorOffline), httpResponse, body);
+        }
         const errorCode =
           httpResponse && httpResponse.headers && httpResponse.headers[INKSTONE_ERROR_HEADER] as string;
-        if (err || errorCode || httpResponse.statusCode > 399) {
-          return cb(new Error(errorCode || 'E_UNCATEGORIZED'), httpResponse, body);
+        if (errorCode || httpResponse.statusCode > 399) {
+          return cb(new Error(errorCode || ErrorCode.ErrorUncategorized), httpResponse, body);
         }
         cb(null, httpResponse, body);
       },
@@ -145,7 +149,7 @@ export class RequestBuilder {
           httpResponse,
         );
       } else {
-        cb(err, null, httpResponse);
+        cb(err || new Error(ErrorCode.ErrorUncategorized), null, httpResponse);
       }
     });
   }
