@@ -1,7 +1,6 @@
 import * as lodash from 'lodash';
 import * as React from 'react';
 import * as Radium from 'radium';
-import {shell} from 'electron';
 import * as Popover from 'react-popover';
 import {ProjectError} from 'haiku-sdk-creator/lib/bll/Project';
 import {CSSTransition, TransitionGroup} from 'react-transition-group';
@@ -268,7 +267,6 @@ class ProjectBrowser extends React.Component {
       return null;
     }
     const {showDeleteModal, showNewProjectModal, showChangelogModal} = this.state;
-    const {launchingProject} = this.props;
     if (this.state.areProjectsLoading) {
       return (
         <span style={DASH_STYLES.loadingWrap}>
@@ -281,7 +279,7 @@ class ProjectBrowser extends React.Component {
       <div
         style={[
           DASH_STYLES.projectsWrapper,
-          (showDeleteModal || showNewProjectModal || launchingProject || showChangelogModal) && {filter: 'blur(2px)'},
+          (showDeleteModal || showNewProjectModal || showChangelogModal) && {filter: 'blur(2px)'},
         ]}
         onScroll={lodash.throttle(() => {
           this.tourChannel.updateLayout();
@@ -550,9 +548,6 @@ class ProjectBrowser extends React.Component {
 ProjectBrowser.propTypes = {
   envoyProject: React.PropTypes.object.isRequired,
   envoyClient: React.PropTypes.object.isRequired,
-  doShowProjectLoader: React.PropTypes.bool.isRequired,
-  setProjectLaunchStatus: React.PropTypes.func.isRequired,
-  launchingProject: React.PropTypes.bool.isRequired,
   lastViewedChangelog: React.PropTypes.string,
   onShowChangelogModal: React.PropTypes.func.isRequired,
   showChangelogModal: React.PropTypes.bool.isRequired,

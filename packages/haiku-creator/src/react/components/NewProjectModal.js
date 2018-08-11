@@ -108,7 +108,6 @@ class NewProjectModal extends React.PureComponent {
 NewProjectModal.propTypes = {
   duplicate: React.PropTypes.bool,
   onCancel: React.PropTypes.func,
-  setProjectLaunchStatus: React.PropTypes.func,
 };
 
 export default Radium(NewProjectModal);
