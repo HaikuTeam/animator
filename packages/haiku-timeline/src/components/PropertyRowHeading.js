@@ -59,7 +59,8 @@ export default class PropertyRowHeading extends React.Component {
 
     return (
       <div
-        className="property-row-label-box"
+        draggable="false"
+        className="property-row-label-box unselectable-during-marquee"
         style={{
           position: 'relative',
           textTransform: 'uppercase',
@@ -75,7 +76,8 @@ export default class PropertyRowHeading extends React.Component {
         }}>
         {this.renderIcon()}
         <span
-          className="property-row-label-text"
+          draggable="false"
+          className="property-row-label-text unselectable-during-marquee"
           style={{
             display: 'inline-block',
             width: experimentIsEnabled(Experiment.NativeTimelineScroll) ? undefined : 55,

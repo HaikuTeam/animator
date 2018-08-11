@@ -93,6 +93,7 @@ export default class InvisibleKeyframeDragger extends React.Component {
         }, THROTTLE_TIME)}>
         <span
           id={`keyframe-dragger-${this.props.keyframe.getUniqueKey()}`}
+          className="js-avoid-marquee-init"
           onContextMenu={(ctxMenuEvent) => {
             ctxMenuEvent.stopPropagation();
             this.props.keyframe.handleContextMenu({...Globals}, {isViaKeyframeDraggerView: true});

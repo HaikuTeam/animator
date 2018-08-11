@@ -36,7 +36,7 @@ export default class ClusterRowHeading extends React.Component {
     }
 
     return (
-      <span style={{
+      <span draggable="false" style={{
         textTransform: 'uppercase',
         fontSize,
         color: (this.props.row.isHovered())

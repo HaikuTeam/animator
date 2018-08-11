@@ -103,7 +103,7 @@ export default class ComponentHeadingRow extends React.Component {
       <div
         id={`component-heading-row-${componentId}-${this.props.row.getAddress()}`}
         key={`component-heading-row-${componentId}-${this.props.row.getAddress()}`}
-        className="component-heading-row no-select unselectable-during-marquee"
+        className="component-heading-row no-select unselectable-during-marquee js-avoid-marquee-init"
         onMouseOver={this.hoverRow}
         onMouseOut={this.unhoverRow}
         style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
@@ -137,7 +137,7 @@ export default class ComponentHeadingRow extends React.Component {
             backgroundColor: Palette.LIGHT_GRAY,
             width: 10,
             height: this.props.rowHeight}} />}
-        <div style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
+        <div className="js-avoid-marquee-init" style={(experimentIsEnabled(Experiment.NativeTimelineScroll) ? {
           display: 'flex',
           position: 'sticky',
           top: 0,
@@ -158,10 +158,10 @@ export default class ComponentHeadingRow extends React.Component {
                 left: 12,
                 zIndex: 4,
               })}
-              className="component-heading-row-drag-handle"
+              className="component-heading-row-drag-handle js-avoid-marquee-init"
               {...this.props.dragHandleProps}>
               <span
-                className="drag-grip-wrapper opacity-on-hover"
+                className="drag-grip-wrapper opacity-on-hover js-avoid-marquee-init"
                 style={{display: 'block'}}>
                 <DragGrip />
               </span>

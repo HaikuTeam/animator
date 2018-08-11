@@ -90,7 +90,7 @@ export default class ConstantBody extends React.Component {
       <span
         ref={this.storeViewPosition}
         id={`constant-body-${uniqueKey}`}
-        className="constant-body"
+        className="constant-body js-avoid-marquee-init"
         onContextMenu={(ctxMenuEvent) => {
           ctxMenuEvent.stopPropagation();
           this.props.keyframe.handleContextMenu({...Globals}, {isViaConstantBodyView: true});
