@@ -1,11 +1,8 @@
-export {default as AdvancedUsage} from './AdvancedUsage';
-export {default as Congratulations} from './Congratulations';
-export {default as CreateTween} from './CreateTween';
-export {default as Finish} from './Finish';
 export {default as OpenProject} from './OpenProject';
-export {default as Publish} from './Publish';
-export {default as SketchLaunch} from './SketchLaunch';
-export {default as SketchMessage} from './SketchMessage';
-export {default as TextOffscreen} from './TextOffscreen';
-export {default as TextOnscreen} from './TextOnscreen';
+export {default as TourFinishStep} from './TourFinishStep';
+export {default as TourLibraryStep} from './TourLibraryStep';
+export {default as TourPreviewModeStep} from './TourPreviewModeStep';
+export {default as TourPublishStep} from './TourPublishStep';
+export {default as TourStageStep} from './TourStageStep';
+export {default as TourTimelineStep} from './TourTimelineStep';
 export {default as Welcome} from './Welcome';

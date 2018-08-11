@@ -18,6 +18,7 @@ export interface TourState {
   size: string;
   isOverlayHideable: boolean;
   showPreviousButton: boolean;
+  modalOffset: {x: number, y: number};
 }
 
 export interface ClientBoundingRect {
