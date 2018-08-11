@@ -94,7 +94,7 @@ class ProjectThumbnail extends React.Component {
           >
             REVEAL IN FINDER
           </span>}
-          <span
+          {this.props.allowDelete && <span
             key="delete"
             onClick={this.props.showDeleteModal}
             style={[
@@ -104,7 +104,7 @@ class ProjectThumbnail extends React.Component {
             ]}
           >
             DELETE
-          </span>
+          </span>}
         </div>
         <div style={DASH_STYLES.titleStrip}>
           <span style={DASH_STYLES.title}>

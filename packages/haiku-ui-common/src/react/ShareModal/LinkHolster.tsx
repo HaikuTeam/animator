@@ -41,12 +41,12 @@ const STYLES = {
 
 export interface LinkHolsterProps {
   isSnapshotSaveInProgress?: boolean;
-  snapshotSyndicated?: boolean;
   linkAddress?: string;
   showLoadingBar?: boolean;
   dark?: boolean;
   onCopy?: () => void;
   onLinkOpen?: () => void;
+  hasError?: boolean;
 }
 
 export interface LinkHolsterStates {
@@ -83,8 +83,6 @@ export class LinkHolster extends React.PureComponent<LinkHolsterProps, LinkHolst
   }
 
   get text () {
-    const {linkAddress} = this.props;
-
     if (this.props.isSnapshotSaveInProgress) {
       return <span style={{...STYLES.link, ...STYLES.linkDisabled}}>New share link being generated</span>;
     }
@@ -93,13 +91,13 @@ export class LinkHolster extends React.PureComponent<LinkHolsterProps, LinkHolst
       return <span style={STYLES.link}>Copied!</span>;
     }
 
-    if (linkAddress) {
+    if (this.props.linkAddress) {
       return (
           <span
             style={STYLES.link}
             onClick={this.onClick}
           >
-            {linkAddress}
+            {this.props.linkAddress}
           </span>
       );
     }
@@ -125,7 +123,7 @@ export class LinkHolster extends React.PureComponent<LinkHolsterProps, LinkHolst
   };
 
   get isDone () {
-    return !this.props.isSnapshotSaveInProgress && this.props.snapshotSyndicated;
+    return !this.props.isSnapshotSaveInProgress;
   }
 
   get speed () {
@@ -141,6 +139,18 @@ export class LinkHolster extends React.PureComponent<LinkHolsterProps, LinkHolst
       showLoadingBar,
       dark,
     } = this.props;
+
+    if (this.props.hasError) {
+      return (
+        <div style={STYLES.linkHolster}>
+          <span
+            style={STYLES.link}
+          >
+            {this.props.linkAddress}
+          </span>
+        </div>
+      );
+    }
 
     return (
       <div style={STYLES.linkHolster}>

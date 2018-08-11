@@ -302,6 +302,7 @@ export namespace inkstone {
   export namespace organization {
     export interface Organization {
       Name: string;
+      PlanExpirationDate?: number;
     }
 
     export const list = (cb: inkstone.Callback<Organization[]>) => {

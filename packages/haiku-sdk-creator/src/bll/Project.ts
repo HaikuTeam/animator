@@ -38,6 +38,7 @@ export interface HaikuProject {
   projectExistsLocally: boolean;
   isPublic: boolean;
   branchName: string;
+  local: boolean;
   repositoryUrl?: string;
   isFork?: boolean;
   forkComplete?: boolean;
@@ -95,9 +96,11 @@ export class ProjectHandler extends EnvoyHandler {
       organizationName,
       project.Name,
     );
+
     return {
       projectPath,
       authorName,
+      local: false,
       organizationName: getSafeOrganizationName(organizationName),
       projectName: getSafeProjectName(project.Name),
       projectExistsLocally: existsSync(projectPath),
@@ -107,6 +110,14 @@ export class ProjectHandler extends EnvoyHandler {
       isPublic: project.IsPublic,
       branchName: DEFAULT_BRANCH_NAME,
     };
+  }
+
+  private retrieveProjectsList (): HaikuProject[] {
+    return (this.getConfig<HaikuProject[]>(ProjectSettings.List) || []).map((project) => ({
+      ...project,
+      // Update if the project exists locally, in case that has changed.
+      projectExistsLocally: existsSync(project.projectPath),
+    }));
   }
 
   setCurrentProject (project: HaikuProject): MaybeAsync<void> {
@@ -184,6 +195,15 @@ export class ProjectHandler extends EnvoyHandler {
     return this.currentSha;
   }
 
+  private getMergedProjectList (inboundRemoteList: HaikuProject[]) {
+    // Merge the local project list with the inbound remote list.
+    // At this stage, replace local projects with their remote counterparts when possible.
+    return this.retrieveProjectsList().filter(
+      (project) => project.local &&
+        !inboundRemoteList.find((remoteProject) => remoteProject.projectName === project.projectName),
+    ).concat(inboundRemoteList);
+  }
+
   getProjectsList (): Promise<HaikuProject[]> {
     this.server.logger.info('[haiku envoy server] listing projects');
     return new Promise<HaikuProject[]>((resolve, reject) => {
@@ -194,12 +214,12 @@ export class ProjectHandler extends EnvoyHandler {
             return reject({code: ProjectError.Unauthorized});
           }
           if (this.userHandler.getPrivilege(OrganizationPrivilege.EnableOfflineFeatures)) {
-            return resolve(this.getConfig<HaikuProject[]>(ProjectSettings.List) || []);
+            return resolve(this.retrieveProjectsList());
           }
           return reject({code: ProjectError.Offline});
         }
 
-        const list = projects.map((project) => this.inkstoneProjectToHaikuProject(project));
+        const list = this.getMergedProjectList(projects.map((project) => this.inkstoneProjectToHaikuProject(project)));
         this.setConfig<HaikuProject[]>(ProjectSettings.List, list);
         resolve(list);
       });
@@ -219,10 +239,41 @@ export class ProjectHandler extends EnvoyHandler {
     });
   }
 
+  private archiveProject (haikuProject: HaikuProject, resolve: () => void) {
+    if (existsSync(haikuProject.projectPath)) {
+      // Delete the project locally, but in a recoverable state.
+      let archivePath = `${haikuProject.projectPath}.bak`;
+      if (existsSync(archivePath)) {
+        let i = 0;
+        while (existsSync(archivePath = `${haikuProject.projectPath}.bak.${i++}`)) {
+          // ...
+        }
+      }
+      move(haikuProject.projectPath, archivePath, () => {
+        resolve();
+      });
+    } else {
+      resolve();
+    }
+  }
+
+  private deleteProjectOffline (haikuProject: HaikuProject, resolve: () => void) {
+    // "Remove" the project without inkstone.
+    this.setConfig<HaikuProject[]>(
+      ProjectSettings.List,
+      this.retrieveProjectsList().filter((project) => project.projectName !== haikuProject.projectName),
+    );
+    this.archiveProject(haikuProject, resolve);
+  }
+
   deleteProject (haikuProject: HaikuProject): Promise<void> {
     this.server.logger.info('[haiku envoy server] deleting project');
     this.server.logger.info(haikuProject);
     return new Promise((resolve, reject) => {
+      if (haikuProject.local) {
+        return this.deleteProjectOffline(haikuProject, resolve);
+      }
+
       inkstone.project.deleteByName({Name: haikuProject.projectName}, (deleteErr) => {
         if (deleteErr) {
           return reject({code: ProjectError.Offline});
@@ -233,30 +284,57 @@ export class ProjectHandler extends EnvoyHandler {
           this.server.logger.info('[haiku envoy server] reloaded projects list');
         });
 
-        if (existsSync(haikuProject.projectPath)) {
-          // Delete the project locally, but in a recoverable state.
-          let archivePath = `${haikuProject.projectPath}.bak`;
-          if (existsSync(archivePath)) {
-            let i = 0;
-            while (existsSync(archivePath = `${haikuProject.projectPath}.bak.${i++}`)) {
-              // ...
-            }
-          }
-          move(haikuProject.projectPath, archivePath, () => {
-            resolve();
-          });
-        }
+        this.archiveProject(haikuProject, resolve);
       });
     });
   }
 
-  createProject (name: string): Promise<HaikuProject> {
+  createProjectOffline (name: string): HaikuProject {
+    const list = this.retrieveProjectsList();
+
+    const existingProject = list.find((project) => project.projectName === name);
+    if (existingProject) {
+      return existingProject;
+    }
+
+    const {organization, user} = this.userHandler.getIdentity() as HaikuIdentity;
+    const organizationName = getSafeOrganizationName(organization && organization.Name);
+    const authorName = (user && user.Username) || 'contact@haiku.ai';
+    const projectPath = path.join(
+      HOMEDIR_PROJECTS_PATH,
+      organizationName,
+      name,
+    );
+
+    const offlineProject = {
+      projectPath,
+      authorName,
+      local: true,
+      organizationName: getSafeOrganizationName(organizationName),
+      projectName: getSafeProjectName(name),
+      projectExistsLocally: existsSync(projectPath),
+      repositoryUrl: '',
+      forkComplete: false,
+      isFork: false,
+      isPublic: true,
+      branchName: DEFAULT_BRANCH_NAME,
+    };
+
+    list.unshift(offlineProject);
+    this.setConfig<HaikuProject[]>(ProjectSettings.List, list);
+    return offlineProject;
+  }
+
+  createProject (name: string, allowOffline = true, deferCaudexBacking = true): Promise<HaikuProject> {
     this.server.logger.info('[haiku envoy server] creating project', name);
     return new Promise((resolve, reject) => {
       inkstone.project.create(
-        {Name: name, IsPublic: true, DeferCaudexBacking: true},
+        {Name: name, IsPublic: true, DeferCaudexBacking: deferCaudexBacking},
         (error, project) => {
           if (error) {
+            if (allowOffline && this.userHandler.getPrivilege(OrganizationPrivilege.EnableOfflineFeatures)) {
+              return resolve(this.createProjectOffline(name));
+            }
             return reject(error);
           }
 

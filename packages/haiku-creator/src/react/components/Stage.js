@@ -285,6 +285,7 @@ class Stage extends React.Component {
           style={STAGE_BOX_STYLE}>
           <StageTitleBar
             explorePro={this.props.explorePro}
+            supportOfflineExport={this.props.supportOfflineExport}
             folder={this.props.folder}
             envoyProject={this.props.envoyProject}
             projectModel={this.props.projectModel}
@@ -375,6 +376,7 @@ Stage.propTypes = {
   removeNotice: React.PropTypes.func.isRequired,
   organizationName: React.PropTypes.string,
   username: React.PropTypes.string,
+  supportOfflineExport: React.PropTypes.bool,
 };
 
 export default Radium(Stage);

@@ -6,42 +6,44 @@ import Palette from '../../../Palette';
 import {LinkHolster} from '../LinkHolster';
 
 const STYLES = {
-  imgWrapper: {
+  videoWrapper: {
     width: 'calc(100% + 20px)',
     minHeight: '200px',
     backgroundColor: Palette.GRAY,
     overflow: 'hidden',
   } as React.CSSProperties,
-  image: {
-    maxWidth: 'calc(100% + 20px)',
-    maxHeight: '440px',
+  video: {
+    maxWidth: '100%',
+    maxHeight: 440,
   },
 };
 
-export interface GifProps {
+export interface VideoProps {
   entry: string;
   userName: string;
   organizationName: string;
-  folder: string;
   urls: HaikuShareUrls;
+  folder: string;
 }
 
-export default class Gif extends React.PureComponent<GifProps> {
-  get gifUrl () {
+export default class Video extends React.PureComponent<VideoProps> {
+  get videoUrl () {
     // Hack until we are simply subscribing to Envoy ExporterHandler.
-    const maybeLocalFile = join(this.props.folder, 'animation.gif');
-    return existsSync(maybeLocalFile) ? maybeLocalFile : this.props.urls.gif;
+    const maybeLocalFile = join(this.props.folder, 'animation.mp4');
+    return existsSync(maybeLocalFile) ? maybeLocalFile : this.props.urls.video;
   }
 
   render () {
     return (
       <div style={{textAlign: 'center'}}>
-        <div style={STYLES.imgWrapper}>
-          <img src={this.gifUrl} style={STYLES.image} />
+        <div style={STYLES.videoWrapper}>
+          <video controls={true} style={STYLES.video}>
+            <source src={this.videoUrl} type="video/mp4" />
+          </video>
         </div>
         <div style={{width: 'calc(100% + 20px)'}}>
           <LinkHolster
-            linkAddress={this.props.urls.gif}
+            linkAddress={this.props.urls.video}
             showLoadingBar={false}
             dark={true}
           />

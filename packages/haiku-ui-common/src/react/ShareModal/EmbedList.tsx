@@ -4,7 +4,7 @@ import {ExternalLink} from '../ExternalLink';
 import {Tooltip} from '../Tooltip';
 import {EmbedCategory} from './EmbedCategory';
 import {SelectedEntry} from './index';
-import {SHARE_OPTIONS} from './ShareModalOptions';
+import {getShareOptions} from './ShareModalOptions';
 
 const STYLES = {
   categories: {
@@ -39,11 +39,21 @@ export interface EmbedListProps {
   isSnapshotSaveInProgress: boolean;
   snapshotSyndicated: boolean;
   mixpanel: any;
+  supportOfflineExport: boolean;
+  hasError: boolean;
 }
 
-export class EmbedList extends React.PureComponent<EmbedListProps> {
+export interface EmbedListStates {
+  shareOptions: [string, any][];
+}
+
+export class EmbedList extends React.PureComponent<EmbedListProps, EmbedListStates> {
+  state = {
+    shareOptions: Object.entries(getShareOptions(false)),
+  };
+
   renderShareOptions () {
-    return Object.entries(SHARE_OPTIONS).map(([category, options]) => (
+    return this.state.shareOptions.map(([category, options]) => (
       <EmbedCategory
         key={category}
         category={category}
@@ -51,8 +61,15 @@ export class EmbedList extends React.PureComponent<EmbedListProps> {
         onOptionClicked={this.props.onOptionClicked}
         isSnapshotSaveInProgress={this.props.isSnapshotSaveInProgress}
         snapshotSyndicated={this.props.snapshotSyndicated}
+        hasError={this.props.hasError}
       />
     ));
+  }
+
+  componentWillReceiveProps (nextProps: EmbedListProps) {
+    this.setState({
+      shareOptions: Object.entries(getShareOptions(nextProps.supportOfflineExport)),
+    });
   }
 
   private onClick = () => {

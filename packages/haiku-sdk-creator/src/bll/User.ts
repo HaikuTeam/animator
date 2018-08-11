@@ -57,7 +57,6 @@ export class UserHandler extends EnvoyHandler {
   }
 
   private recoverIdentityOffline (): MaybeAsync<void> {
-    const identity = this.getConfigObfuscated<HaikuIdentity>(UserSettings.Identity);
     Object.assign(
       this.identity,
       this.getConfigObfuscated<HaikuIdentity>(UserSettings.Identity),
@@ -65,8 +64,21 @@ export class UserHandler extends EnvoyHandler {
     );
 
     if (this.identity.user && this.identity.organization) {
+      // Check if the offline window has expired.
+      if (
+        this.checkOfflinePrivileges() &&
+        this.identity.organization.PlanExpirationDate &&
+        this.identity.organization.PlanExpirationDate < Date.now() / 1e3
+      ) {
+        this.identity.organization[OrganizationPrivilege.EnableOfflineFeatures] = false;
+        this.setConfigObfuscated<HaikuIdentity>(
+          UserSettings.Identity,
+          this.identity,
+        );
+      }
+
       this.server.emit(USER_CHANNEL, {
-        payload: identity,
+        payload: this.identity,
         name: `${USER_CHANNEL}:load`,
       });
     }
@@ -134,6 +146,10 @@ export class UserHandler extends EnvoyHandler {
 
   checkPrivateProjectLimit (): MaybeAsync<number> {
     return this.getPrivilege(OrganizationPrivilege.PrivateProjectLimit);
+  }
+
+  checkOnline (): MaybeAsync<boolean> {
+    return this.identity.isOnline;
   }
 
   load (): Promise<HaikuIdentity> {

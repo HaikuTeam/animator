@@ -1,5 +1,6 @@
 import * as Color from 'color';
 import {shell} from 'electron';
+import * as os from 'os';
 import * as React from 'react';
 import Palette from '../../Palette';
 import ExternalLinkIconSVG from '../icons/ExternalLinkIconSVG';
@@ -138,7 +139,6 @@ export interface ProjectShareDetailsProps {
   folder: string;
   linkAddress: string;
   isSnapshotSaveInProgress: boolean;
-  snapshotSyndicated: boolean;
   isPublic: boolean;
   shouldShowPrivateWarning: boolean;
   togglePublic: () => void;
@@ -146,6 +146,7 @@ export interface ProjectShareDetailsProps {
   explorePro: () => void;
   privateProjectCount: number;
   privateProjectLimit: number;
+  hasError: boolean;
 }
 
 export interface ProjectShareDetailsStates {
@@ -194,7 +195,6 @@ export class ProjectShareDetails extends React.PureComponent<ProjectShareDetails
       semverVersion,
       linkAddress,
       isSnapshotSaveInProgress,
-      snapshotSyndicated,
       isPublic,
     } = this.props;
 
@@ -219,7 +219,7 @@ export class ProjectShareDetails extends React.PureComponent<ProjectShareDetails
                 style={STYLES.label}
                 onClick={this.openInFinder}
               >
-                {folder}
+                {folder.replace(os.homedir(), '~')}
               </span>
             </p>
 
@@ -263,10 +263,10 @@ export class ProjectShareDetails extends React.PureComponent<ProjectShareDetails
             </p>
             <LinkHolster
               isSnapshotSaveInProgress={isSnapshotSaveInProgress}
-              snapshotSyndicated={snapshotSyndicated}
               linkAddress={linkAddress}
               onCopy={this.onCopy}
               onLinkOpen={this.onLinkOpen}
+              hasError={this.props.hasError}
             />
             <p style={{...STYLES.info, ...STYLES.infoSpecial}}>
               Anyone&nbsp;

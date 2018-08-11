@@ -17,14 +17,10 @@ const MAX_SEMVER_TAG_ATTEMPTS = 100;
 const AWAIT_COMMIT_INTERVAL = 0;
 const MIN_WORKER_INTERVAL = 32;
 const MAX_WORKER_INTERVAL = 32 * 20;
-const MAX_CLONE_ATTEMPTS = 20;
-const CLONE_RETRY_DELAY = 5000;
 const DEFAULT_BRANCH_NAME = 'master'; // "'master' process" has nothing to do with this :/
 const BASELINE_SEMVER_TAG = '0.0.0';
 
-function _isCommitTypeRequest ({type}) {
-  return type === 'commit';
-}
+const isCommitTypeRequest = ({type}) => type === 'commit';
 
 export default class MasterGitProject extends EventEmitter {
   constructor (folder) {
@@ -249,7 +245,7 @@ export default class MasterGitProject extends EventEmitter {
   }
 
   getPendingCommitRequests () {
-    return this._requestQueue.filter(_isCommitTypeRequest);
+    return this._requestQueue.filter(isCommitTypeRequest);
   }
 
   hasAnyPendingCommits () {
@@ -501,25 +497,11 @@ export default class MasterGitProject extends EventEmitter {
   }
 
   cloneRemoteIntoFolder (cb) {
-    if (!this.folderState.cloneAttempts) {
-      this.folderState.cloneAttempts = 0;
-    }
-    this.folderState.cloneAttempts++;
-
     const {repositoryUrl} = this.folderState.remoteProjectDescriptor;
     logger.info(`[master-git] directly cloning from remote ${repositoryUrl}`);
     return Git.cloneRepoDirectly(repositoryUrl, this.folder, (err) => {
       if (err) {
         logger.info(`[master-git] clone error:`, err);
-
-        if (this.folderState.cloneAttempts < MAX_CLONE_ATTEMPTS) {
-          logger.info(`[master-git] retrying clone after a brief delay...`);
-
-          return setTimeout(() => {
-            return this.cloneRemoteIntoFolder(cb);
-          }, CLONE_RETRY_DELAY);
-        }
-
         return cb(err);
       }
 
@@ -921,7 +903,7 @@ export default class MasterGitProject extends EventEmitter {
     });
   }
 
-  initializeFolder (initOptions, done) {
+  initializeFolder (initOptions, offlineOkay, done) {
     // Empty folder state since we are going to reload it in here
     this.folderState = {};
 
@@ -949,7 +931,6 @@ export default class MasterGitProject extends EventEmitter {
             'cloneRemoteIntoFolder',
             'copyContentsFromTemp',
           );
-
         } else {
           actionSequence.push('initializeGit');
         }

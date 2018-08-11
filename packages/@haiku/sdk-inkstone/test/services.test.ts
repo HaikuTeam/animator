@@ -35,7 +35,7 @@ tape('services', (suite: tape.Test) => {
 
   suite.test('RequestBuilder.errorHandling.restful', (test: tape.Test) => {
     const [mockGet, unstub] = stubProperties(requestInstance, 'get');
-    mockGet.callsArgWith(1, new Error('ignored'), {headers: {'x-inkstone-error-code': 'E_FOOBAR'}}, null);
+    mockGet.callsArgWith(1, null, {headers: {'x-inkstone-error-code': 'E_FOOBAR'}}, null);
     newGetRequest()
       // @ts-ignore
       .withEndpoint('/foo/:id')
@@ -49,12 +49,26 @@ tape('services', (suite: tape.Test) => {
 
   suite.test('RequestBuilder.errorHandling.default', (test: tape.Test) => {
     const [mockGet, unstub] = stubProperties(requestInstance, 'get');
-    mockGet.callsArgWith(1, new Error('ignored'));
+    mockGet.callsArgWith(1, null, {headers:{}, statusCode: 400});
     newGetRequest()
       // @ts-ignore
       .withEndpoint('/foo/:id')
       .call((err: Error) => {
         test.is(err.message, 'E_UNCATEGORIZED');
+      });
+
+    unstub();
+    test.end();
+  });
+
+  suite.test('RequestBuilder.errorHandling.defaultOffline', (test: tape.Test) => {
+    const [mockGet, unstub] = stubProperties(requestInstance, 'get');
+    mockGet.callsArgWith(1, new Error('ECONNRESET'));
+    newGetRequest()
+      // @ts-ignore
+      .withEndpoint('/foo/:id')
+      .call((err: Error) => {
+        test.is(err.message, 'E_OFFLINE');
       });
 
     unstub();

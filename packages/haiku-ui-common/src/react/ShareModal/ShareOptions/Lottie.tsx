@@ -1,15 +1,19 @@
-import {HaikuShareUrls} from 'haiku-sdk-creator/lib/bll/Project';
+import {remote} from 'electron';
+import {copyFile, exists} from 'fs-extra';
+import {join} from 'path';
 import * as React from 'react';
 import {SHARED_STYLES} from '../../../SharedStyles';
 import {ExternalLink} from '../../ExternalLink';
 import {PUBLISH_SHARED} from './PublishStyles';
+
+const {dialog} = remote;
 
 export interface LottieProps {
   entry: string;
   userName: string;
   organizationName: string;
   mixpanel: any;
-  urls: HaikuShareUrls;
+  folder: string;
 }
 
 export default class Lottie extends React.PureComponent<LottieProps> {
@@ -18,6 +22,32 @@ export default class Lottie extends React.PureComponent<LottieProps> {
       from: 'app',
       event: 'lottie-download',
     });
+
+    // Bit of a hack—until we can actually pass down Envoy Exporter listeners the right way.
+    // #FIXME
+    const originalPath = join(this.props.folder, 'code', 'main', 'lottie.json');
+    dialog.showSaveDialog(
+      undefined,
+      {
+        defaultPath: 'lottie.json',
+        filters: [{
+          name: 'Lottie', extensions: ['json'],
+        }],
+      },
+      (filename) => {
+        if (!filename) {
+          return;
+        }
+
+        exists(originalPath, (fileExists) => {
+          if (!fileExists) {
+            return;
+          }
+
+          copyFile(originalPath, filename, () => {});
+        });
+      },
+    );
   };
 
   render () {
@@ -38,13 +68,13 @@ export default class Lottie extends React.PureComponent<LottieProps> {
           <span style={PUBLISH_SHARED.bullet}>1</span>
         </div>
         <div style={PUBLISH_SHARED.instructionsCol2}>
-          Download <code>lottie.json</code> from Haiku CDN.
+          Download <code>lottie.json</code>.
         </div>
       </div>
       <div style={PUBLISH_SHARED.instructionsRow}>
         <div style={PUBLISH_SHARED.instructionsCol1} />
         <div style={{...PUBLISH_SHARED.instructionsCol2}}>
-          <ExternalLink style={SHARED_STYLES.btn} href={this.props.urls.lottie} onClick={this.onClick}>
+          <ExternalLink style={SHARED_STYLES.btn} href="#" onClick={this.onClick}>
             Download JSON
           </ExternalLink>
         </div>

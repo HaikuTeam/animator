@@ -27,6 +27,7 @@ export interface EmbedCategoryProps {
   onOptionClicked?: (option: {entry: SelectedEntry, template: string}) => void;
   isSnapshotSaveInProgress?: boolean;
   snapshotSyndicated?: boolean;
+  hasError: boolean;
 }
 
 export class EmbedCategory extends React.PureComponent<EmbedCategoryProps> {
@@ -41,6 +42,7 @@ export class EmbedCategory extends React.PureComponent<EmbedCategoryProps> {
         onClick={this.props.onOptionClicked}
         isSnapshotSaveInProgress={this.props.isSnapshotSaveInProgress}
         snapshotSyndicated={this.props.snapshotSyndicated}
+        hasError={this.props.hasError}
       />
     ));
   }

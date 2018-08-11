@@ -235,7 +235,7 @@ class ProjectBrowser extends React.Component {
       <span style={DASH_STYLES.loadingWrap}>
         <div style={{width: 560, fontSize: 16, lineHeight: 1.3, textAlign: 'center'}}>
           <div style={DASH_STYLES.notice}>
-            <div style={DASH_STYLES.noticeTitle}>Unable to connect to Haikiu hosting services.<br/>Are you connected to the Internet?</div>
+            <div style={DASH_STYLES.noticeTitle}>Unable to connect to Haiku hosting services.<br/>Are you connected to the Internet?</div>
             <div>Upgrade to Haiku Pro for offline capabilities.</div>
             <div
               style={[
@@ -288,6 +288,7 @@ class ProjectBrowser extends React.Component {
         {this.state.projectsList.map((projectObject) => (
           <ProjectThumbnail
             key={projectObject.projectName}
+            allowDelete={this.props.isOnline || projectObject.local}
             organizationName={this.props.organizationName}
             projectName={projectObject.projectName}
             projectExistsLocally={projectObject.projectExistsLocally}

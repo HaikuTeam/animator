@@ -48,6 +48,13 @@ const STYLES: React.CSSProperties = {
     display: 'inline-block',
     marginRight: 10,
   },
+  cancelButton: {
+    ...BTN_STYLES.btnText,
+    ...BTN_STYLES.centerBtns,
+    ...BTN_STYLES.btnCancel,
+    display: 'inline-block',
+    marginRight: 10,
+  },
   upgradeWrap: {
     color: Palette.SUNSTONE,
     border: '1px solid ' + Palette.BLUE,
@@ -143,7 +150,15 @@ export class PublicPrivateOptInModal extends React.PureComponent<PublicPrivateOp
               </div>
               <div>Upgrade for unlimited private projects and pro features.</div>
               <span onClick={this.props.explorePro} style={STYLES.btnSecondary}>Go Pro
-                  <span style={{width: 11, height: 11, display: 'inline-block', marginLeft: 4, transform: 'translateY(1px)'}}>
+                  <span
+                    style={{
+                      width: 11,
+                      height: 11,
+                      display: 'inline-block',
+                      marginLeft: 4,
+                      transform: 'translateY(1px)',
+                    }}
+                  >
                     <ExternalLinkIconSVG color={Palette.LIGHT_BLUE}/>
                   </span>
               </span>
@@ -152,9 +167,13 @@ export class PublicPrivateOptInModal extends React.PureComponent<PublicPrivateOp
         </form>
         <ModalFooter>
           <div style={{display: 'inline-block'}}>
+          <button
+            onClick={this.props.onClose}
+            style={STYLES.cancelButton}
+          >
+            Cancel
+          </button>
             <button
-              key="discard-code"
-              id="discard-code"
               onClick={this.props.onContinue}
               style={STYLES.button}
             >

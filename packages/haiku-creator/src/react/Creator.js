@@ -145,6 +145,7 @@ export default class Creator extends React.Component {
       artboardDimensions: null,
       showChangelogModal: false,
       showOfflineExportUpgradeModal: false,
+      supportOfflineExport: false,
       showProxySettings: false,
       servicesEnvoyClient: null,
       projectToDuplicate: null,
@@ -640,6 +641,14 @@ export default class Creator extends React.Component {
           this.setState({isUserAuthenticated: true});
         }, this.state.readyForAuth ? 0 : 2500);
       });
+
+      this.user.checkOfflinePrivileges().then((supportOfflineExport) => {
+        this.setState({supportOfflineExport});
+      });
+
+      this.user.checkOnline().then((isOnline) => {
+        this.setState({isOnline});
+      });
     });
 
     this.user.load().then(({user, organization}) => {
@@ -761,6 +770,8 @@ export default class Creator extends React.Component {
     this.envoyClient = new EnvoyClient(this.envoyOptions);
 
     this.envoyClient.get(EXPORTER_CHANNEL).then((exporterChannel) => {
+      // #FIXME: ideally this should be passed down to the share modal to provide the assets to the user as soon as they're ready.
+      this.envoyExporter = exporterChannel;
       ipcRenderer.on('global-menu:save-as', () => {
         exporterChannel.checkOfflinePrivileges().then((supportOfflineExport) => {
           if (!supportOfflineExport) {
@@ -1128,15 +1139,15 @@ export default class Creator extends React.Component {
     });
   }
 
-  onProjectLaunchError (error) {
-    console.log(error);
-
-    this.createNotice({
-      type: 'error',
-      title: 'Oh no!',
-      message: 'We couldn\'t open this project. 😩 Please ensure that your computer is connected to the Internet. If you\'re connected and you still see this message your files might still be processing. Please try again in a few moments. If you still see this error, contact Haiku for support.',
-      closeText: 'Okay',
-      lightScheme: true,
+  onProjectLaunchError () {
+    this.setState({projectLaunching: false, doShowProjectLoader: false, dashboardVisible: true}, () => {
+      this.createNotice({
+        type: 'error',
+        title: 'Oh no!',
+        message: 'We couldn\'t open this project. 😩 Please ensure that your computer is connected to the Internet. If you\'re connected and you still see this message your files might still be processing. Please try again in a few moments. If you still see this error, contact Haiku for support.',
+        closeText: 'Okay',
+        lightScheme: true,
+      });
     });
   }
 
@@ -1572,7 +1583,7 @@ export default class Creator extends React.Component {
   }
 
   showForkingError () {
-    this.setState({doShowProjectLoader: false});
+    this.setState({projectLaunching: false, doShowProjectLoader: false, dashboardVisible: true});
     this.createNotice({
       type: 'error',
       title: 'Oh no!',
@@ -1808,6 +1819,7 @@ export default class Creator extends React.Component {
       this.state.showNewProjectModal && (
         <NewProjectModal
           defaultProjectName={this.state.duplicateProjectName}
+          projectsList={this.state.projectsList}
           duplicate={this.state.isDuplicateProjectModal}
           onCreateProject={this.onCreateProject}
           onClose={() => {
@@ -1989,6 +2001,7 @@ export default class Creator extends React.Component {
           <ProjectBrowser
             ref="ProjectBrowser"
             explorePro={this.explorePro}
+            isOnline={this.state.isOnline}
             envoyProject={this.envoyProject}
             onShowProxySettings={this.boundShowProxySettings}
             onShowNewProjectModal={(...args) => {
@@ -2136,6 +2149,7 @@ export default class Creator extends React.Component {
                     }
                   <Stage
                     ref="stage"
+                    supportOfflineExport={this.state.supportOfflineExport}
                     explorePro={this.explorePro}
                     folder={this.state.projectFolder}
                     envoyProject={this.envoyProject}

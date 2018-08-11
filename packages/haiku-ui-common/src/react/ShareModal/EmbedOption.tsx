@@ -12,6 +12,7 @@ export interface EmbedOptionProps {
   onClick: (option: {entry: SelectedEntry, template: string}) => void;
   isSnapshotSaveInProgress: boolean;
   snapshotSyndicated: boolean;
+  hasError: boolean;
 }
 
 export class EmbedOption extends React.PureComponent<EmbedOptionProps> {
@@ -27,7 +28,9 @@ export class EmbedOption extends React.PureComponent<EmbedOptionProps> {
   };
 
   get tooltipText () {
-    return this.props.disabled ? 'Coming Soon' : 'Click for details';
+    return this.props.disabled
+      ? 'Pro only'
+      : 'Click for details';
   }
 
   componentDidMount () {
@@ -36,9 +39,17 @@ export class EmbedOption extends React.PureComponent<EmbedOptionProps> {
     }
   }
 
-  componentWillReceiveProps ({isSnapshotSaveInProgress, snapshotSyndicated}: EmbedOptionProps) {
+  componentWillReceiveProps ({isSnapshotSaveInProgress, snapshotSyndicated, hasError}: EmbedOptionProps) {
     if (isSnapshotSaveInProgress) {
       this.start();
+      return;
+    }
+
+    if (hasError) {
+      if (this.startTimeout) {
+        clearTimeout(this.startTimeout);
+      }
+      this.setState({abandoned: true, done: true, progress: 0, speed: '1ms'});
       return;
     }
 
@@ -93,7 +104,7 @@ export class EmbedOption extends React.PureComponent<EmbedOptionProps> {
   }
 
   get requiresSyndication () {
-    return this.props.category === ShareCategory.Other || this.props.category === ShareCategory.Mobile;
+    return this.props.category === ShareCategory.Other;
   }
 
   get effectivelyDisabled () {
@@ -138,7 +149,7 @@ export class EmbedOption extends React.PureComponent<EmbedOptionProps> {
         >
           {entry}
         </LoadingButton>
-        {this.state.showTooltip && <TooltipBasic>{this.tooltipText}</TooltipBasic>}
+        {this.state.showTooltip && !this.props.hasError && <TooltipBasic>{this.tooltipText}</TooltipBasic>}
       </li>
     );
   }
