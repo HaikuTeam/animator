@@ -282,7 +282,6 @@ input[type=number]::-webkit-outer-spin-button {
 
 .marquee-selection-active,
 .marquee-selection-active .unselectable-during-marquee {
-  pointer-events: none;
   user-select: none;
   -webkit-user-drag: none;
 }
