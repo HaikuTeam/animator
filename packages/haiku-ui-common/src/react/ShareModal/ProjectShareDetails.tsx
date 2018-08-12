@@ -1,4 +1,5 @@
 import * as Color from 'color';
+import ExternalLinkIconSVG from '../icons/ExternalLinkIconSVG';
 import {shell} from 'electron';
 import * as React from 'react';
 import Palette from '../../Palette';
@@ -107,6 +108,27 @@ const STYLES = {
     fontSize: '11px',
     lineHeight: 1.2,
     padding: '8px 0',
+  },
+  upgradeWrap: {
+    color: Palette.SUNSTONE,
+    border: '1px solid ' + Palette.BLUE,
+    padding: '14px 20px',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  btnSecondary: {
+    height: '25px',
+    padding: '4px 9px',
+    fontSize: 11,
+    letterSpacing: '1.3px',
+    lineHeight: 1,
+    borderRadius: 3,
+    color: Palette.SUNSTONE,
+    cursor: 'pointer',
+    display: 'inline-block',
+    marginTop: 10,
+    backgroundColor: 'transparent',
+    border: '1px solid ' + Palette.LIGHT_BLUE,
   },
 } as React.CSSProperties;
 
@@ -257,15 +279,24 @@ export class ProjectShareDetails extends React.PureComponent<ProjectShareDetails
             </p>
           </div>
         </div>
-        {/* #FIXME(@taylor) */}
-        {this.props.shouldShowPrivateWarning && (<div style={{width: '100%'}}>
-          <div>
-            This project cannot be set to private because you are at the limit
-            ({this.props.privateProjectCount}/{this.props.privateProjectLimit}).
-            Upgrade for unlimited private projects and pro features.
+        {this.props.shouldShowPrivateWarning &&
+          (<div style={{width: '100%'}}>
+            <div style={STYLES.upgradeWrap}>
+              <div>
+                This project cannot be set to private because you are at the limit
+                <span style={{fontWeight: 600, marginLeft: 4}}>
+                  ({this.props.privateProjectCount}/{this.props.privateProjectLimit})
+                </span>
+              </div>
+              <div>Upgrade for unlimited private projects and pro features.</div>
+              <span onClick={this.props.explorePro} style={STYLES.btnSecondary}>Go Pro
+                  <span style={{width: 11, height: 11, display: 'inline-block', marginLeft: 4, transform: 'translateY(1px)'}}>
+                    <ExternalLinkIconSVG color={Palette.LIGHT_BLUE}/>
+                  </span>
+              </span>
+            </div>
           </div>
-          <div onClick={this.props.explorePro}>Learn more</div>
-        </div>)}
+        )}
       </div>
     );
   }
