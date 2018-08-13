@@ -16,15 +16,11 @@ export class VueCliFlavor extends CodebaseFlavor {
 
   initCodebase () {
     // TODO:  add .npmrc
-    // TODO:  add .haiku folder & relevant info
-    // TODO:  inject relevant info into package.json, incl. deps
-
-    // TODO:  generate index of supposed components
-    // May need to perform static analysis on foreign codebase?
-    //   get:  name, props,
-    // Need to generate an index of files/components, then use that to code-gen
-    // an index file for the vue-cli build, a la lib-index.ts in:
-    // > vue-cli-service build --target .haiku/host-lib --name hostLib .haiku/lib-index.js
+    // TODO:  figure out how to require & parse the component lib from a node process,
+    //        specifically: wrangle the "`document` is not defined" issues.
+    // ALTERNATIVELY:  generate a JSON manifest alongside the lib, which can be parsed
+    //                 without having to load the JS module.  Note this doesn't solve the
+    //                 static analysis issue, so this may be a non-starter.
 
     // create the src/haiku folder
     const src = this.getProjectSrcDir();
@@ -53,7 +49,7 @@ export class VueCliFlavor extends CodebaseFlavor {
     const packageJson = this.getPackageJsonAsObject();
     packageJson.scripts = packageJson.scripts || {};
     packageJson.scripts['build-lib-for-haiku'] = // TODO: parameterize these paths: (may also need to support TS vs JS)
-      'vue-cli-service build --target .haiku/host-lib --name hostLib .haiku/lib-index.js';
+      'vue-cli-service build --target lib --dest .haiku/lib --name haiku-lib .haiku/lib.index.js';
 
     // TODO: could be more careful about being a courteous neighbor, e.g. checking indentation level, or otherwise
     //       only injecting a single line into the package.json instead of
@@ -68,16 +64,15 @@ export class VueCliFlavor extends CodebaseFlavor {
     this.buildLibrary();
     // TODO:  loading = false ; patch into UI
 
+    // TODO:
+
     // load json manifest from generated library code
     return [];
   }
 
-  // Traverse fs, list all files into an index file
-  // Note that finding actual components, e.g. multiple per file or
-  // ignoring files w/o components, may have to happen by traversing
-  // the Module dynamically (after building lib,) since static analysis of an arbitrary codebase will be Hard.
+  // Traverse fs, list all files into an index file, which is written to disk
   generateIndexFile () {
-    const MATCHING_FILES = /(\.vue|\.js|\.ts)$/;
+    const MATCHING_FILES = /\.vue$/; // /(\.vue|\.js|\.ts)$/;
     const fileTree = FileSystem.walkDirectoryAndMatch(this.getProjectSrcDir(), MATCHING_FILES);
     const fileContents =
       `
@@ -87,7 +82,6 @@ export class VueCliFlavor extends CodebaseFlavor {
       `;
 
     fs.writeFileSync(this.getLibIndexFilePath(), fileContents, 'utf-8');
-    // TODO:  write fileContents to @/.haiku/lib.index.js
   }
 
   evalIndexImportsTemplate (fileTree: FolderNode): string {
@@ -176,11 +170,11 @@ export class VueCliFlavor extends CodebaseFlavor {
   }
 
   // takes an input as a integer (intended to be an array index for imported files)
-  // and determinisitically returns a unique, JS-friendly symbol (e.g. `;const mySymbol = 'some value'`)
+  // and determinisitically returns a unique, JS-friendly symbol for use as a var name
   private integerToSymbolFriendlyHash (num: number): string {
     // TODO:  support more than 26 unique hashes
     if (num < 0 || num > 25) {
-      throw new Error('this hash function needs to be upgraded to support more than 26 unique hashes');
+      throw new Error('this "hash function" needs to be upgraded to support more than 26 unique hashes');
     }
     // american airlines hack
     const NAIVE_HASH = [
