@@ -92,29 +92,16 @@ export default class Preview extends React.Component {
   render () {
     return (
       <div
-        id="haiku-glass-preview-wrapper"
+        ref={(mount) => {
+          this.mount = mount;
+        }}
+        id="haiku-stage"
         style={{
-          position: 'relative',
-          top: this.props.container.y,
-          left: this.props.container.x,
-          width: this.props.container.w,
-          height: this.props.container.h,
-        }}>
-        <div
-          ref={(mount) => {
-            this.mount = mount;
-          }}
-          id="haiku-stage"
-          style={{
-            position: 'absolute',
-            top: this.props.mount.y,
-            left: this.props.mount.x,
-            width: this.props.mount.w,
-            height: this.props.mount.h,
-            outline: '1px dotted #bbb',
-            borderRadius: '2px',
-          }} />
-      </div>
+          width: this.props.mount.w,
+          height: this.props.mount.h,
+          outline: '1px dotted #bbb',
+          borderRadius: '2px',
+        }} />
     );
   }
 }

@@ -3092,6 +3092,7 @@ export class Glass extends React.Component {
   }
 
   renderHotComponentMount (mount, drawingClassName) {
+    const opacity = this.isPreviewMode() ? 0 : (this.state.isEventHandlerEditorOpen ? 0.5 : 1.0);
     return (
       <div
         ref="mount"
@@ -3099,14 +3100,14 @@ export class Glass extends React.Component {
         id="haiku-mount-container"
         className={`${drawingClassName} no-select`}
         style={{
+          opacity,
           position: 'absolute',
           left: mount.x,
           top: mount.y,
           width: mount.w,
           height: mount.h,
-          overflow: this.isPreviewMode() ? 'hidden' : 'visible',
+          overflow: 'visible',
           zIndex: 60,
-          opacity: (this.state.isEventHandlerEditorOpen) ? 0.5 : 1.0,
         }} />
     );
   }
@@ -3731,13 +3732,12 @@ export class Glass extends React.Component {
               id="preview-container"
               style={{
                 position: 'absolute',
-                left: 0,
-                top: 0,
-                width: '100%',
-                height: '100%',
+                left: mount.x,
+                top: mount.y,
+                width: mount.w,
+                height: mount.h,
                 overflow: 'hidden',
                 zIndex: MAX_Z_INDEX - 4,
-                backgroundColor: 'white',
               }}>
               <Preview
                 container={container}
