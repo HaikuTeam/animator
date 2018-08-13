@@ -99,7 +99,7 @@ export class PublicPrivateOptInModal extends React.PureComponent<PublicPrivateOp
 
   render () {
     return (
-      <ModalWrapper style={STYLES.wrapper} onClose={this.props.onClose}>
+      <ModalWrapper style={STYLES.wrapper} onEsc={this.props.onClose}>
         <ModalHeader><h2>Confirm privacy settings</h2></ModalHeader>
         <form style={STYLES.inner}>
           <div>Please confirm your privacy settings before continuing.</div>

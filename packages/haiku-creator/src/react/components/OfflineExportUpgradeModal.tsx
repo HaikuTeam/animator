@@ -47,7 +47,7 @@ export interface OfflineExportUpgradeModalProps {
 export class OfflineExportUpgradeModal extends React.PureComponent<OfflineExportUpgradeModalProps> {
   render () {
     return (
-      <ModalWrapper style={STYLES.wrapper} onClose={this.props.onClose}>
+      <ModalWrapper style={STYLES.wrapper} onEsc={this.props.onClose}>
         <ModalHeader><h2>Subscription required</h2></ModalHeader>
         <div style={STYLES.inner}>
           <div style={STYLES.upgradeWrap}>

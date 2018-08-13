@@ -267,7 +267,10 @@ class EventHandlerEditor extends React.PureComponent {
     const applicableEventHandlers = this.handlerManager.getApplicableEventHandlers();
 
     return (
-      <ModalWrapper style={{...visibilityStyles, ...STYLES.container}} onClose={this.doCloseFromEsc}>
+      <ModalWrapper style={{...visibilityStyles, ...STYLES.container}}
+            onEsc={this.doCloseFromEsc}
+            onCmdEnter={this.doCloseFromEsc}
+            onCmdS={this.doCloseFromEsc}>
         <div
           onMouseDown={(mouseEvent) => {
             // Prevent outer view from closing us
@@ -386,9 +389,8 @@ class EventHandlerEditor extends React.PureComponent {
               />
             </ModalFooter>
           )}
-        </div>
-      </ModalWrapper>
-    );
+        </div>;
+      </ModalWrapper >);
   }
 }
 
