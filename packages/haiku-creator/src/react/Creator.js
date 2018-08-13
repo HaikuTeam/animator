@@ -2073,7 +2073,7 @@ export default class Creator extends React.Component {
                 {lodash.map(this.state.notices, this.renderNotice)}
               </div>
             </CSSTransition>
-            <SplitPanel split="horizontal" minSize={300} defaultSize={this.props.height * 0.62}>
+            <SplitPanel split="horizontal" minSize={300} defaultSize={'62vh'}>
               <SplitPanel split="vertical" minSize={300} defaultSize={300}>
                 <SideBar
                   doShowBackToDashboardButton={this.state.doShowBackToDashboardButton}

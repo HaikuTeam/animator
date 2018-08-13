@@ -17,22 +17,10 @@ export default function dom (modus, haiku) {
 
   const props = {
     medium: window,
-    width: window.innerWidth,
-    height: window.innerHeight,
     listen: (key, fn) => {
       listeners[key] = fn;
     },
   };
-
-  function resizeHandler (resizeEvent) {
-    props.width = window.innerWidth;
-    props.height = window.innerHeight;
-    if (listeners.resize) {
-      listeners.resize(props.width, props.height);
-    }
-  }
-
-  window.addEventListener('resize', lodash.debounce(resizeHandler, 64));
 
   const websocket = haiku.plumbing && !haiku.proxy.active
     ? new Websocket(
